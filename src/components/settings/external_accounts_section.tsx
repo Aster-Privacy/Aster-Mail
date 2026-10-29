@@ -231,12 +231,10 @@ export function ExternalAccountsSection() {
           <AccountList
             accounts={state.accounts}
             expanded_error_ids={state.expanded_error_ids}
-            failed_icons={state.failed_icons}
             format_sync_time={state.format_sync_time}
             handle_edit={state.handle_edit}
             handle_sync={state.handle_sync}
             handle_toggle={state.handle_toggle}
-            set_failed_icons={state.set_failed_icons}
             set_purge_target={state.set_purge_target}
             t={state.t}
             toggle_error_expand={state.toggle_error_expand}

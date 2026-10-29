@@ -29,8 +29,6 @@ import { AccountHealthSummary } from "@/components/settings/external_accounts/ac
 
 interface AccountListProps {
   accounts: DecryptedExternalAccount[];
-  failed_icons: Set<string>;
-  set_failed_icons: React.Dispatch<React.SetStateAction<Set<string>>>;
   expanded_error_ids: Set<string>;
   toggle_error_expand: (account_id: string) => void;
   format_sync_time: (date_string: string | null) => string | null;
@@ -43,8 +41,6 @@ interface AccountListProps {
 
 export function AccountList({
   accounts,
-  failed_icons,
-  set_failed_icons,
   expanded_error_ids,
   toggle_error_expand,
   format_sync_time,
@@ -78,13 +74,11 @@ export function AccountList({
           key={account.id}
           account={account}
           expanded_error_ids={expanded_error_ids}
-          failed_icons={failed_icons}
           format_sync_time={format_sync_time}
           handle_edit={handle_edit}
           handle_sync={handle_sync}
           handle_toggle={handle_toggle}
           index={index}
-          set_failed_icons={set_failed_icons}
           set_purge_target={set_purge_target}
           t={t}
           toggle_error_expand={toggle_error_expand}

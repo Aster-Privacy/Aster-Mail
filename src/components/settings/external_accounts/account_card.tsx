@@ -26,14 +26,13 @@ import {
   TrashIcon,
   PencilIcon,
   ArrowPathIcon,
-  EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
 import { Tooltip } from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
-import { FaviconImg } from "@/components/ui/favicon_or_initial";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { is_syncing as check_is_syncing } from "@/services/sync_manager";
 import {
   SyncErrorDetail,
@@ -67,8 +66,6 @@ function protocol_tooltip(protocol: string, t: UseExternalAccountsReturn["t"]) {
 interface AccountCardProps {
   account: DecryptedExternalAccount;
   index: number;
-  failed_icons: Set<string>;
-  set_failed_icons: React.Dispatch<React.SetStateAction<Set<string>>>;
   expanded_error_ids: Set<string>;
   toggle_error_expand: (account_id: string) => void;
   format_sync_time: (date_string: string | null) => string | null;
@@ -82,8 +79,6 @@ interface AccountCardProps {
 export function AccountCard({
   account,
   index,
-  failed_icons,
-  set_failed_icons,
   expanded_error_ids,
   toggle_error_expand,
   format_sync_time,
@@ -102,52 +97,13 @@ export function AccountCard({
       }
     >
       <div className="flex items-start @lg:items-center gap-3 px-4 py-3">
-        {(() => {
-          const domain = account.email.split("@")[1];
-          const icon_ok = domain && !failed_icons.has(domain);
-
-          if (icon_ok) {
-            return (
-              <div
-                className="w-8 h-8 mt-0.5 @lg:mt-0 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
-                style={{
-                  backgroundColor: account.is_enabled
-                    ? `${account.label_color}20`
-                    : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
-                }}
-              >
-                <FaviconImg
-                  alt=""
-                  className="w-full h-full object-cover"
-                  domain={domain}
-                  onError={() => {
-                    set_failed_icons((prev) => new Set([...prev, domain]));
-                  }}
-                />
-              </div>
-            );
-          }
-
-          return (
-            <div
-              className="w-8 h-8 mt-0.5 @lg:mt-0 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{
-                backgroundColor: account.is_enabled
-                  ? `${account.label_color}26`
-                  : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
-              }}
-            >
-              <EnvelopeIcon
-                className="w-5 h-5"
-                style={{
-                  color: account.is_enabled
-                    ? account.label_color
-                    : "var(--text-muted)",
-                }}
-              />
-            </div>
-          );
-        })()}
+        <ProfileAvatar
+          use_domain_logo
+          className="mt-0.5 @lg:mt-0"
+          email={account.email}
+          name={account.display_name || account.email}
+          size="sm"
+        />
 
         <div className="flex-1 min-w-0 flex flex-col @lg:flex-row @lg:items-center gap-2 @lg:gap-3">
           <div className="flex-1 min-w-0 space-y-1">

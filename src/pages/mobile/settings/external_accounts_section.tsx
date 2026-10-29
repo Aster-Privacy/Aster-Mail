@@ -47,7 +47,7 @@ import {
   SyncErrorDetail,
   SyncStatusIndicator,
 } from "@/components/settings/external_accounts/sync_status";
-import { FaviconImg } from "@/components/ui/favicon_or_initial";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { commit_on_enter } from "@/lib/commit_on_enter";
@@ -827,8 +827,6 @@ export function ExternalAccountsSection({
               <AccountHealthSummary accounts={state.accounts} t={state.t} />
             </div>
             {state.accounts.map((account) => {
-              const domain = account.email.split("@")[1];
-              const icon_ok = domain && !state.failed_icons.has(domain);
               const syncing = check_is_syncing(account.id);
 
               return (
@@ -837,45 +835,12 @@ export function ExternalAccountsSection({
                   className="overflow-hidden rounded-2xl bg-[var(--mobile-bg-card)]"
                 >
                   <div className="flex items-center gap-3 px-4 py-3.5">
-                    {icon_ok ? (
-                      <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
-                        style={{
-                          backgroundColor: account.is_enabled
-                            ? `${account.label_color}20`
-                            : "var(--bg-tertiary)",
-                        }}
-                      >
-                        <FaviconImg
-                          alt=""
-                          className="h-full w-full object-cover"
-                          domain={domain}
-                          onError={() =>
-                            state.set_failed_icons(
-                              (prev) => new Set([...prev, domain]),
-                            )
-                          }
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-                        style={{
-                          backgroundColor: account.is_enabled
-                            ? `${account.label_color}20`
-                            : "var(--bg-tertiary)",
-                        }}
-                      >
-                        <EnvelopeIcon
-                          className="h-5 w-5"
-                          style={{
-                            color: account.is_enabled
-                              ? account.label_color
-                              : "var(--text-muted)",
-                          }}
-                        />
-                      </div>
-                    )}
+                    <ProfileAvatar
+                      use_domain_logo
+                      email={account.email}
+                      name={account.display_name || account.email}
+                      size="md"
+                    />
                     <div className="min-w-0 flex-1 space-y-1">
                       <span className="block truncate text-[15px] font-medium text-[var(--text-primary)]">
                         {account.email}
