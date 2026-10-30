@@ -56,7 +56,6 @@ import {
 } from "@/lib/message_markup";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
-import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -237,7 +236,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
           return move_leading_footer_to_end(html_part);
         }
 
-        return strip_reply_quotes(message.body);
+        return message.body;
       },
       () => message.html_content || message.body || "",
     );

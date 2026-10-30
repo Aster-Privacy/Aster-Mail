@@ -94,7 +94,6 @@ import {
   normalize_alias_candidates,
   use_alias_delivery,
 } from "@/hooks/use_alias_delivery";
-import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
 import {
   message_text_alternative,
   plain_view_html,
@@ -215,7 +214,7 @@ function MobileThreadMessageContent({
       return move_leading_footer_to_end(html_part);
     }
 
-    return strip_reply_quotes(message.body);
+    return message.body;
   }, [message.body, message.html_content, password_unlocked_body]);
 
   const has_plaintext_body =

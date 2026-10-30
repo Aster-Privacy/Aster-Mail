@@ -407,3 +407,28 @@ describe("ThreadMessageBlock plain text view", () => {
     expect(menu_item("mail.show_original")).toBe(null);
   });
 });
+
+describe("ThreadMessageBlock plain-text replies", () => {
+  it("keeps the quoted history so the renderer can collapse it", async () => {
+    const body = [
+      "Thanks, that worked.",
+      "",
+      "On Oct 29, 2026, 6:40 PM, Aster Support wrote:",
+      "> Please request a new code.",
+    ].join("\n");
+
+    await render_block(
+      make_message("reply_1", {
+        body,
+        html_content: undefined,
+        text_part: undefined,
+        is_external: false,
+      }),
+    );
+
+    const rendered = last_body().html;
+
+    expect(rendered).toContain("Thanks, that worked.");
+    expect(rendered).toContain("Please request a new code.");
+  });
+});
