@@ -10340,6 +10340,10 @@ export const tr = {
       "Bu yönlendirme daha sonra gönderilmek üzere kaydedilemedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_send:
       "Bu e-posta gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    send_unconfirmed:
+      "Aster bu e-postanın gönderildiğini doğrulayamadı. Tekrar denemeden önce Gönderilmiş klasörünü kontrol edin. Taslağınız kaydedildi.",
+    scheduled_may_have_sent:
+      "Bu zamanlanmış e-posta zaten gönderilmiş olabileceği için iptal edilmedi. Gönderilmiş klasörünü kontrol edin.",
     incorrect_password:
       "Parola yanlış. Tekrar deneyin. Hesabınız kilitlenmedi.",
     no_keys_available:

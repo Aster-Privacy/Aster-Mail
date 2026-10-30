@@ -8908,6 +8908,8 @@ export interface ErrorTranslations {
   no_recipients: string;
   failed_queue_forward: string;
   failed_send: string;
+  send_unconfirmed: string;
+  scheduled_may_have_sent: string;
   incorrect_password: string;
   no_keys_available: string;
   session_expired_login: string;

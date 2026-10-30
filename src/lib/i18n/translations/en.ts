@@ -10162,6 +10162,10 @@ export const en: Translations = {
     failed_queue_forward:
       "We could not save this forward for later sending. Try again. Your draft is saved.",
     failed_send: "This email did not send. Try again. Your draft is saved.",
+    send_unconfirmed:
+      "Aster could not confirm that this email was sent. Check Sent before you try again. Your draft is saved.",
+    scheduled_may_have_sent:
+      "This scheduled email was not canceled because it may have already been sent. Check Sent.",
     incorrect_password:
       "Incorrect password. Please try again. Your account is not locked.",
     no_keys_available:

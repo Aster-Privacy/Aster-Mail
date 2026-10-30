@@ -10533,6 +10533,10 @@ export const it = {
       "Impossibile salvare questa risposta per l'invio successivo. Riprova. La bozza è salvata.",
     failed_send:
       "Questa email non è stata inviata. Riprova. La bozza è salvata.",
+    send_unconfirmed:
+      "Aster non è riuscito a confermare l'invio di questa email. Controlla Inviata prima di riprovare. La bozza è salvata.",
+    scheduled_may_have_sent:
+      "Questa email programmata non è stata annullata perché potrebbe essere già stata inviata. Controlla Inviata.",
     attachments_too_large:
       "Questi allegati superano {{size}} in totale, il massimo che un messaggio può contenere con il suo piano. Rimuova o riduca un file per inviarlo. La sua bozza è salvata.",
     too_many_attachments:

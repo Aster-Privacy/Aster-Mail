@@ -10589,6 +10589,10 @@ export const pt = {
       "Não foi possível guardar esta resposta para envio posterior. Tente novamente. O seu rascunho está guardado.",
     failed_send:
       "Este e-mail não foi enviado. Tente novamente. O seu rascunho está guardado.",
+    send_unconfirmed:
+      "O Aster não conseguiu confirmar o envio deste e-mail. Verifique Enviados antes de tentar novamente. O seu rascunho está guardado.",
+    scheduled_may_have_sent:
+      "Este e-mail agendado não foi cancelado porque pode já ter sido enviado. Verifique Enviados.",
     attachments_too_large:
       "Estes anexos somam mais de {{size}}, o máximo que uma mensagem pode levar no seu plano. Remover ou reduzir um ficheiro permitirá o envio. O seu rascunho está guardado.",
     too_many_attachments:

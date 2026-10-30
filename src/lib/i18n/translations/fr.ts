@@ -10608,6 +10608,10 @@ export const fr = {
       "Impossible d'enregistrer cette réponse pour un envoi ultérieur. Réessayez. Votre brouillon est enregistré.",
     failed_send:
       "Cet e-mail n'a pas été envoyé. Réessayez. Votre brouillon est enregistré.",
+    send_unconfirmed:
+      "Aster n'a pas pu confirmer l'envoi de cet e-mail. Vérifiez Envoyés avant de réessayer. Votre brouillon est enregistré.",
+    scheduled_may_have_sent:
+      "Cet e-mail programmé n'a pas été annulé, car il a peut-être déjà été envoyé. Vérifiez Envoyés.",
     attachments_too_large:
       "Ces pièces jointes dépassent {{size}} au total, le maximum qu'un message peut transporter avec votre forfait. Retirez ou réduisez un fichier pour pouvoir l'envoyer. Votre brouillon est enregistré.",
     too_many_attachments:

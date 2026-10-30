@@ -9301,6 +9301,8 @@ export const zh_CN = {
     failed_queue_forward:
       "我们无法保存此转发以便稍后发送。请重试。您的草稿已保存。",
     failed_send: "此邮件未能发送。请重试。您的草稿已保存。",
+    send_unconfirmed: "Aster 无法确认此邮件是否已发送。请先查看“已发送”，再重试。您的草稿已保存。",
+    scheduled_may_have_sent: "此定时邮件可能已发送，因此未取消。请查看“已发送”。",
     incorrect_password: "密码不正确。请重试。您的账户未被锁定。",
     no_keys_available:
       "您的私钥在此设备上被锁定。您的密码可以解锁它们。服务器上的密钥未受影响。",

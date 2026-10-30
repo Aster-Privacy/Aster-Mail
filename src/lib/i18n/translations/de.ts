@@ -10609,6 +10609,10 @@ export const de = {
       "Diese Antwort konnte nicht für den späteren Versand gespeichert werden. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
     failed_send:
       "Diese E-Mail wurde nicht gesendet. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
+    send_unconfirmed:
+      "Aster konnte nicht bestätigen, dass diese E-Mail gesendet wurde. Prüfen Sie „Gesendet“, bevor Sie es erneut versuchen. Ihr Entwurf ist gespeichert.",
+    scheduled_may_have_sent:
+      "Diese geplante E-Mail wurde nicht abgebrochen, da sie möglicherweise bereits gesendet wurde. Prüfen Sie „Gesendet“.",
     attachments_too_large:
       "Diese Anhänge ergeben zusammen mehr als {{size}}, das Maximum für eine Nachricht in Ihrem Tarif. Entfernen oder verkleinern Sie eine Datei, um sie zu senden. Ihr Entwurf ist gespeichert.",
     too_many_attachments:

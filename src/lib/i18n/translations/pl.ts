@@ -10685,6 +10685,10 @@ export const pl = {
       "Nie udało się zapisać tego przekazania do późniejszej wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
     failed_send:
       "Ta wiadomość nie została wysłana. Spróbuj ponownie. Szkic jest zapisany.",
+    send_unconfirmed:
+      "Aster nie może potwierdzić, że ta wiadomość została wysłana. Zanim spróbujesz ponownie, sprawdź folder Wysłane. Szkic jest zapisany.",
+    scheduled_may_have_sent:
+      "Ten zaplanowany e-mail nie został anulowany, ponieważ mógł już zostać wysłany. Sprawdź folder Wysłane.",
     incorrect_password:
       "Nieprawidłowe hasło. Spróbuj ponownie. Twoje konto nie jest zablokowane.",
     no_keys_available:

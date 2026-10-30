@@ -10449,6 +10449,10 @@ export const nl = {
       "We konden dit doorgestuurde bericht niet opslaan om later te verzenden. Probeer het opnieuw. Je concept is opgeslagen.",
     failed_send:
       "Deze e-mail is niet verzonden. Probeer het opnieuw. Je concept is opgeslagen.",
+    send_unconfirmed:
+      "Aster kon niet bevestigen dat deze e-mail is verzonden. Controleer Verzonden voordat je het opnieuw probeert. Je concept is opgeslagen.",
+    scheduled_may_have_sent:
+      "Deze geplande e-mail is niet geannuleerd, omdat hij mogelijk al is verzonden. Controleer Verzonden.",
     incorrect_password:
       "Onjuist wachtwoord. Probeer het opnieuw. Je account is niet vergrendeld.",
     no_keys_available:

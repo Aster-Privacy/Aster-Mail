@@ -10479,6 +10479,10 @@ export const es = {
       "No pudimos guardar esta respuesta para enviarla más tarde. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_send:
       "Este correo no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
+    send_unconfirmed:
+      "Aster no pudo confirmar que este correo se envió. Revisa Enviados antes de volver a intentarlo. Tu borrador está guardado.",
+    scheduled_may_have_sent:
+      "Este correo programado no se canceló porque es posible que ya se haya enviado. Revisa Enviados.",
     attachments_too_large:
       "Estos archivos adjuntos suman más de {{size}}, el máximo que puede llevar un mensaje en su plan. Quitar o reducir un archivo permitirá enviarlo. Su borrador está guardado.",
     too_many_attachments:
