@@ -329,3 +329,78 @@ describe("translate_plain_text", () => {
     expect(result).toBeNull();
   });
 });
+
+describe("digit preservation", () => {
+  it("keeps the original text when the engine changes a security code", async () => {
+    translate_impl = async (segments) =>
+      segments.map((segment) =>
+        segment.replace(/x1x/g, "x1x 7").replace("suivant", "following"),
+      );
+
+    const root = mount(
+      "<p>Utilisez le code suivant : 890963</p><p>Merci beaucoup</p>",
+    );
+
+    await translate_message_body({
+      root,
+      account_id: "acct-1",
+      message_id: "otp-digits",
+      from: "fr",
+      to: "en",
+      signal: fresh_signal(),
+    });
+
+    expect(root.textContent).toContain("890963");
+    expect(root.textContent).not.toContain("890963 7");
+    expect(root.querySelector("p")?.textContent).toBe(
+      "Utilisez le code suivant : 890963",
+    );
+  });
+
+  it("keeps the original when the engine rewrites short numbers", async () => {
+    translate_impl = async (segments) =>
+      segments.map((segment) => segment.replace("42", "24").toUpperCase());
+
+    const root = mount("<p>Votre code est 42 ici</p>");
+
+    await translate_message_body({
+      root,
+      account_id: "acct-1",
+      message_id: "short-digits",
+      from: "fr",
+      to: "en",
+      signal: fresh_signal(),
+    });
+
+    expect(root.textContent).toBe("Votre code est 42 ici");
+  });
+
+  it("accepts a translation that only reorders numbers", async () => {
+    translate_impl = async (segments) =>
+      segments.map((segment) =>
+        segment === "le 29 oct. à 19 h" ? "at 19 on Oct 29" : segment,
+      );
+
+    const root = mount("<p>le 29 oct. à 19 h</p>");
+
+    await translate_message_body({
+      root,
+      account_id: "acct-1",
+      message_id: "reorder-digits",
+      from: "fr",
+      to: "en",
+      signal: fresh_signal(),
+    });
+
+    expect(root.textContent).toBe("at 19 on Oct 29");
+  });
+
+  it("drops a translated subject that changes a code", async () => {
+    translate_impl = async (segments) =>
+      segments.map((segment) => `${segment} 1`);
+
+    expect(
+      await translate_plain_text("Code 4321", "fr", "en", fresh_signal()),
+    ).toBeNull();
+  });
+});

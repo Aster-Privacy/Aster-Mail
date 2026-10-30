@@ -28,6 +28,7 @@ const MAX_NAME_LENGTH: usize = 200;
 const MAX_SEGMENT_LENGTH: usize = 128;
 const MAX_SEGMENTS: usize = 2;
 const ASSET_TIMEOUT: Duration = Duration::from_secs(900);
+const ASSET_USER_AGENT: &str = concat!("AsterMail-Desktop/", env!("CARGO_PKG_VERSION"), " (Tauri)");
 
 fn is_safe_segment(segment: &str) -> bool {
     if segment.is_empty() || segment.len() > MAX_SEGMENT_LENGTH || segment.contains("..") {
@@ -67,6 +68,7 @@ pub async fn fetch_translation_asset(name: String) -> Result<Response, String> {
     let client = crate::http_client::shared_pinned_client()?;
     let mut response = client
         .get(url)
+        .header(reqwest::header::USER_AGENT, ASSET_USER_AGENT)
         .timeout(ASSET_TIMEOUT)
         .send()
         .await
