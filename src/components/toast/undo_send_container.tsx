@@ -29,6 +29,7 @@ import {
 } from "@/hooks/use_undo_send";
 import { is_typing } from "@/hooks/use_keyboard_shortcuts";
 import { undo_send_manager as server_undo_manager } from "@/services/undo_send_manager";
+import { settle_queued_send_drafts } from "@/services/queued_send_drafts";
 import { is_mac_platform } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
@@ -88,6 +89,12 @@ export function UndoSendContainer({
       };
 
       report_interrupted_sends();
+      settle_queued_send_drafts().catch((caught) =>
+        ignore_error(
+          "components/toast/undo_send_container:settle_queued_send_drafts",
+          caught,
+        ),
+      );
       const recheck_ms = next_interrupted_tab_send_check_ms();
       const recheck_timer =
         recheck_ms === null

@@ -1226,8 +1226,8 @@ export function use_index_page_state() {
         : undefined;
 
       open_compose_instance({
-        id: "",
-        version: 0,
+        id: payload?.draft_id ?? "",
+        version: payload?.draft_version ?? 0,
         draft_type: payload?.draft_type ?? "new",
         reply_to_id: payload?.reply_to_id,
         rfc_message_id: payload?.rfc_message_id,
