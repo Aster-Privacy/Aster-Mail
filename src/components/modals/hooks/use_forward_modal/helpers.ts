@@ -140,6 +140,21 @@ export function apply_inline_image_substitutions(
   return { content, embedded_attachment_ids };
 }
 
+export function strip_unresolved_cid_images(content: string): string {
+  if (!/cid:/i.test(content)) return content;
+
+  const doc = new DOMParser().parseFromString(content, "text/html");
+  const dangling = Array.from(doc.querySelectorAll("img")).filter((img) =>
+    /^\s*cid:/i.test(img.getAttribute("src") || ""),
+  );
+
+  if (dangling.length === 0) return content;
+
+  for (const img of dangling) img.remove();
+
+  return doc.body.innerHTML;
+}
+
 export function forward_subject_for(subject: string, prefix: string): string {
   return clamp_subject(
     subject.trim().startsWith(prefix) ? subject : `${prefix} ${subject}`,
