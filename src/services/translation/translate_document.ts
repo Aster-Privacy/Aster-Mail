@@ -123,6 +123,19 @@ export async function pending_download_bytes(
   }
 }
 
+const DIGIT_RUN = /\p{Nd}+/gu;
+
+function digit_signature(text: string): string {
+  return (text.match(DIGIT_RUN) ?? []).sort().join(" ");
+}
+
+export function preserves_digits(
+  original: string,
+  translated: string,
+): boolean {
+  return digit_signature(original) === digit_signature(translated);
+}
+
 function unmasked_acceptable(
   original: string,
   translated: string | undefined,
@@ -131,7 +144,10 @@ function unmasked_acceptable(
   if (!translated || !translated.trim() || translated === original)
     return false;
 
-  return entities.every((entity) => translated.includes(entity));
+  return (
+    entities.every((entity) => translated.includes(entity)) &&
+    preserves_digits(original, translated)
+  );
 }
 
 async function translate_segments(
@@ -272,7 +288,9 @@ export async function translate_message_body({
 
     const entry = restored[index];
 
-    if (entry.missing === 0) return entry.text;
+    if (entry.missing === 0) {
+      return preserves_digits(original, entry.text) ? entry.text : original;
+    }
 
     const fallback = retried.get(index);
 
@@ -314,6 +332,10 @@ export async function translate_plain_text(
   if (!translated || translated.length !== 1) return null;
 
   const restored = restore_entities(translated[0], entities);
+
+  if (restored.missing === 0 && !preserves_digits(text, restored.text)) {
+    return null;
+  }
 
   if (restored.missing > 0) {
     const raw = await translate_segments(engine, [text], from, to, signal);
