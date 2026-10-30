@@ -170,6 +170,7 @@ async function send_under_primary(
   sender_vault: EncryptedVault,
   body: string,
   bootstrap = false,
+  keep_recovery = false,
 ) {
   return as_party(sender_store, async () => {
     const data = await encrypt_for_ratchet_recipient(
@@ -189,7 +190,7 @@ async function send_under_primary(
           ephemeral_key: undefined as unknown as string,
           pq_ciphertext: undefined,
           pq_key_id: undefined,
-          recovery: undefined,
+          recovery: keep_recovery ? data!.recovery : undefined,
         };
 
     return parse_ratchet_envelope(
@@ -273,6 +274,28 @@ describe("mail sent from a custom address under the primary session", () => {
 
     expect(await read_as(reader_vault, PRIMARY_EMAIL, after, "m-3")).toBe(
       "after",
+    );
+  });
+
+  it("opens the recovery lane bound to the sender identity's session", async () => {
+    h.directory.set(
+      identity_url(CUSTOM_EMAIL),
+      sender_vault.ratchet_identity_public,
+    );
+
+    const sealed = await send_under_primary(
+      sender_vault,
+      "sealed",
+      false,
+      true,
+    );
+
+    expect(sealed.recipients[SUPPORT_EMAIL]?.recovery).toBeTruthy();
+    expect(await read_as(reader_vault, CUSTOM_EMAIL, sealed, "r-1")).toBe(
+      "sealed",
+    );
+    expect(await read_as(reader_vault, CUSTOM_EMAIL, sealed, "r-1")).toBe(
+      "sealed",
     );
   });
 

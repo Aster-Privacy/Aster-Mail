@@ -59,7 +59,10 @@ import {
   record_peer_identity_event,
 } from "./ratchet_verification_status";
 import { open_recovery_lane } from "./ratchet_recovery_lane";
-import { decrypt_with_peer_session } from "./ratchet_peer_session_fallback";
+import {
+  decrypt_with_peer_session,
+  peer_conversation_ids,
+} from "./ratchet_peer_session_fallback";
 import {
   archive_ratchet_state,
   load_archived_ratchet_states,
@@ -654,6 +657,26 @@ function recovery_lane_key_candidates(
   return candidates;
 }
 
+async function try_recovery_lanes(
+  data: RatchetRecipientData,
+  conversation_ids: string[],
+  sender_identity_key: string,
+  vault: EncryptedVault,
+): Promise<string | null> {
+  for (const lane_conversation_id of conversation_ids) {
+    const recovered = await try_recovery_lane(
+      data,
+      lane_conversation_id,
+      sender_identity_key,
+      vault,
+    );
+
+    if (recovered !== null) return recovered;
+  }
+
+  return null;
+}
+
 async function try_recovery_lane(
   data: RatchetRecipientData,
   conversation_id: string,
@@ -1092,9 +1115,19 @@ async function decrypt_ratchet_for_recipient(
     }
 
     if (plaintext === null || !ratchet) {
-      const recovered = await try_recovery_lane(
+      const lane_conversation_ids =
+        data.recovery && identity_status === "verified"
+          ? [
+              conversation_id,
+              ...(await peer_conversation_ids(
+                conversation_id,
+                sender_identity_key,
+              ).catch(() => [] as string[])),
+            ]
+          : [conversation_id];
+      const recovered = await try_recovery_lanes(
         data,
-        conversation_id,
+        lane_conversation_ids,
         sender_identity_key,
         vault,
       );
@@ -1109,9 +1142,9 @@ async function decrypt_ratchet_for_recipient(
         const refreshed = await fetch_refreshed_vault();
 
         if (refreshed) {
-          const recovered_refreshed = await try_recovery_lane(
+          const recovered_refreshed = await try_recovery_lanes(
             data,
-            conversation_id,
+            lane_conversation_ids,
             sender_identity_key,
             refreshed.vault,
           );

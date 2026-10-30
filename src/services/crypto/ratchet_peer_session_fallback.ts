@@ -29,6 +29,7 @@ import {
 const IDENTITY_INDEX_TTL_MS = 5 * 60 * 1000;
 const MAX_INDEXED_CONVERSATIONS = 5000;
 const MAX_MATCHED_SESSIONS = 4;
+const DEFAULT_PEER_LOCK_WAIT_MS = 5000;
 
 interface IdentityIndex {
   built_at: number;
@@ -62,8 +63,10 @@ async function load_identity_index(): Promise<Map<string, string | null>> {
   const identities = new Map<string, string | null>();
 
   for (const conversation_id of conversation_ids) {
-    if (previous.has(conversation_id)) {
-      identities.set(conversation_id, previous.get(conversation_id) ?? null);
+    const known = previous.get(conversation_id);
+
+    if (known) {
+      identities.set(conversation_id, known);
       continue;
     }
 
@@ -80,6 +83,26 @@ async function load_identity_index(): Promise<Map<string, string | null>> {
   return identities;
 }
 
+export async function peer_conversation_ids(
+  derived_conversation_id: string,
+  sender_identity_key: string,
+): Promise<string[]> {
+  if (!sender_identity_key) return [];
+
+  const identities = await load_identity_index().catch(
+    () => new Map<string, string | null>(),
+  );
+
+  return [...identities.entries()]
+    .filter(
+      ([conversation_id, identity_key]) =>
+        conversation_id !== derived_conversation_id &&
+        identity_key === sender_identity_key,
+    )
+    .map(([conversation_id]) => conversation_id)
+    .slice(0, MAX_MATCHED_SESSIONS);
+}
+
 export interface PeerSessionPlaintext {
   plaintext: string;
   ratchet: DoubleRatchet;
@@ -90,25 +113,24 @@ export async function decrypt_with_peer_session(
   derived_conversation_id: string,
   sender_identity_key: string,
   message: EncryptedMessage,
+  lock_wait_ms = DEFAULT_PEER_LOCK_WAIT_MS,
 ): Promise<PeerSessionPlaintext | null> {
   if (!sender_identity_key) return null;
 
-  const identities = await load_identity_index().catch(
-    () => new Map<string, string | null>(),
+  const candidates = await peer_conversation_ids(
+    derived_conversation_id,
+    sender_identity_key,
   );
-  const candidates = [...identities.entries()]
-    .filter(
-      ([conversation_id, identity_key]) =>
-        conversation_id !== derived_conversation_id &&
-        identity_key === sender_identity_key,
-    )
-    .map(([conversation_id]) => conversation_id)
-    .slice(0, MAX_MATCHED_SESSIONS);
 
   for (const conversation_id of candidates) {
-    const opened = await run_serialized_for_conversation(
+    const lock = { started: false, abandoned: false };
+    const attempt = run_serialized_for_conversation(
       conversation_id,
-      async () => {
+      async (): Promise<PeerSessionPlaintext | null> => {
+        if (lock.abandoned) return null;
+
+        lock.started = true;
+
         const ratchet = await load_ratchet_state(conversation_id).catch(
           () => null,
         );
@@ -129,6 +151,23 @@ export async function decrypt_with_peer_session(
         }
       },
     );
+
+    let wait_timer: ReturnType<typeof setTimeout> | undefined;
+    const timed_out = await Promise.race([
+      attempt.then(() => false),
+      new Promise<boolean>((resolve) => {
+        wait_timer = setTimeout(() => resolve(true), lock_wait_ms);
+      }),
+    ]);
+
+    clearTimeout(wait_timer);
+
+    if (timed_out && !lock.started) {
+      lock.abandoned = true;
+      continue;
+    }
+
+    const opened = await attempt;
 
     if (opened) return opened;
   }
