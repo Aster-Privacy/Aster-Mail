@@ -88,6 +88,7 @@ import {
 import { ensure_external_key_trust } from "@/services/key_trust_consent";
 import { save_failed_send_as_draft } from "@/components/compose/compose_failed_send_draft";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
+import { sanitize_header_value } from "@/services/pgp_protected_mime";
 import { ensure_post_quantum_consent } from "@/services/post_quantum_consent";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -465,7 +466,7 @@ export function use_compose_send({
             to: recipients.to,
             cc: recipients.cc.length > 0 ? recipients.cc : undefined,
             bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
-            subject,
+            subject: sanitize_header_value(subject),
             body: message,
             in_reply_to:
               edit_draft?.draft_type === "reply"
@@ -480,9 +481,11 @@ export function use_compose_send({
                 ? selected_sender?.address_hash
                 : undefined,
             sender_display_name:
-              selected_sender?.type && selected_sender.type !== "primary"
-                ? selected_sender.display_name || undefined
-                : user?.display_name || undefined,
+              sanitize_header_value(
+                (selected_sender?.type && selected_sender.type !== "primary"
+                  ? selected_sender.display_name
+                  : user?.display_name) || "",
+              ) || undefined,
             expires_at: expires_at?.toISOString(),
             attachments: offline_attachments,
           });
@@ -616,7 +619,7 @@ export function use_compose_send({
         to: recipients.to,
         cc: recipients.cc.length > 0 ? recipients.cc : undefined,
         bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
-        subject,
+        subject: sanitize_header_value(subject),
         body: message,
         thread_id,
         in_reply_to:
@@ -632,9 +635,11 @@ export function use_compose_send({
             ? selected_sender?.address_hash
             : undefined,
         sender_display_name:
-          selected_sender?.type && selected_sender.type !== "primary"
-            ? selected_sender.display_name || undefined
-            : user?.display_name || undefined,
+          sanitize_header_value(
+            (selected_sender?.type && selected_sender.type !== "primary"
+              ? selected_sender.display_name
+              : user?.display_name) || "",
+          ) || undefined,
         expires_at: expires_at?.toISOString(),
         expiry_password: expiry_password || undefined,
         secure_external: expiry_password ? true : undefined,

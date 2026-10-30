@@ -23,6 +23,8 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/lib/i18n/translations/en";
 
 const post = vi.fn();
+const patch = vi.fn();
+const remove = vi.fn();
 const private_bcc = vi.fn();
 let internal = true;
 let write_key: CryptoKey;
@@ -31,7 +33,8 @@ vi.mock("./client", () => ({
   api_client: {
     post: (...args: unknown[]) => post(...args),
     get: vi.fn(),
-    delete: vi.fn(),
+    patch: (...args: unknown[]) => patch(...args),
+    delete: (...args: unknown[]) => remove(...args),
   },
 }));
 
@@ -66,8 +69,12 @@ vi.mock("@/services/send_queue_recipients", () => ({
   plain_text_to_html: (text: string) => text.replace(/\n/g, "<br>"),
 }));
 
-const { create_scheduled_email, server_readable_content } =
-  await import("./scheduled");
+const {
+  cancel_scheduled_email,
+  create_scheduled_email,
+  reschedule_email,
+  server_readable_content,
+} = await import("./scheduled");
 
 const SOON = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString();
 const TOO_FAR = new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString();
@@ -280,6 +287,24 @@ describe("scheduled envelope", () => {
     expect(response.error).toBe("Forbidden");
   });
 
+  it("strips line breaks from the subject and sender name", async () => {
+    await create_scheduled_email(
+      {} as never,
+      content({
+        subject: "Hello\r\nBcc: x@example.com\0",
+        from: { name: "Me\nX-Extra: 1", email: "alias@example.com" },
+      }),
+      { ...OPTIONS, sender_display_name: "Me\r\nX-Extra: 1" },
+    );
+
+    const request = post.mock.calls.at(-1)![1];
+    const envelope = await open_envelope(request);
+
+    expect(envelope.subject).toBe("HelloBcc: x@example.com");
+    expect(envelope.from.name).toBe("MeX-Extra: 1");
+    expect(request.delivery.sender_display_name).toBe("MeX-Extra: 1");
+  });
+
   it("rejects times more than 28 days ahead", async () => {
     await expect(
       create_scheduled_email(
@@ -289,6 +314,43 @@ describe("scheduled envelope", () => {
       ),
     ).rejects.toThrow();
     expect(post).not.toHaveBeenCalled();
+  });
+});
+
+describe("scheduled changes", () => {
+  beforeEach(() => {
+    patch.mockReset();
+    remove.mockReset();
+  });
+
+  it("refuses to reschedule to a time that has passed", async () => {
+    const past = new Date(Date.now() - 60_000).toISOString();
+    const response = await reschedule_email("s1", past);
+
+    expect(response.error).toBe(en.mail_rules.snooze_needs_future);
+    expect(patch).not.toHaveBeenCalled();
+  });
+
+  it("reschedules to a future time", async () => {
+    patch.mockResolvedValue({ data: { id: "s1", status: "pending" } });
+
+    const response = await reschedule_email("s1", SOON);
+
+    expect(response.data?.success).toBe(true);
+    expect(patch).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not report a cancel when the server no longer has the email", async () => {
+    remove.mockResolvedValue({
+      error: "Not found",
+      code: "NOT_FOUND",
+    });
+
+    const response = await cancel_scheduled_email("s1");
+
+    expect(response.data).toBeUndefined();
+    expect(response.error).toBe(en.errors.scheduled_may_have_sent);
+    expect(response.code).toBe("NOT_FOUND");
   });
 });
 
