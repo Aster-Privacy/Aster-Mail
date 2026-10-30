@@ -33,7 +33,6 @@ import {
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_image_proxy_url } from "@/lib/image_proxy";
-import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
@@ -53,7 +52,7 @@ export function SendingMessageBlock({
       return message.html_content;
     }
 
-    return strip_reply_quotes(message.body);
+    return message.body;
   }, [message.body, message.html_content]);
   const display_name =
     current_user_name || message.sender_name || t("common.me");
