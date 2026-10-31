@@ -470,3 +470,82 @@ describe("explicit sign out flag", () => {
     expect(module.take_explicit_sign_out()).toBe(false);
   });
 });
+
+describe("session expiry keeps the device paired", () => {
+  it("keeps the pairing for a few expiries and then stops", async () => {
+    const module = await import("./desktop_device_auth");
+    const start = 1_000_000;
+
+    expect(module.keep_pairing_after_session_expiry(start)).toBe(true);
+    expect(module.keep_pairing_after_session_expiry(start + 1_000)).toBe(true);
+    expect(module.keep_pairing_after_session_expiry(start + 2_000)).toBe(true);
+    expect(module.keep_pairing_after_session_expiry(start + 3_000)).toBe(false);
+  });
+
+  it("allows another relogin once the window has passed", async () => {
+    const module = await import("./desktop_device_auth");
+    const start = 1_000_000;
+
+    for (let i = 0; i < 3; i++) {
+      module.keep_pairing_after_session_expiry(start + i);
+    }
+
+    expect(module.keep_pairing_after_session_expiry(start + 10 * 60_000)).toBe(
+      true,
+    );
+  });
+
+  it("never keeps a pairing outside the desktop app", async () => {
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__;
+    const module = await import("./desktop_device_auth");
+
+    expect(module.keep_pairing_after_session_expiry()).toBe(false);
+  });
+
+  it("leaves the device session alone when the pairing is kept", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.release_device_after_sign_out({
+      keep_pairing: true,
+      keep_other_accounts: false,
+      device_id: "device-1",
+    });
+
+    expect(invoke_mock.mock.calls.map((call) => call[0])).not.toContain(
+      "device_clear_session",
+    );
+    expect(device_state.device_id).toBe("device-1");
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "signed_in",
+    );
+  });
+
+  it("forgets only the current account when others stay signed in", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.release_device_after_sign_out({
+      keep_pairing: false,
+      keep_other_accounts: true,
+      device_id: "device-1",
+    });
+
+    expect(invoke_mock).toHaveBeenCalledWith("device_forget_account", {
+      deviceId: "device-1",
+    });
+    expect(invoke_mock.mock.calls.map((call) => call[0])).not.toContain(
+      "device_clear_session",
+    );
+  });
+
+  it("clears the device session when the pairing is not kept", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.release_device_after_sign_out({
+      keep_pairing: false,
+      keep_other_accounts: false,
+      device_id: "device-1",
+    });
+
+    expect(device_state.device_id).toBeNull();
+  });
+});

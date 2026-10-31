@@ -215,6 +215,35 @@ export async function relogin_with_retries(
   return "unavailable";
 }
 
+const EXPIRY_RELOGIN_WINDOW_MS = 10 * 60_000;
+const EXPIRY_RELOGINS_PER_WINDOW = 3;
+let expiry_relogins: number[] = [];
+
+export function keep_pairing_after_session_expiry(now = Date.now()): boolean {
+  if (!is_tauri()) return false;
+  expiry_relogins = expiry_relogins.filter(
+    (at) => now - at < EXPIRY_RELOGIN_WINDOW_MS,
+  );
+  if (expiry_relogins.length >= EXPIRY_RELOGINS_PER_WINDOW) return false;
+  expiry_relogins.push(now);
+
+  return true;
+}
+
+export async function release_device_after_sign_out(options: {
+  keep_pairing: boolean;
+  keep_other_accounts: boolean;
+  device_id: string | null | undefined;
+}): Promise<void> {
+  if (options.keep_pairing) return;
+  if (options.keep_other_accounts) {
+    await forget_device_account(options.device_id);
+
+    return;
+  }
+  await clear_device_session();
+}
+
 let explicit_sign_out = false;
 
 export function mark_explicit_sign_out(): void {
