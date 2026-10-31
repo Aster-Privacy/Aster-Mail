@@ -6464,6 +6464,11 @@ export const nl = {
     cancel_impact_reactivate_hint:
       "Er wordt niets verwijderd. Opnieuw abonneren herstelt wat is uitgeschakeld, binnen de limieten van je nieuwe abonnement.",
     cancel_impact_continue: "Doorgaan met opzeggen",
+    cancel_offer_yearly_title: "Liever jaarlijks betalen",
+    cancel_offer_yearly_description: "Je kunt je abonnement houden en minder betalen met jaarlijkse facturering.",
+    cancel_offer_both_title: "Manieren om minder te betalen",
+    cancel_offer_both_description: "Je kunt je huidige abonnement jaarlijks betalen, of overstappen naar een goedkoper abonnement en je account houden.",
+    cancel_offer_yearly_body: "Houd {{plan}} voor {{price}} per maand, jaarlijks gefactureerd. Je bespaart {{amount}} per jaar ten opzichte van maandelijkse facturering.",
     cancel_offer_title: "Liever een kleiner abonnement",
     cancel_offer_description:
       "Je kunt overstappen naar een goedkoper abonnement en je account houden.",
@@ -10401,6 +10406,8 @@ export const nl = {
       "Je sessie eindigde voordat deze e-mail kon worden verzonden. Opnieuw aanmelden verstuurt hem. Je concept is opgeslagen.",
     failed_encrypt_envelope:
       "We konden deze e-mail niet beveiligen voor verzending. Probeer het opnieuw. Je concept is opgeslagen.",
+    pgp_attachments_too_large:
+      "Deze bijlagen zijn te groot om te versleutelen met de PGP-sleutel van de ontvanger. Houd de bijlagen samen onder {{size}} om deze e-mail te versturen. Je concept is opgeslagen.",
     failed_pgp_encrypt:
       "We konden deze e-mail niet versleutelen met de PGP-sleutel van de ontvanger. Probeer het opnieuw. Je concept is opgeslagen.",
     no_authenticated_account:

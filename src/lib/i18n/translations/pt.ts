@@ -6509,6 +6509,11 @@ export const pt = {
     cancel_impact_reactivate_hint:
       "Nada é eliminado. Ao subscrever novamente, o que foi desativado é restaurado, dentro dos limites do novo plano.",
     cancel_impact_continue: "Continuar para cancelar",
+    cancel_offer_yearly_title: "Pague anualmente",
+    cancel_offer_yearly_description: "Pode manter o seu plano e pagar menos com a faturação anual.",
+    cancel_offer_both_title: "Formas de pagar menos",
+    cancel_offer_both_description: "Pode pagar o seu plano atual anualmente ou mudar para um plano mais barato e manter a sua conta.",
+    cancel_offer_yearly_body: "Mantenha o {{plan}} por {{price}} por mês, com faturação anual. Poupa {{amount}} por ano em relação à faturação mensal.",
     cancel_offer_title: "Um plano menor",
     cancel_offer_description:
       "Pode mudar para um plano mais barato e manter a sua conta.",
@@ -10565,6 +10570,8 @@ export const pt = {
       "Não foi possível guardar este rascunho de forma segura neste dispositivo. Tente novamente. O texto que escreveu continua no editor.",
     failed_encrypt_envelope:
       "Não foi possível proteger este e-mail para envio. Tente novamente. O seu rascunho está guardado.",
+    pgp_attachments_too_large:
+      "Os anexos são demasiado grandes para encriptar com a chave PGP do destinatário. Para enviar este e-mail, mantenha os anexos abaixo de {{size}} no total. O seu rascunho está guardado.",
     failed_pgp_encrypt:
       "Não foi possível encriptar este e-mail com a chave PGP do destinatário. Tente novamente. O seu rascunho está guardado.",
     failed_parse_csv:

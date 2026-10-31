@@ -19,7 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ReactNode } from "react";
-import type { DowngradeOffer } from "@/components/settings/billing/cancel_offer";
+import type {
+  DowngradeOffer,
+  YearlyOffer,
+} from "@/components/settings/billing/cancel_offer";
 
 import { button_variants } from "@aster/ui";
 
@@ -28,53 +31,82 @@ import { format_price } from "@/services/api/billing";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 
 interface CancelOfferStepProps {
-  offer: DowngradeOffer;
+  offer: DowngradeOffer | null;
+  yearly_offer?: YearlyOffer | null;
   preferred_currency: string;
   is_busy: boolean;
   keep_plan_slot?: ReactNode;
   on_switch: () => void;
+  on_switch_yearly?: () => void;
   on_back: () => void;
   on_continue: () => void;
 }
 
 export function CancelOfferStep({
   offer,
+  yearly_offer,
   preferred_currency,
   is_busy,
   keep_plan_slot,
   on_switch,
+  on_switch_yearly,
   on_back,
   on_continue,
 }: CancelOfferStepProps) {
   const { t } = use_i18n();
 
-  const price = format_price(
-    convert_cents(offer.monthly_cents, preferred_currency),
-    preferred_currency,
-  );
+  const format_cents = (cents: number) =>
+    format_price(convert_cents(cents, preferred_currency), preferred_currency);
+  const show_yearly = !!yearly_offer && !!on_switch_yearly;
 
   return (
     <div className="py-1">
-      <div className="rounded-lg border border-edge-secondary px-3.5 py-3">
-        <p className="text-sm leading-relaxed text-txt-secondary">
-          {t("settings.cancel_offer_body", {
-            plan: offer.plan_name,
-            price,
-          })}
-        </p>
-        <button
-          className={`${button_variants({ variant: "primary" })} mt-3 w-full`}
-          disabled={is_busy}
-          type="button"
-          onClick={on_switch}
-        >
-          {t("settings.cancel_offer_switch", { plan: offer.plan_name })}
-        </button>
-      </div>
+      {show_yearly && yearly_offer && (
+        <div className="rounded-lg border border-edge-secondary px-3.5 py-3">
+          <p className="text-sm leading-relaxed text-txt-secondary">
+            {t("settings.cancel_offer_yearly_body", {
+              plan: yearly_offer.plan_name,
+              price: format_cents(yearly_offer.yearly_monthly_cents),
+              amount: format_cents(yearly_offer.saving_cents),
+            })}
+          </p>
+          <button
+            className={`${button_variants({ variant: "primary" })} mt-3 w-full`}
+            disabled={is_busy}
+            type="button"
+            onClick={on_switch_yearly}
+          >
+            {t("settings.yearly_switch_action")}
+          </button>
+        </div>
+      )}
 
-      <p className="mt-3 text-xs leading-relaxed text-txt-muted">
-        {t("settings.cancel_offer_hint")}
-      </p>
+      {offer && (
+        <div
+          className={`rounded-lg border border-edge-secondary px-3.5 py-3${show_yearly ? " mt-3" : ""}`}
+        >
+          <p className="text-sm leading-relaxed text-txt-secondary">
+            {t("settings.cancel_offer_body", {
+              plan: offer.plan_name,
+              price: format_cents(offer.monthly_cents),
+            })}
+          </p>
+          <button
+            className={`${button_variants({ variant: show_yearly ? "outline" : "primary" })} mt-3 w-full`}
+            disabled={is_busy}
+            type="button"
+            onClick={on_switch}
+          >
+            {t("settings.cancel_offer_switch", { plan: offer.plan_name })}
+          </button>
+        </div>
+      )}
+
+      {offer && (
+        <p className="mt-3 text-xs leading-relaxed text-txt-muted">
+          {t("settings.cancel_offer_hint")}
+        </p>
+      )}
 
       <div className="mt-5 flex flex-row items-center gap-2">
         {keep_plan_slot}

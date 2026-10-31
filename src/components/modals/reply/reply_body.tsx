@@ -27,6 +27,7 @@ import { PencilIcon } from "@heroicons/react/24/outline";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { proxy_compose_image_sources } from "@/lib/compose_image_sources";
+import { use_compose_readable_color } from "@/hooks/use_compose_readable_color";
 import { QuotedHtmlPreview } from "@/components/compose/quoted_html_preview";
 import { CloseIcon } from "@/components/common/icons";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -149,6 +150,8 @@ export function ReplyBody({
   is_mac,
   from_mismatch,
 }: ReplyBodyProps) {
+  use_compose_readable_color(message_editor_ref);
+
   useEffect(() => {
     const el = message_editor_ref.current;
 
@@ -170,6 +173,7 @@ export function ReplyBody({
                 contentEditable
                 suppressContentEditableWarning
                 className="w-full h-full text-sm leading-relaxed border-none outline-none bg-transparent text-txt-primary"
+                data-compose-editor=""
                 data-placeholder={t("common.write_your_reply")}
                 style={{
                   minHeight: "150px",

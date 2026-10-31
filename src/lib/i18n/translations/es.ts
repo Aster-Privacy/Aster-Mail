@@ -6462,6 +6462,11 @@ export const es = {
     cancel_impact_reactivate_hint:
       "No se elimina nada. Al volver a suscribirte se restaura lo desactivado, dentro de los límites de tu nuevo plan.",
     cancel_impact_continue: "Continuar con la cancelación",
+    cancel_offer_yearly_title: "Paga al año",
+    cancel_offer_yearly_description: "Puedes conservar tu plan y pagar menos con la facturación anual.",
+    cancel_offer_both_title: "Formas de pagar menos",
+    cancel_offer_both_description: "Puedes pagar tu plan actual al año o cambiar a un plan más barato y conservar tu cuenta.",
+    cancel_offer_yearly_body: "Conserva {{plan}} por {{price}} al mes con facturación anual. Ahorras {{amount}} al año frente a la facturación mensual.",
     cancel_offer_title: "Un plan más pequeño",
     cancel_offer_description:
       "Puedes cambiar a un plan más barato y conservar tu cuenta.",
@@ -10455,6 +10460,8 @@ export const es = {
       "No pudimos guardar este borrador de forma segura en este dispositivo. Inténtalo de nuevo. Lo que escribiste sigue en el editor.",
     failed_encrypt_envelope:
       "No pudimos proteger este correo para enviarlo. Inténtalo de nuevo. Tu borrador está guardado.",
+    pgp_attachments_too_large:
+      "Los archivos adjuntos son demasiado grandes para cifrarlos con la clave PGP del destinatario. Para enviar este correo, mantén los adjuntos por debajo de {{size}} en total. Tu borrador está guardado.",
     failed_pgp_encrypt:
       "No pudimos cifrar este correo con la clave PGP del destinatario. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_parse_csv:

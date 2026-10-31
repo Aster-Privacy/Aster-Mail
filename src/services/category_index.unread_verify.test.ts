@@ -339,4 +339,73 @@ describe("category_index unread verification against the server", () => {
 
     expect(get_mail_stats.mock.calls.length).toBe(calls);
   });
+  it("publishes the server count when a verified drift cannot be reconciled", async () => {
+    seed_server(4, false);
+    await build_index_from_server();
+
+    const published: (number | null)[] = [];
+    const on_indexed = (event: Event) => {
+      published.push(
+        (event as CustomEvent<{ total: number | null }>).detail.total,
+      );
+    };
+
+    window.addEventListener(MAIL_EVENTS.INBOX_UNREAD_INDEXED, on_indexed);
+
+    try {
+      get_mail_stats.mockImplementation(async () => ({ data: { unread: 6 } }));
+      vi.setSystemTime(BASE_NOW + 60_000);
+
+      await verify_unread_against_server();
+
+      expect(get_inbox_unread_total()).toBe(4);
+      expect(published.at(-1)).toBe(6);
+
+      get_mail_stats.mockImplementation(async () => ({ data: { unread: 4 } }));
+      vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
+      vi.setSystemTime(BASE_NOW + 120_000);
+      window.dispatchEvent(
+        new CustomEvent(MAIL_EVENTS.INBOX_UNREAD_DRIFT, {
+          detail: { server_unread: 4 },
+        }),
+      );
+      await vi.advanceTimersByTimeAsync(20);
+
+      expect(published.at(-1)).toBe(4);
+    } finally {
+      window.removeEventListener(MAIL_EVENTS.INBOX_UNREAD_INDEXED, on_indexed);
+    }
+  });
+
+  it("keeps the index count when the server count changes between reads", async () => {
+    seed_server(4, false);
+    await build_index_from_server();
+
+    const published: (number | null)[] = [];
+    const on_indexed = (event: Event) => {
+      published.push(
+        (event as CustomEvent<{ total: number | null }>).detail.total,
+      );
+    };
+
+    window.addEventListener(MAIL_EVENTS.INBOX_UNREAD_INDEXED, on_indexed);
+
+    try {
+      let reads = 0;
+
+      get_mail_stats.mockImplementation(async () => {
+        reads += 1;
+
+        return { data: { unread: reads === 1 ? 6 : 7 } };
+      });
+      vi.setSystemTime(BASE_NOW + 60_000);
+
+      await verify_unread_against_server();
+
+      expect(published.includes(6)).toBe(false);
+      expect(published.includes(7)).toBe(false);
+    } finally {
+      window.removeEventListener(MAIL_EVENTS.INBOX_UNREAD_INDEXED, on_indexed);
+    }
+  });
 });

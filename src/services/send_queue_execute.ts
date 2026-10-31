@@ -46,6 +46,8 @@ import { OBSCURED_SUBJECT_PLACEHOLDER } from "./pgp_protected_mime";
 import { is_listed_pgp_recipient } from "./recipient_lock_state";
 import {
   build_client_pgp_copies,
+  client_copy_attachments_too_large,
+  CLIENT_COPY_ATTACHMENT_LIMIT_MB,
   CLIENT_COPY_PLACEHOLDER_BODY,
 } from "./client_pgp_copies";
 import {
@@ -190,9 +192,16 @@ export async function execute_send(
         ),
     )
   ) {
+    const errors = get_active_translations().errors;
+
     throw create_error(
       "encryption_failed",
-      get_active_translations().errors.failed_pgp_encrypt,
+      client_copy_attachments_too_large(all_attachments)
+        ? errors.pgp_attachments_too_large.replace(
+            "{{size}}",
+            `${CLIENT_COPY_ATTACHMENT_LIMIT_MB} MB`,
+          )
+        : errors.failed_pgp_encrypt,
     );
   }
 

@@ -6493,6 +6493,11 @@ export const de = {
     cancel_impact_reactivate_hint:
       "Nichts wird gelöscht. Ein erneutes Abo stellt Deaktiviertes wieder her, im Rahmen der Limits Ihres neuen Tarifs.",
     cancel_impact_continue: "Weiter zur Kündigung",
+    cancel_offer_yearly_title: "Stattdessen jährlich zahlen",
+    cancel_offer_yearly_description: "Sie können Ihren Tarif behalten und mit jährlicher Abrechnung weniger zahlen.",
+    cancel_offer_both_title: "Möglichkeiten, weniger zu zahlen",
+    cancel_offer_both_description: "Sie können Ihren aktuellen Tarif jährlich bezahlen oder zu einem günstigeren Tarif wechseln und Ihr Konto behalten.",
+    cancel_offer_yearly_body: "Behalten Sie {{plan}} für {{price}} pro Monat bei jährlicher Abrechnung. Sie sparen {{amount}} pro Jahr gegenüber monatlicher Abrechnung.",
     cancel_offer_title: "Stattdessen ein kleinerer Tarif",
     cancel_offer_description:
       "Sie können zu einem günstigeren Tarif wechseln und Ihr Konto behalten.",
@@ -10585,6 +10590,8 @@ export const de = {
       "Dieser Entwurf konnte auf diesem Gerät nicht sicher gespeichert werden. Versuchen Sie es erneut. Ihr eingegebener Text befindet sich weiterhin im Editor.",
     failed_encrypt_envelope:
       "Diese E-Mail konnte nicht für den Versand gesichert werden. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
+    pgp_attachments_too_large:
+      "Die Anhänge sind zu groß, um sie mit dem PGP-Schlüssel des Empfängers zu verschlüsseln. Um diese E-Mail zu senden, halten Sie die Anhänge insgesamt unter {{size}}. Ihr Entwurf ist gespeichert.",
     failed_pgp_encrypt:
       "Diese E-Mail konnte nicht mit dem PGP-Schlüssel des Empfängers verschlüsselt werden. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
     failed_parse_csv:

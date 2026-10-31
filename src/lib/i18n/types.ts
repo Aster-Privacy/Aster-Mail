@@ -6577,6 +6577,11 @@ export interface SettingsTranslations {
   cancel_impact_features_one?: string;
   cancel_impact_reactivate_hint: string;
   cancel_impact_continue: string;
+  cancel_offer_yearly_title: string;
+  cancel_offer_yearly_description: string;
+  cancel_offer_both_title: string;
+  cancel_offer_both_description: string;
+  cancel_offer_yearly_body: string;
   cancel_offer_title: string;
   cancel_offer_description: string;
   cancel_offer_body: string;
@@ -8883,6 +8888,7 @@ export interface ErrorTranslations {
   encryption_keys_unavailable: string;
   session_expired_send: string;
   failed_encrypt_envelope: string;
+  pgp_attachments_too_large: string;
   failed_pgp_encrypt: string;
   no_authenticated_account: string;
   daily_limit_reached: string;

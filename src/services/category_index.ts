@@ -1443,6 +1443,7 @@ export function get_inbox_unread_total(): number | null {
 }
 
 let published_unread_total: number | null = null;
+let unread_server_offset = 0;
 let published_unread_account: string | null = null;
 let unread_hold_started_at = 0;
 let unread_hold_timer: ReturnType<typeof setTimeout> | null = null;
@@ -1474,7 +1475,11 @@ function should_hold_published_unread(total: number | null): boolean {
 }
 
 function publish_inbox_unread(): void {
-  const total = get_inbox_unread_total();
+  const indexed_total = get_inbox_unread_total();
+  const total =
+    indexed_total === null
+      ? null
+      : Math.max(0, indexed_total + unread_server_offset);
 
   if (should_hold_published_unread(total)) return;
 
@@ -2548,6 +2553,7 @@ async function run_sync_recent(
     }
     last_build_ms = now_ms();
     session_reconciled = true;
+    unread_server_offset = 0;
     publish_inbox_unread();
 
     if (
@@ -2984,6 +2990,12 @@ let unread_verify_running = false;
 let last_unread_verify_ms = 0;
 let settled_unread_drift: { drift: number; at: number } | null = null;
 
+function set_unread_server_offset(offset: number): void {
+  if (offset === unread_server_offset) return;
+  unread_server_offset = offset;
+  publish_inbox_unread();
+}
+
 function reset_unread_verify(): void {
   if (unread_verify_timer) {
     clearTimeout(unread_verify_timer);
@@ -2991,6 +3003,7 @@ function reset_unread_verify(): void {
   }
   last_unread_verify_ms = 0;
   settled_unread_drift = null;
+  unread_server_offset = 0;
 }
 
 async function fetch_server_unread(): Promise<number | null> {
@@ -3095,6 +3108,7 @@ export async function verify_unread_against_server(): Promise<void> {
     if (indexed === null) return;
     if (indexed === server_unread) {
       settled_unread_drift = null;
+      set_unread_server_offset(0);
 
       return;
     }
@@ -3106,6 +3120,11 @@ export async function verify_unread_against_server(): Promise<void> {
     }
 
     if (unread_ids.length > UNREAD_VERIFY_ID_CAP) {
+      settled_unread_drift = {
+        drift: server_unread - indexed,
+        at: now_ms(),
+      };
+      set_unread_server_offset(server_unread - indexed);
       if (now_ms() - last_gap_rebuild_ms > GAP_REBUILD_MIN_INTERVAL_MS) {
         last_gap_rebuild_ms = now_ms();
         request_full_rebuild();
@@ -3128,10 +3147,21 @@ export async function verify_unread_against_server(): Promise<void> {
 
     const settled = get_inbox_unread_total();
 
-    settled_unread_drift =
-      settled === null || settled === server_unread
-        ? null
-        : { drift: server_unread - settled, at: now_ms() };
+    if (settled === null || settled === server_unread) {
+      settled_unread_drift = null;
+      set_unread_server_offset(0);
+
+      return;
+    }
+
+    settled_unread_drift = { drift: server_unread - settled, at: now_ms() };
+
+    const confirmed_unread = await fetch_server_unread();
+
+    if (generation !== index_generation) return;
+    if (confirmed_unread === server_unread) {
+      set_unread_server_offset(server_unread - settled);
+    }
   } catch {
     return;
   } finally {
@@ -3145,6 +3175,7 @@ function note_server_unread(server_unread: number): void {
   if (indexed === null) return;
   if (indexed === server_unread) {
     settled_unread_drift = null;
+    set_unread_server_offset(0);
 
     return;
   }
@@ -3153,6 +3184,8 @@ function note_server_unread(server_unread: number): void {
     settled_unread_drift.drift === server_unread - indexed &&
     now_ms() - settled_unread_drift.at < UNREAD_VERIFY_SETTLED_MS
   ) {
+    set_unread_server_offset(server_unread - indexed);
+
     return;
   }
   if (unread_verify_timer) return;

@@ -25,6 +25,7 @@ import { useEffect, useState } from "react";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { proxy_compose_image_sources } from "@/lib/compose_image_sources";
+import { use_compose_readable_color } from "@/hooks/use_compose_readable_color";
 import { EditableQuotedHtml } from "@/components/compose/editable_quoted_html";
 import { CloseIcon } from "@/components/common/icons";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
@@ -124,6 +125,7 @@ export function ForwardBody({
   handle_template_select,
   on_discard,
 }: ForwardBodyProps) {
+  use_compose_readable_color(message_editor_ref);
   const [has_shown_forward, set_has_shown_forward] = useState(false);
 
   useEffect(() => {
@@ -151,6 +153,7 @@ export function ForwardBody({
                 contentEditable
                 suppressContentEditableWarning
                 className="w-full text-sm leading-relaxed border-none outline-none bg-transparent text-txt-primary"
+                data-compose-editor=""
                 data-placeholder={t("mail.write_message")}
                 style={{
                   minHeight: "80px",
