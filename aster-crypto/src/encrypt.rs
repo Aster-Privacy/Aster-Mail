@@ -226,7 +226,7 @@ mod tests {
     fn test_encrypt_emits_seipdv1_for_compat() {
         // Even for modern (ECDH/X25519) recipients we emit SEIPDv1, not
         // SEIPDv2/AEAD. SEIPDv2 produces v6-format ciphertext that many clients
-        // (e.g. Proton) cannot decrypt, surfacing as unreadable PGP armor.
+        // cannot decrypt, surfacing as unreadable PGP armor.
         let recipient = generate_keypair("Modern", "modern@astermail.com").unwrap();
         let public = recipient.public_key();
 

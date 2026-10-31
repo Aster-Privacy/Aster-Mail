@@ -5744,7 +5744,7 @@ export const pt = {
     label: "Etiqueta",
     label_name: "Nome da etiqueta",
     label_color: "Cor da etiqueta",
-    label_name_placeholder: "ex.: Gmail Trabalho",
+    label_name_placeholder: "ex.: E-mail do trabalho",
     sync_settings: "Definições de sincronização",
     sync_frequency: "Frequência de sincronização",
     imap_folders: "Pastas IMAP",
@@ -7165,7 +7165,7 @@ export const pt = {
     domain_purchase_awaiting_note:
       "Ainda não recebemos o seu pagamento. Conclua o pagamento para finalizar o seu pedido, ou feche esta janela e pague mais tarde em Domínios comprados.",
     domain_purchase_done_warmup:
-      "Atenção: o DNS do seu domínio pode demorar até uma hora para se propagar pela internet, e fornecedores como o Gmail tratam domínios novos com cautela no início. A entregabilidade melhora conforme o seu domínio ganha histórico.",
+      "Atenção: o DNS do seu domínio pode demorar até uma hora para se propagar pela internet, e os grandes fornecedores de e-mail tratam domínios novos com cautela no início. A entregabilidade melhora conforme o seu domínio ganha histórico.",
     domain_purchase_create_first_address: "Crie o seu primeiro endereço",
     domain_purchase_progress_note:
       "Aguarde enquanto registamos o seu domínio e configuramos as suas caixas de correio. Normalmente, isto demora cerca de um minuto.",

@@ -335,7 +335,7 @@ pub fn import_public_key_bytes(bytes: &[u8]) -> Result<PublicKey> {
     check_import_size(bytes.len())?;
 
     // Keys arrive in two shapes: WKD serves binary OpenPGP, while HKP keyservers
-    // (keys.openpgp.org, keyserver.ubuntu.com, Proton's api.protonmail.ch) serve
+    // (keys.openpgp.org, keyserver.ubuntu.com, and provider key endpoints) serve
     // ASCII-armored blocks. Detect armor and parse accordingly so keyserver keys
     // can actually be used for encryption.
     let public_key = if bytes.starts_with(b"-----BEGIN") {

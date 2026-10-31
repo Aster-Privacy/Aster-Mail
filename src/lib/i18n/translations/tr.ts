@@ -5603,7 +5603,7 @@ export const tr = {
     label: "Etiket",
     label_name: "Etiket Adı",
     label_color: "Etiket Rengi",
-    label_name_placeholder: "örn., İş Gmail'i",
+    label_name_placeholder: "örn., İş postası",
     sync_settings: "Senkronizasyon Ayarları",
     sync_frequency: "Senkronizasyon Sıklığı",
     imap_folders: "IMAP Klasörleri",
@@ -6960,7 +6960,7 @@ export const tr = {
     domain_purchase_awaiting_note:
       "Ödemenizi henüz almadık. Siparişinizi tamamlamak için ödemeyi bitirin veya bu pencereyi kapatıp daha sonra Satın alınan alan adları bölümünden ödeyin.",
     domain_purchase_done_warmup:
-      "Not: Alan adınızın DNS'inin internete yayılması bir saati bulabilir ve Gmail gibi sağlayıcılar yepyeni alan adlarına başlangıçta temkinli yaklaşır. Alan adınız geçmiş oluşturdukça teslimat oranı iyileşir.",
+      "Not: Alan adınızın DNS'inin internete yayılması bir saati bulabilir ve büyük e-posta sağlayıcıları yepyeni alan adlarına başlangıçta temkinli yaklaşır. Alan adınız geçmiş oluşturdukça teslimat oranı iyileşir.",
     domain_purchase_create_first_address: "İlk adresinizi oluşturun",
     domain_purchase_progress_note:
       "Alan adınızı kaydedip posta kutularınızı kurarken lütfen bekleyin. Bu genellikle yaklaşık bir dakika sürer.",

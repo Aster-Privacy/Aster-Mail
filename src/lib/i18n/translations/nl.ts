@@ -5574,7 +5574,7 @@ export const nl = {
     label: "Label",
     label_name: "Labelnaam",
     label_color: "Labelkleur",
-    label_name_placeholder: "bijv. Werk Gmail",
+    label_name_placeholder: "bijv. Werkmail",
     sync_settings: "Synchronisatie-instellingen",
     sync_frequency: "Synchronisatiefrequentie",
     imap_folders: "IMAP-mappen",
@@ -6979,7 +6979,7 @@ export const nl = {
     domain_purchase_awaiting_note:
       "We hebben je betaling nog niet ontvangen. Rond het afrekenen af om je bestelling te voltooien, of sluit dit venster en betaal later via Gekochte domeinen.",
     domain_purchase_done_warmup:
-      "Let op: het kan tot een uur duren voordat de DNS van je domein zich over het internet verspreidt, en providers zoals Gmail behandelen gloednieuwe domeinen aanvankelijk voorzichtig. De bezorgbaarheid verbetert naarmate je domein historie opbouwt.",
+      "Let op: het kan tot een uur duren voordat de DNS van je domein zich over het internet verspreidt, en grote mailproviders behandelen gloednieuwe domeinen aanvankelijk voorzichtig. De bezorgbaarheid verbetert naarmate je domein historie opbouwt.",
     domain_purchase_create_first_address: "Maak je eerste adres",
     domain_purchase_progress_note:
       "Even geduld terwijl we je domein registreren en je mailboxen instellen. Dit duurt meestal ongeveer een minuut.",

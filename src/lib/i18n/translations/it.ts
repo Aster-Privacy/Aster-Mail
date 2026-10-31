@@ -5637,7 +5637,7 @@ export const it = {
     domain_purchase_awaiting_note:
       "Non abbiamo ancora ricevuto il tuo pagamento. Completa il pagamento per finalizzare l'ordine, oppure chiudi questa finestra e paga più tardi da Domini acquistati.",
     domain_purchase_done_warmup:
-      "Nota: il DNS del tuo dominio può impiegare fino a un'ora per propagarsi su internet, e provider come Gmail trattano con cautela i domini appena creati. La deliverability migliora man mano che il dominio costruisce uno storico.",
+      "Nota: il DNS del tuo dominio può impiegare fino a un'ora per propagarsi su internet, e i grandi provider di posta trattano con cautela i domini appena creati. La deliverability migliora man mano che il dominio costruisce uno storico.",
     domain_purchase_create_first_address: "Crea il tuo primo indirizzo",
     domain_purchase_progress_note:
       "Attendi mentre registriamo il tuo dominio e configuriamo le tue caselle. Di solito ci vuole circa un minuto.",
@@ -6842,7 +6842,7 @@ export const it = {
     label: "Etichetta",
     label_name: "Nome etichetta",
     label_color: "Colore etichetta",
-    label_name_placeholder: "es. Gmail lavoro",
+    label_name_placeholder: "es. Mail lavoro",
     sync_settings: "Impostazioni sincronizzazione",
     sync_frequency: "Frequenza sincronizzazione",
     imap_folders: "Cartelle IMAP",

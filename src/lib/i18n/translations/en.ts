@@ -6507,7 +6507,7 @@ export const en: Translations = {
     domain_purchase_awaiting_note:
       "We haven't received your payment yet. Finish checkout to complete your order, or close this window and pay later from Purchased domains.",
     domain_purchase_done_warmup:
-      "Heads up: it can take up to an hour for your domain's DNS to spread across the internet, and providers like Gmail treat brand-new domains cautiously at first. Deliverability improves as your domain builds history.",
+      "Heads up: it can take up to an hour for your domain's DNS to spread across the internet, and large mail providers treat brand-new domains cautiously at first. Deliverability improves as your domain builds history.",
     domain_purchase_create_first_address: "Create your first address",
     domain_purchase_progress_note:
       "Please wait while we register your domain and set up your mailboxes. This usually takes about a minute.",
@@ -6825,7 +6825,7 @@ export const en: Translations = {
     label: "Label",
     label_name: "Label Name",
     label_color: "Label Color",
-    label_name_placeholder: "e.g., Work Gmail",
+    label_name_placeholder: "e.g., Work mail",
     sync_settings: "Sync Settings",
     sync_frequency: "Sync Frequency",
     imap_folders: "IMAP Folders",

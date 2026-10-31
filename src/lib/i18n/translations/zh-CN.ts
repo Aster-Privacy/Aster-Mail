@@ -5090,7 +5090,7 @@ export const zh_CN = {
     label: "标签",
     label_name: "标签名称",
     label_color: "标签颜色",
-    label_name_placeholder: "例如：工作 Gmail",
+    label_name_placeholder: "例如：工作邮箱",
     sync_settings: "同步设置",
     sync_frequency: "同步频率",
     imap_folders: "IMAP 文件夹",
@@ -6260,7 +6260,7 @@ export const zh_CN = {
     domain_purchase_awaiting_note:
       "我们尚未收到您的付款。完成结账即可完成订单，或者关闭此窗口，稍后在已购域名中付款。",
     domain_purchase_done_warmup:
-      "请注意：您域名的 DNS 可能需要最多一小时才能在互联网上传播，Gmail 等服务商起初会谨慎对待全新域名。随着域名积累历史，送达率会逐步提升。",
+      "请注意：您域名的 DNS 可能需要最多一小时才能在互联网上传播，大型邮件服务商起初会谨慎对待全新域名。随着域名积累历史，送达率会逐步提升。",
     domain_purchase_create_first_address: "创建您的第一个地址",
     domain_purchase_progress_note:
       "请稍候，我们正在注册您的域名并设置邮箱。通常需要大约一分钟。",

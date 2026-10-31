@@ -5830,7 +5830,7 @@ export const pl = {
     label: "Etykieta",
     label_name: "Nazwa etykiety",
     label_color: "Kolor etykiety",
-    label_name_placeholder: "np. Służbowy Gmail",
+    label_name_placeholder: "np. Poczta służbowa",
     sync_settings: "Ustawienia synchronizacji",
     sync_frequency: "Częstotliwość synchronizacji",
     imap_folders: "Foldery IMAP",
@@ -7186,7 +7186,7 @@ export const pl = {
     domain_purchase_awaiting_note:
       "Nie otrzymaliśmy jeszcze Twojej płatności. Dokończ płatność, aby sfinalizować zamówienie, albo zamknij to okno i zapłać później w sekcji Kupione domeny.",
     domain_purchase_done_warmup:
-      "Uwaga: propagacja DNS Twojej domeny w internecie może potrwać do godziny, a dostawcy tacy jak Gmail początkowo ostrożnie traktują zupełnie nowe domeny. Dostarczalność poprawia się w miarę budowania historii domeny.",
+      "Uwaga: propagacja DNS Twojej domeny w internecie może potrwać do godziny, a duzi dostawcy poczty początkowo ostrożnie traktują zupełnie nowe domeny. Dostarczalność poprawia się w miarę budowania historii domeny.",
     domain_purchase_create_first_address: "Utwórz pierwszy adres",
     domain_purchase_progress_note:
       "Poczekaj, aż zarejestrujemy Twoją domenę i skonfigurujemy skrzynki. Zwykle trwa to około minuty.",

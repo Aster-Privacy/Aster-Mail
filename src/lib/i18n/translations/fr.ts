@@ -5758,7 +5758,7 @@ export const fr = {
     label: "Libellé",
     label_name: "Nom du libellé",
     label_color: "Couleur du libellé",
-    label_name_placeholder: "ex. Gmail Travail",
+    label_name_placeholder: "ex. Mail Travail",
     sync_settings: "Paramètres de synchronisation",
     sync_frequency: "Fréquence de synchronisation",
     imap_folders: "Dossiers IMAP",
@@ -7218,7 +7218,7 @@ export const fr = {
     domain_purchase_awaiting_note:
       "Nous n'avons pas encore reçu votre paiement. Terminez le paiement pour finaliser votre commande, ou fermez cette fenêtre et payez plus tard depuis Domaines achetés.",
     domain_purchase_done_warmup:
-      "À savoir : le DNS de votre domaine peut mettre jusqu'à une heure à se propager sur internet, et des fournisseurs comme Gmail traitent avec prudence les domaines tout neufs. La délivrabilité s'améliore à mesure que votre domaine se construit un historique.",
+      "À savoir : le DNS de votre domaine peut mettre jusqu'à une heure à se propager sur internet, et les grands fournisseurs de messagerie traitent avec prudence les domaines tout neufs. La délivrabilité s'améliore à mesure que votre domaine se construit un historique.",
     domain_purchase_create_first_address: "Créez votre première adresse",
     domain_purchase_progress_note:
       "Veuillez patienter pendant que nous enregistrons votre domaine et configurons vos boîtes mail. Cela prend généralement environ une minute.",

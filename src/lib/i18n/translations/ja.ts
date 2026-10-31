@@ -5603,7 +5603,7 @@ export const ja = {
     label: "ラベル",
     label_name: "ラベル名",
     label_color: "ラベルの色",
-    label_name_placeholder: "例：仕事用Gmail",
+    label_name_placeholder: "例：仕事用メール",
     sync_settings: "同期設定",
     sync_frequency: "同期頻度",
     imap_folders: "IMAPフォルダ",
@@ -6913,7 +6913,7 @@ export const ja = {
     domain_purchase_awaiting_note:
       "お支払いはまだ確認できていません。チェックアウトを完了して注文を確定するか、このウィンドウを閉じて後で「購入したドメイン」からお支払いください。",
     domain_purchase_done_warmup:
-      "ご注意: ドメインのDNSがインターネット全体に反映されるまで最大1時間かかることがあり、Gmailなどのプロバイダーは新しいドメインを最初は慎重に扱います。ドメインの実績が増えるにつれて到達率は向上します。",
+      "ご注意: ドメインのDNSがインターネット全体に反映されるまで最大1時間かかることがあり、大手メールプロバイダーは新しいドメインを最初は慎重に扱います。ドメインの実績が増えるにつれて到達率は向上します。",
     domain_purchase_create_first_address: "最初のアドレスを作成",
     domain_purchase_progress_note:
       "ドメインの登録とメールボックスの設定を行っています。通常は1分ほどで完了します。",

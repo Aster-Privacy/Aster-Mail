@@ -5569,7 +5569,7 @@ export const de = {
     label: "Label",
     label_name: "Label-Name",
     label_color: "Label-Farbe",
-    label_name_placeholder: "z.B. Arbeits-Gmail",
+    label_name_placeholder: "z.B. Arbeits-Mail",
     sync_settings: "Synchronisierungseinstellungen",
     sync_frequency: "Synchronisierungshäufigkeit",
     imap_folders: "IMAP-Ordner",
@@ -6926,7 +6926,7 @@ export const de = {
     domain_purchase_awaiting_note:
       "Wir haben Ihre Zahlung noch nicht erhalten. Schließen Sie den Bezahlvorgang ab, um Ihre Bestellung abzuschließen, oder schließen Sie dieses Fenster und zahlen Sie später unter Gekaufte Domains.",
     domain_purchase_done_warmup:
-      "Hinweis: Es kann bis zu einer Stunde dauern, bis sich das DNS Ihrer Domain im Internet verbreitet, und Anbieter wie Gmail behandeln brandneue Domains anfangs vorsichtig. Die Zustellbarkeit verbessert sich, je mehr Verlauf Ihre Domain aufbaut.",
+      "Hinweis: Es kann bis zu einer Stunde dauern, bis sich das DNS Ihrer Domain im Internet verbreitet, und große E-Mail-Anbieter behandeln brandneue Domains anfangs vorsichtig. Die Zustellbarkeit verbessert sich, je mehr Verlauf Ihre Domain aufbaut.",
     domain_purchase_create_first_address: "Erste Adresse erstellen",
     domain_purchase_progress_note:
       "Bitte warten Sie, während wir Ihre Domain registrieren und Ihre Postfächer einrichten. Das dauert in der Regel etwa eine Minute.",

@@ -5614,7 +5614,7 @@ export const ko = {
     label: "라벨",
     label_name: "라벨 이름",
     label_color: "라벨 색상",
-    label_name_placeholder: "예: 직장 Gmail",
+    label_name_placeholder: "예: 직장 메일",
     sync_settings: "동기화 설정",
     sync_frequency: "동기화 빈도",
     imap_folders: "IMAP 폴더",
@@ -6897,7 +6897,7 @@ export const ko = {
     domain_purchase_awaiting_note:
       "아직 결제가 확인되지 않았습니다. 결제를 완료해 주문을 마치거나, 이 창을 닫고 나중에 구매한 도메인에서 결제할 수 있습니다.",
     domain_purchase_done_warmup:
-      "참고: 도메인의 DNS가 인터넷에 전파되는 데 최대 1시간이 걸릴 수 있으며, Gmail 같은 제공업체는 갓 만들어진 도메인을 처음에는 신중하게 다룹니다. 도메인 이력이 쌓일수록 전달률이 좋아집니다.",
+      "참고: 도메인의 DNS가 인터넷에 전파되는 데 최대 1시간이 걸릴 수 있으며, 대형 메일 제공업체는 갓 만들어진 도메인을 처음에는 신중하게 다룹니다. 도메인 이력이 쌓일수록 전달률이 좋아집니다.",
     domain_purchase_create_first_address: "첫 주소 만들기",
     domain_purchase_progress_note:
       "도메인을 등록하고 메일함을 설정하는 동안 잠시 기다려 주세요. 보통 1분 정도 걸립니다.",

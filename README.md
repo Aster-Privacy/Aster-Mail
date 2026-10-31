@@ -13,9 +13,9 @@ You can sign up at [astermail.org](https://astermail.org). A phone number and re
 
 All Aster-to-Aster messages are end-to-end encrypted with post-quantum encryption (ML-KEM-768 and P-256 ECDH) inside an X3DH and Double Ratchet protocol, which protects against store-now-decrypt-later attacks. Subject lines are also encrypted. This means that we cannot read your subject lines, unlike other providers. Mail you send outside Aster uses standard OpenPGP (Ed25519 and Curve25519).
 
-Your keys are yours, and they are fully portable. You can export them and use them with GPG or any OpenPGP client. Public keys are published through WKD and key servers automatically, so encrypting to other Aster users happens without any setup.
+Your keys are yours, and they are fully portable. You can export them and use them with GPG or any OpenPGP client. Encryption between Aster users needs no setup. To let people outside Aster find your public key, turn on WKD or keyserver publishing in **Settings** > **Encryption**. Both are off by default.
 
-Aster runs on a zero-access architecture located in Germany. This means we store nothing we could hand over, even if we were compelled.
+Aster runs on a zero-access architecture located in Germany. Mail that arrives from outside Aster without OpenPGP encryption reaches our servers readable, and we encrypt it with your public key as soon as it arrives. Routing data such as sender and recipient addresses and timestamps stays visible to our servers, because mail can't be delivered without it.
 
 ## Getting started
 
