@@ -392,11 +392,13 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
               invalidate_mail_stats();
             }
 
-            if (valid_updates.length > 0 && succeeded_items.length === 0) {
+            if (succeeded_items.length === 0) {
               show_toast(t("common.something_went_wrong_try_again"), "error");
 
               return;
             }
+
+            const left_unread = succeeded_items.length < unread_items.length;
 
             show_action_toast({
               message: t("common.emails_marked_as_read", {
@@ -465,6 +467,10 @@ export function use_batch_actions(t: ReturnType<typeof use_i18n>["t"]) {
                 );
               },
             });
+
+            if (left_unread) {
+              show_toast(t("common.something_went_wrong_try_again"), "warning");
+            }
           } else {
             show_toast(t("common.no_unread_emails"), "info");
           }
