@@ -34,7 +34,10 @@ import {
   is_tauri,
   consume_pending_device_login,
   forget_device_account,
-  attempt_device_relogin,
+  clear_device_session,
+  clear_explicit_sign_out,
+  relogin_with_retries,
+  take_explicit_sign_out,
 } from "@/native/desktop_device_auth";
 import {
   get_current_account,
@@ -48,7 +51,15 @@ import { Logo } from "@/components/auth/auth_styles";
 import { Spinner } from "@/components/ui/spinner";
 import { ignore_error } from "@/lib/ignore_error";
 
-type GateState = "loading" | "completing" | "pair";
+type GateState = "loading" | "completing" | "pair" | "unavailable";
+
+type FinalizeOutcome = "signed_in" | "rejected" | "unavailable";
+
+const RETRY_DELAYS_MS = [10_000, 30_000, 60_000, 120_000];
+
+export function unavailable_retry_delay(round: number): number {
+  return RETRY_DELAYS_MS[Math.min(round, RETRY_DELAYS_MS.length - 1)];
+}
 
 const page_variants = {
   initial: { opacity: 0, y: 8 },
@@ -68,6 +79,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
   const [checked, set_checked] = useState(() => !is_tauri());
   const [init_key, set_init_key] = useState(0);
   const [gate_state, set_gate_state] = useState<GateState>("loading");
+  const [retry_round, set_retry_round] = useState(0);
   const prev_auth_ref = useRef(is_authenticated);
 
   const sign_in_with_session = useCallback(
@@ -97,28 +109,51 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
     let cancelled = false;
 
-    const finalize = async (pending: PendingDeviceLogin): Promise<boolean> => {
+    const finalize = async (
+      pending: PendingDeviceLogin,
+    ): Promise<FinalizeOutcome> => {
       set_gate_state("completing");
+      let session: DeviceSignInSession;
+
       try {
-        const session = await resolve_device_login_session(
+        session = await resolve_device_login_session(
           pending.login_response,
           pending.passphrase,
           pending.device_id,
         );
-
-        if (cancelled) return true;
-        await sign_in_with_session(session);
-
-        return true;
       } catch (err) {
         if (import.meta.env.DEV) console.error(err);
 
-        return false;
+        return "rejected";
+      }
+
+      if (cancelled) return "signed_in";
+      try {
+        await sign_in_with_session(session);
+        set_retry_round(0);
+
+        return "signed_in";
+      } catch (err) {
+        if (import.meta.env.DEV) console.error(err);
+
+        return "unavailable";
       }
     };
 
     (async () => {
       try {
+        if (take_explicit_sign_out()) {
+          await clear_device_session().catch((caught) =>
+            ignore_error(
+              "components/common/desktop_pair_gate:sign_out",
+              caught,
+            ),
+          );
+          if (!cancelled) set_gate_state("pair");
+
+          return;
+        }
+
         const current = await get_current_account();
         const account_device_id = current?.device_id ?? null;
 
@@ -135,25 +170,28 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
         }
 
         let pending = consume_pending_device_login();
+        let outcome: FinalizeOutcome = "rejected";
 
         if (!pending) {
-          for (let attempt = 0; attempt < 3 && !cancelled; attempt++) {
-            if (await attempt_device_relogin(device_id)) {
-              pending = consume_pending_device_login();
-              break;
-            }
-            if (attempt < 2 && !cancelled) {
-              await new Promise((resolve) =>
-                setTimeout(resolve, 1000 * (attempt + 1)),
-              );
-            }
-          }
+          outcome = await relogin_with_retries(device_id, () => cancelled);
+          if (outcome === "signed_in") pending = consume_pending_device_login();
         }
 
         if (cancelled) return;
 
         if (pending?.login_response && pending.passphrase) {
-          if (await finalize(pending)) return;
+          outcome = await finalize(pending);
+          if (outcome === "signed_in") return;
+        } else if (outcome === "signed_in") {
+          outcome = "unavailable";
+        }
+
+        if (cancelled) return;
+
+        if (outcome === "unavailable") {
+          set_gate_state("unavailable");
+
+          return;
         }
 
         await forget_device_account(device_id).catch((caught) =>
@@ -178,11 +216,37 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
     prev_auth_ref.current = is_authenticated;
 
+    if (!was_auth && is_authenticated) {
+      clear_explicit_sign_out();
+    }
+
     if (was_auth && !is_authenticated && checked && is_tauri()) {
       set_gate_state("loading");
       set_init_key((k) => k + 1);
     }
   }, [is_authenticated, checked]);
+
+  const retry_device_sign_in = useCallback(() => {
+    set_retry_round((round) => round + 1);
+    set_gate_state("loading");
+    set_init_key((k) => k + 1);
+  }, []);
+
+  useEffect(() => {
+    if (gate_state !== "unavailable" || is_authenticated) return;
+
+    const timer = setTimeout(
+      retry_device_sign_in,
+      unavailable_retry_delay(retry_round),
+    );
+
+    window.addEventListener("online", retry_device_sign_in);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("online", retry_device_sign_in);
+    };
+  }, [gate_state, is_authenticated, retry_round, retry_device_sign_in]);
 
   if (!checked) return null;
 
@@ -208,9 +272,24 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
             variants={page_variants}
           >
             <Logo />
-            <div className="mt-8">
-              <Spinner size="md" />
-            </div>
+            {gate_state === "unavailable" ? (
+              <div className="flex flex-col items-center w-full max-w-sm px-4">
+                <p className="text-sm mt-6 leading-relaxed text-txt-tertiary text-center">
+                  {t("errors.connection_failed")}
+                </p>
+                <button
+                  className="aster_btn aster_btn_depth aster_btn_xl w-full mt-6"
+                  type="button"
+                  onClick={retry_device_sign_in}
+                >
+                  {t("common.retry")}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-8">
+                <Spinner size="md" />
+              </div>
+            )}
             {gate_state === "completing" && (
               <p className="text-sm mt-4 text-txt-muted">
                 {t("auth.signing_in")}

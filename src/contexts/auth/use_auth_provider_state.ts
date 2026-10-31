@@ -94,6 +94,7 @@ import { take_post_switch_path } from "@/lib/post_switch_path";
 import {
   clear_device_session,
   forget_device_account,
+  mark_explicit_sign_out,
   is_tauri,
   read_device_passphrase,
 } from "@/native/desktop_device_auth";
@@ -412,6 +413,8 @@ export function use_auth_provider_state() {
       }
     }, 6000);
 
+    if (!(other && current_id)) mark_explicit_sign_out();
+
     try {
       api_client.begin_intentional_logout();
       try {
@@ -533,6 +536,8 @@ export function use_auth_provider_state() {
         );
       }
     }, 6000);
+
+    mark_explicit_sign_out();
 
     try {
       api_client.begin_intentional_logout();
