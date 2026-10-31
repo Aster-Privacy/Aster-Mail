@@ -27,7 +27,12 @@ import {
   get_subscription,
   read_checkout_target,
   request_checkout_resume,
+  type SubscriptionResponse,
 } from "@/services/api/billing";
+import {
+  is_activated_plan,
+  wait_for_slow_activation,
+} from "@/lib/billing_activation_poll";
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
 import { request_cache } from "@/services/api/request_cache";
 import { is_tauri_env } from "@/services/api/client/helpers";
@@ -305,47 +310,46 @@ function BillingSuccessHandler() {
 
       clear_checkout_target();
 
+      const welcome = (data: SubscriptionResponse) => {
+        invalidate_mail_stats();
+        window.dispatchEvent(new CustomEvent("aster:plan-changed"));
+        const code = data.plan.code;
+
+        if (
+          (code === "duo" || code === "family") &&
+          current_account_id &&
+          !has_seen_family_welcome(current_account_id)
+        ) {
+          const max_members = code === "duo" ? 2 : 6;
+          const storage_gb = code === "duo" ? 1024 : 3072;
+
+          mark_family_welcome_seen(current_account_id);
+          set_family_welcome({
+            plan_name: data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
+            max_members,
+            storage_pool_bytes: storage_gb * 1073741824,
+          });
+        } else if (checkout_target?.special_offer) {
+          set_offer_welcome(true);
+        } else {
+          const billing = /^(year|bien|two)/.test(
+            data.plan.billing_period || "",
+          )
+            ? "year"
+            : "month";
+
+          set_individual_welcome({ plan: code, billing });
+        }
+      };
+
       for (let i = 0; i < 8; i++) {
         await new Promise((r) => setTimeout(r, i === 0 ? 800 : 1500));
         if (disposed.current) return;
         request_cache.invalidate("/payments/v1");
         const res = await get_subscription();
-        const live = res.data?.plan.code;
-        const activated = target
-          ? live === target
-          : Boolean(live) && live !== "free";
 
-        if (res.data && activated) {
-          invalidate_mail_stats();
-          window.dispatchEvent(new CustomEvent("aster:plan-changed"));
-          const code = res.data.plan.code;
-
-          if (
-            (code === "duo" || code === "family") &&
-            current_account_id &&
-            !has_seen_family_welcome(current_account_id)
-          ) {
-            const max_members = code === "duo" ? 2 : 6;
-            const storage_gb = code === "duo" ? 1024 : 3072;
-
-            mark_family_welcome_seen(current_account_id);
-            set_family_welcome({
-              plan_name:
-                res.data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
-              max_members,
-              storage_pool_bytes: storage_gb * 1073741824,
-            });
-          } else if (checkout_target?.special_offer) {
-            set_offer_welcome(true);
-          } else {
-            const billing = /^(year|bien|two)/.test(
-              res.data.plan.billing_period || "",
-            )
-              ? "year"
-              : "month";
-
-            set_individual_welcome({ plan: code, billing });
-          }
+        if (res.data && is_activated_plan(res.data.plan.code, target)) {
+          welcome(res.data);
 
           return;
         }
@@ -358,6 +362,13 @@ function BillingSuccessHandler() {
         "info",
         TOAST_DURATION_BILLING_MS,
       );
+
+      const late = await wait_for_slow_activation(
+        target,
+        () => disposed.current,
+      );
+
+      if (late) welcome(late);
     })();
   }, [is_authenticated, current_account_id, t]);
 
