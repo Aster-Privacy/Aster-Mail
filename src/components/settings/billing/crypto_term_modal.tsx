@@ -69,6 +69,7 @@ interface CryptoTermModalProps {
   on_close: () => void;
   on_checkout_opened?: () => void;
   on_finished?: () => void;
+  on_native_invoice?: (invoice_id: string) => void | Promise<void>;
   plan_code: string;
   plan_name: string;
   monthly_price_cents: number;
@@ -117,6 +118,7 @@ export function crypto_term_modal({
   on_close,
   on_checkout_opened,
   on_finished,
+  on_native_invoice,
   plan_code,
   plan_name,
   monthly_price_cents,
@@ -336,6 +338,16 @@ export function crypto_term_modal({
     (on_finished ?? on_close)();
   };
 
+  const open_native_invoice = async (invoice_id: string) => {
+    finish_checkout();
+    if (on_native_invoice) {
+      await on_native_invoice(invoice_id);
+
+      return;
+    }
+    navigate(`/crypto-invoice/${invoice_id}`);
+  };
+
   const handle_stripe = async () => {
     set_is_loading(true);
     try {
@@ -388,8 +400,7 @@ export function crypto_term_modal({
     const key = `${coin.currency}:${coin.chain}`;
 
     if (initial_invoice_id && initial_coin_key === key) {
-      finish_checkout();
-      navigate(`/crypto-invoice/${initial_invoice_id}`);
+      await open_native_invoice(initial_invoice_id);
 
       return;
     }
@@ -414,8 +425,7 @@ export function crypto_term_modal({
           chain: coin.chain,
         });
         notify_crypto_invoice_changed();
-        finish_checkout();
-        navigate(`/crypto-invoice/${response.data.id}`);
+        await open_native_invoice(response.data.id);
 
         return;
       }

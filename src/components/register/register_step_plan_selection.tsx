@@ -566,6 +566,19 @@ export const RegisterStepPlanSelection = ({
     set_pending_family_tier(null);
   }, [pending_family_tier]);
 
+  const open_native_invoice = useCallback(
+    async (invoice_id: string) => {
+      set_is_finalizing(true);
+      safe_local_set("show_onboarding", "true");
+      try {
+        await reg.finalize_registration(`/crypto-invoice/${invoice_id}`);
+      } catch {
+        set_is_finalizing(false);
+      }
+    },
+    [reg],
+  );
+
   const handle_continue_free = useCallback(async () => {
     if (is_finalizing) return;
     set_is_finalizing(true);
@@ -1177,7 +1190,6 @@ export const RegisterStepPlanSelection = ({
 
       {crypto_family_tier && (
         <CryptoTermModal
-          enable_native={false}
           is_open={!!crypto_family_tier}
           monthly_price_cents={crypto_family_tier.monthly_cents}
           on_checkout_opened={clear_first_run_plan}
@@ -1188,6 +1200,7 @@ export const RegisterStepPlanSelection = ({
             set_pending_family_tier(tier);
           }}
           on_finished={() => set_crypto_family_tier(null)}
+          on_native_invoice={open_native_invoice}
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
           preferred_currency={currency}
@@ -1322,7 +1335,6 @@ export const RegisterStepPlanSelection = ({
 
       {crypto_tier && (
         <CryptoTermModal
-          enable_native={false}
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.tier.monthly_cents}
           on_checkout_opened={clear_first_run_plan}
@@ -1333,6 +1345,7 @@ export const RegisterStepPlanSelection = ({
             set_pending_tier(tier);
           }}
           on_finished={() => set_crypto_tier(null)}
+          on_native_invoice={open_native_invoice}
           plan_code={crypto_tier.plan.code}
           plan_name={crypto_tier.tier.name}
           preferred_currency={currency}
