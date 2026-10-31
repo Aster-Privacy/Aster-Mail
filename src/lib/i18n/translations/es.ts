@@ -10460,6 +10460,8 @@ export const es = {
       "No pudimos guardar este borrador de forma segura en este dispositivo. Inténtalo de nuevo. Lo que escribiste sigue en el editor.",
     failed_encrypt_envelope:
       "No pudimos proteger este correo para enviarlo. Inténtalo de nuevo. Tu borrador está guardado.",
+    pgp_attachments_too_large:
+      "Los archivos adjuntos son demasiado grandes para cifrarlos con la clave PGP del destinatario. Para enviar este correo, mantén los adjuntos por debajo de {{size}} en total. Tu borrador está guardado.",
     failed_pgp_encrypt:
       "No pudimos cifrar este correo con la clave PGP del destinatario. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_parse_csv:

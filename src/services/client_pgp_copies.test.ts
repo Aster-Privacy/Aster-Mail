@@ -38,6 +38,8 @@ vi.mock("./send_queue_signed_mime", () => ({
 import {
   build_client_pgp_copies,
   build_signed_mime_entity,
+  client_copy_attachments_too_large,
+  CLIENT_COPY_ATTACHMENT_LIMIT_MB,
   decide_recipient_encryption,
   type ClientPgpCopyParams,
 } from "./client_pgp_copies";
@@ -327,6 +329,17 @@ describe("build_client_pgp_copies", () => {
       ),
     ).toBeUndefined();
     expect(discover).not.toHaveBeenCalled();
+  });
+
+  it("reports when attachments exceed the copy limit", () => {
+    expect(CLIENT_COPY_ATTACHMENT_LIMIT_MB).toBe(11);
+    expect(
+      client_copy_attachments_too_large([attachment(12 * 1024 * 1024)]),
+    ).toBe(true);
+    expect(
+      client_copy_attachments_too_large([attachment(10 * 1024 * 1024)]),
+    ).toBe(false);
+    expect(client_copy_attachments_too_large([])).toBe(false);
   });
 
   it("carries attachments inside the encrypted copy", async () => {

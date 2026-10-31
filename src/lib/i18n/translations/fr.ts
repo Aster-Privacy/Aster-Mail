@@ -10589,6 +10589,8 @@ export const fr = {
       "Impossible d'enregistrer ce brouillon de manière sécurisée sur cet appareil. Réessayez. Votre texte est toujours dans l'éditeur.",
     failed_encrypt_envelope:
       "Impossible de sécuriser cet e-mail pour l'envoi. Réessayez. Votre brouillon est enregistré.",
+    pgp_attachments_too_large:
+      "Les pièces jointes sont trop volumineuses pour être chiffrées avec la clé PGP du destinataire. Pour envoyer cet e-mail, gardez les pièces jointes sous {{size}} au total. Votre brouillon est enregistré.",
     failed_pgp_encrypt:
       "Impossible de chiffrer cet e-mail avec la clé PGP du destinataire. Réessayez. Votre brouillon est enregistré.",
     failed_parse_csv:

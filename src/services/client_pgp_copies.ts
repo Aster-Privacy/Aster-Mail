@@ -86,6 +86,15 @@ function attachment_bytes(attachments: Attachment[]): number {
   );
 }
 
+export const CLIENT_COPY_ATTACHMENT_LIMIT_MB =
+  MAX_COPY_ATTACHMENT_BYTES / (1024 * 1024);
+
+export function client_copy_attachments_too_large(
+  attachments: Attachment[],
+): boolean {
+  return attachment_bytes(attachments) > MAX_COPY_ATTACHMENT_BYTES;
+}
+
 function unique_recipients(recipients: string[]): string[] {
   const seen = new Set<string>();
   const unique: string[] = [];

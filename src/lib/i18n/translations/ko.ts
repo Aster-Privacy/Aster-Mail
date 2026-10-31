@@ -10001,6 +10001,8 @@ export const ko = {
       "세션이 종료되어 이메일을 보낼 수 없습니다. 다시 로그인하면 됩니다.",
     failed_encrypt_envelope:
       "이 이메일을 보낼 수 있도록 보호하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+    pgp_attachments_too_large:
+      "첨부 파일이 너무 커서 수신자의 PGP 키로 암호화할 수 없습니다. 이 이메일을 보내려면 첨부 파일 합계를 {{size}} 미만으로 줄이세요. 임시 보관함에 저장되었습니다.",
     failed_pgp_encrypt:
       "수신자의 PGP 키로 이 이메일을 암호화하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     no_authenticated_account:

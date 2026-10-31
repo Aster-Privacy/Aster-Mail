@@ -10406,6 +10406,8 @@ export const nl = {
       "Je sessie eindigde voordat deze e-mail kon worden verzonden. Opnieuw aanmelden verstuurt hem. Je concept is opgeslagen.",
     failed_encrypt_envelope:
       "We konden deze e-mail niet beveiligen voor verzending. Probeer het opnieuw. Je concept is opgeslagen.",
+    pgp_attachments_too_large:
+      "Deze bijlagen zijn te groot om te versleutelen met de PGP-sleutel van de ontvanger. Houd de bijlagen samen onder {{size}} om deze e-mail te versturen. Je concept is opgeslagen.",
     failed_pgp_encrypt:
       "We konden deze e-mail niet versleutelen met de PGP-sleutel van de ontvanger. Probeer het opnieuw. Je concept is opgeslagen.",
     no_authenticated_account:

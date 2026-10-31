@@ -8888,6 +8888,7 @@ export interface ErrorTranslations {
   encryption_keys_unavailable: string;
   session_expired_send: string;
   failed_encrypt_envelope: string;
+  pgp_attachments_too_large: string;
   failed_pgp_encrypt: string;
   no_authenticated_account: string;
   daily_limit_reached: string;

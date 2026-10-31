@@ -10642,6 +10642,8 @@ export const pl = {
       "Sesja wygasła przed wysłaniem tej wiadomości. Zalogowanie ponownie ją wyśle. Wersja robocza jest zapisana.",
     failed_encrypt_envelope:
       "Nie udało się zabezpieczyć tej wiadomości do wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
+    pgp_attachments_too_large:
+      "Załączniki są zbyt duże, aby zaszyfrować je kluczem PGP odbiorcy. Aby wysłać tę wiadomość, ogranicz łączny rozmiar załączników do mniej niż {{size}}. Szkic jest zapisany.",
     failed_pgp_encrypt:
       "Nie udało się zaszyfrować tej wiadomości kluczem PGP odbiorcy. Spróbuj ponownie. Szkic jest zapisany.",
     no_authenticated_account:

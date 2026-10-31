@@ -10570,6 +10570,8 @@ export const pt = {
       "Não foi possível guardar este rascunho de forma segura neste dispositivo. Tente novamente. O texto que escreveu continua no editor.",
     failed_encrypt_envelope:
       "Não foi possível proteger este e-mail para envio. Tente novamente. O seu rascunho está guardado.",
+    pgp_attachments_too_large:
+      "Os anexos são demasiado grandes para encriptar com a chave PGP do destinatário. Para enviar este e-mail, mantenha os anexos abaixo de {{size}} no total. O seu rascunho está guardado.",
     failed_pgp_encrypt:
       "Não foi possível encriptar este e-mail com a chave PGP do destinatário. Tente novamente. O seu rascunho está guardado.",
     failed_parse_csv:

@@ -10297,6 +10297,8 @@ export const tr = {
       "Bu e-posta gönderilmeden önce oturumunuz sona erdi. Yeniden oturum açmak onu gönderir. Taslağınız kaydedildi.",
     failed_encrypt_envelope:
       "Bu e-posta gönderim için güvenli hale getirilemedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    pgp_attachments_too_large:
+      "Ekler, alıcının PGP anahtarıyla şifrelenemeyecek kadar büyük. Bu e-postayı göndermek için eklerin toplam boyutunu {{size}} altında tutun. Taslağınız kaydedildi.",
     failed_pgp_encrypt:
       "Bu e-posta alıcının PGP anahtarıyla şifrelenemedi. Tekrar deneyin. Taslağınız kaydedildi.",
     no_authenticated_account:

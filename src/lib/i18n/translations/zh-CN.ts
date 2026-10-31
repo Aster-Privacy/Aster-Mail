@@ -9264,6 +9264,8 @@ export const zh_CN = {
       "您的会话在此邮件发送前结束。重新登录后将发送它。您的草稿已保存。",
     failed_encrypt_envelope:
       "我们无法为发送此邮件进行安全处理。请重试。您的草稿已保存。",
+    pgp_attachments_too_large:
+      "附件过大，无法使用收件人的 PGP 密钥加密。要发送此邮件，请将附件总大小控制在 {{size}} 以内。您的草稿已保存。",
     failed_pgp_encrypt:
       "我们无法使用收件人的 PGP 密钥加密此邮件。请重试。您的草稿已保存。",
     no_authenticated_account: "在此设备上未找到已登录的账户。请登录以继续。",

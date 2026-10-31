@@ -10118,6 +10118,8 @@ export const en: Translations = {
       "Your session ended before this email could send. Signing in again will send it. Your draft is saved.",
     failed_encrypt_envelope:
       "We could not secure this email for sending. Try again. Your draft is saved.",
+    pgp_attachments_too_large:
+      "These attachments are too large to encrypt with the recipient's PGP key. To send this email, keep attachments under {{size}} in total. Your draft is saved.",
     failed_pgp_encrypt:
       "We could not encrypt this email with the recipient's PGP key. Try again. Your draft is saved.",
     no_authenticated_account:

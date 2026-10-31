@@ -10590,6 +10590,8 @@ export const de = {
       "Dieser Entwurf konnte auf diesem Gerät nicht sicher gespeichert werden. Versuchen Sie es erneut. Ihr eingegebener Text befindet sich weiterhin im Editor.",
     failed_encrypt_envelope:
       "Diese E-Mail konnte nicht für den Versand gesichert werden. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
+    pgp_attachments_too_large:
+      "Die Anhänge sind zu groß, um sie mit dem PGP-Schlüssel des Empfängers zu verschlüsseln. Um diese E-Mail zu senden, halten Sie die Anhänge insgesamt unter {{size}}. Ihr Entwurf ist gespeichert.",
     failed_pgp_encrypt:
       "Diese E-Mail konnte nicht mit dem PGP-Schlüssel des Empfängers verschlüsselt werden. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
     failed_parse_csv:

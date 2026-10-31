@@ -10514,6 +10514,8 @@ export const it = {
       "Impossibile salvare questa bozza in modo sicuro su questo dispositivo. Riprova. Il testo che hai scritto è ancora nell'editor.",
     failed_encrypt_envelope:
       "Impossibile proteggere questa email per l'invio. Riprova. La bozza è salvata.",
+    pgp_attachments_too_large:
+      "Gli allegati sono troppo grandi per essere crittografati con la chiave PGP del destinatario. Per inviare questa email, mantieni gli allegati sotto {{size}} in totale. La bozza è salvata.",
     failed_pgp_encrypt:
       "Impossibile crittografare questa email con la chiave PGP del destinatario. Riprova. La bozza è salvata.",
     failed_parse_csv:
