@@ -22,6 +22,8 @@ const DB_NAME = "astermail_device_key";
 const DB_VERSION = 1;
 const STORE_NAME = "wrap_keys";
 const WRAP_KEY_ID = "device_wrap_key_v2";
+const KEY_CHECK_ATTEMPTS = 3;
+const KEY_CHECK_RETRY_MS = 150;
 
 let cached_wrap_key: CryptoKey | null = null;
 let wrap_key_promise: Promise<CryptoKey | null> | null = null;
@@ -134,6 +136,44 @@ async function key_survives_round_trip(key: CryptoKey): Promise<boolean> {
   }
 }
 
+function pause(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function key_usable_after_retries(key: CryptoKey): Promise<boolean> {
+  for (let attempt = 0; attempt < KEY_CHECK_ATTEMPTS; attempt++) {
+    if (await key_survives_round_trip(key)) {
+      return true;
+    }
+
+    if (attempt < KEY_CHECK_ATTEMPTS - 1) {
+      await pause(KEY_CHECK_RETRY_MS * (attempt + 1));
+    }
+  }
+
+  return false;
+}
+
+async function read_stored_key_with_retries(
+  db: IDBDatabase,
+): Promise<CryptoKey | null> {
+  let last_error: unknown = null;
+
+  for (let attempt = 0; attempt < KEY_CHECK_ATTEMPTS; attempt++) {
+    try {
+      return await read_stored_key(db);
+    } catch (caught) {
+      last_error = caught;
+    }
+
+    if (attempt < KEY_CHECK_ATTEMPTS - 1) {
+      await pause(KEY_CHECK_RETRY_MS * (attempt + 1));
+    }
+  }
+
+  throw last_error ?? new Error("device_key_store: read failed");
+}
+
 function claim_key_slot(
   db: IDBDatabase,
   candidate: CryptoKey,
@@ -182,13 +222,13 @@ async function load_or_create_wrap_key(): Promise<CryptoKey | null> {
     let slot_is_unusable = false;
 
     try {
-      existing = await read_stored_key(db);
+      existing = await read_stored_key_with_retries(db);
     } catch {
       slot_is_unusable = true;
     }
 
     if (existing) {
-      if (await key_survives_round_trip(existing)) {
+      if (await key_usable_after_retries(existing)) {
         return existing;
       }
 
@@ -210,7 +250,7 @@ async function load_or_create_wrap_key(): Promise<CryptoKey | null> {
     );
     const claimed = await claim_key_slot(db, candidate);
 
-    if (await key_survives_round_trip(claimed)) {
+    if (await key_usable_after_retries(claimed)) {
       return claimed;
     }
 
