@@ -422,7 +422,7 @@ export function crypto_addon_term_modal({
                 {t("settings.crypto_rate_notice")}
               </p>
               <div className="mt-3">
-                <Notice role="note">
+                <Notice role="note" tone="neutral">
                   {t("settings.crypto_exchange_warning")}
                 </Notice>
               </div>

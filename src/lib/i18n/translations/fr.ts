@@ -9814,6 +9814,8 @@ export const fr = {
     checkout_confirm_title: "Terminer la connexion",
     checkout_confirm_description:
       "Votre achat est terminé. Pour ouvrir votre boîte de réception, continuez en tant que {{email}}.",
+    checkout_confirm_description_crypto:
+      "Votre compte est prêt. Pour finaliser le paiement, continuez en tant que {{email}}.",
     enter_backup_code: "Saisir le code de secours",
     backup_code_length_error:
       "Un code de secours comporte 12 caractères (8 pour les anciens codes). Vérifiez le code et réessayez.",

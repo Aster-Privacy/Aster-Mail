@@ -621,6 +621,7 @@ export function render_billing_dialogs(
 
       {crypto_family_tier && (
         <CryptoTermModal
+          initial_term_months={billing_period === "monthly" ? 1 : 12}
           is_open={!!crypto_family_tier}
           monthly_price_cents={crypto_family_tier.monthly_cents}
           on_close={() => {

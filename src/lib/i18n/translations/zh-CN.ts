@@ -8630,6 +8630,8 @@ export const zh_CN = {
     checkout_confirm_title: "完成登录",
     checkout_confirm_description:
       "您的购买已完成。要打开邮箱，请以 {{email}} 身份继续。",
+    checkout_confirm_description_crypto:
+      "您的账户已就绪。要完成付款，请以 {{email}} 继续。",
     enter_backup_code: "输入备份代码",
     backup_code_length_error:
       "备份码为 12 个字符（旧版为 8 个）。请检查备份码后重试。",

@@ -778,7 +778,13 @@ export function PlanPaymentMethodModal({
                     </div>
                   ) : (
                     active_option.save_cents > 0 && (
-                      <div className="plan_galaxy_text_body">
+                      <div
+                        className="flex justify-end text-[11px] font-semibold"
+                        style={{
+                          color:
+                            "var(--plan_galaxy_accent, var(--accent-color, #3b82f6))",
+                        }}
+                      >
                         {t("settings.checkout_term_save", {
                           amount: format_price(active_option.save_cents),
                         })}

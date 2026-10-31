@@ -21,11 +21,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
 
 import { CreditsSection } from "./credits_section";
 
 import {
+  create_crypto_native_credit_invoice,
   get_credit_packages,
+  get_crypto_native_coins,
   purchase_credits,
   type CreditPackageItem,
 } from "@/services/api/billing";
@@ -34,6 +37,8 @@ vi.mock("@/services/api/billing", () => ({
   get_credit_packages: vi.fn(),
   purchase_credits: vi.fn(),
   purchase_credits_crypto: vi.fn(),
+  get_crypto_native_coins: vi.fn(),
+  create_crypto_native_credit_invoice: vi.fn(),
   get_credit_transactions: vi.fn(),
   update_credit_settings: vi.fn(),
   format_price: (cents: number) => `$${(cents / 100).toFixed(2)}`,
@@ -50,10 +55,17 @@ vi.mock("@/components/toast/simple_toast", () => ({
 
 vi.mock("@/components/settings/billing/billing_constants", () => ({
   convert_cents: (cents: number) => cents,
+  notify_crypto_invoice_changed: vi.fn(),
+}));
+
+vi.mock("@/pages/crypto_invoice/prefetch", () => ({
+  prefetch_crypto_invoice_page: vi.fn(),
 }));
 
 const mocked_packages = vi.mocked(get_credit_packages);
 const mocked_purchase = vi.mocked(purchase_credits);
+const mocked_coins = vi.mocked(get_crypto_native_coins);
+const mocked_credit_invoice = vi.mocked(create_crypto_native_credit_invoice);
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -81,11 +93,13 @@ describe("CreditsSection top-up bfcache restore", () => {
   const render_section = async () => {
     await act(async () => {
       root.render(
-        <CreditsSection
-          credit_balance={null}
-          preferred_currency="usd"
-          set_credit_balance={vi.fn()}
-        />,
+        <MemoryRouter>
+          <CreditsSection
+            credit_balance={null}
+            preferred_currency="usd"
+            set_credit_balance={vi.fn()}
+          />
+        </MemoryRouter>,
       );
     });
   };
@@ -101,6 +115,8 @@ describe("CreditsSection top-up bfcache restore", () => {
     root = createRoot(container);
     mocked_packages.mockReset();
     mocked_purchase.mockReset();
+    mocked_coins.mockReset();
+    mocked_credit_invoice.mockReset();
     mocked_packages.mockResolvedValue({ data: { packages: [PACKAGE] } });
   });
 
@@ -195,11 +211,13 @@ describe("CreditsSection top-up review and pay", () => {
   const render_section = async () => {
     await act(async () => {
       root.render(
-        <CreditsSection
-          credit_balance={null}
-          preferred_currency="usd"
-          set_credit_balance={vi.fn()}
-        />,
+        <MemoryRouter>
+          <CreditsSection
+            credit_balance={null}
+            preferred_currency="usd"
+            set_credit_balance={vi.fn()}
+          />
+        </MemoryRouter>,
       );
     });
   };
@@ -222,6 +240,8 @@ describe("CreditsSection top-up review and pay", () => {
     root = createRoot(container);
     mocked_packages.mockReset();
     mocked_purchase.mockReset();
+    mocked_coins.mockReset();
+    mocked_credit_invoice.mockReset();
     mocked_packages.mockResolvedValue({ data: { packages: [BONUS_PACKAGE] } });
   });
 
@@ -282,5 +302,54 @@ describe("CreditsSection top-up review and pay", () => {
         el.textContent?.includes("settings.checkout_abandon_title"),
       ),
     ).toBe(true);
+  });
+
+  it("offers self-custodial coins for a crypto top-up", async () => {
+    mocked_coins.mockResolvedValue({
+      data: {
+        enabled: true,
+        coins: [
+          {
+            currency: "BTC",
+            chain: "bitcoin",
+            display_name: "Bitcoin",
+            recommended: true,
+          },
+        ],
+      },
+    } as Awaited<ReturnType<typeof get_crypto_native_coins>>);
+    mocked_credit_invoice.mockResolvedValue({
+      data: { id: "inv_1" },
+    } as Awaited<ReturnType<typeof create_crypto_native_credit_invoice>>);
+
+    await open_picker();
+
+    await act(async () => {
+      Array.from(document.body.querySelectorAll('[role="radio"]'))
+        .find((el) =>
+          el.textContent?.includes("settings.checkout_method_crypto"),
+        )!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    await act(async () => {
+      find_button("settings.buy_credits")!.click();
+    });
+
+    const coin_button = find_button("Bitcoin");
+
+    expect(coin_button).toBeDefined();
+    expect(find_button("settings.crypto_native_stripe_option")).toBeDefined();
+
+    await act(async () => {
+      coin_button!.click();
+    });
+
+    expect(mocked_credit_invoice).toHaveBeenCalledWith(
+      "pkg_25",
+      "BTC",
+      "bitcoin",
+    );
+    expect(mocked_purchase).not.toHaveBeenCalled();
   });
 });

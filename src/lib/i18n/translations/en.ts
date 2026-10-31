@@ -3333,7 +3333,7 @@ export const en: Translations = {
     iconic_sounds_description:
       "Play Aster sounds when you send or undo mail, start a message, attach files, archive or move mail, and see an error.",
     notification_sound: "Notification sound",
-    current_plan: "Current Plan",
+    current_plan: "Current plan",
     free: "Free",
     or_pay_with_card: "Or pay with card",
     cardholder_name_placeholder: "Full name",
@@ -3459,7 +3459,7 @@ export const en: Translations = {
       "Your subscription will remain active until the end of the current billing period. After that, you will be moved to the free plan.",
     keep_plan: "Keep Plan",
     cancelling: "Cancelling...",
-    continue_to_checkout: "Continue to Checkout",
+    continue_to_checkout: "Continue to checkout",
     redirect_payment_description:
       "You will be redirected to our secure payment provider to complete your purchase.",
     billing_unavailable:
@@ -3523,9 +3523,9 @@ export const en: Translations = {
       "Crypto pricing is not available for this plan. Please contact support.",
     crypto_charged_in_usd: "Charged in USD.",
     crypto_rate_notice:
-      "When you pick a coin we lock an exchange rate and show you the exact amount to send. The rate holds for 60 minutes on every network. Nothing is taken from you until you send the payment yourself.",
+      "When you pick a coin, we lock an exchange rate and show you the exact amount to send. The rate holds for 60 minutes on every network. Nothing is taken from you until you send the payment yourself.",
     crypto_exchange_warning:
-      "Pay from a wallet you control. If you send funds from an exchange or a swap service, the payment arrives from an address that is not yours and the processor cannot match it to your order. Complete the payment within the time the checkout page shows.",
+      "Pay from a wallet you control. If you send funds from an exchange or a swap service, the payment comes from an address that isn't yours, and we can't match it to your order. Complete the payment within the time the checkout page shows.",
     crypto_energy_toggle: "Energy use of these networks",
     crypto_energy_btc:
       "Bitcoin: an estimated 700 to 1,400 kWh per transaction. Source: Cambridge Bitcoin Electricity Consumption Index, 2026.",
@@ -3554,7 +3554,7 @@ export const en: Translations = {
       "You have created too many crypto invoices today. Please try again later.",
     crypto_native_invoice_title: "Pay with {{coin}}",
     crypto_native_awaiting_body:
-      "Send the exact amount to the address below. This page will update automatically.",
+      "Send the exact amount to the address below. This page updates automatically.",
     crypto_native_received_title: "Payment received",
     crypto_native_received_body:
       "The full amount has been received and is being processed. No further payment is needed.",
@@ -5181,14 +5181,14 @@ export const en: Translations = {
     credit_type_crypto_overpayment_reversal: "Overpayment reversal",
     credit_type_prepaid_switch_residual: "Plan change",
     credit_type_prepaid_switch_residual_reversal: "Plan change reversal",
-    top_up_credits: "Top Up",
+    top_up_credits: "Top up",
     top_up_credits_description:
       "Add credits to your account. Credits apply automatically toward plan renewals.",
     credit_packages_loading: "Loading packages...",
     credit_packages_failed: "Credit packages did not load.",
     credit_package_bonus: "+{{ bonus }} bonus",
     credit_package_total: "{{ total }} total",
-    buy_credits: "Buy Credits",
+    buy_credits: "Buy credits",
     buy_credits_crypto: "Pay with Crypto",
     buying_credits: "Redirecting...",
     credit_purchase_error: "Could not start checkout. Please try again.",
@@ -9516,6 +9516,8 @@ export const en: Translations = {
     checkout_confirm_title: "Finish signing in",
     checkout_confirm_description:
       "Your purchase is complete. To open your mailbox, continue as {{email}}.",
+    checkout_confirm_description_crypto:
+      "Your account is ready. To finish paying, continue as {{email}}.",
     enter_backup_code: "Enter Backup Code",
     backup_code_length_error:
       "A backup code is 12 characters long (8 for older codes). Check the code and try again.",

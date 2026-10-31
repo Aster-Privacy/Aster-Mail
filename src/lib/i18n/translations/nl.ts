@@ -9676,6 +9676,8 @@ export const nl = {
     checkout_confirm_title: "Aanmelden voltooien",
     checkout_confirm_description:
       "Je aankoop is voltooid. Ga verder als {{email}} om je mailbox te openen.",
+    checkout_confirm_description_crypto:
+      "Je account is klaar. Ga verder als {{email}} om de betaling af te ronden.",
     enter_backup_code: "Reservecode invoeren",
     backup_code_length_error:
       "Een back-upcode is 12 tekens lang (8 voor oudere codes). Controleer de code en probeer het opnieuw.",

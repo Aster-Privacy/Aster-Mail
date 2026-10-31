@@ -777,6 +777,17 @@ export async function create_crypto_native_addon_invoice(
   );
 }
 
+export async function create_crypto_native_credit_invoice(
+  credit_package_id: string,
+  currency: string,
+  chain: string,
+) {
+  return api_client.post<CryptoNativeInvoiceResponse>(
+    "/payments/v1/crypto-native/invoice",
+    { credit_package_id, currency, chain },
+  );
+}
+
 export async function get_crypto_native_invoice(invoice_id: string) {
   return api_client.get<CryptoNativeInvoiceStatus>(
     `/payments/v1/crypto-native/invoice/${encodeURIComponent(invoice_id)}`,

@@ -9514,6 +9514,8 @@ export const ar = {
     checkout_confirm_title: "إكمال تسجيل الدخول",
     checkout_confirm_description:
       "اكتمل الشراء. لفتح صندوق البريد، تابع باسم {{email}}.",
+    checkout_confirm_description_crypto:
+      "حسابك جاهز. لإكمال الدفع، تابع باسم {{email}}.",
     enter_backup_code: "أدخل رمز النسخ الاحتياطي",
     backup_code_length_error:
       "رمز النسخ الاحتياطي مكوّن من 12 حرفًا (8 للرموز الأقدم). تحقق من الرمز وحاول مجددًا.",
