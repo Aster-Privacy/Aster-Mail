@@ -10092,14 +10092,18 @@ export const it = {
     abuse_flagged_message:
       "Il nostro sistema di sicurezza ha fermato le nuove iscrizioni da questa rete per il momento. Se le sembra un errore, hello@astermail.org può aiutarla.",
     abuse_blocked_device:
-      "Il nostro sistema di sicurezza ha sospeso per il momento le nuove iscrizioni da questo dispositivo. Se le sembra un errore, hello@astermail.org può aiutarla.",
+      "Questo dispositivo ha già creato il numero massimo di account Aster. Se le sembra un errore, scriva a hello@astermail.org indicando il numero di riferimento.",
     abuse_blocked_network:
-      "Il nostro sistema di sicurezza ha sospeso per il momento le nuove iscrizioni da questa rete. Riprovare più tardi o da un'altra rete di solito funziona. Se le sembra un errore, hello@astermail.org può aiutarla.",
+      "Il nostro sistema di sicurezza ha sospeso per ora le nuove iscrizioni da questa rete. Riprovi più tardi, passi a un'altra rete o disattivi la VPN. Se le sembra un errore, hello@astermail.org può aiutarla.",
     abuse_blocked_proof:
-      "Il browser non ha completato il controllo di sicurezza. Ricarichi la pagina e riprovi. Se il problema continua, hello@astermail.org può aiutarla.",
+      "Il browser non ha completato il controllo di sicurezza. Aggiorni l'app o ricarichi la pagina, poi riprovi. Se il problema continua, hello@astermail.org può aiutarla.",
     abuse_blocked_risk:
-      "Il nostro sistema di sicurezza non è riuscito a verificare questa iscrizione. Scegliere un altro nome utente e riprovare di solito funziona. Se le sembra un errore, hello@astermail.org può aiutarla.",
+      "Il nostro sistema di sicurezza non è riuscito a verificare questa iscrizione. Per farla esaminare, scriva a hello@astermail.org indicando il numero di riferimento.",
     abuse_block_reference: "Riferimento: {{reference}}",
+    sign_up_temporarily_unavailable:
+      "L'iscrizione è temporaneamente non disponibile. Riprovi tra qualche minuto.",
+    account_created_sign_in_pending:
+      "Il suo account è pronto, ma non ha ancora effettuato l'accesso. Salvi i codici di recupero, poi continui per accedere.",
     contact_support: "contattare l'assistenza",
     recovery_email_verified: "Email di recupero verificata",
     recovery_email_verified_desc:
@@ -10538,6 +10542,10 @@ export const it = {
       "Impossibile salvare questa risposta per l'invio successivo. Riprova. La bozza è salvata.",
     failed_send:
       "Questa email non è stata inviata. Riprova. La bozza è salvata.",
+    send_unconfirmed:
+      "Aster non è riuscito a confermare l'invio di questa email. Controlla Inviata prima di riprovare. La bozza è salvata.",
+    scheduled_may_have_sent:
+      "Questa email programmata non è stata annullata perché potrebbe essere già stata inviata. Controlla Inviata.",
     attachments_too_large:
       "Questi allegati superano {{size}} in totale, il massimo che un messaggio può contenere con il suo piano. Rimuova o riduca un file per inviarlo. La sua bozza è salvata.",
     too_many_attachments:

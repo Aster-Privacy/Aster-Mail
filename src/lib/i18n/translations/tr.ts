@@ -9922,14 +9922,18 @@ export const tr = {
     abuse_flagged_message:
       "Güvenlik sistemimiz, bu ağdan gelen yeni kayıtları şimdilik durdurdu. Bu bir hata gibi görünüyorsa, hello@astermail.org yardımcı olabilir.",
     abuse_blocked_device:
-      "Güvenlik sistemimiz bu cihazdan yeni kayıtları şimdilik durdurdu. Bu bir hata gibi görünüyorsa hello@astermail.org yardımcı olabilir.",
+      "Bu cihazla zaten en fazla sayıda Aster hesabı oluşturuldu. Bunun bir hata olduğunu düşünüyorsanız referans kodunuzla birlikte hello@astermail.org adresine yazın.",
     abuse_blocked_network:
-      "Güvenlik sistemimiz bu ağdan yeni kayıtları şimdilik durdurdu. Daha sonra veya başka bir ağdan yeniden denemek genellikle işe yarar. Bu bir hata gibi görünüyorsa hello@astermail.org yardımcı olabilir.",
+      "Güvenlik sistemimiz bu ağdan yeni kayıtları şimdilik durdurdu. Daha sonra yeniden deneyin, başka bir ağa geçin veya VPN'inizi kapatın. Bunun bir hata olduğunu düşünüyorsanız hello@astermail.org yardımcı olabilir.",
     abuse_blocked_proof:
-      "Tarayıcınız güvenlik kontrolünü tamamlamadı. Sayfayı yenileyip yeniden deneyin. Sorun sürerse hello@astermail.org yardımcı olabilir.",
+      "Tarayıcınız güvenlik kontrolünü tamamlamadı. Uygulamayı güncelleyin veya sayfayı yenileyin, ardından yeniden deneyin. Sorun sürerse hello@astermail.org yardımcı olabilir.",
     abuse_blocked_risk:
-      "Güvenlik sistemimiz bu kaydı doğrulayamadı. Farklı bir kullanıcı adı seçip yeniden denemek genellikle işe yarar. Bu bir hata gibi görünüyorsa hello@astermail.org yardımcı olabilir.",
+      "Güvenlik sistemimiz bu kaydı doğrulayamadı. İncelenmesi için referans kodunuzla birlikte hello@astermail.org adresine yazın.",
     abuse_block_reference: "Referans: {{reference}}",
+    sign_up_temporarily_unavailable:
+      "Kayıt geçici olarak kullanılamıyor. Birkaç dakika sonra yeniden deneyin.",
+    account_created_sign_in_pending:
+      "Hesabınız hazır ancak henüz oturum açmadınız. Kurtarma kodlarınızı kaydedin, ardından oturum açmak için devam edin.",
     contact_support: "destek ile iletişime geçin",
     recovery_email_verified: "Kurtarma e-postası doğrulandı",
     verification_failed: "Doğrulama tamamlanmadı.",
@@ -10345,6 +10349,10 @@ export const tr = {
       "Bu yönlendirme daha sonra gönderilmek üzere kaydedilemedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_send:
       "Bu e-posta gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    send_unconfirmed:
+      "Aster bu e-postanın gönderildiğini doğrulayamadı. Tekrar denemeden önce Gönderilmiş klasörünü kontrol edin. Taslağınız kaydedildi.",
+    scheduled_may_have_sent:
+      "Bu zamanlanmış e-posta zaten gönderilmiş olabileceği için iptal edilmedi. Gönderilmiş klasörünü kontrol edin.",
     incorrect_password:
       "Parola yanlış. Tekrar deneyin. Hesabınız kilitlenmedi.",
     no_keys_available:

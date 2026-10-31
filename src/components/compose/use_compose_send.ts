@@ -21,7 +21,7 @@
 import type { DecryptedContact } from "@/types/contacts";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 import {
   build_send_fingerprint,
@@ -41,6 +41,7 @@ import { get_or_create_thread_token } from "@/services/thread_service";
 import {
   classify_recipients,
   is_internal_recipient,
+  RecipientLookupError,
 } from "@/services/recipient_classification";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import {
@@ -54,7 +55,10 @@ import {
 } from "@/hooks/mail_events";
 import { delete_draft } from "@/services/api/multi_drafts";
 import { check_scheduled_send } from "@/services/scheduled_send_gate";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_DEFAULT_MS,
+} from "@/components/toast/simple_toast";
 import { MAX_SUBJECT_LENGTH, subject_length } from "@/lib/reply_subject";
 import {
   MAX_RECIPIENTS_PER_FIELD,
@@ -84,6 +88,7 @@ import {
 import { ensure_external_key_trust } from "@/services/key_trust_consent";
 import { save_failed_send_as_draft } from "@/components/compose/compose_failed_send_draft";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
+import { sanitize_header_value } from "@/services/pgp_protected_mime";
 import { ensure_post_quantum_consent } from "@/services/post_quantum_consent";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -177,6 +182,16 @@ export function use_compose_send({
   );
   const last_send_time_ref = useRef<number>(0);
   const send_lock_started_at_ref = useRef(0);
+  const handle_send_ref = useRef<() => Promise<void>>(async () => {});
+  const is_mounted_ref = useRef(true);
+
+  useEffect(() => {
+    is_mounted_ref.current = true;
+
+    return () => {
+      is_mounted_ref.current = false;
+    };
+  }, []);
 
   const log_activities = useCallback(
     (recipients: string[], subject: string) => {
@@ -451,7 +466,7 @@ export function use_compose_send({
             to: recipients.to,
             cc: recipients.cc.length > 0 ? recipients.cc : undefined,
             bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
-            subject,
+            subject: sanitize_header_value(subject),
             body: message,
             in_reply_to:
               edit_draft?.draft_type === "reply"
@@ -466,9 +481,11 @@ export function use_compose_send({
                 ? selected_sender?.address_hash
                 : undefined,
             sender_display_name:
-              selected_sender?.type && selected_sender.type !== "primary"
-                ? selected_sender.display_name || undefined
-                : user?.display_name || undefined,
+              sanitize_header_value(
+                (selected_sender?.type && selected_sender.type !== "primary"
+                  ? selected_sender.display_name
+                  : user?.display_name) || "",
+              ) || undefined,
             expires_at: expires_at?.toISOString(),
             attachments: offline_attachments,
           });
@@ -560,10 +577,60 @@ export function use_compose_send({
       const pending_context = pending_draft_id
         ? draft_manager.get_context(pending_draft_id)
         : undefined;
-      const kept_draft = pending_context?.id
+      let kept_draft = pending_context?.id
         ? { id: pending_context.id, version: pending_context.version }
         : null;
       let draft_deleted = false;
+
+      const note_kept_draft = () => {
+        const open_context = pending_draft_id
+          ? draft_manager.get_context(pending_draft_id)
+          : undefined;
+
+        if (open_context?.id && !open_context.is_deleted) {
+          kept_draft = { id: open_context.id, version: open_context.version };
+        }
+      };
+
+      if (pending_draft_id) {
+        void draft_manager
+          .await_pending_save(pending_draft_id)
+          .then(note_kept_draft);
+      }
+
+      const persist_unsent_draft = async (failed: FailedSendData) => {
+        if (!vault || !pending_draft_id || draft_deleted) return null;
+        if (!preferences.auto_save_drafts && !kept_draft) return null;
+
+        const result = await draft_manager
+          .save_draft(
+            pending_draft_id,
+            {
+              to_recipients: failed.to,
+              cc_recipients: failed.cc ?? [],
+              bcc_recipients: failed.bcc ?? [],
+              subject: failed.subject,
+              message: failed.body,
+              is_plain_text: is_plain_text || undefined,
+              from_email: selected_sender?.email,
+              attachments:
+                failed.attachments && failed.attachments.length > 0
+                  ? attachments_to_draft_data(failed.attachments)
+                  : undefined,
+            },
+            vault,
+          )
+          .catch(() => null);
+
+        if (!result?.success || !result.id || draft_deleted) return null;
+
+        kept_draft = {
+          id: result.id,
+          version: result.version ?? kept_draft?.version ?? 1,
+        };
+
+        return kept_draft;
+      };
 
       const confirm_draft_deleted = async () => {
         draft_deleted = true;
@@ -602,7 +669,7 @@ export function use_compose_send({
         to: recipients.to,
         cc: recipients.cc.length > 0 ? recipients.cc : undefined,
         bcc: recipients.bcc.length > 0 ? recipients.bcc : undefined,
-        subject,
+        subject: sanitize_header_value(subject),
         body: message,
         thread_id,
         in_reply_to:
@@ -618,9 +685,11 @@ export function use_compose_send({
             ? selected_sender?.address_hash
             : undefined,
         sender_display_name:
-          selected_sender?.type && selected_sender.type !== "primary"
-            ? selected_sender.display_name || undefined
-            : user?.display_name || undefined,
+          sanitize_header_value(
+            (selected_sender?.type && selected_sender.type !== "primary"
+              ? selected_sender.display_name
+              : user?.display_name) || "",
+          ) || undefined,
         expires_at: expires_at?.toISOString(),
         expiry_password: expiry_password || undefined,
         secure_external: expiry_password ? true : undefined,
@@ -663,12 +732,21 @@ export function use_compose_send({
           compose_released = true;
           base_ctx.on_close();
         },
-        on_send_failed: (failed: FailedSendData) =>
-          restore_failed_send_to_drafts(
+        confirm_draft_deleted,
+        on_send_failed: (failed: FailedSendData) => {
+          note_kept_draft();
+
+          return restore_failed_send_to_drafts(
             failed,
             draft_deleted ? null : kept_draft,
-          ),
-        get_kept_draft: () => (draft_deleted ? null : kept_draft),
+          );
+        },
+        get_kept_draft: () => {
+          note_kept_draft();
+
+          return draft_deleted ? null : kept_draft;
+        },
+        persist_unsent_draft,
         echo_sender: {
           name:
             selected_sender?.display_name ||
@@ -684,7 +762,7 @@ export function use_compose_send({
 
       if (selected_sender?.type === "external") {
         const sent = await execute_external_account_email_send(
-          { ...ctx, confirm_draft_deleted },
+          ctx,
           email_data,
         );
 
@@ -783,9 +861,7 @@ export function use_compose_send({
           preferences.obscure_subject_when_encrypted === true,
         );
 
-        if (mixed_sent) {
-          await confirm_draft_deleted();
-        } else if (!compose_released) {
+        if (!mixed_sent && !compose_released) {
           void keep_unsent_message();
         }
 
@@ -814,7 +890,7 @@ export function use_compose_send({
         }
 
         const external_sent = await execute_external_email_send(
-          { ...ctx, confirm_draft_deleted },
+          ctx,
           { ...email_data, pgp_recipients },
           pgp_enabled,
           pgp_override,
@@ -822,9 +898,7 @@ export function use_compose_send({
           preferences.obscure_subject_when_encrypted === true,
         );
 
-        if (external_sent) {
-          await confirm_draft_deleted();
-        } else if (!compose_released) {
+        if (!external_sent && !compose_released) {
           void keep_unsent_message();
         }
 
@@ -850,18 +924,25 @@ export function use_compose_send({
         allow_non_post_quantum: consent.allow_non_post_quantum,
       });
 
-      if (internal_sent) {
-        await confirm_draft_deleted();
-      } else if (!compose_released) {
+      if (!internal_sent && !compose_released) {
         void keep_unsent_message();
       }
     } catch (error) {
-      show_toast(
-        error instanceof Error
-          ? error.message
-          : t("common.failed_to_send_email"),
-        "error",
-      );
+      if (error instanceof RecipientLookupError) {
+        show_toast(error.message, "error", TOAST_DURATION_DEFAULT_MS, {
+          label: t("common.retry"),
+          on_click: () => {
+            if (is_mounted_ref.current) void handle_send_ref.current();
+          },
+        });
+      } else {
+        show_toast(
+          error instanceof Error
+            ? error.message
+            : t("common.failed_to_send_email"),
+          "error",
+        );
+      }
       void keep_unsent_message();
     } finally {
       is_sending_ref.current = false;
@@ -902,6 +983,8 @@ export function use_compose_send({
     is_feature_locked,
     t,
   ]);
+
+  handle_send_ref.current = handle_send;
 
   const schedule_gate_pending_ref = useRef(false);
 

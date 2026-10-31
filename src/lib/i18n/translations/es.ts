@@ -10048,14 +10048,18 @@ export const es = {
     abuse_flagged_message:
       "Nuestro sistema de seguridad ha detenido los nuevos registros desde esta red por ahora. Escribe a hello@astermail.org si crees que es un error.",
     abuse_blocked_device:
-      "Nuestro sistema de seguridad ha pausado los nuevos registros desde este dispositivo por ahora. Escribe a hello@astermail.org si crees que es un error.",
+      "Este dispositivo ya creó el número máximo de cuentas de Aster. Si crees que es un error, escribe a hello@astermail.org e incluye tu código de referencia.",
     abuse_blocked_network:
-      "Nuestro sistema de seguridad ha pausado los nuevos registros desde esta red por ahora. Suele funcionar volver a intentarlo más tarde o desde otra red. Escribe a hello@astermail.org si crees que es un error.",
+      "Nuestro sistema de seguridad pausó por ahora los registros nuevos desde esta red. Vuelve a intentarlo más tarde, cambia a otra red o desactiva tu VPN. Si crees que es un error, escribe a hello@astermail.org.",
     abuse_blocked_proof:
-      "Tu navegador no completó la comprobación de seguridad. Recarga la página y vuelve a intentarlo. Si sigue pasando, escribe a hello@astermail.org.",
+      "Tu navegador no completó la comprobación de seguridad. Actualiza la app o recarga la página y vuelve a intentarlo. Si sigue pasando, escribe a hello@astermail.org.",
     abuse_blocked_risk:
-      "Nuestro sistema de seguridad no pudo verificar este registro. Suele funcionar elegir otro nombre de usuario y volver a intentarlo. Escribe a hello@astermail.org si crees que es un error.",
+      "Nuestro sistema de seguridad no pudo verificar este registro. Para que lo revisen, escribe a hello@astermail.org e incluye tu código de referencia.",
     abuse_block_reference: "Referencia: {{reference}}",
+    sign_up_temporarily_unavailable:
+      "El registro no está disponible temporalmente. Vuelve a intentarlo en unos minutos.",
+    account_created_sign_in_pending:
+      "Tu cuenta está lista, pero aún no iniciaste sesión. Guarda tus códigos de recuperación y luego continúa para iniciar sesión.",
     contact_support: "contactar al soporte",
     recovery_email_verified: "Correo de recuperación verificado",
     verification_failed: "La verificación no se completó.",
@@ -10484,6 +10488,10 @@ export const es = {
       "No pudimos guardar esta respuesta para enviarla más tarde. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_send:
       "Este correo no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
+    send_unconfirmed:
+      "Aster no pudo confirmar que este correo se envió. Revisa Enviados antes de volver a intentarlo. Tu borrador está guardado.",
+    scheduled_may_have_sent:
+      "Este correo programado no se canceló porque es posible que ya se haya enviado. Revisa Enviados.",
     attachments_too_large:
       "Estos archivos adjuntos suman más de {{size}}, el máximo que puede llevar un mensaje en su plan. Quitar o reducir un archivo permitirá enviarlo. Su borrador está guardado.",
     too_many_attachments:

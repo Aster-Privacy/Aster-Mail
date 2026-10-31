@@ -298,6 +298,25 @@ describe("check_scheduled_send", () => {
       blocked_by: "errors.recipient_key_untrusted",
     });
   });
+
+  it("blocks when recipients cannot be classified", async () => {
+    const { classify_recipients } = await import("./recipient_classification");
+
+    vi.mocked(classify_recipients).mockRejectedValueOnce(new Error("offline"));
+
+    const result = await check_scheduled_send(
+      ["friend@example.com"],
+      "me@astermail.org",
+      soon(),
+      false,
+    );
+
+    expect(result).toEqual({
+      proceed: false,
+      blocked_by: "errors.key_trust_check_failed",
+    });
+    expect(consent).not.toHaveBeenCalled();
+  });
 });
 
 describe("check_reply_send", () => {

@@ -10105,14 +10105,18 @@ export const de = {
     abuse_flagged_message:
       "Unser Sicherheitssystem hat neue Registrierungen aus diesem Netzwerk vorerst gestoppt. Falls dies fehlerhaft erscheint, hilft hello@astermail.org gern weiter.",
     abuse_blocked_device:
-      "Unser Sicherheitssystem hat neue Registrierungen von diesem Gerät vorerst angehalten. Falls dies fehlerhaft erscheint, hilft hello@astermail.org gern weiter.",
+      "Mit diesem Gerät wurde bereits die maximale Anzahl an Aster-Konten erstellt. Falls dies fehlerhaft erscheint, wenden Sie sich an hello@astermail.org und geben Sie Ihre Referenznummer an.",
     abuse_blocked_network:
-      "Unser Sicherheitssystem hat neue Registrierungen aus diesem Netzwerk vorerst angehalten. Ein späterer Versuch oder ein anderes Netzwerk hilft meistens. Falls dies fehlerhaft erscheint, hilft hello@astermail.org gern weiter.",
+      "Unser Sicherheitssystem hat neue Registrierungen aus diesem Netzwerk vorerst angehalten. Versuchen Sie es später erneut, wechseln Sie in ein anderes Netzwerk oder schalten Sie Ihr VPN aus. Falls dies fehlerhaft erscheint, hilft hello@astermail.org gern weiter.",
     abuse_blocked_proof:
-      "Ihr Browser hat die Sicherheitsprüfung nicht abgeschlossen. Laden Sie die Seite neu und versuchen Sie es erneut. Falls das weiterhin passiert, hilft hello@astermail.org gern weiter.",
+      "Ihr Browser hat die Sicherheitsprüfung nicht abgeschlossen. Aktualisieren Sie die App oder laden Sie die Seite neu und versuchen Sie es dann erneut. Falls das weiterhin passiert, hilft hello@astermail.org gern weiter.",
     abuse_blocked_risk:
-      "Unser Sicherheitssystem konnte diese Registrierung nicht bestätigen. Ein anderer Benutzername und ein neuer Versuch helfen meistens. Falls dies fehlerhaft erscheint, hilft hello@astermail.org gern weiter.",
+      "Unser Sicherheitssystem konnte diese Registrierung nicht bestätigen. Für eine Überprüfung wenden Sie sich an hello@astermail.org und geben Sie Ihre Referenznummer an.",
     abuse_block_reference: "Referenz: {{reference}}",
+    sign_up_temporarily_unavailable:
+      "Die Registrierung ist vorübergehend nicht verfügbar. Versuchen Sie es in ein paar Minuten erneut.",
+    account_created_sign_in_pending:
+      "Ihr Konto ist bereit, aber Sie sind noch nicht angemeldet. Speichern Sie Ihre Wiederherstellungscodes und fahren Sie dann fort, um sich anzumelden.",
     contact_support: "den Support kontaktieren",
     click_eye_reveal:
       "Klicken Sie auf das Augensymbol, um die Codes anzuzeigen",
@@ -10614,6 +10618,10 @@ export const de = {
       "Diese Antwort konnte nicht für den späteren Versand gespeichert werden. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
     failed_send:
       "Diese E-Mail wurde nicht gesendet. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
+    send_unconfirmed:
+      "Aster konnte nicht bestätigen, dass diese E-Mail gesendet wurde. Prüfen Sie „Gesendet“, bevor Sie es erneut versuchen. Ihr Entwurf ist gespeichert.",
+    scheduled_may_have_sent:
+      "Diese geplante E-Mail wurde nicht abgebrochen, da sie möglicherweise bereits gesendet wurde. Prüfen Sie „Gesendet“.",
     attachments_too_large:
       "Diese Anhänge ergeben zusammen mehr als {{size}}, das Maximum für eine Nachricht in Ihrem Tarif. Entfernen oder verkleinern Sie eine Datei, um sie zu senden. Ihr Entwurf ist gespeichert.",
     too_many_attachments:

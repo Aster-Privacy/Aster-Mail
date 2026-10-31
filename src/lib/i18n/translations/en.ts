@@ -9659,14 +9659,18 @@ export const en: Translations = {
     abuse_flagged_message:
       "Our security system has stopped new sign-ups from this network for now. If this looks like a mistake, hello@astermail.org can help.",
     abuse_blocked_device:
-      "Our security system has paused new sign-ups from this device for now. If this looks like a mistake, hello@astermail.org can help.",
+      "This device has already created the maximum number of Aster accounts. If this looks like a mistake, contact hello@astermail.org and include your reference code.",
     abuse_blocked_network:
-      "Our security system has paused new sign-ups from this network for now. Trying again later or from another network usually works. If this looks like a mistake, hello@astermail.org can help.",
+      "Our security system has paused new sign-ups from this network for now. Try again later, or switch to another network or turn off your VPN. If this looks like a mistake, hello@astermail.org can help.",
     abuse_blocked_proof:
-      "Your browser did not finish the security check. Reload the page and try again. If this keeps happening, hello@astermail.org can help.",
+      "Your browser did not finish the security check. Update the app or reload the page, then try again. If this keeps happening, hello@astermail.org can help.",
     abuse_blocked_risk:
-      "Our security system could not verify this sign-up. Choosing a different username and trying again usually works. If this looks like a mistake, hello@astermail.org can help.",
+      "Our security system could not verify this sign-up. To have it reviewed, contact hello@astermail.org and include your reference code.",
     abuse_block_reference: "Reference: {{reference}}",
+    sign_up_temporarily_unavailable:
+      "Sign-up is temporarily unavailable. Try again in a few minutes.",
+    account_created_sign_in_pending:
+      "Your account is ready, but you are not signed in yet. Save your recovery codes, then continue to sign in.",
     contact_support: "contact support",
     recovery_codes_copied: "Recovery codes copied",
     recovery_code_copied: "Recovery code copied",
@@ -10167,6 +10171,10 @@ export const en: Translations = {
     failed_queue_forward:
       "We could not save this forward for later sending. Try again. Your draft is saved.",
     failed_send: "This email did not send. Try again. Your draft is saved.",
+    send_unconfirmed:
+      "Aster could not confirm that this email was sent. Check Sent before you try again. Your draft is saved.",
+    scheduled_may_have_sent:
+      "This scheduled email was not canceled because it may have already been sent. Check Sent.",
     incorrect_password:
       "Incorrect password. Please try again. Your account is not locked.",
     no_keys_available:

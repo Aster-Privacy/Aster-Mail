@@ -46,7 +46,8 @@ interface RegisterStepRecoveryCodesProps {
 export const RegisterStepRecoveryCodes = ({
   reg,
 }: RegisterStepRecoveryCodesProps) => {
-  const has_saved = reg.is_pdf_downloaded || reg.is_text_downloaded;
+  const has_saved =
+    reg.is_pdf_downloaded || reg.is_text_downloaded || reg.has_copied_key;
 
   return (
     <StepShell
@@ -54,6 +55,11 @@ export const RegisterStepRecoveryCodes = ({
       subtitle={reg.t("auth.store_codes_safely")}
       title={reg.t("auth.save_recovery_codes")}
     >
+      {reg.session_issue && (
+        <p className="mb-4 w-full text-sm text-txt-secondary">
+          {reg.t("auth.account_created_sign_in_pending")}
+        </p>
+      )}
       {reg.is_invited && reg.generated_email && (
         <div className="mb-4 flex flex-col gap-0.5">
           <span className="text-xs text-txt-muted">
@@ -239,6 +245,11 @@ export const RegisterStepRecoveryEmailVerification = ({
                 ? reg.t("common.sending")
                 : reg.t("auth.resend_verification_email")}
           </OnboardingButton>
+
+          <SkipLink
+            label={reg.t("auth.change_account")}
+            on_click={reg.handle_change_recovery_email}
+          />
 
           {!reg.recovery_email_required && (
             <SkipLink

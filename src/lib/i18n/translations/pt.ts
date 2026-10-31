@@ -10145,14 +10145,18 @@ export const pt = {
     abuse_flagged_message:
       "O nosso sistema de segurança suspendeu por agora os novos registos a partir desta rede. Se lhe parecer um engano, hello@astermail.org pode ajudar.",
     abuse_blocked_device:
-      "O nosso sistema de segurança suspendeu por agora os novos registos a partir deste dispositivo. Se isto parecer um engano, hello@astermail.org pode ajudar.",
+      "Este dispositivo já criou o número máximo de contas Aster. Se isto parecer um erro, escreva para hello@astermail.org e indique o seu código de referência.",
     abuse_blocked_network:
-      "O nosso sistema de segurança suspendeu por agora os novos registos a partir desta rede. Tentar mais tarde ou a partir de outra rede costuma resultar. Se isto parecer um engano, hello@astermail.org pode ajudar.",
+      "O nosso sistema de segurança suspendeu por agora os novos registos a partir desta rede. Tente novamente mais tarde, mude para outra rede ou desative a sua VPN. Se isto parecer um erro, hello@astermail.org pode ajudar.",
     abuse_blocked_proof:
-      "O seu navegador não concluiu a verificação de segurança. Recarregue a página e tente novamente. Se continuar a acontecer, hello@astermail.org pode ajudar.",
+      "O seu navegador não concluiu a verificação de segurança. Atualize a aplicação ou recarregue a página e tente novamente. Se continuar a acontecer, hello@astermail.org pode ajudar.",
     abuse_blocked_risk:
-      "O nosso sistema de segurança não conseguiu verificar este registo. Escolher outro nome de utilizador e tentar novamente costuma resultar. Se isto parecer um engano, hello@astermail.org pode ajudar.",
+      "O nosso sistema de segurança não conseguiu verificar este registo. Para que seja analisado, escreva para hello@astermail.org e indique o seu código de referência.",
     abuse_block_reference: "Referência: {{reference}}",
+    sign_up_temporarily_unavailable:
+      "O registo está temporariamente indisponível. Tente novamente dentro de alguns minutos.",
+    account_created_sign_in_pending:
+      "A sua conta está pronta, mas ainda não iniciou sessão. Guarde os seus códigos de recuperação e continue para iniciar sessão.",
     contact_support: "contactar o suporte",
     recovery_email_verified: "E-mail de recuperação verificado",
     verification_failed: "A verificação não foi concluída.",
@@ -10594,6 +10598,10 @@ export const pt = {
       "Não foi possível guardar esta resposta para envio posterior. Tente novamente. O seu rascunho está guardado.",
     failed_send:
       "Este e-mail não foi enviado. Tente novamente. O seu rascunho está guardado.",
+    send_unconfirmed:
+      "O Aster não conseguiu confirmar o envio deste e-mail. Verifique Enviados antes de tentar novamente. O seu rascunho está guardado.",
+    scheduled_may_have_sent:
+      "Este e-mail agendado não foi cancelado porque pode já ter sido enviado. Verifique Enviados.",
     attachments_too_large:
       "Estes anexos somam mais de {{size}}, o máximo que uma mensagem pode levar no seu plano. Remover ou reduzir um ficheiro permitirá o envio. O seu rascunho está guardado.",
     too_many_attachments:

@@ -302,8 +302,6 @@ class UndoSendManager {
     this.finalizing.add(queue_id);
 
     try {
-      let server_reachable = false;
-
       for (let attempt = 0; ; attempt++) {
         const pending = this.pending_sends.get(queue_id);
 
@@ -314,10 +312,6 @@ class UndoSendManager {
         const response = await undo_send_api
           .get_status(queue_id)
           .catch(() => undefined);
-
-        if (response) {
-          server_reachable = true;
-        }
 
         if (response?.data && is_terminal_status(response.data.status)) {
           this.apply_terminal_status(
@@ -331,7 +325,11 @@ class UndoSendManager {
         }
 
         if (response && !response.data && response.code === "NOT_FOUND") {
-          this.apply_terminal_status(pending, "sent");
+          this.apply_terminal_status(
+            pending,
+            "failed",
+            get_active_translations().errors.send_unconfirmed,
+          );
 
           return;
         }
@@ -357,7 +355,8 @@ class UndoSendManager {
         this.finalize_rounds.delete(queue_id);
         this.apply_terminal_status(
           pending,
-          server_reachable ? "failed" : "sent",
+          "failed",
+          get_active_translations().errors.send_unconfirmed,
         );
 
         return;

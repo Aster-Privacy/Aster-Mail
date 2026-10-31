@@ -10020,14 +10020,18 @@ export const nl = {
     abuse_flagged_message:
       "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig stopgezet. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
     abuse_blocked_device:
-      "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit apparaat voorlopig gepauzeerd. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
+      "Op dit apparaat is al het maximale aantal Aster-accounts aangemaakt. Lijkt dit een vergissing, neem dan contact op met hello@astermail.org en vermeld je referentienummer.",
     abuse_blocked_network:
-      "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig gepauzeerd. Later opnieuw proberen of een ander netwerk gebruiken werkt meestal. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
+      "Ons beveiligingssysteem heeft nieuwe aanmeldingen vanaf dit netwerk voorlopig gepauzeerd. Probeer het later opnieuw, stap over op een ander netwerk of zet je vpn uit. Lijkt dit een vergissing, dan kan hello@astermail.org helpen.",
     abuse_blocked_proof:
-      "Je browser heeft de beveiligingscontrole niet afgerond. Laad de pagina opnieuw en probeer het nog eens. Blijft dit gebeuren, dan kan hello@astermail.org helpen.",
+      "Je browser heeft de beveiligingscontrole niet afgerond. Werk de app bij of laad de pagina opnieuw en probeer het nog eens. Blijft dit gebeuren, dan kan hello@astermail.org helpen.",
     abuse_blocked_risk:
-      "Ons beveiligingssysteem kon deze aanmelding niet verifiëren. Een andere gebruikersnaam kiezen en het opnieuw proberen werkt meestal. Als dit een vergissing lijkt, kan hello@astermail.org helpen.",
+      "Ons beveiligingssysteem kon deze aanmelding niet verifiëren. Neem voor een controle contact op met hello@astermail.org en vermeld je referentienummer.",
     abuse_block_reference: "Referentie: {{reference}}",
+    sign_up_temporarily_unavailable:
+      "Aanmelden is tijdelijk niet beschikbaar. Probeer het over een paar minuten opnieuw.",
+    account_created_sign_in_pending:
+      "Je account is klaar, maar je bent nog niet ingelogd. Bewaar je herstelcodes en ga daarna verder om in te loggen.",
     contact_support: "contact opnemen met de klantenservice",
     generating_new_encryption_keys:
       "Nieuwe versleutelingssleutels genereren...",
@@ -10454,6 +10458,10 @@ export const nl = {
       "We konden dit doorgestuurde bericht niet opslaan om later te verzenden. Probeer het opnieuw. Je concept is opgeslagen.",
     failed_send:
       "Deze e-mail is niet verzonden. Probeer het opnieuw. Je concept is opgeslagen.",
+    send_unconfirmed:
+      "Aster kon niet bevestigen dat deze e-mail is verzonden. Controleer Verzonden voordat je het opnieuw probeert. Je concept is opgeslagen.",
+    scheduled_may_have_sent:
+      "Deze geplande e-mail is niet geannuleerd, omdat hij mogelijk al is verzonden. Controleer Verzonden.",
     incorrect_password:
       "Onjuist wachtwoord. Probeer het opnieuw. Je account is niet vergrendeld.",
     no_keys_available:

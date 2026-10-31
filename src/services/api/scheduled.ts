@@ -34,6 +34,8 @@ import { describe_sender_refusal } from "@/services/send_refusal";
 import { is_internal_email } from "@/services/api/keys";
 import { build_subject_bundle } from "@/utils/email_crypto";
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
+import { is_future_instant } from "@/utils/schedule_targets";
+import { sanitize_header_value } from "@/services/pgp_protected_mime";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -585,7 +587,16 @@ export async function cancel_scheduled_email(
     `/mail/v1/scheduled/${email_id}`,
   );
 
-  if (response.error && response.code !== "NOT_FOUND") {
+  if (response.code === "NOT_FOUND") {
+    invalidate_mail_stats();
+
+    return create_error_response(
+      get_active_translations().errors.scheduled_may_have_sent,
+      response.code,
+    );
+  }
+
+  if (response.error) {
     return create_error_response(response.error, response.code);
   }
 
@@ -598,6 +609,12 @@ export async function reschedule_email(
   email_id: string,
   new_scheduled_at: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
+  if (!is_future_instant(new Date(new_scheduled_at))) {
+    return {
+      error: get_active_translations().mail_rules.snooze_needs_future,
+    };
+  }
+
   if (exceeds_sealed_schedule_window(new Date(new_scheduled_at))) {
     return {
       error: get_active_translations().common.scheduled_too_far_ahead,
@@ -638,9 +655,31 @@ export interface CreateScheduledResponse {
 
 export async function create_scheduled_email(
   vault: EncryptedVault,
-  content: ScheduledEmailContent,
-  options: ScheduledSendOptions,
+  input_content: ScheduledEmailContent,
+  input_options: ScheduledSendOptions,
 ): Promise<ApiResponse<CreateScheduledResponse>> {
+  const content: ScheduledEmailContent = {
+    ...input_content,
+    subject: sanitize_header_value(input_content.subject),
+    ...(input_content.from
+      ? {
+          from: {
+            ...input_content.from,
+            name: sanitize_header_value(input_content.from.name),
+          },
+        }
+      : {}),
+  };
+  const options: ScheduledSendOptions = {
+    ...input_options,
+    ...(input_options.sender_display_name
+      ? {
+          sender_display_name: sanitize_header_value(
+            input_options.sender_display_name,
+          ),
+        }
+      : {}),
+  };
   const sender_alias_hash = options.sender_alias_hash;
   const all_recipients = [
     ...content.to_recipients,

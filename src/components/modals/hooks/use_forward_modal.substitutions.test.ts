@@ -26,6 +26,7 @@ import {
   apply_inline_image_substitutions,
   merge_pending_recipients,
 } from "./use_forward_modal";
+import { strip_unresolved_cid_images } from "./use_forward_modal/helpers";
 
 const make_att = (overrides: Partial<Attachment>): Attachment => ({
   id: overrides.id || "att1",
@@ -209,5 +210,43 @@ describe("merge_pending_recipients", () => {
     );
 
     expect(merged.to).toEqual(["A@Example.com"]);
+  });
+});
+
+describe("strip_unresolved_cid_images", () => {
+  it("drops images whose cid source has no attachment to resolve against", () => {
+    const att = make_att({
+      id: "big",
+      content_id: "huge@x",
+      size_bytes: 6 * 1024 * 1024,
+    });
+    const { content } = apply_inline_image_substitutions(
+      '<p>before</p><img src="cid:huge@x" alt="chart"><p>after</p>',
+      [att],
+    );
+    const stripped = strip_unresolved_cid_images(content);
+
+    expect(stripped).not.toContain("cid:");
+    expect(stripped).not.toContain("<img");
+    expect(stripped).toContain("<p>before</p>");
+    expect(stripped).toContain("<p>after</p>");
+  });
+
+  it("keeps embedded and remote images", () => {
+    const att = make_att({ id: "a1", content_id: "logo@x" });
+    const { content } = apply_inline_image_substitutions(
+      '<img src="cid:logo@x"><img src="https://example.com/a.png">',
+      [att],
+    );
+    const stripped = strip_unresolved_cid_images(content);
+
+    expect(stripped).toContain("data:image/png;base64,");
+    expect(stripped).toContain("https://example.com/a.png");
+  });
+
+  it("returns content without cid references unchanged", () => {
+    const html = "<p>cid is a word</p><img src='https://example.com/a.png'>";
+
+    expect(strip_unresolved_cid_images(html)).toBe(html);
   });
 });

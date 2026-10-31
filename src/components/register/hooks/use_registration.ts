@@ -23,6 +23,7 @@ import type { RegistrationStep } from "@/components/register/register_types";
 import type { RegisterRequest } from "@/services/api/auth";
 import type { UserPreferences } from "@/services/api/preferences";
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useLocation, useNavigationType } from "react-router-dom";
@@ -127,19 +128,31 @@ export async function build_registration_ratchet_fields(): Promise<
   }
 }
 
+const PREKEY_PUBLISH_RETRY_DELAYS_MS = [1000, 3000];
+const PREKEY_PUBLISH_WAIT_MS = 15000;
+
 export async function publish_registration_prekey_bundle(
   vault: EncryptedVault,
+  retry_delays_ms: readonly number[] = PREKEY_PUBLISH_RETRY_DELAYS_MS,
 ): Promise<boolean> {
-  try {
-    if (!vault.ratchet_identity_public || !vault.ratchet_signed_prekey_public) {
-      return false;
-    }
-    if (await upload_prekey_bundle(vault)) return true;
-
-    return await upload_prekey_bundle(vault);
-  } catch {
+  if (!vault.ratchet_identity_public || !vault.ratchet_signed_prekey_public) {
     return false;
   }
+
+  for (let attempt = 0; attempt <= retry_delays_ms.length; attempt++) {
+    if (attempt > 0) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, retry_delays_ms[attempt - 1]),
+      );
+    }
+    try {
+      if (await upload_prekey_bundle(vault)) return true;
+    } catch {
+      continue;
+    }
+  }
+
+  return false;
 }
 
 export interface RegistrationClaimOptions {
@@ -262,6 +275,63 @@ export interface AbuseBlock {
   reference: string | null;
 }
 
+export function abuse_message_key(kind: AbuseBlockKind | null) {
+  switch (kind) {
+    case "device":
+      return "auth.abuse_blocked_device" as const;
+    case "network":
+      return "auth.abuse_blocked_network" as const;
+    case "proof":
+      return "auth.abuse_blocked_proof" as const;
+    case "fan_out":
+    case "risk":
+      return "auth.abuse_blocked_risk" as const;
+    default:
+      return "auth.abuse_flagged_message" as const;
+  }
+}
+
+export function abuse_block_message(
+  block: AbuseBlock,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string {
+  const message = t(abuse_message_key(block.kind));
+
+  return block.reference
+    ? `${message} ${t("auth.abuse_block_reference", { reference: block.reference })}`
+    : message;
+}
+
+export function register_error_message(
+  response: { error?: string; code?: string; server_code?: string },
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string {
+  if (response.code === "RATE_LIMIT_EXCEEDED") return t("errors.rate_limited");
+  switch (response.server_code) {
+    case "SERVICE_UNAVAILABLE":
+      return t("auth.sign_up_temporarily_unavailable");
+    case "CAPTCHA_FAILED":
+      return t("auth.complete_captcha_first");
+    case "GONE":
+      return t("settings.fam_kids_claim_invalid_title");
+    default:
+      return response.error || t("auth.registration_failed");
+  }
+}
+
+function is_abuse_block_response(response: {
+  code?: string;
+  server_code?: string;
+}): boolean {
+  return (
+    response.code === "ABUSE_ACCOUNT_LIMIT" ||
+    response.code === "REGISTRATION_SUSPENDED" ||
+    response.server_code === "REGISTRATION_SUSPENDED"
+  );
+}
+
+export type RegistrationSessionIssue = "login_failed" | "no_session";
+
 function read_abuse_block(details?: Record<string, unknown>): AbuseBlock {
   const kind = details?.kind;
   const reference = details?.reference;
@@ -356,6 +426,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const [error, set_error] = useState("");
   const [is_abuse_blocked, set_is_abuse_blocked] = useState(false);
   const [abuse_block, set_abuse_block] = useState<AbuseBlock | null>(null);
+  const [session_issue, set_session_issue] =
+    useState<RegistrationSessionIssue | null>(null);
   const [password_breach_warning, set_password_breach_warning] =
     useState(false);
   const [generation_status, set_generation_status] = useState("");
@@ -658,6 +730,41 @@ export function use_registration(options?: RegistrationClaimOptions) {
     "recovery_email"
   > | null>(null);
   const pending_vault_data_ref = useRef<EncryptedVault | null>(null);
+  const post_create_sign_in_ref = useRef<(() => Promise<boolean>) | null>(
+    null,
+  );
+  const retrying_sign_in_ref = useRef(false);
+  const prekey_publish_ref = useRef<Promise<boolean> | null>(null);
+
+  const sign_in_created_account = (
+    sign_in: () => Promise<void>,
+    vault_data: EncryptedVault,
+  ): Promise<boolean> => {
+    const attempt = async () => {
+      try {
+        await sign_in();
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+
+        return false;
+      }
+      prekey_publish_ref.current =
+        publish_registration_prekey_bundle(vault_data);
+      check_and_replenish_prekeys();
+
+      return true;
+    };
+
+    post_create_sign_in_ref.current = attempt;
+
+    return attempt();
+  };
+
+  const hold_created_account = (issue: RegistrationSessionIssue) => {
+    set_session_issue(issue);
+    registration_done_ref.current = true;
+    set_step("recovery_key");
+  };
 
   useEffect(() => {
     if (!is_restoring || auth_loading) return;
@@ -827,14 +934,24 @@ export function use_registration(options?: RegistrationClaimOptions) {
       const response = await register_user(base_params);
 
       if (response.error) {
+        if (response.server_code === "REGISTRATION_SESSION_PENDING") {
+          clear_remembered_invite_code();
+          hold_created_account("no_session");
+
+          return;
+        }
         await timing_safe_delay();
         rearm_captcha();
-        if (
-          response.code === "ABUSE_ACCOUNT_LIMIT" ||
-          response.code === "REGISTRATION_SUSPENDED"
-        ) {
+        if (is_abuse_block_response(response)) {
+          const block = read_abuse_block(response.details);
+
           set_is_abuse_blocked(true);
-          set_abuse_block(read_abuse_block(response.details));
+          set_abuse_block(block);
+          set_error(abuse_block_message(block, t));
+          set_step("email");
+          registration_promise_ref.current = null;
+
+          return;
         }
         if (response.code === "USERNAME_IN_USE") {
           set_error(t("auth.username_in_use"));
@@ -849,11 +966,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
           return;
         }
-        set_error(
-          response.code === "RATE_LIMIT_EXCEEDED"
-            ? t("errors.rate_limited")
-            : response.error,
-        );
+        set_error(register_error_message(response, t));
         set_step("email");
         registration_promise_ref.current = null;
 
@@ -867,22 +980,30 @@ export function use_registration(options?: RegistrationClaimOptions) {
         }
 
         set_is_completing_registration(true);
-        await login(
-          {
-            id: response.data.user_id,
-            username: response.data.username,
-            email: response.data.email,
-            display_name: trimmed_display_name || undefined,
-            profile_color,
-          },
+        const account = response.data;
+        const signed_in = await sign_in_created_account(
+          () =>
+            login(
+              {
+                id: account.user_id,
+                username: account.username,
+                email: account.email,
+                display_name: trimmed_display_name || undefined,
+                profile_color,
+              },
+              vault_data,
+              password,
+              encrypted_vault,
+              vault_nonce,
+            ),
           vault_data,
-          password,
-          encrypted_vault,
-          vault_nonce,
         );
 
-        void publish_registration_prekey_bundle(vault_data);
-        check_and_replenish_prekeys();
+        if (!signed_in) {
+          hold_created_account("login_failed");
+
+          return;
+        }
       }
 
       registration_done_ref.current = true;
@@ -955,6 +1076,14 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const write_registration_state = async () => {
+    if (prekey_publish_ref.current) {
+      await Promise.race([
+        prekey_publish_ref.current,
+        new Promise<void>((resolve) =>
+          setTimeout(resolve, PREKEY_PUBLISH_WAIT_MS),
+        ),
+      ]);
+    }
     document.getElementById("initial-loader")?.remove();
     safe_local_set("show_onboarding", "true");
     mark_first_run();
@@ -1230,6 +1359,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
     recovery_email_required,
   ]);
 
+  const handle_change_recovery_email = useCallback(() => {
+    set_step("recovery_email");
+  }, []);
+
   useEffect(() => {
     if (step !== "recovery_email_verification") {
       stop_verification_polling();
@@ -1347,14 +1480,23 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_is_saving_recovery_email(false);
 
     if (response.error) {
+      if (response.server_code === "REGISTRATION_SESSION_PENDING") {
+        pending_register_params_ref.current = null;
+        pending_vault_data_ref.current = null;
+        clear_remembered_invite_code();
+        set_recovery_email_required(true);
+        hold_created_account("no_session");
+
+        return;
+      }
       await timing_safe_delay();
       rearm_captcha();
-      if (
-        response.code === "ABUSE_ACCOUNT_LIMIT" ||
-        response.code === "REGISTRATION_SUSPENDED"
-      ) {
+      if (is_abuse_block_response(response)) {
+        const block = read_abuse_block(response.details);
+
         set_is_abuse_blocked(true);
-        set_abuse_block(read_abuse_block(response.details));
+        set_abuse_block(block);
+        set_error(abuse_block_message(block, t));
         set_step("email");
 
         return;
@@ -1365,7 +1507,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
         return;
       }
-      set_recovery_email_error(response.error);
+      set_recovery_email_error(register_error_message(response, t));
 
       return;
     }
@@ -1380,29 +1522,65 @@ export function use_registration(options?: RegistrationClaimOptions) {
       set_recovery_email_required(true);
       set_is_completing_registration(true);
       const trimmed_display_name = display_name.trim();
-
-      await login(
-        {
-          id: response.data.user_id,
-          username: response.data.username,
-          email: response.data.email,
-          display_name: trimmed_display_name || undefined,
-          profile_color,
-        },
+      const account = response.data;
+      const signed_in = await sign_in_created_account(
+        () =>
+          login(
+            {
+              id: account.user_id,
+              username: account.username,
+              email: account.email,
+              display_name: trimmed_display_name || undefined,
+              profile_color,
+            },
+            saved_vault,
+            password,
+            saved_params.encrypted_vault,
+            saved_params.vault_nonce,
+          ),
         saved_vault,
-        password,
-        saved_params.encrypted_vault,
-        saved_params.vault_nonce,
       );
-      void publish_registration_prekey_bundle(saved_vault);
-      check_and_replenish_prekeys();
+
+      if (!signed_in) {
+        hold_created_account("login_failed");
+
+        return;
+      }
     }
 
     registration_done_ref.current = true;
     set_step("recovery_key");
   };
 
+  const send_created_account_to_sign_in = () => {
+    safe_session_remove(REGISTRATION_RESUME_KEY);
+    handoff_ref.current = true;
+    set_is_completing_registration(false);
+    navigate(`/sign-in?u=${encodeURIComponent(generated_email)}`, {
+      replace: true,
+    });
+  };
+
   const handle_advance_from_recovery_key = async () => {
+    if (session_issue === "no_session") {
+      send_created_account_to_sign_in();
+
+      return;
+    }
+    if (session_issue === "login_failed") {
+      if (retrying_sign_in_ref.current) return;
+      retrying_sign_in_ref.current = true;
+      const retry = post_create_sign_in_ref.current;
+      const signed_in = retry ? await retry() : false;
+
+      retrying_sign_in_ref.current = false;
+      if (!signed_in) {
+        send_created_account_to_sign_in();
+
+        return;
+      }
+      set_session_issue(null);
+    }
     if (recovery_email_required && recovery_email.trim()) {
       await handle_recovery_email_continue();
 
@@ -1451,6 +1629,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_error,
     is_abuse_blocked,
     abuse_block,
+    session_issue,
     password_breach_warning,
     handle_password_blur,
     generation_status,
@@ -1500,6 +1679,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     handle_import_mail_skip,
     handle_resend_verification,
     handle_skip_verification,
+    handle_change_recovery_email,
 
     complete_registration,
     finalize_registration,

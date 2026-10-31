@@ -31,7 +31,17 @@ const execute_external_send = vi.fn();
 let undo_send_delay_ms = 0;
 const undo_send_add = vi.fn();
 const store_pending_send_payload = vi.fn();
+const peek_pending_send_payload = vi.fn();
 const dispatch_undo_send_event = vi.fn();
+const remember_queued_send_draft = vi.fn();
+const forget_queued_send_draft = vi.fn();
+
+vi.mock("@/services/queued_send_drafts", () => ({
+  remember_queued_send_draft: (...args: unknown[]) =>
+    remember_queued_send_draft(...args),
+  forget_queued_send_draft: (...args: unknown[]) =>
+    forget_queued_send_draft(...args),
+}));
 
 vi.mock("@/services/send_queue", () => ({
   queue_email_to_server: (...args: unknown[]) => queue_email_to_server(...args),
@@ -47,6 +57,8 @@ vi.mock("@/hooks/use_undo_send", () => ({
   },
   store_pending_send_payload: (...args: unknown[]) =>
     store_pending_send_payload(...args),
+  peek_pending_send_payload: (...args: unknown[]) =>
+    peek_pending_send_payload(...args),
   dispatch_undo_send_event: (...args: unknown[]) =>
     dispatch_undo_send_event(...args),
 }));
@@ -84,8 +96,11 @@ vi.mock("@/hooks/mail_events", () => ({
     emit_thread_reply_cancelled(...args),
 }));
 
-const { execute_internal_send, execute_external_email_send } =
-  await import("@/components/compose/compose_send_actions");
+const {
+  execute_internal_send,
+  execute_external_email_send,
+  execute_external_account_email_send,
+} = await import("@/components/compose/compose_send_actions");
 
 function make_ctx(overrides: Record<string, unknown> = {}) {
   return {
@@ -653,5 +668,162 @@ describe("a sent reply appears in its thread right away", () => {
     );
 
     expect(emit_thread_reply_optimistic).not.toHaveBeenCalled();
+  });
+});
+
+describe("undo and queued sends keep the draft until delivery", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    undo_send_delay_ms = 30000;
+  });
+
+  const kept = { id: "draft_1", version: 3 };
+
+  it("keeps the draft when a scheduled secure external send is undone", async () => {
+    const confirm_draft_deleted = vi.fn(async () => {});
+    const persist_unsent_draft = vi.fn(async () => ({
+      id: "draft_2",
+      version: 4,
+    }));
+    const payload: Record<string, unknown> = {};
+
+    peek_pending_send_payload.mockReturnValue(payload);
+
+    await execute_external_email_send(
+      make_ctx({ confirm_draft_deleted, persist_unsent_draft }),
+      { ...email_data, secure_external: true },
+    );
+
+    const pending = undo_send_add.mock.calls[0][0] as {
+      on_undo?: () => void;
+    };
+
+    pending.on_undo?.();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(confirm_draft_deleted).not.toHaveBeenCalled();
+    expect(persist_unsent_draft).toHaveBeenCalledTimes(1);
+    expect(payload).toMatchObject({ draft_id: "draft_2", draft_version: 4 });
+  });
+
+  it("keeps the draft when a connected account send is undone", async () => {
+    const confirm_draft_deleted = vi.fn(async () => {});
+    const persist_unsent_draft = vi.fn(async () => null);
+
+    await expect(
+      execute_external_account_email_send(
+        make_ctx({ confirm_draft_deleted, persist_unsent_draft }),
+        { ...email_data, sender_alias_hash: "account_token" },
+      ),
+    ).resolves.toBe(false);
+
+    const pending = undo_send_add.mock.calls[0][0] as {
+      on_undo?: () => void;
+      timeout_id: number;
+    };
+
+    window.clearTimeout(pending.timeout_id);
+    pending.on_undo?.();
+    await Promise.resolve();
+
+    expect(confirm_draft_deleted).not.toHaveBeenCalled();
+    expect(persist_unsent_draft).toHaveBeenCalledTimes(1);
+  });
+
+  it("stores the kept draft in the undo payload", async () => {
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_d" });
+
+    await execute_internal_send(
+      make_ctx({ get_kept_draft: () => kept }),
+      email_data,
+    );
+
+    expect(store_pending_send_payload).toHaveBeenCalledWith(
+      "queue_d",
+      expect.objectContaining({ draft_id: "draft_1", draft_version: 3 }),
+    );
+  });
+
+  it("deletes the draft only when a queued internal send is delivered", async () => {
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_s" });
+    const confirm_draft_deleted = vi.fn(async () => {});
+
+    await expect(
+      execute_internal_send(
+        make_ctx({ confirm_draft_deleted, get_kept_draft: () => kept }),
+        email_data,
+      ),
+    ).resolves.toBe(true);
+
+    expect(confirm_draft_deleted).not.toHaveBeenCalled();
+    expect(remember_queued_send_draft).toHaveBeenCalledWith(
+      "queue_s",
+      "draft_1",
+    );
+
+    const callbacks = queue_email_to_server.mock.calls[0][2] as {
+      on_sent: () => void;
+    };
+
+    callbacks.on_sent();
+
+    expect(confirm_draft_deleted).toHaveBeenCalledTimes(1);
+    expect(forget_queued_send_draft).toHaveBeenCalledWith("queue_s");
+  });
+
+  it("keeps the draft when a queued internal send is canceled or fails", async () => {
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_c" });
+    const confirm_draft_deleted = vi.fn(async () => {});
+
+    await execute_internal_send(make_ctx({ confirm_draft_deleted }), email_data);
+
+    const callbacks = queue_email_to_server.mock.calls[0][2] as {
+      on_cancelled: () => void;
+      on_error: (error: string) => void;
+    };
+
+    callbacks.on_cancelled();
+    callbacks.on_error("smtp refused");
+
+    expect(confirm_draft_deleted).not.toHaveBeenCalled();
+    expect(forget_queued_send_draft).toHaveBeenCalledWith("queue_c");
+  });
+
+  it("deletes the draft only when a queued external send is delivered", async () => {
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_e" });
+    const confirm_draft_deleted = vi.fn(async () => {});
+
+    await expect(
+      execute_external_email_send(make_ctx({ confirm_draft_deleted }), email_data),
+    ).resolves.toBe(true);
+
+    expect(confirm_draft_deleted).not.toHaveBeenCalled();
+
+    const callbacks = queue_email_to_server.mock.calls[0][2] as {
+      on_sent: () => void;
+    };
+
+    callbacks.on_sent();
+
+    expect(confirm_draft_deleted).toHaveBeenCalledTimes(1);
+  });
+
+  it("deletes the draft only when an immediate internal send completes", async () => {
+    undo_send_delay_ms = 0;
+    queue_email.mockReturnValue("local_1");
+    const confirm_draft_deleted = vi.fn(async () => {});
+
+    await execute_internal_send(make_ctx({ confirm_draft_deleted }), email_data);
+
+    expect(confirm_draft_deleted).not.toHaveBeenCalled();
+
+    const options = queue_email.mock.calls[0][0] as {
+      on_complete: () => void;
+    };
+
+    options.on_complete();
+
+    expect(confirm_draft_deleted).toHaveBeenCalledTimes(1);
   });
 });

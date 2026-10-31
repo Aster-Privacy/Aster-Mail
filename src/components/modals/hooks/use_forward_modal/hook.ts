@@ -32,6 +32,7 @@ import {
 import {
   UseForwardModalProps,
   apply_inline_image_substitutions,
+  strip_unresolved_cid_images,
   merge_pending_recipients,
   has_invalid_pending_recipient,
   forward_subject_for,
@@ -1277,7 +1278,7 @@ export function use_forward_modal({
     );
     const scheduled_message =
       (outgoing_forward_message ? outgoing_forward_message + "<br><br>" : "") +
-      sanitize_outgoing_html(scheduled_content);
+      sanitize_outgoing_html(strip_unresolved_cid_images(scheduled_content));
     const scheduled_body =
       scheduled_message + get_aster_footer(t, preferences.show_aster_branding);
     const failed_draft = failed_draft_ref.current;

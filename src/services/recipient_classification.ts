@@ -22,7 +22,16 @@ import { useEffect, useSyncExternalStore } from "react";
 
 import { get_recipient_public_key, is_internal_email } from "./api/keys";
 
+import { get_active_translations } from "@/lib/i18n/translations";
+
 export type RecipientClassification = "internal" | "external";
+
+export class RecipientLookupError extends Error {
+  constructor() {
+    super(get_active_translations().errors.key_trust_check_failed);
+    this.name = "RecipientLookupError";
+  }
+}
 
 interface ClassificationEntry {
   classification: RecipientClassification;
@@ -36,7 +45,7 @@ const MAX_ADDRESS_LENGTH = 254;
 const entries = new Map<string, ClassificationEntry>();
 const in_flight = new Map<
   string,
-  { session: number; promise: Promise<RecipientClassification> }
+  { session: number; promise: Promise<RecipientClassification | null> }
 >();
 const listeners = new Set<() => void>();
 
@@ -116,6 +125,12 @@ async function lookup_classification(
 export async function classify_recipient(
   email: string,
 ): Promise<RecipientClassification> {
+  return (await resolve_recipient(email)) ?? "external";
+}
+
+async function resolve_recipient(
+  email: string,
+): Promise<RecipientClassification | null> {
   if (is_internal_email(email)) return "internal";
 
   const address = normalize_recipient_address(email);
@@ -140,23 +155,19 @@ export async function classify_recipient(
       in_flight.delete(address);
     }
 
-    const classification: RecipientClassification = result ?? "external";
-
-    if (session !== current_session) return classification;
-
     const previous = entries.get(address)?.classification;
 
-    if (result === null) {
-      entries.delete(address);
-    } else {
-      entries.set(address, { classification: result, session });
-    }
+    if (result === null) return previous ?? null;
 
-    if (previous !== (result ?? undefined)) {
+    if (session !== current_session) return result;
+
+    entries.set(address, { classification: result, session });
+
+    if (previous !== result) {
       notify();
     }
 
-    return classification;
+    return result;
   });
 
   in_flight.set(address, { session, promise });
@@ -175,12 +186,16 @@ export async function classify_recipients(
     ),
   ];
   const results = await Promise.all(
-    unique.map(
-      async (email) => [email, await classify_recipient(email)] as const,
-    ),
+    unique.map(async (email) => [email, await resolve_recipient(email)] as const),
   );
+  const classified = new Map<string, RecipientClassification>();
 
-  return new Map(results);
+  for (const [email, classification] of results) {
+    if (classification === null) throw new RecipientLookupError();
+    classified.set(email, classification);
+  }
+
+  return classified;
 }
 
 export function begin_recipient_classification_session(): void {

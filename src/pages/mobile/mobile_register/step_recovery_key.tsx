@@ -72,6 +72,14 @@ export function StepRecoveryKey({
             </p>
           </motion.div>
 
+          {reg.session_issue && (
+            <motion.div variants={reduce_motion ? undefined : fade_up_item}>
+              <p className="mt-3 text-sm text-[var(--text-secondary)]">
+                {reg.t("auth.account_created_sign_in_pending")}
+              </p>
+            </motion.div>
+          )}
+
           {reg.is_invited && reg.generated_email && (
             <motion.div
               className="mt-3 flex flex-col gap-0.5"

@@ -44,7 +44,7 @@ const ENCODED_WORD_PAYLOAD_BYTES = 45;
 
 const text_encoder = new TextEncoder();
 
-function sanitize_header_value(value: string): string {
+export function sanitize_header_value(value: string): string {
   return value.replace(/[\r\n\0]/g, "");
 }
 

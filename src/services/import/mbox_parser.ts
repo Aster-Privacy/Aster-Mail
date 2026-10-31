@@ -34,6 +34,7 @@ import { get_active_translations } from "@/lib/i18n/translations";
 import { format_decimal } from "@/lib/utils";
 
 const READ_CHUNK_BYTES = 8 * 1024 * 1024;
+const MAX_SEPARATOR_TAIL = 64 * 1024;
 
 const SUMMARY_HEADER_KEYS = [
   "in-reply-to",
@@ -47,7 +48,17 @@ function detach_string(value: string): string {
 }
 
 function clean_segment(segment: string): string {
-  return trim_ascii_whitespace(segment).replace(/^>From /gm, "From ");
+  return trim_ascii_whitespace(segment).replace(/^>(>*From )/gm, "$1");
+}
+
+function retained_tail(pending: string): string {
+  const last_break = pending.lastIndexOf("\n");
+  const tail_start =
+    last_break < 0 ? 0 : pending.lastIndexOf("\n", last_break - 1) + 1;
+
+  if (pending.length - tail_start > MAX_SEPARATOR_TAIL) return "x";
+
+  return pending.slice(tail_start);
 }
 
 export async function* iterate_mbox_segments(
@@ -57,6 +68,8 @@ export async function* iterate_mbox_segments(
   let pending = "";
   let body_start = 0;
   let saw_separator = false;
+  let saw_from_header = false;
+  let oversized_prefix: string | null = null;
 
   for (let offset = 0; offset < file.size; offset += READ_CHUNK_BYTES) {
     const slice = file.slice(
@@ -68,7 +81,8 @@ export async function* iterate_mbox_segments(
       new Uint8Array(await slice.arrayBuffer()),
     );
 
-    const separator_pattern = /^From [^\r\n]+\r?\n/gm;
+    const separator_pattern =
+      /^From [^\r\n]+\r?\n(?=[\x21-\x39\x3b-\x7e]+:)/gm;
     const segments: string[] = [];
 
     separator_pattern.lastIndex = body_start;
@@ -77,9 +91,13 @@ export async function* iterate_mbox_segments(
 
     while ((match = separator_pattern.exec(pending)) !== null) {
       if (saw_separator) {
-        segments.push(pending.slice(body_start, match.index));
+        segments.push(
+          oversized_prefix ??
+            clean_segment(pending.slice(body_start, match.index)),
+        );
       }
 
+      oversized_prefix = null;
       saw_separator = true;
       body_start = match.index + match[0].length;
       separator_pattern.lastIndex = body_start;
@@ -90,15 +108,21 @@ export async function* iterate_mbox_segments(
       body_start = 0;
     }
 
+    if (pending.length > MAX_SINGLE_EMAIL_SIZE + MAX_SEPARATOR_TAIL) {
+      if (!saw_separator && /^From:/im.test(pending)) saw_from_header = true;
+      oversized_prefix ??= pending.slice(0, MAX_SINGLE_EMAIL_SIZE + 1);
+      pending = retained_tail(pending);
+    }
+
     for (const segment of segments) {
-      yield clean_segment(segment);
+      yield segment;
     }
 
     on_bytes_read?.(Math.min(offset + READ_CHUNK_BYTES, file.size));
   }
 
-  if (saw_separator || /^From:/im.test(pending)) {
-    yield clean_segment(pending);
+  if (saw_separator || saw_from_header || /^From:/im.test(pending)) {
+    yield oversized_prefix ?? clean_segment(pending);
   }
 }
 

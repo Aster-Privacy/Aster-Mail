@@ -364,6 +364,37 @@ describe("undo_send_manager send finalization", () => {
     expect(on_sent).not.toHaveBeenCalled();
     expect(on_error).toHaveBeenCalledWith("delivery rejected");
   });
+
+  it("does not report sent when the server no longer knows the send", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.get_status.mockResolvedValue({
+      data: null,
+      error: "Not found",
+      code: "NOT_FOUND",
+    } as never);
+
+    await queue_one({ on_sent, on_error });
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith(en.errors.send_unconfirmed);
+    expect(undo_send_manager.get_send("q1")).toBeUndefined();
+  });
+
+  it("does not report sent after the server stays unreachable", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.get_status.mockRejectedValue(new Error("offline"));
+
+    await queue_one({ on_sent, on_error });
+    await vi.advanceTimersByTimeAsync(60 * 60_000);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith(en.errors.send_unconfirmed);
+  });
 });
 
 describe("undo_send_manager restored sends", () => {
