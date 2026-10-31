@@ -35,6 +35,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { get_file_icon_color } from "@/components/compose/compose_shared";
 import { is_composing } from "@/utils/ime";
 import { format_bytes } from "@/lib/utils";
+import { use_compose_readable_color } from "@/hooks/use_compose_readable_color";
 import { inline_image_bytes } from "@/lib/inline_image_bytes";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
 
@@ -681,6 +682,8 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
   const scroll_container_ref = useRef<HTMLDivElement>(null);
   const flush_editor_input = compose.editor.flush_input;
 
+  use_compose_readable_color(compose.message_textarea_ref);
+
   useEffect(() => {
     return () => {
       flush_editor_input();
@@ -739,6 +742,7 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
           contentEditable
           suppressContentEditableWarning
           className="w-full h-full text-sm leading-relaxed border-none outline-none"
+          data-compose-editor=""
           data-placeholder={resolved_placeholder}
           style={{
             minHeight: "100%",

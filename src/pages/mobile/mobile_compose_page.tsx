@@ -65,6 +65,7 @@ import { Input } from "@/components/ui/input";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 import { authenticate_biometric } from "@/native/biometric_auth";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_compose_readable_color } from "@/hooks/use_compose_readable_color";
 import {
   EXPIRATION_FEATURE,
   PASSWORD_FEATURE,
@@ -110,6 +111,8 @@ function MobileComposePage({
     enable_offline_queue: true,
     enable_ctrl_enter_send: false,
   });
+
+  use_compose_readable_color(compose.message_textarea_ref);
 
   const cc_bcc_visible =
     show_cc_bcc ||
@@ -556,6 +559,7 @@ function MobileComposePage({
             contentEditable
             suppressContentEditableWarning
             className="min-h-[200px] w-full text-[15px] text-[var(--text-primary)] outline-none"
+            data-compose-editor=""
             role="textbox"
             onInput={compose.handle_editor_input}
             onPaste={handle_paste_with_images}
