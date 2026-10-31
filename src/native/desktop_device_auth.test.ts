@@ -261,3 +261,291 @@ describe("desktop device session lifecycle", () => {
     );
   });
 });
+
+function fail_login_with(status: number | null): void {
+  post_mock.mockImplementation((path: string) => {
+    if (path === "/core/v1/auth/device/challenge") {
+      return Promise.resolve({
+        data: { challenge_id: "challenge-1", nonce: "nonce" },
+        error: null,
+      });
+    }
+    if (path === "/core/v1/auth/device/login") {
+      if (status === null) {
+        return Promise.reject(new Error("network down"));
+      }
+
+      return Promise.resolve({ data: null, error: "failed", status });
+    }
+
+    return Promise.resolve({ data: null, error: "unexpected" });
+  });
+}
+
+describe("device relogin decisions", () => {
+  it("reports a signed in outcome when the device login succeeds", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "signed_in",
+    );
+  });
+
+  it("treats a 401 from the device login as a rejected pairing", async () => {
+    fail_login_with(401);
+    const module = await import("./desktop_device_auth");
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "rejected",
+    );
+  });
+
+  it("treats a missing stored passphrase as a rejected pairing", async () => {
+    const base = invoke_mock.getMockImplementation();
+
+    invoke_mock.mockImplementation(
+      (cmd: string, args?: Record<string, unknown>) => {
+        if (cmd === "device_get_stored_passphrase") {
+          return Promise.resolve(null);
+        }
+
+        return base?.(cmd, args);
+      },
+    );
+    const module = await import("./desktop_device_auth");
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "rejected",
+    );
+  });
+
+  it.each([429, 500, 502, 503, 403])(
+    "keeps the pairing when the device login returns %i",
+    async (status) => {
+      fail_login_with(status);
+      const module = await import("./desktop_device_auth");
+
+      await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+        "unavailable",
+      );
+    },
+  );
+
+  it("keeps the pairing when the network fails", async () => {
+    fail_login_with(null);
+    const module = await import("./desktop_device_auth");
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "unavailable",
+    );
+  });
+
+  it("keeps the pairing when the challenge request fails", async () => {
+    post_mock.mockImplementation(() =>
+      Promise.resolve({ data: null, error: "busy", status: 503 }),
+    );
+    const module = await import("./desktop_device_auth");
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "unavailable",
+    );
+  });
+
+  it("forgets only after repeated rejections", async () => {
+    fail_login_with(401);
+    const module = await import("./desktop_device_auth");
+    const wait = vi.fn(() => Promise.resolve());
+
+    await expect(
+      module.relogin_with_retries("device-1", () => false, wait),
+    ).resolves.toBe("rejected");
+    expect(wait).toHaveBeenCalledTimes(1);
+  });
+
+  it("never forgets when every attempt fails transiently", async () => {
+    fail_login_with(429);
+    const module = await import("./desktop_device_auth");
+    const wait = vi.fn(() => Promise.resolve());
+
+    await expect(
+      module.relogin_with_retries("device-1", () => false, wait),
+    ).resolves.toBe("unavailable");
+    expect(wait).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not forget when a rejection is followed by a transient error", async () => {
+    let calls = 0;
+
+    post_mock.mockImplementation((path: string) => {
+      if (path === "/core/v1/auth/device/challenge") {
+        return Promise.resolve({
+          data: { challenge_id: "challenge-1", nonce: "nonce" },
+          error: null,
+        });
+      }
+      calls += 1;
+      const status = calls % 2 === 1 ? 401 : 503;
+
+      return Promise.resolve({ data: null, error: "failed", status });
+    });
+    const module = await import("./desktop_device_auth");
+
+    await expect(
+      module.relogin_with_retries(
+        "device-1",
+        () => false,
+        () => Promise.resolve(),
+      ),
+    ).resolves.toBe("unavailable");
+  });
+
+  it("recovers when a later attempt succeeds", async () => {
+    let calls = 0;
+
+    post_mock.mockImplementation((path: string) => {
+      if (path === "/core/v1/auth/device/challenge") {
+        return Promise.resolve({
+          data: { challenge_id: "challenge-1", nonce: "nonce" },
+          error: null,
+        });
+      }
+      calls += 1;
+      if (calls === 1) {
+        return Promise.resolve({ data: null, error: "busy", status: 429 });
+      }
+
+      return Promise.resolve({
+        data: { access_token: "token", csrf_token: "csrf" },
+        error: null,
+      });
+    });
+    const module = await import("./desktop_device_auth");
+
+    await expect(
+      module.relogin_with_retries(
+        "device-1",
+        () => false,
+        () => Promise.resolve(),
+      ),
+    ).resolves.toBe("signed_in");
+  });
+
+  it("stops retrying once cancelled", async () => {
+    fail_login_with(503);
+    const module = await import("./desktop_device_auth");
+
+    await expect(
+      module.relogin_with_retries(
+        "device-1",
+        () => true,
+        () => Promise.resolve(),
+      ),
+    ).resolves.toBe("unavailable");
+    expect(post_mock).not.toHaveBeenCalled();
+  });
+});
+
+describe("explicit sign out flag", () => {
+  it("is consumed once after a sign out", async () => {
+    const module = await import("./desktop_device_auth");
+
+    module.mark_explicit_sign_out();
+    expect(module.take_explicit_sign_out()).toBe(true);
+    expect(module.take_explicit_sign_out()).toBe(false);
+  });
+
+  it("is cleared when the user signs in again", async () => {
+    const module = await import("./desktop_device_auth");
+
+    module.mark_explicit_sign_out();
+    module.clear_explicit_sign_out();
+    expect(module.take_explicit_sign_out()).toBe(false);
+  });
+
+  it("is never set outside the desktop app", async () => {
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__;
+    const module = await import("./desktop_device_auth");
+
+    module.mark_explicit_sign_out();
+    expect(module.take_explicit_sign_out()).toBe(false);
+  });
+});
+
+describe("session expiry keeps the device paired", () => {
+  it("keeps the pairing for a few expiries and then stops", async () => {
+    const module = await import("./desktop_device_auth");
+    const start = 1_000_000;
+
+    expect(module.keep_pairing_after_session_expiry(start)).toBe(true);
+    expect(module.keep_pairing_after_session_expiry(start + 1_000)).toBe(true);
+    expect(module.keep_pairing_after_session_expiry(start + 2_000)).toBe(true);
+    expect(module.keep_pairing_after_session_expiry(start + 3_000)).toBe(false);
+  });
+
+  it("allows another relogin once the window has passed", async () => {
+    const module = await import("./desktop_device_auth");
+    const start = 1_000_000;
+
+    for (let i = 0; i < 3; i++) {
+      module.keep_pairing_after_session_expiry(start + i);
+    }
+
+    expect(module.keep_pairing_after_session_expiry(start + 10 * 60_000)).toBe(
+      true,
+    );
+  });
+
+  it("never keeps a pairing outside the desktop app", async () => {
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__;
+    const module = await import("./desktop_device_auth");
+
+    expect(module.keep_pairing_after_session_expiry()).toBe(false);
+  });
+
+  it("leaves the device session alone when the pairing is kept", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.release_device_after_sign_out({
+      keep_pairing: true,
+      keep_other_accounts: false,
+      device_id: "device-1",
+    });
+
+    expect(invoke_mock.mock.calls.map((call) => call[0])).not.toContain(
+      "device_clear_session",
+    );
+    expect(device_state.device_id).toBe("device-1");
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "signed_in",
+    );
+  });
+
+  it("forgets only the current account when others stay signed in", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.release_device_after_sign_out({
+      keep_pairing: false,
+      keep_other_accounts: true,
+      device_id: "device-1",
+    });
+
+    expect(invoke_mock).toHaveBeenCalledWith("device_forget_account", {
+      deviceId: "device-1",
+    });
+    expect(invoke_mock.mock.calls.map((call) => call[0])).not.toContain(
+      "device_clear_session",
+    );
+  });
+
+  it("clears the device session when the pairing is not kept", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.release_device_after_sign_out({
+      keep_pairing: false,
+      keep_other_accounts: false,
+      device_id: "device-1",
+    });
+
+    expect(device_state.device_id).toBeNull();
+  });
+});

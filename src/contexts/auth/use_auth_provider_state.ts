@@ -94,6 +94,9 @@ import { take_post_switch_path } from "@/lib/post_switch_path";
 import {
   clear_device_session,
   forget_device_account,
+  keep_pairing_after_session_expiry,
+  mark_explicit_sign_out,
+  release_device_after_sign_out,
   is_tauri,
   read_device_passphrase,
 } from "@/native/desktop_device_auth";
@@ -412,6 +415,8 @@ export function use_auth_provider_state() {
       }
     }, 6000);
 
+    if (!(other && current_id)) mark_explicit_sign_out();
+
     try {
       api_client.begin_intentional_logout();
       try {
@@ -534,6 +539,8 @@ export function use_auth_provider_state() {
       }
     }, 6000);
 
+    mark_explicit_sign_out();
+
     try {
       api_client.begin_intentional_logout();
       try {
@@ -582,6 +589,7 @@ export function use_auth_provider_state() {
     const sign_out_keeping_other_accounts = async (
       message_key: TranslationKey,
       reason?: string,
+      keep_device_pairing = false,
     ) => {
       const path = app_pathname();
       const current_id = state.current_account_id;
@@ -590,11 +598,11 @@ export function use_auth_provider_state() {
       const keep_accounts =
         all_accounts.length > 1 || accounts_storage_unreadable();
 
-      await (
-        keep_accounts
-          ? forget_device_account(target?.device_id)
-          : clear_device_session()
-      ).catch((caught) =>
+      await release_device_after_sign_out({
+        keep_pairing: keep_device_pairing,
+        keep_other_accounts: keep_accounts,
+        device_id: target?.device_id,
+      }).catch((caught) =>
         ignore_error(
           "contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts",
           caught,
@@ -604,7 +612,7 @@ export function use_auth_provider_state() {
       if (!keep_accounts) {
         await clear_local_auth_data();
 
-        if (path === "/sign-in") return;
+        if (path === "/sign-in" || keep_device_pairing) return;
 
         show_toast(t(message_key), "info");
         await api_client
@@ -646,7 +654,7 @@ export function use_auth_provider_state() {
         accounts: all_accounts.length > 0 ? all_accounts : prev.accounts,
       }));
 
-      if (path === "/sign-in") return;
+      if (path === "/sign-in" || keep_device_pairing) return;
 
       const params = new URLSearchParams();
       const local = target?.user.email.split("@")[0] ?? "";
@@ -682,6 +690,7 @@ export function use_auth_provider_state() {
       await sign_out_keeping_other_accounts(
         "common.session_expired_sign_in",
         "session_expired",
+        keep_pairing_after_session_expiry(),
       );
     };
 

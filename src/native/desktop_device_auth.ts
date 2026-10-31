@@ -27,10 +27,12 @@ export type DeviceAuthErrorCode =
 
 export class DeviceAuthError extends Error {
   code: DeviceAuthErrorCode;
+  status: number | undefined;
   i18n_key: TranslationKey;
-  constructor(code: DeviceAuthErrorCode) {
+  constructor(code: DeviceAuthErrorCode, status?: number) {
     super(code);
     this.code = code;
+    this.status = status;
     this.i18n_key =
       code === "challenge_failed"
         ? "errors.device_challenge_mismatch"
@@ -93,7 +95,7 @@ export async function device_challenge(
   }>("/core/v1/auth/device/challenge", { device_id });
 
   if (result.error || !result.data) {
-    throw new DeviceAuthError("challenge_failed");
+    throw new DeviceAuthError("challenge_failed", result.status);
   }
 
   return result.data;
@@ -110,7 +112,7 @@ export async function device_login(
   });
 
   if (result.error || !result.data) {
-    throw new DeviceAuthError("login_failed");
+    throw new DeviceAuthError("login_failed", result.status);
   }
 
   return result.data;
@@ -160,18 +162,105 @@ async function silent_device_login(
   }
 }
 
+export type DeviceReloginOutcome = "signed_in" | "rejected" | "unavailable";
+
+export function is_device_pairing_rejected(error: unknown): boolean {
+  if (error instanceof DeviceAuthError) {
+    return error.code === "login_failed" && error.status === 401;
+  }
+
+  return error instanceof Error && error.message === "passphrase_null";
+}
+
 export async function attempt_device_relogin(
   device_id: string,
-): Promise<boolean> {
-  if (!is_tauri()) return false;
+): Promise<DeviceReloginOutcome> {
+  if (!is_tauri()) return "unavailable";
 
   try {
     await silent_device_login(device_id);
 
-    return true;
-  } catch {
-    return false;
+    return "signed_in";
+  } catch (caught) {
+    return is_device_pairing_rejected(caught) ? "rejected" : "unavailable";
   }
+}
+
+const RELOGIN_ATTEMPTS = 3;
+const REJECTIONS_BEFORE_FORGET = 2;
+
+function wait_ms(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function relogin_with_retries(
+  device_id: string,
+  is_cancelled: () => boolean,
+  wait: (ms: number) => Promise<void> = wait_ms,
+): Promise<DeviceReloginOutcome> {
+  let rejections = 0;
+
+  for (let attempt = 0; attempt < RELOGIN_ATTEMPTS; attempt++) {
+    if (is_cancelled()) return "unavailable";
+    const outcome = await attempt_device_relogin(device_id);
+
+    if (outcome === "signed_in") return outcome;
+    rejections = outcome === "rejected" ? rejections + 1 : 0;
+    if (rejections >= REJECTIONS_BEFORE_FORGET) return "rejected";
+    if (attempt < RELOGIN_ATTEMPTS - 1 && !is_cancelled()) {
+      await wait(1000 * (attempt + 1));
+    }
+  }
+
+  return "unavailable";
+}
+
+const EXPIRY_RELOGIN_WINDOW_MS = 10 * 60_000;
+const EXPIRY_RELOGINS_PER_WINDOW = 3;
+let expiry_relogins: number[] = [];
+
+export function keep_pairing_after_session_expiry(now = Date.now()): boolean {
+  if (!is_tauri()) return false;
+  expiry_relogins = expiry_relogins.filter(
+    (at) => now - at < EXPIRY_RELOGIN_WINDOW_MS,
+  );
+  if (expiry_relogins.length >= EXPIRY_RELOGINS_PER_WINDOW) return false;
+  expiry_relogins.push(now);
+
+  return true;
+}
+
+export async function release_device_after_sign_out(options: {
+  keep_pairing: boolean;
+  keep_other_accounts: boolean;
+  device_id: string | null | undefined;
+}): Promise<void> {
+  if (options.keep_pairing) return;
+  if (options.keep_other_accounts) {
+    await forget_device_account(options.device_id);
+
+    return;
+  }
+  await clear_device_session();
+}
+
+let explicit_sign_out = false;
+
+export function mark_explicit_sign_out(): void {
+  if (!is_tauri()) return;
+  explicit_sign_out = true;
+}
+
+export function clear_explicit_sign_out(): void {
+  explicit_sign_out = false;
+}
+
+export function take_explicit_sign_out(): boolean {
+  const value = explicit_sign_out;
+
+  explicit_sign_out = false;
+
+  return value;
 }
 
 export async function request_device_code(
