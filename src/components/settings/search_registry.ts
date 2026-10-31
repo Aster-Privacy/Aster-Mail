@@ -513,7 +513,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
 
   // ── Billing ───────────────────────────────────────────────────────────────
   {
-    label: "Current Plan",
+    label: "Current plan",
     label_key: "settings.current_plan",
     section: "billing",
     breadcrumb: "Billing > Plan",

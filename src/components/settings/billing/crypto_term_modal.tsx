@@ -562,7 +562,7 @@ export function crypto_term_modal({
                   </div>
                 )}
               <div className="mt-3">
-                <Notice role="note">
+                <Notice role="note" tone="neutral">
                   {t("settings.crypto_exchange_warning")}
                 </Notice>
               </div>

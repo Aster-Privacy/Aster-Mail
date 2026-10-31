@@ -641,7 +641,10 @@ export function CreditsSection({
                     </span>
                   </div>
                   {summary.bonus > 0 && (
-                    <div style={{ color: "var(--accent-color)" }}>
+                    <div
+                      className="flex justify-end text-[11px] font-semibold"
+                      style={{ color: "var(--accent-color)" }}
+                    >
                       {t("settings.credit_package_bonus", {
                         bonus: format_price(summary.bonus, preferred_currency),
                       })}
