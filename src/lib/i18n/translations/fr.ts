@@ -6531,6 +6531,11 @@ export const fr = {
     cancel_impact_reactivate_hint:
       "Rien n'est supprimé. Un nouvel abonnement rétablit ce qui a été désactivé, dans les limites de votre nouvelle offre.",
     cancel_impact_continue: "Continuer vers l'annulation",
+    cancel_offer_yearly_title: "Payer à l'année à la place",
+    cancel_offer_yearly_description: "Vous pouvez conserver votre forfait et payer moins avec une facturation annuelle.",
+    cancel_offer_both_title: "Des façons de payer moins",
+    cancel_offer_both_description: "Vous pouvez payer votre forfait actuel à l'année, ou passer à un forfait moins cher et conserver votre compte.",
+    cancel_offer_yearly_body: "Conservez {{plan}} pour {{price}} par mois, facturé à l'année. Vous économisez {{amount}} par an par rapport à la facturation mensuelle.",
     cancel_offer_title: "Un forfait plus petit à la place",
     cancel_offer_description:
       "Vous pouvez passer à un forfait moins cher et conserver votre compte.",

@@ -1682,7 +1682,31 @@ export function BillingSection() {
           const api_plan = plans.find((plan) => plan.code === offer.plan_code);
 
           if (api_plan) {
-            handle_select_plan(api_plan);
+            set_plan_change_confirm_target({
+              plan: api_plan,
+              interval: current_billing_interval,
+            });
+            set_show_plan_change_confirm(true);
+          } else {
+            show_toast(
+              t("settings.plans_coming_soon"),
+              "info",
+              TOAST_DURATION_BILLING_MS,
+            );
+          }
+        }}
+        on_switch_yearly={(offer) => {
+          if (offer.is_family) {
+            handle_family_plan_change(offer.plan_code, "year");
+
+            return;
+          }
+
+          const api_plan = plans.find((plan) => plan.code === offer.plan_code);
+
+          if (api_plan) {
+            set_plan_change_confirm_target({ plan: api_plan, interval: "year" });
+            set_show_plan_change_confirm(true);
           } else {
             show_toast(
               t("settings.plans_coming_soon"),

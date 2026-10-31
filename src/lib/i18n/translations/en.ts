@@ -5119,6 +5119,11 @@ export const en: Translations = {
     cancel_impact_reactivate_hint:
       "Nothing is deleted. Resubscribing restores what was disabled, up to your new plan's limits.",
     cancel_impact_continue: "Continue to cancel",
+    cancel_offer_yearly_title: "Pay yearly instead",
+    cancel_offer_yearly_description: "You can keep your plan and pay less by billing once a year.",
+    cancel_offer_both_title: "Ways to pay less",
+    cancel_offer_both_description: "You can pay yearly for your current plan, or move to a lower-priced plan and keep your account.",
+    cancel_offer_yearly_body: "Keep {{plan}} for {{price}} a month, billed yearly. You save {{amount}} a year compared with monthly billing.",
     cancel_offer_title: "A smaller plan instead",
     cancel_offer_description:
       "You can move to a lower-priced plan and keep your account.",

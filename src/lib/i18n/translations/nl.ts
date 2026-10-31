@@ -6464,6 +6464,11 @@ export const nl = {
     cancel_impact_reactivate_hint:
       "Er wordt niets verwijderd. Opnieuw abonneren herstelt wat is uitgeschakeld, binnen de limieten van je nieuwe abonnement.",
     cancel_impact_continue: "Doorgaan met opzeggen",
+    cancel_offer_yearly_title: "Liever jaarlijks betalen",
+    cancel_offer_yearly_description: "Je kunt je abonnement houden en minder betalen met jaarlijkse facturering.",
+    cancel_offer_both_title: "Manieren om minder te betalen",
+    cancel_offer_both_description: "Je kunt je huidige abonnement jaarlijks betalen, of overstappen naar een goedkoper abonnement en je account houden.",
+    cancel_offer_yearly_body: "Houd {{plan}} voor {{price}} per maand, jaarlijks gefactureerd. Je bespaart {{amount}} per jaar ten opzichte van maandelijkse facturering.",
     cancel_offer_title: "Liever een kleiner abonnement",
     cancel_offer_description:
       "Je kunt overstappen naar een goedkoper abonnement en je account houden.",

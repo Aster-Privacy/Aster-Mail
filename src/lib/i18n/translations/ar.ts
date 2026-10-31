@@ -6507,6 +6507,11 @@ export const ar = {
     cancel_impact_reactivate_hint:
       "لا يتم حذف أي شيء. إعادة الاشتراك تستعيد ما تم تعطيله، ضمن حدود خطتك الجديدة.",
     cancel_impact_continue: "المتابعة إلى الإلغاء",
+    cancel_offer_yearly_title: "ادفع سنويًا بدلاً من ذلك",
+    cancel_offer_yearly_description: "يمكنك الاحتفاظ بخطتك ودفع مبلغ أقل عند الفوترة مرة واحدة في السنة.",
+    cancel_offer_both_title: "طرق لدفع مبلغ أقل",
+    cancel_offer_both_description: "يمكنك الدفع سنويًا لخطتك الحالية، أو الانتقال إلى خطة أقل تكلفة والاحتفاظ بحسابك.",
+    cancel_offer_yearly_body: "احتفظ بخطة {{plan}} مقابل {{price}} شهريًا مع الفوترة السنوية. ستوفر {{amount}} سنويًا مقارنة بالفوترة الشهرية.",
     cancel_offer_title: "خطة أصغر بدلاً من ذلك",
     cancel_offer_description:
       "يمكنك الانتقال إلى خطة أقل تكلفة والاحتفاظ بحسابك.",

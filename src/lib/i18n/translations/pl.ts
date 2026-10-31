@@ -6708,6 +6708,11 @@ export const pl = {
     cancel_impact_reactivate_hint:
       "Nic nie jest usuwane. Ponowna subskrypcja przywraca wyłączone elementy, w granicach nowego planu.",
     cancel_impact_continue: "Przejdź do anulowania",
+    cancel_offer_yearly_title: "Zamiast tego płać rocznie",
+    cancel_offer_yearly_description: "Możesz zachować swój plan i płacić mniej przy rozliczeniu rocznym.",
+    cancel_offer_both_title: "Sposoby, by płacić mniej",
+    cancel_offer_both_description: "Możesz płacić rocznie za obecny plan albo przejść na tańszy plan i zachować swoje konto.",
+    cancel_offer_yearly_body: "Zachowaj {{plan}} za {{price}} miesięcznie przy rozliczeniu rocznym. Oszczędzasz {{amount}} rocznie w porównaniu z rozliczeniem miesięcznym.",
     cancel_offer_title: "Zamiast tego mniejszy plan",
     cancel_offer_description:
       "Możesz przejść na tańszy plan i zachować swoje konto.",

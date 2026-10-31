@@ -6428,6 +6428,11 @@ export const ko = {
     cancel_impact_reactivate_hint:
       "삭제되는 항목은 없습니다. 다시 구독하면 새 플랜 한도 내에서 비활성화된 항목이 복원됩니다.",
     cancel_impact_continue: "취소 계속하기",
+    cancel_offer_yearly_title: "대신 연간 결제로 변경",
+    cancel_offer_yearly_description: "요금제를 유지하면서 연간 결제로 더 적게 낼 수 있습니다.",
+    cancel_offer_both_title: "비용을 줄이는 방법",
+    cancel_offer_both_description: "현재 요금제를 연간 결제로 바꾸거나, 더 저렴한 요금제로 변경하고 계정을 그대로 사용할 수 있습니다.",
+    cancel_offer_yearly_body: "연간 결제로 {{plan}}을(를) 월 {{price}}에 계속 사용하세요. 월간 결제보다 연간 {{amount}}을(를) 절약합니다.",
     cancel_offer_title: "대신 더 작은 요금제로 변경",
     cancel_offer_description:
       "더 저렴한 요금제로 변경하고 계정을 그대로 사용할 수 있습니다.",

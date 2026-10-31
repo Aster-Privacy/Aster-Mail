@@ -6509,6 +6509,11 @@ export const pt = {
     cancel_impact_reactivate_hint:
       "Nada é eliminado. Ao subscrever novamente, o que foi desativado é restaurado, dentro dos limites do novo plano.",
     cancel_impact_continue: "Continuar para cancelar",
+    cancel_offer_yearly_title: "Pague anualmente",
+    cancel_offer_yearly_description: "Pode manter o seu plano e pagar menos com a faturação anual.",
+    cancel_offer_both_title: "Formas de pagar menos",
+    cancel_offer_both_description: "Pode pagar o seu plano atual anualmente ou mudar para um plano mais barato e manter a sua conta.",
+    cancel_offer_yearly_body: "Mantenha o {{plan}} por {{price}} por mês, com faturação anual. Poupa {{amount}} por ano em relação à faturação mensal.",
     cancel_offer_title: "Um plano menor",
     cancel_offer_description:
       "Pode mudar para um plano mais barato e manter a sua conta.",

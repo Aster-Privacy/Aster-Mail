@@ -6436,6 +6436,11 @@ export const ja = {
     cancel_impact_reactivate_hint:
       "削除されるものはありません。再登録すると、新しいプランの上限の範囲で無効化された項目が復元されます。",
     cancel_impact_continue: "解約手続きに進む",
+    cancel_offer_yearly_title: "年払いに切り替える",
+    cancel_offer_yearly_description: "プランはそのままで、年払いにすると料金が下がります。",
+    cancel_offer_both_title: "料金を抑える方法",
+    cancel_offer_both_description: "現在のプランを年払いにするか、料金の低いプランに変更して、アカウントをそのまま使えます。",
+    cancel_offer_yearly_body: "{{plan}}を年払いで月あたり{{price}}で使い続けられます。月払いと比べて年間{{amount}}お得です。",
     cancel_offer_title: "小さいプランに変更する",
     cancel_offer_description:
       "料金の低いプランに変更して、アカウントをそのまま使えます。",

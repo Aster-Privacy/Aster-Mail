@@ -6367,6 +6367,11 @@ export const tr = {
     cancel_impact_reactivate_hint:
       "Hiçbir şey silinmez. Yeniden abone olduğunuzda devre dışı bırakılanlar, yeni planınızın sınırları içinde geri gelir.",
     cancel_impact_continue: "İptale devam et",
+    cancel_offer_yearly_title: "Bunun yerine yıllık ödeyin",
+    cancel_offer_yearly_description: "Planınızı koruyabilir ve yıllık faturalandırmayla daha az ödeyebilirsiniz.",
+    cancel_offer_both_title: "Daha az ödemenin yolları",
+    cancel_offer_both_description: "Mevcut planınız için yıllık ödeyebilir veya daha ucuz bir plana geçip hesabınızı koruyabilirsiniz.",
+    cancel_offer_yearly_body: "{{plan}} planını yıllık faturalandırmayla aylık {{price}} karşılığında koruyun. Aylık faturalandırmaya göre yılda {{amount}} tasarruf edersiniz.",
     cancel_offer_title: "Bunun yerine daha küçük bir plan",
     cancel_offer_description:
       "Daha ucuz bir plana geçebilir ve hesabınızı koruyabilirsiniz.",

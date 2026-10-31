@@ -4907,6 +4907,11 @@ export const it = {
     cancel_impact_reactivate_hint:
       "Non viene eliminato nulla. Riattivando l'abbonamento si ripristina ciò che era disattivato, entro i limiti del nuovo piano.",
     cancel_impact_continue: "Continua con l'annullamento",
+    cancel_offer_yearly_title: "Paga annualmente",
+    cancel_offer_yearly_description: "Puoi mantenere il tuo piano e pagare meno con la fatturazione annuale.",
+    cancel_offer_both_title: "Modi per pagare meno",
+    cancel_offer_both_description: "Puoi pagare annualmente il tuo piano attuale oppure passare a un piano più economico e mantenere il tuo account.",
+    cancel_offer_yearly_body: "Mantieni {{plan}} a {{price}} al mese con fatturazione annuale. Risparmi {{amount}} all'anno rispetto alla fatturazione mensile.",
     cancel_offer_title: "Un piano più piccolo",
     cancel_offer_description:
       "Puoi passare a un piano più economico e mantenere il tuo account.",

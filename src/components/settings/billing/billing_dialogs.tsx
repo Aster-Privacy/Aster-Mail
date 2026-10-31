@@ -54,14 +54,11 @@ import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
 } from "@/components/toast/simple_toast";
+import { convert_cents } from "@/components/settings/billing/billing_constants";
 import {
-  convert_cents,
-  is_crypto_provider,
-} from "@/components/settings/billing/billing_constants";
-import {
-  get_downgrade_offer,
-  read_billing_interval,
+  get_cancel_offers,
   type DowngradeOffer,
+  type YearlyOffer,
 } from "@/components/settings/billing/cancel_offer";
 import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
 import {
@@ -125,6 +122,7 @@ interface BillingDialogsProps {
   >;
   load_data: () => Promise<void>;
   on_switch_plan?: (offer: DowngradeOffer) => void;
+  on_switch_yearly?: (offer: YearlyOffer) => void;
 }
 
 export function BillingDialogs({
@@ -164,6 +162,7 @@ export function BillingDialogs({
   set_addon_to_cancel,
   load_data,
   on_switch_plan,
+  on_switch_yearly,
 }: BillingDialogsProps) {
   const { t } = use_i18n();
   const redirect_handled = useRef(false);
@@ -377,18 +376,16 @@ export function BillingDialogs({
     }
   }, [t, load_data]);
 
-  const downgrade_offer =
-    subscription &&
-    !subscription.cancel_at_period_end &&
-    subscription.has_stripe_subscription !== false &&
-    !is_crypto_provider(subscription.payment_provider) &&
-    on_switch_plan
-      ? get_downgrade_offer(
-          subscription.plan.code,
-          read_billing_interval(subscription.plan.billing_period),
-        )
-      : null;
-  const step_after_reason: CancelStep = downgrade_offer ? "offer" : "impact";
+  const cancel_offers = get_cancel_offers(subscription);
+  const downgrade_offer = on_switch_plan ? cancel_offers.downgrade : null;
+  const yearly_offer = on_switch_yearly ? cancel_offers.yearly : null;
+  const step_after_reason: CancelStep =
+    downgrade_offer || yearly_offer ? "offer" : "impact";
+  const offer_key = yearly_offer
+    ? downgrade_offer
+      ? "both"
+      : "yearly"
+    : "downgrade";
 
   const cancel_title =
     cancel_step === "early"
@@ -396,7 +393,11 @@ export function BillingDialogs({
       : cancel_step === "reason"
         ? t("settings.cancel_reason_title")
         : cancel_step === "offer"
-          ? t("settings.cancel_offer_title")
+          ? offer_key === "both"
+            ? t("settings.cancel_offer_both_title")
+            : offer_key === "yearly"
+              ? t("settings.cancel_offer_yearly_title")
+              : t("settings.cancel_offer_title")
           : cancel_step === "impact"
             ? t("settings.cancel_impact_title")
             : cancel_step === "confirm"
@@ -409,7 +410,11 @@ export function BillingDialogs({
       : cancel_step === "reason"
         ? t("settings.cancel_reason_description")
         : cancel_step === "offer"
-          ? t("settings.cancel_offer_description")
+          ? offer_key === "both"
+            ? t("settings.cancel_offer_both_description")
+            : offer_key === "yearly"
+              ? t("settings.cancel_offer_yearly_description")
+              : t("settings.cancel_offer_description")
           : cancel_step === "impact"
             ? cancel_effective_date
               ? t("settings.cancel_impact_description", {
@@ -466,7 +471,7 @@ export function BillingDialogs({
               set_reason={set_cancel_reason}
               set_reason_text={set_cancel_reason_text}
             />
-          ) : cancel_step === "offer" && downgrade_offer ? (
+          ) : cancel_step === "offer" && (downgrade_offer || yearly_offer) ? (
             <CancelOfferStep
               is_busy={is_action_loading}
               keep_plan_slot={
@@ -480,10 +485,19 @@ export function BillingDialogs({
               on_switch={() => {
                 const offer = downgrade_offer;
 
+                if (!offer) return;
                 set_show_cancel_dialog(false);
                 setTimeout(() => on_switch_plan?.(offer), 200);
               }}
+              on_switch_yearly={() => {
+                const offer = yearly_offer;
+
+                if (!offer) return;
+                set_show_cancel_dialog(false);
+                setTimeout(() => on_switch_yearly?.(offer), 200);
+              }}
               preferred_currency={preferred_currency}
+              yearly_offer={yearly_offer}
             />
           ) : cancel_step === "impact" ? (
             <CancelImpactStep

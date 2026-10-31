@@ -6577,6 +6577,11 @@ export interface SettingsTranslations {
   cancel_impact_features_one?: string;
   cancel_impact_reactivate_hint: string;
   cancel_impact_continue: string;
+  cancel_offer_yearly_title: string;
+  cancel_offer_yearly_description: string;
+  cancel_offer_both_title: string;
+  cancel_offer_both_description: string;
+  cancel_offer_yearly_body: string;
   cancel_offer_title: string;
   cancel_offer_description: string;
   cancel_offer_body: string;

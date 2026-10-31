@@ -5823,6 +5823,11 @@ export const zh_CN = {
     cancel_impact_reactivate_hint:
       "不会删除任何内容。重新订阅后，被停用的内容会在新方案的限额范围内恢复。",
     cancel_impact_continue: "继续取消",
+    cancel_offer_yearly_title: "改为按年付费",
+    cancel_offer_yearly_description: "您可以保留当前套餐，并通过按年付费降低费用。",
+    cancel_offer_both_title: "降低费用的方式",
+    cancel_offer_both_description: "您可以按年支付当前套餐，或改用价格更低的套餐，并继续使用此账户。",
+    cancel_offer_yearly_body: "按年付费，继续使用 {{plan}}，每月 {{price}}。与按月付费相比，每年节省 {{amount}}。",
     cancel_offer_title: "改用更小的套餐",
     cancel_offer_description: "您可以改用价格更低的套餐，并继续使用此账户。",
     cancel_offer_body:

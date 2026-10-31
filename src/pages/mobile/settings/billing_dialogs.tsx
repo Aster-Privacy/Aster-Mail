@@ -48,10 +48,7 @@ import {
   CancelImpactStep,
   type CancelStep,
 } from "@/components/settings/billing/cancel_impact_step";
-import {
-  get_downgrade_offer,
-  read_billing_interval,
-} from "@/components/settings/billing/cancel_offer";
+import { get_cancel_offers } from "@/components/settings/billing/cancel_offer";
 import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
 import { CancelEarlyStep } from "@/components/settings/billing/cancel_early_step";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -143,22 +140,41 @@ export function render_billing_dialogs(
     handle_addon_pay_card,
     handle_addon_pay_crypto,
     plans,
-    handle_select_plan,
+    current_billing_interval,
   } = state;
 
-  const base_offer =
-    subscription &&
-    !subscription.cancel_at_period_end &&
-    subscription.has_stripe_subscription !== false &&
-    !is_crypto_provider(subscription.payment_provider)
-      ? get_downgrade_offer(
-          subscription.plan.code,
-          read_billing_interval(subscription.plan.billing_period),
-        )
-      : null;
+  const cancel_offers = get_cancel_offers(subscription);
   const downgrade_offer =
-    base_offer && !base_offer.is_family ? base_offer : null;
-  const step_after_reason: CancelStep = downgrade_offer ? "offer" : "impact";
+    cancel_offers.downgrade && !cancel_offers.downgrade.is_family
+      ? cancel_offers.downgrade
+      : null;
+  const yearly_offer =
+    cancel_offers.yearly && !cancel_offers.yearly.is_family
+      ? cancel_offers.yearly
+      : null;
+  const step_after_reason: CancelStep =
+    downgrade_offer || yearly_offer ? "offer" : "impact";
+  const offer_key = yearly_offer
+    ? downgrade_offer
+      ? "both"
+      : "yearly"
+    : "downgrade";
+
+  const open_plan_change = (plan_code: string, interval: string) => {
+    const api_plan = plans.find((plan) => plan.code === plan_code);
+
+    if (!api_plan) {
+      show_toast(t("settings.plans_coming_soon"), "info");
+
+      return;
+    }
+
+    set_show_cancel_dialog(false);
+    setTimeout(() => {
+      set_plan_change_confirm_target({ plan: api_plan, interval });
+      set_show_plan_change_confirm(true);
+    }, 200);
+  };
 
   return (
     <>
@@ -176,7 +192,11 @@ export function render_billing_dialogs(
                 : cancel_step === "reason"
                   ? t("settings.cancel_reason_title")
                   : cancel_step === "offer"
-                    ? t("settings.cancel_offer_title")
+                    ? offer_key === "both"
+                      ? t("settings.cancel_offer_both_title")
+                      : offer_key === "yearly"
+                        ? t("settings.cancel_offer_yearly_title")
+                        : t("settings.cancel_offer_title")
                     : cancel_step === "impact"
                       ? t("settings.cancel_impact_title")
                       : cancel_step === "confirm"
@@ -189,7 +209,11 @@ export function render_billing_dialogs(
                 : cancel_step === "reason"
                   ? t("settings.cancel_reason_description")
                   : cancel_step === "offer"
-                    ? t("settings.cancel_offer_description")
+                    ? offer_key === "both"
+                      ? t("settings.cancel_offer_both_description")
+                      : offer_key === "yearly"
+                        ? t("settings.cancel_offer_yearly_description")
+                        : t("settings.cancel_offer_description")
                     : cancel_step === "impact"
                       ? cancel_effective_date
                         ? t("settings.cancel_impact_description", {
@@ -236,7 +260,7 @@ export function render_billing_dialogs(
               set_reason={set_cancel_reason}
               set_reason_text={set_cancel_reason_text}
             />
-          ) : cancel_step === "offer" && downgrade_offer ? (
+          ) : cancel_step === "offer" && (downgrade_offer || yearly_offer) ? (
             <CancelOfferStep
               is_busy={is_action_loading}
               keep_plan_slot={
@@ -248,20 +272,18 @@ export function render_billing_dialogs(
               on_back={() => set_cancel_step("reason")}
               on_continue={() => set_cancel_step("impact")}
               on_switch={() => {
-                const api_plan = plans.find(
-                  (plan) => plan.code === downgrade_offer.plan_code,
+                if (!downgrade_offer) return;
+                open_plan_change(
+                  downgrade_offer.plan_code,
+                  current_billing_interval,
                 );
-
-                if (!api_plan) {
-                  show_toast(t("settings.plans_coming_soon"), "info");
-
-                  return;
-                }
-
-                set_show_cancel_dialog(false);
-                setTimeout(() => handle_select_plan(api_plan), 200);
+              }}
+              on_switch_yearly={() => {
+                if (!yearly_offer) return;
+                open_plan_change(yearly_offer.plan_code, "year");
               }}
               preferred_currency={preferred_currency}
+              yearly_offer={yearly_offer}
             />
           ) : cancel_step === "impact" ? (
             <CancelImpactStep
