@@ -8507,6 +8507,7 @@ export interface AuthTranslations {
   getting_user_info: string;
   checkout_confirm_title: string;
   checkout_confirm_description: string;
+  checkout_confirm_description_crypto: string;
   enter_backup_code: string;
   backup_code_length_error: string;
   two_fa_temporarily_locked: string;

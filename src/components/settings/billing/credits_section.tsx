@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useMemo, useRef } from "react";
+import { Capacitor } from "@capacitor/core";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import {
   ArrowPathIcon,
@@ -49,6 +50,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { ButtonSpinner } from "@/components/ui/spinner";
+import { CryptoCreditModal } from "@/components/settings/billing/crypto_credit_modal";
 import {
   format_price,
   format_date,
@@ -159,11 +161,14 @@ export function CreditsSection({
   const [packages_failed, set_packages_failed] = useState(false);
   const [packages_tick, set_packages_tick] = useState(0);
   const [confirm_abandon, set_confirm_abandon] = useState(false);
+  const [show_coin_picker, set_show_coin_picker] = useState(false);
+  const native_crypto_supported = Capacitor.getPlatform() !== "ios";
   const opened_package_ref = useRef<string | null>(null);
 
   useEffect(() => {
     if (!show_picker) {
       set_confirm_abandon(false);
+      set_show_coin_picker(false);
 
       return;
     }
@@ -199,7 +204,17 @@ export function CreditsSection({
     return () => window.removeEventListener("pageshow", handle_page_show);
   }, []);
 
-  const handle_buy = async () => {
+  const handle_buy = () => {
+    if (!selected_package || buying) return;
+    if (credit_method === "crypto" && native_crypto_supported) {
+      set_show_coin_picker(true);
+
+      return;
+    }
+    void start_hosted_checkout();
+  };
+
+  const start_hosted_checkout = async () => {
     if (!selected_package || buying) return;
     set_buying(true);
     try {
@@ -583,10 +598,12 @@ export function CreditsSection({
                   );
                 })}
               </div>
-              <SecurityMarks
-                class_name="mt-2.5 px-1"
-                label={t("settings.stripe_secure_short")}
-              />
+              {credit_method === "card" && (
+                <SecurityMarks
+                  class_name="mt-2.5 px-1"
+                  label={t("settings.stripe_secure_short")}
+                />
+              )}
             </div>
           )}
         </div>
@@ -669,10 +686,12 @@ export function CreditsSection({
               )}
             </Button>
 
-            <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] plan_galaxy_text_muted">
-              <LockClosedIcon className="h-3.5 w-3.5 flex-shrink-0" />
-              <span>{t("settings.stripe_secure_short")}</span>
-            </div>
+            {credit_method === "card" && (
+              <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] plan_galaxy_text_muted">
+                <LockClosedIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>{t("settings.stripe_secure_short")}</span>
+              </div>
+            )}
 
             <p className="mt-2 text-[11px] leading-relaxed plan_galaxy_text_muted">
               {t("settings.top_up_credits_description")}
@@ -718,6 +737,20 @@ export function CreditsSection({
           </Button>
         </ModalFooter>
       </Modal>
+
+      <CryptoCreditModal
+        credit_package={selected_package}
+        is_open={show_coin_picker}
+        on_close={() => {
+          if (!buying) set_show_coin_picker(false);
+        }}
+        on_invoice_created={() => {
+          set_show_coin_picker(false);
+          set_show_picker(false);
+        }}
+        on_stablecoin={() => void start_hosted_checkout()}
+        stablecoin_busy={buying}
+      />
     </Modal>
   );
 

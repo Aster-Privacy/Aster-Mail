@@ -9923,6 +9923,8 @@ export const pl = {
     checkout_confirm_title: "Dokończ logowanie",
     checkout_confirm_description:
       "Zakup został zakończony. Aby otworzyć skrzynkę pocztową, kontynuuj jako {{email}}.",
+    checkout_confirm_description_crypto:
+      "Twoje konto jest gotowe. Aby dokończyć płatność, kontynuuj jako {{email}}.",
     enter_backup_code: "Wprowadź kod zapasowy",
     backup_code_length_error:
       "Kod zapasowy ma 12 znaków (8 w przypadku starszych kodów). Sprawdź kod i spróbuj ponownie.",

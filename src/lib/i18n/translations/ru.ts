@@ -9889,6 +9889,8 @@ export const ru = {
     checkout_confirm_title: "Завершите вход",
     checkout_confirm_description:
       "Покупка завершена. Чтобы открыть почтовый ящик, продолжите как {{email}}.",
+    checkout_confirm_description_crypto:
+      "Ваш аккаунт готов. Чтобы завершить оплату, продолжите как {{email}}.",
     enter_backup_code: "Введите резервный код",
     backup_code_length_error:
       "Резервный код состоит из 12 символов (8 для старых кодов). Проверьте код и попробуйте снова.",

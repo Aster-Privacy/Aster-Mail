@@ -26,6 +26,7 @@ import {
   decrypt_checkout_password,
   decrypt_with_prf,
   consume_safe_next_path,
+  get_safe_next_path,
   parse_prefill_identity,
 } from "./sign_in_helpers";
 
@@ -167,6 +168,8 @@ export function use_sign_in_page() {
   const [checkout_confirm_email, set_checkout_confirm_email] = useState<
     string | null
   >(null);
+  const [is_checkout_payment_pending, set_is_checkout_payment_pending] =
+    useState(false);
   const checkout_runner = useRef<(() => Promise<void>) | null>(null);
   const [hub_account_list, set_hub_account_list] = useState<hub_account[]>([]);
   const [hub_signing_in_id, set_hub_signing_in_id] = useState<string | null>(
@@ -450,6 +453,9 @@ export function use_sign_in_page() {
 
     set_is_checkout_login(true);
     set_checkout_confirm_email(`${checkout_username}@${checkout_domain}`);
+    set_is_checkout_payment_pending(
+      get_safe_next_path().startsWith("/crypto-invoice/"),
+    );
 
     const translate = t;
 
@@ -583,14 +589,18 @@ export function use_sign_in_page() {
           check_and_replenish_prekeys();
         }
 
-        safe_session_set(
-          "aster_checkout_success",
-          JSON.stringify({ plan: checkout_plan, billing: checkout_interval }),
-        );
+        const checkout_next_path = consume_safe_next_path();
+
+        if (!checkout_next_path.startsWith("/crypto-invoice/")) {
+          safe_session_set(
+            "aster_checkout_success",
+            JSON.stringify({ plan: checkout_plan, billing: checkout_interval }),
+          );
+        }
 
         scrub_checkout_params();
 
-        hard_redirect(consume_safe_next_path());
+        hard_redirect(checkout_next_path);
       } catch (err) {
         scrub_checkout_params();
         set_is_checkout_login(false);
@@ -976,6 +986,7 @@ export function use_sign_in_page() {
     is_checkout_login,
     checkout_status,
     checkout_confirm_email,
+    is_checkout_payment_pending,
     confirm_checkout_login,
     cancel_checkout_login,
     captcha_token,

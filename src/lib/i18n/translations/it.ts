@@ -9742,6 +9742,8 @@ export const it = {
     checkout_confirm_title: "Completa l'accesso",
     checkout_confirm_description:
       "Il tuo acquisto è completato. Per aprire la tua casella di posta, continua come {{email}}.",
+    checkout_confirm_description_crypto:
+      "Il tuo account è pronto. Per completare il pagamento, continua come {{email}}.",
     enter_backup_code: "Inserisci codice di backup",
     backup_code_length_error:
       "Un codice di backup è lungo 12 caratteri (8 per i codici più vecchi). Controlla il codice e riprova.",

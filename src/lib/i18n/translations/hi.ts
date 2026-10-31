@@ -9561,6 +9561,8 @@ export const hi = {
     checkout_confirm_title: "साइन इन पूरा करें",
     checkout_confirm_description:
       "आपकी खरीदारी पूरी हो गई है। अपना मेलबॉक्स खोलने के लिए {{email}} के रूप में जारी रखें।",
+    checkout_confirm_description_crypto:
+      "आपका खाता तैयार है। भुगतान पूरा करने के लिए, {{email}} के रूप में जारी रखें।",
     enter_backup_code: "बैकअप कोड डालें",
     backup_code_length_error:
       "बैकअप कोड 12 वर्ण लंबा होता है (पुराने कोड के लिए 8)। कोड जांचें और फिर से कोशिश करें।",

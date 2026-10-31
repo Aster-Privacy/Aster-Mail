@@ -9312,6 +9312,8 @@ export const ko = {
     checkout_confirm_title: "로그인 완료",
     checkout_confirm_description:
       "구매가 완료되었습니다. 메일함을 열려면 {{email}}(으)로 계속하세요.",
+    checkout_confirm_description_crypto:
+      "계정이 준비되었습니다. 결제를 완료하려면 {{email}}(으)로 계속하세요.",
     enter_backup_code: "백업 코드 입력",
     backup_code_length_error:
       "백업 코드는 12자입니다(이전 코드는 8자). 코드를 확인하고 다시 시도하세요.",

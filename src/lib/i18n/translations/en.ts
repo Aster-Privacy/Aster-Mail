@@ -9511,6 +9511,8 @@ export const en: Translations = {
     checkout_confirm_title: "Finish signing in",
     checkout_confirm_description:
       "Your purchase is complete. To open your mailbox, continue as {{email}}.",
+    checkout_confirm_description_crypto:
+      "Your account is ready. To finish paying, continue as {{email}}.",
     enter_backup_code: "Enter Backup Code",
     backup_code_length_error:
       "A backup code is 12 characters long (8 for older codes). Check the code and try again.",

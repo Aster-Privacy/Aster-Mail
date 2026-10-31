@@ -9731,6 +9731,8 @@ export const pt_br = {
     checkout_confirm_title: "Concluir o login",
     checkout_confirm_description:
       "Sua compra foi concluída. Para abrir sua caixa de entrada, continue como {{email}}.",
+    checkout_confirm_description_crypto:
+      "Sua conta está pronta. Para concluir o pagamento, continue como {{email}}.",
     enter_backup_code: "Digite o código de backup",
     backup_code_length_error:
       "Um código de backup tem 12 caracteres (8 em códigos antigos). Confira o código e tente novamente.",

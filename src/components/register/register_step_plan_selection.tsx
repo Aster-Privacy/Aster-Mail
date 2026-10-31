@@ -1190,6 +1190,7 @@ export const RegisterStepPlanSelection = ({
 
       {crypto_family_tier && (
         <CryptoTermModal
+          initial_term_months={billing_period === "yearly" ? 12 : 1}
           is_open={!!crypto_family_tier}
           monthly_price_cents={crypto_family_tier.monthly_cents}
           on_checkout_opened={clear_first_run_plan}
@@ -1335,6 +1336,7 @@ export const RegisterStepPlanSelection = ({
 
       {crypto_tier && (
         <CryptoTermModal
+          initial_term_months={billing_period === "yearly" ? 12 : 1}
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.tier.monthly_cents}
           on_checkout_opened={clear_first_run_plan}

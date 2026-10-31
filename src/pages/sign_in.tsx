@@ -128,6 +128,7 @@ export default function SignInPage() {
     is_checkout_login,
     checkout_status,
     checkout_confirm_email,
+    is_checkout_payment_pending,
     confirm_checkout_login,
     cancel_checkout_login,
     captcha_token,
@@ -179,9 +180,12 @@ export default function SignInPage() {
                   {t("auth.checkout_confirm_title")}
                 </h1>
                 <p className="text-sm text-txt-secondary mb-6 break-words">
-                  {t("auth.checkout_confirm_description", {
-                    email: checkout_confirm_email,
-                  })}
+                  {t(
+                    is_checkout_payment_pending
+                      ? "auth.checkout_confirm_description_crypto"
+                      : "auth.checkout_confirm_description",
+                    { email: checkout_confirm_email },
+                  )}
                 </p>
                 <Button
                   className="w-full"

@@ -83,10 +83,7 @@ export function SecurityMarks({
 const stacked_coins: { currency: string; chain: string; label: string }[] = [
   { currency: "btc", chain: "bitcoin", label: "Bitcoin" },
   { currency: "eth", chain: "ethereum", label: "Ethereum" },
-  { currency: "usdc", chain: "base", label: "USD Coin" },
-  { currency: "usdt", chain: "ethereum", label: "Tether" },
-  { currency: "ltc", chain: "litecoin", label: "Litecoin" },
-  { currency: "xmr", chain: "monero", label: "Monero" },
+  { currency: "usdc", chain: "ethereum", label: "USD Coin" },
 ];
 
 export function CoinStack({

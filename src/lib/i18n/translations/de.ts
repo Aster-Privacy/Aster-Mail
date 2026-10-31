@@ -9801,6 +9801,8 @@ export const de = {
     checkout_confirm_title: "Anmeldung abschließen",
     checkout_confirm_description:
       "Ihr Kauf ist abgeschlossen. Fahren Sie als {{email}} fort, um Ihr Postfach zu öffnen.",
+    checkout_confirm_description_crypto:
+      "Ihr Konto ist bereit. Fahren Sie als {{email}} fort, um die Zahlung abzuschließen.",
     enter_backup_code: "Backup-Code eingeben",
     backup_code_length_error:
       "Ein Backup-Code ist 12 Zeichen lang (8 bei älteren Codes). Prüfen Sie den Code und versuchen Sie es erneut.",
