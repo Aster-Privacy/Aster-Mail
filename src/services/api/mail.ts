@@ -757,7 +757,7 @@ export async function sync_mail_items(
   const endpoint = `/mail/v1/messages/sync${query_string ? `?${query_string}` : ""}`;
 
   return api_client.get<SyncMailItemsResponse>(endpoint, {
-    cache_ttl: 30_000,
+    skip_cache: true,
   });
 }
 
