@@ -72,6 +72,7 @@ export const LEGACY_MIGRATION_MAX_INFLIGHT = 4;
 export const legacy_migration_queue: Array<() => void> = [];
 export let legacy_migration_disabled = true;
 let legacy_migration_succeeded = false;
+let legacy_migration_retired = false;
 
 export function reset_legacy_migration_state(): void {
   legacy_migration_attempted.clear();
@@ -87,7 +88,7 @@ export function schedule_legacy_envelope_migration(
   envelope: DecryptedEnvelope,
 ): void {
   if (item_type !== "received") return;
-  if (legacy_migration_disabled) return;
+  if (legacy_migration_retired || legacy_migration_disabled) return;
   if (legacy_migration_attempted.has(item_id)) return;
 
   const has_body =
@@ -123,7 +124,10 @@ export function schedule_legacy_envelope_migration(
         envelope_nonce: nonce,
       });
 
-      if (response.data) legacy_migration_succeeded = true;
+      if (response.status === 404 || response.status === 410) {
+        legacy_migration_retired = true;
+        legacy_migration_disabled = true;
+      } else if (response.data) legacy_migration_succeeded = true;
       else if (!legacy_migration_succeeded) legacy_migration_disabled = true;
     } catch {
       if (!legacy_migration_succeeded) legacy_migration_disabled = true;

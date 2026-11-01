@@ -172,4 +172,21 @@ describe("schedule_legacy_envelope_migration", () => {
 
     expect(reencrypt_mail_item_envelope).toHaveBeenCalledTimes(3);
   });
+
+  it("retires the migration for good once the server reports the endpoint is gone", async () => {
+    reencrypt_mail_item_envelope.mockResolvedValueOnce({
+      error: "gone",
+      status: 410,
+    } as unknown as { data: { success: boolean } });
+
+    schedule_legacy_envelope_migration("retired-1", "received", make_envelope());
+    await flush();
+
+    reset_legacy_migration_state();
+
+    schedule_legacy_envelope_migration("retired-2", "received", make_envelope());
+    await flush();
+
+    expect(reencrypt_mail_item_envelope).toHaveBeenCalledTimes(1);
+  });
 });
