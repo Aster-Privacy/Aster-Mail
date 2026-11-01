@@ -82,6 +82,7 @@ import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import { api_client } from "@/services/api/client";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
+import { SignInAppsRow } from "@/components/layout/sign_in_apps_row";
 import {
   clear_pending_login_enrollment,
   derive_sign_in_proof,
@@ -1132,6 +1133,8 @@ export default function SignInPage() {
             >
               {t("auth.create_account")}
             </Button>
+
+            {!is_adding_account && <SignInAppsRow />}
           </motion.div>
         </AnimatePresence>
       </div>
