@@ -1914,6 +1914,7 @@ export class ApiClient {
       code: "UNKNOWN_ERROR",
     };
     let has_attempted_refresh = false;
+    let has_attempted_cookie_resync = false;
 
     let rate_limit_retried = false;
     let preemptions = 0;
@@ -1979,6 +1980,19 @@ export class ApiClient {
             !endpoint.includes("/auth/logout") &&
             !endpoint.includes("/auth/clear-session")
           ) {
+            if (!has_attempted_cookie_resync) {
+              has_attempted_cookie_resync = true;
+              const sent_csrf = headers["X-CSRF-Token"];
+
+              clear_csrf_cache();
+              const cookie_csrf = get_csrf_token_from_cookie();
+
+              if (cookie_csrf && cookie_csrf !== sent_csrf) {
+                headers["X-CSRF-Token"] = cookie_csrf;
+                attempt--;
+                continue;
+              }
+            }
             if (!has_attempted_refresh) {
               has_attempted_refresh = true;
               clear_csrf_cache();
