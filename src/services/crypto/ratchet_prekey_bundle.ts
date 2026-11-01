@@ -82,6 +82,28 @@ export async function detect_identity_pin_drift(
   }
 }
 
+const RATCHET_MISS_TTL_MS = 5 * 60 * 1000;
+const ratchet_lookup_misses = new Map<string, number>();
+
+function is_recent_ratchet_miss(path: string): boolean {
+  const missed_at = ratchet_lookup_misses.get(path);
+
+  if (missed_at === undefined) return false;
+  if (Date.now() - missed_at < RATCHET_MISS_TTL_MS) return true;
+  ratchet_lookup_misses.delete(path);
+
+  return false;
+}
+
+function note_ratchet_lookup(path: string, status: number | undefined): void {
+  if (status === 404) ratchet_lookup_misses.set(path, Date.now());
+  else ratchet_lookup_misses.delete(path);
+}
+
+export function clear_ratchet_lookup_misses(): void {
+  ratchet_lookup_misses.clear();
+}
+
 interface RatchetIdentity {
   user_id: string;
   kem_identity_key: string;
@@ -97,7 +119,11 @@ export async function fetch_ratchet_identity(
   const params = email ? `?email=${encodeURIComponent(email)}` : "";
   const path = `/crypto/v1/ratchet/identity/${encodeURIComponent(username)}${params}`;
 
+  if (is_recent_ratchet_miss(path)) return null;
+
   const response = await api_client.get<RatchetIdentity>(path);
+
+  note_ratchet_lookup(path, response.status);
 
   if (response.error || !response.data) {
     return null;
@@ -113,11 +139,15 @@ export async function fetch_prekey_bundle(
   const params = email ? `?email=${encodeURIComponent(email)}` : "";
   const path = `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}${params}`;
 
+  if (is_recent_ratchet_miss(path)) return null;
+
   let response = await api_client.get<PrekeyBundle>(path);
 
   if ((response.error || !response.data) && response.code !== "NOT_FOUND") {
     response = await api_client.get<PrekeyBundle>(path);
   }
+
+  note_ratchet_lookup(path, response.status);
 
   if (response.error || !response.data) {
     return null;
@@ -150,7 +180,11 @@ export async function fetch_published_identity_history(
   const params = email ? `?email=${encodeURIComponent(email)}` : "";
   const path = `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}/history${params}`;
 
+  if (is_recent_ratchet_miss(path)) return null;
+
   const response = await api_client.get<RatchetIdentityHistoryResponse>(path);
+
+  note_ratchet_lookup(path, response.status);
 
   if (response.error || !response.data) {
     return null;
