@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/popover";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_auth } from "@/contexts/auth_context";
 import { is_composing } from "@/utils/ime";
 import {
   SEARCH_SCOPES,
@@ -379,6 +380,8 @@ export function SearchChipRow({
   scope_view,
 }: SearchChipRowProps) {
   const { t } = use_i18n();
+  const { user } = use_auth();
+  const user_email = user?.email || "";
   const [date_open, set_date_open] = useState(false);
   const [show_custom_range, set_show_custom_range] = useState(false);
   const [custom_after, set_custom_after] = useState("");
@@ -607,7 +610,7 @@ export function SearchChipRow({
         label={person_chip_label(from_values) ?? t("mail.from")}
         on_clear={() => clear_person("from")}
         on_select={(email) => set_person("from", email)}
-        people={() => list_index_people("from")}
+        people={() => list_index_people("from", user_email)}
         placeholder={t("mail.chip_name_or_email")}
       />
       <PersonChip
@@ -617,7 +620,7 @@ export function SearchChipRow({
         label={person_chip_label(to_values) ?? t("mail.to")}
         on_clear={() => clear_person("to")}
         on_select={(email) => set_person("to", email)}
-        people={() => list_index_people("to")}
+        people={() => list_index_people("to", user_email)}
         placeholder={t("mail.chip_name_or_email")}
       />
       <Popover

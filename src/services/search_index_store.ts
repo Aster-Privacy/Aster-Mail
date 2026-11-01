@@ -20,6 +20,7 @@
 //
 import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
+import type { SnapshotClearScope } from "@/services/offline_email_cache";
 
 import {
   encrypted_set,
@@ -37,7 +38,10 @@ import {
   normalize_envelope_from,
   normalize_envelope_recipients,
 } from "@/services/crypto/envelope_normalize";
-import { get_current_account_id } from "@/services/account_manager";
+import {
+  get_all_accounts,
+  get_current_account_id,
+} from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   create_chunk_summarizer,
@@ -49,6 +53,8 @@ import {
   type StoredGramFilter,
 } from "@/services/search_chunk_filter";
 import { yield_to_visible_page } from "@/lib/scheduling";
+
+export type SearchSnapshotClearScope = SnapshotClearScope | "all";
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
@@ -323,6 +329,7 @@ interface SummaryGroupRecord {
 const chunk_cache = new Map<string, SearchIndexChunk>();
 const gram_cache = new Map<string, GramFilter | null>();
 const summary_cache = new Map<string, Record<string, ChunkSummary>>();
+let snapshot_clear_count = 0;
 
 function cache_read<T>(cache: Map<string, T>, key: string): T | undefined {
   if (!cache.has(key)) return undefined;
@@ -610,6 +617,8 @@ function highest_chunk_id(keys: string[], chunk_prefix: string): number {
 export async function open_snapshot_reader(
   user_email: string,
 ): Promise<SnapshotReader | null> {
+  const opened_at_clear = snapshot_clear_count;
+
   try {
     const encryption_key = await get_snapshot_encryption_key();
 
@@ -619,6 +628,8 @@ export async function open_snapshot_reader(
     const meta = await read_manifest(key, encryption_key, user_email);
 
     if (!meta) return null;
+
+    const still_current = () => opened_at_clear === snapshot_clear_count;
 
     return {
       meta,
@@ -642,7 +653,9 @@ export async function open_snapshot_reader(
             return null;
           }
 
-          cache_write(chunk_cache, record_key, chunk, CHUNK_CACHE_SIZE);
+          if (still_current()) {
+            cache_write(chunk_cache, record_key, chunk, CHUNK_CACHE_SIZE);
+          }
 
           return chunk;
         } catch {
@@ -678,12 +691,14 @@ export async function open_snapshot_reader(
               summaries = {};
             }
 
-            cache_write(
-              summary_cache,
-              record_key,
-              summaries,
-              SUMMARY_CACHE_SIZE,
-            );
+            if (still_current()) {
+              cache_write(
+                summary_cache,
+                record_key,
+                summaries,
+                SUMMARY_CACHE_SIZE,
+              );
+            }
           }
 
           for (const chunk_id of chunk_ids) {
@@ -717,7 +732,9 @@ export async function open_snapshot_reader(
           filter = null;
         }
 
-        cache_write(gram_cache, record_key, filter, GRAM_CACHE_SIZE);
+        if (still_current()) {
+          cache_write(gram_cache, record_key, filter, GRAM_CACHE_SIZE);
+        }
 
         return filter;
       },
@@ -1072,20 +1089,54 @@ export async function open_snapshot_writer(
   };
 }
 
-export async function clear_search_snapshots(): Promise<void> {
-  invalidate_snapshot_caches();
+function snapshot_belongs_to(key: string, account_id: string): boolean {
+  const base = `${KEY_PREFIX}${account_id}`;
 
+  return key === base || key.startsWith(`${base}_`);
+}
+
+async function delete_snapshot_keys(
+  should_delete: (key: string) => boolean,
+): Promise<void> {
   try {
     const keys = await encrypted_list_keys();
 
     await Promise.all(
       keys
-        .filter((k) => k.startsWith(KEY_PREFIX))
+        .filter((k) => k.startsWith(KEY_PREFIX) && should_delete(k))
         .map((k) => secure_overwrite_and_delete(k)),
     );
   } catch {
     return;
   }
+}
+
+export async function clear_search_snapshots(
+  scope: SearchSnapshotClearScope = "all",
+): Promise<void> {
+  snapshot_clear_count++;
+  invalidate_snapshot_caches();
+
+  if (scope === "all") return delete_snapshot_keys(() => true);
+
+  if (scope === "none") {
+    const kept = await get_all_accounts()
+      .then((accounts) => accounts.map((account) => account.id))
+      .catch((): string[] => []);
+
+    return delete_snapshot_keys(
+      (k) => !kept.some((id) => snapshot_belongs_to(k, id)),
+    );
+  }
+
+  const account_id =
+    scope === "current_account"
+      ? await get_current_account_id().catch(() => null)
+      : scope.account_id;
+
+  return delete_snapshot_keys(
+    (k) => !account_id || snapshot_belongs_to(k, account_id),
+  );
 }
 
 export function build_snapshot(

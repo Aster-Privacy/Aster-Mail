@@ -34,6 +34,7 @@ import {
   clear_all_folder_unlock_records,
   clear_folder_unlock_record,
   get_unlock_token as get_unlock_token_for_folder_label,
+  has_folder_unlock_records,
   is_folder_unlock_live,
   parse_unlock_expiry,
   set_folder_unlock_record,
@@ -530,6 +531,10 @@ export function lock_all_folders(): void {
   unlocked_folders.clear();
   clear_all_folder_unlock_records();
   void purge_locked_folder_local_caches().catch(() => undefined);
+}
+
+export function has_unlocked_folders(): boolean {
+  return unlocked_folders.size > 0 || has_folder_unlock_records();
 }
 
 export function is_folder_unlocked(folder_id: string): boolean {
