@@ -1175,7 +1175,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     try {
       const sample = new Notification(t("auth.notifications_turned_on"), {
         body: t("auth.notifications_sample_body"),
-        icon: "/icons/icon-192x192.png",
+        icon: "/pwa-192x192.png",
         tag: "aster-onboarding-notification",
         silent: true,
       });

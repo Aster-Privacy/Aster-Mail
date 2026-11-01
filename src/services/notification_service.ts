@@ -201,7 +201,7 @@ export async function show_notification(
 
   const notification = new Notification(display_title, {
     body: display_body,
-    icon: options.icon || "/icons/icon-192x192.png",
+    icon: options.icon || "/pwa-192x192.png",
     tag: options.tag,
     data: options.data,
     ...(silent ? { silent: true } : {}),
