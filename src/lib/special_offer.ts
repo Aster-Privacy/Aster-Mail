@@ -111,7 +111,7 @@ export function offer_covers_crypto_term(
 }
 
 export function offer_is_live(
-  status: SpecialOfferStatus | null,
+  status: Pick<SpecialOfferStatus, "ends_at"> | null,
   now: Date,
 ): boolean {
   if (!status) return false;
@@ -218,6 +218,7 @@ export function special_offer_checkout(
   const percent_off = status?.percent_off ?? SPECIAL_OFFER_PERCENT_OFF;
   const offer_plan = (plan_code: string | null | undefined) =>
     is_available &&
+    offer_is_live(status, new Date()) &&
     plan_code &&
     (offer_covers(status, plan_code, "month") ||
       offer_covers(status, plan_code, "year"))
@@ -283,14 +284,6 @@ export function is_special_offer_available({
   return special_offer_pricing() !== null;
 }
 
-function offer_has_ended(ends_at: string | null | undefined): boolean {
-  if (!ends_at) return false;
-
-  const end = Date.parse(ends_at);
-
-  return !Number.isNaN(end) && Date.now() > end;
-}
-
 export interface SpecialOfferStatusSnapshot {
   status: Pick<
     SpecialOfferStatus,
@@ -308,7 +301,7 @@ export function is_special_offer_active({
   return (
     is_loaded &&
     !!status?.available &&
-    !offer_has_ended(status.ends_at) &&
+    offer_is_live(status, new Date()) &&
     is_special_offer_available({
       plan_code,
       is_dismissed: status?.dismissed ?? false,

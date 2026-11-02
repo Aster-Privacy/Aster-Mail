@@ -336,20 +336,40 @@ describe("offer_is_live", () => {
   });
 
   it("is live without ends_at and not live without a status", () => {
-    expect(offer_is_live(legacy_status, new Date("2030-01-01T00:00:00Z"))).toBe(
-      true,
-    );
+    expect(
+      offer_is_live(legacy_status, new Date("2030-01-01T00:00:00Z")),
+    ).toBe(true);
     expect(offer_is_live(null, new Date())).toBe(false);
   });
 });
 
 describe("special_offer_checkout with a status", () => {
+  it("prices nothing once the offer window has closed", () => {
+    const expired = { ...bf_status, ends_at: "2020-01-01T00:00:00Z" };
+    const checkout = special_offer_checkout(true, expired);
+
+    expect(checkout.plan_pricing("nova")).toBeUndefined();
+    expect(checkout.crypto_price("nova")).toBeUndefined();
+  });
+
   it("prices every covered plan and term", () => {
     const checkout = special_offer_checkout(true, bf_status);
 
-    expect(checkout.plan_pricing("family")?.discounted_total_cents("card", "monthly", 2699)).toBe(1349);
-    expect(checkout.plan_pricing("star")?.discounted_total_cents("card", "monthly", 299)).toBeNull();
-    expect(checkout.plan_pricing("star")?.discounted_total_cents("card", "yearly", 2899)).toBe(1449);
+    expect(
+      checkout
+        .plan_pricing("family")
+        ?.discounted_total_cents("card", "monthly", 2699),
+    ).toBe(1349);
+    expect(
+      checkout
+        .plan_pricing("star")
+        ?.discounted_total_cents("card", "monthly", 299),
+    ).toBeNull();
+    expect(
+      checkout
+        .plan_pricing("star")
+        ?.discounted_total_cents("card", "yearly", 2899),
+    ).toBe(1449);
     expect(checkout.crypto_price("duo")?.(6, 7794)).toBe(3897);
   });
 });
