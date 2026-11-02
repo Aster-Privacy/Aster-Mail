@@ -44,7 +44,8 @@ import {
 } from "@aster/ui";
 
 import {
-  EMAIL_DRAG_MIME,
+  is_email_drag,
+  read_email_drag,
   run_scope_drop,
 } from "@/components/email/inbox/category_drag";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
@@ -309,8 +310,7 @@ export const SidebarTags = memo(function SidebarTags({
                       })
                     }
                     on_drag_enter={(e) => {
-                      if (!e.dataTransfer.types.includes(EMAIL_DRAG_MIME))
-                        return;
+                      if (!is_email_drag(e.dataTransfer)) return;
                       set_drag_over_token(tag.tag_token);
                     }}
                     on_drag_leave={(e) => {
@@ -320,9 +320,7 @@ export const SidebarTags = memo(function SidebarTags({
                     }}
                     on_drag_over={(e) => {
                       e.preventDefault();
-                      e.dataTransfer.dropEffect = e.dataTransfer.types.includes(
-                        EMAIL_DRAG_MIME,
-                      )
+                      e.dataTransfer.dropEffect = is_email_drag(e.dataTransfer)
                         ? "move"
                         : "none";
                     }}
@@ -330,6 +328,8 @@ export const SidebarTags = memo(function SidebarTags({
                       e.preventDefault();
                       e.stopPropagation();
                       set_drag_over_token(null);
+                      const payload = read_email_drag(e.dataTransfer);
+
                       if (
                         run_scope_drop(e.dataTransfer, {
                           kind: "tag",
@@ -339,29 +339,14 @@ export const SidebarTags = memo(function SidebarTags({
                       ) {
                         return;
                       }
-                      const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
+                      if (!payload || payload.ids.length === 0) return;
+                      if (!on_drop_emails) return;
+                      if (payload.tag_tokens.includes(tag.tag_token)) {
+                        on_drop_emails([], tag.tag_token, tag.name);
 
-                      if (!raw || !on_drop_emails) return;
-                      try {
-                        const ids = JSON.parse(raw) as string[];
-
-                        if (!Array.isArray(ids) || ids.length === 0) return;
-                        const existing_raw = e.dataTransfer.getData(
-                          "application/x-astermail-tags",
-                        );
-                        const existing_tags: string[] = existing_raw
-                          ? JSON.parse(existing_raw)
-                          : [];
-
-                        if (existing_tags.includes(tag.tag_token)) {
-                          on_drop_emails([], tag.tag_token, tag.name);
-
-                          return;
-                        }
-                        on_drop_emails(ids, tag.tag_token, tag.name);
-                      } catch {
                         return;
                       }
+                      on_drop_emails(payload.ids, tag.tag_token, tag.name);
                     }}
                     selected={effective_selected === tag_item_id}
                     tag_icon={RowIcon}

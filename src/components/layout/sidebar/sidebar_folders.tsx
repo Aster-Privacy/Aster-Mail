@@ -49,7 +49,8 @@ import {
   is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
 import {
-  EMAIL_DRAG_MIME,
+  is_email_drag,
+  read_email_drag,
   run_scope_drop,
 } from "@/components/email/inbox/category_drag";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
@@ -460,8 +461,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                       toggle_expanded(folder.folder_token)
                     }
                     on_drag_enter={(e) => {
-                      if (!e.dataTransfer.types.includes(EMAIL_DRAG_MIME))
-                        return;
+                      if (!is_email_drag(e.dataTransfer)) return;
                       set_drag_over_token(folder.folder_token);
                     }}
                     on_drag_leave={(e) => {
@@ -471,9 +471,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                     }}
                     on_drag_over={(e) => {
                       e.preventDefault();
-                      e.dataTransfer.dropEffect = e.dataTransfer.types.includes(
-                        EMAIL_DRAG_MIME,
-                      )
+                      e.dataTransfer.dropEffect = is_email_drag(e.dataTransfer)
                         ? "move"
                         : "none";
                     }}
@@ -481,6 +479,8 @@ export const SidebarFolders = memo(function SidebarFolders({
                       e.preventDefault();
                       e.stopPropagation();
                       set_drag_over_token(null);
+                      const payload = read_email_drag(e.dataTransfer);
+
                       if (
                         run_scope_drop(e.dataTransfer, {
                           kind: "folder",
@@ -490,44 +490,31 @@ export const SidebarFolders = memo(function SidebarFolders({
                       ) {
                         return;
                       }
-                      const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
+                      if (!payload || payload.ids.length === 0) return;
+                      if (!on_drop_emails) return;
+                      const existing_folders = payload.folder_tokens;
 
-                      if (!raw || !on_drop_emails) return;
-                      try {
-                        const ids = JSON.parse(raw) as string[];
+                      if (existing_folders.includes(folder.folder_token)) {
+                        on_drop_emails([], folder.folder_token, folder.name);
 
-                        if (!Array.isArray(ids) || ids.length === 0) return;
-                        const existing_raw = e.dataTransfer.getData(
-                          "application/x-astermail-folders",
-                        );
-                        const existing_folders: string[] = existing_raw
-                          ? JSON.parse(existing_raw)
-                          : [];
-
-                        if (existing_folders.includes(folder.folder_token)) {
-                          on_drop_emails([], folder.folder_token, folder.name);
-
-                          return;
-                        }
-                        const previous_folders = (all_folders ?? folders)
-                          .filter((f) =>
-                            existing_folders.includes(f.folder_token),
-                          )
-                          .map((f) => ({
-                            folder_token: f.folder_token,
-                            name: f.name,
-                            color: f.color,
-                          }));
-
-                        on_drop_emails(
-                          ids,
-                          folder.folder_token,
-                          folder.name,
-                          previous_folders,
-                        );
-                      } catch {
                         return;
                       }
+                      const previous_folders = (all_folders ?? folders)
+                        .filter((f) =>
+                          existing_folders.includes(f.folder_token),
+                        )
+                        .map((f) => ({
+                          folder_token: f.folder_token,
+                          name: f.name,
+                          color: f.color,
+                        }));
+
+                      on_drop_emails(
+                        payload.ids,
+                        folder.folder_token,
+                        folder.name,
+                        previous_folders,
+                      );
                     }}
                     selected={selected}
                     unread_count={unread_count}

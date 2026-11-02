@@ -44,10 +44,26 @@ function get_snapshot(): boolean {
   return is_dragging;
 }
 
+export const EMAIL_FOLDERS_DRAG_MIME = "application/x-astermail-folders";
+export const EMAIL_TAGS_DRAG_MIME = "application/x-astermail-tags";
+
+export interface EmailDragPayload {
+  ids: string[];
+  folder_tokens: string[];
+  tag_tokens: string[];
+  is_scope: boolean;
+}
+
+let active_payload: EmailDragPayload | null = null;
+
+function end_after_drop_dispatch(): void {
+  setTimeout(end_category_drag, 0);
+}
+
 function detach_window_reset(): void {
   if (typeof window === "undefined") return;
   window.removeEventListener("dragend", end_category_drag, true);
-  window.removeEventListener("drop", end_category_drag, true);
+  window.removeEventListener("drop", end_after_drop_dispatch, true);
 }
 
 export function begin_category_drag(): void {
@@ -55,16 +71,87 @@ export function begin_category_drag(): void {
   is_dragging = true;
   if (typeof window !== "undefined") {
     window.addEventListener("dragend", end_category_drag, true);
-    window.addEventListener("drop", end_category_drag, true);
+    window.addEventListener("drop", end_after_drop_dispatch, true);
   }
   notify();
 }
 
 export function end_category_drag(): void {
+  active_payload = null;
   if (!is_dragging) return;
   is_dragging = false;
   detach_window_reset();
   notify();
+}
+
+export function write_email_drag(
+  data_transfer: DataTransfer,
+  payload: EmailDragPayload,
+): void {
+  active_payload = payload;
+  data_transfer.setData(EMAIL_DRAG_MIME, JSON.stringify(payload.ids));
+  if (payload.is_scope) data_transfer.setData(EMAIL_SCOPE_DRAG_MIME, "1");
+  data_transfer.setData(
+    EMAIL_FOLDERS_DRAG_MIME,
+    JSON.stringify(payload.folder_tokens),
+  );
+  data_transfer.setData(
+    EMAIL_TAGS_DRAG_MIME,
+    JSON.stringify(payload.tag_tokens),
+  );
+  data_transfer.effectAllowed = "move";
+}
+
+function parse_string_list(raw: string): string[] | null {
+  if (!raw) return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+
+    return Array.isArray(parsed) &&
+      parsed.every((value) => typeof value === "string")
+      ? parsed
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function read_transfer(data_transfer: DataTransfer, mime: string): string {
+  try {
+    return data_transfer.getData(mime);
+  } catch {
+    return "";
+  }
+}
+
+export function is_email_drag(data_transfer: DataTransfer | null): boolean {
+  if (active_payload) return true;
+
+  return !!data_transfer && data_transfer.types.includes(EMAIL_DRAG_MIME);
+}
+
+export function read_email_drag(
+  data_transfer: DataTransfer | null,
+): EmailDragPayload | null {
+  const ids = data_transfer
+    ? parse_string_list(read_transfer(data_transfer, EMAIL_DRAG_MIME))
+    : null;
+
+  if (!ids || !data_transfer) return active_payload;
+
+  return {
+    ids,
+    folder_tokens:
+      parse_string_list(
+        read_transfer(data_transfer, EMAIL_FOLDERS_DRAG_MIME),
+      ) ?? [],
+    tag_tokens:
+      parse_string_list(read_transfer(data_transfer, EMAIL_TAGS_DRAG_MIME)) ??
+      [],
+    is_scope:
+      data_transfer.types.includes(EMAIL_SCOPE_DRAG_MIME) ||
+      active_payload?.is_scope === true,
+  };
 }
 
 export function use_category_drag_active(): boolean {
@@ -113,7 +200,11 @@ export function run_scope_drop(
   data_transfer: DataTransfer,
   target: ScopeDropTarget,
 ): boolean {
-  if (!data_transfer.types.includes(EMAIL_SCOPE_DRAG_MIME)) return false;
+  const is_scope =
+    data_transfer.types.includes(EMAIL_SCOPE_DRAG_MIME) ||
+    active_payload?.is_scope === true;
+
+  if (!is_scope) return false;
   if (!scope_drag_handler || !scope_drag_handler.is_active()) return false;
 
   scope_drag_handler.run(target);

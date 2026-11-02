@@ -37,9 +37,8 @@ import {
   category_color_key,
   category_color_style,
 } from "@/data/category_colors";
-import { ignore_error } from "@/lib/ignore_error";
 import {
-  EMAIL_DRAG_MIME,
+  read_email_drag,
   run_scope_drop,
   end_category_drag,
   use_category_drag_active,
@@ -142,28 +141,18 @@ export function CategoryTabs({
     (e: React.DragEvent<HTMLButtonElement>, category: EmailCategory) => {
       e.preventDefault();
       set_drop_target(null);
+
+      const payload = read_email_drag(e.dataTransfer);
+      const handled_scope = run_scope_drop(e.dataTransfer, {
+        kind: "category",
+        category,
+      });
+
       end_category_drag();
+      if (handled_scope) return;
+      if (!payload || payload.ids.length === 0 || !on_category_drop) return;
 
-      if (run_scope_drop(e.dataTransfer, { kind: "category", category })) {
-        return;
-      }
-
-      const raw = e.dataTransfer.getData(EMAIL_DRAG_MIME);
-
-      if (!raw || !on_category_drop) return;
-
-      try {
-        const ids = JSON.parse(raw) as unknown;
-
-        if (Array.isArray(ids) && ids.length > 0) {
-          on_category_drop(category, ids as string[]);
-        }
-      } catch (caught) {
-        ignore_error(
-          "components/email/inbox/category_tabs:CategoryTabs",
-          caught,
-        );
-      }
+      on_category_drop(category, payload.ids);
     },
     [on_category_drop],
   );

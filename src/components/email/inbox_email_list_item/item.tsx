@@ -112,7 +112,7 @@ import { empty_selection_snapshot } from "@/components/email/inbox/selection_sna
 import {
   begin_category_drag,
   end_category_drag,
-  EMAIL_SCOPE_DRAG_MIME,
+  write_email_drag,
   is_scope_drag_active,
   loaded_selection_snapshot,
   scope_drag_count,
@@ -350,28 +350,16 @@ export const InboxEmailListItem = memo(
           drag_el.offsetHeight,
         );
 
-        e.dataTransfer.setData(
-          "application/x-astermail-emails",
-          JSON.stringify(ids),
-        );
-        if (is_scope) e.dataTransfer.setData(EMAIL_SCOPE_DRAG_MIME, "1");
-
-        const folder_tokens = is_multi
-          ? snapshot.folder_tokens
-          : (email.folders || []).map((f) => f.folder_token);
-        const tag_tokens = is_multi
-          ? snapshot.tag_tokens
-          : (email.tags || []).map((t) => t.id);
-
-        e.dataTransfer.setData(
-          "application/x-astermail-folders",
-          JSON.stringify(folder_tokens),
-        );
-        e.dataTransfer.setData(
-          "application/x-astermail-tags",
-          JSON.stringify(tag_tokens),
-        );
-        e.dataTransfer.effectAllowed = "move";
+        write_email_drag(e.dataTransfer, {
+          ids,
+          folder_tokens: is_multi
+            ? snapshot.folder_tokens
+            : (email.folders || []).map((f) => f.folder_token),
+          tag_tokens: is_multi
+            ? snapshot.tag_tokens
+            : (email.tags || []).map((t) => t.id),
+          is_scope,
+        });
         set_is_dragging(true);
         begin_category_drag();
       };
