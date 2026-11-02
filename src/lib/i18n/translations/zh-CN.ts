@@ -5349,6 +5349,11 @@ export const zh_CN = {
     status_completed: "已完成",
     status_failed: "失败",
     status_cancelled: "已取消",
+    status_interrupted: "已中断",
+    import_interrupted_hint:
+      "要添加其余邮件，请再次导入同一文件。Aster Mail 会跳过邮箱中已有的邮件。",
+    import_interrupted_error:
+      "此次导入在完成前已停止。要添加其余邮件，请再次导入同一文件。Aster Mail 会跳过邮箱中已有的邮件。",
     just_now: "刚刚",
     source_import: "{{source}}导入",
     imported_skipped: "已导入{{imported}}{{skipped}}",

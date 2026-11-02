@@ -7285,6 +7285,11 @@ export const en: Translations = {
     status_completed: "Completed",
     status_failed: "Failed",
     status_cancelled: "Cancelled",
+    status_interrupted: "Interrupted",
+    import_interrupted_hint:
+      "To add the rest, import the same file again. Aster Mail skips messages that are already in your mailbox.",
+    import_interrupted_error:
+      "This import stopped before it finished. To add the rest, import the same file again. Aster Mail skips messages that are already in your mailbox.",
     just_now: "Just now",
     source_import: "{{source}} Import",
     imported_skipped: "{{imported}} imported{{skipped}}",

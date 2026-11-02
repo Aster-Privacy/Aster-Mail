@@ -75,6 +75,7 @@ import {
   type DecryptedExternalAccount,
 } from "@/services/api/external_accounts";
 import { stop_sync_polling } from "@/services/sync_manager";
+import { is_job_running } from "@/services/import/job_state";
 import { use_folders } from "@/hooks/use_folders";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { mirror_external_account_folders } from "@/services/external_folder_mirror";
@@ -536,9 +537,7 @@ export function ImportSection() {
     load_connected_accounts();
   }, [load_jobs, load_connected_accounts]);
 
-  const has_active_job = recent_jobs.some(
-    (job) => job.status === "processing" || job.status === "pending",
-  );
+  const has_active_job = recent_jobs.some((job) => is_job_running(job));
 
   useEffect(() => {
     if (!has_active_job) return;

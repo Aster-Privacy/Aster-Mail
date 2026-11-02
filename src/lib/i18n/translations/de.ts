@@ -5854,6 +5854,11 @@ export const de = {
     status_completed: "Abgeschlossen",
     status_failed: "Fehlgeschlagen",
     status_cancelled: "Abgebrochen",
+    status_interrupted: "Unterbrochen",
+    import_interrupted_hint:
+      "Um den Rest hinzuzufügen, importieren Sie dieselbe Datei erneut. Aster Mail überspringt Nachrichten, die bereits in Ihrem Postfach sind.",
+    import_interrupted_error:
+      "Dieser Import wurde vor dem Abschluss beendet. Um den Rest hinzuzufügen, importieren Sie dieselbe Datei erneut. Aster Mail überspringt Nachrichten, die bereits in Ihrem Postfach sind.",
     just_now: "Gerade eben",
     source_import: "{{source}}-Import",
     imported_skipped: "{{imported}} importiert{{skipped}}",

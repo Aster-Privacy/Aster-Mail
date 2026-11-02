@@ -31,6 +31,7 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { type ImportJob } from "@/services/api/email_import";
+import { can_delete_job, get_display_status } from "@/services/import/job_state";
 import { app_locale } from "@/utils/date_format";
 
 export function ImportJobCard({
@@ -46,24 +47,32 @@ export function ImportJobCard({
     job.skipped_emails > 0
       ? `, ${t("settings.n_skipped", { count: job.skipped_emails })}`
       : "";
-  const can_delete = job.status !== "processing" && job.status !== "pending";
-
-  const is_failed = job.status === "failed" || job.status === "cancelled";
+  const now = Date.now();
+  const display_status = get_display_status(job, now);
+  const can_delete = can_delete_job(job, now);
+  const is_interrupted = display_status === "interrupted";
+  const is_failed =
+    display_status === "failed" || display_status === "cancelled";
 
   return (
     <Island>
       <IslandRow
         description={
           <span className={is_failed ? "text-red-500" : undefined}>
-            {job.status === "completed"
+            {display_status === "completed"
               ? t("settings.imported_skipped", {
                   imported: job.processed_emails.toLocaleString(app_locale()),
                   skipped: skipped_text,
                 })
-              : get_status_label(job.status, t)}
+              : get_status_label(display_status, t)}
+            {is_interrupted && (
+              <span className="block text-txt-muted">
+                {t("settings.import_interrupted_hint")}
+              </span>
+            )}
           </span>
         }
-        icon={get_status_icon(job.status)}
+        icon={get_status_icon(display_status)}
         label={
           <span className="block truncate">
             {t("settings.source_import", { source: source_label })}

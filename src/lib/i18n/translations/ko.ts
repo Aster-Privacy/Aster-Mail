@@ -5904,6 +5904,11 @@ export const ko = {
     status_completed: "완료됨",
     status_failed: "실패",
     status_cancelled: "취소됨",
+    status_interrupted: "중단됨",
+    import_interrupted_hint:
+      "나머지를 추가하려면 같은 파일을 다시 가져오세요. Aster Mail은 메일함에 이미 있는 메시지를 건너뜁니다.",
+    import_interrupted_error:
+      "이 가져오기는 완료되기 전에 중지되었습니다. 나머지를 추가하려면 같은 파일을 다시 가져오세요. Aster Mail은 메일함에 이미 있는 메시지를 건너뜁니다.",
     just_now: "방금",
     source_import: "{{source}} 가져오기",
     imported_skipped: "{{imported}} 가져옴{{skipped}}",

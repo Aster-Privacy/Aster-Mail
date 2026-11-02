@@ -20,12 +20,16 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import {
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/outline";
 
 import { Spinner } from "@/components/ui/spinner";
-import { type ImportStatus } from "@/services/api/email_import";
+import { type ImportDisplayStatus } from "@/services/import/job_state";
 
-export function get_status_icon(status: ImportStatus) {
+export function get_status_icon(status: ImportDisplayStatus) {
   switch (status) {
     case "completed":
       return (
@@ -37,6 +41,13 @@ export function get_status_icon(status: ImportStatus) {
     case "processing":
     case "pending":
       return <Spinner className="text-brand" size="sm" />;
+    case "interrupted":
+      return (
+        <ExclamationCircleIcon
+          className="w-4 h-4"
+          style={{ color: "var(--color-warning)" }}
+        />
+      );
     case "failed":
     case "cancelled":
       return (
@@ -49,7 +60,7 @@ export function get_status_icon(status: ImportStatus) {
 }
 
 export function get_status_label(
-  status: ImportStatus,
+  status: ImportDisplayStatus,
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
   switch (status) {
@@ -63,6 +74,8 @@ export function get_status_label(
       return t("settings.status_failed");
     case "cancelled":
       return t("settings.status_cancelled");
+    case "interrupted":
+      return t("settings.status_interrupted");
   }
 }
 

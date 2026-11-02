@@ -5929,6 +5929,11 @@ export const pt_br = {
     status_completed: "Concluído",
     status_failed: "Falhou",
     status_cancelled: "Cancelado",
+    status_interrupted: "Interrompida",
+    import_interrupted_hint:
+      "Para adicionar o restante, importe o mesmo arquivo novamente. O Aster Mail ignora as mensagens que já estão na sua caixa de entrada.",
+    import_interrupted_error:
+      "Esta importação parou antes de terminar. Para adicionar o restante, importe o mesmo arquivo novamente. O Aster Mail ignora as mensagens que já estão na sua caixa de entrada.",
     just_now: "Agora mesmo",
     source_import: "Importação {{source}}",
     imported_skipped: "{{imported}} importados{{skipped}}",

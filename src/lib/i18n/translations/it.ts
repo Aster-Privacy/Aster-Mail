@@ -7150,6 +7150,11 @@ export const it = {
     status_completed: "Completata",
     status_failed: "Non riuscito",
     status_cancelled: "Annullata",
+    status_interrupted: "Interrotta",
+    import_interrupted_hint:
+      "Per aggiungere il resto, importa di nuovo lo stesso file. Aster Mail salta i messaggi già presenti nella tua casella di posta.",
+    import_interrupted_error:
+      "Questa importazione si è interrotta prima di terminare. Per aggiungere il resto, importa di nuovo lo stesso file. Aster Mail salta i messaggi già presenti nella tua casella di posta.",
     just_now: "Proprio adesso",
     source_import: "Importazione da {{source}}",
     imported_skipped: "{{imported}} importate{{skipped}}",

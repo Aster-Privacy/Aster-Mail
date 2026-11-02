@@ -7363,6 +7363,11 @@ export const hi = {
     status_completed: "पूरा हुआ",
     status_failed: "विफल",
     status_cancelled: "रद्द किया गया",
+    status_interrupted: "बाधित",
+    import_interrupted_hint:
+      "बाकी संदेश जोड़ने के लिए, वही फ़ाइल फिर से इंपोर्ट करें। Aster Mail आपके मेलबॉक्स में पहले से मौजूद संदेशों को छोड़ देता है।",
+    import_interrupted_error:
+      "यह इंपोर्ट पूरा होने से पहले रुक गया। बाकी संदेश जोड़ने के लिए, वही फ़ाइल फिर से इंपोर्ट करें। Aster Mail आपके मेलबॉक्स में पहले से मौजूद संदेशों को छोड़ देता है।",
     just_now: "अभी-अभी",
     source_import: "{{source}} से इंपोर्ट",
     imported_skipped: "{{imported}} इंपोर्ट हुईं{{skipped}}",

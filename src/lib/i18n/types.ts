@@ -6235,6 +6235,9 @@ export interface SettingsTranslations {
   status_completed: string;
   status_failed: string;
   status_cancelled: string;
+  status_interrupted: string;
+  import_interrupted_hint: string;
+  import_interrupted_error: string;
   just_now: string;
   source_import: string;
   imported_skipped: string;

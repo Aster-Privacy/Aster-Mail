@@ -6109,6 +6109,11 @@ export const ru = {
     status_completed: "Завершено",
     status_failed: "Ошибка",
     status_cancelled: "Отменено",
+    status_interrupted: "Прервано",
+    import_interrupted_hint:
+      "Чтобы добавить остальное, импортируйте тот же файл ещё раз. Aster Mail пропустит письма, которые уже есть в вашем ящике.",
+    import_interrupted_error:
+      "Этот импорт остановился до завершения. Чтобы добавить остальное, импортируйте тот же файл ещё раз. Aster Mail пропустит письма, которые уже есть в вашем ящике.",
     just_now: "Только что",
     source_import: "Импорт из {{source}}",
     imported_skipped: "{{imported}} импортировано{{skipped}}",

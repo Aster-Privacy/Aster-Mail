@@ -70,6 +70,15 @@ import {
 import { emit_mail_changed } from "@/hooks/mail_events";
 import { invalidate_mail_cache } from "@/hooks/use_email_list";
 import { thread_imported_emails } from "@/services/import/repair_threads";
+import {
+  ImportJobInterruptedError,
+  is_job_lost_response,
+} from "@/services/import/job_state";
+import {
+  start_import_job_keepalive,
+  type ImportJobKeepalive,
+} from "@/services/import/job_keepalive";
+import { hold_import_unload_guard } from "@/services/import/unload_guard";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   collect_files_from_data_transfer,
@@ -235,6 +244,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
       const folder_token_map = new Map<string, string>();
 
       let job_id: string | null = null;
+      let keepalive: ImportJobKeepalive | null = null;
 
       try {
         const job_response = await create_import_job({
@@ -258,8 +268,37 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           throw new Error(update_response.error);
         }
 
+        const active_job_id = job_id;
+        const job_calls = start_import_job_keepalive(async () => {
+          const touch_response = await update_import_job(active_job_id, {});
+
+          if (!touch_response.error) return "alive";
+
+          return is_job_lost_response(touch_response) ? "lost" : "error";
+        });
+
+        keepalive = job_calls;
+
+        const ensure_job_alive = () => {
+          if (job_calls.is_lost()) throw new ImportJobInterruptedError();
+        };
+
+        const update_active_job = async (
+          request: Parameters<typeof update_import_job>[1],
+        ) => {
+          const response = await job_calls.run(() =>
+            update_import_job(active_job_id, request),
+          );
+
+          if (is_job_lost_response(response)) {
+            throw new ImportJobInterruptedError();
+          }
+
+          return response;
+        };
+
         const finish_cancelled = async () => {
-          await update_import_job(job_id!, {
+          await update_active_job({
             status: "cancelled",
             processed_emails: 0,
             skipped_emails: 0,
@@ -307,6 +346,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
             return;
           }
+          ensure_job_alive();
 
           const hash_batch = all_hashes.slice(
             i,
@@ -357,7 +397,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         let invalid_count = 0;
 
         if (emails_to_import.length === 0) {
-          await update_import_job(job_id!, {
+          await update_active_job({
             status: "completed",
             processed_emails: 0,
             skipped_emails: duplicate_count + drafts_skipped_count,
@@ -502,7 +542,13 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           encrypted_batch = [];
           if (batch.length === 0) return;
 
-          const store_response = await store_imported_emails(job_id!, batch);
+          const store_response = await job_calls.run(() =>
+            store_imported_emails(active_job_id, batch),
+          );
+
+          if (is_job_lost_response(store_response)) {
+            throw new ImportJobInterruptedError();
+          }
 
           if (store_response.data) {
             const { stored_count, duplicate_count, skipped_quota_count } =
@@ -528,6 +574,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
         for await (const item of collection.load(indices_to_import)) {
           if (cancel_ref.current || quota_exceeded) break;
+          ensure_job_alive();
 
           attempted_count++;
 
@@ -606,7 +653,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         const skipped_count =
           total_duplicates + drafts_skipped_count + invalid_count;
 
-        await update_import_job(job_id!, {
+        ensure_job_alive();
+
+        await update_active_job({
           status: final_status,
           processed_emails: imported_count,
           skipped_emails: skipped_count,
@@ -644,22 +693,33 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             );
         }
       } catch (err) {
-        if (job_id) {
-          try {
-            await update_import_job(job_id, {
+        const interrupted = err instanceof ImportJobInterruptedError;
+
+        if (job_id && !interrupted) {
+          const failed_job_id = job_id;
+          const mark_failed = () =>
+            update_import_job(failed_job_id, {
               status: "failed",
               error_message:
                 err instanceof Error
                   ? err.message
                   : t("settings.import_failed"),
             });
+
+          try {
+            await (keepalive ? keepalive.run(mark_failed) : mark_failed());
           } catch (error) {
             if (import.meta.env.DEV) console.error(error);
           }
         }
-        set_error(user_facing_error(err, t("settings.import_failed")));
+        set_error(
+          interrupted
+            ? t("settings.import_interrupted_error")
+            : user_facing_error(err, t("settings.import_failed")),
+        );
         set_step("upload");
       } finally {
+        if (keepalive) await keepalive.stop();
         set_is_processing(false);
       }
     },
@@ -691,6 +751,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
       set_parse_warnings([]);
       set_is_cancelling(false);
       cancel_ref.current = false;
+
+      const release_unload_guard = hold_import_unload_guard();
 
       try {
         const collection = await build_import_collection(
@@ -737,6 +799,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             : t("settings.failed_to_parse_file"),
         );
         set_is_processing(false);
+      } finally {
+        release_unload_guard();
       }
     },
     [active_provider, process_emails, t],

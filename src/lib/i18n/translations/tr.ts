@@ -5908,6 +5908,11 @@ export const tr = {
     status_completed: "Tamamlandı",
     status_failed: "Başarısız",
     status_cancelled: "İptal Edildi",
+    status_interrupted: "Yarıda kaldı",
+    import_interrupted_hint:
+      "Kalanları eklemek için aynı dosyayı yeniden içe aktarın. Aster Mail, posta kutunuzda zaten bulunan iletileri atlar.",
+    import_interrupted_error:
+      "Bu içe aktarma tamamlanmadan durdu. Kalanları eklemek için aynı dosyayı yeniden içe aktarın. Aster Mail, posta kutunuzda zaten bulunan iletileri atlar.",
     just_now: "Az önce",
     source_import: "{{source}} İçe Aktarma",
     imported_skipped: "{{imported}} içe aktarıldı{{skipped}}",

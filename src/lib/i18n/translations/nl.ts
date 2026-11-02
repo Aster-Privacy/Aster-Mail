@@ -5852,6 +5852,11 @@ export const nl = {
     status_completed: "Voltooid",
     status_failed: "Mislukt",
     status_cancelled: "Geannuleerd",
+    status_interrupted: "Onderbroken",
+    import_interrupted_hint:
+      "Importeer hetzelfde bestand opnieuw om de rest toe te voegen. Aster Mail slaat berichten over die al in je mailbox staan.",
+    import_interrupted_error:
+      "Deze import is gestopt voordat hij klaar was. Importeer hetzelfde bestand opnieuw om de rest toe te voegen. Aster Mail slaat berichten over die al in je mailbox staan.",
     just_now: "Zojuist",
     source_import: "{{source}}-import",
     imported_skipped: "{{imported}} geïmporteerd{{skipped}}",

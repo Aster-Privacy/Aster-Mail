@@ -5983,6 +5983,11 @@ export const ar = {
     status_completed: "مكتمل",
     status_failed: "فشل",
     status_cancelled: "ملغي",
+    status_interrupted: "متوقف",
+    import_interrupted_hint:
+      "لإضافة الباقي، استورد الملف نفسه مرة أخرى. يتخطى Aster Mail الرسائل الموجودة بالفعل في صندوق بريدك.",
+    import_interrupted_error:
+      "توقف هذا الاستيراد قبل اكتماله. لإضافة الباقي، استورد الملف نفسه مرة أخرى. يتخطى Aster Mail الرسائل الموجودة بالفعل في صندوق بريدك.",
     just_now: "الآن",
     source_import: "استيراد {{source}}",
     imported_skipped: "{{imported}} مستورد{{skipped}}",

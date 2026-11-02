@@ -5901,6 +5901,11 @@ export const ja = {
     status_completed: "完了",
     status_failed: "失敗",
     status_cancelled: "キャンセル",
+    status_interrupted: "中断",
+    import_interrupted_hint:
+      "残りを追加するには、同じファイルをもう一度インポートしてください。メールボックスにすでにあるメッセージは Aster Mail がスキップします。",
+    import_interrupted_error:
+      "このインポートは完了前に停止しました。残りを追加するには、同じファイルをもう一度インポートしてください。メールボックスにすでにあるメッセージは Aster Mail がスキップします。",
     just_now: "たった今",
     source_import: "{{source}}のインポート",
     imported_skipped: "{{imported}}件インポート{{skipped}}",
