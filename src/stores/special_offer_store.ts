@@ -22,6 +22,7 @@ import { useSyncExternalStore } from "react";
 
 import { strip_account_prefix } from "@/lib/account_index_url";
 import { first_run_age_ms } from "@/lib/first_run";
+import { get_special_offer_status_snapshot } from "@/stores/special_offer_status";
 import { is_on_auth_route } from "@/stores/upgrade_store";
 
 const AUTO_SHOW_QUIET_AFTER_SIGN_UP_MS = 24 * 60 * 60 * 1000;
@@ -77,6 +78,8 @@ function is_on_settings_route(): boolean {
 export function can_auto_show_special_offer(): boolean {
   if (!can_show_special_offer() || is_on_settings_route()) return false;
 
+  if (get_special_offer_status_snapshot().status?.ends_at) return true;
+
   const age = first_run_age_ms();
 
   return age === null || age >= AUTO_SHOW_QUIET_AFTER_SIGN_UP_MS;
@@ -95,9 +98,13 @@ export function show_special_offer(
 }
 
 export function request_special_offer_checkout(
-  interval: "month" | "year" = "month",
+  requested_interval?: "month" | "year",
 ): boolean {
   if (!can_show_special_offer()) return false;
+
+  const interval =
+    requested_interval ??
+    (get_special_offer_status_snapshot().status?.ends_at ? "year" : "month");
 
   current = {
     ...current,

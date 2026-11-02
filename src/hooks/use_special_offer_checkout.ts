@@ -49,5 +49,8 @@ export function use_special_offer_checkout(
   const is_available =
     is_loaded && status?.available === true && !is_on_paid_plan;
 
-  return useMemo(() => special_offer_checkout(is_available), [is_available]);
+  return useMemo(
+    () => special_offer_checkout(is_available, status),
+    [is_available, status],
+  );
 }

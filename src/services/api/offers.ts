@@ -28,6 +28,9 @@ export interface SpecialOfferStatus {
   plan_code: string;
   percent_off: number;
   duration_months: number;
+  ends_at?: string | null;
+  eligible_terms?: string[];
+  theme?: string | null;
 }
 
 interface ClaimResponse {

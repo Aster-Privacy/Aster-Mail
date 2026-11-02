@@ -54,19 +54,80 @@ export interface SpecialOfferPricing {
 
 const SPECIAL_OFFER_MIN_CHARGE_CENTS = 50;
 
-export function special_offer_discounted_cents(total_cents: number): number {
-  const total = Math.round(total_cents);
-  const discount_cents = Math.floor(
-    (total * SPECIAL_OFFER_PERCENT_OFF + 50) / 100,
-  );
+const LEGACY_ELIGIBLE_TERMS = ["nova:month", "nova:year"];
 
-  return Math.max(total - discount_cents, SPECIAL_OFFER_MIN_CHARGE_CENTS);
+const LEGACY_STATUS: SpecialOfferStatus = {
+  available: true,
+  auto_show: false,
+  shown: false,
+  dismissed: false,
+  plan_code: SPECIAL_OFFER_PLAN_CODE,
+  percent_off: SPECIAL_OFFER_PERCENT_OFF,
+  duration_months: SPECIAL_OFFER_DURATION_MONTHS,
+};
+
+export function offer_price_cents(
+  list_cents: number,
+  percent_off: number,
+): number {
+  const cents = Math.round(list_cents);
+
+  return cents - Math.floor((cents * percent_off + 50) / 100);
+}
+
+export function special_offer_discounted_cents(
+  total_cents: number,
+  percent_off: number = SPECIAL_OFFER_PERCENT_OFF,
+): number {
+  return Math.max(
+    offer_price_cents(total_cents, percent_off),
+    SPECIAL_OFFER_MIN_CHARGE_CENTS,
+  );
+}
+
+export function offer_covers(
+  status: SpecialOfferStatus | null,
+  plan_code: string,
+  interval: SpecialOfferInterval,
+): boolean {
+  if (!status) return false;
+
+  const terms = status.eligible_terms ?? LEGACY_ELIGIBLE_TERMS;
+
+  return terms.includes(`${plan_code}:${interval}`);
+}
+
+export function offer_covers_crypto_term(
+  status: SpecialOfferStatus | null,
+  plan_code: string,
+  term_months: number,
+): boolean {
+  if (term_months === 12) return offer_covers(status, plan_code, "year");
+  if (Number.isInteger(term_months) && term_months >= 1 && term_months <= 11) {
+    return offer_covers(status, plan_code, "month");
+  }
+
+  return false;
+}
+
+export function offer_is_live(
+  status: SpecialOfferStatus | null,
+  now: Date,
+): boolean {
+  if (!status) return false;
+  if (!status.ends_at) return true;
+
+  const ends_at = Date.parse(status.ends_at);
+
+  return Number.isNaN(ends_at) || now.getTime() <= ends_at;
 }
 
 export function special_offer_pricing(
   interval: SpecialOfferInterval = "month",
+  plan_code: string = SPECIAL_OFFER_PLAN_CODE,
+  percent_off: number = SPECIAL_OFFER_PERCENT_OFF,
 ): SpecialOfferPricing | null {
-  const tier = PLAN_TIERS.find((entry) => entry.id === SPECIAL_OFFER_PLAN_CODE);
+  const tier = PLAN_TIERS.find((entry) => entry.id === plan_code);
 
   if (!tier) return null;
 
@@ -77,7 +138,7 @@ export function special_offer_pricing(
 
   return {
     list_cents,
-    offer_cents: special_offer_discounted_cents(list_cents),
+    offer_cents: special_offer_discounted_cents(list_cents, percent_off),
   };
 }
 
@@ -85,13 +146,14 @@ export function special_offer_crypto_total_cents(
   plan_code: string,
   term_months: number,
   list_total_cents: number,
+  status: SpecialOfferStatus | null = LEGACY_STATUS,
 ): number | null {
-  if (plan_code !== SPECIAL_OFFER_PLAN_CODE) return null;
-  if (term_months < 1 || term_months > SPECIAL_OFFER_DURATION_MONTHS) {
-    return null;
-  }
+  if (!offer_covers_crypto_term(status, plan_code, term_months)) return null;
 
-  return special_offer_discounted_cents(list_total_cents);
+  return special_offer_discounted_cents(
+    list_total_cents,
+    status?.percent_off ?? SPECIAL_OFFER_PERCENT_OFF,
+  );
 }
 
 export type SpecialOfferPayMethod = "card" | "crypto";
@@ -135,6 +197,7 @@ export function special_offer_checkout_total_cents(
   plan_code: string,
   term_months: number,
   list_total_cents: number,
+  status: SpecialOfferStatus | null = LEGACY_STATUS,
 ): number | null {
   if (method === "card" && term_months !== 1 && term_months !== 12) {
     return null;
@@ -144,24 +207,32 @@ export function special_offer_checkout_total_cents(
     plan_code,
     term_months,
     list_total_cents,
+    status,
   );
 }
 
 export function special_offer_checkout(
   is_available: boolean,
+  status: SpecialOfferStatus | null = LEGACY_STATUS,
 ): SpecialOfferCheckout {
+  const percent_off = status?.percent_off ?? SPECIAL_OFFER_PERCENT_OFF;
   const offer_plan = (plan_code: string | null | undefined) =>
-    is_available && plan_code === SPECIAL_OFFER_PLAN_CODE ? plan_code : null;
+    is_available &&
+    plan_code &&
+    (offer_covers(status, plan_code, "month") ||
+      offer_covers(status, plan_code, "year"))
+      ? plan_code
+      : null;
 
   return {
-    percent_off: is_available ? SPECIAL_OFFER_PERCENT_OFF : undefined,
+    percent_off: is_available ? percent_off : undefined,
     plan_pricing: (plan_code) => {
       const code = offer_plan(plan_code);
 
       if (!code) return undefined;
 
       return {
-        percent_off: SPECIAL_OFFER_PERCENT_OFF,
+        percent_off,
         discounted_total_cents: (method, term_id, list_total_cents) => {
           const term_months = special_offer_term_months(term_id);
 
@@ -172,6 +243,7 @@ export function special_offer_checkout(
             code,
             term_months,
             list_total_cents,
+            status,
           );
         },
       };
@@ -187,6 +259,7 @@ export function special_offer_checkout(
           code,
           term_months,
           list_total_cents,
+          status,
         );
     },
   };
@@ -210,10 +283,18 @@ export function is_special_offer_available({
   return special_offer_pricing() !== null;
 }
 
+function offer_has_ended(ends_at: string | null | undefined): boolean {
+  if (!ends_at) return false;
+
+  const end = Date.parse(ends_at);
+
+  return !Number.isNaN(end) && Date.now() > end;
+}
+
 export interface SpecialOfferStatusSnapshot {
   status: Pick<
     SpecialOfferStatus,
-    "available" | "auto_show" | "dismissed"
+    "available" | "auto_show" | "dismissed" | "ends_at"
   > | null;
   is_loaded: boolean;
   plan_code: string | null;
@@ -227,6 +308,7 @@ export function is_special_offer_active({
   return (
     is_loaded &&
     !!status?.available &&
+    !offer_has_ended(status.ends_at) &&
     is_special_offer_available({
       plan_code,
       is_dismissed: status?.dismissed ?? false,
