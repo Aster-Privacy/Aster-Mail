@@ -514,9 +514,17 @@ export function UpgradeModal() {
   const shown_price_label = (tier: PlanTier) =>
     is_offer_term(tier) ? offer_price_label(tier) : price_label(tier);
 
+  const yearly_total_cents = (tier: PlanTier) => {
+    const list_cents = convert_cents(tier.yearly_cents, currency);
+
+    return interval === "year" && offer_checkout.covers(tier.id, "year")
+      ? special_offer_discounted_cents(list_cents, offer_checkout.percent_off)
+      : list_cents;
+  };
+
   const yearly_total_label = (tier: PlanTier) =>
     `${t("settings.billed_annually")} · ${format_price(
-      convert_cents(tier.yearly_cents, currency),
+      yearly_total_cents(tier),
       currency,
     )}${t("settings.per_year_short")}`;
 

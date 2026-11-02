@@ -169,4 +169,22 @@ describe("UpgradeModal under the Black Friday offer", () => {
     expect(struck).not.toContain("299");
     expect(document.body.textContent).toContain("449");
   });
+
+  it("shows the discounted yearly total on covered yearly terms", async () => {
+    await mount_upgrade_modal();
+
+    const yearly_button = Array.from(document.body.querySelectorAll("button")).find(
+      (candidate) =>
+        candidate.textContent?.includes("settings.billing_yearly"),
+    );
+
+    await act(async () => {
+      yearly_button?.click();
+    });
+
+    const text = document.body.textContent ?? "";
+
+    expect(text).toContain("settings.billed_annually · 4349");
+    expect(text).not.toContain("settings.billed_annually · 8699");
+  });
 });

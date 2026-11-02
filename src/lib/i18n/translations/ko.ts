@@ -5386,11 +5386,13 @@ export const ko = {
     special_offer_fine_print_year:
       "첫 1년 동안 {{offer_price}}을 결제합니다. 이후에는 설정에서 취소할 때까지 연 {{price}}으로 갱신됩니다.",
     special_offer_billing_period: "결제 주기",
-    special_offer_black_friday_title: "블랙 프라이데이: 12개월간 50% 할인",
-    special_offer_black_friday_body: "모든 연간 요금제 또는 Star를 제외한 모든 월간 요금제를 처음 12개월 동안 반값에 이용하세요.",
+    special_offer_black_friday_title: "블랙 프라이데이: {{months}}개월간 {{percent}}% 할인",
+    special_offer_black_friday_body: "모든 연간 요금제 또는 Star를 제외한 모든 월간 요금제를 처음 {{months}}개월 동안 {{percent}}% 할인된 가격에 이용하세요.",
     special_offer_ends_in: "{{time}} 후 종료",
     special_offer_not_on_star_monthly: "Star 월간 요금제에는 적용되지 않습니다",
-    special_offer_renews_at: "12개월 후 {{price}}로 갱신됩니다",
+    special_offer_renews_at: "{{months}}개월 후 {{price}}로 갱신됩니다",
+    special_offer_success_title_plan: "감사합니다. 이제 {{plan}}을(를) 이용 중입니다.",
+    special_offer_choose_plan: "요금제 선택",
     plan_billing_terms:
       "구독은 취소할 때까지 표준 요금으로 자동 갱신됩니다. 설정에서 언제든지 취소할 수 있습니다.",
     upgrade_offer_note: "{{percent}}% 할인은 결제 시 적용됩니다.",

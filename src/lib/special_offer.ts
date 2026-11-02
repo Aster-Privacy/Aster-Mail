@@ -333,6 +333,17 @@ export function is_special_offer_active({
   );
 }
 
+export function is_special_offer_pill_visible(
+  status: Pick<SpecialOfferStatus, "available" | "ends_at"> | null,
+  plan_code: string | null,
+): boolean {
+  return (
+    (status?.available ?? false) &&
+    offer_is_live(status, new Date()) &&
+    is_special_offer_available({ plan_code, is_dismissed: false })
+  );
+}
+
 export function special_offer_can_auto_show(
   snapshot: SpecialOfferStatusSnapshot,
 ): boolean {

@@ -5521,11 +5521,13 @@ export const fr = {
     special_offer_fine_print_year:
       "Vous payez {{offer_price}} pour la première année. Votre forfait est ensuite renouvelé à {{price}} par an jusqu'à ce que vous l'annuliez dans Réglages.",
     special_offer_billing_period: "Période de facturation",
-    special_offer_black_friday_title: "Black Friday : 50 % de réduction pendant 12 mois",
-    special_offer_black_friday_body: "Profitez de n'importe quel forfait annuel, ou de n'importe quel forfait mensuel sauf Star, à moitié prix pendant vos 12 premiers mois.",
+    special_offer_black_friday_title: "Black Friday : {{percent}} % de réduction pendant {{months}} mois",
+    special_offer_black_friday_body: "Profitez de {{percent}} % de réduction sur n'importe quel forfait annuel, ou sur n'importe quel forfait mensuel sauf Star, pendant vos {{months}} premiers mois.",
     special_offer_ends_in: "Se termine dans {{time}}",
     special_offer_not_on_star_monthly: "Non disponible pour Star mensuel",
-    special_offer_renews_at: "Renouvelé à {{price}} après 12 mois",
+    special_offer_renews_at: "Renouvelé à {{price}} après {{months}} mois",
+    special_offer_success_title_plan: "Merci. Vous profitez maintenant de {{plan}}.",
+    special_offer_choose_plan: "Choisir un forfait",
     plan_billing_terms:
       "Les abonnements sont renouvelés automatiquement au tarif standard jusqu'à leur annulation. Vous pouvez annuler à tout moment dans Réglages.",
     upgrade_offer_note:

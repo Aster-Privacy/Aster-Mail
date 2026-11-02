@@ -33,6 +33,7 @@ import {
   offer_plan_codes,
   offer_price_cents,
   is_special_offer_available,
+  is_special_offer_pill_visible,
   special_offer_checkout,
   special_offer_checkout_total_cents,
   special_offer_interval_months,
@@ -425,5 +426,25 @@ describe("special_offer_pricing for family plans", () => {
 
   it("returns null for an unknown plan", () => {
     expect(special_offer_pricing("month", "unknown")).toBeNull();
+  });
+});
+
+describe("is_special_offer_pill_visible", () => {
+  it("shows for a free user while the offer is live", () => {
+    expect(is_special_offer_pill_visible(bf_status, "free")).toBe(true);
+  });
+
+  it("hides once the offer window has closed", () => {
+    const expired = { ...bf_status, ends_at: "2020-01-01T00:00:00Z" };
+
+    expect(is_special_offer_pill_visible(expired, "free")).toBe(false);
+  });
+
+  it("hides for paid plans, unavailable offers, and a missing status", () => {
+    expect(is_special_offer_pill_visible(bf_status, "nova")).toBe(false);
+    expect(
+      is_special_offer_pill_visible({ ...bf_status, available: false }, "free"),
+    ).toBe(false);
+    expect(is_special_offer_pill_visible(null, "free")).toBe(false);
   });
 });

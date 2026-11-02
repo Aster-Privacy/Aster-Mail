@@ -24,6 +24,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { BillingNotice } from "@/components/settings/billing/billing_layout";
 import { OfferCountdown } from "@/components/upgrade/offer_countdown";
 import {
+  SPECIAL_OFFER_DURATION_MONTHS,
   SPECIAL_OFFER_PERCENT_OFF,
   is_special_offer_available,
   offer_is_live,
@@ -51,21 +52,27 @@ export function SpecialOfferBillingCard({
   if (!is_visible) return null;
 
   const is_black_friday = status?.theme === "black_friday";
+  const offer_params = {
+    percent: String(status?.percent_off ?? SPECIAL_OFFER_PERCENT_OFF),
+    months: String(
+      status?.duration_months ?? SPECIAL_OFFER_DURATION_MONTHS,
+    ),
+  };
 
   return (
     <BillingNotice
-      body={t(
+      body={
         is_black_friday
-          ? "settings.special_offer_black_friday_body"
-          : "settings.special_offer_subtitle",
-      )}
+          ? t("settings.special_offer_black_friday_body", offer_params)
+          : t("settings.special_offer_subtitle")
+      }
       class_name={class_name}
       icon={SparklesIcon}
-      title={t(
+      title={
         is_black_friday
-          ? "settings.special_offer_black_friday_title"
-          : "settings.special_offer_title",
-      )}
+          ? t("settings.special_offer_black_friday_title", offer_params)
+          : t("settings.special_offer_title")
+      }
       tone="neutral"
     >
       <button

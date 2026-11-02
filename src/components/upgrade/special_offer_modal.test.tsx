@@ -287,6 +287,34 @@ describe("SpecialOfferModal under the Black Friday offer", () => {
       "settings.special_offer_not_on_star_monthly",
     );
     expect(document.body.querySelector(".line-through")).toBeNull();
+    expect(document.body.textContent).not.toContain("settings.special_offer_cta");
+  });
+
+  it("lists features for Family", async () => {
+    await open_then_mount();
+    await click_button_with_text("Family");
+
+    expect(
+      document.body.querySelectorAll(".special_offer_feature").length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("shows no note and no offer button for a duo term that is not covered", async () => {
+    h.status = {
+      status: {
+        ...BLACK_FRIDAY_STATUS,
+        eligible_terms: ["star:year", "nova:year", "duo:year"],
+      },
+      is_loaded: true,
+    };
+    await open_then_mount();
+    await click_button_with_text("Duo");
+    await click_button_with_text("settings.billing_monthly");
+
+    expect(document.body.textContent).not.toContain(
+      "settings.special_offer_not_on_star_monthly",
+    );
+    expect(document.body.textContent).not.toContain("settings.special_offer_cta");
   });
 
   it("starts card checkout for Supernova yearly with the offer flag", async () => {
@@ -337,7 +365,7 @@ describe("SpecialOfferModal under the Black Friday offer", () => {
       expect.any(String),
       undefined,
       undefined,
-      false,
+      undefined,
     );
   });
 });
