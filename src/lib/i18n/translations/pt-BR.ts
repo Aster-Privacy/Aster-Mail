@@ -201,6 +201,8 @@ export const pt_br = {
     app_name_mail: "E-mail",
     app_name_calendar: "Agenda",
     app_current_tip: "{{app}} (Atual)",
+    app_description_mail: "E-mail com criptografia de ponta a ponta",
+    app_description_calendar: "Agenda com criptografia de ponta a ponta",
     aster_account: "Minha conta Aster",
     workspace_title: "Espaço de trabalho de {{name}} | Aster Mail",
     create_folder: "Criar pasta",

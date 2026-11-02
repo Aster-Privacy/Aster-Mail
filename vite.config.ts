@@ -212,6 +212,7 @@ export default defineConfig({
       input: {
         main: "index.html",
         bridge: "bridge.html",
+        session_bridge: "session_bridge.html",
       },
       onwarn(warning, defaultHandler) {
         if (

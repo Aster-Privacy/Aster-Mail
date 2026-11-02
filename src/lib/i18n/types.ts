@@ -776,6 +776,8 @@ export interface CommonTranslations {
   app_name_mail: string;
   app_name_calendar: string;
   app_current_tip: string;
+  app_description_mail: string;
+  app_description_calendar: string;
   aster_account: string;
   workspace_title: string;
   create_folder: string;

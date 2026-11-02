@@ -130,6 +130,8 @@ export const de = {
     app_name_mail: "Mail",
     app_name_calendar: "Kalender",
     app_current_tip: "{{app}} (Aktuell)",
+    app_description_mail: "Ende-zu-Ende-verschlüsselte E-Mail",
+    app_description_calendar: "Ende-zu-Ende-verschlüsselter Kalender",
     aster_account: "Mein Aster-Konto",
     workspace_title: "Workspace von {{name}} | Aster Mail",
     create_folder: "Ordner erstellen",

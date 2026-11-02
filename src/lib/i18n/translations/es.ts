@@ -215,6 +215,8 @@ export const es = {
     app_name_mail: "Correo",
     app_name_calendar: "Calendario",
     app_current_tip: "{{app}} (Actual)",
+    app_description_mail: "Correo con cifrado de extremo a extremo",
+    app_description_calendar: "Calendario con cifrado de extremo a extremo",
     aster_account: "Mi cuenta de Aster",
     workspace_title: "Espacio de trabajo de {{name}} | Aster Mail",
     create_folder: "Crear carpeta",

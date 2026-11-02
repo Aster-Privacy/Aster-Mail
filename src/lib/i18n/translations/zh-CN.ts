@@ -237,6 +237,8 @@ export const zh_CN = {
     app_name_mail: "邮件",
     app_name_calendar: "日历",
     app_current_tip: "{{app}}(当前)",
+    app_description_mail: "端到端加密邮件",
+    app_description_calendar: "端到端加密日历",
     aster_account: "我的 Aster 账户",
     workspace_title: "{{name}}的工作区 | Aster Mail",
     create_folder: "创建文件夹",

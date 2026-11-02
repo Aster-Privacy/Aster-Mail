@@ -211,6 +211,8 @@ export const pl = {
     app_name_mail: "Poczta",
     app_name_calendar: "Kalendarz",
     app_current_tip: "{{app}} (Bieżąca)",
+    app_description_mail: "Poczta szyfrowana end-to-end",
+    app_description_calendar: "Kalendarz szyfrowany end-to-end",
     aster_account: "Moje konto Aster",
     workspace_title: "Obszar roboczy {{name}} | Aster Mail",
     create_folder: "Utwórz folder",

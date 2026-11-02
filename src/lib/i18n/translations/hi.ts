@@ -112,6 +112,8 @@ export const hi = {
     app_name_mail: "मेल",
     app_name_calendar: "कैलेंडर",
     app_current_tip: "{{app}} (वर्तमान)",
+    app_description_mail: "एंड-टू-एंड एन्क्रिप्टेड ईमेल",
+    app_description_calendar: "एंड-टू-एंड एन्क्रिप्टेड कैलेंडर",
     aster_account: "मेरा Aster खाता",
     workspace_title: "{{name}} का वर्कस्पेस | Aster Mail",
     create_folder: "फ़ोल्डर बनाएं",

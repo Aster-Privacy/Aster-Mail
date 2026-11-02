@@ -202,6 +202,8 @@ export const nl = {
     app_name_mail: "Mail",
     app_name_calendar: "Agenda",
     app_current_tip: "{{app}} (Huidig)",
+    app_description_mail: "End-to-end versleutelde e-mail",
+    app_description_calendar: "End-to-end versleutelde agenda",
     aster_account: "Mijn Aster-account",
     workspace_title: "Werkruimte van {{name}} | Aster Mail",
     create_folder: "Map aanmaken",

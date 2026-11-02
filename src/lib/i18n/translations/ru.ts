@@ -201,6 +201,8 @@ export const ru = {
     app_name_mail: "Почта",
     app_name_calendar: "Календарь",
     app_current_tip: "{{app}} (Текущее)",
+    app_description_mail: "Почта со сквозным шифрованием",
+    app_description_calendar: "Календарь со сквозным шифрованием",
     aster_account: "Мой аккаунт Aster",
     workspace_title: "Рабочая область {{name}} | Aster Mail",
     create_folder: "Создать папку",

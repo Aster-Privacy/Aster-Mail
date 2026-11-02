@@ -203,6 +203,8 @@ export const pt = {
     app_name_mail: "Email",
     app_name_calendar: "Calendário",
     app_current_tip: "{{app}} (Atual)",
+    app_description_mail: "Email com encriptação ponto a ponto",
+    app_description_calendar: "Calendário com encriptação ponto a ponto",
     aster_account: "Minha conta Aster",
     workspace_title: "Espaço de trabalho de {{name}} | Aster Mail",
     create_folder: "Criar pasta",

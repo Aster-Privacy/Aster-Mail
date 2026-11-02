@@ -207,6 +207,8 @@ export const tr = {
     app_name_mail: "Posta",
     app_name_calendar: "Takvim",
     app_current_tip: "{{app}} (Geçerli)",
+    app_description_mail: "Uçtan uca şifreli e-posta",
+    app_description_calendar: "Uçtan uca şifreli takvim",
     aster_account: "Aster hesabım",
     workspace_title: "{{name}} Çalışma Alanı | Aster Mail",
     create_folder: "Klasör oluştur",

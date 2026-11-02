@@ -114,6 +114,8 @@ export const en: Translations = {
     app_name_mail: "Mail",
     app_name_calendar: "Calendar",
     app_current_tip: "{{app}} (Current)",
+    app_description_mail: "End-to-end encrypted email",
+    app_description_calendar: "End-to-end encrypted calendar",
     aster_account: "My Aster account",
     workspace_title: "{{name}}'s Workspace | Aster Mail",
     create_folder: "Create folder",

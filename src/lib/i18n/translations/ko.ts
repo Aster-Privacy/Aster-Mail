@@ -266,6 +266,8 @@ export const ko = {
     app_name_mail: "메일",
     app_name_calendar: "캘린더",
     app_current_tip: "{{app}} (현재)",
+    app_description_mail: "종단 간 암호화 이메일",
+    app_description_calendar: "종단 간 암호화 캘린더",
     aster_account: "내 Aster 계정",
     workspace_title: "{{name}}의 워크스페이스 | Aster Mail",
     create_folder: "폴더 만들기",

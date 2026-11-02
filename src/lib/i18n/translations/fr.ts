@@ -215,6 +215,8 @@ export const fr = {
     app_name_mail: "Mail",
     app_name_calendar: "Agenda",
     app_current_tip: "{{app}} (Actuelle)",
+    app_description_mail: "E-mail chiffré de bout en bout",
+    app_description_calendar: "Agenda chiffré de bout en bout",
     aster_account: "Mon compte Aster",
     workspace_title: "Espace de travail de {{name}} | Aster Mail",
     create_folder: "Créer un dossier",

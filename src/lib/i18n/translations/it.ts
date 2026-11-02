@@ -204,6 +204,8 @@ export const it = {
     app_name_mail: "Posta",
     app_name_calendar: "Calendario",
     app_current_tip: "{{app}} (Attuale)",
+    app_description_mail: "Email con crittografia end-to-end",
+    app_description_calendar: "Calendario con crittografia end-to-end",
     aster_account: "Il mio account Aster",
     workspace_title: "Spazio di lavoro di {{name}} | Aster Mail",
     create_folder: "Crea cartella",

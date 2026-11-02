@@ -43,6 +43,7 @@ import {
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SearchBar } from "@/components/search/search_bar";
 import { WorkspaceSwitcher } from "@/components/layout/workspace_switcher";
+import { AppSwitcher } from "@/components/layout/app_switcher";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -243,6 +244,11 @@ function top_bar_base({
     (is_tablet || (preferences.sidebar_minimized ?? false));
   const left_cluster_width = is_rail_header ? 64 : sidebar_expanded_width;
 
+  const go_home = useCallback(() => {
+    navigate("/");
+    window.dispatchEvent(new CustomEvent("astermail:inbox-home"));
+  }, [navigate]);
+
   const handle_menu_click = useCallback(() => {
     if (is_mobile) {
       on_mobile_menu_toggle();
@@ -287,10 +293,7 @@ function top_bar_base({
             aria-label={t("common.aster_mail")}
             className="hidden sm:flex items-center select-none overflow-hidden px-2 py-2 -mx-2 outline-none focus:outline-none"
             type="button"
-            onClick={() => {
-              navigate("/");
-              window.dispatchEvent(new CustomEvent("astermail:inbox-home"));
-            }}
+            onClick={go_home}
           >
             {is_rail_header ? (
               <img
@@ -320,6 +323,11 @@ function top_bar_base({
             )}
           </button>
         </Tooltip>
+        {!is_rail_header && (
+          <div className="hidden sm:block">
+            <AppSwitcher on_open_current={go_home} />
+          </div>
+        )}
       </div>
 
       <div

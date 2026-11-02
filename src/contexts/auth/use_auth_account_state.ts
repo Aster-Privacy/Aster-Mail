@@ -21,7 +21,7 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { AuthState } from "./auth_types";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -33,6 +33,10 @@ import {
   clear_session_passphrase,
 } from "./session_passphrase";
 import { decrypt_vault_with_lock } from "./vault_decryption";
+import {
+  obtain_sibling_session,
+  type SiblingSessionLogin,
+} from "./sibling_session_handoff";
 import { purge_all_local_data } from "./purge_local_data";
 import {
   AUTH_VERIFY_TIMEOUT_MS,
@@ -137,6 +141,61 @@ export function use_auth_account_state() {
     useState(false);
   const [max_account_limit, set_max_account_limit] = useState<number | null>(
     null,
+  );
+  const login_ref = useRef<
+    | ((
+        user: User,
+        vault: EncryptedVault,
+        passphrase: string,
+        encrypted_vault?: string,
+        vault_nonce?: string,
+        remember_on_device?: boolean,
+      ) => Promise<void>)
+    | null
+  >(null);
+
+  const try_sibling_handoff = useCallback(
+    async (expected_user_id?: string): Promise<boolean> => {
+      let handoff: SiblingSessionLogin | null = null;
+
+      try {
+        handoff = await obtain_sibling_session(
+          app_pathname(),
+          expected_user_id,
+        );
+      } catch (caught) {
+        ignore_error("contexts/auth/use_auth_account_state:handoff", caught);
+      }
+
+      const sign_in_with = login_ref.current;
+
+      if (!handoff || !sign_in_with) return false;
+
+      try {
+        await sign_in_with(
+          handoff.user,
+          handoff.vault,
+          handoff.passphrase,
+          handoff.encrypted_vault,
+          handoff.vault_nonce,
+          true,
+        );
+      } catch (caught) {
+        safe_log_error(caught);
+        clear_vault_from_memory();
+
+        return false;
+      }
+
+      setTimeout(() => emit_auth_ready(), 50);
+
+      if (app_pathname() === "/sign-in") {
+        navigate("/", { replace: true });
+      }
+
+      return true;
+    },
+    [navigate],
   );
 
   const handle_identity_mismatch = useCallback(
@@ -306,6 +365,8 @@ export function use_auth_account_state() {
         const current = await get_current_account();
 
         if (!current) {
+          if (await try_sibling_handoff()) return;
+
           api_client.set_authenticated(false);
           set_state((prev) => ({
             ...prev,
@@ -453,6 +514,14 @@ export function use_auth_account_state() {
             } catch (caught) {
               ignore_error("contexts/auth/use_auth_account_state:init", caught);
             }
+          }
+
+          if (
+            !has_keys &&
+            (await get_account_kind(current.id)) !== "shared" &&
+            (await try_sibling_handoff(current.user.id))
+          ) {
+            return;
           }
 
           if (!has_keys) {
@@ -874,6 +943,8 @@ export function use_auth_account_state() {
     },
     [t, backfill_user_profile],
   );
+
+  login_ref.current = login;
 
   const add_account = useCallback(
     async (

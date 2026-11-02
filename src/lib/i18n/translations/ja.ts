@@ -260,6 +260,8 @@ export const ja = {
     app_name_mail: "メール",
     app_name_calendar: "カレンダー",
     app_current_tip: "{{app}}(現在)",
+    app_description_mail: "エンドツーエンド暗号化メール",
+    app_description_calendar: "エンドツーエンド暗号化カレンダー",
     aster_account: "マイ Aster アカウント",
     workspace_title: "{{name}}のワークスペース | Aster Mail",
     create_folder: "フォルダを作成",

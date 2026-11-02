@@ -200,6 +200,8 @@ export const ar = {
     app_name_mail: "البريد",
     app_name_calendar: "التقويم",
     app_current_tip: "{{app}} (الحالي)",
+    app_description_mail: "بريد إلكتروني مشفّر تشفيرًا تامًا",
+    app_description_calendar: "تقويم مشفّر تشفيرًا تامًا",
     aster_account: "حسابي في Aster",
     workspace_title: "مساحة عمل {{name}} | Aster Mail",
     create_folder: "إنشاء مجلد",
