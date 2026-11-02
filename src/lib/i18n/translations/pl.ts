@@ -11343,6 +11343,8 @@ export const pl = {
   calendar: {
     beta_waitlist_title: "Aster Calendar",
     beta_waitlist_tag: "Beta",
+    panel_open_calendar: "Otwórz Kalendarz",
+    panel_load_failed: "Nie udało się wczytać kalendarza.",
     beta_waitlist_start: "Beta ma się rozpocząć 1 listopada.",
     beta_waitlist_features_title: "Co zawiera",
     beta_waitlist_info_title: "Informacje o becie Kalendarza",

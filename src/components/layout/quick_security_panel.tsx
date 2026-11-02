@@ -289,7 +289,7 @@ export function QuickSecurityPanel({
     <aside
       ref={panel_ref}
       aria-label={t("common.security_center")}
-      className={`quick_security_panel absolute inset-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:rounded-xl ${
+      className={`quick_security_panel absolute inset-y-0 start-0 end-1.5 flex-col overflow-hidden rounded-lg bg-surf-primary md:end-2.5 md:rounded-xl ${
         is_visible ? "flex" : "hidden"
       } ${is_closing ? "quick_panel_closing" : "z-10"}`}
     >

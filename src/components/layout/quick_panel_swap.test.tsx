@@ -70,6 +70,24 @@ vi.mock("@/components/layout/quick_security_panel", () => ({
   },
 }));
 
+const calendar_renders: boolean[] = [];
+
+vi.mock("@/components/layout/quick_calendar_panel", () => ({
+  get_calendar_panel_origin: () => "https://calendar.astermail.org",
+  open_calendar_externally: () => {},
+  QuickCalendarPanel: ({
+    is_open,
+    is_swapping,
+  }: {
+    is_open: boolean;
+    is_swapping: boolean;
+  }) => {
+    calendar_renders.push(is_swapping);
+
+    return <div data-open={is_open ? "1" : "0"} data-testid="calendar_panel" />;
+  },
+}));
+
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
@@ -78,6 +96,11 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 function RailHarness() {
   const [is_contacts_open, set_is_contacts_open] = useState(false);
   const [is_security_open, set_is_security_open] = useState(false);
+  const [is_calendar_open, set_is_calendar_open] = useState(false);
+  const on_calendar_open_change = useCallback(
+    (next: boolean) => set_is_calendar_open(next),
+    [],
+  );
   const on_contacts_open_change = useCallback(
     (next: boolean) => set_is_contacts_open(next),
     [],
@@ -90,8 +113,10 @@ function RailHarness() {
   return (
     <MemoryRouter initialEntries={["/"]}>
       <AppRail
+        is_calendar_open={is_calendar_open}
         is_contacts_open={is_contacts_open}
         is_security_open={is_security_open}
+        on_calendar_open_change={on_calendar_open_change}
         on_compose={() => {}}
         on_contacts_open_change={on_contacts_open_change}
         on_security_open_change={on_security_open_change}
@@ -126,6 +151,7 @@ describe("quick panel swap", () => {
     localStorage.clear();
     contacts_renders.length = 0;
     security_renders.length = 0;
+    calendar_renders.length = 0;
     visible_commits.length = 0;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -172,6 +198,9 @@ describe("quick panel swap", () => {
     expect(
       slot?.querySelector('[data-testid="security_panel"]'),
     ).not.toBeNull();
+    expect(
+      slot?.querySelector('[data-testid="calendar_panel"]'),
+    ).not.toBeNull();
   });
 
   it("keeps exactly one slot width while the panels swap", async () => {
@@ -197,6 +226,7 @@ describe("quick panel swap", () => {
     for (const file of [
       "src/components/layout/quick_contacts_panel.tsx",
       "src/components/layout/quick_security_panel.tsx",
+      "src/components/layout/quick_calendar_panel.tsx",
     ]) {
       const source = readFileSync(file, "utf8");
       const root_class = source
@@ -204,7 +234,7 @@ describe("quick panel swap", () => {
         .find((line) => line.includes("className={`quick_"));
 
       expect(root_class).toBeDefined();
-      expect(root_class).toContain("absolute inset-0");
+      expect(root_class).toMatch(/absolute inset-(0|y-0 start-0)/);
       expect(root_class).not.toContain("flex-shrink-0");
       expect(root_class).not.toContain("w-[");
     }
@@ -224,6 +254,34 @@ describe("quick panel swap", () => {
     expect(open_state("contacts_panel")).toBe("0");
     expect(open_state("security_panel")).toBe("1");
     expect(contacts_renders[0]).toBe(true);
+  });
+
+  it("swaps between the calendar panel and the other panels", async () => {
+    await act(async () => {
+      root.render(<RailHarness />);
+    });
+
+    await click("common.app_name_calendar");
+    expect(open_state("calendar_panel")).toBe("1");
+    expect(calendar_renders.every((flag) => flag === false)).toBe(true);
+
+    contacts_renders.length = 0;
+    await click("common.contacts");
+
+    expect(open_state("calendar_panel")).toBe("0");
+    expect(open_state("contacts_panel")).toBe("1");
+    expect(contacts_renders[0]).toBe(true);
+
+    calendar_renders.length = 0;
+    await click("common.app_name_calendar");
+
+    expect(open_state("contacts_panel")).toBe("0");
+    expect(open_state("calendar_panel")).toBe("1");
+    expect(calendar_renders[0]).toBe(true);
+
+    await click("common.app_name_calendar");
+
+    expect(open_state("calendar_panel")).toBe("0");
   });
 
   it("clears the swap flag once the swap render is committed", async () => {

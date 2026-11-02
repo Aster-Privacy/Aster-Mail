@@ -18,11 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { AppRailIcon } from "./app_rail_icon";
+
+const mocks = vi.hoisted(() => ({
+  src: "data:image/png;base64,AAAA",
+}));
+
+vi.mock("@/lib/dated_calendar_icon", () => ({
+  use_dated_calendar_icon: (kind: string) =>
+    kind === "rail" ? mocks.src : "",
+}));
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -45,19 +54,21 @@ describe("app rail icon", () => {
   });
 
   it.each(["contacts", "security"] as const)(
-    "masks the %s artwork with the accent color",
+    "renders the %s brand artwork at every pixel density",
     (name) => {
       act(() => root.render(<AppRailIcon name={name} />));
 
-      const wrapper = container.querySelector<HTMLElement>(".app_rail_icon");
-      const detail = container.querySelector("img");
+      const image = container.querySelector("img.app_rail_icon");
+      const base = `/icons/${name}/${name}_rail`;
 
-      expect(
-        wrapper?.style.getPropertyValue("--app-rail-icon-tint"),
-      ).toContain(`/icons/${name}/${name}_tint_72.png`);
-      expect(detail?.getAttribute("src")).toBe(
-        `/icons/${name}/${name}_detail_24.png`,
+      expect(image?.getAttribute("src")).toBe(`${base}_24.png`);
+      expect(image?.getAttribute("srcset")).toBe(
+        `${base}_24.png 1x, ${base}_48.png 2x, ${base}_72.png 3x`,
       );
+      expect(image?.getAttribute("alt")).toBe("");
+      expect(image?.getAttribute("aria-hidden")).toBe("true");
+      expect(image?.getAttribute("width")).toBe("24");
+      expect(image?.getAttribute("height")).toBe("24");
     },
   );
 
@@ -74,4 +85,24 @@ describe("app rail icon", () => {
       expect(container.querySelector("svg")).not.toBeNull();
     },
   );
+
+  it("renders the calendar rail icon with the dated artwork", () => {
+    act(() => root.render(<AppRailIcon name="calendar" />));
+
+    const image = container.querySelector("img.app_rail_icon");
+
+    expect(image?.getAttribute("src")).toBe(mocks.src);
+    expect(image?.hasAttribute("srcset")).toBe(false);
+  });
+
+  it("falls back to a vector icon when the calendar artwork fails", () => {
+    act(() => root.render(<AppRailIcon name="calendar" />));
+
+    act(() => {
+      container.querySelector("img")?.dispatchEvent(new Event("error"));
+    });
+
+    expect(container.querySelector(".app_rail_icon")).toBeNull();
+    expect(container.querySelector("svg")).not.toBeNull();
+  });
 });

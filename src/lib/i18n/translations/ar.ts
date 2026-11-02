@@ -10872,6 +10872,8 @@ export const ar = {
   calendar: {
     beta_waitlist_title: "Aster Calendar",
     beta_waitlist_tag: "تجريبي",
+    panel_open_calendar: "فتح التقويم",
+    panel_load_failed: "لم يتم تحميل التقويم.",
     beta_waitlist_start: "من المتوقع أن تبدأ النسخة التجريبية في 1 نوفمبر.",
     beta_waitlist_features_title: "ما الذي يتضمنه",
     beta_waitlist_info_title: "حول النسخة التجريبية من التقويم",

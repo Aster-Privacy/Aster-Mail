@@ -18,14 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AppRailView } from "@aster/ui";
 
 import { AppRailIcon } from "@/components/icons/app_rail_icon";
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
 import { QuickSecurityPanel } from "@/components/layout/quick_security_panel";
-import { QuickWaitlistPanel } from "@/components/layout/quick_waitlist_panel";
+import {
+  get_calendar_panel_origin,
+  open_calendar_externally,
+  QuickCalendarPanel,
+} from "@/components/layout/quick_calendar_panel";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -49,16 +53,20 @@ function read_hidden() {
 }
 
 interface AppRailProps {
+  is_calendar_open: boolean;
   is_contacts_open: boolean;
   is_security_open: boolean;
+  on_calendar_open_change: (is_open: boolean) => void;
   on_contacts_open_change: (is_open: boolean) => void;
   on_security_open_change: (is_open: boolean) => void;
   on_compose: (address: string) => void;
 }
 
 function AppRailComponent({
+  is_calendar_open,
   is_contacts_open,
   is_security_open,
+  on_calendar_open_change,
   on_contacts_open_change,
   on_security_open_change,
   on_compose,
@@ -69,7 +77,7 @@ function AppRailComponent({
   const is_settings_view = location.pathname.startsWith("/settings");
   const [is_hidden, set_is_hidden] = useState(read_hidden);
   const [is_swapping, set_is_swapping] = useState(false);
-  const [is_waitlist_open, set_is_waitlist_open] = useState(false);
+  const calendar_origin = useMemo(get_calendar_panel_origin, []);
 
   const close_contacts = useCallback(() => {
     write_rail_contacts_open(false);
@@ -84,18 +92,19 @@ function AppRailComponent({
   const toggle_contacts = useCallback(() => {
     const next = !is_contacts_open;
 
-    set_is_swapping(next && (is_security_open || is_waitlist_open));
+    set_is_swapping(next && (is_security_open || is_calendar_open));
     write_rail_contacts_open(next);
     on_contacts_open_change(next);
     if (next) {
       write_rail_security_open(false);
       on_security_open_change(false);
-      set_is_waitlist_open(false);
+      on_calendar_open_change(false);
     }
   }, [
     is_contacts_open,
     is_security_open,
-    is_waitlist_open,
+    is_calendar_open,
+    on_calendar_open_change,
     on_contacts_open_change,
     on_security_open_change,
   ]);
@@ -103,31 +112,38 @@ function AppRailComponent({
   const toggle_security = useCallback(() => {
     const next = !is_security_open;
 
-    set_is_swapping(next && (is_contacts_open || is_waitlist_open));
+    set_is_swapping(next && (is_contacts_open || is_calendar_open));
     write_rail_security_open(next);
     on_security_open_change(next);
     if (next) {
       write_rail_contacts_open(false);
       on_contacts_open_change(false);
-      set_is_waitlist_open(false);
+      on_calendar_open_change(false);
     }
   }, [
     is_contacts_open,
     is_security_open,
-    is_waitlist_open,
+    is_calendar_open,
+    on_calendar_open_change,
     on_contacts_open_change,
     on_security_open_change,
   ]);
 
-  const close_waitlist = useCallback(() => {
-    set_is_waitlist_open(false);
-  }, []);
+  const close_calendar = useCallback(() => {
+    on_calendar_open_change(false);
+  }, [on_calendar_open_change]);
 
-  const toggle_waitlist = useCallback(() => {
-    const next = !is_waitlist_open;
+  const toggle_calendar = useCallback(() => {
+    if (!calendar_origin) {
+      open_calendar_externally();
+
+      return;
+    }
+
+    const next = !is_calendar_open;
 
     set_is_swapping(next && (is_contacts_open || is_security_open));
-    set_is_waitlist_open(next);
+    on_calendar_open_change(next);
     if (next) {
       write_rail_contacts_open(false);
       on_contacts_open_change(false);
@@ -135,9 +151,11 @@ function AppRailComponent({
       on_security_open_change(false);
     }
   }, [
+    calendar_origin,
+    is_calendar_open,
     is_contacts_open,
     is_security_open,
-    is_waitlist_open,
+    on_calendar_open_change,
     on_contacts_open_change,
     on_security_open_change,
   ]);
@@ -149,7 +167,7 @@ function AppRailComponent({
   }, [is_swapping]);
 
   const { is_visible: is_slot_visible } = use_panel_transition(
-    is_contacts_open || is_security_open || is_waitlist_open,
+    is_contacts_open || is_security_open || is_calendar_open,
   );
 
   const toggle_hidden = useCallback(() => {
@@ -168,8 +186,13 @@ function AppRailComponent({
     if (!is_hidden) return;
     on_contacts_open_change(false);
     on_security_open_change(false);
-    set_is_waitlist_open(false);
-  }, [is_hidden, on_contacts_open_change, on_security_open_change]);
+    on_calendar_open_change(false);
+  }, [
+    is_hidden,
+    on_calendar_open_change,
+    on_contacts_open_change,
+    on_security_open_change,
+  ]);
 
   useEffect(() => {
     if (!preferences.show_side_panel) return;
@@ -195,11 +218,11 @@ function AppRailComponent({
       is_settings_view={is_settings_view}
       items={[
         {
-          key: "calendar_beta",
-          label: t("calendar.beta_waitlist_title"),
-          selected: is_waitlist_open,
+          key: "calendar",
+          label: t("common.app_name_calendar"),
+          selected: is_calendar_open,
           fallback_icon: <AppRailIcon name="calendar" />,
-          on_click: toggle_waitlist,
+          on_click: toggle_calendar,
         },
         {
           key: "contacts",
@@ -233,11 +256,14 @@ function AppRailComponent({
             is_swapping={is_swapping}
             on_close={close_security}
           />
-          <QuickWaitlistPanel
-            is_open={is_waitlist_open}
-            is_swapping={is_swapping}
-            on_close={close_waitlist}
-          />
+          {calendar_origin && (
+            <QuickCalendarPanel
+              is_open={is_calendar_open}
+              is_swapping={is_swapping}
+              origin={calendar_origin}
+              on_close={close_calendar}
+            />
+          )}
         </>
       }
       on_toggle_hidden={toggle_hidden}

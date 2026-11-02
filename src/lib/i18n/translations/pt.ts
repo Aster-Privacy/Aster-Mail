@@ -11231,6 +11231,8 @@ export const pt = {
   calendar: {
     beta_waitlist_title: "Aster Calendar",
     beta_waitlist_tag: "Beta",
+    panel_open_calendar: "Abrir Calendário",
+    panel_load_failed: "A sua agenda não foi carregada.",
     beta_waitlist_start: "A beta deverá começar a 1 de novembro.",
     beta_waitlist_features_title: "O que está incluído",
     beta_waitlist_info_title: "Sobre a beta do Calendário",

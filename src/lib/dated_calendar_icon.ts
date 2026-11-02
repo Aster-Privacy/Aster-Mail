@@ -33,7 +33,7 @@ interface DatedIconSpec {
   output_height: number;
 }
 
-export type DatedCalendarIcon = "app";
+export type DatedCalendarIcon = "app" | "rail";
 
 const FONT_STACK =
   '"Google Sans Flex", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
@@ -48,6 +48,14 @@ const SPECS: Record<DatedCalendarIcon, DatedIconSpec> = {
     panel: [45, 48, 132, 127],
     erase: [58, 63, 115, 111],
     output_height: 132,
+  },
+  rail: {
+    src: "/icons/calendar/calendar_rail_256.png",
+    placeholder: "/icons/calendar/calendar_rail_256.png",
+    fallback: "/icons/calendar/calendar_rail_31_256.png",
+    panel: [95, 100, 231, 223],
+    erase: null,
+    output_height: 72,
   },
 };
 

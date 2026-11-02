@@ -10892,6 +10892,8 @@ export const ja = {
   calendar: {
     beta_waitlist_title: "Aster Calendar",
     beta_waitlist_tag: "ベータ",
+    panel_open_calendar: "カレンダーを開く",
+    panel_load_failed: "カレンダーを読み込めませんでした。",
     beta_waitlist_start: "ベータ版は11月1日に開始される予定です。",
     beta_waitlist_features_title: "含まれる機能",
     beta_waitlist_info_title: "カレンダーベータについて",

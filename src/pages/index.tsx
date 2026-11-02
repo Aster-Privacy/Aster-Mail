@@ -178,6 +178,7 @@ export default function IndexPage() {
   const [is_survey_visible, set_is_survey_visible] = useState(false);
   const [is_rail_contacts_open, set_is_rail_contacts_open] = useState(false);
   const [is_rail_security_open, set_is_rail_security_open] = useState(false);
+  const [is_rail_calendar_open, set_is_rail_calendar_open] = useState(false);
   const [checklist_complete, set_checklist_complete] = useState(false);
   const [checklist_visible, set_checklist_visible] = useState<boolean | null>(
     null,
@@ -443,7 +444,7 @@ export default function IndexPage() {
           on_shortcuts_click={handle_shortcuts_click}
           search_context={state.active_search_query || undefined}
         />
-        <div className="relative flex-1 flex transition-colors duration-200 overflow-clip">
+        <div className="relative flex min-h-0 flex-1 transition-colors duration-200 overflow-clip">
           {state.is_settings_route && !settings_popup_mode ? (
             <Suspense fallback={<SettingsFallback />}>
               <SettingsContent
@@ -665,9 +666,11 @@ export default function IndexPage() {
             </>
           )}
           <AppRail
+            is_calendar_open={is_rail_calendar_open}
             is_contacts_open={is_rail_contacts_open}
             is_security_open={is_rail_security_open}
             on_compose={handle_contacts_compose}
+            on_calendar_open_change={set_is_rail_calendar_open}
             on_contacts_open_change={set_is_rail_contacts_open}
             on_security_open_change={set_is_rail_security_open}
           />
@@ -842,6 +845,7 @@ export default function IndexPage() {
           <OnboardingChecklist
             hidden={
               is_quick_settings_open ||
+              is_rail_calendar_open ||
               is_rail_contacts_open ||
               is_rail_security_open ||
               state.compose_instances.length > 0

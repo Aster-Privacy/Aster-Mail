@@ -48,6 +48,19 @@ vi.mock("@/components/layout/quick_security_panel", () => ({
   QuickSecurityPanel: () => null,
 }));
 
+const calendar = vi.hoisted(() => ({
+  origin: null as string | null,
+  open_externally: vi.fn(),
+}));
+
+vi.mock("@/components/layout/quick_calendar_panel", () => ({
+  get_calendar_panel_origin: () => calendar.origin,
+  open_calendar_externally: calendar.open_externally,
+  QuickCalendarPanel: ({ is_open }: { is_open: boolean }) => (
+    <div data-open={is_open ? "1" : "0"} data-testid="calendar_panel" />
+  ),
+}));
+
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
@@ -61,13 +74,17 @@ describe("side panel setting", () => {
     initial_path: string,
     on_contacts_open_change: (is_open: boolean) => void = () => {},
     on_security_open_change: (is_open: boolean) => void = () => {},
+    on_calendar_open_change: (is_open: boolean) => void = () => {},
+    is_calendar_open = false,
   ) => {
     await act(async () => {
       root.render(
         <MemoryRouter initialEntries={[initial_path]}>
           <AppRail
+            is_calendar_open={is_calendar_open}
             is_contacts_open={false}
             is_security_open={false}
+            on_calendar_open_change={on_calendar_open_change}
             on_compose={() => {}}
             on_contacts_open_change={on_contacts_open_change}
             on_security_open_change={on_security_open_change}
@@ -79,6 +96,8 @@ describe("side panel setting", () => {
 
   beforeEach(() => {
     show_side_panel = true;
+    calendar.origin = null;
+    calendar.open_externally.mockReset();
     localStorage.clear();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -148,6 +167,68 @@ describe("side panel setting", () => {
     await render_rail("/", on_change);
 
     expect(on_change).not.toHaveBeenCalledWith(true);
+  });
+
+  it("opens Calendar in a new tab when the panel cannot be embedded", async () => {
+    const on_calendar = vi.fn();
+
+    await render_rail("/", undefined, undefined, on_calendar);
+
+    const button = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="common.app_name_calendar"]',
+    );
+
+    await act(async () => {
+      button?.click();
+    });
+
+    expect(calendar.open_externally).toHaveBeenCalledTimes(1);
+    expect(on_calendar).not.toHaveBeenCalled();
+    expect(
+      container.querySelector('[data-testid="calendar_panel"]'),
+    ).toBeNull();
+  });
+
+  it("opens the calendar panel in place when it can be embedded", async () => {
+    calendar.origin = "https://calendar.astermail.org";
+
+    const on_contacts = vi.fn();
+    const on_security = vi.fn();
+    const on_calendar = vi.fn();
+
+    await render_rail("/", on_contacts, on_security, on_calendar);
+
+    const button = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="common.app_name_calendar"]',
+    );
+
+    await act(async () => {
+      button?.click();
+    });
+
+    expect(calendar.open_externally).not.toHaveBeenCalled();
+    expect(on_calendar).toHaveBeenCalledWith(true);
+    expect(on_contacts).toHaveBeenCalledWith(false);
+    expect(on_security).toHaveBeenCalledWith(false);
+
+    await render_rail("/", on_contacts, on_security, on_calendar, true);
+
+    expect(
+      container
+        .querySelector('[data-testid="calendar_panel"]')
+        ?.getAttribute("data-open"),
+    ).toBe("1");
+  });
+
+  it("closes the calendar panel when the rail is collapsed", async () => {
+    calendar.origin = "https://calendar.astermail.org";
+    localStorage.setItem("aster_app_rail_hidden", "1");
+
+    const on_calendar = vi.fn();
+
+    await render_rail("/", undefined, undefined, on_calendar, true);
+
+    expect(on_calendar).toHaveBeenCalledWith(false);
   });
 
   it("defaults the side panel to visible", () => {

@@ -9883,6 +9883,8 @@ export const zh_CN = {
   calendar: {
     beta_waitlist_title: "Aster Calendar",
     beta_waitlist_tag: "测试版",
+    panel_open_calendar: "打开日历",
+    panel_load_failed: "日历未能加载。",
     beta_waitlist_start: "测试版预计将于 11 月 1 日开始。",
     beta_waitlist_features_title: "包含的功能",
     beta_waitlist_info_title: "关于日历测试版",
