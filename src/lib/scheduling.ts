@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+
+import { run_after_next_paint } from "@/lib/run_after_next_paint";
+
 interface SchedulerWithYield {
   yield?: () => Promise<void>;
 }
@@ -43,6 +46,16 @@ export function yield_to_visible_page(): Promise<void> {
   if (is_page_hidden()) return Promise.resolve();
 
   return new Promise<void>((resolve) => setTimeout(resolve, 0));
+}
+
+export function yield_to_next_paint(): Promise<void> {
+  if (is_page_hidden()) {
+    return new Promise<void>((resolve) => setTimeout(resolve, 0));
+  }
+
+  return new Promise<void>((resolve) => {
+    run_after_next_paint(resolve);
+  });
 }
 
 export const DEFAULT_MAP_CHUNK = 32;

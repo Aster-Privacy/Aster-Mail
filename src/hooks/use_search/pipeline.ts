@@ -48,6 +48,7 @@ import {
 } from "@/services/crypto/mail_metadata";
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { strip_html_tags_bounded } from "@/lib/html_sanitizer";
+import { yield_to_next_paint } from "@/lib/scheduling";
 import { create_work_slicer } from "@/lib/work_slicer";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import {
@@ -90,7 +91,7 @@ export async function run_index_pipeline(
 ): Promise<PipelineResult> {
   const { user_email, include_body, prior, my_gen, hot, writer } = options;
   const incremental = !!prior && prior.size > 0;
-  const batch_size = include_body ? 40 : 250;
+  const batch_size = include_body ? 8 : 250;
   const page_limit = incremental ? INDEX_PAGE_LIMIT : ENVELOPE_PAGE_LIMIT;
   let cursor = options.start_cursor;
   let processed = 0;
@@ -290,6 +291,11 @@ export async function run_index_pipeline(
     });
   };
 
+  const pause_between_batches = (): Promise<void> =>
+    include_body
+      ? yield_to_next_paint()
+      : new Promise<void>((r) => setTimeout(r, 0));
+
   const decrypt_page = async (
     page_items: MailItem[],
     envelope_by_id: Map<string, MailItem> | null,
@@ -319,7 +325,9 @@ export async function run_index_pipeline(
       processed += batch.length;
       report();
 
-      await new Promise<void>((r) => setTimeout(r, 0));
+      await pause_between_batches();
+
+      if (my_gen !== build_generation) cancel();
     }
 
     return page_entries;

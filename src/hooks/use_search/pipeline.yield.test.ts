@@ -21,7 +21,7 @@
 
 import type { MailItem } from "@/services/api/mail";
 
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { mailbox, strip } = vi.hoisted(() => ({
   mailbox: [] as MailItem[],
@@ -93,8 +93,12 @@ vi.mock("@/lib/html_sanitizer", async (import_original) => {
   };
 });
 
-import { build_generation, empty_index } from "./index_cache";
-import { run_index_pipeline } from "./pipeline";
+import {
+  build_generation,
+  empty_index,
+  reset_index_cache,
+} from "./index_cache";
+import { run_index_pipeline, type PipelineOptions } from "./pipeline";
 
 function make_item(index: number): MailItem {
   return {
@@ -112,6 +116,55 @@ function make_item(index: number): MailItem {
     is_spam: false,
   } as MailItem;
 }
+
+function fill_mailbox(count: number): void {
+  mailbox.length = 0;
+  for (let i = 0; i < count; i++) mailbox.push(make_item(i));
+  strip.calls = 0;
+}
+
+function set_visibility(state: DocumentVisibilityState): void {
+  Object.defineProperty(document, "visibilityState", {
+    configurable: true,
+    get: () => state,
+  });
+}
+
+function stub_frames(on_frame: (frame: number) => void = () => {}): void {
+  let frames = 0;
+
+  vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+    frames++;
+    on_frame(frames);
+    setTimeout(() => callback(performance.now()), 0);
+
+    return frames;
+  });
+  vi.stubGlobal("cancelAnimationFrame", () => {});
+}
+
+async function build_index(
+  count: number,
+  overrides: Partial<PipelineOptions> = {},
+) {
+  const hot = empty_index("user@example.com", true);
+  const result = await run_index_pipeline({
+    user_email: "user@example.com",
+    include_body: true,
+    my_gen: build_generation,
+    max_items: count,
+    hot,
+    writer: null,
+    ...overrides,
+  });
+
+  return { hot, result };
+}
+
+afterEach(() => {
+  set_visibility("visible");
+  vi.unstubAllGlobals();
+});
 
 describe("run_index_pipeline main thread use", () => {
   it("yields between messages instead of extracting a whole batch in one task", async () => {
@@ -155,5 +208,86 @@ describe("run_index_pipeline main thread use", () => {
       "body of item-0",
     );
     expect(Math.max(...per_task)).toBeLessThanOrEqual(4);
+  });
+
+  it("lets a frame paint after every batch of at most 8 messages", async () => {
+    fill_mailbox(80);
+
+    const per_frame: number[] = [];
+    let counted = 0;
+
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      per_frame.push(strip.calls - counted);
+      counted = strip.calls;
+      setTimeout(() => callback(performance.now()), 0);
+
+      return per_frame.length;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+
+    const { hot, result } = await build_index(80);
+
+    expect(result.processed).toBe(80);
+    expect(hot.items.map((item) => item.id)).toEqual(
+      mailbox.map((item) => item.id),
+    );
+    expect(per_frame.length).toBeGreaterThanOrEqual(10);
+    expect(Math.max(...per_frame)).toBeLessThanOrEqual(8);
+  });
+
+  it("finishes when animation frames never fire", async () => {
+    fill_mailbox(16);
+    vi.stubGlobal("requestAnimationFrame", () => 1);
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+
+    const { hot, result } = await build_index(16);
+
+    expect(result.processed).toBe(16);
+    expect(hot.items.map((item) => item.id)).toEqual(
+      mailbox.map((item) => item.id),
+    );
+  });
+
+  it("does not wait for frames between batches while the page is hidden", async () => {
+    fill_mailbox(40);
+    set_visibility("hidden");
+
+    const frame = vi.fn();
+
+    vi.stubGlobal("requestAnimationFrame", frame);
+
+    const { hot, result } = await build_index(40);
+
+    expect(result.processed).toBe(40);
+    expect(hot.items.map((item) => item.id)).toEqual(
+      mailbox.map((item) => item.id),
+    );
+    expect(frame).not.toHaveBeenCalled();
+  });
+
+  it("does not wait for frames between envelope only batches", async () => {
+    fill_mailbox(40);
+
+    const frame = vi.fn();
+
+    vi.stubGlobal("requestAnimationFrame", frame);
+
+    const { hot, result } = await build_index(40, { include_body: false });
+
+    expect(result.processed).toBe(40);
+    expect(hot.items.map((item) => item.id)).toEqual(
+      mailbox.map((item) => item.id),
+    );
+    expect(frame).not.toHaveBeenCalled();
+  });
+
+  it("stops within one batch when the build is cancelled", async () => {
+    fill_mailbox(80);
+    stub_frames((frame) => {
+      if (frame === 1) reset_index_cache();
+    });
+
+    await expect(build_index(80)).rejects.toThrow("search_index_cancelled");
+    expect(strip.calls).toBeLessThanOrEqual(8);
   });
 });

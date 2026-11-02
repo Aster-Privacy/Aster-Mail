@@ -21,7 +21,11 @@
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { is_page_hidden, yield_to_visible_page } from "./scheduling";
+import {
+  is_page_hidden,
+  yield_to_next_paint,
+  yield_to_visible_page,
+} from "./scheduling";
 
 function set_visibility(state: DocumentVisibilityState): void {
   Object.defineProperty(document, "visibilityState", {
@@ -33,6 +37,8 @@ function set_visibility(state: DocumentVisibilityState): void {
 afterEach(() => {
   set_visibility("visible");
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("yield_to_visible_page", () => {
@@ -54,5 +60,73 @@ describe("yield_to_visible_page", () => {
 
     expect(is_page_hidden()).toBe(true);
     expect(timer).not.toHaveBeenCalled();
+  });
+});
+
+describe("yield_to_next_paint", () => {
+  it("waits for an animation frame and then a timer task while visible", async () => {
+    const frames: FrameRequestCallback[] = [];
+
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      frames.push(callback);
+
+      return frames.length;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+
+    let resolved = false;
+    const pending = yield_to_next_paint().then(() => {
+      resolved = true;
+    });
+
+    await new Promise<void>((r) => setTimeout(r, 0));
+    expect(frames).toHaveLength(1);
+    expect(resolved).toBe(false);
+
+    frames[0](performance.now());
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    await pending;
+    expect(resolved).toBe(true);
+  });
+
+  it("waits for a timer task without a frame while the page is hidden", async () => {
+    set_visibility("hidden");
+    const frame = vi.fn();
+    const timer = vi.spyOn(globalThis, "setTimeout");
+
+    vi.stubGlobal("requestAnimationFrame", frame);
+
+    await yield_to_next_paint();
+
+    expect(frame).not.toHaveBeenCalled();
+    expect(timer).toHaveBeenCalledTimes(1);
+  });
+
+  it("still resolves when animation frames never fire", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("requestAnimationFrame", () => 1);
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+
+    let resolved = false;
+    const pending = yield_to_next_paint().then(() => {
+      resolved = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(100);
+    await pending;
+
+    expect(resolved).toBe(true);
+  });
+
+  it("falls back to a timer task when animation frames are unavailable", async () => {
+    vi.stubGlobal("requestAnimationFrame", undefined);
+    vi.stubGlobal("cancelAnimationFrame", undefined);
+    const timer = vi.spyOn(globalThis, "setTimeout");
+
+    await yield_to_next_paint();
+
+    expect(timer).toHaveBeenCalledTimes(1);
   });
 });
