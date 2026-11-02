@@ -22,6 +22,7 @@ import type { StepUpCredentials } from "./step_up";
 
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
+import { is_totp_required_response } from "./totp";
 
 interface RecoveryShareData {
   code_hash: string;
@@ -275,7 +276,7 @@ export async function login_user(
     request,
   );
 
-  if (response.data) {
+  if (response.data && !is_totp_required_response(response.data)) {
     clear_csrf_cache();
     if (response.data.csrf_token) {
       api_client.set_csrf(response.data.csrf_token);
