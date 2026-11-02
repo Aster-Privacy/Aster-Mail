@@ -19,9 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { AppRailView } from "@aster/ui";
-import { EnvelopeIcon } from "@heroicons/react/24/outline";
 
 import { AppRailIcon } from "@/components/icons/app_rail_icon";
 import { DatedCalendarImage } from "@/components/icons/dated_calendar_image";
@@ -35,7 +34,6 @@ import {
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
-import mail_icon from "@/assets/app_icons/mail.png?inline";
 import {
   read_rail_contacts_open,
   write_rail_contacts_open,
@@ -46,7 +44,6 @@ import {
 } from "@/lib/rail_security_open";
 
 const RAIL_HIDDEN_KEY = "aster_app_rail_hidden";
-const INBOX_HOME_EVENT = "astermail:inbox-home";
 
 function read_hidden() {
   try {
@@ -78,7 +75,6 @@ function AppRailComponent({
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const location = useLocation();
-  const navigate = useNavigate();
   const is_settings_view = location.pathname.startsWith("/settings");
   const [is_hidden, set_is_hidden] = useState(read_hidden);
   const [is_swapping, set_is_swapping] = useState(false);
@@ -133,11 +129,6 @@ function AppRailComponent({
     on_contacts_open_change,
     on_security_open_change,
   ]);
-
-  const go_mail_home = useCallback(() => {
-    navigate("/");
-    window.dispatchEvent(new CustomEvent(INBOX_HOME_EVENT));
-  }, [navigate]);
 
   const close_calendar = useCallback(() => {
     on_calendar_open_change(false);
@@ -227,14 +218,6 @@ function AppRailComponent({
       is_panel_visible={is_slot_visible}
       is_settings_view={is_settings_view}
       items={[
-        {
-          key: "mail",
-          label: t("common.app_name_mail"),
-          selected: false,
-          icon_src: mail_icon,
-          fallback_icon: <EnvelopeIcon className="h-5 w-5 shrink-0" />,
-          on_click: go_mail_home,
-        },
         {
           key: "calendar",
           label: t("common.app_name_calendar"),
