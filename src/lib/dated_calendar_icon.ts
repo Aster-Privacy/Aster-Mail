@@ -146,27 +146,23 @@ function draw(spec: DatedIconSpec, image: HTMLImageElement, day: number) {
   context.textBaseline = "alphabetic";
   context.fillStyle = "#ffffff";
 
+  const measure_label = (size_px: number): TextMetrics => {
+    context.font = `560 ${size_px}px ${FONT_STACK}`;
+
+    return context.measureText(label);
+  };
+  const fits_panel = (measured: TextMetrics): boolean =>
+    measured.actualBoundingBoxLeft + measured.actualBoundingBoxRight <=
+      panel_width * 0.78 &&
+    measured.actualBoundingBoxAscent + measured.actualBoundingBoxDescent <=
+      panel_height * 0.62;
+
   let font_px = Math.floor(panel_height * 1.4);
+  let metrics = measure_label(font_px);
 
-  context.font = `560 ${font_px}px ${FONT_STACK}`;
-  let metrics = context.measureText(label);
-
-  for (;;) {
-    context.font = `560 ${font_px}px ${FONT_STACK}`;
-    metrics = context.measureText(label);
-    const ink_width =
-      metrics.actualBoundingBoxLeft + metrics.actualBoundingBoxRight;
-    const ink_height =
-      metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-
-    if (
-      font_px <= 6 ||
-      (ink_width <= panel_width * 0.78 && ink_height <= panel_height * 0.62)
-    ) {
-      break;
-    }
-
+  while (font_px > 6 && !fits_panel(metrics)) {
     font_px -= 1;
+    metrics = measure_label(font_px);
   }
 
   const center_x =
