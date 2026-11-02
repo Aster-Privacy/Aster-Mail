@@ -166,9 +166,10 @@ export async function scan_search_index(
 
 export function list_index_people(
   direction: "from" | "to",
+  user_email: string,
   limit = 200,
 ): IndexPerson[] {
-  if (!cached_index) return [];
+  if (!cached_index || cached_index.user_email !== user_email) return [];
 
   const by_email = new Map<string, IndexPerson>();
 

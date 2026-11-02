@@ -23,7 +23,12 @@ import type { CachedIndex } from "./types";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-const { store, writes, server } = vi.hoisted(() => ({
+const { store, writes, server, roster } = vi.hoisted(() => ({
+  roster: {
+    account_ids: ["account-1"] as string[],
+    current: "account-1" as string | null,
+    unreadable: false,
+  },
   store: new Map<string, unknown>(),
   writes: {
     chunk: 0,
@@ -64,7 +69,12 @@ vi.mock("@/services/crypto/secure_memory", () => ({
   zero_uint8_array: () => {},
 }));
 vi.mock("@/services/account_manager", () => ({
-  get_current_account_id: async () => "account-1",
+  get_current_account_id: async () => roster.current,
+  get_all_accounts: async () => {
+    if (roster.unreadable) throw new Error("roster unreadable");
+
+    return roster.account_ids.map((id) => ({ id }));
+  },
 }));
 vi.mock("@/services/api/mail", () => ({
   list_encrypted_mail_items: async ({
@@ -136,6 +146,7 @@ import {
 import * as index_cache from "./index_cache";
 import { INDEX_TTL_MS } from "./constants";
 import { matches_query } from "./matching";
+import { list_index_people } from "./scan";
 import {
   get_indexing_snapshot,
   subscribe_index_refresh,
@@ -146,6 +157,7 @@ import {
   open_snapshot_reader,
   SNAPSHOT_CHUNK_SIZE,
 } from "@/services/search_index_store";
+import { pending_vocabulary_entries } from "@/services/search/vocabulary";
 
 const user_email = "user@example.com";
 const MAILBOX_SIZE = SNAPSHOT_CHUNK_SIZE * 2 + 500;
@@ -822,5 +834,158 @@ describe("patch_indexed_flags", () => {
     patch_indexed_flags(["missing"], { is_spam: true });
 
     expect(JSON.stringify(index.items)).toBe(before);
+  });
+});
+
+describe("clearing the search index keeps what privacy allows", () => {
+  const keys_of = (account_id: string) =>
+    [...store.keys()].filter(
+      (key) =>
+        key === `search_index_${account_id}` ||
+        key.startsWith(`search_index_${account_id}_`),
+    );
+  const own_keys = () => keys_of("account-1");
+
+  beforeEach(async () => {
+    clear_search_index();
+    store.clear();
+    roster.account_ids = ["account-1", "account-2"];
+    roster.current = "account-1";
+    roster.unreadable = false;
+    server.mailbox = Array.from({ length: MAILBOX_SIZE }, (_, n) =>
+      make_item(n),
+    );
+    await settle();
+    for (const account_id of ["account-2", "account-10", "account-gone"]) {
+      store.set(`search_index_${account_id}`, { saved: true });
+      store.set(`search_index_${account_id}_chunk_0`, { saved: true });
+      store.set(`search_index_${account_id}_grams_0`, { saved: true });
+      store.set(`search_index_${account_id}_sumg_0`, { saved: true });
+    }
+    writes.chunk = 0;
+    writes.total = 0;
+    server.envelope_decrypts = 0;
+  });
+
+  it("drops the in-memory index but keeps saved indexes of accounts on the device", async () => {
+    const before = own_keys();
+
+    await clear_search_index("none");
+
+    expect(index_cache.cached_index).toBeNull();
+    expect(own_keys()).toEqual(before);
+    expect(keys_of("account-2")).toHaveLength(4);
+    expect(keys_of("account-gone")).toEqual([]);
+    expect(keys_of("account-10")).toEqual([]);
+
+    const hydrated = await hydrate_snapshot_index(user_email);
+
+    expect(hydrated?.total_indexed).toBe(MAILBOX_SIZE);
+    expect(server.envelope_decrypts).toBe(0);
+    expect(writes.chunk).toBe(0);
+  });
+
+  it("removes only the signed-out account's saved index", async () => {
+    await clear_search_index({ account_id: "account-1" });
+
+    expect(index_cache.cached_index).toBeNull();
+    expect(own_keys()).toEqual([]);
+    expect(keys_of("account-2")).toHaveLength(4);
+    expect(keys_of("account-10")).toHaveLength(4);
+    expect(keys_of("account-gone")).toHaveLength(4);
+  });
+
+  it("removes the current account's saved index when no account is named", async () => {
+    await clear_search_index("current_account");
+
+    expect(own_keys()).toEqual([]);
+    expect(keys_of("account-2")).toHaveLength(4);
+  });
+
+  it("removes every saved index when the account list cannot be read", async () => {
+    roster.unreadable = true;
+
+    await clear_search_index("none");
+
+    expect(
+      [...store.keys()].filter((key) => key.startsWith("search_index_")),
+    ).toEqual([]);
+  });
+
+  it("removes every saved index when there is no current account", async () => {
+    roster.current = null;
+
+    await clear_search_index("current_account");
+
+    expect(
+      [...store.keys()].filter((key) => key.startsWith("search_index_")),
+    ).toEqual([]);
+  });
+
+  it("discards an index still loading from disk when the account changes", async () => {
+    reset_index_cache();
+
+    const pending = build_search_index(user_email, false);
+
+    await clear_search_index("none", { account_changed: true });
+
+    const result = await pending;
+
+    expect(result.items).toEqual([]);
+    expect(index_cache.cached_index).toBeNull();
+    expect(index_cache.index_build_promise).toBeNull();
+    expect(pending_vocabulary_entries()).toBe(0);
+    expect(server.envelope_decrypts).toBe(0);
+  });
+
+  it("rebuilds an index still loading from disk when the same account clears it", async () => {
+    reset_index_cache();
+
+    const pending = build_search_index(user_email, false);
+
+    await clear_search_index();
+
+    let result = await pending;
+
+    while (index_cache.index_build_promise) {
+      result =
+        (await index_cache.index_build_promise.catch(() => null)) ?? result;
+    }
+
+    expect(result.user_email).toBe(user_email);
+    expect(index_cache.cached_index?.items).toHaveLength(MAILBOX_SIZE);
+    expect(await search(index_cache.cached_index!, ["msg-4321"])).toEqual([
+      "msg-4321",
+    ]);
+  });
+
+  it("stops caching chunks for a reader opened before a clear", async () => {
+    const reader = await open_snapshot_reader(user_email);
+    const chunk_id = reader!.meta.chunk_ids[0];
+    const chunk_key = `search_index_account-1_chunk_${chunk_id}`;
+
+    await clear_search_index("none");
+
+    const first = await reader!.read(chunk_id);
+
+    store.set(chunk_key, { ...(first as object), items: [], entries: [] });
+
+    const second = await reader!.read(chunk_id);
+
+    expect(first?.items.length).toBeGreaterThan(0);
+    expect(second?.items).toEqual([]);
+  });
+
+  it("lists people only from the signed-in user's index", async () => {
+    expect(list_index_people("from", user_email)).not.toEqual([]);
+    expect(list_index_people("from", "someone-else@example.com")).toEqual([]);
+  });
+
+  it("removes every saved index by default", async () => {
+    await clear_search_index();
+
+    expect(
+      [...store.keys()].filter((key) => key.startsWith("search_index_")),
+    ).toEqual([]);
   });
 });

@@ -55,7 +55,9 @@ async function clear_offline_email_cache(
       "@/services/search_index_store"
     );
 
-    await clear_search_snapshots();
+    await clear_search_snapshots(
+      removed_account_id ? { account_id: removed_account_id } : "none",
+    );
   } catch {
     return;
   }

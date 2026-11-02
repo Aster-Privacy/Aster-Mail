@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import type { SearchSnapshotClearScope } from "@/services/search_index_store";
+
 import { clear_account_memory_stores } from "./account_memory_stores";
 
 import { request_cache } from "@/services/api/request_cache";
@@ -65,12 +67,33 @@ import { clear_recipient_hints } from "@/stores/recipient_hint_store";
 import { forget_recipient_lock_statuses } from "@/services/recipient_lock_state";
 import { clear_label_hints } from "@/stores/label_hints_store";
 import { reset_special_offer_status } from "@/stores/special_offer_status";
+import {
+  has_unlocked_folders,
+  lock_all_folders,
+} from "@/hooks/use_protected_folder";
+import { has_protected_folders } from "@/services/locked_folders";
 
 export const AUTH_VERIFY_TIMEOUT_MS = 12000;
+
+function search_snapshots_to_clear(
+  snapshots: SnapshotClearScope,
+): SearchSnapshotClearScope {
+  if (snapshots !== "none") return snapshots;
+
+  if (has_unlocked_folders()) {
+    lock_all_folders();
+
+    return "all";
+  }
+
+  return has_protected_folders() ? "all" : "none";
+}
 
 export async function clear_account_scoped_caches(
   snapshots: SnapshotClearScope = "none",
 ): Promise<void> {
+  const search_snapshots = search_snapshots_to_clear(snapshots);
+
   clear_mail_stats();
   const mail_cache_cleared = clear_mail_cache(snapshots);
 
@@ -83,7 +106,11 @@ export async function clear_account_scoped_caches(
   clear_attachment_limits_cache();
   clear_aliases_cache();
   clear_plan_cache();
-  clear_search_index();
+
+  const search_index_cleared = clear_search_index(search_snapshots, {
+    account_changed: true,
+  });
+
   clear_never_correct_terms();
   clear_recovery_email_cache();
   clear_preferred_sender_local();
@@ -112,7 +139,11 @@ export async function clear_account_scoped_caches(
   clear_label_hints();
   clear_account_memory_stores();
   request_cache.clear();
-  await Promise.all([mail_cache_cleared, clear_all_ratchet_states()]);
+  await Promise.all([
+    mail_cache_cleared,
+    search_index_cleared,
+    clear_all_ratchet_states(),
+  ]);
 }
 
 export function safe_log_error(err: unknown): void {

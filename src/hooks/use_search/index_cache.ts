@@ -52,6 +52,7 @@ import {
   type PersistableEntry,
   type PersistedSearchEntry,
   type ReusableChunk,
+  type SearchSnapshotClearScope,
   type SnapshotMeta,
   type SnapshotWriter,
   type WrittenChunk,
@@ -96,6 +97,7 @@ export let cached_index: CachedIndex | null = null;
 export let index_build_promise: Promise<CachedIndex> | null = null;
 export let build_generation = 0;
 export let deep_index_active = false;
+let account_generation = 0;
 let deep_index_generation = -1;
 
 export function is_deep_index_running(): boolean {
@@ -629,7 +631,11 @@ export function reset_index_cache(): void {
   clear_folded_patterns();
 }
 
-export function clear_search_index(): void {
+export function clear_search_index(
+  snapshots: SearchSnapshotClearScope = "all",
+  options: { account_changed?: boolean } = {},
+): Promise<void> {
+  if (options.account_changed) account_generation++;
   cached_index = null;
   build_generation++;
   index_build_promise = null;
@@ -637,7 +643,8 @@ export function clear_search_index(): void {
   clear_folded_patterns();
   reset_index_download_state();
   reset_indexing_progress();
-  void clear_search_snapshots();
+
+  return clear_search_snapshots(snapshots);
 }
 
 export function mark_search_index_stale(): void {
@@ -776,6 +783,7 @@ function index_is_body_compatible(
 function drop_index_for_other_user(user_email: string): void {
   if (cached_index && cached_index.user_email !== user_email) {
     cached_index = null;
+    account_generation++;
     build_generation++;
     index_build_promise = null;
     reset_indexing_progress();
@@ -785,8 +793,10 @@ function drop_index_for_other_user(user_email: string): void {
 export async function hydrate_snapshot_index(
   user_email: string,
 ): Promise<CachedIndex | null> {
+  const my_gen = build_generation;
   const reader = await open_snapshot_reader(user_email);
 
+  if (my_gen !== build_generation) return null;
   if (!reader || reader.meta.chunk_ids.length === 0) return null;
 
   const meta = reader.meta;
@@ -801,6 +811,8 @@ export async function hydrate_snapshot_index(
     if (index.items.length >= MAX_RAM_INDEX_ITEMS) break;
 
     const chunk = await reader.read(chunk_id);
+
+    if (my_gen !== build_generation) return null;
 
     consumed++;
 
@@ -875,7 +887,15 @@ export async function acquire_search_index(
     return usable;
   }
 
-  const hydrated = await hydrate_snapshot_index(user_email);
+  const my_gen = build_generation;
+  const my_account_gen = account_generation;
+  const loaded = await hydrate_snapshot_index(user_email);
+
+  if (my_account_gen !== account_generation) {
+    return empty_index(user_email, include_body);
+  }
+
+  const hydrated = my_gen === build_generation ? loaded : null;
 
   if (cached_index && cached_index.user_email === user_email) {
     return cached_index;
@@ -939,7 +959,15 @@ export async function build_search_index(
     return index_build_promise;
   }
 
-  const hydrated = await hydrate_snapshot_index(user_email);
+  const my_gen = build_generation;
+  const my_account_gen = account_generation;
+  const loaded = await hydrate_snapshot_index(user_email);
+
+  if (my_account_gen !== account_generation) {
+    return empty_index(user_email, include_body);
+  }
+
+  const hydrated = my_gen === build_generation ? loaded : null;
 
   if (index_build_promise) {
     return index_build_promise;

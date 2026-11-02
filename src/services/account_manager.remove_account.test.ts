@@ -66,7 +66,10 @@ vi.mock("@/services/api/client", () => ({
   },
 }));
 
-const { remove_account } = await import("./account_manager");
+const { reload_accounts_from_storage, remove_account, switch_account } =
+  await import("./account_manager");
+const { clear_search_snapshots } =
+  await import("@/services/search_index_store");
 const { store_encrypted_vault, get_stored_encrypted_vault } =
   await import("@/contexts/auth/session_passphrase");
 
@@ -132,6 +135,26 @@ describe("remove_account", () => {
 
     expect(left.filter((key) => key.includes(FIRST))).toEqual([]);
     expect(left.filter((key) => key.includes(SECOND))).toHaveLength(9);
+  });
+
+  it("deletes only the removed account's saved search index", async () => {
+    await reload_accounts_from_storage();
+    vi.mocked(clear_search_snapshots).mockClear();
+
+    await remove_account(SECOND);
+
+    expect(vi.mocked(clear_search_snapshots).mock.calls).toEqual([
+      [{ account_id: SECOND }],
+    ]);
+  });
+
+  it("keeps saved search indexes when switching accounts", async () => {
+    await reload_accounts_from_storage();
+    vi.mocked(clear_search_snapshots).mockClear();
+
+    await switch_account(SECOND);
+
+    expect(vi.mocked(clear_search_snapshots).mock.calls).toEqual([["none"]]);
   });
 
   it("leaves stored material alone when the account is not on the roster", async () => {
