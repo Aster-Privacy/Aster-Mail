@@ -67,6 +67,7 @@ import {
   get_error_code_from_status,
   is_auth_endpoint,
   is_identity_establishing_endpoint,
+  is_session_check_endpoint,
   is_offline_tombstoned,
   is_pending_deletion_error,
   is_tauri_env,
@@ -123,6 +124,10 @@ export class ApiClient {
   private refresh_timeout: number | null = null;
   private is_authenticated_flag: boolean = false;
   private auth_check_promise: Promise<boolean> | null = null;
+  private request_hold: {
+    settled: Promise<boolean | null>;
+    release: () => void;
+  } | null = null;
   private dev_access_token: string | null = null;
   private active_refresh_token: string | null = null;
   private suspend_account_persist_flag: boolean = false;
@@ -543,6 +548,32 @@ export class ApiClient {
     }
 
     return is_valid;
+  }
+
+  has_session_hint(): boolean {
+    return !!this.dev_access_token || !!get_csrf_token_from_cookie();
+  }
+
+  hold_requests_until(verdict: Promise<boolean>): Promise<boolean | null> {
+    this.release_request_hold();
+
+    let release: () => void = () => undefined;
+    const released = new Promise<null>((resolve) => {
+      release = () => resolve(null);
+    });
+    const settled = Promise.race([verdict.catch(() => false), released]);
+    const hold = { settled, release };
+
+    this.request_hold = hold;
+
+    return settled.finally(() => {
+      if (this.request_hold === hold) this.request_hold = null;
+    });
+  }
+
+  private release_request_hold(): void {
+    this.request_hold?.release();
+    this.request_hold = null;
   }
 
   set_dev_token(
@@ -1267,6 +1298,7 @@ export class ApiClient {
   private clear_auth_state(): void {
     this.is_authenticated_flag = false;
     this.initial_auth_verified = false;
+    this.release_request_hold();
     this.expected_user_id = null;
     this.identity_mismatch_dispatched = false;
     this.last_identity_check_timestamp = 0;
@@ -1825,6 +1857,19 @@ export class ApiClient {
       return {
         error: get_active_translations().common.app_locked,
         code: "APP_LOCKED",
+      };
+    }
+
+    const hold = this.request_hold;
+
+    if (
+      hold &&
+      !is_session_check_endpoint(endpoint) &&
+      !(await hold.settled)
+    ) {
+      return {
+        error: this.get_generic_error_message("UNAUTHORIZED"),
+        code: "UNAUTHORIZED",
       };
     }
 

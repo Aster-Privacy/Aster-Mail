@@ -142,6 +142,7 @@ export function use_auth_account_state() {
   const [max_account_limit, set_max_account_limit] = useState<number | null>(
     null,
   );
+
   const login_ref = useRef<
     | ((
         user: User,
@@ -438,225 +439,11 @@ export function use_auth_account_state() {
           }
         };
         const session_keys_restore = restore_session_keys();
+        const verdict = verify_auth_status().catch(() => false);
 
-        let verify_timed_out = false;
-        const is_auth_valid = await Promise.race([
-          verify_auth_status(),
-          new Promise<boolean>((resolve) =>
-            setTimeout(() => {
-              verify_timed_out = true;
-              resolve(false);
-            }, AUTH_VERIFY_TIMEOUT_MS),
-          ),
-        ]);
+        const reject_session = async () => {
+          stop_session_timeout();
 
-        if (is_auth_valid || verify_timed_out) {
-          api_client.set_authenticated(true);
-          connection_store
-            .sync_from_server()
-            .catch((caught) =>
-              ignore_error("contexts/auth/use_auth_account_state:init", caught),
-            );
-          load_preferred_sender_from_server().catch((caught) =>
-            ignore_error("contexts/auth/use_auth_account_state:init", caught),
-          );
-          sync_client.connect().catch((e) => {
-            safe_log_error(e);
-          });
-
-          let has_keys = await session_keys_restore;
-
-          if (!has_keys && "__TAURI_INTERNALS__" in window) {
-            try {
-              const { invoke } = await import("@tauri-apps/api/core");
-              const raw_b64 = await invoke<string | null>(
-                "device_get_stored_passphrase",
-                { deviceId: current.device_id ?? null },
-              );
-
-              if (raw_b64) {
-                const bytes = Uint8Array.from(
-                  atob(raw_b64.replace(/-/g, "+").replace(/_/g, "/")),
-                  (c) => c.charCodeAt(0),
-                );
-                const native_passphrase = new TextDecoder().decode(bytes);
-                const stored_vault = get_stored_encrypted_vault(current.id);
-
-                if (stored_vault) {
-                  try {
-                    const recovered = await decrypt_vault_with_lock(
-                      stored_vault.encrypted_vault,
-                      stored_vault.vault_nonce,
-                      native_passphrase,
-                      current.user.id,
-                    );
-
-                    if (recovered !== null) {
-                      has_keys = true;
-                      store_session_passphrase(
-                        current.id,
-                        native_passphrase,
-                      ).catch((caught) =>
-                        ignore_error(
-                          "contexts/auth/use_auth_account_state:init",
-                          caught,
-                        ),
-                      );
-                    }
-                  } catch (caught) {
-                    ignore_error(
-                      "contexts/auth/use_auth_account_state:init",
-                      caught,
-                    );
-                  }
-                }
-              }
-            } catch (caught) {
-              ignore_error("contexts/auth/use_auth_account_state:init", caught);
-            }
-          }
-
-          if (
-            !has_keys &&
-            (await get_account_kind(current.id)) !== "shared" &&
-            (await try_sibling_handoff(current.user.id))
-          ) {
-            return;
-          }
-
-          if (!has_keys) {
-            sync_client.disconnect();
-            api_client.set_authenticated(false);
-
-            const current_kind = await get_account_kind(current.id);
-
-            if (current_kind === "shared") {
-              await clear_shared_mailbox_session(current.id).catch((caught) =>
-                ignore_error(
-                  "contexts/auth/use_auth_account_state:init",
-                  caught,
-                ),
-              );
-              const remaining = await get_all_accounts();
-              const fallback = remaining.find((a) => a.kind !== "shared");
-
-              if (fallback) {
-                await storage_switch_account(fallback.id);
-                set_state({
-                  user: null,
-                  is_loading: false,
-                  is_authenticated: false,
-                  has_keys: false,
-                  accounts: remaining,
-                  current_account_id: fallback.id,
-                });
-                navigate(
-                  `/sign-in?u=${encodeURIComponent(fallback.user.email.split("@")[0] ?? "")}`,
-                );
-              } else {
-                set_state({
-                  user: null,
-                  is_loading: false,
-                  is_authenticated: false,
-                  has_keys: false,
-                  accounts: remaining,
-                  current_account_id: null,
-                });
-                navigate("/sign-in");
-              }
-
-              return;
-            }
-
-            set_state({
-              user: null,
-              is_loading: false,
-              is_authenticated: false,
-              has_keys: false,
-              accounts: data.accounts,
-              current_account_id: data.current_account_id,
-            });
-
-            const local = current.user.email.split("@")[0] ?? "";
-            const uses_hash = "__TAURI_INTERNALS__" in window;
-            const path = uses_hash
-              ? window.location.hash.slice(1).split("?")[0] || "/"
-              : app_pathname();
-
-            if (path !== "/sign-in" && path !== "/register") {
-              navigate(`/sign-in?u=${encodeURIComponent(local)}`);
-            }
-
-            return;
-          }
-
-          start_session_timeout(current.id, undefined, { resume: true });
-
-          let synced_user = current.user;
-          const cached_info = api_client.get_cached_user_info();
-
-          if (cached_info && cached_info.user_id !== current.user.id) {
-            sync_client.disconnect();
-            clear_vault_from_memory();
-            await handle_identity_mismatch();
-
-            return;
-          }
-
-          if (cached_info) {
-            synced_user = {
-              id: cached_info.user_id,
-              username: cached_info.username ?? current.user.username,
-              email: cached_info.email ?? current.user.email,
-              display_name:
-                cached_info.display_name ||
-                current.user.display_name ||
-                undefined,
-              profile_color:
-                cached_info.profile_color ||
-                current.user.profile_color ||
-                undefined,
-              profile_picture:
-                cached_info.profile_picture ||
-                current.user.profile_picture ||
-                undefined,
-            };
-            await update_account_user(current.id, synced_user);
-          }
-
-          if (cached_info?.lockdown_mode_enabled !== undefined) {
-            set_lockdown_enabled(current.id, cached_info.lockdown_mode_enabled);
-          }
-
-          set_state({
-            user: synced_user,
-            is_loading: false,
-            is_authenticated: true,
-            has_keys: true,
-            accounts: data.accounts,
-            current_account_id: data.current_account_id,
-          });
-
-          emit_auth_ready();
-
-          backfill_user_profile(synced_user);
-          ensure_default_labels(get_vault_from_memory(), t).catch(
-            console.error,
-          );
-          prime_server_recovery_email(get_vault_from_memory()).catch((caught) =>
-            ignore_error("contexts/auth/use_auth_account_state:init", caught),
-          );
-
-          sync_shared_mailbox_grants()
-            .then(async () => {
-              const refreshed = await get_all_accounts();
-
-              set_state((prev) => ({ ...prev, accounts: refreshed }));
-            })
-            .catch((caught) =>
-              ignore_error("contexts/auth/use_auth_account_state:init", caught),
-            );
-        } else {
           api_client.clear_auth_data();
           api_client.set_authenticated(false);
           sync_client.disconnect();
@@ -692,7 +479,272 @@ export function use_auth_account_state() {
               `/sign-in?u=${encodeURIComponent(prefill_local)}&reason=session_expired`,
             );
           }
+        };
+
+        const adopt_server_profile = async (): Promise<User | null> => {
+          const cached_info = api_client.get_cached_user_info();
+
+          if (!cached_info) return current.user;
+
+          if (cached_info.user_id !== current.user.id) {
+            sync_client.disconnect();
+            clear_vault_from_memory();
+            await handle_identity_mismatch();
+
+            return null;
+          }
+
+          const synced_user: User = {
+            id: cached_info.user_id,
+            username: cached_info.username ?? current.user.username,
+            email: cached_info.email ?? current.user.email,
+            display_name:
+              cached_info.display_name || current.user.display_name || undefined,
+            profile_color:
+              cached_info.profile_color || current.user.profile_color || undefined,
+            profile_picture:
+              cached_info.profile_picture ||
+              current.user.profile_picture ||
+              undefined,
+          };
+
+          await update_account_user(current.id, synced_user);
+
+          if (cached_info.lockdown_mode_enabled !== undefined) {
+            set_lockdown_enabled(current.id, cached_info.lockdown_mode_enabled);
+          }
+
+          return synced_user;
+        };
+
+        const start_background_sync = (user: User) => {
+          connection_store
+            .sync_from_server()
+            .catch((caught) =>
+              ignore_error("contexts/auth/use_auth_account_state:init", caught),
+            );
+          load_preferred_sender_from_server().catch((caught) =>
+            ignore_error("contexts/auth/use_auth_account_state:init", caught),
+          );
+          sync_client.connect().catch((e) => {
+            safe_log_error(e);
+          });
+          backfill_user_profile(user);
+          ensure_default_labels(get_vault_from_memory(), t).catch(
+            console.error,
+          );
+          prime_server_recovery_email(get_vault_from_memory()).catch((caught) =>
+            ignore_error("contexts/auth/use_auth_account_state:init", caught),
+          );
+          sync_shared_mailbox_grants()
+            .then(async () => {
+              const refreshed = await get_all_accounts();
+
+              set_state((prev) => ({ ...prev, accounts: refreshed }));
+            })
+            .catch((caught) =>
+              ignore_error("contexts/auth/use_auth_account_state:init", caught),
+            );
+        };
+
+        const starts_early =
+          (await session_keys_restore) &&
+          navigator.onLine &&
+          api_client.has_session_hint();
+
+        let verify_timed_out = false;
+        const is_auth_valid =
+          starts_early ||
+          (await Promise.race([
+            verdict,
+            new Promise<boolean>((resolve) =>
+              setTimeout(() => {
+                verify_timed_out = true;
+                resolve(false);
+              }, AUTH_VERIFY_TIMEOUT_MS),
+            ),
+          ]));
+
+        if (!is_auth_valid && !verify_timed_out) {
+          await reject_session();
+
+          return;
         }
+
+        const verdict_pending = starts_early || verify_timed_out;
+
+        api_client.set_authenticated(true);
+
+        let has_keys = await session_keys_restore;
+
+        if (!has_keys && "__TAURI_INTERNALS__" in window) {
+          try {
+            const { invoke } = await import("@tauri-apps/api/core");
+            const raw_b64 = await invoke<string | null>(
+              "device_get_stored_passphrase",
+              { deviceId: current.device_id ?? null },
+            );
+
+            if (raw_b64) {
+              const bytes = Uint8Array.from(
+                atob(raw_b64.replace(/-/g, "+").replace(/_/g, "/")),
+                (c) => c.charCodeAt(0),
+              );
+              const native_passphrase = new TextDecoder().decode(bytes);
+              const stored_vault = get_stored_encrypted_vault(current.id);
+
+              if (stored_vault) {
+                try {
+                  const recovered = await decrypt_vault_with_lock(
+                    stored_vault.encrypted_vault,
+                    stored_vault.vault_nonce,
+                    native_passphrase,
+                    current.user.id,
+                  );
+
+                  if (recovered !== null) {
+                    has_keys = true;
+                    store_session_passphrase(
+                      current.id,
+                      native_passphrase,
+                    ).catch((caught) =>
+                      ignore_error(
+                        "contexts/auth/use_auth_account_state:init",
+                        caught,
+                      ),
+                    );
+                  }
+                } catch (caught) {
+                  ignore_error(
+                    "contexts/auth/use_auth_account_state:init",
+                    caught,
+                  );
+                }
+              }
+            }
+          } catch (caught) {
+            ignore_error("contexts/auth/use_auth_account_state:init", caught);
+          }
+        }
+
+        if (
+          !has_keys &&
+          (await get_account_kind(current.id)) !== "shared" &&
+          (await try_sibling_handoff(current.user.id))
+        ) {
+          return;
+        }
+
+        if (!has_keys) {
+          sync_client.disconnect();
+          api_client.set_authenticated(false);
+
+          const current_kind = await get_account_kind(current.id);
+
+          if (current_kind === "shared") {
+            await clear_shared_mailbox_session(current.id).catch((caught) =>
+              ignore_error(
+                "contexts/auth/use_auth_account_state:init",
+                caught,
+              ),
+            );
+            const remaining = await get_all_accounts();
+            const fallback = remaining.find((a) => a.kind !== "shared");
+
+            if (fallback) {
+              await storage_switch_account(fallback.id);
+              set_state({
+                user: null,
+                is_loading: false,
+                is_authenticated: false,
+                has_keys: false,
+                accounts: remaining,
+                current_account_id: fallback.id,
+              });
+              navigate(
+                `/sign-in?u=${encodeURIComponent(fallback.user.email.split("@")[0] ?? "")}`,
+              );
+            } else {
+              set_state({
+                user: null,
+                is_loading: false,
+                is_authenticated: false,
+                has_keys: false,
+                accounts: remaining,
+                current_account_id: null,
+              });
+              navigate("/sign-in");
+            }
+
+            return;
+          }
+
+          set_state({
+            user: null,
+            is_loading: false,
+            is_authenticated: false,
+            has_keys: false,
+            accounts: data.accounts,
+            current_account_id: data.current_account_id,
+          });
+
+          const local = current.user.email.split("@")[0] ?? "";
+          const uses_hash = "__TAURI_INTERNALS__" in window;
+          const path = uses_hash
+            ? window.location.hash.slice(1).split("?")[0] || "/"
+            : app_pathname();
+
+          if (path !== "/sign-in" && path !== "/register") {
+            navigate(`/sign-in?u=${encodeURIComponent(local)}`);
+          }
+
+          return;
+        }
+
+        start_session_timeout(current.id, undefined, { resume: true });
+
+        const auth_state = (user: User): AuthState => ({
+          user,
+          is_loading: false,
+          is_authenticated: true,
+          has_keys: true,
+          accounts: data.accounts,
+          current_account_id: data.current_account_id,
+        });
+
+        if (verdict_pending) {
+          const held_verdict = api_client.hold_requests_until(verdict);
+
+          set_state(auth_state(current.user));
+          emit_auth_ready();
+
+          const confirmed = await held_verdict;
+
+          if (confirmed === null) return;
+
+          if (!confirmed) {
+            await reject_session();
+
+            return;
+          }
+        }
+
+        const synced_user = await adopt_server_profile();
+
+        if (!synced_user) return;
+
+        if (verdict_pending) {
+          set_state((prev) =>
+            prev.is_authenticated && prev.user?.id === synced_user.id
+              ? { ...prev, user: synced_user }
+              : prev,
+          );
+        } else {
+          set_state(auth_state(synced_user));
+          emit_auth_ready();
+        }
+
+        start_background_sync(synced_user);
       } catch (e) {
         safe_log_error(e);
         sync_client.disconnect();

@@ -289,6 +289,16 @@ export function is_identity_establishing_endpoint(endpoint: string): boolean {
   return IDENTITY_ESTABLISHING_ENDPOINTS.includes(path);
 }
 
+const SESSION_CHECK_ENDPOINTS = [
+  ...IDENTITY_ESTABLISHING_ENDPOINTS,
+  "/core/v1/auth/me",
+  "/core/v1/auth/refresh",
+];
+
+export function is_session_check_endpoint(endpoint: string): boolean {
+  return SESSION_CHECK_ENDPOINTS.includes(endpoint.split("?")[0]);
+}
+
 export function is_auth_endpoint(endpoint: string): boolean {
   return endpoint.split("?")[0].startsWith("/core/v1/auth/");
 }
