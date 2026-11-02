@@ -53,7 +53,10 @@ import { open_external } from "@/utils/open_link";
 import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { show_special_offer } from "@/stores/special_offer_store";
 import { use_special_offer_status } from "@/stores/special_offer_status";
-import { is_special_offer_available } from "@/lib/special_offer";
+import {
+  is_special_offer_available,
+  offer_is_live,
+} from "@/lib/special_offer";
 
 const HELP_CENTER_URL = "https://astermail.org/help";
 const SUPPORT_ADDRESS = "hello@astermail.org";
@@ -134,6 +137,7 @@ function top_bar_base({
   const { status: special_offer_status } = use_special_offer_status();
   const has_special_offer =
     (special_offer_status?.available ?? false) &&
+    offer_is_live(special_offer_status, new Date()) &&
     is_special_offer_available({ plan_code, is_dismissed: false });
   const navigate = useNavigate();
   const is_mounted = useRef(true);
@@ -398,7 +402,13 @@ function top_bar_base({
         </IconButton>
 
         {is_free_plan && has_special_offer && (
-          <Tooltip tip={t("settings.special_offer_subtitle")}>
+          <Tooltip
+            tip={t(
+              special_offer_status?.theme === "black_friday"
+                ? "settings.special_offer_black_friday_title"
+                : "settings.special_offer_subtitle",
+            )}
+          >
             <Button
               className="special_offer_pill hidden sm:inline-flex !h-9 !rounded-[var(--aster-radius-control)] !text-[14px] !font-medium !px-5 ms-1 gap-1.5"
               size="sm"

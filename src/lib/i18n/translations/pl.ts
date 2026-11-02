@@ -5601,6 +5601,11 @@ export const pl = {
     special_offer_fine_print_year:
       "Za pierwszy rok płacisz {{offer_price}}. Potem plan odnawia się za {{price}} rocznie, dopóki nie anulujesz go w Ustawieniach.",
     special_offer_billing_period: "Okres rozliczeniowy",
+    special_offer_black_friday_title: "Black Friday: 50% zniżki przez 12 miesięcy",
+    special_offer_black_friday_body: "Wybierz dowolny plan roczny lub dowolny plan miesięczny poza Star i zapłać połowę ceny przez pierwsze 12 miesięcy.",
+    special_offer_ends_in: "Kończy się za {{time}}",
+    special_offer_not_on_star_monthly: "Niedostępne w planie Star miesięcznym",
+    special_offer_renews_at: "Po 12 miesiącach odnawia się w cenie {{price}}",
     plan_billing_terms:
       "Subskrypcje odnawiają się automatycznie w cenie standardowej, dopóki ich nie anulujesz. Możesz anulować w dowolnym momencie w Ustawieniach.",
     upgrade_offer_note:

@@ -25,6 +25,7 @@ import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
 import { Modal, ModalTitle } from "@/components/ui/modal";
+import { use_plan_features } from "@/components/settings/billing/use_plan_features";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 
@@ -69,17 +70,47 @@ export function SpecialOfferFeatureList() {
   );
 }
 
+export function PlanFeatureSummary({ plan_code }: { plan_code: string }) {
+  const plan_features = use_plan_features();
+  const features = (plan_features[plan_code] ?? []).filter(
+    (feature) => feature.on,
+  );
+
+  if (features.length === 0) return null;
+
+  return (
+    <ul className="special_offer_features">
+      {features.slice(0, 6).map((feature) => (
+        <li key={feature.label} className="special_offer_feature">
+          <CheckCircleIcon
+            aria-hidden="true"
+            className="special_offer_check h-[18px] w-[18px]"
+            strokeWidth={2}
+          />
+          <div className="min-w-0">
+            <p className="special_offer_feature_title">{feature.label}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 interface SpecialOfferSuccessModalProps {
   is_open: boolean;
   on_close: () => void;
+  plan_code?: string | null;
 }
 
 export function SpecialOfferSuccessModal({
   is_open,
   on_close,
+  plan_code,
 }: SpecialOfferSuccessModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
+  const show_plan_features =
+    !!plan_code && (plan_code === "star" || plan_code === "supernova");
 
   return (
     <Modal
@@ -115,7 +146,11 @@ export function SpecialOfferSuccessModal({
         </p>
       </div>
       <div className="px-6 pb-6 text-start">
-        <SpecialOfferFeatureList />
+        {show_plan_features && plan_code ? (
+          <PlanFeatureSummary plan_code={plan_code} />
+        ) : (
+          <SpecialOfferFeatureList />
+        )}
         <Button
           className="mt-6 w-full !h-11 !text-[15px] !font-semibold"
           variant="depth"

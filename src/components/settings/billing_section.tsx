@@ -839,7 +839,7 @@ export function BillingSection() {
     try {
       const offer_applies =
         (checkout_interval === "month" || checkout_interval === "year") &&
-        !!offer_checkout.plan_pricing(plan.code);
+        offer_checkout.covers(plan.code, checkout_interval);
       const result = await start_hosted_checkout(
         plan.code,
         checkout_interval,

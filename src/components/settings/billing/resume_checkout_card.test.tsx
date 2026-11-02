@@ -28,6 +28,7 @@ const toast_mock = vi.fn();
 const show_resume_mock = vi.fn();
 const offer_checkout_mock = vi.fn();
 const offer_available_mock = vi.fn();
+const offer_covers_mock = vi.fn();
 let offer_status: { available: boolean; dismissed: boolean } | null = null;
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -50,6 +51,8 @@ vi.mock("@/stores/upgrade_store", () => ({
 
 vi.mock("@/lib/special_offer", () => ({
   is_special_offer_available: offer_available_mock,
+  offer_covers: offer_covers_mock,
+  offer_is_live: () => true,
 }));
 
 vi.mock("@/stores/special_offer_store", () => ({
@@ -102,6 +105,8 @@ describe("ResumeCheckoutCard", () => {
     offer_checkout_mock.mockReturnValue(true);
     offer_available_mock.mockReset();
     offer_available_mock.mockReturnValue(true);
+    offer_covers_mock.mockReset();
+    offer_covers_mock.mockReturnValue(true);
     offer_status = null;
 
     if (root) await act(async () => root!.unmount());
@@ -250,9 +255,53 @@ describe("ResumeCheckoutCard", () => {
       button_by_text("settings.finish_plan_setup_action").click();
     });
 
-    expect(offer_checkout_mock).toHaveBeenCalled();
+    expect(offer_checkout_mock).toHaveBeenCalledWith("month", "nova");
     expect(show_resume_mock).not.toHaveBeenCalled();
     expect(toast_mock).not.toHaveBeenCalled();
+  });
+
+  it("reopens a yearly checkout for the abandoned plan", async () => {
+    read_target_mock.mockReturnValue({
+      plan_code: "supernova",
+      billing_interval: "year",
+      special_offer: true,
+    });
+    offer_status = { available: true, dismissed: false };
+
+    await render_card("free");
+
+    await act(async () => {
+      button_by_text("settings.finish_plan_setup_action").click();
+    });
+
+    expect(offer_covers_mock).toHaveBeenCalledWith(
+      offer_status,
+      "supernova",
+      "year",
+    );
+    expect(offer_checkout_mock).toHaveBeenCalledWith("year", "supernova");
+  });
+
+  it("falls back to the plan picker when the term is no longer covered", async () => {
+    read_target_mock.mockReturnValue({
+      plan_code: "star",
+      billing_interval: "month",
+      special_offer: true,
+    });
+    offer_status = { available: true, dismissed: false };
+    offer_covers_mock.mockReturnValue(false);
+
+    await render_card("free");
+
+    await act(async () => {
+      button_by_text("settings.finish_plan_setup_action").click();
+    });
+
+    expect(offer_checkout_mock).not.toHaveBeenCalled();
+    expect(show_resume_mock).toHaveBeenCalledWith({
+      plan_code: "star",
+      interval: "month",
+    });
   });
 
   it("falls back to the plan picker when the special offer ended", async () => {

@@ -30,6 +30,7 @@ import {
   offer_covers,
   offer_covers_crypto_term,
   offer_is_live,
+  offer_plan_codes,
   offer_price_cents,
   is_special_offer_available,
   special_offer_checkout,
@@ -371,5 +372,58 @@ describe("special_offer_checkout with a status", () => {
         ?.discounted_total_cents("card", "yearly", 2899),
     ).toBe(1449);
     expect(checkout.crypto_price("duo")?.(6, 7794)).toBe(3897);
+  });
+});
+
+describe("offer_plan_codes", () => {
+  it("lists covered plans in display order", () => {
+    expect(offer_plan_codes(bf_status)).toEqual([
+      "star",
+      "nova",
+      "supernova",
+      "duo",
+      "family",
+    ]);
+  });
+
+  it("lists only nova for a legacy status", () => {
+    expect(offer_plan_codes(legacy_status)).toEqual(["nova"]);
+  });
+
+  it("lists nothing without a status", () => {
+    expect(offer_plan_codes(null)).toEqual([]);
+  });
+});
+
+describe("special_offer_checkout covers", () => {
+  it("covers a term only when the status lists it", () => {
+    const checkout = special_offer_checkout(true, bf_status);
+
+    expect(checkout.covers("star", "month")).toBe(false);
+    expect(checkout.covers("star", "year")).toBe(true);
+    expect(checkout.covers("family", "year")).toBe(true);
+    expect(checkout.covers(null, "year")).toBe(false);
+  });
+
+  it("covers nothing when the offer is unavailable or expired", () => {
+    const expired = { ...bf_status, ends_at: "2020-01-01T00:00:00Z" };
+
+    expect(special_offer_checkout(false, bf_status).covers("nova", "year")).toBe(
+      false,
+    );
+    expect(special_offer_checkout(true, expired).covers("nova", "year")).toBe(
+      false,
+    );
+  });
+});
+
+describe("special_offer_pricing for family plans", () => {
+  it("prices duo and family from the family tiers", () => {
+    expect(special_offer_pricing("year", "family")).not.toBeNull();
+    expect(special_offer_pricing("month", "duo")).not.toBeNull();
+  });
+
+  it("returns null for an unknown plan", () => {
+    expect(special_offer_pricing("month", "unknown")).toBeNull();
   });
 });

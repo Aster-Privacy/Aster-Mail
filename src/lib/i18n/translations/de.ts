@@ -5334,6 +5334,11 @@ export const de = {
     special_offer_fine_print_year:
       "Sie zahlen {{offer_price}} für das erste Jahr. Danach verlängert sich Ihr Tarif für {{price}} pro Jahr, bis Sie ihn in den Einstellungen kündigen.",
     special_offer_billing_period: "Abrechnungszeitraum",
+    special_offer_black_friday_title: "Black Friday: 50 % Rabatt für 12 Monate",
+    special_offer_black_friday_body: "Sichern Sie sich jeden Jahrestarif oder jeden Monatstarif außer Star für die ersten 12 Monate zum halben Preis.",
+    special_offer_ends_in: "Endet in {{time}}",
+    special_offer_not_on_star_monthly: "Für Star monatlich nicht verfügbar",
+    special_offer_renews_at: "Verlängert sich nach 12 Monaten zu {{price}}",
     plan_billing_terms:
       "Abonnements verlängern sich automatisch zum Standardpreis, bis Sie kündigen. Sie können jederzeit in den Einstellungen kündigen.",
     upgrade_offer_note:

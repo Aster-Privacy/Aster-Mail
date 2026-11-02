@@ -5487,6 +5487,11 @@ export const ar = {
     special_offer_fine_print_year:
       "تدفع {{offer_price}} للسنة الأولى. بعد ذلك تُجدَّد خطتك بسعر {{price}} سنويًا حتى تلغيها من الإعدادات.",
     special_offer_billing_period: "فترة الفوترة",
+    special_offer_black_friday_title: "الجمعة السوداء: خصم 50% لمدة 12 شهرًا",
+    special_offer_black_friday_body: "احصل على أي خطة سنوية، أو أي خطة شهرية باستثناء Star، بنصف السعر خلال أول 12 شهرًا.",
+    special_offer_ends_in: "ينتهي خلال {{time}}",
+    special_offer_not_on_star_monthly: "غير متاح لخطة Star الشهرية",
+    special_offer_renews_at: "يتجدد بسعر {{price}} بعد 12 شهرًا",
     plan_billing_terms:
       "تُجدَّد الاشتراكات تلقائيًا بالسعر العادي حتى تلغيها. يمكنك الإلغاء في أي وقت من الإعدادات.",
     upgrade_offer_note: "يُطبَّق خصم {{percent}}% عند الدفع.",

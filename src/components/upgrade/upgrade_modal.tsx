@@ -40,6 +40,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -86,7 +87,7 @@ import { checkout_error_text } from "@/components/settings/billing/checkout_erro
 import {
   SPECIAL_OFFER_INTERVAL,
   SPECIAL_OFFER_PLAN_CODE,
-  special_offer_checkout,
+  special_offer_discounted_cents,
 } from "@/lib/special_offer";
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
@@ -286,6 +287,7 @@ export function UpgradeModal() {
 
   const plan_name = limits?.plan_name ?? null;
   const plan_code = limits?.plan_code ?? null;
+  const offer_checkout = use_special_offer_checkout(plan_code);
 
   const individual_tiers = useMemo(() => upgrade_tiers(plan_code), [plan_code]);
 
@@ -490,6 +492,28 @@ export function UpgradeModal() {
   const price_label = (tier: PlanTier) =>
     format_price(convert_cents(monthly_equivalent(tier), currency), currency);
 
+  const is_offer_term = (tier: PlanTier) =>
+    offer_checkout.covers(tier.id, interval);
+
+  const offer_price_label = (tier: PlanTier) => {
+    const months = interval === "year" ? 12 : 1;
+    const total_cents =
+      interval === "year" ? tier.yearly_cents : tier.monthly_cents;
+
+    return format_price(
+      Math.round(
+        special_offer_discounted_cents(
+          convert_cents(total_cents, currency),
+          offer_checkout.percent_off,
+        ) / months,
+      ),
+      currency,
+    );
+  };
+
+  const shown_price_label = (tier: PlanTier) =>
+    is_offer_term(tier) ? offer_price_label(tier) : price_label(tier);
+
   const yearly_total_label = (tier: PlanTier) =>
     `${t("settings.billed_annually")} · ${format_price(
       convert_cents(tier.yearly_cents, currency),
@@ -593,10 +617,6 @@ export function UpgradeModal() {
     return state.offer_promo_code;
   };
 
-  const crypto_offer = special_offer_checkout(
-    !!crypto_tier && !!offer_promo_code_for(crypto_tier.id),
-  );
-
   const handle_choose_crypto = (selected_term_id?: string) => {
     if (is_starting || !pending_tier) return;
 
@@ -625,13 +645,25 @@ export function UpgradeModal() {
     set_is_starting(true);
 
     try {
-      const result = await start_hosted_checkout(
-        pending_tier.id,
-        billing,
-        currency,
-        undefined,
-        offer_promo_code_for(pending_tier.id, billing),
-      );
+      const offer_applies =
+        (billing === "month" || billing === "year") &&
+        offer_checkout.covers(pending_tier.id, billing);
+      const result = offer_applies
+        ? await start_hosted_checkout(
+            pending_tier.id,
+            billing,
+            currency,
+            undefined,
+            offer_promo_code_for(pending_tier.id, billing),
+            true,
+          )
+        : await start_hosted_checkout(
+            pending_tier.id,
+            billing,
+            currency,
+            undefined,
+            offer_promo_code_for(pending_tier.id, billing),
+          );
 
       if (!result.ok) {
         show_toast(
@@ -914,12 +946,14 @@ export function UpgradeModal() {
                       key={tier.id}
                       compact
                       anchor_label={
-                        interval === "year"
-                          ? format_price(
-                              convert_cents(tier.monthly_cents, currency),
-                              currency,
-                            )
-                          : null
+                        is_offer_term(tier)
+                          ? price_label(tier)
+                          : interval === "year"
+                            ? format_price(
+                                convert_cents(tier.monthly_cents, currency),
+                                currency,
+                              )
+                            : null
                       }
                       badge={
                         is_featured ? t("settings.plan_recommended") : null
@@ -937,7 +971,7 @@ export function UpgradeModal() {
                       name={tier.name}
                       on_cta={() => handle_select_tier(tier)}
                       period_label={t("settings.per_month_short")}
-                      price_label={price_label(tier)}
+                      price_label={shown_price_label(tier)}
                       save_label={null}
                     />
                   );
@@ -1013,16 +1047,22 @@ export function UpgradeModal() {
                         </span>
                       </span>
                       <span className="flex-shrink-0 text-end tabular-nums">
-                        {interval === "year" && (
+                        {is_offer_term(tier) ? (
                           <span className="block text-[11px] text-txt-muted line-through">
-                            {format_price(
-                              convert_cents(tier.monthly_cents, currency),
-                              currency,
-                            )}
+                            {price_label(tier)}
                           </span>
+                        ) : (
+                          interval === "year" && (
+                            <span className="block text-[11px] text-txt-muted line-through">
+                              {format_price(
+                                convert_cents(tier.monthly_cents, currency),
+                                currency,
+                              )}
+                            </span>
+                          )
                         )}
                         <span className="block text-sm font-semibold text-txt-primary">
-                          {price_label(tier)}
+                          {shown_price_label(tier)}
                           <span className="text-xs font-normal text-txt-muted">
                             {t("settings.per_month_short")}
                           </span>
@@ -1205,6 +1245,7 @@ export function UpgradeModal() {
           }))}
           plan_name={pending_tier.name}
           selected_plan_id={pending_tier.id}
+          special_offer={offer_checkout.plan_pricing(pending_tier.id)}
           selected_term={term_id}
           term_options={[
             {
@@ -1268,8 +1309,8 @@ export function UpgradeModal() {
 
       {crypto_tier && (
         <CryptoTermModal
-          discount_percent_off={crypto_offer.percent_off}
-          discounted_price_cents={crypto_offer.crypto_price(crypto_tier.id)}
+          discount_percent_off={offer_checkout.percent_off}
+          discounted_price_cents={offer_checkout.crypto_price(crypto_tier.id)}
           initial_term_months={crypto_term_months}
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.monthly_cents}
@@ -1287,7 +1328,7 @@ export function UpgradeModal() {
           plan_name={crypto_tier.name}
           preferred_currency={currency}
           promo_code={offer_promo_code_for(crypto_tier.id) ?? null}
-          special_offer={!!crypto_offer.crypto_price(crypto_tier.id)}
+          special_offer={!!offer_checkout.crypto_price(crypto_tier.id)}
           yearly_price_cents={crypto_tier.yearly_cents}
         />
       )}

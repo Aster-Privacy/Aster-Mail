@@ -86,7 +86,7 @@ export function MobileBillingReturnHandler() {
   const navigate = useNavigate();
   const handled = useRef(false);
   const disposed = useRef(false);
-  const [offer_welcome, set_offer_welcome] = useState(false);
+  const [offer_welcome, set_offer_welcome] = useState<string | null>(null);
 
   useEffect(() => {
     disposed.current = false;
@@ -134,6 +134,7 @@ export function MobileBillingReturnHandler() {
         target?.special_offer &&
         request_special_offer_checkout(
           target.billing_interval === "year" ? "year" : "month",
+          target.plan_code,
         )
       ) {
         clear_checkout_target();
@@ -196,7 +197,7 @@ export function MobileBillingReturnHandler() {
         window.dispatchEvent(new CustomEvent("aster:plan-changed"));
         if (open_billing) navigate("/settings/billing");
         if (checkout_target?.special_offer) {
-          set_offer_welcome(true);
+          set_offer_welcome(target ?? "");
         } else {
           show_toast(t("settings.checkout_welcome"), "success");
         }
@@ -241,8 +242,9 @@ export function MobileBillingReturnHandler() {
 
   return (
     <SpecialOfferSuccessModal
-      is_open={offer_welcome}
-      on_close={() => set_offer_welcome(false)}
+      is_open={offer_welcome !== null}
+      on_close={() => set_offer_welcome(null)}
+      plan_code={offer_welcome}
     />
   );
 }

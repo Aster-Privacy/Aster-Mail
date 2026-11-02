@@ -6427,6 +6427,11 @@ export const hi = {
     special_offer_fine_print_year:
       "पहले वर्ष के लिए आप {{offer_price}} चुकाते हैं। इसके बाद आपका प्लान {{price}} प्रति वर्ष पर नवीनीकृत होता रहेगा, जब तक आप इसे सेटिंग में रद्द नहीं करते।",
     special_offer_billing_period: "बिलिंग अवधि",
+    special_offer_black_friday_title: "ब्लैक फ्राइडे: 12 महीने के लिए 50% की छूट",
+    special_offer_black_friday_body: "कोई भी वार्षिक प्लान, या Star को छोड़कर कोई भी मासिक प्लान, अपने पहले 12 महीनों के लिए आधी कीमत पर पाएँ।",
+    special_offer_ends_in: "{{time}} में समाप्त",
+    special_offer_not_on_star_monthly: "Star मासिक पर उपलब्ध नहीं है",
+    special_offer_renews_at: "12 महीने के बाद {{price}} पर नवीनीकृत होता है",
     plan_billing_terms:
       "सदस्यताएँ रद्द करने तक मानक दर पर अपने आप नवीनीकृत होती हैं। आप सेटिंग में कभी भी रद्द कर सकते हैं।",
     upgrade_offer_note: "आपकी {{percent}}% छूट चेकआउट पर लागू होती है।",

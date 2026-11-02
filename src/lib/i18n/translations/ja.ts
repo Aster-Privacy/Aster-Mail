@@ -5369,6 +5369,11 @@ export const ja = {
     special_offer_fine_print_year:
       "最初の1年間は{{offer_price}}です。その後は、設定で解約するまで年額{{price}}で更新されます。",
     special_offer_billing_period: "請求期間",
+    special_offer_black_friday_title: "ブラックフライデー:12か月間50%オフ",
+    special_offer_black_friday_body: "年間プラン、またはStar以外の月間プランを、最初の12か月間半額でご利用いただけます。",
+    special_offer_ends_in: "終了まであと{{time}}",
+    special_offer_not_on_star_monthly: "Starの月間プランは対象外です",
+    special_offer_renews_at: "12か月後は{{price}}で更新されます",
     plan_billing_terms:
       "サブスクリプションは、解約するまで通常価格で自動的に更新されます。設定からいつでも解約できます。",
     upgrade_offer_note: "{{percent}}%の割引は決済時に適用されます。",

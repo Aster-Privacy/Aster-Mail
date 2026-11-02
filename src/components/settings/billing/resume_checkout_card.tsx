@@ -37,7 +37,11 @@ import {
   show_checkout_cancelled_upgrade,
   type UpgradeInterval,
 } from "@/stores/upgrade_store";
-import { is_special_offer_available } from "@/lib/special_offer";
+import {
+  is_special_offer_available,
+  offer_covers,
+  offer_is_live,
+} from "@/lib/special_offer";
 import { request_special_offer_checkout } from "@/stores/special_offer_store";
 import { use_special_offer_status } from "@/stores/special_offer_status";
 
@@ -74,6 +78,12 @@ export function ResumeCheckoutCard({
   const can_resume_offer =
     !!target?.special_offer &&
     !!offer_status?.available &&
+    offer_is_live(offer_status, new Date()) &&
+    offer_covers(
+      offer_status,
+      target.plan_code,
+      target.billing_interval === "year" ? "year" : "month",
+    ) &&
     is_special_offer_available({
       plan_code: current_plan_code ?? "free",
       is_dismissed: offer_status.dismissed ?? false,
@@ -112,6 +122,7 @@ export function ResumeCheckoutCard({
     const opened = can_resume_offer
       ? request_special_offer_checkout(
           target.billing_interval === "year" ? "year" : "month",
+          target.plan_code,
         )
       : show_checkout_cancelled_upgrade({
           plan_code: target.plan_code,

@@ -4892,6 +4892,11 @@ export const zh_CN = {
     special_offer_fine_print_year:
       "首年支付 {{offer_price}}。之后套餐将按每年 {{price}} 续订，直到您在设置中取消。",
     special_offer_billing_period: "计费周期",
+    special_offer_black_friday_title: "黑色星期五:12 个月 5 折",
+    special_offer_black_friday_body: "任何年付套餐,或除 Star 以外的任何月付套餐,前 12 个月均可享受半价。",
+    special_offer_ends_in: "{{time}}后结束",
+    special_offer_not_on_star_monthly: "Star 月付套餐不适用",
+    special_offer_renews_at: "12 个月后按 {{price}} 续订",
     plan_billing_terms:
       "订阅会按标准价格自动续订，直到您取消。您可以随时在设置中取消。",
     upgrade_offer_note: "您的 {{percent}}% 折扣将在结账时生效。",

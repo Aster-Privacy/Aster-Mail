@@ -21,7 +21,10 @@
 import type { SpecialOfferStatus } from "@/services/api/offers";
 
 import { is_onion_host } from "@/lib/onion_host";
-import { PLAN_TIERS } from "@/components/settings/billing/billing_constants";
+import {
+  FAMILY_PLAN_TIERS,
+  PLAN_TIERS,
+} from "@/components/settings/billing/billing_constants";
 
 export const SPECIAL_OFFER_PLAN_CODE = "nova";
 export const SPECIAL_OFFER_INTERVAL = "month";
@@ -97,6 +100,16 @@ export function offer_covers(
   return terms.includes(`${plan_code}:${interval}`);
 }
 
+const OFFER_PLAN_ORDER = ["star", "nova", "supernova", "duo", "family"];
+
+export function offer_plan_codes(status: SpecialOfferStatus | null): string[] {
+  return OFFER_PLAN_ORDER.filter(
+    (plan_code) =>
+      offer_covers(status, plan_code, "month") ||
+      offer_covers(status, plan_code, "year"),
+  );
+}
+
 export function offer_covers_crypto_term(
   status: SpecialOfferStatus | null,
   plan_code: string,
@@ -127,7 +140,9 @@ export function special_offer_pricing(
   plan_code: string = SPECIAL_OFFER_PLAN_CODE,
   percent_off: number = SPECIAL_OFFER_PERCENT_OFF,
 ): SpecialOfferPricing | null {
-  const tier = PLAN_TIERS.find((entry) => entry.id === plan_code);
+  const tier =
+    PLAN_TIERS.find((entry) => entry.id === plan_code) ??
+    FAMILY_PLAN_TIERS.find((entry) => entry.id === plan_code);
 
   if (!tier) return null;
 
@@ -174,6 +189,10 @@ export interface SpecialOfferPlanPricing {
 
 export interface SpecialOfferCheckout {
   percent_off: number | undefined;
+  covers: (
+    plan_code: string | null | undefined,
+    interval: SpecialOfferInterval,
+  ) => boolean;
   plan_pricing: (
     plan_code: string | null | undefined,
   ) => SpecialOfferPlanPricing | undefined;
@@ -227,6 +246,11 @@ export function special_offer_checkout(
 
   return {
     percent_off: is_available ? percent_off : undefined,
+    covers: (plan_code, interval) =>
+      is_available &&
+      offer_is_live(status, new Date()) &&
+      !!plan_code &&
+      offer_covers(status, plan_code, interval),
     plan_pricing: (plan_code) => {
       const code = offer_plan(plan_code);
 

@@ -51,6 +51,7 @@ import {
   start_hosted_checkout,
 } from "@/services/api/billing";
 import { create_family_group } from "@/services/api/family";
+import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -228,6 +229,7 @@ export function PlanUpgradeSelection({
   on_back,
 }: PlanUpgradeSelectionProps) {
   const { t } = use_i18n();
+  const offer_checkout = use_special_offer_checkout("free");
   const [plan_type, set_plan_type] = useState<"individual" | "family">(
     "individual",
   );
@@ -403,7 +405,17 @@ export function PlanUpgradeSelection({
             ? "year"
             : billing_interval;
 
-      const res = await create_family_group(tier.id, interval).catch(() => ({
+      const family_request = offer_checkout.covers(tier.id, interval)
+        ? create_family_group(
+            tier.id,
+            interval,
+            undefined,
+            undefined,
+            undefined,
+            true,
+          )
+        : create_family_group(tier.id, interval);
+      const res = await family_request.catch(() => ({
         data: undefined,
         error: undefined,
         server_code: undefined,
@@ -436,7 +448,7 @@ export function PlanUpgradeSelection({
         );
       }
     },
-    [pending_family_tier, billing_interval, t],
+    [pending_family_tier, billing_interval, t, offer_checkout],
   );
 
   const handle_family_crypto = useCallback(

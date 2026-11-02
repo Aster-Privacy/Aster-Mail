@@ -35,6 +35,7 @@ export interface SpecialOfferState {
   open_seq: number;
   checkout_seq: number;
   checkout_interval: "month" | "year";
+  checkout_plan_code: string | null;
 }
 
 const initial_state: SpecialOfferState = {
@@ -43,6 +44,7 @@ const initial_state: SpecialOfferState = {
   open_seq: 0,
   checkout_seq: 0,
   checkout_interval: "month",
+  checkout_plan_code: null,
 };
 
 let current: SpecialOfferState = initial_state;
@@ -99,6 +101,7 @@ export function show_special_offer(
 
 export function request_special_offer_checkout(
   requested_interval?: "month" | "year",
+  requested_plan_code?: string | null,
 ): boolean {
   if (!can_show_special_offer()) return false;
 
@@ -111,6 +114,7 @@ export function request_special_offer_checkout(
     is_open: false,
     checkout_seq: current.checkout_seq + 1,
     checkout_interval: interval,
+    checkout_plan_code: requested_plan_code ?? null,
   };
   notify();
 

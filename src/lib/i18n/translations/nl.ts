@@ -5341,6 +5341,11 @@ export const nl = {
     special_offer_fine_print_year:
       "Je betaalt {{offer_price}} voor het eerste jaar. Daarna wordt je abonnement verlengd voor {{price}} per jaar totdat je het opzegt in Instellingen.",
     special_offer_billing_period: "Factuurperiode",
+    special_offer_black_friday_title: "Black Friday: 50% korting gedurende 12 maanden",
+    special_offer_black_friday_body: "Krijg elk jaarabonnement, of elk maandabonnement behalve Star, voor je eerste 12 maanden voor de halve prijs.",
+    special_offer_ends_in: "Eindigt over {{time}}",
+    special_offer_not_on_star_monthly: "Niet beschikbaar voor Star maandelijks",
+    special_offer_renews_at: "Wordt na 12 maanden verlengd voor {{price}}",
     plan_billing_terms:
       "Abonnementen worden automatisch verlengd tegen het standaardtarief totdat je opzegt. Je kunt op elk moment opzeggen in Instellingen.",
     upgrade_offer_note:

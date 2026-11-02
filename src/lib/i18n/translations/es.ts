@@ -5463,6 +5463,11 @@ export const es = {
     special_offer_fine_print_year:
       "Pagas {{offer_price}} por el primer año. Después, tu plan se renueva por {{price}} al año hasta que lo canceles en Ajustes.",
     special_offer_billing_period: "Periodo de facturación",
+    special_offer_black_friday_title: "Black Friday: 50 % de descuento durante 12 meses",
+    special_offer_black_friday_body: "Consigue cualquier plan anual, o cualquier plan mensual excepto Star, a mitad de precio durante tus primeros 12 meses.",
+    special_offer_ends_in: "Termina en {{time}}",
+    special_offer_not_on_star_monthly: "No disponible en Star mensual",
+    special_offer_renews_at: "Se renueva a {{price}} después de 12 meses",
     plan_billing_terms:
       "Las suscripciones se renuevan automáticamente a la tarifa estándar hasta que las canceles. Puedes cancelarla cuando quieras en Ajustes.",
     upgrade_offer_note:

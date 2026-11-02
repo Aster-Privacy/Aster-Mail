@@ -98,6 +98,16 @@ describe("special_offer_store timed campaign", () => {
     expect(get_special_offer_snapshot().checkout_interval).toBe("month");
   });
 
+  it("carries the requested plan code and clears it on the next request", () => {
+    request_special_offer_checkout("year", "supernova");
+
+    expect(get_special_offer_snapshot().checkout_plan_code).toBe("supernova");
+
+    request_special_offer_checkout("year");
+
+    expect(get_special_offer_snapshot().checkout_plan_code).toBeNull();
+  });
+
   it("honors an explicit interval", () => {
     offer_status.state.status = { ends_at: "2026-12-02T07:59:59Z" };
     request_special_offer_checkout("month");

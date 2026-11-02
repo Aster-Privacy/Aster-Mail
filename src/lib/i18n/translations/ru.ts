@@ -5565,6 +5565,11 @@ export const ru = {
     special_offer_fine_print_year:
       "За первый год вы платите {{offer_price}}. Затем тариф продлевается за {{price}} в год, пока вы не отмените его в Настройках.",
     special_offer_billing_period: "Период оплаты",
+    special_offer_black_friday_title: "Чёрная пятница: скидка 50% на 12 месяцев",
+    special_offer_black_friday_body: "Выберите любой годовой тариф или любой месячный тариф, кроме Star, и платите половину цены первые 12 месяцев.",
+    special_offer_ends_in: "Заканчивается через {{time}}",
+    special_offer_not_on_star_monthly: "Недоступно для месячного тарифа Star",
+    special_offer_renews_at: "Продлевается по цене {{price}} через 12 месяцев",
     plan_billing_terms:
       "Подписки продлеваются автоматически по стандартной цене, пока вы их не отмените. Отменить можно в любой момент в Настройках.",
     upgrade_offer_note: "Скидка {{percent}}% применяется при оплате.",

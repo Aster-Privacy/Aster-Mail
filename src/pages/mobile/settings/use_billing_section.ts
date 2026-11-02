@@ -877,7 +877,7 @@ export function use_billing_section() {
 
       const offer_applies =
         (checkout_interval === "month" || checkout_interval === "year") &&
-        !!offer_checkout.plan_pricing(plan.code);
+        offer_checkout.covers(plan.code, checkout_interval);
       const result = await start_hosted_checkout(
         plan.code,
         checkout_interval,
@@ -913,10 +913,18 @@ export function use_billing_section() {
     set_is_action_loading(true);
 
     try {
-      const response = await create_family_group(
-        tier_id,
-        billing_period === "yearly" ? "year" : "month",
-      );
+      const family_interval = billing_period === "yearly" ? "year" : "month";
+      const family_offer = offer_checkout.covers(tier_id, family_interval);
+      const response = family_offer
+        ? await create_family_group(
+            tier_id,
+            family_interval,
+            undefined,
+            undefined,
+            undefined,
+            true,
+          )
+        : await create_family_group(tier_id, family_interval);
 
       if (response.data?.checkout_url) {
         await open_payment_url(response.data.checkout_url);
@@ -1186,12 +1194,23 @@ export function use_billing_section() {
 
     try {
       const origin = public_web_origin();
-      const res = await create_family_group(
-        tier.id,
-        card_interval,
-        `${origin}/?family=success`,
-        `${origin}/?family=cancelled`,
-      );
+      const family_success = `${origin}/?family=success`;
+      const family_cancel = `${origin}/?family=cancelled`;
+      const res = offer_checkout.covers(tier.id, card_interval)
+        ? await create_family_group(
+            tier.id,
+            card_interval,
+            family_success,
+            family_cancel,
+            undefined,
+            true,
+          )
+        : await create_family_group(
+            tier.id,
+            card_interval,
+            family_success,
+            family_cancel,
+          );
       const checkout_url = res.data?.checkout_url;
 
       if (!checkout_url) {
