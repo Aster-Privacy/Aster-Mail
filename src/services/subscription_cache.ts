@@ -92,13 +92,168 @@ async function derive_subscriptions_key(
   );
 }
 
+export const SUBSCRIPTION_CACHE_MAX_PLAINTEXT_BYTES = 640 * 1024;
+
+const SUBSCRIPTION_FIELD_MAX_LENGTH = 2048;
+
+function serialized_size(data: SubscriptionCacheData): number {
+  return new TextEncoder().encode(JSON.stringify(data)).length;
+}
+
+function is_oversized(value: unknown): boolean {
+  return (
+    typeof value !== "string" || value.length > SUBSCRIPTION_FIELD_MAX_LENGTH
+  );
+}
+
+function trim_subscription_fields(
+  subscription: CachedSubscription,
+): CachedSubscription {
+  const trimmed: CachedSubscription = { ...subscription };
+
+  if (typeof trimmed.sender_name !== "string") {
+    trimmed.sender_name = "";
+  } else if (trimmed.sender_name.length > SUBSCRIPTION_FIELD_MAX_LENGTH) {
+    trimmed.sender_name = trimmed.sender_name.slice(
+      0,
+      SUBSCRIPTION_FIELD_MAX_LENGTH,
+    );
+  }
+
+  if (
+    trimmed.unsubscribe_link !== undefined &&
+    is_oversized(trimmed.unsubscribe_link)
+  ) {
+    delete trimmed.unsubscribe_link;
+  }
+
+  if (
+    trimmed.list_unsubscribe_header !== undefined &&
+    is_oversized(trimmed.list_unsubscribe_header)
+  ) {
+    delete trimmed.list_unsubscribe_header;
+  }
+
+  if (
+    trimmed.list_unsubscribe_post !== undefined &&
+    is_oversized(trimmed.list_unsubscribe_post)
+  ) {
+    delete trimmed.list_unsubscribe_post;
+  }
+
+  return trimmed;
+}
+
+function received_time(subscription: CachedSubscription): number {
+  const parsed =
+    typeof subscription.last_received === "string"
+      ? Date.parse(subscription.last_received)
+      : NaN;
+
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function email_count_of(subscription: CachedSubscription): number {
+  const count = subscription.email_count;
+
+  return typeof count === "number" && Number.isFinite(count) ? count : 0;
+}
+
+function compare_retention_priority(
+  a: CachedSubscription,
+  b: CachedSubscription,
+): number {
+  const a_unsubscribed = a.status === "unsubscribed" ? 1 : 0;
+  const b_unsubscribed = b.status === "unsubscribed" ? 1 : 0;
+
+  if (a_unsubscribed !== b_unsubscribed) return b_unsubscribed - a_unsubscribed;
+
+  const by_received = received_time(b) - received_time(a);
+
+  if (by_received !== 0) return by_received;
+
+  return email_count_of(b) - email_count_of(a);
+}
+
+function keep_subscriptions(
+  data: SubscriptionCacheData,
+  subscriptions: CachedSubscription[],
+  kept_emails: Set<string> | null,
+): SubscriptionCacheData {
+  const retained = kept_emails
+    ? subscriptions.filter((s) => kept_emails.has(s.sender_email))
+    : subscriptions;
+  const result: SubscriptionCacheData = { ...data, subscriptions: retained };
+
+  if (data.scan_progress) {
+    const carried = Array.isArray(data.scan_progress.carried)
+      ? data.scan_progress.carried
+      : [];
+
+    result.scan_progress = {
+      ...data.scan_progress,
+      carried: kept_emails
+        ? carried.filter((email) => kept_emails.has(email))
+        : carried,
+    };
+  }
+
+  return result;
+}
+
+export function compact_subscription_cache(
+  data: SubscriptionCacheData,
+  max_bytes: number = SUBSCRIPTION_CACHE_MAX_PLAINTEXT_BYTES,
+): SubscriptionCacheData {
+  if (serialized_size(data) <= max_bytes) return data;
+
+  const source = Array.isArray(data.subscriptions) ? data.subscriptions : [];
+  const trimmed = source.map(trim_subscription_fields);
+  const trimmed_data = keep_subscriptions(data, trimmed, null);
+
+  if (serialized_size(trimmed_data) <= max_bytes) return trimmed_data;
+
+  const ranked = [...trimmed].sort(compare_retention_priority);
+  const build = (count: number) =>
+    keep_subscriptions(
+      data,
+      trimmed,
+      new Set(ranked.slice(0, count).map((s) => s.sender_email)),
+    );
+
+  let low = 0;
+  let high = ranked.length;
+
+  while (low < high) {
+    const middle = Math.ceil((low + high) / 2);
+
+    if (serialized_size(build(middle)) <= max_bytes) {
+      low = middle;
+    } else {
+      high = middle - 1;
+    }
+  }
+
+  const compacted = build(low);
+
+  if (serialized_size(compacted) <= max_bytes) return compacted;
+
+  const without_progress: SubscriptionCacheData = { ...compacted };
+
+  delete without_progress.scan_progress;
+
+  return without_progress;
+}
+
 async function encrypt_subscriptions(
   data: SubscriptionCacheData,
   vault: EncryptedVault,
 ): Promise<{ encrypted: string; nonce: string }> {
   const key = await derive_subscriptions_key(vault);
   const nonce = crypto.getRandomValues(new Uint8Array(12));
-  const plaintext = new TextEncoder().encode(JSON.stringify(data));
+  const plaintext = new TextEncoder().encode(
+    JSON.stringify(compact_subscription_cache(data)),
+  );
 
   const encrypted = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: nonce },
