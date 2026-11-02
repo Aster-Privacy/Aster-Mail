@@ -108,10 +108,16 @@ vi.mock("@/components/settings/billing/plan_payment_method_modal", () => ({
   PlanPaymentMethodModal: (props: {
     open: boolean;
     promo_slot?: React.ReactNode;
+    discount_percent_off?: number;
     on_choose_card: () => void;
   }) =>
     props.open ? (
       <div>
+        <span data-testid="discount_note">
+          {props.discount_percent_off === undefined
+            ? "none"
+            : String(props.discount_percent_off)}
+        </span>
         <button data-testid="pay_card" type="button" onClick={props.on_choose_card}>
           card
         </button>
@@ -171,6 +177,21 @@ async function mount() {
   });
 }
 
+async function mount_invited() {
+  container = document.createElement("div");
+  document.body.appendChild(container);
+  root = createRoot(container);
+
+  await act(async () => {
+    root.render(
+      <RegisterStepPlanSelection reg={{ ...reg, is_invited: true } as never} />,
+    );
+  });
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
 function click(element: Element | undefined) {
   if (!element) throw new Error("missing element");
 
@@ -217,9 +238,10 @@ describe("RegisterStepPlanSelection under the Black Friday offer", () => {
   it("shows the list price struck through and the offer price", async () => {
     await mount();
 
-    expect(document.body.querySelector(".line-through")).not.toBeNull();
-    expect(document.body.textContent).toContain("8699");
-    expect(document.body.textContent).toContain("4349");
+    expect(document.body.querySelector(".line-through")?.textContent).toBe(
+      "2899",
+    );
+    expect(document.body.textContent).toContain("1449");
   });
 
   it("sends the offer flag for Nova yearly after claiming", async () => {
@@ -258,10 +280,32 @@ describe("RegisterStepPlanSelection under the Black Friday offer", () => {
     );
   });
 
+  it("passes the discount note only for a covered term", async () => {
+    await mount();
+    await click(buttons_with_text("settings.get_plan")[1]);
+
+    expect(
+      document.body.querySelector('[data-testid="discount_note"]')?.textContent,
+    ).toBe("50");
+  });
+
+  it("hides the referral banner while a plan is covered", async () => {
+    await mount_invited();
+
+    expect(document.body.textContent).not.toContain(
+      "auth.plan_referral_discount_note",
+    );
+  });
+
   it("shows the list price and no offer for Star monthly", async () => {
     await mount();
     await click(buttons_with_text("settings.billing_monthly")[0]);
     await click(buttons_with_text("settings.get_plan")[0]);
+
+    expect(
+      document.body.querySelector('[data-testid="discount_note"]')?.textContent,
+    ).toBe("none");
+
     await click(document.body.querySelector('[data-testid="pay_card"]')!);
 
     expect(document.body.textContent).toContain(
@@ -301,6 +345,9 @@ describe("RegisterStepPlanSelection without an offer", () => {
     await click(buttons_with_text("settings.get_plan")[1]);
 
     expect(document.body.textContent).toContain("settings.checkout_add_promo");
+    expect(
+      document.body.querySelector('[data-testid="discount_note"]')?.textContent,
+    ).toBe("none");
 
     await click(document.body.querySelector('[data-testid="pay_card"]')!);
 

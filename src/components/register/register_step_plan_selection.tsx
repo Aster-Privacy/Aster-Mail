@@ -315,6 +315,7 @@ export const RegisterStepPlanSelection = ({
   const [checkout, set_checkout] = useState<SelectedCheckout | null>(null);
   const [is_finalizing, set_is_finalizing] = useState(false);
   const pending_desktop_checkout_ref = useRef(false);
+  const crypto_claim_ref = useRef(false);
   const [pending_tier, set_pending_tier] = useState<{
     tier: PlanTier;
     plan: AvailablePlan;
@@ -605,21 +606,22 @@ export const RegisterStepPlanSelection = ({
   const handle_pay_with_crypto = useCallback(async () => {
     if (!pending_tier) return;
 
-    const tier = pending_tier;
-    const is_offer_covered =
-      offer_checkout.covers(tier.tier.id, billing_interval) &&
-      offer_checkout.crypto_price(tier.tier.id) !== undefined;
+    if (crypto_claim_ref.current) return;
 
-    if (is_offer_covered && !(await claim_offer_before_checkout())) return;
+    const tier = pending_tier;
+
+    if (offer_checkout.crypto_price(tier.tier.id) !== undefined) {
+      crypto_claim_ref.current = true;
+
+      const claimed = await claim_offer_before_checkout();
+
+      crypto_claim_ref.current = false;
+      if (!claimed) return;
+    }
 
     set_crypto_tier(tier);
     set_pending_tier(null);
-  }, [
-    pending_tier,
-    offer_checkout,
-    billing_interval,
-    claim_offer_before_checkout,
-  ]);
+  }, [pending_tier, offer_checkout, claim_offer_before_checkout]);
 
   const handle_family_card = useCallback(async () => {
     if (!pending_family_tier) return;
@@ -689,21 +691,22 @@ export const RegisterStepPlanSelection = ({
   const handle_family_crypto = useCallback(async () => {
     if (!pending_family_tier) return;
 
-    const tier = pending_family_tier;
-    const is_offer_covered =
-      offer_checkout.covers(tier.id, billing_interval) &&
-      offer_checkout.crypto_price(tier.id) !== undefined;
+    if (crypto_claim_ref.current) return;
 
-    if (is_offer_covered && !(await claim_offer_before_checkout())) return;
+    const tier = pending_family_tier;
+
+    if (offer_checkout.crypto_price(tier.id) !== undefined) {
+      crypto_claim_ref.current = true;
+
+      const claimed = await claim_offer_before_checkout();
+
+      crypto_claim_ref.current = false;
+      if (!claimed) return;
+    }
 
     set_crypto_family_tier(tier);
     set_pending_family_tier(null);
-  }, [
-    pending_family_tier,
-    offer_checkout,
-    billing_interval,
-    claim_offer_before_checkout,
-  ]);
+  }, [pending_family_tier, offer_checkout, claim_offer_before_checkout]);
 
   const open_native_invoice = useCallback(
     async (invoice_id: string) => {
@@ -800,6 +803,12 @@ export const RegisterStepPlanSelection = ({
     return format_price(convert_cents(cents, currency), currency);
   }, [checkout, currency]);
 
+  const view_tiers = plan_type === "family" ? FAMILY_PLAN_TIERS : PLAN_TIERS;
+  const is_view_offer_covered =
+    is_offer_active &&
+    view_tiers.some(
+      (tier) => offer_quote_cents(tier.id, term_list_cents(tier)) !== null,
+    );
   const pending_offer_tier = pending_tier?.tier ?? pending_family_tier;
   const is_pending_offer_covered =
     !!pending_offer_tier &&
@@ -834,13 +843,21 @@ export const RegisterStepPlanSelection = ({
     return `${format_price(per_month_cents, currency)}${t("settings.per_month_short")}`;
   };
 
-  const offer_modal_props = (plan_code: string) => {
-    const plan_pricing = offer_checkout.plan_pricing(plan_code);
+  const offer_modal_props = (tier: {
+    id: string;
+    monthly_cents: number;
+    yearly_cents: number;
+  }) => {
+    const plan_pricing = offer_checkout.plan_pricing(tier.id);
+    const is_term_covered =
+      offer_quote_cents(tier.id, term_list_cents(tier)) !== null;
 
     return {
       special_offer: plan_pricing,
-      discount_percent_off: offer_percent_off,
-      discount_duration_months: offer_duration_months,
+      discount_percent_off: is_term_covered ? offer_percent_off : undefined,
+      discount_duration_months: is_term_covered
+        ? offer_duration_months
+        : undefined,
       card_currency: plan_pricing ? currency : undefined,
     };
   };
@@ -1012,7 +1029,7 @@ export const RegisterStepPlanSelection = ({
         </div>
       )}
 
-      {!is_offer_active && offer.has_offer && !applied_promo && (
+      {!is_view_offer_covered && offer.has_offer && !applied_promo && (
         <div
           className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
           style={{
@@ -1025,7 +1042,7 @@ export const RegisterStepPlanSelection = ({
         </div>
       )}
 
-      {!is_offer_active &&
+      {!is_view_offer_covered &&
         !offer.has_offer &&
         reg.is_invited &&
         !applied_promo && (
@@ -1446,7 +1463,7 @@ export const RegisterStepPlanSelection = ({
             is_recommended: entry.is_recommended,
             price_label: price_label_for_choice(entry),
           }))}
-          {...offer_modal_props(pending_family_tier.id)}
+          {...offer_modal_props(pending_family_tier)}
           plan_name={pending_family_tier.name}
           promo_slot={promo_slot}
           selected_plan_id={pending_family_tier.id}
@@ -1586,7 +1603,7 @@ export const RegisterStepPlanSelection = ({
             is_recommended: entry.is_recommended,
             price_label: price_label_for_choice(entry),
           }))}
-          {...offer_modal_props(pending_tier.tier.id)}
+          {...offer_modal_props(pending_tier.tier)}
           plan_name={pending_tier.tier.name}
           promo_slot={promo_slot}
           selected_plan_id={pending_tier.tier.id}
