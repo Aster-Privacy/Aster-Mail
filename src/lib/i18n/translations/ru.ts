@@ -5904,6 +5904,8 @@ export const ru = {
     drop_files_here: "Перетащите файлы сюда",
     drag_drop_files: "Перетащите файлы в эту область",
     supported_import_formats: "Поддерживаются форматы MBOX, EML, CSV и PST",
+    import_file_attachments_note:
+      "При импорте из файла переносятся письма, но не их вложения. Чтобы импортировать и вложения, подключите аккаунт напрямую. Это доступно на платных тарифах.",
     browse_files: "Выбрать файлы",
     importing_emails_progress: "Импорт писем...",
     emails_of_total: "{{current}} из {{total}} писем",

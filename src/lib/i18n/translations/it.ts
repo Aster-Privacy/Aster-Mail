@@ -6952,6 +6952,8 @@ export const it = {
     drop_files_here: "Trascina i file qui",
     drag_drop_files: "Trascina e rilascia i tuoi file qui",
     supported_import_formats: "Supporta file MBOX, EML, CSV e PST",
+    import_file_attachments_note:
+      "Le importazioni da file portano i tuoi messaggi, ma non i loro allegati. Per importare anche gli allegati, collega invece il tuo account, un'opzione disponibile nei piani a pagamento.",
     browse_files: "Sfoglia file",
     importing_emails_progress: "Importazione email...",
     emails_of_total: "{{current}} di {{total}} email",

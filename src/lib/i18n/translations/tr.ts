@@ -5710,6 +5710,8 @@ export const tr = {
     drop_files_here: "Dosyaları buraya bırakın",
     drag_drop_files: "Dosyalarınızı buraya sürükleyip bırakın",
     supported_import_formats: "MBOX, EML, CSV ve PST dosyalarını destekler",
+    import_file_attachments_note:
+      "Dosyadan içe aktarma iletilerinizi getirir ancak eklerini getirmez. Ekleri de içe aktarmak için bunun yerine hesabınızı bağlayın. Bu seçenek ücretli planlarda kullanılabilir.",
     browse_files: "Dosyalara Göz At",
     importing_emails_progress: "E-postalar içe aktarılıyor...",
     emails_of_total: "{{current}} / {{total}} e-posta",

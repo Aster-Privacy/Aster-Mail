@@ -22,6 +22,7 @@ import { useState, useCallback, useRef, useEffect, useId } from "react";
 import {
   CheckCircleIcon,
   DocumentArrowUpIcon,
+  InformationCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { AnimatePresence, motion } from "framer-motion";
@@ -964,6 +965,16 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 </Button>
               </div>
             </div>
+
+            {!is_processing && (
+              <p className="flex items-start gap-2 text-xs leading-relaxed text-txt-muted">
+                <InformationCircleIcon
+                  aria-hidden="true"
+                  className="w-4 h-4 mt-px flex-shrink-0"
+                />
+                <span>{t("settings.import_file_attachments_note")}</span>
+              </p>
+            )}
 
             {is_processing && progress && (
               <div className="space-y-1.5">

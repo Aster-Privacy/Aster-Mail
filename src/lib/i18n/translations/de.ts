@@ -5670,6 +5670,8 @@ export const de = {
     drop_files_here: "Dateien hier ablegen",
     drag_drop_files: "Dateien hierher ziehen und ablegen",
     supported_import_formats: "Unterstützt MBOX-, EML-, CSV- und PST-Dateien",
+    import_file_attachments_note:
+      "Beim Dateiimport werden Ihre Nachrichten übernommen, aber nicht deren Anhänge. Um auch Anhänge zu importieren, verbinden Sie stattdessen Ihr Konto. Das ist in den kostenpflichtigen Tarifen verfügbar.",
     browse_files: "Dateien durchsuchen",
     importing_emails_progress: "E-Mails werden importiert...",
     emails_of_total: "{{current}} von {{total}} E-Mails",

@@ -5676,6 +5676,8 @@ export const nl = {
     drop_files_here: "Sleep bestanden hierheen",
     drag_drop_files: "Sleep je bestanden hierheen",
     supported_import_formats: "Ondersteunt MBOX-, EML-, CSV- en PST-bestanden",
+    import_file_attachments_note:
+      "Met een bestandsimport komen je berichten binnen, maar niet hun bijlagen. Koppel in plaats daarvan je account om ook bijlagen te importeren. Dat kan met een betaald abonnement.",
     browse_files: "Bestanden selecteren",
     importing_emails_progress: "E-mails importeren...",
     emails_of_total: "{{current}} van {{total}} e-mails",

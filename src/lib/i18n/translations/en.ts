@@ -6937,6 +6937,8 @@ export const en: Translations = {
     drop_files_here: "Drop files here",
     drag_drop_files: "Drag and drop your files here",
     supported_import_formats: "Supports MBOX, EML, CSV, and PST files",
+    import_file_attachments_note:
+      "File imports bring in your messages but not their attachments. To import attachments too, connect your account instead, which is available on paid plans.",
     browse_files: "Browse Files",
     browse_folder: "Select Folder",
     importing_emails_progress: "Importing emails...",

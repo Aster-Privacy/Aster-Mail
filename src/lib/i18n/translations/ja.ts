@@ -5711,6 +5711,8 @@ export const ja = {
     drop_files_here: "ここにファイルをドロップ",
     drag_drop_files: "ファイルをここにドラッグ＆ドロップしてください",
     supported_import_formats: "MBOX、EML、CSV、PSTファイルに対応しています",
+    import_file_attachments_note:
+      "ファイルからのインポートではメッセージは取り込まれますが、添付ファイルは含まれません。添付ファイルもインポートするには、代わりにアカウントを接続してください。この機能は有料プランで利用できます。",
     browse_files: "ファイルを参照",
     importing_emails_progress: "メールをインポート中...",
     emails_of_total: "{{total}}件中{{current}}件のメール",

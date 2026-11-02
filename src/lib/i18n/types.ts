@@ -5930,6 +5930,7 @@ export interface SettingsTranslations {
   drop_files_here: string;
   drag_drop_files: string;
   supported_import_formats: string;
+  import_file_attachments_note: string;
   browse_files: string;
   browse_folder: string;
   importing_emails_progress: string;

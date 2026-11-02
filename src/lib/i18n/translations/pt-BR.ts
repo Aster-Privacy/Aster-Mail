@@ -5735,6 +5735,8 @@ export const pt_br = {
     drop_files_here: "Solte os arquivos aqui",
     drag_drop_files: "Arraste e solte seus arquivos aqui",
     supported_import_formats: "Suporta arquivos MBOX, EML, CSV e PST",
+    import_file_attachments_note:
+      "As importações de arquivos trazem suas mensagens, mas não os anexos. Para importar os anexos também, conecte sua conta, uma opção disponível nos planos pagos.",
     browse_files: "Procurar arquivos",
     importing_emails_progress: "Importando e-mails...",
     emails_of_total: "{{current}} de {{total}} e-mails",

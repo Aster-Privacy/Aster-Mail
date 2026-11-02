@@ -5188,6 +5188,8 @@ export const zh_CN = {
     drop_files_here: "将文件拖放到此处",
     drag_drop_files: "将您的文件拖放到此处",
     supported_import_formats: "支持 MBOX、EML、CSV 和 PST 文件",
+    import_file_attachments_note:
+      "文件导入会导入你的邮件，但不包括附件。如需同时导入附件，请改为连接你的账户，此功能适用于付费方案。",
     browse_files: "浏览文件",
     importing_emails_progress: "正在导入邮件...",
     emails_of_total: "{{current}} / {{total}} 封邮件",

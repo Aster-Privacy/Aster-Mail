@@ -5938,6 +5938,8 @@ export const pl = {
     drop_files_here: "Upuść pliki tutaj",
     drag_drop_files: "Przeciągnij i upuść pliki tutaj",
     supported_import_formats: "Obsługiwane formaty: MBOX, EML, CSV i PST",
+    import_file_attachments_note:
+      "Import z pliku przenosi wiadomości, ale bez ich załączników. Aby zaimportować także załączniki, połącz zamiast tego swoje konto. Ta opcja jest dostępna w płatnych planach.",
     browse_files: "Przeglądaj pliki",
     importing_emails_progress: "Importowanie e-maili...",
     emails_of_total: "{{current}} z {{total}} e-maili",

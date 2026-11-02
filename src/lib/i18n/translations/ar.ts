@@ -5803,6 +5803,8 @@ export const ar = {
     drop_files_here: "أفلت الملفات هنا",
     drag_drop_files: "اسحب وأفلت ملفاتك هنا",
     supported_import_formats: "يدعم ملفات MBOX و EML و CSV و PST",
+    import_file_attachments_note:
+      "تجلب عمليات استيراد الملفات رسائلك ولكن من دون مرفقاتها. لاستيراد المرفقات أيضًا، اربط حسابك بدلًا من ذلك، وهو خيار متاح في الخطط المدفوعة.",
     browse_files: "تصفح الملفات",
     importing_emails_progress: "جارٍ استيراد الرسائل...",
     emails_of_total: "{{current}} من {{total}} رسالة",

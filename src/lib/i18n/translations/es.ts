@@ -5808,6 +5808,8 @@ export const es = {
     drop_files_here: "Suelta los archivos aquí",
     drag_drop_files: "Arrastra y suelta tus archivos aquí",
     supported_import_formats: "Compatible con archivos MBOX, EML, CSV y PST",
+    import_file_attachments_note:
+      "Las importaciones de archivos traen tus mensajes, pero no sus archivos adjuntos. Para importar también los adjuntos, conecta tu cuenta, una opción disponible en los planes de pago.",
     browse_files: "Explorar archivos",
     importing_emails_progress: "Importando correos...",
     emails_of_total: "{{current}} de {{total}} correos",

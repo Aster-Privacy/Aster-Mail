@@ -765,7 +765,9 @@ export function ImportSection() {
               description={
                 provider.id === "gmail"
                   ? t("settings.gmail_app_password_notice")
-                  : undefined
+                  : provider.id === "mbox"
+                    ? t("settings.import_file_attachments_note")
+                    : undefined
               }
               icon={provider.icon}
               label={

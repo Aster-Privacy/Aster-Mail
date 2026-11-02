@@ -5867,6 +5867,8 @@ export const fr = {
     drag_drop_files: "Glissez et déposez vos fichiers ici",
     supported_import_formats:
       "Prend en charge les fichiers MBOX, EML, CSV et PST",
+    import_file_attachments_note:
+      "Les importations de fichiers ajoutent vos messages, mais pas leurs pièces jointes. Pour importer aussi les pièces jointes, connectez plutôt votre compte, une option disponible avec les forfaits payants.",
     browse_files: "Parcourir les fichiers",
     importing_emails_progress: "Importation des e-mails en cours...",
     emails_of_total: "{{current}} sur {{total}} e-mails",

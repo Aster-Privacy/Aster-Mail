@@ -7013,6 +7013,8 @@ export const hi = {
     drop_files_here: "फ़ाइलें यहां छोड़ें",
     drag_drop_files: "अपनी फ़ाइलें यहां खींचकर छोड़ें",
     supported_import_formats: "MBOX, EML, CSV और PST फ़ाइलें चलती हैं",
+    import_file_attachments_note:
+      "फ़ाइल इंपोर्ट से आपके संदेश आ जाते हैं, लेकिन उनके अटैचमेंट नहीं आते। अटैचमेंट भी इंपोर्ट करने के लिए, इसके बजाय अपना खाता कनेक्ट करें। यह सुविधा पेड प्लान में उपलब्ध है।",
     browse_files: "फ़ाइलें देखें",
     browse_folder: "फ़ोल्डर चुनें",
     importing_emails_progress: "ईमेल इंपोर्ट हो रही हैं...",

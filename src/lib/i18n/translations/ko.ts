@@ -5718,6 +5718,8 @@ export const ko = {
     drop_files_here: "여기에 파일을 놓으세요",
     drag_drop_files: "파일을 여기로 끌어다 놓으세요",
     supported_import_formats: "MBOX, EML, CSV, PST 파일을 지원합니다",
+    import_file_attachments_note:
+      "파일 가져오기는 메시지를 가져오지만 첨부 파일은 가져오지 않습니다. 첨부 파일도 가져오려면 대신 계정을 연결하세요. 계정 연결은 유료 요금제에서 사용할 수 있습니다.",
     browse_files: "파일 찾아보기",
     importing_emails_progress: "이메일 가져오는 중...",
     emails_of_total: "{{total}}개 중 {{current}}개 이메일",
