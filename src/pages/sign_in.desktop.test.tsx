@@ -215,17 +215,30 @@ describe("SignInPage on the desktop app", () => {
     expect(container!.querySelector("input")).not.toBeNull();
   });
 
-  it("draws the sign-in logo from the sized webp set the loader already fetched", async () => {
+  it("draws the Aster Mail mark from sized webp sets for each theme", async () => {
     tauri_state.enabled = false;
     await render_page();
 
-    const logo = container!.querySelector('img[alt="Aster"]');
-
-    expect(logo).not.toBeNull();
-    expect(logo!.getAttribute("src")).toBe("/text_logo_84.webp");
-    expect(logo!.getAttribute("srcset")).toBe(
-      "/text_logo_28.webp 1x, /text_logo_56.webp 2x, /text_logo_84.webp 3x",
+    const logos = Array.from(
+      container!.querySelectorAll('img[alt="common.aster_mail"]'),
     );
+
+    expect(logos).toHaveLength(2);
+
+    for (const [logo, theme] of logos.map(
+      (logo, index) => [logo, index === 0 ? "light" : "dark"] as const,
+    )) {
+      expect(logo.getAttribute("src")).toBe(
+        `/aster_mail_logo_${theme}_84.webp`,
+      );
+      expect(logo.getAttribute("srcset")).toBe(
+        `/aster_mail_logo_${theme}_28.webp 1x, /aster_mail_logo_${theme}_56.webp 2x, /aster_mail_logo_${theme}_84.webp 3x`,
+      );
+      expect(logo.getAttribute("width")).toBe("139");
+      expect(logo.getAttribute("height")).toBe("28");
+    }
+    expect(logos[0].className).toContain("dark:hidden");
+    expect(logos[1].className).toContain("dark:block");
   });
 
   it("signs a fresh desktop session in and remembers the device id", async () => {

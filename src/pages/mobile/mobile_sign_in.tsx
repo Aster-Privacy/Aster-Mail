@@ -322,11 +322,26 @@ export default function MobileSignInPage() {
               variants={reduce_motion ? undefined : fade_up_item}
             >
               <img
-                alt="Aster"
-                className="h-10"
+                alt={t("common.aster_mail")}
+                className="h-10 w-auto dark:hidden"
                 decoding="async"
                 draggable={false}
-                src="/text_logo.png"
+                height={40}
+                sizes="198px"
+                src="/aster_mail_logo_light_120.webp"
+                srcSet="/aster_mail_logo_light_28.webp 139w, /aster_mail_logo_light_56.webp 277w, /aster_mail_logo_light_84.webp 416w, /aster_mail_logo_light_120.webp 595w"
+                width={198}
+              />
+              <img
+                alt={t("common.aster_mail")}
+                className="h-10 w-auto hidden dark:block"
+                decoding="async"
+                draggable={false}
+                height={40}
+                sizes="198px"
+                src="/aster_mail_logo_dark_120.webp"
+                srcSet="/aster_mail_logo_dark_28.webp 139w, /aster_mail_logo_dark_56.webp 277w, /aster_mail_logo_dark_84.webp 416w, /aster_mail_logo_dark_120.webp 595w"
+                width={198}
               />
             </motion.div>
 

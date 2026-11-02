@@ -769,12 +769,24 @@ export default function SignInPage() {
               )}
 
             <img
-              alt="Aster"
-              className="h-7"
+              alt={t("common.aster_mail")}
+              className="h-7 w-auto dark:hidden"
               decoding="async"
               draggable={false}
-              src="/text_logo_84.webp"
-              srcSet="/text_logo_28.webp 1x, /text_logo_56.webp 2x, /text_logo_84.webp 3x"
+              height={28}
+              src="/aster_mail_logo_light_84.webp"
+              srcSet="/aster_mail_logo_light_28.webp 1x, /aster_mail_logo_light_56.webp 2x, /aster_mail_logo_light_84.webp 3x"
+              width={139}
+            />
+            <img
+              alt={t("common.aster_mail")}
+              className="h-7 w-auto hidden dark:block"
+              decoding="async"
+              draggable={false}
+              height={28}
+              src="/aster_mail_logo_dark_84.webp"
+              srcSet="/aster_mail_logo_dark_28.webp 1x, /aster_mail_logo_dark_56.webp 2x, /aster_mail_logo_dark_84.webp 3x"
+              width={139}
             />
 
             <h1 className="mt-5 text-base font-semibold text-txt-primary">
