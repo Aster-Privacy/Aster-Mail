@@ -3592,6 +3592,16 @@ html {
   background-color: var(--aster-island-hover);
 }
 
+.full-page-loader-content {
+  animation: loader-reveal 0.2s ease-out 0.4s both;
+}
+
+@keyframes loader-reveal {
+  from {
+    opacity: 0;
+  }
+}
+
 .full-page-loader-content img,
 img[draggable="false"] {
   user-select: none;

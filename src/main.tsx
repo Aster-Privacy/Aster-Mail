@@ -464,18 +464,9 @@ function dismiss_initial_loader() {
   const loader = document.getElementById("initial-loader");
 
   if (!loader) return;
-  const fill = document.getElementById("initial-loader-fill");
-
-  if (fill) {
-    fill.style.animation = "none";
-    fill.style.transition = "width 0.15s ease-out";
-    fill.style.width = "100%";
-  }
-  setTimeout(() => {
-    loader.style.transition = "opacity 0.15s ease-out";
-    loader.style.opacity = "0";
-    setTimeout(() => loader.remove(), 150);
-  }, 100);
+  loader.style.transition = "opacity 0.12s ease-out";
+  loader.style.opacity = "0";
+  setTimeout(() => loader.remove(), 120);
 }
 
 let loader_dismissed = false;

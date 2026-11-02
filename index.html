@@ -79,6 +79,12 @@
         flex-direction: column;
         align-items: center;
         gap: 24px;
+        animation: initial-loader-reveal 0.2s ease-out 0.4s both;
+      }
+      @keyframes initial-loader-reveal {
+        from {
+          opacity: 0;
+        }
       }
       #initial-loader-content img {
         height: 28px;
