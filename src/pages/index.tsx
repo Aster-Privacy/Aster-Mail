@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { SettingsSection } from "@/components/settings/settings_content";
+import type { ComponentProps } from "react";
 
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -30,7 +31,11 @@ import { use_index_page_state } from "./use_index_page_state";
 import { resolve_settings_section } from "@/components/settings/settings_content_helpers";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Sidebar } from "@/components/layout/sidebar";
-import { AppRail } from "@/components/layout/app_rail";
+import {
+  ConnectedAppRail,
+  RailPanelsProvider,
+  use_any_rail_panel_open,
+} from "@/components/layout/rail_panels_context";
 import { TopBar } from "@/components/layout/top_bar";
 import { ComposeManager } from "@/components/compose/compose_manager";
 import { EmailInbox } from "@/components/email/email_inbox";
@@ -168,6 +173,17 @@ function use_mount_latch(is_open: boolean): boolean {
   return was_open || is_open;
 }
 
+function RailAwareOnboardingChecklist({
+  hidden,
+  ...props
+}: ComponentProps<typeof OnboardingChecklist>) {
+  const is_rail_panel_open = use_any_rail_panel_open();
+
+  return (
+    <OnboardingChecklist {...props} hidden={hidden || is_rail_panel_open} />
+  );
+}
+
 export default function IndexPage() {
   const state = use_index_page_state();
   const { t } = use_i18n();
@@ -176,9 +192,6 @@ export default function IndexPage() {
   const { section } = useParams<{ section?: string }>();
   const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
   const [is_survey_visible, set_is_survey_visible] = useState(false);
-  const [is_rail_contacts_open, set_is_rail_contacts_open] = useState(false);
-  const [is_rail_security_open, set_is_rail_security_open] = useState(false);
-  const [is_rail_calendar_open, set_is_rail_calendar_open] = useState(false);
   const [checklist_complete, set_checklist_complete] = useState(false);
   const [checklist_visible, set_checklist_visible] = useState<boolean | null>(
     null,
@@ -413,7 +426,7 @@ export default function IndexPage() {
   });
 
   return (
-    <>
+    <RailPanelsProvider>
       <a
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:start-2 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[var(--accent-color)] focus:text-[var(--accent-fg,#ffffff)] focus:shadow-lg"
         href="#main-content"
@@ -665,15 +678,7 @@ export default function IndexPage() {
               </div>
             </>
           )}
-          <AppRail
-            is_calendar_open={is_rail_calendar_open}
-            is_contacts_open={is_rail_contacts_open}
-            is_security_open={is_rail_security_open}
-            on_compose={handle_contacts_compose}
-            on_calendar_open_change={set_is_rail_calendar_open}
-            on_contacts_open_change={set_is_rail_contacts_open}
-            on_security_open_change={set_is_rail_security_open}
-          />
+          <ConnectedAppRail on_compose={handle_contacts_compose} />
         </div>
       </div>
       {state.is_settings_route && settings_popup_mode && (
@@ -842,13 +847,9 @@ export default function IndexPage() {
       {!state.is_settings_route && !is_mobile && <OnboardingTour />}
       {!state.is_settings_route && (
         <>
-          <OnboardingChecklist
+          <RailAwareOnboardingChecklist
             hidden={
-              is_quick_settings_open ||
-              is_rail_calendar_open ||
-              is_rail_contacts_open ||
-              is_rail_security_open ||
-              state.compose_instances.length > 0
+              is_quick_settings_open || state.compose_instances.length > 0
             }
             on_all_tasks_done={handle_checklist_complete}
             on_compose={state.open_compose}
@@ -883,6 +884,6 @@ export default function IndexPage() {
           />
         </Suspense>
       )}
-    </>
+    </RailPanelsProvider>
   );
 }
