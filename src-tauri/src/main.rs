@@ -36,6 +36,7 @@ mod interface_zoom;
 mod linux_rendering;
 mod mail_notification;
 mod translation_assets;
+mod window_fit;
 
 use std::sync::Mutex;
 #[cfg(not(target_os = "macos"))]
@@ -758,6 +759,14 @@ fn main() {
                     true
                 })
                 .build()?;
+
+            window_fit::fit_to_work_area(
+                &main_window,
+                (
+                    window_config.min_width.unwrap_or(0.0),
+                    window_config.min_height.unwrap_or(0.0),
+                ),
+            );
 
             let startup_zoom = interface_zoom::saved_zoom();
             if (startup_zoom - interface_zoom::ZOOM_DEFAULT).abs() > f64::EPSILON {
