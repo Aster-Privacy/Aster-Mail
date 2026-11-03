@@ -50,6 +50,13 @@ export function PlanFeaturesModal({
 }: plan_features_modal_props) {
   const { t } = use_i18n();
   const use_list = !!feature_lines && feature_lines.length > 0;
+  const resolve_title = (): string => {
+    if (!plan_name) return t("settings.compare_plans");
+    if (use_list) return plan_name;
+
+    return t("settings.checkout_full_features_title", { plan: plan_name });
+  };
+  const title = resolve_title();
 
   return (
     <Modal
@@ -60,11 +67,7 @@ export function PlanFeaturesModal({
       z_index={z_index}
     >
       <ModalHeader className="pb-3">
-        <ModalTitle className="text-lg">
-          {use_list && plan_name
-            ? plan_name
-            : t("settings.checkout_full_features_title")}
-        </ModalTitle>
+        <ModalTitle className="text-lg">{title}</ModalTitle>
       </ModalHeader>
       <ModalBody>
         {use_list ? (
