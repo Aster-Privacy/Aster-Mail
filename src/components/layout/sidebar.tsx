@@ -231,6 +231,9 @@ const sidebar_base = ({
   const forced_collapse =
     is_tablet || ((preferences.sidebar_minimized ?? false) && !is_mobile);
   const is_collapsed = forced_collapse && !force_expanded;
+  const shows_close_button =
+    (is_mobile && !!on_mobile_toggle) ||
+    (!is_mobile && forced_collapse && !is_collapsed);
 
   const get_initial_selected_item = () => {
     const path = location.pathname;
@@ -676,6 +679,7 @@ const sidebar_base = ({
             type="button"
           />
         )}
+        {shows_close_button && <div aria-hidden="true" className="h-6" />}
       </SidebarTopBarView>
 
       <div
