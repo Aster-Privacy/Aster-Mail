@@ -177,6 +177,7 @@ export interface ApiResponse<T> {
   resets_at?: string;
   details?: Record<string, unknown>;
   retry_after_secs?: number;
+  body?: Record<string, unknown>;
 }
 
 const MAX_RETRY_AFTER_HEADER_SECS = 86_400;

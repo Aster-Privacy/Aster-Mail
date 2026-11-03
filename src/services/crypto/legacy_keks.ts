@@ -50,6 +50,7 @@ const PREVIOUS_KEY_CONTEXTS = [
   "astermail-onboarding-v1",
   "astermail-subscriptions-v1",
   "astermail-recovery-email-v1",
+  "astermail-calendar-v1",
 ];
 
 let legacy_crypto_keys: CryptoKey[] = [];
@@ -58,6 +59,9 @@ let account_crypto_keys: CryptoKey[] = [];
 let account_hkdf_keys: CryptoKey[] = [];
 let loaded_account_key_ids = new Set<string>();
 let account_write_keys = new Map<AccountDataContext, CryptoKey>();
+let account_base_keys = new Map<AccountDataContext, CryptoKey[]>();
+let account_context_crypto_keys = new Map<AccountDataContext, CryptoKey[]>();
+let account_write_base_keys = new Map<AccountDataContext, CryptoKey>();
 let account_write_key_id: string | null = null;
 let account_write_epoch = 0;
 let account_key_generation = 0;
@@ -183,6 +187,10 @@ async function import_raw_as_hkdf_key(raw: Uint8Array): Promise<CryptoKey> {
   return crypto.subtle.importKey("raw", raw, "HKDF", false, ["deriveKey"]);
 }
 
+async function import_raw_as_base_key(raw: Uint8Array): Promise<CryptoKey> {
+  return crypto.subtle.importKey("raw", raw, "HKDF", false, ["deriveBits"]);
+}
+
 async function remember_legacy_raw(raw: Uint8Array): Promise<void> {
   legacy_crypto_keys.push(await import_raw_as_aes_key(raw));
 
@@ -263,17 +271,25 @@ export async function load_account_key_derived_keks_into_memory(
   const aes_keys: CryptoKey[] = [];
   const hkdf_keys: CryptoKey[] = [];
   const write_keys = new Map<AccountDataContext, CryptoKey>();
+  const base_keys = new Map<AccountDataContext, CryptoKey>();
+  const context_aes_keys = new Map<AccountDataContext, CryptoKey>();
+  const write_base_keys = new Map<AccountDataContext, CryptoKey>();
 
   for (const context of ACCOUNT_DATA_CONTEXTS) {
     const raw = await derive_account_data_key_raw(account_key, context);
 
     try {
       if (needs_pool) {
-        aes_keys.push(await import_raw_as_aes_key(raw));
+        const aes_key = await import_raw_as_aes_key(raw);
+
+        aes_keys.push(aes_key);
+        context_aes_keys.set(context, aes_key);
         hkdf_keys.push(await import_raw_as_hkdf_key(raw));
+        base_keys.set(context, await import_raw_as_base_key(raw));
       }
       if (needs_write_keys) {
         write_keys.set(context, await import_raw_as_aes_write_key(raw));
+        write_base_keys.set(context, await import_raw_as_base_key(raw));
       }
     } finally {
       zero_uint8_array(raw);
@@ -284,6 +300,7 @@ export async function load_account_key_derived_keks_into_memory(
 
   if (needs_write_keys && write_epoch === account_write_epoch) {
     account_write_keys = write_keys;
+    account_write_base_keys = write_base_keys;
     account_write_key_id = key_id;
   }
 
@@ -292,6 +309,18 @@ export async function load_account_key_derived_keks_into_memory(
   loaded_account_key_ids.add(key_id);
   account_crypto_keys = [...account_crypto_keys, ...aes_keys];
   account_hkdf_keys = [...account_hkdf_keys, ...hkdf_keys];
+  for (const [context, base] of base_keys) {
+    account_base_keys.set(context, [
+      ...(account_base_keys.get(context) ?? []),
+      base,
+    ]);
+  }
+  for (const [context, aes_key] of context_aes_keys) {
+    account_context_crypto_keys.set(context, [
+      ...(account_context_crypto_keys.get(context) ?? []),
+      aes_key,
+    ]);
+  }
   notify_account_keys_added();
 
   return true;
@@ -303,6 +332,7 @@ export function get_account_write_epoch(): number {
 
 export function clear_account_data_write_keys(): void {
   account_write_keys = new Map();
+  account_write_base_keys = new Map();
   account_write_key_id = null;
   account_write_epoch += 1;
 }
@@ -313,9 +343,29 @@ export function get_account_data_write_key(
   return account_write_keys.get(context) ?? null;
 }
 
+export function get_account_data_write_base_key(
+  context: AccountDataContext,
+): CryptoKey | null {
+  return account_write_base_keys.get(context) ?? null;
+}
+
+export function get_account_data_base_keys(
+  context: AccountDataContext,
+): CryptoKey[] {
+  return account_base_keys.get(context) ?? [];
+}
+
+export function get_account_data_crypto_keys(
+  context: AccountDataContext,
+): CryptoKey[] {
+  return account_context_crypto_keys.get(context) ?? [];
+}
+
 export function clear_account_key_derived_keks(): void {
   account_crypto_keys = [];
   account_hkdf_keys = [];
+  account_base_keys = new Map();
+  account_context_crypto_keys = new Map();
   loaded_account_key_ids = new Set();
   clear_account_data_write_keys();
   account_key_generation += 1;

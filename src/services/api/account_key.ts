@@ -101,6 +101,13 @@ export function reset_account_key_capabilities_cache(): void {
   capabilities_cache = null;
 }
 
+export function account_key_capabilities_known(): boolean {
+  return (
+    capabilities_cache !== null &&
+    Date.now() - capabilities_cache.fetched_at < CAPABILITIES_TTL_MS
+  );
+}
+
 export async function get_account_key_capabilities(): Promise<AccountKeyCapabilities> {
   if (
     capabilities_cache &&

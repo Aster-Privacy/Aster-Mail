@@ -96,6 +96,16 @@ export async function clear_account_scoped_caches(
 
   clear_mail_stats();
   const mail_cache_cleared = clear_mail_cache(snapshots);
+  const calendar_cache_cleared = import("@/services/calendar/sync_engine")
+    .then((module) => {
+      if (snapshots === "none") return module.reset_calendar_session();
+      if (typeof snapshots === "object") {
+        return module.clear_calendar_sync_state(snapshots.account_id);
+      }
+
+      return module.clear_calendar_sync_state();
+    })
+    .catch(() => undefined);
 
   clear_folders_cache();
   clear_tags_cache();
@@ -141,6 +151,7 @@ export async function clear_account_scoped_caches(
   request_cache.clear();
   await Promise.all([
     mail_cache_cleared,
+    calendar_cache_cleared,
     search_index_cleared,
     clear_all_ratchet_states(),
   ]);

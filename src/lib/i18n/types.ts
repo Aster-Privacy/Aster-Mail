@@ -281,6 +281,48 @@ export interface CalendarTranslations {
   aster_calendar: string;
   back_to_mail: string;
   my_calendars: string;
+  attendee_accepted: string;
+  attendee_declined: string;
+  attendee_pending: string;
+  attendee_tentative: string;
+  invite_body_canceled: string;
+  invite_body_footer: string;
+  invite_body_intro: string;
+  invite_body_organizer: string;
+  invite_body_reply: string;
+  invite_body_updated: string;
+  invite_body_when: string;
+  invite_body_where: string;
+  invite_canceled_subject: string;
+  invite_card_add: string;
+  invite_card_cancel: string;
+  invite_card_canceled_chip: string;
+  invite_card_guests: string;
+  invite_card_in_calendar: string;
+  invite_card_loading: string;
+  invite_card_organizer_label: string;
+  invite_card_organizer_self: string;
+  invite_card_remove_canceled: string;
+  invite_card_removed_toast: string;
+  invite_card_reply: string;
+  invite_card_reply_no_event: string;
+  invite_card_reply_recorded: string;
+  invite_card_reply_unchanged: string;
+  invite_card_reply_unmatched: string;
+  invite_card_request: string;
+  invite_card_unverified_sender: string;
+  invite_card_update: string;
+  invite_card_update_unmatched: string;
+  invite_card_you: string;
+  invite_card_reply_sent: string;
+  invite_reply_subject: string;
+  invite_subject: string;
+  invite_updated_subject: string;
+  invite_your_response: string;
+  untitled_event: string;
+  invite_card_join: string;
+  invite_card_calendar_failed: string;
+  invite_card_reply_send_failed: string;
 }
 
 export interface SharedMailboxesTranslations {

@@ -63,6 +63,10 @@ import {
   set_trust_own_addresses,
 } from "@/lib/sender_trust_store";
 import { clear_sender_trust_caches } from "@/lib/sender_trust";
+import {
+  clear_own_addresses,
+  set_own_addresses,
+} from "@/services/calendar/own_addresses";
 
 export type SenderOptionType =
   "primary" | "alias" | "domain" | "external" | "ghost";
@@ -127,6 +131,7 @@ let cached_aliases: DecryptedEmailAlias[] = [];
 let cached_alias_hashes: Map<string, string> = new Map();
 let cached_domain_options: SenderOption[] = [];
 let cached_catch_all_domains: CustomDomain[] = [];
+let cached_pending_domain_names: string[] = [];
 let cached_disabled_addresses: string[] = [];
 let cached_external_options: SenderOption[] = [];
 let cached_ghost_options: SenderOption[] = [];
@@ -164,6 +169,7 @@ export function clear_sender_aliases_cache(): void {
   cached_alias_hashes = new Map();
   cached_domain_options = [];
   cached_catch_all_domains = [];
+  cached_pending_domain_names = [];
   cached_disabled_addresses = [];
   cached_external_options = [];
   cached_ghost_options = [];
@@ -172,6 +178,7 @@ export function clear_sender_aliases_cache(): void {
   clear_sender_trust_context();
   clear_sender_trust_caches();
   set_catch_all_context([], []);
+  clear_own_addresses();
   clear_local_address_avatars();
 }
 
@@ -181,6 +188,9 @@ export function use_sender_aliases(
   const { is_feature_locked } = use_plan_limits();
   const [catch_all_domains, set_catch_all_domains] = useState(
     cached_catch_all_domains,
+  );
+  const [pending_domain_names, set_pending_domain_names] = useState(
+    cached_pending_domain_names,
   );
   const [disabled_addresses, set_disabled_addresses] = useState(
     cached_disabled_addresses,
@@ -245,6 +255,15 @@ export function use_sender_aliases(
       const active_domains = (domains_response.data?.domains ?? []).filter(
         (d) => d.status === "active",
       );
+
+      if (!domains_response.error) {
+        const pending_names = (domains_response.data?.domains ?? [])
+          .filter((d) => d.status !== "active")
+          .map((d) => d.domain_name.toLowerCase());
+
+        cached_pending_domain_names = pending_names;
+        set_pending_domain_names(pending_names);
+      }
 
       const domain_sender_options: SenderOption[] = [];
 
@@ -381,6 +400,23 @@ export function use_sender_aliases(
         ].map((o) => o.email),
         ...cached_disabled_addresses,
       ]);
+      set_own_addresses(
+        [
+          cached_user?.email,
+          ...cached_aliases.map((a) => a.full_address),
+          ...[
+            ...cached_domain_options,
+            ...cached_ghost_options,
+            ...cached_external_options,
+          ].map((o) => o.email),
+          ...cached_disabled_addresses,
+        ],
+        cached_catch_all_domains
+          .filter(
+            (d) => d.status === "active" && d.catch_all_enabled && !d.is_shared,
+          )
+          .map((d) => d.domain_name),
+      );
       publish_local_address_avatars();
     } catch {
       set_aliases(cached_aliases);
@@ -455,6 +491,7 @@ export function use_sender_aliases(
           )
         : []),
     ],
+    pending_domain_names,
     loading,
     refresh: load_aliases,
   };

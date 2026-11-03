@@ -62,6 +62,7 @@ import { reset_special_offer_status } from "@/stores/special_offer_status";
 import { forget_external_account_problems } from "@/stores/external_account_health_store";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_keys, safe_local_remove } from "@/lib/safe_storage";
+import { INVITE_ANSWER_PREFIX } from "@/services/calendar/invite_answers";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache_store";
 import { clear_billing_cache } from "@/components/settings/billing/billing_cache";
 import { clear_family_cache } from "@/components/settings/billing/family_section/family_cache";
@@ -107,7 +108,8 @@ export async function purge_all_local_data(): Promise<boolean> {
       key === "pq_prekey_missing" ||
       key.startsWith("astermail_pq_self_heal_at_") ||
       key.startsWith("astermail_pq_self_heal_keys_") ||
-      key.startsWith("astermail_pq_reconciler_at_")
+      key.startsWith("astermail_pq_reconciler_at_") ||
+      key.startsWith(INVITE_ANSWER_PREFIX)
     ) {
       safe_local_remove(key);
     }
@@ -115,6 +117,12 @@ export async function purge_all_local_data(): Promise<boolean> {
   clear_cache();
   clear_mail_stats();
   await clear_mail_cache();
+  await import("@/services/calendar/sync_engine")
+    .then((module) => module.clear_calendar_sync_state())
+    .catch(() => undefined);
+  await import("@/services/calendar/sync_store")
+    .then((module) => module.clear_calendar_sync_cache())
+    .catch(() => undefined);
   clear_drafts_cache();
   clear_scheduled_cache();
   clear_recovery_email_cache();

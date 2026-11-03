@@ -2334,6 +2334,7 @@ export class ApiClient {
             server_code: error_data.code,
             resets_at: error_data.resets_at,
             details: error_data.details,
+            body: error_data,
           };
           if (response.status === 429) {
             const retry_after_secs = parse_retry_after_header(

@@ -38,6 +38,7 @@ export const ACCOUNT_DATA_CONTEXTS = [
   "astermail-onboarding-v1",
   "astermail-subscriptions-v1",
   "astermail-recovery-email-v1",
+  "astermail-calendar-v2",
 ] as const;
 
 export type AccountDataContext = (typeof ACCOUNT_DATA_CONTEXTS)[number];

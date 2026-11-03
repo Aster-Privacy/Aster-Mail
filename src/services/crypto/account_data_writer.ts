@@ -23,9 +23,19 @@ import type { AccountDataContext } from "./account_data_key";
 import { get_account_data_write_key } from "./legacy_keks";
 import { wait_for_account_key_load } from "./memory_key_store";
 
-import { get_account_key_capabilities } from "@/services/api/account_key";
+import {
+  account_key_capabilities_known,
+  get_account_key_capabilities,
+} from "@/services/api/account_key";
 
 export const ACCOUNT_KEY_READ_WAIT_MS = 5000;
+
+export class AccountKeyUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AccountKeyUnavailableError";
+  }
+}
 
 export async function account_data_write_key(
   context: AccountDataContext,
@@ -41,6 +51,26 @@ export async function account_data_write_key(
   }
 
   return enabled ? get_account_data_write_key(context) : null;
+}
+
+export async function account_data_write_key_strict(
+  context: AccountDataContext,
+): Promise<CryptoKey | null> {
+  const key = get_account_data_write_key(context);
+
+  if (!key) {
+    throw new AccountKeyUnavailableError("account key is not loaded");
+  }
+
+  const capabilities = await get_account_key_capabilities();
+
+  if (!account_key_capabilities_known()) {
+    throw new AccountKeyUnavailableError(
+      "account key capabilities are unavailable",
+    );
+  }
+
+  return capabilities.format_writes ? key : null;
 }
 
 export async function retry_after_account_key_load<T>(
