@@ -39,7 +39,8 @@ import { SendingMessageBlock } from "@/components/email/sending_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
-import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
+import { CalendarInviteCard } from "@/components/email/banners/calendar_invite_card";
+import { invite_attachment_hints } from "@/services/calendar/invite_detect";
 import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
 import { use_email_extraction } from "@/components/email/hooks/use_email_extraction";
 
@@ -188,6 +189,11 @@ export function ViewerThreadContent({
     ],
   );
 
+  const invite_attachments = useMemo(
+    () => invite_attachment_hints(thread_messages, email.id),
+    [thread_messages, email.id],
+  );
+
   const extraction = use_email_extraction({
     email_id: email.id,
     subject: email.subject ?? "",
@@ -219,10 +225,13 @@ export function ViewerThreadContent({
           sender_name={email.sender}
         />
       )}
-      <CalendarInviteBanner
+      <CalendarInviteCard
+        attachments={invite_attachments}
         body={email.body}
         className="mx-3 @md:mx-4 mb-3"
+        email_id={email.id}
         html_content={email.html_content}
+        sender_email={email.sender_email}
       />
       <div className="px-2.5 pb-4">
         <ThreadMessagesList

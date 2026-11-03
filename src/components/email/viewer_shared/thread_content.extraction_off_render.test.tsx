@@ -64,8 +64,8 @@ vi.mock("@/components/email/thread_draft_badge", () => ({
   ThreadDraftBadge: () => null,
 }));
 
-vi.mock("@/components/email/banners/calendar_invite_banner", () => ({
-  CalendarInviteBanner: () => null,
+vi.mock("@/components/email/banners/calendar_invite_card", () => ({
+  CalendarInviteCard: () => null,
 }));
 
 vi.mock("@/components/email/banners/send_failure_banner", () => ({

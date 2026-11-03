@@ -42,7 +42,7 @@ import { pop_preloaded_cid } from "@/components/email/hooks/preload_cache";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Separator } from "@/components/ui/separator";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
-import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
+import { CalendarInviteCard } from "@/components/email/banners/calendar_invite_card";
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
 import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
@@ -519,10 +519,14 @@ export function EmailViewerContent({
           unsubscribe_info={unsubscribe_info}
         />
       )}
-      <CalendarInviteBanner
+      <CalendarInviteCard
+        attachments={email.attachments}
         body={email.body}
         className="mx-6 mt-4"
+        email_id={email.id}
+        has_attachment={email.has_attachment}
         html_content={email.html_content}
+        sender_email={email.sender.email}
       />
       {extraction.has_purchase_details && extraction.purchase && (
         <PurchaseDetailsBanner

@@ -91,6 +91,9 @@ vi.mock("./mobile_detail_banners", () => ({
   MobileExternalContentBanner: () => null,
 }));
 vi.mock("./mobile_detail_toolbar", () => ({ MobileToolbar: () => null }));
+vi.mock("@/components/email/banners/calendar_invite_card", () => ({
+  CalendarInviteCard: () => null,
+}));
 vi.mock("./mobile_detail_sheets", () => ({
   MobileActionMenuSheet: () => null,
   MobileViewSourceSheet: () => null,

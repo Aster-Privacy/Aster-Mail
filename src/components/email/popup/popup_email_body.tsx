@@ -29,13 +29,14 @@ import type { TranslationKey } from "@/lib/i18n";
 import type { DraftContent } from "@/services/api/multi_drafts";
 import type { DecryptedEmail } from "@/components/email/hooks/use_popup_viewer";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
-import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
+import { CalendarInviteCard } from "@/components/email/banners/calendar_invite_card";
+import { invite_attachment_hints } from "@/services/calendar/invite_detect";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { get_latest_expanded_id } from "@/services/thread_service";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -161,6 +162,10 @@ export function PopupEmailBody({
 }: PopupEmailBodyProps) {
   const { preferences } = use_preferences();
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
+  const invite_attachments = useMemo(
+    () => invite_attachment_hints(thread_messages, email?.id),
+    [thread_messages, email?.id],
+  );
   const [inline_reply_msg, set_inline_reply_msg] =
     useState<DecryptedThreadMessage | null>(null);
   const [inline_mode, set_inline_mode] = useState<
@@ -309,10 +314,13 @@ export function PopupEmailBody({
             />
           )}
 
-        <CalendarInviteBanner
+        <CalendarInviteCard
+          attachments={invite_attachments}
           body={email.body}
           className="mb-4 sm:mb-6"
+          email_id={email.id}
           html_content={email.html_content}
+          sender_email={email.sender_email}
         />
 
         <PopupEmailHeader

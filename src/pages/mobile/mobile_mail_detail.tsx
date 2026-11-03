@@ -43,6 +43,7 @@ import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 import { use_mobile_mail_detail } from "./use_mobile_mail_detail";
 
 import { MobileHeader } from "@/components/mobile/mobile_header";
+import { CalendarInviteCard } from "@/components/email/banners/calendar_invite_card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { safe_sender_name } from "@/lib/sender_trust_store";
@@ -309,6 +310,16 @@ function MobileMailDetail() {
               t={detail.t}
             />
           )}
+
+        <CalendarInviteCard
+          attachments={email.attachments}
+          body={email.body}
+          className="mx-3 mt-1 mb-3"
+          email_id={email.id}
+          has_attachment={email.has_attachment}
+          html_content={email.html_content}
+          sender_email={email.sender_email}
+        />
 
         <Island className="mx-3 mt-1 mb-6 overflow-hidden">
           {!is_desc && pending_rows}

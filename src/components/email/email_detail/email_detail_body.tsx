@@ -39,7 +39,7 @@ import { EncryptionInfoDropdown } from "@/components/common/encryption_info_drop
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
 import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
-import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
+import { CalendarInviteCard } from "@/components/email/banners/calendar_invite_card";
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
 import { use_email_extraction } from "@/components/email/hooks/use_email_extraction";
@@ -226,10 +226,14 @@ export function EmailDetailBody({
               </div>
             )}
 
-          <CalendarInviteBanner
+          <CalendarInviteCard
+            attachments={email.attachments}
             body={email.body}
             className="mb-4 sm:mb-6"
+            email_id={email.id}
+            has_attachment={email.has_attachment}
             html_content={email.html_content}
+            sender_email={email.sender_email}
           />
 
           {extraction?.has_purchase_details && extraction.purchase && (
