@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
 import mail_icon from "@/assets/app_icons/mail.png?inline";
-import { use_dated_calendar_icon } from "@/lib/dated_calendar_icon";
+import { DatedCalendarImage } from "@/components/icons/dated_calendar_image";
 import { CALENDAR_WEB_ORIGIN } from "@/lib/session_handoff/session_handoff_protocol";
 import { open_external } from "@/utils/open_link";
 
@@ -73,7 +73,7 @@ interface AppEntry {
   id: string;
   label: string;
   description: string;
-  icon: string;
+  icon: string | null;
   href: string | null;
 }
 
@@ -96,7 +96,6 @@ function ExternalIcon() {
 
 export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
   const { t } = use_i18n();
-  const calendar_icon = use_dated_calendar_icon("app");
   const [is_open, set_is_open] = useState(false);
 
   const apps: AppEntry[] = [
@@ -111,7 +110,7 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
       id: "calendar",
       label: t("common.app_name_calendar"),
       description: t("common.app_description_calendar"),
-      icon: calendar_icon,
+      icon: null,
       href: CALENDAR_WEB_ORIGIN,
     },
   ];
@@ -122,14 +121,18 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
   const render_row = (app: AppEntry) => (
     <>
       <span className="h-9 w-9 flex-shrink-0">
-        <img
-          alt=""
-          className="h-9 w-9 select-none object-contain"
-          draggable={false}
-          height={36}
-          src={app.icon}
-          width={36}
-        />
+        {app.icon ? (
+          <img
+            alt=""
+            className="h-9 w-9 select-none object-contain"
+            draggable={false}
+            height={36}
+            src={app.icon}
+            width={36}
+          />
+        ) : (
+          <DatedCalendarImage className="h-9 w-9" kind="app" />
+        )}
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-[14px] font-medium leading-5 text-txt-primary">

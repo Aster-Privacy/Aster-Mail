@@ -18,20 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { AppRailIcon } from "./app_rail_icon";
-
-const mocks = vi.hoisted(() => ({
-  src: "data:image/png;base64,AAAA",
-}));
-
-vi.mock("@/lib/dated_calendar_icon", () => ({
-  use_dated_calendar_icon: (kind: string) =>
-    kind === "rail" ? mocks.src : "",
-}));
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -86,20 +77,23 @@ describe("app rail icon", () => {
     },
   );
 
-  it("renders the calendar rail icon with the dated artwork", () => {
+  it("renders the calendar rail icon from the static artwork", () => {
     act(() => root.render(<AppRailIcon name="calendar" />));
 
-    const image = container.querySelector("img.app_rail_icon");
+    const icon = container.querySelector("svg.app_rail_icon");
 
-    expect(image?.getAttribute("src")).toBe(mocks.src);
-    expect(image?.hasAttribute("srcset")).toBe(false);
+    expect(icon?.getAttribute("data-dated-calendar-icon")).toBe("rail");
+    expect(icon?.querySelector("image")?.getAttribute("href")).toBe(
+      "/icons/calendar/calendar_rail_256.png",
+    );
+    expect(container.querySelector("img")).toBeNull();
   });
 
   it("falls back to a vector icon when the calendar artwork fails", () => {
     act(() => root.render(<AppRailIcon name="calendar" />));
 
     act(() => {
-      container.querySelector("img")?.dispatchEvent(new Event("error"));
+      container.querySelector("image")?.dispatchEvent(new Event("error"));
     });
 
     expect(container.querySelector(".app_rail_icon")).toBeNull();

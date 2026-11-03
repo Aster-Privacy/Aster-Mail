@@ -26,8 +26,7 @@ type Rect = readonly [number, number, number, number];
 
 interface DatedIconSpec {
   src: string;
-  placeholder: string;
-  fallback: string;
+  natural_size: readonly [number, number];
   panel: Rect;
   erase: Rect | null;
   output_height: number;
@@ -35,58 +34,225 @@ interface DatedIconSpec {
 
 export type DatedCalendarIcon = "app" | "rail";
 
-const FONT_STACK =
+export interface LabelMetrics {
+  left: number;
+  right: number;
+  ascent: number;
+  descent: number;
+}
+
+export type LabelMeasurer = (
+  label: string,
+  font: string,
+) => LabelMetrics | null;
+
+export interface PanelBox {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+export interface DatedLabelLayout {
+  label: string;
+  font_px: number;
+  x: number;
+  y: number;
+}
+
+export interface DatedIconBox {
+  src: string;
+  width: number;
+  height: number;
+}
+
+export interface DatedIconLayout extends DatedIconBox, DatedLabelLayout {
+  erase: Rect | null;
+}
+
+export const DATED_ICON_FONT_STACK =
   '"Google Sans Flex", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
-const PANEL_FILL = "#1d58ee";
+export const DATED_ICON_FONT_WEIGHT = 560;
+export const DATED_ICON_PANEL_FILL = "#1d58ee";
+export const DATED_ICON_TEXT_FILL = "#ffffff";
+
 const ERASE_MARGIN = 3;
+const LABEL_WIDTH_RATIO = 0.78;
+const LABEL_HEIGHT_RATIO = 0.62;
+const MIN_FONT_PX = 6;
 
 const SPECS: Record<DatedCalendarIcon, DatedIconSpec> = {
   app: {
     src: app_icon_src,
-    placeholder: app_icon_src,
-    fallback: app_icon_src,
+    natural_size: [132, 132],
     panel: [45, 48, 132, 127],
     erase: [58, 63, 115, 111],
     output_height: 132,
   },
   rail: {
     src: "/icons/calendar/calendar_rail_256.png",
-    placeholder: "/icons/calendar/calendar_rail_256.png",
-    fallback: "/icons/calendar/calendar_rail_31_256.png",
+    natural_size: [256, 256],
     panel: [95, 100, 231, 223],
     erase: null,
     output_height: 72,
   },
 };
 
-const image_promises = new Map<string, Promise<HTMLImageElement>>();
-const rendered = new Map<string, string>();
-const pending = new Map<string, Promise<string | null>>();
+const layouts = new Map<string, DatedIconLayout>();
 
 let current_day = new Date().getDate();
 let midnight_timer: ReturnType<typeof setTimeout> | null = null;
 let day_check_timer: ReturnType<typeof setInterval> | null = null;
 let fonts_ready: Promise<unknown> | null = null;
+let measure_context: CanvasRenderingContext2D | null | undefined;
 const day_listeners = new Set<() => void>();
 
-function load_image(src: string): Promise<HTMLImageElement> {
-  const cached = image_promises.get(src);
+function is_usable_metrics(metrics: LabelMetrics): boolean {
+  const values = [metrics.left, metrics.right, metrics.ascent, metrics.descent];
 
-  if (cached) return cached;
+  return (
+    values.every((value) => Number.isFinite(value)) &&
+    metrics.left + metrics.right > 0 &&
+    metrics.ascent + metrics.descent > 0
+  );
+}
 
-  const promise = new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
+export function measure_label_with_canvas(
+  label: string,
+  font: string,
+): LabelMetrics | null {
+  if (measure_context === undefined) {
+    try {
+      measure_context =
+        typeof document === "undefined"
+          ? null
+          : document.createElement("canvas").getContext("2d");
+    } catch {
+      measure_context = null;
+    }
+  }
+  if (!measure_context) return null;
 
-    image.decoding = "async";
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("calendar icon failed to load"));
-    image.src = src;
-  });
+  try {
+    measure_context.font = font;
+    measure_context.fontKerning = "none";
+    measure_context.textAlign = "center";
+    measure_context.textBaseline = "alphabetic";
+    const measured = measure_context.measureText(label);
+    const metrics: LabelMetrics = {
+      left: measured.actualBoundingBoxLeft,
+      right: measured.actualBoundingBoxRight,
+      ascent: measured.actualBoundingBoxAscent,
+      descent: measured.actualBoundingBoxDescent,
+    };
 
-  promise.catch(() => image_promises.delete(src));
-  image_promises.set(src, promise);
+    return is_usable_metrics(metrics) ? metrics : null;
+  } catch {
+    return null;
+  }
+}
 
-  return promise;
+export function estimate_label_metrics(
+  label: string,
+  font_px: number,
+): LabelMetrics {
+  const glyphs = Math.max(1, label.length);
+  const ink_width = font_px * (0.5 * glyphs + 0.08 * (glyphs - 1));
+
+  return {
+    left: ink_width / 2,
+    right: ink_width / 2,
+    ascent: font_px * 0.71,
+    descent: 0,
+  };
+}
+
+export function fit_dated_label(
+  label: string,
+  panel: PanelBox,
+  height_ratio: number,
+  font_stack: string,
+  measure: LabelMeasurer = measure_label_with_canvas,
+): DatedLabelLayout {
+  const measure_at = (size_px: number): LabelMetrics => {
+    const measured = measure(
+      label,
+      `${DATED_ICON_FONT_WEIGHT} ${size_px}px ${font_stack}`,
+    );
+
+    return measured ?? estimate_label_metrics(label, size_px);
+  };
+  const fits_panel = (metrics: LabelMetrics): boolean =>
+    metrics.left + metrics.right <= panel.width * LABEL_WIDTH_RATIO &&
+    metrics.ascent + metrics.descent <= panel.height * height_ratio;
+
+  let font_px = Math.floor(panel.height * 1.4);
+  let metrics = measure_at(font_px);
+
+  while (font_px > MIN_FONT_PX && !fits_panel(metrics)) {
+    font_px -= 1;
+    metrics = measure_at(font_px);
+  }
+
+  const center_x =
+    panel.left + panel.width / 2 + (metrics.left - metrics.right) / 2;
+  const baseline =
+    panel.top + panel.height / 2 + (metrics.ascent - metrics.descent) / 2;
+
+  return {
+    label,
+    font_px,
+    x: Math.round(center_x),
+    y: Math.round(baseline),
+  };
+}
+
+function spec_scale(spec: DatedIconSpec): number {
+  return Math.min(1, spec.output_height / spec.natural_size[1]);
+}
+
+export function dated_icon_box(kind: DatedCalendarIcon): DatedIconBox {
+  const spec = SPECS[kind];
+  const scale = spec_scale(spec);
+
+  return {
+    src: spec.src,
+    width: Math.max(1, Math.round(spec.natural_size[0] * scale)),
+    height: Math.max(1, Math.round(spec.natural_size[1] * scale)),
+  };
+}
+
+export function compute_dated_icon_layout(
+  kind: DatedCalendarIcon,
+  day: number,
+  measure: LabelMeasurer = measure_label_with_canvas,
+): DatedIconLayout {
+  const spec = SPECS[kind];
+  const scale = spec_scale(spec);
+  const box = dated_icon_box(kind);
+  const erase: Rect | null = spec.erase
+    ? [
+        Math.floor(spec.erase[0] * scale) - ERASE_MARGIN,
+        Math.floor(spec.erase[1] * scale) - ERASE_MARGIN,
+        Math.ceil((spec.erase[2] - spec.erase[0]) * scale) + ERASE_MARGIN * 2,
+        Math.ceil((spec.erase[3] - spec.erase[1]) * scale) + ERASE_MARGIN * 2,
+      ]
+    : null;
+  const [px0, py0, px1, py1] = spec.panel;
+  const label = fit_dated_label(
+    String(day),
+    {
+      left: px0 * scale,
+      top: py0 * scale,
+      width: (px1 - px0) * scale,
+      height: (py1 - py0) * scale,
+    },
+    LABEL_HEIGHT_RATIO,
+    DATED_ICON_FONT_STACK,
+    measure,
+  );
+
+  return { ...box, ...label, erase };
 }
 
 function wait_for_fonts(): Promise<unknown> {
@@ -94,129 +260,31 @@ function wait_for_fonts(): Promise<unknown> {
   fonts_ready =
     typeof document !== "undefined" && document.fonts?.load
       ? document.fonts
-          .load(`560 48px "Google Sans Flex"`)
+          .load(`${DATED_ICON_FONT_WEIGHT} 48px "Google Sans Flex"`)
           .catch(() => undefined)
       : Promise.resolve();
 
   return fonts_ready;
 }
 
-function draw(spec: DatedIconSpec, image: HTMLImageElement, day: number) {
-  const natural_w = image.naturalWidth;
-  const natural_h = image.naturalHeight;
-
-  if (!natural_w || !natural_h) return null;
-
-  const scale = Math.min(1, spec.output_height / natural_h);
-  const width = Math.max(1, Math.round(natural_w * scale));
-  const height = Math.max(1, Math.round(natural_h * scale));
-
-  const canvas = document.createElement("canvas");
-
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
-
-  if (!context) return null;
-
-  context.imageSmoothingQuality = "high";
-  context.drawImage(image, 0, 0, width, height);
-
-  if (spec.erase) {
-    const [x0, y0, x1, y1] = spec.erase;
-
-    context.fillStyle = PANEL_FILL;
-    context.fillRect(
-      Math.floor(x0 * scale) - ERASE_MARGIN,
-      Math.floor(y0 * scale) - ERASE_MARGIN,
-      Math.ceil((x1 - x0) * scale) + ERASE_MARGIN * 2,
-      Math.ceil((y1 - y0) * scale) + ERASE_MARGIN * 2,
-    );
-  }
-
-  const [px0, py0, px1, py1] = spec.panel;
-  const panel_left = px0 * scale;
-  const panel_top = py0 * scale;
-  const panel_width = (px1 - px0) * scale;
-  const panel_height = (py1 - py0) * scale;
-  const label = String(day);
-
-  context.fontKerning = "none";
-  context.textAlign = "center";
-  context.textBaseline = "alphabetic";
-  context.fillStyle = "#ffffff";
-
-  const measure_label = (size_px: number): TextMetrics => {
-    context.font = `560 ${size_px}px ${FONT_STACK}`;
-
-    return context.measureText(label);
-  };
-  const fits_panel = (measured: TextMetrics): boolean =>
-    measured.actualBoundingBoxLeft + measured.actualBoundingBoxRight <=
-      panel_width * 0.78 &&
-    measured.actualBoundingBoxAscent + measured.actualBoundingBoxDescent <=
-      panel_height * 0.62;
-
-  let font_px = Math.floor(panel_height * 1.4);
-  let metrics = measure_label(font_px);
-
-  while (font_px > 6 && !fits_panel(metrics)) {
-    font_px -= 1;
-    metrics = measure_label(font_px);
-  }
-
-  const center_x =
-    panel_left +
-    panel_width / 2 +
-    (metrics.actualBoundingBoxLeft - metrics.actualBoundingBoxRight) / 2;
-  const baseline =
-    panel_top +
-    panel_height / 2 +
-    (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2;
-
-  context.fillText(label, Math.round(center_x), Math.round(baseline));
-
-  try {
-    return canvas.toDataURL("image/png");
-  } catch {
-    return null;
-  }
-}
-
 function cache_key(kind: DatedCalendarIcon, day: number) {
   return `${kind}:${day}`;
 }
 
-function render(kind: DatedCalendarIcon, day: number): Promise<string | null> {
+function remember_layout(kind: DatedCalendarIcon, day: number) {
   const key = cache_key(kind, day);
-  const done = rendered.get(key);
+  const existing = layouts.get(key);
 
-  if (done) return Promise.resolve(done);
+  if (existing) return existing;
 
-  const in_flight = pending.get(key);
+  const layout = compute_dated_icon_layout(kind, day);
 
-  if (in_flight) return in_flight;
+  for (const stale of layouts.keys()) {
+    if (stale.startsWith(`${kind}:`)) layouts.delete(stale);
+  }
+  layouts.set(key, layout);
 
-  const spec = SPECS[kind];
-  const promise = Promise.all([load_image(spec.src), wait_for_fonts()])
-    .then(([image]) => {
-      const url = draw(spec, image, day);
-
-      if (url) {
-        for (const existing of rendered.keys()) {
-          if (existing.startsWith(`${kind}:`)) rendered.delete(existing);
-        }
-        rendered.set(key, url);
-      }
-
-      return url;
-    })
-    .catch(() => null)
-    .finally(() => pending.delete(key));
-
-  pending.set(key, promise);
-
-  return promise;
+  return layout;
 }
 
 function ms_until_midnight(now = new Date()) {
@@ -279,24 +347,27 @@ function get_day() {
   return current_day;
 }
 
-export function use_dated_calendar_icon(kind: DatedCalendarIcon): string {
+export function use_dated_calendar_layout(
+  kind: DatedCalendarIcon,
+): DatedIconLayout | null {
   const day = useSyncExternalStore(subscribe_day, get_day, get_day);
-  const [src, set_src] = useState(
-    () => rendered.get(cache_key(kind, day)) ?? SPECS[kind].placeholder,
+  const [layout, set_layout] = useState<DatedIconLayout | null>(
+    () => layouts.get(cache_key(kind, day)) ?? null,
   );
 
   useEffect(() => {
-    let active = true;
-    const ready = rendered.get(cache_key(kind, day));
+    const ready = layouts.get(cache_key(kind, day));
 
     if (ready) {
-      set_src(ready);
+      set_layout(ready);
 
       return;
     }
 
-    void render(kind, day).then((url) => {
-      if (active) set_src(url ?? SPECS[kind].fallback);
+    let active = true;
+
+    void wait_for_fonts().then(() => {
+      if (active) set_layout(remember_layout(kind, day));
     });
 
     return () => {
@@ -304,5 +375,5 @@ export function use_dated_calendar_icon(kind: DatedCalendarIcon): string {
     };
   }, [kind, day]);
 
-  return src;
+  return layout;
 }

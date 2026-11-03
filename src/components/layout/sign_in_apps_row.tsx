@@ -22,7 +22,7 @@ import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import mail_icon from "@/assets/app_icons/mail.png?inline";
-import { use_dated_calendar_icon } from "@/lib/dated_calendar_icon";
+import { DatedCalendarImage } from "@/components/icons/dated_calendar_image";
 
 const MAIL_SIGN_IN_URL = "https://app.astermail.org/sign-in";
 const CALENDAR_SIGN_IN_URL = "https://calendar.astermail.org/sign-in";
@@ -30,13 +30,12 @@ const CALENDAR_SIGN_IN_URL = "https://calendar.astermail.org/sign-in";
 interface SignInAppEntry {
   id: "mail" | "calendar";
   label: string;
-  icon: string;
+  icon: string | null;
   href: string;
 }
 
 export function SignInAppsRow() {
   const { t } = use_i18n();
-  const calendar_icon = use_dated_calendar_icon("app");
   const current: SignInAppEntry["id"] = "mail";
 
   const apps: SignInAppEntry[] = [
@@ -49,7 +48,7 @@ export function SignInAppsRow() {
     {
       id: "calendar",
       label: t("common.app_name_calendar"),
-      icon: calendar_icon,
+      icon: null,
       href: CALENDAR_SIGN_IN_URL,
     },
   ];
@@ -64,7 +63,7 @@ export function SignInAppsRow() {
     >
       <ul className="flex items-center gap-1">
         {apps.map((app) => {
-          const icon = (
+          const icon = app.icon ? (
             <img
               alt=""
               className="h-6 w-6 select-none object-contain"
@@ -73,6 +72,8 @@ export function SignInAppsRow() {
               src={app.icon}
               width={24}
             />
+          ) : (
+            <DatedCalendarImage className="h-6 w-6" kind="app" />
           );
 
           return (

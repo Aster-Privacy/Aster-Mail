@@ -22,7 +22,7 @@ import { useCallback, useState } from "react";
 import { CalendarDaysIcon, UsersIcon } from "@heroicons/react/24/outline";
 
 import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
-import { use_dated_calendar_icon } from "@/lib/dated_calendar_icon";
+import { DatedCalendarImage } from "@/components/icons/dated_calendar_image";
 
 export type AppRailIconName = "calendar" | "contacts" | "security";
 
@@ -78,9 +78,13 @@ function RailImage({ name, src, src_set }: RailImageProps) {
 }
 
 function CalendarRailIcon() {
-  const src = use_dated_calendar_icon("rail");
-
-  return <RailImage name="calendar" src={src} />;
+  return (
+    <DatedCalendarImage
+      className="app_rail_icon"
+      fallback={<FallbackIcon name="calendar" />}
+      kind="rail"
+    />
+  );
 }
 
 export function AppRailIcon({ name }: AppRailIconProps) {
