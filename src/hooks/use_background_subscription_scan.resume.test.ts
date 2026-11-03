@@ -50,6 +50,7 @@ const state = vi.hoisted(() => ({
   requests: [] as ListMailItemsParams[],
   saved: [] as SubscriptionCacheData[],
   cache: null as SubscriptionCacheData | null,
+  save_ok: true,
   failures: new Map<number, number>(),
   on_request: null as ((index: number) => void) | null,
   auth_vault: null as TestVault | null,
@@ -131,6 +132,7 @@ vi.mock("@/services/subscription_cache", async (import_original) => {
     load_subscription_cache: vi.fn(async () => state.cache),
     save_subscription_cache: vi.fn(async (data: SubscriptionCacheData) => {
       state.saved.push(data);
+      if (!state.save_ok) return false;
       state.cache = data;
 
       return true;
@@ -226,6 +228,7 @@ beforeEach(() => {
   state.requests = [];
   state.saved = [];
   state.cache = null;
+  state.save_ok = true;
   state.failures = new Map();
   state.on_request = null;
   state.auth_vault = account_a;
@@ -396,6 +399,32 @@ describe("background subscription scan resume", () => {
       undefined,
     ]);
     expect(total_count(state.saved.at(-1))).toBe(2300);
+  });
+
+  it("stops checkpointing once the server rejects a save", async () => {
+    fill_mailbox(2300);
+    state.save_ok = false;
+
+    await run();
+
+    expect(state.requests).toHaveLength(12);
+    expect(state.saved.map((data) => data.scan_progress?.cursor)).toEqual([
+      "1000",
+      undefined,
+    ]);
+  });
+
+  it("does not save a cursor after a rejected save and a failed page", async () => {
+    fill_mailbox(2300);
+    state.save_ok = false;
+    state.failures.set(8, 503);
+
+    await run();
+
+    expect(state.requests).toHaveLength(9);
+    expect(state.saved.map((data) => data.scan_progress?.cursor)).toEqual([
+      "1000",
+    ]);
   });
 
   it("saves nothing when the first page fails", async () => {
