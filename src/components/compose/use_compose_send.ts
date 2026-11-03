@@ -722,14 +722,22 @@ export function use_compose_send({
       }
 
       const base_ctx = build_send_context();
+      const release_compose = () => {
+        compose_released = true;
+
+        if (save_timer_ref.current) {
+          clearTimeout(save_timer_ref.current);
+          save_timer_ref.current = null;
+        }
+      };
       const ctx: SendActionContext = {
         ...base_ctx,
         reset_form: () => {
-          compose_released = true;
+          release_compose();
           base_ctx.reset_form();
         },
         on_close: () => {
-          compose_released = true;
+          release_compose();
           base_ctx.on_close();
         },
         confirm_draft_deleted,
