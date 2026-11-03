@@ -771,6 +771,7 @@ export function AccountSection() {
 
       <IslandSection divided>
         <IslandRow
+          className="[&>.aster_island_row_trailing]:-me-2.5"
           description={
             address_eligibility_failed ? (
               <>
@@ -800,10 +801,13 @@ export function AccountSection() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex min-w-0 max-w-full shrink items-center gap-1.5 rounded-full px-2.5 py-1 -me-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)]"
+                  className="flex min-w-0 max-w-full shrink items-center gap-1.5 rounded-full px-2.5 py-1 transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)]"
                   type="button"
                 >
-                  <span className="block text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
+                  <span
+                    className="block min-w-0 text-sm font-medium text-txt-secondary truncate"
+                    title={account_email}
+                  >
                     {account_email}
                   </span>
                   <ChevronDownIcon className="w-4 h-4 shrink-0 text-txt-muted" />
