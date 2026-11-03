@@ -119,7 +119,7 @@ async function resolve_envelope_body(
       )
     : resolved_text;
 
-  const e2e_verified = is_ratchet_verified_body(resolved_text, body_text);
+  const ratchet_verified = is_ratchet_verified_body(resolved_text, body_text);
   const pre_pgp_text = body_text;
 
   body_text = await try_decrypt_pgp_body(body_text);
@@ -129,9 +129,13 @@ async function resolve_envelope_body(
       body_text,
       safe_html: undefined,
       unsubscribe_info: undefined,
-      e2e_verified,
+      e2e_verified: ratchet_verified,
     };
   }
+
+  const e2e_verified =
+    ratchet_verified ||
+    (has_inbound_pgp_block(pre_pgp_text) && body_text !== pre_pgp_text);
 
   const pre_mime_text = body_text;
 

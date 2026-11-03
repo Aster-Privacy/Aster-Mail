@@ -309,6 +309,7 @@ async function decode_thread_envelope(
     body_content = resolved.body;
     pgp_unresolved = !resolved.decrypted && !body_decrypted;
     body_decrypted = body_decrypted || resolved.decrypted;
+    e2e_verified = e2e_verified || resolved.decrypted;
   }
 
   const password_protected = is_password_protected_body(body_content);
@@ -648,6 +649,7 @@ export async function fetch_and_decrypt_virtual_group(
 
       body_content = resolved.body;
       body_decrypted = body_decrypted || resolved.decrypted;
+      e2e_verified = e2e_verified || resolved.decrypted;
     }
 
     const password_protected = is_password_protected_body(body_content);
