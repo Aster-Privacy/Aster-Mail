@@ -55,7 +55,113 @@ const ROUTE_ROOTS: readonly string[] = [
   "onboarding",
   "billing",
   "plans",
+  "all",
+  "email",
+  "view",
+  "snoozed",
+  "scheduled",
+  "subscriptions",
+  "tag",
+  "alias",
+  "family",
+  "sign-in",
+  "forgot-password",
+  "reset-password",
+  "link-device",
+  "join",
+  "invite",
 ];
+
+const ERROR_KINDS: Readonly<Record<string, string>> = {
+  TypeError: "type_error",
+  ReferenceError: "reference_error",
+  SyntaxError: "syntax_error",
+  RangeError: "range_error",
+  URIError: "uri_error",
+  AggregateError: "aggregate_error",
+  AbortError: "abort",
+  TimeoutError: "timeout",
+  NetworkError: "network",
+  QuotaExceededError: "quota",
+  NotAllowedError: "not_allowed",
+  NotFoundError: "not_found",
+  NotSupportedError: "not_supported",
+  InvalidStateError: "invalid_state",
+  InvalidAccessError: "invalid_access",
+  OperationError: "operation",
+  DataError: "data",
+  DataCloneError: "data_clone",
+  SecurityError: "security",
+  UnknownError: "unknown_dom",
+  ChunkLoadError: "chunk_load",
+};
+
+const CHUNK_LOAD_PATTERN =
+  /dynamically imported module|importing a module script failed|failed to load module script/i;
+const FETCH_FAILED_PATTERN =
+  /^(failed to fetch|load failed|networkerror when attempting to fetch resource\.?|the network connection was lost\.?)$/i;
+const RESIZE_OBSERVER_PATTERN = /^resizeobserver loop/i;
+const CROSS_ORIGIN_MESSAGE = "Script error.";
+const BENIGN_KINDS: readonly string[] = [
+  "abort",
+  "resize_observer",
+  "cross_origin",
+];
+
+export function error_kind(reason: unknown): string {
+  try {
+    if (reason === undefined || reason === null) {
+      return "empty";
+    }
+    if (typeof reason !== "object") {
+      return "non_error";
+    }
+    const name = (reason as { name?: unknown }).name;
+    const message = (reason as { message?: unknown }).message;
+
+    if (typeof message === "string") {
+      if (CHUNK_LOAD_PATTERN.test(message)) {
+        return "chunk_load";
+      }
+      if (RESIZE_OBSERVER_PATTERN.test(message)) {
+        return "resize_observer";
+      }
+      if (name === "TypeError" && FETCH_FAILED_PATTERN.test(message.trim())) {
+        return "fetch_failed";
+      }
+    }
+    if (
+      typeof name === "string" &&
+      Object.prototype.hasOwnProperty.call(ERROR_KINDS, name)
+    ) {
+      return ERROR_KINDS[name];
+    }
+
+    return reason instanceof Error ? "error" : "non_error";
+  } catch {
+    return "other";
+  }
+}
+
+function uncaught_kind(event: ErrorEvent): string {
+  if (event.error === undefined || event.error === null) {
+    if (event.message === CROSS_ORIGIN_MESSAGE) {
+      return "cross_origin";
+    }
+    if (
+      typeof event.message === "string" &&
+      RESIZE_OBSERVER_PATTERN.test(event.message)
+    ) {
+      return "resize_observer";
+    }
+  }
+
+  return error_kind(event.error);
+}
+
+function severity_of_kind(kind: string): Severity {
+  return BENIGN_KINDS.includes(kind) ? "warn" : "error";
+}
 
 let reports_sent = 0;
 const last_seen = new Map<string, number>();
@@ -220,18 +326,32 @@ export function install_global_error_reporting(): void {
       event.target instanceof HTMLScriptElement ||
       event.target instanceof HTMLLinkElement;
 
+    if (is_asset) {
+      report_client_error({
+        feature: "app",
+        error_code: "asset_load_failed",
+        severity: "error",
+      });
+
+      return;
+    }
+
+    const kind = uncaught_kind(event);
+
     report_client_error({
       feature: "app",
-      error_code: is_asset ? "asset_load_failed" : "uncaught_exception",
-      severity: "error",
+      error_code: `uncaught_exception_${kind}`,
+      severity: severity_of_kind(kind),
     });
   });
 
-  window.addEventListener("unhandledrejection", () => {
+  window.addEventListener("unhandledrejection", (event) => {
+    const kind = error_kind(event.reason);
+
     report_client_error({
       feature: "app",
-      error_code: "unhandled_rejection",
-      severity: "error",
+      error_code: `unhandled_rejection_${kind}`,
+      severity: severity_of_kind(kind),
     });
   });
 }
