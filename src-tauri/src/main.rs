@@ -593,7 +593,7 @@ fn main() {
         }
     }
 
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             let mailto = default_mail::mailto_from_args(&argv);
             let notification_open = mail_notification::open_from_args(&argv);
@@ -611,7 +611,12 @@ fn main() {
                 }
                 show_main_window(app);
             }
-        }))
+        }));
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let builder = builder.plugin(flatpak::init());
+
+    builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())

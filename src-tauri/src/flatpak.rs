@@ -28,6 +28,18 @@ pub fn is_flatpak() -> bool {
     })
 }
 
+pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+    let script = if is_flatpak() {
+        "window.__ASTER_FLATPAK__ = true;"
+    } else {
+        ""
+    };
+
+    tauri::plugin::Builder::new("aster-flatpak")
+        .js_init_script(script.to_string())
+        .build()
+}
+
 pub mod secret {
     use std::future::Future;
     use std::sync::{mpsc, OnceLock};
