@@ -3841,6 +3841,38 @@ html:not(.dark) .sender_logo_light > img {
   border-radius: 9999px;
 }
 
+.sender_logo_fill_105 > img {
+  transform: scale(1.05);
+}
+
+.sender_logo_fill_110 > img {
+  transform: scale(1.1);
+}
+
+.sender_logo_fill_115 > img {
+  transform: scale(1.15);
+}
+
+.sender_logo_fill_120 > img {
+  transform: scale(1.2);
+}
+
+.sender_logo_fill_125 > img {
+  transform: scale(1.25);
+}
+
+.sender_logo_fill_130 > img {
+  transform: scale(1.3);
+}
+
+.sender_logo_fill_140 > img {
+  transform: scale(1.4);
+}
+
+.sender_logo_fill_150 > img {
+  transform: scale(1.5);
+}
+
 .account_avatar_ring {
   --plan-ring-gap-color: var(--bg-secondary);
   display: inline-flex;

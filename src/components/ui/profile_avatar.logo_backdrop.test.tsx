@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ReactElement } from "react";
-import type { LogoTone } from "@/lib/logo_tone";
+import type { LogoFill, LogoTone } from "@/lib/logo_tone";
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -31,6 +31,7 @@ import { createRoot, type Root } from "react-dom/client";
 const contact_photo =
   vi.fn<(email: string | null | undefined) => string | null>();
 const favicon_tone = vi.fn<(domain: string) => LogoTone | null>();
+const favicon_fill = vi.fn<(domain: string) => LogoFill>();
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({ user: { email: "me@astermail.org" } }),
@@ -46,7 +47,11 @@ vi.mock("@/hooks/use_peer_profile", () => ({
 
 vi.mock("@/hooks/use_favicon_src", () => ({
   use_favicon_src: (domain: string) => `blob:local/favicon/${domain}`,
-  use_favicon_tone: (domain: string) => favicon_tone(domain),
+  use_favicon_look: (domain: string) => {
+    const tone = favicon_tone(domain);
+
+    return tone === null ? null : { tone, fill: favicon_fill(domain) };
+  },
   store_favicon_if_api_url: () => undefined,
 }));
 
@@ -67,7 +72,9 @@ function logo_backdrop_rules(): string {
   );
 
   return Array.from(
-    css.matchAll(/^[^{}\n]*\.sender_logo_(?:dark|light)[^{}]*\{[^}]*\}/gm),
+    css.matchAll(
+      /^[^{}\n]*\.sender_logo_(?:dark|light|fill_\d+)[^{}]*\{[^}]*\}/gm,
+    ),
     (match) => match[0],
   )
     .join("\n")
@@ -140,6 +147,8 @@ describe("ProfileAvatar logo backdrop", () => {
     contact_photo.mockReturnValue(null);
     favicon_tone.mockReset();
     favicon_tone.mockReturnValue(null);
+    favicon_fill.mockReset();
+    favicon_fill.mockReturnValue(100);
     style = document.createElement("style");
     style.textContent = logo_backdrop_rules();
     document.head.appendChild(style);
@@ -266,5 +275,45 @@ describe("ProfileAvatar logo backdrop", () => {
 
     expect(avatar.querySelector("img")).not.toBeNull();
     expect(avatar.className).not.toMatch(/sender_logo_/);
+  });
+
+  it("scales a padded opaque tile to fill the circle with no backdrop in either theme", () => {
+    favicon_fill.mockReturnValue(120);
+
+    for (const theme of ["light", "dark"] as const) {
+      document.documentElement.classList.toggle("dark", theme === "dark");
+      const avatar = render_logo("none");
+      const image = avatar.querySelector("img") as HTMLImageElement;
+
+      expect(avatar.classList.contains("sender_logo_fill_120")).toBe(true);
+      expect(avatar.className).not.toMatch(/sender_logo_(?:dark|light)/);
+      expect(getComputedStyle(image).transform).toBe("scale(1.2)");
+      expect(getComputedStyle(image).padding).toBe("");
+      expect([LIGHT_BACKDROP, DARK_BACKDROP]).not.toContain(
+        getComputedStyle(avatar).backgroundColor,
+      );
+      unmount();
+    }
+  });
+
+  it("has a scale rule for every fill step the analysis can return", async () => {
+    const { LOGO_FILL_STEPS } = await import("@/lib/logo_tone");
+    const rules = logo_backdrop_rules();
+
+    for (const step of LOGO_FILL_STEPS.filter((value) => value > 100)) {
+      expect(rules).toContain(
+        `.sender_logo_fill_${step} > img {\n  transform: scale(${step / 100});`,
+      );
+    }
+  });
+
+  it("does not scale an edge-to-edge logo", () => {
+    const avatar = render_logo("none");
+
+    expect(avatar.className).not.toMatch(/sender_logo_/);
+    expect(
+      getComputedStyle(avatar.querySelector("img") as HTMLImageElement)
+        .transform,
+    ).toBe("");
   });
 });

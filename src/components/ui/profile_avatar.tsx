@@ -30,7 +30,7 @@ import { fetch_priority_attr } from "@/lib/fetch_priority";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import {
   use_favicon_src,
-  use_favicon_tone,
+  use_favicon_look,
   store_favicon_if_api_url,
 } from "@/hooks/use_favicon_src";
 import {
@@ -288,11 +288,15 @@ export const ProfileAvatar = memo(function ProfileAvatar({
 
   const is_local_logo_source = actual_src === mail_logo_url;
   const is_domain_logo = !!ddg_logo_url && actual_src === ddg_logo_url;
-  const logo_tone = use_favicon_tone(is_domain_logo ? domain : "");
-  const logo_tone_class =
-    is_domain_logo && (logo_tone === "dark" || logo_tone === "light")
+  const logo_look = use_favicon_look(is_domain_logo ? domain : "");
+  const logo_tone = logo_look?.tone;
+  const logo_look_class = !is_domain_logo
+    ? ""
+    : logo_tone === "dark" || logo_tone === "light"
       ? `sender_logo_${logo_tone}`
-      : "";
+      : logo_look && logo_look.fill > 100
+        ? `sender_logo_fill_${logo_look.fill}`
+        : "";
 
   const profile_hex =
     profile_color ||
@@ -356,7 +360,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     <ProfileAvatarView
       background_color={avatar_bg}
       className={
-        logo_tone_class ? `${logo_tone_class} ${className}` : className
+        logo_look_class ? `${logo_look_class} ${className}` : className
       }
       email={email}
       image_attributes={image_attributes}

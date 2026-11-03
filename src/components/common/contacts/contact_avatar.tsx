@@ -30,6 +30,7 @@ import { is_valid_favicon_domain } from "@/lib/favicon_url";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import {
   use_favicon_src,
+  use_favicon_look,
   store_favicon_if_api_url,
 } from "@/hooks/use_favicon_src";
 import {
@@ -103,6 +104,12 @@ export function ContactAvatar({
     favicon_enabled && !cached_favicon_src.startsWith("data:")
       ? cached_favicon_src
       : undefined;
+  const shows_favicon = !!favicon_src && !effective_avatar_url;
+  const logo_look = use_favicon_look(shows_favicon ? domain : "");
+  const logo_fill_class =
+    shows_favicon && logo_look && logo_look.fill > 100
+      ? `sender_logo_fill_${logo_look.fill} `
+      : "";
 
   const initials = get_initials(name, email, get_active_locale());
   const avatar_bg =
@@ -114,7 +121,7 @@ export function ContactAvatar({
       aria_label={name || email || undefined}
       avatar_url={effective_avatar_url}
       background_color={avatar_bg}
-      className={className}
+      className={`${logo_fill_class}${className}`}
       favicon_initially_failed={domain ? is_icon_failed(domain) : false}
       favicon_key={domain}
       favicon_src={favicon_src}

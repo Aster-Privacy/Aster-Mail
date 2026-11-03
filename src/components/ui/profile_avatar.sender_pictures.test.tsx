@@ -46,7 +46,7 @@ vi.mock("@/hooks/use_favicon_src", () => ({
 
     return enabled ? `blob:local/favicon/${domain}` : "data:pending";
   },
-  use_favicon_tone: () => null,
+  use_favicon_look: () => null,
   store_favicon_if_api_url: () => undefined,
 }));
 

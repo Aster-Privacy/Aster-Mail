@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { LogoTone } from "@/lib/logo_tone";
+import type { LogoLook } from "@/lib/logo_tone";
 
 import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 
@@ -36,8 +36,8 @@ import {
   get_favicon_object_url,
   peek_favicon_object_url,
   cache_favicon_blob,
-  peek_favicon_tone,
-  subscribe_favicon_tones,
+  peek_favicon_look,
+  subscribe_favicon_looks,
 } from "@/lib/favicon_cache_db";
 import { is_icon_failed, mark_icon_failed } from "@/lib/icon_cache";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
@@ -151,14 +151,14 @@ export function use_favicon_src(domain: string, enabled = true): string {
   return src;
 }
 
-export function use_favicon_tone(domain: string): LogoTone | null {
+export function use_favicon_look(domain: string): LogoLook | null {
   const get_snapshot = useCallback(
-    () => (domain ? peek_favicon_tone(domain) : null),
+    () => (domain ? peek_favicon_look(domain) : null),
     [domain],
   );
 
   return useSyncExternalStore(
-    subscribe_favicon_tones,
+    subscribe_favicon_looks,
     get_snapshot,
     get_snapshot,
   );

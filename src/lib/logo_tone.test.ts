@@ -20,7 +20,11 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { classify_logo_pixels } from "./logo_tone";
+import {
+  analyze_logo_pixels,
+  classify_logo_pixels,
+  measure_logo_tile,
+} from "./logo_tone";
 
 type Rgba = [number, number, number, number];
 
@@ -91,5 +95,113 @@ describe("classify_logo_pixels", () => {
   it("returns none for a fully transparent or empty image", () => {
     expect(classify_logo_pixels(image(() => CLEAR))).toBe("none");
     expect(classify_logo_pixels(new Uint8ClampedArray(0))).toBe("none");
+  });
+});
+
+function disc(ink: Rgba, radius: number): Uint8ClampedArray {
+  return image((x, y) => {
+    const dx = x + 0.5 - SIZE / 2;
+    const dy = y + 0.5 - SIZE / 2;
+
+    return dx * dx + dy * dy <= radius * radius ? ink : CLEAR;
+  });
+}
+
+function glyph(ink: Rgba): Uint8ClampedArray {
+  return image((x, y) => {
+    if (y < 3 || y >= 13) return CLEAR;
+
+    return x === 3 || x === 4 || x === 11 || x === 12 || x === y ? ink : CLEAR;
+  });
+}
+
+describe("measure_logo_tile", () => {
+  it("gives an edge-to-edge opaque icon no extra fill", () => {
+    expect(
+      measure_logo_tile(
+        image(() => ORANGE),
+        SIZE,
+        SIZE,
+      ),
+    ).toBe(100);
+  });
+
+  it("scales a centered tile with a transparent margin up to the edge without cropping it", () => {
+    const tile = image((x, y) =>
+      x >= 1 && x < 15 && y >= 1 && y < 15 ? ORANGE : CLEAR,
+    );
+
+    expect(measure_logo_tile(tile, SIZE, SIZE)).toBe(110);
+    expect(measure_logo_tile(centered_mark(ORANGE), SIZE, SIZE)).toBe(150);
+  });
+
+  it("treats a round logo as a tile", () => {
+    expect(measure_logo_tile(disc(ORANGE, 8), SIZE, SIZE)).toBe(100);
+    expect(measure_logo_tile(disc(ORANGE, 7), SIZE, SIZE)).toBe(110);
+  });
+
+  it("does not treat a thin glyph as a tile", () => {
+    expect(measure_logo_tile(glyph(BLACK), SIZE, SIZE)).toBeNull();
+  });
+
+  it("does not treat an off-center block as a tile", () => {
+    const corner = image((x, y) => (x < 8 && y < 8 ? ORANGE : CLEAR));
+
+    expect(measure_logo_tile(corner, SIZE, SIZE)).toBeNull();
+  });
+
+  it("does not treat a wide wordmark as a tile", () => {
+    const bar = image((_x, y) => (y >= 6 && y < 10 ? BLACK : CLEAR));
+
+    expect(measure_logo_tile(bar, SIZE, SIZE)).toBeNull();
+  });
+
+  it("returns null for an empty or truncated image", () => {
+    expect(
+      measure_logo_tile(
+        image(() => CLEAR),
+        SIZE,
+        SIZE,
+      ),
+    ).toBeNull();
+    expect(measure_logo_tile(new Uint8ClampedArray(0), SIZE, SIZE)).toBeNull();
+    expect(measure_logo_tile(new Uint8ClampedArray(4), 0, 0)).toBeNull();
+  });
+});
+
+describe("analyze_logo_pixels", () => {
+  it("gives an opaque tile no backdrop tone, even when it is dark or light", () => {
+    expect(analyze_logo_pixels(disc(BLACK, 7), SIZE, SIZE)).toEqual({
+      tone: "none",
+      fill: 110,
+    });
+    expect(analyze_logo_pixels(disc(WHITE, 8), SIZE, SIZE)).toEqual({
+      tone: "none",
+      fill: 100,
+    });
+  });
+
+  it("keeps the backdrop tone for a transparent glyph", () => {
+    expect(analyze_logo_pixels(glyph(BLACK), SIZE, SIZE)).toEqual({
+      tone: "dark",
+      fill: 100,
+    });
+    expect(analyze_logo_pixels(glyph(WHITE), SIZE, SIZE)).toEqual({
+      tone: "light",
+      fill: 100,
+    });
+  });
+
+  it("leaves an edge-to-edge icon alone", () => {
+    expect(
+      analyze_logo_pixels(
+        image(() => BLACK),
+        SIZE,
+        SIZE,
+      ),
+    ).toEqual({
+      tone: "none",
+      fill: 100,
+    });
   });
 });

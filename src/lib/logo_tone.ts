@@ -20,7 +20,20 @@
 //
 export type LogoTone = "dark" | "light" | "none";
 
-const SAMPLE_SIZE = 16;
+export const LOGO_FILL_STEPS = [
+  100, 105, 110, 115, 120, 125, 130, 140, 150,
+] as const;
+
+export type LogoFill = (typeof LOGO_FILL_STEPS)[number];
+
+export interface LogoLook {
+  tone: LogoTone;
+  fill: LogoFill;
+}
+
+const SAMPLE_SIZE = 32;
+const COVERED_ALPHA = 0.5;
+const TILE_COVERAGE = 0.9;
 const OPAQUE_COVERAGE = 0.9;
 const DARK_LUMINANCE = 0.13;
 const LIGHT_LUMINANCE = 0.5;
@@ -73,7 +86,82 @@ export function classify_logo_pixels(data: ArrayLike<number>): LogoTone {
   return "none";
 }
 
-export async function read_logo_tone(blob: Blob): Promise<LogoTone | null> {
+function is_covered(data: ArrayLike<number>, index: number): boolean {
+  return data[index * 4 + 3] / 255 >= COVERED_ALPHA;
+}
+
+function floor_fill_step(scale: number): LogoFill {
+  let step: LogoFill = LOGO_FILL_STEPS[0];
+
+  for (const candidate of LOGO_FILL_STEPS) {
+    if (candidate <= scale * 100 + 1e-6) step = candidate;
+  }
+
+  return step;
+}
+
+export function measure_logo_tile(
+  data: ArrayLike<number>,
+  width: number,
+  height: number,
+): LogoFill | null {
+  if (!(width > 0) || !(height > 0) || data.length < width * height * 4) {
+    return null;
+  }
+
+  let min_x = width;
+  let min_y = height;
+  let max_x = -1;
+  let max_y = -1;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (!is_covered(data, y * width + x)) continue;
+      if (x < min_x) min_x = x;
+      if (x > max_x) max_x = x;
+      if (y < min_y) min_y = y;
+      if (y > max_y) max_y = y;
+    }
+  }
+
+  if (max_x < 0) return null;
+
+  const side = Math.max(max_x - min_x + 1, max_y - min_y + 1);
+  const radius = side / 2;
+  const center_x = width / 2;
+  const center_y = height / 2;
+  let inside = 0;
+  let covered = 0;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const dx = x + 0.5 - center_x;
+      const dy = y + 0.5 - center_y;
+
+      if (dx * dx + dy * dy > radius * radius) continue;
+      inside += 1;
+      if (is_covered(data, y * width + x)) covered += 1;
+    }
+  }
+
+  if (inside === 0 || covered / inside < TILE_COVERAGE) return null;
+
+  return floor_fill_step(Math.min(width, height) / side);
+}
+
+export function analyze_logo_pixels(
+  data: ArrayLike<number>,
+  width: number,
+  height: number,
+): LogoLook {
+  const tile_fill = measure_logo_tile(data, width, height);
+
+  if (tile_fill !== null) return { tone: "none", fill: tile_fill };
+
+  return { tone: classify_logo_pixels(data), fill: 100 };
+}
+
+export async function read_logo_look(blob: Blob): Promise<LogoLook | null> {
   if (typeof document === "undefined" || typeof Image === "undefined") {
     return null;
   }
@@ -97,8 +185,10 @@ export async function read_logo_tone(blob: Blob): Promise<LogoTone | null> {
 
     context.drawImage(image, 0, 0, SAMPLE_SIZE, SAMPLE_SIZE);
 
-    return classify_logo_pixels(
+    return analyze_logo_pixels(
       context.getImageData(0, 0, SAMPLE_SIZE, SAMPLE_SIZE).data,
+      SAMPLE_SIZE,
+      SAMPLE_SIZE,
     );
   } catch {
     return null;

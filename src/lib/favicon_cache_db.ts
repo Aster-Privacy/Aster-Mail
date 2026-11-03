@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ignore_error } from "@/lib/ignore_error";
-import { read_logo_tone, type LogoTone } from "@/lib/logo_tone";
+import { read_logo_look, type LogoLook } from "@/lib/logo_tone";
 
 const DB_NAME = "astermail_favicon_cache";
 const STORE = "favicons";
@@ -62,31 +62,39 @@ function remember_live_url(domain: string, url: string): void {
   }
 }
 const in_flight: Map<string, Promise<string | null>> = new Map();
-const tones: Map<string, LogoTone | null> = new Map();
-const tone_listeners = new Set<() => void>();
+const looks: Map<string, LogoLook | null> = new Map();
+const look_listeners = new Set<() => void>();
 
 interface FaviconEntry {
   domain: string;
   blob: Blob;
   ts: number;
-  tone?: LogoTone | null;
+  look?: LogoLook | null;
 }
 
-function set_tone(domain: string, tone: LogoTone | null): void {
-  if (tones.get(domain) === tone && tones.has(domain)) return;
-  tones.set(domain, tone);
-  for (const listener of tone_listeners) listener();
+function same_look(left: LogoLook | null, right: LogoLook | null): boolean {
+  if (left === null || right === null) return left === right;
+
+  return left.tone === right.tone && left.fill === right.fill;
 }
 
-export function peek_favicon_tone(domain: string): LogoTone | null {
-  return tones.get(domain) ?? null;
+function set_look(domain: string, look: LogoLook | null): void {
+  const current = looks.get(domain);
+
+  if (current !== undefined && same_look(current, look)) return;
+  looks.set(domain, look);
+  for (const listener of look_listeners) listener();
 }
 
-export function subscribe_favicon_tones(listener: () => void): () => void {
-  tone_listeners.add(listener);
+export function peek_favicon_look(domain: string): LogoLook | null {
+  return looks.get(domain) ?? null;
+}
+
+export function subscribe_favicon_looks(listener: () => void): () => void {
+  look_listeners.add(listener);
 
   return () => {
-    tone_listeners.delete(listener);
+    look_listeners.delete(listener);
   };
 }
 
@@ -212,11 +220,11 @@ async function write_entry(entry: FaviconEntry): Promise<void> {
 }
 
 function analyze_stored_entry(entry: FaviconEntry): void {
-  read_logo_tone(entry.blob)
-    .then((tone) => {
-      if (live_urls.has(entry.domain)) set_tone(entry.domain, tone);
+  read_logo_look(entry.blob)
+    .then((look) => {
+      if (live_urls.has(entry.domain)) set_look(entry.domain, look);
 
-      return write_entry({ ...entry, tone });
+      return write_entry({ ...entry, look });
     })
     .catch((caught) =>
       ignore_error("lib/favicon_cache_db:analyze_stored_entry", caught),
@@ -250,8 +258,8 @@ export function get_favicon_object_url(domain: string): Promise<string | null> {
 
       remember_live_url(domain, url);
 
-      if (entry.tone !== undefined) {
-        set_tone(domain, entry.tone);
+      if (entry.look !== undefined) {
+        set_look(domain, entry.look);
       } else {
         analyze_stored_entry(entry);
       }
@@ -275,11 +283,11 @@ export async function cache_favicon_blob(
 ): Promise<void> {
   if (blob.size > 200 * 1024) return;
 
-  const tone = await read_logo_tone(blob);
+  const look = await read_logo_look(blob);
 
-  set_tone(domain, tone);
+  set_look(domain, look);
 
-  await write_entry({ domain, blob, ts: Date.now(), tone });
+  await write_entry({ domain, blob, ts: Date.now(), look });
 }
 
 export async function evict_stale_favicons(): Promise<void> {
@@ -321,7 +329,7 @@ export async function evict_stale_favicons(): Promise<void> {
           }
           live_urls.delete(entry.domain);
         }
-        tones.delete(entry.domain);
+        looks.delete(entry.domain);
         cursor.delete();
       }
 
@@ -345,8 +353,8 @@ export async function purge_favicon_cache(): Promise<void> {
 
   live_urls.clear();
   in_flight.clear();
-  tones.clear();
-  for (const listener of tone_listeners) listener();
+  looks.clear();
+  for (const listener of look_listeners) listener();
 
   let db: IDBDatabase;
 
