@@ -498,6 +498,7 @@ export async function run_background_scan(
   let aborted = false;
   let can_restart = !!progress;
   let unsaved_pages = 0;
+  let checkpoints_enabled = true;
 
   while (has_next) {
     if (cursor) {
@@ -672,14 +673,25 @@ export async function run_background_scan(
     cursor = next_cursor;
     unsaved_pages++;
 
-    if (is_full_scan && has_next && unsaved_pages >= SCAN_CHECKPOINT_PAGES) {
-      if (await persist(cursor)) unsaved_pages = 0;
+    if (
+      is_full_scan &&
+      checkpoints_enabled &&
+      has_next &&
+      unsaved_pages >= SCAN_CHECKPOINT_PAGES
+    ) {
+      if (await persist(cursor)) {
+        unsaved_pages = 0;
+      } else {
+        checkpoints_enabled = false;
+      }
       if (is_cancelled()) return 0;
     }
   }
 
   if (aborted) {
-    if (is_full_scan && cursor && unsaved_pages > 0) await persist(cursor);
+    if (is_full_scan && checkpoints_enabled && cursor && unsaved_pages > 0) {
+      await persist(cursor);
+    }
 
     return 0;
   }
