@@ -30,6 +30,8 @@ mod default_mail_linux;
 mod default_mail_store;
 mod device;
 mod downloads;
+#[cfg(all(unix, not(target_os = "macos")))]
+mod flatpak;
 mod http_client;
 mod interface_zoom;
 #[cfg(all(unix, not(target_os = "macos")))]

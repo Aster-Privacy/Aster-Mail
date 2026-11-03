@@ -127,6 +127,21 @@ pub fn queue_open(app: &tauri::AppHandle, open: NotificationOpen, notify: bool) 
     }
 }
 
+pub fn activate(app: &tauri::AppHandle, open: NotificationOpen) {
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
+    let was_visible = window.is_visible().unwrap_or(true);
+
+    queue_open(app, open, was_visible);
+
+    if !was_visible {
+        let _ = window.eval("window.location.reload()");
+    }
+
+    crate::show_main_window(app);
+}
+
 #[tauri::command]
 pub fn take_pending_notification_open(state: State<PendingNotificationOpen>) -> Option<String> {
     state.take()
@@ -150,6 +165,11 @@ pub async fn show_mail_notification(
     let title = clamp_text(&title, MAX_TITLE_LENGTH);
     let body = clamp_text(&body, MAX_BODY_LENGTH);
     let launch = open_url(email_id.as_deref());
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    if crate::flatpak::is_flatpak() {
+        return crate::flatpak::notification::show(&app, &title, &body, &launch).await;
+    }
 
     tauri::async_runtime::spawn_blocking(move || platform::show(&app, &title, &body, &launch))
         .await

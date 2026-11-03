@@ -24,6 +24,7 @@ use chacha20poly1305::aead::{Aead, Payload};
 use chacha20poly1305::{KeyInit, XChaCha20Poly1305, XNonce};
 use ed25519_dalek::{Signer, SigningKey};
 use hkdf::Hkdf;
+#[cfg(not(all(unix, not(target_os = "macos"))))]
 use keyring::Entry;
 use ml_kem::array::Array;
 use ml_kem::kem::Decapsulate;
@@ -37,6 +38,9 @@ use std::collections::HashMap;
 use uuid::Uuid;
 use x25519_dalek::{PublicKey as XPublicKey, StaticSecret};
 use zeroize::{Zeroize, Zeroizing, ZeroizeOnDrop};
+
+#[cfg(all(unix, not(target_os = "macos")))]
+use crate::flatpak::secret::Entry;
 
 const KEYRING_SERVICE: &str = "com.astermail.mail";
 const KEYRING_WRAP_USER: &str = "device-identity-wrap-v1";
