@@ -306,7 +306,7 @@ describe("quick calendar panel", () => {
 
     await send({ source: "aster-calendar-panel", type: "ready" });
 
-    expect(post).toHaveBeenLastCalledWith(
+    expect(post).toHaveBeenCalledWith(
       { source: "aster-mail", type: "theme", theme: "light" },
       ORIGIN,
     );
@@ -320,6 +320,46 @@ describe("quick calendar panel", () => {
     );
     expect(frame()?.getAttribute("src")).toBe(
       `${ORIGIN}/mail-panel?theme=light`,
+    );
+  });
+
+  it("tells the panel when it is shown or hidden", async () => {
+    await render_panel(true);
+
+    const target = frame()?.contentWindow;
+
+    expect(target).toBeTruthy();
+
+    const post = vi.spyOn(target as Window, "postMessage");
+
+    await render_panel(false);
+
+    expect(post).not.toHaveBeenCalled();
+
+    await render_panel(true);
+    await send({ source: "aster-calendar-panel", type: "ready" });
+
+    expect(post).toHaveBeenLastCalledWith(
+      { source: "aster-mail", type: "visibility", visible: true },
+      ORIGIN,
+    );
+
+    post.mockClear();
+    await render_panel(false);
+
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenLastCalledWith(
+      { source: "aster-mail", type: "visibility", visible: false },
+      ORIGIN,
+    );
+
+    post.mockClear();
+    await render_panel(true);
+
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenLastCalledWith(
+      { source: "aster-mail", type: "visibility", visible: true },
+      ORIGIN,
     );
   });
 

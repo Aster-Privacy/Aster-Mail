@@ -273,6 +273,19 @@ export function QuickCalendarPanel({
     if (frame_state === "ready") post_theme(theme);
   }, [frame_state, theme, post_theme]);
 
+  useEffect(() => {
+    if (frame_state !== "ready") return;
+
+    const target = frame_ref.current?.contentWindow;
+
+    if (!target) return;
+
+    target.postMessage(
+      { source: MAIL_HOST_SOURCE, type: "visibility", visible: is_open },
+      origin,
+    );
+  }, [frame_state, is_open, origin]);
+
   const handle_frame_load = useCallback(() => {
     if (frame_state_ref.current === "loading") {
       arm_timer(LOAD_READY_TIMEOUT_MS);
