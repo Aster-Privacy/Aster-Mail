@@ -18,11 +18,48 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useLayoutEffect, useRef, type RefObject } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+  type RefObject,
+} from "react";
 
-const PANEL_INSET_VAR = "--quick_panel_inset";
+type InsetListener = () => void;
 
 let inset_owner: symbol | null = null;
+let inset_px = 0;
+const inset_listeners = new Set<InsetListener>();
+
+function set_inset(px: number): void {
+  if (inset_px === px) return;
+
+  inset_px = px;
+
+  for (const listener of Array.from(inset_listeners)) {
+    listener();
+  }
+}
+
+export function get_panel_inset(): number {
+  return inset_px;
+}
+
+export function subscribe_panel_inset(listener: InsetListener): () => void {
+  inset_listeners.add(listener);
+
+  return () => {
+    inset_listeners.delete(listener);
+  };
+}
+
+export function use_quick_panel_inset(): number {
+  return useSyncExternalStore(
+    subscribe_panel_inset,
+    get_panel_inset,
+    get_panel_inset,
+  );
+}
 
 export function use_panel_inset(
   is_open: boolean,
@@ -35,13 +72,12 @@ export function use_panel_inset(
   useLayoutEffect(() => {
     const owner = owner_ref.current;
     const panel = panel_ref.current;
-    const root = document.documentElement;
 
     const release = () => {
       if (inset_owner !== null && inset_owner !== owner) return;
 
       inset_owner = null;
-      root.style.setProperty(PANEL_INSET_VAR, "0px");
+      set_inset(0);
     };
 
     if (!is_open || !panel) {
@@ -53,9 +89,7 @@ export function use_panel_inset(
     inset_owner = owner;
 
     const sync_inset = () => {
-      const width = panel.getBoundingClientRect().width;
-
-      root.style.setProperty(PANEL_INSET_VAR, `${Math.round(width)}px`);
+      set_inset(Math.round(panel.getBoundingClientRect().width));
     };
 
     sync_inset();

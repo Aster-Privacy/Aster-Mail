@@ -18,12 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
 import { useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { use_panel_inset } from "./use_panel_inset";
+import {
+  get_panel_inset,
+  subscribe_panel_inset,
+  use_panel_inset,
+} from "./use_panel_inset";
 
 function Panel({ is_open, width }: { is_open: boolean; width: number }) {
   const panel_ref = useRef<HTMLDivElement | null>(null);
@@ -62,8 +66,7 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-const read_inset = () =>
-  document.documentElement.style.getPropertyValue("--quick_panel_inset");
+const read_inset = () => get_panel_inset();
 
 describe("use_panel_inset", () => {
   let container: HTMLDivElement;
@@ -91,39 +94,71 @@ describe("use_panel_inset", () => {
       root.unmount();
     });
     container.remove();
-    document.documentElement.style.removeProperty("--quick_panel_inset");
   });
 
   it("stays at zero while both panels are closed", async () => {
     await render_rail(false, false);
 
-    expect(read_inset()).toBe("0px");
+    expect(read_inset()).toBe(0);
   });
 
   it("reports the width of the open panel", async () => {
     await render_rail(true, false);
 
-    expect(read_inset()).toBe("320px");
+    expect(read_inset()).toBe(320);
   });
 
   it("hands the inset over when the later panel opens", async () => {
     await render_rail(true, false);
     await render_rail(false, true);
 
-    expect(read_inset()).toBe("272px");
+    expect(read_inset()).toBe(272);
   });
 
   it("hands the inset back when the earlier panel opens", async () => {
     await render_rail(false, true);
     await render_rail(true, false);
 
-    expect(read_inset()).toBe("320px");
+    expect(read_inset()).toBe(320);
   });
 
   it("clears the inset once every panel closes", async () => {
     await render_rail(false, true);
     await render_rail(false, false);
 
-    expect(read_inset()).toBe("0px");
+    expect(read_inset()).toBe(0);
+  });
+
+  it("never touches the document style", async () => {
+    await render_rail(true, false);
+
+    expect(document.documentElement.getAttribute("style") ?? "").not.toContain(
+      "--quick_panel_inset",
+    );
+  });
+
+  it("notifies subscribers only when the inset changes", async () => {
+    const listener = vi.fn();
+    const unsubscribe = subscribe_panel_inset(listener);
+
+    await render_rail(true, false);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    await render_rail(true, false);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+
+    await render_rail(false, true);
+
+    const handed_over_calls = listener.mock.calls.length;
+
+    expect(handed_over_calls).toBeGreaterThan(1);
+    expect(read_inset()).toBe(272);
+
+    unsubscribe();
+    await render_rail(false, false);
+
+    expect(listener).toHaveBeenCalledTimes(handed_over_calls);
   });
 });

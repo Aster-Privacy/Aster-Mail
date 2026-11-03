@@ -40,6 +40,7 @@ import {
   WINDOW_WIDTH_MINIMIZED,
 } from "@/components/compose/compose_shell_mode";
 import { use_should_reduce_motion } from "@/provider";
+import { use_quick_panel_inset } from "@/hooks/use_panel_inset";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_translation } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -248,6 +249,19 @@ export function use_compose_manager() {
   };
 }
 
+function ComposeDock({ children }: { children: ReactNode }) {
+  const panel_inset = use_quick_panel_inset();
+
+  return (
+    <div
+      className="fixed bottom-0 start-0 end-0 z-50 pointer-events-none"
+      style={{ paddingInlineEnd: `${panel_inset}px` }}
+    >
+      {children}
+    </div>
+  );
+}
+
 interface ComposeManagerComponentProps extends ComposeManagerProps {
   instances: ComposeInstance[];
   on_close: (id: string) => void;
@@ -319,10 +333,7 @@ export function ComposeManager({
   }
 
   return (
-    <div
-      className="fixed bottom-0 start-0 end-0 z-50 pointer-events-none"
-      style={{ paddingInlineEnd: "var(--quick_panel_inset, 0px)" }}
-    >
+    <ComposeDock>
       <div
         ref={container_ref}
         className="flex flex-row-reverse items-end gap-2 px-4 pb-0 overflow-x-auto scrollbar-compose"
@@ -390,6 +401,6 @@ export function ComposeManager({
           background: var(--border-secondary);
         }
       `}</style>
-    </div>
+    </ComposeDock>
   );
 }
