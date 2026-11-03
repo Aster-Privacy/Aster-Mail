@@ -33,6 +33,7 @@ import {
   FAMILY_PLAN_TIERS,
   CURRENCY_STORAGE_KEY,
   SUPPORTED_CURRENCIES,
+  crypto_term_months,
   detect_currency_from_locale,
   is_crypto_provider,
   take_crypto_resume,
@@ -304,6 +305,7 @@ export function use_billing_section() {
     useState<FamilyPlanTier | null>(null);
   const [crypto_family_tier, set_crypto_family_tier] =
     useState<FamilyPlanTier | null>(null);
+  const [crypto_family_term, set_crypto_family_term] = useState(12);
   const [addon_to_cancel, set_addon_to_cancel] =
     useState<UserActiveAddon | null>(null);
   const [billing_period, set_billing_period] = useState<
@@ -1123,7 +1125,7 @@ export function use_billing_section() {
     set_pending_family_tier(tier);
   };
 
-  const handle_family_crypto = () => {
+  const handle_family_crypto = (term_id?: string) => {
     if (!pending_family_tier) return;
 
     if (!crypto_term_prices_for(pending_family_tier.id)) {
@@ -1132,6 +1134,7 @@ export function use_billing_section() {
       return;
     }
 
+    set_crypto_family_term(crypto_term_months(term_id));
     set_crypto_family_tier(pending_family_tier);
     set_pending_family_tier(null);
   };
@@ -1334,6 +1337,7 @@ export function use_billing_section() {
     set_pending_family_tier,
     crypto_family_tier,
     set_crypto_family_tier,
+    crypto_family_term,
     handle_family_select,
     handle_family_card,
     handle_family_crypto,

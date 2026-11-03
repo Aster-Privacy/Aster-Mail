@@ -33,6 +33,7 @@ import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
   CURRENCY_STORAGE_KEY,
+  crypto_term_months,
   detect_currency_from_locale,
 } from "@/components/settings/billing/billing_constants";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -255,7 +256,7 @@ export function OnionBillingSection() {
       {crypto_plan && crypto_tier && (
         <CryptoTermModal
           is_open
-          initial_term_months={billing_period === "monthly" ? 1 : 12}
+          initial_term_months={crypto_term_months(billing_period)}
           monthly_price_cents={crypto_tier.monthly_cents}
           on_close={() => set_crypto_plan(null)}
           plan_code={crypto_plan.code}

@@ -88,7 +88,7 @@ interface CryptoTermModalProps {
   special_offer?: boolean;
 }
 
-const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12];
+const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
 const CHARGE_CURRENCY = "usd";
 
 function pretty_chain(chain: string): string {
@@ -165,7 +165,7 @@ export function crypto_term_modal({
     );
     set_creating_key(null);
 
-    if (restored_term) set_selected_term(restored_term);
+    set_selected_term(restored_term ?? 1);
   }, [is_open, initial_coin_key, initial_term_months, native_supported]);
 
   useEffect(() => {
