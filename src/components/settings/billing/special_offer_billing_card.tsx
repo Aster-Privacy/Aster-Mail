@@ -84,7 +84,7 @@ export function SpecialOfferBillingCard({
       </button>
       {status?.ends_at && (
         <OfferCountdown
-          class_name="mt-2 block text-[12px] text-txt-tertiary"
+          class_name="ms-1 text-[13px] text-txt-tertiary"
           ends_at={status.ends_at}
         />
       )}
