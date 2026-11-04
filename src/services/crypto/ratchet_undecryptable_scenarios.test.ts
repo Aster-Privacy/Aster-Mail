@@ -146,6 +146,7 @@ import {
   note_message_sender_identity,
 } from "@/services/crypto/sender_identity_authentication";
 import { is_ratchet_verified_body } from "@/utils/email_crypto";
+import { set_trust_own_addresses } from "@/lib/sender_trust_store";
 
 const SENDER = "sender@astermail.org";
 const RECIPIENT = "recipient@astermail.org";
@@ -1335,11 +1336,40 @@ describe("recovery lane trust", () => {
     h.store.clear();
     h.bundle = null;
     clear_sender_identity_authentication_cache();
+    set_trust_own_addresses([SENDER]);
 
-    const plaintext = await receive(envelope, own_vault, "self-1");
+    try {
+      const plaintext = await receive(envelope, own_vault, "self-1");
 
-    expect(plaintext).toBe("note to self");
-    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
+      expect(plaintext).toBe("note to self");
+      expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
+    } finally {
+      set_trust_own_addresses([]);
+    }
+  });
+
+  it("does not trust this account's own key for another sender's address", async () => {
+    const own_vault = make_vault((await generate_ratchet_keys())!);
+    const contact_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(own_vault);
+
+    const envelope = await send("claims to be a contact", own_vault);
+
+    h.store.clear();
+    h.bundle = null;
+    clear_sender_identity_authentication_cache();
+    set_trust_own_addresses([]);
+    await check_and_pin_identity(
+      SENDER,
+      contact_vault.ratchet_identity_public!,
+      true,
+    );
+
+    const plaintext = await receive(envelope, own_vault, "self-2");
+
+    expect(plaintext).toBe("claims to be a contact");
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
   });
 
   it("verifies a first message whose sender key the directory vouches for", async () => {

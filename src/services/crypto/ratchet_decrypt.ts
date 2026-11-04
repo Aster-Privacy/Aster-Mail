@@ -92,6 +92,7 @@ import { perform_x3dh_receiver } from "./x3dh";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { ignore_error } from "@/lib/ignore_error";
+import { get_sender_trust_context } from "@/lib/sender_trust_store";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 interface ResolvedRecipientData {
@@ -208,13 +209,32 @@ interface RatchetSessionPlaintext {
   archived: boolean;
 }
 
+function is_own_sender_address(
+  sender_email: string,
+  our_email: string,
+): boolean {
+  const sender = sender_email.trim();
+
+  if (sender.length === 0) return false;
+  if (same_address_ignoring_dots(sender, our_email.trim())) return true;
+
+  return get_sender_trust_context().own_addresses.some((address) =>
+    same_address_ignoring_dots(sender, address),
+  );
+}
+
 async function sender_continuity(
+  our_email: string,
   sender_email: string,
   sender_identity_key: string,
   vault: EncryptedVault,
   session_bound: boolean,
 ): Promise<SenderIdentityContinuity> {
-  if (session_bound && is_own_identity_key(vault, sender_identity_key)) {
+  if (
+    session_bound &&
+    is_own_identity_key(vault, sender_identity_key) &&
+    is_own_sender_address(sender_email, our_email)
+  ) {
     return "known";
   }
 
@@ -245,6 +265,7 @@ async function bind_session_sender_identity_key(
 }
 
 async function settle_cached_plaintext(
+  our_email: string,
   cached: string,
   dedupe_key: string,
   message_id: string | undefined,
@@ -268,7 +289,13 @@ async function settle_cached_plaintext(
       (await get_cached_ratchet_sender_key(dedupe_key, binding)) ??
       (await session_sender_identity_key(binding.conversation_id));
     const continuity = judged_key
-      ? await sender_continuity(sender_email, judged_key, vault, true)
+      ? await sender_continuity(
+          our_email,
+          sender_email,
+          judged_key,
+          vault,
+          true,
+        )
       : "changed";
 
     if (continuity === "known") {
@@ -307,6 +334,7 @@ async function attempt_ratchet_decrypt(
 
     if (cached !== null) {
       return settle_cached_plaintext(
+        our_email,
         cached,
         dedupe_key,
         message_id,
@@ -323,6 +351,7 @@ async function attempt_ratchet_decrypt(
 
       if (cached !== null) {
         return settle_cached_plaintext(
+          our_email,
           cached,
           dedupe_key,
           message_id,
@@ -359,6 +388,7 @@ async function attempt_ratchet_decrypt(
         : decrypted.sender_identity_key;
       const identity_key = bound_identity_key ?? envelope.sender_identity_key;
       const continuity = await sender_continuity(
+        our_email,
         sender_email,
         identity_key,
         vault,
