@@ -81,10 +81,9 @@ vi.mock("@/hooks/use_plan_limits", () => ({
 }));
 
 vi.mock("@/hooks/use_special_offer_checkout", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/lib/special_offer")>(
-      "@/lib/special_offer",
-    );
+  const actual = await vi.importActual<typeof import("@/lib/special_offer")>(
+    "@/lib/special_offer",
+  );
 
   return {
     use_special_offer_checkout: () =>
@@ -173,9 +172,10 @@ describe("UpgradeModal under the Black Friday offer", () => {
   it("shows the discounted yearly total on covered yearly terms", async () => {
     await mount_upgrade_modal();
 
-    const yearly_button = Array.from(document.body.querySelectorAll("button")).find(
-      (candidate) =>
-        candidate.textContent?.includes("settings.billing_yearly"),
+    const yearly_button = Array.from(
+      document.body.querySelectorAll("button"),
+    ).find((candidate) =>
+      candidate.textContent?.includes("settings.billing_yearly"),
     );
 
     await act(async () => {
@@ -184,7 +184,10 @@ describe("UpgradeModal under the Black Friday offer", () => {
 
     const text = document.body.textContent ?? "";
 
-    expect(text).toContain("settings.billed_annually · 4349");
-    expect(text).not.toContain("settings.billed_annually · 8699");
+    expect(text).toContain("settings.billed_annually · 1449settings");
+    expect(text).toContain("settings.billed_annually · 4349settings");
+    expect(text).toContain("settings.billed_annually · 8699settings");
+    expect(text).not.toContain("settings.billed_annually · 2899settings");
+    expect(text).not.toContain("settings.billed_annually · 17399settings");
   });
 });
