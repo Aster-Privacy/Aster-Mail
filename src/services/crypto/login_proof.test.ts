@@ -22,12 +22,13 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
   post: vi.fn(),
+  get: vi.fn(),
   account_id: null as string | null,
   saved_emails: [] as string[],
 }));
 
 vi.mock("@/services/api/client", () => ({
-  api_client: { post: h.post },
+  api_client: { post: h.post, get: h.get },
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -68,6 +69,7 @@ import {
   record_current_account_login_salt,
   record_login_salt,
   remember_saved_login_accounts,
+  seed_session_login_salt,
   unpin_accounts,
   user_hash_pin_key,
   user_id_pin_key,
@@ -110,6 +112,7 @@ beforeEach(() => {
   localStorage.clear();
   clear_pending_login_enrollment();
   h.post.mockReset();
+  h.get.mockReset();
   h.account_id = null;
   h.saved_emails = [];
 });
@@ -440,6 +443,109 @@ describe("short login salts", () => {
     await expect(
       derive_current_account_proof(PASSWORD, salt(4, 16), 1),
     ).resolves.toBeTypeOf("string");
+  });
+
+  it("records a changed password salt for the next sign-in", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    h.account_id = "user-1";
+    h.saved_emails = [EMAIL];
+    record_login_salt([user_hash_pin_key(user_hash)], salt(4, 16));
+
+    await record_current_account_login_salt(salt(9, 16));
+
+    expect(
+      match_login_salt_record([user_hash_pin_key(user_hash)], salt(9, 16)),
+    ).toBe("match");
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt(9, 16), 1, user_hash),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("seeds the salt record from a signed-in session", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    h.account_id = "user-1";
+    h.saved_emails = [EMAIL];
+    h.get.mockResolvedValue({ data: { salt: array_to_base64(salt(4, 16)) } });
+
+    await seed_session_login_salt("user-1", EMAIL);
+
+    expect(h.get).toHaveBeenCalledWith("/crypto/v1/encryption/salt", {
+      skip_cache: true,
+    });
+    expect(
+      match_login_salt_record([user_hash_pin_key(user_hash)], salt(4, 16)),
+    ).toBe("match");
+    expect(
+      match_login_salt_record([user_id_pin_key("user-1")], salt(4, 16)),
+    ).toBe("match");
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt(9, 16), 1, user_hash),
+    ).rejects.toBeInstanceOf(LegacyLoginSaltError);
+  });
+
+  it("never replaces an existing salt record when seeding", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    h.account_id = "user-1";
+    record_login_salt(
+      [user_id_pin_key("user-1"), user_hash_pin_key(user_hash)],
+      salt(4, 16),
+    );
+
+    await seed_session_login_salt("user-1", EMAIL);
+
+    expect(h.get).not.toHaveBeenCalled();
+    expect(
+      match_login_salt_record([user_hash_pin_key(user_hash)], salt(4, 16)),
+    ).toBe("match");
+  });
+
+  it("fills only the missing key when seeding", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    h.account_id = "user-1";
+    record_login_salt([user_id_pin_key("user-1")], salt(4, 16));
+    h.get.mockResolvedValue({ data: { salt: array_to_base64(salt(9, 16)) } });
+
+    await seed_session_login_salt("user-1", EMAIL);
+
+    expect(
+      match_login_salt_record([user_id_pin_key("user-1")], salt(4, 16)),
+    ).toBe("match");
+    expect(
+      match_login_salt_record([user_hash_pin_key(user_hash)], salt(9, 16)),
+    ).toBe("match");
+  });
+
+  it("does not seed after the account changes mid-request", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    h.account_id = "user-1";
+    h.get.mockImplementation(async () => {
+      h.account_id = "user-2";
+
+      return { data: { salt: array_to_base64(salt(4, 16)) } };
+    });
+
+    await seed_session_login_salt("user-1", EMAIL);
+
+    expect(
+      match_login_salt_record([user_hash_pin_key(user_hash)], salt(4, 16)),
+    ).toBe("none");
+  });
+
+  it("does not seed when the salt request fails", async () => {
+    h.account_id = "user-1";
+    h.get.mockResolvedValue({ error: "offline" });
+
+    await expect(
+      seed_session_login_salt("user-1", EMAIL),
+    ).resolves.toBeUndefined();
+    expect(
+      match_login_salt_record([user_id_pin_key("user-1")], salt(4, 16)),
+    ).toBe("none");
   });
 
   it("forgets recorded salts", () => {

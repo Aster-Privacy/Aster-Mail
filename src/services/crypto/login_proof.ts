@@ -525,7 +525,70 @@ export async function derive_current_account_proof(
 export async function record_current_account_login_salt(
   salt: Uint8Array,
 ): Promise<void> {
-  record_login_salt(await current_account_pin_keys(), salt);
+  const user_hash = await current_account_user_hash();
+
+  record_login_salt(
+    [
+      ...(await current_account_pin_keys()),
+      ...(user_hash ? [user_hash_pin_key(user_hash)] : []),
+    ],
+    salt,
+  );
+}
+
+interface SessionSaltResponse {
+  salt?: string;
+}
+
+export async function seed_session_login_salt(
+  user_id: string,
+  email: string,
+): Promise<void> {
+  if (!user_id || !email) {
+    return;
+  }
+
+  const pin_keys = [
+    user_id_pin_key(user_id),
+    user_hash_pin_key(await hash_email(email)),
+  ];
+  const recorded = new Set(
+    read_login_salt_records()
+      .map((entry) => entry.key)
+      .filter((key) => pin_keys.includes(key)),
+  );
+  const missing = pin_keys.filter((key) => !recorded.has(key));
+
+  if (missing.length === 0) {
+    return;
+  }
+
+  try {
+    const response = await api_client.get<SessionSaltResponse>(
+      "/crypto/v1/encryption/salt",
+      { skip_cache: true },
+    );
+
+    if (response.error || !response.data?.salt) {
+      return;
+    }
+
+    const salt = base64_to_array(response.data.salt);
+    const { get_current_account_id } =
+      await import("@/services/account_manager");
+
+    if ((await get_current_account_id()) !== user_id) {
+      return;
+    }
+
+    const still_missing = missing.filter(
+      (key) => match_login_salt_record([key], salt) === "none",
+    );
+
+    record_login_salt(still_missing, salt);
+  } catch {
+    return;
+  }
 }
 
 const PENDING_ENROLLMENT_TTL_MS = 15 * 60 * 1000;

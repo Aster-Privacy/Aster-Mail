@@ -47,7 +47,10 @@ import {
 import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
-import { remember_saved_login_accounts } from "@/services/crypto/login_proof";
+import {
+  remember_saved_login_accounts,
+  seed_session_login_salt,
+} from "@/services/crypto/login_proof";
 import {
   init_desktop_device_auth,
   forget_device_account,
@@ -533,6 +536,9 @@ export function use_auth_account_state() {
             safe_log_error(e);
           });
           backfill_user_profile(user);
+          seed_session_login_salt(user.id, user.email).catch((caught) =>
+            ignore_error("contexts/auth/use_auth_account_state:init", caught),
+          );
           ensure_default_labels(get_vault_from_memory(), t).catch(
             console.error,
           );
