@@ -22,7 +22,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { is_native_platform } from "@/native/capacitor_bridge";
 import { trigger_download } from "@/utils/download_blob";
-import { print_page_css } from "@/utils/print_page";
+import { print_document_in_page, print_page_css } from "@/utils/print_page";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 type Translator = (
@@ -233,49 +233,25 @@ export function print_recovery_codes(
     timeZone: get_display_time_zone(),
   });
 
-  const document_html = `<!doctype html><html><head><meta charset="utf-8"><title>${escape_html(
-    t("common.recovery_pdf_title"),
-  )}</title><style>
-    ${print_page_css("0.5in", "body")}
-    body { font-family: system-ui, sans-serif; color: #111; margin: 32px; }
-    h1 { font-size: 20px; margin: 0 0 4px; }
-    p { font-size: 12px; color: #444; margin: 2px 0; }
-    ul { list-style: none; padding: 0; margin: 20px 0 0; columns: 2; }
-    li { display: flex; gap: 8px; align-items: baseline; margin-bottom: 10px; break-inside: avoid; }
-    .n { font-size: 11px; color: #777; width: 20px; text-align: right; }
-    code { font-family: ui-monospace, monospace; font-size: 14px; letter-spacing: 0.04em; }
-  </style></head><body>
+  const root = "#aster-print-root";
+  const css = `
+    ${print_page_css("0.5in", root)}
+    ${root} { font-family: system-ui, sans-serif; color: #111; background: #fff; margin: 32px; }
+    ${root} h1 { font-size: 20px; margin: 0 0 4px; }
+    ${root} p { font-size: 12px; color: #444; margin: 2px 0; }
+    ${root} ul { list-style: none; padding: 0; margin: 20px 0 0; columns: 2; }
+    ${root} li { display: flex; gap: 8px; align-items: baseline; margin-bottom: 10px; break-inside: avoid; }
+    ${root} .n { font-size: 11px; color: #777; width: 20px; text-align: right; }
+    ${root} code { font-family: ui-monospace, monospace; font-size: 14px; letter-spacing: 0.04em; }
+  `;
+
+  const body_html = `
     <h1>${escape_html(t("common.recovery_pdf_title"))}</h1>
     <p>${escape_html(t("common.recovery_pdf_account"))} ${escape_html(email)}</p>
     <p>${escape_html(t("common.recovery_pdf_generated"))} ${escape_html(generated)}</p>
     <p>${escape_html(t("common.recovery_pdf_code_used_once"))}</p>
     <ul>${rows}</ul>
-  </body></html>`;
+  `;
 
-  const frame = document.createElement("iframe");
-
-  frame.setAttribute("aria-hidden", "true");
-  frame.style.position = "fixed";
-  frame.style.right = "0";
-  frame.style.bottom = "0";
-  frame.style.width = "0";
-  frame.style.height = "0";
-  frame.style.border = "0";
-  frame.srcdoc = document_html;
-
-  frame.onload = () => {
-    const view = frame.contentWindow;
-
-    if (!view) {
-      frame.remove();
-
-      return;
-    }
-
-    view.focus();
-    view.print();
-    window.setTimeout(() => frame.remove(), 1000);
-  };
-
-  document.body.appendChild(frame);
+  print_document_in_page(t("common.recovery_pdf_title"), body_html, css);
 }

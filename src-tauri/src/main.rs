@@ -377,6 +377,11 @@ fn set_content_protection(window: tauri::WebviewWindow, enabled: bool) -> std::r
         .map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+fn print_webview(window: tauri::WebviewWindow) -> std::result::Result<(), String> {
+    window.print().map_err(|e| e.to_string())
+}
+
 #[cfg(target_os = "macos")]
 fn open_in_default_handler(app: &tauri::AppHandle, url: String) {
     let _ = app.run_on_main_thread(move || {
@@ -645,6 +650,7 @@ fn main() {
             set_tray_tooltip,
             set_tray_labels,
             set_content_protection,
+            print_webview,
             open_external_url,
             downloads::open_download,
             downloads::reveal_download,

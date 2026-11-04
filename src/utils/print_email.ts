@@ -33,7 +33,7 @@ import { is_native_platform } from "@/native/capacitor_bridge";
 import { get_cached_preferences } from "@/services/api/preferences";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { strip_style_blocks } from "@/utils/strip_style_blocks";
-import { print_page_css } from "@/utils/print_page";
+import { print_page_css, run_web_print } from "@/utils/print_page";
 
 type Translator = (
   key: TranslationKey,
@@ -406,50 +406,6 @@ function build_print_body(
   <div class="ap-body">${formatted_body}</div>`;
 
   return html;
-}
-
-const PRINT_CLEANUP_FALLBACK_MS = 60000;
-const MENU_UNMOUNT_DELAY_MS = 120;
-
-function release_pointer_events_lock(): void {
-  if (document.body.style.pointerEvents !== "none") return;
-
-  const open_layer = document.querySelector(
-    '[data-radix-menu-content][data-state="open"], [role="dialog"][data-state="open"], [data-radix-popper-content-wrapper]',
-  );
-
-  if (open_layer) return;
-
-  document.body.style.removeProperty("pointer-events");
-  document.body.removeAttribute("data-scroll-locked");
-}
-
-function run_web_print(cleanup: () => void): void {
-  let finished = false;
-  let fallback_timer = 0;
-
-  const finish = () => {
-    if (finished) return;
-
-    finished = true;
-    window.removeEventListener("afterprint", finish);
-    if (fallback_timer) window.clearTimeout(fallback_timer);
-    cleanup();
-    window.setTimeout(release_pointer_events_lock, 0);
-  };
-
-  window.addEventListener("afterprint", finish);
-  fallback_timer = window.setTimeout(finish, PRINT_CLEANUP_FALLBACK_MS);
-
-  window.setTimeout(() => {
-    requestAnimationFrame(() => {
-      try {
-        window.print();
-      } catch {
-        finish();
-      }
-    });
-  }, MENU_UNMOUNT_DELAY_MS);
 }
 
 async function trigger_native_print(name: string): Promise<void> {
