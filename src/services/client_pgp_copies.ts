@@ -237,6 +237,28 @@ export async function build_client_pgp_copies(
   return build_copies_for(recipients, params);
 }
 
+function copy_failure(
+  explicit: boolean,
+  listed: boolean,
+  too_large: boolean,
+): undefined {
+  if (too_large ? listed : explicit) {
+    const errors = get_active_translations().errors;
+
+    throw create_error(
+      "encryption_failed",
+      too_large
+        ? errors.pgp_attachments_too_large.replace(
+            "{{size}}",
+            `${CLIENT_COPY_ATTACHMENT_LIMIT_MB} MB`,
+          )
+        : errors.failed_pgp_encrypt,
+    );
+  }
+
+  return undefined;
+}
+
 async function build_copies_for(
   recipients: string[],
   params: ClientPgpCopyParams,
@@ -249,9 +271,16 @@ async function build_copies_for(
     return undefined;
   }
 
+  const listed = recipients.some((recipient) =>
+    is_listed_pgp_recipient(params.pgp_recipients, recipient),
+  );
+  const explicit =
+    listed || params.force_pgp === true || params.require_encryption === true;
   const total_attachment_bytes = attachment_bytes(params.attachments);
 
-  if (total_attachment_bytes > MAX_COPY_ATTACHMENT_BYTES) return undefined;
+  if (total_attachment_bytes > MAX_COPY_ATTACHMENT_BYTES) {
+    return copy_failure(explicit, listed, true);
+  }
 
   let discovered: ExternalKeyInfo[] | undefined;
 
@@ -260,13 +289,13 @@ async function build_copies_for(
       recipients.map((r) => r.toLowerCase()),
     );
 
-    if (response.error) return undefined;
+    if (response.error) return copy_failure(explicit, listed, false);
     discovered = response.data;
   } catch {
-    return undefined;
+    return copy_failure(explicit, listed, false);
   }
 
-  if (!discovered) return undefined;
+  if (!discovered) return copy_failure(explicit, listed, false);
 
   const by_address = new Map<string, ExternalKeyInfo>();
 
@@ -291,7 +320,7 @@ async function build_copies_for(
         get_active_translations().errors.failed_pgp_encrypt,
       );
     }
-    if (decision !== "encrypt") return undefined;
+    if (decision !== "encrypt") return copy_failure(listed, listed, false);
     keys.push({ recipient, public_key: info!.public_key! });
   }
 
@@ -307,11 +336,15 @@ async function build_copies_for(
     const armored = await encrypt_entity_for(entity, public_key);
 
     if (!armored || !armored.includes("-----BEGIN PGP MESSAGE-----")) {
-      return undefined;
+      return copy_failure(explicit, listed, false);
     }
-    if (armored.length > per_copy_limit) return undefined;
+    if (armored.length > per_copy_limit) {
+      return copy_failure(explicit, listed, true);
+    }
     total_bytes += armored.length;
-    if (total_bytes > MAX_TOTAL_COPY_BYTES) return undefined;
+    if (total_bytes > MAX_TOTAL_COPY_BYTES) {
+      return copy_failure(explicit, listed, true);
+    }
     copies[recipient] = armored;
   }
 

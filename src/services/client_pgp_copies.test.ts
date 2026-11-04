@@ -256,12 +256,54 @@ describe("build_client_pgp_copies", () => {
 
   });
 
-  it("leaves encryption to the server when copies cannot be built", async () => {
+  it("refuses to fall back when discovery fails and the sender asked for encryption", async () => {
     discover.mockRejectedValue(new Error("offline"));
-    expect(
-      await build_client_pgp_copies(params({ require_encryption: true })),
-    ).toBeUndefined();
+    await expect(
+      build_client_pgp_copies(params({ require_encryption: true })),
+    ).rejects.toMatchObject({ type: "encryption_failed" });
+    await expect(
+      build_client_pgp_copies(params({ force_pgp: true })),
+    ).rejects.toMatchObject({ type: "encryption_failed" });
 
+    discover.mockResolvedValue({ data: [], error: "network" });
+    await expect(
+      build_client_pgp_copies(params({ require_encryption: true })),
+    ).rejects.toMatchObject({ type: "encryption_failed" });
+    await expect(
+      build_client_pgp_copies(
+        params({ pgp_recipients: ["pal@example.com"] }),
+      ),
+    ).rejects.toMatchObject({ type: "encryption_failed" });
+  });
+
+  it("refuses to fall back for a key that cannot encrypt when the sender asked for encryption", async () => {
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", {
+          public_key: "not a key",
+          private_key: "",
+        }),
+      ],
+    });
+    await expect(
+      build_client_pgp_copies(params({ force_pgp: true })),
+    ).rejects.toMatchObject({ type: "encryption_failed" });
+  });
+
+  it("refuses oversized attachments for a locked recipient", async () => {
+    await expect(
+      build_client_pgp_copies(
+        params({
+          pgp_recipients: ["pal@example.com"],
+          attachments: [attachment(12 * 1024 * 1024)],
+        }),
+      ),
+    ).rejects.toMatchObject({ type: "encryption_failed" });
+    expect(discover).not.toHaveBeenCalled();
+  });
+
+  it("leaves oversized attachments to the server when no recipient is locked", async () => {
     discover.mockReset();
     expect(
       await build_client_pgp_copies(
