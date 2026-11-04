@@ -280,4 +280,33 @@ describe("category_index build recovery", () => {
     expect(is_fully_built()).toBe(true);
     expect(is_build_in_progress()).toBe(false);
   });
+
+  it("a superseded build that settles late does not clear the newer build", async () => {
+    let settle_first: (value: unknown) => void = () => {};
+
+    list_mail_items.mockReturnValueOnce(
+      new Promise((resolve) => {
+        settle_first = resolve;
+      }),
+    );
+
+    await init_category_index();
+    await flush();
+    expect(is_build_in_progress()).toBe(true);
+
+    vi.setSystemTime(BASE_NOW + 91_000);
+    expect(is_build_stalled()).toBe(true);
+
+    list_mail_items.mockReturnValue(never_resolves());
+    void build_index();
+    await flush();
+    expect(is_build_in_progress()).toBe(true);
+    expect(is_build_stalled()).toBe(false);
+
+    settle_first(one_page());
+    await flush();
+
+    expect(is_build_in_progress()).toBe(true);
+    expect(is_fully_built()).toBe(false);
+  });
 });
