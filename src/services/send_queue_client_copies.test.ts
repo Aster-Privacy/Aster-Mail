@@ -99,6 +99,7 @@ vi.mock("./undo_send_manager", () => ({
 import { queue_email_to_server } from "./send_queue";
 import { execute_send } from "./send_queue_execute";
 import { create_sent_envelope } from "./send_queue_envelope";
+import { create_sent_envelope as create_queued_sent_envelope } from "./send_queue_encryption";
 
 function sent_request(): Record<string, unknown> {
   return h.queue_email.mock.calls[0]![0] as Record<string, unknown>;
@@ -364,13 +365,19 @@ describe("queue_email_to_server expiring messages", () => {
 
 describe("sent copy encryption evidence", () => {
   function evidence_arg(): unknown {
-    const calls = vi.mocked(create_sent_envelope).mock.calls;
+    const calls = [
+      ...vi.mocked(create_sent_envelope).mock.calls,
+      ...vi.mocked(create_queued_sent_envelope).mock.calls,
+    ];
 
-    return calls[calls.length - 1]![2];
+    expect(calls).toHaveLength(1);
+
+    return calls[0]![2];
   }
 
   beforeEach(() => {
     vi.mocked(create_sent_envelope).mockClear();
+    vi.mocked(create_queued_sent_envelope).mockClear();
     h.queue_email.mockReset();
     h.queue_email.mockResolvedValue({ queue_id: "q1" });
     h.send_simple.mockReset();
