@@ -53,7 +53,7 @@ import { open_external } from "@/utils/open_link";
 import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { show_special_offer } from "@/stores/special_offer_store";
 import { use_special_offer_status } from "@/stores/special_offer_status";
-import { is_special_offer_available } from "@/lib/special_offer";
+import { is_special_offer_pill_visible } from "@/lib/special_offer";
 
 const HELP_CENTER_URL = "https://astermail.org/help";
 const SUPPORT_ADDRESS = "hello@astermail.org";
@@ -132,9 +132,10 @@ function top_bar_base({
   const is_free_plan = plan_code === "free";
   const is_paid_plan = plan_code !== null && plan_code !== "free";
   const { status: special_offer_status } = use_special_offer_status();
-  const has_special_offer =
-    (special_offer_status?.available ?? false) &&
-    is_special_offer_available({ plan_code, is_dismissed: false });
+  const has_special_offer = is_special_offer_pill_visible(
+    special_offer_status,
+    plan_code,
+  );
   const navigate = useNavigate();
   const is_mounted = useRef(true);
   const [is_accounts_open, set_is_accounts_open] = useState(false);
@@ -398,7 +399,16 @@ function top_bar_base({
         </IconButton>
 
         {is_free_plan && has_special_offer && (
-          <Tooltip tip={t("settings.special_offer_subtitle")}>
+          <Tooltip
+            tip={
+              special_offer_status?.theme === "black_friday"
+                ? t("settings.special_offer_black_friday_title", {
+                    percent: String(special_offer_status.percent_off),
+                    months: String(special_offer_status.duration_months),
+                  })
+                : t("settings.special_offer_subtitle")
+            }
+          >
             <Button
               className="special_offer_pill hidden sm:inline-flex !h-9 !rounded-[var(--aster-radius-control)] !text-[14px] !font-medium !px-5 ms-1 gap-1.5"
               size="sm"

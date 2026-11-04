@@ -6349,6 +6349,13 @@ export const en: Translations = {
     special_offer_fine_print_year:
       "You pay {{offer_price}} for your first year. Your plan then renews at {{price}} per year until you cancel it in Settings.",
     special_offer_billing_period: "Billing period",
+    special_offer_black_friday_title: "Black Friday: {{percent}}% off for {{months}} months",
+    special_offer_black_friday_body: "Get {{percent}}% off any yearly plan, or any monthly plan except Star, for your first {{months}} months.",
+    special_offer_ends_in: "Ends in {{time}}",
+    special_offer_not_on_star_monthly: "Not available on Star monthly",
+    special_offer_renews_at: "Renews at {{price}} after {{months}} months",
+    special_offer_success_title_plan: "Thank you. You're on {{plan}}.",
+    special_offer_choose_plan: "Choose a plan",
     plan_billing_terms:
       "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
     upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",

@@ -5652,6 +5652,13 @@ export interface SettingsTranslations {
   special_offer_hero_duration_year: string;
   special_offer_fine_print_year: string;
   special_offer_billing_period: string;
+  special_offer_black_friday_title: string;
+  special_offer_black_friday_body: string;
+  special_offer_ends_in: string;
+  special_offer_not_on_star_monthly: string;
+  special_offer_renews_at: string;
+  special_offer_success_title_plan: string;
+  special_offer_choose_plan: string;
   plan_billing_terms: string;
   upgrade_offer_note: string;
   dns_records_for_domain: string;

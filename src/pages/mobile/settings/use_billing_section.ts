@@ -43,9 +43,6 @@ import {
 import { create_family_group } from "@/services/api/family";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
-import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
-import { special_offer_promo_code } from "@/lib/special_offer";
-import { refresh_special_offer_status } from "@/stores/special_offer_status";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import { type CancelStep } from "@/components/settings/billing/cancel_impact_step";
@@ -109,7 +106,6 @@ export function use_billing_section() {
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
-  const offer_checkout = use_special_offer_checkout(subscription?.plan.code);
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [history, set_history] = useState<BillingHistoryItem[]>([]);
   const [is_loading, set_is_loading] = useState(true);
@@ -877,23 +873,15 @@ export function use_billing_section() {
         return;
       }
 
-      const offer_applies =
-        (checkout_interval === "month" || checkout_interval === "year") &&
-        !!offer_checkout.plan_pricing(plan.code);
       const result = await start_hosted_checkout(
         plan.code,
         checkout_interval,
         preferred_currency,
         credit_cents,
-        offer_applies ? (special_offer_promo_code() ?? undefined) : undefined,
-        offer_applies || undefined,
       );
 
       if (!result.ok) {
         set_is_action_loading(false);
-        if (result.server_code === "SPECIAL_OFFER_UNAVAILABLE") {
-          void refresh_special_offer_status();
-        }
         show_toast(
           checkout_error_text(t, result.server_code),
           "error",
@@ -915,10 +903,8 @@ export function use_billing_section() {
     set_is_action_loading(true);
 
     try {
-      const response = await create_family_group(
-        tier_id,
-        billing_period === "yearly" ? "year" : "month",
-      );
+      const family_interval = billing_period === "yearly" ? "year" : "month";
+      const response = await create_family_group(tier_id, family_interval);
 
       if (response.data?.checkout_url) {
         await open_payment_url(response.data.checkout_url);
@@ -1189,11 +1175,13 @@ export function use_billing_section() {
 
     try {
       const origin = public_web_origin();
+      const family_success = `${origin}/?family=success`;
+      const family_cancel = `${origin}/?family=cancelled`;
       const res = await create_family_group(
         tier.id,
         card_interval,
-        `${origin}/?family=success`,
-        `${origin}/?family=cancelled`,
+        family_success,
+        family_cancel,
       );
       const checkout_url = res.data?.checkout_url;
 
@@ -1374,7 +1362,6 @@ export function use_billing_section() {
     handle_confirm_plan_change,
     crypto_term_prices_for,
     plan_term_options_for,
-    offer_checkout,
     handle_pay_with_crypto,
     handle_crypto_renew,
     handle_addon_pay_card,

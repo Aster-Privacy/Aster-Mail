@@ -4441,6 +4441,7 @@ html:not(.dark) .sender_logo_light > img {
 .special_offer_hero {
   position: relative;
   overflow: hidden;
+  container-type: inline-size;
   aspect-ratio: 5 / 2;
   background-color: #060a13;
   -webkit-user-select: none;
@@ -4592,6 +4593,103 @@ html:not(.dark) .sender_logo_light > img {
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-secondary);
+}
+
+.special_offer_hero_lockup {
+  position: absolute;
+  top: 22.3cqw;
+  left: 5.23cqw;
+  display: flex;
+  align-items: baseline;
+  gap: 1.05cqw;
+  white-space: nowrap;
+  transform: translateY(-100%) scale(var(--special_offer_hero_scale, 1));
+  transform-origin: 0 47%;
+  pointer-events: none;
+}
+
+.special_offer_hero_wordmark {
+  display: block;
+  width: 17.24cqw;
+  height: 4.45cqw;
+  -webkit-user-drag: none;
+}
+
+.special_offer_hero_plan {
+  color: #f1f4f6;
+  font-family: "Google Sans Flex", sans-serif;
+  font-size: 6.45cqw;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.special_offer_plans {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.special_offer_plan {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.special_offer_plan:hover {
+  border-color: color-mix(in srgb, var(--text-primary) 24%, transparent);
+}
+
+.special_offer_plan[data-selected] {
+  border-color: var(--accent-blue, #3b82f6);
+  background-color: color-mix(
+    in srgb,
+    var(--accent-blue, #3b82f6) 8%,
+    transparent
+  );
+}
+
+.special_offer_plan[data-disabled] {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.special_offer_plan[data-disabled]:hover {
+  border-color: var(--border-secondary);
+}
+
+.special_offer_plan:has(input:focus-visible) {
+  outline: 2px solid var(--accent-blue, #3b82f6);
+  outline-offset: 2px;
+}
+
+.special_offer_radio {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border: 1.5px solid color-mix(in srgb, var(--text-primary) 32%, transparent);
+  border-radius: 9999px;
+  background-color: var(--bg-primary);
+}
+
+.special_offer_plan[data-selected] .special_offer_radio {
+  border: 5px solid var(--accent-blue, #3b82f6);
+  background-color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .special_offer_plan {
+    transition: none;
+  }
 }
 
 .link_device_code_input {

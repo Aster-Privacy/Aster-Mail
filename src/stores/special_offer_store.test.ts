@@ -18,12 +18,31 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const first_run = vi.hoisted(() => ({ age: 1000 as number | null }));
+const offer_status = vi.hoisted(() => ({
+  state: { status: null, is_loaded: true, user_id: "u" } as {
+    status: { ends_at?: string | null } | null;
+    is_loaded: boolean;
+    user_id: string | null;
+  },
+}));
+
+vi.mock("@/lib/first_run", () => ({
+  first_run_age_ms: () => first_run.age,
+}));
+
+vi.mock("@/stores/special_offer_status", () => ({
+  get_special_offer_status_snapshot: () => offer_status.state,
+}));
 
 import {
+  can_auto_show_special_offer,
   can_show_special_offer,
   close_special_offer,
   get_special_offer_snapshot,
+  request_special_offer_checkout,
   show_special_offer,
 } from "./special_offer_store";
 
@@ -45,5 +64,54 @@ describe("special_offer_store auth route guard", () => {
     expect(can_show_special_offer()).toBe(false);
     expect(show_special_offer("auto")).toBe(false);
     expect(get_special_offer_snapshot().is_open).toBe(false);
+  });
+});
+
+describe("special_offer_store timed campaign", () => {
+  beforeEach(() => {
+    close_special_offer();
+    window.history.pushState({}, "", "/");
+    first_run.age = 1000;
+    offer_status.state.status = null;
+  });
+
+  it("keeps the post sign-up quiet period without ends_at", () => {
+    expect(can_auto_show_special_offer()).toBe(false);
+  });
+
+  it("skips the quiet period when ends_at is set", () => {
+    offer_status.state.status = { ends_at: "2026-12-02T07:59:59Z" };
+
+    expect(can_auto_show_special_offer()).toBe(true);
+  });
+
+  it("defaults checkout to year when ends_at is set", () => {
+    offer_status.state.status = { ends_at: "2026-12-02T07:59:59Z" };
+    request_special_offer_checkout();
+
+    expect(get_special_offer_snapshot().checkout_interval).toBe("year");
+  });
+
+  it("defaults checkout to month without ends_at", () => {
+    request_special_offer_checkout();
+
+    expect(get_special_offer_snapshot().checkout_interval).toBe("month");
+  });
+
+  it("carries the requested plan code and clears it on the next request", () => {
+    request_special_offer_checkout("year", "supernova");
+
+    expect(get_special_offer_snapshot().checkout_plan_code).toBe("supernova");
+
+    request_special_offer_checkout("year");
+
+    expect(get_special_offer_snapshot().checkout_plan_code).toBeNull();
+  });
+
+  it("honors an explicit interval", () => {
+    offer_status.state.status = { ends_at: "2026-12-02T07:59:59Z" };
+    request_special_offer_checkout("month");
+
+    expect(get_special_offer_snapshot().checkout_interval).toBe("month");
   });
 });

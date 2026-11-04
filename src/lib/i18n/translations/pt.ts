@@ -5505,6 +5505,13 @@ export const pt = {
     special_offer_fine_print_year:
       "Paga {{offer_price}} pelo primeiro ano. Depois, o seu plano é renovado a {{price}} por ano até o cancelar em Definições.",
     special_offer_billing_period: "Período de faturação",
+    special_offer_black_friday_title: "Black Friday: {{percent}}% de desconto durante {{months}} meses",
+    special_offer_black_friday_body: "Escolha qualquer plano anual, ou qualquer plano mensal exceto o Star, com {{percent}}% de desconto nos seus primeiros {{months}} meses.",
+    special_offer_ends_in: "Termina em {{time}}",
+    special_offer_not_on_star_monthly: "Não disponível no Star mensal",
+    special_offer_renews_at: "Renova por {{price}} após {{months}} meses",
+    special_offer_success_title_plan: "Obrigado. Já tem o {{plan}}.",
+    special_offer_choose_plan: "Escolha um plano",
     plan_billing_terms:
       "As subscrições são renovadas automaticamente ao preço normal até as cancelar. Cancele a qualquer momento em Definições.",
     upgrade_offer_note:

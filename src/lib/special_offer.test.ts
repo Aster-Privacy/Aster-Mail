@@ -23,9 +23,17 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import type { SpecialOfferStatus } from "@/services/api/offers";
+
 import {
   SPECIAL_OFFER_PERCENT_OFF,
+  offer_covers,
+  offer_covers_crypto_term,
+  offer_is_live,
+  offer_plan_codes,
+  offer_price_cents,
   is_special_offer_available,
+  is_special_offer_pill_visible,
   special_offer_checkout,
   special_offer_checkout_total_cents,
   special_offer_interval_months,
@@ -244,5 +252,199 @@ describe("special_offer_promo_code", () => {
     expect(source).not.toContain("location.search");
     expect(source).not.toContain("URLSearchParams");
     expect(special_offer_promo_code()).toBeNull();
+  });
+});
+
+const bf_terms = [
+  "star:year",
+  "nova:month",
+  "nova:year",
+  "supernova:month",
+  "supernova:year",
+  "duo:month",
+  "duo:year",
+  "family:month",
+  "family:year",
+];
+
+const bf_status: SpecialOfferStatus = {
+  available: true,
+  auto_show: true,
+  shown: false,
+  dismissed: false,
+  plan_code: "nova",
+  percent_off: 50,
+  duration_months: 12,
+  ends_at: "2026-12-02T07:59:59Z",
+  eligible_terms: bf_terms,
+  theme: "black_friday",
+};
+
+const legacy_status: SpecialOfferStatus = {
+  available: true,
+  auto_show: true,
+  shown: false,
+  dismissed: false,
+  plan_code: "nova",
+  percent_off: 50,
+  duration_months: 12,
+};
+
+describe("offer_covers", () => {
+  it("covers every Black Friday term except star monthly", () => {
+    expect(offer_covers(bf_status, "star", "month")).toBe(false);
+    expect(offer_covers(bf_status, "star", "year")).toBe(true);
+    expect(offer_covers(bf_status, "family", "month")).toBe(true);
+  });
+
+  it("falls back to nova only when eligible_terms is missing", () => {
+    expect(offer_covers(legacy_status, "nova", "year")).toBe(true);
+    expect(offer_covers(legacy_status, "nova", "month")).toBe(true);
+    expect(offer_covers(legacy_status, "supernova", "year")).toBe(false);
+  });
+
+  it("covers nothing without a status", () => {
+    expect(offer_covers(null, "nova", "month")).toBe(false);
+  });
+});
+
+describe("offer_covers_crypto_term", () => {
+  it("maps 12 months to year and 1 to 11 months to month", () => {
+    expect(offer_covers_crypto_term(bf_status, "star", 12)).toBe(true);
+    expect(offer_covers_crypto_term(bf_status, "star", 6)).toBe(false);
+    expect(offer_covers_crypto_term(bf_status, "duo", 6)).toBe(true);
+    expect(offer_covers_crypto_term(bf_status, "duo", 24)).toBe(false);
+    expect(offer_covers_crypto_term(bf_status, "duo", 0)).toBe(false);
+  });
+});
+
+describe("offer_price_cents", () => {
+  it("rounds like the server", () => {
+    expect(offer_price_cents(899, 50)).toBe(449);
+    expect(offer_price_cents(2899, 50)).toBe(1449);
+    expect(offer_price_cents(17399, 50)).toBe(8699);
+    expect(offer_price_cents(26399, 50)).toBe(13199);
+  });
+});
+
+describe("offer_is_live", () => {
+  it("is not live after ends_at", () => {
+    expect(offer_is_live(bf_status, new Date("2026-12-02T08:00:00Z"))).toBe(
+      false,
+    );
+    expect(offer_is_live(bf_status, new Date("2026-11-20T08:00:00Z"))).toBe(
+      true,
+    );
+  });
+
+  it("is live without ends_at and not live without a status", () => {
+    expect(offer_is_live(legacy_status, new Date("2030-01-01T00:00:00Z"))).toBe(
+      true,
+    );
+    expect(offer_is_live(null, new Date())).toBe(false);
+  });
+});
+
+describe("special_offer_checkout with a status", () => {
+  it("prices nothing once the offer window has closed", () => {
+    const expired = { ...bf_status, ends_at: "2020-01-01T00:00:00Z" };
+    const checkout = special_offer_checkout(true, expired);
+
+    expect(checkout.plan_pricing("nova")).toBeUndefined();
+    expect(checkout.crypto_price("nova")).toBeUndefined();
+  });
+
+  it("prices every covered plan and term", () => {
+    const checkout = special_offer_checkout(true, bf_status);
+
+    expect(
+      checkout
+        .plan_pricing("family")
+        ?.discounted_total_cents("card", "monthly", 2699),
+    ).toBe(1349);
+    expect(
+      checkout
+        .plan_pricing("star")
+        ?.discounted_total_cents("card", "monthly", 299),
+    ).toBeNull();
+    expect(
+      checkout
+        .plan_pricing("star")
+        ?.discounted_total_cents("card", "yearly", 2899),
+    ).toBe(1449);
+    expect(checkout.crypto_price("duo")?.(6, 7794)).toBe(3897);
+  });
+});
+
+describe("offer_plan_codes", () => {
+  it("lists covered plans in display order", () => {
+    expect(offer_plan_codes(bf_status)).toEqual([
+      "star",
+      "nova",
+      "supernova",
+      "duo",
+      "family",
+    ]);
+  });
+
+  it("lists only nova for a legacy status", () => {
+    expect(offer_plan_codes(legacy_status)).toEqual(["nova"]);
+  });
+
+  it("lists nothing without a status", () => {
+    expect(offer_plan_codes(null)).toEqual([]);
+  });
+});
+
+describe("special_offer_checkout covers", () => {
+  it("covers a term only when the status lists it", () => {
+    const checkout = special_offer_checkout(true, bf_status);
+
+    expect(checkout.covers("star", "month")).toBe(false);
+    expect(checkout.covers("star", "year")).toBe(true);
+    expect(checkout.covers("family", "year")).toBe(true);
+    expect(checkout.covers(null, "year")).toBe(false);
+  });
+
+  it("covers nothing when the offer is unavailable or expired", () => {
+    const expired = { ...bf_status, ends_at: "2020-01-01T00:00:00Z" };
+
+    expect(
+      special_offer_checkout(false, bf_status).covers("nova", "year"),
+    ).toBe(false);
+    expect(special_offer_checkout(true, expired).covers("nova", "year")).toBe(
+      false,
+    );
+  });
+});
+
+describe("special_offer_pricing for family plans", () => {
+  it("prices duo and family from the family tiers", () => {
+    expect(special_offer_pricing("year", "family")).not.toBeNull();
+    expect(special_offer_pricing("month", "duo")).not.toBeNull();
+  });
+
+  it("returns null for an unknown plan", () => {
+    expect(special_offer_pricing("month", "unknown")).toBeNull();
+  });
+});
+
+describe("is_special_offer_pill_visible", () => {
+  it("shows for a free user while the offer is live", () => {
+    expect(is_special_offer_pill_visible(bf_status, "free")).toBe(true);
+  });
+
+  it("hides once the offer window has closed", () => {
+    const expired = { ...bf_status, ends_at: "2020-01-01T00:00:00Z" };
+
+    expect(is_special_offer_pill_visible(expired, "free")).toBe(false);
+  });
+
+  it("hides for paid plans, unavailable offers, and a missing status", () => {
+    expect(is_special_offer_pill_visible(bf_status, "nova")).toBe(false);
+    expect(
+      is_special_offer_pill_visible({ ...bf_status, available: false }, "free"),
+    ).toBe(false);
+    expect(is_special_offer_pill_visible(null, "free")).toBe(false);
   });
 });

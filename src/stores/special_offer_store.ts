@@ -22,6 +22,7 @@ import { useSyncExternalStore } from "react";
 
 import { strip_account_prefix } from "@/lib/account_index_url";
 import { first_run_age_ms } from "@/lib/first_run";
+import { get_special_offer_status_snapshot } from "@/stores/special_offer_status";
 import { is_on_auth_route } from "@/stores/upgrade_store";
 
 const AUTO_SHOW_QUIET_AFTER_SIGN_UP_MS = 24 * 60 * 60 * 1000;
@@ -34,6 +35,7 @@ export interface SpecialOfferState {
   open_seq: number;
   checkout_seq: number;
   checkout_interval: "month" | "year";
+  checkout_plan_code: string | null;
 }
 
 const initial_state: SpecialOfferState = {
@@ -42,6 +44,7 @@ const initial_state: SpecialOfferState = {
   open_seq: 0,
   checkout_seq: 0,
   checkout_interval: "month",
+  checkout_plan_code: null,
 };
 
 let current: SpecialOfferState = initial_state;
@@ -77,6 +80,8 @@ function is_on_settings_route(): boolean {
 export function can_auto_show_special_offer(): boolean {
   if (!can_show_special_offer() || is_on_settings_route()) return false;
 
+  if (get_special_offer_status_snapshot().status?.ends_at) return true;
+
   const age = first_run_age_ms();
 
   return age === null || age >= AUTO_SHOW_QUIET_AFTER_SIGN_UP_MS;
@@ -95,15 +100,21 @@ export function show_special_offer(
 }
 
 export function request_special_offer_checkout(
-  interval: "month" | "year" = "month",
+  requested_interval?: "month" | "year",
+  requested_plan_code?: string | null,
 ): boolean {
   if (!can_show_special_offer()) return false;
+
+  const interval =
+    requested_interval ??
+    (get_special_offer_status_snapshot().status?.ends_at ? "year" : "month");
 
   current = {
     ...current,
     is_open: false,
     checkout_seq: current.checkout_seq + 1,
     checkout_interval: interval,
+    checkout_plan_code: requested_plan_code ?? null,
   };
   notify();
 

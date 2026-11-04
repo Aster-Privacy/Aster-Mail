@@ -5371,6 +5371,13 @@ export const tr = {
     special_offer_fine_print_year:
       "İlk yıl için {{offer_price}} ödersiniz. Ardından planınız, Ayarlar bölümünden iptal edene kadar yıllık {{price}} olarak yenilenir.",
     special_offer_billing_period: "Faturalandırma dönemi",
+    special_offer_black_friday_title: "Black Friday: {{months}} ay boyunca %{{percent}} indirim",
+    special_offer_black_friday_body: "Herhangi bir yıllık planı veya Star dışındaki herhangi bir aylık planı ilk {{months}} ay boyunca %{{percent}} indirimle alın.",
+    special_offer_ends_in: "{{time}} sonra sona erer",
+    special_offer_not_on_star_monthly: "Star aylık planında geçerli değildir",
+    special_offer_renews_at: "{{months}} ay sonra {{price}} fiyatıyla yenilenir",
+    special_offer_success_title_plan: "Teşekkürler. Artık {{plan}} kullanıyorsunuz.",
+    special_offer_choose_plan: "Plan seçin",
     plan_billing_terms:
       "Abonelikler, siz iptal edene kadar standart fiyattan otomatik olarak yenilenir. İstediğiniz zaman Ayarlar bölümünden iptal edebilirsiniz.",
     upgrade_offer_note: "%{{percent}} indiriminiz ödeme sırasında uygulanır.",

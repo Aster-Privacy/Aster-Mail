@@ -23,7 +23,13 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const show_offer_mock = vi.fn();
-let offer_status: { available: boolean } | null = null;
+let offer_status: {
+  available: boolean;
+  theme?: string;
+  ends_at?: string;
+  percent_off?: number;
+  duration_months?: number;
+} | null = null;
 let pricing_available = true;
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -32,6 +38,10 @@ vi.mock("@/lib/i18n/context", () => ({
 
 vi.mock("@/lib/special_offer", () => ({
   SPECIAL_OFFER_PERCENT_OFF: 50,
+  SPECIAL_OFFER_DURATION_MONTHS: 12,
+  offer_is_live: (status: { ends_at?: string } | null, now: Date) =>
+    !!status &&
+    (!status.ends_at || Date.parse(status.ends_at) >= now.getTime()),
   is_special_offer_available: ({ plan_code }: { plan_code: string | null }) =>
     plan_code === "free" && pricing_available,
 }));
@@ -44,9 +54,8 @@ vi.mock("@/stores/special_offer_status", () => ({
   use_special_offer_status: () => ({ status: offer_status, is_loaded: true }),
 }));
 
-const { SpecialOfferBillingCard } = await import(
-  "./special_offer_billing_card"
-);
+const { SpecialOfferBillingCard } =
+  await import("./special_offer_billing_card");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -93,6 +102,38 @@ describe("SpecialOfferBillingCard", () => {
     });
 
     expect(show_offer_mock).toHaveBeenCalledWith("manual");
+  });
+
+  it("shows the Black Friday copy and a countdown", async () => {
+    offer_status = {
+      available: true,
+      theme: "black_friday",
+      ends_at: "2099-12-02T07:59:59Z",
+      percent_off: 50,
+      duration_months: 12,
+    };
+    const node = await render_card("free");
+
+    expect(node.textContent).toContain(
+      "settings.special_offer_black_friday_title",
+    );
+    expect(node.textContent).toContain(
+      "settings.special_offer_black_friday_body",
+    );
+    expect(
+      node.querySelector('[data-testid="offer_countdown"]'),
+    ).not.toBeNull();
+  });
+
+  it("stays hidden after the offer has ended", async () => {
+    offer_status = {
+      available: true,
+      theme: "black_friday",
+      ends_at: "2020-01-01T00:00:00Z",
+    };
+    const node = await render_card("free");
+
+    expect(node.innerHTML).toBe("");
   });
 
   it("stays hidden for a paid plan", async () => {

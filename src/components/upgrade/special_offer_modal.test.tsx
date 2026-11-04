@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SpecialOfferStatus } from "@/services/api/offers";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -29,11 +31,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const h = vi.hoisted(() => ({
   status: {
-    status: null as {
-      available: boolean;
-      auto_show: boolean;
-      dismissed: boolean;
-    } | null,
+    status: null as Partial<SpecialOfferStatus> | null,
     is_loaded: false,
   },
 }));
@@ -54,22 +52,52 @@ vi.mock("@/hooks/use_plan_limits", () => ({
   use_plan_limits: () => ({ plan_code: "free", refresh: vi.fn() }),
 }));
 
-vi.mock("@/hooks/use_special_offer_checkout", () => ({
-  use_special_offer_checkout: () => ({
-    plan_pricing: () => null,
-    percent_off: 50,
-    crypto_price: () => null,
-  }),
+vi.mock("@/hooks/use_special_offer_checkout", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/special_offer")>(
+    "@/lib/special_offer",
+  );
+
+  return {
+    use_special_offer_checkout: () =>
+      actual.special_offer_checkout(
+        true,
+        h.status.status as SpecialOfferStatus | null,
+      ),
+  };
+});
+
+vi.mock("@/components/toast/simple_toast", () => ({
+  show_toast: vi.fn(),
 }));
 
 vi.mock("@/services/api/billing", () => ({
   format_price: (cents: number) => String(cents),
-  start_hosted_checkout: vi.fn(),
+  start_hosted_checkout: vi.fn(async () => ({
+    ok: false,
+    server_code: "TEST",
+  })),
+  remember_checkout_target: vi.fn(),
   get_currency_rates: vi.fn(async () => ({ data: null })),
 }));
 
+vi.mock("@/services/api/family", () => ({
+  create_family_group: vi.fn(async () => ({ data: null, server_code: "TEST" })),
+}));
+
 vi.mock("@/components/settings/billing/plan_payment_method_modal", () => ({
-  PlanPaymentMethodModal: () => null,
+  PlanPaymentMethodModal: (props: {
+    open: boolean;
+    on_choose_card: () => void;
+  }) =>
+    props.open ? (
+      <button
+        data-testid="pay_card"
+        type="button"
+        onClick={props.on_choose_card}
+      >
+        card
+      </button>
+    ) : null,
 }));
 
 vi.mock("@/components/settings/billing/crypto_term_modal", () => ({
@@ -78,6 +106,7 @@ vi.mock("@/components/settings/billing/crypto_term_modal", () => ({
 
 vi.mock("@/stores/special_offer_status", () => ({
   use_special_offer_status: () => h.status,
+  get_special_offer_status_snapshot: () => h.status,
   claim_special_offer_slot: vi.fn(async () => false),
   get_special_offer_generation: () => 0,
   record_special_offer_accepted: vi.fn(),
@@ -87,8 +116,11 @@ vi.mock("@/stores/special_offer_status", () => ({
 
 import { SpecialOfferModal } from "./special_offer_modal";
 
+import { create_family_group } from "@/services/api/family";
+import { start_hosted_checkout } from "@/services/api/billing";
 import {
   close_special_offer,
+  request_special_offer_checkout,
   get_special_offer_snapshot,
   show_special_offer,
 } from "@/stores/special_offer_store";
@@ -166,5 +198,215 @@ describe("SpecialOfferModal mounted by a manual open", () => {
     });
 
     expect(get_special_offer_snapshot().is_open).toBe(false);
+  });
+});
+
+const BLACK_FRIDAY_STATUS: Partial<SpecialOfferStatus> = {
+  available: true,
+  auto_show: false,
+  shown: false,
+  dismissed: false,
+  plan_code: "nova",
+  percent_off: 50,
+  duration_months: 12,
+  ends_at: "2099-12-02T07:59:59Z",
+  theme: "black_friday",
+  eligible_terms: [
+    "star:year",
+    "nova:month",
+    "nova:year",
+    "supernova:month",
+    "supernova:year",
+    "duo:month",
+    "duo:year",
+    "family:month",
+    "family:year",
+  ],
+};
+
+function click_button_with_text(text: string) {
+  const button = Array.from(document.body.querySelectorAll("button")).find(
+    (candidate) => candidate.textContent === text,
+  );
+
+  if (!button) throw new Error(`no button with text ${text}`);
+
+  return act(async () => {
+    button.click();
+  });
+}
+
+function plan_inputs(): HTMLInputElement[] {
+  return Array.from(
+    document.body.querySelectorAll<HTMLInputElement>(
+      'input[name="special_offer_plan"]',
+    ),
+  );
+}
+
+function plan_input(code: string): HTMLInputElement {
+  const input = plan_inputs().find((candidate) => candidate.value === code);
+
+  if (!input) throw new Error(`no plan option ${code}`);
+
+  return input;
+}
+
+function choose_plan(code: string) {
+  return act(async () => {
+    plan_input(code).click();
+  });
+}
+
+function hero_text(): string {
+  return (
+    document.body.querySelector(".special_offer_hero_plan")?.textContent ?? ""
+  );
+}
+
+describe("SpecialOfferModal under the Black Friday offer", () => {
+  beforeEach(() => {
+    close_special_offer();
+    window.history.pushState({}, "", "/");
+    vi.mocked(start_hosted_checkout).mockClear();
+    vi.mocked(create_family_group).mockClear();
+    h.status = { status: BLACK_FRIDAY_STATUS, is_loaded: true };
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+    close_special_offer();
+  });
+
+  it("lists Star, Nova, Supernova, Duo, and Family", async () => {
+    await open_then_mount();
+
+    expect(plan_inputs().map((input) => input.value)).toEqual([
+      "star",
+      "nova",
+      "supernova",
+      "duo",
+      "family",
+    ]);
+    expect(plan_input("nova").checked).toBe(true);
+    expect(document.body.textContent).toContain(
+      "settings.special_offer_black_friday_title",
+    );
+  });
+
+  it("opens on the yearly price", async () => {
+    await open_then_mount();
+
+    expect(document.body.textContent).toContain("4349");
+    expect(document.body.textContent).toContain("8699");
+  });
+
+  it("names the selected plan in the hero", async () => {
+    await open_then_mount();
+
+    expect(hero_text()).toBe("Nova");
+
+    await choose_plan("supernova");
+
+    expect(hero_text()).toBe("Supernova");
+    expect(plan_input("supernova").checked).toBe(true);
+  });
+
+  it("disables Star on monthly and moves the choice to a covered plan", async () => {
+    await open_then_mount();
+    await choose_plan("star");
+    await click_button_with_text("settings.billing_monthly");
+
+    expect(plan_input("star").disabled).toBe(true);
+    expect(plan_input("nova").checked).toBe(true);
+    expect(hero_text()).toBe("Nova");
+    expect(document.body.textContent).toContain(
+      "settings.special_offer_not_on_star_monthly",
+    );
+    expect(document.body.textContent).toContain("settings.special_offer_cta");
+  });
+
+  it("shows the monthly offer and list prices for each plan", async () => {
+    await open_then_mount();
+    await click_button_with_text("settings.billing_monthly");
+
+    expect(document.body.textContent).toContain("449");
+    expect(document.body.textContent).toContain("899");
+    expect(document.body.textContent).toContain("1349");
+    expect(document.body.textContent).toContain("2699");
+  });
+
+  it("shows no offer button when no plan is covered on that term", async () => {
+    h.status = {
+      status: {
+        ...BLACK_FRIDAY_STATUS,
+        eligible_terms: ["star:year", "nova:year", "duo:year"],
+      },
+      is_loaded: true,
+    };
+    await open_then_mount();
+    await choose_plan("duo");
+    await click_button_with_text("settings.billing_monthly");
+
+    expect(plan_input("duo").disabled).toBe(true);
+    expect(plan_input("duo").checked).toBe(true);
+    expect(document.body.textContent).not.toContain(
+      "settings.special_offer_cta",
+    );
+  });
+
+  it("starts card checkout for Supernova yearly with the offer flag", async () => {
+    await open_then_mount();
+    await act(async () => {
+      request_special_offer_checkout("year", "supernova");
+    });
+    await click_button_with_text("card");
+
+    expect(start_hosted_checkout).toHaveBeenCalledWith(
+      "supernova",
+      "year",
+      expect.any(String),
+      undefined,
+      undefined,
+      true,
+    );
+  });
+
+  it("starts family checkout for Family yearly with the offer flag", async () => {
+    await open_then_mount();
+    await act(async () => {
+      request_special_offer_checkout("year", "family");
+    });
+    await click_button_with_text("card");
+
+    expect(create_family_group).toHaveBeenCalledWith(
+      "family",
+      "year",
+      expect.any(String),
+      expect.any(String),
+      undefined,
+      true,
+    );
+    expect(start_hosted_checkout).not.toHaveBeenCalled();
+  });
+
+  it("does not send the offer flag for Star monthly", async () => {
+    await open_then_mount();
+    await act(async () => {
+      request_special_offer_checkout("month", "star");
+    });
+    await click_button_with_text("card");
+
+    expect(start_hosted_checkout).toHaveBeenCalledWith(
+      "star",
+      "month",
+      expect.any(String),
+      undefined,
+      undefined,
+      undefined,
+    );
   });
 });

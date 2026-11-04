@@ -32,10 +32,16 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { use_i18n } from "@/lib/i18n/context";
-import { format_price, start_hosted_checkout } from "@/services/api/billing";
+import {
+  format_price,
+  remember_checkout_target,
+  start_hosted_checkout,
+} from "@/services/api/billing";
+import { create_family_group } from "@/services/api/family";
 import { is_tauri_env } from "@/services/api/client/helpers";
 import { request_cache } from "@/services/api/request_cache";
 import {
+  FAMILY_PLAN_TIERS,
   PLAN_TIERS,
   convert_cents,
   detect_currency_from_locale,
@@ -44,6 +50,7 @@ import { use_currency_rates } from "@/components/settings/billing/use_currency_r
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { Segmented } from "@/components/settings/billing/plan_card";
+import { OfferCountdown } from "@/components/upgrade/offer_countdown";
 import { SpecialOfferFeatureList } from "@/components/upgrade/special_offer_success_modal";
 import {
   SPECIAL_OFFER_DURATION_MONTHS,
@@ -51,6 +58,7 @@ import {
   SPECIAL_OFFER_PLAN_CODE,
   type SpecialOfferInterval,
   is_special_offer_active,
+  offer_plan_codes,
   special_offer_discounted_cents,
   special_offer_interval_months,
   special_offer_pricing,
@@ -58,6 +66,7 @@ import {
   special_offer_promo_code,
 } from "@/lib/special_offer";
 import special_offer_hero_url from "@/assets/special_offer_hero.webp";
+import { SpecialOfferHeroLockup } from "@/components/upgrade/special_offer_hero_lockup";
 import {
   can_auto_show_special_offer,
   close_special_offer,
@@ -78,6 +87,64 @@ const AUTO_SHOW_RETRY_MS = 4000;
 
 type checkout_step = "method" | "crypto" | null;
 
+const BLACK_FRIDAY_THEME = "black_friday";
+
+function find_plan_tier(code: string) {
+  return (
+    PLAN_TIERS.find((tier) => tier.id === code) ??
+    FAMILY_PLAN_TIERS.find((tier) => tier.id === code)
+  );
+}
+
+interface OfferCheckoutResult {
+  ok: boolean;
+  server_code?: string;
+}
+
+async function start_offer_family_checkout(
+  plan_code: string,
+  interval: SpecialOfferInterval,
+  special_offer: boolean,
+  promo_code: string | undefined,
+): Promise<OfferCheckoutResult> {
+  try {
+    const is_tauri = is_tauri_env();
+    const origin = is_tauri
+      ? "https://app.astermail.org"
+      : window.location.origin;
+
+    const response = await create_family_group(
+      plan_code,
+      interval,
+      `${origin}/?family=success`,
+      `${origin}/?family=cancelled`,
+      promo_code,
+      special_offer || undefined,
+    );
+    const checkout_url = response.data?.checkout_url;
+
+    if (!checkout_url) return { ok: false, server_code: response.server_code };
+
+    const parsed = new URL(checkout_url);
+
+    if (parsed.protocol !== "https:") return { ok: false };
+
+    remember_checkout_target(plan_code, interval, special_offer);
+
+    if (is_tauri) {
+      const core = await import("@tauri-apps/api/core");
+
+      await core.invoke("open_external_url", { url: parsed.toString() });
+    } else {
+      window.location.href = parsed.toString();
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false };
+  }
+}
+
 function is_another_dialog_open(): boolean {
   if (typeof document === "undefined") return false;
 
@@ -88,12 +155,15 @@ export function SpecialOfferModal() {
   const { t } = use_i18n();
   const { status, is_loaded } = use_special_offer_status();
   const offer_checkout = use_special_offer_checkout();
-  const { is_open, checkout_seq, checkout_interval } =
+  const { is_open, checkout_seq, checkout_interval, checkout_plan_code } =
     use_special_offer_state();
   const { is_authenticated, user } = use_auth();
   const { plan_code, refresh: refresh_plan_limits } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
-  const [interval, set_interval] = useState<SpecialOfferInterval>("month");
+  const [interval_choice, set_interval] = useState<SpecialOfferInterval | null>(
+    null,
+  );
+  const [plan_choice, set_plan_choice] = useState<string | null>(null);
   const [is_accepting, set_is_accepting] = useState(false);
   const [is_hero_loaded, set_is_hero_loaded] = useState(false);
   const [step, set_step] = useState<checkout_step>(null);
@@ -117,6 +187,18 @@ export function SpecialOfferModal() {
     is_loaded,
     plan_code,
   });
+  const eligible_terms_key = status?.eligible_terms?.join(",") ?? "";
+  const plan_codes = useMemo(() => offer_plan_codes(status), [status]);
+  const default_plan_code =
+    status?.plan_code && plan_codes.includes(status.plan_code)
+      ? status.plan_code
+      : (plan_codes[0] ?? SPECIAL_OFFER_PLAN_CODE);
+  const selected_plan =
+    plan_choice && plan_codes.includes(plan_choice)
+      ? plan_choice
+      : default_plan_code;
+  const interval: SpecialOfferInterval =
+    interval_choice ?? (status?.ends_at ? "year" : "month");
   const was_offer_active_ref = useRef(is_offer_active);
   const previous_user_id_ref = useRef(user_id);
 
@@ -170,8 +252,9 @@ export function SpecialOfferModal() {
 
     opened_from_popup_ref.current = false;
     set_interval(checkout_interval);
+    set_plan_choice(checkout_plan_code);
     set_step("method");
-  }, [checkout_seq, checkout_interval, is_offer_active]);
+  }, [checkout_seq, checkout_interval, checkout_plan_code, is_offer_active]);
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
@@ -186,7 +269,21 @@ export function SpecialOfferModal() {
     }
 
     if (hero_ref.current?.complete) set_is_hero_loaded(true);
+
+    if (opened_from_popup_ref.current) {
+      opened_from_popup_ref.current = false;
+
+      return;
+    }
+
+    set_plan_choice(null);
+    set_interval(null);
   }, [is_open]);
+
+  useEffect(() => {
+    set_plan_choice(null);
+    set_interval(null);
+  }, [eligible_terms_key]);
 
   useEffect(() => {
     if (!can_auto_show) return;
@@ -213,20 +310,64 @@ export function SpecialOfferModal() {
     };
   }, [can_auto_show, user_id]);
 
-  const pricing = useMemo(() => special_offer_pricing(interval), [interval]);
+  const percent_off = status?.percent_off ?? SPECIAL_OFFER_PERCENT_OFF;
+  const duration_months =
+    status?.duration_months ?? SPECIAL_OFFER_DURATION_MONTHS;
+  const pricing = useMemo(
+    () => special_offer_pricing(interval, selected_plan, percent_off),
+    [interval, selected_plan, percent_off],
+  );
   const promo_code = useMemo(() => special_offer_promo_code(), []);
   const offer_tier = useMemo(
-    () => PLAN_TIERS.find((tier) => tier.id === SPECIAL_OFFER_PLAN_CODE),
-    [],
+    () => find_plan_tier(selected_plan),
+    [selected_plan],
   );
 
   if (!pricing || !offer_tier) return null;
 
   const is_yearly = interval === "year";
   const term_id = is_yearly ? "yearly" : "monthly";
+  const is_black_friday = status?.theme === BLACK_FRIDAY_THEME;
+  const is_family_plan = selected_plan === "duo" || selected_plan === "family";
+  const is_covered = offer_checkout.covers(selected_plan, interval);
+  const is_plan_list = plan_codes.length > 1;
+
+  const change_interval = (next: SpecialOfferInterval) => {
+    set_interval(next);
+    if (offer_checkout.covers(selected_plan, next)) return;
+
+    const fallback = plan_codes.find((code) =>
+      offer_checkout.covers(code, next),
+    );
+
+    if (fallback) set_plan_choice(fallback);
+  };
+
+  const plan_price_labels = (code: string, covered: boolean) => {
+    const row_pricing = special_offer_pricing(interval, code, percent_off);
+
+    if (!row_pricing) return null;
+
+    const list_cents = convert_cents(row_pricing.list_cents, currency);
+
+    return {
+      offer: format_price(
+        covered
+          ? special_offer_discounted_cents(list_cents, percent_off)
+          : list_cents,
+        currency,
+      ),
+      list: format_price(list_cents, currency),
+    };
+  };
 
   const offer_label = format_price(
-    special_offer_discounted_cents(convert_cents(pricing.list_cents, currency)),
+    is_covered
+      ? special_offer_discounted_cents(
+          convert_cents(pricing.list_cents, currency),
+          percent_off,
+        )
+      : convert_cents(pricing.list_cents, currency),
     currency,
   );
   const list_label = format_price(
@@ -266,14 +407,21 @@ export function SpecialOfferModal() {
     set_is_starting_checkout(true);
 
     try {
-      const result = await start_hosted_checkout(
-        SPECIAL_OFFER_PLAN_CODE,
-        interval,
-        currency,
-        undefined,
-        promo_code ?? undefined,
-        true,
-      );
+      const result: OfferCheckoutResult = is_family_plan
+        ? await start_offer_family_checkout(
+            selected_plan,
+            interval,
+            is_covered,
+            promo_code ?? undefined,
+          )
+        : await start_hosted_checkout(
+            selected_plan,
+            interval,
+            currency,
+            undefined,
+            promo_code ?? undefined,
+            is_covered || undefined,
+          );
 
       if (!result.ok) {
         const offer_gone = result.server_code === "SPECIAL_OFFER_UNAVAILABLE";
@@ -337,20 +485,24 @@ export function SpecialOfferModal() {
       <PlanPaymentMethodModal
         busy={is_starting_checkout}
         card_currency={currency}
-        discount_duration_months={SPECIAL_OFFER_DURATION_MONTHS}
-        discount_percent_off={SPECIAL_OFFER_PERCENT_OFF}
+        discount_duration_months={duration_months}
+        discount_percent_off={percent_off}
         on_choose_card={() => void pay_with_card()}
         on_choose_crypto={pay_with_crypto}
         on_close={close_method_step}
         open={step === "method"}
         plan_name={offer_tier.name}
         selected_term={term_id}
-        special_offer={offer_checkout.plan_pricing(SPECIAL_OFFER_PLAN_CODE)}
+        special_offer={
+          is_covered ? offer_checkout.plan_pricing(selected_plan) : undefined
+        }
         term_options={[
           {
             id: term_id,
             label: t(
-              is_yearly ? "settings.billing_yearly" : "settings.billing_monthly",
+              is_yearly
+                ? "settings.billing_yearly"
+                : "settings.billing_monthly",
             ),
             per_month_cents: Math.round(
               pricing.list_cents / special_offer_interval_months(interval),
@@ -363,15 +515,13 @@ export function SpecialOfferModal() {
       <CryptoTermModal
         special_offer
         discount_percent_off={offer_checkout.percent_off}
-        discounted_price_cents={offer_checkout.crypto_price(
-          SPECIAL_OFFER_PLAN_CODE,
-        )}
+        discounted_price_cents={offer_checkout.crypto_price(selected_plan)}
         initial_term_months={special_offer_interval_months(interval)}
         is_open={step === "crypto"}
         monthly_price_cents={offer_tier.monthly_cents}
         on_checkout_opened={handle_crypto_checkout_opened}
         on_close={close_crypto_step}
-        plan_code={SPECIAL_OFFER_PLAN_CODE}
+        plan_code={selected_plan}
         plan_name={offer_tier.name}
         preferred_currency={currency}
         promo_code={promo_code}
@@ -401,6 +551,7 @@ export function SpecialOfferModal() {
             onError={() => set_is_hero_loaded(true)}
             onLoad={() => set_is_hero_loaded(true)}
           />
+          <SpecialOfferHeroLockup plan_name={offer_tier.name} />
         </div>
 
         <button
@@ -414,16 +565,38 @@ export function SpecialOfferModal() {
 
         <div className="px-6 pb-6 pt-5">
           <ModalTitle className="text-[22px] font-semibold leading-[1.2] tracking-[-0.015em] text-txt-primary">
-            {t("settings.special_offer_title")}
+            {is_black_friday
+              ? t("settings.special_offer_black_friday_title", {
+                  percent: String(percent_off),
+                  months: String(duration_months),
+                })
+              : t("settings.special_offer_title")}
           </ModalTitle>
+
+          {is_black_friday && (
+            <>
+              <p className="mt-2 text-[13px] leading-relaxed text-txt-secondary">
+                {t("settings.special_offer_black_friday_body", {
+                  percent: String(percent_off),
+                  months: String(duration_months),
+                })}
+              </p>
+              {status?.ends_at && (
+                <OfferCountdown
+                  class_name="mt-2 block text-[12px] font-medium text-txt-tertiary"
+                  ends_at={status.ends_at}
+                />
+              )}
+            </>
+          )}
 
           <div
             aria-label={t("settings.special_offer_billing_period")}
-            className="mt-4 w-56"
+            className={is_plan_list ? "mt-5" : "mt-4 w-56"}
             role="group"
           >
             <Segmented
-              on_change={set_interval}
+              on_change={change_interval}
               options={[
                 { id: "month", label: t("settings.billing_monthly") },
                 { id: "year", label: t("settings.billing_yearly") },
@@ -432,31 +605,100 @@ export function SpecialOfferModal() {
             />
           </div>
 
-          <div className="mt-4 flex items-baseline gap-2.5">
-            <span className="text-[32px] font-semibold leading-none tracking-[-0.025em] text-txt-primary">
-              {offer_label}
-            </span>
-            <span className="text-[13px] font-medium text-txt-secondary">
-              {t(
-                is_yearly
-                  ? "settings.special_offer_price_period_year"
-                  : "settings.special_offer_price_period",
-              )}
-            </span>
-            <span className="text-[15px] font-medium text-txt-tertiary line-through">
-              {list_label}
-            </span>
-          </div>
+          {is_plan_list ? (
+            <div
+              aria-label={t("settings.special_offer_choose_plan")}
+              className="special_offer_plans"
+              role="radiogroup"
+            >
+              {plan_codes.map((code) => {
+                const tier = find_plan_tier(code);
+                const covered = offer_checkout.covers(code, interval);
+                const labels = plan_price_labels(code, covered);
+                const is_selected = code === selected_plan;
+                const is_star_monthly = code === "star" && interval === "month";
 
-          <p className="mt-1.5 mb-4 text-[13px] font-medium text-txt-secondary">
-            {is_yearly
-              ? t("settings.special_offer_hero_duration_year")
-              : t("settings.special_offer_hero_duration", {
-                  months: String(SPECIAL_OFFER_DURATION_MONTHS),
-                })}
-          </p>
-
-          <SpecialOfferFeatureList />
+                return (
+                  <label
+                    key={code}
+                    className="special_offer_plan"
+                    data-disabled={!covered || undefined}
+                    data-selected={is_selected || undefined}
+                  >
+                    <input
+                      checked={is_selected}
+                      className="sr-only"
+                      disabled={!covered}
+                      name="special_offer_plan"
+                      type="radio"
+                      value={code}
+                      onChange={() => set_plan_choice(code)}
+                    />
+                    <span aria-hidden="true" className="special_offer_radio" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[14px] font-semibold leading-5 text-txt-primary">
+                        {tier?.name ?? code}
+                      </span>
+                      {is_star_monthly && (
+                        <span className="block text-[12px] leading-4 text-txt-tertiary">
+                          {t("settings.special_offer_not_on_star_monthly")}
+                        </span>
+                      )}
+                    </span>
+                    {labels && (
+                      <span className="flex shrink-0 items-baseline gap-2">
+                        {covered && (
+                          <span className="text-[12px] text-txt-tertiary line-through">
+                            {labels.list}
+                          </span>
+                        )}
+                        <span className="text-[14px] font-semibold text-txt-primary">
+                          {labels.offer}
+                          <span className="text-[12px] font-medium text-txt-tertiary">
+                            {t(
+                              is_yearly
+                                ? "settings.per_year_short"
+                                : "settings.per_month_short",
+                            )}
+                          </span>
+                        </span>
+                      </span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          ) : (
+            <>
+              <div className="mt-4 flex items-baseline gap-2.5">
+                <span className="text-[32px] font-semibold leading-none tracking-[-0.025em] text-txt-primary">
+                  {offer_label}
+                </span>
+                <span className="text-[13px] font-medium text-txt-secondary">
+                  {t(
+                    is_yearly
+                      ? "settings.special_offer_price_period_year"
+                      : "settings.special_offer_price_period",
+                  )}
+                </span>
+                {is_covered && (
+                  <span className="text-[15px] font-medium text-txt-tertiary line-through">
+                    {list_label}
+                  </span>
+                )}
+              </div>
+              <p className="mt-1.5 mb-4 text-[13px] font-medium text-txt-secondary">
+                {is_covered
+                  ? is_yearly
+                    ? t("settings.special_offer_hero_duration_year")
+                    : t("settings.special_offer_hero_duration", {
+                        months: String(duration_months),
+                      })
+                  : null}
+              </p>
+              <SpecialOfferFeatureList />
+            </>
+          )}
 
           <div className="mt-4">
             <button
@@ -483,30 +725,39 @@ export function SpecialOfferModal() {
             )}
           </div>
 
-          <Button
-            className="mt-5 w-full !h-11 !text-[15px] !font-semibold"
-            disabled={!is_hero_loaded || is_accepting}
-            is_loading={!is_hero_loaded || is_accepting}
-            variant="depth"
-            onClick={() => void accept()}
-          >
-            {t("settings.special_offer_cta", {
-              percent: String(SPECIAL_OFFER_PERCENT_OFF),
-            })}
-          </Button>
+          {is_covered && (
+            <Button
+              className="mt-5 w-full !h-11 !text-[15px] !font-semibold"
+              disabled={!is_hero_loaded || is_accepting}
+              is_loading={!is_hero_loaded || is_accepting}
+              variant="depth"
+              onClick={() => void accept()}
+            >
+              {t("settings.special_offer_cta", {
+                percent: String(percent_off),
+              })}
+            </Button>
+          )}
 
-          <p className="mt-4 text-center text-[12px] leading-relaxed text-txt-tertiary">
-            {t(
-              is_yearly
-                ? "settings.special_offer_fine_print_year"
-                : "settings.special_offer_fine_print",
-              {
-                offer_price: offer_label,
-                price: list_label,
-                months: String(SPECIAL_OFFER_DURATION_MONTHS),
-              },
-            )}
-          </p>
+          {is_covered && (
+            <p className="mt-4 text-center text-[12px] leading-relaxed text-txt-tertiary">
+              {is_black_friday
+                ? t("settings.special_offer_renews_at", {
+                    price: list_label,
+                    months: String(duration_months),
+                  })
+                : t(
+                    is_yearly
+                      ? "settings.special_offer_fine_print_year"
+                      : "settings.special_offer_fine_print",
+                    {
+                      offer_price: offer_label,
+                      price: list_label,
+                      months: String(duration_months),
+                    },
+                  )}
+            </p>
+          )}
 
           <button
             className="mt-3.5 w-full text-center text-[12px] text-txt-secondary underline underline-offset-2 transition-colors hover:text-txt-primary disabled:pointer-events-none disabled:opacity-50"

@@ -22,9 +22,12 @@ import { SparklesIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { BillingNotice } from "@/components/settings/billing/billing_layout";
+import { OfferCountdown } from "@/components/upgrade/offer_countdown";
 import {
+  SPECIAL_OFFER_DURATION_MONTHS,
   SPECIAL_OFFER_PERCENT_OFF,
   is_special_offer_available,
+  offer_is_live,
 } from "@/lib/special_offer";
 import { show_special_offer } from "@/stores/special_offer_store";
 import { use_special_offer_status } from "@/stores/special_offer_status";
@@ -43,16 +46,31 @@ export function SpecialOfferBillingCard({
 
   const is_visible =
     (status?.available ?? false) &&
+    offer_is_live(status, new Date()) &&
     is_special_offer_available({ plan_code, is_dismissed: false });
 
   if (!is_visible) return null;
 
+  const is_black_friday = status?.theme === "black_friday";
+  const offer_params = {
+    percent: String(status?.percent_off ?? SPECIAL_OFFER_PERCENT_OFF),
+    months: String(status?.duration_months ?? SPECIAL_OFFER_DURATION_MONTHS),
+  };
+
   return (
     <BillingNotice
-      body={t("settings.special_offer_subtitle")}
+      body={
+        is_black_friday
+          ? t("settings.special_offer_black_friday_body", offer_params)
+          : t("settings.special_offer_subtitle")
+      }
       class_name={class_name}
       icon={SparklesIcon}
-      title={t("settings.special_offer_title")}
+      title={
+        is_black_friday
+          ? t("settings.special_offer_black_friday_title", offer_params)
+          : t("settings.special_offer_title")
+      }
       tone="neutral"
     >
       <button
@@ -61,9 +79,15 @@ export function SpecialOfferBillingCard({
         onClick={() => show_special_offer("manual")}
       >
         {t("settings.special_offer_cta", {
-          percent: SPECIAL_OFFER_PERCENT_OFF,
+          percent: status?.percent_off ?? SPECIAL_OFFER_PERCENT_OFF,
         })}
       </button>
+      {status?.ends_at && (
+        <OfferCountdown
+          class_name="ms-1 text-[13px] text-txt-tertiary"
+          ends_at={status.ends_at}
+        />
+      )}
     </BillingNotice>
   );
 }

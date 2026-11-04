@@ -204,7 +204,7 @@ function BillingSuccessHandler() {
     plan: string;
     billing: string;
   } | null>(null);
-  const [offer_welcome, set_offer_welcome] = useState(false);
+  const [offer_welcome, set_offer_welcome] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -258,6 +258,7 @@ function BillingSuccessHandler() {
         target?.special_offer &&
         request_special_offer_checkout(
           target.billing_interval === "year" ? "year" : "month",
+          target.plan_code,
         )
       ) {
         clear_checkout_target();
@@ -330,7 +331,7 @@ function BillingSuccessHandler() {
             storage_pool_bytes: storage_gb * 1073741824,
           });
         } else if (checkout_target?.special_offer) {
-          set_offer_welcome(true);
+          set_offer_welcome(code);
         } else {
           const billing = /^(year|bien|two)/.test(
             data.plan.billing_period || "",
@@ -379,7 +380,8 @@ function BillingSuccessHandler() {
       {offer_welcome && (
         <SpecialOfferSuccessModal
           is_open={true}
-          on_close={() => set_offer_welcome(false)}
+          on_close={() => set_offer_welcome(null)}
+          plan_code={offer_welcome}
         />
       )}
       {family_welcome && (

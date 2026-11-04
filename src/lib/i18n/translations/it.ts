@@ -6609,6 +6609,13 @@ export const it = {
     special_offer_fine_print_year:
       "Paghi {{offer_price}} per il primo anno. Il piano si rinnova poi a {{price}} all'anno finché non lo annulli in Impostazioni.",
     special_offer_billing_period: "Periodo di fatturazione",
+    special_offer_black_friday_title: "Black Friday: {{percent}}% di sconto per {{months}} mesi",
+    special_offer_black_friday_body: "Ottieni il {{percent}}% di sconto su qualsiasi piano annuale, o su qualsiasi piano mensile tranne Star, per i primi {{months}} mesi.",
+    special_offer_ends_in: "Termina tra {{time}}",
+    special_offer_not_on_star_monthly: "Non disponibile su Star mensile",
+    special_offer_renews_at: "Si rinnova a {{price}} dopo {{months}} mesi",
+    special_offer_success_title_plan: "Grazie. Ora hai {{plan}}.",
+    special_offer_choose_plan: "Scegli un piano",
     plan_billing_terms:
       "Gli abbonamenti si rinnovano automaticamente alla tariffa standard finché non li annulli. Puoi annullare in qualsiasi momento in Impostazioni.",
     upgrade_offer_note:

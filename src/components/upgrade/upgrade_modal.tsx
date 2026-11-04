@@ -83,11 +83,6 @@ import {
   type UpgradeLimitKey,
 } from "@/stores/upgrade_store";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
-import {
-  SPECIAL_OFFER_INTERVAL,
-  SPECIAL_OFFER_PLAN_CODE,
-  special_offer_checkout,
-} from "@/lib/special_offer";
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_email_aliases: "settings.usage_aliases",
@@ -583,20 +578,6 @@ export function UpgradeModal() {
     set_pending_tier(tier);
   };
 
-  const offer_promo_code_for = (tier_id: string, billing?: string) => {
-    if (!state.offer_promo_code) return undefined;
-    if (tier_id !== SPECIAL_OFFER_PLAN_CODE) return undefined;
-    if (billing !== undefined && billing !== SPECIAL_OFFER_INTERVAL) {
-      return undefined;
-    }
-
-    return state.offer_promo_code;
-  };
-
-  const crypto_offer = special_offer_checkout(
-    !!crypto_tier && !!offer_promo_code_for(crypto_tier.id),
-  );
-
   const handle_choose_crypto = (selected_term_id?: string) => {
     if (is_starting || !pending_tier) return;
 
@@ -629,8 +610,6 @@ export function UpgradeModal() {
         pending_tier.id,
         billing,
         currency,
-        undefined,
-        offer_promo_code_for(pending_tier.id, billing),
       );
 
       if (!result.ok) {
@@ -716,16 +695,6 @@ export function UpgradeModal() {
         </ModalHeader>
 
         <ModalBody className="space-y-4">
-          {state.offer_percent_off ? (
-            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
-              <p className="text-[13px] text-txt-secondary">
-                {t("settings.upgrade_offer_note", {
-                  percent: String(state.offer_percent_off),
-                })}
-              </p>
-            </div>
-          ) : null}
-
           {state.limit_key === "max_external_accounts" ? (
             <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
               <p className="text-[13px] text-txt-secondary">
@@ -1268,8 +1237,6 @@ export function UpgradeModal() {
 
       {crypto_tier && (
         <CryptoTermModal
-          discount_percent_off={crypto_offer.percent_off}
-          discounted_price_cents={crypto_offer.crypto_price(crypto_tier.id)}
           initial_term_months={crypto_term_months}
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.monthly_cents}
@@ -1286,8 +1253,6 @@ export function UpgradeModal() {
           plan_code={crypto_tier.id}
           plan_name={crypto_tier.name}
           preferred_currency={currency}
-          promo_code={offer_promo_code_for(crypto_tier.id) ?? null}
-          special_offer={!!crypto_offer.crypto_price(crypto_tier.id)}
           yearly_price_cents={crypto_tier.yearly_cents}
         />
       )}
