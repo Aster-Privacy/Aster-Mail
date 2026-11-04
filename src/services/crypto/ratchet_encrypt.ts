@@ -488,6 +488,26 @@ async function encrypt_for_ratchet_recipient_unlocked(
 export type PostQuantumRecipientStatus =
   "supported" | "unsupported" | "downgraded" | "untrusted";
 
+async function has_recipient_identity_moved(
+  bootstrap: BootstrapData,
+  recipient_username: string,
+  recipient_email: string,
+): Promise<boolean> {
+  try {
+    const identity = await fetch_ratchet_identity(
+      recipient_username,
+      recipient_email,
+    );
+
+    return (
+      identity !== null &&
+      bootstrap.recipient_identity_key !== identity.kem_identity_key
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function recipient_post_quantum_status(
   sender_email: string,
   recipient_email: string,
@@ -501,7 +521,14 @@ export async function recipient_post_quantum_status(
   const existing = await load_ratchet_state(conversation_id);
   const bootstrap = existing?.get_bootstrap();
 
-  if (bootstrap) {
+  if (
+    bootstrap &&
+    !(await has_recipient_identity_moved(
+      bootstrap,
+      recipient_username,
+      recipient_email,
+    ))
+  ) {
     return bootstrap.pq_ciphertext ? "supported" : "unsupported";
   }
 
@@ -515,7 +542,13 @@ export async function recipient_post_quantum_status(
     recipient_email,
   );
 
-  if (is_bundle_untrusted(verification)) return "untrusted";
+  if (is_bundle_untrusted(verification)) {
+    await flag_recipient_untrusted(
+      (recipient_email ?? recipient_username).toLowerCase(),
+    );
+
+    return "untrusted";
+  }
 
   if (bundle_supports_pq(bundle)) {
     return is_bundle_verification_rejected(verification)

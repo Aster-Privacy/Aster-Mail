@@ -80,6 +80,7 @@ import {
 import {
   clear_ratchet_verification_status,
   get_peer_identity_event,
+  subscribe_peer_identity_events,
 } from "@/services/crypto/ratchet_verification_status";
 import { scoped_storage_name } from "@/services/crypto/storage_key_names";
 
@@ -330,6 +331,40 @@ describe("owner key pin", () => {
     expect(get_peer_identity_event("alice")).toBeNull();
     expect(await check_owner_key_pin("alice", owner_b)).toBe("ok");
     expect(await check_and_pin_identity("alice", KEY_B)).toBe("ok");
+  });
+
+  it("stores the untrusted flag before telling listeners", async () => {
+    const flag_name = await pin_name("ratchet_identity_untrusted_", "alice");
+    const seen_at_notify: boolean[] = [];
+    const unsubscribe = subscribe_peer_identity_events(() => {
+      seen_at_notify.push(h.store.has(flag_name));
+    });
+
+    try {
+      await flag_recipient_untrusted("alice");
+    } finally {
+      unsubscribe();
+    }
+
+    expect(seen_at_notify).toEqual([true]);
+    expect(await is_recipient_flagged_untrusted("alice")).toBe(true);
+  });
+
+  it("still tells listeners when the flag cannot be stored", async () => {
+    const notified: string[] = [];
+    const unsubscribe = subscribe_peer_identity_events(() => {
+      notified.push(get_peer_identity_event("alice")?.event ?? "none");
+    });
+
+    h.key = null;
+
+    try {
+      await flag_recipient_untrusted("alice");
+    } finally {
+      unsubscribe();
+    }
+
+    expect(notified).toEqual(["untrusted"]);
   });
 
   it("remembers the exact bundle the user accepted", async () => {
