@@ -41,7 +41,7 @@ import {
   get_sender_domain,
   get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
-import { open_external } from "@/utils/open_link";
+import { request_external_link } from "@/utils/external_link_request";
 import {
   persist_unsubscribe,
   use_unsubscribed_senders,
@@ -156,7 +156,7 @@ export function MobileUnsubscribeBanner({
               url && {
                 action_label: t("mail.open_unsubscribe_page"),
                 on_undo: async () => {
-                  open_external(url);
+                  if (!(await request_external_link(url))) return;
                   record_unsubscribed();
                 },
               }),
