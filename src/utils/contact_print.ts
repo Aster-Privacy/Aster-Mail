@@ -20,7 +20,7 @@
 //
 import type { DecryptedContact } from "@/types/contacts";
 
-import { print_page_css } from "@/utils/print_page";
+import { print_document_in_page, print_page_css } from "@/utils/print_page";
 
 export interface ContactPrintLabels {
   title: string;
@@ -85,28 +85,28 @@ const card = (
   )}</h2><table>${rows}</table></section>`;
 };
 
-const build_document = (
+const PRINT_ROOT = "#aster-print-root";
+
+const contact_print_css = (): string => `
+${print_page_css("16mm", PRINT_ROOT)}
+${PRINT_ROOT}, ${PRINT_ROOT} * { box-sizing: border-box; }
+${PRINT_ROOT} { margin: 0; color: #111; background: #fff; font: 12px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+${PRINT_ROOT} h1 { font-size: 18px; margin: 0 0 4px; }
+${PRINT_ROOT} .count { color: #666; font-size: 11px; margin: 0 0 16px; }
+${PRINT_ROOT} .card { break-inside: avoid; page-break-inside: avoid; border-top: 1px solid #ddd; padding: 10px 0; }
+${PRINT_ROOT} .card h2 { font-size: 13px; margin: 0 0 4px; }
+${PRINT_ROOT} table { border-collapse: collapse; width: 100%; }
+${PRINT_ROOT} th { text-align: start; font-weight: 500; color: #666; width: 96px; padding: 1px 8px 1px 0; vertical-align: top; }
+${PRINT_ROOT} td { padding: 1px 0; vertical-align: top; word-break: break-word; }
+`;
+
+const build_body = (
   contacts: DecryptedContact[],
   labels: ContactPrintLabels,
 ): string =>
-  `<!doctype html><html><head><meta charset="utf-8"><title>${escape_html(
-    labels.title,
-  )}</title><style>
-${print_page_css("16mm", "body")}
-* { box-sizing: border-box; }
-body { margin: 0; color: #111; background: #fff; font: 12px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-h1 { font-size: 18px; margin: 0 0 4px; }
-.count { color: #666; font-size: 11px; margin: 0 0 16px; }
-.card { break-inside: avoid; page-break-inside: avoid; border-top: 1px solid #ddd; padding: 10px 0; }
-.card h2 { font-size: 13px; margin: 0 0 4px; }
-table { border-collapse: collapse; width: 100%; }
-th { text-align: start; font-weight: 500; color: #666; width: 96px; padding: 1px 8px 1px 0; vertical-align: top; }
-td { padding: 1px 0; vertical-align: top; word-break: break-word; }
-</style></head><body><h1>${escape_html(
-    labels.title,
-  )}</h1><p class="count">${contacts.length}</p>${contacts
-    .map((contact) => card(contact, labels))
-    .join("")}</body></html>`;
+  `<h1>${escape_html(labels.title)}</h1><p class="count">${
+    contacts.length
+  }</p>${contacts.map((contact) => card(contact, labels)).join("")}`;
 
 export function print_contacts(
   contacts: DecryptedContact[],
@@ -114,30 +114,9 @@ export function print_contacts(
 ): void {
   if (contacts.length === 0) return;
 
-  const frame = document.createElement("iframe");
-
-  frame.setAttribute("aria-hidden", "true");
-  frame.style.position = "fixed";
-  frame.style.right = "0";
-  frame.style.bottom = "0";
-  frame.style.width = "0";
-  frame.style.height = "0";
-  frame.style.border = "0";
-  frame.style.visibility = "hidden";
-
-  frame.onload = () => {
-    const view = frame.contentWindow;
-
-    if (!view) {
-      frame.remove();
-
-      return;
-    }
-    view.focus();
-    view.print();
-    setTimeout(() => frame.remove(), 1000);
-  };
-
-  frame.srcdoc = build_document(contacts, labels);
-  document.body.appendChild(frame);
+  print_document_in_page(
+    labels.title,
+    build_body(contacts, labels),
+    contact_print_css(),
+  );
 }
