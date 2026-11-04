@@ -36,13 +36,13 @@ import {
   encrypt_with_private_bcc,
 } from "./send_private_bcc";
 import { create_sent_envelope } from "./send_queue_envelope";
+import { build_sent_encryption_evidence } from "./crypto/sent_encryption_evidence";
 import { encrypt_with_ephemeral_key } from "./send_queue_ephemeral";
 import {
   classify_recipients,
   is_internal_recipient,
 } from "./recipient_classification";
 import { is_internal_email } from "./api/keys";
-import { OBSCURED_SUBJECT_PLACEHOLDER } from "./pgp_protected_mime";
 import { is_listed_pgp_recipient } from "./recipient_lock_state";
 import {
   build_client_pgp_copies,
@@ -53,8 +53,11 @@ import {
 import {
   build_signed_mime_payload,
   should_attach_signed_mime,
-  should_obscure_outer_subject,
 } from "./send_queue_signed_mime";
+import {
+  server_visible_subject,
+  should_obscure_outer_subject,
+} from "./pgp_protected_mime";
 import {
   SendError,
   create_error,
@@ -159,6 +162,10 @@ export async function execute_send(
   const outside_recipients = all_recipients.filter(
     (recipient) => !is_internal_recipient(recipient),
   );
+  const obscure_subject = should_obscure_outer_subject({
+    obscure_subject_preference: email.encryption_options?.obscure_subject,
+    secure_external: email.secure_external,
+  });
   const client_copies =
     is_encrypted ||
     email.secure_external ||
@@ -171,7 +178,7 @@ export async function execute_send(
           force_pgp: email.force_pgp,
           pgp_recipients: email.pgp_recipients,
           require_encryption: email.encryption_options?.require_encryption,
-          obscure_subject: email.encryption_options?.obscure_subject === true,
+          obscure_subject,
           subject: email.subject || "",
           body: body_for_recipient,
           from: sender_email,
@@ -210,9 +217,23 @@ export async function execute_send(
     : client_copies
       ? CLIENT_COPY_PLACEHOLDER_BODY
       : body_for_recipient;
-  const final_subject = is_encrypted || client_copies ? "" : email.subject;
+  const final_subject = server_visible_subject({
+    subject: email.subject,
+    is_encrypted,
+    has_client_copies: client_copies !== undefined,
+    obscure_subject,
+  });
 
-  const envelope_data = await create_sent_envelope(email, sender_email);
+  const envelope_data = await create_sent_envelope(
+    email,
+    sender_email,
+    build_sent_encryption_evidence({
+      all_recipients,
+      outside_recipients,
+      client_copies,
+      internal_copy_is_encrypted,
+    }),
+  );
 
   let effective_thread_id = email.thread_id;
 
@@ -263,6 +284,7 @@ export async function execute_send(
     in_reply_to: email.in_reply_to,
     ...(email.is_plain_text ? { plain_text: true } : {}),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
+    obscure_subject,
   };
 
   const result = await send_simple_email(request);
@@ -418,8 +440,6 @@ export async function execute_external_send(
 
   const encryption_opts = email.encryption_options;
 
-  let every_recipient_has_a_key = false;
-
   if (encryption_opts) {
     if (!email.recipient_keys && encryption_opts.auto_discover_keys) {
       await load_openpgp();
@@ -444,8 +464,6 @@ export async function execute_external_send(
         const recipients_without_keys = all_recipients.filter(
           (r) => !recipients_with_keys.has(r.toLowerCase()),
         );
-
-        every_recipient_has_a_key = recipients_without_keys.length === 0;
 
         if (encryption_opts.require_encryption) {
           if (recipients_without_keys.length > 0) {
@@ -472,7 +490,6 @@ export async function execute_external_send(
         throw enc_err;
       }
       if (!encryption_opts.require_encryption) {
-        every_recipient_has_a_key = false;
         body_to_send = inline_images.length > 0 ? smtp_body : email.body;
       } else {
         throw enc_err;
@@ -530,16 +547,8 @@ export async function execute_external_send(
     secure_external: is_secure_external,
   });
 
-  const encryption_active =
-    every_recipient_has_a_key &&
-    (encryption_opts?.encrypt_emails === true ||
-      encryption_opts?.require_encryption === true ||
-      email.force_pgp === true);
-
   const obscure_outer_subject = should_obscure_outer_subject({
     obscure_subject_preference: encryption_opts?.obscure_subject,
-    encryption_active,
-    signed_mime_attached,
     secure_external: is_secure_external,
   });
 
@@ -560,7 +569,7 @@ export async function execute_external_send(
           force_pgp: email.force_pgp,
           pgp_recipients: email.pgp_recipients,
           require_encryption: encryption_opts?.require_encryption,
-          obscure_subject: encryption_opts?.obscure_subject === true,
+          obscure_subject: obscure_outer_subject,
           subject: email.subject || "",
           body: body_to_send,
           from: sender_email,
@@ -573,11 +582,12 @@ export async function execute_external_send(
 
   const ephemeral_subject = is_secure_external
     ? "[secure message]"
-    : client_copies
-      ? ""
-      : obscure_outer_subject
-        ? OBSCURED_SUBJECT_PLACEHOLDER
-        : email.subject;
+    : server_visible_subject({
+        subject: email.subject,
+        is_encrypted: false,
+        has_client_copies: client_copies !== undefined,
+        obscure_subject: obscure_outer_subject,
+      });
   const ephemeral_body = is_secure_external
     ? "[secure message]"
     : client_copies
@@ -613,6 +623,14 @@ export async function execute_external_send(
   const envelope_data = await create_sent_envelope(
     internal_email,
     sender_email,
+    client_copies
+      ? build_sent_encryption_evidence({
+          all_recipients,
+          outside_recipients: all_recipients,
+          client_copies,
+          internal_copy_is_encrypted: true,
+        })
+      : undefined,
   );
 
   let external_attachments;
@@ -651,6 +669,7 @@ export async function execute_external_send(
     in_reply_to: email.in_reply_to,
     ...(email.is_plain_text && !is_secure_external ? { plain_text: true } : {}),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
+    ...(is_secure_external ? {} : { obscure_subject: obscure_outer_subject }),
   };
 
   if (signed_mime_attached && !client_copies) {

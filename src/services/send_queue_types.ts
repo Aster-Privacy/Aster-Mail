@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SentEncryptionEvidence } from "./crypto/sent_encryption_evidence";
 import type { RecipientKeyResult } from "@/utils/email_crypto";
 import type { PendingSend } from "./undo_send_manager";
 
@@ -143,6 +144,7 @@ export interface MailEnvelope {
   cc: { name: string; email: string }[];
   bcc: { name: string; email: string }[];
   sent_at: string;
+  sent_encryption?: SentEncryptionEvidence;
 }
 
 export interface EncryptionResult {

@@ -38,7 +38,7 @@ export interface ProtectedMimeInput {
   obscure_subject?: boolean;
 }
 
-export const OBSCURED_SUBJECT_PLACEHOLDER = "...";
+export const OBSCURED_SUBJECT_PLACEHOLDER = "[...]";
 
 const ENCODED_WORD_PAYLOAD_BYTES = 45;
 
@@ -257,29 +257,77 @@ function format_rfc2822_date(date: Date): string {
   return `${days[date.getUTCDay()]}, ${pad(date.getUTCDate())} ${months[date.getUTCMonth()]} ${date.getUTCFullYear()} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())} +0000`;
 }
 
+export function outer_subject_for(
+  subject: string,
+  obscure_subject: boolean,
+): string {
+  return obscure_subject ? OBSCURED_SUBJECT_PLACEHOLDER : subject;
+}
+
+export function should_obscure_outer_subject(params: {
+  obscure_subject_preference?: boolean;
+  secure_external?: boolean;
+}): boolean {
+  if (params.obscure_subject_preference !== true) return false;
+
+  return params.secure_external !== true;
+}
+
+export function server_visible_subject(params: {
+  subject: string;
+  is_encrypted: boolean;
+  has_client_copies: boolean;
+  obscure_subject: boolean;
+}): string {
+  if (params.is_encrypted) return "";
+
+  if (params.has_client_copies && params.obscure_subject) return "";
+
+  return params.subject;
+}
+
 export function build_protected_mime_entity(input: ProtectedMimeInput): string {
   const boundary = `--=_astermail_protected_${random_token()}`;
+  const obscure_subject = input.obscure_subject !== false;
   const safe_subject = encode_header_value(input.subject);
+  const outer_subject = encode_header_value(
+    outer_subject_for(input.subject, obscure_subject),
+  );
   const safe_date = sanitize_header_value(
     format_rfc2822_date(input.date ?? new Date()),
   );
 
-  let protected_headers =
-    'Content-Type: text/rfc822-headers; charset=utf-8; protected-headers="v1"\r\n' +
-    "Content-Disposition: inline\r\n\r\n" +
-    `Date: ${safe_date}\r\n` +
-    `Subject: ${safe_subject}\r\n`;
+  const header_fields: Array<[string, string, string]> = [
+    ["Date", safe_date, safe_date],
+    ["Subject", safe_subject, outer_subject],
+  ];
 
   if (input.from.length > 0) {
-    protected_headers += `From: ${encode_address_header(input.from)}\r\n`;
+    const from = encode_address_header(input.from);
+
+    header_fields.push(["From", from, from]);
   }
 
   if (input.to.length > 0) {
-    protected_headers += `To: ${input.to.map(encode_address_header).join(", ")}\r\n`;
+    const to = input.to.map(encode_address_header).join(", ");
+
+    header_fields.push(["To", to, to]);
   }
 
   if (input.cc.length > 0) {
-    protected_headers += `Cc: ${input.cc.map(encode_address_header).join(", ")}\r\n`;
+    const cc = input.cc.map(encode_address_header).join(", ");
+
+    header_fields.push(["Cc", cc, cc]);
+  }
+
+  let root_headers = `Content-Type: multipart/mixed; boundary="${boundary}"; protected-headers="v1"; hp="cipher"\r\n`;
+
+  for (const [name, value] of header_fields) {
+    root_headers += `${name}: ${value}\r\n`;
+  }
+
+  for (const [name, , outer] of header_fields) {
+    root_headers += `HP-Outer: ${name}: ${outer}\r\n`;
   }
 
   let body_part: string;
@@ -305,22 +353,7 @@ export function build_protected_mime_entity(input: ProtectedMimeInput): string {
       base64_body(input.body.replace(/\r\n|\r|\n/g, "\r\n"));
   }
 
-  let mime =
-    `Content-Type: multipart/mixed; boundary="${boundary}"; protected-headers="v1"\r\n\r\n` +
-    `--${boundary}\r\n` +
-    `${protected_headers}\r\n` +
-    `--${boundary}\r\n`;
-
-  if (input.obscure_subject === true) {
-    const legacy_display_subject = sanitize_header_value(input.subject);
-
-    mime +=
-      'Content-Type: text/plain; charset=utf-8; protected-headers="v1"\r\n' +
-      "Content-Transfer-Encoding: base64\r\n" +
-      "Content-Disposition: inline\r\n\r\n" +
-      base64_body(`Subject: ${legacy_display_subject}\r\n`) +
-      `--${boundary}\r\n`;
-  }
+  let mime = `${root_headers}\r\n--${boundary}\r\n`;
 
   mime += body_part;
 

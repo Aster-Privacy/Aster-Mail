@@ -27,12 +27,14 @@ import { sign_detached } from "./crypto/key_manager";
 import {
   OBSCURED_SUBJECT_PLACEHOLDER,
   build_protected_mime_entity,
+  outer_subject_for,
+  server_visible_subject,
+  should_obscure_outer_subject,
 } from "./pgp_protected_mime";
 import {
   build_signed_mime_payload,
   get_last_signing_skip_reason,
   should_attach_signed_mime,
-  should_obscure_outer_subject,
 } from "./send_queue_signed_mime";
 
 const PASSPHRASE = "signed-mime-test";
@@ -92,16 +94,30 @@ beforeAll(async () => {
   sender_private = key.privateKey;
 }, 60000);
 
+function root_header_block(mime: string): string {
+  return mime.slice(0, mime.indexOf("\r\n\r\n"));
+}
+
+function header_value(block: string, name: string): string | undefined {
+  const line = block
+    .split("\r\n")
+    .find((candidate) => candidate.startsWith(`${name}: `));
+
+  return line?.slice(name.length + 2);
+}
+
 describe("build_protected_mime_entity", () => {
-  it("produces a protected-headers multipart entity", () => {
+  it("puts the protected headers on the payload root", () => {
     const mime = sample_entity();
+    const root = root_header_block(mime);
 
     expect(mime.startsWith("Content-Type: multipart/mixed;")).toBe(true);
-    expect(mime).toContain('protected-headers="v1"');
-    expect(mime).toContain("Content-Type: text/rfc822-headers");
-    expect(mime).toContain("From: sender@astermail.org");
-    expect(mime).toContain("To: external@example.org");
-    expect(mime).toContain("Subject: =?UTF-8?B?");
+    expect(root).toContain('protected-headers="v1"');
+    expect(root).toContain('hp="cipher"');
+    expect(header_value(root, "From")).toBe("sender@astermail.org");
+    expect(header_value(root, "To")).toBe("external@example.org");
+    expect(header_value(root, "Subject")).toMatch(/^=\?UTF-8\?B\?/);
+    expect(header_value(root, "Date")).toBe("Wed, 12 Aug 2026 12:00:00 +0000");
     expect(mime).toContain("multipart/alternative");
     expect(mime).toContain(
       'Content-Disposition: attachment; filename="note.txt"',
@@ -110,9 +126,8 @@ describe("build_protected_mime_entity", () => {
   });
 
   it("keeps the subject out of plain view while carrying it inside", () => {
-    const mime = sample_entity();
-
-    expect(mime).not.toContain("Signed and encrypted ✓");
+    expect(sample_entity()).not.toContain("Signed and encrypted ✓");
+    expect(sample_entity(true)).not.toContain("Signed and encrypted ✓");
   });
 
   it("carries an html alternative for a body that has no visible tags", () => {
@@ -139,96 +154,141 @@ describe("build_protected_mime_entity", () => {
     expect(decode_base64_utf8(html_payload)).toBe("Test test&nbsp;");
   });
 
-  it("omits the legacy display part unless obscuring is requested", () => {
-    const mime = sample_entity();
+  it("records the real subject as the outer value when it is not hidden", () => {
+    const root = root_header_block(sample_entity(false));
 
-    expect(mime).not.toContain(
-      'text/plain; charset=utf-8; protected-headers="v1"',
+    expect(header_value(root, "HP-Outer")).toBeDefined();
+    expect(root).toContain(
+      `HP-Outer: Subject: ${header_value(root, "Subject")}`,
     );
-    expect(mime.match(/protected-headers="v1"/g)).toHaveLength(2);
+    expect(root).not.toContain(OBSCURED_SUBJECT_PLACEHOLDER);
   });
 
-  it("adds a legacy display part carrying the real subject when obscuring", () => {
-    const mime = sample_entity(true);
-    const legacy_header =
-      'Content-Type: text/plain; charset=utf-8; protected-headers="v1"\r\n' +
-      "Content-Transfer-Encoding: base64\r\n" +
-      "Content-Disposition: inline\r\n\r\n";
+  it("records the placeholder as the outer value when the subject is hidden", () => {
+    const root = root_header_block(sample_entity(true));
 
-    expect(mime).toContain(legacy_header);
+    expect(root).toContain("HP-Outer: Subject: [...]");
+    expect(header_value(root, "Subject")).toMatch(/^=\?UTF-8\?B\?/);
+  });
 
-    const payload = mime
-      .slice(mime.indexOf(legacy_header) + legacy_header.length)
-      .split("\r\n")[0];
+  it("hides the subject when the caller does not say otherwise", () => {
+    const mime = build_protected_mime_entity({
+      subject: "Plan",
+      body: "hi",
+      is_html: false,
+      from: "sender@astermail.org",
+      to: ["external@example.org"],
+      cc: [],
+      attachments: [],
+    });
 
-    expect(decode_base64_utf8(payload)).toBe(
-      "Subject: Signed and encrypted ✓\r\n",
+    expect(root_header_block(mime)).toContain("HP-Outer: Subject: [...]");
+  });
+
+  it("records every exposed outer field so none reads as removed", () => {
+    const root = root_header_block(
+      build_protected_mime_entity({
+        subject: "Plan",
+        body: "hi",
+        is_html: false,
+        from: "sender@astermail.org",
+        to: ["external@example.org"],
+        cc: ["copy@example.org"],
+        attachments: [],
+        obscure_subject: false,
+        date: new Date(Date.UTC(2026, 7, 12, 12, 0, 0)),
+      }),
     );
+
+    expect(root).toContain("HP-Outer: Date: Wed, 12 Aug 2026 12:00:00 +0000");
+    expect(root).toContain("HP-Outer: Subject: Plan");
+    expect(root).toContain("HP-Outer: From: sender@astermail.org");
+    expect(root).toContain("HP-Outer: To: external@example.org");
+    expect(root).toContain("HP-Outer: Cc: copy@example.org");
   });
 
-  it("still protects the real subject inside the entity when obscuring", () => {
-    const mime = sample_entity(true);
+  it("never adds a separate header part or a legacy display part", () => {
+    for (const obscure_subject of [true, false]) {
+      const mime = sample_entity(obscure_subject);
 
-    expect(mime).not.toContain("Signed and encrypted ✓");
-    expect(mime).toContain("Subject: =?UTF-8?B?");
+      expect(mime).not.toContain("text/rfc822-headers");
+      expect(mime).not.toContain("hp-legacy-display");
+      expect(mime.match(/protected-headers="v1"/g)).toHaveLength(1);
+      expect(
+        mime
+          .split("\r\n")
+          .filter((line) => line.startsWith("Subject: ")),
+      ).toHaveLength(1);
+    }
   });
 
-  it("places the legacy display part before the message body", () => {
-    const mime = sample_entity(true);
-
-    expect(mime.indexOf("Content-Disposition: inline\r\n\r\n")).toBeLessThan(
-      mime.indexOf("multipart/alternative"),
-    );
-  });
-
-  it("keeps the entity free of bare newlines when obscuring", () => {
+  it("keeps the entity free of bare newlines when hiding the subject", () => {
     expect(sample_entity(true)).not.toContain("\n\n");
   });
 });
 
 describe("should_obscure_outer_subject", () => {
-  const enabled = {
-    obscure_subject_preference: true,
-    encryption_active: true,
-    signed_mime_attached: true,
-  };
-
-  it("obscures only when the user opted in", () => {
-    expect(should_obscure_outer_subject(enabled)).toBe(true);
+  it("follows the user's preference", () => {
     expect(
-      should_obscure_outer_subject({
-        ...enabled,
-        obscure_subject_preference: false,
-      }),
+      should_obscure_outer_subject({ obscure_subject_preference: true }),
+    ).toBe(true);
+    expect(
+      should_obscure_outer_subject({ obscure_subject_preference: false }),
     ).toBe(false);
     expect(
-      should_obscure_outer_subject({
-        ...enabled,
-        obscure_subject_preference: undefined,
-      }),
-    ).toBe(false);
-  });
-
-  it("never obscures a subject that ships unencrypted", () => {
-    expect(
-      should_obscure_outer_subject({ ...enabled, encryption_active: false }),
-    ).toBe(false);
-  });
-
-  it("never obscures without protected headers to carry the subject", () => {
-    expect(
-      should_obscure_outer_subject({ ...enabled, signed_mime_attached: false }),
+      should_obscure_outer_subject({ obscure_subject_preference: undefined }),
     ).toBe(false);
   });
 
   it("never obscures secure external sends", () => {
     expect(
-      should_obscure_outer_subject({ ...enabled, secure_external: true }),
+      should_obscure_outer_subject({
+        obscure_subject_preference: true,
+        secure_external: true,
+      }),
     ).toBe(false);
   });
 
-  it("uses three full stops as the placeholder", () => {
-    expect(OBSCURED_SUBJECT_PLACEHOLDER).toBe("...");
+  it("uses the bracketed ellipsis placeholder", () => {
+    expect(OBSCURED_SUBJECT_PLACEHOLDER).toBe("[...]");
+    expect(outer_subject_for("Plan", true)).toBe("[...]");
+    expect(outer_subject_for("Plan", false)).toBe("Plan");
+  });
+});
+
+describe("server_visible_subject", () => {
+  const base = {
+    subject: "Plan",
+    is_encrypted: false,
+    has_client_copies: false,
+    obscure_subject: false,
+  };
+
+  it("sends the real subject so the server can show it outside", () => {
+    expect(server_visible_subject(base)).toBe("Plan");
+    expect(server_visible_subject({ ...base, has_client_copies: true })).toBe(
+      "Plan",
+    );
+  });
+
+  it("keeps a hidden subject away from the server when copies carry it", () => {
+    expect(
+      server_visible_subject({
+        ...base,
+        has_client_copies: true,
+        obscure_subject: true,
+      }),
+    ).toBe("");
+  });
+
+  it("still sends the subject for a server-built message when hidden", () => {
+    expect(server_visible_subject({ ...base, obscure_subject: true })).toBe(
+      "Plan",
+    );
+  });
+
+  it("never sends the subject of an end-to-end encrypted message", () => {
+    expect(server_visible_subject({ ...base, is_encrypted: true })).toBe("");
   });
 });
 

@@ -39,6 +39,7 @@ import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { build_body_preview } from "@/utils/preview_text";
 import { ignore_error } from "@/lib/ignore_error";
+import { sent_copy_pgp_verified } from "@/services/crypto/sent_encryption_evidence";
 
 export interface ProcessedEnvelope {
   body_text: string;
@@ -66,7 +67,7 @@ export function raw_envelope_body(
       as_displayable(envelope?.body_html) ??
       as_displayable(envelope?.html_body),
     unsubscribe_info: undefined,
-    e2e_verified: false,
+    e2e_verified: sent_copy_pgp_verified(envelope),
   };
 }
 
@@ -135,7 +136,8 @@ async function resolve_envelope_body(
 
   const e2e_verified =
     ratchet_verified ||
-    (has_inbound_pgp_block(pre_pgp_text) && body_text !== pre_pgp_text);
+    (has_inbound_pgp_block(pre_pgp_text) && body_text !== pre_pgp_text) ||
+    sent_copy_pgp_verified(envelope);
 
   const pre_mime_text = body_text;
 

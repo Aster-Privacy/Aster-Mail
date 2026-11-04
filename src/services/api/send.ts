@@ -66,6 +66,7 @@ interface SimpleSendRequest {
   in_reply_to?: string;
   plain_text?: boolean;
   external_pgp_bodies?: Record<string, string>;
+  obscure_subject?: boolean;
 }
 
 interface SimpleSendResponse {
@@ -141,6 +142,7 @@ interface ExternalSendRequest {
   external_pgp_bodies?: Record<string, string>;
   in_reply_to?: string;
   plain_text?: boolean;
+  obscure_subject?: boolean;
 }
 
 const SEND_TIMEOUT_MS = 15 * 60_000;
