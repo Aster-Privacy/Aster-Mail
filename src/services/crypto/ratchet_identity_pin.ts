@@ -221,9 +221,7 @@ export async function check_and_pin_identity(
   }
 }
 
-export async function flag_recipient_untrusted(pin_id: string): Promise<void> {
-  record_peer_identity_event(pin_id, "untrusted");
-
+async function store_untrusted_flag(pin_id: string): Promise<void> {
   try {
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
@@ -238,6 +236,11 @@ export async function flag_recipient_untrusted(pin_id: string): Promise<void> {
   } catch {
     return;
   }
+}
+
+export async function flag_recipient_untrusted(pin_id: string): Promise<void> {
+  await store_untrusted_flag(pin_id);
+  record_peer_identity_event(pin_id, "untrusted");
 }
 
 export async function is_recipient_flagged_untrusted(

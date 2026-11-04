@@ -25,13 +25,29 @@ const h = vi.hoisted(() => ({
   pinned: null as string | null,
   pinned_owner: null as string | null,
   flagged: false,
-  identity: null as { kem_identity_key: string } | null,
+  identity: null as {
+    kem_identity_key: string;
+    signed_prekey?: string;
+    signed_prekey_signature?: string;
+    pq_kem_public_key?: string | null;
+  } | null,
   owner_key: null as string | null,
   fetch_calls: [] as Array<[string, string | undefined]>,
   owner_calls: [] as Array<[string, string]>,
   trusted: [] as Array<[string, string | null, string | null, unknown]>,
   bundle: null as Record<string, unknown> | null,
   fail_bundle_fetch: false,
+  verdict: "verified" as string,
+  verify_calls: [] as unknown[][],
+  accepted: false,
+}));
+
+vi.mock("@/services/crypto/key_manager_pgp", () => ({
+  verify_ratchet_prekey_bundle_detailed: vi.fn(async (...args: unknown[]) => {
+    h.verify_calls.push(args);
+
+    return { verdict: h.verdict, format: "v2", strict: false };
+  }),
 }));
 
 vi.mock("@/services/crypto/key_manager_core", () => ({
@@ -64,6 +80,7 @@ vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
   get_identity_change: vi.fn(async () => h.change),
   get_pinned_identity_fingerprint: vi.fn(async () => h.pinned),
   get_pinned_owner_key_fingerprint: vi.fn(async () => h.pinned_owner),
+  is_recipient_bundle_accepted: vi.fn(async () => h.accepted),
   is_recipient_flagged_untrusted: vi.fn(async () => h.flagged),
   owner_key_fingerprint: vi.fn(async (armored: string) => `fp:${armored}`),
   trust_recipient_keys: vi.fn(
@@ -84,6 +101,15 @@ import {
   trust_recipient_identity,
 } from "@/services/crypto/recipient_identity_check";
 
+function published_identity(kem_identity_key: string) {
+  return {
+    kem_identity_key,
+    signed_prekey: "spk",
+    signed_prekey_signature: "sig",
+    pq_kem_public_key: "pq",
+  };
+}
+
 describe("get_recipient_identity_status", () => {
   beforeEach(() => {
     h.change = null;
@@ -97,6 +123,9 @@ describe("get_recipient_identity_status", () => {
     h.trusted = [];
     h.bundle = null;
     h.fail_bundle_fetch = false;
+    h.verdict = "verified";
+    h.verify_calls = [];
+    h.accepted = false;
   });
 
   it("reports a recorded key change as rotated without a network request", async () => {
@@ -166,14 +195,14 @@ describe("get_recipient_identity_status", () => {
 
   it("re-pins the current keys only for an untrusted recipient", async () => {
     h.pinned = "key-one";
-    h.identity = { kem_identity_key: "key-two" };
+    h.identity = published_identity("key-two");
     h.pinned_owner = "fp:old";
     h.owner_key = "new";
 
     await trust_recipient_identity("Alice@astermail.org");
 
     expect(h.trusted).toEqual([
-      ["alice@astermail.org", "key-two", "new", null],
+      ["alice@astermail.org", "key-two", "new", published_identity("key-two")],
     ]);
   });
 
@@ -212,5 +241,87 @@ describe("get_recipient_identity_status", () => {
     await trust_recipient_identity("alice@astermail.org");
 
     expect(h.trusted).toEqual([]);
+  });
+  it("reports untrusted when the published bundle does not verify against the owner key", async () => {
+    h.pinned_owner = "fp:owner";
+    h.owner_key = "owner";
+    h.identity = published_identity("key-one");
+    h.verdict = "tampered";
+
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "untrusted",
+    );
+    expect(h.verify_calls).toEqual([["sig", "key-one", "spk", "owner", "pq"]]);
+  });
+
+  it("stays quiet for an unverifiable bundle the user already accepted", async () => {
+    h.pinned_owner = "fp:owner";
+    h.owner_key = "owner";
+    h.identity = published_identity("key-one");
+    h.verdict = "tampered";
+    h.accepted = true;
+
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "unchanged",
+    );
+  });
+
+  it("does not treat an unknown signer as untrusted", async () => {
+    h.pinned_owner = "fp:owner";
+    h.identity = published_identity("key-one");
+    h.verdict = "unknown";
+
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "unchanged",
+    );
+  });
+
+  it("does not look up the bundle of a recipient you never sent to", async () => {
+    h.identity = published_identity("key-one");
+    h.verdict = "tampered";
+
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "unchanged",
+    );
+    expect(h.fetch_calls).toHaveLength(0);
+    expect(h.verify_calls).toHaveLength(0);
+  });
+
+  it("offers and records trust for an alias recipient whose bundle does not verify", async () => {
+    h.pinned_owner = "fp:owner";
+    h.owner_key = "owner";
+    h.identity = published_identity("key-one");
+    h.verdict = "tampered";
+    h.bundle = { ...published_identity("key-one"), one_time_prekey: "otk" };
+
+    expect(
+      await get_recipient_identity_status(" Tej-Berlin@astermail.org "),
+    ).toBe("untrusted");
+    expect(h.fetch_calls).toEqual([
+      ["tej-berlin", "tej-berlin@astermail.org"],
+    ]);
+    expect(h.owner_calls).toEqual([
+      ["tej-berlin", "tej-berlin@astermail.org"],
+    ]);
+
+    await trust_recipient_identity("Tej-Berlin@astermail.org");
+
+    expect(h.trusted).toEqual([
+      ["tej-berlin@astermail.org", "key-one", "owner", h.bundle],
+    ]);
+  });
+
+  it("records the published identity when the bundle cannot be fetched", async () => {
+    h.pinned_owner = "fp:owner";
+    h.owner_key = "owner";
+    h.identity = published_identity("key-one");
+    h.verdict = "tampered";
+    h.fail_bundle_fetch = true;
+
+    await trust_recipient_identity("alice@astermail.org");
+
+    expect(h.trusted).toEqual([
+      ["alice@astermail.org", "key-one", "owner", published_identity("key-one")],
+    ]);
   });
 });

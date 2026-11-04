@@ -30,6 +30,8 @@ const h = vi.hoisted(() => ({
   bootstrap: null as Record<string, unknown> | null,
   owner_pin: "ok" as "first" | "ok" | "changed" | "unknown",
   accepted: false,
+  flagged: [] as string[],
+  identity: null as { kem_identity_key: string } | null,
 }));
 
 vi.mock("../api/keys", () => ({
@@ -43,6 +45,9 @@ vi.mock("./ratchet_identity_pin", async (import_original) => ({
   check_owner_key_pin: vi.fn(async () => h.owner_pin),
   is_recipient_flagged_untrusted: vi.fn(async () => false),
   is_recipient_bundle_accepted: vi.fn(async () => h.accepted),
+  flag_recipient_untrusted: vi.fn(async (pin_id: string) => {
+    h.flagged.push(pin_id);
+  }),
 }));
 
 vi.mock("./key_manager_pgp", () => ({
@@ -68,7 +73,7 @@ vi.mock("./ratchet_state_store", () => ({
 vi.mock("./ratchet_prekey_bundle", () => ({
   detect_identity_pin_drift: vi.fn(),
   fetch_prekey_bundle: vi.fn(async () => h.bundle),
-  fetch_ratchet_identity: vi.fn(async () => null),
+  fetch_ratchet_identity: vi.fn(async () => h.identity),
 }));
 
 import { recipient_post_quantum_status } from "./ratchet_encrypt";
@@ -91,6 +96,8 @@ describe("recipient_post_quantum_status", () => {
     h.bundle = pq_bundle();
     h.verification = { verdict: "verified", format: "v2", strict: true };
     h.bootstrap = null;
+    h.flagged = [];
+    h.identity = null;
   });
 
   it("reports supported for a verified bundle whose signature covers the post-quantum key", async () => {
@@ -181,5 +188,60 @@ describe("recipient_post_quantum_status", () => {
     await expect(
       recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
     ).resolves.toBe("supported");
+  });
+  it("flags a recipient whose bundle does not verify so compose can offer trust", async () => {
+    h.verification = { verdict: "tampered", format: "v2", strict: false };
+
+    await expect(
+      recipient_post_quantum_status(
+        "hello@astermail.org",
+        "Tej-Berlin@astermail.org",
+        "Tej-Berlin",
+      ),
+    ).resolves.toBe("untrusted");
+    expect(h.flagged).toEqual(["tej-berlin@astermail.org"]);
+  });
+
+  it("does not flag a recipient after the user accepted the bundle", async () => {
+    h.verification = { verdict: "tampered", format: "v2", strict: false };
+    h.accepted = true;
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
+    expect(h.flagged).toEqual([]);
+  });
+
+  it("keeps an existing session while the published identity matches it", async () => {
+    h.bootstrap = { pq_ciphertext: "pq", recipient_identity_key: "kem" };
+    h.identity = { kem_identity_key: "kem" };
+    h.verification = { verdict: "tampered", format: "v2", strict: false };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("supported");
+    expect(h.flagged).toEqual([]);
+  });
+
+  it("checks the new bundle when the published identity moved past the session", async () => {
+    h.bootstrap = { pq_ciphertext: "pq", recipient_identity_key: "old-kem" };
+    h.identity = { kem_identity_key: "kem" };
+    h.verification = { verdict: "tampered", format: "v2", strict: false };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("untrusted");
+    expect(h.flagged).toEqual(["b@aster.cx"]);
+  });
+
+  it("asks before sending without post-quantum once a moved identity was accepted", async () => {
+    h.bootstrap = { pq_ciphertext: "pq", recipient_identity_key: "old-kem" };
+    h.identity = { kem_identity_key: "kem" };
+    h.verification = { verdict: "tampered", format: "v2", strict: false };
+    h.accepted = true;
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
   });
 });
