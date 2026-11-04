@@ -24,6 +24,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import {
   Modal,
   ModalHeader,
@@ -145,7 +146,13 @@ export function StepUpModal({
 
       await on_confirm(credentials);
     } catch (err) {
-      set_error(user_facing_error(err, t("common.step_up_error")));
+      const safety_key = login_safety_error_key(err);
+
+      set_error(
+        safety_key
+          ? t(safety_key)
+          : user_facing_error(err, t("common.step_up_error")),
+      );
     } finally {
       submitting_ref.current = false;
       set_is_loading(false);

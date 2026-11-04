@@ -21,6 +21,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@aster/ui";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { Input } from "@/components/ui/input";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import {
@@ -172,7 +173,9 @@ export function DeleteAccountModal({
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      set_error(t("common.delete_account_error"));
+      set_error(
+        t(login_safety_error_key(error) ?? "common.delete_account_error"),
+      );
     } finally {
       set_is_deleting(false);
     }

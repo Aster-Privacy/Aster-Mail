@@ -10166,6 +10166,10 @@ export const tr = {
   errors: {
     auth_salt_collision:
       "Sunucu güvenli olmayan bir değer gönderdiği için oturum açma durduruldu ve hiçbir şeyin kilidi açılmadı. Yeniden denemeden önce destek ile iletişime geç.",
+    legacy_login_salt_new_device:
+      "Hesabınızın güvenlik güncellemesini tamamlamak için daha önce Aster ile kullandığınız bir cihazda oturum açın. Bunu yapamıyorsanız parolanızı kurtarma anahtarınızla sıfırlayın.",
+    legacy_login_salt_sign_in_again:
+      "Hesabınızın güvenlik güncellemesini tamamlamak için oturumu kapatıp yeniden açın.",
     upload_too_large:
       "Yükleme çok büyük. Devam etmek için bir dosyayı kaldırın veya küçültün, sonra yeniden deneyin.",
     failed_remove_reaction: "Tepki kaldırılamadı. Lütfen tekrar deneyin.",

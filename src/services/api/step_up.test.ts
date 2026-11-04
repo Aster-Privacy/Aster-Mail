@@ -44,7 +44,7 @@ describe("derive_step_up_credentials", () => {
   beforeEach(() => {
     vi.mocked(base64_to_array)
       .mockReset()
-      .mockReturnValue(new Uint8Array([1, 2, 3]));
+      .mockReturnValue(new Uint8Array(32).fill(3));
     vi.mocked(derive_password_hash)
       .mockReset()
       .mockResolvedValue({ hash: "PWHASH", salt: "SALT" } as never);
@@ -64,7 +64,7 @@ describe("derive_step_up_credentials", () => {
     );
     expect(vi.mocked(derive_password_hash)).toHaveBeenCalledWith(
       "hunter2",
-      new Uint8Array([1, 2, 3]),
+      new Uint8Array(32).fill(3),
     );
     expect(creds).toEqual({ password_hash: "PWHASH", totp_code: undefined });
   });
@@ -96,7 +96,7 @@ describe("derive_step_up_credentials", () => {
     const requirements = await fetch_step_up_requirements();
 
     expect(requirements.totp_required).toBe(true);
-    expect(requirements.salt).toEqual(new Uint8Array([1, 2, 3]));
+    expect(requirements.salt).toEqual(new Uint8Array(32).fill(3));
   });
 
   it("treats a missing two factor flag as not required", async () => {

@@ -39,6 +39,7 @@ import {
   InboxArrowDownIcon as InboxArrowDownSolidIcon,
 } from "@heroicons/react/24/solid";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OtpInput } from "@/components/ui/otp_input";
@@ -571,7 +572,9 @@ export function ChangePrimaryAddressModal({
         caught,
       );
       set_password("");
-      set_error(t("settings.address_change_failed"));
+      set_error(
+        t(login_safety_error_key(caught) ?? "settings.address_change_failed"),
+      );
     } finally {
       set_busy(false);
       set_status(null);

@@ -81,7 +81,7 @@ vi.mock("@/services/api/auth", () => ({
 vi.mock("@/services/crypto/key_manager", () => ({
   hash_email: vi.fn(async (email: string) => `hash:${email}`),
   derive_password_hash: vi.fn(async () => ({ hash: "derived-password-hash" })),
-  base64_to_array: vi.fn(() => new Uint8Array([1, 2, 3, 4])),
+  base64_to_array: vi.fn(() => new Uint8Array(32).fill(4)),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({

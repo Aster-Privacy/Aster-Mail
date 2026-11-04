@@ -10330,6 +10330,10 @@ export const pt_br = {
   errors: {
     auth_salt_collision:
       "O login foi interrompido porque o servidor enviou um valor inseguro, então nada foi desbloqueado. Entre em contato com o suporte antes de tentar novamente.",
+    legacy_login_salt_new_device:
+      "Para concluir uma atualização de segurança da sua conta, entre em um dispositivo que você já usou com o Aster. Se não for possível, redefina sua senha com sua chave de recuperação.",
+    legacy_login_salt_sign_in_again:
+      "Para concluir uma atualização de segurança da sua conta, saia e entre novamente.",
     upload_too_large:
       "O envio é grande demais. Para continuar, remova ou reduza um arquivo e tente novamente.",
     failed_remove_reaction:

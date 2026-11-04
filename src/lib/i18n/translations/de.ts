@@ -10413,6 +10413,10 @@ export const de = {
   errors: {
     auth_salt_collision:
       "Die Anmeldung wurde abgebrochen, weil der Server einen unsicheren Wert gesendet hat. Es wurde nichts entsperrt. Kontaktieren Sie den Support, bevor Sie es erneut versuchen.",
+    legacy_login_salt_new_device:
+      "Um ein Sicherheitsupdate für Ihr Konto abzuschließen, melden Sie sich auf einem Gerät an, das Sie bereits mit Aster verwendet haben. Falls das nicht möglich ist, setzen Sie Ihr Passwort mit Ihrem Wiederherstellungsschlüssel zurück.",
+    legacy_login_salt_sign_in_again:
+      "Um ein Sicherheitsupdate für Ihr Konto abzuschließen, melden Sie sich ab und erneut an.",
     upload_too_large:
       "Der Upload ist zu groß. Entfernen oder verkleinern Sie eine Datei, um fortzufahren.",
     failed_remove_reaction:

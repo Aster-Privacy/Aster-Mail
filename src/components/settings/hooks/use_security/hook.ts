@@ -108,13 +108,14 @@ import {
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
-import { generate_auth_salt } from "@/services/crypto/auth_salt_guard";
+import { generate_auth_salt, login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
 import {
   derive_current_account_proof,
   read_kdf_version,
+  record_current_account_login_salt,
   user_hash_pin_key,
 } from "@/services/crypto/login_proof";
 
@@ -571,6 +572,7 @@ export function use_security() {
           );
         }
 
+        void record_current_account_login_salt(new_salt);
         reset_vault_refresh_state();
         await store_vault_in_memory(vault, new_password);
         void refresh_recovery_backup(vault, new_password);
@@ -723,7 +725,9 @@ export function use_security() {
       } else if (msg.startsWith("contact_reencrypt_failed:")) {
         set_password_error(t("settings.contact_reencrypt_failed"));
       } else {
-        set_password_error(t("settings.failed_change_password"));
+        set_password_error(
+          t(login_safety_error_key(err) ?? "settings.failed_change_password"),
+        );
       }
     } finally {
       set_password_loading(false);

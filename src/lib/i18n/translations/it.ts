@@ -10341,6 +10341,10 @@ export const it = {
   errors: {
     auth_salt_collision:
       "L'accesso è stato interrotto perché il server ha inviato un valore non sicuro, quindi non è stato sbloccato nulla. Contatta l'assistenza prima di riprovare.",
+    legacy_login_salt_new_device:
+      "Per completare un aggiornamento di sicurezza del tuo account, accedi da un dispositivo che hai già usato con Aster. Se non puoi, reimposta la password con la tua chiave di recupero.",
+    legacy_login_salt_sign_in_again:
+      "Per completare un aggiornamento di sicurezza del tuo account, esci e accedi di nuovo.",
     upload_too_large:
       "Il caricamento è troppo grande. Per continuare, rimuova o riduca un file e riprovi.",
     failed_remove_reaction: "Impossibile rimuovere la reazione. Riprova.",

@@ -25,6 +25,10 @@ export const AUTH_SALT_BYTES = 32;
 export const MIN_AUTH_SALT_BYTES = 16;
 export const MAX_REMEMBERED_VAULT_SALTS = 32;
 export const AUTH_SALT_COLLISION_TRANSLATION_KEY = "errors.auth_salt_collision";
+export const LEGACY_LOGIN_SALT_NEW_DEVICE_TRANSLATION_KEY =
+  "errors.legacy_login_salt_new_device";
+export const LEGACY_LOGIN_SALT_SIGN_IN_AGAIN_TRANSLATION_KEY =
+  "errors.legacy_login_salt_sign_in_again";
 
 const REMEMBERED_VAULT_SALTS_KEY = "aster:auth_salt_guard:vault_salts";
 
@@ -48,6 +52,47 @@ export function is_auth_salt_collision(
     error instanceof AuthSaltCollisionError ||
     (error instanceof Error && error.message === "auth_salt_collision")
   );
+}
+
+export type LegacyLoginSaltContext = "sign_in" | "step_up";
+
+export class LegacyLoginSaltError extends Error {
+  readonly translation_key:
+    | typeof LEGACY_LOGIN_SALT_NEW_DEVICE_TRANSLATION_KEY
+    | typeof LEGACY_LOGIN_SALT_SIGN_IN_AGAIN_TRANSLATION_KEY;
+
+  constructor(readonly context: LegacyLoginSaltContext) {
+    super(`legacy_login_salt_${context}`);
+    this.name = "LegacyLoginSaltError";
+    this.translation_key =
+      context === "sign_in"
+        ? LEGACY_LOGIN_SALT_NEW_DEVICE_TRANSLATION_KEY
+        : LEGACY_LOGIN_SALT_SIGN_IN_AGAIN_TRANSLATION_KEY;
+  }
+}
+
+export function is_legacy_login_salt_error(
+  error: unknown,
+): error is LegacyLoginSaltError {
+  return error instanceof LegacyLoginSaltError;
+}
+
+export function login_safety_error_key(
+  error: unknown,
+):
+  | typeof AUTH_SALT_COLLISION_TRANSLATION_KEY
+  | typeof LEGACY_LOGIN_SALT_NEW_DEVICE_TRANSLATION_KEY
+  | typeof LEGACY_LOGIN_SALT_SIGN_IN_AGAIN_TRANSLATION_KEY
+  | null {
+  if (is_legacy_login_salt_error(error)) {
+    return error.translation_key;
+  }
+
+  if (is_auth_salt_collision(error)) {
+    return AUTH_SALT_COLLISION_TRANSLATION_KEY;
+  }
+
+  return null;
 }
 
 export function generate_auth_salt(): Uint8Array {

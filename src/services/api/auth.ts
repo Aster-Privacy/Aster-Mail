@@ -268,6 +268,21 @@ export async function get_user_salt(
   return api_client.post<GetSaltResponse>("/core/v1/auth/salt", request);
 }
 
+interface RetiredLoginSaltsResponse {
+  retired_salts?: unknown;
+}
+
+export async function get_retired_login_salts(): Promise<string[]> {
+  const response = await api_client.get<RetiredLoginSaltsResponse>(
+    "/core/v1/auth/me/login-salt",
+  );
+  const salts = response.data?.retired_salts;
+
+  if (response.error || !Array.isArray(salts)) return [];
+
+  return salts.filter((entry): entry is string => typeof entry === "string");
+}
+
 export async function login_user(
   request: LoginRequest,
 ): Promise<ApiResponse<LoginResponse>> {

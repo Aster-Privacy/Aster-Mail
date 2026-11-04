@@ -44,7 +44,7 @@ import { reprotect_vault_keys_for_password_change } from "@/services/crypto/iden
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { generate_auth_salt } from "@/services/crypto/auth_salt_guard";
+import { generate_auth_salt, login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -102,6 +102,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import {
   derive_current_account_proof,
   read_kdf_version,
+  record_current_account_login_salt,
   user_hash_pin_key,
 } from "@/services/crypto/login_proof";
 
@@ -537,6 +538,7 @@ export function SecuritySection({
         );
       }
 
+      void record_current_account_login_salt(new_salt);
       reset_vault_refresh_state();
       await store_vault_in_memory(vault, new_password);
       void refresh_recovery_backup(vault, new_password);
@@ -625,7 +627,13 @@ export function SecuritySection({
       } else if (msg.startsWith("contact_reencrypt_failed:")) {
         set_pw_error(t("settings.contact_reencrypt_failed"));
       } else {
-        set_pw_error(msg || t("settings.failed_change_password"));
+        const safety_key = login_safety_error_key(err);
+
+        set_pw_error(
+          safety_key
+            ? t(safety_key)
+            : msg || t("settings.failed_change_password"),
+        );
       }
     } finally {
       set_pw_loading(false);

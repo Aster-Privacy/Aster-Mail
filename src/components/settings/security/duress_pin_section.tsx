@@ -27,6 +27,7 @@ import {
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -328,8 +329,10 @@ function SetupDuressPinModal({
         return;
       }
       set_step(pin_type === "numeric" ? "set_pin" : "set_text");
-    } catch {
-      set_creds_error(t("settings.failed_retrieve_auth"));
+    } catch (caught) {
+      set_creds_error(
+        t(login_safety_error_key(caught) ?? "settings.failed_retrieve_auth"),
+      );
     }
     set_verifying_creds(false);
   }, [verifying_creds, password, totp_required, totp_code, t, pin_type]);

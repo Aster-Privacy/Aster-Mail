@@ -40,6 +40,7 @@ import {
 } from "./shared";
 import { RecoveryCodesGroup } from "./recovery_codes_group";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -141,8 +142,10 @@ export function EncryptionSection({
       } else {
         set_auth_error(t("settings.incorrect_password_error"));
       }
-    } catch {
-      set_auth_error(t("settings.failed_verify_credentials"));
+    } catch (caught) {
+      set_auth_error(
+        t(login_safety_error_key(caught) ?? "settings.failed_verify_credentials"),
+      );
     } finally {
       set_is_loading(false);
     }

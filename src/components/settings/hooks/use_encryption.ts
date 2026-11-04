@@ -27,6 +27,7 @@ import type {
 
 import { useState, useEffect, useMemo } from "react";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -581,7 +582,11 @@ export function use_encryption() {
       set_export_error("");
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      set_export_error(t("settings.failed_export_private_key"));
+      set_export_error(
+        t(
+          login_safety_error_key(error) ?? "settings.failed_export_private_key",
+        ),
+      );
     } finally {
       set_is_exporting_private_key(false);
     }

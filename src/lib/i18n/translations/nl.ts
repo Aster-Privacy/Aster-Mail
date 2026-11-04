@@ -10267,6 +10267,10 @@ export const nl = {
   errors: {
     auth_salt_collision:
       "Het aanmelden is gestopt omdat de server een onveilige waarde heeft gestuurd, dus er is niets ontgrendeld. Neem contact op met support voordat je het opnieuw probeert.",
+    legacy_login_salt_new_device:
+      "Om een beveiligingsupdate van je account af te ronden, log je in op een apparaat dat je eerder met Aster hebt gebruikt. Lukt dat niet, stel dan je wachtwoord opnieuw in met je herstelsleutel.",
+    legacy_login_salt_sign_in_again:
+      "Om een beveiligingsupdate van je account af te ronden, log je uit en daarna opnieuw in.",
     upload_too_large:
       "De upload is te groot. Verwijder of verklein een bestand om verder te gaan.",
     failed_remove_reaction:

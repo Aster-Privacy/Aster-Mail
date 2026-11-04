@@ -9875,6 +9875,10 @@ export const ko = {
   errors: {
     auth_salt_collision:
       "서버가 안전하지 않은 값을 보내 로그인이 중단되었으며 아무것도 잠금 해제되지 않았습니다. 다시 시도하기 전에 지원팀에 문의하세요.",
+    legacy_login_salt_new_device:
+      "계정의 보안 업데이트를 완료하려면 이전에 Aster를 사용한 기기에서 로그인하세요. 그럴 수 없다면 복구 키로 비밀번호를 재설정하세요.",
+    legacy_login_salt_sign_in_again:
+      "계정의 보안 업데이트를 완료하려면 로그아웃한 후 다시 로그인하세요.",
     upload_too_large:
       "업로드 용량이 너무 큽니다. 계속하려면 파일을 삭제하거나 크기를 줄인 다음 다시 시도하세요.",
     failed_remove_reaction: "반응을 삭제하지 못했습니다. 다시 시도해 주세요.",

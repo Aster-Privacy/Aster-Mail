@@ -10020,6 +10020,10 @@ export const en: Translations = {
   errors: {
     auth_salt_collision:
       "Sign-in stopped because the server sent an unsafe value, so nothing was unlocked. Contact support before you try again.",
+    legacy_login_salt_new_device:
+      "To finish a security update to your account, sign in on a device you've used with Aster before. If you can't, reset your password with your recovery key.",
+    legacy_login_salt_sign_in_again:
+      "To finish a security update to your account, sign out and sign in again.",
     upload_too_large:
       "The upload is too large. To continue, remove or shrink a file and try again.",
     generic: "That did not work. Try again.",

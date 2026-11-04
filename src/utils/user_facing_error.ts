@@ -36,6 +36,11 @@ const OPAQUE_MESSAGE_PATTERNS = [
 export function user_facing_error(value: unknown, fallback: string): string {
   if (!(value instanceof Error)) return fallback;
   if (OPAQUE_ERROR_NAMES.includes(value.name)) return fallback;
+  if (
+    typeof (value as { translation_key?: unknown }).translation_key === "string"
+  ) {
+    return fallback;
+  }
 
   const message = value.message.trim();
 

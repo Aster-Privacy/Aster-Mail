@@ -25,6 +25,7 @@ import {
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { Button } from "@/components/ui/button";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -152,8 +153,12 @@ export function TotpDisableModal({
       on_close();
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      set_error(t("common.failed_to_disable_2fa"));
-      show_toast(t("common.failed_to_disable_2fa"), "error");
+      const message = t(
+        login_safety_error_key(error) ?? "common.failed_to_disable_2fa",
+      );
+
+      set_error(message);
+      show_toast(message, "error");
     } finally {
       verifying_ref.current = false;
       set_is_loading(false);

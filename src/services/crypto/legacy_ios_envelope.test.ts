@@ -15,7 +15,14 @@ const salt_bytes = new Uint8Array(16).fill(7);
 const salt_lookup = vi.hoisted(() => ({
   mode: "ok" as "ok" | "error" | "throw",
   calls: 0,
+  current: null as Uint8Array | null,
+  retired: [] as Uint8Array[],
+  retired_mode: "ok" as "ok" | "throw",
 }));
+
+function encode_salt(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes));
+}
 
 vi.mock("@/services/api/auth", () => ({
   get_user_salt: async () => {
@@ -23,7 +30,12 @@ vi.mock("@/services/api/auth", () => ({
     if (salt_lookup.mode === "throw") throw new Error("network");
     if (salt_lookup.mode === "error") return { error: "unavailable" };
 
-    return { data: { salt: btoa(String.fromCharCode(...salt_bytes)) } };
+    return { data: { salt: encode_salt(salt_lookup.current ?? salt_bytes) } };
+  },
+  get_retired_login_salts: async () => {
+    if (salt_lookup.retired_mode === "throw") throw new Error("network");
+
+    return salt_lookup.retired.map(encode_salt);
   },
 }));
 
@@ -83,6 +95,9 @@ describe("decrypt_legacy_ios_envelope", () => {
     current_passphrase = "correct horse battery staple";
     salt_lookup.mode = "ok";
     salt_lookup.calls = 0;
+    salt_lookup.current = null;
+    salt_lookup.retired = [];
+    salt_lookup.retired_mode = "ok";
     clear_legacy_ios_envelope_key();
   });
 
@@ -142,6 +157,49 @@ describe("decrypt_legacy_ios_envelope", () => {
     expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
       subject: "Hello from my phone",
       body_text: "This used to be invisible everywhere else.",
+    });
+  }, 30000);
+
+  it("opens an older envelope after the login salt was rotated", async () => {
+    const key_material = await derive_ios_key_material(
+      "correct horse battery staple",
+      salt_bytes,
+    );
+    const nonce = new Uint8Array(12).fill(6);
+    const ciphertext = await seal_like_ios(
+      JSON.stringify({ subject: "Before rotation" }),
+      key_material,
+      nonce,
+    );
+
+    salt_lookup.current = new Uint8Array(32).fill(9);
+    salt_lookup.retired = [salt_bytes];
+
+    const plaintext = await decrypt_legacy_ios_envelope(ciphertext, nonce);
+
+    expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
+      subject: "Before rotation",
+    });
+  }, 60000);
+
+  it("still opens envelopes under the current salt when retired salts are unavailable", async () => {
+    const key_material = await derive_ios_key_material(
+      "correct horse battery staple",
+      salt_bytes,
+    );
+    const nonce = new Uint8Array(12).fill(8);
+    const ciphertext = await seal_like_ios(
+      JSON.stringify({ subject: "Current" }),
+      key_material,
+      nonce,
+    );
+
+    salt_lookup.retired_mode = "throw";
+
+    const plaintext = await decrypt_legacy_ios_envelope(ciphertext, nonce);
+
+    expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
+      subject: "Current",
     });
   }, 30000);
 

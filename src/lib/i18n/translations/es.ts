@@ -10289,6 +10289,10 @@ export const es = {
   errors: {
     auth_salt_collision:
       "El inicio de sesión se detuvo porque el servidor envió un valor no seguro, así que no se desbloqueó nada. Contacta con soporte antes de volver a intentarlo.",
+    legacy_login_salt_new_device:
+      "Para completar una actualización de seguridad de tu cuenta, inicia sesión en un dispositivo que ya hayas usado con Aster. Si no puedes, restablece tu contraseña con tu clave de recuperación.",
+    legacy_login_salt_sign_in_again:
+      "Para completar una actualización de seguridad de tu cuenta, cierra sesión y vuelve a iniciarla.",
     upload_too_large:
       "La carga es demasiado grande. Para continuar, quita o reduce un archivo y vuelve a intentarlo.",
     failed_remove_reaction:

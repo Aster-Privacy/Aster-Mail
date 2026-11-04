@@ -218,7 +218,7 @@ describe("RecoveryCodesModal", () => {
     mocked_vault.mockReset();
     mocked_vault.mockReturnValue(vault_fixture as never);
     mocked_get.mockResolvedValue({
-      data: { salt: btoa("0123456789abcdef"), totp_required: false },
+      data: { salt: btoa("0123456789abcdef0123456789abcdef"), totp_required: false },
     } as never);
     mocked_step_up.mockResolvedValue({
       data: {
@@ -335,7 +335,7 @@ describe("RecoveryCodesModal", () => {
   it("asks for a 2FA code when the account requires it", async () => {
     vi.useRealTimers();
     mocked_get.mockResolvedValue({
-      data: { salt: btoa("0123456789abcdef"), totp_required: true },
+      data: { salt: btoa("0123456789abcdef0123456789abcdef"), totp_required: true },
     } as never);
     render_modal();
 

@@ -32,6 +32,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Checkbox } from "@aster/ui";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import {
   Modal,
   ModalHeader,
@@ -258,7 +259,13 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       set_captcha_token(null);
       set_step("warning");
     } catch (err) {
-      set_verify_error(user_facing_error(err, t("common.step_up_error")));
+      const safety_key = login_safety_error_key(err);
+
+      set_verify_error(
+        safety_key
+          ? t(safety_key)
+          : user_facing_error(err, t("common.step_up_error")),
+      );
       set_captcha_token(null);
       turnstile_ref.current?.reset();
     } finally {

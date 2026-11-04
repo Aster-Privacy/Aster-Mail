@@ -10393,6 +10393,10 @@ export const pt = {
   errors: {
     auth_salt_collision:
       "O início de sessão foi interrompido porque o servidor enviou um valor inseguro, por isso nada foi desbloqueado. Contacte o suporte antes de tentar novamente.",
+    legacy_login_salt_new_device:
+      "Para concluir uma atualização de segurança da sua conta, inicie sessão num dispositivo que já usou com o Aster. Se não for possível, redefina a palavra-passe com a sua chave de recuperação.",
+    legacy_login_salt_sign_in_again:
+      "Para concluir uma atualização de segurança da sua conta, termine sessão e inicie sessão novamente.",
     upload_too_large:
       "O carregamento é demasiado grande. Para continuar, remova ou reduza um ficheiro e tente novamente.",
     failed_remove_reaction:

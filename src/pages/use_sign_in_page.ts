@@ -64,7 +64,7 @@ import {
 import { sign_in_with_hub_account } from "@/services/hub_linked_login";
 import { is_tauri } from "@/native/desktop_device_auth";
 import { user_facing_error } from "@/utils/user_facing_error";
-import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import {
   is_crypto_module_load_error,
   preload_openpgp,
@@ -605,9 +605,11 @@ export function use_sign_in_page() {
         scrub_checkout_params();
         set_is_checkout_login(false);
         set_username(checkout_username);
-        if (is_auth_salt_collision(err)) {
+        const safety_key = login_safety_error_key(err);
+
+        if (safety_key) {
           void api_client.clear_session_cookies();
-          set_error(translate("errors.auth_salt_collision"));
+          set_error(translate(safety_key));
         } else if (is_crypto_module_load_error(err)) {
           set_error(translate("errors.crypto_module_unavailable"));
         } else if (err instanceof Error && /decrypt/i.test(err.message)) {
@@ -864,9 +866,11 @@ export function use_sign_in_page() {
         set_pending_login_token("");
         set_available_2fa_methods([]);
         set_active_2fa_method("totp");
-        if (is_auth_salt_collision(err)) {
+        const safety_key = login_safety_error_key(err);
+
+        if (safety_key) {
           void api_client.clear_session_cookies();
-          set_error(t("errors.auth_salt_collision"));
+          set_error(t(safety_key));
         } else if (is_crypto_module_load_error(err)) {
           set_error(t("errors.crypto_module_unavailable"));
         } else if (err instanceof Error && /decrypt/i.test(err.message)) {

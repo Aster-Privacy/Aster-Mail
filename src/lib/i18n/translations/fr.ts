@@ -10415,6 +10415,10 @@ export const fr = {
   errors: {
     auth_salt_collision:
       "La connexion a été interrompue parce que le serveur a envoyé une valeur non sécurisée. Rien n'a été déverrouillé. Contactez l'assistance avant de réessayer.",
+    legacy_login_salt_new_device:
+      "Pour terminer une mise à jour de sécurité de votre compte, connectez-vous sur un appareil que vous avez déjà utilisé avec Aster. Si ce n'est pas possible, réinitialisez votre mot de passe avec votre clé de récupération.",
+    legacy_login_salt_sign_in_again:
+      "Pour terminer une mise à jour de sécurité de votre compte, déconnectez-vous puis reconnectez-vous.",
     upload_too_large:
       "L'envoi est trop volumineux. Pour continuer, retirez ou réduisez un fichier, puis réessayez.",
     failed_remove_reaction:

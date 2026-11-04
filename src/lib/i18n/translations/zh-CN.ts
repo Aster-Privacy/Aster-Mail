@@ -9153,6 +9153,10 @@ export const zh_CN = {
   errors: {
     auth_salt_collision:
       "由于服务器发送了不安全的值，登录已停止，没有解锁任何内容。请先联系支持团队，然后再重试。",
+    legacy_login_salt_new_device:
+      "要完成账户的安全更新，请在以前使用过 Aster 的设备上登录。如果无法做到，请使用恢复密钥重置密码。",
+    legacy_login_salt_sign_in_again:
+      "要完成账户的安全更新，请退出登录后重新登录。",
     upload_too_large: "上传内容过大。请移除或压缩一个文件后重试。",
     failed_remove_reaction: "回应删除失败，请重试。",
     cannot_react_own_message: "无法对自己的邮件添加回应。",

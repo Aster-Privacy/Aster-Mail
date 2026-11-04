@@ -8878,6 +8878,8 @@ export interface AuthTranslations {
 export interface ErrorTranslations {
   crypto_module_unavailable: string;
   auth_salt_collision: string;
+  legacy_login_salt_new_device: string;
+  legacy_login_salt_sign_in_again: string;
   upload_too_large: string;
   post_quantum_unavailable: string;
   generic: string;

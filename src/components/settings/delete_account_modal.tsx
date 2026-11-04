@@ -26,6 +26,7 @@ import {
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -118,7 +119,9 @@ export function DeleteAccountModal({
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      set_error(t("settings.error_deleting_account"));
+      set_error(
+        t(login_safety_error_key(error) ?? "settings.error_deleting_account"),
+      );
     } finally {
       set_is_deleting(false);
       set_status(null);

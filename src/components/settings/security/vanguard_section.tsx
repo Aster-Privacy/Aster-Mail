@@ -21,6 +21,7 @@
 import { useState, useEffect } from "react";
 import { Badge, IslandRow, Skeleton, UpgradeBtn } from "@aster/ui";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -185,8 +186,13 @@ function LockdownSection({ account_id }: { account_id: string }) {
       set_password("");
       set_totp_code("");
       show_toast(t("settings.lockdown_disabled_toast"), "success");
-    } catch {
-      set_creds_error(t("settings.duress_pin_invalid_credentials"));
+    } catch (caught) {
+      set_creds_error(
+        t(
+          login_safety_error_key(caught) ??
+            "settings.duress_pin_invalid_credentials",
+        ),
+      );
     }
     set_disabling(false);
   };

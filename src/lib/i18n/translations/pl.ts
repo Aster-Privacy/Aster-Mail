@@ -10505,6 +10505,10 @@ export const pl = {
   errors: {
     auth_salt_collision:
       "Logowanie zostało przerwane, ponieważ serwer wysłał niebezpieczną wartość, więc nic nie zostało odblokowane. Skontaktuj się z pomocą, zanim spróbujesz ponownie.",
+    legacy_login_salt_new_device:
+      "Aby dokończyć aktualizację zabezpieczeń konta, zaloguj się na urządzeniu, na którym używasz już Aster. Jeśli to niemożliwe, zresetuj hasło za pomocą klucza odzyskiwania.",
+    legacy_login_salt_sign_in_again:
+      "Aby dokończyć aktualizację zabezpieczeń konta, wyloguj się i zaloguj ponownie.",
     upload_too_large:
       "Przesyłane dane są za duże. Aby kontynuować, usuń plik lub zmniejsz jego rozmiar i spróbuj ponownie.",
     failed_remove_reaction: "Nie udało się usunąć reakcji. Spróbuj ponownie.",

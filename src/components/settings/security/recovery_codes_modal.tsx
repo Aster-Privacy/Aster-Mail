@@ -28,6 +28,7 @@ import {
   PrinterIcon,
 } from "@heroicons/react/24/outline";
 
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { Button } from "@/components/ui/button";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { apply_input_transform } from "@/utils/input_transform";
@@ -325,7 +326,9 @@ export function RecoveryCodesModal({
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
-      set_error(t("settings.recovery_codes_save_failed"));
+      set_error(
+        t(login_safety_error_key(err) ?? "settings.recovery_codes_save_failed"),
+      );
     } finally {
       working_ref.current = false;
       set_is_working(false);
