@@ -312,19 +312,13 @@ export function use_delete_actions({
   const handle_toolbar_delete = useCallback(async (): Promise<void> => {
     const is_trash_view = current_view === "trash";
 
-    if (preferences.confirm_before_delete || is_trash_view) {
+    if (preferences.confirm_before_delete || is_trash_view || is_drafts_view) {
       set_confirmations((prev) => ({ ...prev, show_delete: true }));
 
       return;
     }
 
     const ids = get_selected_ids(email_state.emails);
-
-    if (is_drafts_view) {
-      run_delete_drafts(ids);
-
-      return;
-    }
 
     if (is_scheduled_view) {
       await run_cancel_scheduled(ids);
@@ -347,7 +341,7 @@ export function use_delete_actions({
   ]);
 
   const confirm_delete = useCallback(async (): Promise<void> => {
-    if (dont_ask_delete) {
+    if (dont_ask_delete && !is_drafts_view) {
       update_preference("confirm_before_delete", false, true);
     }
     const ids = get_selected_ids(email_state.emails);

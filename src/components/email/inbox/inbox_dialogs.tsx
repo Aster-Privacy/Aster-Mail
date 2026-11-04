@@ -147,6 +147,7 @@ export function InboxDialogs({
             : t("mail.trash_messages_confirmation")
         }
         dont_ask={dont_ask_delete}
+        hide_dont_ask={current_view === "drafts"}
         on_cancel={cancel_delete}
         on_confirm={confirm_delete}
         on_dont_ask_change={set_dont_ask_delete}
