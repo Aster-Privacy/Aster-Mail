@@ -18,8 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { forwardRef } from "react";
 import {
+  createContext,
+  forwardRef,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import {
+  RadixContextMenu,
   RadixContextMenuContent,
   RadixContextMenuSubContent,
 } from "@aster/ui";
@@ -29,16 +37,50 @@ import { cn } from "@/lib/utils";
 const MENU_MAX_HEIGHT =
   "max-h-[var(--radix-context-menu-content-available-height,calc(100dvh_-_16px))]";
 
+const ContextMenuOpenContext = createContext<boolean | null>(null);
+
+export function ContextMenu({
+  onOpenChange,
+  ...props
+}: React.ComponentProps<typeof RadixContextMenu>): React.ReactElement {
+  const [open, set_open] = useState(false);
+
+  const handle_open_change = useCallback(
+    (next: boolean) => {
+      set_open(next);
+      onOpenChange?.(next);
+    },
+    [onOpenChange],
+  );
+
+  return (
+    <ContextMenuOpenContext.Provider value={open}>
+      <RadixContextMenu {...props} onOpenChange={handle_open_change} />
+    </ContextMenuOpenContext.Provider>
+  );
+}
+
 export const ContextMenuContent = forwardRef<
   React.ElementRef<typeof RadixContextMenuContent>,
   React.ComponentPropsWithoutRef<typeof RadixContextMenuContent>
->(({ className, ...props }, ref) => (
-  <RadixContextMenuContent
-    ref={ref}
-    className={cn(MENU_MAX_HEIGHT, className)}
-    {...props}
-  />
-));
+>(({ className, ...props }, ref) => {
+  const open = useContext(ContextMenuOpenContext);
+  const [settled, set_settled] = useState(false);
+
+  useEffect(() => {
+    set_settled(open === true);
+  }, [open]);
+
+  if (open === true && !settled) return null;
+
+  return (
+    <RadixContextMenuContent
+      ref={ref}
+      className={cn(MENU_MAX_HEIGHT, className)}
+      {...props}
+    />
+  );
+});
 
 ContextMenuContent.displayName = "ContextMenuContent";
 
@@ -56,7 +98,6 @@ export const ContextMenuSubContent = forwardRef<
 ContextMenuSubContent.displayName = "ContextMenuSubContent";
 
 export {
-  RadixContextMenu as ContextMenu,
   RadixContextMenuTrigger as ContextMenuTrigger,
   RadixContextMenuItem as ContextMenuItem,
   RadixContextMenuCheckboxItem as ContextMenuCheckboxItem,
