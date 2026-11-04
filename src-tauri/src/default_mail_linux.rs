@@ -27,6 +27,10 @@ pub const DESKTOP_FILE: &str = "com.astermail.mail.mailto.desktop";
 const MIME_TYPE: &str = "x-scheme-handler/mailto";
 
 pub fn supported() -> bool {
+    if crate::flatpak::is_flatpak() {
+        return false;
+    }
+
     Command::new("xdg-mime")
         .arg("--version")
         .stdin(Stdio::null())
@@ -199,6 +203,10 @@ pub fn clear_default(store_dir: &Path) -> bool {
 }
 
 pub fn refresh_registration() {
+    if crate::flatpak::is_flatpak() {
+        return;
+    }
+
     let Ok(dir) = applications_dir() else { return };
 
     if dir.join(DESKTOP_FILE).exists() {

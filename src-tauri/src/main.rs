@@ -693,8 +693,15 @@ fn main() {
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
 
-                if let Err(error) = app.deep_link().register_all() {
-                    tracing::warn!(%error, "deep link scheme registration failed");
+                #[cfg(windows)]
+                let register_schemes = true;
+                #[cfg(target_os = "linux")]
+                let register_schemes = !flatpak::is_flatpak();
+
+                if register_schemes {
+                    if let Err(error) = app.deep_link().register_all() {
+                        tracing::warn!(%error, "deep link scheme registration failed");
+                    }
                 }
             }
 
@@ -922,6 +929,8 @@ fn main() {
             let mut context = tauri::generate_context!();
             #[cfg(windows)]
             boot_guard::apply_compat_browser_args(context.config_mut());
+            #[cfg(all(unix, not(target_os = "macos")))]
+            flatpak::apply_config(context.config_mut());
             context
         })
         .unwrap_or_else(|error| {

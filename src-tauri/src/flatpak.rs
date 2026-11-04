@@ -20,12 +20,21 @@
 //
 use std::sync::OnceLock;
 
+pub const APP_ID: &str = "org.astermail.Mail";
+
 pub fn is_flatpak() -> bool {
     static IS_FLATPAK: OnceLock<bool> = OnceLock::new();
 
-    *IS_FLATPAK.get_or_init(|| {
-        std::path::Path::new("/.flatpak-info").exists() || std::env::var_os("FLATPAK_ID").is_some()
-    })
+    *IS_FLATPAK.get_or_init(|| std::path::Path::new("/.flatpak-info").exists())
+}
+
+pub fn apply_config(config: &mut tauri::Config) {
+    if !is_flatpak() {
+        return;
+    }
+
+    config.identifier = APP_ID.to_string();
+    config.app.enable_gtk_app_id = true;
 }
 
 pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
@@ -51,8 +60,6 @@ pub mod secret {
 
     const PORTAL_TIMEOUT: Duration = Duration::from_secs(60);
 
-    // oo7 keeps a D-Bus connection that is bound to the runtime it was created on,
-    // so every Secret portal call goes through this one runtime.
     fn runtime() -> Result<&'static Runtime, String> {
         static RUNTIME: OnceLock<Result<Runtime, String>> = OnceLock::new();
 
