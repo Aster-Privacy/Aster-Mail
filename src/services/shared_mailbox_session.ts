@@ -66,6 +66,30 @@ import {
 } from "@/services/crypto/login_proof";
 
 const GRANT_EPOCH_KEY_PREFIX = "astermail_shared_grant_epoch_";
+const GRANT_SIGNED_KEY_PREFIX = "astermail_shared_grant_signed_";
+
+function signed_grant_key(viewer_id: string, mailbox_user_id: string): string {
+  return `${GRANT_SIGNED_KEY_PREFIX}${viewer_id}:${mailbox_user_id}`;
+}
+
+function has_signed_grant(viewer_id: string, mailbox_user_id: string): boolean {
+  try {
+    return (
+      localStorage.getItem(signed_grant_key(viewer_id, mailbox_user_id)) ===
+      "1"
+    );
+  } catch {
+    return true;
+  }
+}
+
+function remember_signed_grant(viewer_id: string, mailbox_user_id: string) {
+  try {
+    localStorage.setItem(signed_grant_key(viewer_id, mailbox_user_id), "1");
+  } catch {
+    return;
+  }
+}
 
 export interface SharedMailboxLoginResult {
   user: User;
@@ -137,22 +161,23 @@ export async function sync_shared_mailbox_grants(): Promise<
 
     if (!cached_secret || !epoch_current) {
       try {
+        const viewer_id = current?.user?.id ?? "";
         const granter_email = `${mailbox.my_grant.granted_by_username}@${mailbox.my_grant.granted_by_email_domain}`;
-        const granter_public_key = await fetch_member_public_key(
-          mailbox.my_grant.granted_by_username,
-          granter_email,
-        );
         const is_self_grant =
-          mailbox.my_grant.granted_by === current?.user?.id ||
-          granter_email.toLowerCase() === current?.user?.email?.toLowerCase();
+          viewer_id.length > 0 &&
+          (mailbox.my_grant.granted_by === viewer_id ||
+            granter_email.toLowerCase() ===
+              current?.user?.email?.toLowerCase());
+        const granter_public_key = is_self_grant
+          ? null
+          : await fetch_member_public_key(
+              mailbox.my_grant.granted_by_username,
+              granter_email,
+            );
         const build_verification_keys = async (private_keys: string[]) => {
-          const keys = [granter_public_key];
+          if (granter_public_key) return [granter_public_key];
 
-          if (is_self_grant) {
-            keys.push(...(await derive_public_keys_from_private(private_keys)));
-          }
-
-          return keys;
+          return derive_public_keys_from_private(private_keys);
         };
 
         let own_private_keys = [
@@ -183,7 +208,14 @@ export async function sync_shared_mailbox_grants(): Promise<
         }
 
         if (!opened) continue;
-        if (!opened.verified && !is_self_grant) continue;
+        if (
+          !opened.verified &&
+          (!is_self_grant ||
+            !response.data.viewer_is_owner ||
+            has_signed_grant(viewer_id, mailbox.mailbox_user_id))
+        ) {
+          continue;
+        }
 
         const payload = opened.payload;
         const mailbox_email =
@@ -212,23 +244,31 @@ export async function sync_shared_mailbox_grants(): Promise<
           String(mailbox.my_grant.credential_epoch),
         );
 
+        if (opened.verified && is_self_grant) {
+          remember_signed_grant(viewer_id, mailbox.mailbox_user_id);
+        }
+
         if (
           response.data.viewer_is_owner &&
           is_self_grant &&
           (!opened.verified || payload.mailbox_user_id === "pending") &&
           current?.user
         ) {
-          await reseal_own_grant(
-            mailbox,
-            payload.login_secret,
-            current.user,
-          ).catch((error) => {
+          try {
+            await reseal_own_grant(
+              mailbox,
+              payload.login_secret,
+              current.user,
+              vault,
+            );
+            remember_signed_grant(viewer_id, mailbox.mailbox_user_id);
+          } catch (error) {
             console.warn(
               "shared mailbox grant re-seal failed",
               mailbox.id,
               error,
             );
-          });
+          }
         }
       } catch (error) {
         console.warn("shared mailbox grant sync failed", mailbox.id, error);
@@ -253,6 +293,9 @@ export async function sync_shared_mailbox_grants(): Promise<
       ),
     );
     localStorage.removeItem(GRANT_EPOCH_KEY_PREFIX + account_id);
+    if (current?.user?.id) {
+      localStorage.removeItem(signed_grant_key(current.user.id, account_id));
+    }
   }
 
   return response.data.mailboxes;
@@ -262,15 +305,17 @@ async function reseal_own_grant(
   mailbox: SharedMailboxInfo,
   login_secret: string,
   current_user: User,
+  vault: EncryptedVault,
 ): Promise<void> {
-  if (!current_user.username || !current_user.email || !mailbox.my_grant) {
-    return;
-  }
+  if (!mailbox.my_grant) return;
 
-  const own_public_key = await fetch_member_public_key(
-    current_user.username,
-    current_user.email,
-  );
+  const [own_public_key] = await derive_public_keys_from_private([
+    vault.identity_key,
+  ]);
+
+  if (!own_public_key) {
+    throw new Error("own public key unavailable");
+  }
   const wrapped_grant = await seal_grant(
     {
       v: SHARED_MAILBOX_GRANT_VERSION,

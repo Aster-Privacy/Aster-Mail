@@ -80,6 +80,7 @@ import {
   seal_grant,
   generate_rotated_credential,
   get_grant_signing_keys,
+  get_own_grant_public_key,
   SHARED_MAILBOX_GRANT_VERSION,
 } from "@/services/crypto/shared_mailbox";
 import { decrypt_vault } from "@/services/crypto/key_manager_pgp";
@@ -263,11 +264,7 @@ export function SharedMailboxesTab({
         allocation,
       );
 
-      const my_email = `${me.username}@${me.email_domain}`;
-      const my_public_key = await fetch_member_public_key(
-        me.username,
-        my_email,
-      );
+      const my_public_key = await get_own_grant_public_key();
       const signing_key = get_grant_signing_keys();
 
       const placeholder_grant = await seal_grant(
@@ -405,10 +402,10 @@ export function SharedMailboxesTab({
         for (const grant of mailbox.grants) {
           if (!grant.username || !grant.email_domain) continue;
           const member_email = `${grant.username}@${grant.email_domain}`;
-          const public_key = await fetch_member_public_key(
-            grant.username,
-            member_email,
-          );
+          const public_key =
+            grant.member_user_id === my_user_id
+              ? await get_own_grant_public_key()
+              : await fetch_member_public_key(grant.username, member_email);
           const wrapped = await seal_grant(
             {
               v: SHARED_MAILBOX_GRANT_VERSION,
@@ -475,7 +472,7 @@ export function SharedMailboxesTab({
         set_busy_mailbox(null);
       }
     },
-    [busy_mailbox, t, load],
+    [busy_mailbox, t, load, my_user_id],
   );
 
   const handle_toggle_member = useCallback(
