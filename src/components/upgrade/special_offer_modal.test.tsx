@@ -236,9 +236,31 @@ function click_button_with_text(text: string) {
   });
 }
 
-function plan_option_names(): string[] {
-  return Array.from(document.body.querySelectorAll('[role="radio"]')).map(
-    (option) => option.textContent ?? "",
+function plan_inputs(): HTMLInputElement[] {
+  return Array.from(
+    document.body.querySelectorAll<HTMLInputElement>(
+      'input[name="special_offer_plan"]',
+    ),
+  );
+}
+
+function plan_input(code: string): HTMLInputElement {
+  const input = plan_inputs().find((candidate) => candidate.value === code);
+
+  if (!input) throw new Error(`no plan option ${code}`);
+
+  return input;
+}
+
+function choose_plan(code: string) {
+  return act(async () => {
+    plan_input(code).click();
+  });
+}
+
+function hero_text(): string {
+  return (
+    document.body.querySelector(".special_offer_hero_plan")?.textContent ?? ""
   );
 }
 
@@ -262,13 +284,14 @@ describe("SpecialOfferModal under the Black Friday offer", () => {
   it("lists Star, Nova, Supernova, Duo, and Family", async () => {
     await open_then_mount();
 
-    expect(plan_option_names()).toEqual([
-      "Star",
-      "Nova",
-      "Supernova",
-      "Duo",
-      "Family",
+    expect(plan_inputs().map((input) => input.value)).toEqual([
+      "star",
+      "nova",
+      "supernova",
+      "duo",
+      "family",
     ]);
+    expect(plan_input("nova").checked).toBe(true);
     expect(document.body.textContent).toContain(
       "settings.special_offer_black_friday_title",
     );
@@ -281,30 +304,42 @@ describe("SpecialOfferModal under the Black Friday offer", () => {
     expect(document.body.textContent).toContain("8699");
   });
 
-  it("shows the list price without a strike-through for Star monthly", async () => {
+  it("names the selected plan in the hero", async () => {
     await open_then_mount();
-    await click_button_with_text("Star");
+
+    expect(hero_text()).toBe("Nova");
+
+    await choose_plan("supernova");
+
+    expect(hero_text()).toBe("Supernova");
+    expect(plan_input("supernova").checked).toBe(true);
+  });
+
+  it("disables Star on monthly and moves the choice to a covered plan", async () => {
+    await open_then_mount();
+    await choose_plan("star");
     await click_button_with_text("settings.billing_monthly");
 
+    expect(plan_input("star").disabled).toBe(true);
+    expect(plan_input("nova").checked).toBe(true);
+    expect(hero_text()).toBe("Nova");
     expect(document.body.textContent).toContain(
       "settings.special_offer_not_on_star_monthly",
     );
-    expect(document.body.querySelector(".line-through")).toBeNull();
-    expect(document.body.textContent).not.toContain(
-      "settings.special_offer_cta",
-    );
+    expect(document.body.textContent).toContain("settings.special_offer_cta");
   });
 
-  it("lists features for Family", async () => {
+  it("shows the monthly offer and list prices for each plan", async () => {
     await open_then_mount();
-    await click_button_with_text("Family");
+    await click_button_with_text("settings.billing_monthly");
 
-    expect(
-      document.body.querySelectorAll(".special_offer_feature").length,
-    ).toBeGreaterThan(0);
+    expect(document.body.textContent).toContain("449");
+    expect(document.body.textContent).toContain("899");
+    expect(document.body.textContent).toContain("1349");
+    expect(document.body.textContent).toContain("2699");
   });
 
-  it("shows no note and no offer button for a duo term that is not covered", async () => {
+  it("shows no offer button when no plan is covered on that term", async () => {
     h.status = {
       status: {
         ...BLACK_FRIDAY_STATUS,
@@ -313,12 +348,11 @@ describe("SpecialOfferModal under the Black Friday offer", () => {
       is_loaded: true,
     };
     await open_then_mount();
-    await click_button_with_text("Duo");
+    await choose_plan("duo");
     await click_button_with_text("settings.billing_monthly");
 
-    expect(document.body.textContent).not.toContain(
-      "settings.special_offer_not_on_star_monthly",
-    );
+    expect(plan_input("duo").disabled).toBe(true);
+    expect(plan_input("duo").checked).toBe(true);
     expect(document.body.textContent).not.toContain(
       "settings.special_offer_cta",
     );
