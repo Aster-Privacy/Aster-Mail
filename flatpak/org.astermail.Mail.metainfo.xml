@@ -13,20 +13,17 @@
 
   <description>
     <p>
-      Aster Mail is private email that's actually easy to use. Your mailbox is end-to-end encrypted, and mail between Aster accounts is quantum-safe, so only you and the people you write to can read it.
+      Aster Mail is end-to-end encrypted email. Your messages are encrypted on your device before they reach the server, so only you and the people you write to can read them. Mail between Aster accounts also uses post-quantum encryption.
     </p>
-    <p>Highlights:</p>
+    <p>With Aster Mail, you can:</p>
     <ul>
-      <li>End-to-end encrypted email, quantum-safe between Aster accounts</li>
-      <li>10 GB of free storage</li>
-      <li>5 free aliases to keep your real address private</li>
-      <li>Use your own custom domain, free</li>
-      <li>PGP support, so you can send encrypted mail to any provider</li>
-      <li>Move over in minutes by importing from Gmail, Outlook, Yahoo and more</li>
-      <li>Reach Aster over Tor with its own onion service</li>
+      <li>Keep your real address private with aliases</li>
+      <li>Send and receive mail at your own domain</li>
+      <li>Exchange encrypted mail with PGP users at any provider</li>
+      <li>Import your mail and contacts from another provider</li>
     </ul>
     <p>
-      An Aster account is required. The desktop app is open source under AGPL v3 and built with Tauri.
+      The free plan includes 10 GB of storage, 5 aliases, and one custom domain. You need an Aster account to use the app.
     </p>
   </description>
 
@@ -38,11 +35,11 @@
 
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/main/flatpak/screenshots/inbox.png</image>
+      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/7079637601427a6dec69fbe15f5fc74e90a5b0d7/flatpak/screenshots/inbox.png</image>
       <caption>Your encrypted inbox</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/main/flatpak/screenshots/aliases.png</image>
+      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/7079637601427a6dec69fbe15f5fc74e90a5b0d7/flatpak/screenshots/aliases.png</image>
       <caption>Create and manage email aliases</caption>
     </screenshot>
   </screenshots>
@@ -53,7 +50,8 @@
   </branding>
 
   <content_rating type="oars-1.1">
-    <content_attribute id="social-chat">moderate</content_attribute>
+    <content_attribute id="social-chat">intense</content_attribute>
+    <content_attribute id="social-contacts">intense</content_attribute>
     <content_attribute id="money-purchasing">intense</content_attribute>
   </content_rating>
 
@@ -70,7 +68,7 @@
   </provides>
 
   <releases>
-    <release version="1.4.80" date="2026-11-03">
+    <release version="1.4.80" date="2026-11-04">
       <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.80</url>
     </release>
   </releases>
