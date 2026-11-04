@@ -29,6 +29,7 @@ import type {
 } from "./pipeline";
 
 import { hash_prefix } from "./pipeline";
+import { readable_export_envelope } from "./readable_envelope";
 
 import { list_mail_items } from "@/services/api/mail";
 import { list_attachments } from "@/services/api/attachments";
@@ -44,6 +45,17 @@ import {
 import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 
 const PAGE_SIZE = 500;
+
+async function resolve_our_email(): Promise<string | undefined> {
+  try {
+    const { get_current_account } = await import("@/services/account_manager");
+    const account = await get_current_account();
+
+    return account?.user.email || undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 function date_boundary_local(value: string, end_of_day: boolean): number {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
@@ -170,6 +182,8 @@ export function create_account_message_source(): ExportSource {
       report_error?: (e: ExportError) => void,
     ): AsyncIterable<PipelineMessage> {
       let cursor: string | undefined = undefined;
+      let our_email: Promise<string | undefined> | null = null;
+      const current_email = () => (our_email ??= resolve_our_email());
 
       while (!signal.aborted) {
         const page = await list_mail_items({
@@ -219,6 +233,21 @@ export function create_account_message_source(): ExportSource {
             continue;
           }
 
+          const readable = await readable_export_envelope(
+            decrypted,
+            current_email,
+            item.id,
+          );
+
+          if (!readable) {
+            report_error?.({
+              message_id_prefix: await hash_prefix(item.id),
+              kind: "decrypt",
+              code: "envelope_undecryptable",
+            });
+            continue;
+          }
+
           const is_sent_or_draft =
             item.item_type === "sent" || item.item_type === "draft";
           const attachments = await build_attachments(
@@ -229,7 +258,7 @@ export function create_account_message_source(): ExportSource {
 
           yield {
             message_id: item.id,
-            envelope: decrypted,
+            envelope: readable,
             attachments,
             folder_label: folder_token,
             is_sent_or_draft,
