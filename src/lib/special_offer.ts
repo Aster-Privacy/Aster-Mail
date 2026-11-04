@@ -33,7 +33,10 @@ export const SPECIAL_OFFER_DURATION_MONTHS = 12;
 
 export type SpecialOfferInterval = "month" | "year";
 
-export const SPECIAL_OFFER_INTERVALS: SpecialOfferInterval[] = ["month", "year"];
+export const SPECIAL_OFFER_INTERVALS: SpecialOfferInterval[] = [
+  "month",
+  "year",
+];
 
 export function special_offer_interval_months(
   interval: SpecialOfferInterval,

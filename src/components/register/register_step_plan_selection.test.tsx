@@ -38,10 +38,9 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("@/hooks/use_special_offer_checkout", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/lib/special_offer")>(
-      "@/lib/special_offer",
-    );
+  const actual = await vi.importActual<typeof import("@/lib/special_offer")>(
+    "@/lib/special_offer",
+  );
 
   return {
     use_special_offer_checkout: () =>
@@ -118,7 +117,11 @@ vi.mock("@/components/settings/billing/plan_payment_method_modal", () => ({
             ? "none"
             : String(props.discount_percent_off)}
         </span>
-        <button data-testid="pay_card" type="button" onClick={props.on_choose_card}>
+        <button
+          data-testid="pay_card"
+          type="button"
+          onClick={props.on_choose_card}
+        >
           card
         </button>
         {props.promo_slot}

@@ -338,9 +338,9 @@ describe("offer_is_live", () => {
   });
 
   it("is live without ends_at and not live without a status", () => {
-    expect(
-      offer_is_live(legacy_status, new Date("2030-01-01T00:00:00Z")),
-    ).toBe(true);
+    expect(offer_is_live(legacy_status, new Date("2030-01-01T00:00:00Z"))).toBe(
+      true,
+    );
     expect(offer_is_live(null, new Date())).toBe(false);
   });
 });
@@ -409,9 +409,9 @@ describe("special_offer_checkout covers", () => {
   it("covers nothing when the offer is unavailable or expired", () => {
     const expired = { ...bf_status, ends_at: "2020-01-01T00:00:00Z" };
 
-    expect(special_offer_checkout(false, bf_status).covers("nova", "year")).toBe(
-      false,
-    );
+    expect(
+      special_offer_checkout(false, bf_status).covers("nova", "year"),
+    ).toBe(false);
     expect(special_offer_checkout(true, expired).covers("nova", "year")).toBe(
       false,
     );

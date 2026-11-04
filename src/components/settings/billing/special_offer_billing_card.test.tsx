@@ -54,9 +54,8 @@ vi.mock("@/stores/special_offer_status", () => ({
   use_special_offer_status: () => ({ status: offer_status, is_loaded: true }),
 }));
 
-const { SpecialOfferBillingCard } = await import(
-  "./special_offer_billing_card"
-);
+const { SpecialOfferBillingCard } =
+  await import("./special_offer_billing_card");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -115,9 +114,15 @@ describe("SpecialOfferBillingCard", () => {
     };
     const node = await render_card("free");
 
-    expect(node.textContent).toContain("settings.special_offer_black_friday_title");
-    expect(node.textContent).toContain("settings.special_offer_black_friday_body");
-    expect(node.querySelector('[data-testid="offer_countdown"]')).not.toBeNull();
+    expect(node.textContent).toContain(
+      "settings.special_offer_black_friday_title",
+    );
+    expect(node.textContent).toContain(
+      "settings.special_offer_black_friday_body",
+    );
+    expect(
+      node.querySelector('[data-testid="offer_countdown"]'),
+    ).not.toBeNull();
   });
 
   it("stays hidden after the offer has ended", async () => {

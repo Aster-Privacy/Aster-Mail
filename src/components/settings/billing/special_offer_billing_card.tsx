@@ -54,9 +54,7 @@ export function SpecialOfferBillingCard({
   const is_black_friday = status?.theme === "black_friday";
   const offer_params = {
     percent: String(status?.percent_off ?? SPECIAL_OFFER_PERCENT_OFF),
-    months: String(
-      status?.duration_months ?? SPECIAL_OFFER_DURATION_MONTHS,
-    ),
+    months: String(status?.duration_months ?? SPECIAL_OFFER_DURATION_MONTHS),
   };
 
   return (

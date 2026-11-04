@@ -828,9 +828,7 @@ export const RegisterStepPlanSelection = ({
     );
     const per_month_cents =
       offer_total_cents !== null
-        ? Math.round(
-            offer_total_cents / (billing_period === "yearly" ? 12 : 1),
-          )
+        ? Math.round(offer_total_cents / (billing_period === "yearly" ? 12 : 1))
         : convert_cents(
             apply_referral_discount(
               billing_period === "yearly"
@@ -1046,21 +1044,21 @@ export const RegisterStepPlanSelection = ({
         !offer.has_offer &&
         reg.is_invited &&
         !applied_promo && (
-        <div
-          className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
-          style={{
-            backgroundColor: "var(--accent-blue)",
-            color: "var(--accent-fg, #ffffff)",
-          }}
-        >
-          <AcademicCapIcon className="w-4 h-4 shrink-0" />
-          {referral_discount_percent
-            ? t("auth.plan_referral_discount_percent_note", {
-                percent: referral_discount_percent,
-              })
-            : t("auth.plan_referral_discount_note")}
-        </div>
-      )}
+          <div
+            className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
+            style={{
+              backgroundColor: "var(--accent-blue)",
+              color: "var(--accent-fg, #ffffff)",
+            }}
+          >
+            <AcademicCapIcon className="w-4 h-4 shrink-0" />
+            {referral_discount_percent
+              ? t("auth.plan_referral_discount_percent_note", {
+                  percent: referral_discount_percent,
+                })
+              : t("auth.plan_referral_discount_note")}
+          </div>
+        )}
 
       <div className="mt-6 flex w-full flex-wrap items-center justify-center gap-2">
         <div
@@ -1223,21 +1221,21 @@ export const RegisterStepPlanSelection = ({
                     )}
                     {family_offer_cents === null &&
                       billing_period === "yearly" && (
-                      <span
-                        className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
-                        style={{ backgroundColor: "var(--accent-blue)" }}
-                      >
-                        {t("settings.save_yearly", {
-                          amount: format_price(
-                            convert_cents(
-                              family_yearly_savings_cents(tier),
+                        <span
+                          className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
+                          style={{ backgroundColor: "var(--accent-blue)" }}
+                        >
+                          {t("settings.save_yearly", {
+                            amount: format_price(
+                              convert_cents(
+                                family_yearly_savings_cents(tier),
+                                currency,
+                              ),
                               currency,
                             ),
-                            currency,
-                          ),
-                        })}
-                      </span>
-                    )}
+                          })}
+                        </span>
+                      )}
                   </div>
                   {family_offer_cents !== null && (
                     <p className="text-xs font-medium text-txt-secondary">

@@ -1705,7 +1705,10 @@ export function BillingSection() {
           const api_plan = plans.find((plan) => plan.code === offer.plan_code);
 
           if (api_plan) {
-            set_plan_change_confirm_target({ plan: api_plan, interval: "year" });
+            set_plan_change_confirm_target({
+              plan: api_plan,
+              interval: "year",
+            });
             set_show_plan_change_confirm(true);
           } else {
             show_toast(

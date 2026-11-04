@@ -155,8 +155,9 @@ export function SpecialOfferModal() {
   const { is_authenticated, user } = use_auth();
   const { plan_code, refresh: refresh_plan_limits } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
-  const [interval_choice, set_interval] =
-    useState<SpecialOfferInterval | null>(null);
+  const [interval_choice, set_interval] = useState<SpecialOfferInterval | null>(
+    null,
+  );
   const [plan_choice, set_plan_choice] = useState<string | null>(null);
   const [is_accepting, set_is_accepting] = useState(false);
   const [is_hero_loaded, set_is_hero_loaded] = useState(false);
@@ -466,7 +467,9 @@ export function SpecialOfferModal() {
           {
             id: term_id,
             label: t(
-              is_yearly ? "settings.billing_yearly" : "settings.billing_monthly",
+              is_yearly
+                ? "settings.billing_yearly"
+                : "settings.billing_monthly",
             ),
             per_month_cents: Math.round(
               pricing.list_cents / special_offer_interval_months(interval),

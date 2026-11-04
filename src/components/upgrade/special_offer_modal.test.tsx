@@ -53,10 +53,9 @@ vi.mock("@/hooks/use_plan_limits", () => ({
 }));
 
 vi.mock("@/hooks/use_special_offer_checkout", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/lib/special_offer")>(
-      "@/lib/special_offer",
-    );
+  const actual = await vi.importActual<typeof import("@/lib/special_offer")>(
+    "@/lib/special_offer",
+  );
 
   return {
     use_special_offer_checkout: () =>
@@ -91,7 +90,11 @@ vi.mock("@/components/settings/billing/plan_payment_method_modal", () => ({
     on_choose_card: () => void;
   }) =>
     props.open ? (
-      <button data-testid="pay_card" type="button" onClick={props.on_choose_card}>
+      <button
+        data-testid="pay_card"
+        type="button"
+        onClick={props.on_choose_card}
+      >
         card
       </button>
     ) : null,
@@ -287,7 +290,9 @@ describe("SpecialOfferModal under the Black Friday offer", () => {
       "settings.special_offer_not_on_star_monthly",
     );
     expect(document.body.querySelector(".line-through")).toBeNull();
-    expect(document.body.textContent).not.toContain("settings.special_offer_cta");
+    expect(document.body.textContent).not.toContain(
+      "settings.special_offer_cta",
+    );
   });
 
   it("lists features for Family", async () => {
@@ -314,7 +319,9 @@ describe("SpecialOfferModal under the Black Friday offer", () => {
     expect(document.body.textContent).not.toContain(
       "settings.special_offer_not_on_star_monthly",
     );
-    expect(document.body.textContent).not.toContain("settings.special_offer_cta");
+    expect(document.body.textContent).not.toContain(
+      "settings.special_offer_cta",
+    );
   });
 
   it("starts card checkout for Supernova yearly with the offer flag", async () => {
