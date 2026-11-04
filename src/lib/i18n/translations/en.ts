@@ -6848,8 +6848,6 @@ export const en: Translations = {
       "Aster Mail imports only the mail that arrives after you add the account.",
     import_existing_mail_on:
       "Aster Mail also imports the mail that's already in the account.",
-    archive_sent_label: "Copy sent emails to remote server\u2019s Sent folder",
-    delete_after_fetch_label: "Delete emails from remote after importing",
     test_connection: "Test Connection",
     test_smtp: "Test SMTP",
     syncing: "Syncing...",
@@ -8385,14 +8383,15 @@ export const en: Translations = {
       "Block remote content, external links, and new senders until you turn it off.",
     plan_tip_wkd:
       "Publish your public key at your own domain so anyone can find it and write to you encrypted.",
-    protocol_desc_imap: "Syncs folders and stays in sync across devices.",
-    protocol_desc_pop3: "Downloads mail once, then leaves nothing to sync.",
+    protocol_desc_imap:
+      "Brings in new mail and folders. Changes aren’t mirrored.",
+    protocol_desc_pop3: "Brings in new mail from your inbox only.",
     protocol_tooltip_imap:
-      "IMAP keeps your mail on the server and syncs every change across your devices.",
+      "Aster brings in new mail and folders from this account. Changes such as deletions aren’t mirrored either way.",
     protocol_tooltip_jmap:
       "JMAP is a modern sync protocol that only a few providers support.",
     protocol_tooltip_pop3:
-      "POP3 downloads mail to a single device and doesn’t sync changes back.",
+      "Aster brings in new mail from this account’s inbox only. Changes such as deletions aren’t mirrored either way.",
     remove_account_tooltip: "Remove account",
     show_side_panel: "Show side panel",
     show_side_panel_description:

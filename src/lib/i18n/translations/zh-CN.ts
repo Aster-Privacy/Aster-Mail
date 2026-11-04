@@ -5111,8 +5111,6 @@ export const zh_CN = {
     import_existing_mail: "导入现有邮件",
     import_existing_mail_off: "只获取添加账户之后收到的邮件。",
     import_existing_mail_on: "账户中已有的邮件也会被导入。",
-    archive_sent_label: "将已发邮件复制到远程服务器的已发送文件夹",
-    delete_after_fetch_label: "导入后从远程删除邮件",
     test_connection: "测试连接",
     test_smtp: "测试 SMTP",
     syncing: "同步中...",
@@ -7640,14 +7638,14 @@ export const zh_CN = {
       "把应用专用密码粘贴到下方，带不带空格都可以。Aster 会加密保存该密码，并且只用它来同步这个邮箱。",
     gmail_wizard_import_note:
       "Aster 会导入您的所有邮件，包括已归档邮件、已发邮件和标签。邮箱较大时可能需要几天，在此期间您可以继续使用 Aster。",
-    protocol_desc_imap: "同步文件夹，让您的所有设备保持最新。",
-    protocol_desc_pop3: "只下载一次邮件，之后不再同步任何内容。",
+    protocol_desc_imap: "导入新邮件和文件夹，不同步更改。",
+    protocol_desc_pop3: "仅导入收件箱中的新邮件。",
     protocol_tooltip_imap:
-      "IMAP 把邮件保留在服务器上，并把每一处更改同步到您的所有设备。",
+      "Aster 会从此账户导入新邮件和文件夹。删除等更改不会在两边之间同步。",
     protocol_tooltip_jmap:
       "JMAP 是一种较新的同步协议，目前支持的服务商还很少。",
     protocol_tooltip_pop3:
-      "POP3 把邮件下载到一台设备上，不会把更改传回服务器。",
+      "Aster 仅从此账户的收件箱导入新邮件。删除等更改不会在两边之间同步。",
   },
   mail: {
     image_size_prompt_title: "要缩小此邮件中的图片吗？",

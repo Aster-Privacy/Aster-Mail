@@ -144,9 +144,7 @@ export function ExternalAccountsSection() {
               available_folders={state.available_folders}
               close_form={state.close_form}
               editing_account={state.editing_account}
-              form_archive_sent={state.form_archive_sent}
               form_connection_timeout={state.form_connection_timeout}
-              form_delete_after_fetch={state.form_delete_after_fetch}
               form_display_name={state.form_display_name}
               form_email={state.form_email}
               form_host={state.form_host}
@@ -199,8 +197,6 @@ export function ExternalAccountsSection() {
               prefill_failed={state.prefill_failed}
               retry_prefill={state.retry_prefill}
               selected_folders={state.selected_folders}
-              set_form_archive_sent={state.set_form_archive_sent}
-              set_form_delete_after_fetch={state.set_form_delete_after_fetch}
               set_form_display_name={state.set_form_display_name}
               set_form_import_existing={state.set_form_import_existing}
               set_form_label_color={state.set_form_label_color}

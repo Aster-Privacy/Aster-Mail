@@ -86,12 +86,8 @@ export function AddAccountForm({
   set_form_tls_method,
   tls_method_options,
   form_connection_timeout,
-  form_archive_sent,
-  set_form_archive_sent,
   form_import_existing,
   set_form_import_existing,
-  form_delete_after_fetch,
-  set_form_delete_after_fetch,
   is_form_busy,
   prefill_failed,
   retry_prefill,
@@ -237,13 +233,9 @@ export function AddAccountForm({
         )}
 
         <AdvancedSettingsSection
-          form_archive_sent={form_archive_sent}
           form_connection_timeout={form_connection_timeout}
-          form_delete_after_fetch={form_delete_after_fetch}
           form_tls_method={form_tls_method}
           handle_connection_timeout_change={handle_connection_timeout_change}
-          set_form_archive_sent={set_form_archive_sent}
-          set_form_delete_after_fetch={set_form_delete_after_fetch}
           set_form_tls_method={set_form_tls_method}
           set_show_advanced={set_show_advanced}
           show_advanced={show_advanced}

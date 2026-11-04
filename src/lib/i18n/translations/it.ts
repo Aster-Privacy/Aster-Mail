@@ -6865,10 +6865,6 @@ export const it = {
       "Vengono recuperate solo le email che arrivano dopo l’aggiunta dell’account.",
     import_existing_mail_on:
       "Vengono importate anche le email già presenti nell’account.",
-    archive_sent_label:
-      "Copia le email inviate nella cartella Inviati del server remoto",
-    delete_after_fetch_label:
-      "Elimina le email dal server remoto dopo l'importazione",
     test_connection: "Testa connessione",
     test_smtp: "Testa SMTP",
     syncing: "Sincronizzazione...",
@@ -8663,15 +8659,15 @@ export const it = {
     last_sync_tooltip:
       "Quando questo account si è sincronizzato l’ultima volta",
     protocol_desc_imap:
-      "Sincronizza le cartelle e resta aggiornato su tutti i tuoi dispositivi.",
+      "Importa i nuovi messaggi e le cartelle. Le modifiche non vengono replicate.",
     protocol_desc_pop3:
-      "Scarica i messaggi una volta e poi non sincronizza più nulla.",
+      "Importa i nuovi messaggi solo dalla tua posta in arrivo.",
     protocol_tooltip_imap:
-      "IMAP tiene i messaggi sul server e sincronizza ogni modifica su tutti i tuoi dispositivi.",
+      "Aster importa i nuovi messaggi e le cartelle da questo account. Le modifiche, come le eliminazioni, non vengono replicate in nessuna direzione.",
     protocol_tooltip_jmap:
       "JMAP è un protocollo di sincronizzazione moderno che pochi provider supportano.",
     protocol_tooltip_pop3:
-      "POP3 scarica i messaggi su un solo dispositivo e non rimanda indietro le modifiche.",
+      "Aster importa i nuovi messaggi solo dalla posta in arrivo di questo account. Le modifiche, come le eliminazioni, non vengono replicate in nessuna direzione.",
     show_side_panel_description:
       "Tieni i contatti e altri strumenti rapidi in un pannello accanto ai tuoi messaggi.",
   },

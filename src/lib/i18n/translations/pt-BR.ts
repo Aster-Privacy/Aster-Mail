@@ -5651,9 +5651,6 @@ export const pt_br = {
       "Só os e-mails que chegarem depois que você adicionar a conta serão trazidos.",
     import_existing_mail_on:
       "Os e-mails que já estão na conta também serão importados.",
-    archive_sent_label:
-      "Copiar e-mails enviados para a pasta Enviados do servidor remoto",
-    delete_after_fetch_label: "Excluir e-mails do remoto após importar",
     test_connection: "Testar conexão",
     test_smtp: "Testar SMTP",
     syncing: "Sincronizando...",
@@ -8559,15 +8556,14 @@ export const pt_br = {
       "O Aster importa todos os seus e-mails, incluindo os arquivados, os enviados e as etiquetas. Caixas de correio grandes podem levar alguns dias, e você pode continuar usando o Aster durante a importação.",
     gmail_wizard_title: "Conecte sua caixa de correio",
     protocol_desc_imap:
-      "Sincroniza as pastas e mantém tudo em dia em todos os seus dispositivos.",
-    protocol_desc_pop3:
-      "Baixa as mensagens uma vez e depois não sincroniza mais nada.",
+      "Importa novos e-mails e pastas. As alterações não são espelhadas.",
+    protocol_desc_pop3: "Importa novos e-mails apenas da sua caixa de entrada.",
     protocol_tooltip_imap:
-      "O IMAP mantém suas mensagens no servidor e sincroniza cada alteração em todos os seus dispositivos.",
+      "O Aster importa novos e-mails e pastas desta conta. Alterações, como exclusões, não são espelhadas em nenhuma direção.",
     protocol_tooltip_jmap:
       "O JMAP é um protocolo de sincronização moderno que poucos provedores oferecem.",
     protocol_tooltip_pop3:
-      "O POP3 baixa as mensagens para um único dispositivo e não devolve as alterações.",
+      "O Aster importa novos e-mails apenas da caixa de entrada desta conta. Alterações, como exclusões, não são espelhadas em nenhuma direção.",
     show_side_panel_description:
       "Deixe seus contatos e outras ferramentas rápidas em um painel ao lado das mensagens.",
     recovery_codes_show: "Mostrar códigos",
