@@ -10844,6 +10844,11 @@ export const ko = {
     invite_card_join: "회의 참가",
     invite_card_calendar_failed: "답장은 전송되었지만 Aster가 이 일정을 캘린더에 추가하지 못했습니다.",
     invite_card_reply_send_failed: "답장을 보내지 못했습니다. 다시 시도하세요.",
+    invite_card_organizer_mismatch:
+      "이 초대는 {{sender}}에서 보냈지만 주최자는 {{organizer}}(으)로 표시되어 있습니다. 예상하지 못한 경우 응답하기 전에 주최자에게 확인하세요.",
+    invite_card_reply_confirm:
+      "응답은 보낸 사람({{sender}})이 아닌 {{organizer}}에게 전송됩니다. 이 주최자를 신뢰하는 경우에만 보내세요.",
+    invite_card_reply_confirm_send: "응답 보내기",
   },
   settings_search: {
     two_factor: "2단계 인증",

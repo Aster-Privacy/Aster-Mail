@@ -68,6 +68,7 @@ const {
   mail_item_provenance,
   message_attendees,
   message_to_draft,
+  organizer_differs_from_sender,
   remove_event,
   save_request_response,
   set_own_response,
@@ -1088,5 +1089,87 @@ describe("cancel, reply, and own response", () => {
 
     delete_event.mockResolvedValueOnce({ success: false });
     expect(await remove_event("evt-1")).toBe(false);
+  });
+});
+
+describe("organizer and sender checks", () => {
+  it("flags an organizer that is not the sender", () => {
+    const message = make_message();
+
+    expect(organizer_differs_from_sender(message, "Host@Example.com ", SELF)).toBe(false);
+    expect(organizer_differs_from_sender(message, "someone@example.net", SELF)).toBe(true);
+    expect(organizer_differs_from_sender(message, undefined, SELF)).toBe(false);
+    expect(
+      organizer_differs_from_sender(make_message({ organizer: null }), "someone@example.net", SELF),
+    ).toBe(false);
+  });
+
+  it("accepts an organizer and sender that are both your own addresses", () => {
+    const message = make_message({
+      organizer: { email: SELF, display_name: null, response: "accepted", is_organizer: true },
+    });
+
+    expect(organizer_differs_from_sender(message, "ME@example.com", SELF)).toBe(false);
+  });
+
+  it("keeps the organizer for a delegated invite you confirmed", async () => {
+    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+
+    const result = await save_request_response(
+      make_message({ uid: "uid-delegated" }),
+      SELF,
+      "accepted",
+      null,
+      "assistant@example.net",
+    );
+
+    expect(result?.id).toBe("evt-new");
+    expect(create_event.mock.calls[0][0].organizer_email).toBe(HOST.email);
+  });
+
+  it("stores no organizer when someone else names you as the organizer", async () => {
+    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+
+    await save_request_response(
+      make_message({
+        uid: "uid-claimed",
+        organizer: { email: SELF, display_name: null, response: "accepted", is_organizer: true },
+      }),
+      SELF,
+      "accepted",
+      null,
+      "someone@example.net",
+    );
+
+    expect(create_event.mock.calls[0][0].organizer_email).toBeNull();
+  });
+
+  it("keeps the organizer for a new invite the organizer sent", async () => {
+    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+
+    await save_request_response(
+      make_message({ uid: "uid-direct" }),
+      SELF,
+      "accepted",
+      null,
+      HOST.email,
+    );
+
+    expect(create_event.mock.calls[0][0].organizer_email).toBe(HOST.email);
+  });
+
+  it("does not trust a message whose sender identity did not match", () => {
+    const item = {
+      item_type: "received" as const,
+      is_external: false,
+      created_at: REPLY_AT,
+    };
+
+    expect(mail_item_provenance(item, "mismatch")).toEqual({
+      trusted: false,
+      received_at: REPLY_AT,
+    });
+    expect(mail_item_provenance(item, "unverified").trusted).toBe(true);
+    expect(mail_item_provenance(item, "verified").trusted).toBe(true);
   });
 });

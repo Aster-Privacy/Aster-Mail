@@ -10040,6 +10040,11 @@ export const zh_CN = {
     invite_card_join: "加入会议",
     invite_card_calendar_failed: "您的答复已发送，但 Aster 无法将此活动添加到您的日历。",
     invite_card_reply_send_failed: "您的答复未能发送，请重试。",
+    invite_card_organizer_mismatch:
+      "此邀请由 {{sender}} 发送，但其中列出的组织者是 {{organizer}}。如果这出乎您的意料，请在回复前先与组织者确认。",
+    invite_card_reply_confirm:
+      "您的回复将发送给 {{organizer}}，而不是发件人 {{sender}}。请仅在您信任此组织者时发送。",
+    invite_card_reply_confirm_send: "发送回复",
   },
   settings_search: {
     two_factor: "两步验证",

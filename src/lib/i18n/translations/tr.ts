@@ -11141,6 +11141,11 @@ export const tr = {
     invite_card_join: "Toplantıya katıl",
     invite_card_calendar_failed: "Yanıtınız gönderildi ancak Aster bu etkinliği takviminize ekleyemedi.",
     invite_card_reply_send_failed: "Yanıtınız gönderilemedi. Tekrar deneyin.",
+    invite_card_organizer_mismatch:
+      "Bu davet {{sender}} tarafından gönderildi, ancak düzenleyen olarak {{organizer}} görünüyor. Bunu beklemiyorsanız yanıt vermeden önce düzenleyenle görüşün.",
+    invite_card_reply_confirm:
+      "Yanıtınız gönderen {{sender}} adresine değil, {{organizer}} adresine gidecek. Yalnızca bu düzenleyene güveniyorsanız gönderin.",
+    invite_card_reply_confirm_send: "Yanıtı gönder",
   },
   settings_search: {
     two_factor: "2FA",

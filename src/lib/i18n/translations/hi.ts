@@ -11051,6 +11051,11 @@ export const hi = {
     invite_card_join: "मीटिंग में शामिल हों",
     invite_card_calendar_failed: "आपका जवाब भेज दिया गया, लेकिन Aster इस इवेंट को आपके कैलेंडर में नहीं जोड़ सका।",
     invite_card_reply_send_failed: "आपका जवाब नहीं भेजा जा सका। फिर से कोशिश करें।",
+    invite_card_organizer_mismatch:
+      "यह आमंत्रण {{sender}} ने भेजा है, लेकिन इसमें आयोजक के रूप में {{organizer}} दिया गया है। अगर आपको इसकी उम्मीद नहीं थी, तो जवाब देने से पहले आयोजक से पुष्टि करें।",
+    invite_card_reply_confirm:
+      "आपका जवाब भेजने वाले {{sender}} को नहीं, बल्कि {{organizer}} को जाएगा। इसे तभी भेजें जब आपको इस आयोजक पर भरोसा हो।",
+    invite_card_reply_confirm_send: "जवाब भेजें",
   },
   settings_search: {
     two_factor: "2FA",

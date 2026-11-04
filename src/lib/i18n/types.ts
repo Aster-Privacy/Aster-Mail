@@ -323,6 +323,9 @@ export interface CalendarTranslations {
   invite_card_join: string;
   invite_card_calendar_failed: string;
   invite_card_reply_send_failed: string;
+  invite_card_organizer_mismatch: string;
+  invite_card_reply_confirm: string;
+  invite_card_reply_confirm_send: string;
 }
 
 export interface SharedMailboxesTranslations {

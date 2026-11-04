@@ -180,6 +180,14 @@ function request(uid: string, extra: string[] = []): string {
 }
 
 const { CalendarInviteCard } = await import("./calendar_invite_card");
+const { EXTERNAL_LINK_EVENT } = await import("@/utils/external_link_request");
+const { record_message_sender_identity } = await import(
+  "@/services/crypto/ratchet_verification_status"
+);
+const { get_mail_item } = await import("@/services/api/mail");
+const { mail_item_provenance } = await import(
+  "@/services/calendar/invite_store"
+);
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -537,5 +545,133 @@ describe("CalendarInviteCard", () => {
       view.querySelector('[data-testid="calendar-invite-card"]'),
     ).not.toBeNull();
     expect(response_button(view, "accepted")).toBeTruthy();
+  });
+
+  it("opens the meeting link through the external link check", async () => {
+    const requested: string[] = [];
+    const listener = (event: Event) => {
+      const detail = (
+        event as CustomEvent<{
+          url: string;
+          on_result?: (opened: boolean) => void;
+        }>
+      ).detail;
+
+      event.preventDefault();
+      requested.push(detail.url);
+      detail.on_result?.(false);
+    };
+
+    window.addEventListener(EXTERNAL_LINK_EVENT, listener);
+
+    try {
+      const view = await render(
+        <CalendarInviteCard
+          body={request("uid-20", ["LOCATION:https://meet.example.com/abc-def"])}
+          email_id="mail-20"
+        />,
+      );
+      const link = view.querySelector<HTMLAnchorElement>(
+        '[data-testid="calendar-invite-join"]',
+      );
+      let not_prevented = true;
+
+      await act(async () => {
+        not_prevented = link!.dispatchEvent(
+          new MouseEvent("click", { bubbles: true, cancelable: true }),
+        );
+      });
+
+      expect(not_prevented).toBe(false);
+      expect(requested).toEqual(["https://meet.example.com/abc-def"]);
+    } finally {
+      window.removeEventListener(EXTERNAL_LINK_EVENT, listener);
+    }
+  });
+
+  it("warns when the organizer is not the sender and confirms before replying", async () => {
+    const view = await render(
+      <CalendarInviteCard
+        body={request("uid-21")}
+        email_id="mail-21"
+        sender_email="assistant@example.net"
+      />,
+    );
+
+    expect(
+      view.querySelector('[data-testid="calendar-invite-organizer-mismatch"]')
+        ?.textContent,
+    ).toContain("assistant@example.net|olivia@example.com");
+
+    await tap(response_button(view, "accepted"));
+    await settle();
+
+    expect(send_reply).not.toHaveBeenCalled();
+    expect(save_request_response).not.toHaveBeenCalled();
+
+    const cancel = view.querySelector<HTMLButtonElement>(
+      '[data-testid="calendar-invite-reply-confirm-cancel"]',
+    );
+
+    await tap(cancel!);
+
+    expect(
+      view.querySelector('[data-testid="calendar-invite-reply-confirm"]'),
+    ).toBeNull();
+
+    await tap(response_button(view, "declined"));
+
+    const send = view.querySelector<HTMLButtonElement>(
+      '[data-testid="calendar-invite-reply-confirm-send"]',
+    );
+
+    await tap(send!);
+    await settle();
+
+    expect(send_reply).toHaveBeenCalledTimes(1);
+    expect(send_reply.mock.calls[0][0]).toMatchObject({
+      response: "declined",
+      organizer: { email: "olivia@example.com" },
+    });
+    expect(
+      view.querySelector('[data-testid="calendar-invite-reply-confirm"]'),
+    ).toBeNull();
+  });
+
+  it("shows no organizer warning when the organizer sent the invite", async () => {
+    const view = await render(
+      <CalendarInviteCard
+        body={request("uid-22")}
+        email_id="mail-22"
+        sender_email="Olivia@Example.com"
+      />,
+    );
+
+    expect(
+      view.querySelector('[data-testid="calendar-invite-organizer-mismatch"]'),
+    ).toBeNull();
+
+    await tap(response_button(view, "accepted"));
+    await settle();
+
+    expect(
+      view.querySelector('[data-testid="calendar-invite-reply-confirm"]'),
+    ).toBeNull();
+    expect(send_reply).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes the sender identity result to the invite provenance", async () => {
+    const item = { item_type: "received", is_external: false };
+
+    vi.mocked(get_mail_item).mockResolvedValueOnce({
+      data: item,
+    } as unknown as Awaited<ReturnType<typeof get_mail_item>>);
+    record_message_sender_identity("mail-23", "mismatch");
+
+    await render(
+      <CalendarInviteCard body={request("uid-23")} email_id="mail-23" />,
+    );
+
+    expect(mail_item_provenance).toHaveBeenCalledWith(item, "mismatch");
   });
 });

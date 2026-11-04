@@ -11509,6 +11509,11 @@ export const pl = {
     invite_card_join: "Dołącz do spotkania",
     invite_card_calendar_failed: "Twoja odpowiedź została wysłana, ale Aster nie mógł dodać tego wydarzenia do Twojego kalendarza.",
     invite_card_reply_send_failed: "Nie udało się wysłać odpowiedzi. Spróbuj ponownie.",
+    invite_card_organizer_mismatch:
+      "To zaproszenie pochodzi od {{sender}}, ale jako organizatora wskazuje {{organizer}}. Jeśli się tego nie spodziewasz, skontaktuj się z organizatorem, zanim odpowiesz.",
+    invite_card_reply_confirm:
+      "Twoja odpowiedź trafi do {{organizer}}, a nie do nadawcy, {{sender}}. Wyślij ją tylko wtedy, gdy ufasz temu organizatorowi.",
+    invite_card_reply_confirm_send: "Wyślij odpowiedź",
   },
   settings_search: {
     two_factor: "2FA",

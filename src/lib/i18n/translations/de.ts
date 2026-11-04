@@ -11437,6 +11437,11 @@ export const de = {
     invite_card_join: "Meeting beitreten",
     invite_card_calendar_failed: "Deine Antwort wurde gesendet, aber Aster konnte diesen Termin nicht zu deinem Kalender hinzufügen.",
     invite_card_reply_send_failed: "Deine Antwort wurde nicht gesendet. Versuche es erneut.",
+    invite_card_organizer_mismatch:
+      "{{sender}} hat diese Einladung gesendet, aber als Organisator ist {{organizer}} angegeben. Wenn du das nicht erwartest, frag beim Organisator nach, bevor du antwortest.",
+    invite_card_reply_confirm:
+      "Deine Antwort geht an {{organizer}}, nicht an den Absender {{sender}}. Sende sie nur, wenn du diesem Organisator vertraust.",
+    invite_card_reply_confirm_send: "Antwort senden",
   },
   settings_search: {
     two_factor: "2FA",

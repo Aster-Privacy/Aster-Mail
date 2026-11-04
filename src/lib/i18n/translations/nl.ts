@@ -11270,6 +11270,11 @@ export const nl = {
     invite_card_join: "Deelnemen aan vergadering",
     invite_card_calendar_failed: "Je antwoord is verzonden, maar Aster kon deze afspraak niet aan je agenda toevoegen.",
     invite_card_reply_send_failed: "Je antwoord is niet verzonden. Probeer het opnieuw.",
+    invite_card_organizer_mismatch:
+      "{{sender}} heeft deze uitnodiging verstuurd, maar {{organizer}} staat vermeld als organisator. Als je dat niet verwacht, vraag het dan na bij de organisator voordat je reageert.",
+    invite_card_reply_confirm:
+      "Je antwoord gaat naar {{organizer}}, niet naar de afzender, {{sender}}. Verstuur het alleen als je deze organisator vertrouwt.",
+    invite_card_reply_confirm_send: "Antwoord versturen",
   },
   settings_search: {
     two_factor: "2FA",

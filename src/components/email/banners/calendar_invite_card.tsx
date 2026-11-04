@@ -48,6 +48,8 @@ import {
   prefetch_attachment_meta,
 } from "@/services/attachment_meta_cache";
 import { get_mail_item } from "@/services/api/mail";
+import { get_message_sender_identity } from "@/services/crypto/ratchet_verification_status";
+import { request_external_link } from "@/utils/external_link_request";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import {
   decrypt_attachment_data,
@@ -90,6 +92,7 @@ import {
   mail_item_provenance,
   message_attendees,
   message_to_draft,
+  organizer_differs_from_sender,
   remove_event,
   set_own_response,
   UNTRUSTED_PROVENANCE,
@@ -308,6 +311,8 @@ export function CalendarInviteCard({
   const [calendar_note, set_calendar_note] = useState(false);
   const [is_busy, set_is_busy] = useState(false);
   const [reply_note, set_reply_note] = useState<string | null>(null);
+  const [pending_response, set_pending_response] =
+    useState<CalendarAttendeeResponse | null>(null);
   const busy_ref = useRef(false);
   const applied_reply = useRef<string | null>(null);
   const active_email = useRef(email_id);
@@ -327,6 +332,7 @@ export function CalendarInviteCard({
     set_optimistic(null);
     set_calendar_note(false);
     set_reply_note(null);
+    set_pending_response(null);
 
     const run = async () => {
       let parsed: ItipMessage | null = null;
@@ -380,7 +386,9 @@ export function CalendarInviteCard({
       }
 
       set_message(parsed);
-      set_provenance(mail_item_provenance(item));
+      set_provenance(
+        mail_item_provenance(item, get_message_sender_identity(email_id)),
+      );
       set_is_own_copy(item?.item_type === "sent");
       set_calendar_ok(available);
       set_stored_answer(answer);
@@ -572,6 +580,16 @@ export function CalendarInviteCard({
     !provenance.trusted &&
     message.method !== "REPLY" &&
     !(is_own_copy && is_self_organizer);
+  const organizer_mismatch =
+    message.method !== "REPLY" &&
+    !is_own_copy &&
+    organizer !== null &&
+    organizer_differs_from_sender(message, sender_email, self_email);
+  const show_organizer_mismatch = organizer_mismatch && !show_unverified;
+  const confirm_before_reply =
+    organizer_mismatch &&
+    organizer !== null &&
+    !is_own_address(organizer.email, self_email);
   const instance_cancelled =
     !event &&
     series !== null &&
@@ -607,7 +625,24 @@ export function CalendarInviteCard({
       : attendee,
   );
 
-  const respond = async (next: CalendarAttendeeResponse | null) => {
+  const open_meeting_link = (
+    mouse_event: React.MouseEvent<HTMLAnchorElement>,
+  ) => {
+    if (mouse_event.type === "auxclick" && mouse_event.button !== 1) {
+      return;
+    }
+
+    mouse_event.preventDefault();
+
+    if (meeting_link) {
+      void request_external_link(meeting_link);
+    }
+  };
+
+  const respond = async (
+    next: CalendarAttendeeResponse | null,
+    confirmed = false,
+  ) => {
     if (busy_ref.current || self_email.length === 0) {
       return;
     }
@@ -615,6 +650,14 @@ export function CalendarInviteCard({
     if (next !== null && own_response === next) {
       return;
     }
+
+    if (next !== null && confirm_before_reply && !confirmed) {
+      set_pending_response(next);
+
+      return;
+    }
+
+    set_pending_response(null);
 
     busy_ref.current = true;
     set_is_busy(true);
@@ -944,6 +987,25 @@ export function CalendarInviteCard({
             </div>
           )}
 
+          {show_organizer_mismatch && (
+            <div
+              className="mt-2 flex items-start gap-1.5 text-[12px] leading-4 text-[var(--color-warning)]"
+              data-testid="calendar-invite-organizer-mismatch"
+              role="note"
+            >
+              <ExclamationTriangleIcon
+                aria-hidden="true"
+                className="h-3.5 w-3.5 flex-shrink-0"
+              />
+              <span>
+                {t("calendar.invite_card_organizer_mismatch", {
+                  sender: sender_email ?? "",
+                  organizer: organizer?.email ?? "",
+                })}
+              </span>
+            </div>
+          )}
+
           {((meeting_link && !is_canceled) || show_location || organizer) && (
             <div className="mt-2 flex flex-col gap-1">
               {meeting_link && !is_canceled && (
@@ -962,6 +1024,8 @@ export function CalendarInviteCard({
                     referrerPolicy="no-referrer"
                     rel="noopener noreferrer"
                     target="_blank"
+                    onAuxClick={open_meeting_link}
+                    onClick={open_meeting_link}
                   >
                     {t("calendar.invite_card_join")}
                   </a>
@@ -1065,6 +1129,49 @@ export function CalendarInviteCard({
               </button>
             )}
           </div>
+          {pending_response !== null && (
+            <div
+              className="flex flex-col gap-2 px-4 pb-3"
+              data-testid="calendar-invite-reply-confirm"
+              role="group"
+            >
+              <div
+                className="flex items-start gap-1.5 text-[12px] leading-4 text-[var(--color-warning)]"
+                role="alert"
+              >
+                <ExclamationTriangleIcon
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 flex-shrink-0"
+                />
+                <span>
+                  {t("calendar.invite_card_reply_confirm", {
+                    sender: sender_email ?? "",
+                    organizer: organizer?.email ?? "",
+                  })}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className={cn(SECONDARY_BUTTON, "text-txt-primary")}
+                  data-testid="calendar-invite-reply-confirm-send"
+                  disabled={is_busy}
+                  type="button"
+                  onClick={() => void respond(pending_response, true)}
+                >
+                  {t("calendar.invite_card_reply_confirm_send")}
+                </button>
+                <button
+                  className={cn(SECONDARY_BUTTON, "text-txt-secondary")}
+                  data-testid="calendar-invite-reply-confirm-cancel"
+                  disabled={is_busy}
+                  type="button"
+                  onClick={() => set_pending_response(null)}
+                >
+                  {t("common.cancel")}
+                </button>
+              </div>
+            </div>
+          )}
           {calendar_note && (
             <div
               className="px-4 pb-3 text-[12px] text-txt-muted"

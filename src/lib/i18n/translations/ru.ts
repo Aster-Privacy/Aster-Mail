@@ -11476,6 +11476,11 @@ export const ru = {
     invite_card_join: "Присоединиться к встрече",
     invite_card_calendar_failed: "Ваш ответ отправлен, но Aster не удалось добавить это событие в календарь.",
     invite_card_reply_send_failed: "Не удалось отправить ответ. Повторите попытку.",
+    invite_card_organizer_mismatch:
+      "Это приглашение отправлено с адреса {{sender}}, но организатором в нем указан {{organizer}}. Если вы этого не ожидали, уточните у организатора, прежде чем отвечать.",
+    invite_card_reply_confirm:
+      "Ваш ответ будет отправлен на адрес {{organizer}}, а не отправителю {{sender}}. Отправляйте его, только если доверяете этому организатору.",
+    invite_card_reply_confirm_send: "Отправить ответ",
   },
   settings_search: {
     two_factor: "2FA",

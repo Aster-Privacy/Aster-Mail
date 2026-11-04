@@ -11058,6 +11058,11 @@ export const ja = {
     invite_card_join: "会議に参加",
     invite_card_calendar_failed: "返答は送信されましたが、Aster はこの予定をカレンダーに追加できませんでした。",
     invite_card_reply_send_failed: "返答を送信できませんでした。もう一度お試しください。",
+    invite_card_organizer_mismatch:
+      "この招待は {{sender}} から送信されましたが、主催者は {{organizer}} と記載されています。心当たりがない場合は、返答する前に主催者に確認してください。",
+    invite_card_reply_confirm:
+      "返答は送信者の {{sender}} ではなく、{{organizer}} に送信されます。この主催者を信頼できる場合にのみ送信してください。",
+    invite_card_reply_confirm_send: "返答を送信",
   },
   settings_search: {
     two_factor: "2要素認証",

@@ -20,6 +20,7 @@
 //
 import type { ItipMessage } from "@/services/calendar/itip";
 import type { MailItem } from "@/services/api/mail";
+import type { SenderIdentityStatus } from "@/services/crypto/ratchet_verification_status";
 import type {
   CalendarAttendee,
   CalendarAttendeeResponse,
@@ -322,6 +323,7 @@ export function mail_item_provenance(
     | "dmarc_result"
     | "created_at"
   > | null,
+  sender_identity: SenderIdentityStatus | null = null,
 ): InviteProvenance {
   if (!item || item.item_type !== "received" || item.system_origin) {
     return UNTRUSTED_PROVENANCE;
@@ -329,9 +331,10 @@ export function mail_item_provenance(
 
   const received = Date.parse(item.created_at);
   const authenticated =
-    !item.is_external ||
-    (typeof item.dmarc_result === "string" &&
-      item.dmarc_result.trim().toLowerCase() === "pass");
+    sender_identity !== "mismatch" &&
+    (!item.is_external ||
+      (typeof item.dmarc_result === "string" &&
+        item.dmarc_result.trim().toLowerCase() === "pass"));
 
   return {
     trusted: authenticated,
@@ -339,6 +342,23 @@ export function mail_item_provenance(
       ? new Date(received).toISOString()
       : null,
   };
+}
+
+export function organizer_differs_from_sender(
+  message: ItipMessage,
+  sender_email: string | undefined,
+  self_email = "",
+): boolean {
+  const organizer = message.organizer?.email;
+
+  if (!organizer || !sender_email || same_address(organizer, sender_email)) {
+    return false;
+  }
+
+  return !(
+    is_own_address(organizer, self_email) &&
+    is_own_address(sender_email, self_email)
+  );
 }
 
 export function update_from_organizer(
@@ -523,7 +543,11 @@ export async function save_request_response(
       calendar_id,
       attendees,
       null,
-      sender_email !== undefined,
+      sender_email !== undefined &&
+        !(
+          is_own_address(message.organizer?.email ?? "", self_email) &&
+          organizer_differs_from_sender(message, sender_email, self_email)
+        ),
       self_email,
     ),
   );
