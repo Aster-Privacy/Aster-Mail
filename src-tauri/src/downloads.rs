@@ -32,15 +32,23 @@ const MAX_TRACKED_DOWNLOADS: usize = 64;
 const MAX_FILE_NAME_CHARS: usize = 255;
 
 const BLOCKED_OPEN_EXTENSIONS: &[&str] = &[
-    "ade", "adp", "app", "appimage", "appref-ms", "application", "apk", "applescript", "bas",
-    "bat", "bin", "chm", "cmd", "com", "command", "cpl", "crt", "csh", "deb", "desktop", "dll",
-    "dmg", "elf", "exe", "flatpakref", "gadget", "hlp", "hta", "inf", "ins", "isp", "jar",
-    "jnlp", "js", "jse", "ksh", "lnk", "mde", "msc", "msi", "msix", "msixbundle", "msp", "mst",
-    "pif", "pkg", "pl", "plist", "ps1", "ps1xml", "ps2", "psc1", "psm1", "py", "pyc", "pyw",
-    "rb", "reg", "rgs", "rpm", "run", "scf", "scpt", "scr", "sct", "settingcontent-ms", "sh",
-    "shb", "shs", "snap", "so", "svg", "sys", "terminal", "tool", "url", "vb", "vbe", "vbs",
-    "vhd", "vhdx", "webloc", "workflow", "ws", "wsc", "wsf", "wsh", "xbap", "xll", "xpi",
-    "htm", "html", "xht", "xhtml", "mht", "mhtml", "shtml",
+    "accda", "accde", "accdr", "ade", "adp", "apk", "app", "appcontent-ms", "appimage",
+    "appinstaller", "applescript", "application", "appref-ms", "appx", "appxbundle", "bas", "bat",
+    "bin", "cab", "cdxml", "cer", "chm", "cmd", "cnt", "com", "command", "cpl", "crt", "csh", "deb",
+    "der", "deskthemepack", "desktop", "diagcab", "diagcfg", "diagpkg", "dll", "dmg", "docm",
+    "dotm", "elf", "exe", "flatpakref", "gadget", "glk", "grp", "hlp", "hpj", "hta", "htm", "html",
+    "img", "inf", "ins", "iqy", "iso", "isp", "its", "jar", "jnlp", "js", "jse", "ksh",
+    "library-ms", "lnk", "mad", "maf", "mag", "mam", "maq", "mar", "mas", "mat", "mau", "mav",
+    "maw", "mcf", "mda", "mdb", "mde", "mdt", "mdw", "mdz", "mht", "mhtml", "msc", "msh", "msh1",
+    "msh1xml", "msh2", "msh2xml", "mshxml", "msi", "msix", "msixbundle", "msp", "mst", "msu", "one",
+    "onepkg", "ops", "osd", "pcd", "pif", "pkg", "pl", "plg", "plist", "potm", "ppa", "ppam",
+    "ppsm", "pptm", "prf", "prg", "printerexport", "ps1", "ps1xml", "ps2", "ps2xml", "psc1", "psc2",
+    "psd1", "psdm1", "psm1", "py", "pyc", "pyo", "pyw", "pyz", "pyzw", "rb", "reg", "rgs", "rpm",
+    "run", "scf", "scpt", "scr", "sct", "search-ms", "searchconnector-ms", "settingcontent-ms",
+    "sh", "shb", "shs", "shtml", "sldm", "slk", "snap", "so", "svg", "sys", "terminal", "theme",
+    "themepack", "tool", "udf", "url", "vb", "vbe", "vbs", "vhd", "vhdx", "vsmacros", "vsw",
+    "webloc", "website", "workflow", "ws", "wsb", "wsc", "wsf", "wsh", "xbap", "xht", "xhtml",
+    "xla", "xlam", "xll", "xlsb", "xlsm", "xltm", "xnk", "xpi",
 ];
 
 #[derive(Clone, Serialize)]
@@ -86,9 +94,39 @@ pub fn display_file_name(path: &Path) -> String {
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_default()
         .chars()
-        .filter(|c| !c.is_control())
+        .filter(|c| !c.is_control() && !is_bidi_control(*c))
         .take(MAX_FILE_NAME_CHARS)
         .collect()
+}
+
+fn is_bidi_control(c: char) -> bool {
+    matches!(
+        c,
+        '\u{061C}' | '\u{200E}' | '\u{200F}' | '\u{202A}'..='\u{202E}' | '\u{2066}'..='\u{2069}'
+    )
+}
+
+#[cfg(any(windows, test))]
+const ZONE_IDENTIFIER_CONTENTS: &str = "[ZoneTransfer]\r\nZoneId=3\r\n";
+
+#[cfg(any(windows, test))]
+fn zone_identifier_stream(path: &Path) -> PathBuf {
+    let mut stream = path.as_os_str().to_os_string();
+
+    stream.push(":Zone.Identifier");
+
+    PathBuf::from(stream)
+}
+
+#[cfg(windows)]
+pub fn mark_from_internet(path: &Path) {
+    let stream = zone_identifier_stream(path);
+
+    if std::fs::metadata(&stream).is_ok() {
+        return;
+    }
+
+    let _ = std::fs::write(stream, ZONE_IDENTIFIER_CONTENTS);
 }
 
 pub fn is_safe_to_open(path: &Path) -> bool {
@@ -321,6 +359,69 @@ mod tests {
         }
 
         assert_eq!(registry.get(&first), None);
+    }
+
+    #[test]
+    fn blocks_disk_images_packages_and_macro_documents() {
+        for name in [
+            "update.iso",
+            "disk.IMG",
+            "drive.vhdx",
+            "notes.one",
+            "package.msixbundle",
+            "app.appx",
+            "bundle.appxbundle",
+            "installer.appinstaller",
+            "invoice.docm",
+            "budget.xlsm",
+            "budget.xlsb",
+            "deck.pptm",
+            "addin.xlam",
+            "patch.msu",
+            "archive.cab",
+            "trouble.diagcab",
+            "query.iqy",
+            "search.search-ms",
+            "desk.themepack",
+            "cert.cer",
+            "sandbox.wsb",
+        ] {
+            assert!(!is_safe_to_open(Path::new(name)), "{name}");
+        }
+    }
+
+    #[test]
+    fn display_name_strips_bidi_controls() {
+        assert_eq!(
+            display_file_name(Path::new("invoice\u{202E}fdp.exe")),
+            "invoicefdp.exe"
+        );
+
+        for mark in [
+            '\u{061C}', '\u{200E}', '\u{200F}', '\u{202A}', '\u{202B}', '\u{202C}', '\u{202D}',
+            '\u{202E}', '\u{2066}', '\u{2067}', '\u{2068}', '\u{2069}',
+        ] {
+            assert_eq!(
+                display_file_name(Path::new(&format!("a{mark}b.pdf"))),
+                "ab.pdf",
+                "{:04X}",
+                mark as u32
+            );
+        }
+
+        assert_eq!(
+            display_file_name(Path::new("\u{0627}\u{0644}.pdf")),
+            "\u{0627}\u{0644}.pdf"
+        );
+    }
+
+    #[test]
+    fn zone_identifier_marks_internet_zone() {
+        assert_eq!(ZONE_IDENTIFIER_CONTENTS, "[ZoneTransfer]\r\nZoneId=3\r\n");
+        assert_eq!(
+            zone_identifier_stream(Path::new("report.pdf")),
+            PathBuf::from("report.pdf:Zone.Identifier")
+        );
     }
 
     #[test]

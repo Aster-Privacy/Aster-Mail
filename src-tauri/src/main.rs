@@ -64,6 +64,9 @@ const APP_NAVIGATION_HOSTS: &[&str] = &[
     "m.stripe.network",
     "r.stripe.com",
     "q.stripe.com",
+    "checkout.stripe.com",
+    "billing.stripe.com",
+    "pm-redirects.stripe.com",
 ];
 
 const DEV_NAVIGATION_HOSTS: &[&str] = &["localhost", "127.0.0.1"];
@@ -71,7 +74,7 @@ const DEV_NAVIGATION_HOSTS: &[&str] = &["localhost", "127.0.0.1"];
 const APP_NAVIGATION_SUFFIXES: &[&str] = &[
     ".astermail.org",
     ".astermail.com",
-    ".stripe.com",
+    ".js.stripe.com",
     ".stripe.network",
 ];
 
@@ -159,7 +162,12 @@ fn mark_download_quarantined(path: &std::path::Path) {
         .status();
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(windows)]
+fn mark_download_quarantined(path: &std::path::Path) {
+    downloads::mark_from_internet(path);
+}
+
+#[cfg(not(any(target_os = "macos", windows)))]
 fn mark_download_quarantined(_path: &std::path::Path) {}
 
 fn resolve_download_destination(app: &tauri::AppHandle, destination: &mut std::path::PathBuf) {
@@ -1041,6 +1049,36 @@ mod navigation_tests {
         assert!(allowed("https://challenges.cloudflare.com/turnstile"));
         assert!(allowed("about:srcdoc"));
         assert!(allowed("blob:http://tauri.localhost/0f4c"));
+    }
+
+    #[test]
+    fn keeps_only_the_payment_hosts_the_app_uses() {
+        for url in [
+            "https://checkout.stripe.com/c/pay/cs_live_a1",
+            "https://billing.stripe.com/p/session/live_a1",
+            "https://hooks.stripe.com/redirect/authenticate/src_a1",
+            "https://pm-redirects.stripe.com/authorize/acct_a1/pa_nonce_a1",
+            "https://b.js.stripe.com/v3/fingerprinted/js/elements-inner.js",
+            "https://m.stripe.network/inner.html",
+        ] {
+            assert!(allowed(url), "{url}");
+        }
+    }
+
+    #[test]
+    fn rejects_other_payment_subdomains() {
+        for url in [
+            "https://connect.stripe.com/oauth/authorize",
+            "https://dashboard.stripe.com/login",
+            "https://files.stripe.com/links/a1",
+            "https://pay.stripe.com/receipts/payment/a1",
+            "https://invoice.stripe.com/i/acct_a1/live_a1",
+            "https://stripe.com/",
+            "https://evilstripe.com/",
+            "https://checkout.stripe.com.example.com/",
+        ] {
+            assert!(!allowed(url), "{url}");
+        }
     }
 
     #[test]
