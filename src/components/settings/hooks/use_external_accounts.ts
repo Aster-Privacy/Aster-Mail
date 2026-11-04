@@ -218,8 +218,8 @@ export function use_external_accounts() {
           connection_timeout_seconds: form.form_connection_timeout,
           idle_timeout_seconds: 300,
           max_concurrent_connections: 1,
-          archive_sent_to_remote: form.form_archive_sent,
-          delete_after_fetch: form.form_delete_after_fetch,
+          archive_sent_to_remote: false,
+          delete_after_fetch: false,
         }),
       ]);
 
@@ -232,8 +232,6 @@ export function use_external_accounts() {
       form.selected_folders,
       form.form_tls_method,
       form.form_connection_timeout,
-      form.form_archive_sent,
-      form.form_delete_after_fetch,
     ],
   );
 
@@ -407,8 +405,6 @@ export function use_external_accounts() {
     form.selected_folders,
     form.form_tls_method,
     form.form_connection_timeout,
-    form.form_archive_sent,
-    form.form_delete_after_fetch,
     create_new_tag,
     update_existing_tag,
     tags_state.tags,
@@ -698,10 +694,6 @@ export function use_external_accounts() {
     form_tls_method: form.form_tls_method,
     set_form_tls_method: form.set_form_tls_method,
     form_connection_timeout: form.form_connection_timeout,
-    form_archive_sent: form.form_archive_sent,
-    set_form_archive_sent: form.set_form_archive_sent,
-    form_delete_after_fetch: form.form_delete_after_fetch,
-    set_form_delete_after_fetch: form.set_form_delete_after_fetch,
     expanded_error_ids,
     is_form_busy: form.is_form_busy,
     truncated_folders: form.truncated_folders,

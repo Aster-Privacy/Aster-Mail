@@ -168,8 +168,6 @@ describe("use_external_accounts_form edit prefill", () => {
     expect(hook.form_sync_frequency).toBe("1h");
     expect(hook.form_tls_method).toBe("starttls");
     expect(hook.form_connection_timeout).toBe(45);
-    expect(hook.form_archive_sent).toBe(true);
-    expect(hook.form_delete_after_fetch).toBe(false);
   });
 
   it("keeps the account's sync start date when editing", async () => {

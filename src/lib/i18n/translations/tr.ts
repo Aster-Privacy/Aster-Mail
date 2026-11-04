@@ -5635,10 +5635,6 @@ export const tr = {
       "Yalnızca hesabı ekledikten sonra gelen e-postalar alınır.",
     import_existing_mail_on:
       "Hesapta zaten bulunan e-postalar da içe aktarılır.",
-    archive_sent_label:
-      "Gönderilen e-postaları uzak sunucunun Gönderilmiş klasörüne kopyala",
-    delete_after_fetch_label:
-      "İçe aktardıktan sonra uzak sunucudan e-postaları sil",
     test_connection: "Bağlantıyı Test Et",
     test_smtp: "SMTP'yi Test Et",
     syncing: "Senkronize ediliyor...",
@@ -8538,15 +8534,15 @@ export const tr = {
       "Uygulama parolasını boşluklu veya boşluksuz olarak aşağıya yapıştırın. Aster parolayı şifreli olarak saklar ve yalnızca bu posta kutusunu eşitlemek için kullanır.",
     gmail_wizard_import_note:
       "Aster, arşivlenmiş ve gönderilmiş iletiler ile etiketler dahil tüm postalarınızı içe aktarır. Büyük posta kutuları birkaç gün sürebilir ve bu sırada Aster’ı kullanmaya devam edebilirsiniz.",
-    protocol_desc_imap: "Klasörleri eşitler ve tüm cihazlarınızı güncel tutar.",
-    protocol_desc_pop3:
-      "İletileri bir kez indirir ve sonrasında hiçbir şeyi eşitlemez.",
+    protocol_desc_imap:
+      "Yeni postaları ve klasörleri getirir. Değişiklikler yansıtılmaz.",
+    protocol_desc_pop3: "Yalnızca gelen kutunuzdaki yeni postaları getirir.",
     protocol_tooltip_imap:
-      "IMAP iletilerinizi sunucuda tutar ve her değişikliği tüm cihazlarınıza eşitler.",
+      "Aster bu hesaptan yeni postaları ve klasörleri getirir. Silme gibi değişiklikler iki yönde de yansıtılmaz.",
     protocol_tooltip_jmap:
       "JMAP, çok az sağlayıcının desteklediği modern bir eşitleme protokolüdür.",
     protocol_tooltip_pop3:
-      "POP3 iletileri tek bir cihaza indirir ve değişiklikleri geri göndermez.",
+      "Aster yalnızca bu hesabın gelen kutusundaki yeni postaları getirir. Silme gibi değişiklikler iki yönde de yansıtılmaz.",
     show_side_panel_description:
       "Kişilerinizi ve diğer hızlı araçları iletilerinizin yanındaki bir panelde tutun.",
   },

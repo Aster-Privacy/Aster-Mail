@@ -5790,10 +5790,6 @@ export const fr = {
       "Seuls les e-mails reçus après l’ajout du compte sont récupérés.",
     import_existing_mail_on:
       "Les e-mails déjà présents dans le compte sont aussi importés.",
-    archive_sent_label:
-      "Copier les e-mails envoyés dans le dossier Envoyés du serveur distant",
-    delete_after_fetch_label:
-      "Supprimer les e-mails du serveur distant après importation",
     test_connection: "Tester la connexion",
     test_smtp: "Tester SMTP",
     syncing: "Synchronisation...",
@@ -8735,15 +8731,15 @@ export const fr = {
       "Aster importe tous vos messages, y compris les messages archivés, les messages envoyés et les libellés. L’import d’une grande boîte aux lettres peut prendre quelques jours, et vous pouvez continuer à utiliser Aster pendant ce temps.",
     gmail_wizard_title: "Connectez votre boîte aux lettres",
     protocol_desc_imap:
-      "Synchronise les dossiers et reste à jour sur tous vos appareils.",
+      "Récupère les nouveaux e-mails et les dossiers. Les modifications ne sont pas répercutées.",
     protocol_desc_pop3:
-      "Télécharge les messages une fois, puis ne synchronise plus rien.",
+      "Récupère les nouveaux e-mails de votre boîte de réception uniquement.",
     protocol_tooltip_imap:
-      "IMAP conserve vos messages sur le serveur et synchronise chaque changement sur tous vos appareils.",
+      "Aster récupère les nouveaux e-mails et les dossiers de ce compte. Les modifications, comme les suppressions, ne sont répercutées dans aucun sens.",
     protocol_tooltip_jmap:
       "JMAP est un protocole de synchronisation moderne que peu de fournisseurs prennent en charge.",
     protocol_tooltip_pop3:
-      "POP3 télécharge les messages sur un seul appareil et ne renvoie pas les changements.",
+      "Aster récupère uniquement les nouveaux e-mails de la boîte de réception de ce compte. Les modifications, comme les suppressions, ne sont répercutées dans aucun sens.",
     remove_account_tooltip: "Retirer le compte",
     show_side_panel_description:
       "Gardez vos contacts et d’autres outils rapides dans un panneau à côté de vos messages.",

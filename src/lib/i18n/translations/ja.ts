@@ -5634,9 +5634,6 @@ export const ja = {
     import_existing_mail_off:
       "アカウントを追加した後に届いたメールだけを取り込みます。",
     import_existing_mail_on: "アカウントにすでにあるメールもインポートします。",
-    archive_sent_label:
-      "送信メールをリモートサーバーの送信済みフォルダにコピー",
-    delete_after_fetch_label: "インポート後にリモートからメールを削除",
     test_connection: "接続をテスト",
     test_smtp: "SMTPをテスト",
     syncing: "同期中...",
@@ -8452,15 +8449,14 @@ export const ja = {
     gmail_wizard_title: "メールボックスを接続する",
     last_sync_tooltip: "このアカウントを最後に同期した時刻",
     protocol_desc_imap:
-      "フォルダを同期し、すべてのデバイスを最新の状態に保ちます。",
-    protocol_desc_pop3:
-      "メールを 1 回だけダウンロードし、その後は何も同期しません。",
+      "新着メールとフォルダを取り込みます。変更は反映されません。",
+    protocol_desc_pop3: "受信トレイの新着メールのみを取り込みます。",
     protocol_tooltip_imap:
-      "IMAP はメールをサーバー上に保持し、すべての変更をすべてのデバイスに同期します。",
+      "Aster はこのアカウントから新着メールとフォルダを取り込みます。削除などの変更はどちらの方向にも反映されません。",
     protocol_tooltip_jmap:
       "JMAP は対応するプロバイダがまだ少ない、新しい同期プロトコルです。",
     protocol_tooltip_pop3:
-      "POP3 はメールを 1 台のデバイスにダウンロードし、変更を送り返しません。",
+      "Aster はこのアカウントの受信トレイから新着メールのみを取り込みます。削除などの変更はどちらの方向にも反映されません。",
     show_side_panel_description:
       "連絡先やそのほかのツールを、メールの横のパネルに表示します。",
   },

@@ -5732,10 +5732,6 @@ export const es = {
       "Solo se traen los correos que lleguen después de añadir la cuenta.",
     import_existing_mail_on:
       "También se importan los correos que ya están en la cuenta.",
-    archive_sent_label:
-      "Copiar correos enviados a la carpeta Enviados del servidor remoto",
-    delete_after_fetch_label:
-      "Eliminar correos del servidor remoto después de importar",
     test_connection: "Probar conexión",
     test_smtp: "Probar SMTP",
     syncing: "Sincronizando...",
@@ -8639,15 +8635,14 @@ export const es = {
       "Aster importa todo tu correo, incluidos los mensajes archivados, los enviados y las etiquetas. Los buzones grandes pueden tardar unos días, y puedes seguir usando Aster mientras tanto.",
     not_synced_tooltip: "Esta cuenta todavía no se ha sincronizado.",
     protocol_desc_imap:
-      "Sincroniza las carpetas y se mantiene al día en todos tus dispositivos.",
-    protocol_desc_pop3:
-      "Descarga el correo una vez y después no sincroniza nada.",
+      "Trae el correo nuevo y las carpetas. Los cambios no se reflejan.",
+    protocol_desc_pop3: "Trae el correo nuevo solo de tu bandeja de entrada.",
     protocol_tooltip_imap:
-      "IMAP mantiene tu correo en el servidor y sincroniza cada cambio en todos tus dispositivos.",
+      "Aster trae el correo nuevo y las carpetas de esta cuenta. Los cambios, como las eliminaciones, no se reflejan en ninguna dirección.",
     protocol_tooltip_jmap:
       "JMAP es un protocolo de sincronización moderno que solo admiten unos pocos proveedores.",
     protocol_tooltip_pop3:
-      "POP3 descarga el correo a un solo dispositivo y no sincroniza los cambios de vuelta.",
+      "Aster trae el correo nuevo solo de la bandeja de entrada de esta cuenta. Los cambios, como las eliminaciones, no se reflejan en ninguna dirección.",
     remove_account_tooltip: "Quitar la cuenta",
     show_side_panel_description:
       "Ten los contactos y otras herramientas rápidas en un panel junto a tu correo.",

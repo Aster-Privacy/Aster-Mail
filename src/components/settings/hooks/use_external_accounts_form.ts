@@ -85,9 +85,6 @@ export function use_external_accounts_form(t: I18nTranslate) {
   const [show_advanced, set_show_advanced] = useState(false);
   const [form_tls_method, set_form_tls_method] = useState<TlsMethod>("auto");
   const [form_connection_timeout, set_form_connection_timeout] = useState(30);
-  const [form_archive_sent, set_form_archive_sent] = useState(false);
-  const [form_delete_after_fetch, set_form_delete_after_fetch] =
-    useState(false);
 
   const [has_stored_password, set_has_stored_password] = useState(false);
   const [has_stored_smtp_password, set_has_stored_smtp_password] =
@@ -267,8 +264,6 @@ export function use_external_accounts_form(t: I18nTranslate) {
     set_show_advanced(false);
     set_form_tls_method("auto");
     set_form_connection_timeout(30);
-    set_form_archive_sent(false);
-    set_form_delete_after_fetch(false);
     clear_sensitive_form_fields();
     test_hook.reset_test_state();
   }, [clear_sensitive_form_fields, test_hook.reset_test_state]);
@@ -536,8 +531,6 @@ export function use_external_accounts_form(t: I18nTranslate) {
           set_form_connection_timeout(
             clamp_timeout(advanced.data.connection_timeout_seconds),
           );
-          set_form_archive_sent(advanced.data.archive_sent_to_remote);
-          set_form_delete_after_fetch(advanced.data.delete_after_fetch);
         }
       } catch (error) {
         if (is_current()) set_prefill_failed(true);
@@ -583,8 +576,6 @@ export function use_external_accounts_form(t: I18nTranslate) {
       set_show_advanced(false);
       set_form_tls_method("auto");
       set_form_connection_timeout(30);
-      set_form_archive_sent(false);
-      set_form_delete_after_fetch(false);
       set_has_stored_password(false);
       set_has_stored_smtp_password(false);
       set_show_add_form(true);
@@ -676,10 +667,6 @@ export function use_external_accounts_form(t: I18nTranslate) {
     form_tls_method,
     set_form_tls_method,
     form_connection_timeout,
-    form_archive_sent,
-    set_form_archive_sent,
-    form_delete_after_fetch,
-    set_form_delete_after_fetch,
     is_mounted_ref: test_hook.is_mounted_ref,
     has_stored_password,
     has_stored_smtp_password,

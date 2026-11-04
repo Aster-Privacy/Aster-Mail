@@ -21,11 +21,7 @@
 import type { TlsMethod } from "@/components/settings/hooks/use_external_accounts";
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
-import {
-  ChevronDownIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
-import { Checkbox } from "@aster/ui";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
 import { commit_on_enter } from "@/lib/commit_on_enter";
@@ -39,10 +35,6 @@ interface AdvancedSettingsSectionProps {
   set_form_tls_method: (value: TlsMethod) => void;
   tls_method_options: { value: TlsMethod; label: string }[];
   form_connection_timeout: number;
-  form_archive_sent: boolean;
-  set_form_archive_sent: (value: boolean) => void;
-  form_delete_after_fetch: boolean;
-  set_form_delete_after_fetch: (value: boolean) => void;
   handle_connection_timeout_change: (value: string) => void;
   t: TranslationFn;
 }
@@ -54,10 +46,6 @@ export function AdvancedSettingsSection({
   set_form_tls_method,
   tls_method_options,
   form_connection_timeout,
-  form_archive_sent,
-  set_form_archive_sent,
-  form_delete_after_fetch,
-  set_form_delete_after_fetch,
   handle_connection_timeout_change,
   t,
 }: AdvancedSettingsSectionProps) {
@@ -125,39 +113,6 @@ export function AdvancedSettingsSection({
               onFocus={(e) => set_timeout_input(e.target.value)}
               onKeyDown={commit_on_enter}
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={form_archive_sent}
-              id="ext-account-archive-sent"
-              onCheckedChange={(checked) =>
-                set_form_archive_sent(checked === true)
-              }
-            />
-            <label
-              className="text-sm text-txt-primary"
-              htmlFor="ext-account-archive-sent"
-            >
-              {t("settings.archive_sent_label")}
-            </label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={form_delete_after_fetch}
-              id="ext-account-delete-after"
-              onCheckedChange={(checked) =>
-                set_form_delete_after_fetch(checked === true)
-              }
-            />
-            <label
-              className={`text-sm ${form_delete_after_fetch ? "text-red-500" : "text-txt-primary"}`}
-              htmlFor="ext-account-delete-after"
-            >
-              {t("settings.delete_after_fetch_label")}
-            </label>
-            {form_delete_after_fetch && (
-              <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 text-red-500" />
-            )}
           </div>
         </div>
       )}

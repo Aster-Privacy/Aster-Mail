@@ -60,6 +60,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import {
   batch_index_updates,
   init_category_index,
+  build_index,
   get_page_ids,
   get_category_total,
   is_index_settled,
@@ -123,6 +124,7 @@ const SENT_REFETCH_DEBOUNCE_MS = 250;
 const PREFETCH_DELAY_MS = 250;
 const PREFETCH_MAX_TABS = 6;
 const LOADING_BACKSTOP_MS = 6_000;
+const GATE_RECHECK_MS = 15_000;
 const MAX_FETCH_RETRIES = 4;
 const FETCH_RETRY_DELAY_MS = 1500;
 
@@ -334,6 +336,7 @@ export function use_category_inbox(
   );
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
+  const [gate_recheck, set_gate_recheck] = useState(0);
   const scope_key =
     read_filter === "all"
       ? active_category
@@ -986,7 +989,14 @@ export function use_category_inbox(
         ids.length > 0 &&
         (ids.length >= page_size || early_paint_scope_ref.current !== scope);
 
-      if (!can_paint_early) return;
+      if (!can_paint_early) {
+        const recheck = setTimeout(() => {
+          if (is_build_stalled()) void build_index();
+          set_gate_recheck((n) => n + 1);
+        }, GATE_RECHECK_MS);
+
+        return () => clearTimeout(recheck);
+      }
 
       early_paint_scope_ref.current = scope;
     }
@@ -1008,6 +1018,7 @@ export function use_category_inbox(
     fetch_page,
     page_variant,
     preferences.inbox_sort_order,
+    gate_recheck,
   ]);
 
   useEffect(() => {

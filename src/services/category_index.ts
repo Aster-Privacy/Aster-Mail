@@ -204,6 +204,7 @@ let build_capped = false;
 let build_progress_ms = 0;
 let build_processed = 0;
 let build_token = 0;
+let build_owner_token = 0;
 let version = 0;
 let sort_order: "asc" | "desc" = "desc";
 let ensure_loaded_promise: Promise<boolean> | null = null;
@@ -2245,6 +2246,7 @@ export async function build_index(options?: {
 
   const token = build_token;
 
+  build_owner_token = token;
   build_in_progress = true;
   build_progress_ms = now_ms();
   build_processed = 0;
@@ -2362,7 +2364,7 @@ export async function build_index(options?: {
       store_change_sync_token(seed_key, seed_token);
     }
   } finally {
-    build_in_progress = false;
+    if (build_owner_token === token) build_in_progress = false;
     schedule_persist();
   }
 }

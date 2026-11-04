@@ -5862,10 +5862,6 @@ export const pl = {
       "Pobierane są tylko wiadomości, które dotrą po dodaniu konta.",
     import_existing_mail_on:
       "Wiadomości, które już są na koncie, również zostaną zaimportowane.",
-    archive_sent_label:
-      "Kopiuj wysłane e-maile do folderu Wysłane na serwerze zdalnym",
-    delete_after_fetch_label:
-      "Usuń e-maile z serwera zdalnego po zaimportowaniu",
     test_connection: "Testuj połączenie",
     test_smtp: "Testuj SMTP",
     syncing: "Synchronizowanie...",
@@ -8862,15 +8858,14 @@ export const pl = {
     last_sync_tooltip: "Kiedy to konto ostatnio się zsynchronizowało",
     not_synced_tooltip: "To konto jeszcze się nie zsynchronizowało.",
     protocol_desc_imap:
-      "Synchronizuje foldery i utrzymuje aktualny stan na wszystkich twoich urządzeniach.",
-    protocol_desc_pop3:
-      "Pobiera wiadomości raz i potem niczego nie synchronizuje.",
+      "Pobiera nowe wiadomości i foldery. Zmiany nie są odzwierciedlane.",
+    protocol_desc_pop3: "Pobiera nowe wiadomości tylko ze skrzynki odbiorczej.",
     protocol_tooltip_imap:
-      "IMAP trzyma wiadomości na serwerze i synchronizuje każdą zmianę na wszystkich twoich urządzeniach.",
+      "Aster pobiera nowe wiadomości i foldery z tego konta. Zmiany, takie jak usunięcia, nie są odzwierciedlane w żadną stronę.",
     protocol_tooltip_jmap:
       "JMAP to nowoczesny protokół synchronizacji, który obsługuje niewielu dostawców.",
     protocol_tooltip_pop3:
-      "POP3 pobiera wiadomości na jedno urządzenie i nie odsyła zmian z powrotem.",
+      "Aster pobiera nowe wiadomości tylko ze skrzynki odbiorczej tego konta. Zmiany, takie jak usunięcia, nie są odzwierciedlane w żadną stronę.",
     show_side_panel_description:
       "Trzymaj kontakty i inne szybkie narzędzia w panelu obok wiadomości.",
   },

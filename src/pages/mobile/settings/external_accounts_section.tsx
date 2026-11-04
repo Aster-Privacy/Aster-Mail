@@ -633,32 +633,6 @@ export function ExternalAccountsSection({
                       onKeyDown={commit_on_enter}
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] text-[var(--text-primary)]">
-                      {state.t("settings.archive_sent_label")}
-                    </span>
-                    <Switch
-                      aria-label={state.t("settings.archive_sent_label")}
-                      checked={state.form_archive_sent}
-                      onCheckedChange={(checked) =>
-                        state.set_form_archive_sent(checked === true)
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`text-[14px] ${state.form_delete_after_fetch ? "text-[var(--color-danger,#ef4444)]" : "text-[var(--text-primary)]"}`}
-                    >
-                      {state.t("settings.delete_after_fetch_label")}
-                    </span>
-                    <Switch
-                      aria-label={state.t("settings.delete_after_fetch_label")}
-                      checked={state.form_delete_after_fetch}
-                      onCheckedChange={(checked) =>
-                        state.set_form_delete_after_fetch(checked === true)
-                      }
-                    />
-                  </div>
                 </div>
               </div>
             )}

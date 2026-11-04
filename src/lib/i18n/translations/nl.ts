@@ -5601,7 +5601,6 @@ export const nl = {
     advanced_settings: "Geavanceerde instellingen",
     tls_method: "TLS-methode",
     connection_timeout: "Verbindingstime-out (seconden)",
-    delete_after_fetch_label: "E-mails van extern verwijderen na importeren",
     test_connection: "Verbinding testen",
     test_smtp: "SMTP testen",
     syncing: "Synchroniseren...",
@@ -7041,8 +7040,6 @@ export const nl = {
       "Alleen e-mail die binnenkomt nadat je het account hebt toegevoegd, wordt opgehaald.",
     import_existing_mail_on:
       "E-mail die al in het account staat, wordt ook geïmporteerd.",
-    archive_sent_label:
-      "Kopieer verzonden e-mails naar de Verzonden-map van de externe server",
     allow_sender: "Afzender toestaan",
     sender_added_to_allowlist: "Afzender toegevoegd aan de toestaanlijst",
     vacation_reply_edit: "Vakantieantwoord bewerken",
@@ -8613,15 +8610,14 @@ export const nl = {
     last_sync_tooltip:
       "Wanneer dit account voor het laatst is gesynchroniseerd",
     protocol_desc_imap:
-      "Synchroniseert mappen en blijft op al je apparaten actueel.",
-    protocol_desc_pop3:
-      "Downloadt berichten één keer en synchroniseert daarna niets meer.",
+      "Haalt nieuwe e-mail en mappen op. Wijzigingen worden niet overgenomen.",
+    protocol_desc_pop3: "Haalt alleen nieuwe e-mail uit je inbox op.",
     protocol_tooltip_imap:
-      "IMAP houdt je berichten op de server en synchroniseert elke wijziging naar al je apparaten.",
+      "Aster haalt nieuwe e-mail en mappen op uit dit account. Wijzigingen zoals verwijderingen worden in geen enkele richting overgenomen.",
     protocol_tooltip_jmap:
       "JMAP is een modern synchronisatieprotocol dat weinig providers ondersteunen.",
     protocol_tooltip_pop3:
-      "POP3 downloadt berichten naar één apparaat en stuurt wijzigingen niet terug.",
+      "Aster haalt alleen nieuwe e-mail op uit de inbox van dit account. Wijzigingen zoals verwijderingen worden in geen enkele richting overgenomen.",
     show_side_panel_description:
       "Houd je contacten en andere snelle hulpmiddelen in een paneel naast je berichten.",
   },

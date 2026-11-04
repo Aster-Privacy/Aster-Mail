@@ -6991,10 +6991,6 @@ export const de = {
       "Nur E-Mails, die nach dem Hinzufügen des Kontos eintreffen, werden übernommen.",
     import_existing_mail_on:
       "E-Mails, die bereits im Konto sind, werden ebenfalls importiert.",
-    archive_sent_label:
-      "Gesendete E-Mails in den Gesendet-Ordner des Remote-Servers kopieren",
-    delete_after_fetch_label:
-      "E-Mails nach dem Import vom Remote-Server löschen",
     allow_sender: "Absender erlauben",
     sender_added_to_allowlist: "Absender zur Erlaubnisliste hinzugefügt",
     vacation_reply_edit: "Abwesenheitsantwort bearbeiten",
@@ -8728,15 +8724,14 @@ export const de = {
     plan_tip_wkd:
       "Veröffentlichen Sie Ihren öffentlichen Schlüssel auf Ihrer eigenen Domain, damit jeder ihn finden und Ihnen verschlüsselt schreiben kann.",
     protocol_desc_imap:
-      "Synchronisiert Ordner und bleibt geräteübergreifend aktuell.",
-    protocol_desc_pop3:
-      "Lädt Mail einmal herunter und synchronisiert danach nichts mehr.",
+      "Ruft neue E-Mails und Ordner ab. Änderungen werden nicht abgeglichen.",
+    protocol_desc_pop3: "Ruft neue E-Mails nur aus Ihrem Posteingang ab.",
     protocol_tooltip_imap:
-      "IMAP belässt Ihre E-Mails auf dem Server und synchronisiert jede Änderung auf all Ihren Geräten.",
+      "Aster ruft neue E-Mails und Ordner von diesem Konto ab. Änderungen wie Löschungen werden in keine Richtung übernommen.",
     protocol_tooltip_jmap:
       "JMAP ist ein modernes Sync-Protokoll, das nur wenige Anbieter unterstützen.",
     protocol_tooltip_pop3:
-      "POP3 lädt Mail auf ein einzelnes Gerät und synchronisiert Änderungen nicht zurück.",
+      "Aster ruft neue E-Mails nur aus dem Posteingang dieses Kontos ab. Änderungen wie Löschungen werden in keine Richtung übernommen.",
     remove_account_tooltip: "Konto entfernen",
     show_side_panel: "Seitenleiste anzeigen",
     show_side_panel_description:

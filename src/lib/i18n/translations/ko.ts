@@ -5644,8 +5644,6 @@ export const ko = {
     import_existing_mail: "기존 메일 가져오기",
     import_existing_mail_off: "계정을 추가한 뒤에 도착하는 메일만 가져옵니다.",
     import_existing_mail_on: "계정에 이미 있는 메일도 가져옵니다.",
-    archive_sent_label: "보낸 이메일을 원격 서버의 보낸 편지함에 복사",
-    delete_after_fetch_label: "가져온 후 원격에서 이메일 삭제",
     test_connection: "연결 테스트",
     test_smtp: "SMTP 테스트",
     syncing: "동기화 중...",
@@ -8293,15 +8291,15 @@ export const ko = {
       "Aster는 보관처리된 메일, 보낸 메일, 라벨을 포함한 모든 메일을 가져옵니다. 메일함이 크면 며칠이 걸릴 수 있으며, 그동안에도 Aster를 계속 사용할 수 있습니다.",
     gmail_wizard_title: "메일함 연결하기",
     last_sync_tooltip: "이 계정을 마지막으로 동기화한 시간",
-    protocol_desc_imap: "폴더를 동기화하고 모든 기기를 최신 상태로 유지합니다.",
-    protocol_desc_pop3:
-      "메일을 한 번만 내려받고 이후에는 아무것도 동기화하지 않습니다.",
+    protocol_desc_imap:
+      "새 메일과 폴더를 가져옵니다. 변경 사항은 반영되지 않습니다.",
+    protocol_desc_pop3: "받은편지함의 새 메일만 가져옵니다.",
     protocol_tooltip_imap:
-      "IMAP은 메일을 서버에 보관하고 모든 변경 사항을 모든 기기에 동기화합니다.",
+      "Aster는 이 계정에서 새 메일과 폴더를 가져옵니다. 삭제 등의 변경 사항은 어느 쪽으로도 반영되지 않습니다.",
     protocol_tooltip_jmap:
       "JMAP은 아직 지원하는 제공업체가 적은 최신 동기화 프로토콜입니다.",
     protocol_tooltip_pop3:
-      "POP3는 메일을 기기 한 대로 내려받고 변경 사항을 되돌려 보내지 않습니다.",
+      "Aster는 이 계정의 받은편지함에서 새 메일만 가져옵니다. 삭제 등의 변경 사항은 어느 쪽으로도 반영되지 않습니다.",
     show_side_panel_description:
       "연락처와 다른 빠른 도구를 메일 옆 패널에 표시합니다.",
   },
