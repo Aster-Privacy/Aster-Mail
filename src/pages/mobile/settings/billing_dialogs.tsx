@@ -54,7 +54,6 @@ import { CancelEarlyStep } from "@/components/settings/billing/cancel_early_step
 import { show_toast } from "@/components/toast/simple_toast";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
-import { special_offer_promo_code } from "@/lib/special_offer";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
@@ -135,7 +134,6 @@ export function render_billing_dialogs(
     crypto_term_prices_for,
     plan_term_options_for,
     set_billing_period,
-    offer_checkout,
     handle_pay_with_crypto,
     handle_addon_pay_card,
     handle_addon_pay_crypto,
@@ -480,7 +478,6 @@ export function render_billing_dialogs(
           open={show_method_modal}
           plan_name={method_modal_plan.name}
           selected_term={billing_period}
-          special_offer={offer_checkout.plan_pricing(method_modal_plan.code)}
           term_options={plan_term_options_for(method_modal_plan.code)}
         />
       )}
@@ -493,10 +490,6 @@ export function render_billing_dialogs(
 
           return (
             <CryptoTermModal
-              discount_percent_off={offer_checkout.percent_off}
-              discounted_price_cents={offer_checkout.crypto_price(
-                crypto_plan.code,
-              )}
               initial_coin_key={
                 crypto_resume
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`
@@ -527,12 +520,6 @@ export function render_billing_dialogs(
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
               preferred_currency={preferred_currency}
-              promo_code={
-                offer_checkout.crypto_price(crypto_plan.code)
-                  ? special_offer_promo_code()
-                  : undefined
-              }
-              special_offer={!!offer_checkout.crypto_price(crypto_plan.code)}
               yearly_price_cents={tier.yearly_cents}
             />
           );

@@ -73,15 +73,6 @@ vi.mock("@/components/settings/billing/crypto_term_modal", () => ({
   CryptoTermModal: () => null,
 }));
 
-vi.mock("@/hooks/use_special_offer_checkout", () => ({
-  use_special_offer_checkout: () => ({
-    percent_off: undefined,
-    covers: () => false,
-    plan_pricing: () => undefined,
-    crypto_price: () => undefined,
-  }),
-}));
-
 vi.mock("@/services/api/family", () => ({
   create_family_group: vi.fn(),
 }));

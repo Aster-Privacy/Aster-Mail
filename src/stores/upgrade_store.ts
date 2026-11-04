@@ -52,8 +52,6 @@ export interface UpgradeState {
   server_message: string | null;
   preselect_plan_code: string | null;
   preselect_interval: UpgradeInterval | null;
-  offer_percent_off: number | null;
-  offer_promo_code: string | null;
   open_seq: number;
 }
 
@@ -66,8 +64,6 @@ const initial_state: UpgradeState = {
   server_message: null,
   preselect_plan_code: null,
   preselect_interval: null,
-  offer_percent_off: null,
-  offer_promo_code: null,
   open_seq: 0,
 };
 
@@ -164,8 +160,6 @@ export function show_plan_limit_upgrade(opts: {
     server_message: opts.message ?? null,
     preselect_plan_code: opts.plan_code ?? null,
     preselect_interval: opts.interval ?? null,
-    offer_percent_off: null,
-    offer_promo_code: null,
     open_seq: next_open_seq(),
   };
   notify();
@@ -182,8 +176,6 @@ export function show_storage_full_upgrade(opts?: { message?: string | null }) {
     server_message: opts?.message ?? null,
     preselect_plan_code: null,
     preselect_interval: null,
-    offer_percent_off: null,
-    offer_promo_code: null,
     open_seq: next_open_seq(),
   };
   notify();
@@ -203,8 +195,6 @@ export function show_checkout_cancelled_upgrade(opts: {
     server_message: null,
     preselect_plan_code: opts.plan_code,
     preselect_interval: opts.interval,
-    offer_percent_off: null,
-    offer_promo_code: null,
     open_seq: next_open_seq(),
   };
   notify();
@@ -226,8 +216,6 @@ export function show_offer_upgrade(opts: {
     server_message: null,
     preselect_plan_code: opts.plan_code ?? null,
     preselect_interval: opts.interval ?? "year",
-    offer_percent_off: null,
-    offer_promo_code: null,
     open_seq: next_open_seq(),
   };
   notify();
@@ -236,8 +224,6 @@ export function show_offer_upgrade(opts: {
 export function show_upgrade_plans(opts?: {
   plan_code?: string | null;
   interval?: UpgradeInterval | null;
-  offer_percent_off?: number | null;
-  offer_promo_code?: string | null;
 }) {
   if (is_on_auth_route()) return;
   current = {
@@ -249,8 +235,6 @@ export function show_upgrade_plans(opts?: {
     server_message: null,
     preselect_plan_code: opts?.plan_code ?? null,
     preselect_interval: opts?.interval ?? null,
-    offer_percent_off: opts?.offer_percent_off ?? null,
-    offer_promo_code: opts?.offer_promo_code ?? null,
     open_seq: next_open_seq(),
   };
   notify();

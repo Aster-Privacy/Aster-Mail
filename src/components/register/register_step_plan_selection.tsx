@@ -41,18 +41,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { safe_local_set } from "@/lib/safe_storage";
-import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
-import {
-  SPECIAL_OFFER_DURATION_MONTHS,
-  offer_is_live,
-  offer_plan_codes,
-} from "@/lib/special_offer";
-import {
-  record_special_offer_accepted,
-  refresh_special_offer_status,
-  use_special_offer_status,
-} from "@/stores/special_offer_status";
-import { OfferCountdown } from "@/components/upgrade/offer_countdown";
 import { Spinner } from "@/components/ui/spinner";
 import { pricing_comparison_url } from "@/lib/canonical_urls";
 import { CheckoutModal } from "@/components/settings/checkout_modal";
@@ -315,7 +303,6 @@ export const RegisterStepPlanSelection = ({
   const [checkout, set_checkout] = useState<SelectedCheckout | null>(null);
   const [is_finalizing, set_is_finalizing] = useState(false);
   const pending_desktop_checkout_ref = useRef(false);
-  const crypto_claim_ref = useRef(false);
   const [pending_tier, set_pending_tier] = useState<{
     tier: PlanTier;
     plan: AvailablePlan;
@@ -343,16 +330,6 @@ export const RegisterStepPlanSelection = ({
   const display_discount_percent = applied_promo
     ? applied_promo.percent_off
     : referral_discount_percent;
-  const { status: offer_status } = use_special_offer_status();
-  const offer_checkout = use_special_offer_checkout();
-  const offer_percent_off = offer_checkout.percent_off;
-  const offer_duration_months =
-    offer_status?.duration_months ?? SPECIAL_OFFER_DURATION_MONTHS;
-  const is_offer_active =
-    offer_percent_off !== undefined &&
-    offer_is_live(offer_status, new Date()) &&
-    offer_plan_codes(offer_status).length > 0;
-  const is_black_friday_offer = offer_status?.theme === "black_friday";
 
   use_currency_rates();
 
@@ -490,55 +467,6 @@ export const RegisterStepPlanSelection = ({
     [plans],
   );
 
-  const offer_quote_cents = useCallback(
-    (plan_code: string, list_cents: number): number | null => {
-      const list_total_cents = convert_cents(list_cents, currency);
-      const offer_total_cents = offer_checkout
-        .plan_pricing(plan_code)
-        ?.discounted_total_cents("card", billing_period, list_total_cents);
-
-      return typeof offer_total_cents === "number" &&
-        offer_total_cents < list_total_cents
-        ? offer_total_cents
-        : null;
-    },
-    [offer_checkout, billing_period, currency],
-  );
-
-  const term_list_cents = useCallback(
-    (tier: { monthly_cents: number; yearly_cents: number }) =>
-      billing_period === "yearly" ? tier.yearly_cents : tier.monthly_cents,
-    [billing_period],
-  );
-
-  const claim_offer_before_checkout = useCallback(async () => {
-    const accepted = await record_special_offer_accepted();
-
-    if (!accepted) {
-      show_toast(
-        t("settings.special_offer_checkout_error"),
-        "error",
-        TOAST_DURATION_BILLING_MS,
-      );
-      void refresh_special_offer_status();
-    }
-
-    return accepted;
-  }, [t]);
-
-  const offer_checkout_error_text = useCallback(
-    (server_code?: string) => {
-      if (server_code === "SPECIAL_OFFER_UNAVAILABLE") {
-        void refresh_special_offer_status();
-
-        return t("settings.special_offer_unavailable");
-      }
-
-      return checkout_error_text(t, server_code);
-    },
-    [t],
-  );
-
   const handle_select_tier = useCallback(
     (tier: PlanTier) => {
       set_pending_tier({ tier, plan: resolve_api_plan(tier) });
@@ -549,21 +477,8 @@ export const RegisterStepPlanSelection = ({
   const handle_pay_with_card = useCallback(async () => {
     if (!pending_tier) return;
 
-    const is_offer_covered =
-      offer_quote_cents(
-        pending_tier.tier.id,
-        term_list_cents(pending_tier.tier),
-      ) !== null;
-
     set_pending_tier(null);
     set_is_finalizing(true);
-
-    if (is_offer_covered && !(await claim_offer_before_checkout())) {
-      set_is_finalizing(false);
-
-      return;
-    }
-
     safe_local_set("show_onboarding", "true");
     clear_first_run_plan();
 
@@ -572,15 +487,14 @@ export const RegisterStepPlanSelection = ({
       billing_interval,
       currency,
       undefined,
-      is_offer_covered ? undefined : applied_promo_code,
-      is_offer_covered || undefined,
+      applied_promo_code,
     );
 
     if (!result.ok) {
       restore_first_run_plan();
       set_is_finalizing(false);
       show_toast(
-        offer_checkout_error_text(result.server_code),
+        checkout_error_text(t, result.server_code),
         "error",
         TOAST_DURATION_BILLING_MS,
       );
@@ -592,52 +506,20 @@ export const RegisterStepPlanSelection = ({
       pending_desktop_checkout_ref.current = true;
       set_is_finalizing(false);
     }
-  }, [
-    pending_tier,
-    billing_interval,
-    currency,
-    applied_promo_code,
-    offer_quote_cents,
-    term_list_cents,
-    claim_offer_before_checkout,
-    offer_checkout_error_text,
-  ]);
+  }, [pending_tier, billing_interval, currency, applied_promo_code, t]);
 
-  const handle_pay_with_crypto = useCallback(async () => {
+  const handle_pay_with_crypto = useCallback(() => {
     if (!pending_tier) return;
-
-    if (crypto_claim_ref.current) return;
-
-    const tier = pending_tier;
-
-    if (offer_checkout.crypto_price(tier.tier.id) !== undefined) {
-      crypto_claim_ref.current = true;
-
-      const claimed = await claim_offer_before_checkout();
-
-      crypto_claim_ref.current = false;
-      if (!claimed) return;
-    }
-
-    set_crypto_tier(tier);
+    set_crypto_tier(pending_tier);
     set_pending_tier(null);
-  }, [pending_tier, offer_checkout, claim_offer_before_checkout]);
+  }, [pending_tier]);
 
   const handle_family_card = useCallback(async () => {
     if (!pending_family_tier) return;
     const tier = pending_family_tier;
-    const is_offer_covered =
-      offer_quote_cents(tier.id, term_list_cents(tier)) !== null;
 
     set_pending_family_tier(null);
     set_is_finalizing(true);
-
-    if (is_offer_covered && !(await claim_offer_before_checkout())) {
-      set_is_finalizing(false);
-
-      return;
-    }
-
     safe_local_set("show_onboarding", "true");
     clear_first_run_plan();
     const res = await create_family_group(
@@ -645,8 +527,7 @@ export const RegisterStepPlanSelection = ({
       billing_interval,
       undefined,
       undefined,
-      is_offer_covered ? undefined : applied_promo_code,
-      is_offer_covered || undefined,
+      applied_promo_code,
     );
 
     if (res.data?.checkout_url) {
@@ -672,41 +553,18 @@ export const RegisterStepPlanSelection = ({
       restore_first_run_plan();
       set_is_finalizing(false);
       show_toast(
-        offer_checkout_error_text(res.server_code),
+        checkout_error_text(t, res.server_code),
         "error",
         TOAST_DURATION_BILLING_MS,
       );
     }
-  }, [
-    pending_family_tier,
-    billing_interval,
-    applied_promo_code,
-    t,
-    offer_quote_cents,
-    term_list_cents,
-    claim_offer_before_checkout,
-    offer_checkout_error_text,
-  ]);
+  }, [pending_family_tier, billing_interval, applied_promo_code, t]);
 
-  const handle_family_crypto = useCallback(async () => {
+  const handle_family_crypto = useCallback(() => {
     if (!pending_family_tier) return;
-
-    if (crypto_claim_ref.current) return;
-
-    const tier = pending_family_tier;
-
-    if (offer_checkout.crypto_price(tier.id) !== undefined) {
-      crypto_claim_ref.current = true;
-
-      const claimed = await claim_offer_before_checkout();
-
-      crypto_claim_ref.current = false;
-      if (!claimed) return;
-    }
-
-    set_crypto_family_tier(tier);
+    set_crypto_family_tier(pending_family_tier);
     set_pending_family_tier(null);
-  }, [pending_family_tier, offer_checkout, claim_offer_before_checkout]);
+  }, [pending_family_tier]);
 
   const open_native_invoice = useCallback(
     async (invoice_id: string) => {
@@ -803,76 +661,7 @@ export const RegisterStepPlanSelection = ({
     return format_price(convert_cents(cents, currency), currency);
   }, [checkout, currency]);
 
-  const view_tiers = plan_type === "family" ? FAMILY_PLAN_TIERS : PLAN_TIERS;
-  const is_view_offer_covered =
-    is_offer_active &&
-    view_tiers.some(
-      (tier) => offer_quote_cents(tier.id, term_list_cents(tier)) !== null,
-    );
-  const pending_offer_tier = pending_tier?.tier ?? pending_family_tier;
-  const is_pending_offer_covered =
-    !!pending_offer_tier &&
-    offer_quote_cents(
-      pending_offer_tier.id,
-      term_list_cents(pending_offer_tier),
-    ) !== null;
-
-  const price_label_for_choice = (entry: {
-    id: string;
-    monthly_cents: number;
-    yearly_cents: number;
-  }) => {
-    const offer_total_cents = offer_quote_cents(
-      entry.id,
-      term_list_cents(entry),
-    );
-    const per_month_cents =
-      offer_total_cents !== null
-        ? Math.round(offer_total_cents / (billing_period === "yearly" ? 12 : 1))
-        : convert_cents(
-            apply_referral_discount(
-              billing_period === "yearly"
-                ? Math.round(entry.yearly_cents / 12)
-                : entry.monthly_cents,
-            ),
-            currency,
-          );
-
-    return `${format_price(per_month_cents, currency)}${t("settings.per_month_short")}`;
-  };
-
-  const offer_modal_props = (tier: {
-    id: string;
-    monthly_cents: number;
-    yearly_cents: number;
-  }) => {
-    const plan_pricing = offer_checkout.plan_pricing(tier.id);
-    const is_term_covered =
-      offer_quote_cents(tier.id, term_list_cents(tier)) !== null;
-
-    return {
-      special_offer: plan_pricing,
-      discount_percent_off: is_term_covered ? offer_percent_off : undefined,
-      discount_duration_months: is_term_covered
-        ? offer_duration_months
-        : undefined,
-      card_currency: plan_pricing ? currency : undefined,
-    };
-  };
-
-  const offer_crypto_props = (plan_code: string) => {
-    const crypto_price = offer_checkout.crypto_price(plan_code);
-
-    return crypto_price
-      ? {
-          special_offer: true,
-          discount_percent_off: offer_percent_off,
-          discounted_price_cents: crypto_price,
-        }
-      : {};
-  };
-
-  const promo_slot = is_pending_offer_covered ? null : applied_promo ? (
+  const promo_slot = applied_promo ? (
     <div className="flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] py-2 pe-2 ps-4">
       <p
         className="flex min-w-0 items-center gap-2 text-[13px] text-txt-primary"
@@ -992,42 +781,7 @@ export const RegisterStepPlanSelection = ({
         {t("auth.plan_selection_subtitle")}
       </p>
 
-      {is_offer_active && (
-        <div
-          className="mt-4 flex max-w-md flex-col items-center gap-1 rounded-lg px-4 py-3 text-center"
-          data-testid="register_offer_banner"
-          role="status"
-          style={{
-            backgroundColor: "var(--accent-blue)",
-            color: "var(--accent-fg, #ffffff)",
-          }}
-        >
-          <span className="text-sm font-semibold">
-            {is_black_friday_offer
-              ? t("settings.special_offer_black_friday_title", {
-                  percent: String(offer_percent_off),
-                  months: String(offer_duration_months),
-                })
-              : t("settings.special_offer_title")}
-          </span>
-          {is_black_friday_offer && (
-            <span className="text-[13px] opacity-90">
-              {t("settings.special_offer_black_friday_body", {
-                percent: String(offer_percent_off),
-                months: String(offer_duration_months),
-              })}
-            </span>
-          )}
-          {offer_status?.ends_at && (
-            <OfferCountdown
-              class_name="text-[12px] font-medium opacity-90"
-              ends_at={offer_status.ends_at}
-            />
-          )}
-        </div>
-      )}
-
-      {!is_view_offer_covered && offer.has_offer && !applied_promo && (
+      {offer.has_offer && !applied_promo && (
         <div
           className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
           style={{
@@ -1040,25 +794,22 @@ export const RegisterStepPlanSelection = ({
         </div>
       )}
 
-      {!is_view_offer_covered &&
-        !offer.has_offer &&
-        reg.is_invited &&
-        !applied_promo && (
-          <div
-            className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
-            style={{
-              backgroundColor: "var(--accent-blue)",
-              color: "var(--accent-fg, #ffffff)",
-            }}
-          >
-            <AcademicCapIcon className="w-4 h-4 shrink-0" />
-            {referral_discount_percent
-              ? t("auth.plan_referral_discount_percent_note", {
-                  percent: referral_discount_percent,
-                })
-              : t("auth.plan_referral_discount_note")}
-          </div>
-        )}
+      {!offer.has_offer && reg.is_invited && !applied_promo && (
+        <div
+          className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
+          style={{
+            backgroundColor: "var(--accent-blue)",
+            color: "var(--accent-fg, #ffffff)",
+          }}
+        >
+          <AcademicCapIcon className="w-4 h-4 shrink-0" />
+          {referral_discount_percent
+            ? t("auth.plan_referral_discount_percent_note", {
+                percent: referral_discount_percent,
+              })
+            : t("auth.plan_referral_discount_note")}
+        </div>
+      )}
 
       <div className="mt-6 flex w-full flex-wrap items-center justify-center gap-2">
         <div
@@ -1149,13 +900,7 @@ export const RegisterStepPlanSelection = ({
               billing_period === "yearly"
                 ? tier.yearly_cents
                 : tier.monthly_cents;
-            const family_offer_cents = offer_quote_cents(
-              tier.id,
-              base_price_cents,
-            );
             const price_cents = apply_referral_discount(base_price_cents);
-            const family_display_cents =
-              family_offer_cents ?? convert_cents(price_cents, currency);
             const features = (
               tier.max_members === 2
                 ? FAMILY_PLAN_DUO_FEATURES
@@ -1192,8 +937,7 @@ export const RegisterStepPlanSelection = ({
                     </h3>
                   </div>
                   <div className="flex items-baseline gap-1.5 flex-wrap">
-                    {(family_offer_cents !== null ||
-                      referral_discount_percent) && (
+                    {referral_discount_percent && (
                       <span className="text-lg font-medium leading-none text-txt-muted line-through">
                         {format_price(
                           convert_cents(base_price_cents, currency),
@@ -1202,52 +946,33 @@ export const RegisterStepPlanSelection = ({
                       </span>
                     )}
                     <span className="text-[40px] font-bold leading-none tracking-tight text-txt-primary">
-                      {format_price(family_display_cents, currency)}
+                      {format_price(
+                        convert_cents(price_cents, currency),
+                        currency,
+                      )}
                     </span>
                     <span className="text-sm text-txt-muted">
                       {billing_period === "monthly"
                         ? t("settings.per_month_short")
                         : t("settings.per_year_short")}
                     </span>
-                    {family_offer_cents !== null && (
+                    {billing_period === "yearly" && (
                       <span
                         className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
                         style={{ backgroundColor: "var(--accent-blue)" }}
                       >
-                        {t("settings.special_offer_save_badge", {
-                          percent: String(offer_percent_off),
+                        {t("settings.save_yearly", {
+                          amount: format_price(
+                            convert_cents(
+                              family_yearly_savings_cents(tier),
+                              currency,
+                            ),
+                            currency,
+                          ),
                         })}
                       </span>
                     )}
-                    {family_offer_cents === null &&
-                      billing_period === "yearly" && (
-                        <span
-                          className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
-                          style={{ backgroundColor: "var(--accent-blue)" }}
-                        >
-                          {t("settings.save_yearly", {
-                            amount: format_price(
-                              convert_cents(
-                                family_yearly_savings_cents(tier),
-                                currency,
-                              ),
-                              currency,
-                            ),
-                          })}
-                        </span>
-                      )}
                   </div>
-                  {family_offer_cents !== null && (
-                    <p className="text-xs font-medium text-txt-secondary">
-                      {t("settings.special_offer_renews_at", {
-                        price: format_price(
-                          convert_cents(base_price_cents, currency),
-                          currency,
-                        ),
-                        months: String(offer_duration_months),
-                      })}
-                    </p>
-                  )}
                   <p className="text-[13px] leading-relaxed text-txt-tertiary">
                     {tier.max_members === 2
                       ? t("settings.family_duo_tagline")
@@ -1296,16 +1021,12 @@ export const RegisterStepPlanSelection = ({
               billing_period === "yearly"
                 ? tier.yearly_cents
                 : tier.monthly_cents;
-            const offer_cents = offer_quote_cents(tier.id, base_cents);
             const cents = apply_referral_discount(base_cents);
             const display_price = format_price(
-              offer_cents ?? convert_cents(cents, currency),
+              convert_cents(cents, currency),
               currency,
             );
-            const saves =
-              billing_period === "yearly" && offer_cents === null
-                ? tier.savings_cents
-                : 0;
+            const saves = billing_period === "yearly" ? tier.savings_cents : 0;
             const features = feature_list_for_tier(tier.id, t);
             const description = t(
               TIER_DESCRIPTION_KEYS[tier.id] as never,
@@ -1332,7 +1053,7 @@ export const RegisterStepPlanSelection = ({
                     {tier.name}
                   </h3>
                   <div className="flex items-baseline gap-1.5 flex-wrap">
-                    {(offer_cents !== null || referral_discount_percent) && (
+                    {referral_discount_percent && (
                       <span className="text-lg font-medium leading-none text-txt-muted line-through">
                         {format_price(
                           convert_cents(base_cents, currency),
@@ -1348,16 +1069,6 @@ export const RegisterStepPlanSelection = ({
                         ? t("settings.per_month_short")
                         : t("settings.per_year_short")}
                     </span>
-                    {offer_cents !== null && (
-                      <span
-                        className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
-                        style={{ backgroundColor: "var(--accent-blue)" }}
-                      >
-                        {t("settings.special_offer_save_badge", {
-                          percent: String(offer_percent_off),
-                        })}
-                      </span>
-                    )}
                     {saves > 0 && (
                       <span
                         className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
@@ -1372,25 +1083,6 @@ export const RegisterStepPlanSelection = ({
                       </span>
                     )}
                   </div>
-                  {offer_cents !== null && (
-                    <p className="text-xs font-medium text-txt-secondary">
-                      {t("settings.special_offer_renews_at", {
-                        price: format_price(
-                          convert_cents(base_cents, currency),
-                          currency,
-                        ),
-                        months: String(offer_duration_months),
-                      })}
-                    </p>
-                  )}
-                  {is_offer_active &&
-                    offer_cents === null &&
-                    tier.id === "star" &&
-                    billing_period === "monthly" && (
-                      <p className="text-xs font-medium text-txt-secondary">
-                        {t("settings.special_offer_not_on_star_monthly")}
-                      </p>
-                    )}
                   <p className="text-[13px] leading-relaxed text-txt-tertiary">
                     {description}
                   </p>
@@ -1459,9 +1151,18 @@ export const RegisterStepPlanSelection = ({
             id: entry.id,
             name: entry.name,
             is_recommended: entry.is_recommended,
-            price_label: price_label_for_choice(entry),
+            price_label: `${format_price(
+              convert_cents(
+                apply_referral_discount(
+                  billing_period === "yearly"
+                    ? Math.round(entry.yearly_cents / 12)
+                    : entry.monthly_cents,
+                ),
+                currency,
+              ),
+              currency,
+            )}${t("settings.per_month_short")}`,
           }))}
-          {...offer_modal_props(pending_family_tier)}
           plan_name={pending_family_tier.name}
           promo_slot={promo_slot}
           selected_plan_id={pending_family_tier.id}
@@ -1505,7 +1206,6 @@ export const RegisterStepPlanSelection = ({
           plan_name={crypto_family_tier.name}
           preferred_currency={currency}
           promo_code={applied_promo_code ?? null}
-          {...offer_crypto_props(crypto_family_tier.id)}
           yearly_price_cents={crypto_family_tier.yearly_cents}
         />
       )}
@@ -1599,9 +1299,18 @@ export const RegisterStepPlanSelection = ({
             id: entry.id,
             name: entry.name,
             is_recommended: entry.is_recommended,
-            price_label: price_label_for_choice(entry),
+            price_label: `${format_price(
+              convert_cents(
+                apply_referral_discount(
+                  billing_period === "yearly"
+                    ? Math.round(entry.yearly_cents / 12)
+                    : entry.monthly_cents,
+                ),
+                currency,
+              ),
+              currency,
+            )}${t("settings.per_month_short")}`,
           }))}
-          {...offer_modal_props(pending_tier.tier)}
           plan_name={pending_tier.tier.name}
           promo_slot={promo_slot}
           selected_plan_id={pending_tier.tier.id}
@@ -1643,7 +1352,6 @@ export const RegisterStepPlanSelection = ({
           plan_name={crypto_tier.tier.name}
           preferred_currency={currency}
           promo_code={applied_promo_code ?? null}
-          {...offer_crypto_props(crypto_tier.tier.id)}
           yearly_price_cents={crypto_tier.tier.yearly_cents}
         />
       )}

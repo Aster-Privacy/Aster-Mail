@@ -78,9 +78,6 @@ import {
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
-import { special_offer_promo_code } from "@/lib/special_offer";
-import { refresh_special_offer_status } from "@/stores/special_offer_status";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -269,7 +266,6 @@ export function BillingSection() {
   );
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(() => cached?.subscription ?? null);
-  const offer_checkout = use_special_offer_checkout(subscription?.plan.code);
   const [plans, set_plans] = useState<AvailablePlan[]>(
     () => cached?.plans ?? [],
   );
@@ -837,22 +833,14 @@ export function BillingSection() {
 
     set_is_action_loading(true);
     try {
-      const offer_applies =
-        (checkout_interval === "month" || checkout_interval === "year") &&
-        offer_checkout.covers(plan.code, checkout_interval);
       const result = await start_hosted_checkout(
         plan.code,
         checkout_interval,
         preferred_currency,
         credit_balance?.balance_cents,
-        offer_applies ? (special_offer_promo_code() ?? undefined) : undefined,
-        offer_applies || undefined,
       );
 
       if (!result.ok) {
-        if (result.server_code === "SPECIAL_OFFER_UNAVAILABLE") {
-          void refresh_special_offer_status();
-        }
         show_toast(
           checkout_error_text(t, result.server_code),
           "error",
@@ -1466,10 +1454,6 @@ export function BillingSection() {
 
           return (
             <CryptoTermModal
-              discount_percent_off={offer_checkout.percent_off}
-              discounted_price_cents={offer_checkout.crypto_price(
-                crypto_plan.code,
-              )}
               initial_coin_key={
                 crypto_resume
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`
@@ -1505,12 +1489,6 @@ export function BillingSection() {
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
               preferred_currency={preferred_currency}
-              promo_code={
-                offer_checkout.crypto_price(crypto_plan.code)
-                  ? special_offer_promo_code()
-                  : undefined
-              }
-              special_offer={!!offer_checkout.crypto_price(crypto_plan.code)}
               yearly_price_cents={tier.yearly_cents}
             />
           );
@@ -1564,7 +1542,6 @@ export function BillingSection() {
           plan_name={plan_method_target.name}
           selected_plan_id={plan_method_target.code}
           selected_term={billing_period}
-          special_offer={offer_checkout.plan_pricing(plan_method_target.code)}
           term_options={plan_term_options_for(plan_method_target.code)}
         />
       )}

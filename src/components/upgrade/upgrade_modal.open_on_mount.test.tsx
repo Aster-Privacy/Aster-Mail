@@ -50,15 +50,6 @@ vi.mock("@/hooks/use_plan_limits", () => ({
   }),
 }));
 
-vi.mock("@/hooks/use_special_offer_checkout", () => ({
-  use_special_offer_checkout: () => ({
-    percent_off: undefined,
-    covers: () => false,
-    plan_pricing: () => undefined,
-    crypto_price: () => undefined,
-  }),
-}));
-
 vi.mock("@/services/api/billing", () => ({
   change_plan: vi.fn(),
   format_price: (cents: number) => String(cents),

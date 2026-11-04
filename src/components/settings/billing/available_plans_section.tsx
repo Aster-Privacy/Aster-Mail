@@ -63,7 +63,6 @@ import { use_currency_rates } from "@/components/settings/billing/use_currency_r
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { create_family_group } from "@/services/api/family";
-import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -137,7 +136,6 @@ export function AvailablePlansSection({
   embedded = false,
 }: AvailablePlansSectionProps) {
   const { t } = use_i18n();
-  const offer_checkout = use_special_offer_checkout(subscription?.plan.code);
 
   use_currency_rates();
 
@@ -187,23 +185,12 @@ export function AvailablePlansSection({
       const origin = is_tauri
         ? "https://app.astermail.org"
         : window.location.origin;
-      const family_success = `${origin}/?family=success`;
-      const family_cancel = `${origin}/?family=cancelled`;
-      const res = offer_checkout.covers(tier.id, card_interval)
-        ? await create_family_group(
-            tier.id,
-            card_interval,
-            family_success,
-            family_cancel,
-            undefined,
-            true,
-          )
-        : await create_family_group(
-            tier.id,
-            card_interval,
-            family_success,
-            family_cancel,
-          );
+      const res = await create_family_group(
+        tier.id,
+        card_interval,
+        `${origin}/?family=success`,
+        `${origin}/?family=cancelled`,
+      );
 
       if (res.data?.checkout_url) {
         const parsed = new URL(res.data.checkout_url);
