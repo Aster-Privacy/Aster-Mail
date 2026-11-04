@@ -35,6 +35,11 @@ vi.mock("@/services/account_manager", () => ({
   get_all_accounts: vi.fn(async () =>
     h.saved_emails.map((email) => ({ user: { email } })),
   ),
+  get_current_account: vi.fn(async () =>
+    h.account_id && h.saved_emails.length > 0
+      ? { id: h.account_id, user: { email: h.saved_emails[0] } }
+      : null,
+  ),
 }));
 
 import {
@@ -62,6 +67,7 @@ import {
   read_kdf_version,
   record_current_account_login_salt,
   record_login_salt,
+  remember_saved_login_accounts,
   unpin_accounts,
   user_hash_pin_key,
   user_id_pin_key,
@@ -396,6 +402,35 @@ describe("short login salts", () => {
     ).rejects.toMatchObject({
       translation_key: "errors.legacy_login_salt_sign_in_again",
     });
+  });
+
+  it("trusts the first step-up salt for an account saved on this device", async () => {
+    h.account_id = "user-1";
+    h.saved_emails = [EMAIL];
+
+    await expect(
+      derive_current_account_proof(PASSWORD, salt(4, 16), 1),
+    ).resolves.toBeTypeOf("string");
+    expect(
+      match_login_salt_record([user_id_pin_key("user-1")], salt(4, 16)),
+    ).toBe("match");
+    await expect(
+      derive_current_account_proof(PASSWORD, salt(9, 16), 1),
+    ).rejects.toMatchObject({
+      translation_key: "errors.legacy_login_salt_sign_in_again",
+    });
+  });
+
+  it("still knows a remembered account after it is signed out", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    h.saved_emails = [EMAIL];
+    await remember_saved_login_accounts();
+    h.saved_emails = [];
+
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt(4, 16), 1, user_hash),
+    ).resolves.toBeTypeOf("string");
   });
 
   it("allows step-up once the salt is recorded for the account", async () => {

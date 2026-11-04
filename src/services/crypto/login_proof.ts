@@ -36,6 +36,8 @@ const PINNED_ACCOUNTS_KEY = "aster:login_v2_accounts";
 const MAX_PINNED_ACCOUNTS = 64;
 const LOGIN_SALT_RECORDS_KEY = "aster:login_salt_records";
 const MAX_LOGIN_SALT_RECORDS = 64;
+const KNOWN_LOGIN_ACCOUNTS_KEY = "aster:login_known_accounts";
+const MAX_KNOWN_LOGIN_ACCOUNTS = 64;
 
 export const MIN_V1_LOGIN_SALT_BYTES = 32;
 
@@ -225,9 +227,93 @@ export function match_login_salt_record(
   return matched ? "match" : "mismatch";
 }
 
+function read_known_login_accounts(): string[] {
+  try {
+    const raw = localStorage.getItem(KNOWN_LOGIN_ACCOUNTS_KEY);
+
+    if (!raw) {
+      return [];
+    }
+
+    const parsed: unknown = JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter(
+      (entry): entry is string => typeof entry === "string" && entry !== "",
+    );
+  } catch {
+    return [];
+  }
+}
+
+export function remember_known_login_accounts(
+  user_hashes: readonly string[],
+): void {
+  const added = user_hashes.filter((hash) => hash !== "");
+
+  if (added.length === 0) {
+    return;
+  }
+
+  const kept = read_known_login_accounts().filter(
+    (hash) => !added.includes(hash),
+  );
+
+  kept.push(...added);
+
+  try {
+    localStorage.setItem(
+      KNOWN_LOGIN_ACCOUNTS_KEY,
+      JSON.stringify(
+        kept.slice(Math.max(0, kept.length - MAX_KNOWN_LOGIN_ACCOUNTS)),
+      ),
+    );
+  } catch {
+    return;
+  }
+}
+
+export async function remember_saved_login_accounts(): Promise<void> {
+  try {
+    const { get_all_accounts } = await import("@/services/account_manager");
+    const accounts = await get_all_accounts();
+    const hashes: string[] = [];
+
+    for (const account of accounts) {
+      const email = account.user?.email;
+
+      if (email) {
+        hashes.push(await hash_email(email));
+      }
+    }
+
+    remember_known_login_accounts(hashes);
+  } catch {
+    return;
+  }
+}
+
+async function current_account_user_hash(): Promise<string | undefined> {
+  try {
+    const { get_current_account } = await import("@/services/account_manager");
+    const email = (await get_current_account())?.user?.email;
+
+    return email ? await hash_email(email) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 async function account_saved_on_device(user_hash: string): Promise<boolean> {
   if (!user_hash) {
     return false;
+  }
+
+  if (read_known_login_accounts().includes(user_hash)) {
+    return true;
   }
 
   try {
@@ -274,10 +360,13 @@ async function assert_v1_login_salt_trusted(
 
   if (
     record === "none" &&
-    options.context === "sign_in" &&
     options.user_hash &&
     (await account_saved_on_device(options.user_hash))
   ) {
+    if (options.context === "step_up") {
+      record_login_salt(pin_keys, salt);
+    }
+
     return;
   }
 
@@ -423,7 +512,7 @@ export async function derive_current_account_proof(
     salt,
     kdf_version,
     pin_keys,
-    { context: "step_up" },
+    { context: "step_up", user_hash: await current_account_user_hash() },
   );
 
   if (proof.kdf_version === 2) {

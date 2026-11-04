@@ -47,6 +47,7 @@ import {
 import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
+import { remember_saved_login_accounts } from "@/services/crypto/login_proof";
 import {
   init_desktop_device_auth,
   forget_device_account,
@@ -363,6 +364,8 @@ export function use_auth_account_state() {
     const init = async () => {
       try {
         const data = await initialize_accounts();
+
+        void remember_saved_login_accounts();
         const current = await get_current_account();
 
         if (!current) {
