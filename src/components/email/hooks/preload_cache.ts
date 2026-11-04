@@ -64,6 +64,7 @@ import {
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
+import { sent_copy_pgp_verified } from "@/services/crypto/sent_encryption_evidence";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import {
   sanitize_html,
@@ -535,7 +536,9 @@ export async function preload_email_detail(
           )
         : resolved_text;
 
-      const e2e_verified = is_ratchet_verified_body(resolved_text, body_text);
+      const e2e_verified =
+        is_ratchet_verified_body(resolved_text, body_text) ||
+        sent_copy_pgp_verified(envelope);
       const pre_pgp_text = body_text;
 
       body_text = await try_decrypt_pgp_body(body_text);

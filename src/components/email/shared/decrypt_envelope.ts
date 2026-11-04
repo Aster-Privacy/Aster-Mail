@@ -54,6 +54,11 @@ import {
 } from "@/services/crypto/envelope";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { resolve_sender_verification_keys } from "@/services/crypto/sender_verification";
+import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp_messages";
+import {
+  drop_sent_encryption_evidence,
+  has_sent_encryption_evidence,
+} from "@/services/crypto/sent_encryption_evidence";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   is_crypto_module_load_error,
@@ -412,7 +417,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       const text = new TextDecoder().decode(encrypted_bytes);
 
       if (!text.startsWith("-----BEGIN PGP")) {
-        const parsed_obj = JSON.parse(text);
+        const parsed_obj = drop_sent_encryption_evidence(JSON.parse(text));
 
         register_envelope_attachment_keys(mail_item_id, parsed_obj);
 
@@ -458,6 +463,17 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             parsed.sender_verification = first_pass.has_signature
               ? "no_keys"
               : "unsigned";
+          }
+
+          if (has_sent_encryption_evidence(parsed)) {
+            const own_keys = first_pass.has_signature
+              ? await derive_public_keys_from_private(envelope_keys)
+              : [];
+            const self_signed =
+              own_keys.length > 0 &&
+              (await first_pass.verify(own_keys)).verification === "verified";
+
+            if (!self_signed) drop_sent_encryption_evidence(parsed);
           }
 
           return parsed as T;
@@ -589,7 +605,9 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       if (plain) {
         await adopt_recovered_vault_source();
 
-        const parsed_obj = JSON.parse(new TextDecoder().decode(plain));
+        const parsed_obj = drop_sent_encryption_evidence(
+          JSON.parse(new TextDecoder().decode(plain)),
+        );
 
         register_envelope_attachment_keys(mail_item_id, parsed_obj);
 
@@ -659,7 +677,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
     if (legacy_plaintext) {
       await adopt_recovered_vault_source();
 
-      return finalize_envelope(legacy_plaintext);
+      return drop_sent_encryption_evidence(finalize_envelope(legacy_plaintext));
     }
 
     return null;

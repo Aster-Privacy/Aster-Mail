@@ -36,6 +36,7 @@ import {
 } from "./undo_send_manager";
 import { type QueueEmailRequest } from "./api/undo_send";
 import { array_to_base64 } from "./crypto/envelope";
+import { build_sent_encryption_evidence } from "./crypto/sent_encryption_evidence";
 import {
   SendError,
   PostQuantumUnavailableError,
@@ -52,6 +53,10 @@ import {
   build_signed_mime_payload,
   should_attach_signed_mime,
 } from "./send_queue_signed_mime";
+import {
+  server_visible_subject,
+  should_obscure_outer_subject,
+} from "./pgp_protected_mime";
 import {
   build_client_pgp_copies,
   CLIENT_COPY_PLACEHOLDER_BODY,
@@ -552,6 +557,10 @@ async function prepare_email_for_server_queue(
   const outside_recipients = all_recipients.filter(
     (recipient) => !is_internal_recipient(recipient),
   );
+  const obscure_subject = should_obscure_outer_subject({
+    obscure_subject_preference: email.encryption_options?.obscure_subject,
+    secure_external: email.secure_external,
+  });
   const client_copies =
     is_encrypted ||
     email.secure_external ||
@@ -564,7 +573,7 @@ async function prepare_email_for_server_queue(
           force_pgp: email.force_pgp,
           pgp_recipients: email.pgp_recipients,
           require_encryption: email.encryption_options?.require_encryption,
-          obscure_subject: email.encryption_options?.obscure_subject === true,
+          obscure_subject,
           subject: email.subject || "",
           body: body_for_encryption,
           from: sender_email,
@@ -598,6 +607,12 @@ async function prepare_email_for_server_queue(
   const envelope_data = await create_sent_envelope(
     internal_email,
     sender_email,
+    build_sent_encryption_evidence({
+      all_recipients,
+      outside_recipients,
+      client_copies,
+      internal_copy_is_encrypted,
+    }),
   );
 
   let effective_thread_id = email.thread_id;
@@ -623,7 +638,12 @@ async function prepare_email_for_server_queue(
     to: email.to,
     cc: email.cc,
     bcc: email.bcc,
-    subject: is_encrypted || client_copies ? "" : email.subject,
+    subject: server_visible_subject({
+      subject: email.subject,
+      is_encrypted,
+      has_client_copies: client_copies !== undefined,
+      obscure_subject,
+    }),
     body: is_encrypted
       ? encrypted_body
       : client_copies
@@ -657,6 +677,7 @@ async function prepare_email_for_server_queue(
     client_send_id: resolve_client_send_id(email.client_send_id),
     ...(email.is_plain_text ? { plain_text: true } : {}),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
+    obscure_subject,
   };
 
   if (
@@ -677,6 +698,7 @@ async function prepare_email_for_server_queue(
       cc: email.cc ?? [],
       bcc: email.bcc ?? [],
       attachments: all_attachments,
+      obscure_subject,
       is_plain_text: email.is_plain_text,
     });
 

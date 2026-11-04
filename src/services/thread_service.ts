@@ -72,6 +72,7 @@ import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import { compare_timestamps_asc } from "@/utils/email_timestamp";
 import { has_readable_body } from "@/components/email/thread_message_merge";
 import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
+import { sent_copy_pgp_verified } from "@/services/crypto/sent_encryption_evidence";
 import { sender_text_alternative } from "@/components/email/plain_view";
 
 interface DecryptedEnvelope {
@@ -368,7 +369,7 @@ async function decode_thread_envelope(
     html_content: effective_html,
     text_part: sender_text_alternative(effective_html, resolved_text),
     sent_at: envelope.sent_at,
-    e2e_verified,
+    e2e_verified: e2e_verified || sent_copy_pgp_verified(envelope),
     to_recipients: envelope.to || [],
     cc_recipients: envelope.cc || [],
     bcc_recipients: envelope.bcc || [],
@@ -715,7 +716,7 @@ export async function fetch_and_decrypt_virtual_group(
       is_deleted: false,
       is_external: item.is_external ?? false,
       system_origin: item.system_origin,
-      e2e_verified,
+      e2e_verified: e2e_verified || sent_copy_pgp_verified(envelope),
       sender_verified_domain: item.sender_verified
         ? item.sender_verified_domain
         : undefined,

@@ -73,6 +73,7 @@ export interface QueueEmailRequest {
   external_pgp_bodies?: Record<string, string>;
   client_send_id?: string;
   plain_text?: boolean;
+  obscure_subject?: boolean;
 }
 
 export interface QueueEmailResponse {

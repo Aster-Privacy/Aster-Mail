@@ -98,6 +98,7 @@ vi.mock("./undo_send_manager", () => ({
 
 import { queue_email_to_server } from "./send_queue";
 import { execute_send } from "./send_queue_execute";
+import { create_sent_envelope } from "./send_queue_envelope";
 
 function sent_request(): Record<string, unknown> {
   return h.queue_email.mock.calls[0]![0] as Record<string, unknown>;
@@ -126,6 +127,12 @@ describe("queue_email_to_server outside copies", () => {
         to: ["pal@example.com", "friend@astermail.org"],
         subject: "Private subject",
         body: "Private body",
+        encryption_options: {
+          auto_discover_keys: false,
+          encrypt_emails: false,
+          require_encryption: false,
+          obscure_subject: true,
+        },
       },
       5,
     );
@@ -136,6 +143,7 @@ describe("queue_email_to_server outside copies", () => {
       "pal@example.com": "armored",
     });
     expect(request.subject).toBe("");
+    expect(request.obscure_subject).toBe(true);
     expect(request.body).toBe(" ");
     expect(request.signed_mime).toBeUndefined();
     expect(JSON.stringify(request)).not.toContain("Private subject");
@@ -143,6 +151,22 @@ describe("queue_email_to_server outside copies", () => {
     expect(h.build_copies.mock.calls[0]![0].outside_recipients).toEqual([
       "pal@example.com",
     ]);
+  });
+
+  it("keeps a visible subject on the queued copies when hiding is off", async () => {
+    h.build_copies.mockResolvedValue({ "pal@example.com": "armored" });
+
+    await queue_email_to_server(
+      { to: ["pal@example.com"], subject: "Visible subject", body: "Private body" },
+      5,
+    );
+
+    const request = sent_request();
+
+    expect(request.subject).toBe("Visible subject");
+    expect(request.obscure_subject).toBe(false);
+    expect(request.body).toBe(" ");
+    expect(JSON.stringify(request)).not.toContain("Private body");
   });
 
   it("keeps the existing request when no copies are made", async () => {
@@ -229,7 +253,16 @@ describe("execute_send outside copies", () => {
   it("sends only the encrypted copies and no readable content", async () => {
     h.build_copies.mockResolvedValue({ "pal@example.com": "armored" });
 
-    await execute_send(queued());
+    await execute_send(
+      queued({
+        encryption_options: {
+          auto_discover_keys: false,
+          encrypt_emails: false,
+          require_encryption: false,
+          obscure_subject: true,
+        },
+      }),
+    );
 
     const request = simple_request();
 
@@ -237,12 +270,26 @@ describe("execute_send outside copies", () => {
       "pal@example.com": "armored",
     });
     expect(request.subject).toBe("");
+    expect(request.obscure_subject).toBe(true);
     expect(request.body).toBe(" ");
     expect(JSON.stringify(request)).not.toContain("Private subject");
     expect(JSON.stringify(request)).not.toContain("Private body");
     expect(h.build_copies.mock.calls[0]![0].outside_recipients).toEqual([
       "pal@example.com",
     ]);
+  });
+
+  it("keeps a visible subject on the direct copies when hiding is off", async () => {
+    h.build_copies.mockResolvedValue({ "pal@example.com": "armored" });
+
+    await execute_send(queued());
+
+    const request = simple_request();
+
+    expect(request.subject).toBe("Private subject");
+    expect(request.obscure_subject).toBe(false);
+    expect(request.body).toBe(" ");
+    expect(JSON.stringify(request)).not.toContain("Private body");
   });
 
   it("keeps the existing request when no copies are made", async () => {
@@ -312,5 +359,102 @@ describe("queue_email_to_server expiring messages", () => {
 
     expect(h.build_copies).not.toHaveBeenCalled();
     expect(sent_request().external_pgp_bodies).toBeUndefined();
+  });
+});
+
+describe("sent copy encryption evidence", () => {
+  function evidence_arg(): unknown {
+    const calls = vi.mocked(create_sent_envelope).mock.calls;
+
+    return calls[calls.length - 1]![2];
+  }
+
+  beforeEach(() => {
+    vi.mocked(create_sent_envelope).mockClear();
+    h.queue_email.mockReset();
+    h.queue_email.mockResolvedValue({ queue_id: "q1" });
+    h.send_simple.mockReset();
+    h.send_simple.mockResolvedValue({
+      data: { success: true, mail_item_id: "m1" },
+    });
+    h.build_copies.mockReset();
+    h.seal_attachments.mockReset();
+    h.seal_attachments.mockResolvedValue([]);
+    h.signed_payload.mockReset();
+    h.signed_payload.mockResolvedValue({
+      signed_mime: "bWltZQ==",
+      signed_mime_signature: "sig",
+      signed_mime_micalg: "pgp-sha512",
+    });
+  });
+
+  it("records a full encrypted send on the queued sent copy", async () => {
+    h.build_copies.mockResolvedValue({ "pal@example.com": "armored" });
+
+    await queue_email_to_server(
+      { to: ["pal@example.com"], subject: "s", body: "b" },
+      5,
+    );
+
+    expect(evidence_arg()).toEqual({
+      outside: 1,
+      outside_pgp: 1,
+      internal_readable: 0,
+    });
+  });
+
+  it("records a readable internal copy on a mixed queued send", async () => {
+    h.build_copies.mockResolvedValue({ "pal@example.com": "armored" });
+
+    await queue_email_to_server(
+      { to: ["pal@example.com", "friend@astermail.org"], subject: "s", body: "b" },
+      5,
+    );
+
+    expect(evidence_arg()).toEqual({
+      outside: 1,
+      outside_pgp: 1,
+      internal_readable: 1,
+    });
+  });
+
+  it("records a send with no encrypted copies as readable", async () => {
+    h.build_copies.mockResolvedValue(undefined);
+
+    await execute_send({
+      id: "local-2",
+      to: ["pal@example.com"],
+      subject: "s",
+      body: "b",
+      scheduled_time: 0,
+      timeout_id: 0,
+      callbacks: { on_complete: () => {}, on_cancel: () => {} },
+    } as never);
+
+    expect(evidence_arg()).toEqual({
+      outside: 1,
+      outside_pgp: 0,
+      internal_readable: 0,
+    });
+  });
+
+  it("records a full encrypted direct send", async () => {
+    h.build_copies.mockResolvedValue({ "pal@example.com": "armored" });
+
+    await execute_send({
+      id: "local-3",
+      to: ["pal@example.com"],
+      subject: "s",
+      body: "b",
+      scheduled_time: 0,
+      timeout_id: 0,
+      callbacks: { on_complete: () => {}, on_cancel: () => {} },
+    } as never);
+
+    expect(evidence_arg()).toEqual({
+      outside: 1,
+      outside_pgp: 1,
+      internal_readable: 0,
+    });
   });
 });

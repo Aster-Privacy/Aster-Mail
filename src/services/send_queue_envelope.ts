@@ -31,6 +31,7 @@ import {
   get_vault_from_memory,
 } from "./crypto/memory_key_store";
 import { seal_sent_envelope_when_enabled } from "./crypto/sent_copy_seal";
+import type { SentEncryptionEvidence } from "./crypto/sent_encryption_evidence";
 import { zero_uint8_array } from "./crypto/secure_memory";
 import { plain_text_to_html } from "./send_queue_recipients";
 import {
@@ -61,6 +62,7 @@ const PLAIN_TEXT_FORBIDDEN_TAGS = [
 export async function create_sent_envelope(
   email: QueuedEmailInternal,
   sender_email: string,
+  sent_encryption?: SentEncryptionEvidence,
 ): Promise<EnvelopeData> {
   const vault = get_vault_from_memory();
   const passphrase_bytes = get_passphrase_bytes();
@@ -130,6 +132,7 @@ export async function create_sent_envelope(
     cc: (email.cc || []).map((e) => ({ name: "", email: e })),
     bcc: (email.bcc || []).map((e) => ({ name: "", email: e })),
     sent_at: new Date().toISOString(),
+    ...(sent_encryption ? { sent_encryption } : {}),
   };
 
   try {
