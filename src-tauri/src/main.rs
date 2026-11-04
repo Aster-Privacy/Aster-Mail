@@ -30,6 +30,8 @@ mod default_mail_linux;
 mod default_mail_store;
 mod device;
 mod downloads;
+#[cfg(all(unix, not(target_os = "macos")))]
+mod flatpak;
 mod http_client;
 mod interface_zoom;
 #[cfg(all(unix, not(target_os = "macos")))]
@@ -596,7 +598,7 @@ fn main() {
         }
     }
 
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             let mailto = default_mail::mailto_from_args(&argv);
             let notification_open = mail_notification::open_from_args(&argv);
@@ -614,7 +616,12 @@ fn main() {
                 }
                 show_main_window(app);
             }
-        }))
+        }));
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let builder = builder.plugin(flatpak::init());
+
+    builder
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -692,8 +699,15 @@ fn main() {
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
 
-                if let Err(error) = app.deep_link().register_all() {
-                    tracing::warn!(%error, "deep link scheme registration failed");
+                #[cfg(windows)]
+                let register_schemes = true;
+                #[cfg(target_os = "linux")]
+                let register_schemes = !flatpak::is_flatpak();
+
+                if register_schemes {
+                    if let Err(error) = app.deep_link().register_all() {
+                        tracing::warn!(%error, "deep link scheme registration failed");
+                    }
                 }
             }
 
@@ -921,6 +935,8 @@ fn main() {
             let mut context = tauri::generate_context!();
             #[cfg(windows)]
             boot_guard::apply_compat_browser_args(context.config_mut());
+            #[cfg(all(unix, not(target_os = "macos")))]
+            flatpak::apply_config(context.config_mut());
             context
         })
         .unwrap_or_else(|error| {

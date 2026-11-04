@@ -52,7 +52,12 @@ const LAST_NOTIFIED_VERSION_KEY = "aster_desktop_last_notified_version";
 
 export function is_desktop_runtime(): boolean {
   if (typeof window === "undefined") return false;
-  const w = window as unknown as { __TAURI_INTERNALS__?: unknown };
+  const w = window as unknown as {
+    __TAURI_INTERNALS__?: unknown;
+    __ASTER_FLATPAK__?: unknown;
+  };
+
+  if (w.__ASTER_FLATPAK__) return false;
 
   return Boolean(w.__TAURI_INTERNALS__);
 }

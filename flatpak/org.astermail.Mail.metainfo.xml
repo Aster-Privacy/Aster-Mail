@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.astermail.Mail</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-or-later</project_license>
+
+  <name>Aster Mail</name>
+  <summary>End-to-end encrypted email</summary>
+
+  <developer id="org.astermail">
+    <name>Aster Communications Inc.</name>
+  </developer>
+
+  <description>
+    <p>
+      Aster Mail is end-to-end encrypted email. Your messages are encrypted on your device before they reach the server, so only you and the people you write to can read them. Mail between Aster accounts also uses post-quantum encryption.
+    </p>
+    <p>With Aster Mail, you can:</p>
+    <ul>
+      <li>Keep your real address private with aliases</li>
+      <li>Send and receive mail at your own domain</li>
+      <li>Exchange encrypted mail with PGP users at any provider</li>
+      <li>Import your mail and contacts from another provider</li>
+    </ul>
+    <p>
+      The free plan includes 10 GB of storage, 5 aliases, and one custom domain. You need an Aster account to use the app.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">org.astermail.Mail.desktop</launchable>
+
+  <url type="homepage">https://astermail.org</url>
+  <url type="bugtracker">https://github.com/Aster-Privacy/Aster-Mail/issues</url>
+  <url type="vcs-browser">https://github.com/Aster-Privacy/Aster-Mail</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/7079637601427a6dec69fbe15f5fc74e90a5b0d7/flatpak/screenshots/inbox.png</image>
+      <caption>Your encrypted inbox</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/Aster-Privacy/Aster-Mail/7079637601427a6dec69fbe15f5fc74e90a5b0d7/flatpak/screenshots/aliases.png</image>
+      <caption>Create and manage email aliases</caption>
+    </screenshot>
+  </screenshots>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#a8c4ff</color>
+    <color type="primary" scheme_preference="dark">#1f3d8a</color>
+  </branding>
+
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">intense</content_attribute>
+    <content_attribute id="social-contacts">intense</content_attribute>
+    <content_attribute id="money-purchasing">intense</content_attribute>
+  </content_rating>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+  <requires>
+    <display_length compare="ge">768</display_length>
+  </requires>
+
+  <provides>
+    <binary>aster-mail-desktop</binary>
+  </provides>
+
+  <releases>
+    <release version="1.4.80" date="2026-11-04">
+      <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.80</url>
+    </release>
+  </releases>
+</component>
