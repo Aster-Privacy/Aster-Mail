@@ -1,0 +1,155 @@
+name: Windows signing test
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  sign-windows:
+    runs-on: windows-latest
+    timeout-minutes: 75
+    env:
+      SIGNING_POLICY: test-signing
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+        with:
+          toolchain: stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Build @aster/ui
+        shell: bash
+        run: |
+          git clone --depth=1 https://github.com/Aster-Privacy/aster-ui.git ../aster-ui
+          cd ../aster-ui
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Install frontend dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build the app binary without installers
+        run: npm run tauri -- build --no-bundle
+
+      - name: Stage the app binary
+        id: app_binary
+        shell: pwsh
+        run: |
+          $exes = @(Get-ChildItem -Path src-tauri/target/release -Filter *.exe -File)
+          $exes | ForEach-Object { Write-Host "found $($_.Name)" }
+          if ($exes.Count -ne 1) { throw "expected exactly one app binary, found $($exes.Count)" }
+          New-Item -ItemType Directory -Force -Path staging/app_binary | Out-Null
+          Copy-Item $exes[0].FullName staging/app_binary/
+          "path=$($exes[0].FullName)" >> $env:GITHUB_OUTPUT
+          "name=$($exes[0].Name)" >> $env:GITHUB_OUTPUT
+
+      - name: Upload the unsigned app binary
+        id: upload_app_binary
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unsigned-app-binary
+          path: staging/app_binary/*
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign the app binary
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: Aster-Mail
+          signing-policy-slug: ${{ env.SIGNING_POLICY }}
+          artifact-configuration-slug: app_binary
+          github-artifact-id: ${{ steps.upload_app_binary.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed/app_binary
+
+      - name: Put the signed app binary back
+        shell: pwsh
+        run: |
+          $signed = "signed/app_binary/${{ steps.app_binary.outputs.name }}"
+          $sig = Get-AuthenticodeSignature $signed
+          if ($null -eq $sig.SignerCertificate) { throw "app binary came back without a signature" }
+          Write-Host "app binary signer: $($sig.SignerCertificate.Subject) ($($sig.Status))"
+          Copy-Item $signed "${{ steps.app_binary.outputs.path }}" -Force
+
+      - name: Bundle the installers from the signed binary
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: npm run tauri -- bundle --bundles nsis,msi
+
+      - name: Stage the installers
+        shell: pwsh
+        run: |
+          $setup = @(Get-ChildItem src-tauri/target/release/bundle/nsis -Filter *-setup.exe -File)
+          $msi = @(Get-ChildItem src-tauri/target/release/bundle/msi -Filter *.msi -File)
+          if ($setup.Count -ne 1 -or $msi.Count -ne 1) { throw "expected one setup.exe and one msi, found $($setup.Count) and $($msi.Count)" }
+          New-Item -ItemType Directory -Force -Path staging/installers | Out-Null
+          Copy-Item $setup[0].FullName, $msi[0].FullName staging/installers/
+
+      - name: Upload the unsigned installers
+        id: upload_installers
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unsigned-installers
+          path: staging/installers/*
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign the installers
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: Aster-Mail
+          signing-policy-slug: ${{ env.SIGNING_POLICY }}
+          artifact-configuration-slug: installers
+          github-artifact-id: ${{ steps.upload_installers.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed/installers
+
+      - name: Check the installer signatures
+        shell: pwsh
+        run: |
+          foreach ($f in Get-ChildItem signed/installers -File) {
+            $sig = Get-AuthenticodeSignature $f.FullName
+            if ($null -eq $sig.SignerCertificate) { throw "$($f.Name) came back without a signature" }
+            Write-Host "$($f.Name) signer: $($sig.SignerCertificate.Subject) ($($sig.Status))"
+          }
+
+      - name: Recreate the updater signatures from the signed installers
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for f in signed/installers/*-setup.exe signed/installers/*.msi; do
+            rm -f "$f.sig"
+            npm run tauri -- signer sign --password "" "$f"
+            test -s "$f.sig"
+          done
+          ls -l signed/installers
+
+      - name: Upload the signed test build
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: signed-test-build
+          path: signed/installers/*
+          if-no-files-found: error
+          retention-days: 7
