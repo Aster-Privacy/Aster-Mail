@@ -6964,11 +6964,6 @@ export const tr = {
     domain_purchase_total_today: "Bugünkü toplam",
     domain_purchase_years_line: "{{count}} yıllık kayıt",
     domain_purchase_secure_checkout: "Stripe ile güvenli ödeme",
-    domain_purchase_crypto_warning_title: "Önce kripto bakiyenizi yükleyin",
-    domain_purchase_crypto_warning_body:
-      "Kripto siparişleri Aster kripto bakiyenizden ödenir. Satın almadan önce bakiye yükleyin, aksi halde bakiye tutarın tamamını karşılayana kadar alan adı beklemede kalır.",
-    domain_purchase_crypto_warning_hint:
-      "Faturalandırma bölümünden yükleme yapabilirsiniz, hesap kredisiyle aynı bakiyedir.",
     domain_purchase_included_heading: "Alan adınıza dahil olan her şey",
     domain_purchase_renew: "Yenile",
     domain_purchase_manage: "Yönet",

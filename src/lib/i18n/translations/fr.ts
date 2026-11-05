@@ -7220,12 +7220,6 @@ export const fr = {
     domain_purchase_total_today: "Total aujourd'hui",
     domain_purchase_years_line: "Enregistrement de {{count}} an(s)",
     domain_purchase_secure_checkout: "Paiement sécurisé par Stripe",
-    domain_purchase_crypto_warning_title:
-      "Rechargez d'abord votre solde crypto",
-    domain_purchase_crypto_warning_body:
-      "Les commandes en crypto sont réglées avec votre solde crypto Aster. Ajoutez des fonds avant d'acheter, sinon le domaine restera en attente jusqu'à ce que le solde couvre la totalité du montant.",
-    domain_purchase_crypto_warning_hint:
-      "Vous pouvez recharger depuis la Facturation, c'est le même solde que le crédit du compte.",
     domain_purchase_included_heading:
       "Tout ce qui est inclus avec votre domaine",
     domain_purchase_renew: "Renouveler",

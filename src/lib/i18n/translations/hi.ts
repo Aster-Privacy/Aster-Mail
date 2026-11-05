@@ -6569,11 +6569,6 @@ export const hi = {
     domain_purchase_total_today: "आज का कुल",
     domain_purchase_years_line: "{{count}} साल का पंजीकरण",
     domain_purchase_secure_checkout: "Stripe से सुरक्षित चेकआउट",
-    domain_purchase_crypto_warning_title: "पहले अपना क्रिप्टो शेष बढ़ाएं",
-    domain_purchase_crypto_warning_body:
-      "क्रिप्टो ऑर्डर का भुगतान आपके Aster क्रिप्टो शेष से होता है। खरीदने से पहले पैसे जोड़ें, वरना जब तक शेष पूरी रकम के बराबर नहीं होता, डोमेन रुका रहेगा।",
-    domain_purchase_crypto_warning_hint:
-      "आप बिलिंग से पैसे जोड़ सकते हैं, यह वही शेष है जो खाते के क्रेडिट के लिए इस्तेमाल होता है।",
     domain_purchase_included_heading: "आपके डोमेन के साथ मिलने वाली हर चीज़",
     domain_purchase_renew: "नवीनीकृत करें",
     domain_purchase_manage: "प्रबंधित करें",

@@ -5158,9 +5158,6 @@ export interface SettingsTranslations {
   domain_purchase_total_today: string;
   domain_purchase_years_line: string;
   domain_purchase_secure_checkout: string;
-  domain_purchase_crypto_warning_title: string;
-  domain_purchase_crypto_warning_body: string;
-  domain_purchase_crypto_warning_hint: string;
   domain_purchase_included_heading: string;
   domain_purchase_renew: string;
   domain_purchase_manage: string;

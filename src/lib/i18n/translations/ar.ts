@@ -6977,11 +6977,6 @@ export const ar = {
     domain_purchase_total_today: "الإجمالي اليوم",
     domain_purchase_years_line: "تسجيل لمدة {{count}} سنة",
     domain_purchase_secure_checkout: "دفع آمن عبر Stripe",
-    domain_purchase_crypto_warning_title: "اشحن رصيدك من العملات الرقمية أولًا",
-    domain_purchase_crypto_warning_body:
-      "تُدفع طلبات العملات الرقمية من رصيدك الرقمي في Aster. أضف رصيدًا قبل الشراء، وإلا سيظل النطاق معلقًا حتى يغطي الرصيد المبلغ بالكامل.",
-    domain_purchase_crypto_warning_hint:
-      "يمكنك الشحن من صفحة الفوترة، وهو الرصيد نفسه المستخدم لرصيد الحساب.",
     domain_purchase_included_heading: "كل ما يشمله نطاقك",
     domain_purchase_renew: "تجديد",
     domain_purchase_manage: "إدارة",

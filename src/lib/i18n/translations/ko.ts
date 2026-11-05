@@ -6905,11 +6905,6 @@ export const ko = {
     domain_purchase_total_today: "오늘 결제 금액",
     domain_purchase_years_line: "{{count}}년 등록",
     domain_purchase_secure_checkout: "Stripe 보안 결제",
-    domain_purchase_crypto_warning_title: "먼저 암호화폐 잔액을 충전하세요",
-    domain_purchase_crypto_warning_body:
-      "암호화폐 주문은 Aster 암호화폐 잔액에서 결제됩니다. 구매 전에 잔액을 충전하세요. 그렇지 않으면 잔액이 전액을 충당할 때까지 도메인이 보류 상태로 유지됩니다.",
-    domain_purchase_crypto_warning_hint:
-      "결제 페이지에서 충전할 수 있으며, 계정 크레딧과 동일한 잔액입니다.",
     domain_purchase_included_heading: "도메인에 포함된 모든 기능",
     domain_purchase_renew: "갱신",
     domain_purchase_manage: "관리",

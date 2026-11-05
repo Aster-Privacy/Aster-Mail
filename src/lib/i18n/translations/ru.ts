@@ -7253,11 +7253,6 @@ export const ru = {
     domain_purchase_total_today: "Итого сегодня",
     domain_purchase_years_line: "Регистрация на {{count}} г.",
     domain_purchase_secure_checkout: "Безопасная оплата через Stripe",
-    domain_purchase_crypto_warning_title: "Сначала пополните криптобаланс",
-    domain_purchase_crypto_warning_body:
-      "Криптозаказы оплачиваются с вашего криптобаланса Aster. Пополните счёт до покупки, иначе домен останется в ожидании, пока баланс не покроет всю сумму.",
-    domain_purchase_crypto_warning_hint:
-      "Пополнить можно в разделе оплаты, это тот же баланс, что используется для кредита аккаунта.",
     domain_purchase_included_heading: "Что входит в стоимость домена",
     domain_purchase_renew: "Продлить",
     domain_purchase_manage: "Управление",

@@ -6932,12 +6932,6 @@ export const de = {
     domain_purchase_total_today: "Heute fällig",
     domain_purchase_years_line: "Registrierung für {{count}} Jahr(e)",
     domain_purchase_secure_checkout: "Sichere Zahlung über Stripe",
-    domain_purchase_crypto_warning_title:
-      "Laden Sie zuerst Ihr Krypto-Guthaben auf",
-    domain_purchase_crypto_warning_body:
-      "Krypto-Bestellungen werden von Ihrem Aster-Krypto-Guthaben bezahlt. Laden Sie vor dem Kauf Guthaben auf, sonst bleibt die Domain zurückgestellt, bis das Guthaben den vollen Betrag deckt.",
-    domain_purchase_crypto_warning_hint:
-      "Sie können in der Abrechnung aufladen, es ist dasselbe Guthaben wie das Kontoguthaben.",
     domain_purchase_included_heading:
       "Alles, was in Ihrer Domain enthalten ist",
     domain_purchase_renew: "Verlängern",

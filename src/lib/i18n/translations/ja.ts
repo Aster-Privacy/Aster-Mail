@@ -6917,12 +6917,6 @@ export const ja = {
     domain_purchase_total_today: "本日の合計",
     domain_purchase_years_line: "{{count}}年間の登録",
     domain_purchase_secure_checkout: "Stripeによる安全な決済",
-    domain_purchase_crypto_warning_title:
-      "先に暗号資産の残高をチャージしてください",
-    domain_purchase_crypto_warning_body:
-      "暗号資産での注文はAsterの暗号資産残高から支払われます。購入前に入金してください。残高が全額に満たない場合、ドメインは保留のままになります。",
-    domain_purchase_crypto_warning_hint:
-      "請求ページからチャージできます。アカウントクレジットと同じ残高です。",
     domain_purchase_included_heading: "ドメインに含まれるすべての機能",
     domain_purchase_renew: "更新",
     domain_purchase_manage: "管理",
