@@ -9374,7 +9374,6 @@ export const ko = {
     enter_credentials: "계정에 접근하려면 자격 증명을 입력하세요",
     signing_in: "로그인 중...",
     keep_signed_in: "로그인 상태 유지",
-    secure_devices_only: "보안 기기에서만",
     back_to_inbox: "받은 편지함으로 돌아가기",
     back_to_link_device: "기기 연결으로 돌아가기",
     enter_password_placeholder: "비밀번호를 입력하세요",

@@ -9982,7 +9982,6 @@ export const pl = {
     enter_credentials: "Wprowadź dane logowania, aby uzyskać dostęp do konta",
     signing_in: "Logowanie...",
     keep_signed_in: "Pozostań zalogowany",
-    secure_devices_only: "tylko na bezpiecznych urządzeniach",
     back_to_inbox: "Powrót do skrzynki",
     back_to_link_device: "Powrót do Połącz urządzenie",
     enter_password_placeholder: "Wprowadź hasło",

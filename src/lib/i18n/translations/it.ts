@@ -9802,7 +9802,6 @@ export const it = {
       "Inserisci le tue credenziali per accedere al tuo account",
     signing_in: "Accesso in corso...",
     keep_signed_in: "Mantieni l'accesso",
-    secure_devices_only: "solo su dispositivi sicuri",
     back_to_inbox: "Torna alla posta in arrivo",
     back_to_link_device: "Torna a Collega dispositivo",
     enter_password_placeholder: "Inserisci la tua password",

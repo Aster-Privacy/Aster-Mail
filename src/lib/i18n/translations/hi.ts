@@ -9622,7 +9622,6 @@ export const hi = {
     link_device_account_suspended:
       "यह खाता निलंबित है, इसलिए अभी नए डिवाइस लिंक नहीं किए जा सकते। इसे सुलझाने के लिए सहायता से संपर्क करें।",
     keep_signed_in: "मुझे साइन इन रखें",
-    secure_devices_only: "सिर्फ़ सुरक्षित डिवाइस पर",
     back_to_inbox: "इनबॉक्स पर वापस जाएं",
     enter_password_placeholder: "अपना पासवर्ड डालें",
     authenticating: "प्रमाणित किया जा रहा है...",

@@ -92,6 +92,7 @@ import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_dr
 import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
 import { use_reactions_seen } from "@/hooks/use_reactions_seen";
 import {
+  carry_local_reply_bodies,
   has_readable_body,
   include_opened_message,
   keep_readable_bodies,
@@ -145,7 +146,8 @@ function reconcile_thread_messages(
   if (pending.length === 0) return server;
 
   const prev_ids = new Set(prev.map((m) => m.id));
-  const new_sent_count = server.filter(
+  const filled = carry_local_reply_bodies(pending, server, prev_ids);
+  const new_sent_count = filled.filter(
     (m) => m.item_type === "sent" && !prev_ids.has(m.id),
   ).length;
   const ordered = [...pending].sort(
@@ -153,9 +155,9 @@ function reconcile_thread_messages(
   );
   const survivors = ordered.slice(Math.min(new_sent_count, ordered.length));
 
-  if (survivors.length === 0) return server;
+  if (survivors.length === 0) return filled;
 
-  return [...server, ...survivors];
+  return [...filled, ...survivors];
 }
 
 function build_preloaded_email(preloaded: PreloadedEmail): DecryptedEmail {

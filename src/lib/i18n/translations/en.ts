@@ -9574,7 +9574,6 @@ export const en: Translations = {
     link_device_account_suspended:
       "This account is suspended, so new devices can't be linked right now. Contact support to sort it out.",
     keep_signed_in: "Keep me signed in",
-    secure_devices_only: "only on secure devices",
     back_to_inbox: "Back to inbox",
     back_to_link_device: "Back to link device",
     enter_password_placeholder: "Enter your password",

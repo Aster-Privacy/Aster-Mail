@@ -72,6 +72,43 @@ export function keep_readable_bodies(
   return changed ? merged : incoming;
 }
 
+export function carry_local_reply_bodies(
+  local_replies: DecryptedThreadMessage[],
+  server: DecryptedThreadMessage[],
+  previous_ids: Set<string>,
+): DecryptedThreadMessage[] {
+  const replies = [...local_replies].sort((a, b) =>
+    compare_timestamps_asc(a.timestamp, b.timestamp),
+  );
+  const arrivals = server
+    .filter((m) => m.item_type === "sent" && !previous_ids.has(m.id))
+    .sort((a, b) => compare_timestamps_asc(a.timestamp, b.timestamp));
+  const fills = new Map<string, DecryptedThreadMessage>();
+
+  arrivals.slice(0, replies.length).forEach((arrival, index) => {
+    const reply = replies[index];
+
+    if (!has_readable_body(arrival) && has_readable_body(reply)) {
+      fills.set(arrival.id, reply);
+    }
+  });
+
+  if (fills.size === 0) return server;
+
+  return server.map((message) => {
+    const reply = fills.get(message.id);
+
+    if (!reply) return message;
+
+    return {
+      ...message,
+      body: reply.body,
+      html_content: reply.html_content,
+      text_part: reply.text_part,
+    };
+  });
+}
+
 export function include_opened_message(
   messages: DecryptedThreadMessage[],
   opened: DecryptedThreadMessage,

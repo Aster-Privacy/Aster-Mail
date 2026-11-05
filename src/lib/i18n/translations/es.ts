@@ -9759,7 +9759,6 @@ export const es = {
     enter_credentials: "Ingresa tus credenciales para acceder a tu cuenta",
     signing_in: "Iniciando sesión...",
     keep_signed_in: "Mantener sesión iniciada",
-    secure_devices_only: "solo en dispositivos seguros",
     back_to_inbox: "Volver a la bandeja de entrada",
     back_to_link_device: "Volver a vincular dispositivo",
     enter_password_placeholder: "Ingresa tu contraseña",

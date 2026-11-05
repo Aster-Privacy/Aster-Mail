@@ -9545,7 +9545,6 @@ export const ja = {
       "アカウントにアクセスするための認証情報を入力してください",
     signing_in: "サインイン中...",
     keep_signed_in: "サインイン状態を維持",
-    secure_devices_only: "安全なデバイスでのみ",
     back_to_inbox: "受信トレイに戻る",
     back_to_link_device: "デバイスを連携に戻る",
     enter_password_placeholder: "パスワードを入力してください",

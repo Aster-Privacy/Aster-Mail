@@ -9860,7 +9860,6 @@ export const de = {
     sign_in_to_aster: "Bei Aster anmelden",
     signing_in: "Anmelden...",
     keep_signed_in: "Angemeldet bleiben",
-    secure_devices_only: "nur auf sicheren Geräten",
     back_to_inbox: "Zurück zum Posteingang",
     back_to_link_device: "Zurück zu „Gerät verknüpfen“",
     enter_password_placeholder: "Geben Sie Ihr Passwort ein",

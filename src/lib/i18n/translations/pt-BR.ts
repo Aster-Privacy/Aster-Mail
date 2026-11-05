@@ -9791,7 +9791,6 @@ export const pt_br = {
     enter_credentials: "Digite suas credenciais para acessar sua conta",
     signing_in: "Entrando...",
     keep_signed_in: "Manter conectado",
-    secure_devices_only: "apenas em dispositivos seguros",
     back_to_inbox: "Voltar para a caixa de entrada",
     back_to_link_device: "Voltar para Associar dispositivo",
     enter_password_placeholder: "Digite sua senha",

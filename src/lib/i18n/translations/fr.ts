@@ -9869,7 +9869,6 @@ export const fr = {
     enter_credentials: "Saisissez vos identifiants pour accéder à votre compte",
     signing_in: "Connexion...",
     keep_signed_in: "Rester connecté",
-    secure_devices_only: "uniquement sur des appareils sécurisés",
     back_to_inbox: "Retour à la boîte de réception",
     back_to_link_device: "Retour à Associer un appareil",
     enter_password_placeholder: "Saisir votre mot de passe",
