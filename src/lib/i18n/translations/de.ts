@@ -3181,6 +3181,8 @@ export const de = {
     alias_export_source_count_one: "{{count}} Eintrag",
     alias_export_choose_columns: "Spalten wählen ({{count}} ausgewählt)",
     alias_export_hide_columns: "Spalten ausblenden",
+    alias_export_include_label: "Einbeziehen",
+    alias_export_columns_button: "Spalten",
     alias_export_format_label: "Dateiformat",
     alias_export_column_address: "Adresse",
     alias_export_column_display_name: "Anzeigename",

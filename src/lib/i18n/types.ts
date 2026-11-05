@@ -7470,6 +7470,8 @@ export interface SettingsTranslations {
   alias_export_source_count_one?: string;
   alias_export_choose_columns: string;
   alias_export_hide_columns: string;
+  alias_export_include_label: string;
+  alias_export_columns_button: string;
   alias_export_format_label: string;
   alias_export_column_address: string;
   alias_export_column_display_name: string;

@@ -3186,6 +3186,8 @@ export const pt_br = {
     alias_export_source_count_one: "{{count}} entrada",
     alias_export_choose_columns: "Escolher colunas ({{count}} selecionadas)",
     alias_export_hide_columns: "Ocultar colunas",
+    alias_export_include_label: "Incluir",
+    alias_export_columns_button: "Colunas",
     alias_export_format_label: "Formato do arquivo",
     alias_export_column_address: "Endereço",
     alias_export_column_display_name: "Nome de exibição",

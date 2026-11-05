@@ -3240,6 +3240,8 @@ export const ar = {
     alias_export_source_count_one: "{{count}} إدخال",
     alias_export_choose_columns: "اختيار الأعمدة ({{count}} محددة)",
     alias_export_hide_columns: "إخفاء الأعمدة",
+    alias_export_include_label: "تضمين",
+    alias_export_columns_button: "الأعمدة",
     alias_export_format_label: "صيغة الملف",
     alias_export_column_address: "العنوان",
     alias_export_column_display_name: "الاسم المعروض",

@@ -8085,6 +8085,8 @@ export const en: Translations = {
     alias_export_source_count_one: "{{count}} entry",
     alias_export_choose_columns: "Choose columns ({{count}} selected)",
     alias_export_hide_columns: "Hide columns",
+    alias_export_include_label: "Include",
+    alias_export_columns_button: "Columns",
     alias_export_format_label: "File format",
     alias_export_column_address: "Address",
     alias_export_column_display_name: "Display name",

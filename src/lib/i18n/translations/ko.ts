@@ -3074,6 +3074,8 @@ export const ko = {
     alias_export_source_count: "{{count}}개 항목",
     alias_export_choose_columns: "열 선택({{count}}개 선택됨)",
     alias_export_hide_columns: "열 숨기기",
+    alias_export_include_label: "포함할 항목",
+    alias_export_columns_button: "열",
     alias_export_format_label: "파일 형식",
     alias_export_column_address: "주소",
     alias_export_column_display_name: "표시 이름",

@@ -3345,6 +3345,8 @@ export const pl = {
     alias_export_source_count_few: "{{count}} wpisy",
     alias_export_choose_columns: "Wybierz kolumny (zaznaczono {{count}})",
     alias_export_hide_columns: "Ukryj kolumny",
+    alias_export_include_label: "Uwzględnij",
+    alias_export_columns_button: "Kolumny",
     alias_export_format_label: "Format pliku",
     alias_export_column_address: "Adres",
     alias_export_column_display_name: "Nazwa wyświetlana",

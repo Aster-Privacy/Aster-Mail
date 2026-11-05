@@ -3307,6 +3307,8 @@ export const ru = {
     alias_export_source_count_one: "{{count}} запись",
     alias_export_choose_columns: "Выбрать столбцы (выбрано: {{count}})",
     alias_export_hide_columns: "Скрыть столбцы",
+    alias_export_include_label: "Включить",
+    alias_export_columns_button: "Столбцы",
     alias_export_format_label: "Формат файла",
     alias_export_column_address: "Адрес",
     alias_export_column_display_name: "Отображаемое имя",

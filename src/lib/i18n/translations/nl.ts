@@ -3118,6 +3118,8 @@ export const nl = {
     alias_export_source_count_one: "{{count}} item",
     alias_export_choose_columns: "Kolommen kiezen ({{count}} geselecteerd)",
     alias_export_hide_columns: "Kolommen verbergen",
+    alias_export_include_label: "Opnemen",
+    alias_export_columns_button: "Kolommen",
     alias_export_format_label: "Bestandsindeling",
     alias_export_column_address: "Adres",
     alias_export_column_display_name: "Weergavenaam",

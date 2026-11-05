@@ -2886,6 +2886,8 @@ export const zh_CN = {
     alias_export_source_count: "{{count}} 条",
     alias_export_choose_columns: "选择列（已选 {{count}} 项）",
     alias_export_hide_columns: "隐藏列",
+    alias_export_include_label: "包含",
+    alias_export_columns_button: "列",
     alias_export_format_label: "文件格式",
     alias_export_column_address: "地址",
     alias_export_column_display_name: "显示名称",

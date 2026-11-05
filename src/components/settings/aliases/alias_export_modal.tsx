@@ -18,17 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ReactNode } from "react";
 import type { DecryptedDomainAddress } from "@/services/api/domains";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AtSymbolIcon,
+  ChevronDownIcon,
+  DocumentTextIcon,
   ExclamationTriangleIcon,
   FolderIcon,
   GlobeAltIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Checkbox } from "@aster/ui";
+import { Button, Checkbox, Island, IslandRow, Radio } from "@aster/ui";
 
 import {
   ALIAS_COLUMNS,
@@ -104,8 +107,54 @@ interface AliasExportModalProps {
   domain_addresses: (DecryptedDomainAddress & { domain_name: string })[];
 }
 
+const FORMAT_OPTIONS: ExportFormat[] = ["csv", "json"];
+
+const ISLAND_DIVIDER = "1px solid var(--aster-island-divider)";
+
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function ExportSectionLabel({
+  children,
+  trailing,
+}: {
+  children: ReactNode;
+  trailing?: ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-1">
+      <span className="text-[12.5px] font-medium text-txt-secondary">
+        {children}
+      </span>
+      {trailing && (
+        <span className="text-[12px] text-txt-muted tabular-nums">
+          {trailing}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ExportNotice({
+  tone,
+  children,
+}: {
+  tone: "danger" | "warning";
+  children: ReactNode;
+}) {
+  return (
+    <p
+      className="px-1 text-[12.5px] leading-relaxed"
+      role={tone === "danger" ? "alert" : "status"}
+      style={{
+        color:
+          tone === "danger" ? "var(--color-danger)" : "var(--color-warning)",
+      }}
+    >
+      {children}
+    </p>
+  );
 }
 
 export function AliasExportModal({
@@ -409,6 +458,226 @@ export function AliasExportModal({
   const column_label = (column: string): string =>
     column_labels[column] ?? column;
 
+  const date_stamp = export_date_stamp(new Date());
+
+  const format_label: Record<ExportFormat, string> = {
+    csv: t("settings.alias_export_format_csv"),
+    json: t("settings.alias_export_format_json"),
+  };
+
+  const render_select = () => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <ExportSectionLabel>
+          {t("settings.alias_export_include_label")}
+        </ExportSectionLabel>
+        <Island className="overflow-hidden">
+          {SOURCE_ORDER.map((source, index) => {
+            const Icon = SOURCE_ICONS[source];
+            const count = source_counts[source];
+            const is_pending =
+              remote_loading &&
+              (source === "directories" || source === "ghost");
+            const disabled = remote_loaded && count === 0;
+            const checked = selected_sources.has(source) && !disabled;
+            const is_expanded = checked && expanded === source;
+            const columns_panel_id = `alias-export-columns-${source}`;
+
+            return (
+              <div
+                key={source}
+                style={{ borderTop: index > 0 ? ISLAND_DIVIDER : "none" }}
+              >
+                <IslandRow
+                  description={
+                    is_pending
+                      ? t("common.loading")
+                      : t("settings.alias_export_source_count", { count })
+                  }
+                  disabled={disabled}
+                  icon={<Icon />}
+                  label={source_title[source]}
+                  toggle={{
+                    checked,
+                    disabled: disabled || is_pending,
+                    on_change: (value) => toggle_source(source, value),
+                  }}
+                  trailing={
+                    checked ? (
+                      <button
+                        aria-controls={columns_panel_id}
+                        aria-expanded={is_expanded}
+                        className="flex items-center gap-1 rounded-full px-2.5 py-1 text-[12.5px] font-medium text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary"
+                        type="button"
+                        onClick={() =>
+                          set_expanded(is_expanded ? null : source)
+                        }
+                      >
+                        {t("settings.alias_export_columns_button")}
+                        <ChevronDownIcon
+                          aria-hidden="true"
+                          className={`h-3.5 w-3.5 transition-transform ${
+                            is_expanded ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                    ) : undefined
+                  }
+                />
+
+                {is_expanded && (
+                  <div
+                    className="px-4 pb-4 pt-3"
+                    id={columns_panel_id}
+                    style={{ borderTop: ISLAND_DIVIDER }}
+                  >
+                    <p className="mb-3 text-[12px] text-txt-muted tabular-nums">
+                      {t("common.import_selected_count", {
+                        selected: source_columns[source].length,
+                        total: all_columns[source].length,
+                      })}
+                    </p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+                      {all_columns[source].map((column) => {
+                        const column_checked =
+                          source_columns[source].includes(column);
+                        const is_only =
+                          column_checked && source_columns[source].length === 1;
+
+                        return (
+                          <label
+                            key={column}
+                            className={`flex min-w-0 items-center gap-2.5 text-[13px] text-txt-primary ${
+                              is_only ? "cursor-not-allowed" : "cursor-pointer"
+                            }`}
+                          >
+                            <Checkbox
+                              checked={column_checked}
+                              disabled={is_only}
+                              onCheckedChange={(value) =>
+                                toggle_column(source, column, value === true)
+                              }
+                            />
+                            <span className="min-w-0 truncate">
+                              {column_label(column)}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </Island>
+      </div>
+
+      <div className="space-y-2">
+        <ExportSectionLabel>
+          {t("settings.alias_export_format_label")}
+        </ExportSectionLabel>
+        <Island
+          divided
+          aria-label={t("settings.alias_export_format_label")}
+          className="overflow-hidden"
+          role="radiogroup"
+        >
+          {FORMAT_OPTIONS.map((option) => (
+            <IslandRow
+              key={option}
+              aria-checked={format === option}
+              label={format_label[option]}
+              on_press={() => set_format(option)}
+              role="radio"
+              trailing={
+                <span aria-hidden="true" className="pointer-events-none flex">
+                  <Radio readOnly checked={format === option} tabIndex={-1} />
+                </span>
+              }
+            />
+          ))}
+        </Island>
+      </div>
+
+      {error && <ExportNotice tone="danger">{error}</ExportNotice>}
+    </div>
+  );
+
+  const render_confirm = () => (
+    <div className="space-y-4">
+      <Island padding="md" tone="warning">
+        <div className="flex items-start gap-3">
+          <ExclamationTriangleIcon
+            aria-hidden="true"
+            className="mt-0.5 h-5 w-5 flex-shrink-0"
+            style={{ color: "var(--color-warning)" }}
+          />
+          <div className="min-w-0">
+            <p className="text-[13.5px] font-medium text-txt-primary">
+              {t("settings.alias_export_warning_title")}
+            </p>
+            <p className="mt-1 text-[13px] leading-relaxed text-txt-secondary">
+              {t("settings.alias_export_warning_body")}
+            </p>
+          </div>
+        </div>
+      </Island>
+
+      <div className="space-y-2">
+        <ExportSectionLabel>
+          {t("settings.alias_export_summary", {
+            count: total_rows,
+            files: t("common.file_count", { count: active_sources.length }),
+          })}
+        </ExportSectionLabel>
+        <Island divided className="overflow-hidden">
+          {active_sources.map((source) => (
+            <IslandRow
+              key={source}
+              description={t("settings.alias_export_source_count", {
+                count: source_counts[source],
+              })}
+              icon={<DocumentTextIcon />}
+              label={
+                <bdi className="break-all">
+                  {export_file_name(source, format, date_stamp)}
+                </bdi>
+              }
+            />
+          ))}
+        </Island>
+      </div>
+
+      {alias_list_incomplete && (
+        <ExportNotice tone="danger">
+          {t("settings.alias_export_incomplete", {
+            loaded: aliases.length,
+            total: server_alias_count ?? 0,
+          })}
+        </ExportNotice>
+      )}
+
+      {undecryptable_aliases > 0 && (
+        <ExportNotice tone="warning">
+          {t("settings.alias_export_undecryptable", {
+            count: undecryptable_aliases,
+          })}
+        </ExportNotice>
+      )}
+
+      {ghost_undecryptable > 0 && selected_sources.has("ghost") && (
+        <ExportNotice tone="warning">
+          {t("settings.alias_export_undecryptable_ghost", {
+            count: ghost_undecryptable,
+          })}
+        </ExportNotice>
+      )}
+
+      {error && <ExportNotice tone="danger">{error}</ExportNotice>}
+    </div>
+  );
+
   return (
     <Modal is_open={is_open} on_close={on_close} size="md">
       <ModalHeader>
@@ -421,206 +690,13 @@ export function AliasExportModal({
       </ModalHeader>
 
       <ModalBody>
-        {step === "select" ? (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              {SOURCE_ORDER.map((source) => {
-                const Icon = SOURCE_ICONS[source];
-                const count = source_counts[source];
-                const disabled = remote_loaded && count === 0;
-                const checked = selected_sources.has(source) && !disabled;
-                const is_expanded = expanded === source;
-
-                return (
-                  <div
-                    key={source}
-                    className={`rounded-xl border transition-colors ${
-                      checked ? "border-brand" : "border-edge-secondary"
-                    } ${disabled ? "opacity-50" : ""}`}
-                  >
-                    <div className="flex items-start gap-3 px-4 py-3">
-                      <Icon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-txt-primary">
-                          {source_title[source]}
-                        </p>
-                        <p className="text-sm mt-0.5 text-txt-muted">
-                          {remote_loading &&
-                          (source === "directories" || source === "ghost")
-                            ? t("common.loading")
-                            : t("settings.alias_export_source_count", {
-                                count,
-                              })}
-                        </p>
-                        {checked && (
-                          <button
-                            className="mt-1.5 text-xs font-medium text-brand hover:underline"
-                            type="button"
-                            onClick={() =>
-                              set_expanded(is_expanded ? null : source)
-                            }
-                          >
-                            {is_expanded
-                              ? t("settings.alias_export_hide_columns")
-                              : t("settings.alias_export_choose_columns", {
-                                  count: source_columns[source].length,
-                                })}
-                          </button>
-                        )}
-                      </div>
-                      <span className="flex-shrink-0">
-                        <Checkbox
-                          checked={checked}
-                          disabled={disabled}
-                          onCheckedChange={(value) =>
-                            toggle_source(source, value === true)
-                          }
-                        />
-                      </span>
-                    </div>
-
-                    {checked && is_expanded && (
-                      <div className="border-t border-edge-secondary px-4 py-3">
-                        <div className="grid grid-cols-2 gap-2">
-                          {all_columns[source].map((column) => {
-                            const column_checked =
-                              source_columns[source].includes(column);
-                            const is_only =
-                              column_checked &&
-                              source_columns[source].length === 1;
-
-                            return (
-                              <label
-                                key={column}
-                                className="flex items-center gap-2 text-sm text-txt-primary cursor-pointer"
-                              >
-                                <Checkbox
-                                  checked={column_checked}
-                                  disabled={is_only}
-                                  onCheckedChange={(value) =>
-                                    toggle_column(
-                                      source,
-                                      column,
-                                      value === true,
-                                    )
-                                  }
-                                />
-                                {column_label(column)}
-                              </label>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-txt-primary mb-2">
-                {t("settings.alias_export_format_label")}
-              </p>
-              <div className="flex flex-col gap-2">
-                {(["csv", "json"] as ExportFormat[]).map((option) => (
-                  <label
-                    key={option}
-                    className="flex items-center gap-3 rounded-[var(--aster-radius-control)] border border-edge-secondary px-3 py-2.5 cursor-pointer hover:bg-surf-secondary"
-                    htmlFor={`alias-export-format-${option}`}
-                  >
-                    <input
-                      checked={format === option}
-                      className="h-4 w-4"
-                      id={`alias-export-format-${option}`}
-                      name="alias-export-format"
-                      type="radio"
-                      onChange={() => set_format(option)}
-                    />
-                    <span className="text-sm text-txt-primary">
-                      {option === "csv"
-                        ? t("settings.alias_export_format_csv")
-                        : t("settings.alias_export_format_json")}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {error && <p className="text-sm text-red-500">{error}</p>}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="rounded-xl bg-amber-500 p-3.5">
-              <div className="flex items-start gap-2.5">
-                <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-950 mt-[3px]" />
-                <div>
-                  <p className="text-sm font-semibold text-amber-950">
-                    {t("settings.alias_export_warning_title")}
-                  </p>
-                  <p className="text-sm mt-1 leading-relaxed font-medium text-amber-950/90">
-                    {t("settings.alias_export_warning_body")}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-sm text-txt-secondary">
-              {t("settings.alias_export_summary", {
-                count: total_rows,
-                files: t("common.file_count", { count: active_sources.length }),
-              })}
-            </p>
-
-            <ul className="space-y-1">
-              {active_sources.map((source) => (
-                <li key={source} className="text-sm text-txt-muted">
-                  {export_file_name(
-                    source,
-                    format,
-                    export_date_stamp(new Date()),
-                  )}
-                  {" - "}
-                  {t("settings.alias_export_source_count", {
-                    count: source_counts[source],
-                  })}
-                </li>
-              ))}
-            </ul>
-
-            {alias_list_incomplete && (
-              <p className="text-sm text-red-500">
-                {t("settings.alias_export_incomplete", {
-                  loaded: aliases.length,
-                  total: server_alias_count ?? 0,
-                })}
-              </p>
-            )}
-
-            {undecryptable_aliases > 0 && (
-              <p className="text-sm text-amber-500">
-                {t("settings.alias_export_undecryptable", {
-                  count: undecryptable_aliases,
-                })}
-              </p>
-            )}
-
-            {ghost_undecryptable > 0 && selected_sources.has("ghost") && (
-              <p className="text-sm text-amber-500">
-                {t("settings.alias_export_undecryptable_ghost", {
-                  count: ghost_undecryptable,
-                })}
-              </p>
-            )}
-
-            {error && <p className="text-sm text-red-500">{error}</p>}
-          </div>
-        )}
+        {step === "select" ? render_select() : render_confirm()}
       </ModalBody>
 
       <ModalFooter>
         {step === "select" ? (
           <>
-            <Button variant="outline" onClick={on_close}>
+            <Button variant="ghost" onClick={on_close}>
               {t("common.cancel")}
             </Button>
             <Button
@@ -633,13 +709,16 @@ export function AliasExportModal({
           </>
         ) : (
           <>
-            <Button variant="outline" onClick={() => set_step("select")}>
+            <Button
+              disabled={busy}
+              variant="ghost"
+              onClick={() => set_step("select")}
+            >
               {t("common.back")}
             </Button>
             <Button
-              disabled={
-                busy || alias_list_incomplete || active_sources.length === 0
-              }
+              disabled={alias_list_incomplete || active_sources.length === 0}
+              is_loading={busy}
               variant="depth"
               onClick={handle_download}
             >
