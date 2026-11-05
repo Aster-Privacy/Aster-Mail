@@ -40,22 +40,29 @@ const MENU_MAX_HEIGHT =
 const ContextMenuOpenContext = createContext<boolean | null>(null);
 
 export function ContextMenu({
+  open: open_prop,
   onOpenChange,
   ...props
 }: React.ComponentProps<typeof RadixContextMenu>): React.ReactElement {
-  const [open, set_open] = useState(false);
+  const [uncontrolled_open, set_uncontrolled_open] = useState(false);
+  const is_controlled = open_prop !== undefined;
+  const open = is_controlled ? open_prop : uncontrolled_open;
 
   const handle_open_change = useCallback(
     (next: boolean) => {
-      set_open(next);
+      if (!is_controlled) set_uncontrolled_open(next);
       onOpenChange?.(next);
     },
-    [onOpenChange],
+    [is_controlled, onOpenChange],
   );
 
   return (
     <ContextMenuOpenContext.Provider value={open}>
-      <RadixContextMenu {...props} onOpenChange={handle_open_change} />
+      <RadixContextMenu
+        {...props}
+        open={open}
+        onOpenChange={handle_open_change}
+      />
     </ContextMenuOpenContext.Provider>
   );
 }
