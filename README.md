@@ -61,6 +61,17 @@ Installers and binaries are written to `src-tauri/target/release/bundle/`.
 
 The Android project in this repository is a development wrapper. The app we publish to Google Play is built from [Aster-Android](https://github.com/Aster-Privacy/Aster-Android).
 
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+The Windows app and installers on the [Releases](https://github.com/Aster-Privacy/Aster-Mail/releases) page are built by GitHub Actions from the source code in this repository and signed as part of that build. Files built anywhere else are never signed.
+
+- Committers and reviewers: members of the [Aster Privacy mail team](https://github.com/orgs/Aster-Privacy/teams/mail). Every pull request from someone outside the team is reviewed by a team member before it merges.
+- Approvers: the [owners of the Aster Privacy organization](https://github.com/orgs/Aster-Privacy/people?query=role%3Aowner). An approver reviews and approves each signing request.
+
+Aster Mail connects to Aster servers to send and receive your mail. To learn what data Aster processes and how it is protected, read the [Aster privacy policy](https://astermail.org/privacy).
+
 ## Community
 
 Join our [Discord](https://discord.gg/R4XqRUfgWZ) to share feedback, ask questions, and contribute to the privacy community. You can also find us on [X](https://x.com/AsterPrivacy) and [Reddit](https://www.reddit.com/r/AsterPrivacy).
