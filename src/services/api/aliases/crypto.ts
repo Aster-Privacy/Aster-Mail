@@ -242,6 +242,7 @@ export async function decrypt_alias(
       is_retained_primary: alias.is_retained_primary ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
+      last_received_at: alias.last_received_at ?? null,
       created_at: alias.created_at,
       updated_at: alias.updated_at,
     };
@@ -314,6 +315,7 @@ export async function decrypt_alias(
       is_retained_primary: alias.is_retained_primary ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
+      last_received_at: alias.last_received_at ?? null,
       created_at: alias.created_at,
       updated_at: alias.updated_at,
     };
@@ -342,6 +344,7 @@ export async function decrypt_alias(
       is_retained_primary: alias.is_retained_primary ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
+      last_received_at: alias.last_received_at ?? null,
       created_at: alias.created_at,
       updated_at: alias.updated_at,
     };

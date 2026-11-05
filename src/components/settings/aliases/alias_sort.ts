@@ -18,7 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export const ALIAS_SORT_MODES = ["newest", "oldest", "az", "za"] as const;
+export const ALIAS_SORT_MODES = [
+  "newest",
+  "oldest",
+  "recent",
+  "az",
+  "za",
+] as const;
 
 export type AliasSortMode = (typeof ALIAS_SORT_MODES)[number];
 
@@ -27,6 +33,7 @@ export const ALIAS_SORT_STORAGE_KEY = "aster_alias_list_sort";
 export interface SortableAliasEntry {
   sort_address: string;
   created_at: string;
+  last_received_at?: string | null;
 }
 
 export function is_alias_sort_mode(value: unknown): value is AliasSortMode {
@@ -60,6 +67,13 @@ function created_time(value: string): number {
   return Number.isNaN(time) ? 0 : time;
 }
 
+function received_time(value: string | null | undefined): number {
+  if (!value) return -1;
+  const time = Date.parse(value);
+
+  return Number.isNaN(time) ? -1 : time;
+}
+
 export function sort_alias_entries<T extends SortableAliasEntry>(
   entries: readonly T[],
   mode: AliasSortMode,
@@ -73,11 +87,17 @@ export function sort_alias_entries<T extends SortableAliasEntry>(
     collator.compare(a.sort_address, b.sort_address);
   const by_created = (a: T, b: T) =>
     created_time(a.created_at) - created_time(b.created_at);
+  const by_received = (a: T, b: T) =>
+    received_time(a.last_received_at) - received_time(b.last_received_at);
 
   return [...entries].sort((a, b) => {
     switch (mode) {
       case "oldest":
         return by_created(a, b) || by_address(a, b);
+      case "recent":
+        return (
+          by_received(b, a) || by_created(b, a) || by_address(a, b)
+        );
       case "az":
         return by_address(a, b) || by_created(b, a);
       case "za":

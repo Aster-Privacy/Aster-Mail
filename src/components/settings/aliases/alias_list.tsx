@@ -364,6 +364,7 @@ export function AliasList({
             alias,
             sort_address: alias.full_address,
             created_at: alias.created_at,
+            last_received_at: alias.last_received_at ?? null,
           })),
           ...filtered_domain_addresses.map((address) => ({
             kind: "domain_address" as const,
@@ -721,6 +722,9 @@ export function AliasList({
             </SelectItem>
             <SelectItem value="oldest">
               {t("settings.alias_sort_oldest")}
+            </SelectItem>
+            <SelectItem value="recent">
+              {t("settings.alias_sort_recent")}
             </SelectItem>
             <SelectItem value="az">{t("settings.alias_sort_az")}</SelectItem>
             <SelectItem value="za">{t("settings.alias_sort_za")}</SelectItem>

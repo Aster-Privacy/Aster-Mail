@@ -38,6 +38,7 @@ import {
 import { Badge, Button, Checkbox, Island, Switch } from "@aster/ui";
 
 import { get_grace_days_remaining } from "./grace_period";
+import { format_created_at, format_relative_time } from "./alias_stats_format";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { compress_square_avatar } from "@/utils/square_avatar_image";
@@ -210,7 +211,7 @@ export function AliasItem({
   is_selected,
   on_select,
 }: AliasItemProps) {
-  const { t } = use_i18n();
+  const { t, language } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
   const [uploading, set_uploading] = useState(false);
   const [local_picture, set_local_picture] = useState<string | undefined>(
@@ -220,6 +221,13 @@ export function AliasItem({
     () => get_gradient_background(get_alias_color(alias.full_address)),
     [alias.full_address],
   );
+
+  const last_received_relative = alias.last_received_at
+    ? format_relative_time(t, alias.last_received_at)
+    : "";
+  const last_received_label = last_received_relative
+    ? t("settings.alias_last_received", { time: last_received_relative })
+    : t("settings.alias_never_received");
 
   const in_grace_period = !!alias.downgrade_grace_expires_at;
   const grace_days = in_grace_period
@@ -387,6 +395,17 @@ export function AliasItem({
               on_open={on_open_editor}
               websites={alias.websites}
             />
+            <p
+              className="mt-0.5 truncate text-xs text-txt-muted"
+              data-testid="alias_last_received"
+              title={
+                alias.last_received_at
+                  ? format_created_at(alias.last_received_at, language)
+                  : undefined
+              }
+            >
+              {last_received_label}
+            </p>
             {in_grace_period && (
               <p className="text-xs mt-0.5 text-[var(--color-warning)]">
                 {t("settings.alias_grace_upgrade_hint" as TranslationKey)}

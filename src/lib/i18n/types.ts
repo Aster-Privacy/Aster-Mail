@@ -7411,6 +7411,9 @@ export interface SettingsTranslations {
   alias_sort_oldest: string;
   alias_sort_az: string;
   alias_sort_za: string;
+  alias_sort_recent: string;
+  alias_last_received: string;
+  alias_never_received: string;
   alias_bulk_edit: string;
   alias_bulk_selected: string;
   alias_bulk_enable: string;

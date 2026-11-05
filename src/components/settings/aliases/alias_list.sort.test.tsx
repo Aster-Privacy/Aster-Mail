@@ -96,13 +96,13 @@ const noop = () => {};
 let root: Root;
 let container: HTMLDivElement;
 
-function render() {
+function render(aliases: DecryptedEmailAlias[] = ALIASES) {
   act(() => {
     root.render(
       <I18nProvider default_language="en">
         <AliasList
           alias_deleting_id={null}
-          aliases={ALIASES}
+          aliases={aliases}
           aliases_loading={false}
           domain_addr_deleting_id={null}
           domain_addresses={DOMAIN_ADDRESSES}
@@ -157,6 +157,28 @@ describe("alias list order", () => {
       "bank@astermail.org",
       "hello@diogo.example",
       "news@astermail.org",
+      "shop@astermail.org",
+    ]);
+  });
+
+  it("puts the alias that received mail most recently first", () => {
+    localStorage.setItem("aster_alias_list_sort", "recent");
+    render([
+      { ...alias("shop", "2026-03-01T10:00:00Z") },
+      {
+        ...alias("bank", "2026-01-15T10:00:00Z"),
+        last_received_at: "2026-11-04T08:00:00Z",
+      },
+      {
+        ...alias("news", "2026-05-20T10:00:00Z"),
+        last_received_at: "2026-10-20T08:00:00Z",
+      },
+    ]);
+
+    expect(rows()).toEqual([
+      "bank@astermail.org",
+      "news@astermail.org",
+      "hello@diogo.example",
       "shop@astermail.org",
     ]);
   });

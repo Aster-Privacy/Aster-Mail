@@ -72,6 +72,15 @@ import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_website
 import { ignore_error } from "@/lib/ignore_error";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import {
+  ALIAS_SORT_MODES,
+  is_alias_sort_mode,
+  read_alias_sort_mode,
+  sort_alias_entries,
+  store_alias_sort_mode,
+  type AliasSortMode,
+} from "@/components/settings/aliases/alias_sort";
+import { format_relative_time } from "@/components/settings/aliases/alias_stats_format";
 
 const ALIASES_PER_PAGE = 50;
 
@@ -240,23 +249,37 @@ export function AliasesSection({
   }, []);
   const [current_page, set_current_page] = useState(0);
   const [search_query, set_search_query] = useState("");
+  const [sort_mode, set_sort_mode] = useState<AliasSortMode>(() =>
+    read_alias_sort_mode(),
+  );
   const scroll_ref = useRef<HTMLDivElement>(null);
 
   const normalized_query = search_query.trim().toLowerCase();
 
   const filtered_aliases = useMemo(() => {
-    if (!normalized_query) return hook.aliases;
+    const matching = normalized_query
+      ? hook.aliases.filter(
+          (a) =>
+            a.full_address.toLowerCase().includes(normalized_query) ||
+            (a.display_name ?? "").toLowerCase().includes(normalized_query) ||
+            (a.note ?? "").toLowerCase().includes(normalized_query) ||
+            (a.websites ?? []).some((url) =>
+              url.toLowerCase().includes(normalized_query),
+            ),
+        )
+      : hook.aliases;
 
-    return hook.aliases.filter(
-      (a) =>
-        a.full_address.toLowerCase().includes(normalized_query) ||
-        (a.display_name ?? "").toLowerCase().includes(normalized_query) ||
-        (a.note ?? "").toLowerCase().includes(normalized_query) ||
-        (a.websites ?? []).some((url) =>
-          url.toLowerCase().includes(normalized_query),
-        ),
-    );
-  }, [hook.aliases, normalized_query]);
+    return sort_alias_entries(
+      matching.map((alias) => ({
+        alias,
+        sort_address: alias.full_address,
+        created_at: alias.created_at,
+        last_received_at: alias.last_received_at ?? null,
+      })),
+      sort_mode,
+      app_locale(),
+    ).map((entry) => entry.alias);
+  }, [hook.aliases, normalized_query, sort_mode]);
 
   const filtered_domain_addresses = useMemo(() => {
     if (!normalized_query) return hook.domain_addresses;
@@ -275,7 +298,7 @@ export function AliasesSection({
 
   useEffect(() => {
     set_current_page(0);
-  }, [normalized_query]);
+  }, [normalized_query, sort_mode]);
 
   useEffect(() => {
     if (current_page > total_pages - 1) {
@@ -465,6 +488,33 @@ export function AliasesSection({
                   onChange={(e) => set_search_query(e.target.value)}
                 />
               </div>
+              <div className="mt-2 flex items-center justify-end gap-2">
+                <label
+                  className="text-[12px] text-[var(--mobile-text-muted)]"
+                  htmlFor="mobile_alias_sort"
+                >
+                  {t("settings.alias_sort_label")}
+                </label>
+                <select
+                  className="rounded-lg bg-[var(--mobile-bg-card)] px-2 py-1 text-[13px] text-[var(--mobile-text-primary)] outline-none"
+                  data-testid="mobile_alias_sort"
+                  id="mobile_alias_sort"
+                  value={sort_mode}
+                  onChange={(e) => {
+                    const next = e.target.value;
+
+                    if (!is_alias_sort_mode(next)) return;
+                    set_sort_mode(next);
+                    store_alias_sort_mode(next);
+                  }}
+                >
+                  {ALIAS_SORT_MODES.map((mode) => (
+                    <option key={mode} value={mode}>
+                      {t(`settings.alias_sort_${mode}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
 
@@ -548,6 +598,17 @@ export function AliasesSection({
                   variant="mobile"
                   websites={alias.websites}
                 />
+                <p
+                  className="mt-1 text-[12px] text-[var(--mobile-text-muted)]"
+                  data-testid="alias_last_received"
+                >
+                  {alias.last_received_at &&
+                  format_relative_time(t, alias.last_received_at)
+                    ? t("settings.alias_last_received", {
+                        time: format_relative_time(t, alias.last_received_at),
+                      })
+                    : t("settings.alias_never_received")}
+                </p>
                 {alias.downgrade_grace_expires_at && (
                   <p className="mt-2 text-[12px] text-amber-600 dark:text-amber-400">
                     {t("settings.alias_grace_days", {
