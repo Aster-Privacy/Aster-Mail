@@ -5676,7 +5676,7 @@ export const ja = {
     forwarding_pending_verification: "確認待ち",
     resend_verification_email: "確認メールを再送信",
     forwarding_awaiting_verification:
-      "{{ addresses }} の確認を待っています。まだそこへは転送されません。",
+      "転送を開始するには、{{ addresses }} に送信されたコードを入力してください。",
     forwarding_verification_sent:
       "確認メールを {{ address }} に送信しました。確認後に転送が始まります。",
     forwarding_verification_resent:
@@ -5685,6 +5685,22 @@ export const ja = {
       "宛先を確認しました。転送が有効になりました。",
     forwarding_confirmed_failed:
       "この確認リンクは無効か期限切れです。ルールから新しいリンクを送信してください。",
+    forwarding_enter_code: "{{ address }} の確認コード",
+    forwarding_code_placeholder: "8 桁のコード",
+    forwarding_confirm_code: "確認",
+    forwarding_resend_code: "コードを再送信",
+    forwarding_code_confirmed:
+      "{{ address }} を確認しました。このアドレスへの転送が有効になりました。",
+    forwarding_code_invalid:
+      "コードが正しくありません。確認メールを確認して、もう一度お試しください。",
+    forwarding_code_expired:
+      "このコードは有効期限が切れています。確認メールを再送信して新しいコードを取得してください。",
+    forwarding_code_attempts_exhausted:
+      "誤ったコードの入力回数が多すぎます。確認メールを再送信して新しいコードを取得してください。",
+    forwarding_send_failed:
+      "{{ address }} に確認メールを送信できませんでした。再送信してもう一度お試しください。",
+    forwarding_send_rejected:
+      "{{ address }} のメールサーバーが確認メールを拒否しました。アドレスを確認してから再送信してください。",
     auto_forward_description:
       "条件に基づいて受信メールを他のアドレスに自動転送します。転送ルールはメールのヘッダー（送信者、受信者、件名）を評価し、メール本文にはアクセスしません。",
     add_rule: "ルールを追加",
@@ -10501,7 +10517,7 @@ export const ja = {
     expr_line_col: "（{{line}} 行、{{col}} 列）",
     editor_description: "ルールに名前を付けて、動作を指定します。",
     editor_server_notice:
-      "ルールは Aster のサーバーで実行されるため、Aster はその条件と転送先アドレスを読み取れます。",
+      "ルールは Aster のサーバーで実行されるため、Aster はその条件とアクションを読み取れます。",
     drag_handle: "ドラッグハンドル",
     title: "メールルール",
     subtitle: "受信メールを自動的に整理します。",

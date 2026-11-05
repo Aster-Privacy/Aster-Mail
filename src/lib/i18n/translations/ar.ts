@@ -5771,7 +5771,7 @@ export const ar = {
     forwarding_pending_verification: "في انتظار التحقق",
     resend_verification_email: "إعادة إرسال بريد التحقق",
     forwarding_awaiting_verification:
-      "في انتظار تأكيد {{ addresses }}. لا تتم إعادة التوجيه إلى هناك بعد.",
+      "أدخل الرمز المرسل إلى {{ addresses }} لبدء إعادة التوجيه.",
     forwarding_verification_sent:
       "تم إرسال بريد التحقق إلى {{ address }}. تبدأ إعادة التوجيه بعد التأكيد.",
     forwarding_verification_resent:
@@ -5780,6 +5780,22 @@ export const ar = {
       "تم التحقق من الوجهة. إعادة التوجيه نشطة الآن.",
     forwarding_confirmed_failed:
       "رابط التحقق هذا غير صالح أو منتهي الصلاحية. أرسل رابطًا جديدًا من القاعدة.",
+    forwarding_enter_code: "رمز التأكيد لـ {{ address }}",
+    forwarding_code_placeholder: "رمز من 8 أرقام",
+    forwarding_confirm_code: "تأكيد",
+    forwarding_resend_code: "إعادة إرسال الرمز",
+    forwarding_code_confirmed:
+      "تم تأكيد {{ address }}. إعادة التوجيه إليه مفعّلة الآن.",
+    forwarding_code_invalid:
+      "هذا الرمز غير صحيح. تحقق من رسالة التأكيد وحاول مرة أخرى.",
+    forwarding_code_expired:
+      "انتهت صلاحية هذا الرمز. أعد إرسال رسالة التأكيد للحصول على رمز جديد.",
+    forwarding_code_attempts_exhausted:
+      "عدد كبير من الرموز غير الصحيحة. أعد إرسال رسالة التأكيد للحصول على رمز جديد.",
+    forwarding_send_failed:
+      "تعذّر إرسال رسالة التأكيد إلى {{ address }}. أعد إرسالها للمحاولة مرة أخرى.",
+    forwarding_send_rejected:
+      "رفض خادم البريد لـ {{ address }} رسالة التأكيد. تحقق من العنوان ثم أعد إرسالها.",
     auto_forward_description:
       "تحويل الرسائل الواردة تلقائيًا إلى عناوين أخرى بناءً على شروط. تقيّم قواعد التحويل ترويسات البريد (المرسل، المستلم، الموضوع) بدون الوصول إلى محتوى البريد.",
     add_rule: "إضافة قاعدة",
@@ -10488,7 +10504,7 @@ export const ar = {
     expr_line_col: "(السطر {{line}}، العمود {{col}})",
     editor_description: "سمِّ قاعدتك وحدد ما تفعله.",
     editor_server_notice:
-      "تعمل القواعد على خوادم Aster، لذا يمكن لـ Aster قراءة شروطها وعناوين إعادة التوجيه فيها.",
+      "تعمل القواعد على خوادم Aster، لذا يمكن لـ Aster قراءة شروطها وإجراءاتها.",
     drag_handle: "مقبض السحب",
     title: "قواعد البريد",
     subtitle: "تنظيم البريد الوارد تلقائيًا.",

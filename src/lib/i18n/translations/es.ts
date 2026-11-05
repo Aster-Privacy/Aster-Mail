@@ -5774,7 +5774,7 @@ export const es = {
     forwarding_pending_verification: "Verificación pendiente",
     resend_verification_email: "Reenviar correo de verificación",
     forwarding_awaiting_verification:
-      "Esperando la confirmación de {{ addresses }}. Todavía no se reenvía allí.",
+      "Introduce el código enviado a {{ addresses }} para empezar a reenviar.",
     forwarding_verification_sent:
       "Correo de verificación enviado a {{ address }}. El reenvío empezará cuando se confirme.",
     forwarding_verification_resent:
@@ -5783,6 +5783,22 @@ export const es = {
       "Destino verificado. El reenvío ya está activo.",
     forwarding_confirmed_failed:
       "Ese enlace de verificación no es válido o ha caducado. Envía uno nuevo desde la regla.",
+    forwarding_enter_code: "Código de confirmación para {{ address }}",
+    forwarding_code_placeholder: "Código de 8 dígitos",
+    forwarding_confirm_code: "Confirmar",
+    forwarding_resend_code: "Reenviar código",
+    forwarding_code_confirmed:
+      "{{ address }} está confirmada. El reenvío a esta dirección ya está activo.",
+    forwarding_code_invalid:
+      "Ese código no es correcto. Revisa el correo de confirmación y vuelve a intentarlo.",
+    forwarding_code_expired:
+      "Este código ha caducado. Reenvía el correo de confirmación para obtener un código nuevo.",
+    forwarding_code_attempts_exhausted:
+      "Demasiados códigos incorrectos. Reenvía el correo de confirmación para obtener un código nuevo.",
+    forwarding_send_failed:
+      "No se pudo enviar el correo de confirmación a {{ address }}. Reenvíalo para volver a intentarlo.",
+    forwarding_send_rejected:
+      "El servidor de correo de {{ address }} rechazó el correo de confirmación. Revisa la dirección y vuelve a enviarlo.",
     auto_forward_description:
       "Reenvía automáticamente correos entrantes a otras direcciones según condiciones. Las reglas de reenvío evalúan los encabezados del correo (remitente, destinatario, asunto) sin acceder al contenido del correo.",
     add_rule: "Añadir regla",
@@ -10724,7 +10740,7 @@ export const es = {
     expr_line_col: "(línea {{line}}, columna {{col}})",
     editor_description: "Ponle nombre a tu regla y dile qué hacer.",
     editor_server_notice:
-      "Las reglas se ejecutan en los servidores de Aster, por lo que Aster puede leer sus condiciones y direcciones de reenvío.",
+      "Las reglas se ejecutan en los servidores de Aster, por lo que Aster puede leer sus condiciones y acciones.",
     drag_handle: "Tirador para arrastrar",
     action_apply_label: "Aplicar etiqueta",
     action_apply_labels: "Aplicar etiquetas",

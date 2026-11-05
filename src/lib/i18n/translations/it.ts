@@ -6937,7 +6937,7 @@ export const it = {
     forwarding_pending_verification: "Verifica in sospeso",
     resend_verification_email: "Invia di nuovo l'email di verifica",
     forwarding_awaiting_verification:
-      "In attesa della conferma di {{ addresses }}. La posta non viene ancora inoltrata lì.",
+      "Inserisci il codice inviato a {{ addresses }} per avviare l'inoltro.",
     forwarding_verification_sent:
       "Email di verifica inviata a {{ address }}. L'inoltro inizierà dopo la conferma.",
     forwarding_verification_resent:
@@ -6946,6 +6946,22 @@ export const it = {
       "Destinazione verificata. L'inoltro è ora attivo.",
     forwarding_confirmed_failed:
       "Questo link di verifica non è valido o è scaduto. Inviane uno nuovo dalla regola.",
+    forwarding_enter_code: "Codice di conferma per {{ address }}",
+    forwarding_code_placeholder: "Codice di 8 cifre",
+    forwarding_confirm_code: "Conferma",
+    forwarding_resend_code: "Invia di nuovo il codice",
+    forwarding_code_confirmed:
+      "{{ address }} è confermato. L'inoltro a questo indirizzo è ora attivo.",
+    forwarding_code_invalid:
+      "Il codice non è corretto. Controlla l'email di conferma e riprova.",
+    forwarding_code_expired:
+      "Questo codice è scaduto. Invia di nuovo l'email di conferma per ricevere un nuovo codice.",
+    forwarding_code_attempts_exhausted:
+      "Troppi codici errati. Invia di nuovo l'email di conferma per ricevere un nuovo codice.",
+    forwarding_send_failed:
+      "Impossibile inviare l'email di conferma a {{ address }}. Inviala di nuovo per riprovare.",
+    forwarding_send_rejected:
+      "Il server di posta di {{ address }} ha rifiutato l'email di conferma. Controlla l'indirizzo e inviala di nuovo.",
     auto_forward_description:
       "Inoltra automaticamente le email in arrivo ad altri indirizzi in base a condizioni. Le regole di inoltro valutano le intestazioni delle email (mittente, destinatario, oggetto) senza accedere al contenuto dell'email.",
     add_rule: "Aggiungi regola",
@@ -10783,7 +10799,7 @@ export const it = {
     expr_line_col: "(riga {{line}}, colonna {{col}})",
     editor_description: "Dia un nome alla regola e le indichi cosa fare.",
     editor_server_notice:
-      "Le regole vengono eseguite sui server di Aster, quindi Aster può leggerne le condizioni e gli indirizzi di inoltro.",
+      "Le regole vengono eseguite sui server di Aster, quindi Aster può leggerne le condizioni e le azioni.",
     drag_handle: "Maniglia di trascinamento",
     title: "Regole posta",
     subtitle: "Organizza automaticamente la posta in arrivo.",

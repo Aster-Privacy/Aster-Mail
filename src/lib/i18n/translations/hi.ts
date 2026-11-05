@@ -6997,7 +6997,7 @@ export const hi = {
     forwarding_pending_verification: "पुष्टि बाकी है",
     resend_verification_email: "पुष्टि ईमेल फिर से भेजें",
     forwarding_awaiting_verification:
-      "{{ addresses }} की पुष्टि का इंतज़ार है। मेल वहां अभी फ़ॉरवर्ड नहीं हो रही।",
+      "फ़ॉरवर्डिंग शुरू करने के लिए {{ addresses }} पर भेजा गया कोड डालें।",
     forwarding_verification_sent:
       "पुष्टि ईमेल {{ address }} पर भेज दी गई। पुष्टि होते ही फ़ॉरवर्डिंग शुरू हो जाएगी।",
     forwarding_verification_resent:
@@ -7006,6 +7006,22 @@ export const hi = {
       "गंतव्य की पुष्टि हो गई। फ़ॉरवर्डिंग अब चालू है।",
     forwarding_confirmed_failed:
       "वह पुष्टि लिंक मान्य नहीं है या खत्म हो चुका है। नियम से नया लिंक भेजें।",
+    forwarding_enter_code: "{{ address }} के लिए पुष्टि कोड",
+    forwarding_code_placeholder: "8 अंकों का कोड",
+    forwarding_confirm_code: "पुष्टि करें",
+    forwarding_resend_code: "कोड फिर से भेजें",
+    forwarding_code_confirmed:
+      "{{ address }} की पुष्टि हो गई है। इस पते पर फ़ॉरवर्डिंग अब सक्रिय है।",
+    forwarding_code_invalid:
+      "यह कोड गलत है। पुष्टि ईमेल देखें और फिर से कोशिश करें।",
+    forwarding_code_expired:
+      "इस कोड की समय सीमा खत्म हो गई है। नया कोड पाने के लिए पुष्टि ईमेल फिर से भेजें।",
+    forwarding_code_attempts_exhausted:
+      "बहुत सारे गलत कोड डाले गए। नया कोड पाने के लिए पुष्टि ईमेल फिर से भेजें।",
+    forwarding_send_failed:
+      "{{ address }} पर पुष्टि ईमेल नहीं भेजा जा सका। फिर से कोशिश करने के लिए इसे दोबारा भेजें।",
+    forwarding_send_rejected:
+      "{{ address }} के मेल सर्वर ने पुष्टि ईमेल अस्वीकार कर दिया। पता जांचें, फिर इसे दोबारा भेजें।",
     auto_forward_description:
       "शर्तों के आधार पर आने वाले ईमेल अपने आप दूसरे पतों पर फ़ॉरवर्ड करें। फ़ॉरवर्ड करने के नियम ईमेल की सामग्री देखे बिना सिर्फ़ हेडर (प्रेषक, प्राप्तकर्ता, विषय) जांचते हैं।",
     add_rule: "नियम जोड़ें",
@@ -10467,7 +10483,7 @@ export const hi = {
   mail_rules: {
     editor_description: "अपने नियम को नाम दें और बताएं कि उसे क्या करना है।",
     editor_server_notice:
-      "नियम Aster के सर्वर पर चलते हैं, इसलिए Aster उनकी शर्तें और फ़ॉरवर्डिंग पते पढ़ सकता है।",
+      "नियम Aster के सर्वर पर चलते हैं, इसलिए Aster उनकी शर्तें और कार्रवाइयां पढ़ सकता है।",
     drag_handle: "खींचने का हैंडल",
     title: "मेल नियम",
     subtitle: "आने वाला मेल अपने आप व्यवस्थित करें।",

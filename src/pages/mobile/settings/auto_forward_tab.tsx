@@ -36,12 +36,18 @@ import {
   update_forwarding_rule,
   delete_forwarding_rule,
   toggle_forwarding_rule,
-  resend_forwarding_confirmation,
   type ForwardingRuleResponse,
   type ForwardingCondition,
   type ForwardingDestinationStatus,
 } from "@/services/api/auto_forward";
 import { ForwardingRuleBuilder } from "@/components/settings/forwarding_rule_builder";
+import {
+  awaiting_code_addresses,
+  forwarding_rule_state,
+  send_error_key,
+  use_forwarding_destination_confirm,
+  type DestinationUpdate,
+} from "@/components/settings/forwarding_destination_confirm";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -58,9 +64,6 @@ export function AutoForwardTab() {
   const [is_deleting_rule, set_is_deleting_rule] = useState(false);
   const [confirm_delete_rule, set_confirm_delete_rule] =
     useState<ForwardingRuleResponse | null>(null);
-  const [resending_address, set_resending_address] = useState<string | null>(
-    null,
-  );
 
   const pending_destinations = useCallback(
     (rule: ForwardingRuleResponse): ForwardingDestinationStatus[] =>
@@ -71,6 +74,18 @@ export function AutoForwardTab() {
   const notify_saved = useCallback(
     (rule: ForwardingRuleResponse, created: boolean) => {
       const pending = pending_destinations(rule);
+      const unsent = pending.filter((d) => d.send_error);
+
+      if (unsent.length > 0) {
+        show_toast(
+          t("settings.forwarding_send_failed", {
+            address: unsent.map((d) => d.address).join(", "),
+          }),
+          "error",
+        );
+
+        return;
+      }
 
       if (pending.length > 0) {
         show_toast(
@@ -93,28 +108,33 @@ export function AutoForwardTab() {
     [pending_destinations, t],
   );
 
-  const handle_resend = useCallback(
-    async (rule: ForwardingRuleResponse, address: string) => {
-      set_resending_address(address);
-      try {
-        const result = await resend_forwarding_confirmation(rule.id, address);
+  const apply_destination_update = useCallback(
+    (rule_id: string, address: string, update: DestinationUpdate) => {
+      set_rules((prev) =>
+        prev.map((rule) => {
+          if (rule.id !== rule_id) return rule;
+          const destinations = (rule.destinations ?? []).map((d) =>
+            d.address === address
+              ? {
+                  ...d,
+                  confirmed: update.confirmed ?? d.confirmed,
+                  send_error:
+                    update.send_error === undefined
+                      ? d.send_error
+                      : update.send_error,
+                }
+              : d,
+          );
 
-        if (result.data?.success) {
-          show_toast(
-            t("settings.forwarding_verification_resent", { address }),
-            "success",
-          );
-        } else {
-          show_toast(
-            result.error || t("common.something_went_wrong_try_again"),
-            "error",
-          );
-        }
-      } finally {
-        set_resending_address(null);
-      }
+          return {
+            ...rule,
+            destinations,
+            pending_confirmation: destinations.some((d) => !d.confirmed),
+          };
+        }),
+      );
     },
-    [t],
+    [],
   );
 
   useEffect(() => {
@@ -368,43 +388,29 @@ export function AutoForwardTab() {
               className="rounded-2xl bg-[var(--mobile-bg-card)] overflow-hidden"
             >
               <div className="px-4 py-3 flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-                  style={{
-                    backgroundColor: rule.is_enabled
-                      ? "color-mix(in srgb, var(--mobile-accent) 15%, transparent)"
-                      : "var(--mobile-bg-card-hover)",
-                  }}
-                >
-                  <ArrowTopRightOnSquareIcon
-                    className="w-4.5 h-4.5"
-                    style={{
-                      color: rule.is_enabled
-                        ? "var(--mobile-accent)"
-                        : "var(--mobile-text-muted)",
-                    }}
-                  />
-                </div>
+                <ArrowTopRightOnSquareIcon className="w-4.5 h-4.5 shrink-0 text-[var(--mobile-text-muted)]" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-[15px] font-medium text-[var(--mobile-text-primary)]">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <p className="max-w-full shrink-0 truncate text-[15px] font-medium text-[var(--mobile-text-primary)]">
                       {rule.name}
                     </p>
-                    <span
-                      className="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0"
-                      style={{
-                        backgroundColor: rule.is_enabled
-                          ? "rgba(34, 197, 94, 0.15)"
-                          : "rgba(245, 158, 11, 0.15)",
-                        color: rule.is_enabled
-                          ? "rgb(34, 197, 94)"
-                          : "rgb(245, 158, 11)",
-                      }}
-                    >
-                      {rule.is_enabled
-                        ? t("common.active")
-                        : t("common.paused")}
-                    </span>
+                    {forwarding_rule_state(rule) !== "pending" && (
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0"
+                        style={{
+                          backgroundColor: rule.is_enabled
+                            ? "rgba(34, 197, 94, 0.15)"
+                            : "rgba(245, 158, 11, 0.15)",
+                          color: rule.is_enabled
+                            ? "rgb(34, 197, 94)"
+                            : "rgb(245, 158, 11)",
+                        }}
+                      >
+                        {rule.is_enabled
+                          ? t("common.active")
+                          : t("common.paused")}
+                      </span>
+                    )}
                     {rule.keep_copy && (
                       <span
                         className="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0"
@@ -435,29 +441,29 @@ export function AutoForwardTab() {
                   </p>
                   {pending_destinations(rule).length > 0 && (
                     <div className="mt-1">
-                      <p
-                        className="text-[11px]"
-                        style={{ color: "rgb(245, 158, 11)" }}
-                      >
-                        {t("settings.forwarding_awaiting_verification", {
-                          addresses: pending_destinations(rule)
-                            .map((d) => d.address)
-                            .join(", "),
-                        })}
-                      </p>
+                      {awaiting_code_addresses(rule.destinations).length >
+                        0 && (
+                        <p className="text-[11px] text-[var(--mobile-text-muted)]">
+                          {t("settings.forwarding_awaiting_verification", {
+                            addresses: awaiting_code_addresses(
+                              rule.destinations,
+                            ).join(", "),
+                          })}
+                        </p>
+                      )}
                       {pending_destinations(rule).map((destination) => (
-                        <button
+                        <MobilePendingDestination
                           key={destination.address}
-                          className="mt-1 text-[11px] font-medium underline disabled:opacity-50"
-                          disabled={resending_address === destination.address}
-                          style={{ color: "var(--mobile-accent)" }}
-                          type="button"
-                          onClick={() =>
-                            handle_resend(rule, destination.address)
+                          destination={destination}
+                          rule_id={rule.id}
+                          on_changed={(update) =>
+                            apply_destination_update(
+                              rule.id,
+                              destination.address,
+                              update,
+                            )
                           }
-                        >
-                          {t("settings.resend_verification_email")}
-                        </button>
+                        />
                       ))}
                     </div>
                   )}
@@ -557,5 +563,81 @@ export function AutoForwardTab() {
         variant="danger"
       />
     </>
+  );
+}
+
+function MobilePendingDestination({
+  rule_id,
+  destination,
+  on_changed,
+}: {
+  rule_id: string;
+  destination: ForwardingDestinationStatus;
+  on_changed: (update: DestinationUpdate) => void;
+}) {
+  const { t } = use_i18n();
+  const state = use_forwarding_destination_confirm(
+    rule_id,
+    destination.address,
+    on_changed,
+  );
+  const error_key = send_error_key(destination.send_error);
+
+  return (
+    <form
+      className="mt-1.5 flex flex-col gap-1.5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        state.confirm();
+      }}
+    >
+      {error_key && (
+        <p className="text-[11px] text-red-500" role="alert">
+          {t(error_key, { address: destination.address })}
+        </p>
+      )}
+      <div className="flex items-center gap-2">
+        <input
+          aria-label={t("settings.forwarding_enter_code", {
+            address: destination.address,
+          })}
+          autoComplete="one-time-code"
+          className="w-28 min-w-0 rounded-[10px] px-2.5 py-1.5 text-[13px] bg-[var(--mobile-bg-card-hover)] text-[var(--mobile-text-primary)] outline-none"
+          inputMode="numeric"
+          placeholder={t("settings.forwarding_code_placeholder")}
+          value={state.code}
+          onChange={(e) => state.set_code(e.target.value)}
+        />
+        <button
+          className="rounded-[10px] px-3 py-1.5 text-[12px] font-medium text-white disabled:opacity-50"
+          disabled={!state.can_confirm}
+          style={{ backgroundColor: "var(--mobile-accent)" }}
+          type="submit"
+        >
+          {state.is_confirming ? (
+            <Spinner size="sm" />
+          ) : (
+            t("settings.forwarding_confirm_code")
+          )}
+        </button>
+        <button
+          className="whitespace-nowrap px-1 py-1.5 text-[12px] font-medium text-[var(--mobile-text-secondary)] disabled:opacity-50"
+          disabled={state.is_resending || state.is_confirming}
+          type="button"
+          onClick={() => state.resend()}
+        >
+          {state.is_resending ? (
+            <Spinner size="sm" />
+          ) : (
+            t("settings.forwarding_resend_code")
+          )}
+        </button>
+      </div>
+      {state.code_error && (
+        <p className="text-[11px] text-red-500" role="alert">
+          {state.code_error}
+        </p>
+      )}
+    </form>
   );
 }

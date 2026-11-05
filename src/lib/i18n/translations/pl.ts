@@ -5904,7 +5904,7 @@ export const pl = {
     forwarding_pending_verification: "Oczekuje na weryfikację",
     resend_verification_email: "Wyślij ponownie e-mail weryfikacyjny",
     forwarding_awaiting_verification:
-      "Oczekiwanie na potwierdzenie od {{ addresses }}. Poczta nie jest jeszcze tam przekazywana.",
+      "Wpisz kod wysłany na {{ addresses }}, aby rozpocząć przekazywanie.",
     forwarding_verification_sent:
       "E-mail weryfikacyjny wysłany na {{ address }}. Przekazywanie ruszy po potwierdzeniu.",
     forwarding_verification_resent:
@@ -5913,6 +5913,22 @@ export const pl = {
       "Adres zweryfikowany. Przekazywanie jest już aktywne.",
     forwarding_confirmed_failed:
       "Ten link weryfikacyjny jest nieprawidłowy lub wygasł. Wyślij nowy z poziomu reguły.",
+    forwarding_enter_code: "Kod potwierdzenia dla {{ address }}",
+    forwarding_code_placeholder: "Kod 8-cyfrowy",
+    forwarding_confirm_code: "Potwierdź",
+    forwarding_resend_code: "Wyślij kod ponownie",
+    forwarding_code_confirmed:
+      "Adres {{ address }} jest potwierdzony. Przekazywanie na ten adres jest już aktywne.",
+    forwarding_code_invalid:
+      "Ten kod jest nieprawidłowy. Sprawdź e-mail z potwierdzeniem i spróbuj ponownie.",
+    forwarding_code_expired:
+      "Ten kod wygasł. Wyślij ponownie e-mail z potwierdzeniem, aby otrzymać nowy kod.",
+    forwarding_code_attempts_exhausted:
+      "Zbyt wiele nieprawidłowych kodów. Wyślij ponownie e-mail z potwierdzeniem, aby otrzymać nowy kod.",
+    forwarding_send_failed:
+      "Nie udało się wysłać e-maila z potwierdzeniem na {{ address }}. Wyślij go ponownie.",
+    forwarding_send_rejected:
+      "Serwer pocztowy {{ address }} odrzucił e-mail z potwierdzeniem. Sprawdź adres i wyślij go ponownie.",
     auto_forward_description:
       "Automatycznie przekierowuj przychodzące e-maile na inne adresy na podstawie warunków. Reguły przekierowania analizują nagłówki e-maili (nadawca, odbiorca, temat) bez dostępu do treści e-maila.",
     add_rule: "Dodaj regułę",
@@ -10941,7 +10957,7 @@ export const pl = {
     expr_line_col: "(wiersz {{line}}, kolumna {{col}})",
     editor_description: "Nazwij regułę i określ, co ma robić.",
     editor_server_notice:
-      "Reguły działają na serwerach Aster, więc Aster może odczytać ich warunki i adresy przekazywania.",
+      "Reguły działają na serwerach Aster, więc Aster może odczytać ich warunki i akcje.",
     drag_handle: "Uchwyt przeciągania",
     no_labels: "Brak etykiet",
     no_labels_create_hint: "Brak etykiet. Utwórz jedną w pasku bocznym.",

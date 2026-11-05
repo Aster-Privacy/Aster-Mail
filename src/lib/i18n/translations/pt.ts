@@ -5818,7 +5818,7 @@ export const pt = {
     forwarding_pending_verification: "Verificação pendente",
     resend_verification_email: "Reenviar e-mail de verificação",
     forwarding_awaiting_verification:
-      "A aguardar a confirmação de {{ addresses }}. Os e-mails ainda não são encaminhados para lá.",
+      "Introduza o código enviado para {{ addresses }} para iniciar o reencaminhamento.",
     forwarding_verification_sent:
       "E-mail de verificação enviado para {{ address }}. O encaminhamento começa após a confirmação.",
     forwarding_verification_resent:
@@ -5827,6 +5827,22 @@ export const pt = {
       "Destino verificado. O encaminhamento já está ativo.",
     forwarding_confirmed_failed:
       "Esse link de verificação é inválido ou expirou. Envie um novo a partir da regra.",
+    forwarding_enter_code: "Código de confirmação para {{ address }}",
+    forwarding_code_placeholder: "Código de 8 dígitos",
+    forwarding_confirm_code: "Confirmar",
+    forwarding_resend_code: "Reenviar código",
+    forwarding_code_confirmed:
+      "{{ address }} está confirmado. O reencaminhamento para este endereço está ativo.",
+    forwarding_code_invalid:
+      "Esse código está incorreto. Verifique o e-mail de confirmação e tente novamente.",
+    forwarding_code_expired:
+      "Este código expirou. Reenvie o e-mail de confirmação para obter um novo código.",
+    forwarding_code_attempts_exhausted:
+      "Demasiados códigos incorretos. Reenvie o e-mail de confirmação para obter um novo código.",
+    forwarding_send_failed:
+      "Não foi possível enviar o e-mail de confirmação para {{ address }}. Reenvie-o para tentar novamente.",
+    forwarding_send_rejected:
+      "O servidor de e-mail de {{ address }} recusou o e-mail de confirmação. Verifique o endereço e reenvie-o.",
     auto_forward_description:
       "Encaminhe automaticamente e-mails recebidos para outros endereços com base em condições. As regras de encaminhamento avaliam cabeçalhos de e-mail (remetente, destinatário, assunto) sem aceder ao conteúdo do e-mail.",
     add_rule: "Adicionar regra",
@@ -10838,7 +10854,7 @@ export const pt = {
     expr_line_col: "(linha {{line}}, coluna {{col}})",
     editor_description: "Dê um nome à sua regra e indique-lhe o que fazer.",
     editor_server_notice:
-      "As regras são executadas nos servidores da Aster, pelo que a Aster pode ler as respetivas condições e endereços de reencaminhamento.",
+      "As regras são executadas nos servidores da Aster, pelo que a Aster pode ler as respetivas condições e ações.",
     drag_handle: "Pega para arrastar",
     no_labels: "Sem etiquetas",
     no_labels_create_hint: "Nenhuma etiqueta ainda. Crie uma na barra lateral.",

@@ -5686,7 +5686,7 @@ export const ko = {
     forwarding_pending_verification: "확인 대기 중",
     resend_verification_email: "확인 이메일 다시 보내기",
     forwarding_awaiting_verification:
-      "{{ addresses }}의 확인을 기다리는 중입니다. 아직 그곳으로 전달되지 않습니다.",
+      "전달을 시작하려면 {{ addresses }}(으)로 보낸 코드를 입력하세요.",
     forwarding_verification_sent:
       "확인 이메일을 {{ address }}(으)로 보냈습니다. 확인 후 전달이 시작됩니다.",
     forwarding_verification_resent:
@@ -5695,6 +5695,22 @@ export const ko = {
       "주소를 확인했습니다. 전달이 활성화되었습니다.",
     forwarding_confirmed_failed:
       "이 확인 링크는 유효하지 않거나 만료되었습니다. 규칙에서 새로 보내세요.",
+    forwarding_enter_code: "{{ address }}의 확인 코드",
+    forwarding_code_placeholder: "8자리 코드",
+    forwarding_confirm_code: "확인",
+    forwarding_resend_code: "코드 다시 보내기",
+    forwarding_code_confirmed:
+      "{{ address }} 주소가 확인되었습니다. 이제 이 주소로 전달됩니다.",
+    forwarding_code_invalid:
+      "코드가 올바르지 않습니다. 확인 이메일을 확인하고 다시 시도하세요.",
+    forwarding_code_expired:
+      "이 코드는 만료되었습니다. 확인 이메일을 다시 보내 새 코드를 받으세요.",
+    forwarding_code_attempts_exhausted:
+      "잘못된 코드를 너무 많이 입력했습니다. 확인 이메일을 다시 보내 새 코드를 받으세요.",
+    forwarding_send_failed:
+      "{{ address }}(으)로 확인 이메일을 보내지 못했습니다. 다시 보내서 재시도하세요.",
+    forwarding_send_rejected:
+      "{{ address }}의 메일 서버가 확인 이메일을 거부했습니다. 주소를 확인한 후 다시 보내세요.",
     auto_forward_description:
       "조건에 따라 수신 이메일을 다른 주소로 자동으로 전달합니다. 전달 규칙은 이메일 내용에 접근하지 않고 이메일 헤더(발신자, 수신자, 제목)를 평가합니다.",
     add_rule: "규칙 추가",
@@ -10298,7 +10314,7 @@ export const ko = {
     expr_line_col: "({{line}}행, {{col}}열)",
     editor_description: "규칙에 이름을 붙이고 할 일을 지정하세요.",
     editor_server_notice:
-      "규칙은 Aster 서버에서 실행되므로 Aster가 규칙의 조건과 전달 주소를 읽을 수 있습니다.",
+      "규칙은 Aster 서버에서 실행되므로 Aster가 규칙의 조건과 작업을 읽을 수 있습니다.",
     drag_handle: "드래그 핸들",
     title: "메일 규칙",
     subtitle: "수신 메일을 자동으로 정리합니다.",

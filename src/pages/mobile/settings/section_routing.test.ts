@@ -23,7 +23,10 @@ import { resolve } from "node:path";
 
 import { describe, it, expect } from "vitest";
 
-import { resolve_mobile_section } from "@/pages/mobile/settings/section_routing";
+import {
+  resolve_mobile_section,
+  resolve_mobile_section_tab,
+} from "@/pages/mobile/settings/section_routing";
 
 function union_members(): string[] {
   const source = readFileSync(
@@ -66,5 +69,22 @@ describe("resolve_mobile_section", () => {
     expect(resolve_mobile_section("")).toBeNull();
     expect(resolve_mobile_section(null)).toBeNull();
     expect(resolve_mobile_section(undefined)).toBeNull();
+  });
+});
+
+describe("resolve_mobile_section_tab", () => {
+  it("opens the matching Mail Management tab for a tab deep link", () => {
+    expect(resolve_mobile_section("auto_forward")).toBe("sender_filters");
+    expect(resolve_mobile_section_tab("auto_forward")).toBe("auto_forward");
+    expect(resolve_mobile_section_tab("blocked")).toBe("blocked");
+    expect(resolve_mobile_section_tab("allowlist")).toBe("allowlist");
+    expect(resolve_mobile_section_tab("vacation_reply")).toBe("vacation_reply");
+  });
+
+  it("leaves the default tab for links that name a whole section", () => {
+    expect(resolve_mobile_section_tab("sender_filters")).toBeNull();
+    expect(resolve_mobile_section_tab("billing")).toBeNull();
+    expect(resolve_mobile_section_tab("")).toBeNull();
+    expect(resolve_mobile_section_tab(null)).toBeNull();
   });
 });

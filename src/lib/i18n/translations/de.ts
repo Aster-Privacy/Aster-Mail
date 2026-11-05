@@ -5638,7 +5638,7 @@ export const de = {
     forwarding_pending_verification: "Bestätigung ausstehend",
     resend_verification_email: "Bestätigungs-E-Mail erneut senden",
     forwarding_awaiting_verification:
-      "Warten auf die Bestätigung von {{ addresses }}. Dorthin wird noch nicht weitergeleitet.",
+      "Geben Sie den an {{ addresses }} gesendeten Code ein, um die Weiterleitung zu starten.",
     forwarding_verification_sent:
       "Bestätigungs-E-Mail an {{ address }} gesendet. Die Weiterleitung startet nach der Bestätigung.",
     forwarding_verification_resent:
@@ -5647,6 +5647,22 @@ export const de = {
       "Ziel bestätigt. Die Weiterleitung ist jetzt aktiv.",
     forwarding_confirmed_failed:
       "Dieser Bestätigungslink ist ungültig oder abgelaufen. Senden Sie über die Regel einen neuen.",
+    forwarding_enter_code: "Bestätigungscode für {{ address }}",
+    forwarding_code_placeholder: "8-stelliger Code",
+    forwarding_confirm_code: "Bestätigen",
+    forwarding_resend_code: "Code erneut senden",
+    forwarding_code_confirmed:
+      "{{ address }} ist bestätigt. Die Weiterleitung dorthin ist jetzt aktiv.",
+    forwarding_code_invalid:
+      "Dieser Code ist falsch. Prüfe die Bestätigungs-E-Mail und versuche es erneut.",
+    forwarding_code_expired:
+      "Dieser Code ist abgelaufen. Sende die Bestätigungs-E-Mail erneut, um einen neuen Code zu erhalten.",
+    forwarding_code_attempts_exhausted:
+      "Zu viele falsche Codes. Sende die Bestätigungs-E-Mail erneut, um einen neuen Code zu erhalten.",
+    forwarding_send_failed:
+      "Die Bestätigungs-E-Mail an {{ address }} konnte nicht gesendet werden. Sende sie erneut.",
+    forwarding_send_rejected:
+      "Der Mailserver von {{ address }} hat die Bestätigungs-E-Mail abgelehnt. Prüfe die Adresse und sende sie erneut.",
     auto_forward_description:
       "Leiten Sie eingehende E-Mails automatisch basierend auf Bedingungen an andere Adressen weiter. Weiterleitungsregeln werten E-Mail-Header (Absender, Empfänger, Betreff) aus, ohne auf den E-Mail-Inhalt zuzugreifen.",
     add_rule: "Regel hinzufügen",
@@ -10864,7 +10880,7 @@ export const de = {
     editor_description:
       "Benennen Sie Ihre Regel und legen Sie fest, was sie tut.",
     editor_server_notice:
-      "Regeln laufen auf den Servern von Aster, daher kann Aster ihre Bedingungen und Weiterleitungsadressen lesen.",
+      "Regeln laufen auf den Servern von Aster, daher kann Aster ihre Bedingungen und Aktionen lesen.",
     drag_handle: "Ziehgriff",
     no_labels: "Keine Labels",
     no_labels_create_hint:

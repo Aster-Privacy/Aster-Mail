@@ -67,7 +67,11 @@ import {
   SettingsHeader,
   SettingsAnimatedSection,
 } from "./settings/shared";
-import { resolve_mobile_section } from "./settings/section_routing";
+import {
+  resolve_mobile_section,
+  resolve_mobile_section_tab,
+  type SenderFiltersTab,
+} from "./settings/section_routing";
 import { AccountSection } from "./settings/account_section";
 import { AppearanceSection } from "./settings/appearance_section";
 import { AccessibilitySection } from "./settings/accessibility_section";
@@ -161,6 +165,9 @@ function MobileSettingsPage() {
   const is_paid_plan = !!limits && limits.plan_code !== "free";
   const reduce_motion = use_should_reduce_motion();
   const [section, set_section] = useState<SettingsSection | null>(null);
+  const [section_tab, set_section_tab] = useState<SenderFiltersTab | null>(
+    null,
+  );
   const [is_closing, set_is_closing] = useState(false);
   const [has_devices, set_has_devices] = useState(false);
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(
@@ -234,6 +241,7 @@ function MobileSettingsPage() {
 
     if (!resolved) return;
     section_ref.current = resolved;
+    set_section_tab(resolve_mobile_section_tab(s));
     set_section(resolved);
     window.history.pushState({ settings_section: resolved }, "");
   }, []);
@@ -388,7 +396,12 @@ function MobileSettingsPage() {
       <ExternalAccountsSection on_back={close_section} on_close={handle_back} />
     ),
     sender_filters: (
-      <SenderFiltersSection on_back={close_section} on_close={handle_back} />
+      <SenderFiltersSection
+        key={section_tab ?? "default"}
+        initial_tab={section_tab}
+        on_back={close_section}
+        on_close={handle_back}
+      />
     ),
     family: <FamilySection on_back={close_section} on_close={handle_back} />,
     connection: (

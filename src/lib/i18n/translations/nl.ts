@@ -5643,7 +5643,7 @@ export const nl = {
     forwarding_pending_verification: "Verificatie in behandeling",
     resend_verification_email: "Verificatiemail opnieuw verzenden",
     forwarding_awaiting_verification:
-      "Wachten op bevestiging van {{ addresses }}. Er wordt daar nog niets doorgestuurd.",
+      "Voer de code in die naar {{ addresses }} is gestuurd om het doorsturen te starten.",
     forwarding_verification_sent:
       "Verificatiemail verzonden naar {{ address }}. Doorsturen begint na bevestiging.",
     forwarding_verification_resent:
@@ -5652,6 +5652,22 @@ export const nl = {
       "Bestemming geverifieerd. Doorsturen is nu actief.",
     forwarding_confirmed_failed:
       "Deze verificatielink is ongeldig of verlopen. Verstuur een nieuwe vanuit de regel.",
+    forwarding_enter_code: "Bevestigingscode voor {{ address }}",
+    forwarding_code_placeholder: "Code van 8 cijfers",
+    forwarding_confirm_code: "Bevestigen",
+    forwarding_resend_code: "Code opnieuw sturen",
+    forwarding_code_confirmed:
+      "{{ address }} is bevestigd. Doorsturen naar dit adres is nu actief.",
+    forwarding_code_invalid:
+      "Die code klopt niet. Controleer de bevestigingsmail en probeer het opnieuw.",
+    forwarding_code_expired:
+      "Deze code is verlopen. Verstuur de bevestigingsmail opnieuw om een nieuwe code te krijgen.",
+    forwarding_code_attempts_exhausted:
+      "Te veel onjuiste codes. Verstuur de bevestigingsmail opnieuw om een nieuwe code te krijgen.",
+    forwarding_send_failed:
+      "De bevestigingsmail naar {{ address }} kon niet worden verzonden. Verstuur hem opnieuw.",
+    forwarding_send_rejected:
+      "De mailserver van {{ address }} heeft de bevestigingsmail geweigerd. Controleer het adres en verstuur hem opnieuw.",
     auto_forward_description:
       "Stuur inkomende e-mails automatisch door naar andere adressen op basis van voorwaarden. Doorstuurregels evalueren e-mailheaders (afzender, ontvanger, onderwerp) zonder toegang tot e-mailinhoud.",
     add_rule: "Regel toevoegen",
@@ -10707,7 +10723,7 @@ export const nl = {
     expr_line_col: "(regel {{line}}, kolom {{col}})",
     editor_description: "Geef je regel een naam en vertel wat deze moet doen.",
     editor_server_notice:
-      "Regels worden uitgevoerd op de servers van Aster, dus Aster kan de voorwaarden en doorstuuradressen lezen.",
+      "Regels worden uitgevoerd op de servers van Aster, dus Aster kan de voorwaarden en acties lezen.",
     drag_handle: "Sleepgreep",
     title: "E-mailregels",
     subtitle: "Inkomende e-mail automatisch organiseren.",

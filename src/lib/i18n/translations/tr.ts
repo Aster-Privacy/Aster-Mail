@@ -5677,7 +5677,7 @@ export const tr = {
     forwarding_pending_verification: "Doğrulama bekleniyor",
     resend_verification_email: "Doğrulama e-postasını yeniden gönder",
     forwarding_awaiting_verification:
-      "{{ addresses }} adresinin onayı bekleniyor. Oraya henüz iletim yapılmıyor.",
+      "İletmeyi başlatmak için {{ addresses }} adresine gönderilen kodu girin.",
     forwarding_verification_sent:
       "Doğrulama e-postası {{ address }} adresine gönderildi. İletim onaydan sonra başlar.",
     forwarding_verification_resent:
@@ -5685,6 +5685,22 @@ export const tr = {
     forwarding_confirmed_success: "Hedef doğrulandı. İletim artık etkin.",
     forwarding_confirmed_failed:
       "Bu doğrulama bağlantısı geçersiz veya süresi dolmuş. Kuraldan yenisini gönderin.",
+    forwarding_enter_code: "{{ address }} için onay kodu",
+    forwarding_code_placeholder: "8 haneli kod",
+    forwarding_confirm_code: "Onayla",
+    forwarding_resend_code: "Kodu yeniden gönder",
+    forwarding_code_confirmed:
+      "{{ address }} onaylandı. Bu adrese iletim artık etkin.",
+    forwarding_code_invalid:
+      "Bu kod yanlış. Onay e-postasını kontrol edip tekrar deneyin.",
+    forwarding_code_expired:
+      "Bu kodun süresi doldu. Yeni bir kod almak için onay e-postasını yeniden gönderin.",
+    forwarding_code_attempts_exhausted:
+      "Çok fazla yanlış kod girildi. Yeni bir kod almak için onay e-postasını yeniden gönderin.",
+    forwarding_send_failed:
+      "Onay e-postası {{ address }} adresine gönderilemedi. Tekrar denemek için yeniden gönderin.",
+    forwarding_send_rejected:
+      "{{ address }} posta sunucusu onay e-postasını reddetti. Adresi kontrol edip yeniden gönderin.",
     auto_forward_description:
       "Gelen e-postaları koşullara göre otomatik olarak diğer adreslere yönlendirin. Yönlendirme kuralları e-posta içeriğine erişmeden e-posta başlıklarını (gönderen, alıcı, konu) değerlendirir.",
     add_rule: "Kural Ekle",
@@ -10593,7 +10609,7 @@ export const tr = {
     expr_line_col: "(satır {{line}}, sütun {{col}})",
     editor_description: "Kuralınıza bir ad verin ve ne yapacağını belirtin.",
     editor_server_notice:
-      "Kurallar Aster sunucularında çalışır, bu nedenle Aster koşullarını ve yönlendirme adreslerini okuyabilir.",
+      "Kurallar Aster sunucularında çalışır, bu nedenle Aster koşullarını ve eylemlerini okuyabilir.",
     drag_handle: "Sürükleme tutamacı",
     no_labels: "Etiket yok",
     no_labels_create_hint: "Henüz etiket yok. Yan panelden bir tane oluşturun.",

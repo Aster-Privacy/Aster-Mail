@@ -60,11 +60,15 @@ import {
   delete_forwarding_rule,
   bulk_delete_forwarding_rules,
   toggle_forwarding_rule,
-  resend_forwarding_confirmation,
   type ForwardingRuleResponse,
   type ForwardingCondition,
   type ForwardingDestinationStatus,
 } from "@/services/api/auto_forward";
+import {
+  PendingDestinationControls,
+  awaiting_code_addresses,
+  forwarding_rule_state,
+} from "@/components/settings/forwarding_destination_confirm";
 import { FaviconImg } from "@/components/ui/favicon_or_initial";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -88,9 +92,6 @@ export function AutoForwardSection() {
   const [editing_rule, set_editing_rule] =
     useState<ForwardingRuleResponse | null>(null);
   const [is_saving, set_is_saving] = useState(false);
-  const [resending_address, set_resending_address] = useState<string | null>(
-    null,
-  );
 
   const open_builder = (rule?: ForwardingRuleResponse) => {
     set_editing_rule(rule ?? null);
@@ -299,31 +300,6 @@ export function AutoForwardSection() {
   ): ForwardingDestinationStatus[] =>
     (rule.destinations ?? []).filter((d) => !d.confirmed);
 
-  const handle_resend = async (
-    rule: ForwardingRuleResponse,
-    address: string,
-  ) => {
-    set_resending_address(address);
-    try {
-      const result = await resend_forwarding_confirmation(rule.id, address);
-
-      if (result.data?.success) {
-        show_toast(
-          t("settings.forwarding_verification_resent", { address }),
-          "success",
-        );
-        fetch_rules();
-      } else {
-        show_toast(
-          result.error || t("common.something_went_wrong_try_again"),
-          "error",
-        );
-      }
-    } finally {
-      set_resending_address(null);
-    }
-  };
-
   const save_error_message = (result: {
     error?: string;
     server_code?: string;
@@ -340,6 +316,18 @@ export function AutoForwardSection() {
 
   const notify_saved = (rule: ForwardingRuleResponse, created: boolean) => {
     const pending = pending_destinations(rule);
+    const unsent = pending.filter((d) => d.send_error);
+
+    if (unsent.length > 0) {
+      show_toast(
+        t("settings.forwarding_send_failed", {
+          address: unsent.map((d) => d.address).join(", "),
+        }),
+        "error",
+      );
+
+      return;
+    }
 
     if (pending.length > 0) {
       show_toast(
@@ -596,14 +584,7 @@ export function AutoForwardSection() {
                   onCheckedChange={() => handle_select(index)}
                 />
 
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
-                  style={{
-                    backgroundColor: rule.is_enabled
-                      ? "color-mix(in srgb, var(--accent-color) 14%, transparent)"
-                      : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
-                  }}
-                >
+                <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
                   {get_forward_favicon_domain(rule.forward_to) ? (
                     <FaviconImg
                       alt=""
@@ -618,12 +599,7 @@ export function AutoForwardSection() {
                     />
                   ) : null}
                   <ArrowTopRightOnSquareIcon
-                    className={`w-4 h-4 ${get_forward_favicon_domain(rule.forward_to) ? "hidden" : ""}`}
-                    style={{
-                      color: rule.is_enabled
-                        ? "var(--accent-color)"
-                        : "var(--text-muted)",
-                    }}
+                    className={`w-4 h-4 text-txt-muted ${get_forward_favicon_domain(rule.forward_to) ? "hidden" : ""}`}
                   />
                 </div>
 
@@ -632,11 +608,15 @@ export function AutoForwardSection() {
                     <span className="text-[13px] font-medium truncate text-txt-primary">
                       {rule.name}
                     </span>
-                    <StatusBadge tone={rule.is_enabled ? "success" : "warning"}>
-                      {rule.is_enabled
-                        ? t("common.active")
-                        : t("common.paused")}
-                    </StatusBadge>
+                    {forwarding_rule_state(rule) !== "pending" && (
+                      <StatusBadge
+                        tone={rule.is_enabled ? "success" : "warning"}
+                      >
+                        {rule.is_enabled
+                          ? t("common.active")
+                          : t("common.paused")}
+                      </StatusBadge>
+                    )}
                     {rule.keep_copy && (
                       <StatusBadge tone="neutral">
                         {t("settings.keeps_copy")}
@@ -659,27 +639,24 @@ export function AutoForwardSection() {
                     {rule.forward_to.join(", ")}
                   </p>
                   {pending_destinations(rule).length > 0 && (
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <p className="text-[11px] text-amber-600 dark:text-amber-500">
-                        {t("settings.forwarding_awaiting_verification", {
-                          addresses: pending_destinations(rule)
-                            .map((d) => d.address)
-                            .join(", "),
-                        })}
-                      </p>
+                    <div className="mt-1">
+                      {awaiting_code_addresses(rule.destinations).length >
+                        0 && (
+                        <p className="text-[11px] text-txt-muted">
+                          {t("settings.forwarding_awaiting_verification", {
+                            addresses: awaiting_code_addresses(
+                              rule.destinations,
+                            ).join(", "),
+                          })}
+                        </p>
+                      )}
                       {pending_destinations(rule).map((destination) => (
-                        <Button
+                        <PendingDestinationControls
                           key={destination.address}
-                          disabled={resending_address === destination.address}
-                          is_loading={resending_address === destination.address}
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handle_resend(rule, destination.address)
-                          }
-                        >
-                          {t("settings.resend_verification_email")}
-                        </Button>
+                          destination={destination}
+                          rule_id={rule.id}
+                          on_changed={() => fetch_rules()}
+                        />
                       ))}
                     </div>
                   )}
