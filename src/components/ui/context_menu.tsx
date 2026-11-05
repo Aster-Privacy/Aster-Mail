@@ -66,17 +66,28 @@ export const ContextMenuContent = forwardRef<
 >(({ className, ...props }, ref) => {
   const open = useContext(ContextMenuOpenContext);
   const [settled, set_settled] = useState(false);
+  const [placed, set_placed] = useState(false);
 
   useEffect(() => {
     set_settled(open === true);
+    if (open !== true) set_placed(false);
   }, [open]);
 
+  const handle_placed = useCallback(() => set_placed(true), []);
+
   if (open === true && !settled) return null;
+
+  const placement_gate = { onPlaced: handle_placed } as Record<string, unknown>;
 
   return (
     <RadixContextMenuContent
       ref={ref}
-      className={cn(MENU_MAX_HEIGHT, className)}
+      className={cn(
+        MENU_MAX_HEIGHT,
+        !placed && "invisible [animation:none]",
+        className,
+      )}
+      {...placement_gate}
       {...props}
     />
   );
