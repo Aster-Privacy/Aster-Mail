@@ -792,3 +792,32 @@ jobs:
           installers-regex: '^Aster-Mail-x64-setup\.exe$'
           fork-user: findleyl
           token: ${{ secrets.WINGET_TOKEN }}
+
+  notify_flathub:
+    needs: [build, promote_to_latest]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: Send the release event to the Flathub repo
+        env:
+          GH_TOKEN: ${{ secrets.FLATHUB_DISPATCH_TOKEN }}
+          FLATHUB_REPO: flathub/org.astermail.Mail
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "FLATHUB_DISPATCH_TOKEN is not set; skipping the Flathub update event."
+            exit 0
+          fi
+          status=$(GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release view "${GITHUB_REF_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --json isPrerelease,isDraft \
+            --jq 'if (.isPrerelease or .isDraft) then "skip" else "send" end')
+          if [ "$status" != "send" ]; then
+            echo "Release ${GITHUB_REF_NAME} is not Latest; skipping the Flathub update event."
+            exit 0
+          fi
+          gh api -X POST "repos/${FLATHUB_REPO}/dispatches" \
+            -f event_type=aster-release \
+            -F "client_payload[tag]=${GITHUB_REF_NAME}"
+          echo "Sent aster-release for ${GITHUB_REF_NAME} to ${FLATHUB_REPO}."
