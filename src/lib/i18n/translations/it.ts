@@ -5256,6 +5256,7 @@ export const it = {
     billing_history: "Cronologia fatturazione",
     billing_status_active: "Attivo",
     billing_status_renews: "Si rinnova il {{date}}",
+    billing_status_pauses: "In pausa dal {{date}}",
     billing_status_lifetime: "A vita",
     billing_lifetime_note:
       "Questo piano non si rinnova mai e non lo paghi mai più. Per modificarlo, contatta l'assistenza Aster.",

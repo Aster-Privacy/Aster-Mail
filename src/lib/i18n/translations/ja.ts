@@ -4334,6 +4334,7 @@ export const ja = {
     billing_history: "請求履歴",
     billing_status_active: "有効",
     billing_status_renews: "{{date}} に更新",
+    billing_status_pauses: "{{date}} に一時停止",
     billing_status_lifetime: "永久",
     billing_lifetime_note:
       "このプランは更新されず、今後お支払いは発生しません。変更するには、Aster サポートにお問い合わせください。",

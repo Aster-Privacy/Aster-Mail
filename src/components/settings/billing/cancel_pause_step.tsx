@@ -130,18 +130,18 @@ export function CancelPauseStep({
         </button>
       </div>
 
-      <div className="mt-5 flex flex-row items-center gap-2">
+      <div className="mt-5 flex flex-col gap-2 max-sm:[&_button]:w-full sm:flex-row sm:items-center">
         {keep_plan_slot}
-        <div className="ml-auto flex flex-row items-center gap-2">
+        <div className="flex flex-col gap-2 sm:ml-auto sm:flex-row sm:items-center">
           <button
-            className={button_variants({ variant: "ghost" })}
+            className={`${button_variants({ variant: "ghost" })} whitespace-nowrap`}
             type="button"
             onClick={on_back}
           >
             {t("common.back")}
           </button>
           <button
-            className={button_variants({ variant: "ghost" })}
+            className={`${button_variants({ variant: "ghost" })} whitespace-nowrap`}
             disabled={is_busy}
             type="button"
             onClick={on_continue}

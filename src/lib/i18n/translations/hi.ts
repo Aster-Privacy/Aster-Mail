@@ -3445,6 +3445,7 @@ export const hi = {
     billing_history: "बिलिंग इतिहास",
     billing_status_active: "सक्रिय",
     billing_status_renews: "{{date}} को नवीनीकृत होगा",
+    billing_status_pauses: "{{date}} से रुक जाएगा",
     billing_status_lifetime: "आजीवन",
     billing_lifetime_note:
       "यह प्लान कभी रिन्यू नहीं होता और आपको इसके लिए दोबारा भुगतान नहीं करना पड़ता। इसे बदलने के लिए Aster सहायता से संपर्क करें।",

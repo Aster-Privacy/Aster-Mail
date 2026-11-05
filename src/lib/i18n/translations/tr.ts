@@ -4328,6 +4328,7 @@ export const tr = {
     billing_history: "Faturalandırma Geçmişi",
     billing_status_active: "Etkin",
     billing_status_renews: "{{date}} tarihinde yenilenir",
+    billing_status_pauses: "{{date}} tarihinde duraklatılır",
     billing_status_lifetime: "Ömür boyu",
     billing_lifetime_note:
       "Bu plan hiçbir zaman yenilenmez ve bunun için bir daha ödeme yapmazsınız. Planı değiştirmek için Aster destek ekibiyle iletişime geçin.",

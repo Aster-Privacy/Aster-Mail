@@ -18,14 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { PauseCircleIcon } from "@heroicons/react/24/outline";
 import { PillButton } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
   format_date,
-  get_pause_status,
   resume_paused_subscription,
   type PauseStatusResponse,
 } from "@/services/api/billing";
@@ -36,33 +35,22 @@ import { BillingNotice } from "@/components/settings/billing/billing_layout";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 
 interface PauseNoticeCardProps {
-  refresh_key: string;
+  status: PauseStatusResponse | null;
+  show_cancel_plan: boolean;
+  on_reload: () => Promise<void>;
   on_changed: () => Promise<void>;
   on_cancel_plan: () => void;
 }
 
 export function PauseNoticeCard({
-  refresh_key,
+  status,
+  show_cancel_plan,
+  on_reload,
   on_changed,
   on_cancel_plan,
 }: PauseNoticeCardProps) {
   const { t } = use_i18n();
-  const [status, set_status] = useState<PauseStatusResponse | null>(null);
   const [is_busy, set_is_busy] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      const response = await get_pause_status();
-
-      set_status(response.data ?? null);
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load, refresh_key]);
 
   if (!status || status.status === "none") return null;
 
@@ -85,7 +73,7 @@ export function PauseNoticeCard({
         request_cache.invalidate("/sync/v1");
         invalidate_mail_stats();
         await on_changed();
-        await load();
+        await on_reload();
 
         return;
       }
@@ -132,7 +120,7 @@ export function PauseNoticeCard({
           ? t("settings.pause_resume_action")
           : t("settings.pause_cancel_scheduled_action")}
       </PillButton>
-      {is_paused && (
+      {is_paused && show_cancel_plan && (
         <PillButton
           disabled={is_busy}
           size="sm"

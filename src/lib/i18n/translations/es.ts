@@ -4409,6 +4409,7 @@ export const es = {
     billing_history: "Historial de facturación",
     billing_status_active: "Activo",
     billing_status_renews: "Se renueva el {{date}}",
+    billing_status_pauses: "Se pausa el {{date}}",
     billing_status_lifetime: "De por vida",
     billing_lifetime_note:
       "Este plan nunca se renueva y no vuelves a pagar por él. Para cambiarlo, contacta con el soporte de Aster.",

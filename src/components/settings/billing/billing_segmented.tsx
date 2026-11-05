@@ -40,7 +40,7 @@ export function BillingSegmented<T extends string>({
     <div className="flex justify-center">
       <div
         aria-label={aria_label}
-        className="inline-flex items-center gap-1 rounded-full border border-edge-secondary bg-surf-secondary p-[5px]"
+        className="inline-flex max-w-full items-center gap-1 rounded-full border border-edge-secondary bg-surf-secondary p-[5px]"
         role="tablist"
       >
         {options.map((option) => {
@@ -50,7 +50,7 @@ export function BillingSegmented<T extends string>({
             <button
               key={option.id}
               aria-selected={is_active}
-              className="rounded-full px-[18px] py-[8px] text-[13px] font-medium transition-colors"
+              className="whitespace-nowrap rounded-full px-3.5 py-[8px] text-[13px] font-medium transition-colors sm:px-[18px]"
               role="tab"
               style={{
                 backgroundColor: is_active

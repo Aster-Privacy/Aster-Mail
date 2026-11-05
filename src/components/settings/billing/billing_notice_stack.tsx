@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SubscriptionResponse } from "@/services/api/billing";
+import type {
+  PauseStatusResponse,
+  SubscriptionResponse,
+} from "@/services/api/billing";
 
 import { CurrentPlanNotices } from "@/components/settings/billing/current_plan_card";
 import { CardDeclineNotice } from "@/components/settings/billing/card_decline_notice";
@@ -41,6 +44,8 @@ interface BillingNoticeStackProps {
   on_renew_with_crypto: () => void;
   on_choose_plan: () => void;
   on_switch_to_yearly: (plan_code: string) => void;
+  pause_status: PauseStatusResponse | null;
+  on_pause_reload: () => Promise<void>;
   on_pause_changed: () => Promise<void>;
   on_cancel_plan: () => void;
 }
@@ -58,18 +63,23 @@ export function BillingNoticeStack({
   on_renew_with_crypto,
   on_choose_plan,
   on_switch_to_yearly,
+  pause_status,
+  on_pause_reload,
   on_pause_changed,
   on_cancel_plan,
 }: BillingNoticeStackProps) {
   const is_lifetime = !!subscription?.is_lifetime;
+  const is_paid_plan = !!subscription && subscription.plan.code !== "free";
 
   return (
     <div className="flex flex-col gap-2 empty:hidden">
       {!is_lifetime && (
         <PauseNoticeCard
-          refresh_key={`${subscription?.plan.code ?? ""}:${subscription?.status ?? ""}:${subscription?.current_period_end ?? ""}:${subscription?.cancel_at_period_end ?? ""}`}
+          show_cancel_plan={!is_paid_plan}
+          status={pause_status}
           on_cancel_plan={on_cancel_plan}
           on_changed={on_pause_changed}
+          on_reload={on_pause_reload}
         />
       )}
 

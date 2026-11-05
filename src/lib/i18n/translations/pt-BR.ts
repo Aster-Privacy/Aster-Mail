@@ -8640,6 +8640,7 @@ export const pt_br = {
     academic_status_verified: "Verificado",
     billing_status_active: "Ativo",
     billing_status_renews: "Renova em {{date}}",
+    billing_status_pauses: "Pausa em {{date}}",
     billing_status_lifetime: "Vitalício",
     billing_lifetime_note:
       "Este plano nunca é renovado e você não paga mais por ele. Para alterá-lo, entre em contato com o suporte da Aster.",

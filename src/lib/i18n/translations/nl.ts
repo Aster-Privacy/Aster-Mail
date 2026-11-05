@@ -4321,6 +4321,7 @@ export const nl = {
     billing_history: "Factureringsgeschiedenis",
     billing_status_active: "Actief",
     billing_status_renews: "Verlengt op {{date}}",
+    billing_status_pauses: "Pauzeert op {{date}}",
     billing_status_lifetime: "Levenslang",
     billing_lifetime_note:
       "Dit abonnement wordt nooit verlengd en je betaalt er nooit meer voor. Neem contact op met Aster-support om het te wijzigen.",
