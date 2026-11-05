@@ -72,7 +72,10 @@ import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import { compare_timestamps_asc } from "@/utils/email_timestamp";
 import { has_readable_body } from "@/components/email/thread_message_merge";
 import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
-import { sent_copy_pgp_verified } from "@/services/crypto/sent_encryption_evidence";
+import {
+  as_sent_encryption_scope,
+  sent_copy_encryption_scope,
+} from "@/services/crypto/sent_encryption_evidence";
 import { sender_text_alternative } from "@/components/email/plain_view";
 
 interface DecryptedEnvelope {
@@ -244,6 +247,7 @@ async function decode_thread_envelope(
 
   if (!envelope) return { value: null, cacheable: false };
 
+  const sent_encryption_scope = sent_copy_encryption_scope(envelope);
   let resolved_html: string | undefined =
     envelope.body_html ?? envelope.html_body;
 
@@ -369,7 +373,8 @@ async function decode_thread_envelope(
     html_content: effective_html,
     text_part: sender_text_alternative(effective_html, resolved_text),
     sent_at: envelope.sent_at,
-    e2e_verified: e2e_verified || sent_copy_pgp_verified(envelope),
+    e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
+    ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
     to_recipients: envelope.to || [],
     cc_recipients: envelope.cc || [],
     bcc_recipients: envelope.bcc || [],
@@ -489,6 +494,9 @@ export async function fetch_and_decrypt_thread_messages(
       is_external: msg.is_external ?? false,
       system_origin: msg.system_origin,
       e2e_verified: content.e2e_verified,
+      ...(as_sent_encryption_scope(content.sent_encryption_scope)
+        ? { sent_encryption_scope: content.sent_encryption_scope }
+        : {}),
       sender_verified_domain: msg.sender_verified
         ? msg.sender_verified_domain
         : undefined,
@@ -587,6 +595,7 @@ export async function fetch_and_decrypt_virtual_group(
       };
     }
 
+    const sent_encryption_scope = sent_copy_encryption_scope(envelope);
     let resolved_html: string | undefined =
       envelope.body_html ?? envelope.html_body;
 
@@ -716,7 +725,8 @@ export async function fetch_and_decrypt_virtual_group(
       is_deleted: false,
       is_external: item.is_external ?? false,
       system_origin: item.system_origin,
-      e2e_verified: e2e_verified || sent_copy_pgp_verified(envelope),
+      e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
+      ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
       sender_verified_domain: item.sender_verified
         ? item.sender_verified_domain
         : undefined,

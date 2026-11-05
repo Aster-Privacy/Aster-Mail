@@ -35,6 +35,7 @@ import {
   ModalBody,
 } from "@/components/ui/modal";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { shows_end_to_end } from "@/services/crypto/sent_encryption_evidence";
 import { format_bytes } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -257,12 +258,12 @@ export function MessageDetailsModal({
               has_recipient_key={message.has_recipient_key}
               is_external={message.is_external}
               label={
-                (!message.is_external || message.has_recipient_key) &&
-                message.e2e_verified
+                shows_end_to_end(message)
                   ? t("mail.zero_access_encrypted")
                   : t("common.protected_in_transit")
               }
               sender_verification={message.sender_verification}
+              sent_encryption_scope={message.sent_encryption_scope}
               size={14}
             />
           </div>

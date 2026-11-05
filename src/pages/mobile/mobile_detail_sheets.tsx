@@ -76,6 +76,7 @@ import { reply_to_header_value } from "@/utils/reply_to";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_bytes } from "@/lib/utils";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { shows_end_to_end } from "@/services/crypto/sent_encryption_evidence";
 import {
   format_raw_headers,
   get_message_id,
@@ -972,12 +973,12 @@ export function MobileMessageDetailsSheet({
                 has_recipient_key={message.has_recipient_key}
                 is_external={message.is_external}
                 label={
-                  (!message.is_external || message.has_recipient_key) &&
-                  message.e2e_verified
+                  shows_end_to_end(message)
                     ? t("mail.zero_access_encrypted")
                     : t("common.protected_in_transit")
                 }
                 sender_verification={message.sender_verification}
+                sent_encryption_scope={message.sent_encryption_scope}
                 size={14}
               />
             </div>

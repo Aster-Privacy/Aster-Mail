@@ -45,6 +45,7 @@ interface RenderProps {
   has_recipient_key?: boolean;
   has_pq_protection?: boolean;
   e2e_verified?: boolean;
+  sent_encryption_scope?: "internal" | "outside";
 }
 
 const mounted: Array<{ root: Root; container: HTMLDivElement }> = [];
@@ -63,6 +64,7 @@ function render_open(props: RenderProps): string {
         has_pq_protection={props.has_pq_protection ?? false}
         has_recipient_key={props.has_recipient_key}
         is_external={props.is_external}
+        sent_encryption_scope={props.sent_encryption_scope}
       />,
     );
   });
@@ -128,5 +130,34 @@ describe("EncryptionInfoDropdown end to end evidence", () => {
     });
 
     expect(text).toContain("ML-KEM-768");
+  });
+
+  it("shows a verified sent copy to Aster recipients as end to end", () => {
+    const text = render_open({
+      is_external: true,
+      e2e_verified: true,
+      sent_encryption_scope: "internal",
+    });
+
+    expect(text).toContain("common.end_to_end_encrypted_label");
+    expect(text).toContain("common.only_you_and_sender");
+    expect(text).not.toContain("common.wkd_encrypted_description");
+  });
+
+  it("describes a verified sent copy to outside recipients", () => {
+    const text = render_open({
+      is_external: false,
+      e2e_verified: true,
+      sent_encryption_scope: "outside",
+    });
+
+    expect(text).toContain("common.end_to_end_encrypted_label");
+    expect(text).toContain("common.wkd_encrypted_description");
+  });
+
+  it("keeps a sent copy without verified evidence in transit", () => {
+    const text = render_open({ is_external: true, e2e_verified: true });
+
+    expect(text).toContain("common.protected_in_transit");
   });
 });

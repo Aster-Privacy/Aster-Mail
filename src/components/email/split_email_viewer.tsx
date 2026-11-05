@@ -621,6 +621,7 @@ export function SplitEmailViewer({
                   >
                     <EncryptionInfoDropdown
                       e2e_verified={viewer.e2e_verified}
+                      sent_encryption_scope={viewer.sent_encryption_scope}
                       has_pq_protection={viewer.has_pq_protection}
                       has_recipient_key={viewer.has_recipient_key}
                       is_external={viewer.is_external}

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SentEncryptionScope } from "@/services/crypto/sent_encryption_evidence";
 import type { ReactionSummary } from "@/services/api/mail";
 import type { SenderVerificationStatus } from "@/types/email";
 
@@ -54,6 +55,7 @@ export interface DecryptedThreadMessage {
   is_external: boolean;
   system_origin?: boolean;
   e2e_verified?: boolean;
+  sent_encryption_scope?: SentEncryptionScope;
   has_recipient_key?: boolean;
   is_sending?: boolean;
   send_status?: string;

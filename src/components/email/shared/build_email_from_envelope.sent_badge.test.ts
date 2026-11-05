@@ -59,6 +59,18 @@ describe("sent copy encryption badge", () => {
     );
 
     expect(result.e2e_verified).toBe(true);
+    expect(result.sent_encryption_scope).toBe("outside");
+  });
+
+  it("marks an encrypted send to Aster recipients end-to-end", async () => {
+    const result = await process_envelope_body(
+      sent_copy({ outside: 0, outside_pgp: 0, internal_readable: 0 }),
+      "me@astermail.org",
+      "item-5",
+    );
+
+    expect(result.e2e_verified).toBe(true);
+    expect(result.sent_encryption_scope).toBe("internal");
   });
 
   it("leaves a mixed send unverified", async () => {
@@ -98,5 +110,8 @@ describe("sent copy encryption badge", () => {
       ).e2e_verified,
     ).toBe(true);
     expect(raw_envelope_body(sent_copy()).e2e_verified).toBe(false);
+    expect(
+      raw_envelope_body(sent_copy()).sent_encryption_scope,
+    ).toBeUndefined();
   });
 });

@@ -18,6 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SentEncryptionScope } from "@/services/crypto/sent_encryption_evidence";
 import type { UnsubscribeInfo, SenderVerificationStatus } from "@/types/email";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { Attachment } from "@/components/compose/compose_shared_core";
@@ -57,6 +58,7 @@ export interface DecryptedEmail {
   is_external?: boolean;
   system_origin?: boolean;
   e2e_verified?: boolean;
+  sent_encryption_scope?: SentEncryptionScope;
   sender_verified_domain?: string;
   sender_aligned?: boolean;
   send_status?: string;

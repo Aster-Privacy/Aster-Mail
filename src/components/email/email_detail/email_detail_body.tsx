@@ -178,6 +178,7 @@ export function EmailDetailBody({
                   >
                     <EncryptionInfoDropdown
                       e2e_verified={!!email.e2e_verified}
+                      sent_encryption_scope={email.sent_encryption_scope}
                       has_pq_protection={!!mail_item?.ephemeral_pq_key}
                       has_recipient_key={!!mail_item?.has_recipient_key}
                       is_external={!!mail_item?.is_external}

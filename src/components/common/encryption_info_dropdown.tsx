@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { SenderVerificationStatus } from "@/types/email";
+import type { SentEncryptionScope } from "@/services/crypto/sent_encryption_evidence";
 
 import { useState, useCallback } from "react";
 import { EncryptionInfoDropdownView } from "@aster/ui";
@@ -27,12 +28,17 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_should_reduce_motion } from "@/provider";
+import {
+  reaches_outside_recipients,
+  shows_end_to_end,
+} from "@/services/crypto/sent_encryption_evidence";
 
 interface EncryptionInfoDropdownProps {
   is_external: boolean;
   has_pq_protection: boolean;
   has_recipient_key?: boolean;
   e2e_verified?: boolean;
+  sent_encryption_scope?: SentEncryptionScope;
   size?: number;
   label?: string;
   context?: "message" | "attachments";
@@ -45,6 +51,7 @@ export function EncryptionInfoDropdown({
   has_pq_protection,
   has_recipient_key = false,
   e2e_verified = false,
+  sent_encryption_scope,
   size = 18,
   label,
   context = "message",
@@ -63,7 +70,13 @@ export function EncryptionInfoDropdown({
     return null;
   }
 
-  const is_encrypted = (!is_external || has_recipient_key) && e2e_verified;
+  const flags = {
+    is_external,
+    has_recipient_key,
+    e2e_verified,
+    sent_encryption_scope,
+  };
+  const is_encrypted = shows_end_to_end(flags);
 
   const description = description_key
     ? t(description_key)
@@ -72,7 +85,7 @@ export function EncryptionInfoDropdown({
         ? t("common.files_end_to_end_encrypted")
         : t("common.files_protected_in_transit")
       : is_encrypted
-        ? is_external
+        ? reaches_outside_recipients(flags)
           ? t("common.wkd_encrypted_description")
           : t("common.only_you_and_sender")
         : t("common.encrypted_in_transit_stored");

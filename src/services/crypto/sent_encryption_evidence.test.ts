@@ -22,8 +22,13 @@ import { describe, expect, it } from "vitest";
 
 import {
   build_sent_encryption_evidence,
+  as_sent_encryption_scope,
   drop_sent_encryption_evidence,
+  reaches_outside_recipients,
+  read_sent_encryption_evidence,
+  sent_copy_encryption_scope,
   sent_copy_pgp_verified,
+  shows_end_to_end,
 } from "./sent_encryption_evidence";
 
 describe("build_sent_encryption_evidence", () => {
@@ -111,10 +116,18 @@ describe("sent_copy_pgp_verified", () => {
     ).toBe(false);
   });
 
-  it("is false for a send with no outside recipients", () => {
+  it("is true for an encrypted send with no outside recipients", () => {
     expect(
       sent_copy_pgp_verified({
         sent_encryption: { outside: 0, outside_pgp: 0, internal_readable: 0 },
+      }),
+    ).toBe(true);
+  });
+
+  it("is false for an internal send whose copy went out readable", () => {
+    expect(
+      sent_copy_pgp_verified({
+        sent_encryption: { outside: 0, outside_pgp: 0, internal_readable: 2 },
       }),
     ).toBe(false);
   });
@@ -133,7 +146,11 @@ describe("sent_copy_pgp_verified", () => {
     ).toBe(false);
     expect(
       sent_copy_pgp_verified({
-        sent_encryption: { outside: 1.5, outside_pgp: 1.5, internal_readable: 0 },
+        sent_encryption: {
+          outside: 1.5,
+          outside_pgp: 1.5,
+          internal_readable: 0,
+        },
       }),
     ).toBe(false);
     expect(
@@ -142,6 +159,176 @@ describe("sent_copy_pgp_verified", () => {
       }),
     ).toBe(false);
     expect(sent_copy_pgp_verified({ sent_encryption: true })).toBe(false);
+    expect(
+      sent_copy_pgp_verified({
+        sent_encryption: { outside: 1, outside_pgp: 2, internal_readable: 0 },
+      }),
+    ).toBe(false);
+    expect(
+      sent_copy_pgp_verified({
+        sent_encryption: {
+          outside: 1e30,
+          outside_pgp: 1e30,
+          internal_readable: 0,
+        },
+      }),
+    ).toBe(false);
+    expect(
+      sent_copy_pgp_verified({
+        sent_encryption: { outside: 1, outside_pgp: 1 },
+      }),
+    ).toBe(false);
+    expect(
+      sent_copy_pgp_verified({
+        sent_encryption: {
+          outside: null,
+          outside_pgp: 0,
+          internal_readable: 0,
+        },
+      }),
+    ).toBe(false);
+    expect(
+      sent_copy_pgp_verified({
+        sent_encryption: {
+          outside: true,
+          outside_pgp: true,
+          internal_readable: false,
+        },
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("read_sent_encryption_evidence", () => {
+  it("accepts counts up to the recipient limit", () => {
+    expect(
+      read_sent_encryption_evidence({
+        sent_encryption: {
+          outside: 100_000,
+          outside_pgp: 100_000,
+          internal_readable: 0,
+        },
+      }),
+    ).toEqual({ outside: 100_000, outside_pgp: 100_000, internal_readable: 0 });
+    expect(
+      read_sent_encryption_evidence({
+        sent_encryption: {
+          outside: 100_001,
+          outside_pgp: 0,
+          internal_readable: 0,
+        },
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("sent_copy_encryption_scope", () => {
+  it("reports whether a verified send reached outside recipients", () => {
+    expect(
+      sent_copy_encryption_scope({
+        sent_encryption: { outside: 0, outside_pgp: 0, internal_readable: 0 },
+      }),
+    ).toBe("internal");
+    expect(
+      sent_copy_encryption_scope({
+        sent_encryption: { outside: 3, outside_pgp: 3, internal_readable: 0 },
+      }),
+    ).toBe("outside");
+  });
+
+  it("is undefined when the send was not end-to-end", () => {
+    expect(
+      sent_copy_encryption_scope({
+        sent_encryption: { outside: 3, outside_pgp: 2, internal_readable: 0 },
+      }),
+    ).toBeUndefined();
+    expect(sent_copy_encryption_scope({ subject: "Old" })).toBeUndefined();
+  });
+});
+
+describe("as_sent_encryption_scope", () => {
+  it("accepts only known scopes", () => {
+    expect(as_sent_encryption_scope("internal")).toBe("internal");
+    expect(as_sent_encryption_scope("outside")).toBe("outside");
+    expect(as_sent_encryption_scope("everything")).toBeUndefined();
+    expect(as_sent_encryption_scope(true)).toBeUndefined();
+    expect(as_sent_encryption_scope(undefined)).toBeUndefined();
+  });
+});
+
+describe("shows_end_to_end", () => {
+  it("shows a verified sent copy as end-to-end whatever the server flags say", () => {
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        has_recipient_key: false,
+        e2e_verified: true,
+        sent_encryption_scope: "internal",
+      }),
+    ).toBe(true);
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        has_recipient_key: false,
+        e2e_verified: false,
+        sent_encryption_scope: "outside",
+      }),
+    ).toBe(true);
+  });
+
+  it("keeps outside mail without a recipient key in transit", () => {
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        has_recipient_key: false,
+        e2e_verified: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("requires verification for internal mail", () => {
+    expect(shows_end_to_end({ is_external: false, e2e_verified: true })).toBe(
+      true,
+    );
+    expect(shows_end_to_end({ is_external: false, e2e_verified: false })).toBe(
+      false,
+    );
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        has_recipient_key: true,
+        e2e_verified: true,
+      }),
+    ).toBe(true);
+  });
+
+  it("ignores an unknown scope value", () => {
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        e2e_verified: false,
+        sent_encryption_scope: "everything" as never,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("reaches_outside_recipients", () => {
+  it("uses the verified scope over the server flag", () => {
+    expect(
+      reaches_outside_recipients({
+        is_external: true,
+        sent_encryption_scope: "internal",
+      }),
+    ).toBe(false);
+    expect(
+      reaches_outside_recipients({
+        is_external: false,
+        sent_encryption_scope: "outside",
+      }),
+    ).toBe(true);
+    expect(reaches_outside_recipients({ is_external: true })).toBe(true);
+    expect(reaches_outside_recipients({ is_external: false })).toBe(false);
   });
 });
 

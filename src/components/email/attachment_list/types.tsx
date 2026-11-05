@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type {} from "@/lib/i18n/types";
+import type { SentEncryptionScope } from "@/services/crypto/sent_encryption_evidence";
 
 import { type CachedAttachmentMeta } from "@/services/attachment_meta_cache";
 import { get_cached_preview_url } from "@/services/attachment_preview_cache";
@@ -69,6 +70,7 @@ export interface AttachmentListProps {
   is_external?: boolean;
   has_recipient_key?: boolean;
   e2e_verified?: boolean;
+  sent_encryption_scope?: SentEncryptionScope;
   is_local?: boolean;
   hint_attachment_count?: number;
 }

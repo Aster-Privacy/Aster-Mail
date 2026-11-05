@@ -53,6 +53,7 @@ import {
   AttachmentKeyUnavailableError,
 } from "@/services/crypto/attachment_crypto";
 import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
+import { shows_end_to_end as shows_end_to_end_badge } from "@/services/crypto/sent_encryption_evidence";
 import {
   is_attachment_row_listed,
   listed_attachment_rows,
@@ -113,11 +114,17 @@ function ServerAttachmentList({
   is_external = false,
   has_recipient_key = false,
   e2e_verified = false,
+  sent_encryption_scope,
   is_local = false,
   hint_attachment_count = 0,
 }: AttachmentListProps): React.ReactElement | null {
   const { t } = use_i18n();
-  const shows_end_to_end = (!is_external || has_recipient_key) && e2e_verified;
+  const shows_end_to_end = shows_end_to_end_badge({
+    is_external,
+    has_recipient_key,
+    e2e_verified,
+    sent_encryption_scope,
+  });
   const { preferences } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
   const [attachments, set_attachments] = useState<DecryptedAttachmentInfo[]>(
@@ -861,6 +868,7 @@ function ServerAttachmentList({
             <EncryptionInfoDropdown
               context="attachments"
               e2e_verified={e2e_verified}
+              sent_encryption_scope={sent_encryption_scope}
               has_pq_protection={false}
               has_recipient_key={has_recipient_key}
               is_external={is_external}

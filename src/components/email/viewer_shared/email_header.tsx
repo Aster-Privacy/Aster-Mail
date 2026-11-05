@@ -110,6 +110,7 @@ export function ViewerEmailHeader({
           <div className="flex items-center gap-1 flex-shrink-0">
             <EncryptionInfoDropdown
               e2e_verified={!!email.e2e_verified}
+              sent_encryption_scope={email.sent_encryption_scope}
               has_pq_protection={has_pq_protection}
               has_recipient_key={has_recipient_key}
               is_external={is_external}

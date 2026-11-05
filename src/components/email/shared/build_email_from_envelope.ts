@@ -39,13 +39,17 @@ import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { build_body_preview } from "@/utils/preview_text";
 import { ignore_error } from "@/lib/ignore_error";
-import { sent_copy_pgp_verified } from "@/services/crypto/sent_encryption_evidence";
+import {
+  sent_copy_encryption_scope,
+  type SentEncryptionScope,
+} from "@/services/crypto/sent_encryption_evidence";
 
 export interface ProcessedEnvelope {
   body_text: string;
   safe_html: string | undefined;
   unsubscribe_info: UnsubscribeInfo | undefined;
   e2e_verified: boolean;
+  sent_encryption_scope?: SentEncryptionScope;
 }
 
 function as_displayable(value: unknown): string | undefined {
@@ -53,6 +57,17 @@ function as_displayable(value: unknown): string | undefined {
   if (is_ratchet_envelope(value)) return undefined;
 
   return value;
+}
+
+function sent_scope_fields(
+  envelope: DecryptedEnvelope,
+  verified = false,
+): Pick<ProcessedEnvelope, "e2e_verified" | "sent_encryption_scope"> {
+  const sent_encryption_scope = sent_copy_encryption_scope(envelope);
+
+  return sent_encryption_scope
+    ? { e2e_verified: true, sent_encryption_scope }
+    : { e2e_verified: verified };
 }
 
 export function raw_envelope_body(
@@ -67,7 +82,7 @@ export function raw_envelope_body(
       as_displayable(envelope?.body_html) ??
       as_displayable(envelope?.html_body),
     unsubscribe_info: undefined,
-    e2e_verified: sent_copy_pgp_verified(envelope),
+    ...sent_scope_fields(envelope),
   };
 }
 
@@ -134,10 +149,11 @@ async function resolve_envelope_body(
     };
   }
 
-  const e2e_verified =
+  const verification = sent_scope_fields(
+    envelope,
     ratchet_verified ||
-    (has_inbound_pgp_block(pre_pgp_text) && body_text !== pre_pgp_text) ||
-    sent_copy_pgp_verified(envelope);
+      (has_inbound_pgp_block(pre_pgp_text) && body_text !== pre_pgp_text),
+  );
 
   const pre_mime_text = body_text;
 
@@ -208,7 +224,7 @@ async function resolve_envelope_body(
     body_text,
     safe_html,
     unsubscribe_info: unsubscribe ?? undefined,
-    e2e_verified,
+    ...verification,
   };
 }
 
@@ -246,6 +262,7 @@ export function build_single_thread_message(
   safe_html: string | undefined,
   decrypted_metadata: { is_read?: boolean; is_starred?: boolean } | null,
   e2e_verified = false,
+  sent_encryption_scope?: SentEncryptionScope,
 ): DecryptedThreadMessage {
   const forwarding = resolve_forwarding_display(
     envelope.from,
@@ -272,6 +289,7 @@ export function build_single_thread_message(
     is_external: item.is_external,
     system_origin: item.system_origin,
     e2e_verified,
+    ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
     sender_verified_domain: item.sender_verified
       ? item.sender_verified_domain
       : undefined,

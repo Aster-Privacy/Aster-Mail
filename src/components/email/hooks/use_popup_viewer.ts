@@ -516,6 +516,7 @@ export function use_popup_viewer({
         is_external: pe.is_external,
         system_origin: pe.system_origin,
         e2e_verified: !!pe.e2e_verified,
+        sent_encryption_scope: pe.sent_encryption_scope,
         send_status: pe.send_status,
         send_error: pe.send_error,
         subject: pe.subject,
@@ -669,6 +670,7 @@ export function use_popup_viewer({
           safe_html,
           unsubscribe_info: unsubscribe,
           e2e_verified,
+          sent_encryption_scope,
         } = await process_envelope_body(
           envelope,
           user?.email,
@@ -713,6 +715,7 @@ export function use_popup_viewer({
           is_external: response.data.is_external,
           system_origin: response.data.system_origin,
           e2e_verified,
+          sent_encryption_scope,
           send_status: response.data.send_status,
           send_error: response.data.send_error,
         };
@@ -728,6 +731,7 @@ export function use_popup_viewer({
           safe_html,
           decrypted_metadata,
           e2e_verified,
+          sent_encryption_scope,
         );
 
         if (should_load_thread) {

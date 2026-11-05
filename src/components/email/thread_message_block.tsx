@@ -986,6 +986,7 @@ export function ThreadMessageBlock(
             is_external={message.is_external}
             is_local={message.is_sending === true}
             mail_item_id={message.id}
+            sent_encryption_scope={message.sent_encryption_scope}
           />
         </div>
       </div>

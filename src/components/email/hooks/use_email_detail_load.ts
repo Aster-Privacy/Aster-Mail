@@ -894,8 +894,13 @@ export function use_email_detail_load() {
       void prefetch_attachment_previews(email_id);
 
       if (envelope) {
-        const { body_text, safe_html, unsubscribe_info, e2e_verified } =
-          await process_envelope_body(
+        const {
+          body_text,
+          safe_html,
+          unsubscribe_info,
+          e2e_verified,
+          sent_encryption_scope,
+        } = await process_envelope_body(
             envelope,
             user?.email,
             response.data.id,
@@ -935,6 +940,7 @@ export function use_email_detail_load() {
             labels: [],
             unsubscribe_info,
             e2e_verified,
+            sent_encryption_scope,
             reply_to: (() => {
               const parsed = extract_reply_to(envelope.raw_headers);
 
@@ -954,6 +960,7 @@ export function use_email_detail_load() {
           safe_html,
           decrypted_metadata,
           e2e_verified,
+          sent_encryption_scope,
         );
 
         if (should_load_thread) {

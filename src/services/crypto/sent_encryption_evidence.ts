@@ -21,6 +21,10 @@
 
 export const SENT_ENCRYPTION_FIELD = "sent_encryption";
 
+const MAX_RECIPIENT_COUNT = 100_000;
+
+export type SentEncryptionScope = "internal" | "outside";
+
 export interface SentEncryptionEvidence {
   outside: number;
   outside_pgp: number;
@@ -74,7 +78,12 @@ export function build_sent_encryption_evidence(params: {
 }
 
 function is_count(value: unknown): value is number {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= MAX_RECIPIENT_COUNT
+  );
 }
 
 export function read_sent_encryption_evidence(
@@ -91,7 +100,8 @@ export function read_sent_encryption_evidence(
   if (
     !is_count(record.outside) ||
     !is_count(record.outside_pgp) ||
-    !is_count(record.internal_readable)
+    !is_count(record.internal_readable) ||
+    record.outside_pgp > record.outside
   ) {
     return null;
   }
@@ -119,14 +129,51 @@ export function drop_sent_encryption_evidence<T>(envelope: T): T {
   return envelope;
 }
 
-export function sent_copy_pgp_verified(envelope: unknown): boolean {
+export function sent_copy_encryption_scope(
+  envelope: unknown,
+): SentEncryptionScope | undefined {
   const evidence = read_sent_encryption_evidence(envelope);
 
-  if (!evidence) return false;
+  if (
+    !evidence ||
+    evidence.outside_pgp !== evidence.outside ||
+    evidence.internal_readable !== 0
+  ) {
+    return undefined;
+  }
+
+  return evidence.outside > 0 ? "outside" : "internal";
+}
+
+export function sent_copy_pgp_verified(envelope: unknown): boolean {
+  return sent_copy_encryption_scope(envelope) !== undefined;
+}
+
+export function as_sent_encryption_scope(
+  value: unknown,
+): SentEncryptionScope | undefined {
+  return value === "internal" || value === "outside" ? value : undefined;
+}
+
+export interface EncryptionDisplayFlags {
+  is_external?: boolean;
+  has_recipient_key?: boolean;
+  e2e_verified?: boolean;
+  sent_encryption_scope?: SentEncryptionScope;
+}
+
+export function shows_end_to_end(flags: EncryptionDisplayFlags): boolean {
+  if (as_sent_encryption_scope(flags.sent_encryption_scope)) return true;
 
   return (
-    evidence.outside > 0 &&
-    evidence.outside_pgp === evidence.outside &&
-    evidence.internal_readable === 0
+    (!flags.is_external || !!flags.has_recipient_key) && !!flags.e2e_verified
   );
+}
+
+export function reaches_outside_recipients(
+  flags: EncryptionDisplayFlags,
+): boolean {
+  const scope = as_sent_encryption_scope(flags.sent_encryption_scope);
+
+  return scope ? scope === "outside" : !!flags.is_external;
 }
