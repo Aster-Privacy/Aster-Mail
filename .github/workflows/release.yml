@@ -17,6 +17,9 @@ env:
 jobs:
   build:
     timeout-minutes: 75
+    permissions:
+      contents: read
+      actions: read
     strategy:
       fail-fast: false
       matrix:
@@ -139,6 +142,97 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY="$(cat "$RUNNER_TEMP/throwaway_updater.key")"
           export TAURI_SIGNING_PRIVATE_KEY
           npm run tauri build -- $ARGS
+
+      - name: Stage the Windows app binary for code signing
+        id: app_binary
+        if: matrix.leg == 'win' && vars.SIGNPATH_RELEASE_SIGNING == 'true'
+        shell: pwsh
+        run: |
+          $exes = @(Get-ChildItem -Path src-tauri/target/release -Filter *.exe -File)
+          $exes | ForEach-Object { Write-Host "found $($_.Name)" }
+          if ($exes.Count -ne 1) { throw "expected exactly one app binary, found $($exes.Count)" }
+          New-Item -ItemType Directory -Force -Path staging/app_binary | Out-Null
+          Copy-Item $exes[0].FullName staging/app_binary/
+          "path=$($exes[0].FullName)" >> $env:GITHUB_OUTPUT
+          "name=$($exes[0].Name)" >> $env:GITHUB_OUTPUT
+
+      - name: Upload the unsigned Windows app binary
+        id: upload_app_binary
+        if: matrix.leg == 'win' && vars.SIGNPATH_RELEASE_SIGNING == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unsigned-app-binary
+          path: staging/app_binary/*
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Code sign the Windows app binary
+        if: matrix.leg == 'win' && vars.SIGNPATH_RELEASE_SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: Aster-Mail
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: app_binary
+          github-artifact-id: ${{ steps.upload_app_binary.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed/app_binary
+
+      - name: Rebundle the Windows installers from the signed binary
+        if: matrix.leg == 'win' && vars.SIGNPATH_RELEASE_SIGNING == 'true'
+        env:
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        shell: pwsh
+        run: |
+          $signed = "signed/app_binary/${{ steps.app_binary.outputs.name }}"
+          $sig = Get-AuthenticodeSignature $signed
+          if ($sig.Status -ne 'Valid') { throw "app binary signature is $($sig.Status)" }
+          Write-Host "app binary signer: $($sig.SignerCertificate.Subject)"
+          Copy-Item $signed "${{ steps.app_binary.outputs.path }}" -Force
+          Remove-Item src-tauri/target/release/bundle/nsis/*-setup.exe, src-tauri/target/release/bundle/msi/*.msi -Force
+          bash -c 'set -euo pipefail; source scripts/use_msvc_toolchain.sh; TAURI_SIGNING_PRIVATE_KEY="$(cat "$RUNNER_TEMP/throwaway_updater.key")"; export TAURI_SIGNING_PRIVATE_KEY; npm run tauri -- bundle --bundles nsis,msi'
+          if ($LASTEXITCODE -ne 0) { throw "rebundle failed" }
+          $setup = @(Get-ChildItem src-tauri/target/release/bundle/nsis -Filter *-setup.exe -File)
+          $msi = @(Get-ChildItem src-tauri/target/release/bundle/msi -Filter *.msi -File)
+          if ($setup.Count -ne 1 -or $msi.Count -ne 1) { throw "expected one setup.exe and one msi, found $($setup.Count) and $($msi.Count)" }
+          New-Item -ItemType Directory -Force -Path staging/installers | Out-Null
+          Copy-Item $setup[0].FullName, $msi[0].FullName staging/installers/
+
+      - name: Upload the unsigned Windows installers
+        id: upload_installers
+        if: matrix.leg == 'win' && vars.SIGNPATH_RELEASE_SIGNING == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: unsigned-installers
+          path: staging/installers/*
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Code sign the Windows installers
+        if: matrix.leg == 'win' && vars.SIGNPATH_RELEASE_SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627 # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: Aster-Mail
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: installers
+          github-artifact-id: ${{ steps.upload_installers.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed/installers
+
+      - name: Put the signed Windows installers back
+        if: matrix.leg == 'win' && vars.SIGNPATH_RELEASE_SIGNING == 'true'
+        shell: pwsh
+        run: |
+          foreach ($f in Get-ChildItem signed/installers -File) {
+            $sig = Get-AuthenticodeSignature $f.FullName
+            if ($sig.Status -ne 'Valid') { throw "$($f.Name) signature is $($sig.Status)" }
+            Write-Host "$($f.Name) signer: $($sig.SignerCertificate.Subject)"
+            $dest = if ($f.Extension -eq '.msi') { 'src-tauri/target/release/bundle/msi' } else { 'src-tauri/target/release/bundle/nsis' }
+            Copy-Item $f.FullName (Join-Path $dest $f.Name) -Force
+          }
 
       - name: Unbundle host graphics libraries from the AppImage
         # linuxdeploy copies libwayland-client.so.0 and friends into the AppDir.
