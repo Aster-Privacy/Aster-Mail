@@ -56,6 +56,7 @@ import { BillingHistorySection } from "@/components/settings/billing/billing_his
 import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
+import { PauseNoticeCard } from "@/components/settings/billing/pause_notice_card";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
 import { SpecialOfferBillingCard } from "@/components/settings/billing/special_offer_billing_card";
@@ -171,6 +172,13 @@ export function BillingSection({
                   on_renew_with_crypto={handle_crypto_renew}
                   subscription={subscription}
                 />
+                {!is_lifetime && (
+                  <PauseNoticeCard
+                    on_cancel_plan={() => set_show_cancel_dialog(true)}
+                    on_changed={load_data}
+                    refresh_key={`${subscription?.plan.code ?? ""}:${subscription?.status ?? ""}:${subscription?.current_period_end ?? ""}:${subscription?.cancel_at_period_end ?? ""}`}
+                  />
+                )}
                 {!is_lifetime && <CryptoResumeBanner />}
                 {!is_lifetime && (
                   <ResumeCheckoutCard

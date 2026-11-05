@@ -50,6 +50,7 @@ import {
 } from "@/components/settings/billing/cancel_impact_step";
 import { get_cancel_offers } from "@/components/settings/billing/cancel_offer";
 import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
+import { CancelPauseStep } from "@/components/settings/billing/cancel_pause_step";
 import { CancelEarlyStep } from "@/components/settings/billing/cancel_early_step";
 import { show_toast } from "@/components/toast/simple_toast";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
@@ -86,6 +87,8 @@ export function render_billing_dialogs(
     cancel_impact,
     is_impact_loading,
     cancel_effective_date,
+    pause_status,
+    handle_pause,
     handle_password_continue,
     show_payment_methods,
     set_show_payment_methods,
@@ -151,8 +154,15 @@ export function render_billing_dialogs(
     cancel_offers.yearly && !cancel_offers.yearly.is_family
       ? cancel_offers.yearly
       : null;
+  const can_pause =
+    !!pause_status?.eligible && pause_status.status === "none";
+  const is_paused = pause_status?.status === "paused";
+  const step_after_offer: CancelStep = can_pause ? "pause" : "impact";
   const step_after_reason: CancelStep =
-    downgrade_offer || yearly_offer ? "offer" : "impact";
+    downgrade_offer || yearly_offer ? "offer" : step_after_offer;
+  const step_before_impact: CancelStep = can_pause
+    ? "pause"
+    : step_after_reason;
   const offer_key = yearly_offer
     ? downgrade_offer
       ? "both"
@@ -196,7 +206,9 @@ export function render_billing_dialogs(
                       : offer_key === "yearly"
                         ? t("settings.cancel_offer_yearly_title")
                         : t("settings.cancel_offer_title")
-                    : cancel_step === "impact"
+                    : cancel_step === "pause"
+                      ? t("settings.pause_offer_title")
+                      : cancel_step === "impact"
                       ? t("settings.cancel_impact_title")
                       : cancel_step === "confirm"
                         ? t("settings.cancel_final_title")
@@ -213,7 +225,13 @@ export function render_billing_dialogs(
                       : offer_key === "yearly"
                         ? t("settings.cancel_offer_yearly_description")
                         : t("settings.cancel_offer_description")
-                    : cancel_step === "impact"
+                    : cancel_step === "pause"
+                      ? t("settings.pause_offer_description")
+                      : is_paused &&
+                          (cancel_step === "impact" ||
+                            cancel_step === "confirm")
+                        ? t("settings.pause_cancel_note")
+                        : cancel_step === "impact"
                       ? cancel_effective_date
                         ? t("settings.cancel_impact_description", {
                             date: cancel_effective_date,
@@ -269,7 +287,7 @@ export function render_billing_dialogs(
               }
               offer={downgrade_offer}
               on_back={() => set_cancel_step("reason")}
-              on_continue={() => set_cancel_step("impact")}
+              on_continue={() => set_cancel_step(step_after_offer)}
               on_switch={() => {
                 if (!downgrade_offer) return;
                 open_plan_change(
@@ -284,6 +302,31 @@ export function render_billing_dialogs(
               preferred_currency={preferred_currency}
               yearly_offer={yearly_offer}
             />
+          ) : cancel_step === "pause" && can_pause ? (
+            <CancelPauseStep
+              is_busy={is_action_loading}
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              max_months={pause_status?.max_months ?? 3}
+              pause_starts_at={
+                pause_status?.pause_starts_at ??
+                subscription?.current_period_end ??
+                null
+              }
+              plan_name={
+                pause_status?.plan_name ?? subscription?.plan.name ?? ""
+              }
+              on_back={() =>
+                set_cancel_step(
+                  downgrade_offer || yearly_offer ? "offer" : "reason",
+                )
+              }
+              on_continue={() => set_cancel_step("impact")}
+              on_pause={handle_pause}
+            />
           ) : cancel_step === "impact" ? (
             <CancelImpactStep
               impact={cancel_impact}
@@ -293,7 +336,7 @@ export function render_billing_dialogs(
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
               }
-              on_back={() => set_cancel_step(step_after_reason)}
+              on_back={() => set_cancel_step(step_before_impact)}
               on_continue={() => set_cancel_step("password")}
             />
           ) : cancel_step === "confirm" ? (

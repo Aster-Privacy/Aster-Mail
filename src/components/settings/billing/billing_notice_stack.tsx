@@ -23,6 +23,7 @@ import type { SubscriptionResponse } from "@/services/api/billing";
 import { CurrentPlanNotices } from "@/components/settings/billing/current_plan_card";
 import { CardDeclineNotice } from "@/components/settings/billing/card_decline_notice";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
+import { PauseNoticeCard } from "@/components/settings/billing/pause_notice_card";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
 import { YearlySwitchCard } from "@/components/settings/billing/yearly_switch_card";
@@ -40,6 +41,8 @@ interface BillingNoticeStackProps {
   on_renew_with_crypto: () => void;
   on_choose_plan: () => void;
   on_switch_to_yearly: (plan_code: string) => void;
+  on_pause_changed: () => Promise<void>;
+  on_cancel_plan: () => void;
 }
 
 export function BillingNoticeStack({
@@ -55,11 +58,21 @@ export function BillingNoticeStack({
   on_renew_with_crypto,
   on_choose_plan,
   on_switch_to_yearly,
+  on_pause_changed,
+  on_cancel_plan,
 }: BillingNoticeStackProps) {
   const is_lifetime = !!subscription?.is_lifetime;
 
   return (
     <div className="flex flex-col gap-2 empty:hidden">
+      {!is_lifetime && (
+        <PauseNoticeCard
+          refresh_key={`${subscription?.plan.code ?? ""}:${subscription?.status ?? ""}:${subscription?.current_period_end ?? ""}:${subscription?.cancel_at_period_end ?? ""}`}
+          on_cancel_plan={on_cancel_plan}
+          on_changed={on_pause_changed}
+        />
+      )}
+
       <CurrentPlanNotices
         grace_days_remaining={grace_days_remaining}
         has_payment_failed={has_payment_failed}

@@ -1288,6 +1288,13 @@ export function BillingSection() {
         on_choose_plan={scroll_to_plans}
         on_manage_billing={() => set_show_payment_methods(true)}
         on_reactivate={handle_reactivate}
+        on_cancel_plan={() => {
+          set_cancel_password("");
+          set_cancel_password_error("");
+          set_show_cancel_password(false);
+          set_show_cancel_dialog(true);
+        }}
+        on_pause_changed={load_data}
         on_renew_with_crypto={handle_crypto_renew}
         on_switch_to_yearly={handle_switch_to_yearly}
         preferred_currency={preferred_currency}
