@@ -841,6 +841,43 @@ export async function get_cancel_impact() {
   return api_client.get<CancelImpactResponse>("/payments/v1/cancel-impact");
 }
 
+export type PauseStatus = "none" | "scheduled" | "paused";
+
+export interface PauseStatusResponse {
+  status: PauseStatus;
+  eligible: boolean;
+  ineligible_reason: string | null;
+  min_months: number;
+  max_months: number;
+  pause_starts_at: string | null;
+  pause_ends_at: string | null;
+  next_eligible_at: string | null;
+  plan_name: string | null;
+}
+
+export interface ResumePauseResponse {
+  status: PauseStatus;
+  resumed: boolean;
+}
+
+export async function get_pause_status() {
+  return api_client.get<PauseStatusResponse>("/payments/v1/pause");
+}
+
+export async function pause_subscription(
+  months: number,
+  cancel_reason?: string,
+) {
+  return api_client.post<PauseStatusResponse>("/payments/v1/pause", {
+    months,
+    cancel_reason,
+  });
+}
+
+export async function resume_paused_subscription() {
+  return api_client.post<ResumePauseResponse>("/payments/v1/pause/resume", {});
+}
+
 export async function reactivate_subscription() {
   return api_client.post<ReactivateResponse>("/payments/v1/reactivate", {});
 }

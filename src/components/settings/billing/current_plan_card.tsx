@@ -60,6 +60,7 @@ interface CurrentPlanCardProps {
   upgrade_features?: PlanFeature[];
   include_notices?: boolean;
   show_storage?: boolean;
+  pause_starts_at?: string | null;
 }
 
 type CurrentPlanNoticesProps = Pick<
@@ -212,6 +213,7 @@ export function CurrentPlanCard({
   preferred_currency,
   include_notices = true,
   show_storage = true,
+  pause_starts_at = null,
 }: CurrentPlanCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = !!subscription && subscription.plan.code !== "free";
@@ -248,6 +250,10 @@ export function CurrentPlanCard({
   } else if (is_paid_plan && is_crypto && paid_until) {
     date_label = t("settings.crypto_paid_until", {
       date: format_date(paid_until),
+    });
+  } else if (is_paid_plan && pause_starts_at) {
+    date_label = t("settings.billing_status_pauses", {
+      date: format_date(pause_starts_at),
     });
   } else if (is_paid_plan && period_end) {
     date_label = `${

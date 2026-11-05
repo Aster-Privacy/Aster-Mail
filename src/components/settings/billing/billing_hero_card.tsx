@@ -70,6 +70,7 @@ interface BillingHeroCardProps {
   next_tier: PlanTier | null;
   next_tier_highlights: string[];
   on_upgrade_next: () => void;
+  pause_starts_at?: string | null;
 }
 
 function row_icon(Icon: ComponentType<SVGProps<SVGSVGElement>>) {
@@ -115,6 +116,7 @@ export function BillingHeroCard({
   next_tier,
   next_tier_highlights,
   on_upgrade_next,
+  pause_starts_at = null,
 }: BillingHeroCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = !!subscription && subscription.plan.code !== "free";
@@ -168,6 +170,11 @@ export function BillingHeroCard({
       date: format_date(paid_until),
     });
     status_color = "var(--color-success)";
+  } else if (pause_starts_at) {
+    status_text = t("settings.billing_status_pauses", {
+      date: format_date(pause_starts_at),
+    });
+    status_color = "var(--color-warning)";
   } else if (cancels && period_end) {
     status_text = t("settings.billing_status_ending", {
       date: format_date(period_end),

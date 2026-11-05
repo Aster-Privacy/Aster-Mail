@@ -79,6 +79,8 @@ import {
   get_academic_discount_status,
   build_referral_invite_url,
   get_cancel_impact,
+  get_pause_status,
+  pause_subscription,
   format_date,
   open_payment_url,
   remember_addon_target,
@@ -93,7 +95,9 @@ import {
   type UserActiveAddon,
   type AcademicDiscountStatusResponse,
   type CancelImpactResponse,
+  type PauseStatusResponse,
 } from "@/services/api/billing";
+import { pause_resume_date } from "@/components/settings/billing/cancel_pause_step";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 import { is_promo_code_rejection } from "@/components/settings/billing/plan_change_discount_text";
 import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
@@ -126,6 +130,8 @@ export function use_billing_section() {
   const [cancel_impact, set_cancel_impact] =
     useState<CancelImpactResponse | null>(null);
   const [is_impact_loading, set_is_impact_loading] = useState(false);
+  const [pause_status, set_pause_status] =
+    useState<PauseStatusResponse | null>(null);
 
   useEffect(() => {
     if (!show_cancel_dialog) return;
@@ -140,9 +146,29 @@ export function use_billing_section() {
     set_cancel_totp_code("");
     set_cancel_totp_required(false);
     set_cancel_impact(null);
+    set_pause_status(null);
     set_is_verifying_password(false);
     clear_cancel_password_cache();
   }, [show_cancel_dialog, subscription_started_at]);
+
+  useEffect(() => {
+    if (!show_cancel_dialog) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const response = await get_pause_status();
+
+        if (!cancelled && response.data) set_pause_status(response.data);
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [show_cancel_dialog]);
 
   useEffect(() => {
     if (!show_cancel_dialog || cancel_step !== "impact" || cancel_impact)
@@ -740,6 +766,45 @@ export function use_billing_section() {
     }
   };
 
+  const handle_pause = async (months: number) => {
+    if (is_action_loading) return;
+    set_is_action_loading(true);
+    try {
+      const response = await pause_subscription(
+        months,
+        cancel_reason ?? undefined,
+      );
+
+      if (response.data) {
+        const resume_at =
+          response.data.pause_ends_at ??
+          pause_resume_date(response.data.pause_starts_at, months);
+
+        show_toast(
+          t("settings.pause_offer_scheduled_toast", {
+            date: format_date(resume_at),
+          }),
+          "success",
+          TOAST_DURATION_BILLING_MS,
+        );
+        set_show_cancel_dialog(false);
+        request_cache.invalidate("/payments/v1");
+        await load_data();
+
+        return;
+      }
+      show_toast(
+        server_error_text(response.error, t("settings.pause_offer_failed")),
+        "error",
+      );
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      show_toast(t("settings.pause_offer_failed"), "error");
+    } finally {
+      set_is_action_loading(false);
+    }
+  };
+
   const handle_cancel = async () => {
     if (!cancel_password.trim()) {
       set_cancel_password_error(t("settings.cancel_password_required"));
@@ -1279,6 +1344,8 @@ export function use_billing_section() {
     cancel_impact,
     is_impact_loading,
     cancel_effective_date,
+    pause_status,
+    handle_pause,
     handle_password_continue,
     selected_storage,
     set_selected_storage,

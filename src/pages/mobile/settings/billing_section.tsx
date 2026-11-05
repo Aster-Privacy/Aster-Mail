@@ -56,6 +56,12 @@ import { BillingHistorySection } from "@/components/settings/billing/billing_his
 import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
+import { PauseNoticeCard } from "@/components/settings/billing/pause_notice_card";
+import {
+  pause_refresh_key,
+  scheduled_pause_start,
+  use_pause_status,
+} from "@/components/settings/billing/use_pause_status";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
 import { SpecialOfferBillingCard } from "@/components/settings/billing/special_offer_billing_card";
@@ -133,6 +139,10 @@ export function BillingSection({
   } = state;
   const [show_plans, set_show_plans] = useState(false);
   const is_lifetime = !!is_paid_plan && !!subscription?.is_lifetime;
+  const { pause_status, reload: reload_pause_status } = use_pause_status(
+    pause_refresh_key(subscription),
+    !is_lifetime,
+  );
   const open_plans = () => {
     set_show_plans(true);
     requestAnimationFrame(() => {
@@ -171,6 +181,15 @@ export function BillingSection({
                   on_renew_with_crypto={handle_crypto_renew}
                   subscription={subscription}
                 />
+                {!is_lifetime && (
+                  <PauseNoticeCard
+                    on_cancel_plan={() => set_show_cancel_dialog(true)}
+                    on_changed={load_data}
+                    on_reload={reload_pause_status}
+                    show_cancel_plan={!is_paid_plan}
+                    status={pause_status}
+                  />
+                )}
                 {!is_lifetime && <CryptoResumeBanner />}
                 {!is_lifetime && (
                   <ResumeCheckoutCard
@@ -200,6 +219,7 @@ export function BillingSection({
                   on_renew_with_crypto={handle_crypto_renew}
                   on_scroll_to_plans={open_plans}
                   on_toggle_plans={() => set_show_plans((open) => !open)}
+                  pause_starts_at={scheduled_pause_start(pause_status)}
                   plans_open={show_plans}
                   preferred_currency={preferred_currency}
                   show_storage={false}

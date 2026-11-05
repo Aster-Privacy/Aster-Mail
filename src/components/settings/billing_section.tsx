@@ -100,6 +100,11 @@ import { DEFAULT_RECOMMENDED_PLAN } from "@/components/settings/billing/plan_rec
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { BillingHeroCard } from "@/components/settings/billing/billing_hero_card";
 import {
+  pause_refresh_key,
+  scheduled_pause_start,
+  use_pause_status,
+} from "@/components/settings/billing/use_pause_status";
+import {
   read_billing_cache,
   write_billing_cache,
 } from "@/components/settings/billing/billing_cache";
@@ -266,6 +271,10 @@ export function BillingSection() {
   );
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(() => cached?.subscription ?? null);
+  const { pause_status, reload: reload_pause_status } = use_pause_status(
+    pause_refresh_key(subscription),
+    !subscription?.is_lifetime,
+  );
   const [plans, set_plans] = useState<AvailablePlan[]>(
     () => cached?.plans ?? [],
   );
@@ -1288,6 +1297,15 @@ export function BillingSection() {
         on_choose_plan={scroll_to_plans}
         on_manage_billing={() => set_show_payment_methods(true)}
         on_reactivate={handle_reactivate}
+        on_cancel_plan={() => {
+          set_cancel_password("");
+          set_cancel_password_error("");
+          set_show_cancel_password(false);
+          set_show_cancel_dialog(true);
+        }}
+        on_pause_changed={load_data}
+        on_pause_reload={reload_pause_status}
+        pause_status={pause_status}
         on_renew_with_crypto={handle_crypto_renew}
         on_switch_to_yearly={handle_switch_to_yearly}
         preferred_currency={preferred_currency}
@@ -1329,6 +1347,7 @@ export function BillingSection() {
         storage_used_bytes={storage_used_bytes}
         subscription={subscription}
         on_upgrade_next={handle_upgrade_next}
+        pause_starts_at={scheduled_pause_start(pause_status)}
       />
 
       <BillingAdvantagesCard
