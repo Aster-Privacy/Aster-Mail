@@ -5621,6 +5621,7 @@ export interface SettingsTranslations {
   continue_setup: string;
   domain_pending_hint: string;
   verified_count: string;
+  domain_receives_mail_send_pending: string;
   used_count: string;
   alias_usage_remaining: string;
   alias_usage_remaining_one: string;

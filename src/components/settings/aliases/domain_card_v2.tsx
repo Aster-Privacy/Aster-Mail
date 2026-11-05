@@ -47,6 +47,10 @@ import {
   type CustomDomain,
   type DnsRecord,
 } from "@/services/api/domains";
+import {
+  domain_receives_mail,
+  domain_verification_outcome,
+} from "@/components/settings/aliases/domain_verification_outcome";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
@@ -194,13 +198,13 @@ export function DomainCardV2({
       const response = await trigger_verification(domain.id);
 
       if (response.data) {
-        const { txt_verified, mx_verified, spf_verified, dkim_verified } =
-          response.data;
-        const all_core =
-          txt_verified && mx_verified && spf_verified && dkim_verified;
+        const outcome = domain_verification_outcome(response.data);
 
-        if (!all_core) {
-          show_toast(t("settings.verification_failed_retry"), "error");
+        if (outcome !== "verified") {
+          show_toast(
+            response.data.message || t("settings.verification_failed_retry"),
+            outcome === "receiving" ? "info" : "warning",
+          );
         }
         if (dns_records) {
           const refreshed = await get_dns_records(domain.id);
@@ -250,7 +254,7 @@ export function DomainCardV2({
   return (
     <Island className="overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 p-4">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex items-center gap-3 flex-1 min-w-[min(100%,16rem)]">
           <Button
             aria-expanded={expanded}
             aria-label={domain.domain_name}
@@ -272,7 +276,7 @@ export function DomainCardV2({
             <p className="text-sm font-medium truncate text-txt-primary">
               {domain.domain_name}
             </p>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
               {is_shared && (
                 <span
                   className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
@@ -291,11 +295,11 @@ export function DomainCardV2({
               {domain.status !== "active" && (
                 <>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${get_status_color(domain.status)}`}
+                    className={`whitespace-nowrap text-xs px-2 py-0.5 rounded-full ${get_status_color(domain.status)}`}
                   >
                     {get_status_label(domain.status, t)}
                   </span>
-                  <span className="text-xs text-txt-muted">
+                  <span className="whitespace-nowrap text-xs text-txt-muted">
                     {t("settings.verified_count", {
                       count: verification_count,
                     })}
@@ -317,6 +321,12 @@ export function DomainCardV2({
                 </span>
               )}
             </div>
+            {domain.status !== "active" &&
+              domain_receives_mail(domain.status) && (
+                <p className="text-xs mt-0.5 text-txt-muted">
+                  {t("settings.domain_receives_mail_send_pending")}
+                </p>
+              )}
             {domain.downgrade_grace_expires_at && (
               <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
                 {t("settings.domain_grace_upgrade_hint")}
@@ -325,7 +335,7 @@ export function DomainCardV2({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="ms-auto flex items-center gap-2">
           {!is_shared && domain.status !== "active" && (
             <Button
               size="md"

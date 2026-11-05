@@ -5444,6 +5444,8 @@ export const ar = {
     add_first_domain: "أضف أول نطاق مخصص لك للبدء",
     continue_setup: "متابعة الإعداد",
     verified_count: "{{count}}/5 تم التحقق",
+    domain_receives_mail_send_pending:
+      "يستقبل البريد. لإرسال البريد منه، أكمل الإعداد.",
     used_count: "{{current}} / {{max}} مستخدم",
     alias_usage_remaining: "تبقّى {{count}} اسم مستعار في خطتك",
     alias_usage_remaining_one: "تبقّى {{count}} اسم مستعار في خطتك",

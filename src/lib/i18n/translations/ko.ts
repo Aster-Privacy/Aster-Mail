@@ -5340,6 +5340,8 @@ export const ko = {
     add_first_domain: "첫 번째 사용자 정의 도메인을 추가하여 시작하세요",
     continue_setup: "설정 계속",
     verified_count: "{{count}}/5 인증됨",
+    domain_receives_mail_send_pending:
+      "메일을 받을 수 있습니다. 이 도메인에서 보내려면 설정을 완료하세요.",
     used_count: "{{current}} / {{max}} 사용됨",
     alias_usage_remaining: "플랜에 별칭 {{count}}개가 남았습니다",
     alias_usage_remaining_other: "플랜에 별칭 {{count}}개가 남았습니다",

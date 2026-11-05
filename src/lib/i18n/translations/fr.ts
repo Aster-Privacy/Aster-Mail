@@ -5471,6 +5471,8 @@ export const fr = {
       "Ajoutez votre premier domaine personnalisé pour commencer",
     continue_setup: "Continuer la configuration",
     verified_count: "{{count}}/5 vérifiés",
+    domain_receives_mail_send_pending:
+      "Reçoit des e-mails. Pour envoyer depuis ce domaine, terminez la configuration.",
     used_count: "{{current}} / {{max}} utilisés",
     alias_usage_remaining: "Il vous reste {{count}} alias sur votre offre",
     alias_usage_remaining_one: "Il vous reste {{count}} alias sur votre offre",

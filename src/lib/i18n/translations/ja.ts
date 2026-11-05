@@ -5320,6 +5320,8 @@ export const ja = {
     add_first_domain: "最初のカスタムドメインを追加して開始しましょう",
     continue_setup: "セットアップを続行",
     verified_count: "{{count}}/5 認証済み",
+    domain_receives_mail_send_pending:
+      "メールを受信できます。このドメインから送信するには、設定を完了してください。",
     used_count: "{{current}} / {{max}} 使用済み",
     alias_usage_remaining: "プランの残りエイリアスは{{count}}個です",
     alias_usage_remaining_other: "プランの残りエイリアスは{{count}}個です",

@@ -5285,6 +5285,8 @@ export const de = {
     no_domains_yet: "Noch keine benutzerdefinierten Domains",
     continue_setup: "Einrichtung fortsetzen",
     verified_count: "{{count}}/5 verifiziert",
+    domain_receives_mail_send_pending:
+      "Empfängt E-Mails. Schließen Sie die Einrichtung ab, um davon zu senden.",
     used_count: "{{current}} / {{max}} verwendet",
     alias_usage_remaining: "Noch {{count}} Aliase in Ihrem Tarif",
     alias_usage_remaining_one: "Noch {{count}} Alias in Ihrem Tarif",
