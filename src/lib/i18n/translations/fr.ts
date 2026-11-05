@@ -5837,6 +5837,21 @@ export const fr = {
       "Destination vérifiée. Le transfert est maintenant actif.",
     forwarding_confirmed_failed:
       "Ce lien de vérification est invalide ou expiré. Envoyez-en un nouveau depuis la règle.",
+    forwarding_enter_code: "Code de confirmation pour {{ address }}",
+    forwarding_code_placeholder: "Code à 8 chiffres",
+    forwarding_confirm_code: "Confirmer",
+    forwarding_code_confirmed:
+      "{{ address }} est confirmée. Le transfert vers cette adresse est maintenant actif.",
+    forwarding_code_invalid:
+      "Ce code est incorrect. Vérifiez l'e-mail de confirmation et réessayez.",
+    forwarding_code_expired:
+      "Ce code a expiré. Renvoyez l'e-mail de confirmation pour obtenir un nouveau code.",
+    forwarding_code_attempts_exhausted:
+      "Trop de codes incorrects. Renvoyez l'e-mail de confirmation pour obtenir un nouveau code.",
+    forwarding_send_failed:
+      "L'e-mail de confirmation n'a pas pu être envoyé à {{ address }}. Renvoyez-le pour réessayer.",
+    forwarding_send_rejected:
+      "Le serveur de messagerie de {{ address }} a refusé l'e-mail de confirmation. Vérifiez l'adresse, puis renvoyez-le.",
     auto_forward_description:
       "Transférer automatiquement les e-mails entrants vers d'autres adresses selon des conditions. Les règles de transfert évaluent les en-têtes des e-mails (expéditeur, destinataire, objet) sans accéder au contenu des e-mails.",
     add_rule: "Ajouter une règle",

@@ -5163,6 +5163,18 @@ export const zh_CN = {
     forwarding_confirmed_success: "地址已验证，转发现已启用。",
     forwarding_confirmed_failed:
       "该验证链接无效或已过期，请从规则中重新发送一封。",
+    forwarding_enter_code: "{{ address }} 的确认码",
+    forwarding_code_placeholder: "8 位数字代码",
+    forwarding_confirm_code: "确认",
+    forwarding_code_confirmed: "{{ address }} 已确认，现已开始转发到该地址。",
+    forwarding_code_invalid: "代码不正确。请查看确认邮件后重试。",
+    forwarding_code_expired: "此代码已过期。请重新发送确认邮件以获取新代码。",
+    forwarding_code_attempts_exhausted:
+      "错误代码次数过多。请重新发送确认邮件以获取新代码。",
+    forwarding_send_failed:
+      "无法向 {{ address }} 发送确认邮件。请重新发送以重试。",
+    forwarding_send_rejected:
+      "{{ address }} 的邮件服务器拒绝了确认邮件。请检查地址后重新发送。",
     auto_forward_description:
       "根据条件自动将收件转发到其他地址。转发规则评估邮件头（发件人、收件人、主题），不访问邮件内容。",
     add_rule: "添加规则",

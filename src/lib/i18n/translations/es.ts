@@ -5779,6 +5779,21 @@ export const es = {
       "Destino verificado. El reenvío ya está activo.",
     forwarding_confirmed_failed:
       "Ese enlace de verificación no es válido o ha caducado. Envía uno nuevo desde la regla.",
+    forwarding_enter_code: "Código de confirmación para {{ address }}",
+    forwarding_code_placeholder: "Código de 8 dígitos",
+    forwarding_confirm_code: "Confirmar",
+    forwarding_code_confirmed:
+      "{{ address }} está confirmada. El reenvío a esta dirección ya está activo.",
+    forwarding_code_invalid:
+      "Ese código no es correcto. Revisa el correo de confirmación y vuelve a intentarlo.",
+    forwarding_code_expired:
+      "Este código ha caducado. Reenvía el correo de confirmación para obtener un código nuevo.",
+    forwarding_code_attempts_exhausted:
+      "Demasiados códigos incorrectos. Reenvía el correo de confirmación para obtener un código nuevo.",
+    forwarding_send_failed:
+      "No se pudo enviar el correo de confirmación a {{ address }}. Reenvíalo para volver a intentarlo.",
+    forwarding_send_rejected:
+      "El servidor de correo de {{ address }} rechazó el correo de confirmación. Revisa la dirección y vuelve a enviarlo.",
     auto_forward_description:
       "Reenvía automáticamente correos entrantes a otras direcciones según condiciones. Las reglas de reenvío evalúan los encabezados del correo (remitente, destinatario, asunto) sin acceder al contenido del correo.",
     add_rule: "Añadir regla",

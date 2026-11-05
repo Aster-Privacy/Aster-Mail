@@ -100,7 +100,6 @@ export const ADDABLE_ACTION_TYPES: AddableActionType[] = [
   "star",
   "skip_inbox",
   "delete",
-  "forward",
   "auto_reply",
   "pin",
   "snooze",

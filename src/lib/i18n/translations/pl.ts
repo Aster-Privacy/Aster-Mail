@@ -5909,6 +5909,21 @@ export const pl = {
       "Adres zweryfikowany. Przekazywanie jest już aktywne.",
     forwarding_confirmed_failed:
       "Ten link weryfikacyjny jest nieprawidłowy lub wygasł. Wyślij nowy z poziomu reguły.",
+    forwarding_enter_code: "Kod potwierdzenia dla {{ address }}",
+    forwarding_code_placeholder: "Kod 8-cyfrowy",
+    forwarding_confirm_code: "Potwierdź",
+    forwarding_code_confirmed:
+      "Adres {{ address }} jest potwierdzony. Przekazywanie na ten adres jest już aktywne.",
+    forwarding_code_invalid:
+      "Ten kod jest nieprawidłowy. Sprawdź e-mail z potwierdzeniem i spróbuj ponownie.",
+    forwarding_code_expired:
+      "Ten kod wygasł. Wyślij ponownie e-mail z potwierdzeniem, aby otrzymać nowy kod.",
+    forwarding_code_attempts_exhausted:
+      "Zbyt wiele nieprawidłowych kodów. Wyślij ponownie e-mail z potwierdzeniem, aby otrzymać nowy kod.",
+    forwarding_send_failed:
+      "Nie udało się wysłać e-maila z potwierdzeniem na {{ address }}. Wyślij go ponownie.",
+    forwarding_send_rejected:
+      "Serwer pocztowy {{ address }} odrzucił e-mail z potwierdzeniem. Sprawdź adres i wyślij go ponownie.",
     auto_forward_description:
       "Automatycznie przekierowuj przychodzące e-maile na inne adresy na podstawie warunków. Reguły przekierowania analizują nagłówki e-maili (nadawca, odbiorca, temat) bez dostępu do treści e-maila.",
     add_rule: "Dodaj regułę",

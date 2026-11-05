@@ -38,6 +38,8 @@ export interface ForwardingDestinationStatus {
   is_internal: boolean;
   confirmed: boolean;
   confirmation_sent_at: string | null;
+  send_error?: string | null;
+  send_failed_at?: string | null;
 }
 
 export interface ForwardingRuleResponse {
@@ -201,6 +203,25 @@ export async function resend_forwarding_confirmation(
       success: boolean;
       address: string;
     }>("/mail/v1/auto_forward/resend_confirmation", { id, address });
+
+    return response;
+  } catch (err) {
+    return {
+      error: user_facing_error(err, get_active_translations().errors.generic),
+    };
+  }
+}
+
+export async function confirm_forwarding_code(
+  id: string,
+  address: string,
+  code: string,
+): Promise<ApiResponse<{ confirmed: boolean; address: string }>> {
+  try {
+    const response = await api_client.post<{
+      confirmed: boolean;
+      address: string;
+    }>("/mail/v1/auto_forward/confirm_code", { id, address, code });
 
     return response;
   } catch (err) {

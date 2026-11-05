@@ -5707,6 +5707,21 @@ export const pt_br = {
       "Destino verificado. O encaminhamento já está ativo.",
     forwarding_confirmed_failed:
       "Esse link de verificação é inválido ou expirou. Envie um novo a partir da regra.",
+    forwarding_enter_code: "Código de confirmação para {{ address }}",
+    forwarding_code_placeholder: "Código de 8 dígitos",
+    forwarding_confirm_code: "Confirmar",
+    forwarding_code_confirmed:
+      "{{ address }} foi confirmado. O encaminhamento para esse endereço está ativo.",
+    forwarding_code_invalid:
+      "Esse código está incorreto. Confira o e-mail de confirmação e tente novamente.",
+    forwarding_code_expired:
+      "Este código expirou. Reenvie o e-mail de confirmação para receber um novo código.",
+    forwarding_code_attempts_exhausted:
+      "Muitos códigos incorretos. Reenvie o e-mail de confirmação para receber um novo código.",
+    forwarding_send_failed:
+      "Não foi possível enviar o e-mail de confirmação para {{ address }}. Reenvie para tentar novamente.",
+    forwarding_send_rejected:
+      "O servidor de e-mail de {{ address }} recusou o e-mail de confirmação. Confira o endereço e reenvie.",
     auto_forward_description:
       "Encaminhe automaticamente e-mails recebidos para outros endereços com base em condições. As regras de encaminhamento avaliam cabeçalhos de e-mail (remetente, destinatário, assunto) sem acessar o conteúdo do e-mail.",
     add_rule: "Adicionar regra",

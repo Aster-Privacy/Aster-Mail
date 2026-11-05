@@ -6908,6 +6908,21 @@ export const en: Translations = {
       "Destination verified. Forwarding is now active.",
     forwarding_confirmed_failed:
       "That verification link is invalid or has expired. Send a new one from the rule.",
+    forwarding_enter_code: "Confirmation code for {{ address }}",
+    forwarding_code_placeholder: "8-digit code",
+    forwarding_confirm_code: "Confirm",
+    forwarding_code_confirmed:
+      "{{ address }} is confirmed. Forwarding to it is now active.",
+    forwarding_code_invalid:
+      "That code is incorrect. Check the confirmation email and try again.",
+    forwarding_code_expired:
+      "This code has expired. Resend the confirmation email to get a new code.",
+    forwarding_code_attempts_exhausted:
+      "Too many incorrect codes. Resend the confirmation email to get a new code.",
+    forwarding_send_failed:
+      "The confirmation email to {{ address }} couldn't be sent. Resend it to try again.",
+    forwarding_send_rejected:
+      "The mail server for {{ address }} rejected the confirmation email. Check the address, then resend it.",
     auto_forward_description:
       "Automatically forward incoming emails to other addresses based on conditions. Forwarding rules evaluate email headers (sender, recipient, subject) without accessing email content.",
     add_rule: "Add Rule",

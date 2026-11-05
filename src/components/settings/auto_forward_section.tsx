@@ -60,11 +60,11 @@ import {
   delete_forwarding_rule,
   bulk_delete_forwarding_rules,
   toggle_forwarding_rule,
-  resend_forwarding_confirmation,
   type ForwardingRuleResponse,
   type ForwardingCondition,
   type ForwardingDestinationStatus,
 } from "@/services/api/auto_forward";
+import { PendingDestinationControls } from "@/components/settings/forwarding_destination_confirm";
 import { FaviconImg } from "@/components/ui/favicon_or_initial";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -88,9 +88,6 @@ export function AutoForwardSection() {
   const [editing_rule, set_editing_rule] =
     useState<ForwardingRuleResponse | null>(null);
   const [is_saving, set_is_saving] = useState(false);
-  const [resending_address, set_resending_address] = useState<string | null>(
-    null,
-  );
 
   const open_builder = (rule?: ForwardingRuleResponse) => {
     set_editing_rule(rule ?? null);
@@ -299,31 +296,6 @@ export function AutoForwardSection() {
   ): ForwardingDestinationStatus[] =>
     (rule.destinations ?? []).filter((d) => !d.confirmed);
 
-  const handle_resend = async (
-    rule: ForwardingRuleResponse,
-    address: string,
-  ) => {
-    set_resending_address(address);
-    try {
-      const result = await resend_forwarding_confirmation(rule.id, address);
-
-      if (result.data?.success) {
-        show_toast(
-          t("settings.forwarding_verification_resent", { address }),
-          "success",
-        );
-        fetch_rules();
-      } else {
-        show_toast(
-          result.error || t("common.something_went_wrong_try_again"),
-          "error",
-        );
-      }
-    } finally {
-      set_resending_address(null);
-    }
-  };
-
   const save_error_message = (result: {
     error?: string;
     server_code?: string;
@@ -340,6 +312,18 @@ export function AutoForwardSection() {
 
   const notify_saved = (rule: ForwardingRuleResponse, created: boolean) => {
     const pending = pending_destinations(rule);
+    const unsent = pending.filter((d) => d.send_error);
+
+    if (unsent.length > 0) {
+      show_toast(
+        t("settings.forwarding_send_failed", {
+          address: unsent.map((d) => d.address).join(", "),
+        }),
+        "error",
+      );
+
+      return;
+    }
 
     if (pending.length > 0) {
       show_toast(
@@ -659,7 +643,7 @@ export function AutoForwardSection() {
                     {rule.forward_to.join(", ")}
                   </p>
                   {pending_destinations(rule).length > 0 && (
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <div className="mt-1">
                       <p className="text-[11px] text-amber-600 dark:text-amber-500">
                         {t("settings.forwarding_awaiting_verification", {
                           addresses: pending_destinations(rule)
@@ -668,18 +652,12 @@ export function AutoForwardSection() {
                         })}
                       </p>
                       {pending_destinations(rule).map((destination) => (
-                        <Button
+                        <PendingDestinationControls
                           key={destination.address}
-                          disabled={resending_address === destination.address}
-                          is_loading={resending_address === destination.address}
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            handle_resend(rule, destination.address)
-                          }
-                        >
-                          {t("settings.resend_verification_email")}
-                        </Button>
+                          destination={destination}
+                          rule_id={rule.id}
+                          on_changed={() => fetch_rules()}
+                        />
                       ))}
                     </div>
                   )}

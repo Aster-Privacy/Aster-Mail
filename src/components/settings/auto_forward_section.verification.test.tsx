@@ -44,6 +44,7 @@ vi.mock("@/components/toast/simple_toast", () => ({
 
 const list_forwarding_rules = vi.fn();
 const resend_forwarding_confirmation = vi.fn();
+const confirm_forwarding_code = vi.fn();
 const create_forwarding_rule = vi.fn();
 const update_forwarding_rule = vi.fn();
 const delete_forwarding_rule = vi.fn();
@@ -54,6 +55,8 @@ vi.mock("@/services/api/auto_forward", () => ({
   list_forwarding_rules: (...args: unknown[]) => list_forwarding_rules(...args),
   resend_forwarding_confirmation: (...args: unknown[]) =>
     resend_forwarding_confirmation(...args),
+  confirm_forwarding_code: (...args: unknown[]) =>
+    confirm_forwarding_code(...args),
   create_forwarding_rule: (...args: unknown[]) =>
     create_forwarding_rule(...args),
   update_forwarding_rule: (...args: unknown[]) =>
@@ -85,6 +88,29 @@ async function render(element: React.ReactElement): Promise<HTMLDivElement> {
   });
 
   return container;
+}
+
+function type_code(view: HTMLDivElement, value: string) {
+  const input = view.querySelector(
+    "input[autocomplete='one-time-code']",
+  ) as HTMLInputElement;
+  const setter = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  )!.set!;
+
+  act(() => {
+    setter.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+
+  return input;
+}
+
+function find_button(view: HTMLDivElement, key: string) {
+  return Array.from(view.querySelectorAll("button")).find(
+    (b) => b.textContent === key,
+  ) as HTMLButtonElement | undefined;
 }
 
 function make_rule(overrides: Record<string, unknown> = {}) {
@@ -239,6 +265,107 @@ describe("AutoForwardSection destination verification", () => {
     expect(
       toasts.some(
         (toast) => toast.message === "settings.forwarding_confirmed_failed",
+      ),
+    ).toBe(true);
+  });
+
+  it("confirms a destination with the emailed code", async () => {
+    list_forwarding_rules.mockResolvedValue({ data: [make_rule()] });
+    confirm_forwarding_code.mockResolvedValue({
+      data: { confirmed: true, address: "someone@example.com" },
+    });
+
+    const view = await render(<AutoForwardSection />);
+    const confirm = find_button(view, "settings.forwarding_confirm_code");
+
+    expect(confirm?.disabled).toBe(true);
+
+    const input = type_code(view, "1234 56-78x9");
+
+    expect(input.value).toBe("12345678");
+    expect(confirm?.disabled).toBe(false);
+
+    await act(async () => {
+      confirm!.click();
+    });
+
+    expect(confirm_forwarding_code).toHaveBeenCalledWith(
+      "rule-1",
+      "someone@example.com",
+      "12345678",
+    );
+    expect(
+      toasts.some((toast) =>
+        toast.message.includes(
+          "settings.forwarding_code_confirmed:someone@example.com",
+        ),
+      ),
+    ).toBe(true);
+    expect(list_forwarding_rules).toHaveBeenCalledTimes(2);
+  });
+
+  it("explains a wrong code without reloading", async () => {
+    list_forwarding_rules.mockResolvedValue({ data: [make_rule()] });
+    confirm_forwarding_code.mockResolvedValue({
+      error: "That code is incorrect.",
+      server_code: "FORWARDING_CODE_INVALID",
+    });
+
+    const view = await render(<AutoForwardSection />);
+
+    type_code(view, "00000000");
+    await act(async () => {
+      find_button(view, "settings.forwarding_confirm_code")!.click();
+    });
+
+    expect(view.textContent).toContain("settings.forwarding_code_invalid");
+    expect(list_forwarding_rules).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows when the confirmation email could not be sent", async () => {
+    list_forwarding_rules.mockResolvedValue({
+      data: [
+        make_rule({
+          destinations: [
+            {
+              address: "someone@example.com",
+              is_internal: false,
+              confirmed: false,
+              confirmation_sent_at: "2026-07-01T00:00:00Z",
+              send_error: "send_failed",
+              send_failed_at: "2026-07-01T00:00:01Z",
+            },
+          ],
+        }),
+      ],
+    });
+
+    const view = await render(<AutoForwardSection />);
+
+    expect(view.textContent).toContain(
+      "settings.forwarding_send_failed:someone@example.com",
+    );
+    expect(find_button(view, "settings.resend_verification_email")).toBeTruthy();
+  });
+
+  it("reports a failed resend", async () => {
+    list_forwarding_rules.mockResolvedValue({ data: [make_rule()] });
+    resend_forwarding_confirmation.mockResolvedValue({
+      error: "The email could not be sent.",
+      server_code: "EMAIL_SEND_FAILED",
+    });
+
+    const view = await render(<AutoForwardSection />);
+
+    await act(async () => {
+      find_button(view, "settings.resend_verification_email")!.click();
+    });
+
+    expect(
+      toasts.some(
+        (toast) =>
+          toast.kind === "error" &&
+          toast.message.includes("settings.forwarding_send_failed"),
       ),
     ).toBe(true);
   });

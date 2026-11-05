@@ -6921,6 +6921,21 @@ export const it = {
       "Destinazione verificata. L'inoltro è ora attivo.",
     forwarding_confirmed_failed:
       "Questo link di verifica non è valido o è scaduto. Inviane uno nuovo dalla regola.",
+    forwarding_enter_code: "Codice di conferma per {{ address }}",
+    forwarding_code_placeholder: "Codice di 8 cifre",
+    forwarding_confirm_code: "Conferma",
+    forwarding_code_confirmed:
+      "{{ address }} è confermato. L'inoltro a questo indirizzo è ora attivo.",
+    forwarding_code_invalid:
+      "Il codice non è corretto. Controlla l'email di conferma e riprova.",
+    forwarding_code_expired:
+      "Questo codice è scaduto. Invia di nuovo l'email di conferma per ricevere un nuovo codice.",
+    forwarding_code_attempts_exhausted:
+      "Troppi codici errati. Invia di nuovo l'email di conferma per ricevere un nuovo codice.",
+    forwarding_send_failed:
+      "Impossibile inviare l'email di conferma a {{ address }}. Inviala di nuovo per riprovare.",
+    forwarding_send_rejected:
+      "Il server di posta di {{ address }} ha rifiutato l'email di conferma. Controlla l'indirizzo e inviala di nuovo.",
     auto_forward_description:
       "Inoltra automaticamente le email in arrivo ad altri indirizzi in base a condizioni. Le regole di inoltro valutano le intestazioni delle email (mittente, destinatario, oggetto) senza accedere al contenuto dell'email.",
     add_rule: "Aggiungi regola",

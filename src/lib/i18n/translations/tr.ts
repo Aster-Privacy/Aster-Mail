@@ -5681,6 +5681,21 @@ export const tr = {
     forwarding_confirmed_success: "Hedef doğrulandı. İletim artık etkin.",
     forwarding_confirmed_failed:
       "Bu doğrulama bağlantısı geçersiz veya süresi dolmuş. Kuraldan yenisini gönderin.",
+    forwarding_enter_code: "{{ address }} için onay kodu",
+    forwarding_code_placeholder: "8 haneli kod",
+    forwarding_confirm_code: "Onayla",
+    forwarding_code_confirmed:
+      "{{ address }} onaylandı. Bu adrese iletim artık etkin.",
+    forwarding_code_invalid:
+      "Bu kod yanlış. Onay e-postasını kontrol edip tekrar deneyin.",
+    forwarding_code_expired:
+      "Bu kodun süresi doldu. Yeni bir kod almak için onay e-postasını yeniden gönderin.",
+    forwarding_code_attempts_exhausted:
+      "Çok fazla yanlış kod girildi. Yeni bir kod almak için onay e-postasını yeniden gönderin.",
+    forwarding_send_failed:
+      "Onay e-postası {{ address }} adresine gönderilemedi. Tekrar denemek için yeniden gönderin.",
+    forwarding_send_rejected:
+      "{{ address }} posta sunucusu onay e-postasını reddetti. Adresi kontrol edip yeniden gönderin.",
     auto_forward_description:
       "Gelen e-postaları koşullara göre otomatik olarak diğer adreslere yönlendirin. Yönlendirme kuralları e-posta içeriğine erişmeden e-posta başlıklarını (gönderen, alıcı, konu) değerlendirir.",
     add_rule: "Kural Ekle",

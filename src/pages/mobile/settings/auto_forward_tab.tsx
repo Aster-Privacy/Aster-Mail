@@ -36,12 +36,16 @@ import {
   update_forwarding_rule,
   delete_forwarding_rule,
   toggle_forwarding_rule,
-  resend_forwarding_confirmation,
   type ForwardingRuleResponse,
   type ForwardingCondition,
   type ForwardingDestinationStatus,
 } from "@/services/api/auto_forward";
 import { ForwardingRuleBuilder } from "@/components/settings/forwarding_rule_builder";
+import {
+  send_error_key,
+  use_forwarding_destination_confirm,
+  type DestinationUpdate,
+} from "@/components/settings/forwarding_destination_confirm";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -58,9 +62,6 @@ export function AutoForwardTab() {
   const [is_deleting_rule, set_is_deleting_rule] = useState(false);
   const [confirm_delete_rule, set_confirm_delete_rule] =
     useState<ForwardingRuleResponse | null>(null);
-  const [resending_address, set_resending_address] = useState<string | null>(
-    null,
-  );
 
   const pending_destinations = useCallback(
     (rule: ForwardingRuleResponse): ForwardingDestinationStatus[] =>
@@ -71,6 +72,18 @@ export function AutoForwardTab() {
   const notify_saved = useCallback(
     (rule: ForwardingRuleResponse, created: boolean) => {
       const pending = pending_destinations(rule);
+      const unsent = pending.filter((d) => d.send_error);
+
+      if (unsent.length > 0) {
+        show_toast(
+          t("settings.forwarding_send_failed", {
+            address: unsent.map((d) => d.address).join(", "),
+          }),
+          "error",
+        );
+
+        return;
+      }
 
       if (pending.length > 0) {
         show_toast(
@@ -93,28 +106,33 @@ export function AutoForwardTab() {
     [pending_destinations, t],
   );
 
-  const handle_resend = useCallback(
-    async (rule: ForwardingRuleResponse, address: string) => {
-      set_resending_address(address);
-      try {
-        const result = await resend_forwarding_confirmation(rule.id, address);
+  const apply_destination_update = useCallback(
+    (rule_id: string, address: string, update: DestinationUpdate) => {
+      set_rules((prev) =>
+        prev.map((rule) => {
+          if (rule.id !== rule_id) return rule;
+          const destinations = (rule.destinations ?? []).map((d) =>
+            d.address === address
+              ? {
+                  ...d,
+                  confirmed: update.confirmed ?? d.confirmed,
+                  send_error:
+                    update.send_error === undefined
+                      ? d.send_error
+                      : update.send_error,
+                }
+              : d,
+          );
 
-        if (result.data?.success) {
-          show_toast(
-            t("settings.forwarding_verification_resent", { address }),
-            "success",
-          );
-        } else {
-          show_toast(
-            result.error || t("common.something_went_wrong_try_again"),
-            "error",
-          );
-        }
-      } finally {
-        set_resending_address(null);
-      }
+          return {
+            ...rule,
+            destinations,
+            pending_confirmation: destinations.some((d) => !d.confirmed),
+          };
+        }),
+      );
     },
-    [t],
+    [],
   );
 
   useEffect(() => {
@@ -446,18 +464,18 @@ export function AutoForwardTab() {
                         })}
                       </p>
                       {pending_destinations(rule).map((destination) => (
-                        <button
+                        <MobilePendingDestination
                           key={destination.address}
-                          className="mt-1 text-[11px] font-medium underline disabled:opacity-50"
-                          disabled={resending_address === destination.address}
-                          style={{ color: "var(--mobile-accent)" }}
-                          type="button"
-                          onClick={() =>
-                            handle_resend(rule, destination.address)
+                          destination={destination}
+                          rule_id={rule.id}
+                          on_changed={(update) =>
+                            apply_destination_update(
+                              rule.id,
+                              destination.address,
+                              update,
+                            )
                           }
-                        >
-                          {t("settings.resend_verification_email")}
-                        </button>
+                        />
                       ))}
                     </div>
                   )}
@@ -557,5 +575,78 @@ export function AutoForwardTab() {
         variant="danger"
       />
     </>
+  );
+}
+
+function MobilePendingDestination({
+  rule_id,
+  destination,
+  on_changed,
+}: {
+  rule_id: string;
+  destination: ForwardingDestinationStatus;
+  on_changed: (update: DestinationUpdate) => void;
+}) {
+  const { t } = use_i18n();
+  const state = use_forwarding_destination_confirm(
+    rule_id,
+    destination.address,
+    on_changed,
+  );
+  const error_key = send_error_key(destination.send_error);
+
+  return (
+    <form
+      className="mt-1.5 flex flex-col gap-1.5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        state.confirm();
+      }}
+    >
+      {error_key && (
+        <p className="text-[11px] text-red-500" role="alert">
+          {t(error_key, { address: destination.address })}
+        </p>
+      )}
+      <div className="flex items-center gap-2">
+        <input
+          aria-label={t("settings.forwarding_enter_code", {
+            address: destination.address,
+          })}
+          autoComplete="one-time-code"
+          className="w-32 rounded-[10px] px-2.5 py-1.5 text-[13px] bg-[var(--mobile-bg-card-hover)] text-[var(--mobile-text-primary)] outline-none"
+          inputMode="numeric"
+          placeholder={t("settings.forwarding_code_placeholder")}
+          value={state.code}
+          onChange={(e) => state.set_code(e.target.value)}
+        />
+        <button
+          className="rounded-[10px] px-3 py-1.5 text-[12px] font-medium text-white disabled:opacity-50"
+          disabled={!state.can_confirm}
+          style={{ backgroundColor: "var(--mobile-accent)" }}
+          type="submit"
+        >
+          {state.is_confirming ? (
+            <Spinner size="sm" />
+          ) : (
+            t("settings.forwarding_confirm_code")
+          )}
+        </button>
+      </div>
+      {state.code_error && (
+        <p className="text-[11px] text-red-500" role="alert">
+          {state.code_error}
+        </p>
+      )}
+      <button
+        className="self-start text-[11px] font-medium underline disabled:opacity-50"
+        disabled={state.is_resending || state.is_confirming}
+        style={{ color: "var(--mobile-accent)" }}
+        type="button"
+        onClick={() => state.resend()}
+      >
+        {t("settings.resend_verification_email")}
+      </button>
+    </form>
   );
 }

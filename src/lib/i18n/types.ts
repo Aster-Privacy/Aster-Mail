@@ -5953,6 +5953,15 @@ export interface SettingsTranslations {
   forwarding_verification_resent: string;
   forwarding_confirmed_success: string;
   forwarding_confirmed_failed: string;
+  forwarding_enter_code: string;
+  forwarding_code_placeholder: string;
+  forwarding_confirm_code: string;
+  forwarding_code_confirmed: string;
+  forwarding_code_invalid: string;
+  forwarding_code_expired: string;
+  forwarding_code_attempts_exhausted: string;
+  forwarding_send_failed: string;
+  forwarding_send_rejected: string;
   add_rule: string;
   edit_forwarding_rule: string;
   create_forwarding_rule: string;
