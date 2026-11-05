@@ -7192,11 +7192,6 @@ export const pl = {
     domain_purchase_total_today: "Razem dzisiaj",
     domain_purchase_years_line: "Rejestracja na {{count}} lat(a)",
     domain_purchase_secure_checkout: "Bezpieczna płatność przez Stripe",
-    domain_purchase_crypto_warning_title: "Najpierw doładuj saldo kryptowalut",
-    domain_purchase_crypto_warning_body:
-      "Zamówienia kryptowalutowe są opłacane z Twojego salda kryptowalut Aster. Doładuj środki przed zakupem, w przeciwnym razie domena pozostanie wstrzymana, dopóki saldo nie pokryje pełnej kwoty.",
-    domain_purchase_crypto_warning_hint:
-      "Możesz doładować w sekcji Płatności, to jest to samo saldo co kredyt na koncie.",
     domain_purchase_included_heading: "Wszystko, co otrzymujesz razem z domeną",
     domain_purchase_renew: "Odnów",
     domain_purchase_manage: "Zarządzaj",

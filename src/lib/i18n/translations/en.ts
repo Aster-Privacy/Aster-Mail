@@ -6492,11 +6492,6 @@ export const en: Translations = {
     domain_purchase_total_today: "Total today",
     domain_purchase_years_line: "{{count}} year registration",
     domain_purchase_secure_checkout: "Secure checkout by Stripe",
-    domain_purchase_crypto_warning_title: "Top up your crypto balance first",
-    domain_purchase_crypto_warning_body:
-      "Crypto orders are paid from your Aster crypto balance. Add funds before you buy, or the domain will stay on hold until the balance covers the full amount.",
-    domain_purchase_crypto_warning_hint:
-      "You can top up from Billing, the same balance used for account credit.",
     domain_purchase_included_heading: "Everything included with your domain",
     domain_purchase_renew: "Renew",
     domain_purchase_manage: "Manage",

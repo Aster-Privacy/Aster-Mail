@@ -6987,11 +6987,6 @@ export const nl = {
     domain_purchase_total_today: "Totaal vandaag",
     domain_purchase_years_line: "Registratie voor {{count}} jaar",
     domain_purchase_secure_checkout: "Veilig afrekenen via Stripe",
-    domain_purchase_crypto_warning_title: "Vul eerst je cryptosaldo aan",
-    domain_purchase_crypto_warning_body:
-      "Cryptobestellingen worden betaald met je Aster-cryptosaldo. Voeg tegoed toe voordat je koopt, anders blijft het domein in de wacht staan totdat het saldo het volledige bedrag dekt.",
-    domain_purchase_crypto_warning_hint:
-      "Je kunt opwaarderen via Facturering, hetzelfde saldo dat voor accounttegoed wordt gebruikt.",
     domain_purchase_included_heading: "Alles wat bij je domein is inbegrepen",
     domain_purchase_renew: "Verlengen",
     domain_purchase_manage: "Beheren",

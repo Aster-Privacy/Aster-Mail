@@ -7032,11 +7032,6 @@ export const pt_br = {
     domain_purchase_total_today: "Total hoje",
     domain_purchase_years_line: "Registro de {{count}} ano(s)",
     domain_purchase_secure_checkout: "Pagamento seguro com Stripe",
-    domain_purchase_crypto_warning_title: "Adicione saldo em cripto primeiro",
-    domain_purchase_crypto_warning_body:
-      "Os pedidos em cripto são pagos com o seu saldo em cripto da Aster. Adicione fundos antes de comprar, ou o domínio ficará em espera até que o saldo cubra o valor total.",
-    domain_purchase_crypto_warning_hint:
-      "Você pode adicionar saldo em Faturamento, o mesmo saldo usado para crédito da conta.",
     domain_purchase_included_heading: "Tudo incluído com o seu domínio",
     domain_purchase_renew: "Renovar",
     domain_purchase_manage: "Gerenciar",

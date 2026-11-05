@@ -6267,11 +6267,6 @@ export const zh_CN = {
     domain_purchase_total_today: "今日合计",
     domain_purchase_years_line: "{{count}} 年注册",
     domain_purchase_secure_checkout: "由 Stripe 提供安全结账",
-    domain_purchase_crypto_warning_title: "请先为加密货币余额充值",
-    domain_purchase_crypto_warning_body:
-      "加密货币订单将从您的 Aster 加密货币余额中扣款。请在购买前充值，否则域名将一直处于待处理状态，直到余额足以支付全额。",
-    domain_purchase_crypto_warning_hint:
-      "您可以在账单页面充值，与账户额度使用的是同一余额。",
     domain_purchase_included_heading: "域名包含的全部内容",
     domain_purchase_renew: "续费",
     domain_purchase_manage: "管理",
