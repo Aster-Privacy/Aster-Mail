@@ -5672,7 +5672,7 @@ export const ja = {
     forwarding_pending_verification: "確認待ち",
     resend_verification_email: "確認メールを再送信",
     forwarding_awaiting_verification:
-      "{{ addresses }} の確認を待っています。まだそこへは転送されません。",
+      "転送を開始するには、{{ addresses }} に送信されたコードを入力してください。",
     forwarding_verification_sent:
       "確認メールを {{ address }} に送信しました。確認後に転送が始まります。",
     forwarding_verification_resent:
@@ -5684,6 +5684,7 @@ export const ja = {
     forwarding_enter_code: "{{ address }} の確認コード",
     forwarding_code_placeholder: "8 桁のコード",
     forwarding_confirm_code: "確認",
+    forwarding_resend_code: "コードを再送信",
     forwarding_code_confirmed:
       "{{ address }} を確認しました。このアドレスへの転送が有効になりました。",
     forwarding_code_invalid:
@@ -10491,7 +10492,7 @@ export const ja = {
     expr_line_col: "（{{line}} 行、{{col}} 列）",
     editor_description: "ルールに名前を付けて、動作を指定します。",
     editor_server_notice:
-      "ルールは Aster のサーバーで実行されるため、Aster はその条件と転送先アドレスを読み取れます。",
+      "ルールは Aster のサーバーで実行されるため、Aster はその条件とアクションを読み取れます。",
     drag_handle: "ドラッグハンドル",
     title: "メールルール",
     subtitle: "受信メールを自動的に整理します。",

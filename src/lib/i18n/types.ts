@@ -5956,6 +5956,7 @@ export interface SettingsTranslations {
   forwarding_enter_code: string;
   forwarding_code_placeholder: string;
   forwarding_confirm_code: string;
+  forwarding_resend_code: string;
   forwarding_code_confirmed: string;
   forwarding_code_invalid: string;
   forwarding_code_expired: string;

@@ -71,6 +71,28 @@ const SECTION_ALIASES: Record<string, SettingsSection> = {
   help: "feedback",
 };
 
+export type SenderFiltersTab =
+  | "blocked"
+  | "allowlist"
+  | "auto_forward"
+  | "vacation_reply"
+  | "export";
+
+const SECTION_TABS: Record<string, SenderFiltersTab> = {
+  blocked: "blocked",
+  allowlist: "allowlist",
+  auto_forward: "auto_forward",
+  vacation_reply: "vacation_reply",
+};
+
+export function resolve_mobile_section_tab(
+  candidate: string | null | undefined,
+): SenderFiltersTab | null {
+  if (!candidate) return null;
+
+  return SECTION_TABS[candidate.trim()] ?? null;
+}
+
 export function resolve_mobile_section(
   candidate: string | null | undefined,
 ): SettingsSection | null {

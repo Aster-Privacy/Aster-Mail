@@ -5673,7 +5673,7 @@ export const tr = {
     forwarding_pending_verification: "Doğrulama bekleniyor",
     resend_verification_email: "Doğrulama e-postasını yeniden gönder",
     forwarding_awaiting_verification:
-      "{{ addresses }} adresinin onayı bekleniyor. Oraya henüz iletim yapılmıyor.",
+      "İletmeyi başlatmak için {{ addresses }} adresine gönderilen kodu girin.",
     forwarding_verification_sent:
       "Doğrulama e-postası {{ address }} adresine gönderildi. İletim onaydan sonra başlar.",
     forwarding_verification_resent:
@@ -5684,6 +5684,7 @@ export const tr = {
     forwarding_enter_code: "{{ address }} için onay kodu",
     forwarding_code_placeholder: "8 haneli kod",
     forwarding_confirm_code: "Onayla",
+    forwarding_resend_code: "Kodu yeniden gönder",
     forwarding_code_confirmed:
       "{{ address }} onaylandı. Bu adrese iletim artık etkin.",
     forwarding_code_invalid:
@@ -10583,7 +10584,7 @@ export const tr = {
     expr_line_col: "(satır {{line}}, sütun {{col}})",
     editor_description: "Kuralınıza bir ad verin ve ne yapacağını belirtin.",
     editor_server_notice:
-      "Kurallar Aster sunucularında çalışır, bu nedenle Aster koşullarını ve yönlendirme adreslerini okuyabilir.",
+      "Kurallar Aster sunucularında çalışır, bu nedenle Aster koşullarını ve eylemlerini okuyabilir.",
     drag_handle: "Sürükleme tutamacı",
     no_labels: "Etiket yok",
     no_labels_create_hint: "Henüz etiket yok. Yan panelden bir tane oluşturun.",

@@ -25,26 +25,26 @@ import { BlockedSendersTab } from "./blocked_senders_tab";
 import { AllowlistTab } from "./allowlist_tab";
 import { AutoForwardTab } from "./auto_forward_tab";
 import { VacationReplyTab } from "./vacation_reply_tab";
+import { type SenderFiltersTab } from "./section_routing";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ExportSection } from "@/components/settings/export_section";
 
-type MailManagementTab =
-  | "blocked"
-  | "allowlist"
-  | "auto_forward"
-  | "vacation_reply"
-  | "export";
+type MailManagementTab = SenderFiltersTab;
 
 export function SenderFiltersSection({
   on_back,
   on_close,
+  initial_tab = null,
 }: {
   on_back: () => void;
   on_close: () => void;
+  initial_tab?: MailManagementTab | null;
 }) {
   const { t } = use_i18n();
-  const [active_tab, set_active_tab] = useState<MailManagementTab>("blocked");
+  const [active_tab, set_active_tab] = useState<MailManagementTab>(
+    initial_tab ?? "blocked",
+  );
 
   const tabs: { key: MailManagementTab; label: string }[] = [
     { key: "blocked", label: t("settings.blocked") },

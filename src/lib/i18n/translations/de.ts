@@ -5634,7 +5634,7 @@ export const de = {
     forwarding_pending_verification: "Bestätigung ausstehend",
     resend_verification_email: "Bestätigungs-E-Mail erneut senden",
     forwarding_awaiting_verification:
-      "Warten auf die Bestätigung von {{ addresses }}. Dorthin wird noch nicht weitergeleitet.",
+      "Geben Sie den an {{ addresses }} gesendeten Code ein, um die Weiterleitung zu starten.",
     forwarding_verification_sent:
       "Bestätigungs-E-Mail an {{ address }} gesendet. Die Weiterleitung startet nach der Bestätigung.",
     forwarding_verification_resent:
@@ -5646,6 +5646,7 @@ export const de = {
     forwarding_enter_code: "Bestätigungscode für {{ address }}",
     forwarding_code_placeholder: "8-stelliger Code",
     forwarding_confirm_code: "Bestätigen",
+    forwarding_resend_code: "Code erneut senden",
     forwarding_code_confirmed:
       "{{ address }} ist bestätigt. Die Weiterleitung dorthin ist jetzt aktiv.",
     forwarding_code_invalid:
@@ -10854,7 +10855,7 @@ export const de = {
     editor_description:
       "Benennen Sie Ihre Regel und legen Sie fest, was sie tut.",
     editor_server_notice:
-      "Regeln laufen auf den Servern von Aster, daher kann Aster ihre Bedingungen und Weiterleitungsadressen lesen.",
+      "Regeln laufen auf den Servern von Aster, daher kann Aster ihre Bedingungen und Aktionen lesen.",
     drag_handle: "Ziehgriff",
     no_labels: "Keine Labels",
     no_labels_create_hint:

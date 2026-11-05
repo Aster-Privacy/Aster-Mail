@@ -48,6 +48,30 @@ export interface DestinationUpdate {
   send_error?: string | null;
 }
 
+export type ForwardingRuleState = "active" | "paused" | "pending";
+
+export function forwarding_rule_state(rule: {
+  is_enabled: boolean;
+  destinations?: ForwardingDestinationStatus[];
+}): ForwardingRuleState {
+  if (!rule.is_enabled) return "paused";
+  const destinations = rule.destinations ?? [];
+
+  if (destinations.length > 0 && destinations.every((d) => !d.confirmed)) {
+    return "pending";
+  }
+
+  return "active";
+}
+
+export function awaiting_code_addresses(
+  destinations: ForwardingDestinationStatus[] | undefined,
+): string[] {
+  return (destinations ?? [])
+    .filter((d) => !d.confirmed && !d.send_error)
+    .map((d) => d.address);
+}
+
 export function clean_forwarding_code(raw: string): string {
   return raw.replace(/\D/g, "").slice(0, FORWARDING_CODE_LENGTH);
 }
@@ -194,7 +218,7 @@ export function PendingDestinationControls({
           {t(error_key, { address: destination.address })}
         </p>
       )}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
         <Input
           aria-label={t("settings.forwarding_enter_code", {
             address: destination.address,
@@ -220,10 +244,10 @@ export function PendingDestinationControls({
           is_loading={state.is_resending}
           size="sm"
           type="button"
-          variant="outline"
+          variant="ghost"
           onClick={() => state.resend()}
         >
-          {t("settings.resend_verification_email")}
+          {t("settings.forwarding_resend_code")}
         </Button>
       </div>
       {state.code_error && (

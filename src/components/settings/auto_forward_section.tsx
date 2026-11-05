@@ -64,7 +64,11 @@ import {
   type ForwardingCondition,
   type ForwardingDestinationStatus,
 } from "@/services/api/auto_forward";
-import { PendingDestinationControls } from "@/components/settings/forwarding_destination_confirm";
+import {
+  PendingDestinationControls,
+  awaiting_code_addresses,
+  forwarding_rule_state,
+} from "@/components/settings/forwarding_destination_confirm";
 import { FaviconImg } from "@/components/ui/favicon_or_initial";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -580,14 +584,7 @@ export function AutoForwardSection() {
                   onCheckedChange={() => handle_select(index)}
                 />
 
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
-                  style={{
-                    backgroundColor: rule.is_enabled
-                      ? "color-mix(in srgb, var(--accent-color) 14%, transparent)"
-                      : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
-                  }}
-                >
+                <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
                   {get_forward_favicon_domain(rule.forward_to) ? (
                     <FaviconImg
                       alt=""
@@ -602,12 +599,7 @@ export function AutoForwardSection() {
                     />
                   ) : null}
                   <ArrowTopRightOnSquareIcon
-                    className={`w-4 h-4 ${get_forward_favicon_domain(rule.forward_to) ? "hidden" : ""}`}
-                    style={{
-                      color: rule.is_enabled
-                        ? "var(--accent-color)"
-                        : "var(--text-muted)",
-                    }}
+                    className={`w-4 h-4 text-txt-muted ${get_forward_favicon_domain(rule.forward_to) ? "hidden" : ""}`}
                   />
                 </div>
 
@@ -616,11 +608,15 @@ export function AutoForwardSection() {
                     <span className="text-[13px] font-medium truncate text-txt-primary">
                       {rule.name}
                     </span>
-                    <StatusBadge tone={rule.is_enabled ? "success" : "warning"}>
-                      {rule.is_enabled
-                        ? t("common.active")
-                        : t("common.paused")}
-                    </StatusBadge>
+                    {forwarding_rule_state(rule) !== "pending" && (
+                      <StatusBadge
+                        tone={rule.is_enabled ? "success" : "warning"}
+                      >
+                        {rule.is_enabled
+                          ? t("common.active")
+                          : t("common.paused")}
+                      </StatusBadge>
+                    )}
                     {rule.keep_copy && (
                       <StatusBadge tone="neutral">
                         {t("settings.keeps_copy")}
@@ -644,13 +640,16 @@ export function AutoForwardSection() {
                   </p>
                   {pending_destinations(rule).length > 0 && (
                     <div className="mt-1">
-                      <p className="text-[11px] text-amber-600 dark:text-amber-500">
-                        {t("settings.forwarding_awaiting_verification", {
-                          addresses: pending_destinations(rule)
-                            .map((d) => d.address)
-                            .join(", "),
-                        })}
-                      </p>
+                      {awaiting_code_addresses(rule.destinations).length >
+                        0 && (
+                        <p className="text-[11px] text-txt-muted">
+                          {t("settings.forwarding_awaiting_verification", {
+                            addresses: awaiting_code_addresses(
+                              rule.destinations,
+                            ).join(", "),
+                          })}
+                        </p>
+                      )}
                       {pending_destinations(rule).map((destination) => (
                         <PendingDestinationControls
                           key={destination.address}

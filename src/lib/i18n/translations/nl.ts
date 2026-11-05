@@ -5639,7 +5639,7 @@ export const nl = {
     forwarding_pending_verification: "Verificatie in behandeling",
     resend_verification_email: "Verificatiemail opnieuw verzenden",
     forwarding_awaiting_verification:
-      "Wachten op bevestiging van {{ addresses }}. Er wordt daar nog niets doorgestuurd.",
+      "Voer de code in die naar {{ addresses }} is gestuurd om het doorsturen te starten.",
     forwarding_verification_sent:
       "Verificatiemail verzonden naar {{ address }}. Doorsturen begint na bevestiging.",
     forwarding_verification_resent:
@@ -5651,6 +5651,7 @@ export const nl = {
     forwarding_enter_code: "Bevestigingscode voor {{ address }}",
     forwarding_code_placeholder: "Code van 8 cijfers",
     forwarding_confirm_code: "Bevestigen",
+    forwarding_resend_code: "Code opnieuw sturen",
     forwarding_code_confirmed:
       "{{ address }} is bevestigd. Doorsturen naar dit adres is nu actief.",
     forwarding_code_invalid:
@@ -10697,7 +10698,7 @@ export const nl = {
     expr_line_col: "(regel {{line}}, kolom {{col}})",
     editor_description: "Geef je regel een naam en vertel wat deze moet doen.",
     editor_server_notice:
-      "Regels worden uitgevoerd op de servers van Aster, dus Aster kan de voorwaarden en doorstuuradressen lezen.",
+      "Regels worden uitgevoerd op de servers van Aster, dus Aster kan de voorwaarden en acties lezen.",
     drag_handle: "Sleepgreep",
     title: "E-mailregels",
     subtitle: "Inkomende e-mail automatisch organiseren.",

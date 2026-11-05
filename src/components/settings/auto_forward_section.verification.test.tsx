@@ -171,7 +171,7 @@ describe("AutoForwardSection destination verification", () => {
     );
 
     const resend = Array.from(view.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes("settings.resend_verification_email"),
+      b.textContent?.includes("settings.forwarding_resend_code"),
     );
 
     expect(resend).toBeTruthy();
@@ -190,6 +190,48 @@ describe("AutoForwardSection destination verification", () => {
       ),
     ).toBe(true);
     expect(list_forwarding_rules).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows only the pending badge while no destination is confirmed", async () => {
+    list_forwarding_rules.mockResolvedValue({ data: [make_rule()] });
+
+    const view = await render(<AutoForwardSection />);
+
+    expect(view.textContent).toContain(
+      "settings.forwarding_pending_verification",
+    );
+    expect(view.textContent).not.toContain("common.active");
+  });
+
+  it("keeps the active badge once one destination is confirmed", async () => {
+    list_forwarding_rules.mockResolvedValue({
+      data: [
+        make_rule({
+          forward_to: ["friend@astermail.org", "someone@example.com"],
+          destinations: [
+            {
+              address: "friend@astermail.org",
+              is_internal: true,
+              confirmed: true,
+              confirmation_sent_at: null,
+            },
+            {
+              address: "someone@example.com",
+              is_internal: false,
+              confirmed: false,
+              confirmation_sent_at: "2026-11-05T00:00:00Z",
+            },
+          ],
+        }),
+      ],
+    });
+
+    const view = await render(<AutoForwardSection />);
+
+    expect(view.textContent).toContain("common.active");
+    expect(view.textContent).toContain(
+      "settings.forwarding_pending_verification",
+    );
   });
 
   it("shows no verification prompt when every destination is internal", async () => {
@@ -215,9 +257,7 @@ describe("AutoForwardSection destination verification", () => {
     expect(view.textContent).not.toContain(
       "settings.forwarding_pending_verification",
     );
-    expect(view.textContent).not.toContain(
-      "settings.resend_verification_email",
-    );
+    expect(view.textContent).not.toContain("settings.forwarding_resend_code");
   });
 
   it("shows no verification prompt when the backend omits destinations", async () => {
@@ -345,7 +385,7 @@ describe("AutoForwardSection destination verification", () => {
     expect(view.textContent).toContain(
       "settings.forwarding_send_failed:someone@example.com",
     );
-    expect(find_button(view, "settings.resend_verification_email")).toBeTruthy();
+    expect(find_button(view, "settings.forwarding_resend_code")).toBeTruthy();
   });
 
   it("reports a failed resend", async () => {
@@ -358,7 +398,7 @@ describe("AutoForwardSection destination verification", () => {
     const view = await render(<AutoForwardSection />);
 
     await act(async () => {
-      find_button(view, "settings.resend_verification_email")!.click();
+      find_button(view, "settings.forwarding_resend_code")!.click();
     });
 
     expect(

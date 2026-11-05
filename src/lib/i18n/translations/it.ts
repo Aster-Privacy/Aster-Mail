@@ -6912,7 +6912,7 @@ export const it = {
     forwarding_pending_verification: "Verifica in sospeso",
     resend_verification_email: "Invia di nuovo l'email di verifica",
     forwarding_awaiting_verification:
-      "In attesa della conferma di {{ addresses }}. La posta non viene ancora inoltrata lì.",
+      "Inserisci il codice inviato a {{ addresses }} per avviare l'inoltro.",
     forwarding_verification_sent:
       "Email di verifica inviata a {{ address }}. L'inoltro inizierà dopo la conferma.",
     forwarding_verification_resent:
@@ -6924,6 +6924,7 @@ export const it = {
     forwarding_enter_code: "Codice di conferma per {{ address }}",
     forwarding_code_placeholder: "Codice di 8 cifre",
     forwarding_confirm_code: "Conferma",
+    forwarding_resend_code: "Invia di nuovo il codice",
     forwarding_code_confirmed:
       "{{ address }} è confermato. L'inoltro a questo indirizzo è ora attivo.",
     forwarding_code_invalid:
@@ -10773,7 +10774,7 @@ export const it = {
     expr_line_col: "(riga {{line}}, colonna {{col}})",
     editor_description: "Dia un nome alla regola e le indichi cosa fare.",
     editor_server_notice:
-      "Le regole vengono eseguite sui server di Aster, quindi Aster può leggerne le condizioni e gli indirizzi di inoltro.",
+      "Le regole vengono eseguite sui server di Aster, quindi Aster può leggerne le condizioni e le azioni.",
     drag_handle: "Maniglia di trascinamento",
     title: "Regole posta",
     subtitle: "Organizza automaticamente la posta in arrivo.",

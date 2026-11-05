@@ -5866,7 +5866,7 @@ export const ru = {
     forwarding_pending_verification: "Ожидает подтверждения",
     resend_verification_email: "Отправить письмо подтверждения ещё раз",
     forwarding_awaiting_verification:
-      "Ожидается подтверждение от {{ addresses }}. Пересылка туда пока не выполняется.",
+      "Введите код, отправленный на {{ addresses }}, чтобы начать пересылку.",
     forwarding_verification_sent:
       "Письмо для подтверждения отправлено на {{ address }}. Пересылка начнётся после подтверждения.",
     forwarding_verification_resent:
@@ -5878,6 +5878,7 @@ export const ru = {
     forwarding_enter_code: "Код подтверждения для {{ address }}",
     forwarding_code_placeholder: "Код из 8 цифр",
     forwarding_confirm_code: "Подтвердить",
+    forwarding_resend_code: "Отправить код ещё раз",
     forwarding_code_confirmed:
       "Адрес {{ address }} подтверждён. Пересылка на него включена.",
     forwarding_code_invalid:
@@ -10902,7 +10903,7 @@ export const ru = {
     expr_line_col: "(строка {{line}}, столбец {{col}})",
     editor_description: "Назовите правило и укажите, что оно должно делать.",
     editor_server_notice:
-      "Правила выполняются на серверах Aster, поэтому Aster может читать их условия и адреса пересылки.",
+      "Правила выполняются на серверах Aster, поэтому Aster может читать их условия и действия.",
     drag_handle: "Маркер перетаскивания",
     no_labels: "Нет меток",
     no_labels_create_hint: "Меток пока нет. Создайте новую в боковой панели.",

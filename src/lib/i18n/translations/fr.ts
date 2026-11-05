@@ -5828,7 +5828,7 @@ export const fr = {
     forwarding_pending_verification: "Vérification en attente",
     resend_verification_email: "Renvoyer l'e-mail de vérification",
     forwarding_awaiting_verification:
-      "En attente de confirmation de {{ addresses }}. Aucun message n'y est encore transféré.",
+      "Saisissez le code envoyé à {{ addresses }} pour démarrer le transfert.",
     forwarding_verification_sent:
       "E-mail de vérification envoyé à {{ address }}. Le transfert démarrera après confirmation.",
     forwarding_verification_resent:
@@ -5840,6 +5840,7 @@ export const fr = {
     forwarding_enter_code: "Code de confirmation pour {{ address }}",
     forwarding_code_placeholder: "Code à 8 chiffres",
     forwarding_confirm_code: "Confirmer",
+    forwarding_resend_code: "Renvoyer le code",
     forwarding_code_confirmed:
       "{{ address }} est confirmée. Le transfert vers cette adresse est maintenant actif.",
     forwarding_code_invalid:
@@ -10847,7 +10848,7 @@ export const fr = {
     expr_line_col: "(ligne {{line}}, colonne {{col}})",
     editor_description: "Nommez votre règle et indiquez-lui quoi faire.",
     editor_server_notice:
-      "Les règles s'exécutent sur les serveurs d'Aster, qui peut donc lire leurs conditions et leurs adresses de transfert.",
+      "Les règles s'exécutent sur les serveurs d'Aster, qui peut donc lire leurs conditions et leurs actions.",
     drag_handle: "Poignée de déplacement",
     action_apply_label: "Appliquer une étiquette",
     action_apply_labels: "Appliquer des étiquettes",

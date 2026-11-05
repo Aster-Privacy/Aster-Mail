@@ -5156,7 +5156,7 @@ export const zh_CN = {
     forwarding_pending_verification: "等待验证",
     resend_verification_email: "重新发送验证邮件",
     forwarding_awaiting_verification:
-      "正在等待 {{ addresses }} 确认，暂不会转发到该地址。",
+      "输入发送到 {{ addresses }} 的验证码以开始转发。",
     forwarding_verification_sent:
       "验证邮件已发送至 {{ address }}，确认后即开始转发。",
     forwarding_verification_resent: "验证邮件已重新发送至 {{ address }}",
@@ -5166,6 +5166,7 @@ export const zh_CN = {
     forwarding_enter_code: "{{ address }} 的确认码",
     forwarding_code_placeholder: "8 位数字代码",
     forwarding_confirm_code: "确认",
+    forwarding_resend_code: "重新发送验证码",
     forwarding_code_confirmed: "{{ address }} 已确认，现已开始转发到该地址。",
     forwarding_code_invalid: "代码不正确。请查看确认邮件后重试。",
     forwarding_code_expired: "此代码已过期。请重新发送确认邮件以获取新代码。",
@@ -9516,7 +9517,7 @@ export const zh_CN = {
     expr_line_col: "(第 {{line}} 行，第 {{col}} 列)",
     editor_description: "为规则命名并指定它的操作。",
     editor_server_notice:
-      "规则在 Aster 服务器上运行，因此 Aster 可以读取规则的条件和转发地址。",
+      "规则在 Aster 服务器上运行，因此 Aster 可以读取规则的条件和操作。",
     drag_handle: "拖动手柄",
     title: "邮件规则",
     subtitle: "自动整理收件箱。",

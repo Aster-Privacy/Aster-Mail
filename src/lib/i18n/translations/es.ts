@@ -5770,7 +5770,7 @@ export const es = {
     forwarding_pending_verification: "Verificación pendiente",
     resend_verification_email: "Reenviar correo de verificación",
     forwarding_awaiting_verification:
-      "Esperando la confirmación de {{ addresses }}. Todavía no se reenvía allí.",
+      "Introduce el código enviado a {{ addresses }} para empezar a reenviar.",
     forwarding_verification_sent:
       "Correo de verificación enviado a {{ address }}. El reenvío empezará cuando se confirme.",
     forwarding_verification_resent:
@@ -5782,6 +5782,7 @@ export const es = {
     forwarding_enter_code: "Código de confirmación para {{ address }}",
     forwarding_code_placeholder: "Código de 8 dígitos",
     forwarding_confirm_code: "Confirmar",
+    forwarding_resend_code: "Reenviar código",
     forwarding_code_confirmed:
       "{{ address }} está confirmada. El reenvío a esta dirección ya está activo.",
     forwarding_code_invalid:
@@ -10714,7 +10715,7 @@ export const es = {
     expr_line_col: "(línea {{line}}, columna {{col}})",
     editor_description: "Ponle nombre a tu regla y dile qué hacer.",
     editor_server_notice:
-      "Las reglas se ejecutan en los servidores de Aster, por lo que Aster puede leer sus condiciones y direcciones de reenvío.",
+      "Las reglas se ejecutan en los servidores de Aster, por lo que Aster puede leer sus condiciones y acciones.",
     drag_handle: "Tirador para arrastrar",
     action_apply_label: "Aplicar etiqueta",
     action_apply_labels: "Aplicar etiquetas",

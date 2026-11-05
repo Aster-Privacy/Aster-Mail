@@ -5698,7 +5698,7 @@ export const pt_br = {
     forwarding_pending_verification: "Verificação pendente",
     resend_verification_email: "Reenviar e-mail de verificação",
     forwarding_awaiting_verification:
-      "Aguardando a confirmação de {{ addresses }}. Os e-mails ainda não são encaminhados para lá.",
+      "Digite o código enviado para {{ addresses }} para começar o encaminhamento.",
     forwarding_verification_sent:
       "E-mail de verificação enviado para {{ address }}. O encaminhamento começa após a confirmação.",
     forwarding_verification_resent:
@@ -5710,6 +5710,7 @@ export const pt_br = {
     forwarding_enter_code: "Código de confirmação para {{ address }}",
     forwarding_code_placeholder: "Código de 8 dígitos",
     forwarding_confirm_code: "Confirmar",
+    forwarding_resend_code: "Reenviar código",
     forwarding_code_confirmed:
       "{{ address }} foi confirmado. O encaminhamento para esse endereço está ativo.",
     forwarding_code_invalid:
@@ -10763,7 +10764,7 @@ export const pt_br = {
     expr_line_col: "(linha {{line}}, coluna {{col}})",
     editor_description: "Dê um nome à sua regra e diga o que ela deve fazer.",
     editor_server_notice:
-      "As regras são executadas nos servidores da Aster, então a Aster pode ler as condições e os endereços de encaminhamento delas.",
+      "As regras são executadas nos servidores da Aster, então a Aster pode ler as condições e as ações delas.",
     drag_handle: "Alça de arrastar",
     no_labels: "Sem etiquetas",
     no_labels_create_hint: "Nenhuma etiqueta ainda. Crie uma na barra lateral.",

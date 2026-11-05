@@ -5900,7 +5900,7 @@ export const pl = {
     forwarding_pending_verification: "Oczekuje na weryfikację",
     resend_verification_email: "Wyślij ponownie e-mail weryfikacyjny",
     forwarding_awaiting_verification:
-      "Oczekiwanie na potwierdzenie od {{ addresses }}. Poczta nie jest jeszcze tam przekazywana.",
+      "Wpisz kod wysłany na {{ addresses }}, aby rozpocząć przekazywanie.",
     forwarding_verification_sent:
       "E-mail weryfikacyjny wysłany na {{ address }}. Przekazywanie ruszy po potwierdzeniu.",
     forwarding_verification_resent:
@@ -5912,6 +5912,7 @@ export const pl = {
     forwarding_enter_code: "Kod potwierdzenia dla {{ address }}",
     forwarding_code_placeholder: "Kod 8-cyfrowy",
     forwarding_confirm_code: "Potwierdź",
+    forwarding_resend_code: "Wyślij kod ponownie",
     forwarding_code_confirmed:
       "Adres {{ address }} jest potwierdzony. Przekazywanie na ten adres jest już aktywne.",
     forwarding_code_invalid:
@@ -10931,7 +10932,7 @@ export const pl = {
     expr_line_col: "(wiersz {{line}}, kolumna {{col}})",
     editor_description: "Nazwij regułę i określ, co ma robić.",
     editor_server_notice:
-      "Reguły działają na serwerach Aster, więc Aster może odczytać ich warunki i adresy przekazywania.",
+      "Reguły działają na serwerach Aster, więc Aster może odczytać ich warunki i akcje.",
     drag_handle: "Uchwyt przeciągania",
     no_labels: "Brak etykiet",
     no_labels_create_hint: "Brak etykiet. Utwórz jedną w pasku bocznym.",

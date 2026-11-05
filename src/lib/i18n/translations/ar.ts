@@ -5767,7 +5767,7 @@ export const ar = {
     forwarding_pending_verification: "في انتظار التحقق",
     resend_verification_email: "إعادة إرسال بريد التحقق",
     forwarding_awaiting_verification:
-      "في انتظار تأكيد {{ addresses }}. لا تتم إعادة التوجيه إلى هناك بعد.",
+      "أدخل الرمز المرسل إلى {{ addresses }} لبدء إعادة التوجيه.",
     forwarding_verification_sent:
       "تم إرسال بريد التحقق إلى {{ address }}. تبدأ إعادة التوجيه بعد التأكيد.",
     forwarding_verification_resent:
@@ -5779,6 +5779,7 @@ export const ar = {
     forwarding_enter_code: "رمز التأكيد لـ {{ address }}",
     forwarding_code_placeholder: "رمز من 8 أرقام",
     forwarding_confirm_code: "تأكيد",
+    forwarding_resend_code: "إعادة إرسال الرمز",
     forwarding_code_confirmed:
       "تم تأكيد {{ address }}. إعادة التوجيه إليه مفعّلة الآن.",
     forwarding_code_invalid:
@@ -10478,7 +10479,7 @@ export const ar = {
     expr_line_col: "(السطر {{line}}، العمود {{col}})",
     editor_description: "سمِّ قاعدتك وحدد ما تفعله.",
     editor_server_notice:
-      "تعمل القواعد على خوادم Aster، لذا يمكن لـ Aster قراءة شروطها وعناوين إعادة التوجيه فيها.",
+      "تعمل القواعد على خوادم Aster، لذا يمكن لـ Aster قراءة شروطها وإجراءاتها.",
     drag_handle: "مقبض السحب",
     title: "قواعد البريد",
     subtitle: "تنظيم البريد الوارد تلقائيًا.",
