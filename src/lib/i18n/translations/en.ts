@@ -6328,6 +6328,8 @@ export const en: Translations = {
     domain_pending_hint:
       "Click Continue Setup to configure your DNS records and verify your domain.",
     verified_count: "{{count}}/5 verified",
+    domain_receives_mail_send_pending:
+      "Receives mail. To send from it, finish setup.",
     used_count: "{{current}} / {{max}} used",
     alias_usage_remaining: "{{count}} aliases left on your plan",
     alias_usage_remaining_one: "{{count}} alias left on your plan",

@@ -5328,6 +5328,8 @@ export const tr = {
     add_first_domain: "Başlamak için ilk özel alan adınızı ekleyin",
     continue_setup: "Kuruluma Devam Et",
     verified_count: "{{count}}/5 doğrulandı",
+    domain_receives_mail_send_pending:
+      "Posta alıyor. Bu alan adından göndermek için kurulumu tamamlayın.",
     used_count: "{{current}} / {{max}} kullanıldı",
     alias_usage_remaining: "Planınızda {{count}} takma ad kaldı",
     alias_usage_remaining_one: "Planınızda {{count}} takma ad kaldı",

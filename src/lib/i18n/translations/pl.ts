@@ -5557,6 +5557,8 @@ export const pl = {
     add_first_domain: "Dodaj swoją pierwszą domenę własną, aby rozpocząć",
     continue_setup: "Kontynuuj konfigurację",
     verified_count: "{{count}}/5 zweryfikowanych",
+    domain_receives_mail_send_pending:
+      "Odbiera pocztę. Aby z niej wysyłać, dokończ konfigurację.",
     used_count: "{{current}} / {{max}} wykorzystanych",
     alias_usage_remaining: "W Twoim planie zostało {{count}} aliasów",
     alias_usage_remaining_one: "W Twoim planie został {{count}} alias",

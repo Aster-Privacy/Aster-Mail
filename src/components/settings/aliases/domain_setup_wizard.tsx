@@ -671,7 +671,7 @@ export function DomainSetupWizard({
             {t("settings.domain_health_auto_checking")}
           </p>
         )}
-        <div className="flex items-center justify-between w-full mt-2">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 w-full mt-2">
           <Button
             disabled={is_first_step || is_verifying}
             variant="outline"
@@ -680,7 +680,7 @@ export function DomainSetupWizard({
             <ArrowLeftIcon className="w-4 h-4 me-1 rtl:-scale-x-100" />
             {t("common.previous")}
           </Button>
-          <p className="text-xs text-txt-muted">
+          <p className="order-first w-full text-center text-xs text-txt-muted sm:order-none sm:w-auto sm:flex-1 sm:px-3">
             {t("common.dns_propagation_note")}
           </p>
           <Button

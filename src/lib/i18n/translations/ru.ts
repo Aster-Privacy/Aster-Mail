@@ -5522,6 +5522,8 @@ export const ru = {
       "Добавьте ваш первый пользовательский домен, чтобы начать",
     continue_setup: "Продолжить настройку",
     verified_count: "{{count}}/5 проверено",
+    domain_receives_mail_send_pending:
+      "Принимает почту. Чтобы отправлять с этого домена, завершите настройку.",
     used_count: "{{current}} / {{max}} использовано",
     alias_usage_remaining: "В вашем плане осталось {{count}} псевдонимов",
     alias_usage_remaining_one: "В вашем плане остался {{count}} псевдоним",

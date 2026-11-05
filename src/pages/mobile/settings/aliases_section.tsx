@@ -65,6 +65,7 @@ import {
   type DnsRecordsResponse,
   type DomainOrder,
 } from "@/services/api/domains";
+import { domain_receives_mail } from "@/components/settings/aliases/domain_verification_outcome";
 import { update_alias } from "@/services/api/aliases";
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
 import { get_grace_days_remaining } from "@/components/settings/aliases/grace_period";
@@ -829,6 +830,14 @@ export function AliasesSection({
                                 </span>
                               )}
                             </div>
+                            {domain.status !== "active" &&
+                              domain_receives_mail(domain.status) && (
+                                <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">
+                                  {t(
+                                    "settings.domain_receives_mail_send_pending",
+                                  )}
+                                </p>
+                              )}
                           </div>
                           <div className="flex items-center gap-2">
                             {domain.status !== "active" && (

@@ -6408,6 +6408,8 @@ export const hi = {
     domain_pending_hint:
       "अपने DNS रिकॉर्ड सेट करने और डोमेन की पुष्टि करने के लिए सेटअप जारी रखें पर क्लिक करें।",
     verified_count: "5 में से {{count}} सत्यापित",
+    domain_receives_mail_send_pending:
+      "मेल प्राप्त करता है। इससे भेजने के लिए, सेटअप पूरा करें।",
     used_count: "{{max}} में से {{current}} इस्तेमाल हुआ",
     alias_usage_remaining: "आपकी योजना में {{count}} उपनाम बचे हैं",
     alias_usage_remaining_one: "आपकी योजना में {{count}} उपनाम बचा है",

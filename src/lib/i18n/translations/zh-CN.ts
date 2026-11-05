@@ -4856,6 +4856,8 @@ export const zh_CN = {
     add_first_domain: "添加您的第一个自定义域名以开始使用",
     continue_setup: "继续设置",
     verified_count: "{{count}}/5 已验证",
+    domain_receives_mail_send_pending:
+      "可以接收邮件。要从此域名发送邮件，请完成设置。",
     used_count: "已使用 {{current}} / {{max}}",
     alias_usage_remaining: "您的套餐还剩 {{count}} 个别名",
     alias_usage_remaining_other: "您的套餐还剩 {{count}} 个别名",

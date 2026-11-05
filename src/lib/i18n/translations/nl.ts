@@ -5296,6 +5296,8 @@ export const nl = {
     add_first_domain: "Voeg je eerste aangepaste domein toe om te beginnen",
     continue_setup: "Doorgaan met instellen",
     verified_count: "{{count}}/5 geverifieerd",
+    domain_receives_mail_send_pending:
+      "Ontvangt e-mail. Rond de installatie af om vanaf dit domein te verzenden.",
     used_count: "{{current}} / {{max}} gebruikt",
     alias_usage_remaining: "Je hebt nog {{count}} aliassen in je abonnement",
     alias_usage_remaining_one: "Je hebt nog {{count}} alias in je abonnement",

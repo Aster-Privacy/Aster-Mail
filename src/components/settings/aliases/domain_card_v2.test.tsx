@@ -107,13 +107,14 @@ vi.mock("@aster/ui", () => ({
 
 const rotate_dkim = vi.fn();
 const get_dns_records = vi.fn();
+const trigger_verification = vi.fn();
 
 vi.mock("@/services/api/domains", () => ({
   get_grace_days_remaining: () => 0,
   get_status_color: () => "",
   get_status_label: () => "",
   update_domain: vi.fn(),
-  trigger_verification: vi.fn(),
+  trigger_verification: (id: string) => trigger_verification(id),
   rotate_dkim: (id: string) => rotate_dkim(id),
   get_dns_records: (id: string) => get_dns_records(id),
 }));
@@ -295,5 +296,164 @@ describe("DomainCardV2 DKIM rotation", () => {
       "error",
     );
     expect(on_domains_changed).not.toHaveBeenCalled();
+  });
+});
+
+describe("DomainCardV2 verification result", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  const verify_response = (overrides: Record<string, unknown>) => ({
+    data: {
+      success: true,
+      txt_verified: true,
+      mx_verified: true,
+      spf_verified: false,
+      dkim_verified: false,
+      dmarc_configured: false,
+      status: "dns_pending",
+      message:
+        "2 of 4 records verified. This domain receives mail now. To send from it, add the pending records: SPF, DKIM",
+      ...overrides,
+    },
+  });
+
+  const render_and_verify = async (domain: CustomDomain) => {
+    await act(async () => {
+      root.render(
+        <DomainCardV2
+          deleting={false}
+          domain={domain}
+          on_delete={vi.fn()}
+          on_domains_changed={vi.fn()}
+          on_setup={vi.fn()}
+        />,
+      );
+    });
+    const button = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.trim() === "settings.verify_all_records",
+    );
+
+    expect(button).toBeTruthy();
+    await act(async () => {
+      button!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  };
+
+  const missing_send_records: CustomDomain = {
+    ...base_domain,
+    spf_verified: false,
+    dkim_verified: false,
+  };
+
+  beforeEach(() => {
+    trigger_verification.mockReset();
+    show_toast.mockReset();
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it("explains that the domain receives mail when only sending records are missing", async () => {
+    trigger_verification.mockResolvedValue(verify_response({}));
+    await render_and_verify(missing_send_records);
+
+    expect(show_toast).toHaveBeenCalledWith(
+      expect.stringContaining("receives mail now"),
+      "info",
+    );
+    expect(show_toast).not.toHaveBeenCalledWith(
+      "settings.verification_failed_retry",
+      "error",
+    );
+  });
+
+  it("shows the pending records when the domain cannot receive mail yet", async () => {
+    trigger_verification.mockResolvedValue(
+      verify_response({
+        mx_verified: false,
+        status: "verifying",
+        message: "1 of 4 records verified - still pending: MX, SPF, DKIM",
+      }),
+    );
+    await render_and_verify(missing_send_records);
+
+    expect(show_toast).toHaveBeenCalledWith(
+      "1 of 4 records verified - still pending: MX, SPF, DKIM",
+      "warning",
+    );
+  });
+
+  it("shows no toast once every core record verifies", async () => {
+    trigger_verification.mockResolvedValue(
+      verify_response({
+        spf_verified: true,
+        dkim_verified: true,
+        status: "active",
+        message: "Domain fully verified and active",
+      }),
+    );
+    await render_and_verify(missing_send_records);
+
+    expect(show_toast).not.toHaveBeenCalled();
+  });
+
+  it("keeps the failure toast when the request itself fails", async () => {
+    trigger_verification.mockResolvedValue({ error: "unavailable" });
+    await render_and_verify(missing_send_records);
+
+    expect(show_toast).toHaveBeenCalledWith(
+      "settings.verification_failed_retry",
+      "error",
+    );
+  });
+
+  it("tells the user a receive-ready domain already gets mail", async () => {
+    await act(async () => {
+      root.render(
+        <DomainCardV2
+          deleting={false}
+          domain={{ ...missing_send_records, status: "dns_pending" }}
+          on_delete={vi.fn()}
+          on_domains_changed={vi.fn()}
+          on_setup={vi.fn()}
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain(
+      "settings.domain_receives_mail_send_pending",
+    );
+  });
+
+  it("says nothing about receiving while MX is still unverified", async () => {
+    await act(async () => {
+      root.render(
+        <DomainCardV2
+          deleting={false}
+          domain={{
+            ...missing_send_records,
+            mx_verified: false,
+            status: "verifying",
+          }}
+          on_delete={vi.fn()}
+          on_domains_changed={vi.fn()}
+          on_setup={vi.fn()}
+        />,
+      );
+    });
+
+    expect(container.textContent).not.toContain(
+      "settings.domain_receives_mail_send_pending",
+    );
   });
 });
