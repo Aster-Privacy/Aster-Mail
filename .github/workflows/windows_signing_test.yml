@@ -32,6 +32,9 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
+
       - name: Build @aster/ui
         shell: bash
         run: |
