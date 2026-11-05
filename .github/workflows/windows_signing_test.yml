@@ -43,8 +43,16 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Create a throwaway updater key for the bundler
+        shell: bash
+        run: npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/throwaway_updater.key"
+
       - name: Build the app binary without installers
-        run: npm run tauri -- build --no-bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          source scripts/use_msvc_toolchain.sh
+          npm run tauri -- build --no-bundle
 
       - name: Stage the app binary
         id: app_binary
@@ -90,8 +98,14 @@ jobs:
 
       - name: Bundle the installers from the signed binary
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-        run: npm run tauri -- bundle --bundles nsis,msi
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          source scripts/use_msvc_toolchain.sh
+          TAURI_SIGNING_PRIVATE_KEY="$(cat "$RUNNER_TEMP/throwaway_updater.key")"
+          export TAURI_SIGNING_PRIVATE_KEY
+          npm run tauri -- bundle --bundles nsis,msi
 
       - name: Stage the installers
         shell: pwsh
@@ -132,18 +146,39 @@ jobs:
             Write-Host "$($f.Name) signer: $($sig.SignerCertificate.Subject) ($($sig.Status))"
           }
 
-      - name: Recreate the updater signatures from the signed installers
+      - name: Sign the signed installers with the current and the next updater key
         env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          UPDATER_KEY_V1: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          UPDATER_KEY_V1_PASSWORD: ''
+          UPDATER_KEY_V2: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_V2 }}
+          UPDATER_KEY_V2_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD_V2 }}
         shell: bash
         run: |
           set -euo pipefail
+          if [ -z "$UPDATER_KEY_V1" ] || [ -z "$UPDATER_KEY_V2" ]; then
+            echo "::error::both updater keys must be set"
+            exit 1
+          fi
+          TAURI="$PWD/node_modules/@tauri-apps/cli/tauri.js"
+          sign_with() {
+            local key="$1" password="$2" file="$3" dest="$4"
+            rm -f "$file.sig"
+            TAURI_SIGNING_PRIVATE_KEY="$key" TAURI_SIGNING_PRIVATE_KEY_PASSWORD="$password" node "$TAURI" signer sign "$file" </dev/null
+            mv "$file.sig" "$dest"
+            test -s "$dest"
+          }
           shopt -s nullglob
+          COUNT=0
           for f in signed/installers/*-setup.exe signed/installers/*.msi; do
-            rm -f "$f.sig"
-            npm run tauri -- signer sign --password "" "$f"
-            test -s "$f.sig"
+            sign_with "$UPDATER_KEY_V1" "$UPDATER_KEY_V1_PASSWORD" "$f" "$f.sig.tmp"
+            sign_with "$UPDATER_KEY_V2" "$UPDATER_KEY_V2_PASSWORD" "$f" "$f.v2.sig"
+            mv "$f.sig.tmp" "$f.sig"
+            COUNT=$((COUNT + 1))
           done
+          if [ "$COUNT" -ne 2 ]; then
+            echo "::error::expected 2 installers, signed $COUNT"
+            exit 1
+          fi
           ls -l signed/installers
 
       - name: Upload the signed test build
