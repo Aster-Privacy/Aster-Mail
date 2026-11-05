@@ -3201,6 +3201,8 @@ export const fr = {
     alias_export_choose_columns:
       "Choisir les colonnes ({{count}} sélectionnées)",
     alias_export_hide_columns: "Masquer les colonnes",
+    alias_export_include_label: "Inclure",
+    alias_export_columns_button: "Colonnes",
     alias_export_format_label: "Format de fichier",
     alias_export_column_address: "Adresse",
     alias_export_column_display_name: "Nom affiché",

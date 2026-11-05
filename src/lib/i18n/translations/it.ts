@@ -3192,6 +3192,8 @@ export const it = {
     alias_export_source_count_one: "{{count}} voce",
     alias_export_choose_columns: "Scegli le colonne ({{count}} selezionate)",
     alias_export_hide_columns: "Nascondi colonne",
+    alias_export_include_label: "Includi",
+    alias_export_columns_button: "Colonne",
     alias_export_format_label: "Formato file",
     alias_export_column_address: "Indirizzo",
     alias_export_column_display_name: "Nome visualizzato",

@@ -3129,6 +3129,8 @@ export const tr = {
     alias_export_source_count_one: "{{count}} kayıt",
     alias_export_choose_columns: "Sütunları seçin ({{count}} seçili)",
     alias_export_hide_columns: "Sütunları gizle",
+    alias_export_include_label: "Dahil et",
+    alias_export_columns_button: "Sütunlar",
     alias_export_format_label: "Dosya bicimi",
     alias_export_column_address: "Adres",
     alias_export_column_display_name: "Görünen ad",

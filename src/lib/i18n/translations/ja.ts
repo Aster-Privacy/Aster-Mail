@@ -3147,6 +3147,8 @@ export const ja = {
     alias_export_source_count: "{{count}} 件",
     alias_export_choose_columns: "列を選択（{{count}} 件選択中）",
     alias_export_hide_columns: "列を隠す",
+    alias_export_include_label: "含める項目",
+    alias_export_columns_button: "列",
     alias_export_format_label: "ファイル形式",
     alias_export_column_address: "アドレス",
     alias_export_column_display_name: "表示名",

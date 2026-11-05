@@ -8177,6 +8177,8 @@ export const hi = {
     alias_export_source_count_one: "{{count}} प्रविष्टि",
     alias_export_choose_columns: "स्तंभ चुनें ({{count}} चुने गए)",
     alias_export_hide_columns: "स्तंभ छिपाएं",
+    alias_export_include_label: "शामिल करें",
+    alias_export_columns_button: "स्तंभ",
     alias_export_format_label: "फ़ाइल फ़ॉर्मैट",
     alias_export_column_address: "पता",
     alias_export_column_display_name: "दिखने वाला नाम",
