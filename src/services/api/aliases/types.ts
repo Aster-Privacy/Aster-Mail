@@ -44,6 +44,7 @@ export interface EmailAlias {
   encrypted_websites?: string;
   websites_nonce?: string;
   downgrade_grace_expires_at?: string;
+  last_received_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -69,6 +70,7 @@ export interface DecryptedEmailAlias {
   is_retained_primary?: boolean;
   profile_picture?: string;
   downgrade_grace_expires_at?: string;
+  last_received_at?: string | null;
   created_at: string;
   updated_at: string;
 }

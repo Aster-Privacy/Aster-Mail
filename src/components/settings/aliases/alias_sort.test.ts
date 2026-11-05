@@ -79,6 +79,47 @@ describe("sort_alias_entries", () => {
     ]);
   });
 
+  it("lists the alias that received mail most recently first", () => {
+    const sorted = sort_alias_entries(
+      [
+        {
+          sort_address: "quiet@x.example",
+          created_at: "2026-06-01T00:00:00Z",
+          last_received_at: null,
+        },
+        {
+          sort_address: "busy@x.example",
+          created_at: "2026-01-01T00:00:00Z",
+          last_received_at: "2026-11-04T09:00:00Z",
+        },
+        {
+          sort_address: "older@x.example",
+          created_at: "2026-02-01T00:00:00Z",
+          last_received_at: "2026-10-01T09:00:00Z",
+        },
+        {
+          sort_address: "never@x.example",
+          created_at: "2026-03-01T00:00:00Z",
+        },
+        {
+          sort_address: "broken@x.example",
+          created_at: "2026-04-01T00:00:00Z",
+          last_received_at: "not a date",
+        },
+      ],
+      "recent",
+      "en",
+    );
+
+    expect(sorted.map((e) => e.sort_address)).toEqual([
+      "busy@x.example",
+      "older@x.example",
+      "quiet@x.example",
+      "broken@x.example",
+      "never@x.example",
+    ]);
+  });
+
   it("does not reorder the list it was given", () => {
     const before = entries.map((e) => e.sort_address);
 
@@ -116,6 +157,8 @@ describe("remembered alias sort", () => {
     store_alias_sort_mode("za");
     expect(localStorage.getItem(ALIAS_SORT_STORAGE_KEY)).toBe("za");
     expect(read_alias_sort_mode()).toBe("za");
+    store_alias_sort_mode("recent");
+    expect(read_alias_sort_mode()).toBe("recent");
   });
 
   it("ignores an unknown stored value", () => {
