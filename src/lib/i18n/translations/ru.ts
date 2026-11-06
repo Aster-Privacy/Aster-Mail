@@ -5580,6 +5580,8 @@ export const ru = {
     special_offer_ends_in: "Заканчивается через {{time}}",
     special_offer_not_on_star_monthly: "Недоступно для месячного тарифа Star",
     special_offer_renews_at: "Продлевается по цене {{price}} через {{months}} месяцев",
+    special_offer_prices_in_usd:
+      "Цены указаны в долларах США (USD), в этой валюте происходит оплата.",
     special_offer_success_title_plan: "Спасибо. Теперь у вас {{plan}}.",
     special_offer_choose_plan: "Выберите тариф",
     plan_billing_terms:

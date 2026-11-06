@@ -5356,6 +5356,8 @@ export const nl = {
     special_offer_ends_in: "Eindigt over {{time}}",
     special_offer_not_on_star_monthly: "Niet beschikbaar voor Star maandelijks",
     special_offer_renews_at: "Wordt na {{months}} maanden verlengd voor {{price}}",
+    special_offer_prices_in_usd:
+      "Prijzen zijn in Amerikaanse dollars (USD), de valuta waarin je betaalt.",
     special_offer_success_title_plan: "Bedankt. Je hebt nu {{plan}}.",
     special_offer_choose_plan: "Kies een abonnement",
     plan_billing_terms:

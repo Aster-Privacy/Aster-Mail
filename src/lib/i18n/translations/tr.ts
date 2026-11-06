@@ -5386,6 +5386,8 @@ export const tr = {
     special_offer_ends_in: "{{time}} sonra sona erer",
     special_offer_not_on_star_monthly: "Star aylık planında geçerli değildir",
     special_offer_renews_at: "{{months}} ay sonra {{price}} fiyatıyla yenilenir",
+    special_offer_prices_in_usd:
+      "Fiyatlar ABD doları (USD) cinsindendir ve ödemeyi bu para biriminde yaparsınız.",
     special_offer_success_title_plan: "Teşekkürler. Artık {{plan}} kullanıyorsunuz.",
     special_offer_choose_plan: "Plan seçin",
     plan_billing_terms:

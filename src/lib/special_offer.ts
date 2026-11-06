@@ -30,6 +30,7 @@ export const SPECIAL_OFFER_PLAN_CODE = "nova";
 export const SPECIAL_OFFER_INTERVAL = "month";
 export const SPECIAL_OFFER_PERCENT_OFF = 50;
 export const SPECIAL_OFFER_DURATION_MONTHS = 12;
+export const SPECIAL_OFFER_BILLED_CURRENCY = "usd";
 
 export type SpecialOfferInterval = "month" | "year";
 

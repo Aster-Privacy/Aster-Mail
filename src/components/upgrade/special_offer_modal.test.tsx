@@ -34,6 +34,8 @@ const h = vi.hoisted(() => ({
     status: null as Partial<SpecialOfferStatus> | null,
     is_loaded: false,
   },
+  method_props: [] as { card_currency?: string }[],
+  crypto_props: [] as { preferred_currency?: string }[],
 }));
 
 vi.mock("@/provider", () => ({
@@ -71,7 +73,8 @@ vi.mock("@/components/toast/simple_toast", () => ({
 }));
 
 vi.mock("@/services/api/billing", () => ({
-  format_price: (cents: number) => String(cents),
+  format_price: (cents: number, currency = "usd") =>
+    `${currency.toLowerCase()}:${cents}`,
   start_hosted_checkout: vi.fn(async () => ({
     ok: false,
     server_code: "TEST",
@@ -87,9 +90,12 @@ vi.mock("@/services/api/family", () => ({
 vi.mock("@/components/settings/billing/plan_payment_method_modal", () => ({
   PlanPaymentMethodModal: (props: {
     open: boolean;
+    card_currency?: string;
     on_choose_card: () => void;
-  }) =>
-    props.open ? (
+  }) => {
+    h.method_props.push({ card_currency: props.card_currency });
+
+    return props.open ? (
       <button
         data-testid="pay_card"
         type="button"
@@ -97,11 +103,16 @@ vi.mock("@/components/settings/billing/plan_payment_method_modal", () => ({
       >
         card
       </button>
-    ) : null,
+    ) : null;
+  },
 }));
 
 vi.mock("@/components/settings/billing/crypto_term_modal", () => ({
-  CryptoTermModal: () => null,
+  CryptoTermModal: (props: { preferred_currency?: string }) => {
+    h.crypto_props.push({ preferred_currency: props.preferred_currency });
+
+    return null;
+  },
 }));
 
 vi.mock("@/stores/special_offer_status", () => ({
@@ -409,4 +420,81 @@ describe("SpecialOfferModal under the Black Friday offer", () => {
       undefined,
     );
   });
+});
+
+const LOCALE_CASES: { language: string; stored: string | null }[] = [
+  { language: "en-AU", stored: null },
+  { language: "en-GB", stored: null },
+  { language: "en-US", stored: null },
+  { language: "en-NZ", stored: null },
+  { language: "en-CA", stored: null },
+  { language: "en-IN", stored: null },
+  { language: "de-DE", stored: null },
+  { language: "ja-JP", stored: null },
+  { language: "en-AU", stored: "gbp" },
+  { language: "en-AU", stored: "aud" },
+];
+
+describe("SpecialOfferModal currency", () => {
+  let language_spy: ReturnType<typeof vi.spyOn> | null = null;
+
+  beforeEach(() => {
+    close_special_offer();
+    window.history.pushState({}, "", "/");
+    vi.mocked(start_hosted_checkout).mockClear();
+    h.method_props.length = 0;
+    h.crypto_props.length = 0;
+    h.status = { status: BLACK_FRIDAY_STATUS, is_loaded: true };
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+    close_special_offer();
+    language_spy?.mockRestore();
+    language_spy = null;
+    localStorage.removeItem("aster_preferred_currency");
+  });
+
+  for (const { language, stored } of LOCALE_CASES) {
+    const label = stored ? `${language} with ${stored} saved` : language;
+
+    it(`shows and charges offer prices in USD for ${label}`, async () => {
+      language_spy = vi
+        .spyOn(navigator, "language", "get")
+        .mockReturnValue(language);
+      if (stored) localStorage.setItem("aster_preferred_currency", stored);
+
+      await open_then_mount();
+
+      const text = document.body.textContent ?? "";
+
+      expect(text).toContain("usd:4349");
+      expect(text).toContain("usd:8699");
+      expect(text).toContain("settings.special_offer_prices_in_usd");
+      expect(text).not.toMatch(/(gbp|aud|eur|cad|nzd|inr|jpy):/);
+
+      await act(async () => {
+        request_special_offer_checkout("year", "supernova");
+      });
+      await click_button_with_text("card");
+
+      expect(
+        h.method_props.every((props) => props.card_currency === "usd"),
+      ).toBe(true);
+      expect(
+        h.crypto_props.every((props) => props.preferred_currency === "usd"),
+      ).toBe(true);
+      expect(start_hosted_checkout).toHaveBeenCalledWith(
+        "supernova",
+        "year",
+        "usd",
+        undefined,
+        undefined,
+        true,
+      );
+    });
+  }
 });

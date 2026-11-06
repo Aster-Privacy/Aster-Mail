@@ -5384,6 +5384,8 @@ export const ja = {
     special_offer_ends_in: "終了まであと{{time}}",
     special_offer_not_on_star_monthly: "Starの月間プランは対象外です",
     special_offer_renews_at: "{{months}}か月後は{{price}}で更新されます",
+    special_offer_prices_in_usd:
+      "価格は米ドル (USD) で表示されており、お支払いも米ドルで行われます。",
     special_offer_success_title_plan: "ありがとうございます。{{plan}}をご利用中です。",
     special_offer_choose_plan: "プランを選択",
     plan_billing_terms:

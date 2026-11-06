@@ -5663,6 +5663,7 @@ export interface SettingsTranslations {
   special_offer_ends_in: string;
   special_offer_not_on_star_monthly: string;
   special_offer_renews_at: string;
+  special_offer_prices_in_usd: string;
   special_offer_success_title_plan: string;
   special_offer_choose_plan: string;
   plan_billing_terms: string;
