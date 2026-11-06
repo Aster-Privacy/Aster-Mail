@@ -1112,6 +1112,14 @@ fn is_device_header_allowed(name: &str) -> bool {
     ) || (n.starts_with("x-aster-") && n != "x-aster-client")
 }
 
+const ALLOWED_HTTPS_SUFFIXES: &[&str] = &[".astermail.org"];
+const ALLOWED_HTTPS_EXACT: &[&str] = &["astermail.org"];
+
+fn is_device_http_host_allowed(host: &str) -> bool {
+    ALLOWED_HTTPS_EXACT.iter().any(|h| *h == host)
+        || ALLOWED_HTTPS_SUFFIXES.iter().any(|s| host.ends_with(s))
+}
+
 #[tauri::command]
 pub async fn device_http_request(
     url: String,
@@ -1119,8 +1127,6 @@ pub async fn device_http_request(
     body: Option<String>,
     headers: Option<HashMap<String, String>>,
 ) -> Result<ProxyResponse, String> {
-    const ALLOWED_HTTPS_SUFFIXES: &[&str] = &[".astermail.org", ".astermail.com"];
-    const ALLOWED_HTTPS_EXACT: &[&str] = &["astermail.org", "astermail.com"];
     const MAX_REQUEST_BODY_SIZE: usize = 100 * 1024 * 1024;
     const LARGE_BODY_THRESHOLD: usize = 1024 * 1024;
     const LARGE_BODY_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(900);
@@ -1143,10 +1149,7 @@ pub async fn device_http_request(
         return Err("onion hosts not supported".to_string());
     }
 
-    let host_allowed = ALLOWED_HTTPS_EXACT.iter().any(|h| *h == host)
-        || ALLOWED_HTTPS_SUFFIXES.iter().any(|s| host.ends_with(s));
-
-    if !host_allowed {
+    if !is_device_http_host_allowed(host) {
         return Err("host not in device_http_request allowlist".to_string());
     }
 
@@ -1360,6 +1363,64 @@ mod tests {
         path.push(format!("aster_device_crypto_test_{}_{}", std::process::id(), name));
         let _ = std::fs::remove_file(&path);
         path
+    }
+
+    const OWNED_DOMAINS: &[&str] = &["astermail.org"];
+
+    fn ends_with_owned_domain(entry: &str) -> bool {
+        let entry = entry.trim_start_matches('.');
+        OWNED_DOMAINS
+            .iter()
+            .any(|domain| entry == *domain || entry.ends_with(&format!(".{domain}")))
+    }
+
+    #[test]
+    fn device_http_allowlist_rejects_unowned_astermail_com_hosts() {
+        for host in [
+            "astermail.com",
+            "app.astermail.com",
+            "evil.astermail.com",
+            "astermail.org.astermail.com",
+            "evilastermail.org",
+            "astermail.org.example.com",
+        ] {
+            assert!(!is_device_http_host_allowed(host), "{host}");
+        }
+    }
+
+    #[test]
+    fn device_http_allowlist_keeps_owned_hosts() {
+        for host in ["astermail.org", "app.astermail.org", "mail.astermail.org"] {
+            assert!(is_device_http_host_allowed(host), "{host}");
+        }
+    }
+
+    #[test]
+    fn device_http_allowlist_entries_are_all_owned_domains() {
+        for entry in ALLOWED_HTTPS_SUFFIXES.iter().chain(ALLOWED_HTTPS_EXACT) {
+            assert!(ends_with_owned_domain(entry), "{entry}");
+            assert!(!entry.ends_with("astermail.com"), "{entry}");
+        }
+        for suffix in ALLOWED_HTTPS_SUFFIXES {
+            assert!(suffix.starts_with('.'), "{suffix}");
+        }
+    }
+
+    #[tokio::test]
+    async fn device_http_request_refuses_astermail_com_before_connecting() {
+        for url in [
+            "https://astermail.com/api/health",
+            "https://app.astermail.com/api/health",
+            "https://evil.astermail.com/api/health",
+            "https://APP.ASTERMAIL.COM./api/health",
+        ] {
+            let result = device_http_request(url.to_string(), "GET".to_string(), None, None).await;
+            assert_eq!(
+                result.err().as_deref(),
+                Some("host not in device_http_request allowlist"),
+                "{url}"
+            );
+        }
     }
 
     #[test]

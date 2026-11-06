@@ -23,8 +23,8 @@ import { is_tauri_env, tauri_proxy_fetch } from "./tauri_proxy_transport";
 
 import { ignore_error } from "@/lib/ignore_error";
 
-const RELAY_ALLOWED_SUFFIXES = [".astermail.org", ".astermail.com"];
-const RELAY_ALLOWED_EXACT = ["astermail.org", "astermail.com"];
+const RELAY_ALLOWED_SUFFIXES = [".astermail.org"];
+const RELAY_ALLOWED_EXACT = ["astermail.org"];
 const CONNECTION_INFO_PATH = "/core/v1/connection-info";
 
 export function is_relay_host_allowed(relay_url: string): boolean {
