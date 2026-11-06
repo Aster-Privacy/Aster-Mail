@@ -28,6 +28,7 @@ const api_mocks = vi.hoisted(() => ({
 
 const key_mocks = vi.hoisted(() => ({
   get_passphrase_bytes: vi.fn(),
+  get_vault_from_memory: vi.fn(),
   wait_for_keys_ready: vi.fn(async () => undefined),
 }));
 
@@ -38,7 +39,6 @@ vi.mock("./api/mail", () => ({
 }));
 
 vi.mock("./crypto/memory_key_store", () => ({
-  get_vault_from_memory: vi.fn(),
   ...key_mocks,
 }));
 
@@ -110,7 +110,7 @@ describe("get_or_create_thread_token", () => {
     api_mocks.get_mail_item.mockResolvedValue({
       data: { id: "item-1", thread_token: undefined },
     });
-    key_mocks.get_passphrase_bytes.mockReturnValue(null);
+    key_mocks.get_vault_from_memory.mockReturnValue(null);
 
     const result = await get_or_create_thread_token("item-1");
 
@@ -120,11 +120,47 @@ describe("get_or_create_thread_token", () => {
 
   it("falls back to no token when the item lookup fails", async () => {
     api_mocks.get_mail_item.mockRejectedValue(new Error("network"));
-    key_mocks.get_passphrase_bytes.mockReturnValue(null);
+    key_mocks.get_vault_from_memory.mockReturnValue(null);
 
     const result = await get_or_create_thread_token("item-1");
 
     expect(result).toBeNull();
     expect(api_mocks.create_thread).not.toHaveBeenCalled();
+  });
+
+  it("creates the thread with empty metadata and never reads the passphrase", async () => {
+    api_mocks.get_mail_item.mockResolvedValue({
+      data: { id: "item-1", thread_token: undefined },
+    });
+    key_mocks.get_vault_from_memory.mockReturnValue({ identity_key: "k" });
+    api_mocks.create_thread.mockResolvedValue({ data: { id: "t" } });
+    api_mocks.link_mail_to_thread.mockResolvedValue({ data: {} });
+
+    const result = await get_or_create_thread_token("item-1");
+
+    expect(result).toBe("");
+    expect(api_mocks.create_thread).toHaveBeenCalledTimes(1);
+    expect(api_mocks.create_thread).toHaveBeenCalledWith({
+      thread_token: "",
+      encrypted_meta: "",
+      meta_nonce: "",
+    });
+    expect(key_mocks.get_passphrase_bytes).not.toHaveBeenCalled();
+  });
+
+  it("waits for keys before creating a thread", async () => {
+    api_mocks.get_mail_item.mockResolvedValue({
+      data: { id: "item-1", thread_token: undefined },
+    });
+    key_mocks.get_vault_from_memory
+      .mockReturnValueOnce(null)
+      .mockReturnValue({ identity_key: "k" });
+    api_mocks.create_thread.mockResolvedValue({ data: { id: "t" } });
+    api_mocks.link_mail_to_thread.mockResolvedValue({ data: {} });
+
+    await get_or_create_thread_token("item-1");
+
+    expect(key_mocks.wait_for_keys_ready).toHaveBeenCalledTimes(1);
+    expect(api_mocks.create_thread).toHaveBeenCalledTimes(1);
   });
 });

@@ -34,7 +34,6 @@ import {
   get_mail_item,
 } from "./api/mail";
 import {
-  get_passphrase_bytes,
   get_vault_from_memory,
   wait_for_keys_ready,
 } from "./crypto/memory_key_store";
@@ -43,7 +42,6 @@ import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
 } from "./crypto/ratchet_manager";
-import { zero_uint8_array } from "./crypto/secure_memory";
 import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 import {
   decrypt_thread_content_cached,
@@ -789,14 +787,11 @@ export async function get_or_create_thread_token(
     return server_thread_token;
   }
 
-  let passphrase_bytes = get_passphrase_bytes();
-
-  if (!passphrase_bytes) {
+  if (!get_vault_from_memory()) {
     await wait_for_keys_ready();
-    passphrase_bytes = get_passphrase_bytes();
   }
 
-  if (!passphrase_bytes) return null;
+  if (!get_vault_from_memory()) return null;
 
   const material = new TextEncoder().encode(
     "astermail-thread:" + original_email_id,
@@ -804,17 +799,10 @@ export async function get_or_create_thread_token(
   const hash = await crypto.subtle.digest(HASH_ALG, material);
   const thread_token = array_to_base64(new Uint8Array(hash));
 
-  const encrypted_meta = await encrypt_thread_meta({
-    created_from: original_email_id,
-    created_at: new Date().toISOString(),
-  });
-
-  if (!encrypted_meta) return null;
-
   const create_result = await create_thread({
     thread_token,
-    encrypted_meta: encrypted_meta.encrypted,
-    meta_nonce: encrypted_meta.nonce,
+    encrypted_meta: "",
+    meta_nonce: "",
   });
 
   if (create_result.error && !create_result.error.includes("already exists")) {
@@ -827,12 +815,8 @@ export async function get_or_create_thread_token(
   );
 
   if (link_result.error) {
-    zero_uint8_array(passphrase_bytes);
-
     return read_server_thread_token(original_email_id);
   }
-
-  zero_uint8_array(passphrase_bytes);
 
   return thread_token;
 }
@@ -844,69 +828,6 @@ async function read_server_thread_token(
     const result = await get_mail_item(mail_item_id);
 
     return result.data?.thread_token || null;
-  } catch {
-    return null;
-  }
-}
-
-async function encrypt_thread_meta(
-  meta: Record<string, unknown>,
-): Promise<{ encrypted: string; nonce: string } | null> {
-  let passphrase_bytes = get_passphrase_bytes();
-
-  if (!passphrase_bytes) {
-    await wait_for_keys_ready();
-    passphrase_bytes = get_passphrase_bytes();
-  }
-
-  if (!passphrase_bytes) return null;
-
-  try {
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const nonce = crypto.getRandomValues(new Uint8Array(12));
-
-    const key_material = await crypto.subtle.importKey(
-      "raw",
-      passphrase_bytes,
-      "PBKDF2",
-      false,
-      ["deriveKey"],
-    );
-
-    const key = await crypto.subtle.deriveKey(
-      {
-        name: "PBKDF2",
-        salt,
-        iterations: 100000,
-        hash: HASH_ALG,
-      },
-      key_material,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["encrypt"],
-    );
-
-    const plaintext = new TextEncoder().encode(JSON.stringify(meta));
-    const ciphertext = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv: nonce },
-      key,
-      plaintext,
-    );
-
-    const combined = new Uint8Array(
-      salt.length + nonce.length + ciphertext.byteLength,
-    );
-
-    combined.set(salt, 0);
-    combined.set(nonce, salt.length);
-    combined.set(new Uint8Array(ciphertext), salt.length + nonce.length);
-
-    zero_uint8_array(passphrase_bytes);
-
-    return {
-      encrypted: array_to_base64(combined),
-      nonce: array_to_base64(new Uint8Array([1])),
-    };
   } catch {
     return null;
   }
