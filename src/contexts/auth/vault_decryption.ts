@@ -27,6 +27,7 @@ import {
   has_vault_in_memory,
   has_vault_in_memory_for,
 } from "@/services/crypto/memory_key_store";
+import { get_storage_write_key_bytes } from "@/services/crypto/storage_write_key";
 import {
   auto_rekey_if_needed,
   reset_rekey_flag,
@@ -89,7 +90,6 @@ async function ensure_pq_prekeys_available(): Promise<void> {
   }
 }
 
-import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import {
   emit_aliases_changed,
   emit_contacts_changed,
@@ -173,7 +173,7 @@ export async function decrypt_vault_with_lock(
       .then(async () => {
         await ensure_pq_prekeys_available();
 
-        const master_key = get_derived_encryption_key();
+        const master_key = get_storage_write_key_bytes();
 
         if (!master_key) return;
 

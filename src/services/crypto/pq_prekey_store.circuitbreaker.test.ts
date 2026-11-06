@@ -29,10 +29,15 @@ vi.mock("../api/client", () => ({
   },
 }));
 
-vi.mock("./memory_key_store", () => ({
-  has_vault_in_memory: () => true,
-  get_derived_encryption_key: () => new Uint8Array(32),
-}));
+vi.mock("./memory_key_store", () => {
+  const vault = { data_kek: btoa(String.fromCharCode(...new Uint8Array(32))) };
+
+  return {
+    has_vault_in_memory: () => true,
+    get_derived_encryption_key: () => new Uint8Array(32),
+    get_vault_from_memory: () => vault,
+  };
+});
 
 const encrypted_set_mock = vi.fn(async (..._args: unknown[]) => {});
 const encrypted_delete_mock = vi.fn(async (..._args: unknown[]) => {});

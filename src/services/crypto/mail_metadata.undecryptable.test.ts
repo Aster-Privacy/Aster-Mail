@@ -38,9 +38,14 @@ vi.mock("@/services/api/mail", () => ({
     batched_bulk_patch_metadata(...args),
 }));
 
-vi.mock("./memory_key_store", () => ({
-  get_derived_encryption_key: () => ({}) as CryptoKey,
-}));
+vi.mock("./memory_key_store", () => {
+  const vault = { data_kek: btoa(String.fromCharCode(...new Uint8Array(32))) };
+
+  return {
+    get_derived_encryption_key: () => new Uint8Array(32),
+    get_vault_from_memory: () => vault,
+  };
+});
 
 const blob_store = new Map<string, Record<string, unknown>>();
 let blob_counter = 0;

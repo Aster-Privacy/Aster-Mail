@@ -40,10 +40,17 @@ vi.mock("./encrypted_storage", async () => ({
   }),
 }));
 
-vi.mock("./memory_key_store", () => ({
-  get_derived_encryption_key: vi.fn(() => new Uint8Array(32).fill(3)),
-  has_vault_in_memory: vi.fn(() => true),
-}));
+vi.mock("./memory_key_store", () => {
+  const vault = {
+    data_kek: btoa(String.fromCharCode(...new Uint8Array(32).fill(3))),
+  };
+
+  return {
+    get_derived_encryption_key: vi.fn(() => new Uint8Array(32).fill(3)),
+    get_vault_from_memory: vi.fn(() => vault),
+    has_vault_in_memory: vi.fn(() => true),
+  };
+});
 
 vi.mock("@/services/account_manager", () => ({
   accounts_storage_unreadable: vi.fn(() => false),

@@ -18,10 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  get_vault_from_memory,
-  get_derived_encryption_key,
-} from "./memory_key_store";
+import { get_vault_from_memory } from "./memory_key_store";
+import { get_storage_write_key_bytes } from "./storage_write_key";
 import { zero_uint8_array } from "./secure_memory";
 
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -112,7 +110,7 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
   if (rekey_attempted) return false;
 
   const vault = get_vault_from_memory();
-  const new_raw = get_derived_encryption_key();
+  const new_raw = get_storage_write_key_bytes();
 
   if (!vault?.legacy_keks?.length || !new_raw) {
     if (new_raw) zero_uint8_array(new_raw);

@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { array_to_base64 } from "./base64";
-import { get_derived_encryption_key } from "./memory_key_store";
+import { get_storage_write_key_bytes } from "./storage_write_key";
 import { derive_ratchet_encryption_key } from "./ratchet_sync";
 
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -64,7 +64,7 @@ export async function run_serialized_for_conversation<T>(
 }
 
 export async function get_sync_encryption_key(): Promise<CryptoKey | null> {
-  const master_key = get_derived_encryption_key();
+  const master_key = get_storage_write_key_bytes();
 
   if (!master_key) return null;
 

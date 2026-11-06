@@ -27,60 +27,31 @@ import {
 } from "./sender_utils";
 
 import { user_facing_error } from "@/utils/user_facing_error";
-import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
-  get_or_create_derived_encryption_crypto_key,
-  get_derived_encryption_key,
-} from "@/services/crypto/memory_key_store";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
+  get_storage_write_crypto_key,
+  get_storage_write_hmac_key,
+  sign_with_storage_lookup_keys,
+  verify_with_storage_lookup_keys,
+} from "@/services/crypto/storage_write_key";
 import { get_active_translations } from "@/lib/i18n/translations";
 
-const ALLOWED_SENDERS_HMAC_KEY_ID = "allowed_senders_hmac_key";
+const ALLOWED_SENDERS_HMAC_INFO = "allowed-senders-hmac-v1";
 
 async function get_hmac_key(): Promise<CryptoKey> {
-  const cached = get_key(ALLOWED_SENDERS_HMAC_KEY_ID);
+  const hmac_key = await get_storage_write_hmac_key(ALLOWED_SENDERS_HMAC_INFO);
 
-  if (cached) {
-    return cached;
-  }
-
-  const raw_key = get_derived_encryption_key();
-
-  if (!raw_key) {
+  if (!hmac_key) {
     throw new Error(
       get_active_translations().errors.encryption_keys_unavailable,
     );
   }
 
-  const encoder = new TextEncoder();
-  const info = encoder.encode("allowed-senders-hmac-v1");
-  const combined = new Uint8Array(raw_key.byteLength + info.length);
-
-  combined.set(raw_key, 0);
-  combined.set(info, raw_key.byteLength);
-
-  const hash = await crypto.subtle.digest(HASH_ALG, combined);
-
-  zero_uint8_array(raw_key);
-  zero_uint8_array(combined);
-
-  const hmac_key = await crypto.subtle.importKey(
-    "raw",
-    hash,
-    { name: "HMAC", hash: HASH_ALG },
-    false,
-    ["sign", "verify"],
-  );
-
-  store_key(ALLOWED_SENDERS_HMAC_KEY_ID, hmac_key, "hmac");
-
   return hmac_key;
 }
 
 async function get_allowed_senders_encryption_key(): Promise<CryptoKey> {
-  const key = await get_or_create_derived_encryption_crypto_key();
+  const key = await get_storage_write_crypto_key();
 
   if (!key) {
     throw new Error(
@@ -91,20 +62,45 @@ async function get_allowed_senders_encryption_key(): Promise<CryptoKey> {
   return key;
 }
 
+function sender_token_input(email: string, is_domain: boolean): Uint8Array {
+  const normalized = is_domain
+    ? email.toLowerCase().trim()
+    : normalize_email(email);
+  const prefix = is_domain ? "domain:" : "email:";
+
+  return new TextEncoder().encode(prefix + normalized);
+}
+
 export async function generate_sender_token(
   email: string,
   is_domain: boolean = false,
 ): Promise<string> {
   const hmac_key = await get_hmac_key();
-  const normalized = is_domain
-    ? email.toLowerCase().trim()
-    : normalize_email(email);
-  const prefix = is_domain ? "domain:" : "email:";
-  const encoder = new TextEncoder();
-  const data = encoder.encode(prefix + normalized);
-  const hash = await crypto.subtle.sign("HMAC", hmac_key, data);
+  const hash = await crypto.subtle.sign(
+    "HMAC",
+    hmac_key,
+    sender_token_input(email, is_domain),
+  );
 
   return array_to_base64(new Uint8Array(hash));
+}
+
+export async function generate_sender_lookup_tokens(
+  email: string,
+  is_domain: boolean = false,
+): Promise<string[]> {
+  const tokens = await sign_with_storage_lookup_keys(
+    ALLOWED_SENDERS_HMAC_INFO,
+    sender_token_input(email, is_domain),
+  );
+
+  if (tokens.length === 0) {
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
+  }
+
+  return tokens;
 }
 
 async function generate_integrity_hash(
@@ -125,13 +121,16 @@ async function verify_integrity_hash(
   nonce: string,
   hash: string,
 ): Promise<boolean> {
-  const hmac_key = await get_hmac_key();
   const encoder = new TextEncoder();
   const combined = `${encrypted_data}:${nonce}:allowed-senders-v1`;
   const data = encoder.encode(combined);
   const expected_hash = base64_to_array(hash);
 
-  return crypto.subtle.verify("HMAC", hmac_key, expected_hash, data);
+  return verify_with_storage_lookup_keys(
+    ALLOWED_SENDERS_HMAC_INFO,
+    expected_hash,
+    data,
+  );
 }
 
 export interface AllowedSenderData {
@@ -366,10 +365,24 @@ export async function remove_allowed_sender(
   is_domain: boolean = false,
 ): Promise<ApiResponse<{ success: boolean }>> {
   try {
-    const sender_token = await generate_sender_token(email, is_domain);
-    const response = await api_client.delete<{ success: boolean }>(
-      `/contacts/v1/allowed_senders?sender_token=${encodeURIComponent(sender_token)}`,
-    );
+    const sender_tokens = await generate_sender_lookup_tokens(email, is_domain);
+    let response: ApiResponse<{ success: boolean }> | null = null;
+
+    for (const sender_token of sender_tokens) {
+      const attempt = await api_client.delete<{ success: boolean }>(
+        `/contacts/v1/allowed_senders?sender_token=${encodeURIComponent(sender_token)}`,
+      );
+
+      if (!response || (response.error && !attempt.error)) {
+        response = attempt;
+      }
+    }
+
+    if (!response) {
+      throw new Error(
+        get_active_translations().errors.encryption_keys_unavailable,
+      );
+    }
 
     return response;
   } catch (err) {
@@ -421,6 +434,8 @@ export async function bulk_remove_allowed_senders_by_tokens(
   }
 }
 
+const SENDER_CHECK_TOKEN_LIMIT = 100;
+
 export async function check_allowed_senders(
   emails: string[],
 ): Promise<Set<string>> {
@@ -433,24 +448,33 @@ export async function check_allowed_senders(
 
     await Promise.all(
       emails.map(async (email) => {
-        const token = await generate_sender_token(email);
+        const lookup_tokens = await generate_sender_lookup_tokens(email);
 
-        token_to_email.set(token, normalize_email(email));
+        for (const token of lookup_tokens) {
+          token_to_email.set(token, normalize_email(email));
+        }
       }),
     );
 
     const tokens = Array.from(token_to_email.keys());
-    const response = await api_client.get<{ allowed_tokens: string[] }>(
-      `/contacts/v1/allowed_senders/check?tokens=${encodeURIComponent(tokens.join(","))}`,
-    );
+    const matched_tokens: string[] = [];
 
-    if (response.error || !response.data) {
-      return new Set();
+    for (let i = 0; i < tokens.length; i += SENDER_CHECK_TOKEN_LIMIT) {
+      const chunk = tokens.slice(i, i + SENDER_CHECK_TOKEN_LIMIT);
+      const response = await api_client.get<{ allowed_tokens: string[] }>(
+        `/contacts/v1/allowed_senders/check?tokens=${encodeURIComponent(chunk.join(","))}`,
+      );
+
+      if (response.error || !response.data) {
+        return new Set();
+      }
+
+      matched_tokens.push(...response.data.allowed_tokens);
     }
 
     const allowed_emails = new Set<string>();
 
-    for (const token of response.data.allowed_tokens) {
+    for (const token of matched_tokens) {
       const email = token_to_email.get(token);
 
       if (email) {

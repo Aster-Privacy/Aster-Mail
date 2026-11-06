@@ -24,11 +24,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const keys = vi.hoisted(() => ({
   raw: new Uint8Array(32).fill(7),
+  vault: { data_kek: btoa(String.fromCharCode(...new Uint8Array(32).fill(7))) },
   vault_cleared: [] as Array<() => void>,
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_derived_encryption_key: () => keys.raw.slice(),
+  get_vault_from_memory: () => keys.vault,
   get_or_create_derived_encryption_crypto_key: () =>
     crypto.subtle.importKey("raw", keys.raw, "AES-GCM", false, [
       "encrypt",
@@ -78,6 +80,7 @@ function hmac_imports(spy: { mock: { calls: unknown[][] } }): number {
 
 function clear_vault(): void {
   clear_all_keys();
+  keys.vault = { ...keys.vault };
   keys.vault_cleared.forEach((callback) => callback());
 }
 

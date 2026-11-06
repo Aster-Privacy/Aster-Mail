@@ -23,7 +23,7 @@ import {
   trigger_sync,
   type DecryptedExternalAccount,
 } from "@/services/api/external_accounts";
-import { get_or_create_derived_encryption_crypto_key } from "@/services/crypto/memory_key_store";
+import { get_storage_write_crypto_key } from "@/services/crypto/storage_write_key";
 import { array_to_base64, base64_to_array } from "@/services/api/sender_utils";
 
 export type SyncInterval = "5m" | "15m" | "30m" | "1h" | "2h" | "6h" | "manual";
@@ -597,7 +597,7 @@ class ExternalSyncScheduler {
         return [];
       }
 
-      const key = await get_or_create_derived_encryption_crypto_key();
+      const key = await get_storage_write_crypto_key();
 
       if (!key) {
         return [];
@@ -642,7 +642,7 @@ class ExternalSyncScheduler {
 
   private async persist_configs(): Promise<void> {
     try {
-      const key = await get_or_create_derived_encryption_crypto_key();
+      const key = await get_storage_write_crypto_key();
 
       if (!key) {
         return;

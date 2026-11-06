@@ -40,7 +40,13 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
-  get_vault_from_memory: () => h.vault,
+  get_vault_from_memory: () =>
+    h.vault
+      ? {
+          data_kek: Buffer.from(new Uint8Array(32).fill(7)).toString("base64"),
+          ...(h.vault as object),
+        }
+      : null,
   get_passphrase_from_memory: () => null,
   get_passphrase_bytes: () => null,
   get_derived_encryption_key: () => new Uint8Array(32).fill(7),

@@ -27,6 +27,13 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   get_derived_encryption_key: () => null,
 }));
 
+vi.mock("@/services/crypto/storage_write_key", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/storage_write_key")
+  >()),
+  get_storage_write_crypto_key: async () => key_holder.key,
+}));
+
 vi.mock("./client", () => ({
   api_client: {
     get: vi.fn(),

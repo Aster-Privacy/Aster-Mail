@@ -21,14 +21,13 @@
 import { api_client, type ApiResponse } from "./client";
 
 import { user_facing_error } from "@/utils/user_facing_error";
-import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
-  get_or_create_derived_encryption_crypto_key,
-  get_derived_encryption_key,
-} from "@/services/crypto/memory_key_store";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
+  get_storage_write_crypto_key,
+  get_storage_write_hmac_key,
+  sign_with_storage_lookup_keys,
+  verify_with_storage_lookup_keys,
+} from "@/services/crypto/storage_write_key";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
@@ -72,50 +71,22 @@ function validate_email(email: string): void {
   }
 }
 
-const PROFILE_NOTES_HMAC_KEY_ID = "profile_notes_hmac_key";
+const PROFILE_NOTES_HMAC_INFO = "profile-notes-hmac-v1";
 
 async function get_hmac_key(): Promise<CryptoKey> {
-  const cached = get_key(PROFILE_NOTES_HMAC_KEY_ID);
+  const hmac_key = await get_storage_write_hmac_key(PROFILE_NOTES_HMAC_INFO);
 
-  if (cached) {
-    return cached;
-  }
-
-  const raw_key = get_derived_encryption_key();
-
-  if (!raw_key) {
+  if (!hmac_key) {
     throw new Error(
       get_active_translations().errors.encryption_keys_unavailable,
     );
   }
 
-  const encoder = new TextEncoder();
-  const info = encoder.encode("profile-notes-hmac-v1");
-  const combined = new Uint8Array(raw_key.byteLength + info.length);
-
-  combined.set(raw_key, 0);
-  combined.set(info, raw_key.byteLength);
-
-  const hash = await crypto.subtle.digest(HASH_ALG, combined);
-
-  zero_uint8_array(raw_key);
-  zero_uint8_array(combined);
-
-  const hmac_key = await crypto.subtle.importKey(
-    "raw",
-    hash,
-    { name: "HMAC", hash: HASH_ALG },
-    false,
-    ["sign", "verify"],
-  );
-
-  store_key(PROFILE_NOTES_HMAC_KEY_ID, hmac_key, "hmac");
-
   return hmac_key;
 }
 
 async function get_notes_encryption_key(): Promise<CryptoKey> {
-  const key = await get_or_create_derived_encryption_crypto_key();
+  const key = await get_storage_write_crypto_key();
 
   if (!key) {
     throw new Error(
@@ -130,12 +101,35 @@ export async function generate_email_token(email: string): Promise<string> {
   validate_email(email);
 
   const hmac_key = await get_hmac_key();
-  const normalized = email.toLowerCase().trim();
-  const encoder = new TextEncoder();
-  const data = encoder.encode(normalized);
+  const data = new TextEncoder().encode(email.toLowerCase().trim());
   const hash = await crypto.subtle.sign("HMAC", hmac_key, data);
 
   return array_to_base64(new Uint8Array(hash));
+}
+
+async function generate_email_lookup_tokens(email: string): Promise<string[]> {
+  validate_email(email);
+
+  const tokens = await sign_with_storage_lookup_keys(
+    PROFILE_NOTES_HMAC_INFO,
+    new TextEncoder().encode(email.toLowerCase().trim()),
+  );
+
+  if (tokens.length === 0) {
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
+  }
+
+  return tokens;
+}
+
+async function delete_note_by_token(
+  email_token: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.delete<{ success: boolean }>(
+    `/settings/v1/profile_notes?email_token=${encodeURIComponent(email_token)}`,
+  );
 }
 
 async function generate_integrity_hash(
@@ -156,13 +150,16 @@ async function verify_integrity_hash(
   nonce: string,
   hash: string,
 ): Promise<boolean> {
-  const hmac_key = await get_hmac_key();
   const encoder = new TextEncoder();
   const combined = `${encrypted_data}:${nonce}:profile-notes-v1`;
   const data = encoder.encode(combined);
   const expected_hash = base64_to_array(hash);
 
-  return crypto.subtle.verify("HMAC", hmac_key, expected_hash, data);
+  return verify_with_storage_lookup_keys(
+    PROFILE_NOTES_HMAC_INFO,
+    expected_hash,
+    data,
+  );
 }
 
 const MAX_NOTE_LENGTH = 50000;
@@ -265,13 +262,21 @@ export async function get_profile_note(
   email: string,
 ): Promise<ApiResponse<DecryptedProfileNote | null>> {
   try {
-    const email_token = await generate_email_token(email);
-    const response = await api_client.get<ProfileNoteResponse | null>(
-      `/settings/v1/profile_notes?email_token=${encodeURIComponent(email_token)}`,
-    );
+    const email_tokens = await generate_email_lookup_tokens(email);
+    let response: ApiResponse<ProfileNoteResponse | null> = { data: null };
 
-    if (response.error) {
-      return { error: response.error };
+    for (const email_token of email_tokens) {
+      response = await api_client.get<ProfileNoteResponse | null>(
+        `/settings/v1/profile_notes?email_token=${encodeURIComponent(email_token)}`,
+      );
+
+      if (response.error) {
+        return { error: response.error };
+      }
+
+      if (response.data) {
+        break;
+      }
     }
 
     if (!response.data) {
@@ -328,6 +333,13 @@ export async function save_profile_note(
       };
     }
 
+    const lookup_tokens = await generate_email_lookup_tokens(email);
+
+    for (const stale_token of lookup_tokens) {
+      if (stale_token === email_token) continue;
+      await delete_note_by_token(stale_token);
+    }
+
     return {
       data: {
         id: response.data.id,
@@ -351,12 +363,18 @@ export async function delete_profile_note(
   email: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   try {
-    const email_token = await generate_email_token(email);
-    const response = await api_client.delete<{ success: boolean }>(
-      `/settings/v1/profile_notes?email_token=${encodeURIComponent(email_token)}`,
-    );
+    const email_tokens = await generate_email_lookup_tokens(email);
+    let response: ApiResponse<{ success: boolean }> | null = null;
 
-    return response;
+    for (const email_token of email_tokens) {
+      const attempt = await delete_note_by_token(email_token);
+
+      if (!response || (response.error && !attempt.error)) {
+        response = attempt;
+      }
+    }
+
+    return response ?? { data: { success: false } };
   } catch (err) {
     return {
       error: user_facing_error(err, get_active_translations().errors.generic),

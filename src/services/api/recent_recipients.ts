@@ -31,9 +31,9 @@ import { api_client, type ApiResponse } from "./client";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
-  get_or_create_derived_encryption_crypto_key,
-  get_derived_encryption_key,
-} from "@/services/crypto/memory_key_store";
+  get_storage_write_crypto_key,
+  get_storage_write_key_bytes,
+} from "@/services/crypto/storage_write_key";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -59,7 +59,7 @@ function base64_to_array(base64: string): Uint8Array {
 }
 
 async function get_hmac_key(): Promise<CryptoKey> {
-  const raw_key = get_derived_encryption_key();
+  const raw_key = get_storage_write_key_bytes();
 
   if (!raw_key) {
     throw new Error(
@@ -88,7 +88,7 @@ async function get_hmac_key(): Promise<CryptoKey> {
 }
 
 async function get_encryption_key(): Promise<CryptoKey> {
-  const key = await get_or_create_derived_encryption_crypto_key();
+  const key = await get_storage_write_crypto_key();
 
   if (!key) {
     throw new Error(

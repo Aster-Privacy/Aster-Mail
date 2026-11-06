@@ -22,7 +22,6 @@ import { HASH_ALG } from "@/services/crypto/constants";
 
 import type { EncryptedVault } from "../key_manager";
 
-import { derive_encryption_key_from_passphrase } from "../memory_key_store";
 import { zero_uint8_array } from "../secure_memory";
 import { append_legacy_key_raw_bytes } from "../legacy_keks";
 import type {} from "@/services/api/signatures";
@@ -30,6 +29,10 @@ import type {} from "@/services/api/templates";
 import type {} from "@/services/api/blocked_senders";
 import type {} from "@/services/api/allowed_senders";
 import { base64_to_array } from "../base64";
+import {
+  get_storage_write_key_bytes,
+  StorageWriteKeyUnavailableError,
+} from "../storage_write_key";
 
 import {
   re_encrypt_alias_sub_items_recovery,
@@ -67,7 +70,7 @@ import {
 } from "./settings";
 export async function check_and_run_recovery_reencryption(
   vault: EncryptedVault,
-  passphrase: string,
+  _passphrase: string,
 ): Promise<void> {
   const pending = await get_pending();
 
@@ -129,10 +132,11 @@ export async function check_and_run_recovery_reencryption(
 
   try {
     old_raw = base64_to_array(pending.old_data_kek);
-    const passphrase_bytes = new TextEncoder().encode(passphrase);
+    new_raw = get_storage_write_key_bytes();
 
-    new_raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
-    zero_uint8_array(passphrase_bytes);
+    if (!new_raw) {
+      throw new StorageWriteKeyUnavailableError("missing_data_kek");
+    }
 
     const old_aes = await import_aes_key(old_raw, ["decrypt"]);
     const new_aes = await import_aes_key(new_raw, ["encrypt"]);

@@ -102,6 +102,25 @@ async function remember_stored_data_kek(
   zero_uint8_array(stored);
 }
 
+async function load_prior_storage_keys_into_memory(
+  prior_keys: string[] | undefined,
+): Promise<void> {
+  if (!prior_keys) return;
+
+  for (const encoded of prior_keys) {
+    let raw: Uint8Array;
+
+    try {
+      raw = base64_to_array(encoded);
+    } catch {
+      continue;
+    }
+
+    await append_legacy_key_raw_bytes(raw);
+    zero_uint8_array(raw);
+  }
+}
+
 interface HmrState {
   vault_in_memory: EncryptedVault | null;
   derived_encryption_key: Uint8Array | null;
@@ -446,6 +465,7 @@ export async function store_vault_in_memory(
   if (next_owner_id !== null) last_vault_owner_id = next_owner_id;
 
   vault_in_memory = {
+    ...vault,
     identity_key: vault.identity_key,
     previous_keys: vault.previous_keys ? [...vault.previous_keys] : [],
     legacy_identity_keys: vault.legacy_identity_keys
@@ -470,9 +490,18 @@ export async function store_vault_in_memory(
     vault_format: vault.vault_format,
     kdf_version: vault.kdf_version,
     mk_created_at: vault.mk_created_at,
+    storage_rekey: vault.storage_rekey
+      ? {
+          ...vault.storage_rekey,
+          prior_keys: vault.storage_rekey.prior_keys
+            ? [...vault.storage_rekey.prior_keys]
+            : undefined,
+        }
+      : undefined,
   };
 
   await load_legacy_keks_into_memory(vault.legacy_keks);
+  await load_prior_storage_keys_into_memory(vault.storage_rekey?.prior_keys);
   await load_previous_key_derived_keks_into_memory([
     ...(vault.previous_keys ?? []),
     ...(vault.legacy_identity_keys ?? []),
@@ -534,6 +563,7 @@ export async function store_vault_in_memory(
     }
     if (vault_in_memory && derived_encryption_key) {
       vault_in_memory.data_kek = array_to_base64(derived_encryption_key);
+      delete vault_in_memory.data_kek_random;
     }
   }
 

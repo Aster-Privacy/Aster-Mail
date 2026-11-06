@@ -37,6 +37,11 @@ let master_byte = 1;
 vi.mock("./memory_key_store", () => ({
   has_vault_in_memory: () => true,
   get_derived_encryption_key: () => new Uint8Array(32).fill(master_byte),
+  get_vault_from_memory: () => ({
+    data_kek: Buffer.from(new Uint8Array(32).fill(master_byte)).toString(
+      "base64",
+    ),
+  }),
 }));
 
 const storage = new Map<string, unknown>();

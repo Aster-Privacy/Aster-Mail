@@ -46,11 +46,12 @@ import { user_facing_error } from "@/utils/user_facing_error";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { CONTACT_DATA_VERSION } from "@/types/contacts";
+import { on_vault_cleared } from "@/services/crypto/memory_key_store";
 import {
-  get_or_create_derived_encryption_crypto_key,
-  get_derived_encryption_key,
-  on_vault_cleared,
-} from "@/services/crypto/memory_key_store";
+  get_storage_write_crypto_key,
+  get_storage_write_key_bytes,
+  verify_with_storage_lookup_keys,
+} from "@/services/crypto/storage_write_key";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -116,7 +117,7 @@ function get_hmac_key(): Promise<CryptoKey> {
 }
 
 async function import_hmac_key(): Promise<CryptoKey> {
-  const raw_key = get_derived_encryption_key();
+  const raw_key = get_storage_write_key_bytes();
 
   if (!raw_key) {
     throw new Error(
@@ -144,7 +145,7 @@ async function import_hmac_key(): Promise<CryptoKey> {
 }
 
 async function get_search_token_key(): Promise<CryptoKey> {
-  const raw_key = get_derived_encryption_key();
+  const raw_key = get_storage_write_key_bytes();
 
   if (!raw_key) {
     throw new Error(
@@ -172,7 +173,7 @@ async function get_search_token_key(): Promise<CryptoKey> {
 }
 
 export async function get_contacts_encryption_key(): Promise<CryptoKey> {
-  const key = await get_or_create_derived_encryption_crypto_key();
+  const key = await get_storage_write_crypto_key();
 
   if (!key) {
     throw new Error(
@@ -253,13 +254,16 @@ async function verify_integrity_hash(
   hash: string,
   version: number,
 ): Promise<boolean> {
-  const hmac_key = await get_hmac_key();
   const encoder = new TextEncoder();
   const combined = `${encrypted_data}:${nonce}:${version}`;
   const data = encoder.encode(combined);
   const expected_hash = base64_to_array(hash);
 
-  return crypto.subtle.verify("HMAC", hmac_key, expected_hash, data);
+  return verify_with_storage_lookup_keys(
+    "contacts-hmac-v2",
+    expected_hash,
+    data,
+  );
 }
 
 const KNOWN_CONTACT_KEYS = new Set<string>([
@@ -757,7 +761,7 @@ interface CreateGroupResponse {
 export async function create_contact_group(
   data: ContactGroupFormData,
 ): Promise<ApiResponse<ContactGroup>> {
-  const raw_key = get_derived_encryption_key();
+  const raw_key = get_storage_write_key_bytes();
 
   if (!raw_key) {
     return {
@@ -767,7 +771,7 @@ export async function create_contact_group(
 
   zero_uint8_array(raw_key);
 
-  const key = await get_or_create_derived_encryption_crypto_key();
+  const key = await get_storage_write_crypto_key();
 
   if (!key) {
     return {
@@ -819,7 +823,7 @@ export async function update_contact_group(
   group_id: string,
   data: ContactGroupFormData,
 ): Promise<ApiResponse<ContactGroup>> {
-  const key = await get_or_create_derived_encryption_crypto_key();
+  const key = await get_storage_write_crypto_key();
 
   if (!key) {
     return {

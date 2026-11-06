@@ -18,10 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  get_derived_encryption_key,
-  has_vault_in_memory,
-} from "./memory_key_store";
+import { has_vault_in_memory } from "./memory_key_store";
+import { get_storage_write_key_bytes } from "./storage_write_key";
 import {
   RATCHET_SYNC_FLOOR_PREFIX,
   scoped_get,
@@ -38,7 +36,7 @@ interface FloorScope {
 async function floor_scope(): Promise<FloorScope | null> {
   if (!has_vault_in_memory()) return null;
 
-  const raw = get_derived_encryption_key();
+  const raw = get_storage_write_key_bytes();
 
   if (!raw) return null;
 

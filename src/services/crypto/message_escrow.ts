@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { array_to_base64, base64_to_array } from "./base64";
-import { get_derived_encryption_key } from "./memory_key_store";
+import { get_storage_write_key_bytes } from "./storage_write_key";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
 import {
   is_cached_plaintext_foreign,
@@ -177,7 +177,7 @@ async function derive_escrow_key(master_key: Uint8Array): Promise<CryptoKey> {
 }
 
 async function get_escrow_key(): Promise<CryptoKey | null> {
-  const master_key = get_derived_encryption_key();
+  const master_key = get_storage_write_key_bytes();
 
   if (!master_key) return null;
 

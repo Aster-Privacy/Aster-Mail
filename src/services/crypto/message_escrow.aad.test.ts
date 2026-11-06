@@ -31,6 +31,9 @@ const foreign_keys = new Set<string>();
 
 vi.mock("./memory_key_store", () => ({
   get_derived_encryption_key: () => new Uint8Array(MASTER),
+  get_vault_from_memory: () => ({
+    data_kek: Buffer.from(MASTER).toString("base64"),
+  }),
 }));
 
 vi.mock("./legacy_keks", () => ({

@@ -119,6 +119,7 @@ function make_vault(keys: Keys): EncryptedVault {
     ratchet_identity_public: keys.identity_public,
     ratchet_signed_prekey: keys.signed_prekey_jwk,
     ratchet_signed_prekey_public: keys.signed_prekey_public,
+    data_kek: btoa(String.fromCharCode(...new Uint8Array(32).fill(7))),
   } as unknown as EncryptedVault;
 }
 

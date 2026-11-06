@@ -26,6 +26,10 @@ import type {} from "@/services/api/templates";
 import type {} from "@/services/api/blocked_senders";
 import type {} from "@/services/api/allowed_senders";
 import { array_to_base64 } from "../base64";
+import {
+  get_storage_write_key_bytes,
+  StorageWriteKeyUnavailableError,
+} from "../storage_write_key";
 
 import {
   re_encrypt_contact_attachments,
@@ -69,7 +73,7 @@ export async function reencrypt_identity_scoped_password_change(
 
 export async function reencrypt_settings_password_change(
   current_password: string,
-  new_password: string,
+  _new_password: string,
   old_identity_key: string,
   new_identity_key: string,
 ): Promise<ReencryptResult> {
@@ -81,15 +85,15 @@ export async function reencrypt_settings_password_change(
 
   try {
     const old_bytes = new TextEncoder().encode(current_password);
-    const new_bytes = new TextEncoder().encode(new_password);
 
-    [old_raw, new_raw] = await Promise.all([
-      derive_encryption_key_from_passphrase(old_bytes),
-      derive_encryption_key_from_passphrase(new_bytes),
-    ]);
-
+    old_raw = await derive_encryption_key_from_passphrase(old_bytes);
     zero_uint8_array(old_bytes);
-    zero_uint8_array(new_bytes);
+
+    new_raw = get_storage_write_key_bytes();
+
+    if (!new_raw) {
+      throw new StorageWriteKeyUnavailableError("missing_data_kek");
+    }
 
     old_data_kek_b64 = array_to_base64(old_raw);
 

@@ -22,7 +22,7 @@ import { api_client, type ApiResponse } from "./client";
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { get_or_create_derived_encryption_crypto_key } from "@/services/crypto/memory_key_store";
+import { get_storage_write_crypto_key } from "@/services/crypto/storage_write_key";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 export type SignaturePlacement = "above" | "below";
@@ -159,7 +159,7 @@ function base64_to_array(base64: string): Uint8Array {
 }
 
 async function get_encryption_key(): Promise<CryptoKey> {
-  const key = await get_or_create_derived_encryption_crypto_key();
+  const key = await get_storage_write_crypto_key();
 
   if (!key) {
     throw new Error(

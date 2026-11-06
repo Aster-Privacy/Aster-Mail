@@ -25,7 +25,7 @@ import {
   decrypt_metadata,
   type EncryptedBlob,
 } from "./envelope";
-import { get_derived_encryption_key } from "./memory_key_store";
+import { get_storage_write_key_bytes } from "./storage_write_key";
 import { zero_uint8_array } from "./secure_memory";
 
 const MAIL_METADATA_CONTEXT = "mail-item-metadata";
@@ -77,7 +77,7 @@ export function create_default_metadata(
 export async function encrypt_mail_metadata(
   metadata: MailItemMetadata,
 ): Promise<EncryptedMailMetadataResult | null> {
-  const master_key = get_derived_encryption_key();
+  const master_key = get_storage_write_key_bytes();
 
   if (!master_key) {
     return null;
@@ -112,7 +112,7 @@ export async function decrypt_mail_metadata(
   metadata_nonce: string,
   metadata_version?: number,
 ): Promise<MailItemMetadata | null> {
-  const master_key = get_derived_encryption_key();
+  const master_key = get_storage_write_key_bytes();
 
   if (!master_key) {
     return null;

@@ -42,6 +42,8 @@ const { vault } = vi.hoisted(() => ({
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_derived_encryption_key: () => (vault.key ? vault.key.slice() : null),
+  get_vault_from_memory: () =>
+    vault.key ? { data_kek: Buffer.from(vault.key).toString("base64") } : null,
   has_vault_in_memory: () => vault.key !== null,
   on_vault_cleared: () => () => undefined,
   on_keys_ready: () => () => undefined,
