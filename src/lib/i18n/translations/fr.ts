@@ -7401,6 +7401,10 @@ export const fr = {
     action_recommended: "Action recommandée",
     two_step_verification_enabled_description:
       "Votre compte nécessite un code de vérification en plus de votre mot de passe.",
+    two_step_verification_security_key_description:
+      "Activée avec une clé de sécurité ou une clé d’accès. Vous confirmez chaque connexion avec votre clé en plus de votre mot de passe.",
+    two_step_verification_both_description:
+      "Activée avec une app d’authentification et une clé de sécurité. Vous confirmez chaque connexion avec un code ou votre clé en plus de votre mot de passe.",
     two_step_verification_recommendation:
       "Activez la vérification en deux étapes pour protéger votre compte même si votre mot de passe est volé.",
     no_passkeys_recommendation:

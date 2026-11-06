@@ -7290,6 +7290,10 @@ export const nl = {
     action_recommended: "Actie aanbevolen",
     two_step_verification_enabled_description:
       "Voor je account is naast je wachtwoord ook een verificatiecode vereist.",
+    two_step_verification_security_key_description:
+      "Aan, met een beveiligingssleutel of passkey. Je bevestigt elke aanmelding naast je wachtwoord met je sleutel.",
+    two_step_verification_both_description:
+      "Aan, met een authenticator-app en een beveiligingssleutel. Je bevestigt elke aanmelding naast je wachtwoord met een code of je sleutel.",
     two_step_verification_recommendation:
       "Schakel tweestapsverificatie in om je account veilig te houden, zelfs als je wachtwoord wordt gestolen.",
     no_passkeys_recommendation:

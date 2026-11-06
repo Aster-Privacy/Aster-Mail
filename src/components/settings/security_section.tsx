@@ -207,6 +207,9 @@ export function SecuritySection({
           on_regenerate_backup_codes={() => set_show_regenerate_modal(true)}
           on_totp_status_retry={() => void security.fetch_totp_status()}
           on_two_factor_toggle={on_two_factor_toggle}
+          passkey_registered={
+            passkey_loaded && !passkey_error ? passkey_registered : undefined
+          }
           password_props={{
             confirm_password: security.confirm_password,
             current_password: security.current_password,

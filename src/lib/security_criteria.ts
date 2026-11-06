@@ -46,6 +46,28 @@ export interface SecurityCriterionSource {
   strip_exif_on_compose: boolean;
 }
 
+export type SecondFactorMethod =
+  "none" | "authenticator" | "security_key" | "both";
+
+export interface SecondFactorSource {
+  totp_enabled: boolean;
+  passkey_registered: boolean;
+}
+
+export function second_factor_method(
+  source: SecondFactorSource,
+): SecondFactorMethod {
+  if (source.totp_enabled && source.passkey_registered) return "both";
+  if (source.totp_enabled) return "authenticator";
+  if (source.passkey_registered) return "security_key";
+
+  return "none";
+}
+
+export function has_second_factor(source: SecondFactorSource): boolean {
+  return second_factor_method(source) !== "none";
+}
+
 export interface SecurityCriterion {
   id: SecurityCriterionId;
   label_key: TranslationKey;
@@ -99,7 +121,7 @@ export function build_security_criteria(
   source: SecurityCriterionSource,
 ): SecurityCriterion[] {
   const met: Record<SecurityCriterionId, boolean> = {
-    two_factor: source.totp_enabled,
+    two_factor: has_second_factor(source),
     passkey: source.passkey_registered,
     recovery_codes: source.recovery_codes_saved,
     recovery_email: source.recovery_email_verified,

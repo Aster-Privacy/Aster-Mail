@@ -7172,6 +7172,10 @@ export const ja = {
     action_recommended: "対応をおすすめします",
     two_step_verification_enabled_description:
       "アカウントにはパスワードに加えて確認コードが必要です。",
+    two_step_verification_security_key_description:
+      "セキュリティキーまたはパスキーで有効です。サインインのたびに、パスワードに加えてキーで確認します。",
+    two_step_verification_both_description:
+      "認証アプリとセキュリティキーで有効です。サインインのたびに、パスワードに加えてコードまたはキーで確認します。",
     two_step_verification_recommendation:
       "パスワードが盗まれてもアカウントを安全に保つため、二段階認証を有効にしてください。",
     no_passkeys_recommendation:

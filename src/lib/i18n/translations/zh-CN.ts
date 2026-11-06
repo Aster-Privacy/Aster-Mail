@@ -6718,6 +6718,10 @@ export const zh_CN = {
     action_recommended: "建议操作",
     two_step_verification_enabled_description:
       "您的账户在密码之外还需要验证码。",
+    two_step_verification_security_key_description:
+      "已通过安全密钥或通行密钥开启。每次登录时，除密码外还需使用密钥确认。",
+    two_step_verification_both_description:
+      "已通过身份验证器应用和安全密钥开启。每次登录时，除密码外还需使用验证码或密钥确认。",
     two_step_verification_recommendation:
       "开启两步验证，即使密码被盗也能保护您的账户安全。",
     no_passkeys_recommendation:

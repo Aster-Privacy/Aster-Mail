@@ -7443,6 +7443,10 @@ export const tr = {
     action_recommended: "İşlem önerilir",
     two_step_verification_enabled_description:
       "Hesabınız, şifrenize ek olarak bir doğrulama kodu gerektiriyor.",
+    two_step_verification_security_key_description:
+      "Bir güvenlik anahtarı veya geçiş anahtarıyla açık. Her oturum açmayı şifrenize ek olarak anahtarınızla onaylarsınız.",
+    two_step_verification_both_description:
+      "Bir kimlik doğrulama uygulaması ve güvenlik anahtarıyla açık. Her oturum açmayı şifrenize ek olarak bir kod veya anahtarınızla onaylarsınız.",
     two_step_verification_recommendation:
       "Şifreniz çalınsa bile hesabınızı güvende tutmak için iki adımlı doğrulamayı açın.",
     no_passkeys_recommendation:

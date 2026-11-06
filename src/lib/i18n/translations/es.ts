@@ -7328,6 +7328,10 @@ export const es = {
     action_recommended: "Acción recomendada",
     two_step_verification_enabled_description:
       "Tu cuenta requiere un código de verificación además de tu contraseña.",
+    two_step_verification_security_key_description:
+      "Activada con una llave de seguridad o una llave de acceso. Confirmas cada inicio de sesión con tu llave además de tu contraseña.",
+    two_step_verification_both_description:
+      "Activada con una app de autenticación y una llave de seguridad. Confirmas cada inicio de sesión con un código o tu llave además de tu contraseña.",
     two_step_verification_recommendation:
       "Activa la verificación en dos pasos para mantener tu cuenta segura incluso si roban tu contraseña.",
     no_passkeys_recommendation:

@@ -7605,6 +7605,10 @@ export const pt = {
     action_recommended: "Ação recomendada",
     two_step_verification_enabled_description:
       "A sua conta requer um código de verificação além da sua palavra-passe.",
+    two_step_verification_security_key_description:
+      "Ativada com uma chave de segurança ou chave de acesso. Confirma cada início de sessão com a sua chave além da sua palavra-passe.",
+    two_step_verification_both_description:
+      "Ativada com uma app de autenticação e uma chave de segurança. Confirma cada início de sessão com um código ou a sua chave além da sua palavra-passe.",
     two_step_verification_recommendation:
       "Ative a verificação em duas etapas para manter a sua conta segura mesmo se a sua palavra-passe for roubada.",
     no_passkeys_recommendation:

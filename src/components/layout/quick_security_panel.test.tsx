@@ -211,6 +211,28 @@ describe("quick security panel", () => {
     expect(lists[1].querySelectorAll("li")).toHaveLength(4);
   });
 
+  it("counts a security key as the second factor without an authenticator app", async () => {
+    hardware_keys.mockResolvedValue({
+      data: { keys: [{ id: "key-1", is_passkey: false }] },
+    });
+    await render_panel();
+
+    const lists = container.querySelectorAll("ul");
+    const pending = Array.from(lists[0].querySelectorAll("li")).map(
+      (item) => item.textContent,
+    );
+    const protected_items = Array.from(lists[1].querySelectorAll("li")).map(
+      (item) => item.textContent,
+    );
+
+    expect(pending.join(" ")).not.toContain("settings.criterion_two_factor");
+    expect(protected_items.join(" ")).toContain(
+      "settings.criterion_two_factor",
+    );
+    expect(protected_items.join(" ")).toContain("settings.criterion_passkey");
+    expect(container.textContent).toContain("25%");
+  });
+
   it("previews enabled aliases first and counts the remainder", async () => {
     alias_cache = [
       { id: "1", full_address: "archive@aster.cx", is_enabled: false },

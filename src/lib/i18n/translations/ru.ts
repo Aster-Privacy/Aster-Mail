@@ -7430,6 +7430,10 @@ export const ru = {
     action_recommended: "Рекомендуется действие",
     two_step_verification_enabled_description:
       "Для вашей учётной записи требуется код подтверждения в дополнение к паролю.",
+    two_step_verification_security_key_description:
+      "Включена с ключом безопасности или ключом доступа. Каждый вход вы подтверждаете ключом в дополнение к паролю.",
+    two_step_verification_both_description:
+      "Включена с приложением-аутентификатором и ключом безопасности. Каждый вход вы подтверждаете кодом или ключом в дополнение к паролю.",
     two_step_verification_recommendation:
       "Включите двухэтапную проверку, чтобы ваш аккаунт оставался защищённым, даже если пароль будет украден.",
     no_passkeys_recommendation:
