@@ -5349,6 +5349,8 @@ export const de = {
     special_offer_ends_in: "Endet in {{time}}",
     special_offer_not_on_star_monthly: "Für Star monatlich nicht verfügbar",
     special_offer_renews_at: "Verlängert sich nach {{months}} Monaten zu {{price}}",
+    special_offer_prices_in_usd:
+      "Die Preise sind in US-Dollar (USD) angegeben, der Währung, in der Sie bezahlen.",
     special_offer_success_title_plan: "Danke. Sie nutzen jetzt {{plan}}.",
     special_offer_choose_plan: "Tarif auswählen",
     plan_billing_terms:

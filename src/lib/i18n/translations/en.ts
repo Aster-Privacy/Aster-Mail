@@ -6384,6 +6384,8 @@ export const en: Translations = {
     special_offer_ends_in: "Ends in {{time}}",
     special_offer_not_on_star_monthly: "Not available on Star monthly",
     special_offer_renews_at: "Renews at {{price}} after {{months}} months",
+    special_offer_prices_in_usd:
+      "Prices are in US dollars (USD), the currency you pay in.",
     special_offer_success_title_plan: "Thank you. You're on {{plan}}.",
     special_offer_choose_plan: "Choose a plan",
     plan_billing_terms:

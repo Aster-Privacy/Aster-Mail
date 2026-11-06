@@ -5502,6 +5502,8 @@ export const ar = {
     special_offer_ends_in: "ينتهي خلال {{time}}",
     special_offer_not_on_star_monthly: "غير متاح لخطة Star الشهرية",
     special_offer_renews_at: "يتجدد بسعر {{price}} بعد {{months}} شهرًا",
+    special_offer_prices_in_usd:
+      "الأسعار بالدولار الأمريكي (USD)، وهي العملة التي تدفع بها.",
     special_offer_success_title_plan: "شكرًا لك. أصبحت مشتركًا في {{plan}}.",
     special_offer_choose_plan: "اختر خطة",
     plan_billing_terms:

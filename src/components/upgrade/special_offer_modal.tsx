@@ -43,16 +43,14 @@ import { request_cache } from "@/services/api/request_cache";
 import {
   FAMILY_PLAN_TIERS,
   PLAN_TIERS,
-  convert_cents,
-  detect_currency_from_locale,
 } from "@/components/settings/billing/billing_constants";
-import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { Segmented } from "@/components/settings/billing/plan_card";
 import { OfferCountdown } from "@/components/upgrade/offer_countdown";
 import { SpecialOfferFeatureList } from "@/components/upgrade/special_offer_success_modal";
 import {
+  SPECIAL_OFFER_BILLED_CURRENCY,
   SPECIAL_OFFER_DURATION_MONTHS,
   SPECIAL_OFFER_PERCENT_OFF,
   SPECIAL_OFFER_PLAN_CODE,
@@ -159,7 +157,6 @@ export function SpecialOfferModal() {
     use_special_offer_state();
   const { is_authenticated, user } = use_auth();
   const { plan_code, refresh: refresh_plan_limits } = use_plan_limits();
-  const [currency, set_currency] = useState("usd");
   const [interval_choice, set_interval] = useState<SpecialOfferInterval | null>(
     null,
   );
@@ -201,8 +198,6 @@ export function SpecialOfferModal() {
     interval_choice ?? (status?.ends_at ? "year" : "month");
   const was_offer_active_ref = useRef(is_offer_active);
   const previous_user_id_ref = useRef(user_id);
-
-  use_currency_rates();
 
   useEffect(() => {
     if (user_id) void refresh_plan_limits();
@@ -255,10 +250,6 @@ export function SpecialOfferModal() {
     set_plan_choice(checkout_plan_code);
     set_step("method");
   }, [checkout_seq, checkout_interval, checkout_plan_code, is_offer_active]);
-
-  useEffect(() => {
-    set_currency(detect_currency_from_locale());
-  }, []);
 
   useEffect(() => {
     if (!is_open) {
@@ -348,31 +339,28 @@ export function SpecialOfferModal() {
 
     if (!row_pricing) return null;
 
-    const list_cents = convert_cents(row_pricing.list_cents, currency);
+    const list_cents = row_pricing.list_cents;
 
     return {
       offer: format_price(
         covered
           ? special_offer_discounted_cents(list_cents, percent_off)
           : list_cents,
-        currency,
+        SPECIAL_OFFER_BILLED_CURRENCY,
       ),
-      list: format_price(list_cents, currency),
+      list: format_price(list_cents, SPECIAL_OFFER_BILLED_CURRENCY),
     };
   };
 
   const offer_label = format_price(
     is_covered
-      ? special_offer_discounted_cents(
-          convert_cents(pricing.list_cents, currency),
-          percent_off,
-        )
-      : convert_cents(pricing.list_cents, currency),
-    currency,
+      ? special_offer_discounted_cents(pricing.list_cents, percent_off)
+      : pricing.list_cents,
+    SPECIAL_OFFER_BILLED_CURRENCY,
   );
   const list_label = format_price(
-    convert_cents(pricing.list_cents, currency),
-    currency,
+    pricing.list_cents,
+    SPECIAL_OFFER_BILLED_CURRENCY,
   );
 
   const accept = async () => {
@@ -417,7 +405,7 @@ export function SpecialOfferModal() {
         : await start_hosted_checkout(
             selected_plan,
             interval,
-            currency,
+            SPECIAL_OFFER_BILLED_CURRENCY,
             undefined,
             promo_code ?? undefined,
             is_covered || undefined,
@@ -484,7 +472,7 @@ export function SpecialOfferModal() {
     <>
       <PlanPaymentMethodModal
         busy={is_starting_checkout}
-        card_currency={currency}
+        card_currency={SPECIAL_OFFER_BILLED_CURRENCY}
         discount_duration_months={duration_months}
         discount_percent_off={percent_off}
         on_choose_card={() => void pay_with_card()}
@@ -523,7 +511,7 @@ export function SpecialOfferModal() {
         on_close={close_crypto_step}
         plan_code={selected_plan}
         plan_name={offer_tier.name}
-        preferred_currency={currency}
+        preferred_currency={SPECIAL_OFFER_BILLED_CURRENCY}
         promo_code={promo_code}
         yearly_price_cents={offer_tier.yearly_cents}
       />
@@ -758,6 +746,10 @@ export function SpecialOfferModal() {
                   )}
             </p>
           )}
+
+          <p className="mt-2 text-center text-[12px] leading-relaxed text-txt-tertiary">
+            {t("settings.special_offer_prices_in_usd")}
+          </p>
 
           <button
             className="mt-3.5 w-full text-center text-[12px] text-txt-secondary underline underline-offset-2 transition-colors hover:text-txt-primary disabled:pointer-events-none disabled:opacity-50"

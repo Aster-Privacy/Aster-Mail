@@ -6640,6 +6640,8 @@ export const it = {
     special_offer_ends_in: "Termina tra {{time}}",
     special_offer_not_on_star_monthly: "Non disponibile su Star mensile",
     special_offer_renews_at: "Si rinnova a {{price}} dopo {{months}} mesi",
+    special_offer_prices_in_usd:
+      "I prezzi sono in dollari statunitensi (USD), la valuta in cui paghi.",
     special_offer_success_title_plan: "Grazie. Ora hai {{plan}}.",
     special_offer_choose_plan: "Scegli un piano",
     plan_billing_terms:

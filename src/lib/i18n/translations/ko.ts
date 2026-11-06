@@ -5401,6 +5401,8 @@ export const ko = {
     special_offer_ends_in: "{{time}} 후 종료",
     special_offer_not_on_star_monthly: "Star 월간 요금제에는 적용되지 않습니다",
     special_offer_renews_at: "{{months}}개월 후 {{price}}로 갱신됩니다",
+    special_offer_prices_in_usd:
+      "가격은 미국 달러(USD)로 표시되며, 결제도 미국 달러로 이루어집니다.",
     special_offer_success_title_plan: "감사합니다. 이제 {{plan}}을(를) 이용 중입니다.",
     special_offer_choose_plan: "요금제 선택",
     plan_billing_terms:

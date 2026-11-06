@@ -4907,6 +4907,7 @@ export const zh_CN = {
     special_offer_ends_in: "{{time}}后结束",
     special_offer_not_on_star_monthly: "Star 月付套餐不适用",
     special_offer_renews_at: "{{months}} 个月后按 {{price}} 续订",
+    special_offer_prices_in_usd: "价格以美元 (USD) 计，您也将以美元付款。",
     special_offer_success_title_plan: "谢谢。您已升级到 {{plan}}。",
     special_offer_choose_plan: "选择套餐",
     plan_billing_terms:

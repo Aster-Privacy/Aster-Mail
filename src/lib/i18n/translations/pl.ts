@@ -5616,6 +5616,8 @@ export const pl = {
     special_offer_ends_in: "Kończy się za {{time}}",
     special_offer_not_on_star_monthly: "Niedostępne w planie Star miesięcznym",
     special_offer_renews_at: "Po {{months}} miesiącach odnawia się w cenie {{price}}",
+    special_offer_prices_in_usd:
+      "Ceny są podane w dolarach amerykańskich (USD), czyli w walucie, w której płacisz.",
     special_offer_success_title_plan: "Dziękujemy. Masz teraz plan {{plan}}.",
     special_offer_choose_plan: "Wybierz plan",
     plan_billing_terms:

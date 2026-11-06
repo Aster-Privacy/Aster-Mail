@@ -6462,6 +6462,8 @@ export const hi = {
     special_offer_ends_in: "{{time}} में समाप्त",
     special_offer_not_on_star_monthly: "Star मासिक पर उपलब्ध नहीं है",
     special_offer_renews_at: "{{months}} महीने के बाद {{price}} पर नवीनीकृत होता है",
+    special_offer_prices_in_usd:
+      "कीमतें अमेरिकी डॉलर (USD) में हैं, यही वह मुद्रा है जिसमें आप भुगतान करते हैं।",
     special_offer_success_title_plan: "धन्यवाद। अब आप {{plan}} पर हैं।",
     special_offer_choose_plan: "प्लान चुनें",
     plan_billing_terms:
