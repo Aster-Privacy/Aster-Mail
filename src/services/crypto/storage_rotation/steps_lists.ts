@@ -31,6 +31,7 @@ import {
 } from "./reseal_keys";
 import {
   chunk,
+  incomplete_count,
   request_with_backoff,
   require_ok,
   step_progress,
@@ -43,6 +44,7 @@ import {
   post_storage_rekey,
   send_items_splitting,
   text_field,
+  walk_id_pages,
 } from "./step_helpers";
 import { zero_uint8_array } from "../secure_memory";
 
@@ -54,6 +56,7 @@ export const CONTACTS_SEARCH_INFO = "contacts-search-v2";
 export const BLOCKED_SENDERS_INFO = "blocked-senders-hmac-v1";
 export const ALLOWED_SENDERS_INFO = "allowed-senders-hmac-v1";
 export const RECENT_RECIPIENTS_INFO = "recent-recipients-hmac-v1";
+export const RECENT_RECIPIENTS_PATH = "/contacts/v1/recent_recipients";
 export const EXTERNAL_ACCOUNTS_INFO = "external-accounts-hmac-v1";
 
 const CONTACT_PAGE_SIZE = 100;
@@ -492,12 +495,22 @@ export async function list_recent_recipients(
   ctx: ResealStepContext,
 ): Promise<RecentRecipientRow[]> {
   const seen = new Map<string, RecentRecipientRow>();
+  const walk = await walk_id_pages<{
+    items?: RecentRecipientRow[];
+    has_more?: boolean;
+    next_cursor?: string | null;
+  }>(ctx, RECENT_RECIPIENTS_PATH, "recent_list", null, async (data) => {
+    for (const row of data.items ?? []) seen.set(row.id, row);
+  });
+
+  if (walk === "done") return [...seen.values()];
+  seen.clear();
 
   for (let page = 0; page < MAX_PAGES_PER_RUN; page++) {
     const data = require_ok(
       await request_with_backoff(ctx, () =>
         ctx.api.get<{ items: RecentRecipientRow[] }>(
-          `/contacts/v1/recent_recipients?limit=${RECENT_RECIPIENT_LIMIT}&offset=${seen.size}`,
+          `${RECENT_RECIPIENTS_PATH}?limit=${RECENT_RECIPIENT_LIMIT}&offset=${seen.size}`,
         ),
       ),
       "recent_list",
@@ -519,6 +532,7 @@ export const recent_recipients_step: ResealStep = {
 
     if (progress.done) return "done";
 
+    const before = incomplete_count(ctx);
     const items: Record<string, unknown>[] = [];
 
     for (const row of await list_recent_recipients(ctx)) {
@@ -530,6 +544,7 @@ export const recent_recipients_step: ResealStep = {
       await post_storage_rekey(ctx, "recent_recipients", batch);
       await pause_between_batches(ctx);
     }
+    if (incomplete_count(ctx) > before) return "incomplete";
 
     progress.done = true;
     ctx.persist();

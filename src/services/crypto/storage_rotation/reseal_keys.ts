@@ -36,6 +36,8 @@ export const ESCROW_HKDF_INFO = "plaintext_escrow_key";
 export const RATCHET_HKDF_SALT = "Aster Mail_Ratchet_State_Encryption";
 export const RATCHET_HKDF_INFO = "ratchet_state_key";
 export const NONCE_LENGTH = 12;
+export const METADATA_HKDF_SALT = "aster-metadata-salt-v1";
+export const METADATA_HKDF_INFO_PREFIX = "aster-metadata-encryption-v1:";
 
 export type EscrowFallback = (
   ciphertext: Uint8Array,
@@ -58,6 +60,8 @@ export interface ResealKeys {
   escrow_fallback: EscrowFallback | null;
   hmac(info: string): Promise<CryptoKey>;
   old_hmacs(info: string): Promise<CryptoKey[]>;
+  metadata_key(context: string): Promise<CryptoKey>;
+  old_metadata_keys(context: string): Promise<CryptoKey[]>;
   dispose(): void;
 }
 
@@ -117,6 +121,28 @@ export async function derive_ratchet_aes_key(
       name: "HKDF",
       salt: new TextEncoder().encode(RATCHET_HKDF_SALT),
       info: new TextEncoder().encode(RATCHET_HKDF_INFO),
+      hash: HASH_ALG,
+    },
+    base,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+export async function derive_metadata_aes_key(
+  raw: Uint8Array,
+  context: string,
+): Promise<CryptoKey> {
+  const base = await crypto.subtle.importKey("raw", raw, "HKDF", false, [
+    "deriveKey",
+  ]);
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "HKDF",
+      salt: new TextEncoder().encode(METADATA_HKDF_SALT),
+      info: new TextEncoder().encode(METADATA_HKDF_INFO_PREFIX + context),
       hash: HASH_ALG,
     },
     base,
@@ -195,6 +221,8 @@ export async function build_reseal_keys(
   );
   const new_hmacs = new Map<string, Promise<CryptoKey>>();
   const old_hmac_sets = new Map<string, Promise<CryptoKey[]>>();
+  const new_metadata = new Map<string, Promise<CryptoKey>>();
+  const old_metadata_sets = new Map<string, Promise<CryptoKey[]>>();
 
   let disposed = false;
 
@@ -233,6 +261,36 @@ export async function build_reseal_keys(
       if (!pending) {
         pending = derive_storage_hmac_key(new_raw, info);
         new_hmacs.set(info, pending);
+      }
+
+      return pending;
+    },
+    metadata_key(context: string): Promise<CryptoKey> {
+      if (disposed) {
+        return Promise.reject(new Error("reseal keys disposed"));
+      }
+
+      let pending = new_metadata.get(context);
+
+      if (!pending) {
+        pending = derive_metadata_aes_key(new_raw, context);
+        new_metadata.set(context, pending);
+      }
+
+      return pending;
+    },
+    old_metadata_keys(context: string): Promise<CryptoKey[]> {
+      if (disposed) {
+        return Promise.reject(new Error("reseal keys disposed"));
+      }
+
+      let pending = old_metadata_sets.get(context);
+
+      if (!pending) {
+        pending = Promise.all(
+          old_raws.map((raw) => derive_metadata_aes_key(raw, context)),
+        );
+        old_metadata_sets.set(context, pending);
       }
 
       return pending;

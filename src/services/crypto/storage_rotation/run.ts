@@ -56,8 +56,10 @@ import {
   signatures_step,
   sync_sources_step,
   templates_step,
+  deleted_alias_directories_step,
 } from "./steps_categories";
 import { escrow_step } from "./steps_escrow";
+import { mail_metadata_step } from "./steps_mail_metadata";
 
 export const DEFAULT_RESEAL_STEPS: ResealStep[] = [
   ratchet_states_step,
@@ -66,6 +68,7 @@ export const DEFAULT_RESEAL_STEPS: ResealStep[] = [
   deleted_aliases_step,
   ghost_aliases_step,
   alias_directories_step,
+  deleted_alias_directories_step,
   alias_items_step,
   contacts_step,
   contact_groups_step,
@@ -79,6 +82,7 @@ export const DEFAULT_RESEAL_STEPS: ResealStep[] = [
   signatures_step,
   templates_step,
   sync_sources_step,
+  mail_metadata_step,
   escrow_step,
 ];
 
@@ -93,6 +97,7 @@ export interface ResealRunResult {
   status: ResealRunStatus;
   counts: StepCounts;
   reason?: string;
+  incomplete?: string[];
 }
 
 export interface ResealRunOptions {
@@ -148,7 +153,9 @@ export async function run_storage_reseal(
       is_cancelled: options.is_cancelled ?? (() => false),
       still_current: options.still_current,
       counts,
+      incomplete: [],
     };
+    const incomplete_steps: string[] = [];
 
     ctx.persist();
 
@@ -159,6 +166,10 @@ export async function run_storage_reseal(
 
       const result = await step.run(ctx);
 
+      if (result === "incomplete") {
+        incomplete_steps.push(step.name);
+        continue;
+      }
       if (result !== "done") {
         return { status: "interrupted", counts, reason: step.name };
       }
@@ -166,6 +177,14 @@ export async function run_storage_reseal(
 
     if (progress.hash_moves.length > 0) {
       return { status: "interrupted", counts, reason: "hash_moves" };
+    }
+    if (incomplete_steps.length > 0) {
+      return {
+        status: "interrupted",
+        counts,
+        reason: "incomplete",
+        incomplete: incomplete_steps,
+      };
     }
 
     const finish = await options.finish(options.vault.data_kek);

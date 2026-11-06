@@ -64,6 +64,7 @@ export interface StepCounts {
   conflicts: number;
   rejected: number;
   deleted: number;
+  skipped: number;
 }
 
 export interface ResealStepContext {
@@ -75,9 +76,10 @@ export interface ResealStepContext {
   is_cancelled(): boolean;
   still_current?: () => Promise<boolean>;
   counts: StepCounts;
+  incomplete?: string[];
 }
 
-export type StepResult = "done" | "interrupted";
+export type StepResult = "done" | "interrupted" | "incomplete";
 
 export interface ResealStep {
   name: string;
@@ -99,7 +101,17 @@ export function empty_counts(): StepCounts {
     conflicts: 0,
     rejected: 0,
     deleted: 0,
+    skipped: 0,
   };
+}
+
+export function mark_incomplete(ctx: ResealStepContext, what: string): void {
+  if (!ctx.incomplete) ctx.incomplete = [];
+  ctx.incomplete.push(what);
+}
+
+export function incomplete_count(ctx: ResealStepContext): number {
+  return ctx.incomplete?.length ?? 0;
 }
 
 export function default_sleep(ms: number): Promise<void> {

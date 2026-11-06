@@ -22,6 +22,8 @@ import type { ApiResponse } from "@/services/api/client";
 import type { EncryptedVault } from "../key_manager_core";
 import type { ResealApi, ResealStep } from "./reseal_io";
 
+import { createHash } from "node:crypto";
+
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { array_to_base64, base64_to_array } from "../base64";
@@ -42,6 +44,12 @@ import {
   STORAGE_REKEY_PATH,
   USER_REKEY_PATH,
 } from "./step_helpers";
+import {
+  MAIL_METADATA_CONTEXT,
+  MAIL_METADATA_PATH,
+  mail_metadata_step,
+} from "./steps_mail_metadata";
+import { decrypt_metadata, derive_metadata_key } from "../envelope";
 import { run_storage_reseal } from "./run";
 import {
   ALIAS_HMAC_INFO,
@@ -51,6 +59,7 @@ import {
 import {
   PROFILE_NOTES_HMAC_INFO,
   alias_directories_step,
+  deleted_alias_directories_step,
   alias_items_step,
   contact_extras_step,
   contact_field_definitions_step,
@@ -67,7 +76,7 @@ const LONG_TEST = { timeout: 120000 };
 const no_sleep = async (): Promise<void> => {};
 
 type Row = Record<string, unknown>;
-type KeyKind = "storage" | "ratchet";
+type KeyKind = "storage" | "ratchet" | "metadata";
 
 interface Expectation {
   table: string;
@@ -98,6 +107,8 @@ function old_raws(): Uint8Array[] {
 }
 
 async function key_for(raw: Uint8Array, kind: KeyKind): Promise<CryptoKey> {
+  if (kind === "metadata") return derive_metadata_key(raw, MAIL_METADATA_CONTEXT);
+
   return kind === "ratchet"
     ? derive_ratchet_aes_key(raw)
     : import_storage_aes_key(raw);
@@ -171,12 +182,27 @@ const SEALED_COLUMNS: Record<string, [string, string]> = {
   alias_contacts: ["encrypted_contact", "contact_nonce"],
   alias_destinations: ["encrypted_destination", "destination_nonce"],
   alias_directories: ["encrypted_label", "label_nonce"],
+  deleted_alias_directories: ["encrypted_label", "label_nonce"],
   contact_field_definitions: ["encrypted_name", "name_nonce"],
 };
+
+const PAGE_LIMIT_MAX = 500;
+const LEGACY_LIMIT_MAX = 100;
+
+function sha256_b64(value: unknown): string {
+  return createHash("sha256")
+    .update(base64_to_array(String(value)))
+    .digest("base64");
+}
 
 class FakeServer {
   tables = new Map<string, Map<string, Row>>();
   writes: RecordedWrite[] = [];
+  legacy = false;
+  pages_served = 0;
+  before_post: ((path: string, body: Row) => void) | null = null;
+  private skipped: Record<string, string[]> = {};
+  private ratchet_conflicts: { id: string; state_version: number }[] = [];
 
   table(name: string): Map<string, Row> {
     let table = this.tables.get(name);
@@ -222,6 +248,44 @@ class FakeServer {
     return rows.map(({ owner: _owner, ...rest }) => rest);
   }
 
+  private id_page(url: URL, rows: Row[], key: string): Record<string, unknown> {
+    const cursor = url.searchParams.get("cursor");
+    const paged = cursor !== null || url.searchParams.get("paged") === "true";
+    const sorted = [...rows].sort((a, b) =>
+      String(a.id) < String(b.id) ? -1 : String(a.id) > String(b.id) ? 1 : 0,
+    );
+
+    if (this.legacy || !paged) {
+      const limit = Math.min(
+        Number(url.searchParams.get("limit") ?? String(sorted.length)),
+        this.legacy ? LEGACY_LIMIT_MAX : sorted.length,
+      );
+      const offset = Number(url.searchParams.get("offset") ?? "0");
+
+      return { [key]: sorted.slice(offset, offset + limit) };
+    }
+
+    const limit = Math.max(
+      1,
+      Math.min(Number(url.searchParams.get("limit") ?? "500"), PAGE_LIMIT_MAX),
+    );
+    const after = sorted.filter((row) => !cursor || String(row.id) > cursor);
+    const slice = after.slice(0, limit);
+    const has_more = after.length > limit;
+
+    this.pages_served += 1;
+
+    return {
+      [key]: slice,
+      has_more,
+      ...(has_more ? { next_cursor: String(slice[slice.length - 1].id) } : {}),
+    };
+  }
+
+  private skip(category: string, id: unknown): void {
+    (this.skipped[category] ??= []).push(String(id));
+  }
+
   private handle_get(path: string): ApiResponse<unknown> {
     const url = new URL(path, "https://fake.invalid");
     const p = url.pathname;
@@ -230,7 +294,7 @@ class FakeServer {
 
     if (p === "/crypto/v1/ratchet/states") return ok(this.rows("ratchet"));
     if (p === "/settings/v1/profile_notes/all") {
-      return ok({ notes: this.rows("notes") });
+      return ok(this.id_page(url, this.rows("notes"), "notes"));
     }
     if (p === "/contacts/v1") {
       const ids = [...this.table("contacts").keys()].sort();
@@ -249,10 +313,7 @@ class FakeServer {
     if (p === "/contacts/v1/blocked_senders") return ok({ blocked_senders: [] });
     if (p === "/contacts/v1/allowed_senders") return ok({ allowed_senders: [] });
     if (p === "/contacts/v1/recent_recipients") {
-      const limit = Number(url.searchParams.get("limit") ?? "100");
-      const offset = Number(url.searchParams.get("offset") ?? "0");
-
-      return ok({ items: this.rows("recent").slice(offset, offset + limit) });
+      return ok(this.id_page(url, this.rows("recent"), "items"));
     }
     if (p === "/contacts/v1/fields") {
       return ok({ items: this.rows("contact_field_definitions") });
@@ -264,10 +325,30 @@ class FakeServer {
       return ok({ aliases: this.rows("aliases"), has_more: false });
     }
     if (p === "/addresses/v1/aliases/ghost") {
-      return ok({ aliases: this.rows("ghost") });
+      return ok(this.id_page(url, this.rows("ghost"), "aliases"));
     }
     if (p === "/addresses/v1/aliases/deleted") {
-      return ok({ aliases: this.rows("deleted") });
+      return ok(this.id_page(url, this.rows("deleted"), "aliases"));
+    }
+    if (p === "/addresses/v1/aliases/directories/deleted") {
+      return ok(
+        this.id_page(url, this.rows("deleted_alias_directories"), "directories"),
+      );
+    }
+    if (p === MAIL_METADATA_PATH) {
+      if (this.legacy) return { error: "not found", status: 404 };
+
+      const rows = this.rows("mail_metadata")
+        .filter((row) => row.encrypted_metadata)
+        .map((row) => ({
+          id: row.id,
+          encrypted_metadata: row.encrypted_metadata,
+          metadata_nonce: row.metadata_nonce ?? null,
+          metadata_version: 1,
+          metadata_hash: sha256_b64(row.encrypted_metadata),
+        }));
+
+      return ok(this.id_page(url, rows, "items"));
     }
     if (p === "/addresses/v1/aliases/directories") {
       return ok({ directories: this.rows("alias_directories") });
@@ -286,7 +367,9 @@ class FakeServer {
         match[2]
       ] as string;
 
-      return ok({ [key]: this.strip(this.rows(table, match[1])) });
+      const rows = this.strip(this.rows(table, match[1]));
+
+      return ok(key === "contacts" ? this.id_page(url, rows, key) : { [key]: rows });
     }
     if ((match = p.match(/^\/contacts\/v1\/([^/]+)\/fields$/))) {
       return ok({ items: this.strip(this.rows("field_values", match[1])) });
@@ -312,7 +395,7 @@ class FakeServer {
       return row ? ok(this.strip([row])[0]) : { error: "not found", status: 404 };
     }
     if ((match = p.match(/^\/mail\/v1\/(signatures|templates)$/))) {
-      return ok({ [match[1]]: this.rows(match[1]) });
+      return ok(this.id_page(url, this.rows(match[1]), match[1]));
     }
     if ((match = p.match(/^\/mail\/v1\/(signatures|templates)\/([^/]+)$/))) {
       const row = this.table(match[1]).get(match[2]);
@@ -329,7 +412,10 @@ class FakeServer {
     for (const item of items) {
       const row = this.table(category).get(String(item.id));
 
-      if (!row) continue;
+      if (!row || (category === "deleted_alias_directories" && !row[ct_field])) {
+        this.skip(category, item.id);
+        continue;
+      }
       row[ct_field] = item.ciphertext;
       row[nonce_field] = item.nonce;
     }
@@ -338,8 +424,27 @@ class FakeServer {
   private handle_post(path: string, body: Row): ApiResponse<unknown> {
     let match: RegExpMatchArray | null;
 
+    this.before_post?.(path, body);
     if (path === MAIL_TOKENS_PATH) return { data: { done: true } };
-    if (path === STORAGE_REKEY_PATH) return this.storage_rekey(body);
+    if (path === MAIL_METADATA_PATH) return this.mail_metadata(body);
+    if (path === STORAGE_REKEY_PATH) {
+      this.skipped = {};
+      this.ratchet_conflicts = [];
+
+      const response = this.storage_rekey(body);
+
+      if (this.legacy || response.error) return response;
+
+      return {
+        data: {
+          success: true,
+          updated: {},
+          skipped: this.skipped,
+          skipped_total: Object.values(this.skipped).flat().length,
+          ratchet_conflicts: this.ratchet_conflicts,
+        },
+      };
+    }
     if (path === USER_REKEY_PATH) {
       for (const item of (body.re_encrypted_aliases ?? []) as Row[]) {
         const row = this.table("ghost").get(String(item.id));
@@ -368,7 +473,16 @@ class FakeServer {
     for (const item of (body.ratchet_states ?? []) as Row[]) {
       const row = this.table("ratchet").get(String(item.id));
 
-      if (!row || row.state_version !== item.expected_version) continue;
+      if (!row || row.state_version !== item.expected_version) {
+        this.skip("ratchet_states", item.id);
+        if (row) {
+          this.ratchet_conflicts.push({
+            id: String(item.id),
+            state_version: Number(row.state_version),
+          });
+        }
+        continue;
+      }
       row.encrypted_state = item.encrypted_state;
       row.state_nonce = item.state_nonce;
       row.state_version = Number(row.state_version) + 1;
@@ -402,14 +516,53 @@ class FakeServer {
       const row = this.table("deleted").get(String(item.id));
 
       if (row) Object.assign(row, item);
+      else this.skip("deleted_aliases", item.id);
     }
     for (const item of (body.recent_recipients ?? []) as Row[]) {
       const row = this.table("recent").get(String(item.id));
 
       if (row) Object.assign(row, item);
+      else this.skip("recent_recipients", item.id);
     }
 
     return { data: { success: true } };
+  }
+
+  private mail_metadata(body: Row): ApiResponse<unknown> {
+    const items = (body.items ?? []) as Row[];
+
+    if (items.length > PAGE_LIMIT_MAX) {
+      return { error: "batch too large", status: 400 };
+    }
+
+    const skipped_ids: string[] = [];
+    let updated = 0;
+
+    for (const item of items) {
+      const row = this.table("mail_metadata").get(String(item.id));
+
+      if (
+        !row ||
+        !row.encrypted_metadata ||
+        sha256_b64(row.encrypted_metadata) !== item.expected_hash
+      ) {
+        skipped_ids.push(String(item.id));
+        continue;
+      }
+      if (
+        base64_to_array(String(item.encrypted_metadata)).length >
+        base64_to_array(String(row.encrypted_metadata)).length + 256
+      ) {
+        return { error: "STORAGE_REKEY_SIZE_CHANGED", status: 400 };
+      }
+      row.encrypted_metadata = item.encrypted_metadata;
+      row.metadata_nonce = item.metadata_nonce;
+      updated += 1;
+    }
+
+    return {
+      data: { success: true, updated, skipped: skipped_ids.length, skipped_ids },
+    };
   }
 
   private handle_put(path: string, body: Row): ApiResponse<unknown> {
@@ -557,7 +710,7 @@ async function expect_resealed(
       label,
     ).toBe(item.plaintext);
     for (const raw of old_raws()) {
-      for (const kind of ["storage", "ratchet"] as KeyKind[]) {
+      for (const kind of ["storage", "ratchet", "metadata"] as KeyKind[]) {
         expect(await opens(raw, ciphertext, nonce, kind), label).toBeNull();
         if (item.aad) {
           expect(
@@ -1117,5 +1270,413 @@ describe("storage reseal categories", () => {
 
     expect(sample.email_token).not.toBe("old");
     expect(RECENT_RECIPIENTS_INFO).toBe("recent-recipients-hmac-v1");
+  });
+
+  it("pages every list past 500 rows", { timeout: 300000 }, async () => {
+    const server = new FakeServer();
+    const seeder = new Seeder(server);
+    const count = 505;
+    const id = (prefix: string, i: number): string =>
+      `${prefix}${String(i).padStart(4, "0")}`;
+
+    server.table("aliases").set("a1", { id: "a1" });
+    for (let i = 0; i < count; i++) {
+      await seeder.sealed_row(
+        "recent",
+        id("rr", i),
+        { email_token: "old" },
+        "encrypted_email",
+        "email_nonce",
+        `person${i}@example.com`,
+      );
+      for (const [table, prefix, raw, is_random] of [
+        ["deleted", "gone", v1_raw, false],
+        ["ghost", "ghost", v2_raw, true],
+      ] as [string, string, Uint8Array, boolean][]) {
+        const row_id = id(table === "deleted" ? "del" : "gh", i);
+
+        await seeder.sealed_row(
+          table,
+          row_id,
+          {
+            domain: "astermail.org",
+            is_random,
+            alias_address_hash: await hmac(
+              raw,
+              ALIAS_HMAC_INFO,
+              `${prefix}${i}@astermail.org`,
+            ),
+          },
+          "encrypted_local_part",
+          "local_part_nonce",
+          `${prefix}${i}`,
+          { raw },
+        );
+        seeder.expectations.push({
+          table,
+          id: row_id,
+          ciphertext_field: "encrypted_local_part",
+          nonce_field: "local_part_nonce",
+          plaintext: `${prefix}${i}`,
+          kind: "storage",
+        });
+      }
+      await seeder.sealed_row(
+        "notes",
+        id("n", i),
+        {
+          email_token: await hmac(
+            v1_raw,
+            PROFILE_NOTES_HMAC_INFO,
+            `nobody${i}@example.com`,
+          ),
+          integrity_hash: "old",
+        },
+        "encrypted_note",
+        "note_nonce",
+        `note ${i}`,
+      );
+      const signature = await seeder.sealed_row(
+        "signatures",
+        id("s", i),
+        {},
+        "encrypted_name",
+        "name_nonce",
+        `Signature ${i}`,
+      );
+
+      await seeder.add_pair(
+        signature,
+        "signatures",
+        "encrypted_content",
+        "content_nonce",
+        `<p>Regards ${i}</p>`,
+      );
+      await seeder.sealed_row(
+        "alias_contacts",
+        id("ac", i),
+        { owner: "a1" },
+        "encrypted_contact",
+        "contact_nonce",
+        `friend${i}@example.com`,
+      );
+      await seeder.sealed_row(
+        "deleted_alias_directories",
+        id("dd", i),
+        {},
+        "encrypted_label",
+        "label_nonce",
+        `Folder ${i}`,
+      );
+    }
+    server.table("deleted_alias_directories").set("dd-empty", {
+      id: "dd-empty",
+      encrypted_label: null,
+      label_nonce: null,
+    });
+
+    await run_twice(
+      server,
+      [
+        recent_recipients_step,
+        deleted_aliases_step,
+        ghost_aliases_step,
+        alias_items_step,
+        deleted_alias_directories_step,
+        profile_notes_step,
+        signatures_step,
+      ],
+      seeder.expectations,
+    );
+
+    expect(server.pages_served).toBeGreaterThanOrEqual(28);
+    expect(server.table("recent").get(id("rr", count - 1))!.email_token).not.toBe(
+      "old",
+    );
+  });
+
+  it("reseals mail metadata page by page", { timeout: 300000 }, async () => {
+    const server = new FakeServer();
+    const seeder = new Seeder(server);
+    const metadata = (i: number): string =>
+      JSON.stringify({
+        is_read: i % 2 === 0,
+        is_starred: false,
+        snoozed_until: i % 7 === 0 ? "2026-12-01T00:00:00Z" : undefined,
+        message_ts: "2026-11-01T00:00:00Z",
+      });
+
+    for (let i = 0; i < 1203; i++) {
+      const row_id = `m${String(i).padStart(5, "0")}`;
+
+      if (i % 5 === 0) {
+        const legacy = await seal(seeder.next_old(), metadata(i), "storage");
+
+        server.table("mail_metadata").set(row_id, {
+          id: row_id,
+          encrypted_metadata: legacy.ciphertext,
+          metadata_nonce: legacy.nonce,
+        });
+        seeder.expectations.push({
+          table: "mail_metadata",
+          id: row_id,
+          ciphertext_field: "encrypted_metadata",
+          nonce_field: "metadata_nonce",
+          plaintext: metadata(i),
+          kind: "metadata",
+        });
+      } else {
+        await seeder.sealed_row(
+          "mail_metadata",
+          row_id,
+          { snoozed_until: i % 7 === 0 ? "2026-12-01T00:00:00Z" : null },
+          "encrypted_metadata",
+          "metadata_nonce",
+          metadata(i),
+          { kind: "metadata" },
+        );
+      }
+    }
+    server.table("mail_metadata").set("m-none", {
+      id: "m-none",
+      encrypted_metadata: null,
+      metadata_nonce: null,
+    });
+
+    await run_twice(server, [mail_metadata_step], seeder.expectations);
+
+    expect(server.pages_served).toBeGreaterThanOrEqual(6);
+
+    expect(server.table("mail_metadata").get("m00007")!.snoozed_until).toBe(
+      "2026-12-01T00:00:00Z",
+    );
+  });
+
+  it("writes metadata that the mail client can read", LONG_TEST, async () => {
+    const server = new FakeServer();
+    const sealed = await seal(v2_raw, JSON.stringify({ is_read: true }), "metadata");
+
+    server.table("mail_metadata").set("m1", {
+      id: "m1",
+      encrypted_metadata: sealed.ciphertext,
+      metadata_nonce: sealed.nonce,
+    });
+
+    const new_raw = random_raw();
+    const result = await run_storage_reseal({
+      vault: rotated_vault(new_raw),
+      api: server.api,
+      store: memory_progress_store(),
+      finish: vi.fn(async () => "done" as const),
+      still_current: async () => true,
+      sleep: no_sleep,
+      steps: [mail_metadata_step],
+    });
+    const row = server.table("mail_metadata").get("m1")!;
+    const blob = {
+      encrypted_data: String(row.encrypted_metadata),
+      nonce: String(row.metadata_nonce),
+      version: 1,
+    };
+
+    expect(result.status).toBe("done");
+    expect(result.counts.resealed).toBe(1);
+    expect(
+      await decrypt_metadata(blob, new_raw, MAIL_METADATA_CONTEXT),
+    ).toEqual({ is_read: true });
+    for (const raw of old_raws()) {
+      expect(await decrypt_metadata(blob, raw, MAIL_METADATA_CONTEXT)).toBeNull();
+    }
+  });
+
+  it("skips metadata whose hash went stale and picks it up next run", LONG_TEST, async () => {
+    const server = new FakeServer();
+    const seeder = new Seeder(server);
+
+    for (const row_id of ["m1", "m2", "m3"]) {
+      await seeder.sealed_row(
+        "mail_metadata",
+        row_id,
+        {},
+        "encrypted_metadata",
+        "metadata_nonce",
+        JSON.stringify({ id: row_id }),
+        { kind: "metadata" },
+      );
+    }
+
+    const replacement = await seal(
+      v1_raw,
+      JSON.stringify({ id: "m2" }),
+      "metadata",
+    );
+    let raced = false;
+
+    server.before_post = (path) => {
+      if (path !== MAIL_METADATA_PATH || raced) return;
+      raced = true;
+
+      const row = server.table("mail_metadata").get("m2")!;
+
+      row.encrypted_metadata = replacement.ciphertext;
+      row.metadata_nonce = replacement.nonce;
+    };
+
+    const new_raw = random_raw();
+    const options = {
+      vault: rotated_vault(new_raw),
+      api: server.api,
+      finish: vi.fn(async () => "done" as const),
+      still_current: async () => true,
+      sleep: no_sleep,
+      steps: [mail_metadata_step],
+    };
+    const first = await run_storage_reseal({
+      ...options,
+      store: memory_progress_store(),
+    });
+
+    expect(first.status).toBe("done");
+    expect(first.counts.resealed).toBe(2);
+    expect(first.counts.skipped).toBe(1);
+
+    const second = await run_storage_reseal({
+      ...options,
+      store: memory_progress_store(),
+    });
+
+    expect(second.counts.resealed).toBe(1);
+    expect(second.counts.skipped).toBe(0);
+    await expect_resealed(server, seeder.expectations, new_raw);
+
+    const writes = server.writes.length;
+    const third = await run_storage_reseal({
+      ...options,
+      store: memory_progress_store(),
+    });
+
+    expect(third.counts.resealed).toBe(0);
+    expect(server.writes.length).toBe(writes);
+  });
+
+  it("retries a ratchet conflict once with the new version", LONG_TEST, async () => {
+    const server = new FakeServer();
+    const seeder = new Seeder(server);
+
+    await seeder.sealed_row(
+      "ratchet",
+      "r1",
+      { conversation_id: b64_text("conv-one"), state_version: 3 },
+      "encrypted_state",
+      "state_nonce",
+      ratchet_json("conv-one", true),
+      { kind: "ratchet", aad: ratchet_state_bound_aad("conv-one") },
+    );
+    await seeder.sealed_row(
+      "ratchet",
+      "r2",
+      { conversation_id: b64_text("conv-two"), state_version: 8 },
+      "encrypted_state",
+      "state_nonce",
+      ratchet_json("conv-two", true),
+      {
+        kind: "ratchet",
+        aad: ratchet_state_bound_aad("conv-two"),
+        raw: v2_raw,
+      },
+    );
+
+    let bumped_r1 = false;
+
+    server.before_post = (path, body) => {
+      if (path !== STORAGE_REKEY_PATH || !body.ratchet_states) return;
+
+      const r1 = server.table("ratchet").get("r1")!;
+      const r2 = server.table("ratchet").get("r2")!;
+
+      if (!bumped_r1) {
+        bumped_r1 = true;
+        r1.state_version = Number(r1.state_version) + 1;
+      }
+      r2.state_version = Number(r2.state_version) + 1;
+    };
+
+    const new_raw = random_raw();
+    const result = await run_storage_reseal({
+      vault: rotated_vault(new_raw),
+      api: server.api,
+      store: memory_progress_store(),
+      finish: vi.fn(async () => "done" as const),
+      still_current: async () => true,
+      sleep: no_sleep,
+      steps: [ratchet_states_step],
+    });
+    const ratchet_posts = server.writes.filter(
+      (write) =>
+        write.path === STORAGE_REKEY_PATH &&
+        (write.body as Row).ratchet_states !== undefined,
+    );
+
+    expect(result.status).toBe("done");
+    expect(result.counts.resealed).toBe(1);
+    expect(result.counts.conflicts).toBe(1);
+    expect(result.counts.skipped).toBe(0);
+    expect(ratchet_posts).toHaveLength(2);
+    expect(server.table("ratchet").get("r1")!.state_version).toBe(5);
+    await expect_resealed(server, seeder.expectations, new_raw);
+  });
+
+  it("does not finish against a backend without has_more", LONG_TEST, async () => {
+    const server = new FakeServer();
+    const seeder = new Seeder(server);
+
+    server.legacy = true;
+    for (let i = 0; i < 150; i++) {
+      await seeder.sealed_row(
+        "recent",
+        `rr${String(i).padStart(3, "0")}`,
+        { email_token: "old" },
+        "encrypted_email",
+        "email_nonce",
+        `person${i}@example.com`,
+      );
+    }
+    await seeder.sealed_row(
+      "signatures",
+      "s1",
+      {},
+      "encrypted_name",
+      "name_nonce",
+      "Work",
+    );
+
+    const new_raw = random_raw();
+    const finish = vi.fn(async () => "done" as const);
+    const store = memory_progress_store();
+    const options = {
+      vault: rotated_vault(new_raw),
+      api: server.api,
+      finish,
+      still_current: async () => true,
+      sleep: no_sleep,
+      steps: [recent_recipients_step, signatures_step, mail_metadata_step],
+    };
+    const result = await run_storage_reseal({ ...options, store });
+
+    expect(result.status).toBe("interrupted");
+    expect(result.reason).toBe("incomplete");
+    expect(result.incomplete).toEqual([
+      "recent_recipients",
+      "signatures",
+      "mail_metadata",
+    ]);
+    expect(finish).not.toHaveBeenCalled();
+    await expect_resealed(server, seeder.expectations, new_raw);
+
+    const again = await run_storage_reseal({ ...options, store });
+
+    expect(again.status).toBe("interrupted");
+    expect(again.counts.resealed).toBe(0);
+    expect(finish).not.toHaveBeenCalled();
   });
 });

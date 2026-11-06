@@ -31,7 +31,9 @@ import {
   BATCH_PAUSE_MS,
   ResealInterrupted,
   is_conflict_response,
+  mark_incomplete,
   request_with_backoff,
+  require_ok,
 } from "./reseal_io";
 import { zero_uint8_array } from "../secure_memory";
 
@@ -39,6 +41,120 @@ export const STORAGE_REKEY_PATH = "/core/v1/auth/me/storage-rekey";
 export const USER_REKEY_PATH = "/core/v1/auth/me/rekey";
 export const MAIL_TOKENS_PATH = "/core/v1/auth/me/storage-rekey/mail-tokens";
 export const MAX_FULL_LIST_PASSES = 3;
+export const ID_PAGE_LIMIT = 500;
+
+const MAX_ID_PAGES = 10_000;
+
+export interface IdPageInfo {
+  next_cursor?: string | null;
+  has_more?: boolean;
+}
+
+export type PageWalk = "done" | "unpaged" | "missing";
+
+function is_missing(status: number | undefined): boolean {
+  return (
+    status !== undefined &&
+    status >= 400 &&
+    status < 500 &&
+    status !== 401 &&
+    status !== 403 &&
+    status !== 429
+  );
+}
+
+export async function get_optional<T>(
+  ctx: ResealStepContext,
+  path: string,
+  what: string,
+): Promise<T | null> {
+  const response = await request_with_backoff(ctx, () => ctx.api.get<T>(path));
+
+  if (!response.error && response.data !== undefined) return response.data;
+  if (response.error && is_missing(response.status)) return null;
+
+  throw new ResealInterrupted(`${what}:${response.status ?? "network"}`);
+}
+
+export function id_page_path(path: string, cursor: string | null): string {
+  const query = new URLSearchParams({
+    cursor: cursor ?? "",
+    limit: String(ID_PAGE_LIMIT),
+  });
+
+  return `${path}${path.includes("?") ? "&" : "?"}${query.toString()}`;
+}
+
+export async function walk_id_pages<T extends IdPageInfo>(
+  ctx: ResealStepContext,
+  path: string,
+  what: string,
+  start_cursor: string | null,
+  visit: (data: T, next_cursor: string | null) => Promise<void>,
+  optional = false,
+): Promise<PageWalk> {
+  let cursor = start_cursor;
+
+  for (let page = 0; page < MAX_ID_PAGES; page++) {
+    const target = id_page_path(path, cursor);
+    const data = optional
+      ? await get_optional<T>(ctx, target, what)
+      : require_ok(
+          await request_with_backoff(ctx, () => ctx.api.get<T>(target)),
+          what,
+        );
+
+    if (!data) return "missing";
+
+    const next =
+      data.has_more === true && typeof data.next_cursor === "string"
+        ? data.next_cursor
+        : null;
+
+    if (
+      typeof data.has_more !== "boolean" ||
+      (data.has_more && !next) ||
+      (next !== null && next === cursor)
+    ) {
+      await visit(data, null);
+      mark_incomplete(ctx, what);
+
+      return "unpaged";
+    }
+
+    await visit(data, next);
+    if (!next) return "done";
+    if (ctx.is_cancelled()) throw new ResealInterrupted("cancelled");
+    cursor = next;
+  }
+
+  throw new ResealInterrupted(`${what}:page_limit`);
+}
+
+export async function collect_id_pages<R>(
+  ctx: ResealStepContext,
+  path: string,
+  list_key: string,
+  what: string,
+  optional = false,
+): Promise<R[]> {
+  const rows: R[] = [];
+
+  await walk_id_pages<IdPageInfo & Record<string, unknown>>(
+    ctx,
+    path,
+    what,
+    null,
+    async (data) => {
+      const page = data[list_key];
+
+      if (Array.isArray(page)) rows.push(...(page as R[]));
+    },
+    optional,
+  );
+
+  return rows;
+}
 
 export type SealedState =
   | { state: "current" }
@@ -112,16 +228,32 @@ export async function pause_between_batches(
 }
 
 export type BatchOutcome = "ok" | "conflict" | "rejected";
+export type ItemOutcome = BatchOutcome | "skipped";
+
+export interface BatchReply {
+  outcome: BatchOutcome;
+  data: unknown;
+}
 
 export async function send_batch(
   ctx: ResealStepContext,
   send: () => Promise<ApiResponse<unknown>>,
   what: string,
 ): Promise<BatchOutcome> {
+  return (await send_batch_reply(ctx, send, what)).outcome;
+}
+
+export async function send_batch_reply(
+  ctx: ResealStepContext,
+  send: () => Promise<ApiResponse<unknown>>,
+  what: string,
+): Promise<BatchReply> {
   const response = await request_with_backoff(ctx, send);
 
-  if (!response.error) return "ok";
-  if (is_conflict_response(response)) return "conflict";
+  if (!response.error) return { outcome: "ok", data: response.data };
+  if (is_conflict_response(response)) {
+    return { outcome: "conflict", data: response.data };
+  }
   if (
     response.status === undefined ||
     response.status === 429 ||
@@ -132,7 +264,36 @@ export async function send_batch(
     throw new ResealInterrupted(`${what}:${response.status ?? "network"}`);
   }
 
-  return "rejected";
+  return { outcome: "rejected", data: response.data };
+}
+
+export function skipped_ids(data: unknown): Set<string> {
+  const out = new Set<string>();
+
+  if (!data || typeof data !== "object") return out;
+
+  const record = data as Record<string, unknown>;
+  const add_all = (value: unknown): void => {
+    if (!Array.isArray(value)) return;
+    for (const id of value) {
+      if (typeof id === "string") out.add(id);
+    }
+  };
+
+  if (record.skipped && typeof record.skipped === "object") {
+    Object.values(record.skipped as Record<string, unknown>).forEach(add_all);
+  }
+  add_all(record.skipped_ids);
+
+  return out;
+}
+
+function default_item_id(item: unknown): string | undefined {
+  if (!item || typeof item !== "object") return undefined;
+
+  const id = (item as Record<string, unknown>).id;
+
+  return typeof id === "string" ? id : undefined;
 }
 
 export async function send_items_splitting<T>(
@@ -140,16 +301,30 @@ export async function send_items_splitting<T>(
   items: T[],
   send: (batch: T[]) => Promise<ApiResponse<unknown>>,
   what: string,
-  on_failed_item?: (item: T, outcome: BatchOutcome) => void,
+  on_failed_item?: (item: T, outcome: ItemOutcome) => void,
+  id_of: (item: T) => string | undefined = default_item_id,
 ): Promise<T[]> {
   if (items.length === 0) return [];
 
-  const outcome = await send_batch(ctx, () => send(items), what);
+  const { outcome, data } = await send_batch_reply(ctx, () => send(items), what);
 
   if (outcome === "ok") {
-    ctx.counts.resealed += items.length;
+    const skipped = skipped_ids(data);
+    const written: T[] = [];
 
-    return items;
+    for (const item of items) {
+      const id = id_of(item);
+
+      if (id !== undefined && skipped.has(id)) {
+        ctx.counts.skipped += 1;
+        on_failed_item?.(item, "skipped");
+      } else {
+        written.push(item);
+      }
+    }
+    ctx.counts.resealed += written.length;
+
+    return written;
   }
 
   if (items.length === 1) {
@@ -164,7 +339,14 @@ export async function send_items_splitting<T>(
 
   for (const item of items) {
     written.push(
-      ...(await send_items_splitting(ctx, [item], send, what, on_failed_item)),
+      ...(await send_items_splitting(
+        ctx,
+        [item],
+        send,
+        what,
+        on_failed_item,
+        id_of,
+      )),
     );
   }
 

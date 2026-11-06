@@ -39,13 +39,16 @@ import {
 } from "./reseal_keys";
 import {
   ResealInterrupted,
+  incomplete_count,
   request_with_backoff,
   require_ok,
   step_progress,
 } from "./reseal_io";
 import {
   classify_sealed,
+  collect_id_pages,
   decode_text,
+  get_optional,
   parse_json_object,
   pause_between_batches,
   post_storage_rekey,
@@ -62,6 +65,8 @@ export const PROFILE_NOTES_HMAC_INFO = "profile-notes-hmac-v1";
 export const RATCHET_STATES_PATH = "/crypto/v1/ratchet/states";
 export const PROFILE_NOTES_PATH = "/settings/v1/profile_notes/all";
 export const SYNC_SOURCES_PATH = "/contacts/v1/sync/sources";
+export const DELETED_DIRECTORIES_PATH =
+  "/addresses/v1/aliases/directories/deleted";
 
 const PROFILE_NOTES_INTEGRITY_SUFFIX = "profile-notes-v1";
 const SEALED_BATCH_SIZE = 100;
@@ -86,6 +91,11 @@ interface RatchetRow {
   conversation_id: string;
   encrypted_state: string;
   state_nonce: string;
+  state_version: number;
+}
+
+interface RatchetConflict {
+  id: string;
   state_version: number;
 }
 
@@ -189,28 +199,22 @@ interface SealedPair {
   nonce_field: string;
 }
 
-function is_missing(status: number | undefined): boolean {
-  return (
-    status !== undefined &&
-    status >= 400 &&
-    status < 500 &&
-    status !== 401 &&
-    status !== 403 &&
-    status !== 429
-  );
-}
-
-async function get_optional<T>(
+function finish_step(
   ctx: ResealStepContext,
-  path: string,
-  what: string,
-): Promise<T | null> {
-  const response = await request_with_backoff(ctx, () => ctx.api.get<T>(path));
+  progress: { done?: boolean; cursor?: string | number | null },
+  incomplete_before: number,
+): "done" | "incomplete" {
+  if (incomplete_count(ctx) > incomplete_before) {
+    progress.cursor = null;
+    ctx.persist();
 
-  if (!response.error && response.data !== undefined) return response.data;
-  if (response.error && is_missing(response.status)) return null;
+    return "incomplete";
+  }
+  progress.done = true;
+  progress.cursor = null;
+  ctx.persist();
 
-  throw new ResealInterrupted(`${what}:${response.status ?? "network"}`);
+  return "done";
 }
 
 function is_sealed(result: ResealResult): result is SealedValue {
@@ -445,6 +449,99 @@ async function build_ratchet_item(
   }
 }
 
+function ratchet_conflicts_of(data: unknown): RatchetConflict[] {
+  if (!data || typeof data !== "object") return [];
+
+  const list = (data as Record<string, unknown>).ratchet_conflicts;
+
+  if (!Array.isArray(list)) return [];
+
+  return list.filter(
+    (entry): entry is RatchetConflict =>
+      !!entry &&
+      typeof entry === "object" &&
+      typeof (entry as RatchetConflict).id === "string" &&
+      typeof (entry as RatchetConflict).state_version === "number",
+  );
+}
+
+async function list_ratchet_rows(ctx: ResealStepContext): Promise<RatchetRow[]> {
+  const rows = require_ok(
+    await request_with_backoff(ctx, () =>
+      ctx.api.get<RatchetRow[]>(RATCHET_STATES_PATH),
+    ),
+    "ratchet_states_list",
+  );
+
+  return Array.isArray(rows) ? rows : [];
+}
+
+async function post_ratchet_items(
+  ctx: ResealStepContext,
+  items: Record<string, unknown>[],
+): Promise<RatchetConflict[]> {
+  const conflicts: RatchetConflict[] = [];
+
+  for (const batch of chunk_by_chars(
+    items,
+    RATCHET_BATCH_SIZE,
+    (item) => String(item.encrypted_state).length,
+  )) {
+    await send_items_splitting(
+      ctx,
+      batch,
+      async (entries) => {
+        const response = await ctx.api.post(STORAGE_REKEY_PATH, {
+          ratchet_states: entries,
+        });
+
+        if (!response.error) {
+          conflicts.push(...ratchet_conflicts_of(response.data));
+        }
+
+        return response;
+      },
+      "storage_rekey:ratchet_states",
+    );
+    await pause_between_batches(ctx);
+  }
+
+  return conflicts;
+}
+
+async function retry_ratchet_conflicts(
+  ctx: ResealStepContext,
+  conflicts: RatchetConflict[],
+): Promise<void> {
+  if (conflicts.length === 0) return;
+
+  const wanted = new Map(conflicts.map((entry) => [entry.id, entry]));
+  const retry: Record<string, unknown>[] = [];
+
+  ctx.counts.skipped -= wanted.size;
+  for (const row of await list_ratchet_rows(ctx)) {
+    const conflict = wanted.get(row.id);
+
+    if (!conflict) continue;
+    wanted.delete(row.id);
+    if (row.state_version !== conflict.state_version) {
+      ctx.counts.conflicts += 1;
+      continue;
+    }
+
+    const item = await build_ratchet_item(ctx, row);
+
+    if (item) retry.push(item);
+  }
+  ctx.counts.skipped += wanted.size;
+  if (retry.length === 0) return;
+
+  const again = await post_ratchet_items(ctx, retry);
+
+  ctx.counts.skipped -= again.length;
+  ctx.counts.conflicts += again.length;
+}
+
 export const ratchet_states_step: ResealStep = {
   name: "ratchet_states",
   async run(ctx) {
@@ -452,27 +549,14 @@ export const ratchet_states_step: ResealStep = {
 
     if (progress.done) return "done";
 
-    const rows = require_ok(
-      await request_with_backoff(ctx, () =>
-        ctx.api.get<RatchetRow[]>(RATCHET_STATES_PATH),
-      ),
-      "ratchet_states_list",
-    );
     const items: Record<string, unknown>[] = [];
 
-    for (const row of Array.isArray(rows) ? rows : []) {
+    for (const row of await list_ratchet_rows(ctx)) {
       const item = await build_ratchet_item(ctx, row);
 
       if (item) items.push(item);
     }
-    for (const batch of chunk_by_chars(
-      items,
-      RATCHET_BATCH_SIZE,
-      (item) => String(item.encrypted_state).length,
-    )) {
-      await post_storage_rekey(ctx, "ratchet_states", batch);
-      await pause_between_batches(ctx);
-    }
+    await retry_ratchet_conflicts(ctx, await post_ratchet_items(ctx, items));
 
     progress.done = true;
     ctx.persist();
@@ -665,13 +749,13 @@ export const profile_notes_step: ResealStep = {
 
     if (progress.done) return "done";
 
-    const data = require_ok(
-      await request_with_backoff(ctx, () =>
-        ctx.api.get<{ notes: ProfileNoteRow[] }>(PROFILE_NOTES_PATH),
-      ),
+    const before = incomplete_count(ctx);
+    const notes = await collect_id_pages<ProfileNoteRow>(
+      ctx,
+      PROFILE_NOTES_PATH,
+      "notes",
       "profile_notes_list",
     );
-    const notes = data.notes ?? [];
 
     if (notes.length > 0) {
       const tokens = await profile_note_tokens(ctx);
@@ -712,10 +796,7 @@ export const profile_notes_step: ResealStep = {
       }
     }
 
-    progress.done = true;
-    ctx.persist();
-
-    return "done";
+    return finish_step(ctx, progress, before);
   },
 };
 
@@ -775,10 +856,12 @@ async function reseal_owner_items(
     `${owner.base}/pins`,
     "alias_pins_list",
   );
-  const contacts = await get_optional<{ contacts: AliasContactRow[] }>(
+  const contacts = await collect_id_pages<AliasContactRow>(
     ctx,
     `${owner.base}/contacts`,
+    "contacts",
     "alias_contacts_list",
+    true,
   );
   const destinations = await get_optional<{ destinations: DestinationRow[] }>(
     ctx,
@@ -799,7 +882,7 @@ async function reseal_owner_items(
 
     if (item) pin_items.push(item);
   }
-  for (const row of contacts?.contacts ?? []) {
+  for (const row of contacts) {
     const item = await sealed_item(
       ctx,
       row.id,
@@ -832,6 +915,7 @@ export const alias_items_step: ResealStep = {
 
     if (progress.done) return "done";
 
+    const before = incomplete_count(ctx);
     const after = typeof progress.cursor === "string" ? progress.cursor : null;
 
     for (const owner of await list_address_owners(ctx)) {
@@ -842,13 +926,24 @@ export const alias_items_step: ResealStep = {
       if (ctx.is_cancelled()) throw new ResealInterrupted("cancelled");
     }
 
-    progress.done = true;
-    progress.cursor = null;
-    ctx.persist();
-
-    return "done";
+    return finish_step(ctx, progress, before);
   },
 };
+
+async function list_rows<T>(
+  ctx: ResealStepContext,
+  path: string,
+  list_key: string,
+  what: string,
+  paged: boolean,
+): Promise<T[]> {
+  if (paged) return collect_id_pages<T>(ctx, path, list_key, what, true);
+
+  const data = await get_optional<Record<string, T[]>>(ctx, path, what);
+  const rows = data?.[list_key];
+
+  return Array.isArray(rows) ? rows : [];
+}
 
 function sealed_list_step<T extends { id: string }>(
   name: string,
@@ -856,6 +951,7 @@ function sealed_list_step<T extends { id: string }>(
   list_key: string,
   ciphertext_field: keyof T,
   nonce_field: keyof T,
+  paged = false,
 ): ResealStep {
   return {
     name,
@@ -864,14 +960,17 @@ function sealed_list_step<T extends { id: string }>(
 
       if (progress.done) return "done";
 
-      const data = await get_optional<Record<string, T[]>>(
+      const before = incomplete_count(ctx);
+      const rows = await list_rows<T>(
         ctx,
         path,
+        list_key,
         `${name}_list`,
+        paged,
       );
       const items: SealedItem[] = [];
 
-      for (const row of data?.[list_key] ?? []) {
+      for (const row of rows) {
         const ciphertext = row[ciphertext_field];
         const nonce = row[nonce_field];
         const item = await sealed_item(
@@ -885,10 +984,7 @@ function sealed_list_step<T extends { id: string }>(
       }
       await post_sealed_items(ctx, name, items);
 
-      progress.done = true;
-      ctx.persist();
-
-      return "done";
+      return finish_step(ctx, progress, before);
     },
   };
 }
@@ -899,6 +995,15 @@ export const alias_directories_step = sealed_list_step<DirectoryRow>(
   "directories",
   "encrypted_label",
   "label_nonce",
+);
+
+export const deleted_alias_directories_step = sealed_list_step<DirectoryRow>(
+  "deleted_alias_directories",
+  DELETED_DIRECTORIES_PATH,
+  "directories",
+  "encrypted_label",
+  "label_nonce",
+  true,
 );
 
 export const contact_field_definitions_step =
@@ -1186,13 +1291,16 @@ function editable_rows_step<T extends SignatureRow>(
 
       if (progress.done) return "done";
 
-      const data = await get_optional<Record<string, T[]>>(
+      const before = incomplete_count(ctx);
+      const rows = await collect_id_pages<T>(
         ctx,
         list_path,
+        list_key,
         `${name}_list`,
+        true,
       );
 
-      for (const row of data?.[list_key] ?? []) {
+      for (const row of rows) {
         const record = row as unknown as Record<string, unknown>;
         const body = await plan_pairs(ctx, record, pairs);
 
@@ -1218,10 +1326,7 @@ function editable_rows_step<T extends SignatureRow>(
         await pause_between_batches(ctx);
       }
 
-      progress.done = true;
-      ctx.persist();
-
-      return "done";
+      return finish_step(ctx, progress, before);
     },
   };
 }

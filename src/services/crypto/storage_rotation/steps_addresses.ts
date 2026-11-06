@@ -31,6 +31,7 @@ import {
 import {
   ResealInterrupted,
   chunk,
+  incomplete_count,
   request_with_backoff,
   require_ok,
   step_progress,
@@ -40,6 +41,7 @@ import {
   STORAGE_REKEY_PATH,
   USER_REKEY_PATH,
   classify_sealed,
+  collect_id_pages,
   decode_text,
   pause_between_batches,
   reseal_field,
@@ -455,6 +457,11 @@ async function send_address_entries_with(
         if (entry.move) drop_move(ctx, entry.move);
         if (outcome === "conflict") on_conflict?.(entry);
       },
+      (entry) => {
+        const id = entry.item.id;
+
+        return typeof id === "string" ? id : undefined;
+      },
     );
     await drain_hash_moves(ctx);
     await pause_between_batches(ctx);
@@ -579,16 +586,17 @@ export const deleted_aliases_step: ResealStep = {
     await drain_hash_moves(ctx);
     if (progress.done) return "done";
 
-    const data = require_ok(
-      await request_with_backoff(ctx, () =>
-        ctx.api.get<{ aliases: DeletedAliasRow[] }>(DELETED_LIST_PATH),
-      ),
+    const before = incomplete_count(ctx);
+    const rows = await collect_id_pages<DeletedAliasRow>(
+      ctx,
+      DELETED_LIST_PATH,
+      "aliases",
       "deleted_aliases_list",
     );
     const entries: AddressEntry[] = [];
     const old_hashes = new Map<string, string>();
 
-    for (const alias of data.aliases ?? []) {
+    for (const alias of rows) {
       const entry = await build_alias_entry(ctx, {
         ...alias,
         is_retained_primary: false,
@@ -623,6 +631,7 @@ export const deleted_aliases_step: ResealStep = {
         "storage_rekey:deleted_aliases",
       );
     }
+    if (incomplete_count(ctx) > before) return "incomplete";
 
     progress.done = true;
     ctx.persist();
@@ -639,15 +648,16 @@ export const ghost_aliases_step: ResealStep = {
     await drain_hash_moves(ctx);
     if (progress.done) return "done";
 
-    const data = require_ok(
-      await request_with_backoff(ctx, () =>
-        ctx.api.get<{ aliases: AliasRow[] }>(GHOST_LIST_PATH),
-      ),
+    const before = incomplete_count(ctx);
+    const rows = await collect_id_pages<AliasRow>(
+      ctx,
+      GHOST_LIST_PATH,
+      "aliases",
       "ghost_aliases_list",
     );
     const entries: AddressEntry[] = [];
 
-    for (const alias of data.aliases ?? []) {
+    for (const alias of rows) {
       const entry = await build_alias_entry(ctx, {
         ...alias,
         is_random: false,
@@ -657,6 +667,7 @@ export const ghost_aliases_step: ResealStep = {
       if (entry) entries.push(entry);
     }
     await send_address_entries(ctx, entries, "re_encrypted_aliases");
+    if (incomplete_count(ctx) > before) return "incomplete";
 
     progress.done = true;
     ctx.persist();
@@ -668,12 +679,12 @@ export const ghost_aliases_step: ResealStep = {
 export async function list_ghost_alias_ids(
   ctx: ResealStepContext,
 ): Promise<string[]> {
-  const data = require_ok(
-    await request_with_backoff(ctx, () =>
-      ctx.api.get<{ aliases: AliasRow[] }>(GHOST_LIST_PATH),
-    ),
+  const rows = await collect_id_pages<AliasRow>(
+    ctx,
+    GHOST_LIST_PATH,
+    "aliases",
     "ghost_aliases_list",
   );
 
-  return (data.aliases ?? []).map((alias) => alias.id);
+  return rows.map((alias) => alias.id);
 }
