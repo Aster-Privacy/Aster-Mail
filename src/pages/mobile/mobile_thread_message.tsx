@@ -475,6 +475,7 @@ function MobileThreadMessageContent({
     message.id,
     message.is_sending !== true,
     t("common.encrypted_attachment"),
+    plain_view || !has_rich_html(clean_body) ? undefined : sanitized_html,
   );
   const [phishing_level, set_phishing_level] = useState<PhishingLevel>("safe");
   const [phishing_checked, set_phishing_checked] = useState(false);
