@@ -322,6 +322,23 @@ async function post_with_token<T>(
   return data === null ? { data: {} as T } : { data };
 }
 
+async function delete_with_token(
+  session: token_session,
+  path: string,
+): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "DELETE",
+    credentials: "omit",
+    headers: {
+      ...base_headers(),
+      Authorization: `Bearer ${session.access_token}`,
+      "X-CSRF-Token": session.csrf_token,
+    },
+  });
+
+  return response.ok || response.status === 410;
+}
+
 interface link_client {
   verify: (code: string) => Promise<session_call<DeviceCodeVerifyResponse>>;
   confirm: (code: string, envelope: string) => Promise<session_call<unknown>>;
@@ -508,6 +525,12 @@ async function sign_out_one(
     const session = await open_token_session(account).catch(() => null);
 
     if (session) {
+      await release_app_lock(account.id, (device_lock_id) =>
+        delete_with_token(
+          session,
+          `/core/v1/auth/app-lock/${encodeURIComponent(device_lock_id)}`,
+        ),
+      ).catch(() => undefined);
       await post_with_token(session, "/core/v1/auth/logout", {}).catch(
         () => undefined,
       );

@@ -76,11 +76,157 @@ import {
 } from "@/contexts/auth/session_passphrase";
 import { decrypt_vault } from "@/services/crypto/key_manager";
 import {
+  restore_device_passphrase,
+  seal_device_passphrase,
+} from "@/native/desktop_device_auth";
+import { MAIL_EVENTS } from "@/hooks/mail_events";
+import {
+  safe_local_get,
+  safe_local_remove,
+  safe_local_set,
+} from "@/lib/safe_storage";
+import {
   clear_vault_from_memory,
   get_passphrase_from_memory,
 } from "@/services/crypto/memory_key_store";
 
 const RELEASE_TIMEOUT_MS = 4000;
+const PENDING_DELETES_KEY = "astermail_app_lock_pending_deletes";
+const MAX_PENDING_DELETES = 20;
+const PENDING_DELETE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+interface PendingAppLockDelete {
+  account_id: string;
+  device_lock_id: string;
+  queued_at: number;
+}
+
+const released_lock_ids = new Set<string>();
+
+function is_pending_delete(entry: unknown): entry is PendingAppLockDelete {
+  if (!entry || typeof entry !== "object") return false;
+  const candidate = entry as Record<string, unknown>;
+
+  return (
+    typeof candidate.account_id === "string" &&
+    typeof candidate.device_lock_id === "string" &&
+    typeof candidate.queued_at === "number"
+  );
+}
+
+function read_pending_deletes(): PendingAppLockDelete[] {
+  try {
+    const parsed: unknown = JSON.parse(
+      safe_local_get(PENDING_DELETES_KEY) ?? "[]",
+    );
+
+    if (!Array.isArray(parsed)) return [];
+    const now = Date.now();
+
+    return parsed
+      .filter(is_pending_delete)
+      .filter((entry) => now - entry.queued_at < PENDING_DELETE_TTL_MS);
+  } catch {
+    return [];
+  }
+}
+
+function write_pending_deletes(entries: PendingAppLockDelete[]): void {
+  if (entries.length === 0) {
+    safe_local_remove(PENDING_DELETES_KEY);
+
+    return;
+  }
+  safe_local_set(
+    PENDING_DELETES_KEY,
+    JSON.stringify(entries.slice(-MAX_PENDING_DELETES)),
+  );
+}
+
+function queue_app_lock_delete(account_id: string, device_lock_id: string): void {
+  const entries = read_pending_deletes().filter(
+    (entry) => entry.device_lock_id !== device_lock_id,
+  );
+
+  entries.push({ account_id, device_lock_id, queued_at: Date.now() });
+  write_pending_deletes(entries);
+}
+
+export function pending_app_lock_deletes(): PendingAppLockDelete[] {
+  return read_pending_deletes();
+}
+
+async function active_account_id(): Promise<string | null> {
+  try {
+    const { get_current_account_id } = await import(
+      "@/services/account_manager"
+    );
+
+    return await get_current_account_id();
+  } catch {
+    return null;
+  }
+}
+
+function delete_within_timeout(work: Promise<boolean>): Promise<boolean> {
+  return Promise.race([
+    work.catch(() => false),
+    new Promise<boolean>((resolve) =>
+      setTimeout(() => resolve(false), RELEASE_TIMEOUT_MS),
+    ),
+  ]);
+}
+
+export type AppLockRemoteDelete = (device_lock_id: string) => Promise<boolean>;
+
+async function delete_or_queue(
+  account_id: string,
+  device_lock_id: string,
+  remote_delete?: AppLockRemoteDelete,
+): Promise<boolean> {
+  if (released_lock_ids.has(device_lock_id)) return true;
+  let deleted = false;
+
+  if (remote_delete) {
+    deleted = await delete_within_timeout(remote_delete(device_lock_id));
+  } else if ((await active_account_id()) === account_id) {
+    deleted = await delete_within_timeout(delete_app_lock(device_lock_id));
+  }
+  if (deleted) {
+    released_lock_ids.add(device_lock_id);
+    write_pending_deletes(
+      read_pending_deletes().filter(
+        (entry) => entry.device_lock_id !== device_lock_id,
+      ),
+    );
+  } else {
+    queue_app_lock_delete(account_id, device_lock_id);
+  }
+
+  return deleted;
+}
+
+export async function flush_pending_app_lock_deletes(): Promise<number> {
+  const account_id = await active_account_id();
+
+  if (!account_id) return 0;
+  const mine = read_pending_deletes().filter(
+    (entry) => entry.account_id === account_id,
+  );
+  const done = new Set<string>();
+
+  for (const entry of mine) {
+    if (await delete_within_timeout(delete_app_lock(entry.device_lock_id))) {
+      done.add(entry.device_lock_id);
+      released_lock_ids.add(entry.device_lock_id);
+    }
+  }
+  write_pending_deletes(
+    read_pending_deletes().filter((entry) => !done.has(entry.device_lock_id)),
+  );
+
+  return done.size;
+}
 
 export type AppUnlockOutcome =
   | { outcome: "unlocked" }
@@ -99,6 +245,59 @@ type ServerUnlock =
   | { status: "reset" }
   | { status: "busy" }
   | { status: "unavailable" };
+
+export async function seal_device_passphrase_for_lock(
+  account_id: string,
+): Promise<boolean> {
+  if (!get_app_lock_config(account_id)?.enabled) return false;
+  if (is_app_lock_server_wrapped(account_id)) {
+    await drop_device_readable_lists(account_id);
+  }
+  const wrapped = read_wrapped_record(account_id);
+
+  return seal_device_passphrase(
+    account_id,
+    wrapped ? JSON.stringify(wrapped.record) : "",
+  );
+}
+
+async function drop_device_readable_lists(account_id: string): Promise<void> {
+  try {
+    const { clear_account_list_cache } = await import(
+      "@/services/offline_email_cache"
+    );
+
+    await clear_account_list_cache(account_id);
+  } catch {
+    return;
+  }
+}
+
+const DRAFT_FLUSH_LIMIT_MS = 4000;
+
+export async function lock_server_wrapped_session(
+  account_id: string,
+): Promise<boolean> {
+  if (!is_app_lock_server_wrapped(account_id)) return false;
+  window.dispatchEvent(new CustomEvent(MAIL_EVENTS.FLUSH_DRAFTS));
+  await Promise.race([
+    import("@/services/crypto/encrypted_drafts").then(({ draft_manager }) =>
+      draft_manager.await_all_pending_saves(),
+    ),
+    new Promise((resolve) => setTimeout(resolve, DRAFT_FLUSH_LIMIT_MS)),
+  ]).catch(() => undefined);
+  await drop_device_readable_lists(account_id);
+
+  return wipe_unlocked_secrets(account_id);
+}
+
+async function restore_device_passphrase_after_lock(
+  account_id: string,
+  passphrase: string | null,
+): Promise<void> {
+  if (!passphrase || get_app_lock_config(account_id)?.enabled) return;
+  await restore_device_passphrase(account_id, passphrase);
+}
 
 export function is_app_lock_server_wrapped(account_id: string): boolean {
   return is_server_wrapped_config(get_app_lock_config(account_id));
@@ -266,6 +465,7 @@ async function finish_unlock(account_id: string): Promise<void> {
 
   mark_session_unlocked(account_id);
   settle_app_unlock(account_id, true);
+  await seal_device_passphrase_for_lock(account_id);
 }
 
 async function unlock_server_wrapped(
@@ -328,7 +528,12 @@ export async function attempt_app_unlock(
   if (legacy.outcome === "unlocked") {
     mark_session_unlocked(account_id);
     settle_app_unlock(account_id, true);
-    void upgrade_to_server_wrap(account_id, pin).catch(() => false);
+    await seal_device_passphrase_for_lock(account_id);
+    void upgrade_to_server_wrap(account_id, pin)
+      .then((upgraded) =>
+        upgraded ? seal_device_passphrase_for_lock(account_id) : false,
+      )
+      .catch(() => false);
 
     return { outcome: "unlocked" };
   }
@@ -364,6 +569,7 @@ export async function unlock_with_password(
   }
   mark_session_unlocked(account_id);
   settle_app_unlock(account_id, true);
+  await seal_device_passphrase_for_lock(account_id);
 
   return true;
 }
@@ -380,6 +586,7 @@ export async function handle_lock_reset(account_id: string): Promise<boolean> {
 
   if (keep) {
     await store_unwrapped_passphrase(account_id, keep, remember_on_device);
+    await restore_device_passphrase_after_lock(account_id, keep);
     settle_app_unlock(account_id, true);
 
     return true;
@@ -408,9 +615,10 @@ export async function convert_to_unwrapped(
     kdf_version: config.duress_legacy_kdf ? undefined : KDF_VERSION_PEPPER,
   });
   await store_unwrapped_passphrase(account_id, passphrase, remember_on_device);
+  await restore_device_passphrase_after_lock(account_id, passphrase);
   remove_wrapped_passphrase(account_id);
   forget_unlocked_lock(account_id);
-  void delete_app_lock(config.wrap.device_lock_id);
+  await delete_or_queue(account_id, config.wrap.device_lock_id);
 
   return true;
 }
@@ -418,22 +626,27 @@ export async function convert_to_unwrapped(
 export async function remove_app_lock(account_id: string): Promise<void> {
   await convert_to_unwrapped(account_id).catch(() => false);
   clear_app_lock_config(account_id);
+  const passphrase = await resolve_current_passphrase(account_id).catch(
+    () => null,
+  );
+
+  await restore_device_passphrase_after_lock(account_id, passphrase);
 }
 
-function with_release_timeout(work: Promise<unknown>): Promise<void> {
-  return Promise.race([
-    work.then(() => undefined).catch(() => undefined),
-    new Promise<void>((resolve) => setTimeout(resolve, RELEASE_TIMEOUT_MS)),
-  ]);
-}
-
-export async function release_app_lock(account_id: string): Promise<void> {
+export async function release_app_lock(
+  account_id: string,
+  remote_delete?: AppLockRemoteDelete,
+): Promise<void> {
   const config = get_app_lock_config(account_id);
 
   forget_unlocked_lock(account_id);
   remove_wrapped_passphrase(account_id);
   if (is_server_wrapped_config(config)) {
-    await with_release_timeout(delete_app_lock(config.wrap.device_lock_id));
+    await delete_or_queue(
+      account_id,
+      config.wrap.device_lock_id,
+      remote_delete,
+    );
   }
 }
 

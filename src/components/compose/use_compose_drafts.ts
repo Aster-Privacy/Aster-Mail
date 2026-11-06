@@ -29,6 +29,7 @@ import {
   type DraftData,
 } from "@/services/crypto/encrypted_drafts";
 import { api_client } from "@/services/api/client";
+import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { has_csrf_token } from "@/services/api/csrf";
 import {
   type Attachment,
@@ -563,12 +564,19 @@ export function use_compose_drafts({
       }
     };
 
+    const handle_flush_request = () => {
+      flush_input_ref.current?.();
+      flush_pending_draft_ref.current(true);
+    };
+
     window.addEventListener("pagehide", handle_pagehide);
     document.addEventListener("visibilitychange", handle_visibilitychange);
+    window.addEventListener(MAIL_EVENTS.FLUSH_DRAFTS, handle_flush_request);
 
     return () => {
       window.removeEventListener("pagehide", handle_pagehide);
       document.removeEventListener("visibilitychange", handle_visibilitychange);
+      window.removeEventListener(MAIL_EVENTS.FLUSH_DRAFTS, handle_flush_request);
 
       const pending_message = take_pending_message_ref.current?.() ?? null;
 

@@ -198,6 +198,14 @@ class DraftManager {
     }
   }
 
+  async await_all_pending_saves(): Promise<void> {
+    const pending = Array.from(this.contexts.values())
+      .map((context) => context.pending_save)
+      .filter((save): save is Promise<void> => save !== null);
+
+    await Promise.all(pending.map((save) => save.catch(() => undefined)));
+  }
+
   drop_queued_saves(context_id: string): void {
     const context = this.contexts.get(context_id);
 

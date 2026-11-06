@@ -50,7 +50,9 @@ import {
 } from "@/services/app_lock_store";
 import {
   attempt_app_unlock,
+  flush_pending_app_lock_deletes,
   is_app_lock_server_wrapped,
+  lock_server_wrapped_session,
   release_app_lock,
   unlock_with_password,
   wipe_unlocked_secrets,
@@ -432,6 +434,12 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   }, [auth?.is_authenticated, auth?.current_account_id]);
 
   useEffect(() => {
+    if (!auth?.is_authenticated || !account_id) return;
+    if (is_locked || is_web_locked) return;
+    void flush_pending_app_lock_deletes().catch(() => 0);
+  }, [auth?.is_authenticated, account_id, is_locked, is_web_locked]);
+
+  useEffect(() => {
     if (!is_native_platform()) return;
     if (!preferences.biometric_app_lock_enabled) {
       if (has_loaded_from_server) {
@@ -587,6 +595,14 @@ export function AppLock({ children }: { children: React.ReactNode }) {
 
       hidden_at_ref.current = null;
       if (hidden_for >= LOCK_TIMEOUT_MS) {
+        if (is_app_lock_server_wrapped(id)) {
+          lock_all_folders();
+          void lock_server_wrapped_session(id).then((wiped) => {
+            if (wiped) window.location.reload();
+          });
+
+          return;
+        }
         clear_session_unlock(id);
         lock_all_folders();
         if (wipe_unlocked_secrets(id)) {

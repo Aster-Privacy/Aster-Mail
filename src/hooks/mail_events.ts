@@ -57,6 +57,7 @@ export const MAIL_EVENTS = {
   REACTION_RECEIVED: "astermail:reaction-received",
   INBOX_UNREAD_INDEXED: "astermail:inbox-unread-indexed",
   INBOX_UNREAD_DRIFT: "astermail:inbox-unread-drift",
+  FLUSH_DRAFTS: "astermail:flush-drafts",
 } as const;
 
 export type MailEventType = (typeof MAIL_EVENTS)[keyof typeof MAIL_EVENTS];

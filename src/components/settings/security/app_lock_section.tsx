@@ -58,6 +58,7 @@ import {
 import {
   convert_to_unwrapped,
   remove_app_lock,
+  seal_device_passphrase_for_lock,
   upgrade_to_server_wrap,
   verify_app_lock_pin,
 } from "@/services/app_lock_unlock";
@@ -598,6 +599,7 @@ function SetupPinModal({
             );
           }
           await upgrade_to_server_wrap(account_id, next).catch(() => false);
+          await seal_device_passphrase_for_lock(account_id);
           mark_session_unlocked(account_id);
           on_success();
         } catch {
@@ -701,6 +703,7 @@ function SetupPinModal({
           await upgrade_to_server_wrap(account_id, text_input).catch(
             () => false,
           );
+          await seal_device_passphrase_for_lock(account_id);
           mark_session_unlocked(account_id);
           on_success();
         } catch {

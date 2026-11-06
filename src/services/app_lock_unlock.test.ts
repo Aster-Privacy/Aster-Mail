@@ -38,6 +38,40 @@ const { MAX_SERVER_FAILURES, b64, from_b64, state } = vi.hoisted(() => ({
   delete_calls: [] as string[],
   tag_key: null as CryptoKey | null,
     pepper_db: new Map<string, unknown>(),
+    native_file: new Map<string, "readable" | "sealed">(),
+    native_seal_records: [] as string[],
+    native_restores: [] as string[],
+    active_account: null as string | null,
+    delete_fails: false,
+  },
+}));
+
+vi.mock("@/services/offline_email_cache", () => ({
+  clear_account_list_cache: async () => undefined,
+}));
+
+vi.mock("@/services/crypto/encrypted_drafts", () => ({
+  draft_manager: { await_all_pending_saves: async () => undefined },
+}));
+
+vi.mock("@/services/account_manager", () => ({
+  get_current_account_id: async () => state.active_account,
+}));
+
+vi.mock("@/native/desktop_device_auth", () => ({
+  seal_device_passphrase: async (id: string, record: string) => {
+    if (!state.native_file.has(id)) return false;
+    state.native_seal_records.push(record);
+    state.native_file.set(id, "sealed");
+
+    return true;
+  },
+  restore_device_passphrase: async (id: string, passphrase: string) => {
+    if (state.native_file.get(id) !== "sealed") return false;
+    state.native_restores.push(passphrase);
+    state.native_file.set(id, "readable");
+
+    return true;
   },
 }));
 
@@ -123,6 +157,7 @@ vi.mock("@/services/app_lock_server", () => ({
     return { status: "ok", secret: lock.secret };
   },
   delete_app_lock: async (device_lock_id: string) => {
+    if (state.delete_fails) return false;
     state.delete_calls.push(device_lock_id);
     state.locks.delete(device_lock_id);
 
@@ -203,7 +238,10 @@ import {
 import {
   attempt_app_unlock,
   convert_to_unwrapped,
+  flush_pending_app_lock_deletes,
+  pending_app_lock_deletes,
   release_app_lock,
+  remove_app_lock,
   unlock_with_password,
   upgrade_to_server_wrap,
   wipe_unlocked_secrets,
@@ -278,6 +316,11 @@ describe("server-held app lock", { timeout: 30000 }, () => {
     state.unwrap_calls = 0;
     state.delete_calls = [];
     state.pepper_db.clear();
+    state.native_file.clear();
+    state.native_seal_records = [];
+    state.native_restores = [];
+    state.active_account = ACCOUNT;
+    state.delete_fails = false;
     forget_all_unlocked_locks();
     clear_all_app_lock_data();
     localStorage.clear();
@@ -496,6 +539,96 @@ describe("server-held app lock", { timeout: 30000 }, () => {
     expect(has_wrapped_passphrase(ACCOUNT)).toBe(false);
   });
 
+  it("queues the server delete for an account that is not active", async () => {
+    await set_up_wrapped_lock();
+    const id = get_app_lock_config(ACCOUNT)!.wrap!.device_lock_id;
+
+    state.active_account = "someone-else";
+    await release_app_lock(ACCOUNT);
+
+    expect(state.delete_calls).not.toContain(id);
+    expect(pending_app_lock_deletes().map((e) => e.device_lock_id)).toEqual([
+      id,
+    ]);
+
+    expect(await flush_pending_app_lock_deletes()).toBe(0);
+    expect(pending_app_lock_deletes()).toHaveLength(1);
+
+    state.active_account = ACCOUNT;
+    expect(await flush_pending_app_lock_deletes()).toBe(1);
+    expect(state.delete_calls).toContain(id);
+    expect(pending_app_lock_deletes()).toHaveLength(0);
+  });
+
+  it("uses the account's own session when one is supplied", async () => {
+    await set_up_wrapped_lock();
+    const id = get_app_lock_config(ACCOUNT)!.wrap!.device_lock_id;
+    const remote: string[] = [];
+
+    state.active_account = "someone-else";
+    await release_app_lock(ACCOUNT, async (lock_id) => {
+      remote.push(lock_id);
+
+      return true;
+    });
+
+    expect(remote).toEqual([id]);
+    expect(state.delete_calls).not.toContain(id);
+    expect(pending_app_lock_deletes()).toHaveLength(0);
+  });
+
+  it("keeps a failed delete queued and retries it later", async () => {
+    await set_up_wrapped_lock();
+    const id = get_app_lock_config(ACCOUNT)!.wrap!.device_lock_id;
+
+    state.delete_fails = true;
+    await release_app_lock(ACCOUNT);
+    expect(pending_app_lock_deletes()).toHaveLength(1);
+
+    expect(await flush_pending_app_lock_deletes()).toBe(0);
+    expect(pending_app_lock_deletes()).toHaveLength(1);
+
+    state.delete_fails = false;
+    expect(await flush_pending_app_lock_deletes()).toBe(1);
+    expect(state.delete_calls).toContain(id);
+  });
+
+  it("bounds the queue of pending deletes", async () => {
+    const entries = Array.from({ length: 40 }, (_, i) => ({
+      account_id: ACCOUNT,
+      device_lock_id: `lock-${i}`,
+      queued_at: Date.now(),
+    }));
+
+    localStorage.setItem(
+      "astermail_app_lock_pending_deletes",
+      JSON.stringify([...entries, { bad: true }]),
+    );
+    await set_up_wrapped_lock();
+    const id = get_app_lock_config(ACCOUNT)!.wrap!.device_lock_id;
+
+    state.active_account = "someone-else";
+    await release_app_lock(ACCOUNT);
+
+    const queued = pending_app_lock_deletes();
+
+    expect(queued).toHaveLength(20);
+    expect(queued[queued.length - 1].device_lock_id).toBe(id);
+  });
+
+  it("drops expired or malformed queue entries", () => {
+    localStorage.setItem(
+      "astermail_app_lock_pending_deletes",
+      JSON.stringify([
+        { account_id: ACCOUNT, device_lock_id: "old", queued_at: 0 },
+        { account_id: ACCOUNT, device_lock_id: 5, queued_at: Date.now() },
+      ]),
+    );
+    expect(pending_app_lock_deletes()).toHaveLength(0);
+    localStorage.setItem("astermail_app_lock_pending_deletes", "{not json");
+    expect(pending_app_lock_deletes()).toHaveLength(0);
+  });
+
   it("restores the readable passphrase only after turning the lock off", async () => {
     await set_up_wrapped_lock();
     await attempt_app_unlock(ACCOUNT, REGULAR);
@@ -507,6 +640,72 @@ describe("server-held app lock", { timeout: 30000 }, () => {
     expect(state.unwrapped.get(ACCOUNT)?.passphrase).toBe(PASSPHRASE);
     expect(has_wrapped_passphrase(ACCOUNT)).toBe(false);
     expect(state.delete_calls).toContain(id);
+  });
+
+  it("seals the desktop passphrase file after a PIN unlock", async () => {
+    await set_up_wrapped_lock();
+    state.native_file.set(ACCOUNT, "readable");
+    simulate_reload();
+
+    expect(await attempt_app_unlock(ACCOUNT, REGULAR)).toEqual({
+      outcome: "unlocked",
+    });
+    expect(state.native_file.get(ACCOUNT)).toBe("sealed");
+    for (const record of state.native_seal_records) {
+      expect(record.includes(PASSPHRASE)).toBe(false);
+    }
+  });
+
+  it("seals an existing desktop file on the next unlock of an older PIN", async () => {
+    await set_up_legacy_lock();
+    state.native_file.set(ACCOUNT, "readable");
+
+    expect(await attempt_app_unlock(ACCOUNT, REGULAR)).toEqual({
+      outcome: "unlocked",
+    });
+    expect(state.native_file.get(ACCOUNT)).toBe("sealed");
+  });
+
+  it("seals the desktop file after a password unlock", async () => {
+    await set_up_wrapped_lock();
+    state.native_file.set(ACCOUNT, "readable");
+    simulate_reload();
+
+    expect(await unlock_with_password(ACCOUNT, PASSPHRASE)).toBe(true);
+    expect(state.native_file.get(ACCOUNT)).toBe("sealed");
+  });
+
+  it("leaves the desktop file alone after a wrong PIN", async () => {
+    await set_up_wrapped_lock();
+    state.native_file.set(ACCOUNT, "readable");
+    simulate_reload();
+
+    await attempt_app_unlock(ACCOUNT, WRONG);
+    expect(state.native_seal_records).toHaveLength(0);
+  });
+
+  it("restores the desktop file when the lock is turned off", async () => {
+    await set_up_wrapped_lock();
+    state.native_file.set(ACCOUNT, "readable");
+    await attempt_app_unlock(ACCOUNT, REGULAR);
+    state.memory_passphrase = PASSPHRASE;
+
+    expect(state.native_file.get(ACCOUNT)).toBe("sealed");
+    expect(await convert_to_unwrapped(ACCOUNT)).toBe(true);
+    expect(state.native_file.get(ACCOUNT)).toBe("readable");
+    expect(state.native_restores).toEqual([PASSPHRASE]);
+  });
+
+  it("restores the desktop file when an older PIN is removed", async () => {
+    await set_up_legacy_lock();
+    state.native_file.set(ACCOUNT, "readable");
+    await attempt_app_unlock(ACCOUNT, REGULAR);
+    state.online = false;
+
+    expect(state.native_file.get(ACCOUNT)).toBe("sealed");
+    await remove_app_lock(ACCOUNT);
+    expect(get_app_lock_config(ACCOUNT)).toBeNull();
+    expect(state.native_file.get(ACCOUNT)).toBe("readable");
   });
 
   it("refuses to convert while still locked", async () => {
