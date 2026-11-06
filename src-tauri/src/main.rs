@@ -678,6 +678,8 @@ fn main() {
             device::crypto::device_sign_challenge,
             device::crypto::device_unseal_vault_envelope,
             device::crypto::device_get_stored_passphrase,
+            device::crypto::device_pin_seal_stored_passphrase,
+            device::crypto::device_pin_restore_stored_passphrase,
             device::crypto::device_forget_account,
             device::crypto::device_clear_session,
             device::crypto::device_clear_identity,

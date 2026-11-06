@@ -74,6 +74,24 @@ async function invoke<T>(
   return core.invoke<T>(cmd, args);
 }
 
+export const PASSPHRASE_PIN_LOCKED = "passphrase_pin_locked";
+
+function is_pin_locked_error(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return message.includes(PASSPHRASE_PIN_LOCKED);
+}
+
+function base64url_encode_bytes(bytes: Uint8Array): string {
+  let binary = "";
+
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 function base64url_decode_to_bytes(input: string): Uint8Array {
   const pad = input.length % 4 === 0 ? "" : "=".repeat(4 - (input.length % 4));
   const b64 = input.replace(/-/g, "+").replace(/_/g, "/") + pad;
@@ -145,6 +163,9 @@ async function silent_device_login(
 
   const raw_b64 = await invoke<string | null>("device_get_stored_passphrase", {
     deviceId: device_id,
+  }).catch((caught: unknown) => {
+    if (is_pin_locked_error(caught)) throw new Error(PASSPHRASE_PIN_LOCKED);
+    throw caught;
   });
 
   if (!raw_b64) {
@@ -162,7 +183,8 @@ async function silent_device_login(
   }
 }
 
-export type DeviceReloginOutcome = "signed_in" | "rejected" | "unavailable";
+export type DeviceReloginOutcome =
+  "signed_in" | "rejected" | "unavailable" | "locked";
 
 export function is_device_pairing_rejected(error: unknown): boolean {
   if (error instanceof DeviceAuthError) {
@@ -182,6 +204,8 @@ export async function attempt_device_relogin(
 
     return "signed_in";
   } catch (caught) {
+    if (is_pin_locked_error(caught)) return "locked";
+
     return is_device_pairing_rejected(caught) ? "rejected" : "unavailable";
   }
 }
@@ -204,7 +228,7 @@ export async function relogin_with_retries(
     if (is_cancelled()) return "unavailable";
     const outcome = await attempt_device_relogin(device_id);
 
-    if (outcome === "signed_in") return outcome;
+    if (outcome === "signed_in" || outcome === "locked") return outcome;
     rejections = outcome === "rejected" ? rejections + 1 : 0;
     if (rejections >= REJECTIONS_BEFORE_FORGET) return "rejected";
     if (attempt < RELOGIN_ATTEMPTS - 1 && !is_cancelled()) {
@@ -411,6 +435,53 @@ export async function read_device_passphrase(
     return new TextDecoder().decode(base64url_decode_to_bytes(raw_b64));
   } catch {
     return null;
+  }
+}
+
+async function account_device_id(account_id: string): Promise<string | null> {
+  const { get_all_accounts } = await import("@/services/account_manager");
+  const accounts = await get_all_accounts();
+
+  return accounts.find((account) => account.id === account_id)?.device_id ?? null;
+}
+
+export async function seal_device_passphrase(
+  account_id: string,
+  record: string,
+): Promise<boolean> {
+  if (!is_tauri()) return false;
+
+  try {
+    const device_id = await account_device_id(account_id);
+
+    if (!device_id) return false;
+
+    return await invoke<boolean>("device_pin_seal_stored_passphrase", {
+      deviceId: device_id,
+      record,
+    });
+  } catch {
+    return false;
+  }
+}
+
+export async function restore_device_passphrase(
+  account_id: string,
+  passphrase: string,
+): Promise<boolean> {
+  if (!is_tauri() || !passphrase) return false;
+
+  try {
+    const device_id = await account_device_id(account_id);
+
+    if (!device_id) return false;
+
+    return await invoke<boolean>("device_pin_restore_stored_passphrase", {
+      deviceId: device_id,
+      passphraseB64: base64url_encode_bytes(new TextEncoder().encode(passphrase)),
+    });
+  } catch {
+    return false;
   }
 }
 
