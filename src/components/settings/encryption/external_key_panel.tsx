@@ -42,6 +42,7 @@ import {
   ArrowPathIcon,
   ArrowUpTrayIcon,
   CheckCircleIcon,
+  ClipboardIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
   KeyIcon,
@@ -56,6 +57,7 @@ import {
   IslandSection,
 } from "@aster/ui";
 
+import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { Input } from "@/components/ui/input";
@@ -72,6 +74,8 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_register_search_items } from "@/components/settings/search_context";
 import { trigger_download } from "@/utils/download_blob";
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { SETTINGS_ANCHORS } from "@/lib/settings_links";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { clamp_password } from "@/services/sanitize";
 import { external_key_import_error } from "@/services/crypto/external_pgp_import";
@@ -86,6 +90,7 @@ import {
   upload_external_key,
 } from "@/services/crypto/external_pgp_key";
 import {
+  external_key_device_label_key,
   external_key_expires_soon,
   format_external_fingerprint,
   use_external_key_state,
@@ -157,7 +162,7 @@ function Notice({
     tone === "danger" ? ExclamationCircleIcon : ExclamationTriangleIcon;
 
   return (
-    <Island padding="sm" tone="warning">
+    <Island padding="sm" tone={tone}>
       <div className="flex items-start gap-2.5">
         <Icon
           aria-hidden="true"
@@ -188,10 +193,10 @@ function DeviceList({ devices }: { devices: blocking_device[] }) {
         <li key={device.client_id} className="text-[12px] text-txt-muted">
           {device.last_seen_at
             ? t("settings.external_key_device_row", {
-                platform: device.platform,
+                platform: t(external_key_device_label_key(device.platform)),
                 date: format_date(device.last_seen_at),
               })
-            : device.platform}
+            : t(external_key_device_label_key(device.platform))}
         </li>
       ))}
     </ul>
@@ -507,6 +512,7 @@ export function ExternalKeyPanel() {
   const [busy, set_busy] = useState(false);
   const [blocking, set_blocking] = useState<blocking_device[] | null>(null);
   const [action_error, set_action_error] = useState("");
+  const [uid_rejected, set_uid_rejected] = useState(false);
   const primary_address = user?.email ?? "";
 
   use_register_search_items("encryption", [
@@ -536,11 +542,18 @@ export function ExternalKeyPanel() {
     };
   }, []);
 
+  const record_fingerprint = key_state.record?.fingerprint;
+
+  useEffect(() => {
+    set_uid_rejected(false);
+  }, [record_fingerprint]);
+
   const report = useCallback(
     (result: external_key_action_result) => {
       if (result.ok) {
         set_blocking(null);
         set_action_error("");
+        set_uid_rejected(false);
 
         return true;
       }
@@ -548,11 +561,21 @@ export function ExternalKeyPanel() {
       if (result.code === "DEVICES_NOT_READY") {
         set_blocking(result.blocking_devices ?? []);
         set_action_error("");
+        set_uid_rejected(false);
 
         return false;
       }
 
       set_blocking(null);
+
+      if (result.code === "EXTERNAL_UID_MISMATCH") {
+        set_action_error("");
+        set_uid_rejected(true);
+
+        return false;
+      }
+
+      set_uid_rejected(false);
       set_action_error(
         t(
           SERVER_CODE_KEYS[result.code] ?? "settings.external_key_error_generic",
@@ -593,6 +616,25 @@ export function ExternalKeyPanel() {
     }
   };
 
+  const handle_copy_fingerprint = async () => {
+    if (!key_state.record) return;
+
+    try {
+      await copy_text_or_throw(key_state.record.fingerprint);
+      show_toast(t("settings.copied_to_clipboard"), "success");
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
+  };
+
+  const open_password_settings = () => {
+    window.dispatchEvent(
+      new CustomEvent("navigate-settings", {
+        detail: { section: "security", anchor: SETTINGS_ANCHORS.two_factor },
+      }),
+    );
+  };
+
   const handle_export = () => {
     const armored = export_external_public_key();
 
@@ -607,6 +649,7 @@ export function ExternalKeyPanel() {
   if (!support || !support.available) return null;
 
   const record = key_state.record;
+  const needs_reimport = key_state.status === "needs_reimport";
 
   return (
     <>
@@ -618,16 +661,24 @@ export function ExternalKeyPanel() {
       >
         {support.needs_master_key ? (
           <Notice tone="warning">
-            {t("settings.external_key_needs_upgrade")}
+            <p>{t("settings.external_key_needs_upgrade")}</p>
+            <Button
+              className="mt-2.5"
+              size="sm"
+              variant="secondary"
+              onClick={open_password_settings}
+            >
+              {t("settings.external_key_open_password_settings")}
+            </Button>
           </Notice>
         ) : record ? (
           <div className="space-y-3">
-            {key_state.status === "needs_reimport" && (
+            {needs_reimport && (
               <Notice tone="danger">
                 {t("settings.external_key_needs_reimport")}
               </Notice>
             )}
-            {record.uid_mismatch && (
+            {(record.uid_mismatch || uid_rejected) && (
               <Notice tone="warning">
                 {t("settings.external_key_uid_mismatch", {
                   address: primary_address,
@@ -688,36 +739,60 @@ export function ExternalKeyPanel() {
               />
               <IslandDivider />
               <div className="px-4 py-3">
-                <p className="text-xs font-medium mb-2 text-txt-secondary">
-                  {t("settings.key_fingerprint")}
-                </p>
-                <code className="block break-all px-3 py-2 text-[11px] font-mono tracking-wide text-txt-primary">
-                  {format_external_fingerprint(record.fingerprint)}
-                </code>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <p className="text-xs font-medium text-txt-secondary">
+                    {t("settings.key_fingerprint")}
+                  </p>
+                  <InfoPopover
+                    description={t("settings.info_fingerprint_description")}
+                    title={t("settings.info_fingerprint_title")}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 min-w-0 break-all rounded-[var(--aster-radius-field,10px)] bg-[var(--aster-field-bg)] px-3 py-2 text-[11px] font-mono tracking-wide text-txt-primary">
+                    {format_external_fingerprint(record.fingerprint)}
+                  </code>
+                  <Button
+                    aria-label={t("settings.copy_fingerprint")}
+                    size="icon"
+                    title={t("settings.copy_fingerprint")}
+                    variant="ghost"
+                    onClick={handle_copy_fingerprint}
+                  >
+                    <ClipboardIcon className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               <IslandDivider />
-              <IslandRow
-                description={t("settings.external_key_publish_description", {
-                  address: primary_address,
-                })}
-                label={t("settings.external_key_publish_label")}
-                toggle={{
-                  checked: record.published,
-                  on_change: () => {
-                    if (!busy && key_state.status === "ready") {
-                      void toggle_publish(!record.published);
-                    }
-                  },
-                  size: "lg",
-                  aria_label: t("settings.external_key_publish_label"),
-                }}
-              />
-              <IslandDivider />
+              {!needs_reimport && (
+                <>
+                  <IslandRow
+                    description={t(
+                      "settings.external_key_publish_description",
+                      { address: primary_address },
+                    )}
+                    label={t("settings.external_key_publish_label")}
+                    toggle={{
+                      checked: record.published,
+                      on_change: () => {
+                        if (!busy && key_state.status === "ready") {
+                          void toggle_publish(!record.published);
+                        }
+                      },
+                      size: "lg",
+                      aria_label: t("settings.external_key_publish_label"),
+                    }}
+                  />
+                  <IslandDivider />
+                </>
+              )}
               <div className="px-4 py-3 flex flex-wrap gap-2">
-                <Button size="md" variant="secondary" onClick={handle_export}>
-                  <ArrowDownTrayIcon className="w-3.5 h-3.5" />
-                  {t("settings.export_public_key_label")}
-                </Button>
+                {!needs_reimport && (
+                  <Button size="md" variant="secondary" onClick={handle_export}>
+                    <ArrowDownTrayIcon className="w-3.5 h-3.5" />
+                    {t("settings.external_key_export_public")}
+                  </Button>
+                )}
                 <Button
                   disabled={busy}
                   size="md"
@@ -730,7 +805,7 @@ export function ExternalKeyPanel() {
                 <Button
                   disabled={busy}
                   size="md"
-                  variant="ghost"
+                  variant="destructive"
                   onClick={() => set_confirm_delete(true)}
                 >
                   <TrashIcon className="w-3.5 h-3.5" />

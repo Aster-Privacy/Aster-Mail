@@ -19,7 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
-import { KeyIcon } from "@heroicons/react/24/outline";
+import {
+  ExclamationCircleIcon,
+  KeyIcon,
+} from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsRow } from "./shared";
 
@@ -64,15 +67,29 @@ export function MobileExternalKeyGroup() {
     );
   };
 
+  const needs_reimport = key_state.status === "needs_reimport";
   const notice =
-    key_state.status === "needs_reimport"
-      ? t("settings.external_key_needs_reimport")
-      : record.expires_at && external_key_expires_soon(record.expires_at)
-        ? t("settings.external_key_expires_soon_short")
-        : undefined;
+    !needs_reimport &&
+    record.expires_at &&
+    external_key_expires_soon(record.expires_at)
+      ? t("settings.external_key_expires_soon_short")
+      : undefined;
 
   return (
     <SettingsGroup title={t("settings.external_key_title")}>
+      {needs_reimport && (
+        <div
+          className="flex items-start gap-2.5 px-4 py-3 text-[13px] leading-relaxed text-[var(--text-secondary)]"
+          role="alert"
+          style={{ backgroundColor: "rgba(239, 68, 68, 0.1)" }}
+        >
+          <ExclamationCircleIcon
+            aria-hidden="true"
+            className="mt-0.5 h-4 w-4 shrink-0 text-[var(--mobile-danger)]"
+          />
+          <p>{t("settings.external_key_needs_reimport")}</p>
+        </div>
+      )}
       <SettingsRow
         description={notice ?? format_external_fingerprint(record.fingerprint)}
         icon={<KeyIcon className="h-4 w-4" />}
@@ -83,7 +100,7 @@ export function MobileExternalKeyGroup() {
             : t("settings.external_key_not_published")
         }
       />
-      {record.published && (
+      {record.published && !needs_reimport && (
         <SettingsRow
           destructive
           label={t("settings.external_key_stop_publishing")}

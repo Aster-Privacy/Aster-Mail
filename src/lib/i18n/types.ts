@@ -2990,6 +2990,14 @@ export interface SettingsTranslations {
   external_key_device_row: string;
   external_key_needs_reimport: string;
   external_key_needs_upgrade: string;
+  external_key_open_password_settings: string;
+  external_key_export_public: string;
+  external_key_device_android: string;
+  external_key_device_ios: string;
+  external_key_device_desktop: string;
+  external_key_device_web: string;
+  external_key_device_bridge: string;
+  external_key_device_other: string;
   external_key_uid_mismatch: string;
   external_key_error_unreadable: string;
   external_key_error_read_file: string;

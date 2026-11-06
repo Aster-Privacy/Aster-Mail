@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { external_key_state } from "@/services/crypto/external_pgp_key";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useSyncExternalStore } from "react";
 
@@ -26,6 +27,27 @@ import {
   get_external_key_state,
   subscribe_external_key,
 } from "@/services/crypto/external_pgp_key";
+
+const DEVICE_KEYS: Record<string, TranslationKey> = {
+  android: "settings.external_key_device_android",
+  ios: "settings.external_key_device_ios",
+  desktop: "settings.external_key_device_desktop",
+  tauri: "settings.external_key_device_desktop",
+  windows: "settings.external_key_device_desktop",
+  macos: "settings.external_key_device_desktop",
+  linux: "settings.external_key_device_desktop",
+  web: "settings.external_key_device_web",
+  bridge: "settings.external_key_device_bridge",
+};
+
+export function external_key_device_label_key(
+  platform: string | null | undefined,
+): TranslationKey {
+  return (
+    DEVICE_KEYS[(platform ?? "").trim().toLowerCase()] ??
+    "settings.external_key_device_other"
+  );
+}
 
 const EXPIRY_WARNING_MS = 30 * 24 * 60 * 60 * 1000;
 
