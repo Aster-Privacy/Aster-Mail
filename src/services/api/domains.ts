@@ -358,13 +358,95 @@ export async function decrypt_address_field(
   return decoder.decode(decrypted);
 }
 
+const MAX_DIRECTORY_LOCAL_PART_LENGTH = 64;
+const MAX_DIRECTORY_LOCAL_PART_BASE64_LENGTH = 88;
+const DIRECTORY_LOCAL_PART_PATTERN = /^[a-z0-9._+/#-]+$/;
+const DIRECTORY_SEPARATORS = new Set([".", "+", "/", "#"]);
+
+export function is_valid_directory_local_part(local_part: string): boolean {
+  if (
+    local_part.length === 0 ||
+    local_part.length > MAX_DIRECTORY_LOCAL_PART_LENGTH
+  ) {
+    return false;
+  }
+  if (!DIRECTORY_LOCAL_PART_PATTERN.test(local_part)) return false;
+
+  const first = local_part[0];
+  const last = local_part[local_part.length - 1];
+
+  if (DIRECTORY_SEPARATORS.has(first) || DIRECTORY_SEPARATORS.has(last)) {
+    return false;
+  }
+  if (first === "-" || last === "-") return false;
+
+  for (let i = 1; i < local_part.length; i++) {
+    if (
+      DIRECTORY_SEPARATORS.has(local_part[i - 1]) &&
+      DIRECTORY_SEPARATORS.has(local_part[i])
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function bytes_equal(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    diff |= a[i] ^ b[i];
+  }
+
+  return diff === 0;
+}
+
+export async function decode_directory_local_part(
+  encrypted_local_part: string,
+  local_part_hash: string | undefined,
+): Promise<string> {
+  if (
+    !local_part_hash ||
+    encrypted_local_part.length > MAX_DIRECTORY_LOCAL_PART_BASE64_LENGTH
+  ) {
+    throw new Error("Invalid directory address");
+  }
+
+  const local_part_bytes = base64_to_array(encrypted_local_part);
+  const local_part = new TextDecoder("utf-8", { fatal: true }).decode(
+    local_part_bytes,
+  );
+
+  if (!is_valid_directory_local_part(local_part)) {
+    throw new Error("Invalid directory address");
+  }
+
+  const expected_hash = base64_to_array(local_part_hash);
+  const actual_hash = new Uint8Array(
+    await crypto.subtle.digest(HASH_ALG, local_part_bytes),
+  );
+
+  if (!bytes_equal(expected_hash, actual_hash)) {
+    throw new Error("Directory address hash mismatch");
+  }
+
+  return local_part;
+}
+
 export async function decrypt_domain_address(
   address: DomainAddress,
 ): Promise<DecryptedDomainAddress> {
-  const local_part = await decrypt_address_field(
-    address.encrypted_local_part,
-    address.local_part_nonce,
-  );
+  const local_part = address.local_part_nonce
+    ? await decrypt_address_field(
+        address.encrypted_local_part,
+        address.local_part_nonce,
+      )
+    : await decode_directory_local_part(
+        address.encrypted_local_part,
+        address.local_part_hash,
+      );
 
   let display_name: string | undefined;
 
