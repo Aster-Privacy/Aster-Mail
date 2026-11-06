@@ -60,7 +60,7 @@ describe("external_key_device_label_key", () => {
   });
 
   it("maps every platform to a defined English string", () => {
-    const settings = en.settings as Record<string, string>;
+    const settings = en.settings as unknown as Record<string, string>;
 
     for (const platform of ["android", "ios", "desktop", "web", "bridge", "x"]) {
       const key = external_key_device_label_key(platform).replace(
