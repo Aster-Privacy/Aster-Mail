@@ -40,18 +40,45 @@ import {
   external_accounts_step,
   recent_recipients_step,
 } from "./steps_lists";
-import { aliases_step, domain_addresses_step } from "./steps_addresses";
+import {
+  aliases_step,
+  deleted_aliases_step,
+  domain_addresses_step,
+  ghost_aliases_step,
+} from "./steps_addresses";
+import {
+  alias_directories_step,
+  alias_items_step,
+  contact_extras_step,
+  contact_field_definitions_step,
+  profile_notes_step,
+  ratchet_states_step,
+  signatures_step,
+  sync_sources_step,
+  templates_step,
+} from "./steps_categories";
 import { escrow_step } from "./steps_escrow";
 
 export const DEFAULT_RESEAL_STEPS: ResealStep[] = [
+  ratchet_states_step,
   aliases_step,
   domain_addresses_step,
+  deleted_aliases_step,
+  ghost_aliases_step,
+  alias_directories_step,
+  alias_items_step,
   contacts_step,
   contact_groups_step,
+  contact_field_definitions_step,
+  contact_extras_step,
   blocked_senders_step,
   allowed_senders_step,
   recent_recipients_step,
+  profile_notes_step,
   external_accounts_step,
+  signatures_step,
+  templates_step,
+  sync_sources_step,
   escrow_step,
 ];
 

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ApiResponse } from "@/services/api/client";
 import type { SealedValue } from "./reseal_keys";
 import type { HashMove, ResealStep, ResealStepContext } from "./reseal_io";
 
@@ -36,6 +37,7 @@ import {
 } from "./reseal_io";
 import {
   MAIL_TOKENS_PATH,
+  STORAGE_REKEY_PATH,
   USER_REKEY_PATH,
   classify_sealed,
   decode_text,
@@ -53,7 +55,7 @@ const ALIAS_MAX_PAGES = 100;
 const ADDRESS_BATCH_SIZE = 25;
 const MAX_MAIL_TOKEN_PAGES = 10_000;
 
-interface AliasRow {
+export interface AliasRow {
   id: string;
   encrypted_local_part: string;
   local_part_nonce: string;
@@ -69,7 +71,7 @@ interface AliasRow {
   is_retained_primary?: boolean;
 }
 
-interface DomainRow {
+export interface DomainRow {
   id: string;
   domain_name: string;
 }
@@ -402,10 +404,36 @@ export async function drain_hash_moves(ctx: ResealStepContext): Promise<void> {
   }
 }
 
+type AddressSender = (
+  items: Record<string, unknown>[],
+) => Promise<ApiResponse<unknown>>;
+
+function user_rekey_sender(
+  ctx: ResealStepContext,
+  field: "re_encrypted_aliases" | "re_encrypted_domain_addresses",
+): AddressSender {
+  return (items) => ctx.api.post(USER_REKEY_PATH, { [field]: items });
+}
+
 async function send_address_entries(
   ctx: ResealStepContext,
   entries: AddressEntry[],
   field: "re_encrypted_aliases" | "re_encrypted_domain_addresses",
+): Promise<void> {
+  await send_address_entries_with(
+    ctx,
+    entries,
+    user_rekey_sender(ctx, field),
+    `rekey:${field}`,
+  );
+}
+
+async function send_address_entries_with(
+  ctx: ResealStepContext,
+  entries: AddressEntry[],
+  send: AddressSender,
+  what: string,
+  on_conflict?: (entry: AddressEntry) => void,
 ): Promise<void> {
   for (const batch of chunk(entries, ADDRESS_BATCH_SIZE)) {
     for (const entry of batch) {
@@ -421,13 +449,11 @@ async function send_address_entries(
     await send_items_splitting(
       ctx,
       batch,
-      (items) =>
-        ctx.api.post(USER_REKEY_PATH, {
-          [field]: items.map((entry) => entry.item),
-        }),
-      `rekey:${field}`,
-      (entry) => {
+      (items) => send(items.map((entry) => entry.item)),
+      what,
+      (entry, outcome) => {
         if (entry.move) drop_move(ctx, entry.move);
+        if (outcome === "conflict") on_conflict?.(entry);
       },
     );
     await drain_hash_moves(ctx);
@@ -435,7 +461,9 @@ async function send_address_entries(
   }
 }
 
-async function list_all_aliases(ctx: ResealStepContext): Promise<AliasRow[]> {
+export async function list_all_aliases(
+  ctx: ResealStepContext,
+): Promise<AliasRow[]> {
   const seen = new Map<string, AliasRow>();
 
   for (let page = 0; page < ALIAS_MAX_PAGES; page++) {
@@ -528,3 +556,124 @@ export const domain_addresses_step: ResealStep = {
     return "done";
   },
 };
+
+interface DeletedAliasRow extends AliasRow {
+  original_alias_id?: string;
+}
+
+const GHOST_LIST_PATH = "/addresses/v1/aliases/ghost";
+const DELETED_LIST_PATH = "/addresses/v1/aliases/deleted";
+
+function keep_old_hash(entry: AddressEntry, old_hash: string): AddressEntry {
+  return {
+    item: { ...entry.item, alias_address_hash: old_hash },
+    move: null,
+  };
+}
+
+export const deleted_aliases_step: ResealStep = {
+  name: "deleted_aliases",
+  async run(ctx) {
+    const progress = step_progress(ctx, "deleted_aliases");
+
+    await drain_hash_moves(ctx);
+    if (progress.done) return "done";
+
+    const data = require_ok(
+      await request_with_backoff(ctx, () =>
+        ctx.api.get<{ aliases: DeletedAliasRow[] }>(DELETED_LIST_PATH),
+      ),
+      "deleted_aliases_list",
+    );
+    const entries: AddressEntry[] = [];
+    const old_hashes = new Map<string, string>();
+
+    for (const alias of data.aliases ?? []) {
+      const entry = await build_alias_entry(ctx, {
+        ...alias,
+        is_retained_primary: false,
+      });
+
+      if (!entry) continue;
+      old_hashes.set(alias.id, alias.alias_address_hash);
+      entries.push(entry);
+    }
+
+    const retry: AddressEntry[] = [];
+    const send: AddressSender = (items) =>
+      ctx.api.post(STORAGE_REKEY_PATH, { deleted_aliases: items });
+
+    await send_address_entries_with(
+      ctx,
+      entries,
+      send,
+      "storage_rekey:deleted_aliases",
+      (entry) => {
+        const old_hash = old_hashes.get(String(entry.item.id));
+
+        if (old_hash) retry.push(keep_old_hash(entry, old_hash));
+      },
+    );
+    if (retry.length > 0) {
+      ctx.counts.conflicts -= retry.length;
+      await send_address_entries_with(
+        ctx,
+        retry,
+        send,
+        "storage_rekey:deleted_aliases",
+      );
+    }
+
+    progress.done = true;
+    ctx.persist();
+
+    return "done";
+  },
+};
+
+export const ghost_aliases_step: ResealStep = {
+  name: "ghost_aliases",
+  async run(ctx) {
+    const progress = step_progress(ctx, "ghost_aliases");
+
+    await drain_hash_moves(ctx);
+    if (progress.done) return "done";
+
+    const data = require_ok(
+      await request_with_backoff(ctx, () =>
+        ctx.api.get<{ aliases: AliasRow[] }>(GHOST_LIST_PATH),
+      ),
+      "ghost_aliases_list",
+    );
+    const entries: AddressEntry[] = [];
+
+    for (const alias of data.aliases ?? []) {
+      const entry = await build_alias_entry(ctx, {
+        ...alias,
+        is_random: false,
+        is_retained_primary: false,
+      });
+
+      if (entry) entries.push(entry);
+    }
+    await send_address_entries(ctx, entries, "re_encrypted_aliases");
+
+    progress.done = true;
+    ctx.persist();
+
+    return "done";
+  },
+};
+
+export async function list_ghost_alias_ids(
+  ctx: ResealStepContext,
+): Promise<string[]> {
+  const data = require_ok(
+    await request_with_backoff(ctx, () =>
+      ctx.api.get<{ aliases: AliasRow[] }>(GHOST_LIST_PATH),
+    ),
+    "ghost_aliases_list",
+  );
+
+  return (data.aliases ?? []).map((alias) => alias.id);
+}

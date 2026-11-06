@@ -33,6 +33,8 @@ import { HASH_ALG } from "@/services/crypto/constants";
 
 export const ESCROW_HKDF_SALT = "Aster_Mail_Plaintext_Escrow";
 export const ESCROW_HKDF_INFO = "plaintext_escrow_key";
+export const RATCHET_HKDF_SALT = "Aster Mail_Ratchet_State_Encryption";
+export const RATCHET_HKDF_INFO = "ratchet_state_key";
 export const NONCE_LENGTH = 12;
 
 export type EscrowFallback = (
@@ -51,8 +53,11 @@ export interface ResealKeys {
   new_escrow: CryptoKey;
   old_aes: CryptoKey[];
   old_escrow: CryptoKey[];
+  new_ratchet: CryptoKey;
+  old_ratchet: CryptoKey[];
   escrow_fallback: EscrowFallback | null;
   hmac(info: string): Promise<CryptoKey>;
+  old_hmacs(info: string): Promise<CryptoKey[]>;
   dispose(): void;
 }
 
@@ -91,6 +96,27 @@ export async function derive_escrow_aes_key(
       name: "HKDF",
       salt: new TextEncoder().encode(ESCROW_HKDF_SALT),
       info: new TextEncoder().encode(ESCROW_HKDF_INFO),
+      hash: HASH_ALG,
+    },
+    base,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+export async function derive_ratchet_aes_key(
+  raw: Uint8Array,
+): Promise<CryptoKey> {
+  const base = await crypto.subtle.importKey("raw", raw, "HKDF", false, [
+    "deriveKey",
+  ]);
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "HKDF",
+      salt: new TextEncoder().encode(RATCHET_HKDF_SALT),
+      info: new TextEncoder().encode(RATCHET_HKDF_INFO),
       hash: HASH_ALG,
     },
     base,
@@ -163,9 +189,12 @@ export async function build_reseal_keys(
   const old_escrow = await Promise.all(
     old_raws.map((raw) => derive_escrow_aes_key(raw)),
   );
+  const new_ratchet = await derive_ratchet_aes_key(new_raw);
+  const old_ratchet = await Promise.all(
+    old_raws.map((raw) => derive_ratchet_aes_key(raw)),
+  );
   const new_hmacs = new Map<string, Promise<CryptoKey>>();
-
-  old_raws.forEach((raw) => zero_uint8_array(raw));
+  const old_hmac_sets = new Map<string, Promise<CryptoKey[]>>();
 
   let disposed = false;
 
@@ -175,7 +204,25 @@ export async function build_reseal_keys(
     new_escrow,
     old_aes,
     old_escrow,
+    new_ratchet,
+    old_ratchet,
     escrow_fallback: options.escrow_fallback ?? null,
+    old_hmacs(info: string): Promise<CryptoKey[]> {
+      if (disposed) {
+        return Promise.reject(new Error("reseal keys disposed"));
+      }
+
+      let pending = old_hmac_sets.get(info);
+
+      if (!pending) {
+        pending = Promise.all(
+          old_raws.map((raw) => derive_storage_hmac_key(raw, info)),
+        );
+        old_hmac_sets.set(info, pending);
+      }
+
+      return pending;
+    },
     hmac(info: string): Promise<CryptoKey> {
       if (disposed) {
         return Promise.reject(new Error("reseal keys disposed"));
@@ -194,6 +241,7 @@ export async function build_reseal_keys(
       if (disposed) return;
       disposed = true;
       zero_uint8_array(new_raw);
+      old_raws.forEach((raw) => zero_uint8_array(raw));
     },
   };
 }

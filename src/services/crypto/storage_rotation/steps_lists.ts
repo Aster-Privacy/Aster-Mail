@@ -64,7 +64,7 @@ const RECENT_RECIPIENT_LIMIT = 100;
 const MAX_PAGES_PER_RUN = 1000;
 const GCM_TAG_LENGTH = 16;
 
-interface ContactRow {
+export interface ContactRow {
   id: string;
   encrypted_data: string;
   data_nonce: string;
@@ -72,7 +72,7 @@ interface ContactRow {
   data_version?: number | null;
 }
 
-interface ContactPage {
+export interface ContactPage {
   items: ContactRow[];
   next_cursor: string | null;
   has_more: boolean;
@@ -84,14 +84,14 @@ interface GroupRow {
   name_nonce: string;
 }
 
-interface SenderRow {
+export interface SenderRow {
   id: string;
   encrypted_sender_data: string;
   sender_data_nonce: string;
   is_domain?: boolean;
 }
 
-interface RecentRecipientRow {
+export interface RecentRecipientRow {
   id: string;
   encrypted_email: string;
   email_nonce: string;
@@ -448,6 +448,70 @@ export const allowed_senders_step: ResealStep = {
   },
 };
 
+async function build_recent_recipient_item(
+  ctx: ResealStepContext,
+  row: RecentRecipientRow,
+): Promise<Record<string, unknown> | null> {
+  const sealed = await classify_sealed(
+    ctx.keys,
+    row.encrypted_email,
+    row.email_nonce,
+  );
+
+  if (sealed.state === "current") {
+    ctx.counts.current += 1;
+
+    return null;
+  }
+  if (sealed.state === "unreadable") {
+    ctx.counts.unreadable += 1;
+
+    return null;
+  }
+
+  try {
+    const email = decode_text(sealed.plaintext);
+    const resealed = await seal_under_new(ctx.keys, sealed.plaintext);
+
+    return {
+      id: row.id,
+      email_token: await sign_under_new(
+        ctx.keys,
+        RECENT_RECIPIENTS_INFO,
+        email.toLowerCase().trim(),
+      ),
+      encrypted_email: resealed.ciphertext,
+      email_nonce: resealed.nonce,
+    };
+  } finally {
+    zero_uint8_array(sealed.plaintext);
+  }
+}
+
+export async function list_recent_recipients(
+  ctx: ResealStepContext,
+): Promise<RecentRecipientRow[]> {
+  const seen = new Map<string, RecentRecipientRow>();
+
+  for (let page = 0; page < MAX_PAGES_PER_RUN; page++) {
+    const data = require_ok(
+      await request_with_backoff(ctx, () =>
+        ctx.api.get<{ items: RecentRecipientRow[] }>(
+          `/contacts/v1/recent_recipients?limit=${RECENT_RECIPIENT_LIMIT}&offset=${seen.size}`,
+        ),
+      ),
+      "recent_list",
+    );
+    const rows = data.items ?? [];
+    const before = seen.size;
+
+    for (const row of rows) seen.set(row.id, row);
+    if (rows.length < RECENT_RECIPIENT_LIMIT || seen.size === before) break;
+  }
+
+  return [...seen.values()];
+}
+
 export const recent_recipients_step: ResealStep = {
   name: "recent_recipients",
   async run(ctx) {
@@ -455,49 +519,12 @@ export const recent_recipients_step: ResealStep = {
 
     if (progress.done) return "done";
 
-    const data = require_ok(
-      await request_with_backoff(ctx, () =>
-        ctx.api.get<{ items: RecentRecipientRow[] }>(
-          `/contacts/v1/recent_recipients?limit=${RECENT_RECIPIENT_LIMIT}`,
-        ),
-      ),
-      "recent_list",
-    );
     const items: Record<string, unknown>[] = [];
 
-    for (const row of data.items ?? []) {
-      const sealed = await classify_sealed(
-        ctx.keys,
-        row.encrypted_email,
-        row.email_nonce,
-      );
+    for (const row of await list_recent_recipients(ctx)) {
+      const item = await build_recent_recipient_item(ctx, row);
 
-      if (sealed.state === "current") {
-        ctx.counts.current += 1;
-        continue;
-      }
-      if (sealed.state === "unreadable") {
-        ctx.counts.unreadable += 1;
-        continue;
-      }
-
-      try {
-        const email = decode_text(sealed.plaintext);
-        const resealed = await seal_under_new(ctx.keys, sealed.plaintext);
-
-        items.push({
-          id: row.id,
-          email_token: await sign_under_new(
-            ctx.keys,
-            RECENT_RECIPIENTS_INFO,
-            email.toLowerCase().trim(),
-          ),
-          encrypted_email: resealed.ciphertext,
-          email_nonce: resealed.nonce,
-        });
-      } finally {
-        zero_uint8_array(sealed.plaintext);
-      }
+      if (item) items.push(item);
     }
     for (const batch of chunk(items, LIST_BATCH_SIZE)) {
       await post_storage_rekey(ctx, "recent_recipients", batch);
