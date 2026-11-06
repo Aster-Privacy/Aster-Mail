@@ -153,6 +153,16 @@ export function prepend_keks_keeping_all(
   return [...unique_new, ...kept];
 }
 
+export function keep_password_change_keks(
+  existing: LegacyDerivedKek[] | undefined,
+  raws: Uint8Array[],
+): LegacyDerivedKek[] {
+  return prepend_keks_keeping_all(
+    existing,
+    raws.map((raw) => serialize_kek_for_vault(raw)),
+  );
+}
+
 export function append_keks_to_list(
   existing: LegacyDerivedKek[] | undefined,
   new_entries: LegacyDerivedKek[],

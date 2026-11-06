@@ -57,8 +57,7 @@ import {
 } from "@/services/crypto/key_manager";
 import {
   derive_kek_from_password,
-  serialize_kek_for_vault,
-  prepend_kek_to_list,
+  keep_password_change_keks,
 } from "@/services/crypto/legacy_keks";
 import {
   get_preferences,
@@ -445,47 +444,29 @@ export function use_security() {
           hash_v2: new_password_hash_v2,
         } = await derive_password_hash(new_password, new_salt);
 
-        if (!master_key_mode) {
-          const old_kek_raw = await derive_kek_from_password(current_password);
-
-          vault.legacy_keks = prepend_kek_to_list(
-            vault.legacy_keks,
-            serialize_kek_for_vault(old_kek_raw),
-          );
-        }
-
-        vault.legacy_keks = prepend_kek_to_list(
-          vault.legacy_keks,
-          serialize_kek_for_vault(old_prefs_key_raw),
-        );
-        vault.legacy_keks = prepend_kek_to_list(
-          vault.legacy_keks,
-          serialize_kek_for_vault(old_dev_mode_key_raw),
-        );
-
         const old_folder_material = new TextEncoder().encode(
           old_identity_key + "astermail-labels-v1",
         );
         const old_folder_hash = new Uint8Array(
           await crypto.subtle.digest("SHA-256", old_folder_material),
         );
-
-        vault.legacy_keks = prepend_kek_to_list(
-          vault.legacy_keks,
-          serialize_kek_for_vault(old_folder_hash),
-        );
-
         const old_tag_material = new TextEncoder().encode(
           old_identity_key + "astermail-tags-v1",
         );
         const old_tag_hash = new Uint8Array(
           await crypto.subtle.digest("SHA-256", old_tag_material),
         );
+        const retired_raws = master_key_mode
+          ? []
+          : [await derive_kek_from_password(current_password)];
 
-        vault.legacy_keks = prepend_kek_to_list(
-          vault.legacy_keks,
-          serialize_kek_for_vault(old_tag_hash),
-        );
+        vault.legacy_keks = keep_password_change_keks(vault.legacy_keks, [
+          ...retired_raws,
+          old_prefs_key_raw,
+          old_dev_mode_key_raw,
+          old_folder_hash,
+          old_tag_hash,
+        ]);
 
         const vault_key_fingerprints =
           await collect_vault_key_fingerprints(vault);
