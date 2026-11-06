@@ -25,13 +25,22 @@ import { zero_uint8_array } from "./secure_memory";
 import {
   collect_prior_storage_keys,
   install_random_storage_key,
+  is_weak_storage_vault,
 } from "./storage_write_key";
 
 export async function upgrade_vault_to_master_key(
   vault: EncryptedVault,
   current_password: string,
 ): Promise<boolean> {
-  if (is_master_key_vault(vault)) return true;
+  if (is_master_key_vault(vault)) {
+    if (vault.data_kek_random === true) return true;
+
+    try {
+      if (!(await is_weak_storage_vault(vault, current_password))) return true;
+    } catch {
+      return true;
+    }
+  }
 
   let prior_keys: Uint8Array[];
 

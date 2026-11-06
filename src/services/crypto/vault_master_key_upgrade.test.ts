@@ -140,4 +140,41 @@ describe("upgrade_vault_to_master_key", () => {
     expect(vault.data_kek).toBe(existing);
     expect(vault.legacy_keks).toBeUndefined();
   });
+
+  it("rotates a master key vault whose storage key is the password key", async () => {
+    const password_key = array_to_base64(
+      await derive_encryption_key_from_passphrase(
+        new TextEncoder().encode(OLD_PASSWORD),
+        STORAGE_KDF_VERSION_LEGACY,
+      ),
+    );
+    const vault: EncryptedVault = {
+      ...build_legacy_vault(),
+      data_kek: password_key,
+      vault_format: 2,
+    };
+
+    const upgraded = await upgrade_vault_to_master_key(vault, OLD_PASSWORD);
+
+    expect(upgraded).toBe(true);
+    expect(vault.data_kek).not.toBe(password_key);
+    expect(vault.data_kek_random).toBe(true);
+    expect(vault.legacy_keks?.map((entry) => entry.k)).toContain(password_key);
+    expect(vault.storage_rekey?.state).toBe("pending");
+  });
+
+  it("keeps a random storage key across a password change", async () => {
+    const existing = array_to_base64(new Uint8Array(32).fill(9));
+    const vault: EncryptedVault = {
+      ...build_legacy_vault(),
+      data_kek: existing,
+      data_kek_random: true,
+      vault_format: 2,
+    };
+
+    await upgrade_vault_to_master_key(vault, OLD_PASSWORD);
+
+    expect(vault.data_kek).toBe(existing);
+    expect(vault.storage_rekey).toBeUndefined();
+  });
 });
