@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { PrivateKey } from "openpgp";
 import type { Attachment } from "@/components/compose/compose_shared";
 
 import { array_to_base64 } from "./crypto/base64";
@@ -107,6 +108,37 @@ export function should_attach_signed_mime(params: {
   return attachment_bytes === 0;
 }
 
+function sender_address(from: string): string {
+  const bracketed = from.match(/<([^<>]+)>\s*$/);
+
+  return (bracketed ? bracketed[1] : from).trim().toLowerCase();
+}
+
+export function external_key_matches_sender(
+  key: PrivateKey,
+  from: string,
+): boolean {
+  const address = sender_address(from);
+
+  if (!address) return false;
+
+  return key.users.some(
+    (user) => user.userID?.email?.trim().toLowerCase() === address,
+  );
+}
+
+async function sign_with_internal_key(
+  mime_bytes: Uint8Array,
+  vault: NonNullable<ReturnType<typeof get_vault_from_memory>>,
+  passphrase: string,
+): Promise<Awaited<ReturnType<typeof sign_detached>> | "unhealed"> {
+  const armored_secret_key = await select_published_signing_key(vault);
+
+  if (!armored_secret_key) return "unhealed";
+
+  return sign_detached(mime_bytes, { armored_secret_key, passphrase });
+}
+
 export async function build_signed_mime_payload(
   params: SignedMimeParams,
 ): Promise<SignedMimePayload | undefined> {
@@ -151,23 +183,25 @@ export async function build_signed_mime_payload(
 
   const mime_bytes = text_encoder.encode(mime);
   const external_signing_key = get_external_signing_key();
-  let signed: Awaited<ReturnType<typeof sign_detached>>;
+  let signed: Awaited<ReturnType<typeof sign_detached>> = null;
 
-  if (external_signing_key) {
+  if (
+    external_signing_key &&
+    external_key_matches_sender(external_signing_key, params.from)
+  ) {
     signed = await sign_detached_with_keys(mime_bytes, [external_signing_key]);
-  } else {
-    const armored_secret_key = await select_published_signing_key(vault);
+  }
 
-    if (!armored_secret_key) {
+  if (!signed) {
+    const internal = await sign_with_internal_key(mime_bytes, vault, passphrase);
+
+    if (internal === "unhealed") {
       report_signing_skipped("published_key_mismatch_unhealed");
 
       return undefined;
     }
 
-    signed = await sign_detached(mime_bytes, {
-      armored_secret_key,
-      passphrase,
-    });
+    signed = internal;
   }
 
   if (!signed) {
