@@ -138,6 +138,21 @@ export function prepend_kek_to_list(
   return list.slice(0, MAX_LEGACY_KEKS);
 }
 
+export function prepend_keks_keeping_all(
+  existing: LegacyDerivedKek[] | undefined,
+  new_entries: LegacyDerivedKek[],
+): LegacyDerivedKek[] {
+  const fresh_keys = new Set(new_entries.map((entry) => entry.k));
+  const kept = (existing ?? []).filter((entry) => !fresh_keys.has(entry.k));
+  const unique_new: LegacyDerivedKek[] = [];
+
+  for (const entry of new_entries) {
+    if (!unique_new.some((held) => held.k === entry.k)) unique_new.push(entry);
+  }
+
+  return [...unique_new, ...kept];
+}
+
 export function append_keks_to_list(
   existing: LegacyDerivedKek[] | undefined,
   new_entries: LegacyDerivedKek[],
@@ -384,16 +399,17 @@ export async function decrypt_with_legacy_derived_keys(
   derive: (base: CryptoKey) => Promise<CryptoKey>,
   ciphertext: BufferSource,
   iv: BufferSource,
+  additional_data?: BufferSource,
 ): Promise<ArrayBuffer | null> {
+  const params: AesGcmParams = additional_data
+    ? { name: "AES-GCM", iv, additionalData: additional_data }
+    : { name: "AES-GCM", iv };
+
   for (const base of [...legacy_hkdf_keys, ...account_hkdf_keys]) {
     try {
       const key = await derive(base);
 
-      return await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv },
-        key,
-        ciphertext,
-      );
+      return await crypto.subtle.decrypt(params, key, ciphertext);
     } catch {
       continue;
     }

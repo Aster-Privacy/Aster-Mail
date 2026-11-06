@@ -22,7 +22,7 @@ import type { EncryptedVault } from "./key_manager_core";
 
 import { array_to_base64, base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
-import { prepend_kek_to_list } from "./legacy_keks";
+import { prepend_keks_keeping_all } from "./legacy_keks";
 import {
   derive_encryption_key_from_passphrase,
   get_derived_encryption_key,
@@ -401,6 +401,7 @@ export async function derive_password_storage_keys(
 export async function is_weak_storage_vault(
   vault: Pick<EncryptedVault, "data_kek" | "data_kek_random" | "kdf_version">,
   passphrase: string,
+  key_material_keys: Uint8Array[] = [],
 ): Promise<boolean> {
   if (!vault.data_kek) {
     return true;
@@ -424,6 +425,12 @@ export async function is_weak_storage_vault(
       matches = true;
     }
     zero_uint8_array(candidate);
+  }
+
+  for (const candidate of key_material_keys) {
+    if (constant_time_equal(stored, candidate)) {
+      matches = true;
+    }
   }
   zero_uint8_array(stored);
 
@@ -452,14 +459,10 @@ export function install_random_storage_key(
     }
   }
 
-  let legacy_keks = vault.legacy_keks;
-
-  for (let i = prior_encoded.length - 1; i >= 0; i--) {
-    legacy_keks = prepend_kek_to_list(legacy_keks, {
-      k: prior_encoded[i],
-      added_at: now.toISOString(),
-    });
-  }
+  const legacy_keks = prepend_keks_keeping_all(
+    vault.legacy_keks,
+    prior_encoded.map((k) => ({ k, added_at: now.toISOString() })),
+  );
 
   const carried_prior = has_pending_storage_rekey(vault)
     ? (vault.storage_rekey?.prior_keys ?? [])
@@ -496,6 +499,7 @@ export function decode_vault_storage_key(
 export async function collect_prior_storage_keys(
   vault: Pick<EncryptedVault, "data_kek" | "kdf_version">,
   passphrase: string,
+  key_material_keys: Uint8Array[] = [],
 ): Promise<Uint8Array[]> {
   const password_keys = await derive_password_storage_keys(vault, passphrase);
   const ordered =
@@ -503,6 +507,9 @@ export async function collect_prior_storage_keys(
       ? [password_keys[1], password_keys[0]]
       : password_keys;
   const stored = decode_vault_storage_key(vault.data_kek);
+  const extra = key_material_keys
+    .filter((raw) => raw.length === STORAGE_WRITE_KEY_LENGTH)
+    .map((raw) => new Uint8Array(raw));
 
-  return stored ? [...ordered, stored] : ordered;
+  return stored ? [stored, ...ordered, ...extra] : [...ordered, ...extra];
 }

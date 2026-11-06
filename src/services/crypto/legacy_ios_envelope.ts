@@ -105,6 +105,44 @@ async function import_key_for_salt(
   }
 }
 
+export async function derive_ios_key_material_bytes(
+  passphrase: string,
+): Promise<Uint8Array[]> {
+  try {
+    const account = await get_current_account();
+    const email = account?.user?.email;
+
+    if (!email) return [];
+
+    const salt_response = await get_user_salt({
+      user_hash: await hash_email(email),
+    });
+    const encoded_salt = salt_response.data?.salt;
+
+    if (salt_response.error || !encoded_salt) return [];
+
+    const salt = base64_to_array(encoded_salt);
+
+    if (salt.length === 0) return [];
+
+    try {
+      const { hash } = await derive_password_hash(passphrase, salt);
+      const raw = base64_to_array(hash);
+
+      return raw.length === 32 ? [raw] : [];
+    } finally {
+      zero_uint8_array(salt);
+    }
+  } catch (caught) {
+    ignore_error(
+      "services/crypto/legacy_ios_envelope:derive_ios_key_material_bytes",
+      caught,
+    );
+
+    return [];
+  }
+}
+
 async function load_retired_salts(): Promise<string[]> {
   try {
     return (await get_retired_login_salts()).slice(-MAX_RETIRED_SALTS);

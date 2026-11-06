@@ -49,6 +49,7 @@ import {
   clear_account_data_write_keys,
   get_account_key_generation,
   append_legacy_key_raw_bytes,
+  prepend_keks_keeping_all,
 } from "./legacy_keks";
 
 import { clear_preview_memo } from "@/utils/preview_text";
@@ -544,6 +545,8 @@ export async function store_vault_in_memory(
       zero_uint8_array(passphrase_bytes);
     }
   } else if (passphrase_bytes) {
+    const read_only_lookup_keys: string[] = [];
+
     derived_encryption_key = await derive_encryption_key_from_passphrase(
       passphrase_bytes,
       kdf_version,
@@ -555,15 +558,27 @@ export async function store_vault_in_memory(
       );
 
       await append_legacy_key_raw_bytes(legacy_derived);
+      read_only_lookup_keys.push(array_to_base64(legacy_derived));
       zero_uint8_array(legacy_derived);
     }
     zero_uint8_array(passphrase_bytes);
     if (vault.data_kek && derived_encryption_key) {
       await remember_stored_data_kek(vault.data_kek, derived_encryption_key);
+      if (vault.data_kek !== array_to_base64(derived_encryption_key)) {
+        read_only_lookup_keys.push(vault.data_kek);
+      }
     }
     if (vault_in_memory && derived_encryption_key) {
       vault_in_memory.data_kek = array_to_base64(derived_encryption_key);
       delete vault_in_memory.data_kek_random;
+      if (read_only_lookup_keys.length > 0) {
+        const added_at = new Date().toISOString();
+
+        vault_in_memory.legacy_keks = prepend_keks_keeping_all(
+          vault_in_memory.legacy_keks,
+          read_only_lookup_keys.map((k) => ({ k, added_at })),
+        );
+      }
     }
   }
 

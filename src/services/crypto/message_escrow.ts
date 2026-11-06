@@ -228,6 +228,15 @@ async function decrypt_escrow_payload(
 
   if (unbound) return unbound;
 
+  const legacy_bound = await decrypt_with_legacy_derived_keys(
+    derive_escrow_key_from_base,
+    ciphertext,
+    nonce,
+    escrow_aad_v2(dedupe_key),
+  );
+
+  if (legacy_bound) return legacy_bound;
+
   const recovered = await decrypt_with_legacy_derived_keys(
     derive_escrow_key_from_base,
     ciphertext,
@@ -401,12 +410,17 @@ async function open_bound_row(
   dedupe_key: string,
 ): Promise<BoundEscrowPayload | null> {
   try {
-    const opened = await open_escrow(
-      escrow_key,
-      base64_to_array(row.encrypted_plaintext),
-      base64_to_array(row.plaintext_nonce),
-      escrow_aad_v3(dedupe_key),
-    );
+    const ciphertext = base64_to_array(row.encrypted_plaintext);
+    const nonce = base64_to_array(row.plaintext_nonce);
+    const additional_data = escrow_aad_v3(dedupe_key);
+    const opened =
+      (await open_escrow(escrow_key, ciphertext, nonce, additional_data)) ??
+      (await decrypt_with_legacy_derived_keys(
+        derive_escrow_key_from_base,
+        ciphertext,
+        nonce,
+        additional_data,
+      ));
 
     return opened ? decode_bound_payload(opened) : null;
   } catch {
