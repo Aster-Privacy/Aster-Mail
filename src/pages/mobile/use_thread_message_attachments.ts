@@ -21,7 +21,7 @@
 import type { ThreadAttachment } from "@/types/thread";
 import type { CachedAttachmentMeta } from "@/services/attachment_meta_cache";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   get_cached_attachment_meta,
@@ -29,6 +29,10 @@ import {
 } from "@/services/attachment_meta_cache";
 import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  extract_body_inline_refs,
+  without_body_inline_images,
+} from "@/lib/cid_resolver";
 
 export function to_thread_attachments(
   meta: CachedAttachmentMeta[],
@@ -50,6 +54,7 @@ export function use_thread_message_attachments(
   mail_item_id: string,
   enabled: boolean,
   fallback_filename: string,
+  body_html?: string,
 ): ThreadAttachment[] {
   const [attachments, set_attachments] = useState<ThreadAttachment[]>(() => {
     if (!enabled) return [];
@@ -93,5 +98,13 @@ export function use_thread_message_attachments(
     };
   }, [mail_item_id, enabled, fallback_filename]);
 
-  return attachments;
+  const inline_refs = useMemo(
+    () => (body_html ? extract_body_inline_refs(body_html) : undefined),
+    [body_html],
+  );
+
+  return useMemo(
+    () => without_body_inline_images(attachments, inline_refs),
+    [attachments, inline_refs],
+  );
 }

@@ -28,8 +28,6 @@ import { array_to_base64 } from "@/services/crypto/envelope";
 import {
   fetch_attachment_records,
   attachment_records_fetch_failed,
-  get_cached_preview_url,
-  set_cached_preview_url,
 } from "@/services/attachment_preview_cache";
 import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
 
@@ -356,7 +354,109 @@ export function extract_cid_inline_filenames(html: string): Set<string> {
   return filenames;
 }
 
-const in_flight_resolutions = new Map<string, Promise<CidResolutionResult>>();
+function decode_percent(value: string): string {
+  if (!value.includes("%")) return value;
+
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function normalize_cid(value: string): string {
+  return decode_percent(value)
+    .replace(/^<+|>+$/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function strip_extension(value: string): string {
+  return value.replace(/\.[^.]+$/, "");
+}
+
+export interface BodyInlineRefs {
+  cids: Set<string>;
+  filenames: Set<string>;
+}
+
+export function extract_body_inline_refs(
+  html: string,
+): BodyInlineRefs | undefined {
+  const refs = extract_cid_references(html);
+
+  if (refs.length === 0) return undefined;
+
+  const filenames = new Set<string>();
+
+  for (const name of extract_cid_inline_filenames(html)) {
+    filenames.add(name.replace(/^cid:/, ""));
+  }
+
+  return { cids: new Set(refs.map(normalize_cid)), filenames };
+}
+
+export interface InlineImageCandidate {
+  filename?: string | null;
+  content_type?: string | null;
+  content_id?: string;
+}
+
+export function is_body_inline_image(
+  item: InlineImageCandidate,
+  refs: BodyInlineRefs | undefined,
+): boolean {
+  if (!refs) return false;
+
+  const as_image = resolved_image_content_type({
+    content_type: item.content_type ?? undefined,
+    filename: item.filename ?? undefined,
+    content_id: item.content_id,
+  });
+
+  if (as_image === null) return false;
+
+  if (item.content_id && refs.cids.has(normalize_cid(item.content_id))) {
+    return true;
+  }
+
+  if (!item.filename) return false;
+
+  const name = normalize_cid(item.filename);
+
+  return (
+    refs.cids.has(name) ||
+    refs.cids.has(strip_extension(name)) ||
+    refs.filenames.has(name)
+  );
+}
+
+export function without_body_inline_images<T extends InlineImageCandidate>(
+  items: T[],
+  refs: BodyInlineRefs | undefined,
+): T[] {
+  if (!refs) return items;
+
+  const kept = items.filter((item) => !is_body_inline_image(item, refs));
+
+  return kept.length === items.length ? items : kept;
+}
+
+interface CidReplacement {
+  original_cid: string;
+  blob?: Blob;
+  data_url?: string;
+}
+
+interface CidResolutionPlan {
+  html: string;
+  replacements: CidReplacement[];
+  unresolved: number;
+  records_unavailable?: boolean;
+  is_final: boolean;
+}
+
+const in_flight_resolutions = new Map<string, Promise<CidResolutionPlan>>();
 
 function resolution_key(
   mail_item_id: string,
@@ -372,6 +472,43 @@ function resolution_key(
   return `${mail_item_id}:${url_mode}:${html.length}:${hash}`;
 }
 
+function apply_cid_plan(plan: CidResolutionPlan): CidResolutionResult {
+  if (plan.is_final) {
+    return {
+      html: plan.html,
+      blob_urls: [],
+      unresolved: plan.unresolved,
+      records_unavailable: plan.records_unavailable,
+    };
+  }
+
+  const blob_urls: string[] = [];
+  let resolved_html = plan.html;
+
+  for (const replacement of plan.replacements) {
+    let url = replacement.data_url;
+
+    if (!url && replacement.blob) {
+      url = URL.createObjectURL(replacement.blob);
+      blob_urls.push(url);
+    }
+
+    if (!url) continue;
+
+    resolved_html = replace_cid_reference(
+      resolved_html,
+      replacement.original_cid,
+      url,
+    );
+  }
+
+  return {
+    html: strip_unresolved_cid_references(resolved_html),
+    blob_urls,
+    unresolved: plan.unresolved,
+  };
+}
+
 export async function resolve_cid_references(
   html: string,
   mail_item_id: string,
@@ -384,30 +521,33 @@ export async function resolve_cid_references(
   }
 
   const key = resolution_key(mail_item_id, url_mode, html);
-  const in_flight = in_flight_resolutions.get(key);
+  let task = in_flight_resolutions.get(key);
 
-  if (in_flight) return in_flight;
+  if (!task) {
+    const created = plan_cid_resolution(
+      html,
+      mail_item_id,
+      url_mode,
+      cid_refs,
+    ).finally(() => {
+      if (in_flight_resolutions.get(key) === created) {
+        in_flight_resolutions.delete(key);
+      }
+    });
 
-  const task = run_cid_resolution(
-    html,
-    mail_item_id,
-    url_mode,
-    cid_refs,
-  ).finally(() => {
-    in_flight_resolutions.delete(key);
-  });
+    in_flight_resolutions.set(key, created);
+    task = created;
+  }
 
-  in_flight_resolutions.set(key, task);
-
-  return task;
+  return apply_cid_plan(await task);
 }
 
-async function run_cid_resolution(
+async function plan_cid_resolution(
   html: string,
   mail_item_id: string,
   url_mode: CidUrlMode,
   cid_refs: string[],
-): Promise<CidResolutionResult> {
+): Promise<CidResolutionPlan> {
   const records = await fetch_attachment_records(mail_item_id);
 
   if (records.length === 0) {
@@ -415,36 +555,20 @@ async function run_cid_resolution(
 
     return {
       html: strip_unresolved_cid_references(html, records_unavailable),
-      blob_urls: [],
+      replacements: [],
       unresolved: cid_refs.length,
       records_unavailable,
+      is_final: true,
     };
   }
 
-  const decode_percent = (s: string): string => {
-    if (!s.includes("%")) return s;
-
-    try {
-      return decodeURIComponent(s);
-    } catch {
-      return s;
-    }
-  };
-  const normalize = (s: string): string =>
-    decode_percent(s)
-      .replace(/^<+|>+$/g, "")
-      .trim()
-      .toLowerCase();
-  const strip_ext = (s: string): string => s.replace(/\.[^.]+$/, "");
   const unresolved_cids = new Map<string, string>();
 
   for (const ref of cid_refs) {
-    unresolved_cids.set(normalize(ref), ref);
+    unresolved_cids.set(normalize_cid(ref), ref);
   }
 
   const distinct_ref_count = unresolved_cids.size;
-  const blob_urls: string[] = [];
-  let resolved_html = html;
 
   const cached_meta = get_cached_attachment_meta(mail_item_id);
   const cached_by_id = new Map(
@@ -508,10 +632,13 @@ async function run_cid_resolution(
   }
 
   const match_strategies: ((target: MatchTarget) => string | undefined)[] = [
-    (target) => (target.content_id ? normalize(target.content_id) : undefined),
-    (target) => (target.filename ? normalize(target.filename) : undefined),
     (target) =>
-      target.filename ? normalize(strip_ext(target.filename)) : undefined,
+      target.content_id ? normalize_cid(target.content_id) : undefined,
+    (target) => (target.filename ? normalize_cid(target.filename) : undefined),
+    (target) =>
+      target.filename
+        ? normalize_cid(strip_extension(target.filename))
+        : undefined,
   ];
 
   type DecryptedEntry = MatchTarget;
@@ -555,15 +682,8 @@ async function run_cid_resolution(
   }
 
   const data_results = await Promise.allSettled(
-    to_fetch.map(async (entry) => {
+    to_fetch.map(async (entry): Promise<CidReplacement> => {
       const { att, original_cid } = entry;
-      const cached_url =
-        url_mode === "blob" ? get_cached_preview_url(att.id) : undefined;
-
-      if (cached_url) {
-        return { original_cid, url: cached_url, is_blob: false };
-      }
-
       const meta =
         entry.meta ??
         (await decrypt_attachment_meta(
@@ -586,44 +706,32 @@ async function run_cid_resolution(
       if (url_mode === "data") {
         return {
           original_cid,
-          url: `data:${content_type};base64,${array_to_base64(data)}`,
-          is_blob: false,
+          data_url: `data:${content_type};base64,${array_to_base64(data)}`,
         };
       }
 
-      const blob = new Blob([data], { type: content_type });
-
       return {
         original_cid,
-        url: set_cached_preview_url(att.id, URL.createObjectURL(blob)),
-        is_blob: false,
+        blob: new Blob([data], { type: content_type }),
       };
     }),
   );
 
-  let replaced = 0;
-
-  for (const result of data_results) {
-    if (result.status !== "fulfilled") continue;
-
-    const { original_cid, url, is_blob } = result.value;
-
-    if (is_blob) blob_urls.push(url);
-
-    replaced += 1;
-    resolved_html = replace_cid_reference(resolved_html, original_cid, url);
-  }
-
-  resolved_html = strip_unresolved_cid_references(resolved_html);
+  const replacements = data_results.flatMap((r) =>
+    r.status === "fulfilled" ? [r.value] : [],
+  );
 
   const failed = [...meta_results, ...data_results].some(
     (r) => r.status === "rejected",
   );
 
   return {
-    html: resolved_html,
-    blob_urls,
-    unresolved: failed ? Math.max(distinct_ref_count - replaced, 0) : 0,
+    html,
+    replacements,
+    unresolved: failed
+      ? Math.max(distinct_ref_count - replacements.length, 0)
+      : 0,
+    is_final: false,
   };
 }
 

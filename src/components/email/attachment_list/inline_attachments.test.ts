@@ -22,6 +22,11 @@ import { describe, expect, it } from "vitest";
 
 import { build_cards_from_cached_meta } from "./types";
 
+import {
+  extract_body_inline_refs,
+  without_body_inline_images,
+} from "@/lib/cid_resolver";
+
 function cached(
   id: string,
   filename: string | null,
@@ -81,5 +86,72 @@ describe("build_cards_from_cached_meta", () => {
 
     expect(cards[0].filename).toBe("Encrypted attachment");
     expect(cards[0].content_type).toBe("application/octet-stream");
+  });
+});
+
+describe("without_body_inline_images", () => {
+  const OLD_MAIL_BODY =
+    '<p>Numbers below.</p><img src="cid:image001.png@01DAF1C2.5E3B7A40" alt="cid:image001.png">' +
+    '<img src="cid:logo.jpg">';
+
+  function cards() {
+    return build_cards_from_cached_meta(
+      [
+        cached("a", "image001.png", "image/png", {
+          content_id: "<image001.png@01DAF1C2.5E3B7A40>",
+        }),
+        cached("b", "logo.jpg", "image/jpeg"),
+        cached("c", "screenshot.png", "image/png", {
+          content_id: "img_9@astermail.org",
+          is_inline: true,
+        }),
+        cached("d", "report.pdf", "application/pdf"),
+      ],
+      "Encrypted attachment",
+    );
+  }
+
+  it("hides images the body shows and keeps everything else", () => {
+    const shown = without_body_inline_images(
+      cards(),
+      extract_body_inline_refs(OLD_MAIL_BODY),
+    );
+
+    expect(shown.map((c) => c.id)).toEqual(["c", "d"]);
+  });
+
+  it("keeps every attachment when no body references are given", () => {
+    const list = cards();
+
+    expect(without_body_inline_images(list, undefined)).toBe(list);
+  });
+
+  it("keeps every attachment when the body has no inline images", () => {
+    const list = cards();
+
+    expect(
+      without_body_inline_images(
+        list,
+        extract_body_inline_refs("<p>No images here.</p>"),
+      ),
+    ).toBe(list);
+  });
+
+  it("keeps a document the body links by content id", () => {
+    const list = build_cards_from_cached_meta(
+      [
+        cached("d", "report.pdf", "application/pdf", {
+          content_id: "report@x",
+        }),
+      ],
+      "Encrypted attachment",
+    );
+
+    expect(
+      without_body_inline_images(
+        list,
+        extract_body_inline_refs('<a href="cid:report@x">report</a>'),
+      ).map((c) => c.id),
+    ).toEqual(["d"]);
   });
 });

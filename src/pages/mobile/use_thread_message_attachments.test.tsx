@@ -90,19 +90,37 @@ let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 let latest: ThreadAttachment[] = [];
 
-function Probe({ id, enabled }: { id: string; enabled: boolean }) {
-  latest = use_thread_message_attachments(id, enabled, "Encrypted attachment");
+function Probe({
+  id,
+  enabled,
+  body_html,
+}: {
+  id: string;
+  enabled: boolean;
+  body_html?: string;
+}) {
+  latest = use_thread_message_attachments(
+    id,
+    enabled,
+    "Encrypted attachment",
+    body_html,
+  );
 
   return null;
 }
 
-async function render_probe(enabled: boolean): Promise<void> {
+async function render_probe(
+  enabled: boolean,
+  body_html?: string,
+): Promise<void> {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
 
   await act(async () => {
-    root!.render(<Probe enabled={enabled} id={MAIL_ITEM_ID} />);
+    root!.render(
+      <Probe body_html={body_html} enabled={enabled} id={MAIL_ITEM_ID} />,
+    );
   });
 
   for (let i = 0; i < 20; i++) {
@@ -167,5 +185,26 @@ describe("use_thread_message_attachments", () => {
     await render_probe(true);
 
     expect(latest).toEqual([]);
+  });
+
+  it("leaves out images the body already shows", async () => {
+    batch_attachment_meta_mock.mockResolvedValue({
+      data: {
+        items: {
+          [MAIL_ITEM_ID]: [
+            meta_row(0, "image001.png", "image/png", "image001.png@01DAF1C2"),
+            meta_row(1, "report.pdf", "application/pdf"),
+            meta_row(2, "unused.png", "image/png", "unused@01DAF1C2"),
+          ],
+        },
+      },
+    });
+
+    await render_probe(
+      true,
+      '<p>Hi</p><img src="cid:image001.png@01DAF1C2" alt="image001.png">',
+    );
+
+    expect(latest.map((a) => a.id)).toEqual(["att-row-1", "att-row-2"]);
   });
 });
