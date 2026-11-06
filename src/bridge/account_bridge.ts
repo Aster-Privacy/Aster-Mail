@@ -54,6 +54,7 @@ import {
   clear_app_lock_config,
   clear_session_unlock,
 } from "@/services/app_lock_store";
+import { release_app_lock } from "@/services/app_lock_unlock";
 import {
   account_link_origins,
   support_site_origins,
@@ -481,6 +482,7 @@ async function handle_link(
 }
 
 function clear_account_material(account_id: string): Promise<void> {
+  void release_app_lock(account_id).catch(() => undefined);
   clear_stored_encrypted_vault(account_id);
   clear_session_timeout_data(account_id);
   clear_app_lock_config(account_id);
@@ -494,6 +496,7 @@ async function sign_out_one(
   current_id: string | null,
 ): Promise<boolean> {
   if (account.id === current_id) {
+    await release_app_lock(account.id).catch(() => undefined);
     await unlink_account_device().catch(() => undefined);
     await api_client
       .post("/core/v1/auth/logout", {}, { skip_session_refresh: true })

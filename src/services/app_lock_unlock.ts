@@ -1,0 +1,501 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import {
+  attempt_pin_unlock,
+  clear_app_lock_config,
+  clear_session_unlock,
+  derive_wrapped_pin_key,
+  duress_pin_correct,
+  encode_hex,
+  ensure_pepper,
+  generate_pin_salt,
+  get_app_lock_config,
+  is_server_wrapped_config,
+  KDF_VERSION_PEPPER,
+  KDF_VERSION_SERVER_WRAP,
+  mark_session_unlocked,
+  pin_matches_regular,
+  reset_app_lock_attempts,
+  save_app_lock_config,
+  verify_pin,
+  type AppLockConfig,
+  type AppLockWrapInfo,
+} from "@/services/app_lock_store";
+import {
+  APP_LOCK_FIELD_BYTES,
+  base64_to_bytes,
+  bytes_to_base64,
+  clear_pending_passphrase,
+  derive_pin_key,
+  derive_proof,
+  derive_verifier,
+  derive_wrap_key,
+  forget_all_unlocked_locks,
+  forget_unlocked_lock,
+  get_pending_passphrase,
+  get_unlocked_key,
+  get_unlocked_verifier,
+  has_unlock_waiters,
+  open_wrapped_passphrase,
+  read_wrapped_record,
+  remove_wrapped_passphrase,
+  set_pending_passphrase,
+  set_unlocked_lock,
+  settle_app_unlock,
+  write_wrapped_passphrase,
+} from "@/services/app_lock_wrap";
+import {
+  delete_app_lock,
+  register_app_lock,
+  unwrap_app_lock,
+} from "@/services/app_lock_server";
+import {
+  get_session_passphrase,
+  get_stored_encrypted_vault,
+  is_session_passphrase_on_device,
+  remove_unwrapped_passphrase,
+  store_unwrapped_passphrase,
+} from "@/contexts/auth/session_passphrase";
+import { decrypt_vault } from "@/services/crypto/key_manager";
+import {
+  clear_vault_from_memory,
+  get_passphrase_from_memory,
+} from "@/services/crypto/memory_key_store";
+
+const RELEASE_TIMEOUT_MS = 4000;
+
+export type AppUnlockOutcome =
+  | { outcome: "unlocked" }
+  | { outcome: "duress" }
+  | { outcome: "failed"; locked: boolean; attempts_remaining: number | null }
+  | { outcome: "locked_out"; remaining_ms: number }
+  | { outcome: "reset" }
+  | { outcome: "busy" }
+  | { outcome: "unavailable" };
+
+type WrappedConfig = AppLockConfig & { wrap: AppLockWrapInfo };
+
+type ServerUnlock =
+  | { status: "ok"; wrap_key: CryptoKey; verifier: Uint8Array }
+  | { status: "wrong_pin" }
+  | { status: "reset" }
+  | { status: "busy" }
+  | { status: "unavailable" };
+
+export function is_app_lock_server_wrapped(account_id: string): boolean {
+  return is_server_wrapped_config(get_app_lock_config(account_id));
+}
+
+function decode_secret(secret: string): Uint8Array | null {
+  const bytes = base64_to_bytes(secret);
+
+  if (!bytes || bytes.length !== APP_LOCK_FIELD_BYTES) return null;
+
+  return bytes;
+}
+
+async function resolve_current_passphrase(
+  account_id: string,
+): Promise<string | null> {
+  const stored = await get_session_passphrase(account_id).catch(() => null);
+
+  if (stored) return stored;
+
+  return get_passphrase_from_memory();
+}
+
+export async function upgrade_to_server_wrap(
+  account_id: string,
+  pin: string,
+): Promise<boolean> {
+  const config = get_app_lock_config(account_id);
+
+  if (!config?.enabled || is_server_wrapped_config(config)) return false;
+  const passphrase = await resolve_current_passphrase(account_id);
+
+  if (!passphrase) return false;
+  const pepper = await ensure_pepper(account_id);
+
+  if (!pepper) return false;
+  const remember_on_device = is_session_passphrase_on_device(account_id);
+  const salt = generate_pin_salt();
+  const device_lock_id = crypto.randomUUID();
+  const pin_key = await derive_pin_key(pin, salt, pepper);
+
+  try {
+    const verifier = await derive_verifier(await derive_proof(pin_key));
+    const registered = await register_app_lock(
+      device_lock_id,
+      bytes_to_base64(verifier),
+    );
+
+    if (registered.status !== "ok") return false;
+    const secret = decode_secret(registered.secret);
+
+    if (!secret) {
+      void delete_app_lock(device_lock_id);
+
+      return false;
+    }
+    const wrap_key = await derive_wrap_key(
+      pin_key,
+      secret,
+      account_id,
+      device_lock_id,
+    );
+
+    secret.fill(0);
+    await write_wrapped_passphrase(
+      account_id,
+      wrap_key,
+      passphrase,
+      remember_on_device,
+    );
+    const round_trip = await open_wrapped_passphrase(account_id, wrap_key);
+    const current = get_app_lock_config(account_id);
+
+    if (
+      round_trip !== passphrase ||
+      !current?.enabled ||
+      current.pin_hash !== config.pin_hash
+    ) {
+      remove_wrapped_passphrase(account_id);
+      void delete_app_lock(device_lock_id);
+
+      return false;
+    }
+
+    set_unlocked_lock(account_id, wrap_key, verifier);
+    save_app_lock_config(account_id, {
+      ...current,
+      pin_hash: "",
+      pin_salt: "",
+      kdf_version: KDF_VERSION_SERVER_WRAP,
+      wrap: { device_lock_id, salt: encode_hex(salt) },
+      ...(current.kdf_version === KDF_VERSION_PEPPER
+        ? {}
+        : { duress_legacy_kdf: true }),
+    });
+    remove_unwrapped_passphrase(account_id);
+    reset_app_lock_attempts(account_id);
+
+    return true;
+  } catch {
+    return false;
+  } finally {
+    pin_key.fill(0);
+  }
+}
+
+async function server_unlock(
+  account_id: string,
+  config: WrappedConfig,
+  pin_key: Uint8Array,
+): Promise<ServerUnlock> {
+  const proof = await derive_proof(pin_key);
+
+  try {
+    const result = await unwrap_app_lock(
+      config.wrap.device_lock_id,
+      bytes_to_base64(proof),
+    );
+
+    if (result.status === "wrong_pin") return { status: "wrong_pin" };
+    if (result.status === "reset") return { status: "reset" };
+    if (result.status === "busy") return { status: "busy" };
+    if (result.status !== "ok") return { status: "unavailable" };
+    const secret = decode_secret(result.secret);
+
+    if (!secret) return { status: "unavailable" };
+    const wrap_key = await derive_wrap_key(
+      pin_key,
+      secret,
+      account_id,
+      config.wrap.device_lock_id,
+    );
+
+    secret.fill(0);
+    if (
+      read_wrapped_record(account_id) !== null &&
+      (await open_wrapped_passphrase(account_id, wrap_key)) === null
+    ) {
+      return { status: "reset" };
+    }
+
+    return { status: "ok", wrap_key, verifier: await derive_verifier(proof) };
+  } finally {
+    proof.fill(0);
+  }
+}
+
+async function finish_unlock(account_id: string): Promise<void> {
+  const pending = get_pending_passphrase(account_id);
+  const wrap_key = get_unlocked_key(account_id);
+
+  if (pending && wrap_key) {
+    await write_wrapped_passphrase(
+      account_id,
+      wrap_key,
+      pending.passphrase,
+      pending.remember_on_device,
+    );
+    const round_trip = await open_wrapped_passphrase(account_id, wrap_key);
+
+    if (round_trip === pending.passphrase) {
+      clear_pending_passphrase(account_id);
+    }
+  }
+
+  mark_session_unlocked(account_id);
+  settle_app_unlock(account_id, true);
+}
+
+async function unlock_server_wrapped(
+  account_id: string,
+  config: WrappedConfig,
+  pin: string,
+): Promise<AppUnlockOutcome> {
+  const [is_duress, pin_key] = await Promise.all([
+    duress_pin_correct(account_id, pin),
+    derive_wrapped_pin_key(account_id, config, pin),
+  ]);
+
+  if (is_duress) {
+    pin_key?.fill(0);
+
+    return { outcome: "duress" };
+  }
+  if (!pin_key) {
+    await handle_lock_reset(account_id);
+
+    return { outcome: "reset" };
+  }
+
+  try {
+    const result = await server_unlock(account_id, config, pin_key);
+
+    if (result.status === "wrong_pin") {
+      return { outcome: "failed", locked: false, attempts_remaining: null };
+    }
+    if (result.status === "reset") {
+      await handle_lock_reset(account_id);
+
+      return { outcome: "reset" };
+    }
+    if (result.status === "busy") return { outcome: "busy" };
+    if (result.status !== "ok") return { outcome: "unavailable" };
+
+    set_unlocked_lock(account_id, result.wrap_key, result.verifier);
+    result.verifier.fill(0);
+    await finish_unlock(account_id);
+
+    return { outcome: "unlocked" };
+  } finally {
+    pin_key.fill(0);
+  }
+}
+
+export async function attempt_app_unlock(
+  account_id: string,
+  pin: string,
+): Promise<AppUnlockOutcome> {
+  const config = get_app_lock_config(account_id);
+
+  if (is_server_wrapped_config(config)) {
+    return unlock_server_wrapped(account_id, config, pin);
+  }
+
+  const legacy = await attempt_pin_unlock(account_id, pin);
+
+  if (legacy.outcome === "unlocked") {
+    mark_session_unlocked(account_id);
+    settle_app_unlock(account_id, true);
+    void upgrade_to_server_wrap(account_id, pin).catch(() => false);
+
+    return { outcome: "unlocked" };
+  }
+  if (legacy.outcome === "failed") {
+    return {
+      outcome: "failed",
+      locked: legacy.locked,
+      attempts_remaining: legacy.attempts_remaining,
+    };
+  }
+
+  return legacy;
+}
+
+export async function unlock_with_password(
+  account_id: string,
+  password: string,
+): Promise<boolean> {
+  const stored = get_stored_encrypted_vault(account_id);
+
+  if (!stored || !password) return false;
+  try {
+    await decrypt_vault(stored.encrypted_vault, stored.vault_nonce, password);
+  } catch {
+    return false;
+  }
+
+  if (is_app_lock_server_wrapped(account_id)) {
+    const remember_on_device =
+      read_wrapped_record(account_id)?.on_device ?? true;
+
+    set_pending_passphrase(account_id, password, remember_on_device);
+  }
+  mark_session_unlocked(account_id);
+  settle_app_unlock(account_id, true);
+
+  return true;
+}
+
+export async function handle_lock_reset(account_id: string): Promise<boolean> {
+  const pending = get_pending_passphrase(account_id);
+  const keep = pending?.passphrase ?? get_passphrase_from_memory();
+  const remember_on_device = pending?.remember_on_device ?? true;
+
+  forget_unlocked_lock(account_id);
+  remove_wrapped_passphrase(account_id);
+  clear_app_lock_config(account_id);
+  clear_session_unlock(account_id);
+
+  if (keep) {
+    await store_unwrapped_passphrase(account_id, keep, remember_on_device);
+    settle_app_unlock(account_id, true);
+
+    return true;
+  }
+
+  settle_app_unlock(account_id, false);
+
+  return false;
+}
+
+export async function convert_to_unwrapped(
+  account_id: string,
+): Promise<boolean> {
+  const config = get_app_lock_config(account_id);
+
+  if (!is_server_wrapped_config(config)) return true;
+  const passphrase = await resolve_current_passphrase(account_id);
+  const remember_on_device = is_session_passphrase_on_device(account_id);
+
+  if (!passphrase) return false;
+  const { wrap: _w, duress_legacy_kdf: _l, ...rest } = config;
+
+  save_app_lock_config(account_id, {
+    ...rest,
+    enabled: false,
+    kdf_version: config.duress_legacy_kdf ? undefined : KDF_VERSION_PEPPER,
+  });
+  await store_unwrapped_passphrase(account_id, passphrase, remember_on_device);
+  remove_wrapped_passphrase(account_id);
+  forget_unlocked_lock(account_id);
+  void delete_app_lock(config.wrap.device_lock_id);
+
+  return true;
+}
+
+export async function remove_app_lock(account_id: string): Promise<void> {
+  await convert_to_unwrapped(account_id).catch(() => false);
+  clear_app_lock_config(account_id);
+}
+
+function with_release_timeout(work: Promise<unknown>): Promise<void> {
+  return Promise.race([
+    work.then(() => undefined).catch(() => undefined),
+    new Promise<void>((resolve) => setTimeout(resolve, RELEASE_TIMEOUT_MS)),
+  ]);
+}
+
+export async function release_app_lock(account_id: string): Promise<void> {
+  const config = get_app_lock_config(account_id);
+
+  forget_unlocked_lock(account_id);
+  remove_wrapped_passphrase(account_id);
+  if (is_server_wrapped_config(config)) {
+    await with_release_timeout(delete_app_lock(config.wrap.device_lock_id));
+  }
+}
+
+export async function verify_app_lock_pin(
+  account_id: string,
+  pin: string,
+): Promise<{
+  ok: boolean;
+  locked: boolean;
+  attempts_remaining: number | null;
+}> {
+  const config = get_app_lock_config(account_id);
+
+  if (!is_server_wrapped_config(config)) return verify_pin(account_id, pin);
+  if (get_unlocked_verifier(account_id)) {
+    return {
+      ok: await pin_matches_regular(account_id, pin),
+      locked: false,
+      attempts_remaining: null,
+    };
+  }
+  const pin_key = await derive_wrapped_pin_key(account_id, config, pin);
+
+  if (!pin_key) return { ok: false, locked: false, attempts_remaining: null };
+  try {
+    const result = await server_unlock(account_id, config, pin_key);
+
+    if (result.status !== "ok") {
+      return { ok: false, locked: false, attempts_remaining: null };
+    }
+    set_unlocked_lock(account_id, result.wrap_key, result.verifier);
+    result.verifier.fill(0);
+    await finish_unlock(account_id);
+
+    return { ok: true, locked: false, attempts_remaining: null };
+  } finally {
+    pin_key.fill(0);
+  }
+}
+
+export async function pin_is_regular(
+  account_id: string,
+  pin: string,
+): Promise<boolean> {
+  const config = get_app_lock_config(account_id);
+
+  if (is_server_wrapped_config(config) && !get_unlocked_verifier(account_id)) {
+    return (await verify_app_lock_pin(account_id, pin)).ok;
+  }
+
+  return pin_matches_regular(account_id, pin);
+}
+
+export function wipe_unlocked_secrets(account_id: string): boolean {
+  if (!is_app_lock_server_wrapped(account_id)) return false;
+  forget_all_unlocked_locks();
+  clear_session_unlock(account_id);
+  clear_vault_from_memory();
+
+  return true;
+}
+
+export function is_waiting_for_app_unlock(account_id: string): boolean {
+  return has_unlock_waiters(account_id);
+}

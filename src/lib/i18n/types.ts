@@ -1949,6 +1949,13 @@ export interface CommonTranslations {
   enter_passphrase: string;
   wrong_pin: string;
   app_lock_locked_out: string;
+  app_lock_server_unreachable: string;
+  app_lock_unlock_with_password: string;
+  app_lock_use_pin: string;
+  app_lock_enter_password: string;
+  app_lock_wrong_password: string;
+  app_lock_try_again_later: string;
+  app_lock_pin_reset: string;
   app_lock_attempts_remaining: string;
   app_lock_try_again_in: string;
   duress_confirm_title: string;

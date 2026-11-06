@@ -51,11 +51,11 @@ import {
   clear_duress_pin,
   generate_pin_salt,
   hash_pin,
-  pin_matches_regular,
   duress_pin_correct,
   ensure_pepper,
-  KDF_VERSION_PEPPER,
+  uses_pepper,
 } from "@/services/app_lock_store";
+import { pin_is_regular } from "@/services/app_lock_unlock";
 import { is_composing } from "@/utils/ime";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { derive_current_account_proof } from "@/services/crypto/login_proof";
@@ -371,7 +371,7 @@ function SetupDuressPinModal({
         }
         set_saving(true);
         try {
-          const is_same = await pin_matches_regular(account_id, next);
+          const is_same = await pin_is_regular(account_id, next);
 
           if (is_same) {
             set_shake_key((k) => k + 1);
@@ -426,7 +426,7 @@ function SetupDuressPinModal({
       }
       set_saving(true);
       try {
-        const is_same = await pin_matches_regular(account_id, text_input);
+        const is_same = await pin_is_regular(account_id, text_input);
 
         if (is_same) {
           set_shake_key((k) => k + 1);
@@ -456,10 +456,9 @@ function SetupDuressPinModal({
     try {
       const salt = generate_pin_salt();
       const existing = get_app_lock_config(account_id);
-      const pepper =
-        existing?.kdf_version === KDF_VERSION_PEPPER
-          ? ((await ensure_pepper(account_id)) ?? undefined)
-          : undefined;
+      const pepper = uses_pepper(existing)
+        ? ((await ensure_pepper(account_id)) ?? undefined)
+        : undefined;
       const pin_hash = await hash_pin(pending_pin, salt, pepper);
       const pin_salt = Array.from(salt)
         .map((b) => b.toString(16).padStart(2, "0"))

@@ -49,10 +49,8 @@ import {
   set_lockdown_enabled,
   init_lockdown_from_server,
 } from "@/services/lockdown_store";
-import {
-  clear_app_lock_config,
-  clear_session_unlock,
-} from "@/services/app_lock_store";
+import { clear_session_unlock } from "@/services/app_lock_store";
+import { remove_app_lock } from "@/services/app_lock_unlock";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
   enable_vanguard,
@@ -347,7 +345,7 @@ export function VanguardSection() {
 
         set_vanguard_enabled(account_id, false);
         set_lockdown_enabled(account_id, false);
-        clear_app_lock_config(account_id);
+        void remove_app_lock(account_id);
         clear_session_unlock(account_id);
         set_enabled(false);
       });
@@ -402,7 +400,7 @@ export function VanguardSection() {
     set_enabled(false);
     set_vanguard_enabled(account_id, false);
     set_lockdown_enabled(account_id, false);
-    clear_app_lock_config(account_id);
+    void remove_app_lock(account_id);
     clear_session_unlock(account_id);
     show_toast(t("settings.vanguard_disabled_toast"), "success");
     set_is_disabling(false);

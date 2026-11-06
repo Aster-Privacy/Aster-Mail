@@ -47,8 +47,14 @@ import {
   is_locked_out,
   mark_session_unlocked,
   clear_session_unlock,
-  attempt_pin_unlock,
 } from "@/services/app_lock_store";
+import {
+  attempt_app_unlock,
+  is_app_lock_server_wrapped,
+  release_app_lock,
+  unlock_with_password,
+  wipe_unlocked_secrets,
+} from "@/services/app_lock_unlock";
 import {
   clear_native_lock_hint,
   has_pending_native_lock_hint,
@@ -63,6 +69,7 @@ import { lock_all_folders } from "@/hooks/use_protected_folder";
 import { ignore_error } from "@/lib/ignore_error";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { ButtonSpinner } from "@/components/ui/spinner";
+import { show_toast } from "@/components/toast/simple_toast";
 
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -91,10 +98,36 @@ function WebPinOverlay({
   const [lockout_remaining, set_lockout_remaining] = useState(0);
   const [pressed_key, set_pressed_key] = useState<string | null>(null);
   const [wiping, set_wiping] = useState(false);
+  const [password_mode, set_password_mode] = useState(false);
+  const [offer_password, set_offer_password] = useState(false);
   const wiping_ref = useRef(false);
   const verifying_ref = useRef(false);
+  const message_timer = useRef<number | null>(null);
+
+  const show_message = useCallback((text: string, sticky = false) => {
+    if (message_timer.current !== null) {
+      window.clearTimeout(message_timer.current);
+      message_timer.current = null;
+    }
+    set_message(text);
+    if (!sticky) {
+      message_timer.current = window.setTimeout(() => {
+        message_timer.current = null;
+        set_message(null);
+      }, 2500);
+    }
+  }, []);
 
   useEffect(() => {
+    return () => {
+      if (message_timer.current !== null) {
+        window.clearTimeout(message_timer.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (is_app_lock_server_wrapped(account_id)) return;
     const { locked, remaining_ms } = is_locked_out(account_id);
 
     if (locked) {
@@ -124,13 +157,23 @@ function WebPinOverlay({
     wiping_ref.current = true;
     set_wiping(true);
     try {
+      await release_app_lock(account_id).catch(() => undefined);
       const purged = await purge_all_local_data();
 
       if (!purged) await purge_all_local_data();
     } finally {
       window.location.href = "/";
     }
-  }, []);
+  }, [account_id]);
+
+  const reject_input = useCallback(
+    (text: string) => {
+      set_shake_key((k) => k + 1);
+      set_input("");
+      show_message(text);
+    },
+    [show_message],
+  );
 
   const attempt_verify = useCallback(
     async (value: string) => {
@@ -138,49 +181,88 @@ function WebPinOverlay({
       verifying_ref.current = true;
       set_verifying(true);
       try {
-        const result = await attempt_pin_unlock(account_id, value);
+        if (password_mode) {
+          const opened = await unlock_with_password(account_id, value);
 
-        if (result.outcome === "unlocked") {
-          verifying_ref.current = false;
-          set_verifying(false);
-          on_unlock();
+          if (opened) {
+            verifying_ref.current = false;
+            set_verifying(false);
+            on_unlock();
 
-          return;
-        }
-        if (result.outcome === "duress") {
-          set_input("");
-          await handle_duress_confirm();
-
-          return;
-        }
-        if (result.outcome === "locked_out") {
-          set_locked_out(true);
-          set_input("");
-          set_lockout_remaining(Math.ceil(result.remaining_ms / 1000));
-          set_message(t("common.app_lock_locked_out"));
+            return;
+          }
+          reject_input(t("common.app_lock_wrong_password"));
         } else {
-          set_shake_key((k) => k + 1);
-          set_input("");
-          const msg =
-            result.attempts_remaining > 0
-              ? t("common.app_lock_attempts_remaining", {
-                  count: result.attempts_remaining,
-                })
-              : t("common.wrong_pin");
+          const result = await attempt_app_unlock(account_id, value);
 
-          set_message(msg);
-          setTimeout(() => set_message(null), 2000);
+          if (result.outcome === "unlocked") {
+            verifying_ref.current = false;
+            set_verifying(false);
+            on_unlock();
+
+            return;
+          }
+          if (result.outcome === "duress") {
+            set_input("");
+            await handle_duress_confirm();
+
+            return;
+          }
+          if (result.outcome === "reset") {
+            set_input("");
+            show_toast(t("common.app_lock_pin_reset"), "info");
+            verifying_ref.current = false;
+            set_verifying(false);
+            on_unlock();
+
+            return;
+          }
+          if (result.outcome === "unavailable") {
+            set_input("");
+            set_offer_password(true);
+            show_message(t("common.app_lock_server_unreachable"), true);
+          } else if (result.outcome === "busy") {
+            set_input("");
+            show_message(t("common.app_lock_try_again_later"));
+          } else if (result.outcome === "locked_out") {
+            set_locked_out(true);
+            set_input("");
+            set_lockout_remaining(Math.ceil(result.remaining_ms / 1000));
+            show_message(t("common.app_lock_locked_out"));
+          } else {
+            reject_input(
+              result.attempts_remaining !== null &&
+                result.attempts_remaining > 0
+                ? t("common.app_lock_attempts_remaining", {
+                    count: result.attempts_remaining,
+                  })
+                : t("common.wrong_pin"),
+            );
+          }
         }
       } catch {
-        set_message(t("common.wrong_pin"));
-        setTimeout(() => set_message(null), 2000);
+        reject_input(
+          password_mode
+            ? t("common.app_lock_wrong_password")
+            : t("common.wrong_pin"),
+        );
       }
       await new Promise<void>((resolve) => setTimeout(resolve, 600));
       verifying_ref.current = false;
       set_verifying(false);
     },
-    [account_id, on_unlock, t, handle_duress_confirm],
+    [
+      account_id,
+      on_unlock,
+      t,
+      handle_duress_confirm,
+      password_mode,
+      reject_input,
+      show_message,
+    ],
   );
+
+  const active_type: "numeric" | "text" = password_mode ? "text" : pin_type;
 
   const handle_digit = useCallback(
     async (d: string) => {
@@ -202,13 +284,13 @@ function WebPinOverlay({
 
   const handle_text_submit = useCallback(async () => {
     if (verifying || wiping_ref.current || input.length < 1) return;
-    if (pin_type !== "text" && input.length < digits) return;
+    if (active_type !== "text" && input.length < digits) return;
     await attempt_verify(input);
-  }, [verifying, input, attempt_verify, pin_type, digits]);
+  }, [verifying, input, attempt_verify, active_type, digits]);
 
   useEffect(() => {
     const on_key = (e: KeyboardEvent) => {
-      if (pin_type === "text") {
+      if (active_type === "text") {
         if (e.key === "Enter") handle_text_submit();
       } else {
         const k = e.key;
@@ -232,38 +314,65 @@ function WebPinOverlay({
     window.addEventListener("keydown", on_key);
 
     return () => window.removeEventListener("keydown", on_key);
-  }, [pin_type, handle_digit, handle_backspace, handle_text_submit]);
+  }, [active_type, handle_digit, handle_backspace, handle_text_submit]);
+
+  const toggle_password_mode = useCallback(() => {
+    if (verifying_ref.current) return;
+    set_input("");
+    set_message(null);
+    set_password_mode((prev) => !prev);
+  }, []);
 
   return (
-    <PinLockOverlayView
-      confirm_label={t("common.confirm")}
-      delete_label={t("common.delete")}
-      digits={digits}
-      is_locked_out={false}
-      is_verifying={verifying || wiping}
-      lockout_text={
-        locked_out
-          ? t("common.app_lock_try_again_in", { s: lockout_remaining })
-          : null
-      }
-      logo_alt="Aster Mail"
-      logo_src="/text_logo.png"
-      message={message}
-      passphrase_placeholder={t("common.enter_passphrase")}
-      pin_type={pin_type}
-      pressed_key={pressed_key}
-      reduce_motion={reduce_motion}
-      shake_key={shake_key}
-      sign_out_label={t("settings.sign_out")}
-      title={t("common.app_locked")}
-      unlock_label={t("common.unlock")}
-      value={input}
-      on_backspace={handle_backspace}
-      on_digit={handle_digit}
-      on_sign_out={on_sign_out}
-      on_submit={handle_text_submit}
-      on_value_change={set_input}
-    />
+    <>
+      <PinLockOverlayView
+        confirm_label={t("common.confirm")}
+        delete_label={t("common.delete")}
+        digits={password_mode ? 0 : digits}
+        is_locked_out={false}
+        is_verifying={verifying || wiping}
+        lockout_text={
+          locked_out && !password_mode
+            ? t("common.app_lock_try_again_in", { s: lockout_remaining })
+            : null
+        }
+        logo_alt="Aster Mail"
+        logo_src="/text_logo.png"
+        message={message}
+        passphrase_placeholder={
+          password_mode
+            ? t("common.app_lock_enter_password")
+            : t("common.enter_passphrase")
+        }
+        pin_type={active_type}
+        pressed_key={pressed_key}
+        reduce_motion={reduce_motion}
+        shake_key={shake_key}
+        sign_out_label={t("settings.sign_out")}
+        title={t("common.app_locked")}
+        unlock_label={t("common.unlock")}
+        value={input}
+        on_backspace={handle_backspace}
+        on_digit={handle_digit}
+        on_sign_out={on_sign_out}
+        on_submit={handle_text_submit}
+        on_value_change={set_input}
+      />
+      {(offer_password || password_mode) && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[101] flex justify-center px-4">
+          <button
+            className="pointer-events-auto text-sm text-muted-foreground underline-offset-4 hover:underline"
+            disabled={verifying || wiping}
+            type="button"
+            onClick={toggle_password_mode}
+          >
+            {password_mode
+              ? t("common.app_lock_use_pin")
+              : t("common.app_lock_unlock_with_password")}
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -413,6 +522,21 @@ export function AppLock({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (is_native_platform()) return;
+    if (!auth?.is_loading || !account_id) return;
+    if (!is_app_lock_server_wrapped(account_id)) return;
+    if (is_session_unlocked(account_id)) return;
+    const config = get_app_lock_config(account_id);
+
+    if (!config?.enabled) return;
+    const resolved_type = config.pin_type ?? "numeric";
+
+    set_web_pin_type(resolved_type);
+    set_web_pin_digits(resolved_type === "numeric" ? config.digits || 4 : 0);
+    set_is_web_locked(true);
+  }, [auth?.is_loading, account_id]);
+
+  useEffect(() => {
+    if (is_native_platform()) return;
     if (auth?.is_loading) return;
     if (!auth?.is_authenticated || !account_id) {
       if (!auth?.is_loading) set_is_web_locked(false);
@@ -465,6 +589,11 @@ export function AppLock({ children }: { children: React.ReactNode }) {
       if (hidden_for >= LOCK_TIMEOUT_MS) {
         clear_session_unlock(id);
         lock_all_folders();
+        if (wipe_unlocked_secrets(id)) {
+          window.location.reload();
+
+          return;
+        }
         const vt = config.pin_type ?? "numeric";
 
         set_web_pin_type(vt);
