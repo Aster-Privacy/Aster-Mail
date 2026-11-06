@@ -45,6 +45,7 @@ import { undo_send_manager } from "@/services/undo_send_manager";
 import { clear_notification_state } from "@/services/notification_service";
 import { clear_external_key_cache } from "@/services/api/keys";
 import { clear_csrf_cache } from "@/services/api/csrf";
+import { delete_external_key_cache } from "@/services/crypto/external_pgp_cache";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   safe_local_get,
@@ -562,6 +563,11 @@ export async function wipe_all_storage(): Promise<void> {
 
   try {
     await delete_device_wrap_key();
+  } catch (error) {
+    if (import.meta.env.DEV) console.error(error);
+  }
+  try {
+    await delete_external_key_cache();
   } catch (error) {
     if (import.meta.env.DEV) console.error(error);
   }

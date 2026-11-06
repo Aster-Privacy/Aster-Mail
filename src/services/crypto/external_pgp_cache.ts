@@ -117,3 +117,15 @@ export async function remove_cached_external_key(
 ): Promise<void> {
   await with_store("readwrite", (store) => store.delete(user_id));
 }
+
+export async function delete_external_key_cache(): Promise<void> {
+  if (!indexed_db_available()) return;
+
+  await new Promise<void>((resolve) => {
+    const request = indexedDB.deleteDatabase(DB_NAME);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => resolve();
+    request.onblocked = () => resolve();
+  });
+}
