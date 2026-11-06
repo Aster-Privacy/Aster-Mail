@@ -138,7 +138,6 @@ async function install_under_lock(
   const {
     get_vault_from_memory,
     get_passphrase_from_memory,
-    store_vault_in_memory,
     MASTER_KEY_VAULT_FORMAT,
   } = await import("@/services/crypto/memory_key_store");
 
@@ -176,11 +175,10 @@ async function install_under_lock(
     account?.user?.id,
     true,
     new_vault,
+    vault,
   );
 
   if (!saved.success) return false;
-
-  await store_vault_in_memory(new_vault, passphrase);
 
   const published = await republish_pgp_key(
     pgp_key_data as unknown as Record<string, unknown>,

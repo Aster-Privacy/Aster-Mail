@@ -56,7 +56,7 @@ import { user_facing_error } from "@/utils/user_facing_error";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { get_storage_write_key_bytes } from "@/services/crypto/storage_write_key";
+import { load_storage_write_key_bytes } from "@/services/crypto/storage_write_key";
 import { parse_csv_records } from "@/utils/contact_utils";
 import { normalize_contact_date } from "@/utils/date_utils";
 import {
@@ -227,7 +227,7 @@ export async function trigger_sync(
 
 async function generate_search_token(value: string): Promise<string> {
   await get_contacts_encryption_key();
-  const raw_key = get_storage_write_key_bytes();
+  const raw_key = await load_storage_write_key_bytes();
 
   if (!raw_key) {
     throw new Error(

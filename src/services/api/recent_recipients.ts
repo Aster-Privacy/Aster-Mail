@@ -32,7 +32,7 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_storage_write_crypto_key,
-  get_storage_write_key_bytes,
+  load_storage_write_key_bytes,
 } from "@/services/crypto/storage_write_key";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -59,7 +59,7 @@ function base64_to_array(base64: string): Uint8Array {
 }
 
 async function get_hmac_key(): Promise<CryptoKey> {
-  const raw_key = get_storage_write_key_bytes();
+  const raw_key = await load_storage_write_key_bytes();
 
   if (!raw_key) {
     throw new Error(

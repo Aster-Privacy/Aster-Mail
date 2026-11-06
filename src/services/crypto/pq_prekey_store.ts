@@ -26,7 +26,7 @@ import {
   encrypted_delete,
 } from "./encrypted_storage";
 import { has_vault_in_memory } from "./memory_key_store";
-import { get_storage_write_key_bytes } from "./storage_write_key";
+import { load_storage_write_key_bytes } from "./storage_write_key";
 import {
   derive_ratchet_encryption_key,
   derive_ratchet_encryption_key_from_base,
@@ -173,7 +173,7 @@ async function get_storage_key(): Promise<CryptoKey> {
     throw new Error("Session expired. Please log in again.");
   }
 
-  const master = get_storage_write_key_bytes();
+  const master = await load_storage_write_key_bytes();
 
   if (!master) {
     throw new Error("Key material unavailable. Please log in again.");
@@ -250,7 +250,7 @@ async function update_index(
 
 async function get_sync_key(): Promise<CryptoKey | null> {
   if (!has_vault_in_memory()) return null;
-  const master = get_storage_write_key_bytes();
+  const master = await load_storage_write_key_bytes();
 
   if (!master) return null;
   try {
@@ -757,7 +757,7 @@ async function get_wrap_material(): Promise<{
   fingerprint: string | null;
 } | null> {
   if (!has_vault_in_memory()) return null;
-  const master = get_storage_write_key_bytes();
+  const master = await load_storage_write_key_bytes();
 
   if (!master) return null;
   try {

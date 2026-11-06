@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { has_vault_in_memory } from "./memory_key_store";
-import { get_storage_write_key_bytes } from "./storage_write_key";
+import { load_storage_write_key_bytes } from "./storage_write_key";
 import {
   RATCHET_SYNC_FLOOR_PREFIX,
   scoped_get,
@@ -36,7 +36,7 @@ interface FloorScope {
 async function floor_scope(): Promise<FloorScope | null> {
   if (!has_vault_in_memory()) return null;
 
-  const raw = get_storage_write_key_bytes();
+  const raw = await load_storage_write_key_bytes();
 
   if (!raw) return null;
 

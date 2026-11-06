@@ -49,7 +49,7 @@ import { CONTACT_DATA_VERSION } from "@/types/contacts";
 import { on_vault_cleared } from "@/services/crypto/memory_key_store";
 import {
   get_storage_write_crypto_key,
-  get_storage_write_key_bytes,
+  load_storage_write_key_bytes,
   verify_with_storage_lookup_keys,
 } from "@/services/crypto/storage_write_key";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
@@ -117,7 +117,7 @@ function get_hmac_key(): Promise<CryptoKey> {
 }
 
 async function import_hmac_key(): Promise<CryptoKey> {
-  const raw_key = get_storage_write_key_bytes();
+  const raw_key = await load_storage_write_key_bytes();
 
   if (!raw_key) {
     throw new Error(
@@ -145,7 +145,7 @@ async function import_hmac_key(): Promise<CryptoKey> {
 }
 
 async function get_search_token_key(): Promise<CryptoKey> {
-  const raw_key = get_storage_write_key_bytes();
+  const raw_key = await load_storage_write_key_bytes();
 
   if (!raw_key) {
     throw new Error(
@@ -761,7 +761,7 @@ interface CreateGroupResponse {
 export async function create_contact_group(
   data: ContactGroupFormData,
 ): Promise<ApiResponse<ContactGroup>> {
-  const raw_key = get_storage_write_key_bytes();
+  const raw_key = await load_storage_write_key_bytes();
 
   if (!raw_key) {
     return {

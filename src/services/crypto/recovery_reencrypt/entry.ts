@@ -27,7 +27,7 @@ import type {} from "@/services/api/blocked_senders";
 import type {} from "@/services/api/allowed_senders";
 import { array_to_base64 } from "../base64";
 import {
-  get_storage_write_key_bytes,
+  load_storage_write_key_bytes,
   StorageWriteKeyUnavailableError,
 } from "../storage_write_key";
 
@@ -89,7 +89,7 @@ export async function reencrypt_settings_password_change(
     old_raw = await derive_encryption_key_from_passphrase(old_bytes);
     zero_uint8_array(old_bytes);
 
-    new_raw = get_storage_write_key_bytes();
+    new_raw = await load_storage_write_key_bytes();
 
     if (!new_raw) {
       throw new StorageWriteKeyUnavailableError("missing_data_kek");

@@ -33,6 +33,8 @@ import {
   STORAGE_KDF_VERSION_STRETCHED,
 } from "./memory_key_store";
 
+import { wait_for_storage_key } from "./storage_key_gate";
+
 import { HASH_ALG } from "@/services/crypto/constants";
 
 export const STORAGE_WRITE_KEY_LENGTH = 32;
@@ -136,6 +138,12 @@ export function get_storage_write_key_bytes(): Uint8Array | null {
   return read_storage_write_key(vault);
 }
 
+export async function load_storage_write_key_bytes(): Promise<Uint8Array | null> {
+  await wait_for_storage_key();
+
+  return get_storage_write_key_bytes();
+}
+
 export function generate_storage_write_key(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(STORAGE_WRITE_KEY_LENGTH));
 }
@@ -176,6 +184,8 @@ export async function derive_storage_hmac_key(
 }
 
 export async function get_storage_write_crypto_key(): Promise<CryptoKey | null> {
+  await wait_for_storage_key();
+
   const vault = unlocked_vault();
 
   if (!vault) {
@@ -211,6 +221,8 @@ export async function get_storage_write_crypto_key(): Promise<CryptoKey | null> 
 export async function get_storage_write_hmac_key(
   info: string,
 ): Promise<CryptoKey | null> {
+  await wait_for_storage_key();
+
   const vault = unlocked_vault();
 
   if (!vault) {

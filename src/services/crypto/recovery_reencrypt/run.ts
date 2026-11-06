@@ -30,7 +30,7 @@ import type {} from "@/services/api/blocked_senders";
 import type {} from "@/services/api/allowed_senders";
 import { base64_to_array } from "../base64";
 import {
-  get_storage_write_key_bytes,
+  load_storage_write_key_bytes,
   StorageWriteKeyUnavailableError,
 } from "../storage_write_key";
 
@@ -132,7 +132,7 @@ export async function check_and_run_recovery_reencryption(
 
   try {
     old_raw = base64_to_array(pending.old_data_kek);
-    new_raw = get_storage_write_key_bytes();
+    new_raw = await load_storage_write_key_bytes();
 
     if (!new_raw) {
       throw new StorageWriteKeyUnavailableError("missing_data_kek");

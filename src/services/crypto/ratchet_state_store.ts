@@ -24,7 +24,7 @@ import {
   encrypted_delete,
 } from "./encrypted_storage";
 import { has_vault_in_memory } from "./memory_key_store";
-import { get_storage_write_key_bytes } from "./storage_write_key";
+import { load_storage_write_key_bytes } from "./storage_write_key";
 import { DoubleRatchet, type SerializedState } from "./double_ratchet";
 import {
   RATCHET_STATE_PREFIX,
@@ -44,7 +44,7 @@ async function get_storage_encryption_key(): Promise<CryptoKey> {
     throw new Error("Session expired. Please log in again.");
   }
 
-  const encryption_key = get_storage_write_key_bytes();
+  const encryption_key = await load_storage_write_key_bytes();
 
   if (!encryption_key) {
     throw new Error("Key material unavailable. Please log in again.");
