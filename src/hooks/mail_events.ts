@@ -220,6 +220,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.REACTION_RECEIVED]: ReactionReceivedEventDetail;
   [MAIL_EVENTS.INBOX_UNREAD_INDEXED]: InboxUnreadIndexedEventDetail;
   [MAIL_EVENTS.INBOX_UNREAD_DRIFT]: InboxUnreadDriftEventDetail;
+  [MAIL_EVENTS.FLUSH_DRAFTS]: undefined;
 };
 
 type EventSubscription = () => void;
