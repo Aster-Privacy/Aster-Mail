@@ -86,6 +86,15 @@ const SERVER_WRITERS_WITHOUT_PASSPHRASE_KEYS = [
   "services/crypto/mail_metadata_core.ts",
   "services/external_sync_scheduler.ts",
   "contexts/auth/vault_decryption.ts",
+  "services/crypto/storage_rotation/background.ts",
+  "services/crypto/storage_rotation/run.ts",
+  "services/crypto/storage_rotation/step_helpers.ts",
+  "services/crypto/storage_rotation/steps_addresses.ts",
+  "services/crypto/storage_rotation/steps_escrow.ts",
+  "services/crypto/storage_rotation/steps_lists.ts",
+  "services/crypto/storage_rotation/reseal_keys.ts",
+  "services/crypto/storage_rotation/reseal_io.ts",
+  "services/crypto/vault_master_key_upgrade.ts",
 ];
 
 function list_sources(dir: string, out: string[] = []): string[] {

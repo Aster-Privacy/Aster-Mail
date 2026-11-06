@@ -33,6 +33,7 @@ import {
   reset_rekey_flag,
 } from "@/services/crypto/auto_rekey";
 import { adopt_master_key_if_needed } from "@/services/crypto/mk_adoption";
+import { run_storage_key_maintenance } from "@/services/crypto/storage_rotation/background";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
@@ -150,8 +151,12 @@ export async function decrypt_vault_with_lock(
       ignore_error("contexts/auth/vault_decryption:reusable", caught);
     }
 
-    auto_rekey_if_needed()
-      .then((did_rekey) => {
+    run_storage_key_maintenance(passphrase)
+      .then(async (maintenance) => {
+        if (maintenance === "reseal_started") return;
+
+        const did_rekey = await auto_rekey_if_needed();
+
         if (did_rekey) {
           emit_aliases_changed();
           emit_contacts_changed();
