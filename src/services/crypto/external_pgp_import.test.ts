@@ -269,6 +269,84 @@ describe("external key normalization", () => {
     );
   });
 
+  it("keeps primary and subkey expiry through storage and export", async () => {
+    const lifetime_seconds = 400 * 24 * 60 * 60;
+    const armored = await make_armored({
+      type: "ecc",
+      curve: "curve25519Legacy",
+      keyExpirationTime: lifetime_seconds,
+    });
+    const unlocked = await unlock_external_key(
+      await parse_external_key(armored),
+      "",
+    );
+    const primary_before = await unlocked.getExpirationTime();
+    const subkey_before = await unlocked.subkeys[0].getExpirationTime();
+    const result = await normalize_external_key(unlocked, ADDRESS);
+    const stored = await read_unprotected_key(
+      serialize_unprotected_key(result.key),
+    );
+    const exported = await openpgp.readKey({
+      armoredKey: result.key.toPublic().armor(),
+    });
+
+    expect(primary_before).toBeInstanceOf(Date);
+    for (const key of [stored, exported]) {
+      expect(((await key.getExpirationTime()) as Date).getTime()).toBe(
+        (primary_before as Date).getTime(),
+      );
+      expect(
+        ((await key.subkeys[0].getExpirationTime()) as Date).getTime(),
+      ).toBe((subkey_before as Date).getTime());
+    }
+  });
+
+  it("keeps a non-expiring key non-expiring", async () => {
+    const armored = await make_armored({
+      type: "ecc",
+      curve: "curve25519Legacy",
+    });
+    const unlocked = await unlock_external_key(
+      await parse_external_key(armored),
+      "",
+    );
+    const result = await normalize_external_key(unlocked, ADDRESS);
+    const exported = await openpgp.readKey({
+      armoredKey: result.key.toPublic().armor(),
+    });
+
+    expect(result.summary.expires_at).toBeNull();
+    expect(await exported.getExpirationTime()).toBe(Infinity);
+    expect(await exported.subkeys[0].getExpirationTime()).toBe(Infinity);
+  });
+
+  it("removes third-party certifications", async () => {
+    const owner = await openpgp.readPrivateKey({
+      armoredKey: await make_armored({
+        type: "ecc",
+        curve: "curve25519Legacy",
+      }),
+    });
+    const { privateKey: certifier } = await openpgp.generateKey({
+      type: "ecc",
+      curve: "ed25519Legacy",
+      userIDs: [{ email: "certifier@example.com" }],
+      format: "object",
+    });
+    const certified = await owner.signAllUsers([certifier]);
+
+    expect(
+      certified.users.some((user) => user.otherCertifications.length > 0),
+    ).toBe(true);
+
+    const result = await normalize_external_key(certified, ADDRESS);
+
+    expect(result.changes).toContain("third_party_certifications_removed");
+    for (const user of result.key.users) {
+      expect(user.otherCertifications).toHaveLength(0);
+    }
+  });
+
   it("drops a revoked subkey", async () => {
     const armored = await make_armored({
       type: "ecc",
