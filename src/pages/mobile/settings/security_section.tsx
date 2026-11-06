@@ -384,6 +384,8 @@ export function SecuritySection({
 
         if (!healed_from_server && is_master_key_vault(memory_vault)) {
           vault.data_kek = memory_vault?.data_kek;
+          vault.data_kek_random = memory_vault?.data_kek_random;
+          vault.storage_rekey = memory_vault?.storage_rekey;
           vault.vault_format = memory_vault?.vault_format;
           vault.mk_created_at = memory_vault?.mk_created_at;
           vault.legacy_identity_keys = memory_vault?.legacy_identity_keys

@@ -605,6 +605,7 @@ export default function ResetPasswordPage() {
         signed_prekey_private: new_prekey_keypair.secret_key,
         recovery_codes: new_codes,
         data_kek: array_to_base64(master_key),
+        data_kek_random: true,
         vault_format: MASTER_KEY_VAULT_FORMAT,
         mk_created_at: new Date().toISOString(),
       };

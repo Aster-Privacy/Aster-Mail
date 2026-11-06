@@ -109,7 +109,7 @@ function keks_of(vault: EncryptedVault): string[] {
 
 describe("carry_vault_through_reset", () => {
   it(
-    "keeps the master key and relocks the identity key under the new password",
+    "keeps a random master key and relocks the identity key under the new password",
     LONG_TEST,
     async () => {
       const old_identity = await identity_for(OLD_PASSWORD);
@@ -126,6 +126,7 @@ describe("carry_vault_through_reset", () => {
         signed_prekey_private: "old-spk-private",
         recovery_codes: ["OLDCODE-1"],
         data_kek: old_kek,
+        data_kek_random: true,
         legacy_keks: [{ k: old_legacy, added_at: "2026-01-01T00:00:00.000Z" }],
         vault_format: MASTER_KEY_VAULT_FORMAT,
         kdf_version: STORAGE_KDF_VERSION_STRETCHED,
@@ -186,7 +187,48 @@ describe("carry_vault_through_reset", () => {
       );
 
       expect(reopened.data_kek).toBe(old_kek);
+      expect(reopened.data_kek_random).toBe(true);
       expect(base64_to_array(reopened.data_kek!)).toHaveLength(32);
+    },
+  );
+
+  it(
+    "replaces a password-derived master key with a random one",
+    LONG_TEST,
+    async () => {
+      const promoted = array_to_base64(
+        await derive_encryption_key_from_passphrase(
+          new TextEncoder().encode(OLD_PASSWORD),
+          STORAGE_KDF_VERSION_LEGACY,
+        ),
+      );
+      const old_vault: EncryptedVault = {
+        identity_key: await identity_for(OLD_PASSWORD),
+        previous_keys: [],
+        signed_prekey: "old-spk",
+        signed_prekey_private: "old-spk-private",
+        recovery_codes: ["OLDCODE-1"],
+        data_kek: promoted,
+        vault_format: MASTER_KEY_VAULT_FORMAT,
+        mk_created_at: "2026-01-01T00:00:00.000Z",
+      };
+      const fresh = await fresh_vault_for(NEW_PASSWORD);
+
+      const carried = await carry_vault_through_reset(
+        old_vault,
+        OLD_PASSWORD,
+        fresh,
+        NEW_PASSWORD,
+      );
+
+      expect(carried.data_kek).not.toBe(promoted);
+      expect(base64_to_array(carried.data_kek!)).toHaveLength(32);
+      expect(carried.data_kek_random).toBe(true);
+      expect(carried.vault_format).toBe(MASTER_KEY_VAULT_FORMAT);
+      expect(keks_of(carried)).toContain(promoted);
+      expect(keks_of(carried)).not.toContain(carried.data_kek);
+      expect(carried.storage_rekey?.state).toBe("pending");
+      expect(carried.storage_rekey?.prior_keys).toContain(promoted);
     },
   );
 
@@ -210,9 +252,18 @@ describe("carry_vault_through_reset", () => {
         NEW_PASSWORD,
       );
 
-      expect(carried.data_kek).toBe(fresh.data_kek);
-      expect(carried.mk_created_at).toBe(fresh.mk_created_at);
+      const legacy = array_to_base64(
+        await derive_encryption_key_from_passphrase(
+          new TextEncoder().encode(OLD_PASSWORD),
+          STORAGE_KDF_VERSION_LEGACY,
+        ),
+      );
+
+      expect(carried.data_kek).not.toBe(legacy);
+      expect(base64_to_array(carried.data_kek!)).toHaveLength(32);
+      expect(carried.data_kek_random).toBe(true);
       expect(carried.vault_format).toBe(MASTER_KEY_VAULT_FORMAT);
+      expect(keks_of(carried)).toContain(legacy);
       expect(keks_of(carried).length).toBeGreaterThan(0);
       expect(carried.previous_keys).toHaveLength(1);
     },

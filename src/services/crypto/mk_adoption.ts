@@ -28,15 +28,16 @@ import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 import { encrypt_vault, decrypt_vault } from "./key_manager";
 import {
   is_master_key_vault,
-  derive_encryption_key_from_passphrase,
   get_vault_from_memory,
   store_vault_in_memory,
   MASTER_KEY_VAULT_FORMAT,
 } from "./memory_key_store";
 import { with_vault_write_lock } from "./vault_write_lock";
-import { array_to_base64 } from "./key_manager_core";
-import { prepend_kek_to_list, serialize_kek_for_vault } from "./legacy_keks";
 import { zero_uint8_array } from "./secure_memory";
+import {
+  collect_prior_storage_keys,
+  install_random_storage_key,
+} from "./storage_write_key";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -84,24 +85,14 @@ async function run_adoption(
 
   if (!user_id) return false;
 
-  const passphrase_bytes = new TextEncoder().encode(passphrase);
-  const master_key =
-    await derive_encryption_key_from_passphrase(passphrase_bytes);
+  const prior_keys = await collect_prior_storage_keys(vault, passphrase);
+  const upgraded: EncryptedVault = { ...vault };
 
-  zero_uint8_array(passphrase_bytes);
-
-  const upgraded: EncryptedVault = {
-    ...vault,
-    data_kek: array_to_base64(master_key),
-    vault_format: MASTER_KEY_VAULT_FORMAT,
-    mk_created_at: new Date().toISOString(),
-    legacy_keks: prepend_kek_to_list(
-      vault.legacy_keks,
-      serialize_kek_for_vault(master_key),
-    ),
-  };
-
-  zero_uint8_array(master_key);
+  try {
+    install_random_storage_key(upgraded, prior_keys);
+  } finally {
+    prior_keys.forEach((raw) => zero_uint8_array(raw));
+  }
 
   const { encrypted_vault, vault_nonce } = await encrypt_vault(
     upgraded,
@@ -118,6 +109,7 @@ async function run_adoption(
     if (
       roundtrip.identity_key !== upgraded.identity_key ||
       roundtrip.data_kek !== upgraded.data_kek ||
+      roundtrip.data_kek_random !== true ||
       (roundtrip.vault_format ?? 1) < MASTER_KEY_VAULT_FORMAT
     ) {
       return false;

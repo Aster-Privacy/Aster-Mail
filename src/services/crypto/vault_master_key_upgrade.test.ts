@@ -71,7 +71,7 @@ async function seal_under_password(value: string): Promise<{
 }
 
 describe("upgrade_vault_to_master_key", () => {
-  it("pins the current storage key into the vault so a password change cannot orphan data", async () => {
+  it("installs a random storage key and keeps the password key for reads", async () => {
     const vault = build_legacy_vault();
 
     expect(is_master_key_vault(vault)).toBe(false);
@@ -81,25 +81,45 @@ describe("upgrade_vault_to_master_key", () => {
     expect(upgraded).toBe(true);
     expect(is_master_key_vault(vault)).toBe(true);
 
-    const expected = await derive_encryption_key_from_passphrase(
-      new TextEncoder().encode(OLD_PASSWORD),
-      STORAGE_KDF_VERSION_LEGACY,
+    const password_key = array_to_base64(
+      await derive_encryption_key_from_passphrase(
+        new TextEncoder().encode(OLD_PASSWORD),
+        STORAGE_KDF_VERSION_LEGACY,
+      ),
     );
 
-    expect(vault.data_kek).toBe(array_to_base64(expected));
-    expect(vault.legacy_keks?.[0]?.k).toBe(array_to_base64(expected));
+    expect(vault.data_kek).not.toBe(password_key);
+    expect(base64_to_array(vault.data_kek ?? "")).toHaveLength(32);
+    expect(vault.data_kek_random).toBe(true);
+    expect(vault.legacy_keks?.[0]?.k).toBe(password_key);
+    expect(vault.storage_rekey?.state).toBe("pending");
+    expect(vault.storage_rekey?.prior_keys).toEqual([password_key]);
   });
 
-  it("keeps an alias sealed under the old password readable after the change", async () => {
+  it("keeps an alias sealed under the old password readable through legacy_keks", async () => {
     const vault = build_legacy_vault();
     const sealed = await seal_under_password("spamme");
 
     await upgrade_vault_to_master_key(vault, OLD_PASSWORD);
 
-    const key = await import_aes_key(base64_to_array(vault.data_kek ?? ""));
+    const write_key = await import_aes_key(
+      base64_to_array(vault.data_kek ?? ""),
+    );
+
+    await expect(
+      crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: sealed.nonce },
+        write_key,
+        sealed.ciphertext,
+      ),
+    ).rejects.toBeDefined();
+
+    const legacy_key = await import_aes_key(
+      base64_to_array(vault.legacy_keks?.[0]?.k ?? ""),
+    );
     const plaintext = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: sealed.nonce },
-      key,
+      legacy_key,
       sealed.ciphertext,
     );
 

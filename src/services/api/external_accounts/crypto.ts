@@ -18,12 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-
 import type { ExternalAccountData } from "./types";
 import type { TranslationKey } from "@/lib/i18n/types";
-
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 export class ExternalAccountPasswordError extends Error {
   i18n_key: TranslationKey = "errors.wrong_external_account_password";
@@ -35,57 +31,36 @@ export class ExternalAccountPasswordError extends Error {
 import { array_to_base64, base64_to_array } from "../sender_utils";
 
 import {
-  get_or_create_derived_encryption_crypto_key,
-  get_derived_encryption_key,
-} from "@/services/crypto/memory_key_store";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
+  decrypt_with_ios_storage_keys,
+  get_legacy_ios_hmac_keys,
+} from "@/services/crypto/legacy_ios_envelope";
+import {
+  get_storage_write_crypto_key,
+  get_storage_write_hmac_key,
+  verify_with_storage_lookup_keys,
+} from "@/services/crypto/storage_write_key";
 import { get_active_translations } from "@/lib/i18n/translations";
 
-const EXTERNAL_ACCOUNTS_HMAC_KEY_ID = "external_accounts_hmac_key";
+const EXTERNAL_ACCOUNTS_HMAC_INFO = "external-accounts-hmac-v1";
+const COMBINED_NONCE_LENGTH = 12;
+const GCM_TAG_LENGTH = 16;
 
 async function get_hmac_key(): Promise<CryptoKey> {
-  const cached = get_key(EXTERNAL_ACCOUNTS_HMAC_KEY_ID);
+  const hmac_key = await get_storage_write_hmac_key(
+    EXTERNAL_ACCOUNTS_HMAC_INFO,
+  );
 
-  if (cached) {
-    return cached;
-  }
-
-  const raw_key = get_derived_encryption_key();
-
-  if (!raw_key) {
+  if (!hmac_key) {
     throw new Error(
       get_active_translations().errors.encryption_keys_unavailable,
     );
   }
 
-  const encoder = new TextEncoder();
-  const info = encoder.encode("external-accounts-hmac-v1");
-  const combined = new Uint8Array(raw_key.byteLength + info.length);
-
-  combined.set(raw_key, 0);
-  combined.set(info, raw_key.byteLength);
-
-  const hash = await crypto.subtle.digest(HASH_ALG, combined);
-
-  zero_uint8_array(raw_key);
-  zero_uint8_array(combined);
-
-  const hmac_key = await crypto.subtle.importKey(
-    "raw",
-    hash,
-    { name: "HMAC", hash: HASH_ALG },
-    false,
-    ["sign", "verify"],
-  );
-
-  store_key(EXTERNAL_ACCOUNTS_HMAC_KEY_ID, hmac_key, "hmac");
-
   return hmac_key;
 }
 
 async function get_external_accounts_encryption_key(): Promise<CryptoKey> {
-  const key = await get_or_create_derived_encryption_crypto_key();
+  const key = await get_storage_write_crypto_key();
 
   if (!key) {
     throw new Error(
@@ -124,13 +99,60 @@ async function verify_integrity_hash(
   nonce: string,
   hash: string,
 ): Promise<boolean> {
-  const hmac_key = await get_hmac_key();
   const encoder = new TextEncoder();
   const combined = `${encrypted_data}:${nonce}:external-accounts-v1`;
   const data = encoder.encode(combined);
   const expected_hash = base64_to_array(hash);
 
-  return crypto.subtle.verify("HMAC", hmac_key, expected_hash, data);
+  if (
+    await verify_with_storage_lookup_keys(
+      EXTERNAL_ACCOUNTS_HMAC_INFO,
+      expected_hash,
+      data,
+    )
+  ) {
+    return true;
+  }
+
+  for (const key of await get_legacy_ios_hmac_keys(
+    EXTERNAL_ACCOUNTS_HMAC_INFO,
+  )) {
+    if (await crypto.subtle.verify("HMAC", key, expected_hash, data)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function bytes_equal(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+
+  return true;
+}
+
+async function open_account_data(
+  ciphertext: Uint8Array,
+  nonce: Uint8Array,
+): Promise<ArrayBuffer | null> {
+  const separate = await decrypt_with_ios_storage_keys(ciphertext, nonce);
+
+  if (separate) return separate;
+
+  if (ciphertext.length < COMBINED_NONCE_LENGTH + GCM_TAG_LENGTH) return null;
+
+  const embedded_nonce = ciphertext.slice(0, COMBINED_NONCE_LENGTH);
+
+  if (nonce.length > 0 && !bytes_equal(embedded_nonce, nonce)) return null;
+
+  return decrypt_with_ios_storage_keys(
+    ciphertext.slice(COMBINED_NONCE_LENGTH),
+    embedded_nonce,
+  );
 }
 
 export async function encrypt_account_data(data: ExternalAccountData): Promise<{
@@ -179,18 +201,17 @@ export async function decrypt_account_data(
     }
   }
 
-  const key = await get_external_accounts_encryption_key();
+  await get_external_accounts_encryption_key();
+
   const ciphertext = base64_to_array(encrypted_account_data);
   const nonce = base64_to_array(account_data_nonce);
-  let decrypted: Uint8Array;
+  const buffer = await open_account_data(ciphertext, nonce);
 
-  try {
-    const buffer = await decrypt_aes_gcm_with_fallback(key, ciphertext, nonce);
-
-    decrypted = new Uint8Array(buffer);
-  } catch {
+  if (!buffer) {
     throw new ExternalAccountPasswordError();
   }
+
+  const decrypted = new Uint8Array(buffer);
 
   const decoder = new TextDecoder();
   const parsed = JSON.parse(decoder.decode(decrypted));

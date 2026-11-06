@@ -39,7 +39,10 @@ vi.mock("@/services/api/auth", () => ({
   },
 }));
 
-vi.mock("@/services/crypto/memory_key_store", () => ({
+vi.mock("@/services/crypto/memory_key_store", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/memory_key_store")
+  >()),
   get_passphrase_from_memory: () => current_passphrase,
 }));
 

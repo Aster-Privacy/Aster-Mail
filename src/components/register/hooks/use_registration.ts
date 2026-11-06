@@ -865,6 +865,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         signed_prekey_private: signed_prekey.secret_key,
         recovery_codes: codes,
         data_kek: array_to_base64(master_key),
+        data_kek_random: true,
         vault_format: MASTER_KEY_VAULT_FORMAT,
         mk_created_at: new Date().toISOString(),
         ...ratchet_fields,

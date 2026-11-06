@@ -27,6 +27,11 @@ import {
 import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
 import { base64_to_array } from "@/services/crypto/base64";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { get_legacy_crypto_keys } from "@/services/crypto/legacy_keks";
+import {
+  derive_storage_hmac_key,
+  get_storage_write_crypto_key,
+} from "@/services/crypto/storage_write_key";
 import { ignore_error } from "@/lib/ignore_error";
 
 const LEGACY_NONCE_LENGTH = 12;
@@ -34,12 +39,20 @@ const MINIMUM_GCM_LENGTH = 16;
 const MAX_RETIRED_SALTS = 8;
 
 export const LEGACY_KEY_RETRY_DELAY_MS = 30_000;
+export const LEGACY_IOS_HMAC_INFOS = ["external-accounts-hmac-v1"] as const;
 
-let cached_keys: CryptoKey[] | null = null;
+export type LegacyIosHmacInfo = (typeof LEGACY_IOS_HMAC_INFOS)[number];
+
+interface LegacyIosKeySet {
+  aes_key: CryptoKey;
+  hmac_keys: Map<LegacyIosHmacInfo, CryptoKey>;
+}
+
+let cached_keys: LegacyIosKeySet[] | null = null;
 let cached_owner_id: string | null = null;
 let failed_owner_id: string | null = null;
 let retry_not_before = 0;
-let in_flight: Promise<CryptoKey[] | null> | null = null;
+let in_flight: Promise<LegacyIosKeySet[] | null> | null = null;
 
 export function clear_legacy_ios_envelope_key(): void {
   cached_keys = null;
@@ -57,7 +70,7 @@ function remember_failure(owner_id: string): void {
 async function import_key_for_salt(
   passphrase: string,
   encoded_salt: string,
-): Promise<CryptoKey | null> {
+): Promise<LegacyIosKeySet | null> {
   let salt: Uint8Array;
 
   try {
@@ -72,13 +85,20 @@ async function import_key_for_salt(
   const raw = base64_to_array(hash);
 
   try {
-    return await crypto.subtle.importKey(
+    const aes_key = await crypto.subtle.importKey(
       "raw",
       raw,
       { name: "AES-GCM", length: 256 },
       false,
       ["decrypt"],
     );
+    const hmac_keys = new Map<LegacyIosHmacInfo, CryptoKey>();
+
+    for (const info of LEGACY_IOS_HMAC_INFOS) {
+      hmac_keys.set(info, await derive_storage_hmac_key(raw, info));
+    }
+
+    return { aes_key, hmac_keys };
   } finally {
     zero_uint8_array(raw);
     zero_uint8_array(salt);
@@ -98,7 +118,9 @@ async function load_retired_salts(): Promise<string[]> {
   }
 }
 
-async function derive_keys(owner_id: string): Promise<CryptoKey[] | null> {
+async function derive_keys(
+  owner_id: string,
+): Promise<LegacyIosKeySet[] | null> {
   const account = await get_current_account();
   const email = account?.user?.email;
 
@@ -117,7 +139,7 @@ async function derive_keys(owner_id: string): Promise<CryptoKey[] | null> {
   const current_salt = salt_response.data.salt;
   const retired_salts = await load_retired_salts();
   const salts = new Set([current_salt, ...retired_salts.reverse()]);
-  const keys: CryptoKey[] = [];
+  const keys: LegacyIosKeySet[] = [];
 
   for (const salt of salts) {
     const key = await import_key_for_salt(passphrase, salt);
@@ -128,7 +150,7 @@ async function derive_keys(owner_id: string): Promise<CryptoKey[] | null> {
   return keys.length > 0 ? keys : null;
 }
 
-async function load_keys(): Promise<CryptoKey[] | null> {
+async function load_keys(): Promise<LegacyIosKeySet[] | null> {
   if (!get_passphrase_from_memory()) {
     clear_legacy_ios_envelope_key();
 
@@ -172,17 +194,50 @@ async function load_keys(): Promise<CryptoKey[] | null> {
   return in_flight;
 }
 
-export async function decrypt_legacy_ios_envelope(
+export async function get_legacy_ios_key_material_keys(): Promise<CryptoKey[]> {
+  const keys = await load_keys();
+
+  return keys ? keys.map((set) => set.aes_key) : [];
+}
+
+export async function get_legacy_ios_hmac_keys(
+  info: LegacyIosHmacInfo,
+): Promise<CryptoKey[]> {
+  const keys = await load_keys();
+
+  if (!keys) return [];
+
+  return keys
+    .map((set) => set.hmac_keys.get(info))
+    .filter((key): key is CryptoKey => key !== undefined);
+}
+
+export async function get_storage_read_crypto_keys(): Promise<CryptoKey[]> {
+  const keys: CryptoKey[] = [];
+
+  try {
+    const write_key = await get_storage_write_crypto_key();
+
+    if (write_key) keys.push(write_key);
+  } catch (caught) {
+    ignore_error(
+      "services/crypto/legacy_ios_envelope:get_storage_read_crypto_keys",
+      caught,
+    );
+  }
+
+  for (const key of get_legacy_crypto_keys()) {
+    if (!keys.includes(key)) keys.push(key);
+  }
+
+  return keys;
+}
+
+async function try_decrypt(
+  keys: CryptoKey[],
   ciphertext: Uint8Array,
   nonce: Uint8Array,
 ): Promise<ArrayBuffer | null> {
-  if (nonce.length !== LEGACY_NONCE_LENGTH) return null;
-  if (ciphertext.length <= MINIMUM_GCM_LENGTH) return null;
-
-  const keys = await load_keys();
-
-  if (!keys) return null;
-
   for (const key of keys) {
     try {
       return await crypto.subtle.decrypt(
@@ -196,4 +251,35 @@ export async function decrypt_legacy_ios_envelope(
   }
 
   return null;
+}
+
+export async function decrypt_with_ios_storage_keys(
+  ciphertext: Uint8Array,
+  nonce: Uint8Array,
+): Promise<ArrayBuffer | null> {
+  if (nonce.length !== LEGACY_NONCE_LENGTH) return null;
+  if (ciphertext.length < MINIMUM_GCM_LENGTH) return null;
+
+  const from_storage = await try_decrypt(
+    await get_storage_read_crypto_keys(),
+    ciphertext,
+    nonce,
+  );
+
+  if (from_storage) return from_storage;
+
+  return try_decrypt(
+    await get_legacy_ios_key_material_keys(),
+    ciphertext,
+    nonce,
+  );
+}
+
+export async function decrypt_legacy_ios_envelope(
+  ciphertext: Uint8Array,
+  nonce: Uint8Array,
+): Promise<ArrayBuffer | null> {
+  if (ciphertext.length <= MINIMUM_GCM_LENGTH) return null;
+
+  return decrypt_with_ios_storage_keys(ciphertext, nonce);
 }

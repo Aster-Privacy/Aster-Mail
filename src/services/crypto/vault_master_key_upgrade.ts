@@ -20,13 +20,12 @@
 //
 import type { EncryptedVault } from "./key_manager_core";
 
+import { is_master_key_vault } from "./memory_key_store";
+import { zero_uint8_array } from "./secure_memory";
 import {
-  MASTER_KEY_VAULT_FORMAT,
-  derive_encryption_key_from_passphrase,
-  get_storage_kdf_version,
-  is_master_key_vault,
-} from "./memory_key_store";
-import { prepend_kek_to_list, serialize_kek_for_vault } from "./legacy_keks";
+  collect_prior_storage_keys,
+  install_random_storage_key,
+} from "./storage_write_key";
 
 export async function upgrade_vault_to_master_key(
   vault: EncryptedVault,
@@ -34,35 +33,19 @@ export async function upgrade_vault_to_master_key(
 ): Promise<boolean> {
   if (is_master_key_vault(vault)) return true;
 
-  const passphrase_bytes = new TextEncoder().encode(current_password);
-
-  let storage_key: Uint8Array;
+  let prior_keys: Uint8Array[];
 
   try {
-    storage_key = await derive_encryption_key_from_passphrase(
-      passphrase_bytes,
-      get_storage_kdf_version(vault),
-    );
+    prior_keys = await collect_prior_storage_keys(vault, current_password);
   } catch {
     return false;
+  }
+
+  try {
+    install_random_storage_key(vault, prior_keys);
   } finally {
-    passphrase_bytes.fill(0);
+    prior_keys.forEach((raw) => zero_uint8_array(raw));
   }
-
-  if (storage_key.length !== 32) {
-    storage_key.fill(0);
-
-    return false;
-  }
-
-  const serialized = serialize_kek_for_vault(storage_key);
-
-  vault.data_kek = serialized.k;
-  vault.vault_format = MASTER_KEY_VAULT_FORMAT;
-  vault.mk_created_at = vault.mk_created_at ?? new Date().toISOString();
-  vault.legacy_keks = prepend_kek_to_list(vault.legacy_keks, serialized);
-
-  storage_key.fill(0);
 
   return true;
 }
