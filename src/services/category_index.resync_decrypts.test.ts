@@ -86,6 +86,7 @@ vi.mock("@/hooks/email_list_helpers", () => ({
 
 import {
   sync_recent,
+  build_index,
   start_event_listeners,
   clear_category_index,
   clear_entry_previews,
@@ -273,7 +274,7 @@ describe("category_index resync decrypt work", () => {
     const anchor = make_item(0);
 
     serve([anchor]);
-    await sync_recent();
+    await build_index();
     await settle();
 
     const fresh = Array.from({ length: 5 }, (_, i) => make_item(i + 1));

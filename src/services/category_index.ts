@@ -205,6 +205,7 @@ let build_progress_ms = 0;
 let build_processed = 0;
 let build_token = 0;
 let build_owner_token = 0;
+let arrival_baseline_token = -1;
 let version = 0;
 let sort_order: "asc" | "desc" = "desc";
 let ensure_loaded_promise: Promise<boolean> | null = null;
@@ -2351,6 +2352,7 @@ export async function build_index(options?: {
 
     fully_built = reached_end || processed >= BUILD_CAP;
     build_capped = !reached_end && processed >= BUILD_CAP;
+    if (fully_built) arrival_baseline_token = token;
     last_build_ms = now_ms();
     session_reconciled = true;
     build_in_progress = false;
@@ -2370,6 +2372,14 @@ export async function build_index(options?: {
 }
 
 const announced_indexed_ids = new Set<string>();
+
+function has_arrival_baseline(): boolean {
+  return (
+    arrival_baseline_token === build_token &&
+    !build_in_progress &&
+    (fully_built || build_capped)
+  );
+}
 
 let recent_sync: {
   promise: Promise<void>;
@@ -2407,11 +2417,13 @@ async function run_sync_recent(
 
   prune_expired_suppressions();
 
+  const baseline_token = has_arrival_baseline() ? build_token : -1;
   const ok = await ensure_loaded();
 
   if (!ok) return;
 
   const token = build_token;
+  const announce_new = notify_new && baseline_token === token;
 
   try {
     const fetched_at = now_ms();
@@ -2463,7 +2475,7 @@ async function run_sync_recent(
 
     if (token !== build_token) return;
 
-    const newly_received_ids = notify_new
+    const unindexed_ids = announce_new
       ? upserts
           .filter(
             (e) => e.id && !entries_map.has(e.id) && !is_recently_removed(e.id),
@@ -2472,6 +2484,10 @@ async function run_sync_recent(
       : [];
 
     let changed = apply_upsert(upserts, fetched_at);
+
+    const newly_received_ids = unindexed_ids.filter(
+      (id) => entries_map.get(id)?.is_read === false,
+    );
 
     if (newly_received_ids.length > 0) {
       for (const id of newly_received_ids) announced_indexed_ids.add(id);
@@ -2555,6 +2571,7 @@ async function run_sync_recent(
     }
     last_build_ms = now_ms();
     session_reconciled = true;
+    if (fully_built || build_capped) arrival_baseline_token = token;
     unread_server_offset = 0;
     publish_inbox_unread();
 
