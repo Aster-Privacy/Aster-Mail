@@ -52,6 +52,11 @@ import {
 } from "@/services/crypto/key_manager_pgp";
 import { encrypt_vault } from "@/services/crypto/key_manager_pgp_vault";
 import {
+  is_vault_conflict,
+  MAX_VAULT_CONFLICT_RETRIES,
+  read_latest_vault,
+} from "@/services/crypto/vault_cas_write";
+import {
   get_vault_from_memory,
   get_passphrase_from_memory,
   store_vault_in_memory,
@@ -231,21 +236,18 @@ export function RecoveryCodesModal({
     set_step("codes");
   };
 
-  const replace_codes = async (step_up_token: string) => {
-    const vault = get_vault_from_memory();
-    const passphrase = get_passphrase_from_memory();
+  const save_codes_with_vault = async (
+    step_up_token: string,
+    passphrase: string,
+    new_codes: string[],
+    recovery_key: Uint8Array,
+  ) => {
+    for (let attempt = 0; attempt <= MAX_VAULT_CONFLICT_RETRIES; attempt++) {
+      const latest = await read_latest_vault(passphrase);
 
-    if (!vault || !passphrase) {
-      set_error(t("settings.failed_verify_password"));
+      if (!latest) return { failed: t("settings.failed_verify_password") };
 
-      return;
-    }
-
-    const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
-    const recovery_key = generate_recovery_key();
-
-    try {
-      const updated_vault = { ...vault, recovery_codes: new_codes };
+      const updated_vault = { ...latest.vault, recovery_codes: new_codes };
       const new_backup = await encrypt_vault_backup(
         await build_backup_vault(updated_vault, passphrase),
         recovery_key,
@@ -269,16 +271,54 @@ export function RecoveryCodesModal({
           encrypted_vault,
           vault_nonce,
           vault_format: updated_vault.vault_format,
+          ...(latest.vault_sha256
+            ? { expected_vault_sha256: latest.vault_sha256 }
+            : {}),
         },
       );
 
+      if (is_vault_conflict(save_response)) continue;
+
       if (save_response.error || !save_response.data?.success) {
-        set_error(
-          save_response.error || t("settings.recovery_codes_save_failed"),
-        );
+        return {
+          failed:
+            save_response.error || t("settings.recovery_codes_save_failed"),
+        };
+      }
+
+      return { updated_vault, encrypted_vault, vault_nonce };
+    }
+
+    return { failed: t("settings.recovery_codes_save_failed") };
+  };
+
+  const replace_codes = async (step_up_token: string) => {
+    const passphrase = get_passphrase_from_memory();
+
+    if (!passphrase) {
+      set_error(t("settings.failed_verify_password"));
+
+      return;
+    }
+
+    const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
+    const recovery_key = generate_recovery_key();
+
+    try {
+      const saved = await save_codes_with_vault(
+        step_up_token,
+        passphrase,
+        new_codes,
+        recovery_key,
+      );
+
+      if ("failed" in saved) {
+        set_error(saved.failed ?? t("settings.recovery_codes_save_failed"));
 
         return;
       }
+
+      const { updated_vault, encrypted_vault, vault_nonce } = saved;
 
       await store_vault_in_memory(updated_vault, passphrase, user?.id);
 

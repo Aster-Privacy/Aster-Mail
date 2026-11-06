@@ -230,6 +230,7 @@ export interface SaveRecoveryBackupOptions {
   encrypted_vault?: string;
   vault_nonce?: string;
   vault_format?: number;
+  expected_vault_sha256?: string;
 }
 
 export interface ResetSecondFactorStatus {

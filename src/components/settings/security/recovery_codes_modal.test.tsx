@@ -33,6 +33,7 @@ import {
   verify_codes_step_up,
 } from "@/services/api/recovery";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import { read_latest_vault } from "@/services/crypto/vault_cas_write";
 import {
   hash_recovery_code,
   decrypt_recovery_key_with_code,
@@ -43,6 +44,7 @@ vi.mock("@/services/api/client", () => ({
   api_client: {
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
   },
 }));
 
@@ -56,6 +58,21 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   get_passphrase_from_memory: vi.fn(() => "correct horse battery staple"),
   store_vault_in_memory: vi.fn(),
 }));
+
+vi.mock("@/services/crypto/vault_cas_write", async () => {
+  const store = await import("@/services/crypto/memory_key_store");
+
+  return {
+    read_latest_vault: vi.fn(async () => {
+      const vault = store.get_vault_from_memory();
+
+      return vault ? { vault, vault_sha256: "sha" } : null;
+    }),
+    is_vault_conflict: (response: { status?: number; code?: string }) =>
+      response.status === 409 || response.code === "CONFLICT",
+    MAX_VAULT_CONFLICT_RETRIES: 3,
+  };
+});
 
 vi.mock("@/services/crypto/key_manager_pgp_vault", async (import_original) => ({
   ...((await import_original()) as object),
@@ -214,6 +231,7 @@ describe("RecoveryCodesModal", () => {
     root = createRoot(container);
     mocked_get.mockReset();
     mocked_save.mockReset();
+    vi.mocked(read_latest_vault).mockClear();
     mocked_step_up.mockReset();
     mocked_vault.mockReset();
     mocked_vault.mockReturnValue(vault_fixture as never);
@@ -273,7 +291,9 @@ describe("RecoveryCodesModal", () => {
       step_up_token: "step-up-token",
       encrypted_vault: "encrypted-vault",
       vault_nonce: "vault-nonce",
+      expected_vault_sha256: "sha",
     });
+    expect(api_client.put).not.toHaveBeenCalled();
 
     const shown_codes = Array.from(
       container.querySelectorAll(".font-mono"),
@@ -313,6 +333,56 @@ describe("RecoveryCodesModal", () => {
       ...vault_fixture,
       recovery_codes: shown_codes,
     });
+  });
+
+  it("rebuilds the backup and vault from the server after a conflict", async () => {
+    vi.useRealTimers();
+    mocked_save
+      .mockResolvedValueOnce({
+        error: "conflict",
+        status: 409,
+        code: "CONFLICT",
+      } as never)
+      .mockResolvedValueOnce({ data: { success: true } } as never);
+    render_modal();
+
+    await submit_password("settings.recovery_codes_regenerate");
+    await wait_until(
+      () => container.querySelectorAll(".font-mono").length === 10,
+    );
+
+    expect(mocked_save).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(read_latest_vault)).toHaveBeenCalledTimes(2);
+
+    const first_shares = mocked_save.mock.calls[0][3];
+    const second_shares = mocked_save.mock.calls[1][3];
+
+    expect(second_shares.map((share) => share.code_hash)).toEqual(
+      first_shares.map((share) => share.code_hash),
+    );
+    expect(mocked_save.mock.calls[1][4]).toMatchObject({
+      encrypted_vault: "encrypted-vault",
+      expected_vault_sha256: "sha",
+    });
+  });
+
+  it("stops after repeated conflicts and shows nothing as saved", async () => {
+    vi.useRealTimers();
+    mocked_save.mockResolvedValue({
+      error: "conflict",
+      status: 409,
+    } as never);
+    render_modal();
+
+    await submit_password("settings.recovery_codes_regenerate");
+    await wait_until(() =>
+      (container.textContent ?? "").includes(
+        "settings.recovery_codes_save_failed",
+      ),
+    );
+
+    expect(mocked_save).toHaveBeenCalledTimes(4);
+    expect(container.querySelectorAll(".font-mono")).toHaveLength(0);
   });
 
   it("does not save when the step-up fails", async () => {
