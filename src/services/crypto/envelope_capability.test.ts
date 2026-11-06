@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   ENVELOPE_CAPABILITY_MAX_MARKER,
+  ENVELOPE_CAPABILITY_PGP_EXTERNAL_VERSION,
   ENVELOPE_CAPABILITY_REPORT_INTERVAL_MS,
   report_envelope_capability_if_due,
   type EnvelopeCapabilityDeps,
@@ -18,6 +19,7 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
     platform: string;
     identity_fingerprint: string | null;
     pq_identity_fingerprint: string | null;
+    pgp_external_version: number;
   }> = [];
 
   let clock = 1_000;
@@ -37,6 +39,8 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
       platform,
       identity_fingerprint,
       pq_identity_fingerprint,
+      _x3dh_max_version,
+      pgp_external_version,
     ) => {
       posts.push({
         client_id,
@@ -44,6 +48,7 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
         platform,
         identity_fingerprint,
         pq_identity_fingerprint,
+        pgp_external_version,
       });
 
       return {
@@ -306,5 +311,33 @@ describe("report_envelope_capability_if_due", () => {
 
     expect(result?.success).toBe(true);
     expect(posts).toHaveLength(1);
+  });
+
+  it("advertises external key support version 1", async () => {
+    const { deps, posts } = make_deps();
+
+    await report_envelope_capability_if_due(user_id, false, deps);
+
+    expect(ENVELOPE_CAPABILITY_PGP_EXTERNAL_VERSION).toBe(1);
+    expect(posts[0].pgp_external_version).toBe(1);
+  });
+
+  it("re-reports at once when the stored report predates external key support", async () => {
+    const helper = make_deps();
+
+    helper.store.set(
+      `astermail_envelope_capability_reported_${user_id}`,
+      "900|fixed-fingerprint|fixed-pq-fingerprint",
+    );
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+
+    expect(helper.posts).toHaveLength(1);
+    expect(
+      helper.store.get(`astermail_envelope_capability_reported_${user_id}`),
+    ).toBe("1000|fixed-fingerprint|fixed-pq-fingerprint|1");
+
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+
+    expect(helper.posts).toHaveLength(1);
   });
 });
