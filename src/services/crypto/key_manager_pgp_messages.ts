@@ -22,7 +22,10 @@ import type { AnyPacket, Key, PrivateKey } from "openpgp";
 
 import { type EncryptedKeyHandle } from "./key_manager_core";
 import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
-import { order_keys_for_message } from "./pgp_key_selection";
+import {
+  order_key_candidates_for_message,
+  type pgp_key_candidate,
+} from "./pgp_key_selection";
 import { with_decrypted_key } from "./key_manager_pgp_usage";
 import { with_aes_kw_fallback } from "./webcrypto_aes_kw";
 
@@ -97,6 +100,15 @@ export async function sign_detached(
   const signing_keys = await parse_signing_keys(signing_key);
 
   if (!signing_keys) return null;
+
+  return sign_detached_with_keys(data, signing_keys);
+}
+
+export async function sign_detached_with_keys(
+  data: Uint8Array,
+  signing_keys: PrivateKey[],
+): Promise<detached_signature_result | null> {
+  if (signing_keys.length === 0) return null;
 
   const openpgp = await load_openpgp();
 
@@ -311,6 +323,18 @@ export async function decrypt_message_verified(
 ): Promise<decrypted_message_result> {
   const secret_key_obj = await unlock_private_key(secret_key, passphrase);
 
+  return decrypt_message_verified_with_private_key(
+    ciphertext,
+    secret_key_obj,
+    verification_keys,
+  );
+}
+
+async function decrypt_message_verified_with_private_key(
+  ciphertext: string,
+  secret_key_obj: PrivateKey,
+  verification_keys?: string[],
+): Promise<decrypted_message_result> {
   const parsed_verification_keys =
     await parse_verification_keys(verification_keys);
   const openpgp = await load_openpgp();
@@ -351,27 +375,51 @@ export async function decrypt_message(
   return result.plaintext;
 }
 
+async function resolve_candidates(
+  ciphertext: string,
+  secret_keys: (string | null | undefined)[],
+  unlocked_keys: PrivateKey[] | undefined,
+): Promise<pgp_key_candidate[]> {
+  const available = secret_keys.filter((k): k is string => !!k);
+  const unlocked = (unlocked_keys ?? []).filter(
+    (key) => key.isPrivate() && key.isDecrypted(),
+  );
+
+  if (available.length === 0 && unlocked.length === 0) {
+    throw new Error("no decryption key available");
+  }
+
+  return order_key_candidates_for_message(ciphertext, available, unlocked);
+}
+
 export async function decrypt_message_verified_with_any_key(
   ciphertext: string,
   secret_keys: (string | null | undefined)[],
   passphrase: string,
   verification_keys?: string[],
+  unlocked_keys?: PrivateKey[],
 ): Promise<decrypted_message_result> {
-  const available = secret_keys.filter((k): k is string => !!k);
-
-  if (available.length === 0) {
-    throw new Error("no decryption key available");
-  }
-
-  const keys = await order_keys_for_message(ciphertext, available);
+  const candidates = await resolve_candidates(
+    ciphertext,
+    secret_keys,
+    unlocked_keys,
+  );
 
   let last_error: unknown;
 
-  for (const key of keys) {
+  for (const candidate of candidates) {
     try {
+      if (candidate.kind === "unlocked") {
+        return await decrypt_message_verified_with_private_key(
+          ciphertext,
+          candidate.key,
+          verification_keys,
+        );
+      }
+
       return await decrypt_message_verified(
         ciphertext,
-        key,
+        candidate.key,
         passphrase,
         verification_keys,
       );
@@ -393,6 +441,14 @@ async function decrypt_message_verifiable(
   passphrase: string,
 ): Promise<verifiable_decrypted_message> {
   const secret_key_obj = await unlock_private_key(secret_key, passphrase);
+
+  return decrypt_message_verifiable_with_private_key(ciphertext, secret_key_obj);
+}
+
+async function decrypt_message_verifiable_with_private_key(
+  ciphertext: string,
+  secret_key_obj: PrivateKey,
+): Promise<verifiable_decrypted_message> {
   const openpgp = await load_openpgp();
 
   const { signed_message, unverified, plaintext } = await with_aes_kw_fallback(
@@ -464,20 +520,30 @@ export async function decrypt_message_verifiable_with_any_key(
   ciphertext: string,
   secret_keys: (string | null | undefined)[],
   passphrase: string,
+  unlocked_keys?: PrivateKey[],
 ): Promise<verifiable_decrypted_message> {
-  const available = secret_keys.filter((k): k is string => !!k);
-
-  if (available.length === 0) {
-    throw new Error("no decryption key available");
-  }
-
-  const keys = await order_keys_for_message(ciphertext, available);
+  const candidates = await resolve_candidates(
+    ciphertext,
+    secret_keys,
+    unlocked_keys,
+  );
 
   let last_error: unknown;
 
-  for (const key of keys) {
+  for (const candidate of candidates) {
     try {
-      return await decrypt_message_verifiable(ciphertext, key, passphrase);
+      if (candidate.kind === "unlocked") {
+        return await decrypt_message_verifiable_with_private_key(
+          ciphertext,
+          candidate.key,
+        );
+      }
+
+      return await decrypt_message_verifiable(
+        ciphertext,
+        candidate.key,
+        passphrase,
+      );
     } catch (error) {
       last_error = error;
     }
@@ -490,11 +556,14 @@ export async function decrypt_message_with_any_key(
   ciphertext: string,
   secret_keys: (string | null | undefined)[],
   passphrase: string,
+  unlocked_keys?: PrivateKey[],
 ): Promise<string> {
   const result = await decrypt_message_verified_with_any_key(
     ciphertext,
     secret_keys,
     passphrase,
+    undefined,
+    unlocked_keys,
   );
 
   return result.plaintext;

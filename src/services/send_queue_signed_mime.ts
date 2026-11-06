@@ -22,7 +22,8 @@ import type { Attachment } from "@/components/compose/compose_shared";
 
 import { array_to_base64 } from "./crypto/base64";
 import { is_internal_recipient } from "./recipient_classification";
-import { sign_detached } from "./crypto/key_manager";
+import { sign_detached, sign_detached_with_keys } from "./crypto/key_manager";
+import { get_external_signing_key } from "./crypto/external_pgp_key";
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -149,18 +150,25 @@ export async function build_signed_mime_payload(
   });
 
   const mime_bytes = text_encoder.encode(mime);
-  const armored_secret_key = await select_published_signing_key(vault);
+  const external_signing_key = get_external_signing_key();
+  let signed: Awaited<ReturnType<typeof sign_detached>>;
 
-  if (!armored_secret_key) {
-    report_signing_skipped("published_key_mismatch_unhealed");
+  if (external_signing_key) {
+    signed = await sign_detached_with_keys(mime_bytes, [external_signing_key]);
+  } else {
+    const armored_secret_key = await select_published_signing_key(vault);
 
-    return undefined;
+    if (!armored_secret_key) {
+      report_signing_skipped("published_key_mismatch_unhealed");
+
+      return undefined;
+    }
+
+    signed = await sign_detached(mime_bytes, {
+      armored_secret_key,
+      passphrase,
+    });
   }
-
-  const signed = await sign_detached(mime_bytes, {
-    armored_secret_key,
-    passphrase,
-  });
 
   if (!signed) {
     report_signing_skipped("detached_signature_failed");

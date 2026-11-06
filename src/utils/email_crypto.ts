@@ -29,7 +29,14 @@ import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
-import { decrypt_message } from "@/services/crypto/key_manager";
+import {
+  decrypt_message,
+  decrypt_message_with_any_key,
+} from "@/services/crypto/key_manager";
+import {
+  get_external_decryption_keys,
+  settle_external_pgp_key_load,
+} from "@/services/crypto/external_pgp_key";
 import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
 import {
   discover_external_keys_batch,
@@ -591,17 +598,30 @@ export async function resolve_inbound_pgp_body(
     ...(vault.previous_keys ?? []),
   ].filter((k): k is string => !!k);
 
-  if (keys_to_try.length === 0) return { body: unavailable, decrypted: false };
+  const finish = (decrypted: string): ResolvedPgpBody => ({
+    body: /^content-type\s*:/im.test(decrypted)
+      ? extract_mime_body(decrypted)
+      : decrypted,
+    decrypted: true,
+  });
 
   for (const secret_key of keys_to_try) {
     try {
-      let decrypted = await decrypt_message(block, secret_key, passphrase);
+      return finish(await decrypt_message(block, secret_key, passphrase));
+    } catch (e) {
+      if (import.meta.env.DEV) console.error("pgp_decrypt_failed", e);
+    }
+  }
 
-      if (/^content-type\s*:/im.test(decrypted)) {
-        decrypted = extract_mime_body(decrypted);
-      }
+  await settle_external_pgp_key_load();
 
-      return { body: decrypted, decrypted: true };
+  const external_keys = get_external_decryption_keys();
+
+  if (external_keys.length > 0) {
+    try {
+      return finish(
+        await decrypt_message_with_any_key(block, [], passphrase, external_keys),
+      );
     } catch (e) {
       if (import.meta.env.DEV) console.error("pgp_decrypt_failed", e);
     }

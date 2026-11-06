@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedEnvelope } from "@/types/email";
+import type { PrivateKey } from "openpgp";
 
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
@@ -65,6 +66,10 @@ import {
   load_openpgp,
 } from "@/services/crypto/openpgp_loader";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  get_external_decryption_keys,
+  settle_external_pgp_key_load,
+} from "@/services/crypto/external_pgp_key";
 
 const INBOUND_ECIES_MARKER = 0x02;
 const INBOUND_ECIES_COMPRESSED_MARKER = 0x03;
@@ -437,11 +442,13 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
         const passphrase = pass;
         const decrypt_pgp_envelope = async (
           envelope_keys: string[],
+          external_keys: PrivateKey[] = [],
         ): Promise<T> => {
           const first_pass = await decrypt_message_verifiable_with_any_key(
             text,
             envelope_keys,
             passphrase,
+            external_keys,
           );
           const parsed = normalize_parsed_envelope(
             JSON.parse(first_pass.plaintext),
@@ -482,9 +489,13 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
         const envelope_keys = collect_envelope_identity_keys(vault);
 
         await load_openpgp();
+        await settle_external_pgp_key_load();
 
         try {
-          return await decrypt_pgp_envelope(envelope_keys);
+          return await decrypt_pgp_envelope(
+            envelope_keys,
+            get_external_decryption_keys(),
+          );
         } catch (pgp_error) {
           const refreshed = await fetch_refreshed_vault();
 

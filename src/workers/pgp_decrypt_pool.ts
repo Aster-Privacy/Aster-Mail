@@ -25,6 +25,12 @@ import type {
 
 import { decrypt_message_with_any_key } from "@/services/crypto/key_manager_pgp";
 import { on_vault_cleared } from "@/services/crypto/memory_key_store";
+import {
+  get_external_decryption_keys,
+  get_external_unlocked_armored_keys,
+  is_external_pgp_key_loading,
+  settle_external_pgp_key_load,
+} from "@/services/crypto/external_pgp_key";
 
 const POOL_SIZE = Math.min(
   Math.max(
@@ -186,11 +192,22 @@ export async function decrypt_pgp_message_parallel(
   secret_keys: (string | null | undefined)[],
   passphrase: string,
 ): Promise<string> {
+  if (is_external_pgp_key_loading()) await settle_external_pgp_key_load();
+
   const pool = get_pool();
+  const run_in_thread = () =>
+    decrypt_message_with_any_key(
+      ciphertext,
+      secret_keys,
+      passphrase,
+      get_external_decryption_keys(),
+    );
 
   if (!pool || pool.length === 0) {
-    return decrypt_message_with_any_key(ciphertext, secret_keys, passphrase);
+    return run_in_thread();
   }
+
+  const unlocked_armored_keys = get_external_unlocked_armored_keys();
 
   const worker = pool[next_worker_index % pool.length];
 
@@ -211,6 +228,7 @@ export async function decrypt_pgp_message_parallel(
       ciphertext,
       secret_keys,
       passphrase,
+      ...(unlocked_armored_keys.length > 0 ? { unlocked_armored_keys } : {}),
     };
 
     try {
@@ -225,6 +243,6 @@ export async function decrypt_pgp_message_parallel(
     if (error instanceof worker_decrypt_error) throw error;
     if (error instanceof vault_cleared_error) throw error;
 
-    return decrypt_message_with_any_key(ciphertext, secret_keys, passphrase);
+    return run_in_thread();
   });
 }
