@@ -295,23 +295,11 @@ export function EmailPopupViewer({
 
   const popup_left = viewer.is_fullscreen
     ? FULLSCREEN_MARGIN
-    : Math.max(
-        0,
-        Math.min(
-          window.innerWidth - viewer.dimensions.width,
-          viewer.position.x,
-        ),
-      );
+    : viewer.position.x;
 
   const popup_top = viewer.is_fullscreen
     ? FULLSCREEN_MARGIN
-    : Math.max(
-        0,
-        Math.min(
-          window.innerHeight - viewer.dimensions.height,
-          viewer.position.y,
-        ),
-      );
+    : viewer.position.y;
 
   const popup_content = (
     <motion.div
