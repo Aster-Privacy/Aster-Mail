@@ -31,6 +31,12 @@ const state = vi.hoisted(() => ({
   identity_key: undefined as string | undefined,
   external_key: null as PrivateKey | null,
   select_calls: 0,
+  primary_address: "owner@astermail.org" as string | null,
+}));
+
+vi.mock("@/services/account_manager", () => ({
+  get_current_account: async () =>
+    state.primary_address ? { user: { email: state.primary_address } } : null,
 }));
 
 vi.mock("./crypto/memory_key_store", () => ({
@@ -53,6 +59,7 @@ vi.mock("./crypto/published_signing_key", () => ({
 let internal_public: string;
 let external_private: PrivateKey;
 let external_public: string;
+let locked_external: PrivateKey;
 
 async function verifies_with(
   armored_public: string,
@@ -74,11 +81,11 @@ async function verifies_with(
   }
 }
 
-function send() {
+function send(from = "owner@astermail.org") {
   return build_signed_mime_payload({
     subject: "Hello",
     body: "<p>Hello</p>",
-    from: "owner@astermail.org",
+    from,
     to: ["friend@example.org"],
     cc: [],
   });
@@ -103,11 +110,24 @@ beforeAll(async () => {
   internal_public = internal.publicKey;
   external_private = external.privateKey;
   external_public = external.publicKey.armor();
+
+  const locked = await openpgp.generateKey({
+    type: "ecc",
+    curve: "ed25519Legacy",
+    userIDs: [{ email: "owner@astermail.org" }],
+    passphrase: "locked",
+    format: "armored",
+  });
+
+  locked_external = await openpgp.readPrivateKey({
+    armoredKey: locked.privateKey,
+  });
 }, 60_000);
 
 beforeEach(() => {
   state.external_key = null;
   state.select_calls = 0;
+  state.primary_address = "owner@astermail.org";
 });
 
 describe("outbound signing key selection", () => {
@@ -135,6 +155,101 @@ describe("outbound signing key selection", () => {
   });
 
   it("signs with the internal key when no external key is published", async () => {
+    const payload = await send();
+
+    expect(payload).toBeDefined();
+    expect(state.select_calls).toBe(1);
+    expect(
+      await verifies_with(
+        internal_public,
+        payload!.signed_mime,
+        payload!.signed_mime_signature,
+      ),
+    ).toBe(true);
+  });
+
+  it("signs with the external key when the sender has a display name", async () => {
+    state.external_key = external_private;
+
+    const payload = await send("Owner <OWNER@astermail.org>");
+
+    expect(state.select_calls).toBe(0);
+    expect(
+      await verifies_with(
+        external_public,
+        payload!.signed_mime,
+        payload!.signed_mime_signature,
+      ),
+    ).toBe(true);
+  });
+
+  it("signs mail from another address with the internal key", async () => {
+    state.external_key = external_private;
+
+    const payload = await send("Alias <alias@astermail.org>");
+
+    expect(payload).toBeDefined();
+    expect(state.select_calls).toBe(1);
+    expect(
+      await verifies_with(
+        internal_public,
+        payload!.signed_mime,
+        payload!.signed_mime_signature,
+      ),
+    ).toBe(true);
+    expect(
+      await verifies_with(
+        external_public,
+        payload!.signed_mime,
+        payload!.signed_mime_signature,
+      ),
+    ).toBe(false);
+  });
+
+  it("signs with the internal key from an alias the imported key also names", async () => {
+    const both = await openpgp.generateKey({
+      type: "ecc",
+      curve: "ed25519Legacy",
+      userIDs: [
+        { email: "owner@astermail.org" },
+        { email: "alias@astermail.org" },
+      ],
+      format: "object",
+    });
+
+    state.external_key = both.privateKey;
+
+    const payload = await send("alias@astermail.org");
+
+    expect(state.select_calls).toBe(1);
+    expect(
+      await verifies_with(
+        internal_public,
+        payload!.signed_mime,
+        payload!.signed_mime_signature,
+      ),
+    ).toBe(true);
+  });
+
+  it("signs with the internal key when the primary address is unknown", async () => {
+    state.external_key = external_private;
+    state.primary_address = null;
+
+    const payload = await send();
+
+    expect(state.select_calls).toBe(1);
+    expect(
+      await verifies_with(
+        internal_public,
+        payload!.signed_mime,
+        payload!.signed_mime_signature,
+      ),
+    ).toBe(true);
+  });
+
+  it("falls back to the internal key when the external key cannot sign", async () => {
+    state.external_key = locked_external;
+
     const payload = await send();
 
     expect(payload).toBeDefined();

@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { PrivateKey } from "openpgp";
 import type { Attachment } from "@/components/compose/compose_shared";
 
 import { array_to_base64 } from "./crypto/base64";
@@ -36,6 +35,7 @@ import {
 import { select_published_signing_key } from "./crypto/published_signing_key";
 
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 export interface SignedMimePayload {
   signed_mime: string;
@@ -114,17 +114,24 @@ function sender_address(from: string): string {
   return (bracketed ? bracketed[1] : from).trim().toLowerCase();
 }
 
-export function external_key_matches_sender(
-  key: PrivateKey,
+export function is_primary_sender(
   from: string,
+  primary_address: string | null | undefined,
 ): boolean {
-  const address = sender_address(from);
+  if (!primary_address) return false;
 
-  if (!address) return false;
+  return same_address_ignoring_dots(sender_address(from), primary_address);
+}
 
-  return key.users.some(
-    (user) => user.userID?.email?.trim().toLowerCase() === address,
-  );
+async function resolve_primary_address(): Promise<string | null> {
+  try {
+    const { get_current_account } = await import("@/services/account_manager");
+    const account = await get_current_account();
+
+    return account?.user?.email ?? null;
+  } catch {
+    return null;
+  }
 }
 
 async function sign_with_internal_key(
@@ -187,7 +194,7 @@ export async function build_signed_mime_payload(
 
   if (
     external_signing_key &&
-    external_key_matches_sender(external_signing_key, params.from)
+    is_primary_sender(params.from, await resolve_primary_address())
   ) {
     signed = await sign_detached_with_keys(mime_bytes, [external_signing_key]);
   }
