@@ -10371,6 +10371,8 @@ export const tr = {
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     crypto_module_unavailable:
       "Şifreleme bu cihazda yüklenemedi. Sayfayı yeniden yüklemek genellikle sorunu çözer. Tekrarlanırsa bağlantınızı kontrol edin.",
+    ratchet_key_generation_failed:
+      "Şifreleme anahtarları bu cihazda oluşturulamadı, bu yüzden hesabınız oluşturulmadı. Tekrar deneyin ve tekrarlanırsa sayfayı yeniden yükleyin.",
     session_expired_send:
       "Bu e-posta gönderilmeden önce oturumunuz sona erdi. Yeniden oturum açmak onu gönderir. Taslağınız kaydedildi.",
     failed_encrypt_envelope:

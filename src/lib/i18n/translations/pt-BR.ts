@@ -10581,6 +10581,8 @@ export const pt_br = {
       "Suas chaves privadas estão bloqueadas neste dispositivo. Sua senha as desbloqueará. Suas chaves no servidor estão intactas.",
     crypto_module_unavailable:
       "Não foi possível carregar a criptografia neste dispositivo. Recarregar a página costuma resolver. Se continuar acontecendo, verifique sua conexão.",
+    ratchet_key_generation_failed:
+      "Não foi possível criar as chaves de criptografia neste dispositivo, então sua conta não foi criada. Tente novamente e recarregue a página se continuar acontecendo.",
     failed_decrypt_draft:
       "Não foi possível abrir este rascunho neste dispositivo. Sair e entrar novamente, depois outra tentativa, geralmente resolve.",
     failed_encrypt_draft:

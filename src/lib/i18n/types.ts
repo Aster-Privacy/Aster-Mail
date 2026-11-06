@@ -8927,6 +8927,7 @@ export interface AuthTranslations {
 
 export interface ErrorTranslations {
   crypto_module_unavailable: string;
+  ratchet_key_generation_failed: string;
   auth_salt_collision: string;
   legacy_login_salt_new_device: string;
   legacy_login_salt_sign_in_again: string;
