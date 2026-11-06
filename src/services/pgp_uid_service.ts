@@ -30,7 +30,6 @@ import { update_vault, republish_pgp_key } from "@/services/api/key_rotation";
 import {
   get_vault_from_memory,
   get_passphrase_from_memory,
-  store_vault_in_memory,
   MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
@@ -91,24 +90,6 @@ function has_email(ids: UserId[], email: string): boolean {
   const target = email.toLowerCase();
 
   return ids.some((id) => (id.email ?? "").toLowerCase() === target);
-}
-
-function stamp_local_vault(
-  user_id: string | undefined,
-  encrypted_vault: string,
-  vault_nonce: string,
-): void {
-  if (!user_id) return;
-
-  try {
-    localStorage.setItem(
-      `astermail_encrypted_vault_${user_id}`,
-      encrypted_vault,
-    );
-    localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
-  } catch (caught) {
-    ignore_error("services/pgp_uid_service:stamp_local_vault", caught);
-  }
 }
 
 function missing_addresses(
@@ -382,16 +363,10 @@ async function run_identity_republish(
           current_account?.user?.id,
           true,
           next_vault,
+          current_vault,
         );
 
         if (!vault_saved.success) return "failed";
-
-        await store_vault_in_memory(next_vault, passphrase);
-        stamp_local_vault(
-          current_account?.user?.id,
-          encrypted_vault,
-          vault_nonce,
-        );
       }
 
       const openpgp = await load_openpgp();

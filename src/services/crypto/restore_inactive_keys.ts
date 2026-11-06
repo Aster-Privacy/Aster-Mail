@@ -46,7 +46,6 @@ import {
   get_passphrase_from_memory,
   get_storage_kdf_version,
   get_vault_from_memory,
-  store_vault_in_memory,
   STORAGE_KDF_VERSION_LEGACY,
   STORAGE_KDF_VERSION_STRETCHED,
 } from "./memory_key_store";
@@ -451,16 +450,12 @@ export async function commit_recovered_keys(
     user_id,
     next_vault.vault_format,
     next_vault,
+    vault,
   );
 
   if (!pushed) return COMMIT_NOT_WRITTEN;
 
-  await store_vault_in_memory(next_vault, passphrase, user_id);
-
-  localStorage.setItem(`astermail_encrypted_vault_${user_id}`, encrypted_vault);
-  localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
-
-  await refresh_recovery_backup(next_vault, passphrase);
+  await refresh_recovery_backup(pushed, passphrase);
 
   return {
     written: true,

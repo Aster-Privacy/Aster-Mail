@@ -312,12 +312,26 @@ beforeEach(async () => {
   await store_vault_in_memory(fixture.new_vault, NEW_PASSWORD, USER_ID);
 
   push_vault_to_server.mockImplementation(
-    async (encrypted_vault: string, vault_nonce: string, user_id: string) => {
-      if (user_id !== USER_ID) return false;
+    async (
+      encrypted_vault: string,
+      vault_nonce: string,
+      user_id: string,
+      _format: number,
+      vault: EncryptedVault,
+    ) => {
+      if (user_id !== USER_ID) return null;
 
       pushed = { encrypted_vault, vault_nonce };
 
-      return true;
+      const store = await import("./memory_key_store");
+
+      await store.store_vault_in_memory(
+        vault,
+        store.get_passphrase_from_memory() ?? "",
+        user_id,
+      );
+
+      return vault;
     },
   );
   consume_inactive_key_set.mockResolvedValue({ data: { success: true } });
@@ -475,7 +489,7 @@ describe("restore with the old recovery code", () => {
     "keeps the archive when the server rejects the vault",
     LONG_TEST,
     async () => {
-      push_vault_to_server.mockResolvedValue(false);
+      push_vault_to_server.mockResolvedValue(null);
 
       const result = await restore_inactive_key_sets_with_code(OLD_CODE);
 

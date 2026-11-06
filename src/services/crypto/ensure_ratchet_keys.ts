@@ -51,7 +51,7 @@ import {
   is_compact_p256_private_jwk,
 } from "./p256_jwk";
 import { recover_ratchet_keys_from_history_locked } from "./vault_key_recovery";
-import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
+import { open_vault_for_write, write_vault_merged } from "./vault_cas_write";
 import { published_bundle_needs_resigning } from "./published_signing_key";
 
 import { ignore_error } from "@/lib/ignore_error";
@@ -122,25 +122,26 @@ export async function push_vault_to_server(
   expected_user_id: string,
   vault_format?: number,
   vault?: EncryptedVault | null,
-): Promise<boolean> {
+  base?: EncryptedVault | null,
+): Promise<EncryptedVault | null> {
   const current_account = await get_current_account();
 
-  if (current_account?.user?.id !== expected_user_id) return false;
+  if (current_account?.user?.id !== expected_user_id) return null;
 
-  const vault_key_fingerprints = vault
-    ? await collect_vault_key_fingerprints(vault)
-    : undefined;
+  const opened = await open_vault_for_write(encrypted_vault, vault_nonce, vault);
 
-  const response = await api_client.put("/crypto/v1/keys/vault", {
-    encrypted_vault,
-    vault_nonce,
-    expected_user_id,
-    vault_format: vault_format ?? 1,
+  if (!opened) return null;
+
+  const result = await write_vault_merged({
+    next: opened.next,
+    base,
+    passphrase: opened.passphrase,
+    user_id: expected_user_id,
+    vault_format,
     preserve_pq_prekeys: true,
-    ...(vault_key_fingerprints?.length ? { vault_key_fingerprints } : {}),
   });
 
-  return !response.error;
+  return result.status === "written" ? result.vault : null;
 }
 
 let in_flight: Promise<boolean> | null = null;
@@ -524,14 +525,16 @@ async function refresh_vault_write_stamp(): Promise<boolean> {
   }
 
   const vault = get_vault_from_memory();
-
-  return push_vault_to_server(
+  const pushed = await push_vault_to_server(
     stored.encrypted_vault,
     stored.vault_nonce,
     user_id,
     vault?.vault_format,
     vault,
+    vault,
   );
+
+  return pushed !== null;
 }
 
 export async function server_vault_holds_publish_keys(
@@ -811,23 +814,16 @@ async function run_locked_with_vault(
       user_id,
       next_vault.vault_format,
       next_vault,
+      vault,
     );
 
     if (!pushed) return false;
-
-    await store_vault_in_memory(next_vault, passphrase, user_id);
-
-    localStorage.setItem(
-      `astermail_encrypted_vault_${user_id}`,
-      encrypted_vault,
-    );
-    localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
 
     if (clear_states) {
       await clear_all_ratchet_states();
     }
 
-    await upload_prekey_bundle_with_retry(next_vault);
+    await upload_prekey_bundle_with_retry(pushed);
 
     try {
       localStorage.setItem(FORCED_REGEN_KEY, "1");

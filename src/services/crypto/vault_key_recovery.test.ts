@@ -127,7 +127,9 @@ describe("recover_ratchet_keys_from_history", () => {
     expect(recovered?.ratchet_identity_public).toBe("current");
     expect(update_vault).toHaveBeenCalledTimes(1);
     expect(update_vault.mock.calls[0][4]).toBe(true);
-    expect(store_vault_in_memory).toHaveBeenCalledTimes(1);
+    expect(update_vault.mock.calls[0][5]).toBe(recovered);
+    expect(update_vault.mock.calls[0][6]).toBe(memory_vault);
+    expect(store_vault_in_memory).not.toHaveBeenCalled();
   });
 
   it("keeps a recovered identity when the prior key list is full", async () => {

@@ -23,6 +23,7 @@ import type { EncryptedVault } from "./key_manager_core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const api_put = vi.fn();
+const api_get = vi.fn();
 
 vi.mock("../account_manager", () => ({
   get_current_account: async () => ({
@@ -31,7 +32,10 @@ vi.mock("../account_manager", () => ({
 }));
 
 vi.mock("../api/client", () => ({
-  api_client: { put: (...args: unknown[]) => api_put(...args) },
+  api_client: {
+    put: (...args: unknown[]) => api_put(...args),
+    get: (...args: unknown[]) => api_get(...args),
+  },
 }));
 
 vi.mock("./ensure_ratchet_keys", () => ({
@@ -43,7 +47,7 @@ vi.mock("./vault_key_fingerprints", () => ({
 }));
 
 import { array_to_base64 } from "./base64";
-import { decrypt_vault } from "./key_manager";
+import { decrypt_vault, encrypt_vault } from "./key_manager";
 import {
   MASTER_KEY_VAULT_FORMAT,
   STORAGE_KDF_VERSION_LEGACY,
@@ -72,6 +76,7 @@ describe("master key adoption", () => {
     vi.stubEnv("VITE_MK_ADOPTION_ENABLED", "true");
     api_put.mockReset();
     api_put.mockResolvedValue({ data: { success: true } });
+    api_get.mockReset();
     clear_vault_from_memory();
   });
 
@@ -87,6 +92,9 @@ describe("master key adoption", () => {
       const vault = legacy_vault();
 
       await store_vault_in_memory(vault, PASSWORD);
+      api_get.mockResolvedValue({
+        data: { ...(await encrypt_vault(vault, PASSWORD)), vault_sha256: "sha" },
+      });
 
       const password_key = array_to_base64(
         await derive_encryption_key_from_passphrase(

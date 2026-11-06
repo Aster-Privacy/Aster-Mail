@@ -20,14 +20,21 @@
 //
 import type { EncryptedVault } from "../key_manager";
 
-import { encrypt_vault, decrypt_vault } from "../key_manager";
+import type { ServerVaultSnapshot } from "../vault_cas_write";
+
+import { decrypt_vault } from "../key_manager";
 import {
   get_vault_from_memory,
   store_vault_in_memory,
-  MASTER_KEY_VAULT_FORMAT,
 } from "../memory_key_store";
-import { with_vault_write_lock } from "../vault_write_lock";
-import { collect_vault_key_fingerprints } from "../vault_key_fingerprints";
+import { with_vault_write_lock_bounded } from "../vault_write_lock";
+import {
+  fetch_latest_vault,
+  fetch_server_vault_snapshot,
+  MAX_VAULT_CONFLICT_RETRIES,
+  persist_local_vault,
+  write_vault_merged,
+} from "../vault_cas_write";
 import { zero_uint8_array } from "../secure_memory";
 import { derive_ios_key_material_bytes } from "../legacy_ios_envelope";
 import {
@@ -37,23 +44,17 @@ import {
 } from "../storage_write_key";
 
 import { get_current_account } from "@/services/account_manager";
-import { api_client } from "@/services/api/client";
-import { ignore_error } from "@/lib/ignore_error";
 
-export const VAULT_PATH = "/crypto/v1/keys/vault";
-export const MAX_VAULT_CONFLICT_RETRIES = 3;
+export const VAULT_LOCK_WAIT_MS = 10_000;
+export const STORAGE_STEP_UNSUPPORTED = "unsupported";
+export const STORAGE_STEP_UNREADABLE = "vault_unreadable";
 
-interface ServerVaultView {
-  encrypted_vault?: string;
-  vault_nonce?: string;
-  vault_sha256?: string;
-}
-
-export interface ServerVaultSnapshot {
-  encrypted_vault: string;
-  vault_nonce: string;
-  vault_sha256: string;
-}
+export {
+  fetch_server_vault_snapshot,
+  MAX_VAULT_CONFLICT_RETRIES,
+  VAULT_PATH,
+} from "../vault_cas_write";
+export type { ServerVaultSnapshot } from "../vault_cas_write";
 
 export type StorageVaultOutcome =
   | { status: "rotated"; vault: EncryptedVault }
@@ -65,56 +66,10 @@ export type StorageRekeyFinish = "done" | "superseded" | "failed";
 
 type CasWrite = "written" | "conflict" | "failed";
 
-export async function fetch_server_vault_snapshot(): Promise<ServerVaultSnapshot | null> {
-  const response = await api_client.get<ServerVaultView>(VAULT_PATH, {
-    skip_cache: true,
-    skip_dedup: true,
-  });
-  const data = response.data;
-
-  if (
-    response.error ||
-    !data?.encrypted_vault ||
-    !data.vault_nonce ||
-    !data.vault_sha256
-  ) {
-    return null;
-  }
-
-  return {
-    encrypted_vault: data.encrypted_vault,
-    vault_nonce: data.vault_nonce,
-    vault_sha256: data.vault_sha256,
-  };
-}
-
-function is_conflict(response: { status?: number; code?: string }): boolean {
-  return response.status === 409 || response.code === "CONFLICT";
-}
-
 async function current_user_id(): Promise<string | null> {
   const account = await get_current_account();
 
   return account?.user?.id ?? null;
-}
-
-function persist_local_vault(
-  user_id: string,
-  encrypted_vault: string,
-  vault_nonce: string,
-): void {
-  try {
-    localStorage.setItem(
-      `astermail_encrypted_vault_${user_id}`,
-      encrypted_vault,
-    );
-    localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
-  } catch (caught) {
-    ignore_error(
-      "services/crypto/storage_rotation:persist_local_vault",
-      caught,
-    );
-  }
 }
 
 async function decrypt_snapshot(
@@ -155,47 +110,25 @@ async function adopt_server_vault(
 
 async function write_vault_with_cas(
   next: EncryptedVault,
+  base: EncryptedVault,
   snapshot: ServerVaultSnapshot,
   passphrase: string,
   user_id: string,
 ): Promise<CasWrite> {
-  const { encrypted_vault, vault_nonce } = await encrypt_vault(
+  const result = await write_vault_merged({
     next,
+    base,
+    snapshot,
     passphrase,
-  );
-  const roundtrip = await decrypt_snapshot(
-    { encrypted_vault, vault_nonce, vault_sha256: snapshot.vault_sha256 },
-    passphrase,
-  );
-
-  if (
-    !roundtrip ||
-    roundtrip.identity_key !== next.identity_key ||
-    roundtrip.data_kek !== next.data_kek ||
-    roundtrip.data_kek_random !== next.data_kek_random ||
-    roundtrip.storage_rekey?.state !== next.storage_rekey?.state
-  ) {
-    return "failed";
-  }
-
-  const vault_key_fingerprints = await collect_vault_key_fingerprints(next);
-  const response = await api_client.put<{ success: boolean }>(VAULT_PATH, {
-    encrypted_vault,
-    vault_nonce,
-    expected_user_id: user_id,
-    expected_vault_sha256: snapshot.vault_sha256,
-    vault_format: MASTER_KEY_VAULT_FORMAT,
-    preserve_pq_prekeys: true,
-    ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
+    user_id,
+    owns_storage_key: true,
+    max_conflict_retries: 0,
   });
 
-  if (is_conflict(response)) return "conflict";
-  if (response.error) return "failed";
+  if (result.status === "written") return "written";
+  if (result.status === "failed") return "failed";
 
-  persist_local_vault(user_id, encrypted_vault, vault_nonce);
-  await store_vault_in_memory(next, passphrase, user_id);
-
-  return "written";
+  return "conflict";
 }
 
 async function rotate_locked(passphrase: string): Promise<StorageVaultOutcome> {
@@ -207,13 +140,23 @@ async function rotate_locked(passphrase: string): Promise<StorageVaultOutcome> {
 
   try {
     for (let attempt = 0; attempt <= MAX_VAULT_CONFLICT_RETRIES; attempt++) {
-      const snapshot = await fetch_server_vault_snapshot();
+      const fetched = await fetch_latest_vault();
 
-      if (!snapshot) return { status: "skipped", reason: "vault_unavailable" };
+      if (fetched.kind !== "ok") {
+        return { status: "skipped", reason: "vault_unavailable" };
+      }
 
+      if (!fetched.snapshot.vault_sha256) {
+        return { status: "skipped", reason: STORAGE_STEP_UNSUPPORTED };
+      }
+
+      const snapshot: ServerVaultSnapshot = {
+        ...fetched.snapshot,
+        vault_sha256: fetched.snapshot.vault_sha256,
+      };
       const vault = await decrypt_snapshot(snapshot, passphrase);
 
-      if (!vault) return { status: "skipped", reason: "vault_unreadable" };
+      if (!vault) return { status: "skipped", reason: STORAGE_STEP_UNREADABLE };
 
       if (!(await is_weak_storage_vault(vault, passphrase, key_material))) {
         await adopt_server_vault(vault, snapshot, passphrase, user_id);
@@ -236,6 +179,7 @@ async function rotate_locked(passphrase: string): Promise<StorageVaultOutcome> {
 
       const outcome = await write_vault_with_cas(
         next,
+        vault,
         snapshot,
         passphrase,
         user_id,
@@ -256,7 +200,10 @@ async function rotate_locked(passphrase: string): Promise<StorageVaultOutcome> {
 export function ensure_random_storage_key(
   passphrase: string,
 ): Promise<StorageVaultOutcome> {
-  return with_vault_write_lock(() => rotate_locked(passphrase));
+  return with_vault_write_lock_bounded(
+    () => rotate_locked(passphrase),
+    VAULT_LOCK_WAIT_MS,
+  );
 }
 
 async function finish_locked(
@@ -298,6 +245,7 @@ async function finish_locked(
     };
     const outcome = await write_vault_with_cas(
       next,
+      vault,
       snapshot,
       passphrase,
       user_id,
@@ -327,7 +275,8 @@ export function mark_storage_rekey_done(
   passphrase: string,
   expected_data_kek: string,
 ): Promise<StorageRekeyFinish> {
-  return with_vault_write_lock(() =>
-    finish_locked(passphrase, expected_data_kek),
+  return with_vault_write_lock_bounded(
+    () => finish_locked(passphrase, expected_data_kek),
+    VAULT_LOCK_WAIT_MS,
   );
 }

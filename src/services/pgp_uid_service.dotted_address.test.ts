@@ -77,8 +77,9 @@ vi.mock("@/services/api/key_rotation", () => ({
     vault: EncryptedVault,
   ) => {
     state.saved_vaults.push(vault);
+    state.vault = vault;
 
-    return { success: true };
+    return { success: true, vault };
   },
   republish_pgp_key: async (data: Record<string, unknown>) => {
     if (state.republish_fails) return { error: "offline" };

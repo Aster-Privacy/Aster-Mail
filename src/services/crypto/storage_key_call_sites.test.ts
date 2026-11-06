@@ -61,6 +61,7 @@ const ALLOWED_PASSPHRASE_KEY_SITES: Record<string, number> = {
   "services/crypto/secure_message_crypto.ts": 1,
   "services/crypto/shared_mailbox.ts": 1,
   "services/crypto/storage_write_key.ts": 2,
+  "services/crypto/vault_cas_write.ts": 1,
   "services/crypto/vault_key_recovery.ts": 3,
   "services/crypto/vault_refresh.ts": 2,
   "services/import/repair_threads.ts": 1,

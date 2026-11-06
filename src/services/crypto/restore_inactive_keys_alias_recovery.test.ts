@@ -1,3 +1,5 @@
+import type { EncryptedVault } from "./key_manager_core";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { array_to_base64 } from "./base64";
@@ -49,7 +51,23 @@ vi.mock("./key_manager", () => ({
 }));
 
 vi.mock("./ensure_ratchet_keys", () => ({
-  push_vault_to_server: async () => true,
+  push_vault_to_server: async (
+    _encrypted: string,
+    _nonce: string,
+    user_id: string,
+    _format: number,
+    vault: EncryptedVault,
+  ) => {
+    const store = await import("./memory_key_store");
+
+    await store.store_vault_in_memory(
+      vault,
+      store.get_passphrase_from_memory() ?? "",
+      user_id,
+    );
+
+    return vault;
+  },
   verify_vault_roundtrip: async () => true,
   server_vault_matches_stored: async () => true,
   sync_vault_with_server: async () => ({ status: "current" }),

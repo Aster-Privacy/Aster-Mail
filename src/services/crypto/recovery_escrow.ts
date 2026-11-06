@@ -38,7 +38,6 @@ import { encrypt_vault } from "./key_manager";
 import {
   get_vault_from_memory,
   is_vault_owned_by,
-  store_vault_in_memory,
 } from "./memory_key_store";
 import {
   decode_escrow_seed,
@@ -87,16 +86,10 @@ async function persist_seed(
     user_id,
     next_vault.vault_format,
     next_vault,
+    vault,
   );
 
-  if (!pushed) return false;
-
-  await store_vault_in_memory(next_vault, passphrase, user_id);
-
-  localStorage.setItem(`astermail_encrypted_vault_${user_id}`, encrypted_vault);
-  localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
-
-  return true;
+  return pushed !== null;
 }
 
 export async function ensure_escrow_seed(

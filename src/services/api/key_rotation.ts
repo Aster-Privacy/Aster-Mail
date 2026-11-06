@@ -20,7 +20,10 @@
 //
 import type { EncryptedVault } from "../crypto/key_manager_core";
 
-import { collect_vault_key_fingerprints } from "../crypto/vault_key_fingerprints";
+import {
+  open_vault_for_write,
+  write_vault_merged,
+} from "../crypto/vault_cas_write";
 
 import { api_client } from "./client";
 
@@ -92,27 +95,30 @@ export async function update_vault(
   expected_user_id?: string,
   preserve_pq_prekeys?: boolean,
   vault?: EncryptedVault | null,
-): Promise<{ success: boolean; error?: string }> {
-  const vault_key_fingerprints = vault
-    ? await collect_vault_key_fingerprints(vault)
-    : undefined;
-  const response = await api_client.put<{ success: boolean }>(
-    "/crypto/v1/keys/vault",
-    {
-      encrypted_vault,
-      vault_nonce,
-      vault_format: vault_format ?? 1,
-      expected_user_id,
-      preserve_pq_prekeys: preserve_pq_prekeys ?? false,
-      ...(vault_key_fingerprints?.length ? { vault_key_fingerprints } : {}),
-    },
-  );
+  base?: EncryptedVault | null,
+): Promise<{ success: boolean; error?: string; vault?: EncryptedVault }> {
+  const opened = await open_vault_for_write(encrypted_vault, vault_nonce, vault);
 
-  if (response.error) {
-    return { success: false, error: response.error };
+  if (!opened) return { success: false, error: "vault_unavailable" };
+
+  const result = await write_vault_merged({
+    next: opened.next,
+    base,
+    passphrase: opened.passphrase,
+    user_id: expected_user_id,
+    vault_format,
+    preserve_pq_prekeys: preserve_pq_prekeys ?? false,
+  });
+
+  if (result.status === "written") {
+    return { success: true, vault: result.vault };
   }
 
-  return { success: response.data?.success ?? false };
+  if (result.status === "failed") {
+    return { success: false, error: result.error };
+  }
+
+  return { success: false, error: result.status };
 }
 
 export interface VaultHistoryEntry {

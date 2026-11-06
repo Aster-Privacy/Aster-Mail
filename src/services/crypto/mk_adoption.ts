@@ -21,15 +21,12 @@
 import type { EncryptedVault } from "./key_manager";
 
 import { get_current_account } from "../account_manager";
-import { api_client } from "../api/client";
 
 import { sync_vault_with_server } from "./ensure_ratchet_keys";
-import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
-import { encrypt_vault, decrypt_vault } from "./key_manager";
+import { write_vault_merged } from "./vault_cas_write";
 import {
   is_master_key_vault,
   get_vault_from_memory,
-  store_vault_in_memory,
   MASTER_KEY_VAULT_FORMAT,
 } from "./memory_key_store";
 import { with_vault_write_lock } from "./vault_write_lock";
@@ -38,8 +35,6 @@ import {
   collect_prior_storage_keys,
   install_random_storage_key,
 } from "./storage_write_key";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 let adoption_in_flight: Promise<boolean> | null = null;
 
@@ -94,54 +89,15 @@ async function run_adoption(
     prior_keys.forEach((raw) => zero_uint8_array(raw));
   }
 
-  const { encrypted_vault, vault_nonce } = await encrypt_vault(
-    upgraded,
+  const result = await write_vault_merged({
+    next: upgraded,
+    base: vault,
     passphrase,
-  );
-
-  try {
-    const roundtrip = await decrypt_vault(
-      encrypted_vault,
-      vault_nonce,
-      passphrase,
-    );
-
-    if (
-      roundtrip.identity_key !== upgraded.identity_key ||
-      roundtrip.data_kek !== upgraded.data_kek ||
-      roundtrip.data_kek_random !== true ||
-      (roundtrip.vault_format ?? 1) < MASTER_KEY_VAULT_FORMAT
-    ) {
-      return false;
-    }
-  } catch {
-    return false;
-  }
-
-  const vault_key_fingerprints = await collect_vault_key_fingerprints(upgraded);
-
-  const response = await api_client.put("/crypto/v1/keys/vault", {
-    encrypted_vault,
-    vault_nonce,
-    expected_user_id: user_id,
+    user_id,
     vault_format: MASTER_KEY_VAULT_FORMAT,
     preserve_pq_prekeys: true,
-    ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
+    owns_storage_key: true,
   });
 
-  if (response.error) return false;
-
-  try {
-    localStorage.setItem(
-      `astermail_encrypted_vault_${user_id}`,
-      encrypted_vault,
-    );
-    localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
-  } catch (caught) {
-    ignore_error("services/crypto/mk_adoption:run_adoption", caught);
-  }
-
-  await store_vault_in_memory(upgraded, passphrase);
-
-  return true;
+  return result.status === "written" && result.vault.data_kek_random === true;
 }

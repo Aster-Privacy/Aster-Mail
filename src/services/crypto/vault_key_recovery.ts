@@ -33,7 +33,6 @@ import { encrypt_vault } from "@/services/crypto/key_manager";
 import {
   get_vault_from_memory,
   get_passphrase_from_memory,
-  store_vault_in_memory,
   MASTER_KEY_VAULT_FORMAT,
 } from "@/services/crypto/memory_key_store";
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
@@ -160,13 +159,10 @@ export async function merge_recovered_keys_into_vault(
       current_account?.user?.id,
       undefined,
       new_vault,
+      vault,
     );
 
-    if (!saved.success) return false;
-
-    await store_vault_in_memory(new_vault, passphrase);
-
-    return true;
+    return saved.success;
   });
 }
 
@@ -282,23 +278,12 @@ export async function recover_ratchet_keys_from_history_locked(): Promise<Encryp
     user_id,
     true,
     next_vault,
+    vault,
   );
 
   if (!saved.success) return null;
 
-  await store_vault_in_memory(next_vault, passphrase, user_id);
-
-  try {
-    localStorage.setItem(
-      `astermail_encrypted_vault_${user_id}`,
-      encrypted_vault,
-    );
-    localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
-  } catch {
-    return next_vault;
-  }
-
-  return next_vault;
+  return saved.vault ?? next_vault;
 }
 
 export function recover_ratchet_keys_from_history(): Promise<EncryptedVault | null> {

@@ -27,13 +27,16 @@ import {
   has_vault_in_memory,
   has_vault_in_memory_for,
 } from "@/services/crypto/memory_key_store";
-import { get_storage_write_key_bytes } from "@/services/crypto/storage_write_key";
+import { load_storage_write_key_bytes } from "@/services/crypto/storage_write_key";
 import {
   auto_rekey_if_needed,
   reset_rekey_flag,
 } from "@/services/crypto/auto_rekey";
 import { adopt_master_key_if_needed } from "@/services/crypto/mk_adoption";
-import { run_storage_key_maintenance } from "@/services/crypto/storage_rotation/background";
+import {
+  prepare_storage_key_gate,
+  run_storage_key_maintenance,
+} from "@/services/crypto/storage_rotation/background";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
@@ -137,6 +140,7 @@ export async function decrypt_vault_with_lock(
     const vault = await decrypt_vault(encrypted_vault, vault_nonce, passphrase);
 
     reset_rekey_flag();
+    prepare_storage_key_gate();
     await store_vault_in_memory(vault, passphrase, owner_user_id);
 
     backfill_password_strength_tier(
@@ -178,7 +182,7 @@ export async function decrypt_vault_with_lock(
       .then(async () => {
         await ensure_pq_prekeys_available();
 
-        const master_key = get_storage_write_key_bytes();
+        const master_key = await load_storage_write_key_bytes();
 
         if (!master_key) return;
 

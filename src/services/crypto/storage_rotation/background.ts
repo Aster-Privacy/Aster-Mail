@@ -20,6 +20,7 @@
 //
 import type { ResealApi } from "./reseal_io";
 import type { ResealRunResult } from "./run";
+import type { StorageVaultOutcome } from "./vault_step";
 
 import { local_progress_store } from "./reseal_io";
 import { needs_storage_reseal, run_storage_reseal } from "./run";
@@ -27,14 +28,121 @@ import {
   ensure_random_storage_key,
   mark_storage_rekey_done,
   server_storage_key_matches,
+  STORAGE_STEP_UNREADABLE,
+  STORAGE_STEP_UNSUPPORTED,
 } from "./vault_step";
 import { get_vault_from_memory } from "../memory_key_store";
+import { vault_passphrase } from "../vault_cas_write";
+import {
+  is_storage_key_held,
+  mark_storage_key_verified,
+  set_storage_key_runner,
+  wake_storage_key_waiters,
+} from "../storage_key_gate";
 
 import { get_current_account } from "@/services/account_manager";
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
 
 export const RESEAL_RETRY_DELAYS_MS = [60_000, 5 * 60_000, 15 * 60_000];
+export const VAULT_STEP_RETRY_DELAYS_MS = [2_000, 5_000, 15_000, 30_000, 60_000];
+
+let step_in_flight: Promise<StorageVaultOutcome> | null = null;
+let step_timer: ReturnType<typeof setTimeout> | null = null;
+let step_attempt = 0;
+let online_listener: (() => void) | null = null;
+
+function clear_step_timer(): void {
+  if (step_timer) clearTimeout(step_timer);
+  step_timer = null;
+}
+
+function watch_online(): void {
+  if (online_listener || typeof window === "undefined") return;
+  online_listener = () => {
+    clear_step_timer();
+    kick_vault_step();
+  };
+  window.addEventListener("online", online_listener);
+}
+
+function unwatch_online(): void {
+  if (!online_listener || typeof window === "undefined") return;
+  window.removeEventListener("online", online_listener);
+  online_listener = null;
+}
+
+function schedule_vault_step(): void {
+  if (step_timer) return;
+
+  const delay =
+    VAULT_STEP_RETRY_DELAYS_MS[
+      Math.min(step_attempt, VAULT_STEP_RETRY_DELAYS_MS.length - 1)
+    ];
+
+  step_attempt += 1;
+  watch_online();
+  step_timer = setTimeout(() => {
+    step_timer = null;
+    kick_vault_step();
+  }, delay);
+}
+
+function kick_vault_step(): void {
+  if (step_in_flight || step_timer) return;
+
+  const passphrase = vault_passphrase();
+
+  if (!passphrase) return;
+
+  void run_vault_step(passphrase);
+}
+
+const STEP_RELEASES_GATE = new Set([
+  STORAGE_STEP_UNSUPPORTED,
+  STORAGE_STEP_UNREADABLE,
+]);
+
+export function run_vault_step(
+  passphrase: string,
+): Promise<StorageVaultOutcome> {
+  if (step_in_flight) return step_in_flight;
+
+  clear_step_timer();
+  set_storage_key_runner(kick_vault_step);
+
+  step_in_flight = ensure_random_storage_key(passphrase)
+    .catch((caught): StorageVaultOutcome => {
+      ignore_error("services/crypto/storage_rotation:vault_step", caught);
+
+      return { status: "skipped", reason: "error" };
+    })
+    .then((outcome) => {
+      step_in_flight = null;
+
+      if (outcome.status !== "skipped") {
+        mark_storage_key_verified(outcome.vault.data_kek ?? null);
+      } else if (STEP_RELEASES_GATE.has(outcome.reason)) {
+        mark_storage_key_verified(get_vault_from_memory()?.data_kek ?? null);
+      }
+
+      if (is_storage_key_held(get_vault_from_memory())) {
+        schedule_vault_step();
+      } else {
+        step_attempt = 0;
+        unwatch_online();
+      }
+      wake_storage_key_waiters();
+
+      return outcome;
+    });
+
+  return step_in_flight;
+}
+
+export function prepare_storage_key_gate(): void {
+  set_storage_key_runner(kick_vault_step);
+}
 
 const reseal_api: ResealApi = {
   get: (path) => api_client.get(path, { skip_cache: true, skip_dedup: true }),
@@ -114,7 +222,7 @@ export type StorageMaintenance = "reseal_started" | "not_needed";
 export async function run_storage_key_maintenance(
   passphrase: string,
 ): Promise<StorageMaintenance> {
-  const outcome = await ensure_random_storage_key(passphrase);
+  const outcome = await run_vault_step(passphrase);
 
   if (outcome.status === "skipped") return "not_needed";
   if (!needs_storage_reseal(get_vault_from_memory())) return "not_needed";

@@ -119,7 +119,23 @@ function expect_storage_fields(
 describe("storage key fields survive every vault rewrite", () => {
   beforeEach(() => {
     push_vault_to_server.mockReset();
-    push_vault_to_server.mockResolvedValue(true);
+    push_vault_to_server.mockImplementation(async (
+      _encrypted: string,
+      _nonce: string,
+      user_id: string,
+      _format: number,
+      vault: EncryptedVault,
+    ) => {
+      const store = await import("./memory_key_store");
+  
+      await store.store_vault_in_memory(
+        vault,
+        store.get_passphrase_from_memory() ?? "",
+        user_id,
+      );
+  
+      return vault;
+    });
     save_recovery_backup.mockReset();
     save_recovery_backup.mockResolvedValue({ data: { success: true } });
     clear_vault_from_memory();

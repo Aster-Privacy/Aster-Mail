@@ -52,3 +52,27 @@ export function with_vault_write_lock<T>(fn: () => Promise<T>): Promise<T> {
 
   return with_tab_lock(() => manager.request(LOCK_NAME, fn));
 }
+
+export function with_vault_write_lock_bounded<T>(
+  fn: () => Promise<T>,
+  wait_ms: number,
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    let started = false;
+    const run = (): Promise<void> => {
+      if (started) return Promise.resolve();
+      started = true;
+
+      return fn().then(resolve, reject);
+    };
+    const timer = setTimeout(() => {
+      void run();
+    }, wait_ms);
+
+    void with_vault_write_lock(() => {
+      clearTimeout(timer);
+
+      return run();
+    });
+  });
+}
