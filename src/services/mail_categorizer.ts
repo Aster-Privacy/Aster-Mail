@@ -50,13 +50,15 @@ import {
   FINANCE_SUBJECT_PATTERNS,
   TRAVEL_SUBJECT_PATTERNS,
   SHOPPING_SUBJECT_PATTERNS,
+  ACCOUNT_ACCESS_SUBJECT_PATTERNS,
+  ACCOUNT_ACCESS_HEADER_NAMES,
 } from "@/data/category_signals";
 import {
   BUILTIN_CATEGORY_IDS,
   DEFAULT_ENABLED_CATEGORIES,
 } from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 5;
+export const CLASSIFIER_VERSION = 6;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -177,6 +179,19 @@ function matches_any(text: string, patterns: readonly RegExp[]): boolean {
   }
 
   return false;
+}
+
+function is_account_access_mail(
+  subject: string,
+  headers: Map<string, string>,
+): boolean {
+  if (matches_any(subject, PROMOTIONS_SUBJECT_PATTERNS)) return false;
+
+  for (const name of ACCOUNT_ACCESS_HEADER_NAMES) {
+    if (headers.has(name)) return true;
+  }
+
+  return matches_any(subject, ACCOUNT_ACCESS_SUBJECT_PATTERNS);
 }
 
 // Updates and Transactions share every entry point, so the split lives in one
@@ -316,6 +331,10 @@ export function classify(
 
   if (custom_match) {
     return custom_match;
+  }
+
+  if (is_account_access_mail(subject, headers)) {
+    return "primary";
   }
 
   const list_shaped =
