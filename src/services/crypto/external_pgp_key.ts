@@ -484,6 +484,83 @@ async function sign_challenge(
   })) as string;
 }
 
+function owner_unchanged(user_id: string, data_kek_b64: string | null): boolean {
+  return current_owner() === user_id && current_data_kek() === data_kek_b64;
+}
+
+function record_from_response(data: unknown): external_key_record | null {
+  if (is_record(data)) return data;
+
+  const nested = (data as { key?: unknown } | undefined)?.key;
+
+  return is_record(nested) ? nested : null;
+}
+
+type put_outcome =
+  | { ok: true; returned: external_key_record | null }
+  | { ok: false; result: external_key_action_result };
+
+async function put_external_key(
+  signing_key: PrivateKey,
+  user_id: string,
+  data_kek_b64: string,
+  public_key_armored: string,
+  wrapped_private_key: string,
+): Promise<put_outcome> {
+  if (!owner_unchanged(user_id, data_kek_b64)) {
+    return { ok: false, result: { ok: false, code: "ACCOUNT_CHANGED" } };
+  }
+
+  const challenge_response = await api_client.post<{
+    challenge: string;
+    expires_at: string;
+  }>(`${EXTERNAL_PGP_ENDPOINT}/challenge`, {});
+
+  if (challenge_response.error || !challenge_response.data?.challenge) {
+    return { ok: false, result: failure(challenge_response) };
+  }
+
+  const challenge = challenge_response.data.challenge;
+  const challenge_signature = await sign_challenge(
+    signing_key,
+    user_id,
+    challenge,
+  );
+
+  if (!owner_unchanged(user_id, data_kek_b64)) {
+    return { ok: false, result: { ok: false, code: "ACCOUNT_CHANGED" } };
+  }
+
+  const response = await api_client.put<unknown>(EXTERNAL_PGP_ENDPOINT, {
+    public_key_armored,
+    wrapped_private_key,
+    challenge,
+    challenge_signature,
+  });
+
+  if (response.error) return { ok: false, result: failure(response) };
+
+  return { ok: true, returned: record_from_response(response.data) };
+}
+
+async function adopt_material(
+  material: unlocked_material,
+  record: external_key_record,
+  user_id: string,
+  data_kek_b64: string,
+): Promise<boolean> {
+  if (!owner_unchanged(user_id, data_kek_b64)) return false;
+
+  load_generation += 1;
+  load_signature = `${user_id}|${data_kek_b64}`;
+  load_promise = Promise.resolve();
+  unlocked = material;
+  emit({ status: "ready", record, loaded: true });
+  await remember_record(user_id, record);
+
+  return true;
+}
+
 export async function upload_external_key(
   normalized: normalized_external_key,
 ): Promise<external_key_action_result> {
@@ -511,37 +588,23 @@ export async function upload_external_key(
     plaintext.fill(0);
   }
 
-  const challenge_response = await api_client.post<{
-    challenge: string;
-    expires_at: string;
-  }>(`${EXTERNAL_PGP_ENDPOINT}/challenge`, {});
-
-  if (challenge_response.error || !challenge_response.data?.challenge) {
-    return failure(challenge_response);
-  }
-
-  const challenge = challenge_response.data.challenge;
-  const challenge_signature = await sign_challenge(
+  const public_key_armored = normalized.key.toPublic().armor();
+  const previous_published =
+    state.record &&
+    normalize_external_fingerprint(state.record.fingerprint) === fingerprint
+      ? state.record.published
+      : false;
+  const outcome = await put_external_key(
     normalized.key,
     user_id,
-    challenge,
-  );
-  const public_key_armored = normalized.key.toPublic().armor();
-  const response = await api_client.put<unknown>(EXTERNAL_PGP_ENDPOINT, {
+    data_kek_b64,
     public_key_armored,
-    wrapped_private_key: wrapped,
-    challenge,
-    challenge_signature,
-  });
+    wrapped,
+  );
 
-  if (response.error) return failure(response);
+  if (!outcome.ok) return outcome.result;
 
-  const returned = is_record(response.data)
-    ? response.data
-    : is_record((response.data as { key?: unknown } | undefined)?.key)
-      ? ((response.data as { key: external_key_record }).key)
-      : null;
-  const record: external_key_record = returned ?? {
+  const record: external_key_record = outcome.returned ?? {
     fingerprint,
     key_id: normalized.summary.key_id,
     algorithm: normalized.summary.algorithm,
@@ -550,23 +613,90 @@ export async function upload_external_key(
     wrapped_private_key: wrapped,
     created_at: normalized.summary.created_at.toISOString(),
     expires_at: normalized.summary.expires_at?.toISOString() ?? null,
-    published: false,
+    published: previous_published,
     uid_mismatch: false,
   };
+  const adopted = await adopt_material(
+    { key: normalized.key, armored: normalized.key.armor() },
+    record,
+    user_id,
+    data_kek_b64,
+  );
 
-  load_generation += 1;
-  load_signature = `${user_id}|${data_kek_b64}`;
-  load_promise = Promise.resolve();
-  unlocked = { key: normalized.key, armored: normalized.key.armor() };
-  emit({ status: "ready", record, loaded: true });
-  await remember_record(user_id, record);
+  if (!adopted) return { ok: false, code: "ACCOUNT_CHANGED" };
 
   return { ok: true, record };
+}
+
+async function restore_previous_key(
+  previous: external_key_record,
+  material: unlocked_material,
+  user_id: string,
+  data_kek_b64: string,
+): Promise<void> {
+  const outcome = await put_external_key(
+    material.key,
+    user_id,
+    data_kek_b64,
+    previous.public_key_armored,
+    previous.wrapped_private_key,
+  );
+
+  if (!outcome.ok) return;
+
+  const restored: external_key_record = outcome.returned ?? {
+    ...previous,
+    published: false,
+  };
+  const adopted = await adopt_material(material, restored, user_id, data_kek_b64);
+
+  if (adopted && previous.published && !restored.published) {
+    await set_external_key_published(true).catch(() => undefined);
+  }
+}
+
+export async function replace_external_key(
+  normalized: normalized_external_key,
+): Promise<external_key_action_result> {
+  const user_id = current_owner();
+  const data_kek_b64 = current_data_kek();
+
+  if (!user_id || !data_kek_b64) {
+    return { ok: false, code: "MASTER_KEY_REQUIRED" };
+  }
+
+  const previous = state.record;
+  const previous_material = unlocked;
+  const fingerprint = normalized.key.getFingerprint().toLowerCase();
+
+  if (
+    !previous ||
+    normalize_external_fingerprint(previous.fingerprint) === fingerprint
+  ) {
+    return upload_external_key(normalized);
+  }
+
+  const purged = await delete_external_key(true);
+
+  if (!purged.ok) return purged;
+
+  const uploaded = await upload_external_key(normalized);
+
+  if (uploaded.ok) return uploaded;
+
+  if (previous_material && owner_unchanged(user_id, data_kek_b64)) {
+    await restore_previous_key(previous, previous_material, user_id, data_kek_b64);
+  }
+
+  return uploaded;
 }
 
 export async function set_external_key_published(
   publish: boolean,
 ): Promise<external_key_action_result> {
+  const user_id = current_owner();
+  const data_kek_b64 = current_data_kek();
+  const current = state.record;
   const response = await api_client.post<unknown>(
     `${EXTERNAL_PGP_ENDPOINT}/publish`,
     { publish },
@@ -574,14 +704,12 @@ export async function set_external_key_published(
 
   if (response.error) return failure(response);
 
-  const user_id = current_owner();
-  const current = state.record;
   const returned = is_record(response.data) ? response.data : null;
   const record = returned ?? (current ? { ...current, published: publish } : null);
 
-  if (record) {
-    emit({ ...state, record });
-    if (user_id) await remember_record(user_id, record);
+  if (record && user_id) {
+    if (owner_unchanged(user_id, data_kek_b64)) emit({ ...state, record });
+    await remember_record(user_id, record);
   }
 
   return { ok: true, record };
@@ -590,28 +718,33 @@ export async function set_external_key_published(
 export async function delete_external_key(
   purge: boolean,
 ): Promise<external_key_action_result> {
+  const user_id = current_owner();
+  const data_kek_b64 = current_data_kek();
+  const current = state.record;
   const response = await api_client.delete<unknown>(
     `${EXTERNAL_PGP_ENDPOINT}?purge=${purge ? "true" : "false"}`,
   );
 
   if (response.error) return failure(response);
 
-  const user_id = current_owner();
+  const still_owner = user_id !== null && owner_unchanged(user_id, data_kek_b64);
 
   if (purge) {
-    load_generation += 1;
-    unlocked = null;
-    emit({ status: "none", record: null, loaded: true });
+    if (still_owner) {
+      load_generation += 1;
+      unlocked = null;
+      emit({ status: "none", record: null, loaded: true });
+    }
     if (user_id) await remove_cached_external_key(user_id);
 
     return { ok: true, record: null };
   }
 
-  const record = state.record ? { ...state.record, published: false } : null;
+  const record = current ? { ...current, published: false } : null;
 
-  if (record) {
-    emit({ ...state, record });
-    if (user_id) await remember_record(user_id, record);
+  if (record && user_id) {
+    if (still_owner) emit({ ...state, record });
+    await remember_record(user_id, record);
   }
 
   return { ok: true, record };

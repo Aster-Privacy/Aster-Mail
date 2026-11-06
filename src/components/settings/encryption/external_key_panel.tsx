@@ -80,6 +80,7 @@ import {
   delete_external_key,
   export_external_public_key,
   prepare_external_key_import,
+  replace_external_key,
   request_external_pgp_key_load,
   set_external_key_published,
   upload_external_key,
@@ -287,18 +288,9 @@ function ImportModal({
     set_busy(true);
     set_error("");
 
-    if (replacing) {
-      const removed = await delete_external_key(true);
-
-      if (!removed.ok) {
-        set_busy(false);
-        set_error(t("settings.external_key_error_generic"));
-
-        return;
-      }
-    }
-
-    const result = await upload_external_key(prepared);
+    const result = replacing
+      ? await replace_external_key(prepared)
+      : await upload_external_key(prepared);
 
     set_busy(false);
 
