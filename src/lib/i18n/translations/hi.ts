@@ -3261,6 +3261,10 @@ export const hi = {
     action_recommended: "कार्रवाई की सलाह दी जाती है",
     two_step_verification_enabled_description:
       "आपके खाते में पासवर्ड के साथ सत्यापन कोड भी ज़रूरी है।",
+    two_step_verification_security_key_description:
+      "सुरक्षा कुंजी या पासकी के साथ चालू है। आप पासवर्ड के साथ हर साइन-इन की पुष्टि अपनी कुंजी से करते हैं।",
+    two_step_verification_both_description:
+      "ऑथेंटिकेटर ऐप और सुरक्षा कुंजी के साथ चालू है। आप पासवर्ड के साथ हर साइन-इन की पुष्टि कोड या अपनी कुंजी से करते हैं।",
     two_step_verification_recommendation:
       "पासवर्ड चोरी होने पर भी खाता सुरक्षित रखने के लिए दो-चरणीय सत्यापन चालू करें।",
     no_passkeys_recommendation:

@@ -7681,6 +7681,10 @@ export const pl = {
     action_recommended: "Zalecana czynność",
     two_step_verification_enabled_description:
       "Twoje konto wymaga kodu weryfikacyjnego oprócz hasła.",
+    two_step_verification_security_key_description:
+      "Włączona przy użyciu klucza bezpieczeństwa lub klucza dostępu. Każde logowanie potwierdzasz kluczem oprócz hasła.",
+    two_step_verification_both_description:
+      "Włączona przy użyciu aplikacji uwierzytelniającej i klucza bezpieczeństwa. Każde logowanie potwierdzasz kodem lub kluczem oprócz hasła.",
     two_step_verification_recommendation:
       "Włącz weryfikację dwuetapową, aby chronić konto nawet w razie kradzieży hasła.",
     no_passkeys_recommendation:

@@ -7341,6 +7341,10 @@ export const ar = {
     action_recommended: "يوصى باتخاذ إجراء",
     two_step_verification_enabled_description:
       "يتطلب حسابك رمز تحقق بالإضافة إلى كلمة المرور.",
+    two_step_verification_security_key_description:
+      "مفعّل باستخدام مفتاح أمان أو مفتاح مرور. تؤكد كل عملية تسجيل دخول بمفتاحك بالإضافة إلى كلمة المرور.",
+    two_step_verification_both_description:
+      "مفعّل باستخدام تطبيق مصادقة ومفتاح أمان. تؤكد كل عملية تسجيل دخول برمز أو بمفتاحك بالإضافة إلى كلمة المرور.",
     two_step_verification_recommendation:
       "فعّل التحقق بخطوتين لإبقاء حسابك آمنًا حتى إذا سُرقت كلمة المرور.",
     no_passkeys_recommendation:

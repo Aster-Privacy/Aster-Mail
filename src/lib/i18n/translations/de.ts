@@ -7234,6 +7234,10 @@ export const de = {
     action_recommended: "Aktion empfohlen",
     two_step_verification_enabled_description:
       "Ihr Konto erfordert zusätzlich zum Passwort einen Bestätigungscode.",
+    two_step_verification_security_key_description:
+      "Aktiviert mit einem Sicherheitsschlüssel oder Passkey. Sie bestätigen jede Anmeldung zusätzlich zum Passwort mit Ihrem Schlüssel.",
+    two_step_verification_both_description:
+      "Aktiviert mit einer Authentifizierungs-App und einem Sicherheitsschlüssel. Sie bestätigen jede Anmeldung zusätzlich zum Passwort mit einem Code oder Ihrem Schlüssel.",
     two_step_verification_recommendation:
       "Aktivieren Sie die zweistufige Verifizierung, damit Ihr Konto auch bei gestohlenem Passwort sicher bleibt.",
     no_passkeys_recommendation:

@@ -3180,6 +3180,10 @@ export const en: Translations = {
     action_recommended: "Action recommended",
     two_step_verification_enabled_description:
       "Your account requires a verification code in addition to your password.",
+    two_step_verification_security_key_description:
+      "On, using a security key or passkey. You confirm each sign-in with your key in addition to your password.",
+    two_step_verification_both_description:
+      "On, using an authenticator app and a security key. You confirm each sign-in with a code or your key in addition to your password.",
     two_step_verification_recommendation:
       "Turn on two-step verification to keep your account safe even if your password is stolen.",
     no_passkeys_recommendation:

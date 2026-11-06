@@ -7269,6 +7269,10 @@ export const ko = {
     action_recommended: "조치 권장",
     two_step_verification_enabled_description:
       "계정에 비밀번호 외에 인증 코드가 필요합니다.",
+    two_step_verification_security_key_description:
+      "보안 키 또는 패스키로 켜져 있습니다. 로그인할 때마다 비밀번호와 함께 키로 확인합니다.",
+    two_step_verification_both_description:
+      "인증 앱과 보안 키로 켜져 있습니다. 로그인할 때마다 비밀번호와 함께 코드 또는 키로 확인합니다.",
     two_step_verification_recommendation:
       "비밀번호가 유출되더라도 계정을 안전하게 유지하려면 2단계 인증을 켜세요.",
     no_passkeys_recommendation:

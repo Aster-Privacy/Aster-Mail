@@ -3409,6 +3409,8 @@ export interface SettingsTranslations {
   criterion_forward_secrecy: string;
   action_recommended: string;
   two_step_verification_enabled_description: string;
+  two_step_verification_security_key_description: string;
+  two_step_verification_both_description: string;
   two_step_verification_recommendation: string;
   no_passkeys_recommendation: string;
   password_weak_recommendation: string;
