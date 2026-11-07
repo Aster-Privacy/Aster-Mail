@@ -231,9 +231,19 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
   const add_folder = useCallback(
     async (email: InboxEmail, folder_token: string): Promise<boolean> => {
       set_action_loading("label", true);
+      const scope = {
+        include_thread: trashes_whole_thread(
+          email,
+          preferences.conversation_grouping,
+        ),
+      };
 
       try {
-        const result = await add_mail_item_folder(email.id, { folder_token });
+        const result = await add_mail_item_folder(
+          email.id,
+          { folder_token },
+          scope,
+        );
 
         if (result.error) {
           set_action_error("label", result.error);
@@ -256,9 +266,25 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
             const undo_result = await remove_mail_item_folder(
               email.id,
               folder_token,
+              scope,
             );
 
             if (undo_result.error) throw new Error("undo add label failed");
+            if (scope.include_thread) {
+              const previous_folders = (
+                email.folders ??
+                email.labels ??
+                []
+              ).filter((folder) => folder.folder_token !== folder_token);
+
+              for (const previous of previous_folders) {
+                await add_mail_item_folder(
+                  email.id,
+                  { folder_token: previous.folder_token },
+                  scope,
+                );
+              }
+            }
             emit_mail_changed();
           },
         });
@@ -281,6 +307,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
       clear_action_state,
       config.on_success,
       resolve_folder_name,
+      preferences.conversation_grouping,
       t,
     ],
   );
@@ -288,9 +315,19 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
   const remove_folder = useCallback(
     async (email: InboxEmail, folder_token: string): Promise<boolean> => {
       set_action_loading("label", true);
+      const scope = {
+        include_thread: trashes_whole_thread(
+          email,
+          preferences.conversation_grouping,
+        ),
+      };
 
       try {
-        const result = await remove_mail_item_folder(email.id, folder_token);
+        const result = await remove_mail_item_folder(
+          email.id,
+          folder_token,
+          scope,
+        );
 
         if (result.error) {
           set_action_error("label", result.error);
@@ -310,9 +347,11 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
           action_type: "folder",
           email_ids: [email.id],
           on_undo: async () => {
-            const undo_result = await add_mail_item_folder(email.id, {
-              folder_token,
-            });
+            const undo_result = await add_mail_item_folder(
+              email.id,
+              { folder_token },
+              scope,
+            );
 
             if (undo_result.error) throw new Error("undo remove label failed");
             emit_mail_changed();
@@ -337,6 +376,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
       clear_action_state,
       config.on_success,
       resolve_folder_name,
+      preferences.conversation_grouping,
       t,
     ],
   );
@@ -344,6 +384,12 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
   const move_to_folder = useCallback(
     async (email: InboxEmail, folder_token: string): Promise<boolean> => {
       set_action_loading("move", true);
+      const scope = {
+        include_thread: trashes_whole_thread(
+          email,
+          preferences.conversation_grouping,
+        ),
+      };
 
       try {
         const current_folders = email.folders ?? email.labels ?? [];
@@ -351,10 +397,11 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
           current_folders.length === 1
             ? current_folders[0].folder_token
             : undefined;
-        const result = await move_mail_item(email.id, {
-          folder_token,
-          from_folder_token,
-        });
+        const result = await move_mail_item(
+          email.id,
+          { folder_token, from_folder_token },
+          scope,
+        );
 
         if (result.error) {
           set_action_error("move", result.error);
@@ -395,6 +442,7 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
       config.on_remove_from_list,
       config.on_success,
       resolve_folder_name,
+      preferences.conversation_grouping,
       t,
     ],
   );

@@ -274,9 +274,10 @@ export function use_folder_tag_actions({
           update_email(email.id, { folders: compute_next_folders(email.id) });
         }
       }
+      const scope = { include_thread: conversation_grouping !== false };
       const batch_result = should_remove
-        ? await batched_bulk_remove_folder(all_ids, folder_token)
-        : await batched_bulk_add_folder(all_ids, folder_token);
+        ? await batched_bulk_remove_folder(all_ids, folder_token, scope)
+        : await batched_bulk_add_folder(all_ids, folder_token, scope);
 
       const failed_message_ids = new Set(batch_result.failed_ids);
       const failed_emails = selected.filter((e) =>
@@ -331,14 +332,18 @@ export function use_folder_tag_actions({
         email_ids: succeeded_ids,
         on_undo: async () => {
           if (should_remove) {
-            await batched_bulk_add_folder(succeeded_ids, folder_token);
+            await batched_bulk_add_folder(succeeded_ids, folder_token, scope);
             remove_index_ids(succeeded_ids);
           } else {
-            await batched_bulk_remove_folder(succeeded_ids, folder_token);
+            await batched_bulk_remove_folder(
+              succeeded_ids,
+              folder_token,
+              scope,
+            );
             for (const [previous_token, ids] of group_ids_by_folder(
               succeeded_emails,
             )) {
-              await batched_bulk_add_folder(ids, previous_token);
+              await batched_bulk_add_folder(ids, previous_token, scope);
             }
             reindex_ids(succeeded_ids);
           }
@@ -361,6 +366,7 @@ export function use_folder_tag_actions({
       is_drafts_view,
       is_scheduled_view,
       handle_toolbar_move_out_of_bin,
+      conversation_grouping,
       t,
     ],
   );
