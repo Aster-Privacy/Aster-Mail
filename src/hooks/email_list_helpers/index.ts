@@ -44,5 +44,7 @@ export {
   UNKNOWN_TOTAL,
   VIEW_PARAMS,
   is_outgoing_view,
+  resolve_list_total,
+  grow_list_total,
 } from "./views";
 export type { MailView } from "./views";

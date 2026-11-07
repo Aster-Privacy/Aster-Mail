@@ -7725,6 +7725,8 @@ export interface MailTranslations {
   select_all_in_folder_one?: string;
   all_in_folder_selected: string;
   all_in_folder_selected_one?: string;
+  select_all_in_folder_unknown: string;
+  all_in_folder_selected_unknown: string;
   inbox: string;
   sent: string;
   drafts: string;

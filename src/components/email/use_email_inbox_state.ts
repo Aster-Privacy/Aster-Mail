@@ -571,6 +571,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     active_category: categories.enabled ? categories.active_category : "",
     is_drafts_view,
     is_scheduled_view,
+    is_loading: email_state.is_loading,
     emails: email_state.emails,
     pinned_emails,
     primary_emails,

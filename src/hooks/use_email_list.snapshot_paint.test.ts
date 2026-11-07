@@ -47,11 +47,19 @@ vi.mock("@/services/list_snapshot_store", () => ({
   schedule_list_snapshot: mocks.schedule_list_snapshot,
 }));
 
-vi.mock("@/hooks/email_list_helpers", () => ({
-  fetch_mail_from_api: mocks.fetch_mail_from_api,
-  insert_emails_at: (emails: unknown[]) => emails,
-  DEFAULT_PAGE_SIZE: 50,
-}));
+vi.mock("@/hooks/email_list_helpers", async () => {
+  const views = await vi.importActual<
+    typeof import("@/hooks/email_list_helpers/views")
+  >("@/hooks/email_list_helpers/views");
+
+  return {
+    fetch_mail_from_api: mocks.fetch_mail_from_api,
+    insert_emails_at: (emails: unknown[]) => emails,
+    resolve_list_total: views.resolve_list_total,
+    grow_list_total: views.grow_list_total,
+    DEFAULT_PAGE_SIZE: 50,
+  };
+});
 
 vi.mock("@/hooks/email_list_helpers/silent_refresh", () => ({
   merge_silent_refresh_emails: (_prev: unknown[], next: unknown[]) => next,

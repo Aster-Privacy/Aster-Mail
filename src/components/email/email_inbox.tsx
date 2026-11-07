@@ -428,6 +428,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             on_toggle_star={handle_toggle_star_wrapped}
             on_unarchive={handle_unarchive_wrapped}
             on_view_change={on_view_change}
+            page_row_count={filtered_emails.length}
             page_selected_count={selection.page_selected_count}
             page_size={page_size}
             search_context={get_search_context(
@@ -449,6 +450,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             }))}
             total_email_count={nav.visible_ids.length}
             total_messages={effective_total_for_pages}
+            total_pages={total_pages}
             trash_count={mail_stats.trash}
             view_title={get_view_title(
               current_view,

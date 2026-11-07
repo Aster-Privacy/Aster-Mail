@@ -9315,6 +9315,8 @@ export const ja = {
     all_on_page_selected:
       "このページの {{ count }} 件の会話がすべて選択されています。",
     select_all_in_folder: "「{{ folder }}」の {{ count }} 件の会話をすべて選択",
+    select_all_in_folder_unknown: "「{{ folder }}」の会話をすべて選択",
+    all_in_folder_selected_unknown: "「{{ folder }}」の会話がすべて選択されています。",
     all_in_folder_selected: "{{ count }} 件の会話がすべて選択されています。",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "別のアドレスから返信しますか？",

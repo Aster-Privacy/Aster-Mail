@@ -76,6 +76,7 @@ import {
 import { ignore_error } from "@/lib/ignore_error";
 import { compare_timestamps_desc } from "@/utils/email_timestamp";
 import { unarchive_keeps_row } from "./view_membership";
+import { grow_list_total } from "./email_list_helpers";
 
 interface UseEmailListActionsParams {
   state: EmailListState;
@@ -338,7 +339,7 @@ export function use_email_list_actions({
                 b.raw_timestamp || b.timestamp,
               ),
             ),
-            total_messages: prev.total_messages + 1,
+            total_messages: grow_list_total(prev.total_messages, 1),
           }));
         }
       }
@@ -399,7 +400,7 @@ export function use_email_list_actions({
                 b.raw_timestamp || b.timestamp,
               ),
             ),
-            total_messages: prev.total_messages + 1,
+            total_messages: grow_list_total(prev.total_messages, 1),
           }));
         }
         emit_mail_changed();

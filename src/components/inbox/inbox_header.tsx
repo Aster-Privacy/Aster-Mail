@@ -68,6 +68,7 @@ import {
 import { use_preferences } from "@/contexts/preferences_context";
 import { FilterDropdown } from "@/components/inbox/header/header_filters";
 import { HeaderPagination } from "@/components/inbox/header/header_pagination";
+import { resolve_select_all_banner } from "@/components/inbox/header/select_all_banner";
 import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale } from "@/utils/date_format";
@@ -113,6 +114,8 @@ interface InboxHeaderProps {
   total_messages?: number;
   current_page?: number;
   page_size?: number;
+  total_pages?: number;
+  page_row_count?: number;
   on_page_change?: (page: number) => void;
   is_trash_view?: boolean;
   on_empty_trash?: () => void;
@@ -183,6 +186,8 @@ export function InboxHeader({
   display_count,
   current_page = 0,
   page_size = DEFAULT_PAGE_SIZE,
+  total_pages,
+  page_row_count,
   on_page_change,
   is_trash_view = false,
   on_empty_trash,
@@ -250,19 +255,25 @@ export function InboxHeader({
   );
   const has_selection = all_selected || some_selected;
   const scope_selected_count = Math.max(total_messages - excluded_count, 0);
-  const display_selected = select_all_mode
-    ? scope_selected_count
-    : selected_count;
+  const page_count =
+    total_pages ??
+    (page_size > 0 ? Math.ceil(filtered_count / page_size) : 0);
+  const select_all_banner = resolve_select_all_banner({
+    all_selected: has_selection && all_selected,
+    select_all_mode,
+    total_messages,
+    page_selected_count,
+    has_next_page: current_page < page_count - 1,
+    can_activate: !!on_activate_select_all_mode,
+    can_clear: !!on_clear_selection,
+  });
+  const display_selected_label =
+    select_all_banner === "selected_unknown"
+      ? t("mail.all")
+      : (select_all_mode ? scope_selected_count : selected_count).toLocaleString(
+          app_locale(),
+        );
   const hide_mail_actions = is_drafts_view || is_scheduled_view;
-  const show_select_all_banner =
-    has_selection &&
-    all_selected &&
-    !select_all_mode &&
-    total_messages > page_selected_count &&
-    page_selected_count > 0 &&
-    !!on_activate_select_all_mode;
-  const show_all_selected_banner =
-    select_all_mode && total_messages > 0 && !!on_clear_selection;
   const [advanced_toolbar, set_advanced_toolbar] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     try {
@@ -501,7 +512,7 @@ export function InboxHeader({
         {has_selection && (
           <div className="flex items-center gap-0.5 min-w-0 flex-shrink">
             <span className="text-base leading-tight font-extrabold text-[var(--accent-color)] tabular-nums px-1.5 flex-shrink-0">
-              {display_selected.toLocaleString(app_locale())}
+              {display_selected_label}
             </span>
             <span
               className="text-base leading-tight flex-shrink-0 me-2 hidden sm:inline"
@@ -998,8 +1009,10 @@ export function InboxHeader({
             on_navigate_next={on_navigate_next}
             on_navigate_prev={on_navigate_prev}
             on_page_change={on_page_change}
+            page_row_count={page_row_count}
             page_size={page_size}
             total_email_count={total_email_count}
+            total_pages={total_pages}
           />
 
           <div className="md:hidden">
@@ -1014,9 +1027,10 @@ export function InboxHeader({
         </div>
       </div>
 
-      {(show_select_all_banner || show_all_selected_banner) && (
+      {select_all_banner !== "none" && (
         <div className="flex items-center justify-center gap-2 px-4 py-2 border-b border-[var(--border-secondary)] bg-[var(--bg-secondary)] text-sm text-[var(--text-secondary)]">
-          {show_select_all_banner ? (
+          {select_all_banner === "offer" ||
+          select_all_banner === "offer_unknown" ? (
             <>
               <span>
                 {t("mail.all_on_page_selected", {
@@ -1027,18 +1041,26 @@ export function InboxHeader({
                 className="flex-shrink-0 text-xs font-medium text-[var(--accent-color)] rounded px-1.5 py-0.5 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
                 onClick={on_activate_select_all_mode}
               >
-                {t("mail.select_all_in_folder", {
-                  count: total_messages,
-                  folder: selection_scope_title ?? view_title,
-                })}
+                {select_all_banner === "offer"
+                  ? t("mail.select_all_in_folder", {
+                      count: total_messages,
+                      folder: selection_scope_title ?? view_title,
+                    })
+                  : t("mail.select_all_in_folder_unknown", {
+                      folder: selection_scope_title ?? view_title,
+                    })}
               </button>
             </>
           ) : (
             <>
               <span>
-                {t("mail.all_in_folder_selected", {
-                  count: scope_selected_count,
-                })}
+                {select_all_banner === "selected"
+                  ? t("mail.all_in_folder_selected", {
+                      count: scope_selected_count,
+                    })
+                  : t("mail.all_in_folder_selected_unknown", {
+                      folder: selection_scope_title ?? view_title,
+                    })}
               </span>
               <button
                 className="flex-shrink-0 text-xs font-medium text-[var(--accent-color)] rounded px-1.5 py-0.5 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"

@@ -30,6 +30,7 @@ interface UseInboxSelectionOptions {
   active_category: string;
   is_drafts_view: boolean;
   is_scheduled_view: boolean;
+  is_loading?: boolean;
   emails: InboxEmail[];
   pinned_emails: InboxEmail[];
   primary_emails: InboxEmail[];
@@ -44,6 +45,7 @@ export function use_inbox_selection({
   active_category,
   is_drafts_view,
   is_scheduled_view,
+  is_loading = false,
   emails,
   pinned_emails,
   primary_emails,
@@ -75,6 +77,10 @@ export function use_inbox_selection({
   const page_emails_ref = useRef(page_emails);
 
   page_emails_ref.current = page_emails;
+  const is_loading_ref = useRef(is_loading);
+
+  is_loading_ref.current = is_loading;
+  const fill_page_on_load_ref = useRef(false);
 
   const get_update_fn = useCallback(() => {
     if (is_drafts_view)
@@ -156,6 +162,7 @@ export function use_inbox_selection({
     set_select_all_mode(false);
     excluded_groups_ref.current.clear();
     set_excluded_ids([]);
+    fill_page_on_load_ref.current = false;
     shift_anchor_ref.current = null;
     last_shift_target_ref.current = null;
 
@@ -191,8 +198,29 @@ export function use_inbox_selection({
     });
   }, [prune_hidden, emails, page_emails, get_update_fn]);
 
+  useEffect(() => {
+    if (!fill_page_on_load_ref.current) return;
+    if (!is_loading) fill_page_on_load_ref.current = false;
+
+    const unselected = page_emails.filter((e) => !e.is_selected);
+
+    if (unselected.length === 0) return;
+    if (unselected.length === page_emails.length) {
+      fill_page_on_load_ref.current = false;
+
+      return;
+    }
+
+    const update_fn = get_update_fn();
+
+    unselected.forEach((e) => {
+      update_fn(e.id, { is_selected: true });
+    });
+  }, [page_emails, is_loading, get_update_fn]);
+
   const handle_toggle_select = useCallback(
     (id: string): void => {
+      fill_page_on_load_ref.current = false;
       const shift = shift_ref.current;
       const current_emails = emails_ref.current;
       const current_page_emails = page_emails_ref.current;
@@ -281,6 +309,7 @@ export function use_inbox_selection({
       const update_fn = get_update_fn();
       const current_emails = emails_ref.current;
 
+      fill_page_on_load_ref.current = false;
       exit_select_all_mode();
 
       current_emails.forEach((e) => {
@@ -309,6 +338,7 @@ export function use_inbox_selection({
     const has_selection = current_emails.some((e) => e.is_selected);
 
     exit_select_all_mode();
+    fill_page_on_load_ref.current = !has_selection && is_loading_ref.current;
 
     if (has_selection) {
       current_emails.forEach((e) => {
@@ -329,6 +359,7 @@ export function use_inbox_selection({
     const update_fn = get_update_fn();
     const current_emails = emails_ref.current;
 
+    fill_page_on_load_ref.current = false;
     exit_select_all_mode();
 
     current_emails.forEach((e) => {
@@ -348,6 +379,7 @@ export function use_inbox_selection({
 
       const page_id_set = new Set(current_page_emails.map((e) => e.id));
 
+      fill_page_on_load_ref.current = false;
       exit_select_all_mode();
 
       const match = (e: InboxEmail): boolean => {

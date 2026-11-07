@@ -9505,6 +9505,8 @@ export const nl = {
     select_all_in_folder:
       "Alle {{ count }} gesprekken in {{ folder }} selecteren",
     select_all_in_folder_one: "{{ count }} gesprek in {{ folder }} selecteren",
+    select_all_in_folder_unknown: "Alle gesprekken in {{ folder }} selecteren",
+    all_in_folder_selected_unknown: "Alle gesprekken in {{ folder }} zijn geselecteerd.",
     all_in_folder_selected: "Alle {{ count }} gesprekken zijn geselecteerd.",
     all_in_folder_selected_one: "{{ count }} gesprek is geselecteerd.",
     reply_subject_prefix: "Re:",

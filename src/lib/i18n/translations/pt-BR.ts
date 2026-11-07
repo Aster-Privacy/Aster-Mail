@@ -9532,6 +9532,8 @@ export const pt_br = {
     select_all_in_folder:
       "Selecionar todas as {{ count }} conversas em {{ folder }}",
     select_all_in_folder_one: "Selecionar {{ count }} conversa em {{ folder }}",
+    select_all_in_folder_unknown: "Selecionar todas as conversas em {{ folder }}",
+    all_in_folder_selected_unknown: "Todas as conversas em {{ folder }} estão selecionadas.",
     all_in_folder_selected:
       "Todas as {{ count }} conversas estão selecionadas.",
     all_in_folder_selected_one: "{{ count }} conversa está selecionada.",
