@@ -41,6 +41,10 @@ import {
   safe_session_set,
 } from "@/lib/safe_storage";
 import { copy_text_or_throw } from "@/utils/copy_text";
+import {
+  derive_step_up_credentials,
+  STEP_UP_REQUIRED_CODE,
+} from "@/services/api/step_up";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
 import { get_default_profile_color } from "@/constants/profile";
@@ -1405,7 +1409,17 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
     set_is_saving_recovery_email(true);
     try {
-      const result = await save_recovery_email(recovery_email.trim(), vault);
+      let result = await save_recovery_email(recovery_email.trim(), vault);
+
+      if (result.code === STEP_UP_REQUIRED_CODE && password) {
+        const credentials = await derive_step_up_credentials(password);
+
+        result = await save_recovery_email(
+          recovery_email.trim(),
+          vault,
+          credentials,
+        );
+      }
 
       if (result.code === "CONFLICT") {
         set_recovery_email_error(t("auth.recovery_email_conflict"));
