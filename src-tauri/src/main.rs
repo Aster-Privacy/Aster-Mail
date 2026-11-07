@@ -406,6 +406,29 @@ fn open_in_default_handler(app: &tauri::AppHandle, url: String) {
     });
 }
 
+#[cfg(target_os = "macos")]
+fn exit_cleanly_on_power_off(app: &tauri::AppHandle) {
+    use block2::RcBlock;
+    use objc2_app_kit::{NSWorkspace, NSWorkspaceWillPowerOffNotification};
+    use objc2_foundation::NSNotification;
+    use std::ptr::NonNull;
+
+    let handle = app.clone();
+    let on_power_off = RcBlock::new(move |_: NonNull<NSNotification>| {
+        handle.exit(0);
+    });
+    let center = NSWorkspace::sharedWorkspace().notificationCenter();
+    let observer = unsafe {
+        center.addObserverForName_object_queue_usingBlock(
+            Some(NSWorkspaceWillPowerOffNotification),
+            None,
+            None,
+            &on_power_off,
+        )
+    };
+    std::mem::forget(observer);
+}
+
 #[tauri::command]
 async fn open_external_url(app: tauri::AppHandle, url: String) -> std::result::Result<(), String> {
     if url.chars().any(|c| c.is_control() || c.is_whitespace()) {
@@ -700,6 +723,9 @@ fn main() {
         .setup(|app| {
             #[cfg(target_os = "macos")]
             app.manage(DockPresenceState::default());
+
+            #[cfg(target_os = "macos")]
+            exit_cleanly_on_power_off(app.handle());
 
             #[cfg(all(unix, not(target_os = "macos")))]
             boot_guard::record_launch_attempt();

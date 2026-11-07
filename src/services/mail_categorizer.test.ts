@@ -152,14 +152,14 @@ describe("classify", () => {
     expect(classify(envelope)).toBe("primary");
   });
 
-  it("treats generic bulk mail without promo/updates signals as promotions", () => {
+  it("treats generic bulk mail without promo/updates signals as a newsletter", () => {
     const envelope = make_envelope({
       from: { name: "Some Newsletter", email: "hello@somesite.com" },
       subject: "This week at SomeSite",
       list_unsubscribe: "<mailto:unsub@somesite.com>",
     });
 
-    expect(classify(envelope)).toBe("promotions");
+    expect(classify(envelope)).toBe("newsletters");
   });
 
   it("always keeps system/internal Aster mail in Primary", () => {
@@ -194,6 +194,21 @@ describe("classify", () => {
     const envelope = make_envelope({
       from: { name: "Cool Brand", email: "hello@coolbrand.com" },
       subject: "This week at Cool Brand",
+      raw_headers: [
+        {
+          name: "DKIM-Signature",
+          value: "v=1; a=rsa-sha256; d=mcsv.net; s=k1",
+        },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("newsletters");
+  });
+
+  it("still sends a selling subject through a marketing ESP to promotions", () => {
+    const envelope = make_envelope({
+      from: { name: "Cool Brand", email: "hello@coolbrand.com" },
+      subject: "Last chance: 30% off sitewide",
       raw_headers: [
         {
           name: "DKIM-Signature",
@@ -353,8 +368,8 @@ describe("category folding", () => {
     expect(fold_builtin("transactions")).toBe("updates");
   });
 
-  it("folds Newsletters back into Promotions", () => {
-    expect(fold_builtin("newsletters")).toBe("promotions");
+  it("folds Newsletters into Updates so Deals keeps only selling mail", () => {
+    expect(fold_builtin("newsletters")).toBe("updates");
   });
 
   it("leaves both new tabs off by default", () => {
@@ -364,5 +379,193 @@ describe("category folding", () => {
     expect(
       BUILTIN_CATEGORIES.find((c) => c.id === "newsletters")?.default_enabled,
     ).toBe(false);
+  });
+});
+
+describe("deals precision", () => {
+  const esp_headers = [
+    {
+      name: "DKIM-Signature",
+      value: "v=1; a=rsa-sha256; d=sendgrid.net; s=s1",
+    },
+  ];
+  const marketing_cloud_headers = [
+    {
+      name: "DKIM-Signature",
+      value: "v=1; a=rsa-sha256; d=exacttarget.com; s=s1",
+    },
+  ];
+
+  it("keeps an MFA request out of Deals", () => {
+    const envelope = make_envelope({
+      from: { name: "Ubiquiti", email: "no-reply@ui.com" },
+      subject: "UniFi MFA Request",
+      list_unsubscribe: "<https://ui.com/unsub>",
+      raw_headers: esp_headers,
+    });
+
+    expect(classify(envelope)).toBe("primary");
+  });
+
+  it("keeps a multi-factor authentication code out of Deals", () => {
+    const envelope = make_envelope({
+      from: { name: "Some Service", email: "no-reply@someservice.example" },
+      subject: "Your multi-factor authentication code",
+      raw_headers: esp_headers,
+    });
+
+    expect(classify(envelope)).toBe("primary");
+  });
+
+  it("keeps a sign-in approval prompt out of Deals", () => {
+    const envelope = make_envelope({
+      from: { name: "Some Service", email: "no-reply@someservice.example" },
+      subject: "Approve your sign-in",
+      raw_headers: esp_headers,
+    });
+
+    expect(classify(envelope)).toBe("primary");
+  });
+
+  it("sends other Ubiquiti account mail to Updates", () => {
+    const envelope = make_envelope({
+      from: { name: "Ubiquiti", email: "no-reply@ui.com" },
+      subject: "Your console firmware was updated",
+      raw_headers: esp_headers,
+    });
+
+    expect(classify(envelope)).toBe("updates");
+  });
+
+  it("files an insurer's base rate notice under Finance", () => {
+    const envelope = make_envelope({
+      from: { name: "Aviva", email: "news@email.aviva.co.uk" },
+      subject: "The Bank of England has changed the base rate",
+      list_unsubscribe: "<https://aviva.co.uk/unsub>",
+      raw_headers: marketing_cloud_headers,
+    });
+
+    expect(classify(envelope)).toBe("finance");
+  });
+
+  it("files sports news from a marketing platform under Newsletters", () => {
+    const envelope = make_envelope({
+      from: { name: "UEFA", email: "news@news.uefa.com" },
+      subject: "Conference League: matchday 4 preview",
+      list_unsubscribe: "<https://uefa.com/unsub>",
+      raw_headers: marketing_cloud_headers,
+    });
+
+    expect(classify(envelope)).toBe("newsletters");
+  });
+
+  it("no longer treats a news@ sender as selling", () => {
+    const envelope = make_envelope({
+      from: { name: "Town Council", email: "news@towncouncil.example" },
+      subject: "Road closures this month",
+      list_unsubscribe: "<https://towncouncil.example/unsub>",
+    });
+
+    expect(classify(envelope)).toBe("newsletters");
+  });
+
+  it("keeps an offers@ sender in Deals", () => {
+    const envelope = make_envelope({
+      from: { name: "Shop", email: "offers@shop.example" },
+      subject: "Picked for you",
+      list_unsubscribe: "<https://shop.example/unsub>",
+    });
+
+    expect(classify(envelope)).toBe("promotions");
+  });
+
+  it("keeps emoji-led bulk marketing in Deals", () => {
+    const envelope = make_envelope({
+      from: { name: "Shop", email: "hello@shop.example" },
+      subject: "\u{1F381} Something new for you",
+      list_unsubscribe: "<https://shop.example/unsub>",
+    });
+
+    expect(classify(envelope)).toBe("promotions");
+  });
+
+  it("lets an emoji newsletter issue reach Newsletters", () => {
+    const envelope = make_envelope({
+      from: { name: "Weekly Read", email: "newsletter@weeklyread.example" },
+      subject: "\u{1F4DA} Issue #42",
+      list_unsubscribe: "<https://weeklyread.example/unsub>",
+      raw_headers: [{ name: "List-Id", value: "<weekly.weeklyread.example>" }],
+    });
+
+    expect(classify(envelope)).toBe("newsletters");
+  });
+
+  it("keeps account mail sent through an ESP in Updates", () => {
+    const envelope = make_envelope({
+      from: { name: "Shop", email: "hello@shop.example" },
+      subject: "Your account update",
+      raw_headers: esp_headers,
+    });
+
+    expect(classify(envelope)).toBe("updates");
+  });
+
+  it("keeps an MFA request in Deals after the user moves it there", () => {
+    const envelope = make_envelope({
+      from: { name: "Ubiquiti", email: "no-reply@ui.com" },
+      subject: "UniFi MFA Request",
+      raw_headers: esp_headers,
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("promotions");
+  });
+
+  it("keeps a base rate notice in Primary after the user moves it there", () => {
+    const envelope = make_envelope({
+      from: { name: "Aviva", email: "news@email.aviva.co.uk" },
+      subject: "The Bank of England has changed the base rate",
+      list_unsubscribe: "<https://aviva.co.uk/unsub>",
+      raw_headers: marketing_cloud_headers,
+    });
+    const metadata = {
+      category: "primary",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("primary");
+  });
+
+  it("keeps sports news in Deals after the user moves it there", () => {
+    const envelope = make_envelope({
+      from: { name: "UEFA", email: "news@news.uefa.com" },
+      subject: "Conference League: matchday 4 preview",
+      list_unsubscribe: "<https://uefa.com/unsub>",
+      raw_headers: marketing_cloud_headers,
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("promotions");
+  });
+
+  it("re-sorts an unpinned category written by an older classifier", () => {
+    const envelope = make_envelope({
+      from: { name: "UEFA", email: "news@news.uefa.com" },
+      subject: "Conference League: matchday 4 preview",
+      list_unsubscribe: "<https://uefa.com/unsub>",
+      raw_headers: marketing_cloud_headers,
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: false,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("newsletters");
   });
 });

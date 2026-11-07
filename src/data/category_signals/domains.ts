@@ -333,6 +333,18 @@ export const FINANCE_DOMAIN_SUFFIXES: readonly string[] = [
   "natwest.com",
   "santander.com",
   "santander.co.uk",
+  "aviva.co.uk",
+  "aviva.com",
+  "legalandgeneral.com",
+  "hl.co.uk",
+  "vanguardinvestor.co.uk",
+  "nationwide.co.uk",
+  "halifax.co.uk",
+  "lloydsbank.co.uk",
+  "natwest.co.uk",
+  "firstdirect.com",
+  "tsb.co.uk",
+  "nsandi.com",
   "bbva.com",
   "bnpparibas.com",
   "societegenerale.com",
@@ -697,6 +709,8 @@ export const SHOPPING_DOMAIN_SUFFIXES: readonly string[] = [
 ];
 
 export const UPDATES_DOMAIN_SUFFIXES: readonly string[] = [
+  "ui.com",
+  "ubnt.com",
   // Dev / SaaS / cloud
   "github.com",
   "gitlab.com",
