@@ -104,6 +104,25 @@ describe("export sidecar files", () => {
     expect(parse_export_labels(null).size).toBe(0);
   });
 
+  it("cleans control characters and empty segments from label names", () => {
+    const labels = parse_export_labels([
+      { ID: "a", Path: ["Work", "", " Projects\u0000\u202e "], Type: 3 },
+      { ID: "b", Path: "\u0007/ /", Name: " Receipts\u001b ", Type: 1 },
+      { ID: "c", Path: "//", Name: "\u0000", Type: 3 },
+    ]);
+
+    expect(labels.get("a")?.name).toBe("Work/Projects");
+    expect(labels.get("b")?.name).toBe("Receipts");
+    expect(labels.has("c")).toBe(false);
+  });
+
+  it("caps long label names without a trailing separator", () => {
+    const long = `${"a".repeat(511)}/b`;
+    const labels = parse_export_labels([{ ID: "a", Path: long, Type: 3 }]);
+
+    expect(labels.get("a")?.name).toBe("a".repeat(511));
+  });
+
   it("parses unread as a number or a boolean", () => {
     expect(
       parse_export_message({ ID: "x", LabelIDs: ["0"], Unread: 1 }),

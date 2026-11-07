@@ -27,6 +27,7 @@ const MAX_METADATA_BYTES = 1024 * 1024;
 const MAX_LABELS_BYTES = 8 * 1024 * 1024;
 const MAX_LABEL_IDS_PER_MESSAGE = 200;
 const MAX_LABEL_NAME_LENGTH = 512;
+const MAX_LABEL_INPUT_LENGTH = 4096;
 const FOLDER_LABEL_TYPE = 3;
 const TAG_LABEL_TYPE = 1;
 
@@ -116,18 +117,42 @@ function parse_unread(value: unknown): boolean | undefined {
   return undefined;
 }
 
+function is_printable(char: string): boolean {
+  const code = char.codePointAt(0) ?? 0;
+
+  if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) return false;
+  if (code === 0x200e || code === 0x200f) return false;
+  if (code >= 0x202a && code <= 0x202e) return false;
+
+  return code < 0x2066 || code > 0x2069;
+}
+
+function clean_label_path(value: string): string {
+  return Array.from(value.slice(0, MAX_LABEL_INPUT_LENGTH))
+    .filter(is_printable)
+    .join("")
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0)
+    .join("/");
+}
+
 function label_name(entry: Record<string, unknown>): string {
   const path = entry.Path;
   let name = "";
 
-  if (typeof path === "string") name = path;
+  if (typeof path === "string") name = clean_label_path(path);
   else if (Array.isArray(path)) {
-    name = path.filter((part) => typeof part === "string").join("/");
+    name = clean_label_path(
+      path.filter((part) => typeof part === "string").join("/"),
+    );
   }
 
-  if (!name.trim() && typeof entry.Name === "string") name = entry.Name;
+  if (!name && typeof entry.Name === "string") {
+    name = clean_label_path(entry.Name);
+  }
 
-  return name.trim().slice(0, MAX_LABEL_NAME_LENGTH);
+  return clean_label_path(name.slice(0, MAX_LABEL_NAME_LENGTH));
 }
 
 export function parse_export_labels(
