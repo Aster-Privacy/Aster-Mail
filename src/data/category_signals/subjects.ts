@@ -62,8 +62,9 @@ export const PROMOTIONS_SUBJECT_PATTERNS: readonly RegExp[] = [
   /\bfree\s+gift\b/i,
   /\brewards?\s+(?:points|await)\b/i,
   /\bvip\s+(?:access|sale)\b/i,
-  /[\u{1F300}-\u{1FAFF}]/u,
 ];
+
+export const EMOJI_SUBJECT_PATTERN = /[\u{1F300}-\u{1FAFF}]/u;
 
 export const UPDATES_SUBJECT_PATTERNS: readonly RegExp[] = [
   /\border(?:\s*#|\s+(?:confirm|number|placed|update))/i,
@@ -118,6 +119,9 @@ export const FINANCE_SUBJECT_PATTERNS: readonly RegExp[] = [
   /\bdividend\b/i,
   /\bmortgage\b/i,
   /\bloan\s+(?:payment|approved)\b/i,
+  /\b(?:interest|base|savings|bank|borrowing)\s+rates?\b/i,
+  /\brate\s+(?:change|changes|cut|cuts|rise|rises|increase|decrease)\b/i,
+  /\bpension\b/i,
 ];
 
 export const TRAVEL_SUBJECT_PATTERNS: readonly RegExp[] = [
@@ -207,6 +211,9 @@ export const ACCOUNT_ACCESS_SUBJECT_PATTERNS: readonly RegExp[] = [
   /\b(?:reset|recover)\s+your\s+password\b/i,
   /\bpassword\s+(?:reset|recovery)\b/i,
   /\b(?:magic|sign[\s-]?in|log[\s-]?in|login)\s+link\b/i,
+  /\b(?:mfa|2fa|multi[\s-]?factor|two[\s-]?factor|two[\s-]?step|2[\s-]?step)(?:\s+(?:authentication|verification))?\s+(?:code|request|pin|link|prompt|challenge|approval)\b/i,
+  /\b(?:sign[\s-]?in|log[\s-]?in|login|authentication|mfa)\s+(?:request|attempt|approval)\b/i,
+  /\bapprove\s+(?:your\s+|this\s+|the\s+|a\s+)?(?:new\s+)?(?:sign[\s-]?in|log[\s-]?in|login)\b/i,
   /验证码|驗證碼|校验码|校驗碼|动态码|動態碼|确认码|確認碼|安全码|安全碼|登录码|登入碼/,
   /(?:验证|驗證|确认|確認|激活|啟用)(?:您|你)的(?:帐户|账户|帐号|账号|帳戶|帳號|电子邮件|電子郵件|邮箱|郵箱|邮件地址|郵件地址|登录|登入)/,
   /验证此次登录|驗證此次登入|验证登录|驗證登入|确认登录|確認登入|登录验证|登入驗證|重置密码|重設密碼|密码重置|密碼重設/,

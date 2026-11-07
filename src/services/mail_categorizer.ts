@@ -52,13 +52,14 @@ import {
   SHOPPING_SUBJECT_PATTERNS,
   ACCOUNT_ACCESS_SUBJECT_PATTERNS,
   ACCOUNT_ACCESS_HEADER_NAMES,
+  EMOJI_SUBJECT_PATTERN,
 } from "@/data/category_signals";
 import {
   BUILTIN_CATEGORY_IDS,
   DEFAULT_ENABLED_CATEGORIES,
 } from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 6;
+export const CLASSIFIER_VERSION = 7;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -89,9 +90,7 @@ const PROMO_LOCALPARTS = new Set([
   "deals",
   "promo",
   "promotions",
-  "news",
-  "newsletter",
-  "newsletters",
+  "sales",
 ]);
 
 // Sets are built once. domain_in_set walks parent domains (a.b.c -> b.c -> c),
@@ -463,8 +462,7 @@ export function classify(
   }
 
   // 5. Automated mail only: refine into Promotions vs Updates.
-  const promo_signal =
-    in_any(MARKETING_SET) || PROMO_LOCALPARTS.has(localpart) || hard_sell;
+  const promo_signal = PROMO_LOCALPARTS.has(localpart) || hard_sell;
   const trusted_transactional =
     in_any(UPDATES_SET) || UPDATES_LOCALPARTS.has(localpart);
   const transactional_signal =
@@ -480,11 +478,8 @@ export function classify(
     return "promotions";
   }
 
-  // 6. Bulk mail with an unsubscribe / ESP infra but no clear signal is a
-  //    newsletter / marketing send -> Promotions. Anything else automated but
-  //    unclassified (e.g. a plain no-reply) stays in Primary.
-  if (has_unsubscribe || in_any(BULK_INFRA_SET)) {
-    return "promotions";
+  if (has_unsubscribe || in_any(BULK_INFRA_SET) || in_any(MARKETING_SET)) {
+    return EMOJI_SUBJECT_PATTERN.test(subject) ? "promotions" : "newsletters";
   }
 
   return "primary";
