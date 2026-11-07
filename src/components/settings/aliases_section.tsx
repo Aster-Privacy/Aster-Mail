@@ -29,6 +29,7 @@ import {
   prompt_upgrade,
 } from "@/components/settings/aliases/feature_lock";
 import { AliasUsageMeter } from "@/components/settings/aliases/alias_usage_meter";
+import { plan_allows_premium_alias_domains } from "@/components/settings/billing/billing_constants";
 import { get_alias_preferences } from "@/services/api/aliases";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -84,7 +85,7 @@ function read_initial_tab(): AliasTab {
 
 export function AliasesSection() {
   const { t } = use_i18n();
-  const { is_feature_locked } = use_plan_limits();
+  const { is_feature_locked, plan_code } = use_plan_limits();
   const alias_csv_locked = is_feature_locked("has_advanced_aliases");
   const hook = use_aliases();
 
@@ -103,7 +104,10 @@ export function AliasesSection() {
     null,
   );
   const [twin_refresh, set_twin_refresh] = useState(0);
-  const twin = use_twin_address(twin_refresh);
+  const twin = use_twin_address(
+    twin_refresh,
+    plan_allows_premium_alias_domains(plan_code),
+  );
   const [twin_prefill, set_twin_prefill] = useState<{
     local_part: string;
     domain: string;

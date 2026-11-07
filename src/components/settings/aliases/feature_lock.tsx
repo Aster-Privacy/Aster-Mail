@@ -24,7 +24,10 @@ import { UpgradeBtn } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import { show_alias_cap_upsell } from "@/stores/alias_cap_upsell_store";
-import { min_plan_for_feature } from "@/components/settings/billing/billing_constants";
+import {
+  is_premium_alias_domain,
+  min_plan_for_feature,
+} from "@/components/settings/billing/billing_constants";
 
 export function prompt_upgrade(
   msg: string,
@@ -38,10 +41,33 @@ export function prompt_upgrade(
   });
 }
 
-export function is_alias_limit_error(response: {
+interface AliasCreateErrorResponse {
   error?: string | null;
   server_code?: string | null;
-}): boolean {
+}
+
+export function is_alias_domain_plan_error(
+  response: AliasCreateErrorResponse,
+  domain: string | null | undefined,
+  premium_domains_allowed: boolean,
+): boolean {
+  return (
+    response.server_code === "PLAN_LIMIT_EXCEEDED" &&
+    !premium_domains_allowed &&
+    !!domain &&
+    is_premium_alias_domain(domain)
+  );
+}
+
+export function is_alias_limit_error(
+  response: AliasCreateErrorResponse,
+  domain?: string | null,
+  premium_domains_allowed = false,
+): boolean {
+  if (is_alias_domain_plan_error(response, domain, premium_domains_allowed)) {
+    return false;
+  }
+
   return (
     response.server_code === "PLAN_LIMIT_EXCEEDED" ||
     /alias limit/i.test(response.error ?? "")

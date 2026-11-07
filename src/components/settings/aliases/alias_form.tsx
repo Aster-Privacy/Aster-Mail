@@ -32,6 +32,7 @@ import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
+  is_alias_domain_plan_error,
   is_alias_limit_error,
   prompt_alias_limit_upgrade,
   prompt_upgrade,
@@ -127,7 +128,11 @@ export function CreateAliasModal({
   const [note, set_note] = useState("");
   const [alias_format, set_alias_format] = useState<"words" | "uuid">("words");
   const resolve_initial_domain = () => {
-    if (initial_domain && available_domains.includes(initial_domain))
+    if (
+      initial_domain &&
+      available_domains.includes(initial_domain) &&
+      (premium_domains_allowed || !is_premium_alias_domain(initial_domain))
+    )
       return initial_domain;
 
     const selectable = available_domains.filter(
@@ -232,7 +237,23 @@ export function CreateAliasModal({
     };
   }, [local_part, domain, check_availability, is_custom_domain]);
 
+  const prompt_premium_domain_upgrade = () => {
+    prompt_upgrade(
+      t("settings.alias_domain_requires_plan", {
+        plan: premium_domain_min_plan?.name ?? "Star",
+      }),
+      "aliases",
+      "has_advanced_aliases",
+    );
+  };
+
   const handle_create = async () => {
+    if (is_premium_alias_domain(domain) && !premium_domains_allowed) {
+      prompt_premium_domain_upgrade();
+
+      return;
+    }
+
     const validation = is_custom_domain
       ? validate_domain_local_part(local_part)
       : validate_local_part(local_part);
@@ -295,7 +316,20 @@ export function CreateAliasModal({
         );
 
         if (response.error) {
-          if (is_alias_limit_error(response)) {
+          if (
+            is_alias_domain_plan_error(
+              response,
+              domain,
+              premium_domains_allowed,
+            )
+          ) {
+            set_captcha_token(null);
+            turnstile_ref.current?.reset();
+            prompt_premium_domain_upgrade();
+
+            return;
+          }
+          if (is_alias_limit_error(response, domain, premium_domains_allowed)) {
             on_close();
             prompt_alias_limit_upgrade();
 
@@ -347,13 +381,7 @@ export function CreateAliasModal({
 
   const handle_domain_change = (next: string) => {
     if (is_premium_alias_domain(next) && !premium_domains_allowed) {
-      prompt_upgrade(
-        t("settings.alias_domain_requires_plan", {
-          plan: premium_domain_min_plan?.name ?? "Star",
-        }),
-        "aliases",
-        "has_advanced_aliases",
-      );
+      prompt_premium_domain_upgrade();
 
       return;
     }
