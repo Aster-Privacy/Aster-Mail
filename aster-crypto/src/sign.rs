@@ -31,20 +31,20 @@ use crate::error::{CryptoError, Result};
 use crate::keys::{KeyPair, PublicKey, PublicKeyInner};
 
 fn primary_is_revoked(spk: &SignedPublicKey) -> bool {
-    spk.details
-        .revocation_signatures
-        .iter()
-        .any(|s| matches!(s.typ(), SignatureType::KeyRevocation))
+    spk.details.revocation_signatures.iter().any(|s| {
+        matches!(s.typ(), SignatureType::KeyRevocation) && s.verify_key(&spk.primary_key).is_ok()
+    })
 }
 
 fn primary_is_expired(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
     spk.expires_at().map(|e| e <= now).unwrap_or(false)
 }
 
-fn subkey_is_revoked(sub: &SignedPublicSubKey) -> bool {
-    sub.signatures
-        .iter()
-        .any(|s| matches!(s.typ(), SignatureType::SubkeyRevocation))
+fn subkey_is_revoked(spk: &SignedPublicKey, sub: &SignedPublicSubKey) -> bool {
+    sub.signatures.iter().any(|s| {
+        matches!(s.typ(), SignatureType::SubkeyRevocation)
+            && s.verify_key_binding(&spk.primary_key, &sub.key).is_ok()
+    })
 }
 
 fn newest_verified_binding<'a>(
@@ -79,7 +79,7 @@ fn subkey_signing_bound(
     sub: &SignedPublicSubKey,
     now: DateTime<Utc>,
 ) -> bool {
-    if subkey_is_revoked(sub) {
+    if subkey_is_revoked(spk, sub) {
         return false;
     }
     let Some(binding) = newest_verified_binding(spk, sub) else {
