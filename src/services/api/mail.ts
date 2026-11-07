@@ -643,6 +643,7 @@ export interface BulkScopeFilter {
 export interface BulkScopeRequest {
   action: BulkScopeAction;
   scope: BulkScopeFilter;
+  ids?: string[];
   exclude_ids?: string[];
 }
 

@@ -20,9 +20,10 @@
 //
 import type { EmailCategory } from "@/types/email";
 import type { BulkScopeAction } from "@/services/api/mail";
+import type { FlagIntents } from "@/services/read_intent";
 
-import { batch_archive } from "@/services/api/archive";
-import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import { bulk_action_by_scope } from "@/services/api/mail";
+import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
 import {
   get_category_action_ids,
   get_index_entries,
@@ -35,7 +36,7 @@ import {
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
-export const CATEGORY_ACTION_CHUNK_SIZE = 100;
+export const CATEGORY_ACTION_CHUNK_SIZE = 1000;
 
 export function scope_category_ids(
   category: EmailCategory,
@@ -44,18 +45,23 @@ export function scope_category_ids(
   return get_category_action_ids(category, excluded_ids).all_ids;
 }
 
-export type CategoryBulkOutcome = "done" | "noop" | "not_ready" | "unsupported";
+export type CategoryBulkOutcome =
+  "done" | "continuing" | "noop" | "not_ready" | "unsupported";
 
-export const CATEGORY_SCOPE_ACTIONS: ReadonlySet<BulkScopeAction> =
-  new Set<BulkScopeAction>([
-    "archive",
-    "trash",
-    "mark_spam",
-    "mark_read",
-    "mark_unread",
-    "star",
-    "unstar",
+const CATEGORY_ACTION_INTENTS: ReadonlyMap<BulkScopeAction, FlagIntents> =
+  new Map<BulkScopeAction, FlagIntents>([
+    ["archive", { is_archived: true }],
+    ["trash", { is_trashed: true }],
+    ["mark_spam", { is_spam: true }],
+    ["mark_read", { is_read: true }],
+    ["mark_unread", { is_read: false }],
+    ["star", { is_starred: true }],
+    ["unstar", { is_starred: false }],
   ]);
+
+export const CATEGORY_SCOPE_ACTIONS: ReadonlySet<BulkScopeAction> = new Set(
+  CATEGORY_ACTION_INTENTS.keys(),
+);
 
 export function supports_category_scope(action: BulkScopeAction): boolean {
   return CATEGORY_SCOPE_ACTIONS.has(action);
@@ -84,36 +90,47 @@ function chunk_ids(ids: string[]): string[][] {
   return chunks;
 }
 
-async function apply_metadata_chunks(
-  chunks: string[][],
-  updates: Parameters<typeof bulk_update_metadata_by_ids>[1],
-  options: {
-    on_chunk_done: (succeeded_ids: string[]) => void;
-    on_failure: (succeeded_ids: string[]) => void;
-    on_progress: (completed: number) => void;
-  },
-): Promise<string[]> {
-  const succeeded: string[] = [];
-  let completed = 0;
-
-  for (const chunk of chunks) {
-    const result = await bulk_update_metadata_by_ids(chunk, updates);
-    const failed = new Set(result.failed_ids);
-    const chunk_succeeded = chunk.filter((id) => !failed.has(id));
-
-    succeeded.push(...chunk_succeeded);
-    options.on_chunk_done(chunk_succeeded);
-
-    if (!result.success) {
-      options.on_failure(succeeded);
-      throw new Error("category bulk update failed");
-    }
-
-    completed += chunk.length;
-    options.on_progress(completed);
+function apply_to_index(action: BulkScopeAction, ids: string[]): void {
+  switch (action) {
+    case "archive":
+    case "trash":
+    case "mark_spam":
+      remove_ids(ids);
+      break;
+    case "mark_read":
+    case "mark_unread":
+      set_ids_read(ids, action === "mark_read");
+      break;
+    default:
+      reindex_ids(ids);
   }
+}
 
-  return succeeded;
+async function apply_chunk(
+  action: BulkScopeAction,
+  intent: FlagIntents,
+  chunk: string[],
+): Promise<boolean> {
+  note_flag_intents(chunk, intent);
+
+  let applied = false;
+
+  try {
+    const response = await bulk_action_by_scope({
+      action,
+      scope: {},
+      ids: chunk,
+    });
+
+    if (response.error || !response.data) {
+      throw new Error("category bulk action failed");
+    }
+    applied = true;
+
+    return response.data.completed !== false;
+  } finally {
+    if (!applied) clear_flag_intents(chunk, intent);
+  }
 }
 
 export async function run_category_scope_action(
@@ -121,7 +138,9 @@ export async function run_category_scope_action(
   category: EmailCategory,
   options?: CategoryBulkOptions,
 ): Promise<CategoryBulkOutcome> {
-  if (!supports_category_scope(action)) return "unsupported";
+  const intent = CATEGORY_ACTION_INTENTS.get(action);
+
+  if (!intent) return "unsupported";
   if (!is_fully_built()) return "not_ready";
   if (is_index_capped()) return "not_ready";
 
@@ -137,106 +156,26 @@ export async function run_category_scope_action(
   if (target_ids.length === 0) return "noop";
 
   const total = target_ids.length;
-  const report = (completed: number) =>
-    options?.on_progress?.(completed, total);
-  const chunks = chunk_ids(target_ids);
+  let completed = 0;
+  let finished = true;
 
-  report(0);
+  options?.on_progress?.(0, total);
 
-  switch (action) {
-    case "archive": {
-      let completed = 0;
+  try {
+    for (const chunk of chunk_ids(target_ids)) {
+      const chunk_finished = await apply_chunk(action, intent, chunk);
 
-      for (const chunk of chunks) {
-        const result = await batch_archive({ ids: chunk, tier: "hot" });
-
-        if (result.error || !result.data?.success) {
-          throw new Error("category bulk archive failed");
-        }
-
-        remove_ids(chunk);
-
-        let blob_updated = false;
-
-        try {
-          const blob_result = await bulk_update_metadata_by_ids(chunk, {
-            is_archived: true,
-          });
-
-          blob_updated = blob_result.success;
-        } catch {
-          blob_updated = false;
-        }
-        if (!blob_updated) {
-          reindex_ids(chunk);
-        }
-
-        completed += chunk.length;
-        report(completed);
-      }
-      break;
+      if (!chunk_finished) finished = false;
+      apply_to_index(action, chunk);
+      completed += chunk.length;
+      options?.on_progress?.(completed, total);
     }
-    case "trash": {
-      await apply_metadata_chunks(
-        chunks,
-        { is_trashed: true },
-        {
-          on_chunk_done: (succeeded_ids) => remove_ids(succeeded_ids),
-          on_failure: () => {},
-          on_progress: report,
-        },
-      );
-      break;
+  } finally {
+    if (completed > 0) {
+      invalidate_mail_stats();
+      stale_all_view_caches();
     }
-    case "mark_spam": {
-      await apply_metadata_chunks(
-        chunks,
-        { is_spam: true, is_trashed: false },
-        {
-          on_chunk_done: (succeeded_ids) => remove_ids(succeeded_ids),
-          on_failure: () => {},
-          on_progress: report,
-        },
-      );
-      break;
-    }
-    case "mark_read":
-    case "mark_unread": {
-      const is_read = action === "mark_read";
-
-      await apply_metadata_chunks(
-        chunks,
-        { is_read },
-        {
-          on_chunk_done: (succeeded_ids) =>
-            set_ids_read(succeeded_ids, is_read),
-          on_failure: () => {},
-          on_progress: report,
-        },
-      );
-      break;
-    }
-    case "star":
-    case "unstar": {
-      const succeeded = await apply_metadata_chunks(
-        chunks,
-        { is_starred: action === "star" },
-        {
-          on_chunk_done: () => {},
-          on_failure: (succeeded_ids) => reindex_ids(succeeded_ids),
-          on_progress: report,
-        },
-      );
-
-      reindex_ids(succeeded);
-      break;
-    }
-    default:
-      return "unsupported";
   }
 
-  invalidate_mail_stats();
-  stale_all_view_caches();
-
-  return "done";
+  return finished ? "done" : "continuing";
 }
