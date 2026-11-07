@@ -473,3 +473,21 @@ describe("ThreadMessageBlock sanitizing off the first render", () => {
     expect_only_sanitized_bodies();
   });
 });
+
+describe("ThreadMessageBlock sent reply handoff", () => {
+  it("keeps the body on screen when the server copy replaces a sending reply", async () => {
+    render_block({ ...make_message("local_reply"), is_sending: true });
+    await flush_scheduled();
+
+    render_block(make_message("server_copy"));
+
+    const handed_off = probe.bodies.filter(
+      (body) => body.email_id === "server_copy",
+    );
+
+    expect(handed_off.length).toBeGreaterThan(0);
+    expect(body_is_mounted()).toBe(true);
+    expect(probe.sanitize_calls).toBe(2);
+    expect_only_sanitized_bodies();
+  });
+});

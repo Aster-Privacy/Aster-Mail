@@ -9846,7 +9846,6 @@ export const pt = {
     enter_credentials: "Introduza as suas credenciais para aceder à sua conta",
     signing_in: "A iniciar sessão...",
     keep_signed_in: "Manter sessão iniciada",
-    secure_devices_only: "apenas em dispositivos seguros",
     back_to_inbox: "Voltar à caixa de entrada",
     back_to_link_device: "Voltar a Associar dispositivo",
     enter_password_placeholder: "Introduza a sua palavra-passe",

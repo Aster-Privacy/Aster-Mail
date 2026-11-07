@@ -9949,7 +9949,6 @@ export const ru = {
     enter_credentials: "Введите учётные данные для доступа к аккаунту",
     signing_in: "Вход в систему...",
     keep_signed_in: "Оставаться в системе",
-    secure_devices_only: "только на безопасных устройствах",
     back_to_inbox: "Вернуться во входящие",
     back_to_link_device: "Назад к привязке устройства",
     enter_password_placeholder: "Введите ваш пароль",

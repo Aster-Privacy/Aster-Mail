@@ -1114,7 +1114,7 @@ export default function SignInPage() {
                 <Checkbox
                   checked={remember_me}
                   disabled={is_loading}
-                  label={`${t("auth.keep_signed_in")} - ${t("auth.secure_devices_only")}`}
+                  label={t("auth.keep_signed_in")}
                   onChange={() => set_remember_me(!remember_me)}
                 />
               </div>

@@ -9643,7 +9643,6 @@ export const tr = {
     enter_credentials: "Hesabınıza erişmek için kimlik bilgilerinizi girin",
     signing_in: "Giriş yapılıyor...",
     keep_signed_in: "Oturumu açık tut",
-    secure_devices_only: "yalnızca güvenli cihazlarda",
     back_to_inbox: "Gelen kutusuna dön",
     back_to_link_device: "Cihaz bağla ekranına dön",
     enter_password_placeholder: "Parolanızı girin",

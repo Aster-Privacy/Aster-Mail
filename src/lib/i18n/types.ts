@@ -8605,7 +8605,6 @@ export interface AuthTranslations {
   link_device_rate_limited: string;
   link_device_account_suspended: string;
   keep_signed_in: string;
-  secure_devices_only: string;
   back_to_inbox: string;
   back_to_link_device: string;
   enter_password_placeholder: string;

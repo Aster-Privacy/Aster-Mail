@@ -8684,7 +8684,6 @@ export const zh_CN = {
     enter_credentials: "输入凭据以访问您的账户",
     signing_in: "登录中...",
     keep_signed_in: "保持登录状态",
-    secure_devices_only: "仅在安全设备上",
     back_to_inbox: "返回收件箱",
     back_to_link_device: "返回“关联设备”",
     enter_password_placeholder: "输入密码",

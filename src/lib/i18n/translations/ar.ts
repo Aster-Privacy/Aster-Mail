@@ -9573,7 +9573,6 @@ export const ar = {
     enter_credentials: "أدخل بيانات اعتمادك للوصول إلى حسابك",
     signing_in: "جارٍ تسجيل الدخول...",
     keep_signed_in: "إبقاء تسجيل الدخول",
-    secure_devices_only: "على الأجهزة الآمنة فقط",
     back_to_inbox: "العودة إلى صندوق الوارد",
     back_to_link_device: "العودة إلى ربط جهاز",
     enter_password_placeholder: "أدخل كلمة المرور",

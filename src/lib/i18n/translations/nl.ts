@@ -9732,7 +9732,6 @@ export const nl = {
     sign_in_to_aster: "Inloggen bij Aster",
     signing_in: "Inloggen...",
     keep_signed_in: "Ingelogd blijven",
-    secure_devices_only: "alleen op beveiligde apparaten",
     back_to_inbox: "Terug naar inbox",
     back_to_link_device: "Terug naar Apparaat koppelen",
     enter_password_placeholder: "Voer je wachtwoord in",
