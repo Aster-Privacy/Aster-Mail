@@ -556,6 +556,12 @@ export async function store_vault_in_memory(
     await import_and_cache_derived_key(derived_encryption_key);
     notify_keys_ready();
   }
+
+  if (is_master_key_vault(vault_in_memory)) {
+    void import("./external_pgp_key")
+      .then((module) => module.request_external_pgp_key_load())
+      .catch(() => undefined);
+  }
 }
 
 async function import_and_cache_derived_key(

@@ -40,6 +40,8 @@ import {
   type SettingsSection,
 } from "./shared";
 
+import { MobileExternalKeyGroup } from "./external_key_group";
+
 import { reprotect_vault_keys_for_password_change } from "@/services/crypto/identity_key_materials";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -952,6 +954,8 @@ export function SecuritySection({
             on_press={() => on_navigate_section?.("encryption")}
           />
         </SettingsGroup>
+
+        <MobileExternalKeyGroup />
 
         <SettingsGroup title={t("settings.change_password")}>
           {!show_password_change ? (

@@ -75,6 +75,7 @@ export {
   encrypt_message,
   encrypt_message_multi,
   sign_detached,
+  sign_detached_with_keys,
   decrypt_message,
   decrypt_message_verified,
   decrypt_message_with_any_key,

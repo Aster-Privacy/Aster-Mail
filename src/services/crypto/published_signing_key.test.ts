@@ -361,3 +361,37 @@ describe("published_bundle_needs_resigning after a pgp rekey", () => {
     expect(state.fetch_calls).toBe(2);
   });
 });
+
+describe("select_published_signing_key with an imported external key", () => {
+  it("never heals or picks the external key while one is published", async () => {
+    const external = await openpgp.generateKey({
+      type: "ecc",
+      curve: "ed25519Legacy",
+      userIDs: [{ email: owner_email }],
+      format: "armored",
+    });
+    const external_fingerprint = (
+      await openpgp.readKey({ armoredKey: external.publicKey })
+    ).getFingerprint();
+    const selected = await select_published_signing_key(rekeyed_vault);
+    const selected_fingerprint = (
+      await openpgp.readPrivateKey({ armoredKey: selected as string })
+    ).getFingerprint();
+
+    expect(selected).toBe(new_secret_key);
+    expect(selected_fingerprint).not.toBe(external_fingerprint);
+    expect(signing_key_candidates(rekeyed_vault)).not.toContain(
+      external.privateKey,
+    );
+    expect(state.republish_calls).toBe(0);
+  });
+
+  it("does not heal when the account key lookup still serves the internal key", async () => {
+    const drifted = vault_with(new_secret_key);
+
+    await expect(select_published_signing_key(drifted)).resolves.toBe(
+      new_secret_key,
+    );
+    expect(state.republish_calls).toBe(0);
+  });
+});
