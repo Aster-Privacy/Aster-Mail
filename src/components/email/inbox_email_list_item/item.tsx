@@ -513,7 +513,6 @@ export const InboxEmailListItem = memo(
           </Tooltip>
 
           <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-10 overflow-hidden">
-            {/* Keep status indicators and names within one stable sender column. */}
             <div className="flex items-center gap-1.5 min-w-0 sm:w-44 sm:shrink-0 sm:max-w-[45%] overflow-hidden pe-px">
               {email.is_pinned && (
                 <PinIcon
