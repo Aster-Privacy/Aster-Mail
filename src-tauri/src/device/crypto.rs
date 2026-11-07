@@ -49,6 +49,8 @@ const MAGIC_ID: &[u8; 8] = b"ASTERID\x01";
 const MAGIC_PP: &[u8; 8] = b"ASTERPP\x01";
 const MAGIC_AUTH: &[u8; 8] = b"ASTERAU\x01";
 const MAGIC_REFRESH: &[u8; 8] = b"ASTERRT\x01";
+const MAGIC_PL: &[u8; 8] = b"ASTERPL\x01";
+const PIN_LOCKED_ERROR: &str = "passphrase_pin_locked";
 const REFRESH_FILE_NAME: &str = "auth_refresh.bin";
 const REFRESH_ACCOUNT_ID_MAX_LEN: usize = 128;
 const KEYRING_AUTH_ACCESS_USER: &str = "auth-access-token-v1";
@@ -822,6 +824,74 @@ fn reseal_legacy_passphrase(path: &std::path::Path, raw: &[u8]) {
     }
 }
 
+fn is_pin_sealed_blob(data: &[u8]) -> bool {
+    data.len() >= 8 && &data[..8] == MAGIC_PL
+}
+
+fn pin_sealed_blob(wrap_key: Option<&[u8; 32]>, record: &[u8]) -> Result<Vec<u8>, String> {
+    match wrap_key {
+        Some(key) => aead_seal(key, MAGIC_PL, record),
+        None => Ok(MAGIC_PL.to_vec()),
+    }
+}
+
+fn pin_seal_passphrase_file(
+    path: &std::path::Path,
+    wrap_key: Option<&[u8; 32]>,
+    record: &[u8],
+) -> Result<bool, String> {
+    if !path.exists() {
+        return Ok(false);
+    }
+    let blob = pin_sealed_blob(wrap_key, record)?;
+    atomic_write(path, &blob)?;
+    Ok(true)
+}
+
+fn pin_restore_passphrase_file(
+    path: &std::path::Path,
+    wrap_key: &[u8; 32],
+    raw: &[u8],
+) -> Result<bool, String> {
+    let Ok(data) = std::fs::read(path) else {
+        return Ok(false);
+    };
+    if !is_pin_sealed_blob(&data) {
+        return Ok(false);
+    }
+    let blob = aead_seal(wrap_key, MAGIC_PP, raw)?;
+    atomic_write(path, &blob)?;
+    Ok(true)
+}
+
+fn read_passphrase_file(path: &std::path::Path) -> Result<Option<String>, String> {
+    let data = std::fs::read(path).map_err(|e| e.to_string())?;
+
+    if is_pin_sealed_blob(&data) {
+        return Err(PIN_LOCKED_ERROR.to_string());
+    }
+
+    if data.len() >= 8 && &data[..8] == MAGIC_PP {
+        match wrap_key_load()? {
+            None => {
+                tracing::warn!(
+                    "stored passphrase is unreadable: the wrap key is absent from the system keychain"
+                );
+                return Ok(None);
+            }
+            Some(wrap_key) => {
+                let plaintext = Zeroizing::new(aead_open(&wrap_key, MAGIC_PP, &data)?);
+                return Ok(Some(b64url(&plaintext)));
+            }
+        }
+    }
+
+    let s = std::str::from_utf8(&data).map_err(|e| e.to_string())?.to_string();
+    let raw = Zeroizing::new(b64url_decode(&s)?);
+    reseal_legacy_passphrase(path, &raw);
+    Ok(Some(s))
+}
+
 fn locate_passphrase_file(
     device_id: Option<String>,
 ) -> Result<Option<std::path::PathBuf>, String> {
@@ -869,27 +939,38 @@ pub fn device_get_stored_passphrase(
         return Ok(None);
     };
 
-    let data = std::fs::read(&path).map_err(|e| e.to_string())?;
+    read_passphrase_file(&path)
+}
 
-    if data.len() >= 8 && &data[..8] == MAGIC_PP {
-        match wrap_key_load()? {
-            None => {
-                tracing::warn!(
-                    "stored passphrase is unreadable: the wrap key is absent from the system keychain"
-                );
-                return Ok(None);
-            }
-            Some(wrap_key) => {
-                let plaintext = Zeroizing::new(aead_open(&wrap_key, MAGIC_PP, &data)?);
-                return Ok(Some(b64url(&plaintext)));
-            }
-        }
-    }
+#[tauri::command]
+pub fn device_pin_seal_stored_passphrase(
+    window: tauri::WebviewWindow,
+    device_id: String,
+    record: String,
+) -> Result<bool, String> {
+    require_primary_webview(&window)?;
+    let Some(path) = locate_passphrase_file(Some(device_id))? else {
+        return Ok(false);
+    };
+    let wrap_key = wrap_key_load_or_create().ok();
 
-    let s = std::str::from_utf8(&data).map_err(|e| e.to_string())?.to_string();
-    let raw = Zeroizing::new(b64url_decode(&s)?);
-    reseal_legacy_passphrase(&path, &raw);
-    Ok(Some(s))
+    pin_seal_passphrase_file(&path, wrap_key.as_ref(), record.as_bytes())
+}
+
+#[tauri::command]
+pub fn device_pin_restore_stored_passphrase(
+    window: tauri::WebviewWindow,
+    device_id: String,
+    passphrase_b64: String,
+) -> Result<bool, String> {
+    require_primary_webview(&window)?;
+    let Some(path) = locate_passphrase_file(Some(device_id))? else {
+        return Ok(false);
+    };
+    let raw = Zeroizing::new(b64url_decode(&passphrase_b64)?);
+    let wrap_key = wrap_key_load_or_create()?;
+
+    pin_restore_passphrase_file(&path, &wrap_key, &raw)
 }
 
 #[tauri::command]
@@ -1484,6 +1565,96 @@ mod tests {
 
         assert!(sealed.len() >= 8 && &sealed[..8] == MAGIC_PP);
         assert!(legacy.len() < 8 || &legacy[..8] != MAGIC_PP);
+    }
+
+    #[test]
+    fn pin_sealed_blob_is_distinct_from_a_readable_passphrase() {
+        let key = test_key(13);
+        let sealed = pin_sealed_blob(Some(&key), b"record").unwrap();
+        let marker = pin_sealed_blob(None, b"record").unwrap();
+        let readable = aead_seal(&key, MAGIC_PP, b"secret").unwrap();
+
+        assert!(is_pin_sealed_blob(&sealed));
+        assert!(is_pin_sealed_blob(&marker));
+        assert!(!is_pin_sealed_blob(&readable));
+        assert!(!is_pin_sealed_blob(b64url(b"secret").as_bytes()));
+        assert!(aead_open(&key, MAGIC_PP, &sealed).is_err());
+        assert_eq!(aead_open(&key, MAGIC_PL, &sealed).unwrap(), b"record");
+    }
+
+    #[test]
+    fn pin_seal_replaces_a_readable_passphrase_file() {
+        let path = scratch_path("pin_seal_readable");
+        let key = test_key(14);
+        let passphrase = b"correct horse battery staple";
+
+        atomic_write(&path, &aead_seal(&key, MAGIC_PP, passphrase).unwrap()).unwrap();
+        assert!(pin_seal_passphrase_file(&path, Some(&key), b"record").unwrap());
+
+        let after = std::fs::read(&path).unwrap();
+
+        assert!(is_pin_sealed_blob(&after));
+        assert!(aead_open(&key, MAGIC_PP, &after).is_err());
+        assert_eq!(
+            read_passphrase_file(&path).unwrap_err(),
+            PIN_LOCKED_ERROR.to_string()
+        );
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn pin_seal_replaces_a_legacy_plaintext_file() {
+        let path = scratch_path("pin_seal_legacy");
+        let legacy = b64url(b"legacy passphrase");
+
+        atomic_write(&path, legacy.as_bytes()).unwrap();
+        assert!(pin_seal_passphrase_file(&path, None, b"").unwrap());
+
+        let after = std::fs::read(&path).unwrap();
+
+        assert!(is_pin_sealed_blob(&after));
+        assert!(!after.windows(legacy.len()).any(|w| w == legacy.as_bytes()));
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn pin_seal_does_not_create_a_missing_file() {
+        let path = scratch_path("pin_seal_missing");
+
+        assert!(!pin_seal_passphrase_file(&path, Some(&test_key(15)), b"record").unwrap());
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn pin_restore_brings_back_a_readable_passphrase() {
+        let path = scratch_path("pin_restore");
+        let key = test_key(16);
+
+        atomic_write(&path, &pin_sealed_blob(Some(&key), b"record").unwrap()).unwrap();
+        assert!(pin_restore_passphrase_file(&path, &key, b"restored").unwrap());
+
+        let after = std::fs::read(&path).unwrap();
+
+        assert!(!is_pin_sealed_blob(&after));
+        assert_eq!(aead_open(&key, MAGIC_PP, &after).unwrap(), b"restored");
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn pin_restore_leaves_a_readable_or_missing_file_alone() {
+        let path = scratch_path("pin_restore_readable");
+        let key = test_key(17);
+        let original = aead_seal(&key, MAGIC_PP, b"current").unwrap();
+
+        atomic_write(&path, &original).unwrap();
+        assert!(!pin_restore_passphrase_file(&path, &key, b"other").unwrap());
+        assert_eq!(std::fs::read(&path).unwrap(), original);
+        assert!(!pin_restore_passphrase_file(&scratch_path("pin_restore_none"), &key, b"x").unwrap());
+
+        let _ = std::fs::remove_file(&path);
     }
 
     #[test]

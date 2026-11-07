@@ -29,6 +29,15 @@ import {
   safe_session_set,
 } from "@/lib/safe_storage";
 import { decrypt_aes_gcm_bound_or_unbound } from "@/services/crypto/aes_gcm_aad_fallback";
+import {
+  constant_time_bytes_equal,
+  derive_pin_key,
+  derive_proof,
+  derive_verifier,
+  get_pending_passphrase,
+  get_unlocked_key,
+  get_unlocked_verifier,
+} from "@/services/app_lock_wrap";
 
 const MAX_ATTEMPTS = 5;
 const BASE_LOCKOUT_MS = 5 * 60 * 1000;
@@ -43,6 +52,7 @@ const PEPPER_DB = "aster_app_lock";
 const PEPPER_STORE = "pepper";
 
 export const KDF_VERSION_PEPPER = 2;
+export const KDF_VERSION_SERVER_WRAP = 3;
 
 function open_pepper_db(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -104,13 +114,35 @@ export async function ensure_pepper(
   }
 }
 
+export function read_app_lock_pepper(
+  account_id: string,
+): Promise<Uint8Array | null> {
+  return read_pepper(account_id);
+}
+
+export function uses_pepper(config: AppLockConfig | null | undefined): boolean {
+  return (
+    config?.kdf_version === KDF_VERSION_PEPPER ||
+    config?.kdf_version === KDF_VERSION_SERVER_WRAP
+  );
+}
+
 async function pepper_for_config(
   account_id: string,
   config: AppLockConfig,
 ): Promise<Uint8Array | undefined> {
-  if (config.kdf_version !== KDF_VERSION_PEPPER) return undefined;
+  if (!uses_pepper(config)) return undefined;
 
   return (await read_pepper(account_id)) ?? undefined;
+}
+
+async function pepper_for_duress(
+  account_id: string,
+  config: AppLockConfig,
+): Promise<Uint8Array | undefined> {
+  if (config.duress_legacy_kdf) return undefined;
+
+  return pepper_for_config(account_id, config);
 }
 
 const lock_key = (id: string) => `aster:app_lock:${id}`;
@@ -127,6 +159,31 @@ export interface AppLockConfig {
   duress_pin_salt?: string;
   duress_tag?: string;
   kdf_version?: number;
+  duress_legacy_kdf?: boolean;
+  wrap?: AppLockWrapInfo;
+}
+
+export interface AppLockWrapInfo {
+  device_lock_id: string;
+  salt: string;
+}
+
+export function is_server_wrapped_config(
+  config: AppLockConfig | null | undefined,
+): config is AppLockConfig & { wrap: AppLockWrapInfo } {
+  return (
+    !!config &&
+    config.enabled &&
+    config.kdf_version === KDF_VERSION_SERVER_WRAP &&
+    typeof config.wrap?.device_lock_id === "string" &&
+    config.wrap.device_lock_id.length > 0 &&
+    typeof config.wrap.salt === "string" &&
+    config.wrap.salt.length > 0
+  );
+}
+
+export function is_account_server_wrapped(account_id: string): boolean {
+  return is_server_wrapped_config(get_app_lock_config(account_id));
 }
 
 const DURESS_TAG_PLAINTEXT = "aster-duress-on1";
@@ -489,7 +546,13 @@ export async function verify_pin(
 }
 
 export function is_session_unlocked(account_id: string): boolean {
-  return safe_session_get(session_key(account_id)) === "1";
+  if (safe_session_get(session_key(account_id)) !== "1") return false;
+  if (!is_account_server_wrapped(account_id)) return true;
+
+  return (
+    get_unlocked_key(account_id) !== null ||
+    get_pending_passphrase(account_id) !== null
+  );
 }
 
 export function mark_session_unlocked(account_id: string): void {
@@ -527,8 +590,10 @@ export async function save_duress_pin(
   const tag = await seal_duress_tag(account_id, pin_salt);
   const { duress_tag: _t, ...rest } = config;
 
+  const { duress_legacy_kdf: _l, ...current } = rest;
+
   save_app_lock_config(account_id, {
-    ...rest,
+    ...current,
     duress_pin_hash: pin_hash,
     duress_pin_salt: pin_salt,
     ...(tag ? { duress_tag: tag } : {}),
@@ -543,6 +608,7 @@ export function clear_duress_pin(account_id: string): void {
     duress_pin_hash: _h,
     duress_pin_salt: _s,
     duress_tag: _t,
+    duress_legacy_kdf: _l,
     ...rest
   } = config;
 
@@ -570,13 +636,14 @@ export async function attempt_pin_unlock(
   const salt_bytes =
     config?.enabled && config.pin_hash ? parse_hex_salt(config.pin_salt) : null;
 
-  if (!config || !salt_bytes) {
+  if (!config || !salt_bytes || is_server_wrapped_config(config)) {
     return lockout.locked
       ? { outcome: "locked_out", remaining_ms: lockout.remaining_ms }
       : { outcome: "failed", locked: false, attempts_remaining: MAX_ATTEMPTS };
   }
 
   const pepper = await pepper_for_config(account_id, config);
+  const duress_pepper = await pepper_for_duress(account_id, config);
   const duress_salt = config.duress_pin_hash
     ? parse_hex_salt(config.duress_pin_salt)
     : null;
@@ -586,7 +653,7 @@ export async function attempt_pin_unlock(
     hash_pin(
       pin,
       duress_salt ?? crypto.getRandomValues(new Uint8Array(salt_bytes.length)),
-      pepper,
+      duress_pepper,
     ),
   ]);
 
@@ -621,6 +688,9 @@ export async function pin_matches_regular(
 ): Promise<boolean> {
   const config = get_app_lock_config(account_id);
 
+  if (is_server_wrapped_config(config)) {
+    return wrapped_pin_matches_verifier(account_id, config, raw_pin);
+  }
   if (!config?.pin_hash || !config?.pin_salt) return false;
   const salt_pairs = config.pin_salt.match(/.{2}/g);
 
@@ -643,10 +713,56 @@ export async function duress_pin_correct(
 
   if (!salt_pairs) return false;
   const salt_bytes = Uint8Array.from(salt_pairs.map((h) => parseInt(h, 16)));
-  const pepper = await pepper_for_config(account_id, config);
+  const pepper = await pepper_for_duress(account_id, config);
   const computed = await hash_pin(raw_pin, salt_bytes, pepper);
 
   return constant_time_equal(computed, config.duress_pin_hash);
+}
+
+export async function derive_wrapped_pin_key(
+  account_id: string,
+  config: AppLockConfig & { wrap: AppLockWrapInfo },
+  raw_pin: string,
+): Promise<Uint8Array | null> {
+  const salt = hex_to_bytes(config.wrap.salt);
+  const pepper = await read_pepper(account_id);
+
+  if (!salt || !pepper) return null;
+
+  return derive_pin_key(raw_pin, salt, pepper);
+}
+
+export function has_wrapped_pin_verifier(account_id: string): boolean {
+  return get_unlocked_verifier(account_id) !== null;
+}
+
+async function wrapped_pin_matches_verifier(
+  account_id: string,
+  config: AppLockConfig & { wrap: AppLockWrapInfo },
+  raw_pin: string,
+): Promise<boolean> {
+  const expected = get_unlocked_verifier(account_id);
+
+  if (!expected) return false;
+  const pin_key = await derive_wrapped_pin_key(account_id, config, raw_pin);
+
+  if (!pin_key) return false;
+  try {
+    const verifier = await derive_verifier(await derive_proof(pin_key));
+
+    return constant_time_bytes_equal(verifier, expected);
+  } finally {
+    pin_key.fill(0);
+  }
+}
+
+export function reset_app_lock_attempts(account_id: string): void {
+  safe_local_remove(attempts_key(account_id));
+  safe_session_remove(attempts_key(account_id));
+}
+
+export function encode_hex(bytes: Uint8Array): string {
+  return bytes_to_hex(bytes);
 }
 
 export function clear_all_app_lock_data(): void {

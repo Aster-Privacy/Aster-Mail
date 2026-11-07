@@ -44,18 +44,24 @@ import { cn } from "@/lib/utils";
 import {
   get_app_lock_config,
   save_app_lock_config,
-  clear_app_lock_config,
   clear_session_unlock,
   generate_pin_salt,
   hash_pin,
-  verify_pin,
   is_locked_out,
   mark_session_unlocked,
   duress_pin_correct,
   has_duress_pin,
   ensure_pepper,
   KDF_VERSION_PEPPER,
+  uses_pepper,
 } from "@/services/app_lock_store";
+import {
+  convert_to_unwrapped,
+  remove_app_lock,
+  seal_device_passphrase_for_lock,
+  upgrade_to_server_wrap,
+  verify_app_lock_pin,
+} from "@/services/app_lock_unlock";
 import { DuressPinSection } from "@/components/settings/security/duress_pin_section";
 import { is_composing } from "@/utils/ime";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -256,7 +262,7 @@ function VerifyPinModal({
       if (verifying_ref.current) return;
       verifying_ref.current = true;
       set_verifying(true);
-      const result = await verify_pin(account_id, value);
+      const result = await verify_app_lock_pin(account_id, value);
 
       if (result.ok) {
         set_input("");
@@ -277,7 +283,7 @@ function VerifyPinModal({
         set_shake_key((k) => k + 1);
         set_input("");
         const msg =
-          result.attempts_remaining > 0
+          result.attempts_remaining !== null && result.attempts_remaining > 0
             ? t("settings.app_lock_attempts_remaining", {
                 count: result.attempts_remaining,
               })
@@ -561,7 +567,8 @@ function SetupPinModal({
               }
             : {};
           const use_pepper =
-            !carrying_duress || existing?.kdf_version === KDF_VERSION_PEPPER;
+            !carrying_duress ||
+            (uses_pepper(existing) && !existing?.duress_legacy_kdf);
           const pepper = use_pepper
             ? ((await ensure_pepper(account_id)) ?? undefined)
             : undefined;
@@ -570,6 +577,9 @@ function SetupPinModal({
             .map((b) => b.toString(16).padStart(2, "0"))
             .join("");
 
+          if (!(await convert_to_unwrapped(account_id))) {
+            throw new Error("app_lock_convert");
+          }
           save_app_lock_config(account_id, {
             enabled: true,
             pin_type: "numeric",
@@ -588,6 +598,8 @@ function SetupPinModal({
               "warning",
             );
           }
+          await upgrade_to_server_wrap(account_id, next).catch(() => false);
+          await seal_device_passphrase_for_lock(account_id);
           mark_session_unlocked(account_id);
           on_success();
         } catch {
@@ -657,7 +669,8 @@ function SetupPinModal({
               }
             : {};
           const use_pepper =
-            !carrying_duress || existing?.kdf_version === KDF_VERSION_PEPPER;
+            !carrying_duress ||
+            (uses_pepper(existing) && !existing?.duress_legacy_kdf);
           const pepper = use_pepper
             ? ((await ensure_pepper(account_id)) ?? undefined)
             : undefined;
@@ -666,6 +679,9 @@ function SetupPinModal({
             .map((b) => b.toString(16).padStart(2, "0"))
             .join("");
 
+          if (!(await convert_to_unwrapped(account_id))) {
+            throw new Error("app_lock_convert");
+          }
           save_app_lock_config(account_id, {
             enabled: true,
             pin_type: "text",
@@ -684,6 +700,10 @@ function SetupPinModal({
               "warning",
             );
           }
+          await upgrade_to_server_wrap(account_id, text_input).catch(
+            () => false,
+          );
+          await seal_device_passphrase_for_lock(account_id);
           mark_session_unlocked(account_id);
           on_success();
         } catch {
@@ -971,8 +991,8 @@ export function AppLockSection() {
     show_toast(t("settings.app_lock_enabled_toast"), "success");
   }, [t]);
 
-  const handle_disable_success = useCallback(() => {
-    clear_app_lock_config(account_id);
+  const handle_disable_success = useCallback(async () => {
+    await remove_app_lock(account_id);
     clear_session_unlock(account_id);
     set_enabled(false);
     set_modal(null);

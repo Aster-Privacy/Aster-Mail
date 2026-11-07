@@ -2377,6 +2377,7 @@ export class ApiClient {
             response.status === 403 &&
             error_data.code !== "ACCOUNT_LOCKED" &&
             error_data.code !== "SENDER_NOT_AUTHORIZED" &&
+            error_data.code !== "APP_LOCK_PROOF_INVALID" &&
             is_state_changing_method(method) &&
             attempt === 0 &&
             !skip_session_refresh &&

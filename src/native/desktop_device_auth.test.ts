@@ -319,6 +319,33 @@ describe("device relogin decisions", () => {
     );
   });
 
+  it("keeps the pairing while the stored passphrase is sealed by a PIN", async () => {
+    const base = invoke_mock.getMockImplementation();
+
+    invoke_mock.mockImplementation(
+      (cmd: string, args?: Record<string, unknown>) => {
+        if (cmd === "device_get_stored_passphrase") {
+          return Promise.reject("passphrase_pin_locked");
+        }
+
+        return base?.(cmd, args);
+      },
+    );
+    const module = await import("./desktop_device_auth");
+    const wait = vi.fn(() => Promise.resolve());
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "locked",
+    );
+    await expect(
+      module.relogin_with_retries("device-1", () => false, wait),
+    ).resolves.toBe("locked");
+    expect(wait).not.toHaveBeenCalled();
+    expect(
+      invoke_mock.mock.calls.some(([cmd]) => cmd === "device_forget_account"),
+    ).toBe(false);
+  });
+
   it.each([429, 500, 502, 503, 403])(
     "keeps the pairing when the device login returns %i",
     async (status) => {

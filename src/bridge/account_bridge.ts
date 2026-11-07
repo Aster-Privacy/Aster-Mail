@@ -56,6 +56,7 @@ import {
   clear_app_lock_config,
   clear_session_unlock,
 } from "@/services/app_lock_store";
+import { release_app_lock } from "@/services/app_lock_unlock";
 import {
   account_link_origins,
   support_site_origins,
@@ -324,6 +325,23 @@ async function post_with_token<T>(
   return data === null ? { data: {} as T } : { data };
 }
 
+async function delete_with_token(
+  session: token_session,
+  path: string,
+): Promise<boolean> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "DELETE",
+    credentials: "omit",
+    headers: {
+      ...base_headers(),
+      Authorization: `Bearer ${session.access_token}`,
+      "X-CSRF-Token": session.csrf_token,
+    },
+  });
+
+  return response.ok || response.status === 410;
+}
+
 interface link_client {
   verify: (code: string) => Promise<session_call<DeviceCodeVerifyResponse>>;
   confirm: (code: string, envelope: string) => Promise<session_call<unknown>>;
@@ -484,6 +502,7 @@ async function handle_link(
 }
 
 function clear_account_material(account_id: string): Promise<void> {
+  void release_app_lock(account_id).catch(() => undefined);
   clear_stored_encrypted_vault(account_id);
   clear_session_timeout_data(account_id);
   clear_app_lock_config(account_id);
@@ -497,6 +516,7 @@ async function sign_out_one(
   current_id: string | null,
 ): Promise<boolean> {
   if (account.id === current_id) {
+    await release_app_lock(account.id).catch(() => undefined);
     await unlink_account_device().catch(() => undefined);
     await api_client
       .post("/core/v1/auth/logout", {}, { skip_session_refresh: true })
@@ -508,6 +528,12 @@ async function sign_out_one(
     const session = await open_token_session(account).catch(() => null);
 
     if (session) {
+      await release_app_lock(account.id, (device_lock_id) =>
+        delete_with_token(
+          session,
+          `/core/v1/auth/app-lock/${encodeURIComponent(device_lock_id)}`,
+        ),
+      ).catch(() => undefined);
       await post_with_token(session, "/core/v1/auth/logout", {}).catch(
         () => undefined,
       );

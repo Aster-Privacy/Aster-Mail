@@ -26,6 +26,10 @@ import {
 } from "@/services/crypto/secure_storage";
 import { get_current_account_id } from "@/services/account_manager";
 import {
+  get_app_lock_config,
+  is_server_wrapped_config,
+} from "@/services/app_lock_store";
+import {
   cancel_pending_list_snapshots,
   drop_list_snapshot,
 } from "@/services/list_snapshot_store";
@@ -91,6 +95,14 @@ export async function cache_email_list(
   emails: InboxEmail[],
 ): Promise<void> {
   try {
+    const account_id = await get_current_account_id();
+
+    if (
+      account_id &&
+      is_server_wrapped_config(get_app_lock_config(account_id))
+    ) {
+      return;
+    }
     const trimmed = emails.slice(0, MAX_EMAILS_PER_VIEW);
     const entry: CacheEntry = {
       emails: trimmed,
@@ -195,6 +207,34 @@ export async function clear_email_cache(
   } catch (e) {
     console.warn("offline_email_cache: failed to clear cache", e);
 
+    return;
+  }
+}
+
+export async function clear_account_list_cache(
+  account_id: string,
+): Promise<void> {
+  try {
+    const db = await open_db();
+
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      const keys_request = store.getAllKeys();
+
+      keys_request.onsuccess = () => {
+        for (const key of keys_request.result) {
+          if (typeof key === "string" && key.startsWith(`${account_id}:`)) {
+            store.delete(key);
+          }
+        }
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    db.close();
+  } catch {
     return;
   }
 }

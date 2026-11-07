@@ -31,6 +31,7 @@ import {
   store_session_passphrase,
   get_session_passphrase,
   clear_session_passphrase,
+  is_session_passphrase_pin_locked,
 } from "./session_passphrase";
 import {
   decrypt_vault_with_lock,
@@ -114,6 +115,8 @@ import {
   clear_app_lock_config,
   clear_session_unlock,
 } from "@/services/app_lock_store";
+import { wait_for_app_unlock } from "@/services/app_lock_wrap";
+import { release_app_lock } from "@/services/app_lock_unlock";
 import { delete_category_index_for_account } from "@/services/category_index";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
@@ -273,6 +276,7 @@ export function use_auth_account_state() {
         clear_stored_encrypted_vault(affected.id);
         clear_session_timeout_data(affected.id);
         clear_session_unlock(affected.id);
+        void release_app_lock(affected.id);
         clear_app_lock_config(affected.id);
 
         try {
@@ -414,11 +418,24 @@ export function use_auth_account_state() {
           }
         }
 
+        const pin_locked_at_start = is_session_passphrase_pin_locked(
+          current.id,
+        );
+
         const restore_session_keys = async (): Promise<boolean> => {
           if (has_vault_in_memory_for(current.user.id)) return true;
 
           if (has_vault_in_memory()) {
             clear_vault_from_memory();
+          }
+
+          if (is_session_passphrase_pin_locked(current.id)) {
+            set_state((prev) => ({
+              ...prev,
+              accounts: data.accounts,
+              current_account_id: current.id,
+            }));
+            if (!(await wait_for_app_unlock(current.id))) return false;
           }
 
           let stored_passphrase: string | null = null;
@@ -589,7 +606,11 @@ export function use_auth_account_state() {
 
         let has_keys = await session_keys_restore;
 
-        if (!has_keys && "__TAURI_INTERNALS__" in window) {
+        if (
+          !has_keys &&
+          !pin_locked_at_start &&
+          "__TAURI_INTERNALS__" in window
+        ) {
           try {
             const { invoke } = await import("@tauri-apps/api/core");
             const raw_b64 = await invoke<string | null>(
@@ -641,6 +662,7 @@ export function use_auth_account_state() {
 
         if (
           !has_keys &&
+          !pin_locked_at_start &&
           (await get_account_kind(current.id)) !== "shared" &&
           (await try_sibling_handoff(current.user.id))
         ) {
@@ -1202,6 +1224,7 @@ export function use_auth_account_state() {
         clear_stored_encrypted_vault(account_id);
         await clear_session_passphrase(account_id);
         clear_session_timeout_data(account_id);
+        void release_app_lock(account_id);
         clear_app_lock_config(account_id);
         clear_session_unlock(account_id);
 

@@ -42,6 +42,20 @@ import {
   safe_session_remove,
   safe_session_set,
 } from "@/lib/safe_storage";
+import { is_account_server_wrapped } from "@/services/app_lock_store";
+import {
+  clear_pending_passphrase,
+  forget_all_unlocked_locks,
+  get_pending_passphrase,
+  get_unlocked_key,
+  has_wrapped_passphrase,
+  open_wrapped_passphrase,
+  read_wrapped_record,
+  remove_all_wrapped_passphrases,
+  remove_wrapped_passphrase,
+  set_pending_passphrase,
+  write_wrapped_passphrase,
+} from "@/services/app_lock_wrap";
 
 const ENCRYPTED_VAULT_KEY_PREFIX = "astermail_encrypted_vault_";
 const VAULT_NONCE_KEY_PREFIX = "astermail_vault_nonce_";
@@ -131,6 +145,49 @@ export async function store_session_passphrase(
   passphrase: string,
   remember_on_device: boolean = true,
 ): Promise<void> {
+  if (is_account_server_wrapped(account_id)) {
+    await store_pin_wrapped_passphrase(
+      account_id,
+      passphrase,
+      remember_on_device,
+    );
+
+    return;
+  }
+
+  remove_wrapped_passphrase(account_id);
+  await store_unwrapped_passphrase(account_id, passphrase, remember_on_device);
+}
+
+async function store_pin_wrapped_passphrase(
+  account_id: string,
+  passphrase: string,
+  remember_on_device: boolean,
+): Promise<void> {
+  const lock_key = get_unlocked_key(account_id);
+
+  if (lock_key) {
+    await write_wrapped_passphrase(
+      account_id,
+      lock_key,
+      passphrase,
+      remember_on_device,
+    );
+    clear_pending_passphrase(account_id);
+  } else {
+    set_pending_passphrase(account_id, passphrase, remember_on_device);
+  }
+
+  remove_stored_passphrase(account_id);
+  safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
+  safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
+}
+
+export async function store_unwrapped_passphrase(
+  account_id: string,
+  passphrase: string,
+  remember_on_device: boolean = true,
+): Promise<void> {
   const key = await get_or_create_session_key();
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encoded = new TextEncoder().encode(passphrase);
@@ -157,7 +214,29 @@ export async function store_session_passphrase(
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
 }
 
+export function remove_unwrapped_passphrase(account_id: string): void {
+  remove_stored_passphrase(account_id);
+  safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
+  safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
+}
+
+export function is_session_passphrase_pin_locked(account_id: string): boolean {
+  if (!is_account_server_wrapped(account_id)) return false;
+  if (get_pending_passphrase(account_id) !== null) return false;
+  if (get_unlocked_key(account_id) !== null) return false;
+
+  return has_wrapped_passphrase(account_id);
+}
+
 export function is_session_passphrase_on_device(account_id: string): boolean {
+  if (is_account_server_wrapped(account_id)) {
+    const pending = get_pending_passphrase(account_id);
+
+    if (pending) return pending.remember_on_device;
+
+    return read_wrapped_record(account_id)?.on_device ?? false;
+  }
+
   const has_current =
     safe_local_get(SESSION_PASSPHRASE_KEY_PREFIX + account_id) !== null &&
     safe_local_get(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id) !== null;
@@ -174,6 +253,13 @@ export function has_stored_session_passphrase(account_id: string): boolean {
   try {
     if (check_session_expired(account_id)) {
       return false;
+    }
+
+    if (is_account_server_wrapped(account_id)) {
+      return (
+        get_pending_passphrase(account_id) !== null ||
+        has_wrapped_passphrase(account_id)
+      );
     }
 
     const has_current = read_stored_passphrase(account_id) !== null;
@@ -198,6 +284,10 @@ export async function get_session_passphrase(
     await clear_session_passphrase(account_id);
 
     return null;
+  }
+
+  if (is_account_server_wrapped(account_id)) {
+    return read_pin_wrapped_passphrase(account_id);
   }
 
   const stored = read_stored_passphrase(account_id);
@@ -250,9 +340,27 @@ export async function get_session_passphrase(
   }
 }
 
+async function read_pin_wrapped_passphrase(
+  account_id: string,
+): Promise<string | null> {
+  const pending = get_pending_passphrase(account_id);
+
+  if (pending) return pending.passphrase;
+  const lock_key = get_unlocked_key(account_id);
+
+  if (!lock_key) return null;
+  const opened = await open_wrapped_passphrase(account_id, lock_key);
+
+  if (opened !== null) remove_unwrapped_passphrase(account_id);
+
+  return opened;
+}
+
 export async function clear_session_passphrase(
   account_id: string,
 ): Promise<void> {
+  remove_wrapped_passphrase(account_id);
+  clear_pending_passphrase(account_id);
   remove_stored_passphrase(account_id);
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
@@ -278,5 +386,7 @@ export async function clear_all_session_passphrases(): Promise<void> {
         key.startsWith(SESSION_PASSPHRASE_IV_KEY_PREFIX),
     )
     .forEach((key) => safe_session_remove(key));
+  remove_all_wrapped_passphrases();
+  forget_all_unlocked_locks();
   await clear_session_key();
 }

@@ -53,7 +53,7 @@ import { ignore_error } from "@/lib/ignore_error";
 
 type GateState = "loading" | "completing" | "pair" | "unavailable";
 
-type FinalizeOutcome = "signed_in" | "rejected" | "unavailable";
+type FinalizeOutcome = "signed_in" | "rejected" | "unavailable" | "locked";
 
 const RETRY_DELAYS_MS = [10_000, 30_000, 60_000, 120_000];
 
@@ -190,6 +190,12 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
         if (outcome === "unavailable") {
           set_gate_state("unavailable");
+
+          return;
+        }
+
+        if (outcome === "locked") {
+          set_gate_state("pair");
 
           return;
         }

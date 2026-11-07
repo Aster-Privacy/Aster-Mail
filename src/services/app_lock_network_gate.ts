@@ -23,6 +23,7 @@ const ALLOWED_WHILE_LOCKED = [
   "/core/v1/auth/logout",
   "/core/v1/auth/logout-all",
   "/core/v1/auth/clear-session",
+  "/core/v1/auth/app-lock/",
 ];
 
 let locked = false;
