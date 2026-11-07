@@ -303,6 +303,7 @@ export function use_inbox_bulk_actions({
           if (outcome !== "unsupported") {
             handled_by_category = true;
             affected_count = progress.completed;
+            completed = outcome !== "continuing";
           }
         }
         if (!handled_by_category) {

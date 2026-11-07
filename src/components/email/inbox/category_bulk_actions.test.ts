@@ -20,12 +20,13 @@
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@/services/api/archive", () => ({
-  batch_archive: vi.fn(),
+vi.mock("@/services/api/mail", () => ({
+  bulk_action_by_scope: vi.fn(),
 }));
 
-vi.mock("@/services/crypto/mail_metadata", () => ({
-  bulk_update_metadata_by_ids: vi.fn(),
+vi.mock("@/services/read_intent", () => ({
+  note_flag_intents: vi.fn(),
+  clear_flag_intents: vi.fn(),
 }));
 
 vi.mock("@/services/category_index", () => ({
@@ -51,8 +52,8 @@ import {
   CATEGORY_ACTION_CHUNK_SIZE,
 } from "./category_bulk_actions";
 
-import { batch_archive } from "@/services/api/archive";
-import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import { bulk_action_by_scope } from "@/services/api/mail";
+import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
 import {
   get_category_action_ids,
   get_index_entries,
@@ -65,8 +66,7 @@ import {
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
-const mock_batch_archive = vi.mocked(batch_archive);
-const mock_bulk_update = vi.mocked(bulk_update_metadata_by_ids);
+const mock_scope = vi.mocked(bulk_action_by_scope);
 const mock_action_ids = vi.mocked(get_category_action_ids);
 const mock_fully_built = vi.mocked(is_fully_built);
 const mock_capped = vi.mocked(is_index_capped);
@@ -95,20 +95,27 @@ function set_index(ids: string[]) {
   });
 }
 
+function ok_response(completed = true) {
+  return {
+    data: {
+      batch_id: "batch",
+      affected_count: 0,
+      undoable: true,
+      completed,
+    },
+  };
+}
+
+function sent_ids(): string[] {
+  return mock_scope.mock.calls.flatMap((c) => c[0].ids ?? []);
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   set_read_states({});
   mock_fully_built.mockReturnValue(true);
   mock_capped.mockReturnValue(false);
-  mock_batch_archive.mockResolvedValue({
-    data: { success: true, archived_count: 0, total_size_bytes: 0 },
-  });
-  mock_bulk_update.mockResolvedValue({
-    success: true,
-    updated_count: 0,
-    failed_ids: [],
-    undecryptable_ids: [],
-  });
+  mock_scope.mockResolvedValue(ok_response());
 });
 
 describe("run_category_scope_action", () => {
@@ -118,33 +125,35 @@ describe("run_category_scope_action", () => {
     const outcome = await run_category_scope_action("trash", "primary");
 
     expect(outcome).toBe("not_ready");
-    expect(mock_bulk_update).not.toHaveBeenCalled();
-    expect(mock_batch_archive).not.toHaveBeenCalled();
+    expect(mock_scope).not.toHaveBeenCalled();
   });
 
-  it("refuses destructive actions when the index is capped", async () => {
+  it("refuses every action when the index is capped", async () => {
     mock_capped.mockReturnValue(true);
     set_index(make_ids(3));
 
-    for (const action of ["trash", "archive", "mark_spam"] as const) {
+    for (const action of [
+      "trash",
+      "archive",
+      "mark_spam",
+      "mark_read",
+      "mark_unread",
+      "star",
+    ] as const) {
       const outcome = await run_category_scope_action(action, "primary");
 
       expect(outcome).toBe("not_ready");
     }
-    expect(mock_bulk_update).not.toHaveBeenCalled();
-    expect(mock_batch_archive).not.toHaveBeenCalled();
+    expect(mock_scope).not.toHaveBeenCalled();
   });
 
-  it("refuses non-destructive actions when the index is capped", async () => {
-    mock_capped.mockReturnValue(true);
+  it("returns unsupported for actions outside the category set", async () => {
     set_index(make_ids(3));
 
-    for (const action of ["mark_read", "mark_unread", "star"] as const) {
-      const outcome = await run_category_scope_action(action, "primary");
+    const outcome = await run_category_scope_action("unarchive", "primary");
 
-      expect(outcome).toBe("not_ready");
-    }
-    expect(mock_bulk_update).not.toHaveBeenCalled();
+    expect(outcome).toBe("unsupported");
+    expect(mock_scope).not.toHaveBeenCalled();
   });
 
   it("returns noop for an empty tab", async () => {
@@ -153,123 +162,103 @@ describe("run_category_scope_action", () => {
     const outcome = await run_category_scope_action("trash", "primary");
 
     expect(outcome).toBe("noop");
-    expect(mock_bulk_update).not.toHaveBeenCalled();
+    expect(mock_scope).not.toHaveBeenCalled();
   });
 
-  it("trashes every indexed message including thread siblings beyond the loaded page", async () => {
-    const all_ids = make_ids(250);
+  it("archives a tab of 12345 messages in requests of at most 1000 ids", async () => {
+    const all_ids = make_ids(12_345);
 
     set_index(all_ids);
-
-    const outcome = await run_category_scope_action("trash", "primary");
-
-    expect(outcome).toBe("done");
-
-    const sent_ids = mock_bulk_update.mock.calls.flatMap((c) => c[0]);
-
-    expect(sent_ids).toEqual(all_ids);
-    for (const call of mock_bulk_update.mock.calls) {
-      expect(call[0].length).toBeLessThanOrEqual(CATEGORY_ACTION_CHUNK_SIZE);
-      expect(call[1]).toEqual({ is_trashed: true });
-    }
-
-    const removed = mock_remove_ids.mock.calls.flatMap((c) => c[0]);
-
-    expect(removed).toEqual(all_ids);
-    expect(vi.mocked(invalidate_mail_stats)).toHaveBeenCalled();
-    expect(vi.mocked(stale_all_view_caches)).toHaveBeenCalled();
-  });
-
-  it("archives through the batch endpoint before the blob write", async () => {
-    const all_ids = make_ids(150);
-    const call_order: string[] = [];
-
-    set_index(all_ids);
-    mock_batch_archive.mockImplementation(async () => {
-      call_order.push("batch");
-
-      return {
-        data: { success: true, archived_count: 0, total_size_bytes: 0 },
-      };
-    });
-    mock_bulk_update.mockImplementation(async () => {
-      call_order.push("blob");
-
-      return {
-        success: true,
-        updated_count: 0,
-        failed_ids: [],
-        undecryptable_ids: [],
-      };
-    });
 
     const outcome = await run_category_scope_action("archive", "primary");
 
     expect(outcome).toBe("done");
-    expect(call_order).toEqual(["batch", "blob", "batch", "blob"]);
-    expect(mock_batch_archive).toHaveBeenCalledWith({
-      ids: all_ids.slice(0, 100),
-      tier: "hot",
-    });
-    expect(mock_batch_archive).toHaveBeenCalledWith({
-      ids: all_ids.slice(100),
-      tier: "hot",
-    });
+    expect(CATEGORY_ACTION_CHUNK_SIZE).toBe(1000);
+    expect(mock_scope).toHaveBeenCalledTimes(13);
+    for (const [request] of mock_scope.mock.calls) {
+      expect(request.action).toBe("archive");
+      expect(request.scope).toEqual({});
+      expect(request.ids!.length).toBeLessThanOrEqual(
+        CATEGORY_ACTION_CHUNK_SIZE,
+      );
+    }
+    expect(sent_ids()).toEqual(all_ids);
     expect(mock_remove_ids.mock.calls.flatMap((c) => c[0])).toEqual(all_ids);
+    expect(vi.mocked(invalidate_mail_stats)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(stale_all_view_caches)).toHaveBeenCalledTimes(1);
   });
 
-  it("throws and stops when the archive batch endpoint fails", async () => {
+  it("notes the archive intent before each request", async () => {
+    const all_ids = make_ids(1500);
+
+    set_index(all_ids);
+
+    await run_category_scope_action("archive", "primary");
+
+    expect(vi.mocked(note_flag_intents)).toHaveBeenCalledWith(
+      all_ids.slice(0, 1000),
+      { is_archived: true },
+    );
+    expect(vi.mocked(note_flag_intents)).toHaveBeenCalledWith(
+      all_ids.slice(1000),
+      { is_archived: true },
+    );
+    expect(vi.mocked(clear_flag_intents)).not.toHaveBeenCalled();
+  });
+
+  it("reports continuing when the server finishes a chunk in the background", async () => {
+    set_index(make_ids(2500));
+    mock_scope
+      .mockResolvedValueOnce(ok_response())
+      .mockResolvedValueOnce(ok_response(false))
+      .mockResolvedValueOnce(ok_response());
+
+    const outcome = await run_category_scope_action("archive", "primary");
+
+    expect(outcome).toBe("continuing");
+    expect(mock_scope).toHaveBeenCalledTimes(3);
+  });
+
+  it("stops at a failed chunk and keeps the chunks that were applied", async () => {
+    const all_ids = make_ids(2500);
+
+    set_index(all_ids);
+    mock_scope
+      .mockResolvedValueOnce(ok_response())
+      .mockResolvedValueOnce({ error: "rate limited" });
+
+    const progress: Array<[number, number]> = [];
+
+    await expect(
+      run_category_scope_action("trash", "primary", {
+        on_progress: (completed, total) => progress.push([completed, total]),
+      }),
+    ).rejects.toThrow();
+
+    expect(mock_scope).toHaveBeenCalledTimes(2);
+    expect(mock_remove_ids.mock.calls.flatMap((c) => c[0])).toEqual(
+      all_ids.slice(0, 1000),
+    );
+    expect(vi.mocked(clear_flag_intents)).toHaveBeenCalledWith(
+      all_ids.slice(1000, 2000),
+      { is_trashed: true },
+    );
+    expect(progress[progress.length - 1]).toEqual([1000, 2500]);
+    expect(vi.mocked(invalidate_mail_stats)).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the index and stats alone when the first chunk fails", async () => {
     set_index(make_ids(150));
-    mock_batch_archive.mockResolvedValue({ error: "boom" });
+    mock_scope.mockResolvedValue({ error: "boom" });
 
     await expect(
       run_category_scope_action("archive", "primary"),
     ).rejects.toThrow();
     expect(mock_remove_ids).not.toHaveBeenCalled();
-    expect(mock_bulk_update).not.toHaveBeenCalled();
     expect(vi.mocked(invalidate_mail_stats)).not.toHaveBeenCalled();
   });
 
-  it("reindexes a chunk whose blob write fails after a successful archive", async () => {
-    const all_ids = make_ids(30);
-
-    set_index(all_ids);
-    mock_bulk_update.mockResolvedValue({
-      success: false,
-      updated_count: 0,
-      failed_ids: all_ids,
-      undecryptable_ids: [],
-    });
-
-    const outcome = await run_category_scope_action("archive", "primary");
-
-    expect(outcome).toBe("done");
-    expect(mock_reindex_ids).toHaveBeenCalledWith(all_ids);
-  });
-
-  it("only removes ids that succeeded on a partial trash failure", async () => {
-    const all_ids = make_ids(10);
-
-    set_index(all_ids);
-    mock_bulk_update.mockResolvedValue({
-      success: false,
-      updated_count: 8,
-      failed_ids: ["id_3", "id_7"],
-      undecryptable_ids: [],
-    });
-
-    await expect(
-      run_category_scope_action("trash", "primary"),
-    ).rejects.toThrow();
-
-    const removed = mock_remove_ids.mock.calls.flatMap((c) => c[0]);
-
-    expect(removed).toEqual(
-      all_ids.filter((id) => id !== "id_3" && id !== "id_7"),
-    );
-  });
-
-  it("marks spam with is_spam and removes ids from the index", async () => {
+  it("marks spam and removes ids from the index", async () => {
     const all_ids = make_ids(5);
 
     set_index(all_ids);
@@ -277,23 +266,26 @@ describe("run_category_scope_action", () => {
     const outcome = await run_category_scope_action("mark_spam", "primary");
 
     expect(outcome).toBe("done");
-    expect(mock_bulk_update).toHaveBeenCalledWith(all_ids, {
-      is_spam: true,
-      is_trashed: false,
+    expect(mock_scope).toHaveBeenCalledWith({
+      action: "mark_spam",
+      scope: {},
+      ids: all_ids,
     });
     expect(mock_remove_ids.mock.calls.flatMap((c) => c[0])).toEqual(all_ids);
   });
 
   it("updates the index in place after a read change instead of reindexing", async () => {
-    const all_ids = make_ids(120);
+    const all_ids = make_ids(1200);
 
     set_index(all_ids);
 
     const outcome = await run_category_scope_action("mark_read", "primary");
 
     expect(outcome).toBe("done");
-    expect(mock_bulk_update).toHaveBeenCalledWith(all_ids.slice(0, 100), {
-      is_read: true,
+    expect(mock_scope).toHaveBeenCalledWith({
+      action: "mark_read",
+      scope: {},
+      ids: all_ids.slice(0, 1000),
     });
     expect(mock_set_ids_read.mock.calls.flatMap((c) => c[0])).toEqual(all_ids);
     for (const call of mock_set_ids_read.mock.calls) {
@@ -304,30 +296,24 @@ describe("run_category_scope_action", () => {
   });
 
   it("only sends the messages whose read state actually changes", async () => {
-    const all_ids = make_ids(4);
-
-    set_index(all_ids);
+    set_index(make_ids(4));
     set_read_states({ id_0: true, id_2: true });
 
     const outcome = await run_category_scope_action("mark_read", "primary");
 
     expect(outcome).toBe("done");
-    expect(mock_bulk_update).toHaveBeenCalledWith(["id_1", "id_3"], {
-      is_read: true,
-    });
+    expect(sent_ids()).toEqual(["id_1", "id_3"]);
     expect(mock_set_ids_read).toHaveBeenCalledWith(["id_1", "id_3"], true);
   });
 
   it("returns noop when every message already has the target read state", async () => {
-    const all_ids = make_ids(3);
-
-    set_index(all_ids);
+    set_index(make_ids(3));
     set_read_states({ id_0: true, id_1: true, id_2: true });
 
     const outcome = await run_category_scope_action("mark_read", "primary");
 
     expect(outcome).toBe("noop");
-    expect(mock_bulk_update).not.toHaveBeenCalled();
+    expect(mock_scope).not.toHaveBeenCalled();
     expect(mock_set_ids_read).not.toHaveBeenCalled();
   });
 
@@ -339,10 +325,12 @@ describe("run_category_scope_action", () => {
 
     await run_category_scope_action("mark_unread", "primary");
 
-    expect(mock_bulk_update).toHaveBeenCalledWith(all_ids.slice(0, 100), {
-      is_read: false,
+    expect(mock_scope).toHaveBeenCalledWith({
+      action: "mark_unread",
+      scope: {},
+      ids: all_ids,
     });
-    expect(mock_set_ids_read.mock.calls.flatMap((c) => c[0])).toEqual(all_ids);
+    expect(mock_set_ids_read).toHaveBeenCalledWith(all_ids, false);
     expect(mock_reindex_ids).not.toHaveBeenCalled();
   });
 
@@ -353,15 +341,17 @@ describe("run_category_scope_action", () => {
 
     await run_category_scope_action("star", "primary");
 
-    expect(mock_bulk_update).toHaveBeenCalledWith(all_ids.slice(0, 100), {
-      is_starred: true,
+    expect(mock_scope).toHaveBeenCalledWith({
+      action: "star",
+      scope: {},
+      ids: all_ids,
     });
     expect(mock_remove_ids).not.toHaveBeenCalled();
     expect(mock_reindex_ids).toHaveBeenCalledWith(all_ids);
   });
 
   it("reports progress from zero through the full message count", async () => {
-    const all_ids = make_ids(250);
+    const all_ids = make_ids(2500);
     const progress: Array<[number, number]> = [];
 
     set_index(all_ids);
@@ -370,10 +360,11 @@ describe("run_category_scope_action", () => {
       on_progress: (completed, total) => progress.push([completed, total]),
     });
 
-    expect(progress[0]).toEqual([0, 250]);
-    expect(progress[progress.length - 1]).toEqual([250, 250]);
-    for (const [, total] of progress) {
-      expect(total).toBe(250);
-    }
+    expect(progress).toEqual([
+      [0, 2500],
+      [1000, 2500],
+      [2000, 2500],
+      [2500, 2500],
+    ]);
   });
 });
