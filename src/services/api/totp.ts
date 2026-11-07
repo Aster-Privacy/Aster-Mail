@@ -96,12 +96,13 @@ export interface TotpRequiredResponse {
   available_methods?: string[];
 }
 
-export async function initiate_totp_setup(): Promise<
-  ApiResponse<TotpSetupInitiateResponse>
-> {
+export async function initiate_totp_setup(proof?: {
+  password_hash: string;
+  totp_code?: string;
+}): Promise<ApiResponse<TotpSetupInitiateResponse>> {
   return api_client.post<TotpSetupInitiateResponse>(
     "/core/v1/auth/totp/setup/initiate",
-    {},
+    proof ?? {},
   );
 }
 

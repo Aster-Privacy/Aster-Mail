@@ -42,11 +42,17 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { OtpInput } from "@/components/ui/otp_input";
+import { StepUpModal } from "@/components/settings/step_up_modal";
 import {
   initiate_totp_setup,
   verify_totp_setup,
   TotpSetupInitiateResponse,
 } from "@/services/api/totp";
+import {
+  STEP_UP_REQUIRED_CODE,
+  to_reauth_proof,
+  type StepUpCredentials,
+} from "@/services/api/step_up";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
@@ -75,6 +81,7 @@ export function TotpSetupModal({
   const [backup_codes, set_backup_codes] = useState<string[]>([]);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
+  const [needs_step_up, set_needs_step_up] = useState(false);
   const verifying_ref = useRef(false);
 
   const reset_state = useCallback(() => {
@@ -84,6 +91,7 @@ export function TotpSetupModal({
     set_backup_codes([]);
     set_is_loading(false);
     set_error("");
+    set_needs_step_up(false);
   }, []);
 
   useEffect(() => {
@@ -100,6 +108,13 @@ export function TotpSetupModal({
     set_error("");
 
     const response = await initiate_totp_setup();
+
+    if (response.server_code === STEP_UP_REQUIRED_CODE) {
+      set_needs_step_up(true);
+      set_is_loading(false);
+
+      return;
+    }
 
     if (response.error) {
       set_error(response.error);
@@ -127,6 +142,15 @@ export function TotpSetupModal({
       setup_token: setup_data.setup_token,
     });
 
+    if (response.server_code === STEP_UP_REQUIRED_CODE) {
+      set_setup_data(null);
+      set_verification_code("");
+      verifying_ref.current = false;
+      set_is_loading(false);
+
+      return;
+    }
+
     if (response.error) {
       set_error(response.error);
       verifying_ref.current = false;
@@ -142,6 +166,22 @@ export function TotpSetupModal({
 
     verifying_ref.current = false;
     set_is_loading(false);
+  };
+
+  const handle_step_up_confirm = async (credentials: StepUpCredentials) => {
+    const response = await initiate_totp_setup(to_reauth_proof(credentials));
+
+    if (!response.data) {
+      throw new Error(response.error || t("errors.generic"));
+    }
+    set_setup_data(response.data);
+    set_error("");
+    set_needs_step_up(false);
+  };
+
+  const handle_step_up_close = () => {
+    set_needs_step_up(false);
+    set_error(t("common.step_up_description"));
   };
 
   const handle_code_change = (value: string) => {
@@ -215,7 +255,7 @@ export function TotpSetupModal({
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
             <ExclamationTriangleIcon className="w-12 h-12 text-red-500" />
             <p className="text-sm text-center text-red-500">{error}</p>
-            <Button variant="secondary" onClick={initiate_setup}>
+            <Button variant="secondary" onClick={() => void initiate_setup()}>
               {t("settings.try_again")}
             </Button>
           </div>
@@ -364,7 +404,7 @@ export function TotpSetupModal({
       <Modal
         close_on_escape={step === "setup"}
         close_on_overlay={false}
-        is_open={is_open}
+        is_open={is_open && !needs_step_up}
         on_close={handle_modal_close}
         show_close_button={step === "setup"}
         size="md"
@@ -382,6 +422,15 @@ export function TotpSetupModal({
           </motion.div>
         </AnimatePresence>
       </Modal>
+      <StepUpModal
+        password_only
+        confirm_label={t("common.continue")}
+        description={t("common.step_up_description")}
+        is_open={needs_step_up}
+        on_close={handle_step_up_close}
+        on_confirm={handle_step_up_confirm}
+        title={t("settings.setup_two_factor_auth")}
+      />
     </>
   );
 }
