@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_export_sidecar_file } from "./export_metadata";
+
 const SUPPORTED_IMPORT_EXTENSIONS = [
   ".mbox",
   ".mbx",
@@ -33,7 +35,10 @@ const SUPPORTED_IMPORT_EXTENSIONS = [
 export function is_supported_import_file(name: string): boolean {
   const lower = name.toLowerCase();
 
-  return SUPPORTED_IMPORT_EXTENSIONS.some((ext) => lower.endsWith(ext));
+  return (
+    SUPPORTED_IMPORT_EXTENSIONS.some((ext) => lower.endsWith(ext)) ||
+    is_export_sidecar_file(name)
+  );
 }
 
 export function filter_supported_files(files: File[]): File[] {
