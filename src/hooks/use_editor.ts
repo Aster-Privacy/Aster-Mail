@@ -394,7 +394,9 @@ export function use_editor({
 
       if (html_data) {
         const sanitized = proxy_compose_image_sources(
-          sanitize_compose_paste(html_data),
+          sanitize_compose_paste(html_data, {
+            collapse_source_whitespace: true,
+          }),
         );
 
         document.execCommand("insertHTML", false, sanitized);
@@ -482,7 +484,11 @@ export function use_editor({
           document.execCommand(
             "insertHTML",
             false,
-            proxy_compose_image_sources(sanitize_compose_paste(dropped_html)),
+            proxy_compose_image_sources(
+              sanitize_compose_paste(dropped_html, {
+                collapse_source_whitespace: true,
+              }),
+            ),
           );
         } else if (/\r|\n/.test(dropped_text)) {
           document.execCommand(
