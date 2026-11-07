@@ -19,7 +19,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import * as openpgp from "openpgp";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 const PASSPHRASE = "external key service passphrase";
 const ADDRESS = "owner@astermail.org";
@@ -60,6 +68,10 @@ vi.mock("@/services/crypto/external_pgp_cache", () => ({
   },
 }));
 
+vi.mock("@/workers/pgp_decrypt_pool", () => ({
+  reset_pgp_decrypt_pool: vi.fn(),
+}));
+
 vi.mock("@/services/api/client", () => ({
   api_client: {
     get: vi.fn(async () => ({ data: { key: null } })),
@@ -82,13 +94,16 @@ vi.mock("@/services/api/client", () => ({
 }));
 
 import { api_client } from "@/services/api/client";
+import { reset_pgp_decrypt_pool } from "@/workers/pgp_decrypt_pool";
 import {
   clear_external_pgp_key,
+  delete_external_key,
   get_external_decryption_keys,
   get_external_key_state,
   get_external_signing_key,
   prepare_external_key_import,
   replace_external_key,
+  resolve_external_signing_key,
   set_external_key_published,
   submit_external_key_revocation,
   upload_external_key,
@@ -135,7 +150,43 @@ beforeEach(() => {
   vi.mocked(api_client.put).mockClear();
   vi.mocked(api_client.post).mockClear();
   vi.mocked(api_client.delete).mockClear();
+  vi.mocked(api_client.get).mockClear();
+  vi.mocked(reset_pgp_decrypt_pool).mockClear();
 });
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+interface put_body {
+  public_key_armored: string;
+  replaces_fingerprint?: string;
+}
+
+function put_body(index: number): put_body {
+  return vi.mocked(api_client.put).mock.calls[index][1] as put_body;
+}
+
+async function server_record(
+  armored: string,
+  overrides: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  return {
+    fingerprint: await fingerprint_of(armored),
+    key_id: "",
+    algorithm: "ed25519",
+    key_size: 256,
+    public_key_armored: (await openpgp.readPrivateKey({ armoredKey: armored }))
+      .toPublic()
+      .armor(),
+    wrapped_private_key: "wrapped",
+    created_at: new Date().toISOString(),
+    expires_at: null,
+    published: false,
+    uid_mismatch: false,
+    ...overrides,
+  };
+}
 
 describe("external key account switching", () => {
   it("does not adopt the key when the account changes before the upload", async () => {
@@ -204,61 +255,146 @@ describe("replacing an external key", () => {
     expect(get_external_signing_key()).not.toBeNull();
   });
 
-  it("restores the previous key when the new upload fails", async () => {
+  it("keeps the previous key when the replacement upload fails", async () => {
     const first_fingerprint = await fingerprint_of(first_armored);
 
     expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
       true,
     );
     await set_external_key_published(true);
-    vi.mocked(api_client.post).mockClear();
+    vi.mocked(api_client.put).mockClear();
 
     h.put_results = [{ error: "failed", status: 500 }];
 
     const result = await replace_external_key(await prepare(second_armored));
 
     expect(result.ok).toBe(false);
-    expect(api_client.delete).toHaveBeenCalledWith(
-      expect.stringContaining("purge=true"),
-    );
-    expect(api_client.put).toHaveBeenCalledTimes(3);
-
-    const restore_body = vi.mocked(api_client.put).mock.calls[2][1] as {
-      public_key_armored: string;
-    };
-    const restored_public = await openpgp.readKey({
-      armoredKey: restore_body.public_key_armored,
-    });
-
-    expect(restored_public.getFingerprint().toLowerCase()).toBe(
-      first_fingerprint,
-    );
+    expect(api_client.delete).not.toHaveBeenCalled();
+    expect(api_client.put).toHaveBeenCalledTimes(1);
+    expect(put_body(0).replaces_fingerprint).toBe(first_fingerprint);
 
     const state = get_external_key_state();
 
     expect(state.status).toBe("ready");
     expect(state.record?.fingerprint.toLowerCase()).toBe(first_fingerprint);
+    expect(state.record?.published).toBe(true);
     expect(
       get_external_signing_key()?.getFingerprint().toLowerCase(),
     ).toBe(first_fingerprint);
-    expect(api_client.post).toHaveBeenCalledWith(
-      expect.stringContaining("/publish"),
-      { publish: true },
-    );
+    expect(reset_pgp_decrypt_pool).not.toHaveBeenCalled();
   });
 
-  it("uploads the new key after removing a different one", async () => {
+  it("replaces a different key in one request without deleting it", async () => {
+    const first_fingerprint = await fingerprint_of(first_armored);
+
     expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
       true,
     );
+    await set_external_key_published(true);
+    vi.mocked(api_client.put).mockClear();
 
     const result = await replace_external_key(await prepare(second_armored));
 
     expect(result.ok).toBe(true);
-    expect(api_client.delete).toHaveBeenCalledTimes(1);
+    expect(api_client.delete).not.toHaveBeenCalled();
+    expect(api_client.put).toHaveBeenCalledTimes(1);
+    expect(put_body(0).replaces_fingerprint).toBe(first_fingerprint);
+
+    const sent = await openpgp.readKey({
+      armoredKey: put_body(0).public_key_armored,
+    });
+
+    expect(sent.getFingerprint().toLowerCase()).toBe(
+      await fingerprint_of(second_armored),
+    );
     expect(get_external_key_state().record?.fingerprint.toLowerCase()).toBe(
       await fingerprint_of(second_armored),
     );
+    expect(get_external_key_state().record?.published).toBe(false);
+    expect(reset_pgp_decrypt_pool).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not send a replacement fingerprint for the first upload", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+
+    expect(put_body(0).replaces_fingerprint).toBeUndefined();
+  });
+});
+
+describe("removing an external key", () => {
+  it("resets the decrypt pool after a purge", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+
+    const result = await delete_external_key(true);
+
+    expect(result.ok).toBe(true);
+    expect(reset_pgp_decrypt_pool).toHaveBeenCalledTimes(1);
+    expect(get_external_decryption_keys()).toEqual([]);
+  });
+});
+
+describe("choosing the signing key", () => {
+  it("does not sign with an unpublished key", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+
+    expect(get_external_signing_key()).toBeNull();
+    expect(await resolve_external_signing_key()).toBeNull();
+  });
+
+  it("does not sign with a key whose record has expired", async () => {
+    h.put_results = [
+      {
+        data: await server_record(first_armored, {
+          published: true,
+          expires_at: new Date(Date.now() - 60_000).toISOString(),
+        }),
+      },
+    ];
+
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+    expect(get_external_key_state().record?.published).toBe(true);
+    expect(get_external_signing_key()).toBeNull();
+    expect(await resolve_external_signing_key()).toBeNull();
+  });
+
+  it("signs with a published key that has not expired", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+    await set_external_key_published(true);
+
+    expect(
+      (await resolve_external_signing_key())?.getFingerprint().toLowerCase(),
+    ).toBe(await fingerprint_of(first_armored));
+    expect(api_client.get).not.toHaveBeenCalled();
+  });
+
+  it("checks the latest record before signing with a stale one", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+    await set_external_key_published(true);
+
+    const later = Date.now() + 10 * 60 * 1000;
+
+    vi.spyOn(Date, "now").mockReturnValue(later);
+    vi.mocked(api_client.get).mockResolvedValueOnce({
+      data: {
+        key: await server_record(first_armored, { published: false }),
+      },
+    } as never);
+
+    expect(await resolve_external_signing_key()).toBeNull();
+    expect(api_client.get).toHaveBeenCalledTimes(1);
+    expect(get_external_key_state().record?.published).toBe(false);
   });
 });
 

@@ -29,6 +29,12 @@ export interface cached_external_key {
   public_key_armored: string;
   published: boolean;
   stored_at: number;
+  key_id?: string;
+  algorithm?: string;
+  key_size?: number;
+  created_at?: string;
+  expires_at?: string | null;
+  uid_mismatch?: boolean;
 }
 
 function indexed_db_available(): boolean {

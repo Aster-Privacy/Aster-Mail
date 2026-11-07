@@ -45,7 +45,7 @@ vi.mock("./crypto/memory_key_store", () => ({
 }));
 
 vi.mock("./crypto/external_pgp_key", () => ({
-  get_external_signing_key: () => state.external_key,
+  resolve_external_signing_key: async () => state.external_key,
 }));
 
 vi.mock("./crypto/published_signing_key", () => ({

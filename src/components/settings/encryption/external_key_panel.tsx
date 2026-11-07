@@ -61,7 +61,7 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { Input } from "@/components/ui/input";
-import { ButtonSpinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import {
   Modal,
   ModalBody,
@@ -84,6 +84,7 @@ import {
   delete_external_key,
   export_external_public_key,
   prepare_external_key_import,
+  preview_external_key_revocation,
   replace_external_key,
   request_external_pgp_key_load,
   set_external_key_published,
@@ -105,17 +106,27 @@ const REJECTION_KEYS: Record<string, TranslationKey> = {
   not_private: "settings.external_key_error_not_private",
   unsupported_version: "settings.external_key_error_unsupported_version",
   unsupported_algorithm: "settings.external_key_error_unsupported_algorithm",
+  rsa_too_large: "settings.external_key_error_rsa_too_large",
   weak_rsa: "settings.external_key_error_weak_rsa",
   stub_key: "settings.external_key_error_stub_key",
   missing_secret: "settings.external_key_error_stub_key",
   passphrase_required: "settings.external_key_error_passphrase_required",
   wrong_passphrase: "settings.external_key_error_wrong_passphrase",
+  invalid_key_material: "settings.external_key_error_invalid_key_material",
   expired: "settings.external_key_error_expired",
   revoked: "settings.external_key_error_revoked",
   invalid_self_signature: "settings.external_key_error_invalid_signature",
   weak_self_signature: "settings.external_key_error_weak_signature",
   no_encryption_subkey: "settings.external_key_error_no_encryption_subkey",
   fingerprint_changed: "settings.external_key_error_fingerprint_changed",
+  empty: "settings.external_key_error_unreadable",
+  not_armored: "settings.external_key_error_unreadable",
+  unparseable: "settings.external_key_error_unreadable",
+  unserializable: "settings.external_key_error_unreadable",
+  too_large: "settings.external_key_error_file_too_large",
+  wrapped_private_key_too_large: "settings.external_key_error_file_too_large",
+  no_valid_user_id: "settings.external_key_error_no_user_id",
+  aster_key: "settings.external_key_error_aster_key",
 };
 
 const SERVER_CODE_KEYS: Record<string, TranslationKey> = {
@@ -126,6 +137,12 @@ const SERVER_CODE_KEYS: Record<string, TranslationKey> = {
   NO_ENCRYPTION_SUBKEY: "settings.external_key_error_no_encryption_subkey",
   MASTER_KEY_REQUIRED: "settings.external_key_needs_upgrade",
   EXTERNAL_UID_MISMATCH: "settings.external_key_uid_mismatch",
+  BAD_CHALLENGE: "settings.external_key_error_bad_challenge",
+  BAD_SIGNATURE: "settings.external_key_error_bad_signature",
+  NOT_AVAILABLE: "settings.external_key_error_not_available",
+  ACCOUNT_CHANGED: "settings.external_key_error_account_changed",
+  DEVICES_NOT_READY: "settings.external_key_devices_not_ready",
+  EXTERNAL_KEY_CHANGED: "settings.external_key_error_key_changed",
 };
 
 const CHANGE_KEYS: Record<external_key_change, TranslationKey> = {
@@ -228,6 +245,7 @@ function ImportModal({
   );
   const [error, set_error] = useState("");
   const [busy, set_busy] = useState(false);
+  const [revocation_pending, set_revocation_pending] = useState(false);
 
   useEffect(() => {
     if (is_open) return;
@@ -237,6 +255,7 @@ function ImportModal({
     set_prepared(null);
     set_error("");
     set_busy(false);
+    set_revocation_pending(false);
   }, [is_open]);
 
   const handle_file = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -247,9 +266,10 @@ function ImportModal({
 
     set_prepared(null);
     set_error("");
+    set_revocation_pending(false);
 
     if (file.size > MAX_KEY_FILE_BYTES) {
-      set_error(t("settings.external_key_error_unreadable"));
+      set_error(t("settings.external_key_error_file_too_large"));
 
       return;
     }
@@ -282,11 +302,11 @@ function ImportModal({
         caught instanceof external_key_import_error ? caught.reason : undefined;
 
       if (reason === "revoked" || reason === "not_private") {
-        const revocation = await submit_external_key_revocation(file_bytes);
+        const preview = await preview_external_key_revocation(file_bytes);
 
-        if (revocation?.ok) {
-          show_toast(t("settings.external_key_revocation_saved"), "success");
-          on_close();
+        if (preview) {
+          set_passphrase("");
+          set_revocation_pending(true);
 
           return;
         }
@@ -301,6 +321,33 @@ function ImportModal({
     } finally {
       set_busy(false);
     }
+  };
+
+  const handle_revocation = async () => {
+    if (!file_bytes) return;
+
+    set_busy(true);
+    set_error("");
+
+    const result = await submit_external_key_revocation(file_bytes);
+
+    set_busy(false);
+
+    if (result?.ok) {
+      show_toast(t("settings.external_key_revocation_saved"), "success");
+      on_close();
+
+      return;
+    }
+
+    set_error(
+      t(
+        result
+          ? (SERVER_CODE_KEYS[result.code] ??
+              "settings.external_key_error_generic")
+          : "settings.external_key_error_revoked",
+      ),
+    );
   };
 
   const handle_upload = async () => {
@@ -343,19 +390,23 @@ function ImportModal({
     >
       <ModalHeader>
         <ModalTitle>
-          {summary
-            ? t("settings.external_key_review_title")
-            : t("settings.external_key_import_title")}
+          {revocation_pending
+            ? t("settings.external_key_revocation_confirm_title")
+            : summary
+              ? t("settings.external_key_review_title")
+              : t("settings.external_key_import_title")}
         </ModalTitle>
         <ModalDescription>
-          {summary
-            ? t("settings.external_key_review_description")
-            : t("settings.external_key_import_description")}
+          {revocation_pending
+            ? t("settings.external_key_revocation_confirm_message")
+            : summary
+              ? t("settings.external_key_review_description")
+              : t("settings.external_key_import_description")}
         </ModalDescription>
       </ModalHeader>
       <ModalBody>
         <div className="space-y-4">
-          {!summary && (
+          {!summary && !revocation_pending && (
             <>
               <div>
                 <p className="block text-xs font-medium mb-1.5 text-txt-secondary">
@@ -494,7 +545,16 @@ function ImportModal({
         <Button disabled={busy} variant="ghost" onClick={on_close}>
           {t("common.cancel")}
         </Button>
-        {summary ? (
+        {revocation_pending ? (
+          <Button
+            disabled={busy}
+            variant="destructive"
+            onClick={handle_revocation}
+          >
+            {t("settings.external_key_revocation_confirm")}
+            {busy && <ButtonSpinner />}
+          </Button>
+        ) : summary ? (
           <Button disabled={busy} variant="depth" onClick={handle_upload}>
             {replacing
               ? t("settings.external_key_replace")
@@ -531,13 +591,21 @@ export function ExternalKeyPanel() {
   const [uid_rejected, set_uid_rejected] = useState(false);
   const primary_address = user?.email ?? "";
 
-  use_register_search_items("encryption", [
-    {
-      label: t("settings.external_key_title"),
-      breadcrumb: `${t("settings.encryption")} > ${t("settings.external_key_title")}`,
-      keywords: ["import key", "gpg", "openpgp", "wkd", "own key"],
-    },
-  ]);
+  use_register_search_items(
+    "encryption",
+    support?.available
+      ? [
+          {
+            label: t("settings.external_key_title"),
+            breadcrumb: `${t("settings.encryption")} > ${t("settings.external_key_title")}`,
+            keywords: t("settings.external_key_search_keywords")
+              .split(",")
+              .map((keyword) => keyword.trim())
+              .filter(Boolean),
+          },
+        ]
+      : [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -646,7 +714,7 @@ export function ExternalKeyPanel() {
   const open_password_settings = () => {
     window.dispatchEvent(
       new CustomEvent("navigate-settings", {
-        detail: { section: "security", anchor: SETTINGS_ANCHORS.two_factor },
+        detail: { section: "security", anchor: SETTINGS_ANCHORS.password },
       }),
     );
   };
@@ -662,7 +730,29 @@ export function ExternalKeyPanel() {
     );
   };
 
-  if (!support || !support.available) return null;
+  if (!support) {
+    return (
+      <IslandSection
+        bare
+        description={t("settings.external_key_description")}
+        icon={<KeyIcon />}
+        title={t("settings.external_key_title")}
+      >
+        <Island padding="lg">
+          <div
+            aria-live="polite"
+            className="flex items-center justify-center gap-2 text-sm text-txt-muted"
+            role="status"
+          >
+            <Spinner size="sm" />
+            <span>{t("settings.external_key_loading")}</span>
+          </div>
+        </Island>
+      </IslandSection>
+    );
+  }
+
+  if (!support.available) return null;
 
   const record = key_state.record;
   const needs_reimport = key_state.status === "needs_reimport";
@@ -801,6 +891,7 @@ export function ExternalKeyPanel() {
                           void toggle_publish(!record.published);
                         }
                       },
+                      disabled: busy || key_state.status !== "ready",
                       size: "lg",
                       aria_label: t("settings.external_key_publish_label"),
                     }}

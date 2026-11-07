@@ -35,6 +35,7 @@ import {
 } from "@/services/crypto/external_pgp_key";
 import {
   external_key_expires_soon,
+  external_key_has_expired,
   format_external_fingerprint,
   use_external_key_state,
 } from "@/components/settings/encryption/use_external_key_state";
@@ -62,34 +63,41 @@ export function MobileExternalKeyGroup() {
     show_toast(
       result.ok
         ? t("settings.external_key_unpublished_toast")
-        : t("settings.external_key_error_generic"),
+        : t("settings.external_key_error_stop_publishing"),
       result.ok ? "success" : "error",
     );
   };
 
   const needs_reimport = key_state.status === "needs_reimport";
-  const notice =
-    !needs_reimport &&
-    record.expires_at &&
-    external_key_expires_soon(record.expires_at)
-      ? t("settings.external_key_expires_soon_short")
-      : undefined;
+  const expired =
+    !!record.expires_at && external_key_has_expired(record.expires_at);
+  const notice = needs_reimport
+    ? undefined
+    : expired
+      ? t("settings.external_key_expired_short")
+      : record.expires_at && external_key_expires_soon(record.expires_at)
+        ? t("settings.external_key_expires_soon_short")
+        : undefined;
+  const banners = [
+    needs_reimport ? t("settings.external_key_needs_reimport") : null,
+    expired ? t("settings.external_key_error_expired") : null,
+  ].filter((message): message is string => message !== null);
 
   return (
     <SettingsGroup title={t("settings.external_key_title")}>
-      {needs_reimport && (
+      {banners.map((message) => (
         <div
-          className="flex items-start gap-2.5 px-4 py-3 text-[13px] leading-relaxed text-[var(--text-secondary)]"
+          key={message}
+          className="flex items-start gap-2.5 bg-danger/10 px-4 py-3 text-[13px] leading-relaxed text-[var(--text-secondary)]"
           role="alert"
-          style={{ backgroundColor: "rgba(239, 68, 68, 0.1)" }}
         >
           <ExclamationCircleIcon
             aria-hidden="true"
             className="mt-0.5 h-4 w-4 shrink-0 text-[var(--mobile-danger)]"
           />
-          <p>{t("settings.external_key_needs_reimport")}</p>
+          <p>{message}</p>
         </div>
-      )}
+      ))}
       <SettingsRow
         description={notice ?? format_external_fingerprint(record.fingerprint)}
         icon={<KeyIcon className="h-4 w-4" />}

@@ -23,7 +23,7 @@ import type { Attachment } from "@/components/compose/compose_shared";
 import { array_to_base64 } from "./crypto/base64";
 import { is_internal_recipient } from "./recipient_classification";
 import { sign_detached, sign_detached_with_keys } from "./crypto/key_manager";
-import { get_external_signing_key } from "./crypto/external_pgp_key";
+import { resolve_external_signing_key } from "./crypto/external_pgp_key";
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -189,7 +189,7 @@ export async function build_signed_mime_payload(
   });
 
   const mime_bytes = text_encoder.encode(mime);
-  const external_signing_key = get_external_signing_key();
+  const external_signing_key = await resolve_external_signing_key();
   let signed: Awaited<ReturnType<typeof sign_detached>> = null;
 
   if (

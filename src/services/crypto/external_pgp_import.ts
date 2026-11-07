@@ -57,11 +57,13 @@ export type external_key_rejection =
   | "not_private"
   | "unsupported_version"
   | "unsupported_algorithm"
+  | "rsa_too_large"
   | "weak_rsa"
   | "stub_key"
   | "missing_secret"
   | "passphrase_required"
   | "wrong_passphrase"
+  | "invalid_key_material"
   | "expired"
   | "revoked"
   | "invalid_self_signature"
@@ -133,6 +135,10 @@ const FEATURE_MODIFICATION_DETECTION = 0x01;
 const SIGNATURE_CERT_POSITIVE = 0x13;
 const SIGNATURE_SUBKEY_BINDING = 0x18;
 const SIGNATURE_KEY_BINDING = 0x19;
+const SIGNATURE_SUBKEY_REVOCATION = 0x28;
+const S2K_USAGE_NONE = 0;
+const S2K_USAGE_AEAD = 253;
+const S2K_USAGE_SHA1 = 254;
 const KEY_FLAG_CERTIFY = 0x01;
 const KEY_FLAG_SIGN = 0x02;
 const DEFAULT_PRIMARY_FLAGS = KEY_FLAG_CERTIFY | KEY_FLAG_SIGN;
@@ -269,6 +275,8 @@ export async function unlock_external_key(
     throw new external_key_import_error("passphrase_required");
   }
 
+  const weak_checksum = key_packets(clone).some(has_weak_checksum);
+
   for (const packet of key_packets(clone)) {
     if (!is_secret_packet(packet) || packet.isDecrypted()) continue;
 
@@ -282,10 +290,25 @@ export async function unlock_external_key(
   try {
     await key_runtime(clone).validate();
   } catch {
-    throw new external_key_import_error("wrong_passphrase");
+    throw new external_key_import_error(
+      weak_checksum ? "wrong_passphrase" : "invalid_key_material",
+    );
   }
 
   return clone;
+}
+
+function has_weak_checksum(packet: AnyKeyPacket): boolean {
+  if (!is_secret_packet(packet) || packet.isDecrypted()) return false;
+
+  const usage = (packet as unknown as { s2kUsage?: number }).s2kUsage;
+
+  return (
+    typeof usage === "number" &&
+    usage !== S2K_USAGE_NONE &&
+    usage !== S2K_USAGE_AEAD &&
+    usage !== S2K_USAGE_SHA1
+  );
 }
 
 function check_packet_algorithm(packet: AnyKeyPacket): number | null {
@@ -300,7 +323,7 @@ function check_packet_algorithm(packet: AnyKeyPacket): number | null {
     }
 
     if (bits > RSA_MAX_BITS) {
-      throw new external_key_import_error("unsupported_algorithm");
+      throw new external_key_import_error("rsa_too_large");
     }
 
     return bits;
@@ -332,6 +355,141 @@ async function active_subkeys(key: PrivateKey, now: Date): Promise<Subkey[]> {
   }
 
   return result;
+}
+
+type subkey_status = "active" | "revoked" | "expired" | "invalid";
+
+function status_from_error(error: unknown): subkey_status {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+
+  if (message.includes("subkey is revoked")) return "revoked";
+  if (message.includes("subkey is expired")) return "expired";
+
+  return "invalid";
+}
+
+async function subkey_status_at(
+  subkey: Subkey,
+  date: Date,
+): Promise<subkey_status> {
+  try {
+    await subkey.verify(date);
+
+    return "active";
+  } catch (error) {
+    return status_from_error(error);
+  }
+}
+
+function newest_signature(
+  signatures: SignaturePacket[],
+): SignaturePacket | null {
+  const sorted = [...signatures].sort(
+    (a, b) => (b.created?.getTime() ?? 0) - (a.created?.getTime() ?? 0),
+  );
+
+  return sorted[0] ?? null;
+}
+
+async function classify_subkey(
+  subkey: Subkey,
+  now: Date,
+): Promise<subkey_status> {
+  const status = await subkey_status_at(subkey, now);
+
+  if (status !== "invalid") return status;
+
+  const binding = newest_signature(subkey.bindingSignatures);
+
+  if (!binding?.created || binding.created.getTime() > now.getTime()) {
+    return "invalid";
+  }
+
+  const earlier = await subkey_status_at(subkey, binding.created);
+
+  return earlier === "invalid" ? "invalid" : "expired";
+}
+
+function algorithm_allowed(packet: AnyKeyPacket): boolean {
+  try {
+    check_packet_algorithm(packet);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+interface kept_subkey {
+  subkey: Subkey;
+  status: Exclude<subkey_status, "invalid">;
+  binding: SignaturePacket | null;
+  expiration_seconds: number | null;
+}
+
+async function inactive_expiration_seconds(
+  subkey: Subkey,
+  binding: SignaturePacket | null,
+  status: kept_subkey["status"],
+  now: Date,
+): Promise<number | null | undefined> {
+  const at = status === "expired" && binding?.created ? binding.created : now;
+  const expiration = await subkey.getExpirationTime(at).catch(() => null);
+
+  if (expiration instanceof Date) {
+    const seconds = expiry_seconds(subkey.getCreationTime(), expiration);
+
+    return seconds ?? undefined;
+  }
+
+  return status === "expired" ? undefined : null;
+}
+
+async function kept_subkeys(key: PrivateKey, now: Date): Promise<kept_subkey[]> {
+  const result: kept_subkey[] = [];
+
+  for (const subkey of key.subkeys) {
+    const status = await classify_subkey(subkey, now);
+
+    if (status === "invalid") continue;
+
+    if (status === "active") {
+      const binding = latest_signature(subkey.bindingSignatures, now);
+
+      result.push({
+        subkey,
+        status,
+        binding,
+        expiration_seconds:
+          binding && binding.keyNeverExpires === false
+            ? binding.keyExpirationTime
+            : null,
+      });
+      continue;
+    }
+
+    if (!algorithm_allowed(subkey.keyPacket)) continue;
+
+    const binding =
+      latest_signature(subkey.bindingSignatures, now) ??
+      newest_signature(subkey.bindingSignatures);
+    const expiration_seconds = await inactive_expiration_seconds(
+      subkey,
+      binding,
+      status,
+      now,
+    );
+
+    if (expiration_seconds === undefined) continue;
+
+    result.push({ subkey, status, binding, expiration_seconds });
+  }
+
+  return result;
+}
+
+function latest_revocation(subkey: Subkey): SignaturePacket | null {
+  return newest_signature(subkey.revocationSignatures);
 }
 
 async function active_users(key: PrivateKey, now: Date): Promise<User[]> {
@@ -522,6 +680,106 @@ function first_flag(signature: SignaturePacket | null, fallback: number) {
     : fallback;
 }
 
+async function subkey_packets(
+  openpgp: openpgp_module,
+  primary_packet: AnySecretKeyPacket,
+  entry: kept_subkey,
+  now: Date,
+): Promise<AnyPacket[]> {
+  const { subkey, status, binding, expiration_seconds } = entry;
+  const subkey_packet = subkey.keyPacket as AnySecretKeyPacket;
+  const flags = first_flag(binding, 0);
+  const data = { key: primary_packet, bind: subkey_packet };
+  const properties: Partial<SignaturePacket> = {
+    signatureType: SIGNATURE_SUBKEY_BINDING as SignaturePacket["signatureType"],
+    keyFlags: new Uint8Array([flags]),
+    keyExpirationTime: expiration_seconds,
+    keyNeverExpires: expiration_seconds === null,
+  };
+
+  if (flags & KEY_FLAG_SIGN) {
+    properties.embeddedSignature = await create_signature(
+      openpgp,
+      subkey_packet,
+      data,
+      {
+        signatureType: SIGNATURE_KEY_BINDING as SignaturePacket["signatureType"],
+      },
+      now,
+    );
+  }
+
+  const result: AnyPacket[] = [
+    subkey_packet,
+    await create_signature(openpgp, primary_packet, data, properties, now),
+  ];
+
+  if (status === "revoked") {
+    const original = latest_revocation(subkey);
+    const revoked_at =
+      original?.created && original.created.getTime() <= now.getTime()
+        ? original.created
+        : now;
+
+    result.push(
+      await create_signature(
+        openpgp,
+        primary_packet,
+        data,
+        {
+          signatureType:
+            SIGNATURE_SUBKEY_REVOCATION as SignaturePacket["signatureType"],
+          reasonForRevocationFlag: original?.reasonForRevocationFlag ?? null,
+          reasonForRevocationString:
+            original?.reasonForRevocationString ?? null,
+        },
+        revoked_at,
+      ),
+    );
+  }
+
+  return result;
+}
+
+async function assemble_key(
+  openpgp: openpgp_module,
+  header: AnyPacket[],
+  primary_packet: AnySecretKeyPacket,
+  entries: kept_subkey[],
+  now: Date,
+): Promise<PrivateKey> {
+  const packets = new openpgp.PacketList<AnyPacket>();
+
+  packets.push(...header);
+
+  for (const entry of entries) {
+    packets.push(...(await subkey_packets(openpgp, primary_packet, entry, now)));
+  }
+
+  return new openpgp.PrivateKey(packets);
+}
+
+async function mismatched_subkeys(
+  normalized: PrivateKey,
+  entries: kept_subkey[],
+  now: Date,
+): Promise<Set<Subkey>> {
+  const result = new Set<Subkey>();
+
+  for (const entry of entries) {
+    const id = entry.subkey.getKeyID();
+    const rebuilt = normalized.subkeys.find((candidate) =>
+      candidate.getKeyID().equals(id),
+    );
+
+    if (!rebuilt || (await subkey_status_at(rebuilt, now)) !== entry.status) {
+      result.add(entry.subkey);
+    }
+  }
+
+  return result;
+}
+
 export async function normalize_external_key(
   key: PrivateKey,
   primary_address: string,
@@ -540,7 +798,7 @@ export async function normalize_external_key(
   const primary_signature = await get_primary_self_signature(key, now);
   const primary_user = await key.getPrimaryUser(now).catch(() => null);
   const users = await active_users(key, now);
-  const subkeys = await active_subkeys(key, now);
+  const kept = await kept_subkeys(key, now);
   const changes: external_key_change[] = ["preferences_updated"];
   const address = primary_address.trim().toLowerCase();
 
@@ -554,10 +812,6 @@ export async function normalize_external_key(
 
   if (key.users.filter((user) => user.userID).length > users.length) {
     changes.push("inactive_user_ids_removed");
-  }
-
-  if (key.subkeys.length > subkeys.length) {
-    changes.push("inactive_subkeys_removed");
   }
 
   const primary_flags = first_flag(primary_signature, DEFAULT_PRIMARY_FLAGS);
@@ -584,9 +838,7 @@ export async function normalize_external_key(
   }
 
   const primary_user_id = primary_user?.user.userID ?? user_id_packets[0];
-  const packets = new openpgp.PacketList<AnyPacket>();
-
-  packets.push(primary_packet);
+  const header: AnyPacket[] = [primary_packet];
 
   for (const user_id_packet of user_id_packets) {
     const certification = await create_signature(
@@ -605,53 +857,33 @@ export async function normalize_external_key(
       now,
     );
 
-    packets.push(user_id_packet);
-    packets.push(certification);
+    header.push(user_id_packet, certification);
   }
 
-  for (const subkey of subkeys) {
-    const subkey_packet = subkey.keyPacket as AnySecretKeyPacket;
-    const binding = latest_signature(subkey.bindingSignatures, now);
-    const flags = first_flag(binding, 0);
-    const subkey_expiration =
-      binding && binding.keyNeverExpires === false
-        ? binding.keyExpirationTime
-        : null;
-    const data = { key: primary_packet, bind: subkey_packet };
-    const properties: Partial<SignaturePacket> = {
-      signatureType:
-        SIGNATURE_SUBKEY_BINDING as SignaturePacket["signatureType"],
-      keyFlags: new Uint8Array([flags]),
-      keyExpirationTime: subkey_expiration,
-      keyNeverExpires: subkey_expiration === null,
-    };
+  let entries = kept;
+  let normalized = await assemble_key(
+    openpgp,
+    header,
+    primary_packet,
+    entries,
+    now,
+  );
+  const mismatched = await mismatched_subkeys(normalized, entries, now);
 
-    if (flags & KEY_FLAG_SIGN) {
-      properties.embeddedSignature = await create_signature(
-        openpgp,
-        subkey_packet,
-        data,
-        {
-          signatureType:
-            SIGNATURE_KEY_BINDING as SignaturePacket["signatureType"],
-        },
-        now,
-      );
-    }
-
-    const subkey_signature = await create_signature(
+  if (mismatched.size > 0) {
+    entries = entries.filter((entry) => !mismatched.has(entry.subkey));
+    normalized = await assemble_key(
       openpgp,
+      header,
       primary_packet,
-      data,
-      properties,
+      entries,
       now,
     );
-
-    packets.push(subkey_packet);
-    packets.push(subkey_signature);
   }
 
-  const normalized = new openpgp.PrivateKey(packets);
+  if (key.subkeys.length > entries.length) {
+    changes.push("inactive_subkeys_removed");
+  }
 
   if (normalized.getFingerprint().toLowerCase() !== original_fingerprint) {
     throw new external_key_import_error("fingerprint_changed");

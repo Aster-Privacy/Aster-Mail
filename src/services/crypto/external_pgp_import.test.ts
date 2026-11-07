@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import * as openpgp from "openpgp";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   external_key_import_error,
@@ -211,6 +211,41 @@ describe("external key validation", () => {
     );
     await expect_rejection(unlock_external_key(parsed, ""), "passphrase_required");
   });
+
+  it("reports damaged key material separately from a wrong passphrase", async () => {
+    const armored = await make_armored({
+      type: "ecc",
+      curve: "curve25519Legacy",
+      passphrase: PASSPHRASE,
+    });
+    const parsed = await parse_external_key(armored);
+
+    vi.spyOn(openpgp.PrivateKey.prototype, "validate").mockRejectedValueOnce(
+      new Error("key is invalid"),
+    );
+
+    await expect_rejection(
+      unlock_external_key(parsed, PASSPHRASE),
+      "invalid_key_material",
+    );
+  });
+
+  it("rejects an RSA key larger than 4096 bits as too large", async () => {
+    const armored = await make_armored({ type: "rsa", rsaBits: 2048 });
+    const key = await unlock_external_key(await parse_external_key(armored), "");
+    const info = key.keyPacket.getAlgorithmInfo();
+
+    vi.spyOn(key.keyPacket, "getAlgorithmInfo").mockReturnValue({
+      ...info,
+      bits: 8192,
+    });
+
+    await expect_rejection(validate_external_key(key), "rsa_too_large");
+  });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });
 
 describe("external key normalization", () => {
@@ -347,22 +382,137 @@ describe("external key normalization", () => {
     }
   });
 
-  it("drops a revoked subkey", async () => {
+  async function encrypt_to_subkey(
+    key: openpgp.PrivateKey,
+    index: number,
+    date?: Date,
+  ): Promise<string> {
+    return (await openpgp.encrypt({
+      message: await openpgp.createMessage({ text: "old mail", date }),
+      encryptionKeys: key.toPublic(),
+      encryptionKeyIDs: [key.subkeys[index].getKeyID()],
+      date,
+      format: "armored",
+    })) as string;
+  }
+
+  async function decrypt_with(
+    key: openpgp.PrivateKey,
+    armored_message: string,
+  ): Promise<string> {
+    const { data } = await openpgp.decrypt({
+      message: await openpgp.readMessage({ armoredMessage: armored_message }),
+      decryptionKeys: key,
+    });
+
+    return data as string;
+  }
+
+  async function subkey_error(subkey: openpgp.Subkey): Promise<string> {
+    return subkey.verify().then(
+      () => "",
+      (error: unknown) => (error instanceof Error ? error.message : "failed"),
+    );
+  }
+
+  it("keeps a revoked subkey for decryption but never encrypts to it", async () => {
     const armored = await make_armored({
       type: "ecc",
       curve: "curve25519Legacy",
       subkeys: [{}, {}],
     });
     const key = await openpgp.readPrivateKey({ armoredKey: armored });
+    const old_message = await encrypt_to_subkey(key, 1);
+    const revoked_id = key.subkeys[1].getKeyID();
+
     key.subkeys[1] = await key.subkeys[1].revoke(
       key.keyPacket as openpgp.SecretKeyPacket,
     );
 
     const result = await normalize_external_key(key, ADDRESS);
 
+    expect(result.key.subkeys).toHaveLength(2);
+    expect(result.changes).not.toContain("inactive_subkeys_removed");
+    expect(result.key.getFingerprint()).toBe(key.getFingerprint());
+    expect(await subkey_error(result.key.subkeys[1])).toContain("revoked");
+    expect(await decrypt_with(result.key, old_message)).toBe("old mail");
+
+    const public_copy = await openpgp.readKey({
+      armoredKey: result.key.toPublic().armor(),
+    });
+
+    expect(public_copy.subkeys).toHaveLength(2);
+    expect(await subkey_error(public_copy.subkeys[1])).toContain("revoked");
+
+    const encryption_key = await public_copy.getEncryptionKey();
+
+    expect(encryption_key.getKeyID().equals(revoked_id)).toBe(false);
+  });
+
+  it("keeps an expired subkey for decryption but never encrypts to it", async () => {
+    const created = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+    const { privateKey } = await openpgp.generateKey({
+      type: "ecc",
+      curve: "curve25519Legacy",
+      userIDs: [{ name: "Owner", email: OUTSIDE_ADDRESS }],
+      date: created,
+      subkeys: [{}, { keyExpirationTime: 24 * 60 * 60 }],
+      format: "object",
+    });
+    const old_message = await encrypt_to_subkey(
+      privateKey,
+      1,
+      new Date(created.getTime() + 60 * 60 * 1000),
+    );
+    const expired_id = privateKey.subkeys[1].getKeyID();
+    const result = await normalize_external_key(privateKey, ADDRESS);
+
+    expect(result.key.subkeys).toHaveLength(2);
+    expect(result.changes).not.toContain("inactive_subkeys_removed");
+    expect(await subkey_error(result.key.subkeys[1])).toContain("expired");
+    expect(await decrypt_with(result.key, old_message)).toBe("old mail");
+
+    const encryption_key = await result.key.toPublic().getEncryptionKey();
+
+    expect(encryption_key.getKeyID().equals(expired_id)).toBe(false);
+  });
+
+  it("never signs with a revoked signing subkey", async () => {
+    const armored = await make_armored({
+      type: "ecc",
+      curve: "curve25519Legacy",
+      subkeys: [{}, { sign: true }],
+    });
+    const key = await openpgp.readPrivateKey({ armoredKey: armored });
+    const revoked_id = key.subkeys[1].getKeyID();
+
+    key.subkeys[1] = await key.subkeys[1].revoke(
+      key.keyPacket as openpgp.SecretKeyPacket,
+    );
+
+    const result = await normalize_external_key(key, ADDRESS);
+
+    expect(result.key.subkeys).toHaveLength(2);
+
+    const signing_key = await result.key.getSigningKey();
+
+    expect(signing_key.getKeyID().equals(revoked_id)).toBe(false);
+  });
+
+  it("drops a subkey with no valid binding", async () => {
+    const armored = await make_armored({
+      type: "ecc",
+      curve: "curve25519Legacy",
+      subkeys: [{}, {}],
+    });
+    const key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+    key.subkeys[1].bindingSignatures = [];
+
+    const result = await normalize_external_key(key, ADDRESS);
+
     expect(result.key.subkeys).toHaveLength(1);
     expect(result.changes).toContain("inactive_subkeys_removed");
-    expect(result.key.getFingerprint()).toBe(key.getFingerprint());
   });
 
   it("round trips through serialization without a passphrase", async () => {

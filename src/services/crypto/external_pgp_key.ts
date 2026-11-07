@@ -50,10 +50,12 @@ import {
   remove_cached_external_key,
   write_cached_external_key,
 } from "@/services/crypto/external_pgp_cache";
+import { reset_pgp_decrypt_pool } from "@/workers/pgp_decrypt_pool";
 
 export const EXTERNAL_PGP_ENDPOINT = "/crypto/v1/keys/pgp/external";
 
 const LOAD_WAIT_MS = 3000;
+const RECORD_STALE_MS = 5 * 60 * 1000;
 
 export interface external_key_record {
   fingerprint: string;
@@ -99,6 +101,8 @@ export interface external_key_support {
 interface unlocked_material {
   key: PrivateKey;
   armored: string;
+  fingerprint: string;
+  expires_at_ms: number | null;
 }
 
 let state: external_key_state = { status: "none", record: null, loaded: false };
@@ -107,6 +111,7 @@ let load_generation = 0;
 let load_owner: string | null = null;
 let load_kek_ref: string | null = null;
 let load_promise: Promise<void> | null = null;
+let record_checked_at = 0;
 const listeners = new Set<(next: external_key_state) => void>();
 
 function emit(next: external_key_state): void {
@@ -142,12 +147,47 @@ export function get_external_unlocked_armored_keys(): string[] {
   return state.status === "ready" && unlocked ? [unlocked.armored] : [];
 }
 
+function timestamp_passed(value: string | null | undefined): boolean {
+  if (!value) return false;
+
+  const ms = Date.parse(value);
+
+  return Number.isFinite(ms) && ms <= Date.now();
+}
+
 export function get_external_signing_key(): PrivateKey | null {
-  if (state.status !== "ready" || !unlocked || !state.record?.published) {
+  const record = state.record;
+
+  if (state.status !== "ready" || !unlocked || !record?.published) {
+    return null;
+  }
+
+  if (
+    normalize_external_fingerprint(record.fingerprint) !== unlocked.fingerprint
+  ) {
+    return null;
+  }
+
+  if (timestamp_passed(record.expires_at)) return null;
+
+  if (unlocked.expires_at_ms !== null && unlocked.expires_at_ms <= Date.now()) {
     return null;
   }
 
   return unlocked.key;
+}
+
+export async function resolve_external_signing_key(): Promise<PrivateKey | null> {
+  if (!get_external_signing_key()) return null;
+
+  if (Date.now() - record_checked_at >= RECORD_STALE_MS) {
+    await Promise.race([
+      refresh_external_record().catch(() => undefined),
+      new Promise<void>((resolve) => setTimeout(resolve, LOAD_WAIT_MS)),
+    ]);
+  }
+
+  return get_external_signing_key();
 }
 
 export function export_external_public_key(): string | null {
@@ -159,6 +199,7 @@ export function clear_external_pgp_key(): void {
   load_owner = null;
   load_kek_ref = null;
   load_promise = null;
+  record_checked_at = 0;
   unlocked = null;
   emit({ status: "none", record: null, loaded: false });
 }
@@ -252,15 +293,15 @@ function record_from_cache(
 
   return {
     fingerprint: cached.fingerprint,
-    key_id: cached.fingerprint.slice(-16),
-    algorithm: "",
-    key_size: 0,
+    key_id: cached.key_id ?? cached.fingerprint.slice(-16),
+    algorithm: cached.algorithm ?? "",
+    key_size: cached.key_size ?? 0,
     public_key_armored: cached.public_key_armored,
     wrapped_private_key: cached.wrapped_private_key,
-    created_at: "",
-    expires_at: null,
+    created_at: cached.created_at ?? "",
+    expires_at: cached.expires_at ?? null,
     published: cached.published,
-    uid_mismatch: false,
+    uid_mismatch: cached.uid_mismatch ?? false,
   };
 }
 
@@ -275,7 +316,26 @@ async function remember_record(
     public_key_armored: record.public_key_armored,
     published: record.published,
     stored_at: Date.now(),
+    key_id: record.key_id,
+    algorithm: record.algorithm,
+    key_size: record.key_size,
+    created_at: record.created_at,
+    expires_at: record.expires_at,
+    uid_mismatch: record.uid_mismatch,
   });
+}
+
+async function material_from_key(key: PrivateKey): Promise<unlocked_material> {
+  const expiration = await key.getExpirationTime().catch(() => null);
+  const expires_at_ms =
+    expiration instanceof Date ? expiration.getTime() : null;
+
+  return {
+    key,
+    armored: key.armor(),
+    fingerprint: key.getFingerprint().toLowerCase(),
+    expires_at_ms,
+  };
 }
 
 async function open_record(
@@ -300,7 +360,7 @@ async function open_record(
 
     if (key.getFingerprint().toLowerCase() !== fingerprint) return null;
 
-    return { key, armored: key.armor() };
+    return await material_from_key(key);
   } catch {
     return null;
   } finally {
@@ -388,6 +448,8 @@ async function run_load(
     return;
   }
 
+  record_checked_at = Date.now();
+
   if (fetched.record) {
     await remember_record(user_id, fetched.record);
   } else {
@@ -395,6 +457,36 @@ async function run_load(
   }
 
   await apply_record(fetched.record, user_id, data_kek_b64, generation);
+}
+
+async function refresh_external_record(): Promise<void> {
+  const user_id = current_owner();
+  const data_kek_b64 = current_data_kek();
+
+  if (!user_id || !data_kek_b64) return;
+
+  const generation = load_generation;
+  const fetched = await fetch_record();
+
+  if (generation !== load_generation) return;
+  if (!owner_unchanged(user_id, data_kek_b64)) return;
+  if (fetched.kind === "unreachable") return;
+
+  const record = fetched.kind === "record" ? fetched.record : null;
+
+  if (
+    record &&
+    unlocked &&
+    normalize_external_fingerprint(record.fingerprint) === unlocked.fingerprint
+  ) {
+    record_checked_at = Date.now();
+    emit({ ...state, record });
+    await remember_record(user_id, record);
+
+    return;
+  }
+
+  await request_external_pgp_key_load({ force: true });
 }
 
 export function request_external_pgp_key_load(
@@ -512,6 +604,7 @@ async function put_external_key(
   data_kek_b64: string,
   public_key_armored: string,
   wrapped_private_key: string,
+  replaces_fingerprint?: string,
 ): Promise<put_outcome> {
   if (!owner_unchanged(user_id, data_kek_b64)) {
     return { ok: false, result: { ok: false, code: "ACCOUNT_CHANGED" } };
@@ -542,6 +635,7 @@ async function put_external_key(
     wrapped_private_key,
     challenge,
     challenge_signature,
+    ...(replaces_fingerprint ? { replaces_fingerprint } : {}),
   });
 
   if (response.error) return { ok: false, result: failure(response) };
@@ -561,6 +655,7 @@ async function adopt_material(
   load_owner = user_id;
   load_kek_ref = data_kek_b64;
   load_promise = Promise.resolve();
+  record_checked_at = Date.now();
   unlocked = material;
   emit({ status: "ready", record, loaded: true });
   await remember_record(user_id, record);
@@ -568,8 +663,9 @@ async function adopt_material(
   return true;
 }
 
-export async function upload_external_key(
+async function store_external_key(
   normalized: normalized_external_key,
+  replaces_fingerprint?: string,
 ): Promise<external_key_action_result> {
   const user_id = current_owner();
   const data_kek_b64 = current_data_kek();
@@ -597,6 +693,7 @@ export async function upload_external_key(
 
   const public_key_armored = normalized.key.toPublic().armor();
   const previous_published =
+    !replaces_fingerprint &&
     state.record &&
     normalize_external_fingerprint(state.record.fingerprint) === fingerprint
       ? state.record.published
@@ -607,6 +704,7 @@ export async function upload_external_key(
     data_kek_b64,
     public_key_armored,
     wrapped,
+    replaces_fingerprint,
   );
 
   if (!outcome.ok) return outcome.result;
@@ -624,7 +722,7 @@ export async function upload_external_key(
     uid_mismatch: false,
   };
   const adopted = await adopt_material(
-    { key: normalized.key, armored: normalized.key.armor() },
+    await material_from_key(normalized.key),
     record,
     user_id,
     data_kek_b64,
@@ -635,67 +733,33 @@ export async function upload_external_key(
   return { ok: true, record };
 }
 
-async function restore_previous_key(
-  previous: external_key_record,
-  material: unlocked_material,
-  user_id: string,
-  data_kek_b64: string,
-): Promise<void> {
-  const outcome = await put_external_key(
-    material.key,
-    user_id,
-    data_kek_b64,
-    previous.public_key_armored,
-    previous.wrapped_private_key,
-  );
-
-  if (!outcome.ok) return;
-
-  const restored: external_key_record = outcome.returned ?? {
-    ...previous,
-    published: false,
-  };
-  const adopted = await adopt_material(material, restored, user_id, data_kek_b64);
-
-  if (adopted && previous.published && !restored.published) {
-    await set_external_key_published(true).catch(() => undefined);
-  }
+export function upload_external_key(
+  normalized: normalized_external_key,
+): Promise<external_key_action_result> {
+  return store_external_key(normalized);
 }
 
 export async function replace_external_key(
   normalized: normalized_external_key,
 ): Promise<external_key_action_result> {
-  const user_id = current_owner();
-  const data_kek_b64 = current_data_kek();
-
-  if (!user_id || !data_kek_b64) {
-    return { ok: false, code: "MASTER_KEY_REQUIRED" };
-  }
-
   const previous = state.record;
-  const previous_material = unlocked;
   const fingerprint = normalized.key.getFingerprint().toLowerCase();
 
-  if (
-    !previous ||
-    normalize_external_fingerprint(previous.fingerprint) === fingerprint
-  ) {
-    return upload_external_key(normalized);
+  if (!previous) return store_external_key(normalized);
+
+  const previous_fingerprint = normalize_external_fingerprint(
+    previous.fingerprint,
+  );
+
+  if (previous_fingerprint === fingerprint) {
+    return store_external_key(normalized);
   }
 
-  const purged = await delete_external_key(true);
+  const replaced = await store_external_key(normalized, previous_fingerprint);
 
-  if (!purged.ok) return purged;
+  if (replaced.ok) reset_pgp_decrypt_pool();
 
-  const uploaded = await upload_external_key(normalized);
-
-  if (uploaded.ok) return uploaded;
-
-  if (previous_material && owner_unchanged(user_id, data_kek_b64)) {
-    await restore_previous_key(previous, previous_material, user_id, data_kek_b64);
-  }
-
-  return uploaded;
+  return replaced;
 }
 
 export async function set_external_key_published(
@@ -742,6 +806,7 @@ export async function delete_external_key(
       unlocked = null;
       emit({ status: "none", record: null, loaded: true });
     }
+    reset_pgp_decrypt_pool();
     if (user_id) await remove_cached_external_key(user_id);
 
     return { ok: true, record: null };
@@ -801,6 +866,20 @@ export async function build_revoked_public_key(
   return revoked.toPublic().armor();
 }
 
+export async function preview_external_key_revocation(
+  input: Uint8Array,
+): Promise<string | null> {
+  const current = state.record;
+
+  if (!current) return null;
+
+  return build_revoked_public_key(
+    input,
+    current.public_key_armored,
+    normalize_external_fingerprint(current.fingerprint),
+  ).catch(() => null);
+}
+
 export async function submit_external_key_revocation(
   input: Uint8Array,
 ): Promise<external_key_action_result | null> {
@@ -810,11 +889,7 @@ export async function submit_external_key_revocation(
 
   if (!user_id || !current) return null;
 
-  const public_key_armored = await build_revoked_public_key(
-    input,
-    current.public_key_armored,
-    normalize_external_fingerprint(current.fingerprint),
-  ).catch(() => null);
+  const public_key_armored = await preview_external_key_revocation(input);
 
   if (!public_key_armored) return null;
 
@@ -840,13 +915,20 @@ export async function submit_external_key_revocation(
 
   if (response.error) return failure(response);
 
-  const record = record_from_response(response.data) ?? {
-    ...current,
-    public_key_armored,
-    published: false,
-  };
+  if (!owner_unchanged(user_id, data_kek_b64)) {
+    return { ok: false, code: "ACCOUNT_CHANGED" };
+  }
 
-  if (owner_unchanged(user_id, data_kek_b64)) emit({ ...state, record });
+  const returned = record_from_response(response.data);
+  const record =
+    returned &&
+    normalize_external_fingerprint(returned.fingerprint) ===
+      normalize_external_fingerprint(current.fingerprint)
+      ? returned
+      : { ...current, public_key_armored, published: false };
+
+  record_checked_at = Date.now();
+  emit({ ...state, record });
   await remember_record(user_id, record);
 
   return { ok: true, record };
