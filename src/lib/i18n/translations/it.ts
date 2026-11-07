@@ -9876,7 +9876,6 @@ export const it = {
       "Inserisci le tue credenziali per accedere al tuo account",
     signing_in: "Accesso in corso...",
     keep_signed_in: "Mantieni l'accesso",
-    secure_devices_only: "solo su dispositivi sicuri",
     back_to_inbox: "Torna alla posta in arrivo",
     back_to_link_device: "Torna a Collega dispositivo",
     enter_password_placeholder: "Inserisci la tua password",
@@ -10661,6 +10660,8 @@ export const it = {
       "Le sue chiavi private sono bloccate su questo dispositivo. La sua password le sbloccherà. Le sue chiavi sul server sono intatte.",
     crypto_module_unavailable:
       "Non è stato possibile caricare la crittografia su questo dispositivo. Ricaricare la pagina di solito risolve il problema. Se continua a succedere, controlli la connessione.",
+    ratchet_key_generation_failed:
+      "Non è stato possibile creare le chiavi di crittografia su questo dispositivo, quindi l'account non è stato creato. Riprovi e ricarichi la pagina se continua a succedere.",
     failed_decrypt_draft:
       "Non siamo riusciti ad aprire questa bozza su questo dispositivo. Disconnettersi e accedere di nuovo, poi un altro tentativo, di solito risolve.",
     failed_encrypt_draft:

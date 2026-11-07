@@ -10056,7 +10056,6 @@ export const pl = {
     enter_credentials: "Wprowadź dane logowania, aby uzyskać dostęp do konta",
     signing_in: "Logowanie...",
     keep_signed_in: "Pozostań zalogowany",
-    secure_devices_only: "tylko na bezpiecznych urządzeniach",
     back_to_inbox: "Powrót do skrzynki",
     back_to_link_device: "Powrót do Połącz urządzenie",
     enter_password_placeholder: "Wprowadź hasło",
@@ -10788,6 +10787,8 @@ export const pl = {
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     crypto_module_unavailable:
       "Nie udało się wczytać szyfrowania na tym urządzeniu. Odświeżenie strony zwykle rozwiązuje problem. Jeśli to się powtarza, sprawdź połączenie.",
+    ratchet_key_generation_failed:
+      "Nie udało się utworzyć kluczy szyfrowania na tym urządzeniu, więc konto nie zostało utworzone. Spróbuj ponownie, a jeśli to się powtarza, odśwież stronę.",
     session_expired_send:
       "Sesja wygasła przed wysłaniem tej wiadomości. Zalogowanie ponownie ją wyśle. Wersja robocza jest zapisana.",
     failed_encrypt_envelope:

@@ -656,12 +656,18 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     job: SanitizeJob;
     content: SanitizedContent;
   } | null>(null);
-  const shown_message_ref = useRef<string | null>(null);
+  const shown_message_ref = useRef<{ id: string; is_sending: boolean } | null>(
+    null,
+  );
 
   const ready_content = useMemo((): SanitizedContent | null => {
     if (sanitize_job.ready) return sanitize_job.ready;
     if (deferred_content?.job === sanitize_job) return deferred_content.content;
-    if (shown_message_ref.current === message.id) return sanitize_job.run!();
+    const shown = shown_message_ref.current;
+
+    if (shown && (shown.id === message.id || shown.is_sending)) {
+      return sanitize_job.run!();
+    }
 
     return null;
   }, [sanitize_job, deferred_content, message.id]);
@@ -678,7 +684,10 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   }, [is_sanitize_pending, sanitize_job]);
 
   if (ready_content && is_body_visible) {
-    shown_message_ref.current = message.id;
+    shown_message_ref.current = {
+      id: message.id,
+      is_sending: message.is_sending === true,
+    };
   }
 
   const sanitized_content = ready_content ?? PENDING_CONTENT;

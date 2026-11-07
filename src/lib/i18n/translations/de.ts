@@ -9933,7 +9933,6 @@ export const de = {
     sign_in_to_aster: "Bei Aster anmelden",
     signing_in: "Anmelden...",
     keep_signed_in: "Angemeldet bleiben",
-    secure_devices_only: "nur auf sicheren Geräten",
     back_to_inbox: "Zurück zum Posteingang",
     back_to_link_device: "Zurück zu „Gerät verknüpfen“",
     enter_password_placeholder: "Geben Sie Ihr Passwort ein",
@@ -10735,6 +10734,8 @@ export const de = {
       "Ihre privaten Schlüssel sind auf diesem Gerät gesperrt. Ihr Passwort entsperrt sie. Ihre Schlüssel auf dem Server sind unverändert.",
     crypto_module_unavailable:
       "Die Verschlüsselung konnte auf diesem Gerät nicht geladen werden. Ein Neuladen der Seite behebt das meistens. Wenn es weiter passiert, prüfen Sie Ihre Verbindung.",
+    ratchet_key_generation_failed:
+      "Die Verschlüsselungsschlüssel konnten auf diesem Gerät nicht erstellt werden, daher wurde Ihr Konto nicht angelegt. Versuchen Sie es erneut und laden Sie die Seite neu, wenn es weiter passiert.",
     failed_decrypt_draft:
       "Wir konnten diesen Entwurf auf diesem Gerät nicht öffnen. Ab- und erneutes Anmelden, dann ein weiterer Versuch, löst das Problem in der Regel.",
     failed_encrypt_draft:

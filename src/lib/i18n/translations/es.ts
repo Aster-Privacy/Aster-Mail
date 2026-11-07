@@ -9833,7 +9833,6 @@ export const es = {
     enter_credentials: "Ingresa tus credenciales para acceder a tu cuenta",
     signing_in: "Iniciando sesión...",
     keep_signed_in: "Mantener sesión iniciada",
-    secure_devices_only: "solo en dispositivos seguros",
     back_to_inbox: "Volver a la bandeja de entrada",
     back_to_link_device: "Volver a vincular dispositivo",
     enter_password_placeholder: "Ingresa tu contraseña",
@@ -10606,6 +10605,8 @@ export const es = {
       "Tus claves privadas están bloqueadas en este dispositivo. Tu contraseña las desbloqueará. Tus claves en el servidor no se han tocado.",
     crypto_module_unavailable:
       "No se pudo cargar el cifrado en este dispositivo. Recargar la página suele solucionarlo. Si sigue ocurriendo, comprueba tu conexión.",
+    ratchet_key_generation_failed:
+      "No se pudieron crear las claves de cifrado en este dispositivo, así que no se creó tu cuenta. Inténtalo de nuevo y recarga la página si sigue ocurriendo.",
     failed_decrypt_draft:
       "No pudimos abrir este borrador en este dispositivo. Cierra sesión, vuelve a iniciarla e inténtalo de nuevo.",
     failed_encrypt_draft:

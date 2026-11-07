@@ -9648,7 +9648,6 @@ export const en: Translations = {
     link_device_account_suspended:
       "This account is suspended, so new devices can't be linked right now. Contact support to sort it out.",
     keep_signed_in: "Keep me signed in",
-    secure_devices_only: "only on secure devices",
     back_to_inbox: "Back to inbox",
     back_to_link_device: "Back to link device",
     enter_password_placeholder: "Enter your password",
@@ -10268,6 +10267,8 @@ export const en: Translations = {
       "Your private keys are locked on this device. Your password will unlock them. Your keys on the server are untouched.",
     crypto_module_unavailable:
       "Encryption could not load on this device. Reloading the page usually fixes it. If it keeps happening, check your connection.",
+    ratchet_key_generation_failed:
+      "Encryption keys could not be created on this device, so your account was not created. Try again, and reload the page if it keeps happening.",
     session_expired_send:
       "Your session ended before this email could send. Signing in again will send it. Your draft is saved.",
     failed_encrypt_envelope:

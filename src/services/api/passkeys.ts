@@ -19,7 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TotpVerifyResponse } from "./totp";
-import type { HardwareKeyRegistrationCompleteResponse } from "./webauthn";
+import type {
+  HardwareKeyRegistrationCompleteResponse,
+  HardwareKeyRegistrationOptions,
+} from "./webauthn";
 
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
@@ -216,14 +219,28 @@ function get_platform_passkey_name(): string {
   return base;
 }
 
+async function resolve_registration_options(
+  prefetched_options?: HardwareKeyRegistrationOptions,
+): Promise<ApiResponse<HardwareKeyRegistrationOptions>> {
+  if (prefetched_options) return { data: prefetched_options };
+
+  return initiate_hardware_key_registration();
+}
+
 export async function register_platform_passkey(
   friendly_name: string | null,
   vault_passphrase?: string,
+  prefetched_options?: HardwareKeyRegistrationOptions,
 ): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
-  const options_response = await initiate_hardware_key_registration();
+  const options_response =
+    await resolve_registration_options(prefetched_options);
 
   if (!options_response.data) {
-    return { data: undefined, error: options_response.error };
+    return {
+      data: undefined,
+      error: options_response.error,
+      server_code: options_response.server_code,
+    };
   }
 
   const resolved_name = friendly_name ?? get_platform_passkey_name();
@@ -336,11 +353,17 @@ export async function register_platform_passkey(
 
 export async function register_security_key(
   friendly_name: string | null,
+  prefetched_options?: HardwareKeyRegistrationOptions,
 ): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
-  const options_response = await initiate_hardware_key_registration();
+  const options_response =
+    await resolve_registration_options(prefetched_options);
 
   if (!options_response.data) {
-    return { data: undefined, error: options_response.error };
+    return {
+      data: undefined,
+      error: options_response.error,
+      server_code: options_response.server_code,
+    };
   }
 
   const options = options_response.data;

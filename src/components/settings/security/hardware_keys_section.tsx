@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ApiResponse } from "@/services/api/client";
+
 import { useState, useEffect, useCallback } from "react";
 import {
   KeyIcon,
@@ -56,7 +58,13 @@ import {
   rename_hardware_key,
   is_webauthn_supported,
   HardwareKeyInfo,
+  type HardwareKeyRegistrationOptions,
 } from "@/services/api/webauthn";
+import {
+  STEP_UP_REQUIRED_CODE,
+  to_reauth_proof,
+  type StepUpCredentials,
+} from "@/services/api/step_up";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
 
@@ -76,6 +84,7 @@ export function HardwareKeysSection() {
     null,
   );
   const [step_up_key_id, set_step_up_key_id] = useState<string | null>(null);
+  const [register_step_up, set_register_step_up] = useState(false);
 
   const fetch_keys = useCallback(async (silent = false) => {
     if (!silent) set_is_loading(true);
@@ -94,7 +103,9 @@ export function HardwareKeysSection() {
     fetch_keys();
   }, [fetch_keys]);
 
-  const handle_register = async () => {
+  const run_register = async (
+    prefetched_options?: HardwareKeyRegistrationOptions,
+  ) => {
     if (!webauthn_supported) {
       show_toast(t("auth.webauthn_not_supported"), "error");
 
@@ -103,7 +114,20 @@ export function HardwareKeysSection() {
 
     set_is_registering(true);
 
-    const options_response = await initiate_hardware_key_registration();
+    const options_response: ApiResponse<HardwareKeyRegistrationOptions> =
+      prefetched_options
+        ? { data: prefetched_options }
+        : await initiate_hardware_key_registration();
+
+    if (
+      !prefetched_options &&
+      options_response.server_code === STEP_UP_REQUIRED_CODE
+    ) {
+      set_is_registering(false);
+      set_register_step_up(true);
+
+      return;
+    }
 
     if (options_response.error || !options_response.data) {
       show_toast(
@@ -146,6 +170,22 @@ export function HardwareKeysSection() {
     set_show_add_modal(false);
     set_key_name("");
     fetch_keys(true);
+  };
+
+  const handle_register = () => run_register();
+
+  const handle_register_step_up_confirm = async (
+    credentials: StepUpCredentials,
+  ) => {
+    const options_response = await initiate_hardware_key_registration(
+      to_reauth_proof(credentials),
+    );
+
+    if (!options_response.data) {
+      throw new Error(options_response.error || t("errors.generic"));
+    }
+    set_register_step_up(false);
+    void run_register(options_response.data);
   };
 
   const handle_remove = async (
@@ -359,7 +399,7 @@ export function HardwareKeysSection() {
 
       <Modal
         close_on_overlay={!is_registering}
-        is_open={show_add_modal}
+        is_open={show_add_modal && !register_step_up}
         on_close={handle_close_modal}
         show_close_button={!is_registering}
         size="sm"
@@ -434,6 +474,16 @@ export function HardwareKeysSection() {
           });
         }}
         title={t("passkeys.delete_security_key_title")}
+      />
+
+      <StepUpModal
+        password_only
+        confirm_label={t("common.continue")}
+        description={t("common.step_up_description")}
+        is_open={register_step_up}
+        on_close={() => set_register_step_up(false)}
+        on_confirm={handle_register_step_up_confirm}
+        title={t("passkeys.add_security_key")}
       />
     </>
   );

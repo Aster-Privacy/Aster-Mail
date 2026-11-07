@@ -9919,7 +9919,6 @@ export const pt = {
     enter_credentials: "Introduza as suas credenciais para aceder à sua conta",
     signing_in: "A iniciar sessão...",
     keep_signed_in: "Manter sessão iniciada",
-    secure_devices_only: "apenas em dispositivos seguros",
     back_to_inbox: "Voltar à caixa de entrada",
     back_to_link_device: "Voltar a Associar dispositivo",
     enter_password_placeholder: "Introduza a sua palavra-passe",
@@ -10717,6 +10716,8 @@ export const pt = {
       "As suas chaves privadas estão bloqueadas neste dispositivo. A sua palavra-passe irá desbloqueá-las. As suas chaves no servidor permanecem intactas.",
     crypto_module_unavailable:
       "Não foi possível carregar a encriptação neste dispositivo. Recarregar a página costuma resolver. Se continuar a acontecer, verifique a sua ligação.",
+    ratchet_key_generation_failed:
+      "Não foi possível criar as chaves de encriptação neste dispositivo, por isso a sua conta não foi criada. Tente novamente e recarregue a página se continuar a acontecer.",
     failed_decrypt_draft:
       "Não foi possível abrir este rascunho neste dispositivo. Terminar sessão, voltar a iniciá-la e tentar novamente costuma resolver.",
     failed_encrypt_draft:

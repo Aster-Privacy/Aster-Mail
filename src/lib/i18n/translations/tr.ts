@@ -9716,7 +9716,6 @@ export const tr = {
     enter_credentials: "Hesabınıza erişmek için kimlik bilgilerinizi girin",
     signing_in: "Giriş yapılıyor...",
     keep_signed_in: "Oturumu açık tut",
-    secure_devices_only: "yalnızca güvenli cihazlarda",
     back_to_inbox: "Gelen kutusuna dön",
     back_to_link_device: "Cihaz bağla ekranına dön",
     enter_password_placeholder: "Parolanızı girin",
@@ -10444,6 +10443,8 @@ export const tr = {
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     crypto_module_unavailable:
       "Şifreleme bu cihazda yüklenemedi. Sayfayı yeniden yüklemek genellikle sorunu çözer. Tekrarlanırsa bağlantınızı kontrol edin.",
+    ratchet_key_generation_failed:
+      "Şifreleme anahtarları bu cihazda oluşturulamadı, bu yüzden hesabınız oluşturulmadı. Tekrar deneyin ve tekrarlanırsa sayfayı yeniden yükleyin.",
     session_expired_send:
       "Bu e-posta gönderilmeden önce oturumunuz sona erdi. Yeniden oturum açmak onu gönderir. Taslağınız kaydedildi.",
     failed_encrypt_envelope:

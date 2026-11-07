@@ -132,6 +132,32 @@ export async function fetch_ratchet_identity(
   return response.data;
 }
 
+export type OwnPublishedBundleRead =
+  | { status: "found"; identity: RatchetIdentity }
+  | { status: "missing" }
+  | { status: "unavailable" };
+
+export async function read_own_published_bundle(
+  email: string,
+): Promise<OwnPublishedBundleRead> {
+  const username = email.split("@")[0];
+
+  if (!username) return { status: "unavailable" };
+
+  const path = `/crypto/v1/ratchet/identity/${encodeURIComponent(username)}?email=${encodeURIComponent(email)}`;
+  const response = await api_client.get<RatchetIdentity>(path);
+
+  note_ratchet_lookup(path, response.status);
+
+  if (response.code === "NOT_FOUND" || response.status === 404) {
+    return { status: "missing" };
+  }
+
+  if (response.error || !response.data) return { status: "unavailable" };
+
+  return { status: "found", identity: response.data };
+}
+
 export async function fetch_prekey_bundle(
   username: string,
   email?: string,

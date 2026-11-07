@@ -9618,7 +9618,6 @@ export const ja = {
       "アカウントにアクセスするための認証情報を入力してください",
     signing_in: "サインイン中...",
     keep_signed_in: "サインイン状態を維持",
-    secure_devices_only: "安全なデバイスでのみ",
     back_to_inbox: "受信トレイに戻る",
     back_to_link_device: "デバイスを連携に戻る",
     enter_password_placeholder: "パスワードを入力してください",
@@ -10349,6 +10348,8 @@ export const ja = {
       "このデバイスで秘密鍵がロックされています。パスワードで解除できます。サーバー上の鍵には影響ありません。",
     crypto_module_unavailable:
       "このデバイスで暗号化を読み込めませんでした。ページを再読み込みすると通常は解決します。繰り返し発生する場合は、接続を確認してください。",
+    ratchet_key_generation_failed:
+      "このデバイスで暗号鍵を作成できなかったため、アカウントは作成されませんでした。もう一度お試しください。繰り返し発生する場合は、ページを再読み込みしてください。",
     session_expired_send:
       "メールを送信する前にセッションが終了しました。再度サインインすると送信できます。下書きは保存されています。",
     failed_encrypt_envelope:

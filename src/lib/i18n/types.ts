@@ -8678,7 +8678,6 @@ export interface AuthTranslations {
   link_device_rate_limited: string;
   link_device_account_suspended: string;
   keep_signed_in: string;
-  secure_devices_only: string;
   back_to_inbox: string;
   back_to_link_device: string;
   enter_password_placeholder: string;
@@ -9000,6 +8999,7 @@ export interface AuthTranslations {
 
 export interface ErrorTranslations {
   crypto_module_unavailable: string;
+  ratchet_key_generation_failed: string;
   auth_salt_collision: string;
   legacy_login_salt_new_device: string;
   legacy_login_salt_sign_in_again: string;

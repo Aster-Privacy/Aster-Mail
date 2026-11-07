@@ -483,6 +483,8 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             if (!self_signed) drop_sent_encryption_evidence(parsed);
           }
 
+          register_envelope_attachment_keys(mail_item_id, parsed);
+
           return parsed as T;
         };
 

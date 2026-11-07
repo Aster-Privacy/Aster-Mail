@@ -138,6 +138,7 @@ dependencies = [
  "aes-gcm",
  "ashpd",
  "base64 0.23.1",
+ "block2",
  "chacha20poly1305",
  "core-foundation 0.10.1",
  "dirs",

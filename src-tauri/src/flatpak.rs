@@ -276,3 +276,32 @@ pub mod notification {
             .map_err(|e| e.to_string())
     }
 }
+
+pub mod open_uri {
+    use std::fs::File;
+    use std::os::fd::AsFd;
+    use std::path::Path;
+
+    use ashpd::desktop::open_uri::{OpenDirectoryRequest, OpenFileRequest};
+
+    pub async fn open_file(path: &Path) -> std::result::Result<(), String> {
+        let file = File::open(path).map_err(|e| e.to_string())?;
+
+        OpenFileRequest::default()
+            .ask(false)
+            .send_file(&file.as_fd())
+            .await
+            .map(|_| ())
+            .map_err(|e| e.to_string())
+    }
+
+    pub async fn reveal(path: &Path) -> std::result::Result<(), String> {
+        let file = File::open(path).map_err(|e| e.to_string())?;
+
+        OpenDirectoryRequest::default()
+            .send(&file.as_fd())
+            .await
+            .map(|_| ())
+            .map_err(|e| e.to_string())
+    }
+}

@@ -9448,7 +9448,6 @@ export const ko = {
     enter_credentials: "계정에 접근하려면 자격 증명을 입력하세요",
     signing_in: "로그인 중...",
     keep_signed_in: "로그인 상태 유지",
-    secure_devices_only: "보안 기기에서만",
     back_to_inbox: "받은 편지함으로 돌아가기",
     back_to_link_device: "기기 연결으로 돌아가기",
     enter_password_placeholder: "비밀번호를 입력하세요",
@@ -10150,6 +10149,8 @@ export const ko = {
       "암호화 키를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
     crypto_module_unavailable:
       "이 기기에서 암호화를 불러오지 못했습니다. 페이지를 새로고침하면 대개 해결됩니다. 계속 발생하면 연결을 확인하세요.",
+    ratchet_key_generation_failed:
+      "이 기기에서 암호화 키를 만들지 못해 계정이 생성되지 않았습니다. 다시 시도하고, 계속 발생하면 페이지를 새로고침하세요.",
     session_expired_send:
       "세션이 종료되어 이메일을 보낼 수 없습니다. 다시 로그인하면 됩니다.",
     failed_encrypt_envelope:
