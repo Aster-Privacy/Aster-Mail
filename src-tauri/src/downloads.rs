@@ -34,23 +34,24 @@ const MAX_FILE_NAME_CHARS: usize = 255;
 const BLOCKED_OPEN_EXTENSIONS: &[&str] = &[
     "accda", "accde", "accdr", "action", "ade", "adp", "apk", "app", "appcontent-ms", "appimage",
     "appinstaller", "applescript", "application", "appref-ms", "appx", "appxbundle", "bas", "bat",
-    "bin", "cab", "cdxml", "cer", "chm", "cmd", "cnt", "com", "command", "cpl", "crt", "crx", "csh",
-    "deb", "der", "deskthemepack", "desktop", "diagcab", "diagcfg", "diagpkg", "dll", "dmg", "doc",
-    "docm", "dot", "dotm", "dqy", "dylib", "elf", "exe", "fileloc", "flatpakref", "gadget", "glk",
-    "grp", "hlp", "hpj", "hta", "htm", "html", "img", "inetloc", "inf", "ins", "iqy", "iso", "isp",
-    "its", "jar", "jnlp", "js", "jse", "kext", "ksh", "library-ms", "lnk", "mad", "maf", "mag",
-    "mam", "maq", "mar", "mas", "mat", "mau", "mav", "maw", "mcf", "mda", "mdb", "mde", "mdt",
-    "mdw", "mdz", "mht", "mhtml", "mobileconfig", "mpkg", "msc", "msh", "msh1", "msh1xml", "msh2",
-    "msh2xml", "mshxml", "msi", "msix", "msixbundle", "msp", "mst", "msu", "ocx", "one", "onepkg",
-    "ops", "oqy", "osd", "pcd", "pif", "pkg", "pl", "plg", "plist", "pot", "potm", "ppa", "ppam",
-    "ppkg", "pps", "ppsm", "ppt", "pptm", "prefpane", "prf", "prg", "printerexport", "ps1",
+    "bin", "cab", "cdxml", "cer", "chm", "cmd", "cnt", "com", "command", "cpl", "crt", "crx",
+    "csh", "deb", "der", "deskthemepack", "desktop", "diagcab", "diagcfg", "diagpkg", "dll", "dmg",
+    "doc", "docm", "dot", "dotm", "dqy", "dylib", "elf", "exe", "fileloc", "flatpakref", "gadget",
+    "glk", "grp", "hlp", "hpj", "hta", "htm", "html", "img", "inetloc", "inf", "ins", "iqy", "iso",
+    "isp", "its", "jar", "jnlp", "js", "jse", "kext", "ksh", "library-ms", "lnk", "mad", "maf",
+    "mag", "mam", "maq", "mar", "mas", "mat", "mau", "mav", "maw", "mcf", "mda", "mdb", "mde",
+    "mdt", "mdw", "mdz", "mht", "mhtml", "mobileconfig", "mpkg", "msc", "msh", "msh1", "msh1xml",
+    "msh2", "msh2xml", "mshxml", "msi", "msix", "msixbundle", "msp", "mst", "msu", "ocx", "one",
+    "onepkg", "ops", "oqy", "osd", "pcd", "pif", "pkg", "pl", "plg", "plist", "pot", "potm", "ppa",
+    "ppam", "ppkg", "pps", "ppsm", "ppt", "pptm", "prefpane", "prf", "prg", "printerexport", "ps1",
     "ps1xml", "ps2", "ps2xml", "psc1", "psc2", "psd1", "psdm1", "psm1", "py", "pyc", "pyo", "pyw",
-    "pyz", "pyzw", "rb", "reg", "rgs", "rpm", "rqy", "rtf", "run", "scf", "scpt", "scptd", "scr",
-    "sct", "search-ms", "searchconnector-ms", "settingcontent-ms", "sh", "shb", "shortcut", "shs",
-    "shtml", "sldm", "slk", "snap", "so", "svg", "sys", "terminal", "theme", "themepack", "tool",
-    "udf", "url", "vb", "vbe", "vbs", "vhd", "vhdx", "vsmacros", "vsw", "wbk", "webloc", "website",
-    "wiz", "wll", "workflow", "ws", "wsb", "wsc", "wsf", "wsh", "xbap", "xht", "xhtml", "xla",
-    "xlam", "xll", "xlm", "xls", "xlsb", "xlsm", "xlt", "xltm", "xlw", "xnk", "xpi",
+    "pyz", "pyzw", "rb", "rdp", "reg", "rgs", "rpm", "rqy", "rtf", "run", "scf", "scpt", "scptd",
+    "scr", "sct", "search-ms", "searchconnector-ms", "settingcontent-ms", "sh", "shb", "shortcut",
+    "shs", "shtml", "sldm", "slk", "snap", "so", "svg", "svgz", "sys", "terminal", "theme",
+    "themepack", "tool", "udf", "udl", "url", "vb", "vbe", "vbs", "vhd", "vhdx", "vsmacros", "vsw",
+    "wbk", "wcx", "webloc", "website", "wiz", "wll", "workflow", "ws", "wsb", "wsc", "wsf", "wsh",
+    "xbap", "xht", "xhtml", "xla", "xlam", "xll", "xlm", "xls", "xlsb", "xlsm", "xlt", "xltm",
+    "xlw", "xnk", "xpi",
 ];
 
 #[derive(Clone, Serialize)]
@@ -396,6 +397,7 @@ mod tests {
         "doc", "dot", "xls", "xlt", "ppt", "pot", "pps", "rtf", "fileloc", "inetloc",
         "mobileconfig", "shortcut", "ppkg", "wll", "dqy", "rqy", "oqy", "crx", "action",
         "prefpane", "kext", "xlm", "xlw", "wbk", "wiz", "ocx", "mpkg", "dylib", "scptd",
+        "rdp", "udl", "wcx", "svgz",
     ];
 
     #[test]
