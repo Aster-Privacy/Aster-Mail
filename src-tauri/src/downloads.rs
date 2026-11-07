@@ -32,23 +32,26 @@ const MAX_TRACKED_DOWNLOADS: usize = 64;
 const MAX_FILE_NAME_CHARS: usize = 255;
 
 const BLOCKED_OPEN_EXTENSIONS: &[&str] = &[
-    "accda", "accde", "accdr", "ade", "adp", "apk", "app", "appcontent-ms", "appimage",
+    "accda", "accde", "accdr", "action", "ade", "adp", "apk", "app", "appcontent-ms", "appimage",
     "appinstaller", "applescript", "application", "appref-ms", "appx", "appxbundle", "bas", "bat",
-    "bin", "cab", "cdxml", "cer", "chm", "cmd", "cnt", "com", "command", "cpl", "crt", "csh", "deb",
-    "der", "deskthemepack", "desktop", "diagcab", "diagcfg", "diagpkg", "dll", "dmg", "docm",
-    "dotm", "elf", "exe", "flatpakref", "gadget", "glk", "grp", "hlp", "hpj", "hta", "htm", "html",
-    "img", "inf", "ins", "iqy", "iso", "isp", "its", "jar", "jnlp", "js", "jse", "ksh",
-    "library-ms", "lnk", "mad", "maf", "mag", "mam", "maq", "mar", "mas", "mat", "mau", "mav",
-    "maw", "mcf", "mda", "mdb", "mde", "mdt", "mdw", "mdz", "mht", "mhtml", "msc", "msh", "msh1",
-    "msh1xml", "msh2", "msh2xml", "mshxml", "msi", "msix", "msixbundle", "msp", "mst", "msu", "one",
-    "onepkg", "ops", "osd", "pcd", "pif", "pkg", "pl", "plg", "plist", "potm", "ppa", "ppam",
-    "ppsm", "pptm", "prf", "prg", "printerexport", "ps1", "ps1xml", "ps2", "ps2xml", "psc1", "psc2",
-    "psd1", "psdm1", "psm1", "py", "pyc", "pyo", "pyw", "pyz", "pyzw", "rb", "reg", "rgs", "rpm",
-    "run", "scf", "scpt", "scr", "sct", "search-ms", "searchconnector-ms", "settingcontent-ms",
-    "sh", "shb", "shs", "shtml", "sldm", "slk", "snap", "so", "svg", "sys", "terminal", "theme",
-    "themepack", "tool", "udf", "url", "vb", "vbe", "vbs", "vhd", "vhdx", "vsmacros", "vsw",
-    "webloc", "website", "workflow", "ws", "wsb", "wsc", "wsf", "wsh", "xbap", "xht", "xhtml",
-    "xla", "xlam", "xll", "xlsb", "xlsm", "xltm", "xnk", "xpi",
+    "bin", "cab", "cdxml", "cer", "chm", "cmd", "cnt", "com", "command", "cpl", "crt", "crx",
+    "csh", "deb", "der", "deskthemepack", "desktop", "diagcab", "diagcfg", "diagpkg", "dll", "dmg",
+    "doc", "docm", "dot", "dotm", "dqy", "dylib", "elf", "exe", "fileloc", "flatpakref", "gadget",
+    "glk", "grp", "hlp", "hpj", "hta", "htm", "html", "img", "inetloc", "inf", "ins", "iqy", "iso",
+    "isp", "its", "jar", "jnlp", "js", "jse", "kext", "ksh", "library-ms", "lnk", "mad", "maf",
+    "mag", "mam", "maq", "mar", "mas", "mat", "mau", "mav", "maw", "mcf", "mda", "mdb", "mde",
+    "mdt", "mdw", "mdz", "mht", "mhtml", "mobileconfig", "mpkg", "msc", "msh", "msh1", "msh1xml",
+    "msh2", "msh2xml", "mshxml", "msi", "msix", "msixbundle", "msp", "mst", "msu", "ocx", "one",
+    "onepkg", "ops", "oqy", "osd", "pcd", "pif", "pkg", "pl", "plg", "plist", "pot", "potm", "ppa",
+    "ppam", "ppkg", "pps", "ppsm", "ppt", "pptm", "prefpane", "prf", "prg", "printerexport", "ps1",
+    "ps1xml", "ps2", "ps2xml", "psc1", "psc2", "psd1", "psdm1", "psm1", "py", "pyc", "pyo", "pyw",
+    "pyz", "pyzw", "rb", "rdp", "reg", "rgs", "rpm", "rqy", "rtf", "run", "scf", "scpt", "scptd",
+    "scr", "sct", "search-ms", "searchconnector-ms", "settingcontent-ms", "sh", "shb", "shortcut",
+    "shs", "shtml", "sldm", "slk", "snap", "so", "svg", "svgz", "sys", "terminal", "theme",
+    "themepack", "tool", "udf", "udl", "url", "vb", "vbe", "vbs", "vhd", "vhdx", "vsmacros", "vsw",
+    "wbk", "wcx", "webloc", "website", "wiz", "wll", "workflow", "ws", "wsb", "wsc", "wsf", "wsh",
+    "xbap", "xht", "xhtml", "xla", "xlam", "xll", "xlm", "xls", "xlsb", "xlsm", "xlt", "xltm",
+    "xlw", "xnk", "xpi",
 ];
 
 #[derive(Clone, Serialize)]
@@ -397,6 +400,104 @@ mod tests {
             "sandbox.wsb",
         ] {
             assert!(!is_safe_to_open(Path::new(name)), "{name}");
+        }
+    }
+
+    const LEGACY_OFFICE_AND_SHORTCUT_EXTENSIONS: &[&str] = &[
+        "doc", "dot", "xls", "xlt", "ppt", "pot", "pps", "rtf", "fileloc", "inetloc",
+        "mobileconfig", "shortcut", "ppkg", "wll", "dqy", "rqy", "oqy", "crx", "action",
+        "prefpane", "kext", "xlm", "xlw", "wbk", "wiz", "ocx", "mpkg", "dylib", "scptd",
+        "rdp", "udl", "wcx", "svgz",
+    ];
+
+    #[test]
+    fn blocks_legacy_office_documents_shortcuts_and_extensions() {
+        for extension in LEGACY_OFFICE_AND_SHORTCUT_EXTENSIONS {
+            assert!(BLOCKED_OPEN_EXTENSIONS.contains(extension), "{extension}");
+            for name in [
+                format!("file.{extension}"),
+                format!("FILE.{}", extension.to_ascii_uppercase()),
+                format!(
+                    "File.{}{}",
+                    extension[..1].to_ascii_uppercase(),
+                    &extension[1..]
+                ),
+                format!("file.{extension}."),
+                format!("file.{extension} "),
+                format!("file.{extension}. ."),
+                format!("invoice.pdf.{extension}"),
+            ] {
+                assert!(!is_safe_to_open(Path::new(&name)), "{name}");
+            }
+        }
+    }
+
+    #[test]
+    fn blocks_the_rest_of_the_dangerous_type_class() {
+        for name in [
+            "addin.xll",
+            "query.iqy",
+            "data.slk",
+            "folder.library-ms",
+            "app.appref-ms",
+            "app.application",
+            "widget.gadget",
+            "shell.msh",
+            "shell.msh1",
+            "shell.msh2",
+            "shell.mshxml",
+            "shell.msh1xml",
+            "shell.msh2xml",
+            "types.ps1xml",
+            "console.psc1",
+            "panel.cpl",
+            "explorer.scf",
+            "help.chm",
+            "page.hta",
+            "tool.jar",
+            "launch.jnlp",
+            "patch.msp",
+            "transform.mst",
+            "settings.reg",
+            "setup.inf",
+            "script.ws",
+            "component.wsc",
+            "host.wsh",
+            "browser.xbap",
+            "addon.xpi",
+            "shell.terminal",
+            "run.command",
+            "run.tool",
+            "automator.workflow",
+            "Viewer.app",
+            "Viewer.APP.",
+        ] {
+            assert!(!is_safe_to_open(Path::new(name)), "{name}");
+        }
+    }
+
+    #[test]
+    fn modern_office_documents_stay_openable_while_legacy_ones_are_blocked() {
+        for (allowed, blocked) in [
+            ("report.docx", "report.doc"),
+            ("sheet.xlsx", "sheet.xls"),
+            ("deck.pptx", "deck.ppt"),
+            ("report.pdf", "report.rtf"),
+        ] {
+            assert!(is_safe_to_open(Path::new(allowed)), "{allowed}");
+            assert!(!is_safe_to_open(Path::new(blocked)), "{blocked}");
+        }
+    }
+
+    #[test]
+    fn blocked_extensions_are_sorted_lowercase_and_unique() {
+        let mut sorted = BLOCKED_OPEN_EXTENSIONS.to_vec();
+        sorted.sort_unstable();
+        sorted.dedup();
+        assert_eq!(sorted, BLOCKED_OPEN_EXTENSIONS);
+        for extension in BLOCKED_OPEN_EXTENSIONS {
+            assert_eq!(*extension, extension.to_ascii_lowercase(), "{extension}");
+            assert!(!extension.starts_with('.'), "{extension}");
         }
     }
 

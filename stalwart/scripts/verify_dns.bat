@@ -4,7 +4,7 @@ setlocal
 set "DOMAIN=%~1"
 set "SELECTOR=%~2"
 
-if "%DOMAIN%"=="" set "DOMAIN=astermail.com"
+if "%DOMAIN%"=="" set "DOMAIN=astermail.org"
 if "%SELECTOR%"=="" set "SELECTOR=aster"
 
 echo Running PowerShell DNS verification script...

@@ -37,7 +37,7 @@ vi.mock("./tauri_proxy_transport", () => ({
   tauri_proxy_fetch: vi.fn(),
 }));
 
-import { cdn_relay_fetch } from "./cdn_relay_transport";
+import { cdn_relay_fetch, is_relay_host_allowed } from "./cdn_relay_transport";
 
 describe("cdn_relay_fetch", () => {
   const relay = "https://relay.astermail.org";
@@ -107,5 +107,38 @@ describe("cdn_relay_fetch", () => {
       "https://app.astermail.org/api/core/v1/connection-info",
       expect.anything(),
     );
+  });
+});
+
+describe("is_relay_host_allowed", () => {
+  it("rejects astermail.com hosts", () => {
+    for (const url of [
+      "https://astermail.com",
+      "https://relay.astermail.com",
+      "https://evil.astermail.com/path",
+      "https://RELAY.ASTERMAIL.COM.",
+    ]) {
+      expect(is_relay_host_allowed(url), url).toBe(false);
+    }
+  });
+
+  it("keeps owned relay hosts", () => {
+    for (const url of [
+      "https://astermail.org",
+      "https://relay.astermail.org",
+      "https://RELAY.ASTERMAIL.ORG.",
+    ]) {
+      expect(is_relay_host_allowed(url), url).toBe(true);
+    }
+  });
+
+  it("rejects look-alike and plain http hosts", () => {
+    for (const url of [
+      "https://evilastermail.org",
+      "https://astermail.org.example.com",
+      "http://relay.astermail.org",
+    ]) {
+      expect(is_relay_host_allowed(url), url).toBe(false);
+    }
   });
 });

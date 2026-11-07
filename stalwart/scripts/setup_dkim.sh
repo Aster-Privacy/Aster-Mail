@@ -22,7 +22,7 @@
 #
 set -e
 
-DOMAIN="${1:-astermail.com}"
+DOMAIN="${1:-astermail.org}"
 SELECTOR="${2:-aster}"
 KEY_DIR="/opt/stalwart/etc/dkim"
 

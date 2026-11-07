@@ -73,7 +73,6 @@ const DEV_NAVIGATION_HOSTS: &[&str] = &["localhost", "127.0.0.1"];
 
 const APP_NAVIGATION_SUFFIXES: &[&str] = &[
     ".astermail.org",
-    ".astermail.com",
     ".js.stripe.com",
     ".stripe.network",
 ];
@@ -1129,6 +1128,93 @@ mod navigation_tests {
         assert!(!allowed("http://exampleexampleexampleexampleexampleexampleexampleexam.onion/"));
         assert!(!allowed("https://astermail.org.example.com/"));
         assert!(!allowed("https://example.com/"));
+    }
+
+    const OWNED_DOMAINS: &[&str] = &["astermail.org"];
+    const THIRD_PARTY_DOMAINS: &[&str] = &["stripe.com", "stripe.network", "cloudflare.com"];
+    const LOCAL_HOSTS: &[&str] = &["tauri.localhost", "asset.localhost", "ipc.localhost"];
+
+    fn ends_with_domain(entry: &str, domain: &str) -> bool {
+        let entry = entry.trim_start_matches('.');
+        entry == domain || entry.ends_with(&format!(".{domain}"))
+    }
+
+    #[test]
+    fn rejects_unowned_astermail_com_hosts() {
+        for url in [
+            "https://astermail.com/",
+            "https://app.astermail.com/inbox",
+            "https://evil.astermail.com/",
+            "https://APP.ASTERMAIL.COM/",
+            "http://app.astermail.com/",
+        ] {
+            assert!(!allowed(url), "{url}");
+            let parsed = Url::parse(url).expect("valid url");
+            assert!(!is_app_navigation_for_build(&parsed, true), "{url}");
+        }
+    }
+
+    #[test]
+    fn keeps_owned_app_hosts() {
+        for url in [
+            "https://app.astermail.org/",
+            "https://mail.astermail.org/inbox",
+            "https://APP.ASTERMAIL.ORG/",
+        ] {
+            assert!(allowed(url), "{url}");
+        }
+    }
+
+    #[test]
+    fn every_navigation_suffix_is_owned_or_a_known_payment_host() {
+        for suffix in APP_NAVIGATION_SUFFIXES {
+            assert!(suffix.starts_with('.'), "{suffix}");
+            assert!(
+                OWNED_DOMAINS
+                    .iter()
+                    .chain(THIRD_PARTY_DOMAINS)
+                    .any(|domain| ends_with_domain(suffix, domain)),
+                "{suffix}"
+            );
+            assert!(!ends_with_domain(suffix, "astermail.com"), "{suffix}");
+        }
+    }
+
+    #[test]
+    fn every_navigation_host_is_owned_local_or_a_known_third_party() {
+        for host in APP_NAVIGATION_HOSTS {
+            assert!(
+                LOCAL_HOSTS.contains(host)
+                    || OWNED_DOMAINS
+                        .iter()
+                        .chain(THIRD_PARTY_DOMAINS)
+                        .any(|domain| ends_with_domain(host, domain)),
+                "{host}"
+            );
+            assert!(!ends_with_domain(host, "astermail.com"), "{host}");
+        }
+    }
+
+    #[test]
+    fn csp_never_trusts_astermail_com() {
+        for (name, raw) in [
+            ("tauri.conf.json", include_str!("../tauri.conf.json")),
+            ("tauri.macos.conf.json", include_str!("../tauri.macos.conf.json")),
+        ] {
+            assert!(!raw.to_ascii_lowercase().contains("astermail.com"), "{name}");
+        }
+        let config: serde_json::Value =
+            serde_json::from_str(include_str!("../tauri.conf.json")).expect("valid config");
+        let csp = config["app"]["security"]["csp"]
+            .as_str()
+            .expect("csp string");
+        let connect_src = csp
+            .split(';')
+            .map(str::trim)
+            .find(|directive| directive.starts_with("connect-src"))
+            .expect("connect-src directive");
+        assert!(connect_src.contains("https://*.astermail.org"));
+        assert!(!csp.contains("astermail.com"));
     }
 
     #[test]

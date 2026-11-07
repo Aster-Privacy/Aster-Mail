@@ -1,5 +1,5 @@
 param(
-    [string]$Domain = "astermail.com",
+    [string]$Domain = "astermail.org",
     [string]$Selector = "aster",
     [string]$KeyDir = ".\dkim"
 )
