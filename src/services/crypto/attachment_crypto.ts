@@ -38,6 +38,14 @@ import {
 } from "./key_manager";
 import { zero_uint8_array } from "./secure_memory";
 import { seal_sent_envelope } from "./sent_copy_seal";
+import {
+  is_attachment_meta_v2_nonce,
+  open_attachment_meta_kek_text,
+  open_attachment_meta_v2,
+  seal_attachment_meta_v2,
+} from "./attachment_meta_v2";
+import { envelope_v2_write_key, wipe_envelope_v2_keys } from "./envelope_v2";
+import { is_level2_admitted } from "./vault_level2";
 
 import { sanitize_download_filename } from "@/lib/attachment_utils";
 import {
@@ -174,6 +182,9 @@ export async function encrypt_attachments_for_send(
   }
 
   const results: EncryptedAttachmentForSend[] = [];
+  const meta_kek = is_level2_admitted()
+    ? envelope_v2_write_key(get_vault_from_memory())
+    : null;
 
   try {
     const own_seal = await own_key_seal_when_enabled(attachments.length);
@@ -214,13 +225,22 @@ export async function encrypt_attachments_for_send(
           )
         : null;
 
+      const v2_meta =
+        !sealed_meta && meta_kek
+          ? await seal_attachment_meta_v2(meta, meta_kek)
+          : null;
+
       const sender_meta = sealed_meta
         ? { encrypted: sealed_meta.encrypted_envelope }
-        : await encrypt_envelope_with_bytes(meta, passphrase_bytes);
+        : v2_meta
+          ? { encrypted: v2_meta.encrypted_meta }
+          : await encrypt_envelope_with_bytes(meta, passphrase_bytes);
 
       const meta_nonce_placeholder = sealed_meta
         ? new Uint8Array(NONCE_LENGTH)
-        : crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
+        : v2_meta
+          ? base64_to_array(v2_meta.meta_nonce)
+          : crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
       const plain_meta = array_to_base64(
         new TextEncoder().encode(JSON.stringify(meta)),
@@ -278,6 +298,7 @@ export async function encrypt_attachments_for_send(
     return results;
   } finally {
     zero_uint8_array(passphrase_bytes);
+    if (meta_kek) wipe_envelope_v2_keys([meta_kek]);
   }
 }
 
@@ -385,6 +406,29 @@ export function clear_unreadable_attachment_rows(): void {
   unreadable_rows.clear();
 }
 
+async function open_unmarked_v2_meta(
+  encrypted_meta: string,
+  meta_nonce: string | undefined,
+): Promise<AttachmentMeta | null> {
+  if (is_attachment_meta_v2_nonce(meta_nonce)) return null;
+
+  const text = await open_attachment_meta_kek_text(
+    encrypted_meta,
+    meta_nonce,
+    get_vault_from_memory(),
+  );
+
+  if (text === null) return null;
+
+  try {
+    const opened = JSON.parse(text) as AttachmentMeta | null;
+
+    return opened && typeof opened.filename === "string" ? opened : null;
+  } catch {
+    return null;
+  }
+}
+
 async function read_row_attachment_meta(
   encrypted_meta: string,
   meta_nonce: string | undefined,
@@ -393,6 +437,15 @@ async function read_row_attachment_meta(
   mail_item_id: string | undefined,
 ): Promise<AttachmentMeta | null> {
   if (!encrypted_meta) return null;
+
+  if (is_attachment_meta_v2_nonce(meta_nonce)) {
+    const opened = await open_attachment_meta_v2<AttachmentMeta>(
+      encrypted_meta,
+      get_vault_from_memory(),
+    );
+
+    if (opened && typeof opened.filename === "string") return opened;
+  }
 
   if (is_sealed_meta_nonce(meta_nonce) && entry?.key) {
     const sealed = await decrypt_sealed_attachment_meta(
@@ -423,7 +476,14 @@ async function read_row_attachment_meta(
 
     if (client_authored) return client_authored;
 
-    return await decrypt_mobile_authored_meta(encrypted_meta, meta_nonce);
+    const mobile_authored = await decrypt_mobile_authored_meta(
+      encrypted_meta,
+      meta_nonce,
+    );
+
+    if (mobile_authored) return mobile_authored;
+
+    return await open_unmarked_v2_meta(encrypted_meta, meta_nonce);
   } catch (error) {
     const mobile_authored = await decrypt_mobile_authored_meta(
       encrypted_meta,
@@ -431,6 +491,10 @@ async function read_row_attachment_meta(
     ).catch(() => null);
 
     if (mobile_authored) return mobile_authored;
+
+    const unmarked_v2 = await open_unmarked_v2_meta(encrypted_meta, meta_nonce);
+
+    if (unmarked_v2) return unmarked_v2;
 
     const transient =
       error instanceof Error && error.message === VAULT_UNAVAILABLE;

@@ -43,6 +43,7 @@ import {
   normalize_envelope_from,
 } from "@/services/crypto/envelope";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { decrypt_envelope_v2_with_vault } from "@/services/crypto/envelope_v2";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
@@ -315,6 +316,19 @@ async function open_envelope(
     } catch {
       return UNRESOLVED_ATTEMPT;
     }
+  }
+
+  if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
+    const vault = get_vault_from_memory();
+
+    if (!vault) return UNRESOLVED_ATTEMPT;
+
+    const result = await decrypt_envelope_v2_with_vault<DecryptedEnvelope>(
+      encrypted,
+      vault,
+    );
+
+    return result ? opened_attempt(result) : EXHAUSTED_ATTEMPT;
   }
 
   const passphrase = get_passphrase_bytes();

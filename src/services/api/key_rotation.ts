@@ -45,6 +45,8 @@ export interface RotateIdentityKeyRequest {
   vault_nonce?: string;
   vault_format?: number;
   vault_key_fingerprints?: string[];
+  vault_kdf_iterations?: number;
+  expected_vault_sha256?: string;
 }
 
 export interface RotateIdentityKeyResponse {
@@ -75,6 +77,8 @@ export async function rotate_identity_key(
   data?: RotateIdentityKeyResponse;
   error?: string;
   error_code?: string;
+  status?: number;
+  server_code?: string;
 }> {
   const response = await api_client.post<RotateIdentityKeyResponse>(
     "/crypto/v1/keys/identity/rotate",
@@ -82,7 +86,12 @@ export async function rotate_identity_key(
   );
 
   if (response.error) {
-    return { error: response.error, error_code: response.server_code };
+    return {
+      error: response.error,
+      error_code: response.server_code,
+      status: response.status,
+      server_code: response.server_code,
+    };
   }
 
   return { data: response.data ?? undefined };

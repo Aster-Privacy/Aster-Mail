@@ -40,6 +40,8 @@ import { api_client } from "@/services/api/client";
 import {
   API_BASE_URL,
   CLIENT_PLATFORM_HEADER,
+  CLIENT_VAULT_LEVEL,
+  VAULT_LEVEL_HEADER,
   type ApiErrorCode,
 } from "@/services/api/client/helpers";
 import {
@@ -147,6 +149,7 @@ function base_headers(): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "X-Aster-Client": CLIENT_PLATFORM_HEADER,
+    [VAULT_LEVEL_HEADER]: CLIENT_VAULT_LEVEL,
   };
   const device_id = get_device_id();
 

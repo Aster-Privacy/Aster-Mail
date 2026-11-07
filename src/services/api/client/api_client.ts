@@ -64,6 +64,10 @@ import {
   TAURI_TOKEN_KEY,
   clear_last_auth_ms,
   dev_token_storage_allowed,
+  CLIENT_UPGRADE_REQUIRED,
+  CLIENT_UPGRADE_REQUIRED_EVENT,
+  CLIENT_VAULT_LEVEL,
+  VAULT_LEVEL_HEADER,
   get_error_code_from_status,
   is_auth_endpoint,
   is_identity_establishing_endpoint,
@@ -87,6 +91,7 @@ import {
 
 import { get_active_translations } from "@/lib/i18n/translations";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
+import { record_vault_iterations_from_response } from "@/services/crypto/vault_level2";
 import { get_device_id } from "@/services/device_id";
 import { ignore_error } from "@/lib/ignore_error";
 import {
@@ -1901,6 +1906,7 @@ export class ApiClient {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       "X-Aster-Client": CLIENT_PLATFORM_HEADER,
+      [VAULT_LEVEL_HEADER]: CLIENT_VAULT_LEVEL,
       ...((options.headers as Record<string, string>) || {}),
     };
 
@@ -2223,6 +2229,26 @@ export class ApiClient {
           }
 
           if (
+            response.status === 426 &&
+            error_data.code === CLIENT_UPGRADE_REQUIRED
+          ) {
+            const message = get_active_translations().errors.client_upgrade_required;
+
+            window.dispatchEvent(
+              new CustomEvent(CLIENT_UPGRADE_REQUIRED_EVENT, {
+                detail: { message },
+              }),
+            );
+
+            return {
+              error: message,
+              code: "CLIENT_UPGRADE_REQUIRED",
+              status: response.status,
+              server_code: CLIENT_UPGRADE_REQUIRED,
+            };
+          }
+
+          if (
             response.status === 409 &&
             error_data.code === "ALREADY_SIGNED_IN_ON_DEVICE"
           ) {
@@ -2432,6 +2458,9 @@ export class ApiClient {
           } else {
             try {
               data = JSON.parse(raw) as T;
+              if (raw.includes("vault_kdf_iterations")) {
+                record_vault_iterations_from_response(data);
+              }
             } catch {
               last_error = {
                 error: this.get_generic_error_message("SERVER_ERROR"),

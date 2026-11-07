@@ -9419,6 +9419,8 @@ export const zh_CN = {
     address_numeric_only: "地址不能仅由数字组成。",
     max_accounts: "最多可以同时使用 {{max}} 个账户。移除一个即可腾出位置。",
     account_already_added: "此账户已在此设备上登录。请从账户菜单切换到它。",
+    client_upgrade_required:
+      "要继续使用您的账户，请将 Aster Mail 更新到最新版本。",
     failed_encrypt_draft:
       "我们无法在此设备上安全地保存此草稿。请重试。您输入的文字仍在编辑器中。",
     failed_decrypt_draft:

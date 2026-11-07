@@ -10568,6 +10568,8 @@ export const pt = {
       "Não conseguimos concluir a atualização do seu armazenamento local após várias tentativas. Verificar a sua ligação e reabrir o Aster costuma resolver. O seu correio no servidor está seguro.",
     account_already_added:
       "Esta conta já tem sessão iniciada neste dispositivo. Mude para ela a partir do menu de contas.",
+    client_upgrade_required:
+      "Para continuar a utilizar a sua conta, atualize o Aster Mail para a versão mais recente.",
     address_consecutive_dots:
       "Não são permitidos pontos consecutivos num endereço.",
     address_numeric_only:

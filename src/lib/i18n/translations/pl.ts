@@ -10813,6 +10813,8 @@ export const pl = {
       "Jednocześnie może być zalogowanych maksymalnie {{max}} kont. Usuń jedno, aby zrobić miejsce dla kolejnego.",
     account_already_added:
       "To konto jest już zalogowane na tym urządzeniu. Przełącz się na nie z menu kont.",
+    client_upgrade_required:
+      "Aby nadal korzystać z konta, zaktualizuj Aster Mail do najnowszej wersji.",
     failed_encrypt_draft:
       "Nie udało się bezpiecznie zapisać szkicu na tym urządzeniu. Spróbuj ponownie. Wpisany tekst nadal jest w edytorze.",
     failed_decrypt_draft:

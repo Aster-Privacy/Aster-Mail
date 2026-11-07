@@ -9050,6 +9050,7 @@ export interface ErrorTranslations {
   address_numeric_only: string;
   max_accounts: string;
   account_already_added: string;
+  client_upgrade_required: string;
   failed_encrypt_draft: string;
   failed_decrypt_draft: string;
   version_conflict: string;

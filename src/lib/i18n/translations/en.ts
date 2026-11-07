@@ -10295,6 +10295,8 @@ export const en: Translations = {
       "Up to {{max}} accounts can be on at once. Removing one will make room for another.",
     account_already_added:
       "This account is already signed in on this device. Switch to it from the account menu instead.",
+    client_upgrade_required:
+      "To keep using your account, update Aster Mail to the latest version.",
     failed_encrypt_draft:
       "We could not save this draft securely on this device. Try again. Your typed text is still in the composer.",
     failed_decrypt_draft:

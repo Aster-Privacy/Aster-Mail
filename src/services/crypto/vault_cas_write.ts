@@ -28,6 +28,13 @@ import {
   store_vault_in_memory,
 } from "./memory_key_store";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
+import {
+  note_vault_written,
+  vault_write_iterations,
+  write_vault_at_level,
+  type SealedVault,
+  type VaultKdfIterations,
+} from "./vault_level2";
 
 import { get_current_account } from "@/services/account_manager";
 import { api_client } from "@/services/api/client";
@@ -103,10 +110,18 @@ function field(vault: EncryptedVault | null | undefined, key: string): unknown {
   return vault ? (vault as unknown as VaultRecord)[key] : undefined;
 }
 
+function has_random_storage_key(
+  vault: EncryptedVault | null | undefined,
+): boolean {
+  return vault?.data_kek_random === true || !!vault?.storage_rekey;
+}
+
 function storage_key_fields_match(
   a: EncryptedVault | null | undefined,
   b: EncryptedVault | null | undefined,
 ): boolean {
+  if (!has_random_storage_key(a) && !has_random_storage_key(b)) return true;
+
   return STORAGE_KEY_FIELDS.every((key) => same(field(a, key), field(b, key)));
 }
 
@@ -324,17 +339,6 @@ async function write_once(
         request.owns_storage_key === true,
       )
     : request.next;
-  const { encrypted_vault, vault_nonce } = await encrypt_vault(
-    merged,
-    passphrase,
-  );
-
-  if (
-    !(await sealed_matches(encrypted_vault, vault_nonce, passphrase, merged))
-  ) {
-    return { status: "failed", error: "roundtrip_failed" };
-  }
-
   const vault_key_fingerprints = await collect_vault_key_fingerprints(merged);
   const vault_format = Math.max(
     merged.vault_format ?? 1,
@@ -343,19 +347,58 @@ async function write_once(
   );
   const expected_vault_sha256 =
     fetched.kind === "ok" ? fetched.snapshot.vault_sha256 : null;
-  const response = await api_client.put<{ success: boolean }>(VAULT_PATH, {
-    encrypted_vault,
-    vault_nonce,
-    expected_user_id: user_id,
-    vault_format,
-    preserve_pq_prekeys: request.preserve_pq_prekeys ?? true,
-    ...(expected_vault_sha256 ? { expected_vault_sha256 } : {}),
-    ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
-  });
+  let roundtrip_failed = false;
+  const seal = async (iterations: VaultKdfIterations): Promise<SealedVault> => {
+    const sealed = await encrypt_vault(merged, passphrase, iterations);
 
+    if (
+      !(await sealed_matches(
+        sealed.encrypted_vault,
+        sealed.vault_nonce,
+        passphrase,
+        merged,
+      ))
+    ) {
+      roundtrip_failed = true;
+    }
+
+    return sealed;
+  };
+  const send = async (
+    sealed: SealedVault,
+    field: { vault_kdf_iterations?: VaultKdfIterations },
+  ) => {
+    if (roundtrip_failed) return { roundtrip_failed: true as const };
+
+    return api_client.put<{ success: boolean }>(VAULT_PATH, {
+      encrypted_vault: sealed.encrypted_vault,
+      vault_nonce: sealed.vault_nonce,
+      expected_user_id: user_id,
+      vault_format,
+      preserve_pq_prekeys: request.preserve_pq_prekeys ?? true,
+      ...field,
+      ...(expected_vault_sha256 ? { expected_vault_sha256 } : {}),
+      ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
+    });
+  };
+  const written = await write_vault_at_level(
+    vault_write_iterations(
+      fetched.kind === "ok" ? fetched.snapshot.encrypted_vault : null,
+    ),
+    seal,
+    send,
+  );
+  const response = written.response;
+
+  if ("roundtrip_failed" in response) {
+    return { status: "failed", error: "roundtrip_failed" };
+  }
   if (is_conflict(response)) return { status: "conflict" };
   if (response.error) return { status: "failed", error: response.error };
 
+  const { encrypted_vault, vault_nonce } = written.sealed;
+
+  note_vault_written(written.sealed, written.iterations);
   persist_local_vault(user_id, encrypted_vault, vault_nonce);
   await store_vault_in_memory(merged, passphrase, user_id);
 

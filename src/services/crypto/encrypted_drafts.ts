@@ -32,6 +32,7 @@ import {
 } from "@/services/api/multi_drafts";
 import { emit_drafts_changed, emit_draft_updated } from "@/hooks/mail_events";
 import { get_active_translations } from "@/lib/i18n/translations";
+import { register_open_draft_check } from "@/services/draft_activity";
 
 export interface DraftData {
   to_recipients: string[];
@@ -172,6 +173,14 @@ class DraftManager {
     if (context) {
       context.owner = owner;
     }
+  }
+
+  has_open_draft(draft_id: string): boolean {
+    for (const context of this.contexts.values()) {
+      if (context.id === draft_id && !context.is_deleted) return true;
+    }
+
+    return false;
   }
 
   find_draft_owner(draft_id: string): string | undefined {
@@ -489,3 +498,5 @@ class DraftManager {
 }
 
 export const draft_manager = new DraftManager();
+
+register_open_draft_check((draft_id) => draft_manager.has_open_draft(draft_id));

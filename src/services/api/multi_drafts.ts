@@ -33,6 +33,11 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
+  begin_draft_write,
+  end_draft_write,
+  note_draft_activity,
+} from "@/services/draft_activity";
+import {
   emit_drafts_changed,
   emit_thread_draft_changed,
 } from "@/hooks/mail_events";
@@ -607,6 +612,30 @@ function announce_draft_saved(draft: Draft, content: DraftContent): void {
 }
 
 export async function create_draft(
+  ...args: Parameters<typeof create_draft_unguarded>
+): Promise<ApiResponse<Draft>> {
+  const response = await create_draft_unguarded(...args);
+
+  if (response.data?.id) note_draft_activity(response.data.id);
+
+  return response;
+}
+
+export async function update_draft(
+  ...args: Parameters<typeof update_draft_unguarded>
+): Promise<ApiResponse<Draft>> {
+  const draft_id = args[0];
+
+  begin_draft_write(draft_id);
+
+  try {
+    return await update_draft_unguarded(...args);
+  } finally {
+    end_draft_write(draft_id);
+  }
+}
+
+async function create_draft_unguarded(
   content: DraftContent,
   vault: EncryptedVault,
   draft_type: DraftType = "new",
@@ -674,7 +703,7 @@ export async function create_draft(
   return { data: created };
 }
 
-export async function update_draft(
+async function update_draft_unguarded(
   draft_id: string,
   content: DraftContent,
   version: number,

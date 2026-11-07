@@ -10586,6 +10586,8 @@ export const de = {
       "Die Aktualisierung Ihres lokalen Speichers ließ sich nach mehreren Versuchen nicht abschließen. Eine Prüfung der Verbindung und ein Neustart von Aster genügen meist. Ihre Post auf dem Server bleibt sicher.",
     account_already_added:
       "Dieses Konto ist bereits auf diesem Gerät angemeldet. Wechseln Sie stattdessen über das Kontomenü zu ihm.",
+    client_upgrade_required:
+      "Aktualisieren Sie Aster Mail auf die neueste Version, um Ihr Konto weiter zu verwenden.",
     address_consecutive_dots:
       "Aufeinanderfolgende Punkte sind in einer Adresse nicht erlaubt.",
     address_numeric_only: "Eine Adresse darf nicht nur aus Ziffern bestehen.",

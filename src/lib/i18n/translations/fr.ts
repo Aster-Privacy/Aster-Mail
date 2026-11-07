@@ -10588,6 +10588,8 @@ export const fr = {
       "Nous n'avons pas pu terminer la mise à niveau de votre stockage local après plusieurs essais. Vérifier votre connexion et rouvrir Aster suffit généralement. Votre courrier sur le serveur est en sécurité.",
     account_already_added:
       "Vous êtes déjà connecté à ce compte sur cet appareil. Passez-y depuis le menu des comptes.",
+    client_upgrade_required:
+      "Pour continuer à utiliser votre compte, mettez à jour Aster Mail vers la dernière version.",
     address_consecutive_dots:
       "L'adresse ne peut pas contenir des points consécutifs",
     address_numeric_only:

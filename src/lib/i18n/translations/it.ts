@@ -10511,6 +10511,8 @@ export const it = {
       "Non siamo riusciti a completare l'aggiornamento della memoria locale dopo diversi tentativi. Controllare la connessione e riaprire Aster di solito risolve. La sua posta sul server è al sicuro.",
     account_already_added:
       "Questo account è già connesso su questo dispositivo. Passa ad esso dal menu account.",
+    client_upgrade_required:
+      "Per continuare a usare il tuo account, aggiorna Aster Mail all'ultima versione.",
     address_consecutive_dots:
       "I punti consecutivi non sono consentiti in un indirizzo.",
     address_numeric_only:

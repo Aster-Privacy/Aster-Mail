@@ -10469,6 +10469,8 @@ export const tr = {
       "Aynı anda en fazla {{max}} hesap açık olabilir. Birini kaldırmak diğeri için yer açar.",
     account_already_added:
       "Bu hesap zaten bu cihazda oturum açmış. Hesap menüsünden ona geçin.",
+    client_upgrade_required:
+      "Hesabınızı kullanmaya devam etmek için Aster Mail'i en son sürüme güncelleyin.",
     failed_encrypt_draft:
       "Bu taslak bu cihaza güvenli şekilde kaydedilemedi. Tekrar deneyin. Yazdığınız metin hâlâ düzenleyicide.",
     failed_decrypt_draft:

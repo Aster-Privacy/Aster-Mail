@@ -60,6 +60,7 @@ import {
   has_sent_encryption_evidence,
 } from "@/services/crypto/sent_encryption_evidence";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { decrypt_envelope_v2_with_vault } from "@/services/crypto/envelope_v2";
 import {
   is_crypto_module_load_error,
   load_openpgp,
@@ -519,6 +520,13 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
   if (!get_passphrase_from_memory()) {
     await wait_for_keys_ready();
+  }
+
+  if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
+    return decrypt_envelope_v2_with_vault<T>(
+      encrypted_envelope,
+      get_vault_from_memory(),
+    );
   }
 
   const passphrase_bytes = get_passphrase_bytes();

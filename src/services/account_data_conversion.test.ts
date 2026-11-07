@@ -41,6 +41,7 @@ const h = vi.hoisted(() => ({
   listings: 0,
   preferences_result: "converted" as string,
   on_list: null as null | (() => void),
+  data_kek: undefined as string | undefined,
 }));
 
 vi.mock("./crypto/memory_key_store", () => ({
@@ -55,7 +56,11 @@ vi.mock("./crypto/memory_key_store", () => ({
   },
   get_vault_from_memory: () =>
     h.identity_key
-      ? { identity_key: h.identity_key, previous_keys: h.previous_keys }
+      ? {
+          identity_key: h.identity_key,
+          previous_keys: h.previous_keys,
+          data_kek: h.data_kek,
+        }
       : null,
 }));
 
@@ -111,6 +116,7 @@ vi.mock("./api/attachments", () => ({
 import {
   RESCAN_INTERVAL_MS,
   convert_before_password_change,
+  is_legacy_meta_nonce,
   recover_sent_mail_with_password,
   run_account_data_conversion,
   sent_mail_needs_password_reseal,
@@ -121,6 +127,8 @@ import {
   base64_to_array,
   encrypt_envelope,
 } from "./crypto/envelope";
+import { ATTACHMENT_META_V2_NONCE } from "./crypto/attachment_meta_v2";
+import { encrypt_envelope_v2_bytes } from "./crypto/envelope_v2";
 import { decrypt_message_verified_with_any_key } from "./crypto/key_manager_pgp_messages";
 import { read_locked_sent_mail } from "./locked_sent_mail_store";
 
@@ -130,6 +138,20 @@ const LEGACY_META_NONCE = array_to_base64(
   new Uint8Array([9, 8, 7, 6, 5, 4, 3, 2, 1, 1, 2, 3]),
 );
 const ZERO_META_NONCE = array_to_base64(new Uint8Array(12));
+const VECTOR_DATA_KEK = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";
+const VECTOR_CIPHERTEXT_CURRENT =
+  "oKGio6SlpqeoqaqrrK2ur8DBwsPExcbHyMnKyxmUrphDVc4W9hq0u8Q/kCWAkTj6oNg/L8FnTtfoYrei0cSkxxjeICkSF8UMMji/";
+
+function vector_v2(plaintext: string): Promise<string> {
+  const salt = Uint8Array.from({ length: 16 }, (_, i) => 0xa0 + i);
+  const iv = Uint8Array.from({ length: 12 }, (_, i) => 0xc0 + i);
+
+  return encrypt_envelope_v2_bytes(
+    new TextEncoder().encode(plaintext),
+    base64_to_array(VECTOR_DATA_KEK),
+    { salt, iv },
+  );
+}
 
 let own_key = "";
 let own_public = "";
@@ -232,6 +254,7 @@ beforeEach(() => {
   h.listings = 0;
   h.preferences_result = "converted";
   h.on_list = null;
+  h.data_kek = undefined;
 });
 
 describe("background sent mail conversion", () => {
@@ -415,6 +438,112 @@ describe("background sent mail conversion", () => {
       );
     }
     expect(h.progress).toContainEqual({ sent_mail_done: true });
+  });
+
+  it("treats the v2 marker nonce as not legacy", () => {
+    expect(is_legacy_meta_nonce(ATTACHMENT_META_V2_NONCE)).toBe(false);
+    expect(is_legacy_meta_nonce(LEGACY_META_NONCE)).toBe(true);
+    expect(is_legacy_meta_nonce(ZERO_META_NONCE)).toBe(false);
+  });
+
+  it("skips marker v2 metas and opens a random nonce v2 meta", async () => {
+    const meta = (name: string) =>
+      JSON.stringify({
+        filename: name,
+        content_type: "application/pdf",
+        size: 10,
+        session_key: "c2Vzc2lvbg==",
+      });
+
+    expect(await vector_v2('{"subject":"Vector test","n":7}')).toBe(
+      VECTOR_CIPHERTEXT_CURRENT,
+    );
+
+    h.data_kek = VECTOR_DATA_KEK;
+    h.status = status({ remaining_sent: 0, remaining_attachments: 2 });
+    h.pages = one_page([{ id: "m1", attachment_count: 3 }]);
+
+    const rows = [
+      {
+        id: "a_marker",
+        encrypted_meta: await vector_v2(meta("marker.pdf")),
+        meta_nonce: ATTACHMENT_META_V2_NONCE,
+      },
+      {
+        id: "a_zero",
+        encrypted_meta: await vector_v2(meta("zero.pdf")),
+        meta_nonce: ZERO_META_NONCE,
+      },
+      {
+        id: "a_random",
+        encrypted_meta: await vector_v2(meta("random.pdf")),
+        meta_nonce: LEGACY_META_NONCE,
+      },
+    ];
+
+    h.attachments.m1 = rows;
+
+    const summary = await run();
+
+    expect(summary?.unreadable ?? 0).toBe(0);
+    expect(h.meta_writes.map((write) => write.id)).toEqual(["a_random"]);
+    expect(JSON.parse(await open_sealed(h.meta_writes[0].sealed)).filename).toBe(
+      "random.pdf",
+    );
+  });
+
+  it("opens a raw meta under the data key and its stored nonce", async () => {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      base64_to_array(VECTOR_DATA_KEK),
+      "AES-GCM",
+      false,
+      ["encrypt"],
+    );
+    const plaintext = JSON.stringify({
+      filename: "raw.pdf",
+      session_key: "c2Vzc2lvbg==",
+    });
+    const sealed = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: base64_to_array(LEGACY_META_NONCE) },
+      key,
+      new TextEncoder().encode(plaintext),
+    );
+
+    h.data_kek = VECTOR_DATA_KEK;
+    h.status = status({ remaining_sent: 0, remaining_attachments: 1 });
+    h.pages = one_page([{ id: "m1", attachment_count: 1 }]);
+    h.attachments.m1 = [
+      {
+        id: "a_raw",
+        encrypted_meta: array_to_base64(new Uint8Array(sealed)),
+        meta_nonce: LEGACY_META_NONCE,
+      },
+    ];
+
+    await run();
+
+    expect(h.meta_writes.map((write) => write.id)).toEqual(["a_raw"]);
+    expect(await open_sealed(h.meta_writes[0].sealed)).toBe(plaintext);
+  });
+
+  it("counts a random nonce v2 meta as unreadable without the data key", async () => {
+    h.status = status({ remaining_sent: 0, remaining_attachments: 1 });
+    h.pages = one_page([{ id: "m1", attachment_count: 1 }]);
+    h.attachments.m1 = [
+      {
+        id: "a_random",
+        encrypted_meta: await vector_v2(
+          JSON.stringify({ filename: "r.pdf", session_key: "c2Vzc2lvbg==" }),
+        ),
+        meta_nonce: LEGACY_META_NONCE,
+      },
+    ];
+
+    const summary = await run();
+
+    expect(summary?.unreadable).toBe(1);
+    expect(h.meta_writes).toEqual([]);
   });
 
   it("rejects attachment metadata that is not a metadata object", async () => {

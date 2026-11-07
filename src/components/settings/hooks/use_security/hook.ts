@@ -95,6 +95,11 @@ import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { refresh_recovery_backup } from "@/services/crypto/recovery_backup_refresh";
 import {
+  note_vault_written,
+  vault_write_iterations,
+  write_vault_at_level,
+} from "@/services/crypto/vault_level2";
+import {
   ensure_ratchet_keys,
   publish_vaulted_prekey_bundle,
   sync_vault_with_server,
@@ -474,63 +479,73 @@ export function use_security() {
           ? { vault_key_fingerprints }
           : {};
 
-        const {
-          encrypted_vault: new_encrypted_vault,
-          vault_nonce: new_vault_nonce,
-        } = await encrypt_vault(vault, new_password);
+        const reencrypted = master_key_mode
+          ? null
+          : await re_encrypt_user_data(current_password, new_password, {
+              data_kek: vault.data_kek,
+              legacy_keks: vault.legacy_keks,
+              kdf_version: get_storage_kdf_version(vault),
+            });
 
-        if (master_key_mode) {
-          response = await change_password({
-            current_password_hash,
-            new_password_hash,
-            new_password_hash_v2,
-            new_password_salt,
-            new_encrypted_vault,
-            new_vault_nonce,
-            vault_format: MASTER_KEY_VAULT_FORMAT,
-            new_password_strength_tier,
-            ...fingerprint_field,
-          });
-        } else {
-          const {
-            re_encrypted_aliases,
-            re_encrypted_contacts,
-            re_encrypted_pins,
-            re_encrypted_alias_contacts,
-            re_encrypted_destinations,
-            re_encrypted_directories,
-            re_encrypted_domain_addresses,
-            skipped,
-          } = await re_encrypt_user_data(current_password, new_password, {
-            data_kek: vault.data_kek,
-            legacy_keks: vault.legacy_keks,
-            kdf_version: get_storage_kdf_version(vault),
-          });
+        if (reencrypted) {
+          const { skipped } = reencrypted;
 
           unreadable_item_count =
             skipped.alias_ids.length +
             skipped.contact_ids.length +
             skipped.domain_address_ids.length +
             skipped.unreadable_field_count;
+        }
 
-          response = await change_password({
-            current_password_hash,
-            new_password_hash,
-            new_password_hash_v2,
-            new_password_salt,
-            new_encrypted_vault,
-            new_vault_nonce,
-            re_encrypted_aliases,
-            re_encrypted_contacts,
-            re_encrypted_pins,
-            re_encrypted_alias_contacts,
-            re_encrypted_destinations,
-            re_encrypted_directories,
-            re_encrypted_domain_addresses,
-            unreadable_alias_ids: skipped.alias_ids,
-            new_password_strength_tier,
-            ...fingerprint_field,
-          });
+        const written = await write_vault_at_level(
+          vault_write_iterations(),
+          (iterations) => encrypt_vault(vault, new_password, iterations),
+          (sealed, kdf_field) =>
+            reencrypted
+              ? change_password({
+                  current_password_hash,
+                  new_password_hash,
+                  new_password_hash_v2,
+                  new_password_salt,
+                  new_encrypted_vault: sealed.encrypted_vault,
+                  new_vault_nonce: sealed.vault_nonce,
+                  re_encrypted_aliases: reencrypted.re_encrypted_aliases,
+                  re_encrypted_contacts: reencrypted.re_encrypted_contacts,
+                  re_encrypted_pins: reencrypted.re_encrypted_pins,
+                  re_encrypted_alias_contacts:
+                    reencrypted.re_encrypted_alias_contacts,
+                  re_encrypted_destinations:
+                    reencrypted.re_encrypted_destinations,
+                  re_encrypted_directories:
+                    reencrypted.re_encrypted_directories,
+                  re_encrypted_domain_addresses:
+                    reencrypted.re_encrypted_domain_addresses,
+                  unreadable_alias_ids: reencrypted.skipped.alias_ids,
+                  new_password_strength_tier,
+                  ...kdf_field,
+                  ...fingerprint_field,
+                })
+              : change_password({
+                  current_password_hash,
+                  new_password_hash,
+                  new_password_hash_v2,
+                  new_password_salt,
+                  new_encrypted_vault: sealed.encrypted_vault,
+                  new_vault_nonce: sealed.vault_nonce,
+                  vault_format: MASTER_KEY_VAULT_FORMAT,
+                  new_password_strength_tier,
+                  ...kdf_field,
+                  ...fingerprint_field,
+                }),
+        );
+
+        response = written.response;
+
+        const new_encrypted_vault = written.sealed.encrypted_vault;
+        const new_vault_nonce = written.sealed.vault_nonce;
+
+        if (!response.error) {
+          note_vault_written(written.sealed, written.iterations);
         }
 
         if (response.error) {

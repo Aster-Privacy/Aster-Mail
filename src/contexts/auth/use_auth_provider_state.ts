@@ -38,6 +38,7 @@ import {
 } from "./auth_helpers";
 import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 import { use_auth_account_state } from "./use_auth_account_state";
+import { ensure_level2_storage } from "./vault_decryption";
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
@@ -1049,6 +1050,7 @@ export function use_auth_provider_state() {
         passphrase,
         state.user?.id ?? state.current_account_id ?? undefined,
       );
+      ensure_level2_storage(state.user?.id ?? state.current_account_id);
 
       if (state.current_account_id) {
         start_session_timeout(state.current_account_id);

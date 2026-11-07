@@ -35,6 +35,10 @@ import {
   base64_to_array,
   decrypt_envelope_plaintext_with_bytes,
 } from "./crypto/envelope";
+import {
+  is_attachment_meta_v2_nonce,
+  open_attachment_meta_kek_text,
+} from "./crypto/attachment_meta_v2";
 import { decrypt_message_with_any_key } from "./crypto/key_manager";
 import { load_openpgp } from "./crypto/openpgp_loader";
 import {
@@ -157,7 +161,8 @@ export function is_legacy_meta_nonce(nonce_b64: string | null | undefined) {
   return (
     !!nonce &&
     nonce.length === META_NONCE_LENGTH &&
-    nonce.some((byte) => byte !== 0)
+    nonce.some((byte) => byte !== 0) &&
+    !is_attachment_meta_v2_nonce(nonce_b64)
   );
 }
 
@@ -270,6 +275,7 @@ export async function convert_envelope_item(
 
 async function open_attachment_meta(
   encrypted_meta: string,
+  meta_nonce: string | null | undefined,
   stored: Uint8Array,
   keys: ConversionKeys,
 ): Promise<string | null> {
@@ -297,7 +303,17 @@ async function open_attachment_meta(
 
   if (text && is_attachment_meta_text(text)) return text;
 
-  return open_legacy_envelope(encrypted_meta, keys);
+  const legacy = await open_legacy_envelope(encrypted_meta, keys);
+
+  if (legacy !== null) return legacy;
+
+  const v2 = await open_attachment_meta_kek_text(
+    encrypted_meta,
+    meta_nonce,
+    get_vault_from_memory(),
+  );
+
+  return v2 !== null && is_attachment_meta_text(v2) ? v2 : null;
 }
 
 export async function convert_attachment_row(
@@ -317,6 +333,7 @@ export async function convert_attachment_row(
 
   const plaintext = await open_attachment_meta(
     attachment.encrypted_meta,
+    attachment.meta_nonce,
     stored,
     keys,
   );

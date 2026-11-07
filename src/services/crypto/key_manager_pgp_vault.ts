@@ -22,7 +22,6 @@ import { assert_vault_salt_not_auth_salt } from "./auth_salt_guard";
 import { MAX_LEGACY_IDENTITY_KEYS } from "./identity_key_materials";
 import {
   HASH_ALG,
-  KEY_DERIVATION_ITERATIONS,
   array_to_base64,
   base64_to_array,
   compute_hash,
@@ -37,6 +36,14 @@ import {
   type VaultEncryptionResult,
 } from "./key_manager_core";
 
+import {
+  VAULT_KDF_ITERATIONS_LEGACY,
+  note_opened_vault_iterations,
+  record_vault_kdf_iterations,
+  vault_kdf_attempt_order,
+  type VaultKdfIterations,
+} from "./vault_level2";
+
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
@@ -50,9 +57,98 @@ function build_vault_aad(version: number): Uint8Array {
   return encoder.encode(`${VAULT_AAD_PREFIX}${version}`);
 }
 
+async function derive_vault_key(
+  passphrase: Uint8Array,
+  salt: Uint8Array,
+  iterations: VaultKdfIterations,
+  usage: KeyUsage,
+): Promise<CryptoKey> {
+  const key_material = await crypto.subtle.importKey(
+    "raw",
+    passphrase,
+    "PBKDF2",
+    false,
+    ["deriveKey"],
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations,
+      hash: HASH_ALG,
+    },
+    key_material,
+    { name: "AES-GCM", length: 256 },
+    false,
+    [usage],
+  );
+}
+
+async function open_vault_with_key(
+  key: CryptoKey,
+  nonce: Uint8Array,
+  ciphertext: Uint8Array,
+): Promise<ArrayBuffer> {
+  try {
+    return await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: build_vault_aad(VAULT_SCHEME_VERSION),
+      },
+      key,
+      ciphertext,
+    );
+  } catch {
+    return crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, key, ciphertext);
+  }
+}
+
+async function open_vault_bytes(
+  encrypted_vault: string,
+  vault_nonce: string,
+  passphrase: Uint8Array,
+  iterations_hint?: VaultKdfIterations,
+): Promise<ArrayBuffer> {
+  const combined = base64_to_array(encrypted_vault);
+  const nonce = base64_to_array(vault_nonce);
+
+  await assert_vault_salt_not_auth_salt(combined);
+
+  const salt = combined.slice(0, 16);
+  const ciphertext = combined.slice(16);
+  let last_error: unknown;
+
+  for (const iterations of vault_kdf_attempt_order(
+    encrypted_vault,
+    iterations_hint,
+  )) {
+    try {
+      const key = await derive_vault_key(
+        passphrase,
+        salt,
+        iterations,
+        "decrypt",
+      );
+      const decrypted = await open_vault_with_key(key, nonce, ciphertext);
+
+      record_vault_kdf_iterations(encrypted_vault, iterations);
+      note_opened_vault_iterations(iterations);
+
+      return decrypted;
+    } catch (caught) {
+      last_error = caught;
+    }
+  }
+
+  throw last_error;
+}
+
 export async function encrypt_vault(
   vault: EncryptedVault,
   password: string,
+  iterations: VaultKdfIterations = VAULT_KDF_ITERATIONS_LEGACY,
 ): Promise<VaultEncryptionResult> {
   const encoder = new TextEncoder();
   const vault_json = JSON.stringify(vault);
@@ -62,26 +158,14 @@ export async function encrypt_vault(
   const salt = generate_random_bytes(16);
 
   const passphrase_bytes = encoder.encode(password);
-  const key_material = await crypto.subtle.importKey(
-    "raw",
+  const key = await derive_vault_key(
     passphrase_bytes,
-    "PBKDF2",
-    false,
-    ["deriveKey"],
+    salt,
+    iterations,
+    "encrypt",
   );
 
-  const key = await crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: KEY_DERIVATION_ITERATIONS,
-      hash: HASH_ALG,
-    },
-    key_material,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt"],
-  );
+  zero_uint8_array(passphrase_bytes);
 
   const algorithm: AesGcmParams = VAULT_AAD_WRITE_ENABLED
     ? {
@@ -98,8 +182,12 @@ export async function encrypt_vault(
   combined.set(salt, 0);
   combined.set(new Uint8Array(encrypted), salt.length);
 
+  const encrypted_vault = array_to_base64(combined);
+
+  record_vault_kdf_iterations(encrypted_vault, iterations);
+
   return {
-    encrypted_vault: array_to_base64(combined),
+    encrypted_vault,
     vault_nonce: array_to_base64(nonce),
   };
 }
@@ -108,55 +196,14 @@ export async function decrypt_vault_to_handles(
   encrypted_vault: string,
   vault_nonce: string,
   passphrase: Uint8Array,
+  iterations_hint?: VaultKdfIterations,
 ): Promise<SecureVaultHandle> {
-  const combined = base64_to_array(encrypted_vault);
-  const nonce = base64_to_array(vault_nonce);
-
-  await assert_vault_salt_not_auth_salt(combined);
-
-  const salt = combined.slice(0, 16);
-  const ciphertext = combined.slice(16);
-
-  const key_material = await crypto.subtle.importKey(
-    "raw",
+  const decrypted = await open_vault_bytes(
+    encrypted_vault,
+    vault_nonce,
     passphrase,
-    "PBKDF2",
-    false,
-    ["deriveKey"],
+    iterations_hint,
   );
-
-  const key = await crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: KEY_DERIVATION_ITERATIONS,
-      hash: HASH_ALG,
-    },
-    key_material,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["decrypt"],
-  );
-
-  let decrypted: ArrayBuffer;
-
-  try {
-    decrypted = await crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: nonce,
-        additionalData: build_vault_aad(VAULT_SCHEME_VERSION),
-      },
-      key,
-      ciphertext,
-    );
-  } catch {
-    decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
-      key,
-      ciphertext,
-    );
-  }
 
   const decoder = new TextDecoder();
   const vault_json = decoder.decode(decrypted);
@@ -246,55 +293,20 @@ export async function decrypt_vault(
   encrypted_vault: string,
   vault_nonce: string,
   password: string,
+  iterations_hint?: VaultKdfIterations,
 ): Promise<EncryptedVault> {
-  const encoder = new TextEncoder();
-  const combined = base64_to_array(encrypted_vault);
-  const nonce = base64_to_array(vault_nonce);
-
-  await assert_vault_salt_not_auth_salt(combined);
-
-  const salt = combined.slice(0, 16);
-  const ciphertext = combined.slice(16);
-
-  const key_material = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(password),
-    "PBKDF2",
-    false,
-    ["deriveKey"],
-  );
-
-  const key = await crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: KEY_DERIVATION_ITERATIONS,
-      hash: HASH_ALG,
-    },
-    key_material,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["decrypt"],
-  );
-
+  const passphrase_bytes = new TextEncoder().encode(password);
   let decrypted: ArrayBuffer;
 
   try {
-    decrypted = await crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: nonce,
-        additionalData: build_vault_aad(VAULT_SCHEME_VERSION),
-      },
-      key,
-      ciphertext,
+    decrypted = await open_vault_bytes(
+      encrypted_vault,
+      vault_nonce,
+      passphrase_bytes,
+      iterations_hint,
     );
-  } catch {
-    decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
-      key,
-      ciphertext,
-    );
+  } finally {
+    zero_uint8_array(passphrase_bytes);
   }
 
   const decoder = new TextDecoder();

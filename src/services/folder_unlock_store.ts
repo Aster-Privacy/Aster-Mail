@@ -26,6 +26,27 @@ export interface FolderUnlockRecord {
 }
 
 const unlock_records = new Map<string, FolderUnlockRecord>();
+const change_listeners = new Set<(folder_token: string | null) => void>();
+
+export function on_folder_unlock_change(
+  listener: (folder_token: string | null) => void,
+): () => void {
+  change_listeners.add(listener);
+
+  return () => {
+    change_listeners.delete(listener);
+  };
+}
+
+function notify_change(folder_token: string | null): void {
+  for (const listener of change_listeners) {
+    try {
+      listener(folder_token);
+    } catch {
+      continue;
+    }
+  }
+}
 
 function is_record_live(record: FolderUnlockRecord): boolean {
   if (record.unlock_expires_at === null) return true;
@@ -42,15 +63,25 @@ export function parse_unlock_expiry(value: string | undefined): number | null {
 }
 
 export function set_folder_unlock_record(record: FolderUnlockRecord): void {
+  const previous = unlock_records.get(record.folder_id);
+
   unlock_records.set(record.folder_id, record);
+  if (previous && previous.folder_token !== record.folder_token) {
+    notify_change(previous.folder_token);
+  }
+  notify_change(record.folder_token);
 }
 
 export function clear_folder_unlock_record(folder_id: string): void {
+  const previous = unlock_records.get(folder_id);
+
   unlock_records.delete(folder_id);
+  if (previous) notify_change(previous.folder_token);
 }
 
 export function clear_all_folder_unlock_records(): void {
   unlock_records.clear();
+  notify_change(null);
 }
 
 export function get_folder_unlock_record(

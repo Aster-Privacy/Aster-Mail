@@ -42,6 +42,7 @@ import {
   fetch_refreshed_vault,
 } from "@/services/crypto/vault_refresh";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { decrypt_envelope_v2_with_vault } from "@/services/crypto/envelope_v2";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { normalize_envelope_from } from "@/services/crypto/envelope_normalize";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
@@ -239,6 +240,13 @@ async function open_search_envelope(
     } catch {
       return null;
     }
+  }
+
+  if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
+    return decrypt_envelope_v2_with_vault<DecryptedEnvelope>(
+      encrypted,
+      get_vault_from_memory(),
+    );
   }
 
   const passphrase = get_passphrase_bytes();

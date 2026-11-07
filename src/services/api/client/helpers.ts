@@ -88,6 +88,11 @@ export function detect_client_platform(): string {
 
 export const CLIENT_PLATFORM_HEADER = detect_client_platform();
 
+export const VAULT_LEVEL_HEADER = "X-Aster-Vault-Level";
+export const CLIENT_VAULT_LEVEL = "2";
+export const CLIENT_UPGRADE_REQUIRED = "CLIENT_UPGRADE_REQUIRED";
+export const CLIENT_UPGRADE_REQUIRED_EVENT = "aster:client-upgrade-required";
+
 export function is_local_hostname(): boolean {
   if (typeof window === "undefined") return false;
   const host = window.location?.hostname || "";
@@ -159,7 +164,8 @@ export type ApiErrorCode =
   | "REGISTRATION_SUSPENDED"
   | "RECOVERY_EMAIL_REQUIRED"
   | "EXTERNAL_SEND_QUOTA_REACHED"
-  | "APP_LOCKED";
+  | "APP_LOCKED"
+  | "CLIENT_UPGRADE_REQUIRED";
 
 export interface ApiError {
   message: string;

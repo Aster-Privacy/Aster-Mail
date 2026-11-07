@@ -55,6 +55,15 @@ import {
 } from "@/services/crypto/legacy_keks";
 import { with_aes_kw_fallback } from "@/services/crypto/webcrypto_aes_kw";
 import { ignore_error } from "@/lib/ignore_error";
+import { fetch_latest_vault } from "@/services/crypto/vault_cas_write";
+import {
+  VAULT_KDF_ITERATIONS_LEGACY,
+  note_vault_written,
+  vault_write_iterations,
+  write_vault_at_level,
+  type SealedVault,
+  type VaultKdfIterations,
+} from "@/services/crypto/vault_level2";
 
 export interface RotationCheckResult {
   needs_rotation: boolean;
@@ -233,6 +242,84 @@ export async function check_rotation_needed(
   }
 }
 
+export const VAULT_CHANGED_CODE = "VAULT_CHANGED";
+
+export type IdentityRotationFields = Omit<
+  RotateIdentityKeyRequest,
+  | "encrypted_vault"
+  | "vault_nonce"
+  | "expected_vault_sha256"
+  | "vault_kdf_iterations"
+>;
+
+type RotateResponse = Awaited<ReturnType<typeof rotate_identity_key>>;
+
+export type IdentityRotationSubmit =
+  | {
+      ok: true;
+      response: RotateResponse & {
+        data: NonNullable<RotateResponse["data"]>;
+      };
+      sealed: SealedVault;
+      iterations: VaultKdfIterations;
+    }
+  | { ok: false; error: string; error_code?: string };
+
+export async function submit_identity_rotation(
+  fields: IdentityRotationFields,
+  new_vault: EncryptedVault,
+  password: string,
+): Promise<IdentityRotationSubmit> {
+  const fetched = await fetch_latest_vault();
+
+  if (fetched.kind === "error") {
+    return { ok: false, error: "vault_unavailable" };
+  }
+
+  const snapshot = fetched.kind === "ok" ? fetched.snapshot : null;
+  const expected_vault_sha256 = snapshot?.vault_sha256 ?? null;
+
+  const written = await write_vault_at_level(
+    vault_write_iterations(snapshot?.encrypted_vault ?? null),
+    (iterations) => encrypt_vault(new_vault, password, iterations),
+    (sealed, field) =>
+      rotate_identity_key({
+        ...fields,
+        encrypted_vault: sealed.encrypted_vault,
+        vault_nonce: sealed.vault_nonce,
+        vault_kdf_iterations:
+          field.vault_kdf_iterations ?? VAULT_KDF_ITERATIONS_LEGACY,
+        ...(expected_vault_sha256 ? { expected_vault_sha256 } : {}),
+      }),
+  );
+  const response = written.response;
+
+  if (response.error_code === VAULT_CHANGED_CODE) {
+    return {
+      ok: false,
+      error: "vault_changed",
+      error_code: VAULT_CHANGED_CODE,
+    };
+  }
+
+  if (response.error || !response.data?.success) {
+    return {
+      ok: false,
+      error: response.error ?? "Rotation failed",
+      error_code: response.error_code,
+    };
+  }
+
+  note_vault_written(written.sealed, written.iterations);
+
+  return {
+    ok: true,
+    response: { ...response, data: response.data },
+    sealed: written.sealed,
+    iterations: written.iterations,
+  };
+}
+
 export async function perform_key_rotation(
   current_vault: EncryptedVault,
   password: string,
@@ -333,11 +420,6 @@ export async function perform_key_rotation(
       ratchet_regen_v4_done: true,
     };
 
-    const { encrypted_vault, vault_nonce } = await encrypt_vault(
-      new_vault,
-      password,
-    );
-
     const new_key_bytes = new TextEncoder().encode(new_keypair.public_key);
     const rotation_proof = await compute_rotation_proof(
       current_key_hash,
@@ -355,15 +437,13 @@ export async function perform_key_rotation(
       new_key_bytes,
     );
 
-    const request: RotateIdentityKeyRequest = {
+    const request: IdentityRotationFields = {
       new_identity_key: btoa(new_keypair.public_key),
       rotation_signature: rotation_proof,
       ...(rotation_signature_pgp ? { rotation_signature_pgp } : {}),
       new_signed_prekey: btoa(new_prekey.public_key),
       new_signed_prekey_id: prekey_id,
       new_signed_prekey_signature: btoa(prekey_signature),
-      encrypted_vault,
-      vault_nonce,
       vault_format: current_vault.data_kek
         ? MASTER_KEY_VAULT_FORMAT
         : (new_vault.vault_format ?? 1),
@@ -376,15 +456,22 @@ export async function perform_key_rotation(
       request.vault_key_fingerprints = vault_key_fingerprints;
     }
 
-    const response = await rotate_identity_key(request);
+    const submitted = await submit_identity_rotation(
+      request,
+      new_vault,
+      password,
+    );
 
-    if (response.error || !response.data?.success) {
+    if (!submitted.ok) {
       return {
         success: false,
-        error: response.error ?? "Rotation failed",
-        error_code: response.error_code,
+        error: submitted.error,
+        error_code: submitted.error_code,
       };
     }
+
+    const { response } = submitted;
+    const { encrypted_vault, vault_nonce } = submitted.sealed;
 
     /*
      * The server has committed the new key and vault at this point, so the

@@ -10166,6 +10166,8 @@ export const ko = {
       "동시에 최대 {{max}}개 계정을 사용할 수 있습니다. 하나를 제거하면 다른 계정을 추가할 수 있습니다.",
     account_already_added:
       "이 계정은 이미 이 기기에 로그인되어 있습니다. 계정 메뉴에서 전환하세요.",
+    client_upgrade_required:
+      "계정을 계속 사용하려면 Aster Mail을 최신 버전으로 업데이트하세요.",
     failed_encrypt_draft:
       "이 기기에 임시 저장본을 안전하게 저장하지 못했습니다. 다시 시도하세요. 입력한 내용은 작성 창에 그대로 있습니다.",
     failed_decrypt_draft:

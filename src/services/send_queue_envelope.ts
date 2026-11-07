@@ -33,6 +33,13 @@ import {
 import { seal_sent_envelope_when_enabled } from "./crypto/sent_copy_seal";
 import type { SentEncryptionEvidence } from "./crypto/sent_encryption_evidence";
 import { zero_uint8_array } from "./crypto/secure_memory";
+import {
+  encrypt_envelope_v2,
+  envelope_v2_write_key,
+  wipe_envelope_v2_keys,
+} from "./crypto/envelope_v2";
+import type { EncryptedVault } from "./crypto/key_manager_core";
+import { is_level2_admitted } from "./crypto/vault_level2";
 import { plain_text_to_html } from "./send_queue_recipients";
 import {
   SendError,
@@ -59,6 +66,23 @@ const PLAIN_TEXT_FORBIDDEN_TAGS = [
   "template",
 ];
 
+async function encrypt_stored_envelope(
+  envelope: MailEnvelope,
+  vault: EncryptedVault,
+  passphrase_bytes: Uint8Array,
+): Promise<{ encrypted: string; nonce: string }> {
+  const data_kek = is_level2_admitted() ? envelope_v2_write_key(vault) : null;
+
+  if (data_kek) {
+    try {
+      return await encrypt_envelope_v2(envelope, data_kek);
+    } finally {
+      wipe_envelope_v2_keys([data_kek]);
+    }
+  }
+
+  return encrypt_envelope_with_bytes(envelope, passphrase_bytes);
+}
 export async function create_sent_envelope(
   email: QueuedEmailInternal,
   sender_email: string,
@@ -146,7 +170,7 @@ export async function create_sent_envelope(
           encrypted: sealed.encrypted_envelope,
           nonce: sealed.envelope_nonce,
         }
-      : await encrypt_envelope_with_bytes(envelope, passphrase_bytes);
+      : await encrypt_stored_envelope(envelope, vault, passphrase_bytes);
 
     zero_uint8_array(passphrase_bytes);
 

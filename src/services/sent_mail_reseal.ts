@@ -27,6 +27,19 @@ import {
   encrypt_envelope_with_bytes,
 } from "./crypto/envelope";
 import { zero_uint8_array } from "./crypto/secure_memory";
+import {
+  ENVELOPE_V2_NONCE,
+  encrypt_envelope_v2,
+  envelope_sha256_hex,
+  envelope_v2_write_key,
+  wipe_envelope_v2_keys,
+} from "./crypto/envelope_v2";
+import { is_level2_admitted } from "./crypto/vault_level2";
+import { get_vault_from_memory } from "./crypto/memory_key_store";
+import {
+  is_attachment_meta_v2_nonce,
+  seal_attachment_meta_v2,
+} from "./crypto/attachment_meta_v2";
 
 export interface SentMailResealSummary {
   checked: number;
@@ -37,6 +50,41 @@ export interface SentMailResealSummary {
 
 export interface SentMailResealOptions {
   on_progress?: (summary: SentMailResealSummary) => void;
+  envelope_v2_key?: () => Uint8Array | null;
+}
+
+const SHA256_HEX_PATTERN = /^[0-9a-f]{64}$/;
+
+function default_envelope_v2_key(): Uint8Array | null {
+  if (!is_level2_admitted()) return null;
+
+  return envelope_v2_write_key(get_vault_from_memory());
+}
+
+async function rekey_to_envelope_v2(
+  item_id: string,
+  current_envelope: string,
+  decrypted: object,
+  kek: Uint8Array,
+): Promise<boolean> {
+  let expected_envelope_sha256: string;
+
+  try {
+    expected_envelope_sha256 = await envelope_sha256_hex(current_envelope);
+  } catch {
+    return false;
+  }
+
+  if (!SHA256_HEX_PATTERN.test(expected_envelope_sha256)) return false;
+
+  const { encrypted } = await encrypt_envelope_v2(decrypted, kek);
+  const response = await update_mail_item(item_id, {
+    encrypted_envelope: encrypted,
+    envelope_nonce: ENVELOPE_V2_NONCE,
+    expected_envelope_sha256,
+  });
+
+  return !response.error && !!response.data;
 }
 
 const PAGE_SIZE = 100;
@@ -61,13 +109,16 @@ function is_inline_sentinel(nonce_b64: string): boolean {
   }
 }
 
-async function list_sent_page(cursor: string | undefined) {
+async function list_sent_page(
+  item_type: "sent" | "draft",
+  cursor: string | undefined,
+) {
   let last_error: unknown = null;
 
   for (let attempt = 0; attempt < LISTING_ATTEMPTS; attempt += 1) {
     try {
       const response = await list_encrypted_mail_items({
-        item_type: "sent",
+        item_type,
         limit: PAGE_SIZE,
         cursor,
         include_reactions: true,
@@ -88,6 +139,7 @@ async function reseal_attachment_meta(
   item_id: string,
   old_bytes: Uint8Array,
   new_bytes: Uint8Array,
+  kek: Uint8Array | null,
 ): Promise<{ ok: boolean; resealed: number }> {
   const response = await list_attachments(item_id);
   const attachments = response.data?.attachments;
@@ -99,6 +151,7 @@ async function reseal_attachment_meta(
 
   for (const attachment of attachments) {
     if (!attachment.encrypted_meta) continue;
+    if (is_attachment_meta_v2_nonce(attachment.meta_nonce)) continue;
 
     let meta: unknown;
 
@@ -114,16 +167,17 @@ async function reseal_attachment_meta(
     if (!meta) continue;
 
     try {
-      const sealed = await encrypt_envelope_with_bytes(
-        meta as object,
-        new_bytes,
-      );
-      const result = await update_attachment_meta(attachment.id, {
-        encrypted_meta: sealed.encrypted,
-        meta_nonce: array_to_base64(
-          crypto.getRandomValues(new Uint8Array(META_NONCE_LENGTH)),
-        ),
-      });
+      const body = kek
+        ? await seal_attachment_meta_v2(meta as object, kek)
+        : {
+            encrypted_meta: (
+              await encrypt_envelope_with_bytes(meta as object, new_bytes)
+            ).encrypted,
+            meta_nonce: array_to_base64(
+              crypto.getRandomValues(new Uint8Array(META_NONCE_LENGTH)),
+            ),
+          };
+      const result = await update_attachment_meta(attachment.id, body);
 
       if (result.error || !result.data) all_ok = false;
       else resealed += 1;
@@ -143,11 +197,17 @@ async function reseal_converted_item_meta(
   item: ListedSentItem,
   old_bytes: Uint8Array,
   new_bytes: Uint8Array,
+  kek: Uint8Array | null,
 ): Promise<"rewritten" | "skipped" | "failed"> {
   if (!may_have_attachments(item)) return "skipped";
 
   try {
-    const meta = await reseal_attachment_meta(item.id, old_bytes, new_bytes);
+    const meta = await reseal_attachment_meta(
+      item.id,
+      old_bytes,
+      new_bytes,
+      kek,
+    );
 
     if (!meta.ok) return "failed";
 
@@ -161,12 +221,13 @@ async function reseal_item(
   item: ListedSentItem,
   old_bytes: Uint8Array,
   new_bytes: Uint8Array,
+  kek: Uint8Array | null,
 ): Promise<"rewritten" | "skipped" | "unreadable" | "failed"> {
   if (!item.encrypted_envelope || !item.envelope_nonce) {
-    return reseal_converted_item_meta(item, old_bytes, new_bytes);
+    return reseal_converted_item_meta(item, old_bytes, new_bytes, kek);
   }
   if (!is_inline_sentinel(item.envelope_nonce)) {
-    return reseal_converted_item_meta(item, old_bytes, new_bytes);
+    return reseal_converted_item_meta(item, old_bytes, new_bytes, kek);
   }
 
   let decrypted: unknown;
@@ -196,23 +257,39 @@ async function reseal_item(
   }
 
   try {
-    const { encrypted, nonce } = await encrypt_envelope_with_bytes(
-      decrypted as object,
-      new_bytes,
-    );
-    const response = await update_mail_item(item.id, {
-      encrypted_envelope: encrypted,
-      envelope_nonce: nonce,
-    });
+    if (kek) {
+      const written = await rekey_to_envelope_v2(
+        item.id,
+        item.encrypted_envelope,
+        decrypted as object,
+        kek,
+      );
 
-    if (response.error || !response.data) return "failed";
+      if (!written) return "failed";
+    } else {
+      const { encrypted, nonce } = await encrypt_envelope_with_bytes(
+        decrypted as object,
+        new_bytes,
+      );
+      const response = await update_mail_item(item.id, {
+        encrypted_envelope: encrypted,
+        envelope_nonce: nonce,
+      });
+
+      if (response.error || !response.data) return "failed";
+    }
   } catch {
     return "failed";
   }
 
   if (may_have_attachments(item)) {
     try {
-      const meta = await reseal_attachment_meta(item.id, old_bytes, new_bytes);
+      const meta = await reseal_attachment_meta(
+        item.id,
+        old_bytes,
+        new_bytes,
+        kek,
+      );
 
       if (!meta.ok) return "failed";
     } catch {
@@ -230,6 +307,7 @@ export async function reencrypt_all_sent_mail(
 ): Promise<SentMailResealSummary> {
   const old_bytes = new TextEncoder().encode(old_passphrase);
   const new_bytes = new TextEncoder().encode(new_passphrase);
+  const kek = (options.envelope_v2_key ?? default_envelope_v2_key)();
   const summary: SentMailResealSummary = {
     checked: 0,
     rewritten: 0,
@@ -237,34 +315,39 @@ export async function reencrypt_all_sent_mail(
     failed: 0,
   };
 
+  const item_types: ("sent" | "draft")[] = kek ? ["sent", "draft"] : ["sent"];
+
   try {
-    let cursor: string | undefined;
+    for (const item_type of item_types) {
+      let cursor: string | undefined;
 
-    for (;;) {
-      const page = await list_sent_page(cursor);
-      const items = (page.items ?? []) as ListedSentItem[];
+      for (;;) {
+        const page = await list_sent_page(item_type, cursor);
+        const items = (page.items ?? []) as ListedSentItem[];
 
-      if (items.length === 0) break;
+        if (items.length === 0) break;
 
-      for (const item of items) {
-        const outcome = await reseal_item(item, old_bytes, new_bytes);
+        for (const item of items) {
+          const outcome = await reseal_item(item, old_bytes, new_bytes, kek);
 
-        summary.checked += 1;
+          summary.checked += 1;
 
-        if (outcome === "rewritten") summary.rewritten += 1;
-        else if (outcome === "unreadable") summary.unreadable += 1;
-        else if (outcome === "failed") summary.failed += 1;
+          if (outcome === "rewritten") summary.rewritten += 1;
+          else if (outcome === "unreadable") summary.unreadable += 1;
+          else if (outcome === "failed") summary.failed += 1;
 
-        options.on_progress?.({ ...summary });
+          options.on_progress?.({ ...summary });
+        }
+
+        cursor = page.next_cursor ?? undefined;
+
+        if (!cursor) break;
       }
-
-      cursor = page.next_cursor ?? undefined;
-
-      if (!cursor) break;
     }
   } finally {
     zero_uint8_array(old_bytes);
     zero_uint8_array(new_bytes);
+    if (kek) wipe_envelope_v2_keys([kek]);
   }
 
   return summary;

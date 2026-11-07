@@ -146,6 +146,34 @@ const vault_cleared_listeners: Set<(event: VaultClearedEvent) => void> =
 let vault_account_epoch = 0;
 let last_vault_owner_id: string | null = null;
 
+export interface VaultStoredEvent {
+  owner_id: string | null;
+  same_owner: boolean;
+}
+
+const vault_stored_listeners: Set<(event: VaultStoredEvent) => void> =
+  new Set();
+
+export function on_vault_stored(
+  callback: (event: VaultStoredEvent) => void,
+): () => void {
+  vault_stored_listeners.add(callback);
+
+  return () => {
+    vault_stored_listeners.delete(callback);
+  };
+}
+
+function emit_vault_stored(event: VaultStoredEvent): void {
+  vault_stored_listeners.forEach((callback) => {
+    try {
+      callback(event);
+    } catch {
+      return;
+    }
+  });
+}
+
 export function get_vault_account_epoch(): number {
   return vault_account_epoch;
 }
@@ -600,6 +628,10 @@ export async function store_vault_in_memory(
   if (derived_encryption_key) {
     await import_and_cache_derived_key(derived_encryption_key);
     notify_keys_ready();
+  }
+
+  if (vault_in_memory && vault_owner_id === next_owner_id) {
+    emit_vault_stored({ owner_id: next_owner_id, same_owner });
   }
 }
 

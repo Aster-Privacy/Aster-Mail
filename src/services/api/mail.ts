@@ -32,6 +32,7 @@ import { with_folder_unlock } from "./folder_unlock_retry";
 import { ignore_error } from "@/lib/ignore_error";
 import { MAX_INBOX_PAGE_SIZE } from "@/lib/inbox_page_size";
 import { get_unlock_token } from "@/services/folder_unlock_store";
+import { note_locked_folder_listing } from "@/services/locked_folder_listing";
 import {
   ack_flag_intents,
   clear_flag_intents,
@@ -202,6 +203,7 @@ export interface UpdateMailItemRequest {
   metadata_nonce?: string;
   encrypted_envelope?: string;
   envelope_nonce?: string;
+  expected_envelope_sha256?: string;
 }
 
 export interface BulkUpdateRequest {
@@ -361,9 +363,49 @@ export async function list_mail_items(
   if (response.data?.items) {
     remember_items_folder_context(response.data.items, params.label_token);
     ingest_unseen_reaction_flags(response.data.items);
+    if (unlock_token && params.label_token) {
+      note_locked_folder_listing(params.label_token, response.data.items);
+    }
   }
 
   return response;
+}
+
+export async function list_locked_folder_page(
+  label_token: string,
+  offset: number,
+  limit: number,
+  trashed: boolean,
+): Promise<ApiResponse<MailItemsListResponse>> {
+  const unlock_token = get_unlock_token_for_label(label_token);
+
+  if (!unlock_token) return { error: "folder locked", status: 403 };
+
+  const query: [string, string][] = [
+    ["label_token", label_token],
+    ...(trashed ? ([["is_trashed", "true"]] as [string, string][]) : []),
+    ["offset", String(offset)],
+    ["include_envelope", "true"],
+    ["skip_total", "true"],
+    ["limit", String(limit)],
+    ["group_by_thread", "false"],
+    ["order", "asc"],
+  ];
+  const query_string = query
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+    )
+    .join("&");
+
+  return api_client.get<MailItemsListResponse>(
+    `/mail/v1/messages?${query_string}`,
+    {
+      cache_ttl: 0,
+      request_priority: "background",
+      folder_unlock_token: unlock_token,
+    },
+  );
 }
 
 export async function list_encrypted_mail_items(

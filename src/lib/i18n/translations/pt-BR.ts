@@ -10505,6 +10505,8 @@ export const pt_br = {
       "Não conseguimos concluir a atualização do seu armazenamento local após várias tentativas. Verificar sua conexão e reabrir o Aster costuma resolver. Seu e-mail no servidor está seguro.",
     account_already_added:
       "Esta conta já está conectada neste dispositivo. Mude para ela pelo menu de contas.",
+    client_upgrade_required:
+      "Para continuar usando sua conta, atualize o Aster Mail para a versão mais recente.",
     address_consecutive_dots:
       "Pontos consecutivos não são permitidos em um endereço.",
     address_numeric_only:

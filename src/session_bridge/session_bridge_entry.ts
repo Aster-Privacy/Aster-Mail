@@ -154,7 +154,11 @@ async function fetch_current_user(): Promise<unknown> {
       credentials: "same-origin",
       cache: "no-store",
       redirect: "error",
-      headers: { Accept: "application/json", "X-Aster-Client": "web" },
+      headers: {
+        Accept: "application/json",
+        "X-Aster-Client": "web",
+        "X-Aster-Vault-Level": "2",
+      },
       signal: controller.signal,
     });
 

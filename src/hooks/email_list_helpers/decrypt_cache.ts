@@ -33,6 +33,7 @@ const MAX_CACHED_CHARS = 8_000_000;
 const ENTRY_OVERHEAD_CHARS = 1024;
 const UNIQUE_NONCE_MIN_CHARS = 16;
 const PASSPHRASE_ENVELOPE_NONCE = "AQ==";
+const STORAGE_KEY_ENVELOPE_NONCE = "Ag==";
 const PASSPHRASE_ENVELOPE_HEAD_CHARS = 40;
 const CIPHERTEXT_TAIL_CHARS = 48;
 
@@ -127,7 +128,10 @@ function fingerprint(value: string | undefined, nonce: string): string {
     return `${text.length}:${text.slice(-CIPHERTEXT_TAIL_CHARS)}`;
   }
 
-  if (nonce === PASSPHRASE_ENVELOPE_NONCE) {
+  if (
+    nonce === PASSPHRASE_ENVELOPE_NONCE ||
+    nonce === STORAGE_KEY_ENVELOPE_NONCE
+  ) {
     return `${text.length}:${text.slice(0, PASSPHRASE_ENVELOPE_HEAD_CHARS)}:${text.slice(-CIPHERTEXT_TAIL_CHARS)}`;
   }
 

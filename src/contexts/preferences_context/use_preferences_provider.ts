@@ -79,6 +79,10 @@ import {
 } from "@/lib/loaded_fonts";
 import { get_effective_theme_fields } from "@/lib/theme_sync";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  CLIENT_VAULT_LEVEL,
+  VAULT_LEVEL_HEADER,
+} from "@/services/api/client/helpers";
 import { set_badge_count_enabled } from "@/native/badge_preference";
 import {
   get_vault_from_memory,
@@ -800,6 +804,7 @@ export function use_preferences_provider() {
       const csrf = get_csrf_token_from_cookie();
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
+        [VAULT_LEVEL_HEADER]: CLIENT_VAULT_LEVEL,
       };
 
       if (csrf) {

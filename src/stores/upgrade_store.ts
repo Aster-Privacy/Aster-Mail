@@ -20,6 +20,8 @@
 //
 import { useEffect, useSyncExternalStore } from "react";
 
+import { show_toast } from "@/components/toast/simple_toast";
+import { CLIENT_UPGRADE_REQUIRED_EVENT } from "@/services/api/client/helpers";
 import { strip_account_prefix } from "@/lib/account_index_url";
 
 export type UpgradeReason =
@@ -278,12 +280,31 @@ export function use_upgrade_prompt_events(): void {
       show_storage_full_upgrade({ message: detail.message ?? null });
     }
 
+    let client_upgrade_shown = false;
+
+    function handle_client_upgrade(e: Event) {
+      const detail =
+        (e as CustomEvent<{ message?: string | null }>).detail || {};
+
+      if (client_upgrade_shown || !detail.message) return;
+      client_upgrade_shown = true;
+      show_toast(detail.message, "error");
+    }
+
     window.addEventListener("aster:plan-limit-hit", handle_plan_limit);
     window.addEventListener("aster:storage-full", handle_storage_full);
+    window.addEventListener(
+      CLIENT_UPGRADE_REQUIRED_EVENT,
+      handle_client_upgrade,
+    );
 
     return () => {
       window.removeEventListener("aster:plan-limit-hit", handle_plan_limit);
       window.removeEventListener("aster:storage-full", handle_storage_full);
+      window.removeEventListener(
+        CLIENT_UPGRADE_REQUIRED_EVENT,
+        handle_client_upgrade,
+      );
     };
   }, []);
 }

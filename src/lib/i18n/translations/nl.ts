@@ -10580,6 +10580,8 @@ export const nl = {
       "Maximaal {{max}} accounts kunnen tegelijk actief zijn. Een verwijderen maakt ruimte voor een andere.",
     account_already_added:
       "Dit account is al aangemeld op dit apparaat. Schakel ernaar over via het accountmenu.",
+    client_upgrade_required:
+      "Werk Aster Mail bij naar de nieuwste versie om je account te blijven gebruiken.",
     failed_encrypt_draft:
       "We konden dit concept niet veilig op dit apparaat opslaan. Probeer het opnieuw. Je getypte tekst staat nog in de editor.",
     failed_decrypt_draft:

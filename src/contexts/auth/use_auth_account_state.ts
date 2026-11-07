@@ -32,7 +32,10 @@ import {
   get_session_passphrase,
   clear_session_passphrase,
 } from "./session_passphrase";
-import { decrypt_vault_with_lock } from "./vault_decryption";
+import {
+  decrypt_vault_with_lock,
+  ensure_level2_storage,
+} from "./vault_decryption";
 import {
   obtain_sibling_session,
   type SiblingSessionLogin,
@@ -893,6 +896,7 @@ export function use_auth_account_state() {
 
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
+      ensure_level2_storage(user.id);
 
       try {
         await Promise.race([
@@ -1018,6 +1022,7 @@ export function use_auth_account_state() {
     ) => {
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
+      ensure_level2_storage(user.id);
 
       try {
         await Promise.race([
