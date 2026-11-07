@@ -48,10 +48,10 @@ describe("effective_category", () => {
   it("places the message in the tab its category folds into", () => {
     get_index_entries.mockReturnValue([{ id: "a", category: "newsletters" }]);
     fold_to_active_tab.mockImplementation((raw?: string) =>
-      raw === "newsletters" ? "promotions" : (raw ?? "primary"),
+      raw === "newsletters" ? "updates" : (raw ?? "primary"),
     );
 
-    expect(effective_category({ id: "a" })).toBe("promotions");
+    expect(effective_category({ id: "a" })).toBe("updates");
     expect(fold_to_active_tab).toHaveBeenCalledWith("newsletters");
   });
 

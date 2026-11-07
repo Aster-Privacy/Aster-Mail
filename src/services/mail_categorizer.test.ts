@@ -368,8 +368,8 @@ describe("category folding", () => {
     expect(fold_builtin("transactions")).toBe("updates");
   });
 
-  it("folds Newsletters back into Promotions", () => {
-    expect(fold_builtin("newsletters")).toBe("promotions");
+  it("folds Newsletters into Updates so Deals keeps only selling mail", () => {
+    expect(fold_builtin("newsletters")).toBe("updates");
   });
 
   it("leaves both new tabs off by default", () => {
@@ -508,5 +508,64 @@ describe("deals precision", () => {
     });
 
     expect(classify(envelope)).toBe("updates");
+  });
+
+  it("keeps an MFA request in Deals after the user moves it there", () => {
+    const envelope = make_envelope({
+      from: { name: "Ubiquiti", email: "no-reply@ui.com" },
+      subject: "UniFi MFA Request",
+      raw_headers: esp_headers,
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("promotions");
+  });
+
+  it("keeps a base rate notice in Primary after the user moves it there", () => {
+    const envelope = make_envelope({
+      from: { name: "Aviva", email: "news@email.aviva.co.uk" },
+      subject: "The Bank of England has changed the base rate",
+      list_unsubscribe: "<https://aviva.co.uk/unsub>",
+      raw_headers: marketing_cloud_headers,
+    });
+    const metadata = {
+      category: "primary",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("primary");
+  });
+
+  it("keeps sports news in Deals after the user moves it there", () => {
+    const envelope = make_envelope({
+      from: { name: "UEFA", email: "news@news.uefa.com" },
+      subject: "Conference League: matchday 4 preview",
+      list_unsubscribe: "<https://uefa.com/unsub>",
+      raw_headers: marketing_cloud_headers,
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("promotions");
+  });
+
+  it("re-sorts an unpinned category written by an older classifier", () => {
+    const envelope = make_envelope({
+      from: { name: "UEFA", email: "news@news.uefa.com" },
+      subject: "Conference League: matchday 4 preview",
+      list_unsubscribe: "<https://uefa.com/unsub>",
+      raw_headers: marketing_cloud_headers,
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: false,
+    } as unknown as MailItemMetadata;
+
+    expect(classify(envelope, metadata)).toBe("newsletters");
   });
 });
