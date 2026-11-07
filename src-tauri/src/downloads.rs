@@ -187,6 +187,11 @@ pub async fn open_download(
         return Err("file type cannot be opened from the app".into());
     }
 
+    #[cfg(all(unix, not(target_os = "macos")))]
+    if crate::flatpak::is_flatpak() {
+        return crate::flatpak::open_uri::open_file(&path).await;
+    }
+
     tauri::async_runtime::spawn_blocking(move || {
         use tauri_plugin_shell::ShellExt;
 
@@ -205,6 +210,11 @@ pub async fn reveal_download(
     id: String,
 ) -> std::result::Result<(), String> {
     let path = tracked_file(&state, &id)?;
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    if crate::flatpak::is_flatpak() {
+        return crate::flatpak::open_uri::reveal(&path).await;
+    }
 
     tauri::async_runtime::spawn_blocking(move || platform::reveal(&path))
         .await
