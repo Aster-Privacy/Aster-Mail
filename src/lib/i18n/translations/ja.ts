@@ -3922,6 +3922,7 @@ export const ja = {
     external_key_error_wrong_passphrase: "パスフレーズが正しくありません。",
     external_key_error_expired: "このキーは期限切れです。キーを作成したアプリで有効期限を延長してから、もう一度読み込んでください。",
     external_key_error_revoked: "このキーは失効しているため、読み込めません。",
+    external_key_revocation_saved: "失効を保存しました。鍵は公開されなくなりました。",
     external_key_error_invalid_signature: "このキーの自己署名が無効です。",
     external_key_error_weak_signature: "このキーは弱いハッシュアルゴリズムで署名されています。SHA-256 以上で署名し直してください。",
     external_key_error_no_encryption_subkey: "このキーにはメールを暗号化できるサブキーがありません。",

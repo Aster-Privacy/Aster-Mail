@@ -3951,6 +3951,7 @@ export const nl = {
     external_key_error_wrong_passphrase: "De wachtwoordzin is onjuist.",
     external_key_error_expired: "Deze sleutel is verlopen. Verleng de geldigheid in de app waarin je hem hebt gemaakt en importeer hem daarna opnieuw.",
     external_key_error_revoked: "Deze sleutel is ingetrokken, dus je kunt hem niet importeren.",
+    external_key_revocation_saved: "Intrekking opgeslagen. Je sleutel wordt niet meer gepubliceerd.",
     external_key_error_invalid_signature: "Deze sleutel heeft een ongeldige eigen handtekening.",
     external_key_error_weak_signature: "Deze sleutel is ondertekend met een zwak hash-algoritme. Onderteken hem opnieuw met SHA-256 of sterker.",
     external_key_error_no_encryption_subkey: "Deze sleutel heeft geen subsleutel die e-mail kan versleutelen.",

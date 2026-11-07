@@ -2678,6 +2678,7 @@ export const en: Translations = {
     external_key_error_wrong_passphrase: "The passphrase is incorrect.",
     external_key_error_expired: "This key has expired. Extend its expiry in the app where you created it, then import it again.",
     external_key_error_revoked: "This key is revoked, so you can't import it.",
+    external_key_revocation_saved: "Revocation saved. Your key is no longer published.",
     external_key_error_invalid_signature: "This key has an invalid self-signature.",
     external_key_error_weak_signature: "This key is signed with a weak hash algorithm. Sign it again with SHA-256 or stronger.",
     external_key_error_no_encryption_subkey: "This key has no subkey that can encrypt mail.",

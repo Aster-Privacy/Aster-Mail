@@ -56,7 +56,13 @@ export function use_external_key_state(): external_key_state {
 }
 
 export function external_key_expires_soon(expires_at: string | Date): boolean {
-  return new Date(expires_at).getTime() - Date.now() < EXPIRY_WARNING_MS;
+  const remaining = new Date(expires_at).getTime() - Date.now();
+
+  return remaining > 0 && remaining < EXPIRY_WARNING_MS;
+}
+
+export function external_key_has_expired(expires_at: string | Date): boolean {
+  return new Date(expires_at).getTime() <= Date.now();
 }
 
 export function format_external_fingerprint(fingerprint: string): string {

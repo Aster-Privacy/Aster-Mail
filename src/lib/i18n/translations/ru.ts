@@ -4091,6 +4091,7 @@ export const ru = {
     external_key_error_wrong_passphrase: "Неверная парольная фраза.",
     external_key_error_expired: "Срок действия этого ключа истек. Продлите его в приложении, где вы создали ключ, а затем импортируйте его снова.",
     external_key_error_revoked: "Этот ключ отозван, поэтому его нельзя импортировать.",
+    external_key_revocation_saved: "Отзыв сохранен. Ваш ключ больше не публикуется.",
     external_key_error_invalid_signature: "У этого ключа недействительная самоподпись.",
     external_key_error_weak_signature: "Этот ключ подписан слабым алгоритмом хеширования. Подпишите его заново с помощью SHA-256 или более надежного алгоритма.",
     external_key_error_no_encryption_subkey: "У этого ключа нет подключа, который может шифровать письма.",

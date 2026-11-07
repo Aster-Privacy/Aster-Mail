@@ -87,11 +87,13 @@ import {
   replace_external_key,
   request_external_pgp_key_load,
   set_external_key_published,
+  submit_external_key_revocation,
   upload_external_key,
 } from "@/services/crypto/external_pgp_key";
 import {
   external_key_device_label_key,
   external_key_expires_soon,
+  external_key_has_expired,
   format_external_fingerprint,
   use_external_key_state,
 } from "@/components/settings/encryption/use_external_key_state";
@@ -276,12 +278,26 @@ function ImportModal({
       );
       set_passphrase("");
     } catch (caught) {
-      const key =
-        caught instanceof external_key_import_error
-          ? REJECTION_KEYS[caught.reason]
-          : undefined;
+      const reason =
+        caught instanceof external_key_import_error ? caught.reason : undefined;
 
-      set_error(t(key ?? "settings.external_key_error_generic"));
+      if (reason === "revoked" || reason === "not_private") {
+        const revocation = await submit_external_key_revocation(file_bytes);
+
+        if (revocation?.ok) {
+          show_toast(t("settings.external_key_revocation_saved"), "success");
+          on_close();
+
+          return;
+        }
+      }
+
+      set_error(
+        t(
+          (reason ? REJECTION_KEYS[reason] : undefined) ??
+            "settings.external_key_error_generic",
+        ),
+      );
     } finally {
       set_busy(false);
     }
@@ -685,6 +701,12 @@ export function ExternalKeyPanel() {
                 })}
               </Notice>
             )}
+            {record.expires_at &&
+              external_key_has_expired(record.expires_at) && (
+                <Notice tone="danger">
+                  {t("settings.external_key_error_expired")}
+                </Notice>
+              )}
             {record.expires_at &&
               external_key_expires_soon(record.expires_at) && (
                 <Notice tone="warning">

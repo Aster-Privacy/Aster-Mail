@@ -104,7 +104,8 @@ interface unlocked_material {
 let state: external_key_state = { status: "none", record: null, loaded: false };
 let unlocked: unlocked_material | null = null;
 let load_generation = 0;
-let load_signature: string | null = null;
+let load_owner: string | null = null;
+let load_kek_ref: string | null = null;
 let load_promise: Promise<void> | null = null;
 const listeners = new Set<(next: external_key_state) => void>();
 
@@ -155,7 +156,8 @@ export function export_external_public_key(): string | null {
 
 export function clear_external_pgp_key(): void {
   load_generation += 1;
-  load_signature = null;
+  load_owner = null;
+  load_kek_ref = null;
   load_promise = null;
   unlocked = null;
   emit({ status: "none", record: null, loaded: false });
@@ -409,14 +411,18 @@ export function request_external_pgp_key_load(
     return Promise.resolve();
   }
 
-  const signature = `${user_id}|${data_kek_b64}`;
-
-  if (!options.force && load_signature === signature && load_promise) {
+  if (
+    !options.force &&
+    load_owner === user_id &&
+    load_kek_ref === data_kek_b64 &&
+    load_promise
+  ) {
     return load_promise;
   }
 
   load_generation += 1;
-  load_signature = signature;
+  load_owner = user_id;
+  load_kek_ref = data_kek_b64;
 
   const generation = load_generation;
   const promise = run_load(user_id, data_kek_b64, generation).catch(() => {
@@ -552,7 +558,8 @@ async function adopt_material(
   if (!owner_unchanged(user_id, data_kek_b64)) return false;
 
   load_generation += 1;
-  load_signature = `${user_id}|${data_kek_b64}`;
+  load_owner = user_id;
+  load_kek_ref = data_kek_b64;
   load_promise = Promise.resolve();
   unlocked = material;
   emit({ status: "ready", record, loaded: true });
@@ -746,6 +753,101 @@ export async function delete_external_key(
     if (still_owner) emit({ ...state, record });
     await remember_record(user_id, record);
   }
+
+  return { ok: true, record };
+}
+
+export async function build_revoked_public_key(
+  input: Uint8Array,
+  stored_armored: string,
+  fingerprint: string,
+): Promise<string | null> {
+  const openpgp = await load_openpgp();
+  const stored = await openpgp.readKey({ armoredKey: stored_armored });
+
+  if (normalize_external_fingerprint(stored.getFingerprint()) !== fingerprint) {
+    return null;
+  }
+
+  const text = new TextDecoder()
+    .decode(input)
+    .replace(/^:(-----BEGIN PGP)/m, "$1");
+  const armored = text.includes("-----BEGIN PGP");
+  const as_key = await (armored
+    ? openpgp.readKey({ armoredKey: text })
+    : openpgp.readKey({ binaryKey: input })
+  ).catch(() => null);
+
+  let revoked = stored;
+
+  if (as_key) {
+    if (normalize_external_fingerprint(as_key.getFingerprint()) !== fingerprint) {
+      return null;
+    }
+    stored.revocationSignatures.push(...as_key.revocationSignatures);
+  } else if (armored) {
+    const applied = await openpgp
+      .revokeKey({ key: stored, revocationCertificate: text, format: "object" })
+      .catch(() => null);
+
+    if (!applied) return null;
+    revoked = applied.publicKey;
+  } else {
+    return null;
+  }
+
+  if (!(await revoked.isRevoked())) return null;
+
+  return revoked.toPublic().armor();
+}
+
+export async function submit_external_key_revocation(
+  input: Uint8Array,
+): Promise<external_key_action_result | null> {
+  const user_id = current_owner();
+  const data_kek_b64 = current_data_kek();
+  const current = state.record;
+
+  if (!user_id || !current) return null;
+
+  const public_key_armored = await build_revoked_public_key(
+    input,
+    current.public_key_armored,
+    normalize_external_fingerprint(current.fingerprint),
+  ).catch(() => null);
+
+  if (!public_key_armored) return null;
+
+  const challenge_response = await api_client.post<{
+    challenge: string;
+    expires_at: string;
+  }>(`${EXTERNAL_PGP_ENDPOINT}/challenge`, {});
+
+  if (challenge_response.error || !challenge_response.data?.challenge) {
+    return failure(challenge_response);
+  }
+
+  if (!owner_unchanged(user_id, data_kek_b64)) {
+    return { ok: false, code: "ACCOUNT_CHANGED" };
+  }
+
+  const response = await api_client.put<unknown>(EXTERNAL_PGP_ENDPOINT, {
+    public_key_armored,
+    wrapped_private_key: "",
+    challenge: challenge_response.data.challenge,
+    challenge_signature: "",
+  });
+
+  if (response.error) return failure(response);
+
+  const record = record_from_response(response.data) ?? {
+    ...current,
+    public_key_armored,
+    published: false,
+  };
+
+  if (owner_unchanged(user_id, data_kek_b64)) emit({ ...state, record });
+  await remember_record(user_id, record);
 
   return { ok: true, record };
 }

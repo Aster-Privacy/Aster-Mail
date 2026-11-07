@@ -3978,6 +3978,7 @@ export const pt_br = {
     external_key_error_wrong_passphrase: "A frase secreta está incorreta.",
     external_key_error_expired: "Esta chave expirou. Estenda a validade no app onde você a criou e importe-a novamente.",
     external_key_error_revoked: "Esta chave está revogada, por isso você não pode importá-la.",
+    external_key_revocation_saved: "Revogação salva. Sua chave não está mais publicada.",
     external_key_error_invalid_signature: "Esta chave tem uma autoassinatura inválida.",
     external_key_error_weak_signature: "Esta chave está assinada com um algoritmo de hash fraco. Assine-a novamente com SHA-256 ou superior.",
     external_key_error_no_encryption_subkey: "Esta chave não tem nenhuma subchave capaz de criptografar e-mails.",

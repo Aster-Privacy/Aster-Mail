@@ -3983,6 +3983,7 @@ export const de = {
     external_key_error_wrong_passphrase: "Die Passphrase ist falsch.",
     external_key_error_expired: "Dieser Schlüssel ist abgelaufen. Verlängern Sie die Gültigkeit in der App, in der Sie ihn erstellt haben, und importieren Sie ihn dann erneut.",
     external_key_error_revoked: "Dieser Schlüssel ist widerrufen und kann nicht importiert werden.",
+    external_key_revocation_saved: "Widerruf gespeichert. Dein Schlüssel wird nicht mehr veröffentlicht.",
     external_key_error_invalid_signature: "Dieser Schlüssel hat eine ungültige Eigensignatur.",
     external_key_error_weak_signature: "Dieser Schlüssel ist mit einem schwachen Hash-Algorithmus signiert. Signieren Sie ihn erneut mit SHA-256 oder stärker.",
     external_key_error_no_encryption_subkey: "Dieser Schlüssel hat keinen Unterschlüssel, der E-Mails verschlüsseln kann.",

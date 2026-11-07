@@ -3606,6 +3606,7 @@ export const zh_CN = {
     external_key_error_wrong_passphrase: "密码短语不正确。",
     external_key_error_expired: "此密钥已过期。请在创建它的应用中延长有效期，然后重新导入。",
     external_key_error_revoked: "此密钥已被吊销，因此无法导入。",
+    external_key_revocation_saved: "已保存吊销。你的密钥不再发布。",
     external_key_error_invalid_signature: "此密钥的自签名无效。",
     external_key_error_weak_signature: "此密钥使用弱哈希算法签名。请使用 SHA-256 或更强的算法重新签名。",
     external_key_error_no_encryption_subkey: "此密钥没有可用于加密邮件的子密钥。",

@@ -3010,6 +3010,7 @@ export interface SettingsTranslations {
   external_key_error_wrong_passphrase: string;
   external_key_error_expired: string;
   external_key_error_revoked: string;
+  external_key_revocation_saved: string;
   external_key_error_invalid_signature: string;
   external_key_error_weak_signature: string;
   external_key_error_no_encryption_subkey: string;

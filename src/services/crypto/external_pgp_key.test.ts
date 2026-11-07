@@ -90,6 +90,7 @@ import {
   prepare_external_key_import,
   replace_external_key,
   set_external_key_published,
+  submit_external_key_revocation,
   upload_external_key,
 } from "@/services/crypto/external_pgp_key";
 
@@ -258,5 +259,104 @@ describe("replacing an external key", () => {
     expect(get_external_key_state().record?.fingerprint.toLowerCase()).toBe(
       await fingerprint_of(second_armored),
     );
+  });
+});
+
+describe("submitting a revocation for the stored key", () => {
+  async function revoked_versions(armored: string) {
+    const key = await openpgp.decryptKey({
+      privateKey: await openpgp.readPrivateKey({ armoredKey: armored }),
+      passphrase: PASSPHRASE,
+    });
+    const revoked = await openpgp.revokeKey({ key, format: "object" });
+    const certificate = await openpgp.readKey({
+      armoredKey: revoked.publicKey.armor(),
+    });
+    const packets = new openpgp.PacketList<openpgp.SignaturePacket>();
+
+    packets.push(certificate.revocationSignatures[0]);
+    const bare = `:${openpgp.armor(openpgp.enums.armor.publicKey, packets.write())}`;
+
+    return { key_file: revoked.publicKey.armor(), certificate: bare };
+  }
+
+  function encode(text: string): Uint8Array {
+    return new TextEncoder().encode(text);
+  }
+
+  async function sent_key(): Promise<openpgp.Key> {
+    const body = vi.mocked(api_client.put).mock.calls.at(-1)?.[1] as {
+      public_key_armored: string;
+      wrapped_private_key: string;
+      challenge_signature: string;
+    };
+
+    expect(body.wrapped_private_key).toBe("");
+    expect(body.challenge_signature).toBe("");
+
+    return openpgp.readKey({ armoredKey: body.public_key_armored });
+  }
+
+  it("sends the revoked public key and marks the key unpublished", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+    await set_external_key_published(true);
+    vi.mocked(api_client.put).mockClear();
+
+    const { key_file } = await revoked_versions(first_armored);
+    const result = await submit_external_key_revocation(encode(key_file));
+
+    expect(result?.ok).toBe(true);
+    const sent = await sent_key();
+
+    expect(await sent.isRevoked()).toBe(true);
+    expect(sent.getFingerprint().toLowerCase()).toBe(
+      await fingerprint_of(first_armored),
+    );
+    expect(sent.isPrivate()).toBe(false);
+    expect(get_external_key_state().record?.published).toBe(false);
+  });
+
+  it("applies a bare revocation certificate to the stored key", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+    vi.mocked(api_client.put).mockClear();
+
+    const { certificate } = await revoked_versions(first_armored);
+    const result = await submit_external_key_revocation(encode(certificate));
+
+    expect(result?.ok).toBe(true);
+    expect(await (await sent_key()).isRevoked()).toBe(true);
+  });
+
+  it("ignores a revocation for a different key", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+    vi.mocked(api_client.put).mockClear();
+
+    const { key_file, certificate } = await revoked_versions(second_armored);
+
+    expect(await submit_external_key_revocation(encode(key_file))).toBeNull();
+    expect(await submit_external_key_revocation(encode(certificate))).toBeNull();
+    expect(api_client.put).not.toHaveBeenCalled();
+  });
+
+  it("ignores a key that is not revoked", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+    vi.mocked(api_client.put).mockClear();
+
+    const public_only = (
+      await openpgp.readPrivateKey({ armoredKey: first_armored })
+    )
+      .toPublic()
+      .armor();
+
+    expect(await submit_external_key_revocation(encode(public_only))).toBeNull();
+    expect(api_client.put).not.toHaveBeenCalled();
   });
 });

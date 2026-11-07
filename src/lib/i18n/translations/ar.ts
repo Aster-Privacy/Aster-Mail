@@ -4102,6 +4102,7 @@ export const ar = {
     external_key_error_wrong_passphrase: "عبارة المرور غير صحيحة.",
     external_key_error_expired: "انتهت صلاحية هذا المفتاح. مدّد صلاحيته في التطبيق الذي أنشأته فيه، ثم استورده مرة أخرى.",
     external_key_error_revoked: "هذا المفتاح ملغى، لذا لا يمكنك استيراده.",
+    external_key_revocation_saved: "تم حفظ الإبطال. لم يعد مفتاحك منشورًا.",
     external_key_error_invalid_signature: "التوقيع الذاتي لهذا المفتاح غير صالح.",
     external_key_error_weak_signature: "هذا المفتاح موقّع بخوارزمية تجزئة ضعيفة. وقّعه مرة أخرى باستخدام SHA-256 أو أقوى.",
     external_key_error_no_encryption_subkey: "لا يحتوي هذا المفتاح على مفتاح فرعي يمكنه تشفير البريد.",

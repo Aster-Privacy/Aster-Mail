@@ -2770,6 +2770,7 @@ export const hi = {
     external_key_error_wrong_passphrase: "पासफ़्रेज़ गलत है।",
     external_key_error_expired: "यह कुंजी समाप्त हो गई है। जिस ऐप में आपने इसे बनाया था उसमें इसकी समाप्ति बढ़ाएं, फिर इसे दोबारा आयात करें।",
     external_key_error_revoked: "यह कुंजी रद्द की जा चुकी है, इसलिए आप इसे आयात नहीं कर सकते।",
+    external_key_revocation_saved: "निरस्तीकरण सहेजा गया। आपकी कुंजी अब प्रकाशित नहीं है।",
     external_key_error_invalid_signature: "इस कुंजी का स्व-हस्ताक्षर अमान्य है।",
     external_key_error_weak_signature: "यह कुंजी कमज़ोर हैश एल्गोरिदम से हस्ताक्षरित है। इसे SHA-256 या उससे मज़बूत एल्गोरिदम से दोबारा हस्ताक्षरित करें।",
     external_key_error_no_encryption_subkey: "इस कुंजी में ऐसी कोई उपकुंजी नहीं है जो ईमेल एन्क्रिप्ट कर सके।",

@@ -3985,6 +3985,7 @@ export const ko = {
     external_key_error_wrong_passphrase: "암호가 올바르지 않습니다.",
     external_key_error_expired: "이 키는 만료되었습니다. 키를 만든 앱에서 만료일을 연장한 다음 다시 가져오세요.",
     external_key_error_revoked: "이 키는 폐기되어 가져올 수 없습니다.",
+    external_key_revocation_saved: "폐기가 저장되었습니다. 이제 키가 게시되지 않습니다.",
     external_key_error_invalid_signature: "이 키의 자체 서명이 유효하지 않습니다.",
     external_key_error_weak_signature: "이 키는 약한 해시 알고리즘으로 서명되었습니다. SHA-256 이상으로 다시 서명하세요.",
     external_key_error_no_encryption_subkey: "이 키에는 메일을 암호화할 수 있는 하위 키가 없습니다.",

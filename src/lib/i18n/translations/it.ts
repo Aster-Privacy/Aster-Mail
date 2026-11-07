@@ -4000,6 +4000,7 @@ export const it = {
     external_key_error_wrong_passphrase: "La passphrase non è corretta.",
     external_key_error_expired: "Questa chiave è scaduta. Estendi la scadenza nell'app in cui l'hai creata, poi importala di nuovo.",
     external_key_error_revoked: "Questa chiave è revocata, quindi non puoi importarla.",
+    external_key_revocation_saved: "Revoca salvata. La tua chiave non è più pubblicata.",
     external_key_error_invalid_signature: "Questa chiave ha un'autofirma non valida.",
     external_key_error_weak_signature: "Questa chiave è firmata con un algoritmo di hash debole. Firmala di nuovo con SHA-256 o superiore.",
     external_key_error_no_encryption_subkey: "Questa chiave non ha nessuna sottochiave in grado di cifrare le email.",

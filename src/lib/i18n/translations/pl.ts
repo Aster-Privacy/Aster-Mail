@@ -4131,6 +4131,7 @@ export const pl = {
     external_key_error_wrong_passphrase: "Hasło jest nieprawidłowe.",
     external_key_error_expired: "Ten klucz wygasł. Przedłuż jego ważność w aplikacji, w której go utworzono, a następnie zaimportuj go ponownie.",
     external_key_error_revoked: "Ten klucz jest unieważniony, więc nie można go zaimportować.",
+    external_key_revocation_saved: "Unieważnienie zapisane. Twój klucz nie jest już publikowany.",
     external_key_error_invalid_signature: "Ten klucz ma nieprawidłowy podpis własny.",
     external_key_error_weak_signature: "Ten klucz jest podpisany słabym algorytmem skrótu. Podpisz go ponownie przy użyciu SHA-256 lub silniejszego.",
     external_key_error_no_encryption_subkey: "Ten klucz nie ma podklucza, który może szyfrować pocztę.",

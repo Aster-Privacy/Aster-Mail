@@ -3907,6 +3907,7 @@ export const tr = {
     external_key_error_wrong_passphrase: "Parola yanlış.",
     external_key_error_expired: "Bu anahtarın süresi doldu. Anahtarı oluşturduğunuz uygulamada süresini uzatın, ardından yeniden içe aktarın.",
     external_key_error_revoked: "Bu anahtar iptal edildiği için içe aktarılamaz.",
+    external_key_revocation_saved: "İptal kaydedildi. Anahtarınız artık yayınlanmıyor.",
     external_key_error_invalid_signature: "Bu anahtarın öz imzası geçersiz.",
     external_key_error_weak_signature: "Bu anahtar zayıf bir karma algoritmasıyla imzalanmış. SHA-256 veya daha güçlü bir algoritmayla yeniden imzalayın.",
     external_key_error_no_encryption_subkey: "Bu anahtarda posta şifreleyebilen bir alt anahtar yok.",

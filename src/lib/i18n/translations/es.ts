@@ -3976,6 +3976,7 @@ export const es = {
     external_key_error_wrong_passphrase: "La frase de contraseña es incorrecta.",
     external_key_error_expired: "Esta clave ha caducado. Amplía su caducidad en la app donde la creaste y vuelve a importarla.",
     external_key_error_revoked: "Esta clave está revocada, así que no puedes importarla.",
+    external_key_revocation_saved: "Revocación guardada. Tu clave ya no está publicada.",
     external_key_error_invalid_signature: "Esta clave tiene una autofirma no válida.",
     external_key_error_weak_signature: "Esta clave está firmada con un algoritmo hash débil. Vuelve a firmarla con SHA-256 o superior.",
     external_key_error_no_encryption_subkey: "Esta clave no tiene ninguna subclave que pueda cifrar correo.",

@@ -25,7 +25,11 @@ vi.mock("@/services/crypto/external_pgp_key", () => ({
   subscribe_external_key: () => () => undefined,
 }));
 
-import { external_key_device_label_key } from "./use_external_key_state";
+import {
+  external_key_device_label_key,
+  external_key_expires_soon,
+  external_key_has_expired,
+} from "./use_external_key_state";
 import { en } from "@/lib/i18n/translations/en";
 
 describe("external_key_device_label_key", () => {
@@ -70,5 +74,20 @@ describe("external_key_device_label_key", () => {
 
       expect(settings[key]).toBeTruthy();
     }
+  });
+});
+
+describe("external key expiry", () => {
+  const day = 24 * 60 * 60 * 1000;
+
+  it("warns only before the key expires", () => {
+    expect(external_key_expires_soon(new Date(Date.now() + 5 * day))).toBe(true);
+    expect(external_key_expires_soon(new Date(Date.now() + 60 * day))).toBe(false);
+    expect(external_key_expires_soon(new Date(Date.now() - day))).toBe(false);
+  });
+
+  it("reports a key whose expiry has passed", () => {
+    expect(external_key_has_expired(new Date(Date.now() - day))).toBe(true);
+    expect(external_key_has_expired(new Date(Date.now() + day))).toBe(false);
   });
 });

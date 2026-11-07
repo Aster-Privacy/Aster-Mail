@@ -4004,6 +4004,7 @@ export const fr = {
     external_key_error_wrong_passphrase: "La phrase secrète est incorrecte.",
     external_key_error_expired: "Cette clé a expiré. Prolongez son expiration dans l'app où vous l'avez créée, puis importez-la de nouveau.",
     external_key_error_revoked: "Cette clé est révoquée, vous ne pouvez donc pas l'importer.",
+    external_key_revocation_saved: "Révocation enregistrée. Votre clé n’est plus publiée.",
     external_key_error_invalid_signature: "Cette clé a une auto-signature non valide.",
     external_key_error_weak_signature: "Cette clé est signée avec un algorithme de hachage faible. Signez-la de nouveau avec SHA-256 ou mieux.",
     external_key_error_no_encryption_subkey: "Cette clé n'a aucune sous-clé capable de chiffrer des e-mails.",
