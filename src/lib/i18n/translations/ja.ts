@@ -6126,6 +6126,12 @@ export const ja = {
     info_relative_dates_title: "相対的な日付",
     info_relative_dates_description:
       "オンにすると、今日と昨日のメールは「今日」「昨日」と表示されます。オフにすると、メール一覧、メール本文、印刷のいずれでも送受信した日付と時刻が常に表示されます。",
+    compose_from_selected_alias: "選択中のエイリアスで作成",
+    compose_from_selected_alias_description:
+      "サイドバーで開いているエイリアスを新規メッセージの差出人にします",
+    info_compose_from_selected_alias_title: "選択中のエイリアスで作成",
+    info_compose_from_selected_alias_description:
+      "オンにすると、サイドバーでエイリアスを開いている間に作成を始めた新規メッセージは、そのエイリアスから送信されます。返信、転送、下書きは元の差出人のままです。差出人アドレスは送信前に変更できます。",
     show_alias_indicators: "エイリアスインジケーターを表示",
     show_alias_indicators_description:
       "エイリアス宛てに届いたメッセージに印を付けます",

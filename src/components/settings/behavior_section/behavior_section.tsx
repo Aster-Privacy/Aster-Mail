@@ -159,6 +159,11 @@ export function BehaviorSection() {
       ],
     },
     {
+      label: t("settings.compose_from_selected_alias"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.composing_and_replies")}`,
+      keywords: ["alias", "from", "sender", "compose", "new message"],
+    },
+    {
       label: t("settings.translate_incoming"),
       breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
       keywords: ["translate", "translation", "language"],
@@ -1033,6 +1038,25 @@ export function BehaviorSection() {
           ]}
           title={t("settings.default_reply")}
           value={preferences.default_reply_behavior}
+        />
+
+        <ToggleSetting
+          description={t("settings.compose_from_selected_alias_description")}
+          enabled={preferences.compose_from_selected_alias === true}
+          info={{
+            title: t("settings.info_compose_from_selected_alias_title"),
+            description: t(
+              "settings.info_compose_from_selected_alias_description",
+            ),
+          }}
+          on_toggle={() =>
+            update_preference(
+              "compose_from_selected_alias",
+              preferences.compose_from_selected_alias !== true,
+              true,
+            )
+          }
+          title={t("settings.compose_from_selected_alias")}
         />
 
         <ToggleSetting

@@ -25,6 +25,7 @@ import {
   from_tier_draft,
   from_tier_thread,
   from_tier_external,
+  from_tier_selected_alias,
   from_tier_pinned,
   from_tier_fallback,
 } from "./resolve_from_sender";
@@ -197,6 +198,183 @@ describe("resolve_from_sender", () => {
 
       expect(resolved?.option.id).toBe("catch-all-d1-deals@my.example");
       expect(resolved?.tier).toBe(from_tier_thread);
+    });
+  });
+
+  describe("selected alias", () => {
+    const with_more = [
+      ...options,
+      { id: "domain-d1", email: "hi@my.example", type: "domain" },
+      { id: "ghost-g1", email: "quiet.fox@astermail.org", type: "ghost" },
+      {
+        id: "catch-all-d1-deals@my.example",
+        email: "deals@my.example",
+        type: "domain",
+        is_catch_all: true,
+      },
+    ];
+
+    it("ranks above the pinned sender", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "shopping@astermail.org",
+        preferred_sender_id: "alias-2",
+      });
+
+      expect(resolved?.option.id).toBe("alias-1");
+      expect(resolved?.tier).toBe(from_tier_selected_alias);
+    });
+
+    it("ranks above the fallback", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "work@astermail.org",
+      });
+
+      expect(resolved?.option.id).toBe("alias-2");
+      expect(resolved?.tier).toBe(from_tier_selected_alias);
+    });
+
+    it("matches a custom-domain address", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "hi@my.example",
+        preferred_sender_id: "alias-1",
+      });
+
+      expect(resolved?.option.id).toBe("domain-d1");
+      expect(resolved?.tier).toBe(from_tier_selected_alias);
+    });
+
+    it("matches the primary address", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "me@astermail.org",
+        preferred_sender_id: "alias-1",
+      });
+
+      expect(resolved?.option.id).toBe("primary");
+      expect(resolved?.tier).toBe(from_tier_selected_alias);
+    });
+
+    it("ignores dots, case, and spaces", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "  Shop.Ping@AsterMail.org ",
+      });
+
+      expect(resolved?.option.id).toBe("alias-1");
+      expect(resolved?.tier).toBe(from_tier_selected_alias);
+    });
+
+    it("stays below the draft sender", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        draft_from: "work@astermail.org",
+        selected_alias: "shopping@astermail.org",
+      });
+
+      expect(resolved?.option.id).toBe("alias-2");
+      expect(resolved?.tier).toBe(from_tier_draft);
+    });
+
+    it("stays below the address the thread was received on", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        thread_addresses: ["work@astermail.org"],
+        selected_alias: "shopping@astermail.org",
+      });
+
+      expect(resolved?.option.id).toBe("alias-2");
+      expect(resolved?.tier).toBe(from_tier_thread);
+    });
+
+    it("stays below a catch-all match on the thread", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        thread_addresses: ["deals@my.example"],
+        selected_alias: "shopping@astermail.org",
+      });
+
+      expect(resolved?.option.id).toBe("catch-all-d1-deals@my.example");
+      expect(resolved?.tier).toBe(from_tier_thread);
+    });
+
+    it("stays below the external sender of an external thread", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        prefer_external: true,
+        selected_alias: "shopping@astermail.org",
+      });
+
+      expect(resolved?.option.id).toBe("ext-1");
+      expect(resolved?.tier).toBe(from_tier_external);
+    });
+
+    it("never picks a disabled alias", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "retired@astermail.org",
+        preferred_sender_id: "alias-2",
+      });
+
+      expect(resolved?.option.id).toBe("alias-2");
+      expect(resolved?.tier).toBe(from_tier_pinned);
+    });
+
+    it("never picks an external account", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "old@example.com",
+      });
+
+      expect(resolved?.option.id).toBe("primary");
+      expect(resolved?.tier).toBe(from_tier_fallback);
+    });
+
+    it("never picks a ghost alias", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "quiet.fox@astermail.org",
+      });
+
+      expect(resolved?.option.id).toBe("primary");
+      expect(resolved?.tier).toBe(from_tier_fallback);
+    });
+
+    it("never picks a catch-all identity", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "deals@my.example",
+        preferred_sender_id: "alias-1",
+      });
+
+      expect(resolved?.option.id).toBe("alias-1");
+      expect(resolved?.tier).toBe(from_tier_pinned);
+    });
+
+    it("falls back when the address is not one of this account's senders", () => {
+      const resolved = resolve_from_sender({
+        options: with_more,
+        selected_alias: "someone-else@astermail.org",
+        preferred_sender_id: "alias-2",
+      });
+
+      expect(resolved?.option.id).toBe("alias-2");
+      expect(resolved?.tier).toBe(from_tier_pinned);
+    });
+
+    it("does nothing when no alias is selected", () => {
+      for (const selected_alias of [null, undefined, "", "   "]) {
+        const resolved = resolve_from_sender({
+          options: with_more,
+          selected_alias,
+          preferred_sender_id: "alias-2",
+        });
+
+        expect(resolved?.option.id).toBe("alias-2");
+        expect(resolved?.tier).toBe(from_tier_pinned);
+      }
     });
   });
 });

@@ -87,6 +87,7 @@ function MobileComposePage({
   on_close,
   initial_to,
   edit_draft,
+  selected_alias,
 }: MobileComposePageProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -107,6 +108,7 @@ function MobileComposePage({
     on_close,
     initial_to,
     edit_draft,
+    selected_alias,
     session_storage_key: "astermail_mobile_compose",
     enable_offline_queue: true,
     enable_ctrl_enter_send: false,

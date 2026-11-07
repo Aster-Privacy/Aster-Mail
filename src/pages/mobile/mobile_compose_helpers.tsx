@@ -74,6 +74,7 @@ export interface MobileComposePageProps {
   on_close: () => void;
   initial_to?: string;
   edit_draft?: EditDraftData | null;
+  selected_alias?: string | null;
 }
 
 export function format_expiry_relative(

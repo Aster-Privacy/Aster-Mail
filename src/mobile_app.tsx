@@ -72,6 +72,7 @@ import { read_settings_navigation } from "@/lib/settings_links";
 import { use_upgrade_prompt_events } from "@/stores/upgrade_store";
 import { safe_local_get } from "@/lib/safe_storage";
 import { draft_from_mobile_undo } from "@/components/toast/undone_send_draft";
+import { selected_alias_from_location } from "@/components/compose/selected_alias";
 
 const MobileInbox = lazy_with_retry(
   () => import("@/pages/mobile/mobile_inbox"),
@@ -230,7 +231,11 @@ function MobileApp() {
   const [is_drawer_open, set_is_drawer_open] = useState(false);
   const [is_selection_active, set_is_selection_active] = useState(false);
   const edit_draft_ref = useRef<EditDraftData | null>(null);
+  const compose_alias_ref = useRef<string | null>(null);
+  const location_ref = useRef(location);
   const { is_authenticated } = use_auth();
+
+  location_ref.current = location;
 
   use_background_subscription_scan();
   use_account_data_conversion();
@@ -242,6 +247,10 @@ function MobileApp() {
   }, []);
 
   const handle_compose_open = useCallback((to?: string) => {
+    compose_alias_ref.current = selected_alias_from_location(
+      location_ref.current.pathname,
+      location_ref.current.state,
+    );
     if (to) {
       const mailto_match = to.match(/^mailto:(.+)/i);
       const raw_recipients = mailto_match
@@ -271,6 +280,7 @@ function MobileApp() {
 
   const handle_compose_close = useCallback(() => {
     edit_draft_ref.current = null;
+    compose_alias_ref.current = null;
     set_is_compose_open(false);
     set_compose_session((value) => value + 1);
   }, []);
@@ -292,6 +302,7 @@ function MobileApp() {
       updated_at: string;
       is_plain_text?: boolean;
     }) => {
+      compose_alias_ref.current = null;
       edit_draft_ref.current = {
         id: draft.id,
         version: draft.version,
@@ -860,6 +871,7 @@ function MobileApp() {
                 key={compose_session}
                 edit_draft={edit_draft_ref.current}
                 on_close={handle_compose_close}
+                selected_alias={compose_alias_ref.current}
               />
             </Suspense>
           )}

@@ -6225,6 +6225,13 @@ export const es = {
     info_relative_dates_title: "Fechas relativas",
     info_relative_dates_description:
       "Cuando esta opción está activada, los mensajes de hoy y de ayer aparecen como Hoy y Ayer. Desactívala para mostrar siempre la fecha y la hora en que se envió o recibió un mensaje, en la lista de mensajes, en el mensaje y al imprimirlo.",
+    compose_from_selected_alias: "Redactar desde el alias seleccionado",
+    compose_from_selected_alias_description:
+      "Los mensajes nuevos usan como remitente el alias que tienes abierto en la barra lateral",
+    info_compose_from_selected_alias_title:
+      "Redactar desde el alias seleccionado",
+    info_compose_from_selected_alias_description:
+      "Cuando esta opción está activada, un mensaje nuevo que empiezas con un alias abierto en la barra lateral se envía desde ese alias. Las respuestas, los reenvíos y los borradores conservan su remitente, y puedes cambiar la dirección De antes de enviar.",
     show_alias_indicators: "Mostrar indicadores de alias",
     show_alias_indicators_description:
       "Marca los mensajes que llegaron a través de uno de tus alias",
