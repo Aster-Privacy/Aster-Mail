@@ -218,6 +218,61 @@ describe("preload cache account scope", () => {
     expect(pop_preloaded_cid("email_1")).toBeNull();
   });
 
+  it("keeps a thread view's inline images after it takes the preloaded body", () => {
+    const revoked: string[] = [];
+    const original = URL.revokeObjectURL;
+    const shared = {
+      html: '<img src="blob:shared">',
+      blob_urls: ["blob:shared"],
+    };
+
+    URL.revokeObjectURL = (url: string) => {
+      revoked.push(url);
+    };
+
+    try {
+      seed_entry({
+        cid_resolved: shared,
+        thread_cid_resolved: new Map([["email_1", shared]]),
+      });
+
+      expect(pop_preloaded_thread_cid("email_1")).toBe(shared);
+      expect(pop_preloaded_cid("email_1")).toBeNull();
+
+      clear_preload_cache();
+    } finally {
+      URL.revokeObjectURL = original;
+    }
+
+    expect(revoked).not.toContain("blob:shared");
+  });
+
+  it("keeps a viewer's inline images after it takes the preloaded body", () => {
+    const revoked: string[] = [];
+    const original = URL.revokeObjectURL;
+    const shared = { html: "", blob_urls: ["blob:shared"] };
+
+    URL.revokeObjectURL = (url: string) => {
+      revoked.push(url);
+    };
+
+    try {
+      seed_entry({
+        cid_resolved: shared,
+        thread_cid_resolved: new Map([["email_1", shared]]),
+      });
+
+      expect(pop_preloaded_cid("email_1")).toBe(shared);
+      expect(pop_preloaded_thread_cid("email_1")).toBeNull();
+
+      clear_preload_cache();
+    } finally {
+      URL.revokeObjectURL = original;
+    }
+
+    expect(revoked).not.toContain("blob:shared");
+  });
+
   it("revokes inline image urls when the vault is cleared", () => {
     const revoked: string[] = [];
     const original = URL.revokeObjectURL;

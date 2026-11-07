@@ -177,7 +177,7 @@ describe("passkey mutations update the protection score", () => {
 
       await click(label);
 
-      expect_score(13);
+      expect_score(25);
       expect(container.textContent).toContain(key.name_encrypted);
     },
   );
@@ -188,7 +188,7 @@ describe("passkey mutations update the protection score", () => {
       data: { success: true },
     });
     await render();
-    expect_score(13);
+    expect_score(25);
 
     await click("common.delete");
     await click("confirm-delete");
@@ -206,7 +206,7 @@ describe("passkey mutations update the protection score", () => {
     await click("common.delete");
     await click("confirm-delete");
 
-    expect_score(13);
+    expect_score(25);
     expect(container.textContent).toContain(key.name_encrypted);
   });
 });

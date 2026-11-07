@@ -23,6 +23,7 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import { describe, expect, it } from "vitest";
 
 import {
+  carry_local_reply_bodies,
   has_readable_body,
   include_opened_message,
   keep_readable_bodies,
@@ -115,5 +116,83 @@ describe("keep_readable_bodies", () => {
     expect(
       keep_readable_bodies([message("a", "2026-10-01", "Body")], incoming),
     ).toBe(incoming);
+  });
+});
+
+function sent(
+  id: string,
+  timestamp: string,
+  body: string,
+): DecryptedThreadMessage {
+  return {
+    ...message(id, timestamp, body),
+    item_type: "sent",
+    is_external: false,
+  };
+}
+
+function local_reply(id: string, timestamp: string, body: string) {
+  return { ...sent(id, timestamp, body), html_content: body, is_sending: true };
+}
+
+describe("carry_local_reply_bodies", () => {
+  it("fills an arriving sent copy that has no readable body yet", () => {
+    const server = [
+      message("a", "2026-10-01", "Hi"),
+      sent("s1", "2026-10-02", ""),
+    ];
+    const result = carry_local_reply_bodies(
+      [local_reply("local-1", "2026-10-02", "<p>Reply</p>")],
+      server,
+      new Set(["a", "local-1"]),
+    );
+
+    expect(result[1].id).toBe("s1");
+    expect(result[1].body).toBe("<p>Reply</p>");
+    expect(result[1].html_content).toBe("<p>Reply</p>");
+    expect(result[0]).toBe(server[0]);
+  });
+
+  it("keeps a sent copy that is already readable", () => {
+    const server = [sent("s1", "2026-10-02", "<p>Server</p>")];
+
+    expect(
+      carry_local_reply_bodies(
+        [local_reply("local-1", "2026-10-02", "<p>Reply</p>")],
+        server,
+        new Set(["local-1"]),
+      ),
+    ).toBe(server);
+  });
+
+  it("never fills a message that was already in the thread or was received", () => {
+    const server = [
+      sent("old", "2026-10-01", ""),
+      message("r1", "2026-10-02", ""),
+    ];
+
+    expect(
+      carry_local_reply_bodies(
+        [local_reply("local-1", "2026-10-02", "<p>Reply</p>")],
+        server,
+        new Set(["old", "local-1"]),
+      ),
+    ).toBe(server);
+  });
+
+  it("pairs several replies with arrivals oldest first", () => {
+    const result = carry_local_reply_bodies(
+      [
+        local_reply("local-2", "2026-10-03", "Second"),
+        local_reply("local-1", "2026-10-02", "First"),
+      ],
+      [sent("s2", "2026-10-03", ""), sent("s1", "2026-10-02", "")],
+      new Set(["local-1", "local-2"]),
+    );
+
+    expect(result.map((m) => [m.id, m.body])).toEqual([
+      ["s2", "Second"],
+      ["s1", "First"],
+    ]);
   });
 });

@@ -40,6 +40,8 @@ import {
   type SettingsSection,
 } from "./shared";
 
+import { MobileExternalKeyGroup } from "./external_key_group";
+
 import { reprotect_vault_keys_for_password_change } from "@/services/crypto/identity_key_materials";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -434,9 +436,7 @@ export function SecuritySection({
       const old_tag_hash = new Uint8Array(
         await crypto.subtle.digest("SHA-256", old_tag_material),
       );
-      const retired_raws = master_key_mode
-        ? []
-        : [await derive_kek_from_password(current_password)];
+      const retired_raws = [await derive_kek_from_password(current_password)];
 
       vault.legacy_keks = keep_password_change_keks(vault.legacy_keks, [
         ...retired_raws,
@@ -948,6 +948,8 @@ export function SecuritySection({
             on_press={() => on_navigate_section?.("encryption")}
           />
         </SettingsGroup>
+
+        <MobileExternalKeyGroup />
 
         <SettingsGroup title={t("settings.change_password")}>
           {!show_password_change ? (

@@ -21,7 +21,7 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { PendingSendAttachment } from "@/services/pending_send_attachments";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 
 import { AttachmentCard } from "./card";
@@ -72,6 +72,7 @@ import { PdfPreviewModal } from "@/components/email/pdf_preview_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ignore_error } from "@/lib/ignore_error";
 import { format_bytes } from "@/lib/utils";
+import { without_body_inline_images } from "@/lib/cid_resolver";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import { get_pending_send_attachments } from "@/services/pending_send_attachments";
 
@@ -117,6 +118,7 @@ function ServerAttachmentList({
   sent_encryption_scope,
   is_local = false,
   hint_attachment_count = 0,
+  inline_refs,
 }: AttachmentListProps): React.ReactElement | null {
   const { t } = use_i18n();
   const shows_end_to_end = shows_end_to_end_badge({
@@ -396,6 +398,7 @@ function ServerAttachmentList({
           encrypted_meta: att.encrypted_meta,
           meta_nonce: att.meta_nonce,
           preview_url: get_cached_preview_url(att.id),
+          content_id: meta.content_id,
         };
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
@@ -725,7 +728,12 @@ function ServerAttachmentList({
     [handle_download, ensure_attachment_bytes, t],
   );
 
-  const previewable_images = attachments.filter(
+  const shown_attachments = useMemo(
+    () => without_body_inline_images(attachments, inline_refs),
+    [attachments, inline_refs],
+  );
+
+  const previewable_images = shown_attachments.filter(
     (a) => is_previewable_image(a.content_type) && a.preview_url,
   );
   const current_image_index =
@@ -787,7 +795,8 @@ function ServerAttachmentList({
   }
 
   if (loading || preparing) {
-    const skeleton_count = attachments.length || hint_attachment_count;
+    const skeleton_count =
+      attachments.length > 0 ? shown_attachments.length : hint_attachment_count;
 
     if (!skeleton_count) return null;
 
@@ -806,13 +815,13 @@ function ServerAttachmentList({
     );
   }
 
-  const total_size_bytes = attachments.reduce(
+  const total_size_bytes = shown_attachments.reduce(
     (total, att) => total + Math.max(0, att.size_bytes || 0),
     0,
   );
 
-  if (attachments.length === 0) {
-    if (!load_failed) return null;
+  if (shown_attachments.length === 0) {
+    if (attachments.length > 0 || !load_failed) return null;
 
     return (
       <div className="px-3 @md:px-4 py-3">
@@ -845,8 +854,8 @@ function ServerAttachmentList({
               strokeLinejoin="round"
             />
           </svg>
-          {attachments.length}{" "}
-          {attachments.length === 1
+          {shown_attachments.length}{" "}
+          {shown_attachments.length === 1
             ? t("mail.attachment_singular")
             : t("mail.attachments")}
           {total_size_bytes > 0 && (
@@ -882,7 +891,7 @@ function ServerAttachmentList({
           </span>
         </div>
         <div className="flex flex-wrap gap-2.5">
-          {attachments.map((att) => (
+          {shown_attachments.map((att) => (
             <AttachmentCard
               key={att.id}
               att={att}

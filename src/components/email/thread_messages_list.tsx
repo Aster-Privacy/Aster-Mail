@@ -44,6 +44,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_email_dark_mode } from "@/components/email/use_email_dark_mode";
 import {
+  advance_message_keys,
+  type MessageKeyState,
+} from "@/components/email/thread_message_keys";
+import {
   bulk_update_metadata_by_ids,
   update_item_metadata,
 } from "@/services/crypto/mail_metadata";
@@ -250,6 +254,18 @@ export const ThreadMessagesList = forwardRef<
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const regular_messages = useMemo(() => messages, [messages]);
+  const message_key_state_ref = useRef<MessageKeyState>({
+    messages: [],
+    keys: new Map(),
+  });
+  const message_keys = useMemo(() => {
+    message_key_state_ref.current = advance_message_keys(
+      message_key_state_ref.current,
+      regular_messages,
+    );
+
+    return message_key_state_ref.current.keys;
+  }, [regular_messages]);
 
   const display_messages = useMemo(
     () =>
@@ -1072,7 +1088,7 @@ export const ThreadMessagesList = forwardRef<
 
     return (
       <ThreadMessageBlock
-        key={msg.id}
+        key={message_keys.get(msg.id) ?? msg.id}
         disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
         existing_draft={existing_draft}
         external_content_mode={external_content_mode}

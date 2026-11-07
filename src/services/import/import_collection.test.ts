@@ -22,7 +22,10 @@ import type { ImportLoadItem } from "./import_collection";
 
 import { describe, it, expect } from "vitest";
 
-import { build_import_collection } from "./import_collection";
+import {
+  build_import_collection,
+  mbox_source_folder,
+} from "./import_collection";
 import { MAX_FILE_SIZE } from "./types";
 
 function make_message(
@@ -62,7 +65,52 @@ async function collect(
   return items;
 }
 
+describe("mbox_source_folder", () => {
+  it("names archive files after their folder", () => {
+    expect(mbox_source_folder("Archive.mbox")).toBe("Archive");
+    expect(mbox_source_folder("archives.MBOX")).toBe("archives");
+    expect(mbox_source_folder("Archived.mbx")).toBe("Archived");
+    expect(mbox_source_folder("Archives")).toBe("Archives");
+  });
+
+  it("leaves other files alone", () => {
+    expect(mbox_source_folder("Inbox.mbox")).toBeUndefined();
+    expect(
+      mbox_source_folder("All mail Including Spam and Trash.mbox"),
+    ).toBeUndefined();
+    expect(mbox_source_folder("export.mbox")).toBeUndefined();
+    expect(mbox_source_folder("Archive 2024.mbox")).toBeUndefined();
+  });
+});
+
 describe("build_import_collection", () => {
+  it("files every message of an archive mbox under that folder", async () => {
+    const text = [1, 2]
+      .map((n) => make_message(n).replace(/X-Gmail-Labels: [^\n]*\n/, ""))
+      .join("");
+    const collection = await build_import_collection([
+      as_file(text, "Archive.mbox"),
+    ]);
+    const items = await collect(collection.load(new Set([0, 1])));
+
+    expect(collection.summaries.map((s) => s.source_folder)).toEqual([
+      "Archive",
+      "Archive",
+    ]);
+    expect(items.map((i) => i.email?.source_folder)).toEqual([
+      "Archive",
+      "Archive",
+    ]);
+  });
+
+  it("does not set a folder for other mbox files", async () => {
+    const collection = await build_import_collection([
+      as_file(make_message(1)),
+    ]);
+
+    expect(collection.summaries[0].source_folder).toBeUndefined();
+  });
+
   it("keeps only header summaries for mbox files", async () => {
     const text = [1, 2, 3].map((n) => make_message(n)).join("");
     const collection = await build_import_collection([as_file(text)]);

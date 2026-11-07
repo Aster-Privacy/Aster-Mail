@@ -29,6 +29,7 @@ vi.mock("@/services/crypto/ratchet_manager", () => ({
 }));
 
 import {
+  RatchetKeyGenerationError,
   abuse_block_message,
   abuse_message_key,
   build_registration_ratchet_fields,
@@ -79,16 +80,31 @@ describe("registration prekey bundle", () => {
     });
   });
 
-  it("returns no fields instead of throwing when key generation fails", async () => {
+  it("stops registration when key generation fails", async () => {
     generate_ratchet_keys.mockRejectedValue(new Error("no subtle crypto"));
 
-    await expect(build_registration_ratchet_fields()).resolves.toEqual({});
+    await expect(build_registration_ratchet_fields()).rejects.toBeInstanceOf(
+      RatchetKeyGenerationError,
+    );
   });
 
-  it("returns no fields when key generation yields null", async () => {
+  it("stops registration when key generation yields null", async () => {
     generate_ratchet_keys.mockResolvedValue(null);
 
-    await expect(build_registration_ratchet_fields()).resolves.toEqual({});
+    await expect(build_registration_ratchet_fields()).rejects.toBeInstanceOf(
+      RatchetKeyGenerationError,
+    );
+  });
+
+  it("stops registration when the post-quantum key is missing", async () => {
+    generate_ratchet_keys.mockResolvedValue({
+      ...generated,
+      pq_identity_public: "",
+    });
+
+    await expect(build_registration_ratchet_fields()).rejects.toBeInstanceOf(
+      RatchetKeyGenerationError,
+    );
   });
 
   it("uploads the bundle when the vault carries ratchet publics", async () => {

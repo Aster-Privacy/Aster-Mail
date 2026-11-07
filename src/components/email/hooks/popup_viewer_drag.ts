@@ -20,15 +20,30 @@
 //
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
+import { type PopupSize } from "@/components/email/hooks/popup_viewer_types";
 import {
-  type PopupSize,
-  POPUP_MARGIN,
-  FULLSCREEN_MARGIN,
-} from "@/components/email/hooks/popup_viewer_types";
+  type PopupViewport,
+  read_popup_viewport,
+  get_popup_dimensions,
+  get_centered_popup_position,
+  clamp_popup_position,
+} from "@/components/email/hooks/popup_viewer_layout";
+
+function centered_for(size: PopupSize) {
+  const viewport = read_popup_viewport();
+
+  return get_centered_popup_position(
+    get_popup_dimensions(size, viewport),
+    viewport,
+  );
+}
 
 export function use_popup_drag_resize() {
   const [popup_size, set_popup_size] = useState<PopupSize>("default");
-  const [position, set_position] = useState({ x: 0, y: 0 });
+  const [viewport, set_viewport] = useState<PopupViewport>(read_popup_viewport);
+  const [raw_position, set_raw_position] = useState(() =>
+    centered_for("default"),
+  );
   const [is_dragging, set_is_dragging] = useState(false);
   const [is_exiting_fullscreen, set_is_exiting_fullscreen] = useState(false);
   const drag_start_ref = useRef({ x: 0, y: 0, pos_x: 0, pos_y: 0 });
@@ -37,25 +52,22 @@ export function use_popup_drag_resize() {
 
   const is_fullscreen = popup_size === "fullscreen";
 
-  const dimensions = useMemo(() => {
-    if (is_fullscreen) {
-      return {
-        width: window.innerWidth - FULLSCREEN_MARGIN * 2,
-        height: window.innerHeight - FULLSCREEN_MARGIN * 2,
-      };
-    }
+  const dimensions = useMemo(
+    () => get_popup_dimensions(popup_size, viewport),
+    [popup_size, viewport],
+  );
 
-    return {
-      width: 680,
-      height: popup_size === "expanded" ? 860 : 720,
-    };
-  }, [popup_size, is_fullscreen]);
+  const position = useMemo(
+    () => clamp_popup_position(raw_position, dimensions, viewport),
+    [raw_position, dimensions, viewport],
+  );
 
   useEffect(() => {
-    set_position({
-      x: window.innerWidth - dimensions.width - POPUP_MARGIN,
-      y: window.innerHeight - dimensions.height - POPUP_MARGIN,
-    });
+    const handle_resize = () => set_viewport(read_popup_viewport());
+
+    window.addEventListener("resize", handle_resize);
+
+    return () => window.removeEventListener("resize", handle_resize);
   }, []);
 
   useEffect(() => {
@@ -95,7 +107,7 @@ export function use_popup_drag_resize() {
       const next = pending;
 
       pending = null;
-      set_position(next);
+      set_raw_position(next);
     };
 
     const handle_mouse_move = (e: MouseEvent) => {
@@ -129,24 +141,24 @@ export function use_popup_drag_resize() {
     if (is_fullscreen) return;
 
     const new_size = popup_size === "default" ? "expanded" : "default";
-    const new_height = new_size === "expanded" ? 820 : 640;
+    const current_viewport = read_popup_viewport();
+    const new_dimensions = get_popup_dimensions(new_size, current_viewport);
 
     set_popup_size(new_size);
-    set_position((prev) => ({
-      x: prev.x,
-      y: Math.max(POPUP_MARGIN, window.innerHeight - new_height - POPUP_MARGIN),
-    }));
-  }, [popup_size, is_fullscreen]);
+    set_viewport(current_viewport);
+    set_raw_position({
+      x: position.x,
+      y: Math.round((current_viewport.height - new_dimensions.height) / 2),
+    });
+  }, [popup_size, is_fullscreen, position.x]);
 
   const handle_fullscreen = useCallback(() => {
     if (is_fullscreen) {
       set_is_exiting_fullscreen(true);
       exit_fullscreen_timeout.current = window.setTimeout(() => {
         set_popup_size("default");
-        set_position({
-          x: window.innerWidth - 520 - POPUP_MARGIN,
-          y: window.innerHeight - 640 - POPUP_MARGIN,
-        });
+        set_viewport(read_popup_viewport());
+        set_raw_position(centered_for("default"));
         set_is_exiting_fullscreen(false);
       }, 150);
     } else {

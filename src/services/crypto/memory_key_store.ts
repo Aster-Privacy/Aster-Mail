@@ -633,6 +633,12 @@ export async function store_vault_in_memory(
   if (vault_in_memory && vault_owner_id === next_owner_id) {
     emit_vault_stored({ owner_id: next_owner_id, same_owner });
   }
+
+  if (is_master_key_vault(vault_in_memory)) {
+    void import("./external_pgp_key")
+      .then((module) => module.request_external_pgp_key_load())
+      .catch(() => undefined);
+  }
 }
 
 async function import_and_cache_derived_key(

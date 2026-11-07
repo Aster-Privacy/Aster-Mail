@@ -20,7 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   XMarkIcon,
@@ -58,6 +58,8 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_should_reduce_motion } from "@/provider";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
+import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
+import { FULLSCREEN_MARGIN } from "@/components/email/hooks/popup_viewer_types";
 import {
   sanitize_html,
   is_html_content,
@@ -152,11 +154,6 @@ function format_full_date(iso_string: string): string {
   });
 }
 
-type PopupSize = "default" | "expanded" | "fullscreen";
-
-const POPUP_MARGIN = 16;
-const FULLSCREEN_MARGIN = 64;
-
 export function ScheduledPopupViewer({
   scheduled_data,
   on_close,
@@ -165,15 +162,23 @@ export function ScheduledPopupViewer({
   const { t } = use_i18n();
   const { vault } = use_auth();
   const reduce_motion = use_should_reduce_motion();
-  const [popup_size, set_popup_size] = useState<PopupSize>("default");
-  const [position, set_position] = useState({ x: 0, y: 0 });
-  const [is_dragging, set_is_dragging] = useState(false);
+  const {
+    popup_size,
+    position,
+    is_dragging,
+    is_fullscreen,
+    is_exiting_fullscreen,
+    dimensions,
+    popup_ref,
+    handle_drag_start,
+    toggle_size,
+    handle_fullscreen,
+  } = use_popup_drag_resize();
   const [show_details, set_show_details] = useState(false);
   const [show_cancel_confirm, set_show_cancel_confirm] = useState(false);
   const [is_cancelling, set_is_cancelling] = useState(false);
   const [is_sending_now, set_is_sending_now] = useState(false);
   const [is_loading_content, set_is_loading_content] = useState(false);
-  const [is_exiting_fullscreen, set_is_exiting_fullscreen] = useState(false);
   const [is_rescheduling, set_is_rescheduling] = useState(false);
   const [current_scheduled_at, set_current_scheduled_at] = useState(
     scheduled_data.scheduled_at,
@@ -182,103 +187,6 @@ export function ScheduledPopupViewer({
   useEffect(() => {
     set_current_scheduled_at(scheduled_data.scheduled_at);
   }, [scheduled_data.scheduled_at]);
-  const drag_start_ref = useRef({ x: 0, y: 0, pos_x: 0, pos_y: 0 });
-  const popup_ref = useRef<HTMLDivElement>(null);
-
-  const is_fullscreen = popup_size === "fullscreen";
-
-  const dimensions = useMemo(() => {
-    if (is_fullscreen) {
-      return {
-        width: window.innerWidth - FULLSCREEN_MARGIN * 2,
-        height: window.innerHeight - FULLSCREEN_MARGIN * 2,
-      };
-    }
-
-    return {
-      width: 680,
-      height: popup_size === "expanded" ? 860 : 720,
-    };
-  }, [popup_size, is_fullscreen]);
-
-  useEffect(() => {
-    set_position({
-      x: window.innerWidth - dimensions.width - POPUP_MARGIN,
-      y: window.innerHeight - dimensions.height - POPUP_MARGIN,
-    });
-  }, []);
-
-  const handle_drag_start = useCallback(
-    (e: React.MouseEvent) => {
-      if (is_fullscreen) return;
-      if (!e.currentTarget.contains(e.target as Node)) return;
-      if ((e.target as HTMLElement).closest("button")) return;
-      if ((e.target as HTMLElement).closest("[data-no-drag]")) return;
-      set_is_dragging(true);
-      drag_start_ref.current = {
-        x: e.clientX,
-        y: e.clientY,
-        pos_x: position.x,
-        pos_y: position.y,
-      };
-    },
-    [position, is_fullscreen],
-  );
-
-  useEffect(() => {
-    if (!is_dragging) return;
-
-    const handle_mouse_move = (e: MouseEvent) => {
-      const dx = e.clientX - drag_start_ref.current.x;
-      const dy = e.clientY - drag_start_ref.current.y;
-
-      set_position({
-        x: drag_start_ref.current.pos_x + dx,
-        y: drag_start_ref.current.pos_y + dy,
-      });
-    };
-
-    const handle_mouse_up = () => {
-      set_is_dragging(false);
-    };
-
-    document.addEventListener("mousemove", handle_mouse_move);
-    document.addEventListener("mouseup", handle_mouse_up);
-
-    return () => {
-      document.removeEventListener("mousemove", handle_mouse_move);
-      document.removeEventListener("mouseup", handle_mouse_up);
-    };
-  }, [is_dragging]);
-
-  const toggle_size = useCallback(() => {
-    if (is_fullscreen) return;
-
-    const new_size = popup_size === "default" ? "expanded" : "default";
-    const new_height = new_size === "expanded" ? 820 : 640;
-
-    set_popup_size(new_size);
-    set_position((prev) => ({
-      x: prev.x,
-      y: Math.max(POPUP_MARGIN, window.innerHeight - new_height - POPUP_MARGIN),
-    }));
-  }, [popup_size, is_fullscreen]);
-
-  const handle_fullscreen = useCallback(() => {
-    if (is_fullscreen) {
-      set_is_exiting_fullscreen(true);
-      setTimeout(() => {
-        set_popup_size("default");
-        set_position({
-          x: window.innerWidth - 520 - POPUP_MARGIN,
-          y: window.innerHeight - 640 - POPUP_MARGIN,
-        });
-        set_is_exiting_fullscreen(false);
-      }, 150);
-    } else {
-      set_popup_size("fullscreen");
-    }
-  }, [is_fullscreen]);
 
   const handle_cancel = useCallback(async () => {
     set_is_cancelling(true);
@@ -377,11 +285,11 @@ export function ScheduledPopupViewer({
 
   const popup_left = is_fullscreen
     ? FULLSCREEN_MARGIN
-    : Math.max(0, Math.min(window.innerWidth - dimensions.width, position.x));
+    : position.x;
 
   const popup_top = is_fullscreen
     ? FULLSCREEN_MARGIN
-    : Math.max(0, Math.min(window.innerHeight - dimensions.height, position.y));
+    : position.y;
 
   const popup_content = (
     <motion.div

@@ -68,6 +68,7 @@ export {
   has_usable_signing_key,
   select_private_key_matching_public,
   sign_detached,
+  sign_detached_with_keys,
 } from "./key_manager_pgp_messages";
 export type {
   decrypted_message_result,

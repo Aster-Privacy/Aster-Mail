@@ -20,6 +20,7 @@
 //
 import type { LoginEventEntry } from "@/services/api/auth";
 import type { IslandRowToggle } from "@aster/ui";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useId, useState } from "react";
 import {
@@ -33,6 +34,10 @@ import {
 import { Button, IslandRow, IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  second_factor_method,
+  type SecondFactorMethod,
+} from "@/lib/security_criteria";
 import {
   SESSION_TIMEOUT_OPTIONS,
   KEY_ROTATION_OPTIONS,
@@ -102,8 +107,16 @@ function OptionButton({ is_selected, label, on_click }: OptionButtonProps) {
   );
 }
 
+const TWO_STEP_DESCRIPTION_KEYS: Record<SecondFactorMethod, TranslationKey> = {
+  none: "settings.two_step_verification_description",
+  authenticator: "settings.two_step_verification_enabled_description",
+  security_key: "settings.two_step_verification_security_key_description",
+  both: "settings.two_step_verification_both_description",
+};
+
 interface TwoStepVerificationGroupProps {
   totp_enabled: boolean;
+  passkey_registered?: boolean;
   totp_status_failed?: boolean;
   on_totp_status_retry?: () => void;
   totp_backup_codes_remaining: number | undefined;
@@ -115,6 +128,7 @@ interface TwoStepVerificationGroupProps {
 
 export function TwoStepVerificationGroup({
   totp_enabled,
+  passkey_registered,
   totp_status_failed = false,
   on_totp_status_retry,
   totp_backup_codes_remaining,
@@ -124,21 +138,24 @@ export function TwoStepVerificationGroup({
   on_inline_setup_success,
 }: TwoStepVerificationGroupProps) {
   const { t } = use_i18n();
+  const keys_loaded = passkey_registered !== undefined;
+  const method = second_factor_method({
+    totp_enabled,
+    passkey_registered: passkey_registered ?? false,
+  });
+  const show_recommendation =
+    method === "none" && keys_loaded && !totp_status_failed;
 
   return (
     <>
       <IslandRow
         description={
-          totp_status_failed
-            ? undefined
-            : totp_enabled
-              ? t("settings.two_step_verification_enabled_description")
-              : t("settings.two_step_verification_description")
+          totp_status_failed ? undefined : t(TWO_STEP_DESCRIPTION_KEYS[method])
         }
         label={
           <span className="inline-flex flex-wrap items-center gap-1.5">
             {t("settings.two_step_verification")}
-            {!totp_enabled && !totp_status_failed && (
+            {show_recommendation && (
               <ActionRecommendedBadge
                 tip={t("settings.two_step_verification_recommendation")}
               />

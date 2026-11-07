@@ -190,6 +190,7 @@ export function source_labels(email: ParsedEmail): string[] {
   const raw = email.raw_headers[LABEL_HEADER];
 
   if (raw) return split_label_list(raw);
+  if (email.source_labels) return email.source_labels;
   if (email.source_folder) return [email.source_folder];
 
   return [];
@@ -310,9 +311,21 @@ export function classify_import_email(email: ParsedEmail): ImportDisposition {
     true,
   ).tag_names;
 
+  if (!has_label_header && email.source_folders) {
+    for (const folder of email.source_folders) {
+      const name = folder.trim();
+
+      if (name && !disposition.custom_labels.includes(name)) {
+        disposition.custom_labels.push(name);
+      }
+    }
+    if (disposition.custom_labels.length > 0) disposition.is_archived = false;
+  }
+
   disposition.tag_names = unique_tag_names([
     ...disposition.tag_names,
     ...keyword_tags,
+    ...(has_label_header ? [] : (email.source_tags ?? [])),
   ]);
 
   return disposition;

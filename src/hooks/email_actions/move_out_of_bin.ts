@@ -186,6 +186,7 @@ export async function move_out_of_bin(
   const moved = emails.filter((e) => !failed_set.has(e.id));
   const failed = emails.filter((e) => failed_set.has(e.id));
   const moved_ids = moved.flatMap(expand_email_ids);
+  const scope = { include_thread: conversation_grouping !== false };
   const previous_folders = group_ids_by_folder(moved);
   const archived_ids = moved
     .filter((e) => e.is_archived)
@@ -201,12 +202,17 @@ export async function move_out_of_bin(
       const result = await batched_bulk_add_folder(
         moved_ids,
         target_folder_token,
+        scope,
       );
 
       filing_failed = !result.success;
     } else {
       for (const [folder_token, ids] of previous_folders) {
-        const result = await batched_bulk_remove_folder(ids, folder_token);
+        const result = await batched_bulk_remove_folder(
+          ids,
+          folder_token,
+          scope,
+        );
 
         if (!result.success) filing_failed = true;
       }
@@ -229,7 +235,7 @@ export async function move_out_of_bin(
     if (moved.length === 0) return;
 
     if (target_folder_token) {
-      await batched_bulk_remove_folder(moved_ids, target_folder_token);
+      await batched_bulk_remove_folder(moved_ids, target_folder_token, scope);
     } else if (archived_ids.length > 0) {
       await batch_archive({ ids: archived_ids, tier: "hot" });
       await bulk_update_metadata_by_ids(archived_ids, {
@@ -238,7 +244,7 @@ export async function move_out_of_bin(
     }
 
     for (const [folder_token, ids] of previous_folders) {
-      await batched_bulk_add_folder(ids, folder_token);
+      await batched_bulk_add_folder(ids, folder_token, scope);
     }
 
     await set_bin_flag(moved, source, conversation_grouping, true);

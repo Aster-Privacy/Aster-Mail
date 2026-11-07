@@ -50,13 +50,16 @@ import {
   FINANCE_SUBJECT_PATTERNS,
   TRAVEL_SUBJECT_PATTERNS,
   SHOPPING_SUBJECT_PATTERNS,
+  ACCOUNT_ACCESS_SUBJECT_PATTERNS,
+  ACCOUNT_ACCESS_HEADER_NAMES,
+  EMOJI_SUBJECT_PATTERN,
 } from "@/data/category_signals";
 import {
   BUILTIN_CATEGORY_IDS,
   DEFAULT_ENABLED_CATEGORIES,
 } from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 5;
+export const CLASSIFIER_VERSION = 7;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -87,9 +90,7 @@ const PROMO_LOCALPARTS = new Set([
   "deals",
   "promo",
   "promotions",
-  "news",
-  "newsletter",
-  "newsletters",
+  "sales",
 ]);
 
 // Sets are built once. domain_in_set walks parent domains (a.b.c -> b.c -> c),
@@ -177,6 +178,19 @@ function matches_any(text: string, patterns: readonly RegExp[]): boolean {
   }
 
   return false;
+}
+
+function is_account_access_mail(
+  subject: string,
+  headers: Map<string, string>,
+): boolean {
+  if (matches_any(subject, PROMOTIONS_SUBJECT_PATTERNS)) return false;
+
+  for (const name of ACCOUNT_ACCESS_HEADER_NAMES) {
+    if (headers.has(name)) return true;
+  }
+
+  return matches_any(subject, ACCOUNT_ACCESS_SUBJECT_PATTERNS);
 }
 
 // Updates and Transactions share every entry point, so the split lives in one
@@ -318,6 +332,10 @@ export function classify(
     return custom_match;
   }
 
+  if (is_account_access_mail(subject, headers)) {
+    return "primary";
+  }
+
   const list_shaped =
     headers.has("list-id") ||
     headers.has("list-post") ||
@@ -444,8 +462,7 @@ export function classify(
   }
 
   // 5. Automated mail only: refine into Promotions vs Updates.
-  const promo_signal =
-    in_any(MARKETING_SET) || PROMO_LOCALPARTS.has(localpart) || hard_sell;
+  const promo_signal = PROMO_LOCALPARTS.has(localpart) || hard_sell;
   const trusted_transactional =
     in_any(UPDATES_SET) || UPDATES_LOCALPARTS.has(localpart);
   const transactional_signal =
@@ -461,11 +478,8 @@ export function classify(
     return "promotions";
   }
 
-  // 6. Bulk mail with an unsubscribe / ESP infra but no clear signal is a
-  //    newsletter / marketing send -> Promotions. Anything else automated but
-  //    unclassified (e.g. a plain no-reply) stays in Primary.
-  if (has_unsubscribe || in_any(BULK_INFRA_SET)) {
-    return "promotions";
+  if (has_unsubscribe || in_any(BULK_INFRA_SET) || in_any(MARKETING_SET)) {
+    return EMOJI_SUBJECT_PATTERN.test(subject) ? "promotions" : "newsletters";
   }
 
   return "primary";

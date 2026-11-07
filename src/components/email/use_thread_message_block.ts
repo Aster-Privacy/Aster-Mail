@@ -67,6 +67,7 @@ import { use_latched_by_id } from "@/hooks/use_latched_by_id";
 import { use_email_translation } from "@/components/email/hooks/use_email_translation";
 import { analyze_email_content } from "@/lib/phishing_analyzer";
 import {
+  extract_body_inline_refs,
   extract_cid_references,
   resolve_cid_references,
   revoke_cid_blob_urls,
@@ -655,12 +656,18 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     job: SanitizeJob;
     content: SanitizedContent;
   } | null>(null);
-  const shown_message_ref = useRef<string | null>(null);
+  const shown_message_ref = useRef<{ id: string; is_sending: boolean } | null>(
+    null,
+  );
 
   const ready_content = useMemo((): SanitizedContent | null => {
     if (sanitize_job.ready) return sanitize_job.ready;
     if (deferred_content?.job === sanitize_job) return deferred_content.content;
-    if (shown_message_ref.current === message.id) return sanitize_job.run!();
+    const shown = shown_message_ref.current;
+
+    if (shown && (shown.id === message.id || shown.is_sending)) {
+      return sanitize_job.run!();
+    }
 
     return null;
   }, [sanitize_job, deferred_content, message.id]);
@@ -677,7 +684,10 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   }, [is_sanitize_pending, sanitize_job]);
 
   if (ready_content && is_body_visible) {
-    shown_message_ref.current = message.id;
+    shown_message_ref.current = {
+      id: message.id,
+      is_sending: message.is_sending === true,
+    };
   }
 
   const sanitized_content = ready_content ?? PENDING_CONTENT;
@@ -702,6 +712,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const cid_blob_urls_ref = useRef<string[]>([]);
   const cid_preload_consumed_ref = useRef(false);
   const attachment_keys_version = use_attachment_keys_version(message.id);
+  const [cid_failed, set_cid_failed] = useState(false);
 
   const [cid_resolved_html, set_cid_resolved_html] = useState<string | null>(
     () => {
@@ -728,6 +739,8 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     }
 
     let cancelled = false;
+
+    set_cid_failed(false);
 
     const has_cid = guard_body_step(
       "components/email/use_thread_message_block:cid_references",
@@ -771,13 +784,15 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
         revoke_cid_blob_urls(cid_blob_urls_ref.current);
         cid_blob_urls_ref.current = result.blob_urls;
         set_cid_resolved_html(result.html);
+        set_cid_failed(result.unresolved > 0 || !!result.records_unavailable);
       })
-      .catch((caught) =>
+      .catch((caught) => {
+        if (!cancelled) set_cid_failed(true);
         ignore_error(
           "components/email/use_thread_message_block:update",
           caught,
-        ),
-      );
+        );
+      });
 
     return () => {
       cancelled = true;
@@ -801,6 +816,29 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const effective_html = cid_resolved_html ?? sanitized_content.html;
 
   const show_as_text = html_blocked || plain_view;
+
+  const inline_refs = useMemo(() => {
+    if (
+      show_as_text ||
+      cid_failed ||
+      message.is_sending === true ||
+      preferences.low_network_mode
+    ) {
+      return undefined;
+    }
+
+    return guard_body_step(
+      "components/email/use_thread_message_block:inline_refs",
+      () => extract_body_inline_refs(sanitized_content.html),
+      () => undefined,
+    );
+  }, [
+    show_as_text,
+    cid_failed,
+    message.is_sending,
+    preferences.low_network_mode,
+    sanitized_content.html,
+  ]);
 
   const plain_text_html = useMemo(() => {
     if (plain_view) {
@@ -876,5 +914,6 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     plain_text_html,
     name,
     can_collapse,
+    inline_refs,
   };
 }

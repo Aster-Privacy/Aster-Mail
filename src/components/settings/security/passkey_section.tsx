@@ -50,12 +50,19 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_settings_cache } from "@/contexts/settings_cache_context";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 import {
+  initiate_hardware_key_registration,
   list_hardware_keys,
   remove_hardware_key,
   rename_hardware_key,
   type HardwareKeyInfo,
+  type HardwareKeyRegistrationOptions,
   type HardwareKeysListResponse,
 } from "@/services/api/webauthn";
+import {
+  STEP_UP_REQUIRED_CODE,
+  to_reauth_proof,
+  type StepUpCredentials,
+} from "@/services/api/step_up";
 import {
   register_platform_passkey,
   register_security_key,
@@ -228,6 +235,9 @@ export function PasskeySection() {
     null,
   );
   const [step_up_key_id, set_step_up_key_id] = useState<string | null>(null);
+  const [step_up_add, set_step_up_add] = useState<
+    "passkey" | "security_key" | null
+  >(null);
   const [registering, set_registering] = useState<
     "passkey" | "security_key" | null
   >(null);
@@ -319,70 +329,113 @@ export function PasskeySection() {
     );
   }, []);
 
-  const handle_add_passkey = useCallback(async () => {
-    set_registering("passkey");
-    try {
-      const passphrase = current_account_id
-        ? await get_session_passphrase(current_account_id).catch(() => null)
-        : null;
-      const resp = await register_platform_passkey(
-        null,
-        passphrase ?? undefined,
+  const run_add_passkey = useCallback(
+    async (options?: HardwareKeyRegistrationOptions) => {
+      set_registering("passkey");
+      try {
+        const passphrase = current_account_id
+          ? await get_session_passphrase(current_account_id).catch(() => null)
+          : null;
+        const resp = await register_platform_passkey(
+          null,
+          passphrase ?? undefined,
+          options,
+        );
+
+        if (resp.server_code === STEP_UP_REQUIRED_CODE && !options) {
+          set_step_up_add("passkey");
+        } else if (resp.data?.success) {
+          const is_native =
+            (resp.data as any).is_platform_authenticator !== false;
+
+          if (!is_native) {
+            show_toast(t("passkeys.saved_to_password_manager"), "info");
+          } else {
+            show_toast(t("passkeys.register_success"), "success");
+          }
+          if (resp.data.other_sessions_revoked) {
+            show_toast(t("passkeys.other_devices_signed_out"), "info");
+          }
+          await load_keys();
+        } else if (resp.error === "no_platform_authenticator") {
+          show_toast(t("passkeys.no_platform_authenticator"), "error");
+        } else if (resp.error === "passkey_cancelled") {
+          show_toast(t("passkeys.passkey_setup_cancelled"), "info");
+        } else {
+          show_toast(
+            resp.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
+        }
+      } finally {
+        set_registering(null);
+      }
+    },
+    [current_account_id, load_keys, t],
+  );
+
+  const run_add_security_key = useCallback(
+    async (options?: HardwareKeyRegistrationOptions) => {
+      set_registering("security_key");
+      try {
+        const resp = await register_security_key(null, options);
+
+        if (resp.server_code === STEP_UP_REQUIRED_CODE && !options) {
+          set_step_up_add("security_key");
+        } else if (resp.data?.success) {
+          show_toast(t("passkeys.register_success"), "success");
+          if (resp.data.other_sessions_revoked) {
+            show_toast(t("passkeys.other_devices_signed_out"), "info");
+          }
+          await load_keys();
+        } else if (resp.error === "no_platform_authenticator") {
+          show_toast(t("passkeys.no_platform_authenticator"), "error");
+        } else if (resp.error === "passkey_cancelled") {
+          show_toast(t("passkeys.security_key_not_found"), "info");
+        } else {
+          show_toast(
+            resp.error || t("common.something_went_wrong_try_again"),
+            "error",
+          );
+        }
+      } finally {
+        set_registering(null);
+      }
+    },
+    [load_keys, t],
+  );
+
+  const handle_add_passkey = useCallback(
+    () => run_add_passkey(),
+    [run_add_passkey],
+  );
+
+  const handle_add_security_key = useCallback(
+    () => run_add_security_key(),
+    [run_add_security_key],
+  );
+
+  const handle_add_step_up_confirm = useCallback(
+    async (credentials: StepUpCredentials) => {
+      const kind = step_up_add;
+
+      if (!kind) return;
+      const options_response = await initiate_hardware_key_registration(
+        to_reauth_proof(credentials),
       );
 
-      if (resp.data?.success) {
-        const is_native =
-          (resp.data as any).is_platform_authenticator !== false;
-
-        if (!is_native) {
-          show_toast(t("passkeys.saved_to_password_manager"), "info");
-        } else {
-          show_toast(t("passkeys.register_success"), "success");
-        }
-        if (resp.data.other_sessions_revoked) {
-          show_toast(t("passkeys.other_devices_signed_out"), "info");
-        }
-        await load_keys();
-      } else if (resp.error === "no_platform_authenticator") {
-        show_toast(t("passkeys.no_platform_authenticator"), "error");
-      } else if (resp.error === "passkey_cancelled") {
-        show_toast(t("passkeys.passkey_setup_cancelled"), "info");
-      } else {
-        show_toast(
-          resp.error || t("common.something_went_wrong_try_again"),
-          "error",
-        );
+      if (!options_response.data) {
+        throw new Error(options_response.error || t("errors.generic"));
       }
-    } finally {
-      set_registering(null);
-    }
-  }, [current_account_id, load_keys, t]);
-
-  const handle_add_security_key = useCallback(async () => {
-    set_registering("security_key");
-    try {
-      const resp = await register_security_key(null);
-
-      if (resp.data?.success) {
-        show_toast(t("passkeys.register_success"), "success");
-        if (resp.data.other_sessions_revoked) {
-          show_toast(t("passkeys.other_devices_signed_out"), "info");
-        }
-        await load_keys();
-      } else if (resp.error === "no_platform_authenticator") {
-        show_toast(t("passkeys.no_platform_authenticator"), "error");
-      } else if (resp.error === "passkey_cancelled") {
-        show_toast(t("passkeys.security_key_not_found"), "info");
+      set_step_up_add(null);
+      if (kind === "passkey") {
+        void run_add_passkey(options_response.data);
       } else {
-        show_toast(
-          resp.error || t("common.something_went_wrong_try_again"),
-          "error",
-        );
+        void run_add_security_key(options_response.data);
       }
-    } finally {
-      set_registering(null);
-    }
-  }, [load_keys, t]);
+    },
+    [run_add_passkey, run_add_security_key, step_up_add, t],
+  );
 
   return (
     <>
@@ -562,6 +615,20 @@ export function PasskeySection() {
           });
         }}
         title={t("passkeys.remove_last_key_step_up_title")}
+      />
+
+      <StepUpModal
+        password_only
+        confirm_label={t("common.continue")}
+        description={t("common.step_up_description")}
+        is_open={!!step_up_add}
+        on_close={() => set_step_up_add(null)}
+        on_confirm={handle_add_step_up_confirm}
+        title={t(
+          step_up_add === "security_key"
+            ? "passkeys.add_security_key"
+            : "passkeys.add_passkey",
+        )}
       />
     </>
   );

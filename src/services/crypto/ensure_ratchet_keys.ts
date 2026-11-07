@@ -344,12 +344,14 @@ async function published_bundle_matches_vault(
 
     const username = email.split("@")[0];
     const response = await api_client.get<PublishedBundleView>(
-      `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}?email=${encodeURIComponent(email)}`,
+      `/crypto/v1/ratchet/identity/${encodeURIComponent(username)}?email=${encodeURIComponent(email)}`,
     );
 
     if (response.code === "NOT_FOUND") return false;
 
     if (response.error || !response.data) return null;
+
+    if (!response.data.pq_kem_public_key) return false;
 
     const keys_match =
       response.data.kem_identity_key === vault.ratchet_identity_public &&

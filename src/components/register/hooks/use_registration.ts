@@ -41,6 +41,10 @@ import {
   safe_session_set,
 } from "@/lib/safe_storage";
 import { copy_text_or_throw } from "@/utils/copy_text";
+import {
+  derive_step_up_credentials,
+  STEP_UP_REQUIRED_CODE,
+} from "@/services/api/step_up";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
 import { get_default_profile_color } from "@/constants/profile";
@@ -70,6 +74,7 @@ import { array_to_base64 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import { register_user } from "@/services/api/auth";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
+import { keep_publishing_until_confirmed } from "@/services/crypto/prekey_bundle_confirmation";
 import {
   is_crypto_module_load_error,
   preload_openpgp,
@@ -105,27 +110,47 @@ import { open_external } from "@/utils/open_link";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { get_safe_next_path } from "@/pages/sign_in_helpers";
 
+export class RatchetKeyGenerationError extends Error {
+  constructor() {
+    super("ratchet key generation failed");
+    this.name = "RatchetKeyGenerationError";
+  }
+}
+
 export async function build_registration_ratchet_fields(): Promise<
   Partial<EncryptedVault>
 > {
+  let keys: Awaited<ReturnType<typeof generate_ratchet_keys>>;
+
   try {
-    const keys = await generate_ratchet_keys();
-
-    if (!keys) return {};
-
-    return {
-      ratchet_identity_key: keys.identity_jwk,
-      ratchet_identity_public: keys.identity_public,
-      ratchet_signed_prekey: keys.signed_prekey_jwk,
-      ratchet_signed_prekey_public: keys.signed_prekey_public,
-      ratchet_pq_identity_key: keys.pq_identity_secret,
-      ratchet_pq_identity_public: keys.pq_identity_public,
-      ratchet_pq_identity_seed: keys.pq_identity_seed,
-      ratchet_regen_v4_done: true,
-    };
+    keys = await generate_ratchet_keys();
   } catch {
-    return {};
+    throw new RatchetKeyGenerationError();
   }
+
+  if (
+    !keys ||
+    !keys.identity_jwk ||
+    !keys.identity_public ||
+    !keys.signed_prekey_jwk ||
+    !keys.signed_prekey_public ||
+    !keys.pq_identity_secret ||
+    !keys.pq_identity_public ||
+    !keys.pq_identity_seed
+  ) {
+    throw new RatchetKeyGenerationError();
+  }
+
+  return {
+    ratchet_identity_key: keys.identity_jwk,
+    ratchet_identity_public: keys.identity_public,
+    ratchet_signed_prekey: keys.signed_prekey_jwk,
+    ratchet_signed_prekey_public: keys.signed_prekey_public,
+    ratchet_pq_identity_key: keys.pq_identity_secret,
+    ratchet_pq_identity_public: keys.pq_identity_public,
+    ratchet_pq_identity_seed: keys.pq_identity_seed,
+    ratchet_regen_v4_done: true,
+  };
 }
 
 const PREKEY_PUBLISH_RETRY_DELAYS_MS = [1000, 3000];
@@ -748,8 +773,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
         return false;
       }
-      prekey_publish_ref.current =
-        publish_registration_prekey_bundle(vault_data);
+      const initial_publish = publish_registration_prekey_bundle(vault_data);
+
+      prekey_publish_ref.current = initial_publish;
+      void initial_publish
+        .then(() => keep_publishing_until_confirmed(vault_data))
+        .catch(() => undefined);
       check_and_replenish_prekeys();
 
       return true;
@@ -1017,11 +1046,13 @@ export function use_registration(options?: RegistrationClaimOptions) {
       const message = user_facing_error(err, t("auth.registration_failed"));
 
       set_error(
-        is_crypto_module_load_error(err)
-          ? t("errors.crypto_module_unavailable")
-          : USERNAME_CONFLICT_PATTERN.test(message)
-            ? t("auth.username_not_available")
-            : message,
+        err instanceof RatchetKeyGenerationError
+          ? t("errors.ratchet_key_generation_failed")
+          : is_crypto_module_load_error(err)
+            ? t("errors.crypto_module_unavailable")
+            : USERNAME_CONFLICT_PATTERN.test(message)
+              ? t("auth.username_not_available")
+              : message,
       );
       set_step("email");
       registration_promise_ref.current = null;
@@ -1406,7 +1437,17 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
     set_is_saving_recovery_email(true);
     try {
-      const result = await save_recovery_email(recovery_email.trim(), vault);
+      let result = await save_recovery_email(recovery_email.trim(), vault);
+
+      if (result.code === STEP_UP_REQUIRED_CODE && password) {
+        const credentials = await derive_step_up_credentials(password);
+
+        result = await save_recovery_email(
+          recovery_email.trim(),
+          vault,
+          credentials,
+        );
+      }
 
       if (result.code === "CONFLICT") {
         set_recovery_email_error(t("auth.recovery_email_conflict"));

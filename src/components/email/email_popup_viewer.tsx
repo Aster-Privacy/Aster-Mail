@@ -22,6 +22,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
 import { use_should_reduce_motion } from "@/provider";
+import { use_preferences } from "@/contexts/preferences_context";
 import { get_cached_folders } from "@/hooks/use_folders";
 import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
@@ -57,6 +58,7 @@ export function EmailPopupViewer({
   label_hints,
 }: EmailPopupViewerProps) {
   const reduce_motion = use_should_reduce_motion();
+  const { preferences } = use_preferences();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
 
   const viewer = use_popup_viewer({
@@ -226,9 +228,12 @@ export function EmailPopupViewer({
       let failed = false;
 
       try {
+        const scope = {
+          include_thread: preferences.conversation_grouping !== false,
+        };
         const result = was_applied
-          ? await bulk_remove_folder([email_id], folder_token)
-          : await bulk_add_folder([email_id], folder_token);
+          ? await bulk_remove_folder([email_id], folder_token, scope)
+          : await bulk_add_folder([email_id], folder_token, scope);
 
         failed = !!result.error;
       } catch {
@@ -269,6 +274,7 @@ export function EmailPopupViewer({
       move_out_of_bin,
       applied_folder_tokens,
       folder_options,
+      preferences.conversation_grouping,
       viewer.t,
     ],
   );
@@ -295,23 +301,11 @@ export function EmailPopupViewer({
 
   const popup_left = viewer.is_fullscreen
     ? FULLSCREEN_MARGIN
-    : Math.max(
-        0,
-        Math.min(
-          window.innerWidth - viewer.dimensions.width,
-          viewer.position.x,
-        ),
-      );
+    : viewer.position.x;
 
   const popup_top = viewer.is_fullscreen
     ? FULLSCREEN_MARGIN
-    : Math.max(
-        0,
-        Math.min(
-          window.innerHeight - viewer.dimensions.height,
-          viewer.position.y,
-        ),
-      );
+    : viewer.position.y;
 
   const popup_content = (
     <motion.div

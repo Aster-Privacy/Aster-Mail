@@ -23,6 +23,7 @@
 import type { SettingsSection } from "@/components/settings/settings_content_helpers";
 
 export const SETTINGS_ANCHORS = {
+  password: "sec-password",
   two_factor: "sec-2fa",
   passkeys: "sec-passkeys",
   sessions: "sec-sessions",

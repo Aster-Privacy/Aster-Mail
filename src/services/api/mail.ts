@@ -521,10 +521,25 @@ export async function bulk_update_mail_items(
   );
 }
 
+export interface FolderScopeOptions {
+  include_thread?: boolean;
+}
+
+export interface FolderBulkResponse {
+  status: string;
+  affected: number;
+  ids?: string[];
+}
+
 export async function add_mail_item_folder(
   item_id: string,
   data: MailItemFolderRequest,
+  scope?: FolderScopeOptions,
 ): Promise<ApiResponse<{ status: string }>> {
+  if (scope?.include_thread) {
+    return bulk_add_folder([item_id], data.folder_token, scope);
+  }
+
   return api_client.post<{ status: string }>(
     `/mail/v1/messages/${item_id}/labels`,
     data,
@@ -534,7 +549,12 @@ export async function add_mail_item_folder(
 export async function remove_mail_item_folder(
   item_id: string,
   folder_token: string,
+  scope?: FolderScopeOptions,
 ): Promise<ApiResponse<{ status: string }>> {
+  if (scope?.include_thread) {
+    return bulk_remove_folder([item_id], folder_token, scope);
+  }
+
   return api_client.delete<{ status: string }>(
     `/mail/v1/messages/${item_id}/labels/${folder_token}`,
   );
@@ -555,17 +575,20 @@ export const get_mail_item_labels = get_mail_item_folders;
 export async function move_mail_item(
   item_id: string,
   data: MoveToFolderRequest,
+  scope?: FolderScopeOptions,
 ): Promise<ApiResponse<{ status: string }>> {
-  const added = await add_mail_item_folder(item_id, {
-    folder_token: data.folder_token,
-  });
+  const added = await add_mail_item_folder(
+    item_id,
+    { folder_token: data.folder_token },
+    scope,
+  );
 
   if (added.error) {
     return added;
   }
 
   if (data.from_folder_token && data.from_folder_token !== data.folder_token) {
-    await remove_mail_item_folder(item_id, data.from_folder_token);
+    await remove_mail_item_folder(item_id, data.from_folder_token, scope);
   }
 
   return added;
@@ -662,6 +685,7 @@ export interface BulkScopeFilter {
 export interface BulkScopeRequest {
   action: BulkScopeAction;
   scope: BulkScopeFilter;
+  ids?: string[];
   exclude_ids?: string[];
 }
 
@@ -702,39 +726,59 @@ export async function bulk_undo(
 export async function bulk_add_folder(
   ids: string[],
   folder_token: string,
-): Promise<ApiResponse<{ status: string; affected: number }>> {
+  scope?: FolderScopeOptions,
+): Promise<ApiResponse<FolderBulkResponse>> {
   return send_in_chunks(
     ids,
     BULK_REQUEST_LIMIT,
     (chunk) =>
-      api_client.post<{ status: string; affected: number }>(
+      api_client.post<FolderBulkResponse>(
         "/mail/v1/messages/bulk/labels",
-        {
-          ids: chunk,
-          label_token: folder_token,
-        },
+        folder_bulk_body(chunk, folder_token, scope),
       ),
-    merge_affected,
+    merge_folder_bulk,
   );
 }
 
 export async function bulk_remove_folder(
   ids: string[],
   folder_token: string,
-): Promise<ApiResponse<{ status: string; affected: number }>> {
+  scope?: FolderScopeOptions,
+): Promise<ApiResponse<FolderBulkResponse>> {
   return send_in_chunks(
     ids,
     BULK_REQUEST_LIMIT,
     (chunk) =>
-      api_client.post<{ status: string; affected: number }>(
+      api_client.post<FolderBulkResponse>(
         "/mail/v1/messages/bulk/labels/remove",
-        {
-          ids: chunk,
-          label_token: folder_token,
-        },
+        folder_bulk_body(chunk, folder_token, scope),
       ),
-    merge_affected,
+    merge_folder_bulk,
   );
+}
+
+export function folder_bulk_body(
+  ids: string[],
+  folder_token: string,
+  scope?: FolderScopeOptions,
+): { ids: string[]; label_token: string; include_thread?: boolean } {
+  return scope?.include_thread
+    ? { ids, label_token: folder_token, include_thread: true }
+    : { ids, label_token: folder_token };
+}
+
+export function merge_folder_bulk(
+  total: FolderBulkResponse,
+  next: FolderBulkResponse,
+): FolderBulkResponse {
+  const merged = merge_affected(total, next);
+
+  if (!total.ids && !next.ids) return merged;
+
+  return {
+    ...merged,
+    ids: Array.from(new Set([...(total.ids ?? []), ...(next.ids ?? [])])),
+  };
 }
 
 export const bulk_add_label = bulk_add_folder;
@@ -1045,30 +1089,32 @@ export async function batched_bulk_update(
 export async function batched_bulk_add_folder(
   ids: string[],
   folder_token: string,
-  options?: BatchedBulkOptions,
+  options?: BatchedBulkOptions & FolderScopeOptions,
 ): Promise<BatchedBulkResult> {
   const { BATCH_LIMITS } = await import("@/constants/batch_config");
+  const { include_thread, ...batch_options } = options ?? {};
 
   return run_batched_operation(
     ids,
     BATCH_LIMITS.LABELS,
-    (batch) => bulk_add_folder(batch, folder_token),
-    options,
+    (batch) => bulk_add_folder(batch, folder_token, { include_thread }),
+    batch_options,
   );
 }
 
 export async function batched_bulk_remove_folder(
   ids: string[],
   folder_token: string,
-  options?: BatchedBulkOptions,
+  options?: BatchedBulkOptions & FolderScopeOptions,
 ): Promise<BatchedBulkResult> {
   const { BATCH_LIMITS } = await import("@/constants/batch_config");
+  const { include_thread, ...batch_options } = options ?? {};
 
   return run_batched_operation(
     ids,
     BATCH_LIMITS.LABELS,
-    (batch) => bulk_remove_folder(batch, folder_token),
-    options,
+    (batch) => bulk_remove_folder(batch, folder_token, { include_thread }),
+    batch_options,
   );
 }
 

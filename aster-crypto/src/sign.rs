@@ -21,49 +21,78 @@
 use chrono::{DateTime, Utc};
 use pgp::composed::cleartext::CleartextSignedMessage;
 use pgp::composed::{
-    Deserializable, Message, SignedPublicKey, SignedPublicSubKey, SignedSecretKey,
-    StandaloneSignature,
+    Deserializable, Message, SignedPublicKey, SignedPublicSubKey, StandaloneSignature,
 };
 use pgp::crypto::hash::HashAlgorithm;
-use pgp::packet::SignatureType;
+use pgp::packet::{Signature, SignatureType};
 use rand::rngs::OsRng;
 
 use crate::error::{CryptoError, Result};
 use crate::keys::{KeyPair, PublicKey, PublicKeyInner};
 
 fn primary_is_revoked(spk: &SignedPublicKey) -> bool {
-    spk.details
-        .revocation_signatures
-        .iter()
-        .any(|s| matches!(s.typ(), SignatureType::KeyRevocation))
+    spk.details.revocation_signatures.iter().any(|s| {
+        matches!(s.typ(), SignatureType::KeyRevocation) && s.verify_key(&spk.primary_key).is_ok()
+    })
 }
 
 fn primary_is_expired(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
     spk.expires_at().map(|e| e <= now).unwrap_or(false)
 }
 
-fn subkey_is_revoked(sub: &SignedPublicSubKey) -> bool {
+fn subkey_is_revoked(spk: &SignedPublicKey, sub: &SignedPublicSubKey) -> bool {
+    sub.signatures.iter().any(|s| {
+        matches!(s.typ(), SignatureType::SubkeyRevocation)
+            && s.verify_key_binding(&spk.primary_key, &sub.key).is_ok()
+    })
+}
+
+fn newest_verified_binding<'a>(
+    spk: &SignedPublicKey,
+    sub: &'a SignedPublicSubKey,
+) -> Option<&'a Signature> {
     sub.signatures
         .iter()
-        .any(|s| matches!(s.typ(), SignatureType::SubkeyRevocation))
-}
-
-fn subkey_is_expired(sub: &SignedPublicSubKey, now: DateTime<Utc>) -> bool {
-    let created = *pgp::types::PublicKeyTrait::created_at(&sub.key);
-    match sub
-        .signatures
-        .iter()
         .filter(|s| matches!(s.typ(), SignatureType::SubkeyBinding))
-        .filter_map(|s| s.key_expiration_time().copied())
-        .max()
-    {
-        Some(duration) => created + duration <= now,
-        None => false,
-    }
+        .filter(|s| s.verify_key_binding(&spk.primary_key, &sub.key).is_ok())
+        .max_by_key(|s| s.created().copied())
 }
 
-fn subkey_valid_for_signing(sub: &SignedPublicSubKey, now: DateTime<Utc>) -> bool {
-    !subkey_is_revoked(sub) && !subkey_is_expired(sub, now)
+pub(crate) fn binding_has_backsig(
+    spk: &SignedPublicKey,
+    sub: &SignedPublicSubKey,
+    binding: &Signature,
+) -> bool {
+    binding
+        .embedded_signature()
+        .map(|emb| {
+            matches!(emb.typ(), SignatureType::KeyBinding)
+                && emb
+                    .verify_backwards_key_binding(&sub.key, &spk.primary_key)
+                    .is_ok()
+        })
+        .unwrap_or(false)
+}
+
+fn subkey_signing_bound(
+    spk: &SignedPublicKey,
+    sub: &SignedPublicSubKey,
+    now: DateTime<Utc>,
+) -> bool {
+    if subkey_is_revoked(spk, sub) {
+        return false;
+    }
+    let Some(binding) = newest_verified_binding(spk, sub) else {
+        return false;
+    };
+    if !binding.key_flags().sign() || !binding_has_backsig(spk, sub, binding) {
+        return false;
+    }
+    let created = *pgp::types::PublicKeyTrait::created_at(&sub.key);
+    match binding.key_expiration_time() {
+        Some(duration) if !duration.is_zero() => created + *duration > now,
+        _ => true,
+    }
 }
 
 pub(crate) fn signing_identity_valid(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
@@ -93,32 +122,6 @@ fn primary_may_sign(spk: &SignedPublicKey) -> bool {
     }
 
     !has_flags || can_sign
-}
-
-fn subkey_may_sign(sub: &SignedPublicSubKey) -> bool {
-    let mut has_flags = false;
-    let mut can_sign = false;
-
-    for s in &sub.signatures {
-        let f = s.key_flags();
-        if f.sign() || f.certify() || f.encrypt_comms() || f.encrypt_storage() || f.authentication()
-        {
-            has_flags = true;
-        }
-        if f.sign() {
-            can_sign = true;
-        }
-    }
-
-    !(has_flags && !can_sign)
-}
-
-pub(crate) fn signed_secret_signing_identity_valid(
-    ssk: &SignedSecretKey,
-    now: DateTime<Utc>,
-) -> bool {
-    let spk: SignedPublicKey = ssk.clone().into();
-    signing_identity_valid(&spk, now)
 }
 
 pub fn verify_detached_signature(
@@ -151,10 +154,7 @@ pub fn verify_detached_signature(
         return Ok(true);
     }
     for sub in &signed_pub_key.public_subkeys {
-        if !subkey_may_sign(sub) {
-            continue;
-        }
-        if !subkey_valid_for_signing(sub, now) {
+        if !subkey_signing_bound(&signed_pub_key, sub, now) {
             continue;
         }
         if sig.verify(&sub.key, data).is_ok() {
@@ -226,10 +226,7 @@ pub fn verify_cleartext_signature(
     }
 
     for sub in &signed_pub_key.public_subkeys {
-        if !subkey_may_sign(sub) {
-            continue;
-        }
-        if !subkey_valid_for_signing(sub, now) {
+        if !subkey_signing_bound(&signed_pub_key, sub, now) {
             continue;
         }
         if message.verify(&sub.key).is_ok() {
@@ -270,56 +267,30 @@ pub fn sign_message(message: &[u8], signer: &KeyPair) -> Result<Vec<u8>> {
     Ok(armored)
 }
 
-pub(crate) fn signed_public_key_can_sign(spk: &SignedPublicKey) -> bool {
-    let primary_sigs = spk
-        .details
-        .users
-        .iter()
-        .flat_map(|u| u.signatures.iter())
-        .chain(spk.details.direct_signatures.iter());
-    let mut primary_has_flags = false;
-    let mut primary_can_sign = false;
-    for s in primary_sigs {
-        let f = s.key_flags();
-        if f.sign() || f.certify() || f.encrypt_comms() || f.encrypt_storage() || f.authentication()
-        {
-            primary_has_flags = true;
-        }
-        if f.sign() {
-            primary_can_sign = true;
-        }
+pub(crate) fn message_signed_by(msg: &Message, spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
+    if !signing_identity_valid(spk, now) {
+        return false;
     }
-    if !primary_has_flags || primary_can_sign {
+    if primary_may_sign(spk) && msg.verify(spk).is_ok() {
         return true;
     }
-    let now = Utc::now();
-    for sub in &spk.public_subkeys {
-        let mut sub_has_flags = false;
-        let mut sub_can_sign = false;
-        for s in &sub.signatures {
-            let f = s.key_flags();
-            if f.sign()
-                || f.certify()
-                || f.encrypt_comms()
-                || f.encrypt_storage()
-                || f.authentication()
-            {
-                sub_has_flags = true;
-            }
-            if f.sign() {
-                sub_can_sign = true;
-            }
-        }
-        if (!sub_has_flags || sub_can_sign) && subkey_valid_for_signing(sub, now) {
-            return true;
-        }
-    }
-    false
+    spk.public_subkeys
+        .iter()
+        .any(|sub| subkey_signing_bound(spk, sub, now) && msg.verify(&sub.key).is_ok())
 }
 
-pub(crate) fn signed_secret_key_can_sign(ssk: &SignedSecretKey) -> bool {
-    let spk: SignedPublicKey = ssk.clone().into();
-    signed_public_key_can_sign(&spk)
+pub(crate) fn message_signed_by_public_key(
+    msg: &Message,
+    pk: &PublicKey,
+    now: DateTime<Utc>,
+) -> bool {
+    match &pk.inner {
+        PublicKeyInner::Standalone(spk) => message_signed_by(msg, spk, now),
+        PublicKeyInner::FromSecret(ssk) => {
+            let spk: SignedPublicKey = ssk.clone().into();
+            message_signed_by(msg, &spk, now)
+        }
+    }
 }
 
 pub fn verify_signature(signed_message: &[u8], signer_keys: &[&PublicKey]) -> Result<Vec<u8>> {
@@ -328,19 +299,7 @@ pub fn verify_signature(signed_message: &[u8], signer_keys: &[&PublicKey]) -> Re
 
     let now = Utc::now();
     for pk in signer_keys {
-        let verified = match &pk.inner {
-            PublicKeyInner::Standalone(spk) => {
-                signing_identity_valid(spk, now)
-                    && signed_public_key_can_sign(spk)
-                    && msg.verify(spk).is_ok()
-            }
-            PublicKeyInner::FromSecret(ssk) => {
-                signed_secret_signing_identity_valid(ssk, now)
-                    && signed_secret_key_can_sign(ssk)
-                    && msg.verify(ssk).is_ok()
-            }
-        };
-        if verified {
+        if message_signed_by_public_key(&msg, pk, now) {
             if let Some(literal) = msg.get_literal() {
                 return Ok(literal.data().to_vec());
             }
@@ -350,6 +309,128 @@ pub fn verify_signature(signed_message: &[u8], signer_keys: &[&PublicKey]) -> Re
     Err(CryptoError::SignatureVerification(
         "No valid signature found".into(),
     ))
+}
+
+#[cfg(test)]
+pub(crate) mod subkey_fixtures {
+    use chrono::{SubsecRound, Utc};
+    use pgp::composed::{
+        KeyType, Message, SecretKeyParamsBuilder, SignedPublicKey, SignedSecretKey,
+        SubkeyParamsBuilder,
+    };
+    use pgp::crypto::ecc_curve::ECCCurve;
+    use pgp::crypto::hash::HashAlgorithm;
+    use pgp::packet::{Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData};
+    use pgp::types::{PublicKeyTrait, SecretKeyTrait};
+    use rand::rngs::OsRng;
+
+    pub fn signing_subkey_secret() -> SignedSecretKey {
+        let mut encrypt = SubkeyParamsBuilder::default();
+        encrypt
+            .key_type(KeyType::ECDH(ECCCurve::Curve25519))
+            .can_encrypt(true);
+        let mut sign = SubkeyParamsBuilder::default();
+        sign.key_type(KeyType::EdDSALegacy).can_sign(true);
+        SecretKeyParamsBuilder::default()
+            .key_type(KeyType::EdDSALegacy)
+            .can_certify(true)
+            .can_sign(false)
+            .primary_user_id("Outside Owner <owner@astermail.org>".into())
+            .subkey(encrypt.build().unwrap())
+            .subkey(sign.build().unwrap())
+            .build()
+            .unwrap()
+            .generate(OsRng)
+            .unwrap()
+            .sign(OsRng, || "".to_string())
+            .unwrap()
+    }
+
+    fn back_signature(
+        primary: &impl PublicKeyTrait,
+        sub_public: &impl PublicKeyTrait,
+        sub_secret: &impl SecretKeyTrait,
+    ) -> Signature {
+        let mut config = SignatureConfig::v4(
+            SignatureType::KeyBinding,
+            sub_secret.algorithm(),
+            HashAlgorithm::SHA2_256,
+        );
+        config.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(
+                Utc::now().trunc_subsecs(0),
+            )),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(sub_secret.fingerprint())),
+        ];
+        let mut hasher = HashAlgorithm::SHA2_256.new_hasher().unwrap();
+        primary.serialize_for_hashing(&mut hasher).unwrap();
+        sub_public.serialize_for_hashing(&mut hasher).unwrap();
+        let len = config.hash_signature_data(&mut hasher).unwrap();
+        hasher.update(&config.trailer(len).unwrap());
+        let hash = hasher.finish();
+        let signed_hash_value = [hash[0], hash[1]];
+        let bytes = sub_secret
+            .create_signature(|| "".to_string(), HashAlgorithm::SHA2_256, &hash)
+            .unwrap();
+        Signature::from_config(config, signed_hash_value, bytes)
+    }
+
+    pub fn public_with_signing_subkey(
+        secret: &SignedSecretKey,
+        with_backsig: bool,
+    ) -> SignedPublicKey {
+        let mut public = secret
+            .public_key()
+            .sign(OsRng, secret, || "".to_string())
+            .unwrap();
+        if !with_backsig {
+            return public;
+        }
+        let backsig = back_signature(
+            &public.primary_key,
+            &public.public_subkeys[1].key,
+            &secret.secret_subkeys[1],
+        );
+        let mut config = SignatureConfig::v4(
+            SignatureType::SubkeyBinding,
+            secret.algorithm(),
+            HashAlgorithm::SHA2_256,
+        );
+        config.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(
+                Utc::now().trunc_subsecs(0),
+            )),
+            Subpacket::regular(SubpacketData::KeyFlags(vec![0x02u8].into())),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(secret.fingerprint())),
+        ];
+        config.unhashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::Issuer(secret.key_id())),
+            Subpacket::regular(SubpacketData::EmbeddedSignature(Box::new(backsig))),
+        ];
+        let sub = &mut public.public_subkeys[1];
+        let binding = config
+            .sign_key_binding(secret, || "".to_string(), &sub.key)
+            .unwrap();
+        sub.signatures = vec![binding];
+        public
+    }
+
+    pub fn detached_by(secret: &impl SecretKeyTrait, data: &[u8]) -> String {
+        Message::new_literal_bytes("", data)
+            .sign(OsRng, secret, || "".to_string(), HashAlgorithm::SHA2_256)
+            .unwrap()
+            .into_signature()
+            .to_armored_string(Default::default())
+            .unwrap()
+    }
+
+    pub fn inline_by(secret: &impl SecretKeyTrait, data: &[u8]) -> Vec<u8> {
+        Message::new_literal_bytes("", data)
+            .sign(OsRng, secret, || "".to_string(), HashAlgorithm::SHA2_256)
+            .unwrap()
+            .to_armored_bytes(None.into())
+            .unwrap()
+    }
 }
 
 #[cfg(test)]
@@ -565,5 +646,79 @@ mod tests {
         )
         .unwrap();
         assert!(!verified);
+    }
+    fn armored(public: &SignedPublicKey) -> String {
+        public.to_armored_string(Default::default()).unwrap()
+    }
+
+    #[test]
+    fn detached_signature_from_a_backsigned_subkey_verifies() {
+        use super::subkey_fixtures::*;
+        let secret = signing_subkey_secret();
+        let public = armored(&public_with_signing_subkey(&secret, true));
+        let sig = detached_by(&secret.secret_subkeys[1], b"payload");
+
+        assert!(verify_detached_signature(public.as_bytes(), b"payload", sig.as_bytes()).unwrap());
+        assert!(!verify_detached_signature(public.as_bytes(), b"other", sig.as_bytes()).unwrap());
+    }
+
+    #[test]
+    fn detached_signature_from_a_subkey_without_backsig_is_rejected() {
+        use super::subkey_fixtures::*;
+        let secret = signing_subkey_secret();
+        let public = armored(&public_with_signing_subkey(&secret, false));
+        let sig = detached_by(&secret.secret_subkeys[1], b"payload");
+
+        assert!(!verify_detached_signature(public.as_bytes(), b"payload", sig.as_bytes()).unwrap());
+    }
+
+    #[test]
+    fn detached_signature_from_an_appended_foreign_subkey_is_rejected() {
+        use super::subkey_fixtures::*;
+        let victim = generate_keypair("Victim", "victim@astermail.com").unwrap();
+        let attacker = signing_subkey_secret();
+        let mut forged: SignedPublicKey = victim.secret_key().clone().into();
+        forged
+            .public_subkeys
+            .push(public_with_signing_subkey(&attacker, true).public_subkeys[1].clone());
+        let sig = detached_by(&attacker.secret_subkeys[1], b"payload");
+
+        assert!(!verify_detached_signature(
+            armored(&forged).as_bytes(),
+            b"payload",
+            sig.as_bytes()
+        )
+        .unwrap());
+    }
+
+    #[test]
+    fn detached_signature_from_a_certify_only_primary_is_rejected() {
+        use super::subkey_fixtures::*;
+        let secret = signing_subkey_secret();
+        let public = armored(&public_with_signing_subkey(&secret, true));
+        let sig = detached_by(&secret, b"payload");
+
+        assert!(!verify_detached_signature(public.as_bytes(), b"payload", sig.as_bytes()).unwrap());
+    }
+
+    #[test]
+    fn inline_message_from_a_backsigned_subkey_verifies() {
+        use super::subkey_fixtures::*;
+        let secret = signing_subkey_secret();
+        let good =
+            crate::keys::import_public_key(&armored(&public_with_signing_subkey(&secret, true)))
+                .unwrap();
+        let bare =
+            crate::keys::import_public_key(&armored(&public_with_signing_subkey(&secret, false)))
+                .unwrap();
+        let signed = inline_by(&secret.secret_subkeys[1], b"payload");
+        let by_primary = inline_by(&secret, b"payload");
+
+        assert_eq!(
+            verify_signature(&signed, &[&good]).unwrap(),
+            b"payload".to_vec()
+        );
+        assert!(verify_signature(&signed, &[&bare]).is_err());
+        assert!(verify_signature(&by_primary, &[&good]).is_err());
     }
 }

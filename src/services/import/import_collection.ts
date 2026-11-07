@@ -31,6 +31,11 @@ import {
   is_valid_email,
   parse_import_file,
 } from "./parser";
+import {
+  apply_export_metadata,
+  build_export_metadata_index,
+  is_export_sidecar_file,
+} from "./export_metadata";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -61,6 +66,13 @@ interface MboxScan {
 }
 
 const GENERATED_MESSAGE_ID_SUFFIX = "@astermail.local";
+const ARCHIVE_MBOX_NAMES = new Set(["archive", "archives", "archived"]);
+
+export function mbox_source_folder(file_name: string): string | undefined {
+  const stem = file_name.replace(/\.(mbox|mbx)$/i, "").trim();
+
+  return ARCHIVE_MBOX_NAMES.has(stem.toLowerCase()) ? stem : undefined;
+}
 
 async function scan_mbox_file(
   file: File,
@@ -71,6 +83,7 @@ async function scan_mbox_file(
   const summaries: ParsedEmail[] = [];
   const ordinals: number[] = [];
   const warnings: string[] = [];
+  const source_folder = mbox_source_folder(file.name);
 
   let ordinal = -1;
   let invalid_count = 0;
@@ -117,6 +130,8 @@ async function scan_mbox_file(
       continue;
     }
 
+    if (source_folder) summary.source_folder = source_folder;
+
     summaries.push(summary);
     ordinals.push(ordinal);
   }
@@ -154,6 +169,7 @@ function load_mbox_email(raw_email: string, summary: ParsedEmail) {
     }
 
     email.message_id = summary.message_id;
+    if (summary.source_folder) email.source_folder = summary.source_folder;
 
     if (!is_valid_email(email)) {
       return { email: null, status: "invalid" as const };
@@ -174,12 +190,23 @@ export async function build_import_collection(
   const errors: string[] = [];
   const warnings: string[] = [];
   const parts: ImportPart[] = [];
-  const single_file = files.length === 1;
+  const sidecar_files = files.filter((file) =>
+    is_export_sidecar_file(file.name),
+  );
+  const mail_files =
+    sidecar_files.length > 0
+      ? files.filter((file) => !is_export_sidecar_file(file.name))
+      : files;
+  const export_index =
+    sidecar_files.length > 0
+      ? await build_export_metadata_index(sidecar_files, is_cancelled)
+      : null;
+  const single_file = mail_files.length === 1;
 
-  for (let i = 0; i < files.length; i++) {
+  for (let i = 0; i < mail_files.length; i++) {
     if (is_cancelled()) break;
 
-    const file = files[i];
+    const file = mail_files[i];
     const file_progress = single_file ? on_progress : undefined;
     const start = summaries.length;
 
@@ -196,6 +223,12 @@ export async function build_import_collection(
     } else {
       const result = await parse_import_file(file, file_progress);
 
+      if (export_index) {
+        for (const email of result.emails) {
+          apply_export_metadata(email, file.name, export_index);
+        }
+      }
+
       summaries.push(...result.emails);
       errors.push(...result.errors);
       warnings.push(...result.warnings);
@@ -210,8 +243,8 @@ export async function build_import_collection(
 
       on_progress({
         current,
-        total: files.length,
-        percentage: Math.round((current / files.length) * 100),
+        total: mail_files.length,
+        percentage: Math.round((current / mail_files.length) * 100),
       });
     }
   }

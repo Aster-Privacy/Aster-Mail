@@ -62,8 +62,9 @@ export const PROMOTIONS_SUBJECT_PATTERNS: readonly RegExp[] = [
   /\bfree\s+gift\b/i,
   /\brewards?\s+(?:points|await)\b/i,
   /\bvip\s+(?:access|sale)\b/i,
-  /[\u{1F300}-\u{1FAFF}]/u,
 ];
+
+export const EMOJI_SUBJECT_PATTERN = /[\u{1F300}-\u{1FAFF}]/u;
 
 export const UPDATES_SUBJECT_PATTERNS: readonly RegExp[] = [
   /\border(?:\s*#|\s+(?:confirm|number|placed|update))/i,
@@ -118,6 +119,9 @@ export const FINANCE_SUBJECT_PATTERNS: readonly RegExp[] = [
   /\bdividend\b/i,
   /\bmortgage\b/i,
   /\bloan\s+(?:payment|approved)\b/i,
+  /\b(?:interest|base|savings|bank|borrowing)\s+rates?\b/i,
+  /\brate\s+(?:change|changes|cut|cuts|rise|rises|increase|decrease)\b/i,
+  /\bpension\b/i,
 ];
 
 export const TRAVEL_SUBJECT_PATTERNS: readonly RegExp[] = [
@@ -194,4 +198,39 @@ export const TRANSACTIONS_SUBJECT_PATTERNS: readonly RegExp[] = [
   /\bsubscription\s+(?:renew|charge|payment)/i,
   /\breturn\s+(?:label|confirmation|received)\b/i,
   /\bpre[\s-]?order\b/i,
+];
+
+export const ACCOUNT_ACCESS_SUBJECT_PATTERNS: readonly RegExp[] = [
+  /\b(?:verification|verify|security|confirmation|confirm|login|log[\s-]?in|sign[\s-]?in|one[\s-]?time|access|authentication|auth|activation|passcode)\s+(?:code|pin|link)\b/i,
+  /\bone[\s-]?time\s+(?:password|passcode)\b/i,
+  /\botp\b/i,
+  /\b(?:your\s+)?code\s+is\s*:?\s*\d{4,8}\b/i,
+  /\b\d{4,8}\s+is\s+your\b/i,
+  /\buse\s+\d{4,8}\s+to\b/i,
+  /\b(?:confirm|verify|activate)\s+(?:your\s+|this\s+)?(?:new\s+)?(?:email|e-mail|account|address|email\s+address|sign[\s-]?in|log[\s-]?in|login|identity|device)\b/i,
+  /\b(?:reset|recover)\s+your\s+password\b/i,
+  /\bpassword\s+(?:reset|recovery)\b/i,
+  /\b(?:magic|sign[\s-]?in|log[\s-]?in|login)\s+link\b/i,
+  /\b(?:mfa|2fa|multi[\s-]?factor|two[\s-]?factor|two[\s-]?step|2[\s-]?step)(?:\s+(?:authentication|verification))?\s+(?:code|request|pin|link|prompt|challenge|approval)\b/i,
+  /\b(?:sign[\s-]?in|log[\s-]?in|login|authentication|mfa)\s+(?:request|attempt|approval)\b/i,
+  /\bapprove\s+(?:your\s+|this\s+|the\s+|a\s+)?(?:new\s+)?(?:sign[\s-]?in|log[\s-]?in|login)\b/i,
+  /验证码|驗證碼|校验码|校驗碼|动态码|動態碼|确认码|確認碼|安全码|安全碼|登录码|登入碼/,
+  /(?:验证|驗證|确认|確認|激活|啟用)(?:您|你)的(?:帐户|账户|帐号|账号|帳戶|帳號|电子邮件|電子郵件|邮箱|郵箱|邮件地址|郵件地址|登录|登入)/,
+  /验证此次登录|驗證此次登入|验证登录|驗證登入|确认登录|確認登入|登录验证|登入驗證|重置密码|重設密碼|密码重置|密碼重設/,
+  /認証コード|確認コード|ワンタイムパスワード|パスワードの再設定|パスワードをリセット|メールアドレスの確認/,
+  /인증\s*(?:코드|번호)|확인\s*코드|비밀번호\s*재설정/,
+  /\bc[oó]digo\s+de\s+(?:verificaci[oó]n|verifica[cç][aã]o|seguridad|seguran[cç]a|acceso|acesso|confirmaci[oó]n|confirma[cç][aã]o|inicio\s+de\s+sesi[oó]n)\b/i,
+  /\b(?:restablecer|recuperar)\s+(?:tu\s+|su\s+)?contrase[nñ]a\b|\bredefinir\s+(?:a\s+|sua\s+)?senha\b/i,
+  /\bcode\s+de\s+(?:v[ée]rification|s[ée]curit[ée]|confirmation|connexion)/i,
+  /\br[ée]initialis(?:er|ation)\s+(?:de\s+)?(?:votre\s+)?mot\s+de\s+passe\b/i,
+  /\b(?:best[äa]tigungs|verifizierungs|sicherheits|anmelde)code\b|\bpasswort\s+zur[üu]cksetzen\b/i,
+  /\bcodice\s+di\s+(?:verifica|sicurezza|accesso|conferma)\b/i,
+  /код\s+(?:подтверждения|проверки|безопасности|доступа|для\s+входа)|сброс\s+пароля|подтвердите\s+(?:ваш|свой|вашу|свою|адрес)/i,
+];
+
+export const ACCOUNT_ACCESS_HEADER_NAMES: readonly string[] = [
+  "x-verify-code",
+  "x-verify-short-code",
+  "x-signin-verify-code",
+  "x-unblock-code",
 ];

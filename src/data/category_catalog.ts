@@ -104,7 +104,7 @@ export const BUILTIN_CATEGORIES: readonly BuiltinCategoryDef[] = [
     info_key: "settings.category_info_newsletters",
     default_enabled: false,
     removable: true,
-    fold_target: "promotions",
+    fold_target: "updates",
   },
   {
     id: "social",

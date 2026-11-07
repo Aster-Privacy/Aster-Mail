@@ -269,6 +269,10 @@ export function pop_preloaded_cid(
   if (!entry?.cid_resolved) return null;
   const result = entry.cid_resolved;
 
+  if (entry.thread_cid_resolved.get(email_id)?.blob_urls === result.blob_urls) {
+    entry.thread_cid_resolved.delete(email_id);
+  }
+
   preload_cache.set(email_id, { ...entry, cid_resolved: undefined });
 
   return result;
@@ -277,13 +281,17 @@ export function pop_preloaded_cid(
 export function pop_preloaded_thread_cid(
   message_id: string,
 ): { html: string; blob_urls: string[] } | null {
-  for (const entry of preload_cache.values()) {
+  for (const [email_id, entry] of preload_cache) {
     if (!is_from_current_account(entry)) continue;
 
     const result = entry.thread_cid_resolved.get(message_id);
 
     if (result) {
       entry.thread_cid_resolved.delete(message_id);
+
+      if (entry.cid_resolved?.blob_urls === result.blob_urls) {
+        preload_cache.set(email_id, { ...entry, cid_resolved: undefined });
+      }
 
       return result;
     }

@@ -21,6 +21,7 @@
 import { useEffect, useState } from "react";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { is_premium_alias_domain } from "@/components/settings/billing/billing_constants";
 import {
   get_twin_address,
   type TwinAddressResponse,
@@ -83,6 +84,7 @@ export function clear_twin_address_cache(): void {
 
 export function claimable_siblings(
   twin: TwinAddressResponse | null,
+  premium_domains_allowed: boolean,
 ): TwinSibling[] {
   if (!twin) return [];
 
@@ -99,7 +101,9 @@ export function claimable_siblings(
         ];
 
   return all.filter(
-    (sibling) => sibling.state === "reserved" || sibling.state === "available",
+    (sibling) =>
+      (sibling.state === "reserved" || sibling.state === "available") &&
+      (premium_domains_allowed || !is_premium_alias_domain(sibling.domain)),
   );
 }
 
@@ -108,7 +112,10 @@ export interface TwinAddressState {
   siblings: TwinSibling[];
 }
 
-export function use_twin_address(refresh_token: number): TwinAddressState {
+export function use_twin_address(
+  refresh_token: number,
+  premium_domains_allowed: boolean,
+): TwinAddressState {
   const had_cache = read_session_cache();
   const [is_visible] = useState(had_cache);
   const [twin, set_twin] = useState<TwinAddressResponse | null>(cached_twin);
@@ -151,6 +158,8 @@ export function use_twin_address(refresh_token: number): TwinAddressState {
 
   return {
     twin,
-    siblings: is_visible ? claimable_siblings(twin) : [],
+    siblings: is_visible
+      ? claimable_siblings(twin, premium_domains_allowed)
+      : [],
   };
 }

@@ -164,6 +164,7 @@ describe("use_folder_tag_actions undo of a folder move", () => {
     expect(mail_api.batched_bulk_remove_folder).toHaveBeenCalledWith(
       ids,
       "home",
+      { include_thread: true },
     );
     expect(add_calls()).toEqual([[ids, "work"]]);
   });
@@ -204,6 +205,7 @@ describe("use_folder_tag_actions undo of a folder move", () => {
     expect(mail_api.batched_bulk_remove_folder).toHaveBeenCalledWith(
       ["a", "c"],
       "home",
+      { include_thread: true },
     );
     expect(add_calls()).toEqual([[["a", "c"], "work"]]);
   });
@@ -220,6 +222,7 @@ describe("use_folder_tag_actions undo of a folder move", () => {
     expect(mail_api.batched_bulk_remove_folder).toHaveBeenCalledWith(
       ["a", "b"],
       "home",
+      { include_thread: true },
     );
     expect(add_calls()).toEqual([]);
   });

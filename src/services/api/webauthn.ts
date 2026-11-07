@@ -121,12 +121,13 @@ export async function list_hardware_keys(): Promise<
   );
 }
 
-export async function initiate_hardware_key_registration(): Promise<
-  ApiResponse<HardwareKeyRegistrationOptions>
-> {
+export async function initiate_hardware_key_registration(proof?: {
+  password_hash: string;
+  totp_code?: string;
+}): Promise<ApiResponse<HardwareKeyRegistrationOptions>> {
   return api_client.post<HardwareKeyRegistrationOptions>(
     "/core/v1/auth/hardware-keys/register/initiate",
-    {},
+    proof ?? {},
   );
 }
 

@@ -20,6 +20,7 @@
 //
 import type {} from "@/lib/i18n/types";
 import type { SentEncryptionScope } from "@/services/crypto/sent_encryption_evidence";
+import type { BodyInlineRefs } from "@/lib/cid_resolver";
 
 import { type CachedAttachmentMeta } from "@/services/attachment_meta_cache";
 import { get_cached_preview_url } from "@/services/attachment_preview_cache";
@@ -36,6 +37,7 @@ export interface DecryptedAttachmentInfo {
   encrypted_meta: string;
   meta_nonce: string;
   preview_url?: string;
+  content_id?: string;
 }
 
 export function build_cards_from_cached_meta(
@@ -57,6 +59,7 @@ export function build_cards_from_cached_meta(
       encrypted_meta: item.encrypted_meta,
       meta_nonce: item.meta_nonce,
       preview_url: get_cached_preview_url(item.id),
+      content_id: item.content_id,
     });
   }
 
@@ -73,4 +76,5 @@ export interface AttachmentListProps {
   sent_encryption_scope?: SentEncryptionScope;
   is_local?: boolean;
   hint_attachment_count?: number;
+  inline_refs?: BodyInlineRefs;
 }

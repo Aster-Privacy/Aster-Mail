@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxEmail } from "@/types/email";
+import type { TranslationKey } from "@/lib/i18n";
 
 import { memo, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -266,20 +267,46 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       const handler = handler_map[definition.id];
 
       if (!handler) return undefined;
-      const Icon =
-        definition.id === "archive" && email.is_archived
-          ? InboxIcon
-          : definition.id === "toggle_read" && email.is_read
-            ? EnvelopeIcon
-            : definition.icon;
+      const is_unarchive = definition.id === "archive" && email.is_archived;
+      const is_mark_unread = definition.id === "toggle_read" && email.is_read;
+      const is_unstar = definition.id === "star" && email.is_starred;
+      const is_not_spam = definition.id === "spam" && current_view === "spam";
+      const Icon = is_unarchive
+        ? InboxIcon
+        : is_mark_unread
+          ? EnvelopeIcon
+          : definition.icon;
+      const label_key: TranslationKey = is_unarchive
+        ? "mail.move_to_inbox"
+        : is_mark_unread
+          ? "mail.mark_unread"
+          : is_unstar
+            ? "mail.unstar"
+            : is_not_spam
+              ? "mail.not_spam"
+              : definition.label_key;
 
       return {
-        icon: <Icon className="h-6 w-6 text-white" />,
+        icon: (
+          <span className="flex flex-col items-center gap-1 text-white">
+            <Icon aria-hidden="true" className="h-6 w-6" />
+            <span className="text-[12px] font-medium leading-none">
+              {t(label_key)}
+            </span>
+          </span>
+        ),
         color: definition.color,
         on_trigger: handler,
       };
     },
-    [handler_map, email.is_archived, email.is_read],
+    [
+      handler_map,
+      email.is_archived,
+      email.is_read,
+      email.is_starred,
+      current_view,
+      t,
+    ],
   );
 
   const left_action = build_swipe_action(swipe_left_action);

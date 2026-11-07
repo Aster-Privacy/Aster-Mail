@@ -20,13 +20,17 @@
 //
 import { user_facing_error } from "@/utils/user_facing_error";
 import "@/services/crypto/openpgp_limits";
+import type { PrivateKey } from "openpgp";
+
 import { decrypt_message_with_any_key } from "@/services/crypto/key_manager_pgp";
+import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 export interface pgp_decrypt_worker_request {
   id: number;
   ciphertext: string;
   secret_keys: (string | null | undefined)[];
   passphrase: string;
+  unlocked_armored_keys?: string[];
 }
 
 export interface pgp_decrypt_worker_response {
@@ -35,18 +39,54 @@ export interface pgp_decrypt_worker_response {
   error?: string;
 }
 
+const UNLOCKED_KEY_CACHE_LIMIT = 4;
+const unlocked_key_cache = new Map<string, Promise<PrivateKey>>();
+
+function read_unlocked_key(armored: string): Promise<PrivateKey> {
+  const cached = unlocked_key_cache.get(armored);
+
+  if (cached) return cached;
+
+  const parsed = load_openpgp().then((openpgp) =>
+    openpgp.readPrivateKey({ armoredKey: armored }),
+  );
+
+  parsed.catch(() => unlocked_key_cache.delete(armored));
+
+  if (unlocked_key_cache.size >= UNLOCKED_KEY_CACHE_LIMIT) {
+    unlocked_key_cache.clear();
+  }
+
+  unlocked_key_cache.set(armored, parsed);
+
+  return parsed;
+}
+
+async function read_unlocked_keys(armored_keys: string[]): Promise<PrivateKey[]> {
+  const keys = await Promise.all(
+    armored_keys.map((armored) => read_unlocked_key(armored).catch(() => null)),
+  );
+
+  return keys.filter((key): key is PrivateKey => key !== null);
+}
+
 self.onmessage = async (event: MessageEvent<pgp_decrypt_worker_request>) => {
   if (event.origin !== "" && event.origin !== self.location.origin) {
     return;
   }
 
-  const { id, ciphertext, secret_keys, passphrase } = event.data;
+  const { id, ciphertext, secret_keys, passphrase, unlocked_armored_keys } =
+    event.data;
 
   try {
+    const unlocked_keys = unlocked_armored_keys?.length
+      ? await read_unlocked_keys(unlocked_armored_keys)
+      : [];
     const plaintext = await decrypt_message_with_any_key(
       ciphertext,
       secret_keys,
       passphrase,
+      unlocked_keys,
     );
 
     const response: pgp_decrypt_worker_response = { id, plaintext };

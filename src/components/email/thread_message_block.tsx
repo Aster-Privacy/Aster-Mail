@@ -173,6 +173,7 @@ export function ThreadMessageBlock(
     sanitized_content,
     is_sanitize_pending,
     effective_html,
+    inline_refs,
     show_as_text,
     plain_view,
     can_toggle_plain_view,
@@ -983,6 +984,7 @@ export function ThreadMessageBlock(
             e2e_verified={!!message.e2e_verified}
             has_recipient_key={message.has_recipient_key}
             hint_attachment_count={message.attachments?.length ?? 0}
+            inline_refs={inline_refs}
             is_external={message.is_external}
             is_local={message.is_sending === true}
             mail_item_id={message.id}

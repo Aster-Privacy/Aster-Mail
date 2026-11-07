@@ -39,6 +39,9 @@ export interface ParsedEmail {
   attachments: ParsedAttachment[];
   raw_headers: Record<string, string>;
   source_folder?: string;
+  source_labels?: string[];
+  source_folders?: string[];
+  source_tags?: string[];
 }
 
 export interface ParseProgress {

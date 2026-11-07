@@ -22,7 +22,8 @@ import type { Attachment } from "@/components/compose/compose_shared";
 
 import { array_to_base64 } from "./crypto/base64";
 import { is_internal_recipient } from "./recipient_classification";
-import { sign_detached } from "./crypto/key_manager";
+import { sign_detached, sign_detached_with_keys } from "./crypto/key_manager";
+import { resolve_external_signing_key } from "./crypto/external_pgp_key";
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -34,6 +35,7 @@ import {
 import { select_published_signing_key } from "./crypto/published_signing_key";
 
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 export interface SignedMimePayload {
   signed_mime: string;
@@ -106,6 +108,44 @@ export function should_attach_signed_mime(params: {
   return attachment_bytes === 0;
 }
 
+function sender_address(from: string): string {
+  const bracketed = from.match(/<([^<>]+)>\s*$/);
+
+  return (bracketed ? bracketed[1] : from).trim().toLowerCase();
+}
+
+export function is_primary_sender(
+  from: string,
+  primary_address: string | null | undefined,
+): boolean {
+  if (!primary_address) return false;
+
+  return same_address_ignoring_dots(sender_address(from), primary_address);
+}
+
+async function resolve_primary_address(): Promise<string | null> {
+  try {
+    const { get_current_account } = await import("@/services/account_manager");
+    const account = await get_current_account();
+
+    return account?.user?.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function sign_with_internal_key(
+  mime_bytes: Uint8Array,
+  vault: NonNullable<ReturnType<typeof get_vault_from_memory>>,
+  passphrase: string,
+): Promise<Awaited<ReturnType<typeof sign_detached>> | "unhealed"> {
+  const armored_secret_key = await select_published_signing_key(vault);
+
+  if (!armored_secret_key) return "unhealed";
+
+  return sign_detached(mime_bytes, { armored_secret_key, passphrase });
+}
+
 export async function build_signed_mime_payload(
   params: SignedMimeParams,
 ): Promise<SignedMimePayload | undefined> {
@@ -149,18 +189,27 @@ export async function build_signed_mime_payload(
   });
 
   const mime_bytes = text_encoder.encode(mime);
-  const armored_secret_key = await select_published_signing_key(vault);
+  const external_signing_key = await resolve_external_signing_key();
+  let signed: Awaited<ReturnType<typeof sign_detached>> = null;
 
-  if (!armored_secret_key) {
-    report_signing_skipped("published_key_mismatch_unhealed");
-
-    return undefined;
+  if (
+    external_signing_key &&
+    is_primary_sender(params.from, await resolve_primary_address())
+  ) {
+    signed = await sign_detached_with_keys(mime_bytes, [external_signing_key]);
   }
 
-  const signed = await sign_detached(mime_bytes, {
-    armored_secret_key,
-    passphrase,
-  });
+  if (!signed) {
+    const internal = await sign_with_internal_key(mime_bytes, vault, passphrase);
+
+    if (internal === "unhealed") {
+      report_signing_skipped("published_key_mismatch_unhealed");
+
+      return undefined;
+    }
+
+    signed = internal;
+  }
 
   if (!signed) {
     report_signing_skipped("detached_signature_failed");

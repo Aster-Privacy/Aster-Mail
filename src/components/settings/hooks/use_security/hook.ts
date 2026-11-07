@@ -461,9 +461,7 @@ export function use_security() {
         const old_tag_hash = new Uint8Array(
           await crypto.subtle.digest("SHA-256", old_tag_material),
         );
-        const retired_raws = master_key_mode
-          ? []
-          : [await derive_kek_from_password(current_password)];
+        const retired_raws = [await derive_kek_from_password(current_password)];
 
         vault.legacy_keks = keep_password_change_keks(vault.legacy_keks, [
           ...retired_raws,

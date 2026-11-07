@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { PrivateKey } from "openpgp";
+
 import {
   load_openpgp,
   type openpgp_module,
@@ -95,6 +97,70 @@ export async function order_keys_for_message(
   if (matched.length === 0) return keys;
 
   return [...matched, ...unknown];
+}
+
+export type pgp_key_candidate =
+  | { kind: "armored"; key: string }
+  | { kind: "unlocked"; key: PrivateKey };
+
+function unlocked_key_ids(key: PrivateKey): string[] {
+  return key.getKeyIDs().map((id) => id.toHex());
+}
+
+export async function order_key_candidates_for_message(
+  ciphertext: string,
+  armored_keys: string[],
+  unlocked_keys: PrivateKey[] = [],
+): Promise<pgp_key_candidate[]> {
+  const as_armored = (key: string): pgp_key_candidate => ({
+    kind: "armored",
+    key,
+  });
+  const as_unlocked = (key: PrivateKey): pgp_key_candidate => ({
+    kind: "unlocked",
+    key,
+  });
+
+  if (unlocked_keys.length === 0) {
+    const ordered = await order_keys_for_message(ciphertext, armored_keys);
+
+    return ordered.map(as_armored);
+  }
+
+  const wanted = await message_key_ids(ciphertext);
+
+  if (!wanted) {
+    return [...armored_keys.map(as_armored), ...unlocked_keys.map(as_unlocked)];
+  }
+
+  const openpgp = await load_openpgp();
+  const wanted_set = new Set(wanted);
+  const matched_armored: string[] = [];
+  const unknown_armored: string[] = [];
+
+  for (const key of armored_keys) {
+    const ids = await read_key_ids(openpgp, key);
+
+    if (ids === null) {
+      unknown_armored.push(key);
+    } else if (ids.some((id) => wanted_set.has(id))) {
+      matched_armored.push(key);
+    }
+  }
+
+  const matched_unlocked = unlocked_keys.filter((key) =>
+    unlocked_key_ids(key).some((id) => wanted_set.has(id)),
+  );
+
+  if (matched_armored.length === 0 && matched_unlocked.length === 0) {
+    return [...armored_keys.map(as_armored), ...unlocked_keys.map(as_unlocked)];
+  }
+
+  return [
+    ...matched_armored.map(as_armored),
+    ...matched_unlocked.map(as_unlocked),
+    ...unknown_armored.map(as_armored),
+  ];
 }
 
 export function clear_key_id_cache(): void {

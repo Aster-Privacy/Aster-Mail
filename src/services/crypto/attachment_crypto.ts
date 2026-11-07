@@ -38,6 +38,7 @@ import {
 } from "./key_manager";
 import { zero_uint8_array } from "./secure_memory";
 import { seal_sent_envelope } from "./sent_copy_seal";
+import { get_external_decryption_keys } from "./external_pgp_key";
 import {
   is_attachment_meta_v2_nonce,
   open_attachment_meta_kek_text,
@@ -620,6 +621,7 @@ async function decrypt_client_authored_meta(
         meta_text,
         [vault.identity_key, ...(vault.previous_keys ?? [])],
         passphrase_string,
+        get_external_decryption_keys(),
       );
 
       return JSON.parse(decrypted) as AttachmentMeta;

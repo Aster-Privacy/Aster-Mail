@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ComponentType, SVGProps } from "react";
+import type { TranslationKey } from "@/lib/i18n";
 
 import {
   ArchiveBoxIcon,
@@ -41,7 +42,7 @@ export type SwipeActionId =
 
 export interface SwipeActionDefinition {
   id: SwipeActionId;
-  label_key: string;
+  label_key: TranslationKey;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   color: string;
 }

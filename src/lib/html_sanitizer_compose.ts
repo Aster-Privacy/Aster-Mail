@@ -25,9 +25,11 @@ import {
   is_transparent_color_value,
 } from "./html_sanitizer_css";
 import { repair_comment_markup } from "./html_sanitizer_utils";
+import { collapse_source_whitespace_html } from "./html_source_whitespace";
 import { normalize_url_value } from "./url_value";
 
 const BACKGROUND_DECLARATION_RE = /background(?:-color)?\s*:\s*[^;]+;?/gi;
+const LEADING_ASCII_WHITESPACE_RE = /^[\t\n\f\r ]+/;
 
 export function strip_transparent_backgrounds(el: Element): void {
   const style_attr = el.getAttribute("style");
@@ -164,6 +166,7 @@ export function sanitize_outgoing_html(html: string): string {
 
 export interface ComposePasteOptions {
   keep_signature_marker?: boolean;
+  collapse_source_whitespace?: boolean;
 }
 
 const SIGNATURE_MARKER_ATTRS = [
@@ -177,7 +180,11 @@ export function sanitize_compose_paste(
 ): string {
   if (!html || typeof html !== "string") return "";
 
-  const purified = DOMPurify.sanitize(html, {
+  const source = options.collapse_source_whitespace
+    ? collapse_source_whitespace_html(html)
+    : html;
+
+  const purified = DOMPurify.sanitize(source, {
     ALLOWED_TAGS: [
       "a",
       "b",
@@ -255,6 +262,16 @@ export function apply_compose_paste_dom_rules(
   options: ComposePasteOptions = {},
 ): string {
   const doc = new DOMParser().parseFromString(purified, "text/html");
+  const leading_space = options.collapse_source_whitespace
+    ? LEADING_ASCII_WHITESPACE_RE.exec(purified)?.[0]
+    : undefined;
+
+  if (leading_space) {
+    doc.body.insertBefore(
+      doc.createTextNode(leading_space),
+      doc.body.firstChild,
+    );
+  }
 
   const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT);
   const nodes_to_process: Element[] = [];

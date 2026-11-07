@@ -36,6 +36,22 @@ export interface StepUpCredentials {
   hardware_key_assertion?: StepUpHardwareKeyAssertion;
 }
 
+export interface ReauthProof {
+  password_hash: string;
+  totp_code?: string;
+}
+
+export const STEP_UP_REQUIRED_CODE = "STEP_UP_REQUIRED";
+
+export function to_reauth_proof(credentials: StepUpCredentials): ReauthProof {
+  return credentials.totp_code
+    ? {
+        password_hash: credentials.password_hash,
+        totp_code: credentials.totp_code,
+      }
+    : { password_hash: credentials.password_hash };
+}
+
 export interface StepUpRequirements {
   salt: Uint8Array;
   totp_required: boolean;

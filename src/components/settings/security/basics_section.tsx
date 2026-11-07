@@ -22,12 +22,14 @@ import { KeyIcon } from "@heroicons/react/24/outline";
 import { IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { SETTINGS_ANCHORS } from "@/lib/settings_links";
 import { PasswordSection } from "@/components/settings/security/password_section";
 import { TwoStepVerificationGroup } from "@/components/settings/security/two_factor_section";
 
 interface BasicsSectionProps {
   password_props: React.ComponentProps<typeof PasswordSection>;
   totp_enabled: boolean;
+  passkey_registered?: boolean;
   totp_status_failed?: boolean;
   on_totp_status_retry?: () => void;
   totp_backup_codes_remaining: number | undefined;
@@ -40,6 +42,7 @@ interface BasicsSectionProps {
 export function BasicsSection({
   password_props,
   totp_enabled,
+  passkey_registered,
   totp_status_failed,
   on_totp_status_retry,
   totp_backup_codes_remaining,
@@ -55,13 +58,16 @@ export function BasicsSection({
       icon={<KeyIcon />}
       title={t("settings.basics_section_title")}
     >
-      <PasswordSection {...password_props} show_header={false} />
+      <div id={SETTINGS_ANCHORS.password}>
+        <PasswordSection {...password_props} show_header={false} />
+      </div>
 
       <TwoStepVerificationGroup
         on_inline_setup_success={on_inline_totp_setup_success}
         on_regenerate_backup_codes={on_regenerate_backup_codes}
         on_totp_status_retry={on_totp_status_retry}
         on_two_factor_toggle={on_two_factor_toggle}
+        passkey_registered={passkey_registered}
         show_inline_setup={show_inline_totp_setup}
         totp_backup_codes_remaining={totp_backup_codes_remaining}
         totp_enabled={totp_enabled}

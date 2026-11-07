@@ -234,6 +234,7 @@ describe("move_out_of_bin", () => {
     expect(api_mock.batched_bulk_add_folder).toHaveBeenCalledWith(
       ["m1"],
       "receipts",
+      { include_thread: false },
     );
   });
 
@@ -251,6 +252,7 @@ describe("move_out_of_bin", () => {
     expect(api_mock.batched_bulk_remove_folder).toHaveBeenCalledWith(
       ["m1"],
       "work",
+      { include_thread: false },
     );
     expect(api_mock.batched_bulk_add_folder).not.toHaveBeenCalled();
   });
@@ -294,6 +296,7 @@ describe("move_out_of_bin", () => {
     expect(api_mock.batched_bulk_add_folder).toHaveBeenCalledWith(
       ["m1", "m2", "m3"],
       "receipts",
+      { include_thread: true },
     );
   });
 
@@ -345,10 +348,12 @@ describe("move_out_of_bin", () => {
     expect(api_mock.batched_bulk_remove_folder).toHaveBeenCalledWith(
       ["m1"],
       "receipts",
+      { include_thread: false },
     );
     expect(api_mock.batched_bulk_add_folder).toHaveBeenCalledWith(
       ["m1"],
       "work",
+      { include_thread: false },
     );
     expect(flag_calls()).toEqual([[["m1"], { is_trashed: true }]]);
   });
@@ -379,6 +384,7 @@ describe("context menu folder moves", () => {
     expect(api_mock.batched_bulk_add_folder).toHaveBeenCalledWith(
       ["m1"],
       "receipts",
+      { include_thread: false },
     );
     expect(events_mock.updated).toContainEqual({
       id: "m1",
@@ -401,6 +407,7 @@ describe("context menu folder moves", () => {
     expect(api_mock.batched_bulk_add_folder).toHaveBeenCalledWith(
       ["m1"],
       "work",
+      { include_thread: false },
     );
   });
 
@@ -414,6 +421,7 @@ describe("context menu folder moves", () => {
     expect(api_mock.batched_bulk_remove_folder).toHaveBeenCalledWith(
       ["m1"],
       "work",
+      { include_thread: false },
     );
     expect(archive_mock.batch_unarchive).not.toHaveBeenCalled();
     expect(toast_mock.last?.message).toBe("common.moved_to_inbox_toast");
@@ -431,6 +439,7 @@ describe("context menu folder moves", () => {
     expect(api_mock.batched_bulk_remove_folder).toHaveBeenCalledWith(
       ["m1"],
       "receipts",
+      { include_thread: false },
     );
   });
 
@@ -441,7 +450,11 @@ describe("context menu folder moves", () => {
     await menu.handle_folder_toggle(email, "receipts");
 
     expect(events_mock.removed).toEqual([["m1"]]);
-    expect(api_mock.bulk_add_folder).toHaveBeenCalledWith(["m1"], "receipts");
+    expect(api_mock.bulk_add_folder).toHaveBeenCalledWith(
+      ["m1"],
+      "receipts",
+      { include_thread: false },
+    );
     expect(events_mock.updated).toContainEqual({
       id: "m1",
       folders: [
@@ -461,8 +474,13 @@ describe("context menu folder moves", () => {
     expect(api_mock.bulk_remove_folder).toHaveBeenCalledWith(
       ["m1"],
       "receipts",
+      { include_thread: false },
     );
-    expect(api_mock.bulk_add_folder).toHaveBeenCalledWith(["m1"], "work");
+    expect(api_mock.bulk_add_folder).toHaveBeenCalledWith(
+      ["m1"],
+      "work",
+      { include_thread: false },
+    );
   });
 });
 
@@ -529,6 +547,7 @@ describe("toolbar folder moves for selected messages", () => {
     expect(api_mock.batched_bulk_add_folder).toHaveBeenCalledWith(
       ["a", "b"],
       "receipts",
+      { include_thread: false },
     );
     expect(remove_email.mock.calls).toEqual([["a"], ["b"]]);
     expect(toast_mock.last?.message).toBe(
