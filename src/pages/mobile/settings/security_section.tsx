@@ -416,14 +416,12 @@ export function SecuritySection({
         new_password,
       );
 
-      if (!master_key_mode) {
-        const old_kek_raw = await derive_kek_from_password(current_password);
+      const old_kek_raw = await derive_kek_from_password(current_password);
 
-        vault.legacy_keks = prepend_kek_to_list(
-          vault.legacy_keks,
-          serialize_kek_for_vault(old_kek_raw),
-        );
-      }
+      vault.legacy_keks = prepend_kek_to_list(
+        vault.legacy_keks,
+        serialize_kek_for_vault(old_kek_raw),
+      );
 
       vault.legacy_keks = prepend_kek_to_list(
         vault.legacy_keks,
