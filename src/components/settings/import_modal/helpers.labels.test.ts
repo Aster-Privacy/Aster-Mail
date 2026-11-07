@@ -294,6 +294,24 @@ describe("keyword_labels", () => {
 });
 
 describe("classify_import_email", () => {
+  it("archives mail from an archive folder without creating a folder", () => {
+    const email = email_with({}, "Archive");
+
+    expect(classify_import_email(email)).toMatchObject({
+      is_archived: true,
+      custom_labels: [],
+    });
+    expect(extract_source_folders([email])).toEqual([]);
+  });
+
+  it("lets the label header win over the file folder", () => {
+    const d = classify_import_email(
+      email_with({ "x-gmail-labels": "Inbox" }, "Archive"),
+    );
+
+    expect(d.is_archived).toBe(false);
+  });
+
   it("turns every custom label of the label header into a label", () => {
     const d = classify_import_email(
       email_with({

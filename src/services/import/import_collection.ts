@@ -66,6 +66,13 @@ interface MboxScan {
 }
 
 const GENERATED_MESSAGE_ID_SUFFIX = "@astermail.local";
+const ARCHIVE_MBOX_NAMES = new Set(["archive", "archives", "archived"]);
+
+export function mbox_source_folder(file_name: string): string | undefined {
+  const stem = file_name.replace(/\.(mbox|mbx)$/i, "").trim();
+
+  return ARCHIVE_MBOX_NAMES.has(stem.toLowerCase()) ? stem : undefined;
+}
 
 async function scan_mbox_file(
   file: File,
@@ -76,6 +83,7 @@ async function scan_mbox_file(
   const summaries: ParsedEmail[] = [];
   const ordinals: number[] = [];
   const warnings: string[] = [];
+  const source_folder = mbox_source_folder(file.name);
 
   let ordinal = -1;
   let invalid_count = 0;
@@ -122,6 +130,8 @@ async function scan_mbox_file(
       continue;
     }
 
+    if (source_folder) summary.source_folder = source_folder;
+
     summaries.push(summary);
     ordinals.push(ordinal);
   }
@@ -159,6 +169,7 @@ function load_mbox_email(raw_email: string, summary: ParsedEmail) {
     }
 
     email.message_id = summary.message_id;
+    if (summary.source_folder) email.source_folder = summary.source_folder;
 
     if (!is_valid_email(email)) {
       return { email: null, status: "invalid" as const };
