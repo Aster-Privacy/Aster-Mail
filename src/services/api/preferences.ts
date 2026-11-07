@@ -54,6 +54,7 @@ export interface UserPreferences {
   date_format: string;
   time_format: "12h" | "24h";
   relative_dates: boolean;
+  compose_from_selected_alias: boolean;
   auto_save_drafts: boolean;
   auto_save_recent_recipients: boolean;
   density: string;
@@ -675,6 +676,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   date_format: locale_date_format(),
   time_format: locale_time_format(),
   relative_dates: true,
+  compose_from_selected_alias: false,
   auto_save_drafts: true,
   auto_save_recent_recipients: true,
   density: "Comfortable",
@@ -1032,6 +1034,8 @@ export function build_merged_preferences(
   }
 
   merged.relative_dates = merged.relative_dates !== false;
+  merged.compose_from_selected_alias =
+    merged.compose_from_selected_alias === true;
 
   merged.swipe_left_action = normalize_swipe_action(
     merged.swipe_left_action,

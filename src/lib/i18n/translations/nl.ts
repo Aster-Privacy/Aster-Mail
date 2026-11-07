@@ -6095,6 +6095,13 @@ export const nl = {
     info_relative_dates_title: "Relatieve datums",
     info_relative_dates_description:
       "Als dit aanstaat, worden berichten van vandaag en gisteren weergegeven als Vandaag en Gisteren. Zet het uit om altijd de datum en tijd te tonen waarop een bericht is verzonden of ontvangen: in de berichtenlijst, in het bericht en bij het afdrukken.",
+    compose_from_selected_alias: "Opstellen vanaf geselecteerde alias",
+    compose_from_selected_alias_description:
+      "Nieuwe berichten gebruiken de alias die je in de zijbalk hebt geopend als afzender",
+    info_compose_from_selected_alias_title:
+      "Opstellen vanaf geselecteerde alias",
+    info_compose_from_selected_alias_description:
+      "Als dit aan staat, wordt een nieuw bericht dat je begint terwijl een alias in de zijbalk is geopend, vanaf die alias verzonden. Antwoorden, doorgestuurde berichten en concepten houden hun eigen afzender, en je kunt het Van-adres vóór het verzenden nog wijzigen.",
     show_alias_indicators: "Aliasindicatoren tonen",
     show_alias_indicators_description:
       "Berichten markeren die via een van je aliassen zijn binnengekomen",

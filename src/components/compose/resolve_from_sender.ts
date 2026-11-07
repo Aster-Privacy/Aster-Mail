@@ -24,8 +24,11 @@ import { sender_id_matches } from "@/lib/preferred_sender";
 export const from_tier_draft = 0;
 export const from_tier_thread = 1;
 export const from_tier_external = 2;
-export const from_tier_pinned = 3;
-export const from_tier_fallback = 4;
+export const from_tier_selected_alias = 3;
+export const from_tier_pinned = 4;
+export const from_tier_fallback = 5;
+
+const selected_alias_types = new Set(["primary", "alias", "domain"]);
 
 export interface from_sender_candidate {
   id: string;
@@ -41,6 +44,7 @@ export interface from_resolution_input<T extends from_sender_candidate> {
   thread_addresses?: (string | null | undefined)[];
   prefer_external?: boolean;
   preferred_sender_id?: string | null;
+  selected_alias?: string | null;
 }
 
 export interface from_resolution<T extends from_sender_candidate> {
@@ -91,6 +95,15 @@ export function resolve_from_sender<T extends from_sender_candidate>(
     const external = options.find((o) => o.type === "external");
 
     if (external) return { option: external, tier: from_tier_external };
+  }
+
+  if (input.selected_alias) {
+    const pool = options.filter(
+      (o) => !o.is_catch_all && selected_alias_types.has(o.type ?? ""),
+    );
+    const selected = find_by_address(pool, input.selected_alias);
+
+    if (selected) return { option: selected, tier: from_tier_selected_alias };
   }
 
   if (input.preferred_sender_id) {

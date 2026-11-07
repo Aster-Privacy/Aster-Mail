@@ -4343,6 +4343,12 @@ export const it = {
     info_relative_dates_title: "Date relative",
     info_relative_dates_description:
       "Quando questa opzione è attiva, i messaggi di oggi e di ieri vengono mostrati come Oggi e Ieri. Disattivala per mostrare sempre la data e l’ora in cui un messaggio è stato inviato o ricevuto, nell’elenco dei messaggi, nel messaggio e in stampa.",
+    compose_from_selected_alias: "Scrivi dall'alias selezionato",
+    compose_from_selected_alias_description:
+      "I nuovi messaggi usano come mittente l'alias aperto nella barra laterale",
+    info_compose_from_selected_alias_title: "Scrivi dall'alias selezionato",
+    info_compose_from_selected_alias_description:
+      "Quando questa opzione è attiva, un nuovo messaggio che inizi mentre un alias è aperto nella barra laterale viene inviato da quell'alias. Risposte, inoltri e bozze mantengono il proprio mittente e puoi comunque cambiare l'indirizzo Da prima dell'invio.",
     show_alias_indicators: "Mostra indicatori alias",
     show_alias_indicators_description:
       "Contrassegna i messaggi arrivati tramite uno dei tuoi alias",

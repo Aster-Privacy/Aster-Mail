@@ -6117,6 +6117,12 @@ export const de = {
     info_relative_dates_title: "Relative Datumsangaben",
     info_relative_dates_description:
       "Wenn diese Option aktiviert ist, werden Nachrichten von heute und gestern als Heute und Gestern angezeigt. Schalten Sie sie aus, um Datum und Uhrzeit des Sendens oder Empfangs immer anzuzeigen: in der Nachrichtenliste, in der Nachricht selbst und im Ausdruck.",
+    compose_from_selected_alias: "Aus ausgewähltem Alias verfassen",
+    compose_from_selected_alias_description:
+      "Neue Nachrichten verwenden den Alias, den Sie in der Seitenleiste geöffnet haben, als Absender",
+    info_compose_from_selected_alias_title: "Aus ausgewähltem Alias verfassen",
+    info_compose_from_selected_alias_description:
+      "Wenn diese Option aktiviert ist, wird eine neue Nachricht, die Sie bei geöffnetem Alias in der Seitenleiste beginnen, von diesem Alias gesendet. Antworten, Weiterleitungen und Entwürfe behalten ihren Absender, und Sie können die Absenderadresse vor dem Senden weiterhin ändern.",
     show_alias_indicators: "Alias-Kennzeichnung anzeigen",
     show_alias_indicators_description:
       "Nachrichten kennzeichnen, die über einen Ihrer Aliasse eingegangen sind",

@@ -6377,6 +6377,12 @@ export const pl = {
     info_relative_dates_title: "Daty względne",
     info_relative_dates_description:
       "Gdy ta opcja jest włączona, wiadomości z dzisiaj i wczoraj są oznaczane jako Dzisiaj i Wczoraj. Wyłącz ją, aby zawsze widzieć datę i godzinę wysłania lub odebrania wiadomości: na liście wiadomości, w samej wiadomości i na wydruku.",
+    compose_from_selected_alias: "Pisz z wybranego aliasu",
+    compose_from_selected_alias_description:
+      "Nowe wiadomości używają jako nadawcy aliasu otwartego na pasku bocznym",
+    info_compose_from_selected_alias_title: "Pisz z wybranego aliasu",
+    info_compose_from_selected_alias_description:
+      "Gdy ta opcja jest włączona, nowa wiadomość rozpoczęta przy otwartym aliasie na pasku bocznym jest wysyłana z tego aliasu. Odpowiedzi, przekazania i wersje robocze zachowują swojego nadawcę, a adres Od nadal możesz zmienić przed wysłaniem.",
     show_alias_indicators: "Pokaż wskaźniki aliasów",
     show_alias_indicators_description:
       "Oznaczaj wiadomości, które dotarły przez jeden z Twoich aliasów",

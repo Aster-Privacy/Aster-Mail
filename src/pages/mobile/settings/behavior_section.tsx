@@ -345,6 +345,21 @@ export function BehaviorSection({
           />
         </SettingsGroup>
 
+        <SettingsGroup title={t("settings.composing_and_replies")}>
+          <SettingsRow
+            description={t("settings.compose_from_selected_alias_description")}
+            label={t("settings.compose_from_selected_alias")}
+            trailing={
+              <Switch
+                checked={preferences.compose_from_selected_alias === true}
+                onCheckedChange={(v) =>
+                  update_preference("compose_from_selected_alias", v, true)
+                }
+              />
+            }
+          />
+        </SettingsGroup>
+
         <SettingsGroup title={t("settings.compose_defaults_title")}>
           <OptionList
             on_change={(v) =>

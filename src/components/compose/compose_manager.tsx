@@ -32,6 +32,7 @@ import {
   type ReactNode,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 
 import {
   compose_shell_mode,
@@ -50,6 +51,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ignore_error } from "@/lib/ignore_error";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { compose_instance_storage_key } from "@/components/compose/compose_instance_key";
+import { selected_alias_from_location } from "@/components/compose/selected_alias";
 import { lazy_on_demand, preload_when_idle } from "@/utils/lazy_with_retry";
 
 export const load_compose_window = () =>
@@ -136,6 +138,7 @@ export interface ComposeInstance {
   edit_draft?: EditDraftData | null;
   initial_to?: string;
   initial_ghost_mode?: boolean;
+  initial_from_alias?: string | null;
   is_minimized: boolean;
 }
 
@@ -154,10 +157,13 @@ function generate_compose_id(): string {
 export function use_compose_manager() {
   const { t } = use_translation();
   const { preferences } = use_preferences();
+  const location = useLocation();
   const [instances, set_instances] = useState<ComposeInstance[]>([]);
   const instances_ref = useRef(instances);
+  const location_ref = useRef(location);
 
   instances_ref.current = instances;
+  location_ref.current = location;
 
   const open_compose = useCallback(
     (
@@ -208,6 +214,12 @@ export function use_compose_manager() {
           edit_draft,
           initial_to,
           initial_ghost_mode,
+          initial_from_alias: edit_draft
+            ? null
+            : selected_alias_from_location(
+                location_ref.current.pathname,
+                location_ref.current.state,
+              ),
           is_minimized:
             (preferences.compose_window_mode ?? "default") === "minimized",
         },
@@ -363,6 +375,7 @@ export function ComposeManager({
                 >
                   <ComposeWindow
                     edit_draft={instance.edit_draft}
+                    initial_from_alias={instance.initial_from_alias}
                     initial_ghost_mode={instance.initial_ghost_mode}
                     initial_to={instance.initial_to}
                     instance_id={instance.id}

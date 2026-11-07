@@ -64,6 +64,7 @@ interface ComposeWindowProps {
   on_draft_cleared?: () => void;
   initial_to?: string;
   initial_ghost_mode?: boolean;
+  initial_from_alias?: string | null;
 }
 
 const RESIZE_MIN_WIDTH = 420;
@@ -78,6 +79,7 @@ export function ComposeWindow({
   on_draft_cleared,
   initial_to,
   initial_ghost_mode,
+  initial_from_alias,
 }: ComposeWindowProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
@@ -191,6 +193,7 @@ export function ComposeWindow({
     edit_draft,
     on_draft_cleared,
     initial_to,
+    selected_alias: initial_from_alias,
     session_storage_key: compose_instance_storage_key(instance_id),
     enable_offline_queue: true,
     enable_ctrl_enter_send: true,
