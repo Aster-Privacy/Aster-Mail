@@ -909,7 +909,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               <input
                 ref={file_input_ref}
                 multiple
-                accept=".mbox,.mbx,.eml,.emlx,.csv,.tsv,.pst,.ost,.txt"
+                accept=".mbox,.mbx,.eml,.emlx,.csv,.tsv,.pst,.ost,.txt,.json"
                 className="hidden"
                 type="file"
                 onChange={handle_file_input_change}
