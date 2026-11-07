@@ -220,7 +220,12 @@ describe("external key validation", () => {
     });
     const parsed = await parse_external_key(armored);
 
-    vi.spyOn(openpgp.PrivateKey.prototype, "validate").mockRejectedValueOnce(
+    vi.spyOn(
+      openpgp.PrivateKey.prototype as unknown as {
+        validate(): Promise<void>;
+      },
+      "validate",
+    ).mockRejectedValueOnce(
       new Error("key is invalid"),
     );
 
