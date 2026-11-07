@@ -512,22 +512,22 @@ export const InboxEmailListItem = memo(
             </div>
           </Tooltip>
 
-          {email.is_pinned && (
-            <PinIcon
-              filled
-              className="w-4 h-4 text-[var(--accent-color)] flex-shrink-0 -rotate-[38deg] hidden sm:block"
-            />
-          )}
-
-          {!email.is_read && (
-            <>
-              <span className="sr-only">{t("mail.unread")}</span>
-              <span className="mail_unread_dot w-2 h-2 rounded-full flex-shrink-0 hidden sm:block" />
-            </>
-          )}
-
           <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-10 overflow-hidden">
-            <div className="flex items-center gap-1.5 min-w-0 sm:max-w-[45%] overflow-hidden pe-px">
+            <div className="flex items-center gap-1.5 min-w-0 sm:w-44 sm:shrink-0 sm:max-w-[45%] overflow-hidden pe-px">
+              {email.is_pinned && (
+                <PinIcon
+                  filled
+                  className="w-4 h-4 text-[var(--accent-color)] flex-shrink-0 -rotate-[38deg] hidden sm:block"
+                />
+              )}
+
+              {!email.is_read && (
+                <>
+                  <span className="sr-only">{t("mail.unread")}</span>
+                  <span className="mail_unread_dot w-2 h-2 rounded-full flex-shrink-0 hidden sm:block" />
+                </>
+              )}
+
               {show_thread_count &&
                 thread_message_count > 1 &&
                 (preferences.thread_count_position ?? "left") === "left" && (
