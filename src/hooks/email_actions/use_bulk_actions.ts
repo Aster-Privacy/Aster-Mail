@@ -958,6 +958,7 @@ export function use_bulk_actions(
 
       try {
         const result = await batched_bulk_add_folder(ids, folder_token, {
+          include_thread: preferences.conversation_grouping !== false,
           signal: abort_controller.signal,
           on_progress: (completed, total) => {
             if (show_progress) update_progress_toast(completed, total, t);
@@ -1005,6 +1006,7 @@ export function use_bulk_actions(
       config.on_success,
       set_action_error,
       bulk_abort_ref,
+      preferences.conversation_grouping,
       t,
     ],
   );
@@ -1036,6 +1038,7 @@ export function use_bulk_actions(
 
       try {
         const result = await batched_bulk_remove_folder(ids, folder_token, {
+          include_thread: preferences.conversation_grouping !== false,
           signal: abort_controller.signal,
           on_progress: (completed, total) => {
             if (show_progress) update_progress_toast(completed, total, t);
@@ -1083,6 +1086,7 @@ export function use_bulk_actions(
       config.on_success,
       set_action_error,
       bulk_abort_ref,
+      preferences.conversation_grouping,
       t,
     ],
   );

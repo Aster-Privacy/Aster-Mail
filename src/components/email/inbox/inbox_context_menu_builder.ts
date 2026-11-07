@@ -252,6 +252,12 @@ export function build_context_menu_actions(
       email.grouped_email_ids && email.grouped_email_ids.length > 1
         ? email.grouped_email_ids
         : [email.id];
+    const scope = {
+      include_thread: trashes_whole_thread(
+        email,
+        preferences.conversation_grouping,
+      ),
+    };
 
     if (is_already_assigned) {
       const remaining_folders = previous_folders.filter(
@@ -259,7 +265,7 @@ export function build_context_menu_actions(
       );
 
       update_email(email.id, { folders: remaining_folders });
-      const result = await bulk_remove_folder(all_ids, folder_token);
+      const result = await bulk_remove_folder(all_ids, folder_token, scope);
 
       if (!result.error) {
         emit_mail_item_updated({ id: email.id, folders: remaining_folders });
@@ -268,7 +274,11 @@ export function build_context_menu_actions(
           action_type: "folder",
           email_ids: all_ids,
           on_undo: async () => {
-            const undo_result = await bulk_add_folder(all_ids, folder_token);
+            const undo_result = await bulk_add_folder(
+              all_ids,
+              folder_token,
+              scope,
+            );
 
             if (undo_result.error) throw new Error("undo folder failed");
             for (const id of all_ids) {
@@ -303,7 +313,7 @@ export function build_context_menu_actions(
     } else {
       update_email(email.id, { folders: next_folders });
     }
-    const result = await bulk_add_folder(all_ids, folder_token);
+    const result = await bulk_add_folder(all_ids, folder_token, scope);
 
     if (!result.error) {
       emit_mail_item_updated({ id: email.id, folders: next_folders });
@@ -312,11 +322,15 @@ export function build_context_menu_actions(
         action_type: "folder",
         email_ids: all_ids,
         on_undo: async () => {
-          const undo_result = await bulk_remove_folder(all_ids, folder_token);
+          const undo_result = await bulk_remove_folder(
+            all_ids,
+            folder_token,
+            scope,
+          );
 
           if (undo_result.error) throw new Error("undo folder failed");
           for (const previous of previous_folders) {
-            await bulk_add_folder(all_ids, previous.folder_token);
+            await bulk_add_folder(all_ids, previous.folder_token, scope);
           }
           reindex_ids(all_ids);
           for (const id of all_ids) {

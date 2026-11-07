@@ -1009,7 +1009,14 @@ export function use_index_page_state() {
         emit_mail_items_removed({ ids: email_ids });
       }
 
-      const result = await batched_bulk_add_folder(email_ids, folder_token);
+      const scope = {
+        include_thread: preferences.conversation_grouping !== false,
+      };
+      const result = await batched_bulk_add_folder(
+        email_ids,
+        folder_token,
+        scope,
+      );
       const moved_ids = email_ids.filter(
         (id) => !result.failed_ids.includes(id),
       );
@@ -1059,6 +1066,7 @@ export function use_index_page_state() {
           const undo_result = await batched_bulk_remove_folder(
             moved_ids,
             folder_token,
+            scope,
           );
 
           if (undo_result.failed_ids.length === moved_ids.length) {
@@ -1074,6 +1082,7 @@ export function use_index_page_state() {
             const restore_result = await batched_bulk_add_folder(
               moved_ids,
               previous.folder_token,
+              scope,
             );
 
             if (restore_result.failed_ids.length > 0) undo_incomplete = true;
@@ -1096,7 +1105,7 @@ export function use_index_page_state() {
         },
       });
     },
-    [t, current_view],
+    [t, current_view, preferences.conversation_grouping],
   );
 
   const handle_drop_to_tag = useCallback(

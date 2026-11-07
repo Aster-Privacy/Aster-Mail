@@ -391,9 +391,12 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
         const assigned = (menu_email_ref.current?.folders ?? []).some(
           (folder) => folder.folder_token === folder_token,
         );
+        const scope = {
+          include_thread: preferences.conversation_grouping !== false,
+        };
         const result = assigned
-          ? await bulk_remove_folder(ids, folder_token)
-          : await bulk_add_folder(ids, folder_token);
+          ? await bulk_remove_folder(ids, folder_token, scope)
+          : await bulk_add_folder(ids, folder_token, scope);
 
         if (result.error) {
           show_toast(t("common.failed_to_update"), "error");
@@ -420,6 +423,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
       perform_search,
       props.query,
       handle_menu_move_out_of_bin,
+      preferences.conversation_grouping,
       t,
     ],
   );

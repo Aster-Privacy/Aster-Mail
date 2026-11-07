@@ -33,7 +33,15 @@ vi.mock("./client", () => ({
   },
 }));
 
-const { move_mail_item } = await import("./mail");
+const {
+  move_mail_item,
+  add_mail_item_folder,
+  remove_mail_item_folder,
+  bulk_add_folder,
+  bulk_remove_folder,
+  folder_bulk_body,
+  merge_folder_bulk,
+} = await import("./mail");
 
 beforeEach(() => {
   post.mockReset();
@@ -73,5 +81,101 @@ describe("move_mail_item", () => {
 
     expect(result.error).toBe("nope");
     expect(del).not.toHaveBeenCalled();
+  });
+});
+
+describe("conversation scoped folder changes", () => {
+  it("keeps the per-message request when the scope is off", async () => {
+    await add_mail_item_folder("m1", { folder_token: "bills" });
+    await remove_mail_item_folder("m1", "bills", { include_thread: false });
+
+    expect(post).toHaveBeenCalledWith("/mail/v1/messages/m1/labels", {
+      folder_token: "bills",
+    });
+    expect(del).toHaveBeenCalledWith("/mail/v1/messages/m1/labels/bills");
+  });
+
+  it("files the whole conversation when the scope is on", async () => {
+    post.mockResolvedValue({
+      data: { status: "ok", affected: 3, ids: ["m1", "m2", "m3"] },
+    });
+
+    const result = await add_mail_item_folder(
+      "m1",
+      { folder_token: "bills" },
+      { include_thread: true },
+    );
+
+    expect(post).toHaveBeenCalledWith("/mail/v1/messages/bulk/labels", {
+      ids: ["m1"],
+      label_token: "bills",
+      include_thread: true,
+    });
+    expect(result.error).toBeUndefined();
+  });
+
+  it("removes the folder from the whole conversation when the scope is on", async () => {
+    await remove_mail_item_folder("m1", "bills", { include_thread: true });
+
+    expect(post).toHaveBeenCalledWith("/mail/v1/messages/bulk/labels/remove", {
+      ids: ["m1"],
+      label_token: "bills",
+      include_thread: true,
+    });
+    expect(del).not.toHaveBeenCalled();
+  });
+
+  it("moves the whole conversation and skips the source cleanup on failure", async () => {
+    post.mockResolvedValueOnce({ error: "nope" });
+
+    const result = await move_mail_item(
+      "m1",
+      { folder_token: "bills", from_folder_token: "myfeed" },
+      { include_thread: true },
+    );
+
+    expect(result.error).toBe("nope");
+    expect(post).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends the scope with bulk requests only when asked", async () => {
+    await bulk_add_folder(["a", "b"], "bills");
+    await bulk_remove_folder(["a"], "bills", { include_thread: true });
+
+    expect(post).toHaveBeenNthCalledWith(1, "/mail/v1/messages/bulk/labels", {
+      ids: ["a", "b"],
+      label_token: "bills",
+    });
+    expect(post).toHaveBeenNthCalledWith(
+      2,
+      "/mail/v1/messages/bulk/labels/remove",
+      { ids: ["a"], label_token: "bills", include_thread: true },
+    );
+  });
+
+  it("builds the old body without a scope", () => {
+    expect(folder_bulk_body(["a"], "t")).toEqual({
+      ids: ["a"],
+      label_token: "t",
+    });
+    expect(folder_bulk_body(["a"], "t", { include_thread: false })).toEqual({
+      ids: ["a"],
+      label_token: "t",
+    });
+  });
+
+  it("merges chunk responses and their conversation ids", () => {
+    expect(
+      merge_folder_bulk(
+        { status: "ok", affected: 2, ids: ["a", "b"] },
+        { status: "ok", affected: 1, ids: ["b", "c"] },
+      ),
+    ).toEqual({ status: "ok", affected: 3, ids: ["a", "b", "c"] });
+    expect(
+      merge_folder_bulk(
+        { status: "ok", affected: 1 },
+        { status: "ok", affected: 2 },
+      ),
+    ).toEqual({ status: "ok", affected: 3 });
   });
 });
