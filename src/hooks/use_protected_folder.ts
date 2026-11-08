@@ -40,6 +40,7 @@ import {
   set_folder_unlock_record,
 } from "@/services/folder_unlock_store";
 import { purge_locked_folder_local_caches } from "@/services/locked_folders";
+import { request_folder_unlock_grant } from "@/services/folder_unlock_grant";
 import { api_client } from "@/services/api/client";
 import {
   prepare_set_password,
@@ -331,19 +332,29 @@ export function use_protected_folder(
           );
         }
 
-        register_unlock({
+        const grant = await request_folder_unlock_grant(
           folder_id,
-          folder_token: folder?.folder_token ?? "",
-          folder_key,
-          unlocked_at: Date.now(),
-          password_salt: data.password_salt,
-          unlock_token: null,
-          unlock_expires_at: null,
-          timeout_id: null,
-        });
+          data.password_hash,
+        );
 
-        set_is_unlocked(true);
-        reset_timeout();
+        if (grant) {
+          register_unlock({
+            folder_id,
+            folder_token: folder?.folder_token ?? "",
+            folder_key,
+            unlocked_at: Date.now(),
+            password_salt: data.password_salt,
+            unlock_token: grant.unlock_token,
+            unlock_expires_at: grant.unlock_expires_at,
+            timeout_id: null,
+          });
+          set_is_unlocked(true);
+          reset_timeout();
+        } else {
+          zero_uint8_array(folder_key);
+          set_is_unlocked(false);
+        }
+
         emit_folders_changed();
         void purge_locked_folder_local_caches().catch(() => undefined);
 
@@ -398,8 +409,30 @@ export function use_protected_folder(
           );
         }
 
+        const grant = await request_folder_unlock_grant(
+          folder_id,
+          change_data.new_password_hash,
+        );
+
+        if (!grant) {
+          clear_folder_timeout(folder_id);
+          zero_uint8_array(unlocked.folder_key);
+          forget_unlock(folder_id);
+          set_is_unlocked(false);
+          window.dispatchEvent(
+            new CustomEvent("astermail:folder-locked", {
+              detail: { folder_id },
+            }),
+          );
+
+          return true;
+        }
+
         unlocked.password_salt = change_data.new_password_salt;
         unlocked.unlocked_at = Date.now();
+        unlocked.unlock_token = grant.unlock_token;
+        unlocked.unlock_expires_at = grant.unlock_expires_at;
+        register_unlock(unlocked);
         reset_timeout();
 
         return true;
