@@ -116,6 +116,24 @@ describe("export sidecar files", () => {
     expect(labels.has("c")).toBe(false);
   });
 
+  it("splits folder paths on backslashes and forward slashes", () => {
+    const labels = parse_export_labels([
+      { ID: "a", Path: "Bills\\Mobile Stuff", Type: 3 },
+      { ID: "b", Path: "Work/Projects", Type: 3 },
+      { ID: "c", Path: " Home \\ Garden/ Tools \\", Type: 3 },
+      { ID: "d", Path: ["Bills", " Mobile Stuff "], Type: 3 },
+      { ID: "e", Path: ["Clients", "Acme\\2026"], Type: 3 },
+      { ID: "f", Path: "Fun\\Stuff", Type: 1 },
+    ]);
+
+    expect(labels.get("a")?.name).toBe("Bills/Mobile Stuff");
+    expect(labels.get("b")?.name).toBe("Work/Projects");
+    expect(labels.get("c")?.name).toBe("Home/Garden/Tools");
+    expect(labels.get("d")?.name).toBe("Bills/Mobile Stuff");
+    expect(labels.get("e")?.name).toBe("Clients/Acme/2026");
+    expect(labels.get("f")?.name).toBe("Fun\\Stuff");
+  });
+
   it("caps long label names without a trailing separator", () => {
     const long = `${"a".repeat(511)}/b`;
     const labels = parse_export_labels([{ ID: "a", Path: long, Type: 3 }]);

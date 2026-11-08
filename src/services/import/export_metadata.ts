@@ -127,32 +127,46 @@ function is_printable(char: string): boolean {
   return code < 0x2066 || code > 0x2069;
 }
 
-function clean_label_path(value: string): string {
+const TAG_PATH_SEPARATOR = "/";
+const FOLDER_PATH_SEPARATOR = /[\\/]/;
+
+function clean_label_path(
+  value: string,
+  separator: string | RegExp = TAG_PATH_SEPARATOR,
+): string {
   return Array.from(value.slice(0, MAX_LABEL_INPUT_LENGTH))
     .filter(is_printable)
     .join("")
-    .split("/")
+    .split(separator)
     .map((segment) => segment.trim())
     .filter((segment) => segment.length > 0)
     .join("/");
 }
 
-function label_name(entry: Record<string, unknown>): string {
+function label_name(
+  entry: Record<string, unknown>,
+  is_folder: boolean,
+): string {
+  const separator = is_folder ? FOLDER_PATH_SEPARATOR : TAG_PATH_SEPARATOR;
   const path = entry.Path;
   let name = "";
 
-  if (typeof path === "string") name = clean_label_path(path);
+  if (typeof path === "string") name = clean_label_path(path, separator);
   else if (Array.isArray(path)) {
     name = clean_label_path(
-      path.filter((part) => typeof part === "string").join("/"),
+      path
+        .filter((part): part is string => typeof part === "string")
+        .map((part) => clean_label_path(part, separator))
+        .join("/"),
+      separator,
     );
   }
 
   if (!name && typeof entry.Name === "string") {
-    name = clean_label_path(entry.Name);
+    name = clean_label_path(entry.Name, separator);
   }
 
-  return clean_label_path(name.slice(0, MAX_LABEL_NAME_LENGTH));
+  return clean_label_path(name.slice(0, MAX_LABEL_NAME_LENGTH), separator);
 }
 
 export function parse_export_labels(
@@ -165,8 +179,8 @@ export function parse_export_labels(
   for (const entry of payload) {
     if (!is_record(entry) || typeof entry.ID !== "string") continue;
 
-    const name = label_name(entry);
     const type = typeof entry.Type === "number" ? entry.Type : 0;
+    const name = label_name(entry, type === FOLDER_LABEL_TYPE);
 
     if (!name) continue;
     labels.set(entry.ID, { name, type });

@@ -23,6 +23,12 @@ import { type ParsedEmail } from "@/services/import/parser";
 import { type ImportSource } from "@/services/api/email_import";
 import { extract_email_address } from "@/services/import/mime_utils";
 
+import {
+  STORE_ROOT_SEGMENT,
+  folder_path_key,
+  normalize_folder_path,
+} from "./import_folders";
+
 export interface ImportModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -94,9 +100,6 @@ const ARCHIVE_LABELS = new Set([
 ]);
 const STARRED_LABELS = new Set(["starred", "flagged"]);
 
-const STORE_ROOT_SEGMENT =
-  /^(top of .+|root - .+|ipm_subtree|\[gmail\]|\[google mail\])$/;
-
 function system_label_name(name: string): string {
   const segments = name
     .trim()
@@ -164,10 +167,7 @@ export function split_label_list(raw: string, on_whitespace = false): string[] {
       } else {
         in_quotes = !in_quotes;
       }
-    } else if (
-      !in_quotes &&
-      (on_whitespace ? /\s/.test(char) : char === ",")
-    ) {
+    } else if (!in_quotes && (on_whitespace ? /\s/.test(char) : char === ",")) {
       flush();
     } else {
       current += char;
@@ -312,10 +312,14 @@ export function classify_import_email(email: ParsedEmail): ImportDisposition {
   ).tag_names;
 
   if (!has_label_header && email.source_folders) {
-    for (const folder of email.source_folders) {
-      const name = folder.trim();
+    const seen = new Set(disposition.custom_labels.map(folder_path_key));
 
-      if (name && !disposition.custom_labels.includes(name)) {
+    for (const folder of email.source_folders) {
+      const name = normalize_folder_path(folder);
+      const key = name.toLowerCase();
+
+      if (name && !seen.has(key)) {
+        seen.add(key);
         disposition.custom_labels.push(name);
       }
     }
@@ -379,18 +383,21 @@ export function derive_manual_import_source(files: File[]): ImportSource {
 }
 
 export function extract_source_folders(emails: ParsedEmail[]): string[] {
-  const out = new Set<string>();
+  const out = new Map<string, string>();
 
   for (const email of emails) {
     const disposition = classify_import_email(email);
 
     if (disposition.skip) continue;
-    for (const name of disposition.custom_labels) {
-      out.add(name);
+    for (const label of disposition.custom_labels) {
+      const name = normalize_folder_path(label);
+      const key = name.toLowerCase();
+
+      if (name && !out.has(key)) out.set(key, name);
     }
   }
 
-  return Array.from(out);
+  return Array.from(out.values());
 }
 
 export function folder_for_email(
@@ -398,7 +405,7 @@ export function folder_for_email(
   label_map: Map<string, string>,
 ): string | undefined {
   for (const name of classify_import_email(email).custom_labels) {
-    const token = label_map.get(name.trim());
+    const token = label_map.get(folder_path_key(name));
 
     if (token) return token;
   }
