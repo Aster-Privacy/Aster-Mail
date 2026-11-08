@@ -10185,9 +10185,9 @@ export const en: Translations = {
     delete_security_key_title: "Delete security key?",
     other_devices_signed_out:
       "Aster signed you out on your other devices. To use them again, sign in and confirm with your security key.",
-    remove_last_key_step_up_title: "Remove your last security key?",
+    remove_last_key_step_up_title: "Remove this security key?",
     remove_last_key_step_up_description:
-      "This is the last second factor on your account. To remove it, enter your password.",
+      "To remove this security key, enter your password.",
     delete_security_key_description:
       '"{{name}}" will be removed from your account. It will no longer work as a second factor.',
     removed: "Passkey removed",
