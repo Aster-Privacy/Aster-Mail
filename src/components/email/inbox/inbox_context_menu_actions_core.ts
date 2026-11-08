@@ -70,6 +70,7 @@ import {
   remove_spam_sender,
 } from "@/services/api/mail";
 import { set_thread_trashed, sync_thread_spam } from "@/services/trash_state";
+import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -134,9 +135,11 @@ export function build_core_context_menu_actions(
       return;
     }
 
-    if (is_trash_view) {
+    if (is_list_email_in_trash(email, current_view)) {
       const all_ids =
-        email.grouped_email_ids && email.grouped_email_ids.length > 1
+        is_trash_view &&
+        email.grouped_email_ids &&
+        email.grouped_email_ids.length > 1
           ? email.grouped_email_ids
           : [email.id];
 

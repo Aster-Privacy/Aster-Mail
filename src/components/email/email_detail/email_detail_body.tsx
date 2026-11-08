@@ -47,6 +47,7 @@ import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_system_email } from "@/lib/utils";
+import { is_mail_item_in_trash } from "@/components/email/viewer_shared/trash_placement";
 
 interface EmailDetailBodyProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -313,6 +314,7 @@ export function EmailDetailBody({
                         is_read: email.is_read,
                         is_starred: email.is_starred,
                         is_deleted: false,
+                        is_trashed: is_mail_item_in_trash(mail_item),
                         is_external: mail_item?.is_external ?? true,
                         sender_aligned: mail_item?.sender_aligned,
                         spf_result: mail_item?.spf_result,

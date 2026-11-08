@@ -41,11 +41,7 @@ import {
   get_cached_alias_for_routing_token,
   get_cached_ghost_for_routing_token,
 } from "@/hooks/use_sender_aliases";
-import {
-  permanent_delete_mail_item,
-  report_spam_sender,
-  remove_spam_sender,
-} from "@/services/api/mail";
+import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -61,7 +57,6 @@ import {
 import { print_email } from "@/utils/print_email_loader";
 import {
   adjust_stats_unread,
-  adjust_stats_trash,
   invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
@@ -72,6 +67,12 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import {
+  is_mail_item_in_trash,
+  is_thread_message_in_trash,
+  permanently_delete_message_ids,
+  trashed_conversation_ids,
+} from "@/components/email/viewer_shared/trash_placement";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { ignore_error } from "@/lib/ignore_error";
@@ -267,28 +268,36 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
   const run_permanent_delete = useCallback(
     async (id: string) => {
       const is_open_item = id === deps.email_id;
-      const result = await permanent_delete_mail_item(id);
+      const ids = is_open_item
+        ? trashed_conversation_ids(id, deps.mail_item, deps.thread_messages)
+        : [id];
+      const deleted = await permanently_delete_message_ids(ids);
 
-      if (result.error) {
+      if (!deleted) {
         show_toast(deps.t("common.failed_to_permanently_delete"), "error");
 
         return;
       }
-      adjust_stats_trash(-1);
       invalidate_mail_stats();
-      remove_email_from_view_cache(id);
-      emit_mail_items_removed({ ids: [id] });
+      for (const deleted_id of ids) remove_email_from_view_cache(deleted_id);
       show_action_toast({
         message: deps.t("common.email_permanently_deleted"),
         action_type: "trash",
-        email_ids: [id],
+        email_ids: ids,
       });
 
       if (is_open_item) {
         deps.navigate(deps.get_next_email_destination());
       }
     },
-    [deps.email_id, deps.navigate, deps.get_next_email_destination, deps.t],
+    [
+      deps.email_id,
+      deps.mail_item,
+      deps.thread_messages,
+      deps.navigate,
+      deps.get_next_email_destination,
+      deps.t,
+    ],
   );
 
   const confirm_permanent_delete = useCallback(async () => {
@@ -307,7 +316,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
     deps.set_is_trash_confirm_open(false);
 
-    if (deps.mail_item.is_trashed) {
+    if (is_mail_item_in_trash(deps.mail_item)) {
       set_pending_permanent_delete_id(deps.email_id);
     } else {
       deps.set_is_trash_loading(true);
@@ -440,7 +449,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
   const handle_per_message_trash = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      if (deps.mail_item?.is_trashed) {
+      if (is_thread_message_in_trash(msg, deps.email_id, deps.mail_item)) {
         set_pending_permanent_delete_id(msg.id);
       } else {
         const result = await update_item_metadata(
@@ -482,7 +491,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         }
       }
     },
-    [deps.mail_item?.is_trashed, deps.t],
+    [deps.email_id, deps.mail_item, deps.t],
   );
 
   const handle_per_message_print = useCallback(

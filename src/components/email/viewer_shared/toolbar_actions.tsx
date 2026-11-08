@@ -71,6 +71,7 @@ import { type ThreadMessagesListRef } from "@/components/email/thread_message_bl
 import { app_locale } from "@/utils/date_format";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { CategoryMoveDropdownSub } from "@/components/email/inbox/category_move_menu";
+import { is_mail_item_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import {
   can_move_to_category,
   mail_item_move_item,
@@ -203,7 +204,9 @@ export function ViewerToolbarActions({
     thread_message_count > 1
       ? t("mail.archive_conversation_count", { count: thread_message_count })
       : t("mail.archive_action");
-  const is_trashed_item = !!(mail_item?.is_trashed || email?.is_trashed);
+  const is_trashed_item = mail_item
+    ? is_mail_item_in_trash(mail_item)
+    : email?.is_trashed === true;
   const trash_label = is_trashed_item
     ? t("mail.delete_permanently")
     : thread_message_count > 1
@@ -602,7 +605,7 @@ export function ViewerToolbarActions({
           ) : null}
           <DropdownMenuItem disabled={is_trash_loading} onClick={on_trash}>
             <TrashIcon className="w-4 h-4 me-2" />
-            {mail_item?.is_trashed || email?.is_trashed
+            {is_trashed_item
               ? t("mail.delete_permanently")
               : t("mail.move_to_trash")}
           </DropdownMenuItem>

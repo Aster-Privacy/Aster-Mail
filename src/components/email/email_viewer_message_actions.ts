@@ -38,6 +38,10 @@ import {
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
 import { print_email } from "@/utils/print_email_loader";
+import {
+  is_thread_message_in_trash,
+  permanently_delete_message_ids,
+} from "@/components/email/viewer_shared/trash_placement";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
@@ -134,6 +138,19 @@ export function use_message_actions(
 
   const handle_per_message_trash = useCallback(
     async (msg: DecryptedThreadMessage) => {
+      if (is_thread_message_in_trash(msg, deps.email_id, deps.mail_item)) {
+        const deleted = await permanently_delete_message_ids([msg.id]);
+
+        if (deleted) {
+          show_toast(deps.t("common.email_permanently_deleted"), "success");
+          if (msg.id === deps.email_id) deps.on_dismiss();
+        } else {
+          show_toast(deps.t("common.failed_to_permanently_delete"), "error");
+        }
+
+        return;
+      }
+
       const result = await update_item_metadata(
         msg.id,
         {
@@ -173,7 +190,7 @@ export function use_message_actions(
         show_toast(deps.t("common.failed_to_move_email"), "error");
       }
     },
-    [deps.t, deps.email_id, deps.on_dismiss],
+    [deps.t, deps.email_id, deps.mail_item, deps.on_dismiss],
   );
 
   const handle_per_message_print = useCallback(

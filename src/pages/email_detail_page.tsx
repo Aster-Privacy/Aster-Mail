@@ -44,6 +44,7 @@ import { set_pending_settings_anchor } from "@/lib/settings_anchor";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { use_compose_host } from "@/components/toast/use_toast_action_hosts";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
+import { is_mail_item_in_trash } from "@/components/email/viewer_shared/trash_placement";
 
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
@@ -150,7 +151,7 @@ export default function EmailDetailPage() {
               is_archive_loading={detail.is_archive_loading}
               is_popup={is_popup}
               is_trash_loading={detail.is_trash_loading}
-              is_trashed={!!detail.mail_item?.is_trashed}
+              is_trashed={is_mail_item_in_trash(detail.mail_item)}
               navigate={detail.navigate}
               preferences={detail.preferences}
               set_is_archive_confirm_open={detail.set_is_archive_confirm_open}

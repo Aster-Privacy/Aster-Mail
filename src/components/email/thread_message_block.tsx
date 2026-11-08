@@ -682,7 +682,7 @@ export function ThreadMessageBlock(
                   }}
                 >
                   <TrashIcon className="w-4 h-4 me-2" />
-                  {message.is_deleted
+                  {message.is_trashed
                     ? t("mail.delete_permanently")
                     : t("mail.move_to_trash")}
                 </DropdownMenuItem>

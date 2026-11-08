@@ -26,6 +26,7 @@ import type {
 } from "./inbox_context_menu_types";
 
 import { build_core_context_menu_actions } from "./inbox_context_menu_actions_core";
+import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -676,7 +677,12 @@ export function build_context_menu_actions(
   };
 
   const handle_delete_action = (email: InboxEmail) => {
-    if (preferences.confirm_before_delete) {
+    if (
+      preferences.confirm_before_delete ||
+      (current_view !== "drafts" &&
+        current_view !== "scheduled" &&
+        is_list_email_in_trash(email, current_view))
+    ) {
       set_pending_delete_email(email);
       set_show_single_delete_confirm(true);
     } else {

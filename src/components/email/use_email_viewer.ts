@@ -27,6 +27,7 @@ import type { UndoSendEvent } from "@/hooks/use_undo_send";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
+import { use_guarded_trash_actions } from "@/components/email/use_permanent_delete_confirm";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
 import { request_cache } from "@/services/api/request_cache";
@@ -400,6 +401,13 @@ export function use_email_viewer({
     preferences_default_reply_behavior: preferences.default_reply_behavior,
     preferences_conversation_grouping: preferences.conversation_grouping,
     is_sender_pinning_locked: is_feature_locked("has_sender_pinning"),
+  });
+
+  const guarded_trash = use_guarded_trash_actions({
+    email_id,
+    mail_item,
+    handle_trash: actions.handle_trash,
+    handle_per_message_trash: actions.handle_per_message_trash,
   });
 
   useEffect(() => {
@@ -1629,14 +1637,15 @@ export function use_email_viewer({
     handle_unarchive: actions.handle_unarchive,
     handle_spam: actions.handle_spam,
     handle_not_spam: actions.handle_not_spam,
-    handle_trash: actions.handle_trash,
+    handle_trash: guarded_trash.handle_trash,
+    permanent_delete_dialog: guarded_trash.permanent_delete_dialog,
     handle_print: actions.handle_print,
     handle_unsubscribe: actions.handle_unsubscribe,
     handle_per_message_reply: actions.handle_per_message_reply,
     handle_per_message_reply_all: actions.handle_per_message_reply_all,
     handle_per_message_forward: actions.handle_per_message_forward,
     handle_per_message_archive: actions.handle_per_message_archive,
-    handle_per_message_trash: actions.handle_per_message_trash,
+    handle_per_message_trash: guarded_trash.handle_per_message_trash,
     handle_per_message_print: actions.handle_per_message_print,
     handle_per_message_view_source: actions.handle_per_message_view_source,
     handle_per_message_report_phishing:

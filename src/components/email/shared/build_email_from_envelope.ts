@@ -172,8 +172,7 @@ async function resolve_envelope_body(
   const pgp_was_decrypted = body_text !== pre_pgp_text;
   const html_has_pgp =
     has_inbound_pgp_block(resolved_html ?? "") && pgp_was_decrypted;
-  const text_had_pgp =
-    has_inbound_pgp_block(pre_pgp_text) && pgp_was_decrypted;
+  const text_had_pgp = has_inbound_pgp_block(pre_pgp_text) && pgp_was_decrypted;
   const content_is_html = is_html_content(body_text);
   const decrypted_is_html =
     (html_has_pgp || text_had_pgp) && pgp_was_decrypted && content_is_html;
@@ -244,6 +243,7 @@ export function build_single_thread_message(
     message_ts?: string;
     created_at: string;
     is_external: boolean;
+    is_trashed?: boolean;
     system_origin?: boolean;
     sender_verified?: boolean;
     sender_verified_domain?: string;
@@ -286,6 +286,7 @@ export function build_single_thread_message(
     is_read: decrypted_metadata?.is_read ?? false,
     is_starred: decrypted_metadata?.is_starred ?? false,
     is_deleted: false,
+    is_trashed: item.is_trashed,
     is_external: item.is_external,
     system_origin: item.system_origin,
     e2e_verified,

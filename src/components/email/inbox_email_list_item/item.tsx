@@ -120,6 +120,7 @@ import {
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
 import { use_has_unseen_reaction } from "@/services/unseen_reactions";
+import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 
 export const InboxEmailListItem = memo(
   forwardRef<HTMLDivElement, InboxEmailListItemProps>(
@@ -1048,7 +1049,7 @@ export const InboxEmailListItem = memo(
                 {on_delete && (
                   <Tooltip
                     tip={
-                      is_trash_view
+                      is_list_email_in_trash(email, current_view)
                         ? t("mail.delete_permanently")
                         : t("mail.move_to_trash")
                     }

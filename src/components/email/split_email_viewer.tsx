@@ -718,6 +718,7 @@ export function SplitEmailViewer({
         </div>
       </div>
       {spam_confirm_dialog}
+      {viewer.permanent_delete_dialog}
     </div>
   );
 

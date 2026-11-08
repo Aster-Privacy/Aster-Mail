@@ -47,6 +47,12 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { use_should_reduce_motion } from "@/provider";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  is_mail_item_in_trash,
+  is_thread_message_in_trash,
+  permanently_delete_message_ids,
+  trashed_conversation_ids,
+} from "@/components/email/viewer_shared/trash_placement";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -139,6 +145,7 @@ export function use_mobile_mail_detail() {
   const [subject_expanded, set_subject_expanded] = useState(false);
   const [show_block_confirm, set_show_block_confirm] = useState(false);
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
+  const delete_target_ref = useRef<DecryptedThreadMessage | null>(null);
   const [blocking_sender, set_blocking_sender] = useState(false);
   const [block_target, set_block_target] = useState<{
     email: string;
@@ -238,9 +245,7 @@ export function use_mobile_mail_detail() {
       {
         id: detail.email.id,
         item_type: (detail.mail_item?.item_type || "received") as
-          | "received"
-          | "sent"
-          | "draft",
+          "received" | "sent" | "draft",
         sender_name: detail.email.sender,
         sender_email: detail.email.sender_email,
         display_sender_name: detail.email.display_sender_name,
@@ -253,6 +258,7 @@ export function use_mobile_mail_detail() {
         is_read: detail.email.is_read,
         is_starred: detail.email.is_starred,
         is_deleted: false,
+        is_trashed: is_mail_item_in_trash(detail.mail_item),
         is_external:
           detail.mail_item?.is_external ?? detail.email.is_external ?? true,
         system_origin:
@@ -680,10 +686,9 @@ export function use_mobile_mail_detail() {
     detail.mail_item?.metadata?.is_archived === true ||
     from_view === "archive";
 
-  const is_trashed =
-    detail.mail_item?.is_trashed === true ||
-    detail.mail_item?.metadata?.is_trashed === true ||
-    from_view === "trash";
+  const is_trashed = detail.mail_item
+    ? is_mail_item_in_trash(detail.mail_item)
+    : from_view === "trash";
 
   const handle_archive = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
@@ -712,6 +717,18 @@ export function use_mobile_mail_detail() {
       ? await email_actions.permanently_delete(detail.email as never)
       : await email_actions.delete_email(detail.email as never);
 
+    if (deleted && is_trashed) {
+      const sibling_ids = trashed_conversation_ids(
+        detail.email.id,
+        detail.mail_item,
+        detail.thread_messages,
+      ).filter((id) => id !== detail.email?.id);
+
+      if (sibling_ids.length > 0) {
+        await permanently_delete_message_ids(sibling_ids);
+      }
+    }
+
     if (!deleted) {
       action_in_flight.current = false;
       show_toast(
@@ -726,11 +743,40 @@ export function use_mobile_mail_detail() {
 
     remove_email_from_view_cache(detail.email.id);
     advance_after_action();
-  }, [detail.email, email_actions, advance_after_action, is_trashed, t]);
+  }, [
+    detail.email,
+    detail.mail_item,
+    detail.thread_messages,
+    email_actions,
+    advance_after_action,
+    is_trashed,
+    t,
+  ]);
+
+  const perform_message_delete = useCallback(
+    async (message: DecryptedThreadMessage) => {
+      if (message.id === detail.email?.id) {
+        await perform_delete();
+
+        return;
+      }
+      haptic_impact("light");
+      const deleted = await permanently_delete_message_ids([message.id]);
+
+      show_toast(
+        deleted
+          ? t("common.email_permanently_deleted")
+          : t("common.failed_to_permanently_delete"),
+        deleted ? "success" : "error",
+      );
+    },
+    [detail.email?.id, perform_delete, t],
+  );
 
   const handle_delete = useCallback(() => {
     if (action_in_flight.current || !detail.email) return;
     if (is_trashed) {
+      delete_target_ref.current = null;
       set_show_delete_confirm(true);
 
       return;
@@ -739,9 +785,12 @@ export function use_mobile_mail_detail() {
   }, [detail.email, is_trashed, perform_delete]);
 
   const confirm_permanent_delete = useCallback(() => {
+    const target = delete_target_ref.current;
+
+    delete_target_ref.current = null;
     set_show_delete_confirm(false);
-    void perform_delete();
-  }, [perform_delete]);
+    void (target ? perform_message_delete(target) : perform_delete());
+  }, [perform_delete, perform_message_delete]);
 
   const handle_spam = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
@@ -986,7 +1035,17 @@ export function use_mobile_mail_detail() {
 
   const handle_menu_trash = useCallback(() => {
     haptic_impact("light");
-    if (menu_message) {
+    if (
+      menu_message &&
+      is_thread_message_in_trash(
+        menu_message,
+        detail.email?.id,
+        detail.mail_item,
+      )
+    ) {
+      delete_target_ref.current = menu_message;
+      set_show_delete_confirm(true);
+    } else if (menu_message) {
       detail.handle_per_message_trash(menu_message);
     }
     set_menu_message(null);

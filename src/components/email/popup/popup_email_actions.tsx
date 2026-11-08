@@ -46,6 +46,7 @@ import {
 } from "@/components/email/spam_action_icons";
 import { PinIcon } from "@/components/common/icons";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
+import { is_mail_item_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -124,6 +125,11 @@ export function PopupEmailActions({
   on_print,
   on_unsubscribe,
 }: PopupEmailActionsProps) {
+  const is_in_trash = is_mail_item_in_trash(mail_item);
+  const trash_label = is_in_trash
+    ? t("mail.delete_permanently")
+    : t("mail.move_to_trash");
+
   return (
     <div
       className="flex items-center gap-1 px-2 py-1.5 flex-shrink-0 select-none border-b border-edge-primary"
@@ -253,9 +259,10 @@ export function PopupEmailActions({
         </Tooltip>
       )}
 
-      <Tooltip tip={t("mail.move_to_trash")}>
+      <Tooltip tip={trash_label}>
         <Button
           data-no-drag
+          aria-label={trash_label}
           className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
           disabled={is_trash_loading}
           size="icon"
@@ -330,9 +337,7 @@ export function PopupEmailActions({
           ) : null}
           <DropdownMenuItem disabled={is_trash_loading} onClick={on_trash}>
             <TrashIcon className="w-4 h-4 me-2" />
-            {mail_item?.is_trashed
-              ? t("mail.delete_permanently")
-              : t("mail.move_to_trash")}
+            {trash_label}
           </DropdownMenuItem>
           {folders.length > 0 && on_folder_toggle ? (
             <DropdownMenuSub>
@@ -358,7 +363,7 @@ export function PopupEmailActions({
                   </>
                 )}
                 {applied_folder_tokens.length > 0 &&
-                  !mail_item?.is_trashed &&
+                  !is_in_trash &&
                   !is_spam &&
                   !is_archived && (
                     <>

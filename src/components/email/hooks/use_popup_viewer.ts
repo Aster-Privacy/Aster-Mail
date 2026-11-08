@@ -24,6 +24,7 @@ import type { UndoSendEvent } from "@/hooks/use_undo_send";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
+import { use_guarded_trash_actions } from "@/components/email/use_permanent_delete_confirm";
 import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
 import { REPLY_ARRIVAL_POLL_DELAYS_MS } from "@/components/email/use_email_viewer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
@@ -370,6 +371,13 @@ export function use_popup_viewer({
     on_forward,
     t,
     preferences_default_reply_behavior: preferences.default_reply_behavior,
+  });
+
+  const guarded_trash = use_guarded_trash_actions({
+    email_id,
+    mail_item,
+    handle_trash: actions.handle_trash,
+    handle_per_message_trash: actions.handle_per_message_trash,
   });
 
   const load_popup_email = useCallback(async () => {
@@ -1188,7 +1196,7 @@ export function use_popup_viewer({
 
       if (detail.id === email_id) {
         e.stopImmediatePropagation();
-        actions.handle_trash();
+        void guarded_trash.handle_trash();
       }
     };
 
@@ -1296,7 +1304,7 @@ export function use_popup_viewer({
     actions.handle_reply,
     actions.handle_forward,
     actions.handle_archive,
-    actions.handle_trash,
+    guarded_trash.handle_trash,
     actions.handle_spam,
     actions.handle_read_toggle,
     email_id,
@@ -1371,7 +1379,8 @@ export function use_popup_viewer({
     handle_unarchive: actions.handle_unarchive,
     handle_spam: actions.handle_spam,
     handle_not_spam: actions.handle_not_spam,
-    handle_trash: actions.handle_trash,
+    handle_trash: guarded_trash.handle_trash,
+    permanent_delete_dialog: guarded_trash.permanent_delete_dialog,
     handle_pin_toggle: actions.handle_pin_toggle,
     handle_reply: actions.handle_reply,
     handle_forward: actions.handle_forward,
@@ -1385,7 +1394,7 @@ export function use_popup_viewer({
     handle_per_message_reply_all: actions.handle_per_message_reply_all,
     handle_per_message_forward: actions.handle_per_message_forward,
     handle_per_message_archive: actions.handle_per_message_archive,
-    handle_per_message_trash: actions.handle_per_message_trash,
+    handle_per_message_trash: guarded_trash.handle_per_message_trash,
     handle_per_message_print: actions.handle_per_message_print,
     handle_per_message_report_phishing:
       actions.handle_per_message_report_phishing,
