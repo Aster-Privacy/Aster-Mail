@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { act, createElement, useSyncExternalStore } from "react";
+import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 
@@ -66,10 +66,8 @@ vi.mock("@/lib/i18n/context", () => {
 
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => {
-    const preferences = useSyncExternalStore(store.subscribe, store.get);
-
     return {
-      preferences,
+      preferences: store.get(),
       update_preference: (key: string, value: unknown, immediate?: boolean) => {
         store.calls.push({ key, value, immediate });
         store.set({ [key]: value });
@@ -91,6 +89,8 @@ import { SidebarLayoutSetting } from "./sidebar_layout_setting";
 
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
+let rendered = false;
+let unsubscribe: (() => void) | null = null;
 
 function set_prefs(next: Partial<LayoutPrefs>) {
   act(() => {
@@ -99,6 +99,7 @@ function set_prefs(next: Partial<LayoutPrefs>) {
 }
 
 function render_setting() {
+  rendered = true;
   act(() => {
     root!.render(createElement(SidebarLayoutSetting));
   });
@@ -162,9 +163,15 @@ beforeEach(() => {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
+  rendered = false;
+  unsubscribe = store.subscribe(() => {
+    if (rendered) root?.render(createElement(SidebarLayoutSetting));
+  });
 });
 
 afterEach(() => {
+  unsubscribe?.();
+  unsubscribe = null;
   act(() => {
     root?.unmount();
   });
