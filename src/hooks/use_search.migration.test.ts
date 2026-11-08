@@ -50,6 +50,8 @@ vi.mock("@/services/crypto/envelope", () => ({
   normalize_envelope_from: vi.fn(),
 }));
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   get_passphrase_bytes: vi.fn(),
   get_passphrase_from_memory: vi.fn(),
   get_vault_from_memory: () => get_vault_from_memory(),

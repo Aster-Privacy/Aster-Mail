@@ -36,6 +36,8 @@ vi.mock("@/services/api/mail", () => ({
 vi.mock("@/services/api/contacts", () => ({ get_contacts_count }));
 vi.mock("@/services/api/snooze", () => ({ list_snoozed_emails }));
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   has_passphrase_in_memory: vi.fn(() => true),
   on_keys_ready: vi.fn(() => () => {}),
 }));

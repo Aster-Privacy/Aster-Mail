@@ -27,6 +27,8 @@ const vault_state: { vault: unknown; passphrase: string | null } = {
 };
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   get_vault_from_memory: () => vault_state.vault,
   get_passphrase_from_memory: () => vault_state.passphrase,
   get_passphrase_bytes: () => null,

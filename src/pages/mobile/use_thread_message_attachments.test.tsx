@@ -33,6 +33,7 @@ vi.mock("@/services/api/attachments", () => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_stored: () => () => {},
   get_passphrase_bytes: () => new Uint8Array(32).fill(9),
   get_vault_from_memory: () => null,
   on_vault_cleared: vi.fn(),

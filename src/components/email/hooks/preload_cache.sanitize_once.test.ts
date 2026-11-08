@@ -62,6 +62,7 @@ vi.mock("@/services/thread_service", () => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_stored: () => () => {},
   get_vault_from_memory: () => null,
   wait_for_keys_ready: vi.fn(async () => undefined),
   are_keys_ready: () => true,

@@ -37,6 +37,8 @@ vi.mock("@/services/category_index", () => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   are_keys_ready: () => keys_ready,
   on_keys_ready: (callback: () => void) => {
     if (keys_ready) callback();

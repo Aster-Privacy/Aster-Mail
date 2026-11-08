@@ -37,6 +37,7 @@ vi.mock("./api/mail", () => ({
 }));
 
 vi.mock("./crypto/memory_key_store", () => ({
+  on_vault_stored: () => () => {},
   get_passphrase_bytes: vi.fn(),
   get_vault_from_memory: vi.fn(() => null),
   wait_for_keys_ready: vi.fn(async () => undefined),
