@@ -8892,6 +8892,14 @@ export const de = {
     upgrade_external_accounts_note:
       "Führe ein Upgrade durch, um mehr externe Konten zu verbinden.",
     usage_external_accounts: "Externe Konten",
+    sidebar_layout: "Seitenleisten-Layout",
+    sidebar_layout_description: "Lege die Reihenfolge der Bereiche in der Seitenleiste fest und wähle aus, welche angezeigt werden.",
+    reset_sidebar_layout: "Layout zurücksetzen",
+    sidebar_mail_section_description: "Der Posteingang wird immer in der Seitenleiste angezeigt.",
+    sidebar_mail_items: "E-Mail-Elemente",
+    sidebar_mail_items_description: "Wähle aus, welche Postfächer im Bereich E-Mail angezeigt werden.",
+    sidebar_move_section_up: "{{name}} nach oben verschieben",
+    sidebar_move_section_down: "{{name}} nach unten verschieben",
   },
   mail: {
     image_size_prompt_title: "Größe der Bilder in dieser Nachricht verringern?",

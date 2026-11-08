@@ -8881,6 +8881,14 @@ export const pt = {
       "O Aster importa o novo correio apenas da caixa de entrada desta conta. As alterações, como eliminações, não são replicadas em nenhum sentido.",
     show_side_panel_description:
       "Mantenha os contactos e outras ferramentas rápidas num painel ao lado das mensagens.",
+    sidebar_layout: "Esquema da barra lateral",
+    sidebar_layout_description: "Escolha a ordem das secções da barra lateral e quais são apresentadas.",
+    reset_sidebar_layout: "Repor esquema",
+    sidebar_mail_section_description: "A caixa de entrada aparece sempre na barra lateral.",
+    sidebar_mail_items: "Itens de correio",
+    sidebar_mail_items_description: "Escolha que caixas de correio aparecem na secção Correio.",
+    sidebar_move_section_up: "Mover {{name}} para cima",
+    sidebar_move_section_down: "Mover {{name}} para baixo",
   },
   mail: {
     image_size_prompt_title: "Reduzir o tamanho das imagens nesta mensagem?",

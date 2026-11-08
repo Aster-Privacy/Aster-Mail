@@ -61,6 +61,7 @@ import {
   clamp_undo_seconds,
 } from "./shared";
 import { TranslationPacks } from "./translation_packs";
+import { SidebarLayoutSetting } from "./sidebar_layout_setting";
 import { apply_spam_settings_patch } from "./spam_settings_sync";
 
 import { use_preferences } from "@/contexts/preferences_context";
@@ -1017,6 +1018,8 @@ export function BehaviorSection() {
           }
           title={t("settings.show_side_panel")}
         />
+
+        <SidebarLayoutSetting />
       </IslandSection>
 
       <IslandSection

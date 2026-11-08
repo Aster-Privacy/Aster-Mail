@@ -8454,6 +8454,14 @@ export const ko = {
       "Aster는 이 계정의 받은편지함에서 새 메일만 가져옵니다. 삭제 등의 변경 사항은 어느 쪽으로도 반영되지 않습니다.",
     show_side_panel_description:
       "연락처와 다른 빠른 도구를 메일 옆 패널에 표시합니다.",
+    sidebar_layout: "사이드바 레이아웃",
+    sidebar_layout_description: "사이드바 섹션의 순서와 표시할 섹션을 선택합니다.",
+    reset_sidebar_layout: "레이아웃 재설정",
+    sidebar_mail_section_description: "받은편지함은 항상 사이드바에 표시됩니다.",
+    sidebar_mail_items: "메일 항목",
+    sidebar_mail_items_description: "메일 섹션에 표시할 편지함을 선택합니다.",
+    sidebar_move_section_up: "{{name}} 위로 이동",
+    sidebar_move_section_down: "{{name}} 아래로 이동",
   },
   mail: {
     image_size_prompt_title: "이 메시지의 이미지 크기를 줄일까요?",

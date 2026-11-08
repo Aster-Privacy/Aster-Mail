@@ -1338,6 +1338,22 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     keywords: ["contacts rail", "side panel", "disable side panel"],
   },
   {
+    label: "Sidebar layout",
+    label_key: "settings.sidebar_layout",
+    section: "behavior",
+    breadcrumb: "Behavior > Navigation Panel",
+    crumb_key: "settings_search.navigation_panel",
+    keywords: [
+      "reorder sidebar",
+      "hide folders",
+      "hide labels",
+      "hide aliases",
+      "hide sidebar items",
+      "sidebar order",
+      "left panel",
+    ],
+  },
+  {
     label: "Default Reply",
     label_key: "settings.default_reply",
     section: "behavior",

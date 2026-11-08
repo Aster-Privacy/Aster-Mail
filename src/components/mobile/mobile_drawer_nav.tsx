@@ -21,7 +21,9 @@
 import type { DecryptedFolder } from "@/hooks/use_folders";
 import type { DecryptedTag } from "@/hooks/use_tags";
 
-import { memo } from "react";
+import type { ReactNode } from "react";
+
+import { Fragment, memo } from "react";
 import {
   InboxIcon,
   StarIcon,
@@ -49,6 +51,11 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import type { SidebarSectionId } from "@/lib/sidebar_layout";
+import {
+  is_sidebar_item_hidden,
+  resolve_sidebar_section_order,
+} from "@/lib/sidebar_layout";
 import {
   build_folder_tree,
   build_tree_guides,
@@ -243,62 +250,60 @@ export const DrawerNavContent = memo(function DrawerNavContent({
       path: "/trash",
       count: stats.trash,
     },
+    {
+      id: "contacts",
+      label: t("common.contacts"),
+      icon: UsersIcon,
+      path: "/contacts",
+      count: stats.contacts,
+    },
+    {
+      id: "subscriptions",
+      label: t("common.subscriptions"),
+      icon: NewspaperIcon,
+      path: "/subscriptions",
+    },
   ];
+
+  const hidden_items = preferences.sidebar_hidden_items;
+  const is_visible = (item: NavItem) =>
+    !is_sidebar_item_hidden(hidden_items, item.id);
+  const visible_mail_items = mail_items.filter(is_visible);
+  const visible_more_items = more_items.filter(is_visible);
+  const section_order = resolve_sidebar_section_order(
+    preferences.sidebar_section_order,
+  ).filter((section_id) => !is_sidebar_item_hidden(hidden_items, section_id));
+
+  const render_nav_item = (item: NavItem) => (
+    <SidebarNavButton
+      key={item.id}
+      active={is_active(item.path)}
+      count={item.count}
+      icon={<item.icon className="h-5 w-5" />}
+      label={item.label}
+      on_click={() => handle_nav(item.path)}
+    />
+  );
 
   const locale = app_locale();
 
-  return (
-    <div ref={nav_container_ref} className="relative">
-      <MobileDrawerNavIndicator indicator_style={indicator_style} />
-
-      {(active_path.startsWith("/alias/") ||
-        active_path.startsWith("/folder/") ||
-        active_path.startsWith("/tag/")) && (
-        <MobileDrawerBackButton
-          label={t("mail.inbox")}
-          on_click={() => handle_nav("/")}
-        />
+  const render_mail_section = (is_first: boolean) => (
+    <>
+      <MobileDrawerSectionHeader is_first={is_first} label={t("common.mail")} />
+      {visible_mail_items.map(render_nav_item)}
+      {visible_more_items.length > 0 && (
+        <>
+          <MobileDrawerSectionHeader label={t("common.more")} />
+          {visible_more_items.map(render_nav_item)}
+        </>
       )}
+    </>
+  );
 
-      <MobileDrawerSectionHeader is_first label={t("common.mail")} />
-      {mail_items.map((item) => (
-        <SidebarNavButton
-          key={item.id}
-          active={is_active(item.path)}
-          count={item.count}
-          icon={<item.icon className="h-5 w-5" />}
-          label={item.label}
-          on_click={() => handle_nav(item.path)}
-        />
-      ))}
-
-      <MobileDrawerSectionHeader label={t("common.more")} />
-      {more_items.map((item) => (
-        <SidebarNavButton
-          key={item.id}
-          active={is_active(item.path)}
-          count={item.count}
-          icon={<item.icon className="h-5 w-5" />}
-          label={item.label}
-          on_click={() => handle_nav(item.path)}
-        />
-      ))}
-      <SidebarNavButton
-        active={active_path === "/contacts"}
-        count={stats.contacts}
-        icon={<UsersIcon className="h-5 w-5" />}
-        label={t("common.contacts")}
-        on_click={() => handle_nav("/contacts")}
-      />
-      <SidebarNavButton
-        active={active_path === "/subscriptions"}
-        icon={<NewspaperIcon className="h-5 w-5" />}
-        label={t("common.subscriptions")}
-        on_click={() => handle_nav("/subscriptions")}
-      />
-
+  const render_folders_section = (is_first: boolean) => (
+    <>
       {on_sort_folders && can_sort_folders ? (
-        <div className="mb-1 mt-5 px-2.5">
+        <div className={is_first ? "mb-1 px-2.5" : "mb-1 mt-5 px-2.5"}>
           <div className="flex w-full items-center justify-between">
             <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
               {t("common.folders")}
@@ -327,6 +332,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
       ) : (
         <MobileDrawerSectionHeader
           add_label={t("common.create_folder")}
+          is_first={is_first}
           label={t("common.folders")}
           on_add={on_open_create_folder}
         />
@@ -405,9 +411,14 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           />
         );
       })}
+    </>
+  );
 
+  const render_labels_section = (is_first: boolean) => (
+    <>
       <MobileDrawerSectionHeader
         add_label={t("common.create_label")}
+        is_first={is_first}
         label={t("common.labels")}
         on_add={on_open_create_label}
       />
@@ -450,9 +461,14 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           </div>
         );
       })}
+    </>
+  );
 
+  const render_aliases_section = (is_first: boolean) => (
+    <>
       <MobileDrawerSectionHeader
         add_label={t("settings.create_alias")}
+        is_first={is_first}
         label={t("common.aliases")}
         on_add={on_open_create_alias}
       />
@@ -493,6 +509,37 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           />
         );
       })}
+    </>
+  );
+
+  const section_renderers: Record<
+    SidebarSectionId,
+    (is_first: boolean) => ReactNode
+  > = {
+    mail: render_mail_section,
+    folders: render_folders_section,
+    labels: render_labels_section,
+    aliases: render_aliases_section,
+  };
+
+  return (
+    <div ref={nav_container_ref} className="relative">
+      <MobileDrawerNavIndicator indicator_style={indicator_style} />
+
+      {(active_path.startsWith("/alias/") ||
+        active_path.startsWith("/folder/") ||
+        active_path.startsWith("/tag/")) && (
+        <MobileDrawerBackButton
+          label={t("mail.inbox")}
+          on_click={() => handle_nav("/")}
+        />
+      )}
+
+      {section_order.map((section_id, index) => (
+        <Fragment key={section_id}>
+          {section_renderers[section_id](index === 0)}
+        </Fragment>
+      ))}
     </div>
   );
 });

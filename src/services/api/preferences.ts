@@ -40,6 +40,11 @@ import {
   clamp_inbox_page_size,
 } from "@/lib/inbox_page_size";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  DEFAULT_SIDEBAR_SECTION_ORDER,
+  sanitize_sidebar_hidden_items,
+  sanitize_sidebar_section_order,
+} from "@/lib/sidebar_layout";
 import { locale_date_format, locale_time_format } from "@/utils/date_format";
 import {
   is_week_start_preference,
@@ -208,6 +213,8 @@ export interface UserPreferences {
   sidebar_aliases_collapsed: boolean;
   sidebar_minimized: boolean;
   sidebar_width: number;
+  sidebar_section_order: string[];
+  sidebar_hidden_items: string[];
   notification_banner_snooze_until: string;
   storage_format: "aster" | "ipfs";
   force_dark_mode_emails: boolean;
@@ -798,6 +805,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   sidebar_aliases_collapsed: false,
   sidebar_minimized: false,
   sidebar_width: 256,
+  sidebar_section_order: [...DEFAULT_SIDEBAR_SECTION_ORDER],
+  sidebar_hidden_items: [],
   notification_banner_snooze_until: "",
   storage_format: "aster",
   force_dark_mode_emails: false,
@@ -1011,6 +1020,12 @@ export function build_merged_preferences(
     ? merged.mobile_toolbar_actions.filter((c) => typeof c === "string")
     : [...DEFAULT_PREFERENCES.mobile_toolbar_actions];
   merged.inbox_page_size = clamp_inbox_page_size(merged.inbox_page_size);
+  merged.sidebar_section_order = sanitize_sidebar_section_order(
+    merged.sidebar_section_order,
+  );
+  merged.sidebar_hidden_items = sanitize_sidebar_hidden_items(
+    merged.sidebar_hidden_items,
+  );
   merged.iconic_sounds_enabled = merged.iconic_sounds_enabled === true;
 
   if (

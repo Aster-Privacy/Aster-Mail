@@ -7705,6 +7705,14 @@ export interface SettingsTranslations {
   fam_org_stat_seats_available_other: string;
   fam_org_members_count_one: string;
   fam_org_members_count_other: string;
+  sidebar_layout: string;
+  sidebar_layout_description: string;
+  reset_sidebar_layout: string;
+  sidebar_mail_section_description: string;
+  sidebar_mail_items: string;
+  sidebar_mail_items_description: string;
+  sidebar_move_section_up: string;
+  sidebar_move_section_down: string;
 }
 
 export interface MailTranslations {

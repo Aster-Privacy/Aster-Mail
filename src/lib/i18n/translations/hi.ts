@@ -8618,6 +8618,14 @@ export const hi = {
       "मैं एंड-टू-एंड एन्क्रिप्टेड ईमेल के लिए Aster Mail इस्तेमाल करता हूं। मेरे लिंक से जुड़ें।",
     referral_email_body_plain:
       "नमस्ते,\n\nमैं कुछ समय से Aster Mail इस्तेमाल कर रहा हूं और यह मुझे बहुत पसंद है। इसमें सब कुछ एंड टू एंड एन्क्रिप्टेड है, इसलिए आपकी ईमेल आपके सिवा कोई नहीं पढ़ सकता। इसे चलाने वाले लोग भी नहीं।\n\nअगर आप इसे आज़माना चाहें, तो यह रहा मेरा आमंत्रण लिंक:\n\n{{ referral_link }}\n\nशुभकामनाएं",
+    sidebar_layout: "साइडबार लेआउट",
+    sidebar_layout_description: "साइडबार के सेक्शन का क्रम और दिखने वाले सेक्शन चुनें।",
+    reset_sidebar_layout: "लेआउट रीसेट करें",
+    sidebar_mail_section_description: "इनबॉक्स हमेशा साइडबार में दिखता है।",
+    sidebar_mail_items: "मेल आइटम",
+    sidebar_mail_items_description: "चुनें कि मेल सेक्शन में कौन-से मेलबॉक्स दिखें।",
+    sidebar_move_section_up: "{{name}} को ऊपर ले जाएँ",
+    sidebar_move_section_down: "{{name}} को नीचे ले जाएँ",
   },
   mail: {
     image_size_prompt_title: "क्या इस संदेश की इमेज का आकार कम करें?",

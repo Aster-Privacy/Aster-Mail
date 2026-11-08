@@ -8829,6 +8829,14 @@ export const pt_br = {
     oauth_reason_wrong_account:
       "A conexão foi iniciada a partir de outra conta do Aster Mail. Faça login com essa conta e tente de novo.",
     plan_f_sort_folders: "Ordenar pastas de A a Z",
+    sidebar_layout: "Layout da barra lateral",
+    sidebar_layout_description: "Escolha a ordem das seções da barra lateral e quais aparecem.",
+    reset_sidebar_layout: "Redefinir layout",
+    sidebar_mail_section_description: "A caixa de entrada sempre aparece na barra lateral.",
+    sidebar_mail_items: "Itens de e-mail",
+    sidebar_mail_items_description: "Escolha quais caixas de e-mail aparecem na seção E-mail.",
+    sidebar_move_section_up: "Mover {{name}} para cima",
+    sidebar_move_section_down: "Mover {{name}} para baixo",
   },
   mail: {
     image_size_prompt_title: "Reduzir o tamanho das imagens nesta mensagem?",

@@ -8895,6 +8895,14 @@ export const fr = {
     remove_account_tooltip: "Retirer le compte",
     show_side_panel_description:
       "Gardez vos contacts et d’autres outils rapides dans un panneau à côté de vos messages.",
+    sidebar_layout: "Disposition de la barre latérale",
+    sidebar_layout_description: "Choisissez l’ordre des sections de la barre latérale et celles qui s’affichent.",
+    reset_sidebar_layout: "Réinitialiser la disposition",
+    sidebar_mail_section_description: "La boîte de réception apparaît toujours dans la barre latérale.",
+    sidebar_mail_items: "Éléments de messagerie",
+    sidebar_mail_items_description: "Choisissez les boîtes qui apparaissent dans la section Courrier.",
+    sidebar_move_section_up: "Monter {{name}}",
+    sidebar_move_section_down: "Descendre {{name}}",
   },
   mail: {
     image_size_prompt_title: "Réduire la taille des images de ce message ?",

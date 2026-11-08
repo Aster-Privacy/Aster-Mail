@@ -33,6 +33,7 @@ import {
   OptionList,
   chip_selected_style,
 } from "./shared";
+import { MobileSidebarLayoutGroups } from "./sidebar_layout_groups";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { parse_bounded_int } from "@/lib/parse_bounded_int";
@@ -1226,6 +1227,8 @@ export function BehaviorSection({
             </p>
           </div>
         </SettingsGroup>
+
+        <MobileSidebarLayoutGroups />
 
         {is_web && (
           <SettingsGroup title={t("settings.advanced")}>

@@ -26,8 +26,11 @@ import type {
   TagModalAction,
   TagModalData,
 } from "@/components/layout/sidebar/sidebar_tags";
+import type { ReactNode } from "react";
+import type { SidebarSectionId } from "@/lib/sidebar_layout";
 
 import {
+  Fragment,
   useState,
   useRef,
   useEffect,
@@ -65,6 +68,10 @@ import { SidebarNavSection } from "@/components/layout/sidebar/sidebar_nav_secti
 import { SidebarFolders } from "@/components/layout/sidebar/sidebar_folders";
 import { SidebarTags } from "@/components/layout/sidebar/sidebar_tags";
 import { SidebarAliases } from "@/components/layout/sidebar/sidebar_aliases";
+import {
+  is_sidebar_item_hidden,
+  resolve_sidebar_section_order,
+} from "@/lib/sidebar_layout";
 import { SidebarAccountSwitcher } from "@/components/layout/sidebar/sidebar_account_switcher";
 import { RailTipLayer } from "@/components/layout/sidebar/rail_tip_layer";
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
@@ -576,6 +583,8 @@ const sidebar_base = ({
     preferences.sidebar_folders_collapsed,
     preferences.sidebar_labels_collapsed,
     preferences.sidebar_aliases_collapsed,
+    preferences.sidebar_section_order,
+    preferences.sidebar_hidden_items,
   ]);
 
   useEffect(() => {
@@ -648,6 +657,158 @@ const sidebar_base = ({
     SIDEBAR_MAX_WIDTH,
     Math.max(SIDEBAR_MIN_WIDTH, desired_width),
   );
+
+  const section_order = resolve_sidebar_section_order(
+    preferences.sidebar_section_order,
+  ).filter(
+    (section_id) =>
+      !is_sidebar_item_hidden(preferences.sidebar_hidden_items, section_id),
+  );
+
+  const section_nodes: Record<SidebarSectionId, ReactNode> = {
+    mail: (
+      <SidebarNavSection
+        all_mail_ref={all_mail_ref}
+        archive_ref={archive_ref}
+        contacts_ref={contacts_ref}
+        drafts_ref={drafts_ref}
+        effective_selected={effective_selected}
+        handle_nav_click={handle_nav_click}
+        inbox_children_slot={
+          inbox_pinned_folders.length > 0 ? (
+            <SidebarFolders
+              folders_expanded
+              account_id={user?.id ?? ""}
+              effective_selected={effective_selected}
+              folder_refs={folder_refs}
+              folder_unread_counts={folder_unread_counts}
+              all_folders={folders_state.folders}
+              folders={inbox_pinned_folders}
+              handle_folder_lock={handle_folder_lock}
+              handle_folder_modal={handle_folder_modal}
+              handle_nav_click={handle_nav_click}
+              is_collapsed={is_collapsed}
+              is_loading={folders_state.is_loading}
+              navigate={navigate}
+              on_drop_emails={on_drop_to_folder}
+              reorder_folders={reorder_folders}
+              set_create_folder_parent_token={set_create_folder_parent_token}
+              set_folders_expanded={set_folders_expanded}
+              set_is_create_folder_open={set_is_create_folder_open}
+              set_password_modal_folder={set_password_modal_folder}
+              set_selected_item={set_selected_item}
+              variant="pinned"
+            />
+          ) : undefined
+        }
+        hidden_items={preferences.sidebar_hidden_items}
+        inbox_ref={inbox_ref}
+        is_first={section_order[0] === "mail"}
+        is_collapsed={is_collapsed}
+        navigate={navigate}
+        on_toggle_section={toggle_more_collapsed}
+        scheduled_ref={scheduled_ref}
+        section_collapsed={preferences.sidebar_more_collapsed}
+        sent_ref={sent_ref}
+        set_selected_item={set_selected_item}
+        snoozed_ref={snoozed_ref}
+        spam_ref={spam_ref}
+        starred_ref={starred_ref}
+        stats={stats}
+        stats_loading={!has_initialized}
+        subscriptions_ref={subscriptions_ref}
+        trash_ref={trash_ref}
+      />
+    ),
+    folders: (
+      <SidebarFolders
+        account_id={user?.id ?? ""}
+        effective_selected={effective_selected}
+        folder_refs={folder_refs}
+        folder_unread_counts={folder_unread_counts}
+        all_folders={folders_state.folders}
+        folders={sidebar_folders}
+        folders_expanded={folders_expanded}
+        handle_folder_lock={handle_folder_lock}
+        handle_folder_modal={handle_folder_modal}
+        handle_nav_click={handle_nav_click}
+        is_collapsed={is_collapsed}
+        is_loading={folders_state.is_loading}
+        load_failed={Boolean(folders_state.error)}
+        navigate={navigate}
+        on_drop_emails={on_drop_to_folder}
+        on_retry={() => void refresh_folders()}
+        on_toggle_section={toggle_folders_collapsed}
+        reorder_folders={reorder_folders}
+        section_collapsed={preferences.sidebar_folders_collapsed}
+        sort_folders_a_z={sort_folders_a_z}
+        set_create_folder_parent_token={set_create_folder_parent_token}
+        set_folders_expanded={set_folders_expanded}
+        set_is_create_folder_open={set_is_create_folder_open}
+        set_password_modal_folder={set_password_modal_folder}
+        set_selected_item={set_selected_item}
+      />
+    ),
+    labels: (
+      <SidebarTags
+        account_id={user?.id ?? ""}
+        effective_selected={effective_selected}
+        handle_nav_click={handle_nav_click}
+        handle_tag_modal={handle_tag_modal}
+        is_collapsed={is_collapsed}
+        is_loading={tags_state.is_loading}
+        labels_expanded={labels_expanded}
+        load_failed={Boolean(tags_state.error)}
+        navigate={navigate}
+        on_create_sublabel={(parent_token) => {
+          set_create_tag_parent_token(parent_token);
+          set_is_create_tag_open(true);
+        }}
+        on_drop_emails={on_drop_to_tag}
+        on_retry={() => void refresh_tags()}
+        on_toggle_section={toggle_labels_collapsed}
+        section_collapsed={preferences.sidebar_labels_collapsed}
+        set_is_create_tag_open={set_is_create_tag_open}
+        set_labels_expanded={set_labels_expanded}
+        set_selected_item={set_selected_item}
+        tag_refs={tag_refs}
+        tags={tags_state.tags}
+      />
+    ),
+    aliases: (
+      <SidebarAliases
+        alias_refs={alias_refs}
+        aliases={aliases}
+        aliases_expanded={aliases_expanded}
+        effective_selected={effective_selected}
+        handle_nav_click={handle_nav_click}
+        is_collapsed={is_collapsed}
+        is_loading={aliases_loading}
+        load_failed={aliases_load_failed}
+        navigate={navigate}
+        on_create_alias={() => {
+          request_auto_open_create_alias();
+          on_settings_click("aliases");
+
+          if (create_alias_timer_ref.current !== null) {
+            clearTimeout(create_alias_timer_ref.current);
+          }
+
+          create_alias_timer_ref.current = setTimeout(() => {
+            create_alias_timer_ref.current = null;
+            dispatch_auto_open_create_alias();
+          }, 100);
+        }}
+        on_retry={() => void refresh_aliases()}
+        on_settings_click={on_settings_click}
+        on_toggle_section={toggle_aliases_collapsed}
+        section_collapsed={preferences.sidebar_aliases_collapsed}
+        set_aliases_expanded={set_aliases_expanded}
+        set_selected_item={set_selected_item}
+        unread_counts={alias_unread_counts}
+      />
+    ),
+  };
 
   const sidebar_content = (
     <SidebarAsideView
@@ -775,141 +936,9 @@ const sidebar_base = ({
         is_collapsed={is_collapsed}
         show_indicator={!is_collapsed && !is_search_active}
       >
-        <SidebarNavSection
-          all_mail_ref={all_mail_ref}
-          archive_ref={archive_ref}
-          contacts_ref={contacts_ref}
-          drafts_ref={drafts_ref}
-          effective_selected={effective_selected}
-          handle_nav_click={handle_nav_click}
-          inbox_children_slot={
-            inbox_pinned_folders.length > 0 ? (
-              <SidebarFolders
-                folders_expanded
-                account_id={user?.id ?? ""}
-                effective_selected={effective_selected}
-                folder_refs={folder_refs}
-                folder_unread_counts={folder_unread_counts}
-                all_folders={folders_state.folders}
-                folders={inbox_pinned_folders}
-                handle_folder_lock={handle_folder_lock}
-                handle_folder_modal={handle_folder_modal}
-                handle_nav_click={handle_nav_click}
-                is_collapsed={is_collapsed}
-                is_loading={folders_state.is_loading}
-                navigate={navigate}
-                on_drop_emails={on_drop_to_folder}
-                reorder_folders={reorder_folders}
-                set_create_folder_parent_token={set_create_folder_parent_token}
-                set_folders_expanded={set_folders_expanded}
-                set_is_create_folder_open={set_is_create_folder_open}
-                set_password_modal_folder={set_password_modal_folder}
-                set_selected_item={set_selected_item}
-                variant="pinned"
-              />
-            ) : undefined
-          }
-          inbox_ref={inbox_ref}
-          is_collapsed={is_collapsed}
-          navigate={navigate}
-          on_toggle_section={toggle_more_collapsed}
-          scheduled_ref={scheduled_ref}
-          section_collapsed={preferences.sidebar_more_collapsed}
-          sent_ref={sent_ref}
-          set_selected_item={set_selected_item}
-          snoozed_ref={snoozed_ref}
-          spam_ref={spam_ref}
-          starred_ref={starred_ref}
-          stats={stats}
-          stats_loading={!has_initialized}
-          subscriptions_ref={subscriptions_ref}
-          trash_ref={trash_ref}
-        />
-
-        <SidebarFolders
-          account_id={user?.id ?? ""}
-          effective_selected={effective_selected}
-          folder_refs={folder_refs}
-          folder_unread_counts={folder_unread_counts}
-          all_folders={folders_state.folders}
-          folders={sidebar_folders}
-          folders_expanded={folders_expanded}
-          handle_folder_lock={handle_folder_lock}
-          handle_folder_modal={handle_folder_modal}
-          handle_nav_click={handle_nav_click}
-          is_collapsed={is_collapsed}
-          is_loading={folders_state.is_loading}
-          load_failed={Boolean(folders_state.error)}
-          navigate={navigate}
-          on_drop_emails={on_drop_to_folder}
-          on_retry={() => void refresh_folders()}
-          on_toggle_section={toggle_folders_collapsed}
-          reorder_folders={reorder_folders}
-          section_collapsed={preferences.sidebar_folders_collapsed}
-          sort_folders_a_z={sort_folders_a_z}
-          set_create_folder_parent_token={set_create_folder_parent_token}
-          set_folders_expanded={set_folders_expanded}
-          set_is_create_folder_open={set_is_create_folder_open}
-          set_password_modal_folder={set_password_modal_folder}
-          set_selected_item={set_selected_item}
-        />
-
-        <SidebarTags
-          account_id={user?.id ?? ""}
-          effective_selected={effective_selected}
-          handle_nav_click={handle_nav_click}
-          handle_tag_modal={handle_tag_modal}
-          is_collapsed={is_collapsed}
-          is_loading={tags_state.is_loading}
-          labels_expanded={labels_expanded}
-          load_failed={Boolean(tags_state.error)}
-          navigate={navigate}
-          on_create_sublabel={(parent_token) => {
-            set_create_tag_parent_token(parent_token);
-            set_is_create_tag_open(true);
-          }}
-          on_drop_emails={on_drop_to_tag}
-          on_retry={() => void refresh_tags()}
-          on_toggle_section={toggle_labels_collapsed}
-          section_collapsed={preferences.sidebar_labels_collapsed}
-          set_is_create_tag_open={set_is_create_tag_open}
-          set_labels_expanded={set_labels_expanded}
-          set_selected_item={set_selected_item}
-          tag_refs={tag_refs}
-          tags={tags_state.tags}
-        />
-
-        <SidebarAliases
-          alias_refs={alias_refs}
-          aliases={aliases}
-          aliases_expanded={aliases_expanded}
-          effective_selected={effective_selected}
-          handle_nav_click={handle_nav_click}
-          is_collapsed={is_collapsed}
-          is_loading={aliases_loading}
-          load_failed={aliases_load_failed}
-          navigate={navigate}
-          on_create_alias={() => {
-            request_auto_open_create_alias();
-            on_settings_click("aliases");
-
-            if (create_alias_timer_ref.current !== null) {
-              clearTimeout(create_alias_timer_ref.current);
-            }
-
-            create_alias_timer_ref.current = setTimeout(() => {
-              create_alias_timer_ref.current = null;
-              dispatch_auto_open_create_alias();
-            }, 100);
-          }}
-          on_retry={() => void refresh_aliases()}
-          on_settings_click={on_settings_click}
-          on_toggle_section={toggle_aliases_collapsed}
-          section_collapsed={preferences.sidebar_aliases_collapsed}
-          set_aliases_expanded={set_aliases_expanded}
-          set_selected_item={set_selected_item}
-          unread_counts={alias_unread_counts}
-        />
+        {section_order.map((section_id) => (
+          <Fragment key={section_id}>{section_nodes[section_id]}</Fragment>
+        ))}
       </SidebarScrollAreaView>
 
       <LockdownBanner
