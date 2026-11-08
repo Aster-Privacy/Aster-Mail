@@ -10286,6 +10286,23 @@ export const pt_br = {
     link_device_success_description:
       "Seu aplicativo desktop está agora vinculado. Você pode fechar esta aba.",
     link_device_title: "Vincular dispositivo",
+    link_keys_locked_title: "Seu chaveiro está bloqueado",
+    link_keys_locked_description:
+      "O Aster Mail guarda as chaves deste dispositivo no chaveiro do sistema e não consegue abri-lo. Desbloqueie o chaveiro e tente novamente.",
+    link_keys_no_keyring_title: "Nenhum chaveiro disponível",
+    link_keys_no_keyring_description:
+      "O Aster Mail precisa de um chaveiro do sistema para proteger as chaves deste dispositivo e não consegue salvar nele. Verifique se há um chaveiro configurado e desbloqueado e tente novamente. No Linux, use GNOME Keyring, KWallet ou KeePassXC com o Secret Service ativado.",
+    link_keys_failed_title: "As chaves deste dispositivo não estão prontas",
+    link_keys_failed_description:
+      "O Aster Mail não consegue preparar as chaves necessárias para vincular este dispositivo. Tente novamente e, se continuar acontecendo, entre em contato com o suporte informando a referência abaixo.",
+    link_code_offline_title: "Não foi possível acessar o Aster Mail",
+    link_code_offline_description:
+      "Este dispositivo não consegue se conectar para obter um código de vinculação. Verifique sua conexão com a internet e tente novamente.",
+    link_code_rate_limited_title: "Muitas tentativas",
+    link_code_rate_limited_description: "Aguarde um minuto e tente novamente.",
+    link_code_failed_title: "Não foi possível obter um código de vinculação",
+    link_code_failed_description:
+      "O Aster Mail não consegue criar um código para este dispositivo agora. Tente novamente e, se continuar acontecendo, entre em contato com o suporte informando a referência abaixo.",
     link_device_try_again: "Isso não funcionou. Recomeçar geralmente resolve.",
     link_device_verify_button: "Continuar",
     pair_device_cancel: "Cancelar",

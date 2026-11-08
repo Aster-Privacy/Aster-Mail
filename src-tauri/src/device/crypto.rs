@@ -51,6 +51,12 @@ const MAGIC_AUTH: &[u8; 8] = b"ASTERAU\x01";
 const MAGIC_REFRESH: &[u8; 8] = b"ASTERRT\x01";
 const MAGIC_PL: &[u8; 8] = b"ASTERPL\x01";
 const PIN_LOCKED_ERROR: &str = "passphrase_pin_locked";
+const KEYCHAIN_UNAVAILABLE_ERROR: &str = "keychain_unavailable";
+const KEYCHAIN_STORE_FAILED_ERROR: &str = "keychain_store_failed";
+const IDENTITY_FILE_NAME: &str = "device_identity.bin";
+const UNREADABLE_IDENTITY_FILE_NAME: &str = "device_identity.unreadable.bin";
+const MACHINE_NAME_MAX_CHARS: usize = 64;
+const MACHINE_NAME_FALLBACK: &str = "Aster Mail desktop";
 const REFRESH_FILE_NAME: &str = "auth_refresh.bin";
 const REFRESH_ACCOUNT_ID_MAX_LEN: usize = 128;
 const KEYRING_AUTH_ACCESS_USER: &str = "auth-access-token-v1";
@@ -96,7 +102,7 @@ fn identity_file_path() -> Result<std::path::PathBuf, String> {
     let app_dir = data_dir.join("com.astermail.mail");
 
     std::fs::create_dir_all(&app_dir).map_err(|e| e.to_string())?;
-    Ok(app_dir.join("device_identity.bin"))
+    Ok(app_dir.join(IDENTITY_FILE_NAME))
 }
 
 fn passphrase_file_path() -> Result<std::path::PathBuf, String> {
@@ -267,12 +273,16 @@ fn wrap_key_load() -> Result<Option<[u8; 32]>, String> {
         Ok(None) => Ok(wrap_key_file_adopt()),
         Err(e) => match wrap_key_file_adopt() {
             Some(key) => Ok(Some(key)),
-            None => Err(format!(
-                "the system keychain could not be read, so this device's keys cannot be unlocked: {}. Your existing keys were left untouched. Unlock the system keychain and try again.",
-                e
-            )),
+            None => Err(keychain_unavailable_error(&e)),
         },
     }
+}
+
+fn keychain_unavailable_error(cause: &str) -> String {
+    format!(
+        "{}: the system keychain could not be read, so this device's keys cannot be unlocked: {}. Your existing keys were left untouched. Unlock the system keychain and try again.",
+        KEYCHAIN_UNAVAILABLE_ERROR, cause
+    )
 }
 
 fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
@@ -287,10 +297,7 @@ fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
             if let Some(key) = wrap_key_file_adopt() {
                 return Ok(key);
             }
-            return Err(format!(
-                "the system keychain could not be read, so this device's keys cannot be unlocked: {}. Your existing keys were left untouched. Unlock the system keychain and try again.",
-                e
-            ));
+            return Err(keychain_unavailable_error(&e));
         }
     }
 
@@ -300,8 +307,8 @@ fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
     if let Err(e) = keyring_wrap_key_store(&key) {
         key.zeroize();
         return Err(format!(
-            "secure key storage is unavailable, so Aster Mail cannot protect this device's keys: {}. Turn on your system keychain (Credential Manager on Windows, Keychain on macOS, or a Secret Service provider such as GNOME Keyring or KeePassXC on Linux), then try again.",
-            e
+            "{}: secure key storage is unavailable, so Aster Mail cannot protect this device's keys: {}. Turn on your system keychain (Credential Manager on Windows, Keychain on macOS, or a Secret Service provider such as GNOME Keyring or KeePassXC on Linux), then try again.",
+            KEYCHAIN_STORE_FAILED_ERROR, e
         ));
     }
 
@@ -531,6 +538,52 @@ fn atomic_write(path: &std::path::Path, data: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
+fn open_sealed_identity(wrap_key: &[u8; 32], data: &[u8]) -> Result<StoredIdentity, String> {
+    let plaintext = Zeroizing::new(aead_open(wrap_key, MAGIC_ID, data)?);
+    serde_json::from_slice(&plaintext).map_err(|e| format!("identity decode: {}", e))
+}
+
+fn parse_legacy_identity(data: &[u8]) -> Result<StoredIdentity, String> {
+    let bytes = Zeroizing::new(
+        URL_SAFE_NO_PAD
+            .decode(data)
+            .map_err(|e| format!("legacy identity decode: {}", e))?,
+    );
+    serde_json::from_slice(&bytes).map_err(|e| format!("legacy identity decode: {}", e))
+}
+
+fn unreadable_identity_path(identity_path: &std::path::Path) -> std::path::PathBuf {
+    identity_path.with_file_name(UNREADABLE_IDENTITY_FILE_NAME)
+}
+
+fn move_identity_aside(path: &std::path::Path) -> std::io::Result<std::path::PathBuf> {
+    let backup = unreadable_identity_path(path);
+
+    if backup.exists() {
+        secure_delete_file(&backup);
+    }
+    std::fs::rename(path, &backup)?;
+    Ok(backup)
+}
+
+fn set_aside_unreadable_identity(path: &std::path::Path, reason: &str) -> Result<(), String> {
+    move_identity_aside(path).map_err(|e| {
+        format!(
+            "device identity is unreadable ({}) and could not be set aside: {}",
+            reason, e
+        )
+    })?;
+
+    auth_store_clear_all();
+    delete_all_passphrase_files();
+    tracing::warn!("device identity was unreadable and has been replaced: {}", reason);
+    crate::boot_guard::log_line(&format!(
+        "device identity was unreadable and was set aside, a new one will be created: {}",
+        reason
+    ));
+    Ok(())
+}
+
 fn load_stored() -> Result<Option<StoredIdentity>, String> {
     let path = identity_file_path()?;
 
@@ -567,17 +620,24 @@ fn load_stored() -> Result<Option<StoredIdentity>, String> {
                 return Ok(None);
             }
             Some(wrap_key) => {
-                let plaintext = Zeroizing::new(aead_open(&wrap_key, MAGIC_ID, &data)?);
-                let stored: StoredIdentity =
-                    serde_json::from_slice(&plaintext).map_err(|e| e.to_string())?;
-                return Ok(Some(stored));
+                return match open_sealed_identity(&wrap_key, &data) {
+                    Ok(stored) => Ok(Some(stored)),
+                    Err(e) => {
+                        set_aside_unreadable_identity(&path, &e)?;
+                        Ok(None)
+                    }
+                };
             }
         }
     }
 
-    let bytes = Zeroizing::new(URL_SAFE_NO_PAD.decode(&data).map_err(|e| e.to_string())?);
-    let stored: StoredIdentity =
-        serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    let stored = match parse_legacy_identity(&data) {
+        Ok(stored) => stored,
+        Err(e) => {
+            set_aside_unreadable_identity(&path, &e)?;
+            return Ok(None);
+        }
+    };
     if let Err(e) = save_stored(&stored) {
         tracing::warn!("identity legacy-to-v2 migration deferred: {}", e);
     }
@@ -700,7 +760,10 @@ fn b64url_decode(s: &str) -> Result<Vec<u8>, String> {
 
 #[tauri::command]
 pub fn device_get_pubkeys() -> Result<DevicePubkeys, String> {
-    let id = get_or_create_device_identity()?;
+    let id = get_or_create_device_identity().inspect_err(|e| {
+        tracing::warn!("device keys could not be prepared: {}", e);
+        crate::boot_guard::log_line(&format!("device keys could not be prepared: {}", e));
+    })?;
     let ed25519_pk = b64url(id.ed25519_signing_key.verifying_key().as_bytes());
     let mlkem_pk = b64url(&id.mlkem_encaps_key_bytes);
     let x25519_pk = b64url(&id.x25519_public_bytes);
@@ -709,10 +772,34 @@ pub fn device_get_pubkeys() -> Result<DevicePubkeys, String> {
         ed25519_pk,
         mlkem_pk,
         x25519_pk,
-        machine_name: whoami::devicename()
-            .or_else(|_| whoami::hostname())
-            .unwrap_or_else(|_| "LocalHost".to_string()),
+        machine_name: device_machine_name(),
     })
+}
+
+fn device_machine_name() -> String {
+    [whoami::devicename().ok(), whoami::hostname().ok()]
+        .into_iter()
+        .flatten()
+        .find_map(|candidate| clean_machine_name(&candidate))
+        .unwrap_or_else(|| MACHINE_NAME_FALLBACK.to_string())
+}
+
+fn clean_machine_name(raw: &str) -> Option<String> {
+    let collapsed = raw
+        .chars()
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .collect::<String>()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    let clipped: String = collapsed.chars().take(MACHINE_NAME_MAX_CHARS).collect();
+    let trimmed = clipped.trim();
+
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
 }
 
 #[tauri::command]
@@ -1530,6 +1617,104 @@ mod tests {
         let sealed = aead_seal(&test_key(1), MAGIC_PP, b"secret").unwrap();
 
         assert!(aead_open(&test_key(2), MAGIC_PP, &sealed).is_err());
+    }
+
+    fn sample_identity_json() -> Vec<u8> {
+        serde_json::to_vec(&StoredIdentity {
+            device_id: None,
+            ed25519_sk_bytes: [7u8; 32],
+            mlkem_sk_bytes: vec![1, 2, 3],
+            mlkem_pk_bytes: vec![4, 5, 6],
+            x25519_sk_bytes: [9u8; 32],
+        })
+        .unwrap()
+    }
+
+    #[test]
+    fn sealed_identity_opens_under_its_own_key() {
+        let key = test_key(11);
+        let sealed = aead_seal(&key, MAGIC_ID, &sample_identity_json()).unwrap();
+        let stored = open_sealed_identity(&key, &sealed).unwrap();
+
+        assert_eq!(stored.ed25519_sk_bytes, [7u8; 32]);
+        assert_eq!(stored.mlkem_pk_bytes, vec![4, 5, 6]);
+    }
+
+    #[test]
+    fn sealed_identity_under_another_key_is_reported_unreadable() {
+        let sealed = aead_seal(&test_key(12), MAGIC_ID, &sample_identity_json()).unwrap();
+
+        assert!(open_sealed_identity(&test_key(13), &sealed).is_err());
+    }
+
+    #[test]
+    fn sealed_garbage_is_reported_unreadable() {
+        let key = test_key(14);
+        let sealed = aead_seal(&key, MAGIC_ID, b"not an identity").unwrap();
+
+        assert!(open_sealed_identity(&key, &sealed).is_err());
+    }
+
+    #[test]
+    fn legacy_identity_parses_and_garbage_is_unreadable() {
+        let encoded = URL_SAFE_NO_PAD.encode(sample_identity_json());
+
+        assert!(parse_legacy_identity(encoded.as_bytes()).is_ok());
+        assert!(parse_legacy_identity(b"%%%not base64%%%").is_err());
+        assert!(parse_legacy_identity(URL_SAFE_NO_PAD.encode(b"{}").as_bytes()).is_err());
+    }
+
+    #[test]
+    fn unreadable_identity_is_set_aside_next_to_the_original() {
+        let dir = scratch_path("set_aside");
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join(IDENTITY_FILE_NAME);
+        let backup = dir.join(UNREADABLE_IDENTITY_FILE_NAME);
+        std::fs::write(&backup, b"older").unwrap();
+        std::fs::write(&path, b"current").unwrap();
+
+        assert_eq!(move_identity_aside(&path).unwrap(), backup);
+        assert!(!path.exists());
+        assert_eq!(std::fs::read(&backup).unwrap(), b"current");
+        assert!(move_identity_aside(&path).is_err());
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn keychain_errors_start_with_a_stable_code() {
+        let prefix = format!("{}: ", KEYCHAIN_UNAVAILABLE_ERROR);
+
+        assert!(keychain_unavailable_error("cause").starts_with(&prefix));
+    }
+
+    #[test]
+    fn machine_name_is_cleaned_and_clipped() {
+        assert_eq!(clean_machine_name("  example-host \n"), Some("example-host".to_string()));
+        assert_eq!(clean_machine_name("a\tb\u{7}c"), Some("a b c".to_string()));
+        assert_eq!(clean_machine_name("a \n\n  b"), Some("a b".to_string()));
+        assert_eq!(clean_machine_name("   "), None);
+        assert_eq!(clean_machine_name("\u{7}\u{0}"), None);
+        assert_eq!(clean_machine_name(""), None);
+
+        for unit in ["x", "é", "名"] {
+            let raw = unit.repeat(MACHINE_NAME_MAX_CHARS * 3);
+            let cleaned = clean_machine_name(&raw).unwrap();
+            assert_eq!(cleaned.chars().count(), MACHINE_NAME_MAX_CHARS, "{unit}");
+        }
+
+        let edge = format!("{} tail", "x".repeat(MACHINE_NAME_MAX_CHARS - 1));
+        let cleaned = clean_machine_name(&edge).unwrap();
+        assert_eq!(cleaned, cleaned.trim());
+        assert!(cleaned.chars().count() <= MACHINE_NAME_MAX_CHARS);
+    }
+
+    #[test]
+    fn machine_name_always_meets_the_server_limits() {
+        let name = device_machine_name();
+
+        assert!(!name.trim().is_empty());
+        assert!(name.chars().count() <= MACHINE_NAME_MAX_CHARS);
     }
 
     #[test]

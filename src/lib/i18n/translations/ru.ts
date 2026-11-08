@@ -10490,6 +10490,23 @@ export const ru = {
     link_device_success_description:
       "Ваше десктопное приложение теперь привязано. Можете закрыть эту вкладку.",
     link_device_title: "Привязать устройство",
+    link_keys_locked_title: "Связка ключей заблокирована",
+    link_keys_locked_description:
+      "Aster Mail хранит ключи этого устройства в системной связке ключей и не может её открыть. Разблокируйте связку ключей и повторите попытку.",
+    link_keys_no_keyring_title: "Связка ключей недоступна",
+    link_keys_no_keyring_description:
+      "Aster Mail нужна системная связка ключей, чтобы защитить ключи этого устройства, но сохранить в неё не удаётся. Убедитесь, что связка ключей настроена и разблокирована, и повторите попытку. В Linux используйте GNOME Keyring, KWallet или KeePassXC с включённым Secret Service.",
+    link_keys_failed_title: "Ключи этого устройства не готовы",
+    link_keys_failed_description:
+      "Aster Mail не может подготовить ключи для привязки этого устройства. Повторите попытку, а если ошибка повторяется, напишите в поддержку и укажите код ниже.",
+    link_code_offline_title: "Не удаётся связаться с Aster Mail",
+    link_code_offline_description:
+      "Этому устройству не удаётся подключиться, чтобы получить код привязки. Проверьте подключение к интернету и повторите попытку.",
+    link_code_rate_limited_title: "Слишком много попыток",
+    link_code_rate_limited_description: "Подождите минуту и повторите попытку.",
+    link_code_failed_title: "Не удаётся получить код привязки",
+    link_code_failed_description:
+      "Aster Mail сейчас не может создать код для этого устройства. Повторите попытку, а если ошибка повторяется, напишите в поддержку и укажите код ниже.",
     link_device_try_again: "Не получилось. Обычно помогает начать заново.",
     link_device_verify_button: "Продолжить",
     pair_device_cancel: "Отмена",

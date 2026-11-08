@@ -9668,6 +9668,23 @@ export const en: Translations = {
       "This code expired or did not match. Your desktop app has the current one.",
     link_device_failed:
       "Linking did not finish. Starting over usually does it. Your account is unchanged.",
+    link_keys_locked_title: "Your keyring is locked",
+    link_keys_locked_description:
+      "Aster Mail keeps this device's keys in your system keyring and can't open it. Unlock your keyring, then try again.",
+    link_keys_no_keyring_title: "No keyring available",
+    link_keys_no_keyring_description:
+      "Aster Mail needs a system keyring to protect this device's keys and can't save to it. Make sure a keyring is set up and unlocked, then try again. On Linux, use GNOME Keyring, KWallet, or KeePassXC with Secret Service turned on.",
+    link_keys_failed_title: "This device's keys aren't ready",
+    link_keys_failed_description:
+      "Aster Mail can't prepare the keys it needs to link this device. Try again, and if it keeps happening, contact support with the reference below.",
+    link_code_offline_title: "Can't reach Aster Mail",
+    link_code_offline_description:
+      "This device can't connect to get a linking code. Check your internet connection, then try again.",
+    link_code_rate_limited_title: "Too many attempts",
+    link_code_rate_limited_description: "Wait a minute, then try again.",
+    link_code_failed_title: "Can't get a linking code",
+    link_code_failed_description:
+      "Aster Mail can't create a code for this device right now. Try again, and if it keeps happening, contact support with the reference below.",
     link_device_try_again: "That did not work. Starting over usually does it.",
     link_device_upgrade_required_toast:
       "Linking a Bridge device needs a Star plan or higher. Upgrade to continue.",

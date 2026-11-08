@@ -10516,6 +10516,23 @@ export const pl = {
       "Ten kod wygasł lub nie pasuje. Twoja aplikacja desktopowa ma aktualny.",
     link_device_failed:
       "Połączenie nie zostało ukończone. Zacznij od nowa. Twoje konto nie zostało zmienione.",
+    link_keys_locked_title: "Twój pęk kluczy jest zablokowany",
+    link_keys_locked_description:
+      "Aster Mail przechowuje klucze tego urządzenia w systemowym pęku kluczy i nie może go otworzyć. Odblokuj pęk kluczy i spróbuj ponownie.",
+    link_keys_no_keyring_title: "Brak dostępnego pęku kluczy",
+    link_keys_no_keyring_description:
+      "Aster Mail potrzebuje systemowego pęku kluczy, aby chronić klucze tego urządzenia, i nie może w nim zapisać danych. Upewnij się, że pęk kluczy jest skonfigurowany i odblokowany, a następnie spróbuj ponownie. W systemie Linux użyj GNOME Keyring, KWallet lub KeePassXC z włączoną usługą Secret Service.",
+    link_keys_failed_title: "Klucze tego urządzenia nie są gotowe",
+    link_keys_failed_description:
+      "Aster Mail nie może przygotować kluczy potrzebnych do połączenia tego urządzenia. Spróbuj ponownie, a jeśli problem się powtarza, skontaktuj się z pomocą techniczną i podaj poniższy identyfikator.",
+    link_code_offline_title: "Brak połączenia z Aster Mail",
+    link_code_offline_description:
+      "To urządzenie nie może się połączyć, aby pobrać kod połączenia. Sprawdź połączenie z internetem i spróbuj ponownie.",
+    link_code_rate_limited_title: "Zbyt wiele prób",
+    link_code_rate_limited_description: "Odczekaj minutę i spróbuj ponownie.",
+    link_code_failed_title: "Nie można uzyskać kodu połączenia",
+    link_code_failed_description:
+      "Aster Mail nie może teraz utworzyć kodu dla tego urządzenia. Spróbuj ponownie, a jeśli problem się powtarza, skontaktuj się z pomocą techniczną i podaj poniższy identyfikator.",
     link_device_try_again: "To nie zadziałało. Zacznij od nowa.",
     trust_this_device_30_days: "Ufaj temu urządzeniu przez 30 dni",
     passkey_sign_in: "Zaloguj się kluczem dostępu",

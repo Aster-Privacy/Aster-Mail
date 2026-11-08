@@ -9893,6 +9893,23 @@ export const ko = {
     link_device_expired_code:
       "이 코드는 만료되었습니다. 기기에서 새 코드를 생성하세요.",
     link_device_failed: "기기 연결에 실패했습니다. 다시 시도하면 됩니다.",
+    link_keys_locked_title: "키링이 잠겨 있습니다",
+    link_keys_locked_description:
+      "Aster Mail은 이 기기의 키를 시스템 키링에 보관하지만 키링을 열 수 없습니다. 키링 잠금을 해제한 후 다시 시도하세요.",
+    link_keys_no_keyring_title: "사용할 수 있는 키링이 없습니다",
+    link_keys_no_keyring_description:
+      "Aster Mail은 이 기기의 키를 보호하기 위해 시스템 키링이 필요하지만 키링에 저장할 수 없습니다. 키링이 설정되어 있고 잠금이 해제되어 있는지 확인한 후 다시 시도하세요. Linux에서는 Secret Service를 켠 GNOME Keyring, KWallet 또는 KeePassXC를 사용하세요.",
+    link_keys_failed_title: "이 기기의 키가 준비되지 않았습니다",
+    link_keys_failed_description:
+      "Aster Mail이 이 기기를 연결하는 데 필요한 키를 준비할 수 없습니다. 다시 시도하고, 계속 발생하면 아래 참조 코드와 함께 지원팀에 문의하세요.",
+    link_code_offline_title: "Aster Mail에 연결할 수 없습니다",
+    link_code_offline_description:
+      "이 기기가 연결 코드를 받기 위해 연결할 수 없습니다. 인터넷 연결을 확인한 후 다시 시도하세요.",
+    link_code_rate_limited_title: "시도 횟수가 너무 많습니다",
+    link_code_rate_limited_description: "1분 기다린 후 다시 시도하세요.",
+    link_code_failed_title: "연결 코드를 받을 수 없습니다",
+    link_code_failed_description:
+      "Aster Mail이 지금 이 기기의 코드를 만들 수 없습니다. 다시 시도하고, 계속 발생하면 아래 참조 코드와 함께 지원팀에 문의하세요.",
     link_device_try_again:
       "작동하지 않았습니다. 처음부터 다시 시작하면 대부분 해결됩니다.",
     trust_this_device_30_days: "이 기기를 30일간 신뢰",

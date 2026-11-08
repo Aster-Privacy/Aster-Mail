@@ -23,6 +23,12 @@ import type { User } from "@/services/account_manager";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import {
+  describe_link_error,
+  error_message,
+  keys_failure_detail,
+  request_failure_detail,
+} from "@/components/common/desktop_link_error";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { open_external } from "@/utils/open_link";
 import {
@@ -219,7 +225,7 @@ export function DesktopCodeSignIn({
       } catch (err) {
         clear_link_codes();
         if (import.meta.env.DEV) console.error(err);
-        fail(`complete:${err instanceof Error ? err.message : String(err)}`);
+        fail(`complete:${error_message(err)}`);
       }
     };
 
@@ -279,9 +285,20 @@ export function DesktopCodeSignIn({
     };
 
     (async () => {
+      let pubkeys: DevicePubkeys;
+
       try {
         const core = await import("@tauri-apps/api/core");
-        const pubkeys = await core.invoke<DevicePubkeys>("device_get_pubkeys");
+
+        pubkeys = await core.invoke<DevicePubkeys>("device_get_pubkeys");
+      } catch (keys_err) {
+        if (import.meta.env.DEV) console.error(keys_err);
+        fail(keys_failure_detail(keys_err));
+
+        return;
+      }
+
+      try {
         const device_key = pubkeys.ed25519_pk;
         let watched = load_link_codes(device_key);
         let current = is_first_flow ? pick_reusable_code(watched) : null;
@@ -335,9 +352,7 @@ export function DesktopCodeSignIn({
         schedule_poll(active, watched);
       } catch (request_err) {
         if (import.meta.env.DEV) console.error(request_err);
-        fail(
-          `request:${request_err instanceof Error ? request_err.message : String(request_err)}`,
-        );
+        fail(request_failure_detail(request_err));
       }
     })();
 
@@ -381,6 +396,7 @@ export function DesktopCodeSignIn({
   };
 
   const code_chars = code ? code.replace(/-/g, "").split("") : [];
+  const error_view = describe_link_error(error_detail ?? "");
 
   const cancel_button = on_cancel ? (
     <button
@@ -459,16 +475,17 @@ export function DesktopCodeSignIn({
               {cancel_button}
               <Logo />
               <h1 className="text-xl font-semibold mt-6 text-txt-primary text-center">
-                {t("auth.link_device_failed")}
+                {t(error_view.title_key)}
               </h1>
               <p className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center">
-                {t("auth.link_device_try_again")}
+                {t(error_view.description_key)}
               </p>
               {error_detail && (
-                <pre className="w-full mt-4 p-3 rounded-lg text-xs break-all whitespace-pre-wrap bg-surf-tertiary text-txt-tertiary border border-edge-secondary">
-                  {import.meta.env.DEV
-                    ? error_detail
-                    : error_detail.split(":")[0]}
+                <pre
+                  className="w-full mt-4 p-3 rounded-lg text-xs break-all whitespace-pre-wrap bg-surf-tertiary text-txt-tertiary border border-edge-secondary"
+                  data-testid="link_error_reference"
+                >
+                  {import.meta.env.DEV ? error_detail : error_view.reference}
                 </pre>
               )}
               <button
@@ -476,7 +493,7 @@ export function DesktopCodeSignIn({
                 type="button"
                 onClick={handle_new_code}
               >
-                {t("auth.device_code_get_new")}
+                {t(error_view.action_key)}
               </button>
             </motion.div>
           )}

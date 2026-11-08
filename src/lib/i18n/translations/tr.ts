@@ -10177,6 +10177,24 @@ export const tr = {
       "Bu kodun süresi doldu veya eşleşmedi. Masaüstü uygulamanızda geçerli kod bulunuyor.",
     link_device_failed:
       "Bağlantı tamamlanamadı. Yeniden başlamak genellikle yeterli olur. Hesabınız değişmedi.",
+    link_keys_locked_title: "Anahtarlığınız kilitli",
+    link_keys_locked_description:
+      "Aster Mail bu cihazın anahtarlarını sistem anahtarlığınızda saklar ve anahtarlığı açamıyor. Anahtarlığınızın kilidini açın ve tekrar deneyin.",
+    link_keys_no_keyring_title: "Kullanılabilir anahtarlık yok",
+    link_keys_no_keyring_description:
+      "Aster Mail bu cihazın anahtarlarını korumak için bir sistem anahtarlığına ihtiyaç duyar ve anahtarlığa kayıt yapamıyor. Bir anahtarlığın kurulu ve kilidinin açık olduğundan emin olun, ardından tekrar deneyin. Linux'ta Secret Service açık olan GNOME Keyring, KWallet veya KeePassXC kullanın.",
+    link_keys_failed_title: "Bu cihazın anahtarları hazır değil",
+    link_keys_failed_description:
+      "Aster Mail bu cihazı bağlamak için gereken anahtarları hazırlayamıyor. Tekrar deneyin. Sorun devam ederse aşağıdaki referansla destek ekibine başvurun.",
+    link_code_offline_title: "Aster Mail'e ulaşılamıyor",
+    link_code_offline_description:
+      "Bu cihaz bağlantı kodu almak için bağlanamıyor. İnternet bağlantınızı kontrol edin ve tekrar deneyin.",
+    link_code_rate_limited_title: "Çok fazla deneme",
+    link_code_rate_limited_description:
+      "Bir dakika bekleyin ve tekrar deneyin.",
+    link_code_failed_title: "Bağlantı kodu alınamıyor",
+    link_code_failed_description:
+      "Aster Mail şu anda bu cihaz için kod oluşturamıyor. Tekrar deneyin. Sorun devam ederse aşağıdaki referansla destek ekibine başvurun.",
     link_device_try_again:
       "Bu çalışmadı. Yeniden başlamak genellikle yeterli olur.",
     trust_this_device_30_days: "Bu cihaza 30 gün güven",

@@ -10095,6 +10095,23 @@ export const ar = {
       "انتهت صلاحية هذا الرمز أو لم يتطابق. تطبيق سطح المكتب الخاص بك لديه الرمز الحالي.",
     link_device_failed:
       "الربط لم يكتمل. البداية من جديد عادةً ما تحل الأمر. حسابك لم يتغير.",
+    link_keys_locked_title: "سلسلة المفاتيح مقفلة",
+    link_keys_locked_description:
+      "يحفظ Aster Mail مفاتيح هذا الجهاز في سلسلة مفاتيح النظام ولا يمكنه فتحها. افتح قفل سلسلة المفاتيح، ثم أعد المحاولة.",
+    link_keys_no_keyring_title: "لا تتوفر سلسلة مفاتيح",
+    link_keys_no_keyring_description:
+      "يحتاج Aster Mail إلى سلسلة مفاتيح النظام لحماية مفاتيح هذا الجهاز ولا يمكنه الحفظ فيها. تأكد من إعداد سلسلة مفاتيح وفتح قفلها، ثم أعد المحاولة. على Linux، استخدم GNOME Keyring أو KWallet أو KeePassXC مع تفعيل Secret Service.",
+    link_keys_failed_title: "مفاتيح هذا الجهاز غير جاهزة",
+    link_keys_failed_description:
+      "لا يستطيع Aster Mail تجهيز المفاتيح اللازمة لربط هذا الجهاز. أعد المحاولة، وإذا تكرر ذلك، فتواصل مع الدعم واذكر المرجع أدناه.",
+    link_code_offline_title: "تعذر الوصول إلى Aster Mail",
+    link_code_offline_description:
+      "لا يستطيع هذا الجهاز الاتصال للحصول على رمز الربط. تحقق من اتصالك بالإنترنت، ثم أعد المحاولة.",
+    link_code_rate_limited_title: "محاولات كثيرة جدًا",
+    link_code_rate_limited_description: "انتظر دقيقة، ثم أعد المحاولة.",
+    link_code_failed_title: "تعذر الحصول على رمز الربط",
+    link_code_failed_description:
+      "لا يستطيع Aster Mail إنشاء رمز لهذا الجهاز الآن. أعد المحاولة، وإذا تكرر ذلك، فتواصل مع الدعم واذكر المرجع أدناه.",
     link_device_try_again: "لم ينجح ذلك. البداية من جديد عادةً ما تحل الأمر.",
     trust_this_device_30_days: "الوثوق بهذا الجهاز لمدة 30 يومًا",
     passkey_sign_in: "تسجيل الدخول بمفتاح مرور",

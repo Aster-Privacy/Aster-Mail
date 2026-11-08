@@ -10078,6 +10078,23 @@ export const ja = {
       "このコードは期限切れか一致しませんでした。デスクトップアプリに現在のコードがあります。",
     link_device_failed:
       "リンクが完了しませんでした。最初からやり直すと解決することが多いです。アカウントに変更はありません。",
+    link_keys_locked_title: "キーリングがロックされています",
+    link_keys_locked_description:
+      "Aster Mail はこのデバイスの鍵をシステムのキーリングに保存していますが、キーリングを開けません。キーリングのロックを解除してから、もう一度お試しください。",
+    link_keys_no_keyring_title: "利用できるキーリングがありません",
+    link_keys_no_keyring_description:
+      "Aster Mail はこのデバイスの鍵を保護するためにシステムのキーリングを必要としますが、保存できません。キーリングが設定され、ロックが解除されていることを確認してから、もう一度お試しください。Linux では、Secret Service を有効にした GNOME Keyring、KWallet、または KeePassXC を使用してください。",
+    link_keys_failed_title: "このデバイスの鍵を準備できていません",
+    link_keys_failed_description:
+      "Aster Mail はこのデバイスのリンクに必要な鍵を準備できません。もう一度お試しください。繰り返し発生する場合は、下の参照コードを添えてサポートにお問い合わせください。",
+    link_code_offline_title: "Aster Mail に接続できません",
+    link_code_offline_description:
+      "このデバイスはリンクコードを取得するために接続できません。インターネット接続を確認してから、もう一度お試しください。",
+    link_code_rate_limited_title: "試行回数が多すぎます",
+    link_code_rate_limited_description: "1 分待ってから、もう一度お試しください。",
+    link_code_failed_title: "リンクコードを取得できません",
+    link_code_failed_description:
+      "Aster Mail は現在このデバイスのコードを作成できません。もう一度お試しください。繰り返し発生する場合は、下の参照コードを添えてサポートにお問い合わせください。",
     link_device_try_again:
       "うまくいきませんでした。最初からやり直すと解決することが多いです。",
     trust_this_device_30_days: "このデバイスを 30 日間信頼する",
