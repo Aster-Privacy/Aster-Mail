@@ -1059,6 +1059,9 @@ export interface CommonTranslations {
   state: string;
   country: string;
   birthday: string;
+  birthday_month: string;
+  birthday_day: string;
+  birthday_year_optional: string;
   notes: string;
   hide_notes: string;
   favorite: string;
@@ -1162,7 +1165,6 @@ export interface CommonTranslations {
   related_person: string;
   event: string;
   instant_messenger: string;
-  contact_limit_reached: string;
   social_networks: string;
   websites: string;
   instant_messengers: string;
@@ -4894,7 +4896,6 @@ export interface SettingsTranslations {
   usage_unlimited: string;
   usage_at_limit: string;
   usage_loading: string;
-  usage_contacts: string;
   usage_filters: string;
   usage_custom_categories: string;
   upgrade_modal_title: string;

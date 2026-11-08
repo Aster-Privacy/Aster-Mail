@@ -87,7 +87,6 @@ import { checkout_error_text } from "@/components/settings/billing/checkout_erro
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_email_aliases: "settings.usage_aliases",
   max_custom_domains: "settings.usage_domains",
-  max_contacts: "settings.usage_contacts",
   max_email_templates: "settings.usage_templates",
   max_html_signatures: "settings.usage_signatures",
   max_custom_filters: "settings.usage_filters",

@@ -36,7 +36,6 @@ export type UpgradeInterval = "month" | "year" | "biennial";
 export type UpgradeLimitKey =
   | "max_email_aliases"
   | "max_custom_domains"
-  | "max_contacts"
   | "max_email_templates"
   | "max_html_signatures"
   | "max_custom_filters"
@@ -101,7 +100,6 @@ const RESOURCE_TO_LIMIT_KEY: Record<string, UpgradeLimitKey> = {
   "email aliases": "max_email_aliases",
   domains: "max_custom_domains",
   "custom domains": "max_custom_domains",
-  contacts: "max_contacts",
   templates: "max_email_templates",
   "email templates": "max_email_templates",
   signatures: "max_html_signatures",

@@ -506,7 +506,7 @@ export function get_plan_comparison_rows(
     {
       category: contacts,
       label: t("settings.plan_f_contacts"),
-      free: "150",
+      free: unlimited,
       star: unlimited,
       nova: unlimited,
       supernova: unlimited,

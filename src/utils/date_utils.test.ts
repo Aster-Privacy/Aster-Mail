@@ -22,13 +22,18 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 
 import { set_display_locale } from "@/utils/date_format";
 import {
+  contact_date_field_order,
   contact_date_from_parts,
   contact_date_input_value,
+  contact_date_max_day,
+  contact_month_names,
   format_contact_date,
   format_relative_time,
   format_relative_time_short,
   is_partial_contact_date,
+  join_contact_date,
   normalize_contact_date,
+  split_contact_date,
   vcard_date_value,
 } from "@/utils/date_utils";
 
@@ -238,5 +243,112 @@ describe("contact date helpers", () => {
     expect(vcard_date_value("--05-15", true)).toBe("--0515");
     expect(vcard_date_value("0000-05-15", false)).toBe("--05-15");
     expect(vcard_date_value("1990-05-15", true)).toBe("1990-05-15");
+  });
+});
+
+describe("birthday fields without a year", () => {
+  it("saves a month and day with no year as --MM-DD", () => {
+    expect(join_contact_date({ year: "", month: "5", day: "15" })).toBe(
+      "--05-15",
+    );
+    expect(join_contact_date({ year: "", month: "2", day: "29" })).toBe(
+      "--02-29",
+    );
+  });
+
+  it("saves a four digit year as a full date", () => {
+    expect(join_contact_date({ year: "1990", month: "5", day: "15" })).toBe(
+      "1990-05-15",
+    );
+  });
+
+  it("saves a month without a day as a partial month", () => {
+    expect(join_contact_date({ year: "", month: "4", day: "" })).toBe("--04");
+    expect(join_contact_date({ year: "1985", month: "4", day: "" })).toBe(
+      "1985-04",
+    );
+  });
+
+  it("clears the birthday when every field is empty", () => {
+    expect(join_contact_date({ year: "", month: "", day: "" })).toBe("");
+    expect(join_contact_date({ year: "  ", month: "", day: "" })).toBe("");
+  });
+
+  it("refuses incomplete or impossible dates", () => {
+    expect(join_contact_date({ year: "19", month: "5", day: "15" })).toBeNull();
+    expect(join_contact_date({ year: "", month: "", day: "15" })).toBeNull();
+    expect(join_contact_date({ year: "1990", month: "", day: "" })).toBeNull();
+    expect(
+      join_contact_date({ year: "2023", month: "2", day: "29" }),
+    ).toBeNull();
+    expect(join_contact_date({ year: "", month: "4", day: "31" })).toBeNull();
+    expect(join_contact_date({ year: "", month: "13", day: "1" })).toBeNull();
+    expect(
+      join_contact_date({ year: "1604", month: "4", day: "15" }),
+    ).toBeNull();
+  });
+
+  it("splits stored dates back into fields", () => {
+    expect(split_contact_date("--05-15")).toEqual({
+      year: "",
+      month: "5",
+      day: "15",
+    });
+    expect(split_contact_date("--0515")).toEqual({
+      year: "",
+      month: "5",
+      day: "15",
+    });
+    expect(split_contact_date("1604-05-15")).toEqual({
+      year: "",
+      month: "5",
+      day: "15",
+    });
+    expect(split_contact_date("1990-05-15")).toEqual({
+      year: "1990",
+      month: "5",
+      day: "15",
+    });
+    expect(split_contact_date("--04")).toEqual({
+      year: "",
+      month: "4",
+      day: "",
+    });
+    expect(split_contact_date("")).toEqual({ year: "", month: "", day: "" });
+    expect(split_contact_date("April 15")).toEqual({
+      year: "",
+      month: "",
+      day: "",
+    });
+  });
+
+  it("round trips a year-less birthday through split and join", () => {
+    for (const value of ["--01-01", "--02-29", "--12-31", "2000-02-29"]) {
+      expect(join_contact_date(split_contact_date(value))).toBe(value);
+    }
+  });
+
+  it("allows February 29 when the year is unknown or a leap year", () => {
+    expect(contact_date_max_day({ year: "", month: "2", day: "" })).toBe(29);
+    expect(contact_date_max_day({ year: "2024", month: "2", day: "" })).toBe(
+      29,
+    );
+    expect(contact_date_max_day({ year: "2023", month: "2", day: "" })).toBe(
+      28,
+    );
+    expect(contact_date_max_day({ year: "", month: "", day: "" })).toBe(31);
+    expect(contact_date_max_day({ year: "", month: "4", day: "" })).toBe(30);
+  });
+
+  it("orders the fields the way the locale writes dates", () => {
+    expect(contact_date_field_order("en-US")).toEqual(["month", "day", "year"]);
+    expect(contact_date_field_order("de")).toEqual(["day", "month", "year"]);
+    expect(contact_date_field_order("ja")).toEqual(["year", "month", "day"]);
+  });
+
+  it("names the months in the locale", () => {
+    expect(contact_month_names("en")[0]).toBe("January");
+    expect(contact_month_names("en")).toHaveLength(12);
+    expect(contact_month_names("pt")[4]).toBe("maio");
   });
 });

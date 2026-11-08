@@ -79,7 +79,6 @@ const IMPORT_RETRY_LIMIT = 2;
 const GROUP_ASSIGN_PAGE_LIMIT = 100;
 const MAX_GROUP_ASSIGN_PAGES = 100;
 const GROUP_ASSIGN_CHUNK = 100;
-const CONTACT_LIMIT_ERROR = "Contact limit reached";
 
 function preview_name_of(contact: ContactFormData): string {
   const full = `${contact.first_name} ${contact.last_name}`.trim();
@@ -154,7 +153,6 @@ export function ContactImportModal({
     updated: number;
     skipped: number;
     failed: number;
-    limit_reached: boolean;
   } | null>(null);
   const [preview_query, set_preview_query] = useState("");
   const [excluded_rows, set_excluded_rows] = useState<Set<number>>(new Set());
@@ -438,7 +436,6 @@ export function ContactImportModal({
       let updated = 0;
       let skipped = 0;
       let failed = 0;
-      let limit_reached = false;
       let last_error: string | null = null;
 
       for (let i = 0; i < payload.length; i += batch_size) {
@@ -480,11 +477,6 @@ export function ContactImportModal({
 
         const errors = response.data.errors ?? [];
 
-        if (errors.some((message) => message.includes(CONTACT_LIMIT_ERROR))) {
-          limit_reached = true;
-          skipped += payload.length - i - batch.length;
-          break;
-        }
         if (errors.length > 0) last_error = errors[0];
       }
 
@@ -496,13 +488,11 @@ export function ContactImportModal({
         }
       }
 
-      if (limit_reached) {
-        set_error(t("common.contact_limit_reached"));
-      } else if (last_error && (failed > 0 || imported + updated === 0)) {
+      if (last_error && (failed > 0 || imported + updated === 0)) {
         set_error(last_error);
       }
 
-      set_import_result({ imported, updated, skipped, failed, limit_reached });
+      set_import_result({ imported, updated, skipped, failed });
       set_step("complete");
     } catch (err) {
       set_error(user_facing_error(err, t("common.import_failed")));

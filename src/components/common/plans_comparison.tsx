@@ -291,7 +291,7 @@ function get_features(
     },
     {
       name: t("settings.feature_contacts"),
-      free: "150",
+      free: unlimited,
       star: unlimited,
       nova: unlimited,
       supernova: unlimited,
