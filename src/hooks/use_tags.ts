@@ -36,6 +36,7 @@ import {
   get_tag_counts,
   add_tag_to_item,
   remove_tag_from_item,
+  bulk_reorder_tags,
   type TagDefinition,
   type CreateTagRequest,
   type UpdateTagRequest,
@@ -50,8 +51,11 @@ import { emit_tags_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import {
+  apply_tag_orders,
   effective_parent_token,
   reparent_children_of_removed_tag,
+  sort_tag_tree_a_z,
+  type TagOrderEntry,
 } from "@/hooks/tag_tree";
 import { request_cache } from "@/services/api/request_cache";
 
@@ -155,6 +159,8 @@ interface UseTagsReturn {
     parent_token?: string | null,
   ) => Promise<boolean>;
   delete_existing_tag: (tag_id: string) => Promise<boolean>;
+  reorder_tags: (entries: TagOrderEntry[]) => Promise<boolean>;
+  sort_tags_a_z: () => Promise<boolean>;
   add_tag_to_email: (email_id: string, tag_token: string) => Promise<boolean>;
   remove_tag_from_email: (
     email_id: string,
@@ -810,6 +816,56 @@ export function use_tags(): UseTagsReturn {
     [],
   );
 
+  const reorder_tags = useCallback(
+    async (entries: TagOrderEntry[]): Promise<boolean> => {
+      if (entries.length === 0) return true;
+
+      const order_map = new Map(entries.map((e) => [e.id, e.sort_order]));
+      const previous_orders = new Map(
+        cached_tags.data
+          .filter((tag) => order_map.has(tag.id))
+          .map((tag) => [tag.id, tag.sort_order]),
+      );
+
+      const apply_orders = (orders: Map<string, number>) => {
+        cached_tags.data = apply_tag_orders(cached_tags.data, orders);
+
+        set_state((prev) => {
+          const updated_tags = apply_tag_orders(prev.tags, orders);
+
+          cached_tags.data = updated_tags;
+
+          return { ...prev, tags: updated_tags };
+        });
+      };
+
+      apply_orders(order_map);
+
+      let saved = false;
+
+      try {
+        const response = await bulk_reorder_tags(entries);
+
+        saved = !response.error;
+      } catch {
+        saved = false;
+      }
+
+      if (!saved) {
+        apply_orders(previous_orders);
+      }
+
+      emit_tags_changed();
+
+      return saved;
+    },
+    [],
+  );
+
+  const sort_tags_a_z = useCallback(async (): Promise<boolean> => {
+    return reorder_tags(sort_tag_tree_a_z(cached_tags.data));
+  }, [reorder_tags]);
+
   const add_tag_to_email = useCallback(
     async (email_id: string, tag_token: string): Promise<boolean> => {
       counts_adjusted_at_ref.current = Date.now();
@@ -1038,6 +1094,8 @@ export function use_tags(): UseTagsReturn {
     create_new_tag,
     update_existing_tag,
     delete_existing_tag,
+    reorder_tags,
+    sort_tags_a_z,
     add_tag_to_email,
     remove_tag_from_email,
     get_tag_by_token,

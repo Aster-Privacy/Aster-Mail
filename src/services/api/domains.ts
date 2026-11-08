@@ -216,6 +216,8 @@ export interface DomainAddress {
   note_nonce?: string | null;
   is_enabled: boolean;
   is_primary: boolean;
+  sidebar_order?: number | null;
+  sidebar_hidden?: boolean;
   created_at: string;
 }
 
@@ -229,6 +231,8 @@ export interface DecryptedDomainAddress {
   note?: string;
   is_enabled: boolean;
   is_primary: boolean;
+  sidebar_order?: number | null;
+  sidebar_hidden?: boolean;
   created_at: string;
 }
 
@@ -480,6 +484,8 @@ export async function decrypt_domain_address(
     note: note || undefined,
     is_enabled: address.is_enabled,
     is_primary: address.is_primary,
+    sidebar_order: address.sidebar_order ?? null,
+    sidebar_hidden: address.sidebar_hidden ?? false,
     created_at: address.created_at,
   };
 }

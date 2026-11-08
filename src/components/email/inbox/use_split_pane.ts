@@ -97,7 +97,9 @@ export function use_split_pane({
   const default_width = Math.floor(
     (container_size?.width ?? window.innerWidth - SIDEBAR_WIDTH) * 0.5,
   );
-  const default_height = Math.floor((window.innerHeight - 120) * 0.5);
+  const default_height = Math.floor(
+    (container_size?.height ?? window.innerHeight - 120) * 0.5,
+  );
   const raw_pane_width = split_pane_width || default_width;
   const raw_pane_height = split_pane_height || default_height;
   const content_area_width =

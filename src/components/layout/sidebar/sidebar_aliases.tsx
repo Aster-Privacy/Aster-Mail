@@ -41,6 +41,7 @@ import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { AliasNavIcon } from "@/components/common/alias_nav_icon";
 import { AliasContextMenu } from "@/components/layout/sidebar/alias_context_menu";
+import { is_sidebar_orderable } from "@/hooks/sidebar_alias_order";
 
 interface SidebarAliasesProps {
   is_collapsed: boolean;
@@ -60,6 +61,10 @@ interface SidebarAliasesProps {
   unread_counts?: Record<string, number>;
   load_failed?: boolean;
   on_retry?: () => void;
+  hidden_alias_count?: number;
+  can_move_alias?: (alias_id: string, direction: "up" | "down") => boolean;
+  on_move_alias?: (alias_id: string, direction: "up" | "down") => void;
+  on_hide_alias?: (alias_id: string) => void;
 }
 
 export const SidebarAliases = memo(function SidebarAliases({
@@ -80,6 +85,10 @@ export const SidebarAliases = memo(function SidebarAliases({
   unread_counts = {},
   load_failed = false,
   on_retry,
+  hidden_alias_count = 0,
+  can_move_alias,
+  on_move_alias,
+  on_hide_alias,
 }: SidebarAliasesProps) {
   const { t } = use_i18n();
   const skeleton_visible = use_delayed_flag(is_loading);
@@ -123,12 +132,30 @@ export const SidebarAliases = memo(function SidebarAliases({
               ? (unread_counts[alias.alias_address_hash] ?? 0)
               : 0;
             const selected = effective_selected === alias_item_id;
+            const orderable = is_sidebar_orderable(alias);
 
             return (
               <AliasContextMenu
                 key={alias.id}
                 alias={alias}
+                can_move_down={can_move_alias?.(alias.id, "down") ?? false}
+                can_move_up={can_move_alias?.(alias.id, "up") ?? false}
+                on_hide={
+                  orderable && on_hide_alias
+                    ? () => on_hide_alias(alias.id)
+                    : undefined
+                }
                 on_manage={() => on_settings_click("aliases")}
+                on_move_down={
+                  orderable && on_move_alias
+                    ? () => on_move_alias(alias.id, "down")
+                    : undefined
+                }
+                on_move_up={
+                  orderable && on_move_alias
+                    ? () => on_move_alias(alias.id, "up")
+                    : undefined
+                }
               >
                 <SidebarTagRow
                   rail_tip
@@ -187,7 +214,11 @@ export const SidebarAliases = memo(function SidebarAliases({
           (load_failed && on_retry ? (
             <LoadFailedNotice on_retry={on_retry} />
           ) : (
-            <SidebarEmptyText>{t("common.no_aliases_yet")}</SidebarEmptyText>
+            <SidebarEmptyText>
+              {hidden_alias_count > 0
+                ? t("common.aliases_all_hidden_from_sidebar")
+                : t("common.no_aliases_yet")}
+            </SidebarEmptyText>
           ))}
       </div>
     </>

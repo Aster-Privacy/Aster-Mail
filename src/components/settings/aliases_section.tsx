@@ -307,6 +307,7 @@ export function AliasesSection() {
               domain_addresses={hook.domain_addresses}
               on_alias_delete={hook.handle_alias_delete}
               on_alias_pin_toggle={hook.handle_pin_toggle}
+              on_sidebar_hidden_toggle={hook.handle_sidebar_hidden_toggle}
               on_alias_too_new={(eligible_date) =>
                 hook.set_alias_too_new_info({ is_open: true, eligible_date })
               }

@@ -116,6 +116,11 @@ import {
   set_default_mail_app,
 } from "@/native/desktop_default_mail";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  active_reading_pane,
+  reading_pane_patch,
+  type ReadingPanePosition,
+} from "@/lib/reading_pane";
 
 export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
@@ -642,9 +647,8 @@ export function BehaviorSection() {
         <SelectSetting
           description={t("settings.reading_pane_description")}
           on_change={(v) =>
-            update_preference(
-              "reading_pane_position",
-              v as "right" | "bottom" | "hidden",
+            update_preferences(
+              reading_pane_patch(preferences, v as ReadingPanePosition),
               true,
             )
           }
@@ -654,7 +658,7 @@ export function BehaviorSection() {
             { value: "hidden", label: t("settings.hidden_click_to_open") },
           ]}
           title={t("settings.reading_pane_position")}
-          value={preferences.reading_pane_position}
+          value={active_reading_pane(preferences)}
         />
 
         <SelectSetting
