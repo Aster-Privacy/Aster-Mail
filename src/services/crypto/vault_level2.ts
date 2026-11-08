@@ -201,10 +201,14 @@ export async function request_level2_admission(
     }
   };
 
-  const request: Promise<Level2Admission> = run().finally(() => {
-    if (admission_request === request) admission_request = null;
+  const holder: { request: Promise<Level2Admission> | null } = {
+    request: null,
+  };
+  const request = run().finally(() => {
+    if (admission_request === holder.request) admission_request = null;
   });
 
+  holder.request = request;
   admission_request = request;
 
   return request;

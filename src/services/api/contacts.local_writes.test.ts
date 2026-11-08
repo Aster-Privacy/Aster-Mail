@@ -29,6 +29,8 @@ const api = vi.hoisted(() => ({
 vi.mock("./client", () => ({ api_client: api }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_stored: () => () => {},
+  get_vault_account_epoch: () => 0,
   get_derived_encryption_key: () => null,
   get_or_create_derived_encryption_crypto_key: async () => null,
   on_vault_cleared: () => () => undefined,

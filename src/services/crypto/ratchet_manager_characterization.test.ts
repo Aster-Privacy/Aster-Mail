@@ -34,6 +34,9 @@ vi.mock("@/services/api/client", () => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
+  get_vault_account_epoch: () => 0,
   get_passphrase_from_memory: () => h.passphrase,
   get_derived_encryption_key: () => null,
   get_vault_from_memory: () => null,

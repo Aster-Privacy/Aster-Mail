@@ -20,8 +20,11 @@
 //
 import type { EncryptedVault } from "./key_manager";
 
+import type { ApiResponse } from "@/services/api/client/helpers";
+
 import { decrypt_vault, encrypt_vault } from "./key_manager";
 import {
+  get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
   MASTER_KEY_VAULT_FORMAT,
@@ -407,6 +410,16 @@ async function write_once(
 
 export function vault_passphrase(): string | null {
   return get_passphrase_from_memory();
+}
+
+export function vault_passphrase_bytes(): Uint8Array | null {
+  return get_passphrase_bytes();
+}
+
+export function put_vault_with_expected_hash(
+  body: Record<string, unknown>,
+): Promise<ApiResponse<unknown>> {
+  return api_client.put<unknown>(VAULT_PATH, body);
 }
 
 export async function open_vault_for_write(

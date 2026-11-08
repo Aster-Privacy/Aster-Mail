@@ -27,8 +27,6 @@ import {
   has_vault_in_memory,
   has_vault_in_memory_for,
   get_last_vault_owner_id,
-  get_passphrase_bytes,
-  get_passphrase_from_memory,
   get_vault_account_epoch,
   on_vault_cleared,
   on_vault_stored,
@@ -46,6 +44,9 @@ import {
 import {
   VAULT_PATH,
   persist_local_vault,
+  put_vault_with_expected_hash,
+  vault_passphrase,
+  vault_passphrase_bytes,
 } from "@/services/crypto/vault_cas_write";
 import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
 import {
@@ -157,10 +158,10 @@ import { is_draft_busy } from "@/services/draft_activity";
 let vault_decryption_lock: Promise<void> | null = null;
 
 const envelope_v2_rekey_deps: EnvelopeV2RekeyDeps = {
-  list: list_encrypted_mail_items,
-  update: update_mail_item,
-  get_vault: get_vault_from_memory,
-  get_passphrase_bytes,
+  list: (params) => list_encrypted_mail_items(params),
+  update: (item_id, data) => update_mail_item(item_id, data),
+  get_vault: () => get_vault_from_memory(),
+  get_passphrase_bytes: () => vault_passphrase_bytes(),
   storage: () => {
     try {
       return typeof localStorage === "undefined" ? null : localStorage;
@@ -197,8 +198,8 @@ function vault_work_factor_deps(user_id: string): VaultWorkFactorDeps {
         skip_cache: true,
         skip_dedup: true,
       }),
-    put_vault: (body) => api_client.put<unknown>(VAULT_PATH, body),
-    get_passphrase: () => get_passphrase_from_memory(),
+    put_vault: (body) => put_vault_with_expected_hash(body),
+    get_passphrase: () => vault_passphrase(),
     decrypt: (encrypted_vault, vault_nonce, passphrase, iterations) =>
       decrypt_vault(encrypted_vault, vault_nonce, passphrase, iterations),
     encrypt: (vault, passphrase, iterations) =>
@@ -244,18 +245,18 @@ async function current_data_kek_tag(): Promise<string | null> {
 
 const level2_storage = create_level2_storage({
   request_admission: () => request_level2_admission(api_client),
-  reset_admission_state: reset_level2_state,
-  is_admitted: is_level2_admitted,
+  reset_admission_state: () => reset_level2_state(),
+  is_admitted: () => is_level2_admitted(),
   start_rekey: (user_id) =>
     start_envelope_v2_rekey(user_id, envelope_v2_rekey_deps),
-  stop_rekey: stop_envelope_v2_rekey,
+  stop_rekey: () => stop_envelope_v2_rekey(),
   run_work_factor: (user_id) =>
     run_vault_work_factor_once(user_id, vault_work_factor_deps(user_id)),
   reset_locked_folder_rekey: () => reset_locked_folder_rekey(),
-  reset_attachment_meta_cache: reset_attachment_meta_rekey_cache,
-  vault_epoch: get_vault_account_epoch,
-  has_vault_for: has_vault_in_memory_for,
-  data_kek_tag: current_data_kek_tag,
+  reset_attachment_meta_cache: () => reset_attachment_meta_rekey_cache(),
+  vault_epoch: () => get_vault_account_epoch(),
+  has_vault_for: (user_id) => has_vault_in_memory_for(user_id),
+  data_kek_tag: () => current_data_kek_tag(),
   on_error: (scope, caught) =>
     ignore_error(`contexts/auth/vault_decryption:${scope}`, caught),
 });

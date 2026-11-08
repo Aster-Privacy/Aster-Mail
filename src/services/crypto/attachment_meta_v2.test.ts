@@ -27,6 +27,9 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("./memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
+  get_vault_account_epoch: () => 0,
   get_passphrase_from_memory: () => h.passphrase,
   get_passphrase_bytes: () =>
     h.passphrase === null ? null : new TextEncoder().encode(h.passphrase),

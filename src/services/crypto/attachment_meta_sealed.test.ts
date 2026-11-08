@@ -21,6 +21,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 vi.mock("./memory_key_store", () => ({
+  on_vault_stored: () => () => {},
+  get_vault_account_epoch: () => 0,
   get_passphrase_bytes: vi.fn(() => null),
   get_passphrase_from_memory: vi.fn(() => null),
   get_vault_from_memory: vi.fn(() => null),
