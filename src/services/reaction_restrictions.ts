@@ -21,6 +21,8 @@
 import type { ErrorTranslations } from "@/lib/i18n/types";
 import type { DecryptedThreadMessage } from "@/types/thread";
 
+import { is_internal_email } from "./api/keys";
+
 export const max_reaction_recipients = 20;
 export const max_reaction_emojis = 20;
 export const max_own_reactions = 2;
@@ -35,7 +37,8 @@ export type ReactionRestriction =
   | "bcc"
   | "too_many_emojis"
   | "reaction_limit"
-  | "no_recipient";
+  | "no_recipient"
+  | "require_encryption";
 
 export const reaction_restriction_keys: Record<
   ReactionRestriction,
@@ -51,6 +54,7 @@ export const reaction_restriction_keys: Record<
   too_many_emojis: "cannot_react_too_many_emojis",
   reaction_limit: "cannot_react_limit",
   no_recipient: "cannot_react_no_recipient",
+  require_encryption: "cannot_react_require_encryption",
 };
 
 function normalize(value: string | undefined | null): string {
@@ -135,11 +139,31 @@ function is_addressed_to(
   });
 }
 
+export function resolve_reaction_recipient(
+  message: DecryptedThreadMessage,
+  current_user_email: string,
+): string | null {
+  const sender = normalize(message.sender_email);
+
+  if (!sender) return null;
+
+  if (sender !== normalize(current_user_email)) {
+    return message.sender_email.trim();
+  }
+
+  return message.to_recipients?.[0]?.email?.trim() || null;
+}
+
+export function is_encrypted_reaction_recipient(email: string): boolean {
+  return is_internal_email(email.trim());
+}
+
 export function reaction_restriction(
   message: DecryptedThreadMessage,
   user_email: string,
   reactions_enabled: boolean,
   is_own_address?: (email: string) => boolean,
+  require_encryption = false,
 ): ReactionRestriction | null {
   if (!reactions_enabled) return "disabled";
   if (message.item_type === "sent") return "own_message";
@@ -163,6 +187,14 @@ export function reaction_restriction(
     return "reaction_limit";
   }
   if (!normalize(message.sender_email)) return "no_recipient";
+
+  if (require_encryption) {
+    const recipient = resolve_reaction_recipient(message, user_email);
+
+    if (!recipient || !is_encrypted_reaction_recipient(recipient)) {
+      return "require_encryption";
+    }
+  }
 
   return null;
 }

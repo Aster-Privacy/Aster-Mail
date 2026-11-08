@@ -28,11 +28,17 @@ import {
 } from "./send_queue_encryption";
 import { react_to_message, unreact_to_message } from "./api/reactions";
 import {
+  is_encrypted_reaction_recipient,
   reaction_restriction,
   reaction_restriction_keys,
+  resolve_reaction_recipient,
 } from "./reaction_restrictions";
 import { get_cached_preferences } from "./api/preferences";
-import { is_internal_email } from "./api/keys";
+import {
+  ensure_post_quantum_consent,
+  type PostQuantumConsentBlock,
+} from "./post_quantum_consent";
+import { SendError, type EncryptionResult } from "./send_queue_types";
 
 import {
   get_cached_sender_identity_for_address,
@@ -44,22 +50,56 @@ import { clamp_subject } from "@/lib/reply_subject";
 export interface ReactionResult {
   success: boolean;
   error?: string;
+  cancelled?: boolean;
   own_reaction_mail_item_id?: string;
 }
 
-function resolve_reaction_recipient(
-  message: DecryptedThreadMessage,
-  current_user_email: string,
-): string | null {
-  const sender_is_self =
-    message.sender_email.toLowerCase().trim() ===
-    current_user_email.toLowerCase().trim();
+function translate_consent_block(block: PostQuantumConsentBlock): string {
+  const errors = get_active_translations().errors;
 
-  if (!sender_is_self) {
-    return message.sender_email;
+  return block === "errors.recipient_key_untrusted"
+    ? errors.recipient_key_untrusted
+    : errors.key_trust_check_failed;
+}
+
+type ReactionBody =
+  | { ok: true; result: EncryptionResult }
+  | { ok: false; result: ReactionResult };
+
+async function seal_reaction_body(
+  body: string,
+  recipient: string,
+  sender_email: string,
+): Promise<ReactionBody> {
+  const consent = await ensure_post_quantum_consent([recipient], sender_email);
+
+  if (!consent.proceed) {
+    return {
+      ok: false,
+      result: consent.blocked_by
+        ? { success: false, error: translate_consent_block(consent.blocked_by) }
+        : { success: false, cancelled: true },
+    };
   }
 
-  return message.to_recipients?.[0]?.email ?? null;
+  const result = await encrypt_for_recipients(
+    body,
+    [recipient],
+    sender_email,
+    consent.allow_non_post_quantum,
+  );
+
+  if (!result.is_encrypted) {
+    return {
+      ok: false,
+      result: {
+        success: false,
+        error: get_active_translations().errors.failed_encrypt_envelope,
+      },
+    };
+  }
+
+  return { ok: true, result };
 }
 
 function resolve_reaction_sender_identity(
@@ -143,11 +183,14 @@ export async function send_reaction(
   }
 
   const primary_email = current_user.email;
+  const require_encryption =
+    get_cached_preferences()?.require_encryption === true;
   const restriction = reaction_restriction(
     message,
     primary_email,
     true,
     is_own_reaction_address,
+    require_encryption,
   );
 
   if (restriction) {
@@ -175,14 +218,40 @@ export async function send_reaction(
   );
   const sender_email = alias_identity?.email ?? primary_email;
 
+  const recipient_is_internal = is_encrypted_reaction_recipient(recipient);
+
+  if (!recipient_is_internal && require_encryption) {
+    return {
+      success: false,
+      error: get_active_translations().errors.cannot_react_require_encryption,
+    };
+  }
+
   try {
     const body = JSON.stringify({ aster_reaction: true, emoji });
 
-    const encryption_result = await encrypt_for_recipients(
-      body,
-      [recipient],
-      sender_email,
-    );
+    let encryption_result: EncryptionResult = {
+      encrypted_body: body,
+      is_encrypted: false,
+    };
+
+    if (recipient_is_internal) {
+      const sealed = await seal_reaction_body(body, recipient, sender_email);
+
+      if (!sealed.ok) return sealed.result;
+
+      encryption_result = sealed.result;
+    }
+
+    if (
+      !encryption_result.is_encrypted &&
+      (recipient_is_internal || require_encryption)
+    ) {
+      return {
+        success: false,
+        error: get_active_translations().errors.failed_encrypt_envelope,
+      };
+    }
 
     const queued_email: QueuedEmailInternal = {
       id: "",
@@ -209,13 +278,13 @@ export async function send_reaction(
       encrypted_envelope: envelope_data.encrypted_envelope,
       envelope_nonce: envelope_data.envelope_nonce,
       folder_token: envelope_data.folder_token,
-      reply_subject: is_internal_email(recipient)
+      reply_subject: recipient_is_internal
         ? undefined
         : clamp_subject(message.subject),
       sender_email,
       sender_alias_hash: alias_identity?.address_hash,
       sender_display_name: alias_identity?.display_name,
-      in_reply_to: is_internal_email(recipient)
+      in_reply_to: recipient_is_internal
         ? undefined
         : resolve_reaction_in_reply_to(message),
     });
@@ -240,10 +309,13 @@ export async function send_reaction(
       success: true,
       own_reaction_mail_item_id: response.data.own_reaction_mail_item_id,
     };
-  } catch {
+  } catch (error) {
     return {
       success: false,
-      error: get_active_translations().errors.failed_send_reaction,
+      error:
+        error instanceof SendError && error.message
+          ? error.message
+          : get_active_translations().errors.failed_send_reaction,
     };
   }
 }

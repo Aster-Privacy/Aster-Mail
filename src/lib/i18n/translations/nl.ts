@@ -10453,6 +10453,8 @@ export const nl = {
       "Je kunt maximaal twee reacties aan een bericht toevoegen. Verwijder een van je reacties om een andere toe te voegen.",
     cannot_react_no_recipient:
       "Dit bericht heeft geen afzender om de reactie naar te sturen.",
+    cannot_react_require_encryption:
+      "Zolang Versleuteling vereisen aan staat, kun je niet reageren op berichten van mensen buiten Aster.",
     failed_send_reaction: "Probeer het opnieuw.",
     reactions_disabled: "Reacties zijn uitgeschakeld in je instellingen.",
     pending_email_verification:

@@ -10057,6 +10057,8 @@ export const ko = {
     cannot_react_limit:
       "메시지 하나에 반응을 최대 2개까지 추가할 수 있습니다. 다른 반응을 추가하려면 내 반응 중 하나를 삭제하세요.",
     cannot_react_no_recipient: "이 메시지에는 반응을 보낼 발신자가 없습니다.",
+    cannot_react_require_encryption:
+      "암호화 필수가 켜져 있는 동안에는 Aster 외부 사용자의 메시지에 반응할 수 없습니다.",
     failed_send_reaction: "반응을 보내지 못했습니다. 다시 시도하세요.",
     reactions_disabled: "설정에서 반응이 꺼져 있습니다.",
     pending_email_verification:

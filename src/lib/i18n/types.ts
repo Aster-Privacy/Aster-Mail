@@ -9046,6 +9046,7 @@ export interface ErrorTranslations {
   cannot_react_too_many_emojis: string;
   cannot_react_limit: string;
   cannot_react_no_recipient: string;
+  cannot_react_require_encryption: string;
   failed_send_reaction: string;
   reactions_disabled: string;
   network: string;

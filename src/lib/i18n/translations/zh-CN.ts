@@ -9327,6 +9327,7 @@ export const zh_CN = {
     cannot_react_limit:
       "每封邮件最多可添加两个回应。要添加其他回应，请先移除您的一个回应。",
     cannot_react_no_recipient: "此邮件没有可接收回应的发件人。",
+    cannot_react_require_encryption: "开启“要求加密”后，你无法回应来自 Aster 外部用户的邮件。",
     failed_send_reaction: "未能发送回应。请重试。",
     reactions_disabled: "回应功能已在设置中关闭。",
     pending_email_verification: "请查看您的邮件并点击验证链接以激活此账户。",

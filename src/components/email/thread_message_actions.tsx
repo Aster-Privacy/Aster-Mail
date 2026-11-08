@@ -188,6 +188,7 @@ export function ThreadMessageActions({
       auth?.user?.email ?? "",
       reactions_enabled,
       is_own_reaction_address,
+      preferences.require_encryption === true,
     ) ?? (own_group_count >= max_own_reactions ? "reaction_limit" : null);
   const can_react = restriction === null;
   const restriction_message = restriction
@@ -234,6 +235,7 @@ export function ThreadMessageActions({
       on_result: (result) => {
         if (!result.success) {
           drop_pending();
+          if (result.cancelled) return;
           show_toast(result.error ?? t("errors.failed_send_reaction"), "error");
 
           return;

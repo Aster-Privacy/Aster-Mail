@@ -10474,6 +10474,8 @@ export const es = {
       "Puedes añadir hasta dos reacciones a un mensaje. Para añadir otra, quita una de las tuyas.",
     cannot_react_no_recipient:
       "Este mensaje no tiene remitente al que enviar la reacción.",
+    cannot_react_require_encryption:
+      "Mientras Requerir cifrado está activado, no puedes reaccionar a mensajes de personas fuera de Aster.",
     failed_send_reaction: "Inténtalo de nuevo.",
     reactions_disabled: "Las reacciones están desactivadas en tus ajustes.",
     pending_email_verification:

@@ -10259,6 +10259,8 @@ export const ar = {
     cannot_react_limit:
       "يمكنك إضافة تفاعلين كحد أقصى إلى الرسالة. لإضافة تفاعل آخر، أزل أحد تفاعلاتك.",
     cannot_react_no_recipient: "لا يوجد مرسل لهذه الرسالة لإرسال التفاعل إليه.",
+    cannot_react_require_encryption:
+      "لا يمكنك التفاعل مع رسائل من أشخاص خارج Aster أثناء تفعيل «طلب التشفير».",
     failed_send_reaction: "تعذّر إرسال التفاعل. حاول مجددًا.",
     reactions_disabled: "التفاعلات معطلة في إعداداتك.",
     pending_email_verification:

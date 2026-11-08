@@ -10687,6 +10687,8 @@ export const pl = {
       "Do wiadomości możesz dodać maksymalnie dwie reakcje. Aby dodać kolejną, usuń jedną ze swoich.",
     cannot_react_no_recipient:
       "Ta wiadomość nie ma nadawcy, do którego można wysłać reakcję.",
+    cannot_react_require_encryption:
+      "Gdy opcja Wymagaj szyfrowania jest włączona, nie możesz reagować na wiadomości od osób spoza Aster.",
     failed_send_reaction: "Nie udało się wysłać reakcji. Spróbuj ponownie.",
     reactions_disabled: "Reakcje są wyłączone w Twoich ustawieniach.",
     pending_email_verification:
