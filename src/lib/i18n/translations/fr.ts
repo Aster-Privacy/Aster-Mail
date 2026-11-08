@@ -10600,6 +10600,8 @@ export const fr = {
       "Vous pouvez ajouter jusqu'à deux réactions à un message. Pour en ajouter une autre, retirez l'une des vôtres.",
     cannot_react_no_recipient:
       "Ce message n'a pas d'expéditeur à qui envoyer la réaction.",
+    cannot_react_require_encryption:
+      "Tant que l'option Exiger le chiffrement est activée, vous ne pouvez pas réagir aux messages de personnes extérieures à Aster.",
     failed_send_reaction: "La réaction n'a pas pu être envoyée. Réessayez.",
     reactions_disabled: "Les réactions sont désactivées dans vos paramètres.",
     pending_email_verification:

@@ -10597,6 +10597,8 @@ export const de = {
       "Sie können einer Nachricht höchstens zwei Reaktionen hinzufügen. Um eine weitere hinzuzufügen, entfernen Sie eine Ihrer Reaktionen.",
     cannot_react_no_recipient:
       "Diese Nachricht hat keinen Absender, an den die Reaktion gesendet werden kann.",
+    cannot_react_require_encryption:
+      "Solange „Verschlüsselung erforderlich“ aktiviert ist, kannst du nicht auf Nachrichten von Personen außerhalb von Aster reagieren.",
     failed_send_reaction: "Versuchen Sie es erneut.",
     reactions_disabled: "Reaktionen sind in Ihren Einstellungen deaktiviert.",
     pending_email_verification:

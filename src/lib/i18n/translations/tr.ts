@@ -10347,6 +10347,8 @@ export const tr = {
       "Bir mesaja en fazla iki tepki ekleyebilirsiniz. Başka bir tepki eklemek için tepkilerinizden birini kaldırın.",
     cannot_react_no_recipient:
       "Bu mesajın tepki gönderilecek bir göndereni yok.",
+    cannot_react_require_encryption:
+      "Şifreleme zorunlu kıl açıkken Aster dışındaki kişilerden gelen mesajlara tepki veremezsiniz.",
     failed_send_reaction: "Tepki gönderilemedi. Tekrar deneyin.",
     reactions_disabled: "Tepkiler ayarlarınızda kapalı.",
     pending_email_verification:

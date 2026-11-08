@@ -197,4 +197,43 @@ describe("reaction_restriction", () => {
       reaction_restriction(build_message({ sender_email: "  " }), me, true),
     ).toBe("no_recipient");
   });
+
+  it("blocks an outside sender when Require encryption is on", () => {
+    expect(
+      reaction_restriction(build_message(), me, true, undefined, true),
+    ).toBe("require_encryption");
+  });
+
+  it("blocks a hosted custom domain sender when Require encryption is on", () => {
+    expect(
+      reaction_restriction(
+        build_message({ sender_email: "person@hosted.example" }),
+        me,
+        true,
+        undefined,
+        true,
+      ),
+    ).toBe("require_encryption");
+  });
+
+  it("allows an Aster sender when Require encryption is on", () => {
+    expect(
+      reaction_restriction(
+        build_message({
+          sender_email: "Friend@AsterMail.org",
+          is_external: false,
+        }),
+        me,
+        true,
+        undefined,
+        true,
+      ),
+    ).toBeNull();
+  });
+
+  it("allows an outside sender when Require encryption is off", () => {
+    expect(
+      reaction_restriction(build_message(), me, true, undefined, false),
+    ).toBeNull();
+  });
 });

@@ -10249,6 +10249,8 @@ export const ja = {
       "1件のメッセージに追加できるリアクションは2つまでです。別のリアクションを追加するには、自分のリアクションを1つ削除してください。",
     cannot_react_no_recipient:
       "このメッセージには、リアクションの送信先となる送信者がいません。",
+    cannot_react_require_encryption:
+      "「暗号化を必須にする」がオンの間は、Aster 以外のユーザーからのメッセージにリアクションできません。",
     failed_send_reaction: "もう一度お試しください。",
     reactions_disabled: "設定でリアクションが無効になっています。",
     pending_email_verification:

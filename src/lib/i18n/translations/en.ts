@@ -10206,6 +10206,8 @@ export const en: Translations = {
       "You can add up to two reactions to a message. To add another, remove one of yours.",
     cannot_react_no_recipient:
       "This message has no sender to send the reaction to.",
+    cannot_react_require_encryption:
+      "While Require encryption is on, you cannot react to messages from people outside Aster.",
     failed_send_reaction: "The reaction could not be sent. Try again.",
     reactions_disabled: "Reactions are turned off in your settings.",
     network:
