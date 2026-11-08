@@ -61,6 +61,7 @@ export interface ThreadMessageItem {
   spam_score?: number;
   spam_signals?: SpamSignal[];
   is_spam?: boolean;
+  is_trashed?: boolean;
   message_group_id?: string;
   rule_category?: string;
   sender_verified?: boolean;

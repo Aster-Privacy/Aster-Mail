@@ -82,6 +82,7 @@ import {
 import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { empty_trash } from "@/services/api/mail";
+import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { invalidate_mail_cache } from "@/hooks/email_list_cache";
@@ -642,21 +643,31 @@ function MobileInbox({
         return;
       }
 
-      if (is_trash_view) {
-        set_permanent_delete_target(emails);
+      const trashed = emails.filter((e) =>
+        is_list_email_in_trash(e, current_view),
+      );
+      const untrashed = emails.filter(
+        (e) => !is_list_email_in_trash(e, current_view),
+      );
+
+      if (untrashed.length > 0) {
+        const ok = await actions.bulk_delete(untrashed);
+
+        if (ok) {
+          for (const email of untrashed) {
+            remove_email(email.id);
+          }
+        } else {
+          show_toast(t("common.failed_to_delete_emails"), "error");
+        }
+      }
+
+      if (trashed.length > 0) {
+        set_permanent_delete_target(trashed);
 
         return;
       }
 
-      const ok = await actions.bulk_delete(emails);
-
-      if (ok) {
-        for (const email of emails) {
-          remove_email(email.id);
-        }
-      } else {
-        show_toast(t("common.failed_to_delete_emails"), "error");
-      }
       exit_selection_mode();
     });
   }, [
@@ -664,7 +675,7 @@ function MobileInbox({
     actions,
     remove_email,
     exit_selection_mode,
-    is_trash_view,
+    current_view,
     is_drafts_view,
     is_scheduled_view,
     schedule_delete_drafts,
@@ -804,7 +815,7 @@ function MobileInbox({
         return;
       }
 
-      if (is_trash_view) {
+      if (is_list_email_in_trash(email, current_view)) {
         set_permanent_delete_target([email]);
       } else {
         const ok = await actions.delete_email(email);
@@ -819,7 +830,7 @@ function MobileInbox({
     [
       actions,
       remove_email,
-      is_trash_view,
+      current_view,
       is_drafts_view,
       is_scheduled_view,
       schedule_delete_drafts,

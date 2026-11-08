@@ -166,3 +166,48 @@ describe.each(["pt", "pt-BR"] as const)("%s archive labels", (language) => {
     expect(get_view_title("archive", [], undefined, translate)).toBe("Arquivo");
   });
 });
+
+describe("delete wording follows the message folder", () => {
+  it("offers Delete forever for a trashed message outside the Trash view", async () => {
+    await mount(
+      "en",
+      dialog_props({
+        current_view: "search",
+        show_single_delete_confirm: true,
+        single_delete_is_permanent: true,
+      }),
+    );
+
+    expect(dialog_buttons()).toContain(translate("mail.delete_permanently"));
+  });
+
+  it("offers Move to trash for a message outside Trash in the Trash view", async () => {
+    await mount(
+      "en",
+      dialog_props({
+        current_view: "trash",
+        show_single_delete_confirm: true,
+        single_delete_is_permanent: false,
+      }),
+    );
+
+    expect(dialog_buttons()).toContain(translate("mail.move_to_trash"));
+  });
+
+  it("offers Delete forever for a bulk selection with trashed mail", async () => {
+    await mount(
+      "en",
+      dialog_props({
+        current_view: "tag-work",
+        bulk_delete_is_permanent: true,
+        confirmations: {
+          show_delete: true,
+          show_archive: false,
+          show_spam: false,
+        },
+      }),
+    );
+
+    expect(dialog_buttons()).toContain(translate("mail.delete_permanently"));
+  });
+});

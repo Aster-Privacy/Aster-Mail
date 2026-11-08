@@ -674,6 +674,7 @@ export async function preload_email_detail(
         is_read: item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
+        is_trashed: item.is_trashed,
         is_external: item.is_external,
         system_origin: item.system_origin,
         e2e_verified,

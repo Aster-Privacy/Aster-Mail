@@ -375,7 +375,9 @@ export function MobileActionMenuSheet({
           >
             <TrashIcon className="h-5 w-5 text-[var(--color-danger,#ef4444)]" />
             <span className="text-[14px] text-[var(--color-danger,#ef4444)]">
-              {t("mail.move_to_trash")}
+              {menu_message?.is_trashed
+                ? t("mail.delete_permanently")
+                : t("mail.move_to_trash")}
             </span>
           </button>
 
@@ -783,7 +785,7 @@ function get_mobile_location_label(
   message: DecryptedThreadMessage,
   t: (key: TranslationKey, params?: Record<string, string | number>) => string,
 ): string {
-  if (message.is_deleted) return t("mail.trashed_label");
+  if (message.is_deleted || message.is_trashed) return t("mail.trashed_label");
   if (message.item_type === "sent") return t("mail.sent_label");
   if (message.item_type === "draft") return t("mail.draft");
 

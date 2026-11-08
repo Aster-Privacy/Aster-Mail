@@ -361,11 +361,8 @@ async function decode_thread_envelope(
     sender_name:
       envelope.from?.name || envelope.from?.email?.split("@")[0] || "",
     sender_email: envelope.from?.email || "",
-    ...(resolve_forwarding_display(
-      envelope.from,
-      envelope.raw_headers,
-      msg,
-    ) ?? {}),
+    ...(resolve_forwarding_display(envelope.from, envelope.raw_headers, msg) ??
+      {}),
     subject: envelope.subject,
     body: body_content,
     html_content: effective_html,
@@ -385,6 +382,15 @@ async function decode_thread_envelope(
     has_readable_body(value);
 
   return { value, cacheable };
+}
+
+export function resolve_thread_trash_flag(
+  message_flag: boolean | undefined,
+  options?: { is_trashed?: boolean },
+): boolean {
+  if (typeof message_flag === "boolean") return message_flag;
+
+  return options?.is_trashed === true;
 }
 
 export async function fetch_and_decrypt_thread_messages(
@@ -449,6 +455,7 @@ export async function fetch_and_decrypt_thread_messages(
         is_read: decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
+        is_trashed: resolve_thread_trash_flag(msg.is_trashed, options),
         is_external: msg.is_external ?? false,
         system_origin: msg.system_origin,
         sender_verified_domain: msg.sender_verified
@@ -489,6 +496,7 @@ export async function fetch_and_decrypt_thread_messages(
       is_read: decrypted_metadata?.is_read ?? false,
       is_starred: decrypted_metadata?.is_starred ?? false,
       is_deleted: false,
+      is_trashed: resolve_thread_trash_flag(msg.is_trashed, options),
       is_external: msg.is_external ?? false,
       system_origin: msg.system_origin,
       e2e_verified: content.e2e_verified,
@@ -576,6 +584,7 @@ export async function fetch_and_decrypt_virtual_group(
         is_read: decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
+        is_trashed: item.is_trashed,
         is_external: item.is_external ?? false,
         system_origin: item.system_origin,
         sender_verified_domain: item.sender_verified
@@ -721,6 +730,7 @@ export async function fetch_and_decrypt_virtual_group(
       is_read: decrypted_metadata?.is_read ?? false,
       is_starred: decrypted_metadata?.is_starred ?? false,
       is_deleted: false,
+      is_trashed: item.is_trashed,
       is_external: item.is_external ?? false,
       system_origin: item.system_origin,
       e2e_verified: e2e_verified || sent_encryption_scope !== undefined,

@@ -1153,6 +1153,8 @@ export function use_inbox_toolbar_actions({
     set_pending_archive_email,
     set_show_single_archive_confirm,
     handle_toolbar_delete: delete_actions.handle_toolbar_delete,
+    selection_has_trashed: delete_actions.selection_has_trashed,
+    pending_delete_is_permanent: delete_actions.pending_delete_is_permanent,
     handle_toolbar_archive: archive_snooze_actions.handle_toolbar_archive,
     handle_toolbar_unarchive: archive_snooze_actions.handle_toolbar_unarchive,
     handle_toolbar_toggle_folder:

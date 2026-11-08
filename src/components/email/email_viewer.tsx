@@ -40,6 +40,9 @@ import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { use_permanent_delete_confirm } from "@/components/email/use_permanent_delete_confirm";
+import { permanently_delete_message_ids } from "@/components/email/viewer_shared/trash_placement";
+import { show_toast } from "@/components/toast/simple_toast";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { emit_mail_changed, emit_mail_soft_refresh } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
@@ -56,6 +59,8 @@ export function EmailViewer({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
+  const { request_permanent_delete, permanent_delete_dialog } =
+    use_permanent_delete_confirm();
   const [is_archive_loading, set_is_archive_loading] = useState(false);
   const [is_spam_loading, set_is_spam_loading] = useState(false);
   const [is_trash_loading, set_is_trash_loading] = useState(false);
@@ -188,8 +193,26 @@ export function EmailViewer({
     }
   }, [email.id, email.sender?.email, is_spam_loading, on_close, t]);
 
+  const handle_permanent_delete = useCallback(async () => {
+    set_is_trash_loading(true);
+    const deleted = await permanently_delete_message_ids([email.id]);
+
+    set_is_trash_loading(false);
+    if (deleted) {
+      show_toast(t("common.email_permanently_deleted"), "success");
+      on_close();
+    } else {
+      show_toast(t("common.failed_to_permanently_delete"), "error");
+    }
+  }, [email.id, on_close, t]);
+
   const handle_trash = useCallback(async () => {
     if (is_trash_loading) return;
+    if (is_in_trash) {
+      request_permanent_delete(handle_permanent_delete);
+
+      return;
+    }
     set_is_trash_loading(true);
     const result = await update_item_metadata(
       email.id,
@@ -219,7 +242,15 @@ export function EmailViewer({
       });
       on_close();
     }
-  }, [email.id, is_trash_loading, on_close, t]);
+  }, [
+    email.id,
+    is_in_trash,
+    is_trash_loading,
+    handle_permanent_delete,
+    request_permanent_delete,
+    on_close,
+    t,
+  ]);
 
   return (
     <ErrorBoundary fallback={<EmailErrorFallback on_retry={on_close} />}>
@@ -244,6 +275,7 @@ export function EmailViewer({
         />
         <EmailViewerContent email={email} />
         {spam_confirm_dialog}
+        {permanent_delete_dialog}
       </motion.div>
     </ErrorBoundary>
   );

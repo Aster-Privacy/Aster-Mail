@@ -42,6 +42,7 @@ import {
   type SwipeAction,
 } from "@/components/mobile/swipe_actions";
 import { get_swipe_action } from "@/components/mobile/swipe_action_registry";
+import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import { PinIcon } from "@/components/common/icons";
 import { OfficialBadge } from "@/components/email/official_badge";
 import {
@@ -271,6 +272,11 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       const is_mark_unread = definition.id === "toggle_read" && email.is_read;
       const is_unstar = definition.id === "star" && email.is_starred;
       const is_not_spam = definition.id === "spam" && current_view === "spam";
+      const is_delete_forever =
+        definition.id === "delete" &&
+        current_view !== "drafts" &&
+        current_view !== "scheduled" &&
+        is_list_email_in_trash(email, current_view);
       const Icon = is_unarchive
         ? InboxIcon
         : is_mark_unread
@@ -284,7 +290,9 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             ? "mail.unstar"
             : is_not_spam
               ? "mail.not_spam"
-              : definition.label_key;
+              : is_delete_forever
+                ? "mail.delete_permanently"
+                : definition.label_key;
 
       return {
         icon: (

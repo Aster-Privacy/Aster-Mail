@@ -648,6 +648,8 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         )}
 
         <InboxDialogs
+          bulk_delete_is_permanent={toolbar.selection_has_trashed}
+          single_delete_is_permanent={toolbar.pending_delete_is_permanent}
           cancel_archive={toolbar.cancel_archive}
           cancel_delete={toolbar.cancel_delete}
           cancel_empty_spam={toolbar.cancel_empty_spam}

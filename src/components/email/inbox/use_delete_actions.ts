@@ -57,6 +57,7 @@ import {
   empty_trash,
 } from "@/services/api/mail";
 import { set_thread_trashed } from "@/services/trash_state";
+import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import {
   invalidate_mail_cache,
@@ -137,12 +138,40 @@ export function use_delete_actions({
   set_show_empty_trash_dialog,
   set_is_emptying_trash,
 }: UseDeleteActionsOptions) {
+  const is_trash_view = current_view === "trash";
+
+  const split_by_trash = useCallback(
+    (ids: string[]): { trashed: string[]; untrashed: string[] } => {
+      const by_id = new Map(email_state.emails.map((e) => [e.id, e]));
+      const trashed: string[] = [];
+      const untrashed: string[] = [];
+
+      for (const id of ids) {
+        const email = by_id.get(id);
+        const in_trash = email
+          ? is_list_email_in_trash(email, current_view)
+          : is_trash_view;
+
+        (in_trash ? trashed : untrashed).push(id);
+      }
+
+      return { trashed, untrashed };
+    },
+    [email_state.emails, current_view, is_trash_view],
+  );
+
+  const expand_trashed_ids = useCallback(
+    (email: InboxEmail): string[] =>
+      is_trash_view ? expand_email_ids(email) : [email.id],
+    [is_trash_view],
+  );
+
   const run_permanent_delete = useCallback(
     async (ids: string[]): Promise<void> => {
       const restore_entries = collect_restore_entries(email_state.emails, ids);
       const selected_emails = restore_entries.map((entry) => entry.email);
       const expanded_ids = Array.from(
-        new Set(selected_emails.flatMap(expand_email_ids)),
+        new Set(selected_emails.flatMap(expand_trashed_ids)),
       );
 
       for (const id of ids) {
@@ -154,7 +183,7 @@ export function use_delete_actions({
       const result = await batched_bulk_permanent_delete(expanded_ids);
       const failed_message_ids = new Set(result.failed_ids);
       const failed_emails = selected_emails.filter((e) =>
-        expand_email_ids(e).some((id) => failed_message_ids.has(id)),
+        expand_trashed_ids(e).some((id) => failed_message_ids.has(id)),
       );
       const deleted_count = expanded_ids.length - failed_message_ids.size;
 
@@ -183,7 +212,7 @@ export function use_delete_actions({
         email_ids: expanded_ids,
       });
     },
-    [email_state.emails, remove_email, restore_emails, t],
+    [email_state.emails, expand_trashed_ids, remove_email, restore_emails, t],
   );
 
   const is_threaded_email = useCallback(
@@ -310,15 +339,17 @@ export function use_delete_actions({
   );
 
   const handle_toolbar_delete = useCallback(async (): Promise<void> => {
-    const is_trash_view = current_view === "trash";
+    const ids = get_selected_ids(email_state.emails);
+    const has_trashed =
+      !is_drafts_view &&
+      !is_scheduled_view &&
+      split_by_trash(ids).trashed.length > 0;
 
-    if (preferences.confirm_before_delete || is_trash_view || is_drafts_view) {
+    if (preferences.confirm_before_delete || has_trashed || is_drafts_view) {
       set_confirmations((prev) => ({ ...prev, show_delete: true }));
 
       return;
     }
-
-    const ids = get_selected_ids(email_state.emails);
 
     if (is_scheduled_view) {
       await run_cancel_scheduled(ids);
@@ -336,7 +367,7 @@ export function use_delete_actions({
     run_cancel_scheduled,
     is_drafts_view,
     is_scheduled_view,
-    current_view,
+    split_by_trash,
     set_confirmations,
   ]);
 
@@ -345,16 +376,16 @@ export function use_delete_actions({
       update_preference("confirm_before_delete", false, true);
     }
     const ids = get_selected_ids(email_state.emails);
-    const is_trash_view = current_view === "trash";
 
-    if (is_trash_view) {
-      await run_permanent_delete(ids);
-    } else if (is_drafts_view) {
+    if (is_drafts_view) {
       run_delete_drafts(ids);
     } else if (is_scheduled_view) {
       await run_cancel_scheduled(ids);
     } else {
-      await run_move_to_trash(ids);
+      const { trashed, untrashed } = split_by_trash(ids);
+
+      if (trashed.length > 0) await run_permanent_delete(trashed);
+      if (untrashed.length > 0) await run_move_to_trash(untrashed);
     }
     set_confirmations((prev) => ({ ...prev, show_delete: false }));
     set_dont_ask_delete(false);
@@ -368,7 +399,7 @@ export function use_delete_actions({
     run_cancel_scheduled,
     is_drafts_view,
     is_scheduled_view,
-    current_view,
+    split_by_trash,
     update_preference,
     save_now,
     set_confirmations,
@@ -386,9 +417,12 @@ export function use_delete_actions({
       update_preference("confirm_before_delete", false, true);
     }
     const email = pending_delete_email;
-    const is_trash_view = current_view === "trash";
 
-    if (is_trash_view) {
+    if (
+      !is_drafts_view &&
+      !is_scheduled_view &&
+      is_list_email_in_trash(email, current_view)
+    ) {
       const restore_entries = collect_restore_entries(email_state.emails, [
         email.id,
       ]);
@@ -586,7 +620,19 @@ export function use_delete_actions({
     set_show_empty_trash_dialog(false);
   }, [set_show_empty_trash_dialog]);
 
+  const selection_has_trashed =
+    !is_drafts_view &&
+    !is_scheduled_view &&
+    split_by_trash(get_selected_ids(email_state.emails)).trashed.length > 0;
+  const pending_delete_is_permanent =
+    !!pending_delete_email &&
+    !is_drafts_view &&
+    !is_scheduled_view &&
+    is_list_email_in_trash(pending_delete_email, current_view);
+
   return {
+    selection_has_trashed,
+    pending_delete_is_permanent,
     handle_toolbar_delete,
     confirm_delete,
     cancel_delete,

@@ -31,6 +31,11 @@ import type {
 import { useCallback, useEffect, useRef } from "react";
 
 import { use_message_actions } from "./email_viewer_message_actions";
+import {
+  is_mail_item_in_trash,
+  permanently_delete_message_ids,
+  trashed_conversation_ids,
+} from "./viewer_shared/trash_placement";
 
 import { is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
@@ -76,7 +81,6 @@ import {
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import {
   adjust_stats_spam,
-  adjust_stats_trash,
   adjust_stats_unread,
   invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
@@ -91,11 +95,7 @@ import {
   apply_stat_deltas,
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
-import {
-  report_spam_sender,
-  remove_spam_sender,
-  permanent_delete_mail_item,
-} from "@/services/api/mail";
+import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
 import { sync_thread_spam } from "@/services/trash_state";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
@@ -765,16 +765,19 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const handle_trash = useCallback(async () => {
     if (!deps.email_id || deps.is_trash_loading || !deps.mail_item) return;
 
-    if (deps.mail_item.is_trashed) {
+    if (is_mail_item_in_trash(deps.mail_item)) {
       deps.set_is_trash_loading(true);
-      const deleted = !!(await permanent_delete_mail_item(deps.email_id)).data;
+      const deleted = await permanently_delete_message_ids(
+        trashed_conversation_ids(
+          deps.email_id,
+          deps.mail_item,
+          deps.thread_messages,
+        ),
+      );
 
       deps.set_is_trash_loading(false);
 
       if (deleted) {
-        adjust_stats_trash(-1);
-        emit_mail_items_removed({ ids: [deps.email_id] });
-        emit_mail_changed();
         show_toast(deps.t("common.email_permanently_deleted"), "success");
         dismiss_or_advance(deps.email_id);
       } else {

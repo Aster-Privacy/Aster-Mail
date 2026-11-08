@@ -58,16 +58,15 @@ import {
   get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
-import {
-  adjust_stats_trash,
-  adjust_stats_unread,
-} from "@/hooks/use_mail_stats";
+import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
+import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import {
-  report_spam_sender,
-  remove_spam_sender,
-  permanent_delete_mail_item,
-} from "@/services/api/mail";
+  is_mail_item_in_trash,
+  is_thread_message_in_trash,
+  permanently_delete_message_ids,
+  trashed_conversation_ids,
+} from "@/components/email/viewer_shared/trash_placement";
 import { reindex_ids } from "@/services/category_index";
 import { sync_thread_spam } from "@/services/trash_state";
 import { set_forward_mail_id } from "@/services/forward_store";
@@ -419,16 +418,20 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
   const handle_trash = useCallback(async () => {
     if (!deps.email_id || deps.is_trash_loading || !deps.mail_item) return;
 
-    if (deps.mail_item.is_trashed) {
+    if (is_mail_item_in_trash(deps.mail_item)) {
       deps.set_is_trash_loading(true);
 
-      const deleted = !!(await permanent_delete_mail_item(deps.email_id)).data;
+      const deleted = await permanently_delete_message_ids(
+        trashed_conversation_ids(
+          deps.email_id,
+          deps.mail_item,
+          deps.thread_messages,
+        ),
+      );
 
       deps.set_is_trash_loading(false);
 
       if (deleted) {
-        adjust_stats_trash(-1);
-        emit_mail_items_removed({ ids: [deps.email_id] });
         show_toast(deps.t("common.email_permanently_deleted"), "success");
         close_or_advance(deps.email_id);
       } else {
@@ -484,6 +487,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     deps.is_trash_loading,
     close_or_advance,
     deps.mail_item,
+    deps.thread_messages,
     deps.t,
   ]);
 
@@ -923,6 +927,19 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
   const handle_per_message_trash = useCallback(
     async (msg: DecryptedThreadMessage) => {
+      if (is_thread_message_in_trash(msg, deps.email_id, deps.mail_item)) {
+        const deleted = await permanently_delete_message_ids([msg.id]);
+
+        if (deleted) {
+          show_toast(deps.t("common.email_permanently_deleted"), "success");
+          if (msg.id === deps.email_id) close_or_advance(deps.email_id);
+        } else {
+          show_toast(deps.t("common.failed_to_permanently_delete"), "error");
+        }
+
+        return;
+      }
+
       const result = await update_item_metadata(
         msg.id,
         {
@@ -962,7 +979,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         show_toast(deps.t("common.failed_to_delete_emails"), "error");
       }
     },
-    [deps.t, deps.email_id, close_or_advance],
+    [deps.t, deps.email_id, deps.mail_item, close_or_advance],
   );
 
   const handle_per_message_print = useCallback(

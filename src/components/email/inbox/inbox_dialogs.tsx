@@ -41,6 +41,8 @@ import { use_i18n } from "@/lib/i18n/context";
 
 interface InboxDialogsProps {
   current_view: string;
+  bulk_delete_is_permanent?: boolean;
+  single_delete_is_permanent?: boolean;
   selected_count: number;
   confirmations: ConfirmationDialogState;
   dont_ask_delete: boolean;
@@ -87,6 +89,8 @@ interface InboxDialogsProps {
 
 export function InboxDialogs({
   current_view,
+  bulk_delete_is_permanent,
+  single_delete_is_permanent,
   selected_count,
   confirmations,
   dont_ask_delete,
@@ -131,18 +135,26 @@ export function InboxDialogs({
   on_custom_snooze,
 }: InboxDialogsProps) {
   const { t } = use_i18n();
+  const is_view_permanent =
+    current_view === "trash" || current_view === "drafts";
+  const bulk_permanent =
+    current_view === "drafts" ||
+    (bulk_delete_is_permanent ?? is_view_permanent);
+  const single_permanent =
+    current_view === "drafts" ||
+    (single_delete_is_permanent ?? is_view_permanent);
 
   return (
     <>
       <ConfirmModal
         confirm_text={
-          current_view === "trash" || current_view === "drafts"
+          bulk_permanent
             ? t("mail.delete_permanently")
             : t("mail.move_to_trash")
         }
         confirm_variant="destructive"
         description={
-          current_view === "trash" || current_view === "drafts"
+          bulk_permanent
             ? t("mail.delete_messages_confirmation")
             : t("mail.trash_messages_confirmation")
         }
@@ -153,7 +165,7 @@ export function InboxDialogs({
         on_dont_ask_change={set_dont_ask_delete}
         show={confirmations.show_delete}
         title={
-          current_view === "trash" || current_view === "drafts"
+          bulk_permanent
             ? t("mail.bulk_delete_title", { count: selected_count })
             : t("mail.bulk_trash_title", { count: selected_count })
         }
@@ -171,13 +183,13 @@ export function InboxDialogs({
       />
       <ConfirmModal
         confirm_text={
-          current_view === "trash" || current_view === "drafts"
+          single_permanent
             ? t("mail.delete_permanently")
             : t("mail.move_to_trash")
         }
         confirm_variant="destructive"
         description={
-          current_view === "trash" || current_view === "drafts"
+          single_permanent
             ? t("mail.delete_email_confirmation")
             : t("mail.trash_email_message")
         }
@@ -187,7 +199,7 @@ export function InboxDialogs({
         on_dont_ask_change={set_dont_ask_single_delete}
         show={show_single_delete_confirm}
         title={
-          current_view === "trash" || current_view === "drafts"
+          single_permanent
             ? t("mail.delete_permanently_question")
             : t("mail.move_to_trash_question")
         }

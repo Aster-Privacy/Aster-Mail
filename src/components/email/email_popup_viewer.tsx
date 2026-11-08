@@ -414,6 +414,7 @@ export function EmailPopupViewer({
         timestamp_date={viewer.timestamp_date}
       />
       {spam_confirm_dialog}
+      {viewer.permanent_delete_dialog}
     </motion.div>
   );
 
