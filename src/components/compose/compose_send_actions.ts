@@ -619,7 +619,8 @@ export async function execute_external_email_send(
 
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
-  const use_pgp = pgp_enabled && !email_data.secure_external;
+  const link_send = Boolean(email_data.secure_external || email_data.expires_at);
+  const use_pgp = pgp_enabled && !link_send;
   let handed_off = false;
   let reply_id: string | null = null;
   let server_queue_id: string | null = null;
@@ -629,7 +630,7 @@ export async function execute_external_email_send(
   const drop_reply = () => {
     if (reply_id) drop_queued_reply(reply_id);
   };
-  const needs_encryption = require_encryption && !email_data.secure_external;
+  const needs_encryption = require_encryption && !link_send;
 
   const external_email_data = {
     ...email_data,
@@ -638,14 +639,14 @@ export async function execute_external_email_send(
       auto_discover_keys: use_pgp || needs_encryption,
       encrypt_emails: use_pgp,
       require_encryption: needs_encryption,
-      obscure_subject: obscure_subject && !email_data.secure_external,
+      obscure_subject: obscure_subject && !link_send,
     },
-    ...(pgp_override !== null && !email_data.secure_external
+    ...(pgp_override !== null && !link_send
       ? { force_pgp: pgp_override }
       : {}),
   };
 
-  if (delay_seconds > 0 && !email_data.secure_external) {
+  if (delay_seconds > 0 && !link_send) {
     const result = await queue_email_to_server(
       external_email_data,
       delay_seconds,
@@ -708,7 +709,7 @@ export async function execute_external_email_send(
     save_and_close(ctx, result.queue_id, email_data);
 
     return true;
-  } else if (delay_seconds > 0 && email_data.secure_external) {
+  } else if (delay_seconds > 0 && link_send) {
     const email_id = crypto.randomUUID();
 
     reply_id = email_id;
