@@ -67,6 +67,7 @@ import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import "@/styles/mobile.css";
 
+import { kept_across_updates } from "@/lib/app_update_caches";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
 import { capture_support_return } from "@/lib/support_return";
@@ -189,21 +190,21 @@ if (is_tauri_runtime && "serviceWorker" in navigator) {
   (async () => {
     try {
       const regs = await navigator.serviceWorker.getRegistrations();
-      let did_clear = false;
+      const had_worker = regs.length > 0;
 
-      if (regs.length > 0) {
+      if (had_worker) {
         await Promise.all(regs.map((r) => r.unregister()));
-        did_clear = true;
       }
       if (typeof caches !== "undefined") {
         const keys = await caches.keys();
 
-        if (keys.length > 0) {
-          await Promise.all(keys.map((k) => caches.delete(k)));
-          did_clear = true;
-        }
+        await Promise.all(
+          keys
+            .filter((k) => !kept_across_updates(k))
+            .map((k) => caches.delete(k)),
+        );
       }
-      if (did_clear && !sessionStorage.getItem("aster:sw-flushed")) {
+      if (had_worker && !sessionStorage.getItem("aster:sw-flushed")) {
         sessionStorage.setItem("aster:sw-flushed", "1");
         window.location.reload();
       }
