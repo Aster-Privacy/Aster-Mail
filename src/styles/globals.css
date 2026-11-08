@@ -5014,6 +5014,34 @@ html[data-input-modality="keyboard"]
     max-width: 100%;
   }
 
+  .aster_island_row_stacked:has(
+      > .aster_island_row_trailing
+        > .aster_island_row_control
+        > .aster_select_trigger
+    ) {
+    container: aster_select_row / inline-size;
+  }
+
+  .aster_island_row_stacked
+    > .aster_island_row_trailing:has(
+      > .aster_island_row_control > .aster_select_trigger
+    ) {
+    flex-basis: auto;
+    justify-content: flex-end;
+    max-width: 50%;
+  }
+
+  @container aster_select_row (max-width: 559px) {
+    .aster_island_row_stacked
+      > .aster_island_row_trailing:has(
+        > .aster_island_row_control > .aster_select_trigger
+      ) {
+      flex-basis: 100%;
+      justify-content: flex-start;
+      max-width: 100%;
+    }
+  }
+
   @media (max-width: 639px) {
     .aster_island_row.settings_row_wrap_narrow {
       flex-wrap: wrap;
