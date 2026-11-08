@@ -122,9 +122,8 @@ function reveal_hidden_quote_blocks(el: Element): void {
   });
 }
 
-function fill_quote_toggle(
-  doc: Document,
-  toggle_btn: HTMLButtonElement,
+function label_quote_toggle(
+  toggle: HTMLElement,
   t: translate_fn,
   expanded: boolean,
 ): void {
@@ -132,17 +131,43 @@ function fill_quote_toggle(
     ? t("mail.hide_quoted_text")
     : t("mail.show_quoted_text");
 
-  toggle_btn.textContent = "";
-  toggle_btn.removeAttribute("title");
-  toggle_btn.setAttribute("data-aster-tip", label);
-  toggle_btn.setAttribute("aria-label", label);
-  toggle_btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+  toggle.removeAttribute("title");
+  toggle.setAttribute("data-aster-tip", label);
+  toggle.setAttribute("aria-label", label);
+  toggle.classList.toggle("aster-quote-expanded", expanded);
+}
+
+export function create_quote_wrapper(
+  doc: Document,
+  t: translate_fn,
+): { wrapper: HTMLDetailsElement; content: HTMLDivElement } {
+  const wrapper = doc.createElement("details");
+
+  wrapper.className = "aster-quoted-wrapper";
+
+  const toggle = doc.createElement("summary");
+
+  toggle.className = "aster-quote-toggle";
+  label_quote_toggle(toggle, t, false);
 
   const dots = doc.createElement("span");
 
   dots.className = "aster-quote-toggle-dots";
   dots.setAttribute("aria-hidden", "true");
-  toggle_btn.appendChild(dots);
+  toggle.appendChild(dots);
+
+  const content = doc.createElement("div");
+
+  content.className = "aster-quoted-content";
+
+  wrapper.appendChild(toggle);
+  wrapper.appendChild(content);
+
+  new MutationObserver(() => {
+    label_quote_toggle(toggle, t, wrapper.open);
+  }).observe(wrapper, { attributes: true, attributeFilter: ["open"] });
+
+  return { wrapper, content };
 }
 
 export function collapse_forwarded_content(
@@ -213,20 +238,7 @@ export function collapse_forwarded_content(
       return;
     }
 
-    const wrapper = doc.createElement("div");
-
-    wrapper.className = "aster-quoted-wrapper";
-
-    const toggle_btn = doc.createElement("button");
-
-    toggle_btn.className = "aster-quote-toggle";
-    toggle_btn.type = "button";
-    fill_quote_toggle(doc, toggle_btn, t, false);
-
-    const content_div = doc.createElement("div");
-
-    content_div.className = "aster-quoted-content";
-    content_div.style.display = "none";
+    const { wrapper, content: content_div } = create_quote_wrapper(doc, t);
 
     if (quote_leads_body(gmail_wrapper)) {
       let blank: Node | null = gmail_wrapper.previousSibling;
@@ -242,17 +254,6 @@ export function collapse_forwarded_content(
       gmail_wrapper.parentNode!.insertBefore(wrapper, gmail_wrapper);
     }
     content_div.appendChild(gmail_wrapper);
-
-    toggle_btn.addEventListener("click", () => {
-      const is_hidden = content_div.style.display === "none";
-
-      content_div.style.display = is_hidden ? "" : "none";
-      toggle_btn.classList.toggle("aster-quote-expanded", is_hidden);
-      fill_quote_toggle(doc, toggle_btn, t, is_hidden);
-    });
-
-    wrapper.appendChild(toggle_btn);
-    wrapper.appendChild(content_div);
 
     return;
   }
@@ -609,34 +610,11 @@ function build_quote_wrapper(
   doc: Document,
   t: translate_fn,
   content: Node,
-): HTMLDivElement {
-  const wrapper = doc.createElement("div");
+): HTMLDetailsElement {
+  const { wrapper, content: content_div } = create_quote_wrapper(doc, t);
 
-  wrapper.className = "aster-quoted-wrapper";
-
-  const toggle_btn = doc.createElement("button");
-
-  toggle_btn.className = "aster-quote-toggle";
-  toggle_btn.type = "button";
-  fill_quote_toggle(doc, toggle_btn, t, false);
-
-  const content_div = doc.createElement("div");
-
-  content_div.className = "aster-quoted-content";
-  content_div.style.display = "none";
   content_div.appendChild(content);
   strip_quote_prefixes(doc, content_div);
-
-  toggle_btn.addEventListener("click", () => {
-    const is_hidden = content_div.style.display === "none";
-
-    content_div.style.display = is_hidden ? "" : "none";
-    toggle_btn.classList.toggle("aster-quote-expanded", is_hidden);
-    fill_quote_toggle(doc, toggle_btn, t, is_hidden);
-  });
-
-  wrapper.appendChild(toggle_btn);
-  wrapper.appendChild(content_div);
 
   return wrapper;
 }
