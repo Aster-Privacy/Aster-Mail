@@ -5571,6 +5571,12 @@ export const zh_CN = {
     info_relative_dates_title: "相对日期",
     info_relative_dates_description:
       "开启后，今天和昨天的邮件显示为“今天”和“昨天”。关闭后，邮件列表、邮件正文和打印内容中始终显示邮件的发送或接收日期和时间。",
+    compose_from_selected_alias: "使用所选别名撰写",
+    compose_from_selected_alias_description:
+      "新邮件使用您在侧边栏中打开的别名作为发件人",
+    info_compose_from_selected_alias_title: "使用所选别名撰写",
+    info_compose_from_selected_alias_description:
+      "开启后，在侧边栏中打开某个别名时新建的邮件将从该别名发送。回复、转发和草稿保留原发件人，您仍可以在发送前更改发件人地址。",
     show_alias_indicators: "显示别名标识",
     show_alias_indicators_description: "标记通过您的别名收到的邮件",
     show_message_size_description: "在收件箱列表中显示每封邮件的大小",

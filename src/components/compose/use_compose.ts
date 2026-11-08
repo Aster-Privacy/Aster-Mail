@@ -52,6 +52,7 @@ import {
 } from "@/lib/preferred_sender";
 import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
+import { compose_selected_alias } from "@/components/compose/selected_alias";
 import {
   use_ghost_mode,
   type UseGhostModeReturn,
@@ -125,6 +126,7 @@ export interface UseComposeOptions {
   edit_draft?: EditDraftData | null;
   on_draft_cleared?: () => void;
   initial_to?: string;
+  selected_alias?: string | null;
   initial_attachments?: File[];
   session_storage_key: string;
   init_trigger?: unknown;
@@ -245,6 +247,7 @@ export function use_compose({
   edit_draft,
   on_draft_cleared,
   initial_to,
+  selected_alias,
   initial_attachments,
   session_storage_key,
   init_trigger,
@@ -505,6 +508,11 @@ export function use_compose({
     subject.trim().length > 0 ||
     recipients.to.length + recipients.cc.length + recipients.bcc.length > 0;
   const sender_resolved_ref = useRef(false);
+  const effective_selected_alias = compose_selected_alias(
+    preferences.compose_from_selected_alias,
+    edit_draft,
+    selected_alias,
+  );
 
   useLayoutEffect(() => {
     if (sender_options.length === 0) return;
@@ -517,6 +525,7 @@ export function use_compose({
       options: sender_options,
       draft_from: edit_draft?.from_email,
       preferred_sender_id,
+      selected_alias: effective_selected_alias,
     });
 
     if (!resolved) return;
@@ -532,6 +541,7 @@ export function use_compose({
     edit_draft,
     ghost_mode.is_ghost_enabled,
     has_user_content,
+    effective_selected_alias,
   ]);
 
   useEffect(() => {

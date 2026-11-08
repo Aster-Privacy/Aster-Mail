@@ -240,6 +240,20 @@ interface RegistrationResumeState {
   open_domain_purchase: boolean;
 }
 
+function read_url_username(search: string): string {
+  const raw = new URLSearchParams(search).get("username");
+
+  if (!raw) return "";
+
+  return sanitize_username_input(raw).replace(/_/g, "");
+}
+
+function read_url_domain(search: string): "astermail.org" | "aster.cx" | null {
+  const raw = new URLSearchParams(search).get("domain");
+
+  return raw === "astermail.org" || raw === "aster.cx" ? raw : null;
+}
+
 function read_resume_state(): RegistrationResumeState | null {
   const raw = safe_session_get(REGISTRATION_RESUME_KEY);
 
@@ -427,7 +441,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
     useState(false);
   const [is_key_visible, set_is_key_visible] = useState(false);
   const [username, set_username] = useState(
-    options?.claim_username ?? resume_state_ref.current?.username ?? "",
+    () =>
+      options?.claim_username ??
+      (resume_state_ref.current?.username ||
+        read_url_username(location.search)),
   );
   const [display_name, set_display_name] = useState(
     resume_state_ref.current?.display_name ?? "",
@@ -435,8 +452,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const [email_domain, set_email_domain] = useState<
     "astermail.org" | "aster.cx"
   >(
-    options?.claim_domain ??
+    () =>
+      options?.claim_domain ??
       resume_state_ref.current?.email_domain ??
+      read_url_domain(location.search) ??
       "astermail.org",
   );
   const [password, set_password] = useState("");

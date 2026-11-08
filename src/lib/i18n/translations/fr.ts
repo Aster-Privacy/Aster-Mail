@@ -6291,6 +6291,13 @@ export const fr = {
     info_relative_dates_title: "Dates relatives",
     info_relative_dates_description:
       "Lorsque cette option est activée, les messages d’aujourd’hui et d’hier s’affichent avec la mention Aujourd’hui et Hier. Désactivez-la pour toujours afficher la date et l’heure d’envoi ou de réception d’un message, dans la liste des messages, dans le message et à l’impression.",
+    compose_from_selected_alias: "Rédiger depuis l'alias sélectionné",
+    compose_from_selected_alias_description:
+      "Les nouveaux messages utilisent comme expéditeur l'alias ouvert dans la barre latérale",
+    info_compose_from_selected_alias_title:
+      "Rédiger depuis l'alias sélectionné",
+    info_compose_from_selected_alias_description:
+      "Lorsque cette option est activée, un nouveau message que vous commencez alors qu'un alias est ouvert dans la barre latérale est envoyé depuis cet alias. Les réponses, les transferts et les brouillons conservent leur expéditeur, et vous pouvez toujours modifier l'adresse De avant l'envoi.",
     show_alias_indicators: "Afficher les indicateurs d'alias",
     show_alias_indicators_description:
       "Marquer les messages reçus via l'un de vos alias",

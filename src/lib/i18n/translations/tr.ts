@@ -6132,6 +6132,12 @@ export const tr = {
     info_relative_dates_title: "Göreli tarihler",
     info_relative_dates_description:
       "Bu açıkken bugün ve dün gelen iletiler Bugün ve Dün olarak görünür. İletinin gönderildiği veya alındığı tarih ve saatin ileti listesinde, iletide ve yazdırmada her zaman görünmesi için kapatın.",
+    compose_from_selected_alias: "Seçili takma addan yaz",
+    compose_from_selected_alias_description:
+      "Yeni iletiler, kenar çubuğunda açık olan takma adı gönderen olarak kullanır",
+    info_compose_from_selected_alias_title: "Seçili takma addan yaz",
+    info_compose_from_selected_alias_description:
+      "Bu ayar açıkken, kenar çubuğunda bir takma ad açıkken başlattığınız yeni ileti o takma addan gönderilir. Yanıtlar, iletmeler ve taslaklar kendi gönderenini korur; Kimden adresini göndermeden önce yine de değiştirebilirsiniz.",
     show_alias_indicators: "Takma Ad Göstergelerini Göster",
     show_alias_indicators_description:
       "Takma adlarınızdan birine gelen mesajları işaretler",

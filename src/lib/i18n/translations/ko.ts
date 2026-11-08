@@ -6137,6 +6137,12 @@ export const ko = {
     info_relative_dates_title: "상대 날짜",
     info_relative_dates_description:
       "켜면 오늘과 어제에 주고받은 메일이 오늘, 어제로 표시됩니다. 끄면 메일 목록과 메일 본문, 인쇄물에서 메일을 보내거나 받은 날짜와 시간이 항상 표시됩니다.",
+    compose_from_selected_alias: "선택한 별칭으로 작성",
+    compose_from_selected_alias_description:
+      "새 메시지에 사이드바에서 열어 둔 별칭을 보낸 사람으로 사용합니다",
+    info_compose_from_selected_alias_title: "선택한 별칭으로 작성",
+    info_compose_from_selected_alias_description:
+      "이 옵션을 켜면 사이드바에서 별칭을 연 상태로 작성한 새 메시지가 해당 별칭으로 전송됩니다. 답장, 전달, 임시 보관 메일은 기존 보낸 사람을 유지하며, 보내기 전에 보낸 사람 주소를 변경할 수 있습니다.",
     show_alias_indicators: "별칭 표시 보기",
     show_alias_indicators_description: "별칭으로 도착한 메시지에 표시합니다",
     show_message_size_description:

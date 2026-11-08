@@ -3229,6 +3229,12 @@ export const hi = {
     info_relative_dates_title: "सापेक्ष तिथियाँ",
     info_relative_dates_description:
       "यह चालू होने पर आज और कल के संदेश आज और कल के रूप में दिखते हैं। इसे बंद करने पर संदेश सूची, संदेश और प्रिंट में हमेशा वह तिथि और समय दिखेगा जब संदेश भेजा या प्राप्त हुआ।",
+    compose_from_selected_alias: "चुने गए एलियास से लिखें",
+    compose_from_selected_alias_description:
+      "नए संदेश साइडबार में खुले एलियास को प्रेषक के रूप में इस्तेमाल करते हैं",
+    info_compose_from_selected_alias_title: "चुने गए एलियास से लिखें",
+    info_compose_from_selected_alias_description:
+      "यह चालू होने पर, साइडबार में कोई एलियास खुला रहते हुए शुरू किया गया नया संदेश उसी एलियास से भेजा जाता है। जवाब, फ़ॉरवर्ड और ड्राफ़्ट अपना प्रेषक बनाए रखते हैं, और आप भेजने से पहले प्रेषक पता बदल सकते हैं।",
     show_alias_indicators: "एलियास संकेत दिखाएं",
     show_alias_indicators_description:
       "आपके किसी एलियास से आए संदेशों को चिह्नित करें",

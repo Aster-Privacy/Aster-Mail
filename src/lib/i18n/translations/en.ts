@@ -3145,6 +3145,12 @@ export const en: Translations = {
     info_relative_dates_title: "Relative Dates",
     info_relative_dates_description:
       "When this is on, messages from today and yesterday show as Today and Yesterday. Turn it off to always show the date and time a message was sent or received, in the message list, in the message itself, and on printouts.",
+    compose_from_selected_alias: "Compose from Selected Alias",
+    compose_from_selected_alias_description:
+      "New messages use the alias you have open in the sidebar as the sender",
+    info_compose_from_selected_alias_title: "Compose from Selected Alias",
+    info_compose_from_selected_alias_description:
+      "When this is on, a new message that you start while an alias is open in the sidebar is sent from that alias. Replies, forwards, and drafts keep their own sender, and you can still change the From address before you send.",
     show_alias_indicators: "Show Alias Indicators",
     show_alias_indicators_description:
       "Mark messages that arrived through one of your aliases",

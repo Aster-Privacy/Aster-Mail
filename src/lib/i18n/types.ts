@@ -3405,6 +3405,10 @@ export interface SettingsTranslations {
   relative_dates_description: string;
   info_relative_dates_title: string;
   info_relative_dates_description: string;
+  compose_from_selected_alias: string;
+  compose_from_selected_alias_description: string;
+  info_compose_from_selected_alias_title: string;
+  info_compose_from_selected_alias_description: string;
   show_alias_indicators: string;
   show_alias_indicators_description: string;
   force_dark_mode_emails: string;
