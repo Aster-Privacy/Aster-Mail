@@ -111,7 +111,7 @@ describe("hidden quote wrappers without a toggle", () => {
     const content = doc.querySelector<HTMLElement>(".aster-quoted-content")!;
 
     expect(doc.querySelector(".aster-quote-toggle")).not.toBeNull();
-    expect(content.style.display).toBe("none");
+    expect(content.closest("details")?.open).toBe(false);
     expect(content.contains(doc.querySelector("#q"))).toBe(true);
   });
 });

@@ -2569,6 +2569,9 @@ export const hi = {
     time_zone_show_all: "सभी समय क्षेत्र दिखाएं",
     date_format: "तारीख का प्रारूप",
     date_format_description: "तारीखें कैसे दिखें",
+    week_starts_on: "सप्ताह का पहला दिन",
+    week_starts_on_description:
+      "चुनें कि तारीख चुनने वाले टूल और Aster Calendar में सप्ताह किस दिन से शुरू हो",
     density: "सघनता",
     density_description: "चीज़ों के बीच की जगह घटाएं-बढ़ाएं",
     density_comfortable: "आरामदेह",

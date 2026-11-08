@@ -4010,6 +4010,9 @@ export const ru = {
     time_zone_show_all: "Показать все часовые пояса",
     date_format: "Формат даты",
     date_format_description: "Как отображаются даты",
+    week_starts_on: "Первый день недели",
+    week_starts_on_description:
+      "Выберите день, с которого начинается неделя в окнах выбора даты и в Aster Calendar",
     density: "Плотность",
     density_description: "Настройте расстояние между элементами",
     density_comfortable: "Комфортная",

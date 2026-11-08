@@ -23,6 +23,7 @@ import { describe, it, expect } from "vitest";
 import {
   build_merged_preferences,
   DEFAULT_PREFERENCES,
+  reconcile_preferences,
   type UserPreferences,
 } from "./preferences";
 
@@ -289,5 +290,83 @@ describe("build_merged_preferences", () => {
 
     expect(merged.swipe_left_action).toBe("snooze");
     expect(merged.swipe_right_action).toBe("none");
+  });
+});
+
+describe("build_merged_preferences calendar keys", () => {
+  it("keeps the calendar week start written by Aster Calendar", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      calendar_week_starts_on: "monday",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.calendar_week_starts_on).toBe("monday");
+  });
+
+  it("keeps keys this app does not know so a save cannot wipe them", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      calendar_default_view: "week",
+      calendar_show_week_numbers: true,
+    };
+
+    const merged = build_merged_preferences(server, null) as unknown as Record<
+      string,
+      unknown
+    >;
+
+    expect(merged.calendar_default_view).toBe("week");
+    expect(merged.calendar_show_week_numbers).toBe(true);
+  });
+
+  it("drops an invalid week start instead of passing it to the pickers", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      calendar_week_starts_on: "tuesday",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.calendar_week_starts_on).toBeUndefined();
+  });
+
+  it("leaves the week start unset when no app has saved one", () => {
+    const merged = build_merged_preferences({ ...DEFAULT_PREFERENCES }, null);
+
+    expect("calendar_week_starts_on" in merged).toBe(false);
+  });
+});
+
+describe("reconcile_preferences calendar keys", () => {
+  it("keeps a week start that Aster Calendar saved while this app had the old blob", () => {
+    const base: UserPreferences = { ...DEFAULT_PREFERENCES };
+    const current: UserPreferences = { ...DEFAULT_PREFERENCES, theme: "light" };
+    const server: UserPreferences = {
+      ...DEFAULT_PREFERENCES,
+      calendar_week_starts_on: "monday",
+    };
+
+    const reconciled = reconcile_preferences(base, current, server);
+
+    expect(reconciled.calendar_week_starts_on).toBe("monday");
+    expect(reconciled.theme).toBe("light");
+  });
+
+  it("sends the week start chosen in this app over the server copy", () => {
+    const base: UserPreferences = {
+      ...DEFAULT_PREFERENCES,
+      calendar_week_starts_on: "sunday",
+    };
+    const current: UserPreferences = {
+      ...base,
+      calendar_week_starts_on: "saturday",
+    };
+    const server: UserPreferences = { ...base };
+
+    const reconciled = reconcile_preferences(base, current, server);
+
+    expect(reconciled.calendar_week_starts_on).toBe("saturday");
   });
 });

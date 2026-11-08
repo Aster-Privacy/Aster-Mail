@@ -3905,6 +3905,9 @@ export const de = {
     time_zone_show_all: "Alle Zeitzonen anzeigen",
     date_format: "Datumsformat",
     date_format_description: "Wie Daten angezeigt werden",
+    week_starts_on: "Erster Wochentag",
+    week_starts_on_description:
+      "Wähle den Tag, mit dem die Woche in Datumsauswahlen und in Aster Calendar beginnt",
     density: "Dichte",
     density_description: "Abstände der Elemente anpassen",
     density_comfortable: "Komfortabel",

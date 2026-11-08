@@ -3527,6 +3527,9 @@ export const zh_CN = {
     time_zone_show_all: "显示所有时区",
     date_format: "日期格式",
     date_format_description: "日期的显示方式",
+    week_starts_on: "每周第一天",
+    week_starts_on_description:
+      "选择日期选择器和 Aster Calendar 中每周从哪一天开始",
     density: "密度",
     density_description: "调整项目间距",
     density_comfortable: "舒适",

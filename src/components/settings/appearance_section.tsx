@@ -65,6 +65,13 @@ import { InterfaceZoomRow } from "@/components/settings/appearance/interface_zoo
 import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
 import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picker";
 import { get_supported_time_zones } from "@/lib/time_zones";
+import {
+  normalize_week_start,
+  week_start_label,
+  WEEK_START_PREFERENCES,
+  type WeekStartPreference,
+} from "@/utils/week_start";
+import { app_locale } from "@/utils/date_format";
 import { resolve_list_density } from "@/lib/list_density";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
@@ -263,6 +270,18 @@ export function AppearanceSection() {
 
   const handle_date_format_change = (value: string) => {
     update_preference("date_format", value, true);
+  };
+
+  const week_start_value = normalize_week_start(
+    preferences.calendar_week_starts_on,
+  );
+
+  const handle_week_start_change = (value: string) => {
+    update_preference(
+      "calendar_week_starts_on",
+      normalize_week_start(value),
+      true,
+    );
   };
 
   const handle_time_format_change = (value: string) => {
@@ -681,6 +700,29 @@ export function AppearanceSection() {
               <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
               <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
               <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+            </SelectContent>
+          </Select>
+        </SettingRow>
+
+        <SettingRow
+          description={t("settings.week_starts_on_description")}
+          label={t("settings.week_starts_on")}
+        >
+          <Select
+            value={week_start_value}
+            onValueChange={handle_week_start_change}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue>
+                {week_start_label(week_start_value, app_locale())}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {WEEK_START_PREFERENCES.map((day: WeekStartPreference) => (
+                <SelectItem key={day} value={day}>
+                  {week_start_label(day, app_locale())}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </SettingRow>

@@ -48,6 +48,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { DateInput } from "@/components/ui/date_input";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { is_composing } from "@/utils/ime";
@@ -671,29 +672,27 @@ export function SearchChipRow({
           ))}
           {show_custom_range && (
             <div className="mt-1 pt-1 px-1 flex flex-col gap-2">
-              <input
-                aria-label={t("mail.from_date")}
+              <DateInput
+                aria_label={t("mail.from_date")}
                 className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] text-xs outline-none"
                 max={custom_before || undefined}
+                on_change={set_custom_after}
                 style={{
                   backgroundColor: "var(--aster-hover)",
                   color: "var(--text-primary)",
                 }}
-                type="date"
                 value={custom_after}
-                onChange={(event) => set_custom_after(event.target.value)}
               />
-              <input
-                aria-label={t("mail.to_date")}
+              <DateInput
+                aria_label={t("mail.to_date")}
                 className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] text-xs outline-none"
                 min={custom_after || undefined}
+                on_change={set_custom_before}
                 style={{
                   backgroundColor: "var(--aster-hover)",
                   color: "var(--text-primary)",
                 }}
-                type="date"
                 value={custom_before}
-                onChange={(event) => set_custom_before(event.target.value)}
               />
               <button
                 className="h-8 rounded-[10px] text-xs font-medium bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90 transition-opacity disabled:opacity-50"

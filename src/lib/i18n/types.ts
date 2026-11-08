@@ -2831,6 +2831,8 @@ export interface SettingsTranslations {
   time_zone_show_all: string;
   date_format: string;
   date_format_description: string;
+  week_starts_on: string;
+  week_starts_on_description: string;
   density: string;
   density_description: string;
   density_comfortable: string;

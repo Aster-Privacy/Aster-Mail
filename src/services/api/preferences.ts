@@ -42,6 +42,10 @@ import {
 import { ignore_error } from "@/lib/ignore_error";
 import { locale_date_format, locale_time_format } from "@/utils/date_format";
 import {
+  is_week_start_preference,
+  type WeekStartPreference,
+} from "@/utils/week_start";
+import {
   detect_browser_language,
   get_display_name,
 } from "@/lib/i18n/languages";
@@ -53,6 +57,7 @@ export interface UserPreferences {
   time_zone: string;
   date_format: string;
   time_format: "12h" | "24h";
+  calendar_week_starts_on?: WeekStartPreference;
   relative_dates: boolean;
   compose_from_selected_alias: boolean;
   auto_save_drafts: boolean;
@@ -1031,6 +1036,13 @@ export function build_merged_preferences(
 
   if (merged.time_format !== "12h" && merged.time_format !== "24h") {
     merged.time_format = DEFAULT_PREFERENCES.time_format;
+  }
+
+  if (
+    merged.calendar_week_starts_on !== undefined &&
+    !is_week_start_preference(merged.calendar_week_starts_on)
+  ) {
+    delete merged.calendar_week_starts_on;
   }
 
   merged.relative_dates = merged.relative_dates !== false;

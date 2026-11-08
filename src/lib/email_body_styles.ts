@@ -230,14 +230,14 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
 }
 
 .aster-quote-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   box-sizing: border-box;
+  width: max-content;
   height: 24px;
   min-width: 40px;
   margin: 8px 0;
-  padding: 0 12px;
+  padding: 10px 12px;
+  list-style: none;
   border: 0;
   border-radius: 12px;
   background: rgba(128, 128, 128, 0.12);
@@ -249,8 +249,17 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
   user-select: none;
 }
 
+.aster-quote-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.aster-quote-toggle::marker {
+  content: "";
+}
+
 .aster-quote-toggle-dots {
   display: block;
+  margin: 0 auto;
   width: 4px;
   height: 4px;
   border-radius: 50%;
@@ -261,7 +270,8 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
 }
 
 .aster-quote-toggle:hover,
-.aster-quote-toggle.aster-quote-expanded {
+.aster-quote-toggle.aster-quote-expanded,
+details[open] > .aster-quote-toggle {
   background: rgba(128, 128, 128, 0.2);
 }
 

@@ -3933,6 +3933,9 @@ export const pt = {
     time_zone_show_all: "Mostrar todos os fusos horários",
     date_format: "Formato de data",
     date_format_description: "Como as datas são apresentadas",
+    week_starts_on: "Primeiro dia da semana",
+    week_starts_on_description:
+      "Escolha o dia em que a semana começa nos seletores de data e no Aster Calendar",
     density: "Densidade",
     density_description: "Ajustar o espaçamento dos itens",
     density_comfortable: "Confortável",

@@ -3843,6 +3843,9 @@ export const ja = {
     time_zone_show_all: "すべてのタイムゾーンを表示",
     date_format: "日付形式",
     date_format_description: "日付の表示方法",
+    week_starts_on: "週の始まり",
+    week_starts_on_description:
+      "日付ピッカーと Aster Calendar で週の始まりにする曜日を選択します",
     density: "表示密度",
     density_description: "アイテムの間隔を調整します",
     density_comfortable: "ゆったり",

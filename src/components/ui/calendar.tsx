@@ -18,5 +18,21 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export { Calendar } from "@aster/ui/date_picker";
-export type { CalendarProps } from "@aster/ui/date_picker";
+import type { CalendarProps } from "@aster/ui/date_picker";
+
+import { useContext } from "react";
+import { Calendar as BaseCalendar } from "@aster/ui/date_picker";
+
+import { PreferencesContext } from "@/contexts/preferences_context/helpers";
+import { week_start_index } from "@/utils/week_start";
+
+export type { CalendarProps };
+
+export function Calendar(props: CalendarProps) {
+  const context = useContext(PreferencesContext);
+  const week_starts_on = week_start_index(
+    context?.preferences.calendar_week_starts_on,
+  );
+
+  return <BaseCalendar weekStartsOn={week_starts_on} {...props} />;
+}

@@ -32,6 +32,7 @@ import {
 import { Checkbox } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { DateInput } from "@/components/ui/date_input";
 import { use_should_reduce_motion } from "@/provider";
 import { SEARCH_SCOPES, search_scope_label_key } from "@/utils/search_query";
 import { SEARCH_WITHIN_DAYS } from "@/utils/search_filter_state";
@@ -211,22 +212,22 @@ export function SearchModalFilterPanel({
                 </FieldRow>
                 <RowDivider />
                 <FieldRow label={t("mail.from_date")}>
-                  <input
+                  <DateInput
+                    aria_label={t("mail.from_date")}
                     className={`${FIELD_CLASS} w-full`}
                     max={filters.date_to || undefined}
-                    type="date"
+                    on_change={(value) => update("date_from", value)}
                     value={filters.date_from}
-                    onChange={(e) => update("date_from", e.target.value)}
                   />
                 </FieldRow>
                 <RowDivider />
                 <FieldRow label={t("mail.to_date")}>
-                  <input
+                  <DateInput
+                    aria_label={t("mail.to_date")}
                     className={`${FIELD_CLASS} w-full`}
                     min={filters.date_from || undefined}
-                    type="date"
+                    on_change={(value) => update("date_to", value)}
                     value={filters.date_to}
-                    onChange={(e) => update("date_to", e.target.value)}
                   />
                 </FieldRow>
               </Section>

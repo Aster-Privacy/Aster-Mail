@@ -37,6 +37,7 @@ let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
 afterEach(() => {
+  vi.useRealTimers();
   act(() => {
     root?.unmount();
   });
@@ -56,21 +57,23 @@ function button_with_text(text: string): HTMLButtonElement {
   return match;
 }
 
-function set_date(input: HTMLInputElement, value: string) {
-  const setter = Object.getOwnPropertyDescriptor(
-    HTMLInputElement.prototype,
-    "value",
-  )!.set!;
-
+function pick_date(label: string, iso_day: string) {
   act(() => {
-    setter.call(input, value);
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    document.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!.click();
+  });
+  act(() => {
+    document
+      .querySelector<HTMLButtonElement>(`[data-day="${iso_day}"] button`)!
+      .click();
   });
 }
 
 describe("SearchChipRow custom date range", () => {
   it("includes the day picked as the end of the range", () => {
     const on_query_change = vi.fn();
+
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-15T12:00:00"));
 
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -92,12 +95,8 @@ describe("SearchChipRow custom date range", () => {
       button_with_text("mail.chip_custom_range").click();
     });
 
-    const [from, to] = [
-      ...document.querySelectorAll<HTMLInputElement>('input[type="date"]'),
-    ];
-
-    set_date(from, "2026-09-29");
-    set_date(to, "2026-09-29");
+    pick_date("mail.from_date", "2026-09-29");
+    pick_date("mail.to_date", "2026-09-29");
     act(() => {
       button_with_text("common.apply").click();
     });

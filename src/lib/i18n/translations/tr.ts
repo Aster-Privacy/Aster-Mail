@@ -3827,6 +3827,9 @@ export const tr = {
     time_zone_show_all: "Tüm saat dilimlerini göster",
     date_format: "Tarih Formatı",
     date_format_description: "Tarihlerin nasıl görüntüleneceği",
+    week_starts_on: "Haftanın ilk günü",
+    week_starts_on_description:
+      "Tarih seçicilerde ve Aster Calendar'da haftanın hangi günle başlayacağını seçin",
     density: "Yoğunluk",
     density_description: "Öğeler arasındaki boşluğu ayarlayın",
     density_comfortable: "Rahat",

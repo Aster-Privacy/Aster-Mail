@@ -60,6 +60,7 @@ import {
   set_display_time_format,
   set_display_time_zone,
 } from "@/utils/date_format";
+import { set_display_week_start } from "@/utils/week_start";
 import {
   load_notification_preferences,
   request_notification_permission,
@@ -461,6 +462,10 @@ export function use_preferences_provider() {
       return;
     }
   }, [preferences.time_format]);
+
+  useEffect(() => {
+    set_display_week_start(preferences.calendar_week_starts_on);
+  }, [preferences.calendar_week_starts_on]);
 
   useEffect(() => {
     set_display_date_format(preferences.date_format);
