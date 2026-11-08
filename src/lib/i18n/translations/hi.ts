@@ -8687,6 +8687,8 @@ export const hi = {
     all_on_page_selected_one: "इस पेज की {{ count }} बातचीत चुनी गई है।",
     select_all_in_folder: "{{ folder }} की सभी {{ count }} बातचीत चुनें",
     select_all_in_folder_one: "{{ folder }} की {{ count }} बातचीत चुनें",
+    select_all_in_folder_unknown: "{{ folder }} की सभी बातचीत चुनें",
+    all_in_folder_selected_unknown: "{{ folder }} की सभी बातचीत चुनी गई हैं।",
     all_in_folder_selected: "सभी {{ count }} बातचीत चुनी गई हैं।",
     all_in_folder_selected_one: "{{ count }} बातचीत चुनी गई है।",
     inbox: "इनबॉक्स",

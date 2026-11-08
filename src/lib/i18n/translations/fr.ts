@@ -9666,6 +9666,8 @@ export const fr = {
       "Cet e-mail sera définitivement supprimé après l'expiration du minuteur",
     add_link_to_selection: 'Ajouter un lien à "{{text}}"',
     advanced_search: "Recherche avancée",
+    select_all_in_folder_unknown: "Sélectionner toutes les conversations de {{ folder }}",
+    all_in_folder_selected_unknown: "Toutes les conversations de {{ folder }} sont sélectionnées.",
     all_in_folder_selected:
       "Toutes les {{ count }} conversations sont sélectionnées.",
     all_in_folder_selected_one: "{{ count }} conversation est sélectionnée.",

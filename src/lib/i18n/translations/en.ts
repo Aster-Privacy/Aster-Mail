@@ -8625,6 +8625,8 @@ export const en: Translations = {
     select_all_in_folder:
       "Select all {{ count }} conversations in {{ folder }}",
     select_all_in_folder_one: "Select {{ count }} conversation in {{ folder }}",
+    select_all_in_folder_unknown: "Select all conversations in {{ folder }}",
+    all_in_folder_selected_unknown: "All conversations in {{ folder }} are selected.",
     all_in_folder_selected: "All {{ count }} conversations are selected.",
     all_in_folder_selected_one: "{{ count }} conversation is selected.",
     inbox: "Inbox",

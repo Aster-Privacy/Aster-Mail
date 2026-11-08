@@ -31,6 +31,7 @@ import { archive_keeps_row, unarchive_keeps_row } from "./view_membership";
 import {
   DEFAULT_PAGE_SIZE,
   expand_email_ids,
+  grow_list_total,
   trashes_whole_thread,
 } from "./email_list_helpers";
 
@@ -153,7 +154,10 @@ export function use_email_list_bulk({
         return {
           ...prev,
           emails: sort_by_timestamp_desc([...prev.emails, ...fresh_restores]),
-          total_messages: prev.total_messages + fresh_restores.length,
+          total_messages: grow_list_total(
+            prev.total_messages,
+            fresh_restores.length,
+          ),
         };
       });
     },

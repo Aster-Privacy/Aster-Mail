@@ -38,7 +38,9 @@ import {
 
 import {
   fetch_mail_from_api,
+  grow_list_total,
   insert_emails_at,
+  resolve_list_total,
   DEFAULT_PAGE_SIZE,
   type RestoredEmailEntry,
 } from "./email_list_helpers";
@@ -573,14 +575,13 @@ export function use_email_list(
             emails,
             is_loading: false,
             is_loading_more: false,
-            total_messages:
-              typeof result.total === "number" && result.total >= 0
-                ? result.total + retained
-                : Math.max(
-                    0,
-                    prev.total_messages -
-                      count_left_read_filter(prev.emails, read_filter),
-                  ),
+            total_messages: resolve_list_total(
+              result.total,
+              retained,
+              offset,
+              prev.total_messages -
+                count_left_read_filter(prev.emails, read_filter),
+            ),
             has_more: result.has_more,
             has_initial_load: true,
             has_load_error: false,
@@ -733,10 +734,12 @@ export function use_email_list(
           emails,
           is_loading: false,
           is_loading_more: false,
-          total_messages:
-            typeof result.total === "number" && result.total >= 0
-              ? result.total + retained
-              : Math.max(0, prev.total_messages - dropped_left),
+          total_messages: resolve_list_total(
+            result.total,
+            retained,
+            refresh_offset,
+            prev.total_messages - dropped_left,
+          ),
           has_more: result.has_more,
           has_initial_load: true,
         };
@@ -1154,7 +1157,6 @@ export function use_email_list(
               return {
                 ...prev,
                 emails: rows,
-                total_messages: prev.total_messages || rows.length,
               };
             });
           });
@@ -1367,8 +1369,10 @@ export function use_email_list(
       return {
         ...prev,
         emails,
-        total_messages:
-          prev.total_messages + (emails.length - prev.emails.length),
+        total_messages: grow_list_total(
+          prev.total_messages,
+          emails.length - prev.emails.length,
+        ),
       };
     });
   }, []);

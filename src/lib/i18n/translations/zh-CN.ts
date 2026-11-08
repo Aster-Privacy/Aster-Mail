@@ -8508,6 +8508,8 @@ export const zh_CN = {
     reply_quote_header: "{{ name }} 于 {{ date }} 写道：",
     all_on_page_selected: "此页所有 {{ count }} 个对话已选中。",
     select_all_in_folder: "选中 {{ folder }} 中所有 {{ count }} 个对话",
+    select_all_in_folder_unknown: "选中 {{ folder }} 中的所有对话",
+    all_in_folder_selected_unknown: "已选中 {{ folder }} 中的所有对话。",
     all_in_folder_selected: "所有 {{ count }} 个对话已选中。",
     to_recipients_prefix: "给 {{ recipients }}",
     received_on_prefix: "通过 {{ address }} 接收",

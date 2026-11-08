@@ -9608,6 +9608,8 @@ export const it = {
       "Seleziona tutte le {{ count }} conversazioni in {{ folder }}",
     select_all_in_folder_one:
       "Seleziona {{ count }} conversazione in {{ folder }}",
+    select_all_in_folder_unknown: "Seleziona tutte le conversazioni in {{ folder }}",
+    all_in_folder_selected_unknown: "Tutte le conversazioni in {{ folder }} sono selezionate.",
     all_in_folder_selected:
       "Tutte le {{ count }} conversazioni sono selezionate.",
     all_in_folder_selected_one: "{{ count }} conversazione è selezionata.",

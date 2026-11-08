@@ -9739,6 +9739,8 @@ export const ru = {
       "Это письмо будет безвозвратно удалено после истечения таймера",
     add_link_to_selection: "Добавить ссылку к «{{text}}»",
     advanced_search: "Расширенный",
+    select_all_in_folder_unknown: "Выбрать все беседы в {{ folder }}",
+    all_in_folder_selected_unknown: "Выбраны все беседы в {{ folder }}.",
     all_in_folder_selected: "Выбраны все {{ count }} бесед.",
     all_in_folder_selected_one: "Выбрана {{ count }} беседа.",
     all_in_folder_selected_few: "Выбраны все {{ count }} беседы.",

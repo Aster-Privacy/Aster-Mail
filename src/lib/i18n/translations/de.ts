@@ -9645,6 +9645,8 @@ export const de = {
       "Verwenden Sie die Pfeile oben, um zwischen Seiten zu navigieren",
     add_link_to_selection: 'Link zu "{{text}}" hinzufügen',
     advanced_search: "Erweitert",
+    select_all_in_folder_unknown: "Alle Unterhaltungen in {{ folder }} auswählen",
+    all_in_folder_selected_unknown: "Alle Unterhaltungen in {{ folder }} sind ausgewählt.",
     all_in_folder_selected: "Alle {{ count }} Unterhaltungen sind ausgewählt.",
     all_in_folder_selected_one: "{{ count }} Unterhaltung ist ausgewählt.",
     all_on_page_selected:

@@ -21,6 +21,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
+import { resolve_page_range } from "@/components/inbox/header/page_range";
 import { use_i18n } from "@/lib/i18n/context";
 import { app_locale } from "@/utils/date_format";
 
@@ -34,6 +35,8 @@ interface HeaderPaginationProps {
   filtered_count: number;
   current_page: number;
   page_size: number;
+  total_pages?: number;
+  page_row_count?: number;
   on_page_change?: (page: number) => void;
 }
 
@@ -47,6 +50,8 @@ export function HeaderPagination({
   filtered_count,
   current_page,
   page_size,
+  total_pages: known_total_pages,
+  page_row_count = 0,
   on_page_change,
 }: HeaderPaginationProps) {
   const { t } = use_i18n();
@@ -56,11 +61,13 @@ export function HeaderPagination({
   }
 
   const is_message_mode = Boolean(on_navigate_prev || on_navigate_next);
-  const total_pages = page_size > 0 ? Math.ceil(filtered_count / page_size) : 0;
+  const total_pages =
+    known_total_pages ??
+    (page_size > 0 ? Math.ceil(filtered_count / page_size) : 0);
   const message_index_known =
     current_email_index !== undefined && current_email_index >= 0;
 
-  if (!is_message_mode && filtered_count <= 0) {
+  if (!is_message_mode && filtered_count <= 0 && page_row_count <= 0) {
     return null;
   }
 
@@ -68,8 +75,17 @@ export function HeaderPagination({
     return null;
   }
 
-  const range_start = filtered_count > 0 ? current_page * page_size + 1 : 0;
-  const range_end = Math.min((current_page + 1) * page_size, filtered_count);
+  const range = resolve_page_range({
+    current_page,
+    page_size,
+    page_row_count,
+    total: filtered_count,
+    total_pages,
+  });
+  const range_label =
+    range.total === null
+      ? `${range.start}-${range.end}`
+      : `${range.start}-${range.end} ${t("common.of")} ${range.total}`;
 
   const prev_disabled = on_navigate_prev
     ? !can_go_prev
@@ -127,12 +143,17 @@ export function HeaderPagination({
           })}
         >
           <span
-            aria-label={`${range_start}-${range_end} ${t("common.of")} ${filtered_count}`}
+            aria-label={range_label}
             className="tabular-nums text-[13px] whitespace-nowrap px-1 text-center"
           >
-            {range_start.toLocaleString(app_locale())}-
-            {range_end.toLocaleString(app_locale())} {t("common.of")}{" "}
-            {filtered_count.toLocaleString(app_locale())}
+            {range.start.toLocaleString(app_locale())}-
+            {range.end.toLocaleString(app_locale())}
+            {range.total !== null && (
+              <>
+                {" "}
+                {t("common.of")} {range.total.toLocaleString(app_locale())}
+              </>
+            )}
           </span>
         </Tooltip>
       )}

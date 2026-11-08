@@ -9448,6 +9448,8 @@ export const tr = {
     select_all_in_folder:
       "{{folder}} klasöründeki {{count}} konuşmanın tamamını seç",
     select_all_in_folder_one: "{{folder}} klasöründeki {{count}} konuşmayı seç",
+    select_all_in_folder_unknown: "{{folder}} klasöründeki tüm konuşmaları seç",
+    all_in_folder_selected_unknown: "{{folder}} klasöründeki tüm konuşmalar seçildi.",
     all_in_folder_selected: "{{count}} konuşmanın tamamı seçildi.",
     all_in_folder_selected_one: "{{count}} konuşma seçildi.",
     reply_subject_prefix: "Yt:",

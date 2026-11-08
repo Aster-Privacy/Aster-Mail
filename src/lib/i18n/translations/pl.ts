@@ -9786,6 +9786,8 @@ export const pl = {
     select_all_in_folder_one: "Wybierz {{count}} rozmowę w {{folder}}",
     select_all_in_folder_few:
       "Wybierz wszystkie {{count}} rozmowy w {{folder}}",
+    select_all_in_folder_unknown: "Wybierz wszystkie rozmowy w {{folder}}",
+    all_in_folder_selected_unknown: "Wybrano wszystkie rozmowy w {{folder}}.",
     all_in_folder_selected: "Wybrano wszystkie {{count}} rozmów.",
     all_in_folder_selected_one: "Wybrano {{count}} rozmowę.",
     all_in_folder_selected_few: "Wybrano wszystkie {{count}} rozmowy.",

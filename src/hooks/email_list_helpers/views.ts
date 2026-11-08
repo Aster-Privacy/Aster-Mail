@@ -32,6 +32,23 @@ export const UNKNOWN_TOTAL = -1;
 
 export const MAX_PAGE_TOP_UP_ROUNDS = 3;
 
+export function resolve_list_total(
+  server_total: number | undefined,
+  retained: number,
+  offset: number,
+  carried_total: number,
+): number {
+  if (typeof server_total === "number" && server_total >= 0) {
+    return server_total + retained;
+  }
+
+  return offset > 0 ? Math.max(0, carried_total) : 0;
+}
+
+export function grow_list_total(total: number, added: number): number {
+  return total > 0 ? total + added : total;
+}
+
 export type MailView =
   | "inbox"
   | "sent"

@@ -9361,6 +9361,8 @@ export const ar = {
     all_on_page_selected_one: "تم تحديد {{ count }} محادثة في هذه الصفحة.",
     select_all_in_folder: "تحديد جميع {{ count }} محادثات في {{ folder }}",
     select_all_in_folder_one: "تحديد {{ count }} محادثة في {{ folder }}",
+    select_all_in_folder_unknown: "تحديد كل المحادثات في {{ folder }}",
+    all_in_folder_selected_unknown: "تم تحديد كل المحادثات في {{ folder }}.",
     all_in_folder_selected: "تم تحديد جميع {{ count }} محادثات.",
     all_in_folder_selected_one: "تم تحديد {{ count }} محادثة.",
     reply_subject_prefix: "رد:",

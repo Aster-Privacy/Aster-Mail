@@ -9557,6 +9557,8 @@ export const es = {
       "Este correo se eliminará permanentemente después de que expire el temporizador",
     add_link_to_selection: 'Agregar un enlace a "{{text}}"',
     advanced_search: "Búsqueda avanzada",
+    select_all_in_folder_unknown: "Seleccionar todas las conversaciones de {{ folder }}",
+    all_in_folder_selected_unknown: "Todas las conversaciones de {{ folder }} están seleccionadas.",
     all_in_folder_selected:
       "Todas las {{ count }} conversaciones están seleccionadas.",
     all_in_folder_selected_one: "{{ count }} conversación está seleccionada.",

@@ -9184,6 +9184,8 @@ export const ko = {
     all_on_page_selected:
       "이 페이지의 모든 {{ count }}개 대화가 선택되었습니다.",
     select_all_in_folder: "{{ folder }}의 모든 {{ count }}개 대화 선택",
+    select_all_in_folder_unknown: "{{ folder }}의 모든 대화 선택",
+    all_in_folder_selected_unknown: "{{ folder }}의 모든 대화가 선택되었습니다.",
     all_in_folder_selected: "모든 {{ count }}개 대화가 선택되었습니다.",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "다른 주소로 답장할까요?",
