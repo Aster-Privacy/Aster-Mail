@@ -34,6 +34,8 @@ import {
   LockClosedIcon,
   ClockIcon,
   Cog6ToothIcon,
+  EyeIcon,
+  EyeSlashIcon,
 } from "@heroicons/react/24/outline";
 import { Badge, Button, Checkbox, Island, Switch } from "@aster/ui";
 
@@ -182,11 +184,58 @@ function AliasAvatar({
   );
 }
 
+function SidebarVisibilityButton({
+  hidden,
+  on_toggle,
+}: {
+  hidden: boolean;
+  on_toggle: (hidden: boolean) => void;
+}) {
+  const { t } = use_i18n();
+  const label = hidden
+    ? t("common.show_in_sidebar")
+    : t("common.hide_from_sidebar");
+
+  return (
+    <Button
+      aria-label={label}
+      aria-pressed={hidden}
+      className={
+        hidden
+          ? "h-8 w-8 text-txt-secondary"
+          : "hidden group-hover:inline-flex h-8 w-8"
+      }
+      data-testid="alias-sidebar-visibility"
+      size="icon"
+      title={label}
+      variant="ghost"
+      onClick={() => on_toggle(!hidden)}
+    >
+      {hidden ? (
+        <EyeSlashIcon className="w-[18px] h-[18px]" />
+      ) : (
+        <EyeIcon className="w-[18px] h-[18px]" />
+      )}
+    </Button>
+  );
+}
+
+function SidebarHiddenBadge() {
+  const { t } = use_i18n();
+
+  return (
+    <Badge className="flex-shrink-0" color="gray">
+      {t("common.hidden_from_sidebar")}
+    </Badge>
+  );
+}
+
 interface AliasItemProps {
   alias: DecryptedEmailAlias;
   on_toggle: (id: string, enabled: boolean) => void;
   on_delete: (id: string) => void;
   on_pin_toggle?: (alias_id: string) => void;
+  on_sidebar_hidden_toggle?: (hidden: boolean) => void;
   on_open_editor: () => void;
   on_avatar_changed?: () => void;
   toggling: boolean;
@@ -202,6 +251,7 @@ export function AliasItem({
   on_toggle,
   on_delete,
   on_pin_toggle,
+  on_sidebar_hidden_toggle,
   on_open_editor,
   on_avatar_changed,
   toggling,
@@ -376,6 +426,7 @@ export function AliasItem({
                   {t("common.random")}
                 </Badge>
               )}
+              {alias.sidebar_hidden && <SidebarHiddenBadge />}
               {in_grace_period && (
                 <span
                   className="inline-flex items-center gap-1 text-[12px] font-semibold"
@@ -424,6 +475,13 @@ export function AliasItem({
           >
             <Cog6ToothIcon className="w-[18px] h-[18px]" />
           </Button>
+
+          {on_sidebar_hidden_toggle && (
+            <SidebarVisibilityButton
+              hidden={!!alias.sidebar_hidden}
+              on_toggle={on_sidebar_hidden_toggle}
+            />
+          )}
 
           {on_pin_toggle && (
             <Button
@@ -502,6 +560,7 @@ interface DomainAddressItemProps {
   on_avatar_changed?: () => void;
   on_display_name_saved?: (address_id: string, name: string) => void;
   on_note_saved?: (address_id: string, note: string) => void;
+  on_sidebar_hidden_toggle?: (hidden: boolean) => void;
   on_open_editor: () => void;
   deleting: boolean;
   is_avatar_locked: boolean;
@@ -514,6 +573,7 @@ export function DomainAddressItem({
   on_avatar_changed,
   on_display_name_saved,
   on_note_saved,
+  on_sidebar_hidden_toggle,
   on_open_editor,
   deleting,
   is_avatar_locked,
@@ -682,6 +742,7 @@ export function DomainAddressItem({
             <Badge className="flex-shrink-0" color="gray">
               {t("common.custom")}
             </Badge>
+            {address.sidebar_hidden && <SidebarHiddenBadge />}
             {is_primary && (
               <span
                 className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border border-edge-secondary px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
@@ -721,6 +782,13 @@ export function DomainAddressItem({
           >
             <Cog6ToothIcon className="w-[18px] h-[18px]" />
           </Button>
+
+          {on_sidebar_hidden_toggle && (
+            <SidebarVisibilityButton
+              hidden={!!address.sidebar_hidden}
+              on_toggle={on_sidebar_hidden_toggle}
+            />
+          )}
 
           <Button
             className={

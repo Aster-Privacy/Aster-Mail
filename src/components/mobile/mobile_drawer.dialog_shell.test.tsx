@@ -86,6 +86,8 @@ vi.mock("@/hooks/use_sidebar_aliases", () => ({
   use_sidebar_aliases: () => ({
     aliases: [],
     enabled_aliases: [],
+    sidebar_aliases: [],
+    sidebar_hidden_aliases: [],
     is_loading: false,
     unread_counts: {},
   }),

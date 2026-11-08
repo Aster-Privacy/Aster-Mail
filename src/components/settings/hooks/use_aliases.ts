@@ -33,6 +33,7 @@ import {
   get_alias_counts,
   set_short_aliases_allowed,
   toggle_alias_pin,
+  update_sidebar_addresses,
   type DecryptedEmailAlias,
   type AliasCountsResponse,
 } from "@/services/api/aliases";
@@ -883,6 +884,54 @@ export function use_aliases() {
     });
   };
 
+  const handle_sidebar_hidden_toggle = async (
+    kind: "alias" | "domain",
+    id: string,
+    hidden: boolean,
+  ) => {
+    const apply = (value: boolean) => {
+      if (kind === "alias") {
+        set_aliases((prev) => {
+          const updated = prev.map((a) =>
+            a.id === id ? { ...a, sidebar_hidden: value } : a,
+          );
+
+          aliases_cache.aliases = updated;
+
+          return updated;
+        });
+      } else {
+        set_domain_addresses((prev) => {
+          const updated = prev.map((a) =>
+            a.id === id ? { ...a, sidebar_hidden: value } : a,
+          );
+
+          aliases_cache.domain_addresses = updated;
+
+          return updated;
+        });
+      }
+    };
+
+    apply(hidden);
+
+    try {
+      const response = await update_sidebar_addresses([{ id, kind, hidden }]);
+
+      if (response.error) throw new Error(response.error);
+      show_toast(
+        hidden
+          ? t("common.alias_hidden_from_sidebar_toast")
+          : t("common.alias_shown_in_sidebar_toast"),
+        "success",
+      );
+      emit_aliases_changed();
+    } catch {
+      apply(!hidden);
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
+  };
+
   const handle_domain_address_toggle = (
     address_id: string,
     _domain_id: string,
@@ -982,6 +1031,7 @@ export function use_aliases() {
     load_domains,
     handle_alias_toggle,
     handle_pin_toggle,
+    handle_sidebar_hidden_toggle,
     handle_alias_delete,
     confirm_alias_delete,
     handle_domain_addr_delete,

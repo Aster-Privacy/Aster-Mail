@@ -79,7 +79,7 @@ import {
   store_alias_sort_mode,
 } from "@/components/settings/aliases/alias_sort";
 
-type FilterMode = "all" | "enabled" | "disabled";
+type FilterMode = "all" | "enabled" | "disabled" | "hidden";
 
 const ALIASES_PER_PAGE = 50;
 
@@ -111,6 +111,11 @@ interface AliasListProps {
   ) => void;
   on_domain_address_note_saved?: (address_id: string, note: string) => void;
   on_alias_pin_toggle: (id: string) => void;
+  on_sidebar_hidden_toggle?: (
+    kind: "alias" | "domain",
+    id: string,
+    hidden: boolean,
+  ) => void;
   on_open_editor: (alias_id: string) => void;
   on_open_domain_editor: (address_id: string) => void;
 }
@@ -281,6 +286,7 @@ export function AliasList({
   on_domain_address_display_name_saved,
   on_domain_address_note_saved,
   on_alias_pin_toggle,
+  on_sidebar_hidden_toggle,
   on_open_editor,
   on_open_domain_editor,
 }: AliasListProps) {
@@ -328,6 +334,8 @@ export function AliasList({
       result = result.filter((a) => a.is_enabled);
     } else if (filter_mode === "disabled") {
       result = result.filter((a) => !a.is_enabled);
+    } else if (filter_mode === "hidden") {
+      result = result.filter((a) => a.sidebar_hidden === true);
     }
 
     return result;
@@ -349,6 +357,8 @@ export function AliasList({
       result = result.filter((a) => a.is_enabled);
     } else if (filter_mode === "disabled") {
       result = result.filter((a) => !a.is_enabled);
+    } else if (filter_mode === "hidden") {
+      result = result.filter((a) => a.sidebar_hidden === true);
     }
 
     return result;
@@ -700,6 +710,9 @@ export function AliasList({
             <SelectItem value="disabled">
               {t("settings.alias_filter_disabled")}
             </SelectItem>
+            <SelectItem value="hidden">
+              {t("settings.alias_filter_hidden")}
+            </SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -816,6 +829,16 @@ export function AliasList({
               on_display_name_saved={on_domain_address_display_name_saved}
               on_note_saved={on_domain_address_note_saved}
               on_open_editor={() => on_open_domain_editor(entry.address.id)}
+              on_sidebar_hidden_toggle={
+                on_sidebar_hidden_toggle
+                  ? (hidden) =>
+                      on_sidebar_hidden_toggle(
+                        "domain",
+                        entry.address.id,
+                        hidden,
+                      )
+                  : undefined
+              }
               on_toggle={on_domain_address_toggle}
             />
           ) : entry.alias.decryption_failed ? (
@@ -842,6 +865,12 @@ export function AliasList({
               on_open_editor={() => on_open_editor(entry.alias.id)}
               on_pin_toggle={on_alias_pin_toggle}
               on_select={handle_select}
+              on_sidebar_hidden_toggle={
+                on_sidebar_hidden_toggle
+                  ? (hidden) =>
+                      on_sidebar_hidden_toggle("alias", entry.alias.id, hidden)
+                  : undefined
+              }
               on_toggle={on_alias_toggle}
               toggling={toggling_id === entry.alias.id}
             />

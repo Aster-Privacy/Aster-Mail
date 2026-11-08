@@ -45,6 +45,16 @@ import {
   type DecryptedGhostAlias,
 } from "@/services/api/ghost_aliases";
 import { list_my_groups } from "@/services/api/family_org";
+import { update_sidebar_addresses } from "@/services/api/aliases/sidebar";
+import {
+  can_move_sidebar_alias,
+  hidden_sidebar_aliases,
+  plan_sidebar_alias_hidden,
+  plan_sidebar_alias_move,
+  visible_sidebar_aliases,
+  type SidebarMoveDirection,
+  type SidebarMovePlan,
+} from "@/hooks/sidebar_alias_order";
 import {
   has_passphrase_in_memory,
   get_derived_encryption_key,
@@ -295,6 +305,14 @@ export function resolve_alias_delivery(
 interface UseSidebarAliasesReturn {
   aliases: DecryptedEmailAlias[];
   enabled_aliases: DecryptedEmailAlias[];
+  sidebar_aliases: DecryptedEmailAlias[];
+  sidebar_hidden_aliases: DecryptedEmailAlias[];
+  can_move_alias: (alias_id: string, direction: SidebarMoveDirection) => boolean;
+  move_alias: (
+    alias_id: string,
+    direction: SidebarMoveDirection,
+  ) => Promise<boolean>;
+  set_alias_hidden: (alias_id: string, hidden: boolean) => Promise<boolean>;
   is_loading: boolean;
   load_failed: boolean;
   can_create: boolean;
@@ -306,6 +324,38 @@ const ALIAS_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function replace_cached_aliases(next: DecryptedEmailAlias[]): void {
+  cached_aliases.data = next;
+  rebuild_alias_index();
+  notify_alias_subscribers();
+}
+
+async function apply_sidebar_plan(
+  plan: SidebarMovePlan | null,
+): Promise<boolean> {
+  if (!plan) return true;
+
+  const previous = cached_aliases.data;
+
+  replace_cached_aliases(plan.aliases);
+
+  if (plan.updates.length === 0) return true;
+
+  try {
+    const response = await update_sidebar_addresses(plan.updates);
+
+    if (response.error) throw new Error(response.error);
+  } catch {
+    replace_cached_aliases(previous);
+
+    return false;
+  }
+
+  emit_aliases_changed();
+
+  return true;
 }
 
 export function use_sidebar_aliases(): UseSidebarAliasesReturn {
@@ -438,6 +488,8 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
                     is_enabled: addr.is_enabled,
                     is_random: false,
                     profile_picture: addr.profile_picture,
+                    sidebar_order: addr.sidebar_order ?? null,
+                    sidebar_hidden: addr.sidebar_hidden ?? false,
                     created_at: addr.created_at,
                     updated_at: addr.created_at,
                   };
@@ -564,6 +616,12 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
   }, [user?.id]);
 
   useEffect(() => {
+    return subscribe_aliases(() => {
+      set_aliases(cached_aliases.data);
+    });
+  }, []);
+
+  useEffect(() => {
     return on_keys_ready(() => {
       fetch_aliases();
     });
@@ -640,9 +698,46 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     [aliases],
   );
 
+  const sidebar_aliases = useMemo(
+    () => visible_sidebar_aliases(aliases),
+    [aliases],
+  );
+
+  const sidebar_hidden_aliases = useMemo(
+    () => hidden_sidebar_aliases(aliases),
+    [aliases],
+  );
+
+  const can_move_alias = useCallback(
+    (alias_id: string, direction: SidebarMoveDirection) =>
+      can_move_sidebar_alias(aliases, alias_id, direction),
+    [aliases],
+  );
+
+  const move_alias = useCallback(
+    (alias_id: string, direction: SidebarMoveDirection) =>
+      apply_sidebar_plan(
+        plan_sidebar_alias_move(cached_aliases.data, alias_id, direction),
+      ),
+    [],
+  );
+
+  const set_alias_hidden = useCallback(
+    (alias_id: string, hidden: boolean) =>
+      apply_sidebar_plan(
+        plan_sidebar_alias_hidden(cached_aliases.data, alias_id, hidden),
+      ),
+    [],
+  );
+
   return {
     aliases,
     enabled_aliases,
+    sidebar_aliases,
+    sidebar_hidden_aliases,
+    can_move_alias,
+    move_alias,
+    set_alias_hidden,
     is_loading,
     load_failed,
     can_create,

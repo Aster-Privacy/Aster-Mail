@@ -101,6 +101,7 @@ interface DrawerNavContentProps {
   aliases: SidebarAlias[];
   aliases_loading: boolean;
   aliases_load_failed?: boolean;
+  aliases_hidden_count?: number;
   on_retry_aliases?: () => void;
   alias_unread_counts?: Record<string, number>;
   stats: {
@@ -148,6 +149,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   aliases,
   aliases_loading,
   aliases_load_failed = false,
+  aliases_hidden_count = 0,
   on_retry_aliases,
   alias_unread_counts = {},
   stats,
@@ -474,7 +476,11 @@ export const DrawerNavContent = memo(function DrawerNavContent({
       />
       {aliases.length === 0 && (
         <MobileDrawerSectionPlaceholder
-          empty_text={t("common.no_aliases_yet")}
+          empty_text={
+            aliases_hidden_count > 0
+              ? t("common.aliases_all_hidden_from_sidebar")
+              : t("common.no_aliases_yet")
+          }
           failed_notice={
             aliases_load_failed && on_retry_aliases ? (
               <LoadFailedNotice on_retry={on_retry_aliases} />

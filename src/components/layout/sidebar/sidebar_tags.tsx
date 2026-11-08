@@ -54,7 +54,16 @@ import { TagContextMenu } from "@/components/tags/tag_context_menu";
 import { tag_icon_map } from "@/components/ui/email_tag";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
-import { build_tag_tree, flatten_visible_tag_tree } from "@/hooks/tag_tree";
+import {
+  build_tag_tree,
+  flatten_visible_tag_tree,
+  get_sibling_tags,
+  is_tag_tree_sorted_a_z,
+  plan_tag_sibling_move,
+  type TagMoveDirection,
+  type TagOrderEntry,
+} from "@/hooks/tag_tree";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   get_expanded_tags,
   set_expanded_tags,
@@ -102,6 +111,8 @@ interface SidebarTagsProps {
   on_toggle_section?: () => void;
   load_failed?: boolean;
   on_retry?: () => void;
+  reorder_tags?: (entries: TagOrderEntry[]) => Promise<boolean>;
+  sort_tags_a_z?: () => Promise<boolean>;
 }
 
 export const SidebarTags = memo(function SidebarTags({
@@ -124,6 +135,8 @@ export const SidebarTags = memo(function SidebarTags({
   on_toggle_section,
   load_failed = false,
   on_retry,
+  reorder_tags,
+  sort_tags_a_z,
 }: SidebarTagsProps) {
   const { t } = use_i18n();
   const skeleton_visible = use_delayed_flag(is_loading);
@@ -163,6 +176,35 @@ export const SidebarTags = memo(function SidebarTags({
 
     return flatten_visible_tag_tree(root_nodes, expanded_tags);
   }, [tree, labels_expanded, max_visible, is_collapsed, expanded_tags]);
+
+  const can_sort_a_to_z = useMemo(
+    () => tags.length > 1 && !is_tag_tree_sorted_a_z(tags),
+    [tags],
+  );
+
+  const handle_sort_a_to_z = sort_tags_a_z
+    ? async () => {
+        if (await sort_tags_a_z()) {
+          show_toast(t("common.labels_sorted_a_to_z"), "success");
+        } else {
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+        }
+      }
+    : undefined;
+
+  const handle_sibling_move = async (
+    tag_id: string,
+    direction: TagMoveDirection,
+  ) => {
+    if (!reorder_tags) return;
+
+    const entries = plan_tag_sibling_move(tags, tag_id, direction);
+
+    if (!entries) return;
+    if (!(await reorder_tags(entries))) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
+  };
 
   const toggle_expanded = (tag_token: string) => {
     const next = new Set(expanded_tags);
@@ -218,10 +260,17 @@ export const SidebarTags = memo(function SidebarTags({
               tag_icon: tag.icon,
               tag_parent_token: tag.parent_token,
             };
+            const siblings = reorder_tags ? get_sibling_tags(tags, tag.id) : [];
+            const sibling_index = siblings.findIndex((s) => s.id === tag.id);
 
             return (
               <TagContextMenu
                 key={tag.id}
+                can_move_down={
+                  sibling_index >= 0 && sibling_index < siblings.length - 1
+                }
+                can_move_up={sibling_index > 0}
+                can_sort_a_to_z={can_sort_a_to_z}
                 on_add_sublabel={
                   on_create_sublabel && !tag.is_undecryptable
                     ? () => on_create_sublabel(tag.tag_token)
@@ -229,6 +278,21 @@ export const SidebarTags = memo(function SidebarTags({
                 }
                 on_delete={() => handle_tag_modal(tag_data, "delete")}
                 on_move={() => handle_tag_modal(tag_data, "move")}
+                on_move_down={
+                  reorder_tags
+                    ? () => void handle_sibling_move(tag.id, 1)
+                    : undefined
+                }
+                on_move_up={
+                  reorder_tags
+                    ? () => void handle_sibling_move(tag.id, -1)
+                    : undefined
+                }
+                on_sort_a_to_z={
+                  handle_sort_a_to_z
+                    ? () => void handle_sort_a_to_z()
+                    : undefined
+                }
                 on_recolor={() => handle_tag_modal(tag_data, "recolor")}
                 on_reicon={() => handle_tag_modal(tag_data, "reicon")}
                 on_rename={

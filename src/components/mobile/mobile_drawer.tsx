@@ -113,7 +113,8 @@ export const MobileDrawer = memo(function MobileDrawer({
     refresh: refresh_tags,
   } = use_tags();
   const {
-    enabled_aliases: aliases,
+    sidebar_aliases: aliases,
+    sidebar_hidden_aliases: hidden_aliases,
     is_loading: aliases_loading,
     load_failed: aliases_load_failed,
     unread_counts: alias_unread_counts,
@@ -615,6 +616,7 @@ export const MobileDrawer = memo(function MobileDrawer({
             active_path={active_path}
             alias_unread_counts={alias_unread_counts}
             aliases={aliases}
+            aliases_hidden_count={hidden_aliases.length}
             aliases_load_failed={aliases_load_failed}
             aliases_loading={aliases_loading}
             folder_unread_counts={folder_unread_counts}

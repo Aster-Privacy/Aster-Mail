@@ -22,8 +22,11 @@ import type { DecryptedEmailAlias } from "@/services/api/aliases";
 
 import { useNavigate } from "react-router-dom";
 import {
+  ArrowDownIcon,
+  ArrowUpIcon,
   ClipboardDocumentIcon,
   Cog6ToothIcon,
+  EyeSlashIcon,
   PaperAirplaneIcon,
   PowerIcon,
 } from "@heroicons/react/24/outline";
@@ -49,12 +52,22 @@ interface AliasContextMenuProps {
   children: React.ReactNode;
   alias: DecryptedEmailAlias;
   on_manage: () => void;
+  on_move_up?: () => void;
+  on_move_down?: () => void;
+  can_move_up?: boolean;
+  can_move_down?: boolean;
+  on_hide?: () => void;
 }
 
 export function AliasContextMenu({
   children,
   alias,
   on_manage,
+  on_move_up,
+  on_move_down,
+  can_move_up,
+  can_move_down,
+  on_hide,
 }: AliasContextMenuProps): React.ReactElement {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -179,6 +192,30 @@ export function AliasContextMenu({
             <span style={{ color: enabled_color }}>
               {alias.is_enabled ? t("common.disable") : t("common.enable")}
             </span>
+          </ContextMenuItem>
+        )}
+
+        {on_move_up && (
+          <ContextMenuItem disabled={!can_move_up} onClick={on_move_up}>
+            <ArrowUpIcon className="me-2 h-4 w-4" />
+            {t("common.move_up")}
+          </ContextMenuItem>
+        )}
+
+        {on_move_down && (
+          <ContextMenuItem disabled={!can_move_down} onClick={on_move_down}>
+            <ArrowDownIcon className="me-2 h-4 w-4" />
+            {t("common.move_down")}
+          </ContextMenuItem>
+        )}
+
+        {on_hide && (
+          <ContextMenuItem
+            data-testid="alias-menu-hide-from-sidebar"
+            onClick={on_hide}
+          >
+            <EyeSlashIcon className="me-2 h-4 w-4" />
+            {t("common.hide_from_sidebar")}
           </ContextMenuItem>
         )}
 

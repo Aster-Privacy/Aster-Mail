@@ -45,6 +45,8 @@ export interface EmailAlias {
   websites_nonce?: string;
   downgrade_grace_expires_at?: string;
   last_received_at?: string | null;
+  sidebar_order?: number | null;
+  sidebar_hidden?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -71,6 +73,8 @@ export interface DecryptedEmailAlias {
   profile_picture?: string;
   downgrade_grace_expires_at?: string;
   last_received_at?: string | null;
+  sidebar_order?: number | null;
+  sidebar_hidden?: boolean;
   created_at: string;
   updated_at: string;
 }

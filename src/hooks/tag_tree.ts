@@ -152,6 +152,116 @@ export function order_tags_as_tree<T extends TagTreeItem>(
   }));
 }
 
+export interface TagOrderEntry {
+  id: string;
+  sort_order: number;
+}
+
+export type TagMoveDirection = -1 | 1;
+
+const tag_name_collator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: "base",
+});
+
+function compare_tag_names(a: TagTreeItem, b: TagTreeItem): number {
+  return tag_name_collator.compare(a.name.trim(), b.name.trim());
+}
+
+function compare_tags_a_z(a: TagTreeItem, b: TagTreeItem): number {
+  return (
+    compare_tag_names(a, b) ||
+    (a.created_at || "").localeCompare(b.created_at || "") ||
+    (a.tag_token || "").localeCompare(b.tag_token || "")
+  );
+}
+
+function renumber_tags(ordered: TagTreeItem[]): TagOrderEntry[] {
+  const entries: TagOrderEntry[] = [];
+
+  ordered.forEach((tag, index) => {
+    if (tag.sort_order !== index) {
+      entries.push({ id: tag.id, sort_order: index });
+    }
+  });
+
+  return entries;
+}
+
+function walk_tag_sibling_groups<T extends TagTreeItem>(
+  nodes: TagTreeNode<T>[],
+  visit: (group: T[]) => void,
+): void {
+  if (nodes.length === 0) return;
+  visit(nodes.map((node) => node.tag));
+  for (const node of nodes) walk_tag_sibling_groups(node.children, visit);
+}
+
+export function get_sibling_tags<T extends TagTreeItem>(
+  tags: T[],
+  tag_id: string,
+): T[] {
+  let siblings: T[] = [];
+
+  walk_tag_sibling_groups(build_tag_tree(tags), (group) => {
+    if (group.some((tag) => tag.id === tag_id)) siblings = group;
+  });
+
+  return siblings;
+}
+
+export function plan_tag_sibling_move(
+  tags: TagTreeItem[],
+  tag_id: string,
+  direction: TagMoveDirection,
+): TagOrderEntry[] | null {
+  const siblings = get_sibling_tags(tags, tag_id);
+  const index = siblings.findIndex((tag) => tag.id === tag_id);
+  const target = index + direction;
+
+  if (index < 0 || target < 0 || target >= siblings.length) return null;
+
+  const next = [...siblings];
+  const [moved] = next.splice(index, 1);
+
+  next.splice(target, 0, moved);
+
+  return renumber_tags(next);
+}
+
+export function is_tag_tree_sorted_a_z(tags: TagTreeItem[]): boolean {
+  let sorted = true;
+
+  walk_tag_sibling_groups(build_tag_tree(tags), (group) => {
+    for (let i = 1; i < group.length; i++) {
+      if (compare_tag_names(group[i - 1], group[i]) > 0) sorted = false;
+    }
+  });
+
+  return sorted;
+}
+
+export function sort_tag_tree_a_z(tags: TagTreeItem[]): TagOrderEntry[] {
+  const entries: TagOrderEntry[] = [];
+
+  walk_tag_sibling_groups(build_tag_tree(tags), (group) => {
+    entries.push(...renumber_tags([...group].sort(compare_tags_a_z)));
+  });
+
+  return entries;
+}
+
+export function apply_tag_orders<T extends TagTreeItem>(
+  tags: T[],
+  orders: Map<string, number>,
+): T[] {
+  return tags.map((tag) => {
+    const next = orders.get(tag.id);
+
+    return next === undefined ? tag : { ...tag, sort_order: next };
+  });
+}
+
 export function tag_option_indent(depth: number | undefined): number {
   return Math.max(0, depth ?? 0) * TAG_OPTION_INDENT_PX;
 }

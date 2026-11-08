@@ -61,6 +61,7 @@ import { ContactsModal } from "@/components/modals/contacts_modal";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_folders, partition_folders_by_parent } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_should_reduce_motion } from "@/provider";
@@ -189,9 +190,18 @@ const sidebar_base = ({
     sort_folders_a_z,
     refresh: refresh_folders,
   } = use_folders();
-  const { state: tags_state, refresh: refresh_tags } = use_tags();
   const {
-    enabled_aliases: aliases,
+    state: tags_state,
+    refresh: refresh_tags,
+    reorder_tags,
+    sort_tags_a_z,
+  } = use_tags();
+  const {
+    sidebar_aliases: aliases,
+    sidebar_hidden_aliases: hidden_aliases,
+    can_move_alias,
+    move_alias,
+    set_alias_hidden,
     is_loading: aliases_loading,
     load_failed: aliases_load_failed,
     unread_counts: alias_unread_counts,
@@ -767,10 +777,12 @@ const sidebar_base = ({
         on_drop_emails={on_drop_to_tag}
         on_retry={() => void refresh_tags()}
         on_toggle_section={toggle_labels_collapsed}
+        reorder_tags={reorder_tags}
         section_collapsed={preferences.sidebar_labels_collapsed}
         set_is_create_tag_open={set_is_create_tag_open}
         set_labels_expanded={set_labels_expanded}
         set_selected_item={set_selected_item}
+        sort_tags_a_z={sort_tags_a_z}
         tag_refs={tag_refs}
         tags={tags_state.tags}
       />
@@ -780,6 +792,25 @@ const sidebar_base = ({
         alias_refs={alias_refs}
         aliases={aliases}
         aliases_expanded={aliases_expanded}
+        can_move_alias={can_move_alias}
+        hidden_alias_count={hidden_aliases.length}
+        on_hide_alias={(alias_id) => {
+          void set_alias_hidden(alias_id, true).then((ok) => {
+            show_toast(
+              ok
+                ? t("common.alias_hidden_from_sidebar_toast")
+                : t("common.something_went_wrong_try_again"),
+              ok ? "success" : "error",
+            );
+          });
+        }}
+        on_move_alias={(alias_id, direction) => {
+          void move_alias(alias_id, direction).then((ok) => {
+            if (!ok) {
+              show_toast(t("common.something_went_wrong_try_again"), "error");
+            }
+          });
+        }}
         effective_selected={effective_selected}
         handle_nav_click={handle_nav_click}
         is_collapsed={is_collapsed}
@@ -936,6 +967,7 @@ const sidebar_base = ({
         is_collapsed={is_collapsed}
         show_indicator={!is_collapsed && !is_search_active}
       >
+
         {section_order.map((section_id) => (
           <Fragment key={section_id}>{section_nodes[section_id]}</Fragment>
         ))}

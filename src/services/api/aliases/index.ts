@@ -60,6 +60,11 @@ export {
   purge_deleted_alias,
   restore_alias,
 } from "./deleted";
+export { update_sidebar_addresses } from "./sidebar";
+export type {
+  SidebarAddressKind,
+  SidebarAddressUpdate,
+} from "./sidebar";
 export {
   get_alias_counts,
   get_alias_unread_counts,

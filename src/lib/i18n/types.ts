@@ -989,6 +989,13 @@ export interface CommonTranslations {
   failed_to_move_label: string;
   label_delete_keeps_sublabels: string;
   move_up: string;
+  hide_from_sidebar: string;
+  show_in_sidebar: string;
+  hidden_from_sidebar: string;
+  alias_hidden_from_sidebar_toast: string;
+  alias_shown_in_sidebar_toast: string;
+  aliases_all_hidden_from_sidebar: string;
+  labels_sorted_a_to_z: string;
   move_down: string;
   sort_a_to_z: string;
   folders_sorted_a_to_z: string;
@@ -7543,6 +7550,7 @@ export interface SettingsTranslations {
   alias_filter_all: string;
   alias_filter_enabled: string;
   alias_filter_disabled: string;
+  alias_filter_hidden: string;
   alias_sort_label: string;
   alias_sort_newest: string;
   alias_sort_oldest: string;
