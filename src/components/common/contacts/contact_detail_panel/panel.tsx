@@ -94,10 +94,7 @@ import {
   is_partial_contact_date,
 } from "@/utils/date_utils";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
-import {
-  ContactDateClearButton,
-  contact_date_clear_padding,
-} from "@/components/contacts/contact_date_clear_button";
+import { ContactBirthdayInput } from "@/components/contacts/contact_birthday_input";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
 import { ContactGroupsField } from "@/components/contacts/contact_groups_field";
@@ -909,39 +906,31 @@ export function ContactDetailPanel({
             <Section title={t("common.personal")}>
               <div>
                 <FieldLabel icon={CakeIcon}>{t("common.birthday")}</FieldLabel>
-                <div className="relative">
+                {is_editing ? (
+                  <ContactBirthdayInput
+                    field_class_name={FIELD_CLASS}
+                    label={t("common.birthday")}
+                    on_change={(value) =>
+                      handle_field_change("birthday", value)
+                    }
+                    value={draft.birthday}
+                  />
+                ) : (
                   <input
+                    readOnly
                     aria-label={t("common.birthday")}
-                    className={`${FIELD_CLASS} ${
-                      is_editing && draft.birthday
-                        ? contact_date_clear_padding(!birthday_is_partial)
-                        : ""
-                    }`}
+                    className={FIELD_CLASS}
                     placeholder={app_date_format()}
-                    readOnly={!is_editing || birthday_is_partial}
-                    type={is_editing && !birthday_is_partial ? "date" : "text"}
                     value={
                       birthday_is_partial
                         ? format_contact_date(draft.birthday)
-                        : is_editing
-                          ? contact_date_input_value(draft.birthday)
-                          : format_iso_date(
-                              contact_date_input_value(draft.birthday) ||
-                                draft.birthday,
-                            )
-                    }
-                    onChange={(e) =>
-                      handle_field_change("birthday", e.target.value)
+                        : format_iso_date(
+                            contact_date_input_value(draft.birthday) ||
+                              draft.birthday,
+                          )
                     }
                   />
-                  {is_editing && draft.birthday && (
-                    <ContactDateClearButton
-                      beside_picker={!birthday_is_partial}
-                      label={t("common.clear")}
-                      on_clear={() => handle_field_change("birthday", "")}
-                    />
-                  )}
-                </div>
+                )}
               </div>
               <div>
                 <FieldLabel icon={CalendarIcon}>{t("common.dates")}</FieldLabel>

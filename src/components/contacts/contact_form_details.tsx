@@ -29,19 +29,11 @@ import {
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 
-import {
-  ContactDateClearButton,
-  contact_date_clear_padding,
-} from "./contact_date_clear_button";
+import { ContactBirthdayInput } from "./contact_birthday_input";
 import { ContactFormSection } from "./contact_form_section";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Input } from "@/components/ui/input";
-import {
-  contact_date_input_value,
-  format_contact_date,
-  is_partial_contact_date,
-} from "@/utils/date_utils";
 import {
   Select,
   SelectContent,
@@ -129,31 +121,11 @@ export function ContactFormDetails({
             icon={CalendarIcon}
             label={t("common.birthday")}
           />
-          {is_partial_contact_date(form_data.birthday ?? "") ? (
-            <div className="relative">
-              <Input
-                readOnly
-                aria-label={t("common.birthday")}
-                className={`aster_input_tonal ${contact_date_clear_padding(false)}`}
-                size="md"
-                value={format_contact_date(form_data.birthday ?? "")}
-              />
-              <ContactDateClearButton
-                beside_picker={false}
-                label={t("common.clear")}
-                on_clear={() => on_change("birthday", "")}
-              />
-            </div>
-          ) : (
-            <Input
-              aria-label={t("common.birthday")}
-              className="aster_input_tonal"
-              size="md"
-              type="date"
-              value={contact_date_input_value(form_data.birthday ?? "")}
-              onChange={(e) => on_change("birthday", e.target.value)}
-            />
-          )}
+          <ContactBirthdayInput
+            label={t("common.birthday")}
+            on_change={(value) => on_change("birthday", value)}
+            value={form_data.birthday ?? ""}
+          />
         </div>
         <div>
           <ContactFormSection

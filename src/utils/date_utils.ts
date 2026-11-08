@@ -148,6 +148,125 @@ export function contact_date_input_value(value: string): string {
   return parts?.year === undefined ? "" : contact_date_from_parts(parts);
 }
 
+export interface ContactDateFields {
+  year: string;
+  month: string;
+  day: string;
+}
+
+export type ContactDateField = keyof ContactDateFields;
+
+const CONTACT_YEAR_PATTERN = /^\d{4}$/;
+const DEFAULT_FIELD_ORDER: ContactDateField[] = ["month", "day", "year"];
+
+export const EMPTY_CONTACT_DATE_FIELDS: ContactDateFields = {
+  year: "",
+  month: "",
+  day: "",
+};
+
+export function split_contact_date(value: string): ContactDateFields {
+  const date = parse_contact_date(value);
+
+  if (date) {
+    return {
+      year: date.year === undefined ? "" : String(date.year).padStart(4, "0"),
+      month: String(date.month),
+      day: String(date.day),
+    };
+  }
+
+  const month = parse_contact_month(value);
+
+  if (month) {
+    return {
+      year: month.year === undefined ? "" : String(month.year),
+      month: String(month.month),
+      day: "",
+    };
+  }
+
+  return EMPTY_CONTACT_DATE_FIELDS;
+}
+
+function field_year(fields: ContactDateFields): number | null | undefined {
+  const year = fields.year.trim();
+
+  if (!year) return undefined;
+  if (!CONTACT_YEAR_PATTERN.test(year) || PLACEHOLDER_YEARS.has(year)) {
+    return null;
+  }
+
+  return Number(year);
+}
+
+export function contact_date_max_day(fields: ContactDateFields): number {
+  const month = Number(fields.month);
+
+  if (!Number.isInteger(month) || month < 1 || month > 12) return 31;
+
+  return days_in_month(field_year(fields) ?? LEAP_YEAR, month);
+}
+
+export function join_contact_date(fields: ContactDateFields): string | null {
+  if (!fields.year.trim() && !fields.month && !fields.day) return "";
+
+  const year = field_year(fields);
+  const month = Number(fields.month);
+
+  if (year === null) return null;
+  if (!fields.month || !Number.isInteger(month) || month < 1 || month > 12) {
+    return null;
+  }
+  if (!fields.day) {
+    return year === undefined
+      ? `--${pad2(month)}`
+      : `${String(year).padStart(4, "0")}-${pad2(month)}`;
+  }
+
+  const day = Number(fields.day);
+
+  if (!Number.isInteger(day) || day < 1 || day > contact_date_max_day(fields)) {
+    return null;
+  }
+
+  return contact_date_from_parts(
+    year === undefined ? { month, day } : { year, month, day },
+  );
+}
+
+export function contact_date_field_order(
+  locale: string | undefined,
+): ContactDateField[] {
+  try {
+    const order = new Intl.DateTimeFormat(locale, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "UTC",
+    })
+      .formatToParts(new Date(Date.UTC(LEAP_YEAR, 0, 15)))
+      .map((part) => part.type)
+      .filter(
+        (type): type is ContactDateField =>
+          type === "year" || type === "month" || type === "day",
+      );
+
+    return order.length === 3 ? order : DEFAULT_FIELD_ORDER;
+  } catch {
+    return DEFAULT_FIELD_ORDER;
+  }
+}
+
+export function contact_month_names(locale: string | undefined): string[] {
+  return Array.from({ length: 12 }, (_, index) =>
+    new Date(Date.UTC(LEAP_YEAR, index, 1)).toLocaleDateString(locale, {
+      month: "long",
+      timeZone: "UTC",
+    }),
+  );
+}
+
 function calendar_day_utc(year: number, month: number, day: number): Date {
   const date = new Date(Date.UTC(LEAP_YEAR, 0, 1));
 
