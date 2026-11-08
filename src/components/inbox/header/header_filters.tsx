@@ -35,6 +35,18 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { AliasDirectionMenuItems } from "@/components/email/inbox/alias_direction_menu_items";
+import {
+  active_reading_pane,
+  reading_pane_patch,
+  READING_PANE_POSITIONS,
+  type ReadingPanePosition,
+} from "@/lib/reading_pane";
+
+const READING_PANE_LABEL_KEYS = {
+  right: "settings.right_side",
+  bottom: "settings.bottom",
+  hidden: "settings.hidden_click_to_open",
+} as const satisfies Record<ReadingPanePosition, string>;
 
 interface FilterDropdownProps {
   active_filter: InboxFilterType;
@@ -48,8 +60,10 @@ export function FilterDropdown({
   alias_direction,
 }: FilterDropdownProps) {
   const { t } = use_i18n();
-  const { preferences, update_preference } = use_preferences();
+  const { preferences, update_preference, update_preferences } =
+    use_preferences();
   const sort_order = preferences.inbox_sort_order ?? "newest_first";
+  const reading_pane = active_reading_pane(preferences);
 
   return (
     <DropdownMenu>
@@ -68,7 +82,7 @@ export function FilterDropdown({
           </Button>
         </DropdownMenuTrigger>
       </Tooltip>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="w-56">
         {alias_direction && (
           <AliasDirectionMenuItems direction={alias_direction} />
         )}
@@ -121,6 +135,25 @@ export function FilterDropdown({
           </span>
           {t("mail.oldest_first")}
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>{t("settings_search.reading_pane")}</DropdownMenuLabel>
+        {READING_PANE_POSITIONS.map((position) => (
+          <DropdownMenuItem
+            key={position}
+            data-testid={`reading-pane-${position}`}
+            onClick={() =>
+              update_preferences(
+                reading_pane_patch(preferences, position),
+                true,
+              )
+            }
+          >
+            <span className="w-4 me-2">
+              {reading_pane === position && <CheckIcon className="w-4 h-4" />}
+            </span>
+            {t(READING_PANE_LABEL_KEYS[position])}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -34,6 +34,11 @@ import { resolve_list_density } from "@/lib/list_density";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
+  active_reading_pane,
+  reading_pane_patch,
+  type ReadingPanePosition,
+} from "@/lib/reading_pane";
+import {
   build_theme_fields_update,
   get_effective_theme_fields,
 } from "@/lib/theme_sync";
@@ -442,9 +447,8 @@ export function QuickSettingsPanel({
 
         <QuickSection
           on_change={(v) =>
-            update_preference(
-              "reading_pane_position",
-              v as "right" | "bottom" | "hidden",
+            update_preferences(
+              reading_pane_patch(preferences, v as ReadingPanePosition),
               true,
             )
           }
@@ -466,7 +470,7 @@ export function QuickSettingsPanel({
             },
           ]}
           title={t("settings.reading_pane_position")}
-          value={preferences.reading_pane_position}
+          value={active_reading_pane(preferences)}
         />
 
         <QuickSection title={t("settings.quick_inbox_list")}>
