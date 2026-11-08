@@ -219,6 +219,18 @@ describe("send actions report whether the message was handed off", () => {
     expect(confirm_draft_deleted).not.toHaveBeenCalled();
   });
 
+  it("never puts an expiring external send without a password in the undo queue", async () => {
+    undo_send_delay_ms = 30000;
+
+    await execute_external_email_send(make_ctx(), {
+      ...email_data,
+      expires_at: "2030-01-01T00:00:00.000Z",
+    });
+
+    expect(queue_email_to_server).not.toHaveBeenCalled();
+    expect(undo_send_add).toHaveBeenCalledTimes(1);
+  });
+
   it("deletes the draft once the scheduled secure external send is delivered", async () => {
     undo_send_delay_ms = 30000;
     execute_external_send.mockResolvedValue(undefined);
