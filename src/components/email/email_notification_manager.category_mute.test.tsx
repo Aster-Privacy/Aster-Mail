@@ -72,6 +72,10 @@ vi.mock("@/services/lockdown_store", () => ({
 
 vi.mock("@/services/api/mail", () => ({
   get_mail_item_folders: async () => ({ data: { labels: [] }, error: null }),
+  list_mail_items: async () => ({
+    data: { items: [], total: 0, has_more: false },
+    error: null,
+  }),
 }));
 
 vi.mock("@/services/locked_folders", () => ({

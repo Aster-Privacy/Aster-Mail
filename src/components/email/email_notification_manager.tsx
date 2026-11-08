@@ -38,7 +38,7 @@ import { subscribe_to_push } from "@/services/push_subscription";
 import { publish_push_mute_state } from "@/lib/push_strings";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_lockdown_enabled } from "@/services/lockdown_store";
-import { get_mail_item_folders } from "@/services/api/mail";
+import { get_mail_item_folders, list_mail_items } from "@/services/api/mail";
 import {
   get_locked_folder_tokens,
   has_protected_folders,
@@ -114,6 +114,19 @@ async function is_category_muted(
     if (Date.now() >= deadline) return "unknown";
 
     await new Promise((resolve) => setTimeout(resolve, CATEGORY_POLL_MS));
+  }
+}
+
+async function is_own_mail_item(email_id: string): Promise<boolean> {
+  if (!email_id) return false;
+
+  try {
+    const response = await list_mail_items({ ids: [email_id] });
+    const item = response.data?.items?.find((entry) => entry.id === email_id);
+
+    return item !== undefined && item.item_type !== "received";
+  } catch {
+    return false;
   }
 }
 
@@ -309,6 +322,10 @@ export function EmailNotificationManager() {
       }
 
       void (async () => {
+        if (await is_own_mail_item(email_id)) {
+          return;
+        }
+
         const suppressed = await is_email_notification_suppressed(
           email_id,
           preferences_ref.current.muted_folder_tokens ?? [],

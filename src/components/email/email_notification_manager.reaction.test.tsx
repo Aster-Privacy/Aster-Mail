@@ -70,6 +70,10 @@ vi.mock("@/services/api/mail", () => ({
     data: { labels: item_labels },
     error: null,
   }),
+  list_mail_items: async () => ({
+    data: { items: [], total: 0, has_more: false },
+    error: null,
+  }),
 }));
 
 vi.mock("@/services/locked_folders", () => ({
