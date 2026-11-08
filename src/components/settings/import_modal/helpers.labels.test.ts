@@ -218,7 +218,7 @@ describe("source_labels and folders", () => {
   });
 
   it("resolves the folder token from the source folder", () => {
-    const map = new Map([["Family", "tok"]]);
+    const map = new Map([["family", "tok"]]);
 
     expect(folder_for_email(email_with({}, "Family"), map)).toBe("tok");
     expect(folder_for_email(email_with({}, "Inbox"), map)).toBeUndefined();

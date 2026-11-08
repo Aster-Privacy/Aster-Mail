@@ -42,6 +42,7 @@ import {
   tag_tokens_for_email,
 } from "./helpers";
 import { find_import_tag, resolve_import_tags } from "./import_tags";
+import { find_import_folder, resolve_import_folders } from "./import_folders";
 
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
@@ -94,7 +95,10 @@ import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { t } = use_i18n();
   const { vault, user } = use_auth();
-  const { create_new_folder, state: folders_state } = use_folders();
+  const folders = use_folders();
+  const folders_ref = useRef(folders);
+
+  folders_ref.current = folders;
   const tags = use_tags();
   const tags_ref = useRef(tags);
 
@@ -422,46 +426,43 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         const source_folders = extract_source_folders(emails_to_import);
         let new_label_count = 0;
         let skipped_folder_count = 0;
-        let folder_limit_reached = false;
 
-        for (const folder_name of source_folders) {
+        if (source_folders.length > 0) {
+          if (folders_ref.current.state.is_loading) {
+            await folders_ref.current.refresh();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+
+          const folder_resolution = await resolve_import_folders({
+            paths: source_folders,
+            existing_folders: folders_ref.current.state.folders,
+            create_folder: (name, parent_token) =>
+              folders_ref.current.create_new_folder(
+                name,
+                undefined,
+                parent_token,
+                { append: true },
+              ),
+            should_stop: () => cancel_ref.current,
+            find_existing: (name, parent_token) =>
+              find_import_folder(
+                folders_ref.current.state.folders,
+                name,
+                parent_token,
+              ),
+          });
+
           if (cancel_ref.current) {
             await finish_cancelled();
 
             return;
           }
 
-          const existing = folders_state.folders.find(
-            (f) => f.name.toLowerCase() === folder_name.toLowerCase(),
-          );
-
-          if (existing) {
-            folder_token_map.set(folder_name, existing.folder_token);
-            continue;
+          for (const [key, token] of folder_resolution.folder_map) {
+            folder_token_map.set(key, token);
           }
-
-          if (folder_limit_reached) {
-            skipped_folder_count += 1;
-            continue;
-          }
-
-          const result = await create_new_folder(
-            folder_name,
-            undefined,
-            undefined,
-            { append: true },
-          );
-
-          if (result.folder) {
-            folder_token_map.set(folder_name, result.folder.folder_token);
-            new_label_count += 1;
-            continue;
-          }
-
-          skipped_folder_count += 1;
-          if (result.code === "PLAN_LIMIT_EXCEEDED") {
-            folder_limit_reached = true;
-          }
+          new_label_count = folder_resolution.created;
+          skipped_folder_count = folder_resolution.skipped;
         }
 
         if (folder_token_map.size > 0) {
@@ -724,7 +725,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         set_is_processing(false);
       }
     },
-    [vault, user, create_new_folder, folders_state, t],
+    [vault, user, t],
   );
 
   const handle_file_select = useCallback(
