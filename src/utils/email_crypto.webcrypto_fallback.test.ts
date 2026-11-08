@@ -28,6 +28,8 @@ let vault_identity_key = "";
 let rotated_identity_key = "";
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   get_vault_from_memory: vi.fn(() => ({
     identity_key: vault_identity_key,
     previous_keys: [] as string[],

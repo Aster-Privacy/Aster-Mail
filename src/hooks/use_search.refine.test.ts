@@ -30,6 +30,8 @@ vi.mock("@/services/crypto/encrypted_storage", () => ({
   secure_overwrite_and_delete: vi.fn(),
 }));
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   has_vault_in_memory: () => false,
   get_derived_encryption_key: () => null,
   get_passphrase_bytes: vi.fn(),

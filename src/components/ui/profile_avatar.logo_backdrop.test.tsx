@@ -69,7 +69,7 @@ function logo_backdrop_rules(): string {
   const css = readFileSync(
     resolve(__dirname, "../../styles/globals.css"),
     "utf8",
-  );
+  ).replace(/\r\n/g, "\n");
 
   return Array.from(
     css.matchAll(

@@ -52,6 +52,8 @@ vi.mock(
 );
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   get_vault_from_memory: () =>
     h.vault && {
       data_kek: btoa(String.fromCharCode(...new Uint8Array(32).fill(7))),

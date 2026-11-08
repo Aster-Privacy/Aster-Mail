@@ -28,6 +28,8 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   get_vault_from_memory: () => h.vault,
   get_passphrase_from_memory: () => h.passphrase,
   get_passphrase_bytes: () => new Uint8Array(32).fill(1),

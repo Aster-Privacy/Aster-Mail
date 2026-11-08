@@ -31,6 +31,7 @@ const key_store = vi.hoisted(() => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_stored: () => () => {},
   on_vault_cleared: vi.fn(() => () => {}),
   get_passphrase_bytes: vi.fn(() => null),
   get_vault_from_memory: vi.fn(() => key_store.vault),

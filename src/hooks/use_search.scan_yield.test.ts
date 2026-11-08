@@ -39,6 +39,8 @@ vi.mock("@/services/crypto/encrypted_storage", () => ({
   },
 }));
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   has_vault_in_memory: () => true,
   get_derived_encryption_key: () => new Uint8Array(32),
   get_passphrase_bytes: vi.fn(),

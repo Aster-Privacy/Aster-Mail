@@ -51,6 +51,8 @@ vi.mock("@/services/sync_client", () => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   has_passphrase_in_memory: () => true,
   on_keys_ready: () => () => {},
 }));

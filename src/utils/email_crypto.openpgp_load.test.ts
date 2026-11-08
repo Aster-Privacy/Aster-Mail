@@ -41,6 +41,8 @@ vi.mock("@/services/crypto/openpgp_loader", async (import_original) => {
 });
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
   get_vault_from_memory: vi.fn(() => h.vault),
   get_passphrase_from_memory: vi.fn(() => null),
   get_passphrase_bytes: vi.fn(() => null),

@@ -26,7 +26,7 @@ const h = vi.hoisted(() => ({
   bodies: new Map<string, string>(),
   attachment_keys: new Map<string, unknown>(),
   failing_envelopes: new Set<string>(),
-  vault_cleared: [] as (() => void)[],
+  vault_cleared: [] as ((event: { same_owner: boolean }) => void)[],
   gate: null as Promise<void> | null,
   envelope_decrypts: 0,
   metadata_decrypts: 0,
@@ -84,11 +84,12 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_stored: () => () => {},
   get_vault_from_memory: () => null,
   get_passphrase_from_memory: () => null,
   get_passphrase_bytes: () => null,
   wait_for_keys_ready: async () => false,
-  on_vault_cleared: (callback: () => void) => {
+  on_vault_cleared: (callback: (event: { same_owner: boolean }) => void) => {
     h.vault_cleared.push(callback);
 
     return () => {};
@@ -288,7 +289,7 @@ describe("thread decrypt cache", () => {
     await load();
     decrypts();
 
-    h.vault_cleared.forEach((callback) => callback());
+    h.vault_cleared.forEach((callback) => callback({ same_owner: false }));
     await load();
 
     expect(decrypts()).toEqual({ envelope: 3, metadata: 3 });
@@ -575,7 +576,10 @@ describe("thread decrypt cache keeps only open conversations", () => {
   });
 
   it.each([
-    ["the vault is cleared", () => h.vault_cleared.forEach((cb) => cb())],
+    [
+      "the vault is cleared",
+      () => h.vault_cleared.forEach((cb) => cb({ same_owner: false })),
+    ],
     [
       "a lockdown changes",
       () => window.dispatchEvent(new CustomEvent("astermail:lockdown-changed")),

@@ -27,6 +27,7 @@ const decrypt_attachment_meta = vi.fn();
 const decrypt_attachment_data = vi.fn();
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
+  on_vault_stored: () => () => {},
   on_vault_cleared: vi.fn(),
 }));
 

@@ -140,7 +140,10 @@ vi.mock("@/services/import/encrypt", () => ({
   })),
 }));
 
-vi.mock("@/hooks/mail_events", () => ({ emit_mail_changed: vi.fn() }));
+vi.mock("@/hooks/mail_events", async (import_original) => ({
+  ...(await import_original<typeof import("@/hooks/mail_events")>()),
+  emit_mail_changed: vi.fn(),
+}));
 vi.mock("@/hooks/use_email_list", () => ({ invalidate_mail_cache: vi.fn() }));
 vi.mock("@/services/import/repair_threads", () => ({
   thread_imported_emails: vi.fn(async () => 0),
