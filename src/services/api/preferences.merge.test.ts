@@ -291,6 +291,105 @@ describe("build_merged_preferences", () => {
     expect(merged.swipe_left_action).toBe("snooze");
     expect(merged.swipe_right_action).toBe("none");
   });
+
+  it("defaults the sidebar layout when the server blob has no layout keys", () => {
+    const server: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
+
+    delete server.sidebar_section_order;
+    delete server.sidebar_hidden_items;
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.sidebar_section_order).toEqual([
+      "mail",
+      "folders",
+      "labels",
+      "aliases",
+    ]);
+    expect(merged.sidebar_hidden_items).toEqual([]);
+  });
+
+  it("keeps the cached sidebar layout when a stale client dropped the keys", () => {
+    const cached: UserPreferences = {
+      ...DEFAULT_PREFERENCES,
+      sidebar_section_order: ["aliases", "mail", "folders", "labels"],
+      sidebar_hidden_items: ["trash"],
+    };
+    const server: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
+
+    delete server.sidebar_section_order;
+    delete server.sidebar_hidden_items;
+
+    const merged = build_merged_preferences(server, cached);
+
+    expect(merged.sidebar_section_order).toEqual([
+      "aliases",
+      "mail",
+      "folders",
+      "labels",
+    ]);
+    expect(merged.sidebar_hidden_items).toEqual(["trash"]);
+  });
+
+  it("replaces malformed sidebar layout values with safe defaults", () => {
+    const merged = build_merged_preferences(
+      {
+        ...DEFAULT_PREFERENCES,
+        sidebar_section_order: "aliases",
+        sidebar_hidden_items: { 0: "trash" },
+      },
+      null,
+    );
+
+    expect(merged.sidebar_section_order).toEqual([
+      "mail",
+      "folders",
+      "labels",
+      "aliases",
+    ]);
+    expect(merged.sidebar_hidden_items).toEqual([]);
+  });
+
+  it("keeps unknown sidebar ids from newer clients and drops invalid entries", () => {
+    const merged = build_merged_preferences(
+      {
+        ...DEFAULT_PREFERENCES,
+        sidebar_section_order: ["calendar", "aliases", "aliases", 7, "<b>"],
+        sidebar_hidden_items: ["future_item", "trash", "trash", null, "A"],
+      },
+      null,
+    );
+
+    expect(merged.sidebar_section_order).toEqual([
+      "calendar",
+      "aliases",
+      "mail",
+      "folders",
+      "labels",
+    ]);
+    expect(merged.sidebar_hidden_items).toEqual(["future_item", "trash"]);
+  });
+
+  it("caps oversized sidebar lists", () => {
+    const many = Array.from({ length: 100 }, (_, index) => `item_${index}`);
+    const merged = build_merged_preferences(
+      {
+        ...DEFAULT_PREFERENCES,
+        sidebar_section_order: many,
+        sidebar_hidden_items: many,
+      },
+      null,
+    );
+
+    expect(merged.sidebar_hidden_items).toHaveLength(32);
+    expect(merged.sidebar_section_order).toHaveLength(36);
+    expect(merged.sidebar_section_order.slice(-4)).toEqual([
+      "mail",
+      "folders",
+      "labels",
+      "aliases",
+    ]);
+  });
 });
 
 describe("build_merged_preferences calendar keys", () => {

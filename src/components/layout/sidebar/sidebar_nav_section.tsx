@@ -45,6 +45,7 @@ import { CountBadge } from "@/components/common/count_badge";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { NewTabTarget } from "@/components/layout/sidebar/new_tab_target";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_sidebar_item_hidden } from "@/lib/sidebar_layout";
 import { EmptyFolderContextMenu } from "@/components/layout/sidebar/empty_folder_context_menu";
 import {
   request_empty_folder,
@@ -85,6 +86,8 @@ interface SidebarNavSectionProps {
   contacts_ref: RefObject<HTMLButtonElement>;
   subscriptions_ref: RefObject<HTMLButtonElement>;
   inbox_children_slot?: ReactNode;
+  hidden_items?: string[];
+  is_first?: boolean;
 }
 
 interface NavItem {
@@ -122,6 +125,8 @@ export const SidebarNavSection = memo(function SidebarNavSection({
   contacts_ref,
   subscriptions_ref,
   inbox_children_slot,
+  hidden_items,
+  is_first = true,
 }: SidebarNavSectionProps) {
   const { t } = use_i18n();
 
@@ -226,6 +231,11 @@ export const SidebarNavSection = memo(function SidebarNavSection({
     },
   ];
 
+  const is_visible = (item: NavItem) =>
+    !is_sidebar_item_hidden(hidden_items, item.id);
+  const visible_primary_items = primary_items.filter(is_visible);
+  const visible_more_items = more_items.filter(is_visible);
+
   const render_item = (item: NavItem) => {
     const selected = effective_selected === item.id;
     const go_to_item = () =>
@@ -286,24 +296,31 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
   return (
     <>
+      {!is_first && !is_collapsed && (
+        <div aria-hidden="true" className="mt-5" />
+      )}
       <SidebarSectionHeader
         is_collapsed={is_collapsed}
         label={t("common.mail")}
       />
 
-      {primary_items.map(render_item)}
+      {visible_primary_items.map(render_item)}
 
-      <SidebarSectionToggle
-        is_collapsed={is_collapsed}
-        label={t("common.more")}
-        on_toggle={on_toggle_section}
-        section_collapsed={section_collapsed}
-      />
+      {visible_more_items.length > 0 && (
+        <>
+          <SidebarSectionToggle
+            is_collapsed={is_collapsed}
+            label={t("common.more")}
+            on_toggle={on_toggle_section}
+            section_collapsed={section_collapsed}
+          />
 
-      {is_collapsed && <div className="mt-3" />}
+          {is_collapsed && <div className="mt-3" />}
 
-      {(!section_collapsed || is_collapsed) && (
-        <>{more_items.map(render_item)}</>
+          {(!section_collapsed || is_collapsed) && (
+            <>{visible_more_items.map(render_item)}</>
+          )}
+        </>
       )}
     </>
   );

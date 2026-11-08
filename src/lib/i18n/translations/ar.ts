@@ -8643,6 +8643,14 @@ export const ar = {
     show_side_panel_description:
       "أبقِ جهات اتصالك وأدواتك السريعة الأخرى في لوحة بجوار رسائلك.",
     sync_now_tooltip: "المزامنة الآن",
+    sidebar_layout: "تخطيط الشريط الجانبي",
+    sidebar_layout_description: "اختر ترتيب أقسام الشريط الجانبي والأقسام التي تظهر.",
+    reset_sidebar_layout: "إعادة تعيين التخطيط",
+    sidebar_mail_section_description: "يظهر البريد الوارد دائمًا في الشريط الجانبي.",
+    sidebar_mail_items: "عناصر البريد",
+    sidebar_mail_items_description: "اختر صناديق البريد التي تظهر في قسم البريد.",
+    sidebar_move_section_up: "نقل {{name}} لأعلى",
+    sidebar_move_section_down: "نقل {{name}} لأسفل",
   },
   mail: {
     image_size_prompt_title: "هل تريد تقليل حجم الصور في هذه الرسالة؟",

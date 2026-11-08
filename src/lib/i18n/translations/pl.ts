@@ -9020,6 +9020,14 @@ export const pl = {
       "Aster pobiera nowe wiadomości tylko ze skrzynki odbiorczej tego konta. Zmiany, takie jak usunięcia, nie są odzwierciedlane w żadną stronę.",
     show_side_panel_description:
       "Trzymaj kontakty i inne szybkie narzędzia w panelu obok wiadomości.",
+    sidebar_layout: "Układ paska bocznego",
+    sidebar_layout_description: "Wybierz kolejność sekcji paska bocznego i to, które z nich są widoczne.",
+    reset_sidebar_layout: "Przywróć układ",
+    sidebar_mail_section_description: "Skrzynka odbiorcza jest zawsze widoczna na pasku bocznym.",
+    sidebar_mail_items: "Elementy poczty",
+    sidebar_mail_items_description: "Wybierz, które skrzynki są widoczne w sekcji Poczta.",
+    sidebar_move_section_up: "Przenieś {{name}} w górę",
+    sidebar_move_section_down: "Przenieś {{name}} w dół",
   },
   mail: {
     image_size_prompt_title: "Zmniejszyć rozmiar obrazów w tej wiadomości?",

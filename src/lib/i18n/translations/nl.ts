@@ -8773,6 +8773,14 @@ export const nl = {
       "Aster haalt alleen nieuwe e-mail op uit de inbox van dit account. Wijzigingen zoals verwijderingen worden in geen enkele richting overgenomen.",
     show_side_panel_description:
       "Houd je contacten en andere snelle hulpmiddelen in een paneel naast je berichten.",
+    sidebar_layout: "Indeling van de zijbalk",
+    sidebar_layout_description: "Kies de volgorde van de onderdelen in de zijbalk en welke worden getoond.",
+    reset_sidebar_layout: "Indeling herstellen",
+    sidebar_mail_section_description: "Inbox staat altijd in de zijbalk.",
+    sidebar_mail_items: "E-mailonderdelen",
+    sidebar_mail_items_description: "Kies welke mappen in het onderdeel E-mail worden getoond.",
+    sidebar_move_section_up: "{{name}} omhoog verplaatsen",
+    sidebar_move_section_down: "{{name}} omlaag verplaatsen",
   },
   mail: {
     image_size_prompt_title:

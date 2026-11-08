@@ -8697,6 +8697,14 @@ export const tr = {
       "Aster yalnızca bu hesabın gelen kutusundaki yeni postaları getirir. Silme gibi değişiklikler iki yönde de yansıtılmaz.",
     show_side_panel_description:
       "Kişilerinizi ve diğer hızlı araçları iletilerinizin yanındaki bir panelde tutun.",
+    sidebar_layout: "Kenar çubuğu düzeni",
+    sidebar_layout_description: "Kenar çubuğu bölümlerinin sırasını ve hangilerinin görüneceğini seçin.",
+    reset_sidebar_layout: "Düzeni sıfırla",
+    sidebar_mail_section_description: "Gelen Kutusu her zaman kenar çubuğunda görünür.",
+    sidebar_mail_items: "Posta öğeleri",
+    sidebar_mail_items_description: "Posta bölümünde hangi posta kutularının görüneceğini seçin.",
+    sidebar_move_section_up: "{{name}} öğesini yukarı taşı",
+    sidebar_move_section_down: "{{name}} öğesini aşağı taşı",
   },
   mail: {
     image_size_prompt_title: "Bu iletideki görsellerin boyutu küçültülsün mü?",

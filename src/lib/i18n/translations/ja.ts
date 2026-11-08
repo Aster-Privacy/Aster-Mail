@@ -8610,6 +8610,14 @@ export const ja = {
       "Aster はこのアカウントの受信トレイから新着メールのみを取り込みます。削除などの変更はどちらの方向にも反映されません。",
     show_side_panel_description:
       "連絡先やそのほかのツールを、メールの横のパネルに表示します。",
+    sidebar_layout: "サイドバーのレイアウト",
+    sidebar_layout_description: "サイドバーのセクションの順序と、表示するセクションを選択します。",
+    reset_sidebar_layout: "レイアウトをリセット",
+    sidebar_mail_section_description: "受信トレイは常にサイドバーに表示されます。",
+    sidebar_mail_items: "メールの項目",
+    sidebar_mail_items_description: "「メール」セクションに表示するメールボックスを選択します。",
+    sidebar_move_section_up: "{{name}}を上に移動",
+    sidebar_move_section_down: "{{name}}を下に移動",
   },
   mail: {
     image_size_prompt_title: "このメッセージの画像サイズを縮小しますか？",

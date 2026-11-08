@@ -8799,6 +8799,14 @@ export const es = {
     remove_account_tooltip: "Quitar la cuenta",
     show_side_panel_description:
       "Ten los contactos y otras herramientas rápidas en un panel junto a tu correo.",
+    sidebar_layout: "Diseño de la barra lateral",
+    sidebar_layout_description: "Elige el orden de las secciones de la barra lateral y cuáles se muestran.",
+    reset_sidebar_layout: "Restablecer diseño",
+    sidebar_mail_section_description: "La bandeja de entrada siempre aparece en la barra lateral.",
+    sidebar_mail_items: "Elementos de correo",
+    sidebar_mail_items_description: "Elige qué buzones aparecen en la sección Correo.",
+    sidebar_move_section_up: "Mover {{name}} hacia arriba",
+    sidebar_move_section_down: "Mover {{name}} hacia abajo",
   },
   mail: {
     image_size_prompt_title:

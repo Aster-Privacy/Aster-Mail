@@ -8566,6 +8566,14 @@ export const en: Translations = {
     upgrade_external_accounts_note:
       "Upgrade to connect more external accounts.",
     usage_external_accounts: "External Accounts",
+    sidebar_layout: "Sidebar layout",
+    sidebar_layout_description: "Choose the order of the sidebar sections and which ones appear.",
+    reset_sidebar_layout: "Reset layout",
+    sidebar_mail_section_description: "Inbox always appears in the sidebar.",
+    sidebar_mail_items: "Mail items",
+    sidebar_mail_items_description: "Choose which mailboxes appear in the Mail section.",
+    sidebar_move_section_up: "Move {{name}} up",
+    sidebar_move_section_down: "Move {{name}} down",
   },
   mail: {
     image_size_prompt_title: "Reduce the size of images in this message?",

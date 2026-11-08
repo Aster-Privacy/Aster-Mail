@@ -7808,6 +7808,14 @@ export const zh_CN = {
       "JMAP 是一种较新的同步协议，目前支持的服务商还很少。",
     protocol_tooltip_pop3:
       "Aster 仅从此账户的收件箱导入新邮件。删除等更改不会在两边之间同步。",
+    sidebar_layout: "侧边栏布局",
+    sidebar_layout_description: "选择侧边栏各部分的顺序以及要显示的部分。",
+    reset_sidebar_layout: "重置布局",
+    sidebar_mail_section_description: "收件箱始终显示在侧边栏中。",
+    sidebar_mail_items: "邮件项目",
+    sidebar_mail_items_description: "选择在“邮件”部分中显示哪些邮箱。",
+    sidebar_move_section_up: "上移{{name}}",
+    sidebar_move_section_down: "下移{{name}}",
   },
   mail: {
     image_size_prompt_title: "要缩小此邮件中的图片吗？",

@@ -8835,6 +8835,14 @@ export const it = {
       "Aster importa i nuovi messaggi solo dalla posta in arrivo di questo account. Le modifiche, come le eliminazioni, non vengono replicate in nessuna direzione.",
     show_side_panel_description:
       "Tieni i contatti e altri strumenti rapidi in un pannello accanto ai tuoi messaggi.",
+    sidebar_layout: "Layout della barra laterale",
+    sidebar_layout_description: "Scegli l’ordine delle sezioni della barra laterale e quali mostrare.",
+    reset_sidebar_layout: "Ripristina layout",
+    sidebar_mail_section_description: "La posta in arrivo è sempre visibile nella barra laterale.",
+    sidebar_mail_items: "Elementi della posta",
+    sidebar_mail_items_description: "Scegli quali caselle compaiono nella sezione Posta.",
+    sidebar_move_section_up: "Sposta {{name}} in alto",
+    sidebar_move_section_down: "Sposta {{name}} in basso",
   },
   mail: {
     image_size_prompt_title:

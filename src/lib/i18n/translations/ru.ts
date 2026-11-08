@@ -8987,6 +8987,14 @@ export const ru = {
       "Aster загружает новые письма только из папки «Входящие» этого аккаунта. Изменения, например удаление, не синхронизируются ни в одну сторону.",
     show_side_panel_description:
       "Держите контакты и другие быстрые инструменты на панели рядом с сообщениями.",
+    sidebar_layout: "Макет боковой панели",
+    sidebar_layout_description: "Выберите порядок разделов боковой панели и то, какие из них показывать.",
+    reset_sidebar_layout: "Сбросить макет",
+    sidebar_mail_section_description: "Входящие всегда отображаются на боковой панели.",
+    sidebar_mail_items: "Элементы почты",
+    sidebar_mail_items_description: "Выберите, какие почтовые ящики показывать в разделе «Почта».",
+    sidebar_move_section_up: "Переместить {{name}} вверх",
+    sidebar_move_section_down: "Переместить {{name}} вниз",
   },
   mail: {
     image_size_prompt_title: "Уменьшить размер изображений в этом письме?",
