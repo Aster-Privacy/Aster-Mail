@@ -5003,15 +5003,25 @@ html[data-input-modality="keyboard"]
     flex: 1 1 0%;
   }
 
+  .aster_island_row_stacked {
+    container: aster_setting_row / inline-size;
+  }
+
   .aster_island_row_stacked > .aster_island_row_trailing {
-    flex-basis: 100%;
     flex-wrap: wrap;
-    justify-content: flex-start;
-    max-width: 100%;
+    justify-content: flex-end;
   }
 
   .aster_island_row_stacked > .aster_island_row_trailing > * {
     max-width: 100%;
+  }
+
+  @container aster_setting_row (max-width: 559px) {
+    .aster_island_row_stacked > .aster_island_row_trailing {
+      flex-basis: 100%;
+      justify-content: flex-start;
+      max-width: 100%;
+    }
   }
 
   @media (max-width: 639px) {
