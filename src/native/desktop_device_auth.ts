@@ -302,7 +302,7 @@ export async function request_device_code(
   );
 
   if (result.error || !result.data) {
-    throw new DeviceAuthError("code_generation_failed");
+    throw new DeviceAuthError("code_generation_failed", result.status);
   }
 
   return result.data;

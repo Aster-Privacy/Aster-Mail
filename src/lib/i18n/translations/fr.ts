@@ -10427,6 +10427,23 @@ export const fr = {
     link_device_success: "Appareil lié avec succès",
     link_device_success_description: "Cet appareil a accès à votre compte.",
     link_device_title: "Lier un appareil",
+    link_keys_locked_title: "Votre trousseau est verrouillé",
+    link_keys_locked_description:
+      "Aster Mail conserve les clés de cet appareil dans le trousseau du système et ne parvient pas à l'ouvrir. Déverrouillez votre trousseau, puis réessayez.",
+    link_keys_no_keyring_title: "Aucun trousseau disponible",
+    link_keys_no_keyring_description:
+      "Aster Mail a besoin d'un trousseau système pour protéger les clés de cet appareil et ne parvient pas à y enregistrer. Vérifiez qu'un trousseau est configuré et déverrouillé, puis réessayez. Sous Linux, utilisez GNOME Keyring, KWallet ou KeePassXC avec Secret Service activé.",
+    link_keys_failed_title: "Les clés de cet appareil ne sont pas prêtes",
+    link_keys_failed_description:
+      "Aster Mail ne parvient pas à préparer les clés nécessaires pour associer cet appareil. Réessayez et, si le problème persiste, contactez l'assistance en indiquant la référence ci-dessous.",
+    link_code_offline_title: "Impossible de joindre Aster Mail",
+    link_code_offline_description:
+      "Cet appareil ne parvient pas à se connecter pour obtenir un code d'association. Vérifiez votre connexion Internet, puis réessayez.",
+    link_code_rate_limited_title: "Trop de tentatives",
+    link_code_rate_limited_description: "Patientez une minute, puis réessayez.",
+    link_code_failed_title: "Impossible d'obtenir un code d'association",
+    link_code_failed_description:
+      "Aster Mail ne peut pas créer de code pour cet appareil pour le moment. Réessayez et, si le problème persiste, contactez l'assistance en indiquant la référence ci-dessous.",
     link_device_try_again:
       "Cela n'a pas fonctionné. Recommencez depuis le début.",
     link_device_verify_button: "Vérifier",

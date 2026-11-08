@@ -9181,6 +9181,22 @@ export const zh_CN = {
       "此验证码已过期或不匹配。桌面应用上有最新的验证码。",
     link_device_failed:
       "关联未能完成。重新开始通常可以解决。您的账户未发生变化。",
+    link_keys_locked_title: "您的密钥环已锁定",
+    link_keys_locked_description:
+      "Aster Mail 将此设备的密钥保存在系统密钥环中，但无法打开它。请解锁密钥环，然后重试。",
+    link_keys_no_keyring_title: "没有可用的密钥环",
+    link_keys_no_keyring_description:
+      "Aster Mail 需要系统密钥环来保护此设备的密钥，但无法写入。请确认已设置并解锁密钥环，然后重试。在 Linux 上，请使用已开启 Secret Service 的 GNOME Keyring、KWallet 或 KeePassXC。",
+    link_keys_failed_title: "此设备的密钥尚未就绪",
+    link_keys_failed_description:
+      "Aster Mail 无法准备关联此设备所需的密钥。请重试，如果问题持续出现，请联系支持并提供下方的参考代码。",
+    link_code_offline_title: "无法连接到 Aster Mail",
+    link_code_offline_description: "此设备无法连接以获取关联代码。请检查您的网络连接，然后重试。",
+    link_code_rate_limited_title: "尝试次数过多",
+    link_code_rate_limited_description: "请等待一分钟，然后重试。",
+    link_code_failed_title: "无法获取关联代码",
+    link_code_failed_description:
+      "Aster Mail 目前无法为此设备创建代码。请重试，如果问题持续出现，请联系支持并提供下方的参考代码。",
     link_device_try_again: "未能成功。重新开始通常可以解决。",
     trust_this_device_30_days: "信任此设备 30 天",
     passkey_sign_in: "使用通行密钥登录",

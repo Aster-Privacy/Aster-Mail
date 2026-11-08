@@ -10422,6 +10422,24 @@ export const de = {
     link_device_success_description:
       "Ihre Desktop-App ist nun verknüpft. Sie können diesen Tab schließen.",
     link_device_title: "Gerät verknüpfen",
+    link_keys_locked_title: "Ihr Schlüsselbund ist gesperrt",
+    link_keys_locked_description:
+      "Aster Mail speichert die Schlüssel dieses Geräts im Schlüsselbund Ihres Systems und kann ihn nicht öffnen. Entsperren Sie den Schlüsselbund und versuchen Sie es erneut.",
+    link_keys_no_keyring_title: "Kein Schlüsselbund verfügbar",
+    link_keys_no_keyring_description:
+      "Aster Mail benötigt einen System-Schlüsselbund, um die Schlüssel dieses Geräts zu schützen, kann aber nicht darin speichern. Richten Sie einen Schlüsselbund ein, entsperren Sie ihn und versuchen Sie es erneut. Unter Linux eignen sich GNOME Keyring, KWallet oder KeePassXC mit aktiviertem Secret Service.",
+    link_keys_failed_title: "Die Schlüssel dieses Geräts sind nicht bereit",
+    link_keys_failed_description:
+      "Aster Mail kann die Schlüssel zum Verknüpfen dieses Geräts nicht vorbereiten. Versuchen Sie es erneut. Wenn das weiterhin passiert, wenden Sie sich mit der Referenz unten an den Support.",
+    link_code_offline_title: "Aster Mail ist nicht erreichbar",
+    link_code_offline_description:
+      "Dieses Gerät kann keine Verbindung herstellen, um einen Code zu erhalten. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+    link_code_rate_limited_title: "Zu viele Versuche",
+    link_code_rate_limited_description:
+      "Warten Sie eine Minute und versuchen Sie es dann erneut.",
+    link_code_failed_title: "Kein Verknüpfungscode verfügbar",
+    link_code_failed_description:
+      "Aster Mail kann gerade keinen Code für dieses Gerät erstellen. Versuchen Sie es erneut. Wenn das weiterhin passiert, wenden Sie sich mit der Referenz unten an den Support.",
     link_device_try_again:
       "Hat nicht geklappt. Ein erneuter Versuch löst das Problem in der Regel.",
     link_device_verify_button: "Weiter",

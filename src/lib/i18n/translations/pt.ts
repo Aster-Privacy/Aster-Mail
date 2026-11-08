@@ -10403,6 +10403,23 @@ export const pt = {
     link_device_success_description:
       "A sua aplicação para computador já está associada. Pode fechar este separador.",
     link_device_title: "Associar dispositivo",
+    link_keys_locked_title: "O seu porta-chaves está bloqueado",
+    link_keys_locked_description:
+      "O Aster Mail guarda as chaves deste dispositivo no porta-chaves do sistema e não consegue abri-lo. Desbloqueie o porta-chaves e tente novamente.",
+    link_keys_no_keyring_title: "Nenhum porta-chaves disponível",
+    link_keys_no_keyring_description:
+      "O Aster Mail precisa de um porta-chaves do sistema para proteger as chaves deste dispositivo e não consegue guardar nele. Confirme que existe um porta-chaves configurado e desbloqueado e tente novamente. No Linux, utilize GNOME Keyring, KWallet ou KeePassXC com o Secret Service ativado.",
+    link_keys_failed_title: "As chaves deste dispositivo não estão prontas",
+    link_keys_failed_description:
+      "O Aster Mail não consegue preparar as chaves necessárias para associar este dispositivo. Tente novamente e, se continuar a acontecer, contacte o suporte com a referência abaixo.",
+    link_code_offline_title: "Não é possível contactar o Aster Mail",
+    link_code_offline_description:
+      "Este dispositivo não consegue ligar-se para obter um código de associação. Verifique a sua ligação à Internet e tente novamente.",
+    link_code_rate_limited_title: "Demasiadas tentativas",
+    link_code_rate_limited_description: "Aguarde um minuto e tente novamente.",
+    link_code_failed_title: "Não é possível obter um código de associação",
+    link_code_failed_description:
+      "O Aster Mail não consegue criar um código para este dispositivo neste momento. Tente novamente e, se continuar a acontecer, contacte o suporte com a referência abaixo.",
     link_device_try_again: "Isso não funcionou. Recomeçar costuma resolver.",
     link_device_verify_button: "Continuar",
     pair_device_cancel: "Cancelar",

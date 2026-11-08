@@ -8701,6 +8701,18 @@ export interface AuthTranslations {
   link_device_invalid_code: string;
   link_device_expired_code: string;
   link_device_failed: string;
+  link_keys_locked_title: string;
+  link_keys_locked_description: string;
+  link_keys_no_keyring_title: string;
+  link_keys_no_keyring_description: string;
+  link_keys_failed_title: string;
+  link_keys_failed_description: string;
+  link_code_offline_title: string;
+  link_code_offline_description: string;
+  link_code_rate_limited_title: string;
+  link_code_rate_limited_description: string;
+  link_code_failed_title: string;
+  link_code_failed_description: string;
   link_device_try_again: string;
   link_device_upgrade_required_toast: string;
   link_device_upgrade_title: string;

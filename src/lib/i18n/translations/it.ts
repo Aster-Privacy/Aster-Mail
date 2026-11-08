@@ -10349,6 +10349,23 @@ export const it = {
     link_device_success_description:
       "La tua app desktop è ora collegata. Puoi chiudere questa scheda.",
     link_device_title: "Collega dispositivo",
+    link_keys_locked_title: "Il tuo portachiavi è bloccato",
+    link_keys_locked_description:
+      "Aster Mail conserva le chiavi di questo dispositivo nel portachiavi di sistema e non riesce ad aprirlo. Sblocca il portachiavi, poi riprova.",
+    link_keys_no_keyring_title: "Nessun portachiavi disponibile",
+    link_keys_no_keyring_description:
+      "Aster Mail ha bisogno di un portachiavi di sistema per proteggere le chiavi di questo dispositivo e non riesce a salvarvi. Assicurati che un portachiavi sia configurato e sbloccato, poi riprova. Su Linux, usa GNOME Keyring, KWallet o KeePassXC con Secret Service attivo.",
+    link_keys_failed_title: "Le chiavi di questo dispositivo non sono pronte",
+    link_keys_failed_description:
+      "Aster Mail non riesce a preparare le chiavi necessarie per collegare questo dispositivo. Riprova e, se succede ancora, contatta l'assistenza indicando il riferimento qui sotto.",
+    link_code_offline_title: "Impossibile raggiungere Aster Mail",
+    link_code_offline_description:
+      "Questo dispositivo non riesce a connettersi per ottenere un codice di collegamento. Controlla la connessione a Internet, poi riprova.",
+    link_code_rate_limited_title: "Troppi tentativi",
+    link_code_rate_limited_description: "Attendi un minuto, poi riprova.",
+    link_code_failed_title: "Impossibile ottenere un codice di collegamento",
+    link_code_failed_description:
+      "Aster Mail non riesce a creare un codice per questo dispositivo in questo momento. Riprova e, se succede ancora, contatta l'assistenza indicando il riferimento qui sotto.",
     link_device_try_again: "Non ha funzionato. Ricominciare di solito risolve.",
     link_device_verify_button: "Continua",
     pair_device_cancel: "Annulla",

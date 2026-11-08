@@ -10277,6 +10277,24 @@ export const nl = {
       "Deze code is verlopen of komt niet overeen. Je desktop-app heeft de huidige code.",
     link_device_failed:
       "Koppeling is niet voltooid. Opnieuw beginnen lost dit meestal op. Je account is ongewijzigd.",
+    link_keys_locked_title: "Je sleutelhanger is vergrendeld",
+    link_keys_locked_description:
+      "Aster Mail bewaart de sleutels van dit apparaat in de sleutelhanger van je systeem en kan die niet openen. Ontgrendel je sleutelhanger en probeer het opnieuw.",
+    link_keys_no_keyring_title: "Geen sleutelhanger beschikbaar",
+    link_keys_no_keyring_description:
+      "Aster Mail heeft een systeemsleutelhanger nodig om de sleutels van dit apparaat te beschermen en kan er niet in opslaan. Zorg dat er een sleutelhanger is ingesteld en ontgrendeld, en probeer het opnieuw. Gebruik op Linux GNOME Keyring, KWallet of KeePassXC met Secret Service ingeschakeld.",
+    link_keys_failed_title: "De sleutels van dit apparaat zijn niet klaar",
+    link_keys_failed_description:
+      "Aster Mail kan de sleutels om dit apparaat te koppelen niet voorbereiden. Probeer het opnieuw en neem contact op met support met de referentie hieronder als het blijft gebeuren.",
+    link_code_offline_title: "Aster Mail is niet bereikbaar",
+    link_code_offline_description:
+      "Dit apparaat kan geen verbinding maken om een koppelcode op te halen. Controleer je internetverbinding en probeer het opnieuw.",
+    link_code_rate_limited_title: "Te veel pogingen",
+    link_code_rate_limited_description:
+      "Wacht een minuut en probeer het opnieuw.",
+    link_code_failed_title: "Geen koppelcode beschikbaar",
+    link_code_failed_description:
+      "Aster Mail kan nu geen code voor dit apparaat maken. Probeer het opnieuw en neem contact op met support met de referentie hieronder als het blijft gebeuren.",
     link_device_try_again:
       "Dat werkte niet. Opnieuw beginnen lost dit meestal op.",
     trust_this_device_30_days: "Dit apparaat 30 dagen vertrouwen",

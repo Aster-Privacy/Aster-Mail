@@ -348,6 +348,49 @@ describe("desktop code sign-in", () => {
     expect(poll_device_code_status_mock).not.toHaveBeenCalledWith("OTHE-RKEY");
   });
 
+  it("reports a keychain failure without asking the server for a code", async () => {
+    invoke_mock.mockRejectedValue(
+      "keychain_unavailable: the keychain could not be read",
+    );
+
+    await render_sign_in();
+
+    expect(request_device_code_mock).not.toHaveBeenCalled();
+    expect(container!.textContent).toContain("auth.link_keys_locked_title");
+    expect(container!.textContent).toContain("common.try_again");
+  });
+
+  it("reports a rejected code request separately from key failures", async () => {
+    request_device_code_mock.mockRejectedValue(
+      Object.assign(new Error("code_generation_failed"), {
+        code: "code_generation_failed",
+        status: 400,
+      }),
+    );
+
+    await render_sign_in();
+
+    expect(container!.textContent).toContain("auth.link_code_failed_title");
+    expect(container!.textContent).not.toContain("auth.link_keys");
+  });
+
+  it("asks the keys again when the user retries", async () => {
+    invoke_mock.mockRejectedValueOnce("keychain_store_failed: unavailable");
+
+    await render_sign_in();
+    expect(container!.textContent).toContain("auth.link_keys_no_keyring_title");
+
+    const retry = Array.from(container!.querySelectorAll("button")).find(
+      (button) => button.textContent === "common.try_again",
+    );
+
+    await act(async () => retry!.click());
+    await advance(100);
+
+    expect(invoke_mock).toHaveBeenCalledTimes(2);
+    expect(container!.textContent).toContain("auth.device_code_title");
+  });
+
   it("drops a code that the server reports as expired", async () => {
     seed_codes([
       { code: "GONE-CODE", device_key: "pk", expires_in_ms: 60_000 },
