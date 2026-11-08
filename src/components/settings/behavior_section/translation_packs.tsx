@@ -19,7 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useCallback, useEffect, useState } from "react";
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { IslandRow } from "@aster/ui";
+import { ArrowRightIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
@@ -76,72 +77,72 @@ export function TranslationPacks() {
   }, [refresh]);
 
   const total = packs.reduce((sum, pack) => sum + pack.bytes, 0);
-  const label = (pack: CachedPack) =>
-    `${language_display_name(pack.from, language)} → ${language_display_name(pack.to, language)}`;
+  const show_list = supported && packs.length > 0;
 
   return (
-    <div className="py-4">
-      <p className="text-sm font-medium text-txt-primary">
-        {t("settings.translation_packs")}
-      </p>
-      <p className="text-sm mt-0.5 text-txt-muted">
-        {t("settings.translation_packs_description")}
-      </p>
-
-      {!supported && (
-        <p className="text-sm mt-3 text-txt-muted">
-          {t("settings.translation_packs_unavailable")}
-        </p>
-      )}
-
-      {supported && packs.length === 0 && (
-        <p className="text-sm mt-3 text-txt-muted">
-          {t("settings.translation_packs_empty")}
-        </p>
-      )}
-
-      {supported && packs.length > 0 && (
-        <>
-          <ul className="mt-3 divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] rounded-lg border border-edge-primary">
-            {packs.map((pack) => (
-              <li
-                key={pack.pair}
-                className="flex items-center justify-between gap-3 px-3 py-2"
-              >
-                <span className="text-sm text-txt-primary">{label(pack)}</span>
-                <span className="flex items-center gap-3">
-                  <span className="text-sm text-txt-muted">
+    <IslandRow
+      description={t("settings.translation_packs_description")}
+      label={t("settings.translation_packs")}
+      layout="block"
+      trailing={
+        !supported ? (
+          <p className="text-sm text-txt-muted">
+            {t("settings.translation_packs_unavailable")}
+          </p>
+        ) : !show_list ? (
+          <p className="text-sm text-txt-muted">
+            {t("settings.translation_packs_empty")}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2.5">
+            <ul className="overflow-hidden rounded-xl bg-surf-primary">
+              {packs.map((pack, index) => (
+                <li
+                  key={pack.pair}
+                  className={`flex items-center gap-3 ps-3.5 pe-2 py-2 ${index > 0 ? "border-t border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]" : ""}`}
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-2 text-sm font-medium text-txt-primary">
+                    <span className="truncate">
+                      {language_display_name(pack.from, language)}
+                    </span>
+                    <ArrowRightIcon className="h-3.5 w-3.5 shrink-0 text-txt-muted rtl:-scale-x-100" />
+                    <span className="truncate">
+                      {language_display_name(pack.to, language)}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-xs tabular-nums text-txt-muted">
                     {format_bytes(pack.bytes)}
                   </span>
                   <button
                     aria-label={t("settings.translation_packs_remove")}
-                    className="rounded-[var(--aster-radius-control)] p-1 text-txt-muted hover:text-txt-primary hover:bg-[var(--aster-island-hover)] transition-colors"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-red-500/10 hover:text-red-500"
+                    title={t("settings.translation_packs_remove")}
                     type="button"
                     onClick={() => remove_one(pack.pair)}
                   >
-                    <TrashIcon className="w-4 h-4" />
+                    <TrashIcon className="h-4 w-4" />
                   </button>
-                </span>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
 
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <span className="text-xs text-txt-muted">
-              {t("settings.translation_packs_total", {
-                size: format_bytes(total),
-              })}
-            </span>
-            <button
-              className="text-xs font-medium text-txt-secondary hover:text-txt-primary transition-colors"
-              type="button"
-              onClick={remove_every}
-            >
-              {t("settings.translation_packs_remove_all")}
-            </button>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs tabular-nums text-txt-muted">
+                {t("settings.translation_packs_total", {
+                  size: format_bytes(total),
+                })}
+              </span>
+              <button
+                className="rounded-full bg-[var(--aster-hover)] px-3 py-1 text-sm font-medium text-txt-secondary transition-colors hover:bg-red-500/10 hover:text-red-500"
+                type="button"
+                onClick={remove_every}
+              >
+                {t("settings.translation_packs_remove_all")}
+              </button>
+            </div>
           </div>
-        </>
-      )}
-    </div>
+        )
+      }
+    />
   );
 }
