@@ -4049,6 +4049,9 @@ export const pl = {
     time_zone_show_all: "Pokaż wszystkie strefy czasowe",
     date_format: "Format daty",
     date_format_description: "Sposób wyświetlania dat",
+    week_starts_on: "Pierwszy dzień tygodnia",
+    week_starts_on_description:
+      "Wybierz dzień, od którego zaczyna się tydzień w selektorach dat i w Aster Calendar",
     density: "Gęstość",
     density_description: "Dostosuj odstępy między elementami",
     density_comfortable: "Wygodna",

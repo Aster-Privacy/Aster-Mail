@@ -33,6 +33,13 @@ import { SettingsGroup, SettingsHeader, OptionList } from "./shared";
 import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picker";
 import { get_supported_time_zones } from "@/lib/time_zones";
 import {
+  normalize_week_start,
+  week_start_label,
+  WEEK_START_PREFERENCES,
+  type WeekStartPreference,
+} from "@/utils/week_start";
+import { app_locale } from "@/utils/date_format";
+import {
   label_to_language_code,
   use_preferences,
 } from "@/contexts/preferences_context";
@@ -101,6 +108,12 @@ export function AppearanceSection({
     { value: "DD/MM/YYYY", label: "DD/MM/YYYY" },
     { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
   ];
+
+  const week_start_options: { value: WeekStartPreference; label: string }[] =
+    WEEK_START_PREFERENCES.map((day) => ({
+      value: day,
+      label: week_start_label(day, app_locale()),
+    }));
 
   const language_entries: { code: LanguageCode; display: string }[] =
     get_supported_languages().map((lang) => ({
@@ -189,6 +202,20 @@ export function AppearanceSection({
             on_change={(v) => update_preference("date_format", v, true)}
             options={date_format_options}
             value={preferences.date_format}
+          />
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.week_starts_on")}>
+          <OptionList
+            on_change={(v) =>
+              update_preference(
+                "calendar_week_starts_on",
+                normalize_week_start(v),
+                true,
+              )
+            }
+            options={week_start_options}
+            value={normalize_week_start(preferences.calendar_week_starts_on)}
           />
         </SettingsGroup>
 

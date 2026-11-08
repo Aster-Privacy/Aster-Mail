@@ -3872,6 +3872,9 @@ export const nl = {
     time_zone_show_all: "Alle tijdzones tonen",
     date_format: "Datumnotatie",
     date_format_description: "Hoe datums worden weergegeven",
+    week_starts_on: "Eerste dag van de week",
+    week_starts_on_description:
+      "Kies de dag waarmee de week begint in datumkiezers en in Aster Calendar",
     density: "Dichtheid",
     density_description: "Pas de afstand tussen items aan",
     density_comfortable: "Comfortabel",

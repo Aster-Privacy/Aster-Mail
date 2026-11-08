@@ -8,6 +8,7 @@ import {
 } from "./dates";
 
 import { set_display_time_zone } from "@/utils/date_format";
+import { set_display_week_start } from "@/utils/week_start";
 
 vi.mock("@/utils/date_format", async (import_original) => ({
   ...(await import_original<typeof import("@/utils/date_format")>()),
@@ -35,6 +36,25 @@ describe("get_first_week_day", () => {
   it("starts the week on monday for german", () => {
     mock_locale = "de-DE";
     expect(get_first_week_day()).toBe(1);
+  });
+
+  it("uses the calendar week start preference over the locale", () => {
+    mock_locale = "de-DE";
+    set_display_week_start("sunday");
+    expect(get_first_week_day()).toBe(0);
+    mock_locale = "en-US";
+    set_display_week_start("saturday");
+    expect(get_first_week_day()).toBe(6);
+    set_display_week_start(undefined);
+    expect(get_first_week_day()).toBe(0);
+  });
+
+  it("starts this week on monday when the preference says so", () => {
+    mock_locale = "en-US";
+    set_display_week_start("monday");
+    at("2026-08-23T15:00:00");
+    expect(get_week_start().getDate()).toBe(17);
+    set_display_week_start(undefined);
   });
 });
 

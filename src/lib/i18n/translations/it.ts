@@ -3910,6 +3910,9 @@ export const it = {
     time_zone_show_all: "Mostra tutti i fusi orari",
     date_format: "Formato data",
     date_format_description: "Come vengono visualizzate le date",
+    week_starts_on: "Primo giorno della settimana",
+    week_starts_on_description:
+      "Scegli il giorno con cui inizia la settimana nei selettori di data e in Aster Calendar",
     density: "Densità",
     density_description: "Regola la spaziatura degli elementi",
     density_comfortable: "Comoda",

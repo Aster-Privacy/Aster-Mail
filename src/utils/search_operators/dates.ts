@@ -30,6 +30,7 @@ import {
   zoned_start_of_day,
   zoned_weekday,
 } from "@/utils/date_format";
+import { app_week_start_index } from "@/utils/week_start";
 
 const END_OF_DAY_MS = 24 * 60 * 60 * 1000 - 1;
 
@@ -55,6 +56,10 @@ type LocaleWithWeekInfo = Intl.Locale & {
 const DEFAULT_FIRST_WEEK_DAY = 1;
 
 export function get_first_week_day(): number {
+  const preferred = app_week_start_index();
+
+  if (preferred !== undefined) return preferred;
+
   try {
     const code =
       app_locale() ?? new Intl.DateTimeFormat().resolvedOptions().locale;

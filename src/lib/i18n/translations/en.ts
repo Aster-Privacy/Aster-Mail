@@ -2477,6 +2477,9 @@ export const en: Translations = {
     time_zone_show_all: "Show all time zones",
     date_format: "Date Format",
     date_format_description: "How dates are displayed",
+    week_starts_on: "First day of the week",
+    week_starts_on_description:
+      "Choose the day that starts the week in date pickers and in Aster Calendar",
     density: "Density",
     density_description: "Adjust the spacing of items",
     density_comfortable: "Comfortable",

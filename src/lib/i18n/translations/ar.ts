@@ -4022,6 +4022,9 @@ export const ar = {
     time_zone_show_all: "عرض كل المناطق الزمنية",
     date_format: "تنسيق التاريخ",
     date_format_description: "كيفية عرض التواريخ",
+    week_starts_on: "أول يوم في الأسبوع",
+    week_starts_on_description:
+      "اختر اليوم الذي يبدأ به الأسبوع في أدوات اختيار التاريخ وفي Aster Calendar",
     density: "الكثافة",
     density_description: "ضبط المسافات بين العناصر",
     density_comfortable: "مريح",

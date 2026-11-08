@@ -42,6 +42,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
+import { DateInput } from "@/components/ui/date_input";
 import { RadioRowWithDescription } from "@/components/settings/appearance/radio_row_with_description";
 import {
   TurnstileWidget,
@@ -721,24 +722,24 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
               <label className="text-xs text-txt-muted">
                 {t("settings.export_scope_date_from")}
               </label>
-              <Input
-                className="w-full mt-1"
+              <DateInput
+                aria_label={t("settings.export_scope_date_from")}
+                className="aster_input aster_input_lg w-full mt-1"
                 max={date_to || undefined}
-                type="date"
+                on_change={set_date_from}
                 value={date_from}
-                onChange={(e) => set_date_from(e.target.value)}
               />
             </div>
             <div>
               <label className="text-xs text-txt-muted">
                 {t("settings.export_scope_date_to")}
               </label>
-              <Input
-                className="w-full mt-1"
+              <DateInput
+                aria_label={t("settings.export_scope_date_to")}
+                className="aster_input aster_input_lg w-full mt-1"
                 min={date_from || undefined}
-                type="date"
+                on_change={set_date_to}
                 value={date_to}
-                onChange={(e) => set_date_to(e.target.value)}
               />
             </div>
           </div>

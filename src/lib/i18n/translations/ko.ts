@@ -3906,6 +3906,9 @@ export const ko = {
     time_zone_show_all: "모든 표준 시간대 표시",
     date_format: "날짜 형식",
     date_format_description: "날짜 표시 방식",
+    week_starts_on: "한 주의 시작 요일",
+    week_starts_on_description:
+      "날짜 선택기와 Aster Calendar에서 한 주가 시작되는 요일을 선택합니다",
     density: "밀도",
     density_description: "항목 간격 조정",
     density_comfortable: "편안함",
