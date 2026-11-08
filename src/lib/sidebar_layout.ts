@@ -123,9 +123,33 @@ export function set_sidebar_item_hidden(
   const without = current.filter((entry) => entry !== id);
 
   if (!should_hide) return without;
-  if (without.length >= MAX_SIDEBAR_LAYOUT_IDS) return current;
+  if (without.length < MAX_SIDEBAR_LAYOUT_IDS) return [...without, id];
 
-  return [...without, id];
+  const evict_index = without.findIndex(
+    (entry) => !is_sidebar_item_hideable(entry),
+  );
+
+  if (evict_index === -1) return current;
+
+  return [
+    ...without.slice(0, evict_index),
+    ...without.slice(evict_index + 1),
+    id,
+  ];
+}
+
+export function reset_sidebar_section_order(order: unknown): string[] {
+  let next_default = 0;
+
+  return sanitize_sidebar_section_order(order).map((id) =>
+    KNOWN_SECTION_IDS.has(id) ? SIDEBAR_SECTION_IDS[next_default++] : id,
+  );
+}
+
+export function reset_sidebar_hidden_items(hidden: unknown): string[] {
+  return sanitize_sidebar_hidden_items(hidden).filter(
+    (id) => !is_sidebar_item_hideable(id),
+  );
 }
 
 export function move_sidebar_section(

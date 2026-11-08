@@ -18,107 +18,42 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { TranslationKey } from "@/lib/i18n/types";
-import type {
-  SidebarHideableItemId,
-  SidebarSectionId,
-} from "@/lib/sidebar_layout";
+import type { SidebarSectionId } from "@/lib/sidebar_layout";
 
 import { Button, SettingControlRow, SettingToggleRow } from "@aster/ui";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 
-import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import {
-  DEFAULT_SIDEBAR_SECTION_ORDER,
-  SIDEBAR_HIDEABLE_MAIL_ITEM_IDS,
-  can_move_sidebar_section,
-  is_default_sidebar_layout,
-  is_sidebar_item_hidden,
-  move_sidebar_section,
-  resolve_sidebar_section_order,
-  set_sidebar_item_hidden,
-} from "@/lib/sidebar_layout";
-
-const SECTION_LABEL_KEYS: Record<SidebarSectionId, TranslationKey> = {
-  mail: "common.mail",
-  folders: "common.folders",
-  labels: "common.labels",
-  aliases: "common.aliases",
-};
-
-const MAIL_ITEM_LABEL_KEYS: Record<
-  (typeof SIDEBAR_HIDEABLE_MAIL_ITEM_IDS)[number],
-  TranslationKey
-> = {
-  sent: "mail.sent",
-  scheduled: "mail.scheduled",
-  snoozed: "mail.snoozed",
-  drafts: "mail.drafts",
-  contacts: "common.contacts",
-  starred: "mail.starred",
-  all: "mail.all_mail",
-  archive: "mail.archive",
-  spam: "mail.spam",
-  trash: "mail.trash",
-  subscriptions: "common.subscriptions",
-};
+  SIDEBAR_MAIL_ITEM_LABEL_KEYS,
+  SIDEBAR_SECTION_LABEL_KEYS,
+  use_sidebar_layout_controls,
+} from "@/components/settings/behavior_section/use_sidebar_layout_controls";
 
 const MOVE_BUTTON_CLASS =
   "inline-flex h-7 w-7 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-muted outline-none transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)] disabled:pointer-events-none disabled:opacity-30";
 
 export function SidebarLayoutSetting() {
   const { t } = use_i18n();
-  const { preferences, update_preference, update_preferences } =
-    use_preferences();
-
-  const order = preferences.sidebar_section_order;
-  const hidden = preferences.sidebar_hidden_items;
-  const sections = resolve_sidebar_section_order(order);
-
-  const set_hidden = (id: SidebarHideableItemId, should_hide: boolean) => {
-    update_preference(
-      "sidebar_hidden_items",
-      set_sidebar_item_hidden(hidden, id, should_hide),
-      true,
-    );
-  };
-
-  const move = (id: SidebarSectionId, direction: -1 | 1) => {
-    update_preference(
-      "sidebar_section_order",
-      move_sidebar_section(order, id, direction),
-      true,
-    );
-  };
-
-  const reset = () => {
-    update_preferences(
-      {
-        sidebar_section_order: [...DEFAULT_SIDEBAR_SECTION_ORDER],
-        sidebar_hidden_items: [],
-      },
-      true,
-    );
-  };
+  const layout = use_sidebar_layout_controls();
 
   const render_move_buttons = (id: SidebarSectionId, name: string) => (
     <span className="flex items-center gap-0.5">
       <button
         aria-label={t("settings.sidebar_move_section_up", { name })}
         className={MOVE_BUTTON_CLASS}
-        disabled={!can_move_sidebar_section(order, id, -1)}
+        disabled={!layout.can_move(id, -1)}
         type="button"
-        onClick={() => move(id, -1)}
+        onClick={() => layout.move(id, -1)}
       >
         <ChevronUpIcon aria-hidden="true" className="h-4 w-4" />
       </button>
       <button
         aria-label={t("settings.sidebar_move_section_down", { name })}
         className={MOVE_BUTTON_CLASS}
-        disabled={!can_move_sidebar_section(order, id, 1)}
+        disabled={!layout.can_move(id, 1)}
         type="button"
-        onClick={() => move(id, 1)}
+        onClick={() => layout.move(id, 1)}
       >
         <ChevronDownIcon aria-hidden="true" className="h-4 w-4" />
       </button>
@@ -130,10 +65,10 @@ export function SidebarLayoutSetting() {
       <SettingControlRow
         control={
           <Button
-            disabled={is_default_sidebar_layout(order, hidden)}
+            disabled={layout.is_default}
             size="sm"
             variant="outline"
-            onClick={reset}
+            onClick={layout.reset}
           >
             {t("settings.reset_sidebar_layout")}
           </Button>
@@ -145,8 +80,8 @@ export function SidebarLayoutSetting() {
       />
 
       <>
-        {sections.map((id) => {
-          const name = t(SECTION_LABEL_KEYS[id]);
+        {layout.sections.map((id) => {
+          const name = t(SIDEBAR_SECTION_LABEL_KEYS[id]);
 
           if (id === "mail") {
             return (
@@ -164,10 +99,10 @@ export function SidebarLayoutSetting() {
           return (
             <SettingToggleRow
               key={id}
-              checked={!is_sidebar_item_hidden(hidden, id)}
+              checked={!layout.is_hidden(id)}
               label={name}
               trailing={render_move_buttons(id, name)}
-              on_change={(checked) => set_hidden(id, !checked)}
+              on_change={(checked) => layout.set_hidden(id, !checked)}
             />
           );
         })}
@@ -180,12 +115,12 @@ export function SidebarLayoutSetting() {
       />
 
       <>
-        {SIDEBAR_HIDEABLE_MAIL_ITEM_IDS.map((id) => (
+        {layout.mail_item_ids.map((id) => (
           <SettingToggleRow
             key={id}
-            checked={!is_sidebar_item_hidden(hidden, id)}
-            label={t(MAIL_ITEM_LABEL_KEYS[id])}
-            on_change={(checked) => set_hidden(id, !checked)}
+            checked={!layout.is_hidden(id)}
+            label={t(SIDEBAR_MAIL_ITEM_LABEL_KEYS[id])}
+            on_change={(checked) => layout.set_hidden(id, !checked)}
           />
         ))}
       </>

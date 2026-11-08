@@ -316,6 +316,28 @@ describe("SidebarLayoutSetting", () => {
     expect(switch_for("mail.sent").checked).toBe(true);
   });
 
+  it("keeps ids from newer apps when resetting", () => {
+    set_prefs({
+      sidebar_section_order: ["aliases", "calendar", "labels", "mail"],
+      sidebar_hidden_items: ["calendar_tasks", "spam"],
+    });
+    render_setting();
+    expect(reset_button().disabled).toBe(false);
+
+    click(reset_button());
+    expect(prefs()).toEqual({
+      sidebar_section_order: [
+        "mail",
+        "calendar",
+        "folders",
+        "labels",
+        "aliases",
+      ],
+      sidebar_hidden_items: ["calendar_tasks"],
+    });
+    expect(reset_button().disabled).toBe(true);
+  });
+
   it("renders safely when the stored values are malformed", () => {
     set_prefs({
       sidebar_section_order: "aliases" as unknown as string[],

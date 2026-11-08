@@ -27,6 +27,8 @@ import {
   is_default_sidebar_layout,
   is_sidebar_item_hidden,
   move_sidebar_section,
+  reset_sidebar_hidden_items,
+  reset_sidebar_section_order,
   resolve_sidebar_section_order,
   sanitize_sidebar_hidden_items,
   sanitize_sidebar_section_order,
@@ -193,13 +195,33 @@ describe("sidebar hidden items", () => {
     ).toEqual(["future_item"]);
   });
 
-  it("does not grow past the cap", () => {
+  it("makes room at the cap by dropping the oldest unknown id", () => {
     const full = Array.from(
       { length: MAX_SIDEBAR_LAYOUT_IDS },
       (_, i) => `item_${i}`,
     );
+    const result = set_sidebar_item_hidden(full, "trash", true);
 
-    expect(set_sidebar_item_hidden(full, "trash", true)).toEqual(full);
+    expect(result.length).toBe(MAX_SIDEBAR_LAYOUT_IDS);
+    expect(result[0]).toBe("item_1");
+    expect(result[result.length - 1]).toBe("trash");
+    expect(is_sidebar_item_hidden(result, "trash")).toBe(true);
+  });
+
+  it("keeps known hidden ids when making room at the cap", () => {
+    const full = [
+      "spam",
+      ...Array.from(
+        { length: MAX_SIDEBAR_LAYOUT_IDS - 1 },
+        (_, i) => `item_${i}`,
+      ),
+    ];
+    const result = set_sidebar_item_hidden(full, "trash", true);
+
+    expect(result.length).toBe(MAX_SIDEBAR_LAYOUT_IDS);
+    expect(result).toContain("spam");
+    expect(result).not.toContain("item_0");
+    expect(result[result.length - 1]).toBe("trash");
   });
 });
 
@@ -209,5 +231,51 @@ describe("is_default_sidebar_layout", () => {
     expect(is_default_sidebar_layout(["calendar"], ["future_item"])).toBe(true);
     expect(is_default_sidebar_layout(["labels"], [])).toBe(false);
     expect(is_default_sidebar_layout(undefined, ["trash"])).toBe(false);
+  });
+});
+
+describe("reset sidebar layout", () => {
+  it("restores the default order of known sections", () => {
+    expect(reset_sidebar_section_order(["aliases", "labels"])).toEqual(
+      DEFAULT_SIDEBAR_SECTION_ORDER,
+    );
+    expect(reset_sidebar_section_order(undefined)).toEqual(
+      DEFAULT_SIDEBAR_SECTION_ORDER,
+    );
+  });
+
+  it("keeps unknown sections where they are", () => {
+    const order = ["aliases", "calendar", "labels", "mail", "folders"];
+    const result = reset_sidebar_section_order(order);
+
+    expect(result).toEqual([
+      "mail",
+      "calendar",
+      "folders",
+      "labels",
+      "aliases",
+    ]);
+    expect(resolve_sidebar_section_order(result)).toEqual(
+      DEFAULT_SIDEBAR_SECTION_ORDER,
+    );
+  });
+
+  it("unhides known items and keeps unknown ones", () => {
+    expect(
+      reset_sidebar_hidden_items(["spam", "calendar_tasks", "aliases"]),
+    ).toEqual(["calendar_tasks"]);
+  });
+
+  it("produces a layout that counts as the default", () => {
+    const order = ["labels", "calendar", "mail", "folders", "aliases"];
+    const hidden = ["trash", "calendar_tasks"];
+
+    expect(is_default_sidebar_layout(order, hidden)).toBe(false);
+    expect(
+      is_default_sidebar_layout(
+        reset_sidebar_section_order(order),
+        reset_sidebar_hidden_items(hidden),
+      ),
+    ).toBe(true);
   });
 });
