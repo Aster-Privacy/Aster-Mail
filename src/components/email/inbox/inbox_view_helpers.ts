@@ -159,6 +159,18 @@ export function get_search_context(
   return undefined;
 }
 
+export function canonical_alias_address(address: string): string {
+  const trimmed = (address ?? "").trim().toLowerCase();
+  const at = trimmed.lastIndexOf("@");
+
+  if (at <= 0) return trimmed;
+
+  const local = trimmed.slice(0, at).split("+")[0].replace(/\./g, "");
+  const domain = trimmed.slice(at + 1);
+
+  return `${local}@${domain}`;
+}
+
 export function filter_emails_by_view(
   emails: InboxEmail[],
   _current_view: string,
@@ -166,12 +178,12 @@ export function filter_emails_by_view(
   const alias_view = parse_alias_view(_current_view);
 
   if (alias_view) {
-    const alias_address = alias_view.address.toLowerCase();
+    const alias_address = canonical_alias_address(alias_view.address);
     const matches_sender = (e: InboxEmail) =>
-      e.sender_email.toLowerCase() === alias_address;
+      canonical_alias_address(e.sender_email) === alias_address;
     const matches_recipient = (e: InboxEmail) =>
       !!e.recipient_addresses?.some(
-        (addr) => addr.toLowerCase() === alias_address,
+        (addr) => canonical_alias_address(addr) === alias_address,
       );
 
     if (alias_view.direction === "sent") {

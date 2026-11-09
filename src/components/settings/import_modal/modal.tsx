@@ -67,7 +67,9 @@ import {
   update_import_job,
   store_imported_emails,
   check_duplicates,
+  link_imported_routing,
   type ImportSource,
+  type LinkRoutingEntry,
 } from "@/services/api/email_import";
 import { emit_mail_changed } from "@/hooks/mail_events";
 import { invalidate_mail_cache } from "@/hooks/use_email_list";
@@ -87,6 +89,18 @@ import {
   filter_supported_files,
 } from "@/services/import/file_collection";
 import { list_aliases, decrypt_aliases } from "@/services/api/aliases";
+import {
+  list_domains,
+  list_domain_addresses,
+  decrypt_domain_addresses,
+  compute_address_routing_hash,
+} from "@/services/api/domains";
+import {
+  build_import_hash_map,
+  is_owned_import_address,
+  resolve_import_routing,
+  type ImportAddressEntry,
+} from "./import_routing";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_storage_full_upgrade } from "@/stores/upgrade_store";
 import { user_facing_error } from "@/utils/user_facing_error";
@@ -212,6 +226,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
       set_error(null);
 
       const user_addresses = new Set<string>();
+      const address_entries: ImportAddressEntry[] = [];
 
       if (user?.email) {
         user_addresses.add(user.email.toLowerCase());
@@ -237,6 +252,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           const decrypted = await decrypt_aliases(alias_response.data.aliases);
 
           for (const alias of decrypted) {
+            if (alias.full_address && alias.alias_address_hash) {
+              address_entries.push({
+                address: alias.full_address,
+                hash: alias.alias_address_hash,
+              });
+            }
             if (alias.is_enabled && alias.full_address) {
               user_addresses.add(alias.full_address.toLowerCase());
             }
@@ -245,6 +266,41 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
       } catch {
         // proceed with primary address only
       }
+
+      try {
+        const domains_response = await list_domains();
+        const active_domains = (domains_response.data?.domains ?? []).filter(
+          (d) => d.status === "active",
+        );
+
+        for (const domain of active_domains) {
+          const addr_response = await list_domain_addresses(domain.id);
+
+          if (!addr_response.data) continue;
+
+          const decrypted_addresses = await decrypt_domain_addresses(
+            addr_response.data.addresses,
+          );
+
+          for (const addr of decrypted_addresses) {
+            const full_address = `${addr.local_part}@${domain.domain_name}`;
+            const hash = await compute_address_routing_hash(
+              addr.local_part,
+              domain.domain_name,
+            );
+
+            address_entries.push({ address: full_address, hash });
+            user_addresses.add(full_address.toLowerCase());
+          }
+        }
+      } catch (caught) {
+        ignore_error(
+          "components/settings/import_modal/modal:domain_addresses",
+          caught,
+        );
+      }
+
+      const address_hash_map = build_import_hash_map(address_entries);
 
       const folder_token_map = new Map<string, string>();
 
@@ -375,8 +431,28 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         let duplicate_count = 0;
         let drafts_skipped_count = 0;
 
+        const linked_hashes = new Set<string>();
+        const link_entries: LinkRoutingEntry[] = [];
+
         emails.forEach((email, index) => {
           const hash = message_id_hashes.get(email.message_id);
+
+          if (hash && existing_hashes.has(hash) && !linked_hashes.has(hash)) {
+            linked_hashes.add(hash);
+            const is_sent =
+              detect_item_type(email, user_addresses) === "sent" ||
+              classify_import_email(email).sent ||
+              is_owned_import_address(email.from, address_hash_map);
+            const routing = resolve_import_routing(
+              email,
+              is_sent,
+              address_hash_map,
+            );
+
+            if (routing.routing_token || routing.sender_alias_hash) {
+              link_entries.push({ message_id_hash: hash, ...routing });
+            }
+          }
 
           if (!hash || existing_hashes.has(hash) || seen_hashes.has(hash)) {
             duplicate_count++;
@@ -393,6 +469,28 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           indices_to_import.add(index);
           emails_to_import.push(email);
         });
+
+        for (
+          let i = 0;
+          i < link_entries.length;
+          i += DUPLICATE_CHECK_BATCH_SIZE
+        ) {
+          try {
+            const link_response = await link_imported_routing(
+              job_id!,
+              link_entries.slice(i, i + DUPLICATE_CHECK_BATCH_SIZE),
+            );
+
+            if ((link_response.data?.linked_count ?? 0) > 0) {
+              invalidate_mail_cache();
+            }
+          } catch (caught) {
+            ignore_error(
+              "components/settings/import_modal/modal:link_routing",
+              caught,
+            );
+          }
+        }
 
         const thread_map = await build_thread_map(emails_to_import);
 
@@ -606,8 +704,26 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               const disposition = classify_import_email(email);
               const type = detect_item_type(email, user_addresses);
 
-              if (type === "sent" || disposition.sent) {
+              const is_sent =
+                type === "sent" ||
+                disposition.sent ||
+                is_owned_import_address(email.from, address_hash_map);
+
+              if (is_sent) {
                 encrypted.item_type = "sent";
+              }
+
+              const routing = resolve_import_routing(
+                email,
+                is_sent,
+                address_hash_map,
+              );
+
+              if (routing.routing_token) {
+                encrypted.routing_token = routing.routing_token;
+              }
+              if (routing.sender_alias_hash) {
+                encrypted.sender_alias_hash = routing.sender_alias_hash;
               }
 
               const target_folder = folder_for_email(email, folder_token_map);
