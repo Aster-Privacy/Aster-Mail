@@ -161,6 +161,7 @@ export interface ListMailItemsParams {
   routing_token?: string;
   direction?: "received" | "sent" | "either";
   group_by_thread?: boolean;
+  thread_pages?: boolean;
   order?: "asc" | "desc";
   skip_total?: boolean;
   include_envelope?: boolean;
@@ -337,6 +338,7 @@ export async function list_mail_items(
   if (params.direction) query_params.set("direction", params.direction);
   if (params.group_by_thread !== undefined)
     query_params.set("group_by_thread", params.group_by_thread.toString());
+  if (params.thread_pages) query_params.set("thread_pages", "true");
   if (params.order) query_params.set("order", params.order);
   if (params.skip_total) query_params.set("skip_total", "true");
   if (params.include_envelope === false)
