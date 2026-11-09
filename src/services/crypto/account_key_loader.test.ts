@@ -24,7 +24,10 @@ import * as openpgp from "openpgp";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { derive_account_data_key_raw } from "./account_data_key";
-import { load_account_keys_for_session } from "./account_key_loader";
+import {
+  account_key_owner_keys,
+  load_account_keys_for_session,
+} from "./account_key_loader";
 import {
   open_account_key_token,
   seal_account_key_token,
@@ -351,5 +354,94 @@ describe("load_account_keys_for_session", () => {
       load_account_keys_for_session(vault_with(me.privateKey), PASS),
     ).resolves.toBe(0);
     expect(get_legacy_crypto_keys()).toHaveLength(0);
+  });
+
+  describe("after the identity key is reformatted", () => {
+    const start = new Date("2026-11-02T19:20:49Z");
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(start);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    async function reformat_later(armored: string): Promise<string> {
+      vi.setSystemTime(new Date(start.getTime() + 5 * 86_400_000));
+
+      const key = await openpgp.decryptKey({
+        privateKey: await openpgp.readPrivateKey({ armoredKey: armored }),
+        passphrase: PASS,
+      });
+      const reformatted = await openpgp.reformatKey({
+        privateKey: key,
+        userIDs: [
+          { name: "me", email: "me@x.com" },
+          { name: "me", email: "second@x.com" },
+        ],
+        format: "object",
+      });
+      const locked = await openpgp.encryptKey({
+        privateKey: reformatted.privateKey,
+        passphrase: PASS,
+      });
+
+      return locked.armor();
+    }
+
+    it("opens a token signed before the reformat", async () => {
+      const me = await make_key();
+      const token = await seal_account_key_token(
+        new Uint8Array(32).fill(7),
+        me.privateKey,
+        PASS,
+      );
+      const reformatted = await reformat_later(me.privateKey);
+
+      api.get_account_key_token.mockResolvedValue(token_row(token));
+
+      const vault = {
+        identity_key: reformatted,
+        previous_keys: [],
+        legacy_identity_keys: [me.privateKey],
+      } as unknown as EncryptedVault;
+
+      await expect(load_account_keys_for_session(vault, PASS)).resolves.toBe(1);
+      expect(get_legacy_crypto_keys().length).toBeGreaterThan(0);
+      expect(api.put_account_key_token_if_absent).not.toHaveBeenCalled();
+    });
+
+    it("needs the retired copy to open a token signed before the reformat", async () => {
+      const me = await make_key();
+      const token = await seal_account_key_token(
+        new Uint8Array(32).fill(7),
+        me.privateKey,
+        PASS,
+      );
+      const reformatted = await reformat_later(me.privateKey);
+
+      await expect(
+        open_account_key_token(token, [reformatted], PASS),
+      ).resolves.toBeNull();
+      await expect(
+        open_account_key_token(token, [reformatted, me.privateKey], PASS),
+      ).resolves.toHaveLength(32);
+    });
+
+    it("trusts only retired copies of a key the vault still holds", async () => {
+      const me = await make_key();
+      const other = await make_key();
+      const reformatted = await reformat_later(me.privateKey);
+
+      const owners = await account_key_owner_keys({
+        identity_key: reformatted,
+        previous_keys: [],
+        legacy_identity_keys: [other.privateKey, me.privateKey, "not a key"],
+      } as unknown as EncryptedVault);
+
+      expect(owners).toEqual([reformatted, me.privateKey]);
+    });
   });
 });

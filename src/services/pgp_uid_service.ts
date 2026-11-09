@@ -166,6 +166,7 @@ export async function add_addresses_to_identity_key(
     userIDs:
       placement === "first" ? [...added, ...user_ids] : [...user_ids, ...added],
     keyExpirationTime: key_expiration_time,
+    date: unlocked.getCreationTime(),
     format: "object",
   });
 

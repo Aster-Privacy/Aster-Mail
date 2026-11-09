@@ -54,6 +54,48 @@ function same_bytes(a: Uint8Array, b: Uint8Array): boolean {
   return diff === 0;
 }
 
+async function primary_fingerprint(armored: string): Promise<string | null> {
+  const openpgp = await load_openpgp();
+
+  try {
+    const key = await openpgp.readKey({ armoredKey: armored });
+
+    return key.getFingerprint().toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+export async function account_key_owner_keys(
+  vault: EncryptedVault,
+): Promise<string[]> {
+  const active = [vault.identity_key, ...(vault.previous_keys ?? [])].filter(
+    (k): k is string => !!k,
+  );
+  const legacy = (vault.legacy_identity_keys ?? []).filter(
+    (k) => !!k && !active.includes(k),
+  );
+
+  if (legacy.length === 0) return active;
+
+  const active_fingerprints = new Set(
+    (await Promise.all(active.map(primary_fingerprint))).filter(
+      (f): f is string => !!f,
+    ),
+  );
+  const same_key_history: string[] = [];
+
+  for (const armored of legacy) {
+    const fingerprint = await primary_fingerprint(armored);
+
+    if (fingerprint && active_fingerprints.has(fingerprint)) {
+      same_key_history.push(armored);
+    }
+  }
+
+  return [...active, ...same_key_history];
+}
+
 async function create_account_key_if_absent(
   identity_key: string,
   passphrase: string,
@@ -144,7 +186,7 @@ export async function load_account_keys_for_session(
 ): Promise<number> {
   const generation = get_account_key_generation();
   const write_epoch = get_account_write_epoch();
-  const own_keys = [vault.identity_key, ...(vault.previous_keys ?? [])];
+  const own_keys = await account_key_owner_keys(vault);
   let current = await get_account_key_token();
 
   if (generation !== get_account_key_generation()) return 0;

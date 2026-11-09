@@ -20,7 +20,7 @@
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import * as openpgp from "openpgp";
 
 import {
@@ -155,5 +155,45 @@ describe("add_addresses_to_identity_key", () => {
         "last",
       ),
     ).rejects.toThrow();
+  });
+});
+
+describe("identity key reformat dates", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("keeps signatures made before the new address verifiable", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-02T19:20:49Z"));
+
+    const vault = await make_vault();
+    const signer = await openpgp.decryptKey({
+      privateKey: await openpgp.readPrivateKey({
+        armoredKey: vault.identity_key,
+      }),
+      passphrase: PASSPHRASE,
+    });
+    const signed = await openpgp.sign({
+      message: await openpgp.createMessage({ text: "sealed earlier" }),
+      signingKeys: signer,
+    });
+
+    vi.setSystemTime(new Date("2026-11-07T20:35:42Z"));
+
+    const next = await add_address_to_identity_key(
+      vault,
+      PASSPHRASE,
+      "new@example.test",
+      "New",
+    );
+    const result = await openpgp.verify({
+      message: await openpgp.readMessage({ armoredMessage: signed }),
+      verificationKeys: await openpgp.readKey({
+        armoredKey: next!.identity_key,
+      }),
+    });
+
+    await expect(result.signatures[0].verified).resolves.toBe(true);
   });
 });
