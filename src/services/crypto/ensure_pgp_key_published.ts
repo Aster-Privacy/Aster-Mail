@@ -79,6 +79,16 @@ export async function ensure_pgp_key_published(options?: {
 
   if (!existing) return "skipped";
   if (existing.data) {
+    if (
+      !(await published_key_is_held(existing.data, vault)) &&
+      (await identity_key_is_publishable(vault.identity_key)) &&
+      (await republish_identity_key(vault.identity_key, passphrase))
+    ) {
+      attempted_account_ids.add(account_id);
+
+      return "healed";
+    }
+
     await heal_published_key_addresses(
       existing.data,
       account?.user?.email ?? null,
@@ -103,6 +113,44 @@ export async function ensure_pgp_key_published(options?: {
   }
 
   return "failed";
+}
+
+async function published_key_is_held(
+  published: unknown,
+  vault: { identity_key: string; previous_keys?: string[] },
+): Promise<boolean> {
+  const armored = (published as { public_key_armored?: unknown })
+    .public_key_armored;
+
+  if (typeof armored !== "string" || !armored) return true;
+
+  const openpgp = await load_openpgp();
+  let published_fingerprint: string;
+
+  try {
+    const public_key = await openpgp.readKey({ armoredKey: armored });
+
+    published_fingerprint = public_key.getFingerprint();
+  } catch {
+    return true;
+  }
+
+  const candidates = [vault.identity_key, ...(vault.previous_keys ?? [])];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string" || !candidate) continue;
+    try {
+      const private_key = await openpgp.readPrivateKey({
+        armoredKey: candidate,
+      });
+
+      if (private_key.getFingerprint() === published_fingerprint) return true;
+    } catch {
+      continue;
+    }
+  }
+
+  return false;
 }
 
 async function heal_published_key_addresses(
