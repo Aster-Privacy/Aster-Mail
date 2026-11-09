@@ -152,6 +152,88 @@ describe("ensure_pgp_key_published", () => {
     expect(republish_pgp_key).not.toHaveBeenCalled();
   });
 
+  it("republishes the vault key when the published key is no longer held", async () => {
+    const armored = await generate_armored_private_key();
+    const dropped = await generate_armored_private_key();
+    const dropped_public = (
+      await openpgp.readPrivateKey({ armoredKey: dropped })
+    )
+      .toPublic()
+      .armor();
+
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: armored,
+      previous_keys: [],
+    } as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { fingerprint: "OLD", public_key_armored: dropped_public },
+    });
+    vi.mocked(republish_pgp_key).mockResolvedValue({
+      data: { fingerprint: "NEW", success: true },
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("healed");
+    expect(republish_pgp_key).toHaveBeenCalledTimes(1);
+
+    const payload = vi.mocked(republish_pgp_key).mock.calls[0][0] as Record<
+      string,
+      string
+    >;
+    const republished = await openpgp.readKey({
+      armoredKey: payload.public_key_armored,
+    });
+    const identity = await openpgp.readPrivateKey({ armoredKey: armored });
+
+    expect(republished.getFingerprint()).toBe(identity.getFingerprint());
+  });
+
+  it("keeps a published key that an older vault key still holds", async () => {
+    const armored = await generate_armored_private_key();
+    const previous = await generate_armored_private_key();
+    const previous_public = (
+      await openpgp.readPrivateKey({ armoredKey: previous })
+    )
+      .toPublic()
+      .armor();
+
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: armored,
+      previous_keys: [previous],
+    } as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { fingerprint: "PREV", public_key_armored: previous_public },
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("already_published");
+    expect(republish_pgp_key).not.toHaveBeenCalled();
+  });
+
+  it("never replaces a published key with a known-bad identity key", async () => {
+    const armored = await generate_armored_unpublishable_key();
+    const dropped = await generate_armored_private_key();
+    const dropped_public = (
+      await openpgp.readPrivateKey({ armoredKey: dropped })
+    )
+      .toPublic()
+      .armor();
+
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: armored,
+    } as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { fingerprint: "OLD", public_key_armored: dropped_public },
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("already_published");
+    expect(republish_pgp_key).not.toHaveBeenCalled();
+  });
+
   it("does not treat a server error as a missing key", async () => {
     const armored = await generate_armored_private_key();
 
