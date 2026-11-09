@@ -179,6 +179,7 @@ export async function fetch_mail_from_api(
     pinned_first: true,
     ...(offset !== undefined ? { offset } : cursor ? { cursor } : {}),
     ...(offset !== undefined ? { group_by_thread: should_group } : {}),
+    ...(should_group ? { thread_pages: true } : {}),
     ...((offset !== undefined && offset > 0) || cursor
       ? { skip_total: true }
       : {}),
