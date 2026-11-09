@@ -86,6 +86,8 @@ export interface ImportedEmailData {
   item_type?: string;
   received_at?: string;
   thread_token?: string;
+  routing_token?: string;
+  sender_alias_hash?: string;
 }
 
 export interface StoreEmailsRequest {
@@ -153,6 +155,21 @@ export async function check_duplicates(
       message_id_hashes,
     },
   );
+}
+
+export interface LinkRoutingEntry {
+  message_id_hash: string;
+  routing_token?: string;
+  sender_alias_hash?: string;
+}
+
+export async function link_imported_routing(
+  job_id: string,
+  entries: LinkRoutingEntry[],
+): Promise<ApiResponse<{ linked_count: number }>> {
+  return api_client.post(`/mail/v1/email_import/jobs/${job_id}/link-routing`, {
+    entries,
+  });
 }
 
 export async function store_imported_emails(
