@@ -28,10 +28,19 @@ import {
 export type ThemePreferenceValue = UserPreferences["theme"];
 export type ColorThemeValue = UserPreferences["color_theme"];
 
+export type ThemeSurface = "mail" | "calendar" | "mail_panel";
+
 export interface ThemeFields {
   theme: ThemePreferenceValue;
   color_theme: ColorThemeValue;
   custom_theme_seed: string;
+}
+
+export interface CalendarThemePreferences {
+  calendar_theme_separate?: boolean;
+  calendar_theme?: string;
+  calendar_color_theme?: string;
+  calendar_custom_theme_seed?: string;
 }
 
 export type ThemeSyncPreferences = Pick<
@@ -43,7 +52,16 @@ export type ThemeSyncPreferences = Pick<
   | "theme_web"
   | "color_theme_web"
   | "custom_theme_seed_web"
+> &
+  CalendarThemePreferences;
+
+export type ThemeRoutingPreferences = Pick<
+  ThemeSyncPreferences,
+  "theme_sync_enabled_web" | "calendar_theme_separate"
 >;
+
+export type ThemePreferencesUpdate = Partial<UserPreferences> &
+  CalendarThemePreferences;
 
 const THEME_VALUES = new Set<string>(["light", "dark", "system"]);
 
@@ -52,6 +70,18 @@ const COLOR_THEME_VALUES = new Set<string>([
   "custom",
   ...DARK_ONLY_COLOR_THEMES,
 ]);
+
+const HEX_SEED_PATTERN = /^#[0-9a-fA-F]{6}$/;
+
+let current_surface: ThemeSurface = "mail";
+
+export function set_theme_surface(surface: ThemeSurface): void {
+  current_surface = surface;
+}
+
+export function get_theme_surface(): ThemeSurface {
+  return current_surface;
+}
 
 function read_theme(value: unknown): ThemePreferenceValue | null {
   return typeof value === "string" && THEME_VALUES.has(value)
@@ -69,13 +99,33 @@ function read_seed(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
+function read_hex_seed(value: unknown): string | null {
+  return typeof value === "string" && HEX_SEED_PATTERN.test(value)
+    ? value
+    : null;
+}
+
 export function is_theme_sync_enabled(
   preferences: Pick<ThemeSyncPreferences, "theme_sync_enabled_web">,
 ): boolean {
   return preferences.theme_sync_enabled_web !== false;
 }
 
-export function get_effective_theme_fields(
+export function is_calendar_theme_separate(
+  preferences: Pick<ThemeSyncPreferences, "calendar_theme_separate">,
+): boolean {
+  return preferences.calendar_theme_separate === true;
+}
+
+export function is_calendar_theme_active(
+  preferences: Pick<ThemeSyncPreferences, "calendar_theme_separate">,
+): boolean {
+  return (
+    current_surface === "calendar" && is_calendar_theme_separate(preferences)
+  );
+}
+
+function get_platform_theme_fields(
   preferences: ThemeSyncPreferences,
 ): ThemeFields {
   const shared: ThemeFields = {
@@ -97,11 +147,51 @@ export function get_effective_theme_fields(
   };
 }
 
+export function get_effective_theme_fields(
+  preferences: ThemeSyncPreferences,
+): ThemeFields {
+  const platform = get_platform_theme_fields(preferences);
+
+  if (!is_calendar_theme_active(preferences)) {
+    return platform;
+  }
+
+  const theme = read_theme(preferences.calendar_theme) ?? platform.theme;
+  const color_theme =
+    read_color_theme(preferences.calendar_color_theme) ?? platform.color_theme;
+
+  return {
+    theme,
+    color_theme:
+      theme !== "dark" && is_dark_only_color_theme(color_theme)
+        ? "default"
+        : color_theme,
+    custom_theme_seed:
+      read_hex_seed(preferences.calendar_custom_theme_seed) ??
+      platform.custom_theme_seed,
+  };
+}
+
 export function build_theme_fields_update(
-  preferences: Pick<ThemeSyncPreferences, "theme_sync_enabled_web">,
+  preferences: ThemeRoutingPreferences,
   changes: Partial<ThemeFields>,
-): Partial<UserPreferences> {
-  const update: Partial<UserPreferences> = {};
+): ThemePreferencesUpdate {
+  const update: ThemePreferencesUpdate = {};
+
+  if (is_calendar_theme_active(preferences)) {
+    if (changes.theme !== undefined) {
+      update.calendar_theme = changes.theme;
+    }
+    if (changes.color_theme !== undefined) {
+      update.calendar_color_theme = changes.color_theme;
+    }
+    if (changes.custom_theme_seed !== undefined) {
+      update.calendar_custom_theme_seed = changes.custom_theme_seed;
+    }
+
+    return update;
+  }
+
   const sync_on = is_theme_sync_enabled(preferences);
 
   if (changes.theme !== undefined) {
@@ -134,7 +224,11 @@ export function build_theme_fields_update(
 export function build_theme_sync_toggle_update(
   preferences: ThemeSyncPreferences,
   enabled: boolean,
-): Partial<UserPreferences> {
+): ThemePreferencesUpdate {
+  if (is_calendar_theme_active(preferences)) {
+    return {};
+  }
+
   if (enabled) {
     return { theme_sync_enabled_web: true };
   }
@@ -149,10 +243,28 @@ export function build_theme_sync_toggle_update(
   };
 }
 
+export function build_calendar_theme_separate_update(
+  preferences: ThemeSyncPreferences,
+  enabled: boolean,
+): ThemePreferencesUpdate {
+  if (!enabled) {
+    return { calendar_theme_separate: false };
+  }
+
+  const current = get_platform_theme_fields(preferences);
+
+  return {
+    calendar_theme_separate: true,
+    calendar_theme: current.theme,
+    calendar_color_theme: current.color_theme,
+    calendar_custom_theme_seed: read_hex_seed(current.custom_theme_seed) ?? "",
+  };
+}
+
 export function build_theme_mode_update(
   preferences: ThemeSyncPreferences,
   next_theme: ThemePreferenceValue,
-): Partial<UserPreferences> {
+): ThemePreferencesUpdate {
   const current_color_theme =
     get_effective_theme_fields(preferences).color_theme;
   const changes: Partial<ThemeFields> = { theme: next_theme };
