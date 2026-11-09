@@ -111,7 +111,10 @@ const update_item_metadata = vi.hoisted(() =>
 );
 
 vi.mock("@/services/crypto/mail_metadata", () => ({ update_item_metadata }));
-vi.mock("@/hooks/mail_events", () => ({ emit_mail_item_updated: vi.fn() }));
+vi.mock("@/hooks/mail_events", async (import_original) => ({
+  ...(await import_original<typeof import("@/hooks/mail_events")>()),
+  emit_mail_item_updated: vi.fn(),
+}));
 vi.mock("@/services/read_intent", () => ({ get_read_intent: () => null }));
 vi.mock("@/services/user_opened_mail", () => ({
   current_opened_mail_scope: () => 0,
@@ -140,7 +143,10 @@ vi.mock("@/lib/reply_defaults", () => ({
   reply_includes_quoted_by_default: () => true,
   resolve_reply_prefix: () => "Re:",
 }));
-vi.mock("@/utils/date_format", () => ({ app_locale: () => "en" }));
+vi.mock("@/utils/date_format", async (import_original) => ({
+  ...(await import_original<typeof import("@/utils/date_format")>()),
+  app_locale: () => "en",
+}));
 vi.mock("@/lib/reply_references", () => ({
   resolve_reply_references: vi.fn(),
 }));
