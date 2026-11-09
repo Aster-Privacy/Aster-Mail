@@ -189,6 +189,37 @@ export async function seal_account_key_token(
   );
 }
 
+async function decrypt_token_verified(
+  token: string,
+  own_private_keys: (string | null | undefined)[],
+  passphrase: string,
+  verification_keys: string[],
+) {
+  const result = await decrypt_message_verified_with_any_key(
+    token,
+    own_private_keys,
+    passphrase,
+    verification_keys,
+  );
+
+  if (result.verification === "verified" || verification_keys.length < 2) {
+    return result;
+  }
+
+  for (const key of verification_keys) {
+    const single = await decrypt_message_verified_with_any_key(
+      token,
+      own_private_keys,
+      passphrase,
+      [key],
+    );
+
+    if (single.verification === "verified") return single;
+  }
+
+  return result;
+}
+
 export async function open_account_key_token(
   token: string,
   own_private_keys: (string | null | undefined)[],
@@ -199,7 +230,7 @@ export async function open_account_key_token(
   if (verification_keys.length === 0) return null;
 
   try {
-    const result = await decrypt_message_verified_with_any_key(
+    const result = await decrypt_token_verified(
       token,
       own_private_keys,
       passphrase,
