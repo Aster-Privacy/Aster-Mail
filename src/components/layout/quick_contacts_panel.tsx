@@ -114,6 +114,7 @@ import {
 const RELOAD_INTERVAL_MS = 30000;
 const CONTACT_PAGE_LIMIT = 200;
 const MAX_CONTACT_PAGES = 25;
+const PAGE_RETRY_DELAYS_MS = [500, 1500, 4000];
 const RENDER_PAGE_SIZE = 40;
 const RENDER_AHEAD_PX = 600;
 const GROUP_BATCH_SIZE = 10;
@@ -122,6 +123,19 @@ const ROW_METRICS = {
   "--aster-island-row-pad-x": "12px",
   "--aster-island-row-pad-y": "8px",
 } as CSSProperties;
+
+async function list_contacts_page(cursor: string | undefined) {
+  let response = await list_contacts({ limit: CONTACT_PAGE_LIMIT, cursor });
+
+  if (!cursor) return response;
+  for (const delay of PAGE_RETRY_DELAYS_MS) {
+    if (!response.error && response.data) break;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    response = await list_contacts({ limit: CONTACT_PAGE_LIMIT, cursor });
+  }
+
+  return response;
+}
 
 type PanelTab = "contacts" | "groups";
 
@@ -314,12 +328,10 @@ export function QuickContactsPanel({
       try {
         const collected: DecryptedContact[] = [];
         let cursor: string | undefined;
+        let is_complete = true;
 
         for (let page = 0; page < MAX_CONTACT_PAGES; page += 1) {
-          const response = await list_contacts({
-            limit: CONTACT_PAGE_LIMIT,
-            cursor,
-          });
+          const response = await list_contacts_page(cursor);
 
           if (!is_current()) return;
 
@@ -329,6 +341,8 @@ export function QuickContactsPanel({
 
               return;
             }
+            if (has_loaded_once.current) return;
+            is_complete = false;
             break;
           }
 
@@ -345,7 +359,7 @@ export function QuickContactsPanel({
 
         set_contacts(collected);
         has_loaded_once.current = true;
-        loaded_at_ref.current = Date.now();
+        loaded_at_ref.current = is_complete ? Date.now() : 0;
         void apply_server_group_membership(collected).then((hydrated) => {
           if (hydrated !== collected && is_current()) set_contacts(hydrated);
         });
