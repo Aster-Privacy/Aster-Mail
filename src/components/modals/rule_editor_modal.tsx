@@ -51,6 +51,7 @@ import {
   is_missing_rule_folder,
   rule_folder_name,
 } from "@/components/mail_rules/rule_folders";
+import { emit_refresh_requested } from "@/hooks/mail_events";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { decrypt_aliases, list_all_aliases } from "@/services/api/aliases";
@@ -609,6 +610,7 @@ export function RuleEditorModal({
       );
 
       if (!controller.signal.aborted) set_local_result(result);
+      if (result.applied > 0) emit_refresh_requested();
     } catch {
       if (!controller.signal.aborted) {
         set_local_result({ ...empty_local_apply_result(true), failed: true });

@@ -37,6 +37,7 @@ import {
   type CreateRuleRequest,
   type UpdateRuleRequest,
 } from "@/services/api/mail_rules";
+import { emit_refresh_requested } from "@/hooks/mail_events";
 
 interface MailRulesState {
   rules: Rule[];
@@ -369,8 +370,15 @@ export async function refresh_run(id: string): Promise<void> {
   run_poll_failures.set(id, 0);
 
   const run = response.data ?? null;
+  const finished_with_changes =
+    is_run_active(state.runs[id]) &&
+    run !== null &&
+    !is_run_active(run) &&
+    run.applied > 0;
 
   store_run(id, run);
+
+  if (finished_with_changes) emit_refresh_requested();
 
   if (is_run_active(run)) {
     schedule_run_poll(id);
