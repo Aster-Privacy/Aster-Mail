@@ -132,7 +132,7 @@ export function RecipientBadge({
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 bg-surf-tertiary rounded-full px-2 py-1 border border-transparent",
+        "flex min-w-0 max-w-full items-center gap-1.5 bg-surf-tertiary rounded-full px-2 py-1 border border-transparent",
         class_name,
       )}
     >
@@ -196,21 +196,19 @@ export function RecipientBadge({
       )}
       <ProfileAvatar
         use_domain_logo
+        className="flex-shrink-0"
         email={email}
         image_url={image_url}
         name={get_email_username(email)}
         size="xs"
       />
-      <span
-        className="text-sm text-txt-primary max-w-[200px] truncate"
-        title={email}
-      >
+      <span className="min-w-0 text-sm text-txt-primary truncate" title={email}>
         {email}
       </span>
       {on_remove && (
         <button
           aria-label={t("common.remove")}
-          className="text-txt-muted hover:text-txt-secondary transition-colors"
+          className="flex-shrink-0 text-txt-muted hover:text-txt-secondary transition-colors"
           onClick={on_remove}
         >
           <CloseIcon className="w-4 h-4" />
@@ -758,14 +756,14 @@ export function RecipientField({
               <div
                 key={email}
                 data-measure
-                className="flex items-center gap-1.5 rounded-full px-2 py-1 flex-shrink-0"
+                className="flex max-w-full items-center gap-1.5 rounded-full px-2 py-1 flex-shrink-0"
                 style={{ border: "1px solid transparent" }}
               >
                 {show_locks && (
                   <span className="flex-shrink-0" style={{ width: 12 }} />
                 )}
                 <span className="w-5 h-5 flex-shrink-0 rounded-full" />
-                <span className="text-sm max-w-[200px] truncate">{email}</span>
+                <span className="min-w-0 text-sm truncate">{email}</span>
                 <span className="w-5 h-5 flex-shrink-0" />
               </div>
             ))}
