@@ -42,6 +42,7 @@ import { api_client } from "@/services/api/client";
 import {
   decrypt_aes_gcm_with_fallback,
   decrypt_with_legacy_derived_keys,
+  decrypt_with_remembered_derived_key,
 } from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { trim_map_to_size } from "@/lib/bounded_map";
@@ -120,6 +121,32 @@ async function open_state_from_server(
       derived: false,
     };
   } catch {
+    const unbound = await crypto.subtle
+      .decrypt({ name: "AES-GCM", iv: nonce }, encryption_key, ciphertext)
+      .catch(() => null);
+
+    if (unbound) {
+      return {
+        plaintext: decoder.decode(unbound),
+        opened_bound: false,
+        derived: false,
+      };
+    }
+
+    const remembered = await decrypt_with_remembered_derived_key(
+      derive_ratchet_encryption_key_from_base,
+      ciphertext,
+      nonce,
+    );
+
+    if (remembered) {
+      return {
+        plaintext: decoder.decode(remembered),
+        opened_bound: false,
+        derived: true,
+      };
+    }
+
     const legacy = await decrypt_aes_gcm_with_fallback(
       encryption_key,
       ciphertext,

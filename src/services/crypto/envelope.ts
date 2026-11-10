@@ -292,24 +292,7 @@ export async function decrypt_envelope_with_identity_key<T>(
   nonce_bytes: Uint8Array,
   finalize: (plaintext: ArrayBuffer) => T,
 ): Promise<T | null> {
-  for (const version of ENVELOPE_KEY_VERSIONS) {
-    let decrypted: ArrayBuffer;
-
-    try {
-      const crypto_key = await with_cached_envelope_key(
-        `identity:${version}:${identity_key}`,
-        () => import_identity_envelope_key(identity_key, version),
-      );
-
-      decrypted = await decrypt_aes_gcm_with_fallback(
-        crypto_key,
-        encrypted_bytes,
-        nonce_bytes,
-      );
-    } catch {
-      continue;
-    }
-
+  const finish = (decrypted: ArrayBuffer): T | null => {
     try {
       return finalize(decrypted);
     } catch (caught) {
@@ -320,6 +303,44 @@ export async function decrypt_envelope_with_identity_key<T>(
 
       return null;
     }
+  };
+  const version_keys: CryptoKey[] = [];
+
+  for (const version of ENVELOPE_KEY_VERSIONS) {
+    try {
+      const crypto_key = await with_cached_envelope_key(
+        `identity:${version}:${identity_key}`,
+        () => import_identity_envelope_key(identity_key, version),
+      );
+
+      version_keys.push(crypto_key);
+
+      const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: nonce_bytes },
+        crypto_key,
+        encrypted_bytes,
+      );
+
+      return finish(decrypted);
+    } catch {
+      continue;
+    }
+  }
+
+  for (const crypto_key of version_keys) {
+    let decrypted: ArrayBuffer;
+
+    try {
+      decrypted = await decrypt_aes_gcm_with_fallback(
+        crypto_key,
+        encrypted_bytes,
+        nonce_bytes,
+      );
+    } catch {
+      continue;
+    }
+
+    return finish(decrypted);
   }
 
   return null;
@@ -438,7 +459,12 @@ async function decrypt_metadata_bytes(
   context: string,
 ): Promise<ArrayBuffer> {
   try {
-    return await decrypt_aes_gcm_with_fallback(crypto_key, ciphertext, nonce);
+    return await decrypt_aes_gcm_with_fallback(
+      crypto_key,
+      ciphertext,
+      nonce,
+      (base) => derive_legacy_metadata_key(base, context),
+    );
   } catch (primary_error) {
     const recovered = await decrypt_with_legacy_derived_keys(
       (base) => derive_legacy_metadata_key(base, context),
