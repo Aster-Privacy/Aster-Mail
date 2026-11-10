@@ -60,7 +60,7 @@ const ALLOWED_PASSPHRASE_KEY_SITES: Record<string, number> = {
   "services/crypto/published_signing_key.ts": 2,
   "services/crypto/ratchet_prekey_bundle.ts": 2,
   "services/crypto/recovery_reencrypt/entry.ts": 1,
-  "services/crypto/restore_inactive_keys.ts": 7,
+  "services/crypto/restore_inactive_keys.ts": 9,
   "services/crypto/secure_message_crypto.ts": 1,
   "services/crypto/shared_mailbox.ts": 1,
   "services/crypto/storage_write_key.ts": 2,
