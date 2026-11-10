@@ -813,8 +813,9 @@ pub fn device_set_id(device_id: String) -> Result<(), String> {
 #[tauri::command]
 pub fn device_sign_challenge(nonce_b64: String) -> Result<String, String> {
     let nonce = b64url_decode(&nonce_b64)?;
+    let message = super::challenge::device_challenge_message(&nonce)?;
     let id = get_or_create_device_identity()?;
-    let sig = id.ed25519_signing_key.sign(&nonce);
+    let sig = id.ed25519_signing_key.sign(&message);
     Ok(b64url(&sig.to_bytes()))
 }
 
