@@ -89,7 +89,7 @@ export function use_inbox_keyboard(
       const detail = (e as CustomEvent<{ id: string }>).detail;
       const email = find_unowned_email(detail.id, "mark-unread");
 
-      if (email && email.is_read && email.item_type !== "sent")
+      if (email && email.is_read)
         context_menu_actions.handle_toggle_read(email);
     };
     const handle_star = (e: Event) => {

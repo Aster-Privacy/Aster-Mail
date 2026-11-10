@@ -324,29 +324,24 @@ function EmailContextMenuContentInner({
         !is_drafts &&
         !is_scheduled && <ContextMenuSeparator />}
 
-      {!is_selection &&
-        on_toggle_read &&
-        !is_drafts &&
-        !is_scheduled &&
-        !is_sent &&
-        email.item_type !== "sent" && (
-          <ContextMenuItem
-            disabled={loading_action === "read"}
-            onClick={() => handle_action("read", on_toggle_read)}
-          >
-            {email.is_read ? (
-              <>
-                <EnvelopeIcon className="me-2 h-4 w-4" />
-                {t("mail.mark_as_unread")}
-              </>
-            ) : (
-              <>
-                <EnvelopeOpenIcon className="me-2 h-4 w-4" />
-                {t("mail.mark_as_read")}
-              </>
-            )}
-          </ContextMenuItem>
-        )}
+      {!is_selection && on_toggle_read && !is_drafts && !is_scheduled && (
+        <ContextMenuItem
+          disabled={loading_action === "read"}
+          onClick={() => handle_action("read", on_toggle_read)}
+        >
+          {email.is_read ? (
+            <>
+              <EnvelopeIcon className="me-2 h-4 w-4" />
+              {t("mail.mark_as_unread")}
+            </>
+          ) : (
+            <>
+              <EnvelopeOpenIcon className="me-2 h-4 w-4" />
+              {t("mail.mark_as_read")}
+            </>
+          )}
+        </ContextMenuItem>
+      )}
 
       {selection && on_mark_read && selection.has_unread && (
         <ContextMenuItem
