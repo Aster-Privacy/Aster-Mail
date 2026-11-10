@@ -67,7 +67,7 @@ windows = { version = "0.62", features = ["Data_Xml_Dom", "UI_Notifications"] }
 [target.'cfg(all(unix, not(target_os = "macos")))'.dependencies]
 x11-dl = "2.21"
 oo7 = { version = "0.6", default-features = false, features = ["tokio", "native_crypto"] }
-ashpd = { version = "0.13", default-features = false, features = ["tokio", "notification", "open_uri"] }
+ashpd = { version = "0.14", default-features = false, features = ["tokio", "notification", "open_uri"] }
 futures-util = "0.3"
 
 [patch.crates-io]
