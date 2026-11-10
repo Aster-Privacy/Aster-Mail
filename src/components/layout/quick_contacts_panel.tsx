@@ -86,6 +86,12 @@ import {
   find_duplicate_clusters,
 } from "@/lib/contact_duplicates";
 import { apply_server_group_membership } from "@/utils/contact_group_membership";
+import { with_contact_revision } from "@/lib/contact_history";
+import {
+  MAIL_EVENTS,
+  emit_contacts_changed,
+  mail_event_bus,
+} from "@/hooks/mail_events";
 import { export_contacts_vcard } from "@/utils/contact_export";
 import { print_contacts } from "@/utils/contact_print";
 import {
@@ -304,7 +310,7 @@ export function QuickContactsPanel({
   const search_ref = useRef<HTMLInputElement>(null);
   const panel_ref = useRef<HTMLElement>(null);
   const scroll_ref = useRef<HTMLDivElement>(null);
-  const sentinel_ref = useRef<HTMLDivElement>(null);
+  const [sentinel, set_sentinel] = useState<HTMLDivElement | null>(null);
   const has_loaded_once = useRef(false);
   const is_loading_ref = useRef(false);
   const loaded_at_ref = useRef(0);
@@ -336,12 +342,16 @@ export function QuickContactsPanel({
           if (!is_current()) return;
 
           if (response.error || !response.data) {
+            if (has_loaded_once.current) {
+              loaded_at_ref.current = 0;
+
+              return;
+            }
             if (page === 0) {
               set_error(response.error || t("common.failed_to_load_contacts"));
 
               return;
             }
-            if (has_loaded_once.current) return;
             is_complete = false;
             break;
           }
@@ -364,7 +374,11 @@ export function QuickContactsPanel({
           if (hydrated !== collected && is_current()) set_contacts(hydrated);
         });
       } catch {
-        if (is_current()) set_error(t("common.failed_to_load_contacts"));
+        if (!is_current()) return;
+        loaded_at_ref.current = 0;
+        if (!has_loaded_once.current) {
+          set_error(t("common.failed_to_load_contacts"));
+        }
       } finally {
         if (is_current()) {
           is_loading_ref.current = false;
@@ -385,6 +399,15 @@ export function QuickContactsPanel({
     }
     load();
   }, [is_open, load]);
+
+  useEffect(
+    () =>
+      mail_event_bus.subscribe(MAIL_EVENTS.CONTACTS_CHANGED, () => {
+        loaded_at_ref.current = 0;
+        if (is_open) void load(true);
+      }),
+    [is_open, load],
+  );
 
   const { is_visible, is_closing } = use_panel_transition(is_open, is_swapping);
 
@@ -460,9 +483,8 @@ export function QuickContactsPanel({
 
   useEffect(() => {
     const root = scroll_ref.current;
-    const sentinel = sentinel_ref.current;
 
-    if (!root || !sentinel || !has_more_rendered) return;
+    if (!root || !sentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -475,7 +497,7 @@ export function QuickContactsPanel({
     observer.observe(sentinel);
 
     return () => observer.disconnect();
-  }, [has_more_rendered, rendered.length]);
+  }, [sentinel, rendered.length]);
 
   const detail_contact = useMemo(
     () => contacts.find((c) => c.id === detail_id) ?? null,
@@ -548,40 +570,77 @@ export function QuickContactsPanel({
 
   const save_contact = useCallback(
     async (submitted: ContactFormData) => {
-      const data = reconcile_entry_fields(
-        submitted,
-        editor_contact ? contact_to_form_data(editor_contact) : undefined,
-      );
+      const previous = editor_contact
+        ? contact_to_form_data(editor_contact)
+        : undefined;
+      const reconciled = reconcile_entry_fields(submitted, previous);
+      const data = previous
+        ? with_contact_revision(reconciled, previous)
+        : reconciled;
 
       set_is_saving(true);
       try {
         if (editor_contact && (await is_contact_in_trash(editor_contact.id))) {
-          set_is_editor_open(false);
-          set_editor_contact(null);
-          set_error(t("common.failed_to_save_contact"));
-          await load(true);
+          close_editor();
+          show_toast(t("common.failed_to_save_contact"), "error");
+          emit_contacts_changed();
 
           return;
         }
-        const response = editor_contact
-          ? await update_contact_encrypted(editor_contact.id, data)
-          : await create_contact_encrypted(data);
+        const saved_at = new Date().toISOString();
+        let saved: DecryptedContact;
 
-        if (response.error) {
-          set_error(response.error);
+        if (editor_contact) {
+          const response = await update_contact_encrypted(
+            editor_contact.id,
+            data,
+          );
 
-          return;
+          if (response.error) {
+            show_toast(response.error, "error");
+
+            return;
+          }
+          saved = {
+            ...editor_contact,
+            ...data,
+            is_favorite: data.is_favorite ?? editor_contact.is_favorite,
+            updated_at: saved_at,
+          };
+        } else {
+          const response = await create_contact_encrypted(data);
+
+          if (response.error || !response.data) {
+            show_toast(
+              response.error || t("common.failed_to_create_contact"),
+              "error",
+            );
+
+            return;
+          }
+          saved = {
+            ...data,
+            id: response.data.id,
+            is_favorite: data.is_favorite ?? false,
+            created_at: saved_at,
+            updated_at: saved_at,
+          };
         }
-        set_is_editor_open(false);
-        set_editor_contact(null);
-        await load(true);
+
+        set_contacts((prev) =>
+          editor_contact
+            ? prev.map((c) => (c.id === saved.id ? saved : c))
+            : [...prev, saved],
+        );
+        close_editor();
+        emit_contacts_changed();
       } catch {
-        set_error(t("common.failed_to_save_contact"));
+        show_toast(t("common.failed_to_save_contact"), "error");
       } finally {
         set_is_saving(false);
       }
     },
-    [editor_contact, load, t],
+    [close_editor, editor_contact, t],
   );
 
   const compose_to = useCallback(
@@ -1530,7 +1589,7 @@ export function QuickContactsPanel({
                 </section>
               ))}
               {has_more_rendered && (
-                <div ref={sentinel_ref} aria-hidden className="h-8" />
+                <div ref={set_sentinel} aria-hidden className="h-8" />
               )}
             </div>
           )}
