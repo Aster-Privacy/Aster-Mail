@@ -6712,10 +6712,143 @@ export const hi = {
       "Aster समाप्ति तिथि से 30 दिन पहले आपके सेव किए गए कार्ड से शुल्क लेता है और उससे 15 दिन पहले आपको कीमत ईमेल करता है।",
     domain_purchase_manage_auto_renew_error:
       "अपने आप रिन्यू होने की सेटिंग अपडेट नहीं हो सकी। फिर से कोशिश करें।",
-    domain_purchase_manage_dns: "डोमेन सेटअप खोलें",
+    domain_purchase_manage_dns: "DNS मैनेज करें",
     domain_purchase_manage_support_note:
-      "इस डोमेन को दूसरे रजिस्ट्रार पर ले जाने या रिफ़ंड के बारे में पूछने के लिए सहायता टीम से संपर्क करें।",
+      "बिलिंग या रिफ़ंड से जुड़े सवालों के लिए सहायता टीम से संपर्क करें।",
     domain_purchase_manage_support_subject: "{{domain}} में मदद",
+    domain_transfer_button: "ट्रांसफ़र करें",
+    domain_transfer_title: "डोमेन ट्रांसफ़र करें",
+    domain_transfer_hint:
+      "इस डोमेन को किसी दूसरे रजिस्ट्रार पर ले जाएं। सपोर्ट ट्रांसफ़र कोड आपके Aster इनबॉक्स में भेजता है।",
+    domain_transfer_message:
+      "{{domain}} को दूसरे रजिस्ट्रार पर ले जाने के लिए आपको ट्रांसफ़र कोड चाहिए। जारी रखने पर Aster सहायता टीम के लिए एक ईमेल खोलता है। सहायता टीम पुष्टि करती है कि अनुरोध इसी खाते से आया है, फिर कोड आपके Aster इनबॉक्स में भेजती है। नए रजिस्ट्रार पर ट्रांसफ़र शुरू करने के बाद आम तौर पर इसमें 5 से 7 दिन लगते हैं।",
+    domain_transfer_locked_message:
+      "रजिस्ट्रार रजिस्ट्रेशन के {{count}} दिनों के अंदर ट्रांसफ़र की अनुमति नहीं देते। आप {{date}} से {{domain}} के ट्रांसफ़र का अनुरोध कर सकते हैं।",
+    domain_transfer_confirm: "सहायता टीम को लिखें",
+    domain_transfer_email_subject: "{{domain}} के ट्रांसफ़र का अनुरोध",
+    domain_transfer_email_body:
+      "मैं {{domain}} को दूसरे रजिस्ट्रार पर ट्रांसफ़र करना चाहता/चाहती हूं। ट्रांसफ़र कोड इस पते पर भेजें।\n\nऑर्डर ID: {{order_id}}\nनया रजिस्ट्रार:",
+    purchased_dns_title: "DNS रिकॉर्ड",
+    purchased_dns_description:
+      "{{domain}} के रिकॉर्ड। बदलाव आम तौर पर एक घंटे के अंदर लागू हो जाते हैं।",
+    purchased_dns_locked_title: "एडिटिंग बंद है",
+    purchased_dns_locked_note:
+      "आप ये रिकॉर्ड देख सकते हैं, लेकिन अभी इन्हें बदल नहीं सकते।",
+    purchased_dns_lock_frozen:
+      "इस डोमेन के लिए एडिटिंग रोकी गई है। ज़्यादा जानने के लिए सहायता टीम से संपर्क करें।",
+    purchased_dns_lock_payment:
+      "एडिटिंग बंद है क्योंकि इस डोमेन का भुगतान वापस ले लिया गया था।",
+    purchased_dns_lock_lapsed:
+      "एडिटिंग बंद है क्योंकि इस डोमेन की अवधि खत्म हो गई है। बदलाव करने के लिए इसे रिन्यू करें।",
+    purchased_dns_lock_suspended: "एडिटिंग बंद है क्योंकि यह डोमेन निलंबित है।",
+    purchased_dns_unlock_title: "पुष्टि करें कि यह आप हैं",
+    purchased_dns_unlock_description:
+      "DNS रिकॉर्ड बदलने के लिए अपनी पहचान की पुष्टि करें। एडिटिंग 15 मिनट तक चालू रहती है।",
+    purchased_dns_unlock: "एडिटिंग चालू करें",
+    purchased_dns_unlocked: "एडिटिंग चालू है",
+    purchased_dns_unlocked_for: "एडिटिंग {{time}} के लिए चालू है",
+    purchased_dns_lock: "एडिटिंग बंद करें",
+    purchased_dns_add: "रिकॉर्ड जोड़ें",
+    purchased_dns_add_title: "रिकॉर्ड जोड़ें",
+    purchased_dns_edit_title: "रिकॉर्ड एडिट करें",
+    purchased_dns_added: "रिकॉर्ड जोड़ा गया",
+    purchased_dns_updated: "रिकॉर्ड अपडेट किया गया",
+    purchased_dns_deleted: "रिकॉर्ड मिटाया गया",
+    purchased_dns_delete_title: "रिकॉर्ड मिटाएं?",
+    purchased_dns_delete_message:
+      "मिटाने के कुछ ही देर बाद {{name}} का {{type}} रिकॉर्ड रिज़ॉल्व होना बंद हो जाता है।",
+    purchased_dns_edit_record: "{{name}} का {{type}} रिकॉर्ड एडिट करें",
+    purchased_dns_copy_record: "{{name}} के {{type}} रिकॉर्ड का मान कॉपी करें",
+    purchased_dns_delete_record: "{{name}} का {{type}} रिकॉर्ड मिटाएं",
+    purchased_dns_read_only: "सिर्फ़ पढ़ने के लिए",
+    purchased_dns_mail_group: "Aster Mail रिकॉर्ड",
+    purchased_dns_mail_group_tip:
+      "Aster इन रिकॉर्ड को मैनेज करता है ताकि आपका ईमेल काम करता रहे। आप इन्हें एडिट नहीं कर सकते और न ही मिटा सकते हैं।",
+    purchased_dns_your_records: "आपके रिकॉर्ड",
+    purchased_dns_empty: "आपने अभी तक कोई रिकॉर्ड नहीं जोड़ा है।",
+    purchased_dns_limit_reached:
+      "इस डोमेन में ज़्यादा से ज़्यादा {{count}} रिकॉर्ड हो चुके हैं। नया जोड़ने के लिए एक रिकॉर्ड मिटाएं।",
+    purchased_dns_col_type: "प्रकार",
+    purchased_dns_col_name: "नाम",
+    purchased_dns_col_content: "कॉन्टेंट",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "कार्रवाइयां",
+    purchased_dns_host_hint:
+      "डोमेन के लिए @ इस्तेमाल करें, या www जैसा कोई सबडोमेन डालें।",
+    purchased_dns_field_ipv4: "IPv4 पता",
+    purchased_dns_field_ipv6: "IPv6 पता",
+    purchased_dns_field_target: "टारगेट",
+    purchased_dns_field_content: "कॉन्टेंट",
+    purchased_dns_field_mail_server: "मेल सर्वर",
+    purchased_dns_field_caa_value: "मान",
+    purchased_dns_field_priority: "प्राथमिकता",
+    purchased_dns_field_weight: "वेट",
+    purchased_dns_field_port: "पोर्ट",
+    purchased_dns_field_flags: "फ़्लैग",
+    purchased_dns_field_tag: "टैग",
+    purchased_dns_ttl_one_hour: "1 घंटा",
+    purchased_dns_ttl_hours: "{{count}} घंटे",
+    purchased_dns_ttl_one_day: "1 दिन",
+    purchased_dns_ttl_days: "{{count}} दिन",
+    purchased_dns_error_required: "यह फ़ील्ड भरें।",
+    purchased_dns_error_host:
+      "मान्य नाम डालें। अक्षर, अंक, हाइफ़न और अंडरस्कोर इस्तेमाल करें, हर लेबल में ज़्यादा से ज़्यादा 63 वर्ण।",
+    purchased_dns_error_protected_host:
+      "यह नाम Aster Mail रिकॉर्ड के लिए आरक्षित है।",
+    purchased_dns_error_apex_mx:
+      "डोमेन के मेल रिकॉर्ड Aster मैनेज करता है। इसके बजाय किसी सबडोमेन पर MX रिकॉर्ड जोड़ें।",
+    purchased_dns_error_apex_cname:
+      "CNAME रिकॉर्ड डोमेन के लिए इस्तेमाल नहीं किया जा सकता। इसके बजाय A या AAAA रिकॉर्ड इस्तेमाल करें।",
+    purchased_dns_error_apex_spf:
+      "Aster इस डोमेन के लिए पहले से एक SPF रिकॉर्ड प्रकाशित करता है, और एक डोमेन में सिर्फ़ एक ही हो सकता है।",
+    purchased_dns_error_value: "मान जांचें और फिर से कोशिश करें।",
+    purchased_dns_error_ip: "मान्य IP पता डालें।",
+    purchased_dns_error_ipv4: "मान्य IPv4 पता डालें, जैसे 203.0.113.10.",
+    purchased_dns_error_ipv6: "मान्य IPv6 पता डालें, जैसे 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "सार्वजनिक IP पता डालें। निजी, लोकल और आरक्षित पते इंटरनेट से एक्सेस नहीं किए जा सकते।",
+    purchased_dns_error_target: "मान्य होस्ट नाम डालें, जैसे example.com.",
+    purchased_dns_error_cname_self:
+      "CNAME रिकॉर्ड अपने ही नाम की ओर पॉइंट नहीं कर सकता।",
+    purchased_dns_error_cname_conflict:
+      "जिस नाम पर CNAME रिकॉर्ड है, उस पर दूसरे रिकॉर्ड नहीं हो सकते। पहले दूसरे रिकॉर्ड हटाएं, या कोई और नाम चुनें।",
+    purchased_dns_error_txt_length:
+      "TXT कॉन्टेंट में ज़्यादा से ज़्यादा 2,048 वर्ण हो सकते हैं।",
+    purchased_dns_error_txt_chars:
+      "TXT कॉन्टेंट में सिर्फ़ सामान्य प्रिंट होने वाले वर्ण हो सकते हैं, उद्धरण चिह्न या बैकस्लैश नहीं।",
+    purchased_dns_error_ttl: "सूची से कोई TTL चुनें।",
+    purchased_dns_error_priority: "0 से 65535 तक की प्राथमिकता डालें।",
+    purchased_dns_error_weight: "0 से 65535 तक का वेट डालें।",
+    purchased_dns_error_port: "1 से 65535 तक का पोर्ट डालें।",
+    purchased_dns_error_srv_host:
+      "SRV नाम सेवा और प्रोटोकॉल से शुरू होता है, जैसे _sip._tcp.",
+    purchased_dns_error_caa_flags: "फ़्लैग के लिए 0 या 128 चुनें।",
+    purchased_dns_error_caa_tag: "टैग के लिए issue, issuewild या iodef चुनें।",
+    purchased_dns_error_caa_value:
+      "ज़्यादा से ज़्यादा 255 वर्णों वाला मान डालें, जिसमें उद्धरण चिह्न या बैकस्लैश न हों।",
+    purchased_dns_error_duplicate: "यह रिकॉर्ड पहले से मौजूद है।",
+    purchased_dns_error_too_many:
+      "इस डोमेन में ज़्यादा से ज़्यादा रिकॉर्ड हो चुके हैं। नया जोड़ने के लिए एक रिकॉर्ड मिटाएं।",
+    purchased_dns_error_protected_record:
+      "यह रिकॉर्ड Aster मैनेज करता है, इसलिए आप इसे बदल नहीं सकते।",
+    purchased_dns_error_type_change:
+      "आप रिकॉर्ड का प्रकार नहीं बदल सकते। इसके बजाय इसे मिटाएं और नया रिकॉर्ड जोड़ें।",
+    purchased_dns_error_locked: "इस डोमेन के लिए एडिटिंग बंद है।",
+    purchased_dns_error_busy: "रजिस्ट्रार व्यस्त है।",
+    purchased_dns_error_not_found: "यह रिकॉर्ड अब मौजूद नहीं है।",
+    purchased_dns_error_rate_limited: "आप बहुत तेज़ी से बदलाव कर रहे हैं।",
+    purchased_dns_error_retry_in:
+      "{{message}} {{count}} सेकंड बाद फिर से कोशिश करें।",
+    purchased_dns_error_retry_in_one: "{{message}} {{count}} सेकंड बाद फिर से कोशिश करें।",
+    purchased_dns_ttl_seconds: "{{count}} सेकंड",
+    purchased_dns_expired_note: "बदलाव करना बंद हो गया। आपके बदलाव अभी सेव नहीं हुए हैं। सेव करें पर क्लिक करने पर, पहले आप अपनी पहचान की पुष्टि करेंगे।",
+    purchased_dns_filter_placeholder: "रिकॉर्ड फ़िल्टर करें",
+    purchased_dns_filter_no_results: "कोई भी रिकॉर्ड आपके फ़िल्टर से मेल नहीं खाता।",
+    purchased_dns_keep_editing: "बदलाव जारी रखें",
+    purchased_dns_error_unlock_failed: "बदलाव करना चालू नहीं हो सका। फिर से कोशिश करें।",
+    purchased_dns_error_generic:
+      "आपका बदलाव सेव नहीं हो सका। फिर से कोशिश करें।",
+    purchased_dns_load_failed: "DNS रिकॉर्ड लोड नहीं हो सके। फिर से कोशिश करें।",
     domain_purchase_filter_all: "सभी",
     domain_purchase_filter_available: "उपलब्ध",
     domain_purchase_filter_taken: "लिया जा चुका है",

@@ -18,14 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { CustomDomain, DomainOrder } from "@/services/api/domains";
+import type {
+  CustomDomain,
+  DomainOrder,
+  PurchasedDnsResponse,
+} from "@/services/api/domains";
 
 import {
   ArrowPathIcon,
+  ArrowRightStartOnRectangleIcon,
   Cog6ToothIcon,
   LifebuoyIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Checkbox, Island, Switch } from "@aster/ui";
 
@@ -39,13 +44,20 @@ import {
   ModalTitle,
 } from "@/components/ui/modal";
 import { ButtonSpinner } from "@/components/ui/spinner";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { format_price } from "@/services/api/billing";
-import { set_domain_auto_renew } from "@/services/api/domains";
+import {
+  list_purchased_dns,
+  set_domain_auto_renew,
+} from "@/services/api/domains";
+import { load_error_key } from "@/components/settings/aliases/purchased_dns_validation";
+import { escape_html } from "@/hooks/editor_utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 const SUPPORT_ADDRESS = "hello@astermail.org";
 const EXPIRING_SOON_DAYS = 30;
+const TRANSFER_LOCK_DAYS = 60;
 const ROW_DIVIDER =
   "1px solid color-mix(in srgb, var(--text-primary) 8%, transparent)";
 
@@ -59,6 +71,7 @@ interface PurchasedDomainManageModalProps {
   renew_error?: string;
   on_renew: (auto_renew: boolean, captcha_token?: string) => void;
   on_open_setup: (domain: CustomDomain) => void;
+  on_open_dns: (order: DomainOrder, initial: PurchasedDnsResponse) => void;
 }
 
 function format_day(value: string): string {
@@ -86,6 +99,7 @@ export function PurchasedDomainManageModal({
   renew_error,
   on_renew,
   on_open_setup,
+  on_open_dns,
 }: PurchasedDomainManageModalProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -95,6 +109,11 @@ export function PurchasedDomainManageModal({
     null,
   );
   const [renew_opt_in, set_renew_opt_in] = useState(false);
+  const [dns_loading, set_dns_loading] = useState(false);
+  const [dns_error, set_dns_error] = useState<string | null>(null);
+  const [dns_unavailable, set_dns_unavailable] = useState(false);
+  const [transfer_open, set_transfer_open] = useState(false);
+  const dns_request = useRef(0);
 
   useEffect(() => {
     set_auto_renew(order?.auto_renew ?? false);
@@ -102,8 +121,13 @@ export function PurchasedDomainManageModal({
   }, [order?.id, order?.auto_renew]);
 
   useEffect(() => {
+    dns_request.current += 1;
     set_renew_opt_in(false);
-  }, [order?.id]);
+    set_dns_error(null);
+    set_dns_loading(false);
+    set_dns_unavailable(false);
+    set_transfer_open(false);
+  }, [order?.id, is_open]);
 
   if (!order) return null;
 
@@ -122,8 +146,7 @@ export function PurchasedDomainManageModal({
     } else {
       set_auto_renew(!enabled);
       set_auto_renew_error(
-        response.error ??
-          t("settings.domain_purchase_manage_auto_renew_error"),
+        response.error ?? t("settings.domain_purchase_manage_auto_renew_error"),
       );
     }
   };
@@ -176,6 +199,86 @@ export function PurchasedDomainManageModal({
     value: format_price(order.price_cents, order.currency),
   });
 
+  const is_registration_complete =
+    order.status === "complete" && order.order_type === "registration";
+  const transfer_unlocks_at =
+    new Date(order.created_at).getTime() + TRANSFER_LOCK_DAYS * 86_400_000;
+  const transfer_locked = Date.now() < transfer_unlocks_at;
+  const can_transfer = is_registration_complete && !is_lapsed;
+  const can_manage_dns =
+    (is_registration_complete || !!custom_domain) && !dns_unavailable;
+
+  const open_compose = (subject: string, body: string) => {
+    on_close();
+    if (window.location.pathname.startsWith("/settings")) {
+      navigate("/");
+    }
+    window.dispatchEvent(
+      new CustomEvent("aster:open-compose-prefilled", {
+        detail: {
+          to: [SUPPORT_ADDRESS],
+          subject,
+          body: body
+            .split(/\r?\n/)
+            .map((line) =>
+              line.trim() === "" ? "<br>" : `<p>${escape_html(line)}</p>`,
+            )
+            .join(""),
+        },
+      }),
+    );
+  };
+
+  const open_dns = async () => {
+    if (dns_loading) return;
+    if (!is_registration_complete) {
+      if (custom_domain) {
+        on_close();
+        on_open_setup(custom_domain);
+      }
+
+      return;
+    }
+    const seq = ++dns_request.current;
+
+    set_dns_loading(true);
+    set_dns_error(null);
+    const response = await list_purchased_dns(order.id);
+
+    if (seq !== dns_request.current) return;
+    set_dns_loading(false);
+    if (response.data) {
+      on_close();
+      on_open_dns(order, response.data);
+
+      return;
+    }
+    if (response.status === 404 && custom_domain) {
+      on_close();
+      on_open_setup(custom_domain);
+
+      return;
+    }
+    if (response.status === 404) {
+      set_dns_unavailable(true);
+
+      return;
+    }
+    set_dns_error(t(load_error_key(response.status)));
+  };
+
+  const request_transfer = () => {
+    set_transfer_open(false);
+    if (transfer_locked) return;
+    open_compose(
+      t("settings.domain_transfer_email_subject", { domain: order.domain }),
+      t("settings.domain_transfer_email_body", {
+        domain: order.domain,
+        order_id: order.id,
+      }),
+    );
+  };
+
   const contact_support = () => {
     on_close();
     if (window.location.pathname.startsWith("/settings")) {
@@ -195,137 +298,201 @@ export function PurchasedDomainManageModal({
   };
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="lg">
-      <ModalHeader>
-        <ModalTitle>{order.domain}</ModalTitle>
-        <ModalDescription>
-          {t("settings.domain_purchase_manage_description")}
-        </ModalDescription>
-      </ModalHeader>
-      <ModalBody className="px-6 space-y-4">
-        <Island className="overflow-hidden">
-          {rows.map((row, index) => (
-            <div
-              key={row.label}
-              className="flex items-center justify-between gap-4 px-4 py-3"
-              style={{ borderTop: index > 0 ? ROW_DIVIDER : "none" }}
-            >
-              <span className="text-[13px] text-txt-muted">{row.label}</span>
-              <span
-                className={`text-[13px] font-medium text-end ${
-                  row.danger ? "text-[var(--color-danger)]" : "text-txt-primary"
-                }`}
+    <>
+      <Modal is_open={is_open && !transfer_open} on_close={on_close} size="lg">
+        <ModalHeader>
+          <ModalTitle>{order.domain}</ModalTitle>
+          <ModalDescription>
+            {t("settings.domain_purchase_manage_description")}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalBody className="px-6 space-y-4">
+          <Island className="overflow-hidden">
+            {rows.map((row, index) => (
+              <div
+                key={row.label}
+                className="flex items-center justify-between gap-4 px-4 py-3"
+                style={{ borderTop: index > 0 ? ROW_DIVIDER : "none" }}
               >
-                {row.value}
-              </span>
-            </div>
-          ))}
-        </Island>
-
-        {can_auto_renew ? (
-          <Island className="flex items-center justify-between gap-4 px-4 py-3">
-            <div className="min-w-0">
-              <p className="text-[13px] font-medium text-txt-primary">
-                {t("settings.domain_purchase_auto_renew_label")}
-              </p>
-              <p className="mt-0.5 text-[12px] leading-snug text-txt-muted">
-                {auto_renew
-                  ? t("settings.domain_purchase_manage_auto_renew_on_note")
-                  : t("settings.domain_purchase_manage_auto_renew_note")}
-              </p>
-            </div>
-            <Switch
-              aria-label={t("settings.domain_purchase_auto_renew_label")}
-              checked={auto_renew}
-              disabled={auto_renew_saving}
-              size="lg"
-              onCheckedChange={toggle_auto_renew}
-            />
+                <span className="text-[13px] text-txt-muted">{row.label}</span>
+                <span
+                  className={`text-[13px] font-medium text-end ${
+                    row.danger
+                      ? "text-[var(--color-danger)]"
+                      : "text-txt-primary"
+                  }`}
+                >
+                  {row.value}
+                </span>
+              </div>
+            ))}
           </Island>
-        ) : (
-          <>
-            <p className="text-xs text-txt-muted leading-relaxed">
-              {t("settings.domain_purchase_manage_auto_renew_note")}
-            </p>
-            <label className="flex cursor-pointer select-none items-start gap-3 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-4 py-3.5 transition-colors hover:bg-[var(--aster-field-hover)]">
-              <Checkbox
-                checked={renew_opt_in}
-                className="mt-0.5"
-                disabled={renewing || captcha_pending}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  set_renew_opt_in(e.target.checked)
-                }
-              />
-              <span className="min-w-0">
-                <span className="block text-[13px] font-semibold text-txt-primary">
+
+          {can_auto_renew ? (
+            <Island className="flex items-center justify-between gap-4 px-4 py-3">
+              <div className="min-w-0">
+                <p className="text-[13px] font-medium text-txt-primary">
                   {t("settings.domain_purchase_auto_renew_label")}
+                </p>
+                <p className="mt-0.5 text-[12px] leading-snug text-txt-muted">
+                  {auto_renew
+                    ? t("settings.domain_purchase_manage_auto_renew_on_note")
+                    : t("settings.domain_purchase_manage_auto_renew_note")}
+                </p>
+              </div>
+              <Switch
+                aria-label={t("settings.domain_purchase_auto_renew_label")}
+                checked={auto_renew}
+                disabled={auto_renew_saving}
+                size="lg"
+                onCheckedChange={toggle_auto_renew}
+              />
+            </Island>
+          ) : (
+            <>
+              <p className="text-xs text-txt-muted leading-relaxed">
+                {t("settings.domain_purchase_manage_auto_renew_note")}
+              </p>
+              <label
+                className="flex cursor-pointer select-none items-start gap-3 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-4 py-3.5 transition-colors hover:bg-[var(--aster-field-hover)]"
+                htmlFor="purchased-domain-renew-opt-in"
+              >
+                <Checkbox
+                  checked={renew_opt_in}
+                  className="mt-0.5"
+                  disabled={renewing || captcha_pending}
+                  id="purchased-domain-renew-opt-in"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    set_renew_opt_in(e.target.checked)
+                  }
+                />
+                <span className="min-w-0">
+                  <span className="block text-[13px] font-semibold text-txt-primary">
+                    {t("settings.domain_purchase_auto_renew_label")}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] leading-snug text-txt-muted">
+                    {t("settings.domain_purchase_auto_renew_hint")}
+                  </span>
                 </span>
-                <span className="mt-0.5 block text-[11px] leading-snug text-txt-muted">
-                  {t("settings.domain_purchase_auto_renew_hint")}
-                </span>
-              </span>
-            </label>
-          </>
-        )}
-
-        {auto_renew_error && (
-          <p className="text-xs text-[var(--color-danger)]">
-            {auto_renew_error}
-          </p>
-        )}
-
-        {captcha_pending && !renewing && (
-          <TurnstileWidget
-            class_name="flex justify-center"
-            on_verify={(token) => on_renew(renew_with_opt_in, token)}
-          />
-        )}
-
-        {renew_error && (
-          <p className="text-xs text-[var(--color-danger)]">{renew_error}</p>
-        )}
-
-        <p className="text-xs text-txt-muted leading-relaxed">
-          {t("settings.domain_purchase_manage_support_note")}
-        </p>
-      </ModalBody>
-      <ModalFooter className="flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <Button
-          className="w-full sm:w-auto"
-          variant="ghost"
-          onClick={contact_support}
-        >
-          <LifebuoyIcon className="w-4 h-4 me-2" />
-          {t("common.contact_support")}
-        </Button>
-
-        <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row sm:items-center">
-          {custom_domain && (
-            <Button
-              className="w-full sm:w-auto"
-              variant="secondary"
-              onClick={() => {
-                on_close();
-                on_open_setup(custom_domain);
-              }}
-            >
-              <Cog6ToothIcon className="w-4 h-4 me-2" />
-              {t("settings.domain_purchase_manage_dns")}
-            </Button>
+              </label>
+            </>
           )}
 
+          {auto_renew_error && (
+            <p className="text-xs text-[var(--color-danger)]">
+              {auto_renew_error}
+            </p>
+          )}
+
+          {can_transfer && (
+            <Island className="flex items-center justify-between gap-4 px-4 py-3">
+              <div className="min-w-0">
+                <p className="text-[13px] font-medium text-txt-primary">
+                  {t("settings.domain_transfer_title")}
+                </p>
+                <p className="mt-0.5 text-[12px] leading-snug text-txt-muted">
+                  {t("settings.domain_transfer_hint")}
+                </p>
+              </div>
+              <Button
+                className="shrink-0"
+                variant="secondary"
+                onClick={() => set_transfer_open(true)}
+              >
+                <ArrowRightStartOnRectangleIcon className="w-4 h-4 me-2" />
+                {t("settings.domain_transfer_button")}
+              </Button>
+            </Island>
+          )}
+
+          {captcha_pending && !renewing && (
+            <TurnstileWidget
+              class_name="flex justify-center"
+              on_verify={(token) => on_renew(renew_with_opt_in, token)}
+            />
+          )}
+
+          {renew_error && (
+            <p className="text-xs text-[var(--color-danger)]">{renew_error}</p>
+          )}
+
+          {dns_error && (
+            <p
+              className="text-xs text-[var(--color-danger)]"
+              data-testid="manage-dns-error"
+              role="alert"
+            >
+              {dns_error}
+            </p>
+          )}
+
+          <p className="text-xs text-txt-muted leading-relaxed">
+            {t("settings.domain_purchase_manage_support_note")}
+          </p>
+        </ModalBody>
+        <ModalFooter className="flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
           <Button
             className="w-full sm:w-auto"
-            disabled={renewing || captcha_pending}
-            variant="depth"
-            onClick={() => on_renew(renew_with_opt_in)}
+            variant="ghost"
+            onClick={contact_support}
           >
-            <ArrowPathIcon className="w-4 h-4 me-2" />
-            {(renewing || captcha_pending) && <ButtonSpinner size="xs" />}
-            {t("settings.domain_purchase_renew")}
+            <LifebuoyIcon className="w-4 h-4 me-2" />
+            {t("common.contact_support")}
           </Button>
-        </div>
-      </ModalFooter>
-    </Modal>
+
+          <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row sm:items-center">
+            {can_manage_dns && (
+              <Button
+                className="w-full sm:w-auto"
+                disabled={dns_loading}
+                variant="secondary"
+                onClick={() => void open_dns()}
+              >
+                {dns_loading ? (
+                  <ButtonSpinner size="xs" />
+                ) : (
+                  <Cog6ToothIcon className="w-4 h-4 me-2" />
+                )}
+                {t("settings.domain_purchase_manage_dns")}
+              </Button>
+            )}
+
+            <Button
+              className="w-full sm:w-auto"
+              disabled={renewing || captcha_pending}
+              variant="depth"
+              onClick={() => on_renew(renew_with_opt_in)}
+            >
+              <ArrowPathIcon className="w-4 h-4 me-2" />
+              {(renewing || captcha_pending) && <ButtonSpinner size="xs" />}
+              {t("settings.domain_purchase_renew")}
+            </Button>
+          </div>
+        </ModalFooter>
+      </Modal>
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={
+          transfer_locked
+            ? t("common.ok")
+            : t("settings.domain_transfer_confirm")
+        }
+        is_open={is_open && transfer_open}
+        message={
+          transfer_locked
+            ? t("settings.domain_transfer_locked_message", {
+                count: TRANSFER_LOCK_DAYS,
+                date: format_day(new Date(transfer_unlocks_at).toISOString()),
+                domain: order.domain,
+              })
+            : t("settings.domain_transfer_message", { domain: order.domain })
+        }
+        on_cancel={() => set_transfer_open(false)}
+        on_confirm={request_transfer}
+        show_cancel={!transfer_locked}
+        title={t("settings.domain_transfer_title")}
+        variant="info"
+      />
+    </>
   );
 }

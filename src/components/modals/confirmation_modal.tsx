@@ -44,6 +44,7 @@ interface ConfirmationModalProps {
   message: string;
   confirm_text?: string | null;
   cancel_text?: string | null;
+  show_cancel?: boolean;
   variant?: ConfirmationVariant;
   show_dont_ask_again?: boolean;
   learn_more_url?: string;
@@ -69,6 +70,7 @@ export function ConfirmationModal({
   message,
   confirm_text,
   cancel_text,
+  show_cancel = true,
   variant = "info",
   show_dont_ask_again = false,
   learn_more_url,
@@ -196,14 +198,16 @@ export function ConfirmationModal({
         </div>
 
         <AlertDialogFooter className="flex-row flex-wrap gap-3 px-6 pb-6 pt-2 sm:justify-end">
-          <Button
-            className="mt-0 whitespace-nowrap max-sm:flex-1"
-            disabled={is_busy}
-            variant="outline"
-            onClick={handle_cancel}
-          >
-            {resolved_cancel_text}
-          </Button>
+          {show_cancel && (
+            <Button
+              className="mt-0 whitespace-nowrap max-sm:flex-1"
+              disabled={is_busy}
+              variant="outline"
+              onClick={handle_cancel}
+            >
+              {resolved_cancel_text}
+            </Button>
+          )}
           <Button
             ref={confirm_button_ref}
             className="whitespace-nowrap max-sm:flex-1"

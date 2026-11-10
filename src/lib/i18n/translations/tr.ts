@@ -7105,10 +7105,147 @@ export const tr = {
       "Aster, kayıtlı kartınızdan son kullanma tarihinden 30 gün önce ödeme alır ve fiyatı bundan 15 gün önce e-postayla gönderir.",
     domain_purchase_manage_auto_renew_error:
       "Otomatik yenileme güncellenemedi. Tekrar deneyin.",
-    domain_purchase_manage_dns: "Alan adı kurulumunu aç",
+    domain_purchase_manage_dns: "DNS'i yönet",
     domain_purchase_manage_support_note:
-      "Bu alan adını başka bir kayıt kuruluşuna taşımak ya da geri ödeme sormak için destek ile iletişime geç.",
+      "Faturalandırma veya geri ödeme ile ilgili sorularınız için destek ile iletişime geçin.",
     domain_purchase_manage_support_subject: "{{domain}} ile ilgili yardım",
+    domain_transfer_button: "Aktar",
+    domain_transfer_title: "Alan adını aktar",
+    domain_transfer_hint:
+      "Bu alan adını başka bir kayıt şirketine taşıyın. Destek ekibi aktarım kodunu Aster gelen kutunuza gönderir.",
+    domain_transfer_message:
+      "{{domain}} alan adını başka bir kayıt kuruluşuna taşımak için bir aktarım koduna ihtiyacınız var. Devam ettiğinizde Aster, desteğe gönderilecek bir e-posta açar. Destek, isteğin bu hesaptan geldiğini doğrular ve ardından kodu Aster gelen kutunuza gönderir. Aktarımlar, yeni kayıt kuruluşunda başlatıldıktan sonra genellikle 5 ila 7 gün sürer.",
+    domain_transfer_locked_message:
+      "Kayıt kuruluşları, kayıttan sonraki {{count}} gün içinde aktarıma izin vermez. {{domain}} için {{date}} tarihinden itibaren aktarım isteyebilirsiniz.",
+    domain_transfer_confirm: "Desteğe yaz",
+    domain_transfer_email_subject: "{{domain}} için aktarım isteği",
+    domain_transfer_email_body:
+      "{{domain}} alan adını başka bir kayıt kuruluşuna aktarmak istiyorum. Aktarım kodunu bu adrese gönderin.\n\nSipariş kimliği: {{order_id}}\nYeni kayıt kuruluşu:",
+    purchased_dns_title: "DNS kayıtları",
+    purchased_dns_description:
+      "{{domain}} için kayıtlar. Değişiklikler genellikle bir saat içinde geçerli olur.",
+    purchased_dns_locked_title: "Düzenleme kapalı",
+    purchased_dns_locked_note:
+      "Bu kayıtları görüntüleyebilirsiniz ancak şu anda değiştiremezsiniz.",
+    purchased_dns_lock_frozen:
+      "Bu alan adı için düzenleme duraklatıldı. Daha fazla bilgi için destek ile iletişime geçin.",
+    purchased_dns_lock_payment:
+      "Bu alan adının ödemesi iade edildiği için düzenleme kapalı.",
+    purchased_dns_lock_lapsed:
+      "Bu alan adının süresi dolduğu için düzenleme kapalı. Değişiklik yapmak için alan adını yenileyin.",
+    purchased_dns_lock_suspended:
+      "Bu alan adı askıya alındığı için düzenleme kapalı.",
+    purchased_dns_unlock_title: "Kimliğinizi doğrulayın",
+    purchased_dns_unlock_description:
+      "DNS kayıtlarını değiştirmek için kimliğinizi doğrulayın. Düzenleme 15 dakika boyunca açık kalır.",
+    purchased_dns_unlock: "Düzenlemeyi aç",
+    purchased_dns_unlocked: "Düzenleme açık",
+    purchased_dns_unlocked_for: "Düzenleme {{time}} boyunca açık",
+    purchased_dns_lock: "Düzenlemeyi kapat",
+    purchased_dns_add: "Kayıt ekle",
+    purchased_dns_add_title: "Kayıt ekle",
+    purchased_dns_edit_title: "Kaydı düzenle",
+    purchased_dns_added: "Kayıt eklendi",
+    purchased_dns_updated: "Kayıt güncellendi",
+    purchased_dns_deleted: "Kayıt silindi",
+    purchased_dns_delete_title: "Kayıt silinsin mi?",
+    purchased_dns_delete_message:
+      "{{name}} için {{type}} kaydı, sildikten kısa süre sonra çözümlenmez.",
+    purchased_dns_edit_record: "{{name}} için {{type}} kaydını düzenle",
+    purchased_dns_copy_record: "{{name}} için {{type}} kaydının değerini kopyala",
+    purchased_dns_delete_record: "{{name}} için {{type}} kaydını sil",
+    purchased_dns_read_only: "Salt okunur",
+    purchased_dns_mail_group: "Aster Mail kayıtları",
+    purchased_dns_mail_group_tip:
+      "E-postanızın çalışmaya devam etmesi için bu kayıtları Aster yönetir. Bunları düzenleyemez veya silemezsiniz.",
+    purchased_dns_your_records: "Kayıtlarınız",
+    purchased_dns_empty: "Henüz kayıt eklemediniz.",
+    purchased_dns_limit_reached:
+      "Bu alan adı en fazla {{count}} kayıt sınırına ulaştı. Yeni bir kayıt eklemek için birini silin.",
+    purchased_dns_col_type: "Tür",
+    purchased_dns_col_name: "Ad",
+    purchased_dns_col_content: "İçerik",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "İşlemler",
+    purchased_dns_host_hint:
+      "Alan adının kendisi için @ kullanın veya www gibi bir alt alan adı girin.",
+    purchased_dns_field_ipv4: "IPv4 adresi",
+    purchased_dns_field_ipv6: "IPv6 adresi",
+    purchased_dns_field_target: "Hedef",
+    purchased_dns_field_content: "İçerik",
+    purchased_dns_field_mail_server: "Posta sunucusu",
+    purchased_dns_field_caa_value: "Değer",
+    purchased_dns_field_priority: "Öncelik",
+    purchased_dns_field_weight: "Ağırlık",
+    purchased_dns_field_port: "Bağlantı noktası",
+    purchased_dns_field_flags: "Bayraklar",
+    purchased_dns_field_tag: "Etiket",
+    purchased_dns_ttl_one_hour: "1 saat",
+    purchased_dns_ttl_hours: "{{count}} saat",
+    purchased_dns_ttl_one_day: "1 gün",
+    purchased_dns_ttl_days: "{{count}} gün",
+    purchased_dns_error_required: "Bu alanı doldurun.",
+    purchased_dns_error_host:
+      "Geçerli bir ad girin. Harf, rakam, kısa çizgi ve alt çizgi kullanın. Her etiket en fazla 63 karakter olabilir.",
+    purchased_dns_error_protected_host:
+      "Bu ad Aster Mail kayıtları için ayrılmıştır.",
+    purchased_dns_error_apex_mx:
+      "Alan adının kendisine ait posta kayıtlarını Aster yönetir. Bunun yerine MX kayıtlarını bir alt alan adına ekleyin.",
+    purchased_dns_error_apex_cname:
+      "CNAME kaydı alan adının kendisi için kullanılamaz. Bunun yerine A veya AAAA kaydı kullanın.",
+    purchased_dns_error_apex_spf:
+      "Aster bu alan adı için zaten bir SPF kaydı yayımlıyor ve bir alan adında yalnızca bir tane olabilir.",
+    purchased_dns_error_value: "Değeri kontrol edip tekrar deneyin.",
+    purchased_dns_error_ip: "Geçerli bir IP adresi girin.",
+    purchased_dns_error_ipv4:
+      "203.0.113.10 gibi geçerli bir IPv4 adresi girin.",
+    purchased_dns_error_ipv6: "2001:db8::1 gibi geçerli bir IPv6 adresi girin.",
+    purchased_dns_error_private_ip:
+      "Herkese açık bir IP adresi girin. Özel, yerel ve ayrılmış adreslere internetten erişilemez.",
+    purchased_dns_error_target:
+      "example.com gibi geçerli bir ana bilgisayar adı girin.",
+    purchased_dns_error_cname_self: "CNAME kaydı kendi adını gösteremez.",
+    purchased_dns_error_cname_conflict:
+      "CNAME kaydı olan bir adın başka kaydı olamaz. Önce diğer kayıtları kaldırın veya başka bir ad seçin.",
+    purchased_dns_error_txt_length:
+      "TXT içeriği en fazla 2.048 karakter olabilir.",
+    purchased_dns_error_txt_chars:
+      "TXT içeriği yalnızca standart yazdırılabilir karakterler içerebilir; tırnak işareti veya ters eğik çizgi kullanılamaz.",
+    purchased_dns_error_ttl: "Listeden bir TTL seçin.",
+    purchased_dns_error_priority: "0 ile 65535 arasında bir öncelik girin.",
+    purchased_dns_error_weight: "0 ile 65535 arasında bir ağırlık girin.",
+    purchased_dns_error_port:
+      "1 ile 65535 arasında bir bağlantı noktası girin.",
+    purchased_dns_error_srv_host:
+      "SRV adı, _sip._tcp gibi hizmet ve protokolle başlar.",
+    purchased_dns_error_caa_flags: "Bayraklar için 0 veya 128 seçin.",
+    purchased_dns_error_caa_tag:
+      "Etiket için issue, issuewild veya iodef seçin.",
+    purchased_dns_error_caa_value:
+      "Tırnak işareti veya ters eğik çizgi içermeyen, en fazla 255 karakterlik bir değer girin.",
+    purchased_dns_error_duplicate: "Bu kayıt zaten var.",
+    purchased_dns_error_too_many:
+      "Bu alan adı en fazla kayıt sayısına ulaştı. Yeni bir kayıt eklemek için birini silin.",
+    purchased_dns_error_protected_record:
+      "Bu kaydı Aster yönettiği için değiştiremezsiniz.",
+    purchased_dns_error_type_change:
+      "Bir kaydın türünü değiştiremezsiniz. Bunun yerine kaydı silip yeni bir kayıt ekleyin.",
+    purchased_dns_error_locked: "Bu alan adı için düzenleme kapalı.",
+    purchased_dns_error_busy: "Kayıt kuruluşu meşgul.",
+    purchased_dns_error_not_found: "Bu kayıt artık mevcut değil.",
+    purchased_dns_error_rate_limited: "Çok hızlı değişiklik yapıyorsunuz.",
+    purchased_dns_error_retry_in:
+      "{{message}} {{count}} saniye sonra tekrar deneyin.",
+    purchased_dns_error_retry_in_one: "{{message}} {{count}} saniye sonra tekrar deneyin.",
+    purchased_dns_ttl_seconds: "{{count}} saniye",
+    purchased_dns_expired_note: "Düzenleme kapatıldı. Değişiklikleriniz henüz kaydedilmedi. Kaydet'i tıkladığınızda önce kimliğinizi doğrularsınız.",
+    purchased_dns_filter_placeholder: "Kayıtları filtrele",
+    purchased_dns_filter_no_results: "Filtrenizle eşleşen kayıt yok.",
+    purchased_dns_keep_editing: "Düzenlemeye devam et",
+    purchased_dns_error_unlock_failed: "Düzenleme açılamadı. Tekrar deneyin.",
+    purchased_dns_error_generic:
+      "Değişikliğiniz kaydedilemedi. Tekrar deneyin.",
+    purchased_dns_load_failed: "DNS kayıtları yüklenemedi. Tekrar deneyin.",
     domain_purchase_filter_all: "Tümü",
     domain_purchase_filter_available: "Uygun",
     domain_purchase_filter_taken: "Alınmış",

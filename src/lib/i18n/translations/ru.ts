@@ -7394,10 +7394,148 @@ export const ru = {
       "Aster списывает оплату с сохранённой карты за 30 дней до окончания срока и присылает цену по почте за 15 дней до этого.",
     domain_purchase_manage_auto_renew_error:
       "Не удалось изменить автопродление. Повторите попытку.",
-    domain_purchase_manage_dns: "Открыть настройку домена",
+    domain_purchase_manage_dns: "Управление DNS",
     domain_purchase_manage_support_note:
-      "Чтобы перенести домен к другому регистратору или спросить о возврате средств, свяжитесь с поддержкой.",
+      "По вопросам оплаты или возврата средств свяжитесь с поддержкой.",
     domain_purchase_manage_support_subject: "Помощь с {{domain}}",
+    domain_transfer_button: "Перенести",
+    domain_transfer_title: "Перенос домена",
+    domain_transfer_hint:
+      "Перенесите этот домен к другому регистратору. Поддержка отправит код переноса во входящие Aster.",
+    domain_transfer_message:
+      "Чтобы перенести {{domain}} к другому регистратору, нужен код переноса. Если продолжить, Aster откроет письмо в поддержку. Поддержка проверит, что запрос отправлен с этого аккаунта, и пришлёт код во входящие Aster. Перенос обычно занимает от 5 до 7 дней после того, как вы начнёте его у нового регистратора.",
+    domain_transfer_locked_message:
+      "Регистраторы не разрешают перенос в течение {{count}} дней после регистрации. Запросить перенос {{domain}} можно с {{date}}.",
+    domain_transfer_confirm: "Написать в поддержку",
+    domain_transfer_email_subject: "Запрос на перенос {{domain}}",
+    domain_transfer_email_body:
+      "Я хочу перенести {{domain}} к другому регистратору. Пришлите код переноса на этот адрес.\n\nНомер заказа: {{order_id}}\nНовый регистратор:",
+    purchased_dns_title: "DNS-записи",
+    purchased_dns_description:
+      "Записи для {{domain}}. Изменения обычно вступают в силу в течение часа.",
+    purchased_dns_locked_title: "Редактирование выключено",
+    purchased_dns_locked_note:
+      "Вы можете просматривать эти записи, но сейчас не можете их изменить.",
+    purchased_dns_lock_frozen:
+      "Редактирование для этого домена приостановлено. Подробности можно узнать в поддержке.",
+    purchased_dns_lock_payment:
+      "Редактирование выключено, потому что платёж за этот домен был отменён.",
+    purchased_dns_lock_lapsed:
+      "Редактирование выключено, потому что срок действия домена истёк. Продлите его, чтобы вносить изменения.",
+    purchased_dns_lock_suspended:
+      "Редактирование выключено, потому что домен заблокирован.",
+    purchased_dns_unlock_title: "Подтвердите, что это вы",
+    purchased_dns_unlock_description:
+      "Чтобы изменить DNS-записи, подтвердите свою личность. Редактирование останется включённым 15 минут.",
+    purchased_dns_unlock: "Включить редактирование",
+    purchased_dns_unlocked: "Редактирование включено",
+    purchased_dns_unlocked_for: "Редактирование включено ещё {{time}}",
+    purchased_dns_lock: "Выключить редактирование",
+    purchased_dns_add: "Добавить запись",
+    purchased_dns_add_title: "Добавление записи",
+    purchased_dns_edit_title: "Изменение записи",
+    purchased_dns_added: "Запись добавлена",
+    purchased_dns_updated: "Запись обновлена",
+    purchased_dns_deleted: "Запись удалена",
+    purchased_dns_delete_title: "Удалить запись?",
+    purchased_dns_delete_message:
+      "Вскоре после удаления запись {{type}} для {{name}} перестанет разрешаться.",
+    purchased_dns_edit_record: "Изменить запись {{type}} для {{name}}",
+    purchased_dns_copy_record: "Копировать значение записи {{type}} для {{name}}",
+    purchased_dns_delete_record: "Удалить запись {{type}} для {{name}}",
+    purchased_dns_read_only: "Только чтение",
+    purchased_dns_mail_group: "Записи Aster Mail",
+    purchased_dns_mail_group_tip:
+      "Aster управляет этими записями, чтобы ваша почта продолжала работать. Их нельзя изменить или удалить.",
+    purchased_dns_your_records: "Ваши записи",
+    purchased_dns_empty: "Вы ещё не добавили ни одной записи.",
+    purchased_dns_limit_reached:
+      "У этого домена максимальное число записей: {{count}}. Удалите одну, чтобы добавить другую.",
+    purchased_dns_col_type: "Тип",
+    purchased_dns_col_name: "Имя",
+    purchased_dns_col_content: "Содержимое",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Действия",
+    purchased_dns_host_hint:
+      "Используйте @ для самого домена или введите поддомен, например www.",
+    purchased_dns_field_ipv4: "Адрес IPv4",
+    purchased_dns_field_ipv6: "Адрес IPv6",
+    purchased_dns_field_target: "Цель",
+    purchased_dns_field_content: "Содержимое",
+    purchased_dns_field_mail_server: "Почтовый сервер",
+    purchased_dns_field_caa_value: "Значение",
+    purchased_dns_field_priority: "Приоритет",
+    purchased_dns_field_weight: "Вес",
+    purchased_dns_field_port: "Порт",
+    purchased_dns_field_flags: "Флаги",
+    purchased_dns_field_tag: "Тег",
+    purchased_dns_ttl_one_hour: "1 час",
+    purchased_dns_ttl_hours: "Часов: {{count}}",
+    purchased_dns_ttl_one_day: "1 день",
+    purchased_dns_ttl_days: "Дней: {{count}}",
+    purchased_dns_error_required: "Заполните это поле.",
+    purchased_dns_error_host:
+      "Введите допустимое имя. Используйте буквы, цифры, дефисы и подчёркивания, не более 63 символов в каждой метке.",
+    purchased_dns_error_protected_host:
+      "Это имя зарезервировано для записей Aster Mail.",
+    purchased_dns_error_apex_mx:
+      "Почтовыми записями самого домена управляет Aster. Вместо этого добавьте записи MX для поддомена.",
+    purchased_dns_error_apex_cname:
+      "Запись CNAME нельзя использовать для самого домена. Вместо неё используйте запись A или AAAA.",
+    purchased_dns_error_apex_spf:
+      "Aster уже публикует запись SPF для этого домена, а у домена может быть только одна такая запись.",
+    purchased_dns_error_value: "Проверьте значение и повторите попытку.",
+    purchased_dns_error_ip: "Введите допустимый IP-адрес.",
+    purchased_dns_error_ipv4:
+      "Введите допустимый адрес IPv4, например 203.0.113.10.",
+    purchased_dns_error_ipv6:
+      "Введите допустимый адрес IPv6, например 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Введите публичный IP-адрес. Частные, локальные и зарезервированные адреса недоступны из интернета.",
+    purchased_dns_error_target:
+      "Введите допустимое имя хоста, например example.com.",
+    purchased_dns_error_cname_self:
+      "Запись CNAME не может указывать на собственное имя.",
+    purchased_dns_error_cname_conflict:
+      "У имени с записью CNAME не может быть других записей. Сначала удалите другие записи или выберите другое имя.",
+    purchased_dns_error_txt_length:
+      "Содержимое TXT может содержать не более 2048 символов.",
+    purchased_dns_error_txt_chars:
+      "Содержимое TXT может содержать только стандартные печатаемые символы, без кавычек и обратных косых черт.",
+    purchased_dns_error_ttl: "Выберите TTL из списка.",
+    purchased_dns_error_priority: "Введите приоритет от 0 до 65535.",
+    purchased_dns_error_weight: "Введите вес от 0 до 65535.",
+    purchased_dns_error_port: "Введите порт от 1 до 65535.",
+    purchased_dns_error_srv_host:
+      "Имя SRV начинается с сервиса и протокола, например _sip._tcp.",
+    purchased_dns_error_caa_flags: "Выберите для флагов значение 0 или 128.",
+    purchased_dns_error_caa_tag:
+      "Выберите для тега issue, issuewild или iodef.",
+    purchased_dns_error_caa_value:
+      "Введите значение длиной не более 255 символов, без кавычек и обратных косых черт.",
+    purchased_dns_error_duplicate: "Такая запись уже существует.",
+    purchased_dns_error_too_many:
+      "У этого домена максимальное число записей. Удалите одну, чтобы добавить другую.",
+    purchased_dns_error_protected_record:
+      "Этой записью управляет Aster, поэтому её нельзя изменить.",
+    purchased_dns_error_type_change:
+      "Тип записи изменить нельзя. Вместо этого удалите её и добавьте новую запись.",
+    purchased_dns_error_locked: "Редактирование для этого домена выключено.",
+    purchased_dns_error_busy: "Регистратор занят.",
+    purchased_dns_error_not_found: "Эта запись больше не существует.",
+    purchased_dns_error_rate_limited: "Вы вносите изменения слишком часто.",
+    purchased_dns_error_retry_in:
+      "{{message}} Повторите попытку через {{count}} с.",
+    purchased_dns_error_retry_in_one: "{{message}} Повторите попытку через {{count}} с.",
+    purchased_dns_ttl_seconds: "Секунд: {{count}}",
+    purchased_dns_expired_note: "Редактирование отключено. Изменения ещё не сохранены. Когда вы нажмёте «Сохранить», сначала подтвердите свою личность.",
+    purchased_dns_filter_placeholder: "Фильтр записей",
+    purchased_dns_filter_no_results: "Нет записей, соответствующих фильтру.",
+    purchased_dns_keep_editing: "Продолжить редактирование",
+    purchased_dns_error_unlock_failed: "Не удалось включить редактирование. Повторите попытку.",
+    purchased_dns_error_generic:
+      "Не удалось сохранить изменение. Повторите попытку.",
+    purchased_dns_load_failed: "Не удалось загрузить DNS-записи. Повторите попытку.",
     domain_purchase_filter_all: "Все",
     domain_purchase_filter_available: "Доступные",
     domain_purchase_filter_taken: "Заняты",

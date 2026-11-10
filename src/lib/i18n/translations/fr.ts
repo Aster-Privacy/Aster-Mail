@@ -7363,10 +7363,152 @@ export const fr = {
       "Aster débite votre carte enregistrée 30 jours avant la date d'expiration et vous envoie le prix par e-mail 15 jours plus tôt.",
     domain_purchase_manage_auto_renew_error:
       "Impossible de modifier le renouvellement automatique. Réessayez.",
-    domain_purchase_manage_dns: "Ouvrir la configuration du domaine",
+    domain_purchase_manage_dns: "Gérer le DNS",
     domain_purchase_manage_support_note:
-      "Pour transférer ce domaine vers un autre bureau d'enregistrement ou demander un remboursement, contactez l'assistance.",
+      "Pour toute question sur la facturation ou un remboursement, contactez l'assistance.",
     domain_purchase_manage_support_subject: "Aide concernant {{domain}}",
+    domain_transfer_button: "Transférer",
+    domain_transfer_title: "Transférer le domaine",
+    domain_transfer_hint:
+      "Transférez ce domaine vers un autre registraire. Le support envoie le code de transfert dans votre boîte de réception Aster.",
+    domain_transfer_message:
+      "Pour déplacer {{domain}} vers un autre bureau d'enregistrement, vous avez besoin d'un code de transfert. Lorsque vous continuez, Aster ouvre un e-mail adressé à l'assistance. L'assistance confirme que la demande provient de ce compte, puis envoie le code dans votre boîte de réception Aster. Les transferts prennent généralement 5 à 7 jours après leur lancement auprès du nouveau bureau d'enregistrement.",
+    domain_transfer_locked_message:
+      "Les bureaux d'enregistrement n'autorisent pas les transferts dans les {{count}} jours suivant l'enregistrement. Vous pourrez demander le transfert de {{domain}} à partir de {{date}}.",
+    domain_transfer_confirm: "Écrire à l'assistance",
+    domain_transfer_email_subject: "Demande de transfert pour {{domain}}",
+    domain_transfer_email_body:
+      "Je souhaite transférer {{domain}} vers un autre bureau d'enregistrement. Envoyez le code de transfert à cette adresse.\n\nNuméro de commande : {{order_id}}\nNouveau bureau d'enregistrement :",
+    purchased_dns_title: "Enregistrements DNS",
+    purchased_dns_description:
+      "Enregistrements de {{domain}}. Les modifications prennent généralement effet en moins d'une heure.",
+    purchased_dns_locked_title: "Modification désactivée",
+    purchased_dns_locked_note:
+      "Vous pouvez consulter ces enregistrements, mais vous ne pouvez pas les modifier pour le moment.",
+    purchased_dns_lock_frozen:
+      "La modification est suspendue pour ce domaine. Contactez l'assistance pour en savoir plus.",
+    purchased_dns_lock_payment:
+      "La modification est désactivée, car le paiement de ce domaine a été annulé.",
+    purchased_dns_lock_lapsed:
+      "La modification est désactivée, car ce domaine a expiré. Renouvelez-le pour apporter des modifications.",
+    purchased_dns_lock_suspended:
+      "La modification est désactivée, car ce domaine est suspendu.",
+    purchased_dns_unlock_title: "Confirmez votre identité",
+    purchased_dns_unlock_description:
+      "Pour modifier les enregistrements DNS, confirmez votre identité. La modification reste activée pendant 15 minutes.",
+    purchased_dns_unlock: "Activer la modification",
+    purchased_dns_unlocked: "Modification activée",
+    purchased_dns_unlocked_for: "Modification activée pendant {{time}}",
+    purchased_dns_lock: "Désactiver la modification",
+    purchased_dns_add: "Ajouter un enregistrement",
+    purchased_dns_add_title: "Ajouter un enregistrement",
+    purchased_dns_edit_title: "Modifier l'enregistrement",
+    purchased_dns_added: "Enregistrement ajouté",
+    purchased_dns_updated: "Enregistrement mis à jour",
+    purchased_dns_deleted: "Enregistrement supprimé",
+    purchased_dns_delete_title: "Supprimer l'enregistrement ?",
+    purchased_dns_delete_message:
+      "L'enregistrement {{type}} de {{name}} cesse d'être résolu peu après sa suppression.",
+    purchased_dns_edit_record: "Modifier l'enregistrement {{type}} de {{name}}",
+    purchased_dns_copy_record: "Copier la valeur de l'enregistrement {{type}} pour {{name}}",
+    purchased_dns_delete_record:
+      "Supprimer l'enregistrement {{type}} de {{name}}",
+    purchased_dns_read_only: "Lecture seule",
+    purchased_dns_mail_group: "Enregistrements Aster Mail",
+    purchased_dns_mail_group_tip:
+      "Aster gère ces enregistrements pour que votre messagerie continue de fonctionner. Vous ne pouvez pas les modifier ni les supprimer.",
+    purchased_dns_your_records: "Vos enregistrements",
+    purchased_dns_empty: "Vous n'avez encore ajouté aucun enregistrement.",
+    purchased_dns_limit_reached:
+      "Ce domaine a atteint le maximum de {{count}} enregistrements. Supprimez-en un pour en ajouter un autre.",
+    purchased_dns_col_type: "Type",
+    purchased_dns_col_name: "Nom",
+    purchased_dns_col_content: "Contenu",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Actions",
+    purchased_dns_host_hint:
+      "Utilisez @ pour le domaine lui-même, ou saisissez un sous-domaine comme www.",
+    purchased_dns_field_ipv4: "Adresse IPv4",
+    purchased_dns_field_ipv6: "Adresse IPv6",
+    purchased_dns_field_target: "Cible",
+    purchased_dns_field_content: "Contenu",
+    purchased_dns_field_mail_server: "Serveur de messagerie",
+    purchased_dns_field_caa_value: "Valeur",
+    purchased_dns_field_priority: "Priorité",
+    purchased_dns_field_weight: "Poids",
+    purchased_dns_field_port: "Port",
+    purchased_dns_field_flags: "Indicateurs",
+    purchased_dns_field_tag: "Balise",
+    purchased_dns_ttl_one_hour: "1 heure",
+    purchased_dns_ttl_hours: "{{count}} heures",
+    purchased_dns_ttl_one_day: "1 jour",
+    purchased_dns_ttl_days: "{{count}} jours",
+    purchased_dns_error_required: "Remplissez ce champ.",
+    purchased_dns_error_host:
+      "Saisissez un nom valide. Utilisez des lettres, des chiffres, des tirets et des traits de soulignement, avec 63 caractères maximum par label.",
+    purchased_dns_error_protected_host:
+      "Ce nom est réservé aux enregistrements Aster Mail.",
+    purchased_dns_error_apex_mx:
+      "Les enregistrements de messagerie du domaine lui-même sont gérés par Aster. Ajoutez plutôt les enregistrements MX sur un sous-domaine.",
+    purchased_dns_error_apex_cname:
+      "Un enregistrement CNAME ne peut pas utiliser le domaine lui-même. Utilisez plutôt un enregistrement A ou AAAA.",
+    purchased_dns_error_apex_spf:
+      "Aster publie déjà un enregistrement SPF pour ce domaine, et un domaine ne peut en avoir qu'un seul.",
+    purchased_dns_error_value: "Vérifiez la valeur et réessayez.",
+    purchased_dns_error_ip: "Saisissez une adresse IP valide.",
+    purchased_dns_error_ipv4:
+      "Saisissez une adresse IPv4 valide, comme 203.0.113.10.",
+    purchased_dns_error_ipv6:
+      "Saisissez une adresse IPv6 valide, comme 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Saisissez une adresse IP publique. Les adresses privées, locales et réservées ne sont pas accessibles depuis Internet.",
+    purchased_dns_error_target:
+      "Saisissez un nom d'hôte valide, comme example.com.",
+    purchased_dns_error_cname_self:
+      "Un enregistrement CNAME ne peut pas pointer vers son propre nom.",
+    purchased_dns_error_cname_conflict:
+      "Un nom doté d'un enregistrement CNAME ne peut pas avoir d'autres enregistrements. Supprimez d'abord les autres enregistrements, ou choisissez un autre nom.",
+    purchased_dns_error_txt_length:
+      "Le contenu TXT peut comporter jusqu'à 2 048 caractères.",
+    purchased_dns_error_txt_chars:
+      "Le contenu TXT ne peut contenir que des caractères imprimables standard, sans guillemets ni barres obliques inversées.",
+    purchased_dns_error_ttl: "Choisissez un TTL dans la liste.",
+    purchased_dns_error_priority:
+      "Saisissez une priorité comprise entre 0 et 65535.",
+    purchased_dns_error_weight: "Saisissez un poids compris entre 0 et 65535.",
+    purchased_dns_error_port: "Saisissez un port compris entre 1 et 65535.",
+    purchased_dns_error_srv_host:
+      "Un nom SRV commence par le service et le protocole, comme _sip._tcp.",
+    purchased_dns_error_caa_flags: "Choisissez 0 ou 128 pour les indicateurs.",
+    purchased_dns_error_caa_tag:
+      "Choisissez issue, issuewild ou iodef pour la balise.",
+    purchased_dns_error_caa_value:
+      "Saisissez une valeur de 255 caractères maximum, sans guillemets ni barres obliques inversées.",
+    purchased_dns_error_duplicate: "Cet enregistrement existe déjà.",
+    purchased_dns_error_too_many:
+      "Ce domaine a atteint le nombre maximal d'enregistrements. Supprimez-en un pour en ajouter un autre.",
+    purchased_dns_error_protected_record:
+      "Aster gère cet enregistrement, vous ne pouvez donc pas le modifier.",
+    purchased_dns_error_type_change:
+      "Vous ne pouvez pas modifier le type d'un enregistrement. Supprimez-le et ajoutez plutôt un nouvel enregistrement.",
+    purchased_dns_error_locked:
+      "La modification est désactivée pour ce domaine.",
+    purchased_dns_error_busy: "Le bureau d'enregistrement est occupé.",
+    purchased_dns_error_not_found: "Cet enregistrement n'existe plus.",
+    purchased_dns_error_rate_limited:
+      "Vous effectuez des modifications trop rapidement.",
+    purchased_dns_error_retry_in:
+      "{{message}} Réessayez dans {{count}} secondes.",
+    purchased_dns_error_retry_in_one: "{{message}} Réessayez dans {{count}} seconde.",
+    purchased_dns_ttl_seconds: "{{count}} secondes",
+    purchased_dns_expired_note: "La modification a été désactivée. Vos changements ne sont pas encore enregistrés. Lorsque vous cliquez sur Enregistrer, vous confirmez d'abord votre identité.",
+    purchased_dns_filter_placeholder: "Filtrer les enregistrements",
+    purchased_dns_filter_no_results: "Aucun enregistrement ne correspond à votre filtre.",
+    purchased_dns_keep_editing: "Continuer la modification",
+    purchased_dns_error_unlock_failed: "Impossible d'activer la modification. Réessayez.",
+    purchased_dns_error_generic:
+      "Impossible d'enregistrer votre modification. Réessayez.",
+    purchased_dns_load_failed: "Impossible de charger les enregistrements DNS. Réessayez.",
     domain_purchase_filter_all: "Tous",
     domain_purchase_filter_available: "Disponibles",
     domain_purchase_filter_taken: "Pris",

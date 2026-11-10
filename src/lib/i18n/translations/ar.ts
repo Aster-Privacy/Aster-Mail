@@ -7118,10 +7118,139 @@ export const ar = {
       "تخصم Aster المبلغ من بطاقتك المحفوظة قبل 30 يومًا من تاريخ الانتهاء وترسل إليك السعر بالبريد الإلكتروني قبل ذلك بـ 15 يومًا.",
     domain_purchase_manage_auto_renew_error:
       "تعذّر تحديث التجديد التلقائي. حاول مرة أخرى.",
-    domain_purchase_manage_dns: "فتح إعداد النطاق",
+    domain_purchase_manage_dns: "إدارة DNS",
     domain_purchase_manage_support_note:
-      "لنقل هذا النطاق إلى مسجّل آخر أو للسؤال عن استرداد المبلغ، تواصل مع الدعم.",
+      "للأسئلة المتعلقة بالفواتير أو استرداد المبلغ، تواصل مع الدعم.",
     domain_purchase_manage_support_subject: "مساعدة بشأن {{domain}}",
+    domain_transfer_button: "نقل",
+    domain_transfer_title: "نقل النطاق",
+    domain_transfer_hint:
+      "انقل هذا النطاق إلى مسجّل آخر. يرسل فريق الدعم رمز النقل إلى بريدك الوارد في Aster.",
+    domain_transfer_message:
+      "لنقل {{domain}} إلى مسجّل آخر، تحتاج إلى رمز نقل. عند المتابعة، تفتح Aster رسالة بريد إلكتروني إلى الدعم. يتأكد الدعم من أن الطلب صادر من هذا الحساب، ثم يرسل الرمز إلى صندوق الوارد في Aster. يستغرق النقل عادةً من 5 إلى 7 أيام بعد بدئه لدى المسجّل الجديد.",
+    domain_transfer_locked_message:
+      "لا يسمح المسجّلون بالنقل خلال {{count}} يومًا من التسجيل. يمكنك طلب نقل {{domain}} بدءًا من {{date}}.",
+    domain_transfer_confirm: "مراسلة الدعم",
+    domain_transfer_email_subject: "طلب نقل {{domain}}",
+    domain_transfer_email_body:
+      "أريد نقل {{domain}} إلى مسجّل آخر. أرسلوا رمز النقل إلى هذا العنوان.\n\nرقم الطلب: {{order_id}}\nالمسجّل الجديد:",
+    purchased_dns_title: "سجلات DNS",
+    purchased_dns_description:
+      "سجلات {{domain}}. تسري التغييرات عادةً خلال ساعة.",
+    purchased_dns_locked_title: "التعديل متوقف",
+    purchased_dns_locked_note:
+      "يمكنك عرض هذه السجلات، لكن لا يمكنك تغييرها الآن.",
+    purchased_dns_lock_frozen:
+      "التعديل متوقف مؤقتًا لهذا النطاق. تواصل مع الدعم لمعرفة المزيد.",
+    purchased_dns_lock_payment: "التعديل متوقف لأن دفعة هذا النطاق أُلغيت.",
+    purchased_dns_lock_lapsed:
+      "التعديل متوقف لأن هذا النطاق انتهت صلاحيته. جدّده لإجراء تغييرات.",
+    purchased_dns_lock_suspended: "التعديل متوقف لأن هذا النطاق معلّق.",
+    purchased_dns_unlock_title: "تأكيد هويتك",
+    purchased_dns_unlock_description:
+      "لتغيير سجلات DNS، أكّد هويتك. يبقى التعديل مفعّلًا لمدة 15 دقيقة.",
+    purchased_dns_unlock: "تفعيل التعديل",
+    purchased_dns_unlocked: "التعديل مفعّل",
+    purchased_dns_unlocked_for: "التعديل مفعّل لمدة {{time}}",
+    purchased_dns_lock: "إيقاف التعديل",
+    purchased_dns_add: "إضافة سجل",
+    purchased_dns_add_title: "إضافة سجل",
+    purchased_dns_edit_title: "تعديل السجل",
+    purchased_dns_added: "تمت إضافة السجل",
+    purchased_dns_updated: "تم تحديث السجل",
+    purchased_dns_deleted: "تم حذف السجل",
+    purchased_dns_delete_title: "هل تريد حذف السجل؟",
+    purchased_dns_delete_message:
+      "يتوقف حل سجل {{type}} الخاص بـ {{name}} بعد وقت قصير من حذفه.",
+    purchased_dns_edit_record: "تعديل سجل {{type}} الخاص بـ {{name}}",
+    purchased_dns_copy_record: "نسخ قيمة سجل {{type}} لـ {{name}}",
+    purchased_dns_delete_record: "حذف سجل {{type}} الخاص بـ {{name}}",
+    purchased_dns_read_only: "للقراءة فقط",
+    purchased_dns_mail_group: "سجلات Aster Mail",
+    purchased_dns_mail_group_tip:
+      "تدير Aster هذه السجلات حتى يستمر بريدك الإلكتروني في العمل. لا يمكنك تعديلها أو حذفها.",
+    purchased_dns_your_records: "سجلاتك",
+    purchased_dns_empty: "لم تُضف أي سجلات بعد.",
+    purchased_dns_limit_reached:
+      "وصل هذا النطاق إلى الحد الأقصى البالغ {{count}} سجلًا. احذف سجلًا لإضافة آخر.",
+    purchased_dns_col_type: "النوع",
+    purchased_dns_col_name: "الاسم",
+    purchased_dns_col_content: "المحتوى",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "الإجراءات",
+    purchased_dns_host_hint:
+      "استخدم @ للنطاق نفسه، أو أدخل نطاقًا فرعيًا مثل www.",
+    purchased_dns_field_ipv4: "عنوان IPv4",
+    purchased_dns_field_ipv6: "عنوان IPv6",
+    purchased_dns_field_target: "الهدف",
+    purchased_dns_field_content: "المحتوى",
+    purchased_dns_field_mail_server: "خادم البريد",
+    purchased_dns_field_caa_value: "القيمة",
+    purchased_dns_field_priority: "الأولوية",
+    purchased_dns_field_weight: "الوزن",
+    purchased_dns_field_port: "المنفذ",
+    purchased_dns_field_flags: "العلامات",
+    purchased_dns_field_tag: "الوسم",
+    purchased_dns_ttl_one_hour: "ساعة واحدة",
+    purchased_dns_ttl_hours: "{{count}} ساعات",
+    purchased_dns_ttl_one_day: "يوم واحد",
+    purchased_dns_ttl_days: "{{count}} أيام",
+    purchased_dns_error_required: "املأ هذا الحقل.",
+    purchased_dns_error_host:
+      "أدخل اسمًا صالحًا. استخدم الأحرف والأرقام والشرطات والشرطات السفلية، بحد أقصى 63 حرفًا لكل جزء.",
+    purchased_dns_error_protected_host: "هذا الاسم محجوز لسجلات Aster Mail.",
+    purchased_dns_error_apex_mx:
+      "تدير Aster سجلات البريد للنطاق نفسه. أضف سجلات MX على نطاق فرعي بدلًا من ذلك.",
+    purchased_dns_error_apex_cname:
+      "لا يمكن لسجل CNAME استخدام النطاق نفسه. استخدم سجل A أو AAAA بدلًا من ذلك.",
+    purchased_dns_error_apex_spf:
+      "تنشر Aster بالفعل سجل SPF لهذا النطاق، ولا يمكن أن يكون للنطاق سوى سجل واحد.",
+    purchased_dns_error_value: "تحقق من القيمة وحاول مرة أخرى.",
+    purchased_dns_error_ip: "أدخل عنوان IP صالحًا.",
+    purchased_dns_error_ipv4: "أدخل عنوان IPv4 صالحًا، مثل 203.0.113.10.",
+    purchased_dns_error_ipv6: "أدخل عنوان IPv6 صالحًا، مثل 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "أدخل عنوان IP عامًا. لا يمكن الوصول إلى العناوين الخاصة والمحلية والمحجوزة من الإنترنت.",
+    purchased_dns_error_target: "أدخل اسم مضيف صالحًا، مثل example.com.",
+    purchased_dns_error_cname_self: "لا يمكن لسجل CNAME أن يشير إلى اسمه.",
+    purchased_dns_error_cname_conflict:
+      "لا يمكن أن يحتوي اسم له سجل CNAME على سجلات أخرى. أزل السجلات الأخرى أولًا، أو اختر اسمًا آخر.",
+    purchased_dns_error_txt_length:
+      "يمكن أن يحتوي محتوى TXT على 2,048 حرفًا كحد أقصى.",
+    purchased_dns_error_txt_chars:
+      "يمكن أن يحتوي محتوى TXT على الأحرف القياسية القابلة للطباعة فقط، دون علامات اقتباس أو شرطات مائلة عكسية.",
+    purchased_dns_error_ttl: "اختر قيمة TTL من القائمة.",
+    purchased_dns_error_priority: "أدخل أولوية من 0 إلى 65535.",
+    purchased_dns_error_weight: "أدخل وزنًا من 0 إلى 65535.",
+    purchased_dns_error_port: "أدخل منفذًا من 1 إلى 65535.",
+    purchased_dns_error_srv_host:
+      "يبدأ اسم SRV بالخدمة والبروتوكول، مثل _sip._tcp.",
+    purchased_dns_error_caa_flags: "اختر 0 أو 128 للعلامات.",
+    purchased_dns_error_caa_tag: "اختر issue أو issuewild أو iodef للوسم.",
+    purchased_dns_error_caa_value:
+      "أدخل قيمة تحتوي على 255 حرفًا كحد أقصى، دون علامات اقتباس أو شرطات مائلة عكسية.",
+    purchased_dns_error_duplicate: "هذا السجل موجود بالفعل.",
+    purchased_dns_error_too_many:
+      "وصل هذا النطاق إلى الحد الأقصى لعدد السجلات. احذف سجلًا لإضافة آخر.",
+    purchased_dns_error_protected_record:
+      "تدير Aster هذا السجل، لذا لا يمكنك تغييره.",
+    purchased_dns_error_type_change:
+      "لا يمكنك تغيير نوع السجل. احذفه وأضف سجلًا جديدًا بدلًا من ذلك.",
+    purchased_dns_error_locked: "التعديل متوقف لهذا النطاق.",
+    purchased_dns_error_busy: "المسجّل مشغول.",
+    purchased_dns_error_not_found: "هذا السجل لم يعد موجودًا.",
+    purchased_dns_error_rate_limited: "أنت تُجري التغييرات بسرعة كبيرة.",
+    purchased_dns_error_retry_in:
+      "{{message}} حاول مرة أخرى بعد {{count}} ثانية.",
+    purchased_dns_error_retry_in_one: "{{message}} حاول مرة أخرى بعد ثانية واحدة.",
+    purchased_dns_ttl_seconds: "{{count}} ثانية",
+    purchased_dns_expired_note: "انتهت مهلة التحرير. لم يتم حفظ تغييراتك بعد. عند النقر على حفظ، سيُطلب منك تأكيد هويتك.",
+    purchased_dns_filter_placeholder: "تصفية السجلات",
+    purchased_dns_filter_no_results: "لا توجد سجلات تطابق عامل التصفية.",
+    purchased_dns_keep_editing: "متابعة التحرير",
+    purchased_dns_error_unlock_failed: "تعذّر تشغيل التحرير. حاول مرة أخرى.",
+    purchased_dns_error_generic: "تعذّر حفظ التغيير. حاول مرة أخرى.",
+    purchased_dns_load_failed: "تعذر تحميل سجلات DNS. حاول مرة أخرى.",
     domain_purchase_filter_all: "الكل",
     domain_purchase_filter_available: "متاح",
     domain_purchase_filter_taken: "محجوز",
