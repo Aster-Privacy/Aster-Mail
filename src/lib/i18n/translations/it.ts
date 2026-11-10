@@ -589,6 +589,9 @@ export const it = {
       "Il tuo pagamento non è andato a buon fine. L'accesso sarà limitato tra {{days}} giorni.",
     billing_alert_action: "Paga",
     dismiss: "Ignora",
+    web_sandbox_off_title: "I contenuti web vengono eseguiti senza la sandbox di sistema",
+    web_sandbox_off_body:
+      "Su questo computer Aster Mail non riesce ad avviare la sandbox bubblewrap, quindi i contenuti web vengono eseguiti senza. Per riattivarla, installi il pacchetto bubblewrap, consenta gli spazi dei nomi utente non privilegiati e riavvii Aster Mail.",
     load_content: "Carica",
     open_link: "Apri link",
     no_icon: "Nessuna icona",

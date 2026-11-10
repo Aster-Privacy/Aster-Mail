@@ -594,6 +594,9 @@ export const es = {
       "Tu pago no se completó. El acceso se limitará en {{days}} días.",
     billing_alert_action: "Pagar",
     dismiss: "Descartar",
+    web_sandbox_off_title: "El contenido web se ejecuta sin el aislamiento del sistema",
+    web_sandbox_off_body:
+      "En este equipo, Aster Mail no puede iniciar el aislamiento de bubblewrap, así que el contenido web se ejecuta sin él. Para volver a activarlo, instala el paquete bubblewrap, permite los espacios de nombres de usuario sin privilegios y reinicia Aster Mail.",
     load_content: "Cargar",
     open_link: "Abrir enlace",
     no_icon: "Sin icono",

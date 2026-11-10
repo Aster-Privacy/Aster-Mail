@@ -589,6 +589,9 @@ export const pl = {
       "Twoja płatność się nie powiodła. Dostęp zostanie ograniczony za {{days}} dni.",
     billing_alert_action: "Zapłać",
     dismiss: "Odrzuć",
+    web_sandbox_off_title: "Treści internetowe działają bez piaskownicy systemowej",
+    web_sandbox_off_body:
+      "Na tym komputerze Aster Mail nie może uruchomić piaskownicy bubblewrap, więc treści internetowe działają bez niej. Aby ją ponownie włączyć, zainstaluj pakiet bubblewrap, zezwól na nieuprzywilejowane przestrzenie nazw użytkowników i uruchom ponownie Aster Mail.",
     load_content: "Załaduj",
     open_link: "Otwórz link",
     no_icon: "Brak ikony",

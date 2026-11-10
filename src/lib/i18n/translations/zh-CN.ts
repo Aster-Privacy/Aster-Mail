@@ -528,6 +528,9 @@ export const zh_CN = {
     billing_alert_body_days: "付款未成功。访问权限将在 {{days}} 天后受限。",
     billing_alert_action: "付款",
     dismiss: "忽略",
+    web_sandbox_off_title: "网页内容正在没有系统沙盒的情况下运行",
+    web_sandbox_off_body:
+      "在这台电脑上，Aster Mail 无法启动 bubblewrap 沙盒，因此网页内容在没有沙盒的情况下运行。要重新启用沙盒，请安装 bubblewrap 软件包并允许非特权用户命名空间，然后重新启动 Aster Mail。",
     load_content: "加载",
     open_link: "打开链接",
     no_icon: "无图标",

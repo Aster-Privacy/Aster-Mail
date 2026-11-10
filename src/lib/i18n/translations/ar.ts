@@ -575,6 +575,9 @@ export const ar = {
       "لم تتم عملية الدفع. سيتم تقييد الوصول خلال {{days}} يوماً.",
     billing_alert_action: "ادفع",
     dismiss: "تجاهل",
+    web_sandbox_off_title: "يعمل محتوى الويب دون بيئة العزل الخاصة بالنظام",
+    web_sandbox_off_body:
+      "على هذا الكمبيوتر، لا يستطيع Aster Mail تشغيل بيئة العزل bubblewrap، لذلك يعمل محتوى الويب من دونها. لإعادة تشغيلها، ثبّت حزمة bubblewrap واسمح بمساحات أسماء المستخدمين غير المميزة، ثم أعد تشغيل Aster Mail.",
     load_content: "تحميل",
     open_link: "فتح الرابط",
     no_icon: "بدون أيقونة",

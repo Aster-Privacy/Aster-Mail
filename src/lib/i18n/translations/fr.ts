@@ -594,6 +594,9 @@ export const fr = {
       "Votre paiement n'a pas abouti. L'accès sera limité dans {{days}} jours.",
     billing_alert_action: "Payer",
     dismiss: "Ignorer",
+    web_sandbox_off_title: "Le contenu web s'exécute sans le bac à sable du système",
+    web_sandbox_off_body:
+      "Sur cet ordinateur, Aster Mail ne peut pas démarrer le bac à sable bubblewrap, donc le contenu web s'exécute sans lui. Pour le réactiver, installez le paquet bubblewrap, autorisez les espaces de noms utilisateur non privilégiés, puis redémarrez Aster Mail.",
     load_content: "Charger",
     open_link: "Ouvrir le lien",
     no_icon: "Pas d'icône",
