@@ -541,6 +541,10 @@ export async function wipe_all_storage(): Promise<void> {
     const { Capacitor } = await import("@capacitor/core");
 
     if (Capacitor.isNativePlatform()) {
+      const { native_token_store } =
+        await import("@/services/api/client/native_token_store");
+
+      await native_token_store.clear_all();
       const { Preferences } = await import("@capacitor/preferences");
 
       await Preferences.clear();
