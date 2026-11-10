@@ -33,6 +33,7 @@ vi.mock("@/services/api/client", () => {
 
 vi.mock("@/services/crypto/legacy_keks", () => ({
   decrypt_aes_gcm_with_fallback: vi.fn(),
+  decrypt_with_remembered_derived_key: vi.fn(async () => null),
 }));
 
 vi.mock("./double_ratchet", () => ({

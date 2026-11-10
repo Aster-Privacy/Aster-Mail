@@ -65,6 +65,8 @@ let account_write_base_keys = new Map<AccountDataContext, CryptoKey>();
 let account_write_key_id: string | null = null;
 let account_write_epoch = 0;
 let account_key_generation = 0;
+let remembered_raw_key: CryptoKey | null = null;
+let remembered_hkdf_key: CryptoKey | null = null;
 
 async function derive_salt_from_passphrase(
   passphrase_bytes: Uint8Array,
@@ -394,34 +396,116 @@ export function clear_account_key_derived_keks(): void {
   loaded_account_key_ids = new Set();
   clear_account_data_write_keys();
   account_key_generation += 1;
+  remembered_raw_key = null;
+  remembered_hkdf_key = null;
 }
 
 export function clear_legacy_keks_from_memory(): void {
   legacy_crypto_keys = [];
   legacy_hkdf_keys = [];
+  remembered_raw_key = null;
+  remembered_hkdf_key = null;
 }
 
 export function get_legacy_crypto_keys(): CryptoKey[] {
   return [...legacy_crypto_keys, ...account_crypto_keys];
 }
 
-export async function decrypt_with_legacy_derived_keys(
-  derive: (base: CryptoKey) => Promise<CryptoKey>,
+type LegacyKeyDeriver = (base: CryptoKey) => Promise<CryptoKey>;
+
+function gcm_params(
+  iv: BufferSource,
+  additional_data?: BufferSource,
+): AesGcmParams {
+  return additional_data
+    ? { name: "AES-GCM", iv, additionalData: additional_data }
+    : { name: "AES-GCM", iv };
+}
+
+function held_raw_key(): CryptoKey | null {
+  const key = remembered_raw_key;
+
+  if (!key) return null;
+  if (legacy_crypto_keys.includes(key) || account_crypto_keys.includes(key)) {
+    return key;
+  }
+
+  return null;
+}
+
+function held_hkdf_key(): CryptoKey | null {
+  const key = remembered_hkdf_key;
+
+  if (!key) return null;
+  if (legacy_hkdf_keys.includes(key) || account_hkdf_keys.includes(key)) {
+    return key;
+  }
+
+  return null;
+}
+
+async function open_with_derived(
+  derive: LegacyKeyDeriver,
+  base: CryptoKey,
+  params: AesGcmParams,
+  ciphertext: BufferSource,
+): Promise<ArrayBuffer | null> {
+  try {
+    const key = await derive(base);
+
+    return await crypto.subtle.decrypt(params, key, ciphertext);
+  } catch {
+    return null;
+  }
+}
+
+export async function decrypt_with_remembered_derived_key(
+  derive: LegacyKeyDeriver,
   ciphertext: BufferSource,
   iv: BufferSource,
   additional_data?: BufferSource,
 ): Promise<ArrayBuffer | null> {
-  const params: AesGcmParams = additional_data
-    ? { name: "AES-GCM", iv, additionalData: additional_data }
-    : { name: "AES-GCM", iv };
+  const base = held_hkdf_key();
+
+  if (!base) return null;
+
+  return open_with_derived(
+    derive,
+    base,
+    gcm_params(iv, additional_data),
+    ciphertext,
+  );
+}
+
+export async function decrypt_with_legacy_derived_keys(
+  derive: LegacyKeyDeriver,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+  additional_data?: BufferSource,
+): Promise<ArrayBuffer | null> {
+  const params = gcm_params(iv, additional_data);
+  const remembered = held_hkdf_key();
+
+  if (remembered) {
+    const opened = await open_with_derived(
+      derive,
+      remembered,
+      params,
+      ciphertext,
+    );
+
+    if (opened) return opened;
+  }
 
   for (const base of [...legacy_hkdf_keys, ...account_hkdf_keys]) {
-    try {
-      const key = await derive(base);
+    if (base === remembered) continue;
 
-      return await crypto.subtle.decrypt(params, key, ciphertext);
-    } catch {
-      continue;
+    const opened = await open_with_derived(derive, base, params, ciphertext);
+
+    if (opened) {
+      remembered_hkdf_key = base;
+
+      return opened;
     }
   }
 
@@ -441,10 +525,36 @@ export async function append_legacy_key_raw_bytes(
   }
 }
 
+async function open_with_raw_keys(
+  keys: CryptoKey[],
+  ciphertext: BufferSource,
+  iv: BufferSource,
+): Promise<ArrayBuffer | null> {
+  if (keys.length === 0) return null;
+
+  return new Promise<ArrayBuffer | null>((resolve) => {
+    let remaining = keys.length;
+
+    for (const key of keys) {
+      crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext).then(
+        (plaintext) => {
+          remembered_raw_key = key;
+          resolve(plaintext);
+        },
+        () => {
+          remaining -= 1;
+          if (remaining === 0) resolve(null);
+        },
+      );
+    }
+  });
+}
+
 export async function decrypt_aes_gcm_with_fallback(
   primary_key: CryptoKey,
   ciphertext: BufferSource,
   iv: BufferSource,
+  derive?: LegacyKeyDeriver,
 ): Promise<ArrayBuffer> {
   try {
     return await crypto.subtle.decrypt(
@@ -453,25 +563,31 @@ export async function decrypt_aes_gcm_with_fallback(
       ciphertext,
     );
   } catch (primary_error) {
-    const fallback_keys = [...legacy_crypto_keys, ...account_crypto_keys];
+    const remembered = held_raw_key();
 
-    if (fallback_keys.length === 0) {
-      throw primary_error;
+    if (remembered) {
+      const opened = await open_with_raw_keys([remembered], ciphertext, iv);
+
+      if (opened) return opened;
     }
 
-    const attempts = fallback_keys.map((fallback_key) =>
-      crypto.subtle.decrypt({ name: "AES-GCM", iv }, fallback_key, ciphertext),
+    if (derive) {
+      const opened = await decrypt_with_remembered_derived_key(
+        derive,
+        ciphertext,
+        iv,
+      );
+
+      if (opened) return opened;
+    }
+
+    const rest = [...legacy_crypto_keys, ...account_crypto_keys].filter(
+      (key) => key !== remembered,
     );
+    const recovered = await open_with_raw_keys(rest, ciphertext, iv);
 
-    return new Promise<ArrayBuffer>((resolve, reject) => {
-      let remaining = attempts.length;
+    if (recovered) return recovered;
 
-      for (const attempt of attempts) {
-        attempt.then(resolve).catch(() => {
-          remaining -= 1;
-          if (remaining === 0) reject(primary_error);
-        });
-      }
-    });
+    throw primary_error;
   }
 }

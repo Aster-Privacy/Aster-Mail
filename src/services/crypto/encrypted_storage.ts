@@ -230,6 +230,7 @@ async function open_entry<T>(
         storage_key,
         entry.ciphertext,
         entry.iv,
+        (base) => derive_storage_key_from_hkdf_key(base, key),
       );
     } catch (primary_error) {
       const recovered = await decrypt_entry_with_legacy_storage_keys(
