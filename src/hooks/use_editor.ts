@@ -27,6 +27,7 @@ import {
   find_own_signature,
   append_signature_node,
   remove_signature_node,
+  to_plain_text_signature_node,
 } from "@/lib/signature_html";
 import {
   get_compose_sanitize_options,
@@ -217,15 +218,17 @@ export function use_editor({
         return;
       }
 
-      if (is_plain_text_mode) return;
-
       const sanitized = sanitize_html(html, get_compose_sanitize_options());
       const wrapper = document.createElement("div");
 
       wrapper.innerHTML = sanitized.html;
-      const new_node = wrapper.firstElementChild;
+      const sanitized_node = wrapper.firstElementChild;
 
-      if (!new_node) return;
+      if (!sanitized_node) return;
+
+      const new_node = is_plain_text_mode
+        ? to_plain_text_signature_node(sanitized_node)
+        : sanitized_node;
 
       if (existing) {
         existing.replaceWith(new_node);
