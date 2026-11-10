@@ -326,6 +326,16 @@ function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const sidebar_writes = { epoch: 0, pending: 0 };
+
+export function sidebar_write_snapshot(): number {
+  return sidebar_writes.epoch;
+}
+
+export function sidebar_write_superseded(snapshot: number): boolean {
+  return sidebar_writes.pending > 0 || sidebar_writes.epoch !== snapshot;
+}
+
 function replace_cached_aliases(next: DecryptedEmailAlias[]): void {
   cached_aliases.data = next;
   rebuild_alias_index();
@@ -339,18 +349,26 @@ async function apply_sidebar_plan(
 
   const previous = cached_aliases.data;
 
+  sidebar_writes.epoch += 1;
   replace_cached_aliases(plan.aliases);
 
   if (plan.updates.length === 0) return true;
+
+  sidebar_writes.pending += 1;
 
   try {
     const response = await update_sidebar_addresses(plan.updates);
 
     if (response.error) throw new Error(response.error);
   } catch {
-    replace_cached_aliases(previous);
+    if (cached_aliases.data === plan.aliases) {
+      replace_cached_aliases(previous);
+    }
 
     return false;
+  } finally {
+    sidebar_writes.pending -= 1;
+    sidebar_writes.epoch += 1;
   }
 
   emit_aliases_changed();
@@ -418,6 +436,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     }
 
     const this_generation = ++alias_generation_ref.current;
+    const write_snapshot = sidebar_write_snapshot();
 
     const attempt_fetch = async (): Promise<"done" | "stale" | "retry"> => {
       if (!has_passphrase_in_memory() || !get_derived_encryption_key()) {
@@ -536,6 +555,12 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
         if (this_generation !== alias_generation_ref.current) return "stale";
 
         if (raw_alias_list === null) return "retry";
+
+        if (sidebar_write_superseded(write_snapshot)) {
+          set_is_loading(false);
+
+          return "stale";
+        }
 
         {
           cached_aliases.data = merged;

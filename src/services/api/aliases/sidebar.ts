@@ -21,6 +21,9 @@
 import type {} from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "../client";
+import { request_cache } from "../request_cache";
+
+export const DOMAIN_ADDRESSES_CACHE_PREFIX = "/addresses/v1/domains/";
 
 export type SidebarAddressKind = "alias" | "domain";
 
@@ -34,7 +37,14 @@ export interface SidebarAddressUpdate {
 export async function update_sidebar_addresses(
   entries: SidebarAddressUpdate[],
 ): Promise<ApiResponse<{ updated: number }>> {
-  return api_client.post<{ updated: number }>("/addresses/v1/aliases/sidebar", {
-    entries,
-  });
+  const response = await api_client.post<{ updated: number }>(
+    "/addresses/v1/aliases/sidebar",
+    { entries },
+  );
+
+  if (entries.some((entry) => entry.kind === "domain")) {
+    request_cache.invalidate(DOMAIN_ADDRESSES_CACHE_PREFIX);
+  }
+
+  return response;
 }
