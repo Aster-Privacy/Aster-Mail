@@ -8,6 +8,11 @@ RUN addgroup -g 1001 -S appgroup && \
 
 RUN sed -i 's|application/javascript\s*js;|application/javascript js mjs;|' /etc/nginx/mime.types
 
+RUN sed -i 's|worker_connections  1024;|worker_connections  8192;|' /etc/nginx/nginx.conf && \
+    sed -i 's|^worker_processes  auto;|worker_processes  auto;\nworker_rlimit_nofile 32768;|' /etc/nginx/nginx.conf && \
+    grep -q 'worker_connections  8192;' /etc/nginx/nginx.conf && \
+    grep -q '^worker_rlimit_nofile 32768;' /etc/nginx/nginx.conf
+
 RUN grep -q webmanifest /etc/nginx/mime.types || \
     sed -i 's|application/json  *json;|application/json                       json;\n    application/manifest+json             webmanifest;|' /etc/nginx/mime.types
 
