@@ -11,13 +11,19 @@ name: Verify Release Download Assets
 on:
   release:
     types: [released, published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to verify
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
   verify:
-    if: github.event.release.draft == false && github.event.release.prerelease == false
+    if: github.event_name == 'workflow_dispatch' || (github.event.release.draft == false && github.event.release.prerelease == false)
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -27,7 +33,7 @@ jobs:
       - name: Ensure website download assets exist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
           REPO: ${{ github.repository }}
         shell: bash
         run: |
@@ -127,6 +133,6 @@ jobs:
       - name: Verify the APK signature and publish its fingerprint
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
           REPO: ${{ github.repository }}
         run: bash scripts/ensure_apk_verification.sh "$TAG" "$REPO"
