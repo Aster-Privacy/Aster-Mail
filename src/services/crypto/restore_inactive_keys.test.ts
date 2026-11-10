@@ -67,11 +67,35 @@ vi.mock("../account_manager", () => ({
 }));
 
 const merge_recovered_identity_keys = vi.fn();
+const repair_vault_pgp_keys = vi.fn();
+const clear_unlocked_key_cache = vi.fn();
 
 vi.mock("./identity_key_materials", () => ({
   merge_recovered_identity_keys: (...args: unknown[]) =>
     merge_recovered_identity_keys(...args),
+  repair_vault_pgp_keys: (...args: unknown[]) => repair_vault_pgp_keys(...args),
+  private_key_unlocks: async () => true,
 }));
+
+vi.mock("./key_manager_pgp_unlocked_cache", () => ({
+  clear_unlocked_key_cache: () => clear_unlocked_key_cache(),
+}));
+
+function no_repair(vault: {
+  identity_key: string;
+  signed_prekey_private: string;
+  previous_keys?: string[];
+  legacy_identity_keys?: string[];
+}) {
+  return {
+    identity_key: vault.identity_key,
+    signed_prekey_private: vault.signed_prekey_private,
+    previous_keys: vault.previous_keys ?? [],
+    legacy_identity_keys: vault.legacy_identity_keys ?? [],
+    repaired: 0,
+    locked: 0,
+  };
+}
 
 vi.mock("./vault_write_lock", () => ({
   with_vault_write_lock: (fn: () => Promise<unknown>) => fn(),
@@ -128,6 +152,7 @@ describe("restore_inactive_key_sets", () => {
     verify_vault_roundtrip.mockResolvedValue(true);
     push_vault_to_server.mockResolvedValue(true);
     server_vault_matches_stored.mockResolvedValue(true);
+    repair_vault_pgp_keys.mockImplementation(async (vault) => no_repair(vault));
     get_vault_from_memory.mockReturnValue(current_vault());
     get_passphrase_from_memory.mockReturnValue("passphrase");
     get_current_account.mockResolvedValue({ user: { id: "user-1" } });
@@ -355,6 +380,84 @@ describe("restore_inactive_key_sets", () => {
     });
     expect(fetch_inactive_key_set).not.toHaveBeenCalled();
     expect(encrypt_vault).not.toHaveBeenCalled();
+  });
+
+  it("repairs current vault keys locked with the previous password when nothing is archived", async () => {
+    list_inactive_key_sets.mockResolvedValue({
+      data: { inactive_key_sets: [] },
+    });
+    repair_vault_pgp_keys.mockResolvedValue({
+      identity_key: "identity-relocked",
+      signed_prekey_private: "spk-priv-relocked",
+      previous_keys: ["identity-relocked"],
+      legacy_identity_keys: ["identity"],
+      repaired: 2,
+      locked: 2,
+    });
+
+    expect(await restore_inactive_key_sets("old-password")).toEqual({
+      restored: 2,
+      incomplete: 0,
+      wrong_password: false,
+    });
+
+    const [, old_password, current] = repair_vault_pgp_keys.mock.calls[0];
+
+    expect(old_password).toBe("old-password");
+    expect(current).toBe("passphrase");
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      identity_key: string;
+      signed_prekey_private: string;
+      previous_keys: string[];
+      legacy_identity_keys: string[];
+    };
+
+    expect(saved.identity_key).toBe("identity-relocked");
+    expect(saved.signed_prekey_private).toBe("spk-priv-relocked");
+    expect(saved.previous_keys).toEqual(["identity-relocked"]);
+    expect(saved.legacy_identity_keys).toEqual(["identity"]);
+    expect(verify_vault_roundtrip.mock.calls[0][3]).toBe("identity-relocked");
+    expect(push_vault_to_server).toHaveBeenCalledTimes(1);
+    expect(clear_unlocked_key_cache).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a wrong password when locked vault keys reject it", async () => {
+    list_inactive_key_sets.mockResolvedValue({
+      data: { inactive_key_sets: [] },
+    });
+    repair_vault_pgp_keys.mockImplementation(async (vault) => ({
+      ...no_repair(vault),
+      locked: 2,
+    }));
+
+    expect(await restore_inactive_key_sets("wrong-password")).toEqual({
+      restored: 0,
+      incomplete: 0,
+      wrong_password: true,
+    });
+    expect(encrypt_vault).not.toHaveBeenCalled();
+    expect(push_vault_to_server).not.toHaveBeenCalled();
+  });
+
+  it("reports repaired keys as incomplete when the vault write fails", async () => {
+    list_inactive_key_sets.mockResolvedValue({
+      data: { inactive_key_sets: [] },
+    });
+    push_vault_to_server.mockResolvedValue(null);
+    repair_vault_pgp_keys.mockImplementation(async (vault) => ({
+      ...no_repair(vault),
+      identity_key: "identity-relocked",
+      repaired: 1,
+      locked: 1,
+    }));
+
+    expect(await restore_inactive_key_sets("old-password")).toEqual({
+      restored: 0,
+      incomplete: 1,
+      wrong_password: false,
+    });
+    expect(clear_unlocked_key_cache).not.toHaveBeenCalled();
   });
 
   it("stops when the vault is locked", async () => {

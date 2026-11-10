@@ -21,6 +21,7 @@
 import type { EncryptedVault } from "./key_manager_core";
 
 import { reprotect_pgp_key } from "./key_manager_pgp_keygen";
+import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
@@ -118,6 +119,8 @@ export async function retained_identity_key_materials(
 }
 
 export interface RecoveredIdentityKeys {
+  identity_key?: string;
+  signed_prekey_private?: string;
   previous_keys: string[];
   legacy_identity_keys: string[];
   absorbed: boolean[];
@@ -241,4 +244,141 @@ export async function reprotect_vault_keys_for_password_change(
   vault.previous_keys = previous_keys.slice(0, MAX_PREVIOUS_KEYS);
   vault.signed_prekey_private = signed_prekey_private;
   vault.legacy_identity_keys = retained;
+}
+
+export async function private_key_unlocks(
+  armored: string,
+  passphrase: string,
+): Promise<boolean> {
+  const openpgp = await load_openpgp();
+
+  try {
+    const key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+    if (key.isDecrypted()) return true;
+  } catch {
+    return true;
+  }
+
+  try {
+    await unlock_private_key(armored, passphrase);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export interface VaultPgpKeyRepair {
+  identity_key: string;
+  signed_prekey_private: string;
+  previous_keys: string[];
+  legacy_identity_keys: string[];
+  repaired: number;
+  locked: number;
+}
+
+export async function repair_vault_pgp_keys_with(
+  vault: EncryptedVault,
+  unlocks: (armored: string) => Promise<boolean>,
+  relock: (armored: string) => Promise<string>,
+): Promise<VaultPgpKeyRepair> {
+  const locked_ids = new Set<string>();
+  const repaired_ids = new Set<string>();
+  const usable_ids = new Set<string>();
+  const replaced: string[] = [];
+  const usable_materials = new Set<string>();
+
+  const repair = async (armored: string): Promise<string> => {
+    if (!armored) return armored;
+
+    const id = await key_identity(armored);
+
+    if (await unlocks(armored)) {
+      usable_ids.add(id);
+      usable_materials.add(armored);
+
+      return armored;
+    }
+
+    locked_ids.add(id);
+
+    try {
+      const relocked = await relock(armored);
+
+      repaired_ids.add(id);
+      usable_ids.add(id);
+      usable_materials.add(relocked);
+      replaced.push(armored);
+
+      return relocked;
+    } catch {
+      return armored;
+    }
+  };
+
+  const identity_key = await repair(vault.identity_key);
+  const signed_prekey_private = await repair(vault.signed_prekey_private);
+  const repaired_previous: string[] = [];
+
+  for (const previous_key of vault.previous_keys ?? []) {
+    repaired_previous.push(await repair(previous_key));
+  }
+
+  const recovered_legacy: string[] = [];
+
+  for (const legacy_key of unique_non_empty(vault.legacy_identity_keys ?? [])) {
+    if (usable_ids.has(await key_identity(legacy_key))) continue;
+
+    const relocked = await repair(legacy_key);
+
+    if (relocked !== legacy_key) recovered_legacy.push(relocked);
+  }
+
+  for (const id of usable_ids) locked_ids.delete(id);
+
+  if (repaired_ids.size === 0) {
+    return {
+      identity_key: vault.identity_key,
+      signed_prekey_private: vault.signed_prekey_private,
+      previous_keys: vault.previous_keys ?? [],
+      legacy_identity_keys: vault.legacy_identity_keys ?? [],
+      repaired: 0,
+      locked: locked_ids.size,
+    };
+  }
+
+  const previous_keys = (
+    await unique_by_fingerprint([
+      ...repaired_previous.filter((key) => usable_materials.has(key)),
+      ...recovered_legacy,
+      ...repaired_previous.filter((key) => !usable_materials.has(key)),
+    ])
+  ).slice(0, MAX_PREVIOUS_KEYS);
+
+  const legacy_identity_keys = unique_non_empty([
+    ...replaced,
+    ...(vault.legacy_identity_keys ?? []),
+  ]).slice(0, MAX_LEGACY_IDENTITY_KEYS);
+
+  return {
+    identity_key,
+    signed_prekey_private,
+    previous_keys,
+    legacy_identity_keys,
+    repaired: repaired_ids.size,
+    locked: locked_ids.size,
+  };
+}
+
+export async function repair_vault_pgp_keys(
+  vault: EncryptedVault,
+  old_password: string,
+  current_password: string,
+): Promise<VaultPgpKeyRepair> {
+  return repair_vault_pgp_keys_with(
+    vault,
+    (armored) => private_key_unlocks(armored, current_password),
+    (armored) => reprotect_pgp_key(armored, old_password, current_password),
+  );
 }

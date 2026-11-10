@@ -28,6 +28,11 @@ import {
   get_codes_status,
   get_recovery_methods,
 } from "@/services/api/recovery";
+import { vault_keys_need_previous_password } from "@/services/crypto/restore_inactive_keys";
+
+vi.mock("@/services/crypto/restore_inactive_keys", () => ({
+  vault_keys_need_previous_password: vi.fn(),
+}));
 
 vi.mock("@/services/api/recovery", () => ({
   get_codes_status: vi.fn(),
@@ -78,6 +83,7 @@ describe("AccountRecoverySection", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
+    vi.mocked(vault_keys_need_previous_password).mockResolvedValue(false);
     vi.mocked(get_codes_status).mockResolvedValue({
       data: {
         created_at: "2026-10-07T00:00:00Z",
@@ -130,5 +136,14 @@ describe("AccountRecoverySection", () => {
 
     expect(container.textContent).not.toContain("common.recover_data_title");
     expect(recover_button()).toBeUndefined();
+  });
+
+  it("offers to recover data when vault keys need the previous password", async () => {
+    vi.mocked(get_recovery_methods).mockResolvedValue(methods(0) as never);
+    vi.mocked(vault_keys_need_previous_password).mockResolvedValue(true);
+    await render();
+
+    expect(container.textContent).toContain("common.recover_data_title");
+    expect(recover_button()).toBeDefined();
   });
 });

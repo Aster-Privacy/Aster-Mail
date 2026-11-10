@@ -36,6 +36,7 @@ const h = vi.hoisted(() => ({
   code_calls: [] as string[],
   keys_ready_calls: 0,
   refresh_calls: 0,
+  locked_vault_keys: false,
 }));
 
 vi.mock("./api/recovery", () => ({
@@ -60,6 +61,7 @@ vi.mock("@/hooks/mail_events", () => ({
 
 vi.mock("./crypto/restore_inactive_keys", () => ({
   RECOVERY_CODE_RATE_LIMITED: "recovery_code_rate_limited",
+  vault_keys_need_previous_password: async () => h.locked_vault_keys,
   restore_inactive_key_sets_with_code: async (code: string) => {
     h.code_calls.push(code);
     if (h.code_error) throw h.code_error;
@@ -128,6 +130,7 @@ beforeEach(() => {
   h.code_calls = [];
   h.keys_ready_calls = 0;
   h.refresh_calls = 0;
+  h.locked_vault_keys = false;
 });
 
 describe("locked data status", () => {
@@ -137,10 +140,22 @@ describe("locked data status", () => {
     expect(status).toEqual({
       inactive_key_sets: 0,
       locked_sent_mail: 0,
+      locked_vault_keys: false,
       signature: "|",
       latest_retired_at: null,
     });
     expect(has_locked_data(status)).toBe(false);
+  });
+
+  it("reports vault keys that still need the previous password", async () => {
+    h.locked_vault_keys = true;
+
+    const status = await get_locked_data_status("account-1");
+
+    expect(status?.inactive_key_sets).toBe(0);
+    expect(status?.locked_vault_keys).toBe(true);
+    expect(status?.signature).toBe("||keys");
+    expect(has_locked_data(status)).toBe(true);
   });
 
   it("reports when the most recent key set was retired", async () => {

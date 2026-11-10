@@ -83,6 +83,8 @@ vi.mock("./identity_key_materials", () => ({
   merge_recovered_identity_keys: vi.fn(),
   merge_identity_keys_with: (...args: unknown[]) =>
     merge_identity_keys_with(...args),
+  repair_vault_pgp_keys: vi.fn(),
+  private_key_unlocks: vi.fn(),
 }));
 
 vi.mock("./vault_write_lock", () => ({

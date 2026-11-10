@@ -40,6 +40,7 @@ import {
   RecoveryCodesModal,
   RecoveryCodesModalMode,
 } from "@/components/settings/security/recovery_codes_modal";
+import { vault_keys_need_previous_password } from "@/services/crypto/restore_inactive_keys";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 const LOW_CODES_THRESHOLD = 3;
@@ -70,14 +71,18 @@ export function AccountRecoverySection({
     useState<RecoveryCodesModalMode>("regenerate");
   const [load_error, set_load_error] = useState(false);
   const [show_recover_data, set_show_recover_data] = useState(false);
+  const [locked_vault_keys, set_locked_vault_keys] = useState(false);
   const { user } = use_auth();
   const account_id = user?.id ?? null;
 
   const fetch_methods = useCallback(async () => {
-    const [methods_response, status_response] = await Promise.all([
+    const [methods_response, status_response, keys_locked] = await Promise.all([
       get_recovery_methods(),
       get_codes_status(),
+      vault_keys_need_previous_password().catch(() => false),
     ]);
+
+    set_locked_vault_keys(keys_locked);
 
     if (methods_response.data) {
       set_methods(methods_response.data);
@@ -94,7 +99,8 @@ export function AccountRecoverySection({
   }, [fetch_methods]);
 
   const has_codes = methods?.has_codes ?? false;
-  const has_locked_data = (methods?.inactive_key_sets ?? 0) > 0;
+  const has_locked_data =
+    (methods?.inactive_key_sets ?? 0) > 0 || locked_vault_keys;
   const has_offline_method = has_codes || (methods?.has_phrase ?? false);
   const remaining = status?.remaining ?? 0;
   const is_low =

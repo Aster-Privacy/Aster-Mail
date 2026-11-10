@@ -26,6 +26,7 @@ import {
   RECOVERY_CODE_RATE_LIMITED,
   restore_inactive_key_sets,
   restore_inactive_key_sets_with_code,
+  vault_keys_need_previous_password,
 } from "./crypto/restore_inactive_keys";
 import {
   get_passphrase_from_memory,
@@ -44,6 +45,7 @@ import { emit_refresh_requested } from "@/hooks/mail_events";
 export interface LockedDataStatus {
   inactive_key_sets: number;
   locked_sent_mail: number;
+  locked_vault_keys: boolean;
   signature: string;
   latest_retired_at: number | null;
 }
@@ -59,7 +61,10 @@ export interface LockedDataRecovery {
 
 export function has_locked_data(status: LockedDataStatus | null): boolean {
   return (
-    !!status && (status.inactive_key_sets > 0 || status.locked_sent_mail > 0)
+    !!status &&
+    (status.inactive_key_sets > 0 ||
+      status.locked_sent_mail > 0 ||
+      status.locked_vault_keys)
   );
 }
 
@@ -90,11 +95,16 @@ export async function get_locked_data_status(
     .map((key_set) => Date.parse(key_set.retired_at))
     .filter((time) => Number.isFinite(time));
   const locked_sent_mail = read_locked_sent_mail(account_id);
+  const locked_vault_keys = await vault_keys_need_previous_password().catch(
+    () => false,
+  );
+  const signature = `${ids.join(",")}|${locked_sent_mail > 0 ? "sent" : ""}`;
 
   return {
     inactive_key_sets: ids.length,
     locked_sent_mail,
-    signature: `${ids.join(",")}|${locked_sent_mail > 0 ? "sent" : ""}`,
+    locked_vault_keys,
+    signature: locked_vault_keys ? `${signature}|keys` : signature,
     latest_retired_at:
       retired_times.length > 0 ? Math.max(...retired_times) : null,
   };

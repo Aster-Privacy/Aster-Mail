@@ -59,8 +59,11 @@ import { with_vault_write_lock } from "./vault_write_lock";
 import {
   merge_identity_keys_with,
   merge_recovered_identity_keys,
+  private_key_unlocks,
+  repair_vault_pgp_keys,
   type RecoveredIdentityKeys,
 } from "./identity_key_materials";
+import { clear_unlocked_key_cache } from "./key_manager_pgp_unlocked_cache";
 import {
   read_unlocked_keys,
   relock_with_unlocked_keys,
@@ -154,7 +157,101 @@ const NO_PASSWORD_RESTORE: PasswordRestoreResult = {
   wrong_password: false,
 };
 
+export interface VaultKeyRepairResult {
+  repaired: number;
+  locked: number;
+  failed: number;
+}
+
+const NO_VAULT_KEY_REPAIR: VaultKeyRepairResult = {
+  repaired: 0,
+  locked: 0,
+  failed: 0,
+};
+
+export async function vault_keys_need_previous_password(): Promise<boolean> {
+  const vault = get_vault_from_memory();
+  const passphrase = get_passphrase_from_memory();
+
+  if (!vault || !passphrase) return false;
+
+  try {
+    for (const armored of [vault.identity_key, vault.signed_prekey_private]) {
+      if (armored && !(await private_key_unlocks(armored, passphrase))) {
+        return true;
+      }
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
+}
+
+export async function repair_current_vault_pgp_keys(
+  old_password: string,
+): Promise<VaultKeyRepairResult> {
+  return with_vault_write_lock(async () => {
+    const account = await get_current_account();
+    const user_id = account?.user?.id;
+    const vault = await latest_vault_for_commit();
+    const passphrase = get_passphrase_from_memory();
+
+    if (!user_id || !vault || !passphrase || old_password === passphrase) {
+      return NO_VAULT_KEY_REPAIR;
+    }
+
+    const repair = await repair_vault_pgp_keys(vault, old_password, passphrase);
+
+    if (repair.repaired === 0) {
+      return { repaired: 0, locked: repair.locked, failed: 0 };
+    }
+
+    const committed = await commit_recovered_keys({
+      user_id,
+      vault,
+      passphrase,
+      identity_keys: {
+        identity_key: repair.identity_key,
+        signed_prekey_private: repair.signed_prekey_private,
+        previous_keys: repair.previous_keys,
+        legacy_identity_keys: repair.legacy_identity_keys,
+        absorbed: [],
+      },
+      ratchet_groups: [],
+      storage_keys: await derive_key_file_storage_keys(old_password),
+    });
+
+    if (!committed.written) {
+      return { repaired: 0, locked: repair.locked, failed: repair.repaired };
+    }
+
+    clear_unlocked_key_cache();
+
+    return { repaired: repair.repaired, locked: repair.locked, failed: 0 };
+  });
+}
+
 export async function restore_inactive_key_sets(
+  old_password: string,
+): Promise<PasswordRestoreResult> {
+  const archived = await restore_archived_key_sets(old_password);
+  const repair = await repair_current_vault_pgp_keys(old_password);
+  const restored = archived.restored + repair.repaired;
+  const incomplete = archived.incomplete + repair.failed;
+  const repair_rejected = repair.locked > 0 && repair.repaired === 0;
+
+  return {
+    restored,
+    incomplete,
+    wrong_password:
+      restored === 0 &&
+      incomplete === 0 &&
+      (archived.wrong_password || repair_rejected),
+  };
+}
+
+async function restore_archived_key_sets(
   old_password: string,
 ): Promise<PasswordRestoreResult> {
   const listed = await list_inactive_key_sets();
@@ -423,6 +520,9 @@ export async function commit_recovered_keys(
   );
   const next_vault: EncryptedVault = {
     ...vault,
+    identity_key: identity_keys.identity_key ?? vault.identity_key,
+    signed_prekey_private:
+      identity_keys.signed_prekey_private ?? vault.signed_prekey_private,
     previous_keys: identity_keys.previous_keys,
     legacy_identity_keys: identity_keys.legacy_identity_keys,
     legacy_keks: absorbed_keks.list,
