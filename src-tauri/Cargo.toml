@@ -75,7 +75,7 @@ glib = { path = "patches/glib-0.18.5" }
 atty = { path = "patches/atty-0.2.14" }
 
 [profile.release]
-panic = "abort"
+panic = "unwind"
 codegen-units = 4
 lto = "thin"
 opt-level = "s"
