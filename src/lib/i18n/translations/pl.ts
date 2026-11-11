@@ -4929,7 +4929,7 @@ export const pl = {
       "Użyj mostów Snowflake dla odporności na cenzurę",
     "connection.cdn_relay": "Przekaźnik CDN",
     "connection.cdn_relay_description":
-      "Żądania przechodzą przez globalną sieć CDN, zanim dotrą do Aster. Twój adres IP pozostaje ukryty przed Aster, a ruch nie odróżnia się od zwykłego ruchu CDN.",
+      "Żądania przechodzą przez przekaźnik, który Aster prowadzi w Cloudflare, zanim dotrą do serwerów Aster. Dla Twojej sieci ruch wygląda jak zwykły ruch CDN, co może pomóc tam, gdzie Aster jest blokowany. Aster nadal widzi Twój adres IP. Aby ukryć go przed Aster, użyj Tor.",
     "connection.status_connected": "Połączono",
     "connection.status_connecting": "Łączenie...",
     "connection.status_error":
