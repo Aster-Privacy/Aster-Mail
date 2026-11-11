@@ -90,23 +90,55 @@ function normalize_fingerprint(fingerprint: string): string {
   return fingerprint.replace(/[^0-9a-f]/gi, "").toLowerCase();
 }
 
-async function is_key_bound_to_address(
+const BASE64_KEY_PATTERN = /^[A-Za-z0-9+/\s]+={0,2}\s*$/;
+
+function decode_base64_key(value: string): Uint8Array | null {
+  const compact = value.replace(/\s+/g, "");
+
+  if (compact.length === 0 || !BASE64_KEY_PATTERN.test(compact)) return null;
+
+  try {
+    const raw = atob(compact);
+    const bytes = new Uint8Array(raw.length);
+
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+async function read_discovered_public_key(public_key: string) {
+  const openpgp = await load_openpgp();
+
+  if (public_key.includes("-----BEGIN PGP")) {
+    return openpgp.readKey({ armoredKey: public_key });
+  }
+
+  const bytes = decode_base64_key(public_key);
+
+  if (!bytes) throw new Error("unreadable public key");
+
+  return openpgp.readKey({ binaryKey: bytes });
+}
+
+async function bound_key_armor(
   email: string,
-  armored_key: string,
+  public_key: string,
   claimed_fingerprint: string | null,
-): Promise<boolean> {
+): Promise<string | null> {
   const address = email.trim().toLowerCase();
 
   try {
-    const openpgp = await load_openpgp();
-    const key = await openpgp.readKey({ armoredKey: armored_key });
+    const key = await read_discovered_public_key(public_key);
 
     if (
       claimed_fingerprint &&
       normalize_fingerprint(claimed_fingerprint) !==
         normalize_fingerprint(key.getFingerprint())
     ) {
-      return false;
+      return null;
     }
 
     await key.getEncryptionKey();
@@ -115,15 +147,19 @@ async function is_key_bound_to_address(
       if (user.userID?.email.trim().toLowerCase() !== address) continue;
 
       try {
-        if (await user.verify()) return true;
+        if (await user.verify()) {
+          return public_key.includes("-----BEGIN PGP")
+            ? public_key
+            : key.armor();
+        }
       } catch {
         continue;
       }
     }
 
-    return false;
+    return null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -132,14 +168,14 @@ async function vet_discovered_key(
 ): Promise<ExternalKeyInfo> {
   if (!key_info.found || !key_info.public_key) return key_info;
 
-  if (
-    await is_key_bound_to_address(
-      key_info.email,
-      key_info.public_key,
-      key_info.fingerprint,
-    )
-  ) {
-    return key_info;
+  const armored = await bound_key_armor(
+    key_info.email,
+    key_info.public_key,
+    key_info.fingerprint,
+  );
+
+  if (armored) {
+    return { ...key_info, public_key: armored };
   }
 
   return {
