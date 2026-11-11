@@ -40,7 +40,7 @@ import {
 } from "@/services/threading/threading_rules";
 
 const FETCH_LIMIT = 50;
-const MAX_PAGES = 20;
+const MAX_PAGES = 60;
 const COOLDOWN_MS = 10_000;
 const SUBMIT_BATCH_SIZE = 200;
 
@@ -135,29 +135,165 @@ async function build_record(item: MailItem): Promise<RepairRecord | null> {
   };
 }
 
-async function fetch_all_items(): Promise<MailItem[]> {
-  const all_items: MailItem[] = [];
+const RELINK_DONE_KEY_PREFIX = "aster_thread_relink_v1:";
+
+function relink_done(user_id: string): boolean {
+  try {
+    return localStorage.getItem(RELINK_DONE_KEY_PREFIX + user_id) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function mark_relink_done(user_id: string): void {
+  try {
+    localStorage.setItem(RELINK_DONE_KEY_PREFIX + user_id, "1");
+  } catch {
+    return;
+  }
+}
+
+async function fetch_items_of_type(
+  item_type: "received" | "sent",
+): Promise<MailItem[]> {
+  const items: MailItem[] = [];
   let cursor: string | undefined;
 
   for (let page = 0; page < MAX_PAGES; page++) {
     const response = await list_mail_items({
-      item_type: "received",
+      item_type,
       limit: FETCH_LIMIT,
       cursor,
     });
 
     if (response.error || !response.data) break;
 
-    all_items.push(...response.data.items);
+    items.push(...response.data.items);
 
     if (!response.data.has_more || !response.data.next_cursor) break;
     cursor = response.data.next_cursor;
   }
 
-  return all_items;
+  return items;
 }
 
-export async function thread_imported_emails(): Promise<number> {
+async function fetch_all_items(): Promise<MailItem[]> {
+  const received = await fetch_items_of_type("received");
+  const sent = await fetch_items_of_type("sent");
+  const seen = new Set<string>();
+
+  return [...received, ...sent].filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+
+    return true;
+  });
+}
+
+function msgid_key(message_id: string): string {
+  return strip_angle_brackets(message_id).toLowerCase();
+}
+
+function group_records(records: RepairRecord[]): RepairRecord[][] {
+  const parent = new Map<string, string>();
+  const by_msgid = new Map<string, RepairRecord>();
+
+  const find = (id: string): string => {
+    let root = id;
+
+    while (parent.get(root) !== root) root = parent.get(root)!;
+
+    let node = id;
+
+    while (parent.get(node) !== root) {
+      const next = parent.get(node)!;
+
+      parent.set(node, root);
+      node = next;
+    }
+
+    return root;
+  };
+
+  for (const record of records) {
+    parent.set(record.id, record.id);
+    if (record.message_id) {
+      const key = msgid_key(record.message_id);
+
+      if (!by_msgid.has(key)) by_msgid.set(key, record);
+    }
+  }
+
+  for (const record of records) {
+    for (const ref of record.ref_ids) {
+      const target = by_msgid.get(msgid_key(ref));
+
+      if (!target || target.id === record.id) continue;
+      if (target.normalized_subject !== record.normalized_subject) continue;
+
+      const root_a = find(record.id);
+      const root_b = find(target.id);
+
+      if (root_a !== root_b) parent.set(root_b, root_a);
+    }
+  }
+
+  const groups = new Map<string, RepairRecord[]>();
+
+  for (const record of records) {
+    const root = find(record.id);
+    const group = groups.get(root);
+
+    if (group) group.push(record);
+    else groups.set(root, [record]);
+  }
+
+  return [...groups.values()];
+}
+
+function plan_updates(user_id: string, records: RepairRecord[]): RethreadItem[] {
+  const updates: RethreadItem[] = [];
+
+  for (const group of group_records(records)) {
+    let token: string | null = null;
+
+    if (group.length > 1) {
+      const with_token = group.find((record) => record.thread_token);
+      const first_with_id = group.find((record) => record.message_id);
+
+      token =
+        with_token?.thread_token ??
+        (first_with_id?.message_id
+          ? thread_token_from_root(user_id, first_with_id.message_id)
+          : null);
+    }
+
+    for (const record of group) {
+      const target =
+        token ??
+        record.thread_token ??
+        (record.message_id
+          ? thread_token_from_root(user_id, record.message_id)
+          : null);
+
+      if (!target || target === record.thread_token) continue;
+
+      updates.push({
+        item_id: record.id,
+        thread_token: target,
+        msgid_hashes: record.message_id
+          ? [hash_message_id(user_id, record.message_id)]
+          : [],
+      });
+    }
+  }
+
+  return updates;
+}
+
+export async function thread_imported_emails(
+  options: { relink_all?: boolean } = {},
+): Promise<number> {
   if (running) return 0;
   if (Date.now() - last_run_at < COOLDOWN_MS) return 0;
 
@@ -179,8 +315,11 @@ export async function thread_imported_emails(): Promise<number> {
 
   try {
     const all_items = await fetch_all_items();
+    const relink_all = options.relink_all === true || !relink_done(user_id);
 
-    if (!all_items.some((item) => !item.thread_token)) return 0;
+    if (!relink_all && !all_items.some((item) => !item.thread_token)) {
+      return 0;
+    }
 
     const records: RepairRecord[] = [];
 
@@ -192,64 +331,23 @@ export async function thread_imported_emails(): Promise<number> {
 
     records.sort((a, b) => a.ts - b.ts || (a.id < b.id ? -1 : 1));
 
-    const known = new Map<string, { token: string; subject: string }>();
-
-    for (const record of records) {
-      if (!record.thread_token || !record.message_id) continue;
-
-      known.set(strip_angle_brackets(record.message_id).toLowerCase(), {
-        token: record.thread_token,
-        subject: record.normalized_subject,
-      });
-    }
-
-    const updates: RethreadItem[] = [];
-
-    for (const record of records) {
-      if (record.thread_token) continue;
-
-      let token: string | null = null;
-
-      for (const ref of record.ref_ids) {
-        const parent = known.get(strip_angle_brackets(ref).toLowerCase());
-
-        if (!parent) continue;
-        if (parent.subject === record.normalized_subject) token = parent.token;
-        break;
-      }
-
-      if (!token && record.message_id) {
-        token = thread_token_from_root(user_id, record.message_id);
-      }
-
-      if (!token) continue;
-
-      updates.push({
-        item_id: record.id,
-        thread_token: token,
-        msgid_hashes: record.message_id
-          ? [hash_message_id(user_id, record.message_id)]
-          : [],
-      });
-
-      if (record.message_id) {
-        known.set(strip_angle_brackets(record.message_id).toLowerCase(), {
-          token,
-          subject: record.normalized_subject,
-        });
-      }
-    }
-
+    const updates = plan_updates(user_id, records);
     let linked_count = 0;
+    let complete = true;
 
     for (let index = 0; index < updates.length; index += SUBMIT_BATCH_SIZE) {
       const batch = updates.slice(index, index + SUBMIT_BATCH_SIZE);
       const response = await rethread_items(batch);
 
-      if (response.error || !response.data) break;
+      if (response.error || !response.data) {
+        complete = false;
+        break;
+      }
 
       linked_count += response.data.updated;
     }
+
+    if (complete) mark_relink_done(user_id);
 
     return linked_count;
   } finally {
