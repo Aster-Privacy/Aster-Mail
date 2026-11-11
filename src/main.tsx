@@ -59,6 +59,7 @@ import {
   use_mobile_experience,
 } from "@/hooks/use_mobile_experience";
 import { preload_initial_language } from "@/lib/i18n/context";
+import { preload_openpgp } from "@/services/crypto/openpgp_loader";
 import {
   app_pathname,
   resolve_account_basename,
@@ -84,6 +85,19 @@ function warm_shell_chunk(): void {
   load().catch((caught) => ignore_error("main:warm_shell_chunk", caught));
 }
 
+function warm_signed_in_chunks(): void {
+  if (!safe_local_get("aster_preferences_cache")) return;
+
+  const load = compute_is_mobile_experience()
+    ? () => import("@/pages/mobile/mobile_inbox")
+    : () => import("@/pages/index");
+
+  load().catch((caught) =>
+    ignore_error("main:warm_signed_in_chunks", caught),
+  );
+  preload_openpgp();
+}
+
 function warm_startup_route_chunk(): void {
   const warm = (load: () => Promise<unknown>) => {
     load().catch((caught) => ignore_error("main:warm_startup_route", caught));
@@ -106,6 +120,7 @@ const browser_supported = typeof window.crypto?.subtle === "object";
 
 if (browser_supported) {
   warm_shell_chunk();
+  warm_signed_in_chunks();
 }
 
 if (preload_initial_language()) {

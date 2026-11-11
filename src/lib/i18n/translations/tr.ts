@@ -1900,6 +1900,9 @@ export const tr = {
     dns_host_leave_blank: "Boş bırakın",
     dns_host_provider_hint:
       "{{provider}} ana bilgisayar alanında bu biçimi kullanır. Gösterildiği gibi birebir kopyalayın.",
+    dns_host_zone_hint:
+      "Bu ana bilgisayar adı, DNS kayıtlarınızı yönettiğiniz alan adı olan {{zone}} alanına göredir.",
+    dns_full_record_name: "Kaydın tam adı",
     purchase_congrats_title: "Tebrikler",
     recipient_key_outdated: "Alıcının anahtarı güncel değil",
     recipient_key_outdated_desc:
@@ -4695,7 +4698,7 @@ export const tr = {
       "Sansür direnci için Snowflake köprülerini kullan",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "İstekler Aster'e ulaşmadan önce küresel bir CDN üzerinden yönlendirilir. IP adresiniz Aster'den gizli kalır ve trafiğiniz sıradan CDN trafiğinden ayırt edilemez.",
+      "İstekler, Aster sunucularına ulaşmadan önce Aster'in Cloudflare üzerinde işlettiği bir aktarıcıdan geçer. Ağınız açısından trafik sıradan CDN trafiği gibi görünür; bu, Aster'in engellendiği yerlerde yardımcı olabilir. Aster IP adresinizi yine de görür. IP adresinizi Aster'den gizlemek için Tor kullanın.",
     "connection.status_connected": "Bağlı",
     "connection.status_connecting": "Bağlanıyor...",
     "connection.status_error":
@@ -4727,7 +4730,8 @@ export const tr = {
     tlsrpt_record: "TLS-RPT kaydi",
     tlsrpt_description:
       "Istege bagli ama onerilir. Alici sunucular, alan adiniza sifreli teslimat basarisiz oldugunda size gunluk bir ozet gonderir; boylece sorunlari kullanicilarinizdan once fark edersiniz.",
-    dns_instruction_set_tlsrpt_host: "Host degerini _smtp._tls yapin",
+    dns_instruction_set_tlsrpt_host:
+      "Aşağıda gösterilen ana bilgisayar adını ana bilgisayar alanına kopyalayın",
     dns_instruction_set_tlsrpt_value:
       "TLS-RPT degerini gosterildigi gibi birebir yapistirin",
     optional_step: "Istege bagli",
@@ -5117,7 +5121,7 @@ export const tr = {
     dns_instruction_set_dkim:
       "Değeri aşağıda gösterilen DKIM anahtarına ayarlayın",
     dns_instruction_set_dmarc_host:
-      "Sunucuyu _dmarc olarak ayarlayın (alan adınızı eklemeyin)",
+      "Aşağıda gösterilen ana bilgisayar adını ana bilgisayar alanına kopyalayın",
     dns_instruction_set_dmarc_value:
       "Değeri aşağıda gösterilen DMARC politikasına ayarlayın",
     edit_external_account: "Harici hesabı düzenle",

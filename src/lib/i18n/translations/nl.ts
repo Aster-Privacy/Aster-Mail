@@ -1912,6 +1912,9 @@ export const nl = {
     dns_host_leave_blank: "Laat leeg",
     dns_host_provider_hint:
       "{{provider}} gebruikt deze notatie voor het hostveld. Neem het exact zo over.",
+    dns_host_zone_hint:
+      "Deze hostnaam is relatief ten opzichte van {{zone}}, het domein waar je je DNS-records beheert.",
+    dns_full_record_name: "Volledige recordnaam",
     purchase_congrats_title: "Gefeliciteerd",
     recipient_key_outdated: "De sleutel van de ontvanger is verouderd",
     recipient_key_outdated_desc:
@@ -4690,7 +4693,7 @@ export const nl = {
       "Gebruik Snowflake-bridges voor censuurbestendigheid",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Verzoeken worden via een wereldwijd CDN geleid voordat ze Aster bereiken. Je IP-adres blijft verborgen voor Aster en het verkeer gaat op in gewoon CDN-verkeer.",
+      "Verzoeken gaan via een relay die Aster op Cloudflare beheert voordat ze de servers van Aster bereiken. Voor je netwerk ziet het verkeer eruit als gewoon CDN-verkeer, wat kan helpen waar Aster geblokkeerd is. Aster ziet je IP-adres nog steeds. Gebruik Tor om het voor Aster te verbergen.",
     "connection.status_connected": "Verbonden",
     "connection.status_connecting": "Verbinden...",
     "connection.status_error":
@@ -4722,7 +4725,8 @@ export const nl = {
     tlsrpt_record: "TLS-RPT-record",
     tlsrpt_description:
       "Optioneel maar aanbevolen. Ontvangende servers sturen je een dagelijkse samenvatting wanneer versleutelde bezorging aan je domein mislukt, zodat je problemen eerder ziet dan je gebruikers.",
-    dns_instruction_set_tlsrpt_host: "Stel de host in op _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Kopieer de hostnaam hieronder naar het hostveld",
     dns_instruction_set_tlsrpt_value:
       "Plak de TLS-RPT-waarde exact zoals weergegeven",
     optional_step: "Optioneel",
@@ -5103,7 +5107,7 @@ export const nl = {
     dns_instruction_merge_spf:
       "Als je al een SPF-record hebt, voeg dan de include:-richtlijn toe aan je bestaande record",
     dns_instruction_set_dmarc_host:
-      "Stel de host in op _dmarc (zonder je domein)",
+      "Kopieer de hostnaam hieronder naar het hostveld",
     dns_instruction_set_dmarc_value:
       "Stel de waarde in op het onderstaande DMARC-beleid",
     edit_external_account: "Extern account bewerken",

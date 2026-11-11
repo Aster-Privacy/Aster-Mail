@@ -1947,6 +1947,9 @@ export const pl = {
     dns_host_leave_blank: "Pozostaw puste",
     dns_host_provider_hint:
       "{{provider}} używa tego formatu w polu hosta. Skopiuj go dokładnie tak, jak podano.",
+    dns_host_zone_hint:
+      "Ta nazwa hosta jest względna wobec {{zone}}, czyli domeny, w której zarządzasz rekordami DNS.",
+    dns_full_record_name: "Pełna nazwa rekordu",
     purchase_congrats_title: "Gratulacje",
     recipient_key_outdated: "Klucz odbiorcy jest nieaktualny",
     recipient_key_outdated_desc:
@@ -4929,7 +4932,7 @@ export const pl = {
       "Użyj mostów Snowflake dla odporności na cenzurę",
     "connection.cdn_relay": "Przekaźnik CDN",
     "connection.cdn_relay_description":
-      "Żądania przechodzą przez globalną sieć CDN, zanim dotrą do Aster. Twój adres IP pozostaje ukryty przed Aster, a ruch nie odróżnia się od zwykłego ruchu CDN.",
+      "Żądania przechodzą przez przekaźnik, który Aster prowadzi w Cloudflare, zanim dotrą do serwerów Aster. Dla Twojej sieci ruch wygląda jak zwykły ruch CDN, co może pomóc tam, gdzie Aster jest blokowany. Aster nadal widzi Twój adres IP. Aby ukryć go przed Aster, użyj Tor.",
     "connection.status_connected": "Połączono",
     "connection.status_connecting": "Łączenie...",
     "connection.status_error":
@@ -4961,7 +4964,8 @@ export const pl = {
     tlsrpt_record: "Rekord TLS-RPT",
     tlsrpt_description:
       "Opcjonalne, ale zalecane. Serwery odbiorcze wysylaja codzienne podsumowanie, gdy szyfrowane dostarczenie do twojej domeny zawiedzie, dzieki czemu zauwazysz problem przed uzytkownikami.",
-    dns_instruction_set_tlsrpt_host: "Ustaw host na _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Skopiuj nazwę hosta podaną poniżej do pola hosta",
     dns_instruction_set_tlsrpt_value:
       "Wklej wartosc TLS-RPT dokladnie tak, jak pokazano",
     optional_step: "Opcjonalne",
@@ -5344,7 +5348,8 @@ export const pl = {
     dns_instruction_merge_spf:
       "Jeśli masz już rekord SPF, dodaj dyrektywę include: do istniejącego rekordu",
     dns_instruction_set_dkim: "Ustaw wartość na klucz DKIM podany poniżej",
-    dns_instruction_set_dmarc_host: "Ustaw host na _dmarc (bez swojej domeny)",
+    dns_instruction_set_dmarc_host:
+      "Skopiuj nazwę hosta podaną poniżej do pola hosta",
     dns_instruction_set_dmarc_value:
       "Ustaw wartość na politykę DMARC podaną poniżej",
     edit_external_account: "Edytuj konto zewnętrzne",
