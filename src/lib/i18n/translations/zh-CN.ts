@@ -1793,6 +1793,8 @@ export const zh_CN = {
     upgrade_tooltip: "获得更多存储空间、别名和自定义域名",
     dns_host_leave_blank: "留空",
     dns_host_provider_hint: "{{provider}} 的主机字段使用此格式。请完全照抄。",
+    dns_host_zone_hint: "此主机名相对于 {{zone}}，即您管理 DNS 记录的域名。",
+    dns_full_record_name: "完整记录名称",
     purchase_congrats_title: "恭喜",
     recipient_key_outdated: "收件人的密钥已过期",
     recipient_key_outdated_desc:
@@ -4316,7 +4318,7 @@ export const zh_CN = {
     "connection.tor_snowflake_description": "使用 Snowflake 桥接以抵抗审查",
     "connection.cdn_relay": "CDN 中继",
     "connection.cdn_relay_description":
-      "请求在到达 Aster 之前会经过全球 CDN 路由。您的 IP 地址对 Aster 保持隐藏，流量也会与常规 CDN 流量混在一起。",
+      "请求在到达 Aster 服务器之前，会经过 Aster 在 Cloudflare 上运行的中继。在您的网络看来，这些流量与常规 CDN 流量一样，这在 Aster 被屏蔽的地方可能有帮助。Aster 仍然可以看到您的 IP 地址。如需对 Aster 隐藏 IP 地址，请使用 Tor。",
     "connection.status_connected": "已连接",
     "connection.status_connecting": "连接中...",
     "connection.status_error": "连接已断开，我们正在自动重试。",
@@ -4346,7 +4348,7 @@ export const zh_CN = {
     tlsrpt_record: "TLS-RPT 记录",
     tlsrpt_description:
       "可选但建议添加。当发往您域名的加密投递失败时，接收服务器会每天发送一份摘要，让您比用户更早发现问题。",
-    dns_instruction_set_tlsrpt_host: "将主机设为 _smtp._tls",
+    dns_instruction_set_tlsrpt_host: "将下方显示的主机名复制到主机字段",
     dns_instruction_set_tlsrpt_value: "按显示内容原样粘贴 TLS-RPT 值",
     optional_step: "可选",
     gmail_import: "Gmail",
@@ -4684,7 +4686,7 @@ export const zh_CN = {
     dns_instruction_merge_spf:
       "如果您已有 SPF 记录，请将 include: 指令添加到现有记录中",
     dns_instruction_set_dkim: "将值设置为下方显示的 DKIM 密钥",
-    dns_instruction_set_dmarc_host: "将主机设置为 _dmarc（不要包含您的域名）",
+    dns_instruction_set_dmarc_host: "将下方显示的主机名复制到主机字段",
     dns_instruction_set_dmarc_value: "将值设置为下方显示的 DMARC 策略",
     edit_external_account: "编辑外部账户",
     add_external_account: "添加外部账户",

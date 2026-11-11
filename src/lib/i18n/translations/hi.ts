@@ -744,6 +744,9 @@ export const hi = {
     dns_host_leave_blank: "खाली छोड़ें",
     dns_host_provider_hint:
       "{{provider}} होस्ट फ़ील्ड के लिए यही प्रारूप इस्तेमाल करता है। इसे हूबहू वैसे ही कॉपी करें जैसा दिख रहा है।",
+    dns_host_zone_hint:
+      "यह होस्ट नाम {{zone}} के सापेक्ष है, यानी वह डोमेन जहाँ आप DNS रिकॉर्ड प्रबंधित करते हैं।",
+    dns_full_record_name: "रिकॉर्ड का पूरा नाम",
     dns_propagation_note: "DNS बदलावों को फैलने में 48 घंटे तक लग सकते हैं",
     post: "पोस्ट",
     link_copied: "लिंक क्लिपबोर्ड पर कॉपी हो गया",
@@ -5736,7 +5739,7 @@ export const hi = {
       "सेंसरशिप से बचने के लिए Snowflake ब्रिज इस्तेमाल करें",
     "connection.cdn_relay": "CDN रिले",
     "connection.cdn_relay_description":
-      "अनुरोध Aster तक पहुंचने से पहले एक वैश्विक CDN से होकर जाते हैं। आपका IP पता Aster से छिपा रहता है, और ट्रैफ़िक सामान्य CDN ट्रैफ़िक में घुल-मिल जाता है।",
+      "अनुरोध Aster सर्वर तक पहुंचने से पहले उस रिले से होकर जाते हैं जिसे Aster Cloudflare पर चलाता है। आपके नेटवर्क को यह ट्रैफ़िक सामान्य CDN ट्रैफ़िक जैसा दिखता है, जिससे वहां मदद मिल सकती है जहां Aster ब्लॉक है। Aster को आपका IP पता अब भी दिखता है। इसे Aster से छिपाने के लिए Tor का उपयोग करें।",
     "connection.tor_warning":
       "सारा ट्रैफ़िक Tor नेटवर्क से होकर जाएगा। रफ़्तार धीमी रहेगी।",
     "connection.status_connected": "जुड़ गया",
@@ -5767,7 +5770,8 @@ export const hi = {
     tlsrpt_record: "TLS-RPT रिकॉर्ड",
     tlsrpt_description:
       "वैकल्पिक, लेकिन सुझाया गया। जब आपके डोमेन पर एन्क्रिप्टेड डिलीवरी नहीं हो पाती, तो पाने वाले सर्वर आपको रोज़ाना सारांश भेजते हैं, जिससे आप गड़बड़ी अपने उपयोगकर्ताओं से पहले पकड़ लेते हैं।",
-    dns_instruction_set_tlsrpt_host: "होस्ट को _smtp._tls पर सेट करें",
+    dns_instruction_set_tlsrpt_host:
+      "नीचे दिखाया गया होस्ट नाम होस्ट फ़ील्ड में कॉपी करें",
     dns_instruction_set_tlsrpt_value:
       "TLS-RPT मान बिल्कुल वैसा ही पेस्ट करें जैसा दिखाया गया है",
     optional_step: "वैकल्पिक",
@@ -6194,7 +6198,7 @@ export const hi = {
       "अगर आपके पास पहले से SPF रिकॉर्ड है, तो अपने मौजूदा रिकॉर्ड में include: निर्देश जोड़ें",
     dns_instruction_set_dkim: "मान को नीचे दिखाई DKIM कुंजी पर सेट करें",
     dns_instruction_set_dmarc_host:
-      "होस्ट को _dmarc पर सेट करें (अपना डोमेन नाम न जोड़ें)",
+      "नीचे दिखाया गया होस्ट नाम होस्ट फ़ील्ड में कॉपी करें",
     dns_instruction_set_dmarc_value: "मान को नीचे दिखाई DMARC नीति पर सेट करें",
     edit_external_account: "बाहरी खाते में बदलाव करें",
     add_external_account: "बाहरी खाता जोड़ें",

@@ -1940,6 +1940,9 @@ export const fr = {
     dns_host_leave_blank: "Laisser vide",
     dns_host_provider_hint:
       "{{provider}} utilise ce format pour le champ hôte. Copiez-le exactement tel quel.",
+    dns_host_zone_hint:
+      "Ce nom d'hôte est relatif à {{zone}}, le domaine où vous gérez vos enregistrements DNS.",
+    dns_full_record_name: "Nom complet de l'enregistrement",
     purchase_congrats_title: "Félicitations",
     recipient_key_outdated: "La clé du destinataire est obsolète",
     recipient_key_outdated_desc:
@@ -4817,7 +4820,7 @@ export const fr = {
       "Utiliser les ponts Snowflake pour résister à la censure",
     "connection.cdn_relay": "Relais CDN",
     "connection.cdn_relay_description":
-      "Les requêtes passent par un CDN mondial avant d'atteindre Aster. Votre adresse IP reste masquée pour Aster, et le trafic se fond dans le trafic CDN habituel.",
+      "Les requêtes passent par un relais qu'Aster exploite sur Cloudflare avant d'atteindre les serveurs d'Aster. Pour votre réseau, le trafic ressemble à du trafic CDN habituel, ce qui peut aider là où Aster est bloqué. Aster voit toujours votre adresse IP. Pour la masquer à Aster, utilisez Tor.",
     "connection.tor_warning":
       "Tout le trafic sera achemine via le reseau Tor. Des performances plus lentes sont a prevoir.",
     "connection.status_connected": "Connecté",
@@ -4850,7 +4853,8 @@ export const fr = {
     tlsrpt_record: "Enregistrement TLS-RPT",
     tlsrpt_description:
       "Facultatif mais recommande. Les serveurs destinataires vous envoient un resume quotidien lorsque la remise chiffree vers votre domaine echoue, pour reperer les problemes avant vos utilisateurs.",
-    dns_instruction_set_tlsrpt_host: "Definissez l'hote sur _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Copiez le nom d'hôte affiché ci-dessous dans le champ hôte",
     dns_instruction_set_tlsrpt_value:
       "Collez la valeur TLS-RPT exactement telle qu'affichee",
     optional_step: "Facultatif",
@@ -5254,7 +5258,7 @@ export const fr = {
     dns_instruction_set_dkim:
       "Définissez la valeur sur la clé DKIM indiquée ci-dessous",
     dns_instruction_set_dmarc_host:
-      "Définissez l'hôte sur _dmarc (sans inclure votre domaine)",
+      "Copiez le nom d'hôte affiché ci-dessous dans le champ hôte",
     dns_instruction_set_dmarc_value:
       "Définissez la valeur sur la politique DMARC indiquée ci-dessous",
     edit_external_account: "Modifier le compte externe",

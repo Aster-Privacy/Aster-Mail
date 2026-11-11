@@ -60,3 +60,4 @@ We follow coordinated disclosure. Please give us adequate time to patch the vuln
 We thank the researchers who help keep Aster secure.
 
 - [diogovbs](https://github.com/diogovbs) (September to October 2026): a series of private reports covering the web and desktop clients, remote content handling, and inbound mail processing. We fixed every finding in coordination with the reporter.
+- [NotAFlightRisk](https://github.com/NotAFlightRisk) (October to November 2026): private reports covering sender verification for mail between Aster accounts and the Require encryption setting.

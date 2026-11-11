@@ -52,6 +52,50 @@ export function format_record_host(
   return host;
 }
 
+export interface RecordHostSource {
+  host: string;
+  zone?: string;
+  zone_host?: string;
+  fqdn?: string;
+}
+
+export interface RecordHostNames {
+  host: string;
+  zone_relative_host: string;
+  fqdn: string | null;
+  zone: string | null;
+}
+
+export function describe_record_host(
+  record: RecordHostSource,
+  domain: string | undefined,
+  provider: DnsProvider | null,
+): RecordHostNames {
+  const below_zone =
+    !!record.zone &&
+    !!record.fqdn &&
+    !!record.zone_host &&
+    record.zone_host !== record.host;
+
+  if (below_zone && record.zone && record.fqdn && record.zone_host) {
+    return {
+      host: provider?.needs_fqdn_host ? record.fqdn : record.zone_host,
+      zone_relative_host: record.zone_host,
+      fqdn: record.fqdn,
+      zone: record.zone,
+    };
+  }
+
+  return {
+    host: domain
+      ? format_record_host(record.host, domain, provider)
+      : record.host,
+    zone_relative_host: record.host,
+    fqdn: null,
+    zone: null,
+  };
+}
+
 export function provider_dashboard_url(
   provider: DnsProvider | null,
   domain: string,
