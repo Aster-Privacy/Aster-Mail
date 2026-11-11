@@ -39,11 +39,22 @@ vi.mock("./client", () => ({
   },
 }));
 
-vi.mock("@/services/crypto/legacy_keks", () => ({
-  decrypt_aes_gcm_with_fallback: vi.fn(async () =>
+vi.mock("@/services/crypto/legacy_keks", () => {
+  const decrypt_aes_gcm_with_fallback = vi.fn(async () =>
     new TextEncoder().encode(JSON.stringify({ font_size_scale: 20 })),
-  ),
-}));
+  );
+
+  return {
+    decrypt_aes_gcm_with_fallback,
+    decrypt_account_context_with_fallback: (
+      _context: string,
+      ...rest: unknown[]
+    ) =>
+      (decrypt_aes_gcm_with_fallback as (...args: unknown[]) => unknown)(
+        ...rest,
+      ),
+  };
+});
 
 import {
   get_preferences,

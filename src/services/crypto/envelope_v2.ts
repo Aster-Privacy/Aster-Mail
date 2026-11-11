@@ -20,6 +20,7 @@
 //
 import { array_to_base64, base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
+import { without_retired_keks } from "./retired_identity_keks";
 import { normalize_parsed_envelope } from "./envelope";
 
 import type { EncryptedVault } from "./key_manager_core";
@@ -84,7 +85,7 @@ export function envelope_v2_keys_from_vault(
 
   if (current) keys.push(current);
 
-  for (const entry of vault.legacy_keks ?? []) {
+  for (const entry of without_retired_keks(vault.legacy_keks)) {
     const legacy = decode_key(entry?.k);
 
     if (legacy) keys.push(legacy);

@@ -23,6 +23,9 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/lib/i18n/translations/en";
 
 const post = vi.fn();
+const get = vi.fn();
+const context_fallback = vi.fn();
+const plain_fallback = vi.fn();
 const patch = vi.fn();
 const remove = vi.fn();
 const private_bcc = vi.fn();
@@ -32,7 +35,7 @@ let write_key: CryptoKey;
 vi.mock("./client", () => ({
   api_client: {
     post: (...args: unknown[]) => post(...args),
-    get: vi.fn(),
+    get: (...args: unknown[]) => get(...args),
     patch: (...args: unknown[]) => patch(...args),
     delete: (...args: unknown[]) => remove(...args),
   },
@@ -46,7 +49,10 @@ vi.mock("@/services/recipient_classification", () => ({
 }));
 vi.mock("@/hooks/use_mail_stats", () => ({ invalidate_mail_stats: vi.fn() }));
 vi.mock("@/services/crypto/legacy_keks", () => ({
-  decrypt_aes_gcm_with_fallback: vi.fn(),
+  decrypt_aes_gcm_with_fallback: (...args: unknown[]) =>
+    plain_fallback(...args),
+  decrypt_account_context_with_fallback: (...args: unknown[]) =>
+    context_fallback(...args),
 }));
 vi.mock("@/services/crypto/account_data_writer", () => ({
   account_data_write_key: vi.fn(async () => write_key),
@@ -72,6 +78,7 @@ vi.mock("@/services/send_queue_recipients", () => ({
 const {
   cancel_scheduled_email,
   create_scheduled_email,
+  get_scheduled_email,
   reschedule_email,
   server_readable_content,
 } = await import("./scheduled");
@@ -82,6 +89,38 @@ const OPTIONS = { sender_email: "me@astermail.org" };
 
 function to_bytes(base64: string): Uint8Array {
   return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+}
+
+function to_base64(bytes: Uint8Array): string {
+  return btoa(Array.from(bytes, (byte) => String.fromCharCode(byte)).join(""));
+}
+
+async function stored_with_ephemeral_key(subject: string) {
+  const raw_key = crypto.getRandomValues(new Uint8Array(32));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await crypto.subtle.importKey(
+    "raw",
+    raw_key,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"],
+  );
+  const sealed = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    new TextEncoder().encode(JSON.stringify(content({ subject }))),
+  );
+
+  return {
+    id: "s1",
+    encrypted_envelope: to_base64(new Uint8Array(sealed)),
+    envelope_nonce: to_base64(iv),
+    scheduled_at: SOON,
+    status: "pending",
+    created_at: SOON,
+    updated_at: SOON,
+    ephemeral_key: to_base64(raw_key),
+  };
 }
 
 async function open_with(
@@ -351,6 +390,70 @@ describe("scheduled changes", () => {
     expect(response.data).toBeUndefined();
     expect(response.error).toBe(en.errors.scheduled_may_have_sent);
     expect(response.code).toBe("NOT_FOUND");
+  });
+});
+
+describe("scheduled read with a one-time key", () => {
+  beforeEach(() => {
+    get.mockReset();
+    context_fallback.mockReset();
+    plain_fallback.mockReset();
+  });
+
+  it("never offers the scheduled context key to a one-time key message", async () => {
+    get.mockResolvedValue({ data: await stored_with_ephemeral_key("Later") });
+    plain_fallback.mockImplementation(
+      (key: CryptoKey, sealed: Uint8Array, iv: Uint8Array) =>
+        crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, sealed),
+    );
+
+    const response = await get_scheduled_email("s1", {} as never);
+
+    expect(get).toHaveBeenCalledWith("/mail/v1/scheduled/s1");
+    expect(plain_fallback).toHaveBeenCalledTimes(1);
+    expect(context_fallback).not.toHaveBeenCalled();
+    expect(response.error).toBeUndefined();
+    expect(response.data?.content.subject).toBe("Later");
+    expect(response.data?.content.scheduled_at).toBe(SOON);
+  });
+
+  it("reports a load error when no key opens the message", async () => {
+    get.mockResolvedValue({ data: await stored_with_ephemeral_key("Later") });
+    plain_fallback.mockRejectedValue(new Error("no key"));
+
+    const response = await get_scheduled_email("s1", {} as never);
+
+    expect(context_fallback).not.toHaveBeenCalled();
+    expect(response.data).toBeNull();
+    expect(response.error).toBe(en.errors.load_failed);
+  });
+});
+
+describe("scheduled read without a one-time key", () => {
+  beforeEach(() => {
+    get.mockReset();
+    context_fallback.mockReset();
+    plain_fallback.mockReset();
+  });
+
+  it("opens the message through the scheduled context", async () => {
+    const stored = await stored_with_ephemeral_key("Older");
+
+    get.mockResolvedValue({ data: { ...stored, ephemeral_key: null } });
+    context_fallback.mockResolvedValue(
+      new TextEncoder().encode(JSON.stringify(content({ subject: "Older" })))
+        .buffer,
+    );
+
+    const response = await get_scheduled_email("s1", {
+      identity_key: "identity",
+    } as never);
+
+    expect(context_fallback).toHaveBeenCalledTimes(1);
+    expect(context_fallback.mock.calls[0][0]).toBe("astermail-scheduled-v1");
+    expect(plain_fallback).not.toHaveBeenCalled();
+    expect(response.error).toBeUndefined();
+    expect(response.data?.content.subject).toBe("Older");
   });
 });
 
