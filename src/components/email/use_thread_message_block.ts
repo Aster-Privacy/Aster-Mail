@@ -41,6 +41,10 @@ import {
 
 import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
 import {
+  effective_remote_image_mode,
+  resolve_remote_content_preferences,
+} from "@/lib/remote_content_policy";
+import {
   displayed_image_blocking_from_options,
   use_record_displayed_image_blocking,
 } from "@/components/email/viewer_shared/external_content";
@@ -469,11 +473,10 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     }
   }, [is_ratchet_undecryptable, message.id]);
 
-  const base_image_mode = is_system
-    ? ("always" as ImageLoadMode)
-    : !preferences.block_external_content
-      ? ("always" as ImageLoadMode)
-      : preferences.load_remote_images;
+  const base_image_mode: ImageLoadMode = is_system
+    ? "always"
+    : effective_remote_image_mode(preferences);
+  const blocking_preferences = resolve_remote_content_preferences(preferences);
 
   const load_remote_content =
     !lockdown_active && external_content_mode === "always";
@@ -508,10 +511,10 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       load_remote_content,
       loaded_content_types,
       preferences: {
-        block_remote_images: preferences.block_remote_images,
-        block_remote_fonts: preferences.block_remote_fonts,
-        block_remote_css: preferences.block_remote_css,
-        block_tracking_pixels: preferences.block_tracking_pixels,
+        block_remote_images: blocking_preferences.block_remote_images,
+        block_remote_fonts: blocking_preferences.block_remote_fonts,
+        block_remote_css: blocking_preferences.block_remote_css,
+        block_tracking_pixels: blocking_preferences.block_tracking_pixels,
       },
     });
 
@@ -523,11 +526,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
           : base_image_mode,
       lockdown_mode: lockdown_active,
       content_blocking:
-        !is_system && (lockdown_active || preferences.block_external_content)
-          ? {
-              ...resolved_blocking,
-            }
-          : undefined,
+        is_system && !lockdown_active ? undefined : { ...resolved_blocking },
     };
   }, [
     is_system,
@@ -535,11 +534,10 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     load_remote_content,
     loaded_content_types,
     lockdown_active,
-    preferences.block_external_content,
-    preferences.block_remote_images,
-    preferences.block_remote_fonts,
-    preferences.block_remote_css,
-    preferences.block_tracking_pixels,
+    blocking_preferences.block_remote_images,
+    blocking_preferences.block_remote_fonts,
+    blocking_preferences.block_remote_css,
+    blocking_preferences.block_tracking_pixels,
   ]);
 
   use_record_displayed_image_blocking(

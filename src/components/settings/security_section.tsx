@@ -71,6 +71,12 @@ import {
 } from "@/lib/security_criteria";
 import { open_settings_target, SETTINGS_ANCHORS } from "@/lib/settings_links";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_lockdown_active } from "@/hooks/use_lockdown_active";
+import {
+  displayed_remote_content_setting,
+  image_mode_update,
+  type RemoteImageMode,
+} from "@/lib/remote_content_policy";
 import {
   Select,
   SelectContent,
@@ -97,6 +103,18 @@ export function SecuritySection({
   const { t } = use_i18n();
   const { preferences, update_preference, update_preferences } =
     use_preferences();
+  const lockdown_active = use_lockdown_active();
+  const remote_content = displayed_remote_content_setting(
+    preferences,
+    lockdown_active,
+  );
+  const remote_content_locked = remote_content.locked_by !== null;
+  const remote_content_lock_note =
+    remote_content.locked_by === "lockdown"
+      ? t("settings.lockdown_content_blocked_note")
+      : remote_content.locked_by === "low_network"
+        ? t("settings.low_network_mode_active_banner")
+        : null;
   const [show_delete_modal, set_show_delete_modal] = useState(false);
   const [show_regenerate_modal, set_show_regenerate_modal] = useState(false);
   const [pending_disable, set_pending_disable] = useState<
@@ -400,31 +418,32 @@ export function SecuritySection({
         title={t("settings.images_section_title")}
       >
         <SettingToggleRow
-          checked={preferences.block_remote_images}
-          description={t("settings.block_remote_images_description")}
+          checked={remote_content.blocks_images}
+          description={
+            remote_content_lock_note ??
+            t("settings.block_remote_images_description")
+          }
+          disabled={remote_content_locked}
           label={t("settings.block_remote_images_label")}
           on_change={() => {
-            const new_value = !preferences.block_remote_images;
-
             update_preferences(
-              {
-                block_remote_images: new_value,
-                load_remote_images: new_value ? "never" : "always",
-              },
+              image_mode_update(
+                remote_content.blocks_images ? "always" : "never",
+              ),
               true,
             );
           }}
         />
 
-        {preferences.block_remote_images && (
+        {remote_content.blocks_images && (
           <SettingControlRow
             control={
               <Select
-                value={preferences.load_remote_images || "never"}
+                disabled={remote_content_locked}
+                value={remote_content.image_mode}
                 onValueChange={(v) => {
-                  update_preference(
-                    "load_remote_images",
-                    v as "always" | "ask" | "never",
+                  update_preferences(
+                    image_mode_update(v as RemoteImageMode),
                     true,
                   );
                 }}
@@ -459,8 +478,12 @@ export function SecuritySection({
         )}
 
         <SettingToggleRow
-          checked={preferences.block_remote_fonts}
-          description={t("settings.block_remote_fonts_description")}
+          checked={remote_content.blocks_fonts}
+          description={
+            remote_content_lock_note ??
+            t("settings.block_remote_fonts_description")
+          }
+          disabled={remote_content_locked}
           info={
             <InfoPopover
               description={t("settings.info_block_fonts_description")}
@@ -478,8 +501,12 @@ export function SecuritySection({
         />
 
         <SettingToggleRow
-          checked={preferences.block_remote_css}
-          description={t("settings.block_remote_css_description")}
+          checked={remote_content.blocks_css}
+          description={
+            remote_content_lock_note ??
+            t("settings.block_remote_css_description")
+          }
+          disabled={remote_content_locked}
           info={
             <InfoPopover
               description={t("settings.info_block_css_description")}

@@ -58,6 +58,10 @@ import {
 } from "@/components/email/message_body_parts";
 import { renderable_html_part } from "@/lib/message_markup";
 import { is_system_email } from "@/lib/utils";
+import {
+  effective_remote_image_mode,
+  resolve_remote_content_preferences,
+} from "@/lib/remote_content_policy";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
 import { use_thread_message_attachments } from "@/pages/mobile/use_thread_message_attachments";
@@ -366,30 +370,20 @@ function MobileThreadMessageContent({
             ? "never"
             : is_system
               ? "always"
-              : preferences.load_remote_images,
+              : effective_remote_image_mode(preferences),
           image_proxy_url: get_image_proxy_url(),
           sandbox_mode: true,
           lockdown_mode: lockdown_active,
-          content_blocking:
-            !is_system && preferences.block_external_content
-              ? {
-                  block_remote_images:
-                    lockdown_active || preferences.block_remote_images,
-                  block_remote_fonts:
-                    lockdown_active || preferences.block_remote_fonts,
-                  block_remote_css:
-                    lockdown_active || preferences.block_remote_css,
-                  block_tracking_pixels:
-                    lockdown_active || preferences.block_tracking_pixels,
-                }
-              : lockdown_active
-                ? {
-                    block_remote_images: true,
-                    block_remote_fonts: true,
-                    block_remote_css: true,
-                    block_tracking_pixels: true,
-                  }
-                : undefined,
+          content_blocking: lockdown_active
+            ? {
+                block_remote_images: true,
+                block_remote_fonts: true,
+                block_remote_css: true,
+                block_tracking_pixels: true,
+              }
+            : is_system
+              ? undefined
+              : resolve_remote_content_preferences(preferences),
         });
 
       return {
