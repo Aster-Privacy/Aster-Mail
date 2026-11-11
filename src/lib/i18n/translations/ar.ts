@@ -1851,6 +1851,9 @@ export const ar = {
     dns_host_leave_blank: "اتركه فارغًا",
     dns_host_provider_hint:
       "يستخدم {{provider}} هذه الصيغة لحقل المضيف. انسخها تمامًا كما هي.",
+    dns_host_zone_hint:
+      "اسم المضيف هذا نسبي إلى {{zone}}، وهو النطاق الذي تدير فيه سجلات DNS.",
+    dns_full_record_name: "الاسم الكامل للسجل",
     purchase_congrats_title: "تهانينا",
     recipient_key_outdated: "مفتاح المستلم قديم",
     recipient_key_outdated_desc:
@@ -4884,7 +4887,8 @@ export const ar = {
     tlsrpt_record: "سجل TLS-RPT",
     tlsrpt_description:
       "اختياري لكنه موصى به. ترسل لك الخوادم المستقبِلة ملخصًا يوميًا عند فشل التسليم المشفّر إلى نطاقك، فتكتشف المشكلات قبل مستخدميك.",
-    dns_instruction_set_tlsrpt_host: "اضبط المضيف على _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "انسخ اسم المضيف المعروض أدناه إلى حقل المضيف",
     dns_instruction_set_tlsrpt_value: "الصق قيمة TLS-RPT كما هي تمامًا",
     optional_step: "اختياري",
     gmail_import: "Gmail",
@@ -5250,7 +5254,8 @@ export const ar = {
     dns_instruction_merge_spf:
       "إذا كان لديك سجل SPF بالفعل، أضف توجيه include: إلى سجلك الحالي",
     dns_instruction_set_dkim: "اضبط القيمة على مفتاح DKIM الموضح أدناه",
-    dns_instruction_set_dmarc_host: "اضبط المضيف على _dmarc (بدون نطاقك)",
+    dns_instruction_set_dmarc_host:
+      "انسخ اسم المضيف المعروض أدناه إلى حقل المضيف",
     dns_instruction_set_dmarc_value:
       "اضبط القيمة على سياسة DMARC الموضحة أدناه",
     edit_external_account: "تعديل الحساب الخارجي",

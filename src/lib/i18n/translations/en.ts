@@ -743,6 +743,9 @@ export const en: Translations = {
     dns_host_leave_blank: "Leave blank",
     dns_host_provider_hint:
       "{{provider}} uses this format for the host field. Copy it exactly as shown.",
+    dns_host_zone_hint:
+      "This host name is relative to {{zone}}, the domain where you manage DNS records.",
+    dns_full_record_name: "Full record name",
     dns_propagation_note: "DNS changes may take up to 48 hours to propagate",
     post: "Post",
     link_copied: "Link copied to clipboard",
@@ -5683,7 +5686,8 @@ export const en: Translations = {
     tlsrpt_record: "TLS-RPT record",
     tlsrpt_description:
       "Optional but recommended. Receiving servers send you a daily summary when encrypted delivery to your domain fails, so you spot problems before your users do.",
-    dns_instruction_set_tlsrpt_host: "Set the host to _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Copy the host name shown below into the host field",
     dns_instruction_set_tlsrpt_value:
       "Paste the TLS-RPT value exactly as shown",
     optional_step: "Optional",
@@ -6113,7 +6117,7 @@ export const en: Translations = {
       "If you already have an SPF record, add the include: directive to your existing record",
     dns_instruction_set_dkim: "Set the value to the DKIM key shown below",
     dns_instruction_set_dmarc_host:
-      "Set the host to _dmarc (do not include your domain name)",
+      "Copy the host name shown below into the host field",
     dns_instruction_set_dmarc_value:
       "Set the value to the DMARC policy shown below",
     edit_external_account: "Edit external account",

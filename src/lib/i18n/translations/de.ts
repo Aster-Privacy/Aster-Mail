@@ -1852,6 +1852,9 @@ export const de = {
     dns_host_leave_blank: "Leer lassen",
     dns_host_provider_hint:
       "{{provider}} verwendet dieses Format für das Hostfeld. Kopieren Sie es genau so.",
+    dns_host_zone_hint:
+      "Dieser Hostname ist relativ zu {{zone}}, der Domain, in der Sie Ihre DNS-Einträge verwalten.",
+    dns_full_record_name: "Vollständiger Name des Eintrags",
     purchase_congrats_title: "Herzlichen Glückwunsch",
     recipient_key_outdated: "Der Schlüssel des Empfängers ist veraltet",
     recipient_key_outdated_desc:
@@ -4731,7 +4734,8 @@ export const de = {
     tlsrpt_record: "TLS-RPT-Eintrag",
     tlsrpt_description:
       "Optional, aber empfohlen. Empfangende Server senden Ihnen eine tagliche Zusammenfassung, wenn die verschlusselte Zustellung an Ihre Domain fehlschlagt, damit Sie Probleme vor Ihren Nutzern bemerken.",
-    dns_instruction_set_tlsrpt_host: "Setzen Sie den Host auf _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Kopieren Sie den unten angezeigten Hostnamen in das Hostfeld",
     dns_instruction_set_tlsrpt_value:
       "Fugen Sie den TLS-RPT-Wert exakt wie angezeigt ein",
     optional_step: "Optional",
@@ -5108,7 +5112,7 @@ export const de = {
     dns_instruction_merge_spf:
       "Wenn Sie bereits einen SPF-Eintrag haben, fügen Sie die include:-Direktive zu Ihrem bestehenden Eintrag hinzu",
     dns_instruction_set_dmarc_host:
-      "Setzen Sie den Host auf _dmarc (ohne Ihre Domain)",
+      "Kopieren Sie den unten angezeigten Hostnamen in das Hostfeld",
     dns_instruction_set_dmarc_value:
       "Setzen Sie den Wert auf die unten angezeigte DMARC-Richtlinie",
     edit_external_account: "Externes Konto bearbeiten",

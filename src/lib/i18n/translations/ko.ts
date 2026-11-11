@@ -1939,6 +1939,8 @@ export const ko = {
     dns_host_leave_blank: "비워 두기",
     dns_host_provider_hint:
       "{{provider}}은(는) 호스트 항목에 이 형식을 사용합니다. 표시된 그대로 복사하세요.",
+    dns_host_zone_hint: "이 호스트 이름은 DNS 레코드를 관리하는 도메인인 {{zone}} 기준의 상대 이름입니다.",
+    dns_full_record_name: "레코드 전체 이름",
     purchase_congrats_title: "축하합니다",
     recipient_key_outdated: "받는 사람의 키가 오래되었습니다",
     recipient_key_outdated_desc:
@@ -4767,7 +4769,7 @@ export const ko = {
     tlsrpt_record: "TLS-RPT 레코드",
     tlsrpt_description:
       "선택 사항이지만 권장합니다. 도메인으로의 암호화 전송이 실패하면 수신 서버가 일일 요약을 보내주므로 사용자보다 먼저 문제를 발견할 수 있습니다.",
-    dns_instruction_set_tlsrpt_host: "호스트를 _smtp._tls 로 설정하세요",
+    dns_instruction_set_tlsrpt_host: "아래에 표시된 호스트 이름을 호스트 항목에 복사하세요",
     dns_instruction_set_tlsrpt_value: "TLS-RPT 값을 표시된 그대로 붙여넣으세요",
     optional_step: "선택",
     gmail_import: "Gmail",
@@ -5143,8 +5145,7 @@ export const ko = {
     dns_instruction_merge_spf:
       "이미 SPF 레코드가 있는 경우 기존 레코드에 include: 디렉티브를 추가하세요",
     dns_instruction_set_dkim: "아래에 표시된 DKIM 키로 값을 설정하세요",
-    dns_instruction_set_dmarc_host:
-      "호스트를 _dmarc로 설정하세요 (도메인은 포함하지 마세요)",
+    dns_instruction_set_dmarc_host: "아래에 표시된 호스트 이름을 호스트 항목에 복사하세요",
     dns_instruction_set_dmarc_value:
       "아래에 표시된 DMARC 정책으로 값을 설정하세요",
     edit_external_account: "외부 계정 편집",

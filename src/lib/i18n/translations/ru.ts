@@ -1926,6 +1926,9 @@ export const ru = {
     dns_host_leave_blank: "Оставьте пустым",
     dns_host_provider_hint:
       "{{provider}} использует такой формат для поля хоста. Скопируйте его точно.",
+    dns_host_zone_hint:
+      "Это имя хоста указано относительно {{zone}}, домена, в котором вы управляете записями DNS.",
+    dns_full_record_name: "Полное имя записи",
     purchase_congrats_title: "Поздравляем",
     recipient_key_outdated: "Ключ получателя устарел",
     recipient_key_outdated_desc:
@@ -4918,7 +4921,8 @@ export const ru = {
     tlsrpt_record: "Запись TLS-RPT",
     tlsrpt_description:
       "Необязательно, но рекомендуется. Принимающие серверы будут присылать ежедневную сводку, если зашифрованная доставка в ваш домен не удалась, и вы заметите проблему раньше пользователей.",
-    dns_instruction_set_tlsrpt_host: "Укажите хост _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Скопируйте имя хоста, показанное ниже, в поле хоста",
     dns_instruction_set_tlsrpt_value:
       "Вставьте значение TLS-RPT точно так, как показано",
     optional_step: "Необязательно",
@@ -5311,7 +5315,7 @@ export const ru = {
       "Если у вас уже есть запись SPF, добавьте директиву include: к существующей записи",
     dns_instruction_set_dkim: "Установите значение ключа DKIM, указанное ниже",
     dns_instruction_set_dmarc_host:
-      "Установите хост _dmarc (без вашего домена)",
+      "Скопируйте имя хоста, показанное ниже, в поле хоста",
     dns_instruction_set_dmarc_value:
       "Установите значение политики DMARC, указанное ниже",
     edit_external_account: "Редактировать внешний аккаунт",

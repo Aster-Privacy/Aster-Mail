@@ -1422,6 +1422,8 @@ export interface CommonTranslations {
   dkim_short_key_wait: string;
   dns_host_leave_blank: string;
   dns_host_provider_hint: string;
+  dns_host_zone_hint: string;
+  dns_full_record_name: string;
   dns_propagation_note: string;
   post: string;
   link_copied: string;
