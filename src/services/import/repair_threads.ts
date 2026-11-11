@@ -251,7 +251,10 @@ function group_records(records: RepairRecord[]): RepairRecord[][] {
   return [...groups.values()];
 }
 
-function plan_updates(user_id: string, records: RepairRecord[]): RethreadItem[] {
+function plan_updates(
+  user_id: string,
+  records: RepairRecord[],
+): RethreadItem[] {
   const updates: RethreadItem[] = [];
 
   for (const group of group_records(records)) {
