@@ -10188,23 +10188,34 @@ export const ja = {
     device_code_expires_in: "有効期限",
     link_device_title: "デバイスをリンク",
     link_device_enter_code:
-      "デスクトップアプリに表示されたコードを入力してください。",
+      "リンクするアプリに表示されているリンクコードを入力してください。",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "続行",
     link_device_confirm_prompt: "このデバイスをアカウントにリンクしますか？",
     link_device_confirm_button: "デバイスをリンク",
     link_device_confirming: "デバイスをリンク中...",
     link_device_cancel: "キャンセル",
-    link_device_desktop: "デスクトップアプリ",
-    device_fingerprint: "確認コード",
-    device_code_verify_toggle: "このデバイスを確認",
-    link_device_fingerprint_hint:
-      "デスクトップアプリに確認コードが表示されている場合は、デバイスをリンクする前に、このコードと一致することを確認してください。",
-    device_code_fingerprint_hint:
-      "デバイスをリンクする前に、ブラウザにも同じ確認コードが表示されます。2つのコードが一致しない場合は、デバイスをリンクしないでください。",
+    link_device_desktop: "新しいデバイス",
+    device_fingerprint: "デバイスのフィンガープリント",
+    device_fingerprint_copy: "デバイスのフィンガープリントをコピー",
+    link_device_grant_notice:
+      "リンクすると、{{device}} のアプリが {{email}} に完全にアクセスできるようになります。メールと暗号鍵も含まれます。",
+    link_device_own_device_warning:
+      "ご自身のデバイスの Aster アプリでこの操作を開始した場合にのみ続行してください。このコードをほかの人から受け取った場合は、デバイスをリンクしないでください。",
+    link_device_fingerprint_enter:
+      "リンクするアプリに表示されているデバイスのフィンガープリントを入力してください。アプリによっては確認コードと表示されます。",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "このリンクコードのデバイスと一致しません。リンクするアプリの表示と 1 文字ずつ比べてから、もう一度お試しください。それでも一致しない場合は、デバイスをリンクしないでください。",
+    link_device_fingerprint_link_mismatch:
+      "このページを開いたリンクは、このリンクコードとは別のデバイスのものであるため、ここではデバイスをリンクできません。リンクするアプリで新しいコードを取得して、もう一度お試しください。",
+    link_device_update_desktop:
+      "アプリに表示されない場合は、アプリで「このデバイスを確認」を選択してください。このオプションがない場合は、アプリをアップデートしてから、もう一度お試しください。",
+    device_code_fingerprint_required_hint:
+      "デバイスをリンクする前に、ブラウザでこのデバイスのフィンガープリントの入力が求められます。",
     link_device_change_account: "アカウントを切り替える",
     link_device_choose_account: "アカウントを選択",
-    link_device_choose_account_description: "デスクトップアプリを連携します",
+    link_device_choose_account_description: "新しいデバイスをリンクします",
     link_device_choose_account_note:
       "暗号鍵は、デバイス間で転送される間も暗号化されたままです。",
     link_device_use_another_account: "別のアカウントを使用",
@@ -10216,11 +10227,11 @@ export const ja = {
       "このアカウントで続行するには、パスワードを入力してください。",
     link_device_success: "デバイスがリンクされました",
     link_device_success_description:
-      "デスクトップアプリがリンクされました。このタブを閉じることができます。",
+      "デバイスがリンクされました。このタブを閉じることができます。",
     link_device_invalid_code:
       "リンクコードは 8 文字です。コードを確認して、もう一度お試しください。",
     link_device_expired_code:
-      "このコードは期限切れか一致しませんでした。デスクトップアプリに現在のコードがあります。",
+      "このコードは期限切れか一致しませんでした。リンクするアプリに現在のコードが表示されています。",
     link_device_failed:
       "リンクが完了しませんでした。最初からやり直すと解決することが多いです。アカウントに変更はありません。",
     link_keys_locked_title: "キーリングがロックされています",

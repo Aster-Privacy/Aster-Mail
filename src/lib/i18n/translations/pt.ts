@@ -10541,26 +10541,36 @@ export const pt = {
     link_device_confirm_prompt:
       "Pretende associar este dispositivo à sua conta?",
     link_device_confirming: "A associar dispositivo...",
-    link_device_desktop: "Aplicação para computador",
-    device_fingerprint: "Código de verificação",
-    device_code_verify_toggle: "Verificar este dispositivo",
-    link_device_fingerprint_hint:
-      "Se a sua aplicação de computador mostrar um código de verificação, confirme que corresponde a este antes de associar o dispositivo.",
-    device_code_fingerprint_hint:
-      "O navegador mostra o mesmo código de verificação antes de associar o dispositivo. Se os dois códigos não corresponderem, não associe o dispositivo.",
+    link_device_desktop: "Novo dispositivo",
+    device_fingerprint: "Impressão digital do dispositivo",
+    device_fingerprint_copy: "Copiar impressão digital do dispositivo",
+    link_device_grant_notice:
+      "Ao associar, a aplicação em {{device}} fica com acesso total a {{email}}, incluindo o seu correio e as suas chaves de encriptação.",
+    link_device_own_device_warning:
+      "Continue apenas se iniciou este processo numa aplicação Aster no seu próprio dispositivo. Se outra pessoa lhe deu este código, não associe o dispositivo.",
+    link_device_fingerprint_enter:
+      "Introduza a impressão digital do dispositivo mostrada na aplicação que está a associar. Algumas aplicações chamam-lhe código de verificação.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Isto não corresponde ao dispositivo deste código de associação. Compare cada carácter com a aplicação que está a associar e tente novamente. Se continuar a não corresponder, não associe o dispositivo.",
+    link_device_fingerprint_link_mismatch:
+      "A ligação que abriu esta página pertence a um dispositivo diferente do deste código de associação, pelo que não pode associar o dispositivo aqui. Obtenha um novo código na aplicação que está a associar e tente novamente.",
+    link_device_update_desktop:
+      "Se a aplicação não a mostrar, escolha Verificar este dispositivo na aplicação. Se a aplicação não tiver essa opção, atualize-a e tente novamente.",
+    device_code_fingerprint_required_hint:
+      "O navegador pede esta impressão digital do dispositivo antes de associar o dispositivo.",
     link_device_change_account: "Mudar de conta",
     link_device_choose_account: "Escolha uma conta",
-    link_device_choose_account_description:
-      "Para associar a sua aplicação para computador",
+    link_device_choose_account_description: "Para associar um novo dispositivo",
     link_device_choose_account_note:
       "As suas chaves de encriptação continuam encriptadas enquanto passam entre os seus dispositivos.",
     link_device_use_another_account: "Usar outra conta",
     link_device_use_this_account: "Usar esta conta",
     link_device_other_accounts: "Mudar para outra conta",
     link_device_enter_code:
-      "Introduza o código mostrado na aplicação para computador.",
+      "Introduza o código de associação mostrado na aplicação que está a associar.",
     link_device_expired_code:
-      "Este código expirou ou não corresponde. Utilize o código atual da aplicação para computador.",
+      "Este código expirou ou não corresponde. Utilize o código atual da aplicação que está a associar.",
     link_device_failed:
       "A associação não foi concluída. Recomeçar costuma resolver. A sua conta permanece inalterada.",
     link_device_invalid_code:
@@ -10571,7 +10581,7 @@ export const pt = {
       "Para continuar com esta conta, introduza a respetiva palavra-passe.",
     link_device_success: "Dispositivo associado",
     link_device_success_description:
-      "A sua aplicação para computador já está associada. Pode fechar este separador.",
+      "O seu dispositivo já está associado. Pode fechar este separador.",
     link_device_title: "Associar dispositivo",
     link_keys_locked_title: "O seu porta-chaves está bloqueado",
     link_keys_locked_description:

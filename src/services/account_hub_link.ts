@@ -34,6 +34,7 @@ const MAX_PROFILE_PICTURE_LENGTH = 512_000;
 const COLOR_PATTERN = /^#[0-9a-f]{3,8}$/i;
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
 const ERROR_PATTERN = /^[a-z_]{1,64}$/;
+const FINGERPRINT_PATTERN = /^[0-9A-F]{4}( [0-9A-F]{4}){4}$/;
 const PROFILE_PICTURE_PATTERN =
   /^(https:\/\/|data:image\/(png|jpeg|webp|gif);base64,)/i;
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
@@ -328,8 +329,17 @@ export async function hub_accounts(): Promise<hub_account[]> {
 export async function confirm_hub_link(
   code: string,
   account_id: string,
+  fingerprint: string,
 ): Promise<void> {
-  const reply = await call("link", { code, account_id }, LINK_TIMEOUT_MS);
+  if (!FINGERPRINT_PATTERN.test(fingerprint)) {
+    throw new HubAccountError("fingerprint_required");
+  }
+
+  const reply = await call(
+    "link",
+    { code, account_id, fingerprint },
+    LINK_TIMEOUT_MS,
+  );
 
   if (reply.ok !== true) throw reply_error(reply);
 }

@@ -9283,23 +9283,33 @@ export const zh_CN = {
     device_code_waiting: "等待确认中",
     device_code_expires_in: "过期时间",
     link_device_title: "关联设备",
-    link_device_enter_code: "输入桌面应用上显示的验证码。",
+    link_device_enter_code: "输入要关联的应用中显示的关联码。",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "继续",
     link_device_confirm_prompt: "您要将此设备关联到您的账户吗？",
     link_device_confirm_button: "关联设备",
     link_device_confirming: "正在关联设备...",
     link_device_cancel: "取消",
-    link_device_desktop: "桌面应用",
-    device_fingerprint: "验证码",
-    device_code_verify_toggle: "验证此设备",
-    link_device_fingerprint_hint:
-      "如果桌面应用显示了验证码，请在关联设备之前确认它与此验证码一致。",
-    device_code_fingerprint_hint:
-      "关联设备之前，浏览器会显示相同的验证码。如果两个验证码不一致，请不要关联设备。",
+    link_device_desktop: "新设备",
+    device_fingerprint: "设备指纹",
+    device_fingerprint_copy: "复制设备指纹",
+    link_device_grant_notice:
+      "关联后，{{device}} 上的应用将获得对 {{email}} 的完全访问权限，包括你的邮件和加密密钥。",
+    link_device_own_device_warning:
+      "仅当你是在自己设备上的 Aster 应用中发起此操作时才继续。如果此代码是别人提供给你的，请不要关联设备。",
+    link_device_fingerprint_enter: "输入要关联的应用中显示的设备指纹。有些应用将其称为验证码。",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "这与此关联码对应的设备不匹配。请与要关联的应用逐个字符比对，然后重试。如果仍不匹配，请勿关联设备。",
+    link_device_fingerprint_link_mismatch:
+      "打开此页面的链接属于另一台设备，与此关联码对应的设备不同，因此你无法在此关联设备。请在要关联的应用中获取新代码，然后重试。",
+    link_device_update_desktop:
+      "如果应用未显示设备指纹，请在应用中选择“验证此设备”。如果应用没有该选项，请更新应用，然后重试。",
+    device_code_fingerprint_required_hint:
+      "浏览器在关联设备之前会要求输入此设备指纹。",
     link_device_change_account: "切换账号",
     link_device_choose_account: "选择账号",
-    link_device_choose_account_description: "以关联桌面应用",
+    link_device_choose_account_description: "以关联新设备",
     link_device_choose_account_note:
       "您的加密密钥在设备之间传输时始终保持加密状态。",
     link_device_use_another_account: "使用其他账号",
@@ -9309,10 +9319,10 @@ export const zh_CN = {
     hub_account_password_required: "需要密码",
     hub_account_link_failed: "要继续使用此账户，请输入其密码。",
     link_device_success: "设备已关联",
-    link_device_success_description: "您的桌面应用已关联。您可以关闭此标签页。",
+    link_device_success_description: "你的设备已关联。你可以关闭此标签页。",
     link_device_invalid_code: "关联码为 8 个字符。请检查关联码后重试。",
     link_device_expired_code:
-      "此验证码已过期或不匹配。桌面应用上有最新的验证码。",
+      "此代码已过期或不匹配。要关联的应用中显示的是最新的代码。",
     link_device_failed:
       "关联未能完成。重新开始通常可以解决。您的账户未发生变化。",
     link_keys_locked_title: "您的密钥环已锁定",

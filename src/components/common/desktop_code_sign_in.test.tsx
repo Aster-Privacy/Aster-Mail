@@ -27,9 +27,10 @@ const request_device_code_mock = vi.fn();
 const poll_device_code_status_mock = vi.fn();
 const complete_device_pairing_mock = vi.fn();
 const show_toast_mock = vi.fn();
+const open_external_mock = vi.fn();
 
 vi.mock("@/utils/open_link", () => ({
-  open_external: vi.fn(),
+  open_external: (url: string) => open_external_mock(url),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -178,7 +179,7 @@ describe("desktop code sign-in", () => {
     expect(container!.textContent).not.toContain("auth.create_account");
   });
 
-  it("shows the verification code of its own keys only on request", async () => {
+  it("shows the verification code of its own keys and sends it with the browser link", async () => {
     const encode = (length: number, value: number) =>
       btoa(String.fromCharCode(...new Uint8Array(length).fill(value)))
         .replace(/\+/g, "-")
@@ -192,28 +193,51 @@ describe("desktop code sign-in", () => {
       machine_name: "desk",
       device_id: null,
     });
+    open_external_mock.mockClear();
 
     await render_sign_in();
 
     expect(
-      container!.querySelector('[data-testid="device_fingerprint"]'),
-    ).toBeNull();
-    expect(container!.textContent).not.toContain("9B16");
-
-    const toggle = Array.from(container!.querySelectorAll("button")).find(
-      (button) => button.textContent === "auth.device_code_verify_toggle",
-    );
-
-    expect(toggle?.getAttribute("aria-expanded")).toBe("false");
-    await act(async () => {
-      toggle!.click();
-    });
-
-    expect(toggle?.getAttribute("aria-expanded")).toBe("true");
-    expect(
       container!.querySelector('[data-testid="device_fingerprint"]')
         ?.textContent,
     ).toContain("9B16 AF79 0A6A E2F2 55D3");
+    expect(container!.textContent).not.toContain(
+      "auth.device_code_verify_toggle",
+    );
+
+    const open = Array.from(container!.querySelectorAll("button")).find(
+      (button) => button.textContent === "auth.device_code_open_browser",
+    );
+
+    await act(async () => {
+      open!.click();
+    });
+
+    expect(open_external_mock).toHaveBeenCalledWith(
+      "https://app.astermail.org/link-device#v=9B16AF790A6AE2F255D3",
+    );
+
+    const copy_fingerprint = container!.querySelector(
+      '[data-testid="device_fingerprint_copy"]',
+    ) as HTMLButtonElement;
+
+    expect(copy_fingerprint.getAttribute("aria-label")).toBe(
+      "auth.device_fingerprint_copy",
+    );
+
+    await act(async () => {
+      copy_fingerprint.click();
+    });
+    await advance(100);
+
+    expect(invoke_mock).toHaveBeenCalledWith(
+      "plugin:clipboard-manager|write_text",
+      { text: "9B16 AF79 0A6A E2F2 55D3" },
+    );
+    expect(show_toast_mock).toHaveBeenCalledWith(
+      "common.copied_to_clipboard",
+      "success",
+    );
   });
 
   it("keeps polling after a failed status request", async () => {

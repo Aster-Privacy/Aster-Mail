@@ -39,6 +39,7 @@ import {
   send_server_queued_immediately,
 } from "@/services/send_queue";
 import { play_iconic_sound } from "@/services/iconic_sounds";
+import { settle_queued_send_drafts } from "@/services/queued_send_drafts";
 
 export interface PendingSend {
   id: string;
@@ -365,6 +366,10 @@ export function handle_restored_send_settled(
   if (restored) {
     undo_send_manager.remove(restored.id);
   }
+
+  settle_queued_send_drafts().catch((caught) =>
+    ignore_error("hooks/use_undo_send:settle_queued_send_drafts", caught),
+  );
 
   if (status !== "sent") return;
 

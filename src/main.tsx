@@ -72,6 +72,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
 import { watch_device_erase } from "@/lib/device_erase_latch";
 import { capture_support_return } from "@/lib/support_return";
+import { capture_link_commitment } from "@/lib/device_link_commitment";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
 const DesktopApp = lazy_with_retry(() => import("@/App"));
@@ -130,6 +131,7 @@ if (preload_initial_language()) {
 start_input_modality_tracking();
 install_global_error_reporting();
 capture_support_return();
+capture_link_commitment(true);
 
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
