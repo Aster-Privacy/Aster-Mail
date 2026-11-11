@@ -30,6 +30,7 @@ import {
   flag_recipient_untrusted,
   is_recipient_flagged_untrusted,
 } from "./crypto/ratchet_identity_pin";
+import { RecipientPinUnreadableError } from "./crypto/ratchet_types";
 
 import {
   is_ghost_email,
@@ -79,7 +80,14 @@ export async function assert_owner_key_trusted(
   const pin_id = recipient.trim().toLowerCase();
 
   const owner_changed =
-    (await check_owner_key_pin(pin_id, armored_public_key)) === "changed";
+    (await check_owner_key_pin(pin_id, armored_public_key).catch((caught) => {
+      if (!(caught instanceof RecipientPinUnreadableError)) throw caught;
+
+      throw create_error(
+        "encryption_failed",
+        get_active_translations().errors.recipient_key_unreadable,
+      );
+    })) === "changed";
 
   if (!owner_changed && !(await is_recipient_flagged_untrusted(pin_id))) {
     return;

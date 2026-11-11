@@ -27,12 +27,9 @@ import {
   fetch_ratchet_identity,
 } from "./ratchet_prekey_bundle";
 import {
-  get_identity_change,
-  get_pinned_identity_fingerprint,
-  get_pinned_owner_key_fingerprint,
   is_recipient_bundle_accepted,
-  is_recipient_flagged_untrusted,
   owner_key_fingerprint,
+  read_recipient_pins,
   trust_recipient_keys,
   type RecipientBundleBinding,
 } from "./ratchet_identity_pin";
@@ -88,9 +85,12 @@ async function snapshot_recipient_identity(
   if (!pin_id || !username) return none;
 
   try {
-    const pinned_kem = await get_pinned_identity_fingerprint(pin_id);
-    const pinned_owner = await get_pinned_owner_key_fingerprint(pin_id);
-    const known = pinned_kem !== null || pinned_owner !== null;
+    const pins = await read_recipient_pins(pin_id);
+    const pinned_kem = pins.identity_fingerprint;
+    const pinned_owner = pins.owner_fingerprint;
+    const pins_unsettled = pins.health !== "settled";
+    const known =
+      pins_unsettled || pinned_kem !== null || pinned_owner !== null;
     const identity = known
       ? await fetch_ratchet_identity(username, pin_id)
       : null;
@@ -118,8 +118,9 @@ async function snapshot_recipient_identity(
       (await owner_key_fingerprint(owner_public_key)) !== pinned_owner;
 
     if (
+      pins_unsettled ||
       owner_changed ||
-      (await is_recipient_flagged_untrusted(pin_id)) ||
+      pins.flagged ||
       (await is_published_bundle_unverified(
         pin_id,
         published_bundle,
@@ -134,7 +135,7 @@ async function snapshot_recipient_identity(
       };
     }
 
-    if (kem_changed || (await get_identity_change(pin_id))) {
+    if (kem_changed || pins.change) {
       return { ...none, status: "rotated" };
     }
 
@@ -142,7 +143,7 @@ async function snapshot_recipient_identity(
   } catch (error) {
     if (is_crypto_module_load_error(error)) throw error;
 
-    return none;
+    return { ...none, status: "untrusted" };
   }
 }
 

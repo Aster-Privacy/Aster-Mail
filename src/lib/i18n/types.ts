@@ -752,6 +752,8 @@ export interface CommonTranslations {
   key_trust_change_title: string;
   key_trust_change_message: string;
   key_trust_change_detail: string;
+  key_trust_unreadable_message: string;
+  key_trust_unreadable_detail: string;
   key_trust_change_confirm: string;
   post_quantum_downgrade_title: string;
   post_quantum_downgrade_message: string;
@@ -7844,6 +7846,7 @@ export interface MailTranslations {
   alias_sent_indexing: string;
   sender_identity_rotated: string;
   sender_identity_downgraded: string;
+  sender_identity_unreadable: string;
   recipient_identity_changed: string;
   message_password_requirements: string;
   recipient_identity_untrusted: string;
@@ -9266,6 +9269,7 @@ export interface ErrorTranslations {
   cannot_send_no_recovery_key: string;
   message_password_too_weak: string;
   recipient_key_untrusted: string;
+  recipient_key_unreadable: string;
   key_trust_check_failed: string;
   recipient_classification_unavailable: string;
   failed_send_external: string;

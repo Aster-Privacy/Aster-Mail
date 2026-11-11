@@ -60,17 +60,36 @@ export function KeyTrustChangePrompt(): React.ReactElement {
 
   const details = pending
     .map((change) =>
-      t("common.key_trust_change_detail", {
-        email: change.email,
-        prior: format_fingerprint(change.prior_fingerprint),
-        current: format_fingerprint(change.new_fingerprint),
-      }),
+      change.unreadable
+        ? t("common.key_trust_unreadable_detail", {
+            email: change.email,
+            current: format_fingerprint(change.new_fingerprint),
+          })
+        : t("common.key_trust_change_detail", {
+            email: change.email,
+            prior: format_fingerprint(change.prior_fingerprint),
+            current: format_fingerprint(change.new_fingerprint),
+          }),
     )
     .join(" ");
 
-  const summary = t("common.key_trust_change_message", {
-    recipients: pending.map((change) => change.email).join(", "),
-  });
+  const changed = pending.filter((change) => !change.unreadable);
+  const unread = pending.filter((change) => change.unreadable);
+
+  const summary = [
+    changed.length > 0
+      ? t("common.key_trust_change_message", {
+          recipients: changed.map((change) => change.email).join(", "),
+        })
+      : "",
+    unread.length > 0
+      ? t("common.key_trust_unreadable_message", {
+          recipients: unread.map((change) => change.email).join(", "),
+        })
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <ConfirmModal

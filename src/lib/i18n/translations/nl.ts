@@ -1926,6 +1926,9 @@ export const nl = {
     key_trust_change_message:
       "De versleutelingssleutel van {{recipients}} is sinds de vorige opvraging gewijzigd. Controleer de nieuwe vingerafdruk via een ander kanaal bij de ontvanger voordat je verzendt.",
     key_trust_change_detail: "{{email}}: was {{prior}}, nu {{current}}.",
+    key_trust_unreadable_message:
+      "De opgeslagen versleutelingssleutel van {{recipients}} kan op dit apparaat niet worden gelezen. Controleer de huidige vingerafdruk via een ander kanaal bij de ontvanger voordat je verzendt.",
+    key_trust_unreadable_detail: "{{email}}: nu {{current}}.",
     key_trust_change_confirm: "Nieuwe sleutel vertrouwen",
     post_quantum_downgrade_title:
       "Verzenden zonder de verwachte post-quantumsleutels?",
@@ -8963,6 +8966,8 @@ export const nl = {
       "De versleutelingsidentiteit van deze afzender is veranderd sinds je voor het laatst berichten hebt uitgewisseld. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
     sender_identity_downgraded:
       "De berichten van deze afzender hebben geen post-quantumbescherming meer. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
+    sender_identity_unreadable:
+      "De opgeslagen versleutelingssleutel van deze afzender kan op dit apparaat niet worden gelezen, dus dit bericht kan niet worden geverifieerd. Bevestig de sleutel op een andere manier bij deze persoon en kies daarna Nieuwe sleutel vertrouwen.",
     recipient_identity_changed:
       "De versleutelingssleutel van {{email}} is gewijzigd. Als je dat niet verwachtte, bevestig de wijziging dan op een andere manier met deze persoon voordat je gevoelige informatie verstuurt.",
     message_password_requirements:
@@ -10823,6 +10828,8 @@ export const nl = {
       "Het berichtwachtwoord is te zwak, dus het bericht is niet verstuurd. Gebruik minstens 12 tekens met een cijfer, een symbool of hoofdletters en kleine letters.",
     recipient_key_untrusted:
       "De versleutelingssleutel van een ontvanger is gewijzigd, dus het bericht is niet verstuurd. Bevestig de wijziging op een andere manier en kies daarna Nieuwe sleutel vertrouwen.",
+    recipient_key_unreadable:
+      "De opgeslagen versleutelingssleutel van een ontvanger kan op dit apparaat niet worden gelezen, dus het bericht is niet verstuurd. Bevestig de sleutel op een andere manier en kies daarna Nieuwe sleutel vertrouwen.",
     key_trust_check_failed:
       "De versleutelingssleutels van de ontvangers konden niet worden gecontroleerd, dus het bericht is niet verstuurd. Controleer je verbinding en probeer het opnieuw.",
     recipient_classification_unavailable:

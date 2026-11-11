@@ -1940,6 +1940,9 @@ export const es = {
     key_trust_change_message:
       "La clave de cifrado de {{recipients}} cambió desde la última consulta. Comprueba la nueva huella con el destinatario por otro canal antes de enviar.",
     key_trust_change_detail: "{{email}}: antes {{prior}}, ahora {{current}}.",
+    key_trust_unreadable_message:
+      "La clave de cifrado guardada de {{recipients}} no se puede leer en este dispositivo. Comprueba la huella actual con el destinatario por otro canal antes de enviar.",
+    key_trust_unreadable_detail: "{{email}}: ahora {{current}}.",
     key_trust_change_confirm: "Confiar en la nueva clave",
     post_quantum_downgrade_title:
       "¿Enviar sin las claves poscuánticas esperadas?",
@@ -8990,6 +8993,8 @@ export const es = {
       "La identidad de cifrado de este remitente cambió desde la última vez que intercambiaron mensajes. Si no lo esperabas, confírmalo con esa persona por otro medio.",
     sender_identity_downgraded:
       "Los mensajes de este remitente ya no cuentan con protección poscuántica. Si no lo esperabas, confírmalo con esa persona por otro medio.",
+    sender_identity_unreadable:
+      "La clave de cifrado guardada de este remitente no se puede leer en este dispositivo, así que este mensaje no se puede verificar. Para volver a verificar sus mensajes, confirma la clave con esa persona por otro medio y elige Confiar en la nueva clave.",
     recipient_identity_changed:
       "La clave de cifrado de {{email}} cambió. Si no lo esperabas, confirma el cambio con esa persona por otro medio antes de enviar información confidencial.",
     message_password_requirements:
@@ -10810,6 +10815,8 @@ export const es = {
       "La contraseña del mensaje es demasiado débil, así que el mensaje no se envió. Usa al menos 12 caracteres e incluye un número, un símbolo o letras mayúsculas y minúsculas.",
     recipient_key_untrusted:
       "La clave de cifrado de un destinatario cambió, así que el mensaje no se envió. Para enviarlo, confirma el cambio con esa persona por otro medio y elige Confiar en la nueva clave.",
+    recipient_key_unreadable:
+      "La clave de cifrado guardada de un destinatario no se puede leer en este dispositivo, así que el mensaje no se envió. Para enviarlo, confirma la clave con esa persona por otro medio y elige Confiar en la nueva clave.",
     key_trust_check_failed:
       "No se pudieron comprobar las claves de cifrado de los destinatarios, así que el mensaje no se envió. Comprueba tu conexión y vuelve a intentarlo.",
     recipient_classification_unavailable:

@@ -21,6 +21,7 @@
 
 export {
   KeyPinUnavailableError,
+  RecipientPinUnreadableError,
   RecipientKeyUntrustedError,
   RecoveryLaneUnavailableError,
   build_ratchet_envelope,

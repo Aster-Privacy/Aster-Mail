@@ -73,7 +73,12 @@ describe("post-quantum downgrade consent", () => {
   it("reports nothing when every recipient is covered", async () => {
     const coverage = await check_post_quantum_status([stripped], sender);
 
-    expect(coverage).toEqual({ missing: [], downgraded: [], untrusted: [] });
+    expect(coverage).toEqual({
+      missing: [],
+      downgraded: [],
+      untrusted: [],
+      unreadable: [],
+    });
   });
 
   it("separates a stripped bundle from a peer that never had keys", async () => {

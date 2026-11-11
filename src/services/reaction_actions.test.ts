@@ -27,7 +27,7 @@ const h = vi.hoisted(() => ({
     string,
     unknown
   >,
-  coverage: { missing: [] as string[], downgraded: [] as string[], untrusted: [] as string[] },
+  coverage: { missing: [] as string[], downgraded: [] as string[], untrusted: [] as string[], unreadable: [] as string[] },
   encrypt_calls: [] as unknown[][],
   encrypt_impl: null as null | ((...args: unknown[]) => Promise<unknown>),
   react_calls: [] as Record<string, unknown>[],
@@ -116,7 +116,7 @@ function build_message(
 describe("send_reaction", () => {
   beforeEach(() => {
     h.preferences = { reactions_enabled: true, require_encryption: false };
-    h.coverage = { missing: [], downgraded: [], untrusted: [] };
+    h.coverage = { missing: [], downgraded: [], untrusted: [], unreadable: [] };
     h.encrypt_calls = [];
     h.encrypt_impl = null;
     h.react_calls = [];
@@ -136,7 +136,7 @@ describe("send_reaction", () => {
   });
 
   it("asks for post-quantum consent like a normal send and honors it", async () => {
-    h.coverage = { missing: ["friend@astermail.org"], downgraded: [], untrusted: [] };
+    h.coverage = { missing: ["friend@astermail.org"], downgraded: [], untrusted: [], unreadable: [] };
     const prompt = vi.fn(async () => true);
 
     set_post_quantum_prompt_handler(prompt);
@@ -150,7 +150,7 @@ describe("send_reaction", () => {
   });
 
   it("sends nothing when post-quantum consent is declined", async () => {
-    h.coverage = { missing: ["friend@astermail.org"], downgraded: [], untrusted: [] };
+    h.coverage = { missing: ["friend@astermail.org"], downgraded: [], untrusted: [], unreadable: [] };
     set_post_quantum_prompt_handler(async () => false);
 
     const result = await send_reaction(build_message(), "👍");
@@ -162,7 +162,7 @@ describe("send_reaction", () => {
   });
 
   it("refuses an untrusted key with the specific message", async () => {
-    h.coverage = { missing: [], downgraded: [], untrusted: ["friend@astermail.org"] };
+    h.coverage = { missing: [], downgraded: [], untrusted: ["friend@astermail.org"], unreadable: [] };
 
     const result = await send_reaction(build_message(), "👍");
 
@@ -170,6 +170,22 @@ describe("send_reaction", () => {
     expect(result.error).toBe(
       get_active_translations().errors.recipient_key_untrusted,
     );
+    expect(h.react_calls).toHaveLength(0);
+  });
+
+  it("refuses an unreadable saved key with its own message", async () => {
+    h.coverage = { missing: [], downgraded: [], untrusted: [], unreadable: ["friend@astermail.org"] };
+
+    const result = await send_reaction(build_message(), "👍");
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(
+      get_active_translations().errors.recipient_key_unreadable,
+    );
+    expect(result.error).not.toBe(
+      get_active_translations().errors.key_trust_check_failed,
+    );
+    expect(h.encrypt_calls).toHaveLength(0);
     expect(h.react_calls).toHaveLength(0);
   });
 

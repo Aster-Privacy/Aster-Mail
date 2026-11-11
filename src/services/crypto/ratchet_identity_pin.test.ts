@@ -68,13 +68,12 @@ import {
   check_and_pin_identity,
   check_owner_key_pin,
   flag_recipient_untrusted,
-  get_pinned_owner_key_fingerprint,
+  lookup_identity_pin_record,
+  lookup_owner_key_pin,
   is_recipient_bundle_accepted,
   is_recipient_flagged_untrusted,
   trust_recipient_keys,
   get_identity_change,
-  get_identity_pin_record,
-  get_pinned_identity_fingerprint,
   reset_identity_pin,
 } from "@/services/crypto/ratchet_identity_pin";
 import {
@@ -82,7 +81,11 @@ import {
   get_peer_identity_event,
   subscribe_peer_identity_events,
 } from "@/services/crypto/ratchet_verification_status";
-import { scoped_storage_name } from "@/services/crypto/storage_key_names";
+import {
+  canonical_storage_name,
+  reset_storage_name_state,
+} from "@/services/crypto/storage_key_names";
+import { reset_contact_entry_state } from "@/services/crypto/contact_entries";
 
 const KEY_A = btoa("identity-key-aaaaaaaaaaaaaaaaaaaaaaaa");
 const KEY_B = btoa("identity-key-bbbbbbbbbbbbbbbbbbbbbbbb");
@@ -94,12 +97,34 @@ const ACCEPTED_BUNDLE = {
 };
 
 function pin_name(prefix: string, peer: string): Promise<string> {
-  return scoped_storage_name(prefix, "acct-1", peer);
+  return canonical_storage_name(prefix, "acct-1", peer);
+}
+
+async function get_identity_pin_record(peer: string) {
+  const found = await lookup_identity_pin_record(peer);
+
+  return found === "unreadable" ? null : found;
+}
+
+async function get_pinned_identity_fingerprint(
+  peer: string,
+): Promise<string | null> {
+  return (await get_identity_pin_record(peer))?.fingerprint ?? null;
+}
+
+async function get_pinned_owner_key_fingerprint(
+  peer: string,
+): Promise<string | null> {
+  const found = await lookup_owner_key_pin(peer);
+
+  return found && found !== "unreadable" ? found.fingerprint : null;
 }
 
 describe("ratchet identity pin", () => {
   beforeEach(() => {
     h.store.clear();
+    reset_storage_name_state();
+    reset_contact_entry_state();
     h.key = new Uint8Array(32).fill(7);
     clear_ratchet_verification_status();
   });
@@ -234,6 +259,7 @@ describe("ratchet identity pin", () => {
     expect(scoped).toBeDefined();
     h.store.delete(scoped_name);
     h.store.set("ratchet_identity_pin_alice", scoped);
+    reset_storage_name_state();
 
     expect(await check_and_pin_identity("alice", KEY_A)).toBe("ok");
     expect(h.store.has(scoped_name)).toBe(true);
@@ -274,6 +300,8 @@ describe("owner key pin", () => {
 
   beforeEach(() => {
     h.store.clear();
+    reset_storage_name_state();
+    reset_contact_entry_state();
     h.key = new Uint8Array(32).fill(7);
     h.fail_openpgp_load = false;
     clear_ratchet_verification_status();

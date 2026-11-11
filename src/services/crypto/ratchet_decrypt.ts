@@ -241,7 +241,7 @@ async function sender_continuity(
   return check_sender_identity_continuity(
     sender_email,
     sender_identity_key,
-  ).catch(() => "changed" as const);
+  ).catch(() => "unreadable" as const);
 }
 
 async function session_sender_identity_key(
@@ -414,6 +414,10 @@ async function attempt_ratchet_decrypt(
         record_peer_identity_event(sender_email, "rotated");
       }
 
+      if (continuity === "unreadable") {
+        record_peer_identity_event(sender_email, "unreadable");
+      }
+
       if (dedupe_key && lane_plaintext) {
         plaintext = await prefer_escrowed_plaintext(
           plaintext,
@@ -428,7 +432,7 @@ async function attempt_ratchet_decrypt(
       const from_escrow = lane_plaintext && !unauthenticated;
       const unconfirmed_sender = from_escrow
         ? is_unconfirmed_sender_plaintext(plaintext)
-        : continuity === "changed";
+        : continuity !== "known" && continuity !== "new";
 
       if (unconfirmed_sender) {
         mark_unconfirmed_sender_plaintext(

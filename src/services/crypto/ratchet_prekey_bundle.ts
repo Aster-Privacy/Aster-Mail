@@ -36,7 +36,7 @@ import {
   get_vault_from_memory,
   on_keys_ready,
 } from "./memory_key_store";
-import { get_pinned_identity_fingerprint } from "./ratchet_identity_pin";
+import { lookup_pinned_identity } from "./ratchet_identity_pin";
 import { type PrekeyBundle } from "./x3dh";
 
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -55,14 +55,22 @@ export async function detect_identity_pin_drift(
       core_base64_to_array(kem_identity_key),
     );
 
-    const namespaced_pin_id = `ratchet_identity:${pin_id}`;
+    const pinned = await lookup_pinned_identity(pin_id);
+
+    if (!pinned) {
+      return;
+    }
+
+    const namespaced_pin_id = `ratchet_identity:${pinned.id}`;
 
     if (!PINNED_FINGERPRINTS.has(namespaced_pin_id)) {
-      const persisted = await get_pinned_identity_fingerprint(pin_id);
+      pin_fingerprint(
+        namespaced_pin_id,
+        pinned.fingerprint ?? fingerprint,
+        "identity",
+      );
 
-      pin_fingerprint(namespaced_pin_id, persisted ?? fingerprint, "identity");
-
-      if (!persisted) {
+      if (!pinned.fingerprint) {
         return;
       }
     }

@@ -1954,6 +1954,9 @@ export const fr = {
       "La clé de chiffrement de {{recipients}} a changé depuis la dernière recherche. Vérifiez la nouvelle empreinte avec le destinataire par un autre canal avant d’envoyer.",
     key_trust_change_detail:
       "{{email}} : avant {{prior}}, maintenant {{current}}.",
+    key_trust_unreadable_message:
+      "La clé de chiffrement enregistrée de {{recipients}} est illisible sur cet appareil. Vérifiez l’empreinte actuelle avec le destinataire par un autre canal avant d’envoyer.",
+    key_trust_unreadable_detail: "{{email}} : maintenant {{current}}.",
     key_trust_change_confirm: "Faire confiance à la nouvelle clé",
     post_quantum_downgrade_title:
       "Envoyer sans les clés post-quantiques attendues ?",
@@ -9091,6 +9094,8 @@ export const fr = {
       "L'identité de chiffrement de cet expéditeur a changé depuis votre dernier échange de messages. Si vous ne vous y attendiez pas, confirmez-le avec cette personne par un autre moyen.",
     sender_identity_downgraded:
       "Les messages de cet expéditeur ne bénéficient plus de la protection post-quantique. Si vous ne vous y attendiez pas, confirmez-le avec cette personne par un autre moyen.",
+    sender_identity_unreadable:
+      "La clé de chiffrement enregistrée de cet expéditeur est illisible sur cet appareil, ce message ne peut donc pas être vérifié. Pour vérifier de nouveau ses messages, confirmez la clé avec cette personne par un autre moyen, puis choisissez Faire confiance à la nouvelle clé.",
     recipient_identity_changed:
       "La clé de chiffrement de {{email}} a changé. Si vous ne vous y attendiez pas, confirmez ce changement avec cette personne par un autre moyen avant d'envoyer des informations sensibles.",
     message_password_requirements:
@@ -10941,6 +10946,8 @@ export const fr = {
       "Le mot de passe du message est trop faible, le message n'a donc pas été envoyé. Utilisez au moins 12 caractères, avec un chiffre, un symbole ou des majuscules et des minuscules.",
     recipient_key_untrusted:
       "La clé de chiffrement d'un destinataire a changé, le message n'a donc pas été envoyé. Pour l'envoyer, confirmez le changement avec cette personne par un autre moyen, puis choisissez Faire confiance à la nouvelle clé.",
+    recipient_key_unreadable:
+      "La clé de chiffrement enregistrée d'un destinataire est illisible sur cet appareil, le message n'a donc pas été envoyé. Pour l'envoyer, confirmez la clé avec cette personne par un autre moyen, puis choisissez Faire confiance à la nouvelle clé.",
     key_trust_check_failed:
       "Impossible de vérifier les clés de chiffrement des destinataires, le message n'a donc pas été envoyé. Vérifiez votre connexion et réessayez.",
     recipient_classification_unavailable:

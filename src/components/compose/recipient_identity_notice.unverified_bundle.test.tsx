@@ -83,8 +83,14 @@ vi.mock("@/services/crypto/ratchet_prekey_bundle", () => ({
 vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
   acknowledge_identity_change: vi.fn(async () => undefined),
   get_identity_change: vi.fn(async () => null),
-  get_pinned_identity_fingerprint: vi.fn(async () => null),
-  get_pinned_owner_key_fingerprint: vi.fn(async () => h.pinned_owner),
+  read_recipient_pins: vi.fn(async (pin_id: string) => ({
+    health: "settled",
+    identity_fingerprint: null,
+    owner_fingerprint: h.pinned_owner,
+    flagged: h.flagged.has(pin_id),
+    change: null,
+  })),
+  get_recipient_pin_health: vi.fn(async () => "settled"),
   is_recipient_bundle_accepted: vi.fn(async (pin_id: string) =>
     h.accepted.has(pin_id),
   ),

@@ -1206,6 +1206,9 @@ export const en: Translations = {
     key_trust_change_message:
       "The encryption key for {{recipients}} changed since the last lookup. Check the new fingerprint with the recipient over another channel before you send.",
     key_trust_change_detail: "{{email}}: was {{prior}}, now {{current}}.",
+    key_trust_unreadable_message:
+      "The saved encryption key for {{recipients}} can't be read on this device. Check the current fingerprint with the recipient over another channel before you send.",
+    key_trust_unreadable_detail: "{{email}}: now {{current}}.",
     key_trust_change_confirm: "Trust new key",
     post_quantum_downgrade_title:
       "Send without the expected post-quantum keys?",
@@ -8742,6 +8745,8 @@ export const en: Translations = {
       "This sender's encryption identity changed since you last exchanged messages. If you did not expect that, confirm it with them another way.",
     sender_identity_downgraded:
       "This sender's messages no longer carry post-quantum protection. If you did not expect that, confirm it with them another way.",
+    sender_identity_unreadable:
+      "The saved encryption key for this sender can't be read on this device, so this message can't be verified. To verify their messages again, confirm their key with them another way, then choose Trust new key.",
     recipient_identity_changed:
       "The encryption key for {{email}} changed. If you did not expect that, confirm the change with them another way before you send anything sensitive.",
     message_password_requirements:
@@ -10535,6 +10540,8 @@ export const en: Translations = {
       "The message password is too weak, so the message wasn't sent. Use at least 12 characters, and include a number, a symbol, or both uppercase and lowercase letters.",
     recipient_key_untrusted:
       "A recipient's encryption key changed, so the message wasn't sent. To send it, confirm the change with them another way, then choose Trust new key.",
+    recipient_key_unreadable:
+      "A recipient's saved encryption key can't be read on this device, so the message wasn't sent. To send it, confirm their key with them another way, then choose Trust new key.",
     key_trust_check_failed:
       "Couldn't check the recipients' encryption keys, so the message wasn't sent. Check your connection and try again.",
     recipient_classification_unavailable:

@@ -28,6 +28,7 @@ import {
 } from "./crypto/memory_key_store";
 import {
   KeyPinUnavailableError,
+  RecipientPinUnreadableError,
   RecipientKeyUntrustedError,
   RecoveryLaneUnavailableError,
   build_ratchet_envelope,
@@ -68,6 +69,13 @@ function map_ratchet_error(err: unknown): unknown {
     return create_error(
       "encryption_failed",
       get_active_translations().errors.recipient_key_untrusted,
+    );
+  }
+
+  if (err instanceof RecipientPinUnreadableError) {
+    return create_error(
+      "encryption_failed",
+      get_active_translations().errors.recipient_key_unreadable,
     );
   }
 
@@ -121,6 +129,7 @@ export interface PostQuantumCoverage {
   missing: string[];
   downgraded: string[];
   untrusted: string[];
+  unreadable: string[];
 }
 
 export async function check_post_quantum_status(
@@ -131,6 +140,7 @@ export async function check_post_quantum_status(
     missing: [],
     downgraded: [],
     untrusted: [],
+    unreadable: [],
   };
 
   if (!sender_email) return coverage;
@@ -165,6 +175,11 @@ export async function check_post_quantum_status(
 
       if (status === "downgraded") coverage.downgraded.push(recipient);
     } catch (err) {
+      if (err instanceof RecipientPinUnreadableError) {
+        coverage.unreadable.push(recipient);
+        continue;
+      }
+
       throw map_ratchet_error(err);
     }
   }

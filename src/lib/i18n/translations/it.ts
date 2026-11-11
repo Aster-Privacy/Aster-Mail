@@ -1944,6 +1944,9 @@ export const it = {
     key_trust_change_message:
       "La chiave di crittografia di {{recipients}} è cambiata dall’ultima ricerca. Verifica la nuova impronta con il destinatario su un altro canale prima di inviare.",
     key_trust_change_detail: "{{email}}: prima {{prior}}, ora {{current}}.",
+    key_trust_unreadable_message:
+      "La chiave di crittografia salvata di {{recipients}} non può essere letta su questo dispositivo. Verifica l’impronta attuale con il destinatario su un altro canale prima di inviare.",
+    key_trust_unreadable_detail: "{{email}}: ora {{current}}.",
     key_trust_change_confirm: "Considera attendibile la nuova chiave",
     post_quantum_downgrade_title:
       "Inviare senza le chiavi post-quantistiche previste?",
@@ -9029,6 +9032,8 @@ export const it = {
       "L'identità di crittografia di questo mittente è cambiata dall'ultimo scambio di messaggi. Se non te lo aspettavi, confermalo con questa persona in un altro modo.",
     sender_identity_downgraded:
       "I messaggi di questo mittente non sono più protetti dalla crittografia post-quantistica. Se non te lo aspettavi, confermalo con questa persona in un altro modo.",
+    sender_identity_unreadable:
+      "La chiave di crittografia salvata di questo mittente non può essere letta su questo dispositivo, quindi questo messaggio non può essere verificato. Per verificare di nuovo i suoi messaggi, conferma la chiave con questa persona in un altro modo, poi scegli Considera attendibile la nuova chiave.",
     recipient_identity_changed:
       "La chiave di crittografia di {{email}} è cambiata. Se non te lo aspettavi, conferma la modifica con questa persona in un altro modo prima di inviare informazioni riservate.",
     message_password_requirements:
@@ -10860,6 +10865,8 @@ export const it = {
       "La password del messaggio è troppo debole, quindi il messaggio non è stato inviato. Usa almeno 12 caratteri e includi un numero, un simbolo oppure lettere maiuscole e minuscole.",
     recipient_key_untrusted:
       "La chiave di crittografia di un destinatario è cambiata, quindi il messaggio non è stato inviato. Per inviarlo, conferma la modifica con questa persona in un altro modo, poi scegli Considera attendibile la nuova chiave.",
+    recipient_key_unreadable:
+      "La chiave di crittografia salvata di un destinatario non può essere letta su questo dispositivo, quindi il messaggio non è stato inviato. Per inviarlo, conferma la chiave con questa persona in un altro modo, poi scegli Considera attendibile la nuova chiave.",
     key_trust_check_failed:
       "Impossibile verificare le chiavi di crittografia dei destinatari, quindi il messaggio non è stato inviato. Controlla la connessione e riprova.",
     recipient_classification_unavailable:

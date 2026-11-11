@@ -35,8 +35,8 @@ import {
 } from "./reaction_restrictions";
 import { get_cached_preferences } from "./api/preferences";
 import {
+  describe_consent_block,
   ensure_post_quantum_consent,
-  type PostQuantumConsentBlock,
 } from "./post_quantum_consent";
 import { SendError, type EncryptionResult } from "./send_queue_types";
 
@@ -54,14 +54,6 @@ export interface ReactionResult {
   own_reaction_mail_item_id?: string;
 }
 
-function translate_consent_block(block: PostQuantumConsentBlock): string {
-  const errors = get_active_translations().errors;
-
-  return block === "errors.recipient_key_untrusted"
-    ? errors.recipient_key_untrusted
-    : errors.key_trust_check_failed;
-}
-
 type ReactionBody =
   | { ok: true; result: EncryptionResult }
   | { ok: false; result: ReactionResult };
@@ -77,7 +69,7 @@ async function seal_reaction_body(
     return {
       ok: false,
       result: consent.blocked_by
-        ? { success: false, error: translate_consent_block(consent.blocked_by) }
+        ? { success: false, error: describe_consent_block(consent.blocked_by) }
         : { success: false, cancelled: true },
     };
   }
