@@ -1163,6 +1163,8 @@ export const fr = {
     encrypted_in_transit_stored:
       "Chiffré en transit et stocké de manière chiffrée.",
     only_you_and_sender: "Seuls vous et l'expéditeur pouvez lire ceci.",
+    encrypted_to_you_unconfirmed_sender:
+      "Ce message a été chiffré avec votre clé publique. L'identité de l'expéditeur n'est pas confirmée.",
     only_you_can_read_contacts:
       "Vous seul pouvez lire vos contacts. Aster ne voit pas ces données.",
     failed_to_send_email:
@@ -9682,9 +9684,9 @@ export const fr = {
     unstar: "Retirer l'étoile",
     mark_unread: "Marquer comme non lu",
     mark_read: "Marquer comme lu",
-    verified_sender: "Expéditeur vérifié",
+    verified_sender: "Domaine vérifié",
     verified_sender_desc:
-      "L'expéditeur de cet e-mail a vérifié qu'il est propriétaire de {{domain}}.",
+      "Les serveurs d'Aster ont vérifié que l'expéditeur est propriétaire de {{domain}}.",
     sender_warning_title: "Vérifiez l'adresse de l'expéditeur",
     sender_warning_address_in_name:
       "Le nom de l'expéditeur affiche {{claimed}}, mais ce message provient de {{address}}.",

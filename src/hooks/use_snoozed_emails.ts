@@ -48,6 +48,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
 import {
   format_email_list_timestamp,
   type FormatOptions,
@@ -317,9 +318,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
             );
 
             envelope.body_text = bundle.body;
-            if (bundle.subject !== null && !envelope.subject) {
-              envelope.subject = bundle.subject;
-            }
+            settle_bundle_subject(envelope, bundle);
           }
 
           const snooze_time = item.snoozed_until || snoozed_map.get(item.id);

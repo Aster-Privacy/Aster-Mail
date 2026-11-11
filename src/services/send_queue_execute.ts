@@ -28,6 +28,7 @@ import {
   plan_sealed_attachments,
   prepare_external_attachments,
   wipe_sealed_attachment_plan,
+  type SealedAttachmentPlan,
 } from "./crypto/attachment_crypto";
 import { array_to_base64 } from "./crypto/envelope";
 import { encrypt_secure_message } from "./crypto/secure_message_crypto";
@@ -96,6 +97,21 @@ export function resolve_client_send_id(
 export async function execute_send(
   email: QueuedEmailInternal,
 ): Promise<string | undefined> {
+  const attachment_plans: SealedAttachmentPlan[] = [];
+
+  try {
+    return await execute_send_with_plans(email, attachment_plans);
+  } finally {
+    for (const plan of attachment_plans) {
+      wipe_sealed_attachment_plan(plan);
+    }
+  }
+}
+
+async function execute_send_with_plans(
+  email: QueuedEmailInternal,
+  attachment_plans: SealedAttachmentPlan[],
+): Promise<string | undefined> {
   const readiness = check_send_readiness_internal();
 
   if (readiness.ready === false) {
@@ -146,6 +162,9 @@ export async function execute_send(
     all_attachments.length > 0
       ? await plan_sealed_attachments(all_attachments)
       : null;
+
+  if (attachment_plan) attachment_plans.push(attachment_plan);
+
   const bundled_body_for_recipient = build_subject_bundle(
     email.subject || "",
     body_for_recipient,

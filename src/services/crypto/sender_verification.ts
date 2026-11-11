@@ -26,6 +26,7 @@ import {
 } from "@/services/api/keys";
 import { check_owner_key_pin } from "@/services/crypto/ratchet_identity_pin";
 import { record_peer_identity_event } from "@/services/crypto/ratchet_verification_status";
+import { claim_rotation_notice } from "@/services/crypto/rotation_notice";
 
 const RESOLVER_CACHE_TTL_MS = 5 * 60 * 1000;
 const MAX_RESOLVER_CACHE = 1000;
@@ -139,7 +140,12 @@ export async function settle_sender_verification<Status extends string>(
 
   if (trust === "trusted") return verification;
   if (await is_own_signature()) return verification;
-  if (trust === "changed") record_peer_identity_event(sender_email, "rotated");
+  if (
+    trust === "changed" &&
+    claim_rotation_notice(sender_email, keys.join("\n"))
+  ) {
+    record_peer_identity_event(sender_email, "rotated");
+  }
 
   return "no_keys";
 }

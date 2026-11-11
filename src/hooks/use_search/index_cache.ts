@@ -38,6 +38,7 @@ import {
 import { CachedIndex, ChunkSpan } from "./types";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { drop_sender_verification } from "@/services/crypto/sender_verification";
 import {
   queue_vocabulary_entry,
   reset_vocabulary,
@@ -834,6 +835,7 @@ export async function hydrate_snapshot_index(
 
       if (!entry) continue;
 
+      drop_sender_verification(entry.envelope);
       index.items.push(item);
       index.decrypted.set(item.id, {
         envelope: entry.envelope,

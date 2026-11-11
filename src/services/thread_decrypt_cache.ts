@@ -52,6 +52,7 @@ export type ThreadMessageContent = Pick<
   | "html_content"
   | "text_part"
   | "e2e_verified"
+  | "e2e_sender_bound"
   | "sent_encryption_scope"
   | "to_recipients"
   | "cc_recipients"

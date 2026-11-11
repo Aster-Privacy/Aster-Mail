@@ -177,3 +177,17 @@ export function reaches_outside_recipients(
 
   return scope ? scope === "outside" : !!flags.is_external;
 }
+
+export interface SenderBindingFlags {
+  sent_encryption_scope?: SentEncryptionScope;
+  e2e_sender_bound?: boolean;
+  sender_verification?: string;
+}
+
+export function names_sender_as_reader(flags: SenderBindingFlags): boolean {
+  if (as_sent_encryption_scope(flags.sent_encryption_scope)) return true;
+
+  return (
+    flags.e2e_sender_bound === true || flags.sender_verification === "verified"
+  );
+}

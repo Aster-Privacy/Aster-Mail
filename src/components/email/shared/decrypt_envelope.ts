@@ -556,9 +556,11 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   }
 
   if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
-    return decrypt_envelope_v2_with_vault<T>(
-      encrypted_envelope,
-      get_vault_from_memory(),
+    return drop_sender_verification(
+      await decrypt_envelope_v2_with_vault<T>(
+        encrypted_envelope,
+        get_vault_from_memory(),
+      ),
     );
   }
 
@@ -575,7 +577,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
       zero_uint8_array(passphrase_bytes);
 
-      return result;
+      return drop_sender_verification(result);
     }
 
     zero_uint8_array(passphrase_bytes);

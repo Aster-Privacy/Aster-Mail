@@ -311,6 +311,7 @@ describe("list refresh decrypt cache", () => {
     vi.mocked(decrypt_body_text_with_bundle).mockResolvedValueOnce({
       body: "list footer",
       subject: null,
+      sealed: false,
       pgp_undecrypted: true,
     });
 
@@ -325,6 +326,7 @@ describe("list refresh decrypt cache", () => {
     vi.mocked(decrypt_body_text_with_bundle).mockResolvedValueOnce({
       body: "list footer",
       subject: null,
+      sealed: false,
       pgp_undecrypted: true,
     });
 

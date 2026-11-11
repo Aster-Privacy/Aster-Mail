@@ -1021,6 +1021,8 @@ export const de = {
       "Wir konnten die Schlüssel dieses Empfängers nicht prüfen. Ein weiterer Versuch zeigt, ob diese Nachricht Ende-zu-Ende verschlüsselt werden kann.",
     end_to_end_encrypted_label: "Ende-zu-Ende-verschlüsselt",
     only_you_and_sender: "Nur Sie und der Absender können dies lesen.",
+    encrypted_to_you_unconfirmed_sender:
+      "Diese Nachricht wurde mit Ihrem öffentlichen Schlüssel verschlüsselt. Die Identität des Absenders ist nicht bestätigt.",
     only_you_can_read_contacts:
       "Nur Sie können Ihre Kontakte lesen. Aster kann diese Daten nicht sehen.",
     failed_to_send_email:
@@ -9654,9 +9656,9 @@ export const de = {
     unstar: "Markierung entfernen",
     mark_unread: "Als ungelesen markieren",
     mark_read: "Als gelesen markieren",
-    verified_sender: "Verifizierter Absender",
+    verified_sender: "Verifizierte Domain",
     verified_sender_desc:
-      "Der Absender dieser E-Mail hat bestätigt, dass ihm {{domain}} gehört.",
+      "Die Server von Aster haben geprüft, dass dem Absender {{domain}} gehört.",
     sender_warning_title: "Absenderadresse prüfen",
     sender_warning_address_in_name:
       "Der Absendername zeigt {{claimed}}, aber diese Nachricht stammt von {{address}}.",

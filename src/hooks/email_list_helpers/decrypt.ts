@@ -47,6 +47,7 @@ import { decrypt_envelope_v2_with_vault } from "@/services/crypto/envelope_v2";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
+import { drop_sender_verification } from "@/services/crypto/sender_verification";
 
 export async function try_decrypt_with_identity_key(
   encrypted: string | Uint8Array,
@@ -86,7 +87,7 @@ const UNRESOLVED_ATTEMPT: EnvelopeAttempt = {
 const EXHAUSTED_ATTEMPT: EnvelopeAttempt = { envelope: null, exhausted: true };
 
 function opened_attempt(envelope: DecryptedEnvelope): EnvelopeAttempt {
-  return { envelope, exhausted: false };
+  return { envelope: drop_sender_verification(envelope), exhausted: false };
 }
 
 const envelope_cache = new Map<string, Promise<EnvelopeAttempt>>();

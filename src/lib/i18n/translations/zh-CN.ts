@@ -986,6 +986,7 @@ export const zh_CN = {
     end_to_end_encrypted_label: "端到端加密",
     encrypted_in_transit_stored: "传输中加密并以加密形式存储。",
     only_you_and_sender: "只有您和发件人可以阅读此邮件。",
+    encrypted_to_you_unconfirmed_sender: "此邮件已使用您的公钥加密。发件人的身份尚未确认。",
     only_you_can_read_contacts:
       "只有您可以读取自己的联系人，Aster 无法看到这些数据。",
     failed_to_send_email: "此邮件未能发送。请重试。您的草稿已保存。",
@@ -8499,8 +8500,8 @@ export const zh_CN = {
     unstar: "取消星标",
     mark_unread: "标记为未读",
     mark_read: "标记为已读",
-    verified_sender: "已验证的发件人",
-    verified_sender_desc: "此邮件的发件人已验证其拥有 {{domain}}。",
+    verified_sender: "已验证的域名",
+    verified_sender_desc: "Aster 的服务器已核实发件人拥有 {{domain}}。",
     sender_warning_title: "请检查发件人地址",
     sender_warning_address_in_name:
       "发件人名称显示为 {{claimed}}，但此邮件来自 {{address}}。",

@@ -53,6 +53,7 @@ import { type ApiResponse } from "@/services/api/client";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { type FormatOptions } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import {
   filter_locked_mail_items,
@@ -263,9 +264,7 @@ export async function fetch_mail_from_api(
               );
 
               envelope.body_text = bundle.body;
-              if (bundle.subject !== null && !envelope.subject) {
-                envelope.subject = bundle.subject;
-              }
+              settle_bundle_subject(envelope, bundle);
               if (bundle.pgp_undecrypted) cacheable = false;
             }
 

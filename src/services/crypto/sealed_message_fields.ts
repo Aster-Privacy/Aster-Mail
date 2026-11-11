@@ -53,6 +53,17 @@ export function settle_sealed_fields(
   );
 }
 
+export function settle_bundle_subject(
+  envelope: { subject: string },
+  bundle: { subject: string | null; sealed?: boolean },
+): void {
+  if (bundle.subject === null) return;
+
+  if (bundle.sealed === true || !envelope.subject) {
+    envelope.subject = bundle.subject;
+  }
+}
+
 export function sealed_html_source(
   envelope_html: string | undefined,
   sealed: boolean,

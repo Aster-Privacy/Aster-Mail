@@ -1152,6 +1152,8 @@ export const it = {
     encrypted_in_transit_stored:
       "Crittografato in transito e archiviato crittografato.",
     only_you_and_sender: "Solo tu e il mittente potete leggere questo.",
+    encrypted_to_you_unconfirmed_sender:
+      "Questo messaggio è stato crittografato con la tua chiave pubblica. L'identità del mittente non è confermata.",
     only_you_can_read_contacts:
       "Solo tu puoi leggere i tuoi contatti. Aster non vede questi dati.",
     failed_to_send_email:
@@ -9625,9 +9627,9 @@ export const it = {
     unstar: "Rimuovi speciale",
     mark_unread: "Segna come non letto",
     mark_read: "Segna come letto",
-    verified_sender: "Mittente verificato",
+    verified_sender: "Dominio verificato",
     verified_sender_desc:
-      "Il mittente di questa email ha verificato di possedere {{domain}}.",
+      "I server di Aster hanno verificato che il mittente possiede {{domain}}.",
     sender_warning_title: "Controlla l'indirizzo del mittente",
     sender_warning_address_in_name:
       "Il nome del mittente mostra {{claimed}}, ma questo messaggio proviene da {{address}}.",

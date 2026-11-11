@@ -54,7 +54,6 @@ function full_envelope(): DecryptedEnvelope {
     cc: [{ name: "Other", email: "other@example.test" }],
     bcc: [],
     sent_at: "2026-08-01T10:00:00Z",
-    sender_verification: "valid" as never,
     list_unsubscribe: "<mailto:unsubscribe@example.test>",
     raw_headers: [
       { name: "Received", value: "from mx.example.test by relay" },

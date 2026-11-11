@@ -41,6 +41,8 @@ import { TrackingProtectionShield } from "@/components/email/tracking_protection
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
+import { use_sender_trust } from "@/hooks/use_sender_trust";
+import { reply_to_header_value } from "@/utils/reply_to";
 import {
   EmailTag,
   hex_to_variant,
@@ -102,6 +104,33 @@ export function ViewerEmailHeader({
   const display_sender =
     peer_profile?.display_name || email.display_sender_name || email.sender;
   const show_sender_email = email.display_sender_email ?? email.sender_email;
+  const evaluated_trust = use_sender_trust(
+    {
+      sender_name: email.sender,
+      sender_email: email.sender_email,
+      display_sender_name: email.display_sender_name,
+      display_sender_email: email.display_sender_email,
+      reply_to:
+        reply_to_header_value(email.raw_headers) ?? email.reply_to?.email,
+      spf_result: mail_item?.spf_result,
+      dkim_result: mail_item?.dkim_result,
+      dmarc_result: mail_item?.dmarc_result,
+      sender_aligned: mail_item?.sender_aligned ?? email.sender_aligned,
+      sender_verified_domain: email.sender_verified_domain,
+      is_external: mail_item?.is_external ?? email.is_external ?? true,
+      system_origin: email.system_origin,
+      sender_verification: email.sender_verification,
+      item_type: mail_item?.item_type,
+    },
+    {
+      shown_name: email.display_sender_name ?? email.sender,
+      shown_email: show_sender_email,
+    },
+  );
+  const sender_trust =
+    (mail_item?.item_type ?? "received") === "received"
+      ? evaluated_trust
+      : null;
 
   return (
     <>
@@ -110,6 +139,7 @@ export function ViewerEmailHeader({
           <div className="flex items-center gap-1 flex-shrink-0">
             <EncryptionInfoDropdown
               e2e_verified={!!email.e2e_verified}
+              sender_bound={!!email.e2e_sender_bound}
               sent_encryption_scope={email.sent_encryption_scope}
               has_pq_protection={has_pq_protection}
               has_recipient_key={has_recipient_key}
@@ -171,11 +201,13 @@ export function ViewerEmailHeader({
                 <span className="text-txt-primary">{display_sender}</span>
               </EmailProfileTrigger>
               <OfficialBadge sender={email} size="md" />
-              <VerifiedSenderBadge
-                domain={email.sender_verified_domain}
-                shown_email={show_sender_email}
-                size="md"
-              />
+              {(!sender_trust || sender_trust.show_verified_badge === true) && (
+                <VerifiedSenderBadge
+                  domain={email.sender_verified_domain}
+                  shown_email={show_sender_email}
+                  size="md"
+                />
+              )}
               {show_sender_badge && peer_badge && (
                 <BadgeChip
                   badge={peer_badge}

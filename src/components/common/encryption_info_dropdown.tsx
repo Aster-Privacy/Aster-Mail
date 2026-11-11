@@ -29,6 +29,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_should_reduce_motion } from "@/provider";
 import {
+  names_sender_as_reader,
   reaches_outside_recipients,
   shows_end_to_end,
 } from "@/services/crypto/sent_encryption_evidence";
@@ -38,6 +39,7 @@ interface EncryptionInfoDropdownProps {
   has_pq_protection: boolean;
   has_recipient_key?: boolean;
   e2e_verified?: boolean;
+  sender_bound?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
   size?: number;
   label?: string;
@@ -51,6 +53,7 @@ export function EncryptionInfoDropdown({
   has_pq_protection,
   has_recipient_key = false,
   e2e_verified = false,
+  sender_bound = false,
   sent_encryption_scope,
   size = 18,
   label,
@@ -87,7 +90,13 @@ export function EncryptionInfoDropdown({
       : is_encrypted
         ? reaches_outside_recipients(flags)
           ? t("common.wkd_encrypted_description")
-          : t("common.only_you_and_sender")
+          : names_sender_as_reader({
+                sent_encryption_scope,
+                e2e_sender_bound: sender_bound,
+                sender_verification,
+              })
+            ? t("common.only_you_and_sender")
+            : t("common.encrypted_to_you_unconfirmed_sender")
         : t("common.encrypted_in_transit_stored");
 
   const sender_title =

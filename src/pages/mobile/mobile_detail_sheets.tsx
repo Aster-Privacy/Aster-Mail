@@ -971,6 +971,7 @@ export function MobileMessageDetailsSheet({
               </span>
               <EncryptionInfoDropdown
                 e2e_verified={!!message.e2e_verified}
+                sender_bound={!!message.e2e_sender_bound}
                 has_pq_protection={false}
                 has_recipient_key={message.has_recipient_key}
                 is_external={message.is_external}

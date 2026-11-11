@@ -1154,6 +1154,8 @@ export const es = {
     end_to_end_encrypted_label: "Cifrado de extremo a extremo",
     encrypted_in_transit_stored: "Cifrado en tránsito y almacenado cifrado.",
     only_you_and_sender: "Solo tú y el remitente pueden leer esto.",
+    encrypted_to_you_unconfirmed_sender:
+      "Este mensaje se cifró con tu clave pública. La identidad del remitente no está confirmada.",
     only_you_can_read_contacts:
       "Solo tú puedes leer tus contactos. Aster no ve estos datos.",
     failed_to_send_email:
@@ -9574,9 +9576,9 @@ export const es = {
     unstar: "Quitar estrella",
     mark_unread: "Marcar como no leído",
     mark_read: "Marcar como leído",
-    verified_sender: "Remitente verificado",
+    verified_sender: "Dominio verificado",
     verified_sender_desc:
-      "El remitente de este correo ha verificado que es propietario de {{domain}}.",
+      "Los servidores de Aster comprobaron que el remitente es propietario de {{domain}}.",
     sender_warning_title: "Comprueba la dirección del remitente",
     sender_warning_address_in_name:
       "El nombre del remitente muestra {{claimed}}, pero este mensaje procede de {{address}}.",

@@ -544,6 +544,7 @@ export async function preload_email_detail(
       const ratchet_sealed = is_ratchet_verified_body(resolved_text, body_text);
       const e2e_verified =
         ratchet_sealed || sent_encryption_scope !== undefined;
+      const e2e_sender_bound = e2e_verified;
 
       resolved_html = sealed_html_source(resolved_html, ratchet_sealed);
       const pre_pgp_text = body_text;
@@ -623,6 +624,7 @@ export async function preload_email_detail(
         is_external: item.is_external,
         system_origin: item.system_origin,
         e2e_verified,
+        e2e_sender_bound,
         sent_encryption_scope,
         sender_verified_domain: item.sender_verified
           ? item.sender_verified_domain
@@ -686,6 +688,7 @@ export async function preload_email_detail(
         is_external: item.is_external,
         system_origin: item.system_origin,
         e2e_verified,
+        e2e_sender_bound,
         sent_encryption_scope,
         sender_verified_domain: item.sender_verified
           ? item.sender_verified_domain

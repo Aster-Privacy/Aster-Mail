@@ -50,7 +50,11 @@ import { filter_locked_mail_items } from "@/services/locked_folders";
 import { strip_html_tags_bounded } from "@/lib/html_sanitizer";
 import { yield_to_next_paint } from "@/lib/scheduling";
 import { create_work_slicer } from "@/lib/work_slicer";
-import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import {
+  decrypt_body_text_with_bundle,
+  is_ratchet_envelope,
+} from "@/utils/email_crypto";
+import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
 import {
   bound_index_body,
   MAX_INDEX_BODY_CHARS,
@@ -237,7 +241,11 @@ export async function run_index_pipeline(
     );
 
     if (envelope?.body_text) {
-      if (include_body || !envelope.subject) {
+      if (
+        include_body ||
+        !envelope.subject ||
+        is_ratchet_envelope(envelope.body_text)
+      ) {
         const sender_email = envelope.from?.email || "";
 
         const bundle = await decrypt_body_text_with_bundle(
@@ -247,9 +255,7 @@ export async function run_index_pipeline(
           item.id,
         );
 
-        if (bundle.subject !== null && !envelope.subject) {
-          envelope.subject = bundle.subject;
-        }
+        settle_bundle_subject(envelope, bundle);
         envelope.body_text = include_body ? bundle.body : "";
       } else {
         envelope.body_text = "";

@@ -381,6 +381,7 @@ async function decode_thread_envelope(
     text_part: sender_text_alternative(effective_html, resolved_text),
     sent_at: envelope.sent_at,
     e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
+    e2e_sender_bound: ratchet_sealed || sent_encryption_scope !== undefined,
     ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
     to_recipients: envelope.to || [],
     cc_recipients: envelope.cc || [],
@@ -515,6 +516,7 @@ export async function fetch_and_decrypt_thread_messages(
       is_external: msg.is_external ?? false,
       system_origin: msg.system_origin,
       e2e_verified: content.e2e_verified,
+      e2e_sender_bound: content.e2e_sender_bound,
       ...(as_sent_encryption_scope(content.sent_encryption_scope)
         ? { sent_encryption_scope: content.sent_encryption_scope }
         : {}),
@@ -755,6 +757,7 @@ export async function fetch_and_decrypt_virtual_group(
       is_external: item.is_external ?? false,
       system_origin: item.system_origin,
       e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
+      e2e_sender_bound: ratchet_sealed || sent_encryption_scope !== undefined,
       ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
       sender_verified_domain: item.sender_verified
         ? item.sender_verified_domain

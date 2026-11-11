@@ -1154,6 +1154,8 @@ export const pl = {
     encrypted_in_transit_stored:
       "Szyfrowane podczas przesyłania i przechowywane w formie zaszyfrowanej.",
     only_you_and_sender: "Tylko Ty i nadawca możecie to przeczytać.",
+    encrypted_to_you_unconfirmed_sender:
+      "Ta wiadomość została zaszyfrowana Twoim kluczem publicznym. Tożsamość nadawcy nie jest potwierdzona.",
     only_you_can_read_contacts:
       "Tylko Ty możesz czytać swoje kontakty. Aster nie ma dostępu do tych danych.",
     failed_to_send_email:
@@ -9804,9 +9806,9 @@ export const pl = {
     unstar: "Usuń gwiazdkę",
     mark_unread: "Oznacz jako nieprzeczytane",
     mark_read: "Oznacz jako przeczytane",
-    verified_sender: "Zweryfikowany nadawca",
+    verified_sender: "Zweryfikowana domena",
     verified_sender_desc:
-      "Nadawca tej wiadomości potwierdził, że jest właścicielem domeny {{domain}}.",
+      "Serwery Aster sprawdziły, że nadawca jest właścicielem domeny {{domain}}.",
     sender_warning_title: "Sprawdź adres nadawcy",
     sender_warning_address_in_name:
       "Nazwa nadawcy pokazuje {{claimed}}, ale ta wiadomość pochodzi z adresu {{address}}.",
