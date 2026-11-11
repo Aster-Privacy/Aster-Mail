@@ -4316,7 +4316,7 @@ export const zh_CN = {
     "connection.tor_snowflake_description": "使用 Snowflake 桥接以抵抗审查",
     "connection.cdn_relay": "CDN 中继",
     "connection.cdn_relay_description":
-      "请求在到达 Aster 之前会经过全球 CDN 路由。您的 IP 地址对 Aster 保持隐藏，流量也会与常规 CDN 流量混在一起。",
+      "请求在到达 Aster 服务器之前，会经过 Aster 在 Cloudflare 上运行的中继。在您的网络看来，这些流量与常规 CDN 流量一样，这在 Aster 被屏蔽的地方可能有帮助。Aster 仍然可以看到您的 IP 地址。如需对 Aster 隐藏 IP 地址，请使用 Tor。",
     "connection.status_connected": "已连接",
     "connection.status_connecting": "连接中...",
     "connection.status_error": "连接已断开，我们正在自动重试。",

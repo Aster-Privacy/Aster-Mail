@@ -4852,7 +4852,7 @@ export const ar = {
       "استخدام جسور Snowflake لمقاومة الرقابة",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "تمرّ الطلبات عبر شبكة CDN عالمية قبل وصولها إلى Aster. يبقى عنوان IP الخاص بك مخفيًا عن Aster، ولا تتميز حركة مرورك عن حركة CDN العادية.",
+      "تمرّ الطلبات عبر مرحّل تشغّله Aster على Cloudflare قبل وصولها إلى خوادم Aster. تبدو حركة المرور لشبكتك مثل حركة CDN العادية، وقد يفيد ذلك في الأماكن التي يُحجب فيها Aster. يظل Aster يرى عنوان IP الخاص بك. لإخفائه عن Aster، استخدم Tor.",
     "connection.status_connected": "متصل",
     "connection.status_connecting": "جارٍ الاتصال...",
     "connection.status_error":
