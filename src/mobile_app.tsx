@@ -130,6 +130,7 @@ const VerifyRecoveryEmailPage = lazy_with_retry(
   () => import("@/pages/verify_recovery_email"),
 );
 const SecureViewPage = lazy_with_retry(() => import("@/pages/secure_view"));
+const InvitePage = lazy_with_retry(() => import("@/pages/invite"));
 const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
 const FamilyClaimPage = lazy_with_retry(() => import("@/pages/family_claim"));
 const LinkDevicePage = lazy_with_retry(() => import("@/pages/link_device"));
@@ -809,6 +810,7 @@ function MobileApp() {
               <Route element={<MobileWelcomePage />} path="/welcome" />
               <Route element={<SignInPage />} path="/sign-in" />
               <Route element={<RegisterPage />} path="/register" />
+              <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
               <Route element={<ResetPasswordPage />} path="/reset-password" />
