@@ -37,7 +37,51 @@ describe("peer profile hints", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     window.localStorage.clear();
+  });
+
+  async function fetch_then_reload() {
+    const first = await import("./profiles");
+
+    await first.fetch_peer_profile("peer@astermail.org");
+    await vi.waitFor(() => {
+      expect(
+        window.localStorage.getItem("aster_peer_profile_hints_v1"),
+      ).toBeTruthy();
+    });
+
+    vi.resetModules();
+
+    const client = await import("./client");
+
+    vi.mocked(client.api_client.post).mockClear();
+  }
+
+  it("does not look a profile up again right after a reload", async () => {
+    await fetch_then_reload();
+
+    const client = await import("./client");
+    const reloaded = await import("./profiles");
+    const profile = await reloaded.fetch_peer_profile("peer@astermail.org");
+
+    expect(profile?.display_name).toBe("Real Name");
+    expect(client.api_client.post).not.toHaveBeenCalled();
+  });
+
+  it("looks a profile up again once the stored copy is older", async () => {
+    await fetch_then_reload();
+
+    const later = Date.now() + 6 * 60 * 1000;
+
+    vi.spyOn(Date, "now").mockReturnValue(later);
+
+    const client = await import("./client");
+    const reloaded = await import("./profiles");
+
+    await reloaded.fetch_peer_profile("peer@astermail.org");
+
+    expect(client.api_client.post).toHaveBeenCalledTimes(1);
   });
 
   it("remembers a fetched profile across a reload", async () => {
