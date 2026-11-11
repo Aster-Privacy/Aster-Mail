@@ -23,6 +23,7 @@ import type { EncryptedVault } from "./key_manager";
 import type { ApiResponse } from "@/services/api/client/helpers";
 
 import { decrypt_vault, encrypt_vault } from "./key_manager";
+import { is_retired_kek } from "./retired_identity_keks";
 import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
@@ -153,18 +154,27 @@ function storage_key_fields_match(
 
 function merge_legacy_keks(
   server: EncryptedVault["legacy_keks"],
+  base: EncryptedVault["legacy_keks"] | null,
   next: EncryptedVault["legacy_keks"],
 ): EncryptedVault["legacy_keks"] {
   const merged = [...(server ?? [])];
   const seen = new Set(merged.map((entry) => entry.k));
+  const carried = new Set((base ?? []).map((entry) => entry.k));
+  let withheld = false;
 
   for (const entry of next ?? []) {
     if (seen.has(entry.k)) continue;
+    if (base !== null && carried.has(entry.k) && is_retired_kek(entry.k)) {
+      withheld = true;
+      continue;
+    }
     seen.add(entry.k);
     merged.push(entry);
   }
 
-  return merged.length ? merged : (server ?? next);
+  if (merged.length) return merged;
+
+  return server ?? (withheld ? undefined : next);
 }
 
 export function merge_vault_for_write(
@@ -198,7 +208,11 @@ export function merge_vault_for_write(
     }
   }
 
-  const legacy_keks = merge_legacy_keks(server.legacy_keks, next.legacy_keks);
+  const legacy_keks = merge_legacy_keks(
+    server.legacy_keks,
+    base ? base.legacy_keks : null,
+    next.legacy_keks,
+  );
 
   if (legacy_keks) merged.legacy_keks = legacy_keks;
 

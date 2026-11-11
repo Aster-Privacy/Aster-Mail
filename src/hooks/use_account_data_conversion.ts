@@ -22,7 +22,7 @@ import { useEffect, useRef } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
 import { run_account_data_conversion } from "@/services/account_data_conversion";
-import { run_retired_key_rewrap } from "@/services/crypto/retired_key_rewrap";
+import { schedule_retired_key_rewrap } from "@/services/crypto/retired_key_rewrap";
 import { ignore_error } from "@/lib/ignore_error";
 
 const START_DELAY_MS = 3000;
@@ -44,9 +44,6 @@ export function use_account_data_conversion(): void {
       run_account_data_conversion(account_id).catch((caught) =>
         ignore_error("hooks/use_account_data_conversion", caught),
       );
-      run_retired_key_rewrap(account_id).catch((caught) =>
-        ignore_error("hooks/use_account_data_conversion:rewrap", caught),
-      );
     };
 
     const timeout_id = setTimeout(() => {
@@ -64,6 +61,36 @@ export function use_account_data_conversion(): void {
       if (idle_handle !== null && typeof cancelIdleCallback === "function") {
         cancelIdleCallback(idle_handle);
       }
+    };
+  }, [vault, account_id]);
+
+  useEffect(() => {
+    if (!vault || !account_id) return;
+
+    let cancel_rewrap: (() => void) | null = null;
+    let idle_handle: number | null = null;
+
+    const start = () => {
+      idle_handle = null;
+      cancel_rewrap = schedule_retired_key_rewrap(account_id);
+    };
+
+    const timeout_id = setTimeout(() => {
+      if (typeof requestIdleCallback === "function") {
+        idle_handle = requestIdleCallback(start, { timeout: IDLE_TIMEOUT_MS });
+
+        return;
+      }
+
+      start();
+    }, START_DELAY_MS);
+
+    return () => {
+      clearTimeout(timeout_id);
+      if (idle_handle !== null && typeof cancelIdleCallback === "function") {
+        cancelIdleCallback(idle_handle);
+      }
+      cancel_rewrap?.();
     };
   }, [vault, account_id]);
 }

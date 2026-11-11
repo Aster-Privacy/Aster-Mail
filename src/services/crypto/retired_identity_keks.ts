@@ -45,9 +45,6 @@ const RETIRED_KEK_CONTEXTS: ReadonlyMap<string, AccountDataContext> = new Map<
   ["GNbUVg+Tah//5+O3y8zjDBgwM0SfByzozJ/wMJpQikk=", "astermail-calendar-v2"],
 ]);
 
-export const UNSCOPED_RETIRED_CONTEXT: AccountDataContext =
-  "astermail-recovery-email-v1";
-
 interface KekEntry {
   k: string;
 }

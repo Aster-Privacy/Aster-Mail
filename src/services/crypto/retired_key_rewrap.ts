@@ -25,7 +25,7 @@ import { account_data_write_key } from "./account_data_writer";
 import { array_to_base64, base64_to_array } from "./base64";
 import { HASH_ALG } from "./constants";
 import { get_retired_context_key } from "./legacy_keks";
-import { get_vault_from_memory } from "./memory_key_store";
+import { get_vault_from_memory, get_vault_owner_id } from "./memory_key_store";
 import {
   retired_contexts_in,
   retired_kek_values_for,
@@ -34,6 +34,8 @@ import { write_vault_merged } from "./vault_cas_write";
 import { with_vault_write_lock_bounded } from "./vault_write_lock";
 
 import { api_client } from "@/services/api/client";
+import { get_current_account_id } from "@/services/account_manager";
+import { is_draft_busy } from "@/services/draft_activity";
 import { ignore_error } from "@/lib/ignore_error";
 
 const LOCK_NAME = "aster-retired-key-rewrap";
@@ -44,16 +46,14 @@ const MAX_PAGES = 200;
 const VAULT_LOCK_WAIT_MS = 15000;
 
 export const RETIRED_REWRAP_RESCAN_MS = 6 * 60 * 60 * 1000;
+export const RETIRED_REWRAP_RETRY_MS = 5 * 60 * 1000;
+export const RETIRED_REWRAP_CONFIRM_MS = 7 * 24 * 60 * 60 * 1000;
+export const RETIRED_REWRAP_HELD_MS = 24 * 60 * 60 * 1000;
 
 const ACCOUNT_KEY_WRITERS: ReadonlySet<AccountDataContext> = new Set([
   "astermail-draft-v2",
   "astermail-preferences-v1",
   "astermail-devmode-v1",
-]);
-
-const UNREAD_CONTEXTS: ReadonlySet<AccountDataContext> = new Set([
-  "astermail-draft-v1",
-  "astermail-calendar-v2",
 ]);
 
 export interface RetiredRewrapSummary {
@@ -62,12 +62,15 @@ export interface RetiredRewrapSummary {
   held: number;
   dropped: AccountDataContext[];
   pending: AccountDataContext[];
+  confirming: AccountDataContext[];
+  kept: AccountDataContext[];
 }
 
 interface PassResult {
   checked: number;
   rewrapped: number;
   held: number;
+  parked: number;
   complete: boolean;
 }
 
@@ -75,6 +78,20 @@ interface PassEnv {
   retired: CryptoKey;
   write: boolean;
   target: () => Promise<CryptoKey>;
+  active: () => Promise<boolean>;
+}
+
+interface ContextState {
+  next_at: number;
+  attempts: number;
+  clean_since: number | null;
+}
+
+type RewrapState = Partial<Record<AccountDataContext, ContextState>>;
+
+interface ContextOutcome {
+  status: "clean" | "parked" | "retry";
+  rewrote: boolean;
 }
 
 interface Sealed {
@@ -84,35 +101,99 @@ interface Sealed {
 
 type PassHandler = (env: PassEnv) => Promise<PassResult>;
 
-let running = false;
+const running = new Set<string>();
 
 function empty_pass(complete: boolean): PassResult {
-  return { checked: 0, rewrapped: 0, held: 0, complete };
+  return { checked: 0, rewrapped: 0, held: 0, parked: 0, complete };
 }
 
 function scan_key(account_id: string): string {
   return `${SCAN_KEY_PREFIX}${account_id}`;
 }
 
-function read_last_scan(account_id: string): number {
-  try {
-    const raw = Number(localStorage.getItem(scan_key(account_id)) ?? 0);
+function finite_number(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
 
-    return Number.isFinite(raw) ? raw : 0;
+function read_state(account_id: string): RewrapState {
+  const state: RewrapState = {};
+
+  try {
+    const parsed: unknown = JSON.parse(
+      localStorage.getItem(scan_key(account_id)) ?? "null",
+    );
+
+    if (!parsed || typeof parsed !== "object") return state;
+
+    const stored = parsed as Record<string, unknown>;
+
+    if (stored.contexts && typeof stored.contexts === "object") {
+      for (const [context, value] of Object.entries(stored.contexts)) {
+        if (!value || typeof value !== "object") continue;
+
+        const entry = value as Record<string, unknown>;
+
+        state[context as AccountDataContext] = {
+          next_at: finite_number(entry.next_at) ?? 0,
+          attempts: Math.max(0, finite_number(entry.attempts) ?? 0),
+          clean_since: finite_number(entry.clean_since),
+        };
+      }
+
+      return state;
+    }
+    if (stored.clean && typeof stored.clean === "object") {
+      for (const [context, at] of Object.entries(stored.clean)) {
+        const since = finite_number(at);
+
+        if (since === null) continue;
+
+        state[context as AccountDataContext] = {
+          next_at: 0,
+          attempts: 0,
+          clean_since: since,
+        };
+      }
+    }
   } catch {
-    return 0;
+    return {};
+  }
+
+  return state;
+}
+
+function write_state(account_id: string, state: RewrapState | null): void {
+  try {
+    if (state === null || Object.keys(state).length === 0) {
+      localStorage.removeItem(scan_key(account_id));
+    } else {
+      localStorage.setItem(
+        scan_key(account_id),
+        JSON.stringify({ contexts: state }),
+      );
+    }
+  } catch (caught) {
+    ignore_error("services/crypto/retired_key_rewrap:write_state", caught);
   }
 }
 
-function write_last_scan(account_id: string, at: number | null): void {
+function retry_wait_ms(attempts: number): number {
+  const doubled = RETIRED_REWRAP_RETRY_MS * 2 ** Math.max(0, attempts - 1);
+
+  return Math.min(doubled, RETIRED_REWRAP_RESCAN_MS);
+}
+
+async function owns_session(
+  account_id: string,
+  identity_key: string,
+): Promise<boolean> {
+  if (get_vault_owner_id() !== account_id) return false;
+  if (get_vault_from_memory()?.identity_key !== identity_key) return false;
+
   try {
-    if (at === null) {
-      localStorage.removeItem(scan_key(account_id));
-    } else {
-      localStorage.setItem(scan_key(account_id), String(at));
-    }
-  } catch (caught) {
-    ignore_error("services/crypto/retired_key_rewrap:write_last_scan", caught);
+    return (await get_current_account_id()) === account_id;
+  } catch {
+    return false;
   }
 }
 
@@ -244,6 +325,7 @@ async function rewrap_blob(
   encrypted: string | null | undefined,
   nonce: string | null | undefined,
   save: (sealed: Sealed) => Promise<boolean>,
+  unchanged?: () => Promise<boolean>,
 ): Promise<PassResult> {
   const result = empty_pass(true);
 
@@ -261,7 +343,10 @@ async function rewrap_blob(
   let saved = false;
 
   try {
-    saved = await save(sealed);
+    saved =
+      (await env.active()) &&
+      (!unchanged || (await unchanged())) &&
+      (await save(sealed));
   } catch {
     saved = false;
   }
@@ -286,6 +371,11 @@ const ROW_FIELDS: FieldNames[] = [
   { encrypted: "encrypted_icon", nonce: "icon_nonce" },
 ];
 
+const ROW_FIELD_NAMES: string[] = ROW_FIELDS.flatMap((field) => [
+  field.encrypted,
+  field.nonce,
+]);
+
 type RawRow = Record<string, unknown>;
 
 function text_field(row: RawRow, name: string): string | null {
@@ -294,21 +384,48 @@ function text_field(row: RawRow, name: string): string | null {
   return typeof value === "string" && value ? value : null;
 }
 
+function stored_value(row: RawRow, name: string): string | boolean | null {
+  const value = row[name];
+
+  if (typeof value === "boolean") return value;
+
+  return typeof value === "string" && value ? value : null;
+}
+
+async function stored_unchanged(
+  path: string,
+  seen: RawRow,
+  names: string[],
+): Promise<boolean> {
+  const response = await api_client.get<RawRow>(path, { skip_cache: true });
+
+  if (response.error || !response.data) return false;
+
+  const stored = response.data;
+
+  return names.every(
+    (name) => stored_value(stored, name) === stored_value(seen, name),
+  );
+}
+
 async function rewrap_row(
   env: PassEnv,
   row: RawRow,
   path: string,
   result: PassResult,
+  skip_system: boolean,
 ): Promise<void> {
   result.checked++;
 
   const body: Record<string, string> = {};
+  const read_only = skip_system && row.is_system === true;
+  const row_env: PassEnv = read_only ? { ...env, write: false } : env;
   let held = false;
   let found = false;
 
   for (const field of ROW_FIELDS) {
     const sealed = await rewrap_field(
-      env,
+      row_env,
       text_field(row, field.encrypted),
       text_field(row, field.nonce),
     );
@@ -328,6 +445,13 @@ async function rewrap_row(
 
   if (!found) return;
 
+  if (read_only) {
+    result.held++;
+    result.parked++;
+
+    return;
+  }
+
   const id = text_field(row, "id");
 
   if (held || !id) {
@@ -339,9 +463,16 @@ async function rewrap_row(
   let saved = false;
 
   try {
-    const response = await api_client.put<unknown>(`${path}/${id}`, body);
+    const row_path = `${path}/${id}`;
 
-    saved = !response.error;
+    if (
+      (await env.active()) &&
+      (await stored_unchanged(row_path, row, ROW_FIELD_NAMES))
+    ) {
+      const response = await api_client.put<unknown>(row_path, body);
+
+      saved = !response.error;
+    }
   } catch {
     saved = false;
   }
@@ -358,6 +489,7 @@ async function rewrap_rows(
   path: string,
   list_key: string,
   extra_query: string,
+  skip_system: boolean,
 ): Promise<PassResult> {
   const result = empty_pass(false);
 
@@ -374,7 +506,7 @@ async function rewrap_rows(
     if (!Array.isArray(rows)) return result;
 
     for (const row of rows as RawRow[]) {
-      await rewrap_row(env, row, path, result);
+      await rewrap_row(env, row, path, result, skip_system);
     }
 
     if (response.data.has_more !== true || rows.length === 0) {
@@ -388,10 +520,10 @@ async function rewrap_rows(
 }
 
 const rewrap_tags: PassHandler = (env) =>
-  rewrap_rows(env, "/mail/v1/tags", "tags", "");
+  rewrap_rows(env, "/mail/v1/tags", "tags", "", false);
 
 const rewrap_labels: PassHandler = (env) =>
-  rewrap_rows(env, "/mail/v1/labels", "labels", "include_system=true&");
+  rewrap_rows(env, "/mail/v1/labels", "labels", "include_system=true&", true);
 
 interface PreferencesRow {
   encrypted_preferences: string | null;
@@ -427,74 +559,14 @@ const rewrap_preferences: PassHandler = async (env) => {
   );
 };
 
-interface DevModeRow {
-  encrypted_dev_mode: string | null;
-  dev_mode_nonce: string | null;
-}
-
-const rewrap_dev_mode: PassHandler = async (env) => {
-  const path = "/settings/v1/preferences/dev-mode";
-  const response = await api_client.get<DevModeRow>(path, {
-    skip_cache: true,
-  });
-
-  if (response.error || !response.data) return empty_pass(false);
-
-  return rewrap_blob(
-    env,
-    response.data.encrypted_dev_mode,
-    response.data.dev_mode_nonce,
-    async (sealed) => {
-      const saved = await api_client.put<{ success?: boolean }>(path, {
-        encrypted_dev_mode: sealed.encrypted,
-        dev_mode_nonce: sealed.nonce,
-      });
-
-      return !saved.error && saved.data?.success === true;
-    },
-  );
-};
-
-interface SubscriptionsRow {
-  encrypted_subscriptions: string | null;
-  subscriptions_nonce: string | null;
-}
-
-const rewrap_subscriptions: PassHandler = async (env) => {
-  const path = "/settings/v1/preferences/subscriptions";
-  const response = await api_client.get<SubscriptionsRow>(path, {
-    skip_cache: true,
-  });
-
-  if (response.error || !response.data) return empty_pass(false);
-
-  return rewrap_blob(
-    env,
-    response.data.encrypted_subscriptions,
-    response.data.subscriptions_nonce,
-    async (sealed) => {
-      const saved = await api_client.put<{ success?: boolean }>(path, {
-        encrypted_subscriptions: sealed.encrypted,
-        subscriptions_nonce: sealed.nonce,
-      });
-
-      return !saved.error && saved.data?.success === true;
-    },
-  );
-};
-
-interface OnboardingRow {
-  encrypted_state: string | null;
-  state_nonce: string | null;
-  is_completed: boolean;
-  is_skipped: boolean;
-}
-
-const rewrap_onboarding: PassHandler = async (env) => {
-  const path = "/core/v1/onboarding";
-  const response = await api_client.get<OnboardingRow>(path, {
-    skip_cache: true,
-  });
+async function rewrap_setting(
+  env: PassEnv,
+  path: string,
+  encrypted_name: string,
+  nonce_name: string,
+  carried: string[],
+): Promise<PassResult> {
+  const response = await api_client.get<RawRow>(path, { skip_cache: true });
 
   if (response.error || !response.data) return empty_pass(false);
 
@@ -502,20 +574,61 @@ const rewrap_onboarding: PassHandler = async (env) => {
 
   return rewrap_blob(
     env,
-    row.encrypted_state,
-    row.state_nonce,
+    text_field(row, encrypted_name),
+    text_field(row, nonce_name),
     async (sealed) => {
-      const saved = await api_client.put<{ success?: boolean }>(path, {
-        encrypted_state: sealed.encrypted,
-        state_nonce: sealed.nonce,
-        is_completed: row.is_completed === true,
-        is_skipped: row.is_skipped === true,
-      });
+      const fresh = await api_client.get<RawRow>(path, { skip_cache: true });
+
+      if (fresh.error || !fresh.data) return false;
+
+      const stored = fresh.data;
+
+      if (
+        text_field(stored, encrypted_name) !== text_field(row, encrypted_name)
+      ) {
+        return false;
+      }
+      if (text_field(stored, nonce_name) !== text_field(row, nonce_name)) {
+        return false;
+      }
+
+      const body: Record<string, string | boolean> = {
+        [encrypted_name]: sealed.encrypted,
+        [nonce_name]: sealed.nonce,
+      };
+
+      for (const name of carried) body[name] = stored[name] === true;
+
+      const saved = await api_client.put<{ success?: boolean }>(path, body);
 
       return !saved.error && saved.data?.success === true;
     },
   );
-};
+}
+
+const rewrap_dev_mode: PassHandler = (env) =>
+  rewrap_setting(
+    env,
+    "/settings/v1/preferences/dev-mode",
+    "encrypted_dev_mode",
+    "dev_mode_nonce",
+    [],
+  );
+
+const rewrap_subscriptions: PassHandler = (env) =>
+  rewrap_setting(
+    env,
+    "/settings/v1/preferences/subscriptions",
+    "encrypted_subscriptions",
+    "subscriptions_nonce",
+    [],
+  );
+
+const rewrap_onboarding: PassHandler = (env) =>
+  rewrap_setting(env, "/core/v1/onboarding", "encrypted_state", "state_nonce", [
+    "is_completed",
+    "is_skipped",
+  ]);
 
 interface DraftRow {
   id: string;
@@ -540,7 +653,9 @@ async function content_hash(encrypted: string): Promise<string> {
   );
 }
 
-const rewrap_drafts: PassHandler = async (env) => {
+async function walk_drafts(
+  visit: (draft: DraftRow) => Promise<PassResult>,
+): Promise<PassResult> {
   const result = empty_pass(false);
   let cursor: string | undefined;
 
@@ -554,27 +669,7 @@ const rewrap_drafts: PassHandler = async (env) => {
     if (response.error || !Array.isArray(response.data?.items)) return result;
 
     for (const draft of response.data.items) {
-      const one = await rewrap_blob(
-        env,
-        draft.encrypted_content,
-        draft.content_nonce,
-        async (sealed) => {
-          const saved = await api_client.put<{ success?: boolean }>(
-            `/mail/v1/drafts/${draft.id}`,
-            {
-              encrypted_content: sealed.encrypted,
-              content_nonce: sealed.nonce,
-              content_hash: await content_hash(sealed.encrypted),
-              version: draft.version,
-              size_bytes: sealed.encrypted.length,
-              has_attachments: draft.has_attachments === true,
-              attachment_count: draft.attachment_count ?? 0,
-            },
-          );
-
-          return !saved.error && saved.data?.success === true;
-        },
-      );
+      const one = await visit(draft);
 
       result.checked += one.checked;
       result.rewrapped += one.rewrapped;
@@ -591,7 +686,35 @@ const rewrap_drafts: PassHandler = async (env) => {
   }
 
   return result;
-};
+}
+
+const rewrap_drafts: PassHandler = (env) =>
+  walk_drafts((draft) =>
+    rewrap_blob(
+      env,
+      draft.encrypted_content,
+      draft.content_nonce,
+      async (sealed) => {
+        const saved = await api_client.put<{ success?: boolean }>(
+          `/mail/v1/drafts/${draft.id}`,
+          {
+            encrypted_content: sealed.encrypted,
+            content_nonce: sealed.nonce,
+            content_hash: await content_hash(sealed.encrypted),
+            version: draft.version,
+            size_bytes: sealed.encrypted.length,
+            has_attachments: draft.has_attachments === true,
+            attachment_count: draft.attachment_count ?? 0,
+          },
+        );
+
+        return !saved.error && saved.data?.success === true;
+      },
+      async () => !is_draft_busy(draft.id),
+    ),
+  );
+
+const no_stored_data: PassHandler = async () => empty_pass(true);
 
 interface ScheduledPage {
   items: { id: string }[];
@@ -639,7 +762,10 @@ const scan_scheduled: PassHandler = async (env) => {
         row.recipients_nonce,
       );
 
-      if (envelope || recipients) result.held++;
+      if (envelope || recipients) {
+        result.held++;
+        result.parked++;
+      }
       envelope?.fill(0);
       recipients?.fill(0);
     }
@@ -663,9 +789,11 @@ interface RecoveryEmailRow {
   step_up_required?: boolean;
 }
 
+const RECOVERY_EMAIL_PATH = "/core/v1/recovery/email";
+
 const scan_recovery_email: PassHandler = async (env) => {
   const response = await api_client.get<RecoveryEmailRow>(
-    "/core/v1/recovery/email",
+    RECOVERY_EMAIL_PATH,
     { skip_cache: true },
   );
 
@@ -676,7 +804,10 @@ const scan_recovery_email: PassHandler = async (env) => {
 
   if (row.exists === false) return result;
   if (!row.encrypted_email || !row.email_nonce) {
-    result.complete = row.exists !== true && row.step_up_required !== true;
+    if (row.exists === true || row.step_up_required === true) {
+      result.held = 1;
+      result.parked = 1;
+    }
 
     return result;
   }
@@ -692,6 +823,7 @@ const scan_recovery_email: PassHandler = async (env) => {
   if (opened) {
     opened.fill(0);
     result.held = 1;
+    result.parked = 1;
   }
 
   return result;
@@ -702,6 +834,7 @@ const HANDLERS: Partial<Record<AccountDataContext, PassHandler>> = {
   "astermail-labels-v1": rewrap_labels,
   "astermail-preferences-v1": rewrap_preferences,
   "astermail-devmode-v1": rewrap_dev_mode,
+  "astermail-draft-v1": no_stored_data,
   "astermail-draft-v2": rewrap_drafts,
   "astermail-scheduled-v1": scan_scheduled,
   "astermail-onboarding-v1": rewrap_onboarding,
@@ -722,17 +855,23 @@ async function run_pass(
   }
 }
 
+function pass_status(pass: PassResult): ContextOutcome["status"] {
+  if (!pass.complete) return "retry";
+  if (pass.held === 0) return "clean";
+
+  return pass.held === pass.parked ? "parked" : "retry";
+}
+
 async function settle_context(
+  handler: PassHandler,
   identity_key: string,
   context: AccountDataContext,
   summary: RetiredRewrapSummary,
-): Promise<boolean> {
-  if (UNREAD_CONTEXTS.has(context)) return true;
-
-  const handler = HANDLERS[context];
+  active: () => Promise<boolean>,
+): Promise<ContextOutcome> {
   const retired = get_retired_context_key(context);
 
-  if (!handler || !retired) return false;
+  if (!retired) return { status: "retry", rewrote: false };
 
   let target_key: Promise<CryptoKey> | null = null;
   const target = (): Promise<CryptoKey> => {
@@ -741,7 +880,12 @@ async function settle_context(
     return target_key;
   };
 
-  const first = await run_pass(handler, { retired, write: true, target });
+  const first = await run_pass(handler, {
+    retired,
+    write: true,
+    target,
+    active,
+  });
 
   summary.checked += first.checked;
   summary.rewrapped += first.rewrapped;
@@ -749,15 +893,20 @@ async function settle_context(
   if (!first.complete || first.held > 0) {
     summary.held += first.held;
 
-    return false;
+    return { status: pass_status(first), rewrote: first.rewrapped > 0 };
   }
-  if (first.rewrapped === 0) return true;
+  if (first.rewrapped === 0) return { status: "clean", rewrote: false };
 
-  const verify = await run_pass(handler, { retired, write: false, target });
+  const verify = await run_pass(handler, {
+    retired,
+    write: false,
+    target,
+    active,
+  });
 
   summary.held += verify.held;
 
-  return verify.complete && verify.held === 0;
+  return { status: pass_status(verify), rewrote: true };
 }
 
 async function drop_settled(
@@ -768,6 +917,8 @@ async function drop_settled(
   if (settled.length === 0) return [];
 
   return with_vault_write_lock_bounded(async () => {
+    if (!(await owns_session(account_id, identity_key))) return [];
+
     const vault = get_vault_from_memory();
 
     if (!vault || vault.identity_key !== identity_key) return [];
@@ -788,6 +939,8 @@ async function drop_settled(
       delete next.legacy_keks;
     }
 
+    if (get_vault_owner_id() !== account_id) return [];
+
     const written = await write_vault_merged({
       next,
       base: vault,
@@ -799,21 +952,49 @@ async function drop_settled(
   }, VAULT_LOCK_WAIT_MS);
 }
 
+function is_due(entry: ContextState | undefined, at: number): boolean {
+  if (!entry || at >= entry.next_at) return true;
+
+  return entry.next_at - at > RETIRED_REWRAP_HELD_MS;
+}
+
 async function run_locked(
   account_id: string,
   now: () => number,
 ): Promise<RetiredRewrapSummary | null> {
+  if (get_vault_owner_id() !== account_id) return null;
+
   const vault = get_vault_from_memory();
   const identity_key = vault?.identity_key;
 
   if (!vault || !identity_key) return null;
 
+  const active = (): Promise<boolean> => owns_session(account_id, identity_key);
+
+  if (!(await active())) return null;
+
   const contexts = retired_contexts_in(vault.legacy_keks);
 
-  if (contexts.length === 0) return null;
-  if (now() - read_last_scan(account_id) < RETIRED_REWRAP_RESCAN_MS) {
+  if (contexts.length === 0) {
+    write_state(account_id, null);
+
     return null;
   }
+
+  const scanned = contexts.filter((context) => HANDLERS[context]);
+
+  if (scanned.length === 0) {
+    write_state(account_id, null);
+
+    return null;
+  }
+
+  const state = read_state(account_id);
+  const at = now();
+
+  const due = scanned.filter((context) => is_due(state[context], at));
+
+  if (due.length === 0) return null;
 
   const summary: RetiredRewrapSummary = {
     checked: 0,
@@ -821,14 +1002,70 @@ async function run_locked(
     held: 0,
     dropped: [],
     pending: [],
+    confirming: [],
+    kept: contexts.filter((context) => !HANDLERS[context]),
   };
+  const next_state: RewrapState = {};
   const settled: AccountDataContext[] = [];
 
-  for (const context of contexts) {
-    if (await settle_context(identity_key, context, summary)) {
-      settled.push(context);
-    } else {
+  for (const context of scanned) {
+    const entry = state[context];
+
+    if (entry) next_state[context] = entry;
+  }
+
+  for (const context of due) {
+    const handler = HANDLERS[context];
+
+    if (!handler) continue;
+
+    const outcome = await settle_context(
+      handler,
+      identity_key,
+      context,
+      summary,
+      active,
+    );
+
+    if (!(await active())) return null;
+
+    const previous = state[context];
+
+    if (outcome.status === "parked") {
       summary.pending.push(context);
+      next_state[context] = {
+        next_at: at + RETIRED_REWRAP_HELD_MS,
+        attempts: 0,
+        clean_since: null,
+      };
+      continue;
+    }
+    if (outcome.status === "retry") {
+      const attempts = (previous?.attempts ?? 0) + 1;
+
+      summary.pending.push(context);
+      next_state[context] = {
+        next_at: at + retry_wait_ms(attempts),
+        attempts,
+        clean_since: null,
+      };
+      continue;
+    }
+
+    const since = previous?.clean_since ?? null;
+    const restarted = outcome.rewrote || since === null || since > at;
+    const clean_since = restarted ? at : since;
+
+    next_state[context] = {
+      next_at: at + RETIRED_REWRAP_RESCAN_MS,
+      attempts: 0,
+      clean_since,
+    };
+
+    if (restarted || at - clean_since < RETIRED_REWRAP_CONFIRM_MS) {
+      summary.confirming.push(context);
+    } else {
+      settled.push(context);
     }
   }
 
@@ -841,10 +1078,22 @@ async function run_locked(
   const dropped = new Set(summary.dropped);
 
   for (const context of settled) {
-    if (!dropped.has(context)) summary.pending.push(context);
+    if (dropped.has(context)) {
+      delete next_state[context];
+      continue;
+    }
+
+    const attempts = (state[context]?.attempts ?? 0) + 1;
+
+    summary.pending.push(context);
+    next_state[context] = {
+      next_at: at + retry_wait_ms(attempts),
+      attempts,
+      clean_since: next_state[context]?.clean_since ?? null,
+    };
   }
 
-  write_last_scan(account_id, summary.pending.length ? now() : null);
+  write_state(account_id, next_state);
 
   return summary;
 }
@@ -853,9 +1102,9 @@ export async function run_retired_key_rewrap(
   account_id: string,
   now: () => number = Date.now,
 ): Promise<RetiredRewrapSummary | null> {
-  if (!account_id || running) return null;
+  if (!account_id || running.has(account_id)) return null;
 
-  running = true;
+  running.add(account_id);
 
   try {
     const locks =
@@ -863,14 +1112,86 @@ export async function run_retired_key_rewrap(
 
     if (!locks?.request) return await run_locked(account_id, now);
 
-    return await locks.request(LOCK_NAME, { ifAvailable: true }, (lock) =>
-      lock ? run_locked(account_id, now) : null,
+    return await locks.request(
+      `${LOCK_NAME}:${account_id}`,
+      { ifAvailable: true },
+      (lock) => (lock ? run_locked(account_id, now) : null),
     );
   } catch (caught) {
     ignore_error("services/crypto/retired_key_rewrap:run", caught);
 
     return null;
   } finally {
-    running = false;
+    running.delete(account_id);
   }
+}
+
+export function retired_key_rewrap_wait_ms(
+  account_id: string,
+  now: () => number = Date.now,
+): number | null {
+  if (get_vault_owner_id() !== account_id) return null;
+
+  const handled = retired_contexts_in(
+    get_vault_from_memory()?.legacy_keks,
+  ).filter((context) => HANDLERS[context]);
+
+  if (handled.length === 0) return null;
+
+  const state = read_state(account_id);
+  const at = now();
+  let wait = RETIRED_REWRAP_HELD_MS;
+
+  for (const context of handled) {
+    const entry = state[context];
+
+    wait = Math.min(wait, entry ? entry.next_at - at : 0);
+  }
+
+  return Math.max(wait, RETIRED_REWRAP_RETRY_MS);
+}
+
+export interface RetiredRewrapTimers {
+  now?: () => number;
+  set_timer?: (callback: () => void, wait_ms: number) => unknown;
+  clear_timer?: (handle: unknown) => void;
+}
+
+export function schedule_retired_key_rewrap(
+  account_id: string,
+  timers: RetiredRewrapTimers = {},
+): () => void {
+  const now = timers.now ?? Date.now;
+  const set_timer =
+    timers.set_timer ??
+    ((callback: () => void, wait_ms: number) => setTimeout(callback, wait_ms));
+  const clear_timer =
+    timers.clear_timer ??
+    ((handle: unknown) =>
+      clearTimeout(handle as ReturnType<typeof setTimeout>));
+  let cancelled = false;
+  let handle: unknown = null;
+
+  const attempt = (): void => {
+    handle = null;
+    run_retired_key_rewrap(account_id, now)
+      .catch((caught) => {
+        ignore_error("services/crypto/retired_key_rewrap:schedule", caught);
+      })
+      .then(() => {
+        if (cancelled) return;
+
+        const wait = retired_key_rewrap_wait_ms(account_id, now);
+
+        if (wait !== null) handle = set_timer(attempt, wait);
+      });
+  };
+
+  attempt();
+
+  return () => {
+    cancelled = true;
+    if (handle !== null) clear_timer(handle);
+    handle = null;
+  };
 }

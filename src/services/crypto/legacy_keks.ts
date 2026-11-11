@@ -29,10 +29,7 @@ import {
   derive_account_data_key_raw,
   type AccountDataContext,
 } from "./account_data_key";
-import {
-  UNSCOPED_RETIRED_CONTEXT,
-  retired_kek_context,
-} from "./retired_identity_keks";
+import { retired_kek_context } from "./retired_identity_keks";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
@@ -267,10 +264,6 @@ async function remember_retired_raw(
   const key = await import_raw_as_aes_key(raw);
 
   retired_context_keys.set(context, key);
-
-  if (context === UNSCOPED_RETIRED_CONTEXT) {
-    legacy_crypto_keys.push(key);
-  }
 }
 
 export function get_retired_context_key(
