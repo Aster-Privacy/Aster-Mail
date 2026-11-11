@@ -60,6 +60,7 @@ import {
   RowUnsubscribeChip,
   row_has_unsubscribe_header,
 } from "./row_unsubscribe_chip";
+import { RowCodeCopyButton } from "./row_code_copy_button";
 
 import {
   NotSpamIcon,
@@ -67,6 +68,7 @@ import {
 } from "@/components/email/spam_action_icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { strip_preview_filler } from "@/utils/preview_text";
+import { detect_verification_code } from "@/utils/verification_code";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
@@ -231,6 +233,27 @@ export const InboxEmailListItem = memo(
         !is_spam_view &&
         !is_outgoing &&
         row_has_unsubscribe_header(email);
+
+      const can_copy_code =
+        !is_spam_view &&
+        !is_outgoing &&
+        !email.is_spam &&
+        email.phishing_level !== "suspicious" &&
+        email.phishing_level !== "dangerous";
+      const has_readable_preview =
+        show_email_preview &&
+        email.preview !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+        email.preview !== PGP_UNDECRYPTABLE_SENTINEL;
+      const verification_code = useMemo(
+        () =>
+          can_copy_code
+            ? detect_verification_code(
+                email.subject,
+                has_readable_preview ? email.preview : null,
+              )
+            : null,
+        [can_copy_code, has_readable_preview, email.subject, email.preview],
+      );
 
       const current_folder_token = (current_view ?? "").startsWith("folder-")
         ? (current_view ?? "").slice("folder-".length)
@@ -822,6 +845,14 @@ export const InboxEmailListItem = memo(
                     </span>
                   )}
               </div>
+              {verification_code && (
+                <span className="hidden sm:inline-flex flex-shrink-0">
+                  <RowCodeCopyButton
+                    code={verification_code}
+                    muted={email.is_read}
+                  />
+                </span>
+              )}
               {attachment_previews?.state === "loaded" &&
                 attachment_previews.attachments.length > 0 && (
                   <div

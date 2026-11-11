@@ -9021,6 +9021,11 @@ export const nl = {
       "{{email}} blokkeren? Je ontvangt geen e-mails meer van deze afzender.",
     unblock_sender: "Afzender deblokkeren",
     unsubscribe: "Uitschrijven",
+    copy_code: "Code kopiëren",
+    copy_code_value: "Code {{code}} kopiëren",
+    copy_subject: "Onderwerp kopiëren",
+    code_copied: "Code gekopieerd",
+    subject_copied: "Onderwerp gekopieerd",
     unsubscribe_confirm_message:
       "Weet je zeker dat je je wilt uitschrijven van deze mailinglijst?",
     max_composers_warning:

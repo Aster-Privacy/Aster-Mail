@@ -9133,6 +9133,11 @@ export const de = {
       "{{email}} blockieren? Sie werden keine E-Mails mehr von diesem Absender erhalten.",
     unblock_sender: "Absender entsperren",
     unsubscribe: "Abmelden",
+    copy_code: "Code kopieren",
+    copy_code_value: "Code {{code}} kopieren",
+    copy_subject: "Betreff kopieren",
+    code_copied: "Code kopiert",
+    subject_copied: "Betreff kopiert",
     edit_draft: "Entwurf bearbeiten",
     max_composers_warning:
       "Bis zu drei Verfasser-Fenster können gleichzeitig offen sein. Ein Schließen eines davon lässt ein weiteres starten. Ihre Entwürfe bleiben gesichert.",

@@ -9088,6 +9088,11 @@ export const it = {
       "Bloccare {{email}}? Non riceverai più email da questo mittente.",
     unblock_sender: "Sblocca mittente",
     unsubscribe: "Annulla iscrizione",
+    copy_code: "Copia codice",
+    copy_code_value: "Copia codice {{code}}",
+    copy_subject: "Copia oggetto",
+    code_copied: "Codice copiato",
+    subject_copied: "Oggetto copiato",
     unsubscribe_confirm_message:
       "Sei sicuro di voler annullare l'iscrizione a questa mailing list?",
     max_composers_warning:

@@ -7917,6 +7917,11 @@ export interface MailTranslations {
   block: string;
   unblock_sender: string;
   unsubscribe: string;
+  copy_code: string;
+  copy_code_value: string;
+  copy_subject: string;
+  code_copied: string;
+  subject_copied: string;
   load_all_thread_messages: string;
   load_external_content: string;
   image: string;
