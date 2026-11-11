@@ -44,6 +44,7 @@ import {
   verify_secure_view,
   reply_to_secure_view,
   delete_secure_view,
+  secure_view_credential,
 } from "@/services/api/secure_view";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -477,8 +478,11 @@ export default function SecureViewPage() {
       const response = await reply_to_secure_view(
         token,
         reply_text.trim(),
-        auth_proof,
-        password || null,
+        secure_view_credential(
+          metadata?.is_zero_knowledge === true,
+          auth_proof,
+          password,
+        ),
       );
 
       if (!response.success) {
@@ -517,8 +521,11 @@ export default function SecureViewPage() {
     try {
       const response = await delete_secure_view(
         token,
-        auth_proof,
-        password || null,
+        secure_view_credential(
+          metadata?.is_zero_knowledge === true,
+          auth_proof,
+          password,
+        ),
       );
 
       if (!response.success) {

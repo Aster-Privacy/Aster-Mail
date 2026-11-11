@@ -104,6 +104,22 @@ export async function verify_secure_view(
   return (await response.json()) as SecureViewVerifyResponse;
 }
 
+export interface SecureViewCredential {
+  auth_proof?: string;
+  password?: string;
+}
+
+export function secure_view_credential(
+  is_zero_knowledge: boolean,
+  auth_proof?: string | null,
+  password?: string | null,
+): SecureViewCredential {
+  if (auth_proof) return { auth_proof };
+  if (is_zero_knowledge || !password) return {};
+
+  return { password };
+}
+
 export interface SecureViewReplyResponse {
   success: boolean;
   error?: string;
@@ -112,13 +128,16 @@ export interface SecureViewReplyResponse {
 export async function reply_to_secure_view(
   token: string,
   body: string,
-  auth_proof?: string | null,
-  password?: string | null,
+  credential: SecureViewCredential,
 ): Promise<SecureViewReplyResponse> {
-  const payload: Record<string, string> = { body };
-
-  if (auth_proof) payload.auth_proof = auth_proof;
-  if (password) payload.password = password;
+  const payload: Record<string, string> = {
+    body,
+    ...secure_view_credential(
+      false,
+      credential.auth_proof,
+      credential.password,
+    ),
+  };
 
   const response = await fetch(`/api/view/${encodeURIComponent(token)}/reply`, {
     method: "POST",
@@ -143,13 +162,15 @@ export interface SecureViewDeleteResponse {
 
 export async function delete_secure_view(
   token: string,
-  auth_proof?: string | null,
-  password?: string | null,
+  credential: SecureViewCredential,
 ): Promise<SecureViewDeleteResponse> {
-  const payload: Record<string, string> = {};
-
-  if (auth_proof) payload.auth_proof = auth_proof;
-  if (password) payload.password = password;
+  const payload: Record<string, string> = {
+    ...secure_view_credential(
+      false,
+      credential.auth_proof,
+      credential.password,
+    ),
+  };
 
   const response = await fetch(`/api/view/${encodeURIComponent(token)}`, {
     method: "DELETE",
