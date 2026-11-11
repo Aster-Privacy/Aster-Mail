@@ -95,9 +95,11 @@ import {
   cn,
   format_number,
   is_system_address,
+  is_mac_platform,
   is_system_email,
   trust_source_for_display,
 } from "@/lib/utils";
+import { list_click_intent } from "@/lib/list_click_selection";
 import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
 import {
   normalize_alias_candidates,
@@ -419,7 +421,17 @@ export const InboxEmailListItem = memo(
           )}
           role="button"
           tabIndex={0}
-          onClick={() => on_email_click(email.id)}
+          onClick={(e) => {
+            const intent = list_click_intent(e, is_mac_platform());
+
+            if (intent) {
+              e.preventDefault();
+              on_toggle_select(email.id, { range: intent === "range" });
+
+              return;
+            }
+            on_email_click(email.id);
+          }}
           onDragEnd={handle_drag_end}
           onDragStart={handle_drag_start}
           onFocusCapture={engage_row}
@@ -428,6 +440,9 @@ export const InboxEmailListItem = memo(
               e.preventDefault();
               on_email_click(email.id);
             }
+          }}
+          onMouseDown={(e) => {
+            if (e.shiftKey && e.button === 0) e.preventDefault();
           }}
           onMouseEnter={engage_row}
           {...props}
