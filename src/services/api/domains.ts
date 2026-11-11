@@ -35,6 +35,9 @@ import { app_locale } from "@/utils/date_format";
 export interface DnsRecord {
   record_type: string;
   host: string;
+  zone?: string;
+  zone_host?: string;
+  fqdn?: string;
   value: string;
   purpose: string;
   is_verified: boolean;

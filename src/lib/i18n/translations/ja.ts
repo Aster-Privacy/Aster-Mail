@@ -1941,6 +1941,8 @@ export const ja = {
     dns_host_leave_blank: "空欄のままにする",
     dns_host_provider_hint:
       "{{provider}} はホスト欄にこの形式を使います。表示どおりにコピーしてください。",
+    dns_host_zone_hint: "このホスト名は、DNS レコードを管理しているドメイン {{zone}} からの相対名です。",
+    dns_full_record_name: "レコードの完全な名前",
     purchase_congrats_title: "おめでとうございます",
     recipient_key_outdated: "受信者の鍵が古くなっています",
     recipient_key_outdated_desc:
@@ -4732,7 +4734,7 @@ export const ja = {
     tlsrpt_record: "TLS-RPT レコード",
     tlsrpt_description:
       "任意ですが推奨します。ドメインへの暗号化配送が失敗すると受信側サーバーが日次の要約を送ってくれるため、利用者より先に問題に気づけます。",
-    dns_instruction_set_tlsrpt_host: "ホストを _smtp._tls に設定します",
+    dns_instruction_set_tlsrpt_host: "下に表示されているホスト名をホスト欄にコピーします",
     dns_instruction_set_tlsrpt_value: "TLS-RPT の値を表示どおりに貼り付けます",
     optional_step: "任意",
     gmail_import: "Gmail",
@@ -5117,8 +5119,7 @@ export const ja = {
     dns_instruction_merge_spf:
       "既にSPFレコードがある場合は、既存のレコードにinclude:ディレクティブを追加してください",
     dns_instruction_set_dkim: "以下に表示されるDKIMキーに値を設定してください",
-    dns_instruction_set_dmarc_host:
-      "ホストを_dmarcに設定してください（ドメイン名は含めないでください）",
+    dns_instruction_set_dmarc_host: "下に表示されているホスト名をホスト欄にコピーします",
     dns_instruction_set_dmarc_value:
       "以下に表示されるDMARCポリシーに値を設定してください",
     edit_external_account: "外部アカウントを編集",
