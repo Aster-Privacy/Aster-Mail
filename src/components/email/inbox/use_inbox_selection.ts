@@ -24,6 +24,10 @@ import { useMemo, useCallback, useRef, useState, useEffect } from "react";
 
 import { use_email_selection } from "@/hooks/use_email_selection";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
+import {
+  plan_range_selection,
+  type ListToggleOptions,
+} from "@/lib/list_click_selection";
 
 interface UseInboxSelectionOptions {
   current_view: string;
@@ -219,9 +223,9 @@ export function use_inbox_selection({
   }, [page_emails, is_loading, get_update_fn]);
 
   const handle_toggle_select = useCallback(
-    (id: string): void => {
+    (id: string, options?: ListToggleOptions): void => {
       fill_page_on_load_ref.current = false;
-      const shift = shift_ref.current;
+      const shift = options?.range ?? shift_ref.current;
       const current_emails = emails_ref.current;
       const current_page_emails = page_emails_ref.current;
 
@@ -236,51 +240,37 @@ export function use_inbox_selection({
         excluded_from_select_all(target_id);
       };
 
-      if (shift && shift_anchor_ref.current !== null) {
-        const anchor_index = current_page_emails.findIndex(
-          (e) => e.id === shift_anchor_ref.current,
-        );
-        const current_index = current_page_emails.findIndex((e) => e.id === id);
+      const anchor_from_open = shift && !!options?.anchor_id;
 
-        if (anchor_index !== -1 && current_index !== -1) {
-          const anchor = current_page_emails[anchor_index];
-          const should_select = anchor?.is_selected ?? true;
-          const new_start = Math.min(anchor_index, current_index);
-          const new_end = Math.max(anchor_index, current_index);
+      if (anchor_from_open) {
+        shift_anchor_ref.current = options?.anchor_id ?? null;
+        last_shift_target_ref.current = null;
+      }
 
-          const prev_target_id = last_shift_target_ref.current;
+      const anchor_id = shift_anchor_ref.current;
 
-          if (prev_target_id !== null) {
-            const prev_index = current_page_emails.findIndex(
-              (e) => e.id === prev_target_id,
-            );
+      if (shift && anchor_id !== null) {
+        const anchor = current_page_emails.find((e) => e.id === anchor_id);
+        const changes = anchor
+          ? plan_range_selection({
+              ids: current_page_emails.map((e) => e.id),
+              selected_ids: new Set(
+                current_page_emails
+                  .filter((e) => e.is_selected === true)
+                  .map((e) => e.id),
+              ),
+              anchor_id,
+              target_id: id,
+              previous_target_id: last_shift_target_ref.current,
+              should_select: anchor_from_open || (anchor.is_selected ?? true),
+            })
+          : null;
 
-            if (prev_index !== -1) {
-              const old_start = Math.min(anchor_index, prev_index);
-              const old_end = Math.max(anchor_index, prev_index);
-
-              for (let i = old_start; i <= old_end; i++) {
-                if (i < new_start || i > new_end) {
-                  const target = current_page_emails[i];
-
-                  if (target && target.is_selected === should_select) {
-                    update_fn(target.id, { is_selected: !should_select });
-                    track_scope(target.id, !should_select);
-                  }
-                }
-              }
-            }
+        if (changes) {
+          for (const change of changes) {
+            update_fn(change.id, { is_selected: change.selected });
+            track_scope(change.id, change.selected);
           }
-
-          for (let i = new_start; i <= new_end; i++) {
-            const target = current_page_emails[i];
-
-            if (target && target.is_selected !== should_select) {
-              update_fn(target.id, { is_selected: should_select });
-              track_scope(target.id, should_select);
-            }
-          }
-
           last_shift_target_ref.current = id;
 
           return;

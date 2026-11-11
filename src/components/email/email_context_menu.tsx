@@ -77,6 +77,12 @@ import { is_tauri_env } from "@/services/api/client/helpers";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { tag_option_indent } from "@/hooks/tag_tree";
 import { safe_sender_name } from "@/lib/sender_trust_store";
+import {
+  SYSTEM_MOVE_TARGET_LABEL_KEYS,
+  resolve_mail_location,
+  system_move_targets,
+  type SystemMoveTarget,
+} from "@/lib/system_move_targets";
 
 interface FolderOption {
   id: string;
@@ -249,6 +255,68 @@ function EmailContextMenuContentInner({
       !is_archive &&
       !is_drafts &&
       !is_scheduled);
+  const can_move_archived_to_inbox = is_archive && !!on_move_to_inbox;
+  const show_folder_targets =
+    supports_id_scope &&
+    folders.length > 0 &&
+    !!on_folder_toggle &&
+    !is_drafts &&
+    !is_scheduled;
+  const move_targets = system_move_targets(
+    resolve_mail_location({
+      current_view,
+      is_trashed: email.is_trashed,
+      is_spam: email.is_spam,
+      is_archived: email.is_archived,
+      in_custom_folder: assigned_folder_ids.length > 0,
+      is_sent_item: email.item_type === "sent",
+    }),
+    {
+      inbox:
+        can_move_out_of_bin ||
+        can_move_archived_to_inbox ||
+        (can_move_to_inbox && supports_id_scope),
+      archive: !!on_archive,
+      spam: !!on_spam,
+      trash: !!on_delete,
+    },
+  );
+  const show_move_menu = move_targets.length > 0 || show_folder_targets;
+
+  const run_move_target = (target: SystemMoveTarget): void => {
+    if (target === "archive") {
+      void handle_action("archive", on_archive);
+
+      return;
+    }
+    if (target === "spam") {
+      void handle_action("spam", on_spam);
+
+      return;
+    }
+    if (target === "trash") {
+      void handle_action("delete", on_delete);
+
+      return;
+    }
+    if (can_move_out_of_bin || can_move_archived_to_inbox) {
+      void handle_action("move_inbox", on_move_to_inbox);
+
+      return;
+    }
+    if (!on_folder_toggle) return;
+    assigned_folder_ids.forEach((folder_id) => on_folder_toggle(folder_id));
+  };
+
+  const move_target_icon = (target: SystemMoveTarget): React.ReactElement => {
+    const class_name = "me-2 h-4 w-4 flex-shrink-0";
+
+    if (target === "archive") return <ArchiveBoxIcon className={class_name} />;
+    if (target === "spam") return <ReportSpamIcon className={class_name} />;
+    if (target === "trash") return <TrashIcon className={class_name} />;
+
+    return <InboxIcon className={class_name} />;
+  };
 
   return (
     <ContextMenuContent className="w-56">
@@ -461,11 +529,7 @@ function EmailContextMenuContentInner({
           </ContextMenuSub>
         )}
 
-      {((supports_id_scope &&
-        folders.length > 0 &&
-        on_folder_toggle &&
-        !is_drafts &&
-        !is_scheduled) ||
+      {(show_move_menu ||
         (supports_id_scope &&
           tags.length > 0 &&
           on_tag_toggle &&
@@ -476,38 +540,30 @@ function EmailContextMenuContentInner({
         <ContextMenuSeparator />
       )}
 
-      {supports_id_scope &&
-        folders.length > 0 &&
-        on_folder_toggle &&
-        !is_drafts &&
-        !is_scheduled && (
-          <ContextMenuSub>
-            <ContextMenuSubTrigger>
-              <FolderPlusIcon className="me-2 h-4 w-4" />
-              {t("mail.folder")}
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent>
-              {can_move_to_inbox && (
-                <>
-                  <ContextMenuItem
-                    onSelect={() => {
-                      if (can_move_out_of_bin) {
-                        void handle_action("move_inbox", on_move_to_inbox);
-
-                        return;
-                      }
-                      assigned_folder_ids.forEach((folder_id) =>
-                        on_folder_toggle(folder_id),
-                      );
-                    }}
-                  >
-                    <InboxIcon className="me-2 h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">{t("mail.move_to_inbox")}</span>
-                  </ContextMenuItem>
-                  <ContextMenuSeparator />
-                </>
-              )}
-              {folders.map((folder) => (
+      {show_move_menu && (
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <FolderPlusIcon className="me-2 h-4 w-4" />
+            {t("mail.move_to")}
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent>
+            {move_targets.map((target) => (
+              <ContextMenuItem
+                key={target}
+                onSelect={() => run_move_target(target)}
+              >
+                {move_target_icon(target)}
+                <span className="truncate">
+                  {t(SYSTEM_MOVE_TARGET_LABEL_KEYS[target])}
+                </span>
+              </ContextMenuItem>
+            ))}
+            {move_targets.length > 0 && show_folder_targets && (
+              <ContextMenuSeparator />
+            )}
+            {show_folder_targets &&
+              on_folder_toggle &&
+              folders.map((folder) => (
                 <ContextMenuItem
                   key={folder.id}
                   onSelect={() => on_folder_toggle(folder.id)}
@@ -531,9 +587,9 @@ function EmailContextMenuContentInner({
                   <span className="truncate">{folder.name}</span>
                 </ContextMenuItem>
               ))}
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-        )}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+      )}
 
       {supports_id_scope &&
         tags.length > 0 &&

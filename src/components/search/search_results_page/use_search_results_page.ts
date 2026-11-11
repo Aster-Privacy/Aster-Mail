@@ -41,6 +41,7 @@ import { use_date_format } from "@/hooks/use_date_format";
 import { use_i18n } from "@/lib/i18n/context";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
+import { type ListToggleOptions } from "@/lib/list_click_selection";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -249,11 +250,13 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
   const shift_ref = use_shift_key_ref();
   const last_selected_id_ref = useRef<string | null>(null);
+  const opened_anchor_ref = useRef<string | null>(null);
 
   useEffect(() => {
     set_search_page(0);
     set_selected_ids(new Set());
     last_selected_id_ref.current = null;
+    opened_anchor_ref.current = null;
   }, [query]);
 
   useEffect(() => {
@@ -265,9 +268,15 @@ export function use_search_results_page(props: SearchResultsPageProps) {
   paged_results_ref.current = paged_results;
 
   const handle_toggle_select = useCallback(
-    (id: string) => {
-      const shift = shift_ref.current;
-      const last_id = last_selected_id_ref.current;
+    (id: string, options?: ListToggleOptions) => {
+      const shift = options?.range ?? shift_ref.current;
+      const opened_id = opened_anchor_ref.current;
+
+      opened_anchor_ref.current = null;
+      const anchor_from_open = shift && opened_id !== null;
+      const last_id = anchor_from_open
+        ? opened_id
+        : last_selected_id_ref.current;
       const items = paged_results_ref.current;
 
       set_selected_ids((prev) => {
@@ -280,7 +289,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
           if (last_index !== -1 && current_index !== -1) {
             const start = Math.min(last_index, current_index);
             const end = Math.max(last_index, current_index);
-            const should_select = prev.has(last_id);
+            const should_select = anchor_from_open || prev.has(last_id);
 
             for (let i = start; i <= end; i++) {
               if (should_select) {
@@ -328,6 +337,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
   const handle_email_click = useCallback(
     (id: string) => {
+      opened_anchor_ref.current = id;
       open_result(id);
     },
     [open_result],
