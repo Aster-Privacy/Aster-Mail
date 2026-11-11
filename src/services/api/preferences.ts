@@ -29,7 +29,7 @@ import {
   account_data_write_key,
   retry_after_account_key_load,
 } from "@/services/crypto/account_data_writer";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import { array_to_base64, base64_to_array } from "@/services/crypto/envelope";
 import {
   DEFAULT_ENABLED_CATEGORIES,
@@ -390,7 +390,12 @@ async function decrypt_preferences(
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
   const decrypted = await retry_after_account_key_load(() =>
-    decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data),
+    decrypt_account_context_with_fallback(
+      "astermail-preferences-v1",
+      key,
+      encrypted_data,
+      nonce_data,
+    ),
   );
 
   return JSON.parse(new TextDecoder().decode(decrypted));
@@ -483,7 +488,8 @@ export async function convert_preferences_to_account_key(
 
   try {
     plaintext = new Uint8Array(
-      await decrypt_aes_gcm_with_fallback(
+      await decrypt_account_context_with_fallback(
+        "astermail-preferences-v1",
         await derive_preferences_key(vault),
         ciphertext,
         stored_nonce,

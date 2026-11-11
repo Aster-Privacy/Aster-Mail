@@ -22,6 +22,7 @@ import type { EncryptedVault } from "../key_manager";
 
 import { array_to_base64, base64_to_array } from "../base64";
 import { zero_uint8_array } from "../secure_memory";
+import { without_retired_keks } from "../retired_identity_keks";
 import {
   STORAGE_WRITE_KEY_LENGTH,
   decode_vault_storage_key,
@@ -183,7 +184,7 @@ export function collect_old_storage_raws(
   for (const value of vault.storage_rekey?.prior_keys ?? []) {
     consider(decode_vault_storage_key(value));
   }
-  for (const entry of vault.legacy_keks ?? []) {
+  for (const entry of without_retired_keks(vault.legacy_keks)) {
     consider(decode_vault_storage_key(entry.k));
   }
   for (const raw of extra) {
