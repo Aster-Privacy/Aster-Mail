@@ -518,3 +518,60 @@ export async function clear_device_session(): Promise<void> {
 export async function clear_device_identity(): Promise<void> {
   await reset_device_auth("device_clear_identity");
 }
+
+const DEVICE_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
+export async function revoke_paired_device(
+  known_ids: readonly (string | null | undefined)[] = [],
+): Promise<number> {
+  if (!is_tauri()) return 0;
+
+  const ids = new Set<string>();
+
+  for (const id of known_ids) {
+    if (id) ids.add(id);
+  }
+
+  try {
+    const pubkeys = await invoke<DevicePubkeys>("device_get_pubkeys");
+
+    if (pubkeys.device_id) ids.add(pubkeys.device_id);
+  } catch (caught) {
+    ignore_error("native/desktop_device_auth:revoke_paired_device", caught);
+  }
+
+  const targets = [...ids].filter((id) => DEVICE_ID_PATTERN.test(id));
+
+  if (targets.length === 0) return 0;
+
+  const { api_client } = await import("@/services/api/client");
+  const results = await Promise.all(
+    targets.map((id) =>
+      api_client
+        .delete<void>(`/core/v1/devices/${id}`)
+        .then((response) => !response.error)
+        .catch(() => false),
+    ),
+  );
+
+  return results.filter(Boolean).length;
+}
+
+export async function erase_device_pairing(): Promise<void> {
+  if (!is_tauri()) return;
+  desktop_device_auth_run = null;
+  pending_device_login = null;
+  expiry_relogins = [];
+
+  let failure: unknown = null;
+
+  try {
+    await invoke("device_refresh_token_clear");
+  } catch (caught) {
+    failure = caught;
+  }
+
+  await invoke("device_clear_identity");
+
+  if (failure) throw failure;
+}

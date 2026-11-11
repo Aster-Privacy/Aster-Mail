@@ -30,6 +30,7 @@ import {
   secure_decrypt,
   secure_encrypt,
 } from "@/services/crypto/secure_storage";
+import { release_on_version_change } from "@/lib/idb_release";
 
 const DB_NAME = "astermail_offline_cache";
 const STORE_NAME = "email_lists";
@@ -72,7 +73,8 @@ function open_db(): Promise<IDBDatabase> {
         db.createObjectStore(STORE_NAME);
       }
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () =>
+      resolve(release_on_version_change(request.result));
     request.onerror = () => reject(request.error);
   });
 }

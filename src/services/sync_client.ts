@@ -58,6 +58,7 @@ import {
   claim_own_mail_mutation_echo,
   clear_own_mail_mutations,
 } from "@/services/own_mail_mutations";
+import { note_purged_mail } from "@/services/search/index_removals";
 import {
   note_reaction_added,
   note_reaction_removed,
@@ -533,6 +534,8 @@ class SyncClient {
     if (ids.length > 0 && REMOVAL_ACTIONS.has(action)) {
       emit_mail_items_removed({ ids, action });
     }
+
+    if (ids.length > 0 && action === "delete") note_purged_mail({ ids });
 
     const echo = claim_own_mail_mutation_echo(action, ids);
 

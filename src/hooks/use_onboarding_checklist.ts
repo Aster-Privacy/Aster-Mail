@@ -50,7 +50,50 @@ function is_checklist_settled(state: ChecklistState | null): boolean {
 }
 
 const INSTALL_APP_STORAGE_KEY = "aster_onboarding_install_app_done";
+const DISMISSED_STORAGE_PREFIX = "aster_onboarding_checklist_dismissed_";
+const DISMISSAL_PENDING = "pending";
+const DISMISSAL_SYNCED = "synced";
 const POLL_INTERVAL_MS = 20_000;
+const DISMISS_RETRY_BASE_MS = 5_000;
+const DISMISS_RETRY_MAX_MS = 300_000;
+
+type DismissalFlag = typeof DISMISSAL_PENDING | typeof DISMISSAL_SYNCED;
+
+function read_dismissal_flag(account_id: string | null): DismissalFlag | null {
+  if (!account_id) return null;
+  try {
+    const value = localStorage.getItem(
+      `${DISMISSED_STORAGE_PREFIX}${account_id}`,
+    );
+
+    if (value === DISMISSAL_PENDING || value === DISMISSAL_SYNCED) {
+      return value;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function write_dismissal_flag(
+  account_id: string | null,
+  flag: DismissalFlag,
+): void {
+  if (!account_id) return;
+  try {
+    localStorage.setItem(`${DISMISSED_STORAGE_PREFIX}${account_id}`, flag);
+  } catch {
+    return;
+  }
+}
+
+function dismiss_retry_delay(attempt: number): number {
+  return Math.min(
+    DISMISS_RETRY_BASE_MS * 2 ** Math.min(attempt, 10),
+    DISMISS_RETRY_MAX_MS,
+  );
+}
 
 interface UseOnboardingChecklistReturn {
   state: ChecklistState | null;
@@ -88,10 +131,47 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
   const disabled_ref = useRef(false);
   const dismissed_ref = useRef(false);
   const settled_ref = useRef(false);
+  const account_ref = useRef(account_id);
+  const sync_pending_ref = useRef(false);
+  const sync_in_flight_ref = useRef(false);
+  const sync_attempt_ref = useRef(0);
+  const sync_timer_ref = useRef<number | undefined>(undefined);
+
+  account_ref.current = account_id;
 
   useEffect(() => {
     settled_ref.current = is_checklist_settled(state);
   }, [state]);
+
+  const sync_dismissal = useCallback(async (): Promise<void> => {
+    if (!sync_pending_ref.current || sync_in_flight_ref.current) return;
+    const generation = generation_ref.current;
+    const target_account = account_ref.current;
+
+    window.clearTimeout(sync_timer_ref.current);
+    sync_timer_ref.current = undefined;
+    sync_in_flight_ref.current = true;
+
+    const ok = await dismiss_onboarding_checklist();
+
+    if (ok) write_dismissal_flag(target_account, DISMISSAL_SYNCED);
+    if (generation !== generation_ref.current) return;
+    sync_in_flight_ref.current = false;
+    if (ok) {
+      sync_pending_ref.current = false;
+      sync_attempt_ref.current = 0;
+
+      return;
+    }
+
+    const delay = dismiss_retry_delay(sync_attempt_ref.current);
+
+    sync_attempt_ref.current += 1;
+    sync_timer_ref.current = window.setTimeout(() => {
+      sync_timer_ref.current = undefined;
+      void sync_dismissal();
+    }, delay);
+  }, []);
 
   const load = useCallback(async (): Promise<boolean> => {
     if (disabled_ref.current) return false;
@@ -108,6 +188,12 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
     if (result.kind === "transient") {
       return true;
     }
+    if (result.state.dismissed_at) {
+      dismissed_ref.current = true;
+      if (!sync_pending_ref.current) {
+        write_dismissal_flag(account_ref.current, DISMISSAL_SYNCED);
+      }
+    }
     set_state(
       apply_local_overrides(
         with_dismissal_guard(result.state, dismissed_ref.current),
@@ -120,7 +206,13 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
   useEffect(() => {
     generation_ref.current += 1;
     disabled_ref.current = false;
-    dismissed_ref.current = false;
+
+    const stored_flag = vault ? read_dismissal_flag(account_id) : null;
+
+    dismissed_ref.current = stored_flag !== null;
+    sync_pending_ref.current = stored_flag === DISMISSAL_PENDING;
+    sync_in_flight_ref.current = false;
+    sync_attempt_ref.current = 0;
 
     const generation = generation_ref.current;
 
@@ -138,6 +230,14 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
 
     let interval: number | undefined;
     let on_focus: (() => void) | undefined;
+
+    const resume_sync = () => {
+      void sync_dismissal();
+    };
+
+    window.addEventListener("focus", resume_sync);
+    window.addEventListener("online", resume_sync);
+    resume_sync();
 
     (async () => {
       const ok = await load();
@@ -171,26 +271,26 @@ export function use_onboarding_checklist(): UseOnboardingChecklistReturn {
 
     return () => {
       generation_ref.current += 1;
+      window.removeEventListener("focus", resume_sync);
+      window.removeEventListener("online", resume_sync);
+      window.clearTimeout(sync_timer_ref.current);
+      sync_timer_ref.current = undefined;
       if (on_focus) window.removeEventListener("focus", on_focus);
       if (interval !== undefined) window.clearInterval(interval);
     };
-  }, [vault, account_id, load]);
+  }, [vault, account_id, load, sync_dismissal]);
 
   const dismiss = useCallback(async () => {
-    const was_dismissed = dismissed_ref.current;
-    const generation = generation_ref.current;
-
     dismissed_ref.current = true;
+    sync_pending_ref.current = true;
+    sync_attempt_ref.current = 0;
+    write_dismissal_flag(account_ref.current, DISMISSAL_PENDING);
     set_state((prev) =>
       prev ? { ...prev, dismissed_at: new Date().toISOString() } : prev,
     );
 
-    const ok = await dismiss_onboarding_checklist();
-
-    if (ok || generation !== generation_ref.current) return;
-    dismissed_ref.current = was_dismissed;
-    set_state((prev) => (prev ? { ...prev, dismissed_at: null } : prev));
-  }, []);
+    await sync_dismissal();
+  }, [sync_dismissal]);
 
   const refresh = useCallback(async () => {
     await load();

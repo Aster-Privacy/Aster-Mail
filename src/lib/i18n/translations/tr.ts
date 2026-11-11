@@ -1903,6 +1903,9 @@ export const tr = {
     dns_host_leave_blank: "Boş bırakın",
     dns_host_provider_hint:
       "{{provider}} ana bilgisayar alanında bu biçimi kullanır. Gösterildiği gibi birebir kopyalayın.",
+    dns_host_zone_hint:
+      "Bu ana bilgisayar adı, DNS kayıtlarınızı yönettiğiniz alan adı olan {{zone}} alanına göredir.",
+    dns_full_record_name: "Kaydın tam adı",
     purchase_congrats_title: "Tebrikler",
     recipient_key_outdated: "Alıcının anahtarı güncel değil",
     recipient_key_outdated_desc:
@@ -4730,7 +4733,8 @@ export const tr = {
     tlsrpt_record: "TLS-RPT kaydi",
     tlsrpt_description:
       "Istege bagli ama onerilir. Alici sunucular, alan adiniza sifreli teslimat basarisiz oldugunda size gunluk bir ozet gonderir; boylece sorunlari kullanicilarinizdan once fark edersiniz.",
-    dns_instruction_set_tlsrpt_host: "Host degerini _smtp._tls yapin",
+    dns_instruction_set_tlsrpt_host:
+      "Aşağıda gösterilen ana bilgisayar adını ana bilgisayar alanına kopyalayın",
     dns_instruction_set_tlsrpt_value:
       "TLS-RPT degerini gosterildigi gibi birebir yapistirin",
     optional_step: "Istege bagli",
@@ -5120,7 +5124,7 @@ export const tr = {
     dns_instruction_set_dkim:
       "Değeri aşağıda gösterilen DKIM anahtarına ayarlayın",
     dns_instruction_set_dmarc_host:
-      "Sunucuyu _dmarc olarak ayarlayın (alan adınızı eklemeyin)",
+      "Aşağıda gösterilen ana bilgisayar adını ana bilgisayar alanına kopyalayın",
     dns_instruction_set_dmarc_value:
       "Değeri aşağıda gösterilen DMARC politikasına ayarlayın",
     edit_external_account: "Harici hesabı düzenle",
@@ -9614,6 +9618,7 @@ export const tr = {
     received_via_alias: "{{ address }} takma adresine teslim edildi",
     new_reaction: "Yeni tepki",
     load_external_content: "Harici içerik yükle",
+    image_loading_settings: "Görsel ayarları",
     image: "görsel",
     images: "görseller",
     tracker: "izleyici",
@@ -10307,7 +10312,8 @@ export const tr = {
     device_code_waiting: "Onay bekleniyor",
     device_code_expires_in: "Süre sonu",
     link_device_title: "Cihazı bağla",
-    link_device_enter_code: "Masaüstü uygulamanızda gösterilen kodu girin.",
+    link_device_enter_code:
+      "Bağladığınız uygulamada gösterilen bağlama kodunu girin.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "Devam",
     link_device_confirm_prompt:
@@ -10315,17 +10321,27 @@ export const tr = {
     link_device_confirm_button: "Cihazı bağla",
     link_device_confirming: "Cihaz bağlanıyor...",
     link_device_cancel: "İptal",
-    link_device_desktop: "Masaüstü uygulaması",
-    device_fingerprint: "Doğrulama kodu",
-    device_code_verify_toggle: "Bu cihazı doğrula",
-    link_device_fingerprint_hint:
-      "Masaüstü uygulamanız bir doğrulama kodu gösteriyorsa cihazı bağlamadan önce bununla eşleştiğinden emin olun.",
-    device_code_fingerprint_hint:
-      "Tarayıcınız cihazı bağlamadan önce aynı doğrulama kodunu gösterir. İki kod eşleşmiyorsa cihazı bağlamayın.",
+    link_device_desktop: "Yeni cihaz",
+    device_fingerprint: "Cihaz parmak izi",
+    device_fingerprint_copy: "Cihaz parmak izini kopyala",
+    link_device_grant_notice:
+      "Bağlama işlemi, {{device}} üzerindeki uygulamaya e-postalarınız ve şifreleme anahtarlarınız dahil {{email}} hesabına tam erişim verir.",
+    link_device_own_device_warning:
+      "Yalnızca bu işlemi kendi cihazınızdaki bir Aster uygulamasında siz başlattıysanız devam edin. Bu kodu size başka biri verdiyse cihazı bağlamayın.",
+    link_device_fingerprint_enter:
+      "Bağladığınız uygulamada gösterilen cihaz parmak izini girin. Bazı uygulamalar buna doğrulama kodu der.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Bu, bu bağlama kodunun cihazıyla eşleşmiyor. Her karakteri bağladığınız uygulamayla karşılaştırın, ardından yeniden deneyin. Yine eşleşmiyorsa cihazı bağlamayın.",
+    link_device_fingerprint_link_mismatch:
+      "Bu sayfayı açan bağlantı, bu bağlama kodundan farklı bir cihaza ait, bu nedenle cihazı burada bağlayamazsınız. Bağladığınız uygulamadan yeni bir kod alın ve yeniden deneyin.",
+    link_device_update_desktop:
+      "Uygulama bunu göstermiyorsa uygulamada Bu cihazı doğrula seçeneğini belirleyin. Uygulamada bu seçenek yoksa uygulamayı güncelleyin, ardından yeniden deneyin.",
+    device_code_fingerprint_required_hint:
+      "Tarayıcınız cihazı bağlamadan önce bu cihaz parmak izini ister.",
     link_device_change_account: "Hesap değiştir",
     link_device_choose_account: "Bir hesap seçin",
-    link_device_choose_account_description:
-      "Masaüstü uygulamanızı bağlamak için",
+    link_device_choose_account_description: "Yeni bir cihaz bağlamak için",
     link_device_choose_account_note:
       "Şifreleme anahtarlarınız cihazlarınız arasında aktarılırken şifreli kalır.",
     link_device_use_another_account: "Başka bir hesap kullan",
@@ -10336,11 +10352,11 @@ export const tr = {
     hub_account_link_failed: "Bu hesapla devam etmek için parolasını girin.",
     link_device_success: "Cihaz bağlandı",
     link_device_success_description:
-      "Masaüstü uygulamanız artık bağlandı. Bu sekmeyi kapatabilirsiniz.",
+      "Cihazınız artık bağlandı. Bu sekmeyi kapatabilirsiniz.",
     link_device_invalid_code:
       "Bağlantı kodu 8 karakter uzunluğundadır. Kodu kontrol edin ve tekrar deneyin.",
     link_device_expired_code:
-      "Bu kodun süresi doldu veya eşleşmedi. Masaüstü uygulamanızda geçerli kod bulunuyor.",
+      "Bu kodun süresi doldu veya eşleşmedi. Geçerli kod, bağladığınız uygulamada gösteriliyor.",
     link_device_failed:
       "Bağlantı tamamlanamadı. Yeniden başlamak genellikle yeterli olur. Hesabınız değişmedi.",
     link_keys_locked_title: "Anahtarlığınız kilitli",

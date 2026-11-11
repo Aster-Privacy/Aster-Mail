@@ -20,6 +20,7 @@
 //
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
+import { release_on_version_change } from "@/lib/idb_release";
 
 const IDB_STORE = "phishing_blocklist";
 const IDB_KEY = "bloom_data";
@@ -46,7 +47,8 @@ async function open_db(): Promise<IDBDatabase> {
         db.createObjectStore(IDB_STORE);
       }
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () =>
+      resolve(release_on_version_change(request.result));
     request.onerror = () => reject(request.error);
   });
 }

@@ -21,7 +21,7 @@
 import { DecryptedFolder, is_system_folder_type } from "./tree";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_or_create_key,
   get_secret_cache_id,
@@ -115,7 +115,8 @@ export async function decrypt_folder_field(
   const encrypted_data = base64_to_array(encrypted);
   const nonce_data = base64_to_array(nonce);
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(
+  const decrypted = await decrypt_account_context_with_fallback(
+    "astermail-labels-v1",
     key,
     encrypted_data,
     nonce_data,

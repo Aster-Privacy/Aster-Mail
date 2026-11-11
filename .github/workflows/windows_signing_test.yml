@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   sign-windows:
+    environment: release
     runs-on: windows-latest
     timeout-minutes: 75
     env:

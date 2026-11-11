@@ -104,6 +104,7 @@ function open_existing_session_key_db(): Promise<IDBDatabase | null> {
 
         return;
       }
+      db.onversionchange = () => db.close();
       finish(db);
     };
   });

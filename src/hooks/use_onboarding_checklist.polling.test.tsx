@@ -218,7 +218,7 @@ describe("use_onboarding_checklist polling", () => {
     expect(mocks.fetches).toBe(1);
   });
 
-  it("resumes polling when a dismissal fails to save", async () => {
+  it("stays dismissed without polling when a dismissal fails to save", async () => {
     mocks.dismiss_ok = false;
     await mount();
 
@@ -226,8 +226,9 @@ describe("use_onboarding_checklist polling", () => {
       await checklist.dismiss();
     });
 
-    await advance(20_000);
-    expect(mocks.fetches).toBe(2);
+    await advance(60_000);
+    expect(mocks.fetches).toBe(1);
+    expect(checklist.state?.dismissed_at).toBeTruthy();
   });
 
   it("skips interval polls while the document is hidden", async () => {

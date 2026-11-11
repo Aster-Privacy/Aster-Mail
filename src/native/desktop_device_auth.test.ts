@@ -28,10 +28,12 @@ vi.mock("@tauri-apps/api/core", () => ({
 }));
 
 const post_mock = vi.fn();
+const delete_mock = vi.fn();
 
 vi.mock("@/services/api/client", () => ({
   api_client: {
     post: (path: string, body: unknown) => post_mock(path, body),
+    delete: (path: string) => delete_mock(path),
     set_dev_token: vi.fn(),
     set_csrf: vi.fn(),
     set_authenticated: vi.fn(),
@@ -51,6 +53,8 @@ beforeEach(() => {
   vi.resetModules();
   invoke_mock.mockReset();
   post_mock.mockReset();
+  delete_mock.mockReset();
+  delete_mock.mockResolvedValue({ data: null, error: null });
   device_state.device_id = "device-1";
   device_state.identity = "identity-a";
   install_tauri();
@@ -574,5 +578,95 @@ describe("session expiry keeps the device paired", () => {
     });
 
     expect(device_state.device_id).toBeNull();
+  });
+});
+
+describe("erasing the device pairing", () => {
+  it("revokes the paired device and the account's own device", async () => {
+    const module = await import("./desktop_device_auth");
+
+    const revoked = await module.revoke_paired_device(["device-2", null]);
+
+    expect(revoked).toBe(2);
+    expect(delete_mock.mock.calls.map((call) => call[0]).sort()).toEqual([
+      "/core/v1/devices/device-1",
+      "/core/v1/devices/device-2",
+    ]);
+  });
+
+  it("does not build a request from a malformed device id", async () => {
+    const module = await import("./desktop_device_auth");
+
+    device_state.device_id = null;
+
+    expect(await module.revoke_paired_device(["../accounts/x"])).toBe(0);
+    expect(delete_mock).not.toHaveBeenCalled();
+  });
+
+  it("counts only the revocations the server accepted", async () => {
+    const module = await import("./desktop_device_auth");
+
+    delete_mock.mockResolvedValue({ data: null, error: "offline" });
+
+    expect(await module.revoke_paired_device()).toBe(0);
+  });
+
+  it("removes the identity, the session, and the stored tokens", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.erase_device_pairing();
+
+    const commands = invoke_mock.mock.calls.map((call) => call[0]);
+
+    expect(commands).toContain("device_refresh_token_clear");
+    expect(commands).toContain("device_clear_identity");
+    expect(device_state.device_id).toBeNull();
+    expect(device_state.identity).toBe("identity-b");
+  });
+
+  it("cannot sign back in after the pairing is erased", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.erase_device_pairing();
+    post_mock.mockClear();
+
+    const events: string[] = [];
+    const listener = () => events.push("success");
+
+    window.addEventListener("astermail:device-login-success", listener);
+    await module.init_desktop_device_auth();
+    window.removeEventListener("astermail:device-login-success", listener);
+
+    expect(events).toEqual([]);
+    expect(post_mock).not.toHaveBeenCalledWith(
+      "/core/v1/auth/device/login",
+      expect.anything(),
+    );
+  });
+
+  it("still removes the identity when the token store fails", async () => {
+    const module = await import("./desktop_device_auth");
+    const fallback = invoke_mock.getMockImplementation();
+
+    invoke_mock.mockImplementation(
+      (cmd: string, args?: Record<string, unknown>) =>
+        cmd === "device_refresh_token_clear"
+          ? Promise.reject(new Error("locked"))
+          : fallback?.(cmd, args),
+    );
+
+    await expect(module.erase_device_pairing()).rejects.toThrow("locked");
+    expect(device_state.identity).toBe("identity-b");
+  });
+
+  it("does nothing outside the desktop app", async () => {
+    delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__;
+    const module = await import("./desktop_device_auth");
+
+    expect(await module.revoke_paired_device(["device-2"])).toBe(0);
+    await module.erase_device_pairing();
+
+    expect(invoke_mock).not.toHaveBeenCalled();
+    expect(delete_mock).not.toHaveBeenCalled();
   });
 });

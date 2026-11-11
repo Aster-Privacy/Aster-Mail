@@ -37,6 +37,7 @@ import { is_relay_host_allowed } from "./cdn_relay_transport";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 
 const STORAGE_KEY = "aster_connection_method";
 const CDN_RELAY_URL_KEY = "aster_cdn_relay_url";
@@ -264,6 +265,8 @@ class ConnectionStore {
   }
 
   private async persist_value(key: string, value: string): Promise<void> {
+    if (device_traces_erased()) return;
+
     try {
       if (typeof window !== "undefined" && window.localStorage) {
         if (value) {

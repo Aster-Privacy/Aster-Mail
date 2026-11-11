@@ -74,6 +74,8 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
+import { defer_proxied_images } from "@/lib/deferred_proxy_images";
 import { contain_untrusted_html } from "@/lib/untrusted_sources";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_current_account } from "@/services/account_manager";
@@ -440,9 +442,16 @@ function premeasure_height(
     ? `margin:0;padding:16px 20px;font-family:${email_font_stack};font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;zoom:${email_zoom}`
     : `margin:0;padding:8px 16px 8px 16px;background-color:${body_background || "transparent"};zoom:${email_zoom}`;
 
+  const contained_html = strip_remote_css_fetches(
+    contain_untrusted_html(sanitize_preview_html(sanitized_html)),
+  );
+  const measured_html = should_defer_proxied_images()
+    ? defer_proxied_images(contained_html, get_image_proxy_url())
+    : contained_html;
+
   shadow.innerHTML =
     `<style>${EMAIL_BODY_CSS}</style>` +
-    `<div style="${body_style}">${strip_remote_css_fetches(contain_untrusted_html(sanitize_preview_html(sanitized_html)))}</div>`;
+    `<div style="${body_style}">${measured_html}</div>`;
 
   measure_container.appendChild(wrapper);
 

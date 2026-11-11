@@ -20,6 +20,8 @@ import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { release_on_version_change } from "@/lib/idb_release";
+
 const DB_NAME = "astermail_session_db";
 const DB_VERSION = 1;
 const STORE_NAME = "session_data";
@@ -56,7 +58,10 @@ async function open_database(): Promise<IDBDatabase> {
     };
 
     request.onsuccess = () => {
-      db_instance = request.result;
+      db_instance = release_on_version_change(request.result, () => {
+        db_instance = null;
+        db_promise = null;
+      });
       db_instance.onclose = () => {
         db_instance = null;
         db_promise = null;

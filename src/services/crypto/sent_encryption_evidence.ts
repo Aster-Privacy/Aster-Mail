@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import type { SenderVerificationStatus } from "@/types/email";
+
 export const SENT_ENCRYPTION_FIELD = "sent_encryption";
 
 const MAX_RECIPIENT_COUNT = 100_000;
@@ -168,6 +170,30 @@ export function shows_end_to_end(flags: EncryptionDisplayFlags): boolean {
   return (
     (!flags.is_external || !!flags.has_recipient_key) && !!flags.e2e_verified
   );
+}
+
+export interface SenderDisplayFlags extends EncryptionDisplayFlags {
+  sender_verification?: SenderVerificationStatus;
+  is_received?: boolean;
+}
+
+export function displayed_sender_verification(
+  flags: SenderDisplayFlags,
+): SenderVerificationStatus | undefined {
+  const status = flags.sender_verification;
+
+  if (status && status !== "unknown") return status;
+
+  if (
+    flags.is_received === true &&
+    flags.is_external === true &&
+    !as_sent_encryption_scope(flags.sent_encryption_scope) &&
+    shows_end_to_end(flags)
+  ) {
+    return "no_keys";
+  }
+
+  return status;
 }
 
 export function reaches_outside_recipients(

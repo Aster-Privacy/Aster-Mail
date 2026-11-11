@@ -86,6 +86,7 @@ type bridge_error =
   | "session"
   | "code_not_found"
   | "fingerprint_mismatch"
+  | "fingerprint_required"
   | "storage_unreadable"
   | "unsupported"
   | "unavailable";
@@ -422,9 +423,9 @@ async function handle_link_preview(
     return { ok: false, error: verified.error ?? "code_not_found" };
   }
 
-  const fingerprint = fingerprint_of_encoded_device_keys(verified.data);
-
-  if (!fingerprint) return { ok: false, error: "code_not_found" };
+  if (!fingerprint_of_encoded_device_keys(verified.data)) {
+    return { ok: false, error: "code_not_found" };
+  }
 
   save_link_attempts({
     ...link_state,
@@ -433,7 +434,6 @@ async function handle_link_preview(
 
   return {
     ok: true,
-    fingerprint,
     machine_name: String(verified.data.machine_name ?? "").slice(0, 128),
   };
 }
@@ -441,7 +441,7 @@ async function handle_link_preview(
 async function handle_link(
   code: string,
   account_id: string,
-  expected_fingerprint: string | null,
+  expected_fingerprint: string,
 ): Promise<bridge_result> {
   const attempts = load_link_attempts();
 
@@ -465,7 +465,6 @@ async function handle_link(
   }
 
   if (
-    expected_fingerprint !== null &&
     fingerprint_of_encoded_device_keys(verified.data) !== expected_fingerprint
   ) {
     return { ok: false, error: "fingerprint_mismatch" };
@@ -649,16 +648,21 @@ function handle(
         typeof request.code === "string" &&
         CODE_PATTERN.test(request.code) &&
         typeof request.account_id === "string" &&
-        ACCOUNT_ID_PATTERN.test(request.account_id) &&
-        (request.fingerprint === undefined ||
-          (typeof request.fingerprint === "string" &&
-            FINGERPRINT_PATTERN.test(request.fingerprint)))
+        ACCOUNT_ID_PATTERN.test(request.account_id)
       ) {
-        return handle_link(
-          request.code,
-          request.account_id,
-          request.fingerprint ?? null,
-        );
+        if (request.fingerprint === undefined || request.fingerprint === null) {
+          return Promise.resolve({ ok: false, error: "fingerprint_required" });
+        }
+        if (
+          typeof request.fingerprint === "string" &&
+          FINGERPRINT_PATTERN.test(request.fingerprint)
+        ) {
+          return handle_link(
+            request.code,
+            request.account_id,
+            request.fingerprint,
+          );
+        }
       }
 
       return Promise.resolve({ ok: false, error: "unsupported" });

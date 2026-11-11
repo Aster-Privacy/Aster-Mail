@@ -1943,6 +1943,9 @@ export const fr = {
     dns_host_leave_blank: "Laisser vide",
     dns_host_provider_hint:
       "{{provider}} utilise ce format pour le champ hôte. Copiez-le exactement tel quel.",
+    dns_host_zone_hint:
+      "Ce nom d'hôte est relatif à {{zone}}, le domaine où vous gérez vos enregistrements DNS.",
+    dns_full_record_name: "Nom complet de l'enregistrement",
     purchase_congrats_title: "Félicitations",
     recipient_key_outdated: "La clé du destinataire est obsolète",
     recipient_key_outdated_desc:
@@ -4853,7 +4856,8 @@ export const fr = {
     tlsrpt_record: "Enregistrement TLS-RPT",
     tlsrpt_description:
       "Facultatif mais recommande. Les serveurs destinataires vous envoient un resume quotidien lorsque la remise chiffree vers votre domaine echoue, pour reperer les problemes avant vos utilisateurs.",
-    dns_instruction_set_tlsrpt_host: "Definissez l'hote sur _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Copiez le nom d'hôte affiché ci-dessous dans le champ hôte",
     dns_instruction_set_tlsrpt_value:
       "Collez la valeur TLS-RPT exactement telle qu'affichee",
     optional_step: "Facultatif",
@@ -5257,7 +5261,7 @@ export const fr = {
     dns_instruction_set_dkim:
       "Définissez la valeur sur la clé DKIM indiquée ci-dessous",
     dns_instruction_set_dmarc_host:
-      "Définissez l'hôte sur _dmarc (sans inclure votre domaine)",
+      "Copiez le nom d'hôte affiché ci-dessous dans le champ hôte",
     dns_instruction_set_dmarc_value:
       "Définissez la valeur sur la politique DMARC indiquée ci-dessous",
     edit_external_account: "Modifier le compte externe",
@@ -9910,6 +9914,7 @@ export const fr = {
     link_text_optional: "Texte du lien (facultatif)",
     links_cleaned: "Liens nettoyés",
     load_external_content: "Charger le contenu externe",
+    image_loading_settings: "Paramètres des images",
     location_label: "Emplacement",
     message_details: "Détails du message",
     message_headers: "En-têtes du message",
@@ -10568,25 +10573,36 @@ export const fr = {
     link_device_confirm_button: "Confirmer",
     link_device_confirm_prompt: "Confirmer l'association de l'appareil ?",
     link_device_confirming: "Confirmation en cours...",
-    link_device_desktop: "Associer un appareil de bureau",
-    device_fingerprint: "Code de vérification",
-    device_code_verify_toggle: "Vérifier cet appareil",
-    link_device_fingerprint_hint:
-      "Si votre application de bureau affiche un code de vérification, vérifiez qu'il correspond à celui-ci avant d'associer l'appareil.",
-    device_code_fingerprint_hint:
-      "Votre navigateur affiche le même code de vérification avant d'associer l'appareil. Si les deux codes ne correspondent pas, n'associez pas l'appareil.",
+    link_device_desktop: "Nouvel appareil",
+    device_fingerprint: "Empreinte de l'appareil",
+    device_fingerprint_copy: "Copier l'empreinte de l'appareil",
+    link_device_grant_notice:
+      "L'association donne à l'application sur {{device}} un accès complet à {{email}}, y compris à vos e-mails et à vos clés de chiffrement.",
+    link_device_own_device_warning:
+      "Continuez uniquement si vous avez lancé cette opération dans une application Aster sur votre propre appareil. Si quelqu'un d'autre vous a donné ce code, n'associez pas l'appareil.",
+    link_device_fingerprint_enter:
+      "Entrez l'empreinte de l'appareil affichée dans l'application que vous associez. Certaines applications l'appellent code de vérification.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Cela ne correspond pas à l'appareil de ce code d'association. Comparez chaque caractère avec l'application que vous associez, puis réessayez. Si cela ne correspond toujours pas, n'associez pas l'appareil.",
+    link_device_fingerprint_link_mismatch:
+      "Le lien qui a ouvert cette page appartient à un autre appareil que celui de ce code d'association. Vous ne pouvez donc pas associer l'appareil ici. Obtenez un nouveau code dans l'application que vous associez, puis réessayez.",
+    link_device_update_desktop:
+      "Si l'application ne l'affiche pas, choisissez Vérifier cet appareil dans l'application. Si l'application ne propose pas cette option, mettez-la à jour, puis réessayez.",
+    device_code_fingerprint_required_hint:
+      "Votre navigateur demande cette empreinte de l'appareil avant d'associer l'appareil.",
     link_device_change_account: "Changer de compte",
     link_device_choose_account: "Choisissez un compte",
-    link_device_choose_account_description:
-      "Pour associer votre application de bureau",
+    link_device_choose_account_description: "Pour associer un nouvel appareil",
     link_device_choose_account_note:
       "Vos clés de chiffrement restent chiffrées lorsqu'elles passent d'un appareil à l'autre.",
     link_device_use_another_account: "Utiliser un autre compte",
     link_device_use_this_account: "Utiliser ce compte",
     link_device_other_accounts: "Passer à un autre compte",
-    link_device_enter_code: "Entrez le code affiché sur votre autre appareil.",
+    link_device_enter_code:
+      "Entrez le code d'association affiché dans l'application que vous associez.",
     link_device_expired_code:
-      "Ce code a expiré ou ne correspondait pas. Votre application de bureau affiche le code actuel.",
+      "Ce code a expiré ou ne correspondait pas. L'application que vous associez affiche le code actuel.",
     link_device_failed:
       "L'association n'a pas abouti. Recommencez depuis le début. Votre compte est inchangé.",
     link_device_invalid_code:
@@ -10596,7 +10612,8 @@ export const fr = {
     hub_account_link_failed:
       "Pour continuer avec ce compte, saisissez son mot de passe.",
     link_device_success: "Appareil lié avec succès",
-    link_device_success_description: "Cet appareil a accès à votre compte.",
+    link_device_success_description:
+      "Votre appareil est maintenant associé. Vous pouvez fermer cet onglet.",
     link_device_title: "Lier un appareil",
     link_keys_locked_title: "Votre trousseau est verrouillé",
     link_keys_locked_description:

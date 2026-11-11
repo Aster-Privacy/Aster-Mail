@@ -1854,6 +1854,9 @@ export const ar = {
     dns_host_leave_blank: "اتركه فارغًا",
     dns_host_provider_hint:
       "يستخدم {{provider}} هذه الصيغة لحقل المضيف. انسخها تمامًا كما هي.",
+    dns_host_zone_hint:
+      "اسم المضيف هذا نسبي إلى {{zone}}، وهو النطاق الذي تدير فيه سجلات DNS.",
+    dns_full_record_name: "الاسم الكامل للسجل",
     purchase_congrats_title: "تهانينا",
     recipient_key_outdated: "مفتاح المستلم قديم",
     recipient_key_outdated_desc:
@@ -4887,7 +4890,8 @@ export const ar = {
     tlsrpt_record: "سجل TLS-RPT",
     tlsrpt_description:
       "اختياري لكنه موصى به. ترسل لك الخوادم المستقبِلة ملخصًا يوميًا عند فشل التسليم المشفّر إلى نطاقك، فتكتشف المشكلات قبل مستخدميك.",
-    dns_instruction_set_tlsrpt_host: "اضبط المضيف على _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "انسخ اسم المضيف المعروض أدناه إلى حقل المضيف",
     dns_instruction_set_tlsrpt_value: "الصق قيمة TLS-RPT كما هي تمامًا",
     optional_step: "اختياري",
     gmail_import: "Gmail",
@@ -5253,7 +5257,8 @@ export const ar = {
     dns_instruction_merge_spf:
       "إذا كان لديك سجل SPF بالفعل، أضف توجيه include: إلى سجلك الحالي",
     dns_instruction_set_dkim: "اضبط القيمة على مفتاح DKIM الموضح أدناه",
-    dns_instruction_set_dmarc_host: "اضبط المضيف على _dmarc (بدون نطاقك)",
+    dns_instruction_set_dmarc_host:
+      "انسخ اسم المضيف المعروض أدناه إلى حقل المضيف",
     dns_instruction_set_dmarc_value:
       "اضبط القيمة على سياسة DMARC الموضحة أدناه",
     edit_external_account: "تعديل الحساب الخارجي",
@@ -9519,6 +9524,7 @@ export const ar = {
     received_via_alias: "تم التسليم إلى الاسم المستعار {{ address }}",
     new_reaction: "تفاعل جديد",
     load_external_content: "تحميل المحتوى الخارجي",
+    image_loading_settings: "إعدادات الصور",
     images: "صور",
     tracker: "متتبع",
     trackers: "متتبعات",
@@ -10218,23 +10224,34 @@ export const ar = {
     device_code_waiting: "في انتظار التأكيد",
     device_code_expires_in: "ينتهي خلال",
     link_device_title: "ربط الجهاز",
-    link_device_enter_code: "أدخل الرمز المعروض على تطبيق سطح المكتب الخاص بك.",
+    link_device_enter_code: "أدخل رمز الربط المعروض في التطبيق الذي تربطه.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "متابعة",
     link_device_confirm_prompt: "هل تريد ربط هذا الجهاز بحسابك؟",
     link_device_confirm_button: "ربط الجهاز",
     link_device_confirming: "جارٍ ربط الجهاز...",
     link_device_cancel: "إلغاء",
-    link_device_desktop: "تطبيق سطح المكتب",
-    device_fingerprint: "رمز التحقق",
-    device_code_verify_toggle: "التحقق من هذا الجهاز",
-    link_device_fingerprint_hint:
-      "إذا عرض تطبيق سطح المكتب رمز تحقق، فتأكد من أنه يطابق هذا الرمز قبل ربط الجهاز.",
-    device_code_fingerprint_hint:
-      "يعرض متصفحك رمز التحقق نفسه قبل ربط الجهاز. إذا لم يتطابق الرمزان، فلا تربط الجهاز.",
+    link_device_desktop: "جهاز جديد",
+    device_fingerprint: "بصمة الجهاز",
+    device_fingerprint_copy: "نسخ بصمة الجهاز",
+    link_device_grant_notice:
+      "يمنح الربط التطبيق على {{device}} وصولاً كاملاً إلى {{email}}، بما في ذلك بريدك ومفاتيح التشفير الخاصة بك.",
+    link_device_own_device_warning:
+      "تابع فقط إذا كنت قد بدأت هذه العملية بنفسك في أحد تطبيقات Aster على جهازك. إذا أعطاك شخص آخر هذا الرمز، فلا تربط الجهاز.",
+    link_device_fingerprint_enter:
+      "أدخل بصمة الجهاز المعروضة في التطبيق الذي تربطه. بعض التطبيقات تسميها رمز التحقق.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "هذه البصمة لا تطابق الجهاز الخاص برمز الربط هذا. قارن كل حرف بما يعرضه التطبيق الذي تربطه ثم حاول مرة أخرى. إذا استمر عدم التطابق، فلا تربط الجهاز.",
+    link_device_fingerprint_link_mismatch:
+      "الرابط الذي فتح هذه الصفحة يخص جهازاً غير الجهاز الخاص برمز الربط هذا، لذلك لا يمكنك ربط الجهاز هنا. احصل على رمز جديد من التطبيق الذي تربطه ثم حاول مرة أخرى.",
+    link_device_update_desktop:
+      "إذا لم يعرضها التطبيق، فاختر التحقق من هذا الجهاز في التطبيق. إذا لم يكن هذا الخيار متوفراً في التطبيق، فحدّث التطبيق ثم حاول مرة أخرى.",
+    device_code_fingerprint_required_hint:
+      "يطلب متصفحك بصمة الجهاز هذه قبل ربط الجهاز.",
     link_device_change_account: "تغيير الحساب",
     link_device_choose_account: "اختر حسابًا",
-    link_device_choose_account_description: "لربط تطبيق سطح المكتب",
+    link_device_choose_account_description: "لربط جهاز جديد",
     link_device_choose_account_note:
       "تبقى مفاتيح التشفير الخاصة بك مشفّرة أثناء انتقالها بين أجهزتك.",
     link_device_use_another_account: "استخدام حساب آخر",
@@ -10246,11 +10263,11 @@ export const ar = {
       "للمتابعة بهذا الحساب، أدخل كلمة المرور الخاصة به.",
     link_device_success: "تم ربط الجهاز",
     link_device_success_description:
-      "تطبيق سطح المكتب الخاص بك مرتبط الآن. يمكنك إغلاق هذه التبويبة.",
+      "جهازك مرتبط الآن. يمكنك إغلاق هذه التبويبة.",
     link_device_invalid_code:
       "رمز الربط مكوّن من 8 أحرف. تحقق من الرمز وحاول مجددًا.",
     link_device_expired_code:
-      "انتهت صلاحية هذا الرمز أو لم يتطابق. تطبيق سطح المكتب الخاص بك لديه الرمز الحالي.",
+      "انتهت صلاحية هذا الرمز أو لم يتطابق. الرمز الحالي معروض في التطبيق الذي تربطه.",
     link_device_failed:
       "الربط لم يكتمل. البداية من جديد عادةً ما تحل الأمر. حسابك لم يتغير.",
     link_keys_locked_title: "سلسلة المفاتيح مقفلة",

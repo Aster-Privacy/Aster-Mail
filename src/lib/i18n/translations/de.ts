@@ -1855,6 +1855,9 @@ export const de = {
     dns_host_leave_blank: "Leer lassen",
     dns_host_provider_hint:
       "{{provider}} verwendet dieses Format für das Hostfeld. Kopieren Sie es genau so.",
+    dns_host_zone_hint:
+      "Dieser Hostname ist relativ zu {{zone}}, der Domain, in der Sie Ihre DNS-Einträge verwalten.",
+    dns_full_record_name: "Vollständiger Name des Eintrags",
     purchase_congrats_title: "Herzlichen Glückwunsch",
     recipient_key_outdated: "Der Schlüssel des Empfängers ist veraltet",
     recipient_key_outdated_desc:
@@ -4734,7 +4737,8 @@ export const de = {
     tlsrpt_record: "TLS-RPT-Eintrag",
     tlsrpt_description:
       "Optional, aber empfohlen. Empfangende Server senden Ihnen eine tagliche Zusammenfassung, wenn die verschlusselte Zustellung an Ihre Domain fehlschlagt, damit Sie Probleme vor Ihren Nutzern bemerken.",
-    dns_instruction_set_tlsrpt_host: "Setzen Sie den Host auf _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Kopieren Sie den unten angezeigten Hostnamen in das Hostfeld",
     dns_instruction_set_tlsrpt_value:
       "Fugen Sie den TLS-RPT-Wert exakt wie angezeigt ein",
     optional_step: "Optional",
@@ -5111,7 +5115,7 @@ export const de = {
     dns_instruction_merge_spf:
       "Wenn Sie bereits einen SPF-Eintrag haben, fügen Sie die include:-Direktive zu Ihrem bestehenden Eintrag hinzu",
     dns_instruction_set_dmarc_host:
-      "Setzen Sie den Host auf _dmarc (ohne Ihre Domain)",
+      "Kopieren Sie den unten angezeigten Hostnamen in das Hostfeld",
     dns_instruction_set_dmarc_value:
       "Setzen Sie den Wert auf die unten angezeigte DMARC-Richtlinie",
     edit_external_account: "Externes Konto bearbeiten",
@@ -9887,6 +9891,7 @@ export const de = {
     link_text_optional: "Linktext (optional)",
     links_cleaned: "Links bereinigt",
     load_external_content: "Externe Inhalte laden",
+    image_loading_settings: "Bildeinstellungen",
     location_label: "Ort:",
     message_details: "Nachrichtendetails",
     message_headers: "Nachrichtenkopfzeilen",
@@ -10562,25 +10567,36 @@ export const de = {
     link_device_confirm_prompt:
       "Möchten Sie dieses Gerät mit Ihrem Konto verknüpfen?",
     link_device_confirming: "Gerät wird verknüpft...",
-    link_device_desktop: "Desktop-App",
-    device_fingerprint: "Prüfcode",
-    device_code_verify_toggle: "Dieses Gerät überprüfen",
-    link_device_fingerprint_hint:
-      "Wenn deine Desktop-App einen Prüfcode anzeigt, vergewissere dich, dass er mit diesem übereinstimmt, bevor du das Gerät verknüpfst.",
-    device_code_fingerprint_hint:
-      "Dein Browser zeigt vor dem Verknüpfen denselben Prüfcode an. Wenn die beiden Codes nicht übereinstimmen, verknüpfe das Gerät nicht.",
+    link_device_desktop: "Neues Gerät",
+    device_fingerprint: "Gerätefingerabdruck",
+    device_fingerprint_copy: "Gerätefingerabdruck kopieren",
+    link_device_grant_notice:
+      "Durch das Verknüpfen erhält die App auf {{device}} vollen Zugriff auf {{email}}, einschließlich Ihrer E-Mails und Ihrer Verschlüsselungsschlüssel.",
+    link_device_own_device_warning:
+      "Fahren Sie nur fort, wenn Sie diesen Vorgang selbst in einer Aster-App auf Ihrem eigenen Gerät gestartet haben. Wenn Sie diesen Code von jemand anderem erhalten haben, verknüpfen Sie das Gerät nicht.",
+    link_device_fingerprint_enter:
+      "Geben Sie den Gerätefingerabdruck ein, der in der App angezeigt wird, die Sie verknüpfen. Manche Apps nennen ihn Bestätigungscode.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Das stimmt nicht mit dem Gerät für diesen Verknüpfungscode überein. Vergleichen Sie jedes Zeichen mit der App, die Sie verknüpfen, und versuchen Sie es erneut. Wenn es weiterhin nicht übereinstimmt, verknüpfen Sie das Gerät nicht.",
+    link_device_fingerprint_link_mismatch:
+      "Der Link, über den diese Seite geöffnet wurde, gehört zu einem anderen Gerät als dieser Verknüpfungscode, daher können Sie das Gerät hier nicht verknüpfen. Fordern Sie in der App, die Sie verknüpfen, einen neuen Code an und versuchen Sie es erneut.",
+    link_device_update_desktop:
+      "Wenn die App ihn nicht anzeigt, wählen Sie in der App „Dieses Gerät überprüfen“. Wenn die App diese Option nicht hat, aktualisieren Sie die App und versuchen Sie es erneut.",
+    device_code_fingerprint_required_hint:
+      "Ihr Browser fragt nach diesem Gerätefingerabdruck, bevor er das Gerät verknüpft.",
     link_device_change_account: "Konto wechseln",
     link_device_choose_account: "Konto auswählen",
-    link_device_choose_account_description: "Um Ihre Desktop-App zu verknüpfen",
+    link_device_choose_account_description: "Um ein neues Gerät zu verknüpfen",
     link_device_choose_account_note:
       "Ihre Schlüssel bleiben verschlüsselt, während sie zwischen Ihren Geräten übertragen werden.",
     link_device_use_another_account: "Anderes Konto verwenden",
     link_device_use_this_account: "Dieses Konto verwenden",
     link_device_other_accounts: "Zu einem anderen Konto wechseln",
     link_device_enter_code:
-      "Geben Sie den in Ihrer Desktop-App angezeigten Code ein.",
+      "Geben Sie den Verknüpfungscode ein, der in der App angezeigt wird, die Sie verknüpfen.",
     link_device_expired_code:
-      "Dieser Code ist abgelaufen oder stimmte nicht überein. Ihre Desktop-App hat den aktuellen Code.",
+      "Dieser Code ist abgelaufen oder stimmte nicht überein. Die App, die Sie verknüpfen, zeigt den aktuellen Code an.",
     link_device_failed:
       "Die Verknüpfung wurde nicht abgeschlossen. Ein erneuter Versuch löst das Problem in der Regel. Ihr Konto bleibt unverändert.",
     link_device_invalid_code:
@@ -10591,7 +10607,7 @@ export const de = {
       "Zum Fortfahren mit diesem Konto das zugehörige Passwort eingeben.",
     link_device_success: "Gerät verknüpft",
     link_device_success_description:
-      "Ihre Desktop-App ist nun verknüpft. Sie können diesen Tab schließen.",
+      "Ihr Gerät ist nun verknüpft. Sie können diesen Tab schließen.",
     link_device_title: "Gerät verknüpfen",
     link_keys_locked_title: "Ihr Schlüsselbund ist gesperrt",
     link_keys_locked_description:

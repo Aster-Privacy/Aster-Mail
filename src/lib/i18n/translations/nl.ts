@@ -1915,6 +1915,9 @@ export const nl = {
     dns_host_leave_blank: "Laat leeg",
     dns_host_provider_hint:
       "{{provider}} gebruikt deze notatie voor het hostveld. Neem het exact zo over.",
+    dns_host_zone_hint:
+      "Deze hostnaam is relatief ten opzichte van {{zone}}, het domein waar je je DNS-records beheert.",
+    dns_full_record_name: "Volledige recordnaam",
     purchase_congrats_title: "Gefeliciteerd",
     recipient_key_outdated: "De sleutel van de ontvanger is verouderd",
     recipient_key_outdated_desc:
@@ -4725,7 +4728,8 @@ export const nl = {
     tlsrpt_record: "TLS-RPT-record",
     tlsrpt_description:
       "Optioneel maar aanbevolen. Ontvangende servers sturen je een dagelijkse samenvatting wanneer versleutelde bezorging aan je domein mislukt, zodat je problemen eerder ziet dan je gebruikers.",
-    dns_instruction_set_tlsrpt_host: "Stel de host in op _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Kopieer de hostnaam hieronder naar het hostveld",
     dns_instruction_set_tlsrpt_value:
       "Plak de TLS-RPT-waarde exact zoals weergegeven",
     optional_step: "Optioneel",
@@ -5106,7 +5110,7 @@ export const nl = {
     dns_instruction_merge_spf:
       "Als je al een SPF-record hebt, voeg dan de include:-richtlijn toe aan je bestaande record",
     dns_instruction_set_dmarc_host:
-      "Stel de host in op _dmarc (zonder je domein)",
+      "Kopieer de hostnaam hieronder naar het hostveld",
     dns_instruction_set_dmarc_value:
       "Stel de waarde in op het onderstaande DMARC-beleid",
     edit_external_account: "Extern account bewerken",
@@ -9717,6 +9721,7 @@ export const nl = {
     link_text_optional: "Linktekst (optioneel)",
     advanced_search: "Geavanceerd",
     load_external_content: "Externe inhoud laden",
+    image_loading_settings: "Afbeeldingsinstellingen",
     image: "afbeelding",
     images: "afbeeldingen",
     tracker: "tracker",
@@ -10408,23 +10413,35 @@ export const nl = {
     device_code_waiting: "Wachten op bevestiging",
     device_code_expires_in: "Verloopt over",
     link_device_title: "Apparaat koppelen",
-    link_device_enter_code: "Voer de code in die op je desktop-app staat.",
+    link_device_enter_code:
+      "Voer de koppelcode in die in de app staat die je koppelt.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "Doorgaan",
     link_device_confirm_prompt: "Wil je dit apparaat koppelen aan je account?",
     link_device_confirm_button: "Apparaat koppelen",
     link_device_confirming: "Apparaat koppelen...",
     link_device_cancel: "Annuleren",
-    link_device_desktop: "Desktop-app",
-    device_fingerprint: "Verificatiecode",
-    device_code_verify_toggle: "Dit apparaat verifiëren",
-    link_device_fingerprint_hint:
-      "Als je desktop-app een verificatiecode toont, controleer dan of die overeenkomt met deze voordat je het apparaat koppelt.",
-    device_code_fingerprint_hint:
-      "Je browser toont dezelfde verificatiecode voordat je het apparaat koppelt. Als de twee codes niet overeenkomen, koppel het apparaat dan niet.",
+    link_device_desktop: "Nieuw apparaat",
+    device_fingerprint: "Apparaatvingerafdruk",
+    device_fingerprint_copy: "Apparaatvingerafdruk kopiëren",
+    link_device_grant_notice:
+      "Door te koppelen krijgt de app op {{device}} volledige toegang tot {{email}}, inclusief je e-mail en je versleutelingssleutels.",
+    link_device_own_device_warning:
+      "Ga alleen verder als je dit zelf bent gestart in een Aster-app op je eigen apparaat. Als iemand anders je deze code heeft gegeven, koppel het apparaat dan niet.",
+    link_device_fingerprint_enter:
+      "Voer de apparaatvingerafdruk in die in de app staat die je koppelt. Sommige apps noemen dit een verificatiecode.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Dit komt niet overeen met het apparaat voor deze koppelcode. Vergelijk elk teken met de app die je koppelt en probeer het opnieuw. Als het nog steeds niet overeenkomt, koppel het apparaat dan niet.",
+    link_device_fingerprint_link_mismatch:
+      "De link waarmee deze pagina is geopend, hoort bij een ander apparaat dan deze koppelcode, dus je kunt het apparaat hier niet koppelen. Vraag een nieuwe code aan in de app die je koppelt en probeer het opnieuw.",
+    link_device_update_desktop:
+      "Als de app de vingerafdruk niet toont, kies dan Dit apparaat verifiëren in de app. Als de app die optie niet heeft, werk de app dan bij en probeer het opnieuw.",
+    device_code_fingerprint_required_hint:
+      "Je browser vraagt om deze apparaatvingerafdruk voordat het apparaat wordt gekoppeld.",
     link_device_change_account: "Account wijzigen",
     link_device_choose_account: "Kies een account",
-    link_device_choose_account_description: "Om je desktop-app te koppelen",
+    link_device_choose_account_description: "Om een nieuw apparaat te koppelen",
     link_device_choose_account_note:
       "Je versleutelingssleutels blijven versleuteld terwijl ze tussen je apparaten worden overgedragen.",
     link_device_use_another_account: "Een ander account gebruiken",
@@ -10436,11 +10453,11 @@ export const nl = {
       "Voer het wachtwoord van dit account in om door te gaan.",
     link_device_success: "Apparaat gekoppeld",
     link_device_success_description:
-      "Je desktop-app is nu gekoppeld. Je kunt dit tabblad sluiten.",
+      "Je apparaat is nu gekoppeld. Je kunt dit tabblad sluiten.",
     link_device_invalid_code:
       "Een koppelcode is 8 tekens lang. Controleer de code en probeer het opnieuw.",
     link_device_expired_code:
-      "Deze code is verlopen of komt niet overeen. Je desktop-app heeft de huidige code.",
+      "Deze code is verlopen of komt niet overeen. De app die je koppelt heeft de huidige code.",
     link_device_failed:
       "Koppeling is niet voltooid. Opnieuw beginnen lost dit meestal op. Je account is ongewijzigd.",
     link_keys_locked_title: "Je sleutelhanger is vergrendeld",

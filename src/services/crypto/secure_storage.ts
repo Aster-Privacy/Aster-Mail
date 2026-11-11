@@ -476,6 +476,7 @@ const PRESERVED_LOCAL_KEYS: ReadonlySet<string> = new Set([
   "aster_onion_api_url",
   "aster_onion_mail_url",
   "aster_sw_reset_v1",
+  "aster_error_reports",
 ]);
 
 const PRESERVED_LOCAL_KEY_PREFIXES: readonly string[] = [
@@ -483,6 +484,7 @@ const PRESERVED_LOCAL_KEY_PREFIXES: readonly string[] = [
   "aster_family_welcome_seen_",
   "aster_family_2fa_banner_dismissed",
   "aster_family_checklist_dismissed_",
+  "aster_onboarding_checklist_dismissed_",
 ];
 
 function should_preserve_local_key(key: string): boolean {

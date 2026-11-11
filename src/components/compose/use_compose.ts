@@ -71,10 +71,13 @@ import {
 } from "@/services/recipient_classification";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
 import {
-  get_compose_sanitize_options,
-  restore_compose_image_sources,
-} from "@/lib/compose_image_sources";
+  contain_draft_quotes,
+  read_compose_editor_html,
+  resolve_quoted_image_blocking,
+  type EditableQuotedHtmlOptions,
+} from "@/lib/editable_quoted_html";
 import { escape_html, escaped_html_to_plain_text } from "@/hooks/editor_utils";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
 import { build_compose_default_block } from "@/lib/compose_defaults";
@@ -142,6 +145,7 @@ export interface UseComposeReturn {
   subject: string;
   set_subject: (val: string) => void;
   message: string;
+  contain_quoted_content: (html: string) => string;
   attachments: Attachment[];
   is_loading_attachments: boolean;
   show_delete_confirm: boolean;
@@ -259,6 +263,28 @@ export function use_compose({
   const { preferences } = use_preferences();
   const { default_signature, get_formatted_signature, resolve_signature } =
     use_signatures();
+  const quote_options_ref = useRef<() => EditableQuotedHtmlOptions>(() => ({
+    block_remote_images: true,
+  }));
+
+  quote_options_ref.current = () => ({
+    ...resolve_quoted_image_blocking({
+      block_external_content: preferences.block_external_content,
+      block_remote_images: preferences.block_remote_images,
+      block_tracking_pixels: preferences.block_tracking_pixels,
+      load_remote_images: preferences.load_remote_images,
+      source_email_id: edit_draft?.reply_to_id ?? edit_draft?.forward_from_id,
+    }),
+    blocked_image_labels: {
+      image: t("common.image_blocked"),
+      tracking_pixel: t("common.tracking_pixel_blocked"),
+    },
+  });
+
+  const contain_quoted_content = useCallback(
+    (html: string) => contain_draft_quotes(html, quote_options_ref.current()),
+    [],
+  );
 
   const [recipients, dispatch_recipients] = useReducer(
     recipients_reducer,
@@ -936,11 +962,14 @@ export function use_compose({
           (resolved_html) => {
             if (!message_textarea_ref.current) return;
 
-            message_textarea_ref.current.innerHTML = resolved_html;
+            message_textarea_ref.current.innerHTML = contain_draft_quotes(
+              resolved_html,
+              quote_options_ref.current(),
+            );
             set_message(
               is_plain_text_ref.current
                 ? message_textarea_ref.current.innerText
-                : restore_compose_image_sources(
+                : read_compose_editor_html(
                     message_textarea_ref.current.innerHTML,
                   ),
             );
@@ -1061,7 +1090,10 @@ export function use_compose({
       (resolved_html) => {
         if (!message_textarea_ref.current) return;
 
-        message_textarea_ref.current.innerHTML = resolved_html;
+        message_textarea_ref.current.innerHTML = contain_draft_quotes(
+          resolved_html,
+          quote_options_ref.current(),
+        );
         if (is_plain_text_ref.current) {
           const text = message_textarea_ref.current.innerText;
 
@@ -1069,9 +1101,7 @@ export function use_compose({
           set_message(text);
         } else {
           set_message(
-            restore_compose_image_sources(
-              message_textarea_ref.current.innerHTML,
-            ),
+            read_compose_editor_html(message_textarea_ref.current.innerHTML),
           );
         }
       },
@@ -1139,7 +1169,7 @@ export function use_compose({
     set_message(
       is_plain_text_ref.current
         ? editor.innerText
-        : restore_compose_image_sources(editor.innerHTML),
+        : read_compose_editor_html(editor.innerHTML),
     );
     last_signature_id_ref.current = target.id;
   }, [
@@ -1307,6 +1337,7 @@ export function use_compose({
       attachment_hook.file_input_ref as React.RefObject<HTMLInputElement>,
     message_textarea_ref:
       message_textarea_ref as React.RefObject<HTMLDivElement>,
+    contain_quoted_content,
 
     update_input,
     add_recipient,

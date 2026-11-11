@@ -43,13 +43,24 @@ vi.mock("@/services/crypto/account_data_writer", () => ({
   retry_after_account_key_load: (call: () => unknown) => call(),
 }));
 
-vi.mock("@/services/crypto/legacy_keks", () => ({
-  decrypt_aes_gcm_with_fallback: (
+vi.mock("@/services/crypto/legacy_keks", () => {
+  const decrypt_aes_gcm_with_fallback = (
     key: CryptoKey,
     ciphertext: Uint8Array,
     nonce: Uint8Array,
-  ) => crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, key, ciphertext),
-}));
+  ) => crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, key, ciphertext);
+
+  return {
+    decrypt_aes_gcm_with_fallback,
+    decrypt_account_context_with_fallback: (
+      _context: string,
+      ...rest: unknown[]
+    ) =>
+      (decrypt_aes_gcm_with_fallback as (...args: unknown[]) => unknown)(
+        ...rest,
+      ),
+  };
+});
 
 vi.mock("@/hooks/use_mail_stats", () => ({
   invalidate_mail_stats: vi.fn(),

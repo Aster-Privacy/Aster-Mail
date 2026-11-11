@@ -23,7 +23,10 @@ import { Capacitor } from "@capacitor/core";
 import { get_api_base_url } from "@/services/api/base_url";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { is_onion_host } from "@/lib/onion_host";
-import { safe_local_get } from "@/lib/safe_storage";
+import {
+  has_error_report_consent,
+  on_error_reports_declined,
+} from "@/services/error_report_consent";
 import {
   get_effective_base_url,
   routed_fetch,
@@ -34,7 +37,6 @@ const MAX_REPORTS_PER_SESSION = 40;
 const DEDUPE_WINDOW_MS = 60_000;
 const SLUG_PATTERN = /^[a-z0-9_.-]{1,64}$/;
 const ID_SEGMENT = /^[0-9]+$|^[0-9a-f]{8,}$|-/i;
-const PREFS_CACHE_KEY = "aster_preferences_cache";
 
 const ROUTE_ROOTS: readonly string[] = [
   "inbox",
@@ -250,24 +252,30 @@ export function http_error_code(prefix: string, status: number): string {
   return `${safe_prefix}_http_${status}`.slice(0, 64);
 }
 
-function is_reporting_enabled(): boolean {
-  try {
-    const raw = safe_local_get(PREFS_CACHE_KEY);
+const in_flight_reports = new Set<AbortController>();
 
-    if (!raw) return true;
-    const parsed = JSON.parse(raw) as Record<string, unknown> | null;
-
-    return parsed?.send_error_reports !== false;
-  } catch {
-    return true;
+export function cancel_pending_error_reports(): void {
+  for (const controller of in_flight_reports) {
+    try {
+      controller.abort();
+    } catch {
+      continue;
+    }
   }
+  in_flight_reports.clear();
 }
+
+on_error_reports_declined(cancel_pending_error_reports);
 
 export function is_error_reporting_allowed(): boolean {
   if (is_onion_host()) return false;
   if (is_any_lockdown_active()) return false;
 
-  return is_reporting_enabled();
+  try {
+    return has_error_report_consent();
+  } catch {
+    return false;
+  }
 }
 
 function should_send(key: string): boolean {
@@ -328,13 +336,22 @@ export function report_client_error(input: ClientErrorInput): void {
 
     const base_url = get_effective_base_url(get_api_base_url());
 
+    const controller = new AbortController();
+
+    in_flight_reports.add(controller);
+
     void routed_fetch(`${base_url}/core/v1/client-errors`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body,
       keepalive: true,
       credentials: "omit",
-    }).catch(() => undefined);
+      signal: controller.signal,
+    })
+      .catch(() => undefined)
+      .finally(() => {
+        in_flight_reports.delete(controller);
+      });
   } catch {
     return;
   }

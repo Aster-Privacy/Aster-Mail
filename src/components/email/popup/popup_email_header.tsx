@@ -226,6 +226,7 @@ export function PopupEmailHeader({
             has_pq_protection={!!mail_item?.ephemeral_pq_key}
             has_recipient_key={!!mail_item?.has_recipient_key}
             is_external={!!mail_item?.is_external}
+            is_received={mail_item?.item_type === "received"}
             sender_verification={email.sender_verification}
             size={20}
           />
