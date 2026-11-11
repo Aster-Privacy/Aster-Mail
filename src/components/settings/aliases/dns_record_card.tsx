@@ -28,7 +28,7 @@ import { Button } from "@aster/ui";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { format_record_host, type DnsProvider } from "@/data/dns_providers";
+import { describe_record_host, type DnsProvider } from "@/data/dns_providers";
 import { DkimShortKeyAction } from "@/components/settings/aliases/dkim_short_key_action";
 
 const CAVEAT_KEYS: Record<string, TranslationKey> = {
@@ -60,9 +60,8 @@ export function DnsRecordCard({
 }: DnsRecordCardProps) {
   const { t } = use_i18n();
   const caveat = record.caveat_key ? CAVEAT_KEYS[record.caveat_key] : undefined;
-  const display_host = domain
-    ? format_record_host(record.host, domain, provider ?? null)
-    : record.host;
+  const host_names = describe_record_host(record, domain, provider ?? null);
+  const display_host = host_names.host;
   const host_is_blank = display_host === "";
   const can_shorten =
     record.purpose === "dkim" &&
@@ -151,10 +150,28 @@ export function DnsRecordCard({
             </Button>
           )}
         </div>
-        {provider && display_host !== record.host && (
+        {provider && display_host !== host_names.zone_relative_host && (
           <p className="text-[11px] mt-1 text-txt-muted">
             {t("common.dns_host_provider_hint", { provider: provider.name })}
           </p>
+        )}
+        {host_names.zone && (
+          <p
+            className="text-[11px] mt-1 text-txt-muted"
+            data-testid="dns-host-zone-hint"
+          >
+            {t("common.dns_host_zone_hint", { zone: host_names.zone })}
+          </p>
+        )}
+        {host_names.fqdn && host_names.fqdn !== display_host && (
+          <div className="mt-1" data-testid="dns-full-record-name">
+            <span className="text-[11px] text-txt-muted">
+              {t("common.dns_full_record_name")}
+            </span>
+            <code className="block p-2 rounded text-xs font-mono break-all text-txt-secondary">
+              {host_names.fqdn}
+            </code>
+          </div>
         )}
       </div>
 

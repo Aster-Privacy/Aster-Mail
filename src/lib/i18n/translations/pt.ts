@@ -1947,6 +1947,9 @@ export const pt = {
     dns_host_leave_blank: "Deixe em branco",
     dns_host_provider_hint:
       "A {{provider}} usa este formato no campo do host. Copie exatamente como está.",
+    dns_host_zone_hint:
+      "Este nome de anfitrião é relativo a {{zone}}, o domínio onde gere os registos DNS.",
+    dns_full_record_name: "Nome completo do registo",
     purchase_congrats_title: "Parabéns",
     recipient_key_outdated: "A chave do destinatário está desatualizada",
     recipient_key_outdated_desc:
@@ -4850,7 +4853,8 @@ export const pt = {
     tlsrpt_record: "Registo TLS-RPT",
     tlsrpt_description:
       "Opcional, mas recomendado. Os servidores recetores enviam-lhe um resumo diário quando a entrega encriptada para o seu domínio falha, para que detete problemas antes dos seus utilizadores.",
-    dns_instruction_set_tlsrpt_host: "Defina o host como _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Copie o nome do anfitrião apresentado abaixo para o campo do anfitrião",
     dns_instruction_set_tlsrpt_value:
       "Cole o valor TLS-RPT exatamente como é apresentado",
     optional_step: "Opcional",
@@ -5246,7 +5250,7 @@ export const pt = {
     dns_instruction_set_dkim:
       "Defina o valor como a chave DKIM apresentada abaixo",
     dns_instruction_set_dmarc_host:
-      "Defina o anfitrião como _dmarc (sem incluir o seu nome de domínio)",
+      "Copie o nome do anfitrião apresentado abaixo para o campo do anfitrião",
     dns_instruction_set_dmarc_value:
       "Defina o valor como a política DMARC apresentada abaixo",
     edit_external_account: "Editar conta externa",
