@@ -1930,6 +1930,11 @@ export const nl = {
       "De opgeslagen versleutelingssleutel van {{recipients}} kan op dit apparaat niet worden gelezen. Controleer de huidige vingerafdruk via een ander kanaal bij de ontvanger voordat je verzendt.",
     key_trust_unreadable_detail: "{{email}}: nu {{current}}.",
     key_trust_change_confirm: "Nieuwe sleutel vertrouwen",
+    key_trust_missing_title: "Versleutelingssleutel niet gevonden",
+    key_trust_missing_message:
+      "Op dit apparaat was een versleutelingssleutel voor {{recipients}} opgeslagen, maar er is nu geen sleutel beschikbaar. Als je doorgaat, wordt dit bericht zonder end-to-end-versleuteling verzonden. Controleer dit via een ander kanaal bij de ontvanger voordat je verzendt.",
+    key_trust_missing_detail: "{{email}}: was {{prior}}.",
+    key_trust_missing_confirm: "Zonder versleuteling verzenden",
     post_quantum_downgrade_title:
       "Verzenden zonder de verwachte post-quantumsleutels?",
     post_quantum_downgrade_message:

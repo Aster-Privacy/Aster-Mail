@@ -1809,6 +1809,11 @@ export const zh_CN = {
       "此设备无法读取 {{recipients}} 的已保存加密密钥。发送前请通过其他渠道与收件人核对当前的指纹。",
     key_trust_unreadable_detail: "{{email}}：现为 {{current}}。",
     key_trust_change_confirm: "信任新密钥",
+    key_trust_missing_title: "未找到加密密钥",
+    key_trust_missing_message:
+      "此设备上曾保存 {{recipients}} 的加密密钥，但现在没有可用的密钥。如果继续，此邮件将在没有端到端加密的情况下发送。发送前请通过其他渠道与收件人确认。",
+    key_trust_missing_detail: "{{email}}：之前为 {{prior}}。",
+    key_trust_missing_confirm: "不加密发送",
     post_quantum_downgrade_title: "要在缺少预期的后量子密钥的情况下发送吗？",
     post_quantum_downgrade_message:
       "{{recipients}} 已发布后量子密钥，但本次发送获取到的密钥包中没有任何后量子密钥。这可能是服务器故障，也可能是密钥查询遭到篡改。若要保留后量子保护，请取消并稍后重试。",

@@ -1932,6 +1932,11 @@ export const pt_br = {
       "A chave de criptografia salva de {{recipients}} não pode ser lida neste dispositivo. Confirme a impressão digital atual com o destinatário por outro canal antes de enviar.",
     key_trust_unreadable_detail: "{{email}}: agora {{current}}.",
     key_trust_change_confirm: "Confiar na nova chave",
+    key_trust_missing_title: "Chave de criptografia não encontrada",
+    key_trust_missing_message:
+      "{{recipients}} tinha uma chave de criptografia salva neste dispositivo, mas nenhuma chave está disponível agora. Se você continuar, esta mensagem será enviada sem criptografia de ponta a ponta. Confirme com o destinatário por outro canal antes de enviar.",
+    key_trust_missing_detail: "{{email}}: era {{prior}}.",
+    key_trust_missing_confirm: "Enviar sem criptografia",
     post_quantum_downgrade_title:
       "Enviar sem as chaves pós-quânticas esperadas?",
     post_quantum_downgrade_message:

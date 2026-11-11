@@ -1868,6 +1868,11 @@ export const ar = {
       "تعذرت قراءة مفتاح التشفير المحفوظ الخاص بـ {{recipients}} على هذا الجهاز. تحقق من البصمة الحالية مع المُستلِم عبر قناة أخرى قبل الإرسال.",
     key_trust_unreadable_detail: "{{email}}: أصبحت {{current}}.",
     key_trust_change_confirm: "الثقة بالمفتاح الجديد",
+    key_trust_missing_title: "لم يُعثر على مفتاح التشفير",
+    key_trust_missing_message:
+      "كان لدى {{recipients}} مفتاح تشفير محفوظ على هذا الجهاز، لكن لا يتوفر أي مفتاح الآن. إذا تابعت، ستُرسل هذه الرسالة بدون تشفير تام بين الطرفين. تحقق مع المُستلِم عبر قناة أخرى قبل الإرسال.",
+    key_trust_missing_detail: "{{email}}: كان {{prior}}.",
+    key_trust_missing_confirm: "الإرسال بدون تشفير",
     post_quantum_downgrade_title:
       "هل تريد الإرسال بدون مفاتيح ما بعد الكم المتوقعة؟",
     post_quantum_downgrade_message:

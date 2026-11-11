@@ -1955,6 +1955,11 @@ export const ko = {
       "이 기기에서 {{recipients}}의 저장된 암호화 키를 읽을 수 없습니다. 보내기 전에 다른 경로로 수신자와 현재 지문을 확인하세요.",
     key_trust_unreadable_detail: "{{email}}: 현재 {{current}}.",
     key_trust_change_confirm: "새 키 신뢰",
+    key_trust_missing_title: "암호화 키를 찾을 수 없음",
+    key_trust_missing_message:
+      "이 기기에 {{recipients}}의 암호화 키가 저장되어 있었지만 지금은 사용할 수 있는 키가 없습니다. 계속하면 이 메시지는 종단 간 암호화 없이 전송됩니다. 보내기 전에 다른 경로로 수신자에게 확인하세요.",
+    key_trust_missing_detail: "{{email}}: 이전 {{prior}}.",
+    key_trust_missing_confirm: "암호화 없이 보내기",
     post_quantum_downgrade_title: "예상된 양자 내성 키 없이 보낼까요?",
     post_quantum_downgrade_message:
       "{{recipients}} 계정은 양자 내성 키를 게시하지만, 이 메시지에 전달된 키 번들에는 양자 내성 키가 없습니다. 서버 문제일 수도 있고 키 조회가 조작되었을 수도 있습니다. 양자 내성 보호를 유지하려면 취소하고 나중에 다시 시도하세요.",
