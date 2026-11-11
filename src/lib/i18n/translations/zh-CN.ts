@@ -8630,6 +8630,7 @@ export const zh_CN = {
     new_reaction: "新回应",
     download_file_named: "下载 {{ filename }}",
     load_external_content: "加载外部内容",
+    image_loading_settings: "图片设置",
     image: "图片",
     images: "图片",
     tracker: "追踪器",

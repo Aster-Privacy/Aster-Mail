@@ -56,6 +56,7 @@ import {
   build_security_criteria,
   security_percent,
 } from "@/lib/security_criteria";
+import { resolve_remote_content_preferences } from "@/lib/remote_content_policy";
 import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
 import {
   format_key_fingerprint,
@@ -226,6 +227,7 @@ export function QuickSecurityPanel({
   use_escape_layer(is_open, on_close, "quick_security_panel", false);
   use_panel_inset(is_visible, panel_ref);
 
+  const remote_content = resolve_remote_content_preferences(preferences);
   const criteria = useMemo(
     () =>
       build_security_criteria({
@@ -234,8 +236,8 @@ export function QuickSecurityPanel({
         recovery_codes_saved: recovery.has_codes,
         recovery_email_verified: overview.recovery_email_verified,
         login_alerts_enabled: overview.login_alerts_enabled,
-        block_tracking_pixels: preferences.block_tracking_pixels,
-        block_remote_images: preferences.block_remote_images,
+        block_tracking_pixels: remote_content.block_tracking_pixels,
+        block_remote_images: remote_content.block_remote_images,
         strip_exif_on_compose: preferences.strip_exif_on_compose,
       }),
     [
@@ -244,8 +246,8 @@ export function QuickSecurityPanel({
       recovery.has_codes,
       overview.recovery_email_verified,
       overview.login_alerts_enabled,
-      preferences.block_tracking_pixels,
-      preferences.block_remote_images,
+      remote_content.block_tracking_pixels,
+      remote_content.block_remote_images,
       preferences.strip_exif_on_compose,
     ],
   );

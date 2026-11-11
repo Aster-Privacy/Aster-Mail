@@ -9884,6 +9884,7 @@ export const de = {
     link_text_optional: "Linktext (optional)",
     links_cleaned: "Links bereinigt",
     load_external_content: "Externe Inhalte laden",
+    image_loading_settings: "Bildeinstellungen",
     location_label: "Ort:",
     message_details: "Nachrichtendetails",
     message_headers: "Nachrichtenkopfzeilen",

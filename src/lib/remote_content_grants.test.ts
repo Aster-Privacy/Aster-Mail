@@ -24,6 +24,7 @@ import {
   grant_remote_content,
   granted_content_types,
   has_remote_content_grant,
+  honored_content_types,
 } from "@/lib/remote_content_grants";
 
 describe("remote content grants", () => {
@@ -73,6 +74,31 @@ describe("remote content grants", () => {
 
     expect([...granted_content_types(first, "m1")]).toEqual(["image"]);
     expect(NO_REMOTE_CONTENT_GRANTS.size).toBe(0);
+  });
+
+  it("honors every allowed type while image loading can be allowed", () => {
+    const types = new Set(["image", "tracking_pixel", "font", "css"]);
+
+    expect(honored_content_types(types, true)).toBe(types);
+  });
+
+  it("drops image types when image loading cannot be allowed", () => {
+    const types = new Set(["image", "tracking_pixel", "font", "css"]);
+
+    expect([...honored_content_types(types, false)].sort()).toEqual([
+      "css",
+      "font",
+    ]);
+    expect(
+      honored_content_types(new Set(["image", "tracking_pixel"]), false).size,
+    ).toBe(0);
+    expect(honored_content_types(undefined, false).size).toBe(0);
+    expect([...types].sort()).toEqual([
+      "css",
+      "font",
+      "image",
+      "tracking_pixel",
+    ]);
   });
 
   it("keeps the same map when nothing new is allowed", () => {

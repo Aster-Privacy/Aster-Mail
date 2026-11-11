@@ -8951,6 +8951,7 @@ export const en: Translations = {
     subject_copied: "Subject copied",
     load_all_thread_messages: "Load all messages",
     load_external_content: "Load external content",
+    image_loading_settings: "Image settings",
     image: "image",
     images: "images",
     tracker: "tracker",

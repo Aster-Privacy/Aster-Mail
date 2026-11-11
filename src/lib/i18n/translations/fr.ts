@@ -9907,6 +9907,7 @@ export const fr = {
     link_text_optional: "Texte du lien (facultatif)",
     links_cleaned: "Liens nettoyés",
     load_external_content: "Charger le contenu externe",
+    image_loading_settings: "Paramètres des images",
     location_label: "Emplacement",
     message_details: "Détails du message",
     message_headers: "En-têtes du message",

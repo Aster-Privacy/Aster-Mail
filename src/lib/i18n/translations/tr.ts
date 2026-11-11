@@ -9611,6 +9611,7 @@ export const tr = {
     received_via_alias: "{{ address }} takma adresine teslim edildi",
     new_reaction: "Yeni tepki",
     load_external_content: "Harici içerik yükle",
+    image_loading_settings: "Görsel ayarları",
     image: "görsel",
     images: "görseller",
     tracker: "izleyici",

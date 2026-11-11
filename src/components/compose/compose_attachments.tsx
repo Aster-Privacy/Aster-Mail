@@ -707,7 +707,9 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
         get_compose_sanitize_options(),
       );
 
-      el.innerHTML = proxy_compose_image_sources(safe.html);
+      el.innerHTML = compose.contain_quoted_content(
+        proxy_compose_image_sources(safe.html),
+      );
     }
   });
 

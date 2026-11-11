@@ -9714,6 +9714,7 @@ export const nl = {
     link_text_optional: "Linktekst (optioneel)",
     advanced_search: "Geavanceerd",
     load_external_content: "Externe inhoud laden",
+    image_loading_settings: "Afbeeldingsinstellingen",
     image: "afbeelding",
     images: "afbeeldingen",
     tracker: "tracker",

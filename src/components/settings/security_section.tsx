@@ -73,6 +73,7 @@ import { open_settings_target, SETTINGS_ANCHORS } from "@/lib/settings_links";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_lockdown_active } from "@/hooks/use_lockdown_active";
 import {
+  blocks_tracking_pixels,
   displayed_remote_content_setting,
   image_mode_update,
   type RemoteImageMode,
@@ -196,8 +197,10 @@ export function SecuritySection({
       )}
       {!passkey_error && (
         <AccountProtectionScore
-          block_remote_images={preferences.block_remote_images}
-          block_tracking_pixels={preferences.block_tracking_pixels}
+          block_remote_images={remote_content.blocks_images}
+          block_tracking_pixels={
+            lockdown_active || blocks_tracking_pixels(preferences)
+          }
           login_alerts_enabled={security.login_alerts_enabled}
           on_criterion_click={SECURITY_CRITERION_IDS.map(
             (id) => () => open_settings_target(SECURITY_CRITERION_TARGETS[id]),

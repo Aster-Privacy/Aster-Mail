@@ -41,9 +41,11 @@ import {
 
 import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
 import {
+  allows_remote_image_grant,
   effective_remote_image_mode,
   resolve_remote_content_preferences,
 } from "@/lib/remote_content_policy";
+import { honored_content_types } from "@/lib/remote_content_grants";
 import {
   displayed_image_blocking_from_options,
   use_record_displayed_image_blocking,
@@ -199,7 +201,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     external_content_mode,
     on_external_content_detected,
     preloaded_sanitized: preloaded_sanitized_prop,
-    loaded_content_types,
+    loaded_content_types: granted_content_types,
   } = props;
 
   const { t } = use_i18n();
@@ -481,8 +483,13 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const load_remote_content =
     !lockdown_active && external_content_mode === "always";
 
-  const has_loaded_types =
-    loaded_content_types && loaded_content_types.size > 0;
+  const image_grant_allowed =
+    is_system || allows_remote_image_grant(preferences);
+  const loaded_content_types = useMemo(
+    () => honored_content_types(granted_content_types, image_grant_allowed),
+    [granted_content_types, image_grant_allowed],
+  );
+  const has_loaded_types = loaded_content_types.size > 0;
 
   const preloaded_check = useMemo((): {
     renderable: boolean;
@@ -890,6 +897,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     clean_body,
     collapsed_preview,
     lockdown_active,
+    image_grant_allowed,
     is_system,
     is_ghost_sender,
     show_sender_name,

@@ -9796,6 +9796,7 @@ export const es = {
     link_text_optional: "Texto del enlace (opcional)",
     links_cleaned: "Enlaces limpiados",
     load_external_content: "Cargar contenido externo",
+    image_loading_settings: "Configuración de imágenes",
     location_label: "Ubicación",
     message_details: "Detalles del mensaje",
     message_headers: "Encabezados del mensaje",

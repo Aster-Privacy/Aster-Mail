@@ -9948,6 +9948,7 @@ export const pl = {
     received_via_alias: "dostarczono na alias {{ address }}",
     new_reaction: "Nowa reakcja",
     load_external_content: "Załaduj zewnętrzną zawartość",
+    image_loading_settings: "Ustawienia obrazów",
     image: "obraz",
     images: "obrazy",
     tracker: "tracker",

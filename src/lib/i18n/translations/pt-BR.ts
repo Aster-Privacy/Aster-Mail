@@ -9731,6 +9731,7 @@ export const pt_br = {
     received_via_alias: "entregue no seu alias {{ address }}",
     new_reaction: "Nova reação",
     load_external_content: "Carregar conteúdo externo",
+    image_loading_settings: "Configurações de imagens",
     image: "imagem",
     images: "imagens",
     tracker: "rastreador",

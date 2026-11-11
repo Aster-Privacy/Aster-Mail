@@ -48,6 +48,27 @@ export function granted_content_types(
   return grants?.get(message_id) ?? NO_GRANTED_TYPES;
 }
 
+const IMAGE_GRANT_TYPES: ReadonlySet<string> = new Set([
+  "image",
+  "tracking_pixel",
+]);
+
+export function honored_content_types(
+  types: Set<string> | undefined,
+  image_grant_allowed: boolean,
+): Set<string> {
+  if (!types || types.size === 0) return NO_GRANTED_TYPES;
+  if (image_grant_allowed) return types;
+
+  const honored = new Set<string>();
+
+  for (const type of types) {
+    if (!IMAGE_GRANT_TYPES.has(type)) honored.add(type);
+  }
+
+  return honored.size === 0 ? NO_GRANTED_TYPES : honored;
+}
+
 export function has_remote_content_grant(
   grants: RemoteContentGrants | undefined,
   message_id: string,

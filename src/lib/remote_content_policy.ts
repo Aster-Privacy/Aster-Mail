@@ -60,6 +60,15 @@ export function blocks_remote_images(
   return effective_remote_image_mode(preferences) !== "always";
 }
 
+export function allows_remote_image_grant(
+  preferences: Pick<
+    RemoteContentPreferences,
+    "load_remote_images" | "block_remote_images" | "low_network_mode"
+  >,
+): boolean {
+  return effective_remote_image_mode(preferences) !== "never";
+}
+
 export function blocks_tracking_pixels(
   preferences: Pick<
     RemoteContentPreferences,

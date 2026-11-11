@@ -9772,6 +9772,7 @@ export const it = {
     received_via_alias: "consegnato al tuo alias {{ address }}",
     new_reaction: "Nuova reazione",
     load_external_content: "Carica contenuto esterno",
+    image_loading_settings: "Impostazioni immagini",
     image: "immagine",
     images: "immagini",
     tracker: "tracker",

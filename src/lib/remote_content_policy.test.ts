@@ -20,6 +20,8 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  allows_remote_image_grant,
+  blocks_tracking_pixels,
   displayed_remote_content_setting,
   effective_remote_image_mode,
   image_mode_update,
@@ -36,6 +38,64 @@ const BASE: RemoteContentPreferences = {
   block_tracking_pixels: true,
   low_network_mode: false,
 };
+
+describe("allows_remote_image_grant", () => {
+  it("refuses a per-message choice when images never load", () => {
+    expect(allows_remote_image_grant(BASE)).toBe(false);
+    expect(
+      allows_remote_image_grant({ ...BASE, load_remote_images: null }),
+    ).toBe(false);
+  });
+
+  it("offers a per-message choice when the setting asks first", () => {
+    expect(
+      allows_remote_image_grant({ ...BASE, load_remote_images: "ask" }),
+    ).toBe(true);
+  });
+
+  it("stays open when images always load", () => {
+    expect(
+      allows_remote_image_grant({ ...BASE, load_remote_images: "always" }),
+    ).toBe(true);
+    expect(
+      allows_remote_image_grant({ ...BASE, block_remote_images: false }),
+    ).toBe(true);
+  });
+
+  it("refuses a per-message choice in low network mode", () => {
+    expect(
+      allows_remote_image_grant({
+        ...BASE,
+        load_remote_images: "ask",
+        low_network_mode: true,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("blocks_tracking_pixels", () => {
+  it("blocks whenever images do not load on their own", () => {
+    expect(
+      blocks_tracking_pixels({
+        ...BASE,
+        block_external_content: false,
+        block_tracking_pixels: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("follows the pixel switch when images always load", () => {
+    const always = { ...BASE, load_remote_images: "always" as const };
+
+    expect(blocks_tracking_pixels(always)).toBe(true);
+    expect(
+      blocks_tracking_pixels({ ...always, block_tracking_pixels: false }),
+    ).toBe(false);
+    expect(
+      blocks_tracking_pixels({ ...always, block_external_content: false }),
+    ).toBe(false);
+  });
+});
 
 describe("effective_remote_image_mode", () => {
   it("keeps Never when tracking protection is off", () => {
