@@ -280,6 +280,39 @@ describe("thread list when the rest of the thread arrives", () => {
     expect(top_of(opened.id)).toBe(before);
   });
 
+  it("leaves the subject in view when a lone message opens", async () => {
+    const opened = message(0);
+
+    render_list([opened], opened.id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBe(0);
+  });
+
+  it("leaves the subject in view when the first message is the unread one", async () => {
+    const thread = Array.from({ length: 3 }, (_, i) => ({
+      ...message(i),
+      is_read: false,
+    }));
+
+    render_list(thread, thread[2].id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBe(0);
+  });
+
+  it("still brings a later unread message into view", async () => {
+    const thread = Array.from({ length: 3 }, (_, i) => ({
+      ...message(i),
+      is_read: i < 2,
+    }));
+
+    render_list(thread, thread[2].id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBeGreaterThan(0);
+  });
+
   it("holds one row per earlier message in a short thread", async () => {
     make_unscrollable();
     const thread = Array.from({ length: 3 }, (_, i) => message(i));

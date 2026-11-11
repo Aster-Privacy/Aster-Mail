@@ -893,13 +893,19 @@ export const ThreadMessagesList = forwardRef<
 
     requestAnimationFrame(() => {
       const el = first_unread_ref.current;
+      const list_root = list_root_ref.current;
 
       if (!el) return;
+
+      const el_top = el.getBoundingClientRect().top;
+
+      if (list_root && el_top - list_root.getBoundingClientRect().top < 1) {
+        return;
+      }
 
       const container = find_scroll_container(el);
 
       if (container) {
-        const el_top = el.getBoundingClientRect().top;
         const container_top = container.getBoundingClientRect().top;
 
         container.scrollTo({

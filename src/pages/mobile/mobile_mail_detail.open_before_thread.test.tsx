@@ -475,6 +475,28 @@ describe("mobile detail when the rest of the thread arrives", () => {
       HTMLElement.prototype.scrollIntoView = original_scroll;
     }
   });
+  it("leaves the subject in view when the unread message is the first one", async () => {
+    const scrolled: string[] = [];
+    const original_scroll = HTMLElement.prototype.scrollIntoView;
+
+    HTMLElement.prototype.scrollIntoView = function (this: HTMLElement) {
+      const row = this.querySelector("[data-row]");
+
+      if (row) scrolled.push(row.getAttribute("data-row")!);
+    };
+
+    try {
+      h.mark_as_read_delay = "3_seconds";
+      const opened = message(0, false);
+
+      show([opened], opened.id);
+      await flush();
+
+      expect(scrolled).toEqual([]);
+    } finally {
+      HTMLElement.prototype.scrollIntoView = original_scroll;
+    }
+  });
   it("keeps the opened message where it was when the thread request fails", async () => {
     const opened = message(THREAD_SIZE - 1);
 

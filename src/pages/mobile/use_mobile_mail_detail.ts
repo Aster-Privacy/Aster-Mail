@@ -601,8 +601,9 @@ export function use_mobile_mail_detail() {
     if (!first_unread_ref.current) return;
     has_scrolled.current = true;
     requestAnimationFrame(() => {
+      if (!first_unread_ref.current?.previousElementSibling) return;
       release_anchor_ref.current?.();
-      first_unread_ref.current?.scrollIntoView({
+      first_unread_ref.current.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
