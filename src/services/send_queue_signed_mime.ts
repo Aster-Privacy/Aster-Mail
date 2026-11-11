@@ -61,7 +61,8 @@ export type SigningSkipReason =
   | "vault_identity_key_unavailable"
   | "vault_passphrase_unavailable"
   | "published_key_mismatch_unhealed"
-  | "detached_signature_failed";
+  | "detached_signature_failed"
+  | "sender_has_no_signing_key";
 
 let last_signing_skip_reason: SigningSkipReason | undefined;
 
@@ -153,6 +154,14 @@ export async function build_signed_mime_payload(
 
   if (!has_external_recipient(all_recipients)) return undefined;
 
+  const primary_address = await resolve_primary_address();
+
+  if (!is_primary_sender(params.from, primary_address)) {
+    last_signing_skip_reason = "sender_has_no_signing_key";
+
+    return undefined;
+  }
+
   const vault = get_vault_from_memory();
   const passphrase = get_passphrase_from_memory();
 
@@ -192,10 +201,7 @@ export async function build_signed_mime_payload(
   const external_signing_key = await resolve_external_signing_key();
   let signed: Awaited<ReturnType<typeof sign_detached>> = null;
 
-  if (
-    external_signing_key &&
-    is_primary_sender(params.from, await resolve_primary_address())
-  ) {
+  if (external_signing_key) {
     signed = await sign_detached_with_keys(mime_bytes, [external_signing_key]);
   }
 

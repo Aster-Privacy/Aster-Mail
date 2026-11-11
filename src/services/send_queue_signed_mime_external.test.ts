@@ -23,7 +23,10 @@ import type { PrivateKey } from "openpgp";
 import * as openpgp from "openpgp";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { build_signed_mime_payload } from "./send_queue_signed_mime";
+import {
+  build_signed_mime_payload,
+  get_last_signing_skip_reason,
+} from "./send_queue_signed_mime";
 
 const PASSPHRASE = "external-signing-test";
 
@@ -183,30 +186,31 @@ describe("outbound signing key selection", () => {
     ).toBe(true);
   });
 
-  it("signs mail from another address with the internal key", async () => {
+  it("leaves mail from an alias unsigned and consults no account key", async () => {
     state.external_key = external_private;
 
     const payload = await send("Alias <alias@astermail.org>");
 
-    expect(payload).toBeDefined();
-    expect(state.select_calls).toBe(1);
-    expect(
-      await verifies_with(
-        internal_public,
-        payload!.signed_mime,
-        payload!.signed_mime_signature,
-      ),
-    ).toBe(true);
-    expect(
-      await verifies_with(
-        external_public,
-        payload!.signed_mime,
-        payload!.signed_mime_signature,
-      ),
-    ).toBe(false);
+    expect(payload).toBeUndefined();
+    expect(state.select_calls).toBe(0);
+    expect(get_last_signing_skip_reason()).toBe("sender_has_no_signing_key");
   });
 
-  it("signs with the internal key from an alias the imported key also names", async () => {
+  it("leaves mail from a custom domain address unsigned", async () => {
+    const payload = await send("me@hosted.example");
+
+    expect(payload).toBeUndefined();
+    expect(state.select_calls).toBe(0);
+  });
+
+  it("leaves mail from a private alias unsigned", async () => {
+    const payload = await send("quiet-harbor-41@aster.cx");
+
+    expect(payload).toBeUndefined();
+    expect(state.select_calls).toBe(0);
+  });
+
+  it("leaves alias mail unsigned even when the imported key names the alias", async () => {
     const both = await openpgp.generateKey({
       type: "ecc",
       curve: "ed25519Legacy",
@@ -221,30 +225,18 @@ describe("outbound signing key selection", () => {
 
     const payload = await send("alias@astermail.org");
 
-    expect(state.select_calls).toBe(1);
-    expect(
-      await verifies_with(
-        internal_public,
-        payload!.signed_mime,
-        payload!.signed_mime_signature,
-      ),
-    ).toBe(true);
+    expect(payload).toBeUndefined();
+    expect(state.select_calls).toBe(0);
   });
 
-  it("signs with the internal key when the primary address is unknown", async () => {
+  it("leaves mail unsigned when the primary address is unknown", async () => {
     state.external_key = external_private;
     state.primary_address = null;
 
     const payload = await send();
 
-    expect(state.select_calls).toBe(1);
-    expect(
-      await verifies_with(
-        internal_public,
-        payload!.signed_mime,
-        payload!.signed_mime_signature,
-      ),
-    ).toBe(true);
+    expect(payload).toBeUndefined();
+    expect(state.select_calls).toBe(0);
   });
 
   it("falls back to the internal key when the external key cannot sign", async () => {
