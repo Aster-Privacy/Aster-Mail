@@ -25,6 +25,17 @@ import { emit_drafts_changed } from "@/hooks/mail_events";
 const STORAGE_KEY = "astermail:queued_send_drafts";
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_ENTRIES = 50;
+const HIDE_WINDOW_MS = 10 * 60 * 1000;
+const RECHECK_DELAYS_MS = [5_000, 15_000, 30_000, 60_000, 300_000];
+
+type QueuedSendDraftsListener = () => void;
+
+const listeners = new Set<QueuedSendDraftsListener>();
+const delivered_draft_ids = new Set<string>();
+let recheck_enabled = false;
+let recheck_timer: ReturnType<typeof setTimeout> | null = null;
+let recheck_attempt = 0;
+let active_settle: Promise<void> | null = null;
 
 interface QueuedSendDraft {
   queue_id: string;
@@ -64,6 +75,86 @@ function write_entries(entries: QueuedSendDraft[]): void {
   } catch {
     return;
   }
+
+  listeners.forEach((listener) => {
+    try {
+      listener();
+    } catch {
+      return;
+    }
+  });
+}
+
+export function on_queued_send_drafts_changed(
+  listener: QueuedSendDraftsListener,
+): () => void {
+  listeners.add(listener);
+
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+export function queued_send_draft_ids(now: number = Date.now()): Set<string> {
+  return new Set([
+    ...delivered_draft_ids,
+    ...read_entries()
+      .filter((entry) => entry.at + HIDE_WINDOW_MS > now)
+      .map((entry) => entry.draft_id),
+  ]);
+}
+
+export function mark_queued_send_delivered(queue_id: string): void {
+  for (const entry of read_entries()) {
+    if (entry.queue_id === queue_id) delivered_draft_ids.add(entry.draft_id);
+  }
+}
+
+export function stop_queued_send_draft_recheck(): void {
+  recheck_enabled = false;
+  if (recheck_timer !== null) clearTimeout(recheck_timer);
+  recheck_timer = null;
+  recheck_attempt = 0;
+}
+
+function schedule_recheck(): void {
+  if (recheck_timer !== null) clearTimeout(recheck_timer);
+  recheck_timer = null;
+
+  if (!recheck_enabled || read_entries().length === 0) {
+    recheck_attempt = 0;
+
+    return;
+  }
+
+  const delay =
+    RECHECK_DELAYS_MS[Math.min(recheck_attempt, RECHECK_DELAYS_MS.length - 1)];
+
+  recheck_attempt += 1;
+  recheck_timer = setTimeout(() => {
+    recheck_timer = null;
+    void run_settle();
+  }, delay);
+}
+
+function run_settle(): Promise<void> {
+  if (active_settle) return active_settle;
+
+  active_settle = settle_entries()
+    .catch(() => undefined)
+    .then(() => {
+      active_settle = null;
+      schedule_recheck();
+    });
+
+  return active_settle;
+}
+
+export function settle_queued_send_drafts(): Promise<void> {
+  recheck_enabled = true;
+  recheck_attempt = 0;
+
+  return run_settle();
 }
 
 export function remember_queued_send_draft(
@@ -85,7 +176,7 @@ export function forget_queued_send_draft(queue_id: string): void {
   if (remaining.length !== entries.length) write_entries(remaining);
 }
 
-export async function settle_queued_send_drafts(): Promise<void> {
+async function settle_entries(): Promise<void> {
   const entries = read_entries();
 
   if (entries.length === 0) return;
@@ -109,6 +200,7 @@ export async function settle_queued_send_drafts(): Promise<void> {
       const deleted = await delete_draft(entry.draft_id).catch(() => undefined);
 
       if (deleted?.data || deleted?.code === "NOT_FOUND") {
+        delivered_draft_ids.add(entry.draft_id);
         settled.add(entry.queue_id);
         deleted_any = true;
       }
