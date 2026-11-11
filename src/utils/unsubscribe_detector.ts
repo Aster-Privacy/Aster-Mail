@@ -548,9 +548,15 @@ export function get_manual_unsubscribe_url(unsub_info: {
 
 export type UnsubscribeResult = "api" | "link" | "mailto";
 
+export interface UnsubscribeSender {
+  from_address: string;
+  from_address_hash?: string;
+}
+
 export interface ExecuteUnsubscribeOptions {
   retry_on_rate_limit?: boolean;
   signal?: AbortSignal;
+  sender?: UnsubscribeSender | null;
 }
 
 const RATE_LIMIT_MAX_RETRIES = 4;
@@ -639,9 +645,13 @@ export async function execute_unsubscribe(
     }
   }
 
-  if (unsub_info.unsubscribe_mailto) {
+  if (unsub_info.unsubscribe_mailto && options?.sender !== null) {
     const succeeded = await call_proxy(
-      { method: "mailto", mailto_address: unsub_info.unsubscribe_mailto },
+      {
+        method: "mailto",
+        mailto_address: unsub_info.unsubscribe_mailto,
+        ...(options?.sender ?? {}),
+      },
       options,
     );
 
