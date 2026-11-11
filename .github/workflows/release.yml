@@ -15,7 +15,35 @@ env:
   SIGNER_NATIVE_INTEGRITY: sha512-Ru4gwJKPG0ctVGchRGpRup4Y4lW2SSfFnrbQcyHhCliKy4g8Qz97TrUgCur4CbWyAgKxvGh3SjrkA0LDYzDGiw==
 
 jobs:
+  test:
+    name: Typecheck and test before release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npx vitest run --reporter=dot
+
   build:
+    needs: test
     timeout-minutes: 75
     permissions:
       contents: read
@@ -47,6 +75,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 20
+          package-manager-cache: false
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
@@ -183,13 +212,15 @@ jobs:
         if: matrix.leg == 'win' && vars.SIGNPATH_RELEASE_SIGNING == 'true'
         env:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+          APP_BINARY_NAME: ${{ steps.app_binary.outputs.name }}
+          APP_BINARY_PATH: ${{ steps.app_binary.outputs.path }}
         shell: pwsh
         run: |
-          $signed = "signed/app_binary/${{ steps.app_binary.outputs.name }}"
+          $signed = "signed/app_binary/$env:APP_BINARY_NAME"
           $sig = Get-AuthenticodeSignature $signed
           if ($sig.Status -ne 'Valid') { throw "app binary signature is $($sig.Status)" }
           Write-Host "app binary signer: $($sig.SignerCertificate.Subject)"
-          Copy-Item $signed "${{ steps.app_binary.outputs.path }}" -Force
+          Copy-Item $signed "$env:APP_BINARY_PATH" -Force
           Remove-Item src-tauri/target/release/bundle/nsis/*-setup.exe, src-tauri/target/release/bundle/msi/*.msi -Force
           bash -c 'set -euo pipefail; source scripts/use_msvc_toolchain.sh; TAURI_SIGNING_PRIVATE_KEY="$(cat "$RUNNER_TEMP/throwaway_updater.key")"; export TAURI_SIGNING_PRIVATE_KEY; npm run tauri -- bundle --bundles nsis,msi'
           if ($LASTEXITCODE -ne 0) { throw "rebundle failed" }
@@ -308,8 +339,8 @@ jobs:
           retention-days: 1
 
   sign:
-    needs: build
-    if: always()
+    needs: [test, build]
+    if: ${{ always() && needs.test.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions: {}
     steps:
@@ -548,8 +579,8 @@ jobs:
           gh release upload "$TAG" "$TMP/latest.json" "$TMP/latest_v2.json" --repo "$GITHUB_REPOSITORY" --clobber
 
   ensure_canonical_assets:
-    needs: [build, publish]
-    if: always()
+    needs: [test, build, publish]
+    if: ${{ always() && needs.test.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -624,8 +655,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   attest_provenance:
-    needs: build
-    if: always()
+    needs: [test, build]
+    if: ${{ always() && needs.test.result == 'success' }}
     runs-on: ubuntu-22.04
     continue-on-error: true
     permissions:
@@ -652,8 +683,8 @@ jobs:
           subject-path: "attest/*"
 
   promote_to_latest:
-    needs: [build, publish, ensure_canonical_assets]
-    if: always()
+    needs: [test, build, publish, ensure_canonical_assets]
+    if: ${{ always() && needs.test.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -717,6 +748,7 @@ jobs:
       - name: Promote to Latest only when every download asset is present
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           # The release is published as a prerelease while it builds, so
           # releases/latest keeps resolving to the last COMPLETE release and the
@@ -758,7 +790,7 @@ jobs:
           done
           echo "All required assets present. Promoting $TAG to Latest."
           gh release edit "$TAG" --draft=false --prerelease=false --latest
-          gh workflow run verify_release_assets.yml --repo "$GITHUB_REPOSITORY" --ref "${{ github.event.repository.default_branch }}" -f tag="$TAG"
+          gh workflow run verify_release_assets.yml --repo "$GITHUB_REPOSITORY" --ref "$DEFAULT_BRANCH" -f tag="$TAG"
 
   publish_winget:
     needs: [build, ensure_canonical_assets, promote_to_latest]
@@ -805,13 +837,14 @@ jobs:
       - name: Send the release event to the Flathub repo
         env:
           GH_TOKEN: ${{ secrets.FLATHUB_DISPATCH_TOKEN }}
+          RELEASE_READ_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FLATHUB_REPO: flathub/org.astermail.Mail
         run: |
           if [ -z "$GH_TOKEN" ]; then
             echo "FLATHUB_DISPATCH_TOKEN is not set; skipping the Flathub update event."
             exit 0
           fi
-          status=$(GH_TOKEN="${{ secrets.GITHUB_TOKEN }}" gh release view "${GITHUB_REF_NAME}" \
+          status=$(GH_TOKEN="$RELEASE_READ_TOKEN" gh release view "${GITHUB_REF_NAME}" \
             --repo "${GITHUB_REPOSITORY}" \
             --json isPrerelease,isDraft \
             --jq 'if (.isPrerelease or .isDraft) then "skip" else "send" end')
