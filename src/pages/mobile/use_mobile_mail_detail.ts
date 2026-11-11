@@ -44,6 +44,8 @@ import { build_received_from_address } from "@/components/email/build_reply_from
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { remove_email_from_view_cache } from "@/hooks/use_email_list";
 import { use_date_format } from "@/hooks/use_date_format";
+import { use_remote_content_grants } from "@/hooks/use_remote_content_grants";
+import { has_remote_content_grant } from "@/lib/remote_content_grants";
 import { use_should_reduce_motion } from "@/provider";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -120,10 +122,12 @@ export function use_mobile_mail_detail() {
   );
   const [view_source_message, set_view_source_message] =
     useState<DecryptedThreadMessage | null>(null);
-  const [external_content_report, set_external_content_report] =
-    useState<ExternalContentReport | null>(null);
-  const [external_content_loaded, set_external_content_loaded] =
-    useState(false);
+  const [external_content_reports, set_external_content_reports] = useState<{
+    email_id: string | null;
+    reports: ReadonlyMap<string, ExternalContentReport>;
+  }>({ email_id: null, reports: new Map() });
+  const { remote_content_grants, grant_remote_content } =
+    use_remote_content_grants(detail.email_id);
   const [lockdown_active, set_lockdown_active] = useState(() =>
     is_lockdown_enabled(account_id),
   );
@@ -219,7 +223,6 @@ export function use_mobile_mail_detail() {
     open_email_id_ref.current = detail.email_id;
     set_is_starred(null);
     set_is_pinned(null);
-    set_external_content_loaded(false);
     set_subject_expanded(false);
     set_show_block_confirm(false);
     set_block_target(null);
@@ -1117,10 +1120,48 @@ export function use_mobile_mail_detail() {
     [snooze_target_id, snooze_actions, navigate, t],
   );
 
-  const handle_load_external_content = useCallback(() => {
-    set_external_content_loaded(true);
-    set_external_content_report(null);
-  }, []);
+  const open_email_id = detail.email_id ?? null;
+
+  const record_external_content_report = useCallback(
+    (report: ExternalContentReport, message_id: string) => {
+      set_external_content_reports((prev) => {
+        const same_email = prev.email_id === open_email_id;
+
+        if (same_email && prev.reports.get(message_id) === report) return prev;
+
+        const reports = new Map(same_email ? prev.reports : []);
+
+        reports.set(message_id, report);
+
+        return { email_id: open_email_id, reports };
+      });
+    },
+    [open_email_id],
+  );
+
+  const handle_load_external_content = useCallback(
+    (message_id: string) => {
+      grant_remote_content(message_id, [
+        "image",
+        "font",
+        "css",
+        "tracking_pixel",
+      ]);
+    },
+    [grant_remote_content],
+  );
+
+  const pending_external_content_report = useCallback(
+    (message_id: string): ExternalContentReport | null => {
+      if (external_content_reports.email_id !== open_email_id) return null;
+      if (has_remote_content_grant(remote_content_grants, message_id)) {
+        return null;
+      }
+
+      return external_content_reports.reports.get(message_id) ?? null;
+    },
+    [external_content_reports, open_email_id, remote_content_grants],
+  );
 
   const handle_touch_start = useCallback((e: React.TouchEvent) => {
     if (e.touches.length !== 1) {
@@ -1274,9 +1315,9 @@ export function use_mobile_mail_detail() {
     set_menu_source,
     view_source_message,
     set_view_source_message,
-    external_content_report,
-    set_external_content_report,
-    external_content_loaded,
+    pending_external_content_report,
+    record_external_content_report,
+    remote_content_grants,
     lockdown_active,
     show_toolbar_customizer,
     set_show_toolbar_customizer,

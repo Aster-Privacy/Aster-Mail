@@ -9978,6 +9978,7 @@ export const ru = {
     link_text_optional: "Текст ссылки (необязательно)",
     links_cleaned: "Ссылки очищены",
     load_external_content: "Загрузить внешний контент",
+    image_loading_settings: "Настройки изображений",
     location_label: "Место:",
     message_details: "Детали сообщения",
     message_headers: "Заголовки сообщения",

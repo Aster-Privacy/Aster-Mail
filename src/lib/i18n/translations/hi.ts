@@ -9012,6 +9012,7 @@ export const hi = {
     subject_copied: "विषय कॉपी हो गया",
     load_all_thread_messages: "सभी संदेश लोड करें",
     load_external_content: "बाहरी सामग्री लोड करें",
+    image_loading_settings: "तस्वीर सेटिंग",
     image: "छवि",
     images: "छवियां",
     tracker: "ट्रैकर",

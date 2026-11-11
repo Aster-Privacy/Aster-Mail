@@ -9521,6 +9521,7 @@ export const ar = {
     received_via_alias: "تم التسليم إلى الاسم المستعار {{ address }}",
     new_reaction: "تفاعل جديد",
     load_external_content: "تحميل المحتوى الخارجي",
+    image_loading_settings: "إعدادات الصور",
     images: "صور",
     tracker: "متتبع",
     trackers: "متتبعات",

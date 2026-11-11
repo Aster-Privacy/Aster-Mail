@@ -8030,6 +8030,7 @@ export interface MailTranslations {
   subject_copied: string;
   load_all_thread_messages: string;
   load_external_content: string;
+  image_loading_settings: string;
   image: string;
   images: string;
   tracker: string;
