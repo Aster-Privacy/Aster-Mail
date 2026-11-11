@@ -9891,6 +9891,9 @@ export const es = {
       "Este correo se recibió en {{ received }}, pero tu respuesta se enviará desde {{ selected }}. Responder desde otra dirección puede revelarla al remitente y la respuesta podría ser rechazada.",
     reply_from_mismatch_use_received: "Usar dirección de recepción",
     reply_from_mismatch_send_anyway: "Enviar de todos modos",
+    reply_from_unknown_title: "Comprueba la dirección del remitente",
+    reply_from_unknown_message:
+      "Aster no puede determinar cuál de tus direcciones recibió este correo. Tu respuesta se enviará desde {{ selected }}. Para enviar desde otra dirección, cancela y elígela primero.",
     search_date_within: "Dentro de",
     search_does_not_have: "No contiene",
     search_from_placeholder: "nombre@ejemplo.com",

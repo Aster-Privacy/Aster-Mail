@@ -7899,6 +7899,8 @@ export interface MailTranslations {
   reply_from_mismatch_message: string;
   reply_from_mismatch_use_received: string;
   reply_from_mismatch_send_anyway: string;
+  reply_from_unknown_title: string;
+  reply_from_unknown_message: string;
   forward_subject_prefix: string;
   reply_quote_header: string;
   to: string;

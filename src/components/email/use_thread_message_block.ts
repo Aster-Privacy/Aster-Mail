@@ -89,6 +89,7 @@ import {
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
 import { resolve_received_on_address } from "@/utils/delivered_to";
+import { resolve_delivery_reply_address } from "@/components/email/delivery_reply_address";
 import {
   normalize_alias_candidates,
   use_alias_delivery,
@@ -347,8 +348,16 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       received_on_address,
     ],
   );
-  const alias_delivery = use_alias_delivery(undefined, alias_candidates_key);
-  const delivered_to_address = received_on_address ?? alias_delivery?.address;
+  const alias_delivery = use_alias_delivery(
+    message.item_type === "received" ? message.routing_token : undefined,
+    alias_candidates_key,
+  );
+  const delivered_to_address =
+    (message.item_type === "received"
+      ? resolve_delivery_reply_address(message.routing_token)
+      : undefined) ??
+    received_on_address ??
+    alias_delivery?.address;
   const has_plaintext_body =
     !password_protected &&
     !!message.body &&

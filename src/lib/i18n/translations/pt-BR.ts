@@ -9732,6 +9732,9 @@ export const pt_br = {
       "Este e-mail foi recebido em {{ received }}, mas sua resposta será enviada de {{ selected }}. Responder de outro endereço pode revelá-lo ao remetente e a resposta pode ser rejeitada.",
     reply_from_mismatch_use_received: "Usar endereço de recebimento",
     reply_from_mismatch_send_anyway: "Enviar mesmo assim",
+    reply_from_unknown_title: "Verifique o endereço do remetente",
+    reply_from_unknown_message:
+      "O Aster não consegue determinar qual dos seus endereços recebeu este e-mail. Sua resposta será enviada de {{ selected }}. Para enviar de outro endereço, cancele e escolha-o primeiro.",
     forward_subject_prefix: "Enc:",
     reply_quote_header: "Em {{ date }}, {{ name }} escreveu:",
     download_file_named: "Baixar {{ filename }}",

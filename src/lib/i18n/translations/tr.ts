@@ -9612,6 +9612,9 @@ export const tr = {
       "Bu e-posta {{ received }} adresinde alındı, ancak yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten yanıtlamak bu adresi gönderene açığa çıkarabilir ve yanıt reddedilebilir.",
     reply_from_mismatch_use_received: "Alınan adresi kullan",
     reply_from_mismatch_send_anyway: "Yine de gönder",
+    reply_from_unknown_title: "Gönderen adresini kontrol edin",
+    reply_from_unknown_message:
+      "Aster bu e-postanın hangi adresinize geldiğini belirleyemiyor. Yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten göndermek için iptal edin ve önce o adresi seçin.",
     forward_subject_prefix: "İlt:",
     reply_quote_header: "{{ date }} tarihinde {{ name }} yazdı:",
     download_file_named: "{{ filename }} dosyasını indir",

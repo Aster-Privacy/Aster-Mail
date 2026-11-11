@@ -100,6 +100,7 @@ function render_banner() {
       <UnsubscribeBanner
         sender_email="news@example.com"
         sender_name="News"
+        delivery={{ routing_token: "token-alias" }}
         unsubscribe_info={
           {
             has_unsubscribe: true,

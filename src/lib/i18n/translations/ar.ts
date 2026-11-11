@@ -9518,6 +9518,9 @@ export const ar = {
       "تم استلام هذا البريد على {{ received }}، لكن ردك سيُرسل من {{ selected }}. الرد من عنوان مختلف قد يكشفه للمرسل وقد يُرفض الرد.",
     reply_from_mismatch_use_received: "استخدام عنوان الاستلام",
     reply_from_mismatch_send_anyway: "الإرسال على أي حال",
+    reply_from_unknown_title: "تحقق من عنوان المرسل",
+    reply_from_unknown_message:
+      "لا يستطيع Aster تحديد أي من عناوينك استلم هذه الرسالة. سيُرسل ردك من {{ selected }}. للإرسال من عنوان آخر، ألغِ ثم اختره أولًا.",
     forward_subject_prefix: "تحويل:",
     reply_quote_header: "بتاريخ {{ date }}، كتب {{ name }}:",
     download_file_named: "تنزيل {{ filename }}",

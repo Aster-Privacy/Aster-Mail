@@ -8624,6 +8624,9 @@ export const zh_CN = {
       "这封邮件是在 {{ received }} 收到的，但您的回复将从 {{ selected }} 发送。使用其他地址回复可能会向发件人泄露该地址，回复也可能被拒收。",
     reply_from_mismatch_use_received: "使用接收地址",
     reply_from_mismatch_send_anyway: "仍然发送",
+    reply_from_unknown_title: "请检查发件地址",
+    reply_from_unknown_message:
+      "Aster 无法确定是您的哪个地址收到了这封邮件。回复将从 {{ selected }} 发送。要从其他地址发送，请取消并先选择该地址。",
     forward_subject_prefix: "转发：",
     reply_quote_header: "{{ name }} 于 {{ date }} 写道：",
     all_on_page_selected: "此页所有 {{ count }} 个对话已选中。",

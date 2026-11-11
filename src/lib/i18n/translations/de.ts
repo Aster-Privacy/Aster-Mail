@@ -9979,6 +9979,9 @@ export const de = {
       "Diese E-Mail wurde an {{ received }} empfangen, Ihre Antwort wird aber von {{ selected }} gesendet. Eine Antwort von einer anderen Adresse kann diese dem Absender offenlegen, und die Antwort kann abgelehnt werden.",
     reply_from_mismatch_use_received: "Empfangsadresse verwenden",
     reply_from_mismatch_send_anyway: "Trotzdem senden",
+    reply_from_unknown_title: "Absenderadresse prüfen",
+    reply_from_unknown_message:
+      "Aster kann nicht feststellen, welche Ihrer Adressen diese E-Mail empfangen hat. Ihre Antwort wird von {{ selected }} gesendet. Um von einer anderen Adresse zu senden, brechen Sie ab und wählen Sie sie zuerst aus.",
     search_date_within: "Datum innerhalb",
     search_does_not_have: "Hat nicht",
     search_from_placeholder: "name@beispiel.com",

@@ -107,6 +107,21 @@ export function is_reply_from_mismatch(
   return selected !== received;
 }
 
+export interface ReplyFromUndeterminedInput {
+  received_on_address: string | undefined;
+  selectable_sender_count: number;
+  sender_chosen: boolean;
+}
+
+export function is_reply_from_undetermined(
+  input: ReplyFromUndeterminedInput,
+): boolean {
+  if (input.sender_chosen) return false;
+  if (input.received_on_address?.trim()) return false;
+
+  return input.selectable_sender_count > 1;
+}
+
 export function collect_recipient_emails(
   to_emails?: string[],
   cc_emails?: string[],

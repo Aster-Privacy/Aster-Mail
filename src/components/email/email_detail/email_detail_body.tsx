@@ -38,6 +38,7 @@ import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_s
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
+import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
 import { CalendarInviteCard } from "@/components/email/banners/calendar_invite_card";
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
@@ -222,6 +223,7 @@ export function EmailDetailBody({
             !is_system_email(email) && (
               <div className="mb-4 sm:mb-6">
                 <UnsubscribeBanner
+                  delivery={build_unsubscribe_delivery(mail_item, email)}
                   sender_email={email.sender_email}
                   sender_name={email.sender}
                   unsubscribe_info={email.unsubscribe_info}

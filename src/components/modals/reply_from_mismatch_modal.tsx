@@ -98,13 +98,17 @@ export function ReplyFromMismatchModal({
         <div className="px-6 pt-6 pb-5">
           <AlertDialogHeader className="space-y-2">
             <AlertDialogTitle className="text-[16px] font-semibold">
-              {t("mail.reply_from_mismatch_title")}
+              {received
+                ? t("mail.reply_from_mismatch_title")
+                : t("mail.reply_from_unknown_title")}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[14px] leading-normal break-words">
-              {t("mail.reply_from_mismatch_message", {
-                received,
-                selected,
-              })}
+              {received
+                ? t("mail.reply_from_mismatch_message", {
+                    received,
+                    selected,
+                  })
+                : t("mail.reply_from_unknown_message", { selected })}
             </AlertDialogDescription>
           </AlertDialogHeader>
         </div>

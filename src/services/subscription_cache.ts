@@ -40,6 +40,7 @@ export interface CachedSubscription {
   unsubscribe_link?: string;
   list_unsubscribe_header?: string;
   list_unsubscribe_post?: string;
+  routing_token?: string;
   has_one_click: boolean;
   category: SubscriptionCacheCategory;
   status: "active" | "unsubscribed";
@@ -139,6 +140,13 @@ function trim_subscription_fields(
     is_oversized(trimmed.list_unsubscribe_post)
   ) {
     delete trimmed.list_unsubscribe_post;
+  }
+
+  if (
+    trimmed.routing_token !== undefined &&
+    is_oversized(trimmed.routing_token)
+  ) {
+    delete trimmed.routing_token;
   }
 
   return trimmed;

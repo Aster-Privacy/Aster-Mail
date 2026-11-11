@@ -562,6 +562,7 @@ export function EmailViewerContent({
       />
       {unsubscribe_info.has_unsubscribe && !is_system && (
         <UnsubscribeBanner
+          delivery={{}}
           sender_email={email.sender.email}
           sender_name={email.sender.name}
           unsubscribe_info={unsubscribe_info}

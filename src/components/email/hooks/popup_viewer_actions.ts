@@ -33,6 +33,8 @@ import { is_system_email, is_astermail_sender } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
 import { build_reply_from_address } from "@/components/email/build_reply_from_address";
+import { resolve_delivery_reply_address } from "@/components/email/delivery_reply_address";
+import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -585,6 +587,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           raw_headers: deps.email.raw_headers,
           to_emails,
           cc_emails,
+          received_on_alias: resolve_delivery_reply_address(
+            deps.mail_item?.routing_token,
+          ),
         },
         is_own_message,
       );
@@ -712,7 +717,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       if (!unsubscribe_info) return;
 
       try {
-        const result = await execute_unsubscribe(unsubscribe_info as never);
+        const result = await execute_unsubscribe(
+          unsubscribe_info as never,
+          build_unsubscribe_delivery(deps.mail_item, deps.email),
+        );
 
         if (result === "api") {
           show_action_toast({
@@ -768,7 +776,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         });
       }
     },
-    [deps.t, deps.email],
+    [deps.t, deps.email, deps.mail_item],
   );
 
   const build_popup_reply_data = useCallback(
@@ -799,6 +807,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           raw_headers: msg.raw_headers,
           to_emails,
           cc_emails,
+          received_on_alias: resolve_delivery_reply_address(
+            msg.routing_token ?? deps.mail_item?.routing_token,
+          ),
         },
         is_own_message,
       );

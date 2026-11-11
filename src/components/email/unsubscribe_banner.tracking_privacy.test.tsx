@@ -97,6 +97,7 @@ function render_banner(html: string, list_unsubscribe?: string) {
       <UnsubscribeBanner
         sender_email="news@sender.example"
         sender_name="News"
+        delivery={{}}
         unsubscribe_info={info}
       />,
     );

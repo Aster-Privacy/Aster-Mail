@@ -10002,6 +10002,9 @@ export const fr = {
       "Cet e-mail a été reçu sur {{ received }}, mais votre réponse sera envoyée depuis {{ selected }}. Répondre depuis une autre adresse peut la révéler à l'expéditeur et la réponse peut être rejetée.",
     reply_from_mismatch_use_received: "Utiliser l'adresse de réception",
     reply_from_mismatch_send_anyway: "Envoyer quand même",
+    reply_from_unknown_title: "Vérifiez l'adresse d'expédition",
+    reply_from_unknown_message:
+      "Aster ne peut pas déterminer laquelle de vos adresses a reçu cet e-mail. Votre réponse sera envoyée depuis {{ selected }}. Pour envoyer depuis une autre adresse, annulez et choisissez-la d'abord.",
     search_date_within: "Dans les",
     search_does_not_have: "Ne contient pas",
     search_from_placeholder: "nom@exemple.com",

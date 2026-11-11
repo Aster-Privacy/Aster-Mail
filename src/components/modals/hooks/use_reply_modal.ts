@@ -49,6 +49,7 @@ import {
 import { use_signatures } from "@/contexts/signatures_context";
 import {
   is_reply_from_mismatch,
+  is_reply_from_undetermined,
   resolve_own_recipient_address,
 } from "@/components/email/build_reply_from_address";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
@@ -201,6 +202,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     send_after_sender_switch,
     set_send_after_sender_switch,
     from_mismatch_ack_ref,
+    sender_manually_selected_ref,
     pending_send_kind_ref,
     handle_send_ref,
     handle_scheduled_send_ref,
@@ -308,8 +310,24 @@ export function use_reply_modal(props: UseReplyModalProps) {
   const reply_from_mismatch = useCallback((): boolean => {
     if (from_mismatch_ack_ref.current) return false;
 
-    return is_reply_from_mismatch(received_on_address, selected_sender?.email);
-  }, [received_on_address, selected_sender]);
+    if (ghost_mode.is_ghost_enabled) return false;
+
+    return (
+      is_reply_from_mismatch(received_on_address, selected_sender?.email) ||
+      is_reply_from_undetermined({
+        received_on_address,
+        selectable_sender_count: sender_options.filter((s) => s.is_enabled)
+          .length,
+        sender_chosen: sender_manually_selected_ref.current,
+      })
+    );
+  }, [
+    received_on_address,
+    selected_sender,
+    sender_options,
+    ghost_mode.is_ghost_enabled,
+    sender_manually_selected_ref,
+  ]);
 
   const discard_sent_draft = useCallback(
     async (sent_thread_token?: string) => {

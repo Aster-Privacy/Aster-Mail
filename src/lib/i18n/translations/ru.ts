@@ -10069,6 +10069,9 @@ export const ru = {
       "Это письмо получено на {{ received }}, но ответ будет отправлен с {{ selected }}. Ответ с другого адреса может раскрыть его отправителю и быть отклонён.",
     reply_from_mismatch_use_received: "Использовать адрес получения",
     reply_from_mismatch_send_anyway: "Всё равно отправить",
+    reply_from_unknown_title: "Проверьте адрес отправителя",
+    reply_from_unknown_message:
+      "Aster не может определить, на какой из ваших адресов пришло это письмо. Ответ будет отправлен с адреса {{ selected }}. Чтобы отправить с другого адреса, нажмите «Отмена» и сначала выберите его.",
     search_date_within: "Дата в пределах",
     search_does_not_have: "Не содержит",
     search_from_placeholder: "имя@пример.com",

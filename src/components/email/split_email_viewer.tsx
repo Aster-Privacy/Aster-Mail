@@ -61,6 +61,7 @@ import {
   execute_unsubscribe,
   get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
+import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
   persist_unsubscribe,
@@ -339,7 +340,10 @@ export function SplitEmailViewer({
     const info = email.unsubscribe_info;
 
     try {
-      const result = await execute_unsubscribe(info);
+      const result = await execute_unsubscribe(
+        info,
+        build_unsubscribe_delivery(viewer.mail_item, email),
+      );
 
       if (result === "api") {
         show_action_toast({
@@ -390,7 +394,7 @@ export function SplitEmailViewer({
 
       return "manual";
     }
-  }, [viewer.email, t, mark_unsubscribed]);
+  }, [viewer.email, viewer.mail_item, t, mark_unsubscribed]);
 
   const external_content_mode =
     external_content_state.mode === "loaded" ? "always" : undefined;

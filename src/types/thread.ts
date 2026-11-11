@@ -68,6 +68,7 @@ export interface DecryptedThreadMessage {
   cc_recipients?: { name: string; email: string }[];
   bcc_recipients?: { name: string; email: string }[];
   raw_headers?: { name: string; value: string }[];
+  routing_token?: string;
   spf_result?: string;
   dkim_result?: string;
   dmarc_result?: string;

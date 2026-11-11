@@ -9487,6 +9487,9 @@ export const ja = {
       "このメールは {{ received }} で受信しましたが、返信は {{ selected }} から送信されます。別のアドレスから返信すると、そのアドレスが送信者に知られたり、返信が拒否されたりする可能性があります。",
     reply_from_mismatch_use_received: "受信アドレスを使用",
     reply_from_mismatch_send_anyway: "そのまま送信",
+    reply_from_unknown_title: "差出人アドレスを確認してください",
+    reply_from_unknown_message:
+      "このメールをどのアドレスで受信したかを Aster は特定できません。返信は {{ selected }} から送信されます。別のアドレスから送信するには、キャンセルして先にアドレスを選択してください。",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "{{ date }}、{{ name }} は次のように書きました：",
     download_file_named: "{{ filename }} をダウンロード",

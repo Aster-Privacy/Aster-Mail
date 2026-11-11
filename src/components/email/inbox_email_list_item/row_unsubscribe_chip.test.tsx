@@ -29,9 +29,9 @@ const h = vi.hoisted(() => ({
     undo_send_period: "0 seconds",
   },
   show_action_toast: vi.fn(),
-  execute_unsubscribe: vi.fn<(info: unknown) => Promise<string>>(
-    async () => "api",
-  ),
+  execute_unsubscribe: vi.fn<
+    (info: unknown, delivery: unknown) => Promise<string>
+  >(async () => "api"),
   persist_unsubscribe: vi.fn(),
   unsubscribed_senders: new Set<string>(),
 }));
@@ -170,6 +170,43 @@ describe("RowUnsubscribeChip", () => {
     h.unsubscribed_senders.add("news@example.com");
     render_chip(ONE_CLICK);
     expect(chip()).toBeNull();
+  });
+
+  it("passes the address the message was delivered to", async () => {
+    render_chip({
+      ...ONE_CLICK,
+      item_type: "received",
+      routing_token: "token-alias",
+      recipient_addresses: ["shop@astermail.org"],
+    });
+
+    await act(async () => {
+      chip()!.click();
+      await vi.runAllTimersAsync();
+    });
+
+    expect(h.execute_unsubscribe.mock.calls[0][1]).toEqual({
+      routing_token: "token-alias",
+      recipients: ["shop@astermail.org"],
+    });
+  });
+
+  it("ignores the delivery address of a message that was not received", async () => {
+    render_chip({
+      ...ONE_CLICK,
+      item_type: "sent",
+      routing_token: "token-alias",
+    });
+
+    await act(async () => {
+      chip()!.click();
+      await vi.runAllTimersAsync();
+    });
+
+    expect(h.execute_unsubscribe.mock.calls[0][1]).toEqual({
+      routing_token: undefined,
+      recipients: undefined,
+    });
   });
 
   it("unsubscribes, records the sender, and does not open the message", async () => {

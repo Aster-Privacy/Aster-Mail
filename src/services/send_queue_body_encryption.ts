@@ -211,6 +211,20 @@ async function resolve_ratchet_sender(sender_email: string): Promise<string> {
   return sender_email;
 }
 
+export async function sender_uses_account_key(
+  sender_email: string | undefined,
+): Promise<boolean> {
+  if (!sender_email) return true;
+
+  const { get_current_account } = await import("@/services/account_manager");
+  const account = await get_current_account().catch(() => null);
+  const primary_email = account?.user?.email;
+
+  if (!primary_email) return false;
+
+  return same_address_ignoring_dots(primary_email, sender_email);
+}
+
 export async function encrypt_for_recipients(
   body: string,
   recipients: string[],
@@ -386,8 +400,9 @@ export async function encrypt_for_recipients(
 
   try {
     const passphrase = get_passphrase_from_memory();
+    const signs_with_account_key = await sender_uses_account_key(sender_email);
     const signing_key =
-      vault?.identity_key && passphrase
+      signs_with_account_key && vault?.identity_key && passphrase
         ? [vault.identity_key, ...(vault.previous_keys ?? [])].map(
             (armored_secret_key) => ({ armored_secret_key, passphrase }),
           )

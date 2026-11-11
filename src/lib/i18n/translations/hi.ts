@@ -8871,6 +8871,9 @@ export const hi = {
       "यह ईमेल {{ received }} पर मिला था, लेकिन आपका जवाब {{ selected }} से भेजने के लिए तय है। किसी दूसरे पते से जवाब देने पर वह पता प्रेषक को दिख सकता है, और जवाब अस्वीकार भी हो सकता है।",
     reply_from_mismatch_use_received: "जिस पते पर मिला वही इस्तेमाल करें",
     reply_from_mismatch_send_anyway: "फिर भी भेजें",
+    reply_from_unknown_title: "भेजने वाले का पता जांचें",
+    reply_from_unknown_message:
+      "Aster यह तय नहीं कर सकता कि आपके किस पते पर यह ईमेल मिला था। आपका जवाब {{ selected }} से भेजा जाएगा। किसी दूसरे पते से भेजने के लिए, रद्द करें और पहले उसे चुनें।",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "{{ date }} को, {{ name }} ने लिखा:",
     to: "प्रति",

@@ -9702,6 +9702,9 @@ export const nl = {
       "Deze e-mail is ontvangen op {{ received }}, maar je antwoord wordt verzonden vanaf {{ selected }}. Antwoorden vanaf een ander adres kan dit adres onthullen aan de afzender en het antwoord kan worden geweigerd.",
     reply_from_mismatch_use_received: "Ontvangstadres gebruiken",
     reply_from_mismatch_send_anyway: "Toch verzenden",
+    reply_from_unknown_title: "Controleer het afzenderadres",
+    reply_from_unknown_message:
+      "Aster kan niet bepalen welk van je adressen deze e-mail heeft ontvangen. Je antwoord wordt verzonden vanaf {{ selected }}. Annuleer en kies eerst een ander adres als je vanaf een ander adres wilt verzenden.",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "Op {{ date }} schreef {{ name }}:",
     download_file_named: "{{ filename }} downloaden",

@@ -9773,6 +9773,9 @@ export const it = {
       "Questa email è stata ricevuta su {{ received }}, ma la risposta verrà inviata da {{ selected }}. Rispondere da un altro indirizzo può rivelarlo al mittente e la risposta potrebbe essere rifiutata.",
     reply_from_mismatch_use_received: "Usa l'indirizzo di ricezione",
     reply_from_mismatch_send_anyway: "Invia comunque",
+    reply_from_unknown_title: "Controlla l'indirizzo del mittente",
+    reply_from_unknown_message:
+      "Aster non riesce a stabilire quale dei tuoi indirizzi ha ricevuto questa email. La risposta verrà inviata da {{ selected }}. Per inviare da un altro indirizzo, annulla e sceglilo prima.",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "Il {{ date }}, {{ name }} ha scritto:",
     download_file_named: "Scarica {{ filename }}",

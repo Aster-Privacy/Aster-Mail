@@ -50,6 +50,9 @@ vi.mock("@/services/api/domains", () => ({
   compute_address_hash: vi.fn(
     async (local: string, domain: string) => `A:${local}@${domain}`,
   ),
+  compute_address_routing_hash: vi.fn(
+    async (local: string, domain: string) => `R:${local}@${domain}`,
+  ),
 }));
 
 vi.mock("@/services/account_manager", () => ({
