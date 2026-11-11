@@ -4316,7 +4316,7 @@ export const zh_CN = {
     "connection.tor_snowflake_description": "使用 Snowflake 桥接以抵抗审查",
     "connection.cdn_relay": "CDN 中继",
     "connection.cdn_relay_description":
-      "请求在到达 Aster 之前会经过全球 CDN 路由。您的 IP 地址对 Aster 保持隐藏，流量也会与常规 CDN 流量混在一起。",
+      "请求在到达 Aster 之前会经过全球 CDN 路由，因此在您的网络上，流量会与常规 CDN 流量混在一起。Aster 仍会收到您的 IP 地址，并将其用于保护登录和限制滥用。",
     "connection.status_connected": "已连接",
     "connection.status_connecting": "连接中...",
     "connection.status_error": "连接已断开，我们正在自动重试。",
@@ -8617,6 +8617,9 @@ export const zh_CN = {
       "这封邮件是在 {{ received }} 收到的，但您的回复将从 {{ selected }} 发送。使用其他地址回复可能会向发件人泄露该地址，回复也可能被拒收。",
     reply_from_mismatch_use_received: "使用接收地址",
     reply_from_mismatch_send_anyway: "仍然发送",
+    reply_from_unknown_title: "请检查发件地址",
+    reply_from_unknown_message:
+      "Aster 无法确定是您的哪个地址收到了这封邮件。回复将从 {{ selected }} 发送。要从其他地址发送，请取消并先选择该地址。",
     forward_subject_prefix: "转发：",
     reply_quote_header: "{{ name }} 于 {{ date }} 写道：",
     all_on_page_selected: "此页所有 {{ count }} 个对话已选中。",

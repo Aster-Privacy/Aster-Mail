@@ -4852,7 +4852,7 @@ export const ar = {
       "استخدام جسور Snowflake لمقاومة الرقابة",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "تمرّ الطلبات عبر شبكة CDN عالمية قبل وصولها إلى Aster. يبقى عنوان IP الخاص بك مخفيًا عن Aster، ولا تتميز حركة مرورك عن حركة CDN العادية.",
+      "تمرّ الطلبات عبر شبكة CDN عالمية قبل وصولها إلى Aster، فلا تتميز حركة مرورك على شبكتك عن حركة CDN العادية. يظل Aster يستلم عنوان IP الخاص بك ويستخدمه لحماية تسجيل الدخول والحد من إساءة الاستخدام.",
     "connection.status_connected": "متصل",
     "connection.status_connecting": "جارٍ الاتصال...",
     "connection.status_error":
@@ -9508,6 +9508,9 @@ export const ar = {
       "تم استلام هذا البريد على {{ received }}، لكن ردك سيُرسل من {{ selected }}. الرد من عنوان مختلف قد يكشفه للمرسل وقد يُرفض الرد.",
     reply_from_mismatch_use_received: "استخدام عنوان الاستلام",
     reply_from_mismatch_send_anyway: "الإرسال على أي حال",
+    reply_from_unknown_title: "تحقق من عنوان المرسل",
+    reply_from_unknown_message:
+      "لا يستطيع Aster تحديد أي من عناوينك استلم هذه الرسالة. سيُرسل ردك من {{ selected }}. للإرسال من عنوان آخر، ألغِ ثم اختره أولًا.",
     forward_subject_prefix: "تحويل:",
     reply_quote_header: "بتاريخ {{ date }}، كتب {{ name }}:",
     download_file_named: "تنزيل {{ filename }}",

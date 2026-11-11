@@ -6087,7 +6087,7 @@ export const it = {
       "Usa i bridge Snowflake per la resistenza alla censura",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Le richieste passano attraverso una CDN globale prima di raggiungere Aster. Il tuo indirizzo IP resta nascosto ad Aster e il traffico si confonde con il normale traffico CDN.",
+      "Le richieste passano attraverso una CDN globale prima di raggiungere Aster, quindi il tuo traffico si confonde con il normale traffico CDN sulla tua rete. Aster riceve comunque il tuo indirizzo IP e lo usa per proteggere l'accesso e limitare gli abusi.",
     "connection.status_connected": "Connesso",
     "connection.status_connecting": "Connessione...",
     "connection.status_error":
@@ -9764,6 +9764,9 @@ export const it = {
       "Questa email è stata ricevuta su {{ received }}, ma la risposta verrà inviata da {{ selected }}. Rispondere da un altro indirizzo può rivelarlo al mittente e la risposta potrebbe essere rifiutata.",
     reply_from_mismatch_use_received: "Usa l'indirizzo di ricezione",
     reply_from_mismatch_send_anyway: "Invia comunque",
+    reply_from_unknown_title: "Controlla l'indirizzo del mittente",
+    reply_from_unknown_message:
+      "Aster non riesce a stabilire quale dei tuoi indirizzi ha ricevuto questa email. La risposta verrà inviata da {{ selected }}. Per inviare da un altro indirizzo, annulla e sceglilo prima.",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "Il {{ date }}, {{ name }} ha scritto:",
     download_file_named: "Scarica {{ filename }}",

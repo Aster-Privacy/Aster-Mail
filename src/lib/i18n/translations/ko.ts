@@ -4736,7 +4736,7 @@ export const ko = {
       "검열 저항을 위해 Snowflake 브리지를 사용합니다",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "요청이 Aster에 도달하기 전에 글로벌 CDN을 거칩니다. IP 주소가 Aster에 노출되지 않으며, 트래픽이 일반 CDN 트래픽과 구분되지 않습니다.",
+      "요청이 Aster에 도달하기 전에 글로벌 CDN을 거치므로, 네트워크에서 트래픽이 일반 CDN 트래픽과 구분되지 않습니다. Aster는 여전히 IP 주소를 수신하며 로그인 보호와 악용 제한에 사용합니다.",
     "connection.status_connected": "연결됨",
     "connection.status_connecting": "연결 중...",
     "connection.status_error":
@@ -9317,6 +9317,9 @@ export const ko = {
       "이 이메일은 {{ received }}에서 수신했지만 답장은 {{ selected }}에서 전송됩니다. 다른 주소로 답장하면 해당 주소가 발신자에게 노출되거나 답장이 거부될 수 있습니다.",
     reply_from_mismatch_use_received: "수신 주소 사용",
     reply_from_mismatch_send_anyway: "그대로 보내기",
+    reply_from_unknown_title: "보내는 주소를 확인하세요",
+    reply_from_unknown_message:
+      "Aster가 이 이메일을 받은 주소를 확인할 수 없습니다. 답장은 {{ selected }}에서 전송됩니다. 다른 주소에서 보내려면 취소한 다음 먼저 주소를 선택하세요.",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "{{date}}, {{name}} 작성:",
     download_file_named: "{{filename}} 다운로드",

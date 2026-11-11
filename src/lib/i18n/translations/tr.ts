@@ -4695,7 +4695,7 @@ export const tr = {
       "Sansür direnci için Snowflake köprülerini kullan",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "İstekler Aster'e ulaşmadan önce küresel bir CDN üzerinden yönlendirilir. IP adresiniz Aster'den gizli kalır ve trafiğiniz sıradan CDN trafiğinden ayırt edilemez.",
+      "İstekler Aster'e ulaşmadan önce küresel bir CDN üzerinden yönlendirilir, böylece trafiğiniz ağınızda sıradan CDN trafiğinden ayırt edilemez. Aster IP adresinizi yine de alır ve oturum açmayı korumak ve kötüye kullanımı sınırlamak için kullanır.",
     "connection.status_connected": "Bağlı",
     "connection.status_connecting": "Bağlanıyor...",
     "connection.status_error":
@@ -9603,6 +9603,9 @@ export const tr = {
       "Bu e-posta {{ received }} adresinde alındı, ancak yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten yanıtlamak bu adresi gönderene açığa çıkarabilir ve yanıt reddedilebilir.",
     reply_from_mismatch_use_received: "Alınan adresi kullan",
     reply_from_mismatch_send_anyway: "Yine de gönder",
+    reply_from_unknown_title: "Gönderen adresini kontrol edin",
+    reply_from_unknown_message:
+      "Aster bu e-postanın hangi adresinize geldiğini belirleyemiyor. Yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten göndermek için iptal edin ve önce o adresi seçin.",
     forward_subject_prefix: "İlt:",
     reply_quote_header: "{{ date }} tarihinde {{ name }} yazdı:",
     download_file_named: "{{ filename }} dosyasını indir",

@@ -4929,7 +4929,7 @@ export const pl = {
       "Użyj mostów Snowflake dla odporności na cenzurę",
     "connection.cdn_relay": "Przekaźnik CDN",
     "connection.cdn_relay_description":
-      "Żądania przechodzą przez globalną sieć CDN, zanim dotrą do Aster. Twój adres IP pozostaje ukryty przed Aster, a ruch nie odróżnia się od zwykłego ruchu CDN.",
+      "Żądania przechodzą przez globalną sieć CDN, zanim dotrą do Aster, więc w Twojej sieci ruch nie odróżnia się od zwykłego ruchu CDN. Aster nadal otrzymuje Twój adres IP i używa go do ochrony logowania oraz ograniczania nadużyć.",
     "connection.status_connected": "Połączono",
     "connection.status_connecting": "Łączenie...",
     "connection.status_error":
@@ -9940,6 +9940,9 @@ export const pl = {
       "Ta wiadomość została odebrana na {{ received }}, ale odpowiedź zostanie wysłana z {{ selected }}. Odpowiedź z innego adresu może ujawnić go nadawcy i zostać odrzucona.",
     reply_from_mismatch_use_received: "Użyj adresu odbioru",
     reply_from_mismatch_send_anyway: "Wyślij mimo to",
+    reply_from_unknown_title: "Sprawdź adres nadawcy",
+    reply_from_unknown_message:
+      "Aster nie może ustalić, który z Twoich adresów otrzymał tę wiadomość. Odpowiedź zostanie wysłana z adresu {{ selected }}. Aby wysłać z innego adresu, anuluj i najpierw go wybierz.",
     forward_subject_prefix: "PD:",
     reply_quote_header: "Dnia {{ date }} {{ name }} napisał(-a):",
     download_file_named: "Pobierz {{ filename }}",

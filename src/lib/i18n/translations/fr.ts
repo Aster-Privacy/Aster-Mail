@@ -4817,7 +4817,7 @@ export const fr = {
       "Utiliser les ponts Snowflake pour résister à la censure",
     "connection.cdn_relay": "Relais CDN",
     "connection.cdn_relay_description":
-      "Les requêtes passent par un CDN mondial avant d'atteindre Aster. Votre adresse IP reste masquée pour Aster, et le trafic se fond dans le trafic CDN habituel.",
+      "Les requêtes passent par un CDN mondial avant d'atteindre Aster, de sorte que votre trafic se fond dans le trafic CDN habituel sur votre réseau. Aster reçoit toujours votre adresse IP et l'utilise pour protéger la connexion et limiter les abus.",
     "connection.tor_warning":
       "Tout le trafic sera achemine via le reseau Tor. Des performances plus lentes sont a prevoir.",
     "connection.status_connected": "Connecté",
@@ -9992,6 +9992,9 @@ export const fr = {
       "Cet e-mail a été reçu sur {{ received }}, mais votre réponse sera envoyée depuis {{ selected }}. Répondre depuis une autre adresse peut la révéler à l'expéditeur et la réponse peut être rejetée.",
     reply_from_mismatch_use_received: "Utiliser l'adresse de réception",
     reply_from_mismatch_send_anyway: "Envoyer quand même",
+    reply_from_unknown_title: "Vérifiez l'adresse d'expédition",
+    reply_from_unknown_message:
+      "Aster ne peut pas déterminer laquelle de vos adresses a reçu cet e-mail. Votre réponse sera envoyée depuis {{ selected }}. Pour envoyer depuis une autre adresse, annulez et choisissez-la d'abord.",
     search_date_within: "Dans les",
     search_does_not_have: "Ne contient pas",
     search_from_placeholder: "nom@exemple.com",

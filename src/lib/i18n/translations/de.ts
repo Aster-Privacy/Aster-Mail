@@ -4701,7 +4701,7 @@ export const de = {
       "Snowflake-Brücken für Zensurresistenz verwenden",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Anfragen werden über ein globales CDN geleitet, bevor sie Aster erreichen. Ihre IP-Adresse bleibt vor Aster verborgen, und der Datenverkehr fügt sich in normalen CDN-Verkehr ein.",
+      "Anfragen werden über ein globales CDN geleitet, bevor sie Aster erreichen, sodass sich Ihr Datenverkehr in Ihrem Netzwerk in normalen CDN-Verkehr einfügt. Aster erhält weiterhin Ihre IP-Adresse und verwendet sie, um die Anmeldung zu schützen und Missbrauch zu begrenzen.",
     "connection.status_connected": "Verbunden",
     "connection.status_connecting": "Verbindung wird hergestellt...",
     "connection.status_error":
@@ -9969,6 +9969,9 @@ export const de = {
       "Diese E-Mail wurde an {{ received }} empfangen, Ihre Antwort wird aber von {{ selected }} gesendet. Eine Antwort von einer anderen Adresse kann diese dem Absender offenlegen, und die Antwort kann abgelehnt werden.",
     reply_from_mismatch_use_received: "Empfangsadresse verwenden",
     reply_from_mismatch_send_anyway: "Trotzdem senden",
+    reply_from_unknown_title: "Absenderadresse prüfen",
+    reply_from_unknown_message:
+      "Aster kann nicht feststellen, welche Ihrer Adressen diese E-Mail empfangen hat. Ihre Antwort wird von {{ selected }} gesendet. Um von einer anderen Adresse zu senden, brechen Sie ab und wählen Sie sie zuerst aus.",
     search_date_within: "Datum innerhalb",
     search_does_not_have: "Hat nicht",
     search_from_placeholder: "name@beispiel.com",

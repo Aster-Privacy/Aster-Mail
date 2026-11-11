@@ -5651,7 +5651,7 @@ export const en: Translations = {
       "Use Snowflake bridges for censorship resistance",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Requests are routed through a global CDN before reaching Aster. Your IP address stays hidden from Aster, and traffic blends in with regular CDN traffic.",
+      "Requests are routed through a global CDN before reaching Aster, so your traffic blends in with regular CDN traffic on your network. Aster still receives your IP address and uses it to protect sign-in and limit abuse.",
     "connection.tor_warning":
       "All traffic will be routed through the Tor network. Expect slower performance.",
     "connection.status_connected": "Connected",
@@ -8801,6 +8801,9 @@ export const en: Translations = {
       "This email was received on {{ received }}, but your reply is set to send from {{ selected }}. Replying from a different address can expose it to the sender, and the reply may be rejected.",
     reply_from_mismatch_use_received: "Use received address",
     reply_from_mismatch_send_anyway: "Send anyway",
+    reply_from_unknown_title: "Check the From address",
+    reply_from_unknown_message:
+      "Aster can't tell which of your addresses received this email. Your reply is set to send from {{ selected }}. To send from a different address, cancel and choose it first.",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "On {{ date }}, {{ name }} wrote:",
     to: "To",
