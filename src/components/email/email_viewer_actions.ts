@@ -45,6 +45,8 @@ import {
   resolve_received_on_alias,
 } from "@/components/email/build_reply_from_address";
 import { get_cached_aliases } from "@/components/settings/hooks/use_aliases";
+import { resolve_delivery_reply_address } from "@/components/email/delivery_reply_address";
+import { resolve_unsubscribe_sender } from "@/utils/unsubscribe_sender";
 import {
   get_cached_alias_for_routing_token,
   get_cached_ghost_for_routing_token,
@@ -926,7 +928,11 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const info = deps.email.unsubscribe_info;
 
     try {
-      const result = await execute_unsubscribe(info);
+      const result = await execute_unsubscribe(info, {
+        sender: resolve_unsubscribe_sender({
+          routing_token: deps.mail_item?.routing_token,
+        }),
+      });
 
       if (result === "api") {
         show_action_toast({
@@ -1010,12 +1016,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           raw_headers: msg.raw_headers,
           to_emails,
           cc_emails,
-          received_on_alias:
-            resolve_received_on_alias(
-              deps.mail_item?.routing_token,
-              get_cached_aliases(),
-            ) ??
-            get_cached_alias_for_routing_token(deps.mail_item?.routing_token),
+          received_on_alias: resolve_delivery_reply_address(
+            msg.routing_token ?? deps.mail_item?.routing_token,
+          ),
         },
         is_own_message,
       );

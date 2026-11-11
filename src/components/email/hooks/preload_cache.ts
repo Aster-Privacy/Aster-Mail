@@ -690,6 +690,7 @@ export async function preload_email_detail(
         bcc_recipients: envelope.bcc || [],
         raw_headers: envelope.raw_headers,
         message_group_id: item.message_group_id,
+        routing_token: item.routing_token,
         reactions: item.reactions,
         spf_result: item.spf_result,
         dkim_result: item.dkim_result,

@@ -28,6 +28,7 @@ import {
   resolve_received_on_alias,
   collect_recipient_emails,
   is_reply_from_mismatch,
+  is_reply_from_undetermined,
   resolve_own_recipient_address,
 } from "./build_reply_from_address";
 
@@ -424,5 +425,84 @@ describe("collect_recipient_emails", () => {
 
   it("returns empty array when both lists are missing", () => {
     expect(collect_recipient_emails(undefined, undefined)).toEqual([]);
+  });
+});
+
+describe("reply From for the receiving address", () => {
+  const primary = "me@astermail.org";
+  const alias = "shop@astermail.org";
+  const own = [primary, alias];
+
+  function received_on(
+    to_emails: string[],
+    cc_emails: string[],
+    received_on_alias?: string,
+  ): string | undefined {
+    return (
+      build_reply_from_address(
+        { sender_email: "them@x.example", to_emails, cc_emails, received_on_alias },
+        false,
+      ) ?? resolve_own_recipient_address([...to_emails, ...cc_emails], own)
+    );
+  }
+
+  it("uses the alias when it is in To", () => {
+    expect(received_on([alias], [])).toBe(alias);
+  });
+
+  it("uses the alias when it is in Cc", () => {
+    expect(received_on(["other@x.example"], [alias])).toBe(alias);
+  });
+
+  it("uses the delivery address when the alias was only in Bcc", () => {
+    expect(received_on(["other@x.example"], [], alias)).toBe(alias);
+  });
+
+  it("prefers the delivery address over a visible primary address", () => {
+    expect(received_on([primary], [], alias)).toBe(alias);
+  });
+
+  it("stays undetermined when no own address is visible or recorded", () => {
+    expect(received_on(["list@x.example"], [])).toBeUndefined();
+  });
+
+  it("asks before sending when the receiving address is unknown", () => {
+    expect(
+      is_reply_from_undetermined({
+        received_on_address: undefined,
+        selectable_sender_count: 2,
+        sender_chosen: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("does not ask once you choose the From address", () => {
+    expect(
+      is_reply_from_undetermined({
+        received_on_address: undefined,
+        selectable_sender_count: 2,
+        sender_chosen: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("does not ask when the receiving address is known", () => {
+    expect(
+      is_reply_from_undetermined({
+        received_on_address: alias,
+        selectable_sender_count: 2,
+        sender_chosen: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("does not ask when only one address can send", () => {
+    expect(
+      is_reply_from_undetermined({
+        received_on_address: undefined,
+        selectable_sender_count: 1,
+        sender_chosen: false,
+      }),
+    ).toBe(false);
   });
 });

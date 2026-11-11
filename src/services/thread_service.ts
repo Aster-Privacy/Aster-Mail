@@ -472,6 +472,7 @@ export async function fetch_and_decrypt_thread_messages(
         spam_score: msg.spam_score,
         spam_signals: msg.spam_signals,
         is_spam: msg.is_spam,
+        routing_token: msg.routing_token,
         reactions: msg.reactions,
       };
     }
@@ -522,6 +523,7 @@ export async function fetch_and_decrypt_thread_messages(
       spam_signals: msg.spam_signals,
       is_spam: msg.is_spam,
       message_group_id: msg.message_group_id,
+      routing_token: msg.routing_token,
       reactions: msg.reactions,
     };
   });
@@ -595,6 +597,7 @@ export async function fetch_and_decrypt_virtual_group(
         send_error: item.send_error,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
+        routing_token: item.routing_token,
         reactions: item.reactions,
         spf_result: item.spf_result,
         dkim_result: item.dkim_result,
@@ -748,6 +751,7 @@ export async function fetch_and_decrypt_virtual_group(
       bcc_recipients: envelope.bcc || [],
       raw_headers: envelope.raw_headers,
       message_group_id: item.message_group_id,
+      routing_token: item.routing_token,
       reactions: item.reactions,
       spf_result: item.spf_result,
       dkim_result: item.dkim_result,

@@ -252,6 +252,7 @@ export function build_single_thread_message(
     encrypted_metadata?: string;
     metadata_nonce?: string;
     message_group_id?: string;
+    routing_token?: string;
     reactions?: DecryptedThreadMessage["reactions"];
     spf_result?: string;
     dkim_result?: string;
@@ -304,6 +305,7 @@ export function build_single_thread_message(
     raw_headers: envelope.raw_headers,
     sender_verification: envelope.sender_verification,
     message_group_id: item.message_group_id,
+    routing_token: item.routing_token,
     reactions: item.reactions,
     spf_result: item.spf_result,
     dkim_result: item.dkim_result,
