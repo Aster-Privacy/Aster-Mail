@@ -78,6 +78,18 @@ describe("format_date_short", () => {
   });
 });
 
+describe("YYYY-MM-DD preference", () => {
+  it("always shows the full numeric date, including this year", () => {
+    const d = new Date("2026-08-02T09:00:00Z");
+
+    expect(format_date_short(d, ISO)).toBe("2026-08-02");
+    expect(format_email_list_timestamp(d, ISO)).toBe("2026-08-02");
+    expect(
+      format_email_list_timestamp(new Date("2022-01-05T09:00:00Z"), ISO),
+    ).toBe("2022-01-05");
+  });
+});
+
 describe("format_email_list_timestamp", () => {
   it("disambiguates an older-year message with the year", () => {
     const d = new Date("2022-08-02T09:00:00Z");
