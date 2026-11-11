@@ -383,7 +383,7 @@ export function EmailPopupViewer({
         is_spam={viewer.mail_item?.is_spam === true}
         is_trashed={viewer.mail_item?.is_trashed === true}
         label_hints={label_hints}
-        loaded_content_types={viewer.loaded_content_types}
+        remote_content_grants={viewer.remote_content_grants}
         mail_item={viewer.mail_item}
         on_close={on_close}
         on_compose={on_compose}

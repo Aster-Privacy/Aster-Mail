@@ -27,6 +27,7 @@ import { useState, useEffect, useCallback } from "react";
 
 import { undo_send_manager as server_undo_manager } from "@/services/undo_send_manager";
 import { ignore_error } from "@/lib/ignore_error";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 import { emit_email_sent, emit_thread_reply_sent } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -38,6 +39,7 @@ import {
   send_server_queued_immediately,
 } from "@/services/send_queue";
 import { play_iconic_sound } from "@/services/iconic_sounds";
+import { settle_queued_send_drafts } from "@/services/queued_send_drafts";
 
 export interface PendingSend {
   id: string;
@@ -365,6 +367,10 @@ export function handle_restored_send_settled(
     undo_send_manager.remove(restored.id);
   }
 
+  settle_queued_send_drafts().catch((caught) =>
+    ignore_error("hooks/use_undo_send:settle_queued_send_drafts", caught),
+  );
+
   if (status !== "sent") return;
 
   invalidate_mail_stats();
@@ -431,7 +437,7 @@ function install_tab_timer_unload_guards(): void {
   if (typeof window === "undefined") return;
 
   window.addEventListener("beforeunload", (event) => {
-    if (!has_tab_timer_sends()) return;
+    if (device_traces_erased() || !has_tab_timer_sends()) return;
 
     event.preventDefault();
     event.returnValue = "";

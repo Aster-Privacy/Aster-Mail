@@ -102,3 +102,75 @@ describe("EncryptionInfoDropdown signature indicator", () => {
     ).toBeNull();
   });
 });
+
+function render_message(
+  props: Partial<Parameters<typeof EncryptionInfoDropdown>[0]>,
+) {
+  const container = document.createElement("div");
+
+  document.body.appendChild(container);
+
+  const root = createRoot(container);
+
+  act(() => {
+    root.render(
+      <EncryptionInfoDropdown
+        has_pq_protection={false}
+        is_external={false}
+        {...props}
+      />,
+    );
+  });
+  mounted.push({ root, container });
+  act(() => {
+    container.querySelector("button")?.click();
+  });
+
+  return document.body.textContent ?? "";
+}
+
+describe("EncryptionInfoDropdown sender state", () => {
+  it("keeps the encryption heading and adds an unchecked sender for decrypted outside mail", () => {
+    const text = render_message({
+      e2e_verified: true,
+      has_recipient_key: true,
+      is_external: true,
+      is_received: true,
+    });
+
+    expect(text).toContain("common.end_to_end_encrypted_label");
+    expect(text).toContain("common.sender_no_keys");
+    expect(text).not.toContain("common.sender_verified");
+  });
+
+  it("still shows a verified sender for signed mail", () => {
+    const text = render_message({
+      e2e_verified: true,
+      is_received: true,
+      sender_verification: "verified",
+    });
+
+    expect(text).toContain("common.sender_verified");
+    expect(text).not.toContain("common.sender_no_keys");
+  });
+
+  it("adds no sender warning to mail between Aster accounts", () => {
+    const text = render_message({ e2e_verified: true, is_received: true });
+
+    expect(text).toContain("common.end_to_end_encrypted_label");
+    expect(text).not.toContain("common.sender_no_keys");
+    expect(text).not.toContain("common.sender_unsigned");
+  });
+
+  it("adds no sender warning to an attachment list", () => {
+    const text = render_message({
+      context: "attachments",
+      e2e_verified: true,
+      has_recipient_key: true,
+      is_external: true,
+      is_received: true,
+    });
+
+    expect(text).not.toContain("common.sender_no_keys");
+  });
+});

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ignore_error } from "@/lib/ignore_error";
+import { release_on_version_change } from "@/lib/idb_release";
 
 const SESSION_KEY_DB_NAME = "astermail_session_keys";
 const SESSION_KEY_STORE = "keys";
@@ -50,7 +51,7 @@ function open_session_key_db(): Promise<IDBDatabase> {
     };
     request.onsuccess = () => {
       clearTimeout(timeout_id);
-      resolve(request.result);
+      resolve(release_on_version_change(request.result));
     };
 
     request.onupgradeneeded = () => {

@@ -40,6 +40,7 @@ import {
 } from "@/components/compose/compose_shared";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 import { create_inline_image_bytes_counter } from "@/lib/inline_image_bytes";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 
 const AUTOSAVE_DELAY_MS = 1000;
 const LOW_NETWORK_AUTOSAVE_DELAY_MS = 5000;
@@ -553,11 +554,13 @@ export function use_compose_drafts({
 
   useEffect(() => {
     const handle_pagehide = () => {
+      if (device_traces_erased()) return;
       flush_input_ref.current?.();
       flush_pending_draft_ref.current();
     };
 
     const handle_visibilitychange = () => {
+      if (device_traces_erased()) return;
       if (document.visibilityState === "hidden") {
         flush_input_ref.current?.();
         flush_pending_draft_ref.current();

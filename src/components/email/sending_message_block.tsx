@@ -33,6 +33,7 @@ import {
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { effective_remote_image_mode } from "@/lib/remote_content_policy";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
@@ -96,7 +97,7 @@ export function SendingMessageBlock({
                 ? sanitize_html(clean_body, {
                     external_content_mode: lockdown
                       ? "never"
-                      : preferences.load_remote_images,
+                      : effective_remote_image_mode(preferences),
                     image_proxy_url: lockdown
                       ? undefined
                       : get_image_proxy_url(),

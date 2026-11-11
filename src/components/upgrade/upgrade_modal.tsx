@@ -21,7 +21,7 @@
 import type { ChangeEvent } from "react";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { LockClosedIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
@@ -213,6 +213,7 @@ function is_desktop(): boolean {
 export function UpgradeModal() {
   const { t } = use_i18n();
   const location = useLocation();
+  const navigate = useNavigate();
   const state = use_upgrade_state();
   const { is_authenticated } = use_auth();
   const is_blocked = is_on_auth_route(location.pathname) || !is_authenticated;
@@ -1249,6 +1250,10 @@ export function UpgradeModal() {
             set_pending_tier(tier);
           }}
           on_finished={() => set_crypto_tier(null)}
+          on_native_invoice={(invoice_id) => {
+            close_upgrade_modal();
+            navigate(`/crypto-invoice/${invoice_id}`);
+          }}
           plan_code={crypto_tier.id}
           plan_name={crypto_tier.name}
           preferred_currency={currency}

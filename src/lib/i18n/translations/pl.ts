@@ -1947,6 +1947,9 @@ export const pl = {
     dns_host_leave_blank: "Pozostaw puste",
     dns_host_provider_hint:
       "{{provider}} używa tego formatu w polu hosta. Skopiuj go dokładnie tak, jak podano.",
+    dns_host_zone_hint:
+      "Ta nazwa hosta jest względna wobec {{zone}}, czyli domeny, w której zarządzasz rekordami DNS.",
+    dns_full_record_name: "Pełna nazwa rekordu",
     purchase_congrats_title: "Gratulacje",
     recipient_key_outdated: "Klucz odbiorcy jest nieaktualny",
     recipient_key_outdated_desc:
@@ -4961,7 +4964,8 @@ export const pl = {
     tlsrpt_record: "Rekord TLS-RPT",
     tlsrpt_description:
       "Opcjonalne, ale zalecane. Serwery odbiorcze wysylaja codzienne podsumowanie, gdy szyfrowane dostarczenie do twojej domeny zawiedzie, dzieki czemu zauwazysz problem przed uzytkownikami.",
-    dns_instruction_set_tlsrpt_host: "Ustaw host na _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Skopiuj nazwę hosta podaną poniżej do pola hosta",
     dns_instruction_set_tlsrpt_value:
       "Wklej wartosc TLS-RPT dokladnie tak, jak pokazano",
     optional_step: "Opcjonalne",
@@ -5344,7 +5348,8 @@ export const pl = {
     dns_instruction_merge_spf:
       "Jeśli masz już rekord SPF, dodaj dyrektywę include: do istniejącego rekordu",
     dns_instruction_set_dkim: "Ustaw wartość na klucz DKIM podany poniżej",
-    dns_instruction_set_dmarc_host: "Ustaw host na _dmarc (bez swojej domeny)",
+    dns_instruction_set_dmarc_host:
+      "Skopiuj nazwę hosta podaną poniżej do pola hosta",
     dns_instruction_set_dmarc_value:
       "Ustaw wartość na politykę DMARC podaną poniżej",
     edit_external_account: "Edytuj konto zewnętrzne",
@@ -9951,6 +9956,7 @@ export const pl = {
     received_via_alias: "dostarczono na alias {{ address }}",
     new_reaction: "Nowa reakcja",
     load_external_content: "Załaduj zewnętrzną zawartość",
+    image_loading_settings: "Ustawienia obrazów",
     image: "obraz",
     images: "obrazy",
     tracker: "tracker",
@@ -10644,24 +10650,35 @@ export const pl = {
     device_code_waiting: "Oczekiwanie na potwierdzenie",
     device_code_expires_in: "Wygasa za",
     link_device_title: "Połącz urządzenie",
-    link_device_enter_code: "Wprowadź kod wyświetlony w aplikacji desktopowej.",
+    link_device_enter_code:
+      "Wprowadź kod łączenia wyświetlony w aplikacji, którą łączysz.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "Kontynuuj",
     link_device_confirm_prompt: "Czy chcesz połączyć to urządzenie z kontem?",
     link_device_confirm_button: "Połącz urządzenie",
     link_device_confirming: "Łączenie urządzenia...",
     link_device_cancel: "Anuluj",
-    link_device_desktop: "Aplikacja desktopowa",
-    device_fingerprint: "Kod weryfikacyjny",
-    device_code_verify_toggle: "Zweryfikuj to urządzenie",
-    link_device_fingerprint_hint:
-      "Jeśli aplikacja na komputer pokazuje kod weryfikacyjny, przed połączeniem urządzenia upewnij się, że jest zgodny z tym kodem.",
-    device_code_fingerprint_hint:
-      "Przeglądarka pokazuje ten sam kod weryfikacyjny przed połączeniem urządzenia. Jeśli oba kody się różnią, nie łącz urządzenia.",
+    link_device_desktop: "Nowe urządzenie",
+    device_fingerprint: "Odcisk urządzenia",
+    device_fingerprint_copy: "Kopiuj odcisk urządzenia",
+    link_device_grant_notice:
+      "Połączenie daje aplikacji na urządzeniu {{device}} pełny dostęp do konta {{email}}, w tym do poczty i kluczy szyfrowania.",
+    link_device_own_device_warning:
+      "Kontynuuj tylko wtedy, gdy ten proces został rozpoczęty przez Ciebie w aplikacji Aster na własnym urządzeniu. Jeśli ten kod pochodzi od innej osoby, nie łącz urządzenia.",
+    link_device_fingerprint_enter:
+      "Wprowadź odcisk urządzenia wyświetlony w aplikacji, którą łączysz. Niektóre aplikacje nazywają go kodem weryfikacyjnym.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "To nie zgadza się z urządzeniem dla tego kodu łączenia. Porównaj każdy znak z aplikacją, którą łączysz, i spróbuj ponownie. Jeśli nadal się nie zgadza, nie łącz urządzenia.",
+    link_device_fingerprint_link_mismatch:
+      "Link, który otworzył tę stronę, należy do innego urządzenia niż ten kod łączenia, więc nie możesz tutaj połączyć urządzenia. Uzyskaj nowy kod w aplikacji, którą łączysz, i spróbuj ponownie.",
+    link_device_update_desktop:
+      "Jeśli aplikacja go nie pokazuje, wybierz w niej Zweryfikuj to urządzenie. Jeśli aplikacja nie ma tej opcji, zaktualizuj ją i spróbuj ponownie.",
+    device_code_fingerprint_required_hint:
+      "Przeglądarka prosi o ten odcisk urządzenia, zanim połączy urządzenie.",
     link_device_change_account: "Zmień konto",
     link_device_choose_account: "Wybierz konto",
-    link_device_choose_account_description:
-      "Aby połączyć aplikację na komputer",
+    link_device_choose_account_description: "Aby połączyć nowe urządzenie",
     link_device_choose_account_note:
       "Twoje klucze szyfrowania pozostają zaszyfrowane podczas przesyłania między Twoimi urządzeniami.",
     link_device_use_another_account: "Użyj innego konta",
@@ -10673,11 +10690,11 @@ export const pl = {
       "Aby kontynuować na tym koncie, wprowadź jego hasło.",
     link_device_success: "Urządzenie połączone",
     link_device_success_description:
-      "Twoja aplikacja desktopowa jest teraz połączona. Możesz zamknąć tę kartę.",
+      "Twoje urządzenie jest teraz połączone. Możesz zamknąć tę kartę.",
     link_device_invalid_code:
       "Kod połączenia ma 8 znaków. Sprawdź kod i spróbuj ponownie.",
     link_device_expired_code:
-      "Ten kod wygasł lub nie pasuje. Twoja aplikacja desktopowa ma aktualny.",
+      "Ten kod wygasł lub nie pasuje. Aplikacja, którą łączysz, ma aktualny.",
     link_device_failed:
       "Połączenie nie zostało ukończone. Zacznij od nowa. Twoje konto nie zostało zmienione.",
     link_keys_locked_title: "Twój pęk kluczy jest zablokowany",

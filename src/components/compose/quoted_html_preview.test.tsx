@@ -24,6 +24,7 @@ import { createRoot, type Root } from "react-dom/client";
 
 const h = vi.hoisted(() => ({
   block_external_content: true,
+  load_remote_images: "never",
 }));
 
 vi.mock("@/contexts/external_link_context", () => ({
@@ -34,6 +35,7 @@ vi.mock("@/contexts/preferences_context", () => ({
   use_preferences_optional: () => ({
     preferences: {
       block_external_content: h.block_external_content,
+      load_remote_images: h.load_remote_images,
       block_remote_images: true,
       block_remote_fonts: true,
       block_remote_css: true,
@@ -117,14 +119,30 @@ describe("QuotedHtmlPreview", () => {
     );
   });
 
-  it("loads remote images when the user allows external content", () => {
+  it("loads remote images when the image setting allows them", () => {
+    h.block_external_content = false;
+    h.load_remote_images = "always";
+
+    try {
+      const { container } = render(<QuotedHtmlPreview html={HTML} />);
+      const markup = container.innerHTML;
+
+      expect(markup).toContain("tracker.example");
+      expect(markup).not.toContain("<style");
+    } finally {
+      h.load_remote_images = "never";
+    }
+  });
+
+  it("keeps blocking remote images when only tracking protection is off", () => {
     h.block_external_content = false;
 
     const { container } = render(<QuotedHtmlPreview html={HTML} />);
-    const markup = container.innerHTML;
+    const sources = Array.from(container.querySelectorAll("img")).map(
+      (img) => img.getAttribute("src") ?? "",
+    );
 
-    expect(markup).toContain("tracker.example");
-    expect(markup).not.toContain("<style");
+    expect(sources.some((src) => src.includes("tracker.example"))).toBe(false);
   });
 
   it("drops app classes and ids so quoted mail cannot cover the modal", () => {

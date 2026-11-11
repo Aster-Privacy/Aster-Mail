@@ -18,9 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { device_traces_erased } from "@/lib/device_erase_latch";
+
 let holders = 0;
 
 function warn_before_unload(event: BeforeUnloadEvent): void {
+  if (device_traces_erased()) return;
   event.preventDefault();
   event.returnValue = "";
 }

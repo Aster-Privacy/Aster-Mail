@@ -23,7 +23,7 @@ import type { MailItemUpdatedEventDetail } from "@/hooks/mail_events";
 import { useState, useCallback, useEffect, useRef } from "react";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_or_create_key,
   get_secret_cache_id,
@@ -249,7 +249,8 @@ async function decrypt_tag_field(
   const encrypted_data = base64_to_array(encrypted);
   const nonce_data = base64_to_array(nonce);
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(
+  const decrypted = await decrypt_account_context_with_fallback(
+    "astermail-tags-v1",
     key,
     encrypted_data,
     nonce_data,

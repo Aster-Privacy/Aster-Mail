@@ -1915,6 +1915,9 @@ export const pt_br = {
     dns_host_leave_blank: "Deixe em branco",
     dns_host_provider_hint:
       "A {{provider}} usa este formato no campo do host. Copie exatamente como está.",
+    dns_host_zone_hint:
+      "Este nome de host é relativo a {{zone}}, o domínio em que você gerencia os registros DNS.",
+    dns_full_record_name: "Nome completo do registro",
     purchase_congrats_title: "Parabéns",
     recipient_key_outdated: "A chave do destinatário está desatualizada",
     recipient_key_outdated_desc:
@@ -4746,7 +4749,8 @@ export const pt_br = {
     tlsrpt_record: "Registro TLS-RPT",
     tlsrpt_description:
       "Opcional, mas recomendado. Os servidores de recebimento enviam a você um resumo diário quando a entrega criptografada para o seu domínio falha, para que você identifique problemas antes dos seus usuários.",
-    dns_instruction_set_tlsrpt_host: "Defina o host como _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Copie o nome do host mostrado abaixo para o campo do host",
     dns_instruction_set_tlsrpt_value:
       "Cole o valor TLS-RPT exatamente como aparece",
     optional_step: "Opcional",
@@ -5140,7 +5144,7 @@ export const pt_br = {
     dns_instruction_set_dkim:
       "Defina o valor para a chave DKIM mostrada abaixo",
     dns_instruction_set_dmarc_host:
-      "Defina o host como _dmarc (sem incluir seu domínio)",
+      "Copie o nome do host mostrado abaixo para o campo do host",
     dns_instruction_set_dmarc_value:
       "Defina o valor para a política DMARC mostrada abaixo",
     edit_external_account: "Editar conta externa",
@@ -9734,6 +9738,7 @@ export const pt_br = {
     received_via_alias: "entregue no seu alias {{ address }}",
     new_reaction: "Nova reação",
     load_external_content: "Carregar conteúdo externo",
+    image_loading_settings: "Configurações de imagens",
     image: "imagem",
     images: "imagens",
     tracker: "rastreador",
@@ -10422,26 +10427,36 @@ export const pt_br = {
     link_device_confirm_button: "Vincular dispositivo",
     link_device_confirm_prompt: "Deseja vincular este dispositivo à sua conta?",
     link_device_confirming: "Vinculando dispositivo...",
-    link_device_desktop: "Aplicativo desktop",
-    device_fingerprint: "Código de verificação",
-    device_code_verify_toggle: "Verificar este dispositivo",
-    link_device_fingerprint_hint:
-      "Se o app para computador mostrar um código de verificação, confira se ele corresponde a este antes de vincular o dispositivo.",
-    device_code_fingerprint_hint:
-      "O navegador mostra o mesmo código de verificação antes de vincular o dispositivo. Se os dois códigos não corresponderem, não vincule o dispositivo.",
+    link_device_desktop: "Novo dispositivo",
+    device_fingerprint: "Impressão digital do dispositivo",
+    device_fingerprint_copy: "Copiar impressão digital do dispositivo",
+    link_device_grant_notice:
+      "Ao vincular, o app em {{device}} recebe acesso total a {{email}}, incluindo seus e-mails e suas chaves de criptografia.",
+    link_device_own_device_warning:
+      "Continue somente se você iniciou este processo em um app do Aster no seu próprio dispositivo. Se outra pessoa passou este código para você, não vincule o dispositivo.",
+    link_device_fingerprint_enter:
+      "Digite a impressão digital do dispositivo mostrada no app que você está vinculando. Alguns apps a chamam de código de verificação.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Isso não corresponde ao dispositivo deste código de vinculação. Compare cada caractere com o app que você está vinculando e tente novamente. Se ainda não corresponder, não vincule o dispositivo.",
+    link_device_fingerprint_link_mismatch:
+      "O link que abriu esta página pertence a um dispositivo diferente do deste código de vinculação, então você não pode vincular o dispositivo aqui. Gere um novo código no app que você está vinculando e tente novamente.",
+    link_device_update_desktop:
+      "Se o app não mostrar, escolha Verificar este dispositivo no app. Se o app não tiver essa opção, atualize o app e tente de novo.",
+    device_code_fingerprint_required_hint:
+      "Seu navegador pede esta impressão digital do dispositivo antes de vincular o dispositivo.",
     link_device_change_account: "Mudar de conta",
     link_device_choose_account: "Escolha uma conta",
-    link_device_choose_account_description:
-      "Para vincular seu aplicativo desktop",
+    link_device_choose_account_description: "Para vincular um novo dispositivo",
     link_device_choose_account_note:
       "Suas chaves de criptografia continuam criptografadas enquanto passam entre seus dispositivos.",
     link_device_use_another_account: "Usar outra conta",
     link_device_use_this_account: "Usar esta conta",
     link_device_other_accounts: "Mudar para outra conta",
     link_device_enter_code:
-      "Digite o código mostrado no seu aplicativo desktop.",
+      "Digite o código de vinculação mostrado no app que você está vinculando.",
     link_device_expired_code:
-      "Este código expirou ou não corresponde. Use o código atual do seu aplicativo desktop.",
+      "Este código expirou ou não corresponde. Use o código atual do app que você está vinculando.",
     link_device_failed:
       "A vinculação não foi concluída. Recomeçar geralmente resolve. Sua conta está inalterada.",
     link_device_invalid_code:
@@ -10452,7 +10467,7 @@ export const pt_br = {
       "Para continuar com esta conta, insira a senha dela.",
     link_device_success: "Dispositivo vinculado",
     link_device_success_description:
-      "Seu aplicativo desktop está agora vinculado. Você pode fechar esta aba.",
+      "Seu dispositivo agora está vinculado. Você pode fechar esta aba.",
     link_device_title: "Vincular dispositivo",
     link_keys_locked_title: "Seu chaveiro está bloqueado",
     link_keys_locked_description:

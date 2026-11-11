@@ -42,7 +42,17 @@ vi.mock("@/contexts/external_link_context", () => ({
 }));
 
 vi.mock("@/contexts/preferences_context", () => ({
-  use_preferences_optional: () => null,
+  use_preferences_optional: () => ({
+    preferences: {
+      load_remote_images: "always",
+      block_external_content: false,
+      block_remote_images: false,
+      block_remote_fonts: false,
+      block_remote_css: false,
+      block_tracking_pixels: false,
+      low_network_mode: false,
+    },
+  }),
 }));
 
 vi.mock("@/lib/html_sanitizer", async (import_original) => {

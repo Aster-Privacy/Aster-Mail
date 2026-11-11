@@ -46,6 +46,7 @@ import {
   remember_link_code,
 } from "@/native/device_link_codes";
 import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
+import { link_device_url } from "@/lib/device_link_commitment";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { decrypt_vault } from "@/services/crypto/key_manager";
@@ -158,7 +159,6 @@ export function DesktopCodeSignIn({
   const [device_fingerprint, set_device_fingerprint] = useState<string | null>(
     null,
   );
-  const [show_verification, set_show_verification] = useState(false);
   const [time_left, set_time_left] = useState(0);
   const [error_detail, set_error_detail] = useState<string | null>(null);
   const [flow_key, set_flow_key] = useState(0);
@@ -363,10 +363,7 @@ export function DesktopCodeSignIn({
     };
   }, [flow_key, stop_polling]);
 
-  const handle_copy_code = async () => {
-    if (!code) return;
-
-    const raw = code.replace(/-/g, "");
+  const copy_with_toast = async (raw: string) => {
     let success = false;
 
     try {
@@ -388,6 +385,18 @@ export function DesktopCodeSignIn({
     if (success) {
       show_toast(t("common.copied_to_clipboard"), "success");
     }
+  };
+
+  const handle_copy_code = async () => {
+    if (!code) return;
+
+    await copy_with_toast(code.replace(/-/g, ""));
+  };
+
+  const handle_copy_fingerprint = async () => {
+    if (!device_fingerprint) return;
+
+    await copy_with_toast(device_fingerprint);
   };
 
   const handle_new_code = () => {
@@ -593,28 +602,25 @@ export function DesktopCodeSignIn({
               </div>
 
               {device_fingerprint && (
-                <div className="w-full mt-4 text-center">
+                <div
+                  className="w-full mt-4 text-center"
+                  data-testid="device_fingerprint"
+                >
+                  <span className="block text-xs font-medium text-txt-muted">
+                    {t("auth.device_fingerprint")}
+                  </span>
                   <button
-                    aria-expanded={show_verification}
-                    className="text-xs font-medium text-txt-muted underline-offset-2 hover:text-txt-primary hover:underline"
+                    aria-label={t("auth.device_fingerprint_copy")}
+                    className="mt-1 w-full cursor-pointer select-text font-mono text-sm font-semibold tracking-wide text-txt-primary transition-colors hover:opacity-80"
+                    data-testid="device_fingerprint_copy"
                     type="button"
-                    onClick={() => set_show_verification((open) => !open)}
+                    onClick={handle_copy_fingerprint}
                   >
-                    {t("auth.device_code_verify_toggle")}
+                    {device_fingerprint}
                   </button>
-                  {show_verification && (
-                    <div className="mt-2" data-testid="device_fingerprint">
-                      <span className="block text-xs font-medium text-txt-muted">
-                        {t("auth.device_fingerprint")}
-                      </span>
-                      <span className="mt-1 block select-text font-mono text-sm font-semibold tracking-wide text-txt-primary">
-                        {device_fingerprint}
-                      </span>
-                      <span className="mt-1.5 block text-xs leading-relaxed text-txt-muted">
-                        {t("auth.device_code_fingerprint_hint")}
-                      </span>
-                    </div>
-                  )}
+                  <span className="mt-1.5 block text-xs leading-relaxed text-txt-muted">
+                    {t("auth.device_code_fingerprint_required_hint")}
+                  </span>
                 </div>
               )}
 
@@ -629,7 +635,16 @@ export function DesktopCodeSignIn({
                 <button
                   className="aster_btn aster_btn_depth aster_btn_xl flex-1"
                   type="button"
-                  onClick={() => open_external(WEB_LINK_DEVICE_URL)}
+                  onClick={() =>
+                    open_external(
+                      device_fingerprint
+                        ? link_device_url(
+                            WEB_LINK_DEVICE_URL,
+                            device_fingerprint,
+                          )
+                        : WEB_LINK_DEVICE_URL,
+                    )
+                  }
                 >
                   {t("auth.device_code_open_browser")}
                 </button>

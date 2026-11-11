@@ -25,12 +25,18 @@ import { createRoot, type Root } from "react-dom/client";
 const profiles = vi.hoisted(() => ({
   cache: new Map<string, unknown>(),
   pending: [] as Array<(value: unknown) => void>,
+  hint: null as unknown,
+  lockdown: false,
+}));
+
+vi.mock("@/hooks/use_lockdown_active", () => ({
+  use_lockdown_active: () => profiles.lockdown,
 }));
 
 vi.mock("@/services/api/profiles", () => ({
   is_aster_email: () => true,
   get_cached_peer_profile: (email: string) => profiles.cache.get(email),
-  get_peer_profile_hint: () => null,
+  get_peer_profile_hint: () => profiles.hint,
   fetch_peer_profile: () =>
     new Promise((resolve) => {
       profiles.pending.push(resolve);
@@ -79,6 +85,38 @@ describe("use_peer_profile", () => {
   beforeEach(() => {
     profiles.cache.clear();
     profiles.pending.length = 0;
+    profiles.hint = null;
+    profiles.lockdown = false;
+  });
+
+  it("starts a lookup for an Aster address outside lockdown", () => {
+    render_probe("peer@astermail.org");
+
+    expect(profiles.pending.length).toBe(1);
+  });
+
+  it("starts no lookup while lockdown is active", () => {
+    profiles.lockdown = true;
+
+    const probe = render_probe("peer@astermail.org");
+
+    probe.rerender("other@astermail.org");
+
+    expect(profiles.pending.length).toBe(0);
+    expect(probe.seen.at(-1)).toBeNull();
+  });
+
+  it("shows no stored profile while lockdown is active", () => {
+    profiles.lockdown = true;
+    profiles.hint = { profile_picture: "https://example.test/hint.png" };
+    profiles.cache.set("peer@astermail.org", {
+      profile_picture: "https://example.test/cached.png",
+    });
+
+    const probe = render_probe("peer@astermail.org");
+
+    expect(probe.seen.every((profile) => profile === null)).toBe(true);
+    expect(profiles.pending.length).toBe(0);
   });
 
   it("does not report the previous peer's profile while the next one loads", () => {
