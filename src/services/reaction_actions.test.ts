@@ -31,6 +31,12 @@ const h = vi.hoisted(() => ({
   encrypt_calls: [] as unknown[][],
   encrypt_impl: null as null | ((...args: unknown[]) => Promise<unknown>),
   react_calls: [] as Record<string, unknown>[],
+  identities: {} as Record<
+    string,
+    { email: string; address_hash: string; display_name?: string }
+  >,
+  routed_aliases: {} as Record<string, string>,
+  routed_ghosts: {} as Record<string, string>,
   react_response: { data: { success: true, own_reaction_mail_item_id: "own_1" } } as Record<
     string,
     unknown
@@ -81,7 +87,12 @@ vi.mock("./recipient_classification", async (importOriginal) => {
 });
 
 vi.mock("@/hooks/use_sender_aliases", () => ({
-  get_cached_sender_identity_for_address: () => undefined,
+  get_cached_sender_identity_for_address: (address: string | undefined) =>
+    address ? h.identities[address.trim().toLowerCase()] : undefined,
+  get_cached_alias_for_routing_token: (token: string | undefined) =>
+    token ? h.routed_aliases[token] : undefined,
+  get_cached_ghost_for_routing_token: (token: string | undefined) =>
+    token ? h.routed_ghosts[token] : undefined,
 }));
 
 import { send_reaction } from "./reaction_actions";
@@ -120,6 +131,9 @@ describe("send_reaction", () => {
     h.encrypt_calls = [];
     h.encrypt_impl = null;
     h.react_calls = [];
+    h.identities = {};
+    h.routed_aliases = {};
+    h.routed_ghosts = {};
     h.react_response = {
       data: { success: true, own_reaction_mail_item_id: "own_1" },
     };
@@ -244,5 +258,144 @@ describe("send_reaction", () => {
 
     expect(result.success).toBe(true);
     expect(h.react_calls[0].is_e2e_encrypted).toBe(true);
+  });
+});
+
+describe("reaction sender", () => {
+  const alias = "shop@astermail.org";
+  const ghost = "quiet-harbor-41@aster.cx";
+  const other = { name: "Other", email: "other@example.org" };
+
+  beforeEach(() => {
+    h.preferences = { reactions_enabled: true, require_encryption: false };
+    h.coverage = { missing: [], downgraded: [], untrusted: [] };
+    h.encrypt_calls = [];
+    h.encrypt_impl = null;
+    h.react_calls = [];
+    h.react_response = {
+      data: { success: true, own_reaction_mail_item_id: "own_1" },
+    };
+    h.identities = {
+      [alias]: { email: alias, address_hash: "alias_hash", display_name: "Shop" },
+      [ghost]: { email: ghost, address_hash: "ghost_hash" },
+    };
+    h.routed_aliases = { alias_hash: alias };
+    h.routed_ghosts = { ghost_hash: ghost };
+    set_post_quantum_prompt_handler(null);
+  });
+
+  it("reacts from the alias named in To", async () => {
+    const result = await send_reaction(
+      build_message({ to_recipients: [{ name: "Shop", email: alias }] }),
+      "👍",
+    );
+
+    expect(result.success).toBe(true);
+    expect(h.react_calls[0].sender_email).toBe(alias);
+    expect(h.react_calls[0].sender_alias_hash).toBe("alias_hash");
+    expect(h.react_calls[0].sender_display_name).toBe("Shop");
+    expect(h.encrypt_calls[0][2]).toBe(alias);
+  });
+
+  it("reacts from the alias named in Cc", async () => {
+    const result = await send_reaction(
+      build_message({
+        to_recipients: [other],
+        cc_recipients: [{ name: "Shop", email: alias }],
+      }),
+      "👍",
+    );
+
+    expect(result.success).toBe(true);
+    expect(h.react_calls[0].sender_email).toBe(alias);
+  });
+
+  it("reacts from the alias a message with no visible recipients was delivered to", async () => {
+    const result = await send_reaction(
+      build_message({ to_recipients: [], routing_token: "alias_hash" }),
+      "👍",
+    );
+
+    expect(result.success).toBe(true);
+    expect(h.react_calls[0].sender_email).toBe(alias);
+    expect(h.react_calls[0].sender_alias_hash).toBe("alias_hash");
+  });
+
+  it("reacts from the private alias a message was delivered to", async () => {
+    const result = await send_reaction(
+      build_message({ to_recipients: [], routing_token: "ghost_hash" }),
+      "👍",
+    );
+
+    expect(result.success).toBe(true);
+    expect(h.react_calls[0].sender_email).toBe(ghost);
+  });
+
+  it("reacts from the address in Delivered-To when no recipient is visible", async () => {
+    const result = await send_reaction(
+      build_message({
+        to_recipients: [],
+        raw_headers: [{ name: "Delivered-To", value: `<${alias}>` }],
+      }),
+      "👍",
+    );
+
+    expect(result.success).toBe(true);
+    expect(h.react_calls[0].sender_email).toBe(alias);
+  });
+
+  it("prefers the delivery address over the primary address in To", async () => {
+    const result = await send_reaction(
+      build_message({
+        to_recipients: [{ name: "Me", email: me }],
+        routing_token: "alias_hash",
+      }),
+      "👍",
+    );
+
+    expect(result.success).toBe(true);
+    expect(h.react_calls[0].sender_email).toBe(alias);
+  });
+
+  it("reacts from the primary address when it is named in To", async () => {
+    const result = await send_reaction(build_message(), "👍");
+
+    expect(result.success).toBe(true);
+    expect(h.react_calls[0].sender_email).toBe(me);
+    expect(h.react_calls[0].sender_alias_hash).toBeUndefined();
+  });
+
+  it("sends nothing when the alias was only in Bcc", async () => {
+    const result = await send_reaction(
+      build_message({ to_recipients: [other] }),
+      "👍",
+    );
+
+    expect(result.success).toBe(false);
+    expect(h.react_calls).toHaveLength(0);
+  });
+
+  it("sends nothing when the receiving address is unknown", async () => {
+    const result = await send_reaction(
+      build_message({ to_recipients: [], cc_recipients: [] }),
+      "👍",
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(get_active_translations().errors.cannot_react_bcc);
+    expect(h.react_calls).toHaveLength(0);
+    expect(h.encrypt_calls).toHaveLength(0);
+  });
+
+  it("sends nothing when the delivery alias is no longer usable", async () => {
+    h.identities = {};
+
+    const result = await send_reaction(
+      build_message({ to_recipients: [], routing_token: "alias_hash" }),
+      "👍",
+    );
+
+    expect(result.success).toBe(false);
+    expect(h.react_calls).toHaveLength(0);
   });
 });
