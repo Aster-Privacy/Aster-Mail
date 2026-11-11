@@ -41,6 +41,7 @@ import {
   delete_contact_entry,
   mark_contact_reviewed,
   open_contact,
+  open_contact_as,
   read_contact_entry,
   with_contact_lock,
   write_contact_entry,
@@ -71,6 +72,7 @@ interface StoredOwnerKeyPin {
   fingerprint: string;
   pinned_at: number;
   hosted?: boolean;
+  missing_accepted_at?: number;
 }
 
 interface StoredUntrustedFlag {
@@ -98,6 +100,7 @@ interface StoredIdentityPin {
   pinned_at: number;
   pq_seen?: boolean;
   rotated?: boolean;
+  missing_accepted_at?: number;
 }
 
 export interface IdentityPinRecord {
@@ -177,6 +180,14 @@ function merge_identity_pins(
     pinned_at: Math.min(left.pinned_at, right.pinned_at),
     pq_seen: Boolean(left.pq_seen) || Boolean(right.pq_seen),
     ...(left.rotated || right.rotated ? { rotated: true } : {}),
+    ...(left.missing_accepted_at && right.missing_accepted_at
+      ? {
+          missing_accepted_at: Math.max(
+            left.missing_accepted_at,
+            right.missing_accepted_at,
+          ),
+        }
+      : {}),
   };
 }
 
@@ -505,6 +516,109 @@ export async function lookup_owner_key_pin(
   } catch {
     return "unreadable";
   }
+}
+
+export interface SavedRecipientKey {
+  fingerprint: string;
+  accepted_missing: boolean;
+}
+
+interface SavedKeySource {
+  prefix: string;
+  slot: ContactSlot;
+  value: StoredIdentityPin | StoredOwnerKeyPin;
+}
+
+async function saved_key_sources(email: string): Promise<SavedKeySource[]> {
+  const sources: SavedKeySource[] = [];
+  const direct = await open_contact_as(email, "external");
+  const hosted = await open_contact_as(email, "hosted");
+  const direct_owner = await load_owner_pin(direct);
+
+  if (direct_owner.state === "found") {
+    sources.push({
+      prefix: OWNER_KEY_PIN_PREFIX,
+      slot: direct,
+      value: direct_owner.value,
+    });
+  }
+
+  const hosted_identity = await load_identity_pin(hosted);
+
+  if (hosted_identity.state === "found") {
+    sources.push({
+      prefix: IDENTITY_PIN_PREFIX,
+      slot: hosted,
+      value: hosted_identity.value,
+    });
+  }
+
+  if (hosted.contact.id !== direct.contact.id) {
+    const hosted_owner = await load_owner_pin(hosted);
+
+    if (hosted_owner.state === "found" && hosted_owner.value.hosted === true) {
+      sources.push({
+        prefix: OWNER_KEY_PIN_PREFIX,
+        slot: hosted,
+        value: hosted_owner.value,
+      });
+    }
+  }
+
+  return sources;
+}
+
+export async function find_saved_recipient_key(
+  email: string,
+): Promise<SavedRecipientKey | null> {
+  const sources = await saved_key_sources(email);
+
+  if (sources.length === 0) return null;
+
+  return {
+    fingerprint: sources[0].value.fingerprint,
+    accepted_missing: sources.every(
+      (source) => typeof source.value.missing_accepted_at === "number",
+    ),
+  };
+}
+
+async function mark_saved_recipient_key(
+  email: string,
+  accepted: boolean,
+): Promise<void> {
+  for (const source of await saved_key_sources(email)) {
+    const marked = typeof source.value.missing_accepted_at === "number";
+
+    if (marked === accepted) continue;
+
+    await with_contact_lock(source.slot, async () => {
+      const read = await read_contact_entry<
+        StoredIdentityPin | StoredOwnerKeyPin
+      >(source.prefix, source.slot, same_fingerprint);
+
+      if (read.state !== "found" || read.conflict) return;
+      if (read.value.fingerprint !== source.value.fingerprint) return;
+
+      const kept = { ...read.value };
+
+      delete kept.missing_accepted_at;
+
+      await write_contact_entry(
+        source.prefix,
+        source.slot,
+        accepted ? { ...kept, missing_accepted_at: Date.now() } : kept,
+      );
+    });
+  }
+}
+
+export function accept_missing_recipient_key(email: string): Promise<void> {
+  return mark_saved_recipient_key(email, true);
+}
+
+export function restore_missing_key_check(email: string): Promise<void> {
+  return mark_saved_recipient_key(email, false);
 }
 
 export async function replace_owner_key_pin(
