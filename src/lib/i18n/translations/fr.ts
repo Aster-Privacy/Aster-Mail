@@ -10567,6 +10567,21 @@ export const fr = {
     link_device_confirming: "Confirmation en cours...",
     link_device_desktop: "Associer un appareil de bureau",
     device_fingerprint: "Code de vérification",
+    link_device_grant_notice:
+      "L'association donne à l'application de bureau sur {{device}} un accès complet à {{email}}, y compris à vos e-mails et à vos clés de chiffrement.",
+    link_device_own_device_warning:
+      "Continuez uniquement si vous avez lancé cette opération dans l'application de bureau sur votre propre ordinateur. Si quelqu'un d'autre vous a donné ce code, n'associez pas l'appareil.",
+    link_device_fingerprint_enter:
+      "Entrez le code de vérification affiché dans votre application de bureau.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "Votre application de bureau a envoyé ce code de vérification, et il correspond à cet appareil.",
+    link_device_fingerprint_mismatch:
+      "Le code de vérification ne correspond pas à cet appareil, qui n'a donc pas été associé. Obtenez un nouveau code dans votre application de bureau, puis réessayez.",
+    link_device_update_desktop:
+      "Si votre application de bureau n'affiche pas de code de vérification, mettez-la à jour, puis réessayez.",
+    device_code_fingerprint_required_hint:
+      "Votre navigateur demande ce code de vérification avant d'associer l'appareil.",
     device_code_verify_toggle: "Vérifier cet appareil",
     link_device_fingerprint_hint:
       "Si votre application de bureau affiche un code de vérification, vérifiez qu'il correspond à celui-ci avant d'associer l'appareil.",

@@ -10441,6 +10441,21 @@ export const es = {
     link_device_confirming: "Confirmando...",
     link_device_desktop: "Vincular dispositivo de escritorio",
     device_fingerprint: "Código de verificación",
+    link_device_grant_notice:
+      "Al vincular, la aplicación de escritorio en {{device}} obtiene acceso completo a {{email}}, incluidos tu correo y tus claves de cifrado.",
+    link_device_own_device_warning:
+      "Continúa solo si iniciaste este proceso en la aplicación de escritorio de tu propia computadora. Si otra persona te dio este código, no vincules el dispositivo.",
+    link_device_fingerprint_enter:
+      "Ingresa el código de verificación que muestra tu aplicación de escritorio.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "Tu aplicación de escritorio envió este código de verificación y coincide con este dispositivo.",
+    link_device_fingerprint_mismatch:
+      "El código de verificación no coincide con este dispositivo, así que el dispositivo no se vinculó. Obtén un código nuevo en tu aplicación de escritorio y vuelve a intentarlo.",
+    link_device_update_desktop:
+      "Si tu aplicación de escritorio no muestra un código de verificación, actualízala y vuelve a intentarlo.",
+    device_code_fingerprint_required_hint:
+      "Tu navegador pide este código de verificación antes de vincular el dispositivo.",
     device_code_verify_toggle: "Verificar este dispositivo",
     link_device_fingerprint_hint:
       "Si tu aplicación de escritorio muestra un código de verificación, comprueba que coincide con este antes de vincular el dispositivo.",

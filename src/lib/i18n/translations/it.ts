@@ -10483,6 +10483,21 @@ export const it = {
     link_device_confirming: "Collegamento dispositivo...",
     link_device_desktop: "App desktop",
     device_fingerprint: "Codice di verifica",
+    link_device_grant_notice:
+      "Il collegamento dà all'app desktop su {{device}} accesso completo a {{email}}, inclusi la tua posta e le tue chiavi di crittografia.",
+    link_device_own_device_warning:
+      "Continua solo se hai avviato questa operazione nell'app desktop sul tuo computer. Se questo codice ti è stato dato da un'altra persona, non collegare il dispositivo.",
+    link_device_fingerprint_enter:
+      "Inserisci il codice di verifica mostrato nella tua app desktop.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "La tua app desktop ha inviato questo codice di verifica, che corrisponde a questo dispositivo.",
+    link_device_fingerprint_mismatch:
+      "Il codice di verifica non corrisponde a questo dispositivo, quindi il dispositivo non è stato collegato. Ottieni un nuovo codice nella tua app desktop, poi riprova.",
+    link_device_update_desktop:
+      "Se la tua app desktop non mostra un codice di verifica, aggiornala e riprova.",
+    device_code_fingerprint_required_hint:
+      "Il browser chiede questo codice di verifica prima di collegare il dispositivo.",
     device_code_verify_toggle: "Verifica questo dispositivo",
     link_device_fingerprint_hint:
       "Se la tua app desktop mostra un codice di verifica, verifica che corrisponda a questo prima di collegare il dispositivo.",

@@ -10561,6 +10561,21 @@ export const de = {
     link_device_confirming: "Gerät wird verknüpft...",
     link_device_desktop: "Desktop-App",
     device_fingerprint: "Prüfcode",
+    link_device_grant_notice:
+      "Durch das Verknüpfen erhält die Desktop-App auf {{device}} vollen Zugriff auf {{email}}, einschließlich Ihrer E-Mails und Ihrer Verschlüsselungsschlüssel.",
+    link_device_own_device_warning:
+      "Fahren Sie nur fort, wenn Sie diesen Vorgang selbst in der Desktop-App auf Ihrem eigenen Computer gestartet haben. Wenn Sie diesen Code von jemand anderem erhalten haben, verknüpfen Sie das Gerät nicht.",
+    link_device_fingerprint_enter:
+      "Geben Sie den in Ihrer Desktop-App angezeigten Prüfcode ein.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "Ihre Desktop-App hat diesen Prüfcode gesendet, und er stimmt mit diesem Gerät überein.",
+    link_device_fingerprint_mismatch:
+      "Der Prüfcode stimmt nicht mit diesem Gerät überein, daher wurde das Gerät nicht verknüpft. Fordern Sie in Ihrer Desktop-App einen neuen Code an und versuchen Sie es erneut.",
+    link_device_update_desktop:
+      "Wenn Ihre Desktop-App keinen Prüfcode anzeigt, aktualisieren Sie die Desktop-App und versuchen Sie es erneut.",
+    device_code_fingerprint_required_hint:
+      "Ihr Browser fragt nach diesem Prüfcode, bevor er das Gerät verknüpft.",
     device_code_verify_toggle: "Dieses Gerät überprüfen",
     link_device_fingerprint_hint:
       "Wenn deine Desktop-App einen Prüfcode anzeigt, vergewissere dich, dass er mit diesem übereinstimmt, bevor du das Gerät verknüpfst.",

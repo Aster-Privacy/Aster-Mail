@@ -10195,6 +10195,19 @@ export const ja = {
     link_device_cancel: "キャンセル",
     link_device_desktop: "デスクトップアプリ",
     device_fingerprint: "確認コード",
+    link_device_grant_notice:
+      "リンクすると、{{device}} のデスクトップアプリが {{email}} に完全にアクセスできるようになります。メールと暗号鍵も含まれます。",
+    link_device_own_device_warning:
+      "ご自身のコンピュータのデスクトップアプリでこの操作を開始した場合にのみ続行してください。このコードをほかの人から受け取った場合は、デバイスをリンクしないでください。",
+    link_device_fingerprint_enter: "デスクトップアプリに表示されている確認コードを入力してください。",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched: "デスクトップアプリから送信された確認コードが、このデバイスと一致しています。",
+    link_device_fingerprint_mismatch:
+      "確認コードがこのデバイスと一致しないため、デバイスはリンクされていません。デスクトップアプリで新しいコードを取得して、もう一度お試しください。",
+    link_device_update_desktop:
+      "デスクトップアプリに確認コードが表示されない場合は、デスクトップアプリをアップデートしてから、もう一度お試しください。",
+    device_code_fingerprint_required_hint:
+      "デバイスをリンクする前に、ブラウザでこの確認コードの入力が求められます。",
     device_code_verify_toggle: "このデバイスを確認",
     link_device_fingerprint_hint:
       "デスクトップアプリに確認コードが表示されている場合は、デバイスをリンクする前に、このコードと一致することを確認してください。",

@@ -10650,6 +10650,21 @@ export const pl = {
     link_device_cancel: "Anuluj",
     link_device_desktop: "Aplikacja desktopowa",
     device_fingerprint: "Kod weryfikacyjny",
+    link_device_grant_notice:
+      "Połączenie daje aplikacji desktopowej na urządzeniu {{device}} pełny dostęp do konta {{email}}, w tym do poczty i kluczy szyfrowania.",
+    link_device_own_device_warning:
+      "Kontynuuj tylko wtedy, gdy ten proces został rozpoczęty przez Ciebie w aplikacji desktopowej na własnym komputerze. Jeśli ten kod pochodzi od innej osoby, nie łącz urządzenia.",
+    link_device_fingerprint_enter:
+      "Wprowadź kod weryfikacyjny wyświetlony w aplikacji desktopowej.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "Aplikacja desktopowa wysłała ten kod weryfikacyjny i zgadza się on z tym urządzeniem.",
+    link_device_fingerprint_mismatch:
+      "Kod weryfikacyjny nie zgadza się z tym urządzeniem, więc urządzenie nie zostało połączone. Uzyskaj nowy kod w aplikacji desktopowej i spróbuj ponownie.",
+    link_device_update_desktop:
+      "Jeśli aplikacja desktopowa nie wyświetla kodu weryfikacyjnego, zaktualizuj ją i spróbuj ponownie.",
+    device_code_fingerprint_required_hint:
+      "Przeglądarka prosi o ten kod weryfikacyjny, zanim połączy urządzenie.",
     device_code_verify_toggle: "Zweryfikuj to urządzenie",
     link_device_fingerprint_hint:
       "Jeśli aplikacja na komputer pokazuje kod weryfikacyjny, przed połączeniem urządzenia upewnij się, że jest zgodny z tym kodem.",

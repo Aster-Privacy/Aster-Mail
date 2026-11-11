@@ -10011,6 +10011,18 @@ export const ko = {
     link_device_cancel: "취소",
     link_device_desktop: "데스크톱 앱",
     device_fingerprint: "확인 코드",
+    link_device_grant_notice:
+      "연결하면 {{device}}의 데스크톱 앱이 메일과 암호화 키를 포함해 {{email}}에 대한 전체 접근 권한을 갖게 됩니다.",
+    link_device_own_device_warning:
+      "본인 컴퓨터의 데스크톱 앱에서 직접 이 과정을 시작한 경우에만 계속하세요. 다른 사람에게서 이 코드를 받았다면 기기를 연결하지 마세요.",
+    link_device_fingerprint_enter: "데스크톱 앱에 표시된 확인 코드를 입력하세요.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched: "데스크톱 앱이 보낸 확인 코드가 이 기기와 일치합니다.",
+    link_device_fingerprint_mismatch:
+      "확인 코드가 이 기기와 일치하지 않아 기기가 연결되지 않았습니다. 데스크톱 앱에서 새 코드를 받은 후 다시 시도하세요.",
+    link_device_update_desktop:
+      "데스크톱 앱에 확인 코드가 표시되지 않으면 데스크톱 앱을 업데이트한 후 다시 시도하세요.",
+    device_code_fingerprint_required_hint: "기기를 연결하기 전에 브라우저에서 이 확인 코드를 요청합니다.",
     device_code_verify_toggle: "이 기기 확인",
     link_device_fingerprint_hint:
       "데스크톱 앱에 확인 코드가 표시되면 기기를 연결하기 전에 이 코드와 일치하는지 확인하세요.",

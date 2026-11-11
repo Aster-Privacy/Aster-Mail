@@ -10314,6 +10314,21 @@ export const tr = {
     link_device_cancel: "İptal",
     link_device_desktop: "Masaüstü uygulaması",
     device_fingerprint: "Doğrulama kodu",
+    link_device_grant_notice:
+      "Bağlama işlemi, {{device}} üzerindeki masaüstü uygulamasına e-postalarınız ve şifreleme anahtarlarınız dahil {{email}} hesabına tam erişim verir.",
+    link_device_own_device_warning:
+      "Yalnızca bu işlemi kendi bilgisayarınızdaki masaüstü uygulamasında siz başlattıysanız devam edin. Bu kodu size başka biri verdiyse cihazı bağlamayın.",
+    link_device_fingerprint_enter:
+      "Masaüstü uygulamanızda gösterilen doğrulama kodunu girin.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "Masaüstü uygulamanız bu doğrulama kodunu gönderdi ve kod bu cihazla eşleşiyor.",
+    link_device_fingerprint_mismatch:
+      "Doğrulama kodu bu cihazla eşleşmiyor, bu nedenle cihaz bağlanmadı. Masaüstü uygulamanızdan yeni bir kod alın ve yeniden deneyin.",
+    link_device_update_desktop:
+      "Masaüstü uygulamanız doğrulama kodu göstermiyorsa uygulamayı güncelleyin ve yeniden deneyin.",
+    device_code_fingerprint_required_hint:
+      "Tarayıcınız cihazı bağlamadan önce bu doğrulama kodunu ister.",
     device_code_verify_toggle: "Bu cihazı doğrula",
     link_device_fingerprint_hint:
       "Masaüstü uygulamanız bir doğrulama kodu gösteriyorsa cihazı bağlamadan önce bununla eşleştiğinden emin olun.",

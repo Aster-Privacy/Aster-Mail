@@ -10414,6 +10414,21 @@ export const nl = {
     link_device_cancel: "Annuleren",
     link_device_desktop: "Desktop-app",
     device_fingerprint: "Verificatiecode",
+    link_device_grant_notice:
+      "Door te koppelen krijgt de desktop-app op {{device}} volledige toegang tot {{email}}, inclusief je e-mail en je versleutelingssleutels.",
+    link_device_own_device_warning:
+      "Ga alleen verder als je dit zelf bent gestart in de desktop-app op je eigen computer. Als iemand anders je deze code heeft gegeven, koppel het apparaat dan niet.",
+    link_device_fingerprint_enter:
+      "Voer de verificatiecode in die in je desktop-app staat.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "Je desktop-app heeft deze verificatiecode verzonden en de code komt overeen met dit apparaat.",
+    link_device_fingerprint_mismatch:
+      "De verificatiecode komt niet overeen met dit apparaat, dus het apparaat is niet gekoppeld. Vraag een nieuwe code aan in je desktop-app en probeer het opnieuw.",
+    link_device_update_desktop:
+      "Als je desktop-app geen verificatiecode toont, werk de desktop-app dan bij en probeer het opnieuw.",
+    device_code_fingerprint_required_hint:
+      "Je browser vraagt om deze verificatiecode voordat het apparaat wordt gekoppeld.",
     device_code_verify_toggle: "Dit apparaat verifiëren",
     link_device_fingerprint_hint:
       "Als je desktop-app een verificatiecode toont, controleer dan of die overeenkomt met deze voordat je het apparaat koppelt.",

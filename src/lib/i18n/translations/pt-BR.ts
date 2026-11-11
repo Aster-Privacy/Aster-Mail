@@ -10421,6 +10421,21 @@ export const pt_br = {
     link_device_confirming: "Vinculando dispositivo...",
     link_device_desktop: "Aplicativo desktop",
     device_fingerprint: "Código de verificação",
+    link_device_grant_notice:
+      "Ao vincular, o aplicativo desktop em {{device}} recebe acesso total a {{email}}, incluindo seus e-mails e suas chaves de criptografia.",
+    link_device_own_device_warning:
+      "Continue somente se você iniciou este processo no aplicativo desktop do seu próprio computador. Se outra pessoa passou este código para você, não vincule o dispositivo.",
+    link_device_fingerprint_enter:
+      "Digite o código de verificação mostrado no seu aplicativo desktop.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "Seu aplicativo desktop enviou este código de verificação, e ele corresponde a este dispositivo.",
+    link_device_fingerprint_mismatch:
+      "O código de verificação não corresponde a este dispositivo, então o dispositivo não foi vinculado. Gere um novo código no aplicativo desktop e tente novamente.",
+    link_device_update_desktop:
+      "Se o seu aplicativo desktop não mostrar um código de verificação, atualize o aplicativo e tente novamente.",
+    device_code_fingerprint_required_hint:
+      "Seu navegador pede este código de verificação antes de vincular o dispositivo.",
     device_code_verify_toggle: "Verificar este dispositivo",
     link_device_fingerprint_hint:
       "Se o app para computador mostrar um código de verificação, confira se ele corresponde a este antes de vincular o dispositivo.",

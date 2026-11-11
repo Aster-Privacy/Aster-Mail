@@ -9802,6 +9802,21 @@ export const en: Translations = {
     link_device_cancel: "Cancel",
     link_device_desktop: "Desktop app",
     device_fingerprint: "Verification code",
+    link_device_grant_notice:
+      "Linking gives the desktop app on {{device}} full access to {{email}}, including your mail and your encryption keys.",
+    link_device_own_device_warning:
+      "Continue only if you started this in the desktop app on your own computer. If someone else gave you this code, don't link the device.",
+    link_device_fingerprint_enter:
+      "Enter the verification code shown in your desktop app.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "Your desktop app sent this verification code, and it matches this device.",
+    link_device_fingerprint_mismatch:
+      "The verification code doesn't match this device, so the device isn't linked. Get a new code in your desktop app, then try again.",
+    link_device_update_desktop:
+      "If your desktop app doesn't show a verification code, update the desktop app, then try again.",
+    device_code_fingerprint_required_hint:
+      "Your browser asks for this verification code before it links the device.",
     device_code_verify_toggle: "Verify this device",
     link_device_fingerprint_hint:
       "If your desktop app shows a verification code, make sure that it matches this one before you link the device.",

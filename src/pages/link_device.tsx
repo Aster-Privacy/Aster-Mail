@@ -37,6 +37,13 @@ import {
   base64url_decode,
 } from "@/lib/crypto/device_envelope";
 import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
+import {
+  capture_link_commitment,
+  clear_link_commitment,
+  format_fingerprint_input,
+  normalize_fingerprint,
+  read_link_commitment,
+} from "@/lib/device_link_commitment";
 import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
 import { app_pathname } from "@/lib/account_index_url";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -447,12 +454,24 @@ export default function LinkDevice() {
   const [device_info, set_device_info] = useState<DeviceInfo | null>(null);
   const [error, set_error] = useState<string | null>(null);
   const [is_verifying, set_is_verifying] = useState(false);
-  const [show_verification, set_show_verification] = useState(false);
+  const [commitment, set_commitment] = useState<string | null>(() => {
+    capture_link_commitment();
+
+    return read_link_commitment();
+  });
+  const [fingerprint_input, set_fingerprint_input] = useState("");
+  const identity = use_account_identity();
   const device_fingerprint = useMemo(
     () =>
       device_info ? fingerprint_of_encoded_device_keys(device_info) : null,
     [device_info],
   );
+  const typed_fingerprint = normalize_fingerprint(fingerprint_input);
+
+  const drop_commitment = () => {
+    clear_link_commitment();
+    set_commitment(null);
+  };
 
   useEffect(() => {
     if (auth_loading) return;
@@ -518,12 +537,26 @@ export default function LinkDevice() {
         return;
       }
 
-      if (!fingerprint_of_encoded_device_keys(response.data)) {
+      const returned_fingerprint = fingerprint_of_encoded_device_keys(
+        response.data,
+      );
+
+      if (!returned_fingerprint) {
         set_error(t("auth.link_device_failed"));
 
         return;
       }
 
+      if (commitment && commitment !== returned_fingerprint) {
+        drop_commitment();
+        set_code_input("");
+        set_error(t("auth.link_device_fingerprint_mismatch"));
+        show_toast(t("auth.link_device_fingerprint_mismatch"), "error");
+
+        return;
+      }
+
+      set_fingerprint_input("");
       set_device_info(response.data);
       set_page_state("confirming_device");
     } catch {
@@ -534,7 +567,26 @@ export default function LinkDevice() {
   };
 
   const handle_confirm = async () => {
-    if (!device_info || !device_fingerprint) return;
+    if (!device_info) return;
+
+    const expected_fingerprint = commitment ?? typed_fingerprint;
+    const sealed_fingerprint = fingerprint_of_encoded_device_keys(device_info);
+
+    if (!expected_fingerprint || !sealed_fingerprint) return;
+
+    if (expected_fingerprint !== sealed_fingerprint) {
+      if (commitment) {
+        drop_commitment();
+        set_device_info(null);
+        set_code_input("");
+        set_page_state("input");
+      }
+      set_fingerprint_input("");
+      set_error(t("auth.link_device_fingerprint_mismatch"));
+      show_toast(t("auth.link_device_fingerprint_mismatch"), "error");
+
+      return;
+    }
 
     set_page_state("sealing");
     set_error(null);
@@ -582,6 +634,7 @@ export default function LinkDevice() {
         if (info.restart) {
           set_device_info(null);
           set_code_input("");
+          set_fingerprint_input("");
           set_page_state("input");
         } else {
           set_page_state("confirming_device");
@@ -590,6 +643,7 @@ export default function LinkDevice() {
         return;
       }
 
+      clear_link_commitment();
       set_page_state("success");
     } catch (err) {
       const message =
@@ -606,6 +660,7 @@ export default function LinkDevice() {
   const handle_restart = () => {
     set_device_info(null);
     set_code_input("");
+    set_fingerprint_input("");
     set_error(null);
     set_page_state("input");
   };
@@ -613,6 +668,7 @@ export default function LinkDevice() {
   const open_account_chooser = () => {
     set_device_info(null);
     set_code_input("");
+    set_fingerprint_input("");
     set_error(null);
     set_page_state("choose_account");
   };
@@ -742,36 +798,85 @@ export default function LinkDevice() {
               className="mt-3.5 border-t pt-3.5"
               style={{ borderColor: "var(--border-secondary)" }}
             >
-              <button
-                aria-expanded={show_verification}
-                className="block text-[11px] font-medium leading-tight underline-offset-2 hover:underline"
-                style={{ color: "var(--text-muted)" }}
-                type="button"
-                onClick={() => set_show_verification((open) => !open)}
+              <p
+                className="text-[12px] leading-relaxed"
+                data-testid="link_device_grant"
+                style={{ color: "var(--text-primary)" }}
               >
-                {t("auth.device_code_verify_toggle")}
-              </button>
-              {show_verification && (
-                <div className="mt-2" data-testid="device_fingerprint">
-                  <span
-                    className="block text-[11px] font-medium leading-tight"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {t("auth.device_fingerprint")}
-                  </span>
+                {t("auth.link_device_grant_notice", {
+                  device: device_info.machine_name,
+                  email: identity.display_email,
+                })}
+              </p>
+              <p
+                className="mt-2 text-[11px] leading-relaxed"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {t("auth.link_device_own_device_warning")}
+              </p>
+            </div>
+            <div
+              className="mt-3.5 border-t pt-3.5"
+              style={{ borderColor: "var(--border-secondary)" }}
+            >
+              <span
+                className="block text-[11px] font-medium leading-tight"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {t("auth.device_fingerprint")}
+              </span>
+              {commitment ? (
+                <div data-testid="device_fingerprint">
                   <span
                     className="mt-1 block select-text font-mono text-[15px] font-semibold tracking-wide"
                     style={{ color: "var(--text-primary)" }}
                   >
-                    {device_fingerprint}
+                    {commitment}
                   </span>
                   <span
                     className="mt-1.5 block text-[11px] leading-relaxed"
                     style={{ color: "var(--text-muted)" }}
                   >
-                    {t("auth.link_device_fingerprint_hint")}
+                    {t("auth.link_device_fingerprint_matched")}
                   </span>
                 </div>
+              ) : (
+                <>
+                  <input
+                    aria-label={t("auth.link_device_fingerprint_enter")}
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    className="link_device_code_input mt-2 w-full rounded-[12px] px-3 py-2.5 text-center font-mono text-[14px] font-semibold tracking-wide text-txt-primary placeholder:font-normal placeholder:text-txt-muted"
+                    data-testid="device_fingerprint_input"
+                    placeholder={t("auth.link_device_fingerprint_placeholder")}
+                    spellCheck={false}
+                    type="text"
+                    value={fingerprint_input}
+                    onChange={(e) => {
+                      set_fingerprint_input(
+                        format_fingerprint_input(e.target.value),
+                      );
+                      set_error(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !is_composing(e)) {
+                        handle_confirm();
+                      }
+                    }}
+                  />
+                  <span
+                    className="mt-1.5 block text-[11px] leading-relaxed"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {t("auth.link_device_fingerprint_enter")}
+                  </span>
+                  <span
+                    className="mt-1.5 block text-[11px] leading-relaxed"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {t("auth.link_device_update_desktop")}
+                  </span>
+                </>
               )}
             </div>
           </div>
@@ -783,6 +888,7 @@ export default function LinkDevice() {
 
         <Button
           className="w-full mt-6"
+          disabled={!commitment && !typed_fingerprint}
           size="xl"
           variant="depth"
           onClick={handle_confirm}

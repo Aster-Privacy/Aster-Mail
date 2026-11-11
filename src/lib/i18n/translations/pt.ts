@@ -10538,6 +10538,21 @@ export const pt = {
     link_device_confirming: "A associar dispositivo...",
     link_device_desktop: "Aplicação para computador",
     device_fingerprint: "Código de verificação",
+    link_device_grant_notice:
+      "Ao associar, a aplicação para computador em {{device}} fica com acesso total a {{email}}, incluindo o seu correio e as suas chaves de encriptação.",
+    link_device_own_device_warning:
+      "Continue apenas se iniciou este processo na aplicação para computador no seu próprio computador. Se outra pessoa lhe deu este código, não associe o dispositivo.",
+    link_device_fingerprint_enter:
+      "Introduza o código de verificação mostrado na aplicação para computador.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "A aplicação para computador enviou este código de verificação, e ele corresponde a este dispositivo.",
+    link_device_fingerprint_mismatch:
+      "O código de verificação não corresponde a este dispositivo, pelo que o dispositivo não foi associado. Obtenha um novo código na aplicação para computador e tente novamente.",
+    link_device_update_desktop:
+      "Se a aplicação para computador não mostrar um código de verificação, atualize a aplicação e tente novamente.",
+    device_code_fingerprint_required_hint:
+      "O navegador pede este código de verificação antes de associar o dispositivo.",
     device_code_verify_toggle: "Verificar este dispositivo",
     link_device_fingerprint_hint:
       "Se a sua aplicação de computador mostrar um código de verificação, confirme que corresponde a este antes de associar o dispositivo.",

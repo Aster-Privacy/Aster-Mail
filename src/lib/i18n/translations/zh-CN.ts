@@ -9289,6 +9289,16 @@ export const zh_CN = {
     link_device_cancel: "取消",
     link_device_desktop: "桌面应用",
     device_fingerprint: "验证码",
+    link_device_grant_notice:
+      "关联后，{{device}} 上的桌面应用将获得对 {{email}} 的完全访问权限，包括你的邮件和加密密钥。",
+    link_device_own_device_warning:
+      "仅当你是在自己电脑的桌面应用中发起此操作时才继续。如果此代码是别人提供给你的，请不要关联设备。",
+    link_device_fingerprint_enter: "输入桌面应用中显示的验证码。",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched: "桌面应用发送了此验证码，并且它与此设备匹配。",
+    link_device_fingerprint_mismatch: "验证码与此设备不匹配，因此设备未关联。请在桌面应用中获取新代码，然后重试。",
+    link_device_update_desktop: "如果桌面应用未显示验证码，请更新桌面应用，然后重试。",
+    device_code_fingerprint_required_hint: "浏览器在关联设备之前会要求输入此验证码。",
     device_code_verify_toggle: "验证此设备",
     link_device_fingerprint_hint:
       "如果桌面应用显示了验证码，请在关联设备之前确认它与此验证码一致。",

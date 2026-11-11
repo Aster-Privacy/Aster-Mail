@@ -8810,6 +8810,14 @@ export interface AuthTranslations {
   link_device_cancel: string;
   link_device_desktop: string;
   device_fingerprint: string;
+  link_device_grant_notice: string;
+  link_device_own_device_warning: string;
+  link_device_fingerprint_enter: string;
+  link_device_fingerprint_placeholder: string;
+  link_device_fingerprint_matched: string;
+  link_device_fingerprint_mismatch: string;
+  link_device_update_desktop: string;
+  device_code_fingerprint_required_hint: string;
   device_code_verify_toggle: string;
   link_device_fingerprint_hint: string;
   device_code_fingerprint_hint: string;

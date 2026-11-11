@@ -10224,6 +10224,21 @@ export const ar = {
     link_device_cancel: "إلغاء",
     link_device_desktop: "تطبيق سطح المكتب",
     device_fingerprint: "رمز التحقق",
+    link_device_grant_notice:
+      "يمنح الربط تطبيق سطح المكتب على {{device}} وصولاً كاملاً إلى {{email}}، بما في ذلك بريدك ومفاتيح التشفير الخاصة بك.",
+    link_device_own_device_warning:
+      "تابع فقط إذا كنت قد بدأت هذه العملية بنفسك في تطبيق سطح المكتب على حاسوبك. إذا أعطاك شخص آخر هذا الرمز، فلا تربط الجهاز.",
+    link_device_fingerprint_enter:
+      "أدخل رمز التحقق المعروض في تطبيق سطح المكتب الخاص بك.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_matched:
+      "أرسل تطبيق سطح المكتب رمز التحقق هذا، وهو يطابق هذا الجهاز.",
+    link_device_fingerprint_mismatch:
+      "رمز التحقق لا يطابق هذا الجهاز، لذلك لم يتم ربط الجهاز. احصل على رمز جديد من تطبيق سطح المكتب ثم حاول مرة أخرى.",
+    link_device_update_desktop:
+      "إذا لم يعرض تطبيق سطح المكتب رمز تحقق، فحدّث التطبيق ثم حاول مرة أخرى.",
+    device_code_fingerprint_required_hint:
+      "يطلب متصفحك رمز التحقق هذا قبل ربط الجهاز.",
     device_code_verify_toggle: "التحقق من هذا الجهاز",
     link_device_fingerprint_hint:
       "إذا عرض تطبيق سطح المكتب رمز تحقق، فتأكد من أنه يطابق هذا الرمز قبل ربط الجهاز.",
