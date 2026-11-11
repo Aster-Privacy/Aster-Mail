@@ -52,7 +52,9 @@ import {
 import {
   apply_loaded_error_report_preference,
   ERROR_REPORT_CONSENT_KEY,
+  ERROR_REPORT_UNSAVED_DECLINE_KEY,
   forget_error_report_grant,
+  has_unsaved_error_report_decline,
   set_error_report_choice,
 } from "./error_report_consent";
 
@@ -229,6 +231,49 @@ describe("error reports respect the user's choice", () => {
     });
 
     expect(is_error_reporting_allowed()).toBe(true);
+  });
+
+  it("keeps an opt-out that was never saved after the page reloads", () => {
+    localStorage.setItem(ERROR_REPORT_CONSENT_KEY, "off");
+    localStorage.setItem(ERROR_REPORT_UNSAVED_DECLINE_KEY, "1");
+
+    expect(has_unsaved_error_report_decline()).toBe(true);
+
+    cache_preferences_locally({
+      ...DEFAULT_PREFERENCES,
+      send_error_reports: true,
+    });
+
+    expect(is_error_reporting_allowed()).toBe(false);
+    expect(localStorage.getItem(ERROR_REPORT_CONSENT_KEY)).toBe("off");
+  });
+
+  it("marks an opt-out as unsaved until the saved setting agrees", () => {
+    set_error_report_choice(false);
+
+    expect(localStorage.getItem(ERROR_REPORT_UNSAVED_DECLINE_KEY)).toBe("1");
+
+    apply_loaded_error_report_preference(false);
+
+    expect(localStorage.getItem(ERROR_REPORT_UNSAVED_DECLINE_KEY)).toBeNull();
+    expect(has_unsaved_error_report_decline()).toBe(false);
+
+    apply_loaded_error_report_preference(true);
+
+    expect(is_error_reporting_allowed()).toBe(true);
+  });
+
+  it("clears the unsaved mark when reports are turned back on or on sign-out", () => {
+    set_error_report_choice(false);
+    set_error_report_choice(true);
+
+    expect(localStorage.getItem(ERROR_REPORT_UNSAVED_DECLINE_KEY)).toBeNull();
+
+    set_error_report_choice(false);
+    forget_error_report_grant();
+
+    expect(localStorage.getItem(ERROR_REPORT_UNSAVED_DECLINE_KEY)).toBeNull();
+    expect(has_unsaved_error_report_decline()).toBe(false);
   });
 
   it("keeps a choice made here until loaded preferences agree with it", () => {
