@@ -216,6 +216,28 @@ describe("desktop code sign-in", () => {
     expect(open_external_mock).toHaveBeenCalledWith(
       "https://app.astermail.org/link-device#v=9B16AF790A6AE2F255D3",
     );
+
+    const copy_fingerprint = container!.querySelector(
+      '[data-testid="device_fingerprint_copy"]',
+    ) as HTMLButtonElement;
+
+    expect(copy_fingerprint.getAttribute("aria-label")).toBe(
+      "auth.device_fingerprint_copy",
+    );
+
+    await act(async () => {
+      copy_fingerprint.click();
+    });
+    await advance(100);
+
+    expect(invoke_mock).toHaveBeenCalledWith(
+      "plugin:clipboard-manager|write_text",
+      { text: "9B16 AF79 0A6A E2F2 55D3" },
+    );
+    expect(show_toast_mock).toHaveBeenCalledWith(
+      "common.copied_to_clipboard",
+      "success",
+    );
   });
 
   it("keeps polling after a failed status request", async () => {

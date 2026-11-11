@@ -10419,41 +10419,36 @@ export const pt_br = {
     link_device_confirm_button: "Vincular dispositivo",
     link_device_confirm_prompt: "Deseja vincular este dispositivo à sua conta?",
     link_device_confirming: "Vinculando dispositivo...",
-    link_device_desktop: "Aplicativo desktop",
-    device_fingerprint: "Código de verificação",
+    link_device_desktop: "Novo dispositivo",
+    device_fingerprint: "Impressão digital do dispositivo",
+    device_fingerprint_copy: "Copiar impressão digital do dispositivo",
     link_device_grant_notice:
-      "Ao vincular, o aplicativo desktop em {{device}} recebe acesso total a {{email}}, incluindo seus e-mails e suas chaves de criptografia.",
+      "Ao vincular, o app em {{device}} recebe acesso total a {{email}}, incluindo seus e-mails e suas chaves de criptografia.",
     link_device_own_device_warning:
-      "Continue somente se você iniciou este processo no aplicativo desktop do seu próprio computador. Se outra pessoa passou este código para você, não vincule o dispositivo.",
+      "Continue somente se você iniciou este processo em um app do Aster no seu próprio dispositivo. Se outra pessoa passou este código para você, não vincule o dispositivo.",
     link_device_fingerprint_enter:
-      "Digite o código de verificação mostrado no seu aplicativo desktop.",
+      "Digite a impressão digital do dispositivo mostrada no app que você está vinculando. Alguns apps a chamam de código de verificação.",
     link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
-    link_device_fingerprint_matched:
-      "Seu aplicativo desktop enviou este código de verificação, e ele corresponde a este dispositivo.",
     link_device_fingerprint_mismatch:
-      "O código de verificação não corresponde a este dispositivo, então o dispositivo não foi vinculado. Gere um novo código no aplicativo desktop e tente novamente.",
+      "Isso não corresponde ao dispositivo deste código de vinculação. Compare cada caractere com o app que você está vinculando e tente novamente. Se ainda não corresponder, não vincule o dispositivo.",
+    link_device_fingerprint_link_mismatch:
+      "O link que abriu esta página pertence a um dispositivo diferente do deste código de vinculação, então você não pode vincular o dispositivo aqui. Gere um novo código no app que você está vinculando e tente novamente.",
     link_device_update_desktop:
-      "Se o seu aplicativo desktop não mostrar um código de verificação, atualize o aplicativo e tente novamente.",
+      "Se o app não mostrar, escolha Verificar este dispositivo no app. Se o app não tiver essa opção, atualize o app e tente de novo.",
     device_code_fingerprint_required_hint:
-      "Seu navegador pede este código de verificação antes de vincular o dispositivo.",
-    device_code_verify_toggle: "Verificar este dispositivo",
-    link_device_fingerprint_hint:
-      "Se o app para computador mostrar um código de verificação, confira se ele corresponde a este antes de vincular o dispositivo.",
-    device_code_fingerprint_hint:
-      "O navegador mostra o mesmo código de verificação antes de vincular o dispositivo. Se os dois códigos não corresponderem, não vincule o dispositivo.",
+      "Seu navegador pede esta impressão digital do dispositivo antes de vincular o dispositivo.",
     link_device_change_account: "Mudar de conta",
     link_device_choose_account: "Escolha uma conta",
-    link_device_choose_account_description:
-      "Para vincular seu aplicativo desktop",
+    link_device_choose_account_description: "Para vincular um novo dispositivo",
     link_device_choose_account_note:
       "Suas chaves de criptografia continuam criptografadas enquanto passam entre seus dispositivos.",
     link_device_use_another_account: "Usar outra conta",
     link_device_use_this_account: "Usar esta conta",
     link_device_other_accounts: "Mudar para outra conta",
     link_device_enter_code:
-      "Digite o código mostrado no seu aplicativo desktop.",
+      "Digite o código de vinculação mostrado no app que você está vinculando.",
     link_device_expired_code:
-      "Este código expirou ou não corresponde. Use o código atual do seu aplicativo desktop.",
+      "Este código expirou ou não corresponde. Use o código atual do app que você está vinculando.",
     link_device_failed:
       "A vinculação não foi concluída. Recomeçar geralmente resolve. Sua conta está inalterada.",
     link_device_invalid_code:
@@ -10464,7 +10459,7 @@ export const pt_br = {
       "Para continuar com esta conta, insira a senha dela.",
     link_device_success: "Dispositivo vinculado",
     link_device_success_description:
-      "Seu aplicativo desktop está agora vinculado. Você pode fechar esta aba.",
+      "Seu dispositivo agora está vinculado. Você pode fechar esta aba.",
     link_device_title: "Vincular dispositivo",
     link_keys_locked_title: "Seu chaveiro está bloqueado",
     link_keys_locked_description:

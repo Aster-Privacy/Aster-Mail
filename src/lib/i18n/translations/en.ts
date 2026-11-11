@@ -9792,7 +9792,8 @@ export const en: Translations = {
     device_code_waiting: "Listening for confirmation",
     device_code_expires_in: "Expires in",
     link_device_title: "Link device",
-    link_device_enter_code: "Enter the code shown on your desktop app.",
+    link_device_enter_code:
+      "Enter the linking code shown in the app that you're linking.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "Continue",
     link_device_confirm_prompt:
@@ -9800,31 +9801,27 @@ export const en: Translations = {
     link_device_confirm_button: "Link device",
     link_device_confirming: "Linking device...",
     link_device_cancel: "Cancel",
-    link_device_desktop: "Desktop app",
-    device_fingerprint: "Verification code",
+    link_device_desktop: "New device",
+    device_fingerprint: "Device fingerprint",
+    device_fingerprint_copy: "Copy device fingerprint",
     link_device_grant_notice:
-      "Linking gives the desktop app on {{device}} full access to {{email}}, including your mail and your encryption keys.",
+      "Linking gives the app on {{device}} full access to {{email}}, including your mail and your encryption keys.",
     link_device_own_device_warning:
-      "Continue only if you started this in the desktop app on your own computer. If someone else gave you this code, don't link the device.",
+      "Continue only if you started this in an Aster app on your own device. If someone else gave you this code, don't link the device.",
     link_device_fingerprint_enter:
-      "Enter the verification code shown in your desktop app.",
+      "Enter the device fingerprint shown in the app that you're linking. Some apps call it a verification code.",
     link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
-    link_device_fingerprint_matched:
-      "Your desktop app sent this verification code, and it matches this device.",
     link_device_fingerprint_mismatch:
-      "The verification code doesn't match this device, so the device isn't linked. Get a new code in your desktop app, then try again.",
+      "This doesn't match the device for this linking code. Compare each character with the app that you're linking, then try again. If it still doesn't match, don't link the device.",
+    link_device_fingerprint_link_mismatch:
+      "The link that opened this page belongs to a different device than this linking code, so you can't link the device here. Get a new code in the app that you're linking, then try again.",
     link_device_update_desktop:
-      "If your desktop app doesn't show a verification code, update the desktop app, then try again.",
+      "If the app doesn't show it, choose Verify this device in the app. If the app doesn't have that option, update the app, then try again.",
     device_code_fingerprint_required_hint:
-      "Your browser asks for this verification code before it links the device.",
-    device_code_verify_toggle: "Verify this device",
-    link_device_fingerprint_hint:
-      "If your desktop app shows a verification code, make sure that it matches this one before you link the device.",
-    device_code_fingerprint_hint:
-      "Your browser shows the same verification code before you link the device. If the two codes don't match, don't link the device.",
+      "Your browser asks for this device fingerprint before it links the device.",
     link_device_change_account: "Change account",
     link_device_choose_account: "Choose an account",
-    link_device_choose_account_description: "To link your desktop app",
+    link_device_choose_account_description: "To link a new device",
     link_device_choose_account_note:
       "Your encryption keys stay encrypted as they move between your devices.",
     link_device_use_another_account: "Use another account",
@@ -9836,11 +9833,11 @@ export const en: Translations = {
       "To continue with this account, enter its password.",
     link_device_success: "Device linked",
     link_device_success_description:
-      "Your desktop app is now linked. You can close this tab.",
+      "Your device is now linked. You can close this tab.",
     link_device_invalid_code:
       "A linking code is 8 characters long. Check the code and try again.",
     link_device_expired_code:
-      "This code expired or did not match. Your desktop app has the current one.",
+      "This code expired or did not match. The app that you're linking has the current one.",
     link_device_failed:
       "Linking did not finish. Starting over usually does it. Your account is unchanged.",
     link_keys_locked_title: "Your keyring is locked",

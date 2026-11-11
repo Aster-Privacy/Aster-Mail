@@ -423,9 +423,9 @@ async function handle_link_preview(
     return { ok: false, error: verified.error ?? "code_not_found" };
   }
 
-  const fingerprint = fingerprint_of_encoded_device_keys(verified.data);
-
-  if (!fingerprint) return { ok: false, error: "code_not_found" };
+  if (!fingerprint_of_encoded_device_keys(verified.data)) {
+    return { ok: false, error: "code_not_found" };
+  }
 
   save_link_attempts({
     ...link_state,
@@ -434,7 +434,6 @@ async function handle_link_preview(
 
   return {
     ok: true,
-    fingerprint,
     machine_name: String(verified.data.machine_name ?? "").slice(0, 128),
   };
 }

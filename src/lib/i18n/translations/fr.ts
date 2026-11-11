@@ -10565,40 +10565,36 @@ export const fr = {
     link_device_confirm_button: "Confirmer",
     link_device_confirm_prompt: "Confirmer l'association de l'appareil ?",
     link_device_confirming: "Confirmation en cours...",
-    link_device_desktop: "Associer un appareil de bureau",
-    device_fingerprint: "Code de vérification",
+    link_device_desktop: "Nouvel appareil",
+    device_fingerprint: "Empreinte de l'appareil",
+    device_fingerprint_copy: "Copier l'empreinte de l'appareil",
     link_device_grant_notice:
-      "L'association donne à l'application de bureau sur {{device}} un accès complet à {{email}}, y compris à vos e-mails et à vos clés de chiffrement.",
+      "L'association donne à l'application sur {{device}} un accès complet à {{email}}, y compris à vos e-mails et à vos clés de chiffrement.",
     link_device_own_device_warning:
-      "Continuez uniquement si vous avez lancé cette opération dans l'application de bureau sur votre propre ordinateur. Si quelqu'un d'autre vous a donné ce code, n'associez pas l'appareil.",
+      "Continuez uniquement si vous avez lancé cette opération dans une application Aster sur votre propre appareil. Si quelqu'un d'autre vous a donné ce code, n'associez pas l'appareil.",
     link_device_fingerprint_enter:
-      "Entrez le code de vérification affiché dans votre application de bureau.",
+      "Entrez l'empreinte de l'appareil affichée dans l'application que vous associez. Certaines applications l'appellent code de vérification.",
     link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
-    link_device_fingerprint_matched:
-      "Votre application de bureau a envoyé ce code de vérification, et il correspond à cet appareil.",
     link_device_fingerprint_mismatch:
-      "Le code de vérification ne correspond pas à cet appareil, qui n'a donc pas été associé. Obtenez un nouveau code dans votre application de bureau, puis réessayez.",
+      "Cela ne correspond pas à l'appareil de ce code d'association. Comparez chaque caractère avec l'application que vous associez, puis réessayez. Si cela ne correspond toujours pas, n'associez pas l'appareil.",
+    link_device_fingerprint_link_mismatch:
+      "Le lien qui a ouvert cette page appartient à un autre appareil que celui de ce code d'association. Vous ne pouvez donc pas associer l'appareil ici. Obtenez un nouveau code dans l'application que vous associez, puis réessayez.",
     link_device_update_desktop:
-      "Si votre application de bureau n'affiche pas de code de vérification, mettez-la à jour, puis réessayez.",
+      "Si l'application ne l'affiche pas, choisissez Vérifier cet appareil dans l'application. Si l'application ne propose pas cette option, mettez-la à jour, puis réessayez.",
     device_code_fingerprint_required_hint:
-      "Votre navigateur demande ce code de vérification avant d'associer l'appareil.",
-    device_code_verify_toggle: "Vérifier cet appareil",
-    link_device_fingerprint_hint:
-      "Si votre application de bureau affiche un code de vérification, vérifiez qu'il correspond à celui-ci avant d'associer l'appareil.",
-    device_code_fingerprint_hint:
-      "Votre navigateur affiche le même code de vérification avant d'associer l'appareil. Si les deux codes ne correspondent pas, n'associez pas l'appareil.",
+      "Votre navigateur demande cette empreinte de l'appareil avant d'associer l'appareil.",
     link_device_change_account: "Changer de compte",
     link_device_choose_account: "Choisissez un compte",
-    link_device_choose_account_description:
-      "Pour associer votre application de bureau",
+    link_device_choose_account_description: "Pour associer un nouvel appareil",
     link_device_choose_account_note:
       "Vos clés de chiffrement restent chiffrées lorsqu'elles passent d'un appareil à l'autre.",
     link_device_use_another_account: "Utiliser un autre compte",
     link_device_use_this_account: "Utiliser ce compte",
     link_device_other_accounts: "Passer à un autre compte",
-    link_device_enter_code: "Entrez le code affiché sur votre autre appareil.",
+    link_device_enter_code:
+      "Entrez le code d'association affiché dans l'application que vous associez.",
     link_device_expired_code:
-      "Ce code a expiré ou ne correspondait pas. Votre application de bureau affiche le code actuel.",
+      "Ce code a expiré ou ne correspondait pas. L'application que vous associez affiche le code actuel.",
     link_device_failed:
       "L'association n'a pas abouti. Recommencez depuis le début. Votre compte est inchangé.",
     link_device_invalid_code:
@@ -10608,7 +10604,8 @@ export const fr = {
     hub_account_link_failed:
       "Pour continuer avec ce compte, saisissez son mot de passe.",
     link_device_success: "Appareil lié avec succès",
-    link_device_success_description: "Cet appareil a accès à votre compte.",
+    link_device_success_description:
+      "Votre appareil est maintenant associé. Vous pouvez fermer cet onglet.",
     link_device_title: "Lier un appareil",
     link_keys_locked_title: "Votre trousseau est verrouillé",
     link_keys_locked_description:

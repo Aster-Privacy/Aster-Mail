@@ -363,10 +363,7 @@ export function DesktopCodeSignIn({
     };
   }, [flow_key, stop_polling]);
 
-  const handle_copy_code = async () => {
-    if (!code) return;
-
-    const raw = code.replace(/-/g, "");
+  const copy_with_toast = async (raw: string) => {
     let success = false;
 
     try {
@@ -388,6 +385,18 @@ export function DesktopCodeSignIn({
     if (success) {
       show_toast(t("common.copied_to_clipboard"), "success");
     }
+  };
+
+  const handle_copy_code = async () => {
+    if (!code) return;
+
+    await copy_with_toast(code.replace(/-/g, ""));
+  };
+
+  const handle_copy_fingerprint = async () => {
+    if (!device_fingerprint) return;
+
+    await copy_with_toast(device_fingerprint);
   };
 
   const handle_new_code = () => {
@@ -600,9 +609,15 @@ export function DesktopCodeSignIn({
                   <span className="block text-xs font-medium text-txt-muted">
                     {t("auth.device_fingerprint")}
                   </span>
-                  <span className="mt-1 block select-text font-mono text-sm font-semibold tracking-wide text-txt-primary">
+                  <button
+                    aria-label={t("auth.device_fingerprint_copy")}
+                    className="mt-1 w-full cursor-pointer select-text font-mono text-sm font-semibold tracking-wide text-txt-primary transition-colors hover:opacity-80"
+                    data-testid="device_fingerprint_copy"
+                    type="button"
+                    onClick={handle_copy_fingerprint}
+                  >
                     {device_fingerprint}
-                  </span>
+                  </button>
                   <span className="mt-1.5 block text-xs leading-relaxed text-txt-muted">
                     {t("auth.device_code_fingerprint_required_hint")}
                   </span>

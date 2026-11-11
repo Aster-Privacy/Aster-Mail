@@ -71,18 +71,11 @@ export function link_device_url(base_url: string, fingerprint: string): string {
   return `${base_url}#${COMMITMENT_PARAM}=${normalized.replace(/ /g, "")}`;
 }
 
-export function capture_link_commitment(): void {
-  if (typeof window === "undefined") return;
+function is_link_device_page(): boolean {
+  return /\/link-device\/?$/.test(window.location.pathname);
+}
 
-  const hash = window.location.hash;
-
-  if (hash.length < 2) return;
-  if (!/\/link-device\/?$/.test(window.location.pathname)) return;
-
-  const fingerprint = normalize_fingerprint(
-    new URLSearchParams(hash.slice(1)).get(COMMITMENT_PARAM),
-  );
-
+function strip_fragment(): void {
   try {
     window.history.replaceState(
       window.history.state,
@@ -92,8 +85,31 @@ export function capture_link_commitment(): void {
   } catch {
     window.location.hash = "";
   }
+}
 
-  if (!fingerprint) return;
+export function capture_link_commitment(is_document_load = false): void {
+  if (typeof window === "undefined") return;
+  if (!is_link_device_page()) return;
+
+  const hash = window.location.hash;
+
+  if (hash.length < 2) {
+    if (is_document_load) safe_session_remove(COMMITMENT_KEY);
+
+    return;
+  }
+
+  const fingerprint = normalize_fingerprint(
+    new URLSearchParams(hash.slice(1)).get(COMMITMENT_PARAM),
+  );
+
+  strip_fragment();
+
+  if (!fingerprint) {
+    safe_session_remove(COMMITMENT_KEY);
+
+    return;
+  }
 
   const value: stored_commitment = { fingerprint, stored_at: Date.now() };
 

@@ -26,6 +26,7 @@ const h = vi.hoisted(() => ({
   verify: vi.fn(),
   confirm: vi.fn(),
   seal: vi.fn(),
+  accounts: [] as { id: string; kind?: string; user: { email: string } }[],
 }));
 
 function encode(length: number, value: number): string {
@@ -46,7 +47,11 @@ vi.mock("@/contexts/auth_context", () => ({
     is_authenticated: true,
     is_loading: false,
     has_keys: true,
-    accounts: [],
+    accounts: h.accounts,
+    current_account_id: "a1",
+    switch_to_account: vi.fn(),
+    set_is_adding_account: vi.fn(),
+    max_account_limit: 3,
     user: { email: "ada@astermail.org", display_name: "Ada" },
   }),
 }));
@@ -173,16 +178,40 @@ async function approve(): Promise<void> {
   });
 }
 
-function store_commitment(fingerprint: string): void {
+async function press_enter_in_fingerprint(): Promise<void> {
+  const input = container.querySelector(
+    '[data-testid="device_fingerprint_input"]',
+  );
+
+  if (!(input instanceof HTMLInputElement)) throw new Error("input missing");
+
+  await act(async () => {
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+  });
+}
+
+function fingerprint_value(): string | undefined {
+  const input = container.querySelector(
+    '[data-testid="device_fingerprint_input"]',
+  );
+
+  return input instanceof HTMLInputElement ? input.value : undefined;
+}
+
+function store_commitment(fingerprint: string, stored_at = Date.now()): void {
   window.sessionStorage.setItem(
     COMMITMENT_KEY,
-    JSON.stringify({ fingerprint, stored_at: Date.now() }),
+    JSON.stringify({ fingerprint, stored_at }),
   );
 }
 
 describe("link device approval", () => {
   beforeEach(() => {
     window.sessionStorage.clear();
+    window.history.replaceState(null, "", "/link-device");
+    h.accounts = [];
     h.verify.mockReset();
     h.confirm.mockReset();
     h.seal.mockReset();
@@ -196,57 +225,85 @@ describe("link device approval", () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+    window.history.replaceState(null, "", "/");
   });
 
-  it("states the grant and never shows the code of the returned keys", async () => {
+  it("states the grant and never shows the fingerprint of the returned keys", async () => {
     await render_page();
     await enter_code();
 
     expect(
-      container.querySelector('[data-testid="link_device_grant"]')
-        ?.textContent,
+      container.querySelector('[data-testid="link_device_grant"]')?.textContent,
     ).toBe("auth.link_device_grant_notice");
     expect(container.textContent).toContain(
       "auth.link_device_own_device_warning",
     );
+    expect(container.textContent).toContain(
+      "auth.link_device_fingerprint_enter",
+    );
     expect(container.textContent).toContain("auth.link_device_update_desktop");
     expect(container.textContent).not.toContain(FINGERPRINT);
-    expect(
-      container.querySelector('[data-testid="device_fingerprint"]'),
-    ).toBeNull();
+    expect(container.innerHTML).not.toContain("55D3");
+    expect(fingerprint_value()).toBe("");
   });
 
-  it("refuses to seal until the verification code is typed", async () => {
+  it("stays locked until the whole fingerprint is typed", async () => {
     await render_page();
     await enter_code();
 
     expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
     await approve();
-    await enter_fingerprint("9B16 AF79");
-    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
-    await approve();
+    await press_enter_in_fingerprint();
 
+    await enter_fingerprint("9B16 AF79 0A6A E2F2");
+
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
+    expect(
+      container.querySelector('[data-testid="device_fingerprint_error"]'),
+    ).toBeNull();
+
+    await enter_fingerprint("55D3");
+    await approve();
+    await press_enter_in_fingerprint();
+
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
     expect(h.seal).not.toHaveBeenCalled();
     expect(h.confirm).not.toHaveBeenCalled();
   });
 
-  it("refuses to seal when the typed code does not match the returned keys", async () => {
+  it("explains a wrong fingerprint and does not seal", async () => {
     await render_page();
     await enter_code();
     await enter_fingerprint(OTHER_FINGERPRINT);
-    await approve();
 
-    expect(container.textContent).toContain(
-      "auth.link_device_fingerprint_mismatch",
-    );
+    expect(
+      container.querySelector('[data-testid="device_fingerprint_error"]')
+        ?.textContent,
+    ).toBe("auth.link_device_fingerprint_mismatch");
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
+
+    await approve();
+    await press_enter_in_fingerprint();
+
     expect(h.seal).not.toHaveBeenCalled();
     expect(h.confirm).not.toHaveBeenCalled();
+
+    await enter_fingerprint(FINGERPRINT);
+
+    expect(
+      container.querySelector('[data-testid="device_fingerprint_error"]'),
+    ).toBeNull();
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(false);
   });
 
-  it("seals and confirms when the typed code matches the returned keys", async () => {
+  it("accepts a pasted fingerprint in lowercase with dashes", async () => {
     await render_page();
     await enter_code();
-    await enter_fingerprint("9b16af790a6ae2f255d3");
+    await enter_fingerprint(" 9b16-af79-0a6a-e2f2-55d3\n");
+
+    expect(fingerprint_value()).toBe(FINGERPRINT);
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(false);
+
     await approve();
 
     expect(h.seal).toHaveBeenCalledTimes(1);
@@ -254,46 +311,116 @@ describe("link device approval", () => {
     expect(container.textContent).toContain("auth.link_device_success");
   });
 
-  it("refuses keys that differ from the code the desktop app sent", async () => {
-    store_commitment(OTHER_FINGERPRINT);
+  it("groups the fingerprint while you type it", async () => {
     await render_page();
     await enter_code();
+    await enter_fingerprint("9b16af");
 
-    expect(container.textContent).toContain(
-      "auth.link_device_fingerprint_mismatch",
+    expect(fingerprint_value()).toBe("9B16 AF");
+  });
+
+  it("links when you press Enter on the matching fingerprint", async () => {
+    await render_page();
+    await enter_code();
+    await enter_fingerprint("9b16af790a6ae2f255d3");
+    await press_enter_in_fingerprint();
+
+    expect(h.seal).toHaveBeenCalledTimes(1);
+    expect(h.confirm).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("auth.link_device_success");
+  });
+
+  it("blocks approval when the link names a different device", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/link-device#v=00001111222233334444",
     );
-    expect(button("auth.link_device_confirm_button")).toBeUndefined();
-    expect(window.sessionStorage.getItem(COMMITMENT_KEY)).toBeNull();
+    await render_page();
+
+    expect(window.location.hash).toBe("");
 
     await enter_code();
 
     expect(
-      container.querySelector('[data-testid="device_fingerprint_input"]'),
-    ).not.toBeNull();
+      container.querySelector('[data-testid="device_fingerprint_link_error"]')
+        ?.textContent,
+    ).toBe("auth.link_device_fingerprint_link_mismatch");
+    expect(container.textContent).not.toContain(OTHER_FINGERPRINT);
+
+    await enter_fingerprint(FINGERPRINT);
+
     expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
+
+    await approve();
+    await press_enter_in_fingerprint();
+
     expect(h.seal).not.toHaveBeenCalled();
     expect(h.confirm).not.toHaveBeenCalled();
   });
 
-  it("accepts keys that match the code the desktop app sent", async () => {
-    store_commitment(FINGERPRINT);
+  it("still asks for the whole fingerprint when the link matches", async () => {
+    window.history.replaceState(
+      null,
+      "",
+      "/link-device#v=9b16af790a6ae2f255d3",
+    );
     await render_page();
     await enter_code();
 
+    expect(container.textContent).not.toContain(FINGERPRINT);
+    expect(container.innerHTML).not.toContain("9B16");
+    expect(fingerprint_value()).toBe("");
     expect(
-      container.querySelector('[data-testid="device_fingerprint"]')
-        ?.textContent,
-    ).toContain(FINGERPRINT);
-    expect(
-      container.querySelector('[data-testid="device_fingerprint_input"]'),
+      container.querySelector('[data-testid="device_fingerprint_link_error"]'),
     ).toBeNull();
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
+
+    await approve();
+    await enter_fingerprint("55D3");
+    await approve();
+    await press_enter_in_fingerprint();
+
     expect(h.seal).not.toHaveBeenCalled();
 
+    await enter_fingerprint(FINGERPRINT);
     await approve();
 
     expect(h.seal).toHaveBeenCalledTimes(1);
     expect(h.confirm).toHaveBeenCalledTimes(1);
     expect(window.sessionStorage.getItem(COMMITMENT_KEY)).toBeNull();
+  });
+
+  it("ignores a link value that is too old", async () => {
+    store_commitment(OTHER_FINGERPRINT, Date.now() - 31 * 60 * 1000);
+    await render_page();
+    await enter_code();
+
+    expect(
+      container.querySelector('[data-testid="device_fingerprint_link_error"]'),
+    ).toBeNull();
+
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.confirm).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops the link value when you start over", async () => {
+    store_commitment(OTHER_FINGERPRINT);
+    await render_page();
+    await enter_code();
+    await act(async () => {
+      button("auth.link_device_cancel")?.click();
+    });
+
+    expect(window.sessionStorage.getItem(COMMITMENT_KEY)).toBeNull();
+
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.confirm).toHaveBeenCalledTimes(1);
   });
 
   it("does not offer approval when the keys cannot be fingerprinted", async () => {
@@ -304,7 +431,58 @@ describe("link device approval", () => {
     await enter_code();
 
     expect(button("auth.link_device_confirm_button")).toBeUndefined();
+    expect(
+      container.querySelector('[data-testid="device_fingerprint_input"]'),
+    ).toBeNull();
     expect(container.textContent).toContain("auth.link_device_failed");
+    expect(h.seal).not.toHaveBeenCalled();
     expect(h.confirm).not.toHaveBeenCalled();
+  });
+
+  it("returns to the linking code when the code expired", async () => {
+    h.confirm.mockResolvedValueOnce({ error: "Code expired", code: "NOT_FOUND" });
+    await render_page();
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(container.textContent).toContain("auth.link_device_expired_code");
+    expect(
+      container.querySelector('[data-testid="device_fingerprint_input"]'),
+    ).toBeNull();
+    expect(button("auth.link_device_verify_button")).toBeDefined();
+
+    await enter_code();
+
+    expect(fingerprint_value()).toBe("");
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
+
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.confirm).toHaveBeenCalledTimes(2);
+    expect(container.textContent).toContain("auth.link_device_success");
+  });
+
+  it("lets you pick this account, then link", async () => {
+    h.accounts = [
+      { id: "a1", user: { email: "ada@astermail.org" } },
+      { id: "a2", user: { email: "bea@astermail.org" } },
+    ];
+    await render_page();
+
+    expect(container.textContent).toContain("auth.link_device_choose_account");
+    expect(container.textContent).toContain("bea@astermail.org");
+    expect(button("auth.link_device_verify_button")).toBeUndefined();
+
+    await act(async () => {
+      button("auth.link_device_use_this_account")?.click();
+    });
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.confirm).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("auth.link_device_success");
   });
 });

@@ -88,6 +88,66 @@ describe("device link commitment", () => {
     expect(window.location.hash).toBe("#v=9B16AF790A6AE2F255D3");
   });
 
+  it("formats pasted text into the grouped fingerprint", () => {
+    expect(format_fingerprint_input(" 9b16-af79-0a6a-e2f2-55d3 ")).toBe(
+      FINGERPRINT,
+    );
+    expect(format_fingerprint_input("9b16af790a6ae2f255d3ffff")).toBe(
+      FINGERPRINT,
+    );
+    expect(format_fingerprint_input("zz")).toBe("");
+  });
+
+  it("replaces an earlier value when a new link arrives", () => {
+    window.history.replaceState(null, "", "/link-device#v=9B16AF790A6AE2F255D3");
+    capture_link_commitment();
+    window.history.replaceState(null, "", "/link-device#v=00001111222233334444");
+    capture_link_commitment();
+
+    expect(read_link_commitment()).toBe("0000 1111 2222 3333 4444");
+  });
+
+  it("clears an earlier value when a new link carries a malformed one", () => {
+    window.history.replaceState(null, "", "/link-device#v=9B16AF790A6AE2F255D3");
+    capture_link_commitment();
+    window.history.replaceState(null, "", "/link-device#v=1234");
+    capture_link_commitment();
+
+    expect(window.sessionStorage.getItem(KEY)).toBeNull();
+    expect(window.location.hash).toBe("");
+
+    window.history.replaceState(null, "", "/link-device#v=9B16AF790A6AE2F255D3");
+    capture_link_commitment();
+    window.history.replaceState(null, "", "/link-device#other=1");
+    capture_link_commitment();
+
+    expect(window.sessionStorage.getItem(KEY)).toBeNull();
+  });
+
+  it("clears an earlier value when the page loads without a link value", () => {
+    window.history.replaceState(null, "", "/link-device#v=9B16AF790A6AE2F255D3");
+    capture_link_commitment(true);
+
+    expect(read_link_commitment()).toBe(FINGERPRINT);
+
+    capture_link_commitment();
+
+    expect(read_link_commitment()).toBe(FINGERPRINT);
+
+    capture_link_commitment(true);
+
+    expect(window.sessionStorage.getItem(KEY)).toBeNull();
+  });
+
+  it("keeps the value when another page loads", () => {
+    window.history.replaceState(null, "", "/link-device#v=9B16AF790A6AE2F255D3");
+    capture_link_commitment(true);
+    window.history.replaceState(null, "", "/sign-in");
+    capture_link_commitment(true);
+
+    expect(read_link_commitment()).toBe(FINGERPRINT);
+  });
+
   it("drops a stored code that is stale or malformed", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));

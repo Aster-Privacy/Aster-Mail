@@ -115,7 +115,7 @@ if (preload_initial_language()) {
 start_input_modality_tracking();
 install_global_error_reporting();
 capture_support_return();
-capture_link_commitment();
+capture_link_commitment(true);
 
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
