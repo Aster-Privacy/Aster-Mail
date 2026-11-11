@@ -37,6 +37,7 @@ vi.mock("@/provider", () => ({ use_should_reduce_motion: () => true }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => ({ recovery_codes: state.codes }),
+  get_vault_owner_id: () => "owner",
 }));
 
 vi.mock("@/hooks/use_recovery_status", () => ({
