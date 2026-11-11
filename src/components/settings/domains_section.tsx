@@ -18,6 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { PurchasedDnsResponse } from "@/services/api/domains";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   PlusIcon,
@@ -54,6 +56,7 @@ import { DomainPurchaseModal } from "@/components/settings/aliases/domain_purcha
 import { DomainCardV2 } from "@/components/settings/aliases/domain_card_v2";
 import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_modal";
 import { PurchasedDomainManageModal } from "@/components/settings/aliases/purchased_domain_manage_modal";
+import { PurchasedDnsEditor } from "@/components/settings/aliases/purchased_dns_editor";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { is_https_payment_url } from "@/lib/payment_url";
 import { open_payment_url } from "@/services/api/billing";
@@ -136,6 +139,12 @@ export function DomainsSection() {
   const [manage_order_id, set_manage_order_id] = useState<string | null>(null);
   const manage_order =
     purchased_orders.find((order) => order.id === manage_order_id) ?? null;
+  const [dns_editor, set_dns_editor] = useState<{
+    order_id: string;
+    initial: PurchasedDnsResponse;
+  } | null>(null);
+  const dns_order =
+    purchased_orders.find((order) => order.id === dns_editor?.order_id) ?? null;
 
   useEffect(() => {
     if (purchase_open) return;
@@ -714,11 +723,20 @@ export function DomainsSection() {
           }
           void handle_renew(manage_order.id, auto_renew, captcha_token);
         }}
+        on_open_dns={(order, initial) =>
+          set_dns_editor({ order_id: order.id, initial })
+        }
         order={manage_order}
         renew_error={manage_order ? renew_errors[manage_order.id] : undefined}
         renewing={
           manage_order !== null && renewing_order_id === manage_order.id
         }
+      />
+      <PurchasedDnsEditor
+        initial={dns_editor?.initial}
+        is_open={dns_order !== null}
+        on_close={() => set_dns_editor(null)}
+        order={dns_order}
       />
       <DomainPurchaseModal
         initial_order_id={purchase_order_id}

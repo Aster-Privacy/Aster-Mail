@@ -1063,3 +1063,120 @@ export function get_health_color(health: string): string {
       return "text-gray-500";
   }
 }
+
+export type PurchasedDnsRecordType =
+  "A" | "AAAA" | "CNAME" | "TXT" | "MX" | "SRV" | "CAA";
+
+export type PurchasedDnsLockReason =
+  "frozen" | "payment" | "lapsed" | "suspended";
+
+export interface PurchasedDnsRecord {
+  id: string;
+  type: string;
+  host: string;
+  name: string;
+  value: string;
+  ttl: number;
+  priority?: number;
+  weight?: number;
+  port?: number;
+  target?: string;
+  flags?: number;
+  tag?: string;
+  protected: boolean;
+  protected_reason?: "mail" | "unsupported";
+}
+
+export interface PurchasedDnsLimits {
+  max_records: number;
+  min_ttl: number;
+  max_ttl: number;
+}
+
+export interface PurchasedDnsResponse {
+  domain: string;
+  records: PurchasedDnsRecord[];
+  lock_reason: PurchasedDnsLockReason | null;
+  verified: boolean;
+  unlock_expires_in: number | null;
+  limits: PurchasedDnsLimits;
+}
+
+export interface PurchasedDnsRecordInput {
+  type: PurchasedDnsRecordType;
+  host: string;
+  value?: string;
+  ttl?: number;
+  priority?: number;
+  weight?: number;
+  port?: number;
+  target?: string;
+  flags?: number;
+  tag?: string;
+}
+
+export interface PurchasedDnsMutationResponse {
+  id: string | null;
+}
+
+function purchased_dns_path(order_id: string): string {
+  return `/addresses/v1/domains/purchase/orders/${encodeURIComponent(order_id)}/dns`;
+}
+
+export async function list_purchased_dns(
+  order_id: string,
+): Promise<ApiResponse<PurchasedDnsResponse>> {
+  return api_client.get<PurchasedDnsResponse>(purchased_dns_path(order_id), {
+    skip_cache: true,
+  });
+}
+
+export async function add_purchased_dns(
+  order_id: string,
+  record: PurchasedDnsRecordInput,
+): Promise<ApiResponse<PurchasedDnsMutationResponse>> {
+  return api_client.post<PurchasedDnsMutationResponse>(
+    purchased_dns_path(order_id),
+    record,
+  );
+}
+
+export async function update_purchased_dns(
+  order_id: string,
+  record_id: string,
+  record: PurchasedDnsRecordInput,
+): Promise<ApiResponse<PurchasedDnsMutationResponse>> {
+  return api_client.patch<PurchasedDnsMutationResponse>(
+    `${purchased_dns_path(order_id)}/${encodeURIComponent(record_id)}`,
+    record,
+  );
+}
+
+export async function delete_purchased_dns(
+  order_id: string,
+  record_id: string,
+): Promise<ApiResponse<PurchasedDnsMutationResponse>> {
+  return api_client.delete<PurchasedDnsMutationResponse>(
+    `${purchased_dns_path(order_id)}/${encodeURIComponent(record_id)}`,
+  );
+}
+
+export async function unlock_purchased_dns(
+  order_id: string,
+  credentials: {
+    password_hash: string;
+    totp_code?: string;
+    hardware_key_assertion?: unknown;
+  },
+): Promise<ApiResponse<{ expires_in: number }>> {
+  return api_client.post<{ expires_in: number }>(
+    `${purchased_dns_path(order_id)}/unlock`,
+    credentials,
+  );
+}
+
+export async function relock_purchased_dns(
+  order_id: string,
+): Promise<ApiResponse<void>> {
+  return api_client.delete<void>(`${purchased_dns_path(order_id)}/unlock`);
+}

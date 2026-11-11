@@ -7129,10 +7129,147 @@ export const nl = {
       "Aster schrijft 30 dagen voor de vervaldatum af van je opgeslagen kaart en mailt je de prijs 15 dagen daarvoor.",
     domain_purchase_manage_auto_renew_error:
       "Automatisch verlengen kon niet worden bijgewerkt. Probeer het opnieuw.",
-    domain_purchase_manage_dns: "Domeininstellingen openen",
+    domain_purchase_manage_dns: "DNS beheren",
     domain_purchase_manage_support_note:
-      "Neem contact op met support om dit domein naar een andere registrar te verhuizen of naar een terugbetaling te vragen.",
+      "Neem contact op met support voor vragen over facturering of een terugbetaling.",
     domain_purchase_manage_support_subject: "Hulp bij {{domain}}",
+    domain_transfer_button: "Verhuizen",
+    domain_transfer_title: "Domein verhuizen",
+    domain_transfer_hint:
+      "Verhuis dit domein naar een andere registrar. Support stuurt de transfercode naar je Aster-inbox.",
+    domain_transfer_message:
+      "Om {{domain}} naar een andere registrar te verhuizen, heb je een verhuiscode nodig. Als je doorgaat, opent Aster een e-mail aan support. Support bevestigt dat het verzoek van dit account komt en stuurt de code daarna naar je Aster-inbox. Een verhuizing duurt meestal 5 tot 7 dagen nadat je die bij de nieuwe registrar hebt gestart.",
+    domain_transfer_locked_message:
+      "Registrars staan geen verhuizingen toe binnen {{count}} dagen na registratie. Je kunt vanaf {{date}} een verhuizing voor {{domain}} aanvragen.",
+    domain_transfer_confirm: "Support mailen",
+    domain_transfer_email_subject: "Verhuisverzoek voor {{domain}}",
+    domain_transfer_email_body:
+      "Ik wil {{domain}} naar een andere registrar verhuizen. Stuur de verhuiscode naar dit adres.\n\nBestelnummer: {{order_id}}\nNieuwe registrar:",
+    purchased_dns_title: "DNS-records",
+    purchased_dns_description:
+      "Records voor {{domain}}. Wijzigingen worden meestal binnen een uur actief.",
+    purchased_dns_locked_title: "Bewerken staat uit",
+    purchased_dns_locked_note:
+      "Je kunt deze records bekijken, maar je kunt ze nu niet wijzigen.",
+    purchased_dns_lock_frozen:
+      "Bewerken is gepauzeerd voor dit domein. Neem contact op met support voor meer informatie.",
+    purchased_dns_lock_payment:
+      "Bewerken staat uit omdat de betaling voor dit domein is teruggedraaid.",
+    purchased_dns_lock_lapsed:
+      "Bewerken staat uit omdat dit domein is verlopen. Verleng het om wijzigingen aan te brengen.",
+    purchased_dns_lock_suspended:
+      "Bewerken staat uit omdat dit domein is opgeschort.",
+    purchased_dns_unlock_title: "Bevestig dat jij het bent",
+    purchased_dns_unlock_description:
+      "Bevestig je identiteit om DNS-records te wijzigen. Bewerken blijft 15 minuten aan.",
+    purchased_dns_unlock: "Bewerken inschakelen",
+    purchased_dns_unlocked: "Bewerken staat aan",
+    purchased_dns_unlocked_for: "Bewerken staat aan voor {{time}}",
+    purchased_dns_lock: "Bewerken uitschakelen",
+    purchased_dns_add: "Record toevoegen",
+    purchased_dns_add_title: "Record toevoegen",
+    purchased_dns_edit_title: "Record bewerken",
+    purchased_dns_added: "Record toegevoegd",
+    purchased_dns_updated: "Record bijgewerkt",
+    purchased_dns_deleted: "Record verwijderd",
+    purchased_dns_delete_title: "Record verwijderen?",
+    purchased_dns_delete_message:
+      "Het {{type}}-record voor {{name}} wordt kort na het verwijderen niet meer opgelost.",
+    purchased_dns_edit_record: "{{type}}-record voor {{name}} bewerken",
+    purchased_dns_copy_record: "Waarde van {{type}}-record voor {{name}} kopiëren",
+    purchased_dns_delete_record: "{{type}}-record voor {{name}} verwijderen",
+    purchased_dns_read_only: "Alleen-lezen",
+    purchased_dns_mail_group: "Aster Mail-records",
+    purchased_dns_mail_group_tip:
+      "Aster beheert deze records zodat je e-mail blijft werken. Je kunt ze niet bewerken of verwijderen.",
+    purchased_dns_your_records: "Jouw records",
+    purchased_dns_empty: "Je hebt nog geen records toegevoegd.",
+    purchased_dns_limit_reached:
+      "Dit domein heeft het maximum van {{count}} records. Verwijder er een om een nieuwe toe te voegen.",
+    purchased_dns_col_type: "Type",
+    purchased_dns_col_name: "Naam",
+    purchased_dns_col_content: "Inhoud",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Acties",
+    purchased_dns_host_hint:
+      "Gebruik @ voor het domein zelf, of voer een subdomein in zoals www.",
+    purchased_dns_field_ipv4: "IPv4-adres",
+    purchased_dns_field_ipv6: "IPv6-adres",
+    purchased_dns_field_target: "Doel",
+    purchased_dns_field_content: "Inhoud",
+    purchased_dns_field_mail_server: "Mailserver",
+    purchased_dns_field_caa_value: "Waarde",
+    purchased_dns_field_priority: "Prioriteit",
+    purchased_dns_field_weight: "Gewicht",
+    purchased_dns_field_port: "Poort",
+    purchased_dns_field_flags: "Flags",
+    purchased_dns_field_tag: "Tag",
+    purchased_dns_ttl_one_hour: "1 uur",
+    purchased_dns_ttl_hours: "{{count}} uur",
+    purchased_dns_ttl_one_day: "1 dag",
+    purchased_dns_ttl_days: "{{count}} dagen",
+    purchased_dns_error_required: "Vul dit veld in.",
+    purchased_dns_error_host:
+      "Voer een geldige naam in. Gebruik letters, cijfers, koppeltekens en underscores, met maximaal 63 tekens per label.",
+    purchased_dns_error_protected_host:
+      "Deze naam is gereserveerd voor Aster Mail-records.",
+    purchased_dns_error_apex_mx:
+      "Aster beheert de mailrecords voor het domein zelf. Voeg MX-records in plaats daarvan toe op een subdomein.",
+    purchased_dns_error_apex_cname:
+      "Een CNAME-record kan het domein zelf niet gebruiken. Gebruik in plaats daarvan een A- of AAAA-record.",
+    purchased_dns_error_apex_spf:
+      "Aster publiceert al een SPF-record voor dit domein, en een domein kan er maar één hebben.",
+    purchased_dns_error_value: "Controleer de waarde en probeer het opnieuw.",
+    purchased_dns_error_ip: "Voer een geldig IP-adres in.",
+    purchased_dns_error_ipv4:
+      "Voer een geldig IPv4-adres in, zoals 203.0.113.10.",
+    purchased_dns_error_ipv6:
+      "Voer een geldig IPv6-adres in, zoals 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Voer een openbaar IP-adres in. Privé-, lokale en gereserveerde adressen zijn niet bereikbaar vanaf internet.",
+    purchased_dns_error_target:
+      "Voer een geldige hostnaam in, zoals example.com.",
+    purchased_dns_error_cname_self:
+      "Een CNAME-record kan niet naar zijn eigen naam verwijzen.",
+    purchased_dns_error_cname_conflict:
+      "Een naam met een CNAME-record kan geen andere records hebben. Verwijder eerst de andere records of kies een andere naam.",
+    purchased_dns_error_txt_length:
+      "TXT-inhoud kan maximaal 2.048 tekens bevatten.",
+    purchased_dns_error_txt_chars:
+      "TXT-inhoud mag alleen standaard afdrukbare tekens bevatten, zonder aanhalingstekens of backslashes.",
+    purchased_dns_error_ttl: "Kies een TTL uit de lijst.",
+    purchased_dns_error_priority: "Voer een prioriteit in van 0 tot 65535.",
+    purchased_dns_error_weight: "Voer een gewicht in van 0 tot 65535.",
+    purchased_dns_error_port: "Voer een poort in van 1 tot 65535.",
+    purchased_dns_error_srv_host:
+      "Een SRV-naam begint met de service en het protocol, zoals _sip._tcp.",
+    purchased_dns_error_caa_flags: "Kies 0 of 128 voor de flags.",
+    purchased_dns_error_caa_tag: "Kies issue, issuewild of iodef als tag.",
+    purchased_dns_error_caa_value:
+      "Voer een waarde in van maximaal 255 tekens, zonder aanhalingstekens of backslashes.",
+    purchased_dns_error_duplicate: "Dit record bestaat al.",
+    purchased_dns_error_too_many:
+      "Dit domein heeft het maximale aantal records. Verwijder er een om een nieuwe toe te voegen.",
+    purchased_dns_error_protected_record:
+      "Aster beheert dit record, dus je kunt het niet wijzigen.",
+    purchased_dns_error_type_change:
+      "Je kunt het type van een record niet wijzigen. Verwijder het en voeg in plaats daarvan een nieuw record toe.",
+    purchased_dns_error_locked: "Bewerken staat uit voor dit domein.",
+    purchased_dns_error_busy: "De registrar is bezet.",
+    purchased_dns_error_not_found: "Dit record bestaat niet meer.",
+    purchased_dns_error_rate_limited: "Je brengt te snel wijzigingen aan.",
+    purchased_dns_error_retry_in:
+      "{{message}} Probeer het over {{count}} seconden opnieuw.",
+    purchased_dns_error_retry_in_one: "{{message}} Probeer het over {{count}} seconde opnieuw.",
+    purchased_dns_ttl_seconds: "{{count}} seconden",
+    purchased_dns_expired_note: "Bewerken is uitgeschakeld. Je wijzigingen zijn nog niet opgeslagen. Als je op Opslaan klikt, bevestig je eerst dat jij het bent.",
+    purchased_dns_filter_placeholder: "Records filteren",
+    purchased_dns_filter_no_results: "Geen records komen overeen met je filter.",
+    purchased_dns_keep_editing: "Doorgaan met bewerken",
+    purchased_dns_error_unlock_failed: "Bewerken kon niet worden ingeschakeld. Probeer het opnieuw.",
+    purchased_dns_error_generic:
+      "Je wijziging kan niet worden opgeslagen. Probeer het opnieuw.",
+    purchased_dns_load_failed: "Kan DNS-records niet laden. Probeer het opnieuw.",
     domain_purchase_filter_all: "Alle",
     domain_purchase_filter_available: "Beschikbaar",
     domain_purchase_filter_taken: "Bezet",

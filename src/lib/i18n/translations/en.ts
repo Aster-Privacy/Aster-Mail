@@ -6635,10 +6635,144 @@ export const en: Translations = {
       "Aster charges your saved card 30 days before the expiration date and emails you the price 15 days before that.",
     domain_purchase_manage_auto_renew_error:
       "Couldn't update automatic renewal. Try again.",
-    domain_purchase_manage_dns: "Open domain setup",
+    domain_purchase_manage_dns: "Manage DNS",
     domain_purchase_manage_support_note:
-      "To transfer this domain to another registrar or ask about a refund, contact support.",
+      "For questions about billing or a refund, contact support.",
     domain_purchase_manage_support_subject: "Help with {{domain}}",
+    domain_transfer_button: "Transfer",
+    domain_transfer_title: "Transfer domain",
+    domain_transfer_hint:
+      "Move this domain to another registrar. Support sends the transfer code to your Aster inbox.",
+    domain_transfer_message:
+      "To move {{domain}} to another registrar, you need a transfer code. When you continue, Aster opens an email to support. Support confirms the request came from this account, then sends the code to your Aster inbox. Transfers usually take 5 to 7 days after you start them at the new registrar.",
+    domain_transfer_locked_message:
+      "Registrars don't allow transfers within {{count}} days of registration. You can request a transfer for {{domain}} starting {{date}}.",
+    domain_transfer_confirm: "Write to support",
+    domain_transfer_email_subject: "Transfer request for {{domain}}",
+    domain_transfer_email_body:
+      "I want to transfer {{domain}} to another registrar. Send the transfer code to this address.\n\nOrder ID: {{order_id}}\nNew registrar:",
+    purchased_dns_title: "DNS records",
+    purchased_dns_description:
+      "Records for {{domain}}. Changes usually take effect within an hour.",
+    purchased_dns_locked_title: "Editing is off",
+    purchased_dns_locked_note:
+      "You can view these records, but you can't change them right now.",
+    purchased_dns_lock_frozen:
+      "Editing is paused for this domain. Contact support to learn more.",
+    purchased_dns_lock_payment:
+      "Editing is off because the payment for this domain was reversed.",
+    purchased_dns_lock_lapsed:
+      "Editing is off because this domain expired. Renew it to make changes.",
+    purchased_dns_lock_suspended:
+      "Editing is off because this domain is suspended.",
+    purchased_dns_unlock_title: "Confirm it's you",
+    purchased_dns_unlock_description:
+      "To change DNS records, confirm your identity. Editing stays on for 15 minutes.",
+    purchased_dns_unlock: "Turn on editing",
+    purchased_dns_unlocked: "Editing is on",
+    purchased_dns_unlocked_for: "Editing is on for {{time}}",
+    purchased_dns_lock: "Turn off editing",
+    purchased_dns_add: "Add record",
+    purchased_dns_add_title: "Add record",
+    purchased_dns_edit_title: "Edit record",
+    purchased_dns_added: "Record added",
+    purchased_dns_updated: "Record updated",
+    purchased_dns_deleted: "Record deleted",
+    purchased_dns_delete_title: "Delete record?",
+    purchased_dns_delete_message:
+      "The {{type}} record for {{name}} stops resolving soon after you delete it.",
+    purchased_dns_edit_record: "Edit {{type}} record for {{name}}",
+    purchased_dns_copy_record: "Copy {{type}} record value for {{name}}",
+    purchased_dns_delete_record: "Delete {{type}} record for {{name}}",
+    purchased_dns_read_only: "Read-only",
+    purchased_dns_mail_group: "Aster Mail records",
+    purchased_dns_mail_group_tip:
+      "Aster manages these records so your email keeps working. You can't edit or delete them.",
+    purchased_dns_your_records: "Your records",
+    purchased_dns_empty: "You haven't added any records yet.",
+    purchased_dns_limit_reached:
+      "This domain has the maximum of {{count}} records. Delete one to add another.",
+    purchased_dns_col_type: "Type",
+    purchased_dns_col_name: "Name",
+    purchased_dns_col_content: "Content",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Actions",
+    purchased_dns_host_hint:
+      "Use @ for the domain itself, or enter a subdomain like www.",
+    purchased_dns_field_ipv4: "IPv4 address",
+    purchased_dns_field_ipv6: "IPv6 address",
+    purchased_dns_field_target: "Target",
+    purchased_dns_field_content: "Content",
+    purchased_dns_field_mail_server: "Mail server",
+    purchased_dns_field_caa_value: "Value",
+    purchased_dns_field_priority: "Priority",
+    purchased_dns_field_weight: "Weight",
+    purchased_dns_field_port: "Port",
+    purchased_dns_field_flags: "Flags",
+    purchased_dns_field_tag: "Tag",
+    purchased_dns_ttl_one_hour: "1 hour",
+    purchased_dns_ttl_hours: "{{count}} hours",
+    purchased_dns_ttl_one_day: "1 day",
+    purchased_dns_ttl_days: "{{count}} days",
+    purchased_dns_error_required: "Fill in this field.",
+    purchased_dns_error_host:
+      "Enter a valid name. Use letters, numbers, hyphens, and underscores, with up to 63 characters per label.",
+    purchased_dns_error_protected_host:
+      "This name is reserved for Aster Mail records.",
+    purchased_dns_error_apex_mx:
+      "Mail records for the domain itself are managed by Aster. Add MX records on a subdomain instead.",
+    purchased_dns_error_apex_cname:
+      "A CNAME record can't use the domain itself. Use an A or AAAA record instead.",
+    purchased_dns_error_apex_spf:
+      "Aster already publishes an SPF record for this domain, and a domain can have only one.",
+    purchased_dns_error_value: "Check the value and try again.",
+    purchased_dns_error_ip: "Enter a valid IP address.",
+    purchased_dns_error_ipv4: "Enter a valid IPv4 address, like 203.0.113.10.",
+    purchased_dns_error_ipv6: "Enter a valid IPv6 address, like 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Enter a public IP address. Private, local, and reserved addresses aren't reachable from the internet.",
+    purchased_dns_error_target: "Enter a valid host name, like example.com.",
+    purchased_dns_error_cname_self:
+      "A CNAME record can't point to its own name.",
+    purchased_dns_error_cname_conflict:
+      "A name with a CNAME record can't have other records. Remove the other records first, or choose another name.",
+    purchased_dns_error_txt_length:
+      "TXT content can have up to 2,048 characters.",
+    purchased_dns_error_txt_chars:
+      "TXT content can only use standard printable characters, without quotation marks or backslashes.",
+    purchased_dns_error_ttl: "Choose a TTL from the list.",
+    purchased_dns_error_priority: "Enter a priority from 0 to 65535.",
+    purchased_dns_error_weight: "Enter a weight from 0 to 65535.",
+    purchased_dns_error_port: "Enter a port from 1 to 65535.",
+    purchased_dns_error_srv_host:
+      "An SRV name starts with the service and protocol, like _sip._tcp.",
+    purchased_dns_error_caa_flags: "Choose 0 or 128 for flags.",
+    purchased_dns_error_caa_tag:
+      "Choose issue, issuewild, or iodef for the tag.",
+    purchased_dns_error_caa_value:
+      "Enter a value with up to 255 characters, without quotation marks or backslashes.",
+    purchased_dns_error_duplicate: "This record already exists.",
+    purchased_dns_error_too_many:
+      "This domain has the maximum number of records. Delete one to add another.",
+    purchased_dns_error_protected_record:
+      "Aster manages this record, so you can't change it.",
+    purchased_dns_error_type_change:
+      "You can't change a record's type. Delete it and add a new record instead.",
+    purchased_dns_error_locked: "Editing is off for this domain.",
+    purchased_dns_error_busy: "The registrar is busy.",
+    purchased_dns_error_not_found: "This record no longer exists.",
+    purchased_dns_error_rate_limited: "You're making changes too quickly.",
+    purchased_dns_error_retry_in:
+      "{{message}} Try again in {{count}} seconds.",
+    purchased_dns_error_retry_in_one: "{{message}} Try again in {{count}} second.",
+    purchased_dns_ttl_seconds: "{{count}} seconds",
+    purchased_dns_expired_note: "Editing turned off. Your changes aren't saved yet. When you click Save, you confirm it's you first.",
+    purchased_dns_filter_placeholder: "Filter records",
+    purchased_dns_filter_no_results: "No records match your filter.",
+    purchased_dns_keep_editing: "Keep editing",
+    purchased_dns_error_unlock_failed: "Editing couldn't be turned on. Try again.",
+    purchased_dns_error_generic: "Couldn't save your change. Try again.",
+    purchased_dns_load_failed: "Couldn't load DNS records. Try again.",
     domain_purchase_filter_all: "All",
     domain_purchase_filter_available: "Available",
     domain_purchase_filter_taken: "Taken",

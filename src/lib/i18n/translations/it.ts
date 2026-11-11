@@ -5750,10 +5750,147 @@ export const it = {
       "Aster addebita la carta salvata 30 giorni prima della scadenza e ti invia il prezzo via email 15 giorni prima.",
     domain_purchase_manage_auto_renew_error:
       "Impossibile aggiornare il rinnovo automatico. Riprova.",
-    domain_purchase_manage_dns: "Apri configurazione dominio",
+    domain_purchase_manage_dns: "Gestisci DNS",
     domain_purchase_manage_support_note:
-      "Per trasferire questo dominio a un altro registrar o chiedere un rimborso, contatta l'assistenza.",
+      "Per domande sulla fatturazione o su un rimborso, contatta l'assistenza.",
     domain_purchase_manage_support_subject: "Aiuto con {{domain}}",
+    domain_transfer_button: "Trasferisci",
+    domain_transfer_title: "Trasferisci dominio",
+    domain_transfer_hint:
+      "Sposta questo dominio a un altro registrar. Il supporto invia il codice di trasferimento alla tua casella Aster.",
+    domain_transfer_message:
+      "Per spostare {{domain}} a un altro registrar, ti serve un codice di trasferimento. Se continui, Aster apre un'email per l'assistenza. L'assistenza conferma che la richiesta proviene da questo account, quindi invia il codice alla tua casella di posta Aster. I trasferimenti richiedono di solito da 5 a 7 giorni dall'avvio presso il nuovo registrar.",
+    domain_transfer_locked_message:
+      "I registrar non consentono trasferimenti nei {{count}} giorni successivi alla registrazione. Puoi richiedere il trasferimento di {{domain}} a partire da {{date}}.",
+    domain_transfer_confirm: "Scrivi all'assistenza",
+    domain_transfer_email_subject: "Richiesta di trasferimento per {{domain}}",
+    domain_transfer_email_body:
+      "Voglio trasferire {{domain}} a un altro registrar. Invia il codice di trasferimento a questo indirizzo.\n\nID ordine: {{order_id}}\nNuovo registrar:",
+    purchased_dns_title: "Record DNS",
+    purchased_dns_description:
+      "Record per {{domain}}. Le modifiche di solito diventano effettive entro un'ora.",
+    purchased_dns_locked_title: "Modifica disattivata",
+    purchased_dns_locked_note:
+      "Puoi visualizzare questi record, ma al momento non puoi modificarli.",
+    purchased_dns_lock_frozen:
+      "La modifica è sospesa per questo dominio. Contatta l'assistenza per saperne di più.",
+    purchased_dns_lock_payment:
+      "La modifica è disattivata perché il pagamento di questo dominio è stato stornato.",
+    purchased_dns_lock_lapsed:
+      "La modifica è disattivata perché questo dominio è scaduto. Rinnovalo per apportare modifiche.",
+    purchased_dns_lock_suspended:
+      "La modifica è disattivata perché questo dominio è sospeso.",
+    purchased_dns_unlock_title: "Conferma la tua identità",
+    purchased_dns_unlock_description:
+      "Per modificare i record DNS, conferma la tua identità. La modifica resta attiva per 15 minuti.",
+    purchased_dns_unlock: "Attiva modifica",
+    purchased_dns_unlocked: "Modifica attiva",
+    purchased_dns_unlocked_for: "Modifica attiva per {{time}}",
+    purchased_dns_lock: "Disattiva modifica",
+    purchased_dns_add: "Aggiungi record",
+    purchased_dns_add_title: "Aggiungi record",
+    purchased_dns_edit_title: "Modifica record",
+    purchased_dns_added: "Record aggiunto",
+    purchased_dns_updated: "Record aggiornato",
+    purchased_dns_deleted: "Record eliminato",
+    purchased_dns_delete_title: "Eliminare il record?",
+    purchased_dns_delete_message:
+      "Il record {{type}} per {{name}} smette di risolversi poco dopo l'eliminazione.",
+    purchased_dns_edit_record: "Modifica record {{type}} per {{name}}",
+    purchased_dns_copy_record: "Copia il valore del record {{type}} per {{name}}",
+    purchased_dns_delete_record: "Elimina record {{type}} per {{name}}",
+    purchased_dns_read_only: "Sola lettura",
+    purchased_dns_mail_group: "Record di Aster Mail",
+    purchased_dns_mail_group_tip:
+      "Aster gestisce questi record per far funzionare la tua email. Non puoi modificarli né eliminarli.",
+    purchased_dns_your_records: "I tuoi record",
+    purchased_dns_empty: "Non hai ancora aggiunto nessun record.",
+    purchased_dns_limit_reached:
+      "Questo dominio ha raggiunto il massimo di {{count}} record. Eliminane uno per aggiungerne un altro.",
+    purchased_dns_col_type: "Tipo",
+    purchased_dns_col_name: "Nome",
+    purchased_dns_col_content: "Contenuto",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Azioni",
+    purchased_dns_host_hint:
+      "Usa @ per il dominio stesso o inserisci un sottodominio come www.",
+    purchased_dns_field_ipv4: "Indirizzo IPv4",
+    purchased_dns_field_ipv6: "Indirizzo IPv6",
+    purchased_dns_field_target: "Destinazione",
+    purchased_dns_field_content: "Contenuto",
+    purchased_dns_field_mail_server: "Server di posta",
+    purchased_dns_field_caa_value: "Valore",
+    purchased_dns_field_priority: "Priorità",
+    purchased_dns_field_weight: "Peso",
+    purchased_dns_field_port: "Porta",
+    purchased_dns_field_flags: "Flag",
+    purchased_dns_field_tag: "Tag",
+    purchased_dns_ttl_one_hour: "1 ora",
+    purchased_dns_ttl_hours: "{{count}} ore",
+    purchased_dns_ttl_one_day: "1 giorno",
+    purchased_dns_ttl_days: "{{count}} giorni",
+    purchased_dns_error_required: "Compila questo campo.",
+    purchased_dns_error_host:
+      "Inserisci un nome valido. Usa lettere, numeri, trattini e trattini bassi, con al massimo 63 caratteri per etichetta.",
+    purchased_dns_error_protected_host:
+      "Questo nome è riservato ai record di Aster Mail.",
+    purchased_dns_error_apex_mx:
+      "I record di posta per il dominio stesso sono gestiti da Aster. Aggiungi invece i record MX su un sottodominio.",
+    purchased_dns_error_apex_cname:
+      "Un record CNAME non può usare il dominio stesso. Usa invece un record A o AAAA.",
+    purchased_dns_error_apex_spf:
+      "Aster pubblica già un record SPF per questo dominio, e un dominio può averne solo uno.",
+    purchased_dns_error_value: "Controlla il valore e riprova.",
+    purchased_dns_error_ip: "Inserisci un indirizzo IP valido.",
+    purchased_dns_error_ipv4:
+      "Inserisci un indirizzo IPv4 valido, come 203.0.113.10.",
+    purchased_dns_error_ipv6:
+      "Inserisci un indirizzo IPv6 valido, come 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Inserisci un indirizzo IP pubblico. Gli indirizzi privati, locali e riservati non sono raggiungibili da Internet.",
+    purchased_dns_error_target:
+      "Inserisci un nome host valido, come example.com.",
+    purchased_dns_error_cname_self:
+      "Un record CNAME non può puntare al proprio nome.",
+    purchased_dns_error_cname_conflict:
+      "Un nome con un record CNAME non può avere altri record. Rimuovi prima gli altri record o scegli un altro nome.",
+    purchased_dns_error_txt_length:
+      "Il contenuto TXT può avere al massimo 2.048 caratteri.",
+    purchased_dns_error_txt_chars:
+      "Il contenuto TXT può contenere solo caratteri stampabili standard, senza virgolette né barre rovesciate.",
+    purchased_dns_error_ttl: "Scegli un TTL dall'elenco.",
+    purchased_dns_error_priority: "Inserisci una priorità da 0 a 65535.",
+    purchased_dns_error_weight: "Inserisci un peso da 0 a 65535.",
+    purchased_dns_error_port: "Inserisci una porta da 1 a 65535.",
+    purchased_dns_error_srv_host:
+      "Un nome SRV inizia con il servizio e il protocollo, come _sip._tcp.",
+    purchased_dns_error_caa_flags: "Scegli 0 o 128 per i flag.",
+    purchased_dns_error_caa_tag: "Scegli issue, issuewild o iodef come tag.",
+    purchased_dns_error_caa_value:
+      "Inserisci un valore con al massimo 255 caratteri, senza virgolette né barre rovesciate.",
+    purchased_dns_error_duplicate: "Questo record esiste già.",
+    purchased_dns_error_too_many:
+      "Questo dominio ha raggiunto il numero massimo di record. Eliminane uno per aggiungerne un altro.",
+    purchased_dns_error_protected_record:
+      "Aster gestisce questo record, quindi non puoi modificarlo.",
+    purchased_dns_error_type_change:
+      "Non puoi cambiare il tipo di un record. Eliminalo e aggiungi invece un nuovo record.",
+    purchased_dns_error_locked: "La modifica è disattivata per questo dominio.",
+    purchased_dns_error_busy: "Il registrar è occupato.",
+    purchased_dns_error_not_found: "Questo record non esiste più.",
+    purchased_dns_error_rate_limited:
+      "Stai apportando modifiche troppo rapidamente.",
+    purchased_dns_error_retry_in:
+      "{{message}} Riprova tra {{count}} secondi.",
+    purchased_dns_error_retry_in_one: "{{message}} Riprova tra {{count}} secondo.",
+    purchased_dns_ttl_seconds: "{{count}} secondi",
+    purchased_dns_expired_note: "La modifica è stata disattivata. Le modifiche non sono ancora salvate. Quando fai clic su Salva, confermi prima la tua identità.",
+    purchased_dns_filter_placeholder: "Filtra record",
+    purchased_dns_filter_no_results: "Nessun record corrisponde al filtro.",
+    purchased_dns_keep_editing: "Continua a modificare",
+    purchased_dns_error_unlock_failed: "Impossibile attivare la modifica. Riprova.",
+    purchased_dns_error_generic: "Impossibile salvare la modifica. Riprova.",
+    purchased_dns_load_failed: "Impossibile caricare i record DNS. Riprova.",
     domain_purchase_filter_all: "Tutti",
     domain_purchase_filter_available: "Disponibili",
     domain_purchase_filter_taken: "Occupati",

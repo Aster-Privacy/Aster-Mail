@@ -7074,10 +7074,152 @@ export const de = {
       "Aster belastet Ihre gespeicherte Karte 30 Tage vor dem Ablaufdatum und schickt Ihnen den Preis 15 Tage vorher per E-Mail.",
     domain_purchase_manage_auto_renew_error:
       "Die automatische Verlängerung konnte nicht geändert werden. Versuchen Sie es erneut.",
-    domain_purchase_manage_dns: "Domain-Einrichtung öffnen",
+    domain_purchase_manage_dns: "DNS verwalten",
     domain_purchase_manage_support_note:
-      "Um diese Domain zu einem anderen Registrar zu übertragen oder nach einer Rückerstattung zu fragen, kontaktiere den Support.",
+      "Wenden Sie sich bei Fragen zur Abrechnung oder zu einer Rückerstattung an den Support.",
     domain_purchase_manage_support_subject: "Hilfe zu {{domain}}",
+    domain_transfer_button: "Übertragen",
+    domain_transfer_title: "Domain übertragen",
+    domain_transfer_hint:
+      "Übertrage diese Domain zu einem anderen Registrar. Der Support sendet den Transfercode an deinen Aster-Posteingang.",
+    domain_transfer_message:
+      "Um {{domain}} zu einem anderen Registrar zu übertragen, benötigen Sie einen Transfercode. Wenn Sie fortfahren, öffnet Aster eine E-Mail an den Support. Der Support bestätigt, dass die Anfrage von diesem Konto stammt, und sendet den Code dann an Ihren Aster-Posteingang. Transfers dauern in der Regel 5 bis 7 Tage, nachdem Sie sie beim neuen Registrar gestartet haben.",
+    domain_transfer_locked_message:
+      "Registrare erlauben keine Transfers innerhalb von {{count}} Tagen nach der Registrierung. Sie können ab {{date}} einen Transfer für {{domain}} anfordern.",
+    domain_transfer_confirm: "An den Support schreiben",
+    domain_transfer_email_subject: "Transferanfrage für {{domain}}",
+    domain_transfer_email_body:
+      "Ich möchte {{domain}} zu einem anderen Registrar übertragen. Senden Sie den Transfercode an diese Adresse.\n\nBestell-ID: {{order_id}}\nNeuer Registrar:",
+    purchased_dns_title: "DNS-Einträge",
+    purchased_dns_description:
+      "Einträge für {{domain}}. Änderungen werden in der Regel innerhalb einer Stunde wirksam.",
+    purchased_dns_locked_title: "Bearbeitung ist deaktiviert",
+    purchased_dns_locked_note:
+      "Sie können diese Einträge ansehen, aber derzeit nicht ändern.",
+    purchased_dns_lock_frozen:
+      "Die Bearbeitung ist für diese Domain pausiert. Wenden Sie sich für weitere Informationen an den Support.",
+    purchased_dns_lock_payment:
+      "Die Bearbeitung ist deaktiviert, weil die Zahlung für diese Domain rückgängig gemacht wurde.",
+    purchased_dns_lock_lapsed:
+      "Die Bearbeitung ist deaktiviert, weil diese Domain abgelaufen ist. Verlängern Sie sie, um Änderungen vorzunehmen.",
+    purchased_dns_lock_suspended:
+      "Die Bearbeitung ist deaktiviert, weil diese Domain gesperrt ist.",
+    purchased_dns_unlock_title: "Identität bestätigen",
+    purchased_dns_unlock_description:
+      "Um DNS-Einträge zu ändern, bestätigen Sie Ihre Identität. Die Bearbeitung bleibt 15 Minuten lang aktiviert.",
+    purchased_dns_unlock: "Bearbeitung aktivieren",
+    purchased_dns_unlocked: "Bearbeitung ist aktiviert",
+    purchased_dns_unlocked_for: "Bearbeitung ist für {{time}} aktiviert",
+    purchased_dns_lock: "Bearbeitung deaktivieren",
+    purchased_dns_add: "Eintrag hinzufügen",
+    purchased_dns_add_title: "Eintrag hinzufügen",
+    purchased_dns_edit_title: "Eintrag bearbeiten",
+    purchased_dns_added: "Eintrag hinzugefügt",
+    purchased_dns_updated: "Eintrag aktualisiert",
+    purchased_dns_deleted: "Eintrag gelöscht",
+    purchased_dns_delete_title: "Eintrag löschen?",
+    purchased_dns_delete_message:
+      "Der {{type}}-Eintrag für {{name}} wird kurz nach dem Löschen nicht mehr aufgelöst.",
+    purchased_dns_edit_record: "{{type}}-Eintrag für {{name}} bearbeiten",
+    purchased_dns_copy_record: "Wert des {{type}}-Eintrags für {{name}} kopieren",
+    purchased_dns_delete_record: "{{type}}-Eintrag für {{name}} löschen",
+    purchased_dns_read_only: "Schreibgeschützt",
+    purchased_dns_mail_group: "Aster Mail-Einträge",
+    purchased_dns_mail_group_tip:
+      "Aster verwaltet diese Einträge, damit Ihre E-Mail weiter funktioniert. Sie können sie nicht bearbeiten oder löschen.",
+    purchased_dns_your_records: "Ihre Einträge",
+    purchased_dns_empty: "Sie haben noch keine Einträge hinzugefügt.",
+    purchased_dns_limit_reached:
+      "Diese Domain hat die maximale Anzahl von {{count}} Einträgen. Löschen Sie einen, um einen weiteren hinzuzufügen.",
+    purchased_dns_col_type: "Typ",
+    purchased_dns_col_name: "Name",
+    purchased_dns_col_content: "Inhalt",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Aktionen",
+    purchased_dns_host_hint:
+      "Verwenden Sie @ für die Domain selbst oder geben Sie eine Subdomain wie www ein.",
+    purchased_dns_field_ipv4: "IPv4-Adresse",
+    purchased_dns_field_ipv6: "IPv6-Adresse",
+    purchased_dns_field_target: "Ziel",
+    purchased_dns_field_content: "Inhalt",
+    purchased_dns_field_mail_server: "Mailserver",
+    purchased_dns_field_caa_value: "Wert",
+    purchased_dns_field_priority: "Priorität",
+    purchased_dns_field_weight: "Gewichtung",
+    purchased_dns_field_port: "Port",
+    purchased_dns_field_flags: "Flags",
+    purchased_dns_field_tag: "Tag",
+    purchased_dns_ttl_one_hour: "1 Stunde",
+    purchased_dns_ttl_hours: "{{count}} Stunden",
+    purchased_dns_ttl_one_day: "1 Tag",
+    purchased_dns_ttl_days: "{{count}} Tage",
+    purchased_dns_error_required: "Füllen Sie dieses Feld aus.",
+    purchased_dns_error_host:
+      "Geben Sie einen gültigen Namen ein. Verwenden Sie Buchstaben, Ziffern, Bindestriche und Unterstriche, mit bis zu 63 Zeichen pro Label.",
+    purchased_dns_error_protected_host:
+      "Dieser Name ist für Aster Mail-Einträge reserviert.",
+    purchased_dns_error_apex_mx:
+      "Mail-Einträge für die Domain selbst werden von Aster verwaltet. Fügen Sie MX-Einträge stattdessen für eine Subdomain hinzu.",
+    purchased_dns_error_apex_cname:
+      "Ein CNAME-Eintrag kann nicht die Domain selbst verwenden. Verwenden Sie stattdessen einen A- oder AAAA-Eintrag.",
+    purchased_dns_error_apex_spf:
+      "Aster veröffentlicht bereits einen SPF-Eintrag für diese Domain, und eine Domain kann nur einen haben.",
+    purchased_dns_error_value:
+      "Prüfen Sie den Wert und versuchen Sie es erneut.",
+    purchased_dns_error_ip: "Geben Sie eine gültige IP-Adresse ein.",
+    purchased_dns_error_ipv4:
+      "Geben Sie eine gültige IPv4-Adresse ein, z. B. 203.0.113.10.",
+    purchased_dns_error_ipv6:
+      "Geben Sie eine gültige IPv6-Adresse ein, z. B. 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Geben Sie eine öffentliche IP-Adresse ein. Private, lokale und reservierte Adressen sind aus dem Internet nicht erreichbar.",
+    purchased_dns_error_target:
+      "Geben Sie einen gültigen Hostnamen ein, z. B. example.com.",
+    purchased_dns_error_cname_self:
+      "Ein CNAME-Eintrag kann nicht auf seinen eigenen Namen verweisen.",
+    purchased_dns_error_cname_conflict:
+      "Ein Name mit einem CNAME-Eintrag kann keine anderen Einträge haben. Entfernen Sie zuerst die anderen Einträge oder wählen Sie einen anderen Namen.",
+    purchased_dns_error_txt_length:
+      "TXT-Inhalte können bis zu 2.048 Zeichen enthalten.",
+    purchased_dns_error_txt_chars:
+      "TXT-Inhalte dürfen nur druckbare Standardzeichen enthalten, ohne Anführungszeichen oder umgekehrte Schrägstriche.",
+    purchased_dns_error_ttl: "Wählen Sie eine TTL aus der Liste.",
+    purchased_dns_error_priority:
+      "Geben Sie eine Priorität von 0 bis 65535 ein.",
+    purchased_dns_error_weight:
+      "Geben Sie eine Gewichtung von 0 bis 65535 ein.",
+    purchased_dns_error_port: "Geben Sie einen Port von 1 bis 65535 ein.",
+    purchased_dns_error_srv_host:
+      "Ein SRV-Name beginnt mit Dienst und Protokoll, z. B. _sip._tcp.",
+    purchased_dns_error_caa_flags: "Wählen Sie 0 oder 128 für die Flags.",
+    purchased_dns_error_caa_tag:
+      "Wählen Sie issue, issuewild oder iodef als Tag.",
+    purchased_dns_error_caa_value:
+      "Geben Sie einen Wert mit bis zu 255 Zeichen ein, ohne Anführungszeichen oder umgekehrte Schrägstriche.",
+    purchased_dns_error_duplicate: "Dieser Eintrag ist bereits vorhanden.",
+    purchased_dns_error_too_many:
+      "Diese Domain hat die maximale Anzahl an Einträgen. Löschen Sie einen, um einen weiteren hinzuzufügen.",
+    purchased_dns_error_protected_record:
+      "Aster verwaltet diesen Eintrag, daher können Sie ihn nicht ändern.",
+    purchased_dns_error_type_change:
+      "Der Typ eines Eintrags kann nicht geändert werden. Löschen Sie ihn und fügen Sie stattdessen einen neuen Eintrag hinzu.",
+    purchased_dns_error_locked:
+      "Die Bearbeitung ist für diese Domain deaktiviert.",
+    purchased_dns_error_busy: "Der Registrar ist ausgelastet.",
+    purchased_dns_error_not_found: "Dieser Eintrag existiert nicht mehr.",
+    purchased_dns_error_rate_limited: "Sie nehmen zu schnell Änderungen vor.",
+    purchased_dns_error_retry_in:
+      "{{message}} Versuchen Sie es in {{count}} Sekunden erneut.",
+    purchased_dns_error_retry_in_one: "{{message}} Versuchen Sie es in {{count}} Sekunde erneut.",
+    purchased_dns_ttl_seconds: "{{count}} Sekunden",
+    purchased_dns_expired_note: "Die Bearbeitung wurde beendet. Ihre Änderungen sind noch nicht gespeichert. Wenn Sie auf Speichern klicken, bestätigen Sie zuerst Ihre Identität.",
+    purchased_dns_filter_placeholder: "Einträge filtern",
+    purchased_dns_filter_no_results: "Keine Einträge entsprechen Ihrem Filter.",
+    purchased_dns_keep_editing: "Weiter bearbeiten",
+    purchased_dns_error_unlock_failed: "Die Bearbeitung konnte nicht aktiviert werden. Versuchen Sie es erneut.",
+    purchased_dns_error_generic:
+      "Ihre Änderung konnte nicht gespeichert werden. Versuchen Sie es erneut.",
+    purchased_dns_load_failed: "DNS-Einträge konnten nicht geladen werden. Versuche es noch einmal.",
     domain_purchase_filter_all: "Alle",
     domain_purchase_filter_available: "Verfügbar",
     domain_purchase_filter_taken: "Vergeben",
