@@ -1715,6 +1715,9 @@ export const de = {
     recovery_codes_low_reminder_body:
       "Jeder Code funktioniert einmal, und du hast noch {{count}} übrig. Hole neue Codes, damit du nicht ausgesperrt wirst.",
     recovery_codes_low_reminder_action: "Neue Codes holen",
+    recovery_codes_refresh_title: "Ersetze deine Wiederherstellungscodes",
+    recovery_codes_refresh_body:
+      "Deine gespeicherten Wiederherstellungscodes haben ein älteres, kürzeres Format. Hol dir neue Codes und speichere sie. Danach funktionieren deine alten Codes nicht mehr.",
     recovery_phrase_migrate_title: "Zu Wiederherstellungscodes wechseln",
     recovery_phrase_migrate_body:
       "Wiederherstellungsphrasen werden abgeschafft. Hole dir jetzt Wiederherstellungscodes, damit du dein Konto weiterhin wiederherstellen kannst.",

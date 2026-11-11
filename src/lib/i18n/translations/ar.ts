@@ -1731,6 +1731,9 @@ export const ar = {
     recovery_codes_low_reminder_body:
       "يعمل كل رمز مرة واحدة، وتبقى لديك {{count}}. احصل على رموز جديدة حتى لا تفقد الوصول إلى حسابك.",
     recovery_codes_low_reminder_action: "الحصول على رموز جديدة",
+    recovery_codes_refresh_title: "استبدل رموز الاسترداد",
+    recovery_codes_refresh_body:
+      "رموز الاسترداد المحفوظة لديك تستخدم تنسيقًا أقدم وأقصر. احصل على رموز جديدة واحفظها. بعد ذلك تتوقف رموزك القديمة عن العمل.",
     recovery_phrase_migrate_title: "انتقل إلى رموز الاسترداد",
     recovery_phrase_migrate_body:
       "سيتوقف العمل بعبارات الاسترداد. احصل على رموز الاسترداد الآن حتى تظل قادرًا على استرداد حسابك.",

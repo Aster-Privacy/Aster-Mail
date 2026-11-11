@@ -1932,6 +1932,9 @@ export const pl = {
     recovery_codes_low_reminder_body_few:
       "Każdy kod działa raz, a zostały Ci {{count}}. Pobierz nowe kody, aby nie stracić dostępu.",
     recovery_codes_low_reminder_action: "Pobierz nowe kody",
+    recovery_codes_refresh_title: "Wymień kody odzyskiwania",
+    recovery_codes_refresh_body:
+      "Twoje zapisane kody odzyskiwania mają starszy, krótszy format. Pobierz nowe kody i zapisz je. Od tej chwili stare kody przestają działać.",
     recovery_phrase_migrate_title: "Przejdź na kody odzyskiwania",
     recovery_phrase_migrate_body:
       "Frazy odzyskiwania zostaną wycofane. Pobierz teraz kody odzyskiwania, aby nadal móc odzyskać konto.",

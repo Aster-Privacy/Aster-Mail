@@ -1792,6 +1792,9 @@ export const ko = {
     recovery_codes_low_reminder_body:
       "각 코드는 한 번만 사용할 수 있으며 {{count}}개가 남았습니다. 계정이 잠기지 않도록 새 코드를 받으세요.",
     recovery_codes_low_reminder_action: "새 코드 받기",
+    recovery_codes_refresh_title: "복구 코드를 교체하세요",
+    recovery_codes_refresh_body:
+      "저장된 복구 코드는 이전의 짧은 형식을 사용합니다. 새 코드를 받아 저장하세요. 새 코드를 받으면 이전 코드는 작동하지 않습니다.",
     recovery_phrase_migrate_title: "복구 코드로 전환",
     recovery_phrase_migrate_body:
       "복구 문구는 곧 사라집니다. 계정을 계속 복구할 수 있도록 지금 복구 코드를 받으세요.",

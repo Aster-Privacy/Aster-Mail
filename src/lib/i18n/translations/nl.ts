@@ -1774,6 +1774,9 @@ export const nl = {
     recovery_codes_low_reminder_body:
       "Elke code werkt één keer en je hebt er nog {{count}}. Haal nieuwe codes op zodat je niet buitengesloten raakt.",
     recovery_codes_low_reminder_action: "Nieuwe codes ophalen",
+    recovery_codes_refresh_title: "Vervang je herstelcodes",
+    recovery_codes_refresh_body:
+      "Je opgeslagen herstelcodes gebruiken een oudere, kortere indeling. Haal nieuwe codes op en bewaar ze. Daarna werken je oude codes niet meer.",
     recovery_phrase_migrate_title: "Overstappen op herstelcodes",
     recovery_phrase_migrate_body:
       "Herstelzinnen verdwijnen. Haal nu herstelcodes op zodat je je account nog kunt herstellen.",
