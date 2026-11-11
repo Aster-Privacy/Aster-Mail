@@ -36,6 +36,7 @@ vi.mock("@/services/routing/routing_provider", () => ({
 }));
 
 import { error_kind, install_global_error_reporting } from "./error_reporter";
+import { set_error_report_choice } from "./error_report_consent";
 
 function sent_reports(): Record<string, unknown>[] {
   return routing.fetch.mock.calls.map(
@@ -105,6 +106,7 @@ describe("global error reporting", () => {
 
   beforeEach(() => {
     routing.fetch.mockClear();
+    set_error_report_choice(true);
   });
 
   it("reports an unhandled rejection with its kind", () => {

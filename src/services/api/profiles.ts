@@ -22,6 +22,8 @@ import type { Badge } from "./user";
 
 import { api_client } from "./client";
 
+import { is_any_lockdown_active } from "@/services/lockdown_store";
+
 export interface PublicProfile {
   display_name?: string | null;
   profile_picture?: string | null;
@@ -160,6 +162,20 @@ export function get_peer_profile_hint(email: string): PublicProfile | null {
   return load_hints().get(key)?.profile ?? null;
 }
 
+function restore_recent_lookup(email: string): PublicProfile | undefined {
+  const hint = load_hints().get(email);
+
+  if (!hint) return undefined;
+
+  const expires_at = hint.stored_at + CACHE_TTL_MS;
+
+  if (expires_at <= Date.now()) return undefined;
+
+  cache.set(email, { profile: hint.profile, expires_at });
+
+  return hint.profile;
+}
+
 function set_cache(
   email: string,
   profile: PublicProfile | null,
@@ -177,9 +193,25 @@ function notify_subscribers() {
   for (const cb of subscribers) cb();
 }
 
+function drop_pending_lookups() {
+  const waiting = Array.from(pending.values());
+
+  pending.clear();
+
+  for (const resolvers of waiting) {
+    for (const r of resolvers) r.resolve(null);
+  }
+}
+
 async function flush_pending() {
   flush_timer = null;
   if (pending.size === 0) return;
+
+  if (is_any_lockdown_active()) {
+    drop_pending_lookups();
+
+    return;
+  }
 
   const emails = Array.from(pending.keys()).slice(0, MAX_BATCH);
   const resolvers_by_email: Map<string, PendingResolver[]> = new Map();
@@ -240,10 +272,20 @@ export function fetch_peer_profile(
     return Promise.resolve(null);
   }
 
+  if (is_any_lockdown_active()) {
+    return Promise.resolve(null);
+  }
+
   const cached = get_cached_peer_profile(key);
 
   if (cached !== undefined) {
     return Promise.resolve(cached);
+  }
+
+  const recent = restore_recent_lookup(key);
+
+  if (recent !== undefined) {
+    return Promise.resolve(recent);
   }
 
   return new Promise((resolve) => {

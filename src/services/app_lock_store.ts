@@ -38,6 +38,7 @@ import {
   get_unlocked_key,
   get_unlocked_verifier,
 } from "@/services/app_lock_wrap";
+import { release_on_version_change } from "@/lib/idb_release";
 
 const MAX_ATTEMPTS = 5;
 const BASE_LOCKOUT_MS = 5 * 60 * 1000;
@@ -63,7 +64,7 @@ function open_pepper_db(): Promise<IDBDatabase> {
         req.result.createObjectStore(PEPPER_STORE);
       }
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => resolve(release_on_version_change(req.result));
     req.onerror = () => reject(req.error);
   });
 }

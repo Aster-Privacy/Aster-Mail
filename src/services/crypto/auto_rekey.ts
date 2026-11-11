@@ -21,6 +21,7 @@
 import { get_vault_from_memory } from "./memory_key_store";
 import { load_storage_write_key_bytes } from "./storage_write_key";
 import { zero_uint8_array } from "./secure_memory";
+import { without_retired_keks } from "./retired_identity_keks";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { list_aliases } from "@/services/api/aliases";
@@ -112,7 +113,9 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
   const vault = get_vault_from_memory();
   const new_raw = await load_storage_write_key_bytes();
 
-  if (!vault?.legacy_keks?.length || !new_raw) {
+  const old_keks = without_retired_keks(vault?.legacy_keks);
+
+  if (!old_keks.length || !new_raw) {
     if (new_raw) zero_uint8_array(new_raw);
 
     return false;
@@ -120,7 +123,7 @@ export async function auto_rekey_if_needed(): Promise<boolean> {
 
   const old_decrypt_keys: CryptoKey[] = [];
 
-  for (const kek of vault.legacy_keks) {
+  for (const kek of old_keks) {
     try {
       old_decrypt_keys.push(await import_decrypt_key(b64_to_arr(kek.k)));
     } catch {

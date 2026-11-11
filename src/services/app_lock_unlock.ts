@@ -67,6 +67,7 @@ import {
   register_app_lock,
   unwrap_app_lock,
 } from "@/services/app_lock_server";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 import {
   get_session_passphrase,
   get_stored_encrypted_vault,
@@ -144,6 +145,7 @@ function write_pending_deletes(entries: PendingAppLockDelete[]): void {
 }
 
 function queue_app_lock_delete(account_id: string, device_lock_id: string): void {
+  if (device_traces_erased()) return;
   const entries = read_pending_deletes().filter(
     (entry) => entry.device_lock_id !== device_lock_id,
   );

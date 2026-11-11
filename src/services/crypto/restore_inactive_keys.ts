@@ -41,6 +41,7 @@ import {
 import { append_keks_to_list, serialize_kek_for_vault } from "./legacy_keks";
 import { base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
+import { without_retired_keks } from "./retired_identity_keks";
 import {
   derive_encryption_key_from_passphrase,
   get_passphrase_from_memory,
@@ -103,7 +104,7 @@ export function harvest_vault_storage_keys(
   const harvested: Uint8Array[] = [];
   const encoded_keys = old_vault.data_kek ? [old_vault.data_kek] : [];
 
-  for (const entry of old_vault.legacy_keks ?? []) {
+  for (const entry of without_retired_keks(old_vault.legacy_keks)) {
     encoded_keys.push(entry.k);
   }
 

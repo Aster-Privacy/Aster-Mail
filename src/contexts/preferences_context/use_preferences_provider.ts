@@ -80,6 +80,7 @@ import {
 } from "@/lib/loaded_fonts";
 import { get_effective_theme_fields } from "@/lib/theme_sync";
 import { ignore_error } from "@/lib/ignore_error";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 import {
   CLIENT_VAULT_LEVEL,
   VAULT_LEVEL_HEADER,
@@ -758,6 +759,7 @@ export function use_preferences_provider() {
 
   useEffect(() => {
     const flush_via_beacon = () => {
+      if (device_traces_erased()) return;
       if (!latest_prefs_ref.current || !beacon_payload_ref.current) return;
 
       if (!has_loaded_ref.current) {

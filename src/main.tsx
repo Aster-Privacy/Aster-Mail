@@ -70,6 +70,7 @@ import "@/styles/mobile.css";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
+import { watch_device_erase } from "@/lib/device_erase_latch";
 import { capture_support_return } from "@/lib/support_return";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
@@ -168,6 +169,11 @@ if (low_network_on_startup) {
   document.head.appendChild(style);
 }
 show_self_xss_warning();
+watch_device_erase((signal) => {
+  void import("@/contexts/auth/purge_local_data")
+    .then((module) => module.follow_device_erase(signal))
+    .catch(() => window.location.replace("/"));
+});
 
 connection_store.initialize().catch((caught) => ignore_error("main", caught));
 

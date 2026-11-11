@@ -922,7 +922,10 @@ function sanitize_html_impl(
           }
 
           sanitized_value = serialize_srcset_value(kept);
-        } else if (attr_lower === "background") {
+        } else if (
+          attr_lower === "background" ||
+          (tag_name === "source" && attr_lower === "src")
+        ) {
           const local_background = classify_local_image_url(sanitized_value);
           const original_background = sanitized_value;
 
