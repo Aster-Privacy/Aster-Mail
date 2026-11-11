@@ -18,7 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { api_client } from "@/services/api/client";
 import { HASH_ALG } from "@/services/crypto/constants";
+import { ignore_error } from "@/lib/ignore_error";
 
 import type { EncryptedVault } from "../key_manager";
 
@@ -49,8 +51,9 @@ import { re_encrypt_folders } from "./folders";
 import { import_aes_key } from "./key_helpers";
 import { re_encrypt_mail_metadata, re_encrypt_tags } from "./mail";
 import {
-  clear_pending_reencryption,
-  get_pending,
+  clear_pending_entry,
+  find_pending_entries,
+  read_pending_entry,
   store_pending_reencryption,
 } from "./pending";
 import {
@@ -68,15 +71,105 @@ import {
   re_encrypt_signatures,
   re_encrypt_templates,
 } from "./settings";
+
+const MAX_IDENTITY_ATTEMPTS = 5;
+const RECOVERY_EMAIL_STEP = "recovery_email";
+const LOCK_PREFIX = "aster_recovery_reencrypt:";
+
+type StepOutcome = "done" | "deferred" | "failed";
+
+const active_runs = new Map<string, Promise<void>>();
+
+function cross_tab_locks(): LockManager | null {
+  try {
+    if (typeof navigator === "undefined") return null;
+
+    const manager = navigator.locks;
+
+    return typeof manager?.request === "function" ? manager : null;
+  } catch {
+    return null;
+  }
+}
+
+function with_entry_lock(
+  storage_key: string,
+  fn: () => Promise<void>,
+): Promise<void> {
+  const manager = cross_tab_locks();
+
+  if (!manager) return fn();
+
+  return manager.request(
+    LOCK_PREFIX + storage_key,
+    { ifAvailable: true },
+    async (lock) => {
+      if (!lock) return;
+
+      await fn();
+    },
+  );
+}
+
+function is_offline(): boolean {
+  try {
+    return typeof navigator !== "undefined" && navigator.onLine === false;
+  } catch {
+    return false;
+  }
+}
+
+function from_stored(stored: boolean): StepOutcome {
+  return stored ? "done" : "failed";
+}
+
 export async function check_and_run_recovery_reencryption(
   vault: EncryptedVault,
   _passphrase: string,
 ): Promise<void> {
-  const pending = await get_pending();
+  if (!vault.identity_key) return;
+
+  const entries = await find_pending_entries(vault);
+
+  for (const entry of entries) {
+    await run_entry_once(entry.storage_key, vault);
+  }
+}
+
+function run_entry_once(
+  storage_key: string,
+  vault: EncryptedVault,
+): Promise<void> {
+  const existing = active_runs.get(storage_key);
+
+  if (existing) return existing;
+
+  const run = with_entry_lock(storage_key, () =>
+    run_recovery_reencryption(storage_key, vault),
+  ).finally(() => {
+    if (active_runs.get(storage_key) === run) active_runs.delete(storage_key);
+  });
+
+  active_runs.set(storage_key, run);
+
+  return run;
+}
+
+async function run_recovery_reencryption(
+  storage_key: string,
+  vault: EncryptedVault,
+): Promise<void> {
+  const pending = await read_pending_entry(storage_key, vault);
 
   if (!pending) return;
 
-  clear_pending_reencryption();
+  const account = api_client.get_expected_user_id();
+  const account_changed = (): boolean =>
+    api_client.get_expected_user_id() !== account;
+
+  const done_steps = new Set(pending.done_identity_steps ?? []);
+  const attempts = pending.identity_attempts ?? 0;
+  const exhausted = attempts >= MAX_IDENTITY_ATTEMPTS;
 
   const [old_folder_hash_buf, old_tag_hash_buf] = await Promise.all([
     crypto.subtle.digest(
@@ -94,6 +187,8 @@ export async function check_and_run_recovery_reencryption(
   const old_folder_hash = new Uint8Array(old_folder_hash_buf);
   const old_tag_hash = new Uint8Array(old_tag_hash_buf);
 
+  if (account_changed()) return;
+
   await Promise.all([
     append_legacy_key_raw_bytes(old_folder_hash),
     append_legacy_key_raw_bytes(old_tag_hash),
@@ -102,36 +197,124 @@ export async function check_and_run_recovery_reencryption(
   zero_uint8_array(old_folder_hash);
   zero_uint8_array(old_tag_hash);
 
-  try {
-    await re_encrypt_tags(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_folders(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_preferences(
-      pending.old_identity_key,
-      vault.identity_key,
-      vault,
-    );
-    await re_encrypt_drafts(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_dev_mode(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_recovery_email(
-      pending.old_identity_key,
-      vault.identity_key,
-    );
-    await re_encrypt_onboarding_state(
-      pending.old_identity_key,
-      vault.identity_key,
-    );
-  } catch {
-    /* silently fail */
+  const old_identity_key = pending.old_identity_key;
+  const new_identity_key = vault.identity_key;
+  const identity_steps: [string, () => Promise<StepOutcome>][] = [
+    [
+      "tags",
+      async () =>
+        from_stored(await re_encrypt_tags(old_identity_key, new_identity_key)),
+    ],
+    [
+      "folders",
+      async () =>
+        from_stored(
+          await re_encrypt_folders(old_identity_key, new_identity_key),
+        ),
+    ],
+    [
+      "preferences",
+      async () =>
+        from_stored(
+          await re_encrypt_preferences(
+            old_identity_key,
+            new_identity_key,
+            vault,
+          ),
+        ),
+    ],
+    [
+      "drafts",
+      async () =>
+        from_stored(
+          await re_encrypt_drafts(old_identity_key, new_identity_key),
+        ),
+    ],
+    [
+      "dev_mode",
+      async () =>
+        from_stored(
+          await re_encrypt_dev_mode(old_identity_key, new_identity_key),
+        ),
+    ],
+    [
+      RECOVERY_EMAIL_STEP,
+      () => re_encrypt_recovery_email(old_identity_key, new_identity_key),
+    ],
+    [
+      "onboarding",
+      async () =>
+        from_stored(
+          await re_encrypt_onboarding_state(old_identity_key, new_identity_key),
+        ),
+    ],
+  ];
+
+  let any_failed = false;
+
+  for (const [name, step] of identity_steps) {
+    if (done_steps.has(name)) continue;
+    if (exhausted && name !== RECOVERY_EMAIL_STEP) continue;
+    if (account_changed()) return;
+
+    let outcome: StepOutcome;
+
+    try {
+      outcome = await step();
+    } catch (caught) {
+      ignore_error("services/crypto/recovery_reencrypt:identity_step", caught);
+      outcome = "failed";
+    }
+
+    if (account_changed()) return;
+
+    if (outcome === "done") {
+      done_steps.add(name);
+    } else if (outcome === "failed") {
+      any_failed = true;
+    }
   }
 
-  if (!pending.old_data_kek) return;
+  const data_complete = await run_data_kek_steps(pending.old_data_kek);
+
+  if (account_changed()) return;
+
+  const next_attempts =
+    any_failed && !exhausted && !is_offline() ? attempts + 1 : attempts;
+  const all_done = identity_steps.every(([name]) => done_steps.has(name));
+  const identity_complete =
+    all_done ||
+    (next_attempts >= MAX_IDENTITY_ATTEMPTS &&
+      done_steps.has(RECOVERY_EMAIL_STEP));
+
+  if (identity_complete && data_complete) {
+    clear_pending_entry(storage_key);
+
+    return;
+  }
+
+  await store_pending_reencryption({
+    ...(pending.owner_user_id ? { owner_user_id: pending.owner_user_id } : {}),
+    old_identity_key: pending.old_identity_key,
+    ...(data_complete ? {} : { old_data_kek: pending.old_data_kek }),
+    done_identity_steps: identity_complete
+      ? identity_steps.map(([name]) => name)
+      : Array.from(done_steps),
+    identity_attempts: next_attempts,
+  });
+}
+
+async function run_data_kek_steps(
+  old_data_kek: string | undefined,
+): Promise<boolean> {
+  if (!old_data_kek) return true;
 
   let old_raw: Uint8Array | null = null;
   let new_raw: Uint8Array | null = null;
   let complete = false;
 
   try {
-    old_raw = base64_to_array(pending.old_data_kek);
+    old_raw = base64_to_array(old_data_kek);
     new_raw = await load_storage_write_key_bytes();
 
     if (!new_raw) {
@@ -167,10 +350,5 @@ export async function check_and_run_recovery_reencryption(
     if (new_raw) zero_uint8_array(new_raw);
   }
 
-  if (!complete) {
-    await store_pending_reencryption({
-      old_identity_key: pending.old_identity_key,
-      old_data_kek: pending.old_data_kek,
-    });
-  }
+  return complete;
 }

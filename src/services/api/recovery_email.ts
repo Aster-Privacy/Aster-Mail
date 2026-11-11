@@ -27,7 +27,6 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import { get_account_data_crypto_keys } from "@/services/crypto/legacy_keks";
 import { hash_recovery_email } from "@/services/crypto/key_manager";
 import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
-import { EMAIL_REGEX } from "@/lib/utils";
 import { ignore_error } from "@/lib/ignore_error";
 
 interface GetRecoveryEmailApiResponse {
@@ -54,8 +53,36 @@ export const EMPTY_RECOVERY_EMAIL: RecoveryEmailData = {
 };
 
 const RECOVERY_EMAIL_CONTEXT = "astermail-recovery-email-v1";
+const RETIRED_KEY_PREFIX = "undefined";
 const MAX_RECOVERY_EMAIL_LENGTH = 254;
 const MAX_RECOVERY_EMAIL_LOCAL_LENGTH = 64;
+const RESEAL_ENDPOINT = "/core/v1/recovery/email/reseal";
+const UNDISPLAYABLE_CHARACTER_PATTERN =
+  /[\p{Cc}\p{Cf}\p{Cs}\p{Co}\p{Zl}\p{Zp}]/u;
+const DEFERRED_RESEAL_CODES: ReadonlySet<string> = new Set([
+  "NETWORK_ERROR",
+  "TIMEOUT_ERROR",
+  "SERVER_ERROR",
+  "RATE_LIMIT_EXCEEDED",
+  "UNAUTHORIZED",
+  "FORBIDDEN",
+]);
+
+export const INVALID_RECOVERY_EMAIL_CODE = "INVALID_RECOVERY_EMAIL";
+export const RECOVERY_EMAIL_KEY_UNAVAILABLE_CODE =
+  "RECOVERY_EMAIL_KEY_UNAVAILABLE";
+
+export type RecoveryEmailResealOutcome = "done" | "deferred" | "failed";
+
+type RecoveryEmailKeySource = "current" | "retained" | "retired";
+
+interface OpenedRecoveryEmail {
+  address: string;
+  source: RecoveryEmailKeySource;
+}
+
+const RECOVERY_EMAIL_PATTERN =
+  /^[\p{L}\p{N}\p{M}.!#$%&'*+/=?^_`{|}~-]+@[\p{L}\p{N}](?:[\p{L}\p{N}\p{M}-]{0,61}[\p{L}\p{N}\p{M}])?(?:\.[\p{L}\p{N}](?:[\p{L}\p{N}\p{M}-]{0,61}[\p{L}\p{N}\p{M}])?)*$/u;
 
 export function normalize_recovery_email(email: string): string {
   return email.trim().toLowerCase();
@@ -66,15 +93,36 @@ export function is_valid_recovery_email(value: unknown): value is string {
   if (value.length === 0 || value.length > MAX_RECOVERY_EMAIL_LENGTH) {
     return false;
   }
+  if (new TextEncoder().encode(value).length > MAX_RECOVERY_EMAIL_LENGTH) {
+    return false;
+  }
   if (value.indexOf("@") > MAX_RECOVERY_EMAIL_LOCAL_LENGTH) return false;
 
-  return EMAIL_REGEX.test(value);
+  return RECOVERY_EMAIL_PATTERN.test(value);
+}
+
+function has_unprintable_character(value: string): boolean {
+  return UNDISPLAYABLE_CHARACTER_PATTERN.test(value);
+}
+
+export function is_readable_recovery_email(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  if (value.length === 0 || value.length > MAX_RECOVERY_EMAIL_LENGTH) {
+    return false;
+  }
+  if (has_unprintable_character(value)) return false;
+
+  const separator = value.indexOf("@");
+
+  if (separator <= 0 || separator === value.length - 1) return false;
+
+  return separator === value.lastIndexOf("@");
 }
 
 export function parse_recovery_email_plaintext(bytes: BufferSource): string {
   const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes).trim();
 
-  if (!is_valid_recovery_email(text)) {
+  if (!is_readable_recovery_email(text)) {
     throw new Error("recovery email plaintext is not an email address");
   }
 
@@ -93,6 +141,7 @@ const RECOVERY_CACHE_TTL_MS = 30_000;
 
 let cached_recovery_data: RecoveryEmailData | null = null;
 let cached_recovery_at = 0;
+let retired_reseal_scheduled = false;
 
 function set_cached_recovery_data(data: RecoveryEmailData | null) {
   cached_recovery_data = data;
@@ -127,8 +176,41 @@ async function derive_recovery_email_key_from(
   );
 }
 
-function derive_recovery_email_key(vault: EncryptedVault): Promise<CryptoKey> {
-  return derive_recovery_email_key_from(vault.identity_key);
+async function retired_recovery_email_key(
+  vault: EncryptedVault,
+): Promise<CryptoKey | null> {
+  const raw = new Uint8Array(
+    await crypto.subtle.digest(
+      HASH_ALG,
+      new TextEncoder().encode(RETIRED_KEY_PREFIX + RECOVERY_EMAIL_CONTEXT),
+    ),
+  );
+
+  if (vault.identity_key) {
+    const held = vault.legacy_keks;
+
+    if (!held || held.length === 0) return null;
+
+    const encoded = btoa(String.fromCharCode(...raw));
+
+    if (!held.some((entry) => entry.k === encoded)) return null;
+  }
+
+  return crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+}
+
+function decode_base64(value: string): Uint8Array {
+  return Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
+}
+
+function encode_base64(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes));
 }
 
 async function open_recovery_email(
@@ -147,11 +229,26 @@ async function open_recovery_email(
   }
 }
 
-export async function encrypt_recovery_email(
+async function read_recovery_email_with(
+  key: CryptoKey,
+  ciphertext: Uint8Array,
+  iv: Uint8Array,
+): Promise<string | null> {
+  const opened = await open_recovery_email(key, ciphertext, iv);
+
+  if (!opened) return null;
+
+  try {
+    return parse_recovery_email_plaintext(opened);
+  } catch {
+    return null;
+  }
+}
+
+async function seal_recovery_email(
   email: string,
-  vault: EncryptedVault,
+  key: CryptoKey,
 ): Promise<{ encrypted: string; nonce: string }> {
-  const key = await derive_recovery_email_key(vault);
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(email);
 
@@ -162,9 +259,71 @@ export async function encrypt_recovery_email(
   );
 
   return {
-    encrypted: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
-    nonce: btoa(String.fromCharCode(...nonce)),
+    encrypted: encode_base64(new Uint8Array(encrypted)),
+    nonce: encode_base64(nonce),
   };
+}
+
+export async function encrypt_recovery_email(
+  email: string,
+  vault: EncryptedVault,
+): Promise<{ encrypted: string; nonce: string }> {
+  if (!vault.identity_key) {
+    throw new Error("recovery email cannot be sealed without an identity key");
+  }
+
+  return seal_recovery_email(
+    email,
+    await derive_recovery_email_key_from(vault.identity_key),
+  );
+}
+
+async function open_recovery_email_with_source(
+  encrypted: string,
+  nonce: string,
+  vault: EncryptedVault,
+): Promise<OpenedRecoveryEmail> {
+  const encrypted_data = decode_base64(encrypted);
+  const nonce_data = decode_base64(nonce);
+
+  for (const identity_key of vault_identity_key_materials(vault)) {
+    const address = await read_recovery_email_with(
+      await derive_recovery_email_key_from(identity_key),
+      encrypted_data,
+      nonce_data,
+    );
+
+    if (address !== null) {
+      return {
+        address,
+        source: identity_key === vault.identity_key ? "current" : "retained",
+      };
+    }
+  }
+
+  for (const key of get_account_data_crypto_keys(RECOVERY_EMAIL_CONTEXT)) {
+    const address = await read_recovery_email_with(
+      key,
+      encrypted_data,
+      nonce_data,
+    );
+
+    if (address !== null) return { address, source: "retained" };
+  }
+
+  const retired_key = await retired_recovery_email_key(vault);
+
+  if (retired_key) {
+    const address = await read_recovery_email_with(
+      retired_key,
+      encrypted_data,
+      nonce_data,
+    );
+
+    if (address !== null) return { address, source: "retired" };
+  }
+
+  throw new Error("recovery email cannot be decrypted");
 }
 
 async function decrypt_recovery_email(
@@ -172,28 +331,149 @@ async function decrypt_recovery_email(
   nonce: string,
   vault: EncryptedVault,
 ): Promise<string> {
-  const encrypted_data = Uint8Array.from(atob(encrypted), (c) =>
-    c.charCodeAt(0),
+  const opened = await open_recovery_email_with_source(encrypted, nonce, vault);
+
+  return opened.address;
+}
+
+async function read_stored_recovery_email(): Promise<GetRecoveryEmailApiResponse | null> {
+  const response = await api_client.get<GetRecoveryEmailApiResponse>(
+    "/core/v1/recovery/email",
+    { skip_cache: true, skip_dedup: true },
   );
-  const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  for (const identity_key of vault_identity_key_materials(vault)) {
-    const opened = await open_recovery_email(
-      await derive_recovery_email_key_from(identity_key),
-      encrypted_data,
-      nonce_data,
+  if (response.error || !response.data) return null;
+
+  return response.data;
+}
+
+async function read_stored_with(
+  key: CryptoKey,
+  stored: GetRecoveryEmailApiResponse,
+): Promise<string | null> {
+  if (!stored.encrypted_email || !stored.email_nonce) return null;
+
+  try {
+    return await read_recovery_email_with(
+      key,
+      decode_base64(stored.encrypted_email),
+      decode_base64(stored.email_nonce),
     );
+  } catch {
+    return null;
+  }
+}
 
-    if (opened) return parse_recovery_email_plaintext(opened);
+function is_deferred_reseal_response(response: {
+  code?: string;
+  status?: number;
+  server_code?: string;
+}): boolean {
+  if (response.code && DEFERRED_RESEAL_CODES.has(response.code)) return true;
+
+  const status = response.status;
+
+  if (status === undefined) return true;
+  if (status === 401 || status === 403 || status === 405) return true;
+  if (status === 429 || status >= 500) return true;
+
+  return status === 404 && !response.server_code;
+}
+
+export async function reseal_recovery_email(
+  new_identity_key: string,
+  old_identity_keys: string[],
+  extra_old_keys: CryptoKey[] = [],
+): Promise<RecoveryEmailResealOutcome> {
+  if (!new_identity_key) return "deferred";
+
+  const current_key = await derive_recovery_email_key_from(new_identity_key);
+  const before = await read_stored_recovery_email();
+
+  if (!before) return "deferred";
+  if (!before.encrypted_email || !before.email_nonce) return "done";
+  if ((await read_stored_with(current_key, before)) !== null) return "done";
+
+  const old_keys: CryptoKey[] = [];
+
+  for (const old_identity_key of old_identity_keys) {
+    if (!old_identity_key || old_identity_key === new_identity_key) continue;
+
+    old_keys.push(await derive_recovery_email_key_from(old_identity_key));
   }
 
-  for (const key of get_account_data_crypto_keys(RECOVERY_EMAIL_CONTEXT)) {
-    const opened = await open_recovery_email(key, encrypted_data, nonce_data);
+  old_keys.push(...extra_old_keys);
 
-    if (opened) return parse_recovery_email_plaintext(opened);
+  const ciphertext = decode_base64(before.encrypted_email);
+  const iv = decode_base64(before.email_nonce);
+  let address: string | null = null;
+  let opened_by_old_key = false;
+
+  for (const old_key of old_keys) {
+    const opened = await open_recovery_email(old_key, ciphertext, iv);
+
+    if (!opened) continue;
+
+    opened_by_old_key = true;
+
+    try {
+      address = parse_recovery_email_plaintext(opened);
+    } catch {
+      address = null;
+    }
+
+    break;
   }
 
-  throw new Error("recovery email cannot be decrypted");
+  if (!opened_by_old_key) return "done";
+  if (address === null) return "failed";
+
+  const sealed = await seal_recovery_email(address, current_key);
+  const email_hash = await hash_recovery_email(address);
+  const saved = await api_client.put<SaveRecoveryEmailApiResponse>(
+    RESEAL_ENDPOINT,
+    {
+      encrypted_email: sealed.encrypted,
+      email_nonce: sealed.nonce,
+      email_hash,
+    },
+  );
+
+  if (saved.error && is_deferred_reseal_response(saved)) return "deferred";
+
+  const after = await read_stored_recovery_email();
+
+  if (!after) return "deferred";
+
+  set_cached_recovery_data(null);
+
+  if (!after.encrypted_email || !after.email_nonce) return "done";
+
+  return (await read_stored_with(current_key, after)) !== null
+    ? "done"
+    : "failed";
+}
+
+function schedule_retired_key_reseal(vault: EncryptedVault): void {
+  if (retired_reseal_scheduled || !vault.identity_key) return;
+
+  retired_reseal_scheduled = true;
+
+  const identity_key = vault.identity_key;
+
+  retired_recovery_email_key(vault)
+    .then((retired_key): Promise<RecoveryEmailResealOutcome> => {
+      if (!retired_key) return Promise.resolve("deferred");
+
+      return reseal_recovery_email(identity_key, [], [retired_key]);
+    })
+    .then((outcome) => {
+      if (outcome !== "done") retired_reseal_scheduled = false;
+    })
+    .catch((caught) => {
+      retired_reseal_scheduled = false;
+      ignore_error("services/api/recovery_email:retired_reseal", caught);
+    });
 }
 
 export async function reencrypt_recovery_email(
@@ -266,9 +546,17 @@ export async function get_recovery_email(
 
     let email: string | null = null;
     let decrypt_failed = false;
+    let read_with_retired_key = false;
 
     try {
-      email = await decrypt_recovery_email(encrypted_email, email_nonce, vault);
+      const opened = await open_recovery_email_with_source(
+        encrypted_email,
+        email_nonce,
+        vault,
+      );
+
+      email = opened.address;
+      read_with_retired_key = opened.source === "retired";
     } catch (caught) {
       decrypt_failed = true;
       ignore_error("services/api/recovery_email:decrypt", caught);
@@ -285,8 +573,10 @@ export async function get_recovery_email(
       set_cached_recovery_data(recovery_data);
     }
 
-    if (
-      is_valid_recovery_email(email) &&
+    if (read_with_retired_key) {
+      schedule_retired_key_reseal(vault);
+    } else if (
+      is_readable_recovery_email(email) &&
       recovery_data.verified &&
       !has_server_enc
     ) {
@@ -320,7 +610,17 @@ export async function save_recovery_email(
     const normalized = normalize_recovery_email(email);
 
     if (!is_valid_recovery_email(normalized)) {
-      return { data: { success: false } };
+      return {
+        data: { success: false },
+        code: INVALID_RECOVERY_EMAIL_CODE,
+      };
+    }
+
+    if (!vault.identity_key) {
+      return {
+        data: { success: false },
+        code: RECOVERY_EMAIL_KEY_UNAVAILABLE_CODE,
+      };
     }
 
     const { encrypted, nonce } = await encrypt_recovery_email(
@@ -367,7 +667,7 @@ export async function resend_recovery_verification(
   try {
     const response = await api_client.post<ResendVerificationApiResponse>(
       "/core/v1/recovery/email/resend",
-      is_valid_recovery_email(email) ? { plaintext_email: email } : {},
+      is_readable_recovery_email(email) ? { plaintext_email: email } : {},
     );
 
     return {
@@ -479,4 +779,5 @@ export async function prime_server_recovery_email(
 
 export function clear_recovery_email_cache(): void {
   cached_recovery_data = null;
+  retired_reseal_scheduled = false;
 }

@@ -48,7 +48,10 @@ import {
   clear_recovery_email_cache,
   encrypt_recovery_email,
   get_recovery_email,
+  INVALID_RECOVERY_EMAIL_CODE,
+  is_readable_recovery_email,
   is_valid_recovery_email,
+  RECOVERY_EMAIL_KEY_UNAVAILABLE_CODE,
   reencrypt_recovery_email,
   save_recovery_email,
 } from "./recovery_email";
@@ -72,6 +75,32 @@ const OLD_IDENTITY_KEY = "old-identity-key";
 const ACCOUNT_KEY = new Uint8Array(32).map((_, i) => (i * 7 + 3) % 256);
 const DRAFT_TEXT = "private draft body that stays on this device";
 const RECOVERY_CONTEXT = "astermail-recovery-email-v1";
+const EARLIER_CLIENT_ADDRESSES = [
+  '"first last"@example.com',
+  "user@[192.0.2.1]",
+  "user@mail_host.example.com",
+  `${"x".repeat(65)}@example.com`,
+];
+const INTERNATIONAL_ADDRESSES = [
+  "jürgen@müller.example",
+  "用户@例子.公司",
+];
+const HIDDEN_CHARACTER_ADDRESSES = [
+  "user\u202e@example.com",
+  "user@\u202dexample.com",
+  "us\u2066er\u2069@example.com",
+  "user\u200b@example.com",
+  "user@exa\u200dmple.com",
+  "user@exa\u200cmple.com",
+  "us\ufeffer@example.com",
+  "user\u00ad@example.com",
+  "user\u061c@example.com",
+  "user@example.com\u0085x",
+  "user\u007f@example.com",
+  "user\u001b@example.com",
+  "user\u2029@example.com",
+  "user\ue000@example.com",
+];
 
 const vault = { identity_key: IDENTITY_KEY } as unknown as Vault;
 const next_vault = { identity_key: "next-identity-key" } as unknown as Vault;
@@ -104,6 +133,26 @@ async function account_context_key(
     "encrypt",
     "decrypt",
   ]);
+}
+
+async function retired_context_key(
+  context: string,
+): Promise<{ key: CryptoKey; encoded: string }> {
+  const raw = new Uint8Array(
+    await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode("undefined" + context),
+    ),
+  );
+  const key = await crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt", "decrypt"],
+  );
+
+  return { key, encoded: to_base64(raw) };
 }
 
 async function seal(key: CryptoKey, text: string): Promise<SealedBlob> {
@@ -199,7 +248,10 @@ describe("recovery email read path", () => {
       "a@b.co\nsecond line",
       "a@b.co, c@d.co",
       `${"x".repeat(250)}@example.com`,
-      `${"x".repeat(65)}@example.com`,
+      "a@b.co\tc",
+      "a@b@c.co",
+      "@example.com",
+      "user@",
       "",
     ]) {
       clear_recovery_email_cache();
@@ -269,6 +321,234 @@ describe("recovery email read path", () => {
 
     expect(data.email).toBeNull();
     expect(post_calls).toEqual([]);
+  });
+
+  it("opens an address sealed under the retired key while the vault holds it", async () => {
+    const retired = await retired_context_key(RECOVERY_CONTEXT);
+    const holding = {
+      ...vault,
+      legacy_keks: [
+        { k: retired.encoded, added_at: "2026-01-01T00:00:00.000Z" },
+      ],
+    } as Vault;
+
+    offer(await seal(retired.key, "retired@example.com"));
+
+    const { data } = await get_recovery_email(holding);
+
+    await settle();
+
+    expect(data.email).toBe("retired@example.com");
+    expect(post_calls).toEqual([]);
+    expect(put_calls.map((call) => call.url)).toEqual([
+      "/core/v1/recovery/email/reseal",
+    ]);
+    expect(Object.keys(put_calls[0].body as object).sort()).toEqual([
+      "email_hash",
+      "email_nonce",
+      "encrypted_email",
+    ]);
+    expect((put_calls[0].body as { email_hash: string }).email_hash).toBe(
+      "hash:retired@example.com",
+    );
+
+    const moved = put_calls[0].body as SealedBlob;
+
+    clear_recovery_email_cache();
+    put_calls.length = 0;
+    offer(moved);
+    expect((await get_recovery_email(vault)).data.email).toBe(
+      "retired@example.com",
+    );
+    await settle();
+    expect(put_calls).toEqual([]);
+    expect(post_calls.length).toBe(1);
+    post_calls.length = 0;
+    offer(await seal(retired.key, "retired@example.com"));
+
+    const carried = await reencrypt_recovery_email(
+      server_response.encrypted_email as string,
+      server_response.email_nonce as string,
+      holding,
+      next_vault,
+    );
+
+    expect(carried).not.toBeNull();
+    clear_recovery_email_cache();
+    server_response = { ...carried, verified: false, has_server_enc: true };
+    expect((await get_recovery_email(next_vault)).data.email).toBe(
+      "retired@example.com",
+    );
+  });
+
+  it("opens what a vault without an identity key sealed", async () => {
+    const retired = await retired_context_key(RECOVERY_CONTEXT);
+
+    for (const bare of [{}, { legacy_keks: [] }] as unknown as Vault[]) {
+      clear_recovery_email_cache();
+      offer(await seal(retired.key, "retired@example.com"));
+
+      expect((await get_recovery_email(bare)).data.email).toBe(
+        "retired@example.com",
+      );
+
+      await settle();
+      expect(post_calls).toEqual([]);
+      expect(put_calls).toEqual([]);
+    }
+  });
+
+  it("does not seal an address for a vault without an identity key", async () => {
+    for (const bare of [{}, { identity_key: "" }] as unknown as Vault[]) {
+      await expect(
+        encrypt_recovery_email("own@example.com", bare),
+      ).rejects.toThrow();
+
+      const saved = await save_recovery_email("own@example.com", bare);
+
+      expect(saved.data.success).toBe(false);
+      expect(saved.code).toBe(RECOVERY_EMAIL_KEY_UNAVAILABLE_CODE);
+      expect(
+        await reencrypt_recovery_email(
+          "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "AAAAAAAAAAAAAAAA",
+          vault,
+          bare,
+        ),
+      ).toBeNull();
+    }
+
+    expect(put_calls).toEqual([]);
+    expect(post_calls).toEqual([]);
+  });
+
+  it("tries the next key when an opened blob is not an address", async () => {
+    const holding = { ...vault, previous_keys: [OLD_IDENTITY_KEY] } as Vault;
+
+    offer(
+      await seal(
+        await identity_context_key(OLD_IDENTITY_KEY, RECOVERY_CONTEXT),
+        "old.user@example.com",
+      ),
+    );
+
+    const decrypt = vi
+      .spyOn(crypto.subtle, "decrypt")
+      .mockImplementationOnce(async () => new Uint8Array([255, 254]).buffer);
+
+    try {
+      const { data } = await get_recovery_email(holding);
+
+      expect(data.email).toBe("old.user@example.com");
+      expect(decrypt.mock.calls.length).toBeGreaterThan(1);
+    } finally {
+      decrypt.mockRestore();
+    }
+  });
+
+  it("does not show an address that carries hidden characters", async () => {
+    const recovery_key = await identity_context_key(
+      IDENTITY_KEY,
+      RECOVERY_CONTEXT,
+    );
+
+    for (const text of HIDDEN_CHARACTER_ADDRESSES) {
+      clear_recovery_email_cache();
+      offer(await seal(recovery_key, text));
+
+      const { data } = await get_recovery_email(vault);
+
+      await settle();
+
+      expect(data.email).toBeNull();
+      expect(data.exists).toBe(true);
+    }
+
+    expect(post_calls).toEqual([]);
+  });
+
+  it("opens addresses that earlier clients accepted", async () => {
+    for (const address of EARLIER_CLIENT_ADDRESSES) {
+      clear_recovery_email_cache();
+
+      const sealed = await encrypt_recovery_email(address, vault);
+
+      offer({ encrypted_email: sealed.encrypted, email_nonce: sealed.nonce });
+
+      const { data } = await get_recovery_email(vault);
+
+      expect(data.email).toBe(address);
+
+      const carried = await reencrypt_recovery_email(
+        sealed.encrypted,
+        sealed.nonce,
+        vault,
+        next_vault,
+      );
+
+      expect(carried).not.toBeNull();
+    }
+  });
+
+  it("stops opening the retired key once the vault no longer holds it", async () => {
+    const retired = await retired_context_key(RECOVERY_CONTEXT);
+    const other = await retired_context_key("astermail-draft-v1");
+
+    for (const holder of [
+      {},
+      { legacy_keks: [] },
+      { legacy_keks: [{ k: other.encoded, added_at: "" }] },
+    ]) {
+      clear_recovery_email_cache();
+      offer(await seal(retired.key, "retired@example.com"));
+
+      const { data } = await get_recovery_email({
+        ...vault,
+        ...holder,
+      } as Vault);
+
+      expect(data.email).toBeNull();
+      expect(data.exists).toBe(true);
+    }
+
+    clear_recovery_email_cache();
+    offer(await seal(other.key, "retired@example.com"));
+
+    const { data } = await get_recovery_email({
+      ...vault,
+      legacy_keks: [
+        { k: retired.encoded, added_at: "" },
+        { k: other.encoded, added_at: "" },
+      ],
+    } as Vault);
+
+    await settle();
+
+    expect(data.email).toBeNull();
+    expect(post_calls).toEqual([]);
+  });
+
+  it("opens an internationalized address", async () => {
+    for (const address of INTERNATIONAL_ADDRESSES) {
+      clear_recovery_email_cache();
+
+      const sealed = await encrypt_recovery_email(address, vault);
+
+      offer({ encrypted_email: sealed.encrypted, email_nonce: sealed.nonce });
+
+      const { data } = await get_recovery_email(vault);
+
+      expect(data.email).toBe(address);
+
+      const carried = await reencrypt_recovery_email(
+        sealed.encrypted,
+        sealed.nonce,
+        vault,
+        next_vault,
+      );
+
+      expect(carried).not.toBeNull();
+    }
   });
 
   it("opens an address sealed under the account recovery context key", async () => {
@@ -356,6 +636,7 @@ describe("recovery email write paths", () => {
     const rejected = await save_recovery_email("not an address", vault);
 
     expect(rejected.data.success).toBe(false);
+    expect(rejected.code).toBe(INVALID_RECOVERY_EMAIL_CODE);
     expect(put_calls).toEqual([]);
 
     const accepted = await save_recovery_email(" User@Example.com ", vault);
@@ -367,11 +648,60 @@ describe("recovery email write paths", () => {
     ).toBe("user@example.com");
   });
 
+  it("keeps the strict check for saving", async () => {
+    for (const address of EARLIER_CLIENT_ADDRESSES) {
+      expect(is_readable_recovery_email(address)).toBe(true);
+      expect(is_valid_recovery_email(address)).toBe(false);
+      expect((await save_recovery_email(address, vault)).data.success).toBe(
+        false,
+      );
+    }
+
+    expect(put_calls).toEqual([]);
+  });
+
+  it("reads only a single line with one separator", () => {
+    expect(is_readable_recovery_email("user@example.com")).toBe(true);
+    expect(is_readable_recovery_email("a@b.co\nsecond line")).toBe(false);
+    expect(is_readable_recovery_email("a@b.co\r")).toBe(false);
+    expect(is_readable_recovery_email("a@b.co\u2028c")).toBe(false);
+    expect(is_readable_recovery_email("a@b.co\u0000")).toBe(false);
+    expect(is_readable_recovery_email("a@b.co, c@d.co")).toBe(false);
+    expect(is_readable_recovery_email("no-at-sign")).toBe(false);
+    expect(is_readable_recovery_email("@example.com")).toBe(false);
+    expect(is_readable_recovery_email("user@")).toBe(false);
+    expect(is_readable_recovery_email("")).toBe(false);
+    expect(is_readable_recovery_email(null)).toBe(false);
+    for (const address of HIDDEN_CHARACTER_ADDRESSES) {
+      expect(is_readable_recovery_email(address)).toBe(false);
+    }
+    for (const address of INTERNATIONAL_ADDRESSES) {
+      expect(is_readable_recovery_email(address)).toBe(true);
+    }
+    expect(is_readable_recovery_email(`${"x".repeat(243)}@example.com`)).toBe(
+      false,
+    );
+    expect(is_readable_recovery_email(`${"x".repeat(242)}@example.com`)).toBe(
+      true,
+    );
+  });
+
   it("accepts ordinary addresses and rejects everything else", () => {
     expect(is_valid_recovery_email("user@example.com")).toBe(true);
     expect(is_valid_recovery_email("first.last+tag@sub.example.org")).toBe(
       true,
     );
+    for (const address of INTERNATIONAL_ADDRESSES) {
+      expect(is_valid_recovery_email(address)).toBe(true);
+    }
+    expect(is_valid_recovery_email("jürgen m@example.com")).toBe(false);
+    expect(is_valid_recovery_email("a@b.co;c@d.co")).toBe(false);
+    expect(is_valid_recovery_email("a@b@c.co")).toBe(false);
+    expect(
+      is_valid_recovery_email(
+        `${"ü".repeat(60)}@${"ü".repeat(70)}.example`,
+      ),
+    ).toBe(false);
     expect(is_valid_recovery_email("user@example.com ")).toBe(false);
     expect(is_valid_recovery_email("user@example.com\n")).toBe(false);
     expect(is_valid_recovery_email("a@b.co,c@d.co")).toBe(false);

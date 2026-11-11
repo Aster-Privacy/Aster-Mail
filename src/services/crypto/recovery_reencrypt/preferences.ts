@@ -20,10 +20,11 @@
 //
 import type { EncryptedVault } from "../key_manager";
 
-import { hash_recovery_email } from "../key_manager";
-
 import { api_client } from "@/services/api/client";
-import { parse_recovery_email_plaintext } from "@/services/api/recovery_email";
+import {
+  reseal_recovery_email,
+  type RecoveryEmailResealOutcome,
+} from "@/services/api/recovery_email";
 import type {} from "@/services/api/signatures";
 import type {} from "@/services/api/templates";
 import type {} from "@/services/api/blocked_senders";
@@ -37,138 +38,91 @@ import { array_to_base64, base64_to_array } from "../base64";
 
 import {
   derive_hmac_key,
-  identity_scoped_key_pair,
   re_encrypt_collection,
   re_encrypt_identity_scoped_setting,
 } from "./key_helpers";
+async function import_preferences_key(identity_key: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "raw",
+    await derive_preferences_key_raw(identity_key),
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+}
+
+async function open_preferences(
+  key: CryptoKey,
+  ciphertext: Uint8Array,
+  iv: Uint8Array,
+): Promise<ArrayBuffer | null> {
+  try {
+    return await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+  } catch {
+    return null;
+  }
+}
+
 export async function re_encrypt_preferences(
   old_identity_key: string,
   new_identity_key: string,
   vault: EncryptedVault,
-): Promise<void> {
-  const resp = await api_client.get<{
-    encrypted_preferences: string | null;
-    preferences_nonce: string | null;
-  }>("/settings/v1/preferences");
-
-  if (resp.error || !resp.data) return;
-
-  const { encrypted_preferences, preferences_nonce } = resp.data;
-
-  if (!encrypted_preferences || !preferences_nonce) return;
+): Promise<boolean> {
+  if (old_identity_key === new_identity_key) return true;
 
   try {
-    const old_key_raw = await derive_preferences_key_raw(old_identity_key);
-    const old_key = await crypto.subtle.importKey(
-      "raw",
-      old_key_raw,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["decrypt"],
+    const resp = await api_client.get<{
+      encrypted_preferences: string | null;
+      preferences_nonce: string | null;
+    }>("/settings/v1/preferences", { skip_cache: true });
+
+    if (resp.error) return false;
+    if (!resp.data) return true;
+
+    const { encrypted_preferences, preferences_nonce } = resp.data;
+
+    if (!encrypted_preferences || !preferences_nonce) return true;
+
+    const ciphertext = base64_to_array(encrypted_preferences);
+    const iv = base64_to_array(preferences_nonce);
+    const opened = await open_preferences(
+      await import_preferences_key(old_identity_key),
+      ciphertext,
+      iv,
     );
 
-    const enc_data = Uint8Array.from(atob(encrypted_preferences), (c) =>
-      c.charCodeAt(0),
-    );
-    const nonce_data = Uint8Array.from(atob(preferences_nonce), (c) =>
-      c.charCodeAt(0),
-    );
+    if (!opened) return true;
 
-    let pt: ArrayBuffer;
-
-    try {
-      pt = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv: nonce_data },
-        old_key,
-        enc_data,
-      );
-    } catch {
-      if (old_identity_key === new_identity_key) return;
-      const current_key_raw =
-        await derive_preferences_key_raw(new_identity_key);
-      const current_key = await crypto.subtle.importKey(
-        "raw",
-        current_key_raw,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"],
-      );
-
-      try {
-        pt = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: nonce_data },
-          current_key,
-          enc_data,
-        );
-      } catch {
-        return;
-      }
-    }
-
-    const preferences = JSON.parse(new TextDecoder().decode(pt));
+    const preferences = JSON.parse(new TextDecoder().decode(opened));
     const new_vault = { ...vault, identity_key: new_identity_key };
     const payload = await prepare_preferences_payload(preferences, new_vault);
 
-    if (!payload) return;
+    if (!payload) return false;
 
-    await api_client.put("/settings/v1/preferences", {
+    const saved = await api_client.put("/settings/v1/preferences", {
       encrypted_preferences: payload.encrypted,
       preferences_nonce: payload.nonce,
     });
+
+    return !saved.error;
   } catch {
-    return;
+    return false;
   }
 }
 
 export async function re_encrypt_recovery_email(
   old_identity_key: string,
   new_identity_key: string,
-): Promise<void> {
-  if (old_identity_key === new_identity_key) return;
+): Promise<RecoveryEmailResealOutcome> {
+  if (old_identity_key === new_identity_key) return "done";
 
-  const resp = await api_client.get<{
-    encrypted_email: string | null;
-    email_nonce: string | null;
-    verified: boolean | null;
-  }>("/core/v1/recovery/email");
-
-  if (resp.error || !resp.data) return;
-
-  const { encrypted_email, email_nonce } = resp.data;
-
-  if (!encrypted_email || !email_nonce) return;
-
-  const { old_key, new_key } = await identity_scoped_key_pair(
-    old_identity_key,
-    new_identity_key,
-    "astermail-recovery-email-v1",
-  );
-
-  const ct = base64_to_array(encrypted_email);
-  const iv = base64_to_array(email_nonce);
-  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_key, ct);
-  const email_text = parse_recovery_email_plaintext(pt);
-
-  const new_iv = crypto.getRandomValues(new Uint8Array(12));
-  const new_ct = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: new_iv },
-    new_key,
-    new TextEncoder().encode(email_text),
-  );
-  const email_hash = await hash_recovery_email(email_text);
-
-  await api_client.put("/core/v1/recovery/email", {
-    encrypted_email: array_to_base64(new Uint8Array(new_ct)),
-    email_nonce: array_to_base64(new_iv),
-    email_hash,
-    plaintext_email: email_text,
-  });
+  return reseal_recovery_email(new_identity_key, [old_identity_key]);
 }
 
 export async function re_encrypt_onboarding_state(
   old_identity_key: string,
   new_identity_key: string,
-): Promise<void> {
+): Promise<boolean> {
   return re_encrypt_identity_scoped_setting(
     "/core/v1/onboarding",
     "astermail-onboarding-v1",
@@ -181,7 +135,7 @@ export async function re_encrypt_onboarding_state(
 export async function re_encrypt_dev_mode(
   old_identity_key: string,
   new_identity_key: string,
-): Promise<void> {
+): Promise<boolean> {
   return re_encrypt_identity_scoped_setting(
     "/settings/v1/preferences/dev-mode",
     "astermail-devmode-v1",
