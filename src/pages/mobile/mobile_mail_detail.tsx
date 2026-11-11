@@ -47,6 +47,7 @@ import { CalendarInviteCard } from "@/components/email/banners/calendar_invite_c
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { safe_sender_name } from "@/lib/sender_trust_store";
+import { has_remote_content_grant } from "@/lib/remote_content_grants";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 import {
   can_move_to_category,
@@ -98,9 +99,9 @@ function MobileMailDetail() {
     set_menu_source,
     view_source_message,
     set_view_source_message,
-    external_content_report,
-    set_external_content_report,
-    external_content_loaded,
+    pending_external_content_report,
+    record_external_content_report,
+    remote_content_grants,
     lockdown_active,
     show_toolbar_customizer,
     set_show_toolbar_customizer,
@@ -301,16 +302,6 @@ function MobileMailDetail() {
           <MobileUnsubscribeBanner email={email} t={detail.t} />
         )}
 
-        {external_content_report &&
-          !external_content_loaded &&
-          !lockdown_active && (
-            <MobileExternalContentBanner
-              on_load={handle_load_external_content}
-              report={external_content_report}
-              t={detail.t}
-            />
-          )}
-
         <CalendarInviteCard
           attachments={email.attachments}
           body={email.body}
@@ -346,6 +337,15 @@ function MobileMailDetail() {
               {(idx > 0 || (!is_desc && pending_row_count > 0)) && (
                 <IslandDivider />
               )}
+              {!lockdown_active &&
+                expanded_ids.has(msg.id) &&
+                pending_external_content_report(msg.id) && (
+                  <MobileExternalContentBanner
+                    on_load={() => handle_load_external_content(msg.id)}
+                    report={pending_external_content_report(msg.id)!}
+                    t={detail.t}
+                  />
+                )}
               <MobileThreadMessage
                 disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
                 force_dark_mode={is_dark_mode_message(msg.id)}
@@ -356,9 +356,12 @@ function MobileMailDetail() {
                   msg.sender_email.toLowerCase() ===
                     detail.current_user_email?.toLowerCase()
                 }
-                load_remote_content={external_content_loaded}
+                load_remote_content={has_remote_content_grant(
+                  remote_content_grants,
+                  msg.id,
+                )}
                 message={msg}
-                on_external_content_detected={set_external_content_report}
+                on_external_content_detected={record_external_content_report}
                 on_forward={(m) => dispatch_compose(m, "forward")}
                 on_open_menu={(msg) => {
                   set_menu_source("message");

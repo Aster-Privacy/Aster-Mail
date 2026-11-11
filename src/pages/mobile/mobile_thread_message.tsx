@@ -171,7 +171,10 @@ function MobileThreadMessageContent({
   on_reply: (msg: DecryptedThreadMessage) => void;
   on_forward: (msg: DecryptedThreadMessage) => void;
   on_open_menu: (msg: DecryptedThreadMessage) => void;
-  on_external_content_detected?: (report: ExternalContentReport) => void;
+  on_external_content_detected?: (
+    report: ExternalContentReport,
+    message_id: string,
+  ) => void;
   format_detail: (date: Date) => string;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   force_dark_mode?: boolean;
@@ -535,10 +538,14 @@ function MobileThreadMessageContent({
       sanitize_result.external_content.blocked_count > 0 &&
       on_external_content_detected
     ) {
-      on_external_content_detected(sanitize_result.external_content);
+      on_external_content_detected(
+        sanitize_result.external_content,
+        message.id,
+      );
     }
   }, [
     is_expanded,
+    message.id,
     sanitize_result.external_content,
     on_external_content_detected,
   ]);

@@ -185,7 +185,7 @@ export interface ThreadMessageBlockProps {
   on_manual_unsubscribed?: () => void;
   unsubscribe_url?: string;
   loaded_content_types?: Set<string>;
-  on_load_external_content?: (types?: string[]) => void;
+  on_load_external_content?: (message_id: string, types: string[]) => void;
   island_ref?: Ref<HTMLDivElement>;
 }
 

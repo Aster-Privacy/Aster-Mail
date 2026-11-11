@@ -462,7 +462,7 @@ export function ThreadMessageBlock(
                         className={btn_class}
                         onClick={(e) => {
                           e.stopPropagation();
-                          on_load_external_content(["image"]);
+                          on_load_external_content(message.id, ["image"]);
                         }}
                       >
                         {`${t("mail.load_external_content")} (${image_count} ${image_count === 1 ? t("mail.image") : t("mail.images")})`}
@@ -473,7 +473,7 @@ export function ThreadMessageBlock(
                         className={btn_class}
                         onClick={(e) => {
                           e.stopPropagation();
-                          on_load_external_content(["tracking_pixel"]);
+                          on_load_external_content(message.id, ["tracking_pixel"]);
                         }}
                       >
                         {`${t("mail.load_external_content")} (${tracker_count} ${tracker_count === 1 ? t("mail.tracker") : t("mail.trackers")})`}
@@ -484,7 +484,7 @@ export function ThreadMessageBlock(
                         className={btn_class}
                         onClick={(e) => {
                           e.stopPropagation();
-                          on_load_external_content(["font", "css"]);
+                          on_load_external_content(message.id, ["font", "css"]);
                         }}
                       >
                         {(() => {

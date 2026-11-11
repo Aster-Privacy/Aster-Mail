@@ -1,0 +1,56 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+export type RemoteContentGrants = ReadonlyMap<string, Set<string>>;
+
+export const NO_REMOTE_CONTENT_GRANTS: RemoteContentGrants = new Map();
+
+const NO_GRANTED_TYPES: Set<string> = new Set();
+
+export function grant_remote_content(
+  grants: RemoteContentGrants,
+  message_id: string,
+  types: readonly string[],
+): RemoteContentGrants {
+  if (!message_id || types.length === 0) return grants;
+
+  const current = grants.get(message_id);
+
+  if (current && types.every((type) => current.has(type))) return grants;
+
+  const next = new Map(grants);
+
+  next.set(message_id, new Set([...(current ?? []), ...types]));
+
+  return next;
+}
+
+export function granted_content_types(
+  grants: RemoteContentGrants | undefined,
+  message_id: string,
+): Set<string> {
+  return grants?.get(message_id) ?? NO_GRANTED_TYPES;
+}
+
+export function has_remote_content_grant(
+  grants: RemoteContentGrants | undefined,
+  message_id: string,
+): boolean {
+  return granted_content_types(grants, message_id).size > 0;
+}
