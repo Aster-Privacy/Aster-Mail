@@ -4819,7 +4819,7 @@ export const pt = {
       "Utilizar pontes Snowflake para resistir à censura",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Os pedidos passam por uma CDN global antes de chegarem ao Aster, pelo que o seu tráfego se mistura com o tráfego normal da CDN na sua rede. O Aster continua a receber o seu endereço IP e utiliza-o para proteger o início de sessão e limitar abusos.",
+      "Os pedidos passam por um relay que o Aster opera na Cloudflare antes de chegarem aos servidores do Aster. Para a sua rede, o tráfego parece tráfego normal de CDN, o que pode ajudar onde o Aster está bloqueado. O Aster continua a ver o seu endereço IP. Para o ocultar do Aster, utilize o Tor.",
     "connection.status_connected": "Ligado",
     "connection.status_connecting": "A ligar...",
     "connection.status_error":

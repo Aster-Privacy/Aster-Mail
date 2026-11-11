@@ -37,6 +37,9 @@ const h = vi.hoisted(() => ({
   >,
   routed_aliases: {} as Record<string, string>,
   routed_ghosts: {} as Record<string, string>,
+  populated: true,
+  after_load: null as null | (() => void),
+  ensure: vi.fn(),
   react_response: { data: { success: true, own_reaction_mail_item_id: "own_1" } } as Record<
     string,
     unknown
@@ -89,10 +92,15 @@ vi.mock("./recipient_classification", async (importOriginal) => {
 vi.mock("@/hooks/use_sender_aliases", () => ({
   get_cached_sender_identity_for_address: (address: string | undefined) =>
     address ? h.identities[address.trim().toLowerCase()] : undefined,
-  get_cached_alias_for_routing_token: (token: string | undefined) =>
-    token ? h.routed_aliases[token] : undefined,
-  get_cached_ghost_for_routing_token: (token: string | undefined) =>
-    token ? h.routed_ghosts[token] : undefined,
+  get_cached_sender_identity_for_routing_token: (token: string | undefined) => {
+    const address = token
+      ? (h.routed_aliases[token] ?? h.routed_ghosts[token])
+      : undefined;
+
+    return address ? h.identities[address] : undefined;
+  },
+  is_sender_alias_cache_populated: () => h.populated,
+  ensure_sender_alias_caches: h.ensure,
 }));
 
 import { send_reaction } from "./reaction_actions";
@@ -281,6 +289,12 @@ describe("reaction sender", () => {
     };
     h.routed_aliases = { alias_hash: alias };
     h.routed_ghosts = { ghost_hash: ghost };
+    h.populated = true;
+    h.after_load = null;
+    h.ensure.mockReset();
+    h.ensure.mockImplementation(async () => {
+      h.after_load?.();
+    });
     set_post_quantum_prompt_handler(null);
   });
 
@@ -375,16 +389,53 @@ describe("reaction sender", () => {
     expect(h.react_calls).toHaveLength(0);
   });
 
-  it("sends nothing when the receiving address is unknown", async () => {
+  it("reacts from the primary address when a message with no visible recipients carries no delivery address", async () => {
     const result = await send_reaction(
       build_message({ to_recipients: [], cc_recipients: [] }),
       "👍",
     );
 
+    expect(result.success).toBe(true);
+    expect(h.react_calls[0].sender_email).toBe(me);
+    expect(h.react_calls[0].sender_alias_hash).toBeUndefined();
+  });
+
+  it("sends nothing when the delivery address matches no own address", async () => {
+    const result = await send_reaction(
+      build_message({
+        to_recipients: [],
+        cc_recipients: [],
+        routing_token: "unknown_hash",
+      }),
+      "👍",
+    );
+
     expect(result.success).toBe(false);
     expect(result.error).toBe(get_active_translations().errors.cannot_react_bcc);
+    expect(h.ensure).toHaveBeenCalledWith({ refresh: true });
     expect(h.react_calls).toHaveLength(0);
     expect(h.encrypt_calls).toHaveLength(0);
+  });
+
+  it("loads the addresses before choosing when none are cached", async () => {
+    const loaded = h.identities;
+
+    h.identities = {};
+    h.populated = false;
+    h.after_load = () => {
+      h.identities = loaded;
+      h.populated = true;
+    };
+
+    const result = await send_reaction(
+      build_message({ to_recipients: [], routing_token: "alias_hash" }),
+      "👍",
+    );
+
+    expect(result.success).toBe(true);
+    expect(h.ensure).toHaveBeenCalledWith({ refresh: true });
+    expect(h.react_calls[0].sender_email).toBe(alias);
+    expect(h.react_calls[0].sender_alias_hash).toBe("alias_hash");
   });
 
   it("sends nothing when the delivery alias is no longer usable", async () => {

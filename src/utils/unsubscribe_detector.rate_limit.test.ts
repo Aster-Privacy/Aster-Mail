@@ -24,6 +24,10 @@ vi.mock("@/services/api/subscriptions", () => ({
   proxy_unsubscribe: vi.fn(),
 }));
 
+vi.mock("@/utils/unsubscribe_sender", () => ({
+  load_unsubscribe_sender: vi.fn(async () => undefined),
+}));
+
 import { proxy_unsubscribe } from "@/services/api/subscriptions";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 
@@ -57,9 +61,13 @@ describe("bulk unsubscribe survives the proxy rate limit", () => {
       .mockResolvedValueOnce(RATE_LIMITED)
       .mockResolvedValueOnce({ data: { success: true, method: "one-click" } });
 
-    const pending = execute_unsubscribe(ONE_CLICK_INFO, {
-      retry_on_rate_limit: true,
-    });
+    const pending = execute_unsubscribe(
+      ONE_CLICK_INFO,
+      {},
+      {
+        retry_on_rate_limit: true,
+      },
+    );
 
     await vi.advanceTimersByTimeAsync(30_000);
 
@@ -70,16 +78,20 @@ describe("bulk unsubscribe survives the proxy rate limit", () => {
   it("does not retry when the caller has not opted in", async () => {
     mock_proxy.mockResolvedValue(RATE_LIMITED);
 
-    await expect(execute_unsubscribe(ONE_CLICK_INFO)).resolves.toBe("link");
+    await expect(execute_unsubscribe(ONE_CLICK_INFO, {})).resolves.toBe("link");
     expect(mock_proxy).toHaveBeenCalledTimes(1);
   });
 
   it("gives up after the retry budget instead of hanging", async () => {
     mock_proxy.mockResolvedValue(RATE_LIMITED);
 
-    const pending = execute_unsubscribe(ONE_CLICK_INFO, {
-      retry_on_rate_limit: true,
-    });
+    const pending = execute_unsubscribe(
+      ONE_CLICK_INFO,
+      {},
+      {
+        retry_on_rate_limit: true,
+      },
+    );
 
     await vi.advanceTimersByTimeAsync(10 * 60_000);
 
@@ -98,10 +110,13 @@ describe("unsubscribe requests", () => {
       data: { success: true, method: "one-click" },
     });
 
-    await execute_unsubscribe({
-      ...ONE_CLICK_INFO,
-      list_unsubscribe_post: "list-unsubscribe=one-click",
-    });
+    await execute_unsubscribe(
+      {
+        ...ONE_CLICK_INFO,
+        list_unsubscribe_post: "list-unsubscribe=one-click",
+      },
+      {},
+    );
 
     expect(mock_proxy).toHaveBeenCalledWith({
       method: "one-click",
@@ -112,12 +127,15 @@ describe("unsubscribe requests", () => {
 
   it("never requests a plain link on the user's behalf", async () => {
     await expect(
-      execute_unsubscribe({
-        has_unsubscribe: true,
-        method: "link",
-        unsubscribe_link: "https://sender.example.com/unsubscribe?id=1",
-        unsubscribe_page_url: "https://sender.example.com/unsubscribe?id=1",
-      }),
+      execute_unsubscribe(
+        {
+          has_unsubscribe: true,
+          method: "link",
+          unsubscribe_link: "https://sender.example.com/unsubscribe?id=1",
+          unsubscribe_page_url: "https://sender.example.com/unsubscribe?id=1",
+        },
+        {},
+      ),
     ).resolves.toBe("link");
     expect(mock_proxy).not.toHaveBeenCalled();
   });
@@ -126,11 +144,14 @@ describe("unsubscribe requests", () => {
     mock_proxy.mockResolvedValue({ data: { success: true, method: "mailto" } });
 
     await expect(
-      execute_unsubscribe({
-        has_unsubscribe: true,
-        method: "mailto",
-        unsubscribe_mailto: "stop@sender.example.com",
-      }),
+      execute_unsubscribe(
+        {
+          has_unsubscribe: true,
+          method: "mailto",
+          unsubscribe_mailto: "stop@sender.example.com",
+        },
+        {},
+      ),
     ).resolves.toBe("api");
     expect(mock_proxy).toHaveBeenCalledWith({
       method: "mailto",
@@ -144,10 +165,13 @@ describe("unsubscribe requests", () => {
       .mockResolvedValueOnce({ data: { success: true, method: "mailto" } });
 
     await expect(
-      execute_unsubscribe({
-        ...ONE_CLICK_INFO,
-        unsubscribe_mailto: "stop@sender.example.com",
-      }),
+      execute_unsubscribe(
+        {
+          ...ONE_CLICK_INFO,
+          unsubscribe_mailto: "stop@sender.example.com",
+        },
+        {},
+      ),
     ).resolves.toBe("api");
     expect(mock_proxy).toHaveBeenCalledTimes(2);
   });
@@ -156,17 +180,20 @@ describe("unsubscribe requests", () => {
     mock_proxy.mockResolvedValue({ error: "failed" });
 
     await expect(
-      execute_unsubscribe({
-        has_unsubscribe: true,
-        method: "mailto",
-        unsubscribe_mailto: "stop@sender.example.com",
-      }),
+      execute_unsubscribe(
+        {
+          has_unsubscribe: true,
+          method: "mailto",
+          unsubscribe_mailto: "stop@sender.example.com",
+        },
+        {},
+      ),
     ).resolves.toBe("mailto");
   });
 
   it("rejects when there is nothing to act on", async () => {
     await expect(
-      execute_unsubscribe({ has_unsubscribe: false, method: "none" }),
+      execute_unsubscribe({ has_unsubscribe: false, method: "none" }, {}),
     ).rejects.toMatchObject({ code: "no_method" });
   });
 });

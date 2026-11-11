@@ -312,6 +312,7 @@ export function use_subscriptions() {
           sub.sender_email,
           sub.sender_name,
           unsub_info,
+          { routing_token: sub.routing_token },
           { skip_confirm: true },
         );
 
@@ -395,6 +396,7 @@ export function use_subscriptions() {
               try {
                 const result = await execute_unsubscribe(
                   unsubscribe_info_from_stored(sub),
+                  { routing_token: sub.routing_token },
                   { retry_on_rate_limit: true },
                 );
 

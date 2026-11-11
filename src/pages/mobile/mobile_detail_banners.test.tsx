@@ -56,8 +56,12 @@ vi.mock("@/services/lockdown_store", async (import_original) => ({
   is_any_lockdown_active: () => lockdown,
 }));
 
+const execute_unsubscribe = vi.hoisted(() =>
+  vi.fn(async (..._args: unknown[]) => "manual"),
+);
+
 vi.mock("@/utils/unsubscribe_detector", () => ({
-  execute_unsubscribe: async () => "manual",
+  execute_unsubscribe,
   get_sender_domain: () => "news.example.com",
   get_manual_unsubscribe_url: () => "https://news.example.com/unsubscribe",
 }));
@@ -98,7 +102,13 @@ async function render_and_unsubscribe(): Promise<{
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => {
-    root!.render(<MobileUnsubscribeBanner email={EMAIL} t={(key) => key} />);
+    root!.render(
+      <MobileUnsubscribeBanner
+        delivery={{ routing_token: "token-alias" }}
+        email={EMAIL}
+        t={(key) => key}
+      />,
+    );
   });
 
   const button = [...container.querySelectorAll("button")].find(
@@ -133,6 +143,14 @@ afterEach(() => {
 });
 
 describe("MobileUnsubscribeBanner", () => {
+  it("passes the address the message was delivered to", async () => {
+    await render_and_unsubscribe();
+
+    expect(execute_unsubscribe).toHaveBeenCalledWith(expect.anything(), {
+      routing_token: "token-alias",
+    });
+  });
+
   it("opens the manual unsubscribe page through the external link check", async () => {
     const toast = await render_and_unsubscribe();
 

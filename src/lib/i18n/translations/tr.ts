@@ -4695,7 +4695,7 @@ export const tr = {
       "Sansür direnci için Snowflake köprülerini kullan",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "İstekler Aster'e ulaşmadan önce küresel bir CDN üzerinden yönlendirilir, böylece trafiğiniz ağınızda sıradan CDN trafiğinden ayırt edilemez. Aster IP adresinizi yine de alır ve oturum açmayı korumak ve kötüye kullanımı sınırlamak için kullanır.",
+      "İstekler, Aster sunucularına ulaşmadan önce Aster'in Cloudflare üzerinde işlettiği bir aktarıcıdan geçer. Ağınız açısından trafik sıradan CDN trafiği gibi görünür; bu, Aster'in engellendiği yerlerde yardımcı olabilir. Aster IP adresinizi yine de görür. IP adresinizi Aster'den gizlemek için Tor kullanın.",
     "connection.status_connected": "Bağlı",
     "connection.status_connecting": "Bağlanıyor...",
     "connection.status_error":

@@ -41,9 +41,10 @@ import {
 import { SendError, type EncryptionResult } from "./send_queue_types";
 
 import {
-  get_cached_alias_for_routing_token,
-  get_cached_ghost_for_routing_token,
+  ensure_sender_alias_caches,
   get_cached_sender_identity_for_address,
+  get_cached_sender_identity_for_routing_token,
+  is_sender_alias_cache_populated,
   type CachedSenderIdentity,
 } from "@/hooks/use_sender_aliases";
 import { extract_delivered_to } from "@/utils/delivered_to";
@@ -114,22 +115,17 @@ function normalize_address(value: string | undefined): string {
   return (value ?? "").trim().toLowerCase();
 }
 
-export function resolve_reaction_sender(
+function resolve_cached_reaction_sender(
   message: DecryptedThreadMessage,
   primary_email: string,
 ): ReactionSender {
   const primary = normalize_address(primary_email);
-  const delivered = [
-    get_cached_alias_for_routing_token(message.routing_token),
-    get_cached_ghost_for_routing_token(message.routing_token),
-    extract_delivered_to(message.raw_headers),
-  ];
+  const delivered_to = extract_delivered_to(message.raw_headers);
+  const delivered =
+    get_cached_sender_identity_for_routing_token(message.routing_token) ??
+    get_cached_sender_identity_for_address(delivered_to);
 
-  for (const address of delivered) {
-    const identity = get_cached_sender_identity_for_address(address);
-
-    if (identity) return { kind: "identity", identity };
-  }
+  if (delivered) return { kind: "identity", identity: delivered };
 
   const visible = [
     ...(message.to_recipients ?? []),
@@ -144,11 +140,33 @@ export function resolve_reaction_sender(
     if (identity) return { kind: "identity", identity };
   }
 
-  if (primary && delivered.some((a) => normalize_address(a) === primary)) {
+  if (primary && normalize_address(delivered_to) === primary) {
+    return { kind: "primary" };
+  }
+
+  if (!message.routing_token && visible.length === 0) {
     return { kind: "primary" };
   }
 
   return { kind: "undetermined" };
+}
+
+export async function resolve_reaction_sender(
+  message: DecryptedThreadMessage,
+  primary_email: string,
+): Promise<ReactionSender> {
+  const cached = resolve_cached_reaction_sender(message, primary_email);
+
+  if (cached.kind === "identity") return cached;
+  if (!message.routing_token && is_sender_alias_cache_populated()) {
+    return cached;
+  }
+
+  await ensure_sender_alias_caches({
+    refresh: Boolean(message.routing_token),
+  });
+
+  return resolve_cached_reaction_sender(message, primary_email);
 }
 
 export function is_own_reaction_address(email: string): boolean {
@@ -237,7 +255,7 @@ export async function send_reaction(
     };
   }
 
-  const reaction_sender = resolve_reaction_sender(message, primary_email);
+  const reaction_sender = await resolve_reaction_sender(message, primary_email);
 
   if (reaction_sender.kind === "undetermined") {
     return {

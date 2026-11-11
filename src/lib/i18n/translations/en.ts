@@ -5651,7 +5651,7 @@ export const en: Translations = {
       "Use Snowflake bridges for censorship resistance",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Requests are routed through a global CDN before reaching Aster, so your traffic blends in with regular CDN traffic on your network. Aster still receives your IP address and uses it to protect sign-in and limit abuse.",
+      "Requests go through a relay that Aster runs on Cloudflare before they reach Aster servers. To your network, the traffic looks like regular CDN traffic, which can help where Aster is blocked. Aster still sees your IP address. To hide it from Aster, use Tor.",
     "connection.tor_warning":
       "All traffic will be routed through the Tor network. Expect slower performance.",
     "connection.status_connected": "Connected",

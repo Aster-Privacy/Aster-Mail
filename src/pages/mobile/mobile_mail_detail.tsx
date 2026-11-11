@@ -42,6 +42,7 @@ import {
 import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 import { use_mobile_mail_detail } from "./use_mobile_mail_detail";
 
+import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { CalendarInviteCard } from "@/components/email/banners/calendar_invite_card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -298,7 +299,11 @@ function MobileMailDetail() {
         </div>
 
         {email.unsubscribe_info?.has_unsubscribe && (
-          <MobileUnsubscribeBanner email={email} t={detail.t} />
+          <MobileUnsubscribeBanner
+            delivery={build_unsubscribe_delivery(detail.mail_item, email)}
+            email={email}
+            t={detail.t}
+          />
         )}
 
         {external_content_report &&

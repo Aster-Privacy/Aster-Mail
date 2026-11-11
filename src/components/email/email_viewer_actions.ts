@@ -46,7 +46,7 @@ import {
 } from "@/components/email/build_reply_from_address";
 import { get_cached_aliases } from "@/components/settings/hooks/use_aliases";
 import { resolve_delivery_reply_address } from "@/components/email/delivery_reply_address";
-import { resolve_unsubscribe_sender } from "@/utils/unsubscribe_sender";
+import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import {
   get_cached_alias_for_routing_token,
   get_cached_ghost_for_routing_token,
@@ -928,11 +928,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const info = deps.email.unsubscribe_info;
 
     try {
-      const result = await execute_unsubscribe(info, {
-        sender: resolve_unsubscribe_sender({
-          routing_token: deps.mail_item?.routing_token,
-        }),
-      });
+      const result = await execute_unsubscribe(
+        info,
+        build_unsubscribe_delivery(deps.mail_item, deps.email),
+      );
 
       if (result === "api") {
         show_action_toast({
@@ -983,7 +982,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         email_ids: [],
       });
     }
-  }, [deps.email, deps.t]);
+  }, [deps.email, deps.mail_item, deps.t]);
 
   const build_reply_data = useCallback(
     (msg: DecryptedThreadMessage, is_reply_all: boolean): ReplyData => {

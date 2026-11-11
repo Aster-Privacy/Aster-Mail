@@ -4736,7 +4736,7 @@ export const ko = {
       "검열 저항을 위해 Snowflake 브리지를 사용합니다",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "요청이 Aster에 도달하기 전에 글로벌 CDN을 거치므로, 네트워크에서 트래픽이 일반 CDN 트래픽과 구분되지 않습니다. Aster는 여전히 IP 주소를 수신하며 로그인 보호와 악용 제한에 사용합니다.",
+      "요청이 Aster 서버에 도달하기 전에 Aster가 Cloudflare에서 운영하는 릴레이를 거칩니다. 사용 중인 네트워크에서는 이 트래픽이 일반 CDN 트래픽처럼 보이므로 Aster가 차단된 곳에서 도움이 될 수 있습니다. Aster는 여전히 IP 주소를 볼 수 있습니다. Aster에 IP 주소를 숨기려면 Tor를 사용하세요.",
     "connection.status_connected": "연결됨",
     "connection.status_connecting": "연결 중...",
     "connection.status_error":

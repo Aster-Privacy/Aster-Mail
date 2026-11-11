@@ -4701,7 +4701,7 @@ export const ja = {
       "検閲回避のためにSnowflakeブリッジを使用します",
     "connection.cdn_relay": "CDNリレー",
     "connection.cdn_relay_description":
-      "リクエストはグローバル CDN を経由して Aster に届くため、ネットワーク上では通信が通常の CDN トラフィックに紛れます。Aster は引き続き IP アドレスを受け取り、サインインの保護と不正利用の制限に使用します。",
+      "リクエストは、Aster が Cloudflare 上で運用するリレーを経由して Aster のサーバーに届きます。お使いのネットワークからは通常の CDN トラフィックのように見えるため、Aster がブロックされている環境で役立つことがあります。Aster には引き続き IP アドレスが見えます。IP アドレスを Aster から隠すには、Tor を使用してください。",
     "connection.status_connected": "接続済み",
     "connection.status_connecting": "接続中...",
     "connection.status_error": "接続が切れたため、自動的に再試行しています。",

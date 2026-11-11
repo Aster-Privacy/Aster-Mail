@@ -553,10 +553,15 @@ export interface UnsubscribeSender {
   from_address_hash?: string;
 }
 
+export interface UnsubscribeDelivery {
+  routing_token?: string;
+  recipients?: (string | null | undefined)[];
+  primary_email?: string;
+}
+
 export interface ExecuteUnsubscribeOptions {
   retry_on_rate_limit?: boolean;
   signal?: AbortSignal;
-  sender?: UnsubscribeSender | null;
 }
 
 const RATE_LIMIT_MAX_RETRIES = 4;
@@ -624,6 +629,7 @@ function has_manual_page(unsub_info: UnsubscribeInfo): boolean {
 
 export async function execute_unsubscribe(
   unsub_info: UnsubscribeInfo,
+  delivery: UnsubscribeDelivery,
   options?: ExecuteUnsubscribeOptions,
 ): Promise<UnsubscribeResult> {
   if (!unsub_info.unsubscribe_link && !unsub_info.unsubscribe_mailto) {
@@ -645,12 +651,18 @@ export async function execute_unsubscribe(
     }
   }
 
-  if (unsub_info.unsubscribe_mailto && options?.sender !== null) {
+  const sender = unsub_info.unsubscribe_mailto
+    ? await (
+        await import("@/utils/unsubscribe_sender")
+      ).load_unsubscribe_sender(delivery)
+    : null;
+
+  if (unsub_info.unsubscribe_mailto && sender !== null) {
     const succeeded = await call_proxy(
       {
         method: "mailto",
         mailto_address: unsub_info.unsubscribe_mailto,
-        ...(options?.sender ?? {}),
+        ...(sender ?? {}),
       },
       options,
     );
@@ -683,6 +695,7 @@ export async function perform_unsubscribe(
   _sender_email: string,
   sender_name: string,
   unsub_info: UnsubscribeInfo,
+  delivery: UnsubscribeDelivery,
   options?: { skip_confirm?: boolean },
 ): Promise<UnsubscribeResult> {
   const confirm_kind =
@@ -712,7 +725,7 @@ export async function perform_unsubscribe(
     }
   }
 
-  const result = await execute_unsubscribe(unsub_info);
+  const result = await execute_unsubscribe(unsub_info, delivery);
 
   if (result !== "mailto") {
     return result;

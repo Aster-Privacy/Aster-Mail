@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UnsubscribeInfo } from "@/types/email";
+import type { UnsubscribeDelivery } from "@/utils/unsubscribe_detector";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -36,6 +37,7 @@ import { get_undo_send_delay_ms } from "@/services/send_queue";
 
 interface UseUnsubscribeActionOptions {
   unsubscribe_info: UnsubscribeInfo;
+  delivery: UnsubscribeDelivery;
   sender_email: string;
   sender_name: string;
   on_unsubscribed?: () => void;
@@ -43,6 +45,7 @@ interface UseUnsubscribeActionOptions {
 
 export function use_unsubscribe_action({
   unsubscribe_info,
+  delivery,
   sender_email,
   sender_name,
   on_unsubscribed,
@@ -55,6 +58,9 @@ export function use_unsubscribe_action({
   );
   const cancelled_ref = useRef(false);
   const mounted_ref = useRef(true);
+  const delivery_ref = useRef(delivery);
+
+  delivery_ref.current = delivery;
 
   useEffect(() => {
     mounted_ref.current = true;
@@ -109,7 +115,10 @@ export function use_unsubscribe_action({
       if (cancelled_ref.current) return;
 
       try {
-        const result = await execute_unsubscribe(unsubscribe_info);
+        const result = await execute_unsubscribe(
+          unsubscribe_info,
+          delivery_ref.current,
+        );
 
         if (result === "api") {
           record_unsubscribed();

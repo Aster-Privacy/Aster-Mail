@@ -105,6 +105,17 @@ interface DecryptedEnvelope {
   list_unsubscribe_post?: string;
 }
 
+function latest_routing_token(items: MailItem[]): string | undefined {
+  let latest: MailItem | undefined;
+
+  for (const item of items) {
+    if (item.item_type !== "received") continue;
+    if (!latest || item.created_at > latest.created_at) latest = item;
+  }
+
+  return latest?.routing_token || undefined;
+}
+
 async function resolve_unsubscribe_fact(
   item: MailItem,
   known_facts: UnsubscribeFacts,
@@ -390,7 +401,11 @@ export function MassUnsubscribeModal({
         const batch = selected_subs.slice(i, i + UNSUBSCRIBE_BATCH_SIZE);
         const results = await Promise.allSettled(
           batch.map((sub) =>
-            execute_unsubscribe(sub.unsub_info, { retry_on_rate_limit: true }),
+            execute_unsubscribe(
+              sub.unsub_info,
+              { routing_token: latest_routing_token(sub.items) },
+              { retry_on_rate_limit: true },
+            ),
           ),
         );
 

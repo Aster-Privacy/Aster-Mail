@@ -4690,7 +4690,7 @@ export const nl = {
       "Gebruik Snowflake-bridges voor censuurbestendigheid",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Verzoeken worden via een wereldwijd CDN geleid voordat ze Aster bereiken, zodat je verkeer op je netwerk opgaat in gewoon CDN-verkeer. Aster ontvangt nog steeds je IP-adres en gebruikt het om het inloggen te beschermen en misbruik te beperken.",
+      "Verzoeken gaan via een relay die Aster op Cloudflare beheert voordat ze de servers van Aster bereiken. Voor je netwerk ziet het verkeer eruit als gewoon CDN-verkeer, wat kan helpen waar Aster geblokkeerd is. Aster ziet je IP-adres nog steeds. Gebruik Tor om het voor Aster te verbergen.",
     "connection.status_connected": "Verbonden",
     "connection.status_connecting": "Verbinden...",
     "connection.status_error":

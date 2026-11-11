@@ -4701,7 +4701,7 @@ export const de = {
       "Snowflake-Brücken für Zensurresistenz verwenden",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Anfragen werden über ein globales CDN geleitet, bevor sie Aster erreichen, sodass sich Ihr Datenverkehr in Ihrem Netzwerk in normalen CDN-Verkehr einfügt. Aster erhält weiterhin Ihre IP-Adresse und verwendet sie, um die Anmeldung zu schützen und Missbrauch zu begrenzen.",
+      "Anfragen laufen über ein Relay, das Aster bei Cloudflare betreibt, bevor sie die Aster-Server erreichen. Für Ihr Netzwerk sieht der Datenverkehr wie normaler CDN-Verkehr aus, was dort helfen kann, wo Aster blockiert ist. Aster sieht Ihre IP-Adresse weiterhin. Um sie vor Aster zu verbergen, verwenden Sie Tor.",
     "connection.status_connected": "Verbunden",
     "connection.status_connecting": "Verbindung wird hergestellt...",
     "connection.status_error":

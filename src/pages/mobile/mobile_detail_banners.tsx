@@ -20,6 +20,7 @@
 //
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { TranslationKey } from "@/lib/i18n";
+import type { UnsubscribeDelivery } from "@/utils/unsubscribe_detector";
 
 import { useState, useRef, useEffect } from "react";
 import {
@@ -53,6 +54,7 @@ import { get_undo_send_delay_ms } from "@/services/send_queue";
 
 export function MobileUnsubscribeBanner({
   email,
+  delivery,
   t,
 }: {
   email: {
@@ -66,6 +68,7 @@ export function MobileUnsubscribeBanner({
       method: string;
     };
   };
+  delivery: UnsubscribeDelivery;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   const { preferences } = use_preferences();
@@ -133,7 +136,7 @@ export function MobileUnsubscribeBanner({
       if (cancelled_ref.current) return;
 
       try {
-        const result = await execute_unsubscribe(info as never);
+        const result = await execute_unsubscribe(info as never, delivery);
 
         if (result === "api") {
           record_unsubscribed();

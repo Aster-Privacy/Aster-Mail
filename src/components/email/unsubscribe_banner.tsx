@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UnsubscribeInfo } from "@/types/email";
+import type { UnsubscribeDelivery } from "@/utils/unsubscribe_detector";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,6 +37,7 @@ import { safe_sender_name } from "@/lib/sender_trust_store";
 
 interface UnsubscribeBannerProps {
   unsubscribe_info: UnsubscribeInfo;
+  delivery: UnsubscribeDelivery;
   sender_email: string;
   sender_name: string;
   on_unsubscribed?: () => void;
@@ -43,6 +45,7 @@ interface UnsubscribeBannerProps {
 
 export function UnsubscribeBanner({
   unsubscribe_info,
+  delivery,
   sender_email,
   sender_name: claimed_name,
   on_unsubscribed,
@@ -55,6 +58,7 @@ export function UnsubscribeBanner({
   const { unsubscribe: handle_unsubscribe, is_pending } =
     use_unsubscribe_action({
       unsubscribe_info,
+      delivery,
       sender_email,
       sender_name,
       on_unsubscribed,

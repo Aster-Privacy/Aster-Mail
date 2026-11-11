@@ -17,49 +17,53 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-import type { UnsubscribeSender } from "@/utils/unsubscribe_detector";
+//
+import type {
+  UnsubscribeDelivery,
+  UnsubscribeSender,
+} from "@/utils/unsubscribe_detector";
 
 import {
-  get_cached_alias_for_routing_token,
-  get_cached_ghost_for_routing_token,
+  ensure_sender_alias_caches,
   get_cached_sender_identity_for_address,
+  get_cached_sender_identity_for_routing_token,
+  is_sender_alias_cache_populated,
 } from "@/hooks/use_sender_aliases";
+import { catch_all_address_for_routing_token } from "@/services/catch_all_sender";
+import { peek_current_user } from "@/services/current_identity";
 
-export interface UnsubscribeDelivery {
-  routing_token?: string;
-  recipients?: string[];
-  primary_email?: string;
+function normalize_address(value: string | null | undefined): string {
+  return (value ?? "").trim().toLowerCase();
 }
 
-function normalize_address(value: string | undefined): string {
-  return (value ?? "").trim().toLowerCase();
+function primary_email_of(delivery: UnsubscribeDelivery): string {
+  return normalize_address(
+    delivery.primary_email ?? peek_current_user()?.email,
+  );
+}
+
+function visible_addresses(delivery: UnsubscribeDelivery): string[] {
+  return (delivery.recipients ?? []).map(normalize_address).filter(Boolean);
 }
 
 export function resolve_unsubscribe_sender(
   delivery: UnsubscribeDelivery,
 ): UnsubscribeSender | null | undefined {
   if (delivery.routing_token) {
-    const delivered = [
-      get_cached_alias_for_routing_token(delivery.routing_token),
-      get_cached_ghost_for_routing_token(delivery.routing_token),
-    ];
+    const identity = get_cached_sender_identity_for_routing_token(
+      delivery.routing_token,
+    );
 
-    for (const address of delivered) {
-      const identity = get_cached_sender_identity_for_address(address);
-
-      if (identity) {
-        return {
+    return identity
+      ? {
           from_address: identity.email,
           from_address_hash: identity.address_hash,
-        };
-      }
-    }
-
-    return null;
+        }
+      : null;
   }
 
-  const primary = normalize_address(delivery.primary_email);
-  const visible = (delivery.recipients ?? []).map(normalize_address);
+  const primary = primary_email_of(delivery);
+  const visible = visible_addresses(delivery);
 
   if (primary && visible.includes(primary)) {
     return { from_address: primary };
@@ -77,4 +81,35 @@ export function resolve_unsubscribe_sender(
   }
 
   return undefined;
+}
+
+export async function load_unsubscribe_sender(
+  delivery: UnsubscribeDelivery,
+): Promise<UnsubscribeSender | null | undefined> {
+  const cached = resolve_unsubscribe_sender(delivery);
+
+  if (!delivery.routing_token) {
+    if (cached !== undefined || is_sender_alias_cache_populated()) {
+      return cached;
+    }
+
+    await ensure_sender_alias_caches();
+
+    return resolve_unsubscribe_sender(delivery);
+  }
+
+  if (cached) return cached;
+
+  await ensure_sender_alias_caches({ refresh: true });
+
+  const loaded = resolve_unsubscribe_sender(delivery);
+
+  if (loaded) return loaded;
+
+  const catch_all = await catch_all_address_for_routing_token(
+    delivery.routing_token,
+    visible_addresses(delivery),
+  );
+
+  return catch_all ? { from_address: catch_all } : null;
 }
