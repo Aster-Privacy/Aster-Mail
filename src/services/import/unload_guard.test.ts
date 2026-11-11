@@ -18,9 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 
 import { hold_import_unload_guard } from "./unload_guard";
+
+const latch = vi.hoisted(() => ({ erased: false }));
+
+vi.mock("@/lib/device_erase_latch", async (original) => ({
+  ...(await original<typeof import("@/lib/device_erase_latch")>()),
+  device_traces_erased: () => latch.erased,
+}));
 
 function fire_beforeunload(): boolean {
   const event = new Event("beforeunload", { cancelable: true });
@@ -34,7 +41,16 @@ describe("import unload guard", () => {
   const releases: Array<() => void> = [];
 
   afterEach(() => {
+    latch.erased = false;
     while (releases.length > 0) releases.pop()!();
+  });
+
+  it("lets the tab leave without asking once this device was erased", () => {
+    releases.push(hold_import_unload_guard());
+    expect(fire_beforeunload()).toBe(true);
+
+    latch.erased = true;
+    expect(fire_beforeunload()).toBe(false);
   });
 
   it("warns before leaving only while an import holds the guard", () => {

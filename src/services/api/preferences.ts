@@ -40,6 +40,11 @@ import {
   clamp_inbox_page_size,
 } from "@/lib/inbox_page_size";
 import { ignore_error } from "@/lib/ignore_error";
+import { device_traces_erased } from "@/lib/device_erase_latch";
+import {
+  apply_loaded_error_report_preference,
+  forget_error_report_grant,
+} from "@/services/error_report_consent";
 import {
   DEFAULT_SIDEBAR_SECTION_ORDER,
   sanitize_sidebar_hidden_items,
@@ -581,6 +586,10 @@ function write_local_migration_flag(flag: MigrationFlag): void {
 }
 
 export function cache_preferences_locally(prefs: UserPreferences): void {
+  if (device_traces_erased()) return;
+
+  apply_loaded_error_report_preference(prefs.send_error_reports);
+
   try {
     localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(prefs));
     localStorage.setItem(
@@ -618,6 +627,8 @@ export function get_cached_text_size(): {
 }
 
 export function clear_preferences_cache(): void {
+  forget_error_report_grant();
+
   try {
     localStorage.removeItem(PREFS_CACHE_KEY);
   } catch (caught) {

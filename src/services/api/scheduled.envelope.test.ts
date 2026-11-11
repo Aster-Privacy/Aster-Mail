@@ -29,6 +29,7 @@ const plain_fallback = vi.fn();
 const patch = vi.fn();
 const remove = vi.fn();
 const private_bcc = vi.fn();
+const note_purged_mail = vi.fn();
 let internal = true;
 let write_key: CryptoKey;
 
@@ -48,6 +49,9 @@ vi.mock("@/services/recipient_classification", () => ({
   is_internal_recipient: () => internal,
 }));
 vi.mock("@/hooks/use_mail_stats", () => ({ invalidate_mail_stats: vi.fn() }));
+vi.mock("@/services/search/index_removals", () => ({
+  note_purged_mail: (...args: unknown[]) => note_purged_mail(...args),
+}));
 vi.mock("@/services/crypto/legacy_keks", () => ({
   decrypt_aes_gcm_with_fallback: (...args: unknown[]) =>
     plain_fallback(...args),
@@ -390,6 +394,16 @@ describe("scheduled changes", () => {
     expect(response.data).toBeUndefined();
     expect(response.error).toBe(en.errors.scheduled_may_have_sent);
     expect(response.code).toBe("NOT_FOUND");
+  });
+
+  it("leaves the search index alone when a message is canceled", async () => {
+    note_purged_mail.mockClear();
+    remove.mockResolvedValue({ data: { success: true } });
+
+    const response = await cancel_scheduled_email("s7");
+
+    expect(response.data?.success).toBe(true);
+    expect(note_purged_mail).not.toHaveBeenCalled();
   });
 });
 

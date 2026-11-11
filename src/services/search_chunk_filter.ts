@@ -68,6 +68,7 @@ export interface ChunkSummary {
   names: string[];
   tokens_complete: boolean;
   names_complete: boolean;
+  ids?: StoredGramFilter;
 }
 
 export interface StoredGramFilter {
@@ -333,9 +334,12 @@ export function create_chunk_summarizer(): ChunkSummarizer {
   const tokens = new Set<string>();
   const names = new Set<string>();
   const grams = new Set<string>();
+  const ids = new Set<string>();
 
   return {
     add(item, entry) {
+      ids.add(item.id);
+
       const metadata = entry?.metadata ?? null;
       const envelope = entry?.envelope ?? null;
       const ts = new Date(item.message_ts || item.created_at).getTime();
@@ -423,6 +427,7 @@ export function create_chunk_summarizer(): ChunkSummarizer {
           names: name_list.list,
           tokens_complete: token_list.complete,
           names_complete: name_list.complete,
+          ids: build_gram_filter(ids),
         },
         grams: build_gram_filter(grams),
       };
@@ -443,6 +448,35 @@ export function summarize_chunk(
   return summarizer.finish();
 }
 
+function stored_id_filter(raw: unknown): StoredGramFilter | null {
+  if (!raw || typeof raw !== "object") return null;
+
+  const { bits, m } = raw as Record<string, unknown>;
+
+  if (typeof bits !== "string" || typeof m !== "number") return null;
+
+  return parse_gram_filter({ bits, m }) ? { bits, m } : null;
+}
+
+export function chunk_may_hold_id(
+  summary: ChunkSummary | null | undefined,
+  ids: Iterable<string>,
+): boolean | null {
+  const filter = parse_gram_filter(summary?.ids);
+
+  if (!filter) return null;
+
+  for (const id of ids) {
+    if (gram_present(filter, id)) return true;
+  }
+
+  return false;
+}
+
+export function build_id_filter(ids: Iterable<string>): StoredGramFilter {
+  return build_gram_filter(new Set(ids));
+}
+
 export function normalize_chunk_summary(raw: unknown): ChunkSummary | null {
   if (!raw || typeof raw !== "object") return null;
 
@@ -459,6 +493,8 @@ export function normalize_chunk_summary(raw: unknown): ChunkSummary | null {
   ) {
     return null;
   }
+
+  const ids = stored_id_filter(value.ids);
 
   return {
     min_ts: value.min_ts as number,
@@ -479,6 +515,7 @@ export function normalize_chunk_summary(raw: unknown): ChunkSummary | null {
     ),
     tokens_complete: !!value.tokens_complete,
     names_complete: !!value.names_complete,
+    ...(ids ? { ids } : {}),
   };
 }
 
