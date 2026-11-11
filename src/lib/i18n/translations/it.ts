@@ -1930,6 +1930,9 @@ export const it = {
     dns_host_leave_blank: "Lascia vuoto",
     dns_host_provider_hint:
       "{{provider}} usa questo formato per il campo host. Copialo esattamente come mostrato.",
+    dns_host_zone_hint:
+      "Questo nome host è relativo a {{zone}}, il dominio in cui gestisci i record DNS.",
+    dns_full_record_name: "Nome completo del record",
     purchase_congrats_title: "Congratulazioni",
     recipient_key_outdated: "La chiave del destinatario non è aggiornata",
     recipient_key_outdated_desc:
@@ -6087,7 +6090,7 @@ export const it = {
       "Usa i bridge Snowflake per la resistenza alla censura",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Le richieste passano attraverso una CDN globale prima di raggiungere Aster. Il tuo indirizzo IP resta nascosto ad Aster e il traffico si confonde con il normale traffico CDN.",
+      "Le richieste passano attraverso un relay che Aster gestisce su Cloudflare prima di raggiungere i server di Aster. Per la tua rete, il traffico ha l'aspetto del normale traffico CDN, il che può aiutare dove Aster è bloccato. Aster vede comunque il tuo indirizzo IP. Per nasconderlo ad Aster, usa Tor.",
     "connection.status_connected": "Connesso",
     "connection.status_connecting": "Connessione...",
     "connection.status_error":
@@ -6116,7 +6119,8 @@ export const it = {
     tlsrpt_record: "Record TLS-RPT",
     tlsrpt_description:
       "Facoltativo ma consigliato. I server riceventi ti inviano un riepilogo giornaliero quando la consegna cifrata al tuo dominio fallisce, cosi noti i problemi prima dei tuoi utenti.",
-    dns_instruction_set_tlsrpt_host: "Imposta l'host su _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Copia il nome host mostrato qui sotto nel campo host",
     dns_instruction_set_tlsrpt_value:
       "Incolla il valore TLS-RPT esattamente come mostrato",
     optional_step: "Facoltativo",
@@ -6511,7 +6515,7 @@ export const it = {
     dns_instruction_set_dkim:
       "Imposta il valore sulla chiave DKIM mostrata di seguito",
     dns_instruction_set_dmarc_host:
-      "Imposta l'host su _dmarc (senza includere il tuo dominio)",
+      "Copia il nome host mostrato qui sotto nel campo host",
     dns_instruction_set_dmarc_value:
       "Imposta il valore sul criterio DMARC mostrato di seguito",
     edit_external_account: "Modifica account esterno",

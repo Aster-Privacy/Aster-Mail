@@ -94,8 +94,15 @@ function DnsRecordItem({ record }: DnsRecordItemProps) {
       <div className="mb-1">
         <p className="text-xs mb-0.5 text-txt-muted">{t("common.host")}</p>
         <p className="text-sm font-mono break-all text-txt-primary">
-          {record.host}
+          {record.zone_host || record.host}
         </p>
+        {record.fqdn &&
+          record.zone_host &&
+          record.zone_host !== record.host && (
+            <p className="text-xs font-mono break-all mt-0.5 text-txt-muted">
+              {record.fqdn}
+            </p>
+          )}
       </div>
       <div>
         <p className="text-xs mb-0.5 text-txt-muted">{t("common.value")}</p>
