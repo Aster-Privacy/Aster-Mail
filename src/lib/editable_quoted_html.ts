@@ -42,6 +42,11 @@ import {
   type UntrustedSourceHandlers,
 } from "@/lib/untrusted_sources";
 import { is_local_resource_url } from "@/lib/url_value";
+import {
+  blocks_remote_images,
+  blocks_tracking_pixels,
+  type RemoteImageMode,
+} from "@/lib/remote_content_policy";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 import {
@@ -99,9 +104,12 @@ export function resolve_quoted_image_blocking({
 
   if (displayed) return displayed;
 
-  if (!block_external_content) {
-    return { block_remote_images: false, block_tracking_pixels: false };
-  }
+  const policy = {
+    load_remote_images: load_remote_images as RemoteImageMode,
+    block_external_content,
+    block_remote_images,
+    block_tracking_pixels,
+  };
 
   const resolved = resolve_content_blocking({
     lockdown_active: false,
@@ -109,10 +117,10 @@ export function resolve_quoted_image_blocking({
       !!source_email_id &&
       get_external_content_mode(source_email_id) === "loaded",
     preferences: {
-      block_remote_images,
+      block_remote_images: blocks_remote_images(policy),
       block_remote_fonts: true,
       block_remote_css: true,
-      block_tracking_pixels,
+      block_tracking_pixels: blocks_tracking_pixels(policy),
     },
   });
 

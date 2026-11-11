@@ -59,6 +59,7 @@ import {
 import { get_font_stack, get_email_font_stack } from "@/lib/font_options";
 import { get_effective_theme_fields } from "@/lib/theme_sync";
 import { ignore_error } from "@/lib/ignore_error";
+import { set_error_report_choice } from "@/services/error_report_consent";
 import { sync_muted_folders } from "@/services/api/sync";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 
@@ -456,6 +457,10 @@ export function use_preferences_core() {
         updated.low_network_mode_user_set = true;
       }
 
+      if (key === "send_error_reports") {
+        set_error_report_choice(value === true);
+      }
+
       if (
         key === "session_timeout_enabled" ||
         key === "session_timeout_minutes"
@@ -500,6 +505,10 @@ export function use_preferences_core() {
 
       const updated = { ...preferences_ref.current, ...updates };
 
+      if (typeof updates.send_error_reports === "boolean") {
+        set_error_report_choice(updates.send_error_reports);
+      }
+
       preferences_ref.current = updated;
       set_preferences(updated);
 
@@ -524,6 +533,7 @@ export function use_preferences_core() {
       ...DEFAULT_PREFERENCES,
     };
 
+    set_error_report_choice(DEFAULT_PREFERENCES.send_error_reports);
     preferences_ref.current = reset_preferences;
     set_preferences(reset_preferences);
     set_theme_ref.current(DEFAULT_PREFERENCES.theme);

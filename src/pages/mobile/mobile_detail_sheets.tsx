@@ -975,6 +975,7 @@ export function MobileMessageDetailsSheet({
                 has_pq_protection={false}
                 has_recipient_key={message.has_recipient_key}
                 is_external={message.is_external}
+                is_received={message.item_type === "received"}
                 label={
                   shows_end_to_end(message)
                     ? t("mail.zero_access_encrypted")

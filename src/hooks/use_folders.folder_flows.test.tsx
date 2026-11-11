@@ -75,9 +75,20 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   },
 }));
 
-vi.mock("@/services/crypto/legacy_keks", () => ({
-  decrypt_aes_gcm_with_fallback: vi.fn(),
-}));
+vi.mock("@/services/crypto/legacy_keks", () => {
+  const decrypt_aes_gcm_with_fallback = vi.fn();
+
+  return {
+    decrypt_aes_gcm_with_fallback,
+    decrypt_account_context_with_fallback: (
+      _context: string,
+      ...rest: unknown[]
+    ) =>
+      (decrypt_aes_gcm_with_fallback as (...args: unknown[]) => unknown)(
+        ...rest,
+      ),
+  };
+});
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth_safe: () => ({ user: { id: "u1" } }),

@@ -85,6 +85,7 @@ import {
   type SendEmailPayload,
 } from "@/native/offline_queue";
 import { ignore_error } from "@/lib/ignore_error";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -327,10 +328,12 @@ function install_send_queue_unload_guards(): void {
   if (typeof window === "undefined") return;
 
   window.addEventListener("pagehide", () => {
+    if (device_traces_erased()) return;
     send_queue.flush_all_now();
   });
 
   window.addEventListener("beforeunload", (event) => {
+    if (device_traces_erased()) return;
     if (send_queue.pending_count() === 0) return;
 
     send_queue.flush_all_now();

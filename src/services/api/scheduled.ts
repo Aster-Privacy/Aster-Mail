@@ -26,7 +26,10 @@ import {
   is_internal_recipient,
 } from "../recipient_classification";
 
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import {
+  decrypt_account_context_with_fallback,
+  decrypt_aes_gcm_with_fallback,
+} from "@/services/crypto/legacy_keks";
 import { account_data_write_key } from "@/services/crypto/account_data_writer";
 import { encrypt_with_private_bcc } from "@/services/send_private_bcc";
 import { plain_text_to_html } from "@/services/send_queue_recipients";
@@ -327,7 +330,8 @@ async function decrypt_scheduled_content(
   let plaintext_buffer: ArrayBuffer;
 
   try {
-    plaintext_buffer = await decrypt_aes_gcm_with_fallback(
+    plaintext_buffer = await decrypt_account_context_with_fallback(
+      "astermail-scheduled-v1",
       key,
       ciphertext,
       nonce_bytes,

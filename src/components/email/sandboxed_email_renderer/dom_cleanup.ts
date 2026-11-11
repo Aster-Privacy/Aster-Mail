@@ -41,6 +41,10 @@ import { clear_blocked_image } from "@/lib/blocked_image_placeholder";
 import { ignore_error } from "@/lib/ignore_error";
 import { remove_aster_footers } from "@/lib/aster_footer_strip";
 import { LITERAL_TEXT_SELECTOR } from "@/lib/literal_text";
+import {
+  proxied_image_target,
+  set_deferred_image_source,
+} from "@/lib/deferred_proxy_images";
 
 type translate_fn = ReturnType<typeof use_i18n>["t"];
 
@@ -1031,7 +1035,11 @@ function install_image_load_fallback(img_el: HTMLImageElement): void {
   );
 }
 
-export function unblock_remote_content(doc: Document): void {
+export function unblock_remote_content(
+  doc: Document,
+  options: { defer_proxied?: boolean } = {},
+): void {
+  const defer_proxied = options.defer_proxied === true;
   const m = connection_store.get_method();
 
   if (m === "tor" || m === "tor_snowflake") return;
@@ -1049,7 +1057,15 @@ export function unblock_remote_content(doc: Document): void {
         const safe_url = new URL(src, window.location.href);
 
         if (safe_url.protocol === "https:" || safe_url.protocol === "http:") {
-          el.setAttribute("src", safe_url.href);
+          const deferred_target = defer_proxied
+            ? proxied_image_target(safe_url.href, IMAGE_PROXY_URL)
+            : null;
+
+          if (deferred_target) {
+            set_deferred_image_source(el, deferred_target);
+          } else {
+            el.setAttribute("src", safe_url.href);
+          }
         }
       } catch (caught) {
         ignore_error(
@@ -1080,8 +1096,16 @@ export function unblock_remote_content(doc: Document): void {
     .forEach((span) => {
       const original_src = span.getAttribute("data-original-src") || "";
       const img = doc.createElement("img");
+      const proxied_src = `${IMAGE_PROXY_URL}?url=${encodeURIComponent(original_src)}`;
+      const deferred_target = defer_proxied
+        ? proxied_image_target(proxied_src, IMAGE_PROXY_URL)
+        : null;
 
-      img.src = `${IMAGE_PROXY_URL}?url=${encodeURIComponent(original_src)}`;
+      if (deferred_target) {
+        set_deferred_image_source(img, deferred_target);
+      } else {
+        img.src = proxied_src;
+      }
 
       const w = span.getAttribute("data-width");
       const h = span.getAttribute("data-height");

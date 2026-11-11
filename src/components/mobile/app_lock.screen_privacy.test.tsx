@@ -81,6 +81,7 @@ vi.mock("@/hooks/use_protected_folder", () => ({
 }));
 
 vi.mock("@/contexts/auth/purge_local_data", () => ({
+  erase_device_with_retry: vi.fn(async () => true),
   purge_all_local_data: async () => undefined,
 }));
 

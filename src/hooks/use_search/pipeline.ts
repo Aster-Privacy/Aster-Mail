@@ -57,6 +57,10 @@ import {
 import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
 import {
   bound_index_body,
+  is_purged_id,
+  note_indexed_arrivals,
+  purged_since,
+  scope_purge_mark,
   MAX_INDEX_BODY_CHARS,
   metadata_fingerprint,
   slim_envelope_for_index,
@@ -350,6 +354,7 @@ export async function run_index_pipeline(
       };
     }
 
+    const purge_mark = scope_purge_mark();
     const response = await list_encrypted_mail_items({
       cursor,
       limit: Math.min(page_limit, options.max_items - processed),
@@ -378,7 +383,9 @@ export async function run_index_pipeline(
       }
     }
 
-    page_items = filter_locked_mail_items(page_items);
+    page_items = filter_locked_mail_items(page_items).filter(
+      (item) => !is_purged_id(item.id),
+    );
 
     const envelope_by_id = incremental
       ? await fetch_envelopes(
@@ -387,6 +394,11 @@ export async function run_index_pipeline(
       : null;
 
     const page_entries = await decrypt_page(page_items, envelope_by_id);
+
+    page_items = page_items.filter(
+      (item) => !is_purged_id(item.id) && !purged_since(item, purge_mark),
+    );
+    note_indexed_arrivals(page_items.map((item) => item.id));
 
     if (hot) {
       for (const item of page_items) {

@@ -29,6 +29,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_should_reduce_motion } from "@/provider";
 import {
+  displayed_sender_verification,
   names_sender_as_reader,
   reaches_outside_recipients,
   shows_end_to_end,
@@ -46,6 +47,7 @@ interface EncryptionInfoDropdownProps {
   context?: "message" | "attachments";
   description_key?: import("@/lib/i18n").TranslationKey;
   sender_verification?: SenderVerificationStatus;
+  is_received?: boolean;
 }
 
 export function EncryptionInfoDropdown({
@@ -59,7 +61,8 @@ export function EncryptionInfoDropdown({
   label,
   context = "message",
   description_key,
-  sender_verification,
+  sender_verification: reported_sender_verification,
+  is_received,
 }: EncryptionInfoDropdownProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -80,6 +83,14 @@ export function EncryptionInfoDropdown({
     sent_encryption_scope,
   };
   const is_encrypted = shows_end_to_end(flags);
+  const sender_verification =
+    context === "attachments"
+      ? reported_sender_verification
+      : displayed_sender_verification({
+          ...flags,
+          sender_verification: reported_sender_verification,
+          is_received,
+        });
 
   const description = description_key
     ? t(description_key)

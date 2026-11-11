@@ -1943,6 +1943,8 @@ export const ko = {
     dns_host_leave_blank: "비워 두기",
     dns_host_provider_hint:
       "{{provider}}은(는) 호스트 항목에 이 형식을 사용합니다. 표시된 그대로 복사하세요.",
+    dns_host_zone_hint: "이 호스트 이름은 DNS 레코드를 관리하는 도메인인 {{zone}} 기준의 상대 이름입니다.",
+    dns_full_record_name: "레코드 전체 이름",
     purchase_congrats_title: "축하합니다",
     recipient_key_outdated: "받는 사람의 키가 오래되었습니다",
     recipient_key_outdated_desc:
@@ -4740,7 +4742,7 @@ export const ko = {
       "검열 저항을 위해 Snowflake 브리지를 사용합니다",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "요청이 Aster에 도달하기 전에 글로벌 CDN을 거칩니다. IP 주소가 Aster에 노출되지 않으며, 트래픽이 일반 CDN 트래픽과 구분되지 않습니다.",
+      "요청이 Aster 서버에 도달하기 전에 Aster가 Cloudflare에서 운영하는 릴레이를 거칩니다. 사용 중인 네트워크에서는 이 트래픽이 일반 CDN 트래픽처럼 보이므로 Aster가 차단된 곳에서 도움이 될 수 있습니다. Aster는 여전히 IP 주소를 볼 수 있습니다. Aster에 IP 주소를 숨기려면 Tor를 사용하세요.",
     "connection.status_connected": "연결됨",
     "connection.status_connecting": "연결 중...",
     "connection.status_error":
@@ -4771,7 +4773,7 @@ export const ko = {
     tlsrpt_record: "TLS-RPT 레코드",
     tlsrpt_description:
       "선택 사항이지만 권장합니다. 도메인으로의 암호화 전송이 실패하면 수신 서버가 일일 요약을 보내주므로 사용자보다 먼저 문제를 발견할 수 있습니다.",
-    dns_instruction_set_tlsrpt_host: "호스트를 _smtp._tls 로 설정하세요",
+    dns_instruction_set_tlsrpt_host: "아래에 표시된 호스트 이름을 호스트 항목에 복사하세요",
     dns_instruction_set_tlsrpt_value: "TLS-RPT 값을 표시된 그대로 붙여넣으세요",
     optional_step: "선택",
     gmail_import: "Gmail",
@@ -5147,8 +5149,7 @@ export const ko = {
     dns_instruction_merge_spf:
       "이미 SPF 레코드가 있는 경우 기존 레코드에 include: 디렉티브를 추가하세요",
     dns_instruction_set_dkim: "아래에 표시된 DKIM 키로 값을 설정하세요",
-    dns_instruction_set_dmarc_host:
-      "호스트를 _dmarc로 설정하세요 (도메인은 포함하지 마세요)",
+    dns_instruction_set_dmarc_host: "아래에 표시된 호스트 이름을 호스트 항목에 복사하세요",
     dns_instruction_set_dmarc_value:
       "아래에 표시된 DMARC 정책으로 값을 설정하세요",
     edit_external_account: "외부 계정 편집",
@@ -9328,6 +9329,7 @@ export const ko = {
     received_via_alias: "별칭 {{ address }}(으)로 전달됨",
     new_reaction: "새 반응",
     load_external_content: "외부 콘텐츠 불러오기",
+    image_loading_settings: "이미지 설정",
     image: "이미지",
     images: "이미지",
     tracker: "추적기",
@@ -10005,23 +10007,34 @@ export const ko = {
     device_code_waiting: "페어링 대기 중...",
     device_code_expires_in: "만료까지",
     link_device_title: "기기 연결",
-    link_device_enter_code: "기기에 표시된 코드를 입력하세요",
+    link_device_enter_code: "연결하려는 앱에 표시된 연결 코드를 입력하세요.",
     link_device_code_placeholder: "코드 입력",
     link_device_verify_button: "확인",
     link_device_confirm_prompt: "이 기기를 계정과 연결하시겠습니까?",
     link_device_confirm_button: "연결",
     link_device_confirming: "연결 중...",
     link_device_cancel: "취소",
-    link_device_desktop: "데스크톱 앱",
-    device_fingerprint: "확인 코드",
-    device_code_verify_toggle: "이 기기 확인",
-    link_device_fingerprint_hint:
-      "데스크톱 앱에 확인 코드가 표시되면 기기를 연결하기 전에 이 코드와 일치하는지 확인하세요.",
-    device_code_fingerprint_hint:
-      "기기를 연결하기 전에 브라우저에 같은 확인 코드가 표시됩니다. 두 코드가 일치하지 않으면 기기를 연결하지 마세요.",
+    link_device_desktop: "새 기기",
+    device_fingerprint: "기기 지문",
+    device_fingerprint_copy: "기기 지문 복사",
+    link_device_grant_notice:
+      "연결하면 {{device}}의 앱이 메일과 암호화 키를 포함해 {{email}}에 대한 전체 접근 권한을 갖게 됩니다.",
+    link_device_own_device_warning:
+      "본인 기기의 Aster 앱에서 직접 이 과정을 시작한 경우에만 계속하세요. 다른 사람에게서 이 코드를 받았다면 기기를 연결하지 마세요.",
+    link_device_fingerprint_enter:
+      "연결하려는 앱에 표시된 기기 지문을 입력하세요. 일부 앱에서는 인증 코드라고 표시합니다.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "이 연결 코드의 기기와 일치하지 않습니다. 연결하려는 앱과 한 글자씩 비교한 다음 다시 시도하세요. 그래도 일치하지 않으면 기기를 연결하지 마세요.",
+    link_device_fingerprint_link_mismatch:
+      "이 페이지를 연 링크가 이 연결 코드와 다른 기기의 것이어서 여기에서 기기를 연결할 수 없습니다. 연결하려는 앱에서 새 코드를 받은 후 다시 시도하세요.",
+    link_device_update_desktop:
+      "앱에 표시되지 않으면 앱에서 이 기기 확인을 선택하세요. 앱에 이 옵션이 없으면 앱을 업데이트한 다음 다시 시도하세요.",
+    device_code_fingerprint_required_hint:
+      "기기를 연결하기 전에 브라우저에서 이 기기 지문을 요청합니다.",
     link_device_change_account: "계정 변경",
     link_device_choose_account: "계정 선택",
-    link_device_choose_account_description: "데스크톱 앱을 연결합니다",
+    link_device_choose_account_description: "새 기기를 연결합니다",
     link_device_choose_account_note:
       "암호화 키는 기기 간에 전송되는 동안에도 암호화된 상태로 유지됩니다.",
     link_device_use_another_account: "다른 계정 사용",
@@ -10032,11 +10045,11 @@ export const ko = {
     hub_account_link_failed: "이 계정으로 계속하려면 비밀번호를 입력하세요.",
     link_device_success: "기기가 연결되었습니다",
     link_device_success_description:
-      "기기가 성공적으로 연결되어 메일에 접근할 수 있습니다.",
+      "기기가 연결되었습니다. 이 탭을 닫아도 됩니다.",
     link_device_invalid_code:
       "연결 코드는 8자입니다. 코드를 확인하고 다시 시도하세요.",
     link_device_expired_code:
-      "이 코드는 만료되었습니다. 기기에서 새 코드를 생성하세요.",
+      "이 코드는 만료되었거나 일치하지 않습니다. 연결하려는 앱에 현재 코드가 표시되어 있습니다.",
     link_device_failed: "기기 연결에 실패했습니다. 다시 시도하면 됩니다.",
     link_keys_locked_title: "키링이 잠겨 있습니다",
     link_keys_locked_description:

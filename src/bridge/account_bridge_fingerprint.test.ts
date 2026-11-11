@@ -169,18 +169,16 @@ beforeEach(() => {
 });
 
 describe("account bridge device fingerprint", () => {
-  it("returns the fingerprint of the device keys without sealing anything", async () => {
+  it("previews the device name without the fingerprint and without sealing", async () => {
     const reply = await ask(LINK_ORIGIN, {
       action: "link_preview",
       code: "code_one",
       account_id: "acct_a",
     });
 
-    expect(reply).toMatchObject({
-      ok: true,
-      fingerprint: FINGERPRINT,
-      machine_name: "desk",
-    });
+    expect(reply).toMatchObject({ ok: true, machine_name: "desk" });
+    expect(reply.fingerprint).toBeUndefined();
+    expect(JSON.stringify(reply)).not.toContain("9B16");
     expect(state.seal).not.toHaveBeenCalled();
     expect(state.confirm).not.toHaveBeenCalled();
   });
@@ -208,6 +206,32 @@ describe("account bridge device fingerprint", () => {
 
     expect(reply.ok).toBe(true);
     expect(state.confirm).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses to link when the request carries no fingerprint", async () => {
+    const reply = await ask(LINK_ORIGIN, {
+      action: "link",
+      code: "code_one",
+      account_id: "acct_a",
+    });
+
+    expect(reply).toMatchObject({ ok: false, error: "fingerprint_required" });
+    expect(state.verify).not.toHaveBeenCalled();
+    expect(state.seal).not.toHaveBeenCalled();
+    expect(state.confirm).not.toHaveBeenCalled();
+  });
+
+  it("refuses to link when the fingerprint is null", async () => {
+    const reply = await ask(LINK_ORIGIN, {
+      action: "link",
+      code: "code_one",
+      account_id: "acct_a",
+      fingerprint: null,
+    });
+
+    expect(reply).toMatchObject({ ok: false, error: "fingerprint_required" });
+    expect(state.seal).not.toHaveBeenCalled();
+    expect(state.confirm).not.toHaveBeenCalled();
   });
 
   it("rejects a fingerprint that is not in the displayed format", async () => {

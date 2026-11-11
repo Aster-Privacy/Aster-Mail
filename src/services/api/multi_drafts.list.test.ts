@@ -34,9 +34,20 @@ vi.mock("./client", () => ({
   },
 }));
 
-vi.mock("@/services/crypto/legacy_keks", () => ({
-  decrypt_aes_gcm_with_fallback: decrypt_mock,
-}));
+vi.mock("@/services/crypto/legacy_keks", () => {
+  const decrypt_aes_gcm_with_fallback = decrypt_mock;
+
+  return {
+    decrypt_aes_gcm_with_fallback,
+    decrypt_account_context_with_fallback: (
+      _context: string,
+      ...rest: unknown[]
+    ) =>
+      (decrypt_aes_gcm_with_fallback as (...args: unknown[]) => unknown)(
+        ...rest,
+      ),
+  };
+});
 
 vi.mock("@/hooks/use_mail_stats", () => ({
   invalidate_mail_stats: vi.fn(),

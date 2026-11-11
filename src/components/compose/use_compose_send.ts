@@ -593,11 +593,12 @@ export function use_compose_send({
         }
       };
 
-      if (pending_draft_id) {
-        void draft_manager
-          .await_pending_save(pending_draft_id)
-          .then(note_kept_draft);
-      }
+      const kept_draft_settled = pending_draft_id
+        ? draft_manager
+            .await_pending_save(pending_draft_id)
+            .then(note_kept_draft)
+            .catch(() => undefined)
+        : Promise.resolve();
 
       const persist_unsent_draft = async (failed: FailedSendData) => {
         if (!vault || !pending_draft_id || draft_deleted) return null;
@@ -751,6 +752,12 @@ export function use_compose_send({
           );
         },
         get_kept_draft: () => {
+          note_kept_draft();
+
+          return draft_deleted ? null : kept_draft;
+        },
+        await_kept_draft: async () => {
+          await kept_draft_settled;
           note_kept_draft();
 
           return draft_deleted ? null : kept_draft;

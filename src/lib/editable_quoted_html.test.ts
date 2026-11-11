@@ -401,11 +401,21 @@ describe("quoted reply content", () => {
     h.lockdown = false;
   });
 
-  it("follows the viewer when remote content is not blocked", () => {
+  it("keeps blocking images when only tracking protection is off", () => {
     expect(
       resolve_quoted_image_blocking({
         ...BLOCKING_PREFERENCES,
         block_external_content: false,
+      }),
+    ).toEqual({ block_remote_images: true, block_tracking_pixels: true });
+  });
+
+  it("loads images when the image setting allows them", () => {
+    expect(
+      resolve_quoted_image_blocking({
+        ...BLOCKING_PREFERENCES,
+        block_external_content: false,
+        load_remote_images: "always",
       }),
     ).toEqual({ block_remote_images: false, block_tracking_pixels: false });
   });

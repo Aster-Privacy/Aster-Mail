@@ -37,6 +37,7 @@ vi.mock("@/services/routing/routing_provider", () => ({
 }));
 
 import { report_client_error } from "./error_reporter";
+import { set_error_report_choice } from "./error_report_consent";
 
 describe("error reports follow the chosen connection", () => {
   const direct_fetch = vi.fn(async () => new Response(null, { status: 204 }));
@@ -44,6 +45,7 @@ describe("error reports follow the chosen connection", () => {
   beforeEach(() => {
     routing.fetch.mockClear();
     direct_fetch.mockClear();
+    set_error_report_choice(true);
     vi.stubGlobal("fetch", direct_fetch);
   });
 

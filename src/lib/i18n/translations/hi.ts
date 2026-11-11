@@ -744,6 +744,9 @@ export const hi = {
     dns_host_leave_blank: "खाली छोड़ें",
     dns_host_provider_hint:
       "{{provider}} होस्ट फ़ील्ड के लिए यही प्रारूप इस्तेमाल करता है। इसे हूबहू वैसे ही कॉपी करें जैसा दिख रहा है।",
+    dns_host_zone_hint:
+      "यह होस्ट नाम {{zone}} के सापेक्ष है, यानी वह डोमेन जहाँ आप DNS रिकॉर्ड प्रबंधित करते हैं।",
+    dns_full_record_name: "रिकॉर्ड का पूरा नाम",
     dns_propagation_note: "DNS बदलावों को फैलने में 48 घंटे तक लग सकते हैं",
     post: "पोस्ट",
     link_copied: "लिंक क्लिपबोर्ड पर कॉपी हो गया",
@@ -5740,7 +5743,7 @@ export const hi = {
       "सेंसरशिप से बचने के लिए Snowflake ब्रिज इस्तेमाल करें",
     "connection.cdn_relay": "CDN रिले",
     "connection.cdn_relay_description":
-      "अनुरोध Aster तक पहुंचने से पहले एक वैश्विक CDN से होकर जाते हैं। आपका IP पता Aster से छिपा रहता है, और ट्रैफ़िक सामान्य CDN ट्रैफ़िक में घुल-मिल जाता है।",
+      "अनुरोध Aster सर्वर तक पहुंचने से पहले उस रिले से होकर जाते हैं जिसे Aster Cloudflare पर चलाता है। आपके नेटवर्क को यह ट्रैफ़िक सामान्य CDN ट्रैफ़िक जैसा दिखता है, जिससे वहां मदद मिल सकती है जहां Aster ब्लॉक है। Aster को आपका IP पता अब भी दिखता है। इसे Aster से छिपाने के लिए Tor का उपयोग करें।",
     "connection.tor_warning":
       "सारा ट्रैफ़िक Tor नेटवर्क से होकर जाएगा। रफ़्तार धीमी रहेगी।",
     "connection.status_connected": "जुड़ गया",
@@ -5771,7 +5774,8 @@ export const hi = {
     tlsrpt_record: "TLS-RPT रिकॉर्ड",
     tlsrpt_description:
       "वैकल्पिक, लेकिन सुझाया गया। जब आपके डोमेन पर एन्क्रिप्टेड डिलीवरी नहीं हो पाती, तो पाने वाले सर्वर आपको रोज़ाना सारांश भेजते हैं, जिससे आप गड़बड़ी अपने उपयोगकर्ताओं से पहले पकड़ लेते हैं।",
-    dns_instruction_set_tlsrpt_host: "होस्ट को _smtp._tls पर सेट करें",
+    dns_instruction_set_tlsrpt_host:
+      "नीचे दिखाया गया होस्ट नाम होस्ट फ़ील्ड में कॉपी करें",
     dns_instruction_set_tlsrpt_value:
       "TLS-RPT मान बिल्कुल वैसा ही पेस्ट करें जैसा दिखाया गया है",
     optional_step: "वैकल्पिक",
@@ -6198,7 +6202,7 @@ export const hi = {
       "अगर आपके पास पहले से SPF रिकॉर्ड है, तो अपने मौजूदा रिकॉर्ड में include: निर्देश जोड़ें",
     dns_instruction_set_dkim: "मान को नीचे दिखाई DKIM कुंजी पर सेट करें",
     dns_instruction_set_dmarc_host:
-      "होस्ट को _dmarc पर सेट करें (अपना डोमेन नाम न जोड़ें)",
+      "नीचे दिखाया गया होस्ट नाम होस्ट फ़ील्ड में कॉपी करें",
     dns_instruction_set_dmarc_value: "मान को नीचे दिखाई DMARC नीति पर सेट करें",
     edit_external_account: "बाहरी खाते में बदलाव करें",
     add_external_account: "बाहरी खाता जोड़ें",
@@ -9012,6 +9016,7 @@ export const hi = {
     subject_copied: "विषय कॉपी हो गया",
     load_all_thread_messages: "सभी संदेश लोड करें",
     load_external_content: "बाहरी सामग्री लोड करें",
+    image_loading_settings: "तस्वीर सेटिंग",
     image: "छवि",
     images: "छवियां",
     tracker: "ट्रैकर",
@@ -9842,7 +9847,8 @@ export const hi = {
     device_code_waiting: "पुष्टि की प्रतीक्षा है",
     device_code_expires_in: "समाप्त होने में",
     link_device_title: "डिवाइस लिंक करें",
-    link_device_enter_code: "अपने डेस्कटॉप ऐप पर दिख रहा कोड डालें।",
+    link_device_enter_code:
+      "जिस ऐप को आप लिंक कर रहे हैं, उसमें दिख रहा लिंकिंग कोड डालें।",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "जारी रखें",
     link_device_confirm_prompt:
@@ -9850,18 +9856,18 @@ export const hi = {
     link_device_confirm_button: "डिवाइस लिंक करें",
     link_device_confirming: "डिवाइस लिंक किया जा रहा है...",
     link_device_cancel: "रद्द करें",
-    link_device_desktop: "डेस्कटॉप ऐप",
+    link_device_desktop: "नया डिवाइस",
     hub_accounts_or_password: "या अपने पासवर्ड से साइन इन करें",
     hub_account_password_required: "पासवर्ड आवश्यक है",
     hub_account_link_failed:
       "इस खाते से जारी रखने के लिए, इसका पासवर्ड दर्ज करें।",
     link_device_success: "डिवाइस लिंक हो गया",
     link_device_success_description:
-      "आपका डेस्कटॉप ऐप अब लिंक हो गया है। आप यह टैब बंद कर सकते हैं।",
+      "आपका डिवाइस अब लिंक हो गया है। आप यह टैब बंद कर सकते हैं।",
     link_device_invalid_code:
       "लिंकिंग कोड 8 वर्ण लंबा होता है। कोड जांचें और फिर से कोशिश करें।",
     link_device_expired_code:
-      "यह कोड समाप्त हो चुका है या मेल नहीं खाया। मौजूदा कोड आपके डेस्कटॉप ऐप पर है।",
+      "यह कोड समाप्त हो चुका है या मेल नहीं खाया। मौजूदा कोड उस ऐप में दिख रहा है जिसे आप लिंक कर रहे हैं।",
     link_device_failed:
       "लिंक करना पूरा नहीं हुआ। दोबारा शुरू करने से आमतौर पर काम बन जाता है। आपका खाता जस का तस है।",
     link_keys_locked_title: "आपकी कीरिंग लॉक है",
@@ -9888,15 +9894,26 @@ export const hi = {
     link_device_upgrade_title: "यह डिवाइस लिंक करने के लिए अपग्रेड करें",
     link_device_upgrade_description:
       "अपने खाते से डेस्कटॉप Bridge जोड़ने के लिए Star या उससे ऊपर का प्लान चाहिए। नीचे कोई प्लान चुनें और चेकआउट के तुरंत बाद आपका डिवाइस लिंक हो जाएगा।",
-    device_fingerprint: "पुष्टि कोड",
-    device_code_verify_toggle: "इस डिवाइस की पुष्टि करें",
-    link_device_fingerprint_hint:
-      "अगर आपका डेस्कटॉप ऐप पुष्टि कोड दिखाता है, तो डिवाइस लिंक करने से पहले पक्का करें कि वह इस कोड से मेल खाता है।",
-    device_code_fingerprint_hint:
-      "डिवाइस लिंक करने से पहले आपका ब्राउज़र यही पुष्टि कोड दिखाता है। अगर दोनों कोड मेल नहीं खाते, तो डिवाइस लिंक न करें।",
+    device_fingerprint: "डिवाइस फ़िंगरप्रिंट",
+    device_fingerprint_copy: "डिवाइस फ़िंगरप्रिंट कॉपी करें",
+    link_device_grant_notice:
+      "लिंक करने से {{device}} पर मौजूद ऐप को {{email}} का पूरा ऐक्सेस मिल जाता है, जिसमें आपकी मेल और एन्क्रिप्शन कुंजियां शामिल हैं।",
+    link_device_own_device_warning:
+      "केवल तभी जारी रखें, जब आपने यह प्रक्रिया अपने डिवाइस के किसी Aster ऐप में खुद शुरू की हो। अगर यह कोड आपको किसी और ने दिया है, तो डिवाइस लिंक न करें।",
+    link_device_fingerprint_enter:
+      "जिस ऐप को आप लिंक कर रहे हैं, उसमें दिख रहा डिवाइस फ़िंगरप्रिंट डालें। कुछ ऐप इसे सत्यापन कोड कहते हैं।",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "यह इस लिंकिंग कोड के डिवाइस से मेल नहीं खाता। हर वर्ण का मिलान उस ऐप से करें जिसे आप लिंक कर रहे हैं, फिर दोबारा कोशिश करें। अगर यह फिर भी मेल नहीं खाता, तो डिवाइस को लिंक न करें।",
+    link_device_fingerprint_link_mismatch:
+      "जिस लिंक से यह पेज खुला, वह इस लिंकिंग कोड के डिवाइस के बजाय किसी दूसरे डिवाइस का है, इसलिए आप यहां डिवाइस को लिंक नहीं कर सकते। जिस ऐप को आप लिंक कर रहे हैं, उससे नया कोड लें, फिर दोबारा कोशिश करें।",
+    link_device_update_desktop:
+      "अगर ऐप इसे नहीं दिखाता, तो ऐप में इस डिवाइस की पुष्टि करें चुनें। अगर ऐप में यह विकल्प नहीं है, तो ऐप को अपडेट करें, फिर दोबारा कोशिश करें।",
+    device_code_fingerprint_required_hint:
+      "डिवाइस लिंक करने से पहले आपका ब्राउज़र यह डिवाइस फ़िंगरप्रिंट मांगता है।",
     link_device_change_account: "खाता बदलें",
     link_device_choose_account: "कोई खाता चुनें",
-    link_device_choose_account_description: "अपना डेस्कटॉप ऐप लिंक करने के लिए",
+    link_device_choose_account_description: "नया डिवाइस लिंक करने के लिए",
     link_device_choose_account_note:
       "आपकी एन्क्रिप्शन कुंजियाँ आपके डिवाइसों के बीच जाते समय एन्क्रिप्टेड रहती हैं।",
     link_device_use_another_account: "दूसरा खाता इस्तेमाल करें",

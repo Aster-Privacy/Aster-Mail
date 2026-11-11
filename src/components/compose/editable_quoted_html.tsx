@@ -47,7 +47,7 @@ export function EditableQuotedHtml({
   const { t } = use_i18n();
   const preferences = use_preferences_optional()?.preferences;
   const container_ref = useRef<HTMLDivElement>(null);
-  const block_external_content = preferences?.block_external_content ?? false;
+  const block_external_content = preferences?.block_external_content ?? true;
   const block_remote_images = preferences?.block_remote_images ?? true;
   const block_tracking_pixels = preferences?.block_tracking_pixels ?? true;
   const load_remote_images = preferences?.load_remote_images ?? "never";

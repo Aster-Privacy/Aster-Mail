@@ -36,6 +36,11 @@ import {
 import { MobileSidebarLayoutGroups } from "./sidebar_layout_groups";
 
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_lockdown_active } from "@/hooks/use_lockdown_active";
+import {
+  displayed_remote_content_setting,
+  image_mode_update,
+} from "@/lib/remote_content_policy";
 import { parse_bounded_int } from "@/lib/parse_bounded_int";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -79,6 +84,18 @@ export function BehaviorSection({
   const { t } = use_i18n();
   const { preferences, update_preference, update_preferences } =
     use_preferences();
+  const lockdown_active = use_lockdown_active();
+  const remote_content = displayed_remote_content_setting(
+    preferences,
+    lockdown_active,
+  );
+  const remote_content_locked = remote_content.locked_by !== null;
+  const remote_content_lock_note =
+    remote_content.locked_by === "lockdown"
+      ? t("settings.lockdown_content_blocked_note")
+      : remote_content.locked_by === "low_network"
+        ? t("settings.low_network_mode_active_banner")
+        : undefined;
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
 
@@ -568,40 +585,42 @@ export function BehaviorSection({
 
         <SettingsGroup title={t("settings.images_section_title")}>
           <SettingsRow
+            description={remote_content_lock_note}
             label={t("settings.block_remote_images_label")}
             trailing={
               <Switch
-                checked={preferences.block_remote_images}
+                checked={remote_content.blocks_images}
+                disabled={remote_content_locked}
                 onCheckedChange={(v) => {
-                  update_preference("block_remote_images", v, true);
-                  if (v) {
-                    update_preference("load_remote_images", "never", true);
-                  } else {
-                    update_preference("load_remote_images", "always", true);
-                  }
+                  update_preferences(
+                    image_mode_update(v ? "never" : "always"),
+                    true,
+                  );
                 }}
               />
             }
           />
-          {preferences.block_remote_images && (
+          {remote_content.blocks_images && (
             <div className="px-4 py-2">
               <div className="flex flex-wrap gap-2">
                 {image_loading_options.map((opt) => (
                   <button
                     key={opt.value}
+                    aria-pressed={remote_content.image_mode === opt.value}
                     className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
-                      preferences.load_remote_images === opt.value
+                      remote_content.image_mode === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
                     }`}
+                    disabled={remote_content_locked}
                     style={
-                      preferences.load_remote_images === opt.value
+                      remote_content.image_mode === opt.value
                         ? chip_selected_style
                         : undefined
                     }
                     type="button"
                     onClick={() =>
-                      update_preference("load_remote_images", opt.value, true)
+                      update_preferences(image_mode_update(opt.value), true)
                     }
                   >
                     {opt.label}
@@ -614,7 +633,8 @@ export function BehaviorSection({
             label={t("settings.block_remote_fonts_label")}
             trailing={
               <Switch
-                checked={preferences.block_remote_fonts}
+                checked={remote_content.blocks_fonts}
+                disabled={remote_content_locked}
                 onCheckedChange={(v) =>
                   update_preference("block_remote_fonts", v, true)
                 }
@@ -625,7 +645,8 @@ export function BehaviorSection({
             label={t("settings.block_remote_css_label")}
             trailing={
               <Switch
-                checked={preferences.block_remote_css}
+                checked={remote_content.blocks_css}
+                disabled={remote_content_locked}
                 onCheckedChange={(v) =>
                   update_preference("block_remote_css", v, true)
                 }

@@ -28,6 +28,7 @@ import {
   type ImageLoadMode,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { effective_remote_image_mode } from "@/lib/remote_content_policy";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import { is_native_platform } from "@/native/capacitor_bridge";
 import { get_cached_preferences } from "@/services/api/preferences";
@@ -187,10 +188,8 @@ export function resolve_print_external_content_mode(): ImageLoadMode {
   const preferences = get_cached_preferences();
 
   if (!preferences) return "never";
-  if (preferences.low_network_mode) return "never";
-  if (!preferences.block_external_content) return "always";
 
-  return preferences.load_remote_images;
+  return effective_remote_image_mode(preferences);
 }
 
 export function format_body(
