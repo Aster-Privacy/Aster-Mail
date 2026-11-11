@@ -55,6 +55,7 @@ import {
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
+import { is_expired_mail } from "@/services/search/index_removals";
 import {
   bound_index_body,
   is_purged_id,
@@ -384,7 +385,7 @@ export async function run_index_pipeline(
     }
 
     page_items = filter_locked_mail_items(page_items).filter(
-      (item) => !is_purged_id(item.id),
+      (item) => !is_purged_id(item.id) && !is_expired_mail(item),
     );
 
     const envelope_by_id = incremental

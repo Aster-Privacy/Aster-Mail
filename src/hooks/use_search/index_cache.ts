@@ -28,6 +28,7 @@ import {
   INDEX_PAGE_LIMIT,
   RECONCILE_INTERVAL_MS,
   RECONCILE_RETRY_MS,
+  RECONCILE_REQUEST_MIN_MS,
   PURGE_FLUSH_MS,
 } from "./constants";
 import { build_search_haystack } from "./matching";
@@ -71,6 +72,7 @@ import {
   type SnapshotWriter,
   type WrittenChunk,
 } from "@/services/search_index_store";
+import { is_expired_mail } from "@/services/search/index_removals";
 import {
   is_index_download_paused,
   reset_index_download_state,
@@ -690,6 +692,7 @@ let purge_timer: ReturnType<typeof setTimeout> | null = null;
 let purge_flush: Promise<void> = Promise.resolve();
 let reconcile_promise: Promise<number> | null = null;
 let reconcile_attempted_at = 0;
+let reconcile_wanted = false;
 
 function in_purged_scope(
   item: MailItem,
@@ -839,7 +842,10 @@ export function purge_search_index(purge: SearchIndexPurge): Promise<void> {
   note_purged_ids(dropped);
   drop_building_entries(should_drop);
   if (dropped.length > 0) emit_index_refreshed();
-  if (purge.scope) reconcile_attempted_at = 0;
+  if (purge.scope) {
+    reconcile_attempted_at = 0;
+    reconcile_wanted = true;
+  }
 
   if (purge_timer) return purge_flush;
 
@@ -902,6 +908,7 @@ export function reconcile_search_index(user_email: string): Promise<number> {
   const started_at = Date.now();
 
   reconcile_attempted_at = started_at;
+  reconcile_wanted = false;
 
   const arrivals = open_arrival_watch();
   const run: Promise<number> = (async (): Promise<number> => {
@@ -911,7 +918,8 @@ export function reconcile_search_index(user_email: string): Promise<number> {
     if (cached_index && cached_index.user_email !== user_email) return 0;
 
     const should_drop = (item: MailItem): boolean =>
-      !live.has(item.id) && !arrivals.has(item.id);
+      is_expired_mail(item, started_at) ||
+      (!live.has(item.id) && !arrivals.has(item.id));
     const hot_removed = drop_hot_entries(should_drop);
     const removed = await purge_snapshot_entries(should_drop);
 
@@ -954,7 +962,22 @@ export function is_index_reconcile_due(
 
 function schedule_index_reconcile(index: CachedIndex): void {
   if (reconcile_promise || is_index_download_paused()) return;
-  if (!is_index_reconcile_due(index)) return;
+  if (!reconcile_wanted && !is_index_reconcile_due(index)) return;
+
+  void reconcile_search_index(index.user_email);
+}
+
+export function request_index_reconcile(now: number = Date.now()): void {
+  if (reconcile_promise) return;
+  if (now - reconcile_attempted_at < RECONCILE_REQUEST_MIN_MS) return;
+
+  const index = cached_index;
+
+  if (!index || is_index_download_paused()) {
+    reconcile_wanted = true;
+
+    return;
+  }
 
   void reconcile_search_index(index.user_email);
 }
@@ -965,6 +988,7 @@ export function reset_index_purge_state(): void {
   pending_purge_ids.clear();
   pending_purge_scopes.clear();
   reconcile_attempted_at = 0;
+  reconcile_wanted = false;
 }
 
 export function mark_search_index_stale(): void {
