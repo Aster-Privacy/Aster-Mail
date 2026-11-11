@@ -587,6 +587,11 @@ export function format_date_short(
   include_year = false,
 ): string {
   const parts = get_zoned_parts(date);
+
+  if (options.date_format === "YYYY-MM-DD") {
+    return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}`;
+  }
+
   const day = parts.day;
   const month = date_formatter(
     active_locale(),
@@ -597,8 +602,6 @@ export function format_date_short(
   switch (options.date_format) {
     case "DD/MM/YYYY":
       return `${day} ${month}${year}`;
-    case "YYYY-MM-DD":
-      return `${month} ${day}${year}`;
     case "MM/DD/YYYY":
     default:
       return `${month} ${day}${year}`;
