@@ -32,10 +32,23 @@ const SUPPORTED_IMPORT_EXTENSIONS = [
   ".txt",
 ];
 
+const BARE_MBOX_FILE_NAME = "mbox";
+
+const dropped_relative_paths = new WeakMap<File, string>();
+
+export function import_relative_path(file: File): string | undefined {
+  const dropped = dropped_relative_paths.get(file);
+
+  if (dropped) return dropped;
+
+  return file.webkitRelativePath || undefined;
+}
+
 export function is_supported_import_file(name: string): boolean {
   const lower = name.toLowerCase();
 
   return (
+    lower === BARE_MBOX_FILE_NAME ||
     SUPPORTED_IMPORT_EXTENSIONS.some((ext) => lower.endsWith(ext)) ||
     is_export_sidecar_file(name)
   );
@@ -48,6 +61,7 @@ export function filter_supported_files(files: File[]): File[] {
 interface FileSystemEntryLike {
   isFile: boolean;
   isDirectory: boolean;
+  fullPath?: string;
   file?: (
     success: (file: File) => void,
     failure?: (err: unknown) => void,
@@ -118,7 +132,10 @@ async function walk_entry(
   if (entry.isFile) {
     const file = await entry_to_file(entry);
 
-    if (file) out.push(file);
+    if (file) {
+      if (entry.fullPath) dropped_relative_paths.set(file, entry.fullPath);
+      out.push(file);
+    }
 
     return;
   }

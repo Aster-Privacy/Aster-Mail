@@ -24,6 +24,7 @@ import { describe, it, expect } from "vitest";
 
 import {
   build_import_collection,
+  eml_source_folder,
   mbox_source_folder,
 } from "./import_collection";
 import { MAX_FILE_SIZE } from "./types";
@@ -73,13 +74,59 @@ describe("mbox_source_folder", () => {
     expect(mbox_source_folder("Archives")).toBe("Archives");
   });
 
-  it("leaves other files alone", () => {
-    expect(mbox_source_folder("Inbox.mbox")).toBeUndefined();
+  it("names every other file after its own name", () => {
+    expect(mbox_source_folder("Inbox.mbox")).toBe("Inbox");
+    expect(mbox_source_folder("Sent.mbox")).toBe("Sent");
+    expect(mbox_source_folder("Junk.mbx")).toBe("Junk");
+    expect(mbox_source_folder("Archive 2024.mbox")).toBe("Archive 2024");
+    expect(mbox_source_folder("Receipts.mbox")).toBe("Receipts");
+  });
+
+  it("leaves generic export names alone", () => {
     expect(
       mbox_source_folder("All mail Including Spam and Trash.mbox"),
     ).toBeUndefined();
     expect(mbox_source_folder("export.mbox")).toBeUndefined();
-    expect(mbox_source_folder("Archive 2024.mbox")).toBeUndefined();
+    expect(mbox_source_folder("mbox")).toBeUndefined();
+  });
+
+  it("nests files under the subfolders of an uploaded folder", () => {
+    expect(
+      mbox_source_folder("Acme.mbox", "Mail export/Work/Clients/Acme.mbox"),
+    ).toBe("Work/Clients/Acme");
+    expect(mbox_source_folder("Sent.mbox", "Mail export/Sent.mbox")).toBe(
+      "Sent",
+    );
+    expect(mbox_source_folder("Receipts.mbox", "/Receipts.mbox")).toBe(
+      "Receipts",
+    );
+    expect(
+      mbox_source_folder("Acme.mbox", "/Dropped\\Work\\Acme.mbox"),
+    ).toBe("Work/Acme");
+  });
+
+  it("strips mailbox directory suffixes from the path", () => {
+    expect(
+      mbox_source_folder("Acme.mbox", "Profile/Work.sbd/Clients.sbd/Acme.mbox"),
+    ).toBe("Work/Clients/Acme");
+    expect(mbox_source_folder("mbox", "Export/Work.mbox/Projects.mbox/mbox")).toBe(
+      "Work/Projects",
+    );
+    expect(mbox_source_folder("mbox", "Work.mbox/mbox")).toBe("Work");
+    expect(mbox_source_folder("export.mbox", "Export/Work/export.mbox")).toBe(
+      "Work",
+    );
+  });
+});
+
+describe("eml_source_folder", () => {
+  it("uses the subfolders below the uploaded folder", () => {
+    expect(eml_source_folder("Export/Work/Clients/a.eml")).toBe(
+      "Work/Clients",
+    );
+    expect(eml_source_folder("Export/a.eml")).toBeUndefined();
+    expect(eml_source_folder("a.eml")).toBeUndefined();
+    expect(eml_source_folder(undefined)).toBeUndefined();
   });
 });
 
@@ -103,12 +150,38 @@ describe("build_import_collection", () => {
     ]);
   });
 
-  it("does not set a folder for other mbox files", async () => {
+  it("does not set a folder for generic mbox exports", async () => {
     const collection = await build_import_collection([
-      as_file(make_message(1)),
+      as_file(make_message(1), "export.mbox"),
     ]);
 
     expect(collection.summaries[0].source_folder).toBeUndefined();
+  });
+
+  it("files every message of a named mbox under that name", async () => {
+    const text = [1, 2]
+      .map((n) => make_message(n).replace(/X-Gmail-Labels: [^\n]*\n/, ""))
+      .join("");
+    const collection = await build_import_collection([
+      as_file(text, "Receipts.mbox"),
+    ]);
+    const items = await collect(collection.load(new Set([0, 1])));
+
+    expect(items.map((i) => i.email?.source_folder)).toEqual([
+      "Receipts",
+      "Receipts",
+    ]);
+  });
+
+  it("nests mbox files by the folder they were uploaded from", async () => {
+    const file = as_file(make_message(1), "Acme.mbox");
+
+    Object.defineProperty(file, "webkitRelativePath", {
+      value: "Mail export/Work/Acme.mbox",
+    });
+    const collection = await build_import_collection([file]);
+
+    expect(collection.summaries[0].source_folder).toBe("Work/Acme");
   });
 
   it("keeps only header summaries for mbox files", async () => {
