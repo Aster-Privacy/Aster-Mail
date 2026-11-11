@@ -51,7 +51,16 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown_menu";
+import {
+  SYSTEM_MOVE_TARGET_LABEL_KEYS,
+  resolve_mail_location,
+  system_move_targets,
+  type SystemMoveTarget,
+} from "@/lib/system_move_targets";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   HeaderToolbar,
@@ -254,6 +263,48 @@ export function InboxHeader({
     show_profile_pictures,
   );
   const has_selection = all_selected || some_selected;
+  const bulk_move_handlers: Partial<
+    Record<SystemMoveTarget, (() => void) | undefined>
+  > = {
+    inbox:
+      is_trash_view || is_spam_view
+        ? on_restore
+        : is_archive_view
+          ? on_unarchive
+          : undefined,
+    archive: on_archive,
+    spam: on_spam,
+    trash: on_delete,
+  };
+  const bulk_move_targets = system_move_targets(
+    resolve_mail_location({
+      current_view: is_drafts_view
+        ? "drafts"
+        : is_scheduled_view
+          ? "scheduled"
+          : is_trash_view
+            ? "trash"
+            : is_spam_view
+              ? "spam"
+              : is_archive_view
+                ? "archive"
+                : "inbox",
+    }),
+    {
+      inbox: !!bulk_move_handlers.inbox,
+      archive: !!bulk_move_handlers.archive,
+      spam: !!bulk_move_handlers.spam,
+      trash: !!bulk_move_handlers.trash,
+    },
+  );
+  const bulk_move_icon = (target: SystemMoveTarget) => {
+    if (target === "inbox") return <InboxIcon className="w-4 h-4 me-2" />;
+    if (target === "archive")
+      return <ArchiveBoxArrowDownIcon className="w-4 h-4 me-2" />;
+    if (target === "spam") return <ReportSpamIcon className="w-4 h-4 me-2" />;
+
+    return <TrashIcon className="w-4 h-4 me-2" />;
+  };
   const scope_selected_count = Math.max(total_messages - excluded_count, 0);
   const page_count =
     total_pages ??
@@ -812,6 +863,25 @@ export function InboxHeader({
                           {t("mail.report_spam")}
                         </DropdownMenuItem>
                       )}
+                    {bulk_move_targets.length > 0 && (
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <FolderIcon className="w-4 h-4 me-2" />
+                          {t("mail.move_to")}
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="w-48">
+                          {bulk_move_targets.map((target) => (
+                            <DropdownMenuItem
+                              key={target}
+                              onSelect={() => bulk_move_handlers[target]?.()}
+                            >
+                              {bulk_move_icon(target)}
+                              {t(SYSTEM_MOVE_TARGET_LABEL_KEYS[target])}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    )}
                     {!is_trash_view &&
                       !is_spam_view &&
                       !is_archive_view &&
