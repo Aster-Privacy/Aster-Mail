@@ -71,6 +71,8 @@ import {
   type CategoryPreview,
 } from "@/lib/category_preview_text";
 import { yield_to_browser } from "@/lib/scheduling";
+import { release_on_version_change } from "@/lib/idb_release";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 import {
   clear_all_read_intents,
   get_read_intent,
@@ -438,7 +440,7 @@ function open_db(): Promise<IDBDatabase> {
     };
     request.onsuccess = () => {
       clearTimeout(timer);
-      succeed(request.result);
+      succeed(release_on_version_change(request.result));
     };
     request.onerror = () => {
       clearTimeout(timer);
@@ -522,6 +524,7 @@ function schedule_persist(): void {
 }
 
 async function persist_now(): Promise<void> {
+  if (device_traces_erased()) return;
   if (!active_account_id) return;
   if (loaded_for_account !== active_account_id) return;
 
@@ -674,20 +677,27 @@ function collect_valid_entries(
   }
 }
 
-async function load_from_disk(account_id: string): Promise<void> {
+async function load_from_disk(
+  account_id: string,
+  connection: { released: boolean },
+): Promise<void> {
   let db: IDBDatabase | null = null;
+  const superseded = (): boolean =>
+    connection.released || active_account_id !== account_id;
 
   try {
-    db = await open_db();
+    db = release_on_version_change(await open_db(), () => {
+      connection.released = true;
+    });
 
     const encrypted = await read_store_record(db, account_id);
 
     if (!encrypted) return;
-    if (active_account_id !== account_id) return;
+    if (superseded()) return;
 
     const decrypted = await secure_decrypt(encrypted);
 
-    if (active_account_id !== account_id) return;
+    if (superseded()) return;
 
     // Defense in depth: the blob is HMAC-authenticated, but still validate the
     // decoded shape before trusting it. Build a null-prototype seen map keyed
@@ -697,6 +707,7 @@ async function load_from_disk(account_id: string): Promise<void> {
     const valid_entries: [string, CategoryIndexEntry][] = [];
 
     let chunks_incomplete = false;
+    let legacy_layout = false;
 
     if (payload.classifier_version !== CLASSIFIER_VERSION) return;
 
@@ -716,12 +727,12 @@ async function load_from_disk(account_id: string): Promise<void> {
           chunk_record_key(account_id, i),
         );
 
+        if (superseded()) return;
+
         if (!encrypted_chunk) {
           chunks_incomplete = true;
           continue;
         }
-
-        if (active_account_id !== account_id) return;
 
         let decrypted_chunk: string;
 
@@ -732,7 +743,7 @@ async function load_from_disk(account_id: string): Promise<void> {
           continue;
         }
 
-        if (active_account_id !== account_id) return;
+        if (superseded()) return;
 
         try {
           collect_valid_entries(JSON.parse(decrypted_chunk), valid_entries);
@@ -744,7 +755,7 @@ async function load_from_disk(account_id: string): Promise<void> {
       if (!Array.isArray(payload.entries)) return;
 
       collect_valid_entries(payload.entries, valid_entries);
-      mark_all_dirty();
+      legacy_layout = true;
     }
 
     const encrypted_previews = await read_store_record(
@@ -752,14 +763,20 @@ async function load_from_disk(account_id: string): Promise<void> {
       preview_record_key(account_id),
     );
 
+    let previews: unknown = null;
+
+    if (superseded()) return;
+
     if (encrypted_previews) {
       const decrypted_previews = await secure_decrypt(encrypted_previews);
 
-      if (active_account_id !== account_id) return;
+      if (superseded()) return;
 
-      hydrate_entry_previews(JSON.parse(decrypted_previews));
+      previews = JSON.parse(decrypted_previews);
     }
 
+    if (previews !== null) hydrate_entry_previews(previews);
+    if (legacy_layout) mark_all_dirty();
     entries_map = new Map(valid_entries);
     fully_built =
       payload.fully_built === true &&
@@ -816,10 +833,17 @@ async function ensure_loaded(): Promise<boolean> {
       // must survive the disk load, or already-viewed tabs flash "new" again.
       const pre_load_seen = seen_ts;
 
+      const connection = { released: false };
+
       seen_ts = {};
-      await load_from_disk(account_id);
+      await load_from_disk(account_id, connection);
 
       if (active_account_id !== account_id) return false;
+      if (connection.released) {
+        seen_ts = pre_load_seen;
+
+        return false;
+      }
 
       for (const [tab, pending] of Object.entries(pre_load_seen)) {
         if (typeof pending === "number" && pending > (seen_ts[tab] ?? 0)) {

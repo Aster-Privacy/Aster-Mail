@@ -28,14 +28,12 @@ import {
   safe_session_remove,
   safe_session_set,
 } from "@/lib/safe_storage";
+import { mark_device_traces_erased } from "@/lib/device_erase_latch";
+import { ignore_error } from "@/lib/ignore_error";
 
 export const DEVICE_SETTING_LOCAL_KEYS: readonly string[] = [
   "astermail_theme",
   "astermail_language",
-  "aster_connection_method",
-  "aster_cdn_relay_url",
-  "aster_onion_api_url",
-  "aster_onion_mail_url",
   "aster_sw_reset_v1",
 ];
 
@@ -57,6 +55,27 @@ export const INDEXED_DB_NAMES: readonly string[] = [
 ];
 
 const DATABASE_DELETE_TIMEOUT_MS = 3000;
+const DATABASE_EMPTY_TIMEOUT_MS = 1500;
+
+export interface DatabaseEraseReport {
+  failed: string[];
+  blocked: string[];
+}
+
+export interface DeviceTraceReport {
+  complete: boolean;
+  failed_databases: string[];
+  blocked_databases: string[];
+  failed_caches: string[];
+  failed_session: string[];
+  failed_local: string[];
+}
+
+type DatabaseOutcome = "deleted" | "blocked" | "failed";
+
+const pending_deletes = new Map<string, Promise<boolean>>();
+const emptied_databases = new Set<string>();
+const blocked_deletes = new Set<string>();
 
 export function survives_device_erase(
   key: string,
@@ -126,36 +145,142 @@ async function list_database_names(): Promise<string[]> {
   return [...names];
 }
 
-function delete_database(name: string): Promise<boolean> {
+function empty_database(name: string): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     let settled = false;
-    const settle = (deleted: boolean): void => {
+    let absent = false;
+    let db: IDBDatabase | null = null;
+    const settle = (emptied: boolean): void => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      resolve(deleted);
+      try {
+        db?.close();
+      } catch (caught) {
+        ignore_error("contexts/auth/local_data_registry:empty_database", caught);
+      }
+      resolve(emptied);
     };
-    const timer = setTimeout(() => settle(false), DATABASE_DELETE_TIMEOUT_MS);
+    const timer = setTimeout(() => settle(false), DATABASE_EMPTY_TIMEOUT_MS);
 
     try {
-      const request = indexedDB.deleteDatabase(name);
+      const request = indexedDB.open(name);
 
-      request.onsuccess = () => settle(true);
-      request.onerror = () => settle(false);
-      request.onblocked = () => settle(true);
+      request.onupgradeneeded = (event) => {
+        if (event.oldVersion !== 0) return;
+        absent = true;
+        request.transaction?.abort();
+      };
+      request.onerror = () => settle(absent);
+      request.onsuccess = () => {
+        const opened = request.result;
+
+        if (settled) {
+          opened.close();
+
+          return;
+        }
+        db = opened;
+        opened.onversionchange = () => settle(false);
+
+        try {
+          const stores = Array.from(opened.objectStoreNames);
+
+          if (stores.length === 0) {
+            settle(true);
+
+            return;
+          }
+
+          const transaction = opened.transaction(stores, "readwrite");
+
+          transaction.oncomplete = () => settle(true);
+          transaction.onerror = () => settle(false);
+          transaction.onabort = () => settle(false);
+          for (const store of stores) transaction.objectStore(store).clear();
+        } catch {
+          settle(false);
+        }
+      };
     } catch {
       settle(false);
     }
   });
 }
 
-export async function erase_indexed_databases(): Promise<string[]> {
-  if (typeof indexedDB === "undefined") return [];
+function request_database_delete(name: string): Promise<boolean> {
+  const known = pending_deletes.get(name);
 
-  const names = await list_database_names();
-  const results = await Promise.all(names.map((name) => delete_database(name)));
+  if (known) return known;
 
-  return names.filter((_, index) => !results[index]);
+  const outcome = new Promise<boolean>((resolve) => {
+    try {
+      const request = indexedDB.deleteDatabase(name);
+
+      request.onsuccess = () => resolve(true);
+      request.onerror = () => resolve(false);
+      request.onblocked = () => {
+        blocked_deletes.add(name);
+      };
+    } catch {
+      resolve(false);
+    }
+  }).then((deleted) => {
+    pending_deletes.delete(name);
+    emptied_databases.delete(name);
+    blocked_deletes.delete(name);
+
+    return deleted;
+  });
+
+  pending_deletes.set(name, outcome);
+
+  return outcome;
+}
+
+function delete_within_timeout(name: string): Promise<boolean | null> {
+  return new Promise<boolean | null>((resolve) => {
+    const timer = setTimeout(
+      () => resolve(null),
+      DATABASE_DELETE_TIMEOUT_MS,
+    );
+
+    void request_database_delete(name).then((deleted) => {
+      clearTimeout(timer);
+      resolve(deleted);
+    });
+  });
+}
+
+async function erase_database(name: string): Promise<DatabaseOutcome> {
+  if (!pending_deletes.has(name)) {
+    if (await empty_database(name)) emptied_databases.add(name);
+    else emptied_databases.delete(name);
+  }
+
+  const emptied = emptied_databases.has(name);
+  const deleted = await delete_within_timeout(name);
+
+  if (deleted) return "deleted";
+  if (deleted === null && emptied && blocked_deletes.has(name)) {
+    return "blocked";
+  }
+
+  return "failed";
+}
+
+export async function erase_indexed_databases(
+  only?: readonly string[],
+): Promise<DatabaseEraseReport> {
+  if (typeof indexedDB === "undefined") return { failed: [], blocked: [] };
+
+  const names = only ? [...new Set(only)] : await list_database_names();
+  const outcomes = await Promise.all(names.map((name) => erase_database(name)));
+
+  return {
+    failed: names.filter((_, index) => outcomes[index] === "failed"),
+    blocked: names.filter((_, index) => outcomes[index] === "blocked"),
+  };
 }
 
 export async function erase_cache_storage(): Promise<string[]> {
@@ -173,16 +298,38 @@ export async function erase_cache_storage(): Promise<string[]> {
   }
 }
 
-export async function erase_device_traces(): Promise<boolean> {
-  const failed_databases = await erase_indexed_databases();
-  const failed_caches = await erase_cache_storage();
+export async function erase_device_traces(
+  previous?: DeviceTraceReport,
+): Promise<DeviceTraceReport> {
+  mark_device_traces_erased();
+  erase_session_storage_traces();
+  erase_local_storage_traces();
+
+  const retried_databases = previous
+    ? [...previous.failed_databases, ...previous.blocked_databases]
+    : undefined;
+  const [databases, failed_caches] = await Promise.all([
+    retried_databases && retried_databases.length === 0
+      ? { failed: [], blocked: [] }
+      : erase_indexed_databases(retried_databases),
+    previous && previous.failed_caches.length === 0
+      ? []
+      : erase_cache_storage(),
+  ]);
   const failed_session = erase_session_storage_traces();
   const failed_local = erase_local_storage_traces();
 
-  return (
-    failed_databases.length === 0 &&
-    failed_caches.length === 0 &&
-    failed_session.length === 0 &&
-    failed_local.length === 0
-  );
+  return {
+    complete:
+      databases.failed.length === 0 &&
+      databases.blocked.length === 0 &&
+      failed_caches.length === 0 &&
+      failed_session.length === 0 &&
+      failed_local.length === 0,
+    failed_databases: databases.failed,
+    blocked_databases: databases.blocked,
+    failed_caches,
+    failed_session,
+    failed_local,
+  };
 }

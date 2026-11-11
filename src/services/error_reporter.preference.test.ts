@@ -76,6 +76,7 @@ describe("error reports respect the user's choice", () => {
   const direct_fetch = vi.fn(async () => new Response(null, { status: 204 }));
 
   beforeEach(() => {
+    forget_error_report_grant();
     state.lockdown = false;
     state.onion = false;
     state.fetch.mockClear();
@@ -178,15 +179,61 @@ describe("error reports respect the user's choice", () => {
     expect(state.fetch).not.toHaveBeenCalled();
   });
 
-  it("keeps an opt-out across sign-out and another account's preferences", () => {
+  it("sends nothing after sign-out until preferences are loaded again", () => {
     set_error_report_choice(false);
 
     clear_preferences_cache();
-    forget_error_report_grant();
 
     expect(localStorage.getItem(ERROR_REPORT_CONSENT_KEY)).toBe("off");
+    expect(is_error_reporting_allowed()).toBe(false);
+
+    report_client_error({ feature: next_feature(), error_code: "boom" });
+
+    expect(state.fetch).not.toHaveBeenCalled();
+  });
+
+  it("follows the next account's setting after another account turned it off", () => {
+    set_error_report_choice(false);
+    clear_preferences_cache();
+
+    cache_preferences_locally({
+      ...DEFAULT_PREFERENCES,
+      send_error_reports: true,
+    });
+
+    expect(is_error_reporting_allowed()).toBe(true);
+
+    report_client_error({ feature: next_feature(), error_code: "boom" });
+
+    expect(state.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("follows the setting when it is turned on from another device", () => {
+    cache_preferences_locally({
+      ...DEFAULT_PREFERENCES,
+      send_error_reports: false,
+    });
+    expect(is_error_reporting_allowed()).toBe(false);
 
     apply_loaded_error_report_preference(true);
+
+    expect(is_error_reporting_allowed()).toBe(true);
+  });
+
+  it("follows a stored opt-out from an earlier visit once the setting loads on", () => {
+    localStorage.setItem(ERROR_REPORT_CONSENT_KEY, "off");
+
+    cache_preferences_locally({
+      ...DEFAULT_PREFERENCES,
+      send_error_reports: true,
+    });
+
+    expect(is_error_reporting_allowed()).toBe(true);
+  });
+
+  it("keeps a choice made here until loaded preferences agree with it", () => {
+    set_error_report_choice(false);
+
     cache_preferences_locally({
       ...DEFAULT_PREFERENCES,
       send_error_reports: true,
@@ -197,6 +244,18 @@ describe("error reports respect the user's choice", () => {
     report_client_error({ feature: next_feature(), error_code: "boom" });
 
     expect(state.fetch).not.toHaveBeenCalled();
+
+    cache_preferences_locally({
+      ...DEFAULT_PREFERENCES,
+      send_error_reports: false,
+    });
+    expect(is_error_reporting_allowed()).toBe(false);
+
+    cache_preferences_locally({
+      ...DEFAULT_PREFERENCES,
+      send_error_reports: true,
+    });
+    expect(is_error_reporting_allowed()).toBe(true);
   });
 
   it("sends again after the setting is turned back on by hand", () => {

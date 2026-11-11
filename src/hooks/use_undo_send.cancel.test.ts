@@ -38,6 +38,13 @@ vi.mock("@/components/toast/simple_toast", () => ({
   show_toast: (...args: unknown[]) => show_toast(...args),
 }));
 
+const latch = vi.hoisted(() => ({ erased: false }));
+
+vi.mock("@/lib/device_erase_latch", async (original) => ({
+  ...(await original<typeof import("@/lib/device_erase_latch")>()),
+  device_traces_erased: () => latch.erased,
+}));
+
 const { act } = await import("react");
 const { createElement } = await import("react");
 const { createRoot } = await import("react-dom/client");
@@ -353,6 +360,19 @@ describe("sends that wait on a timer in this tab", () => {
 
     window.dispatchEvent(idle);
     expect(idle.defaultPrevented).toBe(false);
+  });
+
+  it("lets the tab close without asking once this device was erased", () => {
+    add_tab_timer_send("tab-5", vi.fn(), vi.fn());
+    latch.erased = true;
+
+    const erased = new Event("beforeunload", { cancelable: true });
+
+    window.dispatchEvent(erased);
+    latch.erased = false;
+    undo_send_manager.remove("tab-5");
+
+    expect(erased.defaultPrevented).toBe(false);
   });
 
   it("leaves server queued sends alone when the page is hidden", () => {

@@ -62,7 +62,8 @@ import {
   has_pending_native_lock_hint,
   save_native_lock_hint,
 } from "@/services/app_lock_store";
-import { purge_all_local_data } from "@/contexts/auth/purge_local_data";
+import { erase_device_with_retry } from "@/contexts/auth/purge_local_data";
+import { delete_app_lock } from "@/services/app_lock_server";
 import { sync_client } from "@/services/sync_client";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
@@ -159,10 +160,10 @@ function WebPinOverlay({
     wiping_ref.current = true;
     set_wiping(true);
     try {
-      await release_app_lock(account_id).catch(() => undefined);
-      const purged = await purge_all_local_data({ erase_device_traces: true });
+      const erased = erase_device_with_retry();
 
-      if (!purged) await purge_all_local_data({ erase_device_traces: true });
+      void release_app_lock(account_id, delete_app_lock).catch(() => undefined);
+      await erased;
     } finally {
       window.location.href = "/";
     }

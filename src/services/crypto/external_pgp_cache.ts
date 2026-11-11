@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { release_on_version_change } from "@/lib/idb_release";
+
 const DB_NAME = "astermail_external_pgp";
 const DB_VERSION = 1;
 const STORE = "wrapped_keys";
@@ -60,7 +62,8 @@ function open_db(): Promise<IDBDatabase> {
         db.createObjectStore(STORE, { keyPath: "user_id" });
       }
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () =>
+      resolve(release_on_version_change(request.result));
   });
 }
 

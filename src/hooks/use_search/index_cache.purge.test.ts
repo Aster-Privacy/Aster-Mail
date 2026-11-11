@@ -23,7 +23,7 @@ import type { CachedIndex } from "./types";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-const { store, writes, server, roster } = vi.hoisted(() => ({
+const { store, writes, reads, server, roster } = vi.hoisted(() => ({
   roster: {
     account_ids: ["account-1"] as string[],
     current: "account-1" as string | null,
@@ -34,6 +34,10 @@ const { store, writes, server, roster } = vi.hoisted(() => ({
     chunk: 0,
     total: 0,
     on_chunk: null as (() => void) | null,
+  },
+  reads: {
+    chunk: 0,
+    after_chunk: null as ((key: string) => Promise<void>) | null,
   },
   server: { mailbox: [] as MailItem[], envelope_decrypts: 0 },
 }));
@@ -55,7 +59,16 @@ vi.mock("@/services/crypto/encrypted_storage", () => ({
     }
     store.set(key, JSON.parse(new TextDecoder().decode(plaintext)));
   },
-  encrypted_get: async (key: string) => store.get(key) ?? null,
+  encrypted_get: async (key: string) => {
+    const value = store.get(key) ?? null;
+
+    if (key.includes("_chunk_")) {
+      reads.chunk++;
+      await reads.after_chunk?.(key);
+    }
+
+    return value;
+  },
   encrypted_list_keys: async () => [...store.keys()],
   secure_overwrite_and_delete: async (key: string) => {
     store.delete(key);
@@ -156,6 +169,7 @@ import { RECONCILE_INTERVAL_MS } from "./constants";
 
 import {
   forget_purged_ids,
+  is_purged_id,
   open_snapshot_reader,
   SNAPSHOT_CHUNK_SIZE,
 } from "@/services/search_index_store";
@@ -203,12 +217,45 @@ async function disk_ids(): Promise<string[]> {
   return ids;
 }
 
+function chunk_keys(): string[] {
+  return [...store.keys()].filter((key) => key.includes("_chunk_"));
+}
+
+function manifest(): { chunk_ids: number[]; total: number } {
+  const key = [...store.keys()].find((k) => /^search_index_[^_]+$/.test(k));
+
+  return store.get(key as string) as { chunk_ids: number[]; total: number };
+}
+
+function strip_id_filters(): void {
+  for (const [key, value] of store) {
+    if (!key.includes("_sumg_")) continue;
+
+    const record = value as { summaries: Record<string, { ids?: unknown }> };
+
+    for (const summary of Object.values(record.summaries)) delete summary.ids;
+  }
+}
+
+function tick(ms = 0): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function stored_text(): string {
   return JSON.stringify([...store.values()]);
 }
 
 function hot_ids(): string[] {
   return (index_cache.cached_index?.items ?? []).map((item) => item.id);
+}
+
+function evict_from_memory(count: number): string[] {
+  const index = index_cache.cached_index as CachedIndex;
+  const evicted = index.items.splice(index.items.length - count, count);
+
+  for (const item of evicted) index.decrypted.delete(item.id);
+
+  return evicted.map((item) => item.id);
 }
 
 describe("search index removals", () => {
@@ -235,6 +282,17 @@ describe("search index removals", () => {
     expect(stored_text()).not.toContain("Subject msg-2100");
     expect(stored_text()).not.toContain('"msg-2100"');
     expect(await disk_ids()).toHaveLength(MAILBOX_SIZE - 1);
+  });
+
+  it("remembers a removed message until the account changes", async () => {
+    await purge_search_index({ ids: ["msg-11"] });
+    expect(is_purged_id("msg-11")).toBe(true);
+
+    await clear_search_index("all");
+    expect(is_purged_id("msg-11")).toBe(true);
+
+    await clear_search_index("all", { account_changed: true });
+    expect(is_purged_id("msg-11")).toBe(false);
   });
 
   it("drops the message from memory before the disk pass runs", () => {
@@ -298,6 +356,104 @@ describe("search index removals", () => {
     );
   });
 
+  it("counts a message held in memory and on disk once", async () => {
+    evict_from_memory(100);
+
+    expect(index_cache.cached_index?.total_indexed).toBe(MAILBOX_SIZE);
+
+    await purge_search_index({ ids: ["msg-5"] });
+
+    expect(hot_ids()).not.toContain("msg-5");
+    expect(await disk_ids()).not.toContain("msg-5");
+    expect(index_cache.cached_index?.total_indexed).toBe(MAILBOX_SIZE - 1);
+    expect(index_cache.cached_index?.meta?.total).toBe(MAILBOX_SIZE - 1);
+  });
+
+  it("counts a message held only on disk once", async () => {
+    const evicted = evict_from_memory(100);
+
+    await purge_search_index({ ids: [evicted[0]] });
+
+    expect(await disk_ids()).not.toContain(evicted[0]);
+    expect(index_cache.cached_index?.total_indexed).toBe(MAILBOX_SIZE - 1);
+    expect(index_cache.cached_index?.meta?.total).toBe(MAILBOX_SIZE - 1);
+  });
+
+  it("counts a message held only in memory once", async () => {
+    const index = index_cache.cached_index as CachedIndex;
+    const extra = make_item(MAILBOX_SIZE + 7);
+
+    evict_from_memory(100);
+    index.items.push(extra);
+    index.total_indexed = MAILBOX_SIZE + 1;
+
+    await purge_search_index({ ids: [extra.id] });
+
+    expect(hot_ids()).not.toContain(extra.id);
+    expect(index_cache.cached_index?.total_indexed).toBe(MAILBOX_SIZE);
+    expect(index_cache.cached_index?.meta?.total).toBe(MAILBOX_SIZE);
+  });
+
+  it("counts a mixed removal once per message", async () => {
+    const evicted = evict_from_memory(100);
+
+    await purge_search_index({ ids: ["msg-5", "msg-6", evicted[3]] });
+
+    expect(index_cache.cached_index?.total_indexed).toBe(MAILBOX_SIZE - 3);
+    expect(await disk_ids()).toHaveLength(MAILBOX_SIZE - 3);
+  });
+
+  it("counts a message once when two removals share one disk pass", async () => {
+    evict_from_memory(100);
+
+    const first = purge_search_index({ ids: ["msg-5"] });
+    const second = purge_search_index({ ids: ["msg-6"] });
+
+    await Promise.all([first, second]);
+
+    expect(index_cache.cached_index?.total_indexed).toBe(MAILBOX_SIZE - 2);
+  });
+
+  it("keeps emptied Trash out of an index build already in flight", async () => {
+    await clear_search_index("all");
+    store.clear();
+    server.mailbox = Array.from({ length: MAILBOX_SIZE }, (_, n) =>
+      make_item(n, { is_trashed: n < 2000 && n % 500 === 0 }),
+    );
+
+    let emptied = false;
+
+    writes.on_chunk = () => {
+      if (emptied) return;
+
+      emptied = true;
+      void purge_search_index({ scope: "trash" });
+    };
+
+    try {
+      await settle();
+      await purge_search_index({});
+    } finally {
+      writes.on_chunk = null;
+    }
+
+    const ids = await disk_ids();
+
+    expect(emptied).toBe(true);
+
+    for (const id of ["msg-0", "msg-500", "msg-1000", "msg-1500"]) {
+      expect(hot_ids()).not.toContain(id);
+      expect(ids).not.toContain(id);
+      expect(stored_text()).not.toContain(`"${id}"`);
+      expect(is_purged_id(id)).toBe(true);
+    }
+
+    expect(ids).toContain("msg-1");
+    expect(ids).toContain("msg-2001");
+    expect(ids).toHaveLength(MAILBOX_SIZE - 4);
+    expect(index_cache.cached_index?.total_indexed).toBe(MAILBOX_SIZE - 4);
+  });
+
   it("drops messages the server no longer lists", async () => {
     server.mailbox = server.mailbox.filter(
       (item) => item.id !== "msg-42" && item.id !== "msg-4321",
@@ -342,6 +498,215 @@ describe("search index removals", () => {
     const reader = await open_snapshot_reader(user_email);
 
     expect(reader?.meta.verified_at).toBeGreaterThan(0);
+  });
+
+  it("reads no chunk for an id the index does not hold", async () => {
+    reads.chunk = 0;
+    writes.total = 0;
+
+    await purge_search_index({ ids: ["draft-7f3a", "scheduled-91bc"] });
+
+    expect(reads.chunk).toBe(0);
+    expect(writes.total).toBe(0);
+    expect(await disk_ids()).toHaveLength(MAILBOX_SIZE);
+    expect(index_cache.cached_index?.total_indexed).toBe(MAILBOX_SIZE);
+  });
+
+  it("reads no chunk for an unindexed id when no index is in memory", async () => {
+    reset_index_cache();
+    reads.chunk = 0;
+    writes.total = 0;
+
+    await purge_search_index({ ids: ["draft-7f3a"] });
+
+    expect(reads.chunk).toBe(0);
+    expect(writes.total).toBe(0);
+  });
+
+  it("reads only the chunk that holds the removed message", async () => {
+    reads.chunk = 0;
+    writes.chunk = 0;
+
+    await purge_search_index({ ids: ["msg-2100"] });
+
+    expect(reads.chunk).toBe(1);
+    expect(writes.chunk).toBe(1);
+    expect(await disk_ids()).not.toContain("msg-2100");
+  });
+
+  it("learns the ids of older chunks on the first pass and skips them after", async () => {
+    strip_id_filters();
+    reads.chunk = 0;
+
+    await purge_search_index({ ids: ["draft-7f3a"] });
+
+    expect(reads.chunk).toBe(manifest().chunk_ids.length);
+    expect(await disk_ids()).toHaveLength(MAILBOX_SIZE);
+
+    reads.chunk = 0;
+    writes.total = 0;
+
+    await purge_search_index({ ids: ["scheduled-91bc"] });
+
+    expect(reads.chunk).toBe(0);
+    expect(writes.total).toBe(0);
+
+    await purge_search_index({ ids: ["msg-4400"] });
+
+    expect(await disk_ids()).not.toContain("msg-4400");
+    expect(await disk_ids()).toHaveLength(MAILBOX_SIZE - 1);
+  });
+
+  it("keeps mail indexed while the server listing was in flight", async () => {
+    const mail = await import("@/services/api/mail");
+    const original = mail.list_encrypted_mail_items;
+    let uncursored = 0;
+    let reached: () => void = () => {};
+    let release: () => void = () => {};
+    const at_head = new Promise<void>((resolve) => {
+      reached = resolve;
+    });
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const spy = vi
+      .spyOn(mail, "list_encrypted_mail_items")
+      .mockImplementation(async (params) => {
+        const response = await original(params);
+
+        if (!params?.cursor) uncursored += 1;
+
+        if (uncursored === 2 && !params?.cursor) {
+          reached();
+          await held;
+        }
+
+        return response;
+      });
+
+    try {
+      const reconciling = reconcile_search_index(user_email);
+
+      await at_head;
+
+      server.mailbox = [make_item(MAILBOX_SIZE + 1), ...server.mailbox];
+      mark_search_index_stale();
+      await settle();
+
+      expect(hot_ids()).toContain(`msg-${MAILBOX_SIZE + 1}`);
+
+      release();
+
+      expect(await reconciling).toBe(0);
+    } finally {
+      release();
+      spy.mockRestore();
+    }
+
+    expect(hot_ids()).toContain(`msg-${MAILBOX_SIZE + 1}`);
+    expect(await disk_ids()).toContain(`msg-${MAILBOX_SIZE + 1}`);
+    expect(await disk_ids()).toHaveLength(MAILBOX_SIZE + 1);
+  });
+
+  it("still drops deleted mail while newer mail is being indexed", async () => {
+    const mail = await import("@/services/api/mail");
+    const original = mail.list_encrypted_mail_items;
+    let uncursored = 0;
+    let reached: () => void = () => {};
+    let release: () => void = () => {};
+    const at_head = new Promise<void>((resolve) => {
+      reached = resolve;
+    });
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    server.mailbox = server.mailbox.filter((item) => item.id !== "msg-42");
+
+    const spy = vi
+      .spyOn(mail, "list_encrypted_mail_items")
+      .mockImplementation(async (params) => {
+        const response = await original(params);
+
+        if (!params?.cursor) uncursored += 1;
+
+        if (uncursored === 2 && !params?.cursor) {
+          reached();
+          await held;
+        }
+
+        return response;
+      });
+
+    try {
+      const reconciling = reconcile_search_index(user_email);
+
+      await at_head;
+      release();
+
+      expect(await reconciling).toBe(1);
+    } finally {
+      release();
+      spy.mockRestore();
+    }
+
+    expect(hot_ids()).not.toContain("msg-42");
+    expect(await disk_ids()).not.toContain("msg-42");
+  });
+
+  it("finishes a removal before a rebuild replaces the stored chunks", async () => {
+    const old_chunks = new Set(chunk_keys());
+    let hit = false;
+    let release: () => void = () => {};
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+
+    reads.after_chunk = async () => {
+      if (hit) return;
+
+      hit = true;
+      await held;
+    };
+
+    try {
+      const purging = purge_search_index({ ids: ["msg-4400"] });
+
+      while (!hit) await tick();
+
+      server.mailbox = server.mailbox.filter((item) => item.id !== "msg-0");
+      writes.chunk = 0;
+      mark_search_index_stale();
+
+      const rebuilding = settle();
+
+      while (writes.chunk < 3) await tick();
+      await tick(50);
+
+      release();
+      await purging;
+      await rebuilding;
+    } finally {
+      release();
+      reads.after_chunk = null;
+    }
+
+    const live = new Set(manifest().chunk_ids);
+    const stored = chunk_keys();
+
+    expect(hit).toBe(true);
+    expect(stored).toHaveLength(live.size);
+    for (const key of stored) {
+      expect(live.has(Number(key.slice(key.lastIndexOf("_") + 1)))).toBe(true);
+      expect(old_chunks.has(key)).toBe(false);
+    }
+
+    const ids = await disk_ids();
+
+    expect(ids).not.toContain("msg-4400");
+    expect(ids).not.toContain("msg-0");
+    expect(ids).toHaveLength(MAILBOX_SIZE - 2);
+    expect(manifest().total).toBe(MAILBOX_SIZE - 2);
   });
 
   it("treats a snapshot with no reconciliation stamp as due", async () => {

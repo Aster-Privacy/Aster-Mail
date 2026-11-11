@@ -96,6 +96,7 @@ function opened_database_names(): { names: string[]; unresolved: string[] } {
   const opened = /indexedDB\.open\(\s*([^,)\s]+)/g;
 
   for (const { path, text } of sources) {
+    if (path.endsWith("local_data_registry.ts")) continue;
     for (const match of text.matchAll(opened)) {
       const argument = match[1];
       const literal = /^["'`]([^"'`]+)["'`]$/.exec(argument);
@@ -137,6 +138,22 @@ interface FakeDatabaseFactory {
   deleteDatabase: (name: string) => unknown;
 }
 
+function open_absent_database(): unknown {
+  const request: {
+    onupgradeneeded?: (event: { oldVersion: number }) => void;
+    onerror?: () => void;
+    transaction: { abort: () => void } | null;
+  } = { transaction: { abort: () => undefined } };
+
+  queueMicrotask(() => {
+    request.onupgradeneeded?.({ oldVersion: 0 });
+    request.transaction = null;
+    request.onerror?.();
+  });
+
+  return request;
+}
+
 function stub_indexed_db(fake: FakeDatabaseFactory): void {
   const target = indexedDB as unknown as Record<string, unknown>;
   const had_own = Object.prototype.hasOwnProperty.call(target, "databases");
@@ -144,10 +161,14 @@ function stub_indexed_db(fake: FakeDatabaseFactory): void {
   const spy = vi
     .spyOn(indexedDB, "deleteDatabase")
     .mockImplementation(fake.deleteDatabase as never);
+  const opening = vi
+    .spyOn(indexedDB, "open")
+    .mockImplementation(open_absent_database as never);
 
   target.databases = fake.databases;
   onTestFinished(() => {
     spy.mockRestore();
+    opening.mockRestore();
     if (had_own) target.databases = previous;
     else delete target.databases;
   });
@@ -234,6 +255,28 @@ describe("erasing every local trace", () => {
     expect(local_keys().sort()).toEqual([...DEVICE_SETTING_LOCAL_KEYS].sort());
   });
 
+  it("removes the connection route settings", () => {
+    const route_keys = [
+      "aster_connection_method",
+      "aster_cdn_relay_url",
+      "aster_onion_api_url",
+      "aster_onion_mail_url",
+    ];
+
+    for (const key of route_keys) localStorage.setItem(key, "value");
+    localStorage.setItem("astermail_theme", "dark");
+    localStorage.setItem("astermail_language", "en");
+
+    expect(erase_local_storage_traces()).toEqual([]);
+
+    for (const key of route_keys) {
+      expect(DEVICE_SETTING_LOCAL_KEYS).not.toContain(key);
+      expect(localStorage.getItem(key)).toBeNull();
+    }
+    expect(localStorage.getItem("astermail_theme")).toBe("dark");
+    expect(localStorage.getItem("astermail_language")).toBe("en");
+  });
+
   it("keeps device settings free of account scoped keys", () => {
     for (const key of DEVICE_SETTING_LOCAL_KEYS) {
       expect(key).not.toMatch(/login|account|user|sender|device_id|family/);
@@ -260,6 +303,45 @@ describe("erasing every local trace", () => {
     );
   });
 
+  it("releases every database connection when a deletion asks", () => {
+    const opening = sources.filter(({ text }) =>
+      text.includes("indexedDB.open("),
+    );
+    const unreleased = opening
+      .filter(
+        ({ text }) =>
+          !text.includes("release_on_version_change(") &&
+          !text.includes("onversionchange"),
+      )
+      .map(({ path }) => path);
+
+    expect(opening.length).toBeGreaterThan(8);
+    expect(unreleased).toEqual([]);
+  });
+
+  it("marks the page as erased so late writers stop", async () => {
+    vi.resetModules();
+
+    const latch = await import("@/lib/device_erase_latch");
+    const registry = await import("./local_data_registry");
+
+    stub_indexed_db({
+      deleteDatabase: () => {
+        const request: { onsuccess?: () => void } = {};
+
+        queueMicrotask(() => request.onsuccess?.());
+
+        return request;
+      },
+    });
+
+    expect(latch.device_traces_erased()).toBe(false);
+
+    await registry.erase_device_traces();
+
+    expect(latch.device_traces_erased()).toBe(true);
+  });
+
   it("deletes registered databases and any others the browser lists", async () => {
     const deleted: string[] = [];
 
@@ -275,7 +357,7 @@ describe("erasing every local trace", () => {
       },
     });
 
-    expect(await erase_indexed_databases()).toEqual([]);
+    expect(await erase_indexed_databases()).toEqual({ failed: [], blocked: [] });
     expect(deleted.sort()).toEqual(
       [...INDEXED_DB_NAMES, "left_by_an_older_build"].sort(),
     );
@@ -315,7 +397,107 @@ describe("erasing every local trace", () => {
       },
     });
 
-    expect(await erase_indexed_databases()).toEqual(["astermail_secure_db"]);
+    expect(await erase_indexed_databases()).toEqual({
+      failed: ["astermail_secure_db"],
+      blocked: [],
+    });
+  });
+
+  it("reports a database whose deletion stays blocked", async () => {
+    vi.useFakeTimers();
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    vi.resetModules();
+
+    const registry = await import("./local_data_registry");
+
+    stub_indexed_db({
+      deleteDatabase: (name: string) => {
+        const request: { onsuccess?: () => void; onblocked?: () => void } = {};
+
+        void Promise.resolve().then(() =>
+          name === "astermail_secure_db"
+            ? request.onblocked?.()
+            : request.onsuccess?.(),
+        );
+
+        return request;
+      },
+    });
+
+    const pending = registry.erase_indexed_databases();
+    let settled = false;
+
+    void pending.then(() => {
+      settled = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1500);
+
+    expect(await pending).toEqual({
+      failed: [],
+      blocked: ["astermail_secure_db"],
+    });
+  });
+
+  it("reports a deletion that hangs without a blocked event as failed", async () => {
+    vi.useFakeTimers();
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    vi.resetModules();
+
+    const registry = await import("./local_data_registry");
+
+    stub_indexed_db({
+      deleteDatabase: (name: string) => {
+        const request: { onsuccess?: () => void } = {};
+
+        void Promise.resolve().then(() =>
+          name === "astermail_secure_db" ? undefined : request.onsuccess?.(),
+        );
+
+        return request;
+      },
+    });
+
+    const pending = registry.erase_indexed_databases();
+
+    await vi.advanceTimersByTimeAsync(3500);
+
+    expect(await pending).toEqual({
+      failed: ["astermail_secure_db"],
+      blocked: [],
+    });
+  });
+
+  it("counts a blocked deletion that then completes", async () => {
+    vi.useFakeTimers();
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    stub_indexed_db({
+      deleteDatabase: () => {
+        const request: { onsuccess?: () => void; onblocked?: () => void } = {};
+
+        void Promise.resolve().then(() => {
+          request.onblocked?.();
+          setTimeout(() => request.onsuccess?.(), 1500);
+        });
+
+        return request;
+      },
+    });
+
+    const pending = erase_indexed_databases();
+
+    await vi.advanceTimersByTimeAsync(2000);
+
+    expect(await pending).toEqual({ failed: [], blocked: [] });
   });
 
   it("deletes every cache", async () => {
@@ -351,7 +533,10 @@ describe("erasing every local trace", () => {
     });
     localStorage.setItem("aster:login_known_accounts", "[]");
 
-    expect(await erase_device_traces()).toBe(false);
+    const first = await erase_device_traces();
+
+    expect(first.complete).toBe(false);
+    expect(first.failed_caches).toEqual(["x"]);
     expect(local_keys()).toEqual([]);
 
     vi.stubGlobal("caches", {
@@ -359,12 +544,72 @@ describe("erasing every local trace", () => {
       delete: async () => true,
     });
 
-    expect(await erase_device_traces()).toBe(true);
+    expect((await erase_device_traces()).complete).toBe(true);
+  });
+
+  it("repeats only the parts that failed when retried", async () => {
+    const deleted: string[] = [];
+    let cache_sweeps = 0;
+
+    stub_indexed_db({
+      deleteDatabase: (name: string) => {
+        const request: { onsuccess?: () => void } = {};
+
+        deleted.push(name);
+        queueMicrotask(() => request.onsuccess?.());
+
+        return request;
+      },
+    });
+    vi.stubGlobal("caches", {
+      keys: async () => {
+        cache_sweeps += 1;
+
+        return [];
+      },
+      delete: async () => true,
+    });
+
+    const retried = await erase_device_traces({
+      complete: false,
+      failed_databases: ["astermail_secure_db"],
+      blocked_databases: ["aster_app_lock"],
+      failed_caches: [],
+      failed_session: [],
+      failed_local: [],
+    });
+
+    expect(retried.complete).toBe(true);
+    expect(deleted.sort()).toEqual(["aster_app_lock", "astermail_secure_db"]);
+    expect(cache_sweeps).toBe(0);
+  });
+
+  it("erases storage before the first database answers", async () => {
+    let storage_at_first_open: string[] | null = null;
+
+    stub_indexed_db({
+      deleteDatabase: () => {
+        const request: { onsuccess?: () => void } = {};
+
+        queueMicrotask(() => request.onsuccess?.());
+
+        return request;
+      },
+    });
+    vi.mocked(indexedDB.open).mockImplementation(((): unknown => {
+      storage_at_first_open ??= local_keys();
+
+      return open_absent_database();
+    }) as never);
+    localStorage.setItem("aster:login_known_accounts", "[]");
+
+    await erase_device_traces();
+
+    expect(storage_at_first_open).toEqual([]);
   });
 });
 
 describe("the duress wipe uses the full erase", () => {
-  const purge = readFileSync(resolve(here, "purge_local_data.ts"), "utf8");
   const app_lock = readFileSync(
     resolve(source_root, "components", "mobile", "app_lock.tsx"),
     "utf8",
@@ -376,23 +621,7 @@ describe("the duress wipe uses the full erase", () => {
       app_lock.indexOf("const reject_input"),
     );
 
-    expect(handler.match(/purge_all_local_data\(/g)?.length).toBe(2);
-    expect(
-      handler.match(/purge_all_local_data\(\{ erase_device_traces: true \}\)/g)
-        ?.length,
-    ).toBe(2);
-  });
-
-  it("revokes the device before signing out and erases after", () => {
-    const release = purge.indexOf("await release_remote_device_links();");
-    const sign_out = purge.indexOf("await logout_user();");
-    const pairing = purge.indexOf("await erase_device_pairing();");
-    const traces = purge.indexOf("await erase_device_traces()");
-    const cookies = purge.indexOf("await api_client.clear_session_cookies();");
-
-    expect(release).toBeGreaterThan(-1);
-    expect(release).toBeLessThan(sign_out);
-    expect(pairing).toBeGreaterThan(cookies);
-    expect(traces).toBeGreaterThan(pairing);
+    expect(handler.match(/erase_device_with_retry\(\)/g)?.length).toBe(1);
+    expect(handler).not.toContain("purge_all_local_data(");
   });
 });

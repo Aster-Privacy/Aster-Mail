@@ -44,6 +44,8 @@ import {
 } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  build_id_filter,
+  chunk_may_hold_id,
   create_chunk_summarizer,
   normalize_chunk_summary,
   parse_gram_filter,
@@ -790,6 +792,8 @@ export async function open_snapshot_writer(
   let storage_exhausted = false;
   let superseded = false;
   let lost_kept = false;
+  let purged_after_write = false;
+  const watch = open_purge_watch();
 
   const drop_buffer = (): void => {
     buffer_items = [];
@@ -798,6 +802,23 @@ export async function open_snapshot_writer(
 
   const flush = async (): Promise<void> => {
     if (buffer_items.length === 0) return;
+
+    if (watch.purged.size > 0) {
+      const kept_items: MailItem[] = [];
+      const kept_sources: PersistableEntry[] = [];
+
+      buffer_items.forEach((item, i) => {
+        if (watch.purged.delete(item.id)) return;
+
+        kept_items.push(item);
+        kept_sources.push(buffer_sources[i]);
+      });
+
+      buffer_items = kept_items;
+      buffer_sources = kept_sources;
+
+      if (buffer_items.length === 0) return;
+    }
 
     if (storage_exhausted || superseded) {
       drop_buffer();
@@ -941,10 +962,10 @@ export async function open_snapshot_writer(
     }
   };
 
-  return {
+  const writer: SnapshotWriter = {
     written_count: () => written + buffer_items.length,
     storage_exhausted: () => storage_exhausted,
-    layout: () => [...layout],
+    layout: () => (purged_after_write ? [] : [...layout]),
     lost_kept_chunks: () => lost_kept,
     add_page: async (items, entries) => {
       if (storage_exhausted || superseded) return;
@@ -955,6 +976,8 @@ export async function open_snapshot_writer(
         if (!entry) continue;
         if (purged_ids.has(item.id)) continue;
 
+        note_indexed_arrivals([item.id]);
+        watch_item(watch, item);
         buffer_items.push(trim_item_for_index(item));
         buffer_sources.push(entry);
 
@@ -964,6 +987,7 @@ export async function open_snapshot_writer(
       }
     },
     discard: async () => {
+      close_purge_watch(watch);
       drop_buffer();
       written_summaries.clear();
       invalidate_snapshot_caches();
@@ -997,11 +1021,7 @@ export async function open_snapshot_writer(
         return null;
       };
 
-      try {
-        await flush();
-
-        if (superseded) return await abandon();
-
+      const commit = async (): Promise<SnapshotMeta | null> => {
         const kept = keep_chunk_ids ?? [];
         const chunk_ids = keep_first
           ? [...kept, ...written_ids]
@@ -1094,6 +1114,14 @@ export async function open_snapshot_writer(
         await prune_summary_groups(keys, live);
 
         return meta;
+      };
+
+      try {
+        await flush();
+
+        if (superseded) return await abandon();
+
+        return await enqueue_snapshot_write(commit);
       } catch (error) {
         if (import.meta.env.DEV) console.error("search_snapshot_save", error);
 
@@ -1101,11 +1129,144 @@ export async function open_snapshot_writer(
       }
     },
   };
+
+  return {
+    ...writer,
+    finish: async (options: Parameters<SnapshotWriter["finish"]>[0]) => {
+      try {
+        const meta = await writer.finish(options);
+
+        if (!meta || watch.purged.size === 0) return meta;
+
+        purged_after_write = true;
+
+        const purged = new Set(watch.purged);
+        const removed = await purge_snapshot_entries(
+          (item) => purged.has(item.id),
+          { expected: purged.size, ids: purged },
+        );
+
+        if (removed.length === 0) return meta;
+
+        return { ...meta, total: Math.max(0, meta.total - removed.length) };
+      } finally {
+        close_purge_watch(watch);
+      }
+    },
+  };
+}
+
+export type PurgedScope = "trash" | "spam";
+
+export interface ScopePurgeMark {
+  trash: number;
+  spam: number;
+}
+
+interface PurgeWatch {
+  seen: Set<string>;
+  purged: Set<string>;
+  trashed: Set<string>;
+  spam: Set<string>;
 }
 
 const PURGED_ID_LIMIT = 50_000;
+const PURGE_WATCH_LIMIT = 8;
 const purged_ids = new Set<string>();
+const purge_watches = new Set<PurgeWatch>();
+const scope_purge_counts: ScopePurgeMark = { trash: 0, spam: 0 };
 let purge_queue: Promise<unknown> = Promise.resolve();
+
+function enqueue_snapshot_write<T>(task: () => Promise<T>): Promise<T> {
+  const run = purge_queue.then(task);
+
+  purge_queue = run.catch(() => undefined);
+
+  return run;
+}
+
+function open_purge_watch(): PurgeWatch {
+  const watch: PurgeWatch = {
+    seen: new Set<string>(),
+    purged: new Set<string>(),
+    trashed: new Set<string>(),
+    spam: new Set<string>(),
+  };
+
+  purge_watches.add(watch);
+
+  while (purge_watches.size > PURGE_WATCH_LIMIT) {
+    const oldest = purge_watches.values().next();
+
+    if (oldest.done) break;
+    purge_watches.delete(oldest.value);
+  }
+
+  return watch;
+}
+
+function close_purge_watch(watch: PurgeWatch): void {
+  purge_watches.delete(watch);
+}
+
+function watch_item(watch: PurgeWatch, item: MailItem): void {
+  watch.seen.add(item.id);
+  if (item.is_trashed) watch.trashed.add(item.id);
+  if (item.is_spam) watch.spam.add(item.id);
+}
+
+const ARRIVAL_WATCH_LIMIT = 4;
+const arrival_watches = new Set<Set<string>>();
+
+export function open_arrival_watch(): Set<string> {
+  const watch = new Set<string>();
+
+  arrival_watches.add(watch);
+
+  while (arrival_watches.size > ARRIVAL_WATCH_LIMIT) {
+    const oldest = arrival_watches.values().next();
+
+    if (oldest.done) break;
+    arrival_watches.delete(oldest.value);
+  }
+
+  return watch;
+}
+
+export function close_arrival_watch(watch: Set<string>): void {
+  arrival_watches.delete(watch);
+}
+
+export function note_indexed_arrivals(ids: Iterable<string>): void {
+  if (arrival_watches.size === 0) return;
+
+  for (const id of ids) {
+    for (const watch of arrival_watches) watch.add(id);
+  }
+}
+
+export function scope_purge_mark(): ScopePurgeMark {
+  return { ...scope_purge_counts };
+}
+
+export function purged_since(item: MailItem, mark: ScopePurgeMark): boolean {
+  return (
+    (!!item.is_trashed && scope_purge_counts.trash !== mark.trash) ||
+    (!!item.is_spam && scope_purge_counts.spam !== mark.spam)
+  );
+}
+
+export function note_purged_scope(scope: PurgedScope): void {
+  scope_purge_counts[scope] += 1;
+
+  for (const watch of [...purge_watches]) {
+    const matching = scope === "trash" ? watch.trashed : watch.spam;
+    const ids = [...matching];
+
+    matching.clear();
+    note_purged_ids(ids);
+  }
+}
 
 export function note_purged_ids(ids: string[]): void {
   for (const id of ids) {
@@ -1113,6 +1274,10 @@ export function note_purged_ids(ids: string[]): void {
 
     purged_ids.delete(id);
     purged_ids.add(id);
+
+    for (const watch of purge_watches) {
+      if (watch.seen.has(id)) watch.purged.add(id);
+    }
   }
 
   while (purged_ids.size > PURGED_ID_LIMIT) {
@@ -1141,10 +1306,16 @@ function is_current_manifest(
   );
 }
 
+export interface SnapshotPurgeOptions {
+  expected?: number;
+  ids?: ReadonlySet<string>;
+}
+
 async function run_snapshot_purge(
   should_drop: (item: MailItem) => boolean,
-  expected?: number,
+  options: SnapshotPurgeOptions = {},
 ): Promise<string[]> {
+  const { expected, ids } = options;
   const cleared_at_start = snapshot_clear_count;
   const encryption_key = await get_snapshot_encryption_key();
 
@@ -1159,9 +1330,48 @@ async function run_snapshot_purge(
   if (!is_current_manifest(manifest)) return [];
 
   const removed: string[] = [];
+  const groups = new Map<number, Record<string, ChunkSummary>>();
+  const backfilled_groups = new Set<number>();
+
+  const read_group = async (
+    group: number,
+  ): Promise<Record<string, ChunkSummary>> => {
+    const loaded = groups.get(group);
+
+    if (loaded) return loaded;
+
+    const record = await encrypted_get<SummaryGroupRecord>(
+      summary_group_key(key, group),
+      encryption_key,
+    );
+    const raw = record?.summaries;
+    const summaries: Record<string, ChunkSummary> =
+      raw && typeof raw === "object" ? { ...raw } : {};
+
+    groups.set(group, summaries);
+
+    return summaries;
+  };
+
+  const write_group = async (group: number): Promise<void> => {
+    await encrypted_set(
+      summary_group_key(key, group),
+      {
+        summaries: groups.get(group) ?? {},
+      } satisfies SummaryGroupRecord,
+      encryption_key,
+    );
+  };
 
   for (const chunk_id of manifest.chunk_ids) {
     if (expected !== undefined && removed.length >= expected) break;
+    if (cleared_at_start !== snapshot_clear_count) break;
+
+    const group = summary_group_of(chunk_id);
+    const summaries = await read_group(group);
+    const held = chunk_may_hold_id(summaries[String(chunk_id)], ids ?? []);
+
+    if (ids && held === false) continue;
     if (cleared_at_start !== snapshot_clear_count) break;
 
     const record_key = chunk_record_key(key, chunk_id);
@@ -1181,7 +1391,19 @@ async function run_snapshot_purge(
 
     await yield_to_visible_page();
 
-    if (dropped.size === 0) continue;
+    if (dropped.size === 0) {
+      const summary = summaries[String(chunk_id)];
+
+      if (held === null && summary) {
+        summaries[String(chunk_id)] = {
+          ...summary,
+          ids: build_id_filter(chunk.items.map((item) => item.id)),
+        };
+        backfilled_groups.add(group);
+      }
+
+      continue;
+    }
     if (cleared_at_start !== snapshot_clear_count) break;
 
     const items = chunk.items.filter((item) => !dropped.has(item.id));
@@ -1208,24 +1430,17 @@ async function run_snapshot_purge(
       encryption_key,
     );
 
-    const group_key = summary_group_key(key, summary_group_of(chunk_id));
-    const group = await encrypted_get<SummaryGroupRecord>(
-      group_key,
-      encryption_key,
-    );
-
-    await encrypted_set(
-      group_key,
-      {
-        summaries: {
-          ...(group?.summaries ?? {}),
-          [String(chunk_id)]: digest.summary,
-        },
-      } satisfies SummaryGroupRecord,
-      encryption_key,
-    );
+    summaries[String(chunk_id)] = digest.summary;
+    await write_group(group);
+    backfilled_groups.delete(group);
 
     for (const id of dropped) removed.push(id);
+  }
+
+  for (const group of backfilled_groups) {
+    if (cleared_at_start !== snapshot_clear_count) break;
+
+    await write_group(group);
   }
 
   if (removed.length === 0) return removed;
@@ -1250,22 +1465,22 @@ async function run_snapshot_purge(
 
 export function purge_snapshot_entries(
   should_drop: (item: MailItem) => boolean,
-  expected?: number,
+  options: SnapshotPurgeOptions = {},
 ): Promise<string[]> {
-  const run = purge_queue.then(() =>
-    run_snapshot_purge(should_drop, expected).catch((caught): string[] => {
+  return enqueue_snapshot_write(() =>
+    run_snapshot_purge(should_drop, options).catch((caught): string[] => {
       ignore_error("services/search_index_store:purge", caught);
 
       return [];
     }),
   );
-
-  purge_queue = run;
-
-  return run;
 }
 
-export async function stamp_snapshot_verified(at: number): Promise<boolean> {
+export function stamp_snapshot_verified(at: number): Promise<boolean> {
+  return enqueue_snapshot_write(() => write_snapshot_verified(at));
+}
+
+async function write_snapshot_verified(at: number): Promise<boolean> {
   try {
     const encryption_key = await get_snapshot_encryption_key();
 

@@ -23,6 +23,7 @@ import {
   safe_local_remove,
   safe_local_set,
 } from "@/lib/safe_storage";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 
 export const ERROR_REPORT_CONSENT_KEY = "aster_error_reports";
 
@@ -32,6 +33,15 @@ const DECLINED = "off";
 type DeclineListener = () => void;
 
 const decline_listeners = new Set<DeclineListener>();
+
+let unsaved_decline = false;
+
+function store_choice(value: string): void {
+  if (device_traces_erased()) return;
+  if (!safe_local_set(ERROR_REPORT_CONSENT_KEY, value)) {
+    safe_local_remove(ERROR_REPORT_CONSENT_KEY);
+  }
+}
 
 function notify_declined(): void {
   for (const listener of decline_listeners) {
@@ -62,34 +72,34 @@ export function has_declined_error_reports(): boolean {
 }
 
 export function set_error_report_choice(enabled: boolean): void {
+  unsaved_decline = !enabled;
+
   if (enabled) {
-    if (!safe_local_set(ERROR_REPORT_CONSENT_KEY, GRANTED)) {
-      safe_local_remove(ERROR_REPORT_CONSENT_KEY);
-    }
+    store_choice(GRANTED);
 
     return;
   }
 
-  if (!safe_local_set(ERROR_REPORT_CONSENT_KEY, DECLINED)) {
-    safe_local_remove(ERROR_REPORT_CONSENT_KEY);
-  }
+  store_choice(DECLINED);
   notify_declined();
 }
 
 export function apply_loaded_error_report_preference(enabled: unknown): void {
   if (enabled === false) {
-    set_error_report_choice(false);
+    unsaved_decline = false;
+    store_choice(DECLINED);
+    notify_declined();
 
     return;
   }
-  if (enabled !== true || has_declined_error_reports()) return;
+  if (enabled !== true || unsaved_decline) return;
 
-  if (!safe_local_set(ERROR_REPORT_CONSENT_KEY, GRANTED)) {
-    safe_local_remove(ERROR_REPORT_CONSENT_KEY);
-  }
+  store_choice(GRANTED);
 }
 
 export function forget_error_report_grant(): void {
+  unsaved_decline = false;
+
   if (!has_declined_error_reports()) {
     safe_local_remove(ERROR_REPORT_CONSENT_KEY);
   }

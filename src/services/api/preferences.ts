@@ -40,6 +40,7 @@ import {
   clamp_inbox_page_size,
 } from "@/lib/inbox_page_size";
 import { ignore_error } from "@/lib/ignore_error";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 import {
   apply_loaded_error_report_preference,
   forget_error_report_grant,
@@ -579,6 +580,8 @@ function write_local_migration_flag(flag: MigrationFlag): void {
 }
 
 export function cache_preferences_locally(prefs: UserPreferences): void {
+  if (device_traces_erased()) return;
+
   apply_loaded_error_report_preference(prefs.send_error_reports);
 
   try {
