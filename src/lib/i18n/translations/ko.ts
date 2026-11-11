@@ -640,6 +640,9 @@ export const ko = {
       "결제가 완료되지 않았습니다. {{days}}일 후에 액세스가 제한됩니다.",
     billing_alert_action: "결제하기",
     dismiss: "닫기",
+    web_sandbox_off_title: "웹 콘텐츠가 시스템 샌드박스 없이 실행되고 있습니다",
+    web_sandbox_off_body:
+      "이 컴퓨터에서는 Aster Mail이(가) bubblewrap 샌드박스를 시작할 수 없어 웹 콘텐츠가 샌드박스 없이 실행됩니다. 다시 켜려면 bubblewrap 패키지를 설치하고 권한 없는 사용자 네임스페이스를 허용한 다음 Aster Mail을(를) 다시 시작하세요.",
     load_content: "로드",
     open_link: "링크 열기",
     no_icon: "아이콘 없음",

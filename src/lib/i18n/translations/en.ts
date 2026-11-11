@@ -572,6 +572,9 @@ export const en: Translations = {
       "Your payment did not go through. Access limited in {{days}} days.",
     billing_alert_action: "Pay",
     dismiss: "Dismiss",
+    web_sandbox_off_title: "Web content runs without the system sandbox",
+    web_sandbox_off_body:
+      "On this computer, Aster Mail can't start the bubblewrap sandbox, so web content runs without it. To turn it back on, install the bubblewrap package and allow unprivileged user namespaces, then restart Aster Mail.",
     load_content: "Load",
     open_link: "Open link",
     no_icon: "No icon",

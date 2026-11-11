@@ -635,6 +635,9 @@ export const ja = {
       "お支払いが完了しませんでした。{{days}}日後にアクセスが制限されます。",
     billing_alert_action: "支払う",
     dismiss: "閉じる",
+    web_sandbox_off_title: "Web コンテンツはシステムのサンドボックスなしで実行されています",
+    web_sandbox_off_body:
+      "このコンピュータでは Aster Mail が bubblewrap サンドボックスを起動できないため、Web コンテンツはサンドボックスなしで実行されています。再度有効にするには、bubblewrap パッケージをインストールし、非特権ユーザー名前空間を許可してから Aster Mail を再起動してください。",
     load_content: "読み込む",
     open_link: "リンクを開く",
     no_icon: "アイコンなし",

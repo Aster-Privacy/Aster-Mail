@@ -1251,6 +1251,8 @@ export interface CommonTranslations {
   billing_alert_body_days: string;
   billing_alert_action: string;
   dismiss: string;
+  web_sandbox_off_title: string;
+  web_sandbox_off_body: string;
   load_content: string;
   open_link: string;
   no_icon: string;
