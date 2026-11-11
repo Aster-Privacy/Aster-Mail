@@ -160,9 +160,9 @@ function WebPinOverlay({
     set_wiping(true);
     try {
       await release_app_lock(account_id).catch(() => undefined);
-      const purged = await purge_all_local_data();
+      const purged = await purge_all_local_data({ erase_device_traces: true });
 
-      if (!purged) await purge_all_local_data();
+      if (!purged) await purge_all_local_data({ erase_device_traces: true });
     } finally {
       window.location.href = "/";
     }

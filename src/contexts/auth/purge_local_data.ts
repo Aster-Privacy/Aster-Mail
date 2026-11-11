@@ -20,6 +20,7 @@
 //
 import { clear_all_session_passphrases } from "./session_passphrase";
 import { clear_account_memory_stores } from "./account_memory_stores";
+import { erase_device_traces } from "./local_data_registry";
 
 import { api_client } from "@/services/api/client";
 import { logout_user } from "@/services/api/auth";
@@ -30,6 +31,7 @@ import {
   logout_all as storage_logout_all,
   clear_cache,
   clear_all_switch_tokens,
+  get_current_account,
 } from "@/services/account_manager";
 import {
   clear_session,
@@ -67,8 +69,50 @@ import { clear_preload_cache } from "@/components/email/hooks/preload_cache_stor
 import { clear_billing_cache } from "@/components/settings/billing/billing_cache";
 import { clear_family_cache } from "@/components/settings/billing/family_section/family_cache";
 
-export async function purge_all_local_data(): Promise<boolean> {
+export interface PurgeLocalDataOptions {
+  erase_device_traces?: boolean;
+}
+
+const DEVICE_RELEASE_TIMEOUT_MS = 4000;
+
+function settle_within(task: Promise<unknown>, ms: number): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, ms);
+
+    task
+      .catch(() => undefined)
+      .finally(() => {
+        clearTimeout(timer);
+        resolve();
+      });
+  });
+}
+
+async function release_remote_device_links(): Promise<void> {
+  await settle_within(
+    Promise.all([
+      Promise.all([
+        import("@/native/desktop_device_auth"),
+        get_current_account().catch(() => null),
+      ]).then(([module, current]) =>
+        module.revoke_paired_device([current?.device_id]),
+      ),
+      import("@/services/push_subscription").then((module) =>
+        module.unsubscribe_from_push(),
+      ),
+    ]),
+    DEVICE_RELEASE_TIMEOUT_MS,
+  );
+}
+
+export async function purge_all_local_data(
+  options: PurgeLocalDataOptions = {},
+): Promise<boolean> {
   const errors: Error[] = [];
+
+  if (options.erase_device_traces) {
+    await release_remote_device_links();
+  }
 
   stop_session_timeout();
   lock_all_folders();
@@ -183,6 +227,25 @@ export async function purge_all_local_data(): Promise<boolean> {
     await purge_favicon_cache();
   } catch (e) {
     errors.push(e instanceof Error ? e : new Error(String(e)));
+  }
+
+  if (options.erase_device_traces) {
+    try {
+      const { erase_device_pairing } =
+        await import("@/native/desktop_device_auth");
+
+      await erase_device_pairing();
+    } catch (e) {
+      errors.push(e instanceof Error ? e : new Error(String(e)));
+    }
+
+    try {
+      if (!(await erase_device_traces())) {
+        errors.push(new Error("device traces remain"));
+      }
+    } catch (e) {
+      errors.push(e instanceof Error ? e : new Error(String(e)));
+    }
   }
 
   if (errors.length > 0 && import.meta.env.DEV) {
