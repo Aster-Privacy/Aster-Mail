@@ -23,6 +23,7 @@ import type { EncryptedVault } from "../key_manager";
 import { hash_recovery_email } from "../key_manager";
 
 import { api_client } from "@/services/api/client";
+import { parse_recovery_email_plaintext } from "@/services/api/recovery_email";
 import type {} from "@/services/api/signatures";
 import type {} from "@/services/api/templates";
 import type {} from "@/services/api/blocked_senders";
@@ -146,13 +147,13 @@ export async function re_encrypt_recovery_email(
   const ct = base64_to_array(encrypted_email);
   const iv = base64_to_array(email_nonce);
   const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_key, ct);
-  const email_text = new TextDecoder().decode(pt);
+  const email_text = parse_recovery_email_plaintext(pt);
 
   const new_iv = crypto.getRandomValues(new Uint8Array(12));
   const new_ct = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: new_iv },
     new_key,
-    pt,
+    new TextEncoder().encode(email_text),
   );
   const email_hash = await hash_recovery_email(email_text);
 

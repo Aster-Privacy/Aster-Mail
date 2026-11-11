@@ -24,8 +24,10 @@ import type { StepUpCredentials } from "./step_up";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_account_data_crypto_keys } from "@/services/crypto/legacy_keks";
 import { hash_recovery_email } from "@/services/crypto/key_manager";
+import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
+import { EMAIL_REGEX } from "@/lib/utils";
 import { ignore_error } from "@/lib/ignore_error";
 
 interface GetRecoveryEmailApiResponse {
@@ -51,8 +53,32 @@ export const EMPTY_RECOVERY_EMAIL: RecoveryEmailData = {
   step_up_required: false,
 };
 
+const RECOVERY_EMAIL_CONTEXT = "astermail-recovery-email-v1";
+const MAX_RECOVERY_EMAIL_LENGTH = 254;
+const MAX_RECOVERY_EMAIL_LOCAL_LENGTH = 64;
+
 export function normalize_recovery_email(email: string): string {
   return email.trim().toLowerCase();
+}
+
+export function is_valid_recovery_email(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  if (value.length === 0 || value.length > MAX_RECOVERY_EMAIL_LENGTH) {
+    return false;
+  }
+  if (value.indexOf("@") > MAX_RECOVERY_EMAIL_LOCAL_LENGTH) return false;
+
+  return EMAIL_REGEX.test(value);
+}
+
+export function parse_recovery_email_plaintext(bytes: BufferSource): string {
+  const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes).trim();
+
+  if (!is_valid_recovery_email(text)) {
+    throw new Error("recovery email plaintext is not an email address");
+  }
+
+  return text;
 }
 
 interface SaveRecoveryEmailApiResponse {
@@ -84,11 +110,11 @@ function read_cached_recovery_data(): RecoveryEmailData | null {
   return cached_recovery_data;
 }
 
-async function derive_recovery_email_key(
-  vault: EncryptedVault,
+async function derive_recovery_email_key_from(
+  identity_key: string,
 ): Promise<CryptoKey> {
   const key_material = new TextEncoder().encode(
-    vault.identity_key + "astermail-recovery-email-v1",
+    identity_key + RECOVERY_EMAIL_CONTEXT,
   );
   const hash = await crypto.subtle.digest(HASH_ALG, key_material);
 
@@ -99,6 +125,26 @@ async function derive_recovery_email_key(
     false,
     ["encrypt", "decrypt"],
   );
+}
+
+function derive_recovery_email_key(vault: EncryptedVault): Promise<CryptoKey> {
+  return derive_recovery_email_key_from(vault.identity_key);
+}
+
+async function open_recovery_email(
+  key: CryptoKey,
+  ciphertext: Uint8Array,
+  iv: Uint8Array,
+): Promise<ArrayBuffer | null> {
+  try {
+    return await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      key,
+      ciphertext,
+    );
+  } catch {
+    return null;
+  }
 }
 
 export async function encrypt_recovery_email(
@@ -126,19 +172,28 @@ async function decrypt_recovery_email(
   nonce: string,
   vault: EncryptedVault,
 ): Promise<string> {
-  const key = await derive_recovery_email_key(vault);
   const encrypted_data = Uint8Array.from(atob(encrypted), (c) =>
     c.charCodeAt(0),
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(
-    key,
-    encrypted_data,
-    nonce_data,
-  );
+  for (const identity_key of vault_identity_key_materials(vault)) {
+    const opened = await open_recovery_email(
+      await derive_recovery_email_key_from(identity_key),
+      encrypted_data,
+      nonce_data,
+    );
 
-  return new TextDecoder().decode(decrypted);
+    if (opened) return parse_recovery_email_plaintext(opened);
+  }
+
+  for (const key of get_account_data_crypto_keys(RECOVERY_EMAIL_CONTEXT)) {
+    const opened = await open_recovery_email(key, encrypted_data, nonce_data);
+
+    if (opened) return parse_recovery_email_plaintext(opened);
+  }
+
+  throw new Error("recovery email cannot be decrypted");
 }
 
 export async function reencrypt_recovery_email(
@@ -230,7 +285,11 @@ export async function get_recovery_email(
       set_cached_recovery_data(recovery_data);
     }
 
-    if (email && recovery_data.verified && !has_server_enc) {
+    if (
+      is_valid_recovery_email(email) &&
+      recovery_data.verified &&
+      !has_server_enc
+    ) {
       hash_recovery_email(email)
         .then((email_hash) =>
           api_client.post("/core/v1/recovery/email/server-enc", {
@@ -259,6 +318,11 @@ export async function save_recovery_email(
 ): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
   try {
     const normalized = normalize_recovery_email(email);
+
+    if (!is_valid_recovery_email(normalized)) {
+      return { data: { success: false } };
+    }
+
     const { encrypted, nonce } = await encrypt_recovery_email(
       normalized,
       vault,
@@ -297,12 +361,13 @@ export async function save_recovery_email(
 export async function resend_recovery_verification(
   plaintext_email?: string,
 ): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
-  const email = plaintext_email || cached_recovery_data?.email;
+  const candidate = plaintext_email || cached_recovery_data?.email;
+  const email = candidate ? normalize_recovery_email(candidate) : null;
 
   try {
     const response = await api_client.post<ResendVerificationApiResponse>(
       "/core/v1/recovery/email/resend",
-      email ? { plaintext_email: normalize_recovery_email(email) } : {},
+      is_valid_recovery_email(email) ? { plaintext_email: email } : {},
     );
 
     return {
