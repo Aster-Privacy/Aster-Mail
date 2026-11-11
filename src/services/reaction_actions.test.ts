@@ -292,7 +292,7 @@ describe("reaction sender", () => {
 
   beforeEach(() => {
     h.preferences = { reactions_enabled: true, require_encryption: false };
-    h.coverage = { missing: [], downgraded: [], untrusted: [] };
+    h.coverage = { missing: [], downgraded: [], untrusted: [], unreadable: [] };
     h.encrypt_calls = [];
     h.encrypt_impl = null;
     h.react_calls = [];

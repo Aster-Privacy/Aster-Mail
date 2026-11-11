@@ -20,8 +20,10 @@
 //
 import {
   canonical_pin_id,
+  describe_pin_contact,
   dotted_spellings,
   resolve_pin_contact,
+  type PeerKind,
   type PinContact,
 } from "./pin_identity";
 import {
@@ -102,6 +104,16 @@ export async function open_contact(raw: string): Promise<ContactSlot | null> {
   const contact = await resolve_pin_contact(raw);
 
   return contact ? { contact, uid, storage_key } : null;
+}
+
+export async function open_contact_as(
+  raw: string,
+  kind: PeerKind,
+): Promise<ContactSlot> {
+  const storage_key = await contact_storage_key();
+  const uid = await current_account_uid();
+
+  return { contact: describe_pin_contact(raw, kind), uid, storage_key };
 }
 
 function folds(contact: PinContact): boolean {

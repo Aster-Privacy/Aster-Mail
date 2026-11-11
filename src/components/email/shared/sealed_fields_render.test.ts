@@ -53,6 +53,7 @@ vi.mock(
 vi.mock("@/services/crypto/memory_key_store", () => ({
   on_vault_cleared: () => () => {},
   on_vault_stored: () => () => {},
+  get_vault_account_epoch: () => 0,
   get_vault_from_memory: () =>
     h.vault && {
       data_kek: btoa(String.fromCharCode(...new Uint8Array(32).fill(7))),
@@ -68,11 +69,13 @@ vi.mock("@/services/crypto/encrypted_storage", async () => ({
   ...(
     await import("@/tests/fixtures/storage_name_support")
   ).storage_name_support(h.names),
-  encrypted_get: vi.fn(async (key: string) =>
-    key.startsWith("storage_name_key") ? h.names.get(key) : undefined,
-  ),
-  encrypted_set: vi.fn(async () => {}),
-  encrypted_delete: vi.fn(async () => {}),
+  encrypted_get: vi.fn(async (key: string) => h.names.get(key)),
+  encrypted_set: vi.fn(async (key: string, value: unknown) => {
+    h.names.set(key, value);
+  }),
+  encrypted_delete: vi.fn(async (key: string) => {
+    h.names.delete(key);
+  }),
 }));
 
 vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
@@ -225,6 +228,7 @@ describe("sealed message fields", () => {
     h.vault = null;
     h.bundle = null;
     h.continuity = "known";
+    h.names.clear();
     clear_attachment_keys();
   });
 

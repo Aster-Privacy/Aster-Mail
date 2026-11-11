@@ -1950,6 +1950,11 @@ export const ru = {
       "Сохранённый ключ шифрования для {{recipients}} не удаётся прочитать на этом устройстве. Перед отправкой сверьте текущий отпечаток с получателем по другому каналу.",
     key_trust_unreadable_detail: "{{email}}: стало {{current}}.",
     key_trust_change_confirm: "Доверять новому ключу",
+    key_trust_missing_title: "Ключ шифрования не найден",
+    key_trust_missing_message:
+      "На этом устройстве был сохранён ключ шифрования для {{recipients}}, но сейчас ключ недоступен. Если вы продолжите, это сообщение будет отправлено без сквозного шифрования. Перед отправкой уточните это у получателя по другому каналу.",
+    key_trust_missing_detail: "{{email}}: был {{prior}}.",
+    key_trust_missing_confirm: "Отправить без шифрования",
     post_quantum_downgrade_title:
       "Отправить без ожидаемых постквантовых ключей?",
     post_quantum_downgrade_message:

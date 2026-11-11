@@ -1925,6 +1925,11 @@ export const tr = {
       "{{recipients}} için kayıtlı şifreleme anahtarı bu cihazda okunamıyor. Göndermeden önce geçerli parmak izini alıcıyla başka bir kanaldan doğrulayın.",
     key_trust_unreadable_detail: "{{email}}: şimdi {{current}}.",
     key_trust_change_confirm: "Yeni anahtara güven",
+    key_trust_missing_title: "Şifreleme anahtarı bulunamadı",
+    key_trust_missing_message:
+      "Bu cihazda {{recipients}} için kayıtlı bir şifreleme anahtarı vardı, ancak şu anda kullanılabilir bir anahtar yok. Devam ederseniz bu ileti uçtan uca şifreleme olmadan gönderilir. Göndermeden önce alıcıyla başka bir kanaldan doğrulayın.",
+    key_trust_missing_detail: "{{email}}: önceki {{prior}}.",
+    key_trust_missing_confirm: "Şifreleme olmadan gönder",
     post_quantum_downgrade_title:
       "Beklenen post-kuantum anahtarları olmadan gönderilsin mi?",
     post_quantum_downgrade_message:

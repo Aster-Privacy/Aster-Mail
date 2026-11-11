@@ -60,21 +60,32 @@ export function KeyTrustChangePrompt(): React.ReactElement {
 
   const details = pending
     .map((change) =>
-      change.unreadable
-        ? t("common.key_trust_unreadable_detail", {
-            email: change.email,
-            current: format_fingerprint(change.new_fingerprint),
-          })
-        : t("common.key_trust_change_detail", {
+      change.missing
+        ? t("common.key_trust_missing_detail", {
             email: change.email,
             prior: format_fingerprint(change.prior_fingerprint),
-            current: format_fingerprint(change.new_fingerprint),
-          }),
+          })
+        : change.unreadable
+          ? t("common.key_trust_unreadable_detail", {
+              email: change.email,
+              current: format_fingerprint(change.new_fingerprint),
+            })
+          : t("common.key_trust_change_detail", {
+              email: change.email,
+              prior: format_fingerprint(change.prior_fingerprint),
+              current: format_fingerprint(change.new_fingerprint),
+            }),
     )
     .join(" ");
 
-  const changed = pending.filter((change) => !change.unreadable);
-  const unread = pending.filter((change) => change.unreadable);
+  const missing = pending.filter((change) => change.missing);
+  const changed = pending.filter(
+    (change) => !change.unreadable && !change.missing,
+  );
+  const unread = pending.filter(
+    (change) => change.unreadable && !change.missing,
+  );
+  const only_missing = missing.length > 0 && missing.length === pending.length;
 
   const summary = [
     changed.length > 0
@@ -87,6 +98,11 @@ export function KeyTrustChangePrompt(): React.ReactElement {
           recipients: unread.map((change) => change.email).join(", "),
         })
       : "",
+    missing.length > 0
+      ? t("common.key_trust_missing_message", {
+          recipients: missing.map((change) => change.email).join(", "),
+        })
+      : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -94,7 +110,11 @@ export function KeyTrustChangePrompt(): React.ReactElement {
   return (
     <ConfirmModal
       hide_dont_ask
-      confirm_text={t("common.key_trust_change_confirm")}
+      confirm_text={t(
+        missing.length > 0
+          ? "common.key_trust_missing_confirm"
+          : "common.key_trust_change_confirm",
+      )}
       confirm_variant="destructive"
       description={`${summary} ${details}`}
       dont_ask={false}
@@ -102,7 +122,11 @@ export function KeyTrustChangePrompt(): React.ReactElement {
       on_confirm={() => settle(true)}
       on_dont_ask_change={() => {}}
       show={changes !== null}
-      title={t("common.key_trust_change_title")}
+      title={t(
+        only_missing
+          ? "common.key_trust_missing_title"
+          : "common.key_trust_change_title",
+      )}
     />
   );
 }
