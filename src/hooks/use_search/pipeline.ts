@@ -53,6 +53,7 @@ import { create_work_slicer } from "@/lib/work_slicer";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import {
   bound_index_body,
+  is_purged_id,
   MAX_INDEX_BODY_CHARS,
   metadata_fingerprint,
   slim_envelope_for_index,
@@ -372,7 +373,9 @@ export async function run_index_pipeline(
       }
     }
 
-    page_items = filter_locked_mail_items(page_items);
+    page_items = filter_locked_mail_items(page_items).filter(
+      (item) => !is_purged_id(item.id),
+    );
 
     const envelope_by_id = incremental
       ? await fetch_envelopes(

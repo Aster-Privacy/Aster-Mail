@@ -41,6 +41,7 @@ import {
   type FlagIntents,
 } from "@/services/read_intent";
 import { ingest_unseen_reaction_flags } from "@/services/unseen_reactions";
+import { note_purged_mail } from "@/services/search/index_removals";
 import {
   note_own_mail_mutation,
   settle_own_mail_mutation,
@@ -616,6 +617,7 @@ export async function permanent_delete_mail_item(
   }>(`/mail/v1/messages/${item_id}/permanent`);
 
   settle_own_mail_mutation(own, !result.error);
+  if (!result.error) note_purged_mail({ ids: [item_id] });
 
   return result;
 }
@@ -639,6 +641,7 @@ export async function bulk_permanent_delete(
   );
 
   settle_own_mail_mutation(own, !result.error);
+  if (!result.error) note_purged_mail({ ids });
 
   return result;
 }
@@ -646,19 +649,27 @@ export async function bulk_permanent_delete(
 export async function empty_trash(): Promise<
   ApiResponse<{ success: boolean; deleted_count: number }>
 > {
-  return api_client.delete<{ success: boolean; deleted_count: number }>(
-    "/mail/v1/messages/trash",
-    { timeout: 120000 },
-  );
+  const result = await api_client.delete<{
+    success: boolean;
+    deleted_count: number;
+  }>("/mail/v1/messages/trash", { timeout: 120000 });
+
+  if (!result.error) note_purged_mail({ scope: "trash" });
+
+  return result;
 }
 
 export async function empty_spam(): Promise<
   ApiResponse<{ success: boolean; deleted_count: number }>
 > {
-  return api_client.delete<{ success: boolean; deleted_count: number }>(
-    "/mail/v1/messages/spam",
-    { timeout: 120000 },
-  );
+  const result = await api_client.delete<{
+    success: boolean;
+    deleted_count: number;
+  }>("/mail/v1/messages/spam", { timeout: 120000 });
+
+  if (!result.error) note_purged_mail({ scope: "spam" });
+
+  return result;
 }
 
 export type BulkScopeAction =

@@ -84,6 +84,7 @@ interface SearchIndexManifest {
   complete: boolean;
   total: number;
   include_body: boolean;
+  verified_at?: number;
 }
 
 export interface SearchIndexChunk {
@@ -99,6 +100,7 @@ export interface SnapshotMeta {
   complete: boolean;
   total: number;
   include_body: boolean;
+  verified_at?: number;
 }
 
 export interface PersistedSearchEntry {
@@ -566,6 +568,12 @@ export interface SnapshotWriter {
   lost_kept_chunks(): boolean;
 }
 
+function verified_at_of(record: { verified_at?: unknown } | null): number {
+  const at = record?.verified_at;
+
+  return typeof at === "number" && Number.isFinite(at) && at > 0 ? at : 0;
+}
+
 async function read_manifest(
   key: string,
   encryption_key: CryptoKey,
@@ -589,6 +597,7 @@ async function read_manifest(
     complete: !!record.complete,
     total: Number.isInteger(record.total) ? record.total : 0,
     include_body: !!record.include_body,
+    verified_at: verified_at_of(record),
   };
 }
 
@@ -944,6 +953,7 @@ export async function open_snapshot_writer(
         const entry = entries.get(item.id);
 
         if (!entry) continue;
+        if (purged_ids.has(item.id)) continue;
 
         buffer_items.push(trim_item_for_index(item));
         buffer_sources.push(entry);
@@ -1004,6 +1014,10 @@ export async function open_snapshot_writer(
           complete,
           total: written + (kept_total ?? 0),
           include_body,
+          verified_at:
+            kept.length === 0
+              ? saved_at
+              : verified_at_of(base ?? null) || verified_at_of(on_disk),
         };
 
         if (is_current && !is_current()) return await abandon();
@@ -1087,6 +1101,196 @@ export async function open_snapshot_writer(
       }
     },
   };
+}
+
+const PURGED_ID_LIMIT = 50_000;
+const purged_ids = new Set<string>();
+let purge_queue: Promise<unknown> = Promise.resolve();
+
+export function note_purged_ids(ids: string[]): void {
+  for (const id of ids) {
+    if (!id) continue;
+
+    purged_ids.delete(id);
+    purged_ids.add(id);
+  }
+
+  while (purged_ids.size > PURGED_ID_LIMIT) {
+    const oldest = purged_ids.values().next();
+
+    if (oldest.done) break;
+    purged_ids.delete(oldest.value);
+  }
+}
+
+export function is_purged_id(id: string): boolean {
+  return purged_ids.has(id);
+}
+
+export function forget_purged_ids(): void {
+  purged_ids.clear();
+}
+
+function is_current_manifest(
+  record: SearchIndexManifest | null,
+): record is SearchIndexManifest {
+  return (
+    !!record &&
+    record.version === MANIFEST_VERSION &&
+    Array.isArray(record.chunk_ids)
+  );
+}
+
+async function run_snapshot_purge(
+  should_drop: (item: MailItem) => boolean,
+  expected?: number,
+): Promise<string[]> {
+  const cleared_at_start = snapshot_clear_count;
+  const encryption_key = await get_snapshot_encryption_key();
+
+  if (!encryption_key) return [];
+
+  const key = await snapshot_key();
+  const manifest = await encrypted_get<SearchIndexManifest>(
+    key,
+    encryption_key,
+  );
+
+  if (!is_current_manifest(manifest)) return [];
+
+  const removed: string[] = [];
+
+  for (const chunk_id of manifest.chunk_ids) {
+    if (expected !== undefined && removed.length >= expected) break;
+    if (cleared_at_start !== snapshot_clear_count) break;
+
+    const record_key = chunk_record_key(key, chunk_id);
+    const chunk = await encrypted_get<SearchIndexChunk>(
+      record_key,
+      encryption_key,
+    );
+
+    if (!chunk || !Array.isArray(chunk.items) || !Array.isArray(chunk.entries))
+      continue;
+
+    const dropped = new Set<string>();
+
+    for (const item of chunk.items) {
+      if (should_drop(item)) dropped.add(item.id);
+    }
+
+    await yield_to_visible_page();
+
+    if (dropped.size === 0) continue;
+    if (cleared_at_start !== snapshot_clear_count) break;
+
+    const items = chunk.items.filter((item) => !dropped.has(item.id));
+    const kept_ids = new Set(items.map((item) => item.id));
+    const entry_by_id = new Map(chunk.entries.map((e) => [e.id, e]));
+    const entries: PersistedSearchEntry[] = [];
+    const aligned_items: MailItem[] = [];
+
+    for (const item of items) {
+      const entry = entry_by_id.get(item.id);
+
+      if (!entry || !kept_ids.has(entry.id)) continue;
+
+      aligned_items.push(item);
+      entries.push(entry);
+    }
+
+    const { plaintext, digest } = await serialize_chunk(aligned_items, entries);
+
+    await encrypted_set_plaintext(record_key, plaintext, encryption_key);
+    await encrypted_set(
+      gram_record_key(key, chunk_id),
+      digest.grams,
+      encryption_key,
+    );
+
+    const group_key = summary_group_key(key, summary_group_of(chunk_id));
+    const group = await encrypted_get<SummaryGroupRecord>(
+      group_key,
+      encryption_key,
+    );
+
+    await encrypted_set(
+      group_key,
+      {
+        summaries: {
+          ...(group?.summaries ?? {}),
+          [String(chunk_id)]: digest.summary,
+        },
+      } satisfies SummaryGroupRecord,
+      encryption_key,
+    );
+
+    for (const id of dropped) removed.push(id);
+  }
+
+  if (removed.length === 0) return removed;
+
+  invalidate_snapshot_caches();
+
+  const latest = await encrypted_get<SearchIndexManifest>(key, encryption_key);
+
+  if (is_current_manifest(latest) && cleared_at_start === snapshot_clear_count) {
+    await encrypted_set(
+      key,
+      {
+        ...latest,
+        total: Math.max(0, (latest.total ?? 0) - removed.length),
+      } satisfies SearchIndexManifest,
+      encryption_key,
+    );
+  }
+
+  return removed;
+}
+
+export function purge_snapshot_entries(
+  should_drop: (item: MailItem) => boolean,
+  expected?: number,
+): Promise<string[]> {
+  const run = purge_queue.then(() =>
+    run_snapshot_purge(should_drop, expected).catch((caught): string[] => {
+      ignore_error("services/search_index_store:purge", caught);
+
+      return [];
+    }),
+  );
+
+  purge_queue = run;
+
+  return run;
+}
+
+export async function stamp_snapshot_verified(at: number): Promise<boolean> {
+  try {
+    const encryption_key = await get_snapshot_encryption_key();
+
+    if (!encryption_key) return false;
+
+    const key = await snapshot_key();
+    const manifest = await encrypted_get<SearchIndexManifest>(
+      key,
+      encryption_key,
+    );
+
+    if (!is_current_manifest(manifest)) return false;
+
+    await encrypted_set(
+      key,
+      { ...manifest, verified_at: at } satisfies SearchIndexManifest,
+      encryption_key,
+    );
+
+    return true;
+  } catch (caught) {
+    ignore_error("services/search_index_store:stamp_verified", caught);
+
+    return false;
+  }
 }
 
 function snapshot_belongs_to(key: string, account_id: string): boolean {
