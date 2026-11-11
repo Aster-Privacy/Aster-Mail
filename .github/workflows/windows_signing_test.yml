@@ -9,12 +9,15 @@ permissions:
 
 jobs:
   sign-windows:
+    environment: release
     runs-on: windows-latest
     timeout-minutes: 75
     env:
       SIGNING_POLICY: test-signing
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -91,13 +94,16 @@ jobs:
           output-artifact-directory: signed/app_binary
 
       - name: Put the signed app binary back
+        env:
+          APP_BINARY_NAME: ${{ steps.app_binary.outputs.name }}
+          APP_BINARY_PATH: ${{ steps.app_binary.outputs.path }}
         shell: pwsh
         run: |
-          $signed = "signed/app_binary/${{ steps.app_binary.outputs.name }}"
+          $signed = "signed/app_binary/$env:APP_BINARY_NAME"
           $sig = Get-AuthenticodeSignature $signed
           if ($null -eq $sig.SignerCertificate) { throw "app binary came back without a signature" }
           Write-Host "app binary signer: $($sig.SignerCertificate.Subject) ($($sig.Status))"
-          Copy-Item $signed "${{ steps.app_binary.outputs.path }}" -Force
+          Copy-Item $signed "$env:APP_BINARY_PATH" -Force
 
       - name: Bundle the installers from the signed binary
         env:

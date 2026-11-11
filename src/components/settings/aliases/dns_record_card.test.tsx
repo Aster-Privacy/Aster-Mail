@@ -264,3 +264,86 @@ describe("DnsRecordCard long DKIM value", () => {
     expect(find_button(el, "Replace key")).toBeTruthy();
   });
 });
+
+describe("DnsRecordCard host names", () => {
+  function dmarc_record(overrides: Partial<DnsRecord> = {}): DnsRecord {
+    return {
+      record_type: "TXT",
+      host: "_dmarc",
+      value: "v=DMARC1; p=quarantine",
+      purpose: "dmarc",
+      is_verified: false,
+      ...overrides,
+    };
+  }
+
+  function host_text(el: HTMLElement) {
+    return el.querySelector("code")?.textContent;
+  }
+
+  it("renders an apex record as before", async () => {
+    const el = await render({
+      domain: "example.com",
+      record: dmarc_record({
+        zone: "example.com",
+        zone_host: "_dmarc",
+        fqdn: "_dmarc.example.com",
+      }),
+    });
+
+    expect(host_text(el)).toBe("_dmarc");
+    expect(el.querySelector('[data-testid="dns-host-zone-hint"]')).toBeNull();
+    expect(el.querySelector('[data-testid="dns-full-record-name"]')).toBeNull();
+    expect(el.textContent).not.toContain("_dmarc.example.com");
+  });
+
+  it("shows the zone-relative host and the full name for a subdomain", async () => {
+    const el = await render({
+      domain: "mail.example.com",
+      record: dmarc_record({
+        zone: "example.com",
+        zone_host: "_dmarc.mail",
+        fqdn: "_dmarc.mail.example.com",
+      }),
+    });
+
+    expect(host_text(el)).toBe("_dmarc.mail");
+    expect(
+      el.querySelector('[data-testid="dns-host-zone-hint"]'),
+    ).not.toBeNull();
+    expect(
+      el.querySelector('[data-testid="dns-full-record-name"] code')
+        ?.textContent,
+    ).toBe("_dmarc.mail.example.com");
+  });
+
+  it("never shows @ for the root record of a subdomain", async () => {
+    const el = await render({
+      domain: "mail.example.com",
+      record: dmarc_record({
+        record_type: "MX",
+        host: "@",
+        purpose: "mx",
+        zone: "example.com",
+        zone_host: "mail",
+        fqdn: "mail.example.com",
+      }),
+    });
+
+    expect(host_text(el)).toBe("mail");
+    expect(
+      el.querySelector('[data-testid="dns-full-record-name"] code')
+        ?.textContent,
+    ).toBe("mail.example.com");
+  });
+
+  it("keeps the domain-relative host when the server sends no zone", async () => {
+    const el = await render({
+      domain: "mail.example.com",
+      record: dmarc_record(),
+    });
+
+    expect(host_text(el)).toBe("_dmarc");
+    expect(el.querySelector('[data-testid="dns-host-zone-hint"]')).toBeNull();
+  });
+});

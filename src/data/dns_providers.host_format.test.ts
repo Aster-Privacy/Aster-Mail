@@ -22,6 +22,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   DNS_PROVIDERS,
+  describe_record_host,
   format_record_host,
   format_root_host,
   provider_dashboard_url,
@@ -93,6 +94,127 @@ describe("format_record_host", () => {
 
     expect(host).toBe("_dmarc.example.com");
     expect(host.split("example.com").length - 1).toBe(1);
+  });
+});
+
+describe("describe_record_host", () => {
+  const apex_dmarc = {
+    host: "_dmarc",
+    zone: "example.com",
+    zone_host: "_dmarc",
+    fqdn: "_dmarc.example.com",
+  };
+  const apex_root = {
+    host: "@",
+    zone: "example.com",
+    zone_host: "@",
+    fqdn: "example.com",
+  };
+  const subdomain_root = {
+    host: "@",
+    zone: "example.com",
+    zone_host: "mail",
+    fqdn: "mail.example.com",
+  };
+  const subdomain_dmarc = {
+    host: "_dmarc",
+    zone: "example.com",
+    zone_host: "_dmarc.mail",
+    fqdn: "_dmarc.mail.example.com",
+  };
+  const subdomain_dkim = {
+    host: "aster._domainkey",
+    zone: "example.co.uk",
+    zone_host: "aster._domainkey.mail",
+    fqdn: "aster._domainkey.mail.example.co.uk",
+  };
+
+  it("keeps apex records exactly as they render without zone fields", () => {
+    for (const id of ["cloudflare", "ovh", "route53"]) {
+      expect(
+        describe_record_host(apex_root, "example.com", provider(id)),
+      ).toEqual({
+        host: format_record_host("@", "example.com", provider(id)),
+        zone_relative_host: "@",
+        fqdn: null,
+        zone: null,
+      });
+      expect(
+        describe_record_host(apex_dmarc, "example.com", provider(id)).host,
+      ).toBe(format_record_host("_dmarc", "example.com", provider(id)));
+    }
+    expect(describe_record_host(apex_root, "example.com", null).host).toBe("@");
+  });
+
+  it("names subdomain records relative to the zone", () => {
+    expect(
+      describe_record_host(subdomain_root, "mail.example.com", null),
+    ).toEqual({
+      host: "mail",
+      zone_relative_host: "mail",
+      fqdn: "mail.example.com",
+      zone: "example.com",
+    });
+    expect(
+      describe_record_host(
+        subdomain_dmarc,
+        "mail.example.com",
+        provider("cloudflare"),
+      ),
+    ).toEqual({
+      host: "_dmarc.mail",
+      zone_relative_host: "_dmarc.mail",
+      fqdn: "_dmarc.mail.example.com",
+      zone: "example.com",
+    });
+    expect(
+      describe_record_host(
+        subdomain_dkim,
+        "mail.example.co.uk",
+        provider("godaddy"),
+      ).host,
+    ).toBe("aster._domainkey.mail");
+  });
+
+  it("never puts a subdomain record on the zone root", () => {
+    for (const candidate of [...DNS_PROVIDERS, null]) {
+      const root = describe_record_host(
+        subdomain_root,
+        "mail.example.com",
+        candidate,
+      ).host;
+      const dmarc = describe_record_host(
+        subdomain_dmarc,
+        "mail.example.com",
+        candidate,
+      ).host;
+
+      expect(["mail", "mail.example.com"]).toContain(root);
+      expect(["_dmarc.mail", "_dmarc.mail.example.com"]).toContain(dmarc);
+    }
+  });
+
+  it("uses the full name once for providers that need it", () => {
+    const names = describe_record_host(
+      subdomain_dmarc,
+      "mail.example.com",
+      provider("route53"),
+    );
+
+    expect(names.host).toBe("_dmarc.mail.example.com");
+    expect(names.host.split("example.com").length - 1).toBe(1);
+  });
+
+  it("falls back to the domain-relative host when zone fields are absent", () => {
+    expect(
+      describe_record_host({ host: "_dmarc" }, "mail.example.com", null),
+    ).toEqual({
+      host: "_dmarc",
+      zone_relative_host: "_dmarc",
+      fqdn: null,
+      zone: null,
+    });
+    expect(describe_record_host({ host: "@" }, undefined, null).host).toBe("@");
   });
 });
 

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, type MouseEvent } from "react";
+import { useState } from "react";
 import { Tooltip } from "@aster/ui";
 
 import {
@@ -37,15 +37,6 @@ const DOT_POSITIONS = [5, 12, 19];
 
 function is_desktop_shell(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-}
-
-function open_app_link(
-  event: MouseEvent<HTMLAnchorElement>,
-  href: string | null,
-) {
-  if (!href || !is_desktop_shell()) return;
-  event.preventDefault();
-  open_external(href);
 }
 
 function AppGridIcon() {
@@ -115,6 +106,7 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
     },
   ];
 
+  const desktop_shell = is_desktop_shell();
   const row_class =
     "flex cursor-pointer items-center gap-3 rounded-[10px] px-2.5 py-2 outline-none transition-colors duration-100 data-[highlighted]:bg-[var(--aster-hover)] focus-visible:bg-[var(--aster-hover)]";
 
@@ -169,20 +161,32 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
           sideOffset={8}
         >
           <div className="flex flex-col gap-0.5">
-            {apps.map((app) =>
-              app.href ? (
+            {apps.map((app) => {
+              const href = app.href;
+
+              if (href && desktop_shell) {
+                return (
+                  <DropdownMenuItem
+                    key={app.id}
+                    className={row_class}
+                    data-app-switcher-item={app.id}
+                    onSelect={() => {
+                      open_external(href);
+                    }}
+                  >
+                    {render_row(app)}
+                  </DropdownMenuItem>
+                );
+              }
+
+              return href ? (
                 <DropdownMenuItem
                   key={app.id}
                   asChild
                   className={row_class}
                   data-app-switcher-item={app.id}
                 >
-                  <a
-                    href={app.href}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    onClick={(event) => open_app_link(event, app.href)}
-                  >
+                  <a href={href} rel="noopener noreferrer" target="_blank">
                     {render_row(app)}
                   </a>
                 </DropdownMenuItem>
@@ -196,8 +200,8 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
                 >
                   {render_row(app)}
                 </DropdownMenuItem>
-              ),
-            )}
+              );
+            })}
           </div>
         </DropdownMenuContent>
       </DropdownMenu>
