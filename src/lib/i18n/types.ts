@@ -1424,6 +1424,8 @@ export interface CommonTranslations {
   dkim_short_key_wait: string;
   dns_host_leave_blank: string;
   dns_host_provider_hint: string;
+  dns_host_zone_hint: string;
+  dns_full_record_name: string;
   dns_propagation_note: string;
   post: string;
   link_copied: string;
@@ -8031,6 +8033,7 @@ export interface MailTranslations {
   subject_copied: string;
   load_all_thread_messages: string;
   load_external_content: string;
+  image_loading_settings: string;
   image: string;
   images: string;
   tracker: string;
@@ -8813,9 +8816,15 @@ export interface AuthTranslations {
   link_device_cancel: string;
   link_device_desktop: string;
   device_fingerprint: string;
-  device_code_verify_toggle: string;
-  link_device_fingerprint_hint: string;
-  device_code_fingerprint_hint: string;
+  device_fingerprint_copy: string;
+  link_device_grant_notice: string;
+  link_device_own_device_warning: string;
+  link_device_fingerprint_enter: string;
+  link_device_fingerprint_placeholder: string;
+  link_device_fingerprint_mismatch: string;
+  link_device_fingerprint_link_mismatch: string;
+  link_device_update_desktop: string;
+  device_code_fingerprint_required_hint: string;
   link_device_change_account: string;
   link_device_choose_account: string;
   link_device_choose_account_description: string;

@@ -175,6 +175,7 @@ describe("account bridge", () => {
       action: "link",
       code: "code_one",
       account_id: "acct_a",
+      fingerprint: "9B16 AF79 0A6A E2F2 55D3",
     });
 
     expect(first.ok).toBe(false);
@@ -184,6 +185,7 @@ describe("account bridge", () => {
       action: "link",
       code: "code_two",
       account_id: "acct_a",
+      fingerprint: "9B16 AF79 0A6A E2F2 55D3",
     });
 
     expect(second.error).toBe("rate_limited");

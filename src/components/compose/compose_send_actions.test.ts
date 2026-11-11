@@ -37,6 +37,7 @@ const remember_queued_send_draft = vi.fn();
 const forget_queued_send_draft = vi.fn();
 
 vi.mock("@/services/queued_send_drafts", () => ({
+  mark_queued_send_delivered: vi.fn(),
   remember_queued_send_draft: (...args: unknown[]) =>
     remember_queued_send_draft(...args),
   forget_queued_send_draft: (...args: unknown[]) =>
@@ -782,6 +783,62 @@ describe("undo and queued sends keep the draft until delivery", () => {
 
     expect(confirm_draft_deleted).toHaveBeenCalledTimes(1);
     expect(forget_queued_send_draft).toHaveBeenCalledWith("queue_s");
+  });
+
+  it("tracks a draft whose first save lands after the hand-off", async () => {
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_l" });
+    let resolve_draft: (draft: typeof kept) => void = () => {};
+    const await_kept_draft = () =>
+      new Promise<typeof kept>((resolve) => {
+        resolve_draft = resolve;
+      });
+
+    await execute_internal_send(
+      make_ctx({ get_kept_draft: () => null, await_kept_draft }),
+      email_data,
+    );
+
+    expect(remember_queued_send_draft).not.toHaveBeenCalledWith(
+      "queue_l",
+      "draft_1",
+    );
+
+    resolve_draft(kept);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(remember_queued_send_draft).toHaveBeenCalledWith(
+      "queue_l",
+      "draft_1",
+    );
+  });
+
+  it("does not track a late draft once the send has settled", async () => {
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_m" });
+    let resolve_draft: (draft: typeof kept) => void = () => {};
+    const await_kept_draft = () =>
+      new Promise<typeof kept>((resolve) => {
+        resolve_draft = resolve;
+      });
+
+    await execute_internal_send(
+      make_ctx({ get_kept_draft: () => null, await_kept_draft }),
+      email_data,
+    );
+
+    const callbacks = queue_email_to_server.mock.calls[0][2] as {
+      on_cancelled: () => void;
+    };
+
+    callbacks.on_cancelled();
+    resolve_draft(kept);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(remember_queued_send_draft).not.toHaveBeenCalledWith(
+      "queue_m",
+      "draft_1",
+    );
   });
 
   it("keeps the draft when a queued internal send is canceled or fails", async () => {

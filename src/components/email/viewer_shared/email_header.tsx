@@ -114,6 +114,7 @@ export function ViewerEmailHeader({
               has_pq_protection={has_pq_protection}
               has_recipient_key={has_recipient_key}
               is_external={is_external}
+              is_received={mail_item?.item_type === "received"}
               sender_verification={email.sender_verification}
               size={encryption_size}
             />

@@ -25,6 +25,11 @@ const mocks = vi.hoisted(() => ({
   emit_thread_reply_sent: vi.fn(),
   invalidate_mail_stats: vi.fn(),
   server_sends: [] as { queue_id: string }[],
+  settle_queued_send_drafts: vi.fn(async () => {}),
+}));
+
+vi.mock("@/services/queued_send_drafts", () => ({
+  settle_queued_send_drafts: mocks.settle_queued_send_drafts,
 }));
 
 vi.mock("@/hooks/mail_events", async (import_original) => ({
@@ -86,6 +91,14 @@ describe("restored undo sends after a reload", () => {
       thread_token: "thread_1",
       optimistic_id: "opt_q1",
     });
+  });
+
+  it("clears the kept draft when a restored send settles", async () => {
+    const mod = await load_module([stored_send("q1")]);
+
+    mod.handle_restored_send_settled("q1", "sent");
+
+    expect(mocks.settle_queued_send_drafts).toHaveBeenCalledTimes(1);
   });
 
   it("drops a cancelled restored send without refreshing", async () => {

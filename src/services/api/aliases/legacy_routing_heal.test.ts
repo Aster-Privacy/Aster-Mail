@@ -175,4 +175,26 @@ describe("heal_legacy_routing_hashes", () => {
     expect(changed).toBe(true);
     expect(post_mock).toHaveBeenCalledTimes(2);
   });
+
+  it("sends nothing that is not shaped like a local part", async () => {
+    const heal = await load_heal();
+    const texts = [
+      "a note. with more than an address in it",
+      "subject=a.b;body=c.d",
+      "line.one\nline.two",
+      `${"x".repeat(64)}.y`,
+    ];
+
+    for (const text of texts) {
+      decrypt_mock.mockResolvedValueOnce({
+        local_part: text,
+        decryption_failed: false,
+      });
+    }
+
+    const changed = await heal(texts.map((_, i) => make_alias(`t${i}`, "x")));
+
+    expect(changed).toBe(false);
+    expect(post_mock).not.toHaveBeenCalled();
+  });
 });

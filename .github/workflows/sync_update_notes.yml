@@ -10,7 +10,7 @@ on:
         required: true
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: sync-update-notes-${{ github.event.release.tag_name || inputs.tag }}
@@ -19,6 +19,8 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Copy the release body into the updater manifests
         env:

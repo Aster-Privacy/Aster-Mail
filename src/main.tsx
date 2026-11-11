@@ -59,6 +59,7 @@ import {
   use_mobile_experience,
 } from "@/hooks/use_mobile_experience";
 import { preload_initial_language } from "@/lib/i18n/context";
+import { preload_openpgp } from "@/services/crypto/openpgp_loader";
 import {
   app_pathname,
   resolve_account_basename,
@@ -69,7 +70,9 @@ import "@/styles/mobile.css";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
+import { watch_device_erase } from "@/lib/device_erase_latch";
 import { capture_support_return } from "@/lib/support_return";
+import { capture_link_commitment } from "@/lib/device_link_commitment";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
 const DesktopApp = lazy_with_retry(() => import("@/App"));
@@ -81,6 +84,19 @@ function warm_shell_chunk(): void {
     : () => import("@/App");
 
   load().catch((caught) => ignore_error("main:warm_shell_chunk", caught));
+}
+
+function warm_signed_in_chunks(): void {
+  if (!safe_local_get("aster_preferences_cache")) return;
+
+  const load = compute_is_mobile_experience()
+    ? () => import("@/pages/mobile/mobile_inbox")
+    : () => import("@/pages/index");
+
+  load().catch((caught) =>
+    ignore_error("main:warm_signed_in_chunks", caught),
+  );
+  preload_openpgp();
 }
 
 function warm_startup_route_chunk(): void {
@@ -105,6 +121,7 @@ const browser_supported = typeof window.crypto?.subtle === "object";
 
 if (browser_supported) {
   warm_shell_chunk();
+  warm_signed_in_chunks();
 }
 
 if (preload_initial_language()) {
@@ -114,6 +131,7 @@ if (preload_initial_language()) {
 start_input_modality_tracking();
 install_global_error_reporting();
 capture_support_return();
+capture_link_commitment(true);
 
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
@@ -153,6 +171,11 @@ if (low_network_on_startup) {
   document.head.appendChild(style);
 }
 show_self_xss_warning();
+watch_device_erase((signal) => {
+  void import("@/contexts/auth/purge_local_data")
+    .then((module) => module.follow_device_erase(signal))
+    .catch(() => window.location.replace("/"));
+});
 
 connection_store.initialize().catch((caught) => ignore_error("main", caught));
 

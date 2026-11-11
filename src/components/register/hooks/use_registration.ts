@@ -86,6 +86,7 @@ import {
 } from "@/services/crypto/ratchet_manager";
 import {
   save_recovery_email,
+  INVALID_RECOVERY_EMAIL_CODE,
   check_recovery_email_verified,
   resend_recovery_verification,
 } from "@/services/api/recovery_email";
@@ -1479,7 +1480,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
       if (!result.data.success) {
         set_recovery_email_error(
-          result.error || t("auth.failed_save_recovery_email"),
+          result.code === INVALID_RECOVERY_EMAIL_CODE
+            ? t("auth.please_enter_valid_email")
+            : result.error || t("auth.failed_save_recovery_email"),
         );
         set_is_saving_recovery_email(false);
         saving_recovery_email_ref.current = false;

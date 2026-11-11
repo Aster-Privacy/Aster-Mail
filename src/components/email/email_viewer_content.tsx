@@ -39,6 +39,10 @@ import {
 import { trust_recipient_identity } from "@/services/crypto/recipient_identity_check";
 import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
+import {
+  effective_remote_image_mode,
+  resolve_remote_content_preferences,
+} from "@/lib/remote_content_policy";
 import { pop_preloaded_cid } from "@/components/email/hooks/preload_cache";
 import {
   displayed_image_blocking_from_options,
@@ -213,9 +217,11 @@ export function EmailViewerContent({
     ? ("never" as const)
     : is_system
       ? ("always" as const)
-      : !preferences.block_external_content
-        ? ("always" as const)
-        : (external_content_mode_override ?? preferences.load_remote_images);
+      : (external_content_mode_override ??
+        effective_remote_image_mode(preferences));
+  const blocking_preferences = resolve_remote_content_preferences(preferences);
+  const load_requested =
+    force_load_content || external_content_mode_override === "always";
 
   const preloaded_is_renderable = useMemo(
     () =>
@@ -234,37 +240,34 @@ export function EmailViewerContent({
   const content_sanitize_options = useMemo(() => {
     const resolved_blocking = resolve_content_blocking({
       lockdown_active,
-      load_remote_content: force_load_content,
+      load_remote_content: load_requested,
       preferences: {
-        block_remote_images: preferences.block_remote_images,
-        block_remote_fonts: preferences.block_remote_fonts,
-        block_remote_css: preferences.block_remote_css,
-        block_tracking_pixels: preferences.block_tracking_pixels,
+        block_remote_images: blocking_preferences.block_remote_images,
+        block_remote_fonts: blocking_preferences.block_remote_fonts,
+        block_remote_css: blocking_preferences.block_remote_css,
+        block_tracking_pixels: blocking_preferences.block_tracking_pixels,
       },
     });
 
     return {
       external_content_mode: lockdown_active
         ? ("never" as const)
-        : force_load_content
+        : load_requested
           ? ("always" as const)
           : effective_content_mode,
       lockdown_mode: lockdown_active,
       content_blocking:
-        !is_system && preferences.block_external_content
-          ? resolved_blocking
-          : undefined,
+        is_system && !lockdown_active ? undefined : resolved_blocking,
     };
   }, [
     effective_content_mode,
     lockdown_active,
-    force_load_content,
+    load_requested,
     is_system,
-    preferences.block_external_content,
-    preferences.block_remote_images,
-    preferences.block_remote_fonts,
-    preferences.block_remote_css,
-    preferences.block_tracking_pixels,
+    blocking_preferences.block_remote_images,
+    blocking_preferences.block_remote_fonts,
+    blocking_preferences.block_remote_css,
+    blocking_preferences.block_tracking_pixels,
   ]);
 
   use_record_displayed_image_blocking(

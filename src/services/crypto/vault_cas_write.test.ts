@@ -113,6 +113,7 @@ import {
   clear_vault_from_memory,
   get_vault_from_memory,
 } from "./memory_key_store";
+import { all_retired_kek_values } from "./retired_identity_keks";
 import {
   MAX_VAULT_CONFLICT_RETRIES,
   merge_vault_for_write,
@@ -124,6 +125,7 @@ const USER_ID = "11111111-2222-4333-8444-555555555555";
 const LONG_TEST = { timeout: 120000 };
 const RANDOM_KEK = "cmFuZG9tLWRhdGEta2VrLWZvci10ZXN0cy0wMDAwMDA=";
 const WEAK_KEK = "cGFzc3dvcmQtZGVyaXZlZC1rZWstZm9yLXRlc3RzMDA=";
+const [RETIRED_TAGS_KEK] = all_retired_kek_values();
 
 function base_vault(): EncryptedVault {
   return {
@@ -234,6 +236,67 @@ describe("merge_vault_for_write", () => {
 
     expect(merged.ratchet_identity_public).toBe("server-ratchet");
     expect(merged.recovery_codes).toEqual(["a", "b"]);
+  });
+
+  it("does not bring back a retired kek another writer removed", () => {
+    const stale_kek = { k: RETIRED_TAGS_KEK, added_at: "2026-09-27" };
+    const local = { ...stale_local_vault(), legacy_keks: [stale_kek] };
+    const merged = merge_vault_for_write(random_server_vault(), local, {
+      ...local,
+      recovery_codes: ["a"],
+    });
+
+    expect(merged.recovery_codes).toEqual(["a"]);
+    expect(merged.legacy_keks?.map((entry) => entry.k)).toEqual([WEAK_KEK]);
+  });
+
+  it("leaves no kek list when the only stale entry is a removed retired kek", () => {
+    const stale_kek = { k: RETIRED_TAGS_KEK, added_at: "2026-09-27" };
+    const local = { ...stale_local_vault(), legacy_keks: [stale_kek] };
+    const server_copy = random_server_vault();
+
+    delete server_copy.legacy_keks;
+
+    const merged = merge_vault_for_write(server_copy, local, { ...local });
+
+    expect(merged.legacy_keks).toBeUndefined();
+  });
+
+  it("adds a retired kek the caller introduced in this write", () => {
+    const local = stale_local_vault();
+    const merged = merge_vault_for_write(random_server_vault(), local, {
+      ...local,
+      legacy_keks: [{ k: RETIRED_TAGS_KEK, added_at: "2026-11-02" }],
+    });
+
+    expect(merged.legacy_keks?.map((entry) => entry.k)).toEqual([
+      WEAK_KEK,
+      RETIRED_TAGS_KEK,
+    ]);
+  });
+
+  it("still restores a real kek the server copy is missing", () => {
+    const real_kek = { k: "cmVhbC1rZWs=", added_at: "2026-09-27" };
+    const local = { ...stale_local_vault(), legacy_keks: [real_kek] };
+    const merged = merge_vault_for_write(random_server_vault(), local, {
+      ...local,
+    });
+
+    expect(merged.legacy_keks?.map((entry) => entry.k)).toEqual([
+      WEAK_KEK,
+      "cmVhbC1rZWs=",
+    ]);
+  });
+
+  it("keeps every kek of a writer that has no base copy", () => {
+    const stale_kek = { k: RETIRED_TAGS_KEK, added_at: "2026-09-27" };
+    const local = { ...stale_local_vault(), legacy_keks: [stale_kek] };
+    const merged = merge_vault_for_write(random_server_vault(), null, local);
+
+    expect(merged.legacy_keks?.map((entry) => entry.k)).toEqual([
+      WEAK_KEK,
+      RETIRED_TAGS_KEK,
+    ]);
   });
 });
 

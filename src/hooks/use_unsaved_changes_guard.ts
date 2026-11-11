@@ -20,11 +20,14 @@
 //
 import { useEffect } from "react";
 
+import { device_traces_erased } from "@/lib/device_erase_latch";
+
 export function use_unsaved_changes_guard(is_dirty: boolean) {
   useEffect(() => {
     if (!is_dirty) return;
 
     const on_before_unload = (event: BeforeUnloadEvent) => {
+      if (device_traces_erased()) return;
       event.preventDefault();
       event.returnValue = "";
     };

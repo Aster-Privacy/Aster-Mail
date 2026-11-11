@@ -28,6 +28,13 @@ vi.mock("@/services/reaction_actions", () => ({
   remove_reaction: (...args: unknown[]) => remove_reaction(...args),
 }));
 
+const latch = vi.hoisted(() => ({ erased: false }));
+
+vi.mock("@/lib/device_erase_latch", async (original) => ({
+  ...(await original<typeof import("@/lib/device_erase_latch")>()),
+  device_traces_erased: () => latch.erased,
+}));
+
 const { hold_reaction } = await import("@/services/held_reactions");
 
 const message = { id: "msg_1" } as never;
@@ -51,7 +58,29 @@ describe("held reactions", () => {
   });
 
   afterEach(() => {
+    latch.erased = false;
     vi.useRealTimers();
+  });
+
+  it("neither asks nor sends at unload once this device was erased", () => {
+    const held = hold_reaction({
+      message,
+      emoji: "👍",
+      delay_ms: 5000,
+      on_result: vi.fn(),
+    });
+
+    latch.erased = true;
+
+    const event = new Event("beforeunload", { cancelable: true });
+
+    window.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(send_reaction).not.toHaveBeenCalled();
+
+    latch.erased = false;
+    void held.undo();
   });
 
   it("waits for the undo window before sending", async () => {

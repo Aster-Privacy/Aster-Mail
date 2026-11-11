@@ -26,6 +26,7 @@ import type {} from "@/services/api/signatures";
 import type {} from "@/services/api/templates";
 import type {} from "@/services/api/blocked_senders";
 import type {} from "@/services/api/allowed_senders";
+import { base64_to_array } from "../base64";
 import { re_encrypt_field_with_candidates } from "../reencrypt_shared";
 
 export async function import_aes_key(
@@ -74,6 +75,67 @@ export async function re_encrypt_field(
     [old_key],
     new_key,
   );
+}
+
+export type FieldMove =
+  | { state: "moved"; encrypted: string; nonce: string }
+  | { state: "current" }
+  | { state: "unreadable" };
+
+export async function move_field(
+  enc_b64: string,
+  nonce_b64: string,
+  old_key: CryptoKey,
+  new_key: CryptoKey,
+): Promise<FieldMove> {
+  try {
+    const moved = await re_encrypt_field(enc_b64, nonce_b64, old_key, new_key);
+
+    return { state: "moved", ...moved };
+  } catch {
+    try {
+      await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: base64_to_array(nonce_b64) },
+        new_key,
+        base64_to_array(enc_b64),
+      );
+
+      return { state: "current" };
+    } catch {
+      return { state: "unreadable" };
+    }
+  }
+}
+
+export async function move_item_fields<T>(
+  item: T,
+  fields: FieldPair[],
+  old_key: CryptoKey,
+  new_key: CryptoKey,
+): Promise<Record<string, string>> {
+  const source = item as Record<string, string | null | undefined>;
+  const patch: Record<string, string> = {};
+
+  for (const [encrypted_field, nonce_field] of fields) {
+    const encrypted_value = source[encrypted_field];
+    const nonce_value = source[nonce_field];
+
+    if (!encrypted_value || !nonce_value) continue;
+
+    const moved = await move_field(
+      encrypted_value,
+      nonce_value,
+      old_key,
+      new_key,
+    );
+
+    if (moved.state !== "moved") continue;
+
+    patch[encrypted_field] = moved.encrypted;
+    patch[nonce_field] = moved.nonce;
+  }
+
+  return patch;
 }
 
 export type FieldPair = [encrypted_field: string, nonce_field: string];
@@ -145,7 +207,7 @@ export async function identity_scoped_key_pair(
       new_raw_hash,
       { name: "AES-GCM", length: 256 },
       false,
-      ["encrypt"],
+      ["encrypt", "decrypt"],
     ),
   ]);
 
@@ -158,17 +220,20 @@ export async function re_encrypt_identity_scoped_setting(
   [encrypted_field, nonce_field]: FieldPair,
   old_identity_key: string,
   new_identity_key: string,
-): Promise<void> {
-  if (old_identity_key === new_identity_key) return;
+): Promise<boolean> {
+  if (old_identity_key === new_identity_key) return true;
 
-  const resp = await api_client.get<Record<string, string | null>>(endpoint);
+  const resp = await api_client.get<Record<string, string | null>>(endpoint, {
+    skip_cache: true,
+  });
 
-  if (resp.error || !resp.data) return;
+  if (resp.error) return false;
+  if (!resp.data) return true;
 
   const encrypted_value = resp.data[encrypted_field];
   const nonce_value = resp.data[nonce_field];
 
-  if (!encrypted_value || !nonce_value) return;
+  if (!encrypted_value || !nonce_value) return true;
 
   const { old_key, new_key } = await identity_scoped_key_pair(
     old_identity_key,
@@ -176,15 +241,19 @@ export async function re_encrypt_identity_scoped_setting(
     suffix,
   );
 
-  const { encrypted, nonce } = await re_encrypt_field(
+  const moved = await move_field(
     encrypted_value,
     nonce_value,
     old_key,
     new_key,
   );
 
-  await api_client.put(endpoint, {
-    [encrypted_field]: encrypted,
-    [nonce_field]: nonce,
+  if (moved.state !== "moved") return true;
+
+  const saved = await api_client.put(endpoint, {
+    [encrypted_field]: moved.encrypted,
+    [nonce_field]: moved.nonce,
   });
+
+  return !saved.error;
 }

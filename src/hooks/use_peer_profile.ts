@@ -29,6 +29,7 @@ import {
   type PublicProfile,
 } from "@/services/api/profiles";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_lockdown_active } from "@/hooks/use_lockdown_active";
 import {
   get_local_address_avatar,
   subscribe_local_address_avatars,
@@ -51,7 +52,12 @@ export function use_peer_profile(
   const { preferences } = use_preferences();
   const low_network = preferences.low_network_mode;
   const normalized = email ? email.trim().toLowerCase() : "";
-  const enabled = !low_network && !!normalized && is_aster_email(normalized);
+  const lockdown_active = use_lockdown_active();
+  const enabled =
+    !low_network &&
+    !lockdown_active &&
+    !!normalized &&
+    is_aster_email(normalized);
   const read_cache = () => {
     if (!enabled) return null;
 

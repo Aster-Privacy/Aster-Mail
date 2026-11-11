@@ -66,6 +66,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import {
   get_recovery_email,
   save_recovery_email,
+  INVALID_RECOVERY_EMAIL_CODE,
   resend_recovery_verification,
   remove_recovery_email,
   normalize_recovery_email,
@@ -396,6 +397,9 @@ export function AccountSection({
     if (r.code === "CONFLICT") {
       throw new Error(r.error || t("common.recovery_conflict"));
     }
+    if (r.code === INVALID_RECOVERY_EMAIL_CODE) {
+      throw new Error(t("common.enter_valid_email"));
+    }
     if (r.error || !r.data?.success) {
       throw new Error(r.error || t("common.failed_to_save"));
     }
@@ -419,6 +423,9 @@ export function AccountSection({
 
       if (r.code === "CONFLICT") {
         throw new Error(r.error || t("common.recovery_conflict"));
+      }
+      if (r.code === INVALID_RECOVERY_EMAIL_CODE) {
+        throw new Error(t("common.enter_valid_email"));
       }
       if (r.error || !r.data?.success) {
         throw new Error(r.error || t("common.step_up_error"));

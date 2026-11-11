@@ -23,6 +23,7 @@ import type { EncryptedVault } from "./key_manager";
 import type { ApiResponse } from "@/services/api/client/helpers";
 
 import { decrypt_vault, encrypt_vault } from "./key_manager";
+import { is_retired_kek } from "./retired_identity_keks";
 import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
@@ -88,6 +89,29 @@ export interface VaultWriteRequest {
   owns_storage_key?: boolean;
   snapshot?: ServerVaultSnapshot;
   max_conflict_retries?: number;
+  drop_legacy_keks?: string[];
+}
+
+function without_dropped_keks(
+  vault: EncryptedVault,
+  dropped: string[] | undefined,
+): EncryptedVault {
+  if (!dropped?.length || !vault.legacy_keks?.length) return vault;
+
+  const removed = new Set(dropped);
+  const kept = vault.legacy_keks.filter((entry) => !removed.has(entry.k));
+
+  if (kept.length === vault.legacy_keks.length) return vault;
+
+  const next: EncryptedVault = { ...vault };
+
+  if (kept.length) {
+    next.legacy_keks = kept;
+  } else {
+    delete next.legacy_keks;
+  }
+
+  return next;
 }
 
 export type VaultWriteResult =
@@ -130,18 +154,27 @@ function storage_key_fields_match(
 
 function merge_legacy_keks(
   server: EncryptedVault["legacy_keks"],
+  base: EncryptedVault["legacy_keks"] | null,
   next: EncryptedVault["legacy_keks"],
 ): EncryptedVault["legacy_keks"] {
   const merged = [...(server ?? [])];
   const seen = new Set(merged.map((entry) => entry.k));
+  const carried = new Set((base ?? []).map((entry) => entry.k));
+  let withheld = false;
 
   for (const entry of next ?? []) {
     if (seen.has(entry.k)) continue;
+    if (base !== null && carried.has(entry.k) && is_retired_kek(entry.k)) {
+      withheld = true;
+      continue;
+    }
     seen.add(entry.k);
     merged.push(entry);
   }
 
-  return merged.length ? merged : (server ?? next);
+  if (merged.length) return merged;
+
+  return server ?? (withheld ? undefined : next);
 }
 
 export function merge_vault_for_write(
@@ -175,7 +208,11 @@ export function merge_vault_for_write(
     }
   }
 
-  const legacy_keks = merge_legacy_keks(server.legacy_keks, next.legacy_keks);
+  const legacy_keks = merge_legacy_keks(
+    server.legacy_keks,
+    base ? base.legacy_keks : null,
+    next.legacy_keks,
+  );
 
   if (legacy_keks) merged.legacy_keks = legacy_keks;
 
@@ -334,14 +371,17 @@ async function write_once(
     return { status: "superseded", vault: server };
   }
 
-  const merged = server
-    ? merge_vault_for_write(
-        server,
-        base,
-        request.next,
-        request.owns_storage_key === true,
-      )
-    : request.next;
+  const merged = without_dropped_keks(
+    server
+      ? merge_vault_for_write(
+          server,
+          base,
+          request.next,
+          request.owns_storage_key === true,
+        )
+      : request.next,
+    request.drop_legacy_keks,
+  );
   const vault_key_fingerprints = await collect_vault_key_fingerprints(merged);
   const vault_format = Math.max(
     merged.vault_format ?? 1,

@@ -35,6 +35,7 @@ import {
 } from "./memory_key_store";
 import { array_to_base64, base64_to_array } from "./base64";
 import { get_legacy_crypto_keys } from "./legacy_keks";
+import { without_retired_keks } from "./retired_identity_keks";
 import {
   decrypt_with_candidates,
   re_encrypt_field_with_candidates as re_encrypt_field,
@@ -201,7 +202,7 @@ async function build_old_key_candidates(
 
   const encoded_material = [
     ...(material?.data_kek ? [material.data_kek] : []),
-    ...(material?.legacy_keks ?? []).map((entry) => entry.k),
+    ...without_retired_keks(material?.legacy_keks).map((entry) => entry.k),
   ];
 
   for (const encoded of encoded_material) {

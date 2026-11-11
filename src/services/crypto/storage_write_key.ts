@@ -22,6 +22,7 @@ import type { EncryptedVault } from "./key_manager_core";
 
 import { array_to_base64, base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
+import { without_retired_keks } from "./retired_identity_keks";
 import { prepend_keks_keeping_all } from "./legacy_keks";
 import {
   derive_encryption_key_from_passphrase,
@@ -294,7 +295,7 @@ export function collect_storage_lookup_keys(
   }
 
   if (scope === "all" || (pending && prior_keys.length === 0)) {
-    for (const entry of vault.legacy_keks ?? []) {
+    for (const entry of without_retired_keks(vault.legacy_keks)) {
       add(entry.k);
     }
   }

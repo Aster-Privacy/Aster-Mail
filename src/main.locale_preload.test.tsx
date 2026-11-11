@@ -64,6 +64,21 @@ vi.mock("@/pages/register", () => {
 
   return { default: () => null };
 });
+vi.mock("@/pages/index", () => {
+  events.push("chunk:index");
+
+  return { default: () => null };
+});
+vi.mock("@/pages/mobile/mobile_inbox", () => {
+  events.push("chunk:mobile_inbox");
+
+  return { default: () => null };
+});
+vi.mock("@/services/crypto/openpgp_loader", () => ({
+  preload_openpgp: () => {
+    events.push("preload:openpgp");
+  },
+}));
 vi.mock("@/provider", () => ({
   Provider: ({ children }: { children: unknown }) => children,
 }));
@@ -171,5 +186,58 @@ describe("startup locale preload", { timeout: 120_000 }, () => {
     await flush_imports();
 
     expect(events).toEqual(["load:nl", "render"]);
+  });
+});
+
+describe("startup signed-in preload", { timeout: 120_000 }, () => {
+  const chunk_events = () =>
+    events.filter(
+      (event) => event.startsWith("chunk:") || event.startsWith("preload:"),
+    );
+
+  it("fetches the inbox page and the crypto library alongside the shell", async () => {
+    localStorage.setItem("aster_preferences_cache", "{}");
+    await boot_with("en");
+    await vi.waitFor(() => expect(events).toContain("chunk:index"), {
+      timeout: 20_000,
+    });
+
+    expect(events.indexOf("preload:openpgp")).toBeLessThan(
+      events.indexOf("render"),
+    );
+    expect(chunk_events().sort()).toEqual(["chunk:index", "preload:openpgp"]);
+  });
+
+  it("fetches the mobile inbox instead on phones", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile",
+    );
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(390);
+    localStorage.setItem("aster_preferences_cache", "{}");
+    await boot_with("en");
+    await vi.waitFor(() => expect(events).toContain("chunk:mobile_inbox"), {
+      timeout: 20_000,
+    });
+
+    expect(events).toContain("preload:openpgp");
+    expect(events).not.toContain("chunk:index");
+  });
+
+  it("fetches nothing extra for a visitor with no stored preferences", async () => {
+    await boot_with("en");
+    await flush_imports();
+
+    expect(chunk_events()).toEqual([]);
+  });
+
+  it("still starts when storage holds unreadable preferences", async () => {
+    localStorage.setItem("aster_preferences_cache", "not json");
+    await boot_with("en");
+    await flush_imports();
+
+    expect(events.filter((event) => event !== "chunk:index")).toEqual([
+      "preload:openpgp",
+      "render",
+    ]);
   });
 });

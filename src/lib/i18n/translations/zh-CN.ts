@@ -1793,6 +1793,8 @@ export const zh_CN = {
     upgrade_tooltip: "获得更多存储空间、别名和自定义域名",
     dns_host_leave_blank: "留空",
     dns_host_provider_hint: "{{provider}} 的主机字段使用此格式。请完全照抄。",
+    dns_host_zone_hint: "此主机名相对于 {{zone}}，即您管理 DNS 记录的域名。",
+    dns_full_record_name: "完整记录名称",
     purchase_congrats_title: "恭喜",
     recipient_key_outdated: "收件人的密钥已过期",
     recipient_key_outdated_desc:
@@ -4319,7 +4321,7 @@ export const zh_CN = {
     "connection.tor_snowflake_description": "使用 Snowflake 桥接以抵抗审查",
     "connection.cdn_relay": "CDN 中继",
     "connection.cdn_relay_description":
-      "请求在到达 Aster 之前会经过全球 CDN 路由。您的 IP 地址对 Aster 保持隐藏，流量也会与常规 CDN 流量混在一起。",
+      "请求在到达 Aster 服务器之前，会经过 Aster 在 Cloudflare 上运行的中继。在您的网络看来，这些流量与常规 CDN 流量一样，这在 Aster 被屏蔽的地方可能有帮助。Aster 仍然可以看到您的 IP 地址。如需对 Aster 隐藏 IP 地址，请使用 Tor。",
     "connection.status_connected": "已连接",
     "connection.status_connecting": "连接中...",
     "connection.status_error": "连接已断开，我们正在自动重试。",
@@ -4349,7 +4351,7 @@ export const zh_CN = {
     tlsrpt_record: "TLS-RPT 记录",
     tlsrpt_description:
       "可选但建议添加。当发往您域名的加密投递失败时，接收服务器会每天发送一份摘要，让您比用户更早发现问题。",
-    dns_instruction_set_tlsrpt_host: "将主机设为 _smtp._tls",
+    dns_instruction_set_tlsrpt_host: "将下方显示的主机名复制到主机字段",
     dns_instruction_set_tlsrpt_value: "按显示内容原样粘贴 TLS-RPT 值",
     optional_step: "可选",
     gmail_import: "Gmail",
@@ -4687,7 +4689,7 @@ export const zh_CN = {
     dns_instruction_merge_spf:
       "如果您已有 SPF 记录，请将 include: 指令添加到现有记录中",
     dns_instruction_set_dkim: "将值设置为下方显示的 DKIM 密钥",
-    dns_instruction_set_dmarc_host: "将主机设置为 _dmarc（不要包含您的域名）",
+    dns_instruction_set_dmarc_host: "将下方显示的主机名复制到主机字段",
     dns_instruction_set_dmarc_value: "将值设置为下方显示的 DMARC 策略",
     edit_external_account: "编辑外部账户",
     add_external_account: "添加外部账户",
@@ -8635,6 +8637,7 @@ export const zh_CN = {
     new_reaction: "新回应",
     download_file_named: "下载 {{ filename }}",
     load_external_content: "加载外部内容",
+    image_loading_settings: "图片设置",
     image: "图片",
     images: "图片",
     tracker: "追踪器",
@@ -9285,23 +9288,33 @@ export const zh_CN = {
     device_code_waiting: "等待确认中",
     device_code_expires_in: "过期时间",
     link_device_title: "关联设备",
-    link_device_enter_code: "输入桌面应用上显示的验证码。",
+    link_device_enter_code: "输入要关联的应用中显示的关联码。",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "继续",
     link_device_confirm_prompt: "您要将此设备关联到您的账户吗？",
     link_device_confirm_button: "关联设备",
     link_device_confirming: "正在关联设备...",
     link_device_cancel: "取消",
-    link_device_desktop: "桌面应用",
-    device_fingerprint: "验证码",
-    device_code_verify_toggle: "验证此设备",
-    link_device_fingerprint_hint:
-      "如果桌面应用显示了验证码，请在关联设备之前确认它与此验证码一致。",
-    device_code_fingerprint_hint:
-      "关联设备之前，浏览器会显示相同的验证码。如果两个验证码不一致，请不要关联设备。",
+    link_device_desktop: "新设备",
+    device_fingerprint: "设备指纹",
+    device_fingerprint_copy: "复制设备指纹",
+    link_device_grant_notice:
+      "关联后，{{device}} 上的应用将获得对 {{email}} 的完全访问权限，包括你的邮件和加密密钥。",
+    link_device_own_device_warning:
+      "仅当你是在自己设备上的 Aster 应用中发起此操作时才继续。如果此代码是别人提供给你的，请不要关联设备。",
+    link_device_fingerprint_enter: "输入要关联的应用中显示的设备指纹。有些应用将其称为验证码。",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "这与此关联码对应的设备不匹配。请与要关联的应用逐个字符比对，然后重试。如果仍不匹配，请勿关联设备。",
+    link_device_fingerprint_link_mismatch:
+      "打开此页面的链接属于另一台设备，与此关联码对应的设备不同，因此你无法在此关联设备。请在要关联的应用中获取新代码，然后重试。",
+    link_device_update_desktop:
+      "如果应用未显示设备指纹，请在应用中选择“验证此设备”。如果应用没有该选项，请更新应用，然后重试。",
+    device_code_fingerprint_required_hint:
+      "浏览器在关联设备之前会要求输入此设备指纹。",
     link_device_change_account: "切换账号",
     link_device_choose_account: "选择账号",
-    link_device_choose_account_description: "以关联桌面应用",
+    link_device_choose_account_description: "以关联新设备",
     link_device_choose_account_note:
       "您的加密密钥在设备之间传输时始终保持加密状态。",
     link_device_use_another_account: "使用其他账号",
@@ -9311,10 +9324,10 @@ export const zh_CN = {
     hub_account_password_required: "需要密码",
     hub_account_link_failed: "要继续使用此账户，请输入其密码。",
     link_device_success: "设备已关联",
-    link_device_success_description: "您的桌面应用已关联。您可以关闭此标签页。",
+    link_device_success_description: "你的设备已关联。你可以关闭此标签页。",
     link_device_invalid_code: "关联码为 8 个字符。请检查关联码后重试。",
     link_device_expired_code:
-      "此验证码已过期或不匹配。桌面应用上有最新的验证码。",
+      "此代码已过期或不匹配。要关联的应用中显示的是最新的代码。",
     link_device_failed:
       "关联未能完成。重新开始通常可以解决。您的账户未发生变化。",
     link_keys_locked_title: "您的密钥环已锁定",

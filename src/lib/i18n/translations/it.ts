@@ -1930,6 +1930,9 @@ export const it = {
     dns_host_leave_blank: "Lascia vuoto",
     dns_host_provider_hint:
       "{{provider}} usa questo formato per il campo host. Copialo esattamente come mostrato.",
+    dns_host_zone_hint:
+      "Questo nome host è relativo a {{zone}}, il dominio in cui gestisci i record DNS.",
+    dns_full_record_name: "Nome completo del record",
     purchase_congrats_title: "Congratulazioni",
     recipient_key_outdated: "La chiave del destinatario non è aggiornata",
     recipient_key_outdated_desc:
@@ -6090,7 +6093,7 @@ export const it = {
       "Usa i bridge Snowflake per la resistenza alla censura",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Le richieste passano attraverso una CDN globale prima di raggiungere Aster. Il tuo indirizzo IP resta nascosto ad Aster e il traffico si confonde con il normale traffico CDN.",
+      "Le richieste passano attraverso un relay che Aster gestisce su Cloudflare prima di raggiungere i server di Aster. Per la tua rete, il traffico ha l'aspetto del normale traffico CDN, il che può aiutare dove Aster è bloccato. Aster vede comunque il tuo indirizzo IP. Per nasconderlo ad Aster, usa Tor.",
     "connection.status_connected": "Connesso",
     "connection.status_connecting": "Connessione...",
     "connection.status_error":
@@ -6119,7 +6122,8 @@ export const it = {
     tlsrpt_record: "Record TLS-RPT",
     tlsrpt_description:
       "Facoltativo ma consigliato. I server riceventi ti inviano un riepilogo giornaliero quando la consegna cifrata al tuo dominio fallisce, cosi noti i problemi prima dei tuoi utenti.",
-    dns_instruction_set_tlsrpt_host: "Imposta l'host su _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Copia il nome host mostrato qui sotto nel campo host",
     dns_instruction_set_tlsrpt_value:
       "Incolla il valore TLS-RPT esattamente come mostrato",
     optional_step: "Facoltativo",
@@ -6514,7 +6518,7 @@ export const it = {
     dns_instruction_set_dkim:
       "Imposta il valore sulla chiave DKIM mostrata di seguito",
     dns_instruction_set_dmarc_host:
-      "Imposta l'host su _dmarc (senza includere il tuo dominio)",
+      "Copia il nome host mostrato qui sotto nel campo host",
     dns_instruction_set_dmarc_value:
       "Imposta il valore sul criterio DMARC mostrato di seguito",
     edit_external_account: "Modifica account esterno",
@@ -9777,6 +9781,7 @@ export const it = {
     received_via_alias: "consegnato al tuo alias {{ address }}",
     new_reaction: "Nuova reazione",
     load_external_content: "Carica contenuto esterno",
+    image_loading_settings: "Impostazioni immagini",
     image: "immagine",
     images: "immagini",
     tracker: "tracker",
@@ -10486,25 +10491,37 @@ export const it = {
     link_device_confirm_prompt:
       "Vuoi collegare questo dispositivo al tuo account?",
     link_device_confirming: "Collegamento dispositivo...",
-    link_device_desktop: "App desktop",
-    device_fingerprint: "Codice di verifica",
-    device_code_verify_toggle: "Verifica questo dispositivo",
-    link_device_fingerprint_hint:
-      "Se la tua app desktop mostra un codice di verifica, verifica che corrisponda a questo prima di collegare il dispositivo.",
-    device_code_fingerprint_hint:
-      "Il browser mostra lo stesso codice di verifica prima di collegare il dispositivo. Se i due codici non corrispondono, non collegare il dispositivo.",
+    link_device_desktop: "Nuovo dispositivo",
+    device_fingerprint: "Impronta digitale del dispositivo",
+    device_fingerprint_copy: "Copia impronta digitale del dispositivo",
+    link_device_grant_notice:
+      "Il collegamento dà all'app su {{device}} accesso completo a {{email}}, inclusi la tua posta e le tue chiavi di crittografia.",
+    link_device_own_device_warning:
+      "Continua solo se hai avviato questa operazione in un'app Aster sul tuo dispositivo. Se questo codice ti è stato dato da un'altra persona, non collegare il dispositivo.",
+    link_device_fingerprint_enter:
+      "Inserisci l'impronta digitale del dispositivo mostrata nell'app che stai collegando. Alcune app la chiamano codice di verifica.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Non corrisponde al dispositivo di questo codice di collegamento. Confronta ogni carattere con l'app che stai collegando, poi riprova. Se continua a non corrispondere, non collegare il dispositivo.",
+    link_device_fingerprint_link_mismatch:
+      "Il link che ha aperto questa pagina appartiene a un dispositivo diverso da quello di questo codice di collegamento, quindi non puoi collegare il dispositivo qui. Ottieni un nuovo codice nell'app che stai collegando, poi riprova.",
+    link_device_update_desktop:
+      "Se l'app non la mostra, scegli Verifica questo dispositivo nell'app. Se l'app non ha questa opzione, aggiornala e riprova.",
+    device_code_fingerprint_required_hint:
+      "Il browser chiede questa impronta digitale del dispositivo prima di collegare il dispositivo.",
     link_device_change_account: "Cambia account",
     link_device_choose_account: "Scegli un account",
-    link_device_choose_account_description: "Per collegare la tua app desktop",
+    link_device_choose_account_description:
+      "Per collegare un nuovo dispositivo",
     link_device_choose_account_note:
       "Le tue chiavi di crittografia restano crittografate mentre passano da un dispositivo all'altro.",
     link_device_use_another_account: "Usa un altro account",
     link_device_use_this_account: "Usa questo account",
     link_device_other_accounts: "Passa a un altro account",
     link_device_enter_code:
-      "Inserisci il codice mostrato nella tua app desktop.",
+      "Inserisci il codice di collegamento mostrato nell'app che stai collegando.",
     link_device_expired_code:
-      "Questo codice è scaduto o non corrispondeva. La tua app desktop ha quello attuale.",
+      "Questo codice è scaduto o non corrispondeva. L'app che stai collegando ha quello attuale.",
     link_device_failed:
       "Il collegamento non si è completato. Ricominciare di solito risolve. Il tuo account è invariato.",
     link_device_invalid_code:
@@ -10515,7 +10532,7 @@ export const it = {
       "Per continuare con questo account, inserisci la sua password.",
     link_device_success: "Dispositivo collegato",
     link_device_success_description:
-      "La tua app desktop è ora collegata. Puoi chiudere questa scheda.",
+      "Il tuo dispositivo è ora collegato. Puoi chiudere questa scheda.",
     link_device_title: "Collega dispositivo",
     link_keys_locked_title: "Il tuo portachiavi è bloccato",
     link_keys_locked_description:

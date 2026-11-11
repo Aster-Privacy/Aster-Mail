@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const get_status = vi.fn();
 const delete_draft = vi.fn();
@@ -40,6 +40,10 @@ const {
   remember_queued_send_draft,
   forget_queued_send_draft,
   settle_queued_send_drafts,
+  stop_queued_send_draft_recheck,
+  queued_send_draft_ids,
+  on_queued_send_drafts_changed,
+  mark_queued_send_delivered,
 } = await import("@/services/queued_send_drafts");
 
 const STORAGE_KEY = "astermail:queued_send_drafts";
@@ -56,6 +60,78 @@ describe("queued send drafts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    stop_queued_send_draft_recheck();
+    vi.useRealTimers();
+  });
+
+  it("deletes the draft once a send that was still pending is delivered", async () => {
+    vi.useFakeTimers();
+    remember_queued_send_draft("q1", "d1");
+    get_status.mockResolvedValue({ data: { status: "pending" } });
+    delete_draft.mockResolvedValue({ data: { success: true } });
+
+    await settle_queued_send_drafts();
+
+    expect(delete_draft).not.toHaveBeenCalled();
+
+    get_status.mockResolvedValue({ data: { status: "sent" } });
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(delete_draft).toHaveBeenCalledWith("d1");
+    expect(stored_queue_ids()).toEqual([]);
+
+    get_status.mockClear();
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(get_status).not.toHaveBeenCalled();
+  });
+
+  it("keeps a delivered draft out of the list while it is being deleted", () => {
+    remember_queued_send_draft("q9", "d9");
+    mark_queued_send_delivered("q9");
+    forget_queued_send_draft("q9");
+
+    expect(stored_queue_ids()).toEqual([]);
+    expect(queued_send_draft_ids().has("d9")).toBe(true);
+  });
+
+  it("stops rechecking when asked to", async () => {
+    vi.useFakeTimers();
+    remember_queued_send_draft("q1", "d1");
+    get_status.mockResolvedValue({ data: { status: "pending" } });
+
+    await settle_queued_send_drafts();
+    stop_queued_send_draft_recheck();
+    get_status.mockClear();
+    await vi.advanceTimersByTimeAsync(600_000);
+
+    expect(get_status).not.toHaveBeenCalled();
+  });
+
+  it("lists the drafts of sends in flight and tells listeners", () => {
+    const listener = vi.fn();
+    const stop = on_queued_send_drafts_changed(listener);
+
+    remember_queued_send_draft("q7", "d7");
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(queued_send_draft_ids().has("d7")).toBe(true);
+    expect(queued_send_draft_ids(Date.now() + 11 * 60 * 1000).has("d7")).toBe(
+      false,
+    );
+
+    forget_queued_send_draft("q7");
+
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(queued_send_draft_ids().has("d7")).toBe(false);
+
+    stop();
+    remember_queued_send_draft("q2", "d2");
+
+    expect(listener).toHaveBeenCalledTimes(2);
   });
 
   it("ignores a send without a saved draft", () => {
