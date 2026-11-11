@@ -88,6 +88,29 @@ export interface VaultWriteRequest {
   owns_storage_key?: boolean;
   snapshot?: ServerVaultSnapshot;
   max_conflict_retries?: number;
+  drop_legacy_keks?: string[];
+}
+
+function without_dropped_keks(
+  vault: EncryptedVault,
+  dropped: string[] | undefined,
+): EncryptedVault {
+  if (!dropped?.length || !vault.legacy_keks?.length) return vault;
+
+  const removed = new Set(dropped);
+  const kept = vault.legacy_keks.filter((entry) => !removed.has(entry.k));
+
+  if (kept.length === vault.legacy_keks.length) return vault;
+
+  const next: EncryptedVault = { ...vault };
+
+  if (kept.length) {
+    next.legacy_keks = kept;
+  } else {
+    delete next.legacy_keks;
+  }
+
+  return next;
 }
 
 export type VaultWriteResult =
@@ -334,14 +357,17 @@ async function write_once(
     return { status: "superseded", vault: server };
   }
 
-  const merged = server
-    ? merge_vault_for_write(
-        server,
-        base,
-        request.next,
-        request.owns_storage_key === true,
-      )
-    : request.next;
+  const merged = without_dropped_keks(
+    server
+      ? merge_vault_for_write(
+          server,
+          base,
+          request.next,
+          request.owns_storage_key === true,
+        )
+      : request.next,
+    request.drop_legacy_keks,
+  );
   const vault_key_fingerprints = await collect_vault_key_fingerprints(merged);
   const vault_format = Math.max(
     merged.vault_format ?? 1,

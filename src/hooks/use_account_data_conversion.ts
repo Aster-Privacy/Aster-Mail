@@ -22,6 +22,7 @@ import { useEffect, useRef } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
 import { run_account_data_conversion } from "@/services/account_data_conversion";
+import { run_retired_key_rewrap } from "@/services/crypto/retired_key_rewrap";
 import { ignore_error } from "@/lib/ignore_error";
 
 const START_DELAY_MS = 3000;
@@ -42,6 +43,9 @@ export function use_account_data_conversion(): void {
       started_for_ref.current = account_id;
       run_account_data_conversion(account_id).catch((caught) =>
         ignore_error("hooks/use_account_data_conversion", caught),
+      );
+      run_retired_key_rewrap(account_id).catch((caught) =>
+        ignore_error("hooks/use_account_data_conversion:rewrap", caught),
       );
     };
 

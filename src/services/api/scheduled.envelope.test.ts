@@ -45,9 +45,20 @@ vi.mock("@/services/recipient_classification", () => ({
   is_internal_recipient: () => internal,
 }));
 vi.mock("@/hooks/use_mail_stats", () => ({ invalidate_mail_stats: vi.fn() }));
-vi.mock("@/services/crypto/legacy_keks", () => ({
-  decrypt_aes_gcm_with_fallback: vi.fn(),
-}));
+vi.mock("@/services/crypto/legacy_keks", () => {
+  const decrypt_aes_gcm_with_fallback = vi.fn();
+
+  return {
+    decrypt_aes_gcm_with_fallback,
+    decrypt_account_context_with_fallback: (
+      _context: string,
+      ...rest: unknown[]
+    ) =>
+      (decrypt_aes_gcm_with_fallback as (...args: unknown[]) => unknown)(
+        ...rest,
+      ),
+  };
+});
 vi.mock("@/services/crypto/account_data_writer", () => ({
   account_data_write_key: vi.fn(async () => write_key),
 }));

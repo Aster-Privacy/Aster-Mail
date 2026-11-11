@@ -21,7 +21,7 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import { api_client } from "@/services/api/client";
 
 export type SubscriptionCacheCategory =
@@ -285,7 +285,8 @@ async function decrypt_subscriptions(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(
+  const decrypted = await decrypt_account_context_with_fallback(
+    "astermail-subscriptions-v1",
     key,
     encrypted_data,
     nonce_data,

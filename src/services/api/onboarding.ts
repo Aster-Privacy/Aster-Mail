@@ -23,7 +23,7 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface OnboardingState {
@@ -92,7 +92,8 @@ async function decrypt_onboarding_state(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(
+  const decrypted = await decrypt_account_context_with_fallback(
+    "astermail-onboarding-v1",
     key,
     encrypted_data,
     nonce_data,
