@@ -1664,6 +1664,7 @@ export interface CommonTranslations {
   download_open_failed: string;
   download_reveal_failed: string;
   attachment_locked: string;
+  attachment_content_mismatch: string;
   scheduled_no_attachments: string;
   scheduled_connected_account: string;
   scheduled_no_expiry: string;
@@ -1828,6 +1829,7 @@ export interface CommonTranslations {
   end_to_end_encrypted_label: string;
   encrypted_in_transit_stored: string;
   only_you_and_sender: string;
+  encrypted_to_you_unconfirmed_sender: string;
   only_you_can_read_contacts: string;
   wkd_encrypted_description: string;
   files_end_to_end_encrypted: string;

@@ -989,6 +989,8 @@ export const ja = {
       "このファイルを表示できませんでした。移動または削除された可能性があります。",
     attachment_locked:
       "この添付ファイルは、暗号化キーがこのデバイスで利用できないため開けません。",
+    attachment_content_mismatch:
+      "この添付ファイルは一緒に届いたメッセージと一致しないため、開かれませんでした。",
     scheduled_no_attachments:
       "予約送信のメールにはまだ添付ファイルを含められません。今すぐ送信するか、ファイルを削除して予約してください。",
     scheduled_connected_account:
@@ -1180,6 +1182,8 @@ export const ja = {
     end_to_end_encrypted_label: "エンドツーエンド暗号化",
     encrypted_in_transit_stored: "転送中も保管中も暗号化されています。",
     only_you_and_sender: "あなたと送信者だけがこのメールを読めます。",
+    encrypted_to_you_unconfirmed_sender:
+      "このメッセージはあなたの公開鍵で暗号化されています。送信者の身元は確認されていません。",
     only_you_can_read_contacts:
       "連絡先を読めるのはあなただけです。Aster はこのデータを見ることができません。",
     failed_to_send_email:
@@ -9356,9 +9360,8 @@ export const ja = {
     unstar: "スターを外す",
     mark_unread: "未読にする",
     mark_read: "既読にする",
-    verified_sender: "認証済みの送信者",
-    verified_sender_desc:
-      "このメールの送信者は {{domain}} を所有していることを確認済みです。",
+    verified_sender: "認証済みのドメイン",
+    verified_sender_desc: "Aster のサーバーが、送信者が {{domain}} を所有していることを確認しました。",
     sender_warning_title: "送信者のアドレスを確認してください",
     sender_warning_address_in_name:
       "送信者名には {{claimed}} と表示されていますが、このメッセージは {{address}} から届いています。",

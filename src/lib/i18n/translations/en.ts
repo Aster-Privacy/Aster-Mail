@@ -960,6 +960,8 @@ export const en: Translations = {
       "This file couldn't be shown. It may have been moved or deleted.",
     attachment_locked:
       "This attachment can't be opened because its encryption key isn't available on this device.",
+    attachment_content_mismatch:
+      "This attachment doesn't match the message it came with, so it wasn't opened.",
     scheduled_no_attachments:
       "Scheduled emails can't include attachments yet. Send now, or remove the files to schedule it.",
     scheduled_connected_account:
@@ -1162,6 +1164,8 @@ export const en: Translations = {
     end_to_end_encrypted_label: "End-to-End Encrypted",
     encrypted_in_transit_stored: "Encrypted in transit and stored encrypted.",
     only_you_and_sender: "Only you and the sender can read this.",
+    encrypted_to_you_unconfirmed_sender:
+      "This message was encrypted with your public key. The sender's identity isn't confirmed.",
     only_you_can_read_contacts:
       "Only you can read your contacts. Aster cannot see this data.",
     wkd_encrypted_description:
@@ -9552,9 +9556,9 @@ export const en: Translations = {
     official_sender: "Official Aster address",
     official_sender_desc:
       "This message is from an official Aster address. Aster will never ask for your password or recovery phrase by email.",
-    verified_sender: "Verified sender",
+    verified_sender: "Verified domain",
     verified_sender_desc:
-      "The sender of this email has verified that they own {{domain}}.",
+      "Aster's servers checked that the sender owns {{domain}}.",
     sender_warning_title: "Check the sender's address",
     sender_warning_address_in_name:
       "The sender's name shows {{claimed}}, but this message comes from {{address}}.",

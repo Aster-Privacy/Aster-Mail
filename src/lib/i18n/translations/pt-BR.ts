@@ -831,6 +831,8 @@ export const pt_br = {
       "Não foi possível mostrar este arquivo. Ele pode ter sido movido ou apagado.",
     attachment_locked:
       "Este anexo não pode ser aberto porque a chave de criptografia dele não está disponível neste dispositivo.",
+    attachment_content_mismatch:
+      "Este anexo não corresponde à mensagem com a qual chegou, por isso não foi aberto.",
     scheduled_no_attachments:
       "E-mails agendados ainda não podem incluir anexos. Envie agora ou remova os arquivos para agendar.",
     scheduled_connected_account:
@@ -1024,6 +1026,8 @@ export const pt_br = {
     encrypted_in_transit_stored:
       "Criptografado em trânsito e armazenado criptografado.",
     only_you_and_sender: "Apenas você e o remetente podem ler isso.",
+    encrypted_to_you_unconfirmed_sender:
+      "Esta mensagem foi criptografada com sua chave pública. A identidade do remetente não foi confirmada.",
     only_you_can_read_contacts:
       "Apenas você pode ler seus contatos. A Aster não consegue ver estes dados.",
     failed_to_send_email:
@@ -9583,9 +9587,9 @@ export const pt_br = {
     unstar: "Remover estrela",
     mark_unread: "Marcar como não lido",
     mark_read: "Marcar como lido",
-    verified_sender: "Remetente verificado",
+    verified_sender: "Domínio verificado",
     verified_sender_desc:
-      "O remetente deste e-mail verificou que é proprietário de {{domain}}.",
+      "Os servidores da Aster verificaram que o remetente é proprietário de {{domain}}.",
     sender_warning_title: "Verifique o endereço do remetente",
     sender_warning_address_in_name:
       "O nome do remetente mostra {{claimed}}, mas esta mensagem vem de {{address}}.",

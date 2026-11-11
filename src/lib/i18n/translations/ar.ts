@@ -920,6 +920,8 @@ export const ar = {
     download_reveal_failed: "تعذر إظهار هذا الملف. ربما نُقل أو حُذف.",
     attachment_locked:
       "لا يمكن فتح هذا المرفق لأن مفتاح التشفير الخاص به غير متوفر على هذا الجهاز.",
+    attachment_content_mismatch:
+      "هذا المرفق لا يطابق الرسالة التي وصل معها، لذلك لم يتم فتحه.",
     scheduled_no_attachments:
       "لا يمكن للرسائل المجدولة أن تتضمن مرفقات بعد. أرسلها الآن، أو أزل الملفات لجدولتها.",
     scheduled_connected_account:
@@ -1100,6 +1102,8 @@ export const ar = {
     end_to_end_encrypted_label: "مشفر من طرف إلى طرف",
     encrypted_in_transit_stored: "مشفر أثناء النقل ومخزن بشكل مشفر.",
     only_you_and_sender: "أنت والمرسل فقط يمكنكما قراءة هذا.",
+    encrypted_to_you_unconfirmed_sender:
+      "شُفّرت هذه الرسالة بمفتاحك العام. لم يتم تأكيد هوية المرسل.",
     only_you_can_read_contacts:
       "أنت وحدك من يمكنه قراءة جهات اتصالك. لا يرى Aster هذه البيانات.",
     failed_to_send_email: "لم تُرسل هذه الرسالة. حاول مجددًا. مسوّدتك محفوظة.",
@@ -9386,8 +9390,9 @@ export const ar = {
     unstar: "إزالة النجمة",
     mark_unread: "تعليم كغير مقروء",
     mark_read: "تعليم كمقروء",
-    verified_sender: "مرسل موثّق",
-    verified_sender_desc: "أكّد مرسل هذه الرسالة أنه يملك النطاق {{domain}}.",
+    verified_sender: "نطاق موثّق",
+    verified_sender_desc:
+      "تحقّقت خوادم Aster من أن المرسل يملك النطاق {{domain}}.",
     sender_warning_title: "تحقّق من عنوان المرسل",
     sender_warning_address_in_name:
       "يعرض اسم المرسل {{claimed}}، لكن هذه الرسالة واردة من {{address}}.",

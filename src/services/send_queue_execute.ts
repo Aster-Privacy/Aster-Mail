@@ -25,7 +25,10 @@ import { send_external_email, send_simple_email } from "./api/send";
 import { describe_send_refusal } from "./send_refusal";
 import {
   encrypt_attachments_for_send,
+  plan_sealed_attachments,
   prepare_external_attachments,
+  wipe_sealed_attachment_plan,
+  type SealedAttachmentPlan,
 } from "./crypto/attachment_crypto";
 import { array_to_base64 } from "./crypto/envelope";
 import { encrypt_secure_message } from "./crypto/secure_message_crypto";
@@ -94,6 +97,21 @@ export function resolve_client_send_id(
 export async function execute_send(
   email: QueuedEmailInternal,
 ): Promise<string | undefined> {
+  const attachment_plans: SealedAttachmentPlan[] = [];
+
+  try {
+    return await execute_send_with_plans(email, attachment_plans);
+  } finally {
+    for (const plan of attachment_plans) {
+      wipe_sealed_attachment_plan(plan);
+    }
+  }
+}
+
+async function execute_send_with_plans(
+  email: QueuedEmailInternal,
+  attachment_plans: SealedAttachmentPlan[],
+): Promise<string | undefined> {
   const readiness = check_send_readiness_internal();
 
   if (readiness.ready === false) {
@@ -140,9 +158,17 @@ export async function execute_send(
     inline_images.length > 0 ? recipient_body : email.body;
   const all_attachments = [...(email.attachments || []), ...inline_attachments];
 
+  const attachment_plan =
+    all_attachments.length > 0
+      ? await plan_sealed_attachments(all_attachments)
+      : null;
+
+  if (attachment_plan) attachment_plans.push(attachment_plan);
+
   const bundled_body_for_recipient = build_subject_bundle(
     email.subject || "",
     body_for_recipient,
+    attachment_plan?.manifest,
   );
 
   const {
@@ -251,8 +277,11 @@ export async function execute_send(
       { to: email.to, cc: email.cc, bcc: email.bcc },
       internal_copy_is_encrypted,
       client_copies !== undefined,
+      attachment_plan?.session_keys,
     );
   }
+
+  if (attachment_plan) wipe_sealed_attachment_plan(attachment_plan);
 
   const request: Parameters<typeof send_simple_email>[0] = {
     client_send_id: resolve_client_send_id(email.client_send_id, email.id),

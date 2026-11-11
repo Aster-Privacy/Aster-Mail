@@ -54,7 +54,11 @@ import {
   normalize_parsed_envelope,
 } from "@/services/crypto/envelope";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
-import { resolve_sender_verification_keys } from "@/services/crypto/sender_verification";
+import {
+  drop_sender_verification,
+  resolve_sender_verification_keys,
+  settle_sender_verification,
+} from "@/services/crypto/sender_verification";
 import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp_messages";
 import {
   drop_sent_encryption_evidence,
@@ -423,7 +427,9 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       const text = new TextDecoder().decode(encrypted_bytes);
 
       if (!text.startsWith("-----BEGIN PGP")) {
-        const parsed_obj = drop_sent_encryption_evidence(JSON.parse(text));
+        const parsed_obj = drop_sender_verification(
+          drop_sent_encryption_evidence(JSON.parse(text)),
+        );
 
         register_envelope_attachment_keys(mail_item_id, parsed_obj);
 
@@ -463,7 +469,21 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             if (sender_keys.length > 0) {
               const verified_pass = await first_pass.verify(sender_keys);
 
-              parsed.sender_verification = verified_pass.verification;
+              parsed.sender_verification = await settle_sender_verification(
+                parsed.from.email,
+                sender_keys,
+                verified_pass.verification,
+                async () => {
+                  const own_keys =
+                    await derive_public_keys_from_private(envelope_keys);
+
+                  return (
+                    own_keys.length > 0 &&
+                    (await first_pass.verify(own_keys)).verification ===
+                      "verified"
+                  );
+                },
+              );
             } else {
               parsed.sender_verification = "no_keys";
             }
@@ -536,9 +556,11 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   }
 
   if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
-    return decrypt_envelope_v2_with_vault<T>(
-      encrypted_envelope,
-      get_vault_from_memory(),
+    return drop_sender_verification(
+      await decrypt_envelope_v2_with_vault<T>(
+        encrypted_envelope,
+        get_vault_from_memory(),
+      ),
     );
   }
 
@@ -555,7 +577,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
       zero_uint8_array(passphrase_bytes);
 
-      return result;
+      return drop_sender_verification(result);
     }
 
     zero_uint8_array(passphrase_bytes);
@@ -626,8 +648,10 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       if (plain) {
         await adopt_recovered_vault_source();
 
-        const parsed_obj = drop_sent_encryption_evidence(
-          JSON.parse(new TextDecoder().decode(plain)),
+        const parsed_obj = drop_sender_verification(
+          drop_sent_encryption_evidence(
+            JSON.parse(new TextDecoder().decode(plain)),
+          ),
         );
 
         register_envelope_attachment_keys(mail_item_id, parsed_obj);
@@ -637,7 +661,9 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
     }
 
     const finalize_envelope = (plaintext: ArrayBuffer): T => {
-      const parsed = JSON.parse(new TextDecoder().decode(plaintext));
+      const parsed = drop_sender_verification(
+        JSON.parse(new TextDecoder().decode(plaintext)),
+      );
 
       register_envelope_attachment_keys(mail_item_id, parsed);
 

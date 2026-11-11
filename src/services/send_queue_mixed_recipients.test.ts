@@ -101,6 +101,7 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
 vi.mock("@/services/crypto/attachment_crypto", () => ({
   encrypt_attachments_for_send: vi.fn(async () => []),
   prepare_external_attachments: vi.fn(() => []),
+  wipe_sealed_attachment_plan: vi.fn(),
 }));
 
 vi.mock("@/services/crypto/ensure_ratchet_keys", () => ({

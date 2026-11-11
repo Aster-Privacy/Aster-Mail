@@ -931,6 +931,8 @@ export const nl = {
       "Dit bestand kan niet worden getoond. Het is mogelijk verplaatst of verwijderd.",
     attachment_locked:
       "Deze bijlage kan niet worden geopend omdat de versleutelingssleutel niet beschikbaar is op dit apparaat.",
+    attachment_content_mismatch:
+      "Deze bijlage komt niet overeen met het bericht waarmee ze is ontvangen en is daarom niet geopend.",
     scheduled_no_attachments:
       "Geplande e-mails kunnen nog geen bijlagen bevatten. Verstuur nu of verwijder de bestanden om te plannen.",
     scheduled_connected_account:
@@ -1114,6 +1116,8 @@ export const nl = {
       "We konden de sleutels van deze ontvanger niet controleren. Een nieuwe poging laat zien of dit bericht end-to-end kan worden versleuteld.",
     end_to_end_encrypted_label: "End-to-end versleuteld",
     only_you_and_sender: "Alleen jij en de afzender kunnen dit lezen.",
+    encrypted_to_you_unconfirmed_sender:
+      "Dit bericht is versleuteld met je openbare sleutel. De identiteit van de afzender is niet bevestigd.",
     only_you_can_read_contacts:
       "Alleen jij kunt je contacten lezen. Aster ziet deze gegevens niet.",
     failed_to_send_email:
@@ -9558,9 +9562,9 @@ export const nl = {
     unstar: "Ster verwijderen",
     mark_unread: "Als ongelezen markeren",
     mark_read: "Als gelezen markeren",
-    verified_sender: "Geverifieerde afzender",
+    verified_sender: "Geverifieerd domein",
     verified_sender_desc:
-      "De afzender van deze e-mail heeft bevestigd eigenaar te zijn van {{domain}}.",
+      "De servers van Aster hebben gecontroleerd dat de afzender eigenaar is van {{domain}}.",
     sender_warning_title: "Controleer het adres van de afzender",
     sender_warning_address_in_name:
       "De naam van de afzender toont {{claimed}}, maar dit bericht komt van {{address}}.",

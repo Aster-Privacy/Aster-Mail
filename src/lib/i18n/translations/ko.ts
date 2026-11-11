@@ -996,6 +996,8 @@ export const ko = {
       "이 파일을 표시할 수 없습니다. 이동되었거나 삭제되었을 수 있습니다.",
     attachment_locked:
       "이 첨부 파일의 암호화 키를 이 기기에서 사용할 수 없어 열 수 없습니다.",
+    attachment_content_mismatch:
+      "이 첨부 파일이 함께 도착한 메시지와 일치하지 않아 열지 않았습니다.",
     scheduled_no_attachments:
       "예약 메일에는 아직 첨부 파일을 포함할 수 없습니다. 지금 보내거나 파일을 제거한 후 예약하세요.",
     scheduled_connected_account:
@@ -1183,6 +1185,8 @@ export const ko = {
     end_to_end_encrypted_label: "종단간 암호화됨",
     encrypted_in_transit_stored: "전송 및 저장 시 암호화됩니다.",
     only_you_and_sender: "나와 발신자만 이 내용을 읽을 수 있습니다.",
+    encrypted_to_you_unconfirmed_sender:
+      "이 메시지는 내 공개 키로 암호화되었습니다. 발신자의 신원은 확인되지 않았습니다.",
     only_you_can_read_contacts:
       "연락처는 오직 나만 읽을 수 있습니다. Aster는 이 데이터를 볼 수 없습니다.",
     failed_to_send_email:
@@ -9189,9 +9193,8 @@ export const ko = {
     unstar: "별표 해제",
     mark_unread: "읽지 않음으로 표시",
     mark_read: "읽음으로 표시",
-    verified_sender: "인증된 발신자",
-    verified_sender_desc:
-      "이 이메일의 발신자가 {{domain}}을(를) 소유하고 있음을 확인했습니다.",
+    verified_sender: "인증된 도메인",
+    verified_sender_desc: "Aster 서버가 발신자가 {{domain}}을(를) 소유하고 있음을 확인했습니다.",
     sender_warning_title: "발신자 주소를 확인하세요",
     sender_warning_address_in_name:
       "발신자 이름에는 {{claimed}}(이)라고 표시되지만, 이 메시지는 {{address}}에서 보냈습니다.",

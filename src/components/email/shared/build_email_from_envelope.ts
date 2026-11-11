@@ -40,6 +40,10 @@ import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { build_body_preview } from "@/utils/preview_text";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  sealed_html_source,
+  settle_sealed_fields,
+} from "@/services/crypto/sealed_message_fields";
+import {
   sent_copy_encryption_scope,
   type SentEncryptionScope,
 } from "@/services/crypto/sent_encryption_evidence";
@@ -49,6 +53,7 @@ export interface ProcessedEnvelope {
   safe_html: string | undefined;
   unsubscribe_info: UnsubscribeInfo | undefined;
   e2e_verified: boolean;
+  e2e_sender_bound: boolean;
   sent_encryption_scope?: SentEncryptionScope;
 }
 
@@ -62,12 +67,16 @@ function as_displayable(value: unknown): string | undefined {
 function sent_scope_fields(
   envelope: DecryptedEnvelope,
   verified = false,
-): Pick<ProcessedEnvelope, "e2e_verified" | "sent_encryption_scope"> {
+  sender_bound = false,
+): Pick<
+  ProcessedEnvelope,
+  "e2e_verified" | "e2e_sender_bound" | "sent_encryption_scope"
+> {
   const sent_encryption_scope = sent_copy_encryption_scope(envelope);
 
   return sent_encryption_scope
-    ? { e2e_verified: true, sent_encryption_scope }
-    : { e2e_verified: verified };
+    ? { e2e_verified: true, e2e_sender_bound: true, sent_encryption_scope }
+    : { e2e_verified: verified, e2e_sender_bound: sender_bound };
 }
 
 export function raw_envelope_body(
@@ -136,6 +145,8 @@ async function resolve_envelope_body(
     : resolved_text;
 
   const ratchet_verified = is_ratchet_verified_body(resolved_text, body_text);
+
+  resolved_html = sealed_html_source(resolved_html, ratchet_verified);
   const pre_pgp_text = body_text;
 
   body_text = await try_decrypt_pgp_body(body_text);
@@ -146,6 +157,7 @@ async function resolve_envelope_body(
       safe_html: undefined,
       unsubscribe_info: undefined,
       e2e_verified: ratchet_verified,
+      e2e_sender_bound: ratchet_verified,
     };
   }
 
@@ -153,6 +165,7 @@ async function resolve_envelope_body(
     envelope,
     ratchet_verified ||
       (has_inbound_pgp_block(pre_pgp_text) && body_text !== pre_pgp_text),
+    ratchet_verified,
   );
 
   const pre_mime_text = body_text;
@@ -168,6 +181,8 @@ async function resolve_envelope_body(
       envelope.subject = bundle.subject;
     }
   }
+
+  settle_sealed_fields(envelope, bundle, ratchet_verified, message_id);
 
   const pgp_was_decrypted = body_text !== pre_pgp_text;
   const html_has_pgp =
@@ -264,6 +279,7 @@ export function build_single_thread_message(
   decrypted_metadata: { is_read?: boolean; is_starred?: boolean } | null,
   e2e_verified = false,
   sent_encryption_scope?: SentEncryptionScope,
+  e2e_sender_bound = false,
 ): DecryptedThreadMessage {
   const forwarding = resolve_forwarding_display(
     envelope.from,
@@ -291,6 +307,7 @@ export function build_single_thread_message(
     is_external: item.is_external,
     system_origin: item.system_origin,
     e2e_verified,
+    e2e_sender_bound,
     ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
     sender_verified_domain: item.sender_verified
       ? item.sender_verified_domain

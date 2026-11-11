@@ -58,6 +58,7 @@ import {
   record_message_sender_identity,
   record_peer_identity_event,
 } from "./ratchet_verification_status";
+import { claim_rotation_notice } from "./rotation_notice";
 import { open_recovery_lane } from "./ratchet_recovery_lane";
 import {
   decrypt_with_peer_session,
@@ -410,7 +411,10 @@ async function attempt_ratchet_decrypt(
 
       void detect_identity_pin_drift(sender_email.toLowerCase(), identity_key);
 
-      if (continuity === "changed") {
+      if (
+        continuity === "changed" &&
+        claim_rotation_notice(sender_email, identity_key)
+      ) {
         record_peer_identity_event(sender_email, "rotated");
       }
 

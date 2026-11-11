@@ -45,6 +45,7 @@ interface RenderProps {
   has_recipient_key?: boolean;
   has_pq_protection?: boolean;
   e2e_verified?: boolean;
+  sender_bound?: boolean;
   sent_encryption_scope?: "internal" | "outside";
 }
 
@@ -61,6 +62,7 @@ function render_open(props: RenderProps): string {
     root.render(
       <EncryptionInfoDropdown
         e2e_verified={props.e2e_verified}
+        sender_bound={props.sender_bound}
         has_pq_protection={props.has_pq_protection ?? false}
         has_recipient_key={props.has_recipient_key}
         is_external={props.is_external}
@@ -94,7 +96,11 @@ describe("EncryptionInfoDropdown end to end evidence", () => {
   });
 
   it("shows end to end encrypted for a ratchet decrypted internal message", () => {
-    const text = render_open({ is_external: false, e2e_verified: true });
+    const text = render_open({
+      is_external: false,
+      e2e_verified: true,
+      sender_bound: true,
+    });
 
     expect(text).toContain("common.end_to_end_encrypted_label");
     expect(text).toContain("common.only_you_and_sender");

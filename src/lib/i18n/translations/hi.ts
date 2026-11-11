@@ -963,6 +963,8 @@ export const hi = {
       "यह फ़ाइल नहीं दिखाई जा सकी। हो सकता है कि इसे हटा दिया गया हो या कहीं और ले जाया गया हो।",
     attachment_locked:
       "यह अटैचमेंट नहीं खुल सकता, क्योंकि इसकी एन्क्रिप्शन कुंजी इस डिवाइस पर उपलब्ध नहीं है।",
+    attachment_content_mismatch:
+      "यह अटैचमेंट उस संदेश से मेल नहीं खाता जिसके साथ यह आया था, इसलिए इसे खोला नहीं गया।",
     scheduled_no_attachments:
       "शेड्यूल किए गए ईमेल में अभी अटैचमेंट नहीं जोड़े जा सकते। अभी भेजें, या शेड्यूल करने के लिए फ़ाइलें हटा दें।",
     scheduled_connected_account:
@@ -1170,6 +1172,8 @@ export const hi = {
     encrypted_in_transit_stored:
       "रास्ते में एन्क्रिप्टेड और एन्क्रिप्टेड रूप में ही सहेजा गया।",
     only_you_and_sender: "इसे सिर्फ़ आप और प्रेषक पढ़ सकते हैं।",
+    encrypted_to_you_unconfirmed_sender:
+      "यह संदेश आपकी सार्वजनिक कुंजी से एन्क्रिप्ट किया गया था। प्रेषक की पहचान की पुष्टि नहीं हुई है।",
     only_you_can_read_contacts:
       "आपके संपर्क सिर्फ़ आप पढ़ सकते हैं। Aster यह डेटा नहीं देख सकता।",
     wkd_encrypted_description:
@@ -9604,9 +9608,9 @@ export const hi = {
     official_sender: "आधिकारिक Aster पता",
     official_sender_desc:
       "यह संदेश एक आधिकारिक Aster पते से है। Aster कभी भी ईमेल से आपका पासवर्ड या रिकवरी वाक्यांश नहीं मांगेगा।",
-    verified_sender: "सत्यापित भेजने वाला",
+    verified_sender: "सत्यापित डोमेन",
     verified_sender_desc:
-      "इस ईमेल के भेजने वाले ने पुष्टि की है कि {{domain}} उनका है।",
+      "Aster के सर्वर ने जाँच की है कि {{domain}} भेजने वाले का है।",
     sender_warning_title: "भेजने वाले का पता जाँचें",
     sender_warning_address_in_name:
       "भेजने वाले के नाम में {{claimed}} दिख रहा है, लेकिन यह संदेश {{address}} से आया है।",

@@ -941,6 +941,8 @@ export const tr = {
       "Bu dosya gösterilemedi. Taşınmış veya silinmiş olabilir.",
     attachment_locked:
       "Bu ek, şifreleme anahtarı bu cihazda kullanılamadığı için açılamıyor.",
+    attachment_content_mismatch:
+      "Bu ek, birlikte geldiği iletiyle eşleşmediği için açılmadı.",
     scheduled_no_attachments:
       "Zamanlanmış e-postalar henüz ek içeremez. Şimdi gönderin veya zamanlamak için dosyaları kaldırın.",
     scheduled_connected_account:
@@ -1134,6 +1136,8 @@ export const tr = {
     encrypted_in_transit_stored:
       "Aktarımda şifreli ve şifreli olarak depolanır.",
     only_you_and_sender: "Yalnızca siz ve gönderen bunu okuyabilir.",
+    encrypted_to_you_unconfirmed_sender:
+      "Bu ileti açık anahtarınızla şifrelendi. Gönderenin kimliği doğrulanmadı.",
     only_you_can_read_contacts:
       "Kişilerinizi yalnızca siz okuyabilirsiniz. Aster bu verileri göremez.",
     failed_to_send_email:
@@ -9473,9 +9477,9 @@ export const tr = {
     unstar: "Yıldızı kaldır",
     mark_unread: "Okunmadı olarak işaretle",
     mark_read: "Okundu olarak işaretle",
-    verified_sender: "Doğrulanmış gönderen",
+    verified_sender: "Doğrulanmış alan adı",
     verified_sender_desc:
-      "Bu e-postanın göndereni {{domain}} alan adının sahibi olduğunu doğruladı.",
+      "Aster sunucuları, gönderenin {{domain}} alan adının sahibi olduğunu doğruladı.",
     sender_warning_title: "Gönderenin adresini kontrol edin",
     sender_warning_address_in_name:
       "Gönderenin adında {{claimed}} görünüyor, ancak bu ileti {{address}} adresinden geliyor.",

@@ -25,10 +25,15 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
   download_decrypted_attachment,
+  AttachmentIntegrityError,
   AttachmentKeyUnavailableError,
 } from "@/services/crypto/attachment_crypto";
 
 export function attachment_error_key(error: unknown): TranslationKey {
+  if (error instanceof AttachmentIntegrityError) {
+    return "common.attachment_content_mismatch";
+  }
+
   return error instanceof AttachmentKeyUnavailableError
     ? "common.attachment_locked"
     : "common.download_failed";

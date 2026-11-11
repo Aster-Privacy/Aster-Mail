@@ -155,13 +155,73 @@ async function own_key_seal_when_enabled(
   return { identity_key, passphrase };
 }
 
+export interface SealedAttachmentManifestEntry {
+  seq: number;
+  key: string;
+  size: number;
+  sha256: string;
+  filename: string;
+  content_type: string;
+  content_id?: string;
+  is_inline: boolean;
+}
+
+export interface SealedAttachmentPlan {
+  session_keys: Uint8Array[];
+  manifest: SealedAttachmentManifestEntry[];
+}
+
+export class AttachmentIntegrityError extends Error {}
+
+async function sha256_hex(data: ArrayBuffer): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+
+  return Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
+}
+
+export async function plan_sealed_attachments(
+  attachments: Attachment[],
+): Promise<SealedAttachmentPlan> {
+  const session_keys: Uint8Array[] = [];
+  const manifest: SealedAttachmentManifestEntry[] = [];
+
+  for (const [seq, attachment] of attachments.entries()) {
+    const raw_key = crypto.getRandomValues(new Uint8Array(32));
+
+    session_keys.push(raw_key);
+    manifest.push({
+      seq,
+      key: array_to_base64(raw_key),
+      size: attachment.data.byteLength,
+      sha256: await sha256_hex(attachment.data),
+      filename: attachment.name,
+      content_type: attachment.mime_type || DEFAULT_ATTACHMENT_CONTENT_TYPE,
+      ...(attachment.content_id ? { content_id: attachment.content_id } : {}),
+      is_inline: attachment.is_inline === true,
+    });
+  }
+
+  return { session_keys, manifest };
+}
+
+export function wipe_sealed_attachment_plan(plan: SealedAttachmentPlan): void {
+  for (const key of plan.session_keys) zero_uint8_array(key);
+}
+
 export async function encrypt_attachments_for_send(
   attachments: Attachment[],
   recipient_public_keys?: string[],
   require_recipient_encryption = false,
   private_recipient_keys: Record<string, string[]> = {},
   sealed_copy_recipients: string[] | null = null,
+  session_keys: Uint8Array[] | null = null,
 ): Promise<EncryptedAttachmentForSend[]> {
+  if (session_keys && session_keys.length !== attachments.length) {
+    throw new Error("attachment key plan does not match the attachments");
+  }
+
   const has_recipient_keys = !!(
     recipient_public_keys && recipient_public_keys.length > 0
   );
@@ -192,7 +252,9 @@ export async function encrypt_attachments_for_send(
     let seq = 0;
 
     for (const attachment of attachments) {
-      const raw_key = crypto.getRandomValues(new Uint8Array(32));
+      const raw_key = session_keys
+        ? session_keys[seq].slice()
+        : crypto.getRandomValues(new Uint8Array(32));
 
       const session_key = await crypto.subtle.importKey(
         "raw",
@@ -531,6 +593,23 @@ export async function resolve_attachment_meta(
     };
   }
 
+  if (entry?.sealed) {
+    const sealed_filename = entry.filename ?? null;
+
+    return {
+      filename: sealed_filename,
+      content_type:
+        sealed_filename === null
+          ? null
+          : (entry.content_type ?? DEFAULT_ATTACHMENT_CONTENT_TYPE),
+      session_key: entry.key,
+      content_id: entry.content_id,
+      is_inline: entry.is_inline,
+      size_bytes: entry.size ?? input.size_bytes ?? 0,
+      is_placeholder: sealed_filename === null,
+    };
+  }
+
   const row_meta = await read_row_attachment_meta(
     input.encrypted_meta,
     input.meta_nonce,
@@ -825,10 +904,31 @@ async function decrypt_listed_attachment_data(
     )
     .catch(() =>
       decrypt_aes_gcm_with_fallback(session_key, encrypted_data, nonce),
-    );
+    )
+    .catch((caught: unknown) => {
+      if (!entry.sealed) throw caught;
+
+      throw new AttachmentIntegrityError(
+        "attachment does not open with the sealed message key",
+      );
+    });
 
   if (entry.size !== undefined && plaintext.byteLength !== entry.size) {
+    if (entry.sealed) {
+      throw new AttachmentIntegrityError(
+        "attachment size differs from the sealed message",
+      );
+    }
+
     throw new Error("attachment size differs from the message envelope");
+  }
+
+  if (entry.sealed && entry.sha256 !== undefined) {
+    if ((await sha256_hex(plaintext)) !== entry.sha256) {
+      throw new AttachmentIntegrityError(
+        "attachment content differs from the sealed message",
+      );
+    }
   }
 
   return plaintext;

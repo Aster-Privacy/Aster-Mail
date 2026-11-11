@@ -26,6 +26,9 @@ export interface InboundAttachmentEntry {
   content_type?: string;
   content_id?: string;
   size?: number;
+  sha256?: string;
+  is_inline?: boolean;
+  sealed?: boolean;
 }
 
 const registry = new Map<string, InboundAttachmentEntry>();
@@ -35,6 +38,8 @@ const MAX_REGISTERED_ITEMS = 10000;
 const item_seqs = new Map<string, Set<number>>();
 
 const listed_items = new Set<string>();
+
+const sealed_items = new Set<string>();
 
 const registry_key = (mail_item_id: string, seq: number): string =>
   `${mail_item_id}:${seq}`;
@@ -63,6 +68,7 @@ const evict_item = (mail_item_id: string): void => {
 
   item_seqs.delete(mail_item_id);
   listed_items.delete(mail_item_id);
+  sealed_items.delete(mail_item_id);
   item_versions.delete(mail_item_id);
 };
 
@@ -161,6 +167,8 @@ export const register_envelope_attachment_keys = (
     return;
   }
 
+  if (sealed_items.has(mail_item_id)) return;
+
   const keys = (envelope as { attachment_keys?: unknown }).attachment_keys;
 
   if (!Array.isArray(keys)) return;
@@ -182,6 +190,80 @@ export const register_envelope_attachment_keys = (
     });
   }
 };
+
+const optional_text = (value: unknown): string | undefined =>
+  typeof value === "string" && value.length > 0 ? value : undefined;
+
+const read_sealed_entry = (
+  raw: unknown,
+): { seq: number; entry: InboundAttachmentEntry } | null => {
+  if (typeof raw !== "object" || raw === null) return null;
+
+  const fields = raw as Record<string, unknown>;
+
+  if (
+    typeof fields.seq !== "number" ||
+    !Number.isInteger(fields.seq) ||
+    fields.seq < 0 ||
+    typeof fields.key !== "string" ||
+    fields.key.length === 0
+  ) {
+    return null;
+  }
+
+  return {
+    seq: fields.seq,
+    entry: {
+      key: fields.key,
+      filename: optional_text(fields.filename),
+      content_type: optional_text(fields.content_type),
+      content_id: optional_text(fields.content_id),
+      size: typeof fields.size === "number" ? fields.size : undefined,
+      sha256: optional_text(fields.sha256)?.trim().toLowerCase(),
+      is_inline: fields.is_inline === true,
+      sealed: true,
+    },
+  };
+};
+
+export const register_sealed_attachment_manifest = (
+  mail_item_id: string | undefined,
+  manifest: unknown,
+): boolean => {
+  if (!mail_item_id || !Array.isArray(manifest) || manifest.length === 0) {
+    return false;
+  }
+
+  const entries: { seq: number; entry: InboundAttachmentEntry }[] = [];
+
+  for (const raw of manifest) {
+    const parsed = read_sealed_entry(raw);
+
+    if (!parsed) return false;
+    entries.push(parsed);
+  }
+
+  if (!sealed_items.has(mail_item_id)) {
+    for (const seq of item_seqs.get(mail_item_id) ?? []) {
+      registry.delete(registry_key(mail_item_id, seq));
+    }
+    item_seqs.get(mail_item_id)?.clear();
+  }
+
+  for (const { seq, entry } of entries) {
+    register_attachment_entry(mail_item_id, seq, entry);
+  }
+
+  if (!item_seqs.has(mail_item_id)) return false;
+
+  sealed_items.add(mail_item_id);
+  listed_items.add(mail_item_id);
+
+  return true;
+};
+
+export const has_sealed_attachment_manifest = (mail_item_id: string): boolean =>
+  sealed_items.has(mail_item_id);
 
 export const get_attachment_entry = (
   mail_item_id: string,
@@ -213,6 +295,7 @@ export const clear_attachment_keys = (): void => {
   registry.clear();
   item_seqs.clear();
   listed_items.clear();
+  sealed_items.clear();
   item_versions.clear();
   version += 1;
 
