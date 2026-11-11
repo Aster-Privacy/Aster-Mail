@@ -476,6 +476,7 @@ const PRESERVED_LOCAL_KEYS: ReadonlySet<string> = new Set([
   "aster_onion_api_url",
   "aster_onion_mail_url",
   "aster_sw_reset_v1",
+  "aster_error_reports",
 ]);
 
 const PRESERVED_LOCAL_KEY_PREFIXES: readonly string[] = [
