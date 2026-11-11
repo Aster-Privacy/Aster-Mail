@@ -714,7 +714,6 @@ const rewrap_drafts: PassHandler = (env) =>
     ),
   );
 
-const no_stored_data: PassHandler = async () => empty_pass(true);
 
 interface ScheduledPage {
   items: { id: string }[];
@@ -834,7 +833,6 @@ const HANDLERS: Partial<Record<AccountDataContext, PassHandler>> = {
   "astermail-labels-v1": rewrap_labels,
   "astermail-preferences-v1": rewrap_preferences,
   "astermail-devmode-v1": rewrap_dev_mode,
-  "astermail-draft-v1": no_stored_data,
   "astermail-draft-v2": rewrap_drafts,
   "astermail-scheduled-v1": scan_scheduled,
   "astermail-onboarding-v1": rewrap_onboarding,

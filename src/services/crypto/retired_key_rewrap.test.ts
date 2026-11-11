@@ -300,7 +300,10 @@ const OTHER_ACCOUNT = "account-2";
 const START = 1_000_000_000;
 const RECOVERY: AccountDataContext = "astermail-recovery-email-v1";
 const RECOVERY_PATH = "/core/v1/recovery/email";
-const KEPT: AccountDataContext[] = ["astermail-calendar-v2"];
+const KEPT: AccountDataContext[] = [
+  "astermail-calendar-v2",
+  "astermail-draft-v1",
+];
 const LABELS: AccountDataContext = "astermail-labels-v1";
 const SHORT_DRAFTS: AccountDataContext = "astermail-draft-v1";
 const IDENTITY = "current-identity-key-material";
@@ -585,14 +588,14 @@ describe("run_retired_key_rewrap", () => {
 
     expect(first?.pending).toEqual([]);
     expect(first?.dropped).toEqual([]);
-    expect(first?.confirming).toHaveLength(10);
+    expect(first?.confirming).toHaveLength(9);
     expect(held_contexts()).toHaveLength(11);
 
     const later = START + RETIRED_REWRAP_CONFIRM_MS + 1;
     const summary = await run_retired_key_rewrap(ACCOUNT, () => later);
 
     expect(summary?.pending).toEqual([]);
-    expect(summary?.dropped).toHaveLength(10);
+    expect(summary?.dropped).toHaveLength(9);
     expect(held_contexts()).toEqual(KEPT);
     expect(get_retired_context_key(TAGS)).toBeNull();
     expect(get_legacy_crypto_keys()).toHaveLength(1);
@@ -625,7 +628,7 @@ describe("run_retired_key_rewrap", () => {
 
     expect([...(summary?.kept ?? [])].sort()).toEqual(KEPT);
     expect(summary?.dropped).not.toContain(KEPT[0]);
-    expect(summary?.dropped).toContain(SHORT_DRAFTS);
+    expect(summary?.dropped).not.toContain(SHORT_DRAFTS);
     expect(held_contexts()).toEqual(KEPT);
     for (const context of KEPT) {
       expect(get_retired_context_key(context)).not.toBeNull();
@@ -1159,7 +1162,7 @@ describe("run_retired_key_rewrap", () => {
 
     expect(again?.rewrapped).toBe(1);
     expect(again?.dropped).toEqual([]);
-    expect(again?.confirming).toHaveLength(10);
+    expect(again?.confirming).toHaveLength(9);
     expect(held_contexts()).toHaveLength(11);
 
     const settled = await run_retired_key_rewrap(
@@ -1167,7 +1170,7 @@ describe("run_retired_key_rewrap", () => {
       () => later + 1 + RETIRED_REWRAP_CONFIRM_MS,
     );
 
-    expect(settled?.dropped).toHaveLength(10);
+    expect(settled?.dropped).toHaveLength(9);
     expect(held_contexts()).toEqual(KEPT);
   });
 
@@ -1305,7 +1308,7 @@ describe("run_retired_key_rewrap", () => {
 
     expect(h.vault_writes).toBe(1);
     expect(summary?.dropped).toEqual([]);
-    expect(summary?.pending).toHaveLength(10);
+    expect(summary?.pending).toHaveLength(9);
     expect(held_contexts()).toHaveLength(11);
   });
 
@@ -1429,7 +1432,7 @@ describe("run_retired_key_rewrap", () => {
     expect(h.recovery.encrypted_email).toBe(recovery.encrypted);
   });
 
-  it("makes no request for a draft format that was never stored", async () => {
+  it("keeps the key of the short draft format and makes no request", async () => {
     const short_key = all_retired_kek_values().find(
       (k) => retired_kek_context(k) === SHORT_DRAFTS,
     ) as string;
@@ -1449,18 +1452,17 @@ describe("run_retired_key_rewrap", () => {
 
     const first = await run_retired_key_rewrap(ACCOUNT, () => START);
 
-    expect(first?.confirming).toEqual([SHORT_DRAFTS]);
-    expect(first?.pending).toEqual([]);
+    expect(first).toBeNull();
 
     const second = await run_retired_key_rewrap(
       ACCOUNT,
       () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
     );
 
-    expect(second?.dropped).toEqual([SHORT_DRAFTS]);
+    expect(second).toBeNull();
     expect(h.calls).toEqual([]);
     expect(h.drafts[0].encrypted_content).toBe(sealed.encrypted);
-    expect(held_contexts()).toEqual([]);
+    expect(held_contexts()).toEqual([SHORT_DRAFTS]);
   });
 
   it("leaves a draft alone while it is being saved or is open here", async () => {
