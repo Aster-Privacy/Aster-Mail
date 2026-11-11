@@ -9267,6 +9267,11 @@ export const pl = {
       "Zablokować {{email}}? Nie będziesz już otrzymywać od nich e-maili.",
     unblock_sender: "Odblokuj nadawcę",
     unsubscribe: "Wypisz się",
+    copy_code: "Kopiuj kod",
+    copy_code_value: "Kopiuj kod {{code}}",
+    copy_subject: "Kopiuj temat",
+    code_copied: "Skopiowano kod",
+    subject_copied: "Skopiowano temat",
     unsubscribe_confirm_message:
       "Czy na pewno chcesz wypisać się z tej listy mailingowej?",
     max_composers_warning:
