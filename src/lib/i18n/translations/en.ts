@@ -957,6 +957,8 @@ export const en: Translations = {
       "This file couldn't be shown. It may have been moved or deleted.",
     attachment_locked:
       "This attachment can't be opened because its encryption key isn't available on this device.",
+    attachment_content_mismatch:
+      "This attachment doesn't match the message it came with, so it wasn't opened.",
     scheduled_no_attachments:
       "Scheduled emails can't include attachments yet. Send now, or remove the files to schedule it.",
     scheduled_connected_account:

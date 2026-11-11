@@ -853,6 +853,8 @@ export const de = {
       "Diese Datei konnte nicht angezeigt werden. Sie wurde möglicherweise verschoben oder gelöscht.",
     attachment_locked:
       "Dieser Anhang kann nicht geöffnet werden, weil sein Verschlüsselungsschlüssel auf diesem Gerät nicht verfügbar ist.",
+    attachment_content_mismatch:
+      "Dieser Anhang stimmt nicht mit der Nachricht überein, mit der er gesendet wurde, und wurde deshalb nicht geöffnet.",
     scheduled_no_attachments:
       "Geplante E-Mails können noch keine Anhänge enthalten. Senden Sie jetzt oder entfernen Sie die Dateien, um zu planen.",
     scheduled_connected_account:

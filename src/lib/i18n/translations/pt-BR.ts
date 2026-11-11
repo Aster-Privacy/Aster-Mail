@@ -831,6 +831,8 @@ export const pt_br = {
       "Não foi possível mostrar este arquivo. Ele pode ter sido movido ou apagado.",
     attachment_locked:
       "Este anexo não pode ser aberto porque a chave de criptografia dele não está disponível neste dispositivo.",
+    attachment_content_mismatch:
+      "Este anexo não corresponde à mensagem com a qual chegou, por isso não foi aberto.",
     scheduled_no_attachments:
       "E-mails agendados ainda não podem incluir anexos. Envie agora ou remova os arquivos para agendar.",
     scheduled_connected_account:

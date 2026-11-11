@@ -50,14 +50,17 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
   download_decrypted_attachment,
+  AttachmentIntegrityError,
   AttachmentKeyUnavailableError,
 } from "@/services/crypto/attachment_crypto";
 import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
 import { shows_end_to_end as shows_end_to_end_badge } from "@/services/crypto/sent_encryption_evidence";
 import {
+  has_sealed_attachment_manifest,
   is_attachment_row_listed,
   listed_attachment_rows,
 } from "@/services/crypto/inbound_attachment_keys";
+import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
 import {
   fetch_attachment_bytes,
   get_cached_preview_url,
@@ -77,6 +80,10 @@ import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import { get_pending_send_attachments } from "@/services/pending_send_attachments";
 
 function attachment_error_key(error: unknown): TranslationKey {
+  if (error instanceof AttachmentIntegrityError) {
+    return "common.attachment_content_mismatch";
+  }
+
   return error instanceof AttachmentKeyUnavailableError
     ? "common.attachment_locked"
     : "common.download_failed";
@@ -121,10 +128,17 @@ function ServerAttachmentList({
   inline_refs,
 }: AttachmentListProps): React.ReactElement | null {
   const { t } = use_i18n();
+
+  use_attachment_keys_version(mail_item_id);
+  const files_e2e_verified =
+    e2e_verified &&
+    (is_external ||
+      sent_encryption_scope !== undefined ||
+      has_sealed_attachment_manifest(mail_item_id));
   const shows_end_to_end = shows_end_to_end_badge({
     is_external,
     has_recipient_key,
-    e2e_verified,
+    e2e_verified: files_e2e_verified,
     sent_encryption_scope,
   });
   const { preferences } = use_preferences();
@@ -876,7 +890,7 @@ function ServerAttachmentList({
           >
             <EncryptionInfoDropdown
               context="attachments"
-              e2e_verified={e2e_verified}
+              e2e_verified={files_e2e_verified}
               sent_encryption_scope={sent_encryption_scope}
               has_pq_protection={false}
               has_recipient_key={has_recipient_key}

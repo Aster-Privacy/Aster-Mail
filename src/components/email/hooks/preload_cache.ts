@@ -62,6 +62,10 @@ import {
   type DraftWithContent,
 } from "@/services/api/multi_drafts";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
+import {
+  sealed_html_source,
+  settle_sealed_fields,
+} from "@/services/crypto/sealed_message_fields";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { sent_copy_encryption_scope } from "@/services/crypto/sent_encryption_evidence";
@@ -537,9 +541,11 @@ export async function preload_email_detail(
         : resolved_text;
 
       const sent_encryption_scope = sent_copy_encryption_scope(envelope);
+      const ratchet_sealed = is_ratchet_verified_body(resolved_text, body_text);
       const e2e_verified =
-        is_ratchet_verified_body(resolved_text, body_text) ||
-        sent_encryption_scope !== undefined;
+        ratchet_sealed || sent_encryption_scope !== undefined;
+
+      resolved_html = sealed_html_source(resolved_html, ratchet_sealed);
       const pre_pgp_text = body_text;
 
       body_text = await try_decrypt_pgp_body(body_text);
@@ -562,6 +568,8 @@ export async function preload_email_detail(
           envelope.subject = subject_bundle.subject;
         }
       }
+
+      settle_sealed_fields(envelope, subject_bundle, ratchet_sealed, item.id);
 
       const pgp_was_decrypted = body_text !== pre_pgp_text;
       const html_has_pgp =

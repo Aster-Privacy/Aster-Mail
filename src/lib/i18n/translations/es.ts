@@ -961,6 +961,8 @@ export const es = {
       "No se pudo mostrar este archivo. Es posible que se haya movido o eliminado.",
     attachment_locked:
       "Este archivo adjunto no se puede abrir porque su clave de cifrado no está disponible en este dispositivo.",
+    attachment_content_mismatch:
+      "Este archivo adjunto no coincide con el mensaje con el que llegó, por lo que no se abrió.",
     scheduled_no_attachments:
       "Los correos programados aún no pueden incluir archivos adjuntos. Envíalo ahora o quita los archivos para programarlo.",
     scheduled_connected_account:

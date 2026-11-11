@@ -840,6 +840,8 @@ export const pt = {
       "Não foi possível mostrar este ficheiro. Pode ter sido movido ou eliminado.",
     attachment_locked:
       "Não é possível abrir este anexo porque a respetiva chave de encriptação não está disponível neste dispositivo.",
+    attachment_content_mismatch:
+      "Este anexo não corresponde à mensagem com que chegou, pelo que não foi aberto.",
     scheduled_no_attachments:
       "Os e-mails agendados ainda não podem incluir anexos. Envie agora ou remova os ficheiros para agendar.",
     scheduled_connected_account:

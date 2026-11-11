@@ -648,9 +648,14 @@ export const ASTER_SUBJECT_BUNDLE_PREFIX =
 export interface SubjectBundle {
   subject: string | null;
   body: string;
+  attachment_manifest?: unknown[];
 }
 
-export function build_subject_bundle(subject: string, body: string): string {
+export function build_subject_bundle(
+  subject: string,
+  body: string,
+  attachment_manifest: unknown[] = [],
+): string {
   const existing = extract_subject_bundle(body);
 
   return (
@@ -658,6 +663,7 @@ export function build_subject_bundle(subject: string, body: string): string {
     JSON.stringify({
       s: subject || (existing.subject ?? ""),
       b: existing.body,
+      ...(attachment_manifest.length > 0 ? { attachment_manifest } : {}),
     })
   );
 }
@@ -789,7 +795,13 @@ function unwrap_subject_bundle_layer(text: string): SubjectBundle | null {
       typeof parsed.s === "string" &&
       typeof parsed.b === "string"
     ) {
-      return { subject: parsed.s, body: parsed.b };
+      return {
+        subject: parsed.s,
+        body: parsed.b,
+        ...(Array.isArray(parsed.attachment_manifest)
+          ? { attachment_manifest: parsed.attachment_manifest }
+          : {}),
+      };
     }
   } catch (caught) {
     ignore_error("utils/email_crypto:unwrap_subject_bundle_layer", caught);
@@ -804,19 +816,25 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
   let subject: string | null = null;
   let body = decrypted;
   let unwrapped = false;
+  let attachment_manifest: unknown[] | undefined;
 
   for (let depth = 0; depth < MAX_SUBJECT_BUNDLE_DEPTH; depth += 1) {
     const layer = unwrap_subject_bundle_layer(body);
 
     if (!layer) break;
     if (!subject) subject = layer.subject;
+    if (depth === 0) attachment_manifest = layer.attachment_manifest;
     body = layer.body;
     unwrapped = true;
   }
 
   if (!unwrapped) return { subject: null, body: decrypted };
 
-  return { subject: subject ?? "", body };
+  return {
+    subject: subject ?? "",
+    body,
+    ...(attachment_manifest ? { attachment_manifest } : {}),
+  };
 }
 
 export function unwrap_bundle_html(html: string | undefined): {

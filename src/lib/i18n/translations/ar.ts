@@ -920,6 +920,8 @@ export const ar = {
     download_reveal_failed: "تعذر إظهار هذا الملف. ربما نُقل أو حُذف.",
     attachment_locked:
       "لا يمكن فتح هذا المرفق لأن مفتاح التشفير الخاص به غير متوفر على هذا الجهاز.",
+    attachment_content_mismatch:
+      "هذا المرفق لا يطابق الرسالة التي وصل معها، لذلك لم يتم فتحه.",
     scheduled_no_attachments:
       "لا يمكن للرسائل المجدولة أن تتضمن مرفقات بعد. أرسلها الآن، أو أزل الملفات لجدولتها.",
     scheduled_connected_account:

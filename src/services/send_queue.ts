@@ -71,6 +71,10 @@ import {
   encrypt_attachments_with_private_bcc,
   encrypt_with_private_bcc,
 } from "./send_private_bcc";
+import {
+  plan_sealed_attachments,
+  wipe_sealed_attachment_plan,
+} from "./crypto/attachment_crypto";
 
 import {
   enqueue_action,
@@ -535,9 +539,14 @@ async function prepare_email_for_server_queue(
   }
   const sender_email = email.sender_email || current_user.email;
 
+  const attachment_plan =
+    all_attachments.length > 0
+      ? await plan_sealed_attachments(all_attachments)
+      : null;
   const bundled_body_for_recipient = build_subject_bundle(
     email.subject || "",
     body_for_encryption,
+    attachment_plan?.manifest,
   );
 
   const {
@@ -631,8 +640,11 @@ async function prepare_email_for_server_queue(
       { to: email.to, cc: email.cc, bcc: email.bcc },
       internal_copy_is_encrypted,
       client_copies !== undefined,
+      attachment_plan?.session_keys,
     );
   }
+
+  if (attachment_plan) wipe_sealed_attachment_plan(attachment_plan);
 
   const request: QueueEmailRequest = {
     to: email.to,

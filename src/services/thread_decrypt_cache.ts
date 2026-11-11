@@ -23,7 +23,10 @@ import type { MailItemMetadata } from "@/types/email";
 import type { ThreadMessageItem } from "./api/mail_threads";
 
 import { on_vault_cleared } from "./crypto/memory_key_store";
-import { register_envelope_attachment_keys } from "./crypto/inbound_attachment_keys";
+import {
+  register_envelope_attachment_keys,
+  register_sealed_attachment_manifest,
+} from "./crypto/inbound_attachment_keys";
 import { LOCKDOWN_CHANGED_EVENT } from "./lockdown_store";
 
 const MAX_CONTENT_ENTRIES = 100;
@@ -57,6 +60,7 @@ export type ThreadMessageContent = Pick<
 > & {
   sent_at?: string;
   attachment_keys?: unknown;
+  sealed_attachment_manifest?: unknown;
 };
 
 export type ThreadMessageFlags = Pick<
@@ -162,6 +166,9 @@ function copy_content(content: ThreadMessageContent): ThreadMessageContent {
     bcc_recipients: copy_people(content.bcc_recipients),
     raw_headers: content.raw_headers?.map((header) => ({ ...header })),
     attachment_keys: structuredClone(content.attachment_keys),
+    sealed_attachment_manifest: structuredClone(
+      content.sealed_attachment_manifest,
+    ),
   };
 }
 
@@ -385,6 +392,10 @@ function content_size(content: ThreadMessageContent): number {
     size += JSON.stringify(content.attachment_keys)?.length ?? 0;
   }
 
+  if (content.sealed_attachment_manifest !== undefined) {
+    size += JSON.stringify(content.sealed_attachment_manifest)?.length ?? 0;
+  }
+
   for (const header of content.raw_headers ?? []) {
     size += (header.name ?? "").length + (header.value ?? "").length;
   }
@@ -416,6 +427,7 @@ export async function decrypt_thread_content_cached(
   const hit = content_cache.get(msg.id, key, thread_token);
 
   if (hit !== null) {
+    register_sealed_attachment_manifest(msg.id, hit.sealed_attachment_manifest);
     register_envelope_attachment_keys(msg.id, hit);
 
     return hit;

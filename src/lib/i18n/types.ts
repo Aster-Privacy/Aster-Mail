@@ -1660,6 +1660,7 @@ export interface CommonTranslations {
   download_open_failed: string;
   download_reveal_failed: string;
   attachment_locked: string;
+  attachment_content_mismatch: string;
   scheduled_no_attachments: string;
   scheduled_connected_account: string;
   scheduled_no_expiry: string;

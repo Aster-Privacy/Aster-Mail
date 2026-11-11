@@ -996,6 +996,8 @@ export const ko = {
       "이 파일을 표시할 수 없습니다. 이동되었거나 삭제되었을 수 있습니다.",
     attachment_locked:
       "이 첨부 파일의 암호화 키를 이 기기에서 사용할 수 없어 열 수 없습니다.",
+    attachment_content_mismatch:
+      "이 첨부 파일이 함께 도착한 메시지와 일치하지 않아 열지 않았습니다.",
     scheduled_no_attachments:
       "예약 메일에는 아직 첨부 파일을 포함할 수 없습니다. 지금 보내거나 파일을 제거한 후 예약하세요.",
     scheduled_connected_account:

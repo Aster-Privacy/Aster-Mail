@@ -941,6 +941,8 @@ export const tr = {
       "Bu dosya gösterilemedi. Taşınmış veya silinmiş olabilir.",
     attachment_locked:
       "Bu ek, şifreleme anahtarı bu cihazda kullanılamadığı için açılamıyor.",
+    attachment_content_mismatch:
+      "Bu ek, birlikte geldiği iletiyle eşleşmediği için açılmadı.",
     scheduled_no_attachments:
       "Zamanlanmış e-postalar henüz ek içeremez. Şimdi gönderin veya zamanlamak için dosyaları kaldırın.",
     scheduled_connected_account:

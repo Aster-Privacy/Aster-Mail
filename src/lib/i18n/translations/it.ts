@@ -957,6 +957,8 @@ export const it = {
       "Impossibile mostrare questo file. Potrebbe essere stato spostato o eliminato.",
     attachment_locked:
       "Questo allegato non può essere aperto perché la sua chiave di crittografia non è disponibile su questo dispositivo.",
+    attachment_content_mismatch:
+      "Questo allegato non corrisponde al messaggio con cui è arrivato, quindi non è stato aperto.",
     scheduled_no_attachments:
       "Le email programmate non possono ancora includere allegati. Invia ora oppure rimuovi i file per programmarla.",
     scheduled_connected_account:

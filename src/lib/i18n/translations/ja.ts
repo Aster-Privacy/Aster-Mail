@@ -989,6 +989,8 @@ export const ja = {
       "このファイルを表示できませんでした。移動または削除された可能性があります。",
     attachment_locked:
       "この添付ファイルは、暗号化キーがこのデバイスで利用できないため開けません。",
+    attachment_content_mismatch:
+      "この添付ファイルは一緒に届いたメッセージと一致しないため、開かれませんでした。",
     scheduled_no_attachments:
       "予約送信のメールにはまだ添付ファイルを含められません。今すぐ送信するか、ファイルを削除して予約してください。",
     scheduled_connected_account:

@@ -931,6 +931,8 @@ export const nl = {
       "Dit bestand kan niet worden getoond. Het is mogelijk verplaatst of verwijderd.",
     attachment_locked:
       "Deze bijlage kan niet worden geopend omdat de versleutelingssleutel niet beschikbaar is op dit apparaat.",
+    attachment_content_mismatch:
+      "Deze bijlage komt niet overeen met het bericht waarmee ze is ontvangen en is daarom niet geopend.",
     scheduled_no_attachments:
       "Geplande e-mails kunnen nog geen bijlagen bevatten. Verstuur nu of verwijder de bestanden om te plannen.",
     scheduled_connected_account:

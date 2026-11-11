@@ -70,6 +70,7 @@ import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import { compare_timestamps_asc } from "@/utils/email_timestamp";
 import { has_readable_body } from "@/components/email/thread_message_merge";
 import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
+import { settle_sealed_fields } from "@/services/crypto/sealed_message_fields";
 import {
   as_sent_encryption_scope,
   sent_copy_encryption_scope,
@@ -257,7 +258,9 @@ async function decode_thread_envelope(
   }
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
   let body_content =
-    has_inbound_pgp_block(resolved_text) || !resolved_html
+    has_inbound_pgp_block(resolved_text) ||
+    !resolved_html ||
+    is_ratchet_envelope(resolved_text)
       ? resolved_text
       : resolved_html;
   const quoted_html_pgp =
@@ -265,6 +268,7 @@ async function decode_thread_envelope(
     is_quoted_inbound_pgp(resolved_text, body_content);
   let body_decrypted = false;
   let e2e_verified = false;
+  let ratchet_sealed = false;
 
   if (our_email && body_content.startsWith("{")) {
     const ratchet_env = parse_ratchet_envelope(body_content);
@@ -291,6 +295,7 @@ async function decode_thread_envelope(
             body_content = decrypted;
             body_decrypted = true;
             e2e_verified = is_trusted_ratchet_plaintext(decrypted);
+            ratchet_sealed = e2e_verified;
           } else {
             body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
           }
@@ -336,13 +341,20 @@ async function decode_thread_envelope(
     }
   }
 
+  const attachments_sealed = settle_sealed_fields(
+    envelope,
+    subject_bundle,
+    ratchet_sealed,
+    msg.id,
+  );
+
   const content_is_html = is_html_content(body_content);
   const html_had_pgp =
     resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
   let effective_html: string | undefined =
     (body_decrypted || mime_extracted) && content_is_html
       ? body_content
-      : html_had_pgp && body_decrypted
+      : (html_had_pgp && body_decrypted) || ratchet_sealed
         ? undefined
         : resolved_html;
 
@@ -375,6 +387,9 @@ async function decode_thread_envelope(
     bcc_recipients: envelope.bcc || [],
     raw_headers: envelope.raw_headers,
     attachment_keys: envelope.attachment_keys,
+    ...(attachments_sealed
+      ? { sealed_attachment_manifest: subject_bundle.attachment_manifest }
+      : {}),
   };
   const cacheable =
     !pgp_unresolved &&
@@ -614,7 +629,9 @@ export async function fetch_and_decrypt_virtual_group(
     }
     const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
     let body_content =
-      has_inbound_pgp_block(resolved_text) || !resolved_html
+      has_inbound_pgp_block(resolved_text) ||
+      !resolved_html ||
+      is_ratchet_envelope(resolved_text)
         ? resolved_text
         : resolved_html;
     const quoted_html_pgp =
@@ -622,6 +639,7 @@ export async function fetch_and_decrypt_virtual_group(
       is_quoted_inbound_pgp(resolved_text, body_content);
     let body_decrypted = false;
     let e2e_verified = false;
+    let ratchet_sealed = false;
 
     if (our_email && body_content.startsWith("{")) {
       const ratchet_env = parse_ratchet_envelope(body_content);
@@ -648,6 +666,7 @@ export async function fetch_and_decrypt_virtual_group(
               body_content = decrypted;
               body_decrypted = true;
               e2e_verified = is_trusted_ratchet_plaintext(decrypted);
+              ratchet_sealed = e2e_verified;
             } else {
               body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
             }
@@ -690,13 +709,15 @@ export async function fetch_and_decrypt_virtual_group(
       }
     }
 
+    settle_sealed_fields(envelope, subject_bundle, ratchet_sealed, item.id);
+
     const content_is_html = is_html_content(body_content);
     const html_had_pgp =
       resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
     let effective_html: string | undefined =
       (body_decrypted || mime_extracted) && content_is_html
         ? body_content
-        : html_had_pgp && body_decrypted
+        : (html_had_pgp && body_decrypted) || ratchet_sealed
           ? undefined
           : resolved_html;
 

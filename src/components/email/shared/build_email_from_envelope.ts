@@ -40,6 +40,10 @@ import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { build_body_preview } from "@/utils/preview_text";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  sealed_html_source,
+  settle_sealed_fields,
+} from "@/services/crypto/sealed_message_fields";
+import {
   sent_copy_encryption_scope,
   type SentEncryptionScope,
 } from "@/services/crypto/sent_encryption_evidence";
@@ -136,6 +140,8 @@ async function resolve_envelope_body(
     : resolved_text;
 
   const ratchet_verified = is_ratchet_verified_body(resolved_text, body_text);
+
+  resolved_html = sealed_html_source(resolved_html, ratchet_verified);
   const pre_pgp_text = body_text;
 
   body_text = await try_decrypt_pgp_body(body_text);
@@ -168,6 +174,8 @@ async function resolve_envelope_body(
       envelope.subject = bundle.subject;
     }
   }
+
+  settle_sealed_fields(envelope, bundle, ratchet_verified, message_id);
 
   const pgp_was_decrypted = body_text !== pre_pgp_text;
   const html_has_pgp =

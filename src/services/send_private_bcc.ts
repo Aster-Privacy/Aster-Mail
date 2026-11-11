@@ -161,6 +161,7 @@ export async function encrypt_attachments_with_private_bcc(
   recipients: PrivateBccRecipients,
   internal_copy_is_encrypted: boolean,
   seal_shared_meta: boolean = false,
+  session_keys: Uint8Array[] | null = null,
 ): Promise<EncryptedAttachmentForSend[]> {
   const hidden = hidden_internal_bcc(recipients);
   const targets = shared_targets(recipients);
@@ -197,6 +198,7 @@ export async function encrypt_attachments_with_private_bcc(
       true,
       sealed_private_keys,
       null,
+      session_keys,
     );
   }
 
@@ -234,5 +236,6 @@ export async function encrypt_attachments_with_private_bcc(
     internal_copy_is_encrypted && !split_outside_copy,
     private_keys,
     split_outside_copy ? shared_internal : null,
+    session_keys,
   );
 }

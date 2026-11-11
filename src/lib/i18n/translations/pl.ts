@@ -957,6 +957,8 @@ export const pl = {
       "Nie można pokazać tego pliku. Mógł zostać przeniesiony lub usunięty.",
     attachment_locked:
       "Nie można otworzyć tego załącznika, ponieważ jego klucz szyfrowania nie jest dostępny na tym urządzeniu.",
+    attachment_content_mismatch:
+      "Ten załącznik nie pasuje do wiadomości, z którą został dostarczony, dlatego nie został otwarty.",
     scheduled_no_attachments:
       "Zaplanowane wiadomości nie mogą jeszcze zawierać załączników. Wyślij teraz lub usuń pliki, aby zaplanować.",
     scheduled_connected_account:

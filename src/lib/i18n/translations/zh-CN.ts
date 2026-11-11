@@ -819,6 +819,8 @@ export const zh_CN = {
     download_open_failed: "无法打开此文件。它可能已被移动或删除。",
     download_reveal_failed: "无法显示此文件。它可能已被移动或删除。",
     attachment_locked: "此附件的加密密钥在此设备上不可用，因此无法打开。",
+    attachment_content_mismatch:
+      "此附件与随附的邮件不一致，因此未打开。",
     scheduled_no_attachments:
       "定时邮件暂时无法包含附件。请立即发送，或移除文件后再定时。",
     scheduled_connected_account:

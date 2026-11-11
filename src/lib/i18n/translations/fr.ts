@@ -965,6 +965,8 @@ export const fr = {
       "Impossible d'afficher ce fichier. Il a peut-être été déplacé ou supprimé.",
     attachment_locked:
       "Cette pièce jointe ne peut pas être ouverte, car sa clé de chiffrement n'est pas disponible sur cet appareil.",
+    attachment_content_mismatch:
+      "Cette pièce jointe ne correspond pas au message avec lequel elle est arrivée. Elle n'a donc pas été ouverte.",
     scheduled_no_attachments:
       "Les e-mails programmés ne peuvent pas encore inclure de pièces jointes. Envoyez maintenant, ou retirez les fichiers pour programmer.",
     scheduled_connected_account:
