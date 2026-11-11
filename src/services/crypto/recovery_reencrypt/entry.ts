@@ -25,6 +25,7 @@ import type {} from "@/services/api/signatures";
 import type {} from "@/services/api/templates";
 import type {} from "@/services/api/blocked_senders";
 import type {} from "@/services/api/allowed_senders";
+import { api_client } from "@/services/api/client";
 import { array_to_base64 } from "../base64";
 import {
   load_storage_write_key_bytes,
@@ -130,9 +131,12 @@ export async function reencrypt_settings_password_change(
   }
 
   if (!complete && old_data_kek_b64) {
+    const owner_user_id = api_client.get_expected_user_id();
+
     await store_pending_reencryption({
       old_identity_key,
       old_data_kek: old_data_kek_b64,
+      ...(owner_user_id ? { owner_user_id } : {}),
     });
   }
 

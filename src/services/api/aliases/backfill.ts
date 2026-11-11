@@ -33,6 +33,7 @@ import { list_all_aliases } from "./list";
 import { EmailAlias, NormalizeAliasResponse } from "./types";
 export let routing_hash_backfill_done = false;
 let legacy_routing_heal_done = false;
+const ROUTABLE_LOCAL_PART_PATTERN = /^[a-z0-9._+-]{1,64}$/;
 
 // Heals legacy aliases that were stored without a routing_address_hash and so silently
 // drop all inbound mail. We recompute the hash locally (we can decrypt the address) and
@@ -107,6 +108,7 @@ export async function heal_legacy_routing_hashes(
       const local_part = decrypted.local_part.toLowerCase().trim();
 
       if (!local_part.includes(".")) continue;
+      if (!ROUTABLE_LOCAL_PART_PATTERN.test(local_part)) continue;
 
       const expected = await compute_routing_hash(local_part, alias.domain);
 

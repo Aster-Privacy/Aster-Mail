@@ -26,7 +26,7 @@ import type {} from "@/services/api/templates";
 import type {} from "@/services/api/blocked_senders";
 import type {} from "@/services/api/allowed_senders";
 
-import { re_encrypt_field } from "./key_helpers";
+import { move_item_fields } from "./key_helpers";
 export async function derive_folder_aes_key(
   identity_key: string,
   usages: KeyUsage[],
@@ -53,7 +53,7 @@ export async function re_encrypt_folders(
 
   const [old_key, new_key] = await Promise.all([
     derive_folder_aes_key(old_identity_key, ["decrypt"]),
-    derive_folder_aes_key(new_identity_key, ["encrypt"]),
+    derive_folder_aes_key(new_identity_key, ["encrypt", "decrypt"]),
   ]);
 
   let offset = 0;
@@ -81,42 +81,25 @@ export async function re_encrypt_folders(
 
     for (const folder of resp.data.labels) {
       try {
-        const updates: Record<string, string> = {};
-        const name = await re_encrypt_field(
-          folder.encrypted_name,
-          folder.name_nonce,
+        const updates = await move_item_fields(
+          folder,
+          [
+            ["encrypted_name", "name_nonce"],
+            ["encrypted_color", "color_nonce"],
+            ["encrypted_icon", "icon_nonce"],
+          ],
           old_key,
           new_key,
         );
 
-        updates.encrypted_name = name.encrypted;
-        updates.name_nonce = name.nonce;
+        if (Object.keys(updates).length === 0) continue;
 
-        if (folder.encrypted_color && folder.color_nonce) {
-          const color = await re_encrypt_field(
-            folder.encrypted_color,
-            folder.color_nonce,
-            old_key,
-            new_key,
-          );
+        const saved = await api_client.put(
+          `/mail/v1/labels/${folder.id}`,
+          updates,
+        );
 
-          updates.encrypted_color = color.encrypted;
-          updates.color_nonce = color.nonce;
-        }
-
-        if (folder.encrypted_icon && folder.icon_nonce) {
-          const icon = await re_encrypt_field(
-            folder.encrypted_icon,
-            folder.icon_nonce,
-            old_key,
-            new_key,
-          );
-
-          updates.encrypted_icon = icon.encrypted;
-          updates.icon_nonce = icon.nonce;
-        }
-
-        await api_client.put(`/mail/v1/labels/${folder.id}`, updates);
+        if (saved.error) ok = false;
       } catch {
         ok = false;
         continue;
