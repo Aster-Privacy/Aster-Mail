@@ -109,6 +109,29 @@ describe("external key binding", () => {
     expect(info.will_encrypt).toBe(true);
   });
 
+  it("keeps a binary key sent as base64 and returns it armored", async () => {
+    const parsed = await openpgp.readKey({ armoredKey: bound_key });
+    const encoded = btoa(String.fromCharCode(...parsed.write()));
+    const info = await discover_batch(encoded, bound_fingerprint);
+
+    expect(info.found).toBe(true);
+    expect(info.will_encrypt).toBe(true);
+    expect(info.public_key).toContain("-----BEGIN PGP PUBLIC KEY BLOCK-----");
+
+    const reread = await openpgp.readKey({ armoredKey: info.public_key! });
+
+    expect(reread.getFingerprint().toUpperCase()).toBe(bound_fingerprint);
+  });
+
+  it("drops a base64 binary key issued for a different address", async () => {
+    const parsed = await openpgp.readKey({ armoredKey: other_address_key });
+    const encoded = btoa(String.fromCharCode(...parsed.write()));
+    const info = await discover_batch(encoded, null);
+
+    expect(info.found).toBe(false);
+    expect(info.public_key).toBeNull();
+  });
+
   it("accepts a fingerprint written with spaces and lowercase", async () => {
     const spaced = bound_fingerprint.toLowerCase().replace(/(.{4})/g, "$1 ");
     const info = await discover_batch(bound_key, spaced);

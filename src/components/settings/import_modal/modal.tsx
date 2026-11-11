@@ -796,7 +796,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         if (imported_count > 0) {
           invalidate_mail_cache();
           emit_mail_changed();
-          thread_imported_emails()
+          thread_imported_emails({ relink_all: true })
             .then((count) => {
               if (count > 0) {
                 invalidate_mail_cache();
