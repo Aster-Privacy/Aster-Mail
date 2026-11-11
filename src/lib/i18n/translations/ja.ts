@@ -1819,6 +1819,9 @@ export const ja = {
     recovery_codes_low_reminder_body:
       "各コードは一度だけ使えます。残りは {{count}} 個です。ロックアウトされないよう新しいコードを取得してください。",
     recovery_codes_low_reminder_action: "新しいコードを取得",
+    recovery_codes_refresh_title: "リカバリーコードを交換してください",
+    recovery_codes_refresh_body:
+      "保存済みのリカバリーコードは、以前の短い形式です。新しいコードを取得して保存してください。取得すると、古いコードは使えなくなります。",
     recovery_phrase_migrate_title: "リカバリーコードに切り替え",
     recovery_phrase_migrate_body:
       "リカバリーフレーズは廃止されます。今のうちにリカバリーコードを取得して、アカウントを復旧できるようにしてください。",

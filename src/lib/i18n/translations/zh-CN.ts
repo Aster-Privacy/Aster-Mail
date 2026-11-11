@@ -1747,6 +1747,9 @@ export const zh_CN = {
     recovery_codes_low_reminder_body:
       "每个代码只能用一次，你还剩 {{count}} 个。请获取新代码，以免被锁定在账户之外。",
     recovery_codes_low_reminder_action: "获取新代码",
+    recovery_codes_refresh_title: "更换恢复代码",
+    recovery_codes_refresh_body:
+      "您保存的恢复代码使用较旧、较短的格式。请获取新代码并妥善保存。获取后，旧代码将停止使用。",
     recovery_phrase_migrate_title: "改用恢复代码",
     recovery_phrase_migrate_body:
       "恢复短语即将停用。请立即获取恢复代码，以便日后仍能找回账户。",

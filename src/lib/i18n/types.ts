@@ -2457,6 +2457,8 @@ export interface CommonTranslations {
   recovery_codes_low_reminder_body: string;
   recovery_codes_low_reminder_body_one?: string;
   recovery_codes_low_reminder_action: string;
+  recovery_codes_refresh_title: string;
+  recovery_codes_refresh_body: string;
   recovery_phrase_migrate_title: string;
   recovery_phrase_migrate_body: string;
   recovery_phrase_migrate_action: string;

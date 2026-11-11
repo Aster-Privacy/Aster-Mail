@@ -1883,6 +1883,9 @@ export const tr = {
     recovery_codes_low_reminder_body:
       "Her kod bir kez çalışır ve {{count}} kodunuz kaldı. Hesabınızdan kilitlenmemek için yeni kod alın.",
     recovery_codes_low_reminder_action: "Yeni kod al",
+    recovery_codes_refresh_title: "Kurtarma kodlarınızı değiştirin",
+    recovery_codes_refresh_body:
+      "Kayıtlı kurtarma kodlarınız daha eski ve daha kısa bir biçim kullanıyor. Yeni kod alın ve kaydedin. Bunu yaptığınızda eski kodlarınız çalışmaz.",
     recovery_phrase_migrate_title: "Kurtarma kodlarına geçin",
     recovery_phrase_migrate_body:
       "Kurtarma ifadeleri kaldırılıyor. Hesabınızı hâlâ kurtarabilmek için şimdi kurtarma kodu alın.",

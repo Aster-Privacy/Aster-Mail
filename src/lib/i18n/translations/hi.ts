@@ -1815,6 +1815,9 @@ export const hi = {
     recovery_codes_low_reminder_body_one:
       "हर कोड एक बार काम करता है और आपके पास {{count}} बचा है। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
     recovery_codes_low_reminder_action: "नए कोड पाएं",
+    recovery_codes_refresh_title: "अपने रिकवरी कोड बदलें",
+    recovery_codes_refresh_body:
+      "आपके सहेजे गए रिकवरी कोड पुराने और छोटे फ़ॉर्मैट में हैं। नए कोड पाएं और उन्हें सहेजें। ऐसा करने पर आपके पुराने कोड काम करना बंद कर देते हैं।",
     recovery_phrase_migrate_title: "रिकवरी कोड पर जाएं",
     recovery_phrase_migrate_body:
       "रिकवरी फ़्रेज़ हटाए जा रहे हैं। अभी रिकवरी कोड पाएं ताकि आप आगे भी अपना खाता रिकवर कर सकें।",

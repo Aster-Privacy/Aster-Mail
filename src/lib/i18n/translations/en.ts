@@ -1820,6 +1820,9 @@ export const en: Translations = {
     recovery_codes_low_reminder_body:
       "Each code works once, and you have {{count}} left. Get new codes so you do not get locked out.",
     recovery_codes_low_reminder_action: "Get new codes",
+    recovery_codes_refresh_title: "Replace your recovery codes",
+    recovery_codes_refresh_body:
+      "Your saved recovery codes use an older, shorter format. Get new codes and save them. Your old codes stop working when you do.",
     recovery_phrase_migrate_title: "Switch to recovery codes",
     recovery_phrase_migrate_body:
       "Recovery phrases are going away. Get recovery codes now so you can still recover your account.",

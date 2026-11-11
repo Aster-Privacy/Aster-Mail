@@ -1751,6 +1751,9 @@ export const pt = {
     recovery_codes_low_reminder_body_one:
       "Cada código funciona uma vez e resta-te {{count}}. Obtém novos códigos para não perderes o acesso.",
     recovery_codes_low_reminder_action: "Obter novos códigos",
+    recovery_codes_refresh_title: "Substitui os teus códigos de recuperação",
+    recovery_codes_refresh_body:
+      "Os teus códigos de recuperação guardados usam um formato mais antigo e mais curto. Obtém novos códigos e guarda-os. Depois disso, os códigos antigos deixam de funcionar.",
     recovery_phrase_migrate_title: "Muda para códigos de recuperação",
     recovery_phrase_migrate_body:
       "As frases de recuperação vão desaparecer. Obtém códigos de recuperação agora para ainda poderes recuperar a tua conta.",
