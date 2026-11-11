@@ -15,7 +15,35 @@ env:
   SIGNER_NATIVE_INTEGRITY: sha512-Ru4gwJKPG0ctVGchRGpRup4Y4lW2SSfFnrbQcyHhCliKy4g8Qz97TrUgCur4CbWyAgKxvGh3SjrkA0LDYzDGiw==
 
 jobs:
+  test:
+    name: Typecheck and test before release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npx vitest run --reporter=dot
+
   build:
+    needs: test
     timeout-minutes: 75
     permissions:
       contents: read
@@ -311,8 +339,8 @@ jobs:
           retention-days: 1
 
   sign:
-    needs: build
-    if: always()
+    needs: [test, build]
+    if: ${{ always() && needs.test.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions: {}
     steps:
@@ -551,8 +579,8 @@ jobs:
           gh release upload "$TAG" "$TMP/latest.json" "$TMP/latest_v2.json" --repo "$GITHUB_REPOSITORY" --clobber
 
   ensure_canonical_assets:
-    needs: [build, publish]
-    if: always()
+    needs: [test, build, publish]
+    if: ${{ always() && needs.test.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -627,8 +655,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   attest_provenance:
-    needs: build
-    if: always()
+    needs: [test, build]
+    if: ${{ always() && needs.test.result == 'success' }}
     runs-on: ubuntu-22.04
     continue-on-error: true
     permissions:
@@ -655,8 +683,8 @@ jobs:
           subject-path: "attest/*"
 
   promote_to_latest:
-    needs: [build, publish, ensure_canonical_assets]
-    if: always()
+    needs: [test, build, publish, ensure_canonical_assets]
+    if: ${{ always() && needs.test.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: write
