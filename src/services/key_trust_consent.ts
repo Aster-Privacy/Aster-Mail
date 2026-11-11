@@ -21,14 +21,18 @@
 import {
   acknowledge_external_key_fingerprint_change,
   discover_external_keys_batch,
+  is_internal_email,
   type ExternalKeyInfo,
 } from "./api/keys";
 import { is_internal_recipient } from "./recipient_classification";
 import {
+  accept_missing_recipient_key,
   check_owner_key_pin,
+  find_saved_recipient_key,
   lookup_owner_key_pin,
   owner_key_fingerprint,
   replace_owner_key_pin,
+  restore_missing_key_check,
 } from "./crypto/ratchet_identity_pin";
 
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -40,6 +44,7 @@ export interface KeyFingerprintChange {
   source: string;
   observed_at: string;
   unreadable?: boolean;
+  missing?: boolean;
 }
 
 export type KeyTrustPromptHandler = (
@@ -96,6 +101,36 @@ async function local_pin_change(
   return { ...observed, prior_fingerprint: pinned.fingerprint.toUpperCase() };
 }
 
+function has_usable_key(key_info: ExternalKeyInfo): boolean {
+  return key_info.found && Boolean(key_info.public_key);
+}
+
+async function missing_key_change(
+  key_info: ExternalKeyInfo,
+): Promise<KeyFingerprintChange | null> {
+  if (has_usable_key(key_info)) return null;
+
+  const email = key_info.email.toLowerCase();
+  const saved = await find_saved_recipient_key(email);
+
+  if (!saved || saved.accepted_missing) return null;
+
+  return {
+    email,
+    prior_fingerprint: saved.fingerprint.toUpperCase(),
+    new_fingerprint: "",
+    source: key_info.source ?? "",
+    observed_at: new Date().toISOString(),
+    missing: true,
+  };
+}
+
+async function restore_missing_key_checks(emails: string[]): Promise<void> {
+  await Promise.all(
+    emails.map((email) => restore_missing_key_check(email).catch(() => {})),
+  );
+}
+
 async function pin_external_keys(
   keys: ExternalKeyInfo[],
   replace: boolean,
@@ -122,16 +157,23 @@ async function pin_external_keys(
 }
 
 async function review_key_trust(recipients: string[]): Promise<KeyTrustReview> {
-  const external = [
+  const addressed = [
     ...new Set(
       recipients
         .map((recipient) => recipient.trim().toLowerCase())
-        .filter(
-          (recipient) =>
-            recipient.includes("@") && !is_internal_recipient(recipient),
-        ),
+        .filter((recipient) => recipient.includes("@")),
     ),
   ];
+  const external = addressed.filter(
+    (recipient) => !is_internal_recipient(recipient),
+  );
+
+  await restore_missing_key_checks(
+    addressed.filter(
+      (recipient) =>
+        is_internal_recipient(recipient) && !is_internal_email(recipient),
+    ),
+  );
 
   if (external.length === 0) {
     return { changes: [], server_changes: [], keys: [] };
@@ -169,7 +211,17 @@ async function review_key_trust(recipients: string[]): Promise<KeyTrustReview> {
     const local_change = await local_pin_change(key_info);
 
     if (local_change) changes.push(local_change);
+
+    const missing_change = await missing_key_change(key_info);
+
+    if (missing_change) changes.push(missing_change);
   }
+
+  await restore_missing_key_checks(
+    response.data
+      .filter(has_usable_key)
+      .map((key_info) => key_info.email.toLowerCase()),
+  );
 
   return { changes, server_changes, keys: response.data };
 }
@@ -197,6 +249,10 @@ export async function ensure_external_key_trust(
     if (!trusted) return false;
 
     await pin_external_keys(review.keys, true);
+
+    for (const change of review.changes) {
+      if (change.missing) await accept_missing_recipient_key(change.email);
+    }
 
     await Promise.all(
       review.server_changes.map((change) =>
