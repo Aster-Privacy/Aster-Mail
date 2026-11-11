@@ -3,6 +3,7 @@ import { describe, it, expect } from "vitest";
 import {
   collect_files_from_data_transfer,
   filter_supported_files,
+  import_relative_path,
   is_supported_import_file,
 } from "./file_collection";
 
@@ -54,6 +55,8 @@ describe("file_collection", () => {
     expect(is_supported_import_file("message.eml")).toBe(true);
     expect(is_supported_import_file("MESSAGE.EML")).toBe(true);
     expect(is_supported_import_file("archive.mbox")).toBe(true);
+    expect(is_supported_import_file("mbox")).toBe(true);
+    expect(is_supported_import_file("Info.plist")).toBe(false);
     expect(is_supported_import_file(".DS_Store")).toBe(false);
     expect(is_supported_import_file("photo.png")).toBe(false);
   });
@@ -129,6 +132,41 @@ describe("file_collection", () => {
 
     expect(from_directory).toBe(false);
     expect(files.length).toBe(2);
+  });
+
+  it("remembers where each dropped file sat in the dropped folder", async () => {
+    const file = new File(["body"], "Acme.mbox", { type: "" });
+    const dt = data_transfer_for({
+      isFile: false,
+      isDirectory: true,
+      fullPath: "/Export",
+      createReader: () => {
+        let done = false;
+
+        return {
+          readEntries: (ok: (entries: unknown[]) => void) => {
+            ok(
+              done
+                ? []
+                : [
+                    {
+                      isFile: true,
+                      isDirectory: false,
+                      fullPath: "/Export/Work/Acme.mbox",
+                      file: (cb: (f: File) => void) => cb(file),
+                    },
+                  ],
+            );
+            done = true;
+          },
+        };
+      },
+    });
+
+    const { files } = await collect_files_from_data_transfer(dt);
+
+    expect(import_relative_path(files[0])).toBe("/Export/Work/Acme.mbox");
+    expect(import_relative_path(new File(["x"], "a.eml"))).toBeUndefined();
   });
 
   it("falls back to data_transfer.files when entries API is absent", async () => {
