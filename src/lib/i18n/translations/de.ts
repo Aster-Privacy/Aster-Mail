@@ -1877,6 +1877,11 @@ export const de = {
       "Der gespeicherte Verschlüsselungsschlüssel von {{recipients}} kann auf diesem Gerät nicht gelesen werden. Prüfen Sie den aktuellen Fingerabdruck über einen anderen Kanal mit der Empfängerin oder dem Empfänger, bevor Sie senden.",
     key_trust_unreadable_detail: "{{email}}: jetzt {{current}}.",
     key_trust_change_confirm: "Neuem Schlüssel vertrauen",
+    key_trust_missing_title: "Verschlüsselungsschlüssel nicht gefunden",
+    key_trust_missing_message:
+      "Für {{recipients}} war auf diesem Gerät ein Verschlüsselungsschlüssel gespeichert, aber jetzt ist kein Schlüssel verfügbar. Wenn Sie fortfahren, wird diese Nachricht ohne Ende-zu-Ende-Verschlüsselung gesendet. Klären Sie das über einen anderen Kanal mit der Empfängerin oder dem Empfänger, bevor Sie senden.",
+    key_trust_missing_detail: "{{email}}: war {{prior}}.",
+    key_trust_missing_confirm: "Ohne Verschlüsselung senden",
     post_quantum_downgrade_title:
       "Ohne die erwarteten post-quantensicheren Schlüssel senden?",
     post_quantum_downgrade_message:

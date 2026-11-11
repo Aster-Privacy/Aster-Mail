@@ -1971,6 +1971,11 @@ export const pl = {
       "Zapisanego klucza szyfrowania dla {{recipients}} nie można odczytać na tym urządzeniu. Przed wysłaniem potwierdź bieżący odcisk klucza z odbiorcą innym kanałem.",
     key_trust_unreadable_detail: "{{email}}: jest {{current}}.",
     key_trust_change_confirm: "Zaufaj nowemu kluczowi",
+    key_trust_missing_title: "Nie znaleziono klucza szyfrowania",
+    key_trust_missing_message:
+      "Na tym urządzeniu był zapisany klucz szyfrowania dla {{recipients}}, ale teraz żaden klucz nie jest dostępny. Jeśli kontynuujesz, ta wiadomość zostanie wysłana bez szyfrowania end-to-end. Przed wysłaniem potwierdź to z odbiorcą innym kanałem.",
+    key_trust_missing_detail: "{{email}}: było {{prior}}.",
+    key_trust_missing_confirm: "Wyślij bez szyfrowania",
     post_quantum_downgrade_title:
       "Wysłać bez oczekiwanych kluczy postkwantowych?",
     post_quantum_downgrade_message:

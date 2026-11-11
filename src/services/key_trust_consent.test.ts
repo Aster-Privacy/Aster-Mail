@@ -37,6 +37,8 @@ const h = vi.hoisted(() => ({
   store: new Map<string, unknown>(),
   unreadable: new Set<string>(),
   fail_reads: false,
+  keyless: new Set<string>(),
+  hosted: new Set<string>(),
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -45,10 +47,16 @@ vi.mock("@/services/account_manager", () => ({
 
 vi.mock("@/services/recipient_classification", () => ({
   is_internal_recipient: (email: string) =>
-    email.toLowerCase().endsWith("@astermail.org"),
+    email.toLowerCase().endsWith("@astermail.org") ||
+    h.hosted.has(email.toLowerCase()),
   get_cached_recipient_classification: () => undefined,
   classify_recipients: async (emails: string[]) =>
-    new Map(emails.map((email) => [email, "external"])),
+    new Map(
+      emails.map((email) => [
+        email,
+        h.hosted.has(email.toLowerCase()) ? "internal" : "external",
+      ]),
+    ),
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -101,16 +109,29 @@ vi.mock("@/services/api/keys", async (import_original) => {
       if (h.discover_api_error) return { error: "unavailable" };
 
       return {
-        data: emails.map((email) => ({
-          email,
-          found: true,
-          public_key: h.public_keys.get(email) ?? "key",
-          fingerprint: "ffff",
-          source: "wkd",
-          expires_at: null,
-          will_encrypt: true,
-          fingerprint_change: h.changes.get(email) ?? null,
-        })),
+        data: emails.map((email) =>
+          h.keyless.has(email)
+            ? {
+                email,
+                found: false,
+                public_key: null,
+                fingerprint: null,
+                source: null,
+                expires_at: null,
+                will_encrypt: false,
+                fingerprint_change: null,
+              }
+            : {
+                email,
+                found: true,
+                public_key: h.public_keys.get(email) ?? "key",
+                fingerprint: "ffff",
+                source: "wkd",
+                expires_at: null,
+                will_encrypt: true,
+                fingerprint_change: h.changes.get(email) ?? null,
+              },
+        ),
       };
     }),
     acknowledge_external_key_fingerprint_change: vi.fn(
@@ -126,6 +147,7 @@ vi.mock("@/services/api/keys", async (import_original) => {
 import { discover_external_keys_batch } from "@/services/api/keys";
 import { reset_contact_entry_state } from "@/services/crypto/contact_entries";
 import {
+  check_and_pin_identity,
   check_owner_key_pin,
   lookup_owner_key_pin,
 } from "@/services/crypto/ratchet_identity_pin";
@@ -180,6 +202,8 @@ describe("external key trust consent", () => {
     h.store.clear();
     h.unreadable.clear();
     h.fail_reads = false;
+    h.keyless.clear();
+    h.hosted.clear();
     reset_storage_name_state();
     reset_contact_entry_state();
     vi.mocked(discover_external_keys_batch).mockClear();
@@ -399,5 +423,161 @@ describe("external key trust consent", () => {
     });
 
     await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+  });
+
+  it("sends without a prompt when a recipient never had a key", async () => {
+    h.keyless.add(settled);
+
+    let prompts = 0;
+
+    set_key_trust_prompt_handler(async () => {
+      prompts += 1;
+
+      return true;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    expect(prompts).toBe(0);
+    expect(await pinned_fingerprint(settled)).toBeNull();
+  });
+
+  it("asks before sending when a saved key is no longer available", async () => {
+    await check_owner_key_pin(settled, "key");
+    h.keyless.add(settled);
+
+    const seen: KeyFingerprintChange[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(...pending);
+
+      return false;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+    expect(seen).toMatchObject([
+      {
+        email: settled,
+        prior_fingerprint: "FP_KEY",
+        new_fingerprint: "",
+        missing: true,
+      },
+    ]);
+    expect(await pinned_fingerprint(settled)).toBe("fp_key");
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+    expect(seen).toHaveLength(2);
+  });
+
+  it("reports a missing saved key to callers that only look for changes", async () => {
+    await check_owner_key_pin(settled, "key");
+    h.keyless.add(settled);
+
+    await expect(find_key_fingerprint_changes([settled])).resolves.toMatchObject(
+      [{ email: settled, missing: true }],
+    );
+  });
+
+  it("does not send past a missing saved key when no prompt can be shown", async () => {
+    await check_owner_key_pin(settled, "key");
+    h.keyless.add(settled);
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+  });
+
+  it("asks once and keeps the saved key when the user sends anyway", async () => {
+    await check_owner_key_pin(settled, "key");
+    h.keyless.add(settled);
+
+    let prompts = 0;
+
+    set_key_trust_prompt_handler(async () => {
+      prompts += 1;
+
+      return true;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    expect(prompts).toBe(1);
+    expect(await pinned_fingerprint(settled)).toBe("fp_key");
+    expect(h.acknowledged).toEqual([]);
+  });
+
+  it("asks about a different key that appears after sending without one", async () => {
+    await check_owner_key_pin(settled, "key");
+    h.keyless.add(settled);
+    set_key_trust_prompt_handler(async () => true);
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+
+    h.keyless.clear();
+    h.public_keys.set(settled, "swapped");
+
+    const seen: KeyFingerprintChange[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(...pending);
+
+      return false;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+    expect(seen).toMatchObject([
+      {
+        email: settled,
+        prior_fingerprint: "FP_KEY",
+        new_fingerprint: "FP_SWAPPED",
+      },
+    ]);
+    expect(seen[0].missing).toBeUndefined();
+  });
+
+  it("asks again when the same key returns and then goes missing", async () => {
+    await check_owner_key_pin(settled, "key");
+    h.keyless.add(settled);
+
+    let prompts = 0;
+
+    set_key_trust_prompt_handler(async () => {
+      prompts += 1;
+
+      return true;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    h.keyless.clear();
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    expect(prompts).toBe(1);
+    h.keyless.add(settled);
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    expect(prompts).toBe(2);
+  });
+
+  it("asks when a contact with a saved identity is no longer hosted", async () => {
+    const moved = "moved@example.org";
+
+    h.hosted.add(moved);
+    await expect(
+      check_and_pin_identity(moved, btoa("identity-key-material")),
+    ).resolves.toBe("first");
+    h.hosted.clear();
+    h.keyless.add(moved);
+
+    const seen: KeyFingerprintChange[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(...pending);
+
+      return true;
+    });
+
+    await expect(ensure_external_key_trust([moved])).resolves.toBe(true);
+    expect(seen).toMatchObject([{ email: moved, missing: true }]);
+    await expect(ensure_external_key_trust([moved])).resolves.toBe(true);
+    expect(seen).toHaveLength(1);
+
+    h.hosted.add(moved);
+    await expect(ensure_external_key_trust([moved])).resolves.toBe(true);
+    h.hosted.clear();
+    await expect(ensure_external_key_trust([moved])).resolves.toBe(true);
+    expect(seen).toHaveLength(2);
   });
 });
