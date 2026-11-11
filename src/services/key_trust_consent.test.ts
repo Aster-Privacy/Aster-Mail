@@ -34,38 +34,61 @@ const h = vi.hoisted(() => ({
   discover_api_error: false,
   acknowledged: [] as string[][],
   public_keys: new Map<string, string>(),
-  pins: new Map<string, string>(),
-  pin_storage_unavailable: false,
+  store: new Map<string, unknown>(),
+  unreadable: new Set<string>(),
+  fail_reads: false,
 }));
 
-vi.mock("@/services/crypto/ratchet_identity_pin", () => {
-  const fingerprint_of = (key: string) => `fp_${key}`;
-  const require_storage = () => {
-    if (h.pin_storage_unavailable) throw new Error("locked");
-  };
+vi.mock("@/services/account_manager", () => ({
+  get_current_account_id: async () => "acct-1",
+}));
 
-  return {
-    owner_key_fingerprint: vi.fn(async (key: string) => fingerprint_of(key)),
-    get_pinned_owner_key_fingerprint: vi.fn(async (email: string) =>
-      h.pin_storage_unavailable ? null : (h.pins.get(email) ?? null),
-    ),
-    check_owner_key_pin: vi.fn(async (email: string, key: string) => {
-      require_storage();
+vi.mock("@/services/recipient_classification", () => ({
+  is_internal_recipient: (email: string) =>
+    email.toLowerCase().endsWith("@astermail.org"),
+  get_cached_recipient_classification: () => undefined,
+  classify_recipients: async (emails: string[]) =>
+    new Map(emails.map((email) => [email, "external"])),
+}));
 
-      const pinned = h.pins.get(email);
+vi.mock("@/services/crypto/memory_key_store", () => ({
+  get_derived_encryption_key: () => new Uint8Array(32).fill(3),
+  on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
+}));
 
-      if (pinned) return pinned === fingerprint_of(key) ? "ok" : "changed";
+vi.mock("@/services/crypto/secure_memory", () => ({
+  zero_uint8_array: () => undefined,
+}));
 
-      h.pins.set(email, fingerprint_of(key));
-
-      return "first";
+vi.mock("@/services/crypto/openpgp_loader", () => ({
+  load_openpgp: async () => ({
+    readKey: async ({ armoredKey }: { armoredKey: string }) => ({
+      getFingerprint: () => `fp_${armoredKey}`,
     }),
-    replace_owner_key_pin: vi.fn(async (email: string, key: string) => {
-      require_storage();
-      h.pins.set(email, fingerprint_of(key));
-    }),
-  };
-});
+  }),
+}));
+
+vi.mock("@/services/crypto/encrypted_storage", async () => ({
+  ...(
+    await import("@/tests/fixtures/storage_name_support")
+  ).storage_name_support(h.store),
+  encrypted_get: vi.fn(async (key: string) => {
+    if (h.fail_reads) throw new Error("store unavailable");
+
+    return h.store.has(key) && !h.unreadable.has(key)
+      ? JSON.parse(JSON.stringify(h.store.get(key)))
+      : null;
+  }),
+  encrypted_set: vi.fn(async (key: string, value: unknown) => {
+    h.unreadable.delete(key);
+    h.store.set(key, JSON.parse(JSON.stringify(value)));
+  }),
+  encrypted_delete: vi.fn(async (key: string) => {
+    h.unreadable.delete(key);
+    h.store.delete(key);
+  }),
+}));
 
 vi.mock("@/services/api/keys", async (import_original) => {
   const actual = await import_original<Record<string, unknown>>();
@@ -101,10 +124,21 @@ vi.mock("@/services/api/keys", async (import_original) => {
 });
 
 import { discover_external_keys_batch } from "@/services/api/keys";
+import { reset_contact_entry_state } from "@/services/crypto/contact_entries";
+import {
+  check_owner_key_pin,
+  lookup_owner_key_pin,
+} from "@/services/crypto/ratchet_identity_pin";
+import {
+  OWNER_KEY_PIN_PREFIX,
+  reset_storage_name_state,
+} from "@/services/crypto/storage_key_names";
 import {
   ensure_external_key_trust,
+  find_key_fingerprint_changes,
   KeyTrustCheckError,
   set_key_trust_prompt_handler,
+  type KeyFingerprintChange,
 } from "@/services/key_trust_consent";
 
 const settled = "settled@example.com";
@@ -118,6 +152,24 @@ const change = {
   observed_at: "2026-09-15T00:00:00Z",
 };
 
+async function pinned_fingerprint(email: string): Promise<string | null> {
+  const pinned = await lookup_owner_key_pin(email);
+
+  if (pinned === "unreadable") return "unreadable";
+
+  return pinned ? pinned.fingerprint : null;
+}
+
+function make_saved_pins_unreadable(): number {
+  const names = [...h.store.keys()].filter((name) =>
+    name.startsWith(OWNER_KEY_PIN_PREFIX),
+  );
+
+  for (const name of names) h.unreadable.add(name);
+
+  return names.length;
+}
+
 describe("external key trust consent", () => {
   beforeEach(() => {
     h.changes.clear();
@@ -125,8 +177,11 @@ describe("external key trust consent", () => {
     h.discover_api_error = false;
     h.acknowledged = [];
     h.public_keys.clear();
-    h.pins.clear();
-    h.pin_storage_unavailable = false;
+    h.store.clear();
+    h.unreadable.clear();
+    h.fail_reads = false;
+    reset_storage_name_state();
+    reset_contact_entry_state();
     vi.mocked(discover_external_keys_batch).mockClear();
     set_key_trust_prompt_handler(null);
   });
@@ -140,6 +195,7 @@ describe("external key trust consent", () => {
       return true;
     });
 
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
     await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
     expect(prompted).toBe(false);
   });
@@ -217,11 +273,11 @@ describe("external key trust consent", () => {
 
   it("pins each external key on its first trusted send", async () => {
     await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
-    expect(h.pins.get(settled)).toBe("fp_key");
+    expect(await pinned_fingerprint(settled)).toBe("fp_key");
   });
 
   it("asks before using a key that differs from this device's pin", async () => {
-    h.pins.set(settled, "fp_key");
+    await check_owner_key_pin(settled, "key");
     h.public_keys.set(settled, "swapped");
 
     const seen: string[][] = [];
@@ -240,34 +296,101 @@ describe("external key trust consent", () => {
 
     await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
     expect(seen).toEqual([[settled, "FP_KEY", "FP_SWAPPED"]]);
-    expect(h.pins.get(settled)).toBe("fp_key");
+    expect(await pinned_fingerprint(settled)).toBe("fp_key");
   });
 
   it("repins locally without a server acknowledgement once trusted", async () => {
-    h.pins.set(settled, "fp_key");
+    await check_owner_key_pin(settled, "key");
     h.public_keys.set(settled, "swapped");
 
     set_key_trust_prompt_handler(async () => true);
 
     await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
-    expect(h.pins.get(settled)).toBe("fp_swapped");
+    expect(await pinned_fingerprint(settled)).toBe("fp_swapped");
     expect(h.acknowledged).toEqual([]);
   });
 
   it("repins a server-reported change once trusted", async () => {
+    await check_owner_key_pin(rotated, "old");
     h.changes.set(rotated, change);
-    h.pins.set(rotated, "fp_old");
 
     set_key_trust_prompt_handler(async () => true);
 
     await expect(ensure_external_key_trust([rotated])).resolves.toBe(true);
-    expect(h.pins.get(rotated)).toBe("fp_key");
+    expect(await pinned_fingerprint(rotated)).toBe("fp_key");
   });
 
-  it("still sends when the local pin store is unavailable", async () => {
-    h.pin_storage_unavailable = true;
+  it("stops the send and asks when the saved pin cannot be read", async () => {
+    await check_owner_key_pin(settled, "key");
+    expect(make_saved_pins_unreadable()).toBe(1);
+
+    const seen: KeyFingerprintChange[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(...pending);
+
+      return false;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toMatchObject({
+      email: settled,
+      prior_fingerprint: "",
+      new_fingerprint: "FP_KEY",
+      unreadable: true,
+    });
+    expect(await pinned_fingerprint(settled)).toBe("unreadable");
+  });
+
+  it("reports an unreadable pin to callers that only look for changes", async () => {
+    await check_owner_key_pin(settled, "key");
+    make_saved_pins_unreadable();
+
+    expect(await find_key_fingerprint_changes([settled])).toMatchObject([
+      { email: settled, unreadable: true },
+    ]);
+  });
+
+  it("does not send past an unreadable pin when no prompt can be shown", async () => {
+    await check_owner_key_pin(settled, "key");
+    make_saved_pins_unreadable();
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+  });
+
+  it("sends again once the user trusts the key after an unreadable pin", async () => {
+    await check_owner_key_pin(settled, "key");
+    make_saved_pins_unreadable();
+
+    let prompts = 0;
+
+    set_key_trust_prompt_handler(async () => {
+      prompts += 1;
+
+      return true;
+    });
 
     await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    expect(await pinned_fingerprint(settled)).toBe("fp_key");
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    expect(prompts).toBe(1);
+  });
+
+  it("stops the send when the pin store cannot be read at all", async () => {
+    h.fail_reads = true;
+
+    const seen: KeyFingerprintChange[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(...pending);
+
+      return false;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+    expect(seen).toMatchObject([{ email: settled, unreadable: true }]);
+    expect(h.store.size).toBe(0);
   });
 
   it("retries a failed key lookup once before blocking the send", async () => {

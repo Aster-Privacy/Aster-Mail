@@ -1957,6 +1957,9 @@ export const pl = {
     key_trust_change_message:
       "Klucz szyfrowania dla {{recipients}} zmienił się od ostatniego sprawdzenia. Przed wysłaniem potwierdź nowy odcisk klucza z odbiorcą innym kanałem.",
     key_trust_change_detail: "{{email}}: było {{prior}}, jest {{current}}.",
+    key_trust_unreadable_message:
+      "Zapisanego klucza szyfrowania dla {{recipients}} nie można odczytać na tym urządzeniu. Przed wysłaniem potwierdź bieżący odcisk klucza z odbiorcą innym kanałem.",
+    key_trust_unreadable_detail: "{{email}}: jest {{current}}.",
     key_trust_change_confirm: "Zaufaj nowemu kluczowi",
     post_quantum_downgrade_title:
       "Wysłać bez oczekiwanych kluczy postkwantowych?",
@@ -9207,6 +9210,8 @@ export const pl = {
       "Tożsamość szyfrowania tego nadawcy zmieniła się od czasu ostatniej wymiany wiadomości. Jeśli tego nie oczekujesz, potwierdź to z tą osobą w inny sposób.",
     sender_identity_downgraded:
       "Wiadomości tego nadawcy nie mają już ochrony postkwantowej. Jeśli tego nie oczekujesz, potwierdź to z tą osobą w inny sposób.",
+    sender_identity_unreadable:
+      "Zapisanego klucza szyfrowania tego nadawcy nie można odczytać na tym urządzeniu, więc tej wiadomości nie można zweryfikować. Aby ponownie weryfikować wiadomości od tej osoby, potwierdź z nią klucz w inny sposób, a następnie wybierz Zaufaj nowemu kluczowi.",
     recipient_identity_changed:
       "Klucz szyfrowania dla {{email}} zmienił się. Jeśli tego nie oczekujesz, potwierdź zmianę z tą osobą w inny sposób, zanim wyślesz poufne informacje.",
     message_password_requirements:
@@ -11037,6 +11042,8 @@ export const pl = {
       "Hasło wiadomości jest zbyt słabe, więc wiadomość nie została wysłana. Użyj co najmniej 12 znaków, w tym cyfry, symbolu lub wielkich i małych liter.",
     recipient_key_untrusted:
       "Klucz szyfrowania odbiorcy zmienił się, więc wiadomość nie została wysłana. Aby ją wysłać, potwierdź zmianę z tą osobą w inny sposób, a następnie wybierz Zaufaj nowemu kluczowi.",
+    recipient_key_unreadable:
+      "Zapisanego klucza szyfrowania odbiorcy nie można odczytać na tym urządzeniu, więc wiadomość nie została wysłana. Aby ją wysłać, potwierdź klucz z tą osobą w inny sposób, a następnie wybierz Zaufaj nowemu kluczowi.",
     key_trust_check_failed:
       "Nie udało się sprawdzić kluczy szyfrowania odbiorców, więc wiadomość nie została wysłana. Sprawdź połączenie i spróbuj ponownie.",
     recipient_classification_unavailable:

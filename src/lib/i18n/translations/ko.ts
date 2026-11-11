@@ -1949,6 +1949,9 @@ export const ko = {
     key_trust_change_message:
       "마지막 조회 이후 {{recipients}}의 암호화 키가 바뀌었습니다. 보내기 전에 다른 경로로 수신자와 새 지문을 확인하세요.",
     key_trust_change_detail: "{{email}}: 이전 {{prior}}, 현재 {{current}}.",
+    key_trust_unreadable_message:
+      "이 기기에서 {{recipients}}의 저장된 암호화 키를 읽을 수 없습니다. 보내기 전에 다른 경로로 수신자와 현재 지문을 확인하세요.",
+    key_trust_unreadable_detail: "{{email}}: 현재 {{current}}.",
     key_trust_change_confirm: "새 키 신뢰",
     post_quantum_downgrade_title: "예상된 양자 내성 키 없이 보낼까요?",
     post_quantum_downgrade_message:
@@ -8618,6 +8621,8 @@ export const ko = {
       "이 발신자의 암호화 ID가 마지막으로 메시지를 주고받은 이후 변경되었습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
     sender_identity_downgraded:
       "이 발신자의 메시지에 더 이상 양자 내성 보호가 적용되지 않습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
+    sender_identity_unreadable:
+      "이 기기에서 이 발신자의 저장된 암호화 키를 읽을 수 없어 이 메시지를 확인할 수 없습니다. 메시지를 다시 확인하려면 다른 방법으로 상대방에게 키를 확인한 다음 새 키 신뢰를 선택하세요.",
     recipient_identity_changed:
       "{{email}}의 암호화 키가 변경되었습니다. 예상하지 못한 변경이라면 민감한 정보를 보내기 전에 다른 방법으로 상대방에게 확인하세요.",
     message_password_requirements:
@@ -10380,6 +10385,8 @@ export const ko = {
       "메시지 암호가 너무 약해 메시지를 보내지 않았습니다. 12자 이상을 사용하고 숫자, 기호 또는 대문자와 소문자를 모두 포함하세요.",
     recipient_key_untrusted:
       "수신자의 암호화 키가 변경되어 메시지를 보내지 않았습니다. 보내려면 다른 방법으로 상대방에게 변경 사항을 확인한 다음 새 키 신뢰를 선택하세요.",
+    recipient_key_unreadable:
+      "이 기기에서 수신자의 저장된 암호화 키를 읽을 수 없어 메시지를 보내지 않았습니다. 보내려면 다른 방법으로 상대방에게 키를 확인한 다음 새 키 신뢰를 선택하세요.",
     key_trust_check_failed:
       "수신자의 암호화 키를 확인할 수 없어 메시지를 보내지 않았습니다. 연결을 확인하고 다시 시도하세요.",
     recipient_classification_unavailable:

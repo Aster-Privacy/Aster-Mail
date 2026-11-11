@@ -1925,6 +1925,9 @@ export const pt_br = {
     key_trust_change_message:
       "A chave de criptografia de {{recipients}} mudou desde a última consulta. Confirme a nova impressão digital com o destinatário por outro canal antes de enviar.",
     key_trust_change_detail: "{{email}}: antes {{prior}}, agora {{current}}.",
+    key_trust_unreadable_message:
+      "A chave de criptografia salva de {{recipients}} não pode ser lida neste dispositivo. Confirme a impressão digital atual com o destinatário por outro canal antes de enviar.",
+    key_trust_unreadable_detail: "{{email}}: agora {{current}}.",
     key_trust_change_confirm: "Confiar na nova chave",
     post_quantum_downgrade_title:
       "Enviar sem as chaves pós-quânticas esperadas?",
@@ -9017,6 +9020,8 @@ export const pt_br = {
       "A identidade de criptografia deste remetente mudou desde a última troca de mensagens. Se você não esperava isso, confirme com essa pessoa por outro meio.",
     sender_identity_downgraded:
       "As mensagens deste remetente já não contam com proteção pós-quântica. Se você não esperava isso, confirme com essa pessoa por outro meio.",
+    sender_identity_unreadable:
+      "A chave de criptografia salva deste remetente não pode ser lida neste dispositivo, então esta mensagem não pode ser verificada. Para voltar a verificar as mensagens dessa pessoa, confirme a chave com ela por outro meio e escolha Confiar na nova chave.",
     recipient_identity_changed:
       "A chave de criptografia de {{email}} mudou. Se você não esperava isso, confirme a mudança com essa pessoa por outro meio antes de enviar informações confidenciais.",
     message_password_requirements:
@@ -10839,6 +10844,8 @@ export const pt_br = {
       "A senha da mensagem é fraca demais, então a mensagem não foi enviada. Use pelo menos 12 caracteres e inclua um número, um símbolo ou letras maiúsculas e minúsculas.",
     recipient_key_untrusted:
       "A chave de criptografia de um destinatário mudou, então a mensagem não foi enviada. Para enviá-la, confirme a mudança com essa pessoa por outro meio e escolha Confiar na nova chave.",
+    recipient_key_unreadable:
+      "A chave de criptografia salva de um destinatário não pode ser lida neste dispositivo, então a mensagem não foi enviada. Para enviá-la, confirme a chave com essa pessoa por outro meio e escolha Confiar na nova chave.",
     key_trust_check_failed:
       "Não foi possível verificar as chaves de criptografia dos destinatários, então a mensagem não foi enviada. Verifique sua conexão e tente novamente.",
     recipient_classification_unavailable:

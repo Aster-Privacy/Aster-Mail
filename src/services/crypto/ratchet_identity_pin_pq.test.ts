@@ -56,18 +56,24 @@ import {
   clear_ratchet_verification_status,
   get_peer_identity_event,
 } from "@/services/crypto/ratchet_verification_status";
-import { scoped_storage_name } from "@/services/crypto/storage_key_names";
+import {
+  canonical_storage_name,
+  reset_storage_name_state,
+} from "@/services/crypto/storage_key_names";
+import { reset_contact_entry_state } from "@/services/crypto/contact_entries";
 
 const KEY_A = btoa("identity-key-aaaaaaaaaaaaaaaaaaaaaaaa");
 const KEY_B = btoa("identity-key-bbbbbbbbbbbbbbbbbbbbbbbb");
 
 function pin_name(prefix: string, peer: string): Promise<string> {
-  return scoped_storage_name(prefix, "acct-1", peer);
+  return canonical_storage_name(prefix, "acct-1", peer);
 }
 
 describe("ratchet identity pin pq memory and failure modes", () => {
   beforeEach(() => {
     h.store.clear();
+    reset_storage_name_state();
+    reset_contact_entry_state();
     h.key = new Uint8Array(32).fill(7);
     clear_ratchet_verification_status();
   });

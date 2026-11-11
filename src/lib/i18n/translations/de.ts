@@ -1863,6 +1863,9 @@ export const de = {
     key_trust_change_message:
       "Der Verschlüsselungsschlüssel von {{recipients}} hat sich seit der letzten Abfrage geändert. Prüfen Sie den neuen Fingerabdruck über einen anderen Kanal mit der Empfängerin oder dem Empfänger, bevor Sie senden.",
     key_trust_change_detail: "{{email}}: vorher {{prior}}, jetzt {{current}}.",
+    key_trust_unreadable_message:
+      "Der gespeicherte Verschlüsselungsschlüssel von {{recipients}} kann auf diesem Gerät nicht gelesen werden. Prüfen Sie den aktuellen Fingerabdruck über einen anderen Kanal mit der Empfängerin oder dem Empfänger, bevor Sie senden.",
+    key_trust_unreadable_detail: "{{email}}: jetzt {{current}}.",
     key_trust_change_confirm: "Neuem Schlüssel vertrauen",
     post_quantum_downgrade_title:
       "Ohne die erwarteten post-quantensicheren Schlüssel senden?",
@@ -9072,6 +9075,8 @@ export const de = {
       "Die Verschlüsselungsidentität dieses Absenders hat sich seit Ihrem letzten Nachrichtenaustausch geändert. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
     sender_identity_downgraded:
       "Die Nachrichten dieses Absenders sind nicht mehr durch Post-Quanten-Verschlüsselung geschützt. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
+    sender_identity_unreadable:
+      "Der gespeicherte Verschlüsselungsschlüssel dieses Absenders kann auf diesem Gerät nicht gelesen werden, daher lässt sich diese Nachricht nicht verifizieren. Bestätigen Sie den Schlüssel auf anderem Weg mit dieser Person und wählen Sie dann „Neuem Schlüssel vertrauen“.",
     recipient_identity_changed:
       "Der Verschlüsselungsschlüssel von {{email}} hat sich geändert. Wenn Sie das nicht erwartet haben, bestätigen Sie die Änderung auf einem anderen Weg mit dieser Person, bevor Sie vertrauliche Inhalte senden.",
     message_password_requirements:
@@ -10923,6 +10928,8 @@ export const de = {
       "Das Nachrichtenpasswort ist zu schwach, daher wurde die Nachricht nicht gesendet. Verwenden Sie mindestens 12 Zeichen mit einer Zahl, einem Sonderzeichen oder Groß- und Kleinbuchstaben.",
     recipient_key_untrusted:
       "Der Verschlüsselungsschlüssel eines Empfängers hat sich geändert, daher wurde die Nachricht nicht gesendet. Bestätigen Sie die Änderung auf anderem Weg und wählen Sie dann „Neuem Schlüssel vertrauen“.",
+    recipient_key_unreadable:
+      "Der gespeicherte Verschlüsselungsschlüssel eines Empfängers kann auf diesem Gerät nicht gelesen werden, daher wurde die Nachricht nicht gesendet. Bestätigen Sie den Schlüssel auf anderem Weg und wählen Sie dann „Neuem Schlüssel vertrauen“.",
     key_trust_check_failed:
       "Die Verschlüsselungsschlüssel der Empfänger konnten nicht geprüft werden, daher wurde die Nachricht nicht gesendet. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     recipient_classification_unavailable:

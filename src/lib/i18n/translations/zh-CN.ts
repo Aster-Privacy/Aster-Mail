@@ -1803,6 +1803,9 @@ export const zh_CN = {
     key_trust_change_message:
       "自上次查询以来，{{recipients}} 的加密密钥已变更。发送前请通过其他渠道与收件人核对新的指纹。",
     key_trust_change_detail: "{{email}}：原为 {{prior}}，现为 {{current}}。",
+    key_trust_unreadable_message:
+      "此设备无法读取 {{recipients}} 的已保存加密密钥。发送前请通过其他渠道与收件人核对当前的指纹。",
+    key_trust_unreadable_detail: "{{email}}：现为 {{current}}。",
     key_trust_change_confirm: "信任新密钥",
     post_quantum_downgrade_title: "要在缺少预期的后量子密钥的情况下发送吗？",
     post_quantum_downgrade_message:
@@ -7963,6 +7966,8 @@ export const zh_CN = {
       "自上次互发邮件以来，此发件人的加密身份已更改。如果这不在您的预期之内，请通过其他方式向对方确认。",
     sender_identity_downgraded:
       "此发件人的邮件不再受后量子保护。如果这不在您的预期之内，请通过其他方式向对方确认。",
+    sender_identity_unreadable:
+      "此设备无法读取此发件人的已保存加密密钥，因此无法验证此邮件。要重新验证对方的邮件，请通过其他方式与对方确认密钥，然后选择“信任新密钥”。",
     recipient_identity_changed:
       "{{email}} 的加密密钥已更改。如果这不在您的预期之内，请在发送敏感信息前通过其他方式向对方确认。",
     message_password_requirements:
@@ -9624,6 +9629,8 @@ export const zh_CN = {
       "邮件密码太弱，因此未发送邮件。请使用至少 12 个字符，并包含数字、符号或大小写字母。",
     recipient_key_untrusted:
       "某位收件人的加密密钥已更改，因此未发送邮件。要发送，请通过其他方式与对方确认此更改，然后选择“信任新密钥”。",
+    recipient_key_unreadable:
+      "此设备无法读取某位收件人的已保存加密密钥，因此未发送邮件。要发送，请通过其他方式与对方确认密钥，然后选择“信任新密钥”。",
     key_trust_check_failed:
       "无法检查收件人的加密密钥，因此未发送邮件。请检查网络连接后重试。",
     recipient_classification_unavailable:

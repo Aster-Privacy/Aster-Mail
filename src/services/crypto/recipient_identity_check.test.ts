@@ -78,12 +78,14 @@ vi.mock("@/services/api/keys", () => ({
 }));
 
 vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
-  get_identity_change: vi.fn(async () => h.change),
-  get_pinned_identity_fingerprint: vi.fn(async () => h.pinned),
-  get_pinned_owner_key_fingerprint: vi.fn(async () => h.pinned_owner),
-  get_recipient_pin_health: vi.fn(async () => h.pin_health),
+  read_recipient_pins: vi.fn(async () => ({
+    health: h.pin_health,
+    identity_fingerprint: h.pinned,
+    owner_fingerprint: h.pinned_owner,
+    flagged: h.flagged,
+    change: h.change,
+  })),
   is_recipient_bundle_accepted: vi.fn(async () => h.accepted),
-  is_recipient_flagged_untrusted: vi.fn(async () => h.flagged),
   owner_key_fingerprint: vi.fn(async (armored: string) => `fp:${armored}`),
   trust_recipient_keys: vi.fn(
     async (

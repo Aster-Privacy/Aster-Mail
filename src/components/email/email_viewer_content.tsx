@@ -36,6 +36,7 @@ import {
   get_peer_identity_event,
   subscribe_peer_identity_events,
 } from "@/services/crypto/ratchet_verification_status";
+import { trust_recipient_identity } from "@/services/crypto/recipient_identity_check";
 import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 import { pop_preloaded_cid } from "@/components/email/hooks/preload_cache";
@@ -638,7 +639,23 @@ export function EmailViewerContent({
               {t(
                 peer_identity_event.event === "downgraded"
                   ? "mail.sender_identity_downgraded"
-                  : "mail.sender_identity_rotated",
+                  : peer_identity_event.event === "unreadable"
+                    ? "mail.sender_identity_unreadable"
+                    : "mail.sender_identity_rotated",
+              )}
+              {peer_identity_event.event === "unreadable" && (
+                <button
+                  className="ml-2 font-medium text-txt-secondary hover:text-txt-primary"
+                  data-testid="sender-identity-trust"
+                  type="button"
+                  onClick={() => {
+                    trust_recipient_identity(email.sender.email).catch(
+                      () => undefined,
+                    );
+                  }}
+                >
+                  {t("mail.trust_new_key")}
+                </button>
               )}
             </p>
           )}

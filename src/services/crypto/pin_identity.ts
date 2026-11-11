@@ -18,18 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export type PinScope = "hosted" | "external";
+export type PeerKind = "builtin" | "hosted" | "external";
 
-export interface PinIdentity {
+export interface PinContact {
   id: string;
-  legacy: string[];
-  shadow: string | null;
-}
-
-function normalize_pin_domain(domain: string): string {
-  const lowered = domain.trim().toLowerCase();
-
-  return lowered.endsWith(".") ? lowered.slice(0, -1) : lowered;
+  kind: PeerKind;
+  spellings: string[];
 }
 
 function split_pin_address(
@@ -39,10 +33,7 @@ function split_pin_address(
 
   if (at === -1) return null;
 
-  return {
-    local: lowered.slice(0, at),
-    domain: normalize_pin_domain(lowered.slice(at + 1)),
-  };
+  return { local: lowered.slice(0, at), domain: lowered.slice(at + 1) };
 }
 
 function base_local_part(local: string): string {
@@ -51,56 +42,128 @@ function base_local_part(local: string): string {
   return plus === -1 ? local : local.slice(0, plus);
 }
 
-export function canonical_pin_id(raw: string): string {
+export function canonical_pin_id(raw: string, kind: PeerKind): string {
   const lowered = raw.trim().toLowerCase();
   const parts = split_pin_address(lowered);
 
-  if (!parts) return lowered.replace(/\./g, "") || lowered;
+  if (!parts || kind === "external") return lowered;
 
-  const dotless = base_local_part(parts.local).replace(/\./g, "");
+  const base = base_local_part(parts.local);
+  const local = kind === "builtin" ? base.replace(/\./g, "") : base;
 
-  if (!dotless || !parts.domain) return lowered;
+  if (!local || !parts.domain) return lowered;
 
-  return `${dotless}@${parts.domain}`;
+  return `${local}@${parts.domain}`;
 }
 
-function legacy_pin_ids(raw: string, canonical: string): string[] {
+function stored_spellings(raw: string, canonical: string): string[] {
   const untrimmed = raw.toLowerCase();
   const lowered = untrimmed.trim();
   const parts = split_pin_address(lowered);
-  const variants = [lowered, untrimmed];
+  const variants = [canonical, lowered, untrimmed];
 
   if (parts) {
     const base = base_local_part(parts.local);
 
-    if (base && parts.domain) variants.push(`${base}@${parts.domain}`);
+    if (base && parts.domain) {
+      const tag = parts.local.slice(base.length);
+      const dotless = base.replace(/\./g, "");
+
+      if (tag && dotless) variants.push(`${dotless}${tag}@${parts.domain}`);
+
+      variants.push(`${base}@${parts.domain}`);
+    }
   }
 
-  return [...new Set(variants)].filter(
-    (variant) => variant !== "" && variant !== canonical,
-  );
+  return [...new Set(variants)].filter((variant) => variant !== "");
 }
 
-export function resolve_pin_identity(
-  raw: string,
-  scope: PinScope = "hosted",
-): PinIdentity {
-  const canonical = canonical_pin_id(raw);
-
-  if (scope === "hosted") {
-    return {
-      id: canonical,
-      legacy: legacy_pin_ids(raw, canonical),
-      shadow: null,
-    };
-  }
-
-  const untrimmed = raw.toLowerCase();
-  const id = untrimmed.trim();
+export function describe_pin_contact(raw: string, kind: PeerKind): PinContact {
+  const id = canonical_pin_id(raw, kind);
 
   return {
     id,
-    legacy: untrimmed !== id ? [untrimmed] : [],
-    shadow: canonical !== id ? canonical : null,
+    kind,
+    spellings:
+      kind === "external"
+        ? [...new Set([id, raw.toLowerCase()])].filter(Boolean)
+        : stored_spellings(raw, id),
   };
+}
+
+export function dotted_spellings(canonical: string, limit: number): string[] {
+  const parts = split_pin_address(canonical);
+
+  if (!parts || parts.local.length < 2 || limit <= 0) return [];
+
+  const letters = [...parts.local];
+  const gaps = letters.length - 1;
+  const spellings: string[] = [];
+
+  const spell = (dots: number[]): string => {
+    const marked = new Set(dots);
+
+    return (
+      letters
+        .map((letter, index) => (marked.has(index) ? `${letter}.` : letter))
+        .join("") + `@${parts.domain}`
+    );
+  };
+
+  const place = (remaining: number, start: number, dots: number[]): void => {
+    if (spellings.length >= limit) return;
+
+    if (remaining === 0) {
+      spellings.push(spell(dots));
+
+      return;
+    }
+
+    for (let gap = start; gap <= gaps - remaining; gap += 1) {
+      place(remaining - 1, gap + 1, [...dots, gap]);
+
+      if (spellings.length >= limit) return;
+    }
+  };
+
+  for (let count = 1; count <= gaps && spellings.length < limit; count += 1) {
+    place(count, 0, []);
+  }
+
+  return spellings;
+}
+
+export async function resolve_peer_kind(raw: string): Promise<PeerKind | null> {
+  const lowered = raw.trim().toLowerCase();
+
+  if (!lowered) return null;
+  if (!lowered.includes("@")) return "external";
+
+  try {
+    const { is_internal_email } = await import("@/services/api/keys");
+
+    if (is_internal_email(lowered)) return "builtin";
+
+    const { classify_recipients, get_cached_recipient_classification } =
+      await import("@/services/recipient_classification");
+    const known =
+      get_cached_recipient_classification(lowered) ??
+      (await classify_recipients([lowered], { require_resolved: true }))
+        .values()
+        .next().value;
+
+    if (known === "internal") return "hosted";
+
+    return known === "external" ? "external" : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function resolve_pin_contact(
+  raw: string,
+): Promise<PinContact | null> {
+  const kind = await resolve_peer_kind(raw);
+
+  return kind ? describe_pin_contact(raw, kind) : null;
 }

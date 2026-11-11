@@ -30,8 +30,8 @@ import type { UndoCancelResult } from "./undo_send_manager";
 import { get_or_create_thread_token } from "./thread_service";
 import { ensure_external_key_trust } from "./key_trust_consent";
 import {
+  describe_consent_block,
   ensure_post_quantum_consent,
-  type PostQuantumConsentBlock,
 } from "./post_quantum_consent";
 import { check_reply_send } from "./reply_send_gate";
 import { is_internal_recipient } from "./recipient_classification";
@@ -240,14 +240,6 @@ async function blocked_by_send_policy(
   return { success: false, error };
 }
 
-function translate_consent_block(block: PostQuantumConsentBlock): string {
-  const errors = get_active_translations().errors;
-
-  return block === "errors.recipient_key_untrusted"
-    ? errors.recipient_key_untrusted
-    : errors.key_trust_check_failed;
-}
-
 async function blocked_by_key_trust(
   recipients: string[],
   callbacks: MailActionCallbacks,
@@ -378,7 +370,7 @@ export async function send_reply(
 
   if (!consent.proceed) {
     if (consent.blocked_by) {
-      const message = translate_consent_block(consent.blocked_by);
+      const message = describe_consent_block(consent.blocked_by);
 
       callbacks.on_error?.(message);
 
@@ -580,7 +572,7 @@ export async function send_forward(
 
   if (!consent.proceed) {
     if (consent.blocked_by) {
-      const message = translate_consent_block(consent.blocked_by);
+      const message = describe_consent_block(consent.blocked_by);
 
       callbacks.on_error?.(message);
 

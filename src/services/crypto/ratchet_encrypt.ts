@@ -66,6 +66,7 @@ import {
 import { load_ratchet_for_merge, sync_ratchet_to_server } from "./ratchet_sync";
 import {
   KeyPinUnavailableError,
+  RecipientPinUnreadableError,
   RecipientKeyUntrustedError,
   RecoveryLaneUnavailableError,
   type RatchetRecipientData,
@@ -337,6 +338,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
       if (identity_pin_status === "drift") {
         await flag_recipient_untrusted(bundle_peer);
         throw new RecipientKeyUntrustedError(recipient_email);
+      }
+
+      if (identity_pin_status === "unreadable") {
+        throw new RecipientPinUnreadableError(bundle_peer);
       }
 
       if (identity_pin_status === "unknown") {

@@ -20,6 +20,8 @@
 //
 import { check_post_quantum_status } from "./send_queue_encryption";
 
+import { get_active_translations } from "@/lib/i18n/translations";
+
 export type PostQuantumPromptHandler = (
   recipients: string[],
   downgraded: string[],
@@ -32,7 +34,21 @@ export interface PostQuantumConsent {
 }
 
 export type PostQuantumConsentBlock =
-  "errors.recipient_key_untrusted" | "errors.key_trust_check_failed";
+  | "errors.recipient_key_untrusted"
+  | "errors.recipient_key_unreadable"
+  | "errors.key_trust_check_failed";
+
+export function describe_consent_block(block: PostQuantumConsentBlock): string {
+  const errors = get_active_translations().errors;
+
+  if (block === "errors.recipient_key_untrusted") {
+    return errors.recipient_key_untrusted;
+  }
+
+  return block === "errors.recipient_key_unreadable"
+    ? errors.recipient_key_unreadable
+    : errors.key_trust_check_failed;
+}
 
 let prompt_handler: PostQuantumPromptHandler | null = null;
 
@@ -66,6 +82,14 @@ export async function ensure_post_quantum_consent(
         proceed: false,
         allow_non_post_quantum: false,
         blocked_by: "errors.recipient_key_untrusted",
+      };
+    }
+
+    if (coverage.unreadable.length > 0) {
+      return {
+        proceed: false,
+        allow_non_post_quantum: false,
+        blocked_by: "errors.recipient_key_unreadable",
       };
     }
 

@@ -26,7 +26,7 @@ import {
 import { is_internal_recipient } from "./recipient_classification";
 import {
   check_owner_key_pin,
-  get_pinned_owner_key_fingerprint,
+  lookup_owner_key_pin,
   owner_key_fingerprint,
   replace_owner_key_pin,
 } from "./crypto/ratchet_identity_pin";
@@ -39,6 +39,7 @@ export interface KeyFingerprintChange {
   new_fingerprint: string;
   source: string;
   observed_at: string;
+  unreadable?: boolean;
 }
 
 export type KeyTrustPromptHandler = (
@@ -73,49 +74,51 @@ async function local_pin_change(
 ): Promise<KeyFingerprintChange | null> {
   if (!key_info.found || !key_info.public_key) return null;
 
-  try {
-    const email = key_info.email.toLowerCase();
-    const pinned = await get_pinned_owner_key_fingerprint(email, "external");
+  const email = key_info.email.toLowerCase();
+  const pinned = await lookup_owner_key_pin(email);
 
-    if (!pinned) return null;
+  if (pinned === null) return null;
 
-    const current = await owner_key_fingerprint(key_info.public_key);
+  const current = await owner_key_fingerprint(key_info.public_key);
+  const observed = {
+    email,
+    new_fingerprint: current.toUpperCase(),
+    source: key_info.source ?? "",
+    observed_at: new Date().toISOString(),
+  };
 
-    if (pinned === current) return null;
-
-    return {
-      email,
-      prior_fingerprint: pinned.toUpperCase(),
-      new_fingerprint: current.toUpperCase(),
-      source: key_info.source ?? "",
-      observed_at: new Date().toISOString(),
-    };
-  } catch {
-    return null;
+  if (pinned === "unreadable") {
+    return { ...observed, prior_fingerprint: "", unreadable: true };
   }
+
+  if (!pinned.conflict && pinned.fingerprint === current) return null;
+
+  return { ...observed, prior_fingerprint: pinned.fingerprint.toUpperCase() };
 }
 
 async function pin_external_keys(
   keys: ExternalKeyInfo[],
   replace: boolean,
-): Promise<void> {
-  await Promise.all(
+): Promise<boolean> {
+  const settled = await Promise.all(
     keys.map(async (key_info) => {
-      if (!key_info.found || !key_info.public_key) return;
+      if (!key_info.found || !key_info.public_key) return true;
 
       const email = key_info.email.toLowerCase();
 
-      try {
-        if (replace) {
-          await replace_owner_key_pin(email, key_info.public_key, "external");
-        } else {
-          await check_owner_key_pin(email, key_info.public_key, "external");
-        }
-      } catch {
-        return;
+      if (replace) {
+        await replace_owner_key_pin(email, key_info.public_key);
+
+        return true;
       }
+
+      return (
+        (await check_owner_key_pin(email, key_info.public_key)) !== "changed"
+      );
     }),
   );
+
+  return settled.every(Boolean);
 }
 
 async function review_key_trust(recipients: string[]): Promise<KeyTrustReview> {
@@ -180,39 +183,35 @@ export async function find_key_fingerprint_changes(
 export async function ensure_external_key_trust(
   recipients: string[],
 ): Promise<boolean> {
-  let review: KeyTrustReview;
-
   try {
-    review = await review_key_trust(recipients);
+    const review = await review_key_trust(recipients);
+
+    if (review.changes.length === 0) {
+      return await pin_external_keys(review.keys, false);
+    }
+
+    if (!prompt_handler) return false;
+
+    const trusted = await prompt_handler(review.changes);
+
+    if (!trusted) return false;
+
+    await pin_external_keys(review.keys, true);
+
+    await Promise.all(
+      review.server_changes.map((change) =>
+        acknowledge_external_key_fingerprint_change(
+          change.email,
+          change.prior_fingerprint,
+          change.new_fingerprint,
+        ).catch(() => undefined),
+      ),
+    );
+
+    return true;
   } catch (error) {
     if (error instanceof KeyTrustCheckError) throw error;
 
     throw new KeyTrustCheckError();
   }
-
-  if (review.changes.length === 0) {
-    await pin_external_keys(review.keys, false);
-
-    return true;
-  }
-
-  if (!prompt_handler) return false;
-
-  const trusted = await prompt_handler(review.changes);
-
-  if (!trusted) return false;
-
-  await pin_external_keys(review.keys, true);
-
-  await Promise.all(
-    review.server_changes.map((change) =>
-      acknowledge_external_key_fingerprint_change(
-        change.email,
-        change.prior_fingerprint,
-        change.new_fingerprint,
-      ).catch(() => undefined),
-    ),
-  );
-
-  return true;
 }

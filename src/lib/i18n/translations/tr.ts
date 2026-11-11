@@ -1911,6 +1911,9 @@ export const tr = {
     key_trust_change_message:
       "{{recipients}} için şifreleme anahtarı son sorgudan bu yana değişti. Göndermeden önce yeni parmak izini alıcıyla başka bir kanaldan doğrulayın.",
     key_trust_change_detail: "{{email}}: önce {{prior}}, şimdi {{current}}.",
+    key_trust_unreadable_message:
+      "{{recipients}} için kayıtlı şifreleme anahtarı bu cihazda okunamıyor. Göndermeden önce geçerli parmak izini alıcıyla başka bir kanaldan doğrulayın.",
+    key_trust_unreadable_detail: "{{email}}: şimdi {{current}}.",
     key_trust_change_confirm: "Yeni anahtara güven",
     post_quantum_downgrade_title:
       "Beklenen post-kuantum anahtarları olmadan gönderilsin mi?",
@@ -8885,6 +8888,8 @@ export const tr = {
       "Bu gönderenin şifreleme kimliği son mesajlaşmanızdan bu yana değişti. Bunu beklemiyorsan, bu kişiyle başka bir yoldan doğrula.",
     sender_identity_downgraded:
       "Bu gönderenin mesajları artık kuantum sonrası korumaya sahip değil. Bunu beklemiyorsan, bu kişiyle başka bir yoldan doğrula.",
+    sender_identity_unreadable:
+      "Bu gönderenin kayıtlı şifreleme anahtarı bu cihazda okunamıyor, bu yüzden bu ileti doğrulanamıyor. İletilerini yeniden doğrulamak için anahtarı bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
     recipient_identity_changed:
       "{{email}} için şifreleme anahtarı değişti. Bunu beklemiyorsan, hassas bilgi göndermeden önce bu değişikliği kişiyle başka bir yoldan doğrula.",
     message_password_requirements:
@@ -10696,6 +10701,8 @@ export const tr = {
       "İleti parolası çok zayıf, bu yüzden ileti gönderilmedi. En az 12 karakter kullanın ve bir rakam, bir sembol ya da büyük ve küçük harfler ekleyin.",
     recipient_key_untrusted:
       "Bir alıcının şifreleme anahtarı değişti, bu yüzden ileti gönderilmedi. Göndermek için değişikliği bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
+    recipient_key_unreadable:
+      "Bir alıcının kayıtlı şifreleme anahtarı bu cihazda okunamıyor, bu yüzden ileti gönderilmedi. Göndermek için anahtarı bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
     key_trust_check_failed:
       "Alıcıların şifreleme anahtarları denetlenemedi, bu yüzden ileti gönderilmedi. Bağlantınızı denetleyip yeniden deneyin.",
     recipient_classification_unavailable:

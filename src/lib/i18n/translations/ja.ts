@@ -1952,6 +1952,9 @@ export const ja = {
       "前回の取得以降に {{recipients}} の暗号化鍵が変更されました。送信する前に、別の手段で受信者と新しいフィンガープリントを確認してください。",
     key_trust_change_detail:
       "{{email}}：以前は {{prior}}、現在は {{current}}。",
+    key_trust_unreadable_message:
+      "このデバイスで {{recipients}} の保存済み暗号鍵を読み取れません。送信する前に、別の手段で受信者と現在のフィンガープリントを確認してください。",
+    key_trust_unreadable_detail: "{{email}}：現在は {{current}}。",
     key_trust_change_confirm: "新しい鍵を信頼する",
     post_quantum_downgrade_title:
       "想定される耐量子鍵がない状態で送信しますか。",
@@ -8774,6 +8777,8 @@ export const ja = {
       "この送信者の暗号化 ID は、前回メッセージをやり取りしたときから変更されています。心当たりがない場合は、別の方法で本人に確認してください。",
     sender_identity_downgraded:
       "この送信者のメッセージは耐量子暗号で保護されなくなりました。心当たりがない場合は、別の方法で本人に確認してください。",
+    sender_identity_unreadable:
+      "このデバイスでこの送信者の保存済み暗号鍵を読み取れないため、このメッセージを検証できません。再び検証できるようにするには、別の方法で相手に鍵を確認してから、「新しい鍵を信頼」を選択してください。",
     recipient_identity_changed:
       "{{email}} の暗号鍵が変更されました。心当たりがない場合は、機密情報を送信する前に別の方法で本人に確認してください。",
     message_password_requirements:
@@ -10580,6 +10585,8 @@ export const ja = {
       "メッセージのパスワードが弱すぎるため、メッセージは送信されませんでした。12 文字以上で、数字、記号、または大文字と小文字の両方を含めてください。",
     recipient_key_untrusted:
       "受信者の暗号鍵が変更されたため、メッセージは送信されませんでした。送信するには、別の方法で相手に変更を確認してから、「新しい鍵を信頼」を選択してください。",
+    recipient_key_unreadable:
+      "このデバイスで受信者の保存済み暗号鍵を読み取れないため、メッセージは送信されませんでした。送信するには、別の方法で相手に鍵を確認してから、「新しい鍵を信頼」を選択してください。",
     key_trust_check_failed:
       "受信者の暗号鍵を確認できなかったため、メッセージは送信されませんでした。接続を確認して、もう一度お試しください。",
     recipient_classification_unavailable:
