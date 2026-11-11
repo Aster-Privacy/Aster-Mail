@@ -20,6 +20,29 @@
 //
 import { public_web_url } from "@/lib/public_origin";
 
+const REPEAT_OPEN_WINDOW_MS = 1000;
+
+let last_opened_url = "";
+let last_opened_at = 0;
+
+function is_repeat_open(url: string): boolean {
+  const now = Date.now();
+
+  if (url === last_opened_url && now - last_opened_at < REPEAT_OPEN_WINDOW_MS) {
+    return true;
+  }
+
+  last_opened_url = url;
+  last_opened_at = now;
+
+  return false;
+}
+
+export function reset_open_external_state(): void {
+  last_opened_url = "";
+  last_opened_at = 0;
+}
+
 export function open_external(url: string, features?: string): Window | null {
   let normalized: string;
 
@@ -39,6 +62,8 @@ export function open_external(url: string, features?: string): Window | null {
     typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
   if (is_desktop) {
+    if (is_repeat_open(normalized)) return null;
+
     void (async () => {
       try {
         const { invoke } = await import("@tauri-apps/api/core");

@@ -38,6 +38,7 @@ import { routed_fetch } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { translated_language } from "@/services/translation/dom_translate";
 import { ignore_error } from "@/lib/ignore_error";
+import { fetch_proxied_image } from "@/lib/image_proxy_grant";
 
 export const IMAGE_PROXY_URL = get_image_proxy_url();
 
@@ -138,14 +139,29 @@ export async function resolve_native_images(doc: Document): Promise<void> {
         return;
       }
 
-      const response = await routed_fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
+      const granted = await fetch_proxied_image(url, {
+        fetcher: routed_fetch,
       });
 
-      if (!response.ok) return;
+      if (granted.kind === "failed") return;
 
-      const buffer = await response.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
+      let bytes: Uint8Array;
+      let declared_type: string | null;
+
+      if (granted.kind === "image") {
+        bytes = granted.bytes;
+        declared_type = granted.content_type || null;
+      } else {
+        const response = await routed_fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) return;
+
+        bytes = new Uint8Array(await response.arrayBuffer());
+        declared_type = response.headers.get("content-type");
+      }
+
       let binary = "";
       const chunk = 8192;
 
@@ -156,8 +172,7 @@ export async function resolve_native_images(doc: Document): Promise<void> {
         );
       }
 
-      const content_type =
-        sniff_image_type(bytes) || response.headers.get("content-type");
+      const content_type = sniff_image_type(bytes) || declared_type;
 
       if (!content_type) return;
 

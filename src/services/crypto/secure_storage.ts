@@ -483,6 +483,7 @@ const PRESERVED_LOCAL_KEY_PREFIXES: readonly string[] = [
   "aster_family_welcome_seen_",
   "aster_family_2fa_banner_dismissed",
   "aster_family_checklist_dismissed_",
+  "aster_onboarding_checklist_dismissed_",
 ];
 
 function should_preserve_local_key(key: string): boolean {

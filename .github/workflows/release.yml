@@ -44,6 +44,7 @@ jobs:
 
   build:
     needs: test
+    environment: release
     timeout-minutes: 75
     permissions:
       contents: read
@@ -340,6 +341,7 @@ jobs:
 
   sign:
     needs: [test, build]
+    environment: release
     if: ${{ always() && needs.test.result == 'success' }}
     runs-on: ubuntu-22.04
     permissions: {}
