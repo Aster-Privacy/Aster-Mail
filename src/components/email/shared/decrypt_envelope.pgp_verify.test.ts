@@ -25,7 +25,29 @@ const h = vi.hoisted(() => ({
   vault: null as unknown,
   passphrase: "pgp verify passphrase" as string | null,
   sender_keys: new Map<string, string>(),
+  pin_status: "ok" as "first" | "ok" | "changed" | "unknown",
+  pin_checks: [] as string[],
+  identity_events: [] as string[],
 }));
+
+vi.mock("@/services/crypto/ratchet_identity_pin", async (import_original) => ({
+  ...(await import_original<Record<string, unknown>>()),
+  check_owner_key_pin: async (pin_id: string) => {
+    h.pin_checks.push(pin_id);
+
+    return h.pin_status;
+  },
+}));
+
+vi.mock(
+  "@/services/crypto/ratchet_verification_status",
+  async (import_original) => ({
+    ...(await import_original<Record<string, unknown>>()),
+    record_peer_identity_event: (peer: string, kind: string) => {
+      h.identity_events.push(`${peer}:${kind}`);
+    },
+  }),
+);
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   on_vault_cleared: () => () => {},
@@ -148,6 +170,9 @@ beforeEach(() => {
     recovery_codes: [],
   };
   h.passphrase = PASSPHRASE;
+  h.pin_status = "ok";
+  h.pin_checks = [];
+  h.identity_events = [];
   vi.restoreAllMocks();
 });
 
@@ -354,6 +379,77 @@ describe("decrypt_mail_envelope pgp signature verification", () => {
     const opened = await open(lines.join("\n"));
 
     expect(opened).toBeNull();
+  });
+
+  it("verifies a copy signed by the key this device remembers for the sender", async () => {
+    const email = next_sender(other_key.public_key);
+    const opened = await open(
+      await encrypt_to_own(envelope_for(email), other_key),
+    );
+
+    expect(opened?.sender_verification).toBe("verified");
+    expect(h.pin_checks).toEqual([email]);
+    expect(h.identity_events).toEqual([]);
+  });
+
+  it("verifies a first copy from a sender this device has not seen", async () => {
+    h.pin_status = "first";
+
+    const email = next_sender(other_key.public_key);
+    const opened = await open(
+      await encrypt_to_own(envelope_for(email), other_key),
+    );
+
+    expect(opened?.sender_verification).toBe("verified");
+  });
+
+  it("does not verify a copy when the published key differs from the remembered one", async () => {
+    h.pin_status = "changed";
+
+    const email = next_sender(other_key.public_key);
+    const opened = await open(
+      await encrypt_to_own(envelope_for(email), other_key),
+    );
+
+    expect(opened?.subject).toBe("Signed copy");
+    expect(opened?.sender_verification).toBe("no_keys");
+    expect(h.identity_events).toEqual([`${email}:rotated`]);
+  });
+
+  it("does not verify a copy when the remembered key cannot be read", async () => {
+    h.pin_status = "unknown";
+
+    const email = next_sender(other_key.public_key);
+    const opened = await open(
+      await encrypt_to_own(envelope_for(email), other_key),
+    );
+
+    expect(opened?.sender_verification).toBe("no_keys");
+    expect(h.identity_events).toEqual([]);
+  });
+
+  it("keeps a copy signed by your own key verified", async () => {
+    h.pin_status = "changed";
+
+    const email = next_sender(own_key.public_key);
+    const opened = await open(
+      await encrypt_to_own(envelope_for(email), own_key),
+    );
+
+    expect(opened?.sender_verification).toBe("verified");
+    expect(h.identity_events).toEqual([]);
+  });
+
+  it("drops a sender state that arrives inside an unsigned copy", async () => {
+    const opened = await open(
+      JSON.stringify({
+        ...JSON.parse(envelope_for(next_sender(other_key.public_key))),
+        sender_verification: "verified",
+      }),
+    );
+
+    expect(opened?.subject).toBe("Signed copy");
+    expect(opened?.sender_verification).toBeUndefined();
   });
 
   it("decrypts a signed copy once while verifying it", async () => {
