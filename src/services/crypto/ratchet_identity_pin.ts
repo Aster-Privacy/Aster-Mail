@@ -26,6 +26,7 @@ import {
   OWNER_KEY_PIN_PREFIX,
   scoped_delete,
   scoped_get,
+  scoped_has,
   scoped_set,
 } from "./storage_key_names";
 import { get_derived_encryption_key } from "./memory_key_store";
@@ -35,15 +36,23 @@ import {
   record_peer_identity_event,
 } from "./ratchet_verification_status";
 import { KeyPinUnavailableError } from "./ratchet_types";
+import {
+  resolve_pin_identity,
+  type PinIdentity,
+  type PinScope,
+} from "./pin_identity";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 export type OwnerKeyPinStatus = "first" | "ok" | "changed" | "unknown";
 
+export type RecipientPinHealth = "settled" | "conflict" | "unreadable";
+
 interface StoredOwnerKeyPin {
   fingerprint: string;
   pinned_at: number;
+  hosted?: boolean;
 }
 
 interface StoredUntrustedFlag {
@@ -63,7 +72,11 @@ export interface RecipientBundleBinding {
 }
 
 export type IdentityPinStatus =
-  "first" | "ok" | "rotated" | "drift" | "unknown";
+  | "first"
+  | "ok"
+  | "rotated"
+  | "drift"
+  | "unknown";
 
 interface StoredIdentityPin {
   fingerprint: string;
@@ -83,6 +96,26 @@ export interface IdentityChangeRecord {
   fingerprint: string;
   changed_at: number;
 }
+
+interface SettledEntry<T> {
+  value: T | null;
+  conflict: boolean;
+}
+
+class PinEntryUnreadableError extends Error {
+  constructor() {
+    super("pin entry unreadable");
+    this.name = "PinEntryUnreadableError";
+  }
+}
+
+const PIN_PREFIXES: readonly string[] = [
+  IDENTITY_PIN_PREFIX,
+  IDENTITY_CHANGE_PREFIX,
+  OWNER_KEY_PIN_PREFIX,
+  IDENTITY_UNTRUSTED_PREFIX,
+  ACCEPTED_BUNDLE_PREFIX,
+];
 
 async function current_account_uid(): Promise<string | null> {
   try {
@@ -115,17 +148,171 @@ async function get_pin_storage_key(): Promise<CryptoKey> {
   return crypto_key;
 }
 
-async function load_pin(
+async function read_entry<T>(
+  prefix: string,
+  uid: string | null,
+  id: string,
+  storage_key: CryptoKey,
+): Promise<T | null> {
+  const value = await scoped_get<T>(prefix, uid, id, storage_key);
+
+  if (value !== null && value !== undefined) return value;
+
+  if (await scoped_has(prefix, uid, id)) {
+    throw new PinEntryUnreadableError();
+  }
+
+  return null;
+}
+
+async function delete_legacy_entries(
+  prefix: string,
+  uid: string | null,
+  identity: PinIdentity,
+): Promise<void> {
+  for (const legacy of identity.legacy) {
+    await scoped_delete(prefix, uid, legacy);
+  }
+}
+
+async function delete_entries(
+  prefix: string,
+  uid: string | null,
+  identity: PinIdentity,
+): Promise<void> {
+  await scoped_delete(prefix, uid, identity.id);
+  await delete_legacy_entries(prefix, uid, identity);
+}
+
+async function settle_entries<T>(
+  prefix: string,
+  uid: string | null,
+  identity: PinIdentity,
+  storage_key: CryptoKey,
+  same: (left: T, right: T) => boolean,
+  merge: (left: T, right: T) => T = (left) => left,
+): Promise<SettledEntry<T>> {
+  const found: { id: string; value: T }[] = [];
+
+  for (const id of [identity.id, ...identity.legacy]) {
+    const value = await read_entry<T>(prefix, uid, id, storage_key);
+
+    if (value !== null) found.push({ id, value });
+  }
+
+  if (found.length === 0) return { value: null, conflict: false };
+
+  const [first, ...rest] = found;
+
+  if (rest.some((entry) => !same(first.value, entry.value))) {
+    return { value: first.value, conflict: true };
+  }
+
+  if (first.id === identity.id && rest.length === 0) {
+    return { value: first.value, conflict: false };
+  }
+
+  const merged = rest.reduce(
+    (settled, entry) => merge(settled, entry.value),
+    first.value,
+  );
+
+  await scoped_set(prefix, uid, identity.id, merged, storage_key);
+  await delete_legacy_entries(prefix, uid, identity);
+
+  return { value: merged, conflict: false };
+}
+
+function same_fingerprint(
+  left: { fingerprint: string },
+  right: { fingerprint: string },
+): boolean {
+  return left.fingerprint === right.fingerprint;
+}
+
+function merge_identity_pins(
+  left: StoredIdentityPin,
+  right: StoredIdentityPin,
+): StoredIdentityPin {
+  return {
+    fingerprint: left.fingerprint,
+    verified: left.verified || right.verified,
+    pinned_at: Math.min(left.pinned_at, right.pinned_at),
+    pq_seen: Boolean(left.pq_seen) || Boolean(right.pq_seen),
+    ...(left.rotated || right.rotated ? { rotated: true } : {}),
+  };
+}
+
+async function load_identity_pin(
   storage_key: CryptoKey,
   uid: string | null,
-  pin_id: string,
-): Promise<StoredIdentityPin | null> {
-  return scoped_get<StoredIdentityPin>(
+  identity: PinIdentity,
+): Promise<SettledEntry<StoredIdentityPin>> {
+  return settle_entries<StoredIdentityPin>(
     IDENTITY_PIN_PREFIX,
     uid,
-    pin_id,
+    identity,
     storage_key,
+    same_fingerprint,
+    merge_identity_pins,
   );
+}
+
+async function load_hosted_shadow_pin(
+  storage_key: CryptoKey,
+  uid: string | null,
+  identity: PinIdentity,
+): Promise<StoredOwnerKeyPin | null> {
+  if (!identity.shadow) return null;
+
+  try {
+    const shadow = await read_entry<StoredOwnerKeyPin>(
+      OWNER_KEY_PIN_PREFIX,
+      uid,
+      identity.shadow,
+      storage_key,
+    );
+
+    return shadow?.hosted ? shadow : null;
+  } catch (caught) {
+    if (caught instanceof PinEntryUnreadableError) return null;
+
+    throw caught;
+  }
+}
+
+async function load_owner_pin(
+  storage_key: CryptoKey,
+  uid: string | null,
+  identity: PinIdentity,
+): Promise<SettledEntry<StoredOwnerKeyPin>> {
+  const settled = await settle_entries<StoredOwnerKeyPin>(
+    OWNER_KEY_PIN_PREFIX,
+    uid,
+    identity,
+    storage_key,
+    same_fingerprint,
+    (left, right) =>
+      left.hosted || right.hosted ? { ...left, hosted: true } : left,
+  );
+  const shadow = await load_hosted_shadow_pin(storage_key, uid, identity);
+
+  if (!shadow) return settled;
+  if (!settled.value) return { value: shadow, conflict: false };
+
+  return {
+    value: settled.value,
+    conflict: settled.conflict || !same_fingerprint(settled.value, shadow),
+  };
+}
+
+function owner_pin_record(
+  fingerprint: string,
+  scope: PinScope,
+): StoredOwnerKeyPin {
+  return scope === "hosted"
+    ? { fingerprint, pinned_at: Date.now(), hosted: true }
+    : { fingerprint, pinned_at: Date.now() };
 }
 
 export async function check_and_pin_identity(
@@ -139,17 +326,27 @@ export async function check_and_pin_identity(
       return "ok";
     }
 
+    const identity = resolve_pin_identity(pin_id);
     const fingerprint = await compute_hash(base64_to_array(kem_identity_key));
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
-    const existing = await load_pin(storage_key, uid, pin_id);
+    const { value: existing, conflict } = await load_identity_pin(
+      storage_key,
+      uid,
+      identity,
+    );
+
+    if (conflict) {
+      return "drift";
+    }
+
     const pq_seen = Boolean(existing?.pq_seen) || advertises_pq;
 
     if (!existing) {
       await scoped_set(
         IDENTITY_PIN_PREFIX,
         uid,
-        pin_id,
+        identity.id,
         {
           fingerprint,
           verified,
@@ -170,7 +367,7 @@ export async function check_and_pin_identity(
       await scoped_set(
         IDENTITY_PIN_PREFIX,
         uid,
-        pin_id,
+        identity.id,
         {
           fingerprint,
           verified,
@@ -184,7 +381,7 @@ export async function check_and_pin_identity(
       await scoped_set(
         IDENTITY_CHANGE_PREFIX,
         uid,
-        pin_id,
+        identity.id,
         {
           previous_fingerprint: existing.fingerprint,
           fingerprint,
@@ -192,6 +389,7 @@ export async function check_and_pin_identity(
         } satisfies IdentityChangeRecord,
         storage_key,
       );
+      await delete_legacy_entries(IDENTITY_CHANGE_PREFIX, uid, identity);
 
       record_peer_identity_event(pin_id, "rotated");
 
@@ -205,7 +403,7 @@ export async function check_and_pin_identity(
       await scoped_set(
         IDENTITY_PIN_PREFIX,
         uid,
-        pin_id,
+        identity.id,
         {
           ...existing,
           verified: existing.verified || verified,
@@ -229,7 +427,7 @@ async function store_untrusted_flag(pin_id: string): Promise<void> {
     await scoped_set(
       IDENTITY_UNTRUSTED_PREFIX,
       uid,
-      pin_id,
+      resolve_pin_identity(pin_id).id,
       { flagged_at: Date.now() } satisfies StoredUntrustedFlag,
       storage_key,
     );
@@ -249,15 +447,18 @@ export async function is_recipient_flagged_untrusted(
   try {
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
-    const flag = await scoped_get<StoredUntrustedFlag>(
+    const flag = await settle_entries<StoredUntrustedFlag>(
       IDENTITY_UNTRUSTED_PREFIX,
       uid,
-      pin_id,
+      resolve_pin_identity(pin_id),
       storage_key,
+      () => true,
     );
 
-    return flag !== null && flag !== undefined;
-  } catch {
+    return flag.value !== null;
+  } catch (caught) {
+    if (caught instanceof PinEntryUnreadableError) return true;
+
     throw new KeyPinUnavailableError(pin_id);
   }
 }
@@ -286,16 +487,19 @@ export async function is_recipient_bundle_accepted(
 
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
-    const accepted = await scoped_get<StoredAcceptedBundle>(
+    const accepted = await settle_entries<StoredAcceptedBundle>(
       ACCEPTED_BUNDLE_PREFIX,
       uid,
-      pin_id,
+      resolve_pin_identity(pin_id),
       storage_key,
+      same_fingerprint,
     );
 
-    if (!accepted) return false;
+    if (!accepted.value || accepted.conflict) return false;
 
-    return accepted.fingerprint === (await bundle_binding_fingerprint(bundle));
+    return (
+      accepted.value.fingerprint === (await bundle_binding_fingerprint(bundle))
+    );
   } catch {
     return false;
   }
@@ -314,25 +518,26 @@ export async function owner_key_fingerprint(
 export async function check_owner_key_pin(
   pin_id: string,
   armored_public_key: string,
+  scope: PinScope = "hosted",
 ): Promise<OwnerKeyPinStatus> {
   if (!pin_id || !armored_public_key) return "unknown";
 
+  const identity = resolve_pin_identity(pin_id, scope);
   let storage_key: CryptoKey;
   let uid: string | null;
-  let existing: StoredOwnerKeyPin | null | undefined;
+  let settled: SettledEntry<StoredOwnerKeyPin>;
 
   try {
     storage_key = await get_pin_storage_key();
     uid = await current_account_uid();
-    existing = await scoped_get<StoredOwnerKeyPin>(
-      OWNER_KEY_PIN_PREFIX,
-      uid,
-      pin_id,
-      storage_key,
-    );
+    settled = await load_owner_pin(storage_key, uid, identity);
   } catch {
     throw new KeyPinUnavailableError(pin_id);
   }
+
+  if (settled.conflict) return "changed";
+
+  const existing = settled.value;
 
   await load_openpgp();
 
@@ -352,8 +557,8 @@ export async function check_owner_key_pin(
     await scoped_set(
       OWNER_KEY_PIN_PREFIX,
       uid,
-      pin_id,
-      { fingerprint, pinned_at: Date.now() } satisfies StoredOwnerKeyPin,
+      identity.id,
+      owner_pin_record(fingerprint, scope),
       storage_key,
     );
   } catch {
@@ -365,18 +570,18 @@ export async function check_owner_key_pin(
 
 export async function get_pinned_owner_key_fingerprint(
   pin_id: string,
+  scope: PinScope = "hosted",
 ): Promise<string | null> {
   try {
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
-    const existing = await scoped_get<StoredOwnerKeyPin>(
-      OWNER_KEY_PIN_PREFIX,
-      uid,
-      pin_id,
+    const existing = await load_owner_pin(
       storage_key,
+      uid,
+      resolve_pin_identity(pin_id, scope),
     );
 
-    return existing?.fingerprint ?? null;
+    return existing.value?.fingerprint ?? null;
   } catch {
     return null;
   }
@@ -385,20 +590,64 @@ export async function get_pinned_owner_key_fingerprint(
 export async function replace_owner_key_pin(
   pin_id: string,
   armored_public_key: string,
+  scope: PinScope = "hosted",
 ): Promise<void> {
+  const identity = resolve_pin_identity(pin_id, scope);
   const storage_key = await get_pin_storage_key();
   const uid = await current_account_uid();
 
   await scoped_set(
     OWNER_KEY_PIN_PREFIX,
     uid,
-    pin_id,
-    {
-      fingerprint: await owner_key_fingerprint(armored_public_key),
-      pinned_at: Date.now(),
-    } satisfies StoredOwnerKeyPin,
+    identity.id,
+    owner_pin_record(await owner_key_fingerprint(armored_public_key), scope),
     storage_key,
   );
+  await delete_legacy_entries(OWNER_KEY_PIN_PREFIX, uid, identity);
+}
+
+async function entry_health<T>(
+  load: () => Promise<SettledEntry<T>>,
+): Promise<RecipientPinHealth> {
+  try {
+    return (await load()).conflict ? "conflict" : "settled";
+  } catch (caught) {
+    if (caught instanceof PinEntryUnreadableError) return "unreadable";
+
+    throw caught;
+  }
+}
+
+export async function get_recipient_pin_health(
+  pin_id: string,
+): Promise<RecipientPinHealth> {
+  if (!pin_id) return "settled";
+
+  const identity = resolve_pin_identity(pin_id);
+  const storage_key = await get_pin_storage_key();
+  const uid = await current_account_uid();
+  const health = [
+    await entry_health(() => load_identity_pin(storage_key, uid, identity)),
+    await entry_health(() => load_owner_pin(storage_key, uid, identity)),
+  ];
+
+  if (health.includes("unreadable")) return "unreadable";
+
+  return health.includes("conflict") ? "conflict" : "settled";
+}
+
+async function known_pq_seen(
+  storage_key: CryptoKey,
+  uid: string | null,
+  identity: PinIdentity,
+): Promise<boolean> {
+  try {
+    const existing = await load_identity_pin(storage_key, uid, identity);
+
+    return Boolean(existing.value?.pq_seen);
+  } catch {
+    return false;
+  }
 }
 
 export async function trust_recipient_keys(
@@ -407,55 +656,59 @@ export async function trust_recipient_keys(
   armored_public_key: string | null,
   accepted_bundle: RecipientBundleBinding | null = null,
 ): Promise<void> {
+  const identity = resolve_pin_identity(pin_id);
   const storage_key = await get_pin_storage_key();
   const uid = await current_account_uid();
-  const existing = await load_pin(storage_key, uid, pin_id);
+  const pq_seen = await known_pq_seen(storage_key, uid, identity);
 
   if (accepted_bundle) {
     await scoped_set(
       ACCEPTED_BUNDLE_PREFIX,
       uid,
-      pin_id,
+      identity.id,
       {
         fingerprint: await bundle_binding_fingerprint(accepted_bundle),
         accepted_at: Date.now(),
       } satisfies StoredAcceptedBundle,
       storage_key,
     );
+    await delete_legacy_entries(ACCEPTED_BUNDLE_PREFIX, uid, identity);
   } else {
-    await scoped_delete(ACCEPTED_BUNDLE_PREFIX, uid, pin_id);
+    await delete_entries(ACCEPTED_BUNDLE_PREFIX, uid, identity);
   }
 
   if (kem_identity_key) {
     await scoped_set(
       IDENTITY_PIN_PREFIX,
       uid,
-      pin_id,
+      identity.id,
       {
         fingerprint: await compute_hash(base64_to_array(kem_identity_key)),
         verified: false,
         pinned_at: Date.now(),
-        pq_seen: Boolean(existing?.pq_seen),
+        pq_seen,
       } satisfies StoredIdentityPin,
       storage_key,
     );
+    await delete_legacy_entries(IDENTITY_PIN_PREFIX, uid, identity);
   }
 
   if (armored_public_key) {
     await scoped_set(
       OWNER_KEY_PIN_PREFIX,
       uid,
-      pin_id,
-      {
-        fingerprint: await owner_key_fingerprint(armored_public_key),
-        pinned_at: Date.now(),
-      } satisfies StoredOwnerKeyPin,
+      identity.id,
+      owner_pin_record(
+        await owner_key_fingerprint(armored_public_key),
+        "hosted",
+      ),
       storage_key,
     );
+    await delete_legacy_entries(OWNER_KEY_PIN_PREFIX, uid, identity);
   }
 
-  await scoped_delete(IDENTITY_CHANGE_PREFIX, uid, pin_id);
-  await scoped_delete(IDENTITY_UNTRUSTED_PREFIX, uid, pin_id);
+  await delete_entries(IDENTITY_CHANGE_PREFIX, uid, identity);
+  await delete_entries(IDENTITY_UNTRUSTED_PREFIX, uid, identity);
   dismiss_peer_identity_event(pin_id);
 }
 
@@ -465,9 +718,13 @@ export async function has_peer_advertised_pq(pin_id: string): Promise<boolean> {
 
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
-    const existing = await load_pin(storage_key, uid, pin_id);
+    const existing = await load_identity_pin(
+      storage_key,
+      uid,
+      resolve_pin_identity(pin_id),
+    );
 
-    return existing?.pq_seen === true;
+    return existing.value?.pq_seen === true;
   } catch {
     return false;
   }
@@ -479,9 +736,13 @@ export async function get_pinned_identity_fingerprint(
   try {
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
-    const existing = await load_pin(storage_key, uid, pin_id);
+    const existing = await load_identity_pin(
+      storage_key,
+      uid,
+      resolve_pin_identity(pin_id),
+    );
 
-    return existing?.fingerprint ?? null;
+    return existing.value?.fingerprint ?? null;
   } catch {
     return null;
   }
@@ -493,13 +754,17 @@ export async function get_identity_pin_record(
   try {
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
-    const existing = await load_pin(storage_key, uid, pin_id);
+    const existing = await load_identity_pin(
+      storage_key,
+      uid,
+      resolve_pin_identity(pin_id),
+    );
 
-    if (!existing) return null;
+    if (!existing.value) return null;
 
     return {
-      fingerprint: existing.fingerprint,
-      rotated: existing.rotated === true,
+      fingerprint: existing.value.fingerprint,
+      rotated: existing.value.rotated === true || existing.conflict,
     };
   } catch {
     return null;
@@ -514,13 +779,17 @@ export async function get_identity_change(
 
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
-
-    return await scoped_get<IdentityChangeRecord>(
+    const change = await settle_entries<IdentityChangeRecord>(
       IDENTITY_CHANGE_PREFIX,
       uid,
-      pin_id,
+      resolve_pin_identity(pin_id),
       storage_key,
+      (left, right) =>
+        left.fingerprint === right.fingerprint &&
+        left.previous_fingerprint === right.previous_fingerprint,
     );
+
+    return change.value;
   } catch {
     return null;
   }
@@ -531,25 +800,31 @@ export async function acknowledge_identity_change(
 ): Promise<void> {
   if (!pin_id) return;
 
+  const identity = resolve_pin_identity(pin_id);
   const uid = await current_account_uid();
 
-  await scoped_delete(IDENTITY_CHANGE_PREFIX, uid, pin_id);
+  await delete_entries(IDENTITY_CHANGE_PREFIX, uid, identity);
   dismiss_peer_identity_event(pin_id);
-  await accept_rotated_pin(uid, pin_id);
+  await accept_rotated_pin(uid, identity);
 }
 
 async function accept_rotated_pin(
   uid: string | null,
-  pin_id: string,
+  identity: PinIdentity,
 ): Promise<void> {
   try {
     const storage_key = await get_pin_storage_key();
-    const pin = await load_pin(storage_key, uid, pin_id);
-    if (!pin?.rotated) return;
+    const { value: pin, conflict } = await load_identity_pin(
+      storage_key,
+      uid,
+      identity,
+    );
+
+    if (conflict || !pin?.rotated) return;
     await scoped_set(
       IDENTITY_PIN_PREFIX,
       uid,
-      pin_id,
+      identity.id,
       {
         fingerprint: pin.fingerprint,
         verified: pin.verified,
@@ -565,16 +840,17 @@ async function accept_rotated_pin(
 
 export async function reset_identity_pin(pin_id: string): Promise<void> {
   try {
+    const identity = resolve_pin_identity(pin_id);
     const uid = await current_account_uid();
 
-    await scoped_delete(IDENTITY_PIN_PREFIX, uid, pin_id);
-    await scoped_delete(IDENTITY_CHANGE_PREFIX, uid, pin_id);
-    await scoped_delete(OWNER_KEY_PIN_PREFIX, uid, pin_id);
-    await scoped_delete(IDENTITY_UNTRUSTED_PREFIX, uid, pin_id);
-    await scoped_delete(ACCEPTED_BUNDLE_PREFIX, uid, pin_id);
+    for (const prefix of PIN_PREFIXES) {
+      await delete_entries(prefix, uid, identity);
+    }
 
     if (uid) {
-      await scoped_delete(IDENTITY_PIN_PREFIX, null, pin_id);
+      for (const id of [identity.id, ...identity.legacy]) {
+        await scoped_delete(IDENTITY_PIN_PREFIX, null, id);
+      }
     }
   } catch {
     /* best-effort */

@@ -25,6 +25,7 @@ const h = vi.hoisted(() => ({
   pinned: null as string | null,
   pinned_owner: null as string | null,
   flagged: false,
+  pin_health: "settled" as "settled" | "conflict" | "unreadable",
   identity: null as {
     kem_identity_key: string;
     signed_prekey?: string;
@@ -80,6 +81,7 @@ vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
   get_identity_change: vi.fn(async () => h.change),
   get_pinned_identity_fingerprint: vi.fn(async () => h.pinned),
   get_pinned_owner_key_fingerprint: vi.fn(async () => h.pinned_owner),
+  get_recipient_pin_health: vi.fn(async () => h.pin_health),
   is_recipient_bundle_accepted: vi.fn(async () => h.accepted),
   is_recipient_flagged_untrusted: vi.fn(async () => h.flagged),
   owner_key_fingerprint: vi.fn(async (armored: string) => `fp:${armored}`),
@@ -116,6 +118,7 @@ describe("get_recipient_identity_status", () => {
     h.pinned = null;
     h.pinned_owner = null;
     h.flagged = false;
+    h.pin_health = "settled";
     h.identity = null;
     h.owner_key = null;
     h.fetch_calls = [];
@@ -183,6 +186,33 @@ describe("get_recipient_identity_status", () => {
       "untrusted",
     );
     expect(h.owner_calls).toEqual([["alice", "alice@astermail.org"]]);
+  });
+
+  it("reports untrusted when a stored pin cannot be read", async () => {
+    h.pin_health = "unreadable";
+    h.owner_key = "new";
+
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "untrusted",
+    );
+  });
+
+  it("reports untrusted when address variants hold different pins", async () => {
+    h.pin_health = "conflict";
+
+    expect(await get_recipient_identity_status("alice@astermail.org")).toBe(
+      "untrusted",
+    );
+  });
+
+  it("trusts the current keys over a pin that cannot be read", async () => {
+    h.pin_health = "unreadable";
+    h.owner_key = "new";
+
+    await trust_recipient_identity("alice@astermail.org");
+
+    expect(h.trusted).toHaveLength(1);
+    expect(h.trusted[0][2]).toBe("new");
   });
 
   it("reports untrusted when a send refused the recipient's key", async () => {
@@ -297,12 +327,8 @@ describe("get_recipient_identity_status", () => {
     expect(
       await get_recipient_identity_status(" Tej-Berlin@astermail.org "),
     ).toBe("untrusted");
-    expect(h.fetch_calls).toEqual([
-      ["tej-berlin", "tej-berlin@astermail.org"],
-    ]);
-    expect(h.owner_calls).toEqual([
-      ["tej-berlin", "tej-berlin@astermail.org"],
-    ]);
+    expect(h.fetch_calls).toEqual([["tej-berlin", "tej-berlin@astermail.org"]]);
+    expect(h.owner_calls).toEqual([["tej-berlin", "tej-berlin@astermail.org"]]);
 
     await trust_recipient_identity("Tej-Berlin@astermail.org");
 
@@ -321,7 +347,12 @@ describe("get_recipient_identity_status", () => {
     await trust_recipient_identity("alice@astermail.org");
 
     expect(h.trusted).toEqual([
-      ["alice@astermail.org", "key-one", "owner", published_identity("key-one")],
+      [
+        "alice@astermail.org",
+        "key-one",
+        "owner",
+        published_identity("key-one"),
+      ],
     ]);
   });
 });

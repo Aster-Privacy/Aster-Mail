@@ -75,7 +75,7 @@ async function local_pin_change(
 
   try {
     const email = key_info.email.toLowerCase();
-    const pinned = await get_pinned_owner_key_fingerprint(email);
+    const pinned = await get_pinned_owner_key_fingerprint(email, "external");
 
     if (!pinned) return null;
 
@@ -107,9 +107,9 @@ async function pin_external_keys(
 
       try {
         if (replace) {
-          await replace_owner_key_pin(email, key_info.public_key);
+          await replace_owner_key_pin(email, key_info.public_key, "external");
         } else {
-          await check_owner_key_pin(email, key_info.public_key);
+          await check_owner_key_pin(email, key_info.public_key, "external");
         }
       } catch {
         return;

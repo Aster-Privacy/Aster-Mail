@@ -30,6 +30,7 @@ import {
   get_identity_change,
   get_pinned_identity_fingerprint,
   get_pinned_owner_key_fingerprint,
+  get_recipient_pin_health,
   is_recipient_bundle_accepted,
   is_recipient_flagged_untrusted,
   owner_key_fingerprint,
@@ -90,7 +91,10 @@ async function snapshot_recipient_identity(
   try {
     const pinned_kem = await get_pinned_identity_fingerprint(pin_id);
     const pinned_owner = await get_pinned_owner_key_fingerprint(pin_id);
-    const known = pinned_kem !== null || pinned_owner !== null;
+    const pins_unsettled =
+      (await get_recipient_pin_health(pin_id)) !== "settled";
+    const known =
+      pins_unsettled || pinned_kem !== null || pinned_owner !== null;
     const identity = known
       ? await fetch_ratchet_identity(username, pin_id)
       : null;
@@ -118,6 +122,7 @@ async function snapshot_recipient_identity(
       (await owner_key_fingerprint(owner_public_key)) !== pinned_owner;
 
     if (
+      pins_unsettled ||
       owner_changed ||
       (await is_recipient_flagged_untrusted(pin_id)) ||
       (await is_published_bundle_unverified(

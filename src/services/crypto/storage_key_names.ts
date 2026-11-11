@@ -325,6 +325,18 @@ export async function scoped_get<T>(
   return encrypted_get<T>(name, storage_key);
 }
 
+export async function scoped_has(
+  prefix: string,
+  uid: string | null,
+  rest: string,
+): Promise<boolean> {
+  if (await encrypted_has(await scoped_storage_name(prefix, uid, rest))) {
+    return true;
+  }
+
+  return encrypted_has(plain_name(prefix, uid, rest));
+}
+
 export async function scoped_set(
   prefix: string,
   uid: string | null,
