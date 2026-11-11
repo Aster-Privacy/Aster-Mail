@@ -10444,26 +10444,37 @@ export const es = {
     link_device_confirm_button: "Confirmar",
     link_device_confirm_prompt: "¿Confirmar la vinculación del dispositivo?",
     link_device_confirming: "Confirmando...",
-    link_device_desktop: "Vincular dispositivo de escritorio",
-    device_fingerprint: "Código de verificación",
-    device_code_verify_toggle: "Verificar este dispositivo",
-    link_device_fingerprint_hint:
-      "Si tu aplicación de escritorio muestra un código de verificación, comprueba que coincide con este antes de vincular el dispositivo.",
-    device_code_fingerprint_hint:
-      "Tu navegador muestra el mismo código de verificación antes de vincular el dispositivo. Si los dos códigos no coinciden, no vincules el dispositivo.",
+    link_device_desktop: "Dispositivo nuevo",
+    device_fingerprint: "Huella digital del dispositivo",
+    device_fingerprint_copy: "Copiar huella digital del dispositivo",
+    link_device_grant_notice:
+      "Al vincular, la app en {{device}} obtiene acceso completo a {{email}}, incluidos tu correo y tus claves de cifrado.",
+    link_device_own_device_warning:
+      "Continúa solo si iniciaste este proceso en una app de Aster en tu propio dispositivo. Si otra persona te dio este código, no vincules el dispositivo.",
+    link_device_fingerprint_enter:
+      "Ingresa la huella digital del dispositivo que muestra la app que estás vinculando. Algunas apps la llaman código de verificación.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Esto no coincide con el dispositivo de este código de vinculación. Compara cada carácter con la app que estás vinculando y vuelve a intentarlo. Si sigue sin coincidir, no vincules el dispositivo.",
+    link_device_fingerprint_link_mismatch:
+      "El enlace que abrió esta página pertenece a un dispositivo distinto al de este código de vinculación, así que no puedes vincular el dispositivo aquí. Obtén un código nuevo en la app que estás vinculando y vuelve a intentarlo.",
+    link_device_update_desktop:
+      "Si la app no la muestra, elige Verificar este dispositivo en la app. Si la app no tiene esa opción, actualízala y vuelve a intentarlo.",
+    device_code_fingerprint_required_hint:
+      "Tu navegador pide esta huella digital del dispositivo antes de vincular el dispositivo.",
     link_device_change_account: "Cambiar de cuenta",
     link_device_choose_account: "Elige una cuenta",
     link_device_choose_account_description:
-      "Para vincular tu aplicación de escritorio",
+      "Para vincular un dispositivo nuevo",
     link_device_choose_account_note:
       "Sus claves de cifrado permanecen cifradas mientras se transfieren entre sus dispositivos.",
     link_device_use_another_account: "Usar otra cuenta",
     link_device_use_this_account: "Usar esta cuenta",
     link_device_other_accounts: "Cambiar a otra cuenta",
     link_device_enter_code:
-      "Ingresa el código mostrado en tu otro dispositivo.",
+      "Ingresa el código de vinculación que muestra la app que estás vinculando.",
     link_device_expired_code:
-      "Este código caducó o no coincide. Tu app de escritorio muestra el código actual.",
+      "Este código caducó o no coincide. La app que estás vinculando muestra el código actual.",
     link_device_failed:
       "La vinculación no terminó. Empieza de nuevo. Tu cuenta no ha cambiado.",
     link_device_invalid_code:
@@ -10474,7 +10485,7 @@ export const es = {
       "Para continuar con esta cuenta, introduce su contraseña.",
     link_device_success: "Dispositivo vinculado exitosamente",
     link_device_success_description:
-      "Este dispositivo tiene acceso a tu cuenta.",
+      "Tu dispositivo ya está vinculado. Puedes cerrar esta pestaña.",
     link_device_title: "Vincular dispositivo",
     link_keys_locked_title: "Tu llavero está bloqueado",
     link_keys_locked_description:
