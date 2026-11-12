@@ -187,4 +187,46 @@ describe("reply_identity", () => {
     expect(identity.reply_email).toBe("me@astermail.org");
     expect(identity.sender).toBeNull();
   });
+
+  it("uses the alias name for a reply from an alias", () => {
+    set_own_addresses(["work@astermail.org"]);
+
+    const identity = reply_identity(
+      options,
+      ["work@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.display_name).toBe("Work");
+  });
+
+  it("leaves a nameless alias unnamed instead of using the account name", () => {
+    const nameless: SenderOption[] = options.map((option) =>
+      option.id === "alias-1" ? { ...option, display_name: undefined } : option,
+    );
+
+    set_own_addresses(["work@astermail.org"]);
+
+    const identity = reply_identity(
+      nameless,
+      ["work@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.reply_email).toBe("work@astermail.org");
+    expect(identity.display_name).toBeNull();
+  });
+
+  it("keeps the account name for a reply from the primary address", () => {
+    const identity = reply_identity(
+      options,
+      ["me@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.display_name).toBe("Me");
+  });
 });

@@ -185,7 +185,7 @@ export function reply_identity(
     return {
       attendee_email: own,
       reply_email: match.email,
-      display_name: match.display_name?.trim() || primary_name,
+      display_name: match.display_name?.trim() || null,
       sender: { email: match.email, address_hash: match.address_hash },
     };
   }
@@ -194,7 +194,7 @@ export function reply_identity(
     return {
       attendee_email: own,
       reply_email: own,
-      display_name: primary_name,
+      display_name: null,
       sender: { email: own },
     };
   }
