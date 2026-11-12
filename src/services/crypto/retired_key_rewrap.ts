@@ -54,7 +54,13 @@ const ACCOUNT_KEY_WRITERS: ReadonlySet<AccountDataContext> = new Set([
   "astermail-draft-v2",
   "astermail-preferences-v1",
   "astermail-devmode-v1",
+  "astermail-scheduled-v1",
 ]);
+
+const TARGET_CONTEXTS: Partial<Record<AccountDataContext, AccountDataContext>> =
+  {
+    "astermail-draft-v1": "astermail-draft-v2",
+  };
 
 export interface RetiredRewrapSummary {
   checked: number;
@@ -714,69 +720,372 @@ const rewrap_drafts: PassHandler = (env) =>
     ),
   );
 
-
 interface ScheduledPage {
   items: { id: string }[];
   total: number;
 }
 
 interface ScheduledRow {
+  status?: string | null;
   encrypted_envelope: string | null;
   envelope_nonce: string | null;
   encrypted_recipients?: string | null;
   recipients_nonce?: string | null;
 }
 
-const scan_scheduled: PassHandler = async (env) => {
-  const result = empty_pass(false);
+const SCHEDULED_PATH = "/mail/v1/scheduled";
+const SCHEDULED_LISTS: string[] = ["", "&status=sent", "&status=cancelled"];
+const SCHEDULED_FINISHED: ReadonlySet<string> = new Set(["sent", "cancelled"]);
+const SCHEDULED_EDITABLE: ReadonlySet<string> = new Set(["pending", "failed"]);
+
+async function list_scheduled_ids(filter: string): Promise<string[] | null> {
+  const ids: string[] = [];
 
   for (let page = 0; page < MAX_PAGES; page++) {
     const offset = page * PAGE_SIZE;
     const response = await api_client.get<ScheduledPage>(
-      `/mail/v1/scheduled?limit=${PAGE_SIZE}&offset=${offset}`,
+      `${SCHEDULED_PATH}?limit=${PAGE_SIZE}&offset=${offset}${filter}`,
       { skip_cache: true },
     );
 
-    if (response.error || !Array.isArray(response.data?.items)) return result;
+    if (response.error || !Array.isArray(response.data?.items)) return null;
 
-    for (const item of response.data.items) {
-      const detail = await api_client.get<ScheduledRow>(
-        `/mail/v1/scheduled/${item.id}`,
-        { skip_cache: true },
-      );
-
-      if (detail.error || !detail.data) return result;
-
-      result.checked++;
-
-      const row = detail.data;
-      const envelope = await open_under(
-        env.retired,
-        row.encrypted_envelope,
-        row.envelope_nonce,
-      );
-      const recipients = await open_under(
-        env.retired,
-        row.encrypted_recipients,
-        row.recipients_nonce,
-      );
-
-      if (envelope || recipients) {
-        result.held++;
-        result.parked++;
-      }
-      envelope?.fill(0);
-      recipients?.fill(0);
-    }
+    for (const item of response.data.items) ids.push(item.id);
 
     const seen = offset + response.data.items.length;
 
     if (response.data.items.length === 0 || seen >= response.data.total) {
-      result.complete = true;
-
-      return result;
+      return ids;
     }
   }
+
+  return null;
+}
+
+async function read_scheduled(id: string): Promise<ScheduledRow | null> {
+  const detail = await api_client.get<ScheduledRow>(`${SCHEDULED_PATH}/${id}`, {
+    skip_cache: true,
+  });
+
+  return detail.error || !detail.data ? null : detail.data;
+}
+
+async function remove_finished_scheduled(
+  env: PassEnv,
+  id: string,
+  seen: ScheduledRow,
+): Promise<boolean> {
+  if (!(await env.active())) return false;
+
+  const stored = await read_scheduled(id);
+
+  if (!stored || !SCHEDULED_FINISHED.has(stored.status ?? "")) return false;
+  if (
+    stored.envelope_nonce !== seen.envelope_nonce ||
+    stored.recipients_nonce !== seen.recipients_nonce
+  ) {
+    return false;
+  }
+
+  const removed = await api_client.delete<{ success?: boolean }>(
+    `${SCHEDULED_PATH}/${id}`,
+  );
+
+  return !removed.error;
+}
+
+async function replace_scheduled(
+  env: PassEnv,
+  id: string,
+  row: ScheduledRow,
+  envelope: Uint8Array | null,
+  recipients: Uint8Array | null,
+): Promise<boolean> {
+  if (!row.envelope_nonce) return false;
+
+  const target = await env.target();
+  const next_envelope: Sealed | null = envelope
+    ? await reseal(target, envelope)
+    : row.encrypted_envelope
+      ? { encrypted: row.encrypted_envelope, nonce: row.envelope_nonce }
+      : null;
+  const next_recipients: Sealed | null = recipients
+    ? await reseal(target, recipients)
+    : row.encrypted_recipients && row.recipients_nonce
+      ? { encrypted: row.encrypted_recipients, nonce: row.recipients_nonce }
+      : null;
+
+  if (!next_envelope || !next_recipients) return false;
+  if (!(await env.active())) return false;
+
+  const saved = await api_client.patch<{ id?: string }>(
+    `${SCHEDULED_PATH}/${id}`,
+    {
+      envelope: {
+        encrypted_envelope: next_envelope.encrypted,
+        envelope_nonce: next_envelope.nonce,
+        encrypted_recipients: next_recipients.encrypted,
+        recipients_nonce: next_recipients.nonce,
+        expected_envelope_nonce: row.envelope_nonce,
+      },
+    },
+  );
+
+  if (saved.error || saved.data?.id !== id) return false;
+
+  const stored = await read_scheduled(id);
+
+  return (
+    stored?.envelope_nonce === next_envelope.nonce &&
+    stored.recipients_nonce === next_recipients.nonce
+  );
+}
+
+async function rewrap_scheduled_row(
+  env: PassEnv,
+  id: string,
+  row: ScheduledRow,
+): Promise<"current" | "held" | "rewrapped"> {
+  const envelope = await open_under(
+    env.retired,
+    row.encrypted_envelope,
+    row.envelope_nonce,
+  );
+  const recipients = await open_under(
+    env.retired,
+    row.encrypted_recipients,
+    row.recipients_nonce,
+  );
+
+  try {
+    if (!envelope && !recipients) return "current";
+    if (!env.write) return "held";
+
+    const status = row.status ?? "";
+    let done = false;
+
+    if (SCHEDULED_FINISHED.has(status)) {
+      done = await remove_finished_scheduled(env, id, row);
+    } else if (SCHEDULED_EDITABLE.has(status)) {
+      done = await replace_scheduled(env, id, row, envelope, recipients);
+    }
+
+    return done ? "rewrapped" : "held";
+  } catch {
+    return "held";
+  } finally {
+    envelope?.fill(0);
+    recipients?.fill(0);
+  }
+}
+
+const rewrap_scheduled: PassHandler = async (env) => {
+  const result = empty_pass(false);
+  const ids = new Set<string>();
+
+  for (const filter of SCHEDULED_LISTS) {
+    const listed = await list_scheduled_ids(filter);
+
+    if (!listed) return result;
+
+    for (const id of listed) ids.add(id);
+  }
+
+  for (const id of ids) {
+    const row = await read_scheduled(id);
+
+    if (!row) return result;
+
+    result.checked++;
+
+    const outcome = await rewrap_scheduled_row(env, id, row);
+
+    if (outcome === "rewrapped") result.rewrapped++;
+    if (outcome === "held") result.held++;
+  }
+
+  result.complete = true;
+
+  return result;
+};
+
+interface CalendarBlobRow {
+  id?: unknown;
+  calendar_id?: unknown;
+  encrypted_blob?: unknown;
+  blob_nonce?: unknown;
+}
+
+interface CalendarListPage {
+  calendars?: CalendarBlobRow[];
+  has_more?: boolean;
+  cursor_id?: string;
+  server_time?: string;
+}
+
+interface CalendarEventPage {
+  events?: CalendarBlobRow[];
+  has_more?: boolean;
+  next_cursor?: string | null;
+}
+
+const CALENDARS_PATH = "/calendar/v1/calendars";
+const CALENDAR_EVENTS_PATH = "/calendar/v1/events";
+const CALENDAR_FRAME_BYTE = 2;
+const NOT_FOUND_STATUS = 404;
+
+async function opens_with(
+  key: CryptoKey,
+  iv: Uint8Array,
+  data: Uint8Array,
+  bound_to?: Uint8Array,
+): Promise<boolean> {
+  try {
+    const opened = new Uint8Array(
+      await crypto.subtle.decrypt(
+        bound_to
+          ? { name: "AES-GCM", iv, additionalData: bound_to }
+          : { name: "AES-GCM", iv },
+        key,
+        data,
+      ),
+    );
+
+    opened.fill(0);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function calendar_blob_opens(
+  key: CryptoKey,
+  row: CalendarBlobRow,
+  is_event: boolean,
+): Promise<boolean> {
+  if (
+    typeof row.encrypted_blob !== "string" ||
+    typeof row.blob_nonce !== "string"
+  ) {
+    return false;
+  }
+
+  const data = decode(row.encrypted_blob);
+  const iv = decode(row.blob_nonce);
+
+  if (!data || !iv || data.length === 0) return false;
+  if (await opens_with(key, iv, data)) return true;
+  if (data[0] !== CALENDAR_FRAME_BYTE) return false;
+
+  const body = data.subarray(1);
+
+  if (await opens_with(key, iv, body)) return true;
+
+  const row_id = typeof row.id === "string" ? row.id : "";
+  const calendar_id =
+    typeof row.calendar_id === "string" ? row.calendar_id : "";
+  const binding = new TextEncoder().encode(
+    [
+      "event_id=" + (is_event ? row_id : ""),
+      "calendar_id=" + (is_event ? calendar_id : row_id),
+      "version=" + String(CALENDAR_FRAME_BYTE),
+    ].join("\n"),
+  );
+
+  return opens_with(key, iv, body, binding);
+}
+
+async function scan_calendar_rows(
+  env: PassEnv,
+  rows: CalendarBlobRow[],
+  is_event: boolean,
+  result: PassResult,
+): Promise<void> {
+  for (const row of rows) {
+    result.checked++;
+
+    if (await calendar_blob_opens(env.retired, row, is_event)) {
+      result.held++;
+      result.parked++;
+    }
+  }
+}
+
+async function scan_calendar_list(
+  env: PassEnv,
+  result: PassResult,
+): Promise<"done" | "absent" | "failed"> {
+  let query = "";
+
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const response = await api_client.get<CalendarListPage>(
+      `${CALENDARS_PATH}${query}`,
+      { skip_cache: true },
+    );
+
+    if (response.status === NOT_FOUND_STATUS) return "absent";
+    if (response.error || !Array.isArray(response.data?.calendars)) {
+      return "failed";
+    }
+
+    await scan_calendar_rows(env, response.data.calendars, false, result);
+
+    if (!response.data.has_more) return "done";
+    if (!response.data.server_time || !response.data.cursor_id) {
+      return "failed";
+    }
+
+    const params = new URLSearchParams({
+      since: response.data.server_time,
+      since_id: response.data.cursor_id,
+    });
+
+    query = `?${params.toString()}`;
+  }
+
+  return "failed";
+}
+
+async function scan_calendar_events(
+  env: PassEnv,
+  result: PassResult,
+): Promise<boolean> {
+  let cursor: string | null = null;
+
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE) });
+
+    if (cursor) params.set("cursor", cursor);
+
+    const response = await api_client.get<CalendarEventPage>(
+      `${CALENDAR_EVENTS_PATH}?${params.toString()}`,
+      { skip_cache: true },
+    );
+
+    if (response.error || !Array.isArray(response.data?.events)) return false;
+
+    await scan_calendar_rows(env, response.data.events, true, result);
+
+    if (!response.data.has_more) return true;
+    if (!response.data.next_cursor) return false;
+
+    cursor = response.data.next_cursor;
+  }
+
+  return false;
+}
+
+const scan_calendar: PassHandler = async (env) => {
+  const result = empty_pass(false);
+  const listed = await scan_calendar_list(env, result);
+
+  if (listed === "failed") return result;
+  if (listed === "done" && !(await scan_calendar_events(env, result))) {
+    return result;
+  }
+
+  result.complete = true;
 
   return result;
 };
@@ -833,11 +1142,13 @@ const HANDLERS: Partial<Record<AccountDataContext, PassHandler>> = {
   "astermail-labels-v1": rewrap_labels,
   "astermail-preferences-v1": rewrap_preferences,
   "astermail-devmode-v1": rewrap_dev_mode,
+  "astermail-draft-v1": rewrap_drafts,
   "astermail-draft-v2": rewrap_drafts,
-  "astermail-scheduled-v1": scan_scheduled,
+  "astermail-scheduled-v1": rewrap_scheduled,
   "astermail-onboarding-v1": rewrap_onboarding,
   "astermail-subscriptions-v1": rewrap_subscriptions,
   "astermail-recovery-email-v1": scan_recovery_email,
+  "astermail-calendar-v2": scan_calendar,
 };
 
 async function run_pass(
@@ -873,7 +1184,10 @@ async function settle_context(
 
   let target_key: Promise<CryptoKey> | null = null;
   const target = (): Promise<CryptoKey> => {
-    target_key ??= current_write_key(identity_key, context);
+    target_key ??= current_write_key(
+      identity_key,
+      TARGET_CONTEXTS[context] ?? context,
+    );
 
     return target_key;
   };
