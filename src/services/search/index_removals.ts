@@ -28,6 +28,28 @@ export interface PurgedMail {
   scope?: PurgedMailScope;
 }
 
+export function is_expired_mail(
+  item: { expires_at?: string },
+  now: number = Date.now(),
+): boolean {
+  if (!item.expires_at) return false;
+
+  const expires = Date.parse(item.expires_at);
+
+  return Number.isFinite(expires) && expires <= now;
+}
+
+export function request_search_index_check(): void {
+  void import("@/hooks/use_search/index_cache")
+    .then((index_cache) => index_cache.request_index_reconcile())
+    .catch((caught) =>
+      ignore_error(
+        "services/search/index_removals:request_search_index_check",
+        caught,
+      ),
+    );
+}
+
 export function note_purged_mail(purge: PurgedMail): void {
   if (!purge.scope && !(purge.ids && purge.ids.length > 0)) return;
 

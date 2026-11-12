@@ -24,10 +24,16 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 const h = vi.hoisted(() => ({
   get: vi.fn(),
   post: vi.fn(),
+  lockdown: false,
 }));
 
 vi.mock("./client", () => ({
   api_client: { get: h.get, post: h.post },
+}));
+
+vi.mock("@/services/lockdown_store", async (import_original) => ({
+  ...(await import_original<typeof import("@/services/lockdown_store")>()),
+  is_any_lockdown_active: () => h.lockdown,
 }));
 
 import {
@@ -71,6 +77,7 @@ describe("contact key discovery", () => {
     clear_external_key_cache();
     h.get.mockReset();
     h.post.mockReset();
+    h.lockdown = false;
   });
 
   it("returns the Aster key for an internal address", async () => {
@@ -134,6 +141,48 @@ describe("contact key discovery", () => {
     await discover_contact_keys_batch(emails);
 
     expect(h.get).toHaveBeenCalledTimes(1);
+    expect(h.post).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends no lookup for a single contact in lockdown mode", async () => {
+    h.lockdown = true;
+
+    const internal = await discover_contact_key("Someone@astermail.org");
+    const external = await discover_contact_key("person@example.com");
+
+    expect(h.get).not.toHaveBeenCalled();
+    expect(h.post).not.toHaveBeenCalled();
+    expect(internal.data).toMatchObject({
+      email: "someone@astermail.org",
+      found: false,
+      public_key: null,
+    });
+    expect(external.data?.found).toBe(false);
+  });
+
+  it("sends no lookup for a contact's addresses in lockdown mode", async () => {
+    h.lockdown = true;
+
+    const response = await discover_contact_keys_batch([
+      "someone@astermail.org",
+      "person@example.com",
+    ]);
+
+    expect(h.get).not.toHaveBeenCalled();
+    expect(h.post).not.toHaveBeenCalled();
+    expect(response.data?.map((key) => key.found)).toEqual([false, false]);
+  });
+
+  it("looks keys up again after lockdown mode is turned off", async () => {
+    h.lockdown = true;
+    await discover_contact_keys_batch(["person@example.com"]);
+    h.lockdown = false;
+    h.post.mockResolvedValue({
+      data: { keys: [external_result("person@example.com")] },
+    });
+
+    await discover_contact_keys_batch(["person@example.com"]);
+
     expect(h.post).toHaveBeenCalledTimes(1);
   });
 });

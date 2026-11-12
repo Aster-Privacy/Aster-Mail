@@ -25,6 +25,7 @@ import { api_client, type ApiResponse } from "./client";
 import { GHOST_DOMAIN } from "./ghost_aliases";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 interface PublicKeyResponse {
   username: string;
@@ -374,9 +375,26 @@ async function lookup_aster_key_safely(
   }
 }
 
+function withheld_contact_key(email: string): ExternalKeyInfo {
+  return {
+    email: email.trim().toLowerCase(),
+    found: false,
+    public_key: null,
+    fingerprint: null,
+    source: null,
+    expires_at: null,
+    will_encrypt: false,
+    fingerprint_change: null,
+  };
+}
+
 export async function discover_contact_key(
   email: string,
 ): Promise<ApiResponse<ExternalKeyInfo>> {
+  if (is_any_lockdown_active()) {
+    return { data: withheld_contact_key(email) };
+  }
+
   if (is_internal_email(email)) {
     const aster_key = await lookup_aster_key_safely(email);
 
@@ -391,6 +409,10 @@ export async function discover_contact_key(
 export async function discover_contact_keys_batch(
   emails: string[],
 ): Promise<ApiResponse<ExternalKeyInfo[]>> {
+  if (is_any_lockdown_active()) {
+    return { data: emails.map(withheld_contact_key) };
+  }
+
   const internal = emails.filter((email) => is_internal_email(email));
   const aster_keys = await Promise.all(internal.map(lookup_aster_key_safely));
   const found = aster_keys.filter(
