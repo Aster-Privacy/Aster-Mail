@@ -78,7 +78,6 @@ export function build_listed_unsubscribe_delivery(
   return {
     routing_token: routing_token || undefined,
     recipients: recipients ?? [],
-    require_known_sender: true,
   };
 }
 

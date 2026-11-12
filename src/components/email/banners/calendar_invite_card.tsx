@@ -770,18 +770,23 @@ export function CalendarInviteCard({
           "",
           new Date().toISOString(),
         );
-      const sent = await send_reply({
-        event: reply_event,
-        organizer: organizer ?? { email: organizer_email, display_name: null },
-        attendee: {
-          email: identity.reply_email,
-          display_name: identity.display_name,
-        },
-        sender: identity.sender,
-        response: next,
-        t,
-        language,
-      }).catch(() => false);
+      const sent = identity.blocked
+        ? false
+        : await send_reply({
+            event: reply_event,
+            organizer: organizer ?? {
+              email: organizer_email,
+              display_name: null,
+            },
+            attendee: {
+              email: identity.reply_email,
+              display_name: identity.display_name,
+            },
+            sender: identity.sender,
+            response: next,
+            t,
+            language,
+          }).catch(() => false);
 
       if (!sent) {
         if (saved && created) {
@@ -798,7 +803,12 @@ export function CalendarInviteCard({
           }
         }
         roll_back();
-        show_toast(t("calendar.invite_card_reply_send_failed"), "error");
+        show_toast(
+          identity.blocked
+            ? t("calendar.invite_card_reply_address_unavailable")
+            : t("calendar.invite_card_reply_send_failed"),
+          "error",
+        );
 
         return;
       }

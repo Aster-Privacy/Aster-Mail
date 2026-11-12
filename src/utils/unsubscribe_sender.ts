@@ -89,7 +89,7 @@ export async function load_unsubscribe_sender(
 ): Promise<UnsubscribeSender | null | undefined> {
   const sender = await load_delivery_sender(delivery);
 
-  if (sender !== undefined || !delivery.require_known_sender) {
+  if (sender !== undefined) {
     return sender;
   }
 

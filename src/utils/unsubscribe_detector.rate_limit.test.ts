@@ -25,7 +25,9 @@ vi.mock("@/services/api/subscriptions", () => ({
 }));
 
 vi.mock("@/utils/unsubscribe_sender", () => ({
-  load_unsubscribe_sender: vi.fn(async () => undefined),
+  load_unsubscribe_sender: vi.fn(async () => ({
+    from_address: "me@astermail.org",
+  })),
 }));
 
 import { proxy_unsubscribe } from "@/services/api/subscriptions";
@@ -156,6 +158,7 @@ describe("unsubscribe requests", () => {
     expect(mock_proxy).toHaveBeenCalledWith({
       method: "mailto",
       mailto_address: "stop@sender.example.com",
+      from_address: "me@astermail.org",
     });
   });
 

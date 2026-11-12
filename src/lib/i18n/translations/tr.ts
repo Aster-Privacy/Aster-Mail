@@ -11567,6 +11567,8 @@ export const tr = {
     invite_card_join: "Toplantıya katıl",
     invite_card_calendar_failed: "Yanıtınız gönderildi ancak Aster bu etkinliği takviminize ekleyemedi.",
     invite_card_reply_send_failed: "Yanıtınız gönderilemedi. Tekrar deneyin.",
+    invite_card_reply_address_unavailable:
+      "Bu daveti alan adres e-posta gönderemediği için Aster yanıtınızı göndermedi. Yanıt vermek için bu adresi yeniden açın.",
     invite_card_organizer_mismatch:
       "Bu davet {{sender}} tarafından gönderildi, ancak düzenleyen olarak {{organizer}} görünüyor. Bunu beklemiyorsanız yanıt vermeden önce düzenleyenle görüşün.",
     invite_card_reply_confirm:

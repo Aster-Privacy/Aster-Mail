@@ -11775,6 +11775,8 @@ export const it = {
     invite_card_join: "Partecipa alla riunione",
     invite_card_calendar_failed: "La tua risposta è stata inviata, ma Aster non è riuscito ad aggiungere questo evento al tuo calendario.",
     invite_card_reply_send_failed: "Non è stato possibile inviare la tua risposta. Riprova.",
+    invite_card_reply_address_unavailable:
+      "Aster non ha inviato la tua risposta perché l'indirizzo che ha ricevuto questo invito non può inviare email. Per rispondere, riattiva quell'indirizzo.",
     invite_card_organizer_mismatch:
       "{{sender}} ha inviato questo invito, ma indica {{organizer}} come organizzatore. Se non te lo aspetti, verifica con l'organizzatore prima di rispondere.",
     invite_card_reply_confirm:

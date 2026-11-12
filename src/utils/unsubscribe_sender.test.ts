@@ -324,16 +324,36 @@ describe("execute_unsubscribe resolves the sender from the delivery", () => {
     });
   });
 
-  it("lets the server choose when the delivery says nothing", async () => {
+  it("sends nothing when the delivery names no address of an account with aliases", async () => {
+    await expect(execute_unsubscribe(MAILTO_INFO, {})).resolves.toBe("mailto");
+
+    expect(mock_proxy).not.toHaveBeenCalled();
+  });
+
+  it("sends nothing when no recipient matches an address of an account with aliases", async () => {
+    await expect(
+      execute_unsubscribe(MAILTO_INFO, {
+        recipients: ["list@lists.example.com"],
+      }),
+    ).resolves.toBe("mailto");
+
+    expect(mock_proxy).not.toHaveBeenCalled();
+  });
+
+  it("never leaves the sender to the server", async () => {
+    h.secondary = false;
+
     await expect(execute_unsubscribe(MAILTO_INFO, {})).resolves.toBe("api");
 
     expect(mock_proxy).toHaveBeenCalledWith({
       method: "mailto",
       mailto_address: "mailto:leave@list.example.com",
+      from_address: "me@astermail.org",
     });
   });
 
   it("returns a manual result when the server needs a sender", async () => {
+    h.secondary = false;
     mock_proxy.mockResolvedValue({
       data: { success: false, method: "mailto", code: "sender_required" },
     });

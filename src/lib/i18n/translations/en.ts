@@ -11420,6 +11420,8 @@ export const en: Translations = {
     invite_card_join: "Join meeting",
     invite_card_calendar_failed: "Your reply was sent, but Aster couldn't add this event to your calendar.",
     invite_card_reply_send_failed: "Your reply didn't send. Try again.",
+    invite_card_reply_address_unavailable:
+      "Aster didn't send your reply because the address that received this invitation can't send mail. To reply, turn that address back on.",
     invite_card_organizer_mismatch:
       "{{sender}} sent this invitation, but it lists {{organizer}} as the organizer. If you don't expect that, check with the organizer before you respond.",
     invite_card_reply_confirm:

@@ -11453,6 +11453,8 @@ export const ar = {
     invite_card_join: "الانضمام إلى الاجتماع",
     invite_card_calendar_failed: "تم إرسال ردك، لكن تعذّر على Aster إضافة هذا الحدث إلى تقويمك.",
     invite_card_reply_send_failed: "تعذّر إرسال ردك. حاول مرة أخرى.",
+    invite_card_reply_address_unavailable:
+      "لم يرسل Aster ردك لأن العنوان الذي تلقى هذه الدعوة لا يمكنه إرسال البريد. للرد، أعد تفعيل هذا العنوان.",
     invite_card_organizer_mismatch:
       "أرسل {{sender}} هذه الدعوة، لكنها تذكر {{organizer}} بصفته المنظِّم. إذا لم تكن تتوقع ذلك، فتحقق مع المنظِّم قبل الرد.",
     invite_card_reply_confirm:
