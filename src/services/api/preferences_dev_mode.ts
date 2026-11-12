@@ -23,6 +23,7 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 import {
   account_data_write_key,
   retry_after_account_key_load,
@@ -67,7 +68,7 @@ async function encrypt_dev_mode(
 ): Promise<{ encrypted: string; nonce: string }> {
   const key =
     (await account_data_write_key("astermail-devmode-v1")) ??
-    (await derive_dev_mode_key(vault));
+    (await derive_dev_mode_key(with_identity_key(vault)));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(
     JSON.stringify({ enabled, timestamp: Date.now() }),

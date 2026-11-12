@@ -21,6 +21,7 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import { api_client } from "@/services/api/client";
 
@@ -257,7 +258,7 @@ async function encrypt_subscriptions(
   data: SubscriptionCacheData,
   vault: EncryptedVault,
 ): Promise<{ encrypted: string; nonce: string }> {
-  const key = await derive_subscriptions_key(vault);
+  const key = await derive_subscriptions_key(with_identity_key(vault));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const plaintext = new TextEncoder().encode(
     JSON.stringify(compact_subscription_cache(data)),

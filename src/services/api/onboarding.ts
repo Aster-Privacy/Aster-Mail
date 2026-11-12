@@ -23,6 +23,7 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -65,7 +66,7 @@ async function encrypt_onboarding_state(
   state: OnboardingState,
   vault: EncryptedVault,
 ): Promise<{ encrypted: string; nonce: string }> {
-  const key = await derive_onboarding_key(vault);
+  const key = await derive_onboarding_key(with_identity_key(vault));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(JSON.stringify(state));
 

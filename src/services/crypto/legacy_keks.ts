@@ -69,6 +69,14 @@ let account_key_generation = 0;
 let remembered_raw_key: CryptoKey | null = null;
 let remembered_hkdf_key: CryptoKey | null = null;
 let retired_context_keys = new Map<AccountDataContext, CryptoKey>();
+let retired_read_guard: ((context: AccountDataContext) => boolean) | null =
+  null;
+
+export function set_retired_read_guard(
+  guard: ((context: AccountDataContext) => boolean) | null,
+): void {
+  retired_read_guard = guard;
+}
 
 async function derive_salt_from_passphrase(
   passphrase_bytes: Uint8Array,
@@ -629,8 +637,10 @@ export async function decrypt_account_context_with_fallback(
 
     if (!retired) throw primary_error;
 
+    let opened: ArrayBuffer;
+
     try {
-      return await crypto.subtle.decrypt(
+      opened = await crypto.subtle.decrypt(
         { name: "AES-GCM", iv },
         retired,
         ciphertext,
@@ -638,5 +648,13 @@ export async function decrypt_account_context_with_fallback(
     } catch {
       throw primary_error;
     }
+
+    if (retired_read_guard && !retired_read_guard(context)) {
+      new Uint8Array(opened).fill(0);
+
+      throw primary_error;
+    }
+
+    return opened;
   }
 }
