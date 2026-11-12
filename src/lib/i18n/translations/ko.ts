@@ -3747,6 +3747,13 @@ export const ko = {
     recovery_codes_saved_checkbox: "복구 코드를 안전한 곳에 저장했습니다.",
     recovery_codes_save_failed:
       "복구 코드를 서버에 저장하지 못했습니다. 다시 시도하세요.",
+    recovery_codes_required_save_desc:
+      "새 코드를 안전한 곳에 저장하세요. 다음 단계에서 확인할 때까지 현재 코드는 계속 작동합니다.",
+    recovery_codes_required_verify_desc:
+      "새 코드를 사용하려면 비밀번호를 입력하세요. 그 후에는 이전 코드가 작동하지 않습니다.",
+    recovery_codes_required_action: "코드 교체",
+    recovery_codes_required_done: "새 복구 코드가 활성화되었습니다.",
+    recovery_codes_already_replaced: "복구 코드가 이미 다른 기기에서 교체되었습니다.",
     legacy_phrase_row: "복구 문구 (기존)",
     legacy_phrase_row_desc:
       "기존 복구 문구는 계속 유효합니다. 이제는 복구 코드를 사용합니다.",

@@ -2350,6 +2350,15 @@ export const fr = {
       "J'ai enregistré mes codes de récupération en lieu sûr.",
     recovery_codes_save_failed:
       "Vos codes de récupération n'ont pas pu être enregistrés sur le serveur. Réessayez.",
+    recovery_codes_required_save_desc:
+      "Enregistrez ces nouveaux codes en lieu sûr. Vos codes actuels continuent de fonctionner jusqu'à ce que vous confirmiez à l'étape suivante.",
+    recovery_codes_required_verify_desc:
+      "Pour commencer à utiliser vos nouveaux codes, saisissez votre mot de passe. Vos anciens codes cessent ensuite de fonctionner.",
+    recovery_codes_required_action: "Remplacer les codes",
+    recovery_codes_required_done:
+      "Vos nouveaux codes de récupération sont actifs.",
+    recovery_codes_already_replaced:
+      "Vos codes de récupération ont déjà été remplacés sur un autre appareil.",
     legacy_phrase_row: "Phrase de récupération (ancienne)",
     legacy_phrase_row_desc:
       "Votre phrase de récupération existante reste valide. Les codes de récupération la remplacent désormais.",

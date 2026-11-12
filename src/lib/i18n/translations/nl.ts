@@ -3817,6 +3817,14 @@ export const nl = {
       "Ik heb mijn herstelcodes op een veilige plek opgeslagen.",
     recovery_codes_save_failed:
       "Je herstelcodes konden niet op de server worden opgeslagen. Probeer het opnieuw.",
+    recovery_codes_required_save_desc:
+      "Bewaar deze nieuwe codes op een veilige plek. Je huidige codes blijven werken totdat je in de volgende stap bevestigt.",
+    recovery_codes_required_verify_desc:
+      "Voer je wachtwoord in om je nieuwe codes te gaan gebruiken. Daarna werken je vorige codes niet meer.",
+    recovery_codes_required_action: "Codes vervangen",
+    recovery_codes_required_done: "Je nieuwe herstelcodes zijn actief.",
+    recovery_codes_already_replaced:
+      "Je herstelcodes zijn al vervangen op een ander apparaat.",
     legacy_phrase_row: "Herstelzin (verouderd)",
     legacy_phrase_row_desc:
       "Je bestaande herstelzin blijft geldig. Voortaan worden herstelcodes gebruikt.",

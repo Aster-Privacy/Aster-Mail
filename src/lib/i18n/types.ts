@@ -2646,6 +2646,11 @@ export interface SettingsTranslations {
   recovery_codes_saved_confirm: string;
   recovery_codes_saved_checkbox: string;
   recovery_codes_save_failed: string;
+  recovery_codes_required_save_desc: string;
+  recovery_codes_required_verify_desc: string;
+  recovery_codes_required_action: string;
+  recovery_codes_required_done: string;
+  recovery_codes_already_replaced: string;
   legacy_phrase_row: string;
   legacy_phrase_row_desc: string;
   recovery_email_row_moved_hint: string;

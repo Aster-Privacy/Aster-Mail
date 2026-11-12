@@ -49,7 +49,7 @@ const ELIGIBLE_AFTER_MS = 24 * 60 * 60 * 1000;
 const SNOOZE_MS = 3 * 24 * 60 * 60 * 1000;
 const PHRASE_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
 
-type NudgeKind = "phrase" | "codes" | "codes_refresh" | "codes_low" | "email";
+type NudgeKind = "phrase" | "codes" | "codes_low" | "email";
 
 interface NudgeCopy {
   title_key: TranslationKey;
@@ -78,13 +78,6 @@ const NUDGE_COPY: Record<NudgeKind, NudgeCopy> = {
     action_key: "common.recovery_codes_reminder_action",
     target: CODES_TARGET,
     snooze_ms: SNOOZE_MS,
-  },
-  codes_refresh: {
-    title_key: "common.recovery_codes_refresh_title",
-    body_key: "common.recovery_codes_refresh_body",
-    action_key: "common.recovery_codes_low_reminder_action",
-    target: CODES_TARGET,
-    snooze_ms: 0,
   },
   codes_low: {
     title_key: "common.recovery_codes_low_reminder_title",
@@ -126,7 +119,7 @@ export function RecoveryReminder(): JSX.Element | null {
       if (cancelled || !values) return;
 
       if (is_refresh_due && values.has_codes) {
-        set_nudge("codes_refresh");
+        set_is_replacing(true);
 
         return;
       }
@@ -152,11 +145,7 @@ export function RecoveryReminder(): JSX.Element | null {
   const is_open = nudge !== null && copy !== null;
 
   const dismiss = () => {
-    if (nudge === "codes_refresh") {
-      dismiss_recovery_code_refresh();
-    } else if (nudge && copy) {
-      snooze_recovery(copy.snooze_ms, nudge);
-    }
+    if (nudge && copy) snooze_recovery(copy.snooze_ms, nudge);
     set_nudge(null);
   };
 
@@ -166,13 +155,6 @@ export function RecoveryReminder(): JSX.Element | null {
   };
 
   const handle_setup = () => {
-    if (nudge === "codes_refresh") {
-      set_nudge(null);
-      set_is_replacing(true);
-
-      return;
-    }
-
     const target = copy ? copy.target : CODES_TARGET;
 
     dismiss();
@@ -185,6 +167,7 @@ export function RecoveryReminder(): JSX.Element | null {
     <>
       <RecoveryCodesModal
         has_codes
+        is_required
         is_open={is_replacing}
         mode="regenerate"
         on_close={close_replacement}

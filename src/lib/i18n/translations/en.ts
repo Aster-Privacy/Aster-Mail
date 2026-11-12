@@ -2261,6 +2261,14 @@ export const en: Translations = {
     recovery_codes_saved_checkbox: "I saved my recovery codes in a safe place.",
     recovery_codes_save_failed:
       "Your recovery codes could not be saved to the server. Try again.",
+    recovery_codes_required_save_desc:
+      "Save these new codes in a safe place. Your current codes keep working until you confirm in the next step.",
+    recovery_codes_required_verify_desc:
+      "To start using your new codes, enter your password. Your previous codes stop working after that.",
+    recovery_codes_required_action: "Replace codes",
+    recovery_codes_required_done: "Your new recovery codes are active.",
+    recovery_codes_already_replaced:
+      "Your recovery codes were already replaced on another device.",
     legacy_phrase_row: "Recovery phrase (legacy)",
     legacy_phrase_row_desc:
       "Your existing recovery phrase remains valid. Recovery codes replace it going forward.",

@@ -2313,6 +2313,14 @@ export const tr = {
       "Kurtarma kodlarımı güvenli bir yere kaydettim.",
     recovery_codes_save_failed:
       "Kurtarma kodlarınız sunucuya kaydedilemedi. Yeniden deneyin.",
+    recovery_codes_required_save_desc:
+      "Bu yeni kodları güvenli bir yere kaydedin. Sonraki adımda onaylayana kadar mevcut kodlarınız çalışmaya devam eder.",
+    recovery_codes_required_verify_desc:
+      "Yeni kodlarınızı kullanmaya başlamak için parolanızı girin. Bundan sonra önceki kodlarınız çalışmaz.",
+    recovery_codes_required_action: "Kodları değiştir",
+    recovery_codes_required_done: "Yeni kurtarma kodlarınız etkin.",
+    recovery_codes_already_replaced:
+      "Kurtarma kodlarınız başka bir cihazda zaten değiştirildi.",
     legacy_phrase_row: "Kurtarma ifadesi (eski)",
     legacy_phrase_row_desc:
       "Mevcut kurtarma ifadeniz geçerli olmaya devam eder. Bundan sonra kurtarma kodları kullanılır.",
