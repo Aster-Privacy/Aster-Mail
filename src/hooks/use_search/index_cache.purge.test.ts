@@ -554,9 +554,7 @@ describe("search index removals", () => {
     await vi.waitFor(async () =>
       expect(await disk_ids()).not.toContain("msg-13"),
     );
-    await vi.waitFor(() =>
-      expect(stored_text()).not.toContain("Subject msg-13"),
-    );
+    await vi.waitFor(() => expect(stored_text()).not.toContain('"msg-13"'));
   });
 
   it("leaves the index alone when the listing fails", async () => {
