@@ -1954,6 +1954,8 @@ export const ru = {
     key_trust_missing_message:
       "На этом устройстве был сохранён ключ шифрования для {{recipients}}, но сейчас ключ недоступен. Если вы продолжите, это сообщение будет отправлено без сквозного шифрования. Перед отправкой уточните это у получателя по другому каналу.",
     key_trust_missing_detail: "{{email}}: был {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: сохранённый ключ не удаётся прочитать.",
     key_trust_missing_confirm: "Отправить без шифрования",
     post_quantum_downgrade_title:
       "Отправить без ожидаемых постквантовых ключей?",

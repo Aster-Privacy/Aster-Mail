@@ -521,6 +521,12 @@ export async function lookup_owner_key_pin(
 export interface SavedRecipientKey {
   fingerprint: string;
   accepted_missing: boolean;
+  unreadable: boolean;
+}
+
+interface SavedKeySources {
+  sources: SavedKeySource[];
+  unreadable: boolean;
 }
 
 interface SavedKeySource {
@@ -529,11 +535,14 @@ interface SavedKeySource {
   value: StoredIdentityPin | StoredOwnerKeyPin;
 }
 
-async function saved_key_sources(email: string): Promise<SavedKeySource[]> {
+async function saved_key_sources(email: string): Promise<SavedKeySources> {
   const sources: SavedKeySource[] = [];
+  let unreadable = false;
   const direct = await open_contact_as(email, "external");
   const hosted = await open_contact_as(email, "hosted");
   const direct_owner = await load_owner_pin(direct);
+
+  if (direct_owner.state === "unreadable") unreadable = true;
 
   if (direct_owner.state === "found") {
     sources.push({
@@ -544,6 +553,8 @@ async function saved_key_sources(email: string): Promise<SavedKeySource[]> {
   }
 
   const hosted_identity = await load_identity_pin(hosted);
+
+  if (hosted_identity.state === "unreadable") unreadable = true;
 
   if (hosted_identity.state === "found") {
     sources.push({
@@ -556,6 +567,8 @@ async function saved_key_sources(email: string): Promise<SavedKeySource[]> {
   if (hosted.contact.id !== direct.contact.id) {
     const hosted_owner = await load_owner_pin(hosted);
 
+    if (hosted_owner.state === "unreadable") unreadable = true;
+
     if (hosted_owner.state === "found" && hosted_owner.value.hosted === true) {
       sources.push({
         prefix: OWNER_KEY_PIN_PREFIX,
@@ -565,21 +578,24 @@ async function saved_key_sources(email: string): Promise<SavedKeySource[]> {
     }
   }
 
-  return sources;
+  return { sources, unreadable };
 }
 
 export async function find_saved_recipient_key(
   email: string,
 ): Promise<SavedRecipientKey | null> {
-  const sources = await saved_key_sources(email);
+  const { sources, unreadable } = await saved_key_sources(email);
 
-  if (sources.length === 0) return null;
+  if (sources.length === 0 && !unreadable) return null;
 
   return {
-    fingerprint: sources[0].value.fingerprint,
-    accepted_missing: sources.every(
-      (source) => typeof source.value.missing_accepted_at === "number",
-    ),
+    fingerprint: sources[0]?.value.fingerprint ?? "",
+    accepted_missing:
+      !unreadable &&
+      sources.every(
+        (source) => typeof source.value.missing_accepted_at === "number",
+      ),
+    unreadable,
   };
 }
 
@@ -587,7 +603,7 @@ async function mark_saved_recipient_key(
   email: string,
   accepted: boolean,
 ): Promise<void> {
-  for (const source of await saved_key_sources(email)) {
+  for (const source of (await saved_key_sources(email)).sources) {
     const marked = typeof source.value.missing_accepted_at === "number";
 
     if (marked === accepted) continue;

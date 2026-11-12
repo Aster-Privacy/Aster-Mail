@@ -1228,6 +1228,8 @@ export const hi = {
     key_trust_missing_message:
       "इस डिवाइस पर {{recipients}} की एन्क्रिप्शन कुंजी सहेजी गई थी, लेकिन अभी कोई कुंजी उपलब्ध नहीं है। अगर आप जारी रखते हैं, तो यह संदेश एंड-टू-एंड एन्क्रिप्शन के बिना भेजा जाएगा। भेजने से पहले किसी दूसरे माध्यम से प्राप्तकर्ता से पुष्टि करें।",
     key_trust_missing_detail: "{{email}}: पहले {{prior}}।",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: सहेजी गई कुंजी पढ़ी नहीं जा सकती।",
     key_trust_missing_confirm: "एन्क्रिप्शन के बिना भेजें",
     post_quantum_downgrade_title:
       "अपेक्षित पोस्ट-क्वांटम कुंजियों के बिना भेजें?",

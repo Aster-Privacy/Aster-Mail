@@ -1819,6 +1819,7 @@ export const zh_CN = {
     key_trust_missing_message:
       "此设备上曾保存 {{recipients}} 的加密密钥，但现在没有可用的密钥。如果继续，此邮件将在没有端到端加密的情况下发送。发送前请通过其他渠道与收件人确认。",
     key_trust_missing_detail: "{{email}}：之前为 {{prior}}。",
+    key_trust_missing_unreadable_detail: "{{email}}：无法读取已保存的密钥。",
     key_trust_missing_confirm: "不加密发送",
     post_quantum_downgrade_title: "要在缺少预期的后量子密钥的情况下发送吗？",
     post_quantum_downgrade_message:

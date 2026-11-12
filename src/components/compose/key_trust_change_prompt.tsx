@@ -61,10 +61,14 @@ export function KeyTrustChangePrompt(): React.ReactElement {
   const details = pending
     .map((change) =>
       change.missing
-        ? t("common.key_trust_missing_detail", {
-            email: change.email,
-            prior: format_fingerprint(change.prior_fingerprint),
-          })
+        ? change.prior_fingerprint
+          ? t("common.key_trust_missing_detail", {
+              email: change.email,
+              prior: format_fingerprint(change.prior_fingerprint),
+            })
+          : t("common.key_trust_missing_unreadable_detail", {
+              email: change.email,
+            })
         : change.unreadable
           ? t("common.key_trust_unreadable_detail", {
               email: change.email,

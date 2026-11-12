@@ -1969,6 +1969,8 @@ export const fr = {
     key_trust_missing_message:
       "Une clé de chiffrement était enregistrée sur cet appareil pour {{recipients}}, mais aucune clé n’est disponible maintenant. Si vous continuez, ce message est envoyé sans chiffrement de bout en bout. Vérifiez avec le destinataire par un autre canal avant d’envoyer.",
     key_trust_missing_detail: "{{email}} : était {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}} : la clé enregistrée est illisible.",
     key_trust_missing_confirm: "Envoyer sans chiffrement",
     post_quantum_downgrade_title:
       "Envoyer sans les clés post-quantiques attendues ?",

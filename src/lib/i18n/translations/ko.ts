@@ -1966,6 +1966,7 @@ export const ko = {
     key_trust_missing_message:
       "이 기기에 {{recipients}}의 암호화 키가 저장되어 있었지만 지금은 사용할 수 있는 키가 없습니다. 계속하면 이 메시지는 종단 간 암호화 없이 전송됩니다. 보내기 전에 다른 경로로 수신자에게 확인하세요.",
     key_trust_missing_detail: "{{email}}: 이전 {{prior}}.",
+    key_trust_missing_unreadable_detail: "{{email}}: 저장된 키를 읽을 수 없습니다.",
     key_trust_missing_confirm: "암호화 없이 보내기",
     post_quantum_downgrade_title: "예상된 양자 내성 키 없이 보낼까요?",
     post_quantum_downgrade_message:

@@ -1959,6 +1959,8 @@ export const it = {
     key_trust_missing_message:
       "Su questo dispositivo era salvata una chiave di crittografia per {{recipients}}, ma ora non è disponibile alcuna chiave. Se continui, questo messaggio viene inviato senza crittografia end-to-end. Verifica con il destinatario su un altro canale prima di inviare.",
     key_trust_missing_detail: "{{email}}: era {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: la chiave salvata non può essere letta.",
     key_trust_missing_confirm: "Invia senza crittografia",
     post_quantum_downgrade_title:
       "Inviare senza le chiavi post-quantistiche previste?",

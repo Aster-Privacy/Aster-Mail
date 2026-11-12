@@ -122,6 +122,7 @@ async function missing_key_change(
     source: key_info.source ?? "",
     observed_at: new Date().toISOString(),
     missing: true,
+    ...(saved.unreadable ? { unreadable: true } : {}),
   };
 }
 
