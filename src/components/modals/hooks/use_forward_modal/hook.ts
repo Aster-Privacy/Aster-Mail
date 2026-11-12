@@ -143,10 +143,9 @@ import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { use_signatures } from "@/contexts/signatures_context";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
-import {
-  get_compose_sanitize_options,
-  restore_compose_image_sources,
-} from "@/lib/compose_image_sources";
+import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
+import { defer_compose_images } from "@/lib/compose_deferred_images";
+import { read_compose_editor_html } from "@/lib/editable_quoted_html";
 import { inline_email_css } from "@/lib/forward_css_inliner";
 import {
   app_hour12,
@@ -466,7 +465,7 @@ export function use_forward_modal({
       enabled:
         is_open && preferences.signature_mode === "auto" && !is_plain_text_mode,
       on_swapped: (editor) =>
-        set_forward_message(restore_compose_image_sources(editor.innerHTML)),
+        set_forward_message(read_compose_editor_html(editor.innerHTML)),
     });
 
   useEffect(() => {
@@ -547,10 +546,12 @@ export function use_forward_modal({
       if (has_typed_text) {
         append_template_after_typed_text(
           message_editor_ref.current,
-          sanitized.html,
+          defer_compose_images(sanitized.html),
         );
       } else {
-        message_editor_ref.current.innerHTML = sanitized.html;
+        message_editor_ref.current.innerHTML = defer_compose_images(
+          sanitized.html,
+        );
       }
       mark_signature_applied(signature);
 
@@ -560,7 +561,7 @@ export function use_forward_modal({
         seeded_message = message_editor_ref.current.innerText;
         message_editor_ref.current.innerText = seeded_message;
       } else {
-        seeded_message = restore_compose_image_sources(
+        seeded_message = read_compose_editor_html(
           message_editor_ref.current.innerHTML,
         );
       }

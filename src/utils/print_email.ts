@@ -27,7 +27,13 @@ import {
   plain_text_to_html,
   type ImageLoadMode,
 } from "@/lib/html_sanitizer";
+import {
+  create_deferred_image_session,
+  defer_proxied_images,
+  type DeferredImageSession,
+} from "@/lib/deferred_proxy_images";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
 import { effective_remote_image_mode } from "@/lib/remote_content_policy";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import { is_native_platform } from "@/native/capacitor_bridge";
@@ -130,8 +136,66 @@ function is_executable_url(value: string): boolean {
   return !PRINTABLE_DATA_MEDIA_TYPES.includes(media_type);
 }
 
+const PRINT_IMAGE_WAIT_MS = 8000;
+
+export function start_print_images(
+  container: HTMLElement,
+): DeferredImageSession | null {
+  if (!should_defer_proxied_images()) return null;
+
+  const session = create_deferred_image_session(get_image_proxy_url());
+
+  session.hydrate(container);
+
+  return session;
+}
+
+export async function wait_for_print_images(
+  session: DeferredImageSession,
+  container: HTMLElement,
+  limit_ms: number = PRINT_IMAGE_WAIT_MS,
+): Promise<void> {
+  let timer = 0;
+  const limit = new Promise<void>((resume) => {
+    timer = window.setTimeout(resume, limit_ms);
+  });
+  const ready = session.settled().then(async () => {
+    await Promise.all(
+      Array.from(container.querySelectorAll("img"), (img) =>
+        img.complete || typeof img.decode !== "function"
+          ? undefined
+          : img.decode().catch(() => undefined),
+      ),
+    );
+  });
+
+  await Promise.race([ready, limit]);
+  window.clearTimeout(timer);
+}
+
+function print_when_images_are_ready(
+  session: DeferredImageSession,
+  container: HTMLElement,
+  cleanup: () => void,
+): void {
+  const proceed = () => {
+    if (!container.isConnected) {
+      cleanup();
+
+      return;
+    }
+
+    run_web_print(cleanup);
+  };
+
+  wait_for_print_images(session, container).then(proceed, proceed);
+}
+
 export function set_print_content(container: HTMLElement, html: string): void {
-  const doc = new DOMParser().parseFromString(html, "text/html");
+  const source = should_defer_proxied_images()
+    ? defer_proxied_images(html, get_image_proxy_url())
+    : html;
+  const doc = new DOMParser().parseFromString(source, "text/html");
 
   doc.body
     .querySelectorAll(FORBIDDEN_PRINT_SELECTOR)
@@ -528,7 +592,10 @@ export function print_thread(
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 
+  const image_session = native ? null : start_print_images(container);
+
   const cleanup = () => {
+    image_session?.dispose();
     document.body.classList.remove("aster-native-print");
     container.remove();
     style_el.remove();
@@ -543,6 +610,12 @@ export function print_thread(
         setTimeout(cleanup, 500);
       });
     });
+
+    return;
+  }
+
+  if (image_session) {
+    print_when_images_are_ready(image_session, container, cleanup);
 
     return;
   }
@@ -585,7 +658,10 @@ export function setup_thread_print_intercept(
       document.body.classList.add("aster-native-print");
     }
 
+    const image_session = native ? null : start_print_images(container);
+
     cleanup_fn = () => {
+      image_session?.dispose();
       document.body.classList.remove("aster-native-print");
       container.remove();
       style_el.remove();
@@ -634,7 +710,10 @@ export function print_email(
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 
+  const image_session = native ? null : start_print_images(container);
+
   const cleanup = () => {
+    image_session?.dispose();
     document.body.classList.remove("aster-native-print");
     container.remove();
     style_el.remove();
@@ -649,6 +728,12 @@ export function print_email(
         setTimeout(cleanup, 500);
       });
     });
+
+    return;
+  }
+
+  if (image_session) {
+    print_when_images_are_ready(image_session, container, cleanup);
 
     return;
   }

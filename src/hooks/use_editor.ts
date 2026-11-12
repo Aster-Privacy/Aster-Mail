@@ -33,7 +33,13 @@ import {
   get_compose_sanitize_options,
   proxy_compose_image_sources,
 } from "@/lib/compose_image_sources";
+import {
+  defer_compose_images,
+  restore_deferred_compose_images,
+} from "@/lib/compose_deferred_images";
+import { COMPOSE_DEFERRED_SRC_ATTRIBUTE } from "@/lib/compose_deferred_markup";
 import { read_compose_editor_html } from "@/lib/editable_quoted_html";
+import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration";
 import {
   type HeadingLevel,
   type TextAlignment,
@@ -83,13 +89,19 @@ export function use_editor({
 }: UseEditorOptions): UseEditorReturn {
   const { t } = use_i18n();
 
+  use_compose_image_hydration(editor_ref);
+
   const fits_inline_budget = useCallback(
     (file: File): boolean => {
       if (!get_inline_image_budget) return true;
 
       const editor = editor_ref.current;
       const existing = editor
-        ? Array.from(editor.querySelectorAll('img[src^="data:"]')).reduce(
+        ? Array.from(
+            editor.querySelectorAll(
+              `img[src^="data:"]:not([${COMPOSE_DEFERRED_SRC_ATTRIBUTE}])`,
+            ),
+          ).reduce(
             (total, img) => {
               const source = img.getAttribute("src") ?? "";
               const base64 = source.slice(source.indexOf(",") + 1);
@@ -221,7 +233,7 @@ export function use_editor({
       const sanitized = sanitize_html(html, get_compose_sanitize_options());
       const wrapper = document.createElement("div");
 
-      wrapper.innerHTML = sanitized.html;
+      wrapper.innerHTML = defer_compose_images(sanitized.html);
       const sanitized_node = wrapper.firstElementChild;
 
       if (!sanitized_node) return;
@@ -396,10 +408,12 @@ export function use_editor({
       }
 
       if (html_data) {
-        const sanitized = proxy_compose_image_sources(
-          sanitize_compose_paste(html_data, {
-            collapse_source_whitespace: true,
-          }),
+        const sanitized = defer_compose_images(
+          proxy_compose_image_sources(
+            sanitize_compose_paste(restore_deferred_compose_images(html_data), {
+              collapse_source_whitespace: true,
+            }),
+          ),
         );
 
         document.execCommand("insertHTML", false, sanitized);
@@ -487,10 +501,13 @@ export function use_editor({
           document.execCommand(
             "insertHTML",
             false,
-            proxy_compose_image_sources(
-              sanitize_compose_paste(dropped_html, {
-                collapse_source_whitespace: true,
-              }),
+            defer_compose_images(
+              proxy_compose_image_sources(
+                sanitize_compose_paste(
+                  restore_deferred_compose_images(dropped_html),
+                  { collapse_source_whitespace: true },
+                ),
+              ),
             ),
           );
         } else if (/\r|\n/.test(dropped_text)) {
@@ -625,8 +642,12 @@ export function use_editor({
       const editor = editor_ref.current;
 
       if (editor) {
-        editor.innerHTML = proxy_compose_image_sources(
-          sanitize_compose_paste(html, { keep_signature_marker: true }),
+        editor.innerHTML = defer_compose_images(
+          proxy_compose_image_sources(
+            sanitize_compose_paste(restore_deferred_compose_images(html), {
+              keep_signature_marker: true,
+            }),
+          ),
         );
         handle_input();
       }

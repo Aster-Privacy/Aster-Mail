@@ -27,8 +27,9 @@ import { connection_store } from "@/services/routing/connection_store";
 const GRANT_ENDPOINT = "/images/v1/grant";
 const GRANT_SCHEME = "AsterImageGrant";
 const REFRESH_MARGIN_MS = 30_000;
-const UNSUPPORTED_COOLDOWN_MS = 10 * 60_000;
-const FAILURE_COOLDOWN_MS = 30_000;
+const UNSUPPORTED_COOLDOWN_MS = 60_000;
+const RATE_LIMITED_COOLDOWN_MS = 30_000;
+const FAILURE_COOLDOWN_MS = 1_000;
 
 interface GrantResponse {
   grant: string;
@@ -75,6 +76,13 @@ export function should_defer_proxied_images(): boolean {
   return method !== "tor" && method !== "tor_snowflake";
 }
 
+function grant_cooldown_ms(status: number | undefined): number {
+  if (status === 404 || status === 405) return UNSUPPORTED_COOLDOWN_MS;
+  if (status === 429) return RATE_LIMITED_COOLDOWN_MS;
+
+  return FAILURE_COOLDOWN_MS;
+}
+
 async function request_grant(): Promise<string | null> {
   try {
     const response = await api_client.post<GrantResponse>(GRANT_ENDPOINT, {});
@@ -88,11 +96,7 @@ async function request_grant(): Promise<string | null> {
       typeof expires_in !== "number" ||
       !(expires_in > 0)
     ) {
-      const unsupported = response.status === 404 || response.status === 405;
-
-      unavailable_until =
-        Date.now() +
-        (unsupported ? UNSUPPORTED_COOLDOWN_MS : FAILURE_COOLDOWN_MS);
+      unavailable_until = Date.now() + grant_cooldown_ms(response.status);
 
       return null;
     }
@@ -157,17 +161,25 @@ export async function fetch_proxied_image(
       return { kind: "failed", retryable: !options.signal?.aborted };
     }
 
-    if (response.status === 401 || response.status === 403) {
-      return { kind: "fallback" };
-    }
+    if (response.status === 403) return { kind: "fallback" };
 
-    if (response.status === 429 && attempt === 0) {
+    if (response.status === 401 || response.status === 429) {
+      const refused = response.status === 401;
+
+      if (attempt === 1) {
+        return refused
+          ? { kind: "fallback" }
+          : { kind: "failed", retryable: false };
+      }
+
       discard_image_proxy_grant(grant);
 
       const next_grant = await get_image_proxy_grant();
 
       if (!next_grant || next_grant === grant) {
-        return { kind: "failed", retryable: false };
+        return refused
+          ? { kind: "fallback" }
+          : { kind: "failed", retryable: false };
       }
 
       grant = next_grant;

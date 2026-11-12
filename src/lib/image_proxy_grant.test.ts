@@ -101,19 +101,109 @@ describe("image proxy grants", () => {
     });
   });
 
-  it.each([401, 403])(
-    "falls back to the account path when the proxy answers %d",
-    async (status) => {
-      post.mockResolvedValue(grant_reply("grant-one"));
-      const fetcher = vi.fn().mockResolvedValue(image_reply(status));
+  it("asks for a fresh grant once when the proxy refuses the current one", async () => {
+    post
+      .mockResolvedValueOnce(grant_reply("grant-one"))
+      .mockResolvedValueOnce(grant_reply("grant-two"));
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(image_reply(401))
+      .mockResolvedValueOnce(image_reply(200));
 
-      expect(await fetch_proxied_image(proxied, { fetcher })).toEqual({
-        kind: "fallback",
-      });
-    },
-  );
+    const result = await fetch_proxied_image(proxied, { fetcher });
 
-  it("falls back without asking again when grants are unsupported", async () => {
+    expect(result.kind).toBe("image");
+    expect(post).toHaveBeenCalledTimes(2);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher.mock.calls[1][1].headers).toEqual({
+      Authorization: "AsterImageGrant grant-two",
+    });
+    expect(fetcher.mock.calls[1][1].credentials).toBe("omit");
+    expect(await get_image_proxy_grant()).toBe("grant-two");
+  });
+
+  it("reports no usable grant when a fresh one is refused too", async () => {
+    post
+      .mockResolvedValueOnce(grant_reply("grant-one"))
+      .mockResolvedValueOnce(grant_reply("grant-two"));
+    const fetcher = vi.fn().mockResolvedValue(image_reply(401));
+
+    expect(await fetch_proxied_image(proxied, { fetcher })).toEqual({
+      kind: "fallback",
+    });
+    expect(post).toHaveBeenCalledTimes(2);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
+  it("reports no usable grant when a refused one cannot be replaced", async () => {
+    post
+      .mockResolvedValueOnce(grant_reply("grant-one"))
+      .mockResolvedValueOnce({ error: "Too many requests", status: 429 });
+    const fetcher = vi.fn().mockResolvedValue(image_reply(401));
+
+    expect(await fetch_proxied_image(proxied, { fetcher })).toEqual({
+      kind: "fallback",
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the current grant when the proxy answers 403", async () => {
+    post.mockResolvedValue(grant_reply("grant-one"));
+    const fetcher = vi.fn().mockResolvedValue(image_reply(403));
+
+    expect(await fetch_proxied_image(proxied, { fetcher })).toEqual({
+      kind: "fallback",
+    });
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(await get_image_proxy_grant()).toBe("grant-one");
+  });
+
+  it("asks for a grant again soon after a short failure", async () => {
+    vi.useFakeTimers();
+
+    try {
+      post
+        .mockResolvedValueOnce({ error: "Unavailable", status: 503 })
+        .mockResolvedValueOnce(grant_reply("grant-one"));
+
+      expect(await get_image_proxy_grant()).toBeNull();
+      expect(await get_image_proxy_grant()).toBeNull();
+      expect(post).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(1_500);
+
+      expect(await get_image_proxy_grant()).toBe("grant-one");
+      expect(post).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("waits a minute before asking again when grants are unsupported", async () => {
+    vi.useFakeTimers();
+
+    try {
+      post
+        .mockResolvedValueOnce({ error: "Not found", status: 404 })
+        .mockResolvedValueOnce(grant_reply("grant-one"));
+
+      expect(await get_image_proxy_grant()).toBeNull();
+
+      vi.advanceTimersByTime(59_000);
+
+      expect(await get_image_proxy_grant()).toBeNull();
+      expect(post).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(2_000);
+
+      expect(await get_image_proxy_grant()).toBe("grant-one");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("reports no usable grant without asking again when grants are unsupported", async () => {
     post.mockResolvedValue({ error: "Not found", status: 404 });
     const fetcher = vi.fn();
 
@@ -127,7 +217,7 @@ describe("image proxy grants", () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  it("falls back when the grant request throws", async () => {
+  it("reports no usable grant when the grant request throws", async () => {
     post.mockRejectedValue(new Error("offline"));
 
     expect(await fetch_proxied_image(proxied, { fetcher: vi.fn() })).toEqual({

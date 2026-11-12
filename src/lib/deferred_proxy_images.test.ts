@@ -209,26 +209,105 @@ describe("deferred proxied images", () => {
     session.dispose();
   });
 
-  it("uses the account path when the loader asks for a fallback", async () => {
+  it("never puts the proxy address on the page when no grant is available", async () => {
     const load: ProxiedImageLoader = vi.fn(async () => ({
       kind: "fallback" as const,
     }));
     const doc = deferred_document(
-      `<img id="a" src="${proxied("https://a.example.test/a.png")}"><div id="e" style='background-image: url("${proxied("https://a.example.test/e.png")}")'>x</div>`,
+      `<img id="a" src="${proxied("https://a.example.test/a.png")}"><table id="d" background="${proxied("https://a.example.test/d.png")}"><tr><td>x</td></tr></table><div id="e" style='background-image: url("${proxied("https://a.example.test/e.png")}")'>x</div>`,
     );
-    const session = create_deferred_image_session(proxy, { load });
+    const session = create_deferred_image_session(proxy, {
+      load,
+      retry_delay_ms: 1,
+    });
 
     session.hydrate(doc);
+    await session.settled();
 
-    await vi.waitFor(() => {
-      expect(doc.getElementById("a")?.getAttribute("src")).toBe(
-        absolute("https://a.example.test/a.png"),
-      );
-      expect(doc.getElementById("e")?.getAttribute("style")).toContain(
-        absolute("https://a.example.test/e.png"),
-      );
-    });
+    expect(doc.getElementById("a")?.getAttribute("data-load-failed")).toBe(
+      "true",
+    );
+    expect(doc.getElementById("a")?.hasAttribute("src")).toBe(false);
+    expect(doc.getElementById("d")?.hasAttribute("background")).toBe(false);
+    expect(doc.getElementById("e")?.getAttribute("style")).toContain(
+      DEFERRED_IMAGE_PLACEHOLDER,
+    );
+    expect(doc.body.innerHTML).not.toContain("/api/images/v1/proxy");
+    expect(load).toHaveBeenCalledTimes(6);
     expect(created).toEqual([]);
+    session.dispose();
+  });
+
+  it("loads the image when a grant becomes available on the second try", async () => {
+    const load: ProxiedImageLoader = vi
+      .fn<ProxiedImageLoader>()
+      .mockResolvedValueOnce({ kind: "fallback" })
+      .mockResolvedValueOnce({
+        kind: "image",
+        bytes: new Uint8Array([137, 80, 78, 71]),
+        content_type: "image/png",
+      });
+    const doc = deferred_document(
+      `<img id="a" src="${proxied("https://a.example.test/a.png")}">`,
+    );
+    const session = create_deferred_image_session(proxy, {
+      load,
+      retry_delay_ms: 1,
+    });
+
+    session.hydrate(doc);
+    await session.settled();
+
+    expect(doc.getElementById("a")?.getAttribute("src")).toMatch(/^blob:/);
+    expect(load).toHaveBeenCalledTimes(2);
+    session.dispose();
+  });
+
+  it("tries a failed image again when it is asked for later", async () => {
+    const load: ProxiedImageLoader = vi
+      .fn<ProxiedImageLoader>()
+      .mockResolvedValueOnce({ kind: "failed", retryable: false })
+      .mockResolvedValueOnce({
+        kind: "image",
+        bytes: new Uint8Array([137, 80, 78, 71]),
+        content_type: "image/png",
+      });
+    const session = create_deferred_image_session(proxy, { load });
+    const target = absolute("https://a.example.test/a.png");
+    const first = await session.resolve(target);
+    const second = await session.resolve(target);
+    const third = await session.resolve(target);
+
+    expect(first).toBeNull();
+    expect(second).toMatch(/^blob:/);
+    expect(third).toBe(second);
+    expect(load).toHaveBeenCalledTimes(2);
+    session.dispose();
+    expect(await session.resolve(target)).toBeNull();
+    expect(load).toHaveBeenCalledTimes(2);
+  });
+
+  it("hydrates inside an element and refuses targets away from the proxy", async () => {
+    const load: ProxiedImageLoader = vi.fn(async () => ({
+      kind: "image" as const,
+      bytes: new Uint8Array([137, 80, 78, 71]),
+      content_type: "image/png",
+    }));
+    const host = document.createElement("div");
+
+    host.innerHTML = defer_proxied_images(
+      `<img id="a" src="${proxied("https://a.example.test/a.png")}">`,
+      proxy,
+    );
+
+    const session = create_deferred_image_session(proxy, { load });
+
+    session.hydrate(host);
+    await session.settled();
+
+    expect(host.querySelector("img")?.getAttribute("src")).toMatch(/^blob:/);
+    expect(await session.resolve("https://a.example.test/a.png")).toBeNull();
+    expect(load).toHaveBeenCalledTimes(1);
     session.dispose();
   });
 
