@@ -11853,6 +11853,8 @@ export const fr = {
     invite_card_join: "Rejoindre la réunion",
     invite_card_calendar_failed: "Votre réponse a été envoyée, mais Aster n'a pas pu ajouter cet événement à votre calendrier.",
     invite_card_reply_send_failed: "Votre réponse n'a pas été envoyée. Réessayez.",
+    invite_card_reply_address_unavailable:
+      "Aster n'a pas envoyé votre réponse, car l'adresse qui a reçu cette invitation ne peut pas envoyer d'e-mails. Pour répondre, réactivez cette adresse.",
     invite_card_organizer_mismatch:
       "{{sender}} a envoyé cette invitation, mais elle indique {{organizer}} comme organisateur. Si vous ne vous y attendiez pas, vérifiez auprès de l'organisateur avant de répondre.",
     invite_card_reply_confirm:

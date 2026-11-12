@@ -557,7 +557,6 @@ export interface UnsubscribeDelivery {
   routing_token?: string;
   recipients?: (string | null | undefined)[];
   primary_email?: string;
-  require_known_sender?: boolean;
 }
 
 export interface ExecuteUnsubscribeOptions {
@@ -658,7 +657,7 @@ export async function execute_unsubscribe(
       ).load_unsubscribe_sender(delivery)
     : null;
 
-  if (unsub_info.unsubscribe_mailto && sender !== null) {
+  if (unsub_info.unsubscribe_mailto && sender) {
     const succeeded = await call_proxy(
       {
         method: "mailto",

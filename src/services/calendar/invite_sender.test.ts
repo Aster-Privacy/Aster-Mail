@@ -173,7 +173,7 @@ describe("reply_identity", () => {
     });
   });
 
-  it("falls back to the primary address for a disabled alias", () => {
+  it("never answers for a disabled alias from the primary address", () => {
     set_own_addresses(["old@astermail.org"]);
 
     const identity = reply_identity(
@@ -184,8 +184,35 @@ describe("reply_identity", () => {
     );
 
     expect(identity.attendee_email).toBe("old@astermail.org");
-    expect(identity.reply_email).toBe("me@astermail.org");
+    expect(identity.reply_email).not.toBe("me@astermail.org");
     expect(identity.sender).toBeNull();
+    expect(identity.blocked).toBe(true);
+  });
+
+  it("never answers for an address the sender list does not hold yet", () => {
+    set_own_addresses(["new@astermail.org"]);
+
+    const identity = reply_identity(
+      [],
+      ["new@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.blocked).toBe(true);
+    expect(identity.reply_email).not.toBe("me@astermail.org");
+  });
+
+  it("answers from the primary address when the invitation reached it", () => {
+    const identity = reply_identity(
+      options,
+      ["friend@example.com", "me@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.blocked).toBe(false);
+    expect(identity.reply_email).toBe("me@astermail.org");
   });
 
   it("uses the alias name for a reply from an alias", () => {
@@ -253,6 +280,7 @@ describe("reply_identity", () => {
     );
 
     expect(identity.sender).toBeNull();
+    expect(identity.blocked).toBe(true);
   });
 
   it("keeps the account name for a reply from the primary address", () => {

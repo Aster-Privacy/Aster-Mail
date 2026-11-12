@@ -173,6 +173,7 @@ export interface ReplyIdentity {
   reply_email: string;
   display_name: string | null;
   sender: { email: string; address_hash?: string } | null;
+  blocked: boolean;
 }
 
 export function reply_identity(
@@ -188,6 +189,7 @@ export function reply_identity(
     reply_email: self_email,
     display_name: primary_name,
     sender: null,
+    blocked: false,
   };
 
   if (!own || same_sender_address(own, self_email)) {
@@ -197,12 +199,15 @@ export function reply_identity(
   const match =
     find_invite_sender(options, own) ?? find_ghost_sender(options, own);
 
-  if (match && match.type !== "primary") {
+  if (match?.type === "primary") return fallback;
+
+  if (match) {
     return {
       attendee_email: own,
       reply_email: match.email,
       display_name: match.display_name?.trim() || null,
       sender: { email: match.email, address_hash: match.address_hash },
+      blocked: false,
     };
   }
 
@@ -212,10 +217,17 @@ export function reply_identity(
       reply_email: own,
       display_name: null,
       sender: { email: own },
+      blocked: false,
     };
   }
 
-  return fallback;
+  return {
+    attendee_email: own,
+    reply_email: own,
+    display_name: null,
+    sender: null,
+    blocked: true,
+  };
 }
 
 export function invite_form_key(event: { id: string } | null): string {

@@ -10421,6 +10421,8 @@ export const zh_CN = {
     invite_card_join: "加入会议",
     invite_card_calendar_failed: "您的答复已发送，但 Aster 无法将此活动添加到您的日历。",
     invite_card_reply_send_failed: "您的答复未能发送，请重试。",
+    invite_card_reply_address_unavailable:
+      "由于收到此邀请的地址无法发送邮件，Aster 未发送您的答复。要答复，请重新启用该地址。",
     invite_card_organizer_mismatch:
       "此邀请由 {{sender}} 发送，但其中列出的组织者是 {{organizer}}。如果这出乎您的意料，请在回复前先与组织者确认。",
     invite_card_reply_confirm:

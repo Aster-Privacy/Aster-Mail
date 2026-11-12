@@ -11867,6 +11867,8 @@ export const de = {
     invite_card_join: "Meeting beitreten",
     invite_card_calendar_failed: "Deine Antwort wurde gesendet, aber Aster konnte diesen Termin nicht zu deinem Kalender hinzufügen.",
     invite_card_reply_send_failed: "Deine Antwort wurde nicht gesendet. Versuche es erneut.",
+    invite_card_reply_address_unavailable:
+      "Aster hat deine Antwort nicht gesendet, weil die Adresse, an die diese Einladung ging, keine E-Mails senden kann. Um zu antworten, aktiviere diese Adresse wieder.",
     invite_card_organizer_mismatch:
       "{{sender}} hat diese Einladung gesendet, aber als Organisator ist {{organizer}} angegeben. Wenn du das nicht erwartest, frag beim Organisator nach, bevor du antwortest.",
     invite_card_reply_confirm:

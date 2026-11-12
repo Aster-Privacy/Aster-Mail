@@ -11456,6 +11456,8 @@ export const ja = {
     invite_card_join: "会議に参加",
     invite_card_calendar_failed: "返答は送信されましたが、Aster はこの予定をカレンダーに追加できませんでした。",
     invite_card_reply_send_failed: "返答を送信できませんでした。もう一度お試しください。",
+    invite_card_reply_address_unavailable:
+      "この招待を受け取ったアドレスからメールを送信できないため、Aster は返答を送信しませんでした。返答するには、そのアドレスを再度有効にしてください。",
     invite_card_organizer_mismatch:
       "この招待は {{sender}} から送信されましたが、主催者は {{organizer}} と記載されています。心当たりがない場合は、返答する前に主催者に確認してください。",
     invite_card_reply_confirm:
