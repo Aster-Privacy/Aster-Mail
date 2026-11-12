@@ -59,6 +59,7 @@ vi.mock("@/services/routing/connection_store", () => ({
   connection_store: {
     get_method: () => "direct",
     get_api_onion_url: () => null,
+    subscribe: () => () => {},
   },
 }));
 
