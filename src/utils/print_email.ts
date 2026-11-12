@@ -30,6 +30,9 @@ import {
 import {
   create_deferred_image_session,
   defer_proxied_images,
+  DEFERRED_BACKGROUND_ATTRIBUTE,
+  DEFERRED_CSS_MARKER_FRAGMENT,
+  DEFERRED_SRC_ATTRIBUTE,
   type DeferredImageSession,
 } from "@/lib/deferred_proxy_images";
 import { get_image_proxy_url } from "@/lib/image_proxy";
@@ -140,10 +143,25 @@ function is_executable_url(value: string): boolean {
 
 const PRINT_IMAGE_WAIT_MS = 8000;
 
+function has_deferred_images(container: HTMLElement): boolean {
+  if (
+    container.querySelector(
+      `[${DEFERRED_SRC_ATTRIBUTE}],[${DEFERRED_BACKGROUND_ATTRIBUTE}],[style*="${DEFERRED_CSS_MARKER_FRAGMENT}"]`,
+    )
+  ) {
+    return true;
+  }
+
+  return Array.from(container.querySelectorAll("style")).some((el) =>
+    (el.textContent || "").includes(DEFERRED_CSS_MARKER_FRAGMENT),
+  );
+}
+
 export function start_print_images(
   container: HTMLElement,
 ): DeferredImageSession | null {
   if (!should_defer_proxied_images()) return null;
+  if (!has_deferred_images(container)) return null;
 
   const session = create_deferred_image_session(get_image_proxy_url());
 
