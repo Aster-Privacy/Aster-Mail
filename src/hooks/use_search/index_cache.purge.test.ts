@@ -162,10 +162,12 @@ import {
   patch_indexed_flags,
   purge_search_index,
   reconcile_search_index,
+  request_index_reconcile,
   reset_index_cache,
 } from "./index_cache";
+import { scan_search_index } from "./scan";
 import * as index_cache from "./index_cache";
-import { RECONCILE_INTERVAL_MS } from "./constants";
+import { RECONCILE_INTERVAL_MS, RECONCILE_REQUEST_MIN_MS } from "./constants";
 
 import {
   forget_purged_ids,
@@ -467,6 +469,72 @@ describe("search index removals", () => {
     expect(await disk_ids()).not.toContain("msg-4321");
     expect(stored_text()).not.toContain("Subject msg-4321");
     expect(await disk_ids()).toHaveLength(MAILBOX_SIZE - 2);
+  });
+
+  it("drops messages whose expiry has passed", async () => {
+    const index = index_cache.cached_index as CachedIndex;
+    const past = new Date(Date.now() - 60_000).toISOString();
+    const later = new Date(Date.now() + 3_600_000).toISOString();
+
+    for (const item of index.items) {
+      if (item.id === "msg-7") item.expires_at = past;
+      if (item.id === "msg-8") item.expires_at = later;
+    }
+
+    const removed = await reconcile_search_index(user_email);
+
+    expect(removed).toBe(1);
+    expect(hot_ids()).not.toContain("msg-7");
+    expect(hot_ids()).toContain("msg-8");
+  });
+
+  it("leaves expired messages out of a scan and erases them", async () => {
+    const index = index_cache.cached_index as CachedIndex;
+    const past = new Date(Date.now() - 60_000).toISOString();
+
+    for (const item of index.items) {
+      if (item.id === "msg-9") item.expires_at = past;
+    }
+
+    const seen: string[] = [];
+
+    await scan_search_index(
+      index,
+      (item) => {
+        seen.push(item.id);
+
+        return true;
+      },
+      () => false,
+    );
+
+    expect(seen).not.toContain("msg-9");
+    expect(seen).toContain("msg-10");
+
+    await vi.waitFor(() => expect(hot_ids()).not.toContain("msg-9"));
+    await purge_search_index({});
+
+    expect(await disk_ids()).not.toContain("msg-9");
+  });
+
+  it("checks the index on request, at most once per window", async () => {
+    const mail = await import("@/services/api/mail");
+    const spy = vi.spyOn(mail, "list_encrypted_mail_items");
+
+    await reconcile_search_index(user_email);
+    spy.mockClear();
+
+    request_index_reconcile();
+
+    expect(spy).not.toHaveBeenCalled();
+
+    server.mailbox = server.mailbox.filter((item) => item.id !== "msg-11");
+    request_index_reconcile(Date.now() + RECONCILE_REQUEST_MIN_MS + 1);
+    await reconcile_search_index(user_email);
+
+    spy.mockRestore();
+
+    expect(hot_ids()).not.toContain("msg-11");
   });
 
   it("leaves the index alone when the listing fails", async () => {

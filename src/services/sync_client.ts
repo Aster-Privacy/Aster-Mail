@@ -58,7 +58,10 @@ import {
   claim_own_mail_mutation_echo,
   clear_own_mail_mutations,
 } from "@/services/own_mail_mutations";
-import { note_purged_mail } from "@/services/search/index_removals";
+import {
+  note_purged_mail,
+  request_search_index_check,
+} from "@/services/search/index_removals";
 import {
   note_reaction_added,
   note_reaction_removed,
@@ -316,6 +319,7 @@ class SyncClient {
           void check_and_replenish_prekeys();
           if (is_reconnect) {
             this.catch_up_now();
+            request_search_index_check();
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -536,6 +540,7 @@ class SyncClient {
     }
 
     if (ids.length > 0 && action === "delete") note_purged_mail({ ids });
+    if (ids.length === 0 && action === "delete") request_search_index_check();
 
     const echo = claim_own_mail_mutation_echo(action, ids);
 

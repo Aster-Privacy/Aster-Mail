@@ -30,6 +30,10 @@ import {
 
 import { type MailItem } from "@/services/api/mail";
 import { open_snapshot_reader } from "@/services/search_index_store";
+import {
+  is_expired_mail,
+  note_purged_mail,
+} from "@/services/search/index_removals";
 
 function yield_to_main(): Promise<void> {
   return new Promise<void>((r) => setTimeout(r, 0));
@@ -43,11 +47,18 @@ async function visit_in_slices(
   visit: (item: MailItem, entry: DecryptedIndexEntry) => boolean,
   is_aborted: () => boolean,
   clock: { yielded_at: number },
+  expired: string[],
 ): Promise<SliceOutcome> {
+  const now = Date.now();
+
   for (const item of items) {
     const entry = entries.get(item.id);
 
     if (!entry) continue;
+    if (is_expired_mail(item, now)) {
+      expired.push(item.id);
+      continue;
+    }
     if (!visit(item, entry)) return "stopped";
 
     if (Date.now() - clock.yielded_at >= SCAN_YIELD_MS) {
@@ -68,6 +79,22 @@ export async function scan_search_index(
   is_aborted: () => boolean,
   options?: ScanOptions,
 ): Promise<boolean> {
+  const expired: string[] = [];
+
+  try {
+    return await scan_index_entries(index, visit, is_aborted, expired, options);
+  } finally {
+    if (expired.length > 0) note_purged_mail({ ids: expired });
+  }
+}
+
+async function scan_index_entries(
+  index: CachedIndex,
+  visit: (item: MailItem, entry: DecryptedIndexEntry) => boolean,
+  is_aborted: () => boolean,
+  expired: string[],
+  options?: ScanOptions,
+): Promise<boolean> {
   const clock = { yielded_at: Date.now() };
 
   const hot = await visit_in_slices(
@@ -76,6 +103,7 @@ export async function scan_search_index(
     visit,
     is_aborted,
     clock,
+    expired,
   );
 
   if (hot !== "done") return true;
@@ -148,6 +176,7 @@ export async function scan_search_index(
       visit,
       is_aborted,
       clock,
+      expired,
     );
 
     entries.clear();
