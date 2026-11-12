@@ -356,10 +356,10 @@ export async function derive_code_verifier(
       concat_bytes(STORED_VERIFIER_DOMAIN, base64_to_array(code_hash)),
     ),
   );
-  const password = new TextEncoder().encode(to_hex(digest));
+  const digest_hex = new TextEncoder().encode(to_hex(digest));
   const key_material = await crypto.subtle.importKey(
     "raw",
-    password,
+    digest_hex,
     "PBKDF2",
     false,
     ["deriveBits"],
@@ -376,7 +376,7 @@ export async function derive_code_verifier(
   );
 
   zero_uint8_array(digest);
-  zero_uint8_array(password);
+  zero_uint8_array(digest_hex);
 
   return array_to_base64(new Uint8Array(bits));
 }
