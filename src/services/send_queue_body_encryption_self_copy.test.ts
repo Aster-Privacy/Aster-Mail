@@ -32,6 +32,7 @@ vi.mock("@/services/account_manager", () => ({
 }));
 
 vi.mock("./api/keys", () => ({
+  is_internal_email: () => true,
   get_recipient_public_key: async () => ({
     data: { public_key: "recipient-public-key" },
   }),

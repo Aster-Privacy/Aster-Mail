@@ -117,10 +117,10 @@ describe("scheduled message body", () => {
 
   it("renders plain text without markup", () => {
     expect(
-      scheduled_body_html("line <b>one</b>", {
+      scheduled_body_html("one < two", {
         load_remote_images: "never",
         block_remote_images: true,
       }),
-    ).not.toContain("<b>");
+    ).toContain("one &lt; two");
   });
 });

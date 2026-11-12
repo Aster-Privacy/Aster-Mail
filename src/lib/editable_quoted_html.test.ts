@@ -616,9 +616,9 @@ describe("quoted reply content", () => {
     expect(html).toContain(
       'data-aster-parked-src="https://cdn.example/photo.png"',
     );
-    expect(html).not.toContain('src="https://cdn.example/photo.png"');
+    expect(html).not.toContain(' src="https://cdn.example/photo.png"');
     expect(html).not.toContain("tracker.example");
-    expect(html).toContain('src="https://mine.example/sig.png"');
+    expect(html).toContain(' src="https://mine.example/sig.png"');
     expect(read_compose_editor_html(html)).toContain(
       'src="https://cdn.example/photo.png"',
     );

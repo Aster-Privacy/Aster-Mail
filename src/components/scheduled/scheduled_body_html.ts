@@ -39,12 +39,11 @@ export function scheduled_body_html(
   if (!is_html_content(body)) return plain_text_to_html(body);
 
   const lockdown = is_any_lockdown_active();
+  const mode = lockdown ? "never" : effective_remote_image_mode(preferences);
 
   return sanitize_html(body, {
-    external_content_mode: lockdown
-      ? "never"
-      : effective_remote_image_mode(preferences),
-    image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
+    external_content_mode: mode,
+    image_proxy_url: mode === "always" ? get_image_proxy_url() : undefined,
     sandbox_mode: true,
     lockdown_mode: lockdown,
   }).html;

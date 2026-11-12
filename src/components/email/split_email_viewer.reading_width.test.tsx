@@ -76,6 +76,7 @@ vi.mock("@/components/email/use_spam_confirm", () => ({
 
 vi.mock("@/services/forward_store", () => ({
   set_forward_mail_id: () => {},
+  set_forward_from_candidates: () => {},
 }));
 
 vi.mock("@/stores/label_hints_store", () => ({
@@ -100,6 +101,7 @@ vi.mock("@/hooks/use_unsubscribed_senders", () => ({
 }));
 
 vi.mock("@/services/lockdown_store", () => ({
+  LOCKDOWN_CHANGED_EVENT: "aster:lockdown-changed",
   is_any_lockdown_active: () => false,
 }));
 

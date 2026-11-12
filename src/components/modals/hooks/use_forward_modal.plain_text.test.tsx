@@ -263,6 +263,7 @@ vi.mock("@/components/compose/compose_failed_send_draft", () => ({
 }));
 vi.mock("@/services/forward_store", () => ({
   get_forward_mail_id: () => null,
+  get_forward_from_candidates: () => [],
   clear_forward_mail_id: vi.fn(),
 }));
 const { use_forward_modal } = await import("./use_forward_modal/hook");
