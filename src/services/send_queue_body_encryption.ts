@@ -407,7 +407,9 @@ export async function encrypt_for_recipients(
             (armored_secret_key) => ({ armored_secret_key, passphrase }),
           )
         : undefined;
-    const own_public_key = await derive_own_public_key();
+    const own_public_key = signs_with_account_key
+      ? await derive_own_public_key()
+      : null;
 
     if (own_public_key) public_keys.push(own_public_key);
 
