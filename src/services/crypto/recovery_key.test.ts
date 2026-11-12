@@ -20,7 +20,12 @@
 //
 import type { EncryptedVault } from "./key_manager";
 
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
+
+import {
+  note_code_hash_optional,
+  reset_code_hash_optional,
+} from "./recovery_code_capability";
 
 import {
   generate_recovery_key,
@@ -37,6 +42,11 @@ import {
   VaultBackup,
   EncryptedRecoveryKey,
   stored_recovery_verifier,
+  build_verifier_candidates,
+  derive_code_verifier,
+  matches_stored_code,
+  salted_recovery_verifier,
+  stored_verifier_salt,
 } from "./recovery_key";
 
 const create_mock_vault = (): EncryptedVault => ({
@@ -487,5 +497,158 @@ describe("stored_recovery_verifier", () => {
         "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
       ),
     ).toBe("QVJWMua5pgIges7PvwnleXFBpHXDN9Z9aIA+kICkCXIqOBQF");
+  });
+});
+
+function hex_of(value: string): string {
+  return Array.from(atob(value), (char) =>
+    char.charCodeAt(0).toString(16).padStart(2, "0"),
+  ).join("");
+}
+
+function base64_of(byte: number, length: number): string {
+  return btoa(String.fromCharCode(...new Uint8Array(length).fill(byte)));
+}
+
+describe("salted recovery verifier", () => {
+  const code_hash = base64_of(7, 32);
+  const verifier_salt = base64_of(3, 16);
+  const stored_hex =
+    "4152563303030303030303030303030303030303aa0037a7929d74b1589ea2085b171720fdf103f4d70a81a512583ce4df275146";
+
+  afterEach(() => {
+    reset_code_hash_optional();
+  });
+
+  it("derives the code verifier the server derives", async () => {
+    expect(hex_of(await derive_code_verifier(code_hash, verifier_salt))).toBe(
+      "06f99b085e73a17975cc61fe253dfddc21e4b683d81d204d5bcdf848a4c74dd4",
+    );
+  });
+
+  it("matches the server's salted stored format", async () => {
+    const stored = await salted_recovery_verifier(code_hash, verifier_salt);
+
+    expect(hex_of(stored)).toBe(stored_hex);
+    expect(stored_verifier_salt(stored)).toBe(verifier_salt);
+  });
+
+  it("reads no salt from an unsalted or malformed value", async () => {
+    expect(stored_verifier_salt(code_hash)).toBeNull();
+    expect(
+      stored_verifier_salt(await stored_recovery_verifier(code_hash)),
+    ).toBeNull();
+    expect(stored_verifier_salt("not base64 !")).toBeNull();
+  });
+
+  it("rejects a salt of the wrong length", async () => {
+    await expect(
+      derive_code_verifier(code_hash, base64_of(3, 8)),
+    ).rejects.toThrow();
+  });
+
+  it("recognizes a code in every stored form", async () => {
+    const salted = await salted_recovery_verifier(code_hash, verifier_salt);
+    const other = base64_of(8, 32);
+
+    expect(await matches_stored_code(code_hash, new Set([code_hash]))).toBe(
+      true,
+    );
+    expect(
+      await matches_stored_code(
+        code_hash,
+        new Set([await stored_recovery_verifier(code_hash)]),
+      ),
+    ).toBe(true);
+    expect(await matches_stored_code(code_hash, new Set([salted]))).toBe(true);
+    expect(await matches_stored_code(other, new Set([salted]))).toBe(false);
+    expect(await matches_stored_code(code_hash, new Set())).toBe(false);
+  });
+
+  it("builds one candidate per distinct usable salt", async () => {
+    const candidates = await build_verifier_candidates(code_hash, [
+      verifier_salt,
+      verifier_salt,
+      base64_of(3, 8),
+      null,
+      base64_of(4, 16),
+    ]);
+
+    expect(candidates.map((candidate) => candidate.verifier_salt)).toEqual([
+      verifier_salt,
+      base64_of(4, 16),
+    ]);
+    expect(candidates[0].code_verifier).toBe(
+      await derive_code_verifier(code_hash, verifier_salt),
+    );
+    expect(await build_verifier_candidates(code_hash, undefined)).toEqual([]);
+  });
+
+  it("gives every share of a set the same salt and its own verifier", async () => {
+    const recovery_key = generate_recovery_key();
+    const codes = ["ASTER-AAAA-BBBB-CCCC-DDDD", "ASTER-EEEE-FFFF-GGGG-HHHH"];
+    const shares = await generate_all_recovery_shares(codes, recovery_key);
+    const again = await generate_all_recovery_shares(codes, recovery_key);
+
+    expect(shares[0].verifier_salt).toBe(shares[1].verifier_salt);
+    expect(shares[0].verifier_salt).not.toBe(again[0].verifier_salt);
+    expect(shares[0].code_verifier).not.toBe(shares[1].code_verifier);
+
+    for (const [index, share] of shares.entries()) {
+      expect(share.code_hash).toBe(await hash_recovery_code(codes[index]));
+      expect(share.code_verifier).toBe(
+        await derive_code_verifier(
+          share.code_hash,
+          share.verifier_salt as string,
+        ),
+      );
+    }
+  });
+
+  it("keeps a requested salt and drops the code hash on request", async () => {
+    const recovery_key = generate_recovery_key();
+    const code = "ASTER-AAAA-BBBB-CCCC-DDDD";
+    const shares = await generate_all_recovery_shares([code], recovery_key, {
+      verifier_salt,
+      include_code_hash: false,
+    });
+
+    expect(shares[0].code_hash).toBe("");
+    expect(shares[0].verifier_salt).toBe(verifier_salt);
+    expect(shares[0].code_verifier).toBe(
+      await derive_code_verifier(await hash_recovery_code(code), verifier_salt),
+    );
+  });
+
+  it("drops the code hash by default once the server reports it optional", async () => {
+    const recovery_key = generate_recovery_key();
+
+    note_code_hash_optional(true);
+
+    const [share] = await generate_all_recovery_shares(
+      ["ASTER-AAAA-BBBB-CCCC-DDDD"],
+      recovery_key,
+    );
+
+    expect(share.code_hash).toBe("");
+    expect(share.code_verifier).toBeTruthy();
+
+    note_code_hash_optional(undefined);
+
+    const [still] = await generate_all_recovery_shares(
+      ["ASTER-AAAA-BBBB-CCCC-DDDD"],
+      recovery_key,
+    );
+
+    expect(still.code_hash).toBe("");
+
+    note_code_hash_optional(false);
+
+    const [restored] = await generate_all_recovery_shares(
+      ["ASTER-AAAA-BBBB-CCCC-DDDD"],
+      recovery_key,
+    );
+
+    expect(restored.code_hash).not.toBe("");
   });
 });

@@ -21,7 +21,7 @@
 
 import type { EncryptedVault } from "./key_manager";
 
-import { save_recovery_backup } from "../api/recovery";
+import { get_codes_status, save_recovery_backup } from "../api/recovery";
 
 import { build_backup_vault } from "./backup_unlocked_keys";
 import {
@@ -29,6 +29,7 @@ import {
   encrypt_vault_backup,
   generate_all_recovery_shares,
   generate_recovery_key,
+  type RecoveryShareOptions,
 } from "./recovery_key";
 
 import { ignore_error } from "@/lib/ignore_error";
@@ -37,6 +38,25 @@ export function recovery_codes_of(vault: EncryptedVault): string[] {
   return (vault.recovery_codes ?? []).filter(
     (code) => typeof code === "string" && code.length > 0,
   );
+}
+
+async function current_set_share_options(): Promise<RecoveryShareOptions> {
+  try {
+    const status = (await get_codes_status({ skip_cache: true })).data;
+    const salts = status?.verifier_salts ?? [];
+    const first = salts[0];
+
+    if (typeof first === "string" && salts.every((salt) => salt === first)) {
+      return {
+        verifier_salt: first,
+        include_code_hash: status?.code_hash_optional !== true,
+      };
+    }
+  } catch (caught) {
+    ignore_error("services/crypto/recovery_backup_refresh:status", caught);
+  }
+
+  return { include_code_hash: true };
 }
 
 export async function refresh_recovery_backup(
@@ -54,7 +74,11 @@ export async function refresh_recovery_backup(
       await build_backup_vault(vault, passphrase),
       recovery_key,
     );
-    const shares = await generate_all_recovery_shares(codes, recovery_key);
+    const shares = await generate_all_recovery_shares(
+      codes,
+      recovery_key,
+      await current_set_share_options(),
+    );
     const response = await save_recovery_backup(
       backup.encrypted_data,
       backup.nonce,

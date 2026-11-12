@@ -72,6 +72,7 @@ import {
   type BackupVault,
 } from "./backup_unlocked_keys";
 import {
+  build_verifier_candidates,
   decrypt_recovery_key_with_code,
   decrypt_vault_backup,
   hash_recovery_code,
@@ -366,7 +367,23 @@ export async function restore_inactive_key_sets_with_code(
   code: string,
 ): Promise<CodeRestoreResult> {
   const code_hash = await hash_recovery_code(code);
-  const response = await unlock_inactive_key_sets_with_code(code_hash);
+  let listed: Awaited<ReturnType<typeof list_inactive_key_sets>> | null = null;
+
+  try {
+    listed = await list_inactive_key_sets();
+  } catch {
+    listed = null;
+  }
+
+  const candidates = await build_verifier_candidates(
+    code_hash,
+    listed?.data?.verifier_salts,
+  );
+  const response = await unlock_inactive_key_sets_with_code(
+    code_hash,
+    candidates,
+    candidates.length > 0 && listed?.data?.code_hash_optional === true,
+  );
 
   if (!response.data) {
     throw new Error(
