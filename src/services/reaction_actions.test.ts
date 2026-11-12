@@ -405,9 +405,39 @@ describe("reaction sender", () => {
     expect(h.react_calls).toHaveLength(0);
   });
 
-  it("reacts from the primary address when a message with no visible recipients carries no delivery address", async () => {
+  it("sends nothing when a message with no visible recipients carries no delivery address", async () => {
     const result = await send_reaction(
       build_message({ to_recipients: [], cc_recipients: [] }),
+      "👍",
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(get_active_translations().errors.cannot_react_bcc);
+    expect(h.react_calls).toHaveLength(0);
+    expect(h.encrypt_calls).toHaveLength(0);
+  });
+
+  it("sends nothing for a message with no visible recipients before the addresses load", async () => {
+    h.identities = {};
+    h.populated = false;
+
+    const result = await send_reaction(
+      build_message({ to_recipients: [], cc_recipients: [] }),
+      "👍",
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(get_active_translations().errors.cannot_react_bcc);
+    expect(h.react_calls).toHaveLength(0);
+  });
+
+  it("reacts from the primary address when Delivered-To names it and no recipient is visible", async () => {
+    const result = await send_reaction(
+      build_message({
+        to_recipients: [],
+        cc_recipients: [],
+        raw_headers: [{ name: "Delivered-To", value: `<${me}>` }],
+      }),
       "👍",
     );
 
