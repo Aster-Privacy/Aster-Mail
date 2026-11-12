@@ -49,8 +49,19 @@ vi.mock("@/hooks/use_recovery_status", () => ({
 }));
 
 vi.mock("@/components/settings/security/recovery_codes_modal", () => ({
-  RecoveryCodesModal: (props: { is_open: boolean; mode: string }) =>
-    props.is_open ? <div data-testid="replace-modal">{props.mode}</div> : null,
+  RecoveryCodesModal: (props: {
+    is_open: boolean;
+    mode: string;
+    on_saved: () => void;
+    on_close: () => void;
+  }) =>
+    props.is_open ? (
+      <div data-testid="replace-modal">
+        {props.mode}
+        <button onClick={props.on_saved}>saved</button>
+        <button onClick={props.on_close}>close</button>
+      </div>
+    ) : null,
 }));
 
 import { RecoveryReminder } from "./recovery_reminder";
@@ -159,7 +170,29 @@ describe("recovery code refresh prompt", () => {
 
     const modal = container.querySelector('[data-testid="replace-modal"]');
 
-    expect(modal?.textContent).toBe("regenerate");
+    expect(modal?.textContent).toContain("regenerate");
+    expect(container.textContent).not.toContain(TITLE);
+  });
+
+  it("keeps the new codes on screen after they are saved", async () => {
+    await mount();
+
+    await act(async () => {
+      button("common.recovery_codes_low_reminder_action").click();
+    });
+    await act(async () => {
+      button("saved").click();
+    });
+
+    expect(
+      container.querySelector('[data-testid="replace-modal"]'),
+    ).not.toBeNull();
+
+    await act(async () => {
+      button("close").click();
+    });
+
+    expect(container.querySelector('[data-testid="replace-modal"]')).toBeNull();
     expect(container.textContent).not.toContain(TITLE);
   });
 });
