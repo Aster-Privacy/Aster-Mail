@@ -182,6 +182,7 @@ export function displayed_sender_verification(
 ): SenderVerificationStatus | undefined {
   const status = flags.sender_verification;
 
+  if (status === "unsigned" && flags.is_external === false) return undefined;
   if (status && status !== "unknown") return status;
 
   if (

@@ -56,6 +56,31 @@ describe("displayed_sender_verification", () => {
     },
   );
 
+  it("leaves out a missing signature on mail between Aster accounts", () => {
+    expect(
+      displayed_sender_verification({
+        is_received: true,
+        is_external: false,
+        e2e_verified: true,
+        sender_verification: "unsigned",
+      }),
+    ).toBeUndefined();
+  });
+
+  it.each(["verified", "invalid", "no_keys"] as const)(
+    "keeps a reported %s status on mail between Aster accounts",
+    (status) => {
+      expect(
+        displayed_sender_verification({
+          is_received: true,
+          is_external: false,
+          e2e_verified: true,
+          sender_verification: status,
+        }),
+      ).toBe(status);
+    },
+  );
+
   it("adds nothing to mail between Aster accounts", () => {
     expect(
       displayed_sender_verification({
