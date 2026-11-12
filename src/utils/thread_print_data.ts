@@ -42,6 +42,7 @@ export function build_thread_print_data(
       to_recipients: msg.to_recipients,
       cc_recipients: msg.cc_recipients,
       bcc_recipients: msg.bcc_recipients,
+      message_id: msg.id,
     })),
   };
 }

@@ -213,6 +213,7 @@ export function use_message_actions(
             timeZone: get_display_time_zone(),
           }),
           body: msg.html_content || msg.body,
+          message_id: msg.id,
         },
         deps.t,
       );

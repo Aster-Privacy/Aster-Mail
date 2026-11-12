@@ -514,6 +514,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
             timeZone: get_display_time_zone(),
           }),
           body: msg.html_content || msg.body,
+          message_id: msg.id,
         },
         deps.t,
       );

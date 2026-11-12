@@ -50,6 +50,17 @@ export function request_search_index_check(): void {
     );
 }
 
+export function note_bulk_mail_removed(): void {
+  void import("@/hooks/use_search/index_cache")
+    .then((index_cache) => index_cache.force_index_reconcile())
+    .catch((caught) =>
+      ignore_error(
+        "services/search/index_removals:note_bulk_mail_removed",
+        caught,
+      ),
+    );
+}
+
 export function note_purged_mail(purge: PurgedMail): void {
   if (!purge.scope && !(purge.ids && purge.ids.length > 0)) return;
 

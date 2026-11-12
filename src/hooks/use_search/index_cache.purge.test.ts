@@ -166,6 +166,7 @@ import {
   reset_index_cache,
 } from "./index_cache";
 import { scan_search_index } from "./scan";
+import { note_bulk_mail_removed } from "@/services/search/index_removals";
 import * as index_cache from "./index_cache";
 import { RECONCILE_INTERVAL_MS, RECONCILE_REQUEST_MIN_MS } from "./constants";
 
@@ -535,6 +536,25 @@ describe("search index removals", () => {
     spy.mockRestore();
 
     expect(hot_ids()).not.toContain("msg-11");
+  });
+
+  it("drops removed mail at once after a bulk removal", async () => {
+    await reconcile_search_index(user_email);
+
+    server.mailbox = server.mailbox.filter(
+      (item) => item.id !== "msg-12" && item.id !== "msg-13",
+    );
+    request_index_reconcile();
+
+    expect(hot_ids()).toContain("msg-12");
+
+    note_bulk_mail_removed();
+
+    await vi.waitFor(() => expect(hot_ids()).not.toContain("msg-12"));
+    await vi.waitFor(async () =>
+      expect(await disk_ids()).not.toContain("msg-13"),
+    );
+    await vi.waitFor(() => expect(stored_text()).not.toContain('"msg-13"'));
   });
 
   it("leaves the index alone when the listing fails", async () => {

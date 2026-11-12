@@ -52,7 +52,7 @@ export async function tauri_proxy_fetch(
     if (typeof b === "string") return b;
     if (b instanceof URLSearchParams) return b.toString();
 
-    return String(b);
+    throw new TypeError("device request body must be text");
   })();
 
   const result = await invoke<ProxyResponse>("device_http_request", {

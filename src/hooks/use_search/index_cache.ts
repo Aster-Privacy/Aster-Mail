@@ -982,6 +982,32 @@ export function request_index_reconcile(now: number = Date.now()): void {
   void reconcile_search_index(index.user_email);
 }
 
+export function force_index_reconcile(): Promise<number> {
+  reconcile_attempted_at = 0;
+
+  const index = cached_index;
+
+  if (!index || is_index_download_paused()) {
+    reconcile_wanted = true;
+
+    return Promise.resolve(0);
+  }
+
+  const running = reconcile_promise;
+
+  if (running) {
+    reconcile_wanted = true;
+
+    return running.then(() => {
+      if (cached_index !== index) return 0;
+
+      return reconcile_search_index(index.user_email);
+    });
+  }
+
+  return reconcile_search_index(index.user_email);
+}
+
 export function reset_index_purge_state(): void {
   if (purge_timer) clearTimeout(purge_timer);
   purge_timer = null;

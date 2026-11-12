@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { note_bulk_mail_removed } from "@/services/search/index_removals";
 
 export type DeleteMode = "trash" | "permanent" | "archive";
 
@@ -68,17 +69,31 @@ export async function list_retention_policies(): Promise<
   return { error: response.error, code: response.code };
 }
 
+function note_permanent_policy(
+  response: ApiResponse<RetentionPolicy>,
+): ApiResponse<RetentionPolicy> {
+  if (!response.error && response.data?.delete_mode === "permanent") {
+    note_bulk_mail_removed();
+  }
+
+  return response;
+}
+
 export async function create_retention_policy(
   req: CreateRetentionPolicyRequest,
 ): Promise<ApiResponse<RetentionPolicy>> {
-  return api_client.post<RetentionPolicy>(BASE, req);
+  return note_permanent_policy(
+    await api_client.post<RetentionPolicy>(BASE, req),
+  );
 }
 
 export async function update_retention_policy(
   id: string,
   patch: UpdateRetentionPolicyRequest,
 ): Promise<ApiResponse<RetentionPolicy>> {
-  return api_client.patch<RetentionPolicy>(`${BASE}/${id}`, patch);
+  return note_permanent_policy(
+    await api_client.patch<RetentionPolicy>(`${BASE}/${id}`, patch),
+  );
 }
 
 export async function delete_retention_policy(

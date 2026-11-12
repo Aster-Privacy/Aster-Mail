@@ -1302,23 +1302,18 @@ const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (macOS; Tauri)";
 #[cfg(all(unix, not(target_os = "macos")))]
 const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (Linux; Tauri)";
 
+const DEVICE_FORWARDED_HEADERS: &[&str] = &[
+    "content-type",
+    "authorization",
+    "x-csrf-token",
+    "x-folder-unlock",
+    "x-aster-vault-level",
+    "x-aster-device-id",
+];
+
 fn is_device_header_allowed(name: &str) -> bool {
     let n = name.to_ascii_lowercase();
-    matches!(
-        n.as_str(),
-        "content-type"
-            | "content-length"
-            | "accept"
-            | "accept-language"
-            | "accept-encoding"
-            | "authorization"
-            | "x-csrf-token"
-            | "x-requested-with"
-            | "x-device-id"
-            | "if-none-match"
-            | "if-modified-since"
-            | "user-agent"
-    ) || (n.starts_with("x-aster-") && n != "x-aster-client")
+    DEVICE_FORWARDED_HEADERS.contains(&n.as_str())
 }
 
 const ALLOWED_HTTPS_SUFFIXES: &[&str] = &[".astermail.org"];
@@ -1579,6 +1574,37 @@ pub fn crypto_hmac_sign(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn web_app_request_headers_are_forwarded() {
+        for name in [
+            "Content-Type",
+            "Authorization",
+            "X-CSRF-Token",
+            "X-Folder-Unlock",
+            "X-Aster-Vault-Level",
+            "X-Aster-Device-Id",
+        ] {
+            assert!(is_device_header_allowed(name), "{name}");
+            assert!(is_device_header_allowed(&name.to_ascii_lowercase()), "{name}");
+        }
+    }
+
+    #[test]
+    fn other_request_headers_are_dropped() {
+        for name in [
+            "X-Aster-Client",
+            "X-Aster-Other",
+            "Cookie",
+            "Origin",
+            "Referer",
+            "Host",
+            "User-Agent",
+            "X-Forwarded-For",
+        ] {
+            assert!(!is_device_header_allowed(name), "{name}");
+        }
+    }
 
     #[test]
     fn local_app_urls_are_accepted() {

@@ -476,9 +476,11 @@ const PRESERVED_LOCAL_KEYS: ReadonlySet<string> = new Set([
   "aster_onion_api_url",
   "aster_onion_mail_url",
   "aster_sw_reset_v1",
-  "aster_error_reports",
   "aster_onboarding_install_app_done",
 ]);
+
+const ERROR_REPORT_CHOICE_KEY = "aster_error_reports";
+const ERROR_REPORTS_DECLINED = "off";
 
 const PRESERVED_LOCAL_KEY_PREFIXES: readonly string[] = [
   "aster_family_setup_",
@@ -490,6 +492,9 @@ const PRESERVED_LOCAL_KEY_PREFIXES: readonly string[] = [
 
 function should_preserve_local_key(key: string): boolean {
   if (PRESERVED_LOCAL_KEYS.has(key)) return true;
+  if (key === ERROR_REPORT_CHOICE_KEY) {
+    return safe_local_get(key) === ERROR_REPORTS_DECLINED;
+  }
 
   return PRESERVED_LOCAL_KEY_PREFIXES.some((prefix) => key.startsWith(prefix));
 }
@@ -509,7 +514,7 @@ function overwrite_and_remove_local_key(key: string): void {
   safe_local_remove(key);
 }
 
-function secure_clear_local_storage(): void {
+export function secure_clear_local_storage(): void {
   for (const key of SENSITIVE_STORAGE_KEYS) {
     overwrite_and_remove_local_key(key);
   }

@@ -69,6 +69,28 @@ export function honored_content_types(
   return honored.size === 0 ? NO_GRANTED_TYPES : honored;
 }
 
+const active_grants = new Set<RemoteContentGrants>();
+
+export function track_active_grants(grants: RemoteContentGrants): () => void {
+  active_grants.add(grants);
+
+  return () => {
+    active_grants.delete(grants);
+  };
+}
+
+export function active_granted_types(message_id: string): Set<string> {
+  if (!message_id) return NO_GRANTED_TYPES;
+
+  const types = new Set<string>();
+
+  for (const grants of active_grants) {
+    for (const type of grants.get(message_id) ?? []) types.add(type);
+  }
+
+  return types.size === 0 ? NO_GRANTED_TYPES : types;
+}
+
 export function has_remote_content_grant(
   grants: RemoteContentGrants | undefined,
   message_id: string,
