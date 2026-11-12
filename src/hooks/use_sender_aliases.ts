@@ -42,7 +42,7 @@ import {
   get_vault_from_memory,
   on_keys_ready,
 } from "@/services/crypto/memory_key_store";
-import { same_address_ignoring_dots } from "@/utils/address_dots";
+import { is_primary_address } from "@/services/crypto/address_identity_entry";
 import { list_external_accounts } from "@/services/api/external_accounts";
 import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
 import {
@@ -418,7 +418,7 @@ function publish_own_address_entries(): void {
     ...[...cached_domain_options, ...cached_ghost_options].map((o) => o.email),
   ].filter(
     (address): address is string =>
-      Boolean(address) && !same_address_ignoring_dots(address, primary),
+      Boolean(address) && !is_primary_address(address, primary),
   );
 
   if (addresses.length === 0) return;

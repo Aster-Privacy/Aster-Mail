@@ -24,6 +24,7 @@ import { api_client } from "../api/client";
 
 import {
   address_entry_forms,
+  matches_local_address_keys,
   sign_address_entry,
   verify_address_entry,
   type AddressEntryKeys,
@@ -41,9 +42,9 @@ import {
 import { type PrekeyBundle } from "./x3dh";
 
 const ADDRESS_BUNDLE_PATH = "/crypto/v1/ratchet/address-bundle";
+const IDENTITY_LOOKUP_PATH = "/crypto/v1/ratchet/identity";
 const INACTIVE_RETRY_MS = 10 * 60 * 1000;
 const ACTIVE_REFRESH_MS = 6 * 60 * 60 * 1000;
-const FAILED_RETRY_MS = 60 * 1000;
 
 export type DirectoryTrust =
   | "account"
@@ -64,6 +65,18 @@ export interface ResolvedDirectoryEntry<T extends DirectoryEntry> {
 }
 
 export type AddressEntryState = "active" | "inactive" | "failed";
+
+export type AddressSendState =
+  "active" | "inactive" | "mismatch" | "unavailable";
+
+export type OwnAddressEntryLookup =
+  | { status: "active"; entry: AddressEntryKeys }
+  | { status: "none" }
+  | { status: "unavailable" };
+
+interface OwnIdentityResponse extends AddressEntryKeys {
+  address_scoped?: boolean | null;
+}
 
 interface PublishedState {
   fingerprint: string;
@@ -106,7 +119,7 @@ async function upload_address_entry(
 ): Promise<UploadOutcome> {
   const entry = sign_address_entry(vault, form);
 
-  if (!entry) return { state: "failed", retry_ms: FAILED_RETRY_MS };
+  if (!entry) return { state: "failed", retry_ms: 0 };
 
   const response = await api_client.put<AddressBundleUploadResult>(
     ADDRESS_BUNDLE_PATH,
@@ -133,7 +146,7 @@ async function upload_address_entry(
 
     return rejected
       ? { state: "inactive", retry_ms: INACTIVE_RETRY_MS }
-      : { state: "failed", retry_ms: FAILED_RETRY_MS };
+      : { state: "failed", retry_ms: 0 };
   }
 
   return response.data.active === true
@@ -150,7 +163,7 @@ async function publish_address_forms(
 
   if (!exact) return "inactive";
 
-  let result: UploadOutcome = { state: "failed", retry_ms: FAILED_RETRY_MS };
+  let result: UploadOutcome;
 
   try {
     result = await upload_address_entry(vault, exact);
@@ -161,7 +174,13 @@ async function publish_address_forms(
       await upload_address_entry(vault, form).catch(() => null);
     }
   } catch {
-    result = { state: "failed", retry_ms: FAILED_RETRY_MS };
+    result = { state: "failed", retry_ms: 0 };
+  }
+
+  if (result.state === "failed") {
+    published_states.delete(exact);
+
+    return "failed";
   }
 
   published_states.set(exact, {
@@ -210,6 +229,60 @@ export async function ensure_address_entry(
   address: string,
 ): Promise<boolean> {
   return (await address_entry_state(vault, address)) === "active";
+}
+
+export async function lookup_own_address_entry(
+  username: string,
+  address: string,
+): Promise<OwnAddressEntryLookup> {
+  const email = normalize_identity_address(address);
+
+  if (!username || !email) return { status: "unavailable" };
+
+  try {
+    const response = await api_client.get<OwnIdentityResponse>(
+      `${IDENTITY_LOOKUP_PATH}/${encodeURIComponent(username)}?email=${encodeURIComponent(email)}&scope=address`,
+    );
+
+    if (response.status === 404 || response.code === "NOT_FOUND") {
+      return { status: "none" };
+    }
+
+    const data = response.data;
+
+    if (response.error || !data || typeof data.kem_identity_key !== "string") {
+      return { status: "unavailable" };
+    }
+
+    if (data.address_scoped !== true) return { status: "none" };
+
+    return { status: "active", entry: data };
+  } catch {
+    return { status: "unavailable" };
+  }
+}
+
+export async function resolve_address_send_state(
+  vault: EncryptedVault,
+  address: string,
+  username: string | null,
+): Promise<AddressSendState> {
+  const state = await address_entry_state(vault, address).catch(
+    (): AddressEntryState => "failed",
+  );
+
+  if (state !== "failed") return state;
+
+  const lookup = username
+    ? await lookup_own_address_entry(username, address)
+    : ({ status: "unavailable" } as const);
+
+  if (lookup.status === "unavailable") return "unavailable";
+  if (lookup.status === "none") return "inactive";
+
+  return matches_local_address_keys(vault, address, lookup.entry)
+    ? "active"
+    : "mismatch";
 }
 
 export async function publish_address_entries(

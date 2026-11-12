@@ -49,8 +49,28 @@ describe("sender_uses_account_key", () => {
     expect(await sender_uses_account_key("me@my-domain.example")).toBe(false);
   });
 
-  it("is false when the primary address is unknown", async () => {
+  it("is true when the primary address is unknown", async () => {
     h.primary = null;
-    expect(await sender_uses_account_key("me@astermail.org")).toBe(false);
+    expect(await sender_uses_account_key("shop@astermail.org")).toBe(true);
+  });
+
+  it("is true for a dotted form of the primary address", async () => {
+    h.primary = "first.last@astermail.org";
+    expect(await sender_uses_account_key("firstlast@astermail.org")).toBe(true);
+    expect(await sender_uses_account_key("First.Last@AsterMail.org")).toBe(
+      true,
+    );
+  });
+
+  it("is true for a tagged form of the primary address", async () => {
+    h.primary = "firstlast@astermail.org";
+    expect(await sender_uses_account_key("first.last+news@astermail.org")).toBe(
+      true,
+    );
+  });
+
+  it("is false for a dotted primary on another domain", async () => {
+    h.primary = "first.last@astermail.org";
+    expect(await sender_uses_account_key("firstlast@aster.cx")).toBe(false);
   });
 });

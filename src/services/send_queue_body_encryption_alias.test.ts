@@ -26,11 +26,11 @@ const h = vi.hoisted(() => ({
   primary: "me@astermail.org" as string | null,
   vault: null as unknown,
   encrypt_calls: [] as Array<{ keys: string[]; signed: boolean }>,
-  entry_state: "active" as "active" | "inactive" | "failed",
+  entry_state: "active" as "active" | "inactive" | "mismatch" | "unavailable",
 }));
 
 vi.mock("@/services/crypto/address_identity_directory", () => ({
-  address_entry_state: vi.fn(async () => h.entry_state),
+  resolve_address_send_state: vi.fn(async () => h.entry_state),
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -38,7 +38,10 @@ vi.mock("@/services/account_manager", () => ({
     h.primary ? { user: { email: h.primary } } : null,
 }));
 
-vi.mock("@/services/crypto/memory_key_store", () => ({
+vi.mock("@/services/crypto/memory_key_store", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/memory_key_store")
+  >()),
   get_vault_from_memory: () => h.vault,
   get_passphrase_from_memory: () => "passphrase",
   has_passphrase_in_memory: () => true,
@@ -97,6 +100,9 @@ import {
   encrypt_for_recipients,
   resolve_sender_identity,
 } from "./send_queue_body_encryption";
+import { SendError } from "./send_queue_types";
+
+import { is_permanent_failure } from "@/native/offline_queue";
 
 const PGP_ONLY_VAULT = {
   identity_key: "SECRET_KEY",
@@ -145,7 +151,7 @@ describe("classic encryption for another Aster address", () => {
     expect(h.encrypt_calls).toEqual([{ keys: ["PEER_KEY"], signed: false }]);
   });
 
-  it("uses only recipient keys when the primary address is unknown", async () => {
+  it("treats the sender as the primary when the primary address is unknown", async () => {
     h.primary = null;
 
     await encrypt_for_recipients(
@@ -155,7 +161,24 @@ describe("classic encryption for another Aster address", () => {
       true,
     );
 
-    expect(h.encrypt_calls).toEqual([{ keys: ["PEER_KEY"], signed: false }]);
+    expect(h.encrypt_calls).toEqual([
+      { keys: ["PEER_KEY", "OWN_KEY"], signed: true },
+    ]);
+  });
+
+  it("signs with the account key for a dotted or tagged primary", async () => {
+    h.primary = "first.last@astermail.org";
+
+    await encrypt_for_recipients(
+      "body",
+      ["peer@astermail.org"],
+      "firstlast+news@astermail.org",
+      true,
+    );
+
+    expect(h.encrypt_calls).toEqual([
+      { keys: ["PEER_KEY", "OWN_KEY"], signed: true },
+    ]);
   });
 });
 
@@ -198,13 +221,41 @@ describe("resolve_sender_identity", () => {
     expect(shop?.identity_public).toBe("ACCOUNT_PUBLIC");
   });
 
-  it("refuses to fall back to the account key when publishing fails", async () => {
-    h.entry_state = "failed";
+  it("refuses the send when the published entry has other keys", async () => {
+    h.entry_state = "mismatch";
 
-    const shop = await resolve_sender_identity("shop@astermail.org", vault);
-    const domain = await resolve_sender_identity("me@my-domain.example", vault);
+    const error = await resolve_sender_identity(
+      "shop@astermail.org",
+      vault,
+    ).catch((caught: unknown) => caught);
 
-    expect(shop).toBeNull();
-    expect(domain).toBeNull();
+    expect(error).toBeInstanceOf(SendError);
+    expect((error as SendError).type).toBe("encryption_failed");
+    expect(is_permanent_failure(error)).toBe(true);
+  });
+
+  it("fails with a retryable error when neither upload nor lookup answers", async () => {
+    h.entry_state = "unavailable";
+
+    const error = await resolve_sender_identity(
+      "shop@astermail.org",
+      vault,
+    ).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(SendError);
+    expect((error as SendError).type).toBe("encryption_failed");
+    expect((error as SendError).status).toBeUndefined();
+    expect(is_permanent_failure(error)).toBe(false);
+  });
+
+  it("keeps the account key for a dotted primary", async () => {
+    h.primary = "me.you@astermail.org";
+
+    const identity = await resolve_sender_identity(
+      "meyou@astermail.org",
+      vault,
+    );
+
+    expect(identity.identity_public).toBe("ACCOUNT_PUBLIC");
   });
 });

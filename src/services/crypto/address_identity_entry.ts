@@ -92,6 +92,17 @@ export function address_entry_forms(address: string): string[] {
   return normalized === canonical ? [normalized] : [normalized, canonical];
 }
 
+export function is_primary_address(
+  address: string | null | undefined,
+  primary: string | null | undefined,
+): boolean {
+  const primary_form = canonical_address_form(primary ?? "");
+
+  if (!primary_form) return true;
+
+  return canonical_address_form(address ?? "") === primary_form;
+}
+
 function account_key_set(vault: EncryptedVault): RatchetKeySet | null {
   if (
     !vault.ratchet_identity_key ||
@@ -231,6 +242,72 @@ export function address_receiver_key_sets(
   }
 
   return sets;
+}
+
+function keys_of(set: RatchetKeySet): AddressEntryKeys {
+  return {
+    kem_identity_key: set.ratchet_identity_public,
+    signed_prekey: set.ratchet_signed_prekey_public,
+    signed_prekey_signature: "",
+    pq_kem_public_key: set.ratchet_pq_identity_public ?? null,
+  };
+}
+
+export function local_account_bundle(
+  vault: EncryptedVault,
+): AddressEntryKeys | null {
+  const current = account_key_set(vault);
+
+  return current ? keys_of(current) : null;
+}
+
+export function local_address_bundle(
+  vault: EncryptedVault,
+  address: string,
+): AddressEntryKeys | null {
+  const form = normalize_identity_address(address);
+  const current = account_key_set(vault);
+
+  if (!form || !current) return null;
+
+  try {
+    const derived = derive_address_key_set(current, form);
+
+    return derived ? keys_of(derived) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function matches_local_address_keys(
+  vault: EncryptedVault,
+  address: string,
+  entry: Pick<
+    AddressEntryKeys,
+    "kem_identity_key" | "signed_prekey" | "pq_kem_public_key"
+  >,
+): boolean {
+  const current = account_key_set(vault);
+
+  if (!current) return false;
+
+  return address_entry_forms(address).some((form) => {
+    let derived: RatchetKeySet | null;
+
+    try {
+      derived = derive_address_key_set(current, form);
+    } catch {
+      return false;
+    }
+
+    return (
+      derived !== null &&
+      derived.ratchet_identity_public === entry.kem_identity_key &&
+      derived.ratchet_signed_prekey_public === entry.signed_prekey &&
+      (derived.ratchet_pq_identity_public ?? null) ===
+        (entry.pq_kem_public_key ?? null)
+    );
+  });
 }
 
 function length_prefixed(parts: Uint8Array[]): Uint8Array {
