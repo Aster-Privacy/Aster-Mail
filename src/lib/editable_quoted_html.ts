@@ -47,6 +47,7 @@ import {
   blocks_tracking_pixels,
   type RemoteImageMode,
 } from "@/lib/remote_content_policy";
+import { find_own_signature } from "@/lib/signature_html";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 import {
@@ -238,18 +239,38 @@ export function build_quoted_editor_html(
   return template.innerHTML;
 }
 
+function contain_unmarked_draft(
+  root: DocumentFragment,
+  options: EditableQuotedHtmlOptions,
+): void {
+  const signature = find_own_signature(root);
+  const placeholder = document.createComment("");
+
+  signature?.replaceWith(placeholder);
+  contain_quoted_remote_content(root, options);
+  if (signature) placeholder.replaceWith(signature);
+}
+
 export function contain_draft_quotes(
   html: string,
   options: EditableQuotedHtmlOptions,
+  contain_unmarked = false,
 ): string {
-  if (!html.includes("aster_quote")) return html;
+  const has_quote = html.includes("aster_quote");
+
+  if (!has_quote && !contain_unmarked) return html;
 
   const template = document.createElement("template");
 
   template.innerHTML = html;
-  template.content
-    .querySelectorAll(QUOTE_SELECTOR)
-    .forEach((quote) => contain_quoted_remote_content(quote, options));
+
+  if (has_quote) {
+    template.content
+      .querySelectorAll(QUOTE_SELECTOR)
+      .forEach((quote) => contain_quoted_remote_content(quote, options));
+  } else {
+    contain_unmarked_draft(template.content, options);
+  }
 
   return template.innerHTML;
 }

@@ -47,14 +47,9 @@ import { use_auth } from "@/contexts/auth_context";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { DdgFavicon } from "@/components/compose/ddg_favicon";
-import {
-  sanitize_html,
-  is_html_content,
-  has_rich_html,
-  plain_text_to_html,
-} from "@/lib/html_sanitizer";
-import { get_image_proxy_url } from "@/lib/image_proxy";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { has_rich_html } from "@/lib/html_sanitizer";
+import { use_preferences } from "@/contexts/preferences_context";
+import { scheduled_body_html } from "@/components/scheduled/scheduled_body_html";
 import { get_email_username } from "@/lib/utils";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import {
@@ -146,6 +141,7 @@ export function SplitScheduledViewer({
   on_edit,
 }: SplitScheduledViewerProps): React.ReactElement {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
   const { vault } = use_auth();
   const [show_cancel_confirm, set_show_cancel_confirm] = useState(false);
   const [is_cancelling, set_is_cancelling] = useState(false);
@@ -386,20 +382,10 @@ export function SplitScheduledViewer({
           )}
           <SandboxedEmailRenderer
             is_plain_text={!has_rich_html(scheduled_data.body)}
-            sanitized_html={
-              is_html_content(scheduled_data.body)
-                ? sanitize_html(scheduled_data.body, {
-                    image_proxy_url: is_any_lockdown_active()
-                      ? undefined
-                      : get_image_proxy_url(),
-                    sandbox_mode: true,
-                    lockdown_mode: is_any_lockdown_active(),
-                    external_content_mode: is_any_lockdown_active()
-                      ? "never"
-                      : undefined,
-                  }).html
-                : plain_text_to_html(scheduled_data.body)
-            }
+            sanitized_html={scheduled_body_html(
+              scheduled_data.body,
+              preferences,
+            )}
           />
         </div>
       </div>
