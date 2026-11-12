@@ -21,6 +21,66 @@
 import type { UnsubscribeDelivery } from "@/utils/unsubscribe_detector";
 
 import { extract_delivered_to } from "@/utils/delivered_to";
+import { normalize_envelope_recipients } from "@/services/crypto/envelope_normalize";
+
+const LISTED_RECIPIENT_LIMIT = 20;
+const LISTED_RECIPIENT_MAX_LENGTH = 320;
+
+interface EnvelopeRecipientSource {
+  to?: unknown;
+  cc?: unknown;
+  raw_headers?: unknown;
+}
+
+export function envelope_recipient_addresses(
+  envelope: EnvelopeRecipientSource | null | undefined,
+): string[] {
+  if (!envelope) return [];
+
+  const headers = Array.isArray(envelope.raw_headers)
+    ? envelope.raw_headers.filter(
+        (header): header is { name: string; value: string } =>
+          !!header &&
+          typeof header.name === "string" &&
+          typeof header.value === "string",
+      )
+    : undefined;
+  const found = [
+    extract_delivered_to(headers),
+    ...normalize_envelope_recipients(envelope.to).map((r) => r.email),
+    ...normalize_envelope_recipients(envelope.cc).map((r) => r.email),
+  ];
+  const result: string[] = [];
+
+  for (const entry of found) {
+    const address = typeof entry === "string" ? entry.trim().toLowerCase() : "";
+
+    if (
+      !address.includes("@") ||
+      address.length > LISTED_RECIPIENT_MAX_LENGTH ||
+      result.includes(address)
+    ) {
+      continue;
+    }
+
+    result.push(address);
+
+    if (result.length >= LISTED_RECIPIENT_LIMIT) break;
+  }
+
+  return result;
+}
+
+export function build_listed_unsubscribe_delivery(
+  routing_token: string | null | undefined,
+  recipients: (string | null | undefined)[] | null | undefined,
+): UnsubscribeDelivery {
+  return {
+    routing_token: routing_token || undefined,
+    recipients: recipients ?? [],
+    require_known_sender: true,
+  };
+}
 
 interface DeliverySourceItem {
   routing_token?: string | null;

@@ -19,14 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedSignature } from "@/services/api/signatures";
+import type { SenderOption } from "@/hooks/use_sender_aliases";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { use_signatures } from "@/contexts/signatures_context";
-import {
-  is_signature_bindable_sender_type,
-  type SenderOption,
-} from "@/hooks/use_sender_aliases";
+import { signature_for_sender } from "@/lib/sender_signature";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
 import {
@@ -55,11 +53,11 @@ export function use_sender_signature({
 }: UseSenderSignatureOptions): UseSenderSignatureReturn {
   const { default_signature, get_formatted_signature, resolve_signature } =
     use_signatures();
-  const alias_id =
-    selected_sender && is_signature_bindable_sender_type(selected_sender.type)
-      ? selected_sender.id
-      : null;
-  const signature = resolve_signature(alias_id) ?? default_signature;
+  const signature = signature_for_sender(
+    selected_sender,
+    resolve_signature,
+    default_signature,
+  );
   const signature_ref = useRef<DecryptedSignature | null>(signature);
   const applied_id_ref = useRef<string | null>(null);
   const on_swapped_ref = useRef(on_swapped);

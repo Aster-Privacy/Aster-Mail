@@ -27,6 +27,7 @@ import {
   ensure_sender_alias_caches,
   get_cached_sender_identity_for_address,
   get_cached_sender_identity_for_routing_token,
+  has_cached_secondary_addresses,
   is_sender_alias_cache_populated,
 } from "@/hooks/use_sender_aliases";
 import { catch_all_address_for_routing_token } from "@/services/catch_all_sender";
@@ -84,6 +85,30 @@ export function resolve_unsubscribe_sender(
 }
 
 export async function load_unsubscribe_sender(
+  delivery: UnsubscribeDelivery,
+): Promise<UnsubscribeSender | null | undefined> {
+  const sender = await load_delivery_sender(delivery);
+
+  if (sender !== undefined || !delivery.require_known_sender) {
+    return sender;
+  }
+
+  await ensure_sender_alias_caches();
+
+  const primary = primary_email_of(delivery);
+
+  if (
+    !primary ||
+    !is_sender_alias_cache_populated() ||
+    has_cached_secondary_addresses()
+  ) {
+    return null;
+  }
+
+  return { from_address: primary };
+}
+
+async function load_delivery_sender(
   delivery: UnsubscribeDelivery,
 ): Promise<UnsubscribeSender | null | undefined> {
   const cached = resolve_unsubscribe_sender(delivery);

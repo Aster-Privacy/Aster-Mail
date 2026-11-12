@@ -41,10 +41,8 @@ import {
   list_recent_recipients,
   decrypt_recent_recipients,
 } from "@/services/api/recent_recipients";
-import {
-  use_sender_aliases,
-  is_signature_bindable_sender_type,
-} from "@/hooks/use_sender_aliases";
+import { use_sender_aliases } from "@/hooks/use_sender_aliases";
+import { signature_for_sender } from "@/lib/sender_signature";
 import {
   get_preferred_sender_id,
   set_preferred_sender_id,
@@ -1074,13 +1072,11 @@ export function use_compose({
 
     const badge_html = active_badge ? build_badge_html([active_badge]) : "";
 
-    const initial_sender_alias_id =
-      selected_sender &&
-      is_signature_bindable_sender_type(selected_sender.type)
-        ? selected_sender.id
-        : null;
-    const initial_signature =
-      resolve_signature(initial_sender_alias_id) ?? default_signature;
+    const initial_signature = signature_for_sender(
+      selected_sender,
+      resolve_signature,
+      default_signature,
+    );
     const signature_block =
       preferences.signature_mode === "auto" && initial_signature
         ? SIGNATURE_GAP_BLOCK +
@@ -1164,13 +1160,28 @@ export function use_compose({
 
     if (!editor) return;
 
-    const alias_id =
-      selected_sender && is_signature_bindable_sender_type(selected_sender.type)
-        ? selected_sender.id
-        : null;
-    const target = resolve_signature(alias_id) ?? default_signature;
+    const target = signature_for_sender(
+      selected_sender,
+      resolve_signature,
+      default_signature,
+    );
 
-    if (!target) return;
+    if (!target) {
+      const stale =
+        selected_sender?.type === "ghost" ? find_own_signature(editor) : null;
+
+      if (stale) {
+        stale.remove();
+        set_message(
+          is_plain_text_ref.current
+            ? editor.innerText
+            : read_compose_editor_html(editor.innerHTML),
+        );
+      }
+      last_signature_id_ref.current = null;
+
+      return;
+    }
     if (last_signature_id_ref.current === target.id) return;
 
     const existing = find_own_signature(editor);

@@ -42,6 +42,7 @@ export interface CachedSubscription {
   list_unsubscribe_header?: string;
   list_unsubscribe_post?: string;
   routing_token?: string;
+  recipients?: string[];
   has_one_click: boolean;
   category: SubscriptionCacheCategory;
   status: "active" | "unsubscribed";
@@ -97,6 +98,7 @@ async function derive_subscriptions_key(
 export const SUBSCRIPTION_CACHE_MAX_PLAINTEXT_BYTES = 640 * 1024;
 
 const SUBSCRIPTION_FIELD_MAX_LENGTH = 2048;
+const SUBSCRIPTION_RECIPIENT_LIMIT = 20;
 
 function serialized_size(data: SubscriptionCacheData): number {
   return new TextEncoder().encode(JSON.stringify(data)).length;
@@ -148,6 +150,15 @@ function trim_subscription_fields(
     is_oversized(trimmed.routing_token)
   ) {
     delete trimmed.routing_token;
+  }
+
+  if (
+    trimmed.recipients !== undefined &&
+    (!Array.isArray(trimmed.recipients) ||
+      trimmed.recipients.length > SUBSCRIPTION_RECIPIENT_LIMIT ||
+      trimmed.recipients.some(is_oversized))
+  ) {
+    delete trimmed.recipients;
   }
 
   return trimmed;

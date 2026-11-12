@@ -408,6 +408,17 @@ export function is_sender_alias_cache_populated(): boolean {
   return cache_populated;
 }
 
+export function has_cached_secondary_addresses(): boolean {
+  return (
+    cached_aliases.length > 0 ||
+    cached_domain_options.length > 0 ||
+    cached_ghost_options.length > 0 ||
+    cached_external_options.length > 0 ||
+    cached_disabled_addresses.length > 0 ||
+    cached_catch_all_domains.length > 0
+  );
+}
+
 export function ensure_sender_alias_caches(options?: {
   refresh?: boolean;
 }): Promise<void> {
