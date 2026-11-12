@@ -55,8 +55,10 @@ import {
 } from "@/services/crypto/key_manager_pgp_keygen";
 import { encrypt_vault } from "@/services/crypto/key_manager_pgp_vault";
 import { hash_email } from "@/services/crypto/key_manager";
+import { erase_local_storage_traces } from "@/contexts/auth/local_data_registry";
 import {
   clear_pending_login_enrollment,
+  convert_stored_login_records,
   derive_account_proof,
   derive_current_account_proof,
   derive_sign_in_proof,

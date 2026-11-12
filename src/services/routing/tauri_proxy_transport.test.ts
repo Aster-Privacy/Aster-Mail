@@ -52,9 +52,13 @@ describe("tauri_proxy_fetch", () => {
       headers: Record<string, string>;
     };
 
+    const sent = Object.fromEntries(
+      Object.entries(args.headers).map(([k, v]) => [k.toLowerCase(), v]),
+    );
+
     expect(args.body).toBe("{\"a\":1}");
-    expect(args.headers["x-folder-unlock"]).toBe("unlock-token");
-    expect(args.headers["x-csrf-token"]).toBe("csrf");
+    expect(sent["x-folder-unlock"]).toBe("unlock-token");
+    expect(sent["x-csrf-token"]).toBe("csrf");
   });
 
   it("encodes form parameters as text", async () => {
