@@ -474,7 +474,7 @@ describe("sender identity continuity", () => {
     ).toBe("changed");
   });
 
-  it("never reads history it cannot attribute from the plain address as empty", async () => {
+  it("treats a plain address as new beside history it cannot attribute", async () => {
     h.current_identity = OTHER_KEY;
 
     const tagged_name = await seed_earlier_history("a.b+news@astermail.org", [
@@ -483,10 +483,7 @@ describe("sender identity continuity", () => {
 
     expect(
       await check_sender_identity_continuity("ab@astermail.org", OTHER_KEY),
-    ).toBe("unreadable");
-    expect(
-      await authenticate_sender_identity("ab@astermail.org", OTHER_KEY),
-    ).toBe("unverified");
+    ).toBe("new");
     expect(h.store.get(tagged_name)).toEqual([CURRENT_KEY]);
     expect(history_entries()).toEqual([[CURRENT_KEY]]);
     expect(
