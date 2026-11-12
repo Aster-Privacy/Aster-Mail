@@ -10,6 +10,13 @@
 
 Send your report to this email: security@astermail.org
 
+To encrypt your report, use our OpenPGP key:
+
+- Fingerprint: `3E1D A8FA 5D69 9CA0 3F57 11CA 52F1 68E7 F816 A832`
+- Download: [security@astermail.org public key](https://keys.openpgp.org/vks/v1/by-fingerprint/3E1DA8FA5D699CA03F5711CA52F168E7F816A832)
+
+The same key signs our [warrant canary](https://astermail.org/notices/canary.txt), so you can check the fingerprint against it.
+
 You can also submit reports through our vulnerability disclosure program on Bugcrowd: https://bugcrowd.com/engagements/aster-privacy-vdpc
 
 
