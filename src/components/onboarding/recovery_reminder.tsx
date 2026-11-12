@@ -188,7 +188,7 @@ export function RecoveryReminder(): JSX.Element | null {
         is_open={is_replacing}
         mode="regenerate"
         on_close={close_replacement}
-        on_saved={close_replacement}
+        on_saved={dismiss_recovery_code_refresh}
       />
       <AnimatePresence>
         {is_open && copy && (
