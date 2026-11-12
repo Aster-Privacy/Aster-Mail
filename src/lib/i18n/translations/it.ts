@@ -11143,6 +11143,8 @@ export const it = {
       "case_sensitive può seguire solo un valore di testo tra virgolette.",
     expr_internal_error:
       "Non è stato possibile leggere questa espressione. Controlla la sintassi e riprova.",
+    expr_server_rejected:
+      "Impossibile salvare questa parte dell'espressione. Controlla la sintassi e riprova.",
     expr_line_col: "(riga {{line}}, colonna {{col}})",
     editor_description: "Dia un nome alla regola e le indichi cosa fare.",
     editor_server_notice:
@@ -11283,6 +11285,10 @@ export const it = {
     regex_invalid:
       "Questo pattern regex non è valido. Controlla la sintassi e riprova.",
     regex_empty: "Un pattern regex è necessario prima di salvare.",
+    regex_too_complex:
+      "Questo pattern regex è troppo complesso per essere salvato. Usa meno ripetizioni o alternative e riprova.",
+    regex_invalid_reason:
+      "Questo pattern regex non è valido: {{reason}}",
     regex_too_long:
       "Questo regex è troppo lungo. Una versione ridotta funzionerà.",
     last_condition_required:

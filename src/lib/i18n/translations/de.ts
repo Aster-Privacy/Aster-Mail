@@ -11228,6 +11228,8 @@ export const de = {
       "case_sensitive darf nur auf einen Textwert in Anführungszeichen folgen.",
     expr_internal_error:
       "Dieser Ausdruck konnte nicht gelesen werden. Prüfen Sie die Syntax und versuchen Sie es erneut.",
+    expr_server_rejected:
+      "Dieser Teil des Ausdrucks kann nicht gespeichert werden. Prüfen Sie die Syntax und versuchen Sie es erneut.",
     expr_line_col: "(Zeile {{line}}, Spalte {{col}})",
     editor_description:
       "Benennen Sie Ihre Regel und legen Sie fest, was sie tut.",
@@ -11427,6 +11429,10 @@ export const de = {
     regex_empty: "Ein Regex-Muster wird vor dem Speichern benötigt.",
     regex_invalid:
       "Dieses Regex-Muster ist nicht gültig. Prüfen Sie die Syntax und versuchen Sie es erneut.",
+    regex_too_complex:
+      "Dieses Regex-Muster ist zu komplex zum Speichern. Verwende weniger Wiederholungen oder Alternativen und versuche es erneut.",
+    regex_invalid_reason:
+      "Dieses Regex-Muster ist ungültig: {{reason}}",
     regex_too_long:
       "Dieses Regex ist zu lang. Eine gekürzte Version funktioniert.",
     remove_action: "Aktion entfernen",

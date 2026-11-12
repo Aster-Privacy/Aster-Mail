@@ -11199,6 +11199,8 @@ export const pt = {
       "case_sensitive só pode surgir a seguir a um valor de texto entre aspas.",
     expr_internal_error:
       "Não foi possível ler esta expressão. Verifique a sintaxe e tente novamente.",
+    expr_server_rejected:
+      "Não é possível guardar esta parte da expressão. Verifique a sintaxe e tente novamente.",
     expr_line_col: "(linha {{line}}, coluna {{col}})",
     editor_description: "Dê um nome à sua regra e indique-lhe o que fazer.",
     editor_server_notice:
@@ -11340,6 +11342,10 @@ export const pt = {
     regex_invalid:
       "Este padrão regex não é válido. Verifique a sintaxe e tente novamente.",
     regex_empty: "É necessário um padrão regex antes de guardar.",
+    regex_too_complex:
+      "Este padrão regex é demasiado complexo para ser guardado. Use menos repetições ou alternativas e tente novamente.",
+    regex_invalid_reason:
+      "Este padrão regex não é válido: {{reason}}",
     regex_too_long:
       "Esta regex é demasiado longa. Uma versão reduzida funcionará.",
     last_condition_required:

@@ -62,6 +62,7 @@ import {
 import {
   create_rule,
   get_last_save_error,
+  get_last_save_server_message,
   update_rule,
   delete_rule,
   run_on_existing,
@@ -107,6 +108,7 @@ import {
 } from "@/components/modals/rule_editor_helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { rule_supports_local_evaluation } from "@/lib/mail_rules/local_rule_evaluator";
+import { classify_rule_save_error } from "@/lib/mail_rules/rule_save_error";
 import {
   apply_rule_to_sealed_items,
   empty_local_apply_result,
@@ -552,10 +554,35 @@ export function RuleEditorModal({
           : await create_rule(req);
 
       if (!result) {
-        show_toast(
-          get_last_save_error() || t("mail_rules.save_failed"),
-          "error",
+        const save_error = classify_rule_save_error(
+          get_last_save_server_message(),
+          expression_value ?? "",
         );
+
+        if (save_error?.kind === "regex") {
+          show_toast(
+            save_error.reason === "too_complex"
+              ? t("mail_rules.regex_too_complex")
+              : save_error.detail
+                ? t("mail_rules.regex_invalid_reason", {
+                    reason: save_error.detail,
+                  })
+                : t("mail_rules.regex_invalid"),
+            "error",
+          );
+        } else if (save_error && using_expression) {
+          set_expression_error({
+            message: save_error.code,
+            line: save_error.line,
+            col: save_error.col,
+          });
+          show_toast(friendly_error(save_error.code, t), "error");
+        } else {
+          show_toast(
+            get_last_save_error() || t("mail_rules.save_failed"),
+            "error",
+          );
+        }
         set_saving(false);
 
         return;

@@ -11089,6 +11089,8 @@ export const es = {
       "case_sensitive solo puede ir después de un valor de texto entre comillas.",
     expr_internal_error:
       "No se pudo leer esta expresión. Revisa la sintaxis e inténtalo de nuevo.",
+    expr_server_rejected:
+      "No se puede guardar esta parte de la expresión. Revisa la sintaxis e inténtalo de nuevo.",
     expr_line_col: "(línea {{line}}, columna {{col}})",
     editor_description: "Ponle nombre a tu regla y dile qué hacer.",
     editor_server_notice:
@@ -11286,6 +11288,10 @@ export const es = {
     regex_empty: "Se necesita un patrón regex antes de guardar.",
     regex_invalid:
       "Este patrón de expresión regular no es válido. Comprueba la sintaxis e inténtalo de nuevo.",
+    regex_too_complex:
+      "Este patrón regex es demasiado complejo para guardarlo. Usa menos repeticiones o alternativas e inténtalo de nuevo.",
+    regex_invalid_reason:
+      "Este patrón regex no es válido: {{reason}}",
     regex_too_long:
       "Este regex es demasiado largo. Una versión más corta funcionará.",
     remove_action: "Eliminar acción",

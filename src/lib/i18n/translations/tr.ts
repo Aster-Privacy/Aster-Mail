@@ -10953,6 +10953,8 @@ export const tr = {
       "case_sensitive yalnızca tırnak içindeki bir metin değerinden sonra gelebilir.",
     expr_internal_error:
       "Bu ifade okunamadı. Söz dizimini kontrol edip tekrar deneyin.",
+    expr_server_rejected:
+      "İfadenin bu kısmı kaydedilemiyor. Söz dizimini kontrol edip yeniden deneyin.",
     expr_line_col: "(satır {{line}}, sütun {{col}})",
     editor_description: "Kuralınıza bir ad verin ve ne yapacağını belirtin.",
     editor_server_notice:
@@ -11089,6 +11091,10 @@ export const tr = {
     regex_invalid:
       "Bu regex deseni geçerli değil. Söz dizimini kontrol edin ve tekrar deneyin.",
     regex_empty: "Kaydetmeden önce bir regex kalıbı gerekiyor.",
+    regex_too_complex:
+      "Bu regex kalıbı kaydedilemeyecek kadar karmaşık. Daha az tekrar veya seçenek kullanıp yeniden deneyin.",
+    regex_invalid_reason:
+      "Bu regex kalıbı geçerli değil: {{reason}}",
     regex_too_long: "Bu regex çok uzun. Kırpılmış bir sürüm çalışır.",
     last_condition_required:
       "Bu kural kaydedilebilmesi için en az bir koşul gerekiyor.",

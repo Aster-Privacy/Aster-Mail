@@ -600,6 +600,8 @@ export interface MailRulesTranslations {
   op_newer_than_days: string;
   regex_invalid: string;
   regex_empty: string;
+  regex_too_complex: string;
+  regex_invalid_reason: string;
   regex_too_long: string;
   regex_backreference: string;
   regex_lookaround: string;
@@ -708,6 +710,7 @@ export interface MailRulesTranslations {
   expr_unhandled_field: string;
   expr_misplaced_case_flag: string;
   expr_internal_error: string;
+  expr_server_rejected: string;
   expr_line_col: string;
   cannot_render_visual: string;
   templates_button: string;
