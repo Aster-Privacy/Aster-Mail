@@ -557,6 +557,7 @@ export interface UnsubscribeDelivery {
   routing_token?: string;
   recipients?: (string | null | undefined)[];
   primary_email?: string;
+  require_known_sender?: boolean;
 }
 
 export interface ExecuteUnsubscribeOptions {

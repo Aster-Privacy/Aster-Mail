@@ -41,10 +41,8 @@ import {
   list_recent_recipients,
   decrypt_recent_recipients,
 } from "@/services/api/recent_recipients";
-import {
-  use_sender_aliases,
-  is_signature_bindable_sender_type,
-} from "@/hooks/use_sender_aliases";
+import { use_sender_aliases } from "@/hooks/use_sender_aliases";
+import { signature_for_sender } from "@/lib/sender_signature";
 import {
   get_preferred_sender_id,
   set_preferred_sender_id,
@@ -52,6 +50,7 @@ import {
 } from "@/lib/preferred_sender";
 import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
+import { sender_is_pending } from "@/components/compose/sender_pending";
 import { compose_selected_alias } from "@/components/compose/selected_alias";
 import {
   use_ghost_mode,
@@ -507,6 +506,23 @@ export function use_compose({
     show_toast(t("common.scheduled_no_attachments"), "warning");
   }, [attachment_count, scheduled_time, t]);
 
+  const is_sender_pending = useCallback(
+    () =>
+      sender_is_pending({
+        loading: aliases_loading,
+        chosen_by_user:
+          sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
+        draft_from: edit_draft?.from_email,
+        selected_email: selected_sender?.email,
+      }),
+    [
+      aliases_loading,
+      ghost_mode.is_ghost_enabled,
+      edit_draft?.from_email,
+      selected_sender?.email,
+    ],
+  );
+
   const send_hook = use_compose_send({
     recipients,
     subject,
@@ -517,6 +533,7 @@ export function use_compose({
     is_loading_forward_attachments,
     contacts,
     selected_sender,
+    is_sender_pending,
     has_external_recipients,
     expires_at,
     expiry_password,
@@ -560,7 +577,12 @@ export function use_compose({
     });
 
     if (!resolved) return;
-    sender_resolved_ref.current = true;
+    sender_resolved_ref.current = !sender_is_pending({
+      loading: aliases_loading,
+      chosen_by_user: false,
+      draft_from: edit_draft?.from_email,
+      selected_email: resolved.option.email,
+    });
     if (resolved.option.id === selected_sender?.id) return;
 
     set_selected_sender_state(resolved.option);
@@ -573,6 +595,7 @@ export function use_compose({
     ghost_mode.is_ghost_enabled,
     has_user_content,
     effective_selected_alias,
+    aliases_loading,
   ]);
 
   useEffect(() => {
@@ -1049,13 +1072,11 @@ export function use_compose({
 
     const badge_html = active_badge ? build_badge_html([active_badge]) : "";
 
-    const initial_sender_alias_id =
-      selected_sender &&
-      is_signature_bindable_sender_type(selected_sender.type)
-        ? selected_sender.id
-        : null;
-    const initial_signature =
-      resolve_signature(initial_sender_alias_id) ?? default_signature;
+    const initial_signature = signature_for_sender(
+      selected_sender,
+      resolve_signature,
+      default_signature,
+    );
     const signature_block =
       preferences.signature_mode === "auto" && initial_signature
         ? SIGNATURE_GAP_BLOCK +
@@ -1139,13 +1160,28 @@ export function use_compose({
 
     if (!editor) return;
 
-    const alias_id =
-      selected_sender && is_signature_bindable_sender_type(selected_sender.type)
-        ? selected_sender.id
-        : null;
-    const target = resolve_signature(alias_id) ?? default_signature;
+    const target = signature_for_sender(
+      selected_sender,
+      resolve_signature,
+      default_signature,
+    );
 
-    if (!target) return;
+    if (!target) {
+      const stale =
+        selected_sender?.type === "ghost" ? find_own_signature(editor) : null;
+
+      if (stale) {
+        stale.remove();
+        set_message(
+          is_plain_text_ref.current
+            ? editor.innerText
+            : read_compose_editor_html(editor.innerHTML),
+        );
+      }
+      last_signature_id_ref.current = null;
+
+      return;
+    }
     if (last_signature_id_ref.current === target.id) return;
 
     const existing = find_own_signature(editor);

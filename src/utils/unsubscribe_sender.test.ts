@@ -26,6 +26,7 @@ const h = vi.hoisted(() => ({
   identities: {} as Record<string, Identity | undefined>,
   routed: {} as Record<string, string | undefined>,
   populated: true,
+  secondary: true,
   after_load: null as null | (() => void),
   ensure: vi.fn(),
   catch_all: vi.fn(),
@@ -45,6 +46,7 @@ vi.mock("@/hooks/use_sender_aliases", () => ({
     return address ? h.identities[address] : undefined;
   },
   is_sender_alias_cache_populated: () => h.populated,
+  has_cached_secondary_addresses: () => h.secondary,
   ensure_sender_alias_caches: h.ensure,
 }));
 
@@ -65,7 +67,11 @@ import {
   execute_unsubscribe,
   perform_unsubscribe,
 } from "@/utils/unsubscribe_detector";
-import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
+import {
+  build_listed_unsubscribe_delivery,
+  build_unsubscribe_delivery,
+  envelope_recipient_addresses,
+} from "@/utils/unsubscribe_delivery";
 import { resolve_unsubscribe_sender } from "@/utils/unsubscribe_sender";
 
 const mock_proxy = vi.mocked(proxy_unsubscribe);
@@ -112,6 +118,7 @@ beforeEach(() => {
   h.confirm.mockReset();
   h.confirm.mockResolvedValue(true);
   h.after_load = null;
+  h.secondary = true;
   fill_caches();
 });
 
@@ -332,6 +339,120 @@ describe("execute_unsubscribe resolves the sender from the delivery", () => {
     });
 
     await expect(execute_unsubscribe(MAILTO_INFO, {})).resolves.toBe("mailto");
+  });
+});
+
+describe("execute_unsubscribe for a listed subscription", () => {
+  it("sends from the alias that received the latest message", async () => {
+    await expect(
+      execute_unsubscribe(
+        MAILTO_INFO,
+        build_listed_unsubscribe_delivery("token-alias", undefined),
+      ),
+    ).resolves.toBe("api");
+
+    expect(mock_proxy).toHaveBeenCalledWith({
+      method: "mailto",
+      mailto_address: "mailto:leave@list.example.com",
+      from_address: ALIAS.email,
+      from_address_hash: ALIAS.address_hash,
+    });
+  });
+
+  it("sends from the own address named in the stored recipients", async () => {
+    await expect(
+      execute_unsubscribe(
+        MAILTO_INFO,
+        build_listed_unsubscribe_delivery(undefined, [
+          "list@news.example.com",
+          GHOST.email,
+        ]),
+      ),
+    ).resolves.toBe("api");
+
+    expect(mock_proxy).toHaveBeenCalledWith({
+      method: "mailto",
+      mailto_address: "mailto:leave@list.example.com",
+      from_address: GHOST.email,
+      from_address_hash: GHOST.address_hash,
+    });
+  });
+
+  it("sends from the primary address when the recipients name it", async () => {
+    await expect(
+      execute_unsubscribe(
+        MAILTO_INFO,
+        build_listed_unsubscribe_delivery(undefined, ["me@astermail.org"]),
+      ),
+    ).resolves.toBe("api");
+
+    expect(mock_proxy).toHaveBeenCalledWith({
+      method: "mailto",
+      mailto_address: "mailto:leave@list.example.com",
+      from_address: "me@astermail.org",
+    });
+  });
+
+  it("sends nothing when the receiving address is not known", async () => {
+    await expect(
+      execute_unsubscribe(
+        MAILTO_INFO,
+        build_listed_unsubscribe_delivery(undefined, undefined),
+      ),
+    ).resolves.toBe("mailto");
+
+    expect(mock_proxy).not.toHaveBeenCalled();
+  });
+
+  it("sends nothing when the addresses cannot be loaded", async () => {
+    empty_caches();
+    h.secondary = false;
+
+    await expect(
+      execute_unsubscribe(
+        MAILTO_INFO,
+        build_listed_unsubscribe_delivery(undefined, []),
+      ),
+    ).resolves.toBe("mailto");
+
+    expect(h.ensure).toHaveBeenCalled();
+    expect(mock_proxy).not.toHaveBeenCalled();
+  });
+
+  it("sends from the primary address when the account has no other", async () => {
+    h.identities = {};
+    h.routed = {};
+    h.secondary = false;
+
+    await expect(
+      execute_unsubscribe(
+        MAILTO_INFO,
+        build_listed_unsubscribe_delivery(undefined, ["list@news.example.com"]),
+      ),
+    ).resolves.toBe("api");
+
+    expect(mock_proxy).toHaveBeenCalledWith({
+      method: "mailto",
+      mailto_address: "mailto:leave@list.example.com",
+      from_address: "me@astermail.org",
+    });
+  });
+});
+
+describe("envelope_recipient_addresses", () => {
+  it("collects the delivery address and the visible recipients once", () => {
+    expect(
+      envelope_recipient_addresses({
+        to: [{ name: "Shop", email: "Shop@AsterMail.org" }, "Friend <f@x.io>"],
+        cc: [{ name: "", email: "shop@astermail.org" }],
+        raw_headers: [{ name: "Delivered-To", value: "<x7k2@astermail.org>" }],
+      }),
+    ).toEqual(["x7k2@astermail.org", "shop@astermail.org", "f@x.io"]);
+  });
+
+  it("tolerates an envelope without recipients", () => {
+    expect(envelope_recipient_addresses({})).toEqual([]);
+    expect(envelope_recipient_addresses(null)).toEqual([]);
   });
 });
 

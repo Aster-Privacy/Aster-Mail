@@ -64,7 +64,12 @@ import { show_toast } from "@/components/toast/simple_toast";
 import {
   detect_unsubscribe_info,
   execute_unsubscribe,
+  type UnsubscribeDelivery,
 } from "@/utils/unsubscribe_detector";
+import {
+  build_listed_unsubscribe_delivery,
+  envelope_recipient_addresses,
+} from "@/utils/unsubscribe_delivery";
 import { confirm_unsubscribe_bulk } from "@/components/modals/unsubscribe_confirmation_modal";
 import {
   load_unsubscribe_facts,
@@ -105,7 +110,10 @@ interface DecryptedEnvelope {
   list_unsubscribe_post?: string;
 }
 
-function latest_routing_token(items: MailItem[]): string | undefined {
+async function latest_delivery(
+  items: MailItem[],
+  needs_recipients: boolean,
+): Promise<UnsubscribeDelivery> {
   let latest: MailItem | undefined;
 
   for (const item of items) {
@@ -113,7 +121,19 @@ function latest_routing_token(items: MailItem[]): string | undefined {
     if (!latest || item.created_at > latest.created_at) latest = item;
   }
 
-  return latest?.routing_token || undefined;
+  if (!latest || latest.routing_token || !needs_recipients) {
+    return build_listed_unsubscribe_delivery(latest?.routing_token, []);
+  }
+
+  const envelope = await decrypt_mail_envelope<Record<string, unknown>>(
+    latest.encrypted_envelope,
+    latest.envelope_nonce,
+  ).catch(() => null);
+
+  return build_listed_unsubscribe_delivery(
+    undefined,
+    envelope_recipient_addresses(envelope),
+  );
 }
 
 async function resolve_unsubscribe_fact(
@@ -400,10 +420,13 @@ export function MassUnsubscribeModal({
       for (let i = 0; i < selected_subs.length; i += UNSUBSCRIBE_BATCH_SIZE) {
         const batch = selected_subs.slice(i, i + UNSUBSCRIBE_BATCH_SIZE);
         const results = await Promise.allSettled(
-          batch.map((sub) =>
+          batch.map(async (sub) =>
             execute_unsubscribe(
               sub.unsub_info,
-              { routing_token: latest_routing_token(sub.items) },
+              await latest_delivery(
+                sub.items,
+                !!sub.unsub_info.unsubscribe_mailto,
+              ),
               { retry_on_rate_limit: true },
             ),
           ),

@@ -98,6 +98,21 @@ export function find_invite_sender(
   );
 }
 
+function find_ghost_sender(
+  options: SenderOption[],
+  address: string,
+): SenderOption | null {
+  return (
+    options.find(
+      (option) =>
+        option.type === "ghost" &&
+        option.is_enabled &&
+        !!option.address_hash &&
+        same_sender_address(option.email, address),
+    ) ?? null
+  );
+}
+
 export function resolve_invite_sender(
   input: InviteSenderInput,
 ): InviteSenderResolution {
@@ -179,7 +194,8 @@ export function reply_identity(
     return fallback;
   }
 
-  const match = find_invite_sender(options, own);
+  const match =
+    find_invite_sender(options, own) ?? find_ghost_sender(options, own);
 
   if (match && match.type !== "primary") {
     return {
