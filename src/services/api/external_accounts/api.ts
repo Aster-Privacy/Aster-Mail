@@ -48,6 +48,7 @@ import {
 } from "./validators";
 
 import { user_facing_error } from "@/utils/user_facing_error";
+import { note_bulk_mail_removed } from "@/services/search/index_removals";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
   get_external_account_health_generation,
@@ -352,6 +353,8 @@ export async function delete_external_account(
       `/mail/v1/external_accounts?account_token=${encodeURIComponent(account_token)}`,
     );
 
+    if (!response.error) note_bulk_mail_removed();
+
     return response;
   } catch (err) {
     return {
@@ -383,6 +386,8 @@ export async function bulk_delete_external_accounts(
       data: { account_tokens },
     });
 
+    if (!response.error) note_bulk_mail_removed();
+
     return response;
   } catch (err) {
     return {
@@ -407,6 +412,8 @@ export async function purge_external_account_mail(
     }>("/mail/v1/external_accounts/purge_mail", {
       account_token,
     });
+
+    if (!response.error) note_bulk_mail_removed();
 
     return response;
   } catch (err) {

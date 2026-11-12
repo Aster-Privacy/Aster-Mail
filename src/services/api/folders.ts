@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { note_bulk_mail_removed } from "@/services/search/index_removals";
 
 export interface FolderDefinition {
   id: string;
@@ -327,10 +328,19 @@ export async function delete_folder(
   folder_id: string,
   data?: DeleteFolderRequest,
 ): Promise<ApiResponse<DeleteFolderResponse>> {
-  return api_client.delete<DeleteFolderResponse>(
+  const response = await api_client.delete<DeleteFolderResponse>(
     `/mail/v1/labels/${folder_id}`,
     data ? { data } : undefined,
   );
+
+  if (
+    !response.error &&
+    (data?.purge_contents || (response.data?.purged_items ?? 0) > 0)
+  ) {
+    note_bulk_mail_removed();
+  }
+
+  return response;
 }
 
 export async function bulk_delete_folders(
