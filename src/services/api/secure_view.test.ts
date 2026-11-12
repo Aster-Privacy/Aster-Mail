@@ -29,6 +29,7 @@ import {
 
 const TYPED_SECRET = "orchard-lantern-47-quiet";
 const PROOF = "cHJvb2YtdmFsdWUtZm9yLXRlc3Rz";
+const DERIVED_KEY = "RHMEBJm89W5fy5dc04qOLv8f2OjzvX6xYoN36VxakqE=";
 const SERVER_FIELD = JSON.stringify("password");
 
 const fetch_mock = vi.fn();
@@ -53,21 +54,31 @@ function sent_body(index: number): Record<string, unknown> {
 
 describe("secure view credential selection", () => {
   it("uses only the derived proof for an end-to-end encrypted view", () => {
-    expect(select_secure_view_credential(true, PROOF, TYPED_SECRET)).toEqual({
+    expect(select_secure_view_credential(PROOF)).toEqual({
       kind: "auth_proof",
       auth_proof: PROOF,
     });
   });
 
   it("returns nothing for an end-to-end encrypted view without a proof", () => {
-    expect(select_secure_view_credential(true, null, TYPED_SECRET)).toBeNull();
+    expect(select_secure_view_credential(null)).toBeNull();
   });
 
-  it("uses the typed value for a server-encrypted view", () => {
-    expect(select_secure_view_credential(false, null, TYPED_SECRET)).toEqual({
-      kind: "server_password",
-      password: TYPED_SECRET,
+  it("uses the derived key for a server-encrypted view", () => {
+    expect(select_secure_view_credential(DERIVED_KEY)).toEqual({
+      kind: "auth_proof",
+      auth_proof: DERIVED_KEY,
     });
+  });
+
+  it("has no way to carry the typed value", () => {
+    const credential = select_secure_view_credential(DERIVED_KEY);
+
+    expect(Object.keys(credential ?? {}).sort()).toEqual([
+      "auth_proof",
+      "kind",
+    ]);
+    expect(JSON.stringify(credential)).not.toContain(TYPED_SECRET);
   });
 });
 
@@ -86,7 +97,7 @@ describe("secure view requests", () => {
   });
 
   it("sends only the derived proof when verifying, replying, and deleting", async () => {
-    const credential = select_secure_view_credential(true, PROOF, TYPED_SECRET);
+    const credential = select_secure_view_credential(PROOF);
 
     await verify_secure_view("tok", credential);
     await reply_to_secure_view("tok", "Thanks", credential);
@@ -123,31 +134,33 @@ describe("secure view requests", () => {
     expect(sent_body(2)).toEqual({});
   });
 
-  it("never sends a proof and the typed value together", async () => {
-    const credential = select_secure_view_credential(false, null, TYPED_SECRET);
+  it("sends only the derived key for a server-encrypted view", async () => {
+    const credential = select_secure_view_credential(DERIVED_KEY);
+
+    await verify_secure_view("tok", credential);
+    await reply_to_secure_view("tok", "Thanks", credential);
+    await delete_secure_view("tok", credential);
+
+    expect(sent_body(0)).toEqual({ auth_proof: DERIVED_KEY });
+    expect(sent_body(1)).toEqual({ auth_proof: DERIVED_KEY, body: "Thanks" });
+    expect(sent_body(2)).toEqual({ auth_proof: DERIVED_KEY });
+    expect(serialized_requests()).not.toContain(TYPED_SECRET);
+    expect(serialized_requests()).not.toContain(SERVER_FIELD);
+  });
+
+  it("ignores extra fields on a credential", async () => {
+    const credential = {
+      ...select_secure_view_credential(DERIVED_KEY)!,
+      password: TYPED_SECRET,
+    };
 
     await verify_secure_view("tok", credential);
     await reply_to_secure_view("tok", "Thanks", credential);
     await delete_secure_view("tok", credential);
 
     for (const index of [0, 1, 2]) {
-      expect(sent_body(index).password).toBe(TYPED_SECRET);
-      expect(sent_body(index)).not.toHaveProperty("auth_proof");
+      expect(sent_body(index)).not.toHaveProperty("password");
     }
-  });
-
-  it("keeps the typed value out of the URL and headers for every request", async () => {
-    const credential = select_secure_view_credential(false, null, TYPED_SECRET);
-
-    await verify_secure_view("tok", credential);
-    await reply_to_secure_view("tok", "Thanks", credential);
-    await delete_secure_view("tok", credential);
-
-    for (const [url, init] of fetch_mock.mock.calls) {
-      expect(String(url)).not.toContain(TYPED_SECRET);
-      expect(JSON.stringify((init as RequestInit).headers ?? {})).not.toContain(
-        TYPED_SECRET,
-      );
-    }
+    expect(serialized_requests()).not.toContain(TYPED_SECRET);
   });
 });

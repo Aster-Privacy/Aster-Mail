@@ -22,6 +22,7 @@ import type {
   EncryptedField,
   EncryptedSecureAttachment,
 } from "../crypto/secure_message_crypto";
+import type { SecureViewPasswordKdf } from "../crypto/secure_view_key";
 
 export interface SecureViewMetadata {
   sender_display_name?: string;
@@ -34,6 +35,7 @@ export interface SecureViewMetadata {
   time_remaining_seconds: number;
   is_zero_knowledge: boolean;
   kdf_salt?: string;
+  password_kdf?: SecureViewPasswordKdf;
 }
 
 export interface SecureViewContent {
@@ -75,20 +77,15 @@ export async function get_secure_view_metadata(
   return (await response.json()) as SecureViewMetadata;
 }
 
-export type SecureViewCredential =
-  | { kind: "auth_proof"; auth_proof: string }
-  | { kind: "server_password"; password: string };
+export interface SecureViewCredential {
+  kind: "auth_proof";
+  auth_proof: string;
+}
 
 export function select_secure_view_credential(
-  is_zero_knowledge: boolean,
   auth_proof: string | null,
-  password: string,
 ): SecureViewCredential | null {
-  if (is_zero_knowledge) {
-    return auth_proof ? { kind: "auth_proof", auth_proof } : null;
-  }
-
-  return password ? { kind: "server_password", password } : null;
+  return auth_proof ? { kind: "auth_proof", auth_proof } : null;
 }
 
 function credential_fields(
@@ -96,11 +93,7 @@ function credential_fields(
 ): Record<string, string> {
   if (!credential) return {};
 
-  if (credential.kind === "auth_proof") {
-    return { auth_proof: credential.auth_proof };
-  }
-
-  return { password: credential.password };
+  return { auth_proof: credential.auth_proof };
 }
 
 export async function verify_secure_view(

@@ -43,6 +43,10 @@ import {
   decrypt_secure_message,
 } from "@/services/crypto/secure_message_crypto";
 import {
+  derive_secure_view_key,
+  is_supported_secure_view_kdf,
+} from "@/services/crypto/secure_view_key";
+import {
   get_secure_view_metadata,
   select_secure_view_credential,
   verify_secure_view,
@@ -383,14 +387,32 @@ export default function SecureViewPage() {
         return;
       }
 
-      const proof = is_zk
-        ? await derive_auth_proof(password, metadata.kdf_salt!)
-        : null;
-      const unlock_credential = select_secure_view_credential(
-        is_zk,
-        proof,
-        password,
-      );
+      let proof: string;
+
+      if (is_zk) {
+        proof = await derive_auth_proof(password, metadata.kdf_salt!);
+      } else {
+        let password_kdf = metadata.password_kdf;
+
+        if (!is_supported_secure_view_kdf(password_kdf)) {
+          const refreshed = await get_secure_view_metadata(token);
+
+          if (refreshed.is_zero_knowledge === is_zk) {
+            set_metadata(refreshed);
+            password_kdf = refreshed.password_kdf;
+          }
+        }
+
+        if (!is_supported_secure_view_kdf(password_kdf)) {
+          set_error(t("common.something_went_wrong_try_again"));
+
+          return;
+        }
+
+        proof = await derive_secure_view_key(password, password_kdf);
+      }
+
+      const unlock_credential = select_secure_view_credential(proof);
 
       const response = await verify_secure_view(token, unlock_credential);
 

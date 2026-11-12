@@ -26,10 +26,21 @@ import { createRoot, type Root } from "react-dom/client";
 
 const TYPED_SECRET = "orchard-lantern-47-quiet";
 const PROOF = "cHJvb2YtdmFsdWUtZm9yLXRlc3Rz";
+const DERIVED_KEY = "RHMEBJm89W5fy5dc04qOLv8f2OjzvX6xYoN36VxakqE=";
 const SERVER_FIELD = JSON.stringify("password");
+const PASSWORD_KDF = {
+  algorithm: "argon2id",
+  version: 19,
+  memory_kib: 65536,
+  iterations: 3,
+  parallelism: 4,
+  key_length: 32,
+  salt: "AQIDBAUGBwgJCgsMDQ4PEA==",
+};
 
 const h = vi.hoisted(() => ({
   derive_auth_proof: vi.fn(),
+  derive_secure_view_key: vi.fn(),
   decrypt_secure_message: vi.fn(),
   i18n: { t: (key: string) => key },
 }));
@@ -45,6 +56,11 @@ vi.mock("@/lib/i18n/context", () => ({
 vi.mock("@/services/crypto/secure_message_crypto", () => ({
   derive_auth_proof: h.derive_auth_proof,
   decrypt_secure_message: h.decrypt_secure_message,
+}));
+
+vi.mock("@/services/crypto/secure_view_key", async (original) => ({
+  ...(await original<typeof import("@/services/crypto/secure_view_key")>()),
+  derive_secure_view_key: h.derive_secure_view_key,
 }));
 
 vi.mock("@/lib/html_sanitizer", () => ({
@@ -80,6 +96,30 @@ function metadata(overrides: Partial<SecureViewMetadata>): SecureViewMetadata {
     kdf_salt: "c2FsdA",
     ...overrides,
   };
+}
+
+const LEGACY_CONTENT = {
+  is_zero_knowledge: false,
+  subject: "Quarterly numbers",
+  body: "<p>Revenue is up.</p>",
+  sender_email: "ada@astermail.org",
+};
+
+function legacy_view(
+  overrides: Partial<SecureViewMetadata>,
+): SecureViewMetadata {
+  return metadata({
+    is_zero_knowledge: false,
+    kdf_salt: undefined,
+    password_kdf: PASSWORD_KDF,
+    ...overrides,
+  });
+}
+
+function metadata_requests(): number {
+  return fetch_mock.mock.calls.filter(
+    ([, init]) => (init as RequestInit | undefined)?.method === "GET",
+  ).length;
 }
 
 function respond(payload: unknown) {
@@ -191,6 +231,8 @@ describe("secure view page actions", () => {
     h.derive_auth_proof.mockReset();
     h.decrypt_secure_message.mockReset();
     h.derive_auth_proof.mockResolvedValue(PROOF);
+    h.derive_secure_view_key.mockReset();
+    h.derive_secure_view_key.mockResolvedValue(DERIVED_KEY);
     h.decrypt_secure_message.mockResolvedValue({
       subject: "Quarterly numbers",
       body: "<p>Revenue is up.</p>",
@@ -239,6 +281,7 @@ describe("secure view page actions", () => {
     expect(fetch_mock).toHaveBeenCalledTimes(4);
     expect(serialized_requests()).not.toContain(TYPED_SECRET);
     expect(serialized_requests()).not.toContain(SERVER_FIELD);
+    expect(h.derive_secure_view_key).not.toHaveBeenCalled();
     expect(container.querySelector("textarea")).toBeNull();
   });
 
@@ -254,33 +297,142 @@ describe("secure view page actions", () => {
     expect(container.textContent).toContain("secure_view.decrypt_failed");
   });
 
-  it("still opens, replies to, and deletes a server-encrypted message", async () => {
-    route_requests(
-      metadata({ is_zero_knowledge: false, kdf_salt: undefined }),
-      {
-        is_zero_knowledge: false,
-        subject: "Quarterly numbers",
-        body: "<p>Revenue is up.</p>",
-        sender_email: "ada@astermail.org",
-      },
-    );
+  it("opens, replies to, and deletes a server-encrypted message with a derived key", async () => {
+    route_requests(legacy_view({}), LEGACY_CONTENT);
 
     await render_page();
     await unlock();
 
     expect(container.textContent).toContain("Quarterly numbers");
     expect(h.derive_auth_proof).not.toHaveBeenCalled();
+    expect(h.derive_secure_view_key).toHaveBeenCalledTimes(1);
+    expect(h.derive_secure_view_key).toHaveBeenCalledWith(
+      TYPED_SECRET,
+      PASSWORD_KDF,
+    );
 
     await reply_and_delete();
 
-    for (const sent of [
-      sent_body("/verify", "POST"),
-      sent_body("/reply", "POST"),
-      sent_body("/api/view/tok", "DELETE"),
-    ]) {
-      expect(sent.password).toBe(TYPED_SECRET);
-      expect(sent).not.toHaveProperty("auth_proof");
-    }
+    expect(sent_body("/verify", "POST")).toEqual({ auth_proof: DERIVED_KEY });
+    expect(sent_body("/reply", "POST")).toEqual({
+      auth_proof: DERIVED_KEY,
+      body: "Thanks for this",
+    });
+    expect(sent_body("/api/view/tok", "DELETE")).toEqual({
+      auth_proof: DERIVED_KEY,
+    });
+    expect(fetch_mock).toHaveBeenCalledTimes(4);
+    expect(h.derive_secure_view_key).toHaveBeenCalledTimes(1);
+    expect(serialized_requests()).not.toContain(TYPED_SECRET);
+    expect(serialized_requests()).not.toContain(SERVER_FIELD);
     expect(container.querySelector("textarea")).toBeNull();
+  });
+
+  it("sends nothing typed when a server-encrypted view arrives without key settings", async () => {
+    route_requests(legacy_view({ password_kdf: undefined }), LEGACY_CONTENT);
+
+    await render_page();
+    await unlock();
+
+    expect(metadata_requests()).toBe(2);
+    expect(fetch_mock).toHaveBeenCalledTimes(2);
+    expect(h.derive_secure_view_key).not.toHaveBeenCalled();
+    expect(serialized_requests()).not.toContain(TYPED_SECRET);
+    expect(serialized_requests()).not.toContain(SERVER_FIELD);
+    expect(container.textContent).toContain(
+      "common.something_went_wrong_try_again",
+    );
+    expect(container.textContent).not.toContain("Quarterly numbers");
+  });
+
+  it("opens a server-encrypted view once the key settings arrive on a second look", async () => {
+    let metadata_calls = 0;
+
+    fetch_mock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (init?.method === "GET") {
+        metadata_calls += 1;
+
+        return respond(
+          legacy_view(metadata_calls === 1 ? { password_kdf: undefined } : {}),
+        );
+      }
+      if (String(url).endsWith("/verify")) {
+        return respond({ success: true, content: LEGACY_CONTENT });
+      }
+
+      return respond({ success: true });
+    });
+
+    await render_page();
+    await unlock();
+
+    expect(container.textContent).toContain("Quarterly numbers");
+    expect(sent_body("/verify", "POST")).toEqual({ auth_proof: DERIVED_KEY });
+    expect(serialized_requests()).not.toContain(TYPED_SECRET);
+    expect(serialized_requests()).not.toContain(SERVER_FIELD);
+  });
+
+  it("sends nothing typed when the key settings are outside the supported range", async () => {
+    route_requests(
+      legacy_view({ password_kdf: { ...PASSWORD_KDF, memory_kib: 4194304 } }),
+      LEGACY_CONTENT,
+    );
+
+    await render_page();
+    await unlock();
+
+    expect(h.derive_secure_view_key).not.toHaveBeenCalled();
+    expect(serialized_requests()).not.toContain(TYPED_SECRET);
+    expect(serialized_requests()).not.toContain(SERVER_FIELD);
+    expect(container.textContent).not.toContain("Quarterly numbers");
+  });
+
+  it("keeps a server-encrypted view closed after a wrong entry", async () => {
+    fetch_mock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (init?.method === "GET") return respond(legacy_view({}));
+      if (String(url).endsWith("/verify")) {
+        return respond({ success: false, error: "invalid_password" });
+      }
+
+      return respond({ success: true });
+    });
+
+    await render_page();
+    await unlock();
+
+    expect(container.textContent).toContain("secure_view.wrong_password");
+    expect(container.textContent).not.toContain("Quarterly numbers");
+    expect(container.querySelector("textarea")).toBeNull();
+    expect(sent_body("/verify", "POST")).toEqual({ auth_proof: DERIVED_KEY });
+    expect(serialized_requests()).not.toContain(TYPED_SECRET);
+    expect(serialized_requests()).not.toContain(SERVER_FIELD);
+  });
+
+  it("derives the key again for each attempt", async () => {
+    let verify_calls = 0;
+
+    fetch_mock.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (init?.method === "GET") return respond(legacy_view({}));
+      if (String(url).endsWith("/verify")) {
+        verify_calls += 1;
+
+        return respond(
+          verify_calls === 1
+            ? { success: false, error: "invalid_password" }
+            : { success: true, content: LEGACY_CONTENT },
+        );
+      }
+
+      return respond({ success: true });
+    });
+
+    await render_page();
+    await unlock();
+    await unlock();
+
+    expect(h.derive_secure_view_key).toHaveBeenCalledTimes(2);
+    expect(container.textContent).toContain("Quarterly numbers");
+    expect(serialized_requests()).not.toContain(TYPED_SECRET);
+    expect(serialized_requests()).not.toContain(SERVER_FIELD);
   });
 });
