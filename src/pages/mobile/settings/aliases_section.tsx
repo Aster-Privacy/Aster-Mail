@@ -37,6 +37,7 @@ import {
 import { Switch } from "@aster/ui";
 
 import { SettingsHeader } from "./shared";
+import { describe_record_host } from "@/data/dns_providers";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 
 import { DkimShortKeyAction } from "@/components/settings/aliases/dkim_short_key_action";
@@ -928,12 +929,24 @@ export function AliasesSection({
                                       </p>
                                       <div className="flex items-center gap-1">
                                         <p className="text-[12px] font-mono break-all text-[var(--text-primary)] flex-1">
-                                          {record.host}
+                                          {
+                                            describe_record_host(
+                                              record,
+                                              undefined,
+                                              null,
+                                            ).host
+                                          }
                                         </p>
                                         <button
                                           type="button"
                                           onClick={() =>
-                                            handle_copy(record.host)
+                                            handle_copy(
+                                              describe_record_host(
+                                                record,
+                                                undefined,
+                                                null,
+                                              ).host,
+                                            )
                                           }
                                         >
                                           <ClipboardDocumentIcon className="w-3.5 h-3.5 text-[var(--text-muted)]" />
