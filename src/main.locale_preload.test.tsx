@@ -54,21 +54,23 @@ vi.mock("@/mobile_app", () => {
 
   return { default: () => null };
 });
-vi.mock("@/pages/sign_in", () => {
-  events.push("chunk:sign_in");
+function watch_page_chunks() {
+  vi.doMock("@/pages/sign_in", () => {
+    events.push("chunk:sign_in");
 
-  return { default: () => null };
-});
-vi.mock("@/pages/register", () => {
-  events.push("chunk:register");
+    return { default: () => null };
+  });
+  vi.doMock("@/pages/register", () => {
+    events.push("chunk:register");
 
-  return { default: () => null };
-});
-vi.mock("@/pages/index", () => {
-  events.push("chunk:index");
+    return { default: () => null };
+  });
+  vi.doMock("@/pages/index", () => {
+    events.push("chunk:index");
 
-  return { default: () => null };
-});
+    return { default: () => null };
+  });
+}
 vi.mock("@/pages/mobile/mobile_inbox", () => {
   events.push("chunk:mobile_inbox");
 
@@ -126,6 +128,7 @@ async function flush_imports() {
 
 beforeEach(() => {
   vi.resetModules();
+  watch_page_chunks();
   events.length = 0;
   localStorage.clear();
   document.body.innerHTML = '<div id="root"></div>';
@@ -137,22 +140,32 @@ afterEach(() => {
 
 describe("startup locale preload", { timeout: 120_000 }, () => {
   it("starts loading a stored non-English locale before the first render", async () => {
-    await boot_with("fr");
+    await boot_with("fr", "en-US", "/settings");
 
     expect(events).toEqual(["load:fr", "render"]);
   });
 
   it("starts loading a detected browser locale before the first render", async () => {
-    await boot_with(null, "de-DE");
+    await boot_with(null, "de-DE", "/settings");
 
     expect(events).toEqual(["load:de", "render"]);
   });
 
-  it("requests nothing extra for English", async () => {
-    await boot_with("en", "en-US", "/sign-in");
+  it("requests no locale for English once its strings are in memory", async () => {
+    await boot_with("en", "en-US", "/settings");
     await flush_imports();
 
     expect(events).toEqual(["render"]);
+  });
+
+  it("fetches the sign-in page when the locale is already in memory", async () => {
+    await boot_with("en", "en-US", "/sign-in");
+    await vi.waitFor(() => expect(events).toContain("chunk:sign_in"), {
+      timeout: 20_000,
+    });
+
+    expect(events.filter((event) => event.startsWith("load:"))).toEqual([]);
+    expect(events.filter((event) => event === "render")).toHaveLength(1);
   });
 
   it("fetches the sign-in page alongside the locale instead of after it", async () => {
@@ -182,10 +195,33 @@ describe("startup locale preload", { timeout: 120_000 }, () => {
   });
 
   it("does not fetch a page chunk for a route it cannot predict", async () => {
-    await boot_with("nl", "en-US", "/");
+    await boot_with("nl", "en-US", "/settings");
     await flush_imports();
 
     expect(events).toEqual(["load:nl", "render"]);
+  });
+
+  it("fetches the sign-in page at the root for a visitor with no stored preferences", async () => {
+    await boot_with("pl", "en-US", "/");
+    await vi.waitFor(() => expect(events).toContain("chunk:sign_in"), {
+      timeout: 20_000,
+    });
+
+    expect(events.slice(0, 2)).toEqual(["load:pl", "render"]);
+    expect(events.filter((event) => event.startsWith("chunk:"))).toEqual([
+      "chunk:sign_in",
+    ]);
+  });
+
+  it("fetches the registration page at its own address", async () => {
+    await boot_with("tr", "en-US", "/register");
+    await vi.waitFor(() => expect(events).toContain("chunk:register"), {
+      timeout: 20_000,
+    });
+
+    expect(events.filter((event) => event.startsWith("chunk:"))).toEqual([
+      "chunk:register",
+    ]);
   });
 });
 
@@ -223,11 +259,25 @@ describe("startup signed-in preload", { timeout: 120_000 }, () => {
     expect(events).not.toContain("chunk:index");
   });
 
-  it("fetches nothing extra for a visitor with no stored preferences", async () => {
+  it("fetches only the sign-in page for a visitor with no stored preferences", async () => {
     await boot_with("en");
+    await vi.waitFor(() => expect(events).toContain("chunk:sign_in"), {
+      timeout: 20_000,
+    });
     await flush_imports();
 
-    expect(chunk_events()).toEqual([]);
+    expect(chunk_events()).toEqual(["chunk:sign_in"]);
+  });
+
+  it("does not fetch the sign-in page for a returning user at the root", async () => {
+    localStorage.setItem("aster_preferences_cache", "{}");
+    await boot_with("en");
+    await vi.waitFor(() => expect(events).toContain("chunk:index"), {
+      timeout: 20_000,
+    });
+    await flush_imports();
+
+    expect(events).not.toContain("chunk:sign_in");
   });
 
   it("still starts when storage holds unreadable preferences", async () => {
