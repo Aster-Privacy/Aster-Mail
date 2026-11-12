@@ -313,7 +313,11 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     [message.raw_headers],
   );
   const evaluated_trust = use_sender_trust(
-    { ...message, reply_to: reply_to_address },
+    {
+      ...message,
+      reply_to: reply_to_address,
+      e2e_sender_bound: !!message.e2e_sender_bound,
+    },
     { shown_name: raw_sender_name, shown_email: show_sender_email },
   );
   const sender_trust =

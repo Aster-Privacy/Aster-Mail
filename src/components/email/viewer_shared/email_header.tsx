@@ -101,8 +101,9 @@ export function ViewerEmailHeader({
   const peer_badge = peer_profile?.active_badge ?? null;
   const show_sender_badge =
     (peer_profile?.show_badge_profile ?? false) && !!peer_badge;
-  const display_sender =
-    peer_profile?.display_name || email.display_sender_name || email.sender;
+  const display_sender = email.e2e_details_sealed
+    ? email.display_sender_name || email.sender
+    : peer_profile?.display_name || email.display_sender_name || email.sender;
   const show_sender_email = email.display_sender_email ?? email.sender_email;
   const evaluated_trust = use_sender_trust(
     {
@@ -121,6 +122,7 @@ export function ViewerEmailHeader({
       system_origin: email.system_origin,
       sender_verification: email.sender_verification,
       item_type: mail_item?.item_type,
+      e2e_sender_bound: !!email.e2e_sender_bound,
     },
     {
       shown_name: email.display_sender_name ?? email.sender,
@@ -140,6 +142,7 @@ export function ViewerEmailHeader({
             <EncryptionInfoDropdown
               e2e_verified={!!email.e2e_verified}
               sender_bound={!!email.e2e_sender_bound}
+              details_sealed={!!email.e2e_details_sealed}
               sent_encryption_scope={email.sent_encryption_scope}
               has_pq_protection={has_pq_protection}
               has_recipient_key={has_recipient_key}

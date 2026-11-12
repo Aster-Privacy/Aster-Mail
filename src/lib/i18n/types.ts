@@ -1834,6 +1834,7 @@ export interface CommonTranslations {
   end_to_end_encrypted_label: string;
   encrypted_in_transit_stored: string;
   only_you_and_sender: string;
+  only_you_and_sender_details_from_server: string;
   encrypted_to_you_unconfirmed_sender: string;
   only_you_can_read_contacts: string;
   wkd_encrypted_description: string;

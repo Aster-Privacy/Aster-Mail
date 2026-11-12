@@ -1136,6 +1136,8 @@ export const tr = {
     encrypted_in_transit_stored:
       "Aktarımda şifreli ve şifreli olarak depolanır.",
     only_you_and_sender: "Yalnızca siz ve gönderen bunu okuyabilir.",
+    only_you_and_sender_details_from_server:
+      "Yalnızca siz ve gönderen bunu okuyabilir. Gönderenin adı, alıcılar ve tarih sunucudan gelir ve uçtan uca şifreleme kapsamında değildir.",
     encrypted_to_you_unconfirmed_sender:
       "Bu ileti açık anahtarınızla şifrelendi. Gönderenin kimliği doğrulanmadı.",
     only_you_can_read_contacts:

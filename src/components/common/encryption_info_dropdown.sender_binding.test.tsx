@@ -49,6 +49,7 @@ const mounted: Array<{ root: Root; container: HTMLDivElement }> = [];
 function open_dropdown(props: {
   e2e_verified?: boolean;
   sender_bound?: boolean;
+  details_sealed?: boolean;
   sender_verification?: SenderVerificationStatus;
   sent_encryption_scope?: SentEncryptionScope;
 }): string {
@@ -92,10 +93,22 @@ describe("EncryptionInfoDropdown reader description", () => {
     expect(text).not.toContain("common.only_you_and_sender");
   });
 
-  it("names the sender for a sender-bound session", () => {
-    const text = open_dropdown({ e2e_verified: true, sender_bound: true });
+  it("names the sender for a sender-bound session with sealed details", () => {
+    const text = open_dropdown({
+      e2e_verified: true,
+      sender_bound: true,
+      details_sealed: true,
+    });
 
     expect(text).toContain("common.only_you_and_sender");
+    expect(text).not.toContain("details_from_server");
+    expect(text).not.toContain("common.encrypted_to_you_unconfirmed_sender");
+  });
+
+  it("says the details come from the server when they are not sealed", () => {
+    const text = open_dropdown({ e2e_verified: true, sender_bound: true });
+
+    expect(text).toContain("common.only_you_and_sender_details_from_server");
     expect(text).not.toContain("common.encrypted_to_you_unconfirmed_sender");
   });
 
@@ -112,6 +125,7 @@ describe("EncryptionInfoDropdown reader description", () => {
     const text = open_dropdown({ sent_encryption_scope: "internal" });
 
     expect(text).toContain("common.only_you_and_sender");
+    expect(text).not.toContain("details_from_server");
   });
 });
 

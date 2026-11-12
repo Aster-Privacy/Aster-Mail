@@ -18,12 +18,50 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 import type { SubjectBundle } from "@/utils/email_crypto";
+import type { SealedAddress } from "@/utils/sealed_message_details";
 
 import { register_sealed_attachment_manifest } from "./inbound_attachment_keys";
 
 export interface SealedFieldTarget {
   subject: string;
   raw_headers?: { name: string; value: string }[];
+  from?: { name: string; email: string };
+  to?: SealedAddress[];
+  cc?: SealedAddress[];
+  sent_at?: string;
+}
+
+export function has_sealed_details(
+  bundle: Pick<SubjectBundle, "details">,
+  sealed: boolean,
+): boolean {
+  return sealed && bundle.details !== undefined;
+}
+
+function settle_sealed_details(
+  envelope: SealedFieldTarget,
+  bundle: Pick<SubjectBundle, "details">,
+): void {
+  const details = bundle.details;
+
+  if (!details) return;
+
+  if (envelope.from) {
+    envelope.from = { ...envelope.from, name: details.from_name };
+  }
+  envelope.to = details.to.map((address) => ({ ...address }));
+  envelope.cc = details.cc.map((address) => ({ ...address }));
+  envelope.sent_at = details.sent_at;
+}
+
+export function sealed_timestamp(
+  envelope: { sent_at?: string },
+  details_sealed: boolean,
+  served_timestamp: string,
+): string {
+  return details_sealed && envelope.sent_at
+    ? envelope.sent_at
+    : served_timestamp;
 }
 
 export function without_reply_to<Header extends { name: string }>(
@@ -46,6 +84,7 @@ export function settle_sealed_fields(
 
   if (bundle.subject !== null) envelope.subject = bundle.subject;
   envelope.raw_headers = without_reply_to(envelope.raw_headers);
+  settle_sealed_details(envelope, bundle);
 
   return register_sealed_attachment_manifest(
     mail_item_id,
@@ -54,9 +93,17 @@ export function settle_sealed_fields(
 }
 
 export function settle_bundle_subject(
-  envelope: { subject: string },
-  bundle: { subject: string | null; sealed?: boolean },
+  envelope: { subject: string; from?: { name: string; email: string } },
+  bundle: {
+    subject: string | null;
+    sealed?: boolean;
+    details?: SubjectBundle["details"];
+  },
 ): void {
+  if (bundle.sealed === true && bundle.details && envelope.from) {
+    envelope.from = { ...envelope.from, name: bundle.details.from_name };
+  }
+
   if (bundle.subject === null) return;
 
   if (bundle.sealed === true || !envelope.subject) {

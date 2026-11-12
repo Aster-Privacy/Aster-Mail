@@ -48,6 +48,7 @@ export interface SenderTrustMessage {
   system_origin?: boolean | null;
   sender_verification?: string | null;
   item_type?: string | null;
+  e2e_sender_bound?: boolean | null;
 }
 
 export interface SenderTrustOverrides {
@@ -86,6 +87,12 @@ export function sender_trust_input(
     aligned === true ||
     (aligned === undefined && (unrecorded || dmarc === "pass"));
   const drop_auth = is_rewritten && carrier_trusted;
+  const unbound_internal =
+    message.is_external === false &&
+    message.e2e_sender_bound === false &&
+    message.system_origin !== true &&
+    message.sender_verification !== "verified";
+  const drop_verified = is_rewritten || unbound_internal;
 
   return {
     name,
@@ -95,10 +102,10 @@ export function sender_trust_input(
     dkim_result: drop_auth ? undefined : (message.dkim_result ?? undefined),
     dmarc_result: drop_auth ? undefined : (message.dmarc_result ?? undefined),
     sender_aligned: drop_auth ? undefined : is_rewritten ? false : aligned,
-    sender_verified: is_rewritten
+    sender_verified: drop_verified
       ? false
       : (message.sender_verified ?? !!message.sender_verified_domain),
-    sender_verified_domain: is_rewritten
+    sender_verified_domain: drop_verified
       ? undefined
       : (message.sender_verified_domain ?? undefined),
     is_internal:
@@ -209,6 +216,7 @@ export function use_sender_trust(
     system_origin,
     sender_verification,
     item_type,
+    e2e_sender_bound,
   } = message;
   const { shown_name, shown_email } = overrides;
 
@@ -232,6 +240,7 @@ export function use_sender_trust(
             system_origin,
             sender_verification,
             item_type,
+            e2e_sender_bound,
           },
           context,
           { shown_name, shown_email },
@@ -254,6 +263,7 @@ export function use_sender_trust(
       system_origin,
       sender_verification,
       item_type,
+      e2e_sender_bound,
       shown_name,
       shown_email,
     ],

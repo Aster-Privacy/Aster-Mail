@@ -1021,6 +1021,8 @@ export const de = {
       "Wir konnten die Schlüssel dieses Empfängers nicht prüfen. Ein weiterer Versuch zeigt, ob diese Nachricht Ende-zu-Ende verschlüsselt werden kann.",
     end_to_end_encrypted_label: "Ende-zu-Ende-verschlüsselt",
     only_you_and_sender: "Nur Sie und der Absender können dies lesen.",
+    only_you_and_sender_details_from_server:
+      "Nur Sie und der Absender können dies lesen. Der Name des Absenders, die Empfänger und das Datum stammen vom Server und sind nicht durch die Ende-zu-Ende-Verschlüsselung geschützt.",
     encrypted_to_you_unconfirmed_sender:
       "Diese Nachricht wurde mit Ihrem öffentlichen Schlüssel verschlüsselt. Die Identität des Absenders ist nicht bestätigt.",
     only_you_can_read_contacts:

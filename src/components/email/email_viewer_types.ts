@@ -59,6 +59,7 @@ export interface DecryptedEmail {
   system_origin?: boolean;
   e2e_verified?: boolean;
   e2e_sender_bound?: boolean;
+  e2e_details_sealed?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
   sender_verified_domain?: string;
   sender_aligned?: boolean;

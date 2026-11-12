@@ -1185,6 +1185,8 @@ export const ko = {
     end_to_end_encrypted_label: "종단간 암호화됨",
     encrypted_in_transit_stored: "전송 및 저장 시 암호화됩니다.",
     only_you_and_sender: "나와 발신자만 이 내용을 읽을 수 있습니다.",
+    only_you_and_sender_details_from_server:
+      "나와 발신자만 이 내용을 읽을 수 있습니다. 발신자 이름, 수신자, 날짜는 서버에서 제공되며 종단간 암호화로 보호되지 않습니다.",
     encrypted_to_you_unconfirmed_sender:
       "이 메시지는 내 공개 키로 암호화되었습니다. 발신자의 신원은 확인되지 않았습니다.",
     only_you_can_read_contacts:

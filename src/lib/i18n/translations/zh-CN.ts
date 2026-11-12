@@ -986,6 +986,8 @@ export const zh_CN = {
     end_to_end_encrypted_label: "端到端加密",
     encrypted_in_transit_stored: "传输中加密并以加密形式存储。",
     only_you_and_sender: "只有您和发件人可以阅读此邮件。",
+    only_you_and_sender_details_from_server:
+      "只有您和发件人可以阅读此邮件。发件人姓名、收件人和日期由服务器提供，不受端到端加密保护。",
     encrypted_to_you_unconfirmed_sender: "此邮件已使用您的公钥加密。发件人的身份尚未确认。",
     only_you_can_read_contacts:
       "只有您可以读取自己的联系人，Aster 无法看到这些数据。",

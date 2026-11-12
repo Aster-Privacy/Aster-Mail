@@ -1182,6 +1182,8 @@ export const ja = {
     end_to_end_encrypted_label: "エンドツーエンド暗号化",
     encrypted_in_transit_stored: "転送中も保管中も暗号化されています。",
     only_you_and_sender: "あなたと送信者だけがこのメールを読めます。",
+    only_you_and_sender_details_from_server:
+      "あなたと送信者だけがこのメールを読めます。送信者名、宛先、日付はサーバーから提供されるため、エンドツーエンド暗号化の対象ではありません。",
     encrypted_to_you_unconfirmed_sender:
       "このメッセージはあなたの公開鍵で暗号化されています。送信者の身元は確認されていません。",
     only_you_can_read_contacts:

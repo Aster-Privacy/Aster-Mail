@@ -1116,6 +1116,8 @@ export const nl = {
       "We konden de sleutels van deze ontvanger niet controleren. Een nieuwe poging laat zien of dit bericht end-to-end kan worden versleuteld.",
     end_to_end_encrypted_label: "End-to-end versleuteld",
     only_you_and_sender: "Alleen jij en de afzender kunnen dit lezen.",
+    only_you_and_sender_details_from_server:
+      "Alleen jij en de afzender kunnen dit lezen. De naam van de afzender, de ontvangers en de datum komen van de server en vallen niet onder end-to-end-versleuteling.",
     encrypted_to_you_unconfirmed_sender:
       "Dit bericht is versleuteld met je openbare sleutel. De identiteit van de afzender is niet bevestigd.",
     only_you_can_read_contacts:

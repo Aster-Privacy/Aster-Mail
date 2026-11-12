@@ -36,6 +36,7 @@ import { plain_text_to_html } from "@/services/send_queue_recipients";
 import { describe_sender_refusal } from "@/services/send_refusal";
 import { is_internal_email } from "@/services/api/keys";
 import { build_subject_bundle } from "@/utils/email_crypto";
+import { build_sealed_details } from "@/utils/sealed_message_details";
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { is_future_instant } from "@/utils/schedule_targets";
 import { sanitize_header_value } from "@/services/pgp_protected_mime";
@@ -283,7 +284,17 @@ async function build_sealed_delivery(
   options: ScheduledSendOptions,
 ): Promise<ScheduledDelivery> {
   const sealed = await encrypt_with_private_bcc(
-    build_subject_bundle(content.subject || "", content.body),
+    build_subject_bundle(
+      content.subject || "",
+      content.body,
+      [],
+      build_sealed_details({
+        from_name: options.sender_display_name,
+        to: content.to_recipients,
+        cc: content.cc_recipients,
+        sent_at: content.scheduled_at,
+      }),
+    ),
     {
       to: content.to_recipients,
       cc: content.cc_recipients,

@@ -501,6 +501,7 @@ export function use_popup_viewer({
         system_origin: pe.system_origin,
         e2e_verified: !!pe.e2e_verified,
         e2e_sender_bound: !!pe.e2e_sender_bound,
+        e2e_details_sealed: !!pe.e2e_details_sealed,
         sent_encryption_scope: pe.sent_encryption_scope,
         send_status: pe.send_status,
         send_error: pe.send_error,
@@ -656,6 +657,7 @@ export function use_popup_viewer({
           unsubscribe_info: unsubscribe,
           e2e_verified,
           e2e_sender_bound,
+          e2e_details_sealed,
           sent_encryption_scope,
         } = await process_envelope_body(
           envelope,
@@ -702,6 +704,7 @@ export function use_popup_viewer({
           system_origin: response.data.system_origin,
           e2e_verified,
           e2e_sender_bound,
+          e2e_details_sealed,
           sent_encryption_scope,
           send_status: response.data.send_status,
           send_error: response.data.send_error,
@@ -720,6 +723,7 @@ export function use_popup_viewer({
           e2e_verified,
           sent_encryption_scope,
           e2e_sender_bound,
+          e2e_details_sealed,
         );
 
         if (should_load_thread) {

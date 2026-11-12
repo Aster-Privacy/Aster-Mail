@@ -109,6 +109,7 @@ import {
   build_ratchet_envelope,
 } from "@/services/crypto/ratchet_manager";
 import { build_subject_bundle } from "@/utils/email_crypto";
+import { build_sealed_details } from "@/utils/sealed_message_details";
 import {
   clear_attachment_keys,
   get_attachment_entry,
@@ -223,6 +224,22 @@ const SWAPPED_FIELDS = {
   ],
 };
 
+const SEALED_SENT_AT = "2026-11-12T10:15:00.000Z";
+
+const SEALED_DETAILS = build_sealed_details({
+  from_name: "Real Sender",
+  to: [RECIPIENT],
+  cc: ["real-cc@astermail.org"],
+  sent_at: SEALED_SENT_AT,
+});
+
+const SWAPPED_DETAILS = {
+  from: { name: "Swapped Name", email: SENDER },
+  to: [{ name: "Swapped To", email: "swapped-to@example.com" }],
+  cc: [{ name: "Swapped Cc", email: "swapped-cc@example.com" }],
+  sent_at: "2020-01-01T00:00:00.000Z",
+};
+
 describe("sealed message fields", () => {
   beforeEach(() => {
     h.vault = null;
@@ -308,6 +325,70 @@ describe("sealed message fields", () => {
     expect(get_attachment_key("msg-older", 0)).toBe(SWAPPED_KEY);
   });
 
+  it("takes the sender name, recipients and send time from the sealed payload", async () => {
+    const { envelope_json, receiver_vault } =
+      await build_real_internal_envelope(
+        build_subject_bundle(
+          "Real subject",
+          "<p>Real body</p>",
+          [],
+          SEALED_DETAILS,
+        ),
+      );
+
+    h.vault = receiver_vault;
+
+    const envelope = served_envelope(envelope_json, {
+      subject: "Swapped subject",
+      ...SWAPPED_DETAILS,
+    });
+    const result = await process_envelope_body(
+      envelope,
+      RECIPIENT,
+      "msg-details",
+    );
+
+    expect(result.e2e_verified).toBe(true);
+    expect(result.e2e_sender_bound).toBe(true);
+    expect(result.e2e_details_sealed).toBe(true);
+    expect(envelope.subject).toBe("Real subject");
+    expect(envelope.from).toEqual({ name: "Real Sender", email: SENDER });
+    expect(envelope.to).toEqual([{ name: "", email: RECIPIENT }]);
+    expect(envelope.cc).toEqual([
+      { name: "", email: "real-cc@astermail.org" },
+    ]);
+    expect(envelope.sent_at).toBe(SEALED_SENT_AT);
+    expect(JSON.stringify(envelope.from)).not.toContain("Swapped");
+    expect(JSON.stringify(envelope.to)).not.toContain("wapped");
+    expect(JSON.stringify(envelope.cc)).not.toContain("wapped");
+  });
+
+  it("opens a message sealed without details and reports them as served", async () => {
+    const { envelope_json, receiver_vault } =
+      await build_real_internal_envelope(
+        build_subject_bundle("Older subject", "<p>Older body</p>"),
+      );
+
+    h.vault = receiver_vault;
+
+    const envelope = served_envelope(envelope_json, SWAPPED_DETAILS);
+    const result = await process_envelope_body(
+      envelope,
+      RECIPIENT,
+      "msg-older-details",
+    );
+
+    expect(result.e2e_verified).toBe(true);
+    expect(result.e2e_sender_bound).toBe(true);
+    expect(result.e2e_details_sealed).toBe(false);
+    expect(envelope.subject).toBe("Older subject");
+    expect(result.safe_html).toContain("Older body");
+    expect(envelope.from).toEqual(SWAPPED_DETAILS.from);
+    expect(envelope.to).toEqual(SWAPPED_DETAILS.to);
+    expect(envelope.cc).toEqual(SWAPPED_DETAILS.cc);
+    expect(envelope.sent_at).toBe(SWAPPED_DETAILS.sent_at);
+  });
+
   it("still opens a message sealed as a bare body", async () => {
     const { envelope_json, receiver_vault } =
       await build_real_internal_envelope("A bare body with no wrapper.");
@@ -339,6 +420,9 @@ describe("sealed message fields", () => {
     );
 
     expect(result.e2e_verified).toBe(false);
+    expect(result.e2e_details_sealed).toBe(false);
+    expect(envelope.from).toEqual({ name: "Support", email: SENDER });
+    expect(envelope.to).toEqual([{ name: "", email: RECIPIENT }]);
     expect(envelope.subject).toBe("Outside subject");
     expect(result.safe_html).toContain("Outside body");
     expect(envelope.raw_headers).toEqual([

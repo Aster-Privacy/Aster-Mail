@@ -95,6 +95,10 @@ import {
 } from "@/components/compose/compose_shared_core";
 import { format_bytes } from "@/lib/utils";
 import { build_subject_bundle } from "@/utils/email_crypto";
+import {
+  build_sealed_details,
+  sealed_sender_name,
+} from "@/utils/sealed_message_details";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 export type {
@@ -572,6 +576,15 @@ async function prepare_email_with_plans(
     email.subject || "",
     body_for_encryption,
     attachment_plan?.manifest,
+    build_sealed_details({
+      from_name: sealed_sender_name(
+        email.sender_display_name,
+        email.sender_alias_hash,
+        current_user.display_name,
+      ),
+      to: email.to,
+      cc: email.cc,
+    }),
   );
 
   const {
