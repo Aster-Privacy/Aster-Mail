@@ -70,6 +70,7 @@ import "@/styles/mobile.css";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
+import { predict_startup_route } from "@/lib/startup_route";
 import { watch_device_erase } from "@/lib/device_erase_latch";
 import { capture_support_return } from "@/lib/support_return";
 import { capture_link_commitment } from "@/lib/device_link_commitment";
@@ -106,13 +107,14 @@ function warm_startup_route_chunk(): void {
 
   if (compute_is_mobile_experience()) return;
 
-  const path = app_pathname();
-  const is_at = (route: string) =>
-    path === route || path.startsWith(`${route}/`);
+  const route = predict_startup_route(
+    app_pathname(),
+    !!safe_local_get("aster_preferences_cache"),
+  );
 
-  if (is_at("/sign-in")) {
+  if (route === "sign_in") {
     warm(() => import("@/pages/sign_in"));
-  } else if (is_at("/register") || is_at("/signup")) {
+  } else if (route === "register") {
     warm(() => import("@/pages/register"));
   }
 }
@@ -124,9 +126,8 @@ if (browser_supported) {
   warm_signed_in_chunks();
 }
 
-if (preload_initial_language()) {
-  warm_startup_route_chunk();
-}
+preload_initial_language();
+warm_startup_route_chunk();
 
 start_input_modality_tracking();
 install_global_error_reporting();
