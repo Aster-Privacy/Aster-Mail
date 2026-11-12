@@ -49,7 +49,11 @@ export type PasswordChangeVault =
   | {
       kind: "ok";
       vault: EncryptedVault;
-      server_blob: { encrypted_vault: string; vault_nonce: string } | null;
+      server_blob: {
+        encrypted_vault: string;
+        vault_nonce: string;
+        vault_sha256: string | null;
+      } | null;
     }
   | { kind: "error"; reason: PasswordChangeVaultFailure };
 
@@ -107,6 +111,7 @@ export async function load_password_change_vault(
     response = await api_client.get<{
       encrypted_vault: string;
       vault_nonce: string;
+      vault_sha256?: string | null;
     }>("/core/v1/auth/vault");
   } catch {
     return { kind: "error", reason: "unavailable" };
@@ -134,7 +139,13 @@ export async function load_password_change_vault(
       current_password,
     );
 
-    return { kind: "ok", vault, server_blob: { encrypted_vault, vault_nonce } };
+    const vault_sha256 = response.data?.vault_sha256?.trim() || null;
+
+    return {
+      kind: "ok",
+      vault,
+      server_blob: { encrypted_vault, vault_nonce, vault_sha256 },
+    };
   } catch (server_error) {
     const cached = await decrypt_cached_vault(user_id, current_password);
 

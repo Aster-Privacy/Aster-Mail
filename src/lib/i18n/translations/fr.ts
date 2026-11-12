@@ -4242,6 +4242,8 @@ export const fr = {
       "Cette session a démarré sur un autre réseau ou un autre navigateur, donc Aster Mail n'a pas modifié votre mot de passe. Pour le modifier, déconnectez-vous, reconnectez-vous, puis réessayez.",
     password_change_identity_continuity_required:
       "Aster Mail n'a pas modifié votre mot de passe, car la modification supprimerait des clés de chiffrement dont vos anciens messages ont besoin. Pour réessayer, déconnectez-vous, reconnectez-vous, puis modifiez votre mot de passe.",
+    password_change_vault_changed:
+      "Vos clés de chiffrement ont changé sur un autre appareil pendant que vous changiez votre mot de passe, donc Aster Mail ne l'a pas changé. Réessayez.",
     password_change_vault_out_of_date:
       "Votre mot de passe a été modifié sur un autre appareil, donc cette session n'est plus à jour. Pour modifier votre mot de passe, déconnectez-vous et reconnectez-vous avec votre mot de passe actuel.",
     update_password: "Mettre à jour le mot de passe",
@@ -10440,6 +10442,22 @@ export const fr = {
     reset_your_password: "Réinitialiser votre mot de passe",
     reset_choose_new_password:
       "Choisissez un nouveau mot de passe pour votre compte.",
+    reset_current_password:
+      "Mot de passe actuel",
+    reset_current_password_keeps_keys:
+      "Saisissez votre mot de passe actuel pour conserver vos clés de chiffrement et garder vos e-mails lisibles. Si vous ne le connaissez pas, utilisez plutôt un code de récupération.",
+    reset_current_password_required:
+      "Saisissez votre mot de passe actuel ou utilisez plutôt un code de récupération.",
+    reset_lost_everything:
+      "J'ai perdu mon mot de passe et mes codes de récupération",
+    reset_remember_password:
+      "Je me souviens de mon mot de passe",
+    reset_lost_everything_warning:
+      "Sans votre mot de passe ni un code de récupération, Aster Mail ne peut pas déverrouiller vos clés de chiffrement. La réinitialisation crée de nouvelles clés, et vos e-mails existants deviennent illisibles, sauf si vous retrouvez plus tard votre ancien mot de passe ou un code de récupération.",
+    reset_lost_everything_confirm:
+      "Je comprends que mes e-mails existants deviennent illisibles",
+    reset_lost_everything_confirm_required:
+      "Pour réinitialiser sans votre mot de passe, confirmez que vous comprenez que vos e-mails existants deviennent illisibles.",
     reset_current_password_optional: "Mot de passe actuel (facultatif)",
     reset_current_password_hint:
       "Si vous vous souvenez de votre mot de passe actuel, saisissez-le ici et vos anciens messages restent disponibles dès votre connexion. Si vous laissez ce champ vide, vous pourrez déverrouiller vos anciens messages plus tard avec un code de récupération.",
@@ -10509,6 +10527,22 @@ export const fr = {
       "Votre e-mail de récupération est toujours défini.",
     review_no_recovery_email: "Aucun e-mail de récupération.",
     review_add: "Ajouter",
+    recovery_previous_password_placeholder:
+      "Saisissez votre ancien mot de passe",
+    recovery_previous_password_body:
+      "Vos clés de chiffrement sont toujours protégées par le mot de passe que vous utilisiez avant cette réinitialisation. Pour que vos e-mails restent lisibles, saisissez cet ancien mot de passe. Vos clés restent les mêmes et sont désormais protégées par votre nouveau mot de passe.",
+    recovery_previous_password_required:
+      "Saisissez votre ancien mot de passe ou sélectionnez Je ne m'en souviens pas.",
+    recovery_previous_password_incorrect:
+      "Ce mot de passe ne déverrouille pas vos clés de chiffrement. Vérifiez-le et réessayez.",
+    recovery_previous_password_forgot:
+      "Je ne m'en souviens pas",
+    recovery_previous_password_use:
+      "Saisir mon ancien mot de passe",
+    recovery_previous_password_skipped_warning:
+      "Votre mot de passe est réinitialisé et vos clés de chiffrement sont conservées, mais elles restent verrouillées par votre ancien mot de passe. Vos e-mails ne seront lisibles qu'après avoir saisi ce mot de passe depuis la bannière Récupérer les données.",
+    review_keys_left_locked:
+      "Vos clés de chiffrement sont conservées, mais restent verrouillées par votre ancien mot de passe. Pour lire vos e-mails, sélectionnez Récupérer les données dans la bannière et saisissez ce mot de passe.",
     review_codes_left: "Il reste {{count}} codes de récupération.",
     review_codes_left_one: "Il reste {{count}} code de récupération.",
     review_codes_left_other: "Il reste {{count}} codes de récupération.",

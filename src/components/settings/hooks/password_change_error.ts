@@ -28,6 +28,8 @@ const ALIAS_REENCRYPTION_INCOMPLETE_CODE = "ALIAS_REENCRYPTION_INCOMPLETE";
 
 const IDENTITY_CONTINUITY_REQUIRED_CODE = "IDENTITY_CONTINUITY_REQUIRED";
 
+const VAULT_CHANGED_CODE = "VAULT_CHANGED";
+
 const SERVER_ERROR_TRANSLATION_KEYS: Record<string, TranslationKey> = {
   [FINGERPRINT_MISMATCH_CODE]: "settings.password_change_fingerprint_mismatch",
   [CLIENT_UPGRADE_REQUIRED_CODE]:
@@ -36,6 +38,7 @@ const SERVER_ERROR_TRANSLATION_KEYS: Record<string, TranslationKey> = {
     "settings.password_change_reencryption_incomplete",
   [IDENTITY_CONTINUITY_REQUIRED_CODE]:
     "settings.password_change_identity_continuity_required",
+  [VAULT_CHANGED_CODE]: "settings.password_change_vault_changed",
 };
 
 export function resolve_password_change_error(

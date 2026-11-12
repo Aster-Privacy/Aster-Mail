@@ -92,6 +92,28 @@ describe("load_password_change_vault", () => {
     expect(loaded.server_blob).not.toBeNull();
   });
 
+  it("passes the server vault hash through for the compare-and-swap", async () => {
+    const sealed = await encrypt_vault(vault_with("server"), PASSWORD);
+
+    h.response = { data: { ...sealed, vault_sha256: "abc123" } };
+
+    const loaded = await load_password_change_vault("user-A", PASSWORD);
+
+    expect(loaded.kind).toBe("ok");
+    if (loaded.kind !== "ok") return;
+    expect(loaded.server_blob?.vault_sha256).toBe("abc123");
+  });
+
+  it("leaves the vault hash empty when the server sends none", async () => {
+    await serve(vault_with("server"));
+
+    const loaded = await load_password_change_vault("user-A", PASSWORD);
+
+    expect(loaded.kind).toBe("ok");
+    if (loaded.kind !== "ok") return;
+    expect(loaded.server_blob?.vault_sha256).toBeNull();
+  });
+
   it("falls back to the cached vault only when the server has none", async () => {
     await cache(vault_with("cache"));
     h.response = { error: "Resource not found", code: "NOT_FOUND" };

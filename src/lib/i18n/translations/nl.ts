@@ -4177,6 +4177,8 @@ export const nl = {
       "Deze sessie is gestart op een ander netwerk of een andere browser, dus Aster Mail heeft je wachtwoord niet gewijzigd. Om het te wijzigen, meld je je af, meld je je opnieuw aan en probeer je het opnieuw.",
     password_change_identity_continuity_required:
       "Aster Mail heeft je wachtwoord niet gewijzigd, omdat de wijziging versleutelingssleutels zou verwijderen die je oudere berichten nodig hebben. Om het opnieuw te proberen, meld je je af, meld je je opnieuw aan en wijzig je je wachtwoord.",
+    password_change_vault_changed:
+      "Je versleutelingssleutels zijn op een ander apparaat gewijzigd terwijl je je wachtwoord wijzigde, dus Aster Mail heeft het niet gewijzigd. Probeer het opnieuw.",
     password_change_vault_out_of_date:
       "Je wachtwoord is op een ander apparaat gewijzigd, dus deze sessie is niet meer actueel. Om je wachtwoord te wijzigen, meld je je af en meld je je opnieuw aan met je huidige wachtwoord.",
     update_password: "Wachtwoord bijwerken",
@@ -10278,6 +10280,22 @@ export const nl = {
     sending_reset_link: "Resetlink verzenden...",
     reset_your_password: "Stel je wachtwoord opnieuw in",
     reset_choose_new_password: "Kies een nieuw wachtwoord voor je account.",
+    reset_current_password:
+      "Huidig wachtwoord",
+    reset_current_password_keeps_keys:
+      "Voer je huidige wachtwoord in zodat je versleutelingssleutels hetzelfde blijven en je e-mail leesbaar blijft. Weet je het niet, gebruik dan een herstelcode.",
+    reset_current_password_required:
+      "Voer je huidige wachtwoord in of gebruik een herstelcode.",
+    reset_lost_everything:
+      "Ik ben mijn wachtwoord en herstelcodes kwijt",
+    reset_remember_password:
+      "Ik weet mijn wachtwoord",
+    reset_lost_everything_warning:
+      "Zonder je wachtwoord of een herstelcode kan Aster Mail je versleutelingssleutels niet ontgrendelen. Bij het resetten worden nieuwe sleutels gemaakt en wordt je bestaande e-mail onleesbaar, tenzij je later je vorige wachtwoord of een herstelcode terugvindt.",
+    reset_lost_everything_confirm:
+      "Ik begrijp dat mijn bestaande e-mail onleesbaar wordt",
+    reset_lost_everything_confirm_required:
+      "Bevestig dat je begrijpt dat je bestaande e-mail onleesbaar wordt om zonder wachtwoord te resetten.",
     reset_current_password_optional: "Huidig wachtwoord (optioneel)",
     reset_current_password_hint:
       "Als je je huidige wachtwoord nog weet, voer het dan hier in. Je eerdere e-mail blijft dan direct na het inloggen beschikbaar. Laat je het veld leeg, dan kun je je eerdere e-mail later ontgrendelen met een herstelcode.",
@@ -10345,6 +10363,22 @@ export const nl = {
     review_recovery_email_kept: "Je herstel-e-mail is nog ingesteld.",
     review_no_recovery_email: "Geen herstel-e-mail.",
     review_add: "Toevoegen",
+    recovery_previous_password_placeholder:
+      "Voer je vorige wachtwoord in",
+    recovery_previous_password_body:
+      "Je versleutelingssleutels zijn nog beveiligd met het wachtwoord dat je vóór deze reset gebruikte. Voer dat vorige wachtwoord in om je e-mail leesbaar te houden. Je sleutels blijven hetzelfde en worden vanaf nu beveiligd met je nieuwe wachtwoord.",
+    recovery_previous_password_required:
+      "Voer je vorige wachtwoord in of selecteer Ik weet het niet meer.",
+    recovery_previous_password_incorrect:
+      "Dat wachtwoord ontgrendelt je versleutelingssleutels niet. Controleer het en probeer het opnieuw.",
+    recovery_previous_password_forgot:
+      "Ik weet het niet meer",
+    recovery_previous_password_use:
+      "Mijn vorige wachtwoord invoeren",
+    recovery_previous_password_skipped_warning:
+      "Je wachtwoord wordt gereset en je versleutelingssleutels blijven behouden, maar ze blijven vergrendeld met je vorige wachtwoord. Je e-mail is pas leesbaar nadat je dat wachtwoord invoert via de banner Gegevens herstellen.",
+    review_keys_left_locked:
+      "Je versleutelingssleutels blijven behouden, maar zijn nog vergrendeld met je vorige wachtwoord. Selecteer Gegevens herstellen in de banner en voer dat wachtwoord in om je e-mail te lezen.",
     review_codes_left: "Nog {{count}} herstelcodes over.",
     review_codes_left_one: "Nog {{count}} herstelcode over.",
     review_codes_left_other: "Nog {{count}} herstelcodes over.",

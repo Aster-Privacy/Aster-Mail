@@ -4212,6 +4212,8 @@ export const pt_br = {
       "Esta sessão começou em outra rede ou outro navegador, por isso o Aster Mail não alterou sua senha. Para alterá-la, saia da conta, entre novamente e tente de novo.",
     password_change_identity_continuity_required:
       "O Aster Mail não alterou sua senha porque a alteração removeria chaves de criptografia de que suas mensagens mais antigas precisam. Para tentar de novo, saia da conta, entre novamente e altere sua senha.",
+    password_change_vault_changed:
+      "Suas chaves de criptografia mudaram em outro dispositivo enquanto você alterava sua senha, então o Aster Mail não a alterou. Tente novamente.",
     password_change_vault_out_of_date:
       "Sua senha foi alterada em outro dispositivo, por isso esta sessão está desatualizada. Para alterar sua senha, saia da conta e entre novamente com sua senha atual.",
     update_password: "Atualizar senha",
@@ -10343,6 +10345,22 @@ export const pt_br = {
     sending_reset_link: "Enviando link de redefinição...",
     reset_your_password: "Redefina sua senha",
     reset_choose_new_password: "Escolha uma nova senha para sua conta.",
+    reset_current_password:
+      "Senha atual",
+    reset_current_password_keeps_keys:
+      "Digite sua senha atual para manter suas chaves de criptografia e deixar seus e-mails legíveis. Se não souber, use um código de recuperação.",
+    reset_current_password_required:
+      "Digite sua senha atual ou use um código de recuperação.",
+    reset_lost_everything:
+      "Perdi minha senha e meus códigos de recuperação",
+    reset_remember_password:
+      "Lembro minha senha",
+    reset_lost_everything_warning:
+      "Sem sua senha ou um código de recuperação, o Aster Mail não consegue desbloquear suas chaves de criptografia. A redefinição cria chaves novas, e os e-mails que você já tem ficam ilegíveis, a menos que depois você encontre a senha anterior ou um código de recuperação.",
+    reset_lost_everything_confirm:
+      "Entendo que meus e-mails existentes ficarão ilegíveis",
+    reset_lost_everything_confirm_required:
+      "Para redefinir sem sua senha, confirme que entende que seus e-mails existentes ficarão ilegíveis.",
     reset_current_password_optional: "Senha atual (opcional)",
     reset_current_password_hint:
       "Se você lembra sua senha atual, digite-a aqui e seus e-mails anteriores continuam disponíveis assim que você entrar. Se deixar em branco, você pode desbloquear seus e-mails anteriores depois com um código de recuperação.",
@@ -10665,6 +10683,22 @@ export const pt_br = {
       "Seu e-mail de recuperação continua configurado.",
     review_no_recovery_email: "Sem e-mail de recuperação.",
     review_add: "Adicionar",
+    recovery_previous_password_placeholder:
+      "Digite sua senha anterior",
+    recovery_previous_password_body:
+      "Suas chaves de criptografia ainda estão protegidas pela senha que você usava antes desta redefinição. Para manter seus e-mails legíveis, digite essa senha anterior. Suas chaves continuam as mesmas e passam a ser protegidas pela nova senha.",
+    recovery_previous_password_required:
+      "Digite sua senha anterior ou selecione Não lembro.",
+    recovery_previous_password_incorrect:
+      "Essa senha não desbloqueia suas chaves de criptografia. Verifique e tente novamente.",
+    recovery_previous_password_forgot:
+      "Não lembro",
+    recovery_previous_password_use:
+      "Digitar minha senha anterior",
+    recovery_previous_password_skipped_warning:
+      "Sua senha é redefinida e suas chaves de criptografia são mantidas, mas continuam bloqueadas com a senha anterior. Você não poderá ler seus e-mails até digitar essa senha no aviso Recuperar dados.",
+    review_keys_left_locked:
+      "Suas chaves de criptografia foram mantidas, mas continuam bloqueadas com a senha anterior. Para ler seus e-mails, selecione Recuperar dados no aviso e digite essa senha.",
     review_codes_left: "Restam {{count}} códigos de recuperação.",
     review_codes_left_one: "Resta {{count}} código de recuperação.",
     review_codes_left_other: "Restam {{count}} códigos de recuperação.",

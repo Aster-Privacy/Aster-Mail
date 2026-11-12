@@ -21,7 +21,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@aster/ui";
+import { Button, Checkbox } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -38,7 +38,7 @@ import {
   generate_signed_prekey,
   prepare_pgp_key_data,
 } from "@/services/crypto/key_manager";
-import { carry_vault_through_reset } from "@/services/crypto/carry_vault_through_reset";
+import { keep_vault_keys_through_reset } from "@/services/crypto/reset_link_vault";
 import {
   generate_recovery_key,
   encrypt_vault_backup,
@@ -289,6 +289,8 @@ export default function ResetPasswordPage() {
   const [status_failed, set_status_failed] = useState(false);
   const [status_attempt, set_status_attempt] = useState(0);
   const [current_password, set_current_password] = useState("");
+  const [lost_everything, set_lost_everything] = useState(false);
+  const [data_loss_confirmed, set_data_loss_confirmed] = useState(false);
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
   const [is_current_visible, set_is_current_visible] = useState(false);
@@ -517,13 +519,25 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    if (!lost_everything && !current_password) {
+      set_error(t("auth.reset_current_password_required"));
+
+      return;
+    }
+
+    if (lost_everything && !data_loss_confirmed) {
+      set_error(t("auth.reset_lost_everything_confirm_required"));
+
+      return;
+    }
+
     set_step("processing");
-    set_processing_status(t("auth.generating_new_encryption_keys"));
+    set_processing_status(t("auth.reset_unlocking_earlier_mail"));
 
     try {
       let old_vault: EncryptedVault | null = null;
 
-      if (current_password) {
+      if (!lost_everything) {
         set_processing_status(t("auth.reset_unlocking_earlier_mail"));
         const vault_response = await get_reset_vault(token);
 
@@ -561,7 +575,6 @@ export default function ResetPasswordPage() {
         }
       }
 
-      set_processing_status(t("auth.generating_new_encryption_keys"));
       const salt = crypto.getRandomValues(new Uint8Array(32));
       const {
         hash: password_hash,
@@ -569,57 +582,72 @@ export default function ResetPasswordPage() {
         hash_v2: password_hash_v2,
       } = await derive_password_hash(password, salt);
 
-      const placeholder_email = reset_address;
-      const display_name = placeholder_email.split("@")[0] || "User";
-
-      const new_identity_keypair = await generate_identity_keypair(
-        display_name,
-        placeholder_email,
-        password,
-      );
-
-      const { keypair: new_prekey_keypair, signature: prekey_signature } =
-        await generate_signed_prekey(
-          display_name,
-          placeholder_email,
-          password,
-          new_identity_keypair.secret_key,
-        );
-
-      const pgp_key_data = await prepare_pgp_key_data(
-        new_identity_keypair,
-        password,
-      );
-
-      set_processing_status(t("auth.creating_new_recovery_codes"));
       const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
 
       set_new_recovery_codes(new_codes);
 
-      const master_key = crypto.getRandomValues(new Uint8Array(32));
+      let next_vault: EncryptedVault;
+      let new_keys: {
+        identity_key: string;
+        signed_prekey: string;
+        signed_prekey_signature: string;
+        pgp_key: Awaited<ReturnType<typeof prepare_pgp_key_data>>;
+      } | null = null;
 
-      const fresh_vault: EncryptedVault = {
-        identity_key: new_identity_keypair.secret_key,
-        previous_keys: [],
-        signed_prekey: new_prekey_keypair.public_key,
-        signed_prekey_private: new_prekey_keypair.secret_key,
-        recovery_codes: new_codes,
-        data_kek: array_to_base64(master_key),
-        data_kek_random: true,
-        vault_format: MASTER_KEY_VAULT_FORMAT,
-        mk_created_at: new Date().toISOString(),
-      };
+      if (old_vault) {
+        next_vault = await keep_vault_keys_through_reset(
+          old_vault,
+          current_password,
+          password,
+          new_codes,
+        );
+      } else {
+        set_processing_status(t("auth.generating_new_encryption_keys"));
+        const placeholder_email = reset_address;
+        const display_name = placeholder_email.split("@")[0] || "User";
 
-      master_key.fill(0);
+        const new_identity_keypair = await generate_identity_keypair(
+          display_name,
+          placeholder_email,
+          password,
+        );
 
-      const next_vault = old_vault
-        ? await carry_vault_through_reset(
-            old_vault,
-            current_password,
-            fresh_vault,
+        const { keypair: new_prekey_keypair, signature: prekey_signature } =
+          await generate_signed_prekey(
+            display_name,
+            placeholder_email,
             password,
-          )
-        : fresh_vault;
+            new_identity_keypair.secret_key,
+          );
+
+        const pgp_key_data = await prepare_pgp_key_data(
+          new_identity_keypair,
+          password,
+        );
+
+        const master_key = crypto.getRandomValues(new Uint8Array(32));
+
+        next_vault = {
+          identity_key: new_identity_keypair.secret_key,
+          previous_keys: [],
+          signed_prekey: new_prekey_keypair.public_key,
+          signed_prekey_private: new_prekey_keypair.secret_key,
+          recovery_codes: new_codes,
+          data_kek: array_to_base64(master_key),
+          data_kek_random: true,
+          vault_format: MASTER_KEY_VAULT_FORMAT,
+          mk_created_at: new Date().toISOString(),
+        };
+
+        master_key.fill(0);
+
+        new_keys = {
+          identity_key: btoa(new_identity_keypair.public_key),
+          signed_prekey: btoa(new_prekey_keypair.public_key),
+          signed_prekey_signature: btoa(prekey_signature),
+          pgp_key: pgp_key_data,
+        };
+      }
 
       set_processing_status(t("auth.encrypting_vault_new_password"));
       const { encrypted_vault, vault_nonce } = await encrypt_vault(
@@ -651,10 +679,10 @@ export default function ResetPasswordPage() {
         new_backup.encrypted_data,
         new_backup.nonce,
         new_backup.salt,
-        btoa(new_identity_keypair.public_key),
-        btoa(new_prekey_keypair.public_key),
-        btoa(prekey_signature),
-        pgp_key_data,
+        new_keys?.identity_key,
+        new_keys?.signed_prekey,
+        new_keys?.signed_prekey_signature,
+        new_keys?.pgp_key,
         MASTER_KEY_VAULT_FORMAT,
         true,
         undefined,
@@ -681,6 +709,7 @@ export default function ResetPasswordPage() {
       }
 
       set_current_password("");
+      set_data_loss_confirmed(false);
       set_step("new_codes");
     } catch (err) {
       await timing_safe_delay();
@@ -960,40 +989,60 @@ export default function ResetPasswordPage() {
             </AnimatePresence>
 
             <div className={`w-full ${error ? "mt-4" : "mt-6"} space-y-4`}>
-              <div>
-                <InputWithEndContent
-                  // eslint-disable-next-line jsx-a11y/no-autofocus
-                  autoFocus
-                  autoComplete="current-password"
-                  end_content={
-                    <button
-                      aria-label={
-                        is_current_visible
-                          ? t("settings.hide_password_toggle")
-                          : t("settings.show_password_toggle")
+              {lost_everything ? (
+                <div className="text-start">
+                  <p className="text-sm leading-relaxed text-txt-secondary">
+                    {t("auth.reset_lost_everything_warning")}
+                  </p>
+                  <label className="mt-3 flex items-start gap-3 cursor-pointer">
+                    <Checkbox
+                      checked={data_loss_confirmed}
+                      className="mt-0.5 shrink-0"
+                      onChange={(e) =>
+                        set_data_loss_confirmed(e.target.checked)
                       }
-                      className="focus:outline-none flex items-center justify-center"
-                      type="button"
-                      onClick={() =>
-                        set_is_current_visible(!is_current_visible)
-                      }
-                    >
-                      {is_current_visible ? <EyeSlashIcon /> : <EyeIcon />}
-                    </button>
-                  }
-                  maxLength={128}
-                  placeholder={t("auth.reset_current_password_optional")}
-                  status="default"
-                  type={is_current_visible ? "text" : "password"}
-                  value={current_password}
-                  onChange={(e) =>
-                    set_current_password(clamp_password(e.target.value))
-                  }
-                />
-                <p className="mt-2 text-start text-xs leading-relaxed text-txt-muted">
-                  {t("auth.reset_current_password_hint")}
-                </p>
-              </div>
+                    />
+                    <span className="text-sm text-txt-secondary">
+                      {t("auth.reset_lost_everything_confirm")}
+                    </span>
+                  </label>
+                </div>
+              ) : (
+                <div>
+                  <InputWithEndContent
+                    // eslint-disable-next-line jsx-a11y/no-autofocus
+                    autoFocus
+                    autoComplete="current-password"
+                    end_content={
+                      <button
+                        aria-label={
+                          is_current_visible
+                            ? t("settings.hide_password_toggle")
+                            : t("settings.show_password_toggle")
+                        }
+                        className="focus:outline-none flex items-center justify-center"
+                        type="button"
+                        onClick={() =>
+                          set_is_current_visible(!is_current_visible)
+                        }
+                      >
+                        {is_current_visible ? <EyeSlashIcon /> : <EyeIcon />}
+                      </button>
+                    }
+                    maxLength={128}
+                    placeholder={t("auth.reset_current_password")}
+                    status="default"
+                    type={is_current_visible ? "text" : "password"}
+                    value={current_password}
+                    onChange={(e) =>
+                      set_current_password(clamp_password(e.target.value))
+                    }
+                  />
+                  <p className="mt-2 text-start text-xs leading-relaxed text-txt-muted">
+                    {t("auth.reset_current_password_keeps_keys")}
+                  </p>
+                </div>
+              )}
 
               <div>
                 <InputWithEndContent
@@ -1066,6 +1115,21 @@ export default function ResetPasswordPage() {
               onClick={handle_use_recovery_code}
             >
               {t("auth.reset_use_recovery_code")}
+            </button>
+
+            <button
+              className="w-full mt-3 text-sm transition-colors hover:opacity-80 text-txt-tertiary"
+              type="button"
+              onClick={() => {
+                set_error("");
+                set_current_password("");
+                set_data_loss_confirmed(false);
+                set_lost_everything(!lost_everything);
+              }}
+            >
+              {lost_everything
+                ? t("auth.reset_remember_password")
+                : t("auth.reset_lost_everything")}
             </button>
           </motion.div>
         );

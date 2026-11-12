@@ -60,6 +60,14 @@ export default function MobileForgotPasswordPage() {
     set_is_password_visible,
     is_confirm_visible,
     set_is_confirm_visible,
+    previous_password,
+    set_previous_password,
+    is_previous_visible,
+    set_is_previous_visible,
+    needs_previous_password,
+    previous_password_skipped,
+    handle_skip_previous_password,
+    handle_use_previous_password,
     error,
     set_error,
     processing_status,
@@ -189,14 +197,22 @@ export default function MobileForgotPasswordPage() {
             is_confirm_visible={is_confirm_visible}
             is_dark={is_dark}
             is_password_visible={is_password_visible}
+            is_previous_visible={is_previous_visible}
+            needs_previous_password={needs_previous_password}
+            on_skip_previous_password={handle_skip_previous_password}
             on_submit={handle_password_submit}
+            on_use_previous_password={handle_use_previous_password}
             password={password}
+            previous_password={previous_password}
+            previous_password_skipped={previous_password_skipped}
             reduce_motion={reduce_motion}
             set_confirm_password={set_confirm_password}
             set_error={set_error}
             set_is_confirm_visible={set_is_confirm_visible}
             set_is_password_visible={set_is_password_visible}
+            set_is_previous_visible={set_is_previous_visible}
             set_password={set_password}
+            set_previous_password={set_previous_password}
             set_step={set_step}
           />
         );

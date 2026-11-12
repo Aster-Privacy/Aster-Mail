@@ -4212,6 +4212,8 @@ export const es = {
       "Esta sesión se inició en otra red u otro navegador, por lo que Aster Mail no cambió tu contraseña. Para cambiarla, cierra sesión, vuelve a iniciar sesión e inténtalo de nuevo.",
     password_change_identity_continuity_required:
       "Aster Mail no cambió tu contraseña porque el cambio eliminaría claves de cifrado que necesitan tus mensajes anteriores. Para volver a intentarlo, cierra sesión, vuelve a iniciar sesión y cambia tu contraseña.",
+    password_change_vault_changed:
+      "Tus claves de cifrado cambiaron en otro dispositivo mientras cambiabas tu contraseña, así que Aster Mail no la cambió. Inténtalo de nuevo.",
     password_change_vault_out_of_date:
       "Tu contraseña se cambió en otro dispositivo, por lo que esta sesión no está actualizada. Para cambiar tu contraseña, cierra sesión y vuelve a iniciar sesión con tu contraseña actual.",
     update_password: "Actualizar contraseña",
@@ -10317,6 +10319,22 @@ export const es = {
     sending_reset_link: "Enviando enlace de restablecimiento...",
     reset_your_password: "Restablece tu contraseña",
     reset_choose_new_password: "Elige una contraseña nueva para tu cuenta.",
+    reset_current_password:
+      "Contraseña actual",
+    reset_current_password_keeps_keys:
+      "Introduce tu contraseña actual para que tus claves de cifrado no cambien y tu correo siga siendo legible. Si no la sabes, usa un código de recuperación.",
+    reset_current_password_required:
+      "Introduce tu contraseña actual o usa un código de recuperación.",
+    reset_lost_everything:
+      "He perdido mi contraseña y mis códigos de recuperación",
+    reset_remember_password:
+      "Recuerdo mi contraseña",
+    reset_lost_everything_warning:
+      "Sin tu contraseña o un código de recuperación, Aster Mail no puede desbloquear tus claves de cifrado. Al restablecer se crean claves nuevas y el correo que ya tienes dejará de poder leerse, salvo que más adelante encuentres tu contraseña anterior o un código de recuperación.",
+    reset_lost_everything_confirm:
+      "Entiendo que mi correo actual dejará de poder leerse",
+    reset_lost_everything_confirm_required:
+      "Para restablecer sin tu contraseña, confirma que entiendes que tu correo actual dejará de poder leerse.",
     reset_current_password_optional: "Contraseña actual (opcional)",
     reset_current_password_hint:
       "Si recuerdas tu contraseña actual, introdúcela aquí y tu correo anterior seguirá disponible en cuanto inicies sesión. Si la dejas en blanco, podrás desbloquear tu correo anterior más tarde con un código de recuperación.",
@@ -10383,6 +10401,22 @@ export const es = {
     review_recovery_email_kept: "Tu correo de recuperación sigue configurado.",
     review_no_recovery_email: "Sin correo de recuperación.",
     review_add: "Añadir",
+    recovery_previous_password_placeholder:
+      "Introduce tu contraseña anterior",
+    recovery_previous_password_body:
+      "Tus claves de cifrado siguen protegidas con la contraseña que usabas antes de este restablecimiento. Para que tu correo siga siendo legible, introduce esa contraseña anterior. Tus claves no cambian y, a partir de ahora, las protege tu nueva contraseña.",
+    recovery_previous_password_required:
+      "Introduce tu contraseña anterior o selecciona No la recuerdo.",
+    recovery_previous_password_incorrect:
+      "Esa contraseña no desbloquea tus claves de cifrado. Compruébala e inténtalo de nuevo.",
+    recovery_previous_password_forgot:
+      "No la recuerdo",
+    recovery_previous_password_use:
+      "Introducir mi contraseña anterior",
+    recovery_previous_password_skipped_warning:
+      "Tu contraseña se restablece y tus claves de cifrado se conservan, pero siguen bloqueadas con tu contraseña anterior. No podrás leer tu correo hasta que introduzcas esa contraseña desde el aviso Recuperar datos.",
+    review_keys_left_locked:
+      "Tus claves de cifrado se conservan, pero siguen bloqueadas con tu contraseña anterior. Para leer tu correo, selecciona Recuperar datos en el aviso e introduce esa contraseña.",
     review_codes_left: "Quedan {{count}} códigos de recuperación.",
     review_codes_left_one: "Queda {{count}} código de recuperación.",
     review_codes_left_other: "Quedan {{count}} códigos de recuperación.",

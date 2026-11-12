@@ -32,10 +32,7 @@ import { use_should_reduce_motion } from "@/provider";
 import {
   derive_password_hash,
   encrypt_vault,
-  generate_identity_keypair,
   generate_recovery_codes,
-  generate_signed_prekey,
-  prepare_pgp_key_data,
   RECOVERY_CODE_SET_SIZE,
 } from "@/services/crypto/key_manager";
 import {
@@ -58,10 +55,10 @@ import {
   type BackupVault,
 } from "@/services/crypto/backup_unlocked_keys";
 import {
-  MAX_PREVIOUS_KEYS,
-  retained_identity_key_materials,
-} from "@/services/crypto/identity_key_materials";
-import { lock_unlocked_pgp_key } from "@/services/crypto/key_manager_pgp_keygen";
+  recovery_needs_previous_password,
+  RecoveryPreviousPasswordIncorrect,
+  reseal_recovery_vault,
+} from "@/services/crypto/recovery_vault_reseal";
 import {
   encode_escrow_seed,
   generate_escrow_seed,
@@ -116,6 +113,7 @@ export interface RecoveryReviewInfo {
   codes_remaining: number;
   second_factors_removed: boolean;
   recovery_email_kept: boolean;
+  keys_left_locked: boolean;
 }
 
 interface RecoveryHandoffState {
@@ -174,6 +172,12 @@ export function use_recovery_flow() {
   const [recovery_code, set_recovery_code] = useState("");
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
+  const [previous_password, set_previous_password] = useState("");
+  const [is_previous_visible, set_is_previous_visible] = useState(false);
+  const [needs_previous_password, set_needs_previous_password] =
+    useState(false);
+  const [previous_password_skipped, set_previous_password_skipped] =
+    useState(false);
   const [is_password_visible, set_is_password_visible] = useState(false);
   const [is_confirm_visible, set_is_confirm_visible] = useState(false);
   const [error, set_error] = useState("");
@@ -187,6 +191,7 @@ export function use_recovery_flow() {
     codes_remaining: RECOVERY_CODE_SET_SIZE,
     second_factors_removed: true,
     recovery_email_kept: false,
+    keys_left_locked: false,
   });
   const [resend_cooldown, set_resend_cooldown] = useState(0);
   const [is_resending, set_is_resending] = useState(false);
@@ -417,100 +422,31 @@ export function use_recovery_flow() {
     }
   };
 
-  const rotate_vault_keys = async (
-    vault: EncryptedVault,
-    unlocked_keys: Map<string, string>,
-  ) => {
-    const display_name = email.split("@")[0] || "User";
-
-    const new_identity_keypair = await generate_identity_keypair(
-      display_name,
-      email,
-      password,
-    );
-
-    const { keypair: new_prekey_keypair, signature: prekey_signature } =
-      await generate_signed_prekey(
-        display_name,
-        email,
-        password,
-        new_identity_keypair.secret_key,
-      );
-
-    const pgp_key_data = await prepare_pgp_key_data(
-      new_identity_keypair,
-      password,
-    );
-
-    const retained = await retained_identity_key_materials(vault);
-    const carried: string[] = [];
-    const seen = new Set<string>();
-    let relocked_any = false;
-
-    for (const armored of [
-      vault.identity_key,
-      ...(vault.previous_keys ?? []),
-    ]) {
-      if (!armored || seen.has(armored)) continue;
-      seen.add(armored);
-
-      const open = unlocked_keys.get(armored);
-
-      if (!open) {
-        carried.push(armored);
-        continue;
-      }
-
-      try {
-        carried.push(await lock_unlocked_pgp_key(open, password));
-        relocked_any = true;
-      } catch {
-        carried.push(armored);
-      }
-    }
-
-    vault.previous_keys = carried.slice(0, MAX_PREVIOUS_KEYS);
-
-    if (relocked_any) {
-      vault.legacy_identity_keys = retained;
-    }
-
-    vault.identity_key = new_identity_keypair.secret_key;
-    vault.signed_prekey = new_prekey_keypair.public_key;
-    vault.signed_prekey_private = new_prekey_keypair.secret_key;
-
-    return {
-      new_identity_keypair,
-      new_prekey_keypair,
-      prekey_signature,
-      pgp_key_data,
-    };
-  };
-
   const finish_recovery = async (
-    vault: EncryptedVault,
+    source_vault: EncryptedVault,
     unlocked_keys: Map<string, string>,
+    previous: string | null,
   ) => {
-    const vault_uses_master_key = is_master_key_vault(vault);
-    const old_data_kek = vault.data_kek ?? null;
-    const old_identity_key = vault.identity_key;
-    const old_escrow_seed = vault.escrow_seed;
-    const old_vault: EncryptedVault = { ...vault };
+    const vault_uses_master_key = is_master_key_vault(source_vault);
+    const old_data_kek = source_vault.data_kek ?? null;
+    const old_identity_key = source_vault.identity_key;
+    const old_escrow_seed = source_vault.escrow_seed;
+    const old_vault: EncryptedVault = { ...source_vault };
 
-    set_processing_status(t("auth.generating_new_encryption_keys"));
+    set_processing_status(t("auth.recovering_account_data"));
+    const { vault, identity_locked } = await reseal_recovery_vault(
+      source_vault,
+      unlocked_keys,
+      password,
+      previous,
+    );
+
     const salt = crypto.getRandomValues(new Uint8Array(32));
     const {
       hash: password_hash,
       salt: password_salt,
       hash_v2: password_hash_v2,
     } = await derive_password_hash(password, salt);
-
-    const {
-      new_identity_keypair,
-      new_prekey_keypair,
-      prekey_signature,
-      pgp_key_data,
-    } = await rotate_vault_keys(vault, unlocked_keys);
 
     const fresh_escrow_seed = generate_escrow_seed();
 
@@ -546,7 +482,7 @@ export function use_recovery_flow() {
     const rescued_account_key = await rescue_account_key_from_escrow(
       recovery_token,
       old_escrow_seed,
-      new_identity_keypair.secret_key,
+      vault.identity_key,
       password,
     );
 
@@ -574,10 +510,10 @@ export function use_recovery_flow() {
       new_backup.encrypted_data,
       new_backup.nonce,
       new_backup.salt,
-      btoa(new_identity_keypair.public_key),
-      btoa(new_prekey_keypair.public_key),
-      btoa(prekey_signature),
-      pgp_key_data,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
       vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
       rescued_account_key?.token,
       rescued_account_key?.fingerprint,
@@ -603,12 +539,16 @@ export function use_recovery_flow() {
       codes_remaining: new_codes.length,
       second_factors_removed: true,
       recovery_email_kept: new_recovery_email !== undefined,
+      keys_left_locked: identity_locked,
     });
     set_codes_saved(false);
     set_codes_downloaded(false);
     set_recovery_code("");
     set_password("");
     set_confirm_password("");
+    set_previous_password("");
+    set_needs_previous_password(false);
+    set_previous_password_skipped(false);
     set_recovery_token("");
     set_vault_backup(null);
     set_code_salt("");
@@ -673,7 +613,31 @@ export function use_recovery_flow() {
       const unlocked_keys = read_unlocked_keys(backup_vault);
 
       try {
-        await finish_recovery(strip_backup_fields(backup_vault), unlocked_keys);
+        const source_vault = strip_backup_fields(backup_vault);
+        const needs_previous = await recovery_needs_previous_password(
+          source_vault,
+          unlocked_keys,
+        );
+        const asks_previous = needs_previous && !previous_password_skipped;
+
+        if (needs_previous && !needs_previous_password) {
+          set_needs_previous_password(true);
+        }
+
+        if (asks_previous && !previous_password) {
+          if (needs_previous_password) {
+            set_error(t("auth.recovery_previous_password_required"));
+          }
+          set_step("password");
+
+          return;
+        }
+
+        await finish_recovery(
+          source_vault,
+          unlocked_keys,
+          asks_previous ? previous_password : null,
+        );
       } finally {
         unlocked_keys.clear();
       }
@@ -683,9 +647,24 @@ export function use_recovery_flow() {
       }
 
       await timing_safe_delay();
-      set_error(user_facing_error(err, t("auth.recovery_failed")));
+      set_error(
+        err instanceof RecoveryPreviousPasswordIncorrect
+          ? t("auth.recovery_previous_password_incorrect")
+          : user_facing_error(err, t("auth.recovery_failed")),
+      );
       set_step("password");
     }
+  };
+
+  const handle_skip_previous_password = () => {
+    set_error("");
+    set_previous_password("");
+    set_previous_password_skipped(true);
+  };
+
+  const handle_use_previous_password = () => {
+    set_error("");
+    set_previous_password_skipped(false);
   };
 
   const handle_copy_codes = async () => {
@@ -754,6 +733,14 @@ export function use_recovery_flow() {
     set_password,
     confirm_password,
     set_confirm_password,
+    previous_password,
+    set_previous_password,
+    is_previous_visible,
+    set_is_previous_visible,
+    needs_previous_password,
+    previous_password_skipped,
+    handle_skip_previous_password,
+    handle_use_previous_password,
     is_password_visible,
     set_is_password_visible,
     is_confirm_visible,

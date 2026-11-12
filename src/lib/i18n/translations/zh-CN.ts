@@ -3817,6 +3817,8 @@ export const zh_CN = {
       "此会话是在其他网络或浏览器中开始的，因此 Aster Mail 未更改您的密码。若要更改密码，请退出登录后重新登录，然后再试一次。",
     password_change_identity_continuity_required:
       "此更改会移除您较早邮件所需的加密密钥，因此 Aster Mail 未更改您的密码。若要重试，请退出登录后重新登录，然后更改密码。",
+    password_change_vault_changed:
+      "你在更改密码时，加密密钥在另一台设备上发生了变化，因此 Aster Mail 未更改你的密码。请重试。",
     password_change_vault_out_of_date:
       "您的密码已在其他设备上更改，因此此会话已过期。若要更改密码，请退出登录，然后使用当前密码重新登录。",
     update_password: "更新密码",
@@ -9167,6 +9169,22 @@ export const zh_CN = {
     sending_reset_link: "正在发送重置链接...",
     reset_your_password: "重置您的密码",
     reset_choose_new_password: "为您的账户选择一个新密码。",
+    reset_current_password:
+      "当前密码",
+    reset_current_password_keeps_keys:
+      "输入你的当前密码，这样你的加密密钥保持不变，邮件也能继续阅读。如果你不知道当前密码，请改用恢复码。",
+    reset_current_password_required:
+      "请输入你的当前密码，或改用恢复码。",
+    reset_lost_everything:
+      "我丢失了密码和恢复码",
+    reset_remember_password:
+      "我记得密码",
+    reset_lost_everything_warning:
+      "没有密码或恢复码，Aster Mail 无法解锁你的加密密钥。重置会创建新的密钥，除非你之后找到之前的密码或恢复码，否则现有邮件将无法阅读。",
+    reset_lost_everything_confirm:
+      "我了解现有邮件将无法阅读",
+    reset_lost_everything_confirm_required:
+      "要在没有密码的情况下重置，请确认你了解现有邮件将无法阅读。",
     reset_current_password_optional: "当前密码（可选）",
     reset_current_password_hint:
       "如果您记得当前密码，请在此输入，登录后即可继续使用之前的邮件。如果留空，您可以稍后使用恢复代码解锁之前的邮件。",
@@ -9229,6 +9247,22 @@ export const zh_CN = {
     review_recovery_email_kept: "你的恢复邮箱仍已设置。",
     review_no_recovery_email: "没有恢复邮箱。",
     review_add: "添加",
+    recovery_previous_password_placeholder:
+      "输入你之前的密码",
+    recovery_previous_password_body:
+      "你的加密密钥仍受重置前所用密码的保护。要让你的邮件保持可读，请输入之前的密码。你的密钥保持不变，今后将由新密码保护。",
+    recovery_previous_password_required:
+      "请输入之前的密码，或选择“我不记得了”。",
+    recovery_previous_password_incorrect:
+      "该密码无法解锁你的加密密钥。请检查后重试。",
+    recovery_previous_password_forgot:
+      "我不记得了",
+    recovery_previous_password_use:
+      "输入我之前的密码",
+    recovery_previous_password_skipped_warning:
+      "你的密码已重置，加密密钥会保留，但仍由之前的密码锁定。在你通过“恢复数据”横幅输入该密码之前，将无法阅读邮件。",
+    review_keys_left_locked:
+      "你的加密密钥已保留，但仍由之前的密码锁定。要阅读邮件，请在横幅中选择“恢复数据”并输入该密码。",
     review_codes_left: "还剩 {{count}} 个恢复代码。",
     review_codes_left_other: "还剩 {{count}} 个恢复代码。",
     import_mail_step_title: "把邮件一起带过来",
