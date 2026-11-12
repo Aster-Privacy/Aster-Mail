@@ -39,6 +39,11 @@ import {
 } from "@/services/crypto/external_pgp_key";
 import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
 import {
+  parse_sealed_details,
+  serialize_sealed_details,
+  type SealedMessageDetails,
+} from "@/utils/sealed_message_details";
+import {
   discover_external_keys_batch,
   type ExternalKeyInfo,
 } from "@/services/api/keys";
@@ -649,12 +654,14 @@ export interface SubjectBundle {
   subject: string | null;
   body: string;
   attachment_manifest?: unknown[];
+  details?: SealedMessageDetails;
 }
 
 export function build_subject_bundle(
   subject: string,
   body: string,
   attachment_manifest: unknown[] = [],
+  details?: SealedMessageDetails,
 ): string {
   const existing = extract_subject_bundle(body);
 
@@ -664,6 +671,7 @@ export function build_subject_bundle(
       s: subject || (existing.subject ?? ""),
       b: existing.body,
       ...(attachment_manifest.length > 0 ? { attachment_manifest } : {}),
+      ...(details ? { details: serialize_sealed_details(details) } : {}),
     })
   );
 }
@@ -795,12 +803,15 @@ function unwrap_subject_bundle_layer(text: string): SubjectBundle | null {
       typeof parsed.s === "string" &&
       typeof parsed.b === "string"
     ) {
+      const details = parse_sealed_details(parsed.details);
+
       return {
         subject: parsed.s,
         body: parsed.b,
         ...(Array.isArray(parsed.attachment_manifest)
           ? { attachment_manifest: parsed.attachment_manifest }
           : {}),
+        ...(details ? { details } : {}),
       };
     }
   } catch (caught) {
@@ -817,13 +828,17 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
   let body = decrypted;
   let unwrapped = false;
   let attachment_manifest: unknown[] | undefined;
+  let details: SealedMessageDetails | undefined;
 
   for (let depth = 0; depth < MAX_SUBJECT_BUNDLE_DEPTH; depth += 1) {
     const layer = unwrap_subject_bundle_layer(body);
 
     if (!layer) break;
     if (!subject) subject = layer.subject;
-    if (depth === 0) attachment_manifest = layer.attachment_manifest;
+    if (depth === 0) {
+      attachment_manifest = layer.attachment_manifest;
+      details = layer.details;
+    }
     body = layer.body;
     unwrapped = true;
   }
@@ -834,6 +849,7 @@ export function extract_subject_bundle(decrypted: string): SubjectBundle {
     subject: subject ?? "",
     body,
     ...(attachment_manifest ? { attachment_manifest } : {}),
+    ...(details ? { details } : {}),
   };
 }
 

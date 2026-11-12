@@ -41,6 +41,7 @@ interface EncryptionInfoDropdownProps {
   has_recipient_key?: boolean;
   e2e_verified?: boolean;
   sender_bound?: boolean;
+  details_sealed?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
   size?: number;
   label?: string;
@@ -56,6 +57,7 @@ export function EncryptionInfoDropdown({
   has_recipient_key = false,
   e2e_verified = false,
   sender_bound = false,
+  details_sealed = false,
   sent_encryption_scope,
   size = 18,
   label,
@@ -106,7 +108,9 @@ export function EncryptionInfoDropdown({
                 e2e_sender_bound: sender_bound,
                 sender_verification,
               })
-            ? t("common.only_you_and_sender")
+            ? details_sealed || sent_encryption_scope !== undefined
+              ? t("common.only_you_and_sender")
+              : t("common.only_you_and_sender_details_from_server")
             : t("common.encrypted_to_you_unconfirmed_sender")
         : t("common.encrypted_in_transit_stored");
 

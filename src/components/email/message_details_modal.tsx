@@ -88,7 +88,10 @@ export function MessageDetailsModal({
     [message.raw_headers],
   );
   const is_received = message.item_type === "received";
-  const evaluated_trust = use_sender_trust(message);
+  const evaluated_trust = use_sender_trust({
+    ...message,
+    e2e_sender_bound: !!message.e2e_sender_bound,
+  });
   const shown_sender_name = trusted_sender_name(
     is_received ? evaluated_trust : null,
     message.display_sender_name ?? message.sender_name,
@@ -255,6 +258,7 @@ export function MessageDetailsModal({
             <EncryptionInfoDropdown
               e2e_verified={!!message.e2e_verified}
               sender_bound={!!message.e2e_sender_bound}
+              details_sealed={!!message.e2e_details_sealed}
               has_pq_protection={false}
               has_recipient_key={message.has_recipient_key}
               is_external={message.is_external}

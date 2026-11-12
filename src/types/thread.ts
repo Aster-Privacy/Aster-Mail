@@ -57,6 +57,7 @@ export interface DecryptedThreadMessage {
   system_origin?: boolean;
   e2e_verified?: boolean;
   e2e_sender_bound?: boolean;
+  e2e_details_sealed?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
   has_recipient_key?: boolean;
   is_sending?: boolean;

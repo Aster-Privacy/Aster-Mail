@@ -1152,6 +1152,8 @@ export const it = {
     encrypted_in_transit_stored:
       "Crittografato in transito e archiviato crittografato.",
     only_you_and_sender: "Solo tu e il mittente potete leggere questo.",
+    only_you_and_sender_details_from_server:
+      "Solo tu e il mittente potete leggere questo. Il nome del mittente, i destinatari e la data provengono dal server e non sono coperti dalla crittografia end-to-end.",
     encrypted_to_you_unconfirmed_sender:
       "Questo messaggio è stato crittografato con la tua chiave pubblica. L'identità del mittente non è confermata.",
     only_you_can_read_contacts:

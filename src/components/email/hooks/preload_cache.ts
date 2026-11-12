@@ -64,6 +64,8 @@ import {
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import {
   sealed_html_source,
+  has_sealed_details,
+  sealed_timestamp,
   settle_sealed_fields,
 } from "@/services/crypto/sealed_message_fields";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -580,6 +582,10 @@ export async function preload_email_detail(
       }
 
       settle_sealed_fields(envelope, subject_bundle, ratchet_sealed, item.id);
+      const e2e_details_sealed = has_sealed_details(
+        subject_bundle,
+        ratchet_sealed,
+      );
 
       const pgp_was_decrypted = body_text !== pre_pgp_text;
       const html_has_pgp =
@@ -634,6 +640,7 @@ export async function preload_email_detail(
         system_origin: item.system_origin,
         e2e_verified,
         e2e_sender_bound,
+        e2e_details_sealed,
         sent_encryption_scope,
         sender_verified_domain: item.sender_verified
           ? item.sender_verified_domain
@@ -689,7 +696,11 @@ export async function preload_email_detail(
         subject: envelope.subject || "",
         body: body_text || "",
         html_content: safe_html,
-        timestamp: item.message_ts || item.created_at,
+        timestamp: sealed_timestamp(
+          envelope,
+          e2e_details_sealed,
+          item.message_ts || item.created_at,
+        ),
         is_read: item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
@@ -698,6 +709,7 @@ export async function preload_email_detail(
         system_origin: item.system_origin,
         e2e_verified,
         e2e_sender_bound,
+        e2e_details_sealed,
         sent_encryption_scope,
         sender_verified_domain: item.sender_verified
           ? item.sender_verified_domain

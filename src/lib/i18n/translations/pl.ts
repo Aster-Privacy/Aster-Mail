@@ -1154,6 +1154,8 @@ export const pl = {
     encrypted_in_transit_stored:
       "Szyfrowane podczas przesyłania i przechowywane w formie zaszyfrowanej.",
     only_you_and_sender: "Tylko Ty i nadawca możecie to przeczytać.",
+    only_you_and_sender_details_from_server:
+      "Tylko Ty i nadawca możecie to przeczytać. Nazwa nadawcy, odbiorcy i data pochodzą z serwera i nie są objęte szyfrowaniem end-to-end.",
     encrypted_to_you_unconfirmed_sender:
       "Ta wiadomość została zaszyfrowana Twoim kluczem publicznym. Tożsamość nadawcy nie jest potwierdzona.",
     only_you_can_read_contacts:

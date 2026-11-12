@@ -1138,6 +1138,8 @@ export const ru = {
     end_to_end_encrypted_label: "Сквозное шифрование",
     encrypted_in_transit_stored: "Зашифровано при передаче и хранении.",
     only_you_and_sender: "Только вы и отправитель можете прочитать это.",
+    only_you_and_sender_details_from_server:
+      "Только вы и отправитель можете прочитать это. Имя отправителя, получатели и дата получены с сервера и не защищены сквозным шифрованием.",
     encrypted_to_you_unconfirmed_sender:
       "Это сообщение зашифровано вашим открытым ключом. Личность отправителя не подтверждена.",
     only_you_can_read_contacts:

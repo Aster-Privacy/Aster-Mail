@@ -1163,6 +1163,8 @@ export const fr = {
     encrypted_in_transit_stored:
       "Chiffré en transit et stocké de manière chiffrée.",
     only_you_and_sender: "Seuls vous et l'expéditeur pouvez lire ceci.",
+    only_you_and_sender_details_from_server:
+      "Seuls vous et l'expéditeur pouvez lire ceci. Le nom de l'expéditeur, les destinataires et la date proviennent du serveur et ne sont pas couverts par le chiffrement de bout en bout.",
     encrypted_to_you_unconfirmed_sender:
       "Ce message a été chiffré avec votre clé publique. L'identité de l'expéditeur n'est pas confirmée.",
     only_you_can_read_contacts:

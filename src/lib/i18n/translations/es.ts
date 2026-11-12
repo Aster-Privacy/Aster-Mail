@@ -1154,6 +1154,8 @@ export const es = {
     end_to_end_encrypted_label: "Cifrado de extremo a extremo",
     encrypted_in_transit_stored: "Cifrado en tránsito y almacenado cifrado.",
     only_you_and_sender: "Solo tú y el remitente pueden leer esto.",
+    only_you_and_sender_details_from_server:
+      "Solo tú y el remitente pueden leer esto. El nombre del remitente, los destinatarios y la fecha provienen del servidor, y el cifrado de extremo a extremo no los cubre.",
     encrypted_to_you_unconfirmed_sender:
       "Este mensaje se cifró con tu clave pública. La identidad del remitente no está confirmada.",
     only_you_can_read_contacts:

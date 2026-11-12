@@ -1102,6 +1102,8 @@ export const ar = {
     end_to_end_encrypted_label: "مشفر من طرف إلى طرف",
     encrypted_in_transit_stored: "مشفر أثناء النقل ومخزن بشكل مشفر.",
     only_you_and_sender: "أنت والمرسل فقط يمكنكما قراءة هذا.",
+    only_you_and_sender_details_from_server:
+      "أنت والمرسل فقط يمكنكما قراءة هذا. اسم المرسل والمستلمون والتاريخ مصدرها الخادم ولا يشملها التشفير من طرف إلى طرف.",
     encrypted_to_you_unconfirmed_sender:
       "شُفّرت هذه الرسالة بمفتاحك العام. لم يتم تأكيد هوية المرسل.",
     only_you_can_read_contacts:

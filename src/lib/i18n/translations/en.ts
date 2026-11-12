@@ -1164,6 +1164,8 @@ export const en: Translations = {
     end_to_end_encrypted_label: "End-to-End Encrypted",
     encrypted_in_transit_stored: "Encrypted in transit and stored encrypted.",
     only_you_and_sender: "Only you and the sender can read this.",
+    only_you_and_sender_details_from_server:
+      "Only you and the sender can read this. The server supplies the sender's name, the recipients, and the date, so end-to-end encryption doesn't cover them.",
     encrypted_to_you_unconfirmed_sender:
       "This message was encrypted with your public key. The sender's identity isn't confirmed.",
     only_you_can_read_contacts:

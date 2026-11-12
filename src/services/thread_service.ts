@@ -70,7 +70,10 @@ import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import { compare_timestamps_asc } from "@/utils/email_timestamp";
 import { has_readable_body } from "@/components/email/thread_message_merge";
 import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
-import { settle_sealed_fields } from "@/services/crypto/sealed_message_fields";
+import {
+  has_sealed_details,
+  settle_sealed_fields,
+} from "@/services/crypto/sealed_message_fields";
 import {
   as_sent_encryption_scope,
   sent_copy_encryption_scope,
@@ -382,6 +385,7 @@ async function decode_thread_envelope(
     sent_at: envelope.sent_at,
     e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
     e2e_sender_bound: ratchet_sealed || sent_encryption_scope !== undefined,
+    e2e_details_sealed: has_sealed_details(subject_bundle, ratchet_sealed),
     ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
     to_recipients: envelope.to || [],
     cc_recipients: envelope.cc || [],
@@ -518,6 +522,7 @@ export async function fetch_and_decrypt_thread_messages(
       system_origin: msg.system_origin,
       e2e_verified: content.e2e_verified,
       e2e_sender_bound: content.e2e_sender_bound,
+      e2e_details_sealed: content.e2e_details_sealed,
       ...(as_sent_encryption_scope(content.sent_encryption_scope)
         ? { sent_encryption_scope: content.sent_encryption_scope }
         : {}),
@@ -761,6 +766,7 @@ export async function fetch_and_decrypt_virtual_group(
       system_origin: item.system_origin,
       e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
       e2e_sender_bound: ratchet_sealed || sent_encryption_scope !== undefined,
+      e2e_details_sealed: has_sealed_details(subject_bundle, ratchet_sealed),
       ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
       sender_verified_domain: item.sender_verified
         ? item.sender_verified_domain

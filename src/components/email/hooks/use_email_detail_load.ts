@@ -900,6 +900,7 @@ export function use_email_detail_load() {
           unsubscribe_info,
           e2e_verified,
           e2e_sender_bound,
+          e2e_details_sealed,
           sent_encryption_scope,
         } = await process_envelope_body(
             envelope,
@@ -942,6 +943,7 @@ export function use_email_detail_load() {
             unsubscribe_info,
             e2e_verified,
             e2e_sender_bound,
+            e2e_details_sealed,
             sent_encryption_scope,
             reply_to: (() => {
               const parsed = extract_reply_to(envelope.raw_headers);
@@ -964,6 +966,7 @@ export function use_email_detail_load() {
           e2e_verified,
           sent_encryption_scope,
           e2e_sender_bound,
+          e2e_details_sealed,
         );
 
         if (should_load_thread) {

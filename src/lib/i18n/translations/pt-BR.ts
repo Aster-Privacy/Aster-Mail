@@ -1026,6 +1026,8 @@ export const pt_br = {
     encrypted_in_transit_stored:
       "Criptografado em trânsito e armazenado criptografado.",
     only_you_and_sender: "Apenas você e o remetente podem ler isso.",
+    only_you_and_sender_details_from_server:
+      "Apenas você e o remetente podem ler isso. O nome do remetente, os destinatários e a data vêm do servidor e não são cobertos pela criptografia de ponta a ponta.",
     encrypted_to_you_unconfirmed_sender:
       "Esta mensagem foi criptografada com sua chave pública. A identidade do remetente não foi confirmada.",
     only_you_can_read_contacts:

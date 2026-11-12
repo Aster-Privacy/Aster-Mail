@@ -72,6 +72,10 @@ import {
   build_subject_bundle,
   discover_external_recipient_keys,
 } from "@/utils/email_crypto";
+import {
+  build_sealed_details,
+  sealed_sender_name,
+} from "@/utils/sealed_message_details";
 import { format_bytes } from "@/lib/utils";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -169,6 +173,15 @@ async function execute_send_with_plans(
     email.subject || "",
     body_for_recipient,
     attachment_plan?.manifest,
+    build_sealed_details({
+      from_name: sealed_sender_name(
+        email.sender_display_name,
+        email.sender_alias_hash,
+        current_user.display_name,
+      ),
+      to: email.to,
+      cc: email.cc,
+    }),
   );
 
   const {

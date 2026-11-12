@@ -40,7 +40,9 @@ import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { build_body_preview } from "@/utils/preview_text";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  has_sealed_details,
   sealed_html_source,
+  sealed_timestamp,
   settle_sealed_fields,
 } from "@/services/crypto/sealed_message_fields";
 import {
@@ -54,6 +56,7 @@ export interface ProcessedEnvelope {
   unsubscribe_info: UnsubscribeInfo | undefined;
   e2e_verified: boolean;
   e2e_sender_bound: boolean;
+  e2e_details_sealed?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
 }
 
@@ -183,6 +186,7 @@ async function resolve_envelope_body(
   }
 
   settle_sealed_fields(envelope, bundle, ratchet_verified, message_id);
+  const e2e_details_sealed = has_sealed_details(bundle, ratchet_verified);
 
   const pgp_was_decrypted = body_text !== pre_pgp_text;
   const html_has_pgp =
@@ -239,6 +243,7 @@ async function resolve_envelope_body(
     safe_html,
     unsubscribe_info: unsubscribe ?? undefined,
     ...verification,
+    e2e_details_sealed,
   };
 }
 
@@ -280,6 +285,7 @@ export function build_single_thread_message(
   e2e_verified = false,
   sent_encryption_scope?: SentEncryptionScope,
   e2e_sender_bound = false,
+  e2e_details_sealed = false,
 ): DecryptedThreadMessage {
   const forwarding = resolve_forwarding_display(
     envelope.from,
@@ -299,7 +305,11 @@ export function build_single_thread_message(
     subject: envelope.subject || "",
     body: body_text || "",
     html_content: safe_html,
-    timestamp: item.message_ts || item.created_at,
+    timestamp: sealed_timestamp(
+      envelope,
+      e2e_details_sealed,
+      item.message_ts || item.created_at,
+    ),
     is_read: decrypted_metadata?.is_read ?? false,
     is_starred: decrypted_metadata?.is_starred ?? false,
     is_deleted: false,
@@ -308,6 +318,7 @@ export function build_single_thread_message(
     system_origin: item.system_origin,
     e2e_verified,
     e2e_sender_bound,
+    e2e_details_sealed,
     ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
     sender_verified_domain: item.sender_verified
       ? item.sender_verified_domain

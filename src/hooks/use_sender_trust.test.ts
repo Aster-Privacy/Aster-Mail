@@ -174,6 +174,78 @@ describe("sender_trust_input", () => {
     ).toBe(false);
   });
 
+  it("ignores a served verified flag on an internal message that is not sender-bound", () => {
+    const served = {
+      sender_name: "Ana",
+      sender_email: "ana@astermail.org",
+      is_external: false,
+      sender_verified: true,
+      sender_verified_domain: "astermail.org",
+    };
+    const unbound = sender_trust_input(
+      { ...served, e2e_sender_bound: false },
+      context,
+    );
+
+    expect(unbound.sender_verified).toBe(false);
+    expect(unbound.sender_verified_domain).toBeUndefined();
+    expect(evaluate_sender_trust(unbound).show_verified_badge).toBe(false);
+
+    const bound = sender_trust_input(
+      { ...served, e2e_sender_bound: true },
+      context,
+    );
+
+    expect(bound.sender_verified).toBe(true);
+    expect(bound.sender_verified_domain).toBe("astermail.org");
+    expect(evaluate_sender_trust(bound).show_verified_badge).toBe(
+      evaluate_sender_trust(sender_trust_input(served, context))
+        .show_verified_badge,
+    );
+  });
+
+  it("keeps the served verified flag where sender binding does not apply", () => {
+    const served = {
+      sender_name: "Ana",
+      sender_email: "ana@astermail.org",
+      sender_verified: true,
+      sender_verified_domain: "astermail.org",
+    };
+
+    expect(
+      sender_trust_input({ ...served, is_external: false }, context)
+        .sender_verified,
+    ).toBe(true);
+    expect(
+      sender_trust_input(
+        { ...served, is_external: true, e2e_sender_bound: false },
+        context,
+      ).sender_verified,
+    ).toBe(true);
+    expect(
+      sender_trust_input(
+        {
+          ...served,
+          is_external: false,
+          e2e_sender_bound: false,
+          system_origin: true,
+        },
+        context,
+      ).sender_verified,
+    ).toBe(true);
+    expect(
+      sender_trust_input(
+        {
+          ...served,
+          is_external: false,
+          e2e_sender_bound: false,
+          sender_verification: "verified",
+        },
+        context,
+      ).sender_verified,
+    ).toBe(true);
+  });
+
   it("evaluates the name that is shown, not the stored one", () => {
     const input = sender_trust_input(
       { sender_name: "Stored", sender_email: "a@b.example" },
