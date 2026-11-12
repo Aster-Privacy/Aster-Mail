@@ -1878,6 +1878,8 @@ export const de = {
     key_trust_unreadable_message:
       "Der gespeicherte Verschlüsselungsschlüssel von {{recipients}} kann auf diesem Gerät nicht gelesen werden. Prüfen Sie den aktuellen Fingerabdruck über einen anderen Kanal mit der Empfängerin oder dem Empfänger, bevor Sie senden.",
     key_trust_unreadable_detail: "{{email}}: jetzt {{current}}.",
+    key_trust_own_message:
+      "Der Verschlüsselungsschlüssel für Ihre Adresse {{recipients}} hat sich geändert. Wenn Sie Ihre Schlüssel nicht zurückgesetzt oder kein neues Gerät eingerichtet haben, vertrauen Sie dem neuen Schlüssel nicht.",
     key_trust_change_confirm: "Neuem Schlüssel vertrauen",
     key_trust_missing_title: "Verschlüsselungsschlüssel nicht gefunden",
     key_trust_missing_message:

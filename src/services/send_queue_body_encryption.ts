@@ -184,7 +184,46 @@ export async function check_post_quantum_status(
     }
   }
 
+  await check_self_copy_trust(sender_email, internal_recipients, coverage);
+
   return coverage;
+}
+
+async function check_self_copy_trust(
+  sender_email: string,
+  internal_recipients: string[],
+  coverage: PostQuantumCoverage,
+): Promise<void> {
+  if (!is_internal_recipient(sender_email)) return;
+
+  const ratchet_sender = await resolve_ratchet_sender(sender_email);
+  const sender_lower = ratchet_sender.toLowerCase();
+
+  if (internal_recipients.some((r) => r.toLowerCase() === sender_lower)) {
+    return;
+  }
+
+  const username = await resolve_own_username_for_key_lookup(ratchet_sender);
+
+  if (!username) return;
+
+  try {
+    const status = await recipient_post_quantum_status(
+      ratchet_sender,
+      ratchet_sender,
+      username,
+    );
+
+    if (status === "untrusted") coverage.untrusted.push(sender_lower);
+  } catch (err) {
+    if (err instanceof RecipientPinUnreadableError) {
+      coverage.unreadable.push(sender_lower);
+
+      return;
+    }
+
+    throw map_ratchet_error(err);
+  }
 }
 
 export async function check_post_quantum_coverage(

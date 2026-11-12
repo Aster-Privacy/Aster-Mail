@@ -34,8 +34,13 @@ import {
   replace_owner_key_pin,
   restore_missing_key_check,
 } from "./crypto/ratchet_identity_pin";
+import {
+  describe_recipient_identity_change,
+  trust_recipient_identity,
+} from "./crypto/recipient_identity_check";
 
 import { get_active_translations } from "@/lib/i18n/translations";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 export interface KeyFingerprintChange {
   email: string;
@@ -45,6 +50,7 @@ export interface KeyFingerprintChange {
   observed_at: string;
   unreadable?: boolean;
   missing?: boolean;
+  own?: boolean;
 }
 
 export type KeyTrustPromptHandler = (
@@ -271,4 +277,69 @@ export async function ensure_external_key_trust(
 
     throw new KeyTrustCheckError();
   }
+}
+
+export type InternalKeyTrustResult = "trusted" | "declined" | "unavailable";
+
+async function internal_key_change(
+  email: string,
+  unreadable: boolean,
+  own: boolean,
+): Promise<KeyFingerprintChange> {
+  const observed_at = new Date().toISOString();
+  const described = await describe_recipient_identity_change(email).catch(
+    () => null,
+  );
+  const prior_fingerprint = described?.prior_fingerprint ?? "";
+
+  return {
+    email: email.trim().toLowerCase(),
+    prior_fingerprint,
+    new_fingerprint: described?.new_fingerprint ?? "",
+    source: "",
+    observed_at,
+    ...(unreadable ? { unreadable: true } : {}),
+    ...(own ? { own: true } : {}),
+  };
+}
+
+export async function confirm_internal_key_trust(
+  untrusted: string[],
+  unreadable: string[] = [],
+  own_address?: string,
+): Promise<InternalKeyTrustResult> {
+  const unreadable_set = new Set(
+    unreadable.map((email) => email.trim().toLowerCase()),
+  );
+  const addresses = [
+    ...new Set(
+      [...untrusted, ...unreadable].map((email) => email.trim().toLowerCase()),
+    ),
+  ].filter(Boolean);
+
+  if (addresses.length === 0) return "trusted";
+  if (!prompt_handler) return "unavailable";
+
+  const changes = await Promise.all(
+    addresses.map((email) =>
+      internal_key_change(
+        email,
+        unreadable_set.has(email),
+        Boolean(own_address) &&
+          same_address_ignoring_dots(email, own_address ?? ""),
+      ),
+    ),
+  );
+
+  if (!(await prompt_handler(changes))) return "declined";
+
+  try {
+    for (const email of addresses) {
+      await trust_recipient_identity(email);
+    }
+  } catch {
+    throw new KeyTrustCheckError();
+  }
+
+  return "trusted";
 }

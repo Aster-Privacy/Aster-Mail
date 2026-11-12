@@ -19,11 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { encrypt_for_recipients } from "./send_queue_body_encryption";
+import {
+  check_post_quantum_status,
+  encrypt_for_recipients,
+} from "./send_queue_body_encryption";
 
 const h = vi.hoisted(() => ({
   primary: "me@astermail.org" as string | null,
   encrypt_calls: [] as { keys: string[]; signing: unknown }[],
+  status: {} as Record<string, string>,
+  status_calls: [] as string[],
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -71,7 +76,11 @@ vi.mock("./crypto/ratchet_manager", () => ({
   build_ratchet_envelope: () => "",
   encrypt_for_ratchet_recipient: async () => null,
   is_post_quantum_recipient_data: () => false,
-  recipient_post_quantum_status: async () => "missing",
+  recipient_post_quantum_status: async (_sender: string, recipient: string) => {
+    h.status_calls.push(recipient);
+
+    return h.status[recipient] ?? "missing";
+  },
 }));
 
 vi.mock("./send_queue_recipients", () => ({
@@ -133,5 +142,52 @@ describe("encrypt_for_recipients without a ratchet session", () => {
 
     expect(h.encrypt_calls[0].keys).toEqual(["recipient-public-key"]);
     expect(h.encrypt_calls[0].signing).toBeUndefined();
+  });
+});
+
+describe("check_post_quantum_status for the sender's own copy", () => {
+  beforeEach(() => {
+    h.primary = "me@astermail.org";
+    h.status = {};
+    h.status_calls = [];
+  });
+
+  it("reports the sender's own address when its key is untrusted", async () => {
+    h.status = {
+      "friend@astermail.org": "supported",
+      "me@astermail.org": "untrusted",
+    };
+
+    const coverage = await check_post_quantum_status(
+      ["friend@astermail.org"],
+      "m.e@astermail.org",
+    );
+
+    expect(coverage.untrusted).toEqual(["me@astermail.org"]);
+    expect(coverage.missing).toEqual([]);
+  });
+
+  it("does not ask about post-quantum coverage for the sender's own copy", async () => {
+    h.status = { "friend@astermail.org": "supported" };
+
+    const coverage = await check_post_quantum_status(
+      ["friend@astermail.org"],
+      "me@astermail.org",
+    );
+
+    expect(coverage).toEqual({
+      missing: [],
+      downgraded: [],
+      untrusted: [],
+      unreadable: [],
+    });
+  });
+
+  it("checks the sender only once when they are also a recipient", async () => {
+    h.status = { "me@astermail.org": "supported" };
+
+    await check_post_quantum_status(["me@astermail.org"], "me@astermail.org");
+
+    expect(h.status_calls).toEqual(["me@astermail.org"]);
   });
 });

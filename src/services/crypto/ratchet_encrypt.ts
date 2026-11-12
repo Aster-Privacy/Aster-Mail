@@ -41,8 +41,10 @@ import {
   has_peer_advertised_pq,
   is_recipient_bundle_accepted,
   is_recipient_flagged_untrusted,
+  trust_recipient_keys,
   type OwnerKeyPinStatus,
 } from "./ratchet_identity_pin";
+import { get_vault_from_memory } from "./memory_key_store";
 import {
   detect_identity_pin_drift,
   fetch_prekey_bundle,
@@ -143,6 +145,7 @@ type BundleVerification = Awaited<
   owner_pin: OwnerKeyPinStatus;
   flagged_untrusted: boolean;
   accepted_by_user: boolean;
+  owner_public_key: string | null;
 };
 
 async function verify_recipient_bundle(
@@ -173,7 +176,61 @@ async function verify_recipient_bundle(
     verification.verdict === "tampered" &&
     (await is_recipient_bundle_accepted(pin_id, bundle));
 
-  return { ...verification, owner_pin, flagged_untrusted, accepted_by_user };
+  return {
+    ...verification,
+    owner_pin,
+    flagged_untrusted,
+    accepted_by_user,
+    owner_public_key,
+  };
+}
+
+function is_own_published_bundle(
+  bundle: PrekeyBundle,
+  vault: EncryptedVault,
+): boolean {
+  return (
+    Boolean(vault.ratchet_identity_public) &&
+    Boolean(vault.ratchet_signed_prekey_public) &&
+    bundle.kem_identity_key === vault.ratchet_identity_public &&
+    bundle.signed_prekey === vault.ratchet_signed_prekey_public &&
+    (bundle.pq_kem_public_key ?? null) ===
+      (vault.ratchet_pq_identity_public ?? null)
+  );
+}
+
+async function refresh_own_identity_pins(
+  pin_id: string,
+  bundle: PrekeyBundle,
+  verification: BundleVerification,
+): Promise<BundleVerification> {
+  await trust_recipient_keys(
+    pin_id,
+    bundle.kem_identity_key,
+    verification.owner_public_key,
+    bundle,
+  );
+
+  return {
+    ...verification,
+    owner_pin: verification.owner_public_key ? "ok" : verification.owner_pin,
+    flagged_untrusted: false,
+    accepted_by_user: verification.verdict === "tampered",
+  };
+}
+
+async function settle_own_bundle(
+  pin_id: string,
+  bundle: PrekeyBundle,
+  verification: BundleVerification,
+  vault: EncryptedVault | null,
+): Promise<BundleVerification> {
+  if (!vault || !is_own_published_bundle(bundle, vault)) return verification;
+  if (!is_bundle_untrusted(verification)) return verification;
+
+  return refresh_own_identity_pins(pin_id, bundle, verification).catch(
+    () => verification,
+  );
 }
 
 function is_bundle_untrusted(verification: BundleVerification): boolean {
@@ -289,13 +346,18 @@ async function encrypt_for_ratchet_recipient_unlocked(
         bundle.kem_identity_key,
       );
 
-      const bundle_verification = await verify_recipient_bundle(
-        bundle,
-        recipient_username,
-        recipient_email,
-      );
-
       const bundle_peer = (recipient_email ?? recipient_username).toLowerCase();
+
+      const bundle_verification = await settle_own_bundle(
+        bundle_peer,
+        bundle,
+        await verify_recipient_bundle(
+          bundle,
+          recipient_username,
+          recipient_email,
+        ),
+        vault,
+      );
 
       record_bundle_verification(bundle_peer, bundle_verification);
 
@@ -541,10 +603,11 @@ export async function recipient_post_quantum_status(
 
   if (!bundle) return "unsupported";
 
-  const verification = await verify_recipient_bundle(
+  const verification = await settle_own_bundle(
+    (recipient_email ?? recipient_username).toLowerCase(),
     bundle,
-    recipient_username,
-    recipient_email,
+    await verify_recipient_bundle(bundle, recipient_username, recipient_email),
+    get_vault_from_memory(),
   );
 
   if (is_bundle_untrusted(verification)) {

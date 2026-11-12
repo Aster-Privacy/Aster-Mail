@@ -1956,6 +1956,8 @@ export const it = {
     key_trust_unreadable_message:
       "La chiave di crittografia salvata di {{recipients}} non può essere letta su questo dispositivo. Verifica l’impronta attuale con il destinatario su un altro canale prima di inviare.",
     key_trust_unreadable_detail: "{{email}}: ora {{current}}.",
+    key_trust_own_message:
+      "La chiave di crittografia del tuo indirizzo {{recipients}} è cambiata. Se non hai reimpostato le chiavi né configurato un nuovo dispositivo, non considerare attendibile la nuova chiave.",
     key_trust_change_confirm: "Considera attendibile la nuova chiave",
     key_trust_missing_title: "Chiave di crittografia non trovata",
     key_trust_missing_message:

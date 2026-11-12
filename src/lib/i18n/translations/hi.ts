@@ -1225,6 +1225,8 @@ export const hi = {
     key_trust_unreadable_message:
       "{{recipients}} की सहेजी गई एन्क्रिप्शन कुंजी इस डिवाइस पर पढ़ी नहीं जा सकती। भेजने से पहले मौजूदा फिंगरप्रिंट की पुष्टि प्राप्तकर्ता से किसी दूसरे माध्यम से करें।",
     key_trust_unreadable_detail: "{{email}}: अब {{current}}।",
+    key_trust_own_message:
+      "आपके पते {{recipients}} की एन्क्रिप्शन कुंजी बदल गई है। अगर आपने अपनी कुंजियां रीसेट नहीं कीं या कोई नया डिवाइस सेट अप नहीं किया, तो नई कुंजी पर भरोसा न करें।",
     key_trust_change_confirm: "नई कुंजी पर भरोसा करें",
     key_trust_missing_title: "एन्क्रिप्शन कुंजी नहीं मिली",
     key_trust_missing_message:

@@ -1952,6 +1952,8 @@ export const es = {
     key_trust_unreadable_message:
       "La clave de cifrado guardada de {{recipients}} no se puede leer en este dispositivo. Comprueba la huella actual con el destinatario por otro canal antes de enviar.",
     key_trust_unreadable_detail: "{{email}}: ahora {{current}}.",
+    key_trust_own_message:
+      "La clave de cifrado de tu dirección {{recipients}} cambió. Si no restableciste tus claves ni configuraste un dispositivo nuevo, no confíes en la nueva clave.",
     key_trust_change_confirm: "Confiar en la nueva clave",
     key_trust_missing_title: "No se encontró la clave de cifrado",
     key_trust_missing_message:

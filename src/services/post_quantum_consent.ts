@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { check_post_quantum_status } from "./send_queue_encryption";
+import { confirm_internal_key_trust } from "./key_trust_consent";
+import {
+  check_post_quantum_status,
+  type PostQuantumCoverage,
+} from "./send_queue_encryption";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -67,6 +71,50 @@ export async function request_post_quantum_send_confirmation(
   return prompt_handler(recipients, downgraded);
 }
 
+const BLOCKED: PostQuantumConsent = {
+  proceed: false,
+  allow_non_post_quantum: false,
+};
+
+function coverage_block(
+  coverage: PostQuantumCoverage,
+): PostQuantumConsentBlock | null {
+  if (coverage.untrusted.length > 0) return "errors.recipient_key_untrusted";
+  if (coverage.unreadable.length > 0) return "errors.recipient_key_unreadable";
+
+  return null;
+}
+
+async function resolve_key_trust(
+  recipients: string[],
+  sender_email: string | undefined,
+  coverage: PostQuantumCoverage,
+): Promise<PostQuantumCoverage | PostQuantumConsent> {
+  const block = coverage_block(coverage);
+
+  if (!block) return coverage;
+
+  const result = await confirm_internal_key_trust(
+    coverage.untrusted,
+    coverage.unreadable,
+    sender_email,
+  );
+
+  if (result === "declined") return BLOCKED;
+  if (result === "unavailable") return { ...BLOCKED, blocked_by: block };
+
+  const rechecked = await check_post_quantum_status(recipients, sender_email);
+  const still_blocked = coverage_block(rechecked);
+
+  return still_blocked ? { ...BLOCKED, blocked_by: still_blocked } : rechecked;
+}
+
+function is_consent(
+  value: PostQuantumCoverage | PostQuantumConsent,
+): value is PostQuantumConsent {
+  return "proceed" in value;
+}
+
 export async function ensure_post_quantum_consent(
   recipients: string[],
   sender_email?: string,
@@ -75,32 +123,15 @@ export async function ensure_post_quantum_consent(
   let downgraded: string[];
 
   try {
-    const coverage = await check_post_quantum_status(recipients, sender_email);
+    const initial = await check_post_quantum_status(recipients, sender_email);
+    const coverage = await resolve_key_trust(recipients, sender_email, initial);
 
-    if (coverage.untrusted.length > 0) {
-      return {
-        proceed: false,
-        allow_non_post_quantum: false,
-        blocked_by: "errors.recipient_key_untrusted",
-      };
-    }
-
-    if (coverage.unreadable.length > 0) {
-      return {
-        proceed: false,
-        allow_non_post_quantum: false,
-        blocked_by: "errors.recipient_key_unreadable",
-      };
-    }
+    if (is_consent(coverage)) return coverage;
 
     missing = coverage.missing;
     downgraded = coverage.downgraded;
   } catch {
-    return {
-      proceed: false,
-      allow_non_post_quantum: false,
-      blocked_by: "errors.key_trust_check_failed",
-    };
+    return { ...BLOCKED, blocked_by: "errors.key_trust_check_failed" };
   }
 
   if (missing.length === 0) {

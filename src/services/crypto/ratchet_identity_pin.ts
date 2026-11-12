@@ -77,6 +77,15 @@ interface StoredOwnerKeyPin {
 
 interface StoredUntrustedFlag {
   flagged_at: number;
+  version?: number;
+}
+
+const UNTRUSTED_FLAG_VERSION = 2;
+
+function is_flag_raised(read: ContactRead<StoredUntrustedFlag>): boolean {
+  return (
+    read.state === "found" && read.value.version === UNTRUSTED_FLAG_VERSION
+  );
 }
 
 interface StoredAcceptedBundle {
@@ -340,6 +349,7 @@ export async function flag_recipient_untrusted(pin_id: string): Promise<void> {
     if (slot) {
       await write_contact_entry(IDENTITY_UNTRUSTED_PREFIX, slot, {
         flagged_at: Date.now(),
+        version: UNTRUSTED_FLAG_VERSION,
       } satisfies StoredUntrustedFlag);
     }
   } catch {
@@ -366,7 +376,7 @@ export async function is_recipient_flagged_untrusted(
 
   if (!slot) throw new KeyPinUnavailableError(pin_id);
 
-  return flag.state !== "absent";
+  return is_flag_raised(flag);
 }
 
 async function bundle_binding_fingerprint(
@@ -690,7 +700,7 @@ export async function read_recipient_pins(
       health: worst_health([identity, owner, history]),
       identity_fingerprint: settled_value(identity)?.fingerprint ?? null,
       owner_fingerprint: settled_value(owner)?.fingerprint ?? null,
-      flagged: flag.state === "found" || flag.state === "unreadable",
+      flagged: is_flag_raised(flag),
       change: settled_value(change),
     };
   } catch {
@@ -756,7 +766,11 @@ export async function trust_recipient_keys(
     const history = await read_sender_history(slot).catch(() => null);
 
     if (!history || !is_settled(history)) {
-      await delete_contact_entry(SENDER_HISTORY_PREFIX, slot);
+      await write_contact_entry(
+        SENDER_HISTORY_PREFIX,
+        slot,
+        kem_identity_key ? [kem_identity_key] : [],
+      );
     }
 
     await delete_contact_entry(IDENTITY_CHANGE_PREFIX, slot);

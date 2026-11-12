@@ -1926,6 +1926,8 @@ export const tr = {
     key_trust_unreadable_message:
       "{{recipients}} için kayıtlı şifreleme anahtarı bu cihazda okunamıyor. Göndermeden önce geçerli parmak izini alıcıyla başka bir kanaldan doğrulayın.",
     key_trust_unreadable_detail: "{{email}}: şimdi {{current}}.",
+    key_trust_own_message:
+      "{{recipients}} adresinizin şifreleme anahtarı değişti. Anahtarlarınızı sıfırlamadıysanız veya yeni bir cihaz kurmadıysanız yeni anahtara güvenmeyin.",
     key_trust_change_confirm: "Yeni anahtara güven",
     key_trust_missing_title: "Şifreleme anahtarı bulunamadı",
     key_trust_missing_message:

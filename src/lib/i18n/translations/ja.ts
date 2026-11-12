@@ -1966,6 +1966,8 @@ export const ja = {
     key_trust_unreadable_message:
       "このデバイスで {{recipients}} の保存済み暗号鍵を読み取れません。送信する前に、別の手段で受信者と現在のフィンガープリントを確認してください。",
     key_trust_unreadable_detail: "{{email}}：現在は {{current}}。",
+    key_trust_own_message:
+      "あなたのアドレス {{recipients}} の暗号鍵が変更されました。鍵をリセットしたり新しいデバイスを設定したりしていない場合は、新しい鍵を信頼しないでください。",
     key_trust_change_confirm: "新しい鍵を信頼する",
     key_trust_missing_title: "暗号化鍵が見つかりません",
     key_trust_missing_message:

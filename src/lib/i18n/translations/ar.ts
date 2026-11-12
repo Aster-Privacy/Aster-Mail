@@ -1876,6 +1876,8 @@ export const ar = {
     key_trust_unreadable_message:
       "تعذرت قراءة مفتاح التشفير المحفوظ الخاص بـ {{recipients}} على هذا الجهاز. تحقق من البصمة الحالية مع المُستلِم عبر قناة أخرى قبل الإرسال.",
     key_trust_unreadable_detail: "{{email}}: أصبحت {{current}}.",
+    key_trust_own_message:
+      "تغيّر مفتاح التشفير لعنوانك {{recipients}}. إذا لم تُعِد تعيين مفاتيحك أو تُعِدّ جهازًا جديدًا، فلا تثق بالمفتاح الجديد.",
     key_trust_change_confirm: "الثقة بالمفتاح الجديد",
     key_trust_missing_title: "لم يُعثر على مفتاح التشفير",
     key_trust_missing_message:

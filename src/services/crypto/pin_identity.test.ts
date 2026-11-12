@@ -106,22 +106,20 @@ import {
   resolve_pin_contact,
 } from "@/services/crypto/pin_identity";
 import {
-  UNATTRIBUTED_LEGACY_ENTRIES_BLOCK_FIRST_CONTACT,
   reset_contact_entry_state,
   with_contact_lock,
 } from "@/services/crypto/contact_entries";
 import {
   check_and_pin_identity,
   check_owner_key_pin,
+  flag_recipient_untrusted,
   get_recipient_pin_health,
   is_recipient_flagged_untrusted,
   lookup_identity_pin_record,
   lookup_owner_key_pin,
-  lookup_pinned_identity,
   open_pin_contact,
   owner_key_fingerprint,
   read_sender_history,
-  replace_owner_key_pin,
   trust_recipient_keys,
 } from "@/services/crypto/ratchet_identity_pin";
 import {
@@ -339,59 +337,33 @@ describe("identity pin across address variants", () => {
     expect(h.store.has(readable_name)).toBe(false);
   });
 
-  it("never pins over a tagged pin it cannot attribute from the plain address", async () => {
-    const tagged_name = await seed_earlier_pin(TAGGED, KEY_A);
-    const stored = h.store.get(tagged_name);
-
-    expect(UNATTRIBUTED_LEGACY_ENTRIES_BLOCK_FIRST_CONTACT).toBe(true);
-    expect(await check_and_pin_identity(PLAIN, KEY_B)).toBe("unreadable");
-    expect(await lookup_identity_pin_record(PLAIN)).toBe("unreadable");
-    expect(await lookup_pinned_identity(PLAIN)).toBeNull();
-    expect(await get_recipient_pin_health(PLAIN)).toBe("unreadable");
-    expect(names_under(IDENTITY_PIN_PREFIX)).toEqual([tagged_name]);
-    expect(h.store.get(tagged_name)).toEqual(stored);
-  });
-
-  it("reads the tagged pin once the tagged spelling is seen", async () => {
+  it("pins a first contact while an earlier tagged pin cannot be attributed", async () => {
     const tagged_name = await seed_earlier_pin(TAGGED, KEY_A);
 
-    expect(await check_and_pin_identity(PLAIN, KEY_B)).toBe("unreadable");
+    expect(await check_and_pin_identity(PLAIN, KEY_B)).toBe("first");
+    expect(await get_recipient_pin_health(PLAIN)).toBe("settled");
+    expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(false);
+    expect(h.store.has(tagged_name)).toBe(true);
     expect(await check_and_pin_identity(TAGGED, KEY_B)).toBe("drift");
-    expect(h.store.has(tagged_name)).toBe(false);
-    expect(await check_and_pin_identity(PLAIN, KEY_B)).toBe("drift");
-    expect(await check_and_pin_identity(PLAIN, KEY_A)).toBe("ok");
   });
 
-  it("never pins over a dotted spelling past the ones it can list", async () => {
+  it("pins a first contact past the dotted spellings it can list", async () => {
     const dotted_name = await seed_earlier_pin(LONG_DOTTED, KEY_A);
 
-    expect(await check_and_pin_identity(LONG_PLAIN, KEY_B)).toBe("unreadable");
-    expect(names_under(IDENTITY_PIN_PREFIX)).toEqual([dotted_name]);
+    expect(await check_and_pin_identity(LONG_PLAIN, KEY_B)).toBe("first");
+    expect(h.store.has(dotted_name)).toBe(true);
     expect(await check_and_pin_identity(LONG_DOTTED, KEY_B)).toBe("drift");
-    expect(await check_and_pin_identity(LONG_PLAIN, KEY_A)).toBe("ok");
   });
 
-  it("asks before the first pin while an earlier entry belongs to nobody it can name", async () => {
+  it("pins a new contact while earlier entries belong to other contacts", async () => {
     await seed_earlier_pin(OTHER, KEY_A);
 
-    expect(await check_and_pin_identity(STRANGER, KEY_B)).toBe("unreadable");
-    expect(await get_recipient_pin_health(STRANGER)).toBe("unreadable");
-    expect(h.store.has(await current_name(IDENTITY_PIN_PREFIX, STRANGER))).toBe(
-      false,
-    );
-
-    await trust_recipient_keys(STRANGER, KEY_B, null);
-
-    expect(await check_and_pin_identity(STRANGER, KEY_B)).toBe("ok");
-    expect(await get_recipient_pin_health(STRANGER)).toBe("settled");
-    expect(await check_and_pin_identity(STRANGER, KEY_A)).toBe("drift");
-  });
-
-  it("stops asking once every earlier entry has found its contact", async () => {
-    await seed_earlier_pin(OTHER, KEY_A);
-
-    expect(await check_and_pin_identity(OTHER, KEY_A)).toBe("ok");
     expect(await check_and_pin_identity(STRANGER, KEY_B)).toBe("first");
+    expect(await get_recipient_pin_health(STRANGER)).toBe("settled");
+    expect(await is_recipient_flagged_untrusted(STRANGER)).toBe(false);
+    expect(await check_and_pin_identity(STRANGER, KEY_B)).toBe("ok");
+    expect(await check_and_pin_identity(STRANGER, KEY_A)).toBe("drift");
+    expect(await check_and_pin_identity(OTHER, KEY_A)).toBe("ok");
   });
 
   it("treats spellings pinned to different keys as a key change", async () => {
@@ -424,6 +396,7 @@ describe("identity pin across address variants", () => {
   it("shares the untrusted flag across variants", async () => {
     place(await earlier_name(IDENTITY_UNTRUSTED_PREFIX, DOTTED), {
       flagged_at: 1,
+      version: 2,
     });
 
     expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(true);
@@ -515,6 +488,45 @@ describe("contacts on other domains", () => {
 });
 
 describe("unreadable pin entries", () => {
+  it("clears the block for good once the new keys are trusted", async () => {
+    const shared_flag = place(`${IDENTITY_UNTRUSTED_PREFIX}${PLAIN}`, {
+      flagged_at: 1,
+      version: 2,
+    });
+    const shared_history = place(`${SENDER_HISTORY_PREFIX}${PLAIN}`, [KEY_A]);
+    const shared_pin = place(
+      `${IDENTITY_PIN_PREFIX}${PLAIN}`,
+      await identity_pin(KEY_A),
+    );
+
+    h.unreadable.add(shared_flag);
+    h.unreadable.add(shared_history);
+    h.unreadable.add(shared_pin);
+    reset_contact_entry_state();
+
+    expect(await get_recipient_pin_health(PLAIN)).toBe("unreadable");
+    expect(await check_and_pin_identity(PLAIN, KEY_B)).toBe("unreadable");
+
+    await trust_recipient_keys(PLAIN, KEY_B, null);
+    reset_contact_entry_state();
+
+    expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(false);
+    expect(await get_recipient_pin_health(PLAIN)).toBe("settled");
+    expect(await check_and_pin_identity(PLAIN, KEY_B)).toBe("ok");
+    expect(await check_and_pin_identity(VARIANT, KEY_B)).toBe("ok");
+  });
+
+  it("ignores an untrusted flag it cannot read", async () => {
+    const name = place(await current_name(IDENTITY_UNTRUSTED_PREFIX, PLAIN), {
+      flagged_at: 1,
+      version: 2,
+    });
+
+    h.unreadable.add(name);
+
+    expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(false);
+  });
+
   it("does not treat an unreadable identity pin as first contact", async () => {
     const name = await seed_current_pin(PLAIN, KEY_A);
     const stored = h.store.get(name);
@@ -595,12 +607,14 @@ describe("unreadable pin entries", () => {
     expect((await read_sender_history(slot)).state).toBe("unreadable");
   });
 
-  it("counts an unreadable untrusted flag as flagged", async () => {
-    const name = place(await current_name(IDENTITY_UNTRUSTED_PREFIX, PLAIN), {
+  it("ignores an untrusted flag saved without a version", async () => {
+    place(await current_name(IDENTITY_UNTRUSTED_PREFIX, PLAIN), {
       flagged_at: 1,
     });
 
-    h.unreadable.add(name);
+    expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(false);
+
+    await flag_recipient_untrusted(PLAIN);
 
     expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(true);
   });
@@ -788,19 +802,14 @@ describe("owner key pin across address variants", () => {
     expect(h.unreadable.has(name)).toBe(true);
   });
 
-  it("refuses to pin an owner key over an entry it cannot attribute", async () => {
+  it("pins a first owner key while an earlier tagged pin cannot be attributed", async () => {
     const tagged_name = await seed_earlier_owner_pin(TAGGED, owner_a);
 
-    await expect(check_owner_key_pin(PLAIN, owner_b)).rejects.toBeInstanceOf(
-      RecipientPinUnreadableError,
-    );
-    expect(await lookup_owner_key_pin(PLAIN)).toBe("unreadable");
-    expect(names_under(OWNER_KEY_PIN_PREFIX)).toEqual([tagged_name]);
-
-    await replace_owner_key_pin(PLAIN, owner_b);
-
+    expect(await check_owner_key_pin(PLAIN, owner_b)).toBe("first");
     expect(await check_owner_key_pin(PLAIN, owner_b)).toBe("ok");
     expect(await check_owner_key_pin(PLAIN, owner_a)).toBe("changed");
+    expect(h.store.has(tagged_name)).toBe(true);
+    expect(await check_owner_key_pin(TAGGED, owner_b)).toBe("changed");
   });
 
   it("keeps external owner pins on the address as typed", async () => {
