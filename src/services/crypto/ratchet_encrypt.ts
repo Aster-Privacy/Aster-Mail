@@ -20,6 +20,10 @@
 //
 import { get_recipient_public_key } from "../api/keys";
 
+import {
+  account_sender_identity,
+  type SenderIdentity,
+} from "./address_sender_identity";
 import { array_to_base64, base64_to_array } from "./base64";
 import { DoubleRatchet, type BootstrapData } from "./double_ratchet";
 import { type EncryptedVault } from "./key_manager";
@@ -120,6 +124,7 @@ export async function encrypt_for_ratchet_recipient(
   recipient_username: string,
   body: string,
   vault: EncryptedVault,
+  sender_identity?: SenderIdentity,
 ): Promise<RatchetRecipientData | null> {
   const conversation_id = await derive_conversation_id(
     sender_email,
@@ -132,7 +137,7 @@ export async function encrypt_for_ratchet_recipient(
       recipient_email,
       recipient_username,
       body,
-      vault,
+      sender_identity ?? account_sender_identity(vault),
     ),
   );
 }
@@ -216,10 +221,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
   recipient_email: string,
   recipient_username: string,
   body: string,
-  vault: EncryptedVault,
+  sender_identity: SenderIdentity | null,
 ): Promise<RatchetRecipientData | null> {
   try {
-    if (!vault.ratchet_identity_key || !vault.ratchet_identity_public) {
+    if (!sender_identity) {
       return null;
     }
 
@@ -241,7 +246,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
 
       const sender_changed =
         !bootstrap ||
-        bootstrap.sender_identity_key !== vault.ratchet_identity_public;
+        bootstrap.sender_identity_key !== sender_identity.identity_public;
 
       let recipient_changed = false;
 
@@ -349,7 +354,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
       }
 
       const sender_identity_jwk: JsonWebKey = JSON.parse(
-        vault.ratchet_identity_key,
+        sender_identity.identity_jwk,
       );
 
       const x3dh_result = await perform_x3dh_sender(
@@ -390,7 +395,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
           ephemeral_key: ephemeral_key_base64,
           pq_ciphertext: pq_ciphertext_base64,
           pq_key_id: pq_key_id_value,
-          sender_identity_key: vault.ratchet_identity_public,
+          sender_identity_key: sender_identity.identity_public,
           recipient_identity_key: bundle.kem_identity_key,
           recipient_pq_identity_key: bundle.pq_kem_public_key ?? undefined,
           x3dh_version: x3dh_version_value,
@@ -433,7 +438,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
       recovery = await seal_recovery_lane(
         array_to_base64(message_key),
         conversation_id,
-        vault.ratchet_identity_public,
+        sender_identity.identity_public,
         recovery_keys,
       );
     } catch {

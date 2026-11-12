@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_own_address_identity_key } from "./address_sender_identity";
 import { base64_to_array } from "./base64";
 import {
   DoubleRatchet,
@@ -233,8 +234,9 @@ async function sender_continuity(
 ): Promise<SenderIdentityContinuity> {
   if (
     session_bound &&
-    is_own_identity_key(vault, sender_identity_key) &&
-    is_own_sender_address(sender_email, our_email)
+    is_own_sender_address(sender_email, our_email) &&
+    (is_own_identity_key(vault, sender_identity_key) ||
+      is_own_address_identity_key(vault, [sender_email], sender_identity_key))
   ) {
     return "known";
   }

@@ -19,8 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { get_recipient_public_key } from "./api/keys";
+import {
+  account_sender_identity,
+  derive_address_sender_identity,
+  type SenderIdentity,
+} from "./crypto/address_sender_identity";
 import { ensure_ratchet_keys } from "./crypto/ensure_ratchet_keys";
-import { encrypt_message_multi } from "./crypto/key_manager";
+import {
+  encrypt_message_multi,
+  type EncryptedVault,
+} from "./crypto/key_manager";
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -225,6 +233,20 @@ export async function sender_uses_account_key(
   return same_address_ignoring_dots(primary_email, sender_email);
 }
 
+export async function resolve_sender_identity(
+  sender_email: string,
+  vault: EncryptedVault,
+): Promise<SenderIdentity | null> {
+  if (await sender_uses_account_key(sender_email)) {
+    return account_sender_identity(vault);
+  }
+
+  return derive_address_sender_identity(
+    vault.ratchet_identity_key,
+    sender_email,
+  );
+}
+
 export async function encrypt_for_recipients(
   body: string,
   recipients: string[],
@@ -263,6 +285,18 @@ export async function encrypt_for_recipients(
     vault?.ratchet_identity_public
   ) {
     const ratchet_sender = await resolve_ratchet_sender(sender_email);
+    const sender_identity = await resolve_sender_identity(
+      ratchet_sender,
+      vault,
+    );
+
+    if (!sender_identity) {
+      throw create_error(
+        "encryption_failed",
+        get_active_translations().errors.failed_encrypt_envelope,
+      );
+    }
+
     const ratchet_results: Record<
       string,
       Awaited<ReturnType<typeof encrypt_for_ratchet_recipient>>
@@ -286,6 +320,7 @@ export async function encrypt_for_recipients(
           username,
           body,
           vault,
+          sender_identity,
         );
       } catch (err) {
         throw map_ratchet_error(err);
@@ -318,6 +353,7 @@ export async function encrypt_for_recipients(
               sender_username,
               body,
               vault,
+              sender_identity,
             );
           } catch (err) {
             throw map_ratchet_error(err);
@@ -342,7 +378,7 @@ export async function encrypt_for_recipients(
       }
 
       const envelope = build_ratchet_envelope(
-        vault.ratchet_identity_public,
+        sender_identity.identity_public,
         ratchet_results as Record<
           string,
           NonNullable<(typeof ratchet_results)[string]>
@@ -407,7 +443,9 @@ export async function encrypt_for_recipients(
             (armored_secret_key) => ({ armored_secret_key, passphrase }),
           )
         : undefined;
-    const own_public_key = await derive_own_public_key();
+    const own_public_key = signs_with_account_key
+      ? await derive_own_public_key()
+      : null;
 
     if (own_public_key) public_keys.push(own_public_key);
 
