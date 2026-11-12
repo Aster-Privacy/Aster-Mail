@@ -53,13 +53,6 @@ export interface ContactSlot {
   storage_key: CryptoKey;
 }
 
-interface LegacySurvey {
-  names: string[];
-  unattributed: boolean;
-}
-
-export const UNATTRIBUTED_LEGACY_ENTRIES_BLOCK_FIRST_CONTACT = true;
-
 const DOTTED_SPELLING_LIMIT = 2048;
 const OPAQUE_TAIL = /^[A-Za-z0-9_-]{43}$/;
 const LOCK_PREFIX = "aster_contact_lock_";
@@ -154,7 +147,7 @@ async function dotted_names(
 async function survey_legacy(
   prefix: string,
   slot: ContactSlot,
-): Promise<LegacySurvey> {
+): Promise<string[]> {
   const stored = await stored_names();
   const starts = await legacy_opaque_starts(
     prefix,
@@ -194,7 +187,7 @@ async function survey_legacy(
   }
 
   if (!plain_present && opaque.length === 0) {
-    return { names: [], unattributed: false };
+    return [];
   }
 
   for (const spelling of slot.contact.spellings) {
@@ -208,28 +201,19 @@ async function survey_legacy(
     }
   }
 
-  let unclaimed = opaque.filter((name) => !found.has(name));
+  const unclaimed = opaque.some((name) => !found.has(name));
 
-  if (slot.contact.kind === "builtin" && unclaimed.length > 0) {
+  if (slot.contact.kind === "builtin" && unclaimed) {
     for (const name of await dotted_names(prefix, slot, stored)) {
       found.add(name);
     }
-
-    unclaimed = unclaimed.filter((name) => !found.has(name));
   }
 
-  return {
-    names: [...found],
-    unattributed: folds(slot.contact) && unclaimed.length > 0,
-  };
+  return [...found];
 }
 
 async function reviewed_name(slot: ContactSlot): Promise<string> {
   return canonical_storage_name(REVIEWED_PREFIX, slot.uid, slot.contact.id);
-}
-
-async function is_contact_reviewed(slot: ContactSlot): Promise<boolean> {
-  return (await stored_names()).has(await reviewed_name(slot));
 }
 
 export async function mark_contact_reviewed(slot: ContactSlot): Promise<void> {
@@ -251,12 +235,12 @@ export async function read_contact_entry<T>(
 
   if (current.state === "unreadable") return { state: "unreadable" };
 
-  const survey = await survey_legacy(prefix, slot);
+  const legacy_names = await survey_legacy(prefix, slot);
   const values: T[] = current.state === "found" ? [current.value] : [];
   const readable: string[] = [];
   let unreadable = false;
 
-  for (const legacy of survey.names) {
+  for (const legacy of legacy_names) {
     const entry = await stored_read<T>(legacy, slot.storage_key);
 
     if (entry.state === "unreadable") unreadable = true;
@@ -269,17 +253,7 @@ export async function read_contact_entry<T>(
 
   if (current.state !== "found" && unreadable) return { state: "unreadable" };
 
-  if (values.length === 0) {
-    if (
-      !survey.unattributed ||
-      !UNATTRIBUTED_LEGACY_ENTRIES_BLOCK_FIRST_CONTACT ||
-      (await is_contact_reviewed(slot))
-    ) {
-      return { state: "absent" };
-    }
-
-    return { state: "unknown" };
-  }
+  if (values.length === 0) return { state: "absent" };
 
   const [first, ...rest] = values;
 
@@ -303,9 +277,7 @@ export async function read_contact_entry<T>(
 }
 
 async function remove_legacy(prefix: string, slot: ContactSlot): Promise<void> {
-  const survey = await survey_legacy(prefix, slot);
-
-  for (const legacy of survey.names) {
+  for (const legacy of await survey_legacy(prefix, slot)) {
     const shared =
       Boolean(slot.uid) && !legacy.startsWith(`${prefix}${slot.uid}_`);
 
