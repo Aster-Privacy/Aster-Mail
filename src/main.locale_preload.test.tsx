@@ -54,21 +54,23 @@ vi.mock("@/mobile_app", () => {
 
   return { default: () => null };
 });
-vi.mock("@/pages/sign_in", () => {
-  events.push("chunk:sign_in");
+function watch_page_chunks() {
+  vi.doMock("@/pages/sign_in", () => {
+    events.push("chunk:sign_in");
 
-  return { default: () => null };
-});
-vi.mock("@/pages/register", () => {
-  events.push("chunk:register");
+    return { default: () => null };
+  });
+  vi.doMock("@/pages/register", () => {
+    events.push("chunk:register");
 
-  return { default: () => null };
-});
-vi.mock("@/pages/index", () => {
-  events.push("chunk:index");
+    return { default: () => null };
+  });
+  vi.doMock("@/pages/index", () => {
+    events.push("chunk:index");
 
-  return { default: () => null };
-});
+    return { default: () => null };
+  });
+}
 vi.mock("@/pages/mobile/mobile_inbox", () => {
   events.push("chunk:mobile_inbox");
 
@@ -126,6 +128,7 @@ async function flush_imports() {
 
 beforeEach(() => {
   vi.resetModules();
+  watch_page_chunks();
   events.length = 0;
   localStorage.clear();
   document.body.innerHTML = '<div id="root"></div>';
@@ -137,13 +140,13 @@ afterEach(() => {
 
 describe("startup locale preload", { timeout: 120_000 }, () => {
   it("starts loading a stored non-English locale before the first render", async () => {
-    await boot_with("fr");
+    await boot_with("fr", "en-US", "/settings");
 
     expect(events).toEqual(["load:fr", "render"]);
   });
 
   it("starts loading a detected browser locale before the first render", async () => {
-    await boot_with(null, "de-DE");
+    await boot_with(null, "de-DE", "/settings");
 
     expect(events).toEqual(["load:de", "render"]);
   });
@@ -199,19 +202,19 @@ describe("startup locale preload", { timeout: 120_000 }, () => {
   });
 
   it("fetches the sign-in page at the root for a visitor with no stored preferences", async () => {
-    await boot_with("nl", "en-US", "/");
+    await boot_with("pl", "en-US", "/");
     await vi.waitFor(() => expect(events).toContain("chunk:sign_in"), {
       timeout: 20_000,
     });
 
-    expect(events.slice(0, 2)).toEqual(["load:nl", "render"]);
+    expect(events.slice(0, 2)).toEqual(["load:pl", "render"]);
     expect(events.filter((event) => event.startsWith("chunk:"))).toEqual([
       "chunk:sign_in",
     ]);
   });
 
   it("fetches the registration page at its own address", async () => {
-    await boot_with("nl", "en-US", "/register");
+    await boot_with("tr", "en-US", "/register");
     await vi.waitFor(() => expect(events).toContain("chunk:register"), {
       timeout: 20_000,
     });
