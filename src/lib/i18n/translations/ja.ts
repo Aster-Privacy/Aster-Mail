@@ -10833,6 +10833,8 @@ export const ja = {
       "case_sensitive は引用符で囲んだテキスト値の後にのみ置けます。",
     expr_internal_error:
       "この式を読み取れませんでした。構文を確認して、もう一度お試しください。",
+    expr_server_rejected:
+      "式のこの部分は保存できません。構文を確認して、もう一度お試しください。",
     expr_line_col: "（{{line}} 行、{{col}} 列）",
     editor_description: "ルールに名前を付けて、動作を指定します。",
     editor_server_notice:
@@ -10966,6 +10968,10 @@ export const ja = {
     regex_invalid:
       "この正規表現パターンは有効ではありません。構文を確認して、もう一度お試しください。",
     regex_empty: "保存する前に正規表現パターンが必要です。",
+    regex_too_complex:
+      "この正規表現は複雑すぎるため保存できません。繰り返しや選択肢を減らして、もう一度お試しください。",
+    regex_invalid_reason:
+      "この正規表現は無効です: {{reason}}",
     regex_too_long: "この正規表現は長すぎます。短くすると使えます。",
     last_condition_required:
       "このルールを保存するには少なくとも 1 つの条件が必要です。",

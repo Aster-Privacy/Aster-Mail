@@ -11069,6 +11069,8 @@ export const nl = {
       "case_sensitive kan alleen na een tekstwaarde tussen aanhalingstekens staan.",
     expr_internal_error:
       "Deze expressie kon niet worden gelezen. Controleer de syntaxis en probeer het opnieuw.",
+    expr_server_rejected:
+      "Dit deel van de expressie kan niet worden opgeslagen. Controleer de syntaxis en probeer het opnieuw.",
     expr_line_col: "(regel {{line}}, kolom {{col}})",
     editor_description: "Geef je regel een naam en vertel wat deze moet doen.",
     editor_server_notice:
@@ -11206,6 +11208,10 @@ export const nl = {
     regex_invalid:
       "Dit regex-patroon is niet geldig. Controleer de syntaxis en probeer het opnieuw.",
     regex_empty: "Er is een regex-patroon nodig voor het opslaan.",
+    regex_too_complex:
+      "Dit regex-patroon is te complex om op te slaan. Gebruik minder herhalingen of alternatieven en probeer het opnieuw.",
+    regex_invalid_reason:
+      "Dit regex-patroon is ongeldig: {{reason}}",
     regex_too_long: "Deze regex is te lang. Een kortere versie werkt.",
     last_condition_required:
       "Er is minimaal één voorwaarde nodig voordat deze regel kan worden opgeslagen.",

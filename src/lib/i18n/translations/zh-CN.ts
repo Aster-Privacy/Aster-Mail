@@ -9843,6 +9843,7 @@ export const zh_CN = {
     expr_unhandled_field: "此字段不能在此处使用。",
     expr_misplaced_case_flag: "case_sensitive 只能跟在带引号的文本值之后。",
     expr_internal_error: "无法读取此表达式。请检查语法后重试。",
+    expr_server_rejected: "无法保存表达式的这一部分。请检查语法后重试。",
     expr_line_col: "(第 {{line}} 行，第 {{col}} 列)",
     editor_description: "为规则命名并指定它的操作。",
     editor_server_notice:
@@ -9967,6 +9968,10 @@ export const zh_CN = {
     regex_lookaround: "不支持先行断言和后行断言。请改写不使用它们的模式。",
     regex_invalid: "此正则表达式模式无效。请检查语法后重试。",
     regex_empty: "保存前需要一个正则表达式模式。",
+    regex_too_complex:
+      "此正则表达式过于复杂，无法保存。请减少重复或备选项后重试。",
+    regex_invalid_reason:
+      "此正则表达式无效：{{reason}}",
     regex_too_long: "此正则表达式太长。精简后的版本可以使用。",
     last_condition_required: "此规则保存前至少需要一个条件。",
     last_action_required: "此规则保存前至少需要一个操作。",

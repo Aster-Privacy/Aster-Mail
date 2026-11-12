@@ -11299,6 +11299,8 @@ export const pl = {
       "case_sensitive może występować tylko po wartości tekstowej w cudzysłowie.",
     expr_internal_error:
       "Nie udało się odczytać tego wyrażenia. Sprawdź składnię i spróbuj ponownie.",
+    expr_server_rejected:
+      "Nie można zapisać tej części wyrażenia. Sprawdź składnię i spróbuj ponownie.",
     expr_line_col: "(wiersz {{line}}, kolumna {{col}})",
     editor_description: "Nazwij regułę i określ, co ma robić.",
     editor_server_notice:
@@ -11446,6 +11448,10 @@ export const pl = {
       "Ten wzorzec regex jest nieprawidłowy. Sprawdź składnię i spróbuj ponownie.",
     regex_empty:
       "Przed zapisaniem wymagany jest wzorzec wyrażenia regularnego.",
+    regex_too_complex:
+      "Ten wzorzec regex jest zbyt złożony, aby go zapisać. Użyj mniej powtórzeń lub alternatyw i spróbuj ponownie.",
+    regex_invalid_reason:
+      "Ten wzorzec regex jest nieprawidłowy: {{reason}}",
     regex_too_long:
       "To wyrażenie regularne jest za długie. Skrócona wersja zadziała.",
     last_condition_required:

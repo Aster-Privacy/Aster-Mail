@@ -10630,6 +10630,8 @@ export const ko = {
       "case_sensitive는 따옴표로 묶은 텍스트 값 뒤에만 올 수 있습니다.",
     expr_internal_error:
       "이 표현식을 읽을 수 없습니다. 구문을 확인한 후 다시 시도하세요.",
+    expr_server_rejected:
+      "식의 이 부분을 저장할 수 없습니다. 구문을 확인하고 다시 시도하세요.",
     expr_line_col: "({{line}}행, {{col}}열)",
     editor_description: "규칙에 이름을 붙이고 할 일을 지정하세요.",
     editor_server_notice:
@@ -10762,6 +10764,10 @@ export const ko = {
     regex_invalid:
       "이 정규식 패턴은 유효하지 않습니다. 구문을 확인하고 다시 시도하세요.",
     regex_empty: "저장하기 전에 정규식 패턴이 필요합니다.",
+    regex_too_complex:
+      "이 정규식 패턴은 너무 복잡해서 저장할 수 없습니다. 반복이나 대안을 줄인 후 다시 시도하세요.",
+    regex_invalid_reason:
+      "이 정규식 패턴이 올바르지 않습니다: {{reason}}",
     regex_too_long: "이 정규식이 너무 깁니다. 줄인 버전이면 됩니다.",
     last_condition_required:
       "이 규칙을 저장하기 전에 최소 하나의 조건이 필요합니다.",

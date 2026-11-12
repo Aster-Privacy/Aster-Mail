@@ -745,7 +745,7 @@ export async function create_rule(
     return { data: synthesized };
   }
 
-  return { error: response.error, code: response.code };
+  return { error: response.error, code: response.code, body: response.body };
 }
 
 export async function update_rule(
@@ -762,7 +762,7 @@ export async function update_rule(
     return { data: rule_from_wire(response.data) };
   }
 
-  return { error: response.error, code: response.code };
+  return { error: response.error, code: response.code, body: response.body };
 }
 
 export async function delete_rule(

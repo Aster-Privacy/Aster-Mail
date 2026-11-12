@@ -10903,6 +10903,10 @@ export const en: Translations = {
     regex_invalid:
       "This regex pattern is not valid. Check the syntax and try again.",
     regex_empty: "A regex pattern is needed before saving.",
+    regex_too_complex:
+      "This regex pattern is too complex to save. Use fewer repeats or alternatives and try again.",
+    regex_invalid_reason:
+      "This regex pattern is not valid: {{reason}}",
     regex_too_long: "This regex is too long. A trimmed version will work.",
     last_condition_required:
       "At least one condition is needed before this rule can save.",
@@ -11030,6 +11034,8 @@ export const en: Translations = {
       "case_sensitive can only follow a text value in quotation marks.",
     expr_internal_error:
       "This expression could not be read. Check the syntax and try again.",
+    expr_server_rejected:
+      "This part of the expression can't be saved. Check the syntax and try again.",
     expr_line_col: "(line {{line}}, column {{col}})",
     cannot_render_visual:
       "This rule has nested conditions that the visual editor cannot show. The Expression view is where it can be edited.",

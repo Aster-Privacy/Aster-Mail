@@ -11223,6 +11223,8 @@ export const fr = {
       "case_sensitive ne peut suivre qu'une valeur texte entre guillemets.",
     expr_internal_error:
       "Cette expression n'a pas pu être lue. Vérifiez la syntaxe, puis réessayez.",
+    expr_server_rejected:
+      "Impossible d'enregistrer cette partie de l'expression. Vérifiez la syntaxe et réessayez.",
     expr_line_col: "(ligne {{line}}, colonne {{col}})",
     editor_description: "Nommez votre règle et indiquez-lui quoi faire.",
     editor_server_notice:
@@ -11420,6 +11422,10 @@ export const fr = {
     regex_empty: "Un motif regex est requis avant d'enregistrer.",
     regex_invalid:
       "Ce motif regex n'est pas valide. Vérifiez la syntaxe et réessayez.",
+    regex_too_complex:
+      "Ce motif regex est trop complexe pour être enregistré. Utilisez moins de répétitions ou d’alternatives, puis réessayez.",
+    regex_invalid_reason:
+      "Ce motif regex n’est pas valide : {{reason}}",
     regex_too_long:
       "Ce regex est trop long. Une version raccourcie fonctionnera.",
     remove_action: "Supprimer l'action",

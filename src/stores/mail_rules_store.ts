@@ -155,6 +155,7 @@ export function reset_mail_rules_store(): void {
   run_poll_failures.clear();
   pending_seed = null;
   last_save_error = null;
+  last_save_server_message = null;
   set_state({
     rules: [],
     loading: false,
@@ -207,10 +208,23 @@ export function get_last_save_error(): string | null {
   return last_save_error;
 }
 
+let last_save_server_message: string | null = null;
+
+export function get_last_save_server_message(): string | null {
+  return last_save_server_message;
+}
+
+function server_message_from(
+  body: Record<string, unknown> | undefined,
+): string | null {
+  return typeof body?.error === "string" ? body.error : null;
+}
+
 export async function create_rule(
   req: CreateRuleRequest,
 ): Promise<Rule | null> {
   last_save_error = null;
+  last_save_server_message = null;
 
   const generation = store_generation;
   const response = await api_create_rule(req);
@@ -233,6 +247,7 @@ export async function create_rule(
   }
 
   last_save_error = response.error ?? null;
+  last_save_server_message = server_message_from(response.body);
   set_state({ error: response.error || "Failed to create rule" });
 
   return null;
@@ -243,6 +258,7 @@ export async function update_rule(
   patch: UpdateRuleRequest,
 ): Promise<Rule | null> {
   last_save_error = null;
+  last_save_server_message = null;
 
   const previous = state.rules;
   const optimistic = state.rules.map((r) =>
@@ -265,6 +281,7 @@ export async function update_rule(
   }
 
   last_save_error = response.error ?? null;
+  last_save_server_message = server_message_from(response.body);
   set_state({
     rules: previous,
     error: response.error || "Failed to update rule",
