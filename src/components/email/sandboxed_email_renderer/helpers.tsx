@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Capacitor } from "@capacitor/core";
-
 import {
   derive_link_hover_ink,
   derive_link_ink,
@@ -33,153 +31,9 @@ import {
 } from "@/lib/email_contrast_repair";
 import { DEFAULT_ACCENT_COLOR } from "@/lib/resolved_accent";
 import { get_image_proxy_url } from "@/lib/image_proxy";
-import { api_client } from "@/services/api/client";
-import { routed_fetch } from "@/services/routing/routing_provider";
-import { connection_store } from "@/services/routing/connection_store";
 import { translated_language } from "@/services/translation/dom_translate";
-import { ignore_error } from "@/lib/ignore_error";
-import { fetch_proxied_image } from "@/lib/image_proxy_grant";
 
 export const IMAGE_PROXY_URL = get_image_proxy_url();
-
-export function sniff_image_type(bytes: Uint8Array): string | null {
-  if (bytes.length >= 4) {
-    if (
-      bytes[0] === 0x89 &&
-      bytes[1] === 0x50 &&
-      bytes[2] === 0x4e &&
-      bytes[3] === 0x47
-    )
-      return "image/png";
-    if (bytes[0] === 0xff && bytes[1] === 0xd8) return "image/jpeg";
-    if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46)
-      return "image/gif";
-    if (
-      bytes.length >= 12 &&
-      bytes[0] === 0x52 &&
-      bytes[1] === 0x49 &&
-      bytes[2] === 0x46 &&
-      bytes[3] === 0x46 &&
-      bytes[8] === 0x57 &&
-      bytes[9] === 0x45 &&
-      bytes[10] === 0x42 &&
-      bytes[11] === 0x50
-    )
-      return "image/webp";
-  }
-  try {
-    const prefix = new TextDecoder().decode(
-      bytes.subarray(0, Math.min(64, bytes.length)),
-    );
-    const trimmed = prefix.trimStart().replace(/^﻿/, "");
-
-    if (trimmed.startsWith("<svg") || trimmed.startsWith("<?xml"))
-      return "image/svg+xml";
-  } catch (caught) {
-    ignore_error(
-      "components/email/sandboxed_email_renderer/helpers:sniff_image_type",
-      caught,
-    );
-  }
-
-  return null;
-}
-
-export async function resolve_native_images(doc: Document): Promise<void> {
-  const is_native =
-    Capacitor.isNativePlatform() ||
-    (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window);
-
-  if (!is_native) return;
-
-  const token = api_client.get_access_token();
-
-  if (!token) return;
-
-  const imgs = Array.from(doc.querySelectorAll("img")).filter((img) => {
-    const src = img.getAttribute("src") || "";
-
-    return (
-      src.includes("/api/images/v1/proxy") || src.startsWith(IMAGE_PROXY_URL)
-    );
-  });
-
-  await Promise.allSettled(
-    imgs.map(async (img) => {
-      const src = img.getAttribute("src");
-
-      if (!src) return;
-
-      const method = connection_store.get_method();
-
-      if (method === "tor" || method === "tor_snowflake") {
-        return;
-      }
-
-      const url = src.startsWith("http")
-        ? src
-        : `https://app.astermail.org${src}`;
-
-      let parsed_url: URL;
-
-      try {
-        parsed_url = new URL(url);
-      } catch {
-        return;
-      }
-      const expected_proxy = new URL(
-        IMAGE_PROXY_URL,
-        "https://app.astermail.org",
-      );
-
-      if (
-        parsed_url.origin !== expected_proxy.origin ||
-        parsed_url.pathname !== expected_proxy.pathname
-      ) {
-        return;
-      }
-
-      const granted = await fetch_proxied_image(url, {
-        fetcher: routed_fetch,
-      });
-
-      if (granted.kind === "failed") return;
-
-      let bytes: Uint8Array;
-      let declared_type: string | null;
-
-      if (granted.kind === "image") {
-        bytes = granted.bytes;
-        declared_type = granted.content_type || null;
-      } else {
-        const response = await routed_fetch(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!response.ok) return;
-
-        bytes = new Uint8Array(await response.arrayBuffer());
-        declared_type = response.headers.get("content-type");
-      }
-
-      let binary = "";
-      const chunk = 8192;
-
-      for (let i = 0; i < bytes.length; i += chunk) {
-        binary += String.fromCharCode.apply(
-          null,
-          bytes.subarray(i, i + chunk) as unknown as number[],
-        );
-      }
-
-      const content_type = sniff_image_type(bytes) || declared_type;
-
-      if (!content_type) return;
-
-      img.src = `data:${content_type};base64,${btoa(binary)}`;
-    }),
-  );
-}
 
 export const BODY_PADDING = "8px 16px 8px 16px";
 

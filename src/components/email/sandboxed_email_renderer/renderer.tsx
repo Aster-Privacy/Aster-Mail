@@ -36,7 +36,6 @@ import {
   link_ink_for,
   needs_settle_remeasure,
   resolve_backdrop_color,
-  resolve_native_images,
   safe_hex,
 } from "./helpers";
 
@@ -649,7 +648,6 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     }
 
     image_session_ref.current?.hydrate(iframe.contentDocument);
-    resolve_native_images(iframe.contentDocument);
     placeholder_cleanup_ref.current?.();
     placeholder_cleanup_ref.current = paint_blocked_images(
       iframe.contentDocument,
@@ -834,7 +832,6 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     image_session_ref.current?.hydrate(doc);
     placeholder_cleanup_ref.current?.();
     placeholder_cleanup_ref.current = null;
-    resolve_native_images(doc);
   }, [load_remote_content, unblock_remote_content]);
 
   useEffect(() => {

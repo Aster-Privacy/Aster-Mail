@@ -27,6 +27,7 @@ import { use_signatures } from "@/contexts/signatures_context";
 import { signature_for_sender } from "@/lib/sender_signature";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
+import { defer_compose_images } from "@/lib/compose_deferred_images";
 import {
   find_own_signature,
   insert_signature_node,
@@ -109,7 +110,7 @@ export function use_sender_signature({
     );
     const wrapper = document.createElement("div");
 
-    wrapper.innerHTML = sanitized.html;
+    wrapper.innerHTML = defer_compose_images(sanitized.html);
     const new_node = wrapper.firstElementChild;
 
     if (!new_node) return;

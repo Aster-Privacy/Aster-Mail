@@ -61,6 +61,8 @@ function create_marker_token(): string {
 
 const MARKER_PREFIX = `#aster-deferred-${create_marker_token()}:`;
 const MARKER_SELECTOR_FRAGMENT = MARKER_PREFIX.slice(0, -1);
+
+export const DEFERRED_CSS_MARKER_FRAGMENT = MARKER_SELECTOR_FRAGMENT;
 const MARKER_PATTERN = new RegExp(
   `${MARKER_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^"')\\s]+)`,
   "g",
@@ -72,7 +74,9 @@ export type ProxiedImageLoader = (
 ) => Promise<ProxiedImageResult>;
 
 export interface DeferredImageSession {
-  hydrate(doc: Document): void;
+  hydrate(root: ParentNode): void;
+  resolve(target: string): Promise<string | null>;
+  settled(): Promise<void>;
   dispose(): void;
 }
 
@@ -105,7 +109,7 @@ function css_marker(target: string): string {
   return `${DEFERRED_IMAGE_PLACEHOLDER}${MARKER_PREFIX}${encodeURIComponent(target)}`;
 }
 
-function defer_css_urls(css: string, proxy_url: string): string {
+export function defer_css_urls(css: string, proxy_url: string): string {
   if (!css.includes("url(")) return css;
 
   return css.replace(CSS_URL_PATTERN, (match, value: string) => {
@@ -281,14 +285,32 @@ function collect_css_targets(css: string, into: Set<string>): void {
   }
 }
 
+export function deferred_css_targets(css: string): string[] {
+  const found = new Set<string>();
+
+  collect_css_targets(css, found);
+
+  return Array.from(found);
+}
+
+export function replace_deferred_css_target(
+  css: string,
+  target: string,
+  replacement: string,
+): string {
+  const marker = css_marker(target);
+
+  return css.includes(marker) ? css.split(marker).join(replacement) : css;
+}
+
 function replace_css_markers(
-  doc: Document,
+  root: ParentNode,
   target: string,
   replacement: string,
 ): void {
   const marker = css_marker(target);
 
-  doc
+  root
     .querySelectorAll(`[style*="${MARKER_SELECTOR_FRAGMENT}"]`)
     .forEach((el) => {
       const css = el.getAttribute("style") || "";
@@ -298,7 +320,7 @@ function replace_css_markers(
       }
     });
 
-  doc.querySelectorAll("style").forEach((el) => {
+  root.querySelectorAll("style").forEach((el) => {
     const css = el.textContent || "";
 
     if (css.includes(marker)) {
@@ -318,6 +340,7 @@ export function create_deferred_image_session(
   const resolved = new Map<string, Promise<string | null>>();
   const css_targets = new Set<string>();
   const waiting: Array<() => void> = [];
+  const applying = new Set<Promise<void>>();
   let active = 0;
   let disposed = false;
 
@@ -360,9 +383,9 @@ export function create_deferred_image_session(
         const result = await load(target, { signal: controller.signal });
 
         if (disposed) return null;
-        if (result.kind === "fallback") return target;
         if (result.kind === "image") return display_url(result);
-        if (!result.retryable || attempt === 1) return null;
+        if (attempt === 1) return null;
+        if (result.kind === "failed" && !result.retryable) return null;
 
         await new Promise<void>((resume) => setTimeout(resume, retry_delay_ms));
       }
@@ -379,17 +402,46 @@ export function create_deferred_image_session(
     let pending = resolved.get(target);
 
     if (!pending) {
-      pending = load_target(target);
+      const started = load_target(target).then((url) => {
+        if (url === null && resolved.get(target) === started) {
+          resolved.delete(target);
+        }
+
+        return url;
+      });
+
+      pending = started;
       resolved.set(target, pending);
     }
 
     return pending;
   }
 
-  function hydrate(doc: Document): void {
+  function resolve_target(value: string): Promise<string | null> {
+    const target = disposed ? null : proxied_image_target(value, proxy_url);
+
+    return target ? resolve(target) : Promise.resolve(null);
+  }
+
+  function track(work: Promise<void>): void {
+    const finish = () => {
+      applying.delete(work);
+    };
+
+    applying.add(work);
+    work.then(finish, finish);
+  }
+
+  async function settled(): Promise<void> {
+    while (applying.size > 0) {
+      await Promise.allSettled(Array.from(applying));
+    }
+  }
+
+  function hydrate(root: ParentNode): void {
     if (disposed) return;
 
-    doc.querySelectorAll(`[${DEFERRED_SRC_ATTRIBUTE}]`).forEach((el) => {
+    root.querySelectorAll(`[${DEFERRED_SRC_ATTRIBUTE}]`).forEach((el) => {
       const target = proxied_image_target(
         el.getAttribute(DEFERRED_SRC_ATTRIBUTE),
         proxy_url,
@@ -399,14 +451,16 @@ export function create_deferred_image_session(
 
       if (!target) return;
 
-      void resolve(target).then((url) => {
-        if (disposed) return;
-        if (url) el.setAttribute("src", url);
-        else mark_image_failed(el);
-      });
+      track(
+        resolve(target).then((url) => {
+          if (disposed) return;
+          if (url) el.setAttribute("src", url);
+          else mark_image_failed(el);
+        }),
+      );
     });
 
-    doc.querySelectorAll(`[${DEFERRED_BACKGROUND_ATTRIBUTE}]`).forEach((el) => {
+    root.querySelectorAll(`[${DEFERRED_BACKGROUND_ATTRIBUTE}]`).forEach((el) => {
       const target = proxied_image_target(
         el.getAttribute(DEFERRED_BACKGROUND_ATTRIBUTE),
         proxy_url,
@@ -416,20 +470,22 @@ export function create_deferred_image_session(
 
       if (!target) return;
 
-      void resolve(target).then((url) => {
-        if (disposed || !url) return;
-        el.setAttribute("background", url);
-      });
+      track(
+        resolve(target).then((url) => {
+          if (disposed || !url) return;
+          el.setAttribute("background", url);
+        }),
+      );
     });
 
     const found = new Set<string>();
 
-    doc
+    root
       .querySelectorAll(`[style*="${MARKER_SELECTOR_FRAGMENT}"]`)
       .forEach((el) =>
         collect_css_targets(el.getAttribute("style") || "", found),
       );
-    doc
+    root
       .querySelectorAll("style")
       .forEach((el) => collect_css_targets(el.textContent || "", found));
 
@@ -440,10 +496,12 @@ export function create_deferred_image_session(
 
       css_targets.add(target);
 
-      void resolve(target).then((url) => {
-        if (disposed) return;
-        replace_css_markers(doc, target, url ?? DEFERRED_IMAGE_PLACEHOLDER);
-      });
+      track(
+        resolve(target).then((url) => {
+          if (disposed) return;
+          replace_css_markers(root, target, url ?? DEFERRED_IMAGE_PLACEHOLDER);
+        }),
+      );
     });
   }
 
@@ -460,5 +518,5 @@ export function create_deferred_image_session(
     css_targets.clear();
   }
 
-  return { hydrate, dispose };
+  return { hydrate, resolve: resolve_target, settled, dispose };
 }

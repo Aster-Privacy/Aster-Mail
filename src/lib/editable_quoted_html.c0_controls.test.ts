@@ -20,6 +20,11 @@
 //
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import {
+  COMPOSE_DEFERRED_SRC_ATTRIBUTE,
+  COMPOSE_IMAGE_PLACEHOLDER,
+} from "@/lib/compose_deferred_markup";
+
 const h = vi.hoisted(() => ({
   bypass_sanitizer: false,
 }));
@@ -114,7 +119,10 @@ describe("forward editor with the reported C0 payload", () => {
   it("loads the image through the proxy when images are allowed", () => {
     const container = mount(REPORTED);
 
-    expect(container.querySelector("img")?.getAttribute("src")).toBe(
+    const image = container.querySelector("img");
+
+    expect(image?.getAttribute("src")).toBe(COMPOSE_IMAGE_PLACEHOLDER);
+    expect(image?.getAttribute(COMPOSE_DEFERRED_SRC_ATTRIBUTE)).toBe(
       `https://app.example/api/images/v1/proxy?url=${encodeURIComponent(REMOTE)}`,
     );
     expect_no_direct_fetch(container);

@@ -22,7 +22,12 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { strip_unresolved_cid_references } from "@/lib/cid_resolver";
+import {
+  create_deferred_image_session,
+  defer_proxied_images,
+} from "@/lib/deferred_proxy_images";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
 import { contain_untrusted_html } from "@/lib/untrusted_sources";
 import { resolve_remote_content_preferences } from "@/lib/remote_content_policy";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
@@ -62,16 +67,21 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
       },
     });
 
-    return contain_untrusted_html(
+    const image_proxy_url = get_image_proxy_url();
+    const contained = contain_untrusted_html(
       strip_unresolved_cid_references(
         sanitize_html(strip_style_blocks(html), {
           external_content_mode: lockdown_mode ? "never" : "always",
           lockdown_mode,
-          image_proxy_url: get_image_proxy_url(),
+          image_proxy_url,
           content_blocking,
         }).html,
       ),
     );
+
+    return should_defer_proxied_images()
+      ? defer_proxied_images(contained, image_proxy_url)
+      : contained;
   }, [
     html,
     block_remote_images,
@@ -79,6 +89,19 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
     block_remote_css,
     block_tracking_pixels,
   ]);
+
+  useEffect(() => {
+    const container = container_ref.current;
+
+    if (!container || !should_defer_proxied_images()) return;
+
+    const session = create_deferred_image_session(get_image_proxy_url());
+
+    container.innerHTML = sanitized_html;
+    session.hydrate(container);
+
+    return () => session.dispose();
+  }, [sanitized_html]);
 
   useEffect(() => {
     const container = container_ref.current;

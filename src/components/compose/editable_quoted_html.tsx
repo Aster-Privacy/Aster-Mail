@@ -27,6 +27,7 @@ import {
   type QuotedImageBlocking,
 } from "@/lib/editable_quoted_html";
 import { use_preferences_optional } from "@/contexts/preferences_context";
+import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface EditableQuotedHtmlProps {
@@ -58,6 +59,7 @@ export function EditableQuotedHtml({
   const t_ref = useRef(t);
 
   t_ref.current = t;
+  use_compose_image_hydration(container_ref);
   quoted_blocking_ref.current = resolve_quoted_image_blocking({
     block_external_content,
     block_remote_images,

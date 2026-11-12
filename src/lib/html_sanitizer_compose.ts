@@ -24,6 +24,7 @@ import {
   sanitize_compose_style,
   is_transparent_color_value,
 } from "./html_sanitizer_css";
+import { restore_deferred_compose_images } from "./compose_deferred_markup";
 import { repair_comment_markup } from "./html_sanitizer_utils";
 import { collapse_source_whitespace_html } from "./html_source_whitespace";
 import { normalize_url_value } from "./url_value";
@@ -120,7 +121,9 @@ export function trim_trailing_empty_nodes(body: HTMLElement): void {
 export function purify_outgoing_html(html: string): string {
   if (!html || typeof html !== "string") return "";
 
-  return DOMPurify.sanitize(repair_comment_markup(html), {
+  const restored = restore_deferred_compose_images(html);
+
+  return DOMPurify.sanitize(repair_comment_markup(restored), {
     ADD_ATTR: ["target"],
     ALLOW_DATA_ATTR: true,
     ALLOWED_URI_REGEXP: OUTGOING_URI_REGEXP,
