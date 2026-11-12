@@ -286,13 +286,21 @@ export function RecoveryCodesModal({
     for (let attempt = 0; attempt <= MAX_VAULT_CONFLICT_RETRIES; attempt++) {
       const latest = await read_latest_vault(passphrase);
 
-      if (!latest) return { failed: t("settings.failed_verify_password") };
+      if (!latest) {
+        return {
+          status: "failed" as const,
+          failed: t("settings.failed_verify_password"),
+        };
+      }
 
       if (
         is_required &&
         !has_outdated_recovery_codes(latest.vault.recovery_codes)
       ) {
-        return { already_replaced: latest.vault };
+        return {
+          status: "replaced" as const,
+          already_replaced: latest.vault,
+        };
       }
 
       const updated_vault = { ...latest.vault, recovery_codes: new_codes };
@@ -329,15 +337,24 @@ export function RecoveryCodesModal({
 
       if (save_response.error || !save_response.data?.success) {
         return {
+          status: "failed" as const,
           failed:
             save_response.error || t("settings.recovery_codes_save_failed"),
         };
       }
 
-      return { updated_vault, encrypted_vault, vault_nonce };
+      return {
+        status: "saved" as const,
+        updated_vault,
+        encrypted_vault,
+        vault_nonce,
+      };
     }
 
-    return { failed: t("settings.recovery_codes_save_failed") };
+    return {
+      status: "failed" as const,
+      failed: t("settings.recovery_codes_save_failed"),
+    };
   };
 
   const replace_codes = async (step_up_token: string) => {
@@ -369,7 +386,7 @@ export function RecoveryCodesModal({
         recovery_key,
       );
 
-      if ("already_replaced" in saved) {
+      if (saved.status === "replaced") {
         await store_vault_in_memory(
           saved.already_replaced,
           passphrase,
@@ -389,8 +406,8 @@ export function RecoveryCodesModal({
         return;
       }
 
-      if ("failed" in saved) {
-        set_error(saved.failed ?? t("settings.recovery_codes_save_failed"));
+      if (saved.status === "failed") {
+        set_error(saved.failed);
         set_can_defer(true);
 
         return;
