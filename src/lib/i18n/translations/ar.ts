@@ -2443,6 +2443,14 @@ export const ar = {
     recovery_codes_saved_checkbox: "لقد حفظت رموز الاسترداد في مكان آمن.",
     recovery_codes_save_failed:
       "تعذر حفظ رموز الاسترداد على الخادم. حاول مرة أخرى.",
+    recovery_codes_required_save_desc:
+      "احفظ هذه الرموز الجديدة في مكان آمن. تستمر رموزك الحالية في العمل حتى تؤكد في الخطوة التالية.",
+    recovery_codes_required_verify_desc:
+      "لبدء استخدام رموزك الجديدة، أدخل كلمة المرور. بعد ذلك تتوقف رموزك السابقة عن العمل.",
+    recovery_codes_required_action: "استبدال الرموز",
+    recovery_codes_required_done: "رموز الاسترداد الجديدة مفعّلة.",
+    recovery_codes_already_replaced:
+      "تم استبدال رموز الاسترداد بالفعل على جهاز آخر.",
     legacy_phrase_row: "عبارة الاسترداد (القديمة)",
     legacy_phrase_row_desc:
       "عبارة الاسترداد الحالية لديك تبقى صالحة. رموز الاسترداد تحل محلها من الآن فصاعدًا.",

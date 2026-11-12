@@ -2353,6 +2353,14 @@ export const it = {
       "Ho salvato i miei codici di recupero in un luogo sicuro.",
     recovery_codes_save_failed:
       "Non è stato possibile salvare i suoi codici di recupero sul server. Riprovi.",
+    recovery_codes_required_save_desc:
+      "Salvi questi nuovi codici in un luogo sicuro. I codici attuali continuano a funzionare finché non conferma nel passaggio successivo.",
+    recovery_codes_required_verify_desc:
+      "Per iniziare a usare i nuovi codici, inserisca la password. Dopo, i codici precedenti non funzionano più.",
+    recovery_codes_required_action: "Sostituisci codici",
+    recovery_codes_required_done: "I nuovi codici di recupero sono attivi.",
+    recovery_codes_already_replaced:
+      "I codici di recupero sono già stati sostituiti su un altro dispositivo.",
     legacy_phrase_row: "Frase di recupero (precedente)",
     legacy_phrase_row_desc:
       "La sua frase di recupero esistente resta valida. D'ora in poi si usano i codici di recupero.",

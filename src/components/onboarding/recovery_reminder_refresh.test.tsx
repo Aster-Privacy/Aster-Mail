@@ -51,13 +51,14 @@ vi.mock("@/hooks/use_recovery_status", () => ({
 vi.mock("@/components/settings/security/recovery_codes_modal", () => ({
   RecoveryCodesModal: (props: {
     is_open: boolean;
+    is_required?: boolean;
     mode: string;
     on_saved: () => void;
     on_close: () => void;
   }) =>
     props.is_open ? (
       <div data-testid="replace-modal">
-        {props.mode}
+        {props.is_required ? "required" : "optional"}
         <button onClick={props.on_saved}>saved</button>
         <button onClick={props.on_close}>close</button>
       </div>
@@ -70,7 +71,6 @@ import { reset_recovery_code_refresh } from "@/services/crypto/recovery_code_ref
 
 const OUTDATED = ["ASTER-AAAA-BBBB-CCCC", "ASTER-EEEE-FFFF-GGGG"];
 const CURRENT = ["ASTER-AAAA-BBBB-CCCC-DDDD"];
-const TITLE = "common.recovery_codes_refresh_title";
 
 let container: HTMLDivElement;
 let root: Root;
@@ -95,6 +95,10 @@ function unmount(): void {
   container.remove();
 }
 
+function modal(): Element | null {
+  return container.querySelector('[data-testid="replace-modal"]');
+}
+
 function button(label: string): HTMLButtonElement {
   const found = Array.from(container.querySelectorAll("button")).find(
     (node) => node.textContent === label,
@@ -117,10 +121,14 @@ describe("recovery code refresh prompt", () => {
     unmount();
   });
 
-  it("appears on a device with no first run record", async () => {
+  it("opens the required replacement on a device with no first run record", async () => {
     await mount();
 
-    expect(container.textContent).toContain(TITLE);
+    expect(modal()?.textContent).toContain("required");
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(container.textContent).not.toContain(
+      "common.recovery_reminder_later",
+    );
   });
 
   it("stays away when the saved codes are current", async () => {
@@ -128,7 +136,7 @@ describe("recovery code refresh prompt", () => {
 
     await mount();
 
-    expect(container.textContent).not.toContain(TITLE);
+    expect(modal()).toBeNull();
   });
 
   it("stays away when the account has no active codes", async () => {
@@ -136,63 +144,44 @@ describe("recovery code refresh prompt", () => {
 
     await mount();
 
-    expect(container.textContent).not.toContain(TITLE);
+    expect(modal()).toBeNull();
   });
 
-  it("returns in the next session after Later", async () => {
+  it("returns in the next session when the flow is put off", async () => {
     await mount();
-
-    await act(async () => {
-      button("common.recovery_reminder_later").click();
-    });
-
-    expect(container.textContent).not.toContain(TITLE);
-    expect(localStorage.length).toBe(0);
-
-    unmount();
-    await mount();
-
-    expect(container.textContent).not.toContain(TITLE);
-
-    unmount();
-    reset_recovery_code_refresh();
-    await mount();
-
-    expect(container.textContent).toContain(TITLE);
-  });
-
-  it("opens the replacement flow from the prompt", async () => {
-    await mount();
-
-    await act(async () => {
-      button("common.recovery_codes_low_reminder_action").click();
-    });
-
-    const modal = container.querySelector('[data-testid="replace-modal"]');
-
-    expect(modal?.textContent).toContain("regenerate");
-    expect(container.textContent).not.toContain(TITLE);
-  });
-
-  it("keeps the new codes on screen after they are saved", async () => {
-    await mount();
-
-    await act(async () => {
-      button("common.recovery_codes_low_reminder_action").click();
-    });
-    await act(async () => {
-      button("saved").click();
-    });
-
-    expect(
-      container.querySelector('[data-testid="replace-modal"]'),
-    ).not.toBeNull();
 
     await act(async () => {
       button("close").click();
     });
 
-    expect(container.querySelector('[data-testid="replace-modal"]')).toBeNull();
-    expect(container.textContent).not.toContain(TITLE);
+    expect(modal()).toBeNull();
+    expect(localStorage.length).toBe(0);
+
+    unmount();
+    await mount();
+
+    expect(modal()).toBeNull();
+
+    unmount();
+    reset_recovery_code_refresh();
+    await mount();
+
+    expect(modal()).not.toBeNull();
+  });
+
+  it("stays open after saving until the flow closes itself", async () => {
+    await mount();
+
+    await act(async () => {
+      button("saved").click();
+    });
+
+    expect(modal()).not.toBeNull();
+
+    await act(async () => {
+      button("close").click();
+    });
+
+    expect(modal()).toBeNull();
   });
 });

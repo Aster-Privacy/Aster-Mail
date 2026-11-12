@@ -2340,6 +2340,15 @@ export const pt_br = {
       "Salvei meus códigos de recuperação em um lugar seguro.",
     recovery_codes_save_failed:
       "Não foi possível salvar seus códigos de recuperação no servidor. Tente novamente.",
+    recovery_codes_required_save_desc:
+      "Salve estes novos códigos em um local seguro. Seus códigos atuais continuam funcionando até você confirmar na próxima etapa.",
+    recovery_codes_required_verify_desc:
+      "Para começar a usar seus novos códigos, digite sua senha. Depois disso, os códigos anteriores deixam de funcionar.",
+    recovery_codes_required_action: "Substituir códigos",
+    recovery_codes_required_done:
+      "Seus novos códigos de recuperação estão ativos.",
+    recovery_codes_already_replaced:
+      "Seus códigos de recuperação já foram substituídos em outro dispositivo.",
     legacy_phrase_row: "Frase de recuperação (legado)",
     legacy_phrase_row_desc:
       "Sua frase de recuperação existente continua válida. Daqui em diante são usados códigos de recuperação.",

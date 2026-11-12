@@ -2326,6 +2326,13 @@ export const ja = {
       "リカバリーコードを安全な場所に保存しました。",
     recovery_codes_save_failed:
       "リカバリーコードをサーバーに保存できませんでした。もう一度お試しください。",
+    recovery_codes_required_save_desc:
+      "新しいコードを安全な場所に保存してください。次の手順で確認するまで、現在のコードは引き続き使えます。",
+    recovery_codes_required_verify_desc:
+      "新しいコードの使用を開始するには、パスワードを入力してください。その後、以前のコードは使えなくなります。",
+    recovery_codes_required_action: "コードを置き換える",
+    recovery_codes_required_done: "新しいリカバリーコードが有効になりました。",
+    recovery_codes_already_replaced: "リカバリーコードは別のデバイスですでに置き換えられています。",
     legacy_phrase_row: "リカバリーフレーズ（旧方式）",
     legacy_phrase_row_desc:
       "既存のリカバリーフレーズは引き続き有効です。今後はリカバリーコードを使用します。",

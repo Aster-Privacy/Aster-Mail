@@ -32,7 +32,10 @@ import {
   save_recovery_backup,
   verify_codes_step_up,
 } from "@/services/api/recovery";
-import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  get_vault_from_memory,
+  store_vault_in_memory,
+} from "@/services/crypto/memory_key_store";
 import { read_latest_vault } from "@/services/crypto/vault_cas_write";
 import {
   hash_recovery_code,
@@ -139,12 +142,31 @@ vi.mock("@aster/ui", async (import_original) => ({
       {children as never}
     </button>
   ),
+  Checkbox: ({
+    checked,
+    onChange,
+  }: {
+    checked?: boolean;
+    onChange?: (event: { target: { checked: boolean } }) => void;
+  }) => (
+    <input
+      checked={checked ?? false}
+      type="checkbox"
+      onChange={(event) => onChange?.(event)}
+    />
+  ),
 }));
 
 const mocked_get = vi.mocked(api_client.get);
 const mocked_save = vi.mocked(save_recovery_backup);
 const mocked_step_up = vi.mocked(verify_codes_step_up);
 const mocked_vault = vi.mocked(get_vault_from_memory);
+const mocked_store_vault = vi.mocked(store_vault_in_memory);
+const on_close = vi.fn();
+const on_saved = vi.fn();
+
+const OLDER_CODES = ["ASTER-AAAA-BBBB-CCCC", "ASTER-EEEE-FFFF-GGGG"];
+const REQUIRED_ACTION = "settings.recovery_codes_required_action";
 
 const vault_fixture = {
   identity_key: "identity-key-material",
@@ -159,19 +181,64 @@ let container: HTMLDivElement;
 let root: Root;
 
 function render_modal(
-  props: { has_codes?: boolean; mode?: RecoveryCodesModalMode } = {},
+  props: {
+    has_codes?: boolean;
+    is_required?: boolean;
+    mode?: RecoveryCodesModalMode;
+  } = {},
 ) {
   act(() => {
     root.render(
       <RecoveryCodesModal
         is_open
         has_codes={props.has_codes ?? false}
+        is_required={props.is_required}
         mode={props.mode ?? "regenerate"}
-        on_close={() => {}}
-        on_saved={() => {}}
+        on_close={on_close}
+        on_saved={on_saved}
       />,
     );
   });
+}
+
+function has_button(label: string): boolean {
+  return Array.from(container.querySelectorAll("button")).some((button) =>
+    button.textContent?.includes(label),
+  );
+}
+
+function shown_codes(): string[] {
+  return Array.from(container.querySelectorAll(".font-mono")).map(
+    (el) => el.textContent?.trim() ?? "",
+  );
+}
+
+async function click(label: string) {
+  await act(async () => {
+    find_button(label).click();
+  });
+}
+
+async function open_required_codes(): Promise<string[]> {
+  mocked_vault.mockReturnValue({
+    ...vault_fixture,
+    recovery_codes: OLDER_CODES,
+  } as never);
+  render_modal({ has_codes: true, is_required: true });
+  await click("common.continue");
+
+  return shown_codes();
+}
+
+async function confirm_codes_saved() {
+  const checkbox = container.querySelector(
+    'input[type="checkbox"]',
+  ) as HTMLInputElement;
+
+  await act(async () => {
+    checkbox.click();
+  });
+  await click("common.continue");
 }
 
 async function wait_until(predicate: () => boolean, timeout = 15000) {
@@ -234,6 +301,9 @@ describe("RecoveryCodesModal", () => {
     vi.mocked(read_latest_vault).mockClear();
     mocked_step_up.mockReset();
     mocked_vault.mockReset();
+    mocked_store_vault.mockClear();
+    on_close.mockReset();
+    on_saved.mockReset();
     mocked_vault.mockReturnValue(vault_fixture as never);
     mocked_get.mockResolvedValue({
       data: { salt: btoa("0123456789abcdef0123456789abcdef"), totp_required: false },
@@ -478,5 +548,204 @@ describe("RecoveryCodesModal", () => {
     );
 
     expect(mocked_save).not.toHaveBeenCalled();
+  });
+  it("shows the new codes of a required replacement before any request", async () => {
+    vi.useRealTimers();
+
+    const codes = await open_required_codes();
+
+    expect(codes).toHaveLength(10);
+
+    for (const code of codes) {
+      expect(code).toMatch(/^ASTER(-[A-Z0-9]{4}){4}$/);
+    }
+
+    expect(mocked_get).not.toHaveBeenCalled();
+    expect(mocked_step_up).not.toHaveBeenCalled();
+    expect(mocked_save).not.toHaveBeenCalled();
+    expect(has_button("common.cancel")).toBe(false);
+    expect(has_button("common.not_now")).toBe(false);
+    expect(has_button("common.done")).toBe(false);
+    expect(find_button("common.continue").disabled).toBe(true);
+    expect(on_close).not.toHaveBeenCalled();
+  });
+
+  it("offers no way out of the first step of a required replacement", () => {
+    mocked_vault.mockReturnValue({
+      ...vault_fixture,
+      recovery_codes: OLDER_CODES,
+    } as never);
+    render_modal({ has_codes: true, is_required: true });
+
+    expect(container.textContent).toContain(
+      "common.recovery_codes_refresh_title",
+    );
+    expect(container.querySelectorAll("button")).toHaveLength(1);
+    expect(has_button("common.continue")).toBe(true);
+  });
+
+  it("saves the displayed codes once the password is confirmed", async () => {
+    vi.useRealTimers();
+
+    const codes = await open_required_codes();
+
+    await confirm_codes_saved();
+
+    expect(mocked_save).not.toHaveBeenCalled();
+    expect(has_button("common.cancel")).toBe(false);
+
+    await submit_password(REQUIRED_ACTION);
+    await wait_until(() => on_close.mock.calls.length === 1);
+
+    expect(mocked_save).toHaveBeenCalledTimes(1);
+    expect(on_saved).toHaveBeenCalledTimes(1);
+
+    const [encrypted_backup, backup_nonce, backup_salt, shares, options] =
+      mocked_save.mock.calls[0];
+
+    expect(options).toMatchObject({ step_up_token: "step-up-token" });
+    expect(shares).toHaveLength(10);
+
+    const expected_hashes = await Promise.all(
+      codes.map((code) => hash_recovery_code(code)),
+    );
+
+    expect(shares.map((share) => share.code_hash).sort()).toEqual(
+      [...expected_hashes].sort(),
+    );
+
+    const matching_share = shares.find(
+      (share) => share.code_hash === expected_hashes[0],
+    );
+    const recovery_key = await decrypt_recovery_key_with_code(
+      {
+        encrypted_key: matching_share!.encrypted_recovery_key,
+        nonce: matching_share!.recovery_key_nonce,
+        salt: matching_share!.code_salt,
+      },
+      codes[0],
+    );
+    const restored_vault = await decrypt_vault_backup(
+      {
+        encrypted_data: encrypted_backup,
+        nonce: backup_nonce,
+        salt: backup_salt,
+      },
+      recovery_key,
+    );
+
+    expect(restored_vault).toMatchObject({
+      ...vault_fixture,
+      recovery_codes: codes,
+    });
+    expect(mocked_store_vault).toHaveBeenCalledWith(
+      expect.objectContaining({ recovery_codes: codes }),
+      expect.any(String),
+      "user-1",
+    );
+  });
+
+  it("changes nothing when a required replacement stops at the password", async () => {
+    vi.useRealTimers();
+    mocked_step_up.mockResolvedValue({
+      error: "settings.incorrect_password_error",
+    } as never);
+
+    const codes = await open_required_codes();
+
+    await confirm_codes_saved();
+    await submit_password(REQUIRED_ACTION, "wrong");
+    await wait_until(() =>
+      (container.textContent ?? "").includes(
+        "settings.incorrect_password_error",
+      ),
+    );
+
+    expect(mocked_save).not.toHaveBeenCalled();
+    expect(mocked_store_vault).not.toHaveBeenCalled();
+    expect(has_button("common.not_now")).toBe(false);
+
+    await submit_password(REQUIRED_ACTION, "wrong");
+    await wait_until(() => mocked_step_up.mock.calls.length === 2);
+    await submit_password(REQUIRED_ACTION, "wrong");
+    await wait_until(() => has_button("common.not_now"));
+
+    await click("common.back");
+
+    expect(shown_codes()).toEqual(codes);
+
+    await click("common.continue");
+    await submit_password(REQUIRED_ACTION, "wrong");
+    await wait_until(() => mocked_step_up.mock.calls.length === 4);
+    await click("common.not_now");
+
+    expect(on_close).toHaveBeenCalledTimes(1);
+    expect(on_saved).not.toHaveBeenCalled();
+    expect(mocked_save).not.toHaveBeenCalled();
+    expect(mocked_store_vault).not.toHaveBeenCalled();
+  });
+
+  it("retries a required replacement with the codes already shown", async () => {
+    vi.useRealTimers();
+    mocked_save
+      .mockResolvedValueOnce({ error: "unavailable", status: 503 } as never)
+      .mockResolvedValueOnce({ data: { success: true } } as never);
+
+    const codes = await open_required_codes();
+
+    await confirm_codes_saved();
+    await submit_password(REQUIRED_ACTION);
+    await wait_until(() => has_button("common.not_now"));
+
+    expect(container.textContent).toContain("unavailable");
+    expect(mocked_store_vault).not.toHaveBeenCalled();
+    expect(on_saved).not.toHaveBeenCalled();
+    expect(on_close).not.toHaveBeenCalled();
+
+    await click("common.back");
+
+    expect(shown_codes()).toEqual(codes);
+
+    await click("common.continue");
+    await submit_password(REQUIRED_ACTION);
+    await wait_until(() => on_close.mock.calls.length === 1);
+
+    expect(mocked_save).toHaveBeenCalledTimes(2);
+    expect(
+      mocked_save.mock.calls[1][3].map((share) => share.code_hash),
+    ).toEqual(mocked_save.mock.calls[0][3].map((share) => share.code_hash));
+    expect(on_saved).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not replace again when the account already has current codes", async () => {
+    vi.useRealTimers();
+
+    const current = ["ASTER-AAAA-BBBB-CCCC-DDDD"];
+
+    await open_required_codes();
+    await confirm_codes_saved();
+    vi.mocked(read_latest_vault).mockResolvedValueOnce({
+      vault: { ...vault_fixture, recovery_codes: current },
+      vault_sha256: "sha",
+    } as never);
+    await submit_password(REQUIRED_ACTION);
+    await wait_until(() => on_close.mock.calls.length === 1);
+
+    expect(mocked_save).not.toHaveBeenCalled();
+    expect(on_saved).toHaveBeenCalledTimes(1);
+    expect(mocked_store_vault).toHaveBeenCalledWith(
+      expect.objectContaining({ recovery_codes: current }),
+      expect.any(String),
+      "user-1",
+    );
+  });
+
+  it("keeps the optional flow cancelable", () => {
+    render_modal({ has_codes: true, mode: "regenerate" });
+
+    expect(has_button("common.cancel")).toBe(true);
+    expect(container.textContent).not.toContain(
+      "common.recovery_codes_refresh_title",
+    );
   });
 });

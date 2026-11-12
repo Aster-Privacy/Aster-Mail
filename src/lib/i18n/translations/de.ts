@@ -2323,6 +2323,15 @@ export const de = {
       "Ich habe meine Wiederherstellungscodes an einem sicheren Ort gespeichert.",
     recovery_codes_save_failed:
       "Ihre Wiederherstellungscodes konnten nicht auf dem Server gespeichert werden. Versuchen Sie es erneut.",
+    recovery_codes_required_save_desc:
+      "Speichern Sie diese neuen Codes an einem sicheren Ort. Ihre aktuellen Codes funktionieren weiter, bis Sie im nächsten Schritt bestätigen.",
+    recovery_codes_required_verify_desc:
+      "Geben Sie Ihr Passwort ein, um Ihre neuen Codes zu aktivieren. Danach funktionieren Ihre bisherigen Codes nicht mehr.",
+    recovery_codes_required_action: "Codes ersetzen",
+    recovery_codes_required_done:
+      "Ihre neuen Wiederherstellungscodes sind aktiv.",
+    recovery_codes_already_replaced:
+      "Ihre Wiederherstellungscodes wurden bereits auf einem anderen Gerät ersetzt.",
     legacy_phrase_row: "Wiederherstellungsphrase (älteres Verfahren)",
     legacy_phrase_row_desc:
       "Ihre bestehende Wiederherstellungsphrase bleibt gültig. Künftig werden stattdessen Wiederherstellungscodes verwendet.",

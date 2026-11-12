@@ -2498,6 +2498,14 @@ export const pl = {
       "Moje kody odzyskiwania są zapisane w bezpiecznym miejscu.",
     recovery_codes_save_failed:
       "Nie udało się zapisać kodów odzyskiwania na serwerze. Spróbuj ponownie.",
+    recovery_codes_required_save_desc:
+      "Zapisz te nowe kody w bezpiecznym miejscu. Obecne kody działają, dopóki nie potwierdzisz w następnym kroku.",
+    recovery_codes_required_verify_desc:
+      "Aby zacząć korzystać z nowych kodów, wpisz hasło. Potem poprzednie kody przestają działać.",
+    recovery_codes_required_action: "Zastąp kody",
+    recovery_codes_required_done: "Nowe kody odzyskiwania są aktywne.",
+    recovery_codes_already_replaced:
+      "Kody odzyskiwania zostały już zastąpione na innym urządzeniu.",
     legacy_phrase_row: "Fraza odzyskiwania (starsza)",
     legacy_phrase_row_desc:
       "Twoja dotychczasowa fraza odzyskiwania pozostaje ważna. Od teraz używane są kody odzyskiwania.",

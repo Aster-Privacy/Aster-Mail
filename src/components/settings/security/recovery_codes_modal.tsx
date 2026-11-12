@@ -62,6 +62,7 @@ import {
   store_vault_in_memory,
 } from "@/services/crypto/memory_key_store";
 import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
+import { has_outdated_recovery_codes } from "@/services/crypto/recovery_code_refresh";
 import {
   generate_recovery_key,
   encrypt_vault_backup,
@@ -98,9 +99,23 @@ interface DisplayCode {
 
 export type RecoveryCodesModalMode = "show" | "regenerate";
 
+const DEFER_AFTER_REJECTED_ATTEMPTS = 3;
+
+function is_same_code_set(
+  stored: readonly string[] | null | undefined,
+  shown: readonly string[],
+): boolean {
+  return (
+    Array.isArray(stored) &&
+    stored.length === shown.length &&
+    stored.every((code, index) => code === shown[index])
+  );
+}
+
 interface RecoveryCodesModalProps {
   has_codes: boolean;
   is_open: boolean;
+  is_required?: boolean;
   mode: RecoveryCodesModalMode;
   on_close: () => void;
   on_saved: () => void;
@@ -109,6 +124,7 @@ interface RecoveryCodesModalProps {
 export function RecoveryCodesModal({
   has_codes,
   is_open,
+  is_required = false,
   mode,
   on_close,
   on_saved,
@@ -125,14 +141,20 @@ export function RecoveryCodesModal({
   const [codes_unavailable, set_codes_unavailable] = useState(false);
   const [are_codes_visible, set_are_codes_visible] = useState(false);
   const [saved_checkbox, set_saved_checkbox] = useState(false);
+  const [can_defer, set_can_defer] = useState(false);
+  const rejected_attempts_ref = useRef(0);
   const working_ref = useRef(false);
   const input_ref = useRef<HTMLInputElement>(null);
 
-  const is_regenerate = mode === "regenerate";
+  const is_regenerate = mode === "regenerate" || is_required;
 
   useEffect(() => {
     if (is_open) {
-      set_step(is_regenerate && has_codes ? "confirm" : "verify");
+      set_step(
+        is_required || (is_regenerate && has_codes) ? "confirm" : "verify",
+      );
+      set_can_defer(false);
+      rejected_attempts_ref.current = 0;
       set_password("");
       set_totp_code("");
       set_totp_required(false);
@@ -146,7 +168,7 @@ export function RecoveryCodesModal({
       set_codes([]);
       set_password("");
     }
-  }, [is_open, is_regenerate, has_codes]);
+  }, [is_open, is_regenerate, is_required, has_codes]);
 
   useEffect(() => {
     if (!is_open || step !== "verify") return;
@@ -169,6 +191,7 @@ export function RecoveryCodesModal({
 
     if (salt_response.error || !salt_response.data?.salt) {
       set_error(t("settings.failed_retrieve_auth"));
+      set_can_defer(true);
 
       return null;
     }
@@ -193,6 +216,11 @@ export function RecoveryCodesModal({
 
     if (step_up.error || !step_up.data?.step_up_token) {
       set_error(step_up.error || t("settings.incorrect_password_error"));
+      rejected_attempts_ref.current += 1;
+
+      if (rejected_attempts_ref.current >= DEFER_AFTER_REJECTED_ATTEMPTS) {
+        set_can_defer(true);
+      }
 
       return null;
     }
@@ -234,6 +262,21 @@ export function RecoveryCodesModal({
     set_step("codes");
   };
 
+  const show_new_codes = () => {
+    if (codes.length === 0) {
+      set_codes(
+        generate_recovery_codes(RECOVERY_CODE_SET_SIZE).map((code) => ({
+          code,
+          used: false,
+        })),
+      );
+      set_saved_checkbox(false);
+    }
+    set_codes_unavailable(false);
+    set_error("");
+    set_step("codes");
+  };
+
   const save_codes_with_vault = async (
     step_up_token: string,
     passphrase: string,
@@ -244,6 +287,13 @@ export function RecoveryCodesModal({
       const latest = await read_latest_vault(passphrase);
 
       if (!latest) return { failed: t("settings.failed_verify_password") };
+
+      if (
+        is_required &&
+        !has_outdated_recovery_codes(latest.vault.recovery_codes)
+      ) {
+        return { already_replaced: latest.vault };
+      }
 
       const updated_vault = { ...latest.vault, recovery_codes: new_codes };
       const new_backup = await encrypt_vault_backup(
@@ -295,11 +345,20 @@ export function RecoveryCodesModal({
 
     if (!passphrase) {
       set_error(t("settings.failed_verify_password"));
+      set_can_defer(true);
 
       return;
     }
 
-    const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
+    if (is_required && (plain_codes.length === 0 || !saved_checkbox)) {
+      show_new_codes();
+
+      return;
+    }
+
+    const new_codes = is_required
+      ? plain_codes
+      : generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
     const recovery_key = generate_recovery_key();
 
     try {
@@ -310,8 +369,29 @@ export function RecoveryCodesModal({
         recovery_key,
       );
 
+      if ("already_replaced" in saved) {
+        await store_vault_in_memory(
+          saved.already_replaced,
+          passphrase,
+          user?.id,
+        );
+        show_toast(
+          t(
+            is_same_code_set(saved.already_replaced.recovery_codes, new_codes)
+              ? "settings.recovery_codes_required_done"
+              : "settings.recovery_codes_already_replaced",
+          ),
+          "success",
+        );
+        on_saved();
+        on_close();
+
+        return;
+      }
+
       if ("failed" in saved) {
         set_error(saved.failed ?? t("settings.recovery_codes_save_failed"));
+        set_can_defer(true);
 
         return;
       }
@@ -322,6 +402,14 @@ export function RecoveryCodesModal({
 
       if (user?.id) {
         store_encrypted_vault(user.id, encrypted_vault, vault_nonce);
+      }
+
+      if (is_required) {
+        show_toast(t("settings.recovery_codes_required_done"), "success");
+        on_saved();
+        on_close();
+
+        return;
       }
 
       set_codes(new_codes.map((code) => ({ code, used: false })));
@@ -367,6 +455,7 @@ export function RecoveryCodesModal({
       set_error(
         t(login_safety_error_key(err) ?? "settings.recovery_codes_save_failed"),
       );
+      set_can_defer(true);
     } finally {
       working_ref.current = false;
       set_is_working(false);
@@ -406,24 +495,49 @@ export function RecoveryCodesModal({
   };
 
   const handle_modal_close = useCallback(() => {
+    if (working_ref.current || is_required) return;
+    on_close();
+  }, [on_close, is_required]);
+
+  const handle_defer = () => {
     if (working_ref.current) return;
     on_close();
-  }, [on_close]);
+  };
 
-  const primary_label = is_regenerate
-    ? t("settings.recovery_codes_regenerate")
-    : t("settings.recovery_codes_show");
+  const required_label = is_required
+    ? t("settings.recovery_codes_required_action")
+    : null;
+  const primary_label =
+    required_label ??
+    (is_regenerate
+      ? t("settings.recovery_codes_regenerate")
+      : t("settings.recovery_codes_show"));
 
   return (
     <Modal
-      close_on_escape={step !== "codes"}
+      close_on_escape={!is_required && step !== "codes"}
       close_on_overlay={false}
       is_open={is_open}
       on_close={handle_modal_close}
-      show_close_button={step !== "codes"}
+      show_close_button={!is_required && step !== "codes"}
       size="md"
     >
-      {step === "confirm" && (
+      {step === "confirm" && is_required && (
+        <>
+          <ModalHeader>
+            <ModalTitle>{t("common.recovery_codes_refresh_title")}</ModalTitle>
+            <ModalDescription>
+              {t("common.recovery_codes_refresh_body")}
+            </ModalDescription>
+          </ModalHeader>
+          <ModalFooter>
+            <Button variant="depth" onClick={show_new_codes}>
+              {t("common.continue")}
+            </Button>
+          </ModalFooter>
+        </>
+      )}
+      {step === "confirm" && !is_required && (
         <>
           <ModalHeader>
             <ModalTitle>
@@ -450,7 +564,9 @@ export function RecoveryCodesModal({
               {t("settings.recovery_codes_confirm_title")}
             </ModalTitle>
             <ModalDescription>
-              {t("settings.recovery_codes_confirm_desc")}
+              {is_required
+                ? t("settings.recovery_codes_required_verify_desc")
+                : t("settings.recovery_codes_confirm_desc")}
             </ModalDescription>
           </ModalHeader>
           <ModalBody>
@@ -515,12 +631,21 @@ export function RecoveryCodesModal({
             </div>
           </ModalBody>
           <ModalFooter>
+            {is_required && can_defer && (
+              <Button
+                disabled={is_working}
+                variant="ghost"
+                onClick={handle_defer}
+              >
+                {t("common.not_now")}
+              </Button>
+            )}
             <Button
               disabled={is_working}
               variant="outline"
-              onClick={handle_modal_close}
+              onClick={is_required ? show_new_codes : handle_modal_close}
             >
-              {t("common.cancel")}
+              {is_required ? t("common.back") : t("common.cancel")}
             </Button>
             <Button
               disabled={!password.trim() || is_working}
@@ -537,7 +662,11 @@ export function RecoveryCodesModal({
         <>
           <ModalHeader>
             <ModalTitle>{t("settings.recovery_codes_title")}</ModalTitle>
-            <ModalDescription>{t("auth.store_codes_safely")}</ModalDescription>
+            <ModalDescription>
+              {is_required
+                ? t("settings.recovery_codes_required_save_desc")
+                : t("auth.store_codes_safely")}
+            </ModalDescription>
           </ModalHeader>
           <ModalBody>
             {codes_unavailable ? (
@@ -634,9 +763,9 @@ export function RecoveryCodesModal({
             <Button
               disabled={is_regenerate && !codes_unavailable && !saved_checkbox}
               variant="depth"
-              onClick={on_close}
+              onClick={is_required ? () => set_step("verify") : on_close}
             >
-              {t("common.done")}
+              {is_required ? t("common.continue") : t("common.done")}
             </Button>
           </ModalFooter>
         </>
