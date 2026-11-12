@@ -1975,6 +1975,8 @@ export const pt = {
     key_trust_missing_message:
       "{{recipients}} tinha uma chave de encriptação guardada neste dispositivo, mas não há nenhuma chave disponível agora. Se continuar, esta mensagem é enviada sem encriptação ponto a ponto. Confirme com o destinatário por outro canal antes de enviar.",
     key_trust_missing_detail: "{{email}}: era {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: a chave guardada não pode ser lida.",
     key_trust_missing_confirm: "Enviar sem encriptação",
     post_quantum_downgrade_title:
       "Enviar sem as chaves pós-quânticas esperadas?",

@@ -1218,6 +1218,8 @@ export const en: Translations = {
     key_trust_missing_message:
       "{{recipients}} had an encryption key saved on this device, but no key is available now. If you continue, this message is sent without end-to-end encryption. Check with the recipient over another channel before you send.",
     key_trust_missing_detail: "{{email}}: was {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: the saved key can't be read.",
     key_trust_missing_confirm: "Send without encryption",
     post_quantum_downgrade_title:
       "Send without the expected post-quantum keys?",

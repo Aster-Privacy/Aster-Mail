@@ -1969,6 +1969,7 @@ export const ja = {
     key_trust_missing_message:
       "このデバイスには {{recipients}} の暗号化鍵が保存されていましたが、現在は鍵を取得できません。続行すると、このメッセージはエンドツーエンド暗号化なしで送信されます。送信する前に、別の手段で受信者に確認してください。",
     key_trust_missing_detail: "{{email}}: 以前は {{prior}}。",
+    key_trust_missing_unreadable_detail: "{{email}}: 保存済みの鍵を読み取れません。",
     key_trust_missing_confirm: "暗号化せずに送信",
     post_quantum_downgrade_title:
       "想定される耐量子鍵がない状態で送信しますか。",

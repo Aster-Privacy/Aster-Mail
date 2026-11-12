@@ -1941,6 +1941,8 @@ export const nl = {
     key_trust_missing_message:
       "Op dit apparaat was een versleutelingssleutel voor {{recipients}} opgeslagen, maar er is nu geen sleutel beschikbaar. Als je doorgaat, wordt dit bericht zonder end-to-end-versleuteling verzonden. Controleer dit via een ander kanaal bij de ontvanger voordat je verzendt.",
     key_trust_missing_detail: "{{email}}: was {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: de opgeslagen sleutel kan niet worden gelezen.",
     key_trust_missing_confirm: "Zonder versleuteling verzenden",
     post_quantum_downgrade_title:
       "Verzenden zonder de verwachte post-quantumsleutels?",

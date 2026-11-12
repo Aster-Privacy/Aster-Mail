@@ -467,6 +467,61 @@ describe("external key trust consent", () => {
     expect(seen).toHaveLength(2);
   });
 
+  it("asks before sending when the saved key cannot be read and none is available", async () => {
+    await check_owner_key_pin(settled, "key");
+    expect(make_saved_pins_unreadable()).toBe(1);
+    h.keyless.add(settled);
+
+    const seen: KeyFingerprintChange[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(...pending);
+
+      return false;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+    expect(seen).toMatchObject([
+      {
+        email: settled,
+        prior_fingerprint: "",
+        new_fingerprint: "",
+        missing: true,
+        unreadable: true,
+      },
+    ]);
+    await expect(find_key_fingerprint_changes([settled])).resolves.toMatchObject(
+      [{ email: settled, missing: true, unreadable: true }],
+    );
+  });
+
+  it("does not send past an unreadable saved key with no key and no prompt", async () => {
+    await check_owner_key_pin(settled, "key");
+    make_saved_pins_unreadable();
+    h.keyless.add(settled);
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(false);
+  });
+
+  it("keeps asking while the saved key cannot be read", async () => {
+    await check_owner_key_pin(settled, "key");
+    make_saved_pins_unreadable();
+    h.keyless.add(settled);
+
+    let prompts = 0;
+
+    set_key_trust_prompt_handler(async () => {
+      prompts += 1;
+
+      return true;
+    });
+
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    await expect(ensure_external_key_trust([settled])).resolves.toBe(true);
+    expect(prompts).toBe(2);
+    expect(await pinned_fingerprint(settled)).toBe("unreadable");
+  });
+
   it("reports a missing saved key to callers that only look for changes", async () => {
     await check_owner_key_pin(settled, "key");
     h.keyless.add(settled);

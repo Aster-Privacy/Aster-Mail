@@ -1955,6 +1955,8 @@ export const es = {
     key_trust_missing_message:
       "{{recipients}} tenía una clave de cifrado guardada en este dispositivo, pero ahora no hay ninguna clave disponible. Si continúas, este mensaje se envía sin cifrado de extremo a extremo. Compruébalo con el destinatario por otro canal antes de enviar.",
     key_trust_missing_detail: "{{email}}: era {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: la clave guardada no se puede leer.",
     key_trust_missing_confirm: "Enviar sin cifrado",
     post_quantum_downgrade_title:
       "¿Enviar sin las claves poscuánticas esperadas?",

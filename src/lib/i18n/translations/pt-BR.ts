@@ -1940,6 +1940,8 @@ export const pt_br = {
     key_trust_missing_message:
       "{{recipients}} tinha uma chave de criptografia salva neste dispositivo, mas nenhuma chave está disponível agora. Se você continuar, esta mensagem será enviada sem criptografia de ponta a ponta. Confirme com o destinatário por outro canal antes de enviar.",
     key_trust_missing_detail: "{{email}}: era {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: a chave salva não pode ser lida.",
     key_trust_missing_confirm: "Enviar sem criptografia",
     post_quantum_downgrade_title:
       "Enviar sem as chaves pós-quânticas esperadas?",
