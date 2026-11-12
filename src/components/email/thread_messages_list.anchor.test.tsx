@@ -292,6 +292,16 @@ describe("thread list when the rest of the thread arrives", () => {
     expect(scroller.scrollTop).toBe(0);
   });
 
+  it("opens at the subject when the pane kept the previous email's scroll position", async () => {
+    scroller.scrollTop = 1_200;
+    const opened = message(0);
+
+    render_list([opened], opened.id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBe(0);
+  });
+
   it("leaves the subject in view when the first message is the unread one", async () => {
     const thread = Array.from({ length: 3 }, (_, i) => ({
       ...message(i),
