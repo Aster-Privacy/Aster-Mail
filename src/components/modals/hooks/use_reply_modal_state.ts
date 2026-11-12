@@ -1264,6 +1264,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     set_send_after_sender_switch,
     from_mismatch_ack_ref,
     sender_manually_selected_ref,
+    sender_loading,
     pending_send_kind_ref,
     handle_send_ref,
     handle_scheduled_send_ref,

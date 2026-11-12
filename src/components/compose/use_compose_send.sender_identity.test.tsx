@@ -204,3 +204,14 @@ it("distinguishes two connected accounts using the same From address", async () 
   await act(async () => hook.handle_send());
   expect(mocks.send).toHaveBeenCalledTimes(2);
 });
+it("holds the send while the saved sender address is still loading", async () => {
+  options.is_sender_pending = () => true;
+  await render();
+  await act(async () => hook.handle_send());
+  expect(mocks.send).not.toHaveBeenCalled();
+  expect(mocks.toast).toHaveBeenCalledWith("common.loading", "info");
+  options.is_sender_pending = () => false;
+  await render();
+  await act(async () => hook.handle_send());
+  expect(mocks.send).toHaveBeenCalledTimes(1);
+});

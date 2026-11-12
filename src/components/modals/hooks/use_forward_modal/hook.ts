@@ -95,6 +95,7 @@ import {
 } from "@/lib/preferred_sender";
 import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
+import { sender_is_pending } from "@/components/compose/sender_pending";
 import {
   type Attachment,
   type DraftStatus,
@@ -800,6 +801,17 @@ export function use_forward_modal({
 
   const lock_scope = use_recipient_lock_scope();
 
+  const is_sender_pending = useCallback(
+    () =>
+      sender_is_pending({
+        loading: sender_loading,
+        chosen_by_user:
+          sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
+        selected_email: selected_sender?.email,
+      }),
+    [sender_loading, ghost_mode.is_ghost_enabled, selected_sender?.email],
+  );
+
   const handle_forward = useCallback(async () => {
     if (
       !can_acquire_send_lock(
@@ -848,6 +860,12 @@ export function use_forward_modal({
 
     if (is_loading_attachments) {
       set_error_message(t("mail.attaching_original_files"));
+
+      return;
+    }
+
+    if (is_sender_pending()) {
+      show_toast(t("common.loading"), "info");
 
       return;
     }
@@ -1174,6 +1192,7 @@ export function use_forward_modal({
     preferences.show_aster_branding,
     vault,
     attachment_session,
+    is_sender_pending,
   ]);
 
   const schedule_gate_pending_ref = useRef(false);
@@ -1195,6 +1214,12 @@ export function use_forward_modal({
 
     if (is_loading_attachments) {
       set_error_message(t("mail.attaching_original_files"));
+
+      return;
+    }
+
+    if (is_sender_pending()) {
+      show_toast(t("common.loading"), "info");
 
       return;
     }
@@ -1389,6 +1414,7 @@ export function use_forward_modal({
     expires_at,
     original_mail_id,
     attachment_session,
+    is_sender_pending,
   ]);
 
   const get_total_attachments_size = useCallback(() => {

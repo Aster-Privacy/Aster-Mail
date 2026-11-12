@@ -52,6 +52,7 @@ import {
 } from "@/lib/preferred_sender";
 import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
+import { sender_is_pending } from "@/components/compose/sender_pending";
 import { compose_selected_alias } from "@/components/compose/selected_alias";
 import {
   use_ghost_mode,
@@ -507,6 +508,23 @@ export function use_compose({
     show_toast(t("common.scheduled_no_attachments"), "warning");
   }, [attachment_count, scheduled_time, t]);
 
+  const is_sender_pending = useCallback(
+    () =>
+      sender_is_pending({
+        loading: aliases_loading,
+        chosen_by_user:
+          sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
+        draft_from: edit_draft?.from_email,
+        selected_email: selected_sender?.email,
+      }),
+    [
+      aliases_loading,
+      ghost_mode.is_ghost_enabled,
+      edit_draft?.from_email,
+      selected_sender?.email,
+    ],
+  );
+
   const send_hook = use_compose_send({
     recipients,
     subject,
@@ -517,6 +535,7 @@ export function use_compose({
     is_loading_forward_attachments,
     contacts,
     selected_sender,
+    is_sender_pending,
     has_external_recipients,
     expires_at,
     expiry_password,
@@ -560,7 +579,12 @@ export function use_compose({
     });
 
     if (!resolved) return;
-    sender_resolved_ref.current = true;
+    sender_resolved_ref.current = !sender_is_pending({
+      loading: aliases_loading,
+      chosen_by_user: false,
+      draft_from: edit_draft?.from_email,
+      selected_email: resolved.option.email,
+    });
     if (resolved.option.id === selected_sender?.id) return;
 
     set_selected_sender_state(resolved.option);
@@ -573,6 +597,7 @@ export function use_compose({
     ghost_mode.is_ghost_enabled,
     has_user_content,
     effective_selected_alias,
+    aliases_loading,
   ]);
 
   useEffect(() => {
