@@ -1972,6 +1972,8 @@ export const pt = {
     key_trust_unreadable_message:
       "A chave de encriptação guardada de {{recipients}} não pode ser lida neste dispositivo. Confirme a impressão digital atual com o destinatário por outro canal antes de enviar.",
     key_trust_unreadable_detail: "{{email}}: agora {{current}}.",
+    key_trust_own_message:
+      "A chave de encriptação do seu endereço {{recipients}} mudou. Se não repôs as suas chaves nem configurou um novo dispositivo, não confie na nova chave.",
     key_trust_change_confirm: "Confiar na nova chave",
     key_trust_missing_title: "Chave de encriptação não encontrada",
     key_trust_missing_message:

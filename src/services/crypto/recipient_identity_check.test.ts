@@ -100,10 +100,12 @@ vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
 }));
 
 import {
+  describe_recipient_identity_change,
   get_recipient_identity_status,
   has_recipient_identity_changed,
   trust_recipient_identity,
 } from "@/services/crypto/recipient_identity_check";
+import { KeyPinUnavailableError } from "@/services/crypto/ratchet_types";
 
 function published_identity(kem_identity_key: string) {
   return {
@@ -266,12 +268,23 @@ describe("get_recipient_identity_status", () => {
     expect(h.trusted).toEqual([["alice@astermail.org", null, "new", null]]);
   });
 
-  it("does not re-pin a recipient whose keys are trusted", async () => {
+  it("re-pins the published keys whenever the user chooses to trust them", async () => {
     h.pinned = "key-one";
-    h.identity = { kem_identity_key: "key-one" };
+    h.identity = published_identity("key-one");
 
     await trust_recipient_identity("alice@astermail.org");
 
+    expect(h.trusted).toEqual([
+      ["alice@astermail.org", "key-one", null, published_identity("key-one")],
+    ]);
+  });
+
+  it("fails instead of silently doing nothing when no key can be fetched", async () => {
+    h.flagged = true;
+
+    await expect(
+      trust_recipient_identity("alice@astermail.org"),
+    ).rejects.toBeInstanceOf(KeyPinUnavailableError);
     expect(h.trusted).toEqual([]);
   });
   it("reports untrusted when the published bundle does not verify against the owner key", async () => {
@@ -356,5 +369,55 @@ describe("get_recipient_identity_status", () => {
         published_identity("key-one"),
       ],
     ]);
+  });
+});
+
+describe("describe_recipient_identity_change", () => {
+  beforeEach(() => {
+    h.pinned = null;
+    h.pinned_owner = null;
+    h.identity = null;
+    h.owner_key = null;
+    h.flagged = false;
+    h.pin_health = "settled";
+  });
+
+  it("reports the old and new owner key fingerprints", async () => {
+    h.pinned_owner = "fp:old";
+    h.owner_key = "new";
+
+    await expect(
+      describe_recipient_identity_change("Alice@astermail.org"),
+    ).resolves.toEqual({
+      email: "alice@astermail.org",
+      prior_fingerprint: "fp:old",
+      new_fingerprint: "fp:new",
+    });
+  });
+
+  it("reports the identity key change when the owner key is unchanged", async () => {
+    h.pinned_owner = "fp:same";
+    h.owner_key = "same";
+    h.pinned = "ab";
+    h.identity = published_identity("cd");
+
+    const change = await describe_recipient_identity_change(
+      "alice@astermail.org",
+    );
+
+    expect(change.prior_fingerprint).toBe("6162");
+    expect(change.new_fingerprint).toBe("6364");
+  });
+
+  it("reports only the current key when nothing was pinned before", async () => {
+    h.owner_key = "now";
+
+    await expect(
+      describe_recipient_identity_change("alice@astermail.org"),
+    ).resolves.toEqual({
+      email: "alice@astermail.org",
+      prior_fingerprint: "",
+      new_fingerprint: "fp:now",
+    });
   });
 });

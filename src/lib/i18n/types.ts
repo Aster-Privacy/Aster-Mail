@@ -756,6 +756,7 @@ export interface CommonTranslations {
   key_trust_change_message: string;
   key_trust_change_detail: string;
   key_trust_unreadable_message: string;
+  key_trust_own_message: string;
   key_trust_unreadable_detail: string;
   key_trust_change_confirm: string;
   key_trust_missing_title: string;

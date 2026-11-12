@@ -1966,6 +1966,8 @@ export const fr = {
     key_trust_unreadable_message:
       "La clé de chiffrement enregistrée de {{recipients}} est illisible sur cet appareil. Vérifiez l’empreinte actuelle avec le destinataire par un autre canal avant d’envoyer.",
     key_trust_unreadable_detail: "{{email}} : maintenant {{current}}.",
+    key_trust_own_message:
+      "La clé de chiffrement de votre adresse {{recipients}} a changé. Si vous n'avez pas réinitialisé vos clés ni configuré un nouvel appareil, ne faites pas confiance à la nouvelle clé.",
     key_trust_change_confirm: "Faire confiance à la nouvelle clé",
     key_trust_missing_title: "Clé de chiffrement introuvable",
     key_trust_missing_message:

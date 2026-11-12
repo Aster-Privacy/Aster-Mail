@@ -1816,6 +1816,8 @@ export const zh_CN = {
     key_trust_unreadable_message:
       "此设备无法读取 {{recipients}} 的已保存加密密钥。发送前请通过其他渠道与收件人核对当前的指纹。",
     key_trust_unreadable_detail: "{{email}}：现为 {{current}}。",
+    key_trust_own_message:
+      "你的地址 {{recipients}} 的加密密钥已更改。如果你没有重置密钥或设置新设备，请不要信任新密钥。",
     key_trust_change_confirm: "信任新密钥",
     key_trust_missing_title: "未找到加密密钥",
     key_trust_missing_message:

@@ -1963,6 +1963,8 @@ export const ko = {
     key_trust_unreadable_message:
       "이 기기에서 {{recipients}}의 저장된 암호화 키를 읽을 수 없습니다. 보내기 전에 다른 경로로 수신자와 현재 지문을 확인하세요.",
     key_trust_unreadable_detail: "{{email}}: 현재 {{current}}.",
+    key_trust_own_message:
+      "내 주소 {{recipients}}의 암호화 키가 변경되었습니다. 키를 재설정하거나 새 기기를 설정하지 않았다면 새 키를 신뢰하지 마세요.",
     key_trust_change_confirm: "새 키 신뢰",
     key_trust_missing_title: "암호화 키를 찾을 수 없음",
     key_trust_missing_message:

@@ -1938,6 +1938,8 @@ export const nl = {
     key_trust_unreadable_message:
       "De opgeslagen versleutelingssleutel van {{recipients}} kan op dit apparaat niet worden gelezen. Controleer de huidige vingerafdruk via een ander kanaal bij de ontvanger voordat je verzendt.",
     key_trust_unreadable_detail: "{{email}}: nu {{current}}.",
+    key_trust_own_message:
+      "De versleutelingssleutel voor je adres {{recipients}} is gewijzigd. Als je je sleutels niet hebt hersteld of geen nieuw apparaat hebt ingesteld, vertrouw de nieuwe sleutel dan niet.",
     key_trust_change_confirm: "Nieuwe sleutel vertrouwen",
     key_trust_missing_title: "Versleutelingssleutel niet gevonden",
     key_trust_missing_message:

@@ -1972,6 +1972,8 @@ export const pl = {
     key_trust_unreadable_message:
       "Zapisanego klucza szyfrowania dla {{recipients}} nie można odczytać na tym urządzeniu. Przed wysłaniem potwierdź bieżący odcisk klucza z odbiorcą innym kanałem.",
     key_trust_unreadable_detail: "{{email}}: jest {{current}}.",
+    key_trust_own_message:
+      "Klucz szyfrowania Twojego adresu {{recipients}} zmienił się. Jeśli nie resetowałeś kluczy ani nie konfigurowałeś nowego urządzenia, nie ufaj nowemu kluczowi.",
     key_trust_change_confirm: "Zaufaj nowemu kluczowi",
     key_trust_missing_title: "Nie znaleziono klucza szyfrowania",
     key_trust_missing_message:

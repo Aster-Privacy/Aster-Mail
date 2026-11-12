@@ -59,6 +59,12 @@ export function KeyTrustChangePrompt(): React.ReactElement {
   const pending = changes ?? [];
 
   const details = pending
+    .filter(
+      (change) =>
+        change.missing ||
+        Boolean(change.new_fingerprint) ||
+        Boolean(change.prior_fingerprint),
+    )
     .map((change) =>
       change.missing
         ? change.prior_fingerprint
@@ -69,7 +75,7 @@ export function KeyTrustChangePrompt(): React.ReactElement {
           : t("common.key_trust_missing_unreadable_detail", {
               email: change.email,
             })
-        : change.unreadable
+        : change.unreadable || !change.prior_fingerprint
           ? t("common.key_trust_unreadable_detail", {
               email: change.email,
               current: format_fingerprint(change.new_fingerprint),
@@ -83,15 +89,21 @@ export function KeyTrustChangePrompt(): React.ReactElement {
     .join(" ");
 
   const missing = pending.filter((change) => change.missing);
+  const own = pending.filter((change) => change.own && !change.missing);
   const changed = pending.filter(
-    (change) => !change.unreadable && !change.missing,
+    (change) => !change.unreadable && !change.missing && !change.own,
   );
   const unread = pending.filter(
-    (change) => change.unreadable && !change.missing,
+    (change) => change.unreadable && !change.missing && !change.own,
   );
   const only_missing = missing.length > 0 && missing.length === pending.length;
 
   const summary = [
+    own.length > 0
+      ? t("common.key_trust_own_message", {
+          recipients: own.map((change) => change.email).join(", "),
+        })
+      : "",
     changed.length > 0
       ? t("common.key_trust_change_message", {
           recipients: changed.map((change) => change.email).join(", "),
@@ -120,7 +132,7 @@ export function KeyTrustChangePrompt(): React.ReactElement {
           : "common.key_trust_change_confirm",
       )}
       confirm_variant="destructive"
-      description={`${summary} ${details}`}
+      description={details ? `${summary} ${details}` : summary}
       dont_ask={false}
       on_cancel={() => settle(false)}
       on_confirm={() => settle(true)}

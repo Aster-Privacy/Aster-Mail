@@ -1215,6 +1215,8 @@ export const en: Translations = {
     key_trust_unreadable_message:
       "The saved encryption key for {{recipients}} can't be read on this device. Check the current fingerprint with the recipient over another channel before you send.",
     key_trust_unreadable_detail: "{{email}}: now {{current}}.",
+    key_trust_own_message:
+      "The encryption key for your address {{recipients}} changed. If you didn't reset your keys or set up a new device, don't trust the new key.",
     key_trust_change_confirm: "Trust new key",
     key_trust_missing_title: "Encryption key not found",
     key_trust_missing_message:

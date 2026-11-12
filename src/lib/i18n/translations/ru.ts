@@ -1951,6 +1951,8 @@ export const ru = {
     key_trust_unreadable_message:
       "Сохранённый ключ шифрования для {{recipients}} не удаётся прочитать на этом устройстве. Перед отправкой сверьте текущий отпечаток с получателем по другому каналу.",
     key_trust_unreadable_detail: "{{email}}: стало {{current}}.",
+    key_trust_own_message:
+      "Ключ шифрования для вашего адреса {{recipients}} изменился. Если вы не сбрасывали ключи и не настраивали новое устройство, не доверяйте новому ключу.",
     key_trust_change_confirm: "Доверять новому ключу",
     key_trust_missing_title: "Ключ шифрования не найден",
     key_trust_missing_message:
