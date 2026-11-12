@@ -899,13 +899,15 @@ export const ThreadMessagesList = forwardRef<
       const container = find_scroll_container(el);
 
       if (container) {
-        const el_top = el.getBoundingClientRect().top;
-        const container_top = container.getBoundingClientRect().top;
+        const offset =
+          container.scrollTop +
+          el.getBoundingClientRect().top -
+          container.getBoundingClientRect().top;
+        const top = offset < container.clientHeight / 2 ? 0 : offset;
 
-        container.scrollTo({
-          top: container.scrollTop + (el_top - container_top),
-          behavior: "smooth",
-        });
+        if (top === container.scrollTop) return;
+
+        container.scrollTo({ top, behavior: "smooth" });
       }
     });
   }, [scroll_target_id]);

@@ -601,8 +601,18 @@ export function use_mobile_mail_detail() {
     if (!first_unread_ref.current) return;
     has_scrolled.current = true;
     requestAnimationFrame(() => {
+      const el = first_unread_ref.current;
+      const container = scroll_ref.current;
+
+      if (!el || !container) return;
+
+      const el_top = el.getBoundingClientRect().top;
+      const container_top = container.getBoundingClientRect().top;
+
+      if (el_top - container_top < container.clientHeight / 2) return;
+
       release_anchor_ref.current?.();
-      first_unread_ref.current?.scrollIntoView({
+      el.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
