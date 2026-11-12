@@ -188,7 +188,10 @@ describe("thread list when the rest of the thread arrives", () => {
       configurable: true,
       value: 5_000,
     });
-    Object.defineProperty(scroller, "clientHeight", { value: 500 });
+    Object.defineProperty(scroller, "clientHeight", {
+      configurable: true,
+      value: 500,
+    });
     document.body.appendChild(scroller);
     original_rect = HTMLElement.prototype.getBoundingClientRect;
     HTMLElement.prototype.getBoundingClientRect = function (this: HTMLElement) {
@@ -301,13 +304,26 @@ describe("thread list when the rest of the thread arrives", () => {
     expect(scroller.scrollTop).toBe(0);
   });
 
-  it("still brings a later unread message into view", async () => {
-    const thread = Array.from({ length: 3 }, (_, i) => ({
-      ...message(i),
-      is_read: i < 2,
-    }));
+  it("leaves the subject in view when the last message already starts in the top half", async () => {
+    const thread = Array.from({ length: 3 }, (_, i) => message(i));
 
     render_list(thread, thread[2].id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBe(0);
+  });
+
+  it("still brings an unread message further down into view", async () => {
+    Object.defineProperty(scroller, "clientHeight", {
+      configurable: true,
+      value: 200,
+    });
+    const thread = Array.from({ length: 4 }, (_, i) => ({
+      ...message(i),
+      is_read: i < 3,
+    }));
+
+    render_list(thread, thread[3].id);
     await flush_frames();
 
     expect(scroller.scrollTop).toBeGreaterThan(0);
