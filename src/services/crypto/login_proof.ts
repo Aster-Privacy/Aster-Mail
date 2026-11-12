@@ -27,6 +27,7 @@ import {
 } from "./auth_salt_guard";
 import { array_to_base64, base64_to_array } from "./base64";
 import { derive_password_hash, hash_email } from "./key_manager";
+import { is_stored_login_key, stored_login_key } from "./login_record_keys";
 
 import { api_client } from "@/services/api/client";
 
@@ -53,9 +54,13 @@ export function user_id_pin_key(user_id: string): string {
   return `u:${user_id}`;
 }
 
-function read_pinned_accounts(): string[] {
+function stored_keys(lookup_keys: readonly string[]): string[] {
+  return lookup_keys.map((key) => stored_login_key(key));
+}
+
+function read_string_list(storage_key: string): string[] {
   try {
-    const raw = localStorage.getItem(PINNED_ACCOUNTS_KEY);
+    const raw = localStorage.getItem(storage_key);
 
     if (!raw) {
       return [];
@@ -64,11 +69,38 @@ function read_pinned_accounts(): string[] {
     const parsed: unknown = JSON.parse(raw);
 
     return Array.isArray(parsed)
-      ? parsed.filter((entry): entry is string => typeof entry === "string")
+      ? parsed.filter(
+          (entry): entry is string => typeof entry === "string" && entry !== "",
+        )
       : [];
   } catch {
     return [];
   }
+}
+
+function read_converted_list(
+  storage_key: string,
+  convert: (entry: string) => string,
+): string[] {
+  const entries = read_string_list(storage_key);
+  const converted = [...new Set(entries.map(convert))];
+
+  if (
+    converted.length !== entries.length ||
+    converted.some((entry, index) => entry !== entries[index])
+  ) {
+    try {
+      localStorage.setItem(storage_key, JSON.stringify(converted));
+    } catch {
+      return converted;
+    }
+  }
+
+  return converted;
+}
+
+function read_pinned_accounts(): string[] {
+  return read_converted_list(PINNED_ACCOUNTS_KEY, stored_login_key);
 }
 
 export function is_account_pinned(pin_keys: readonly string[]): boolean {
@@ -78,7 +110,7 @@ export function is_account_pinned(pin_keys: readonly string[]): boolean {
 
   const pinned = read_pinned_accounts();
 
-  return pin_keys.some((key) => pinned.includes(key));
+  return stored_keys(pin_keys).some((key) => pinned.includes(key));
 }
 
 export function pin_accounts(pin_keys: readonly string[]): void {
@@ -87,9 +119,10 @@ export function pin_accounts(pin_keys: readonly string[]): void {
   }
 
   const pinned = read_pinned_accounts();
-  const merged = pinned.filter((entry) => !pin_keys.includes(entry));
+  const added = [...new Set(stored_keys(pin_keys))];
+  const merged = pinned.filter((entry) => !added.includes(entry));
 
-  merged.push(...pin_keys);
+  merged.push(...added);
 
   try {
     localStorage.setItem(
@@ -108,8 +141,9 @@ export function unpin_accounts(pin_keys: readonly string[]): void {
     return;
   }
 
+  const removed = stored_keys(pin_keys);
   const remaining = read_pinned_accounts().filter(
-    (entry) => !pin_keys.includes(entry),
+    (entry) => !removed.includes(entry),
   );
 
   try {
@@ -142,13 +176,39 @@ function read_login_salt_records(): LoginSaltRecord[] {
       return [];
     }
 
-    return parsed.filter(
+    const records = parsed.filter(
       (entry): entry is LoginSaltRecord =>
         typeof entry === "object" &&
         entry !== null &&
         typeof (entry as LoginSaltRecord).key === "string" &&
         typeof (entry as LoginSaltRecord).salt === "string",
     );
+    const seen = new Set<string>();
+    const converted: LoginSaltRecord[] = [];
+    let changed = false;
+
+    for (const entry of records) {
+      const key = stored_login_key(entry.key);
+      const identity = `${key} ${entry.salt}`;
+
+      if (key !== entry.key) {
+        changed = true;
+      }
+
+      if (seen.has(identity)) {
+        changed = true;
+        continue;
+      }
+
+      seen.add(identity);
+      converted.push({ key, salt: entry.salt });
+    }
+
+    if (changed) {
+      write_login_salt_records(converted);
+    }
+
+    return converted;
   } catch {
     return [];
   }
@@ -176,11 +236,12 @@ export function record_login_salt(
   }
 
   const encoded = array_to_base64(salt);
+  const added = [...new Set(stored_keys(pin_keys))];
   const kept = read_login_salt_records().filter(
-    (entry) => !pin_keys.includes(entry.key),
+    (entry) => !added.includes(entry.key),
   );
 
-  kept.push(...pin_keys.map((key) => ({ key, salt: encoded })));
+  kept.push(...added.map((key) => ({ key, salt: encoded })));
   write_login_salt_records(kept);
 }
 
@@ -189,8 +250,10 @@ export function forget_login_salt_records(pin_keys: readonly string[]): void {
     return;
   }
 
+  const removed = stored_keys(pin_keys);
+
   write_login_salt_records(
-    read_login_salt_records().filter((entry) => !pin_keys.includes(entry.key)),
+    read_login_salt_records().filter((entry) => !removed.includes(entry.key)),
   );
 }
 
@@ -200,8 +263,9 @@ export function match_login_salt_record(
   pin_keys: readonly string[],
   salt: Uint8Array,
 ): LoginSaltRecordMatch {
+  const wanted = stored_keys(pin_keys);
   const records = read_login_salt_records().filter((entry) =>
-    pin_keys.includes(entry.key),
+    wanted.includes(entry.key),
   );
 
   if (records.length === 0) {
@@ -227,32 +291,26 @@ export function match_login_salt_record(
   return matched ? "match" : "mismatch";
 }
 
+function known_account_key(user_hash: string): string {
+  return stored_login_key(user_hash_pin_key(user_hash));
+}
+
 function read_known_login_accounts(): string[] {
-  try {
-    const raw = localStorage.getItem(KNOWN_LOGIN_ACCOUNTS_KEY);
-
-    if (!raw) {
-      return [];
-    }
-
-    const parsed: unknown = JSON.parse(raw);
-
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed.filter(
-      (entry): entry is string => typeof entry === "string" && entry !== "",
-    );
-  } catch {
-    return [];
-  }
+  return read_converted_list(KNOWN_LOGIN_ACCOUNTS_KEY, (entry) =>
+    is_stored_login_key(entry) || entry.startsWith("h:")
+      ? stored_login_key(entry)
+      : known_account_key(entry),
+  );
 }
 
 export function remember_known_login_accounts(
   user_hashes: readonly string[],
 ): void {
-  const added = user_hashes.filter((hash) => hash !== "");
+  const added = [
+    ...new Set(
+      user_hashes.filter((hash) => hash !== "").map(known_account_key),
+    ),
+  ];
 
   if (added.length === 0) {
     return;
@@ -276,7 +334,15 @@ export function remember_known_login_accounts(
   }
 }
 
+export function convert_stored_login_records(): void {
+  read_pinned_accounts();
+  read_login_salt_records();
+  read_known_login_accounts();
+}
+
 export async function remember_saved_login_accounts(): Promise<void> {
+  convert_stored_login_records();
+
   try {
     const { get_all_accounts } = await import("@/services/account_manager");
     const accounts = await get_all_accounts();
@@ -312,7 +378,7 @@ async function account_saved_on_device(user_hash: string): Promise<boolean> {
     return false;
   }
 
-  if (read_known_login_accounts().includes(user_hash)) {
+  if (read_known_login_accounts().includes(known_account_key(user_hash))) {
     return true;
   }
 
@@ -553,11 +619,11 @@ export async function seed_session_login_salt(
     user_hash_pin_key(await hash_email(email)),
   ];
   const recorded = new Set(
-    read_login_salt_records()
-      .map((entry) => entry.key)
-      .filter((key) => pin_keys.includes(key)),
+    read_login_salt_records().map((entry) => entry.key),
   );
-  const missing = pin_keys.filter((key) => !recorded.has(key));
+  const missing = pin_keys.filter(
+    (key) => !recorded.has(stored_login_key(key)),
+  );
 
   if (missing.length === 0) {
     return;
@@ -657,6 +723,8 @@ export async function derive_sign_in_proof(
   kdf_version_value: unknown,
   user_hash: string,
 ): Promise<string> {
+  convert_stored_login_records();
+
   const pin_keys = [user_hash_pin_key(user_hash)];
   const proof = await derive_account_proof(
     password,
