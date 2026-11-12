@@ -23,9 +23,10 @@ import { get_recipient_public_key } from "../api/keys";
 import { base64_to_array, compute_hash } from "./key_manager_core";
 import { verify_ratchet_prekey_bundle_detailed } from "./key_manager_pgp";
 import {
-  fetch_prekey_bundle,
-  fetch_ratchet_identity,
-} from "./ratchet_prekey_bundle";
+  is_directory_trust_rejected,
+  resolve_recipient_bundle,
+  resolve_recipient_identity,
+} from "./address_identity_directory";
 import {
   is_recipient_bundle_accepted,
   owner_key_fingerprint,
@@ -92,9 +93,10 @@ async function snapshot_recipient_identity(
     const pins_unsettled = pins.health !== "settled";
     const known =
       pins_unsettled || pinned_kem !== null || pinned_owner !== null;
-    const identity = known
-      ? await fetch_ratchet_identity(username, pin_id)
+    const resolved = known
+      ? await resolve_recipient_identity(username, pin_id)
       : null;
+    const identity = resolved?.entry ?? null;
     const owner = known
       ? await get_recipient_public_key(username, pin_id)
       : null;
@@ -108,6 +110,14 @@ async function snapshot_recipient_identity(
           pq_kem_public_key: identity.pq_kem_public_key ?? null,
         }
       : null;
+    const directory_rejected =
+      resolved !== null &&
+      published_bundle !== null &&
+      is_directory_trust_rejected(resolved.trust) &&
+      !(
+        resolved.trust === "invalid" &&
+        (await is_recipient_bundle_accepted(pin_id, published_bundle))
+      );
 
     const kem_changed =
       pinned_kem !== null &&
@@ -122,11 +132,13 @@ async function snapshot_recipient_identity(
       pins_unsettled ||
       owner_changed ||
       pins.flagged ||
-      (await is_published_bundle_unverified(
-        pin_id,
-        published_bundle,
-        owner_public_key,
-      ))
+      directory_rejected ||
+      (!resolved?.scoped &&
+        (await is_published_bundle_unverified(
+          pin_id,
+          published_bundle,
+          owner_public_key,
+        )))
     ) {
       return {
         status: "untrusted",
@@ -172,24 +184,36 @@ function base64_to_hex(value: string): string {
     .join("");
 }
 
+interface PublishedIdentity {
+  binding: RecipientBundleBinding;
+  scoped: boolean;
+}
+
 async function published_identity(
   username: string,
   pin_id: string,
-): Promise<RecipientBundleBinding | null> {
-  const bundle = await fetch_prekey_bundle(username, pin_id).catch(() => null);
+): Promise<PublishedIdentity | null> {
+  const resolved = await resolve_recipient_bundle(username, pin_id).catch(
+    () => null,
+  );
 
-  if (bundle) return bundle;
+  if (resolved?.entry) {
+    return { binding: resolved.entry, scoped: resolved.scoped };
+  }
 
-  const identity = await fetch_ratchet_identity(username, pin_id).catch(
+  const identity = await resolve_recipient_identity(username, pin_id).catch(
     () => null,
   );
 
   return identity
     ? {
-        kem_identity_key: identity.kem_identity_key,
-        signed_prekey: identity.signed_prekey,
-        signed_prekey_signature: identity.signed_prekey_signature,
-        pq_kem_public_key: identity.pq_kem_public_key ?? null,
+        binding: {
+          kem_identity_key: identity.entry.kem_identity_key,
+          signed_prekey: identity.entry.signed_prekey,
+          signed_prekey_signature: identity.entry.signed_prekey_signature,
+          pq_kem_public_key: identity.entry.pq_kem_public_key ?? null,
+        },
+        scoped: identity.scoped,
       }
     : null;
 }
@@ -211,9 +235,11 @@ export async function describe_recipient_identity_change(
   const { pin_id, username } = lookup_parts(email);
   const pins = await read_recipient_pins(pin_id);
   const owner_public_key = await published_owner_key(username, pin_id);
-  const identity = await fetch_ratchet_identity(username, pin_id).catch(
-    () => null,
-  );
+  const resolved_identity = await resolve_recipient_identity(
+    username,
+    pin_id,
+  ).catch(() => null);
+  const identity = resolved_identity?.entry ?? null;
   const current_owner = owner_public_key
     ? await owner_key_fingerprint(owner_public_key).catch(() => null)
     : null;
@@ -267,8 +293,9 @@ export async function trust_recipient_identity(email: string): Promise<void> {
 
   await trust_recipient_keys(
     pin_id,
-    published?.kem_identity_key ?? null,
+    published?.binding.kem_identity_key ?? null,
     owner_public_key,
-    published,
+    published?.binding ?? null,
+    published?.scoped ?? false,
   );
 }

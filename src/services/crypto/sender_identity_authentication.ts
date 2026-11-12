@@ -67,8 +67,16 @@ const published_cache = new Map<string, PublishedCacheEntry>();
 const published_history_cache = new Map<string, PublishedHistoryCacheEntry>();
 const status_cache = new Map<string, SenderIdentityStatus>();
 const refresh_cache = new Map<string, number>();
+const address_entry_cache = new Map<
+  string,
+  { identity_keys: string[]; timestamp: number }
+>();
 
 function bound_peer_caches(): void {
+  if (address_entry_cache.size > MAX_PEER_CACHE) {
+    drop_expired_entries(address_entry_cache, PUBLISHED_CACHE_TTL_MS);
+    trim_map_to_size(address_entry_cache, MAX_PEER_CACHE);
+  }
   if (published_cache.size > MAX_PEER_CACHE) {
     drop_expired_entries(published_cache, PUBLISHED_CACHE_TTL_MS);
     trim_map_to_size(published_cache, MAX_PEER_CACHE);
@@ -203,6 +211,47 @@ async function resolve_published_history(
   return history;
 }
 
+async function resolve_address_entry_keys(peer: string): Promise<string[]> {
+  const cached = address_entry_cache.get(peer);
+
+  if (cached && Date.now() - cached.timestamp < PUBLISHED_CACHE_TTL_MS) {
+    return cached.identity_keys;
+  }
+
+  const username = extract_username_from_email(peer);
+
+  if (!username) return [];
+
+  const identity_keys: string[] = [];
+
+  try {
+    const entry = await fetch_ratchet_identity(username, peer, true);
+
+    if (entry?.address_scoped === true && entry.kem_identity_key) {
+      identity_keys.push(entry.kem_identity_key);
+    }
+
+    if (entry?.address_scoped === true) {
+      const history = await fetch_published_identity_history(
+        username,
+        peer,
+        true,
+      );
+
+      if (history?.address_scoped === true) {
+        identity_keys.push(...history.identity_keys);
+      }
+    }
+  } catch {
+    identity_keys.length = 0;
+  }
+
+  address_entry_cache.set(peer, { identity_keys, timestamp: Date.now() });
+  bound_peer_caches();
+
+  return identity_keys;
+}
+
 function claim_directory_refresh(peer: string): boolean {
   const last = refresh_cache.get(peer);
 
@@ -223,6 +272,7 @@ async function resolve_directory_status(
   if (refresh) {
     published_cache.delete(peer.address);
     published_history_cache.delete(peer.address);
+    address_entry_cache.delete(peer.address);
   }
 
   const published = await resolve_published_identity(peer.address);
@@ -233,8 +283,14 @@ async function resolve_directory_status(
   const history_confirms = Boolean(
     published_history?.identity_keys.includes(sender_identity_key),
   );
+  const address_entry_confirms =
+    !published_confirms &&
+    !history_confirms &&
+    (await resolve_address_entry_keys(peer.address)).includes(
+      sender_identity_key,
+    );
 
-  if (published_confirms || history_confirms) {
+  if (published_confirms || history_confirms || address_entry_confirms) {
     return (await remember_identity(peer, sender_identity_key)) === "refused"
       ? "unverified"
       : "verified";
@@ -376,4 +432,5 @@ export function clear_sender_identity_authentication_cache(): void {
   published_history_cache.clear();
   status_cache.clear();
   refresh_cache.clear();
+  address_entry_cache.clear();
 }

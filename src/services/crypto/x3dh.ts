@@ -79,6 +79,7 @@ interface PrekeyBundle {
   pq_kem_public_key?: string | null;
   x3dh_max_version?: number | null;
   pq_capable?: boolean | null;
+  address_scoped?: boolean | null;
 }
 
 interface PqReceiverInput {
