@@ -83,10 +83,9 @@ interface StoredUntrustedFlag {
 const UNTRUSTED_FLAG_VERSION = 2;
 
 function is_flag_raised(read: ContactRead<StoredUntrustedFlag>): boolean {
-  if (read.state === "absent") return false;
-  if (read.state !== "found") return true;
-
-  return read.value.version === UNTRUSTED_FLAG_VERSION;
+  return (
+    read.state === "found" && read.value.version === UNTRUSTED_FLAG_VERSION
+  );
 }
 
 interface StoredAcceptedBundle {
@@ -767,7 +766,11 @@ export async function trust_recipient_keys(
     const history = await read_sender_history(slot).catch(() => null);
 
     if (!history || !is_settled(history)) {
-      await delete_contact_entry(SENDER_HISTORY_PREFIX, slot);
+      await write_contact_entry(
+        SENDER_HISTORY_PREFIX,
+        slot,
+        kem_identity_key ? [kem_identity_key] : [],
+      );
     }
 
     await delete_contact_entry(IDENTITY_CHANGE_PREFIX, slot);

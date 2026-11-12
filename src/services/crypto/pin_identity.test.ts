@@ -488,6 +488,45 @@ describe("contacts on other domains", () => {
 });
 
 describe("unreadable pin entries", () => {
+  it("clears the block for good once the new keys are trusted", async () => {
+    const shared_flag = place(`${IDENTITY_UNTRUSTED_PREFIX}${PLAIN}`, {
+      flagged_at: 1,
+      version: 2,
+    });
+    const shared_history = place(`${SENDER_HISTORY_PREFIX}${PLAIN}`, [KEY_A]);
+    const shared_pin = place(
+      `${IDENTITY_PIN_PREFIX}${PLAIN}`,
+      await identity_pin(KEY_A),
+    );
+
+    h.unreadable.add(shared_flag);
+    h.unreadable.add(shared_history);
+    h.unreadable.add(shared_pin);
+    reset_contact_entry_state();
+
+    expect(await get_recipient_pin_health(PLAIN)).toBe("unreadable");
+    expect(await check_and_pin_identity(PLAIN, KEY_B)).toBe("unreadable");
+
+    await trust_recipient_keys(PLAIN, KEY_B, null);
+    reset_contact_entry_state();
+
+    expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(false);
+    expect(await get_recipient_pin_health(PLAIN)).toBe("settled");
+    expect(await check_and_pin_identity(PLAIN, KEY_B)).toBe("ok");
+    expect(await check_and_pin_identity(VARIANT, KEY_B)).toBe("ok");
+  });
+
+  it("ignores an untrusted flag it cannot read", async () => {
+    const name = place(await current_name(IDENTITY_UNTRUSTED_PREFIX, PLAIN), {
+      flagged_at: 1,
+      version: 2,
+    });
+
+    h.unreadable.add(name);
+
+    expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(false);
+  });
+
   it("does not treat an unreadable identity pin as first contact", async () => {
     const name = await seed_current_pin(PLAIN, KEY_A);
     const stored = h.store.get(name);
@@ -576,16 +615,6 @@ describe("unreadable pin entries", () => {
     expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(false);
 
     await flag_recipient_untrusted(PLAIN);
-
-    expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(true);
-  });
-
-  it("counts an unreadable untrusted flag as flagged", async () => {
-    const name = place(await current_name(IDENTITY_UNTRUSTED_PREFIX, PLAIN), {
-      flagged_at: 1,
-    });
-
-    h.unreadable.add(name);
 
     expect(await is_recipient_flagged_untrusted(PLAIN)).toBe(true);
   });
