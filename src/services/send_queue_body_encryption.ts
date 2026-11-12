@@ -291,9 +291,14 @@ export async function resolve_sender_identity(
   vault: EncryptedVault,
 ): Promise<SenderIdentity> {
   const errors = get_active_translations().errors;
+  const account = account_sender_identity(vault);
+
+  if (!account) {
+    throw create_error("encryption_failed", errors.failed_encrypt_envelope);
+  }
 
   if (await sender_uses_account_key(sender_email)) {
-    return account_sender_identity(vault);
+    return account;
   }
 
   const state = await resolve_address_send_state(
@@ -302,7 +307,7 @@ export async function resolve_sender_identity(
     await resolve_own_lookup_username(sender_email),
   );
 
-  if (state === "inactive") return account_sender_identity(vault);
+  if (state === "inactive") return account;
 
   if (state === "unavailable") {
     throw create_error("encryption_failed", errors.failed_encrypt_envelope);
