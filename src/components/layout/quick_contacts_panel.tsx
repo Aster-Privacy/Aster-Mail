@@ -118,8 +118,8 @@ import {
 } from "@/components/common/hooks/contacts_state_helpers";
 
 const RELOAD_INTERVAL_MS = 30000;
-const CONTACT_PAGE_LIMIT = 200;
-const MAX_CONTACT_PAGES = 25;
+const CONTACT_PAGE_LIMIT = 100;
+const MAX_CONTACT_PAGES = 1000;
 const PAGE_RETRY_DELAYS_MS = [500, 1500, 4000];
 const RENDER_PAGE_SIZE = 40;
 const RENDER_AHEAD_PX = 600;
