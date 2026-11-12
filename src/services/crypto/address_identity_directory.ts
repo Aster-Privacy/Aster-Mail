@@ -163,7 +163,7 @@ async function publish_address_forms(
 
   if (!exact) return "inactive";
 
-  let result: UploadOutcome = { state: "failed", retry_ms: 0 };
+  let result: UploadOutcome;
 
   try {
     result = await upload_address_entry(vault, exact);
