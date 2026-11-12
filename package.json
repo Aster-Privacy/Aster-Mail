@@ -159,6 +159,15 @@
     "@rollup/rollup-linux-x64-gnu": "^4.64.7"
   },
   "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    },
+    "glob": {
+      "minimatch": "^11.0.1"
+    },
+    "rimraf": {
+      "minimatch": "^11.0.1"
+    },
     "tar": ">=7.5.18",
     "js-yaml": ">=5.2.2",
     "brace-expansion": ">=2.1.2",
