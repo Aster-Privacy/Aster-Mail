@@ -2920,6 +2920,8 @@ export const en: Translations = {
       "This session started on a different network or browser, so Aster Mail didn't change your password. To change it, sign out, sign back in, and try again.",
     password_change_identity_continuity_required:
       "Aster Mail didn't change your password because the change would remove encryption keys your older messages need. To try again, sign out, sign back in, and change your password.",
+    password_change_vault_changed:
+      "Your encryption keys changed on another device while you were changing your password, so Aster Mail didn't change it. Try again.",
     password_change_vault_out_of_date:
       "Your password was changed on another device, so this session is out of date. To change your password, sign out and sign back in with your current password.",
     update_password: "Update Password",
@@ -10170,6 +10172,22 @@ export const en: Translations = {
     sending_reset_link: "Sending reset link...",
     reset_your_password: "Reset your password",
     reset_choose_new_password: "Choose a new password for your account.",
+    reset_current_password:
+      "Current password",
+    reset_current_password_keeps_keys:
+      "Enter your current password so your encryption keys stay the same and your mail stays readable. If you don't know it, use a recovery code instead.",
+    reset_current_password_required:
+      "Enter your current password, or use a recovery code instead.",
+    reset_lost_everything:
+      "I lost my password and recovery codes",
+    reset_remember_password:
+      "I remember my password",
+    reset_lost_everything_warning:
+      "Without your password or a recovery code, Aster Mail can't unlock your encryption keys. Resetting creates new keys, and the mail you already have becomes unreadable unless you later find your previous password or a recovery code.",
+    reset_lost_everything_confirm:
+      "I understand that my existing mail becomes unreadable",
+    reset_lost_everything_confirm_required:
+      "To reset without your password, confirm that you understand your existing mail becomes unreadable.",
     reset_current_password_optional: "Current password (optional)",
     reset_current_password_hint:
       "If you remember your current password, enter it here and your earlier mail stays available as soon as you sign in. If you leave it blank, you can unlock your earlier mail later with a recovery code.",
@@ -10236,6 +10254,22 @@ export const en: Translations = {
     review_recovery_email_kept: "Your recovery email is still set.",
     review_no_recovery_email: "No recovery email.",
     review_add: "Add",
+    recovery_previous_password_placeholder:
+      "Enter your previous password",
+    recovery_previous_password_body:
+      "Your encryption keys are still protected by the password you used before this reset. To keep your mail readable, enter that previous password. Your keys stay the same and your new password protects them from now on.",
+    recovery_previous_password_required:
+      "Enter your previous password, or select I don't remember it.",
+    recovery_previous_password_incorrect:
+      "That password doesn't unlock your encryption keys. Check it and try again.",
+    recovery_previous_password_forgot:
+      "I don't remember it",
+    recovery_previous_password_use:
+      "Enter my previous password",
+    recovery_previous_password_skipped_warning:
+      "Your password is reset and your encryption keys are kept, but they stay locked with your previous password. Your mail can't be read until you enter that password from the Recover data banner.",
+    review_keys_left_locked:
+      "Your encryption keys are kept but still locked with your previous password. To read your mail, select Recover data in the banner and enter that password.",
     review_codes_left: "{{count}} recovery codes left.",
     review_codes_left_one: "{{count}} recovery code left.",
     review_codes_left_other: "{{count}} recovery codes left.",

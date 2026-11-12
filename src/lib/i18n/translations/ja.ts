@@ -4149,6 +4149,8 @@ export const ja = {
       "このセッションは別のネットワークまたはブラウザで開始されたため、Aster Mail はパスワードを変更しませんでした。変更するには、サインアウトしてから再度サインインし、もう一度お試しください。",
     password_change_identity_continuity_required:
       "変更すると以前のメッセージに必要な暗号鍵が削除されるため、Aster Mail はパスワードを変更しませんでした。もう一度試すには、サインアウトしてから再度サインインし、パスワードを変更してください。",
+    password_change_vault_changed:
+      "パスワードの変更中に別のデバイスで暗号鍵が変更されたため、Aster Mail はパスワードを変更しませんでした。もう一度お試しください。",
     password_change_vault_out_of_date:
       "パスワードが別のデバイスで変更されたため、このセッションは最新ではありません。パスワードを変更するには、サインアウトしてから現在のパスワードで再度サインインしてください。",
     update_password: "パスワードを更新",
@@ -10065,6 +10067,22 @@ export const ja = {
     reset_your_password: "パスワードをリセット",
     reset_choose_new_password:
       "アカウントの新しいパスワードを選択してください。",
+    reset_current_password:
+      "現在のパスワード",
+    reset_current_password_keeps_keys:
+      "現在のパスワードを入力すると、暗号鍵はそのまま保持され、メールも引き続き読めます。わからない場合は、代わりに復元コードを使用してください。",
+    reset_current_password_required:
+      "現在のパスワードを入力するか、代わりに復元コードを使用してください。",
+    reset_lost_everything:
+      "パスワードと復元コードを紛失しました",
+    reset_remember_password:
+      "パスワードを覚えています",
+    reset_lost_everything_warning:
+      "パスワードまたは復元コードがないと、Aster Mail は暗号鍵のロックを解除できません。リセットすると新しい鍵が作成され、後で以前のパスワードまたは復元コードが見つからない限り、既存のメールは読めなくなります。",
+    reset_lost_everything_confirm:
+      "既存のメールが読めなくなることを理解しました",
+    reset_lost_everything_confirm_required:
+      "パスワードなしでリセットするには、既存のメールが読めなくなることを理解したことを確認してください。",
     reset_current_password_optional: "現在のパスワード（任意）",
     reset_current_password_hint:
       "現在のパスワードを覚えている場合はここに入力すると、サインイン直後から以前のメールを利用できます。空欄のままにした場合は、後からリカバリーコードで以前のメールのロックを解除できます。",
@@ -10131,6 +10149,22 @@ export const ja = {
     review_recovery_email_kept: "リカバリーメールは設定されたままです。",
     review_no_recovery_email: "リカバリーメールはありません。",
     review_add: "追加",
+    recovery_previous_password_placeholder:
+      "以前のパスワードを入力",
+    recovery_previous_password_body:
+      "暗号鍵は、今回のリセット前に使用していたパスワードで引き続き保護されています。メールを読める状態に保つには、その以前のパスワードを入力してください。鍵は変わらず、今後は新しいパスワードで保護されます。",
+    recovery_previous_password_required:
+      "以前のパスワードを入力するか、「覚えていません」を選択してください。",
+    recovery_previous_password_incorrect:
+      "そのパスワードでは暗号鍵のロックを解除できません。確認してもう一度お試しください。",
+    recovery_previous_password_forgot:
+      "覚えていません",
+    recovery_previous_password_use:
+      "以前のパスワードを入力する",
+    recovery_previous_password_skipped_warning:
+      "パスワードはリセットされ、暗号鍵は保持されますが、以前のパスワードでロックされたままです。「データを復元」バナーからそのパスワードを入力するまで、メールは読めません。",
+    review_keys_left_locked:
+      "暗号鍵は保持されていますが、以前のパスワードでロックされたままです。メールを読むには、バナーで「データを復元」を選択し、そのパスワードを入力してください。",
     review_codes_left: "リカバリーコードは残り {{count}} 個です。",
     review_codes_left_other: "リカバリーコードは残り {{count}} 個です。",
     import_mail_step_title: "メールを一緒に持ってくる",

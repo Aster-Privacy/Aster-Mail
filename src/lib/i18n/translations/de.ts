@@ -4208,6 +4208,8 @@ export const de = {
       "Diese Sitzung wurde in einem anderen Netzwerk oder Browser gestartet, daher hat Aster Mail Ihr Passwort nicht geändert. Um es zu ändern, melden Sie sich ab, melden Sie sich wieder an und versuchen Sie es erneut.",
     password_change_identity_continuity_required:
       "Aster Mail hat Ihr Passwort nicht geändert, weil die Änderung Verschlüsselungsschlüssel entfernen würde, die Ihre älteren Nachrichten benötigen. Um es erneut zu versuchen, melden Sie sich ab, melden Sie sich wieder an und ändern Sie Ihr Passwort.",
+    password_change_vault_changed:
+      "Deine Verschlüsselungsschlüssel wurden auf einem anderen Gerät geändert, während du dein Passwort geändert hast. Aster Mail hat dein Passwort deshalb nicht geändert. Versuche es erneut.",
     password_change_vault_out_of_date:
       "Ihr Passwort wurde auf einem anderen Gerät geändert, daher ist diese Sitzung nicht mehr aktuell. Um Ihr Passwort zu ändern, melden Sie sich ab und mit Ihrem aktuellen Passwort wieder an.",
     update_password: "Passwort aktualisieren",
@@ -10343,6 +10345,22 @@ export const de = {
     sending_reset_link: "Reset-Link wird gesendet...",
     reset_your_password: "Passwort zurücksetzen",
     reset_choose_new_password: "Wählen Sie ein neues Passwort für Ihr Konto.",
+    reset_current_password:
+      "Aktuelles Passwort",
+    reset_current_password_keeps_keys:
+      "Gib dein aktuelles Passwort ein, damit deine Verschlüsselungsschlüssel gleich bleiben und deine E-Mails lesbar bleiben. Wenn du es nicht kennst, verwende stattdessen einen Wiederherstellungscode.",
+    reset_current_password_required:
+      "Gib dein aktuelles Passwort ein oder verwende stattdessen einen Wiederherstellungscode.",
+    reset_lost_everything:
+      "Ich habe mein Passwort und meine Wiederherstellungscodes verloren",
+    reset_remember_password:
+      "Ich kenne mein Passwort",
+    reset_lost_everything_warning:
+      "Ohne dein Passwort oder einen Wiederherstellungscode kann Aster Mail deine Verschlüsselungsschlüssel nicht entsperren. Beim Zurücksetzen werden neue Schlüssel erstellt, und deine vorhandenen E-Mails werden unlesbar, sofern du nicht später dein vorheriges Passwort oder einen Wiederherstellungscode findest.",
+    reset_lost_everything_confirm:
+      "Ich verstehe, dass meine vorhandenen E-Mails unlesbar werden",
+    reset_lost_everything_confirm_required:
+      "Um ohne dein Passwort zurückzusetzen, bestätige, dass deine vorhandenen E-Mails unlesbar werden.",
     reset_current_password_optional: "Aktuelles Passwort (optional)",
     reset_current_password_hint:
       "Wenn Sie Ihr aktuelles Passwort noch kennen, geben Sie es hier ein. Ihre früheren E-Mails sind dann sofort nach der Anmeldung verfügbar. Lassen Sie das Feld leer, können Sie Ihre früheren E-Mails später mit einem Wiederherstellungscode entsperren.",
@@ -10419,6 +10437,22 @@ export const de = {
       "Ihre Wiederherstellungs-E-Mail ist weiterhin festgelegt.",
     review_no_recovery_email: "Keine Wiederherstellungs-E-Mail.",
     review_add: "Hinzufügen",
+    recovery_previous_password_placeholder:
+      "Vorheriges Passwort eingeben",
+    recovery_previous_password_body:
+      "Deine Verschlüsselungsschlüssel sind noch mit dem Passwort geschützt, das du vor dieser Zurücksetzung verwendet hast. Damit deine E-Mails lesbar bleiben, gib dieses vorherige Passwort ein. Deine Schlüssel bleiben gleich und werden ab jetzt mit deinem neuen Passwort geschützt.",
+    recovery_previous_password_required:
+      "Gib dein vorheriges Passwort ein oder wähle Ich weiß es nicht mehr.",
+    recovery_previous_password_incorrect:
+      "Dieses Passwort entsperrt deine Verschlüsselungsschlüssel nicht. Prüfe es und versuche es erneut.",
+    recovery_previous_password_forgot:
+      "Ich weiß es nicht mehr",
+    recovery_previous_password_use:
+      "Vorheriges Passwort eingeben",
+    recovery_previous_password_skipped_warning:
+      "Dein Passwort wird zurückgesetzt und deine Verschlüsselungsschlüssel bleiben erhalten, sind aber weiterhin mit deinem vorherigen Passwort gesperrt. Deine E-Mails sind erst lesbar, wenn du dieses Passwort über das Banner Daten wiederherstellen eingibst.",
+    review_keys_left_locked:
+      "Deine Verschlüsselungsschlüssel bleiben erhalten, sind aber noch mit deinem vorherigen Passwort gesperrt. Um deine E-Mails zu lesen, wähle im Banner Daten wiederherstellen und gib dieses Passwort ein.",
     review_codes_left: "Noch {{count}} Wiederherstellungscodes übrig.",
     review_codes_left_one: "Noch {{count}} Wiederherstellungscode übrig.",
     review_codes_left_other: "Noch {{count}} Wiederherstellungscodes übrig.",

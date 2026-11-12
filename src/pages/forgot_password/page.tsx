@@ -112,6 +112,14 @@ export default function ForgotPasswordPage() {
     set_password,
     confirm_password,
     set_confirm_password,
+    previous_password,
+    set_previous_password,
+    is_previous_visible,
+    set_is_previous_visible,
+    needs_previous_password,
+    previous_password_skipped,
+    handle_skip_previous_password,
+    handle_use_previous_password,
     is_password_visible,
     set_is_password_visible,
     is_confirm_visible,
@@ -528,13 +536,71 @@ export default function ForgotPasswordPage() {
                   e["key"] === "Enter" && handle_password_submit()
                 }
               />
+
+              {needs_previous_password && (
+                <p className="text-sm leading-relaxed text-txt-secondary">
+                  {previous_password_skipped
+                    ? t("auth.recovery_previous_password_skipped_warning")
+                    : t("auth.recovery_previous_password_body")}
+                </p>
+              )}
+
+              {needs_previous_password && !previous_password_skipped && (
+                <InputWithEndContent
+                  autoComplete="current-password"
+                  end_content={
+                    <button
+                      aria-label={
+                        is_previous_visible
+                          ? t("settings.hide_password_toggle")
+                          : t("settings.show_password_toggle")
+                      }
+                      className="focus:outline-none flex items-center justify-center"
+                      type="button"
+                      onClick={() =>
+                        set_is_previous_visible(!is_previous_visible)
+                      }
+                    >
+                      {is_previous_visible ? <EyeSlashIcon /> : <EyeIcon />}
+                    </button>
+                  }
+                  maxLength={128}
+                  placeholder={t("auth.recovery_previous_password_placeholder")}
+                  status={error ? "error" : "default"}
+                  type={is_previous_visible ? "text" : "password"}
+                  value={previous_password}
+                  onChange={(e) =>
+                    set_previous_password(clamp_password(e.target.value))
+                  }
+                  onKeyDown={(e) =>
+                    e["key"] === "Enter" && handle_password_submit()
+                  }
+                />
+              )}
             </div>
 
             <AnimatePresence>
               {error && <Alert is_dark={is_dark} message={error} />}
             </AnimatePresence>
 
-            <ActionRow>
+            <ActionRow
+              secondary={
+                needs_previous_password ? (
+                  <TextLink
+                    label={
+                      previous_password_skipped
+                        ? t("auth.recovery_previous_password_use")
+                        : t("auth.recovery_previous_password_forgot")
+                    }
+                    on_click={
+                      previous_password_skipped
+                        ? handle_use_previous_password
+                        : handle_skip_previous_password
+                    }
+                  />
+                ) : undefined
+              }
+            >
               <Button
                 className="w-full"
                 size="xl"
@@ -756,6 +822,9 @@ export default function ForgotPasswordPage() {
                   count: review.codes_remaining,
                 })}
               />
+              {review.keys_left_locked && (
+                <ReviewRow label={t("auth.review_keys_left_locked")} />
+              )}
             </div>
 
             <ActionRow>

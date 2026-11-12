@@ -4245,6 +4245,8 @@ export const it = {
       "Questa sessione è iniziata su una rete o un browser diverso, quindi Aster Mail non ha modificato la tua password. Per modificarla, esci, accedi di nuovo e riprova.",
     password_change_identity_continuity_required:
       "Aster Mail non ha modificato la tua password perché la modifica rimuoverebbe chiavi di crittografia necessarie ai tuoi messaggi meno recenti. Per riprovare, esci, accedi di nuovo e modifica la password.",
+    password_change_vault_changed:
+      "Le tue chiavi di crittografia sono cambiate su un altro dispositivo mentre cambiavi la password, quindi Aster Mail non l'ha cambiata. Riprova.",
     password_change_vault_out_of_date:
       "La tua password è stata modificata su un altro dispositivo, quindi questa sessione non è aggiornata. Per modificare la password, esci e accedi di nuovo con la password attuale.",
     update_password: "Aggiorna password",
@@ -10358,6 +10360,22 @@ export const it = {
     sending_reset_link: "Invio del link di reimpostazione...",
     reset_your_password: "Reimposta la tua password",
     reset_choose_new_password: "Scegli una nuova password per il tuo account.",
+    reset_current_password:
+      "Password attuale",
+    reset_current_password_keeps_keys:
+      "Inserisci la password attuale così le chiavi di crittografia restano le stesse e la posta resta leggibile. Se non la conosci, usa invece un codice di recupero.",
+    reset_current_password_required:
+      "Inserisci la password attuale oppure usa un codice di recupero.",
+    reset_lost_everything:
+      "Ho perso la password e i codici di recupero",
+    reset_remember_password:
+      "Ricordo la mia password",
+    reset_lost_everything_warning:
+      "Senza la password o un codice di recupero, Aster Mail non può sbloccare le tue chiavi di crittografia. Il ripristino crea nuove chiavi e la posta esistente diventa illeggibile, a meno che in seguito tu non ritrovi la password precedente o un codice di recupero.",
+    reset_lost_everything_confirm:
+      "Capisco che la mia posta esistente diventa illeggibile",
+    reset_lost_everything_confirm_required:
+      "Per ripristinare senza password, conferma di aver capito che la posta esistente diventa illeggibile.",
     reset_current_password_optional: "Password attuale (facoltativa)",
     reset_current_password_hint:
       "Se ricordi la password attuale, inseriscila qui e la tua posta precedente resterà disponibile appena accedi. Se lasci il campo vuoto, potrai sbloccare la posta precedente in seguito con un codice di recupero.",
@@ -10425,6 +10443,22 @@ export const it = {
     review_recovery_email_kept: "La tua email di recupero è ancora impostata.",
     review_no_recovery_email: "Nessuna email di recupero.",
     review_add: "Aggiungi",
+    recovery_previous_password_placeholder:
+      "Inserisci la password precedente",
+    recovery_previous_password_body:
+      "Le tue chiavi di crittografia sono ancora protette dalla password che usavi prima di questo ripristino. Per mantenere leggibile la tua posta, inserisci quella password precedente. Le tue chiavi restano le stesse e da ora sono protette dalla nuova password.",
+    recovery_previous_password_required:
+      "Inserisci la password precedente o seleziona Non la ricordo.",
+    recovery_previous_password_incorrect:
+      "Questa password non sblocca le tue chiavi di crittografia. Controllala e riprova.",
+    recovery_previous_password_forgot:
+      "Non la ricordo",
+    recovery_previous_password_use:
+      "Inserisci la password precedente",
+    recovery_previous_password_skipped_warning:
+      "La password viene reimpostata e le chiavi di crittografia vengono conservate, ma restano bloccate con la password precedente. Non potrai leggere la posta finché non inserisci quella password dal banner Recupera dati.",
+    review_keys_left_locked:
+      "Le chiavi di crittografia vengono conservate, ma restano bloccate con la password precedente. Per leggere la posta, seleziona Recupera dati nel banner e inserisci quella password.",
     review_codes_left: "Restano {{count}} codici di recupero.",
     review_codes_left_one: "Resta {{count}} codice di recupero.",
     review_codes_left_other: "Restano {{count}} codici di recupero.",

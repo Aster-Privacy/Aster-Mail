@@ -4365,6 +4365,8 @@ export const pl = {
       "Ta sesja rozpoczęła się w innej sieci lub przeglądarce, więc Aster Mail nie zmienił Twojego hasła. Aby je zmienić, wyloguj się, zaloguj ponownie i spróbuj jeszcze raz.",
     password_change_identity_continuity_required:
       "Aster Mail nie zmienił Twojego hasła, ponieważ zmiana usunęłaby klucze szyfrowania potrzebne Twoim starszym wiadomościom. Aby spróbować ponownie, wyloguj się, zaloguj ponownie i zmień hasło.",
+    password_change_vault_changed:
+      "Twoje klucze szyfrowania zmieniły się na innym urządzeniu podczas zmiany hasła, więc Aster Mail nie zmienił hasła. Spróbuj ponownie.",
     password_change_vault_out_of_date:
       "Twoje hasło zostało zmienione na innym urządzeniu, więc ta sesja jest nieaktualna. Aby zmienić hasło, wyloguj się i zaloguj ponownie, używając obecnego hasła.",
     update_password: "Zaktualizuj hasło",
@@ -10526,6 +10528,22 @@ export const pl = {
     sending_reset_link: "Wysyłanie linku resetującego...",
     reset_your_password: "Zresetuj swoje hasło",
     reset_choose_new_password: "Wybierz nowe hasło do swojego konta.",
+    reset_current_password:
+      "Obecne hasło",
+    reset_current_password_keeps_keys:
+      "Wpisz obecne hasło, aby klucze szyfrowania pozostały takie same, a poczta czytelna. Jeśli go nie znasz, użyj kodu odzyskiwania.",
+    reset_current_password_required:
+      "Wpisz obecne hasło lub użyj kodu odzyskiwania.",
+    reset_lost_everything:
+      "Zgubiłem hasło i kody odzyskiwania",
+    reset_remember_password:
+      "Pamiętam hasło",
+    reset_lost_everything_warning:
+      "Bez hasła lub kodu odzyskiwania Aster Mail nie może odblokować Twoich kluczy szyfrowania. Reset tworzy nowe klucze, a istniejąca poczta stanie się nieczytelna, chyba że później odnajdziesz poprzednie hasło lub kod odzyskiwania.",
+    reset_lost_everything_confirm:
+      "Rozumiem, że moja istniejąca poczta stanie się nieczytelna",
+    reset_lost_everything_confirm_required:
+      "Aby zresetować bez hasła, potwierdź, że rozumiesz, iż istniejąca poczta stanie się nieczytelna.",
     reset_current_password_optional: "Obecne hasło (opcjonalnie)",
     reset_current_password_hint:
       "Jeśli pamiętasz obecne hasło, wpisz je tutaj, a wcześniejsza poczta będzie dostępna od razu po zalogowaniu. Jeśli zostawisz to pole puste, możesz później odblokować wcześniejszą pocztę kodem odzyskiwania.",
@@ -10590,6 +10608,22 @@ export const pl = {
     review_recovery_email_kept: "Adres odzyskiwania jest nadal ustawiony.",
     review_no_recovery_email: "Brak adresu odzyskiwania.",
     review_add: "Dodaj",
+    recovery_previous_password_placeholder:
+      "Wpisz poprzednie hasło",
+    recovery_previous_password_body:
+      "Twoje klucze szyfrowania są nadal chronione hasłem używanym przed tym resetem. Aby Twoja poczta pozostała czytelna, wpisz to poprzednie hasło. Klucze pozostają takie same i od teraz chroni je nowe hasło.",
+    recovery_previous_password_required:
+      "Wpisz poprzednie hasło lub wybierz Nie pamiętam go.",
+    recovery_previous_password_incorrect:
+      "To hasło nie odblokowuje Twoich kluczy szyfrowania. Sprawdź je i spróbuj ponownie.",
+    recovery_previous_password_forgot:
+      "Nie pamiętam go",
+    recovery_previous_password_use:
+      "Wpisz moje poprzednie hasło",
+    recovery_previous_password_skipped_warning:
+      "Hasło zostanie zresetowane, a klucze szyfrowania zachowane, ale pozostaną zablokowane poprzednim hasłem. Poczty nie da się odczytać, dopóki nie wpiszesz tego hasła w banerze Odzyskaj dane.",
+    review_keys_left_locked:
+      "Klucze szyfrowania zostały zachowane, ale nadal są zablokowane poprzednim hasłem. Aby odczytać pocztę, wybierz Odzyskaj dane w banerze i wpisz to hasło.",
     review_codes_left: "Pozostało kodów odzyskiwania: {{count}}.",
     review_codes_left_one: "Pozostał {{count}} kod odzyskiwania.",
     review_codes_left_few: "Pozostały {{count}} kody odzyskiwania.",

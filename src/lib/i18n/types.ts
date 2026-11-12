@@ -3217,6 +3217,7 @@ export interface SettingsTranslations {
   password_change_reencryption_incomplete: string;
   password_change_fingerprint_mismatch: string;
   password_change_identity_continuity_required: string;
+  password_change_vault_changed: string;
   password_change_vault_out_of_date: string;
   update_password: string;
   updating: string;
@@ -9054,6 +9055,14 @@ export interface AuthTranslations {
   sending_reset_link: string;
   reset_your_password: string;
   reset_choose_new_password: string;
+  reset_current_password: string;
+  reset_current_password_keeps_keys: string;
+  reset_current_password_required: string;
+  reset_lost_everything: string;
+  reset_remember_password: string;
+  reset_lost_everything_warning: string;
+  reset_lost_everything_confirm: string;
+  reset_lost_everything_confirm_required: string;
   reset_current_password_optional: string;
   reset_current_password_hint: string;
   reset_unlocking_earlier_mail: string;
@@ -9107,6 +9116,14 @@ export interface AuthTranslations {
   review_recovery_email_kept: string;
   review_no_recovery_email: string;
   review_add: string;
+  recovery_previous_password_placeholder: string;
+  recovery_previous_password_body: string;
+  recovery_previous_password_required: string;
+  recovery_previous_password_incorrect: string;
+  recovery_previous_password_forgot: string;
+  recovery_previous_password_use: string;
+  recovery_previous_password_skipped_warning: string;
+  review_keys_left_locked: string;
   review_codes_left: string;
   review_codes_left_one: string;
   review_codes_left_other: string;

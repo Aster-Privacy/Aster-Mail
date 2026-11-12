@@ -4249,6 +4249,8 @@ export const pt = {
       "Esta sessão começou noutra rede ou noutro navegador, pelo que o Aster Mail não alterou a sua palavra-passe. Para a alterar, termine sessão, inicie sessão novamente e tente outra vez.",
     password_change_identity_continuity_required:
       "O Aster Mail não alterou a sua palavra-passe porque a alteração removeria chaves de encriptação de que as suas mensagens mais antigas precisam. Para tentar novamente, termine sessão, inicie sessão novamente e altere a sua palavra-passe.",
+    password_change_vault_changed:
+      "As suas chaves de encriptação mudaram noutro dispositivo enquanto alterava a palavra-passe, por isso o Aster Mail não a alterou. Tente novamente.",
     password_change_vault_out_of_date:
       "A sua palavra-passe foi alterada noutro dispositivo, pelo que esta sessão está desatualizada. Para alterar a sua palavra-passe, termine sessão e inicie sessão novamente com a sua palavra-passe atual.",
     update_password: "Atualizar palavra-passe",
@@ -10412,6 +10414,22 @@ export const pt = {
     reset_your_password: "Reponha a sua palavra-passe",
     reset_choose_new_password:
       "Escolha uma nova palavra-passe para a sua conta.",
+    reset_current_password:
+      "Palavra-passe atual",
+    reset_current_password_keeps_keys:
+      "Introduza a sua palavra-passe atual para que as chaves de encriptação se mantenham e o seu correio continue legível. Se não a souber, use um código de recuperação.",
+    reset_current_password_required:
+      "Introduza a sua palavra-passe atual ou use um código de recuperação.",
+    reset_lost_everything:
+      "Perdi a minha palavra-passe e os códigos de recuperação",
+    reset_remember_password:
+      "Lembro-me da minha palavra-passe",
+    reset_lost_everything_warning:
+      "Sem a sua palavra-passe ou um código de recuperação, o Aster Mail não consegue desbloquear as suas chaves de encriptação. A reposição cria chaves novas e o correio que já tem fica ilegível, a menos que mais tarde encontre a palavra-passe anterior ou um código de recuperação.",
+    reset_lost_everything_confirm:
+      "Compreendo que o meu correio existente fica ilegível",
+    reset_lost_everything_confirm_required:
+      "Para repor sem a palavra-passe, confirme que compreende que o correio existente fica ilegível.",
     reset_current_password_optional: "Palavra-passe atual (opcional)",
     reset_current_password_hint:
       "Se se lembrar da sua palavra-passe atual, introduza-a aqui e o seu correio anterior fica disponível assim que iniciar sessão. Se deixar em branco, pode desbloquear o seu correio anterior mais tarde com um código de recuperação.",
@@ -10484,6 +10502,22 @@ export const pt = {
       "O seu e-mail de recuperação continua definido.",
     review_no_recovery_email: "Sem e-mail de recuperação.",
     review_add: "Adicionar",
+    recovery_previous_password_placeholder:
+      "Introduza a sua palavra-passe anterior",
+    recovery_previous_password_body:
+      "As suas chaves de encriptação continuam protegidas pela palavra-passe que usava antes desta reposição. Para manter o seu correio legível, introduza essa palavra-passe anterior. As suas chaves mantêm-se e passam a ser protegidas pela nova palavra-passe.",
+    recovery_previous_password_required:
+      "Introduza a sua palavra-passe anterior ou selecione Não me lembro.",
+    recovery_previous_password_incorrect:
+      "Essa palavra-passe não desbloqueia as suas chaves de encriptação. Verifique-a e tente novamente.",
+    recovery_previous_password_forgot:
+      "Não me lembro",
+    recovery_previous_password_use:
+      "Introduzir a minha palavra-passe anterior",
+    recovery_previous_password_skipped_warning:
+      "A sua palavra-passe é reposta e as suas chaves de encriptação são mantidas, mas continuam bloqueadas com a palavra-passe anterior. Não poderá ler o seu correio até introduzir essa palavra-passe a partir do aviso Recuperar dados.",
+    review_keys_left_locked:
+      "As suas chaves de encriptação são mantidas, mas continuam bloqueadas com a palavra-passe anterior. Para ler o seu correio, selecione Recuperar dados no aviso e introduza essa palavra-passe.",
     review_codes_left: "Restam {{count}} códigos de recuperação.",
     review_codes_left_one: "Resta {{count}} código de recuperação.",
     review_codes_left_other: "Restam {{count}} códigos de recuperação.",

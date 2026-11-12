@@ -72,6 +72,9 @@ export function ReviewSecurityStep({
               count: review.codes_remaining,
             })}
           />
+          {review.keys_left_locked && (
+            <ReviewRow label={t("auth.review_keys_left_locked")} />
+          )}
         </motion.div>
       </motion.div>
 

@@ -219,6 +219,7 @@ interface ChangePasswordRequest {
   new_password_strength_tier?: number;
   vault_key_fingerprints?: string[];
   vault_kdf_iterations?: number;
+  expected_vault_sha256?: string;
 }
 
 interface ChangePasswordResponse {

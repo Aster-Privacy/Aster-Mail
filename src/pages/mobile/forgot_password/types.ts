@@ -89,6 +89,14 @@ export interface PasswordStepProps extends StepProps {
   set_is_password_visible: (visible: boolean) => void;
   is_confirm_visible: boolean;
   set_is_confirm_visible: (visible: boolean) => void;
+  previous_password: string;
+  set_previous_password: (password: string) => void;
+  is_previous_visible: boolean;
+  set_is_previous_visible: (visible: boolean) => void;
+  needs_previous_password: boolean;
+  previous_password_skipped: boolean;
+  on_skip_previous_password: () => void;
+  on_use_previous_password: () => void;
   on_submit: () => void;
 }
 

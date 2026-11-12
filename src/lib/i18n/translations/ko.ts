@@ -4208,6 +4208,8 @@ export const ko = {
       "이 세션은 다른 네트워크 또는 브라우저에서 시작되었으므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 비밀번호를 변경하려면 로그아웃한 후 다시 로그인하고 시도해 주세요.",
     password_change_identity_continuity_required:
       "변경하면 이전 메시지에 필요한 암호화 키가 제거되므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 다시 시도하려면 로그아웃한 후 다시 로그인하고 비밀번호를 변경해 주세요.",
+    password_change_vault_changed:
+      "비밀번호를 변경하는 동안 다른 기기에서 암호화 키가 변경되어 Aster Mail이 비밀번호를 변경하지 않았습니다. 다시 시도하세요.",
     password_change_vault_out_of_date:
       "다른 기기에서 비밀번호가 변경되어 이 세션은 최신 상태가 아닙니다. 비밀번호를 변경하려면 로그아웃한 후 현재 비밀번호로 다시 로그인해 주세요.",
     update_password: "비밀번호 업데이트",
@@ -9885,6 +9887,22 @@ export const ko = {
     sending_reset_link: "재설정 링크 전송 중...",
     reset_your_password: "비밀번호 재설정",
     reset_choose_new_password: "계정의 새 비밀번호를 선택하세요.",
+    reset_current_password:
+      "현재 비밀번호",
+    reset_current_password_keeps_keys:
+      "현재 비밀번호를 입력하면 암호화 키가 그대로 유지되고 메일도 계속 읽을 수 있습니다. 모르는 경우 대신 복구 코드를 사용하세요.",
+    reset_current_password_required:
+      "현재 비밀번호를 입력하거나 대신 복구 코드를 사용하세요.",
+    reset_lost_everything:
+      "비밀번호와 복구 코드를 잃어버렸습니다",
+    reset_remember_password:
+      "비밀번호를 기억합니다",
+    reset_lost_everything_warning:
+      "비밀번호나 복구 코드가 없으면 Aster Mail이 암호화 키를 잠금 해제할 수 없습니다. 재설정하면 새 키가 생성되며, 나중에 이전 비밀번호나 복구 코드를 찾지 않는 한 기존 메일은 읽을 수 없게 됩니다.",
+    reset_lost_everything_confirm:
+      "기존 메일을 읽을 수 없게 된다는 것을 이해합니다",
+    reset_lost_everything_confirm_required:
+      "비밀번호 없이 재설정하려면 기존 메일을 읽을 수 없게 된다는 것을 이해했는지 확인하세요.",
     reset_current_password_optional: "현재 비밀번호(선택 사항)",
     reset_current_password_hint:
       "현재 비밀번호를 기억한다면 여기에 입력하세요. 로그인하는 즉시 이전 메일을 계속 사용할 수 있습니다. 비워 두면 나중에 복구 코드로 이전 메일을 잠금 해제할 수 있습니다.",
@@ -9949,6 +9967,22 @@ export const ko = {
     review_recovery_email_kept: "복구 이메일이 그대로 설정되어 있습니다.",
     review_no_recovery_email: "복구 이메일이 없습니다.",
     review_add: "추가",
+    recovery_previous_password_placeholder:
+      "이전 비밀번호 입력",
+    recovery_previous_password_body:
+      "암호화 키는 이번 재설정 전에 사용하던 비밀번호로 계속 보호되고 있습니다. 메일을 읽을 수 있도록 유지하려면 이전 비밀번호를 입력하세요. 키는 그대로 유지되며 이제부터 새 비밀번호로 보호됩니다.",
+    recovery_previous_password_required:
+      "이전 비밀번호를 입력하거나 기억나지 않음을 선택하세요.",
+    recovery_previous_password_incorrect:
+      "이 비밀번호로는 암호화 키를 잠금 해제할 수 없습니다. 확인 후 다시 시도하세요.",
+    recovery_previous_password_forgot:
+      "기억나지 않음",
+    recovery_previous_password_use:
+      "이전 비밀번호 입력하기",
+    recovery_previous_password_skipped_warning:
+      "비밀번호는 재설정되고 암호화 키는 유지되지만, 이전 비밀번호로 잠긴 상태로 남습니다. 데이터 복구 배너에서 그 비밀번호를 입력할 때까지 메일을 읽을 수 없습니다.",
+    review_keys_left_locked:
+      "암호화 키는 유지되었지만 아직 이전 비밀번호로 잠겨 있습니다. 메일을 읽으려면 배너에서 데이터 복구를 선택하고 그 비밀번호를 입력하세요.",
     review_codes_left: "복구 코드가 {{count}}개 남았습니다.",
     review_codes_left_other: "복구 코드가 {{count}}개 남았습니다.",
     import_mail_step_title: "메일을 함께 가져오세요",

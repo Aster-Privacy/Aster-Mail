@@ -4136,6 +4136,8 @@ export const tr = {
       "Bu oturum farklı bir ağda veya tarayıcıda başlatıldı, bu nedenle Aster Mail parolanızı değiştirmedi. Parolanızı değiştirmek için oturumu kapatın, yeniden oturum açın ve tekrar deneyin.",
     password_change_identity_continuity_required:
       "Bu değişiklik eski iletilerinizin ihtiyaç duyduğu şifreleme anahtarlarını kaldıracağı için Aster Mail parolanızı değiştirmedi. Tekrar denemek için oturumu kapatın, yeniden oturum açın ve parolanızı değiştirin.",
+    password_change_vault_changed:
+      "Siz şifrenizi değiştirirken şifreleme anahtarlarınız başka bir cihazda değişti, bu yüzden Aster Mail şifrenizi değiştirmedi. Yeniden deneyin.",
     password_change_vault_out_of_date:
       "Parolanız başka bir cihazda değiştirildi, bu nedenle bu oturum güncel değil. Parolanızı değiştirmek için oturumu kapatın ve mevcut parolanızla yeniden oturum açın.",
     update_password: "Parolayı Güncelle",
@@ -10189,6 +10191,22 @@ export const tr = {
     sending_reset_link: "Sıfırlama bağlantısı gönderiliyor...",
     reset_your_password: "Parolanızı sıfırlayın",
     reset_choose_new_password: "Hesabınız için yeni bir parola seçin.",
+    reset_current_password:
+      "Mevcut şifre",
+    reset_current_password_keeps_keys:
+      "Şifreleme anahtarlarınızın aynı kalması ve e-postalarınızın okunabilir kalması için mevcut şifrenizi girin. Bilmiyorsanız bunun yerine bir kurtarma kodu kullanın.",
+    reset_current_password_required:
+      "Mevcut şifrenizi girin veya bunun yerine bir kurtarma kodu kullanın.",
+    reset_lost_everything:
+      "Şifremi ve kurtarma kodlarımı kaybettim",
+    reset_remember_password:
+      "Şifremi hatırlıyorum",
+    reset_lost_everything_warning:
+      "Şifreniz veya bir kurtarma kodu olmadan Aster Mail şifreleme anahtarlarınızın kilidini açamaz. Sıfırlama yeni anahtarlar oluşturur ve önceki şifrenizi veya bir kurtarma kodunu daha sonra bulmadığınız sürece mevcut e-postalarınız okunamaz hale gelir.",
+    reset_lost_everything_confirm:
+      "Mevcut e-postalarımın okunamaz hale geleceğini anlıyorum",
+    reset_lost_everything_confirm_required:
+      "Şifreniz olmadan sıfırlamak için mevcut e-postalarınızın okunamaz hale geleceğini anladığınızı onaylayın.",
     reset_current_password_optional: "Mevcut parola (isteğe bağlı)",
     reset_current_password_hint:
       "Mevcut parolanızı hatırlıyorsanız buraya girin; önceki postalarınız oturum açar açmaz kullanılabilir olur. Boş bırakırsanız önceki postalarınızı daha sonra bir kurtarma koduyla açabilirsiniz.",
@@ -10259,6 +10277,22 @@ export const tr = {
     review_recovery_email_kept: "Kurtarma e-postanız hâlâ ayarlı.",
     review_no_recovery_email: "Kurtarma e-postası yok.",
     review_add: "Ekle",
+    recovery_previous_password_placeholder:
+      "Önceki şifrenizi girin",
+    recovery_previous_password_body:
+      "Şifreleme anahtarlarınız hâlâ bu sıfırlamadan önce kullandığınız şifreyle korunuyor. E-postalarınızın okunabilir kalması için bu önceki şifreyi girin. Anahtarlarınız aynı kalır ve bundan sonra yeni şifreniz tarafından korunur.",
+    recovery_previous_password_required:
+      "Önceki şifrenizi girin veya Hatırlamıyorum seçeneğini seçin.",
+    recovery_previous_password_incorrect:
+      "Bu şifre, şifreleme anahtarlarınızın kilidini açmıyor. Kontrol edip yeniden deneyin.",
+    recovery_previous_password_forgot:
+      "Hatırlamıyorum",
+    recovery_previous_password_use:
+      "Önceki şifremi gir",
+    recovery_previous_password_skipped_warning:
+      "Şifreniz sıfırlanır ve şifreleme anahtarlarınız korunur, ancak önceki şifrenizle kilitli kalır. Bu şifreyi Verileri kurtar başlığından girene kadar e-postalarınız okunamaz.",
+    review_keys_left_locked:
+      "Şifreleme anahtarlarınız korundu ancak hâlâ önceki şifrenizle kilitli. E-postalarınızı okumak için başlıkta Verileri kurtar'ı seçip bu şifreyi girin.",
     review_codes_left: "{{count}} kurtarma kodu kaldı.",
     review_codes_left_one: "{{count}} kurtarma kodu kaldı.",
     review_codes_left_other: "{{count}} kurtarma kodu kaldı.",
