@@ -92,6 +92,7 @@ vi.mock("./vault_write_lock", () => ({
 }));
 
 vi.mock("./recovery_key", () => ({
+  build_verifier_candidates: async () => [],
   hash_recovery_code: (code: string) => hash_recovery_code(code),
   decrypt_recovery_key_with_code: (...args: unknown[]) =>
     decrypt_recovery_key_with_code(...args),

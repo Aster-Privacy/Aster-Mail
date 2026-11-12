@@ -24,6 +24,7 @@ import {
   base64_to_array,
   normalize_vault_fields,
 } from "./key_manager";
+import { is_code_hash_optional } from "./recovery_code_capability";
 import { zero_uint8_array } from "./secure_memory";
 
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -90,6 +91,8 @@ export interface EncryptedRecoveryKey {
 
 export interface RecoveryShareData {
   code_hash: string;
+  verifier_salt?: string;
+  code_verifier?: string;
   code_salt: string;
   encrypted_recovery_key: string;
   recovery_key_nonce: string;
@@ -297,15 +300,196 @@ export async function stored_recovery_verifier(
   return array_to_base64(out);
 }
 
+const SALTED_VERIFIER_TAG = new TextEncoder().encode("ARV3");
+const SALTED_VERIFIER_DOMAIN = new TextEncoder().encode(
+  "aster-recovery-verifier-v3",
+);
+const VERIFIER_SALT_BYTES = 16;
+const CODE_VERIFIER_BYTES = 32;
+const SALTED_VERIFIER_BYTES =
+  SALTED_VERIFIER_TAG.length + VERIFIER_SALT_BYTES + CODE_VERIFIER_BYTES;
+
+export interface VerifierCandidate {
+  verifier_salt: string;
+  code_verifier: string;
+}
+
+function concat_bytes(...parts: Uint8Array[]): Uint8Array {
+  const out = new Uint8Array(
+    parts.reduce((total, part) => total + part.length, 0),
+  );
+  let offset = 0;
+
+  for (const part of parts) {
+    out.set(part, offset);
+    offset += part.length;
+  }
+
+  return out;
+}
+
+function to_hex(bytes: Uint8Array): string {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
+    "",
+  );
+}
+
+export function generate_verifier_salt(): string {
+  return array_to_base64(
+    crypto.getRandomValues(new Uint8Array(VERIFIER_SALT_BYTES)),
+  );
+}
+
+export async function derive_code_verifier(
+  code_hash: string,
+  verifier_salt: string,
+): Promise<string> {
+  const salt = base64_to_array(verifier_salt);
+
+  if (salt.length !== VERIFIER_SALT_BYTES) {
+    throw new Error("invalid verifier salt");
+  }
+
+  const digest = new Uint8Array(
+    await crypto.subtle.digest(
+      HASH_ALG,
+      concat_bytes(STORED_VERIFIER_DOMAIN, base64_to_array(code_hash)),
+    ),
+  );
+  const password = new TextEncoder().encode(to_hex(digest));
+  const key_material = await crypto.subtle.importKey(
+    "raw",
+    password,
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations: PBKDF2_ITERATIONS,
+      hash: HASH_ALG,
+    },
+    key_material,
+    CODE_VERIFIER_BYTES * 8,
+  );
+
+  zero_uint8_array(digest);
+  zero_uint8_array(password);
+
+  return array_to_base64(new Uint8Array(bits));
+}
+
+export async function salted_recovery_verifier(
+  code_hash: string,
+  verifier_salt: string,
+): Promise<string> {
+  const salt = base64_to_array(verifier_salt);
+  const code_verifier = base64_to_array(
+    await derive_code_verifier(code_hash, verifier_salt),
+  );
+  const digest = new Uint8Array(
+    await crypto.subtle.digest(
+      HASH_ALG,
+      concat_bytes(SALTED_VERIFIER_DOMAIN, salt, code_verifier),
+    ),
+  );
+
+  return array_to_base64(concat_bytes(SALTED_VERIFIER_TAG, salt, digest));
+}
+
+export function stored_verifier_salt(stored: string): string | null {
+  let bytes: Uint8Array;
+
+  try {
+    bytes = base64_to_array(stored);
+  } catch {
+    return null;
+  }
+
+  if (bytes.length !== SALTED_VERIFIER_BYTES) return null;
+
+  for (let i = 0; i < SALTED_VERIFIER_TAG.length; i++) {
+    if (bytes[i] !== SALTED_VERIFIER_TAG[i]) return null;
+  }
+
+  return array_to_base64(
+    bytes.slice(
+      SALTED_VERIFIER_TAG.length,
+      SALTED_VERIFIER_TAG.length + VERIFIER_SALT_BYTES,
+    ),
+  );
+}
+
+export async function build_verifier_candidates(
+  code_hash: string,
+  verifier_salts: readonly unknown[] | null | undefined,
+): Promise<VerifierCandidate[]> {
+  const candidates: VerifierCandidate[] = [];
+  const seen = new Set<string>();
+
+  for (const verifier_salt of verifier_salts ?? []) {
+    if (typeof verifier_salt !== "string" || seen.has(verifier_salt)) continue;
+    seen.add(verifier_salt);
+
+    try {
+      candidates.push({
+        verifier_salt,
+        code_verifier: await derive_code_verifier(code_hash, verifier_salt),
+      });
+    } catch {
+      continue;
+    }
+  }
+
+  return candidates;
+}
+
+export async function matches_stored_code(
+  code_hash: string,
+  stored_hashes: ReadonlySet<string>,
+): Promise<boolean> {
+  if (stored_hashes.has(code_hash)) return true;
+  if (stored_hashes.has(await stored_recovery_verifier(code_hash))) return true;
+
+  const salts = new Set<string>();
+
+  for (const stored of stored_hashes) {
+    const salt = stored_verifier_salt(stored);
+
+    if (salt) salts.add(salt);
+  }
+
+  for (const salt of salts) {
+    if (stored_hashes.has(await salted_recovery_verifier(code_hash, salt))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export interface RecoveryShareOptions {
+  verifier_salt?: string | null;
+  include_code_hash?: boolean;
+}
+
 export async function generate_recovery_share_data(
   code: string,
   recovery_key: Uint8Array,
+  options: RecoveryShareOptions = {},
 ): Promise<RecoveryShareData> {
   const code_hash = await hash_recovery_code(code);
   const encrypted = await encrypt_recovery_key_with_code(recovery_key, code);
+  const verifier_salt = options.verifier_salt ?? generate_verifier_salt();
+  const include_code_hash =
+    options.include_code_hash ?? !is_code_hash_optional();
 
   return {
-    code_hash,
+    code_hash: include_code_hash ? code_hash : "",
+    verifier_salt,
+    code_verifier: await derive_code_verifier(code_hash, verifier_salt),
     code_salt: encrypted.salt,
     encrypted_recovery_key: encrypted.encrypted_key,
     recovery_key_nonce: encrypted.nonce,
@@ -315,11 +499,20 @@ export async function generate_recovery_share_data(
 export async function generate_all_recovery_shares(
   codes: string[],
   recovery_key: Uint8Array,
+  options: RecoveryShareOptions = {},
 ): Promise<RecoveryShareData[]> {
   const shares: RecoveryShareData[] = [];
+  const set_options = {
+    ...options,
+    verifier_salt: options.verifier_salt ?? generate_verifier_salt(),
+  };
 
   for (const code of codes) {
-    const share = await generate_recovery_share_data(code, recovery_key);
+    const share = await generate_recovery_share_data(
+      code,
+      recovery_key,
+      set_options,
+    );
 
     shares.push(share);
   }

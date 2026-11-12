@@ -43,6 +43,7 @@ vi.mock("@/provider", () => ({
 vi.mock("@/services/api/recovery", () => ({
   forgot_password_email: (...args: unknown[]) =>
     forgot_password_email_mock(...(args as [])),
+  get_verifier_salts: vi.fn(),
   initiate_recovery: vi.fn(),
   complete_recovery: vi.fn(),
 }));

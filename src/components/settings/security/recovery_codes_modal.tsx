@@ -68,7 +68,7 @@ import {
   generate_all_recovery_shares,
   clear_recovery_key,
   hash_recovery_code,
-  stored_recovery_verifier,
+  matches_stored_code,
 } from "@/services/crypto/recovery_key";
 import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
 import {
@@ -225,9 +225,7 @@ export function RecoveryCodesModal({
 
       entries.push({
         code,
-        used:
-          used_hashes.has(code_hash) ||
-          used_hashes.has(await stored_recovery_verifier(code_hash)),
+        used: await matches_stored_code(code_hash, used_hashes),
       });
     }
 

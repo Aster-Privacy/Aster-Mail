@@ -43,6 +43,7 @@ import {
   decrypt_recovery_key_with_code,
   decrypt_vault_backup,
   encrypt_vault_backup,
+  build_verifier_candidates,
   generate_all_recovery_shares,
   generate_recovery_key,
   hash_recovery_code,
@@ -74,6 +75,7 @@ import {
 import {
   complete_recovery,
   forgot_password_email,
+  get_verifier_salts,
   initiate_recovery,
   RecoveryEmailReencryption,
 } from "@/services/api/recovery";
@@ -357,7 +359,24 @@ export function use_recovery_flow() {
 
     try {
       const code_hash = await hash_recovery_code(trimmed_code);
-      const response = await initiate_recovery(code_hash, trimmed_email);
+      let salts: Awaited<ReturnType<typeof get_verifier_salts>> | null = null;
+
+      try {
+        salts = await get_verifier_salts(trimmed_email);
+      } catch {
+        salts = null;
+      }
+
+      const candidates = await build_verifier_candidates(
+        code_hash,
+        salts?.data?.verifier_salts,
+      );
+      const response = await initiate_recovery(
+        code_hash,
+        trimmed_email,
+        candidates,
+        candidates.length > 0 && salts?.data?.code_hash_optional === true,
+      );
 
       if (response.error || !response.data) {
         await timing_safe_delay();

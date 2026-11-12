@@ -24,6 +24,7 @@ import type {
 } from "./webauthn";
 
 import { RecoveryShareData } from "../crypto/recovery_key";
+import { note_code_hash_optional } from "../crypto/recovery_code_capability";
 
 import { api_client, ApiResponse } from "./client";
 
@@ -60,6 +61,42 @@ export interface CodesStatus {
   total: number;
   remaining: number;
   used: UsedCode[];
+  verifier_salts?: (string | null)[];
+  code_hash_optional?: boolean;
+}
+
+export interface VerifierCandidate {
+  verifier_salt: string;
+  code_verifier: string;
+}
+
+export interface VerifierSalts {
+  verifier_salts: string[];
+  code_hash_optional?: boolean;
+}
+
+function code_request_body(
+  code_hash: string,
+  candidates: VerifierCandidate[],
+  omit_code_hash: boolean,
+): Record<string, unknown> {
+  if (candidates.length === 0) return { code_hash };
+  if (omit_code_hash) return { candidates };
+
+  return { code_hash, candidates };
+}
+
+export async function get_verifier_salts(
+  email: string,
+): Promise<ApiResponse<VerifierSalts>> {
+  const response = await api_client.post<VerifierSalts>(
+    "/core/v1/recovery/verifier-salts",
+    { email },
+  );
+
+  note_code_hash_optional(response.data?.code_hash_optional);
+
+  return response;
 }
 
 export interface CodesStepUp {
@@ -95,11 +132,13 @@ interface NewPgpKeyData {
 export async function initiate_recovery(
   code_hash: string,
   email: string,
+  candidates: VerifierCandidate[] = [],
+  omit_code_hash = false,
 ): Promise<ApiResponse<InitiateRecoveryResponse>> {
   return api_client.post<InitiateRecoveryResponse>(
     "/core/v1/recovery/initiate",
     {
-      code_hash,
+      ...code_request_body(code_hash, candidates, omit_code_hash),
       email,
     },
   );
@@ -302,8 +341,17 @@ export async function save_recovery_backup(
   );
 }
 
-export async function get_codes_status(): Promise<ApiResponse<CodesStatus>> {
-  return api_client.get<CodesStatus>("/core/v1/recovery/codes/status");
+export async function get_codes_status(
+  options: { skip_cache?: boolean } = {},
+): Promise<ApiResponse<CodesStatus>> {
+  const response = await api_client.get<CodesStatus>(
+    "/core/v1/recovery/codes/status",
+    options.skip_cache ? { skip_cache: true } : undefined,
+  );
+
+  note_code_hash_optional(response.data?.code_hash_optional);
+
+  return response;
 }
 
 export async function verify_codes_step_up(
@@ -375,12 +423,22 @@ export async function initiate_phrase_recovery(
   );
 }
 
+export interface InactiveKeySetList {
+  inactive_key_sets: InactiveKeySetInfo[];
+  verifier_salts?: string[];
+  code_hash_optional?: boolean;
+}
+
 export async function list_inactive_key_sets(): Promise<
-  ApiResponse<{ inactive_key_sets: InactiveKeySetInfo[] }>
+  ApiResponse<InactiveKeySetList>
 > {
-  return api_client.get<{ inactive_key_sets: InactiveKeySetInfo[] }>(
+  const response = await api_client.get<InactiveKeySetList>(
     "/core/v1/recovery/inactive",
   );
+
+  note_code_hash_optional(response.data?.code_hash_optional);
+
+  return response;
 }
 
 export async function fetch_inactive_key_set(
@@ -404,10 +462,12 @@ export interface InactiveKeySetCodeUnlock {
 
 export async function unlock_inactive_key_sets_with_code(
   code_hash: string,
+  candidates: VerifierCandidate[] = [],
+  omit_code_hash = false,
 ): Promise<ApiResponse<{ key_sets: InactiveKeySetCodeUnlock[] }>> {
   return api_client.post<{ key_sets: InactiveKeySetCodeUnlock[] }>(
     "/core/v1/recovery/inactive/unlock-with-code",
-    { code_hash },
+    code_request_body(code_hash, candidates, omit_code_hash),
   );
 }
 
