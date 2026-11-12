@@ -59,6 +59,7 @@ vi.mock("@/services/routing/connection_store", () => ({
   connection_store: {
     get_method: () => "direct",
     get_api_onion_url: () => null,
+    subscribe: () => () => {},
   },
 }));
 
@@ -125,8 +126,13 @@ vi.mock("@/components/email/use_spam_confirm", () => ({
   }),
 }));
 
+vi.mock("@/services/catch_all_sender", () => ({
+  catch_all_reply_address: () => undefined,
+}));
+
 vi.mock("@/services/forward_store", () => ({
   set_forward_mail_id: () => {},
+  set_forward_from_candidates: () => {},
 }));
 
 vi.mock("@/stores/label_hints_store", () => ({
@@ -151,6 +157,7 @@ vi.mock("@/hooks/use_unsubscribed_senders", () => ({
 }));
 
 vi.mock("@/services/lockdown_store", () => ({
+  LOCKDOWN_CHANGED_EVENT: "aster:lockdown-changed",
   is_any_lockdown_active: () => false,
 }));
 

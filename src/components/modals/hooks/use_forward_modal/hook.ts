@@ -135,6 +135,7 @@ import {
 import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 import {
   get_forward_mail_id,
+  get_forward_from_candidates,
   clear_forward_mail_id,
 } from "@/services/forward_store";
 import { fetch_my_badges } from "@/services/api/user";
@@ -719,6 +720,7 @@ export function use_forward_modal({
 
     const resolved = resolve_from_sender({
       options: sender_options,
+      thread_addresses: get_forward_from_candidates(effective_mail_id),
       prefer_external: is_external,
       preferred_sender_id,
     });
@@ -735,6 +737,7 @@ export function use_forward_modal({
     preferred_sender_id,
     preferred_sender_ready,
     ghost_mode.is_ghost_enabled,
+    effective_mail_id,
   ]);
 
   useEffect(() => {

@@ -30,4 +30,20 @@ export function get_forward_mail_id(): string | undefined {
 
 export function clear_forward_mail_id(): void {
   forward_mail_id = undefined;
+  forward_from_candidates = undefined;
+}
+
+let forward_from_candidates: { id: string; addresses: string[] } | undefined;
+
+export function set_forward_from_candidates(
+  id: string | undefined,
+  addresses: string[],
+): void {
+  forward_from_candidates = id ? { id, addresses } : undefined;
+}
+
+export function get_forward_from_candidates(id: string | undefined): string[] {
+  if (!id || forward_from_candidates?.id !== id) return [];
+
+  return forward_from_candidates.addresses;
 }

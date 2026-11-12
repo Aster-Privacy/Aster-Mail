@@ -605,6 +605,32 @@ describe("quoted reply content", () => {
       html,
     );
   });
+
+  it("contains a forward draft that has no quote wrapper", () => {
+    const html = contain_draft_quotes(
+      `<p>See below</p>---------- Forwarded message ---------<br>${PICTURE}${PIXEL}<div data-aster-signature="1"><img src="https://mine.example/sig.png"></div>`,
+      { block_remote_images: true },
+      true,
+    );
+
+    expect(html).toContain(
+      'data-aster-parked-src="https://cdn.example/photo.png"',
+    );
+    expect(html).not.toContain(' src="https://cdn.example/photo.png"');
+    expect(html).not.toContain("tracker.example");
+    expect(html).toContain(' src="https://mine.example/sig.png"');
+    expect(read_compose_editor_html(html)).toContain(
+      'src="https://cdn.example/photo.png"',
+    );
+  });
+
+  it("leaves an unwrapped forward draft alone when images may load", () => {
+    const html = `<p>See below</p>${PICTURE}`;
+
+    expect(contain_draft_quotes(html, { block_remote_images: false }, true)).toBe(
+      html,
+    );
+  });
 });
 
 describe("quote follows the message the viewer displayed", () => {

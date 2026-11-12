@@ -282,8 +282,13 @@ export function use_compose({
   });
 
   const contain_quoted_content = useCallback(
-    (html: string) => contain_draft_quotes(html, quote_options_ref.current()),
-    [],
+    (html: string) =>
+      contain_draft_quotes(
+        html,
+        quote_options_ref.current(),
+        !!edit_draft?.forward_from_id,
+      ),
+    [edit_draft?.forward_from_id],
   );
 
   const [recipients, dispatch_recipients] = useReducer(
@@ -965,6 +970,7 @@ export function use_compose({
             message_textarea_ref.current.innerHTML = contain_draft_quotes(
               resolved_html,
               quote_options_ref.current(),
+              !!edit_draft.forward_from_id,
             );
             set_message(
               is_plain_text_ref.current

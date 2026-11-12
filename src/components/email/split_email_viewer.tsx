@@ -56,6 +56,7 @@ import {
 } from "@/components/email/viewer_shared";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { remember_forward_from_message } from "@/components/email/delivery_reply_address";
 import { get_label_hints } from "@/stores/label_hints_store";
 import {
   execute_unsubscribe,
@@ -438,6 +439,12 @@ export function SplitEmailViewer({
 
       if (last_msg) {
         set_forward_mail_id(last_msg.id);
+        remember_forward_from_message(
+          last_msg,
+          last_msg.id === viewer.mail_item?.id
+            ? viewer.mail_item?.routing_token
+            : undefined,
+        );
         on_forward({
           sender_name: last_msg.sender_name,
           sender_email: last_msg.sender_email,
@@ -467,6 +474,8 @@ export function SplitEmailViewer({
   }, [
     viewer.thread_messages,
     viewer.email,
+    viewer.mail_item?.id,
+    viewer.mail_item?.routing_token,
     on_reply,
     on_forward,
     preferences.default_reply_behavior,

@@ -102,6 +102,7 @@ import { reindex_ids } from "@/services/category_index";
 import { sync_thread_spam } from "@/services/trash_state";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { remember_forward_from } from "@/components/email/delivery_reply_address";
 import { add_alias_pin } from "@/services/api/alias_pins";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
@@ -292,6 +293,14 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const handle_forward = useCallback(() => {
     if (!deps.email || !deps.on_forward) return;
     set_forward_mail_id(deps.email.id);
+    remember_forward_from(deps.email.id, {
+      is_own_message: deps.mail_item?.item_type === "sent",
+      sender_email: deps.email.sender_email,
+      routing_token: deps.mail_item?.routing_token,
+      raw_headers: deps.email.raw_headers,
+      to_emails: deps.email.to?.map((r) => r.email),
+      cc_emails: deps.email.cc?.map((r) => r.email),
+    });
     deps.on_forward({
       sender_name: deps.email.sender,
       sender_email: deps.email.sender_email,
@@ -301,7 +310,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       email_timestamp: deps.email.timestamp,
       original_mail_id: deps.email.id,
     });
-  }, [deps.email, deps.on_forward]);
+  }, [deps.email, deps.on_forward, deps.mail_item]);
 
   const handle_edit_thread_draft = useCallback(
     (draft: DraftWithContent) => {

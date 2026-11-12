@@ -75,6 +75,7 @@ import {
 } from "@/components/email/viewer_shared/trash_placement";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { remember_forward_from_message } from "@/components/email/delivery_reply_address";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
@@ -406,10 +407,16 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
   const handle_per_message_forward = useCallback(
     (msg: DecryptedThreadMessage) => {
       set_forward_mail_id(msg.id);
+      remember_forward_from_message(
+        msg,
+        msg.id === deps.mail_item?.id
+          ? deps.mail_item?.routing_token
+          : undefined,
+      );
       deps.set_forward_target(msg);
       deps.set_is_forward_modal_open(true);
     },
-    [],
+    [deps.mail_item],
   );
 
   const handle_per_message_archive = useCallback(

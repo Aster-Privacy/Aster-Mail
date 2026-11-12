@@ -72,6 +72,10 @@ import {
 import { reindex_ids } from "@/services/category_index";
 import { sync_thread_spam } from "@/services/trash_state";
 import { set_forward_mail_id } from "@/services/forward_store";
+import {
+  remember_forward_from,
+  remember_forward_from_message,
+} from "@/components/email/delivery_reply_address";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
 import { request_external_link } from "@/utils/external_link_request";
@@ -644,6 +648,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
   const handle_forward = useCallback(() => {
     if (!deps.email || !deps.on_forward) return;
     set_forward_mail_id(deps.email.id);
+    remember_forward_from(deps.email.id, {
+      is_own_message: deps.mail_item?.item_type === "sent",
+      sender_email: deps.email.sender_email,
+      routing_token: deps.mail_item?.routing_token,
+      raw_headers: deps.email.raw_headers,
+      to_emails: deps.email.to?.map((r) => r.email),
+      cc_emails: deps.email.cc?.map((r) => r.email),
+    });
     deps.on_forward({
       sender_name: deps.email.sender,
       sender_email: deps.email.sender_email,
@@ -878,6 +890,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     (msg: DecryptedThreadMessage) => {
       if (!deps.on_forward) return;
       set_forward_mail_id(msg.id);
+      remember_forward_from_message(
+        msg,
+        msg.id === deps.mail_item?.id
+          ? deps.mail_item?.routing_token
+          : undefined,
+      );
       deps.on_forward({
         sender_name: msg.sender_name,
         sender_email: msg.sender_email,
@@ -891,7 +909,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         original_mail_id: msg.id,
       });
     },
-    [deps.on_forward],
+    [deps.on_forward, deps.mail_item],
   );
 
   const handle_per_message_archive = useCallback(
