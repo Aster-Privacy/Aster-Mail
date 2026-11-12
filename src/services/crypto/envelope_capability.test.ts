@@ -20,6 +20,7 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
     identity_fingerprint: string | null;
     pq_identity_fingerprint: string | null;
     pgp_external_version: number;
+    address_identity_version: number;
   }> = [];
 
   let clock = 1_000;
@@ -41,6 +42,7 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
       pq_identity_fingerprint,
       _x3dh_max_version,
       pgp_external_version,
+      address_identity_version,
     ) => {
       posts.push({
         client_id,
@@ -49,6 +51,7 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
         identity_fingerprint,
         pq_identity_fingerprint,
         pgp_external_version,
+        address_identity_version,
       });
 
       return {
@@ -322,6 +325,23 @@ describe("report_envelope_capability_if_due", () => {
     expect(posts[0].pgp_external_version).toBe(1);
   });
 
+  it("advertises per-address identity version 1 and re-reports an older record", async () => {
+    const helper = make_deps();
+
+    helper.store.set(
+      `astermail_envelope_capability_reported_${user_id}`,
+      "900|fixed-fingerprint|fixed-pq-fingerprint|1",
+    );
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+
+    expect(helper.posts).toHaveLength(1);
+    expect(helper.posts[0].address_identity_version).toBe(1);
+
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+
+    expect(helper.posts).toHaveLength(1);
+  });
+
   it("re-reports at once when the stored report predates external key support", async () => {
     const helper = make_deps();
 
@@ -334,7 +354,7 @@ describe("report_envelope_capability_if_due", () => {
     expect(helper.posts).toHaveLength(1);
     expect(
       helper.store.get(`astermail_envelope_capability_reported_${user_id}`),
-    ).toBe("1000|fixed-fingerprint|fixed-pq-fingerprint|1");
+    ).toBe("1000|fixed-fingerprint|fixed-pq-fingerprint|1|1");
 
     await report_envelope_capability_if_due(user_id, false, helper.deps);
 

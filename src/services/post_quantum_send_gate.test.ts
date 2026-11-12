@@ -71,7 +71,7 @@ vi.mock("@/services/api/keys", async (importOriginal) => {
 
 vi.mock("@/services/account_manager", () => ({
   get_current_account: vi.fn(async () => ({
-    user: { id: "user-1", username: "sender" },
+    user: { id: "user-1", username: "sender", email: "sender@astermail.org" },
   })),
 }));
 

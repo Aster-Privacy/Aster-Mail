@@ -110,11 +110,17 @@ interface StoredIdentityPin {
   pq_seen?: boolean;
   rotated?: boolean;
   missing_accepted_at?: number;
+  address_rooted?: boolean;
 }
 
 export interface IdentityPinRecord {
   fingerprint: string;
   rotated: boolean;
+  address_rooted: boolean;
+}
+
+function rooted_field(address_rooted: boolean): { address_rooted?: true } {
+  return address_rooted ? { address_rooted: true } : {};
 }
 
 export type IdentityPinLookup = IdentityPinRecord | "unreadable" | null;
@@ -189,6 +195,9 @@ function merge_identity_pins(
     pinned_at: Math.min(left.pinned_at, right.pinned_at),
     pq_seen: Boolean(left.pq_seen) || Boolean(right.pq_seen),
     ...(left.rotated || right.rotated ? { rotated: true } : {}),
+    ...rooted_field(
+      Boolean(left.address_rooted) || Boolean(right.address_rooted),
+    ),
     ...(left.missing_accepted_at && right.missing_accepted_at
       ? {
           missing_accepted_at: Math.max(
@@ -261,6 +270,7 @@ async function pin_identity_in_lock(
   fingerprint: string,
   verified: boolean,
   advertises_pq: boolean,
+  address_rooted: boolean,
 ): Promise<IdentityPinStatus> {
   let read = await load_identity_pin(slot);
 
@@ -270,6 +280,7 @@ async function pin_identity_in_lock(
       verified,
       pinned_at: Date.now(),
       pq_seen: advertises_pq,
+      ...rooted_field(address_rooted),
     } satisfies StoredIdentityPin);
 
     if (created) return "first";
@@ -282,6 +293,7 @@ async function pin_identity_in_lock(
 
   const existing = read.value;
   const pq_seen = Boolean(existing.pq_seen) || advertises_pq;
+  const rooted = Boolean(existing.address_rooted) || address_rooted;
 
   if (existing.fingerprint !== fingerprint) {
     if (!verified) return "drift";
@@ -292,6 +304,7 @@ async function pin_identity_in_lock(
       pinned_at: Date.now(),
       pq_seen,
       rotated: true,
+      ...rooted_field(rooted),
     } satisfies StoredIdentityPin);
     await write_contact_entry(IDENTITY_CHANGE_PREFIX, slot, {
       previous_fingerprint: existing.fingerprint,
@@ -306,12 +319,14 @@ async function pin_identity_in_lock(
 
   if (
     (verified && !existing.verified) ||
-    pq_seen !== Boolean(existing.pq_seen)
+    pq_seen !== Boolean(existing.pq_seen) ||
+    rooted !== Boolean(existing.address_rooted)
   ) {
     await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
       ...existing,
       verified: existing.verified || verified,
       pq_seen,
+      ...rooted_field(rooted),
     } satisfies StoredIdentityPin);
   }
 
@@ -323,6 +338,7 @@ export async function check_and_pin_identity(
   kem_identity_key: string,
   verified: boolean = false,
   advertises_pq: boolean = false,
+  address_rooted: boolean = false,
 ): Promise<IdentityPinStatus> {
   try {
     if (!pin_id || !kem_identity_key) {
@@ -335,7 +351,14 @@ export async function check_and_pin_identity(
     if (!slot) return "unknown";
 
     return await with_contact_lock(slot, () =>
-      pin_identity_in_lock(slot, pin_id, fingerprint, verified, advertises_pq),
+      pin_identity_in_lock(
+        slot,
+        pin_id,
+        fingerprint,
+        verified,
+        advertises_pq,
+        address_rooted,
+      ),
     );
   } catch {
     return "unknown";
@@ -721,6 +744,7 @@ export async function trust_recipient_keys(
   kem_identity_key: string | null,
   armored_public_key: string | null,
   accepted_bundle: RecipientBundleBinding | null = null,
+  address_rooted: boolean = false,
 ): Promise<void> {
   const slot = await open_pins(pin_id);
 
@@ -745,6 +769,7 @@ export async function trust_recipient_keys(
         verified: false,
         pinned_at: Date.now(),
         pq_seen,
+        ...rooted_field(address_rooted),
       } satisfies StoredIdentityPin);
     } else if (!known || worst_health([known]) !== "settled") {
       await delete_contact_entry(IDENTITY_PIN_PREFIX, slot);
@@ -811,6 +836,7 @@ export async function lookup_identity_pin_record(
     return {
       fingerprint: read.value.fingerprint,
       rotated: read.value.rotated === true || read.conflict,
+      address_rooted: read.value.address_rooted === true,
     };
   } catch {
     return "unreadable";

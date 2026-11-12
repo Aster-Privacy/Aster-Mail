@@ -39,8 +39,10 @@ import { resolve_current_user } from "@/services/current_identity";
 import {
   has_passphrase_in_memory,
   get_derived_encryption_key,
+  get_vault_from_memory,
   on_keys_ready,
 } from "@/services/crypto/memory_key_store";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 import { list_external_accounts } from "@/services/api/external_accounts";
 import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
 import {
@@ -402,6 +404,30 @@ async function load_sender_alias_caches(
       .map((d) => d.domain_name),
   );
   publish_local_address_avatars();
+  publish_own_address_entries();
+}
+
+function publish_own_address_entries(): void {
+  const vault = get_vault_from_memory();
+  const primary = cached_user?.email;
+
+  if (!vault?.ratchet_identity_key || !primary) return;
+
+  const addresses = [
+    ...cached_aliases.map((a) => a.full_address),
+    ...[...cached_domain_options, ...cached_ghost_options].map((o) => o.email),
+  ].filter(
+    (address): address is string =>
+      Boolean(address) && !same_address_ignoring_dots(address, primary),
+  );
+
+  if (addresses.length === 0) return;
+
+  void import("@/services/crypto/address_identity_directory")
+    .then(({ publish_address_entries }) =>
+      publish_address_entries(vault, addresses),
+    )
+    .catch(() => undefined);
 }
 
 export function is_sender_alias_cache_populated(): boolean {
