@@ -710,6 +710,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           deps.email.timestamp,
         ),
         body: deps.email.html_content || deps.email.body,
+        message_id: deps.email.id,
       },
       deps.t,
     );
@@ -1024,6 +1025,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             timeZone: get_display_time_zone(),
           }),
           body: msg.html_content || msg.body,
+          message_id: msg.id,
         },
         deps.t,
       );

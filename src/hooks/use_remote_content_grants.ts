@@ -17,11 +17,12 @@
 //
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   NO_REMOTE_CONTENT_GRANTS,
   grant_remote_content as add_grant,
+  track_active_grants,
   type RemoteContentGrants,
 } from "@/lib/remote_content_grants";
 
@@ -57,6 +58,11 @@ export function use_remote_content_grants(
       });
     },
     [scope],
+  );
+
+  useEffect(
+    () => track_active_grants(remote_content_grants),
+    [remote_content_grants],
   );
 
   return { remote_content_grants, grant_remote_content };

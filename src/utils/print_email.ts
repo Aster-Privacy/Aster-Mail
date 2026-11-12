@@ -29,6 +29,7 @@ import {
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { effective_remote_image_mode } from "@/lib/remote_content_policy";
+import { active_granted_types } from "@/lib/remote_content_grants";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import { is_native_platform } from "@/native/capacitor_bridge";
 import { get_cached_preferences } from "@/services/api/preferences";
@@ -50,6 +51,7 @@ interface PrintEmailData {
   bcc?: Array<{ name?: string; email?: string }>;
   timestamp: string;
   body: string;
+  message_id?: string;
 }
 
 function format_recipients(
@@ -192,22 +194,84 @@ export function resolve_print_external_content_mode(): ImageLoadMode {
   return effective_remote_image_mode(preferences);
 }
 
+const NO_PRINT_GRANTS: ReadonlySet<string> = new Set();
+
+const REMOTE_LOAD_ATTRIBUTES = ["src", "srcset", "background", "poster"];
+
+const REMOTE_URL_PATTERN = /^\s*(https?:|\/\/)/i;
+
+const REMOTE_STYLE_URL_PATTERN = /url\(\s*["']?\s*(https?:|\/\/)/i;
+
+export function print_granted_types(
+  message_id: string | undefined,
+): ReadonlySet<string> {
+  return message_id ? active_granted_types(message_id) : NO_PRINT_GRANTS;
+}
+
+function has_remote_srcset(value: string): boolean {
+  return value
+    .split(",")
+    .some((candidate) => REMOTE_URL_PATTERN.test(candidate));
+}
+
+function strip_remote_loads(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  doc.body.querySelectorAll("*").forEach((el) => {
+    for (const name of REMOTE_LOAD_ATTRIBUTES) {
+      const value = el.getAttribute(name);
+
+      if (value === null) continue;
+
+      const remote =
+        name === "srcset"
+          ? has_remote_srcset(value)
+          : REMOTE_URL_PATTERN.test(value);
+
+      if (remote) el.removeAttribute(name);
+    }
+
+    const style = el.getAttribute("style");
+
+    if (style && REMOTE_STYLE_URL_PATTERN.test(style)) {
+      el.removeAttribute("style");
+    }
+  });
+
+  return doc.body.innerHTML;
+}
+
 export function format_body(
   body: string,
   external_content_mode: ImageLoadMode = resolve_print_external_content_mode(),
   blocked_image_labels?: BlockedImageLabels,
+  granted_types: ReadonlySet<string> = NO_PRINT_GRANTS,
 ): string {
   if (is_html_content(body)) {
     const lockdown = is_any_lockdown_active();
+    const mode: ImageLoadMode = lockdown ? "never" : external_content_mode;
+    const granted = mode === "ask" ? granted_types : NO_PRINT_GRANTS;
     const sanitized = sanitize_html(body, {
-      external_content_mode: lockdown ? "never" : external_content_mode,
+      external_content_mode: mode,
       image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
       sandbox_mode: false,
       lockdown_mode: lockdown,
       blocked_image_labels,
+      content_blocking:
+        mode === "ask"
+          ? {
+              block_remote_images: !granted.has("image"),
+              block_remote_fonts: !granted.has("font"),
+              block_remote_css: !granted.has("css"),
+              block_tracking_pixels: !granted.has("tracking_pixel"),
+            }
+          : undefined,
     }).html;
+    const printable = strip_style_blocks(sanitized);
 
-    return strip_style_blocks(sanitized);
+    if (mode === "always" || granted.size > 0) return printable;
+
+    return strip_remote_loads(printable);
   }
 
   return plain_text_to_html(body);
@@ -370,6 +434,7 @@ function build_print_body(
     email.body,
     external_content_mode,
     print_blocked_image_labels(t),
+    print_granted_types(email.message_id),
   );
 
   let html = `<div class="ap-header">
@@ -421,6 +486,7 @@ export interface PrintThreadMessage {
   to_recipients?: Array<{ name?: string; email: string }>;
   cc_recipients?: Array<{ name?: string; email?: string }>;
   bcc_recipients?: Array<{ name?: string; email?: string }>;
+  message_id?: string;
 }
 
 export interface PrintThreadData {
@@ -437,6 +503,7 @@ function build_thread_message_html(
     msg.body,
     external_content_mode,
     print_blocked_image_labels(t),
+    print_granted_types(msg.message_id),
   );
   const to_formatted = msg.to_recipients
     ? format_recipients(msg.to_recipients)

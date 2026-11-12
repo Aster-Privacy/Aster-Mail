@@ -927,6 +927,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           deps.email.timestamp,
         ),
         body: deps.email.html_content || deps.email.body,
+        message_id: deps.email.id,
       },
       deps.t,
     );
