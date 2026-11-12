@@ -36,6 +36,7 @@ import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 import { RecoveryCodesModal } from "@/components/settings/security/recovery_codes_modal";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
+  confirm_recovery_code_refresh_due,
   dismiss_recovery_code_refresh,
   is_recovery_code_refresh_due,
 } from "@/services/crypto/recovery_code_refresh";
@@ -119,9 +120,15 @@ export function RecoveryReminder(): JSX.Element | null {
       if (cancelled || !values) return;
 
       if (is_refresh_due && values.has_codes) {
-        set_is_replacing(true);
+        const still_due = await confirm_recovery_code_refresh_due();
 
-        return;
+        if (cancelled) return;
+
+        if (still_due) {
+          set_is_replacing(true);
+
+          return;
+        }
       }
 
       if (!is_settled) return;

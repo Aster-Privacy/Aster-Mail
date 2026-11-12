@@ -37,6 +37,7 @@ import {
   store_vault_in_memory,
 } from "@/services/crypto/memory_key_store";
 import { read_latest_vault } from "@/services/crypto/vault_cas_write";
+import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import {
   hash_recovery_code,
   decrypt_recovery_key_with_code,
@@ -727,6 +728,8 @@ describe("RecoveryCodesModal", () => {
     vi.mocked(read_latest_vault).mockResolvedValueOnce({
       vault: { ...vault_fixture, recovery_codes: current },
       vault_sha256: "sha",
+      encrypted_vault: "server-vault",
+      vault_nonce: "server-nonce",
     } as never);
     await submit_password(REQUIRED_ACTION);
     await wait_until(() => on_close.mock.calls.length === 1);
@@ -737,6 +740,11 @@ describe("RecoveryCodesModal", () => {
       expect.objectContaining({ recovery_codes: current }),
       expect.any(String),
       "user-1",
+    );
+    expect(vi.mocked(store_encrypted_vault)).toHaveBeenCalledWith(
+      "user-1",
+      "server-vault",
+      "server-nonce",
     );
   });
 

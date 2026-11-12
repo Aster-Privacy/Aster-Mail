@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { get_vault_owner_id } from "./memory_key_store";
+import { get_vault_from_memory, get_vault_owner_id } from "./memory_key_store";
 import {
   canonicalize_recovery_code,
   is_valid_recovery_code,
 } from "./recovery_key";
+import { adopt_latest_vault_when } from "./vault_cas_write";
 
 export const CURRENT_RECOVERY_CODE_SEGMENTS = 4;
 
@@ -64,4 +65,16 @@ export function dismiss_recovery_code_refresh(): void {
 export function reset_recovery_code_refresh(): void {
   is_dismissed_for_session = false;
   dismissed_owner_id = null;
+}
+
+export async function confirm_recovery_code_refresh_due(): Promise<boolean> {
+  if (!is_recovery_code_refresh_due(get_vault_from_memory()?.recovery_codes)) {
+    return false;
+  }
+
+  const adopted = await adopt_latest_vault_when(
+    (vault) => !has_outdated_recovery_codes(vault.recovery_codes),
+  );
+
+  return adopted === null;
 }
