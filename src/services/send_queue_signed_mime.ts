@@ -33,9 +33,9 @@ import {
   type ProtectedMimeAttachment,
 } from "./pgp_protected_mime";
 import { select_published_signing_key } from "./crypto/published_signing_key";
+import { is_primary_address } from "./crypto/address_identity_entry";
 
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
-import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 export interface SignedMimePayload {
   signed_mime: string;
@@ -119,9 +119,9 @@ export function is_primary_sender(
   from: string,
   primary_address: string | null | undefined,
 ): boolean {
-  if (!primary_address) return false;
+  if (!primary_address?.trim()) return false;
 
-  return same_address_ignoring_dots(sender_address(from), primary_address);
+  return is_primary_address(sender_address(from), primary_address);
 }
 
 async function resolve_primary_address(): Promise<string | null> {

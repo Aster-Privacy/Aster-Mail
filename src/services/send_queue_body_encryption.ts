@@ -24,8 +24,15 @@ import {
   derive_address_sender_identity,
   type SenderIdentity,
 } from "./crypto/address_sender_identity";
-import { address_entry_state } from "./crypto/address_identity_directory";
+import { resolve_address_send_state } from "./crypto/address_identity_directory";
+import {
+  is_primary_address,
+  local_account_bundle,
+  local_address_bundle,
+  type AddressEntryKeys,
+} from "./crypto/address_identity_entry";
 import { ensure_ratchet_keys } from "./crypto/ensure_ratchet_keys";
+import type { PrekeyBundle } from "./crypto/x3dh";
 import {
   encrypt_message_multi,
   type EncryptedVault,
@@ -61,10 +68,7 @@ import {
 import { derive_own_public_key } from "@/utils/email_crypto";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { get_active_translations } from "@/lib/i18n/translations";
-import {
-  normalize_address_ignoring_dots,
-  same_address_ignoring_dots,
-} from "@/utils/address_dots";
+import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 
 function map_ratchet_error(err: unknown): unknown {
   if (err instanceof RecoveryLaneUnavailableError) {
@@ -249,10 +253,7 @@ async function resolve_ratchet_sender(sender_email: string): Promise<string> {
   const account = await get_current_account().catch(() => null);
   const primary_email = account?.user?.email;
 
-  if (
-    primary_email &&
-    same_address_ignoring_dots(primary_email, sender_email)
-  ) {
+  if (primary_email && is_primary_address(sender_email, primary_email)) {
     return normalize_address_ignoring_dots(sender_email);
   }
 
@@ -268,30 +269,71 @@ export async function sender_uses_account_key(
   const account = await get_current_account().catch(() => null);
   const primary_email = account?.user?.email;
 
-  if (!primary_email) return false;
+  return is_primary_address(sender_email, primary_email);
+}
 
-  return same_address_ignoring_dots(primary_email, sender_email);
+const ADDRESS_MISMATCH_STATUS = 422;
+
+async function resolve_own_lookup_username(
+  sender_email: string,
+): Promise<string | null> {
+  const { get_current_account } = await import("@/services/account_manager");
+  const account = await get_current_account().catch(() => null);
+
+  return (
+    account?.user?.username ??
+    (await resolve_own_username_for_key_lookup(sender_email).catch(() => null))
+  );
 }
 
 export async function resolve_sender_identity(
   sender_email: string,
   vault: EncryptedVault,
-): Promise<SenderIdentity | null> {
+): Promise<SenderIdentity> {
+  const errors = get_active_translations().errors;
+
   if (await sender_uses_account_key(sender_email)) {
     return account_sender_identity(vault);
   }
 
-  const state = await address_entry_state(vault, sender_email).catch(
-    (): "failed" => "failed",
+  const state = await resolve_address_send_state(
+    vault,
+    sender_email,
+    await resolve_own_lookup_username(sender_email),
   );
 
-  if (state === "failed") return null;
   if (state === "inactive") return account_sender_identity(vault);
 
-  return derive_address_sender_identity(
-    vault.ratchet_identity_key,
-    sender_email,
-  );
+  if (state === "unavailable") {
+    throw create_error("encryption_failed", errors.failed_encrypt_envelope);
+  }
+
+  const derived =
+    state === "active"
+      ? derive_address_sender_identity(vault.ratchet_identity_key, sender_email)
+      : null;
+
+  if (!derived) {
+    throw create_error(
+      "encryption_failed",
+      errors.failed_encrypt_envelope,
+      ADDRESS_MISMATCH_STATUS,
+    );
+  }
+
+  return derived;
+}
+
+function own_local_bundle(
+  vault: EncryptedVault,
+  sender_email: string,
+  uses_address_identity: boolean,
+): PrekeyBundle | undefined {
+  const keys: AddressEntryKeys | null = uses_address_identity
+    ? local_address_bundle(vault, sender_email)
+    : local_account_bundle(vault);
+
+  return keys ? { ...keys, address_scoped: uses_address_identity } : undefined;
 }
 
 export async function encrypt_for_recipients(
@@ -337,13 +379,6 @@ export async function encrypt_for_recipients(
       vault,
     );
 
-    if (!sender_identity) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.failed_encrypt_envelope,
-      );
-    }
-
     const ratchet_results: Record<
       string,
       Awaited<ReturnType<typeof encrypt_for_ratchet_recipient>>
@@ -354,6 +389,11 @@ export async function encrypt_for_recipients(
         ? undefined
         : sender_identity.identity_public;
     const own_address = ratchet_sender.toLowerCase();
+    const own_bundle = own_local_bundle(
+      vault,
+      ratchet_sender,
+      own_address_identity !== undefined,
+    );
 
     for (const recipient of internal_recipients) {
       const username = await resolve_username_for_key_lookup(recipient);
@@ -376,6 +416,7 @@ export async function encrypt_for_recipients(
           recipient.toLowerCase() === own_address
             ? own_address_identity
             : undefined,
+          recipient.toLowerCase() === own_address ? own_bundle : undefined,
         );
       } catch (err) {
         throw map_ratchet_error(err);
@@ -410,6 +451,7 @@ export async function encrypt_for_recipients(
               vault,
               sender_identity,
               own_address_identity,
+              own_bundle,
             );
           } catch (err) {
             throw map_ratchet_error(err);

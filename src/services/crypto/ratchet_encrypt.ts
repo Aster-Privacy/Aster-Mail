@@ -130,6 +130,7 @@ export async function encrypt_for_ratchet_recipient(
   vault: EncryptedVault,
   sender_identity?: SenderIdentity,
   required_recipient_identity?: string,
+  local_bundle?: PrekeyBundle,
 ): Promise<RatchetRecipientData | null> {
   const conversation_id = await derive_conversation_id(
     sender_email,
@@ -145,6 +146,7 @@ export async function encrypt_for_ratchet_recipient(
       vault,
       sender_identity ?? account_sender_identity(vault),
       required_recipient_identity,
+      local_bundle,
     ),
   );
 }
@@ -317,6 +319,57 @@ function resolve_recovery_lane_keys(
   return { identity_public, pq_identity_public };
 }
 
+interface StartedSenderSession {
+  ratchet: DoubleRatchet;
+  ephemeral_key: string;
+  pq_ciphertext?: string;
+  pq_key_id?: number;
+  x3dh_version?: number;
+}
+
+async function start_sender_session(
+  conversation_id: string,
+  sender_identity: SenderIdentity,
+  bundle: PrekeyBundle,
+): Promise<StartedSenderSession> {
+  const sender_identity_jwk: JsonWebKey = JSON.parse(
+    sender_identity.identity_jwk,
+  );
+  const x3dh_result = await perform_x3dh_sender(sender_identity_jwk, bundle);
+
+  try {
+    const ratchet = await DoubleRatchet.init_sender(
+      x3dh_result.shared_secret,
+      base64_to_array(bundle.signed_prekey),
+      conversation_id,
+    );
+    const ephemeral_key = array_to_base64(x3dh_result.ephemeral_public_key);
+    const pq_ciphertext =
+      x3dh_result.pq_ciphertext && x3dh_result.pq_key_id !== undefined
+        ? array_to_base64(x3dh_result.pq_ciphertext)
+        : undefined;
+    const pq_key_id = pq_ciphertext ? x3dh_result.pq_key_id : undefined;
+    const x3dh_version =
+      x3dh_result.x3dh_version > X3DH_VERSION_LEGACY
+        ? x3dh_result.x3dh_version
+        : undefined;
+
+    ratchet.set_bootstrap({
+      ephemeral_key,
+      pq_ciphertext,
+      pq_key_id,
+      sender_identity_key: sender_identity.identity_public,
+      recipient_identity_key: bundle.kem_identity_key,
+      recipient_pq_identity_key: bundle.pq_kem_public_key ?? undefined,
+      x3dh_version,
+    });
+
+    return { ratchet, ephemeral_key, pq_ciphertext, pq_key_id, x3dh_version };
+  } finally {
+    x3dh_result.shared_secret.fill(0);
+  }
+}
+
 async function encrypt_for_ratchet_recipient_unlocked(
   conversation_id: string,
   recipient_email: string,
@@ -325,6 +378,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
   vault: EncryptedVault,
   sender_identity: SenderIdentity | null,
   required_recipient_identity?: string,
+  local_bundle?: PrekeyBundle,
 ): Promise<RatchetRecipientData | null> {
   try {
     if (!sender_identity) {
@@ -363,7 +417,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
 
       let recipient_changed = false;
 
-      if (!sender_changed) {
+      if (!sender_changed && local_bundle) {
+        bundle = local_bundle;
+        recipient_changed =
+          bootstrap?.recipient_identity_key !== local_bundle.kem_identity_key;
+      } else if (!sender_changed) {
         const session_identity = bootstrap?.recipient_identity_key;
         const identity = await resolve_recipient_identity(
           recipient_username,
@@ -394,7 +452,21 @@ async function encrypt_for_ratchet_recipient_unlocked(
       }
     }
 
-    if (!ratchet) {
+    if (!ratchet && local_bundle) {
+      bundle = local_bundle;
+
+      const started = await start_sender_session(
+        conversation_id,
+        sender_identity,
+        local_bundle,
+      );
+
+      ratchet = started.ratchet;
+      ephemeral_key_base64 = started.ephemeral_key;
+      pq_ciphertext_base64 = started.pq_ciphertext;
+      pq_key_id_value = started.pq_key_id;
+      x3dh_version_value = started.x3dh_version;
+    } else if (!ratchet) {
       if (!resolved_bundle) {
         resolved_bundle = await resolve_recipient_bundle(
           recipient_username,
@@ -488,12 +560,9 @@ async function encrypt_for_ratchet_recipient_unlocked(
         throw new KeyPinUnavailableError(bundle_peer);
       }
 
-      const sender_identity_jwk: JsonWebKey = JSON.parse(
-        sender_identity.identity_jwk,
-      );
-
-      const x3dh_result = await perform_x3dh_sender(
-        sender_identity_jwk,
+      const started = await start_sender_session(
+        conversation_id,
+        sender_identity,
         restrict_bundle_to_signed_pq_key(
           bundle,
           bundle_verification.verdict === "verified" &&
@@ -501,43 +570,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
         ),
       );
 
-      try {
-        const recipient_signed_prekey_raw = base64_to_array(
-          bundle.signed_prekey,
-        );
-
-        ratchet = await DoubleRatchet.init_sender(
-          x3dh_result.shared_secret,
-          recipient_signed_prekey_raw,
-          conversation_id,
-        );
-
-        ephemeral_key_base64 = array_to_base64(
-          x3dh_result.ephemeral_public_key,
-        );
-
-        if (x3dh_result.pq_ciphertext && x3dh_result.pq_key_id !== undefined) {
-          pq_ciphertext_base64 = array_to_base64(x3dh_result.pq_ciphertext);
-          pq_key_id_value = x3dh_result.pq_key_id;
-        }
-
-        x3dh_version_value =
-          x3dh_result.x3dh_version > X3DH_VERSION_LEGACY
-            ? x3dh_result.x3dh_version
-            : undefined;
-
-        ratchet.set_bootstrap({
-          ephemeral_key: ephemeral_key_base64,
-          pq_ciphertext: pq_ciphertext_base64,
-          pq_key_id: pq_key_id_value,
-          sender_identity_key: sender_identity.identity_public,
-          recipient_identity_key: bundle.kem_identity_key,
-          recipient_pq_identity_key: bundle.pq_kem_public_key ?? undefined,
-          x3dh_version: x3dh_version_value,
-        });
-      } finally {
-        x3dh_result.shared_secret.fill(0);
-      }
+      ratchet = started.ratchet;
+      ephemeral_key_base64 = started.ephemeral_key;
+      pq_ciphertext_base64 = started.pq_ciphertext;
+      pq_key_id_value = started.pq_key_id;
+      x3dh_version_value = started.x3dh_version;
     } else {
       const bootstrap = ratchet.get_bootstrap();
 
