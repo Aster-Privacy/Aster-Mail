@@ -136,10 +136,6 @@ function resolve_cached_reaction_sender(
     return { kind: "primary" };
   }
 
-  if (!message.routing_token && visible.length === 0) {
-    return { kind: "primary" };
-  }
-
   return { kind: "undetermined" };
 }
 
