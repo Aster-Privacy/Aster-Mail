@@ -130,22 +130,25 @@ fn is_passphrase_file_name(name: &str) -> bool {
     name.starts_with("device_passphrase") && name.ends_with(".bin")
 }
 
-fn delete_all_passphrase_files() {
+fn delete_all_passphrase_files() -> bool {
     let Ok(legacy) = passphrase_file_path() else {
-        return;
+        return true;
     };
     let Some(dir) = legacy.parent() else {
-        return;
+        return true;
     };
     let Ok(entries) = std::fs::read_dir(dir) else {
-        return;
+        return !dir.exists();
     };
+    let mut removed = true;
+
     for entry in entries.flatten() {
         let name = entry.file_name();
         if is_passphrase_file_name(&name.to_string_lossy()) {
-            secure_delete_file(&entry.path());
+            removed &= secure_delete_file(&entry.path());
         }
     }
+    removed
 }
 
 fn parse_device_id(device_id: Option<String>) -> Result<Option<Uuid>, String> {
@@ -257,7 +260,9 @@ fn wrap_key_file_adopt() -> Option<[u8; 32]> {
     let key = wrap_key_file_load().ok().flatten()?;
 
     match keyring_wrap_key_store(&key) {
-        Ok(()) => secure_delete_file(&path),
+        Ok(()) => {
+            secure_delete_file(&path);
+        }
         Err(e) => tracing::warn!(
             "device wrap key remains on disk because the system keychain is unavailable: {}",
             e
@@ -399,16 +404,19 @@ fn auth_store_read(slot: &str) -> Result<Option<String>, String> {
     }
 }
 
-fn auth_store_clear_all() {
+fn auth_store_clear_all() -> bool {
+    let mut removed = true;
+
     for slot in [AUTH_SLOT_ACCESS, AUTH_SLOT_CSRF] {
         if let Ok((keyring_user, file_name)) = auth_slot_ids(slot) {
             let _ = keyring_delete(keyring_user);
 
             if let Ok(path) = auth_file_path(file_name) {
-                secure_delete_file(&path);
+                removed &= secure_delete_file(&path);
             }
         }
     }
+    removed
 }
 
 static REFRESH_STORE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
@@ -500,9 +508,10 @@ fn secure_overwrite_file(path: &std::path::Path) {
     let _ = f.sync_all();
 }
 
-fn secure_delete_file(path: &std::path::Path) {
+fn secure_delete_file(path: &std::path::Path) -> bool {
     secure_overwrite_file(path);
     let _ = std::fs::remove_file(path);
+    !path.exists()
 }
 
 fn atomic_write(path: &std::path::Path, data: &[u8]) -> Result<(), String> {
@@ -1216,7 +1225,9 @@ pub fn device_refresh_token_clear(window: tauri::WebviewWindow) -> Result<(), St
 
     let _guard = REFRESH_STORE_LOCK.lock().map_err(|e| e.to_string())?;
 
-    secure_delete_file(&auth_file_path(REFRESH_FILE_NAME)?);
+    if !secure_delete_file(&auth_file_path(REFRESH_FILE_NAME)?) {
+        return Err("stored session file could not be removed".to_string());
+    }
     Ok(())
 }
 
@@ -1259,14 +1270,21 @@ pub fn device_clear_session(window: tauri::WebviewWindow) -> Result<(), String> 
 #[tauri::command]
 pub fn device_clear_identity(window: tauri::WebviewWindow) -> Result<(), String> {
     require_primary_webview(&window)?;
-    auth_store_clear_all();
-    delete_all_passphrase_files();
+
+    let mut removed = auth_store_clear_all();
+
+    removed &= delete_all_passphrase_files();
 
     if let Ok(path) = identity_file_path() {
-        secure_delete_file(&path);
+        removed &= secure_delete_file(&path);
+        removed &= secure_delete_file(&unreadable_identity_path(&path));
     }
     let _ = keyring_delete(KEYRING_IDENTITY_USER);
     let _ = wrap_key_delete();
+
+    if !removed {
+        return Err("device files could not be removed".to_string());
+    }
     Ok(())
 }
 
