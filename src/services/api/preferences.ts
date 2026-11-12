@@ -25,6 +25,7 @@ import type { LanguageCode } from "@/lib/i18n/types";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 import {
   account_data_write_key,
   retry_after_account_key_load,
@@ -367,7 +368,7 @@ async function encrypt_preferences(
 ): Promise<{ encrypted: string; nonce: string }> {
   const key =
     (await account_data_write_key("astermail-preferences-v1")) ??
-    (await derive_preferences_key(vault));
+    (await derive_preferences_key(with_identity_key(vault)));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(JSON.stringify(preferences));
 

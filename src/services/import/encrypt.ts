@@ -24,6 +24,7 @@ import type { ParsedEmail } from "./parser";
 import { compute_import_dedupe_hash } from "./dedupe_hash";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 
 const IMPORT_KEY_VERSION = "astermail-import-v1";
 const NONCE_LENGTH = 12;
@@ -183,9 +184,10 @@ export async function encrypt_imported_email(
     raw_headers: preserved_headers.length > 0 ? preserved_headers : undefined,
   };
 
-  const content_hash = await compute_content_hash(email, vault.identity_key);
+  const owner = with_identity_key(vault);
+  const content_hash = await compute_content_hash(email, owner.identity_key);
 
-  const key = await derive_import_encryption_key(vault);
+  const key = await derive_import_encryption_key(owner);
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
   const plaintext = new TextEncoder().encode(JSON.stringify(envelope));
 

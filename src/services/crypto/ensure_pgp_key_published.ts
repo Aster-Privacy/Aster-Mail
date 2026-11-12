@@ -187,7 +187,9 @@ async function install_identity_key_when_unpublished(
     .catch(() => null);
 
   if (!existing) return "skipped";
-  if (existing.data) return "no_local_key";
+  if (existing.data) {
+    return recover_identity_key_when_published(account_id, existing.data);
+  }
   if (existing.code !== "NOT_FOUND") return "skipped";
 
   const { install_missing_identity_key } =
@@ -200,6 +202,29 @@ async function install_identity_key_when_unpublished(
   }
 
   return "failed";
+}
+
+async function recover_identity_key_when_published(
+  account_id: string,
+  published: unknown,
+): Promise<PgpPublishHealResult> {
+  const armored = (published as { public_key_armored?: unknown })
+    .public_key_armored;
+
+  if (typeof armored !== "string" || !armored) return "no_local_key";
+
+  const { recover_published_identity_key } =
+    await import("@/services/crypto/recover_published_identity_key");
+
+  if (
+    (await recover_published_identity_key(account_id, armored)) !== "recovered"
+  ) {
+    return "no_local_key";
+  }
+
+  attempted_account_ids.add(account_id);
+
+  return "healed";
 }
 
 async function rekey_unpublishable_identity_key(

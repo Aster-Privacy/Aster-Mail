@@ -59,6 +59,7 @@ const ALLOWED_PASSPHRASE_KEY_SITES: Record<string, number> = {
   "services/crypto/password_change_reencrypt.ts": 6,
   "services/crypto/published_signing_key.ts": 2,
   "services/crypto/ratchet_prekey_bundle.ts": 2,
+  "services/crypto/recover_published_identity_key.ts": 1,
   "services/crypto/recovery_reencrypt/entry.ts": 1,
   "services/crypto/restore_inactive_keys.ts": 9,
   "services/crypto/secure_message_crypto.ts": 1,

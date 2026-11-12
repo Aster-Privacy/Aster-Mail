@@ -24,7 +24,7 @@ import type { EncryptedVault } from "./key_manager";
 import { account_data_write_key } from "./account_data_writer";
 import { array_to_base64, base64_to_array } from "./base64";
 import { HASH_ALG } from "./constants";
-import { get_retired_context_key } from "./legacy_keks";
+import { get_retired_context_key, set_retired_read_guard } from "./legacy_keks";
 import { get_vault_from_memory, get_vault_owner_id } from "./memory_key_store";
 import {
   retired_contexts_in,
@@ -35,6 +35,12 @@ import { with_vault_write_lock_bounded } from "./vault_write_lock";
 
 import { api_client } from "@/services/api/client";
 import { get_current_account_id } from "@/services/account_manager";
+import {
+  calendar_write_key,
+  decrypt_calendar_payload,
+  encrypt_calendar_payload,
+  type CalendarBinding,
+} from "@/services/calendar/calendar_crypto";
 import { is_draft_busy } from "@/services/draft_activity";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -91,6 +97,7 @@ interface ContextState {
   next_at: number;
   attempts: number;
   clean_since: number | null;
+  uncovered_since?: number;
 }
 
 type RewrapState = Partial<Record<AccountDataContext, ContextState>>;
@@ -107,7 +114,11 @@ interface Sealed {
 
 type PassHandler = (env: PassEnv) => Promise<PassResult>;
 
+type PlainShape = "text" | "json";
+
 const running = new Set<string>();
+const refused_reads = new Map<string, Set<AccountDataContext>>();
+const rescan_requests = new Set<string>();
 
 function empty_pass(complete: boolean): PassResult {
   return { checked: 0, rewrapped: 0, held: 0, parked: 0, complete };
@@ -139,11 +150,18 @@ function read_state(account_id: string): RewrapState {
 
         const entry = value as Record<string, unknown>;
 
-        state[context as AccountDataContext] = {
+        const restored: ContextState = {
           next_at: finite_number(entry.next_at) ?? 0,
           attempts: Math.max(0, finite_number(entry.attempts) ?? 0),
           clean_since: finite_number(entry.clean_since),
         };
+
+        const uncovered_since = finite_number(entry.uncovered_since);
+
+        if (uncovered_since !== null)
+          restored.uncovered_since = uncovered_since;
+
+        state[context as AccountDataContext] = restored;
       }
 
       return state;
@@ -218,6 +236,29 @@ function decode(value: string): Uint8Array | null {
     return base64_to_array(value);
   } catch {
     return null;
+  }
+}
+
+function strict_text(bytes: Uint8Array): string | null {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
+function has_shape(bytes: Uint8Array, shape: PlainShape): boolean {
+  const text = strict_text(bytes);
+
+  if (text === null) return false;
+  if (shape === "text") return true;
+
+  try {
+    JSON.parse(text);
+
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -310,12 +351,14 @@ async function rewrap_field(
   env: PassEnv,
   encrypted: string | null | undefined,
   nonce: string | null | undefined,
-): Promise<"current" | "held" | Sealed> {
+  shape: PlainShape,
+): Promise<"current" | "held" | "invalid" | Sealed> {
   const plaintext = await open_under(env.retired, encrypted, nonce);
 
   if (!plaintext) return "current";
 
   try {
+    if (!has_shape(plaintext, shape)) return "invalid";
     if (!env.write) return "held";
 
     return (await reseal(await env.target(), plaintext)) ?? "held";
@@ -337,9 +380,15 @@ async function rewrap_blob(
 
   result.checked = 1;
 
-  const sealed = await rewrap_field(env, encrypted, nonce);
+  const sealed = await rewrap_field(env, encrypted, nonce, "json");
 
   if (sealed === "current") return result;
+  if (sealed === "invalid") {
+    result.held = 1;
+    result.parked = 1;
+
+    return result;
+  }
   if (sealed === "held") {
     result.held = 1;
 
@@ -414,32 +463,52 @@ async function stored_unchanged(
   );
 }
 
+async function stored_matches(
+  path: string,
+  expected: Record<string, string>,
+): Promise<boolean> {
+  const response = await api_client.get<RawRow>(path, { skip_cache: true });
+
+  if (response.error || !response.data) return false;
+
+  const stored = response.data;
+
+  return Object.entries(expected).every(
+    ([name, value]) => stored_value(stored, name) === value,
+  );
+}
+
 async function rewrap_row(
   env: PassEnv,
   row: RawRow,
   path: string,
   result: PassResult,
-  skip_system: boolean,
+  confirm_system: boolean,
 ): Promise<void> {
   result.checked++;
 
   const body: Record<string, string> = {};
-  const read_only = skip_system && row.is_system === true;
-  const row_env: PassEnv = read_only ? { ...env, write: false } : env;
+  const is_system = confirm_system && row.is_system === true;
   let held = false;
+  let invalid = false;
   let found = false;
 
   for (const field of ROW_FIELDS) {
     const sealed = await rewrap_field(
-      row_env,
+      env,
       text_field(row, field.encrypted),
       text_field(row, field.nonce),
+      "text",
     );
 
     if (sealed === "current") continue;
 
     found = true;
 
+    if (sealed === "invalid") {
+      invalid = true;
+      continue;
+    }
     if (sealed === "held") {
       held = true;
       continue;
@@ -451,17 +520,11 @@ async function rewrap_row(
 
   if (!found) return;
 
-  if (read_only) {
-    result.held++;
-    result.parked++;
-
-    return;
-  }
-
   const id = text_field(row, "id");
 
-  if (held || !id) {
+  if (invalid || held || !id) {
     result.held++;
+    if (invalid || is_system) result.parked++;
 
     return;
   }
@@ -477,7 +540,9 @@ async function rewrap_row(
     ) {
       const response = await api_client.put<unknown>(row_path, body);
 
-      saved = !response.error;
+      saved =
+        !response.error &&
+        (!is_system || (await stored_matches(row_path, body)));
     }
   } catch {
     saved = false;
@@ -487,6 +552,7 @@ async function rewrap_row(
     result.rewrapped++;
   } else {
     result.held++;
+    if (is_system) result.parked++;
   }
 }
 
@@ -495,7 +561,7 @@ async function rewrap_rows(
   path: string,
   list_key: string,
   extra_query: string,
-  skip_system: boolean,
+  confirm_system: boolean,
 ): Promise<PassResult> {
   const result = empty_pass(false);
 
@@ -512,7 +578,7 @@ async function rewrap_rows(
     if (!Array.isArray(rows)) return result;
 
     for (const row of rows as RawRow[]) {
-      await rewrap_row(env, row, path, result, skip_system);
+      await rewrap_row(env, row, path, result, confirm_system);
     }
 
     if (response.data.has_more !== true || rows.length === 0) {
@@ -680,6 +746,7 @@ async function walk_drafts(
       result.checked += one.checked;
       result.rewrapped += one.rewrapped;
       result.held += one.held;
+      result.parked += one.parked;
     }
 
     cursor = response.data.next_cursor;
@@ -845,7 +912,7 @@ async function rewrap_scheduled_row(
   env: PassEnv,
   id: string,
   row: ScheduledRow,
-): Promise<"current" | "held" | "rewrapped"> {
+): Promise<"current" | "held" | "invalid" | "rewrapped"> {
   const envelope = await open_under(
     env.retired,
     row.encrypted_envelope,
@@ -867,6 +934,13 @@ async function rewrap_scheduled_row(
     if (SCHEDULED_FINISHED.has(status)) {
       done = await remove_finished_scheduled(env, id, row);
     } else if (SCHEDULED_EDITABLE.has(status)) {
+      if (
+        (envelope && !has_shape(envelope, "json")) ||
+        (recipients && !has_shape(recipients, "json"))
+      ) {
+        return "invalid";
+      }
+
       done = await replace_scheduled(env, id, row, envelope, recipients);
     }
 
@@ -902,6 +976,10 @@ const rewrap_scheduled: PassHandler = async (env) => {
 
     if (outcome === "rewrapped") result.rewrapped++;
     if (outcome === "held") result.held++;
+    if (outcome === "invalid") {
+      result.held++;
+      result.parked++;
+    }
   }
 
   result.complete = true;
@@ -914,6 +992,7 @@ interface CalendarBlobRow {
   calendar_id?: unknown;
   encrypted_blob?: unknown;
   blob_nonce?: unknown;
+  version?: unknown;
 }
 
 interface CalendarListPage {
@@ -934,14 +1013,14 @@ const CALENDAR_EVENTS_PATH = "/calendar/v1/events";
 const CALENDAR_FRAME_BYTE = 2;
 const NOT_FOUND_STATUS = 404;
 
-async function opens_with(
+async function open_with(
   key: CryptoKey,
   iv: Uint8Array,
   data: Uint8Array,
   bound_to?: Uint8Array,
-): Promise<boolean> {
+): Promise<Uint8Array | null> {
   try {
-    const opened = new Uint8Array(
+    return new Uint8Array(
       await crypto.subtle.decrypt(
         bound_to
           ? { name: "AES-GCM", iv, additionalData: bound_to }
@@ -950,37 +1029,37 @@ async function opens_with(
         data,
       ),
     );
-
-    opened.fill(0);
-
-    return true;
   } catch {
-    return false;
+    return null;
   }
 }
 
-async function calendar_blob_opens(
+async function open_calendar_blob(
   key: CryptoKey,
   row: CalendarBlobRow,
   is_event: boolean,
-): Promise<boolean> {
+): Promise<Uint8Array | null> {
   if (
     typeof row.encrypted_blob !== "string" ||
     typeof row.blob_nonce !== "string"
   ) {
-    return false;
+    return null;
   }
 
   const data = decode(row.encrypted_blob);
   const iv = decode(row.blob_nonce);
 
-  if (!data || !iv || data.length === 0) return false;
-  if (await opens_with(key, iv, data)) return true;
-  if (data[0] !== CALENDAR_FRAME_BYTE) return false;
+  if (!data || !iv || data.length === 0) return null;
+
+  const raw = await open_with(key, iv, data);
+
+  if (raw) return raw;
+  if (data[0] !== CALENDAR_FRAME_BYTE) return null;
 
   const body = data.subarray(1);
+  const framed = await open_with(key, iv, body);
 
-  if (await opens_with(key, iv, body)) return true;
+  if (framed) return framed;
 
   const row_id = typeof row.id === "string" ? row.id : "";
   const calendar_id =
@@ -993,7 +1072,102 @@ async function calendar_blob_opens(
     ].join("\n"),
   );
 
-  return opens_with(key, iv, body, binding);
+  return open_with(key, iv, body, binding);
+}
+
+function calendar_binding(
+  row: CalendarBlobRow,
+  is_event: boolean,
+): CalendarBinding | null {
+  const id = typeof row.id === "string" && row.id ? row.id : null;
+
+  if (!id) return null;
+  if (!is_event) return { calendar_id: id };
+
+  const calendar_id =
+    typeof row.calendar_id === "string" && row.calendar_id
+      ? row.calendar_id
+      : null;
+
+  return calendar_id ? { calendar_id, event_id: id } : null;
+}
+
+function exact_json_object(bytes: Uint8Array): Record<string, unknown> | null {
+  const text = strict_text(bytes);
+
+  if (text === null) return null;
+
+  try {
+    const parsed: unknown = JSON.parse(text);
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return null;
+    }
+
+    return JSON.stringify(parsed) === text
+      ? (parsed as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function rewrap_calendar_row(
+  env: PassEnv,
+  row: CalendarBlobRow,
+  is_event: boolean,
+): Promise<"current" | "held" | "invalid" | "rewrapped"> {
+  const plaintext = await open_calendar_blob(env.retired, row, is_event);
+
+  if (!plaintext) return "current";
+
+  try {
+    const binding = calendar_binding(row, is_event);
+    const payload = exact_json_object(plaintext);
+
+    if (!binding || !payload) return "invalid";
+
+    const version = finite_number(row.version);
+    const vault = get_vault_from_memory();
+
+    if (!env.write || version === null || !vault) return "held";
+
+    const key = await calendar_write_key(vault);
+
+    if (!key) return "held";
+
+    const record = await encrypt_calendar_payload(payload, vault, binding, key);
+    const reopened = await decrypt_calendar_payload<unknown>(
+      record,
+      vault,
+      binding,
+    );
+
+    if (
+      !reopened.bound ||
+      JSON.stringify(reopened.payload) !== JSON.stringify(payload)
+    ) {
+      return "held";
+    }
+    if (!(await env.active())) return "held";
+
+    const path = is_event ? CALENDAR_EVENTS_PATH : CALENDARS_PATH;
+    const id = binding.event_id ?? binding.calendar_id;
+    const saved = await api_client.put<unknown>(
+      `${path}/${encodeURIComponent(id)}`,
+      {
+        encrypted_blob: record.ciphertext,
+        blob_nonce: record.nonce,
+        expected_version: version,
+      },
+    );
+
+    return saved.error ? "held" : "rewrapped";
+  } catch {
+    return "held";
+  } finally {
+    plaintext.fill(0);
+  }
 }
 
 async function scan_calendar_rows(
@@ -1005,7 +1179,11 @@ async function scan_calendar_rows(
   for (const row of rows) {
     result.checked++;
 
-    if (await calendar_blob_opens(env.retired, row, is_event)) {
+    const outcome = await rewrap_calendar_row(env, row, is_event);
+
+    if (outcome === "rewrapped") result.rewrapped++;
+    if (outcome === "held") result.held++;
+    if (outcome === "invalid") {
       result.held++;
       result.parked++;
     }
@@ -1076,7 +1254,7 @@ async function scan_calendar_events(
   return false;
 }
 
-const scan_calendar: PassHandler = async (env) => {
+const rewrap_calendar: PassHandler = async (env) => {
   const result = empty_pass(false);
   const listed = await scan_calendar_list(env, result);
 
@@ -1148,7 +1326,7 @@ const HANDLERS: Partial<Record<AccountDataContext, PassHandler>> = {
   "astermail-onboarding-v1": rewrap_onboarding,
   "astermail-subscriptions-v1": rewrap_subscriptions,
   "astermail-recovery-email-v1": scan_recovery_email,
-  "astermail-calendar-v2": scan_calendar,
+  "astermail-calendar-v2": rewrap_calendar,
 };
 
 async function run_pass(
@@ -1304,7 +1482,10 @@ async function run_locked(
   const state = read_state(account_id);
   const at = now();
 
-  const due = scanned.filter((context) => is_due(state[context], at));
+  const forced = new Set(refused_reads.get(account_id));
+  const due = scanned.filter(
+    (context) => forced.has(context) || is_due(state[context], at),
+  );
 
   if (due.length === 0) return null;
 
@@ -1342,6 +1523,9 @@ async function run_locked(
     if (!(await active())) return null;
 
     const previous = state[context];
+    const refused = forced.has(context);
+
+    if (refused) refused_reads.get(account_id)?.delete(context);
 
     if (outcome.status === "parked") {
       summary.pending.push(context);
@@ -1360,6 +1544,24 @@ async function run_locked(
         next_at: at + retry_wait_ms(attempts),
         attempts,
         clean_since: null,
+      };
+      continue;
+    }
+
+    const marked = refused ? at : (previous?.uncovered_since ?? null);
+
+    if (
+      !outcome.rewrote &&
+      marked !== null &&
+      marked <= at &&
+      at - marked < RETIRED_REWRAP_CONFIRM_MS
+    ) {
+      summary.pending.push(context);
+      next_state[context] = {
+        next_at: at + RETIRED_REWRAP_HELD_MS,
+        attempts: 0,
+        clean_since: null,
+        uncovered_since: marked,
       };
       continue;
     }
@@ -1410,6 +1612,39 @@ async function run_locked(
   return summary;
 }
 
+function request_rescan(account_id: string): void {
+  if (rescan_requests.has(account_id)) return;
+
+  rescan_requests.add(account_id);
+  setTimeout(() => {
+    rescan_requests.delete(account_id);
+    run_retired_key_rewrap(account_id).catch((caught) => {
+      ignore_error("services/crypto/retired_key_rewrap:rescan", caught);
+    });
+  }, 0);
+}
+
+export function retired_read_allowed(context: AccountDataContext): boolean {
+  const account_id = get_vault_owner_id();
+
+  if (!account_id) return true;
+
+  const entry = read_state(account_id)[context];
+
+  if (!entry || entry.clean_since === null) return true;
+
+  const refused =
+    refused_reads.get(account_id) ?? new Set<AccountDataContext>();
+
+  refused.add(context);
+  refused_reads.set(account_id, refused);
+  request_rescan(account_id);
+
+  return false;
+}
+
+set_retired_read_guard(retired_read_allowed);
+
 export async function run_retired_key_rewrap(
   account_id: string,
   now: () => number = Date.now,
@@ -1449,6 +1684,7 @@ export function retired_key_rewrap_wait_ms(
   ).filter((context) => HANDLERS[context]);
 
   if (handled.length === 0) return null;
+  if (refused_reads.get(account_id)?.size) return RETIRED_REWRAP_RETRY_MS;
 
   const state = read_state(account_id);
   const at = now();

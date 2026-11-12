@@ -32,6 +32,10 @@ import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
 
 const MISSING_IDENTITY_KEY_MATERIAL = "undefined";
+const MISSING_IDENTITY_MAIL_CONTEXTS = [
+  "astermail-envelope-v1",
+  "astermail-import-v1",
+];
 
 export interface IdentityKeyInstall {
   new_vault: EncryptedVault;
@@ -57,6 +61,32 @@ export async function derive_missing_identity_keks(): Promise<Uint8Array[]> {
   return keks;
 }
 
+export async function prepend_missing_identity_keks(
+  current: EncryptedVault["legacy_keks"],
+): Promise<EncryptedVault["legacy_keks"]> {
+  let legacy_keks = current;
+  const encoder = new TextEncoder();
+  const mail_keks: Uint8Array[] = [];
+
+  for (const context of MISSING_IDENTITY_MAIL_CONTEXTS) {
+    const material = encoder.encode(MISSING_IDENTITY_KEY_MATERIAL + context);
+
+    mail_keks.push(
+      new Uint8Array(await crypto.subtle.digest(HASH_ALG, material)),
+    );
+  }
+
+  for (const raw of [...mail_keks, ...(await derive_missing_identity_keks())]) {
+    legacy_keks = prepend_kek_to_list(
+      legacy_keks,
+      serialize_kek_for_vault(raw),
+    );
+    zero_uint8_array(raw);
+  }
+
+  return legacy_keks;
+}
+
 export async function build_identity_key_install(
   current_vault: EncryptedVault,
   passphrase: string,
@@ -71,15 +101,9 @@ export async function build_identity_key_install(
     passphrase,
   );
 
-  let legacy_keks = current_vault.legacy_keks;
-
-  for (const raw of await derive_missing_identity_keks()) {
-    legacy_keks = prepend_kek_to_list(
-      legacy_keks,
-      serialize_kek_for_vault(raw),
-    );
-    zero_uint8_array(raw);
-  }
+  const legacy_keks = await prepend_missing_identity_keks(
+    current_vault.legacy_keks,
+  );
 
   const new_vault: EncryptedVault = {
     ...current_vault,

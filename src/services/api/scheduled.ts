@@ -41,6 +41,7 @@ import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { is_future_instant } from "@/utils/schedule_targets";
 import { sanitize_header_value } from "@/services/pgp_protected_mime";
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -208,7 +209,7 @@ async function derive_scheduled_encryption_key(
 async function scheduled_write_key(vault: EncryptedVault): Promise<CryptoKey> {
   return (
     (await account_data_write_key(SCHEDULED_KEY_VERSION)) ??
-    derive_scheduled_encryption_key(vault)
+    derive_scheduled_encryption_key(with_identity_key(vault))
   );
 }
 
