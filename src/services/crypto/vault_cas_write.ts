@@ -28,6 +28,7 @@ import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
+  get_vault_owner_id,
   MASTER_KEY_VAULT_FORMAT,
   store_vault_in_memory,
 } from "./memory_key_store";
@@ -296,16 +297,50 @@ async function open_snapshot(
   }
 }
 
+export interface LatestVault {
+  vault: EncryptedVault;
+  vault_sha256: string | null;
+  encrypted_vault: string;
+  vault_nonce: string;
+}
+
 export async function read_latest_vault(
   passphrase: string,
-): Promise<{ vault: EncryptedVault; vault_sha256: string | null } | null> {
+): Promise<LatestVault | null> {
   const fetched = await fetch_latest_vault();
 
   if (fetched.kind !== "ok") return null;
 
   const vault = await open_snapshot(fetched.snapshot, passphrase);
 
-  return vault ? { vault, vault_sha256: fetched.snapshot.vault_sha256 } : null;
+  return vault
+    ? {
+        vault,
+        vault_sha256: fetched.snapshot.vault_sha256,
+        encrypted_vault: fetched.snapshot.encrypted_vault,
+        vault_nonce: fetched.snapshot.vault_nonce,
+      }
+    : null;
+}
+
+export async function adopt_latest_vault_when(
+  accept: (vault: EncryptedVault) => boolean,
+): Promise<EncryptedVault | null> {
+  const passphrase = vault_passphrase();
+  const owner_id = get_vault_owner_id();
+
+  if (!passphrase || !owner_id) return null;
+
+  const latest = await read_latest_vault(passphrase);
+
+  if (!latest || !accept(latest.vault) || get_vault_owner_id() !== owner_id) {
+    return null;
+  }
+
+  persist_local_vault(owner_id, latest.encrypted_vault, latest.vault_nonce);
+  await store_vault_in_memory(latest.vault, passphrase, owner_id);
+
+  return latest.vault;
 }
 
 export function persist_local_vault(

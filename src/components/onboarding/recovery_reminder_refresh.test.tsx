@@ -27,6 +27,8 @@ import { createRoot, type Root } from "react-dom/client";
 const state = vi.hoisted(() => ({
   codes: [] as string[],
   has_codes: true,
+  server_codes: null as string[] | null,
+  adopted: [] as string[][],
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -38,6 +40,21 @@ vi.mock("@/provider", () => ({ use_should_reduce_motion: () => true }));
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => ({ recovery_codes: state.codes }),
   get_vault_owner_id: () => "owner",
+}));
+
+vi.mock("@/services/crypto/vault_cas_write", () => ({
+  adopt_latest_vault_when: async (
+    accept: (vault: { recovery_codes: string[] }) => boolean,
+  ) => {
+    if (!state.server_codes) return null;
+
+    const vault = { recovery_codes: state.server_codes };
+
+    if (!accept(vault)) return null;
+    state.adopted.push(state.server_codes);
+
+    return vault;
+  },
 }));
 
 vi.mock("@/hooks/use_recovery_status", () => ({
@@ -115,6 +132,8 @@ describe("recovery code refresh prompt", () => {
     reset_recovery_code_refresh();
     state.codes = OUTDATED;
     state.has_codes = true;
+    state.server_codes = null;
+    state.adopted = [];
   });
 
   afterEach(() => {
@@ -137,6 +156,24 @@ describe("recovery code refresh prompt", () => {
     await mount();
 
     expect(modal()).toBeNull();
+  });
+
+  it("stays away when another device already replaced the codes", async () => {
+    state.server_codes = CURRENT;
+
+    await mount();
+
+    expect(modal()).toBeNull();
+    expect(state.adopted).toEqual([CURRENT]);
+  });
+
+  it("opens when the server still holds the older codes", async () => {
+    state.server_codes = OUTDATED;
+
+    await mount();
+
+    expect(modal()?.textContent).toContain("required");
+    expect(state.adopted).toEqual([]);
   });
 
   it("stays away when the account has no active codes", async () => {

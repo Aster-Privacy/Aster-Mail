@@ -300,6 +300,8 @@ export function RecoveryCodesModal({
         return {
           status: "replaced" as const,
           already_replaced: latest.vault,
+          encrypted_vault: latest.encrypted_vault,
+          vault_nonce: latest.vault_nonce,
         };
       }
 
@@ -392,6 +394,15 @@ export function RecoveryCodesModal({
           passphrase,
           user?.id,
         );
+
+        if (user?.id && saved.encrypted_vault && saved.vault_nonce) {
+          store_encrypted_vault(
+            user.id,
+            saved.encrypted_vault,
+            saved.vault_nonce,
+          );
+        }
+
         show_toast(
           t(
             is_same_code_set(saved.already_replaced.recovery_codes, new_codes)
