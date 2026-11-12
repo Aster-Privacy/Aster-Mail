@@ -25,6 +25,7 @@ type Row = Record<string, unknown>;
 interface FakeResponse {
   data?: unknown;
   error?: string;
+  status?: number;
 }
 
 const h = vi.hoisted(() => ({
@@ -40,6 +41,11 @@ const h = vi.hoisted(() => ({
   labels: [] as Record<string, unknown>[],
   drafts: [] as Record<string, unknown>[],
   scheduled: [] as Record<string, unknown>[],
+  calendars: [] as Record<string, unknown>[],
+  events: [] as Record<string, unknown>[],
+  calendar_absent: false,
+  calendar_page_size: 100,
+  replace_supported: true,
   preferences: {} as Record<string, unknown>,
   dev_mode: {} as Record<string, unknown>,
   subscriptions: {} as Record<string, unknown>,
@@ -144,6 +150,8 @@ function one_row(rows: Row[], path: string): FakeResponse {
   return found ? { data: { ...found } } : { error: "missing" };
 }
 
+const ACTIVE_STATUSES: unknown[] = ["pending", "sending", "failed"];
+
 function fake_get(url: string): FakeResponse {
   const [path, search] = url.split("?");
   const query = new URLSearchParams(search ?? "");
@@ -155,7 +163,42 @@ function fake_get(url: string): FakeResponse {
   if (path === "/mail/v1/labels") return page(h.labels, query, "labels");
   if (path.startsWith("/mail/v1/tags/")) return one_row(h.tags, path);
   if (path.startsWith("/mail/v1/labels/")) return one_row(h.labels, path);
-  if (path === "/mail/v1/scheduled") return page(h.scheduled, query, "items");
+  if (path === "/mail/v1/scheduled") {
+    const status = query.get("status");
+    const listed = h.scheduled.filter((row) =>
+      status ? row.status === status : ACTIVE_STATUSES.includes(row.status),
+    );
+
+    return page(listed, query, "items");
+  }
+  if (path.startsWith("/calendar/v1/") && h.calendar_absent) {
+    return { error: "not found", status: 404 };
+  }
+  if (path === "/calendar/v1/calendars") {
+    const start = Number(query.get("since_id") ?? 0);
+    const end = start + h.calendar_page_size;
+
+    return {
+      data: {
+        calendars: h.calendars.slice(start, end),
+        has_more: end < h.calendars.length,
+        cursor_id: String(end),
+        server_time: "2026-11-01T00:00:00Z",
+      },
+    };
+  }
+  if (path === "/calendar/v1/events") {
+    const start = Number(query.get("cursor") ?? 0);
+    const end = start + h.calendar_page_size;
+
+    return {
+      data: {
+        events: h.events.slice(start, end),
+        has_more: end < h.events.length,
+        next_cursor: end < h.events.length ? String(end) : null,
+      },
+    };
+  }
   if (path.startsWith("/mail/v1/scheduled/")) {
     const found = h.scheduled.find((row) => path.endsWith(`/${row.id}`));
 
@@ -246,8 +289,68 @@ function fake_put(path: string, body: Row): FakeResponse {
   return { error: "unknown" };
 }
 
+function fake_patch(path: string, body: Row): FakeResponse {
+  h.on_put?.(path);
+
+  if (h.fail_put.some((prefix) => path.startsWith(prefix))) {
+    return { error: "rejected" };
+  }
+
+  const row = h.scheduled.find(
+    (item) => path === `/mail/v1/scheduled/${item.id}`,
+  );
+  const envelope = body.envelope as Row | undefined;
+
+  if (!row) return { error: "missing", status: 404 };
+  if (!envelope || !h.replace_supported) {
+    return { error: "must provide a change", status: 400 };
+  }
+  if (row.status !== "pending" && row.status !== "failed") {
+    return { error: "conflict", status: 409 };
+  }
+  if (row.envelope_nonce !== envelope.expected_envelope_nonce) {
+    return { error: "conflict", status: 409 };
+  }
+  row.encrypted_envelope = envelope.encrypted_envelope;
+  row.envelope_nonce = envelope.envelope_nonce;
+  row.encrypted_recipients = envelope.encrypted_recipients;
+  row.recipients_nonce = envelope.recipients_nonce;
+
+  return { data: { id: row.id, status: row.status } };
+}
+
+function fake_delete(path: string): FakeResponse {
+  h.on_put?.(path);
+
+  if (h.fail_put.some((prefix) => path.startsWith(prefix))) {
+    return { error: "rejected" };
+  }
+
+  const index = h.scheduled.findIndex(
+    (item) => path === `/mail/v1/scheduled/${item.id}`,
+  );
+
+  if (index < 0) return { error: "missing", status: 404 };
+  if (h.scheduled[index].status === "sending") {
+    return { error: "conflict", status: 409 };
+  }
+  h.scheduled.splice(index, 1);
+
+  return { data: { success: true } };
+}
+
 vi.mock("@/services/api/client", () => ({
   api_client: {
+    patch: async (path: string, body: Row) => {
+      h.calls.push({ method: "PATCH", path, body });
+
+      return fake_patch(path, body);
+    },
+    delete: async (path: string) => {
+      h.calls.push({ method: "DELETE", path });
+
+      return fake_delete(path);
+    },
     get: async (path: string) => {
       h.calls.push({ method: "GET", path });
       h.on_get?.(path);
@@ -300,10 +403,10 @@ const OTHER_ACCOUNT = "account-2";
 const START = 1_000_000_000;
 const RECOVERY: AccountDataContext = "astermail-recovery-email-v1";
 const RECOVERY_PATH = "/core/v1/recovery/email";
-const KEPT: AccountDataContext[] = [
-  "astermail-calendar-v2",
-  "astermail-draft-v1",
-];
+const SCHEDULED: AccountDataContext = "astermail-scheduled-v1";
+const SCHEDULED_PATH = "/mail/v1/scheduled";
+const DRAFTS: AccountDataContext = "astermail-draft-v2";
+const CALENDAR: AccountDataContext = "astermail-calendar-v2";
 const LABELS: AccountDataContext = "astermail-labels-v1";
 const SHORT_DRAFTS: AccountDataContext = "astermail-draft-v1";
 const IDENTITY = "current-identity-key-material";
@@ -457,6 +560,70 @@ const SETTINGS: SettingCase[] = [
   },
 ];
 
+function writes(method: string): string[] {
+  return h.calls
+    .filter((call) => call.method === method)
+    .map((call) => call.path)
+    .sort();
+}
+
+async function single_vault(context: AccountDataContext): Promise<void> {
+  const value = all_retired_kek_values().find(
+    (k) => retired_kek_context(k) === context,
+  ) as string;
+  const legacy_keks = [{ k: value, added_at: ADDED_AT }];
+
+  h.vault = { identity_key: IDENTITY, legacy_keks };
+  await load_legacy_keks_into_memory(legacy_keks);
+}
+
+async function scheduled_row(
+  id: string,
+  key: CryptoKey,
+  status: string,
+  text: string,
+): Promise<Row> {
+  const envelope = await seal(key, text);
+  const recipients = await seal(key, `to:${text}`);
+
+  return {
+    id,
+    status,
+    encrypted_envelope: envelope.encrypted,
+    envelope_nonce: envelope.nonce,
+    encrypted_recipients: recipients.encrypted,
+    recipients_nonce: recipients.nonce,
+    ephemeral_key: null,
+  };
+}
+
+async function bound_calendar_blob(
+  key: CryptoKey,
+  binding: string,
+): Promise<{ encrypted_blob: string; blob_nonce: string }> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const sealed = new Uint8Array(
+    await crypto.subtle.encrypt(
+      {
+        name: "AES-GCM",
+        iv,
+        additionalData: new TextEncoder().encode(binding),
+      },
+      key,
+      new TextEncoder().encode("{}"),
+    ),
+  );
+  const framed = new Uint8Array(sealed.length + 1);
+
+  framed[0] = 2;
+  framed.set(sealed, 1);
+
+  return {
+    encrypted_blob: array_to_base64(framed),
+    blob_nonce: array_to_base64(iv),
+  };
+}
+
 function puts(): string[] {
   return h.calls
     .filter((call) => call.method === "PUT")
@@ -489,6 +656,11 @@ beforeEach(async () => {
   h.labels = [];
   h.drafts = [];
   h.scheduled = [];
+  h.calendars = [];
+  h.events = [];
+  h.calendar_absent = false;
+  h.calendar_page_size = 100;
+  h.replace_supported = true;
   h.preferences = {
     encrypted_preferences: null,
     preferences_nonce: null,
@@ -588,15 +760,15 @@ describe("run_retired_key_rewrap", () => {
 
     expect(first?.pending).toEqual([]);
     expect(first?.dropped).toEqual([]);
-    expect(first?.confirming).toHaveLength(9);
+    expect(first?.confirming).toHaveLength(11);
     expect(held_contexts()).toHaveLength(11);
 
     const later = START + RETIRED_REWRAP_CONFIRM_MS + 1;
     const summary = await run_retired_key_rewrap(ACCOUNT, () => later);
 
     expect(summary?.pending).toEqual([]);
-    expect(summary?.dropped).toHaveLength(9);
-    expect(held_contexts()).toEqual(KEPT);
+    expect(summary?.dropped).toHaveLength(11);
+    expect(held_contexts()).toEqual([]);
     expect(get_retired_context_key(TAGS)).toBeNull();
     expect(get_legacy_crypto_keys()).toHaveLength(1);
     await expect(
@@ -614,24 +786,26 @@ describe("run_retired_key_rewrap", () => {
     expect(h.calls).toEqual([]);
   });
 
-  it("keeps a key it has no way to check for remaining data", async () => {
+  it("checks every retired key against stored data", async () => {
     await affected_vault();
 
     const first = await run_retired_key_rewrap(ACCOUNT, () => START);
 
-    expect([...(first?.kept ?? [])].sort()).toEqual(KEPT);
+    expect(first?.kept).toEqual([]);
+    expect(first?.confirming).toHaveLength(11);
 
     const summary = await run_retired_key_rewrap(
       ACCOUNT,
       () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
     );
 
-    expect([...(summary?.kept ?? [])].sort()).toEqual(KEPT);
-    expect(summary?.dropped).not.toContain(KEPT[0]);
-    expect(summary?.dropped).not.toContain(SHORT_DRAFTS);
-    expect(held_contexts()).toEqual(KEPT);
-    for (const context of KEPT) {
-      expect(get_retired_context_key(context)).not.toBeNull();
+    expect(summary?.kept).toEqual([]);
+    expect(summary?.dropped).toHaveLength(11);
+    expect(held_contexts()).toEqual([]);
+    for (const value of all_retired_kek_values()) {
+      const context = retired_kek_context(value) as AccountDataContext;
+
+      expect(get_retired_context_key(context)).toBeNull();
     }
   });
 
@@ -664,7 +838,7 @@ describe("run_retired_key_rewrap", () => {
     expect(third?.rewrapped).toBe(1);
     expect(third?.dropped).not.toContain(TAGS);
     expect(third?.confirming).toEqual([TAGS]);
-    expect(held_contexts()).toEqual([...KEPT, TAGS].sort());
+    expect(held_contexts()).toEqual([TAGS]);
     expect(
       await open(new_key, h.tags[0].encrypted_name, h.tags[0].name_nonce),
     ).toBe("Late");
@@ -679,7 +853,7 @@ describe("run_retired_key_rewrap", () => {
     expect(
       (await run_retired_key_rewrap(ACCOUNT, () => clock))?.dropped,
     ).toEqual([TAGS]);
-    expect(held_contexts()).toEqual(KEPT);
+    expect(held_contexts()).toEqual([]);
   });
 
   it("scans again at once when a dropped key comes back", async () => {
@@ -690,7 +864,7 @@ describe("run_retired_key_rewrap", () => {
     await affected_vault();
     await run_retired_key_rewrap(ACCOUNT, () => START);
     await run_retired_key_rewrap(ACCOUNT, () => later);
-    expect(held_contexts()).toEqual(KEPT);
+    expect(held_contexts()).toEqual([]);
 
     const returned = all_retired_kek_values().find(
       (k) => retired_kek_context(k) === TAGS,
@@ -955,7 +1129,7 @@ describe("run_retired_key_rewrap", () => {
     expect(puts()).toEqual([]);
     expect(summary?.pending).toEqual([RECOVERY]);
     expect(summary?.dropped).not.toContain(RECOVERY);
-    expect(held_contexts()).toEqual([...KEPT, RECOVERY].sort());
+    expect(held_contexts()).toEqual([RECOVERY]);
     expect(get_legacy_crypto_keys()).toHaveLength(1);
     expect(h.recovery.verified).toBe(false);
     expect(h.recovery.encrypted_email).toBe(sealed.encrypted);
@@ -989,7 +1163,7 @@ describe("run_retired_key_rewrap", () => {
 
     expect(puts()).toEqual([]);
     expect(summary?.pending).toEqual([RECOVERY]);
-    expect(held_contexts()).toEqual([...KEPT, RECOVERY].sort());
+    expect(held_contexts()).toEqual([RECOVERY]);
     expect(get_legacy_crypto_keys()).toHaveLength(1);
     expect(
       await open(old_key, h.recovery.encrypted_email, h.recovery.email_nonce),
@@ -1030,7 +1204,7 @@ describe("run_retired_key_rewrap", () => {
     await run_retired_key_rewrap(ACCOUNT, () => clock);
     clock += RETIRED_REWRAP_CONFIRM_MS + 1;
     await run_retired_key_rewrap(ACCOUNT, () => clock);
-    expect(held_contexts()).toEqual([...KEPT, RECOVERY].sort());
+    expect(held_contexts()).toEqual([RECOVERY]);
     expect(retired_key_rewrap_wait_ms(ACCOUNT, () => clock)).toBe(
       RETIRED_REWRAP_HELD_MS,
     );
@@ -1127,7 +1301,7 @@ describe("run_retired_key_rewrap", () => {
 
     await run_retired_key_rewrap(ACCOUNT, () => START);
     await run_retired_key_rewrap(ACCOUNT, () => later);
-    expect(held_contexts()).toEqual(KEPT);
+    expect(held_contexts()).toEqual([]);
 
     await write_vault_merged({
       next: { ...stale, recovery_codes: ["a"] } as never,
@@ -1135,7 +1309,7 @@ describe("run_retired_key_rewrap", () => {
     });
 
     expect(h.vault?.recovery_codes).toEqual(["a"]);
-    expect(held_contexts()).toEqual(KEPT);
+    expect(held_contexts()).toEqual([]);
     expect(get_retired_context_key(TAGS)).toBeNull();
 
     h.calls = [];
@@ -1151,7 +1325,7 @@ describe("run_retired_key_rewrap", () => {
 
     await run_retired_key_rewrap(ACCOUNT, () => START);
     await run_retired_key_rewrap(ACCOUNT, () => later);
-    expect(held_contexts()).toEqual(KEPT);
+    expect(held_contexts()).toEqual([]);
 
     await write_vault_merged({ next: stale as never, base: null });
     expect(held_contexts()).toHaveLength(11);
@@ -1162,7 +1336,7 @@ describe("run_retired_key_rewrap", () => {
 
     expect(again?.rewrapped).toBe(1);
     expect(again?.dropped).toEqual([]);
-    expect(again?.confirming).toHaveLength(9);
+    expect(again?.confirming).toHaveLength(11);
     expect(held_contexts()).toHaveLength(11);
 
     const settled = await run_retired_key_rewrap(
@@ -1170,8 +1344,8 @@ describe("run_retired_key_rewrap", () => {
       () => later + 1 + RETIRED_REWRAP_CONFIRM_MS,
     );
 
-    expect(settled?.dropped).toHaveLength(9);
-    expect(held_contexts()).toEqual(KEPT);
+    expect(settled?.dropped).toHaveLength(11);
+    expect(held_contexts()).toEqual([]);
   });
 
   it("keeps a recovery blob that is not an address where it is", async () => {
@@ -1267,7 +1441,7 @@ describe("run_retired_key_rewrap", () => {
 
     clock += RETIRED_REWRAP_CONFIRM_MS + 1;
     await run_retired_key_rewrap(ACCOUNT, () => clock);
-    expect(held_contexts()).toEqual(KEPT);
+    expect(held_contexts()).toEqual([]);
 
     const names: string[] = [];
 
@@ -1293,7 +1467,7 @@ describe("run_retired_key_rewrap", () => {
       () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
     );
 
-    expect(held_contexts()).toEqual([...KEPT, "astermail-labels-v1"]);
+    expect(held_contexts()).toEqual(["astermail-labels-v1"]);
   });
 
   it("keeps every key when the vault write does not land", async () => {
@@ -1308,7 +1482,7 @@ describe("run_retired_key_rewrap", () => {
 
     expect(h.vault_writes).toBe(1);
     expect(summary?.dropped).toEqual([]);
-    expect(summary?.pending).toHaveLength(9);
+    expect(summary?.pending).toHaveLength(11);
     expect(held_contexts()).toHaveLength(11);
   });
 
@@ -1397,24 +1571,13 @@ describe("run_retired_key_rewrap", () => {
     expect(summary?.confirming).toContain(context);
   });
 
-  it("only reports data it has no way to write back", async () => {
-    const scheduled = await seal(
-      await retired_key("astermail-scheduled-v1"),
-      "queued",
-    );
+  it("only reports a recovery address it has no way to write back", async () => {
     const recovery = await seal(
-      await retired_key("astermail-recovery-email-v1"),
+      await retired_key(RECOVERY),
       "user@example.org",
     );
 
     await affected_vault();
-    h.scheduled = [
-      {
-        id: "s1",
-        encrypted_envelope: scheduled.encrypted,
-        envelope_nonce: scheduled.nonce,
-      },
-    ];
     h.recovery = {
       exists: true,
       encrypted_email: recovery.encrypted,
@@ -1422,25 +1585,362 @@ describe("run_retired_key_rewrap", () => {
     };
 
     const summary = await run_retired_key_rewrap(ACCOUNT);
-    const kept = ["astermail-recovery-email-v1", "astermail-scheduled-v1"];
 
     expect(puts()).toEqual([]);
-    expect(summary?.held).toBe(2);
-    expect([...(summary?.pending ?? [])].sort()).toEqual(kept);
-    expect(held_contexts()).toEqual(expect.arrayContaining(kept));
-    expect(h.scheduled[0].encrypted_envelope).toBe(scheduled.encrypted);
+    expect(summary?.held).toBe(1);
+    expect(summary?.pending).toEqual([RECOVERY]);
+    expect(held_contexts()).toContain(RECOVERY);
     expect(h.recovery.encrypted_email).toBe(recovery.encrypted);
   });
 
-  it("keeps the key of the short draft format and makes no request", async () => {
-    const short_key = all_retired_kek_values().find(
-      (k) => retired_kek_context(k) === SHORT_DRAFTS,
-    ) as string;
-    const legacy_keks = [{ k: short_key, added_at: ADDED_AT }];
-    const sealed = await seal(await retired_key(SHORT_DRAFTS), "slot");
+  it("moves a waiting scheduled message to the current key", async () => {
+    const old_key = await retired_key(SCHEDULED);
+    const new_key = await identity_key(SCHEDULED);
 
-    h.vault = { identity_key: IDENTITY, legacy_keks };
-    await load_legacy_keks_into_memory(legacy_keks);
+    await affected_vault();
+    h.scheduled = [await scheduled_row("s1", old_key, "pending", "queued")];
+
+    const before = { ...h.scheduled[0] };
+    const first = await run_retired_key_rewrap(ACCOUNT, () => START);
+    const write = h.calls.find((call) => call.method === "PATCH");
+    const body = (write?.body as Row).envelope as Row;
+
+    expect(writes("PATCH")).toEqual([`${SCHEDULED_PATH}/s1`]);
+    expect(writes("DELETE")).toEqual([]);
+    expect(body.expected_envelope_nonce).toBe(before.envelope_nonce);
+    expect(first?.rewrapped).toBe(1);
+    expect(first?.confirming).toContain(SCHEDULED);
+    expect(
+      await open(
+        new_key,
+        h.scheduled[0].encrypted_envelope,
+        h.scheduled[0].envelope_nonce,
+      ),
+    ).toBe("queued");
+    expect(
+      await open(
+        new_key,
+        h.scheduled[0].encrypted_recipients,
+        h.scheduled[0].recipients_nonce,
+      ),
+    ).toBe("to:queued");
+    expect(
+      await open(
+        old_key,
+        h.scheduled[0].encrypted_envelope,
+        h.scheduled[0].envelope_nonce,
+      ),
+    ).toBeNull();
+    expect(held_contexts()).toContain(SCHEDULED);
+
+    await run_retired_key_rewrap(
+      ACCOUNT,
+      () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
+    );
+    expect(held_contexts()).toEqual([]);
+    expect(h.scheduled).toHaveLength(1);
+  });
+
+  it("writes a scheduled message under the account key when there is one", async () => {
+    h.account_key = await aes_key(new Uint8Array(32).fill(9));
+    await single_vault(SCHEDULED);
+    h.scheduled = [
+      await scheduled_row("s1", await retired_key(SCHEDULED), "failed", "late"),
+    ];
+
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(summary?.rewrapped).toBe(1);
+    expect(
+      await open(
+        h.account_key,
+        h.scheduled[0].encrypted_envelope,
+        h.scheduled[0].envelope_nonce,
+      ),
+    ).toBe("late");
+  });
+
+  it("keeps a part of a scheduled message that is already current", async () => {
+    const old_key = await retired_key(SCHEDULED);
+    const new_key = await identity_key(SCHEDULED);
+    const row = await scheduled_row("s1", new_key, "pending", "queued");
+    const recipients = await seal(old_key, "to:queued");
+
+    row.encrypted_recipients = recipients.encrypted;
+    row.recipients_nonce = recipients.nonce;
+
+    const envelope = row.encrypted_envelope;
+
+    await single_vault(SCHEDULED);
+    h.scheduled = [row];
+
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(summary?.rewrapped).toBe(1);
+    expect(h.scheduled[0].encrypted_envelope).toBe(envelope);
+    expect(
+      await open(
+        new_key,
+        h.scheduled[0].encrypted_recipients,
+        h.scheduled[0].recipients_nonce,
+      ),
+    ).toBe("to:queued");
+  });
+
+  it("removes finished scheduled messages still under a retired key", async () => {
+    const old_key = await retired_key(SCHEDULED);
+    const new_key = await identity_key(SCHEDULED);
+
+    await affected_vault();
+    h.scheduled = [
+      await scheduled_row("s1", old_key, "sent", "done"),
+      await scheduled_row("s2", old_key, "cancelled", "dropped"),
+      await scheduled_row("s3", new_key, "sent", "current"),
+      await scheduled_row("s4", new_key, "pending", "waiting"),
+    ];
+
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(writes("DELETE")).toEqual([
+      `${SCHEDULED_PATH}/s1`,
+      `${SCHEDULED_PATH}/s2`,
+    ]);
+    expect(writes("PATCH")).toEqual([]);
+    expect(h.scheduled.map((row) => row.id)).toEqual(["s3", "s4"]);
+    expect(summary?.rewrapped).toBe(2);
+    expect(summary?.confirming).toContain(SCHEDULED);
+
+    await run_retired_key_rewrap(
+      ACCOUNT,
+      () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
+    );
+    expect(held_contexts()).toEqual([]);
+    expect(h.scheduled.map((row) => row.id)).toEqual(["s3", "s4"]);
+  });
+
+  it("makes no scheduled write when nothing is under the retired key", async () => {
+    const new_key = await identity_key(SCHEDULED);
+
+    await single_vault(SCHEDULED);
+    h.scheduled = [
+      await scheduled_row("s1", new_key, "pending", "waiting"),
+      await scheduled_row("s2", new_key, "sent", "done"),
+    ];
+
+    const before = h.scheduled.map((row) => ({ ...row }));
+    const first = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(first?.confirming).toEqual([SCHEDULED]);
+    expect(first?.rewrapped).toBe(0);
+    expect(h.calls.every((call) => call.method === "GET")).toBe(true);
+    expect(h.scheduled).toEqual(before);
+
+    const summary = await run_retired_key_rewrap(
+      ACCOUNT,
+      () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
+    );
+
+    expect(summary?.dropped).toEqual([SCHEDULED]);
+    expect(h.scheduled).toEqual(before);
+  });
+
+  it("keeps a waiting scheduled message when it cannot be replaced yet", async () => {
+    const old_key = await retired_key(SCHEDULED);
+    let clock = START;
+
+    await single_vault(SCHEDULED);
+    h.scheduled = [await scheduled_row("s1", old_key, "pending", "queued")];
+    h.replace_supported = false;
+
+    const before = { ...h.scheduled[0] };
+    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(first?.pending).toEqual([SCHEDULED]);
+    expect(first?.rewrapped).toBe(0);
+    expect(writes("DELETE")).toEqual([]);
+    expect(h.scheduled[0]).toEqual(before);
+
+    clock += RETIRED_REWRAP_CONFIRM_MS + 1;
+    await run_retired_key_rewrap(ACCOUNT, () => clock);
+    expect(held_contexts()).toEqual([SCHEDULED]);
+    expect(h.scheduled[0]).toEqual(before);
+
+    h.replace_supported = true;
+    clock += RETIRED_REWRAP_RESCAN_MS + 1;
+
+    const later = await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(later?.rewrapped).toBe(1);
+    expect(later?.confirming).toEqual([SCHEDULED]);
+    expect(
+      await open(
+        await identity_key(SCHEDULED),
+        h.scheduled[0].encrypted_envelope,
+        h.scheduled[0].envelope_nonce,
+      ),
+    ).toBe("queued");
+  });
+
+  it("waits for a scheduled message that is being sent", async () => {
+    const old_key = await retired_key(SCHEDULED);
+
+    await single_vault(SCHEDULED);
+    h.scheduled = [await scheduled_row("s1", old_key, "sending", "going")];
+
+    const before = { ...h.scheduled[0] };
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(summary?.pending).toEqual([SCHEDULED]);
+    expect(h.calls.every((call) => call.method === "GET")).toBe(true);
+    expect(h.scheduled[0]).toEqual(before);
+    expect(held_contexts()).toEqual([SCHEDULED]);
+  });
+
+  it("yields to a scheduled message another device changed", async () => {
+    const old_key = await retired_key(SCHEDULED);
+    const other = await scheduled_row("s1", old_key, "pending", "edited");
+
+    await single_vault(SCHEDULED);
+    h.scheduled = [await scheduled_row("s1", old_key, "pending", "queued")];
+    change_on_read(`${SCHEDULED_PATH}/s1`, 1, () => {
+      queueMicrotask(() => {
+        h.scheduled[0] = other;
+      });
+    });
+
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(summary?.pending).toEqual([SCHEDULED]);
+    expect(summary?.rewrapped).toBe(0);
+    expect(h.scheduled[0]).toEqual(other);
+    expect(held_contexts()).toEqual([SCHEDULED]);
+  });
+
+  it("keeps a finished scheduled message that changed before removal", async () => {
+    const old_key = await retired_key(SCHEDULED);
+    const other = await scheduled_row("s1", old_key, "sent", "edited");
+
+    await single_vault(SCHEDULED);
+    h.scheduled = [await scheduled_row("s1", old_key, "sent", "done")];
+    change_on_read(`${SCHEDULED_PATH}/s1`, 2, () => {
+      h.scheduled[0] = other;
+    });
+
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(writes("DELETE")).toEqual([]);
+    expect(summary?.pending).toEqual([SCHEDULED]);
+    expect(h.scheduled).toHaveLength(1);
+  });
+
+  it("resumes scheduled messages after an interrupted run", async () => {
+    const old_key = await retired_key(SCHEDULED);
+    const new_key = await identity_key(SCHEDULED);
+    let clock = START;
+
+    await single_vault(SCHEDULED);
+    h.scheduled = [
+      await scheduled_row("s1", old_key, "pending", "one"),
+      await scheduled_row("s2", old_key, "pending", "two"),
+      await scheduled_row("s3", old_key, "sent", "three"),
+    ];
+    h.fail_get = [`${SCHEDULED_PATH}/s2`];
+
+    const kept = { ...h.scheduled[1] };
+    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(first?.rewrapped).toBe(1);
+    expect(first?.pending).toEqual([SCHEDULED]);
+    expect(h.scheduled[1]).toEqual(kept);
+    expect(h.scheduled).toHaveLength(3);
+    expect(held_contexts()).toEqual([SCHEDULED]);
+
+    h.fail_get = [];
+    h.calls = [];
+    clock += RETIRED_REWRAP_RETRY_MS;
+
+    const second = await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(writes("PATCH")).toEqual([`${SCHEDULED_PATH}/s2`]);
+    expect(writes("DELETE")).toEqual([`${SCHEDULED_PATH}/s3`]);
+    expect(second?.rewrapped).toBe(2);
+    expect(second?.confirming).toEqual([SCHEDULED]);
+
+    const texts: string[] = [];
+
+    for (const row of h.scheduled) {
+      texts.push(
+        (await open(new_key, row.encrypted_envelope, row.envelope_nonce)) ?? "",
+      );
+    }
+
+    expect(texts).toEqual(["one", "two"]);
+
+    clock += RETIRED_REWRAP_CONFIRM_MS + 1;
+    await run_retired_key_rewrap(ACCOUNT, () => clock);
+    expect(held_contexts()).toEqual([]);
+  });
+
+  it("keeps a scheduled message whose write was refused", async () => {
+    const old_key = await retired_key(SCHEDULED);
+
+    await single_vault(SCHEDULED);
+    h.scheduled = [
+      await scheduled_row("s1", old_key, "pending", "queued"),
+      await scheduled_row("s2", old_key, "sent", "done"),
+    ];
+    h.fail_put = [SCHEDULED_PATH];
+
+    const before = h.scheduled.map((row) => ({ ...row }));
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(summary?.pending).toEqual([SCHEDULED]);
+    expect(summary?.held).toBe(2);
+    expect(h.scheduled).toEqual(before);
+    expect(held_contexts()).toEqual([SCHEDULED]);
+  });
+
+  it("stops scheduled writes when the account changes during a run", async () => {
+    const old_key = await retired_key(SCHEDULED);
+
+    await single_vault(SCHEDULED);
+    h.scheduled = [
+      await scheduled_row("s1", old_key, "pending", "queued"),
+      await scheduled_row("s2", old_key, "sent", "done"),
+    ];
+    change_on_read(`${SCHEDULED_PATH}/s1`, 1, () => {
+      h.current_account = OTHER_ACCOUNT;
+    });
+
+    const before = h.scheduled.map((row) => ({ ...row }));
+
+    expect(await run_retired_key_rewrap(ACCOUNT, () => START)).toBeNull();
+    expect(writes("PATCH")).toEqual([]);
+    expect(writes("DELETE")).toEqual([]);
+    expect(h.scheduled).toEqual(before);
+    expect(h.vault_writes).toBe(0);
+  });
+
+  it("keeps the scheduled key while the list cannot be read", async () => {
+    await single_vault(SCHEDULED);
+    h.fail_get = [SCHEDULED_PATH];
+
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(summary?.pending).toEqual([SCHEDULED]);
+
+    await run_retired_key_rewrap(
+      ACCOUNT,
+      () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
+    );
+    expect(held_contexts()).toEqual([SCHEDULED]);
+  });
+
+  it("moves a draft in the short format to the current draft key", async () => {
+    const sealed = await seal(await retired_key(SHORT_DRAFTS), "slot");
+    let clock = START;
+
+    await single_vault(SHORT_DRAFTS);
     h.drafts = [
       {
         id: "d1",
@@ -1450,19 +1950,208 @@ describe("run_retired_key_rewrap", () => {
       },
     ];
 
+    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(puts()).toEqual(["/mail/v1/drafts/d1"]);
+    expect(first?.rewrapped).toBe(1);
+    expect(first?.confirming).toEqual([SHORT_DRAFTS]);
+    expect(
+      await open(
+        await identity_key(DRAFTS),
+        h.drafts[0].encrypted_content,
+        h.drafts[0].content_nonce,
+      ),
+    ).toBe("slot");
+    expect(held_contexts()).toEqual([SHORT_DRAFTS]);
+
+    clock += RETIRED_REWRAP_CONFIRM_MS + 1;
+
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(summary?.dropped).toEqual([SHORT_DRAFTS]);
+    expect(held_contexts()).toEqual([]);
+    expect(get_retired_context_key(SHORT_DRAFTS)).toBeNull();
+  });
+
+  it("drops the short draft key once the server holds nothing under it", async () => {
+    const current = await seal(await identity_key(DRAFTS), "body");
+
+    await single_vault(SHORT_DRAFTS);
+    h.drafts = [
+      {
+        id: "d1",
+        encrypted_content: current.encrypted,
+        content_nonce: current.nonce,
+        version: 1,
+      },
+    ];
+
     const first = await run_retired_key_rewrap(ACCOUNT, () => START);
 
-    expect(first).toBeNull();
+    expect(first?.confirming).toEqual([SHORT_DRAFTS]);
+    expect(h.calls.every((call) => call.method === "GET")).toBe(true);
+    expect(h.calls.length).toBeGreaterThan(0);
 
-    const second = await run_retired_key_rewrap(
+    const summary = await run_retired_key_rewrap(
       ACCOUNT,
       () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
     );
 
-    expect(second).toBeNull();
-    expect(h.calls).toEqual([]);
+    expect(summary?.dropped).toEqual([SHORT_DRAFTS]);
+    expect(h.drafts[0].encrypted_content).toBe(current.encrypted);
+    expect(held_contexts()).toEqual([]);
+  });
+
+  it("keeps a short format draft and its key when the write fails", async () => {
+    const sealed = await seal(await retired_key(SHORT_DRAFTS), "slot");
+    let clock = START;
+
+    await single_vault(SHORT_DRAFTS);
+    h.drafts = [
+      {
+        id: "d1",
+        encrypted_content: sealed.encrypted,
+        content_nonce: sealed.nonce,
+        version: 1,
+      },
+    ];
+    h.fail_put = ["/mail/v1/drafts/"];
+
+    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(first?.pending).toEqual([SHORT_DRAFTS]);
     expect(h.drafts[0].encrypted_content).toBe(sealed.encrypted);
+
+    h.fail_put = [];
+    clock += RETIRED_REWRAP_RETRY_MS;
+
+    const second = await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(second?.rewrapped).toBe(1);
+    expect(second?.confirming).toEqual([SHORT_DRAFTS]);
+  });
+
+  it("keeps the short draft key while drafts cannot be listed", async () => {
+    await single_vault(SHORT_DRAFTS);
+    h.fail_get = ["/mail/v1/drafts"];
+
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(summary?.pending).toEqual([SHORT_DRAFTS]);
+
+    await run_retired_key_rewrap(
+      ACCOUNT,
+      () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
+    );
     expect(held_contexts()).toEqual([SHORT_DRAFTS]);
+  });
+
+  it("drops the calendar key once no calendar data is under it", async () => {
+    const other = await bound_calendar_blob(
+      await aes_key(new Uint8Array(32).fill(5)),
+      "event_id=e1\ncalendar_id=c1\nversion=2",
+    );
+
+    await single_vault(CALENDAR);
+    h.calendar_page_size = 1;
+    h.calendars = [
+      { id: "c1", ...other },
+      { id: "c2", ...other },
+    ];
+    h.events = [
+      { id: "e1", calendar_id: "c1", ...other },
+      { id: "e2", calendar_id: "c1", ...other },
+    ];
+
+    const first = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(first?.checked).toBe(4);
+    expect(first?.confirming).toEqual([CALENDAR]);
+    expect(h.calls.every((call) => call.method === "GET")).toBe(true);
+
+    const summary = await run_retired_key_rewrap(
+      ACCOUNT,
+      () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
+    );
+
+    expect(summary?.dropped).toEqual([CALENDAR]);
+    expect(held_contexts()).toEqual([]);
+  });
+
+  it("keeps the calendar key while an event is still under it", async () => {
+    const old_key = await retired_key(CALENDAR);
+    const bound = await bound_calendar_blob(
+      old_key,
+      "event_id=e1\ncalendar_id=c1\nversion=2",
+    );
+    const plain = await seal(old_key, "{}");
+    let clock = START;
+
+    await single_vault(CALENDAR);
+    h.calendars = [
+      { id: "c1", encrypted_blob: plain.encrypted, blob_nonce: plain.nonce },
+    ];
+    h.events = [{ id: "e1", calendar_id: "c1", ...bound }];
+
+    const before = { ...h.events[0] };
+    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(first?.held).toBe(2);
+    expect(first?.pending).toEqual([CALENDAR]);
+    expect(h.calls.every((call) => call.method === "GET")).toBe(true);
+
+    clock += RETIRED_REWRAP_CONFIRM_MS + 1;
+    await run_retired_key_rewrap(ACCOUNT, () => clock);
+    expect(held_contexts()).toEqual([CALENDAR]);
+    expect(h.events[0]).toEqual(before);
+    expect(get_retired_context_key(CALENDAR)).not.toBeNull();
+  });
+
+  it("finds a calendar bound to its own id under the retired key", async () => {
+    const bound = await bound_calendar_blob(
+      await retired_key(CALENDAR),
+      "event_id=\ncalendar_id=c1\nversion=2",
+    );
+
+    await single_vault(CALENDAR);
+    h.calendars = [{ id: "c1", ...bound }];
+
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(summary?.held).toBe(1);
+    expect(summary?.pending).toEqual([CALENDAR]);
+  });
+
+  it("treats an account without calendar storage as holding none", async () => {
+    await single_vault(CALENDAR);
+    h.calendar_absent = true;
+
+    const first = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(first?.confirming).toEqual([CALENDAR]);
+
+    const summary = await run_retired_key_rewrap(
+      ACCOUNT,
+      () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
+    );
+
+    expect(summary?.dropped).toEqual([CALENDAR]);
+  });
+
+  it("keeps the calendar key while calendar data cannot be read", async () => {
+    await single_vault(CALENDAR);
+    h.fail_get = ["/calendar/v1/events"];
+
+    const first = await run_retired_key_rewrap(ACCOUNT, () => START);
+
+    expect(first?.pending).toEqual([CALENDAR]);
+
+    h.fail_get = ["/calendar/v1/calendars"];
+    await run_retired_key_rewrap(
+      ACCOUNT,
+      () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
+    );
+    expect(held_contexts()).toEqual([CALENDAR]);
   });
 
   it("leaves a draft alone while it is being saved or is open here", async () => {
