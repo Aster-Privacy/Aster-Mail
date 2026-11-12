@@ -25,6 +25,7 @@ import { createRoot, type Root } from "react-dom/client";
 const h = vi.hoisted(() => ({
   block_external_content: true,
   load_remote_images: "never",
+  defer_images: false,
 }));
 
 vi.mock("@/contexts/external_link_context", () => ({
@@ -47,6 +48,11 @@ vi.mock("@/contexts/preferences_context", () => ({
 vi.mock("@/services/lockdown_store", async (import_original) => ({
   ...(await import_original<typeof import("@/services/lockdown_store")>()),
   is_any_lockdown_active: () => false,
+}));
+
+vi.mock("@/lib/image_proxy_grant", async (import_original) => ({
+  ...(await import_original<typeof import("@/lib/image_proxy_grant")>()),
+  should_defer_proxied_images: () => h.defer_images,
 }));
 
 vi.mock("@/lib/image_proxy", async (import_original) => ({
@@ -131,6 +137,27 @@ describe("QuotedHtmlPreview", () => {
       expect(markup).not.toContain("<style");
     } finally {
       h.load_remote_images = "never";
+    }
+  });
+
+  it("holds remote images behind a placeholder until the grant loads them", () => {
+    h.block_external_content = false;
+    h.load_remote_images = "always";
+    h.defer_images = true;
+    const fetch_spy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(() => new Promise<Response>(() => undefined));
+
+    try {
+      const { container } = render(<QuotedHtmlPreview html={HTML} />);
+      const remote = container.querySelector('img[alt="remote"]');
+
+      expect(remote?.getAttribute("src")).toMatch(/^data:image\/gif;base64,/);
+      expect(container.innerHTML).not.toContain("https://tracker.example");
+    } finally {
+      fetch_spy.mockRestore();
+      h.load_remote_images = "never";
+      h.defer_images = false;
     }
   });
 

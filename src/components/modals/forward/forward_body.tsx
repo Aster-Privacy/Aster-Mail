@@ -26,6 +26,8 @@ import { useEffect, useState } from "react";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { proxy_compose_image_sources } from "@/lib/compose_image_sources";
 import { use_compose_readable_color } from "@/hooks/use_compose_readable_color";
+import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration";
+import { defer_compose_images } from "@/lib/compose_deferred_images";
 import { EditableQuotedHtml } from "@/components/compose/editable_quoted_html";
 import { CloseIcon } from "@/components/common/icons";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
@@ -128,6 +130,7 @@ export function ForwardBody({
   source_email_id,
 }: ForwardBodyProps) {
   use_compose_readable_color(message_editor_ref);
+  use_compose_image_hydration(message_editor_ref);
   const [has_shown_forward, set_has_shown_forward] = useState(false);
 
   useEffect(() => {
@@ -138,8 +141,8 @@ export function ForwardBody({
     const el = message_editor_ref.current;
 
     if (el && message_content && !el.innerHTML) {
-      el.innerHTML = proxy_compose_image_sources(
-        sanitize_compose_paste(message_content),
+      el.innerHTML = defer_compose_images(
+        proxy_compose_image_sources(sanitize_compose_paste(message_content)),
       );
     }
   });

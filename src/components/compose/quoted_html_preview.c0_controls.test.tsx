@@ -25,11 +25,17 @@ import { createRoot, type Root } from "react-dom/client";
 const h = vi.hoisted(() => ({
   bypass_sanitizer: false,
   lockdown: false,
+  defer_images: false,
 }));
 
 vi.mock("@/services/lockdown_store", async (import_original) => ({
   ...(await import_original<typeof import("@/services/lockdown_store")>()),
   is_any_lockdown_active: () => h.lockdown,
+}));
+
+vi.mock("@/lib/image_proxy_grant", async (import_original) => ({
+  ...(await import_original<typeof import("@/lib/image_proxy_grant")>()),
+  should_defer_proxied_images: () => h.defer_images,
 }));
 
 vi.mock("@/lib/image_proxy", async (import_original) => ({

@@ -71,6 +71,7 @@ import {
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
+import { defer_compose_images } from "@/lib/compose_deferred_images";
 import {
   contain_draft_quotes,
   read_compose_editor_html,
@@ -990,10 +991,12 @@ export function use_compose({
           (resolved_html) => {
             if (!message_textarea_ref.current) return;
 
-            message_textarea_ref.current.innerHTML = contain_draft_quotes(
-              resolved_html,
-              quote_options_ref.current(),
-              !!edit_draft.forward_from_id,
+            message_textarea_ref.current.innerHTML = defer_compose_images(
+              contain_draft_quotes(
+                resolved_html,
+                quote_options_ref.current(),
+                !!edit_draft.forward_from_id,
+              ),
             );
             set_message(
               is_plain_text_ref.current
@@ -1117,9 +1120,8 @@ export function use_compose({
       (resolved_html) => {
         if (!message_textarea_ref.current) return;
 
-        message_textarea_ref.current.innerHTML = contain_draft_quotes(
-          resolved_html,
-          quote_options_ref.current(),
+        message_textarea_ref.current.innerHTML = defer_compose_images(
+          contain_draft_quotes(resolved_html, quote_options_ref.current()),
         );
         if (is_plain_text_ref.current) {
           const text = message_textarea_ref.current.innerText;
@@ -1195,7 +1197,7 @@ export function use_compose({
     const sanitized = sanitize_html(raw_html, get_compose_sanitize_options());
     const wrapper = document.createElement("div");
 
-    wrapper.innerHTML = sanitized.html;
+    wrapper.innerHTML = defer_compose_images(sanitized.html);
     const new_node = wrapper.firstElementChild;
 
     if (!new_node) {

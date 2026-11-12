@@ -35,6 +35,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
 import { ignore_error } from "@/lib/ignore_error";
+import { COMPOSE_DEFERRED_SRC_ATTRIBUTE } from "@/lib/compose_deferred_markup";
 
 interface ComposeHandle {
   message_textarea_ref: React.RefObject<HTMLDivElement | null>;
@@ -157,6 +158,11 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
     (img: HTMLImageElement) => {
       const src = img.src;
 
+      if (img.hasAttribute(COMPOSE_DEFERRED_SRC_ATTRIBUTE)) {
+        style_inline_image(img);
+
+        return;
+      }
       if (src.startsWith("data:")) return;
       if (src.startsWith("blob:")) {
         fetch(src)

@@ -40,6 +40,11 @@ vi.mock("@/lib/image_proxy", async (import_original) => ({
 }));
 
 import {
+  COMPOSE_DEFERRED_BACKGROUND_ATTRIBUTE,
+  COMPOSE_DEFERRED_SRC_ATTRIBUTE,
+  COMPOSE_IMAGE_PLACEHOLDER,
+} from "@/lib/compose_deferred_markup";
+import {
   build_editable_quoted_fragment,
   build_quoted_editor_html,
   contain_draft_quotes,
@@ -113,7 +118,10 @@ describe("editable forwarded message", () => {
     const container = mount('<img src="https://cdn.example/logo.png">');
     const image = container.querySelector("img")!;
 
-    expect(image.getAttribute("src")).toContain("/api/images/v1/proxy?url=");
+    expect(image.getAttribute("src")).toBe(COMPOSE_IMAGE_PLACEHOLDER);
+    expect(image.getAttribute(COMPOSE_DEFERRED_SRC_ATTRIBUTE)).toContain(
+      "/api/images/v1/proxy?url=",
+    );
 
     const result = read_editable_quoted_html(container);
 
@@ -342,11 +350,16 @@ describe.each(PROXY_URLS)(
     it("still loads remote images through the proxy when blocking is off", () => {
       const container = mount(DIOGO_INPUT, false);
 
-      expect(container.querySelector("img")!.getAttribute("src")).toBe(
+      const image = container.querySelector("img")!;
+
+      expect(image.getAttribute("src")).toBe(COMPOSE_IMAGE_PLACEHOLDER);
+      expect(image.getAttribute(COMPOSE_DEFERRED_SRC_ATTRIBUTE)).toBe(
         `${proxy_url}?url=${encodeURIComponent("https://evil.example/px?id=v")}`,
       );
       expect(
-        container.querySelector("table")!.getAttribute("background"),
+        container
+          .querySelector("table")!
+          .getAttribute(COMPOSE_DEFERRED_BACKGROUND_ATTRIBUTE),
       ).toContain(proxy_url);
     });
   },

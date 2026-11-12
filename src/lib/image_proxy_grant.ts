@@ -23,12 +23,15 @@ import { Capacitor } from "@capacitor/core";
 
 import { api_client } from "@/services/api/client";
 import { connection_store } from "@/services/routing/connection_store";
+import { routed_fetch } from "@/services/routing/routing_provider";
 
 const GRANT_ENDPOINT = "/images/v1/grant";
 const GRANT_SCHEME = "AsterImageGrant";
+const ACCOUNT_SCHEME = "Bearer";
 const REFRESH_MARGIN_MS = 30_000;
-const UNSUPPORTED_COOLDOWN_MS = 10 * 60_000;
-const FAILURE_COOLDOWN_MS = 30_000;
+const UNSUPPORTED_COOLDOWN_MS = 60_000;
+const RATE_LIMITED_COOLDOWN_MS = 30_000;
+const FAILURE_COOLDOWN_MS = 1_000;
 
 interface GrantResponse {
   grant: string;
@@ -66,13 +69,98 @@ export function should_defer_proxied_images(): boolean {
   if (typeof URL === "undefined" || typeof URL.createObjectURL !== "function") {
     return false;
   }
-  if (Capacitor.isNativePlatform() || "__TAURI_INTERNALS__" in window) {
-    return false;
-  }
-
   const method = connection_store.get_method();
 
   return method !== "tor" && method !== "tor_snowflake";
+}
+
+function is_native_shell(): boolean {
+  return (
+    Capacitor.isNativePlatform() ||
+    (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window)
+  );
+}
+
+function absolute_proxy_target(target: string): string {
+  if (typeof window === "undefined" || !window.location) return target;
+
+  try {
+    return new URL(target, window.location.href).href;
+  } catch {
+    return target;
+  }
+}
+
+function routed_image_fetch(target: string, init: RequestInit) {
+  return routed_fetch(absolute_proxy_target(target), init);
+}
+
+function image_request(
+  authorization: string,
+  signal: AbortSignal | undefined,
+): RequestInit {
+  return {
+    method: "GET",
+    credentials: "omit",
+    referrerPolicy: "no-referrer",
+    headers: { Authorization: authorization },
+    signal,
+  };
+}
+
+async function read_image_response(
+  response: Response,
+  signal: AbortSignal | undefined,
+): Promise<ProxiedImageResult> {
+  if (!response.ok) {
+    return { kind: "failed", retryable: response.status >= 500 };
+  }
+
+  try {
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    const content_type = (response.headers.get("content-type") || "")
+      .split(";")[0]
+      .trim()
+      .toLowerCase();
+
+    return { kind: "image", bytes, content_type };
+  } catch {
+    return { kind: "failed", retryable: !signal?.aborted };
+  }
+}
+
+async function fetch_with_account_token(
+  url: string,
+  fetcher: ProxiedImageFetcher,
+  signal: AbortSignal | undefined,
+): Promise<ProxiedImageResult> {
+  const token = api_client.get_access_token();
+
+  if (!token) return { kind: "fallback" };
+
+  let response: Response;
+
+  try {
+    response = await fetcher(
+      url,
+      image_request(`${ACCOUNT_SCHEME} ${token}`, signal),
+    );
+  } catch {
+    return { kind: "failed", retryable: !signal?.aborted };
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    return { kind: "fallback" };
+  }
+
+  return read_image_response(response, signal);
+}
+
+function grant_cooldown_ms(status: number | undefined): number {
+  if (status === 404 || status === 405) return UNSUPPORTED_COOLDOWN_MS;
+  if (status === 429) return RATE_LIMITED_COOLDOWN_MS;
+
+  return FAILURE_COOLDOWN_MS;
 }
 
 async function request_grant(): Promise<string | null> {
@@ -88,11 +176,7 @@ async function request_grant(): Promise<string | null> {
       typeof expires_in !== "number" ||
       !(expires_in > 0)
     ) {
-      const unsupported = response.status === 404 || response.status === 405;
-
-      unavailable_until =
-        Date.now() +
-        (unsupported ? UNSUPPORTED_COOLDOWN_MS : FAILURE_COOLDOWN_MS);
+      unavailable_until = Date.now() + grant_cooldown_ms(response.status);
 
       return null;
     }
@@ -132,12 +216,11 @@ function discard_image_proxy_grant(grant: string): void {
   if (cached_grant?.value === grant) cached_grant = null;
 }
 
-export async function fetch_proxied_image(
+async function fetch_with_grant(
   url: string,
-  options: { signal?: AbortSignal; fetcher?: ProxiedImageFetcher } = {},
+  fetcher: ProxiedImageFetcher,
+  options: { signal?: AbortSignal },
 ): Promise<ProxiedImageResult> {
-  const fetcher: ProxiedImageFetcher =
-    options.fetcher ?? ((target, init) => fetch(target, init));
   let grant = await get_image_proxy_grant();
 
   if (!grant) return { kind: "fallback" };
@@ -146,50 +229,54 @@ export async function fetch_proxied_image(
     let response: Response;
 
     try {
-      response = await fetcher(url, {
-        method: "GET",
-        credentials: "omit",
-        referrerPolicy: "no-referrer",
-        headers: { Authorization: `${GRANT_SCHEME} ${grant}` },
-        signal: options.signal,
-      });
+      response = await fetcher(
+        url,
+        image_request(`${GRANT_SCHEME} ${grant}`, options.signal),
+      );
     } catch {
       return { kind: "failed", retryable: !options.signal?.aborted };
     }
 
-    if (response.status === 401 || response.status === 403) {
-      return { kind: "fallback" };
-    }
+    if (response.status === 403) return { kind: "fallback" };
 
-    if (response.status === 429 && attempt === 0) {
+    if (response.status === 401 || response.status === 429) {
+      const refused = response.status === 401;
+
+      if (attempt === 1) {
+        return refused
+          ? { kind: "fallback" }
+          : { kind: "failed", retryable: false };
+      }
+
       discard_image_proxy_grant(grant);
 
       const next_grant = await get_image_proxy_grant();
 
       if (!next_grant || next_grant === grant) {
-        return { kind: "failed", retryable: false };
+        return refused
+          ? { kind: "fallback" }
+          : { kind: "failed", retryable: false };
       }
 
       grant = next_grant;
       continue;
     }
 
-    if (!response.ok) {
-      return { kind: "failed", retryable: response.status >= 500 };
-    }
-
-    try {
-      const bytes = new Uint8Array(await response.arrayBuffer());
-      const content_type = (response.headers.get("content-type") || "")
-        .split(";")[0]
-        .trim()
-        .toLowerCase();
-
-      return { kind: "image", bytes, content_type };
-    } catch {
-      return { kind: "failed", retryable: !options.signal?.aborted };
-    }
+    return read_image_response(response, options.signal);
   }
 
   return { kind: "failed", retryable: false };
+}
+
+export async function fetch_proxied_image(
+  url: string,
+  options: { signal?: AbortSignal; fetcher?: ProxiedImageFetcher } = {},
+): Promise<ProxiedImageResult> {
+  const fetcher: ProxiedImageFetcher = options.fetcher ?? routed_image_fetch;
+  const result = await fetch_with_grant(url, fetcher, options);
+
+  if (result.kind !== "fallback" || !is_native_shell()) return result;
+  if (options.signal?.aborted) return { kind: "failed", retryable: false };
+
+  return fetch_with_account_token(url, fetcher, options.signal);
 }
