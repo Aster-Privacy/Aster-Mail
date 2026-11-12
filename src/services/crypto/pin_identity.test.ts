@@ -117,11 +117,9 @@ import {
   is_recipient_flagged_untrusted,
   lookup_identity_pin_record,
   lookup_owner_key_pin,
-  lookup_pinned_identity,
   open_pin_contact,
   owner_key_fingerprint,
   read_sender_history,
-  replace_owner_key_pin,
   trust_recipient_keys,
 } from "@/services/crypto/ratchet_identity_pin";
 import {
