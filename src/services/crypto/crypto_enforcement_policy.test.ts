@@ -18,12 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 
 import {
   ENABLE_PQXDH_TRANSCRIPT_BINDING,
   ENFORCE_AUTHENTICATED_RATCHET,
+  ENFORCE_STRICT_RECIPIENT_BUNDLE,
   is_pqxdh_transcript_binding_enabled,
+  is_strict_recipient_bundle_enforced,
 } from "./crypto_enforcement_policy";
 
 describe("crypto enforcement policy defaults", () => {
@@ -35,4 +37,20 @@ describe("crypto enforcement policy defaults", () => {
   it("keeps the authenticated ratchet enforced", () => {
     expect(ENFORCE_AUTHENTICATED_RATCHET).toBe(true);
   });
+
+  it("requires a verified recipient bundle by default", () => {
+    expect(ENFORCE_STRICT_RECIPIENT_BUNDLE).toBe(true);
+    expect(is_strict_recipient_bundle_enforced()).toBe(true);
+  });
+
+  it("cannot turn off the verified bundle requirement from the build environment", () => {
+    vi.stubEnv("VITE_ENFORCE_STRICT_RECIPIENT_BUNDLE", "0");
+    expect(is_strict_recipient_bundle_enforced()).toBe(true);
+    vi.stubEnv("VITE_ENFORCE_STRICT_RECIPIENT_BUNDLE", "false");
+    expect(is_strict_recipient_bundle_enforced()).toBe(true);
+  });
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });

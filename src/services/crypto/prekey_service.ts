@@ -349,4 +349,13 @@ export async function check_and_replenish_prekeys(): Promise<void> {
   } catch {
     /* best-effort */
   }
+
+  try {
+    const { replenish_ec_one_time_prekeys } =
+      await import("./ec_prekey_service");
+
+    await replenish_ec_one_time_prekeys();
+  } catch {
+    return;
+  }
 }

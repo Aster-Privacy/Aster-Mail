@@ -223,12 +223,14 @@ function admission_iterations(): VaultKdfIterations {
 export function vault_write_iterations(
   current_encrypted_vault?: string | null,
 ): VaultKdfIterations {
-  const current =
-    (current_encrypted_vault
-      ? known_vault_kdf_iterations(current_encrypted_vault)
-      : undefined) ?? current_vault_iterations;
+  const known = current_encrypted_vault
+    ? known_vault_kdf_iterations(current_encrypted_vault)
+    : undefined;
 
-  if (current === VAULT_KDF_ITERATIONS_LEVEL2) {
+  if (
+    current_vault_iterations === VAULT_KDF_ITERATIONS_LEVEL2 ||
+    known === VAULT_KDF_ITERATIONS_LEVEL2
+  ) {
     return VAULT_KDF_ITERATIONS_LEVEL2;
   }
 
@@ -261,6 +263,7 @@ export async function write_vault_at_level<R extends object>(
 
   if (
     first === VAULT_KDF_ITERATIONS_LEVEL2 &&
+    current_vault_iterations !== VAULT_KDF_ITERATIONS_LEVEL2 &&
     is_level2_refusal(response as { status?: number; server_code?: string })
   ) {
     mark_level2_refused();

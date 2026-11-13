@@ -51,6 +51,7 @@ vi.mock("@/services/account_manager", () => ({
 import {
   check_and_pin_identity,
   has_peer_advertised_pq,
+  remembered_peer_x3dh_version,
 } from "@/services/crypto/ratchet_identity_pin";
 import {
   clear_ratchet_verification_status,
@@ -107,6 +108,38 @@ describe("ratchet identity pin pq memory and failure modes", () => {
     );
     expect(await has_peer_advertised_pq("carol")).toBe(true);
     expect(get_peer_identity_event("carol")?.event).toBe("rotated");
+  });
+
+  it("remembers the highest handshake version a peer advertised", async () => {
+    expect(await remembered_peer_x3dh_version("erin")).toBe(1);
+
+    await check_and_pin_identity("erin", KEY_A, false, false, 2);
+    expect(await remembered_peer_x3dh_version("erin")).toBe(2);
+
+    await check_and_pin_identity("erin", KEY_A, false, false, 1);
+    expect(await remembered_peer_x3dh_version("erin")).toBe(2);
+
+    await check_and_pin_identity("erin", KEY_A, false, false, null);
+    expect(await remembered_peer_x3dh_version("erin")).toBe(2);
+
+    await check_and_pin_identity("erin", KEY_A, false, false, 3);
+    expect(await remembered_peer_x3dh_version("erin")).toBe(3);
+  });
+
+  it("keeps the remembered handshake version across a verified rotation", async () => {
+    await check_and_pin_identity("frank", KEY_A, true, false, 2);
+
+    expect(await check_and_pin_identity("frank", KEY_B, true, false, 1)).toBe(
+      "rotated",
+    );
+    expect(await remembered_peer_x3dh_version("frank")).toBe(2);
+  });
+
+  it("reports no remembered handshake version when the pin store is unavailable", async () => {
+    await check_and_pin_identity("grace", KEY_A, false, false, 2);
+    h.key = null;
+
+    expect(await remembered_peer_x3dh_version("grace")).toBe(1);
   });
 
   it("returns unknown instead of ok when the pin store is unavailable", async () => {

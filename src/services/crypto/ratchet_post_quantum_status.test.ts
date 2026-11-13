@@ -31,7 +31,7 @@ const h = vi.hoisted(() => ({
   owner_pin: "ok" as "first" | "ok" | "changed" | "unknown",
   accepted: false,
   flagged: [] as string[],
-  identity: null as { kem_identity_key: string } | null,
+  identity: null as Record<string, unknown> | null,
 }));
 
 vi.mock("../api/keys", () => ({
@@ -89,6 +89,15 @@ function pq_bundle(): Record<string, unknown> {
   };
 }
 
+function signed_session(): Record<string, unknown> {
+  return {
+    pq_ciphertext: "pq",
+    pq_key_id: -1,
+    recipient_identity_key: "kem",
+    recipient_pq_identity_key: pq_key,
+  };
+}
+
 describe("recipient_post_quantum_status", () => {
   beforeEach(() => {
     h.owner_pin = "ok";
@@ -106,8 +115,37 @@ describe("recipient_post_quantum_status", () => {
     ).resolves.toBe("supported");
   });
 
-  it("reports supported for a verified v1 bundle that publishes a post-quantum key", async () => {
+  it("reports unsupported for a verified v1 bundle whose signature does not cover the post-quantum key", async () => {
     h.verification = { verdict: "verified", format: "v1", strict: false };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
+  });
+
+  it("reports downgraded on first contact when the published post-quantum key is unusable", async () => {
+    h.bundle = { ...pq_bundle(), pq_kem_public_key: btoa("short") };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("downgraded");
+  });
+
+  it("reports unsupported for a bundle whose only post-quantum key is an unsigned one-time prekey", async () => {
+    h.bundle = {
+      kem_identity_key: "kem",
+      signed_prekey: "spk",
+      signed_prekey_signature: "sig",
+      pq_prekey: { key_id: 77, public_key: pq_key },
+    };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
+  });
+
+  it("reports supported when the signed post-quantum key sits next to a one-time prekey", async () => {
+    h.bundle = { ...pq_bundle(), pq_prekey: { key_id: 77, public_key: pq_key } };
 
     await expect(
       recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
@@ -181,9 +219,47 @@ describe("recipient_post_quantum_status", () => {
     ).resolves.toBe("unsupported");
   });
 
-  it("trusts an existing post-quantum session without refetching", async () => {
+  it("does not count an existing session whose post-quantum key the owner never signed", async () => {
     h.bootstrap = { pq_ciphertext: "pq" };
     h.verification = { verdict: "legacy", format: "hash", strict: false };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
+  });
+
+  it("counts an existing session built on the signed post-quantum identity key", async () => {
+    h.bootstrap = signed_session();
+    h.identity = { ...pq_bundle(), user_id: "u" };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("supported");
+  });
+
+  it("does not count a signed-key session once the owner signature no longer covers the key", async () => {
+    h.bootstrap = signed_session();
+    h.identity = { ...pq_bundle(), user_id: "u" };
+    h.verification = { verdict: "verified", format: "v1", strict: false };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
+  });
+
+  it("does not count a session built on an unsigned one-time prekey", async () => {
+    h.bootstrap = { ...signed_session(), pq_key_id: 77 };
+    h.identity = { ...pq_bundle(), user_id: "u" };
+    h.verification = { verdict: "verified", format: "v1", strict: false };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
+  });
+
+  it("counts a one-time prekey session that the next send restarts on the signed key", async () => {
+    h.bootstrap = { ...signed_session(), pq_key_id: 77 };
+    h.identity = { ...pq_bundle(), user_id: "u" };
 
     await expect(
       recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
@@ -212,14 +288,14 @@ describe("recipient_post_quantum_status", () => {
     expect(h.flagged).toEqual([]);
   });
 
-  it("keeps an existing session while the published identity matches it", async () => {
-    h.bootstrap = { pq_ciphertext: "pq", recipient_identity_key: "kem" };
-    h.identity = { kem_identity_key: "kem" };
+  it("keeps an existing session without claiming post-quantum while the published identity fails to verify", async () => {
+    h.bootstrap = signed_session();
+    h.identity = { ...pq_bundle(), user_id: "u" };
     h.verification = { verdict: "tampered", format: "v2", strict: false };
 
     await expect(
       recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
-    ).resolves.toBe("supported");
+    ).resolves.toBe("unsupported");
     expect(h.flagged).toEqual([]);
   });
 

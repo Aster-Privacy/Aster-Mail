@@ -23,53 +23,7 @@ import type { ParsedEmail } from "./parser";
 
 import { compute_import_dedupe_hash } from "./dedupe_hash";
 
-import { HASH_ALG } from "@/services/crypto/constants";
-
-const IMPORT_KEY_VERSION = "astermail-import-v1";
-const NONCE_LENGTH = 12;
-
-function uint8_array_to_base64(array: Uint8Array): string {
-  let binary = "";
-
-  for (let i = 0; i < array.length; i++) {
-    binary += String.fromCharCode(array[i]);
-  }
-
-  return btoa(binary);
-}
-
-function secure_clear_array(array: Uint8Array): void {
-  const max = 65536;
-
-  for (let i = 0; i < array.length; i += max) {
-    crypto.getRandomValues(array.subarray(i, Math.min(i + max, array.length)));
-  }
-  array.fill(0);
-}
-
-async function derive_import_encryption_key(
-  vault: EncryptedVault,
-): Promise<CryptoKey> {
-  const key_material = new TextEncoder().encode(
-    vault.identity_key + IMPORT_KEY_VERSION,
-  );
-
-  let hash_buffer: ArrayBuffer;
-
-  try {
-    hash_buffer = await crypto.subtle.digest(HASH_ALG, key_material);
-  } finally {
-    secure_clear_array(key_material);
-  }
-
-  return crypto.subtle.importKey(
-    "raw",
-    hash_buffer,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt"],
-  );
-}
+import { encrypt_envelope_for_storage } from "@/services/crypto/stored_envelope_write";
 
 export interface ImportEnvelope {
   message_id: string;
@@ -185,26 +139,12 @@ export async function encrypt_imported_email(
 
   const content_hash = await compute_content_hash(email, vault.identity_key);
 
-  const key = await derive_import_encryption_key(vault);
-  const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
-  const plaintext = new TextEncoder().encode(JSON.stringify(envelope));
-
-  let ciphertext: ArrayBuffer;
-
-  try {
-    ciphertext = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv: nonce },
-      key,
-      plaintext,
-    );
-  } finally {
-    secure_clear_array(plaintext);
-  }
+  const sealed = await encrypt_envelope_for_storage(envelope, vault);
 
   return {
     message_id_hash,
-    encrypted_envelope: uint8_array_to_base64(new Uint8Array(ciphertext)),
-    envelope_nonce: uint8_array_to_base64(nonce),
+    encrypted_envelope: sealed.encrypted,
+    envelope_nonce: sealed.nonce,
     content_hash,
     received_at: email.date.toISOString(),
   };

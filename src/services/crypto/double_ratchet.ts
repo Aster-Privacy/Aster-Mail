@@ -52,6 +52,8 @@ export interface BootstrapData {
   recipient_identity_key?: string;
   recipient_pq_identity_key?: string;
   x3dh_version?: number;
+  one_time_prekey_id?: number;
+  signed_prekey_id?: string;
 }
 
 export interface RatchetState {
@@ -74,6 +76,7 @@ export interface RatchetState {
   updated_at: number;
   bootstrap?: BootstrapData;
   remote_identity_key?: string;
+  header_bound?: boolean;
 }
 
 export interface SerializedState {
@@ -121,6 +124,30 @@ function serialize_header_for_ad(header: MessageHeader): Uint8Array {
   return out;
 }
 
+const MAX_HEADER_COUNTER = 0x7fffffff;
+
+function is_header_counter(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= MAX_HEADER_COUNTER
+  );
+}
+
+function assert_well_formed_header(header: MessageHeader): void {
+  const version: unknown = header.v;
+
+  if (
+    typeof header.dh_public !== "string" ||
+    !is_header_counter(header.message_number) ||
+    !is_header_counter(header.previous_chain_length) ||
+    (version !== undefined && !is_header_counter(version))
+  ) {
+    throw new Error("Malformed ratchet header");
+  }
+}
+
 function clone_state(state: RatchetState): RatchetState {
   return {
     dh_keypair: { ...state.dh_keypair },
@@ -139,6 +166,7 @@ function clone_state(state: RatchetState): RatchetState {
     updated_at: state.updated_at,
     bootstrap: state.bootstrap ? { ...state.bootstrap } : undefined,
     remote_identity_key: state.remote_identity_key,
+    header_bound: state.header_bound,
   };
 }
 
@@ -324,6 +352,7 @@ async function decrypt_with_key(
         nonce,
         ciphertext,
         associated_data,
+        "accept_unbound",
       )
     : await crypto.subtle.decrypt(
         { name: "AES-GCM", iv: nonce },
@@ -471,6 +500,8 @@ export class DoubleRatchet {
     message: EncryptedMessage,
     message_key: Uint8Array,
   ): Promise<string> {
+    assert_well_formed_header(message.header);
+
     const ad =
       (message.header.v ?? 1) >= 2
         ? serialize_header_for_ad(message.header)
@@ -487,6 +518,14 @@ export class DoubleRatchet {
   }
 
   async decrypt(message: EncryptedMessage): Promise<string> {
+    assert_well_formed_header(message.header);
+
+    const header_bound = (message.header.v ?? 1) >= 2;
+
+    if (this.state.header_bound && !header_bound) {
+      throw new Error("Refusing an unbound header on a bound session");
+    }
+
     const skipped_plaintext = await DoubleRatchet.try_skipped_message_keys_on(
       this.state,
       message,
@@ -495,6 +534,7 @@ export class DoubleRatchet {
     if (skipped_plaintext !== null) {
       this.state.dirty_since_sync = true;
       this.state.updated_at = Date.now();
+      if (header_bound) this.state.header_bound = true;
 
       return skipped_plaintext;
     }
@@ -552,6 +592,7 @@ export class DoubleRatchet {
     work.recv_message_number++;
     work.dirty_since_sync = true;
     work.updated_at = Date.now();
+    if (header_bound) work.header_bound = true;
     this.state = work;
 
     zero_uint8_array(chain_key);

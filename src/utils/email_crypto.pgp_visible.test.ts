@@ -80,7 +80,11 @@ describe("undecryptable pgp armor stays visible", () => {
   it("returns the armored block when it was encrypted to another key", async () => {
     const resolved = await resolve_inbound_pgp_body(stranger_ciphertext);
 
-    expect(resolved).toEqual({ body: stranger_ciphertext, decrypted: false });
+    expect(resolved).toEqual({
+      body: stranger_ciphertext,
+      decrypted: false,
+      verified: false,
+    });
   });
 
   it("keeps the text before and after the block", async () => {
@@ -108,7 +112,7 @@ describe("undecryptable pgp armor stays visible", () => {
         .join("");
     const resolved = await resolve_inbound_pgp_body(html);
 
-    expect(resolved).toEqual({ body: html, decrypted: false });
+    expect(resolved).toEqual({ body: html, decrypted: false, verified: false });
   });
 
   it("ignores armor that sits inside diff lines of a patch", async () => {
@@ -119,6 +123,7 @@ describe("undecryptable pgp armor stays visible", () => {
     expect(resolved).toEqual({
       body: PATCH_WITH_ARMOR_BODY,
       decrypted: false,
+      verified: false,
     });
   });
 
@@ -132,6 +137,10 @@ describe("undecryptable pgp armor stays visible", () => {
       `Forwarded by my phone:\n${ciphertext}`,
     );
 
-    expect(resolved).toEqual({ body: "hello me", decrypted: true });
+    expect(resolved).toEqual({
+      body: "hello me",
+      decrypted: true,
+      verified: false,
+    });
   });
 });

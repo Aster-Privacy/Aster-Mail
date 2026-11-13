@@ -104,6 +104,12 @@ export function encode_binding_v3(binding: CalendarV3Binding): Uint8Array {
   if (!binding.calendar_id) {
     throw new Error("calendar binding requires a calendar id");
   }
+  if (
+    binding.calendar_id.includes("\n") ||
+    (binding.event_id ?? "").includes("\n")
+  ) {
+    throw new Error("calendar binding ids must not contain line breaks");
+  }
 
   const parts = [
     "event_id=" + (binding.event_id ?? ""),

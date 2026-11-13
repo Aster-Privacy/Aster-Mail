@@ -244,6 +244,12 @@ export async function check_rotation_needed(
 
 export const VAULT_CHANGED_CODE = "VAULT_CHANGED";
 
+export function has_pending_identity_rotation(
+  vault: EncryptedVault | null | undefined,
+): boolean {
+  return vault?.identity_rotation_pending === true;
+}
+
 export type IdentityRotationFields = Omit<
   RotateIdentityKeyRequest,
   | "encrypted_vault"
@@ -419,6 +425,8 @@ export async function perform_key_rotation(
       ratchet_previous_keys: retain_previous_ratchet_keys(current_vault),
       ratchet_regen_v4_done: true,
     };
+
+    delete new_vault.identity_rotation_pending;
 
     const new_key_bytes = new TextEncoder().encode(new_keypair.public_key);
     const rotation_proof = await compute_rotation_proof(

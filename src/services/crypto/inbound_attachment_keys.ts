@@ -36,6 +36,8 @@ const item_seqs = new Map<string, Set<number>>();
 
 const listed_items = new Set<string>();
 
+const unsealed_entries = new Set<string>();
+
 const registry_key = (mail_item_id: string, seq: number): string =>
   `${mail_item_id}:${seq}`;
 
@@ -59,6 +61,7 @@ const evict_item = (mail_item_id: string): void => {
 
   for (const seq of seqs) {
     registry.delete(registry_key(mail_item_id, seq));
+    unsealed_entries.delete(registry_key(mail_item_id, seq));
   }
 
   item_seqs.delete(mail_item_id);
@@ -127,15 +130,27 @@ const arm_vault_listener = (): void => {
   });
 };
 
+export interface AttachmentKeySource {
+  unencrypted?: boolean;
+}
+
 export const register_attachment_entry = (
   mail_item_id: string,
   seq: number,
   entry: InboundAttachmentEntry,
+  options: AttachmentKeySource = {},
 ): void => {
   arm_vault_listener();
 
   const key = registry_key(mail_item_id, seq);
   const existing = registry.get(key);
+
+  if (options.unencrypted) {
+    if (existing !== undefined && !unsealed_entries.has(key)) return;
+    unsealed_entries.add(key);
+  } else {
+    unsealed_entries.delete(key);
+  }
 
   registry.set(key, entry);
 
@@ -156,6 +171,7 @@ export const register_attachment_entry = (
 export const register_envelope_attachment_keys = (
   mail_item_id: string | undefined,
   envelope: unknown,
+  options: AttachmentKeySource = {},
 ): void => {
   if (!mail_item_id || typeof envelope !== "object" || envelope === null) {
     return;
@@ -171,15 +187,23 @@ export const register_envelope_attachment_keys = (
     }
 
     listed_items.add(mail_item_id);
-    register_attachment_entry(mail_item_id, entry.seq, {
-      key: entry.key,
-      filename: typeof entry.filename === "string" ? entry.filename : undefined,
-      content_type:
-        typeof entry.content_type === "string" ? entry.content_type : undefined,
-      content_id:
-        typeof entry.content_id === "string" ? entry.content_id : undefined,
-      size: typeof entry.size === "number" ? entry.size : undefined,
-    });
+    register_attachment_entry(
+      mail_item_id,
+      entry.seq,
+      {
+        key: entry.key,
+        filename:
+          typeof entry.filename === "string" ? entry.filename : undefined,
+        content_type:
+          typeof entry.content_type === "string"
+            ? entry.content_type
+            : undefined,
+        content_id:
+          typeof entry.content_id === "string" ? entry.content_id : undefined,
+        size: typeof entry.size === "number" ? entry.size : undefined,
+      },
+      options,
+    );
   }
 };
 
@@ -211,6 +235,7 @@ export const listed_attachment_rows = <
 
 export const clear_attachment_keys = (): void => {
   registry.clear();
+  unsealed_entries.clear();
   item_seqs.clear();
   listed_items.clear();
   item_versions.clear();

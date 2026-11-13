@@ -21,6 +21,7 @@
 import { motion } from "framer-motion";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { open_passphrase_with_prf } from "@/services/crypto/passkey_prf_wrap";
 import { use_should_reduce_motion } from "@/provider";
 import { get_app_query_param } from "@/lib/hard_redirect";
 import { strip_account_prefix } from "@/lib/account_index_url";
@@ -81,43 +82,14 @@ export async function decrypt_with_prf(
   prf_output: ArrayBuffer,
   encrypted_b64: string,
   nonce_b64: string,
+  credential_id: Uint8Array | null = null,
 ): Promise<string | null> {
-  try {
-    const key_material = await crypto.subtle.importKey(
-      "raw",
-      prf_output,
-      "HKDF",
-      false,
-      ["deriveKey"],
-    );
-    const key = await crypto.subtle.deriveKey(
-      {
-        name: "HKDF",
-        hash: "SHA-256",
-        salt: new TextEncoder().encode("aster-vault-passphrase-key-v1"),
-        info: new Uint8Array(0),
-      },
-      key_material,
-      { name: "AES-GCM", length: 256 },
-      false,
-      ["decrypt"],
-    );
-    const enc_bytes = Uint8Array.from(atob(encrypted_b64), (c) =>
-      c.charCodeAt(0),
-    );
-    const nonce_bytes = Uint8Array.from(atob(nonce_b64), (c) =>
-      c.charCodeAt(0),
-    );
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce_bytes },
-      key,
-      enc_bytes,
-    );
-
-    return new TextDecoder().decode(decrypted);
-  } catch {
-    return null;
-  }
+  return open_passphrase_with_prf(
+    prf_output,
+    encrypted_b64,
+    nonce_b64,
+    credential_id,
+  );
 }
 
 export type SignInDomain = "astermail.org" | "aster.cx";

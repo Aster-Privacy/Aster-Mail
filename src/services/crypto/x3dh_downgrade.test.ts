@@ -102,4 +102,28 @@ describe("post-quantum downgrade detection", () => {
     expect(bundle_supports_pq(bundle)).toBe(false);
     expect(bundle_is_downgraded(bundle)).toBe(true);
   });
+
+  it("flags unusable post-quantum keys on first contact even when the server calls the peer incapable", () => {
+    for (const pq_capable of [false, null, undefined]) {
+      expect(
+        bundle_is_downgraded(
+          base_bundle({ pq_capable, pq_kem_public_key: btoa("short") }),
+        ),
+      ).toBe(true);
+      expect(
+        bundle_is_downgraded(
+          base_bundle({
+            pq_capable,
+            pq_prekey: { key_id: 4, public_key: btoa("short") },
+          }),
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it("does not flag a peer that publishes no post-quantum material at all", () => {
+    expect(bundle_is_downgraded(base_bundle({ pq_capable: false }))).toBe(
+      false,
+    );
+  });
 });

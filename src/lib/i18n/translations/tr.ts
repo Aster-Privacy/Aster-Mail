@@ -1113,7 +1113,7 @@ export const tr = {
       "Ayarlar bölümünde takma ad ekler, kendi alan adınızı bağlar ve iki adımlı doğrulamayı açarsınız.",
     youre_ready: "Hazırsınız",
     youre_ready_description:
-      "Postanız uçtan uca şifrelenir ve anahtarlar yalnızca sizde olur. Tüm klavye kısayollarını görmek için istediğiniz zaman ? tuşuna basın.",
+      "Postanız şifrelenmiş olarak saklanır ve anahtarlar yalnızca sizde olur. Tüm klavye kısayollarını görmek için istediğiniz zaman ? tuşuna basın.",
     skip_tour: "Turu atla",
     get_started: "Başla",
     step: "Adım",
@@ -2106,6 +2106,10 @@ export const tr = {
     zip_archive: "ZIP arşivi",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "Bir ortam değişkeni kapattığı için bu pencere korumalı alan olmadan çalışıyor.",
+    sandbox_off_notice:
+      "Bu pencere korumalı alan olmadan çalışıyor. Korumalı alanı açmak için bubblewrap yükleyin ve Aster Mail uygulamasını yeniden başlatın.",
     bill_thanks_title: "Aster’ı desteklediğiniz için teşekkürler",
     bill_thanks_body:
       "Desteğiniz bizim için her şey demek. Küçük bir ekibin Aster’ı her gün özenle geliştirmeye devam etmesini sağlıyor.",
@@ -2230,7 +2234,7 @@ export const tr = {
     fam_welcome_step1_point1: "Her üye kendi @astermail.org adresini alır",
     fam_welcome_step1_point2:
       "Tam gizlilik - üyeler birbirlerinin e-postalarını göremez",
-    fam_welcome_step1_point3: "Her hesapta kuantum güvenli şifreleme",
+    fam_welcome_step1_point3: "Aster hesapları arasında kuantum sonrası şifreleme",
     fam_welcome_step2_title: "Tek depolama havuzu, kontrol sizde",
     fam_welcome_step2_desc:
       "Planınız paylaşılan bir depolama havuzu içerir. Her üyenin ne kadar alacağına karar verin ve istediğiniz zaman ayarlayın.",
@@ -2594,7 +2598,7 @@ export const tr = {
     invite_title_named: "{{ name }} sizi Aster Mail'e davet etti",
     invite_title_generic: "Aster Mail'e davet edildiniz",
     invite_subtitle:
-      "Aster Mail, sıfır erişimli, uçtan uca şifrelenmiş bir e-posta hizmetidir. Gelen kutunuzu sizden başka kimse okuyamaz, biz bile.",
+      "Aster Mail, sıfır erişimli, uçtan uca şifrelenmiş bir e-posta hizmetidir. Postanızı yalnızca sizde bulunan anahtarlarla şifrelenmiş olarak saklarız.",
     invite_discount_line:
       "Şimdi kaydolun ve ilk planınızda %{{ percent }} indirim kazanın.",
     invite_benefits_heading: "Neler kazanırsınız",
@@ -4814,7 +4818,7 @@ export const tr = {
       "Anahtarlarınızı genel anahtar sunucularında bulunabilir yapın",
     info_forward_secrecy_title: "İletim Gizliliği Nedir?",
     info_forward_secrecy_description:
-      "Oturum anahtarlarınız otomatik olarak döndürülür. Biri bugün özel anahtarınızı ele geçirse bile, her oturum farklı bir anahtar kullandığı için geçmiş mesajları okuyamaz.",
+      "Şifreleme anahtarlarınız bir plana göre otomatik olarak döndürülür. Bu, sızan tek bir anahtarın açabileceği e-posta miktarını sınırlar. E-postalarınızın tüm cihazlarınızda okunabilir kalması için hesabınız, mesajlarınızın hesap anahtarlarınızla şifrelenmiş kopyalarını da saklar. Bu nedenle parolanızı ele geçiren biri geçmiş e-postalarınızı yine de okuyabilir.",
     info_key_rotation_interval_title: "Anahtar Döndürme Aralığı",
     info_key_rotation_interval_description:
       "Şifreleme anahtarınızın ne sıklıkla değiştirildiği. Daha sık daha güvenli demektir ama biraz ek yük getirir. Çoğu için bir hafta iyi bir varsayılandır.",
@@ -5188,7 +5192,7 @@ export const tr = {
       "Tüm şifreleme, veriler cihazınızdan ayrılmadan önce tarayıcınızda gerçekleşir",
     zero_knowledge_storage: "Sıfır Bilgi Depolama",
     zero_knowledge_storage_description:
-      "Verilerinizi okuyamayız. Anahtarları yalnızca siz tutarsınız.",
+      "Saklanan verilerinizi okuyamayız. Anahtarları yalnızca siz tutarsınız.",
     email_content_attachments: "E-posta içeriği ve ekler",
     folder_names_structure: "Klasör adları ve yapısı",
     drafts_signatures: "Taslaklar ve imzalar",
@@ -5395,7 +5399,7 @@ export const tr = {
       "Mevcut kurtarma kodlarınız, yenilerini oluşturduğunuz anda çalışmayı bırakır. Yeni seti bu pencereyi kapatmadan önce güvenli bir yere kaydetmek korunaklı kalmanızın yoludur. Yazın",
     end_to_end_encrypted: "Uçtan Uca Şifreli",
     all_data_protected:
-      "Tüm verileriniz sıfır bilgi şifrelemesiyle korunmaktadır",
+      "Tüm verileriniz sıfır erişimli şifrelemeyle korunmaktadır",
     pgp_compatible: "PGP Uyumlu",
     pgp_compatible_description:
       "PGP kullanan herkese şifreli e-posta gönderin.",
@@ -6933,7 +6937,7 @@ export const tr = {
     rotate_keys_description_manual:
       "Şifreleme anahtarlarınızı yenilemek için parolanızı girin. Eski postalar okunabilir kalır.",
     rotate_keys_description_required:
-      "Şifreleme anahtarlarınızın yenilenme zamanı geldi. Yeni anahtar oluşturup ileri gizliliği korumak için parolanızı girin.",
+      "Şifreleme anahtarlarınızın yenilenme zamanı geldi. Yeni anahtar oluşturmak için parolanızı girin.",
     rotating: "Döndürülüyor...",
     rotate_keys: "Anahtarları döndür",
     key_rotation_data_loss_warning:
@@ -7897,7 +7901,7 @@ export const tr = {
     send_referral_to_contacts: "Tüm kişilere e-posta gönder",
     referral_email_subject: "Aster Mail'i denemelisiniz",
     referral_email_body:
-      "Merhaba,\n\nbir süredir Aster Mail kullanıyorum ve gerçekten memnunum. Her şey uçtan uca şifreli, yani senden başka kimse e-postalarını okuyamıyor. Servisi işletenler bile okuyamıyor.\n\nDenemek istersen davet bağlantım şu:\n\n{{ referral_link }}\n\nSen kullanmaya başlayınca ikimiz de {{ amount }} ek depolama alanı kazanıyoruz, yani sen de kazançlı çıkıyorsun.\n\nSevgiler",
+      "Merhaba,\n\nbir süredir Aster Mail kullanıyorum ve gerçekten memnunum. Postan yalnızca sende bulunan anahtarlarla şifrelenmiş olarak saklanıyor, yani servisi işletenler posta kutunu okuyamıyor.\n\nDenemek istersen davet bağlantım şu:\n\n{{ referral_link }}\n\nSen kullanmaya başlayınca ikimiz de {{ amount }} ek depolama alanı kazanıyoruz, yani sen de kazançlı çıkıyorsun.\n\nSevgiler",
     referral_no_contacts: "Kişi bulunamadı. Önce kişi ekleyin!",
     referral_loading_contacts: "Kişiler yükleniyor...",
     two_factor_auth_disabled: "İki faktörlü doğrulama devre dışı bırakıldı",
@@ -8339,7 +8343,7 @@ export const tr = {
     browse_folder: "Klasör seç",
     money_back_guarantee: "30 gün para iade garantisi",
     plan_every_plan_includes:
-      "Her plan uçtan uca şifreleme, sıfır bilgi depolama ve açık kaynaklı uygulamalar içerir.",
+      "Her plan uçtan uca şifreleme, sıfır erişimli depolama ve açık kaynaklı uygulamalar içerir.",
     cancel_anytime: "İstediğiniz zaman iptal edin",
     billed_annually: "yıllık faturalandırılır",
     save_annually_hint: "Yıllık planla %20 tasarruf edin",
@@ -8402,7 +8406,7 @@ export const tr = {
     referral_share_message_plain:
       "Uçtan uca şifreli e-posta için Aster Mail kullanıyorum. Bağlantımla katıl.",
     referral_email_body_plain:
-      "Merhaba,\n\nbir süredir Aster Mail kullanıyorum ve gerçekten memnunum. Her şey uçtan uca şifreli, yani senden başka kimse e-postalarını okuyamıyor. Servisi işletenler bile okuyamıyor.\n\nDenemek istersen davet bağlantım şu:\n\n{{ referral_link }}\n\nSevgiler",
+      "Merhaba,\n\nbir süredir Aster Mail kullanıyorum ve gerçekten memnunum. Postan yalnızca sende bulunan anahtarlarla şifrelenmiş olarak saklanıyor, yani servisi işletenler posta kutunu okuyamıyor.\n\nDenemek istersen davet bağlantım şu:\n\n{{ referral_link }}\n\nSevgiler",
     referral_claim_window_closed: "Bu hesaba davet kodu ekleme süresi doldu.",
     referral_claim_already: "Bu hesapta zaten bir davet var.",
     referral_claim_self: "Kendi davet kodunuzu kullanamazsınız.",
@@ -10171,9 +10175,14 @@ export const tr = {
     device_fingerprint: "Doğrulama kodu",
     device_code_verify_toggle: "Bu cihazı doğrula",
     link_device_fingerprint_hint:
-      "Masaüstü uygulamanız bir doğrulama kodu gösteriyorsa cihazı bağlamadan önce bununla eşleştiğinden emin olun.",
+      "Yeni cihazınızın gösterdiği doğrulama kodunu girin. Masaüstü uygulamasında görmek için Bu cihazı doğrula'yı seçin.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_incomplete:
+      "Cihazı bağlamak için yeni cihazınızdaki doğrulama kodunun tamamını girin.",
+    link_device_fingerprint_mismatch:
+      "Bu kod yeni cihazınızla eşleşmiyor. Yeni cihazınızdaki kodu kontrol edip tekrar girin. Hâlâ eşleşmiyorsa İptal'i seçin.",
     device_code_fingerprint_hint:
-      "Tarayıcınız cihazı bağlamadan önce aynı doğrulama kodunu gösterir. İki kod eşleşmiyorsa cihazı bağlamayın.",
+      "Bu cihazı bağlamak için bu kodu zaten oturum açtığınız cihaza girin.",
     link_device_change_account: "Hesap değiştir",
     link_device_choose_account: "Bir hesap seçin",
     link_device_choose_account_description:

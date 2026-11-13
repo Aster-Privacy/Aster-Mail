@@ -18,11 +18,25 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+export type UnboundPolicy = "accept_unbound" | "refuse_unbound";
+
+export function local_unbound_policy(): UnboundPolicy {
+  const is_desktop =
+    typeof window !== "undefined" &&
+    Boolean(Reflect.get(window, "__TAURI_INTERNALS__"));
+  const is_mac =
+    typeof navigator !== "undefined" &&
+    /Macintosh|Mac OS/i.test(navigator.userAgent || "");
+
+  return is_desktop && is_mac ? "accept_unbound" : "refuse_unbound";
+}
+
 export async function decrypt_aes_gcm_bound_or_unbound(
   key: CryptoKey,
   iv: BufferSource,
   data: BufferSource,
   additional_data: BufferSource,
+  unbound: UnboundPolicy,
 ): Promise<ArrayBuffer> {
   try {
     return await crypto.subtle.decrypt(
@@ -31,6 +45,8 @@ export async function decrypt_aes_gcm_bound_or_unbound(
       data,
     );
   } catch (bound_error) {
+    if (unbound === "refuse_unbound") throw bound_error;
+
     try {
       return await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
     } catch {

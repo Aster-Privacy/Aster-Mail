@@ -39,6 +39,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 import { discover_external_keys_batch } from "@/services/api/keys";
+import { will_encrypt_opportunistically } from "@/services/opportunistic_key_trust";
 import {
   classify_recipients,
   is_internal_recipient,
@@ -295,6 +296,9 @@ export function RecipientField({
   );
   const [discovery_tick, set_discovery_tick] = useState(0);
   const field_ref = useRef<HTMLDivElement>(null);
+  const encrypt_by_default_ref = useRef(preferences.encrypt_emails === true);
+
+  encrypt_by_default_ref.current = preferences.encrypt_emails === true;
 
   const focus_input = () => {
     field_ref.current?.querySelector("input")?.focus();
@@ -478,7 +482,10 @@ export function RecipientField({
               const expired =
                 info.expires_at !== null &&
                 Date.parse(info.expires_at) <= Date.now();
-              const status: EncryptionStatus = info.will_encrypt
+              const status: EncryptionStatus = will_encrypt_opportunistically(
+                info,
+                encrypt_by_default_ref.current,
+              )
                 ? "encrypted"
                 : key_present && expired
                   ? "key_invalid"

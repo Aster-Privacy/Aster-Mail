@@ -307,12 +307,15 @@ async function decode_thread_envelope(
   let pgp_unresolved = false;
 
   if (!quoted_html_pgp && has_inbound_pgp_block(body_content)) {
-    const resolved = await resolve_inbound_pgp_body(body_content);
+    const resolved = await resolve_inbound_pgp_body(
+      body_content,
+      envelope.from?.email,
+    );
 
     body_content = resolved.body;
     pgp_unresolved = !resolved.decrypted && !body_decrypted;
     body_decrypted = body_decrypted || resolved.decrypted;
-    e2e_verified = e2e_verified || resolved.decrypted;
+    e2e_verified = e2e_verified || resolved.verified;
   }
 
   const password_protected = is_password_protected_body(body_content);
@@ -662,11 +665,14 @@ export async function fetch_and_decrypt_virtual_group(
     }
 
     if (!quoted_html_pgp && has_inbound_pgp_block(body_content)) {
-      const resolved = await resolve_inbound_pgp_body(body_content);
+      const resolved = await resolve_inbound_pgp_body(
+        body_content,
+        envelope.from?.email,
+      );
 
       body_content = resolved.body;
       body_decrypted = body_decrypted || resolved.decrypted;
-      e2e_verified = e2e_verified || resolved.decrypted;
+      e2e_verified = e2e_verified || resolved.verified;
     }
 
     const password_protected = is_password_protected_body(body_content);

@@ -452,6 +452,10 @@ export function use_preferences_core() {
         [key]: value,
       };
 
+      if (key === "obscure_subject_when_encrypted") {
+        updated.obscure_subject_user_set = true;
+      }
+
       if (key === "low_network_mode") {
         updated.low_network_mode_user_set = true;
       }

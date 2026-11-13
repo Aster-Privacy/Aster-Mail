@@ -119,6 +119,12 @@ async function derive_storage_key_from_crypto_key(
   _master_key: CryptoKey,
   purpose: string,
 ): Promise<CryptoKey> {
+  return derive_current_storage_key(purpose);
+}
+
+async function derive_current_storage_key(
+  purpose: string,
+): Promise<CryptoKey> {
   const encoder = new TextEncoder();
   const salt = encoder.encode(`astermail_encrypted_storage_${purpose}`);
 
@@ -206,6 +212,33 @@ async function read_raw_entry(key: string): Promise<EncryptedEntry | null> {
   });
 }
 
+async function decrypt_entry_buffer(
+  key: string,
+  entry: EncryptedEntry,
+  storage_key: CryptoKey,
+): Promise<ArrayBuffer> {
+  try {
+    return await decrypt_aes_gcm_with_fallback(
+      storage_key,
+      entry.ciphertext,
+      entry.iv,
+      (base) => derive_storage_key_from_hkdf_key(base, key),
+    );
+  } catch (primary_error) {
+    const recovered = await decrypt_entry_with_legacy_storage_keys(
+      key,
+      entry.ciphertext,
+      entry.iv,
+    );
+
+    if (!recovered) {
+      throw primary_error;
+    }
+
+    return recovered;
+  }
+}
+
 async function open_entry<T>(
   key: string,
   entry: EncryptedEntry,
@@ -223,28 +256,11 @@ async function open_entry<T>(
   );
 
   try {
-    let decrypted_buffer: ArrayBuffer;
-
-    try {
-      decrypted_buffer = await decrypt_aes_gcm_with_fallback(
-        storage_key,
-        entry.ciphertext,
-        entry.iv,
-        (base) => derive_storage_key_from_hkdf_key(base, key),
-      );
-    } catch (primary_error) {
-      const recovered = await decrypt_entry_with_legacy_storage_keys(
-        key,
-        entry.ciphertext,
-        entry.iv,
-      );
-
-      if (!recovered) {
-        throw primary_error;
-      }
-
-      decrypted_buffer = recovered;
-    }
+    const decrypted_buffer = await decrypt_entry_buffer(
+      key,
+      entry,
+      storage_key,
+    );
 
     const decoder = new TextDecoder();
     const json_string = decoder.decode(decrypted_buffer);
@@ -507,6 +523,117 @@ export async function encrypted_clear_all(): Promise<void> {
     request.onerror = () =>
       reject(new Error("Failed to clear encrypted storage"));
   });
+}
+
+export interface LegacyRewrapCounts {
+  rewrapped: number;
+  current: number;
+  unreadable: number;
+  changed: number;
+}
+
+type RewrapStep = keyof LegacyRewrapCounts | "skipped";
+
+async function opens_under(
+  storage_key: CryptoKey,
+  entry: EncryptedEntry,
+): Promise<boolean> {
+  try {
+    const opened = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: entry.iv },
+      storage_key,
+      entry.ciphertext,
+    );
+
+    zero_uint8_array(new Uint8Array(opened));
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function replace_if_unchanged(
+  db: IDBDatabase,
+  key: string,
+  expected: EncryptedEntry,
+  sealed: EncryptedEntry,
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(key);
+    let replaced = false;
+
+    transaction.oncomplete = () => resolve(replaced);
+    transaction.onerror = () =>
+      reject(new Error("Failed to rewrap encrypted data"));
+    transaction.onabort = () =>
+      reject(new Error("Failed to rewrap encrypted data"));
+
+    request.onsuccess = () => {
+      const live = request.result as EncryptedEntry | undefined;
+
+      if (!live || !same_stored_entry(live, expected)) return;
+
+      store.put(sealed, key);
+      replaced = true;
+    };
+  });
+}
+
+async function rewrap_entry(
+  db: IDBDatabase,
+  key: string,
+  entry: EncryptedEntry,
+): Promise<RewrapStep> {
+  if (entry.version > CURRENT_VERSION) return "skipped";
+
+  const storage_key = await derive_current_storage_key(key);
+
+  if (await opens_under(storage_key, entry)) return "current";
+
+  let plaintext: Uint8Array;
+
+  try {
+    plaintext = new Uint8Array(
+      await decrypt_entry_buffer(key, entry, storage_key),
+    );
+  } catch {
+    return "unreadable";
+  }
+
+  const sealed = await seal_with_storage_key(
+    storage_key,
+    plaintext,
+    entry.timestamp,
+  );
+
+  return (await replace_if_unchanged(db, key, entry, sealed))
+    ? "rewrapped"
+    : "changed";
+}
+
+export async function rewrap_legacy_entries(): Promise<LegacyRewrapCounts> {
+  const counts: LegacyRewrapCounts = {
+    rewrapped: 0,
+    current: 0,
+    unreadable: 0,
+    changed: 0,
+  };
+  const db = await open_database();
+
+  for (const key of await encrypted_list_keys()) {
+    const entry = await read_raw_entry(key);
+
+    if (!entry) continue;
+
+    const step = await rewrap_entry(db, key, entry);
+
+    if (step !== "skipped") counts[step] += 1;
+  }
+
+  return counts;
 }
 
 export async function encrypted_list_keys(): Promise<string[]> {

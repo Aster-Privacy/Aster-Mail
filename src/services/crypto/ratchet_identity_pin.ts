@@ -70,6 +70,7 @@ interface StoredIdentityPin {
   verified: boolean;
   pinned_at: number;
   pq_seen?: boolean;
+  x3dh_seen?: number;
   rotated?: boolean;
 }
 
@@ -133,6 +134,7 @@ export async function check_and_pin_identity(
   kem_identity_key: string,
   verified: boolean = false,
   advertises_pq: boolean = false,
+  advertised_x3dh: number | null = null,
 ): Promise<IdentityPinStatus> {
   try {
     if (!pin_id || !kem_identity_key) {
@@ -144,6 +146,10 @@ export async function check_and_pin_identity(
     const uid = await current_account_uid();
     const existing = await load_pin(storage_key, uid, pin_id);
     const pq_seen = Boolean(existing?.pq_seen) || advertises_pq;
+    const x3dh_seen = highest_x3dh_seen(
+      existing?.x3dh_seen,
+      advertised_x3dh,
+    );
 
     if (!existing) {
       await scoped_set(
@@ -155,6 +161,7 @@ export async function check_and_pin_identity(
           verified,
           pinned_at: Date.now(),
           pq_seen,
+          x3dh_seen,
         } satisfies StoredIdentityPin,
         storage_key,
       );
@@ -176,6 +183,7 @@ export async function check_and_pin_identity(
           verified,
           pinned_at: Date.now(),
           pq_seen,
+          x3dh_seen,
           rotated: true,
         } satisfies StoredIdentityPin,
         storage_key,
@@ -200,7 +208,8 @@ export async function check_and_pin_identity(
 
     if (
       (verified && !existing.verified) ||
-      pq_seen !== Boolean(existing.pq_seen)
+      pq_seen !== Boolean(existing.pq_seen) ||
+      x3dh_seen !== highest_x3dh_seen(existing.x3dh_seen, null)
     ) {
       await scoped_set(
         IDENTITY_PIN_PREFIX,
@@ -210,6 +219,7 @@ export async function check_and_pin_identity(
           ...existing,
           verified: existing.verified || verified,
           pq_seen,
+          x3dh_seen,
         } satisfies StoredIdentityPin,
         storage_key,
       );
@@ -436,6 +446,7 @@ export async function trust_recipient_keys(
         verified: false,
         pinned_at: Date.now(),
         pq_seen: Boolean(existing?.pq_seen),
+        x3dh_seen: existing?.x3dh_seen,
       } satisfies StoredIdentityPin,
       storage_key,
     );
@@ -457,6 +468,37 @@ export async function trust_recipient_keys(
   await scoped_delete(IDENTITY_CHANGE_PREFIX, uid, pin_id);
   await scoped_delete(IDENTITY_UNTRUSTED_PREFIX, uid, pin_id);
   dismiss_peer_identity_event(pin_id);
+}
+
+function highest_x3dh_seen(
+  stored: number | null | undefined,
+  advertised: number | null | undefined,
+): number {
+  let highest = 1;
+
+  for (const value of [stored, advertised]) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      highest = Math.max(highest, Math.floor(value));
+    }
+  }
+
+  return highest;
+}
+
+export async function remembered_peer_x3dh_version(
+  pin_id: string,
+): Promise<number> {
+  try {
+    if (!pin_id) return 1;
+
+    const storage_key = await get_pin_storage_key();
+    const uid = await current_account_uid();
+    const existing = await load_pin(storage_key, uid, pin_id);
+
+    return highest_x3dh_seen(existing?.x3dh_seen, null);
+  } catch {
+    return 1;
+  }
 }
 
 export async function has_peer_advertised_pq(pin_id: string): Promise<boolean> {
@@ -555,6 +597,7 @@ async function accept_rotated_pin(
         verified: pin.verified,
         pinned_at: pin.pinned_at,
         pq_seen: pin.pq_seen,
+        x3dh_seen: pin.x3dh_seen,
       } satisfies StoredIdentityPin,
       storage_key,
     );

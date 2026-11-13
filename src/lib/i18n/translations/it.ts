@@ -1129,7 +1129,7 @@ export const it = {
       "In Impostazioni puoi aggiungere un alias, collegare un dominio personalizzato e attivare l'autenticazione a due fattori.",
     youre_ready: "Tutto pronto",
     youre_ready_description:
-      "La tua posta è cifrata end-to-end e solo tu possiedi le chiavi. Premi ? in qualsiasi momento per vedere tutte le scorciatoie da tastiera.",
+      "La tua posta è archiviata in forma cifrata e solo tu possiedi le chiavi. Premi ? in qualsiasi momento per vedere tutte le scorciatoie da tastiera.",
     skip_tour: "Salta il tour",
     get_started: "Inizia",
     step: "Passaggio",
@@ -2144,6 +2144,10 @@ export const it = {
     zip_archive: "Archivio ZIP",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "Questa finestra è in esecuzione senza sandbox perché una variabile d'ambiente l'ha disattivata.",
+    sandbox_off_notice:
+      "Questa finestra è in esecuzione senza sandbox. Per attivare la sandbox, installa bubblewrap e riavvia Aster Mail.",
     bill_thanks_title: "Grazie per sostenere Aster",
     bill_thanks_body:
       "Il tuo sostegno significa tutto per noi. Permette a un piccolo team di continuare a costruire Aster con cura, ogni giorno.",
@@ -2269,7 +2273,7 @@ export const it = {
     fam_welcome_step1_point2:
       "Privacy totale - i membri non possono vedere le email degli altri",
     fam_welcome_step1_point3:
-      "Crittografia resistente ai quanti su ogni account",
+      "Crittografia post-quantistica tra account Aster",
     fam_welcome_step2_title:
       "Un unico spazio di archiviazione, sotto il suo controllo",
     fam_welcome_step2_desc:
@@ -2642,7 +2646,7 @@ export const it = {
     invite_title_named: "{{ name }} ti ha invitato su Aster Mail",
     invite_title_generic: "Sei stato invitato su Aster Mail",
     invite_subtitle:
-      "Aster Mail è un servizio di posta a crittografia end-to-end e accesso zero. Nessuno può leggere la tua casella, nemmeno noi.",
+      "Aster Mail è un servizio di posta a crittografia end-to-end e accesso zero. Archiviamo la tua posta cifrata con chiavi che possiedi solo tu.",
     invite_discount_line:
       "Iscriviti ora e ottieni il {{ percent }}% di sconto sul tuo primo piano.",
     invite_benefits_heading: "Cosa ottieni",
@@ -5917,7 +5921,7 @@ export const it = {
     rotate_keys_description_manual:
       "Inserisci la tua password per ruotare le chiavi di crittografia. Le vecchie email resteranno leggibili.",
     rotate_keys_description_required:
-      "Le tue chiavi di crittografia devono essere ruotate. Inserisci la tua password per generare nuove chiavi e mantenere la forward secrecy.",
+      "Le tue chiavi di crittografia devono essere ruotate. Inserisci la tua password per generare nuove chiavi.",
     rotating: "Rotazione in corso...",
     rotate_keys: "Ruota chiavi",
     key_rotation_data_loss_warning:
@@ -6067,7 +6071,7 @@ export const it = {
       "Rendi le tue chiavi trovabili sui keyserver pubblici",
     info_forward_secrecy_title: "Cos'è la Forward Secrecy?",
     info_forward_secrecy_description:
-      "Le tue chiavi di sessione ruotano automaticamente. Anche se qualcuno ottenesse la tua chiave privata oggi, non potrebbe leggere i messaggi passati perché ogni sessione usava una chiave diversa.",
+      "Le tue chiavi di crittografia ruotano automaticamente secondo una pianificazione, il che limita quante email può sbloccare una singola chiave compromessa. Per mantenere le tue email leggibili su tutti i tuoi dispositivi, il tuo account conserva anche copie dei tuoi messaggi cifrate con le chiavi del tuo account, quindi chiunque ottenga la tua password può comunque leggere le tue email passate.",
     info_key_rotation_interval_title: "Intervallo di rotazione chiavi",
     info_key_rotation_interval_description:
       "Con quale frequenza viene sostituita la tua chiave di cifratura. Più frequente significa più sicuro, ma con un po' più di overhead. Una settimana è un buon default per la maggior parte.",
@@ -6444,7 +6448,7 @@ export const it = {
       "Tutta la crittografia avviene nel tuo browser prima che i dati lascino il tuo dispositivo",
     zero_knowledge_storage: "Archiviazione zero-access",
     zero_knowledge_storage_description:
-      "Non possiamo leggere i tuoi dati. Solo tu possiedi le chiavi.",
+      "Non possiamo leggere i tuoi dati archiviati. Solo tu possiedi le chiavi.",
     email_content_attachments: "Contenuto email e allegati",
     folder_names_structure: "Nomi e struttura delle cartelle",
     drafts_signatures: "Bozze e firme",
@@ -8013,7 +8017,7 @@ export const it = {
     send_referral_to_contacts: "Invia email a tutti i contatti",
     referral_email_subject: "Dovresti provare Aster Mail",
     referral_email_body:
-      "Ciao,\n\nuso Aster Mail da un po' e mi trovo molto bene. Tutto è cifrato end to end, quindi nessuno può leggere le tue email tranne te. Nemmeno chi gestisce il servizio.\n\nSe vuoi provarlo, questo è il mio link di invito:\n\n{{ referral_link }}\n\nRiceviamo entrambi {{ amount }} di spazio in più quando inizi a usarlo, così ci guadagni anche tu.\n\nA presto",
+      "Ciao,\n\nuso Aster Mail da un po' e mi trovo molto bene. La tua posta è archiviata cifrata con chiavi che possiedi solo tu, quindi chi gestisce il servizio non può leggere la tua casella.\n\nSe vuoi provarlo, questo è il mio link di invito:\n\n{{ referral_link }}\n\nRiceviamo entrambi {{ amount }} di spazio in più quando inizi a usarlo, così ci guadagni anche tu.\n\nA presto",
     referral_no_contacts:
       "Nessun contatto trovato. Prima aggiungi dei contatti!",
     referral_loading_contacts: "Caricamento contatti...",
@@ -8468,7 +8472,7 @@ export const it = {
     browse_folder: "Seleziona cartella",
     money_back_guarantee: "Garanzia di rimborso di 30 giorni",
     plan_every_plan_includes:
-      "Ogni piano include crittografia end-to-end, archiviazione a conoscenza zero e app open source.",
+      "Ogni piano include crittografia end-to-end, archiviazione zero-access e app open source.",
     cancel_anytime: "Disdici quando vuoi",
     billed_annually: "con fatturazione annuale",
     save_annually_hint: "Risparmia il 20% con il piano annuale",
@@ -8531,7 +8535,7 @@ export const it = {
     referral_share_message_plain:
       "Uso Aster Mail per email cifrate end-to-end. Unisciti con il mio link.",
     referral_email_body_plain:
-      "Ciao,\n\nuso Aster Mail da un po' e mi trovo molto bene. Tutto è cifrato end to end, quindi nessuno può leggere le tue email tranne te. Nemmeno chi gestisce il servizio.\n\nSe vuoi provarlo, questo è il mio link di invito:\n\n{{ referral_link }}\n\nA presto",
+      "Ciao,\n\nuso Aster Mail da un po' e mi trovo molto bene. La tua posta è archiviata cifrata con chiavi che possiedi solo tu, quindi chi gestisce il servizio non può leggere la tua casella.\n\nSe vuoi provarlo, questo è il mio link di invito:\n\n{{ referral_link }}\n\nA presto",
     referral_claim_window_closed:
       "Il periodo per aggiungere un codice invito a questo account è terminato.",
     referral_claim_already: "Questo account ha già un invito associato.",
@@ -10340,9 +10344,14 @@ export const it = {
     device_fingerprint: "Codice di verifica",
     device_code_verify_toggle: "Verifica questo dispositivo",
     link_device_fingerprint_hint:
-      "Se la tua app desktop mostra un codice di verifica, verifica che corrisponda a questo prima di collegare il dispositivo.",
+      "Inserisci il codice di verifica mostrato sul nuovo dispositivo. Nell'app desktop, seleziona Verifica questo dispositivo per visualizzarlo.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_incomplete:
+      "Per collegare il dispositivo, inserisci il codice di verifica completo del nuovo dispositivo.",
+    link_device_fingerprint_mismatch:
+      "Questo codice non corrisponde al nuovo dispositivo. Controlla il codice sul nuovo dispositivo e inseriscilo di nuovo. Se ancora non corrisponde, seleziona Annulla.",
     device_code_fingerprint_hint:
-      "Il browser mostra lo stesso codice di verifica prima di collegare il dispositivo. Se i due codici non corrispondono, non collegare il dispositivo.",
+      "Per collegare questo dispositivo, inserisci questo codice sul dispositivo su cui hai già effettuato l'accesso.",
     link_device_change_account: "Cambia account",
     link_device_choose_account: "Scegli un account",
     link_device_choose_account_description: "Per collegare la tua app desktop",

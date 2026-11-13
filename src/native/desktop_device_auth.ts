@@ -21,6 +21,7 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { ENVELOPE_VERSIONS } from "@/lib/crypto/device_envelope";
 
 export type DeviceAuthErrorCode =
   "challenge_failed" | "login_failed" | "code_generation_failed";
@@ -105,11 +106,16 @@ function base64url_decode_to_bytes(input: string): Uint8Array {
 
 export async function device_challenge(
   device_id: string,
-): Promise<{ challenge_id: string; nonce: string }> {
+): Promise<{
+  challenge_id: string;
+  nonce: string;
+  signature_version?: number;
+}> {
   const { api_client } = await import("@/services/api/client");
   const result = await api_client.post<{
     challenge_id: string;
     nonce: string;
+    signature_version?: number;
   }>("/core/v1/auth/device/challenge", { device_id });
 
   if (result.error || !result.data) {
@@ -143,6 +149,7 @@ async function silent_device_login(
   const challenge = await device_challenge(device_id);
   const signature = await invoke<string>("device_sign_challenge", {
     nonceB64: challenge.nonce,
+    signatureVersion: challenge.signature_version ?? null,
   });
   const login_response = await device_login(challenge.challenge_id, signature);
   const resp = login_response as {
@@ -298,6 +305,7 @@ export async function request_device_code(
       mlkem_pk: pubkeys.mlkem_pk,
       x25519_pk: pubkeys.x25519_pk,
       machine_name: pubkeys.machine_name,
+      envelope_versions: ENVELOPE_VERSIONS,
     },
   );
 
@@ -322,6 +330,27 @@ export async function poll_device_code_status(
   }
 
   return result.data;
+}
+
+async function confirm_passphrase_opens_vault(
+  login_response: unknown,
+  passphrase: string,
+): Promise<void> {
+  const vault = login_response as {
+    encrypted_vault?: unknown;
+    vault_nonce?: unknown;
+  } | null;
+
+  if (
+    typeof vault?.encrypted_vault !== "string" ||
+    typeof vault.vault_nonce !== "string"
+  ) {
+    throw new Error("vault_missing");
+  }
+
+  const { decrypt_vault } = await import("@/services/crypto/key_manager");
+
+  await decrypt_vault(vault.encrypted_vault, vault.vault_nonce, passphrase);
 }
 
 export interface DevicePairingResult {
@@ -349,11 +378,18 @@ export async function complete_device_pairing(
     await silent_device_login(device_id, false);
     const pending = consume_pending_device_login();
 
-    if (pending) {
-      login_response = pending.login_response as Record<string, unknown>;
-      passphrase = pending.passphrase;
+    if (!pending?.passphrase) {
+      throw new Error("passphrase_null");
     }
+    await confirm_passphrase_opens_vault(
+      pending.login_response,
+      pending.passphrase,
+    );
+    login_response = pending.login_response as Record<string, unknown>;
+    passphrase = pending.passphrase;
   } catch (err) {
+    login_response = null;
+    passphrase = null;
     error = err instanceof Error ? err.message : String(err);
     await forget_device_account(device_id).catch((caught) =>
       ignore_error(

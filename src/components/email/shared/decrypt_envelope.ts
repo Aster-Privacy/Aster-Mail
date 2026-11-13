@@ -54,7 +54,7 @@ import {
   normalize_parsed_envelope,
 } from "@/services/crypto/envelope";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
-import { resolve_sender_verification_keys } from "@/services/crypto/sender_verification";
+import { resolve_inline_pgp_sender_keys } from "@/services/crypto/sender_verification";
 import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp_messages";
 import {
   drop_sent_encryption_evidence,
@@ -72,13 +72,23 @@ import {
   settle_external_pgp_key_load,
 } from "@/services/crypto/external_pgp_key";
 
+import { get_current_account } from "@/services/account_manager";
+
 const INBOUND_ECIES_MARKER = 0x02;
 const INBOUND_ECIES_COMPRESSED_MARKER = 0x03;
 const INBOUND_PQ_HYBRID_MARKER = 0x04;
+const INBOUND_ECIES_BOUND_MARKER = 0x05;
+const INBOUND_PQ_HYBRID_BOUND_MARKER = 0x06;
 const INBOUND_ECIES_EPH_KEY_LEN = 65;
 const INBOUND_ML_KEM_CT_LEN = 1088;
 const INBOUND_ECIES_INFO = new TextEncoder().encode("aster-inbound-v1");
 const INBOUND_PQ_HYBRID_INFO = new TextEncoder().encode("aster-inbound-pq-v1");
+const INBOUND_ECIES_BOUND_INFO = new TextEncoder().encode("aster-inbound-v2");
+const INBOUND_PQ_HYBRID_BOUND_INFO = new TextEncoder().encode(
+  "aster-inbound-pq-v2",
+);
+const INBOUND_BOUND_AAD_LABEL = new TextEncoder().encode("aster-inbound-v2");
+const INBOUND_BOUND_OWNER_LEN = 16;
 
 const MAX_DECOMPRESSED_BYTES = 48 * 1024 * 1024;
 
@@ -158,9 +168,90 @@ async function import_inbound_identity_private(
   );
 }
 
+function is_inbound_pq_marker(marker: number): boolean {
+  return (
+    marker === INBOUND_PQ_HYBRID_MARKER ||
+    marker === INBOUND_PQ_HYBRID_BOUND_MARKER
+  );
+}
+
+function is_inbound_bound_marker(marker: number): boolean {
+  return (
+    marker === INBOUND_ECIES_BOUND_MARKER ||
+    marker === INBOUND_PQ_HYBRID_BOUND_MARKER
+  );
+}
+
+function is_inbound_marker(marker: number): boolean {
+  return (
+    marker === INBOUND_ECIES_MARKER ||
+    marker === INBOUND_ECIES_COMPRESSED_MARKER ||
+    is_inbound_pq_marker(marker) ||
+    is_inbound_bound_marker(marker)
+  );
+}
+
+export function inbound_owner_bytes(
+  user_id: string | null | undefined,
+): Uint8Array | null {
+  const hex = (user_id ?? "").trim().replace(/-/g, "");
+
+  if (!/^[0-9a-fA-F]{32}$/.test(hex)) return null;
+
+  const out = new Uint8Array(INBOUND_BOUND_OWNER_LEN);
+
+  for (let i = 0; i < INBOUND_BOUND_OWNER_LEN; i++) {
+    out[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+
+  return out;
+}
+
+function inbound_bound_aad(
+  enc_bytes: Uint8Array,
+  header_len: number,
+  owner: Uint8Array,
+): Uint8Array {
+  const aad = new Uint8Array(
+    INBOUND_BOUND_AAD_LABEL.length + 1 + owner.length + header_len,
+  );
+  let offset = 0;
+
+  aad.set(INBOUND_BOUND_AAD_LABEL, offset);
+  offset += INBOUND_BOUND_AAD_LABEL.length;
+  aad[offset] = enc_bytes[0];
+  offset += 1;
+  aad.set(owner, offset);
+  offset += owner.length;
+  aad.set(enc_bytes.subarray(1, 1 + header_len), offset);
+
+  return aad;
+}
+
+function inbound_gcm_params(
+  enc_bytes: Uint8Array,
+  nonce_bytes: Uint8Array,
+  header_len: number,
+  owner: Uint8Array | null,
+): AesGcmParams {
+  if (!is_inbound_bound_marker(enc_bytes[0])) {
+    return { name: "AES-GCM", iv: nonce_bytes };
+  }
+  if (!owner || owner.length !== INBOUND_BOUND_OWNER_LEN) {
+    throw new Error("bound inbound envelope needs its owner");
+  }
+
+  return {
+    name: "AES-GCM",
+    iv: nonce_bytes,
+    additionalData: inbound_bound_aad(enc_bytes, header_len, owner),
+  };
+}
+
 async function derive_pq_hybrid_aes_key(
   ecdh_shared: ArrayBuffer,
   ml_kem_ss: Uint8Array,
+  info: Uint8Array,
 ): Promise<CryptoKey> {
   const ikm = new Uint8Array(64);
 
@@ -176,7 +267,7 @@ async function derive_pq_hybrid_aes_key(
       name: "HKDF",
       hash: "SHA-256",
       salt: new Uint8Array(0),
-      info: INBOUND_PQ_HYBRID_INFO,
+      info,
     },
     hkdf_key,
     { name: "AES-GCM", length: 256 },
@@ -190,8 +281,16 @@ export async function decrypt_inbound_ecies(
   nonce_bytes: Uint8Array,
   identity_key_jwk_str: string,
   decompress: boolean,
+  owner: Uint8Array | null = null,
 ): Promise<Uint8Array | null> {
   try {
+    const bound = is_inbound_bound_marker(enc_bytes[0]);
+    const gcm_params = inbound_gcm_params(
+      enc_bytes,
+      nonce_bytes,
+      INBOUND_ECIES_EPH_KEY_LEN,
+      owner,
+    );
     const eph_pub_raw = enc_bytes.slice(1, 1 + INBOUND_ECIES_EPH_KEY_LEN);
     const ciphertext = enc_bytes.slice(1 + INBOUND_ECIES_EPH_KEY_LEN);
     const identity_private =
@@ -204,10 +303,10 @@ export async function decrypt_inbound_ecies(
     const aes_key = await derive_aes_key_from_bytes(
       shared_bits,
       new Uint8Array(0),
-      INBOUND_ECIES_INFO,
+      bound ? INBOUND_ECIES_BOUND_INFO : INBOUND_ECIES_INFO,
     );
     const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce_bytes },
+      gcm_params,
       aes_key,
       ciphertext,
     );
@@ -224,8 +323,16 @@ export async function decrypt_inbound_pq_hybrid(
   nonce_bytes: Uint8Array,
   identity_key_jwk_str: string,
   pq_identity_secret_b64: string,
+  owner: Uint8Array | null = null,
 ): Promise<Uint8Array | null> {
   try {
+    const bound = is_inbound_bound_marker(enc_bytes[0]);
+    const gcm_params = inbound_gcm_params(
+      enc_bytes,
+      nonce_bytes,
+      INBOUND_ECIES_EPH_KEY_LEN + INBOUND_ML_KEM_CT_LEN,
+      owner,
+    );
     const eph_pub_raw = enc_bytes.slice(1, 1 + INBOUND_ECIES_EPH_KEY_LEN);
     const ml_kem_ct = enc_bytes.slice(
       1 + INBOUND_ECIES_EPH_KEY_LEN,
@@ -246,10 +353,14 @@ export async function decrypt_inbound_pq_hybrid(
     const pq_sk = base64_to_array(pq_identity_secret_b64);
     const ml_kem_ss = ml_kem768.decapsulate(ml_kem_ct, pq_sk);
 
-    const aes_key = await derive_pq_hybrid_aes_key(ecdh_shared, ml_kem_ss);
+    const aes_key = await derive_pq_hybrid_aes_key(
+      ecdh_shared,
+      ml_kem_ss,
+      bound ? INBOUND_PQ_HYBRID_BOUND_INFO : INBOUND_PQ_HYBRID_INFO,
+    );
 
     const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce_bytes },
+      gcm_params,
       aes_key,
       ciphertext,
     );
@@ -319,27 +430,32 @@ async function decrypt_inbound_with_key_sets(
   marker: number,
   enc_bytes: Uint8Array,
   nonce_bytes: Uint8Array,
+  owner: Uint8Array | null,
 ): Promise<Uint8Array | null> {
+  const is_pq = is_inbound_pq_marker(marker);
+
   for (const key_set of key_sets) {
     let plain: Uint8Array | null = null;
-    const pq =
-      marker === INBOUND_PQ_HYBRID_MARKER
-        ? await resolve_inbound_pq(key_set)
-        : undefined;
+    const pq = is_pq ? await resolve_inbound_pq(key_set) : undefined;
 
-    if (marker === INBOUND_PQ_HYBRID_MARKER && pq) {
+    if (is_pq && pq) {
       plain = await decrypt_inbound_pq_hybrid(
         enc_bytes,
         nonce_bytes,
         key_set.ecdh,
         pq,
+        owner,
       );
-    } else if (marker === INBOUND_ECIES_COMPRESSED_MARKER) {
+    } else if (
+      marker === INBOUND_ECIES_COMPRESSED_MARKER ||
+      marker === INBOUND_ECIES_BOUND_MARKER
+    ) {
       plain = await decrypt_inbound_ecies(
         enc_bytes,
         nonce_bytes,
         key_set.ecdh,
         true,
+        owner,
       );
     } else if (marker === INBOUND_ECIES_MARKER) {
       plain = await decrypt_inbound_ecies(
@@ -353,12 +469,13 @@ async function decrypt_inbound_with_key_sets(
     if (plain) return plain;
   }
 
-  if (marker !== INBOUND_PQ_HYBRID_MARKER) return null;
+  if (!is_pq) return null;
 
   return decrypt_inbound_hybrid_across_key_sets(
     key_sets,
     enc_bytes,
     nonce_bytes,
+    owner,
   );
 }
 
@@ -366,6 +483,7 @@ async function decrypt_inbound_hybrid_across_key_sets(
   key_sets: InboundRatchetKeySet[],
   enc_bytes: Uint8Array,
   nonce_bytes: Uint8Array,
+  owner: Uint8Array | null,
 ): Promise<Uint8Array | null> {
   const pq_secrets: Array<string | undefined> = [];
 
@@ -395,6 +513,7 @@ async function decrypt_inbound_hybrid_across_key_sets(
         nonce_bytes,
         key_set.ecdh,
         pq,
+        owner,
       );
 
       if (plain) return plain;
@@ -402,6 +521,28 @@ async function decrypt_inbound_hybrid_across_key_sets(
   }
 
   return null;
+}
+
+async function resolve_inbound_owner(
+  marker: number,
+): Promise<Uint8Array | null> {
+  if (!is_inbound_bound_marker(marker)) return null;
+
+  try {
+    const account = await get_current_account();
+
+    return inbound_owner_bytes(account?.user?.id);
+  } catch {
+    return null;
+  }
+}
+
+function drop_unverified_sender_claim<T>(envelope: T): T {
+  if (envelope && typeof envelope === "object") {
+    delete (envelope as { sender_verification?: unknown }).sender_verification;
+  }
+
+  return envelope;
 }
 
 function collect_envelope_identity_keys(vault: EncryptedVault): string[] {
@@ -423,9 +564,13 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       const text = new TextDecoder().decode(encrypted_bytes);
 
       if (!text.startsWith("-----BEGIN PGP")) {
-        const parsed_obj = drop_sent_encryption_evidence(JSON.parse(text));
+        const parsed_obj = drop_unverified_sender_claim(
+          drop_sent_encryption_evidence(JSON.parse(text)),
+        );
 
-        register_envelope_attachment_keys(mail_item_id, parsed_obj);
+        register_envelope_attachment_keys(mail_item_id, parsed_obj, {
+          unencrypted: true,
+        });
 
         return normalize_parsed_envelope(parsed_obj) as T;
       }
@@ -452,11 +597,11 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             external_keys,
           );
           const parsed = normalize_parsed_envelope(
-            JSON.parse(first_pass.plaintext),
+            drop_unverified_sender_claim(JSON.parse(first_pass.plaintext)),
           ) as T & { from?: { email?: string }; sender_verification?: string };
 
           if (first_pass.has_signature && parsed?.from?.email) {
-            const sender_keys = await resolve_sender_verification_keys(
+            const sender_keys = await resolve_inline_pgp_sender_keys(
               parsed.from.email,
             );
 
@@ -536,9 +681,11 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   }
 
   if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
-    return decrypt_envelope_v2_with_vault<T>(
-      encrypted_envelope,
-      get_vault_from_memory(),
+    return drop_unverified_sender_claim(
+      await decrypt_envelope_v2_with_vault<T>(
+        encrypted_envelope,
+        get_vault_from_memory(),
+      ),
     );
   }
 
@@ -555,7 +702,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
       zero_uint8_array(passphrase_bytes);
 
-      return result;
+      return drop_unverified_sender_claim(result);
     }
 
     zero_uint8_array(passphrase_bytes);
@@ -579,14 +726,13 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
     const enc_bytes = base64_to_array(encrypted_envelope);
 
     const marker = enc_bytes[0];
+    const inbound_owner = await resolve_inbound_owner(marker);
     const is_ecies_marker =
-      marker === INBOUND_ECIES_MARKER ||
-      marker === INBOUND_ECIES_COMPRESSED_MARKER ||
-      marker === INBOUND_PQ_HYBRID_MARKER;
-    const minimum_marker_length =
-      marker === INBOUND_PQ_HYBRID_MARKER
-        ? 1 + INBOUND_ECIES_EPH_KEY_LEN + INBOUND_ML_KEM_CT_LEN
-        : 1 + INBOUND_ECIES_EPH_KEY_LEN;
+      is_inbound_marker(marker) &&
+      (!is_inbound_bound_marker(marker) || inbound_owner !== null);
+    const minimum_marker_length = is_inbound_pq_marker(marker)
+      ? 1 + INBOUND_ECIES_EPH_KEY_LEN + INBOUND_ML_KEM_CT_LEN
+      : 1 + INBOUND_ECIES_EPH_KEY_LEN;
 
     if (is_ecies_marker && enc_bytes.length > minimum_marker_length) {
       const ratchet_key_sets = collect_inbound_ratchet_key_sets(vault);
@@ -595,6 +741,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
         marker,
         enc_bytes,
         nonce_bytes,
+        inbound_owner,
       );
 
       if (!plain) {
@@ -616,6 +763,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
               marker,
               enc_bytes,
               nonce_bytes,
+              inbound_owner,
             );
 
             if (plain) await adopt_refreshed_vault(refreshed);
@@ -626,8 +774,10 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       if (plain) {
         await adopt_recovered_vault_source();
 
-        const parsed_obj = drop_sent_encryption_evidence(
-          JSON.parse(new TextDecoder().decode(plain)),
+        const parsed_obj = drop_unverified_sender_claim(
+          drop_sent_encryption_evidence(
+            JSON.parse(new TextDecoder().decode(plain)),
+          ),
         );
 
         register_envelope_attachment_keys(mail_item_id, parsed_obj);
@@ -637,7 +787,9 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
     }
 
     const finalize_envelope = (plaintext: ArrayBuffer): T => {
-      const parsed = JSON.parse(new TextDecoder().decode(plaintext));
+      const parsed = drop_unverified_sender_claim(
+        JSON.parse(new TextDecoder().decode(plaintext)),
+      );
 
       register_envelope_attachment_keys(mail_item_id, parsed);
 

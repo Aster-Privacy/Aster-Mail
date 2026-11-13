@@ -1131,7 +1131,7 @@ export const pl = {
       "W Ustawieniach dodasz alias, podłączysz własną domenę i włączysz uwierzytelnianie dwuskładnikowe.",
     youre_ready: "Wszystko gotowe",
     youre_ready_description:
-      "Twoja poczta jest szyfrowana end-to-end, a klucze masz tylko Ty. Naciśnij ? w dowolnej chwili, aby zobaczyć wszystkie skróty klawiszowe.",
+      "Twoja poczta jest przechowywana w postaci zaszyfrowanej, a klucze masz tylko Ty. Naciśnij ? w dowolnej chwili, aby zobaczyć wszystkie skróty klawiszowe.",
     skip_tour: "Pomiń przewodnik",
     get_started: "Rozpocznij",
     step: "Krok",
@@ -2290,6 +2290,10 @@ export const pl = {
     zip_archive: "Archiwum ZIP",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "To okno działa bez piaskownicy, ponieważ wyłączyła ją zmienna środowiskowa.",
+    sandbox_off_notice:
+      "To okno działa bez piaskownicy. Aby ją włączyć, zainstaluj bubblewrap, a następnie uruchom ponownie Aster Mail.",
     bill_thanks_title: "Dziękujemy za wspieranie Aster",
     bill_thanks_body:
       "Twoje wsparcie znaczy dla nas wszystko. Dzięki niemu mały zespół może każdego dnia z troską rozwijać Aster.",
@@ -2415,7 +2419,7 @@ export const pl = {
     fam_welcome_step1_point2:
       "Pełna prywatność - członkowie nie widzą nawzajem swoich wiadomości",
     fam_welcome_step1_point3:
-      "Szyfrowanie odporne na komputery kwantowe na każdym koncie",
+      "Szyfrowanie postkwantowe między kontami Aster",
     fam_welcome_step2_title: "Jedna pula pamięci pod Twoją kontrolą",
     fam_welcome_step2_desc:
       "Twój plan zawiera wspólną pulę pamięci. Zdecyduj, ile otrzyma każdy członek, i zmieniaj to w dowolnym momencie.",
@@ -2788,7 +2792,7 @@ export const pl = {
     invite_title_named: "{{ name }} zaprosił(a) Cię do Aster Mail",
     invite_title_generic: "Zostałeś zaproszony do Aster Mail",
     invite_subtitle:
-      "Aster Mail to poczta z zerowym dostępem i szyfrowaniem end-to-end. Nikt poza Tobą nie może odczytać Twojej skrzynki, nawet my.",
+      "Aster Mail to poczta z zerowym dostępem i szyfrowaniem end-to-end. Przechowujemy Twoją pocztę zaszyfrowaną kluczami, które masz tylko Ty.",
     invite_discount_line:
       "Zarejestruj się teraz i zyskaj {{ percent }}% zniżki na pierwszy plan.",
     invite_benefits_heading: "Co otrzymujesz",
@@ -5048,7 +5052,7 @@ export const pl = {
       "Udostępnij swoje klucze na publicznych serwerach kluczy",
     info_forward_secrecy_title: "Czym jest utajnianie z wyprzedzeniem?",
     info_forward_secrecy_description:
-      "Twoje klucze sesji są automatycznie rotowane. Nawet gdyby ktoś zdobył dziś Twój klucz prywatny, nie mógłby odczytać starych wiadomości, bo każda sesja używała innego klucza.",
+      "Twoje klucze szyfrowania są automatycznie rotowane według harmonogramu, co ogranicza, ile poczty może odblokować pojedynczy wyciekły klucz. Aby Twoja poczta była czytelna na wszystkich Twoich urządzeniach, Twoje konto przechowuje też kopie wiadomości zaszyfrowane kluczami konta, więc każdy, kto zdobędzie Twoje hasło, nadal może przeczytać Twoją wcześniejszą pocztę.",
     info_key_rotation_interval_title: "Interwał rotacji kluczy",
     info_key_rotation_interval_description:
       "Jak często Twój klucz szyfrowania jest wymieniany. Częściej oznacza bezpieczniej, ale z nieco większym obciążeniem. Tydzień to dobra wartość domyślna dla większości.",
@@ -5417,7 +5421,7 @@ export const pl = {
       "Całe szyfrowanie odbywa się w Twojej przeglądarce, zanim dane opuszczą urządzenie",
     zero_knowledge_storage: "Magazyn zero-access",
     zero_knowledge_storage_description:
-      "Nie możemy odczytać Twoich danych. Tylko Ty posiadasz klucze.",
+      "Nie możemy odczytać Twoich przechowywanych danych. Tylko Ty posiadasz klucze.",
     email_content_attachments: "Treść e-maili i załączniki",
     folder_names_structure: "Nazwy folderów i struktura",
     drafts_signatures: "Szkice i podpisy",
@@ -7498,7 +7502,7 @@ export const pl = {
     rotate_keys_description_manual:
       "Wprowadź hasło, aby zrotować klucze szyfrowania. Stare e-maile pozostaną czytelne.",
     rotate_keys_description_required:
-      "Twoje klucze szyfrowania wymagają rotacji. Wprowadź hasło, aby wygenerować nowe klucze i zachować forward secrecy.",
+      "Twoje klucze szyfrowania wymagają rotacji. Wprowadź hasło, aby wygenerować nowe klucze.",
     rotating: "Rotowanie...",
     rotate_keys: "Rotuj klucze",
     key_rotation_data_loss_warning:
@@ -8140,7 +8144,7 @@ export const pl = {
     send_referral_to_contacts: "Wyślij e-mail do wszystkich kontaktów",
     referral_email_subject: "Wypróbuj Aster Mail",
     referral_email_body:
-      "Cześć,\n\nkorzystam z Aster Mail od jakiegoś czasu i bardzo mi się podoba. Wszystko jest szyfrowane end-to-end, więc nikt poza Tobą nie przeczyta Twojej poczty. Nawet osoby prowadzące usługę.\n\nJeśli chcesz spróbować, oto mój link z zaproszeniem:\n\n{{ referral_link }}\n\nOboje dostaniemy {{ amount }} dodatkowego miejsca, gdy zaczniesz z niego korzystać, więc Ty też na tym zyskujesz.\n\nPozdrawiam",
+      "Cześć,\n\nkorzystam z Aster Mail od jakiegoś czasu i bardzo mi się podoba. Poczta jest przechowywana zaszyfrowana kluczami, które masz tylko Ty, więc osoby prowadzące usługę nie przeczytają Twojej skrzynki.\n\nJeśli chcesz spróbować, oto mój link z zaproszeniem:\n\n{{ referral_link }}\n\nOboje dostaniemy {{ amount }} dodatkowego miejsca, gdy zaczniesz z niego korzystać, więc Ty też na tym zyskujesz.\n\nPozdrawiam",
     referral_no_contacts: "Nie znaleziono kontaktów. Najpierw dodaj kontakty!",
     referral_loading_contacts: "Ładowanie kontaktów...",
     two_factor_auth_disabled:
@@ -8594,7 +8598,7 @@ export const pl = {
     browse_folder: "Wybierz folder",
     money_back_guarantee: "30-dniowa gwarancja zwrotu pieniędzy",
     plan_every_plan_includes:
-      "Każdy plan obejmuje szyfrowanie end-to-end, przechowywanie z zerową wiedzą i aplikacje open source.",
+      "Każdy plan obejmuje szyfrowanie end-to-end, przechowywanie z zerowym dostępem i aplikacje open source.",
     cancel_anytime: "Anuluj w dowolnym momencie",
     billed_annually: "rozliczane rocznie",
     save_annually_hint: "Oszczędź 20% przy planie rocznym",
@@ -8657,7 +8661,7 @@ export const pl = {
     referral_share_message_plain:
       "Używam Aster Mail do poczty szyfrowanej end-to-end. Dołącz przez mój link.",
     referral_email_body_plain:
-      "Cześć,\n\nkorzystam z Aster Mail od jakiegoś czasu i bardzo mi się podoba. Wszystko jest szyfrowane end-to-end, więc nikt poza Tobą nie przeczyta Twojej poczty. Nawet osoby prowadzące usługę.\n\nJeśli chcesz spróbować, oto mój link z zaproszeniem:\n\n{{ referral_link }}\n\nPozdrawiam",
+      "Cześć,\n\nkorzystam z Aster Mail od jakiegoś czasu i bardzo mi się podoba. Poczta jest przechowywana zaszyfrowana kluczami, które masz tylko Ty, więc osoby prowadzące usługę nie przeczytają Twojej skrzynki.\n\nJeśli chcesz spróbować, oto mój link z zaproszeniem:\n\n{{ referral_link }}\n\nPozdrawiam",
     referral_claim_window_closed:
       "Czas na dodanie kodu zaproszenia do tego konta minął.",
     referral_claim_already: "To konto ma już przypisane zaproszenie.",
@@ -10509,9 +10513,14 @@ export const pl = {
     device_fingerprint: "Kod weryfikacyjny",
     device_code_verify_toggle: "Zweryfikuj to urządzenie",
     link_device_fingerprint_hint:
-      "Jeśli aplikacja na komputer pokazuje kod weryfikacyjny, przed połączeniem urządzenia upewnij się, że jest zgodny z tym kodem.",
+      "Wpisz kod weryfikacyjny widoczny na nowym urządzeniu. W aplikacji na komputer wybierz Zweryfikuj to urządzenie, aby go wyświetlić.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_incomplete:
+      "Aby połączyć urządzenie, wpisz pełny kod weryfikacyjny z nowego urządzenia.",
+    link_device_fingerprint_mismatch:
+      "Ten kod nie pasuje do nowego urządzenia. Sprawdź kod na nowym urządzeniu i wpisz go ponownie. Jeśli nadal nie pasuje, wybierz Anuluj.",
     device_code_fingerprint_hint:
-      "Przeglądarka pokazuje ten sam kod weryfikacyjny przed połączeniem urządzenia. Jeśli oba kody się różnią, nie łącz urządzenia.",
+      "Aby połączyć to urządzenie, wpisz ten kod na urządzeniu, na którym już się zalogowano.",
     link_device_change_account: "Zmień konto",
     link_device_choose_account: "Wybierz konto",
     link_device_choose_account_description:

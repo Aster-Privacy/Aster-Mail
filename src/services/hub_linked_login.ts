@@ -109,12 +109,18 @@ export async function sign_in_with_hub_account(
   const x25519_sk = randomBytes(32);
   const mlkem = ml_kem768.keygen();
 
+  const recipient = {
+    ed25519_pk: ed25519.getPublicKey(ed25519_sk),
+    mlkem_pk: mlkem.publicKey,
+    x25519_pk: x25519.getPublicKey(x25519_sk),
+  };
+
   try {
     const code = await request_device_code({
       device_id: null,
-      ed25519_pk: base64url_encode(ed25519.getPublicKey(ed25519_sk)),
-      mlkem_pk: base64url_encode(mlkem.publicKey),
-      x25519_pk: base64url_encode(x25519.getPublicKey(x25519_sk)),
+      ed25519_pk: base64url_encode(recipient.ed25519_pk),
+      mlkem_pk: base64url_encode(recipient.mlkem_pk),
+      x25519_pk: base64url_encode(recipient.x25519_pk),
       machine_name: machine_name(app_name),
     });
 
@@ -123,6 +129,7 @@ export async function sign_in_with_hub_account(
     const confirmed = await await_confirmation(code.code);
     const passphrase_bytes = open_vault_key_envelope(
       base64url_decode(confirmed.sealed_envelope),
+      recipient,
       mlkem.secretKey,
       x25519_sk,
     );

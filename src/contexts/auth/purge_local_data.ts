@@ -51,6 +51,7 @@ import { clear_all_app_lock_data } from "@/services/app_lock_store";
 import { clear_category_index } from "@/services/category_index";
 import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { clear_all_ratchet_states } from "@/services/crypto/ratchet_state_store";
+import { delete_device_recovery_database } from "@/services/crypto/device_recovery_store";
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { clear_unreadable_attachment_rows } from "@/services/crypto/attachment_crypto";
 import { clear_plaintext_cache } from "@/services/crypto/ratchet_plaintext_cache";
@@ -67,7 +68,13 @@ import { clear_preload_cache } from "@/components/email/hooks/preload_cache_stor
 import { clear_billing_cache } from "@/components/settings/billing/billing_cache";
 import { clear_family_cache } from "@/components/settings/billing/family_section/family_cache";
 
-export async function purge_all_local_data(): Promise<boolean> {
+export interface PurgeOptions {
+  keep_device_recovery?: boolean;
+}
+
+export async function purge_all_local_data({
+  keep_device_recovery = false,
+}: PurgeOptions = {}): Promise<boolean> {
   const errors: Error[] = [];
 
   stop_session_timeout();
@@ -156,6 +163,14 @@ export async function purge_all_local_data(): Promise<boolean> {
     await clear_plaintext_cache();
   } catch (e) {
     errors.push(e instanceof Error ? e : new Error(String(e)));
+  }
+
+  if (!keep_device_recovery) {
+    try {
+      await delete_device_recovery_database();
+    } catch (e) {
+      errors.push(e instanceof Error ? e : new Error(String(e)));
+    }
   }
 
   try {

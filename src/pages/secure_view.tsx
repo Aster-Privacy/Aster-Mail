@@ -44,6 +44,9 @@ import {
   verify_secure_view,
   reply_to_secure_view,
   delete_secure_view,
+  secure_view_credential_for_unlock,
+  secure_view_unlock_mode,
+  type SecureViewCredential,
 } from "@/services/api/secure_view";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -184,7 +187,9 @@ export default function SecureViewPage() {
   const [reload_count, set_reload_count] = useState(0);
   const [metadata, set_metadata] = useState<SecureViewMetadata | null>(null);
   const [password, set_password] = useState("");
-  const [auth_proof, set_auth_proof] = useState<string | null>(null);
+  const [credential, set_credential] = useState<SecureViewCredential>({
+    kind: "none",
+  });
   const [is_unlocking, set_is_unlocking] = useState(false);
   const [error, set_error] = useState("");
   const [decrypted, set_decrypted] = useState<DecryptedSecureMessage | null>(
@@ -227,7 +232,9 @@ export default function SecureViewPage() {
           return;
         }
 
-        if (!data.requires_password && !data.is_zero_knowledge) {
+        if (secure_view_unlock_mode(data).kind === "refused") {
+          set_error(sv("secure_view.decrypt_failed"));
+        } else if (!data.requires_password && !data.is_zero_knowledge) {
           try {
             const response = await verify_secure_view(token, null);
 
@@ -311,7 +318,13 @@ export default function SecureViewPage() {
   }, [decrypted]);
 
   const handle_open_without_password = async () => {
-    if (!token) return;
+    if (!token || !metadata) return;
+
+    if (secure_view_unlock_mode(metadata).kind !== "password") {
+      set_error(sv("secure_view.decrypt_failed"));
+
+      return;
+    }
 
     set_error("");
     set_is_unlocking(true);
@@ -365,13 +378,21 @@ export default function SecureViewPage() {
 
     if (!password) return;
 
+    const mode = secure_view_unlock_mode(metadata);
+
+    if (mode.kind === "refused") {
+      set_error(sv("secure_view.decrypt_failed"));
+
+      return;
+    }
+
     set_error("");
     set_is_unlocking(true);
 
     try {
-      const is_zk = metadata.is_zero_knowledge && !!metadata.kdf_salt;
+      const is_zk = mode.kind === "zero_knowledge";
       const proof = is_zk
-        ? await derive_auth_proof(password, metadata.kdf_salt!)
+        ? await derive_auth_proof(password, mode.kdf_salt)
         : null;
 
       const response = is_zk
@@ -396,7 +417,7 @@ export default function SecureViewPage() {
 
       const content = response.content;
 
-      set_auth_proof(proof);
+      set_credential(secure_view_credential_for_unlock(is_zk, proof, password));
 
       if (!is_zk) {
         if (!content.subject || !content.body) {
@@ -410,12 +431,17 @@ export default function SecureViewPage() {
           body: content.body,
           attachments: [],
         });
+        set_password("");
         set_view_state("unlocked");
 
         return;
       }
 
-      if (!content.encrypted_subject || !content.encrypted_body) {
+      if (
+        !content.encrypted_subject ||
+        !content.encrypted_body ||
+        (content.kdf_salt !== undefined && content.kdf_salt !== mode.kdf_salt)
+      ) {
         set_error(sv("secure_view.decrypt_failed"));
 
         return;
@@ -424,7 +450,7 @@ export default function SecureViewPage() {
       try {
         const result = await decrypt_secure_message(
           password,
-          content.kdf_salt ?? metadata.kdf_salt!,
+          mode.kdf_salt,
           {
             encrypted_subject: content.encrypted_subject,
             encrypted_body: content.encrypted_body,
@@ -437,6 +463,7 @@ export default function SecureViewPage() {
         );
 
         set_decrypted(result);
+        set_password("");
         set_view_state("unlocked");
       } catch {
         set_error(sv("secure_view.decrypt_failed"));
@@ -477,8 +504,7 @@ export default function SecureViewPage() {
       const response = await reply_to_secure_view(
         token,
         reply_text.trim(),
-        auth_proof,
-        password || null,
+        credential,
       );
 
       if (!response.success) {
@@ -515,11 +541,7 @@ export default function SecureViewPage() {
     set_is_deleting(true);
 
     try {
-      const response = await delete_secure_view(
-        token,
-        auth_proof,
-        password || null,
-      );
+      const response = await delete_secure_view(token, credential);
 
       if (!response.success) {
         const code = response.error || "";

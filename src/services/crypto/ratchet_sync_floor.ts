@@ -18,92 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { has_vault_in_memory } from "./memory_key_store";
-import { load_storage_write_key_bytes } from "./storage_write_key";
-import {
-  RATCHET_SYNC_FLOOR_PREFIX,
-  scoped_get,
-  scoped_set,
-} from "./storage_key_names";
+import { raise_sync_counter, read_sync_counter } from "./ratchet_sync_counter";
+import { RATCHET_SYNC_FLOOR_PREFIX } from "./storage_key_names";
 
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
-
-interface FloorScope {
-  storage_key: CryptoKey;
-  uid: string | null;
+export function read_sync_floor(conversation_id: string): Promise<number> {
+  return read_sync_counter(RATCHET_SYNC_FLOOR_PREFIX, conversation_id);
 }
 
-async function floor_scope(): Promise<FloorScope | null> {
-  if (!has_vault_in_memory()) return null;
-
-  const raw = await load_storage_write_key_bytes();
-
-  if (!raw) return null;
-
-  const storage_key = await crypto.subtle.importKey(
-    "raw",
-    raw,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt", "decrypt"],
-  );
-
-  zero_uint8_array(raw);
-
-  const { get_current_account_id } = await import("@/services/account_manager");
-
-  return { storage_key, uid: await get_current_account_id() };
-}
-
-async function stored_floor(
-  scope: FloorScope,
-  conversation_id: string,
-): Promise<number> {
-  const stored = await scoped_get<number>(
-    RATCHET_SYNC_FLOOR_PREFIX,
-    scope.uid,
-    conversation_id,
-    scope.storage_key,
-    { include_unscoped: false },
-  );
-
-  return typeof stored === "number" && Number.isSafeInteger(stored)
-    ? stored
-    : 0;
-}
-
-export async function read_sync_floor(
-  conversation_id: string,
-): Promise<number> {
-  try {
-    const scope = await floor_scope();
-
-    return scope ? await stored_floor(scope, conversation_id) : 0;
-  } catch {
-    return 0;
-  }
-}
-
-export async function raise_sync_floor(
+export function raise_sync_floor(
   conversation_id: string,
   sync_version: number,
 ): Promise<void> {
-  if (!Number.isSafeInteger(sync_version)) return;
-
-  try {
-    const scope = await floor_scope();
-
-    if (!scope) return;
-    if (sync_version <= (await stored_floor(scope, conversation_id))) return;
-
-    await scoped_set(
-      RATCHET_SYNC_FLOOR_PREFIX,
-      scope.uid,
-      conversation_id,
-      sync_version,
-      scope.storage_key,
-    );
-  } catch {
-    return;
-  }
+  return raise_sync_counter(
+    RATCHET_SYNC_FLOOR_PREFIX,
+    conversation_id,
+    sync_version,
+  );
 }

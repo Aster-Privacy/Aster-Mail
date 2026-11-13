@@ -57,6 +57,7 @@ import {
   mark_unconfirmed_sender_plaintext,
   record_message_sender_identity,
   record_peer_identity_event,
+  type SenderIdentityStatus,
 } from "./ratchet_verification_status";
 import { open_recovery_lane } from "./ratchet_recovery_lane";
 import {
@@ -88,7 +89,11 @@ import {
   type SenderIdentityContinuity,
   SenderIdentityUnverifiedError,
 } from "./sender_identity_authentication";
-import { perform_x3dh_receiver } from "./x3dh";
+import {
+  compute_signed_prekey_id,
+  perform_x3dh_receiver,
+  X3DH_VERSION_ONE_TIME_BOUND,
+} from "./x3dh";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { ignore_error } from "@/lib/ignore_error";
@@ -645,6 +650,62 @@ function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {
   return sets;
 }
 
+async function order_key_sets_for_signed_prekey(
+  key_sets: RatchetKeySet[],
+  data: RatchetRecipientData,
+): Promise<RatchetKeySet[]> {
+  if (
+    data.x3dh_v !== X3DH_VERSION_ONE_TIME_BOUND ||
+    typeof data.spk_id !== "string" ||
+    key_sets.length < 2
+  ) {
+    return key_sets;
+  }
+
+  const matching: RatchetKeySet[] = [];
+  const others: RatchetKeySet[] = [];
+
+  for (const keys of key_sets) {
+    let matches = false;
+
+    try {
+      matches =
+        !!keys.ratchet_signed_prekey_public &&
+        (await compute_signed_prekey_id(
+          base64_to_array(keys.ratchet_signed_prekey_public),
+        )) === data.spk_id;
+    } catch {
+      matches = false;
+    }
+
+    (matches ? matching : others).push(keys);
+  }
+
+  return [...matching, ...others];
+}
+
+async function discard_used_one_time_prekey(
+  data: RatchetRecipientData,
+): Promise<void> {
+  if (
+    data.x3dh_v !== X3DH_VERSION_ONE_TIME_BOUND ||
+    data.opk_id === undefined
+  ) {
+    return;
+  }
+
+  try {
+    const { delete_ec_one_time_secret } = await import("./ec_prekey_store");
+
+    await delete_ec_one_time_secret(data.opk_id);
+  } catch (caught) {
+    ignore_error(
+      "services/crypto/ratchet_decrypt:discard_used_one_time_prekey",
+      caught,
+    );
+  }
+}
+
 interface RecoveryLaneCandidate {
   identity_jwk: string;
   identity_public: string;
@@ -827,6 +888,7 @@ async function init_receiver_from_bootstrap(
       keys.ratchet_pq_identity_seed,
     ),
     data.x3dh_v,
+    data.opk_id,
   );
 
   const own_keypair = await jwk_to_ratchet_keypair(
@@ -873,6 +935,19 @@ async function carry_forward_skipped_keys(
   ratchet.adopt_state(current);
 }
 
+function bootstrap_may_replace_session(
+  established_identity_key: string | null,
+  bootstrap_identity_key: string | null,
+  identity_status: SenderIdentityStatus,
+): boolean {
+  if (identity_status === "verified") return true;
+
+  return (
+    established_identity_key !== null &&
+    established_identity_key === bootstrap_identity_key
+  );
+}
+
 async function decrypt_ratchet_for_recipient(
   our_email: string,
   sender_email: string,
@@ -917,9 +992,13 @@ async function decrypt_ratchet_for_recipient(
   const loaded_snapshot = loaded_ratchet
     ? await snapshot_ratchet_state(loaded_ratchet)
     : null;
+  const established_identity_key =
+    loaded_ratchet?.get_remote_identity_key() ?? null;
 
   let ratchet = loaded_ratchet;
-  let ratchet_origin: "loaded" | "archived" | "replacement" = "loaded";
+  let ratchet_origin: "loaded" | "archived" | "replacement" | "bootstrap" =
+    "loaded";
+  let identity_status: SenderIdentityStatus = "unverified";
 
   let plaintext: string | null = null;
 
@@ -932,7 +1011,7 @@ async function decrypt_ratchet_for_recipient(
   }
 
   if (plaintext === null) {
-    const identity_status = await authenticate_sender_identity(
+    identity_status = await authenticate_sender_identity(
       sender_email,
       sender_identity_key,
     );
@@ -982,7 +1061,10 @@ async function decrypt_ratchet_for_recipient(
       };
     }
 
-    for (const keys of key_sets) {
+    for (const keys of await order_key_sets_for_signed_prekey(
+      key_sets,
+      data,
+    )) {
       let candidate: DoubleRatchet | null = null;
 
       try {
@@ -1005,7 +1087,7 @@ async function decrypt_ratchet_for_recipient(
       try {
         plaintext = await candidate.decrypt(message);
         ratchet = candidate;
-        ratchet_origin = "replacement";
+        ratchet_origin = "bootstrap";
         break;
       } catch (err) {
         last_error = err;
@@ -1065,7 +1147,7 @@ async function decrypt_ratchet_for_recipient(
           try {
             plaintext = await candidate.decrypt(message);
             ratchet = candidate;
-            ratchet_origin = "replacement";
+            ratchet_origin = "bootstrap";
             await adopt_refreshed_vault(refreshed);
             break;
           } catch (caught) {
@@ -1103,7 +1185,7 @@ async function decrypt_ratchet_for_recipient(
         try {
           plaintext = await candidate.decrypt(message);
           ratchet = candidate;
-          ratchet_origin = "replacement";
+          ratchet_origin = "bootstrap";
           break;
         } catch (caught) {
           ignore_error(
@@ -1202,7 +1284,26 @@ async function decrypt_ratchet_for_recipient(
     return null;
   }
 
-  if (ratchet_origin === "replacement" && loaded_snapshot) {
+  if (
+    ratchet_origin === "bootstrap" &&
+    loaded_snapshot &&
+    !bootstrap_may_replace_session(
+      established_identity_key,
+      ratchet.get_remote_identity_key(),
+      identity_status,
+    )
+  ) {
+    return {
+      plaintext,
+      sender_identity_key: ratchet.get_remote_identity_key(),
+      archived: false,
+    };
+  }
+
+  if (
+    (ratchet_origin === "replacement" || ratchet_origin === "bootstrap") &&
+    loaded_snapshot
+  ) {
     await carry_forward_skipped_keys(ratchet, loaded_snapshot);
     await archive_ratchet_state(loaded_snapshot);
   }
@@ -1217,6 +1318,10 @@ async function decrypt_ratchet_for_recipient(
     } catch {
       /* best-effort */
     }
+  }
+
+  if (ratchet_origin === "bootstrap") {
+    await discard_used_one_time_prekey(data);
   }
 
   return {

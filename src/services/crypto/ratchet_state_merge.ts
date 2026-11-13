@@ -188,6 +188,8 @@ export function merge_ratchet_states(
       bootstrap: local.state.bootstrap ?? remote.state.bootstrap,
       remote_identity_key:
         local.state.remote_identity_key ?? remote.state.remote_identity_key,
+      header_bound:
+        local.state.header_bound || remote.state.header_bound,
       skipped_message_keys,
       dirty_since_sync: true,
       updated_at: Math.max(local.state.updated_at, remote.state.updated_at),

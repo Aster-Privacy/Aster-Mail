@@ -469,3 +469,53 @@ describe("reconcile_preferences calendar keys", () => {
     expect(reconciled.calendar_week_starts_on).toBe("saturday");
   });
 });
+
+describe("build_merged_preferences subject hiding default", () => {
+  it("hides the subject for an account that never set the switch", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      obscure_subject_when_encrypted: false,
+    };
+
+    delete server.obscure_subject_user_set;
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.obscure_subject_when_encrypted).toBe(true);
+  });
+
+  it("hides the subject when the stored preferences carry neither key", () => {
+    const server: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
+
+    delete server.obscure_subject_when_encrypted;
+    delete server.obscure_subject_user_set;
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.obscure_subject_when_encrypted).toBe(true);
+  });
+
+  it("keeps the subject visible for an account that turned the switch off", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      obscure_subject_when_encrypted: false,
+      obscure_subject_user_set: true,
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.obscure_subject_when_encrypted).toBe(false);
+  });
+
+  it("keeps the subject hidden for an account that turned the switch on", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      obscure_subject_when_encrypted: true,
+      obscure_subject_user_set: true,
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.obscure_subject_when_encrypted).toBe(true);
+  });
+});

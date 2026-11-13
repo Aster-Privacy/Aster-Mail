@@ -71,6 +71,7 @@ export interface DeviceCodeVerifyResponse {
   mlkem_pk: string;
   x25519_pk: string;
   machine_name: string;
+  envelope_versions?: number[];
 }
 
 export interface DeviceCodeConfirmResponse {

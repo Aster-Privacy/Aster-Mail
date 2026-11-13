@@ -26,7 +26,7 @@ import { zero_uint8_array } from "./secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
 
 //
-// Hybrid post-quantum encryption for password-protected messages sent to
+// Password-based encryption for password-protected messages sent to
 // external recipients.
 //
 // Key derivation chain:
@@ -47,8 +47,11 @@ import { HASH_ALG } from "@/services/crypto/constants";
 // and opaque AES-GCM ciphertexts for subject/body/attachments.  It never holds
 // kem_ss or content_key.
 //
-// For harvest-now-decrypt-later: a quantum adversary who can break AES-256 still
-// cannot recover kem_ss without also breaking ML-KEM-768's lattice problem.
+// The password is the only secret. kem_seed is stored encrypted under a key
+// derived from the password, so anyone who learns or guesses the password can
+// recover kem_ss and content_key. The ML-KEM step is kept for format
+// compatibility and adds no protection beyond the password, including against
+// a quantum adversary.
 //
 
 const AEAD_BINDING_WRITE_ENABLED = true;

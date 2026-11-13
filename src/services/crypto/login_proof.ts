@@ -27,6 +27,12 @@ import {
 } from "./auth_salt_guard";
 import { array_to_base64, base64_to_array } from "./base64";
 import { derive_password_hash, hash_email } from "./key_manager";
+import {
+  clear_pending_login_v3,
+  enroll_login_v3,
+  read_login_v3_flag,
+  set_pending_login_v3,
+} from "./login_v3";
 
 import { api_client } from "@/services/api/client";
 
@@ -378,6 +384,12 @@ export interface AccountProof {
   kdf_version: KdfVersion;
   hash_v1?: string;
   hash_v2: string;
+  v1_proof: string;
+}
+
+export interface LoginV3Signals {
+  login_v3?: unknown;
+  login_v3_enroll?: unknown;
 }
 
 export async function derive_account_proof(
@@ -398,10 +410,16 @@ export async function derive_account_proof(
   const { hash, hash_v2 } = await derive_password_hash(password, salt);
 
   if (kdf_version === 2) {
-    return { password_hash: hash_v2, kdf_version: 2, hash_v2 };
+    return { password_hash: hash_v2, kdf_version: 2, hash_v2, v1_proof: hash };
   }
 
-  return { password_hash: hash, kdf_version: 1, hash_v1: hash, hash_v2 };
+  return {
+    password_hash: hash,
+    kdf_version: 1,
+    hash_v1: hash,
+    hash_v2,
+    v1_proof: hash,
+  };
 }
 
 export async function enroll_login_v2(
@@ -598,6 +616,7 @@ let pending_login_enrollment: {
   pin_keys: string[];
   salt: Uint8Array | null;
   rotation: Promise<LoginSaltRotation | null> | null;
+  enroll_v3: boolean;
   created_at: number;
 } | null = null;
 
@@ -606,18 +625,21 @@ export function set_pending_login_enrollment(
   pin_keys: readonly string[],
   salt: Uint8Array | null = null,
   rotation: Promise<LoginSaltRotation | null> | null = null,
+  enroll_v3 = false,
 ): void {
   pending_login_enrollment = {
     proof,
     pin_keys: [...pin_keys],
     salt,
     rotation,
+    enroll_v3,
     created_at: Date.now(),
   };
 }
 
 export function clear_pending_login_enrollment(): void {
   pending_login_enrollment = null;
+  clear_pending_login_v3();
 }
 
 export async function flush_pending_login_enrollment(
@@ -637,6 +659,8 @@ export async function flush_pending_login_enrollment(
     record_login_salt(pin_keys, pending.salt);
   }
 
+  let rotated: LoginSaltRotation | null = null;
+
   if (pending.rotation) {
     const rotation = await pending.rotation;
 
@@ -644,11 +668,22 @@ export async function flush_pending_login_enrollment(
       rotation &&
       (await rotate_login_salt(pending.proof, rotation, pin_keys))
     ) {
-      return true;
+      rotated = rotation;
     }
   }
 
-  return enroll_login_v2(pending.proof, pin_keys);
+  const enrolled = rotated
+    ? true
+    : await enroll_login_v2(pending.proof, pin_keys);
+
+  if (pending.enroll_v3) {
+    await enroll_login_v3(
+      rotated ? rotated.hash : pending.proof.v1_proof,
+      rotated ? rotated.hash_v2 : pending.proof.password_hash,
+    );
+  }
+
+  return enrolled;
 }
 
 export async function derive_sign_in_proof(
@@ -656,6 +691,7 @@ export async function derive_sign_in_proof(
   salt: Uint8Array,
   kdf_version_value: unknown,
   user_hash: string,
+  signals: LoginV3Signals = {},
 ): Promise<string> {
   const pin_keys = [user_hash_pin_key(user_hash)];
   const proof = await derive_account_proof(
@@ -670,7 +706,21 @@ export async function derive_sign_in_proof(
       ? prepare_login_salt_rotation(password)
       : null;
 
-  set_pending_login_enrollment(proof, pin_keys, salt, rotation);
+  const has_login_v3 = read_login_v3_flag(signals.login_v3);
+
+  set_pending_login_enrollment(
+    proof,
+    pin_keys,
+    salt,
+    rotation,
+    !has_login_v3 && read_login_v3_flag(signals.login_v3_enroll),
+  );
+
+  if (has_login_v3) {
+    set_pending_login_v3(user_hash, proof.v1_proof);
+  } else {
+    clear_pending_login_v3();
+  }
 
   return proof.password_hash;
 }

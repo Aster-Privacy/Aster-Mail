@@ -32,6 +32,8 @@ import {
   derive_ratchet_encryption_key_from_base,
 } from "./ratchet_sync";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
+import { zero_uint8_array } from "./secure_memory";
+import { ignore_error } from "@/lib/ignore_error";
 
 import { api_client } from "@/services/api/client";
 
@@ -44,7 +46,6 @@ interface StoredPqSecret {
 }
 
 function secure_zero(buffer: Uint8Array): void {
-  crypto.getRandomValues(buffer);
   buffer.fill(0);
 }
 
@@ -281,7 +282,7 @@ async function decrypt_pq_from_server(
   encrypted_secret: string,
   secret_nonce: string,
   sync_key: CryptoKey,
-): Promise<Uint8Array> {
+): Promise<{ secret: Uint8Array; legacy: boolean }> {
   const ciphertext = base64_to_array(encrypted_secret);
   const nonce = base64_to_array(secret_nonce);
 
@@ -292,7 +293,7 @@ async function decrypt_pq_from_server(
       ciphertext,
     );
 
-    return new Uint8Array(plaintext);
+    return { secret: new Uint8Array(plaintext), legacy: false };
   } catch (primary_error) {
     const recovered = await decrypt_with_legacy_derived_keys(
       derive_ratchet_encryption_key_from_base,
@@ -304,7 +305,7 @@ async function decrypt_pq_from_server(
       throw primary_error;
     }
 
-    return new Uint8Array(recovered);
+    return { secret: new Uint8Array(recovered), legacy: true };
   }
 }
 
@@ -404,6 +405,16 @@ async function post_pq_secrets_bulk(
   }
 }
 
+function reupload_under_current_key(key_id: number, secret: Uint8Array): void {
+  const copy = secret.slice();
+
+  upload_pq_secret_to_server(key_id, copy)
+    .catch((caught) =>
+      ignore_error("services/crypto/pq_prekey_store:reupload", caught),
+    )
+    .finally(() => zero_uint8_array(copy));
+}
+
 async function fetch_pq_secret_from_server(
   key_id: number,
 ): Promise<{ secret: Uint8Array | null; not_found: boolean }> {
@@ -422,13 +433,15 @@ async function fetch_pq_secret_from_server(
       return { secret: null, not_found: response.code === "NOT_FOUND" };
     }
 
-    const secret = await decrypt_pq_from_server(
+    const opened = await decrypt_pq_from_server(
       response.data.encrypted_secret,
       response.data.secret_nonce,
       sync_key,
     );
 
-    return { secret, not_found: false };
+    if (opened.legacy) reupload_under_current_key(key_id, opened.secret);
+
+    return { secret: opened.secret, not_found: false };
   } catch {
     return { secret: null, not_found: false };
   }

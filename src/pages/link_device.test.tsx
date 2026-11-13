@@ -101,6 +101,9 @@ declare global {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const { default: LinkDevice } = await import("./link_device");
+const { fingerprint_of_encoded_device_keys } = await import(
+  "@/lib/crypto/device_fingerprint"
+);
 
 let container: HTMLDivElement;
 let root: Root;
@@ -130,6 +133,57 @@ async function enter_code(): Promise<void> {
   });
 }
 
+const SHOWN_FINGERPRINT = "9B16 AF79 0A6A E2F2 55D3";
+
+function device_keys() {
+  return {
+    ed25519_pk: encode(32, 1),
+    mlkem_pk: encode(1184, 2),
+    x25519_pk: encode(32, 3),
+    machine_name: "desk",
+  };
+}
+
+function fingerprint_input(): HTMLInputElement {
+  const input = container.querySelector<HTMLInputElement>(
+    '[data-testid="device_fingerprint_input"]',
+  );
+
+  if (!input) throw new Error("fingerprint input missing");
+
+  return input;
+}
+
+async function type_fingerprint(value: string): Promise<void> {
+  const input = fingerprint_input();
+  const setter = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  )?.set;
+
+  await act(async () => {
+    setter?.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
+async function press_enter(): Promise<void> {
+  await act(async () => {
+    fingerprint_input().dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+  });
+}
+
+async function click_confirm(): Promise<void> {
+  await act(async () => {
+    button("auth.link_device_confirm_button")!.click();
+  });
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
 describe("link device approval", () => {
   beforeEach(async () => {
     h.verify.mockReset();
@@ -150,30 +204,93 @@ describe("link device approval", () => {
     container.remove();
   });
 
-  it("shows the verification code of the returned keys on request before anything is sealed", async () => {
-    h.verify.mockResolvedValue({
-      data: {
-        ed25519_pk: encode(32, 1),
-        mlkem_pk: encode(1184, 2),
-        x25519_pk: encode(32, 3),
-        machine_name: "desk",
-      },
-    });
+  it("never shows the verification code of the returned keys", async () => {
+    h.verify.mockResolvedValue({ data: device_keys() });
 
     await enter_code();
 
-    expect(
-      container.querySelector('[data-testid="device_fingerprint"]'),
-    ).toBeNull();
-    await act(async () => {
-      button("auth.device_code_verify_toggle")!.click();
-    });
-    expect(
-      container.querySelector('[data-testid="device_fingerprint"]')
-        ?.textContent,
-    ).toContain("9B16 AF79 0A6A E2F2 55D3");
+    expect(container.textContent).not.toContain(SHOWN_FINGERPRINT);
+    expect(fingerprint_input().value).toBe("");
+    expect(h.confirm).not.toHaveBeenCalled();
+  });
+
+  it("keeps linking disabled until the full code is typed", async () => {
+    h.verify.mockResolvedValue({ data: device_keys() });
+
+    await enter_code();
+
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
+    await type_fingerprint("9B16 AF79 0A6A E2F2 55D");
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
+    await press_enter();
+
+    expect(h.confirm).not.toHaveBeenCalled();
+  });
+
+  it("refuses a code that differs in one character and sends nothing", async () => {
+    h.verify.mockResolvedValue({ data: device_keys() });
+
+    await enter_code();
+    await type_fingerprint("9B16 AF79 0A6A E2F2 55D4");
+    await click_confirm();
+
+    expect(container.textContent).toContain(
+      "auth.link_device_fingerprint_mismatch",
+    );
     expect(button("auth.link_device_confirm_button")).toBeDefined();
     expect(h.confirm).not.toHaveBeenCalled();
+  });
+
+  it("refuses the code of another device", async () => {
+    h.verify.mockResolvedValue({ data: device_keys() });
+    const other = fingerprint_of_encoded_device_keys({
+      ...device_keys(),
+      x25519_pk: encode(32, 4),
+    });
+
+    await enter_code();
+    await type_fingerprint(other!);
+    await click_confirm();
+
+    expect(container.textContent).toContain(
+      "auth.link_device_fingerprint_mismatch",
+    );
+    expect(h.confirm).not.toHaveBeenCalled();
+  });
+
+  it("links the device when the typed code matches its keys", async () => {
+    h.verify.mockResolvedValue({ data: device_keys() });
+
+    await enter_code();
+    await type_fingerprint("9b16af790a6ae2f255d3");
+
+    expect(fingerprint_input().value).toBe(SHOWN_FINGERPRINT);
+    await click_confirm();
+
+    expect(h.confirm).toHaveBeenCalledTimes(1);
+    expect(h.confirm.mock.calls[0][0]).toBe("ABCD2345");
+  });
+
+  it("keeps only code characters and stops at the full length", async () => {
+    h.verify.mockResolvedValue({ data: device_keys() });
+
+    await enter_code();
+    await type_fingerprint("9b16-af79 0a6a:e2f2 55d3 ffff zz");
+
+    expect(fingerprint_input().value).toBe(SHOWN_FINGERPRINT);
+  });
+
+  it("clears the typed code when the flow restarts", async () => {
+    h.verify.mockResolvedValue({ data: device_keys() });
+
+    await enter_code();
+    await type_fingerprint(SHOWN_FINGERPRINT);
+    await act(async () => {
+      button("auth.link_device_cancel")!.click();
+    });
+    await enter_code();
+
+    expect(fingerprint_input().value).toBe("");
   });
 
   it("does not offer approval when the keys cannot be fingerprinted", async () => {

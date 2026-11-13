@@ -2504,6 +2504,8 @@ export interface CommonTranslations {
 }
 
 export interface SettingsTranslations {
+  sandbox_off_by_setting_notice: string;
+  sandbox_off_notice: string;
   bill_action_required: string;
   bill_add_funds: string;
   bill_add_funds_body: string;
@@ -8703,6 +8705,9 @@ export interface AuthTranslations {
   device_fingerprint: string;
   device_code_verify_toggle: string;
   link_device_fingerprint_hint: string;
+  link_device_fingerprint_placeholder: string;
+  link_device_fingerprint_incomplete: string;
+  link_device_fingerprint_mismatch: string;
   device_code_fingerprint_hint: string;
   link_device_change_account: string;
   link_device_choose_account: string;

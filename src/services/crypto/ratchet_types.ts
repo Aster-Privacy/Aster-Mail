@@ -33,6 +33,8 @@ export interface RatchetRecipientData {
   pq_ciphertext?: string;
   pq_key_id?: number;
   x3dh_v?: number;
+  opk_id?: number;
+  spk_id?: string;
   recovery?: RecoveryLaneData;
 }
 

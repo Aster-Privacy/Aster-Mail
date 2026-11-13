@@ -38,6 +38,13 @@ vi.mock("@/services/api/client", () => ({
   },
 }));
 
+const decrypt_vault_mock = vi.fn();
+
+vi.mock("@/services/crypto/key_manager", () => ({
+  decrypt_vault: (encrypted_vault: string, nonce: string, passphrase: string) =>
+    decrypt_vault_mock(encrypted_vault, nonce, passphrase),
+}));
+
 const device_state = {
   device_id: null as string | null,
   identity: "identity-a",
@@ -51,6 +58,8 @@ beforeEach(() => {
   vi.resetModules();
   invoke_mock.mockReset();
   post_mock.mockReset();
+  decrypt_vault_mock.mockReset();
+  decrypt_vault_mock.mockResolvedValue({ identity_key: "identity" });
   device_state.device_id = "device-1";
   device_state.identity = "identity-a";
   install_tauri();
@@ -114,7 +123,12 @@ beforeEach(() => {
     }
     if (path === "/core/v1/auth/device/login") {
       return Promise.resolve({
-        data: { access_token: "token", csrf_token: "csrf" },
+        data: {
+          access_token: "token",
+          csrf_token: "csrf",
+          encrypted_vault: "vault",
+          vault_nonce: "vault-nonce",
+        },
         error: null,
       });
     }
@@ -198,7 +212,71 @@ describe("desktop device session lifecycle", () => {
       envelopeB64: "sealed",
       deviceId: "device-2",
     });
+    expect(decrypt_vault_mock).toHaveBeenCalledWith(
+      "vault",
+      "vault-nonce",
+      "pass",
+    );
     expect(module.consume_pending_device_login()).toBeNull();
+  });
+
+  it("forgets the account when the passphrase does not open the vault", async () => {
+    decrypt_vault_mock.mockRejectedValue(new Error("vault_decrypt_failed"));
+    const module = await import("./desktop_device_auth");
+
+    const result = await module.complete_device_pairing("device-2", "sealed");
+
+    expect(result.error).toBe("vault_decrypt_failed");
+    expect(result.passphrase).toBeNull();
+    expect(result.login_response).toBeNull();
+    expect(invoke_mock).toHaveBeenCalledWith("device_forget_account", {
+      deviceId: "device-2",
+    });
+    expect(device_state.device_id).toBeNull();
+  });
+
+  it("forgets the account when the login response carries no vault", async () => {
+    post_mock.mockImplementation((path: string) =>
+      Promise.resolve(
+        path === "/core/v1/auth/device/challenge"
+          ? { data: { challenge_id: "challenge-1", nonce: "nonce" }, error: null }
+          : { data: { access_token: "token" }, error: null },
+      ),
+    );
+    const module = await import("./desktop_device_auth");
+
+    const result = await module.complete_device_pairing("device-2", "sealed");
+
+    expect(result.error).toBe("vault_missing");
+    expect(result.passphrase).toBeNull();
+    expect(decrypt_vault_mock).not.toHaveBeenCalled();
+    expect(invoke_mock).toHaveBeenCalledWith("device_forget_account", {
+      deviceId: "device-2",
+    });
+  });
+
+  it("offers every envelope version it can open when requesting a code", async () => {
+    post_mock.mockResolvedValue({
+      data: { code: "ABCD-1234", expires_in: 600 },
+      error: null,
+    });
+    const module = await import("./desktop_device_auth");
+
+    await module.request_device_code({
+      device_id: null,
+      ed25519_pk: "ed",
+      mlkem_pk: "mlkem",
+      x25519_pk: "x",
+      machine_name: "machine",
+    });
+
+    expect(post_mock).toHaveBeenCalledWith("/core/v1/auth/device/code", {
+      ed25519_pk: "ed",
+      mlkem_pk: "mlkem",
+      x25519_pk: "x",
+      machine_name: "machine",
+      envelope_versions: [1, 2],
+    });
   });
 
   it("forgets only the failed account when pairing breaks", async () => {

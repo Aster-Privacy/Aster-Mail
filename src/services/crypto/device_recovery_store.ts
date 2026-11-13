@@ -219,3 +219,28 @@ export async function delete_device_snapshots(
     return true;
   });
 }
+
+export async function delete_user_device_snapshots(
+  user_id: string,
+): Promise<void> {
+  const snapshot_ids = (await list_device_snapshots(user_id)).map(
+    (record) => record.snapshot_id,
+  );
+
+  await delete_device_snapshots(snapshot_ids);
+}
+
+export function delete_device_recovery_database(): Promise<void> {
+  if (!indexed_db_available()) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(DB_NAME);
+
+    request.onsuccess = () => resolve();
+    request.onblocked = () => resolve();
+    request.onerror = () =>
+      reject(
+        request.error ?? new Error("device_recovery_store: delete failed"),
+      );
+  });
+}

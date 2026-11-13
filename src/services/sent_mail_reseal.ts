@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { emit_refresh_requested } from "@/hooks/mail_events";
 import { list_attachments, update_attachment_meta } from "./api/attachments";
 import { list_encrypted_mail_items, update_mail_item } from "./api/mail";
 import {
@@ -351,4 +352,11 @@ export async function reencrypt_all_sent_mail(
   }
 
   return summary;
+}
+
+export function announce_sent_mail_resealed(
+  summary: SentMailResealSummary | null,
+): void {
+  if (!summary || summary.rewritten <= 0) return;
+  emit_refresh_requested();
 }

@@ -76,13 +76,36 @@ async function encrypt(key: Uint8Array, nonce: Uint8Array, data: Uint8Array) {
 }
 
 describe("decrypt_attachment_data for imported mail", () => {
-  it("returns stored bytes when a key is present but the data was stored unencrypted", async () => {
+  it("refuses stored bytes that do not decrypt under the key, even with a zero nonce", async () => {
+    await expect(
+      decrypt_attachment_data(
+        array_to_base64(pdf_bytes),
+        array_to_base64(zero_nonce),
+        array_to_base64(random_bytes(32)),
+        "mail-1",
+        0,
+      ),
+    ).rejects.toThrow();
+  });
+
+  it("refuses stored bytes under a zero nonce when no sequence number is known", async () => {
+    await expect(
+      decrypt_attachment_data(
+        array_to_base64(pdf_bytes),
+        array_to_base64(zero_nonce),
+        array_to_base64(random_bytes(32)),
+      ),
+    ).rejects.toThrow();
+  });
+
+  it("decrypts real ciphertext sealed under a zero nonce", async () => {
+    const key = random_bytes(32);
+    const ciphertext = await encrypt(key, zero_nonce, pdf_bytes);
+
     const result = await decrypt_attachment_data(
-      array_to_base64(pdf_bytes),
+      array_to_base64(ciphertext),
       array_to_base64(zero_nonce),
-      array_to_base64(random_bytes(32)),
-      "mail-1",
-      0,
+      array_to_base64(key),
     );
 
     expect(new Uint8Array(result)).toEqual(pdf_bytes);

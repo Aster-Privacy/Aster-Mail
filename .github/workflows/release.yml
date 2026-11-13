@@ -627,7 +627,6 @@ jobs:
     needs: build
     if: always()
     runs-on: ubuntu-22.04
-    continue-on-error: true
     permissions:
       id-token: write
       attestations: write
@@ -637,7 +636,7 @@ jobs:
       # fixed-name copies on the release are byte-identical and verify by
       # digest. Installers carried forward from an older release and the
       # Android APK, which is built elsewhere, are never attested here.
-      # The job is advisory and never blocks a release.
+      # A release is promoted to Latest only after this job succeeds.
       - name: Download the installers built in this run
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -652,8 +651,8 @@ jobs:
           subject-path: "attest/*"
 
   promote_to_latest:
-    needs: [build, publish, ensure_canonical_assets]
-    if: always()
+    needs: [build, publish, ensure_canonical_assets, attest_provenance]
+    if: always() && needs.attest_provenance.result == 'success'
     runs-on: ubuntu-22.04
     permissions:
       contents: write

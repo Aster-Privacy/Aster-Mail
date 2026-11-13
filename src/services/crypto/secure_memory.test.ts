@@ -119,6 +119,34 @@ describe("SecureBuffer", () => {
     });
   });
 
+  describe("buffers above the random fill limit", () => {
+    it("should wrap a large array and wipe the source", () => {
+      const data = new Uint8Array(200_000).fill(0xab);
+      const buffer = SecureBuffer.from_uint8_array(data);
+
+      expect(buffer.get_length()).toBe(200_000);
+      expect(data.every((b) => b === 0)).toBe(true);
+    });
+
+    it("should wrap a large string", () => {
+      const buffer = SecureBuffer.from_string("a".repeat(200_000));
+
+      expect(buffer.get_length()).toBe(200_000);
+    });
+
+    it("should wipe a large buffer on zero", () => {
+      const buffer = SecureBuffer.from_uint8_array(
+        new Uint8Array(200_000).fill(0xab),
+      );
+      const view = buffer.get_bytes_view();
+
+      buffer.zero();
+
+      expect(buffer.is_cleared()).toBe(true);
+      expect(view?.every((b) => b === 0)).toBe(true);
+    });
+  });
+
   describe("zeroing behavior", () => {
     it("should zero buffer contents", () => {
       const data = new Uint8Array([1, 2, 3, 4, 5]);

@@ -89,7 +89,7 @@ describe("end-to-end flag for inbound PGP mail", () => {
     vault_state.passphrase = PASSPHRASE;
   });
 
-  it("marks a body decrypted with our key as end-to-end", async () => {
+  it("does not mark an unsigned body decrypted with our key", async () => {
     const key = await make_key("recipient@aster.cx");
 
     vault_state.vault = { identity_key: key.privateKey, previous_keys: [] };
@@ -97,7 +97,7 @@ describe("end-to-end flag for inbound PGP mail", () => {
     const result = await process_envelope_body(make_envelope(ciphertext));
 
     expect(result.body_text).toContain("hello from outside");
-    expect(result.e2e_verified).toBe(true);
+    expect(result.e2e_verified).toBe(false);
   });
 
   it("does not mark a body that no held key can decrypt", async () => {

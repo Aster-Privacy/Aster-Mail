@@ -30,6 +30,19 @@ const SALT_BYTES = 32;
 const AUTH_KEY_CONTEXT = "astermail-folder-auth-v1";
 const ENCRYPT_KEY_CONTEXT = "astermail-folder-encrypt-v1";
 
+export class FolderKdfDowngradeError extends Error {
+  constructor() {
+    super("folder password format downgrade refused");
+    this.name = "FolderKdfDowngradeError";
+  }
+}
+
+export function folder_salt_is_current(salt: Uint8Array): boolean {
+  if (salt.length === SALT_BYTES) return true;
+  if (salt.length === SALT_BYTES_LEGACY) return false;
+  throw new Error("invalid folder password salt");
+}
+
 async function hkdf_expand(
   ikm: Uint8Array,
   info: string,
@@ -65,14 +78,18 @@ interface DerivedKeys {
 export async function derive_password_keys(
   password: string,
   existing_salt?: Uint8Array,
+  allow_legacy = false,
 ): Promise<DerivedKeys> {
   const salt =
     existing_salt ?? crypto.getRandomValues(new Uint8Array(SALT_BYTES));
 
-  const iterations =
-    salt.length <= SALT_BYTES_LEGACY
-      ? PBKDF2_ITERATIONS_LEGACY
-      : PBKDF2_ITERATIONS;
+  const current = folder_salt_is_current(salt);
+
+  if (!current && !allow_legacy) {
+    throw new FolderKdfDowngradeError();
+  }
+
+  const iterations = current ? PBKDF2_ITERATIONS : PBKDF2_ITERATIONS_LEGACY;
 
   const encoder = new TextEncoder();
   const password_bytes = encoder.encode(password);
@@ -219,10 +236,10 @@ export async function prepare_change_password(
   existing_folder_key: Uint8Array,
 ): Promise<ChangePasswordData> {
   const old_salt = base64_to_array(old_salt_base64);
-  const { auth_key: old_auth_key } = await derive_password_keys(
-    old_password,
-    old_salt,
-  );
+  const { auth_key: old_auth_key, encryption_key: old_encryption_key } =
+    await derive_password_keys(old_password, old_salt, true);
+
+  zero_uint8_array(old_encryption_key);
 
   const {
     auth_key: new_auth_key,

@@ -60,9 +60,11 @@ import {
 } from "./steps_categories";
 import { escrow_step } from "./steps_escrow";
 import { mail_metadata_step } from "./steps_mail_metadata";
+import { pq_secrets_step } from "./steps_pq_secrets";
 
 export const DEFAULT_RESEAL_STEPS: ResealStep[] = [
   ratchet_states_step,
+  pq_secrets_step,
   aliases_step,
   domain_addresses_step,
   deleted_aliases_step,
@@ -128,9 +130,19 @@ export function needs_storage_reseal(
 export async function run_storage_reseal(
   options: ResealRunOptions,
 ): Promise<ResealRunResult> {
+  if (!needs_storage_reseal(options.vault)) {
+    return { status: "not_needed", counts: empty_counts() };
+  }
+
+  return run_reseal_steps(options);
+}
+
+export async function run_reseal_steps(
+  options: ResealRunOptions,
+): Promise<ResealRunResult> {
   const counts = empty_counts();
 
-  if (!needs_storage_reseal(options.vault) || !options.vault.data_kek) {
+  if (options.vault.data_kek_random !== true || !options.vault.data_kek) {
     return { status: "not_needed", counts };
   }
 

@@ -1140,7 +1140,7 @@ export const fr = {
       "Les réglages vous permettent d'ajouter un alias, de connecter un domaine personnalisé et d'activer l'authentification à deux facteurs.",
     youre_ready: "Vous êtes prêt",
     youre_ready_description:
-      "Vos e-mails sont chiffrés de bout en bout et vous seul détenez les clés. Appuyez sur ? à tout moment pour voir tous les raccourcis clavier.",
+      "Vos e-mails sont stockés chiffrés et vous seul détenez les clés. Appuyez sur ? à tout moment pour voir tous les raccourcis clavier.",
     skip_tour: "Passer la visite",
     get_started: "Commencer",
     step: "Étape",
@@ -2141,6 +2141,10 @@ export const fr = {
     zip_archive: "Archive ZIP",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "Cette fenêtre s'exécute sans son bac à sable, car une variable d'environnement l'a désactivé.",
+    sandbox_off_notice:
+      "Cette fenêtre s'exécute sans son bac à sable. Pour l'activer, installez bubblewrap, puis redémarrez Aster Mail.",
     bill_thanks_title: "Merci de soutenir Aster",
     bill_thanks_body:
       "Votre soutien compte énormément pour nous. Il permet à une petite équipe de continuer à construire Aster avec soin, jour après jour.",
@@ -2265,7 +2269,7 @@ export const fr = {
     fam_welcome_step1_point2:
       "Confidentialité totale : les membres ne peuvent pas voir les e-mails des autres",
     fam_welcome_step1_point3:
-      "Chiffrement résistant au quantique sur chaque compte",
+      "Chiffrement post-quantique entre les comptes Aster",
     fam_welcome_step2_title: "Un seul espace de stockage, sous votre contrôle",
     fam_welcome_step2_desc:
       "Votre forfait inclut un espace de stockage partagé. Décidez de la part de chaque membre et ajustez-la à tout moment.",
@@ -2647,7 +2651,7 @@ export const fr = {
     invite_title_named: "{{ name }} vous a invité sur Aster Mail",
     invite_title_generic: "Vous avez été invité sur Aster Mail",
     invite_subtitle:
-      "Aster Mail est une messagerie chiffrée de bout en bout et à accès zéro. Personne d'autre que vous ne peut lire votre boîte de réception, pas même nous.",
+      "Aster Mail est une messagerie chiffrée de bout en bout et à accès zéro. Nous stockons vos e-mails chiffrés avec des clés que vous seul détenez.",
     invite_discount_line:
       "Inscrivez-vous maintenant et bénéficiez de {{ percent }}% de réduction sur votre premier abonnement.",
     invite_benefits_heading: "Ce que vous obtenez",
@@ -4940,7 +4944,7 @@ export const fr = {
     info_forward_secrecy_title:
       "Qu'est-ce que la confidentialité persistante ?",
     info_forward_secrecy_description:
-      "Vos clés de session tournent automatiquement. Même si quelqu'un obtenait votre clé privée aujourd'hui, il ne pourrait pas lire les anciens messages car chaque session utilisait une clé différente.",
+      "Vos clés de chiffrement tournent automatiquement selon un calendrier, ce qui limite le nombre d'e-mails qu'une seule clé compromise peut déverrouiller. Pour que vos e-mails restent lisibles sur tous vos appareils, votre compte conserve aussi des copies de vos messages chiffrées avec les clés de votre compte. Toute personne qui obtient votre mot de passe peut donc encore lire vos anciens e-mails.",
     info_key_rotation_interval_title: "Intervalle de rotation des clés",
     info_key_rotation_interval_description:
       "La fréquence à laquelle votre clé de chiffrement est remplacée. Plus souvent est plus sûr, mais avec un peu plus de surcharge. Une semaine est un bon défaut pour la plupart.",
@@ -5327,7 +5331,7 @@ export const fr = {
       "Tout le chiffrement se fait dans votre navigateur avant que les données ne quittent votre appareil",
     zero_knowledge_storage: "Stockage à connaissance nulle",
     zero_knowledge_storage_description:
-      "Nous ne pouvons pas lire vos données. Seul vous détenez les clés.",
+      "Nous ne pouvons pas lire vos données stockées. Seul vous détenez les clés.",
     email_content_attachments: "Contenu des e-mails et pièces jointes",
     folder_names_structure: "Noms et structure des dossiers",
     drafts_signatures: "Brouillons et signatures",
@@ -5541,7 +5545,7 @@ export const fr = {
       "Vos codes de récupération actuels cesseront de fonctionner dès que vous en générerez de nouveaux. Enregistrer le nouvel ensemble dans un endroit sûr avant de fermer cette fenêtre vous garde couvert. Tapez",
     end_to_end_encrypted: "Chiffré de bout en bout",
     all_data_protected:
-      "Toutes vos données sont protégées par un chiffrement à connaissance nulle",
+      "Toutes vos données sont protégées par un chiffrement à accès zéro",
     pgp_compatible: "Compatible PGP",
     pgp_compatible_description:
       "Envoyez des e-mails chiffrés à quiconque utilisant PGP.",
@@ -7116,7 +7120,7 @@ export const fr = {
       "Une fois la rotation effectuée, votre ancienne clé est retirée. Les e-mails chiffrés exclusivement avec votre ancienne clé ne pourront plus être déchiffrés. Cette action est irréversible.",
     rotating: "Renouvellement...",
     rotate_keys_description_required:
-      "Vos clés de chiffrement doivent être renouvelées. Saisissez votre mot de passe pour générer de nouvelles clés et préserver la confidentialité persistante.",
+      "Vos clés de chiffrement doivent être renouvelées. Saisissez votre mot de passe pour générer de nouvelles clés.",
     rotate_keys_description_manual:
       "Saisissez votre mot de passe pour renouveler vos clés de chiffrement. Vos anciens e-mails restent lisibles.",
     current_key_age: "Âge de la clé actuelle",
@@ -8332,7 +8336,7 @@ export const fr = {
       "Journaliste ? Contactez le support avec votre carte de presse pour recevoir votre code.",
     refer_a_friend: "Parrainer un ami",
     referral_email_body:
-      "Bonjour,\n\nJ'utilise Aster Mail depuis un moment et j'aime beaucoup. Tout est chiffré de bout en bout, donc personne ne peut lire vos e-mails à part vous. Pas même ceux qui gèrent le service.\n\nSi vous voulez essayer, voici mon lien d'invitation :\n\n{{ referral_link }}\n\nNous recevons chacun {{ amount }} de stockage supplémentaire dès que vous commencez à l'utiliser, donc vous y gagnez aussi.\n\nÀ bientôt",
+      "Bonjour,\n\nJ'utilise Aster Mail depuis un moment et j'aime beaucoup. Vos e-mails sont stockés chiffrés avec des clés que vous seul détenez, donc ceux qui gèrent le service ne peuvent pas lire votre boîte.\n\nSi vous voulez essayer, voici mon lien d'invitation :\n\n{{ referral_link }}\n\nNous recevons chacun {{ amount }} de stockage supplémentaire dès que vous commencez à l'utiliser, donc vous y gagnez aussi.\n\nÀ bientôt",
     referral_email_subject: "Vous devriez essayer Aster Mail",
     referral_how_it_works: "Comment ça marche",
     referral_loading_contacts: "Chargement des contacts...",
@@ -8523,7 +8527,7 @@ export const fr = {
     browse_folder: "Choisir un dossier",
     money_back_guarantee: "Garantie satisfait ou remboursé de 30 jours",
     plan_every_plan_includes:
-      "Chaque forfait inclut le chiffrement de bout en bout, un stockage à connaissance nulle et des apps open source.",
+      "Chaque forfait inclut le chiffrement de bout en bout, un stockage à accès zéro et des apps open source.",
     cancel_anytime: "Annulez à tout moment",
     billed_annually: "facturé chaque année",
     save_annually_hint: "Économisez 20 % avec l’offre annuelle",
@@ -8587,7 +8591,7 @@ export const fr = {
     referral_share_message_plain:
       "J'utilise Aster Mail pour des e-mails chiffrés de bout en bout. Rejoignez-moi avec mon lien.",
     referral_email_body_plain:
-      "Bonjour,\n\nJ'utilise Aster Mail depuis un moment et j'aime beaucoup. Tout est chiffré de bout en bout, donc personne ne peut lire vos e-mails à part vous. Pas même ceux qui gèrent le service.\n\nSi vous voulez essayer, voici mon lien d'invitation :\n\n{{ referral_link }}\n\nÀ bientôt",
+      "Bonjour,\n\nJ'utilise Aster Mail depuis un moment et j'aime beaucoup. Vos e-mails sont stockés chiffrés avec des clés que vous seul détenez, donc ceux qui gèrent le service ne peuvent pas lire votre boîte.\n\nSi vous voulez essayer, voici mon lien d'invitation :\n\n{{ referral_link }}\n\nÀ bientôt",
     referral_claim_window_closed:
       "Le délai pour ajouter un code d'invitation à ce compte est écoulé.",
     referral_claim_already: "Ce compte est déjà associé à une invitation.",
@@ -10419,9 +10423,14 @@ export const fr = {
     device_fingerprint: "Code de vérification",
     device_code_verify_toggle: "Vérifier cet appareil",
     link_device_fingerprint_hint:
-      "Si votre application de bureau affiche un code de vérification, vérifiez qu'il correspond à celui-ci avant d'associer l'appareil.",
+      "Saisissez le code de vérification affiché sur votre nouvel appareil. Dans l'app de bureau, sélectionnez Vérifier cet appareil pour l'afficher.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_incomplete:
+      "Pour associer l'appareil, saisissez le code de vérification complet de votre nouvel appareil.",
+    link_device_fingerprint_mismatch:
+      "Ce code ne correspond pas à votre nouvel appareil. Vérifiez le code sur votre nouvel appareil et saisissez-le de nouveau. S'il ne correspond toujours pas, sélectionnez Annuler.",
     device_code_fingerprint_hint:
-      "Votre navigateur affiche le même code de vérification avant d'associer l'appareil. Si les deux codes ne correspondent pas, n'associez pas l'appareil.",
+      "Pour associer cet appareil, saisissez ce code sur l'appareil sur lequel vous êtes déjà connecté.",
     link_device_change_account: "Changer de compte",
     link_device_choose_account: "Choisissez un compte",
     link_device_choose_account_description:

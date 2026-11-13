@@ -327,9 +327,11 @@ export class ApiClient {
 
   private async persist_native_token(token: string): Promise<void> {
     try {
-      const { Preferences } = await import("@capacitor/preferences");
+      const { native_token_set } = await import(
+        "@/native/secure_token_store"
+      );
 
-      await Preferences.set({ key: NATIVE_TOKEN_KEY, value: token });
+      await native_token_set(NATIVE_TOKEN_KEY, token);
     } catch (caught) {
       ignore_error("services/api/client/api_client:verify_identity", caught);
     }
@@ -337,9 +339,11 @@ export class ApiClient {
 
   private async clear_native_token(): Promise<void> {
     try {
-      const { Preferences } = await import("@capacitor/preferences");
+      const { native_token_remove } = await import(
+        "@/native/secure_token_store"
+      );
 
-      await Preferences.remove({ key: NATIVE_TOKEN_KEY });
+      await native_token_remove(NATIVE_TOKEN_KEY);
     } catch (caught) {
       ignore_error("services/api/client/api_client:verify_identity", caught);
     }
@@ -347,9 +351,11 @@ export class ApiClient {
 
   private async persist_native_refresh_token(token: string): Promise<void> {
     try {
-      const { Preferences } = await import("@capacitor/preferences");
+      const { native_token_set } = await import(
+        "@/native/secure_token_store"
+      );
 
-      await Preferences.set({ key: NATIVE_REFRESH_TOKEN_KEY, value: token });
+      await native_token_set(NATIVE_REFRESH_TOKEN_KEY, token);
     } catch (caught) {
       ignore_error("services/api/client/api_client:verify_identity", caught);
     }
@@ -357,10 +363,11 @@ export class ApiClient {
 
   private async load_native_refresh_token(): Promise<string | null> {
     try {
-      const { Preferences } = await import("@capacitor/preferences");
-      const result = await Preferences.get({ key: NATIVE_REFRESH_TOKEN_KEY });
+      const { native_token_get } = await import(
+        "@/native/secure_token_store"
+      );
 
-      return result.value;
+      return await native_token_get(NATIVE_REFRESH_TOKEN_KEY);
     } catch {
       return null;
     }
@@ -368,9 +375,11 @@ export class ApiClient {
 
   private async clear_native_refresh_token(): Promise<void> {
     try {
-      const { Preferences } = await import("@capacitor/preferences");
+      const { native_token_remove } = await import(
+        "@/native/secure_token_store"
+      );
 
-      await Preferences.remove({ key: NATIVE_REFRESH_TOKEN_KEY });
+      await native_token_remove(NATIVE_REFRESH_TOKEN_KEY);
     } catch (caught) {
       ignore_error("services/api/client/api_client:verify_identity", caught);
     }
@@ -378,10 +387,11 @@ export class ApiClient {
 
   private async load_native_token(): Promise<string | null> {
     try {
-      const { Preferences } = await import("@capacitor/preferences");
-      const result = await Preferences.get({ key: NATIVE_TOKEN_KEY });
+      const { native_token_get } = await import(
+        "@/native/secure_token_store"
+      );
 
-      return result.value;
+      return await native_token_get(NATIVE_TOKEN_KEY);
     } catch {
       return null;
     }
@@ -389,9 +399,11 @@ export class ApiClient {
 
   private async persist_native_csrf(token: string): Promise<void> {
     try {
-      const { Preferences } = await import("@capacitor/preferences");
+      const { native_token_set } = await import(
+        "@/native/secure_token_store"
+      );
 
-      await Preferences.set({ key: NATIVE_CSRF_KEY, value: token });
+      await native_token_set(NATIVE_CSRF_KEY, token);
     } catch (caught) {
       ignore_error("services/api/client/api_client:verify_identity", caught);
     }
@@ -399,10 +411,11 @@ export class ApiClient {
 
   private async load_native_csrf(): Promise<string | null> {
     try {
-      const { Preferences } = await import("@capacitor/preferences");
-      const result = await Preferences.get({ key: NATIVE_CSRF_KEY });
+      const { native_token_get } = await import(
+        "@/native/secure_token_store"
+      );
 
-      return result.value;
+      return await native_token_get(NATIVE_CSRF_KEY);
     } catch {
       return null;
     }
@@ -410,9 +423,11 @@ export class ApiClient {
 
   private async clear_native_csrf(): Promise<void> {
     try {
-      const { Preferences } = await import("@capacitor/preferences");
+      const { native_token_remove } = await import(
+        "@/native/secure_token_store"
+      );
 
-      await Preferences.remove({ key: NATIVE_CSRF_KEY });
+      await native_token_remove(NATIVE_CSRF_KEY);
     } catch (caught) {
       ignore_error("services/api/client/api_client:verify_identity", caught);
     }

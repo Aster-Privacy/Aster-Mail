@@ -217,7 +217,7 @@ function save_remembered_vault_salts(entries: string[]): void {
 
   void import("./secure_storage")
     .then(({ device_store }) =>
-      device_store(REMEMBERED_VAULT_SALTS_KEY, entries),
+      device_store(REMEMBERED_VAULT_SALTS_KEY, entries, (public_salts) => public_salts),
     )
     .catch(() => undefined);
 }

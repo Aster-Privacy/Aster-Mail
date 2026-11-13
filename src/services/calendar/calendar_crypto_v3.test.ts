@@ -55,12 +55,14 @@ const {
   calendar_v3_keyring,
   decrypt_calendar_payload_v3,
   derive_calendar_v3_key_from_raw,
+  encode_binding_v3,
   v3_blob_key_id,
 } = await import("@/services/calendar/calendar_crypto_v3");
 const {
   CALENDAR_BLOB_FORMAT_V2,
   calendar_write_key,
   decrypt_calendar_payload,
+  encode_binding,
   encrypt_calendar_payload,
   encrypt_calendar_payload_v2,
 } = await import("@/services/calendar/calendar_crypto");
@@ -208,6 +210,24 @@ describe("calendar v3 payload encryption", () => {
 
     await expect(
       encrypt_calendar_payload({ a: 1 }, vault, { calendar_id: "" }),
+    ).rejects.toThrow();
+  });
+
+  it("refuses ids that contain a line break", async () => {
+    const v3_vault = make_vault(pq_secret());
+    const v2_vault = make_vault(null);
+    const smuggled = { calendar_id: "cal-1\ncalendar_id=cal-2", event_id: "" };
+    const split_event = { calendar_id: "cal-1", event_id: "evt-1\nx" };
+
+    expect(() => encode_binding_v3(smuggled)).toThrow();
+    expect(() => encode_binding_v3(split_event)).toThrow();
+    expect(() => encode_binding(smuggled)).toThrow();
+    expect(() => encode_binding(split_event)).toThrow();
+    await expect(
+      encrypt_calendar_payload({ a: 1 }, v3_vault, smuggled),
+    ).rejects.toThrow();
+    await expect(
+      encrypt_calendar_payload({ a: 1 }, v2_vault, split_event),
     ).rejects.toThrow();
   });
 

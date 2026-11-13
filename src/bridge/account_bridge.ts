@@ -64,6 +64,7 @@ import {
 import {
   base64url_decode,
   base64url_encode,
+  choose_envelope_version,
   seal_vault_key_for_device,
 } from "@/lib/crypto/device_envelope";
 import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
@@ -481,9 +482,12 @@ async function handle_link(
   try {
     envelope = await seal_vault_key_for_device(
       passphrase_bytes,
-      base64url_decode(verified.data.ed25519_pk),
-      base64url_decode(verified.data.mlkem_pk),
-      base64url_decode(verified.data.x25519_pk),
+      {
+        ed25519_pk: base64url_decode(verified.data.ed25519_pk),
+        mlkem_pk: base64url_decode(verified.data.mlkem_pk),
+        x25519_pk: base64url_decode(verified.data.x25519_pk),
+      },
+      choose_envelope_version(verified.data.envelope_versions),
     );
   } finally {
     passphrase_bytes.fill(0);

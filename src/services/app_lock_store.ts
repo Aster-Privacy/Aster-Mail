@@ -28,7 +28,11 @@ import {
   safe_session_remove,
   safe_session_set,
 } from "@/lib/safe_storage";
-import { decrypt_aes_gcm_bound_or_unbound } from "@/services/crypto/aes_gcm_aad_fallback";
+import {
+  decrypt_aes_gcm_bound_or_unbound,
+  local_unbound_policy,
+  type UnboundPolicy,
+} from "@/services/crypto/aes_gcm_aad_fallback";
 import {
   constant_time_bytes_equal,
   derive_pin_key,
@@ -271,6 +275,7 @@ async function open_duress_tag(
   account_id: string,
   duress_salt: string,
   tag: string,
+  unbound: UnboundPolicy,
 ): Promise<boolean> {
   const bytes = hex_to_bytes(tag);
 
@@ -284,6 +289,7 @@ async function open_duress_tag(
       bytes.slice(0, DURESS_TAG_NONCE_BYTES),
       bytes.slice(DURESS_TAG_NONCE_BYTES),
       duress_tag_aad(account_id, duress_salt),
+      unbound,
     );
 
     return new TextDecoder().decode(opened) === DURESS_TAG_PLAINTEXT;
@@ -576,7 +582,41 @@ export async function has_duress_pin(account_id: string): Promise<boolean> {
     return true;
   }
 
-  return open_duress_tag(account_id, config.duress_pin_salt, config.duress_tag);
+  const { duress_pin_salt, duress_tag } = config;
+
+  if (
+    await open_duress_tag(
+      account_id,
+      duress_pin_salt,
+      duress_tag,
+      "refuse_unbound",
+    )
+  ) {
+    return true;
+  }
+
+  const local_policy = local_unbound_policy();
+
+  if (local_policy === "refuse_unbound") return false;
+
+  if (
+    !(await open_duress_tag(
+      account_id,
+      duress_pin_salt,
+      duress_tag,
+      local_policy,
+    ))
+  ) {
+    return false;
+  }
+
+  const bound_tag = await seal_duress_tag(account_id, duress_pin_salt);
+
+  if (bound_tag) {
+    save_app_lock_config(account_id, { ...config, duress_tag: bound_tag });
+  }
+
+  return true;
 }
 
 export async function save_duress_pin(

@@ -20,10 +20,12 @@
 //
 import { drop_expired_entries, trim_map_to_size } from "@/lib/bounded_map";
 import {
+  discover_external_key,
   get_recipient_public_key,
   extract_username_from_email,
   is_internal_email,
 } from "@/services/api/keys";
+import { is_recipient_controlled_key } from "@/services/opportunistic_key_trust";
 
 const RESOLVER_CACHE_TTL_MS = 5 * 60 * 1000;
 const MAX_RESOLVER_CACHE = 1000;
@@ -86,6 +88,26 @@ export async function resolve_sender_verification_keys(
     write_cache(sender_email, keys);
 
     return keys;
+  } catch {
+    return [];
+  }
+}
+
+export async function resolve_inline_pgp_sender_keys(
+  sender_email: string,
+): Promise<string[]> {
+  if (!sender_email) return [];
+
+  if (is_internal_email(sender_email)) {
+    return resolve_sender_verification_keys(sender_email);
+  }
+
+  try {
+    const response = await discover_external_key(sender_email);
+
+    return is_recipient_controlled_key(response.data)
+      ? [response.data.public_key]
+      : [];
   } catch {
     return [];
   }

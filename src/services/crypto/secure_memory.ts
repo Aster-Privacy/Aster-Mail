@@ -53,8 +53,7 @@ class SecureBuffer {
   ): SecureBuffer {
     const buffer = new SecureBuffer(data, auto_zero_timeout_ms);
 
-    crypto.getRandomValues(data);
-    data.fill(0);
+    zero_uint8_array(data);
 
     return buffer;
   }
@@ -64,8 +63,7 @@ class SecureBuffer {
     const data = encoder.encode(str);
     const buffer = new SecureBuffer(data, auto_zero_timeout_ms);
 
-    crypto.getRandomValues(data);
-    data.fill(0);
+    zero_uint8_array(data);
 
     return buffer;
   }
@@ -106,10 +104,7 @@ class SecureBuffer {
     this.stop_auto_zero_timer();
 
     if (this.buffer.length > 0) {
-      crypto.getRandomValues(this.buffer);
-      this.buffer.fill(0);
-      crypto.getRandomValues(this.buffer);
-      this.buffer.fill(0);
+      zero_uint8_array(this.buffer);
     }
 
     this.is_zeroed = true;

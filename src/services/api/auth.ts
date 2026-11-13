@@ -24,6 +24,8 @@ import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
 import { is_totp_required_response } from "./totp";
 
+import { sign_in_v3, take_pending_login_v3 } from "@/services/crypto/login_v3";
+
 interface RecoveryShareData {
   code_hash: string;
   code_salt: string;
@@ -96,6 +98,8 @@ interface GetSaltRequest {
 interface GetSaltResponse {
   salt: string;
   kdf_version?: number;
+  login_v3?: boolean;
+  login_v3_enroll?: boolean;
 }
 
 interface LoginRequest {
@@ -219,6 +223,7 @@ interface ChangePasswordRequest {
   new_password_strength_tier?: number;
   vault_key_fingerprints?: string[];
   vault_kdf_iterations?: number;
+  keep_device_lock_id?: string;
 }
 
 interface ChangePasswordResponse {
@@ -287,10 +292,10 @@ export async function get_retired_login_salts(): Promise<string[]> {
 export async function login_user(
   request: LoginRequest,
 ): Promise<ApiResponse<LoginResponse>> {
-  const response = await api_client.post<LoginResponse>(
-    "/core/v1/auth/login",
-    request,
-  );
+  const v1_proof = take_pending_login_v3(request.user_hash);
+  const response =
+    (v1_proof ? await sign_in_v3<LoginResponse>(request, v1_proof) : null) ??
+    (await api_client.post<LoginResponse>("/core/v1/auth/login", request));
 
   if (response.data && !is_totp_required_response(response.data)) {
     clear_csrf_cache();

@@ -32,11 +32,18 @@ import {
   confirm_device_code,
 } from "@/services/api/devices";
 import {
+  choose_envelope_version,
   seal_vault_key_for_device,
   base64url_encode,
   base64url_decode,
 } from "@/lib/crypto/device_envelope";
-import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
+import {
+  FINGERPRINT_CHARS,
+  fingerprint_matches,
+  fingerprint_of_encoded_device_keys,
+  format_fingerprint_input,
+  normalize_fingerprint_input,
+} from "@/lib/crypto/device_fingerprint";
 import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
 import { app_pathname } from "@/lib/account_index_url";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -70,6 +77,7 @@ interface DeviceInfo {
   ed25519_pk: string;
   mlkem_pk: string;
   x25519_pk: string;
+  envelope_versions?: number[];
 }
 
 function LinkDeviceShell({
@@ -447,7 +455,9 @@ export default function LinkDevice() {
   const [device_info, set_device_info] = useState<DeviceInfo | null>(null);
   const [error, set_error] = useState<string | null>(null);
   const [is_verifying, set_is_verifying] = useState(false);
-  const [show_verification, set_show_verification] = useState(false);
+  const [fingerprint_input, set_fingerprint_input] = useState("");
+  const is_fingerprint_input_complete =
+    normalize_fingerprint_input(fingerprint_input).length === FINGERPRINT_CHARS;
   const device_fingerprint = useMemo(
     () =>
       device_info ? fingerprint_of_encoded_device_keys(device_info) : null,
@@ -524,6 +534,7 @@ export default function LinkDevice() {
         return;
       }
 
+      set_fingerprint_input("");
       set_device_info(response.data);
       set_page_state("confirming_device");
     } catch {
@@ -535,6 +546,18 @@ export default function LinkDevice() {
 
   const handle_confirm = async () => {
     if (!device_info || !device_fingerprint) return;
+
+    if (!is_fingerprint_input_complete) {
+      set_error(t("auth.link_device_fingerprint_incomplete"));
+
+      return;
+    }
+
+    if (!fingerprint_matches(fingerprint_input, device_fingerprint)) {
+      set_error(t("auth.link_device_fingerprint_mismatch"));
+
+      return;
+    }
 
     set_page_state("sealing");
     set_error(null);
@@ -553,9 +576,12 @@ export default function LinkDevice() {
       try {
         envelope = await seal_vault_key_for_device(
           passphrase_bytes,
-          base64url_decode(device_info.ed25519_pk),
-          base64url_decode(device_info.mlkem_pk),
-          base64url_decode(device_info.x25519_pk),
+          {
+            ed25519_pk: base64url_decode(device_info.ed25519_pk),
+            mlkem_pk: base64url_decode(device_info.mlkem_pk),
+            x25519_pk: base64url_decode(device_info.x25519_pk),
+          },
+          choose_envelope_version(device_info.envelope_versions),
         );
       } finally {
         passphrase_bytes.fill(0);
@@ -581,6 +607,7 @@ export default function LinkDevice() {
         show_toast(t(info.key), "error");
         if (info.restart) {
           set_device_info(null);
+          set_fingerprint_input("");
           set_code_input("");
           set_page_state("input");
         } else {
@@ -605,6 +632,7 @@ export default function LinkDevice() {
 
   const handle_restart = () => {
     set_device_info(null);
+    set_fingerprint_input("");
     set_code_input("");
     set_error(null);
     set_page_state("input");
@@ -742,37 +770,46 @@ export default function LinkDevice() {
               className="mt-3.5 border-t pt-3.5"
               style={{ borderColor: "var(--border-secondary)" }}
             >
-              <button
-                aria-expanded={show_verification}
-                className="block text-[11px] font-medium leading-tight underline-offset-2 hover:underline"
+              <label
+                className="block text-[11px] font-medium leading-tight"
+                htmlFor="link_device_fingerprint_input"
                 style={{ color: "var(--text-muted)" }}
-                type="button"
-                onClick={() => set_show_verification((open) => !open)}
               >
-                {t("auth.device_code_verify_toggle")}
-              </button>
-              {show_verification && (
-                <div className="mt-2" data-testid="device_fingerprint">
-                  <span
-                    className="block text-[11px] font-medium leading-tight"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {t("auth.device_fingerprint")}
-                  </span>
-                  <span
-                    className="mt-1 block select-text font-mono text-[15px] font-semibold tracking-wide"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {device_fingerprint}
-                  </span>
-                  <span
-                    className="mt-1.5 block text-[11px] leading-relaxed"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {t("auth.link_device_fingerprint_hint")}
-                  </span>
-                </div>
-              )}
+                {t("auth.device_fingerprint")}
+              </label>
+              <input
+                autoFocus
+                autoCapitalize="characters"
+                autoComplete="off"
+                className="link_device_code_input mt-2 w-full rounded-[14px] px-4 py-3 text-center font-mono text-[15px] font-semibold tracking-wide text-txt-primary placeholder:text-txt-muted placeholder:font-normal"
+                data-testid="device_fingerprint_input"
+                id="link_device_fingerprint_input"
+                placeholder={t("auth.link_device_fingerprint_placeholder")}
+                spellCheck={false}
+                type="text"
+                value={fingerprint_input}
+                onChange={(event) => {
+                  set_fingerprint_input(
+                    format_fingerprint_input(event.target.value),
+                  );
+                  set_error(null);
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    event.key === "Enter" &&
+                    !is_composing(event) &&
+                    is_fingerprint_input_complete
+                  ) {
+                    handle_confirm();
+                  }
+                }}
+              />
+              <span
+                className="mt-1.5 block text-[11px] leading-relaxed"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {t("auth.link_device_fingerprint_hint")}
+              </span>
             </div>
           </div>
         </Panel>
@@ -783,6 +820,7 @@ export default function LinkDevice() {
 
         <Button
           className="w-full mt-6"
+          disabled={!is_fingerprint_input_complete}
           size="xl"
           variant="depth"
           onClick={handle_confirm}

@@ -224,6 +224,10 @@ impl ServerCertVerifier for PinnedVerifier {
     }
 }
 
+pub fn pinned_tls_config() -> Result<Arc<ClientConfig>, String> {
+    build_rustls_config().map(Arc::new)
+}
+
 fn build_rustls_config() -> Result<ClientConfig, String> {
     let verifier = PinnedVerifier::new()?;
     let provider = Arc::new(ring::default_provider());

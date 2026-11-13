@@ -30,6 +30,7 @@ const h = vi.hoisted(() => ({
   fetch_member_public_key: vi.fn(),
   derive: vi.fn(),
   store_secret: vi.fn(),
+  recover: vi.fn(),
   current: {
     kind: "personal",
     user: { id: "owner-1", username: "owner", email: "owner@astermail.org" },
@@ -70,7 +71,7 @@ vi.mock("@/services/crypto/shared_mailbox", () => ({
 }));
 
 vi.mock("@/services/crypto/vault_key_recovery", () => ({
-  recover_private_keys_from_history: vi.fn(async () => []),
+  recover_private_keys_from_history: h.recover,
   merge_recovered_keys_into_vault: vi.fn(async () => undefined),
 }));
 
@@ -148,6 +149,7 @@ describe("sync_shared_mailbox_grants", () => {
     localStorage.clear();
     vi.clearAllMocks();
     h.derive.mockResolvedValue(["OWN-PUBLIC"]);
+    h.recover.mockResolvedValue([]);
     h.fetch_member_public_key.mockResolvedValue("SERVER-KEY");
     h.seal_grant.mockResolvedValue("RESEALED");
     h.add_grant.mockResolvedValue({ data: {} });
@@ -169,20 +171,84 @@ describe("sync_shared_mailbox_grants", () => {
     expect(h.store_secret).toHaveBeenCalledWith("shared-1", "SECRET");
   });
 
-  it("reseals an unsigned owner grant to a key derived on this device", async () => {
+  it("refuses an unsigned owner grant on a device that never saw a signed one", async () => {
     serve(mailbox("owner-1", "owner"), true);
     grant_opens(false);
 
     await sync_shared_mailbox_grants();
 
+    expect(h.store_secret).not.toHaveBeenCalled();
+    expect(h.seal_grant).not.toHaveBeenCalled();
+    expect(h.add_grant).not.toHaveBeenCalled();
+    expect(
+      localStorage.getItem("astermail_shared_grant_epoch_shared-1"),
+    ).toBeNull();
+  });
+
+  it("checks an unverified grant again with keys recovered from history", async () => {
+    serve(mailbox("owner-1", "owner"), true);
+    h.recover.mockResolvedValue(["OLD-PRIVATE"]);
+    h.derive.mockImplementation(async (keys: string[]) =>
+      keys.map((key) => key.replace("PRIVATE", "PUBLIC")),
+    );
+    h.open_grant.mockImplementation(
+      async (_wrapped, _keys, _passphrase, verification: string[]) => ({
+        verified: verification.includes("OLD-PUBLIC"),
+        payload: {
+          v: 1,
+          mailbox_user_id: "shared-1",
+          email: "team@astermail.org",
+          login_secret: "SECRET",
+        },
+      }),
+    );
+
+    await sync_shared_mailbox_grants();
+
+    expect(h.open_grant).toHaveBeenCalledTimes(2);
+    expect(h.store_secret).toHaveBeenCalledWith("shared-1", "SECRET");
+    expect(h.seal_grant).not.toHaveBeenCalled();
+  });
+
+  it("refuses a grant that stays unverified after key recovery", async () => {
+    serve(mailbox("owner-1", "owner"), true);
+    h.recover.mockResolvedValue(["OLD-PRIVATE"]);
+    grant_opens(false);
+
+    await sync_shared_mailbox_grants();
+
+    expect(h.open_grant).toHaveBeenCalledTimes(2);
+    expect(h.store_secret).not.toHaveBeenCalled();
+    expect(h.seal_grant).not.toHaveBeenCalled();
+  });
+
+  it("reseals a signed placeholder grant with the real mailbox id", async () => {
+    serve(mailbox("owner-1", "owner"), true);
+    grant_opens(true, "pending");
+
+    await sync_shared_mailbox_grants();
+
     expect(h.store_secret).toHaveBeenCalledWith("shared-1", "SECRET");
     expect(h.seal_grant).toHaveBeenCalledWith(
-      expect.objectContaining({ login_secret: "SECRET" }),
+      expect.objectContaining({
+        mailbox_user_id: "shared-1",
+        login_secret: "SECRET",
+      }),
       "OWN-PUBLIC",
       [],
     );
     expect(h.fetch_member_public_key).not.toHaveBeenCalled();
     expect(h.add_grant).toHaveBeenCalledWith("mb-1", "owner-1", "RESEALED", 1);
+  });
+
+  it("refuses an unsigned placeholder grant", async () => {
+    serve(mailbox("owner-1", "owner"), true);
+    grant_opens(false, "pending");
+
+    await sync_shared_mailbox_grants();
+
+    expect(h.store_secret).not.toHaveBeenCalled();
+    expect(h.seal_grant).not.toHaveBeenCalled();
   });
 
   it("refuses an unsigned grant once a signed one was seen", async () => {

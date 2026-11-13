@@ -5,13 +5,13 @@
   </picture>
 </p>
 
-Aster Mail is a free, open-source, end-to-end encrypted mail service. Every message, subject line, and attachment between Aster users is encrypted locally on your device, and mail to an outside address is encrypted on your device whenever the recipient publishes an OpenPGP key. This means we have no way to read that email and we never will.
+Aster Mail is a free, end-to-end encrypted mail service with open-source apps. Every message, subject line, and attachment between Aster users is encrypted locally on your device, and mail to an outside address is encrypted on your device whenever the recipient publishes an OpenPGP key. This means we have no way to read that email and we never will.
 
 You can sign up at [astermail.org](https://astermail.org). A phone number and recovery email are not required.
 
 ## How it works
 
-All Aster-to-Aster messages are end-to-end encrypted with post-quantum encryption (ML-KEM-768 and P-256 ECDH) inside an X3DH and Double Ratchet protocol, which protects against store-now-decrypt-later attacks. Subject lines are also encrypted. This means that we cannot read your subject lines, unlike other providers. Mail you send outside Aster uses standard OpenPGP (Ed25519 and Curve25519).
+All Aster-to-Aster messages are end-to-end encrypted with post-quantum encryption (ML-KEM-768 and P-256 ECDH) inside an X3DH and Double Ratchet protocol, which protects against store-now-decrypt-later attacks. The subject lines of these messages are encrypted too, so we can't read them. Mail you send outside Aster uses standard OpenPGP (Ed25519 and Curve25519) when the recipient publishes a key. Post-quantum protection applies only between Aster accounts.
 
 Your keys are yours, and they are fully portable. You can export them and use them with GPG or any OpenPGP client. Encryption between Aster users needs no setup. To let people outside Aster find your public key, turn on WKD or keyserver publishing in **Settings** > **Encryption**. Both are off by default.
 

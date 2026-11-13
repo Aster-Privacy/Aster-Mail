@@ -41,6 +41,18 @@ updates:
           - minor
           - patch
 
+  - package-ecosystem: cargo
+    directory: /aster-opaque
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      patches:
+        update-types:
+          - minor
+          - patch
+
   - package-ecosystem: github-actions
     directory: /
     schedule:

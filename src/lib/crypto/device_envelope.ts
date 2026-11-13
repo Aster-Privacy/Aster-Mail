@@ -25,7 +25,26 @@ import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha256";
 import { randomBytes } from "@noble/hashes/utils";
 
-const ENROLL_INFO = "astermail-device-enroll-v1";
+export type envelope_version = 1 | 2;
+
+export const ENVELOPE_VERSIONS: readonly envelope_version[] = [1, 2];
+
+export interface envelope_recipient {
+  ed25519_pk: Uint8Array;
+  mlkem_pk: Uint8Array;
+  x25519_pk: Uint8Array;
+}
+
+const ENROLL_INFO_V1 = new TextEncoder().encode("astermail-device-enroll-v1");
+const ENROLL_INFO_V2 = new TextEncoder().encode("astermail-device-enroll-v2");
+const ENVELOPE_V2_MAGIC = new TextEncoder().encode("AEV2");
+const ED25519_PK_LEN = 32;
+const MLKEM_PK_LEN = 1184;
+const MLKEM_CT_LEN = 1088;
+const X25519_PK_LEN = 32;
+const NONCE_LEN = 24;
+const HEADER_LEN = X25519_PK_LEN + MLKEM_CT_LEN + NONCE_LEN;
+const TAG_LEN = 16;
 
 function concat_bytes(...parts: Uint8Array[]): Uint8Array {
   let total = 0;
@@ -42,66 +61,136 @@ function concat_bytes(...parts: Uint8Array[]): Uint8Array {
   return out;
 }
 
+function starts_with_magic(data: Uint8Array): boolean {
+  if (data.length < ENVELOPE_V2_MAGIC.length) return false;
+
+  return ENVELOPE_V2_MAGIC.every((byte, index) => data[index] === byte);
+}
+
+export function choose_envelope_version(offered: unknown): envelope_version {
+  return Array.isArray(offered) && offered.includes(2) ? 2 : 1;
+}
+
+function envelope_v2_transcript(
+  recipient: envelope_recipient,
+  eph_pk: Uint8Array,
+  mlkem_ct: Uint8Array,
+): Uint8Array {
+  if (
+    recipient.ed25519_pk.length !== ED25519_PK_LEN ||
+    recipient.mlkem_pk.length !== MLKEM_PK_LEN ||
+    recipient.x25519_pk.length !== X25519_PK_LEN
+  ) {
+    throw new Error("envelope recipient key size");
+  }
+
+  return sha256(
+    concat_bytes(
+      ENROLL_INFO_V2,
+      ENVELOPE_V2_MAGIC,
+      recipient.ed25519_pk,
+      recipient.mlkem_pk,
+      recipient.x25519_pk,
+      eph_pk,
+      mlkem_ct,
+    ),
+  );
+}
+
+function envelope_key(
+  ss_pq: Uint8Array,
+  ss_cl: Uint8Array,
+  nonce: Uint8Array,
+  transcript: Uint8Array | null,
+): Uint8Array {
+  const ikm = concat_bytes(ss_pq, ss_cl);
+  const info = transcript
+    ? concat_bytes(ENROLL_INFO_V2, transcript)
+    : ENROLL_INFO_V1;
+
+  try {
+    return hkdf(sha256, ikm, nonce, info, 32);
+  } finally {
+    ikm.fill(0);
+  }
+}
+
+function envelope_aad(transcript: Uint8Array | null): Uint8Array | undefined {
+  return transcript ? concat_bytes(ENVELOPE_V2_MAGIC, transcript) : undefined;
+}
+
 export async function seal_vault_key_for_device(
   vault_key_bytes: Uint8Array,
-  _device_ed25519_pk: Uint8Array,
-  device_mlkem_pk: Uint8Array,
-  device_x25519_pk: Uint8Array,
+  recipient: envelope_recipient,
+  version: envelope_version,
 ): Promise<Uint8Array> {
-  const { cipherText: mlkem_ct, sharedSecret: ss_pq } =
-    ml_kem768.encapsulate(device_mlkem_pk);
+  if (!ENVELOPE_VERSIONS.includes(version)) {
+    throw new Error("unsupported envelope version");
+  }
+  if (recipient.x25519_pk.length !== X25519_PK_LEN) {
+    throw new Error("envelope recipient key size");
+  }
 
+  const { cipherText: mlkem_ct, sharedSecret: ss_pq } =
+    ml_kem768.encapsulate(recipient.mlkem_pk);
   const eph_sk = randomBytes(32);
   const eph_pk = x25519.getPublicKey(eph_sk);
-  const ss_cl = x25519.getSharedSecret(eph_sk, device_x25519_pk);
+  const ss_cl = x25519.getSharedSecret(eph_sk, recipient.x25519_pk);
+  const nonce = randomBytes(NONCE_LEN);
+  let shared: Uint8Array | null = null;
 
-  const nonce = randomBytes(24);
-  const ikm = concat_bytes(ss_pq, ss_cl);
-  const info = new TextEncoder().encode(ENROLL_INFO);
-  const shared = hkdf(sha256, ikm, nonce, info, 32);
+  try {
+    const transcript =
+      version === 2
+        ? envelope_v2_transcript(recipient, eph_pk, mlkem_ct)
+        : null;
 
-  const ct = xchacha20poly1305(shared, nonce).encrypt(vault_key_bytes);
+    shared = envelope_key(ss_pq, ss_cl, nonce, transcript);
+    const ct = xchacha20poly1305(shared, nonce, envelope_aad(transcript)).encrypt(
+      vault_key_bytes,
+    );
 
-  const sealed = concat_bytes(eph_pk, mlkem_ct, nonce, ct);
-
-  eph_sk.fill(0);
-  ss_cl.fill(0);
-  ss_pq.fill(0);
-  ikm.fill(0);
-  shared.fill(0);
-
-  return sealed;
+    return transcript
+      ? concat_bytes(ENVELOPE_V2_MAGIC, eph_pk, mlkem_ct, nonce, ct)
+      : concat_bytes(eph_pk, mlkem_ct, nonce, ct);
+  } finally {
+    eph_sk.fill(0);
+    ss_cl.fill(0);
+    ss_pq.fill(0);
+    shared?.fill(0);
+  }
 }
 
 export function open_vault_key_envelope(
   sealed: Uint8Array,
+  recipient: envelope_recipient,
   device_mlkem_sk: Uint8Array,
   device_x25519_sk: Uint8Array,
 ): Uint8Array {
-  const mlkem_ct_len = 1088;
-  const header_len = 32 + mlkem_ct_len + 24;
+  const versioned = starts_with_magic(sealed);
+  const body = versioned ? sealed.subarray(ENVELOPE_V2_MAGIC.length) : sealed;
 
-  if (sealed.length < header_len + 16) {
+  if (body.length < HEADER_LEN + TAG_LEN) {
     throw new Error("envelope too short");
   }
 
-  const eph_pk = sealed.subarray(0, 32);
-  const mlkem_ct = sealed.subarray(32, 32 + mlkem_ct_len);
-  const nonce = sealed.subarray(32 + mlkem_ct_len, header_len);
-  const ct = sealed.subarray(header_len);
+  const eph_pk = body.subarray(0, X25519_PK_LEN);
+  const mlkem_ct = body.subarray(X25519_PK_LEN, X25519_PK_LEN + MLKEM_CT_LEN);
+  const nonce = body.subarray(X25519_PK_LEN + MLKEM_CT_LEN, HEADER_LEN);
+  const ct = body.subarray(HEADER_LEN);
+  const transcript = versioned
+    ? envelope_v2_transcript(recipient, eph_pk, mlkem_ct)
+    : null;
 
   const ss_pq = ml_kem768.decapsulate(mlkem_ct, device_mlkem_sk);
   const ss_cl = x25519.getSharedSecret(device_x25519_sk, eph_pk);
-  const ikm = concat_bytes(ss_pq, ss_cl);
-  const info = new TextEncoder().encode(ENROLL_INFO);
-  const shared = hkdf(sha256, ikm, nonce, info, 32);
+  const shared = envelope_key(ss_pq, ss_cl, nonce, transcript);
 
   try {
-    return xchacha20poly1305(shared, nonce).decrypt(ct);
+    return xchacha20poly1305(shared, nonce, envelope_aad(transcript)).decrypt(ct);
   } finally {
     ss_pq.fill(0);
     ss_cl.fill(0);
-    ikm.fill(0);
     shared.fill(0);
   }
 }

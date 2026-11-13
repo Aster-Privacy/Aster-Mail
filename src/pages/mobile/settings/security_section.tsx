@@ -84,6 +84,8 @@ import {
 } from "@/services/crypto/vault_level2";
 import { reencrypt_identity_scoped_password_change } from "@/services/crypto/recovery_reencrypt";
 import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
+import { announce_sent_mail_resealed } from "@/services/sent_mail_reseal";
+import { kept_app_lock_field } from "@/services/app_lock_password_change";
 import {
   convert_before_password_change,
   sent_mail_needs_password_reseal,
@@ -492,6 +494,7 @@ export function SecuritySection({
                 re_encrypted_domain_addresses:
                   reencrypted.re_encrypted_domain_addresses,
                 ...kdf_field,
+                ...kept_app_lock_field(user.id),
               })
             : change_password({
                 current_password_hash: current_pw_hash,
@@ -502,6 +505,7 @@ export function SecuritySection({
                 new_vault_nonce: sealed.vault_nonce,
                 vault_format: MASTER_KEY_VAULT_FORMAT,
                 ...kdf_field,
+                ...kept_app_lock_field(user.id),
               }),
       );
       const res = written.response;
@@ -554,6 +558,7 @@ export function SecuritySection({
           if (!summary) return;
 
           write_locked_sent_mail(user.id, summary.unreadable);
+          announce_sent_mail_resealed(summary);
 
           if (summary.failed > 0) {
             set_pw_unreadable_notice((prev) => {

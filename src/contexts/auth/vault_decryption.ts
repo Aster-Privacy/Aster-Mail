@@ -153,6 +153,7 @@ import {
 import { compute_password_strength_tier } from "@/services/password_strength_score";
 import { backfill_password_strength_tier } from "@/services/api/account";
 import { ignore_error } from "@/lib/ignore_error";
+import { rewrap_legacy_entries } from "@/services/crypto/encrypted_storage";
 import { is_draft_busy } from "@/services/draft_activity";
 
 let vault_decryption_lock: Promise<void> | null = null;
@@ -343,6 +344,10 @@ export async function decrypt_vault_with_lock(
       .catch((caught) =>
         ignore_error("contexts/auth/vault_decryption:reusable", caught),
       );
+
+    rewrap_legacy_entries().catch((caught) =>
+      ignore_error("contexts/auth/vault_decryption:rewrap", caught),
+    );
 
     check_and_run_recovery_reencryption(vault, passphrase).catch((caught) =>
       ignore_error("contexts/auth/vault_decryption:reusable", caught),

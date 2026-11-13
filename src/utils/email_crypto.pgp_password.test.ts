@@ -151,7 +151,11 @@ describe("password protected pgp mail", () => {
   it("leaves plain bodies untouched", async () => {
     const resolved = await resolve_inbound_pgp_body("just a normal email");
 
-    expect(resolved).toEqual({ body: "just a normal email", decrypted: false });
+    expect(resolved).toEqual({
+      body: "just a normal email",
+      decrypted: false,
+      verified: false,
+    });
     expect(split_pgp_block("just a normal email")).toBeNull();
   });
 });

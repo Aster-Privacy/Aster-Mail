@@ -22,6 +22,13 @@ import type { ResealApi } from "./reseal_io";
 import type { ResealRunResult } from "./run";
 import type { StorageVaultOutcome } from "./vault_step";
 
+import {
+  legacy_sweep_done,
+  legacy_sweep_marker,
+  legacy_sweep_progress_store,
+  mark_legacy_sweep_done,
+  run_legacy_key_sweep,
+} from "./legacy_sweep";
 import { local_progress_store } from "./reseal_io";
 import { needs_storage_reseal, run_storage_reseal } from "./run";
 import {
@@ -33,6 +40,8 @@ import {
 } from "./vault_step";
 import { get_vault_from_memory } from "../memory_key_store";
 import { vault_passphrase } from "../vault_cas_write";
+import { derive_password_storage_keys } from "../storage_write_key";
+import { zero_uint8_array } from "../secure_memory";
 import {
   is_storage_key_held,
   mark_storage_key_verified,
@@ -210,6 +219,7 @@ export function start_storage_reseal(
       ) {
         schedule_retry(passphrase, attempt);
       }
+      if (result?.status === "done") void start_legacy_key_sweep(passphrase);
 
       return result;
     });
@@ -225,11 +235,72 @@ export async function run_storage_key_maintenance(
   const outcome = await run_vault_step(passphrase);
 
   if (outcome.status === "skipped") return "not_needed";
-  if (!needs_storage_reseal(get_vault_from_memory())) return "not_needed";
+  if (!needs_storage_reseal(get_vault_from_memory())) {
+    void start_legacy_key_sweep(passphrase);
+
+    return "not_needed";
+  }
 
   void start_storage_reseal(passphrase);
 
   return "reseal_started";
+}
+
+let sweep_in_flight: Promise<ResealRunResult | null> | null = null;
+
+async function sweep_once(passphrase: string): Promise<ResealRunResult | null> {
+  const vault = get_vault_from_memory();
+  const account = await get_current_account();
+  const user_id = account?.user?.id;
+  const data_kek = vault?.data_kek;
+
+  if (!vault || !user_id || !data_kek || vault.data_kek_random !== true) {
+    return null;
+  }
+  if (needs_storage_reseal(vault)) return null;
+
+  const marker = await legacy_sweep_marker(vault);
+
+  if (legacy_sweep_done(user_id, marker)) return null;
+
+  const password_keys = await derive_password_storage_keys(vault, passphrase);
+
+  try {
+    const result = await run_legacy_key_sweep({
+      vault,
+      api: reseal_api,
+      store: legacy_sweep_progress_store(user_id, marker),
+      still_current: () => server_storage_key_matches(passphrase, data_kek),
+      is_cancelled: () => get_vault_from_memory()?.data_kek !== data_kek,
+      key_options: { extra_old_raws: password_keys },
+    });
+
+    if (result.status === "done" || result.status === "not_needed") {
+      mark_legacy_sweep_done(user_id, marker);
+    }
+
+    return result;
+  } finally {
+    password_keys.forEach(zero_uint8_array);
+  }
+}
+
+export function start_legacy_key_sweep(
+  passphrase: string,
+): Promise<ResealRunResult | null> {
+  if (sweep_in_flight) return sweep_in_flight;
+
+  sweep_in_flight = sweep_once(passphrase)
+    .catch((caught) => {
+      ignore_error("services/crypto/storage_rotation:legacy_sweep", caught);
+
+      return null;
+    })
+    .finally(() => {
+      sweep_in_flight = null;
+    });
+
+  return sweep_in_flight;
 }
 
 export function cancel_storage_reseal_retry(): void {

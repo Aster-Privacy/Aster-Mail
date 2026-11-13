@@ -45,11 +45,11 @@ import {
 } from "./vault_level2";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
+import { peek_account_key_capabilities } from "@/services/api/account_key";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const VAULT_SCHEME_VERSION = 1;
 const VAULT_AAD_PREFIX = "aster-vault-v";
-const VAULT_AAD_WRITE_ENABLED = false;
 
 function build_vault_aad(version: number): Uint8Array {
   const encoder = new TextEncoder();
@@ -167,7 +167,8 @@ export async function encrypt_vault(
 
   zero_uint8_array(passphrase_bytes);
 
-  const algorithm: AesGcmParams = VAULT_AAD_WRITE_ENABLED
+  const algorithm: AesGcmParams = peek_account_key_capabilities()
+    .bound_vault_writes
     ? {
         name: "AES-GCM",
         iv: nonce,

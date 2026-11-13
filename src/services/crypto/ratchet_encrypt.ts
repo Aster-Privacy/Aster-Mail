@@ -39,6 +39,7 @@ import {
   check_owner_key_pin,
   flag_recipient_untrusted,
   has_peer_advertised_pq,
+  remembered_peer_x3dh_version,
   is_recipient_bundle_accepted,
   is_recipient_flagged_untrusted,
   type OwnerKeyPinStatus,
@@ -50,6 +51,7 @@ import {
 } from "./ratchet_prekey_bundle";
 import {
   can_seal_recovery_lane,
+  recovery_lane_is_post_quantum,
   seal_recovery_lane,
   type RecoveryLaneData,
   type RecoveryLaneRecipientKeys,
@@ -71,11 +73,14 @@ import {
   type RatchetRecipientData,
 } from "./ratchet_types";
 import {
+  bundle_has_signed_pq_identity,
   bundle_is_downgraded,
   bundle_supports_pq,
   perform_x3dh_sender,
+  PQ_IDENTITY_KEY_ID,
   restrict_bundle_to_signed_pq_key,
   X3DH_VERSION_LEGACY,
+  X3DH_VERSION_ONE_TIME_BOUND,
   type PrekeyBundle,
 } from "./x3dh";
 
@@ -194,6 +199,44 @@ function is_bundle_verification_rejected(
   );
 }
 
+function signature_covers_pq_identity(
+  verification: BundleVerification,
+): boolean {
+  return verification.verdict === "verified" && verification.strict;
+}
+
+async function is_pq_identity_signed_by_owner(
+  published: PrekeyBundle,
+  recipient_username: string,
+  recipient_email: string,
+): Promise<boolean> {
+  try {
+    const verification = await verify_recipient_bundle(
+      published,
+      recipient_username,
+      recipient_email,
+    );
+
+    return (
+      !is_bundle_verification_rejected(verification) &&
+      bundle_has_signed_pq_identity(
+        published,
+        signature_covers_pq_identity(verification),
+      )
+    );
+  } catch {
+    return false;
+  }
+}
+
+function session_uses_unsigned_pq_prekey(
+  bootstrap: BootstrapData | null,
+): boolean {
+  return (
+    !!bootstrap?.pq_ciphertext && bootstrap.pq_key_id !== PQ_IDENTITY_KEY_ID
+  );
+}
+
 function resolve_recovery_lane_keys(
   bundle: PrekeyBundle | null,
   bootstrap: BootstrapData | null,
@@ -203,11 +246,24 @@ function resolve_recovery_lane_keys(
 
   if (!identity_public) return null;
 
-  const pq_identity_public = bundle?.kem_identity_key
-    ? (bundle.pq_kem_public_key ?? "")
-    : (bootstrap?.recipient_pq_identity_key ?? "");
+  const session_pq_identity_public =
+    bootstrap?.recipient_identity_key === identity_public
+      ? (bootstrap.recipient_pq_identity_key ?? "")
+      : "";
+  const pq_identity_public =
+    bundle?.pq_kem_public_key || session_pq_identity_public;
 
   return { identity_public, pq_identity_public };
+}
+
+function session_lane_lacks_advertised_pq_key(
+  bootstrap: BootstrapData | null,
+  advertised_pq_identity_key: string | null | undefined,
+): boolean {
+  return (
+    !!advertised_pq_identity_key &&
+    bootstrap?.recipient_pq_identity_key !== advertised_pq_identity_key
+  );
 }
 
 async function encrypt_for_ratchet_recipient_unlocked(
@@ -232,6 +288,8 @@ async function encrypt_for_ratchet_recipient_unlocked(
     let pq_ciphertext_base64: string | undefined;
     let pq_key_id_value: number | undefined;
     let x3dh_version_value: number | undefined;
+    let one_time_prekey_id_value: number | undefined;
+    let signed_prekey_id_value: string | undefined;
 
     let bundle: PrekeyBundle | null = null;
 
@@ -250,21 +308,33 @@ async function encrypt_for_ratchet_recipient_unlocked(
           recipient_email,
         );
 
-        if (identity) {
-          if (bootstrap?.recipient_identity_key !== identity.kem_identity_key) {
-            recipient_changed = true;
-          }
-        } else {
+        if (!identity) {
           bundle = await fetch_prekey_bundle(
             recipient_username,
             recipient_email,
           );
+        }
+
+        const advertised = identity ?? bundle;
+
+        if (advertised) {
+          recipient_changed =
+            bootstrap?.recipient_identity_key !== advertised.kem_identity_key ||
+            session_lane_lacks_advertised_pq_key(
+              bootstrap,
+              advertised.pq_kem_public_key,
+            );
 
           if (
-            bundle &&
-            bootstrap?.recipient_identity_key !== bundle.kem_identity_key
+            !recipient_changed &&
+            session_uses_unsigned_pq_prekey(bootstrap) &&
+            advertised.pq_kem_public_key
           ) {
-            recipient_changed = true;
+            recipient_changed = await is_pq_identity_signed_by_owner(
+              advertised,
+              recipient_username,
+              recipient_email,
+            );
           }
         }
       }
@@ -300,7 +370,8 @@ async function encrypt_for_ratchet_recipient_unlocked(
 
       const advertises_pq = Boolean(bundle.pq_kem_public_key);
       const pq_downgraded =
-        !advertises_pq && (await has_peer_advertised_pq(bundle_peer));
+        bundle_is_downgraded(bundle) ||
+        (!advertises_pq && (await has_peer_advertised_pq(bundle_peer)));
 
       if (is_bundle_untrusted(bundle_verification)) {
         await flag_recipient_untrusted(bundle_peer);
@@ -332,6 +403,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
           (bundle_verification.owner_pin === "ok" ||
             bundle_verification.owner_pin === "first"),
         advertises_pq,
+        bundle.x3dh_max_version,
       );
 
       if (identity_pin_status === "drift") {
@@ -351,9 +423,9 @@ async function encrypt_for_ratchet_recipient_unlocked(
         sender_identity_jwk,
         restrict_bundle_to_signed_pq_key(
           bundle,
-          bundle_verification.verdict === "verified" &&
-            bundle_verification.strict,
+          signature_covers_pq_identity(bundle_verification),
         ),
+        await remembered_peer_x3dh_version(bundle_peer),
       );
 
       try {
@@ -381,7 +453,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
             ? x3dh_result.x3dh_version
             : undefined;
 
-        ratchet.set_bootstrap({
+        const bootstrap_data: BootstrapData = {
           ephemeral_key: ephemeral_key_base64,
           pq_ciphertext: pq_ciphertext_base64,
           pq_key_id: pq_key_id_value,
@@ -389,7 +461,22 @@ async function encrypt_for_ratchet_recipient_unlocked(
           recipient_identity_key: bundle.kem_identity_key,
           recipient_pq_identity_key: bundle.pq_kem_public_key ?? undefined,
           x3dh_version: x3dh_version_value,
-        });
+        };
+
+        if (
+          x3dh_result.x3dh_version === X3DH_VERSION_ONE_TIME_BOUND &&
+          x3dh_result.one_time_prekey_id !== undefined
+        ) {
+          one_time_prekey_id_value = x3dh_result.one_time_prekey_id;
+          signed_prekey_id_value = x3dh_result.signed_prekey_id;
+          bootstrap_data.one_time_prekey_id = one_time_prekey_id_value;
+
+          if (signed_prekey_id_value !== undefined) {
+            bootstrap_data.signed_prekey_id = signed_prekey_id_value;
+          }
+        }
+
+        ratchet.set_bootstrap(bootstrap_data);
       } finally {
         x3dh_result.shared_secret.fill(0);
       }
@@ -401,6 +488,8 @@ async function encrypt_for_ratchet_recipient_unlocked(
         pq_ciphertext_base64 = bootstrap.pq_ciphertext;
         pq_key_id_value = bootstrap.pq_key_id;
         x3dh_version_value = bootstrap.x3dh_version;
+        one_time_prekey_id_value = bootstrap.one_time_prekey_id;
+        signed_prekey_id_value = bootstrap.signed_prekey_id;
       }
     }
 
@@ -413,6 +502,16 @@ async function encrypt_for_ratchet_recipient_unlocked(
       if (import.meta.env.DEV) {
         console.warn(
           "no recovery lane keys for recipient; routing via PGP fallback",
+        );
+      }
+
+      return null;
+    }
+
+    if (pq_ciphertext_base64 && !recovery_lane_is_post_quantum(recovery_keys)) {
+      if (import.meta.env.DEV) {
+        console.warn(
+          "recovery lane lacks a post-quantum key; routing via PGP fallback",
         );
       }
 
@@ -466,6 +565,17 @@ async function encrypt_for_ratchet_recipient_unlocked(
       recipient_data.x3dh_v = x3dh_version_value;
     }
 
+    if (
+      x3dh_version_value === X3DH_VERSION_ONE_TIME_BOUND &&
+      one_time_prekey_id_value !== undefined
+    ) {
+      recipient_data.opk_id = one_time_prekey_id_value;
+
+      if (signed_prekey_id_value !== undefined) {
+        recipient_data.spk_id = signed_prekey_id_value;
+      }
+    }
+
     return recipient_data;
   } catch (err) {
     if (
@@ -488,24 +598,47 @@ async function encrypt_for_ratchet_recipient_unlocked(
 export type PostQuantumRecipientStatus =
   "supported" | "unsupported" | "downgraded" | "untrusted";
 
-async function has_recipient_identity_moved(
+type SessionPostQuantumStatus = "signed" | "unsigned" | "renewing";
+
+async function session_post_quantum_status(
   bootstrap: BootstrapData,
   recipient_username: string,
   recipient_email: string,
-): Promise<boolean> {
-  try {
-    const identity = await fetch_ratchet_identity(
-      recipient_username,
-      recipient_email,
-    );
+): Promise<SessionPostQuantumStatus> {
+  const identity = await fetch_ratchet_identity(
+    recipient_username,
+    recipient_email,
+  ).catch(() => null);
 
-    return (
-      identity !== null &&
-      bootstrap.recipient_identity_key !== identity.kem_identity_key
-    );
-  } catch {
-    return false;
+  if (!identity) return "unsigned";
+
+  if (
+    bootstrap.recipient_identity_key !== identity.kem_identity_key ||
+    session_lane_lacks_advertised_pq_key(
+      bootstrap,
+      identity.pq_kem_public_key,
+    ) ||
+    (session_uses_unsigned_pq_prekey(bootstrap) &&
+      !!identity.pq_kem_public_key)
+  ) {
+    return "renewing";
   }
+
+  if (
+    !bootstrap.pq_ciphertext ||
+    bootstrap.pq_key_id !== PQ_IDENTITY_KEY_ID ||
+    bootstrap.recipient_pq_identity_key !== identity.pq_kem_public_key
+  ) {
+    return "unsigned";
+  }
+
+  return (await is_pq_identity_signed_by_owner(
+    identity,
+    recipient_username,
+    recipient_email,
+  ))
+    ? "signed"
+    : "unsigned";
 }
 
 export async function recipient_post_quantum_status(
@@ -521,15 +654,16 @@ export async function recipient_post_quantum_status(
   const existing = await load_ratchet_state(conversation_id);
   const bootstrap = existing?.get_bootstrap();
 
-  if (
-    bootstrap &&
-    !(await has_recipient_identity_moved(
+  if (bootstrap) {
+    const session_status = await session_post_quantum_status(
       bootstrap,
       recipient_username,
       recipient_email,
-    ))
-  ) {
-    return bootstrap.pq_ciphertext ? "supported" : "unsupported";
+    );
+
+    if (session_status !== "renewing") {
+      return session_status === "signed" ? "supported" : "unsupported";
+    }
   }
 
   const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
@@ -551,9 +685,13 @@ export async function recipient_post_quantum_status(
   }
 
   if (bundle_supports_pq(bundle)) {
-    return is_bundle_verification_rejected(verification)
-      ? "unsupported"
-      : "supported";
+    return !is_bundle_verification_rejected(verification) &&
+      bundle_has_signed_pq_identity(
+        bundle,
+        signature_covers_pq_identity(verification),
+      )
+      ? "supported"
+      : "unsupported";
   }
 
   return bundle_is_downgraded(bundle) ? "downgraded" : "unsupported";

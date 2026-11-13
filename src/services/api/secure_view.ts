@@ -23,6 +23,36 @@ import type {
   EncryptedSecureAttachment,
 } from "../crypto/secure_message_crypto";
 
+import { base64_to_array } from "../crypto/envelope";
+
+const SECURE_VIEW_SALT_BYTES = 16;
+
+export type SecureViewUnlockMode =
+  | { kind: "zero_knowledge"; kdf_salt: string }
+  | { kind: "password" }
+  | { kind: "refused" };
+
+function is_valid_secure_view_salt(kdf_salt: string): boolean {
+  try {
+    return base64_to_array(kdf_salt).length === SECURE_VIEW_SALT_BYTES;
+  } catch {
+    return false;
+  }
+}
+
+export function secure_view_unlock_mode(
+  metadata: Pick<SecureViewMetadata, "is_zero_knowledge" | "kdf_salt">,
+): SecureViewUnlockMode {
+  if (metadata.kdf_salt !== undefined && metadata.kdf_salt !== null) {
+    return metadata.is_zero_knowledge &&
+      is_valid_secure_view_salt(metadata.kdf_salt)
+      ? { kind: "zero_knowledge", kdf_salt: metadata.kdf_salt }
+      : { kind: "refused" };
+  }
+
+  return metadata.is_zero_knowledge ? { kind: "refused" } : { kind: "password" };
+}
+
 export interface SecureViewMetadata {
   sender_display_name?: string;
   sender_email: string;
@@ -109,16 +139,46 @@ export interface SecureViewReplyResponse {
   error?: string;
 }
 
+export type SecureViewCredential =
+  | { kind: "proof"; auth_proof: string }
+  | { kind: "password"; password: string }
+  | { kind: "none" };
+
+export function secure_view_credential_for_unlock(
+  is_zero_knowledge: boolean,
+  auth_proof: string | null,
+  password: string,
+): SecureViewCredential {
+  if (is_zero_knowledge) {
+    return auth_proof ? { kind: "proof", auth_proof } : { kind: "none" };
+  }
+
+  return password ? { kind: "password", password } : { kind: "none" };
+}
+
+function credential_fields(
+  credential: SecureViewCredential,
+): Record<string, string> {
+  if (credential.kind === "proof") {
+    return { auth_proof: credential.auth_proof };
+  }
+
+  if (credential.kind === "password") {
+    return { password: credential.password };
+  }
+
+  return {};
+}
+
 export async function reply_to_secure_view(
   token: string,
   body: string,
-  auth_proof?: string | null,
-  password?: string | null,
+  credential: SecureViewCredential,
 ): Promise<SecureViewReplyResponse> {
-  const payload: Record<string, string> = { body };
-
-  if (auth_proof) payload.auth_proof = auth_proof;
-  if (password) payload.password = password;
+  const payload: Record<string, string> = {
+    body,
+    ...credential_fields(credential),
+  };
 
   const response = await fetch(`/api/view/${encodeURIComponent(token)}/reply`, {
     method: "POST",
@@ -143,13 +203,9 @@ export interface SecureViewDeleteResponse {
 
 export async function delete_secure_view(
   token: string,
-  auth_proof?: string | null,
-  password?: string | null,
+  credential: SecureViewCredential,
 ): Promise<SecureViewDeleteResponse> {
-  const payload: Record<string, string> = {};
-
-  if (auth_proof) payload.auth_proof = auth_proof;
-  if (password) payload.password = password;
+  const payload: Record<string, string> = credential_fields(credential);
 
   const response = await fetch(`/api/view/${encodeURIComponent(token)}`, {
     method: "DELETE",

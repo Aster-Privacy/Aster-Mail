@@ -165,6 +165,43 @@ describe("decide_recipient_encryption", () => {
     );
     expect(decide_recipient_encryption(undefined, {})).toBe("plain");
   });
+
+  it("follows the sender's own setting when the server flag says no", () => {
+    const withheld = key_info(
+      "pal@example.com",
+      { public_key: "k", private_key: "" },
+      { will_encrypt: false },
+    );
+    const keyserver = key_info(
+      "pal@example.com",
+      { public_key: "k", private_key: "" },
+      { source: "keyserver", will_encrypt: false },
+    );
+    const expired = key_info(
+      "pal@example.com",
+      { public_key: "k", private_key: "" },
+      { will_encrypt: false, expires_at: "2001-01-01T00:00:00Z" },
+    );
+
+    expect(
+      decide_recipient_encryption(withheld, { encrypt_by_default: true }),
+    ).toBe("encrypt");
+    expect(
+      decide_recipient_encryption(withheld, { encrypt_by_default: false }),
+    ).toBe("plain");
+    expect(
+      decide_recipient_encryption(keyserver, { encrypt_by_default: true }),
+    ).toBe("plain");
+    expect(
+      decide_recipient_encryption(expired, { encrypt_by_default: true }),
+    ).toBe("plain");
+    expect(
+      decide_recipient_encryption(withheld, {
+        encrypt_by_default: true,
+        force_pgp: false,
+      }),
+    ).toBe("plain");
+  });
 });
 
 describe("build_client_pgp_copies", () => {
@@ -453,5 +490,26 @@ describe("build_client_pgp_copies", () => {
 
     expect(copies && Object.keys(copies)).toEqual(["pal@example.com"]);
     expect(discover).toHaveBeenCalledWith(["pal@example.com"]);
+  });
+
+  it("encrypts when the server withholds its flag but the sender encrypts by default", async () => {
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal, { will_encrypt: false }),
+        key_info("bob@example.org", bob, { will_encrypt: false }),
+      ],
+    });
+
+    const copies = await build_client_pgp_copies(
+      params({ encrypt_by_default: true }),
+    );
+
+    expect(copies && Object.keys(copies).sort()).toEqual([
+      "Bob@Example.org",
+      "pal@example.com",
+    ]);
+    await expect(
+      decrypt_with(copies!["pal@example.com"], pal),
+    ).resolves.toContain("Quarterly numbers");
   });
 });

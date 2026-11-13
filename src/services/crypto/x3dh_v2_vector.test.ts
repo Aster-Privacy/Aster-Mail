@@ -41,6 +41,7 @@ import {
   perform_x3dh_receiver,
   X3DH_VERSION_LEGACY,
   X3DH_VERSION_TRANSCRIPT_BOUND,
+  X3DH_VERSION_KEY_BOUND,
   PQ_IDENTITY_KEY_ID,
 } from "./x3dh";
 
@@ -79,6 +80,13 @@ const EXPECTED_PQ_V2 =
   "023e364282464ccbe2c013d61f7453907d94e2a464f0ee5025cb485eb9cc324c";
 const EXPECTED_PQ_IDENTITY_V2 =
   "1ffb50c01be8f1aa988305dc1152a159a7ab59ad9f845e2f3f7544bf272af88a";
+
+const EXPECTED_CLASSICAL_V3 =
+  "09459744acadbaf0e93995b1e78476b89ae2abc12225f3b8471680411f39f075";
+const EXPECTED_PQ_V3 =
+  "295cb2db9bb952b6beff8dff48ab2bfda87b16c09eb05397a36326361bcc60f4";
+const EXPECTED_PQ_IDENTITY_V3 =
+  "c96ffc27882c8cdd893f3f3a5cea5c5961c94702b6fd34498f254a71e5266fdd";
 
 const EXPECTED_PQ_SHARED_SECRET =
   "5c21a072f4c2a105009f3b845108363b3768e0a0acaa9f3b8c8e2998eb77cc41";
@@ -188,6 +196,63 @@ describe("x3dh cross client vectors", () => {
     expect(await receive(X3DH_VERSION_TRANSCRIPT_BOUND, true, true)).toBe(
       EXPECTED_PQ_IDENTITY_V2,
     );
+  });
+
+  it("derives the key bound classical secret", async () => {
+    expect(await receive(X3DH_VERSION_KEY_BOUND, false, false)).toBe(
+      EXPECTED_CLASSICAL_V3,
+    );
+  });
+
+  it("derives the key bound post-quantum secret", async () => {
+    expect(await receive(X3DH_VERSION_KEY_BOUND, true, false)).toBe(
+      EXPECTED_PQ_V3,
+    );
+  });
+
+  it("derives the key bound identity lane secret", async () => {
+    expect(await receive(X3DH_VERSION_KEY_BOUND, true, true)).toBe(
+      EXPECTED_PQ_IDENTITY_V3,
+    );
+  });
+
+  it("changes the key bound secret when the ephemeral key changes", async () => {
+    const other_ephemeral = await crypto.subtle.exportKey(
+      "raw",
+      (
+        await crypto.subtle.generateKey(
+          { name: "ECDH", namedCurve: "P-256" },
+          true,
+          ["deriveBits"],
+        )
+      ).publicKey,
+    );
+    const secret = await perform_x3dh_receiver(
+      RECEIVER_IDENTITY_JWK,
+      RECEIVER_SIGNED_PREKEY_JWK,
+      sender_identity_raw,
+      new Uint8Array(other_ephemeral),
+      null,
+      null,
+      X3DH_VERSION_KEY_BOUND,
+    );
+
+    expect(to_hex(secret)).not.toBe(EXPECTED_CLASSICAL_V3);
+  });
+
+  it("keeps the key bound secrets apart from the older versions", () => {
+    const secrets = new Set([
+      EXPECTED_CLASSICAL_V1,
+      EXPECTED_CLASSICAL_V2,
+      EXPECTED_CLASSICAL_V3,
+      EXPECTED_PQ_V1,
+      EXPECTED_PQ_V2,
+      EXPECTED_PQ_V3,
+      EXPECTED_PQ_IDENTITY_V2,
+      EXPECTED_PQ_IDENTITY_V3,
+    ]);
+
+    expect(secrets.size).toBe(8);
   });
 
   it("separates every version and lane", async () => {

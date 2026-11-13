@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { verifiable_decrypted_message } from "@/services/crypto/key_manager_pgp";
+
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { ignore_error } from "@/lib/ignore_error";
 import {
@@ -29,10 +31,8 @@ import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
-import {
-  decrypt_message,
-  decrypt_message_with_any_key,
-} from "@/services/crypto/key_manager";
+import { decrypt_message_verifiable_with_any_key } from "@/services/crypto/key_manager";
+import { resolve_inline_pgp_sender_keys } from "@/services/crypto/sender_verification";
 import {
   get_external_decryption_keys,
   settle_external_pgp_key_load,
@@ -560,15 +560,36 @@ export async function decrypt_pgp_with_password(
 export interface ResolvedPgpBody {
   body: string;
   decrypted: boolean;
+  verified: boolean;
+}
+
+async function is_signed_by_sender(
+  decrypted: verifiable_decrypted_message,
+  sender_email: string | undefined,
+): Promise<boolean> {
+  if (!decrypted.has_signature || !sender_email) return false;
+
+  try {
+    const sender_keys = await resolve_inline_pgp_sender_keys(sender_email);
+
+    if (sender_keys.length === 0) return false;
+
+    const checked = await decrypted.verify(sender_keys);
+
+    return checked.verification === "verified";
+  } catch {
+    return false;
+  }
 }
 
 export async function resolve_inbound_pgp_body(
   body_text: string,
+  sender_email?: string,
 ): Promise<ResolvedPgpBody> {
   const split = split_pgp_block(body_text);
 
   if (!split) {
-    return { body: body_text, decrypted: false };
+    return { body: body_text, decrypted: false, verified: false };
   }
 
   const { block, rest } = split;
@@ -577,10 +598,15 @@ export async function resolve_inbound_pgp_body(
     return {
       body: encode_password_protected_body(block, rest),
       decrypted: false,
+      verified: false,
     };
   }
 
-  const unavailable = body_text;
+  const unavailable: ResolvedPgpBody = {
+    body: body_text,
+    decrypted: false,
+    verified: false,
+  };
 
   let vault = get_vault_from_memory();
   let passphrase = get_passphrase_from_memory();
@@ -591,23 +617,32 @@ export async function resolve_inbound_pgp_body(
     passphrase = get_passphrase_from_memory();
   }
 
-  if (!vault || !passphrase) return { body: unavailable, decrypted: false };
+  if (!vault || !passphrase) return unavailable;
 
   const keys_to_try = [
     vault.identity_key,
     ...(vault.previous_keys ?? []),
   ].filter((k): k is string => !!k);
 
-  const finish = (decrypted: string): ResolvedPgpBody => ({
-    body: /^content-type\s*:/im.test(decrypted)
-      ? extract_mime_body(decrypted)
-      : decrypted,
+  const finish = async (
+    decrypted: verifiable_decrypted_message,
+  ): Promise<ResolvedPgpBody> => ({
+    body: /^content-type\s*:/im.test(decrypted.plaintext)
+      ? extract_mime_body(decrypted.plaintext)
+      : decrypted.plaintext,
     decrypted: true,
+    verified: await is_signed_by_sender(decrypted, sender_email),
   });
 
-  for (const secret_key of keys_to_try) {
+  if (keys_to_try.length > 0) {
     try {
-      return finish(await decrypt_message(block, secret_key, passphrase));
+      return await finish(
+        await decrypt_message_verifiable_with_any_key(
+          block,
+          keys_to_try,
+          passphrase,
+        ),
+      );
     } catch (e) {
       if (import.meta.env.DEV) console.error("pgp_decrypt_failed", e);
     }
@@ -619,15 +654,20 @@ export async function resolve_inbound_pgp_body(
 
   if (external_keys.length > 0) {
     try {
-      return finish(
-        await decrypt_message_with_any_key(block, [], passphrase, external_keys),
+      return await finish(
+        await decrypt_message_verifiable_with_any_key(
+          block,
+          [],
+          passphrase,
+          external_keys,
+        ),
       );
     } catch (e) {
       if (import.meta.env.DEV) console.error("pgp_decrypt_failed", e);
     }
   }
 
-  return { body: unavailable, decrypted: false };
+  return unavailable;
 }
 
 export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
