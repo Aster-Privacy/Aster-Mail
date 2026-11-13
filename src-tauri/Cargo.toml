@@ -73,6 +73,7 @@ futures-util = "0.3"
 [patch.crates-io]
 glib = { path = "patches/glib-0.18.5" }
 atty = { path = "patches/atty-0.2.14" }
+wry = { path = "patches/wry-0.57.0" }
 
 [profile.release]
 panic = "unwind"
