@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check release versions
+        run: node scripts/check_release_versions.mjs
+
       - name: Typecheck
         run: npx tsc --noEmit
 
