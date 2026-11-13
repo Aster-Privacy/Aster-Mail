@@ -37,6 +37,9 @@ Keep signing with both keys until nearly every install runs a version that reads
    - `package.json` -> `version`
    - `src-tauri/tauri.conf.json` -> `version`
    - `src-tauri/Cargo.toml` -> `[package].version`
+   - `flatpak/org.astermail.Mail.metainfo.xml` -> a new `<release version="..." date="...">` at the top of `<releases>`, because Flathub shows the newest entry as the app version
+
+   CI runs `node scripts/check_release_versions.mjs` and fails when these disagree.
 2. Build per-platform bundles on the target OS:
    - macOS (universal): `npm run tauri:build:universal`
    - Windows: `npm run tauri:build`
