@@ -41,3 +41,19 @@ export function signature_for_sender<T extends bound_signature>(
 
   return resolved ?? fallback;
 }
+
+export function signatures_for_sender<T extends bound_signature>(
+  sender: Pick<SenderOption, "id" | "type"> | null | undefined,
+  signatures: T[],
+): T[] {
+  if (sender?.type === "ghost") {
+    return signatures.filter((s) => s.alias_id === sender.id);
+  }
+
+  const alias_id =
+    sender && is_signature_bindable_sender_type(sender.type) ? sender.id : null;
+
+  return signatures.filter(
+    (s) => !s.alias_id || (alias_id !== null && s.alias_id === alias_id),
+  );
+}

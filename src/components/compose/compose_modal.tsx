@@ -331,6 +331,7 @@ export function ComposeModal({
                 extra_toolbar_items={
                   <SignaturePicker
                     disabled={compose.is_scheduling}
+                    sender={compose.selected_sender}
                     on_select={(content) => {
                       compose.editor.apply_signature(content || null);
                     }}
