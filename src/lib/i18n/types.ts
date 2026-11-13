@@ -7996,6 +7996,7 @@ export interface MailTranslations {
   press_to_undo: string;
   tap_undo_to_cancel: string;
   view_message: string;
+  open_full_view: string;
   cancel_sending: string;
   send_immediately: string;
   new_message: string;

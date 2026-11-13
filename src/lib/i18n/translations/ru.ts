@@ -9915,6 +9915,7 @@ export const ru = {
     move_n_conversations_one: "Переместить {{count}} переписку",
     move_n_conversations_other: "Переместить {{count}} переписок",
     view_message: "Просмотреть сообщение",
+    open_full_view: "Открыть в полном окне",
     blocking: "Блокировка...",
     block: "Заблокировать",
     unsubscribe_title: "Отписаться",

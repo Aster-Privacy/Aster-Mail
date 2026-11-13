@@ -885,8 +885,42 @@ export function use_email_inbox_state(props: EmailInboxProps) {
 
   const is_split_view = !!split_email_id || !!split_scheduled_data;
   const is_full_view_mode = preferences.email_view_mode === "fullpage";
+  const [expanded_email_id, set_expanded_email_id] = useState<string | null>(
+    null,
+  );
+  const is_reading_pane_expanded =
+    !is_full_view_mode && !!split_email_id && expanded_email_id !== null;
   const show_full_email_viewer =
-    is_full_view_mode && !!split_email_id && !split_scheduled_data;
+    (is_full_view_mode || is_reading_pane_expanded) &&
+    !!split_email_id &&
+    !split_scheduled_data;
+
+  useEffect(() => {
+    if (!split_email_id) set_expanded_email_id(null);
+  }, [split_email_id]);
+
+  useEffect(() => {
+    set_expanded_email_id(null);
+  }, [current_view]);
+
+  const handle_expand_reading_pane = useCallback(() => {
+    if (split_email_id) set_expanded_email_id(split_email_id);
+  }, [split_email_id]);
+
+  const handle_collapse_reading_pane = useCallback(() => {
+    set_expanded_email_id(null);
+  }, []);
+
+  const handle_open_email_full = useCallback(
+    (id: string) => {
+      if (preferences.email_view_mode !== "split") return;
+      const item_type = filtered_emails.find((e) => e.id === id)?.item_type;
+
+      if (item_type === "draft" || item_type === "scheduled") return;
+      set_expanded_email_id(id);
+    },
+    [preferences.email_view_mode, filtered_emails],
+  );
   const {
     split_email_snoozed_until,
     split_email_grouped_ids,
@@ -1016,7 +1050,11 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     nav,
     is_split_view,
     is_full_view_mode,
+    is_reading_pane_expanded,
     show_full_email_viewer,
+    handle_expand_reading_pane,
+    handle_collapse_reading_pane,
+    handle_open_email_full,
     split_email_snoozed_until,
     split_email_grouped_ids,
     split_email_label_hints,

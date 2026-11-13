@@ -9332,6 +9332,7 @@ export const ko = {
     move_n_conversations: "{{ count }}개 대화 이동",
     move_n_conversations_other: "{{count}}개 대화 이동",
     view_message: "메시지 보기",
+    open_full_view: "전체 보기로 열기",
     block_sender_spam_warning:
       "지금부터 이 보낸 사람의 새 이메일은 곧바로 스팸으로 이동합니다. 차단 목록에서 차단을 해제할 수 있습니다.",
     block_sender_confirm_message:

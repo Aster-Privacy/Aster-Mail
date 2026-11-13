@@ -21,7 +21,8 @@
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowsPointingOutIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
@@ -82,6 +83,7 @@ interface SplitEmailViewerProps {
   email_id: string;
   local_email?: LocalEmailData;
   on_close: () => void;
+  on_expand?: () => void;
   on_advance?: () => boolean;
   snoozed_until?: string;
   on_reply?: (data: SplitReplyData) => void;
@@ -112,6 +114,7 @@ export function SplitEmailViewer({
   email_id,
   local_email,
   on_close,
+  on_expand,
   on_advance,
   snoozed_until: _snoozed_until,
   on_reply,
@@ -583,6 +586,18 @@ export function SplitEmailViewer({
         )}
 
         <div className="flex-1" />
+
+        {on_expand && (
+          <Tooltip tip={t("mail.open_full_view")}>
+            <button
+              aria-label={t("mail.open_full_view")}
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] hover:text-txt-primary"
+              onClick={on_expand}
+            >
+              <ArrowsPointingOutIcon className="w-5 h-5" />
+            </button>
+          </Tooltip>
+        )}
 
         <button
           aria-label={t("common.close")}

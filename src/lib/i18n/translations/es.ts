@@ -9736,6 +9736,7 @@ export const es = {
     move_n_conversations_one: "Mover {{count}} conversación",
     move_n_conversations_other: "Mover {{count}} conversaciones",
     view_message: "Ver mensaje",
+    open_full_view: "Abrir en vista completa",
     blocking: "Bloqueando...",
     block: "Bloquear",
     unsubscribe_title: "Cancelar suscripción",

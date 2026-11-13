@@ -8633,6 +8633,7 @@ export const zh_CN = {
     move_n_conversations: "移动{{ count }}个对话",
     move_n_conversations_other: "移动{{count}}个对话",
     view_message: "查看消息",
+    open_full_view: "在完整视图中打开",
     block_sender_spam_warning:
       "从此以后，这位发件人的新邮件都会直接进入垃圾邮件。您的屏蔽列表中可以再次解除屏蔽。",
     block_sender_confirm_message: "屏蔽{{email}}？您将不再收到他们的邮件。",

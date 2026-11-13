@@ -162,7 +162,11 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     nav,
     is_split_view,
     is_full_view_mode,
+    is_reading_pane_expanded,
     show_full_email_viewer,
+    handle_expand_reading_pane,
+    handle_collapse_reading_pane,
+    handle_open_email_full,
     split_email_snoozed_until,
     split_email_grouped_ids,
     split_email_label_hints,
@@ -191,7 +195,8 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     0,
   );
 
-  const show_reading_pane = is_split_view && !is_full_view_mode;
+  const show_reading_pane =
+    is_split_view && !is_full_view_mode && !is_reading_pane_expanded;
   const selected_email_id = active_email_id ?? split_scheduled_data?.id;
   const reading_pane_was_open_ref = useRef(show_reading_pane);
 
@@ -273,6 +278,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 on_custom_snooze={set_custom_snooze_email}
                 on_delete={context_menu_actions.handle_delete}
                 on_email_click={nav.handle_email_click}
+                on_email_double_click={handle_open_email_full}
                 on_find_from_sender={
                   context_menu_actions.handle_find_from_sender
                 }
@@ -548,7 +554,11 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               label_hints={split_email_label_hints}
               local_email={split_local_email ?? undefined}
               on_advance={on_auto_advance}
-              on_back={on_split_close || (() => {})}
+              on_back={
+                is_reading_pane_expanded
+                  ? handle_collapse_reading_pane
+                  : on_split_close || (() => {})
+              }
               on_edit_draft={handle_edit_thread_draft}
               on_folder_toggle={handle_viewer_folder_toggle}
               on_move_out_of_bin={handle_viewer_move_out_of_bin}
@@ -635,6 +645,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                       local_email={split_local_email ?? undefined}
                       on_advance={on_auto_advance}
                       on_close={on_split_close || (() => {})}
+                      on_expand={handle_expand_reading_pane}
                       on_folder_toggle={handle_viewer_folder_toggle}
                       on_move_out_of_bin={handle_viewer_move_out_of_bin}
                       on_forward={on_forward}

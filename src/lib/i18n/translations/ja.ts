@@ -9501,6 +9501,7 @@ export const ja = {
     move_n_conversations: "{{ count }}件の会話を移動",
     move_n_conversations_other: "{{count}}件の会話を移動",
     view_message: "メッセージを表示",
+    open_full_view: "全画面表示で開く",
     blocking: "ブロック中...",
     block: "ブロック",
     unsubscribe_title: "登録解除",

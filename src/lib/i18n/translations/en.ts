@@ -8925,6 +8925,7 @@ export const en: Translations = {
     press_to_undo: "to undo",
     tap_undo_to_cancel: "Tap the undo button to cancel",
     view_message: "View message",
+    open_full_view: "Open in full view",
     cancel_sending: "Cancel sending email",
     send_immediately: "Send email immediately",
     new_message: "New Message",

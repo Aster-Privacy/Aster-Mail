@@ -9964,6 +9964,7 @@ export const pl = {
     move_n_conversations_one: "Przenieś {{count}} konwersację",
     move_n_conversations_other: "Przenieś {{count}} konwersacji",
     view_message: "Wyświetl wiadomość",
+    open_full_view: "Otwórz w pełnym widoku",
     blocking: "Blokowanie...",
     block: "Zablokuj",
     unsubscribe_title: "Wypisz się",

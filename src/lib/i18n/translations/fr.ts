@@ -9847,6 +9847,7 @@ export const fr = {
     move_n_conversations_one: "Déplacer {{count}} conversation",
     move_n_conversations_other: "Déplacer {{count}} conversations",
     view_message: "Voir le message",
+    open_full_view: "Ouvrir en vue complète",
     blocking: "Blocage en cours...",
     block: "Bloquer",
     unsubscribe_title: "Se désabonner",
