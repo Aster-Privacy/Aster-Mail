@@ -21,6 +21,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import { CalendarBillingReturn } from "@/components/calendar_billing_return";
 import {
   activate_subscription,
   clear_checkout_target,
@@ -629,6 +630,10 @@ function App() {
                   </ProtectedRoute>
                 }
                 path="/crypto-invoice/:id"
+              />
+              <Route
+                element={<CalendarBillingReturn />}
+                path="/calendar/billing"
               />
               <Route element={<NotFoundPage />} path="*" />
             </Routes>
