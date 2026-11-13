@@ -56,7 +56,10 @@ jobs:
         run: |
           set -euo pipefail
           npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/throwaway_updater.key"
-          npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/test_updater_v1.key"
+          TEST_V1_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$TEST_V1_PASSWORD"
+          printf '%s' "$TEST_V1_PASSWORD" > "$RUNNER_TEMP/test_updater_v1.password"
+          npm run tauri -- signer generate --ci -p "$TEST_V1_PASSWORD" -w "$RUNNER_TEMP/test_updater_v1.key"
           TEST_V2_PASSWORD="$(openssl rand -hex 24)"
           echo "::add-mask::$TEST_V2_PASSWORD"
           printf '%s' "$TEST_V2_PASSWORD" > "$RUNNER_TEMP/test_updater_v2.password"
@@ -169,7 +172,7 @@ jobs:
         run: |
           set -euo pipefail
           UPDATER_KEY_V1="$(cat "$RUNNER_TEMP/test_updater_v1.key")"
-          UPDATER_KEY_V1_PASSWORD=''
+          UPDATER_KEY_V1_PASSWORD="$(cat "$RUNNER_TEMP/test_updater_v1.password")"
           UPDATER_KEY_V2="$(cat "$RUNNER_TEMP/test_updater_v2.key")"
           UPDATER_KEY_V2_PASSWORD="$(cat "$RUNNER_TEMP/test_updater_v2.password")"
           if [ -z "$UPDATER_KEY_V1" ] || [ -z "$UPDATER_KEY_V2" ]; then
