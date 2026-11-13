@@ -115,6 +115,28 @@ describe("parse_websites_payload", () => {
 
     expect(parse_websites_payload(many)).toHaveLength(MAX_ALIAS_WEBSITES);
   });
+
+  it("reads comma separated lists saved by older mobile builds", () => {
+    expect(parse_websites_payload("netflix.com, https://amazon.com")).toEqual([
+      "https://netflix.com",
+      "https://amazon.com",
+    ]);
+    expect(parse_websites_payload("a.com;b.org\nc.net")).toEqual([
+      "https://a.com",
+      "https://b.org",
+      "https://c.net",
+    ]);
+    expect(parse_websites_payload('"a.com, b.org"')).toEqual([
+      "https://a.com",
+      "https://b.org",
+    ]);
+  });
+
+  it("drops duplicate entries regardless of case", () => {
+    expect(
+      parse_websites_payload('["https://a.com","https://A.COM","a.com"]'),
+    ).toEqual(["https://a.com"]);
+  });
 });
 
 describe("validate_website_input", () => {
