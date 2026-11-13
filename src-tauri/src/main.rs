@@ -31,6 +31,8 @@ mod default_mail_store;
 mod device;
 mod downloads;
 #[cfg(all(unix, not(target_os = "macos")))]
+mod external_link;
+#[cfg(all(unix, not(target_os = "macos")))]
 mod flatpak;
 mod http_client;
 mod interface_zoom;
@@ -452,7 +454,14 @@ async fn open_external_url(app: tauri::AppHandle, url: String) -> std::result::R
         Ok(())
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        let _ = &app;
+
+        external_link::open_url(&url).await
+    }
+
+    #[cfg(not(unix))]
     {
         tauri::async_runtime::spawn_blocking(move || {
             use tauri_plugin_shell::ShellExt;

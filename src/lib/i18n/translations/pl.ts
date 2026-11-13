@@ -7805,6 +7805,7 @@ export const pl = {
       "Klucze bezpieczeństwa dodasz w aplikacji internetowej Aster na app.astermail.org. Tutaj możesz przeglądać i usuwać istniejące.",
     passkeys_desktop_note:
       "Klucze dostępu dodasz w aplikacji internetowej Aster na app.astermail.org. Tutaj możesz przeglądać i usuwać istniejące.",
+    passkeys_open_in_browser: "Otwórz w przeglądarce",
     app_lock_pin: "Blokada PIN",
     app_lock_pin_description:
       "Prosi o kod PIN przed wyświetleniem Aster Mail w tej przeglądarce. Ukrywa pocztę przed innymi osobami korzystającymi z tego urządzenia, ale nie szyfruje przechowywanych tu danych.",

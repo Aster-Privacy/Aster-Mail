@@ -8166,6 +8166,7 @@ export const de = {
       "Sicherheitsschlüssel können in der Aster-Web-App unter app.astermail.org hinzugefügt werden. Vorhandene Schlüssel können Sie hier weiterhin ansehen und entfernen.",
     passkeys_desktop_note:
       "Passkeys können in der Aster-Web-App unter app.astermail.org hinzugefügt werden. Vorhandene Passkeys können Sie hier weiterhin ansehen und entfernen.",
+    passkeys_open_in_browser: "Im Browser öffnen",
     app_lock_pin: "PIN-Sperre",
     app_lock_pin_description:
       "Fragt nach einer PIN, bevor Aster Mail in diesem Browser angezeigt wird. Die Sperre verbirgt deine E-Mails vor anderen Personen, die dieses Gerät nutzen, verschlüsselt aber nicht die hier gespeicherten Daten.",

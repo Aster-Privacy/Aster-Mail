@@ -7952,6 +7952,7 @@ export const ja = {
       "セキュリティキーは app.astermail.org の Aster ウェブ版で追加できます。ここでは既存のキーの確認と削除ができます。",
     passkeys_desktop_note:
       "パスキーは app.astermail.org の Aster ウェブ版で追加できます。ここでは既存のパスキーの確認と削除ができます。",
+    passkeys_open_in_browser: "ブラウザで開く",
     app_lock_pin: "PINロック",
     app_lock_pin_description:
       "このブラウザで Aster Mail を表示する前に PIN を求めます。このデバイスを使うほかの人からメールを隠しますが、ここに保存されたデータは暗号化しません。",
