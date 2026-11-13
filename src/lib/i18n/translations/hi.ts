@@ -2638,6 +2638,7 @@ export const hi = {
       "सुरक्षा कुंजियां app.astermail.org पर Aster वेब ऐप में जोड़ी जा सकती हैं। मौजूदा कुंजियां आप यहां भी देख और हटा सकते हैं।",
     passkeys_desktop_note:
       "पासकी app.astermail.org पर Aster वेब ऐप में जोड़ी जा सकती हैं। मौजूदा पासकी आप यहां भी देख और हटा सकते हैं।",
+    passkeys_open_in_browser: "ब्राउज़र में खोलें",
     security_key_registered: "सुरक्षा कुंजी पंजीकृत हो गई",
     security_key_removed: "सुरक्षा कुंजी हटा दी गई",
     name_your_key: "अपनी सुरक्षा कुंजी को नाम दें",

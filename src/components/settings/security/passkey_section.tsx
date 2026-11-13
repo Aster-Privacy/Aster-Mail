@@ -45,6 +45,7 @@ import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_desktop } from "@/native/invoke_bridge";
+import { open_external } from "@/utils/open_link";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_settings_cache } from "@/contexts/settings_cache_context";
@@ -72,6 +73,8 @@ import {
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+
+const SECURITY_SETTINGS_PATH = "/settings/security";
 
 function format_date(iso: string): string {
   try {
@@ -244,6 +247,7 @@ export function PasskeySection() {
   const [platform_available, set_platform_available] = useState<boolean | null>(
     null,
   );
+  const desktop_app = is_desktop();
   const webauthn_supported = is_passkey_supported();
 
   const load_keys = useCallback(async () => {
@@ -461,7 +465,7 @@ export function PasskeySection() {
           </span>
         }
       >
-        {!webauthn_supported && (
+        {!webauthn_supported && !desktop_app && (
           <RecommendationBox>{t("passkeys.not_supported")}</RecommendationBox>
         )}
 
@@ -531,13 +535,22 @@ export function PasskeySection() {
           </AnimatePresence>
         )}
 
-        {webauthn_supported && is_desktop() && (
-          <p className="px-1 text-sm text-txt-muted">
-            {t("settings.passkeys_desktop_note")}
-          </p>
+        {desktop_app && (
+          <div className="flex flex-col items-start gap-2">
+            <p className="px-1 text-sm text-txt-muted">
+              {t("settings.passkeys_desktop_note")}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => open_external(SECURITY_SETTINGS_PATH)}
+            >
+              {t("settings.passkeys_open_in_browser")}
+            </Button>
+          </div>
         )}
 
-        {webauthn_supported && !is_desktop() && (
+        {webauthn_supported && !desktop_app && (
           <div className="flex flex-wrap items-center gap-2">
             {platform_available !== false && (
               <Button

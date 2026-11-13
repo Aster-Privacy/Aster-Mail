@@ -2888,6 +2888,7 @@ export interface SettingsTranslations {
   no_security_keys: string;
   security_keys_desktop_note: string;
   passkeys_desktop_note: string;
+  passkeys_open_in_browser: string;
   security_key_registered: string;
   security_key_removed: string;
   name_your_key: string;

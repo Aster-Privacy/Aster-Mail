@@ -8320,6 +8320,7 @@ export const fr = {
       "Les clés de sécurité peuvent être ajoutées dans l'application web Aster sur app.astermail.org. Vous pouvez toujours consulter et supprimer les clés existantes ici.",
     passkeys_desktop_note:
       "Les clés d'accès peuvent être ajoutées dans l'application web Aster sur app.astermail.org. Vous pouvez toujours consulter et supprimer les clés d'accès existantes ici.",
+    passkeys_open_in_browser: "Ouvrir dans le navigateur",
     app_lock_pin: "Verrouillage par code PIN",
     app_lock_pin_description:
       "Demande un code PIN avant d'afficher Aster Mail dans ce navigateur. Ce verrou masque vos e-mails aux autres personnes qui utilisent cet appareil, mais il ne chiffre pas les données stockées ici.",

@@ -8205,6 +8205,7 @@ export const nl = {
       "Beveiligingssleutels kunnen worden toegevoegd in de Aster-webapp op app.astermail.org. Je kunt bestaande sleutels hier nog steeds bekijken en verwijderen.",
     passkeys_desktop_note:
       "Toegangssleutels kunnen worden toegevoegd in de Aster-webapp op app.astermail.org. Je kunt bestaande toegangssleutels hier nog steeds bekijken en verwijderen.",
+    passkeys_open_in_browser: "Openen in browser",
     app_lock_pin: "PIN-vergrendeling",
     app_lock_pin_description:
       "Vraagt om een pincode voordat Aster Mail in deze browser wordt getoond. De vergrendeling verbergt je e-mail voor andere mensen die dit apparaat gebruiken, maar versleutelt de hier opgeslagen gegevens niet.",

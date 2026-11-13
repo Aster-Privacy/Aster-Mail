@@ -2546,6 +2546,7 @@ export const en: Translations = {
       "Security keys can be added in the Aster web app at app.astermail.org. You can still view and remove existing keys here.",
     passkeys_desktop_note:
       "Passkeys can be added in the Aster web app at app.astermail.org. You can still view and remove existing passkeys here.",
+    passkeys_open_in_browser: "Open in browser",
     security_key_registered: "Security key registered successfully",
     security_key_removed: "Security key removed",
     name_your_key: "Name your security key",

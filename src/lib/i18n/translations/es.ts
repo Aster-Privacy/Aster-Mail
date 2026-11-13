@@ -8241,6 +8241,7 @@ export const es = {
       "Las claves de seguridad se pueden agregar en la aplicación web de Aster en app.astermail.org. Aún puedes ver y eliminar las claves existentes aquí.",
     passkeys_desktop_note:
       "Las llaves de acceso se pueden agregar en la aplicación web de Aster en app.astermail.org. Aún puedes ver y eliminar las llaves de acceso existentes aquí.",
+    passkeys_open_in_browser: "Abrir en el navegador",
     app_lock_pin: "Bloqueo por PIN",
     app_lock_pin_description:
       "Pide un PIN antes de mostrar Aster Mail en este navegador. Oculta tu correo a otras personas que usan este dispositivo, pero no cifra los datos almacenados aquí.",

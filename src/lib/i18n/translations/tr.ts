@@ -7570,6 +7570,7 @@ export const tr = {
       "Güvenlik anahtarlarını app.astermail.org adresindeki Aster web uygulamasında ekleyebilirsiniz. Burada mevcut anahtarları görüntüleyip kaldırabilirsiniz.",
     passkeys_desktop_note:
       "Geçiş anahtarlarını app.astermail.org adresindeki Aster web uygulamasında ekleyebilirsiniz. Burada mevcut anahtarları görüntüleyip kaldırabilirsiniz.",
+    passkeys_open_in_browser: "Tarayıcıda aç",
     app_lock_pin: "PIN Kilidi",
     app_lock_pin_description:
       "Aster Mail'i bu tarayıcıda göstermeden önce PIN ister. Postanızı bu cihazı kullanan diğer kişilerden gizler, ancak burada depolanan verileri şifrelemez.",
