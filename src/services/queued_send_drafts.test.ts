@@ -44,6 +44,7 @@ const {
   queued_send_draft_ids,
   on_queued_send_drafts_changed,
   mark_queued_send_delivered,
+  waiting_queued_send_draft_count,
 } = await import("@/services/queued_send_drafts");
 
 const STORAGE_KEY = "astermail:queued_send_drafts";
@@ -132,6 +133,21 @@ describe("queued send drafts", () => {
     remember_queued_send_draft("q2", "d2");
 
     expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it("counts each waiting draft once until it is forgotten", () => {
+    remember_queued_send_draft("q1", "d1");
+    remember_queued_send_draft("q2", "d1");
+    remember_queued_send_draft("q3", "d3");
+
+    expect(waiting_queued_send_draft_count()).toBe(2);
+
+    forget_queued_send_draft("q3");
+    expect(waiting_queued_send_draft_count()).toBe(1);
+
+    expect(waiting_queued_send_draft_count(Date.now() + 11 * 60 * 1000)).toBe(
+      0,
+    );
   });
 
   it("ignores a send without a saved draft", () => {

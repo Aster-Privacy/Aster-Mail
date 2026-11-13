@@ -36,11 +36,18 @@ import {
 import { is_mac_platform } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
-import { show_action_toast } from "@/components/toast/action_toast";
+import {
+  release_action_toast,
+  show_action_toast,
+} from "@/components/toast/action_toast";
 import { use_toast_action_bridge } from "@/components/toast/use_toast_action_hosts";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_toast } from "@/components/toast/simple_toast";
 import { get_active_translations } from "@/lib/i18n/translations";
+
+function undo_send_toast_key(id: string): string {
+  return `undo_send:${id}`;
+}
 
 interface UndoSendContainerProps {
   position?: string;
@@ -58,7 +65,8 @@ export function UndoSendContainer({
   use_toast_action_bridge({ is_mobile_app: is_mobile });
 
   const { is_authenticated } = use_auth();
-  const { pending_sends, cancel_send, get_time_remaining } = use_undo_send();
+  const { pending_sends, cancel_send, send_immediately, get_time_remaining } =
+    use_undo_send();
 
   const is_mac = useMemo(() => is_mac_platform(), []);
   const shown_ids_ref = useRef<Set<string>>(new Set());
@@ -153,6 +161,15 @@ export function UndoSendContainer({
         email_ids: [],
         duration_ms: remaining * 1000,
         hide_dismiss: true,
+        resume_key: undo_send_toast_key(pending_data.id),
+        actions: [
+          {
+            label: t("common.send_now"),
+            on_press: () => {
+              void send_immediately(pending_data.id);
+            },
+          },
+        ],
         on_undo: async () => {
           const cancelled = await cancel_send(pending_data.id);
 
@@ -168,9 +185,10 @@ export function UndoSendContainer({
     for (const id of shown_ids_ref.current) {
       if (!current_ids.has(id)) {
         shown_ids_ref.current.delete(id);
+        release_action_toast(undo_send_toast_key(id));
       }
     }
-  }, [pending_sends, cancel_send, get_time_remaining, t]);
+  }, [pending_sends, cancel_send, send_immediately, get_time_remaining, t]);
 
   return null;
 }

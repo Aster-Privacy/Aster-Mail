@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 import {
   MAIL_EVENTS,
@@ -43,6 +43,10 @@ import {
   on_badge_count_change,
 } from "@/native/badge_preference";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  on_queued_send_drafts_changed,
+  waiting_queued_send_draft_count,
+} from "@/services/queued_send_drafts";
 import { sync_client } from "@/services/sync_client";
 
 export interface MailStats {
@@ -755,6 +759,29 @@ export function use_mail_stats(): UseMailStatsReturn {
     };
   });
 
+  const [waiting_drafts, set_waiting_drafts] = useState(() =>
+    waiting_queued_send_draft_count(),
+  );
+
+  useEffect(
+    () =>
+      on_queued_send_drafts_changed(() =>
+        set_waiting_drafts(waiting_queued_send_draft_count()),
+      ),
+    [],
+  );
+
+  const visible_stats = useMemo(
+    () =>
+      waiting_drafts > 0
+        ? {
+            ...state.stats,
+            drafts: Math.max(0, state.stats.drafts - waiting_drafts),
+          }
+        : state.stats,
+    [state.stats, waiting_drafts],
+  );
+
   const sync_state = useCallback(() => {
     if (!mounted_ref.current) return;
     const cache = stats_store.get_cache();
@@ -937,7 +964,7 @@ export function use_mail_stats(): UseMailStatsReturn {
   }, [is_completing_registration]);
 
   return {
-    stats: state.stats,
+    stats: visible_stats,
     is_loading: state.is_loading,
     error: state.error,
     refresh,
