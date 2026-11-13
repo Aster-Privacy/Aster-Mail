@@ -89,7 +89,7 @@ describe("remote css urls in sandboxed rendering", () => {
     expect(result.html).not.toContain("tracker.example.com");
   });
 
-  it("strips remote head css url() when only remote css is blocked", () => {
+  it("routes head css url() images through the proxy when only remote css is blocked", () => {
     const result = sanitize_html(
       head_style_email(REMOTE_RULE),
       options("always", {
@@ -99,6 +99,24 @@ describe("remote css urls in sandboxed rendering", () => {
         block_tracking_pixels: false,
       }),
     );
+
+    expect(result.html).toContain(
+      `https://proxy.example.com/img?url=${encodeURIComponent(TRACKER)}`,
+    );
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+    expect(result.external_content.blocked_count).toBe(0);
+  });
+
+  it("strips head css url() when only remote css is blocked and no proxy exists", () => {
+    const result = sanitize_html(head_style_email(REMOTE_RULE), {
+      ...options("always", {
+        block_remote_images: false,
+        block_remote_fonts: false,
+        block_remote_css: true,
+        block_tracking_pixels: false,
+      }),
+      image_proxy_url: undefined,
+    });
 
     expect(result.html).not.toContain("tracker.example.com");
   });
@@ -112,17 +130,17 @@ describe("remote css urls in sandboxed rendering", () => {
     expect(result.html).not.toContain("tracker.example.com");
   });
 
-  it("reports blocked head css so the external content banner can offer a reload", () => {
+  it("reports blocked head css images as images so loading images restores them", () => {
     const result = sanitize_html(
       head_style_email(REMOTE_RULE),
       options("never"),
     );
 
-    expect(result.external_content.has_remote_css).toBe(true);
+    expect(result.external_content.has_remote_images).toBe(true);
     expect(
       result.external_content.blocked_items.some(
         (item) =>
-          item.type === "css" &&
+          item.type === "image" &&
           new URL(item.url).hostname === "tracker.example.com",
       ),
     ).toBe(true);
@@ -363,5 +381,98 @@ describe("remote css urls when remote content is allowed", () => {
 
     expect(result.html).not.toContain(`url(${TRACKER}`);
     expect(result.html).toContain(PROXIED);
+  });
+});
+
+describe("remote css images follow the image decision", () => {
+  const PROXY = "https://proxy.example.com/img";
+  const PROXIED = `${PROXY}?url=${encodeURIComponent(TRACKER)}`;
+  const images_allowed_css_blocked: SanitizeOptions["content_blocking"] = {
+    block_remote_images: false,
+    block_remote_fonts: true,
+    block_remote_css: true,
+    block_tracking_pixels: true,
+  };
+  const images_blocked_css_allowed: SanitizeOptions["content_blocking"] = {
+    block_remote_images: true,
+    block_remote_fonts: true,
+    block_remote_css: false,
+    block_tracking_pixels: true,
+  };
+
+  it.each([
+    ["head", head_style_email(REMOTE_RULE)],
+    ["body", body_style_email(REMOTE_RULE)],
+    ["inline", inline_style_email(`background-image: url(${TRACKER})`)],
+  ])(
+    "proxies %s css background images once images are allowed",
+    (_place, html) => {
+      const result = sanitize_html(
+        html,
+        options("ask", images_allowed_css_blocked),
+      );
+
+      expect(result.html).toContain(PROXIED);
+      expect(result.html).not.toContain(`url(${TRACKER}`);
+      expect(
+        result.external_content.blocked_items.some(
+          (item) => item.url === TRACKER,
+        ),
+      ).toBe(false);
+    },
+  );
+
+  it.each([
+    ["head", head_style_email(REMOTE_RULE)],
+    ["body", body_style_email(REMOTE_RULE)],
+    ["inline", inline_style_email(`background-image: url(${TRACKER})`)],
+  ])(
+    "counts blocked %s css background images as images",
+    (_place, html) => {
+      const result = sanitize_html(
+        html,
+        options("ask", images_blocked_css_allowed),
+      );
+
+      expect(result.html).not.toContain("tracker.example.com");
+      expect(result.external_content.has_remote_images).toBe(true);
+      expect(result.external_content.has_remote_css).toBe(false);
+      expect(result.external_content.blocked_items).toContainEqual({
+        url: TRACKER,
+        type: "image",
+      });
+    },
+  );
+
+  it("keeps css background images blocked in lockdown mode", () => {
+    const result = sanitize_html(
+      head_style_email(REMOTE_RULE),
+      options("always", images_allowed_css_blocked, true),
+    );
+
+    expect(result.html).not.toContain("tracker.example.com");
+  });
+
+  it("still blocks remote fonts when images are allowed", () => {
+    const result = sanitize_html(
+      head_style_email(
+        `@font-face { font-family: x; src: url(https://fonts.example.com/x.woff2); } ${REMOTE_RULE}`,
+      ),
+      options("ask", images_allowed_css_blocked),
+    );
+
+    expect(result.html).not.toContain("fonts.example.com");
+    expect(result.html).toContain(PROXIED);
+  });
+
+  it("still drops @import when images are allowed", () => {
+    const result = sanitize_html(
+      head_style_email(
+        `@import url(https://styles.example.com/a.css); ${REMOTE_RULE}`,
+      ),
+      options("ask", images_allowed_css_blocked),
+    );
+
+    expect(result.html).not.toContain("styles.example.com");
   });
 });
