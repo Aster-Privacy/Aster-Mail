@@ -51,9 +51,16 @@ jobs:
           npm ci --no-audit --no-fund --ignore-scripts
           npx --no-install patch-package
 
-      - name: Create a throwaway updater key for the bundler
+      - name: Create throwaway updater keys
         shell: bash
-        run: npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/throwaway_updater.key"
+        run: |
+          set -euo pipefail
+          npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/throwaway_updater.key"
+          npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/test_updater_v1.key"
+          TEST_V2_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$TEST_V2_PASSWORD"
+          printf '%s' "$TEST_V2_PASSWORD" > "$RUNNER_TEMP/test_updater_v2.password"
+          npm run tauri -- signer generate --ci -p "$TEST_V2_PASSWORD" -w "$RUNNER_TEMP/test_updater_v2.key"
 
       - name: Build the app binary without installers
         shell: bash
@@ -157,15 +164,14 @@ jobs:
             Write-Host "$($f.Name) signer: $($sig.SignerCertificate.Subject) ($($sig.Status))"
           }
 
-      - name: Sign the signed installers with the current and the next updater key
-        env:
-          UPDATER_KEY_V1: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          UPDATER_KEY_V1_PASSWORD: ''
-          UPDATER_KEY_V2: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_V2 }}
-          UPDATER_KEY_V2_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD_V2 }}
+      - name: Sign the signed installers with two test updater keys
         shell: bash
         run: |
           set -euo pipefail
+          UPDATER_KEY_V1="$(cat "$RUNNER_TEMP/test_updater_v1.key")"
+          UPDATER_KEY_V1_PASSWORD=''
+          UPDATER_KEY_V2="$(cat "$RUNNER_TEMP/test_updater_v2.key")"
+          UPDATER_KEY_V2_PASSWORD="$(cat "$RUNNER_TEMP/test_updater_v2.password")"
           if [ -z "$UPDATER_KEY_V1" ] || [ -z "$UPDATER_KEY_V2" ]; then
             echo "::error::both updater keys must be set"
             exit 1
