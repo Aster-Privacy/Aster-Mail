@@ -21,12 +21,16 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
 
 import {
   SETTINGS_SECTION_IDS,
+  SETTINGS_TAB_EVENT,
+  consume_settings_tab,
+  request_settings_target,
   resolve_nav_target,
   resolve_settings_section,
+  settings_tab_for,
 } from "@/components/settings/settings_content_helpers";
 
 function rendered_sections(): string[] {
@@ -90,5 +94,51 @@ describe("resolve_settings_section", () => {
     expect(resolve_settings_section("")).toBeUndefined();
     expect(resolve_settings_section(null)).toBeUndefined();
     expect(resolve_settings_section(undefined)).toBeUndefined();
+  });
+});
+
+describe("settings tab requests", () => {
+  const received: string[] = [];
+  const listener = (event: Event) => {
+    received.push((event as CustomEvent<string>).detail);
+  };
+
+  afterEach(() => {
+    window.removeEventListener(SETTINGS_TAB_EVENT, listener);
+    received.length = 0;
+    consume_settings_tab();
+  });
+
+  it("resolves a tab alias without switching tabs", () => {
+    window.addEventListener(SETTINGS_TAB_EVENT, listener);
+
+    for (let render = 0; render < 3; render++) {
+      expect(resolve_settings_section("categories")).toBe("behavior");
+    }
+
+    expect(received).toEqual([]);
+    expect(consume_settings_tab()).toBeNull();
+  });
+
+  it("reports the tab a section alias points to", () => {
+    expect(settings_tab_for("categories")).toBe("categories");
+    expect(settings_tab_for(" categories ")).toBe("categories");
+    expect(settings_tab_for("behavior")).toBeUndefined();
+    expect(settings_tab_for(null)).toBeUndefined();
+  });
+
+  it("requests the tab once when navigating to a tab alias", () => {
+    window.addEventListener(SETTINGS_TAB_EVENT, listener);
+
+    expect(request_settings_target("categories")).toBe("behavior");
+    expect(received).toEqual(["categories"]);
+  });
+
+  it("does not request a tab for a plain section", () => {
+    window.addEventListener(SETTINGS_TAB_EVENT, listener);
+
+    expect(request_settings_target("behavior")).toBe("behavior");
+    expect(request_settings_target("does_not_exist")).toBeUndefined();
+    expect(received).toEqual([]);
   });
 });
