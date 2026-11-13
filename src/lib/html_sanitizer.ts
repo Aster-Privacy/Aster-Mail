@@ -434,10 +434,10 @@ function sanitize_html_impl(
       lockdown_mode,
     });
 
+  const css_images_blocked = lockdown_mode || block_images;
+
   const allowed_css_image_proxy =
-    lockdown_mode || block_images || block_css || !effective_proxy
-      ? undefined
-      : effective_proxy;
+    css_images_blocked || !effective_proxy ? undefined : effective_proxy;
 
   const external_content: ExternalContentReport = {
     has_remote_images: false,
@@ -447,6 +447,28 @@ function sanitize_html_impl(
     blocked_count: 0,
     blocked_items: [],
     cleaned_links: [],
+  };
+
+  const filter_css_images = (css: string): string => {
+    if (css_images_blocked) {
+      const remote_css_urls = list_remote_css_urls(css);
+
+      if (remote_css_urls.length > 0) {
+        external_content.has_remote_images = true;
+        external_content.blocked_count += remote_css_urls.length;
+        for (const url of remote_css_urls) {
+          external_content.blocked_items.push({ url, type: "image" });
+        }
+      }
+
+      return strip_css_urls(css);
+    }
+
+    if (allowed_css_image_proxy) {
+      return proxy_css_urls(css, allowed_css_image_proxy);
+    }
+
+    return block_css ? strip_css_urls(css) : css;
   };
 
   let body_background: string | undefined;
@@ -558,20 +580,7 @@ function sanitize_html_impl(
         sanitized_css = block_remote_fonts(sanitized_css);
       }
 
-      if (lockdown_mode || block_css || block_images) {
-        const remote_css_urls = list_remote_css_urls(sanitized_css);
-
-        if (remote_css_urls.length > 0) {
-          external_content.has_remote_css = true;
-          external_content.blocked_count += remote_css_urls.length;
-          for (const url of remote_css_urls) {
-            external_content.blocked_items.push({ url, type: "css" });
-          }
-        }
-        sanitized_css = strip_css_urls(sanitized_css);
-      } else if (allowed_css_image_proxy) {
-        sanitized_css = proxy_css_urls(sanitized_css, allowed_css_image_proxy);
-      }
+      sanitized_css = filter_css_images(sanitized_css);
 
       if (sanitized_css.trim()) {
         head_styles.push(sanitized_css);
@@ -768,20 +777,7 @@ function sanitize_html_impl(
         sanitized_css = block_remote_fonts(sanitized_css);
       }
 
-      if (lockdown_mode || block_css || block_images) {
-        const remote_css_urls = list_remote_css_urls(sanitized_css);
-
-        if (remote_css_urls.length > 0) {
-          external_content.has_remote_css = true;
-          external_content.blocked_count += remote_css_urls.length;
-          for (const url of remote_css_urls) {
-            external_content.blocked_items.push({ url, type: "css" });
-          }
-        }
-        sanitized_css = strip_css_urls(sanitized_css);
-      } else if (allowed_css_image_proxy) {
-        sanitized_css = proxy_css_urls(sanitized_css, allowed_css_image_proxy);
-      }
+      sanitized_css = filter_css_images(sanitized_css);
 
       if (!sanitized_css.trim()) {
         return null;
@@ -836,24 +832,8 @@ function sanitize_html_impl(
           sanitized_value = normalize_url_value(sanitized_value);
         }
 
-        if (
-          attr_lower === "style" &&
-          (lockdown_mode || block_css || block_images)
-        ) {
-          const remote_css_urls = list_remote_css_urls(sanitized_value);
-
-          if (remote_css_urls.length > 0) {
-            external_content.has_remote_css = true;
-            external_content.blocked_count += remote_css_urls.length;
-            for (const url of remote_css_urls) {
-              external_content.blocked_items.push({ url, type: "css" });
-            }
-          }
-          sanitized_value = strip_css_urls(sanitized_value);
-        } else if (attr_lower === "style" && allowed_css_image_proxy) {
-          sanitized_value = strip_css_urls(sanitized_value, {
-            image_proxy_url: allowed_css_image_proxy,
-          });
+        if (attr_lower === "style") {
+          sanitized_value = filter_css_images(sanitized_value);
         } else if (attr_lower === "srcset") {
           const kept: SrcsetCandidate[] = [];
 

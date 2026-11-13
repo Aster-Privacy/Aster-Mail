@@ -244,10 +244,10 @@ describe("sanitize_html with a css url() hidden behind a string", () => {
     });
 
     expect(result.external_content.blocked_count).toBe(1);
-    expect(result.external_content.has_remote_css).toBe(true);
+    expect(result.external_content.has_remote_images).toBe(true);
     expect(result.external_content.blocked_items[0]).toEqual({
       url: COLLECTOR,
-      type: "css",
+      type: "image",
     });
   });
 
