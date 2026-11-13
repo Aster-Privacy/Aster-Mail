@@ -27,6 +27,7 @@ import {
 import {
   address_matches,
   any_address_matches,
+  fold_case,
   text_matches,
 } from "@/lib/mail_rules/address_match";
 
@@ -40,6 +41,7 @@ export interface LocalRuleInput {
   body_text: string;
   headers: Map<string, string>;
   has_attachment: boolean;
+  attachment_names: string[] | null;
   total_size: number;
 }
 
@@ -67,6 +69,7 @@ export function condition_supports_local_evaluation(
     case "body":
     case "header":
     case "list_id":
+    case "attachment_name":
       return condition.operator !== "matches_regex";
     case "has_attachment":
     case "has_list_id":
@@ -79,11 +82,51 @@ export function condition_supports_local_evaluation(
   }
 }
 
+function condition_uses_attachment_names(condition: Condition): boolean {
+  switch (condition.type) {
+    case "and":
+    case "or":
+      return condition.conditions.some(condition_uses_attachment_names);
+    case "not":
+      return condition_uses_attachment_names(condition.condition);
+    case "attachment_name":
+      return true;
+    default:
+      return false;
+  }
+}
+
+export function local_input_is_complete(
+  rule: LocalRuleShape,
+  input: LocalRuleInput,
+): boolean {
+  return (
+    input.attachment_names !== null ||
+    !rule.conditions.some(condition_uses_attachment_names)
+  );
+}
+
 export function rule_supports_local_evaluation(rule: LocalRuleShape): boolean {
   return (
     rule.conditions.length > 0 &&
     rule.conditions.every(condition_supports_local_evaluation)
   );
+}
+
+function attachment_name_matches(
+  name: string,
+  operator: "contains" | "ends_with",
+  value: string,
+  case_sensitive: boolean,
+): boolean {
+  const needle = fold_case(value, case_sensitive);
+
+  if (!needle) return false;
+  const haystack = fold_case(name, case_sensitive);
+
+  return operator === "contains"
+    ? haystack.includes(needle)
+    : haystack.endsWith(needle);
 }
 
 function header_value(input: LocalRuleInput, name: string): string {
@@ -170,6 +213,15 @@ export function local_condition_matches(
         condition.value,
         condition.case_sensitive ?? false,
       );
+    case "attachment_name": {
+      if (condition.operator === "matches_regex") return false;
+      const operator = condition.operator;
+      const case_sensitive = condition.case_sensitive ?? false;
+
+      return (input.attachment_names ?? []).some((name) =>
+        attachment_name_matches(name, operator, condition.value, case_sensitive),
+      );
+    }
     case "has_attachment":
       return input.has_attachment === condition.value;
     case "has_list_id":
@@ -221,6 +273,28 @@ function recipient_addresses(value: unknown): string[] {
   return normalize_envelope_recipients(list).map((r) => r.email.trim());
 }
 
+function attachment_names(
+  value: unknown,
+  has_attachments: boolean,
+): string[] | null {
+  if (!Array.isArray(value) || value.length === 0) {
+    return has_attachments ? null : [];
+  }
+  const names: string[] = [];
+
+  for (const entry of value) {
+    const name =
+      entry && typeof entry === "object"
+        ? envelope_string((entry as { filename?: unknown }).filename)
+        : "";
+
+    if (!name) return null;
+    names.push(name);
+  }
+
+  return names;
+}
+
 export function local_input_from_envelope(
   envelope: Record<string, unknown>,
   item: { has_attachments?: boolean; size_bytes?: number | null },
@@ -267,6 +341,10 @@ export function local_input_from_envelope(
       envelope_string(envelope.text_body),
     headers,
     has_attachment: item.has_attachments ?? false,
+    attachment_names: attachment_names(
+      envelope.attachment_keys,
+      item.has_attachments ?? false,
+    ),
     total_size: item.size_bytes ?? 0,
   };
 }
