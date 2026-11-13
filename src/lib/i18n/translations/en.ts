@@ -3384,6 +3384,12 @@ export const en: Translations = {
     developer_mode: "Developer Mode",
     developer_mode_description:
       "Show the Developer tab with build info, crypto status, and debug tools",
+    launch_at_login: "Open Aster Mail when you sign in",
+    launch_at_login_description: "Aster Mail starts when you sign in to your computer, so new mail arrives without opening the app first.",
+    start_minimized: "Start minimized",
+    start_minimized_description: "When Aster Mail opens at sign-in, it stays in the background without a window. To open it, click its icon in the notification area or menu bar.",
+    launch_at_login_move_to_applications: "To open Aster Mail when you sign in, move it to the Applications folder first.",
+    launch_at_login_reason: "Open Aster Mail when you sign in so new mail arrives in the background.",
     close_to_tray: "Keep running when you close the window",
     close_to_tray_description:
       "Aster Mail stays in the notification area so new mail still arrives. Turn this off to quit when you close the window.",

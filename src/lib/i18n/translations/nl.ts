@@ -4392,6 +4392,12 @@ export const nl = {
     developer_mode: "Ontwikkelaarsmodus",
     developer_mode_description:
       "Toon het tabblad Ontwikkelaar met build-info, cryptostatus en foutopsporingstools",
+    launch_at_login: "Aster Mail openen bij het inloggen",
+    launch_at_login_description: "Aster Mail start wanneer je inlogt op je computer, zodat nieuwe e-mail binnenkomt zonder dat je de app eerst opent.",
+    start_minimized: "Geminimaliseerd starten",
+    start_minimized_description: "Wanneer Aster Mail bij het inloggen opent, blijft het zonder venster op de achtergrond. Klik op het pictogram in het systeemvak of de menubalk om het te openen.",
+    launch_at_login_move_to_applications: "Verplaats Aster Mail eerst naar de map Apps om het bij het inloggen te openen.",
+    launch_at_login_reason: "Open Aster Mail bij het inloggen zodat nieuwe e-mail op de achtergrond binnenkomt.",
     close_to_tray: "Blijven draaien als je het venster sluit",
     close_to_tray_description:
       "Aster Mail blijft in het meldingengebied staan, zodat nieuwe e-mail binnen blijft komen. Zet dit uit om af te sluiten als je het venster sluit.",

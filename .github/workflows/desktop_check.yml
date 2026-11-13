@@ -49,3 +49,89 @@ jobs:
 
       - name: Cargo check
         run: cargo check --locked --manifest-path src-tauri/Cargo.toml
+
+      - name: Cargo test
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --bin aster-mail-desktop
+
+      - name: Login item round trip
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --bin aster-mail-desktop launch_at_login::tests::unix_entry_round_trip_in_temp_home -- --ignored --exact
+
+  linux:
+    name: Test Linux desktop build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+        with:
+          toolchain: stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            libssl-dev \
+            build-essential \
+            file \
+            xdg-utils
+
+      - name: Create a placeholder frontend bundle
+        run: |
+          mkdir -p dist-native
+          printf '<!doctype html><title>check</title>\n' > dist-native/index.html
+
+      - name: Cargo test
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --bin aster-mail-desktop
+
+      - name: Login item round trip
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --bin aster-mail-desktop launch_at_login::tests::unix_entry_round_trip_in_temp_home -- --ignored --exact
+
+  windows:
+    name: Test Windows desktop build
+    runs-on: windows-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+        with:
+          toolchain: stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Create a placeholder frontend bundle
+        shell: bash
+        run: |
+          mkdir -p dist-native
+          printf '<!doctype html><title>check</title>\n' > dist-native/index.html
+
+      - name: Cargo test
+        shell: bash
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --bin aster-mail-desktop
+
+      - name: Login item round trip
+        shell: bash
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --bin aster-mail-desktop launch_at_login::tests::windows_registry_round_trip -- --ignored --exact

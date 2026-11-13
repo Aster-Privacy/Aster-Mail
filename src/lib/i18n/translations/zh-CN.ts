@@ -4012,6 +4012,12 @@ export const zh_CN = {
     developer_mode: "开发者模式",
     developer_mode_description:
       "显示包含构建信息、加密状态和调试工具的开发者选项卡",
+    launch_at_login: "登录时打开 Aster Mail",
+    launch_at_login_description: "登录电脑时 Aster Mail 会自动启动，无需先打开应用即可收到新邮件。",
+    start_minimized: "以最小化方式启动",
+    start_minimized_description: "在登录时打开的 Aster Mail 会在后台运行，不显示窗口。要打开它，请点击通知区域或菜单栏中的图标。",
+    launch_at_login_move_to_applications: "要在登录时打开 Aster Mail，请先将其移到“应用程序”文件夹。",
+    launch_at_login_reason: "登录时打开 Aster Mail，以便在后台接收新邮件。",
     close_to_tray: "关闭窗口后继续运行",
     close_to_tray_description:
       "Aster Mail 会留在通知区域，新邮件仍然可以接收。关闭此选项后，关闭窗口即退出。",

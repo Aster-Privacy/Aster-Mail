@@ -4475,6 +4475,12 @@ export const pt = {
     developer_mode: "Modo de programador",
     developer_mode_description:
       "Mostrar o separador Programador com informações da compilação, estado da encriptação e ferramentas de depuração",
+    launch_at_login: "Abrir o Aster Mail ao iniciar sessão",
+    launch_at_login_description: "O Aster Mail inicia quando inicia sessão no computador, para que o novo correio chegue sem abrir a app primeiro.",
+    start_minimized: "Iniciar minimizado",
+    start_minimized_description: "Quando o Aster Mail abre ao iniciar sessão, fica em segundo plano sem janela. Para o abrir, clique no respetivo ícone na área de notificação ou na barra de menus.",
+    launch_at_login_move_to_applications: "Para abrir o Aster Mail ao iniciar sessão, mova-o primeiro para a pasta Aplicações.",
+    launch_at_login_reason: "Abrir o Aster Mail ao iniciar sessão para receber novo correio em segundo plano.",
     close_to_tray: "Continuar em execução ao fechar a janela",
     close_to_tray_description:
       "O Aster Mail fica na área de notificação para continuar a receber mensagens novas. Desative esta opção para sair ao fechar a janela.",

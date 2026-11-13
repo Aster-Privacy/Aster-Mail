@@ -4415,6 +4415,12 @@ export const ko = {
     developer_mode: "개발자 모드",
     developer_mode_description:
       "빌드 정보, 암호화 상태 및 디버그 도구가 있는 개발자 탭을 표시합니다",
+    launch_at_login: "로그인할 때 Aster Mail 열기",
+    launch_at_login_description: "컴퓨터에 로그인하면 Aster Mail이 시작되므로 앱을 먼저 열지 않아도 새 메일이 도착합니다.",
+    start_minimized: "최소화 상태로 시작",
+    start_minimized_description: "로그인할 때 열린 Aster Mail은 창 없이 백그라운드에서 실행됩니다. 열려면 알림 영역이나 메뉴 막대에서 아이콘을 클릭하세요.",
+    launch_at_login_move_to_applications: "로그인할 때 Aster Mail을 열려면 먼저 응용 프로그램 폴더로 옮기세요.",
+    launch_at_login_reason: "새 메일을 백그라운드에서 받기 위해 로그인할 때 Aster Mail을 엽니다.",
     close_to_tray: "창을 닫아도 계속 실행",
     close_to_tray_description:
       "Aster Mail이 알림 영역에 남아 새 메일을 계속 받습니다. 창을 닫을 때 종료하려면 끄세요.",

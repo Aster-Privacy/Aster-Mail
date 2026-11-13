@@ -4435,6 +4435,12 @@ export const pt_br = {
     developer_mode: "Modo desenvolvedor",
     developer_mode_description:
       "Mostrar a aba Desenvolvedor com informações de build, status de criptografia e ferramentas de depuração",
+    launch_at_login: "Abrir o Aster Mail ao entrar",
+    launch_at_login_description: "O Aster Mail inicia quando você entra no computador, para que novos e-mails cheguem sem abrir o app primeiro.",
+    start_minimized: "Iniciar minimizado",
+    start_minimized_description: "Quando o Aster Mail abre ao entrar, ele fica em segundo plano sem janela. Para abrir, clique no ícone dele na área de notificação ou na barra de menus.",
+    launch_at_login_move_to_applications: "Para abrir o Aster Mail ao entrar, mova-o primeiro para a pasta Aplicativos.",
+    launch_at_login_reason: "Abrir o Aster Mail ao entrar para receber novos e-mails em segundo plano.",
     close_to_tray: "Continuar em execução ao fechar a janela",
     close_to_tray_description:
       "O Aster Mail fica na área de notificação para continuar recebendo novos e-mails. Desative esta opção para sair ao fechar a janela.",

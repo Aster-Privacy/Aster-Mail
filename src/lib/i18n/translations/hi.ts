@@ -3466,6 +3466,12 @@ export const hi = {
     developer_mode: "डेवलपर मोड",
     developer_mode_description:
       "बिल्ड जानकारी, क्रिप्टो स्थिति और डीबग टूल के साथ डेवलपर टैब दिखाएं",
+    launch_at_login: "साइन इन करने पर Aster Mail खोलें",
+    launch_at_login_description: "कंप्यूटर में साइन इन करने पर Aster Mail शुरू हो जाता है, ताकि ऐप खोले बिना नया मेल आए।",
+    start_minimized: "छोटा करके शुरू करें",
+    start_minimized_description: "साइन इन पर खुलने पर Aster Mail बिना विंडो के बैकग्राउंड में रहता है। इसे खोलने के लिए, सूचना क्षेत्र या मेन्यू बार में इसके आइकन पर क्लिक करें।",
+    launch_at_login_move_to_applications: "साइन इन पर Aster Mail खोलने के लिए, पहले इसे Applications फ़ोल्डर में ले जाएँ।",
+    launch_at_login_reason: "साइन इन करने पर Aster Mail खोलें ताकि नया मेल बैकग्राउंड में आए।",
     close_to_tray: "विंडो बंद करने पर भी चलता रहे",
     close_to_tray_description:
       "Aster Mail सूचना क्षेत्र में बना रहता है ताकि नया मेल आता रहे। विंडो बंद करते ही ऐप बंद करने के लिए इसे बंद कर दें।",
