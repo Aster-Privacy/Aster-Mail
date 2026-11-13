@@ -1948,6 +1948,10 @@ export const nl = {
     key_trust_missing_unreadable_detail:
       "{{email}}: de opgeslagen sleutel kan niet worden gelezen.",
     key_trust_missing_confirm: "Zonder versleuteling verzenden",
+    key_trust_account_key_detail:
+      "{{email}} accountsleutel: was {{prior}}, nu {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} identiteitssleutel: was {{prior}}, nu {{current}}.",
     post_quantum_downgrade_title:
       "Verzenden zonder de verwachte post-quantumsleutels?",
     post_quantum_downgrade_message:

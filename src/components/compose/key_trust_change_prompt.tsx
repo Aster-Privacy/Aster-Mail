@@ -22,11 +22,12 @@ import { useEffect, useRef, useState } from "react";
 
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_i18n } from "@/lib/i18n/context";
-import { format_fingerprint } from "@/services/api/keys";
 import {
   set_key_trust_prompt_handler,
   type KeyFingerprintChange,
 } from "@/services/key_trust_consent";
+
+import { key_trust_change_details } from "./key_trust_change_details";
 
 export function KeyTrustChangePrompt(): React.ReactElement {
   const { t } = use_i18n();
@@ -58,35 +59,7 @@ export function KeyTrustChangePrompt(): React.ReactElement {
 
   const pending = changes ?? [];
 
-  const details = pending
-    .filter(
-      (change) =>
-        change.missing ||
-        Boolean(change.new_fingerprint) ||
-        Boolean(change.prior_fingerprint),
-    )
-    .map((change) =>
-      change.missing
-        ? change.prior_fingerprint
-          ? t("common.key_trust_missing_detail", {
-              email: change.email,
-              prior: format_fingerprint(change.prior_fingerprint),
-            })
-          : t("common.key_trust_missing_unreadable_detail", {
-              email: change.email,
-            })
-        : change.unreadable || !change.prior_fingerprint
-          ? t("common.key_trust_unreadable_detail", {
-              email: change.email,
-              current: format_fingerprint(change.new_fingerprint),
-            })
-          : t("common.key_trust_change_detail", {
-              email: change.email,
-              prior: format_fingerprint(change.prior_fingerprint),
-              current: format_fingerprint(change.new_fingerprint),
-            }),
-    )
-    .join(" ");
+  const details = key_trust_change_details(pending, t);
 
   const missing = pending.filter((change) => change.missing);
   const own = pending.filter((change) => change.own && !change.missing);

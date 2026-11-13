@@ -172,13 +172,30 @@ export async function has_recipient_identity_changed(
   return (await get_recipient_identity_status(email)) !== "unchanged";
 }
 
-export interface RecipientIdentityChange {
-  email: string;
+export type RecipientKeyKind = "account" | "identity";
+
+export interface RecipientKeyFingerprint {
+  kind: RecipientKeyKind;
   prior_fingerprint: string;
   new_fingerprint: string;
 }
 
-function base64_to_hex(value: string): string {
+export interface RecipientKeySnapshot {
+  pin_id: string;
+  binding: RecipientBundleBinding | null;
+  scoped: boolean;
+  owner_public_key: string | null;
+}
+
+export interface RecipientIdentityChange {
+  email: string;
+  prior_fingerprint: string;
+  new_fingerprint: string;
+  fingerprints: RecipientKeyFingerprint[];
+  keys: RecipientKeySnapshot;
+}
+
+export function base64_to_hex(value: string): string {
   return Array.from(base64_to_array(value))
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
@@ -229,34 +246,45 @@ async function published_owner_key(
   return owner?.data?.public_key ?? null;
 }
 
+async function fetch_recipient_keys(
+  pin_id: string,
+  username: string,
+): Promise<RecipientKeySnapshot> {
+  const published = await published_identity(username, pin_id);
+  const owner_public_key = await published_owner_key(username, pin_id);
+
+  return {
+    pin_id,
+    binding: published?.binding ?? null,
+    scoped: published?.scoped ?? false,
+    owner_public_key,
+  };
+}
+
 export async function describe_recipient_identity_change(
   email: string,
 ): Promise<RecipientIdentityChange> {
   const { pin_id, username } = lookup_parts(email);
   const pins = await read_recipient_pins(pin_id);
-  const owner_public_key = await published_owner_key(username, pin_id);
-  const resolved_identity = await resolve_recipient_identity(
-    username,
-    pin_id,
-  ).catch(() => null);
-  const identity = resolved_identity?.entry ?? null;
-  const current_owner = owner_public_key
-    ? await owner_key_fingerprint(owner_public_key).catch(() => null)
+  const keys = await fetch_recipient_keys(pin_id, username);
+  const current_owner = keys.owner_public_key
+    ? await owner_key_fingerprint(keys.owner_public_key).catch(() => null)
     : null;
-  const current_kem = identity
-    ? await compute_hash(base64_to_array(identity.kem_identity_key))
+  const current_kem = keys.binding
+    ? await compute_hash(base64_to_array(keys.binding.kem_identity_key))
     : null;
+  const fingerprints: RecipientKeyFingerprint[] = [];
 
   if (
     pins.owner_fingerprint &&
     current_owner &&
     pins.owner_fingerprint !== current_owner
   ) {
-    return {
-      email: pin_id,
+    fingerprints.push({
+      kind: "account",
       prior_fingerprint: pins.owner_fingerprint,
       new_fingerprint: current_owner,
-    };
+    });
   }
 
   if (
@@ -264,10 +292,22 @@ export async function describe_recipient_identity_change(
     current_kem &&
     pins.identity_fingerprint !== current_kem
   ) {
-    return {
-      email: pin_id,
+    fingerprints.push({
+      kind: "identity",
       prior_fingerprint: base64_to_hex(pins.identity_fingerprint),
       new_fingerprint: base64_to_hex(current_kem),
+    });
+  }
+
+  const first = fingerprints[0];
+
+  if (first) {
+    return {
+      email: pin_id,
+      prior_fingerprint: first.prior_fingerprint,
+      new_fingerprint: first.new_fingerprint,
+      fingerprints,
+      keys,
     };
   }
 
@@ -276,26 +316,58 @@ export async function describe_recipient_identity_change(
     prior_fingerprint: "",
     new_fingerprint:
       current_owner ?? (current_kem ? base64_to_hex(current_kem) : ""),
+    fingerprints,
+    keys,
   };
 }
 
-export async function trust_recipient_identity(email: string): Promise<void> {
+export class RecipientKeysChangedError extends Error {
+  constructor(pin_id: string) {
+    super(`recipient keys changed after review for ${pin_id}`);
+    this.name = "RecipientKeysChangedError";
+  }
+}
+
+function same_published_keys(
+  shown: RecipientKeySnapshot,
+  fresh: RecipientKeySnapshot,
+): boolean {
+  return (
+    (shown.binding?.kem_identity_key ?? null) ===
+      (fresh.binding?.kem_identity_key ?? null) &&
+    shown.owner_public_key === fresh.owner_public_key
+  );
+}
+
+export async function trust_recipient_identity(
+  email: string,
+  shown?: RecipientKeySnapshot,
+): Promise<void> {
   const { pin_id, username } = lookup_parts(email);
 
   if (!pin_id || !username) return;
 
-  const published = await published_identity(username, pin_id);
-  const owner_public_key = await published_owner_key(username, pin_id);
+  if (shown && shown.pin_id !== pin_id) {
+    throw new RecipientKeysChangedError(pin_id);
+  }
 
-  if (!published && !owner_public_key) {
+  const fresh = await fetch_recipient_keys(pin_id, username);
+
+  if (shown && !same_published_keys(shown, fresh)) {
+    throw new RecipientKeysChangedError(pin_id);
+  }
+
+  const keys = shown ?? fresh;
+
+  if (!keys.binding && !keys.owner_public_key) {
     throw new KeyPinUnavailableError(pin_id);
   }
 
   await trust_recipient_keys(
     pin_id,
-    published?.binding.kem_identity_key ?? null,
-    owner_public_key,
-    published?.binding ?? null,
-    published?.scoped ?? false,
+    keys.binding?.kem_identity_key ?? null,
+    keys.owner_public_key,
+    keys.binding,
+    keys.scoped,
   );
 }

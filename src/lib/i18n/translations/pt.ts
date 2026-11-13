@@ -1982,6 +1982,10 @@ export const pt = {
     key_trust_missing_unreadable_detail:
       "{{email}}: a chave guardada não pode ser lida.",
     key_trust_missing_confirm: "Enviar sem encriptação",
+    key_trust_account_key_detail:
+      "{{email}} chave da conta: era {{prior}}, agora {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} chave de identidade: era {{prior}}, agora {{current}}.",
     post_quantum_downgrade_title:
       "Enviar sem as chaves pós-quânticas esperadas?",
     post_quantum_downgrade_message:

@@ -153,6 +153,20 @@ export async function open_pin_contact(
 
 const open_pins = open_pin_contact;
 
+function hosted_field(slot: ContactSlot): { hosted?: true } {
+  return slot.contact.kind === "hosted" ? { hosted: true } : {};
+}
+
+function is_hosted_owner_pin(
+  owner: ContactRead<StoredOwnerKeyPin>,
+  identity: ContactRead<StoredIdentityPin>,
+): boolean {
+  return (
+    owner.state === "found" &&
+    (owner.value.hosted === true || identity.state === "found")
+  );
+}
+
 function remembered_keys(stored: unknown): string[] {
   return Array.isArray(stored)
     ? stored.filter((value): value is string => typeof value === "string")
@@ -482,7 +496,16 @@ async function pin_owner_key_in_lock(
   }
 
   if (existing) {
-    return existing.fingerprint === fingerprint ? "ok" : "changed";
+    if (existing.fingerprint !== fingerprint) return "changed";
+
+    if (slot.contact.kind === "hosted" && existing.hosted !== true) {
+      await write_contact_entry(OWNER_KEY_PIN_PREFIX, slot, {
+        ...existing,
+        hosted: true,
+      } satisfies StoredOwnerKeyPin).catch(() => undefined);
+    }
+
+    return "ok";
   }
 
   let created: boolean;
@@ -491,6 +514,7 @@ async function pin_owner_key_in_lock(
     created = await create_contact_entry(OWNER_KEY_PIN_PREFIX, slot, {
       fingerprint,
       pinned_at: Date.now(),
+      ...hosted_field(slot),
     } satisfies StoredOwnerKeyPin);
   } catch {
     throw new KeyPinUnavailableError(pin_id);
@@ -551,6 +575,65 @@ export async function lookup_owner_key_pin(
   }
 }
 
+export type SavedKeyLookup =
+  | { fingerprint: string; conflict: boolean; owner: boolean }
+  | "unreadable"
+  | null;
+
+export async function lookup_saved_key(email: string): Promise<SavedKeyLookup> {
+  try {
+    const direct = await open_pins(email);
+
+    if (!direct) return "unreadable";
+
+    const direct_owner = await load_owner_pin(direct);
+
+    if (!is_settled(direct_owner)) return "unreadable";
+
+    if (direct_owner.state === "found") {
+      return {
+        fingerprint: direct_owner.value.fingerprint,
+        conflict: direct_owner.conflict,
+        owner: true,
+      };
+    }
+
+    const hosted = await open_contact_as(email, "hosted");
+
+    if (hosted.contact.id === direct.contact.id) return null;
+
+    const hosted_owner = await load_owner_pin(hosted);
+    const hosted_identity = await load_identity_pin(hosted);
+
+    if (!is_settled(hosted_owner) || !is_settled(hosted_identity)) {
+      return "unreadable";
+    }
+
+    if (
+      hosted_owner.state === "found" &&
+      is_hosted_owner_pin(hosted_owner, hosted_identity)
+    ) {
+      return {
+        fingerprint: hosted_owner.value.fingerprint,
+        conflict: hosted_owner.conflict,
+        owner: true,
+      };
+    }
+
+    if (hosted_identity.state === "found") {
+      return {
+        fingerprint: hosted_identity.value.fingerprint,
+        conflict: hosted_identity.conflict,
+        owner: false,
+      };
+    }
+
+    return null;
+  } catch {
+    return "unreadable";
+  }
+}
+
 export interface SavedRecipientKey {
   fingerprint: string;
   accepted_missing: boolean;
@@ -602,7 +685,10 @@ async function saved_key_sources(email: string): Promise<SavedKeySources> {
 
     if (hosted_owner.state === "unreadable") unreadable = true;
 
-    if (hosted_owner.state === "found" && hosted_owner.value.hosted === true) {
+    if (
+      hosted_owner.state === "found" &&
+      is_hosted_owner_pin(hosted_owner, hosted_identity)
+    ) {
       sources.push({
         prefix: OWNER_KEY_PIN_PREFIX,
         slot: hosted,
@@ -684,6 +770,7 @@ export async function replace_owner_key_pin(
     await write_contact_entry(OWNER_KEY_PIN_PREFIX, slot, {
       fingerprint,
       pinned_at: Date.now(),
+      ...hosted_field(slot),
     } satisfies StoredOwnerKeyPin);
     await mark_contact_reviewed(slot);
   });
@@ -779,6 +866,7 @@ export async function trust_recipient_keys(
       await write_contact_entry(OWNER_KEY_PIN_PREFIX, slot, {
         fingerprint: await owner_key_fingerprint(armored_public_key),
         pinned_at: Date.now(),
+        ...hosted_field(slot),
       } satisfies StoredOwnerKeyPin);
     } else {
       const owner = await load_owner_pin(slot).catch(() => null);

@@ -1825,6 +1825,10 @@ export const zh_CN = {
     key_trust_missing_detail: "{{email}}：之前为 {{prior}}。",
     key_trust_missing_unreadable_detail: "{{email}}：无法读取已保存的密钥。",
     key_trust_missing_confirm: "不加密发送",
+    key_trust_account_key_detail:
+      "{{email}} 账户密钥：之前为 {{prior}}，现在为 {{current}}。",
+    key_trust_identity_key_detail:
+      "{{email}} 身份密钥：之前为 {{prior}}，现在为 {{current}}。",
     post_quantum_downgrade_title: "要在缺少预期的后量子密钥的情况下发送吗？",
     post_quantum_downgrade_message:
       "{{recipients}} 已发布后量子密钥，但本次发送获取到的密钥包中没有任何后量子密钥。这可能是服务器故障，也可能是密钥查询遭到篡改。若要保留后量子保护，请取消并稍后重试。",

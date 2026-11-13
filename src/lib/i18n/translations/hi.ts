@@ -1235,6 +1235,10 @@ export const hi = {
     key_trust_missing_unreadable_detail:
       "{{email}}: सहेजी गई कुंजी पढ़ी नहीं जा सकती।",
     key_trust_missing_confirm: "एन्क्रिप्शन के बिना भेजें",
+    key_trust_account_key_detail:
+      "{{email}} खाता कुंजी: पहले {{prior}}, अब {{current}}।",
+    key_trust_identity_key_detail:
+      "{{email}} पहचान कुंजी: पहले {{prior}}, अब {{current}}।",
     post_quantum_downgrade_title:
       "अपेक्षित पोस्ट-क्वांटम कुंजियों के बिना भेजें?",
     post_quantum_downgrade_message:

@@ -1961,6 +1961,10 @@ export const ru = {
     key_trust_missing_unreadable_detail:
       "{{email}}: сохранённый ключ не удаётся прочитать.",
     key_trust_missing_confirm: "Отправить без шифрования",
+    key_trust_account_key_detail:
+      "{{email}} ключ аккаунта: был {{prior}}, теперь {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} ключ идентификации: был {{prior}}, теперь {{current}}.",
     post_quantum_downgrade_title:
       "Отправить без ожидаемых постквантовых ключей?",
     post_quantum_downgrade_message:

@@ -1975,6 +1975,10 @@ export const ja = {
     key_trust_missing_detail: "{{email}}: 以前は {{prior}}。",
     key_trust_missing_unreadable_detail: "{{email}}: 保存済みの鍵を読み取れません。",
     key_trust_missing_confirm: "暗号化せずに送信",
+    key_trust_account_key_detail:
+      "{{email}} のアカウントキー: 以前は {{prior}}、現在は {{current}}。",
+    key_trust_identity_key_detail:
+      "{{email}} の ID キー: 以前は {{prior}}、現在は {{current}}。",
     post_quantum_downgrade_title:
       "想定される耐量子鍵がない状態で送信しますか。",
     post_quantum_downgrade_message:

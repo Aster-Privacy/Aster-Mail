@@ -1886,6 +1886,10 @@ export const ar = {
     key_trust_missing_unreadable_detail:
       "{{email}}: تعذرت قراءة المفتاح المحفوظ.",
     key_trust_missing_confirm: "الإرسال بدون تشفير",
+    key_trust_account_key_detail:
+      "{{email}} مفتاح الحساب: كان {{prior}}، والآن {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} مفتاح الهوية: كان {{prior}}، والآن {{current}}.",
     post_quantum_downgrade_title:
       "هل تريد الإرسال بدون مفاتيح ما بعد الكم المتوقعة؟",
     post_quantum_downgrade_message:

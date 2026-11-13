@@ -635,4 +635,134 @@ describe("external key trust consent", () => {
     await expect(ensure_external_key_trust([moved])).resolves.toBe(true);
     expect(seen).toHaveLength(2);
   });
+
+  it("asks when a tagged address of a hosted contact returns a different key", async () => {
+    const base = "bob@custom.example";
+    const tagged = "bob+news@custom.example";
+
+    h.hosted.add(base);
+    await expect(check_owner_key_pin(base, "old")).resolves.toBe("first");
+    h.public_keys.set(tagged, "new");
+
+    const seen: KeyFingerprintChange[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(...pending);
+
+      return false;
+    });
+
+    await expect(ensure_external_key_trust([tagged])).resolves.toBe(false);
+    expect(seen).toMatchObject([
+      { email: tagged, prior_fingerprint: "FP_OLD", new_fingerprint: "FP_NEW" },
+    ]);
+    await expect(pinned_fingerprint(tagged)).resolves.toBeNull();
+    await expect(pinned_fingerprint(base)).resolves.toBe("fp_old");
+  });
+
+  it("sends to a tagged address of a hosted contact when the key matches", async () => {
+    const base = "bob@custom.example";
+    const tagged = "bob+news@custom.example";
+
+    h.hosted.add(base);
+    await check_owner_key_pin(base, "same");
+    h.public_keys.set(tagged, "same");
+
+    let prompted = false;
+
+    set_key_trust_prompt_handler(async () => {
+      prompted = true;
+
+      return true;
+    });
+
+    await expect(ensure_external_key_trust([tagged])).resolves.toBe(true);
+    expect(prompted).toBe(false);
+  });
+
+  it("asks once for a tagged address and keeps the trusted key", async () => {
+    const base = "bob@custom.example";
+    const tagged = "bob+news@custom.example";
+
+    h.hosted.add(base);
+    await check_owner_key_pin(base, "old");
+    h.public_keys.set(tagged, "new");
+
+    let prompts = 0;
+
+    set_key_trust_prompt_handler(async () => {
+      prompts += 1;
+
+      return true;
+    });
+
+    await expect(ensure_external_key_trust([tagged])).resolves.toBe(true);
+    await expect(ensure_external_key_trust([tagged])).resolves.toBe(true);
+    expect(prompts).toBe(1);
+    await expect(pinned_fingerprint(tagged)).resolves.toBe("fp_new");
+  });
+
+  it("asks when a tagged address of a hosted contact has only a saved identity", async () => {
+    const base = "dana@custom.example";
+    const tagged = "dana+shop@custom.example";
+
+    h.hosted.add(base);
+    await check_and_pin_identity(base, btoa("identity-key-material"));
+    h.public_keys.set(tagged, "new");
+
+    const seen: KeyFingerprintChange[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(...pending);
+
+      return false;
+    });
+
+    await expect(ensure_external_key_trust([tagged])).resolves.toBe(false);
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toMatchObject({ email: tagged, new_fingerprint: "FP_NEW" });
+    expect(seen[0]?.prior_fingerprint).toMatch(/^[0-9A-F]+$/);
+  });
+
+  it("asks when a tagged address of a hosted contact has no key now", async () => {
+    const base = "bob@custom.example";
+    const tagged = "bob+news@custom.example";
+
+    h.hosted.add(base);
+    await check_owner_key_pin(base, "old");
+    h.keyless.add(tagged);
+
+    const seen: KeyFingerprintChange[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      seen.push(...pending);
+
+      return false;
+    });
+
+    await expect(ensure_external_key_trust([tagged])).resolves.toBe(false);
+    expect(seen).toMatchObject([
+      { email: tagged, prior_fingerprint: "FP_OLD", missing: true },
+    ]);
+  });
+
+  it("keeps tagged addresses of an outside contact separate", async () => {
+    const base = "carol@example.net";
+    const tagged = "carol+shop@example.net";
+
+    h.public_keys.set(base, "old");
+    await expect(ensure_external_key_trust([base])).resolves.toBe(true);
+    h.public_keys.set(tagged, "new");
+
+    let prompted = false;
+
+    set_key_trust_prompt_handler(async () => {
+      prompted = true;
+
+      return true;
+    });
+
+    await expect(ensure_external_key_trust([tagged])).resolves.toBe(true);
+    expect(prompted).toBe(false);
+  });
 });

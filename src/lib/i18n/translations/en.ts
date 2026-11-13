@@ -1225,6 +1225,10 @@ export const en: Translations = {
     key_trust_missing_unreadable_detail:
       "{{email}}: the saved key can't be read.",
     key_trust_missing_confirm: "Send without encryption",
+    key_trust_account_key_detail:
+      "{{email}} account key: was {{prior}}, now {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} identity key: was {{prior}}, now {{current}}.",
     post_quantum_downgrade_title:
       "Send without the expected post-quantum keys?",
     post_quantum_downgrade_message:
