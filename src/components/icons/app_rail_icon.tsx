@@ -64,7 +64,7 @@ function RailImage({ name, src, src_set }: RailImageProps) {
     <img
       alt=""
       aria-hidden="true"
-      className="app_rail_icon"
+      className="app_rail_icon app_rail_tinted"
       decoding="sync"
       draggable={false}
       height={ICON_SIZE}
@@ -80,7 +80,7 @@ function RailImage({ name, src, src_set }: RailImageProps) {
 function CalendarRailIcon() {
   return (
     <DatedCalendarImage
-      className="app_rail_icon"
+      className="app_rail_icon app_rail_tinted"
       fallback={<FallbackIcon name="calendar" />}
       kind="rail"
     />
