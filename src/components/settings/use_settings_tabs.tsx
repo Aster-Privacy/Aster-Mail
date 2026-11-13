@@ -64,7 +64,10 @@ export function use_settings_tabs<T extends string>(
         (event as CustomEvent<string>).detail ?? null,
       );
 
-      if (requested) handle_tab_change(requested);
+      if (!requested) return;
+
+      consume_settings_tab();
+      handle_tab_change(requested);
     };
 
     window.addEventListener(SETTINGS_TAB_EVENT, handle_request);

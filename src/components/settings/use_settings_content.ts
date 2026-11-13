@@ -47,7 +47,7 @@ import {
   resolve_nav_target,
   is_settings_tab_available,
   get_persisted_section,
-  resolve_settings_section,
+  request_settings_target,
   set_persisted_section,
 } from "./settings_content_helpers";
 
@@ -333,7 +333,7 @@ export function use_settings_content(props: SettingsContentProps) {
 
   useEffect(() => {
     const handle_navigate_section = (e: Event) => {
-      const next = resolve_settings_section(
+      const next = request_settings_target(
         read_settings_navigation((e as CustomEvent<unknown>).detail).section,
       );
 
@@ -411,7 +411,7 @@ export function use_settings_content(props: SettingsContentProps) {
       const { section: requested, anchor } = read_settings_navigation(
         (e as CustomEvent<unknown>).detail,
       );
-      const value = resolve_settings_section(requested);
+      const value = request_settings_target(requested);
 
       if (!value) return;
 
