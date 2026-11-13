@@ -4532,6 +4532,12 @@ export const ar = {
     developer_mode: "وضع المطور",
     developer_mode_description:
       "إظهار علامة تبويب المطور مع معلومات البناء وحالة التشفير وأدوات التصحيح",
+    launch_at_login: "فتح Aster Mail عند تسجيل الدخول",
+    launch_at_login_description: "يبدأ Aster Mail عند تسجيل الدخول إلى الكمبيوتر، لذا يصل البريد الجديد دون فتح التطبيق أولاً.",
+    start_minimized: "البدء مصغرًا",
+    start_minimized_description: "عند فتح Aster Mail عند تسجيل الدخول، يبقى في الخلفية دون نافذة. لفتحه، انقر على أيقونته في منطقة الإشعارات أو شريط القوائم.",
+    launch_at_login_move_to_applications: "لفتح Aster Mail عند تسجيل الدخول، انقله أولاً إلى مجلد التطبيقات.",
+    launch_at_login_reason: "افتح Aster Mail عند تسجيل الدخول ليصل البريد الجديد في الخلفية.",
     close_to_tray: "الاستمرار بالعمل عند إغلاق النافذة",
     close_to_tray_description:
       "يبقى Aster Mail في منطقة الإشعارات ليستمر وصول البريد الجديد. أوقف هذا الخيار للإنهاء عند إغلاق النافذة.",

@@ -4515,6 +4515,12 @@ export const it = {
     developer_mode: "Modalità sviluppatore",
     developer_mode_description:
       "Mostra la scheda Sviluppatore con informazioni di build, stato crittografico e strumenti di debug",
+    launch_at_login: "Apri Aster Mail all'accesso",
+    launch_at_login_description: "Aster Mail si avvia quando accedi al computer, così la nuova posta arriva senza aprire prima l'app.",
+    start_minimized: "Avvia ridotto a icona",
+    start_minimized_description: "Quando Aster Mail si apre all'accesso, resta in background senza finestra. Per aprirlo, fai clic sulla sua icona nell'area di notifica o nella barra dei menu.",
+    launch_at_login_move_to_applications: "Per aprire Aster Mail all'accesso, spostalo prima nella cartella Applicazioni.",
+    launch_at_login_reason: "Apri Aster Mail all'accesso per ricevere la nuova posta in background.",
     close_to_tray: "Continua a funzionare quando chiudi la finestra",
     close_to_tray_description:
       "Aster Mail resta nell'area di notifica cosi la nuova posta continua ad arrivare. Disattiva questa opzione per uscire quando chiudi la finestra.",

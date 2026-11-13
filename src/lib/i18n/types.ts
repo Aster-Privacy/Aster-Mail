@@ -3589,6 +3589,12 @@ export interface SettingsTranslations {
   advanced_description: string;
   developer_mode: string;
   developer_mode_description: string;
+  launch_at_login: string;
+  launch_at_login_description: string;
+  start_minimized: string;
+  start_minimized_description: string;
+  launch_at_login_move_to_applications: string;
+  launch_at_login_reason: string;
   close_to_tray: string;
   close_to_tray_description: string;
   hide_dock_on_close: string;

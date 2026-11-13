@@ -4471,6 +4471,12 @@ export const fr = {
     developer_mode: "Mode développeur",
     developer_mode_description:
       "Afficher l'onglet Développeur avec les informations de build, l'état du chiffrement et les outils de débogage",
+    launch_at_login: "Ouvrir Aster Mail à la connexion",
+    launch_at_login_description: "Aster Mail démarre lorsque vous vous connectez à votre ordinateur, pour que les nouveaux e-mails arrivent sans ouvrir l'app.",
+    start_minimized: "Démarrer en mode réduit",
+    start_minimized_description: "Lorsque Aster Mail s'ouvre à la connexion, il reste en arrière-plan sans fenêtre. Pour l'ouvrir, cliquez sur son icône dans la zone de notification ou la barre des menus.",
+    launch_at_login_move_to_applications: "Pour ouvrir Aster Mail à la connexion, déplacez-le d'abord dans le dossier Applications.",
+    launch_at_login_reason: "Ouvrir Aster Mail à la connexion pour recevoir les nouveaux e-mails en arrière-plan.",
     close_to_tray: "Continuer a fonctionner a la fermeture de la fenetre",
     close_to_tray_description:
       "Aster Mail reste dans la zone de notification pour continuer a recevoir le nouveau courrier. Desactivez cette option pour quitter a la fermeture de la fenetre.",

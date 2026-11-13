@@ -59,6 +59,7 @@ export function RowCodeCopyButton({ code, muted }: RowCodeCopyButtonProps) {
             t("common.failed_to_copy"),
           );
         }}
+        onContextMenu={stop_row_event}
         onDoubleClick={stop_row_event}
         onDragStart={(event) => {
           event.preventDefault();
@@ -66,7 +67,7 @@ export function RowCodeCopyButton({ code, muted }: RowCodeCopyButtonProps) {
         }}
         onKeyDown={stop_row_event}
       >
-        <span>{code}</span>
+        <span className="select-text">{code}</span>
         <ClipboardDocumentIcon aria-hidden="true" className="h-3.5 w-3.5" />
       </button>
     </Tooltip>

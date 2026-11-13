@@ -4589,6 +4589,12 @@ export const pl = {
     developer_mode: "Tryb deweloperski",
     developer_mode_description:
       "Pokaż kartę Deweloper z informacjami o kompilacji, statusem kryptografii i narzędziami debugowania",
+    launch_at_login: "Otwieraj Aster Mail po zalogowaniu",
+    launch_at_login_description: "Aster Mail uruchamia się po zalogowaniu do komputera, więc nowa poczta dociera bez wcześniejszego otwierania aplikacji.",
+    start_minimized: "Uruchamiaj zminimalizowany",
+    start_minimized_description: "Gdy Aster Mail otwiera się po zalogowaniu, działa w tle bez okna. Aby go otworzyć, kliknij jego ikonę w obszarze powiadomień lub na pasku menu.",
+    launch_at_login_move_to_applications: "Aby otwierać Aster Mail po zalogowaniu, najpierw przenieś go do folderu Aplikacje.",
+    launch_at_login_reason: "Otwórz Aster Mail po zalogowaniu, aby nowa poczta docierała w tle.",
     close_to_tray: "Działaj dalej po zamknięciu okna",
     close_to_tray_description:
       "Aster Mail pozostaje w obszarze powiadomień, więc nowa poczta nadal przychodzi. Wyłącz tę opcję, aby zamykać program razem z oknem.",

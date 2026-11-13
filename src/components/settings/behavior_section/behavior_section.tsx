@@ -111,6 +111,12 @@ import {
   set_hide_dock_on_close,
 } from "@/native/tauri_tray";
 import {
+  type LaunchAtLoginStatus,
+  get_launch_at_login_status,
+  set_launch_at_login,
+  set_start_minimized,
+} from "@/native/tauri_launch_at_login";
+import {
   type DefaultMailStatus,
   get_default_mail_status,
   set_default_mail_app,
@@ -298,6 +304,80 @@ export function BehaviorSection() {
       is_active = false;
     };
   }, [is_desktop_app]);
+
+  const [launch_status, set_launch_status] = useState<LaunchAtLoginStatus>({
+    supported: false,
+    enabled: false,
+    start_minimized: false,
+    needs_install: false,
+  });
+  const launch_busy_ref = useRef(false);
+
+  useEffect(() => {
+    if (!is_desktop_app) return;
+
+    let is_active = true;
+    const refresh_status = () => {
+      if (launch_busy_ref.current) return;
+      get_launch_at_login_status().then((status) => {
+        if (is_active && !launch_busy_ref.current) set_launch_status(status);
+      });
+    };
+
+    refresh_status();
+    window.addEventListener("focus", refresh_status);
+
+    return () => {
+      is_active = false;
+      window.removeEventListener("focus", refresh_status);
+    };
+  }, [is_desktop_app]);
+
+  const handle_launch_at_login_toggle = async () => {
+    if (launch_busy_ref.current) return;
+
+    const next = !launch_status.enabled;
+
+    if (next && launch_status.needs_install) {
+      show_toast(t("settings.launch_at_login_move_to_applications"), "info");
+
+      return;
+    }
+
+    launch_busy_ref.current = true;
+    set_launch_status((current) => ({ ...current, enabled: next }));
+
+    const updated = await set_launch_at_login(
+      next,
+      t("settings.launch_at_login_reason"),
+    );
+
+    if (!updated) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
+
+    set_launch_status(updated ?? (await get_launch_at_login_status()));
+    launch_busy_ref.current = false;
+  };
+
+  const handle_start_minimized_toggle = async () => {
+    if (launch_busy_ref.current) return;
+
+    launch_busy_ref.current = true;
+
+    const next = !launch_status.start_minimized;
+
+    set_launch_status((current) => ({ ...current, start_minimized: next }));
+
+    const updated = await set_start_minimized(next);
+
+    if (!updated) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
+
+    set_launch_status(updated ?? (await get_launch_at_login_status()));
+    launch_busy_ref.current = false;
+  };
 
   const [default_mail_status, set_default_mail_status] =
     useState<DefaultMailStatus>({ supported: false, is_default: false });
@@ -1431,6 +1511,22 @@ export function BehaviorSection() {
             enabled={default_mail_status.is_default}
             on_toggle={handle_default_mail_toggle}
             title={t("settings.default_email_app")}
+          />
+        )}
+        {is_desktop_app && launch_status.supported && (
+          <ToggleSetting
+            description={t("settings.launch_at_login_description")}
+            enabled={launch_status.enabled}
+            on_toggle={handle_launch_at_login_toggle}
+            title={t("settings.launch_at_login")}
+          />
+        )}
+        {is_desktop_app && launch_status.supported && launch_status.enabled && (
+          <ToggleSetting
+            description={t("settings.start_minimized_description")}
+            enabled={launch_status.start_minimized}
+            on_toggle={handle_start_minimized_toggle}
+            title={t("settings.start_minimized")}
           />
         )}
         {is_desktop_app && (

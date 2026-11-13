@@ -4362,6 +4362,12 @@ export const ja = {
     developer_mode: "開発者モード",
     developer_mode_description:
       "ビルド情報、暗号化ステータス、デバッグツールを含む開発者タブを表示します",
+    launch_at_login: "サインイン時に Aster Mail を開く",
+    launch_at_login_description: "コンピュータにサインインすると Aster Mail が起動するため、アプリを開かなくても新着メールが届きます。",
+    start_minimized: "最小化して起動",
+    start_minimized_description: "サインイン時に開いた Aster Mail は、ウィンドウを表示せずにバックグラウンドで動作します。開くには、通知領域またはメニューバーのアイコンをクリックします。",
+    launch_at_login_move_to_applications: "サインイン時に Aster Mail を開くには、先に「アプリケーション」フォルダへ移動してください。",
+    launch_at_login_reason: "新着メールをバックグラウンドで受け取るため、サインイン時に Aster Mail を開きます。",
     close_to_tray: "ウィンドウを閉じても実行を続ける",
     close_to_tray_description:
       "Aster Mail が通知領域に残り、新着メールを受け取り続けます。ウィンドウを閉じたときに終了するには、これをオフにします。",

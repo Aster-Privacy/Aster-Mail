@@ -3,6 +3,8 @@
     DeleteRegKey HKCU "Software\Classes\AsterMail.Url.mailto"
     DeleteRegKey HKCU "Software\Clients\Mail\Aster Mail"
     DeleteRegValue HKCU "Software\RegisteredApplications" "Aster Mail"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "Aster Mail"
+    DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run" "Aster Mail"
   ${EndIf}
 !macroend
 

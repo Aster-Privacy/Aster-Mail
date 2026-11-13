@@ -36,6 +36,7 @@ mod external_link;
 mod flatpak;
 mod http_client;
 mod interface_zoom;
+mod launch_at_login;
 #[cfg(all(unix, not(target_os = "macos")))]
 mod linux_rendering;
 mod mail_notification;
@@ -313,6 +314,13 @@ fn set_hide_dock_on_close(
     state.set_hide_on_close(enabled);
     if !enabled {
         restore_dock_presence(&app);
+    } else if app
+        .get_webview_window("main")
+        .and_then(|window| window.is_visible().ok())
+        == Some(false)
+        && tray_available(&app)
+    {
+        leave_dock_after_close(&app);
     }
     Ok(())
 }
@@ -636,6 +644,12 @@ fn main() {
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             let mailto = default_mail::mailto_from_args(&argv);
             let notification_open = mail_notification::open_from_args(&argv);
+            if mailto.is_none()
+                && notification_open.is_none()
+                && launch_at_login::launched_at_login(&argv)
+            {
+                return;
+            }
 
             if let Some(window) = app.get_webview_window("main") {
                 let was_visible = window.is_visible().unwrap_or(true);
@@ -729,6 +743,9 @@ fn main() {
             device::crypto::crypto_hmac_sign,
             interface_zoom::get_interface_zoom,
             interface_zoom::set_interface_zoom,
+            launch_at_login::launch_at_login_status,
+            launch_at_login::set_launch_at_login,
+            launch_at_login::set_start_minimized,
         ])
         .setup(|app| {
             #[cfg(target_os = "macos")]
@@ -757,6 +774,12 @@ fn main() {
             }
 
             default_mail::refresh_registration(app.handle());
+            launch_at_login::refresh_registration();
+
+            let start_hidden = launch_at_login::should_start_hidden(
+                launch_at_login::launched_at_login(std::env::args_os()),
+                launch_at_login::start_minimized(),
+            );
 
             let window_config = app
                 .config()
@@ -823,7 +846,12 @@ fn main() {
 
                     true
                 })
+                .visible(window_config.visible && !start_hidden)
                 .build()?;
+
+            if start_hidden {
+                let _ = main_window.hide();
+            }
 
             window_fit::fit_to_work_area(
                 &main_window,
@@ -927,6 +955,9 @@ fn main() {
                 Err(error) => {
                     tracing::warn!(%error, "tray icon is unavailable");
                     boot_guard::log_line(&format!("tray icon is unavailable: {error}"));
+                    if start_hidden {
+                        show_main_window(app.handle());
+                    }
                 }
             }
 

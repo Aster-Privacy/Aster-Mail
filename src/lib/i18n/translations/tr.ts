@@ -4360,6 +4360,12 @@ export const tr = {
     developer_mode: "Geliştirici Modu",
     developer_mode_description:
       "Yapı bilgisi, kripto durumu ve hata ayıklama araçlarıyla Geliştirici sekmesini göster",
+    launch_at_login: "Oturum açtığında Aster Mail'i aç",
+    launch_at_login_description: "Bilgisayarında oturum açtığında Aster Mail başlar, böylece uygulamayı açmadan yeni postalar gelir.",
+    start_minimized: "Simge durumunda başlat",
+    start_minimized_description: "Aster Mail oturum açılışında açıldığında pencere olmadan arka planda kalır. Açmak için bildirim alanındaki veya menü çubuğundaki simgesine tıkla.",
+    launch_at_login_move_to_applications: "Aster Mail'i oturum açtığında açmak için önce Uygulamalar klasörüne taşı.",
+    launch_at_login_reason: "Yeni postaların arka planda gelmesi için oturum açtığında Aster Mail'i aç.",
     close_to_tray: "Pencereyi kapattığında çalışmaya devam et",
     close_to_tray_description:
       "Aster Mail bildirim alanında kalır, böylece yeni postalar gelmeye devam eder. Pencereyi kapattığında çıkmak için bunu kapat.",

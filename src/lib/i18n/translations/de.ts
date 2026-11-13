@@ -4413,6 +4413,12 @@ export const de = {
     developer_mode: "Entwicklermodus",
     developer_mode_description:
       "Entwickler-Tab mit Build-Infos, Krypto-Status und Debug-Tools anzeigen",
+    launch_at_login: "Aster Mail bei der Anmeldung öffnen",
+    launch_at_login_description: "Aster Mail startet, wenn du dich an deinem Computer anmeldest, damit neue E-Mails ankommen, ohne dass du die App zuerst öffnest.",
+    start_minimized: "Minimiert starten",
+    start_minimized_description: "Wenn Aster Mail bei der Anmeldung startet, läuft es ohne Fenster im Hintergrund. Klicke zum Öffnen auf das Symbol im Infobereich oder in der Menüleiste.",
+    launch_at_login_move_to_applications: "Damit Aster Mail bei der Anmeldung startet, bewege es zuerst in den Ordner „Programme“.",
+    launch_at_login_reason: "Aster Mail bei der Anmeldung öffnen, damit neue E-Mails im Hintergrund ankommen.",
     close_to_tray: "Beim Schliessen des Fensters weiterlaufen",
     close_to_tray_description:
       "Aster Mail bleibt im Infobereich, damit neue Mail weiterhin ankommt. Schalte dies aus, um beim Schliessen des Fensters zu beenden.",

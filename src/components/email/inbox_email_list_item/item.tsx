@@ -861,7 +861,12 @@ export const InboxEmailListItem = memo(
                   )}
               </div>
               {verification_code && (
-                <span className="hidden sm:inline-flex flex-shrink-0">
+                <span
+                  className={cn(
+                    "hidden sm:inline-flex flex-shrink-0",
+                    show_hover_actions && row_engaged && "group-hover:invisible",
+                  )}
+                >
                   <RowCodeCopyButton
                     code={verification_code}
                     muted={email.is_read}
@@ -911,7 +916,13 @@ export const InboxEmailListItem = memo(
             <div
               className={cn(
                 "absolute end-0 top-0 bottom-0 pointer-events-none opacity-0 group-hover:opacity-100 hidden sm:block",
-                show_unsubscribe_chip ? "w-96" : "w-64",
+                show_unsubscribe_chip && verification_code
+                  ? "w-[30rem]"
+                  : show_unsubscribe_chip
+                    ? "w-96"
+                    : verification_code
+                      ? "w-80"
+                      : "w-64",
                 email.is_selected === true
                   ? "mail_row_selected_fade"
                   : is_active
@@ -1007,6 +1018,15 @@ export const InboxEmailListItem = memo(
                   }
                 }}
               >
+                {verification_code && (
+                  <span className="me-1 inline-flex">
+                    <RowCodeCopyButton
+                      code={verification_code}
+                      muted={email.is_read}
+                    />
+                  </span>
+                )}
+
                 {show_unsubscribe_chip && <RowUnsubscribeChip email={email} />}
 
                 {on_toggle_read && (
