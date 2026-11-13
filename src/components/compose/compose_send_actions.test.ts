@@ -35,13 +35,18 @@ const peek_pending_send_payload = vi.fn();
 const dispatch_undo_send_event = vi.fn();
 const remember_queued_send_draft = vi.fn();
 const forget_queued_send_draft = vi.fn();
+let waiting_drafts = 0;
+const adjust_stats_drafts = vi.fn();
 
 vi.mock("@/services/queued_send_drafts", () => ({
   mark_queued_send_delivered: vi.fn(),
   remember_queued_send_draft: (...args: unknown[]) =>
     remember_queued_send_draft(...args),
-  forget_queued_send_draft: (...args: unknown[]) =>
-    forget_queued_send_draft(...args),
+  forget_queued_send_draft: (...args: unknown[]) => {
+    waiting_drafts = Math.max(0, waiting_drafts - 1);
+    forget_queued_send_draft(...args);
+  },
+  waiting_queued_send_draft_count: () => waiting_drafts,
 }));
 
 vi.mock("@/services/send_queue", () => ({
@@ -81,7 +86,10 @@ vi.mock("@/components/toast/action_toast", () => ({
   show_action_toast: vi.fn(),
 }));
 
-vi.mock("@/hooks/use_mail_stats", () => ({ invalidate_mail_stats: vi.fn() }));
+vi.mock("@/hooks/use_mail_stats", () => ({
+  invalidate_mail_stats: vi.fn(),
+  adjust_stats_drafts: (...args: unknown[]) => adjust_stats_drafts(...args),
+}));
 
 const emit_thread_reply_optimistic = vi.fn();
 const emit_thread_reply_sent = vi.fn();
@@ -779,10 +787,17 @@ describe("undo and queued sends keep the draft until delivery", () => {
       on_sent: () => void;
     };
 
+    waiting_drafts = 1;
+    adjust_stats_drafts.mockClear();
     callbacks.on_sent();
 
     expect(confirm_draft_deleted).toHaveBeenCalledTimes(1);
-    expect(forget_queued_send_draft).toHaveBeenCalledWith("queue_s");
+    expect(forget_queued_send_draft).not.toHaveBeenCalledWith("queue_s");
+
+    await vi.waitFor(() =>
+      expect(forget_queued_send_draft).toHaveBeenCalledWith("queue_s"),
+    );
+    expect(adjust_stats_drafts).toHaveBeenCalledWith(-1);
   });
 
   it("tracks a draft whose first save lands after the hand-off", async () => {

@@ -68,6 +68,7 @@ export interface ActionToastState {
   sound?: IconicSound | "none";
   hide_dismiss?: boolean;
   actions?: ActionToastButton[];
+  resume_key?: string;
 }
 
 export interface ActionToastButton {
@@ -90,6 +91,62 @@ const toast_listeners = new Set<(toast: ActionToastState | null) => void>();
 let current_toast: ActionToastState | null = null;
 let toast_timeout: NodeJS.Timeout | null = null;
 let progress_stall_timeout: NodeJS.Timeout | null = null;
+let held_toast_id: string | null = null;
+let resumable_toast: { state: ActionToastState; expires_at: number } | null =
+  null;
+
+const MIN_RESUME_MS = 500;
+
+function notify_toast_listeners() {
+  toast_listeners.forEach((listener) => listener(current_toast));
+}
+
+function live_resumable_toast() {
+  if (!resumable_toast) return null;
+  if (resumable_toast.expires_at - Date.now() < MIN_RESUME_MS) {
+    resumable_toast = null;
+
+    return null;
+  }
+
+  return resumable_toast;
+}
+
+function end_current_toast() {
+  toast_timeout = null;
+  held_toast_id = null;
+  const resumable = live_resumable_toast();
+
+  if (resumable && current_toast?.id !== resumable.state.id) {
+    current_toast = resumable.state;
+    notify_toast_listeners();
+    toast_timeout = setTimeout(
+      end_current_toast,
+      resumable.expires_at - Date.now(),
+    );
+
+    return;
+  }
+
+  if (resumable && current_toast?.id === resumable.state.id) {
+    resumable_toast = null;
+  }
+  current_toast = null;
+  notify_toast_listeners();
+}
+
+export function release_action_toast(resume_key: string): void {
+  if (resumable_toast?.state.resume_key === resume_key) {
+    resumable_toast = null;
+  }
+  if (current_toast?.resume_key !== resume_key) return;
+  if (current_toast.id === held_toast_id) return;
+  if (toast_timeout) {
+    clearTimeout(toast_timeout);
+    toast_timeout = null;
+  }
+  end_current_toast();
+}
 
 const PROGRESS_STALL_MS = 90000;
 
@@ -104,12 +161,12 @@ function arm_progress_stall_timeout() {
   progress_stall_timeout = setTimeout(() => {
     progress_stall_timeout = null;
     if (!current_toast?.progress) return;
-    current_toast = null;
-    toast_listeners.forEach((listener) => listener(null));
+    end_current_toast();
   }, PROGRESS_STALL_MS);
 }
 
 export function hold_action_toast(): void {
+  held_toast_id = current_toast?.id ?? null;
   if (toast_timeout) {
     clearTimeout(toast_timeout);
     toast_timeout = null;
@@ -128,12 +185,16 @@ export function settle_undo_toast(
     toast_timeout = null;
   }
 
-  current_toast = { ...current_toast, message, on_undo: undefined };
-  toast_listeners.forEach((listener) => listener(current_toast));
-  toast_timeout = setTimeout(() => {
-    current_toast = null;
-    toast_listeners.forEach((listener) => listener(null));
-  }, dismiss_after_ms);
+  if (resumable_toast?.state.id === toast.id) resumable_toast = null;
+  held_toast_id = null;
+  current_toast = {
+    ...current_toast,
+    message,
+    on_undo: undefined,
+    actions: undefined,
+  };
+  notify_toast_listeners();
+  toast_timeout = setTimeout(end_current_toast, dismiss_after_ms);
 
   return true;
 }
@@ -148,12 +209,25 @@ export function show_action_toast(toast: ActionToastConfig) {
     toast_timeout = null;
   }
 
+  const { duration_ms, ...state } = toast;
+
+  held_toast_id = null;
+
   current_toast = {
-    ...toast,
+    ...state,
     id: crypto.randomUUID(),
   };
 
-  toast_listeners.forEach((listener) => listener(current_toast));
+  const visible_ms = duration_ms && duration_ms > 0 ? duration_ms : 5000;
+
+  if (toast.resume_key && !toast.progress) {
+    resumable_toast = {
+      state: current_toast,
+      expires_at: Date.now() + visible_ms,
+    };
+  }
+
+  notify_toast_listeners();
 
   const sound =
     toast.sound ??
@@ -165,13 +239,13 @@ export function show_action_toast(toast: ActionToastConfig) {
     arm_progress_stall_timeout();
   } else {
     clear_progress_stall_timeout();
-    toast_timeout = setTimeout(
-      () => {
-        current_toast = null;
-        toast_listeners.forEach((listener) => listener(null));
-      },
-      toast.duration_ms && toast.duration_ms > 0 ? toast.duration_ms : 5000,
-    );
+    const resumable = live_resumable_toast();
+    const resumes_after = resumable && resumable.state.id !== current_toast.id;
+    const own_ms = resumes_after
+      ? Math.min(visible_ms, resumable.expires_at - Date.now())
+      : visible_ms;
+
+    toast_timeout = setTimeout(end_current_toast, own_ms);
   }
 }
 
@@ -206,12 +280,15 @@ export function subscribe_action_toast(
 }
 
 export function hide_action_toast() {
+  const resumable = live_resumable_toast();
+
+  if (resumable && current_toast?.id === resumable.state.id) return;
   if (toast_timeout) {
     clearTimeout(toast_timeout);
+    toast_timeout = null;
   }
   clear_progress_stall_timeout();
-  current_toast = null;
-  toast_listeners.forEach((listener) => listener(null));
+  end_current_toast();
 }
 
 function get_icon_for_action(action_type: ActionToastState["action_type"]) {
@@ -349,7 +426,11 @@ export function ActionToast({ position }: ActionToastProps) {
                     className="inline-flex flex-shrink-0 items-center whitespace-nowrap text-[13px] font-medium ms-1 underline text-brand"
                     type="button"
                     onClick={() => {
-                      hide_action_toast();
+                      if (toast.resume_key) {
+                        release_action_toast(toast.resume_key);
+                      } else {
+                        hide_action_toast();
+                      }
                       action.on_press();
                     }}
                   >

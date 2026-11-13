@@ -104,6 +104,16 @@ export function queued_send_draft_ids(now: number = Date.now()): Set<string> {
   ]);
 }
 
+export function waiting_queued_send_draft_count(
+  now: number = Date.now(),
+): number {
+  return new Set(
+    read_entries()
+      .filter((entry) => entry.at + HIDE_WINDOW_MS > now)
+      .map((entry) => entry.draft_id),
+  ).size;
+}
+
 export function mark_queued_send_delivered(queue_id: string): void {
   for (const entry of read_entries()) {
     if (entry.queue_id === queue_id) delivered_draft_ids.add(entry.draft_id);
