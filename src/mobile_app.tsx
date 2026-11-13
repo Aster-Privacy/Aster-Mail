@@ -29,6 +29,8 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
+
+import { CalendarBillingReturn } from "@/components/calendar_billing_return";
 import { AnimatePresence } from "framer-motion";
 
 import { use_auth } from "@/contexts/auth_context";
@@ -849,6 +851,10 @@ function MobileApp() {
                   </MobileProtectedRoute>
                 }
                 path="/crypto-invoice/:id"
+              />
+              <Route
+                element={<CalendarBillingReturn />}
+                path="/calendar/billing"
               />
               <Route element={<NotFoundPage />} path="*" />
             </Routes>
