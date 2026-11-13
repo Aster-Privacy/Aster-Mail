@@ -9614,6 +9614,7 @@ export const tr = {
     move_n_conversations_one: "{{count}} görüşmeyi taşı",
     move_n_conversations_other: "{{count}} görüşmeyi taşı",
     view_message: "Mesajı görüntüle",
+    open_full_view: "Tam görünümde aç",
     blocking: "Engelleniyor...",
     block: "Engelle",
     unsubscribe_title: "Aboneliği İptal Et",

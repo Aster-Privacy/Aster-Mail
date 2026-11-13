@@ -130,6 +130,7 @@ export interface EmailListProps {
   on_toggle_select: (id: string, options?: ListToggleOptions) => void;
   on_select_only?: (id: string) => void;
   on_email_click: (id: string) => void;
+  on_email_double_click?: (id: string) => void;
   current_view: string;
   folders: { id: string; name: string; color: string; depth?: number }[];
   tags: { tag_token: string; name: string; color: string; depth?: number }[];
@@ -170,6 +171,7 @@ export function EmailList({
   on_toggle_select,
   on_select_only,
   on_email_click,
+  on_email_double_click,
   current_view,
   folders,
   tags,
@@ -331,6 +333,13 @@ export function EmailList({
   const handle_row_open = useCallback((id: string) => {
     opened_anchor_ref.current = id;
     on_email_click_ref.current(id);
+  }, []);
+  const on_email_double_click_ref = useRef(on_email_double_click);
+
+  on_email_double_click_ref.current = on_email_double_click;
+
+  const handle_row_open_full = useCallback((id: string) => {
+    on_email_double_click_ref.current?.(id);
   }, []);
   const auto_selected_id_ref = useRef<string | null>(null);
   const menu_action_taken_ref = useRef(false);
@@ -643,6 +652,9 @@ export function EmailList({
       on_archive={hover_archive}
       on_delete={hover_delete}
       on_email_click={handle_row_open}
+      on_email_double_click={
+        on_email_double_click ? handle_row_open_full : undefined
+      }
       on_mark_not_spam={hover_mark_not_spam}
       on_move_to_inbox={hover_move_to_inbox}
       on_restore={hover_restore}

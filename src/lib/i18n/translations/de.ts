@@ -9812,6 +9812,7 @@ export const de = {
     move_n_conversations_one: "{{count}} Konversation verschieben",
     move_n_conversations_other: "{{count}} Konversationen verschieben",
     view_message: "Nachricht anzeigen",
+    open_full_view: "In Vollansicht öffnen",
     blocking: "Wird blockiert...",
     block: "Blockieren",
     unsubscribe_title: "Abbestellen",

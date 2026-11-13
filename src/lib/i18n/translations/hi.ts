@@ -8980,6 +8980,7 @@ export const hi = {
     press_to_undo: "पहले जैसा करने के लिए",
     tap_undo_to_cancel: "रद्द करने के लिए पहले जैसा करें बटन दबाएं",
     view_message: "संदेश देखें",
+    open_full_view: "पूर्ण दृश्य में खोलें",
     cancel_sending: "ईमेल भेजना रद्द करें",
     send_immediately: "ईमेल तुरंत भेजें",
     new_message: "नया संदेश",

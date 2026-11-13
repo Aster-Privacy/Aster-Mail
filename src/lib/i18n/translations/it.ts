@@ -9781,6 +9781,7 @@ export const it = {
     move_n_conversations_one: "Sposta {{count}} conversazione",
     move_n_conversations_other: "Sposta {{count}} conversazioni",
     view_message: "Visualizza messaggio",
+    open_full_view: "Apri a vista intera",
     blocking: "Blocco in corso...",
     block: "Blocca",
     unsubscribe_title: "Annulla iscrizione",

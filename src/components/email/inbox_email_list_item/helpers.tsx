@@ -48,6 +48,7 @@ export interface InboxEmailListItemProps
   selection?: React.RefObject<SelectionSnapshot>;
   on_toggle_select: (id: string, options?: ListToggleOptions) => void;
   on_email_click: (id: string) => void;
+  on_email_double_click?: (id: string) => void;
   on_archive?: (email: InboxEmail) => void;
   on_spam?: (email: InboxEmail) => void;
   on_delete?: (email: InboxEmail) => void;

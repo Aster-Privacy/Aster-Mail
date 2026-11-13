@@ -9707,6 +9707,7 @@ export const nl = {
     move_n_conversations_one: "{{count}} gesprek verplaatsen",
     move_n_conversations_other: "{{count}} gesprekken verplaatsen",
     view_message: "Bericht bekijken",
+    open_full_view: "Openen in volledige weergave",
     blocking: "Blokkeren...",
     block: "Blokkeren",
     unsubscribe_title: "Uitschrijven",

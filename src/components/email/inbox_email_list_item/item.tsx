@@ -143,6 +143,7 @@ export const InboxEmailListItem = memo(
         selection,
         on_toggle_select,
         on_email_click,
+        on_email_double_click,
         on_archive,
         on_spam,
         on_delete,
@@ -432,6 +433,22 @@ export const InboxEmailListItem = memo(
             }
             on_email_click(email.id);
           }}
+          onDoubleClick={
+            on_email_double_click
+              ? (e) => {
+                  if (list_click_intent(e, is_mac_platform())) return;
+                  if (
+                    e.target instanceof Element &&
+                    e.target.closest(
+                      'button, a, input, label, [role="checkbox"]',
+                    )
+                  ) {
+                    return;
+                  }
+                  on_email_double_click(email.id);
+                }
+              : undefined
+          }
           onDragEnd={handle_drag_end}
           onDragStart={handle_drag_start}
           onFocusCapture={engage_row}

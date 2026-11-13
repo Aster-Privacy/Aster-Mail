@@ -9524,6 +9524,7 @@ export const ar = {
     move_n_conversations_one: "نقل محادثة واحدة",
     move_n_conversations_other: "نقل {{count}} محادثة",
     view_message: "عرض الرسالة",
+    open_full_view: "فتح في عرض كامل",
     block_sender_spam_warning:
       "من الآن فصاعدًا، الرسائل الجديدة من هذا المرسل ستذهب مباشرة إلى المزعج. قائمة الحظر فيها خيار رفع الحظر لاحقًا.",
     block_sender_confirm_message: "حظر {{email}}؟ لن تتلقى رسائل منه بعد الآن.",
