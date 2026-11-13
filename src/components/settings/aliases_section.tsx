@@ -325,6 +325,7 @@ export function AliasesSection() {
               on_open_domain_editor={set_editing_address_id}
               on_open_editor={set_editing_alias_id}
               on_reload={hook.load_aliases}
+              skips_delete_wait={hook.skips_delete_wait}
               toggling_id={hook.toggling_id}
             />
           </IslandSection>

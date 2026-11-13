@@ -55,6 +55,10 @@ import {
   type AddDomainResponse,
 } from "@/services/api/domains";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import {
+  custom_domain_skips_delete_wait,
+  delete_eligible_at,
+} from "@/components/settings/aliases/alias_delete_wait";
 
 const DEFAULT_DOMAINS = [
   "astermail.org",
@@ -258,6 +262,11 @@ export function use_aliases() {
 
   const [domains, set_domains] = useState<CustomDomain[]>(
     aliases_cache.domains,
+  );
+  const skips_delete_wait = useCallback(
+    (domain_name: string | undefined) =>
+      custom_domain_skips_delete_wait(domain_name, domains, limits?.plan_code),
+    [domains, limits],
   );
   const [domains_loading, set_domains_loading] = useState(
     !aliases_cache.loaded,
@@ -609,9 +618,13 @@ export function use_aliases() {
   const handle_alias_delete = (id: string) => {
     const alias = aliases.find((a) => a.id === id);
 
-    if (alias && !can_delete_aliases_instantly && !alias.decryption_failed) {
-      const created = new Date(alias.created_at);
-      const eligible = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
+    if (
+      alias &&
+      !can_delete_aliases_instantly &&
+      !alias.decryption_failed &&
+      !skips_delete_wait(alias.domain)
+    ) {
+      const eligible = delete_eligible_at(alias.created_at);
 
       if (new Date() < eligible) {
         set_alias_too_new_info({
@@ -678,9 +691,12 @@ export function use_aliases() {
   const handle_domain_addr_delete = (id: string, domain_id: string) => {
     const addr = domain_addresses.find((a) => a.id === id);
 
-    if (addr && !can_delete_aliases_instantly) {
-      const created = new Date(addr.created_at);
-      const eligible = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
+    if (
+      addr &&
+      !can_delete_aliases_instantly &&
+      !skips_delete_wait(addr.domain_name)
+    ) {
+      const eligible = delete_eligible_at(addr.created_at);
 
       if (new Date() < eligible) {
         set_alias_too_new_info({
@@ -1035,6 +1051,7 @@ export function use_aliases() {
     handle_alias_delete,
     confirm_alias_delete,
     handle_domain_addr_delete,
+    skips_delete_wait,
     confirm_domain_addr_delete,
     handle_open_add_domain,
     handle_domain_added,
