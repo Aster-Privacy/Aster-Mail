@@ -765,6 +765,8 @@ export interface CommonTranslations {
   key_trust_missing_detail: string;
   key_trust_missing_unreadable_detail: string;
   key_trust_missing_confirm: string;
+  key_trust_account_key_detail: string;
+  key_trust_identity_key_detail: string;
   post_quantum_downgrade_title: string;
   post_quantum_downgrade_message: string;
   upgrade_tooltip: string;

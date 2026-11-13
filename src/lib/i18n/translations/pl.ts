@@ -1982,6 +1982,10 @@ export const pl = {
     key_trust_missing_unreadable_detail:
       "{{email}}: zapisanego klucza nie można odczytać.",
     key_trust_missing_confirm: "Wyślij bez szyfrowania",
+    key_trust_account_key_detail:
+      "{{email}} klucz konta: wcześniej {{prior}}, teraz {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} klucz tożsamości: wcześniej {{prior}}, teraz {{current}}.",
     post_quantum_downgrade_title:
       "Wysłać bez oczekiwanych kluczy postkwantowych?",
     post_quantum_downgrade_message:

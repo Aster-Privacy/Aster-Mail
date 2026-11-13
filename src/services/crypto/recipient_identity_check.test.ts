@@ -103,6 +103,7 @@ import {
   describe_recipient_identity_change,
   get_recipient_identity_status,
   has_recipient_identity_changed,
+  RecipientKeysChangedError,
   trust_recipient_identity,
 } from "@/services/crypto/recipient_identity_check";
 import { KeyPinUnavailableError } from "@/services/crypto/ratchet_types";
@@ -380,6 +381,9 @@ describe("describe_recipient_identity_change", () => {
     h.owner_key = null;
     h.flagged = false;
     h.pin_health = "settled";
+    h.bundle = null;
+    h.fail_bundle_fetch = false;
+    h.trusted = [];
   });
 
   it("reports the old and new owner key fingerprints", async () => {
@@ -392,7 +396,93 @@ describe("describe_recipient_identity_change", () => {
       email: "alice@astermail.org",
       prior_fingerprint: "fp:old",
       new_fingerprint: "fp:new",
+      fingerprints: [
+        {
+          kind: "account",
+          prior_fingerprint: "fp:old",
+          new_fingerprint: "fp:new",
+        },
+      ],
+      keys: {
+        pin_id: "alice@astermail.org",
+        binding: null,
+        scoped: false,
+        owner_public_key: "new",
+      },
     });
+  });
+
+  it("reports both fingerprints when both keys changed", async () => {
+    h.pinned_owner = "fp:old";
+    h.owner_key = "new";
+    h.pinned = "ab";
+    h.identity = published_identity("cd");
+
+    const change = await describe_recipient_identity_change(
+      "alice@astermail.org",
+    );
+
+    expect(change.fingerprints).toEqual([
+      { kind: "account", prior_fingerprint: "fp:old", new_fingerprint: "fp:new" },
+      { kind: "identity", prior_fingerprint: "6162", new_fingerprint: "6364" },
+    ]);
+  });
+
+  it("saves exactly the keys the prompt showed", async () => {
+    h.pinned_owner = "fp:old";
+    h.owner_key = "new";
+    h.pinned = "ab";
+    h.identity = published_identity("cd");
+
+    const change = await describe_recipient_identity_change(
+      "alice@astermail.org",
+    );
+
+    await trust_recipient_identity("alice@astermail.org", change.keys);
+
+    expect(h.trusted).toEqual([
+      ["alice@astermail.org", "cd", "new", published_identity("cd")],
+    ]);
+    expect(h.trusted[0]?.[1]).toBe(change.keys.binding?.kem_identity_key);
+    expect(h.trusted[0]?.[2]).toBe(change.keys.owner_public_key);
+  });
+
+  it("refuses to trust when the keys changed after the prompt", async () => {
+    h.pinned_owner = "fp:old";
+    h.owner_key = "new";
+    h.pinned = "ab";
+    h.identity = published_identity("cd");
+
+    const change = await describe_recipient_identity_change(
+      "alice@astermail.org",
+    );
+
+    h.identity = published_identity("ef");
+
+    await expect(
+      trust_recipient_identity("alice@astermail.org", change.keys),
+    ).rejects.toBeInstanceOf(RecipientKeysChangedError);
+
+    h.identity = published_identity("cd");
+    h.owner_key = "other";
+
+    await expect(
+      trust_recipient_identity("alice@astermail.org", change.keys),
+    ).rejects.toBeInstanceOf(RecipientKeysChangedError);
+    expect(h.trusted).toEqual([]);
+  });
+
+  it("refuses keys that were shown for another address", async () => {
+    h.owner_key = "new";
+
+    const change = await describe_recipient_identity_change(
+      "alice@astermail.org",
+    );
+
+    await expect(
+      trust_recipient_identity("bob@astermail.org", change.keys),
+    ).rejects.toBeInstanceOf(RecipientKeysChangedError);
+    expect(h.trusted).toEqual([]);
   });
 
   it("reports the identity key change when the owner key is unchanged", async () => {
@@ -414,10 +504,11 @@ describe("describe_recipient_identity_change", () => {
 
     await expect(
       describe_recipient_identity_change("alice@astermail.org"),
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       email: "alice@astermail.org",
       prior_fingerprint: "",
       new_fingerprint: "fp:now",
+      fingerprints: [],
     });
   });
 });

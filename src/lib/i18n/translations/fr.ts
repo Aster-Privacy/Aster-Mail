@@ -1976,6 +1976,10 @@ export const fr = {
     key_trust_missing_unreadable_detail:
       "{{email}} : la clé enregistrée est illisible.",
     key_trust_missing_confirm: "Envoyer sans chiffrement",
+    key_trust_account_key_detail:
+      "{{email}} clé du compte : avant {{prior}}, maintenant {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} clé d'identité : avant {{prior}}, maintenant {{current}}.",
     post_quantum_downgrade_title:
       "Envoyer sans les clés post-quantiques attendues ?",
     post_quantum_downgrade_message:

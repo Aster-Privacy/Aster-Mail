@@ -29,14 +29,17 @@ import {
   accept_missing_recipient_key,
   check_owner_key_pin,
   find_saved_recipient_key,
-  lookup_owner_key_pin,
+  lookup_saved_key,
   owner_key_fingerprint,
   replace_owner_key_pin,
   restore_missing_key_check,
 } from "./crypto/ratchet_identity_pin";
 import {
+  base64_to_hex,
   describe_recipient_identity_change,
   trust_recipient_identity,
+  type RecipientKeyFingerprint,
+  type RecipientKeySnapshot,
 } from "./crypto/recipient_identity_check";
 
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -51,6 +54,8 @@ export interface KeyFingerprintChange {
   unreadable?: boolean;
   missing?: boolean;
   own?: boolean;
+  fingerprints?: RecipientKeyFingerprint[];
+  keys?: RecipientKeySnapshot;
 }
 
 export type KeyTrustPromptHandler = (
@@ -86,7 +91,7 @@ async function local_pin_change(
   if (!key_info.found || !key_info.public_key) return null;
 
   const email = key_info.email.toLowerCase();
-  const pinned = await lookup_owner_key_pin(email);
+  const pinned = await lookup_saved_key(email);
 
   if (pinned === null) return null;
 
@@ -102,9 +107,17 @@ async function local_pin_change(
     return { ...observed, prior_fingerprint: "", unreadable: true };
   }
 
-  if (!pinned.conflict && pinned.fingerprint === current) return null;
+  if (pinned.owner && !pinned.conflict && pinned.fingerprint === current) {
+    return null;
+  }
 
-  return { ...observed, prior_fingerprint: pinned.fingerprint.toUpperCase() };
+  return {
+    ...observed,
+    prior_fingerprint: (pinned.owner
+      ? pinned.fingerprint
+      : base64_to_hex(pinned.fingerprint)
+    ).toUpperCase(),
+  };
 }
 
 function has_usable_key(key_info: ExternalKeyInfo): boolean {
@@ -300,6 +313,10 @@ async function internal_key_change(
     observed_at,
     ...(unreadable ? { unreadable: true } : {}),
     ...(own ? { own: true } : {}),
+    ...(described && described.fingerprints.length > 1
+      ? { fingerprints: described.fingerprints }
+      : {}),
+    ...(described ? { keys: described.keys } : {}),
   };
 }
 
@@ -333,9 +350,11 @@ export async function confirm_internal_key_trust(
 
   if (!(await prompt_handler(changes))) return "declined";
 
+  if (changes.some((change) => !change.keys)) throw new KeyTrustCheckError();
+
   try {
-    for (const email of addresses) {
-      await trust_recipient_identity(email);
+    for (const change of changes) {
+      await trust_recipient_identity(change.email, change.keys);
     }
   } catch {
     throw new KeyTrustCheckError();

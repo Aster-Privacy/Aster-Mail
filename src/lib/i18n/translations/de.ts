@@ -1888,6 +1888,10 @@ export const de = {
     key_trust_missing_unreadable_detail:
       "{{email}}: Der gespeicherte Schlüssel kann nicht gelesen werden.",
     key_trust_missing_confirm: "Ohne Verschlüsselung senden",
+    key_trust_account_key_detail:
+      "{{email}} Kontoschlüssel: vorher {{prior}}, jetzt {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} Identitätsschlüssel: vorher {{prior}}, jetzt {{current}}.",
     post_quantum_downgrade_title:
       "Ohne die erwarteten post-quantensicheren Schlüssel senden?",
     post_quantum_downgrade_message:

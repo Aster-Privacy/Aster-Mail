@@ -1966,6 +1966,10 @@ export const it = {
     key_trust_missing_unreadable_detail:
       "{{email}}: la chiave salvata non può essere letta.",
     key_trust_missing_confirm: "Invia senza crittografia",
+    key_trust_account_key_detail:
+      "{{email}} chiave dell'account: prima {{prior}}, ora {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} chiave di identità: prima {{prior}}, ora {{current}}.",
     post_quantum_downgrade_title:
       "Inviare senza le chiavi post-quantistiche previste?",
     post_quantum_downgrade_message:

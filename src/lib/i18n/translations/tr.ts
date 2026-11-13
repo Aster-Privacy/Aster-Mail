@@ -1936,6 +1936,10 @@ export const tr = {
     key_trust_missing_unreadable_detail:
       "{{email}}: kayıtlı anahtar okunamıyor.",
     key_trust_missing_confirm: "Şifreleme olmadan gönder",
+    key_trust_account_key_detail:
+      "{{email}} hesap anahtarı: önceden {{prior}}, şimdi {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} kimlik anahtarı: önceden {{prior}}, şimdi {{current}}.",
     post_quantum_downgrade_title:
       "Beklenen post-kuantum anahtarları olmadan gönderilsin mi?",
     post_quantum_downgrade_message:

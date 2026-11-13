@@ -29,6 +29,13 @@ const h = vi.hoisted(() => ({
   }>,
   check_calls: 0,
   trusted: [] as string[],
+  shown: [] as unknown[],
+  fingerprints: [] as Array<{
+    kind: "account" | "identity";
+    prior_fingerprint: string;
+    new_fingerprint: string;
+  }>,
+  fail_describe: false,
   fail_trust: false,
   prompts: [] as unknown[][],
   answer: true,
@@ -45,16 +52,33 @@ vi.mock("@/services/send_queue_encryption", () => ({
   }),
 }));
 
+function shown_keys(email: string) {
+  return {
+    pin_id: email,
+    binding: null,
+    scoped: false,
+    owner_public_key: `owner-of-${email}`,
+  };
+}
+
 vi.mock("@/services/crypto/recipient_identity_check", () => ({
-  describe_recipient_identity_change: vi.fn(async (email: string) => ({
-    email,
-    prior_fingerprint: "aaaa",
-    new_fingerprint: "bbbb",
-  })),
-  trust_recipient_identity: vi.fn(async (email: string) => {
+  base64_to_hex: (value: string) => value,
+  describe_recipient_identity_change: vi.fn(async (email: string) => {
+    if (h.fail_describe) throw new Error("lookup failed");
+
+    return {
+      email,
+      prior_fingerprint: "aaaa",
+      new_fingerprint: "bbbb",
+      fingerprints: h.fingerprints,
+      keys: shown_keys(email),
+    };
+  }),
+  trust_recipient_identity: vi.fn(async (email: string, shown?: unknown) => {
     if (h.fail_trust) throw new Error("store unavailable");
 
     h.trusted.push(email);
+    h.shown.push(shown);
   }),
 }));
 
@@ -68,7 +92,7 @@ vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
   accept_missing_recipient_key: vi.fn(),
   check_owner_key_pin: vi.fn(),
   find_saved_recipient_key: vi.fn(),
-  lookup_owner_key_pin: vi.fn(),
+  lookup_saved_key: vi.fn(),
   owner_key_fingerprint: vi.fn(),
   replace_owner_key_pin: vi.fn(),
   restore_missing_key_check: vi.fn(),
@@ -99,6 +123,9 @@ beforeEach(() => {
   h.coverage = [];
   h.check_calls = 0;
   h.trusted = [];
+  h.shown = [];
+  h.fingerprints = [];
+  h.fail_describe = false;
   h.fail_trust = false;
   h.prompts = [];
   h.answer = true;
@@ -242,6 +269,39 @@ describe("confirm_internal_key_trust", () => {
     ).resolves.toBe("trusted");
     expect(h.prompts).toHaveLength(1);
     expect(h.trusted).toEqual(["bob@astermail.org", "carol@astermail.org"]);
+  });
+
+  it("saves exactly the keys the prompt showed", async () => {
+    await expect(
+      confirm_internal_key_trust(["bob@astermail.org"]),
+    ).resolves.toBe("trusted");
+    expect(h.prompts[0]).toEqual([
+      expect.objectContaining({ keys: shown_keys("bob@astermail.org") }),
+    ]);
+    expect(h.shown).toEqual([shown_keys("bob@astermail.org")]);
+  });
+
+  it("shows both fingerprints when both keys changed", async () => {
+    h.fingerprints = [
+      { kind: "account", prior_fingerprint: "aaaa", new_fingerprint: "bbbb" },
+      { kind: "identity", prior_fingerprint: "cccc", new_fingerprint: "dddd" },
+    ];
+
+    await confirm_internal_key_trust(["bob@astermail.org"]);
+
+    expect(h.prompts[0]).toEqual([
+      expect.objectContaining({ fingerprints: h.fingerprints }),
+    ]);
+  });
+
+  it("trusts nothing when the shown keys could not be read", async () => {
+    h.fail_describe = true;
+
+    await expect(
+      confirm_internal_key_trust(["bob@astermail.org"]),
+    ).rejects.toThrow();
+    expect(h.prompts).toHaveLength(1);
+    expect(h.trusted).toEqual([]);
   });
 
   it("does nothing when there is nothing to confirm", async () => {

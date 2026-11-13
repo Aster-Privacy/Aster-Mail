@@ -1972,6 +1972,10 @@ export const ko = {
     key_trust_missing_detail: "{{email}}: 이전 {{prior}}.",
     key_trust_missing_unreadable_detail: "{{email}}: 저장된 키를 읽을 수 없습니다.",
     key_trust_missing_confirm: "암호화 없이 보내기",
+    key_trust_account_key_detail:
+      "{{email}} 계정 키: 이전 {{prior}}, 현재 {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} ID 키: 이전 {{prior}}, 현재 {{current}}.",
     post_quantum_downgrade_title: "예상된 양자 내성 키 없이 보낼까요?",
     post_quantum_downgrade_message:
       "{{recipients}} 계정은 양자 내성 키를 게시하지만, 이 메시지에 전달된 키 번들에는 양자 내성 키가 없습니다. 서버 문제일 수도 있고 키 조회가 조작되었을 수도 있습니다. 양자 내성 보호를 유지하려면 취소하고 나중에 다시 시도하세요.",
