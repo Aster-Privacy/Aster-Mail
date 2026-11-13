@@ -18,7 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import type { SenderOption } from "@/hooks/use_sender_aliases";
+
+import { useMemo, useState } from "react";
 
 import {
   Popover,
@@ -31,15 +33,18 @@ import { use_signatures } from "@/contexts/signatures_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { strip_html_tags_bounded } from "@/lib/html_text";
 import { truncate_with_ellipsis } from "@/utils/preview_text";
+import { signatures_for_sender } from "@/lib/sender_signature";
 
 interface SignaturePickerProps {
   on_select: (content: string, is_html: boolean) => void;
+  sender: Pick<SenderOption, "id" | "type"> | null;
   disabled?: boolean;
   open_direction?: "up" | "down";
 }
 
 export function SignaturePicker({
   on_select,
+  sender,
   disabled = false,
 }: SignaturePickerProps) {
   const { t } = use_i18n();
@@ -47,6 +52,16 @@ export function SignaturePicker({
     use_signatures();
   const { preferences } = use_preferences();
   const [is_open, set_is_open] = useState(false);
+  const sender_id = sender?.id ?? null;
+  const sender_type = sender?.type ?? null;
+  const available = useMemo(
+    () =>
+      signatures_for_sender(
+        sender_id && sender_type ? { id: sender_id, type: sender_type } : null,
+        signatures,
+      ),
+    [sender_id, sender_type, signatures],
+  );
 
   use_overlay_layer(is_open, "compose_signature_picker");
 
@@ -58,7 +73,7 @@ export function SignaturePicker({
   if (
     preferences.signature_mode === "disabled" ||
     is_loading ||
-    signatures.length === 0
+    available.length === 0
   ) {
     return null;
   }
@@ -86,7 +101,7 @@ export function SignaturePicker({
               {t("mail.insert_signature")}
             </span>
           </div>
-          {signatures.map((signature) => (
+          {available.map((signature) => (
             <button
               key={signature.id}
               className="w-full flex items-start gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"

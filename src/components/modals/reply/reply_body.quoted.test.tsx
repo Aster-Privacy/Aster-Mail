@@ -79,6 +79,7 @@ const noop = () => {};
 
 function build_props(overrides: Partial<ReplyBodyProps> = {}): ReplyBodyProps {
   return {
+    selected_sender: null,
     t: (key: string) => key,
     reduce_motion: true,
     is_minimized: false,

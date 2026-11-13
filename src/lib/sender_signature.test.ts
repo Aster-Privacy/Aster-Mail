@@ -25,7 +25,10 @@ vi.mock("@/hooks/use_sender_aliases", () => ({
     type === "alias" || type === "domain" || type === "ghost",
 }));
 
-import { signature_for_sender } from "@/lib/sender_signature";
+import {
+  signature_for_sender,
+  signatures_for_sender,
+} from "@/lib/sender_signature";
 
 interface Sig {
   id: string;
@@ -81,5 +84,55 @@ describe("signature_for_sender", () => {
 
   it("uses the default signature before a sender is chosen", () => {
     expect(signature_for_sender(null, resolve, DEFAULT)).toBe(DEFAULT);
+  });
+});
+
+describe("signatures_for_sender", () => {
+  const list: Sig[] = [
+    DEFAULT,
+    { id: "work", alias_id: "alias-1" },
+    { id: "side", alias_id: "alias-2" },
+    { id: "hidden", alias_id: "ghost-2" },
+  ];
+  const ids = (sigs: Sig[]) => sigs.map((s) => s.id);
+
+  it("shows only unassigned signatures for the primary address", () => {
+    expect(
+      ids(signatures_for_sender({ id: "primary", type: "primary" }, list)),
+    ).toEqual(["default"]);
+  });
+
+  it("shows the alias's own signatures and unassigned ones, not other aliases'", () => {
+    expect(
+      ids(signatures_for_sender({ id: "alias-1", type: "alias" }, list)),
+    ).toEqual(["default", "work"]);
+    expect(
+      ids(signatures_for_sender({ id: "alias-2", type: "alias" }, list)),
+    ).toEqual(["default", "side"]);
+  });
+
+  it("applies the same rule to custom domain addresses", () => {
+    expect(
+      ids(signatures_for_sender({ id: "alias-2", type: "domain" }, list)),
+    ).toEqual(["default", "side"]);
+  });
+
+  it("shows only the bound signature for a ghost address", () => {
+    expect(
+      ids(signatures_for_sender({ id: "ghost-2", type: "ghost" }, list)),
+    ).toEqual(["hidden"]);
+    expect(
+      ids(signatures_for_sender({ id: "ghost-9", type: "ghost" }, list)),
+    ).toEqual([]);
+  });
+
+  it("does not match an external account's id against alias bindings", () => {
+    expect(
+      ids(signatures_for_sender({ id: "alias-1", type: "external" }, list)),
+    ).toEqual(["default"]);
+  });
+
+  it("shows only unassigned signatures before a sender is known", () => {
+    expect(ids(signatures_for_sender(null, list))).toEqual(["default"]);
   });
 });

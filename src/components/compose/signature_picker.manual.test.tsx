@@ -34,6 +34,23 @@ const signatures = vi.hoisted(() => [
     content: "Dana Reyes\nAster Communications",
     is_html: false,
     is_default: true,
+    alias_id: null as string | null,
+  },
+  {
+    id: "sig-2",
+    name: "Alias A",
+    content: "Signature for alias A",
+    is_html: false,
+    is_default: false,
+    alias_id: "alias-a",
+  },
+  {
+    id: "sig-3",
+    name: "Alias B",
+    content: "Signature for alias B",
+    is_html: false,
+    is_default: false,
+    alias_id: "alias-b",
   },
 ]);
 
@@ -81,6 +98,7 @@ function Harness({ plain_text }: { plain_text: boolean }) {
         <div>Hello there</div>
       </div>
       <SignaturePicker
+        sender={null}
         on_select={(content) => editor.apply_signature(content || null)}
       />
     </div>
@@ -182,5 +200,66 @@ describe("signature picker in manual mode", () => {
 
     expect(editor().querySelector("[data-aster-signature='1']")).toBeNull();
     expect(editor().textContent).toContain("Hello there");
+  });
+});
+
+describe("signature picker for the selected sender", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  const listed_names = async (
+    sender: { id: string; type: "primary" | "alias" | "ghost" } | null,
+  ) => {
+    await act(async () =>
+      root.render(<SignaturePicker sender={sender} on_select={() => {}} />),
+    );
+    const trigger = container.querySelector<HTMLButtonElement>(
+      'button[title="mail.insert_signature"]',
+    );
+
+    if (!trigger) return null;
+
+    await act(async () => {
+      trigger.dispatchEvent(
+        new PointerEvent("pointerdown", { bubbles: true, button: 0 }),
+      );
+      trigger.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    return signatures
+      .map((signature) => signature.name)
+      .filter((name) =>
+        Array.from(document.body.querySelectorAll("button")).some((button) =>
+          button.textContent?.includes(name),
+        ),
+      );
+  };
+
+  it("lists only the alias's own and unassigned signatures", async () => {
+    expect(await listed_names({ id: "alias-a", type: "alias" })).toEqual([
+      "Work",
+      "Alias A",
+    ]);
+  });
+
+  it("hides alias signatures when sending from the primary address", async () => {
+    expect(await listed_names({ id: "primary", type: "primary" })).toEqual([
+      "Work",
+    ]);
+  });
+
+  it("hides the button when a ghost address has no signature", async () => {
+    expect(await listed_names({ id: "ghost-1", type: "ghost" })).toBeNull();
   });
 });

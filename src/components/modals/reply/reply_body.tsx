@@ -20,6 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
+import type { SenderOption } from "@/hooks/use_sender_aliases";
 
 import { useEffect } from "react";
 import { Tooltip } from "@aster/ui";
@@ -50,6 +51,7 @@ import {
 } from "@/components/compose/compose_shared";
 
 interface ReplyBodyProps {
+  selected_sender: SenderOption | null;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   reduce_motion: boolean;
   is_minimized: boolean;
@@ -102,6 +104,7 @@ interface ReplyBodyProps {
 }
 
 export function ReplyBody({
+  selected_sender,
   t,
   reduce_motion,
   is_minimized,
@@ -426,6 +429,7 @@ export function ReplyBody({
           extra_toolbar_items={
             <SignaturePicker
               disabled={is_scheduling}
+              sender={selected_sender}
               on_select={(content) => {
                 editor.apply_signature(content || null);
               }}
