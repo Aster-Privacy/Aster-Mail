@@ -848,7 +848,7 @@ export const InboxEmailListItem = memo(
                 {show_email_preview &&
                   (search_preview_node || email.preview) && (
                     <span className="text-txt-muted" dir="auto">
-                      {" \u2014 "}
+                      {" - "}
                       {search_preview_node ||
                         (email.preview === RATCHET_UNDECRYPTABLE_SENTINEL ||
                         email.preview === PGP_UNDECRYPTABLE_SENTINEL
