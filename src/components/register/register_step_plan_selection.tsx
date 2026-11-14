@@ -24,6 +24,7 @@ import type { AvailablePlan } from "@/services/api/billing";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
+  Badge,
   Button,
   Input,
   Select,
@@ -927,10 +928,7 @@ export const RegisterStepPlanSelection = ({
                         : t("settings.per_year_short")}
                     </span>
                     {billing_period === "yearly" && (
-                      <span
-                        className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
-                        style={{ backgroundColor: "var(--accent-blue)" }}
-                      >
+                      <Badge className="ms-1" color="green">
                         {t("settings.save_yearly", {
                           amount: format_price(
                             convert_cents(
@@ -940,7 +938,7 @@ export const RegisterStepPlanSelection = ({
                             currency,
                           ),
                         })}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <p className="text-[13px] leading-relaxed text-txt-tertiary">
@@ -972,9 +970,13 @@ export const RegisterStepPlanSelection = ({
         <div className="w-full grid gap-5 mt-10 md:grid-cols-3 max-w-5xl items-stretch">
           {PLAN_TIERS.map((tier) => {
             const is_yearly = billing_period === "yearly";
-            const base_cents = is_yearly ? tier.yearly_cents : tier.monthly_cents;
+            const base_cents = is_yearly
+              ? tier.yearly_cents
+              : tier.monthly_cents;
             const cents = apply_referral_discount(base_cents);
-            const monthly_view_cents = is_yearly ? Math.round(cents / 12) : cents;
+            const monthly_view_cents = is_yearly
+              ? Math.round(cents / 12)
+              : cents;
             const base_monthly_view_cents = is_yearly
               ? Math.round(base_cents / 12)
               : base_cents;
@@ -1039,21 +1041,14 @@ export const RegisterStepPlanSelection = ({
                         : t("settings.plan_billed_monthly")}
                     </span>
                     {saves > 0 && (
-                      <span
-                        className="px-2 py-[2px] rounded-full text-[11px] font-semibold"
-                        style={{
-                          backgroundColor:
-                            "color-mix(in srgb, var(--color-success) 14%, transparent)",
-                          color: "var(--color-success)",
-                        }}
-                      >
+                      <Badge color="green">
                         {t("settings.save_yearly", {
                           amount: format_price(
                             convert_cents(saves, currency),
                             currency,
                           ),
                         })}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                 </div>

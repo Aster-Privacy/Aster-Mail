@@ -24,7 +24,7 @@ import type {
   YearlyOffer,
 } from "@/components/settings/billing/cancel_offer";
 
-import { button_variants } from "@aster/ui";
+import { Badge, button_variants } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { CancelStepActions } from "@/components/settings/billing/cancel_step_actions";
@@ -70,11 +70,11 @@ export function CancelOfferStep({
                 plan: yearly_offer.plan_name,
               })}
             </p>
-            <span className="shrink-0 rounded-full bg-[var(--accent-color,#3b6aef)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--accent-color,#3b6aef)]">
+            <Badge className="shrink-0" color="green">
               {t("settings.cancel_offer_save_badge", {
                 amount: format_cents(yearly_offer.saving_cents),
               })}
-            </span>
+            </Badge>
           </div>
           <p className="mt-1.5 flex items-baseline gap-1">
             <span className="text-2xl font-semibold tabular-nums text-txt-primary">

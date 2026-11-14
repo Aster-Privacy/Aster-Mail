@@ -21,6 +21,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Badge } from "@aster/ui";
 import {
   CheckIcon,
   UserGroupIcon,
@@ -539,32 +540,33 @@ export function BillingSection({
                                         ),
                                         preferred_currency,
                                       )}
-                                      {t("settings.per_year_short")} ·{" "}
-                                      {t("settings.save_yearly", {
-                                        amount: format_price(
-                                          convert_cents(
-                                            tier.savings_cents,
+                                      {t("settings.per_year_short")}{" "}
+                                      <Badge className="ms-1" color="green">
+                                        {t("settings.save_yearly", {
+                                          amount: format_price(
+                                            convert_cents(
+                                              tier.savings_cents,
+                                              preferred_currency,
+                                            ),
                                             preferred_currency,
                                           ),
-                                          preferred_currency,
-                                        ),
-                                      })}
+                                        })}
+                                      </Badge>
                                     </p>
                                   ) : (
-                                    <p
-                                      className="text-[11px] font-medium mt-1"
-                                      style={{ color: "var(--color-success)" }}
-                                    >
-                                      {t("settings.save_yearly", {
-                                        amount: format_price(
-                                          convert_cents(
-                                            tier.savings_cents,
+                                    <div className="mt-1">
+                                      <Badge color="green">
+                                        {t("settings.save_yearly", {
+                                          amount: format_price(
+                                            convert_cents(
+                                              tier.savings_cents,
+                                              preferred_currency,
+                                            ),
                                             preferred_currency,
                                           ),
-                                          preferred_currency,
-                                        ),
-                                      })}
-                                    </p>
+                                        })}
+                                      </Badge>
+                                    </div>
                                   )}
                                   <motion.button
                                     className="flex w-full items-center justify-center rounded-xl py-2.5 mt-3 text-[14px] font-semibold text-white disabled:opacity-50"

@@ -27,6 +27,7 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import {
+  Badge,
   Button,
   Select,
   SelectContent,
@@ -105,14 +106,14 @@ export function PlanUpgradeSelection({
     0,
     Math.min(
       ...(plan_type === "family" ? FAMILY_PLAN_TIERS : PLAN_TIERS)
-      .filter((tier) => tier.monthly_cents > 0)
-      .map((tier) =>
-        Math.floor(
-          ((tier.monthly_cents * 12 - tier.yearly_cents) /
-            (tier.monthly_cents * 12)) *
-            100,
+        .filter((tier) => tier.monthly_cents > 0)
+        .map((tier) =>
+          Math.floor(
+            ((tier.monthly_cents * 12 - tier.yearly_cents) /
+              (tier.monthly_cents * 12)) *
+              100,
+          ),
         ),
-      ),
     ),
   );
 
@@ -492,10 +493,7 @@ export function PlanUpgradeSelection({
                           : t("settings.per_year_short")}
                       </span>
                       {billing_period === "yearly" && (
-                        <span
-                          className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
-                          style={{ backgroundColor: "var(--accent-blue)" }}
-                        >
+                        <Badge className="ms-1" color="green">
                           {t("settings.save_yearly", {
                             amount: format_price(
                               convert_cents(
@@ -505,7 +503,7 @@ export function PlanUpgradeSelection({
                               currency,
                             ),
                           })}
-                        </span>
+                        </Badge>
                       )}
                     </div>
                     <p className="text-[13px] leading-relaxed text-txt-tertiary">
@@ -540,7 +538,10 @@ export function PlanUpgradeSelection({
               const is_yearly = billing_period === "yearly";
               const cents = is_yearly ? tier.yearly_cents : tier.monthly_cents;
               const display_price = format_price(
-                convert_cents(is_yearly ? Math.round(cents / 12) : cents, currency),
+                convert_cents(
+                  is_yearly ? Math.round(cents / 12) : cents,
+                  currency,
+                ),
                 currency,
               );
               const saves = is_yearly ? tier.savings_cents : 0;
@@ -597,21 +598,14 @@ export function PlanUpgradeSelection({
                           : t("settings.plan_billed_monthly")}
                       </span>
                       {saves > 0 && (
-                        <span
-                          className="px-2 py-[2px] rounded-full text-[11px] font-semibold"
-                          style={{
-                            backgroundColor:
-                              "color-mix(in srgb, var(--color-success) 14%, transparent)",
-                            color: "var(--color-success)",
-                          }}
-                        >
+                        <Badge color="green">
                           {t("settings.save_yearly", {
                             amount: format_price(
                               convert_cents(saves, currency),
                               currency,
                             ),
                           })}
-                        </span>
+                        </Badge>
                       )}
                     </div>
                   </div>
