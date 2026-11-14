@@ -153,9 +153,13 @@ export function OfferModal() {
           : t("settings.win_back_offer_expires_in", { days: days_left });
 
   const full_monthly_cents = Math.round(tier.yearly_cents / 12);
-  const offer_monthly_cents = percent
-    ? Math.round((full_monthly_cents * (100 - percent)) / 100)
-    : full_monthly_cents;
+  const first_year_cents = percent
+    ? tier.yearly_cents - Math.round((tier.yearly_cents * percent) / 100)
+    : null;
+  const offer_monthly_cents =
+    first_year_cents === null
+      ? full_monthly_cents
+      : Math.round(first_year_cents / 12);
 
   const benefits = checkout_highlights(tier.id, t).slice(0, 3);
 
@@ -185,17 +189,18 @@ export function OfferModal() {
           }}
         />
 
-        {percent !== null && (
-          <span className="plan_galaxy_badge absolute start-5 top-5 inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wide">
-            {t("settings.offer_modal_badge", { percent })}
-          </span>
-        )}
-
-        {expiry_text && (
-          <span className="absolute end-5 top-5 inline-flex items-center rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
-            {expiry_text}
-          </span>
-        )}
+        <div className="absolute start-5 top-5 flex flex-wrap items-center gap-2 pe-14">
+          {percent !== null && (
+            <span className="plan_galaxy_badge inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wide">
+              {t("settings.offer_modal_badge", { percent })}
+            </span>
+          )}
+          {expiry_text && (
+            <span className="inline-flex items-center rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+              {expiry_text}
+            </span>
+          )}
+        </div>
       </div>
 
       <ModalBody className="space-y-5 pt-1">
@@ -217,6 +222,9 @@ export function OfferModal() {
             <span className="text-[34px] font-bold leading-none tracking-tight text-txt-primary">
               {money(offer_monthly_cents)}
             </span>
+            <span className="text-sm text-txt-muted">
+              {t("settings.per_month_short")}
+            </span>
             {percent !== null && (
               <span className="text-base text-txt-muted line-through">
                 {money(full_monthly_cents)}
@@ -224,7 +232,12 @@ export function OfferModal() {
             )}
           </div>
           <p className="mt-1.5 text-xs text-txt-muted">
-            {t("settings.offer_modal_price_note")}
+            {first_year_cents === null
+              ? t("settings.offer_modal_price_note")
+              : t("settings.offer_modal_first_year_note", {
+                  first: money(first_year_cents),
+                  price: money(tier.yearly_cents),
+                })}
           </p>
         </div>
 

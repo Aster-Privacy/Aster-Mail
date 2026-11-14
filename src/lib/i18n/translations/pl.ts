@@ -6880,19 +6880,10 @@ export const pl = {
     cancel_reason_placeholder_privacy_trust: "Co wzbudziło te obawy?",
     cancel_reason_placeholder_just_testing: "Co chcesz sprawdzić?",
     cancel_reason_placeholder_other: "Co przesądziło o rezygnacji?",
-    cancel_reason_detail_required:
-      "Dopisz krótką odpowiedź, żebyśmy mogli coś z tym zrobić.",
     cancel_not_cancellable:
       "Tej subskrypcji nie można anulować w aplikacji. Skontaktuj się z pomocą techniczną.",
     cancel_failed:
       "Plan nie został anulowany. Rozliczenia się nie zmieniły, więc możesz spróbować ponownie.",
-    cancel_early_title: "Czy coś poszło nie tak?",
-    cancel_early_description:
-      "Subskrypcja zaczęła się kilka dni temu, więc może chodzić o jakiś problem.",
-    cancel_early_body:
-      "Po anulowaniu plan działa do końca okresu rozliczeniowego i możesz przejść dalej już teraz. Jeśli coś nie zadziałało zgodnie z oczekiwaniami, w centrum pomocy opisujemy najczęstsze przyczyny i sposób kontaktu z zespołem.",
-    cancel_early_help: "Otwórz centrum pomocy",
-    cancel_early_continue: "Przejdź do anulowania",
     cancel_reason_continue: "Dalej",
     cancel_impact_title: "Co się zmieni po anulowaniu",
     cancel_impact_description:
@@ -6965,6 +6956,17 @@ export const pl = {
     pause_offer_action: "Wstrzymaj zamiast tego",
     pause_offer_scheduled_toast: "Wstrzymanie zostało zaplanowane. Płatności wznowią się {{date}}.",
     pause_offer_failed: "Nie udało się wstrzymać planu. Spróbuj ponownie.",
+    save_offer_title: "Niższa cena zamiast rezygnacji",
+    save_offer_description: "Możesz zachować plan i przez jakiś czas płacić mniej.",
+    save_offer_body: "Zachowaj {{plan}} z rabatem {{percent}}% na kolejnych {{count}} płatności miesięcznych. Poczta, adresy i ustawienia pozostają bez zmian.",
+    save_offer_body_one: "Zachowaj {{plan}} z rabatem {{percent}}% na następną płatność miesięczną. Poczta, adresy i ustawienia pozostają bez zmian.",
+    save_offer_body_few: "Zachowaj {{plan}} z rabatem {{percent}}% na kolejne {{count}} płatności miesięczne. Poczta, adresy i ustawienia pozostają bez zmian.",
+    save_offer_action: "Zachowaj plan z rabatem {{percent}}%",
+    save_offer_hint: "Po zakończeniu rabatu plan odnawia się w normalnej cenie. Ta oferta jest dostępna raz na konto.",
+    save_offer_applied_toast: "Rabat jest aktywny. Przez kolejnych {{count}} płatności miesięcznych płacisz o {{percent}}% mniej.",
+    save_offer_applied_toast_one: "Rabat jest aktywny. Za następną płatność miesięczną płacisz o {{percent}}% mniej.",
+    save_offer_applied_toast_few: "Rabat jest aktywny. Przez kolejne {{count}} płatności miesięczne płacisz o {{percent}}% mniej.",
+    save_offer_failed: "Nie udało się zastosować rabatu. Spróbuj ponownie.",
     pause_cancel_note: "Twój plan jest wstrzymany, więc anulowanie działa od razu, a płatności nie zostaną wznowione.",
     pause_scheduled_title: "Wstrzymanie zaplanowane",
     pause_scheduled_body: "Twój plan zostanie wstrzymany {{start}}, a płatności wznowią się {{end}}. Do tego czasu nic się nie zmienia.",
@@ -7043,6 +7045,8 @@ export const pl = {
     offer_modal_dismiss: "Nie teraz",
     offer_modal_fine_print:
       "Kod {{code}} jest naliczany przy płatności. Jedno użycie na konto.",
+    offer_modal_first_year_note:
+      "Płatność roczna. Za pierwszy rok płacisz {{first}}. Po zakończeniu rabatu plan odnawia się za {{price}} rocznie, dopóki go nie anulujesz.",
     offer_modal_price_note: "Rabat jest naliczany przy płatności.",
     offer_modal_subtitle: "Przejdź na plan {{plan}} w niższej cenie.",
     offer_modal_title: "Zaoszczędź {{percent}}% na swoim planie",
@@ -8031,6 +8035,28 @@ export const pl = {
       "Twój bank nie obsługuje tej płatności. Wielu kart przedpłaconych nie da się użyć do subskrypcji. Spróbuj karty debetowej lub kredytowej albo zapłać kryptowalutą poniżej.",
     card_declined_contact_bank:
       "Bank odrzucił płatność bez podania przyczyny. Skontaktuj się z bankiem lub zapłać kryptowalutą poniżej.",
+    checkout_decline_insufficient_funds:
+      "Bank odrzucił płatność, ponieważ na koncie brakuje środków. Nic nie zostało pobrane. Spróbuj innej karty lub metody płatności.",
+    checkout_decline_expired_card:
+      "Ta karta wygasła. Nic nie zostało pobrane. Podaj ważną kartę lub wybierz inną metodę płatności.",
+    checkout_decline_card_details:
+      "Niektóre dane karty nie zgadzają się z danymi w banku. Sprawdź numer karty, datę ważności, kod bezpieczeństwa i kod pocztowy, a potem spróbuj ponownie.",
+    checkout_decline_card_not_supported:
+      "Twój bank nie pozwala używać tej karty do subskrypcji, a wiele kart przedpłaconych nie jest obsługiwanych. Nic nie zostało pobrane. Spróbuj karty debetowej lub kredytowej albo innej metody płatności.",
+    checkout_decline_contact_bank:
+      "Bank odrzucił płatność. Nic nie zostało pobrane. Spróbuj innej karty lub metody płatności albo poproś bank o zatwierdzenie płatności i spróbuj ponownie.",
+    checkout_decline_try_again:
+      "Bank nie mógł teraz przetworzyć płatności. Nic nie zostało pobrane. Odczekaj chwilę i spróbuj ponownie.",
+    checkout_decline_switch_card:
+      "Zapłać kartą",
+    checkout_decline_switch_wallet:
+      "Zapłać przez Apple Pay lub Google Pay",
+    checkout_decline_switch_cashapp:
+      "Zapłać przez Cash App",
+    checkout_decline_switch_crypto:
+      "Zapłać kryptowalutą",
+    checkout_too_many_attempts:
+      "Bank odrzucił kilka prób, więc płatności w tym zamówieniu są wstrzymane. Nic nie zostało pobrane. Zamknij okno płatności i spróbuj później albo zapłać kryptowalutą.",
     crypto_pay_button: "Zapłać kryptowalutą",
     crypto_summary_plan: "Plan",
     crypto_summary_addon: "Dodatek",

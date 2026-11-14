@@ -72,8 +72,15 @@ import {
   type checkout_term,
 } from "@/components/settings/billing/checkout_terms";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
+import {
+  alternate_checkout_method,
+  checkout_decline_kind,
+  checkout_decline_message_key,
+  type checkout_payment_error,
+} from "@/components/settings/billing/checkout_decline";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import type { TranslationKey } from "@/lib/i18n/types";
 import {
   use_stripe_theme_tokens,
   build_stripe_element_style,
@@ -113,6 +120,15 @@ interface payment_form_props {
   on_close: () => void;
   on_choose_crypto?: (term: checkout_term) => void;
 }
+
+const MAX_CHECKOUT_DECLINES = 5;
+
+const DECLINE_SWITCH_KEYS = {
+  card: "settings.checkout_decline_switch_card",
+  wallet: "settings.checkout_decline_switch_wallet",
+  cashapp: "settings.checkout_decline_switch_cashapp",
+  crypto: "settings.checkout_decline_switch_crypto",
+} as const satisfies Record<checkout_method, TranslationKey>;
 
 export function PaymentForm({
   plan_name,
@@ -181,6 +197,65 @@ export function PaymentForm({
     useState(false);
   const payment_request_ref = useRef<PaymentRequest | null>(null);
   const payment_form_disposed_ref = useRef(false);
+  const [decline_alternate, set_decline_alternate] =
+    useState<checkout_method | null>(null);
+  const [attempts_exhausted, set_attempts_exhausted] = useState(false);
+  const decline_count_ref = useRef(0);
+  const selected_method_ref = useRef<checkout_method>("card");
+
+  const method_options = useMemo<checkout_method[]>(
+    () => [
+      "card",
+      ...(can_make_wallet_payment ? (["wallet"] as const) : []),
+      "cashapp",
+      ...(addon_id ? ([] as const) : (["crypto"] as const)),
+    ],
+    [can_make_wallet_payment, addon_id],
+  );
+  const method_options_ref = useRef(method_options);
+
+  useEffect(() => {
+    method_options_ref.current = method_options;
+  }, [method_options]);
+
+  useEffect(() => {
+    selected_method_ref.current = selected_method;
+  }, [selected_method]);
+
+  const clear_payment_error = useCallback(() => {
+    set_error_message("");
+    set_decline_alternate(null);
+  }, [set_error_message]);
+
+  const report_payment_error = useCallback(
+    (error: checkout_payment_error) => {
+      const kind = checkout_decline_kind(error);
+
+      if (!kind) {
+        set_decline_alternate(null);
+        set_error_message(error.message || t("settings.payment_failed"));
+
+        return;
+      }
+
+      decline_count_ref.current += 1;
+      const available = method_options_ref.current;
+
+      if (decline_count_ref.current >= MAX_CHECKOUT_DECLINES) {
+        set_attempts_exhausted(true);
+        set_decline_alternate(available.includes("crypto") ? "crypto" : null);
+        set_error_message(t("settings.checkout_too_many_attempts"));
+
+        return;
+      }
+
+      set_decline_alternate(
+        alternate_checkout_method(kind, selected_method_ref.current, available),
+      );
+      set_error_message(t(checkout_decline_message_key(kind)));
+    },
+    [set_error_message, t],
+  );
 
   useEffect(() => {
     payment_form_disposed_ref.current = false;
@@ -319,7 +394,7 @@ export function PaymentForm({
       if (next !== "crypto") {
         set_selected_term((current) => nearest_card_term(current));
       }
-      set_error_message("");
+      clear_payment_error();
       set_field_state({
         number: { complete: false, error: null },
         expiry: { complete: false, error: null },
@@ -328,7 +403,7 @@ export function PaymentForm({
       set_ready_count(0);
       set_selected_method(next);
     },
-    [selected_method, set_error_message],
+    [selected_method, clear_payment_error],
   );
 
   const create_intent_ref = useRef(create_intent_for_plan);
@@ -384,8 +459,13 @@ export function PaymentForm({
     });
 
     pr.on("paymentmethod", async (ev) => {
+      if (decline_count_ref.current >= MAX_CHECKOUT_DECLINES) {
+        ev.complete("fail");
+
+        return;
+      }
       set_phase("processing");
-      set_error_message("");
+      clear_payment_error();
       try {
         const { secret, error: intent_error } =
           await create_intent_ref.current();
@@ -417,7 +497,7 @@ export function PaymentForm({
           ev.paymentMethod.type !== "link" &&
           ev.paymentMethod.type !== "cashapp";
 
-        let conf_error: { message?: string } | undefined;
+        let conf_error: checkout_payment_error | undefined;
         let conf_intent: { status: string } | undefined;
 
         if (is_card_wallet) {
@@ -445,7 +525,7 @@ export function PaymentForm({
 
         if (conf_error) {
           ev.complete("fail");
-          set_error_message(conf_error.message || t("settings.payment_failed"));
+          report_payment_error(conf_error);
           set_phase("ready");
 
           return;
@@ -481,6 +561,8 @@ export function PaymentForm({
     addon_id,
     set_phase,
     set_error_message,
+    clear_payment_error,
+    report_payment_error,
     t,
     finish_success,
   ]);
@@ -594,9 +676,10 @@ export function PaymentForm({
     }
 
     if (!stripe) return;
+    if (attempts_exhausted) return;
 
     set_phase("processing");
-    set_error_message("");
+    clear_payment_error();
 
     try {
       const { secret, error: intent_error } = await create_intent_for_plan();
@@ -630,7 +713,7 @@ export function PaymentForm({
         return;
       }
 
-      let error: { message?: string } | undefined;
+      let error: checkout_payment_error | undefined;
       let paymentIntent: { status: string } | undefined;
 
       if (selected_method === "cashapp") {
@@ -673,7 +756,7 @@ export function PaymentForm({
       }
 
       if (error) {
-        set_error_message(error.message || t("settings.payment_failed"));
+        report_payment_error(error);
         set_phase("ready");
 
         return;
@@ -714,6 +797,9 @@ export function PaymentForm({
     on_choose_crypto,
     set_phase,
     set_error_message,
+    clear_payment_error,
+    report_payment_error,
+    attempts_exhausted,
     finish_success,
     finish_pending_activation,
     activate_after_charge,
@@ -849,13 +935,6 @@ export function PaymentForm({
             ? t("settings.crypto_term_3mo")
             : t("settings.crypto_term_1mo");
 
-  const method_options: checkout_method[] = [
-    "card",
-    ...(can_make_wallet_payment ? (["wallet"] as const) : []),
-    "cashapp",
-    ...(addon_id ? ([] as const) : (["crypto"] as const)),
-  ];
-
   const term_options: checkout_term_option[] = plan_tier
     ? (selected_method === "crypto" ? CRYPTO_TERMS : CARD_TERMS).map((term) => {
         const savings_cents = term_savings_cents(plan_tier, term);
@@ -983,7 +1062,10 @@ export function PaymentForm({
   );
 
   const pay_action =
-    requires_payment && selected_method === "wallet" && payment_request ? (
+    requires_payment &&
+    selected_method === "wallet" &&
+    payment_request &&
+    !attempts_exhausted ? (
       <PaymentRequestButtonElement
         options={{
           paymentRequest: payment_request,
@@ -1002,7 +1084,8 @@ export function PaymentForm({
         disabled={
           (requires_payment &&
             selected_method !== "crypto" &&
-            (!stripe ||
+            (attempts_exhausted ||
+              !stripe ||
               !elements ||
               (selected_method === "card" && !all_ready))) ||
           phase === "processing"
@@ -1103,10 +1186,20 @@ export function PaymentForm({
 
         {error_message && (
           <div
-            className="rounded-xl p-3 text-sm"
+            className="rounded-xl p-3 text-sm space-y-2"
+            role="alert"
             style={{ backgroundColor: colors.danger, color: "#fff" }}
           >
-            {error_message}
+            <p>{error_message}</p>
+            {decline_alternate && phase !== "processing" && (
+              <button
+                className="font-semibold underline underline-offset-2"
+                type="button"
+                onClick={() => change_payment_method(decline_alternate)}
+              >
+                {t(DECLINE_SWITCH_KEYS[decline_alternate])}
+              </button>
+            )}
           </div>
         )}
       </div>

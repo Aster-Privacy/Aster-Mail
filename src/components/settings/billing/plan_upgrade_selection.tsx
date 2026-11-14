@@ -232,20 +232,22 @@ export function PlanUpgradeSelection({
     "individual",
   );
   const [billing_period, set_billing_period] = useState<"monthly" | "yearly">(
-    "monthly",
+    "yearly",
   );
 
   const yearly_save_percent = Math.max(
     0,
-    ...(plan_type === "family" ? FAMILY_PLAN_TIERS : PLAN_TIERS)
+    Math.min(
+      ...(plan_type === "family" ? FAMILY_PLAN_TIERS : PLAN_TIERS)
       .filter((tier) => tier.monthly_cents > 0)
       .map((tier) =>
-        Math.round(
+        Math.floor(
           ((tier.monthly_cents * 12 - tier.yearly_cents) /
             (tier.monthly_cents * 12)) *
             100,
         ),
       ),
+    ),
   );
 
   const [currency, set_currency] = useState<string>("usd");

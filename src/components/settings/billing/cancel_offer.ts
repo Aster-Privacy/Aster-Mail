@@ -182,3 +182,37 @@ export function get_cancel_offers(
       : yearly_offer_for(subscription, interval),
   };
 }
+
+export const SAVE_OFFER_REASONS: readonly string[] = [
+  "too_expensive",
+  "just_testing",
+];
+
+export interface SaveOffer {
+  percent_off: number;
+  months: number;
+}
+
+export function get_save_offer_for(
+  reason: string | null | undefined,
+  status:
+    | {
+        eligible: boolean;
+        percent_off?: number;
+        months?: number;
+      }
+    | null
+    | undefined,
+): SaveOffer | null {
+  if (!reason || !SAVE_OFFER_REASONS.includes(reason)) return null;
+  if (!status?.eligible) return null;
+
+  const percent_off = status.percent_off ?? 0;
+  const months = status.months ?? 0;
+
+  if (!Number.isInteger(percent_off) || percent_off < 1 || percent_off > 100)
+    return null;
+  if (!Number.isInteger(months) || months < 1 || months > 12) return null;
+
+  return { percent_off, months };
+}

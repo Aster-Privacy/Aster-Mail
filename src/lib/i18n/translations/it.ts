@@ -5032,19 +5032,10 @@ export const it = {
       "Che cosa ha fatto nascere questa preoccupazione?",
     cancel_reason_placeholder_just_testing: "Che cosa volevi scoprire?",
     cancel_reason_placeholder_other: "Che cosa ti ha portato ad annullare?",
-    cancel_reason_detail_required:
-      "Aggiungi una risposta breve così possiamo intervenire.",
     cancel_not_cancellable:
       "Questo abbonamento non può essere annullato nell'app. Contatta l'assistenza per annullarlo.",
     cancel_failed:
       "Il tuo piano non è stato annullato. La fatturazione non è cambiata, quindi puoi riprovare.",
-    cancel_early_title: "È andato storto qualcosa?",
-    cancel_early_description:
-      "Hai attivato l'abbonamento pochi giorni fa, quindi potrebbe esserci un problema.",
-    cancel_early_body:
-      "Annullando, il piano resta attivo fino alla fine del periodo di fatturazione e puoi procedere subito. Se qualcosa non ha funzionato come ti aspettavi, il centro assistenza spiega le cause più comuni e come contattare il team.",
-    cancel_early_help: "Apri il centro assistenza",
-    cancel_early_continue: "Continua con l'annullamento",
     cancel_reason_continue: "Continua",
     cancel_impact_title: "Cosa cambia se annulli",
     cancel_impact_description:
@@ -5109,6 +5100,15 @@ export const it = {
     pause_offer_action: "Metti in pausa",
     pause_offer_scheduled_toast: "La pausa è programmata. La fatturazione riprende il {{date}}.",
     pause_offer_failed: "Non è stato possibile mettere in pausa il piano. Riprova.",
+    save_offer_title: "Un prezzo più basso",
+    save_offer_description: "Puoi mantenere il tuo piano e pagare meno per un periodo.",
+    save_offer_body: "Mantieni {{plan}} con il {{percent}}% di sconto sui prossimi {{count}} pagamenti mensili. Email, indirizzi e impostazioni restano come sono.",
+    save_offer_body_one: "Mantieni {{plan}} con il {{percent}}% di sconto sul prossimo pagamento mensile. Email, indirizzi e impostazioni restano come sono.",
+    save_offer_action: "Mantieni il piano con il {{percent}}% di sconto",
+    save_offer_hint: "Al termine dello sconto, il piano si rinnova al prezzo normale. Questa offerta è disponibile una sola volta per account.",
+    save_offer_applied_toast: "Lo sconto è attivo. Paghi il {{percent}}% in meno sui prossimi {{count}} pagamenti mensili.",
+    save_offer_applied_toast_one: "Lo sconto è attivo. Paghi il {{percent}}% in meno sul prossimo pagamento mensile.",
+    save_offer_failed: "Impossibile applicare lo sconto. Riprova.",
     pause_cancel_note: "Il tuo piano è in pausa, quindi l'annullamento ha effetto subito e la fatturazione non riprende.",
     pause_scheduled_title: "Pausa programmata",
     pause_scheduled_body: "Il tuo piano va in pausa il {{start}} e la fatturazione riprende il {{end}}. Fino ad allora non cambia nulla.",
@@ -5190,6 +5190,8 @@ export const it = {
     offer_modal_dismiss: "Non ora",
     offer_modal_fine_print:
       "Il codice {{code}} si applica al pagamento. Un utilizzo per account.",
+    offer_modal_first_year_note:
+      "Fatturazione annuale. Paghi {{first}} per il primo anno. Al termine dello sconto, il piano si rinnova a {{price}} all'anno finché non lo annulli.",
     offer_modal_price_note: "Lo sconto si applica al pagamento.",
     offer_modal_subtitle: "Passa a {{plan}} a un prezzo più basso.",
     offer_modal_title: "Risparmia il {{percent}}% sul tuo piano",
@@ -7902,6 +7904,28 @@ export const it = {
       "La tua banca non supporta questo pagamento. Molte carte prepagate non si possono usare per un abbonamento. Prova con una carta di debito o di credito, oppure paga con crypto qui sotto.",
     card_declined_contact_bank:
       "La tua banca ha rifiutato il pagamento senza dirci il motivo. Contatta la tua banca oppure paga con crypto qui sotto.",
+    checkout_decline_insufficient_funds:
+      "La tua banca ha rifiutato il pagamento perché il conto non ha fondi sufficienti. Non è stato addebitato nulla. Prova un'altra carta o un altro metodo di pagamento.",
+    checkout_decline_expired_card:
+      "Questa carta è scaduta. Non è stato addebitato nulla. Inserisci una carta valida o scegli un altro metodo di pagamento.",
+    checkout_decline_card_details:
+      "Alcuni dati della carta non corrispondono a quelli registrati dalla banca. Controlla numero, data di scadenza, codice di sicurezza e CAP, poi riprova.",
+    checkout_decline_card_not_supported:
+      "La tua banca non consente questa carta per gli abbonamenti, e molte carte prepagate non sono supportate. Non è stato addebitato nulla. Prova una carta di debito o di credito, o un altro metodo di pagamento.",
+    checkout_decline_contact_bank:
+      "La tua banca ha rifiutato il pagamento. Non è stato addebitato nulla. Prova un'altra carta o un altro metodo di pagamento, oppure chiedi alla banca di autorizzare il pagamento e riprova.",
+    checkout_decline_try_again:
+      "La tua banca non è riuscita a elaborare il pagamento in questo momento. Non è stato addebitato nulla. Attendi un momento, poi riprova.",
+    checkout_decline_switch_card:
+      "Paga invece con carta",
+    checkout_decline_switch_wallet:
+      "Paga invece con Apple Pay o Google Pay",
+    checkout_decline_switch_cashapp:
+      "Paga invece con Cash App",
+    checkout_decline_switch_crypto:
+      "Paga invece in criptovalute",
+    checkout_too_many_attempts:
+      "La tua banca ha rifiutato diversi tentativi, quindi i pagamenti sono sospesi per questo checkout. Non è stato addebitato nulla. Chiudi il checkout e riprova più tardi, oppure paga in criptovalute.",
     crypto_pay_button: "Paga con crypto",
     crypto_summary_plan: "Piano",
     crypto_summary_addon: "Componente aggiuntivo",

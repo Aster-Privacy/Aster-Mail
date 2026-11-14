@@ -84,6 +84,10 @@ import {
 } from "@/stores/upgrade_store";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 
+const USAGE_NOT_REPORTED: ReadonlySet<UpgradeLimitKey> = new Set([
+  "max_labels",
+]);
+
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_email_aliases: "settings.usage_aliases",
   max_custom_domains: "settings.usage_domains",
@@ -93,6 +97,7 @@ const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_custom_categories: "settings.usage_custom_categories",
   max_linked_accounts: "settings.usage_linked_accounts",
   max_external_accounts: "settings.usage_external_accounts",
+  max_labels: "settings.folders_limit",
   generic: "settings.upgrade_generic_resource",
 };
 
@@ -225,8 +230,8 @@ export function UpgradeModal() {
   } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
   const [audience, set_audience] = useState<PlanAudience>("individual");
-  const [interval, set_interval] = useState<"month" | "year">("month");
-  const [term_id, set_term_id] = useState("monthly");
+  const [interval, set_interval] = useState<"month" | "year">("year");
+  const [term_id, set_term_id] = useState("yearly");
   const [crypto_tier, set_crypto_tier] = useState<PlanTier | null>(null);
   const [crypto_term_months, set_crypto_term_months] = useState(1);
   const [pending_tier, set_pending_tier] = useState<PlanTier | null>(null);
@@ -776,7 +781,7 @@ export function UpgradeModal() {
             </div>
           ) : null}
 
-          {!is_storage && limit_info ? (
+          {!is_storage && limit_info && !USAGE_NOT_REPORTED.has(state.limit_key) ? (
             <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-sm font-medium text-txt-primary">

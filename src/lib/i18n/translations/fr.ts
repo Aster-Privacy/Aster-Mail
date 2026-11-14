@@ -6713,19 +6713,10 @@ export const fr = {
       "Qu'est-ce qui a suscité cette inquiétude ?",
     cancel_reason_placeholder_just_testing: "Que vouliez-vous découvrir ?",
     cancel_reason_placeholder_other: "Qu'est-ce qui vous a décidé à résilier ?",
-    cancel_reason_detail_required:
-      "Ajoutez une réponse courte pour que nous puissions agir.",
     cancel_not_cancellable:
       "Cet abonnement ne peut pas être résilié dans l'app. Contactez l'assistance pour le résilier.",
     cancel_failed:
       "Votre forfait n'a pas été résilié. Votre facturation est inchangée, vous pouvez réessayer.",
-    cancel_early_title: "Un problème est-il survenu ?",
-    cancel_early_description:
-      "Vous vous êtes abonné il y a quelques jours, un problème est peut-être en cause.",
-    cancel_early_body:
-      "L'annulation laisse votre offre active jusqu'à la fin de la période de facturation, et vous pouvez continuer maintenant. Si quelque chose n'a pas fonctionné comme prévu, le centre d'aide explique les causes les plus courantes et comment joindre l'équipe.",
-    cancel_early_help: "Ouvrir le centre d'aide",
-    cancel_early_continue: "Continuer l'annulation",
     cancel_reason_continue: "Continuer",
     cancel_impact_title: "Ce qui change si vous annulez",
     cancel_impact_description:
@@ -6789,6 +6780,15 @@ export const fr = {
     pause_offer_action: "Mettre en pause",
     pause_offer_scheduled_toast: "Votre pause est programmée. La facturation reprend le {{date}}.",
     pause_offer_failed: "Impossible de mettre votre offre en pause. Réessayez.",
+    save_offer_title: "Un prix réduit à la place",
+    save_offer_description: "Vous pouvez garder votre offre et payer moins pendant un temps.",
+    save_offer_body: "Gardez {{plan}} avec {{percent}} % de réduction sur vos {{count}} prochains paiements mensuels. Vos e-mails, adresses et paramètres restent inchangés.",
+    save_offer_body_one: "Gardez {{plan}} avec {{percent}} % de réduction sur votre prochain paiement mensuel. Vos e-mails, adresses et paramètres restent inchangés.",
+    save_offer_action: "Garder mon offre à -{{percent}} %",
+    save_offer_hint: "À la fin de la réduction, votre offre est renouvelée à son prix normal. Cette offre n'est disponible qu'une fois par compte.",
+    save_offer_applied_toast: "Votre réduction est active. Vous payez {{percent}} % de moins sur vos {{count}} prochains paiements mensuels.",
+    save_offer_applied_toast_one: "Votre réduction est active. Vous payez {{percent}} % de moins sur votre prochain paiement mensuel.",
+    save_offer_failed: "Impossible d'appliquer la réduction. Réessayez.",
     pause_cancel_note: "Votre offre est en pause : l'annulation prend effet immédiatement et la facturation ne reprend pas.",
     pause_scheduled_title: "Pause programmée",
     pause_scheduled_body: "Votre offre se met en pause le {{start}} et la facturation reprend le {{end}}. D'ici là, rien ne change.",
@@ -6863,6 +6863,8 @@ export const fr = {
     offer_modal_dismiss: "Pas maintenant",
     offer_modal_fine_print:
       "Le code {{code}} s'applique au paiement. Une utilisation par compte.",
+    offer_modal_first_year_note:
+      "Facturation annuelle. Vous payez {{first}} pour la première année. À la fin de la remise, votre forfait est renouvelé à {{price}} par an jusqu'à ce que vous le résiliez.",
     offer_modal_price_note: "La remise s'applique au paiement.",
     offer_modal_subtitle: "Passez à {{plan}} à un tarif réduit.",
     offer_modal_title: "Économisez {{percent}} % sur votre offre",
@@ -7988,6 +7990,28 @@ export const fr = {
       "Votre banque ne prend pas en charge ce paiement. Beaucoup de cartes prépayées ne peuvent pas servir à un abonnement. Essayez une carte de débit ou de crédit, ou payez en crypto ci-dessous.",
     card_declined_contact_bank:
       "Votre banque a refusé le paiement sans nous en donner la raison. Contactez votre banque ou payez en crypto ci-dessous.",
+    checkout_decline_insufficient_funds:
+      "Votre banque a refusé le paiement car le compte n'est pas suffisamment approvisionné. Aucun montant n'a été débité. Essayez une autre carte ou un autre moyen de paiement.",
+    checkout_decline_expired_card:
+      "Cette carte a expiré. Aucun montant n'a été débité. Saisissez une carte valide ou choisissez un autre moyen de paiement.",
+    checkout_decline_card_details:
+      "Certaines informations de la carte ne correspondent pas à celles de votre banque. Vérifiez le numéro, la date d'expiration, le code de sécurité et le code postal, puis réessayez.",
+    checkout_decline_card_not_supported:
+      "Votre banque n'autorise pas cette carte pour les abonnements, et de nombreuses cartes prépayées ne sont pas prises en charge. Aucun montant n'a été débité. Essayez une carte de débit ou de crédit, ou un autre moyen de paiement.",
+    checkout_decline_contact_bank:
+      "Votre banque a refusé le paiement. Aucun montant n'a été débité. Essayez une autre carte ou un autre moyen de paiement, ou demandez à votre banque d'autoriser le paiement, puis réessayez.",
+    checkout_decline_try_again:
+      "Votre banque n'a pas pu traiter le paiement pour le moment. Aucun montant n'a été débité. Patientez un instant, puis réessayez.",
+    checkout_decline_switch_card:
+      "Payer plutôt par carte",
+    checkout_decline_switch_wallet:
+      "Payer plutôt avec Apple Pay ou Google Pay",
+    checkout_decline_switch_cashapp:
+      "Payer plutôt avec Cash App",
+    checkout_decline_switch_crypto:
+      "Payer plutôt en crypto",
+    checkout_too_many_attempts:
+      "Votre banque a refusé plusieurs tentatives, les paiements sont donc suspendus pour ce paiement. Aucun montant n'a été débité. Fermez le paiement et réessayez plus tard, ou payez en crypto.",
     crypto_pay_button: "Payer avec de la crypto",
     crypto_pay_now: "Payer maintenant en crypto",
     crypto_renew_link: "Renouveler",

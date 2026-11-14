@@ -6647,19 +6647,10 @@ export const nl = {
     cancel_reason_placeholder_privacy_trust: "Waardoor ontstond die zorg?",
     cancel_reason_placeholder_just_testing: "Wat wilde je uitzoeken?",
     cancel_reason_placeholder_other: "Waarom heb je besloten op te zeggen?",
-    cancel_reason_detail_required:
-      "Schrijf er kort iets bij zodat we er iets mee kunnen.",
     cancel_not_cancellable:
       "Dit abonnement kun je niet in de app opzeggen. Neem contact op met de klantenservice.",
     cancel_failed:
       "Je abonnement is niet opgezegd. Je facturering is ongewijzigd, dus je kunt het opnieuw proberen.",
-    cancel_early_title: "Is er iets misgegaan?",
-    cancel_early_description:
-      "Je bent een paar dagen geleden begonnen, dus mogelijk zit er een probleem achter.",
-    cancel_early_body:
-      "Bij opzeggen blijft je abonnement lopen tot het einde van de factuurperiode en je kunt nu verdergaan. Als iets niet werkte zoals verwacht, staan in het helpcentrum de bekende oorzaken en hoe je het team bereikt.",
-    cancel_early_help: "Helpcentrum openen",
-    cancel_early_continue: "Doorgaan met opzeggen",
     cancel_reason_continue: "Doorgaan",
     cancel_impact_title: "Wat er verandert als je opzegt",
     cancel_impact_description:
@@ -6724,6 +6715,15 @@ export const nl = {
     pause_offer_action: "Pauzeren in plaats daarvan",
     pause_offer_scheduled_toast: "Je pauze is gepland. De facturering wordt op {{date}} hervat.",
     pause_offer_failed: "We konden je abonnement niet pauzeren. Probeer het opnieuw.",
+    save_offer_title: "Een lagere prijs",
+    save_offer_description: "U kunt uw abonnement houden en een tijdje minder betalen.",
+    save_offer_body: "Houd {{plan}} met {{percent}}% korting op de volgende {{count}} maandbetalingen. Uw e-mail, adressen en instellingen blijven zoals ze zijn.",
+    save_offer_body_one: "Houd {{plan}} met {{percent}}% korting op uw volgende maandbetaling. Uw e-mail, adressen en instellingen blijven zoals ze zijn.",
+    save_offer_action: "Abonnement houden met {{percent}}% korting",
+    save_offer_hint: "Na afloop van de korting wordt uw abonnement verlengd tegen de normale prijs. Deze aanbieding geldt één keer per account.",
+    save_offer_applied_toast: "Uw korting is actief. U betaalt {{percent}}% minder voor de volgende {{count}} maandbetalingen.",
+    save_offer_applied_toast_one: "Uw korting is actief. U betaalt {{percent}}% minder voor uw volgende maandbetaling.",
+    save_offer_failed: "De korting kon niet worden toegepast. Probeer het opnieuw.",
     pause_cancel_note: "Je abonnement is gepauzeerd, dus opzeggen gaat direct in en de facturering wordt niet hervat.",
     pause_scheduled_title: "Pauze gepland",
     pause_scheduled_body: "Je abonnement wordt op {{start}} gepauzeerd en de facturering wordt op {{end}} hervat. Tot die tijd verandert er niets.",
@@ -6801,6 +6801,8 @@ export const nl = {
     offer_modal_dismiss: "Niet nu",
     offer_modal_fine_print:
       "Code {{code}} wordt bij het afrekenen toegepast. Eén keer per account.",
+    offer_modal_first_year_note:
+      "Jaarlijks gefactureerd. Je betaalt {{first}} voor het eerste jaar. Na afloop van de korting wordt je abonnement verlengd voor {{price}} per jaar tot je opzegt.",
     offer_modal_price_note: "De korting wordt bij het afrekenen toegepast.",
     offer_modal_subtitle: "Stap over naar {{plan}} voor een lagere prijs.",
     offer_modal_title: "Bespaar {{percent}}% op je abonnement",
@@ -7871,6 +7873,28 @@ export const nl = {
       "Je bank ondersteunt deze betaling niet. Veel prepaidkaarten werken niet voor een abonnement. Probeer een debit- of creditcard of betaal hieronder met crypto.",
     card_declined_contact_bank:
       "Je bank heeft de betaling geweigerd zonder ons een reden te geven. Neem contact op met je bank of betaal hieronder met crypto.",
+    checkout_decline_insufficient_funds:
+      "Je bank heeft de betaling geweigerd omdat er onvoldoende saldo is. Er is niets afgeschreven. Probeer een andere kaart of betaalmethode.",
+    checkout_decline_expired_card:
+      "Deze kaart is verlopen. Er is niets afgeschreven. Voer een geldige kaart in of kies een andere betaalmethode.",
+    checkout_decline_card_details:
+      "Sommige kaartgegevens komen niet overeen met wat je bank heeft. Controleer het kaartnummer, de vervaldatum, de beveiligingscode en de postcode en probeer het opnieuw.",
+    checkout_decline_card_not_supported:
+      "Je bank staat deze kaart niet toe voor abonnementen, en veel prepaidkaarten worden niet ondersteund. Er is niets afgeschreven. Probeer een debit- of creditcard, of een andere betaalmethode.",
+    checkout_decline_contact_bank:
+      "Je bank heeft de betaling geweigerd. Er is niets afgeschreven. Probeer een andere kaart of betaalmethode, of vraag je bank de betaling goed te keuren en probeer het opnieuw.",
+    checkout_decline_try_again:
+      "Je bank kon de betaling op dit moment niet verwerken. Er is niets afgeschreven. Wacht even en probeer het opnieuw.",
+    checkout_decline_switch_card:
+      "Betaal in plaats daarvan met een kaart",
+    checkout_decline_switch_wallet:
+      "Betaal in plaats daarvan met Apple Pay of Google Pay",
+    checkout_decline_switch_cashapp:
+      "Betaal in plaats daarvan met Cash App",
+    checkout_decline_switch_crypto:
+      "Betaal in plaats daarvan met crypto",
+    checkout_too_many_attempts:
+      "Je bank heeft meerdere pogingen geweigerd, daarom zijn betalingen voor deze checkout gepauzeerd. Er is niets afgeschreven. Sluit de checkout en probeer het later opnieuw, of betaal met crypto.",
     crypto_pay_button: "Betalen met crypto",
     crypto_pay_now: "Nu betalen",
     crypto_renew_link: "Handmatig verlengen",

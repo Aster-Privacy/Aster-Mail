@@ -3688,6 +3688,28 @@ export const en: Translations = {
       "Your bank does not support this payment. Many prepaid cards cannot be used for a subscription. Try a debit or credit card, or pay with crypto below.",
     card_declined_contact_bank:
       "Your bank declined the payment without telling us why. Contact your bank, or pay with crypto below.",
+    checkout_decline_insufficient_funds:
+      "Your bank declined the payment because the account does not have enough funds. Nothing was charged. Try another card or payment method.",
+    checkout_decline_expired_card:
+      "This card has expired. Nothing was charged. Enter a card with a current expiration date, or choose another payment method.",
+    checkout_decline_card_details:
+      "Some card details do not match what your bank has on file. Check the card number, expiration date, security code, and postal code, then try again.",
+    checkout_decline_card_not_supported:
+      "Your bank does not allow this card for subscription payments, and many prepaid cards are not supported. Nothing was charged. Try a debit or credit card, or choose another payment method.",
+    checkout_decline_contact_bank:
+      "Your bank declined the payment. Nothing was charged. Try another card or payment method, or ask your bank to approve the payment and try again.",
+    checkout_decline_try_again:
+      "Your bank could not process the payment right now. Nothing was charged. Wait a moment, then try again.",
+    checkout_decline_switch_card:
+      "Pay with a card instead",
+    checkout_decline_switch_wallet:
+      "Pay with Apple Pay or Google Pay instead",
+    checkout_decline_switch_cashapp:
+      "Pay with Cash App instead",
+    checkout_decline_switch_crypto:
+      "Pay with crypto instead",
+    checkout_too_many_attempts:
+      "Your bank declined several attempts, so payments are paused for this checkout. Nothing was charged. Close checkout and try again later, or pay with crypto.",
     crypto_pay_button: "Pay with crypto",
     crypto_summary_plan: "Plan",
     crypto_summary_addon: "Add-on",
@@ -5252,18 +5274,10 @@ export const en: Translations = {
     cancel_reason_placeholder_privacy_trust: "What raised the concern?",
     cancel_reason_placeholder_just_testing: "What were you hoping to find out?",
     cancel_reason_placeholder_other: "What made you decide to cancel?",
-    cancel_reason_detail_required: "Add a short answer so we can act on it.",
     cancel_not_cancellable:
       "This subscription can't be canceled in the app. Contact support to cancel it.",
     cancel_failed:
       "Your plan wasn't canceled. Your billing is unchanged, so you can try again.",
-    cancel_early_title: "Did something go wrong?",
-    cancel_early_description:
-      "You subscribed in the last few days, so a problem may be behind this.",
-    cancel_early_body:
-      "Canceling keeps your plan until the end of the billing period, and you can go ahead with it now. If something did not work the way you expected, the help center covers the common causes and how to reach the team.",
-    cancel_early_help: "Open the help center",
-    cancel_early_continue: "Continue to cancel",
     cancel_reason_continue: "Continue",
     cancel_impact_title: "What changes if you cancel",
     cancel_impact_description:
@@ -5324,6 +5338,15 @@ export const en: Translations = {
     pause_offer_action: "Pause instead",
     pause_offer_scheduled_toast: "Your pause is scheduled. Billing resumes on {{date}}.",
     pause_offer_failed: "We could not pause your plan. Try again.",
+    save_offer_title: "A lower price instead",
+    save_offer_description: "You can keep your plan and pay less for a while.",
+    save_offer_body: "Keep {{plan}} at {{percent}}% off for the next {{count}} monthly payments. Your mail, addresses, and settings stay as they are.",
+    save_offer_body_one: "Keep {{plan}} at {{percent}}% off for your next monthly payment. Your mail, addresses, and settings stay as they are.",
+    save_offer_action: "Keep my plan at {{percent}}% off",
+    save_offer_hint: "After the discount ends, your plan renews at its regular price. This offer is available once per account.",
+    save_offer_applied_toast: "Your discount is on. You pay {{percent}}% less for the next {{count}} monthly payments.",
+    save_offer_applied_toast_one: "Your discount is on. You pay {{percent}}% less for your next monthly payment.",
+    save_offer_failed: "We could not apply the discount. Try again.",
     pause_cancel_note: "Your plan is paused, so canceling takes effect right away and billing doesn't resume.",
     pause_scheduled_title: "Pause scheduled",
     pause_scheduled_body: "Your plan pauses on {{start}} and billing resumes on {{end}}. Until then, nothing changes.",
@@ -5336,9 +5359,9 @@ export const en: Translations = {
     pause_resume_failed: "We could not resume your plan. Try again.",
     cancel_final_title: "Confirm cancellation",
     cancel_final_description:
-      "Your {{plan}} plan will be cancelled and ends on {{date}}. You keep full access until then.",
+      "Your {{plan}} plan stays active until {{date}} and doesn't renew after that.",
     cancel_final_description_nodate:
-      "Your {{plan}} plan will be cancelled at the end of the current billing period. You keep full access until then.",
+      "Your {{plan}} plan stays active until the end of the current billing period and doesn't renew after that.",
     cancel_final_confirm: "Cancel my plan",
     cancel_confirm_title: "Cancel Subscription",
     cancel_confirm_description:
@@ -8684,6 +8707,8 @@ export const en: Translations = {
     offer_modal_dismiss: "Not now",
     offer_modal_fine_print:
       "Code {{code}} applies at checkout. One use per account.",
+    offer_modal_first_year_note:
+      "Billed yearly. You pay {{first}} for your first year. When the discount ends, your plan renews at {{price}} a year until you cancel.",
     offer_modal_price_note: "The discount applies at checkout.",
     offer_modal_subtitle: "Move to {{plan}} at a lower price.",
     offer_modal_title: "Save {{percent}}% on your plan",

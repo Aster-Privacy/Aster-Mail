@@ -50,6 +50,7 @@ import { ProfilePictureDialog } from "@/components/profile/profile_picture_dialo
 import {
   AliasCapUpsellModalHost,
   SpecialOfferModalHost,
+  OfferModalHost,
   UpgradeModalHost,
 } from "@/components/upgrade/upgrade_modal_hosts";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
@@ -901,6 +902,7 @@ function MobileApp() {
         <ProfilePictureDialog />
         <ErrorBoundary fallback={null}>
           <SpecialOfferModalHost />
+          <OfferModalHost />
         </ErrorBoundary>
         <EmailNotificationManager />
       </div>

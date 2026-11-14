@@ -29,13 +29,12 @@ import {
 } from "@/services/api/billing";
 
 export type CancelStep =
-  | "early"
   | "reason"
+  | "save"
   | "offer"
   | "pause"
   | "impact"
-  | "password"
-  | "confirm";
+  | "password";
 
 interface ImpactLine {
   key: string;

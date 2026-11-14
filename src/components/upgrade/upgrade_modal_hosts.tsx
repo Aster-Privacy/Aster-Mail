@@ -49,6 +49,10 @@ const AliasCapUpsellModal = lazy_with_retry(() =>
 const SpecialOfferModal = lazy_with_retry(() =>
   load_special_offer_modal().then((m) => ({ default: m.SpecialOfferModal })),
 );
+const load_offer_modal = () => import("@/components/upgrade/offer_modal");
+const OfferModal = lazy_with_retry(() =>
+  load_offer_modal().then((m) => ({ default: m.OfferModal })),
+);
 
 export function preload_upgrade_modals(): void {
   for (const load of [
@@ -123,6 +127,27 @@ export function SpecialOfferModalHost() {
   return (
     <MountOnceNeeded is_needed={is_open || checkout_seq > 0 || can_auto_show}>
       <SpecialOfferModal />
+    </MountOnceNeeded>
+  );
+}
+
+export function OfferModalHost() {
+  const { is_authenticated } = use_auth();
+  const { status, is_loaded } = use_special_offer_status();
+  const { plan_code } = use_plan_limits();
+  const special_offer_showing = special_offer_can_auto_show({
+    status,
+    is_loaded,
+    plan_code,
+  });
+
+  return (
+    <MountOnceNeeded
+      is_needed={
+        is_authenticated && plan_code === "free" && !special_offer_showing
+      }
+    >
+      <OfferModal />
     </MountOnceNeeded>
   );
 }
