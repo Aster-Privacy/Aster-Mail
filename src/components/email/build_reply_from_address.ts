@@ -104,7 +104,11 @@ export function is_reply_from_mismatch(
 
   if (!selected) return false;
 
-  return selected !== received;
+  const received_forms = new Set(identity_addresses_for(received));
+
+  return !identity_addresses_for(selected).some((form) =>
+    received_forms.has(form),
+  );
 }
 
 export interface ReplyFromUndeterminedInput {
@@ -146,6 +150,9 @@ export function collect_recipient_emails(
   return out;
 }
 
-import { normalize_address_ignoring_dots } from "@/utils/address_dots";
+import {
+  identity_addresses_for,
+  normalize_address_ignoring_dots,
+} from "@/utils/address_dots";
 import { catch_all_reply_address } from "@/services/catch_all_sender";
 import { extract_delivered_to } from "@/utils/delivered_to";

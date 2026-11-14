@@ -368,6 +368,27 @@ describe("is_reply_from_mismatch", () => {
     ).toBe(false);
   });
 
+  it("treats dotted and dotless forms of an Aster address as the same", () => {
+    expect(
+      is_reply_from_mismatch("nikolaue@aster.cx", "nikola.ue@aster.cx"),
+    ).toBe(false);
+    expect(
+      is_reply_from_mismatch("nikola.ue@aster.cx", "nikolaue@aster.cx"),
+    ).toBe(false);
+    expect(
+      is_reply_from_mismatch(
+        "n.ikolaue@astermail.org",
+        "nikola.ue@astermail.org",
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps dots significant on other domains", () => {
+    expect(
+      is_reply_from_mismatch("first.last@my.example", "firstlast@my.example"),
+    ).toBe(true);
+  });
+
   it("stays quiet when the received-on alias is unknown", () => {
     expect(is_reply_from_mismatch(undefined, "me@astermail.org")).toBe(false);
     expect(is_reply_from_mismatch("", "me@astermail.org")).toBe(false);
@@ -440,7 +461,12 @@ describe("reply From for the receiving address", () => {
   ): string | undefined {
     return (
       build_reply_from_address(
-        { sender_email: "them@x.example", to_emails, cc_emails, received_on_alias },
+        {
+          sender_email: "them@x.example",
+          to_emails,
+          cc_emails,
+          received_on_alias,
+        },
         false,
       ) ?? resolve_own_recipient_address([...to_emails, ...cc_emails], own)
     );
