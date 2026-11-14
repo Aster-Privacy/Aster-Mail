@@ -263,9 +263,13 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     [tags_lookup],
   );
 
+  const view_alias_hash = current_view.startsWith("alias-")
+    ? get_alias_hash_by_address(alias_address_of(current_view) ?? "")
+    : null;
   const view_filtered_emails = useMemo(
-    () => filter_emails_by_view(email_state.emails, current_view),
-    [email_state.emails, current_view],
+    () =>
+      filter_emails_by_view(email_state.emails, current_view, view_alias_hash),
+    [email_state.emails, current_view, view_alias_hash],
   );
   const kept_open_id = kept_open_email_id(
     view_filtered_emails,
