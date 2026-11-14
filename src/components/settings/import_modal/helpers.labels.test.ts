@@ -30,10 +30,12 @@ import {
   extract_source_folders,
   extract_source_tags,
   folder_for_email,
+  import_placement_flags,
   keyword_labels,
   normalize_label_path,
   source_labels,
   split_label_list,
+  summarize_import_placement,
   tag_tokens_for_email,
 } from "./helpers";
 
@@ -451,5 +453,58 @@ describe("label names and tokens", () => {
 
     expect(tokens).toHaveLength(MAX_TAGS_PER_EMAIL);
     expect(tokens[0]).toBe("tok-Label 0");
+  });
+});
+
+describe("summarize_import_placement", () => {
+  it("counts mail that came from Trash and Spam, ignoring drafts", () => {
+    const emails = [
+      email_with({}, "Inbox"),
+      email_with({}, "Trash"),
+      email_with({}, "Deleted Items"),
+      email_with({}, "Junk"),
+      email_with({}, "Drafts"),
+      email_with({ "x-gmail-labels": "Trash,Opened" }),
+    ];
+
+    expect(summarize_import_placement(emails)).toEqual({
+      total: 5,
+      trashed: 3,
+      spam: 1,
+    });
+  });
+});
+
+describe("import_placement_flags", () => {
+  const trashed = classify_import_labels(["Trash"]);
+  const spam = classify_import_labels(["Spam"]);
+  const archived = classify_import_labels(["Archive"]);
+  const inbox = classify_import_labels(["Inbox"]);
+
+  it("moves mail from Trash to Archive by default", () => {
+    expect(import_placement_flags(trashed, false, "archive")).toEqual({
+      is_archived: true,
+    });
+  });
+
+  it("files mail from Trash into its folder instead of Archive", () => {
+    expect(import_placement_flags(trashed, true, "archive")).toEqual({});
+  });
+
+  it("keeps mail in Trash only when asked", () => {
+    expect(import_placement_flags(trashed, false, "trash")).toEqual({
+      is_trashed: true,
+    });
+  });
+
+  it("keeps Spam, Archive and Inbox placement unchanged", () => {
+    expect(import_placement_flags(spam, false, "archive")).toEqual({
+      is_spam: true,
+    });
+    expect(import_placement_flags(archived, false, "trash")).toEqual({
+      is_archived: true,
+    });
+    expect(import_placement_flags(archived, true, "archive")).toEqual({});
+    expect(import_placement_flags(inbox, false, "archive")).toEqual({});
   });
 });

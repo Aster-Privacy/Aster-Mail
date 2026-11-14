@@ -26,11 +26,14 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { AnimatePresence, motion } from "framer-motion";
-import { Button, UpgradeBtn } from "@aster/ui";
+import { Button, Island, IslandRow, Radio, UpgradeBtn } from "@aster/ui";
 
 import {
+  DEFAULT_IMPORT_TRASH_MODE,
   ImportModalProps,
+  ImportPlacementSummary,
   ImportStep,
+  ImportTrashMode,
   PICKER_REOPEN_DELAY_MS,
   build_thread_map,
   classify_import_email,
@@ -39,6 +42,8 @@ import {
   extract_source_folders,
   extract_source_tags,
   folder_for_email,
+  import_placement_flags,
+  summarize_import_placement,
   tag_tokens_for_email,
 } from "./helpers";
 import { find_import_tag, resolve_import_tags } from "./import_tags";
@@ -139,8 +144,18 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     folders_skipped?: number;
     labels_created?: number;
     labels_skipped?: number;
+    trash_count?: number;
+    trash_mode?: ImportTrashMode;
     warnings?: string[];
   } | null>(null);
+  const [pending_import, set_pending_import] = useState<{
+    collection: ImportCollection;
+    source: ImportSource;
+    summary: ImportPlacementSummary;
+  } | null>(null);
+  const [trash_mode, set_trash_mode] = useState<ImportTrashMode>(
+    DEFAULT_IMPORT_TRASH_MODE,
+  );
   const [parse_warnings, set_parse_warnings] = useState<string[]>([]);
   const [folder_prep_status, set_folder_prep_status] = useState<{
     folder_count: number;
@@ -164,6 +179,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     set_is_cancelling(false);
     set_parse_warnings([]);
     set_folder_prep_status(null);
+    set_pending_import(null);
+    set_trash_mode(DEFAULT_IMPORT_TRASH_MODE);
     cancel_ref.current = false;
   }, []);
 
@@ -211,7 +228,11 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   }, []);
 
   const process_emails = useCallback(
-    async (collection: ImportCollection, source: ImportSource) => {
+    async (
+      collection: ImportCollection,
+      source: ImportSource,
+      chosen_trash_mode: ImportTrashMode = DEFAULT_IMPORT_TRASH_MODE,
+    ) => {
       const emails = collection.summaries;
 
       if (!vault) {
@@ -430,6 +451,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         const emails_to_import: ParsedEmail[] = [];
         let duplicate_count = 0;
         let drafts_skipped_count = 0;
+        let trash_count = 0;
 
         const linked_hashes = new Set<string>();
         const link_entries: LinkRoutingEntry[] = [];
@@ -459,10 +481,16 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
             return;
           }
-          if (classify_import_email(email).skip) {
+          const disposition = classify_import_email(email);
+
+          if (disposition.skip) {
             drafts_skipped_count++;
 
             return;
+          }
+          if (disposition.is_trashed) {
+            trash_count++;
+            if (chosen_trash_mode === "skip") return;
           }
 
           seen_hashes.add(hash);
@@ -503,7 +531,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           await update_active_job({
             status: "completed",
             processed_emails: 0,
-            skipped_emails: duplicate_count + drafts_skipped_count,
+            skipped_emails:
+              duplicate_count +
+              drafts_skipped_count +
+              (chosen_trash_mode === "skip" ? trash_count : 0),
             failed_emails: 0,
           });
 
@@ -513,6 +544,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             drafts_skipped: drafts_skipped_count,
             invalid: 0,
             failed: 0,
+            trash_count,
+            trash_mode: chosen_trash_mode,
           });
           set_step("complete");
 
@@ -742,11 +775,14 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 encrypted.is_read = disposition.is_read;
               }
               if (disposition.is_starred) encrypted.is_starred = true;
-              if (disposition.is_trashed) encrypted.is_trashed = true;
-              else if (disposition.is_spam) encrypted.is_spam = true;
-              else if (disposition.is_archived && !target_folder) {
-                encrypted.is_archived = true;
-              }
+              Object.assign(
+                encrypted,
+                import_placement_flags(
+                  disposition,
+                  Boolean(target_folder),
+                  chosen_trash_mode,
+                ),
+              );
 
               encrypted_batch.push(encrypted);
             } catch (error) {
@@ -769,7 +805,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         const final_status = cancel_ref.current ? "cancelled" : "completed";
         const total_duplicates = duplicate_count + store_duplicate_count;
         const skipped_count =
-          total_duplicates + drafts_skipped_count + invalid_count;
+          total_duplicates +
+          drafts_skipped_count +
+          invalid_count +
+          (chosen_trash_mode === "skip" ? trash_count : 0);
 
         ensure_job_alive();
 
@@ -790,6 +829,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           folders_skipped: skipped_folder_count,
           labels_created: created_label_count,
           labels_skipped: skipped_label_count,
+          trash_count,
+          trash_mode: chosen_trash_mode,
         });
         set_step("complete");
 
@@ -909,6 +950,22 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           return;
         }
 
+        const summary = summarize_import_placement(collection.summaries);
+
+        if (summary.trashed > 0) {
+          set_pending_import({
+            collection,
+            source: effective_source,
+            summary,
+          });
+          set_trash_mode(DEFAULT_IMPORT_TRASH_MODE);
+          set_progress(null);
+          set_is_processing(false);
+          set_step("review");
+
+          return;
+        }
+
         await process_emails(collection, effective_source);
       } catch (err) {
         set_error(
@@ -923,6 +980,29 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     },
     [active_provider, process_emails, t],
   );
+
+  const handle_confirm_review = useCallback(async () => {
+    if (!pending_import) return;
+
+    const { collection, source } = pending_import;
+    const release_unload_guard = hold_import_unload_guard();
+
+    set_pending_import(null);
+    cancel_ref.current = false;
+    set_is_cancelling(false);
+
+    try {
+      await process_emails(collection, source, trash_mode);
+    } finally {
+      release_unload_guard();
+    }
+  }, [pending_import, process_emails, trash_mode]);
+
+  const handle_back_from_review = useCallback(() => {
+    set_pending_import(null);
+    set_trash_mode(DEFAULT_IMPORT_TRASH_MODE);
+    set_step("upload");
+  }, []);
 
   const handle_drag_over = useCallback(
     (e: React.DragEvent) => {
@@ -995,6 +1075,89 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const handle_browse_folder_click = useCallback(() => {
     open_picker(folder_input_ref);
   }, [open_picker]);
+
+  const trash_mode_options: Array<{
+    mode: ImportTrashMode;
+    label: string;
+    hint: string;
+  }> = [
+    {
+      mode: "archive",
+      label: t("settings.import_trash_mode_archive"),
+      hint: t("settings.import_trash_mode_archive_hint"),
+    },
+    {
+      mode: "trash",
+      label: t("settings.import_trash_mode_trash"),
+      hint: t("settings.import_trash_mode_trash_hint"),
+    },
+    {
+      mode: "skip",
+      label: t("settings.import_trash_mode_skip"),
+      hint: t("settings.import_trash_mode_skip_hint"),
+    },
+  ];
+
+  const render_review = (summary: ImportPlacementSummary) => (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-txt-primary">
+          {t("settings.import_review_ready", { count: summary.total })}
+        </p>
+        <p className="text-[13px] leading-relaxed text-txt-secondary">
+          {t("settings.import_review_trash_found", { count: summary.trashed })}
+        </p>
+      </div>
+
+      <Island
+        divided
+        aria-label={t("settings.import_review_trash_label")}
+        className="overflow-hidden"
+        role="radiogroup"
+      >
+        {trash_mode_options.map((option) => (
+          <IslandRow
+            key={option.mode}
+            aria-checked={trash_mode === option.mode}
+            description={option.hint}
+            label={option.label}
+            on_press={() => set_trash_mode(option.mode)}
+            role="radio"
+            trailing={
+              <span aria-hidden="true" className="pointer-events-none flex">
+                <Radio
+                  readOnly
+                  checked={trash_mode === option.mode}
+                  tabIndex={-1}
+                />
+              </span>
+            }
+          />
+        ))}
+      </Island>
+
+      {summary.spam > 0 && (
+        <p className="flex items-start gap-2 text-xs leading-relaxed text-txt-muted">
+          <InformationCircleIcon
+            aria-hidden="true"
+            className="w-4 h-4 mt-px flex-shrink-0"
+          />
+          <span>
+            {t("settings.import_review_spam_note", { count: summary.spam })}
+          </span>
+        </p>
+      )}
+
+      <div className="flex justify-end gap-2">
+        <Button size="md" variant="outline" onClick={handle_back_from_review}>
+          {t("common.back")}
+        </Button>
+        <Button size="md" variant="depth" onClick={handle_confirm_review}>
+          {t("settings.import_review_start")}
+        </Button>
+      </div>
+    </div>
+  );
 
   const render_step_content = () => {
     switch (step) {
@@ -1116,6 +1279,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           </div>
         );
 
+      case "review":
+        return pending_import ? render_review(pending_import.summary) : null;
+
       case "progress":
         return (
           <div className="py-8 text-center">
@@ -1204,6 +1370,18 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                     {t("settings.import_invalid_skipped", {
                       count: import_result.invalid,
                     })}
+                  </p>
+                )}
+                {(import_result.trash_count ?? 0) > 0 && (
+                  <p className="text-xs text-txt-muted">
+                    {t(
+                      import_result.trash_mode === "skip"
+                        ? "settings.import_trash_skipped"
+                        : import_result.trash_mode === "trash"
+                          ? "settings.import_trash_kept"
+                          : "settings.import_trash_archived",
+                      { count: import_result.trash_count ?? 0 },
+                    )}
                   </p>
                 )}
                 {import_result.failed > 0 && (
