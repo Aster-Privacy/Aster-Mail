@@ -82,6 +82,7 @@ describe("get_yearly_offer", () => {
       plan_code: "nova",
       plan_name: "Nova",
       is_family: false,
+      yearly_cents: 8699,
       yearly_monthly_cents: Math.round(8699 / 12),
       saving_cents: 899 * 12 - 8699,
     });

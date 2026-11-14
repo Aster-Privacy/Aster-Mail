@@ -78,6 +78,10 @@ import {
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { OnboardingButton } from "@/components/register/register_shared";
 import {
+  PlanCheckList,
+  PlanHighlightList,
+} from "@/components/settings/billing/plan_highlights";
+import {
   page_variants,
   page_transition,
 } from "@/components/register/register_types";
@@ -245,40 +249,6 @@ function feature_list_for_tier(
     { on: true, text: t("settings.lockdown_title") },
   ];
 }
-
-const CHECK_SVG = (
-  <svg
-    fill="none"
-    height="18"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    viewBox="0 0 24 24"
-    width="18"
-  >
-    <path
-      d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
-const CROSS_SVG = (
-  <svg
-    fill="none"
-    height="18"
-    stroke="currentColor"
-    strokeWidth="1.8"
-    viewBox="0 0 24 24"
-    width="18"
-  >
-    <path
-      d="M9.75 9.75 14.25 14.25M14.25 9.75 9.75 14.25M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 const TIER_DESCRIPTION_KEYS: Record<string, string> = {
   star: "auth.plan_star_description",
@@ -979,29 +949,13 @@ export const RegisterStepPlanSelection = ({
                       : t("settings.family_plan_tagline")}
                   </p>
                 </div>
-                <ul className="flex flex-col gap-3 flex-1">
-                  {features.map((feat, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2.5 text-[13px] leading-snug"
-                      style={{
-                        color: feat.on
-                          ? "var(--text-primary)"
-                          : "var(--text-muted)",
-                      }}
-                    >
-                      <span
-                        className="shrink-0 mt-[1px]"
-                        style={{
-                          color: feat.on ? "var(--accent-blue)" : "#dc2626",
-                        }}
-                      >
-                        {feat.on ? CHECK_SVG : CROSS_SVG}
-                      </span>
-                      <span className="flex-1">{feat.label}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="flex-1">
+                  <PlanCheckList
+                    rows={features
+                      .filter((feat) => feat.on)
+                      .map((feat) => feat.label)}
+                  />
+                </div>
                 <OnboardingButton
                   className={`w-full ${tier.is_recommended ? "plan_galaxy_cta" : ""}`}
                   disabled={is_finalizing}
@@ -1017,17 +971,14 @@ export const RegisterStepPlanSelection = ({
       ) : (
         <div className="w-full grid gap-5 mt-10 md:grid-cols-3 max-w-5xl items-stretch">
           {PLAN_TIERS.map((tier) => {
-            const base_cents =
-              billing_period === "yearly"
-                ? tier.yearly_cents
-                : tier.monthly_cents;
+            const is_yearly = billing_period === "yearly";
+            const base_cents = is_yearly ? tier.yearly_cents : tier.monthly_cents;
             const cents = apply_referral_discount(base_cents);
-            const display_price = format_price(
-              convert_cents(cents, currency),
-              currency,
-            );
-            const saves = billing_period === "yearly" ? tier.savings_cents : 0;
-            const features = feature_list_for_tier(tier.id, t);
+            const monthly_view_cents = is_yearly ? Math.round(cents / 12) : cents;
+            const base_monthly_view_cents = is_yearly
+              ? Math.round(base_cents / 12)
+              : base_cents;
+            const saves = is_yearly ? tier.savings_cents : 0;
             const description = t(
               TIER_DESCRIPTION_KEYS[tier.id] as never,
             ) as string;
@@ -1035,44 +986,66 @@ export const RegisterStepPlanSelection = ({
             return (
               <div
                 key={tier.id}
-                className={`relative rounded-3xl border flex flex-col gap-6 p-7 transition-colors duration-300 ${
+                className={`relative rounded-3xl border flex flex-col gap-5 p-7 transition-colors duration-300 ${
                   tier.is_recommended
-                    ? "plan_galaxy z-10"
+                    ? "plan_galaxy z-10 md:-my-2 md:py-9"
                     : "border-edge-secondary bg-surf-tertiary hover:border-edge-primary"
                 }`}
               >
                 {tier.is_recommended && (
                   <span className="plan_galaxy_badge absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider">
-                    {t("settings.plan_recommended")}
+                    {t("settings.plan_most_popular")}
                   </span>
                 )}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
                   <h3
                     className={`text-lg font-bold leading-tight ${tier.is_recommended ? "plan_galaxy_text_primary" : "text-txt-primary"}`}
                   >
                     {tier.name}
                   </h3>
+                  <p className="text-[13px] leading-relaxed text-txt-tertiary">
+                    {description}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1.5">
                   <div className="flex items-baseline gap-1.5 flex-wrap">
-                    {referral_discount_percent && (
+                    {display_discount_percent ? (
                       <span className="text-lg font-medium leading-none text-txt-muted line-through">
                         {format_price(
-                          convert_cents(base_cents, currency),
+                          convert_cents(base_monthly_view_cents, currency),
                           currency,
                         )}
                       </span>
-                    )}
+                    ) : null}
                     <span className="text-[40px] font-bold leading-none tracking-tight text-txt-primary">
-                      {display_price}
+                      {format_price(
+                        convert_cents(monthly_view_cents, currency),
+                        currency,
+                      )}
                     </span>
                     <span className="text-sm text-txt-muted">
-                      {billing_period === "monthly"
-                        ? t("settings.per_month_short")
-                        : t("settings.per_year_short")}
+                      {t("settings.per_month_short")}
+                    </span>
+                  </div>
+                  <div className="flex min-h-[22px] flex-wrap items-center gap-2 text-[13px] text-txt-secondary">
+                    <span>
+                      {is_yearly
+                        ? t("settings.billing_billed_yearly_total", {
+                            amount: format_price(
+                              convert_cents(cents, currency),
+                              currency,
+                            ),
+                          })
+                        : t("settings.plan_billed_monthly")}
                     </span>
                     {saves > 0 && (
                       <span
-                        className="ms-1 px-2 py-[3px] rounded-full text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)]"
-                        style={{ backgroundColor: "var(--accent-blue)" }}
+                        className="px-2 py-[2px] rounded-full text-[11px] font-semibold"
+                        style={{
+                          backgroundColor:
+                            "color-mix(in srgb, var(--color-success) 14%, transparent)",
+                          color: "var(--color-success)",
+                        }}
                       >
                         {t("settings.save_yearly", {
                           amount: format_price(
@@ -1083,34 +1056,7 @@ export const RegisterStepPlanSelection = ({
                       </span>
                     )}
                   </div>
-                  <p className="text-[13px] leading-relaxed text-txt-tertiary">
-                    {description}
-                  </p>
                 </div>
-
-                <ul className="flex flex-col gap-3 flex-1">
-                  {features.map((f, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2.5 text-[13px] leading-snug"
-                      style={{
-                        color: f.on
-                          ? "var(--text-primary)"
-                          : "var(--text-muted)",
-                      }}
-                    >
-                      <span
-                        className="shrink-0 mt-[1px]"
-                        style={{
-                          color: f.on ? "var(--accent-blue)" : "#dc2626",
-                        }}
-                      >
-                        {f.on ? CHECK_SVG : CROSS_SVG}
-                      </span>
-                      <span className="flex-1">{f.text}</span>
-                    </li>
-                  ))}
-                </ul>
 
                 <OnboardingButton
                   className={`w-full ${tier.is_recommended ? "plan_galaxy_cta" : ""}`}
@@ -1120,6 +1066,10 @@ export const RegisterStepPlanSelection = ({
                 >
                   {t("settings.get_plan", { name: tier.name })}
                 </OnboardingButton>
+
+                <div className="h-px w-full bg-edge-secondary opacity-60" />
+
+                <PlanHighlightList tier_id={tier.id} />
               </div>
             );
           })}

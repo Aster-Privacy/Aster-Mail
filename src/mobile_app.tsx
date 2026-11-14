@@ -130,6 +130,9 @@ const ForgotPasswordPage = lazy_with_retry(
 const PublicCancelPage = lazy_with_retry(
   () => import("@/pages/public_cancel"),
 );
+const PublicCancelConfirmPage = lazy_with_retry(
+  () => import("@/pages/public_cancel/confirm_page"),
+);
 const ResetPasswordPage = lazy_with_retry(
   () => import("@/pages/reset_password"),
 );
@@ -823,6 +826,12 @@ function MobileApp() {
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
               {PUBLIC_CANCEL_ENABLED && (
                 <Route element={<PublicCancelPage />} path="/cancel" />
+              )}
+              {PUBLIC_CANCEL_ENABLED && (
+                <Route
+                  element={<PublicCancelConfirmPage />}
+                  path="/cancel/confirm"
+                />
               )}
               <Route element={<ResetPasswordPage />} path="/reset-password" />
               <Route

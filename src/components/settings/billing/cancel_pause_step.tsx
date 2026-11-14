@@ -23,6 +23,7 @@ import { useState, type ReactNode } from "react";
 import { button_variants } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { CancelStepActions } from "@/components/settings/billing/cancel_step_actions";
 import { format_date } from "@/services/api/billing";
 import { BillingSegmented } from "@/components/settings/billing/billing_segmented";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -130,25 +131,12 @@ export function CancelPauseStep({
         </button>
       </div>
 
-      <div className="mt-5 flex flex-col gap-2 max-sm:[&_button]:w-full sm:flex-row sm:items-center">
-        {keep_plan_slot}
-        <div className="flex flex-col gap-2 sm:ml-auto sm:flex-row sm:items-center">
-          <button
-            className={`${button_variants({ variant: "ghost" })} whitespace-nowrap`}
-            type="button"
-            onClick={on_back}
-          >
-            {t("common.back")}
-          </button>
-          <button
-            className={`${button_variants({ variant: "outline" })} whitespace-nowrap`}
-            type="button"
-            onClick={on_cancel}
-          >
-            {t("settings.cancel_now")}
-          </button>
-        </div>
-      </div>
+      <CancelStepActions
+        is_busy={is_busy}
+        keep_plan_slot={keep_plan_slot}
+        on_back={on_back}
+        on_cancel={on_cancel}
+      />
     </div>
   );
 }

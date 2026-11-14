@@ -1504,3 +1504,23 @@ export async function request_public_cancel(
     cancel_reason,
   });
 }
+
+export interface PublicCancelPlanResponse {
+  plan_name: string;
+  ends_at: string | null;
+  is_cancelled: boolean;
+}
+
+export async function preview_public_cancel(token: string) {
+  return api_client.post<PublicCancelPlanResponse>(
+    "/public/v1/billing/cancel/preview",
+    { token },
+  );
+}
+
+export async function confirm_public_cancel(token: string) {
+  return api_client.post<PublicCancelPlanResponse>(
+    "/public/v1/billing/cancel/confirm",
+    { token },
+  );
+}

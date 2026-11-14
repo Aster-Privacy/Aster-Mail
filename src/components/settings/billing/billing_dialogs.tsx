@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
-import { button_variants } from "@aster/ui";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { Input } from "@/components/ui/input";
@@ -68,6 +67,7 @@ import {
   type DowngradeOffer,
   type YearlyOffer,
 } from "@/components/settings/billing/cancel_offer";
+import { CancelStepActions } from "@/components/settings/billing/cancel_step_actions";
 import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
 import { CancelSaveOfferStep } from "@/components/settings/billing/cancel_save_offer_step";
 import {
@@ -773,42 +773,39 @@ export function BillingDialogs({
                   </p>
                 )}
               </div>
-              <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
-                <AlertDialogCancel className="max-sm:flex-1">
-                  {t("settings.keep_plan")}
-                </AlertDialogCancel>
-                <button
-                  className={`${button_variants({ variant: "ghost" })} max-sm:flex-1`}
-                  type="button"
-                  onClick={() =>
-                    set_cancel_step(
-                      step_before_confirm(flow_options, confirm_came_from),
-                    )
-                  }
-                >
-                  {t("common.back")}
-                </button>
-                <AlertDialogAction
-                  className="aster_btn_destructive max-sm:flex-1"
-                  disabled={
-                    !cancel_password.trim() ||
-                    is_verifying_password ||
-                    is_action_loading ||
-                    (cancel_totp_required && cancel_totp_code.length !== 6)
-                  }
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handle_password_continue();
-                  }}
-                >
-                  <>
-                    {(is_verifying_password || is_action_loading) && (
-                      <ButtonSpinner size="xs" />
-                    )}
-                    {t("settings.cancel_final_confirm")}
-                  </>
-                </AlertDialogAction>
-              </AlertDialogFooter>
+              <CancelStepActions
+                cancel_slot={
+                  <AlertDialogAction
+                    className="aster_btn_destructive"
+                    disabled={
+                      !cancel_password.trim() ||
+                      is_verifying_password ||
+                      is_action_loading ||
+                      (cancel_totp_required && cancel_totp_code.length !== 6)
+                    }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handle_password_continue();
+                    }}
+                  >
+                    <>
+                      {(is_verifying_password || is_action_loading) && (
+                        <ButtonSpinner size="xs" />
+                      )}
+                      {t("settings.cancel_final_confirm")}
+                    </>
+                  </AlertDialogAction>
+                }
+                is_busy={is_verifying_password || is_action_loading}
+                keep_plan_slot={
+                  <AlertDialogCancel>{t("settings.keep_plan")}</AlertDialogCancel>
+                }
+                on_back={() =>
+                  set_cancel_step(
+                    step_before_confirm(flow_options, confirm_came_from),
+                  )
+                }
+              />
             </>
           )}
         </AlertDialogContent>

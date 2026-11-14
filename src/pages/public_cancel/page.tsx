@@ -181,7 +181,7 @@ export default function PublicCancelPage() {
                   disabled={submitting}
                   size="lg"
                   type="submit"
-                  variant="destructive"
+                  variant="depth"
                 >
                   {submitting ? <Spinner size="sm" /> : t("settings.public_cancel_submit")}
                 </Button>

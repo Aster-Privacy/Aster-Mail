@@ -24,6 +24,7 @@ import { button_variants } from "@aster/ui";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio_group";
 import { use_i18n } from "@/lib/i18n/context";
+import { CancelStepActions } from "@/components/settings/billing/cancel_step_actions";
 
 export const CANCEL_REASONS = [
   "too_expensive",
@@ -99,10 +100,10 @@ export function CancelReasonStep({
         }
       />
 
-      <div className="mt-5 flex flex-row items-center gap-2">
-        {keep_plan_slot}
-        <div className="ms-auto flex flex-row flex-wrap items-center justify-end gap-2">
-          {on_see_options && (
+      <CancelStepActions
+        keep_plan_slot={keep_plan_slot}
+        primary_slot={
+          on_see_options && (
             <button
               className={button_variants({ variant: "primary" })}
               type="button"
@@ -110,18 +111,10 @@ export function CancelReasonStep({
             >
               {t("settings.cancel_see_options")}
             </button>
-          )}
-          <button
-            className={button_variants({
-              variant: on_see_options ? "outline" : "primary",
-            })}
-            type="button"
-            onClick={on_cancel}
-          >
-            {t("settings.cancel_now")}
-          </button>
-        </div>
-      </div>
+          )
+        }
+        on_cancel={on_cancel}
+      />
     </div>
   );
 }
