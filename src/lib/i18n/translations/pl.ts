@@ -10023,6 +10023,8 @@ export const pl = {
     to_recipients_prefix: "do {{ recipients }}",
     received_on_prefix: "odebrano na {{ address }}",
     received_via_alias: "dostarczono na alias {{ address }}",
+    forwarded_via: "przez {{ address }}",
+    forwarded_by_label: "Przekazane przez",
     new_reaction: "Nowa reakcja",
     load_external_content: "Załaduj zewnętrzną zawartość",
     image_loading_settings: "Ustawienia obrazów",

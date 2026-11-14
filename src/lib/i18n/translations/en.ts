@@ -8979,6 +8979,8 @@ export const en: Translations = {
     to_recipients_prefix: "to {{ recipients }}",
     received_on_prefix: "received on {{ address }}",
     received_via_alias: "delivered to your alias {{ address }}",
+    forwarded_via: "via {{ address }}",
+    forwarded_by_label: "Forwarded by",
     new_reaction: "New reaction",
     move_to_folder: "Move to folder",
     apply_label: "Apply label",

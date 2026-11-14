@@ -9557,6 +9557,8 @@ export const ja = {
     to_recipients_prefix: "{{ recipients }} 宛て",
     received_on_prefix: "{{ address }} で受信",
     received_via_alias: "エイリアス {{ address }} に配信",
+    forwarded_via: "{{ address }} 経由",
+    forwarded_by_label: "転送元",
     new_reaction: "新しいリアクション",
     trash_auto_delete_notice:
       "ゴミ箱のアイテムは {{ days }} 日後に自動的に削除されます。",

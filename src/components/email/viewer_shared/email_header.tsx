@@ -51,6 +51,7 @@ import {
 import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
+import { ForwardedViaLine } from "@/components/email/shared/forwarded_via_line";
 
 export interface ViewerEmailHeaderProps {
   email: DecryptedEmail;
@@ -247,6 +248,7 @@ export function ViewerEmailHeader({
               {format_email_detail(new Date(email.timestamp))}
             </span>
           </div>
+          <ForwardedViaLine sender={email} />
           <div className="flex items-center gap-2 mt-0.5">
             <Popover>
               <PopoverTrigger asChild>

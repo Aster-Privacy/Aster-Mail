@@ -8048,6 +8048,8 @@ export interface MailTranslations {
   to_recipients_prefix: string;
   received_on_prefix: string;
   received_via_alias: string;
+  forwarded_via: string;
+  forwarded_by_label: string;
   new_reaction: string;
   move_to_folder: string;
   apply_label: string;

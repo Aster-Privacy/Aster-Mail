@@ -104,6 +104,7 @@ import {
   resolve_plain_view,
 } from "@/components/email/plain_view";
 import { use_plain_view_override } from "@/components/email/plain_view_store";
+import { ForwardedViaLine } from "@/components/email/shared/forwarded_via_line";
 
 interface SanitizeJob {
   ready?: SanitizeResult;
@@ -683,6 +684,12 @@ function MobileThreadMessageContent({
             <p className="-mt-0.5 break-all text-[12px] leading-tight text-[var(--text-muted)]">
               <bdi>{shown_address}</bdi>
             </p>
+          )}
+          {!is_own_message && (
+            <ForwardedViaLine
+              className="block truncate text-[12px] leading-tight text-[var(--text-muted)]"
+              sender={message}
+            />
           )}
           {received_on_address && (
             <p className="truncate text-[12px] leading-tight text-[var(--text-muted)]">

@@ -9393,6 +9393,8 @@ export const ko = {
     to_recipients_prefix: "{{ recipients }}에게",
     received_on_prefix: "{{ address }}(으)로 수신",
     received_via_alias: "별칭 {{ address }}(으)로 전달됨",
+    forwarded_via: "{{ address }} 경유",
+    forwarded_by_label: "전달자",
     new_reaction: "새 반응",
     load_external_content: "외부 콘텐츠 불러오기",
     image_loading_settings: "이미지 설정",
