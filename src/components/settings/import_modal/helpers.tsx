@@ -35,7 +35,17 @@ export interface ImportModalProps {
   provider: ImportSource | null;
 }
 
-export type ImportStep = "upload" | "progress" | "complete";
+export type ImportStep = "upload" | "review" | "progress" | "complete";
+
+export type ImportTrashMode = "archive" | "trash" | "skip";
+
+export const DEFAULT_IMPORT_TRASH_MODE: ImportTrashMode = "archive";
+
+export interface ImportPlacementSummary {
+  total: number;
+  trashed: number;
+  spam: number;
+}
 
 export const PICKER_REOPEN_DELAY_MS = 700;
 
@@ -333,6 +343,48 @@ export function classify_import_email(email: ParsedEmail): ImportDisposition {
   ]);
 
   return disposition;
+}
+
+export function summarize_import_placement(
+  emails: ParsedEmail[],
+): ImportPlacementSummary {
+  const summary: ImportPlacementSummary = { total: 0, trashed: 0, spam: 0 };
+
+  for (const email of emails) {
+    const disposition = classify_import_email(email);
+
+    if (disposition.skip) continue;
+    summary.total++;
+    if (disposition.is_trashed) summary.trashed++;
+    else if (disposition.is_spam) summary.spam++;
+  }
+
+  return summary;
+}
+
+export interface ImportPlacementFlags {
+  is_trashed?: boolean;
+  is_spam?: boolean;
+  is_archived?: boolean;
+}
+
+export function import_placement_flags(
+  disposition: ImportDisposition,
+  has_target_folder: boolean,
+  trash_mode: ImportTrashMode,
+): ImportPlacementFlags {
+  if (disposition.is_trashed) {
+    if (trash_mode === "trash") return { is_trashed: true };
+    if (has_target_folder) return {};
+
+    return { is_archived: true };
+  }
+  if (disposition.is_spam) return { is_spam: true };
+  if (disposition.is_archived && !has_target_folder) {
+    return { is_archived: true };
+  }
+
+  return {};
 }
 
 export function extract_source_tags(emails: ParsedEmail[]): string[] {
