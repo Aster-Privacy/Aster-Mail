@@ -22,17 +22,6 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
-  ...(await import_original<
-    typeof import("@/services/crypto/key_manager_pgp")
-  >()),
-  verify_ratchet_prekey_bundle_detailed: async () => ({
-    verdict: "verified" as const,
-    format: "v2" as const,
-    strict: true,
-  }),
-}));
-
 interface DirectoryEntry {
   bundle: Record<string, unknown>;
   history: string[];
@@ -43,7 +32,33 @@ const h = vi.hoisted(() => ({
   directory: new Map<string, unknown>(),
   history_complete: true,
   store: new Map<string, unknown>(),
+  binding: "verified" as "verified" | "tampered" | "legacy",
+  owner_key: null as string | null,
+  owner_pin: null as { fingerprint: string; conflict: boolean } | null,
+  owner_check: "ok" as "ok" | "changed",
 }));
+
+vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/key_manager_pgp")
+  >()),
+  verify_ratchet_prekey_bundle_detailed: async () => ({
+    verdict: h.binding,
+    format: h.binding === "legacy" ? ("hash" as const) : ("v2" as const),
+    strict: h.binding === "verified",
+  }),
+}));
+
+vi.mock(
+  "@/services/crypto/ratchet_identity_pin",
+  async (import_original) => ({
+    ...(await import_original<
+      typeof import("@/services/crypto/ratchet_identity_pin")
+    >()),
+    lookup_owner_key_pin: vi.fn(async () => h.owner_pin),
+    check_owner_key_pin: vi.fn(async () => h.owner_check),
+  }),
+);
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   on_vault_cleared: () => () => {},
@@ -95,6 +110,12 @@ vi.mock("@/services/crypto/message_escrow", () => ({
 vi.mock("@/services/api/client", () => ({
   api_client: {
     get: vi.fn(async (url: string) => {
+      if (url.includes("/keys/public/")) {
+        return h.owner_key
+          ? { data: { public_key: h.owner_key } }
+          : { code: "NOT_FOUND" };
+      }
+
       const match = url.match(
         /\/ratchet\/(identity|prekey-bundle)\/([^/?]+)(\/history)?/,
       );
@@ -303,6 +324,10 @@ describe("bootstrap message for an established session", () => {
     h.vault = null;
     h.directory.clear();
     h.history_complete = true;
+    h.binding = "verified";
+    h.owner_key = null;
+    h.owner_pin = null;
+    h.owner_check = "ok";
     h.store.clear();
     localStorage.clear();
     clear_sender_identity_authentication_cache();
@@ -403,6 +428,120 @@ describe("bootstrap message for an established session", () => {
     await expect(reply("to rotated", receiver_vault)).rejects.toBeInstanceOf(
       RecipientKeyUntrustedError,
     );
+  });
+
+  async function receive_rotation(setup: () => void) {
+    const { receiver_vault, sender_vault, sender_store, receiver_store } =
+      await establish();
+    const rotated = make_vault((await generate_ratchet_keys())!);
+
+    rotated.ratchet_previous_keys = [
+      key_set_of(sender_vault),
+    ] as EncryptedVault["ratchet_previous_keys"];
+    publish("davidw", rotated);
+
+    restore(sender_store);
+    clear_local_ratchet_states();
+    const after = await send("after rotation", rotated);
+
+    restore(receiver_store);
+    setup();
+    const before = JSON.stringify(stored_ratchet_states());
+    const opened = await settle(receive(after, receiver_vault, "m2"));
+
+    return {
+      opened,
+      replaced: JSON.stringify(stored_ratchet_states()) !== before,
+    };
+  }
+
+  function pin_owner_key() {
+    h.owner_key = "owner-key";
+    h.owner_pin = { fingerprint: "owner-fingerprint", conflict: false };
+  }
+
+  it("replaces the session for a changed identity bound by a verified signature", async () => {
+    const result = await receive_rotation(() => {
+      pin_owner_key();
+      h.binding = "verified";
+    });
+
+    expect(result.opened).toBe("after rotation");
+    expect(result.replaced).toBe(true);
+  });
+
+  it.each(["tampered", "legacy"] as const)(
+    "keeps the session for a changed identity with a %s binding when the owner key is pinned",
+    async (binding) => {
+      const result = await receive_rotation(() => {
+        pin_owner_key();
+        h.binding = binding;
+      });
+
+      expect(result.opened).toBe("after rotation");
+      expect(result.replaced).toBe(false);
+    },
+  );
+
+  it("keeps the session for a changed identity when the owner key no longer matches its pin", async () => {
+    const result = await receive_rotation(() => {
+      pin_owner_key();
+      h.owner_check = "changed";
+    });
+
+    expect(result.opened).toBe("after rotation");
+    expect(result.replaced).toBe(false);
+  });
+
+  it("keeps the session for a changed identity when the owner key is pinned but unpublished", async () => {
+    const result = await receive_rotation(() => {
+      h.owner_pin = { fingerprint: "owner-fingerprint", conflict: false };
+    });
+
+    expect(result.opened).toBe("after rotation");
+    expect(result.replaced).toBe(false);
+  });
+
+  it("replaces the session for a changed identity of a peer with no owner key pin", async () => {
+    const result = await receive_rotation(() => {
+      h.binding = "legacy";
+    });
+
+    expect(result.opened).toBe("after rotation");
+    expect(result.replaced).toBe(true);
+  });
+
+  it("keeps the session for a changed identity the directory does not confirm", async () => {
+    const { receiver_vault, sender_vault, sender_store, receiver_store } =
+      await establish();
+    const rotated = make_vault((await generate_ratchet_keys())!);
+
+    restore(sender_store);
+    clear_local_ratchet_states();
+    publish("davidw", rotated);
+    const after = await send("unpublished rotation", rotated);
+
+    h.directory.set("davidw", {
+      bundle: {
+        user_id: "davidw",
+        kem_identity_key: sender_vault.ratchet_identity_public,
+        signed_prekey: sender_vault.ratchet_signed_prekey_public,
+        signed_prekey_signature: "",
+        one_time_prekey: null,
+        pq_prekey: null,
+        pq_kem_public_key: sender_vault.ratchet_pq_identity_public,
+      },
+      history: [sender_vault.ratchet_identity_public as string],
+    });
+    clear_sender_identity_authentication_cache();
+
+    restore(receiver_store);
+    const before = JSON.stringify(stored_ratchet_states());
+
+    expect(await settle(receive(after, receiver_vault, "m2"))).toBe(
+      "unpublished rotation",
+    );
+    expect(JSON.stringify(stored_ratchet_states())).toBe(before);
   });
 
   it("replaces the session when the same identity starts a new chain", async () => {
