@@ -36,10 +36,15 @@ export function retention_step_for(
   return null;
 }
 
-export function step_after_reason(options: CancelFlowOptions): CancelStep {
-  return retention_step_for(options) ?? "impact";
+export function has_retention_options(options: CancelFlowOptions): boolean {
+  return retention_step_for(options) !== null;
 }
 
-export function step_before_impact(options: CancelFlowOptions): CancelStep {
+export function step_before_confirm(
+  options: CancelFlowOptions,
+  came_from: CancelStep,
+): CancelStep {
+  if (came_from === "reason") return "reason";
+
   return retention_step_for(options) ?? "reason";
 }

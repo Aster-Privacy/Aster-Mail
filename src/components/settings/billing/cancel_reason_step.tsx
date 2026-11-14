@@ -24,6 +24,7 @@ import { button_variants } from "@aster/ui";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio_group";
 import { use_i18n } from "@/lib/i18n/context";
+import { CancelStepActions } from "@/components/settings/billing/cancel_step_actions";
 
 export const CANCEL_REASONS = [
   "too_expensive",
@@ -49,7 +50,8 @@ interface CancelReasonStepProps {
   set_reason: (reason: CancelReason | null) => void;
   reason_text: string;
   set_reason_text: (text: string) => void;
-  on_continue: () => void;
+  on_cancel: () => void;
+  on_see_options?: () => void;
   keep_plan_slot?: ReactNode;
 }
 
@@ -58,7 +60,8 @@ export function CancelReasonStep({
   set_reason,
   reason_text,
   set_reason_text,
-  on_continue,
+  on_cancel,
+  on_see_options,
   keep_plan_slot,
 }: CancelReasonStepProps) {
   const { t } = use_i18n();
@@ -97,18 +100,21 @@ export function CancelReasonStep({
         }
       />
 
-      <div className="mt-5 flex flex-row items-center gap-2">
-        {keep_plan_slot}
-        <div className="ms-auto flex flex-row items-center gap-3">
-          <button
-            className={button_variants({ variant: "primary" })}
-            type="button"
-            onClick={on_continue}
-          >
-            {t("settings.cancel_reason_continue")}
-          </button>
-        </div>
-      </div>
+      <CancelStepActions
+        keep_plan_slot={keep_plan_slot}
+        primary_slot={
+          on_see_options && (
+            <button
+              className={button_variants({ variant: "primary" })}
+              type="button"
+              onClick={on_see_options}
+            >
+              {t("settings.cancel_see_options")}
+            </button>
+          )
+        }
+        on_cancel={on_cancel}
+      />
     </div>
   );
 }

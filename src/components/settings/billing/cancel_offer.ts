@@ -95,6 +95,7 @@ export interface YearlyOffer {
   plan_code: string;
   plan_name: string;
   is_family: boolean;
+  yearly_cents: number;
   yearly_monthly_cents: number;
   saving_cents: number;
 }
@@ -119,6 +120,7 @@ export function get_yearly_offer(
     plan_code: tier.id,
     plan_name: tier.name,
     is_family: !!family_tier,
+    yearly_cents: tier.yearly_cents,
     yearly_monthly_cents: Math.round(tier.yearly_cents / 12),
     saving_cents,
   };
@@ -156,6 +158,7 @@ function yearly_offer_for(
 
   return {
     ...offer,
+    yearly_cents: server_offer.yearly_price_cents,
     yearly_monthly_cents: Math.round(server_offer.yearly_price_cents / 12),
     saving_cents: server_offer.saving_cents,
   };

@@ -1490,3 +1490,37 @@ export async function claim_referral_code(code: string) {
 export async function record_referral_share() {
   return api_client.post<void>("/payments/v1/referrals/share", {});
 }
+
+export interface PublicCancelResponse {
+  received: boolean;
+}
+
+export async function request_public_cancel(
+  address: string,
+  cancel_reason: string | null,
+) {
+  return api_client.post<PublicCancelResponse>("/public/v1/billing/cancel", {
+    address,
+    cancel_reason,
+  });
+}
+
+export interface PublicCancelPlanResponse {
+  plan_name: string;
+  ends_at: string | null;
+  is_cancelled: boolean;
+}
+
+export async function preview_public_cancel(token: string) {
+  return api_client.post<PublicCancelPlanResponse>(
+    "/public/v1/billing/cancel/preview",
+    { token },
+  );
+}
+
+export async function confirm_public_cancel(token: string) {
+  return api_client.post<PublicCancelPlanResponse>(
+    "/public/v1/billing/cancel/confirm",
+    { token },
+  );
+}

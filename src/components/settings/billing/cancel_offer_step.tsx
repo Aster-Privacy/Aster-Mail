@@ -27,6 +27,7 @@ import type {
 import { button_variants } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { CancelStepActions } from "@/components/settings/billing/cancel_step_actions";
 import { format_price } from "@/services/api/billing";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 
@@ -39,7 +40,7 @@ interface CancelOfferStepProps {
   on_switch: () => void;
   on_switch_yearly?: () => void;
   on_back: () => void;
-  on_continue: () => void;
+  on_cancel: () => void;
 }
 
 export function CancelOfferStep({
@@ -51,7 +52,7 @@ export function CancelOfferStep({
   on_switch,
   on_switch_yearly,
   on_back,
-  on_continue,
+  on_cancel,
 }: CancelOfferStepProps) {
   const { t } = use_i18n();
 
@@ -62,11 +63,30 @@ export function CancelOfferStep({
   return (
     <div className="py-1">
       {show_yearly && yearly_offer && (
-        <div className="rounded-lg border border-edge-secondary px-3.5 py-3">
-          <p className="text-sm leading-relaxed text-txt-secondary">
-            {t("settings.cancel_offer_yearly_body", {
-              plan: yearly_offer.plan_name,
-              price: format_cents(yearly_offer.yearly_monthly_cents),
+        <div className="rounded-xl border-2 border-[var(--accent-color,#3b6aef)] px-4 py-3.5">
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-sm font-semibold text-txt-primary">
+              {t("settings.cancel_offer_yearly_heading", {
+                plan: yearly_offer.plan_name,
+              })}
+            </p>
+            <span className="shrink-0 rounded-full bg-[var(--accent-color,#3b6aef)]/10 px-2 py-0.5 text-xs font-semibold text-[var(--accent-color,#3b6aef)]">
+              {t("settings.cancel_offer_save_badge", {
+                amount: format_cents(yearly_offer.saving_cents),
+              })}
+            </span>
+          </div>
+          <p className="mt-1.5 flex items-baseline gap-1">
+            <span className="text-2xl font-semibold tabular-nums text-txt-primary">
+              {format_cents(yearly_offer.yearly_monthly_cents)}
+            </span>
+            <span className="text-sm text-txt-muted">
+              {t("settings.cancel_offer_per_month")}
+            </span>
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-txt-muted">
+            {t("settings.cancel_offer_yearly_billed", {
+              total: format_cents(yearly_offer.yearly_cents),
               amount: format_cents(yearly_offer.saving_cents),
             })}
           </p>
@@ -83,13 +103,21 @@ export function CancelOfferStep({
 
       {offer && (
         <div
-          className={`rounded-lg border border-edge-secondary px-3.5 py-3${show_yearly ? " mt-3" : ""}`}
+          className={`rounded-xl border border-edge-secondary px-4 py-3.5${show_yearly ? " mt-3" : ""}`}
         >
-          <p className="text-sm leading-relaxed text-txt-secondary">
-            {t("settings.cancel_offer_body", {
-              plan: offer.plan_name,
-              price: format_cents(offer.monthly_cents),
-            })}
+          <p className="text-sm font-semibold text-txt-primary">
+            {offer.plan_name}
+          </p>
+          <p className="mt-1.5 flex items-baseline gap-1">
+            <span className="text-2xl font-semibold tabular-nums text-txt-primary">
+              {format_cents(offer.monthly_cents)}
+            </span>
+            <span className="text-sm text-txt-muted">
+              {t("settings.cancel_offer_per_month")}
+            </span>
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-txt-muted">
+            {t("settings.cancel_offer_downgrade_detail")}
           </p>
           <button
             className={`${button_variants({ variant: show_yearly ? "outline" : "primary" })} mt-3 w-full`}
@@ -108,26 +136,12 @@ export function CancelOfferStep({
         </p>
       )}
 
-      <div className="mt-5 flex flex-row items-center gap-2">
-        {keep_plan_slot}
-        <div className="ml-auto flex flex-row items-center gap-2">
-          <button
-            className={button_variants({ variant: "ghost" })}
-            type="button"
-            onClick={on_back}
-          >
-            {t("common.back")}
-          </button>
-          <button
-            className={button_variants({ variant: "ghost" })}
-            disabled={is_busy}
-            type="button"
-            onClick={on_continue}
-          >
-            {t("settings.cancel_offer_continue")}
-          </button>
-        </div>
-      </div>
+      <CancelStepActions
+        is_busy={is_busy}
+        keep_plan_slot={keep_plan_slot}
+        on_back={on_back}
+        on_cancel={on_cancel}
+      />
     </div>
   );
 }

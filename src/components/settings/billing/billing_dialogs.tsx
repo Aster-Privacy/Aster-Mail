@@ -67,6 +67,7 @@ import {
   type DowngradeOffer,
   type YearlyOffer,
 } from "@/components/settings/billing/cancel_offer";
+import { CancelStepActions } from "@/components/settings/billing/cancel_step_actions";
 import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
 import { CancelSaveOfferStep } from "@/components/settings/billing/cancel_save_offer_step";
 import {
@@ -75,15 +76,16 @@ import {
 } from "@/components/settings/billing/cancel_pause_step";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import {
-  step_after_reason,
-  step_before_impact,
+  has_retention_options,
+  retention_step_for,
+  step_before_confirm,
 } from "@/components/settings/billing/cancel_flow";
 import {
   CancelReasonStep,
   type CancelReason,
 } from "@/components/settings/billing/cancel_reason_step";
 import {
-  CancelImpactStep,
+  CancelImpactList,
   type CancelStep,
 } from "@/components/settings/billing/cancel_impact_step";
 import {
@@ -180,6 +182,8 @@ export function BillingDialogs({
   const { t } = use_i18n();
   const redirect_handled = useRef(false);
   const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
+  const [confirm_came_from, set_confirm_came_from] =
+    useState<CancelStep>("reason");
   const [is_verifying_password, set_is_verifying_password] = useState(false);
   const [cancel_impact, set_cancel_impact] =
     useState<CancelImpactResponse | null>(null);
@@ -199,6 +203,7 @@ export function BillingDialogs({
     set_cancel_reason(null);
     set_cancel_reason_text("");
     set_cancel_step("reason");
+    set_confirm_came_from("reason");
     set_cancel_impact(null);
     set_is_verifying_password(false);
     set_cancel_totp_code("");
@@ -216,7 +221,7 @@ export function BillingDialogs({
   ]);
 
   useEffect(() => {
-    if (!show_cancel_dialog || cancel_step !== "impact" || cancel_impact)
+    if (!show_cancel_dialog || cancel_step !== "password" || cancel_impact)
       return;
     let cancelled = false;
 
@@ -524,11 +529,14 @@ export function BillingDialogs({
     has_plan_offer: has_offer,
     can_pause,
   };
-  const next_after_reason = step_after_reason(flow_options);
-  const back_from_impact = step_before_impact(flow_options);
+  const retention_step = retention_step_for(flow_options);
+  const go_to_confirm = (from: CancelStep) => {
+    set_confirm_came_from(from);
+    set_cancel_step("password");
+  };
 
   useEffect(() => {
-    if (cancel_step === "save" && !save_offer) set_cancel_step("impact");
+    if (cancel_step === "save" && !save_offer) set_cancel_step("password");
   }, [cancel_step, save_offer, set_cancel_step]);
   const offer_key = yearly_offer
     ? downgrade_offer
@@ -549,9 +557,7 @@ export function BillingDialogs({
               : t("settings.cancel_offer_title")
           : cancel_step === "pause"
             ? t("settings.pause_offer_title")
-            : cancel_step === "impact"
-              ? t("settings.cancel_impact_title")
-              : t("settings.cancel_final_title");
+            : t("settings.cancel_final_title");
 
   const cancel_description =
     cancel_step === "reason"
@@ -566,16 +572,9 @@ export function BillingDialogs({
               : t("settings.cancel_offer_description")
           : cancel_step === "pause"
             ? t("settings.pause_offer_description")
-            : is_paused &&
-                (cancel_step === "impact" || cancel_step === "password")
+            : is_paused && cancel_step === "password"
               ? t("settings.pause_cancel_note")
-              : cancel_step === "impact"
-                ? cancel_effective_date
-                  ? t("settings.cancel_impact_description", {
-                      date: cancel_effective_date,
-                    })
-                  : t("settings.cancel_impact_description_nodate")
-                : cancel_effective_date
+              : cancel_effective_date
                     ? t("settings.cancel_final_description", {
                         date: cancel_effective_date,
                         plan:
@@ -612,7 +611,12 @@ export function BillingDialogs({
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
               }
-              on_continue={() => set_cancel_step(next_after_reason)}
+              on_cancel={() => go_to_confirm("reason")}
+              on_see_options={
+                has_retention_options(flow_options) && retention_step
+                  ? () => set_cancel_step(retention_step)
+                  : undefined
+              }
               reason={cancel_reason}
               reason_text={cancel_reason_text}
               set_reason={set_cancel_reason}
@@ -630,7 +634,7 @@ export function BillingDialogs({
               plan_name={subscription?.plan.name ?? ""}
               on_accept={handle_accept_save_offer}
               on_back={() => set_cancel_step("reason")}
-              on_continue={() => set_cancel_step("impact")}
+              on_cancel={() => go_to_confirm(cancel_step)}
             />
           ) : cancel_step === "offer" && has_offer ? (
             <CancelOfferStep
@@ -642,7 +646,7 @@ export function BillingDialogs({
               }
               offer={downgrade_offer}
               on_back={() => set_cancel_step("reason")}
-              on_continue={() => set_cancel_step("impact")}
+              on_cancel={() => go_to_confirm(cancel_step)}
               on_switch={() => {
                 const offer = downgrade_offer;
 
@@ -678,23 +682,15 @@ export function BillingDialogs({
                 pause_status?.plan_name ?? subscription?.plan.name ?? ""
               }
               on_back={() => set_cancel_step("reason")}
-              on_continue={() => set_cancel_step("impact")}
+              on_cancel={() => go_to_confirm(cancel_step)}
               on_pause={handle_pause}
-            />
-          ) : cancel_step === "impact" ? (
-            <CancelImpactStep
-              impact={cancel_impact}
-              is_loading={is_impact_loading}
-              keep_plan_slot={
-                <AlertDialogCancel className="mt-0">
-                  {t("settings.keep_plan")}
-                </AlertDialogCancel>
-              }
-              on_back={() => set_cancel_step(back_from_impact)}
-              on_continue={() => set_cancel_step("password")}
             />
           ) : (
             <>
+              <CancelImpactList
+                impact={cancel_impact}
+                is_loading={is_impact_loading}
+              />
               <div className="py-2">
                 <label className="block text-sm font-medium text-txt-secondary mb-2">
                   {t("settings.cancel_enter_password")}
@@ -777,31 +773,39 @@ export function BillingDialogs({
                   </p>
                 )}
               </div>
-              <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
-                <AlertDialogCancel className="max-sm:flex-1">
-                  {t("settings.keep_plan")}
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  className="aster_btn_destructive max-sm:flex-1"
-                  disabled={
-                    !cancel_password.trim() ||
-                    is_verifying_password ||
-                    is_action_loading ||
-                    (cancel_totp_required && cancel_totp_code.length !== 6)
-                  }
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handle_password_continue();
-                  }}
-                >
-                  <>
-                    {(is_verifying_password || is_action_loading) && (
-                      <ButtonSpinner size="xs" />
-                    )}
-                    {t("settings.cancel_final_confirm")}
-                  </>
-                </AlertDialogAction>
-              </AlertDialogFooter>
+              <CancelStepActions
+                cancel_slot={
+                  <AlertDialogAction
+                    className="aster_btn_destructive"
+                    disabled={
+                      !cancel_password.trim() ||
+                      is_verifying_password ||
+                      is_action_loading ||
+                      (cancel_totp_required && cancel_totp_code.length !== 6)
+                    }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handle_password_continue();
+                    }}
+                  >
+                    <>
+                      {(is_verifying_password || is_action_loading) && (
+                        <ButtonSpinner size="xs" />
+                      )}
+                      {t("settings.cancel_final_confirm")}
+                    </>
+                  </AlertDialogAction>
+                }
+                is_busy={is_verifying_password || is_action_loading}
+                keep_plan_slot={
+                  <AlertDialogCancel>{t("settings.keep_plan")}</AlertDialogCancel>
+                }
+                on_back={() =>
+                  set_cancel_step(
+                    step_before_confirm(flow_options, confirm_came_from),
+                  )
+                }
+              />
             </>
           )}
         </AlertDialogContent>

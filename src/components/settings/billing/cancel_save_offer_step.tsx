@@ -24,6 +24,7 @@ import type { SaveOffer } from "@/components/settings/billing/cancel_offer";
 import { button_variants } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { CancelStepActions } from "@/components/settings/billing/cancel_step_actions";
 import { ButtonSpinner } from "@/components/ui/spinner";
 
 interface CancelSaveOfferStepProps {
@@ -33,7 +34,7 @@ interface CancelSaveOfferStepProps {
   keep_plan_slot?: ReactNode;
   on_accept: () => void;
   on_back: () => void;
-  on_continue: () => void;
+  on_cancel: () => void;
 }
 
 export function CancelSaveOfferStep({
@@ -43,7 +44,7 @@ export function CancelSaveOfferStep({
   keep_plan_slot,
   on_accept,
   on_back,
-  on_continue,
+  on_cancel,
 }: CancelSaveOfferStepProps) {
   const { t } = use_i18n();
 
@@ -72,27 +73,12 @@ export function CancelSaveOfferStep({
         {t("settings.save_offer_hint")}
       </p>
 
-      <div className="mt-5 flex flex-row items-center gap-2">
-        {keep_plan_slot}
-        <div className="ml-auto flex flex-row items-center gap-2">
-          <button
-            className={button_variants({ variant: "ghost" })}
-            disabled={is_busy}
-            type="button"
-            onClick={on_back}
-          >
-            {t("common.back")}
-          </button>
-          <button
-            className={button_variants({ variant: "ghost" })}
-            disabled={is_busy}
-            type="button"
-            onClick={on_continue}
-          >
-            {t("settings.cancel_offer_continue")}
-          </button>
-        </div>
-      </div>
+      <CancelStepActions
+        is_busy={is_busy}
+        keep_plan_slot={keep_plan_slot}
+        on_back={on_back}
+        on_cancel={on_cancel}
+      />
     </div>
   );
 }
