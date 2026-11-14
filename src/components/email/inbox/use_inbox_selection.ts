@@ -186,6 +186,19 @@ export function use_inbox_selection({
   }, [prune_hidden, exit_select_all_mode]);
 
   useEffect(() => {
+    if (!select_all_mode) return;
+
+    const excluded = new Set(excluded_ids);
+    const update_fn = get_update_fn();
+
+    page_emails.forEach((e) => {
+      if (!e.is_selected && !excluded.has(e.id)) {
+        update_fn(e.id, { is_selected: true });
+      }
+    });
+  }, [select_all_mode, excluded_ids, page_emails, get_update_fn]);
+
+  useEffect(() => {
     if (!prune_hidden) return;
 
     const visible_ids = new Set(page_emails.map((e) => e.id));

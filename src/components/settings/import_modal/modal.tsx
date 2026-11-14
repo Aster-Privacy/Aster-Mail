@@ -110,6 +110,8 @@ import { ignore_error } from "@/lib/ignore_error";
 import { show_storage_full_upgrade } from "@/stores/upgrade_store";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
+import { api_client } from "@/services/api/client";
+import { import_msgid_hash } from "@/services/import/msgid_hash";
 
 export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { t } = use_i18n();
@@ -727,6 +729,15 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 source,
                 hash,
               );
+
+              const msgid_hash = import_msgid_hash(
+                api_client.get_cached_user_info()?.user_id,
+                email.raw_headers,
+              );
+
+              if (msgid_hash) {
+                encrypted.msgid_hash = msgid_hash;
+              }
 
               const token = thread_map.get(summary.message_id);
 

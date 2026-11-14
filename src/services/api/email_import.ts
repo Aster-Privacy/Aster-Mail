@@ -88,6 +88,7 @@ export interface ImportedEmailData {
   thread_token?: string;
   routing_token?: string;
   sender_alias_hash?: string;
+  msgid_hash?: string;
 }
 
 export interface StoreEmailsRequest {
