@@ -1224,6 +1224,30 @@ export function describe_csv_column(header: string): CsvColumn {
     };
   }
 
+  match = lower.match(
+    /^(home|business|work|company|mobile|cell|car|other|primary|pager|fax) (number|phone number|tel|telephone)(?: (\d+))?$/,
+  );
+  if (match) {
+    return {
+      target: "phone",
+      key: `phone:${match[1]} number:${match[3] ?? "1"}`,
+      part: "value",
+      implied_type:
+        match[1] === "pager" || match[1] === "fax"
+          ? match[1]
+          : PHONE_KIND_WORDS[match[1]],
+    };
+  }
+
+  match = lower.match(/^(phone|telephone|tel|phone number) (\d+)$/);
+  if (match) {
+    return {
+      target: "phone",
+      key: `phone:${match[1]}:${match[2]}`,
+      part: "value",
+    };
+  }
+
   match = lower.match(/^address (\d+) - (.+)$/);
   if (match) {
     const kind = ADDRESS_PART_KINDS[match[2]];
