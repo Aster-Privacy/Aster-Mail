@@ -34,9 +34,9 @@ describe("import_msgid_hash", () => {
   });
 
   it("ignores brackets and case so every source agrees", () => {
-    expect(import_msgid_hash(USER_ID, { "message-id": "abc@example.com" })).toBe(
-      import_msgid_hash(USER_ID, { "Message-Id": "<ABC@EXAMPLE.COM>" }),
-    );
+    expect(
+      import_msgid_hash(USER_ID, { "message-id": "abc@example.com" }),
+    ).toBe(import_msgid_hash(USER_ID, { "Message-Id": "<ABC@EXAMPLE.COM>" }));
   });
 
   it("decodes to sixteen bytes", () => {
@@ -47,7 +47,9 @@ describe("import_msgid_hash", () => {
 
   it("returns nothing without a usable id or a user", () => {
     expect(import_msgid_hash(USER_ID, {})).toBeUndefined();
-    expect(import_msgid_hash(USER_ID, { "message-id": "<nope>" })).toBeUndefined();
+    expect(
+      import_msgid_hash(USER_ID, { "message-id": "<nope>" }),
+    ).toBeUndefined();
     expect(
       import_msgid_hash(null, { "message-id": "<a@b.c>" }),
     ).toBeUndefined();

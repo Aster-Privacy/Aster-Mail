@@ -524,7 +524,9 @@ function participants(email: ParsedEmail): Set<string> {
   const addresses = new Set<string>();
 
   for (const value of [email.from, ...email.to, ...email.cc]) {
-    const address = extract_email_address(value ?? "").trim().toLowerCase();
+    const address = extract_email_address(value ?? "")
+      .trim()
+      .toLowerCase();
 
     if (address) addresses.add(address);
   }
