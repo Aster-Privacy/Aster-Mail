@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { OAuthFolderInfo } from "@/services/api/external_accounts/api";
+import type {
+  OAuthFolderInfo,
+  OAuthFolderList,
+} from "@/services/api/external_accounts/api";
 
 import {
   list_oauth_folders,
@@ -222,11 +225,26 @@ export async function mirror_folder_tree(
   return { mapping, failures };
 }
 
+export interface MirrorSelection {
+  selected_folders: string[];
+  listed?: OAuthFolderList;
+}
+
+export function keep_selected_folders(
+  folders: OAuthFolderInfo[],
+  selected_folders: string[],
+): OAuthFolderInfo[] {
+  const wanted = new Set(selected_folders);
+
+  return folders.filter((folder) => wanted.has(folder.name));
+}
+
 export async function mirror_external_account_folders(
   account_token: string,
   existing: ExistingFolder[],
   t?: Parameters<typeof ensure_default_labels>[1],
   is_cancelled: () => boolean = () => false,
+  selection?: MirrorSelection,
 ): Promise<MirrorOutcome> {
   const vault = get_vault_from_memory();
 
@@ -234,13 +252,21 @@ export async function mirror_external_account_folders(
 
   await ensure_default_labels(vault, t);
 
-  const listed = await list_oauth_folders(account_token);
+  const listed = selection?.listed
+    ? { data: selection.listed, error: undefined }
+    : await list_oauth_folders(account_token);
 
   if (listed.error || !listed.data) return { status: "error" };
 
+  const source_folders = selection
+    ? keep_selected_folders(
+        listed.data.folders ?? [],
+        selection.selected_folders,
+      )
+    : (listed.data.folders ?? []);
   const identity_key = vault.identity_key;
   const result = await mirror_folder_tree(
-    listed.data.folders ?? [],
+    source_folders,
     existing,
     async (name, parent_token) => {
       const token = generate_folder_token();
@@ -268,7 +294,7 @@ export async function mirror_external_account_folders(
 
   const label_mapping = listed.data.uses_labels
     ? await mirror_source_labels(
-        listed.data.folders ?? [],
+        source_folders,
         identity_key,
         is_cancelled,
       )
@@ -278,11 +304,12 @@ export async function mirror_external_account_folders(
 
   const mapped = Object.keys(result.mapping).length;
 
-  if (mapped > 0 || Object.keys(label_mapping).length > 0) {
+  if (selection || mapped > 0 || Object.keys(label_mapping).length > 0) {
     const saved = await save_folder_mapping(
       account_token,
       result.mapping,
       label_mapping,
+      selection?.selected_folders,
     );
 
     if (saved.error) return { status: "error" };

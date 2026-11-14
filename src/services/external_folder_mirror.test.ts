@@ -63,6 +63,7 @@ import { create_tag, list_tags } from "@/services/api/tags";
 import {
   decode_modified_utf7,
   mirror_folder_tree,
+  keep_selected_folders,
   mirror_source_labels,
   type ExistingFolder,
 } from "@/services/external_folder_mirror";
@@ -286,5 +287,16 @@ describe("decode_modified_utf7", () => {
   it("leaves plain and malformed names unchanged", () => {
     expect(decode_modified_utf7("Finances")).toBe("Finances");
     expect(decode_modified_utf7("Bad&AOo")).toBe("Bad&AOo");
+  });
+});
+
+describe("keep_selected_folders", () => {
+  it("keeps only the folders the user picked", () => {
+    expect(
+      keep_selected_folders(
+        [folder("INBOX"), folder("Archive"), folder("Work/Old")],
+        ["INBOX", "Work/Old"],
+      ).map((f) => f.name),
+    ).toEqual(["INBOX", "Work/Old"]);
   });
 });

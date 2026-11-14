@@ -5448,6 +5448,12 @@ export const pl = {
       "Dostawca nie akceptuje już zapisanego logowania do tego konta. Aby dalej z niego korzystać, połącz konto ponownie.",
     external_message_rejected:
       "Serwer poczty tego konta odmówił wysłania tej wiadomości.",
+    external_send_reconnect_required: "Aby wysyłać z tego konta, połącz je ponownie i zezwól Aster Mail na wysyłanie poczty.",
+    oauth_folder_picker_title: "Wybierz foldery do synchronizacji",
+    oauth_folder_picker_description: "Aster Mail kopiuje wiadomości tylko z wybranych folderów. Skrzynka odbiorcza jest już zaznaczona.",
+    oauth_folder_picker_load_failed: "Nie udało się wczytać folderów tego konta.",
+    oauth_folder_picker_none_selected: "Wybierz co najmniej jeden folder.",
+    oauth_folder_picker_start: "Rozpocznij synchronizację",
     show_password_toggle: "Pokaż hasło",
     hide_password_toggle: "Ukryj hasło",
     hide_smtp_password: "Ukryj hasło SMTP",

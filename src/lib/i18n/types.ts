@@ -5640,6 +5640,12 @@ export interface SettingsTranslations {
   external_server_unreachable: string;
   external_reconnect_required: string;
   external_message_rejected: string;
+  external_send_reconnect_required: string;
+  oauth_folder_picker_title: string;
+  oauth_folder_picker_description: string;
+  oauth_folder_picker_load_failed: string;
+  oauth_folder_picker_none_selected: string;
+  oauth_folder_picker_start: string;
   show_password_toggle: string;
   hide_password_toggle: string;
   hide_smtp_password: string;

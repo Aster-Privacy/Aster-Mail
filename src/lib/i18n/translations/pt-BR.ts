@@ -5241,6 +5241,12 @@ export const pt_br = {
       "Seu provedor não aceita mais o login salvo desta conta. Para continuar usando a conta, reconecte-a.",
     external_message_rejected:
       "O servidor de e-mail desta conta se recusou a enviar esta mensagem.",
+    external_send_reconnect_required: "Para enviar desta conta, reconecte-a e permita que o Aster Mail envie e-mails.",
+    oauth_folder_picker_title: "Escolha as pastas para sincronizar",
+    oauth_folder_picker_description: "O Aster Mail copia apenas os e-mails das pastas que você selecionar. A caixa de entrada já está selecionada.",
+    oauth_folder_picker_load_failed: "Não foi possível carregar as pastas desta conta.",
+    oauth_folder_picker_none_selected: "Selecione pelo menos uma pasta.",
+    oauth_folder_picker_start: "Iniciar sincronização",
     show_password_toggle: "Mostrar senha",
     hide_password_toggle: "Ocultar senha",
     hide_smtp_password: "Ocultar senha SMTP",

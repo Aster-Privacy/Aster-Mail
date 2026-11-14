@@ -5211,6 +5211,12 @@ export const de = {
       "Ihr Anbieter akzeptiert die gespeicherte Anmeldung für dieses Konto nicht mehr. Um es weiter zu verwenden, verbinden Sie das Konto erneut.",
     external_message_rejected:
       "Der Mailserver dieses Kontos hat das Senden dieser Nachricht abgelehnt.",
+    external_send_reconnect_required: "Um von diesem Konto zu senden, verbinden Sie es erneut und erlauben Sie Aster Mail, E-Mails zu senden.",
+    oauth_folder_picker_title: "Ordner für die Synchronisierung auswählen",
+    oauth_folder_picker_description: "Aster Mail kopiert nur E-Mails aus den Ordnern, die Sie auswählen. Der Posteingang ist bereits ausgewählt.",
+    oauth_folder_picker_load_failed: "Die Ordner dieses Kontos konnten nicht geladen werden.",
+    oauth_folder_picker_none_selected: "Wählen Sie mindestens einen Ordner aus.",
+    oauth_folder_picker_start: "Synchronisierung starten",
     show_password_toggle: "Passwort anzeigen",
     hide_password_toggle: "Passwort ausblenden",
     hide_smtp_password: "SMTP-Passwort ausblenden",

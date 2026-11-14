@@ -5349,6 +5349,12 @@ export const ar = {
     external_reconnect_required:
       "لم يعد مزودك يقبل بيانات تسجيل الدخول المحفوظة لهذا الحساب. لمواصلة استخدامه، أعد ربط الحساب.",
     external_message_rejected: "رفض خادم البريد لهذا الحساب إرسال هذه الرسالة.",
+    external_send_reconnect_required: "للإرسال من هذا الحساب، أعد ربطه واسمح لـ Aster Mail بإرسال البريد.",
+    oauth_folder_picker_title: "اختر المجلدات المراد مزامنتها",
+    oauth_folder_picker_description: "ينسخ Aster Mail البريد من المجلدات التي تختارها فقط. تم تحديد البريد الوارد لك.",
+    oauth_folder_picker_load_failed: "تعذر تحميل مجلدات هذا الحساب.",
+    oauth_folder_picker_none_selected: "اختر مجلدًا واحدًا على الأقل.",
+    oauth_folder_picker_start: "بدء المزامنة",
     show_password_toggle: "إظهار كلمة المرور",
     hide_password_toggle: "إخفاء كلمة المرور",
     hide_smtp_password: "إخفاء كلمة مرور SMTP",

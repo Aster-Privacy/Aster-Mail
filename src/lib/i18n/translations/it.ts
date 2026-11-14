@@ -6612,6 +6612,12 @@ export const it = {
       "Il suo provider non accetta più l'accesso salvato per questo account. Per continuare a usarlo, ricolleghi l'account.",
     external_message_rejected:
       "Il server di posta di questo account ha rifiutato di inviare questo messaggio.",
+    external_send_reconnect_required: "Per inviare da questo account, lo ricolleghi e consenta ad Aster Mail di inviare posta.",
+    oauth_folder_picker_title: "Scelga le cartelle da sincronizzare",
+    oauth_folder_picker_description: "Aster Mail copia solo la posta delle cartelle che seleziona. La posta in arrivo è già selezionata.",
+    oauth_folder_picker_load_failed: "Impossibile caricare le cartelle di questo account.",
+    oauth_folder_picker_none_selected: "Selezioni almeno una cartella.",
+    oauth_folder_picker_start: "Avvia sincronizzazione",
     show_password_toggle: "Mostra password",
     hide_password_toggle: "Nascondi password",
     hide_smtp_password: "Nascondi password SMTP",

@@ -5306,6 +5306,12 @@ export const es = {
       "Tu proveedor ya no acepta el inicio de sesión guardado para esta cuenta. Para seguir usándola, vuelve a conectar la cuenta.",
     external_message_rejected:
       "El servidor de correo de esta cuenta rechazó el envío de este mensaje.",
+    external_send_reconnect_required: "Para enviar desde esta cuenta, vuelve a conectarla y permite que Aster Mail envíe correo.",
+    oauth_folder_picker_title: "Elige las carpetas que quieres sincronizar",
+    oauth_folder_picker_description: "Aster Mail solo copia el correo de las carpetas que selecciones. La bandeja de entrada ya está seleccionada.",
+    oauth_folder_picker_load_failed: "No se pudieron cargar las carpetas de esta cuenta.",
+    oauth_folder_picker_none_selected: "Selecciona al menos una carpeta.",
+    oauth_folder_picker_start: "Iniciar sincronización",
     show_password_toggle: "Mostrar contraseña",
     hide_password_toggle: "Ocultar contraseña",
     hide_smtp_password: "Ocultar contraseña SMTP",

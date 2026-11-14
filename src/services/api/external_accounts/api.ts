@@ -69,6 +69,8 @@ export function external_account_error_message(
       return settings.external_reconnect_required;
     case "EXTERNAL_ACCOUNT_MESSAGE_REJECTED":
       return settings.external_message_rejected;
+    case "EXTERNAL_ACCOUNT_SEND_RECONNECT_REQUIRED":
+      return settings.external_send_reconnect_required;
     default:
       return undefined;
   }
@@ -1065,6 +1067,7 @@ export interface OAuthFolderInfo {
   name: string;
   delimiter: string;
   excluded: boolean;
+  selectable?: boolean;
 }
 
 export interface OAuthFolderList {
@@ -1113,6 +1116,7 @@ export async function save_folder_mapping(
   account_token: string,
   folder_mapping: Record<string, string>,
   label_mapping: Record<string, string> = {},
+  selected_folders?: string[],
 ): Promise<ApiResponse<{ success: boolean }>> {
   const token_error = validate_account_token(account_token);
 
@@ -1121,9 +1125,19 @@ export async function save_folder_mapping(
   }
 
   try {
+    const payload: Record<string, unknown> = {
+      account_token,
+      folder_mapping,
+      label_mapping,
+    };
+
+    if (selected_folders) {
+      payload.selected_folders = selected_folders;
+    }
+
     const response = await api_client.put<{ success: boolean }>(
       "/mail/v1/external_accounts/folder_mapping",
-      { account_token, folder_mapping, label_mapping },
+      payload,
     );
 
     if (response.error || !response.data) {

@@ -40,6 +40,8 @@ import { AccountList } from "@/components/settings/external_accounts/account_lis
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { AddAccountForm } from "@/components/settings/external_accounts/add_account_form";
 import { GmailSetupWizard } from "@/components/settings/external_accounts/gmail_setup_wizard";
+import { ConnectProviderModal } from "@/components/settings/connect_provider_modal";
+import { OAuthFolderPickerModal } from "@/components/settings/oauth_folder_picker_modal";
 
 export function ExternalAccountsSection() {
   const state = use_external_accounts();
@@ -99,22 +101,38 @@ export function ExternalAccountsSection() {
         icon={<ServerStackIcon />}
         title={state.t("settings.external_accounts")}
         trailing={
-          <Button
-            className="gap-2"
-            variant="depth"
-            onClick={() => {
-              if (at_account_limit) {
-                show_plan_limit_upgrade({ resource: "external accounts" });
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (at_account_limit) {
+                  show_plan_limit_upgrade({ resource: "external accounts" });
 
-                return;
-              }
+                  return;
+                }
 
-              state.open_add_form();
-            }}
-          >
-            <PlusIcon className="w-4 h-4" />
-            {state.t("settings.add_account")}
-          </Button>
+                state.open_microsoft_connect();
+              }}
+            >
+              {state.t("settings.connect_sign_in_microsoft")}
+            </Button>
+            <Button
+              className="gap-2"
+              variant="depth"
+              onClick={() => {
+                if (at_account_limit) {
+                  show_plan_limit_upgrade({ resource: "external accounts" });
+
+                  return;
+                }
+
+                state.open_add_form();
+              }}
+            >
+              <PlusIcon className="w-4 h-4" />
+              {state.t("settings.add_account")}
+            </Button>
+          </div>
         }
       >
         {gmail_wizard_open && state.show_add_form && (
@@ -303,6 +321,17 @@ export function ExternalAccountsSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <ConnectProviderModal
+        on_close={state.close_microsoft_connect}
+        on_oauth_success={state.handle_microsoft_connected}
+        provider={state.connect_microsoft_open ? "microsoft" : null}
+      />
+      <OAuthFolderPickerModal
+        account_token={state.picker_account?.account_token ?? null}
+        is_submitting={state.is_applying_selection}
+        on_cancel={state.close_picker}
+        on_confirm={state.handle_picker_confirm}
+      />
       <AlertDialog
         open={state.show_quota_dialog}
         onOpenChange={state.set_show_quota_dialog}

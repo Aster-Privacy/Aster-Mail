@@ -4768,6 +4768,12 @@ export const zh_CN = {
     external_reconnect_required:
       "您的服务提供商已不再接受此账户保存的登录信息。如需继续使用，请重新连接该账户。",
     external_message_rejected: "此账户的邮件服务器拒绝发送这封邮件。",
+    external_send_reconnect_required: "要从此账户发送邮件，请重新连接该账户并允许 Aster Mail 发送邮件。",
+    oauth_folder_picker_title: "选择要同步的文件夹",
+    oauth_folder_picker_description: "Aster Mail 仅复制你所选文件夹中的邮件。收件箱已为你选中。",
+    oauth_folder_picker_load_failed: "无法加载此账户的文件夹。",
+    oauth_folder_picker_none_selected: "请至少选择一个文件夹。",
+    oauth_folder_picker_start: "开始同步",
     show_password_toggle: "显示密码",
     hide_password_toggle: "隐藏密码",
     hide_smtp_password: "隐藏 SMTP 密码",

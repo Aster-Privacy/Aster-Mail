@@ -5358,6 +5358,12 @@ export const fr = {
       "Votre fournisseur n'accepte plus la connexion enregistrée pour ce compte. Pour continuer à l'utiliser, reconnectez le compte.",
     external_message_rejected:
       "Le serveur de messagerie de ce compte a refusé d'envoyer ce message.",
+    external_send_reconnect_required: "Pour envoyer depuis ce compte, reconnectez-le et autorisez Aster Mail à envoyer des e-mails.",
+    oauth_folder_picker_title: "Choisir les dossiers à synchroniser",
+    oauth_folder_picker_description: "Aster Mail copie uniquement les e-mails des dossiers que vous sélectionnez. La boîte de réception est déjà sélectionnée.",
+    oauth_folder_picker_load_failed: "Impossible de charger les dossiers de ce compte.",
+    oauth_folder_picker_none_selected: "Sélectionnez au moins un dossier.",
+    oauth_folder_picker_start: "Lancer la synchronisation",
     show_password_toggle: "Afficher le mot de passe",
     hide_password_toggle: "Masquer le mot de passe",
     hide_smtp_password: "Masquer le mot de passe SMTP",

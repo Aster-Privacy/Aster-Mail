@@ -5204,6 +5204,12 @@ export const nl = {
       "Je provider accepteert de opgeslagen aanmelding voor dit account niet meer. Als je het account wilt blijven gebruiken, koppel je het opnieuw.",
     external_message_rejected:
       "De mailserver van dit account heeft geweigerd dit bericht te verzenden.",
+    external_send_reconnect_required: "Als je vanaf dit account wilt verzenden, koppel je het opnieuw en geef je Aster Mail toestemming om e-mail te verzenden.",
+    oauth_folder_picker_title: "Kies mappen om te synchroniseren",
+    oauth_folder_picker_description: "Aster Mail kopieert alleen e-mail uit de mappen die je selecteert. Postvak IN is al geselecteerd.",
+    oauth_folder_picker_load_failed: "De mappen van dit account kunnen niet worden geladen.",
+    oauth_folder_picker_none_selected: "Selecteer ten minste één map.",
+    oauth_folder_picker_start: "Synchronisatie starten",
     show_password_toggle: "Wachtwoord tonen",
     hide_password_toggle: "Wachtwoord verbergen",
     hide_smtp_password: "SMTP-wachtwoord verbergen",

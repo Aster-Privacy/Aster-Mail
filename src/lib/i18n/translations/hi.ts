@@ -6295,6 +6295,12 @@ export const hi = {
       "आपका प्रदाता अब इस खाते के लिए सहेजी गई साइन-इन जानकारी स्वीकार नहीं करता। इसे इस्तेमाल करते रहने के लिए खाते को फिर से कनेक्ट करें।",
     external_message_rejected:
       "इस खाते के मेल सर्वर ने यह संदेश भेजने से मना कर दिया।",
+    external_send_reconnect_required: "इस खाते से भेजने के लिए, इसे फिर से कनेक्ट करें और Aster Mail को मेल भेजने की अनुमति दें।",
+    oauth_folder_picker_title: "सिंक करने के लिए फ़ोल्डर चुनें",
+    oauth_folder_picker_description: "Aster Mail केवल आपके चुने हुए फ़ोल्डर से मेल कॉपी करता है। इनबॉक्स पहले से चुना हुआ है।",
+    oauth_folder_picker_load_failed: "इस खाते के फ़ोल्डर लोड नहीं हो सके।",
+    oauth_folder_picker_none_selected: "कम से कम एक फ़ोल्डर चुनें।",
+    oauth_folder_picker_start: "सिंक शुरू करें",
     show_password_toggle: "पासवर्ड दिखाएं",
     hide_password_toggle: "पासवर्ड छिपाएं",
     hide_smtp_password: "SMTP पासवर्ड छिपाएं",

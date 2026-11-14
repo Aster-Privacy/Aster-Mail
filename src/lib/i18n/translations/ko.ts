@@ -5238,6 +5238,12 @@ export const ko = {
       "제공업체가 이 계정에 저장된 로그인 정보를 더 이상 허용하지 않습니다. 계속 사용하려면 계정을 다시 연결하세요.",
     external_message_rejected:
       "이 계정의 메일 서버가 이 메시지 전송을 거부했습니다.",
+    external_send_reconnect_required: "이 계정에서 보내려면 계정을 다시 연결하고 Aster Mail이 메일을 보내도록 허용하세요.",
+    oauth_folder_picker_title: "동기화할 폴더 선택",
+    oauth_folder_picker_description: "Aster Mail은 선택한 폴더의 메일만 복사합니다. 받은편지함은 이미 선택되어 있습니다.",
+    oauth_folder_picker_load_failed: "이 계정의 폴더를 불러올 수 없습니다.",
+    oauth_folder_picker_none_selected: "폴더를 하나 이상 선택하세요.",
+    oauth_folder_picker_start: "동기화 시작",
     show_password_toggle: "비밀번호 표시",
     hide_password_toggle: "비밀번호 숨기기",
     hide_smtp_password: "SMTP 비밀번호 숨기기",

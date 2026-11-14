@@ -5348,6 +5348,12 @@ export const pt = {
       "O seu fornecedor já não aceita o início de sessão guardado para esta conta. Para continuar a utilizá-la, volte a ligar a conta.",
     external_message_rejected:
       "O servidor de correio desta conta recusou-se a enviar esta mensagem.",
+    external_send_reconnect_required: "Para enviar a partir desta conta, volte a ligá-la e permita que o Aster Mail envie e-mails.",
+    oauth_folder_picker_title: "Escolha as pastas a sincronizar",
+    oauth_folder_picker_description: "O Aster Mail copia apenas os e-mails das pastas que selecionar. A caixa de entrada já está selecionada.",
+    oauth_folder_picker_load_failed: "Não foi possível carregar as pastas desta conta.",
+    oauth_folder_picker_none_selected: "Selecione pelo menos uma pasta.",
+    oauth_folder_picker_start: "Iniciar sincronização",
     show_password_toggle: "Mostrar palavra-passe",
     hide_password_toggle: "Ocultar palavra-passe",
     hide_smtp_password: "Ocultar palavra-passe SMTP",

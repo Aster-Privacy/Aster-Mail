@@ -6215,6 +6215,12 @@ export const en: Translations = {
       "Your provider no longer accepts the saved sign-in for this account. To keep using it, reconnect the account.",
     external_message_rejected:
       "The mail server for this account refused to send this message.",
+    external_send_reconnect_required: "To send from this account, reconnect it and allow Aster Mail to send mail.",
+    oauth_folder_picker_title: "Choose folders to sync",
+    oauth_folder_picker_description: "Aster Mail copies mail only from the folders you select. Inbox is selected for you.",
+    oauth_folder_picker_load_failed: "Couldn't load the folders for this account.",
+    oauth_folder_picker_none_selected: "Select at least one folder.",
+    oauth_folder_picker_start: "Start sync",
     show_password_toggle: "Show password",
     hide_password_toggle: "Hide password",
     hide_smtp_password: "Hide SMTP password",

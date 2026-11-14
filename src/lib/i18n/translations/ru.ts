@@ -5412,6 +5412,12 @@ export const ru = {
       "Ваш провайдер больше не принимает сохранённые данные для входа в эту учётную запись. Чтобы продолжить её использовать, подключите учётную запись заново.",
     external_message_rejected:
       "Почтовый сервер этой учётной записи отказался отправлять это сообщение.",
+    external_send_reconnect_required: "Чтобы отправлять письма с этой учётной записи, подключите её заново и разрешите Aster Mail отправлять почту.",
+    oauth_folder_picker_title: "Выберите папки для синхронизации",
+    oauth_folder_picker_description: "Aster Mail копирует письма только из выбранных папок. Папка «Входящие» уже выбрана.",
+    oauth_folder_picker_load_failed: "Не удалось загрузить папки этой учётной записи.",
+    oauth_folder_picker_none_selected: "Выберите хотя бы одну папку.",
+    oauth_folder_picker_start: "Начать синхронизацию",
     show_password_toggle: "Показать пароль",
     hide_password_toggle: "Скрыть пароль",
     hide_smtp_password: "Скрыть пароль SMTP",
