@@ -25,7 +25,10 @@ import { discover_external_keys_batch } from "./api/keys";
 import { array_to_base64, base64_to_array } from "./crypto/base64";
 import { with_aes_kw_fallback } from "./crypto/webcrypto_aes_kw";
 import { check_owner_key_pin } from "./crypto/ratchet_identity_pin";
-import { RecipientPinUnreadableError } from "./crypto/ratchet_types";
+import {
+  KeyPinUnavailableError,
+  RecipientPinUnreadableError,
+} from "./crypto/ratchet_types";
 import {
   build_protected_mime_entity,
   type ProtectedMimeAttachment,
@@ -247,11 +250,15 @@ async function assert_key_unchanged(
     recipient.trim().toLowerCase(),
     public_key,
   ).catch((caught) => {
-    if (!(caught instanceof RecipientPinUnreadableError)) throw caught;
+    if (!(caught instanceof KeyPinUnavailableError)) throw caught;
+
+    const errors = get_active_translations().errors;
 
     throw create_error(
       "encryption_failed",
-      get_active_translations().errors.recipient_key_unreadable,
+      caught instanceof RecipientPinUnreadableError
+        ? errors.recipient_key_unreadable
+        : errors.key_trust_check_failed,
     );
   });
 

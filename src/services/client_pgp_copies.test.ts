@@ -273,6 +273,24 @@ describe("build_client_pgp_copies", () => {
     });
   });
 
+  it("stops the send with a readable message when the saved keys cannot be opened", async () => {
+    const { KeyPinUnavailableError } = await import("./crypto/ratchet_types");
+    const { get_active_translations } = await import("@/lib/i18n/translations");
+
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", bob),
+      ],
+    });
+    pin_status.mockRejectedValue(new KeyPinUnavailableError("pal@example.com"));
+
+    await expect(build_client_pgp_copies(params())).rejects.toMatchObject({
+      type: "encryption_failed",
+      message: get_active_translations().errors.key_trust_check_failed,
+    });
+  });
+
   it("leaves the send to the existing path when any recipient lacks a trusted key", async () => {
     discover.mockResolvedValue({
       data: [
