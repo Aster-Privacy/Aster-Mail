@@ -625,6 +625,7 @@ export const es = {
     color_custom: "Color personalizado",
     color_brightness: "Brillo",
     color_hex: "Color hexadecimal",
+    color_hex_invalid: "Introduce un color hexadecimal como #3b82f6",
     tag_icon_tag: "Etiqueta",
     tag_icon_folder: "Carpeta",
     tag_icon_star: "Estrella",

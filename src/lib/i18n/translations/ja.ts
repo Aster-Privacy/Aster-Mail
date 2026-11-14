@@ -666,6 +666,7 @@ export const ja = {
     color_custom: "カスタムカラー",
     color_brightness: "明るさ",
     color_hex: "16進カラー",
+    color_hex_invalid: "#3b82f6 のような16進カラーを入力してください",
     tag_icon_tag: "タグ",
     tag_icon_folder: "フォルダ",
     tag_icon_star: "スター",

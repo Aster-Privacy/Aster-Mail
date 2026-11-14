@@ -614,6 +614,7 @@ export const tr = {
     color_custom: "Özel renk",
     color_brightness: "Parlaklık",
     color_hex: "Onaltılık renk",
+    color_hex_invalid: "#3b82f6 gibi bir onaltılık renk girin",
     tag_icon_tag: "Etiket",
     tag_icon_folder: "Klasör",
     tag_icon_star: "Yıldız",

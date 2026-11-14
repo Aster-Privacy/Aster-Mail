@@ -58,8 +58,7 @@ import {
   get_folder_depth,
 } from "@/components/settings/hooks/use_external_accounts";
 import { is_syncing as check_is_syncing } from "@/services/sync_manager";
-import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
-import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 
 export function ExternalAccountsSection({
   on_back,
@@ -425,31 +424,11 @@ export function ExternalAccountsSection({
                 <label className="mb-1 block text-[12px] font-medium text-[var(--text-muted)]">
                   {state.t("settings.label_color")}
                 </label>
-                <div className="flex flex-wrap gap-2.5 py-1">
-                  {TAG_COLOR_PRESETS.map((color) => (
-                    <button
-                      key={color.hex}
-                      className="h-8 w-8 rounded-full"
-                      style={{
-                        backgroundColor: color.hex,
-                        boxShadow:
-                          state.form_label_color.toLowerCase() === color.hex
-                            ? `0 0 0 2px var(--bg-primary), 0 0 0 3.5px ${color.hex}`
-                            : "none",
-                      }}
-                      type="button"
-                      onClick={() => state.set_form_label_color(color.hex)}
-                    />
-                  ))}
-                  <CustomColorSwatch
-                    presets={TAG_COLOR_PRESETS.map((preset) => preset.hex)}
-                    selected_style={(hex) => ({
-                      boxShadow: `0 0 0 2px var(--bg-primary), 0 0 0 3.5px ${hex}`,
-                    })}
-                    value={state.form_label_color}
-                    on_change={state.set_form_label_color}
-                  />
-                </div>
+                <ColorSwatchRow
+                  label={state.t("settings.label_color")}
+                  value={state.form_label_color}
+                  on_change={state.set_form_label_color}
+                />
                 <Input
                   className="mt-2 w-full font-mono"
                   maxLength={7}

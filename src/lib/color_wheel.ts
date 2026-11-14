@@ -32,6 +32,25 @@ export const COLOR_WHEEL_RAINBOW =
 export const READABLE_DARK_TEXT = "#111827";
 export const READABLE_LIGHT_TEXT = "#ffffff";
 
+export const COLOR_ROW_PRESETS = [
+  { variant: "red", hex: "#ef4444" },
+  { variant: "orange", hex: "#f97316" },
+  { variant: "yellow", hex: "#eab308" },
+  { variant: "green", hex: "#22c55e" },
+  { variant: "teal", hex: "#14b8a6" },
+  { variant: "blue", hex: "#3b82f6" },
+  { variant: "purple", hex: "#a855f7" },
+  { variant: "pink", hex: "#ec4899" },
+] as const;
+
+export type ColorRowVariant = (typeof COLOR_ROW_PRESETS)[number]["variant"];
+
+export const COLOR_ROW_PRESET_HEXES: readonly string[] = COLOR_ROW_PRESETS.map(
+  (preset) => preset.hex,
+);
+
+export const DEFAULT_PICKER_COLOR = "#3b82f6";
+
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }

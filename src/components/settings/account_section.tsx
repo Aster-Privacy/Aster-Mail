@@ -67,7 +67,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { PROFILE_COLORS } from "@/constants/profile";
-import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import { get_contrast_text } from "@/lib/avatar_color";
 import {
@@ -735,59 +735,24 @@ export function AccountSection() {
               <CameraIcon className="w-6 h-6 text-white" />
             </span>
           </button>
-          <div
-            aria-label={t("auth.profile_color")}
-            className="flex items-center gap-2.5"
-            role="radiogroup"
-          >
-            {PROFILE_COLORS.map((c) => {
-              const is_selected = c === color;
-
-              return (
-                <button
-                  key={c}
-                  aria-checked={is_selected}
-                  aria-label={c}
-                  className="relative w-9 h-9 rounded-full"
-                  role="radio"
-                  style={{
-                    backgroundColor: c,
-                    outline: is_selected
-                      ? "2px solid var(--text-primary)"
-                      : "none",
-                    outlineOffset: 2,
-                    boxShadow: is_selected
-                      ? `0 2px 8px ${c}50`
-                      : `inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.15), 0 2px 6px ${c}30`,
-                  }}
-                  type="button"
-                  onClick={() => void save_profile_color(c, color)}
-                />
-              );
-            })}
-            <CustomColorSwatch
-              align="end"
-              class_name="w-9 h-9"
-              presets={PROFILE_COLORS}
-              selected_style={() => ({
-                outline: "2px solid var(--text-primary)",
-                outlineOffset: 2,
-              })}
-              value={color}
-              on_change={(hex) => {
-                color_saving_ref.current = true;
-                set_color(hex);
-              }}
-              on_commit={(hex) =>
-                void save_profile_color(
-                  hex,
-                  user?.profile_color ||
-                    preferences.profile_color ||
-                    PROFILE_COLORS[5],
-                )
-              }
-            />
-          </div>
+          <ColorSwatchRow
+            class_name="w-full max-w-[360px]"
+            label={t("auth.profile_color")}
+            max_swatch_size={36}
+            value={color}
+            on_change={(hex) => {
+              color_saving_ref.current = true;
+              set_color(hex);
+            }}
+            on_commit={(hex) =>
+              void save_profile_color(
+                hex,
+                user?.profile_color ||
+                  preferences.profile_color ||
+                  PROFILE_COLORS[5],
+              )
+            }
+          />
         </div>
       </Island>
 

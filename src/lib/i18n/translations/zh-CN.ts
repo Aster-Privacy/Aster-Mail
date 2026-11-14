@@ -559,6 +559,7 @@ export const zh_CN = {
     color_custom: "自定义颜色",
     color_brightness: "亮度",
     color_hex: "十六进制颜色",
+    color_hex_invalid: "请输入十六进制颜色，例如 #3b82f6",
     tag_icon_tag: "标签",
     tag_icon_folder: "文件夹",
     tag_icon_star: "星标",

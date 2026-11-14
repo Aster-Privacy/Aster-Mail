@@ -24,7 +24,6 @@ import type { RecoveryEmailData } from "@/services/api/recovery_email";
 
 import { useEffect, useState, useCallback } from "react";
 import {
-  CheckIcon,
   CameraIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
@@ -41,8 +40,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Spinner } from "@/components/ui/spinner";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { open_profile_picture_dialog } from "@/stores/profile_picture_dialog_store";
-import { PROFILE_COLORS } from "@/constants/profile";
-import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -592,45 +590,11 @@ export function AccountSection({
         </SettingsGroup>
 
         <SettingsGroup title={t("auth.profile_color")}>
-          <div
-            aria-label={t("auth.profile_color")}
-            className="flex flex-wrap gap-2.5 px-4 py-4"
-            role="radiogroup"
-          >
-            {PROFILE_COLORS.map((color) => (
-              <button
-                key={color}
-                aria-checked={active_profile_color === color}
-                aria-label={color}
-                className="flex h-10 w-10 items-center justify-center rounded-full"
-                role="radio"
-                style={{
-                  backgroundColor: color,
-                  boxShadow:
-                    active_profile_color === color
-                      ? `0 0 0 2px var(--bg-primary), 0 0 0 4px ${color}`
-                      : "none",
-                }}
-                type="button"
-                onClick={() =>
-                  void save_profile_color(color, active_profile_color)
-                }
-              >
-                {active_profile_color === color && (
-                  <CheckIcon
-                    className="h-4.5 w-4.5 text-white"
-                    strokeWidth={2.5}
-                  />
-                )}
-              </button>
-            ))}
-            <CustomColorSwatch
-              class_name="h-10 w-10"
-              presets={PROFILE_COLORS}
-              selected_style={(hex) => ({
-                boxShadow: `0 0 0 2px var(--bg-primary), 0 0 0 4px ${hex}`,
-              })}
-              value={active_profile_color ?? ""}
+          <div className="px-3 py-3">
+            <ColorSwatchRow
+              label={t("auth.profile_color")}
+              max_swatch_size={40}
+              value={active_profile_color}
               on_change={set_pending_profile_color}
               on_commit={(hex) =>
                 void save_profile_color(

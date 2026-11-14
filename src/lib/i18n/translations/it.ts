@@ -620,6 +620,7 @@ export const it = {
     color_custom: "Colore personalizzato",
     color_brightness: "Luminosità",
     color_hex: "Colore esadecimale",
+    color_hex_invalid: "Inserisci un colore esadecimale come #3b82f6",
     tag_icon_tag: "Etichetta",
     tag_icon_folder: "Cartella",
     tag_icon_star: "Stella",

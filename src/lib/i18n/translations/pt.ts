@@ -537,6 +537,7 @@ export const pt = {
     color_custom: "Cor personalizada",
     color_brightness: "Brilho",
     color_hex: "Cor hexadecimal",
+    color_hex_invalid: "Introduza uma cor hexadecimal como #3b82f6",
     tag_icon_tag: "Etiqueta",
     tag_icon_folder: "Pasta",
     tag_icon_star: "Estrela",

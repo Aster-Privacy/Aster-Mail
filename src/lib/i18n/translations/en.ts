@@ -603,6 +603,7 @@ export const en: Translations = {
     color_custom: "Custom color",
     color_brightness: "Brightness",
     color_hex: "Hex color",
+    color_hex_invalid: "Enter a hex color like #3b82f6",
     tag_icon_tag: "Tag",
     tag_icon_folder: "Folder",
     tag_icon_star: "Star",

@@ -22,6 +22,7 @@ import type { ReactNode, RefObject } from "react";
 import type { DecryptedFolder } from "@/hooks/use_folders";
 import type { DecryptedTag } from "@/hooks/use_tags";
 import type { User } from "@/services/account_manager";
+import type { TagIconName } from "@/components/ui/email_tag";
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -38,9 +39,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { format_bytes } from "@/lib/utils";
-import { TAG_COLOR_PRESETS, type TagIconName } from "@/components/ui/email_tag";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
-import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
 import { prompt_alias_limit_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
@@ -113,7 +113,7 @@ export function AccountMenuSheet({
   );
 }
 
-const DRAWER_PRESET_HEXES = TAG_COLOR_PRESETS.map((preset) => preset.hex);
+const DRAWER_ROW_PLACEHOLDER: readonly { hex: string }[] = [];
 
 interface DrawerCustomColorProps {
   color: string;
@@ -129,8 +129,8 @@ function DrawerCustomColor({ color, on_change, children }: DrawerCustomColorProp
   useLayoutEffect(() => {
     if (host_ref.current?.isConnected) return;
     const row = container_ref.current?.querySelector<HTMLElement>(
-      "button.h-7.w-7.rounded-full",
-    )?.parentElement;
+      "div.mb-3.flex.flex-wrap.gap-2:empty",
+    );
 
     if (!row) {
       if (host_ref.current) {
@@ -140,9 +140,9 @@ function DrawerCustomColor({ color, on_change, children }: DrawerCustomColorProp
 
       return;
     }
-    const element = document.createElement("span");
+    const element = document.createElement("div");
 
-    element.className = "contents";
+    element.className = "w-full";
     row.appendChild(element);
     host_ref.current = element;
     set_host(element);
@@ -160,15 +160,7 @@ function DrawerCustomColor({ color, on_change, children }: DrawerCustomColorProp
       {children}
       {host &&
         createPortal(
-          <CustomColorSwatch
-            class_name="h-7 w-7"
-            presets={DRAWER_PRESET_HEXES}
-            selected_style={(hex) => ({
-              boxShadow: `0 0 0 2px var(--bg-primary), 0 0 0 4px ${hex}`,
-            })}
-            value={color}
-            on_change={on_change}
-          />,
+          <ColorSwatchRow value={color} on_change={on_change} />,
           host,
         )}
     </div>
@@ -209,7 +201,7 @@ export function CreateFolderSheet({
       <DrawerCustomColor color={folder_color} on_change={set_folder_color}>
         <CreateFolderSheetView
           color={folder_color}
-          colors={TAG_COLOR_PRESETS}
+          colors={DRAWER_ROW_PLACEHOLDER}
           input_ref={folder_input_ref}
           is_creating={is_creating}
           name={folder_name}
@@ -264,7 +256,7 @@ export function CreateLabelSheet({
         <CreateLabelSheetView
           color={label_color}
           color_label={t("common.color_label")}
-          colors={TAG_COLOR_PRESETS}
+          colors={DRAWER_ROW_PLACEHOLDER}
           icon={label_icon}
           icon_label={t("common.icon_label")}
           icon_picker={
@@ -337,7 +329,7 @@ export function EditFolderSheet({
       <DrawerCustomColor color={edit_color} on_change={set_edit_color}>
         <EditFolderSheetView
           color={edit_color}
-          colors={TAG_COLOR_PRESETS}
+          colors={DRAWER_ROW_PLACEHOLDER}
           delete_label={t("common.delete")}
           name={edit_name}
           notifications_enabled={!is_muted}
@@ -395,7 +387,7 @@ export function EditTagSheet({
         <EditTagSheetView
           color={edit_color}
           color_label={t("common.color_label")}
-          colors={TAG_COLOR_PRESETS}
+          colors={DRAWER_ROW_PLACEHOLDER}
           delete_label={t("common.delete")}
           icon={edit_icon}
           icon_label={t("common.icon_label")}

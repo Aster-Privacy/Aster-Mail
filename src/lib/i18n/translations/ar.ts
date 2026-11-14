@@ -606,6 +606,7 @@ export const ar = {
     color_custom: "لون مخصص",
     color_brightness: "السطوع",
     color_hex: "لون سداسي عشري",
+    color_hex_invalid: "أدخل لونًا سداسيًا عشريًا مثل #3b82f6",
     tag_icon_tag: "علامة",
     tag_icon_folder: "مجلد",
     tag_icon_star: "نجمة",

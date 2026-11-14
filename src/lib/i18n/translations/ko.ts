@@ -671,6 +671,7 @@ export const ko = {
     color_custom: "사용자 지정 색상",
     color_brightness: "밝기",
     color_hex: "16진수 색상",
+    color_hex_invalid: "#3b82f6 같은 16진수 색상을 입력하세요",
     tag_icon_tag: "태그",
     tag_icon_folder: "폴더",
     tag_icon_star: "별",

@@ -21,6 +21,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  COLOR_ROW_PRESET_HEXES,
+  COLOR_ROW_PRESETS,
+  DEFAULT_PICKER_COLOR,
   contrast_ratio,
   fill_text_color,
   hex_to_hsv,
@@ -156,5 +159,36 @@ describe("fill_text_color", () => {
     expect(fill_text_color("#fef08a", ["#ef4444"])).toBe("#111827");
     expect(fill_text_color("#1e1b4b", ["#ef4444"])).toBe("#ffffff");
     expect(fill_text_color("nope", ["#ef4444"], "#000000")).toBe("#000000");
+  });
+});
+
+describe("color row presets", () => {
+  it("shows eight presets in a fixed order", () => {
+    expect(COLOR_ROW_PRESETS.map((preset) => preset.variant)).toEqual([
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "teal",
+      "blue",
+      "purple",
+      "pink",
+    ]);
+    expect(COLOR_ROW_PRESET_HEXES).toEqual([
+      "#ef4444",
+      "#f97316",
+      "#eab308",
+      "#22c55e",
+      "#14b8a6",
+      "#3b82f6",
+      "#a855f7",
+      "#ec4899",
+    ]);
+  });
+
+  it("treats a legacy preset outside the row as a custom color", () => {
+    expect(is_preset_color("#6366f1", COLOR_ROW_PRESET_HEXES)).toBe(false);
+    expect(is_preset_color("#3B82F6", COLOR_ROW_PRESET_HEXES)).toBe(true);
+    expect(DEFAULT_PICKER_COLOR).toBe("#3b82f6");
   });
 });

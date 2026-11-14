@@ -609,6 +609,7 @@ export const ru = {
     color_custom: "Свой цвет",
     color_brightness: "Яркость",
     color_hex: "Цвет в формате HEX",
+    color_hex_invalid: "Введите цвет в формате HEX, например #3b82f6",
     tag_icon_tag: "Метка",
     tag_icon_folder: "Папка",
     tag_icon_star: "Звезда",

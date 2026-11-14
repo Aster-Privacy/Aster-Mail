@@ -603,6 +603,7 @@ export const hi = {
     color_custom: "कस्टम रंग",
     color_brightness: "चमक",
     color_hex: "हेक्स रंग",
+    color_hex_invalid: "#3b82f6 जैसा हेक्स रंग डालें",
     tag_icon_tag: "टैग",
     tag_icon_folder: "फ़ोल्डर",
     tag_icon_star: "तारा",

@@ -1295,6 +1295,7 @@ export interface CommonTranslations {
   color_custom: string;
   color_brightness: string;
   color_hex: string;
+  color_hex_invalid: string;
   tag_icon_tag: string;
   tag_icon_folder: string;
   tag_icon_star: string;

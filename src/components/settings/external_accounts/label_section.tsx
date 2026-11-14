@@ -26,14 +26,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  TAG_COLOR_PRESETS,
-  tag_color_label_key,
-} from "@/components/ui/email_tag";
-import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 import { HEX_COLOR_REGEX } from "@/components/settings/hooks/use_external_accounts";
-
-const LABEL_PRESET_HEXES = TAG_COLOR_PRESETS.map((preset) => preset.hex);
 
 interface LabelSectionProps {
   form_label_name: string;
@@ -108,37 +102,12 @@ export function LabelSection({
               sideOffset={6}
             >
               <div className="space-y-3">
-                <div className="flex flex-wrap gap-1.5">
-                  {TAG_COLOR_PRESETS.map((color) => (
-                    <button
-                      key={color.hex}
-                      aria-label={t("settings.select_color", {
-                        name: t(tag_color_label_key(color.variant)),
-                      })}
-                      className="w-9 h-9 rounded-full"
-                      style={{
-                        backgroundColor: color.hex,
-                        boxShadow:
-                          form_label_color.toLowerCase() === color.hex
-                            ? `0 0 0 2px var(--modal-bg), 0 0 0 3.5px ${color.hex}`
-                            : "none",
-                      }}
-                      title={t(tag_color_label_key(color.variant))}
-                      type="button"
-                      onClick={() => set_form_label_color(color.hex)}
-                    />
-                  ))}
-                  <CustomColorSwatch
-                    class_name="w-9 h-9"
-                    content_class_name="z-[300]"
-                    presets={LABEL_PRESET_HEXES}
-                    selected_style={(hex) => ({
-                      boxShadow: `0 0 0 2px var(--modal-bg), 0 0 0 3.5px ${hex}`,
-                    })}
-                    value={form_label_color}
-                    on_change={set_form_label_color}
-                  />
-                </div>
+                <ColorSwatchRow
+                  label={t("common.color")}
+                  max_swatch_size={36}
+                  value={form_label_color}
+                  on_change={set_form_label_color}
+                />
                 <Input
                   aria-label={t("settings.hex_color_value")}
                   className="w-full font-mono"

@@ -607,6 +607,7 @@ export const nl = {
     color_custom: "Aangepaste kleur",
     color_brightness: "Helderheid",
     color_hex: "Hexkleur",
+    color_hex_invalid: "Voer een hexkleur in, zoals #3b82f6",
     tag_icon_tag: "Label",
     tag_icon_folder: "Map",
     tag_icon_star: "Ster",

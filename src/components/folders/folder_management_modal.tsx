@@ -41,9 +41,8 @@ import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   TAG_COLOR_PRESETS,
-  tag_color_label_key,
 } from "@/components/ui/email_tag";
-import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 import { fill_text_color } from "@/lib/color_wheel";
 import { has_sibling_named, use_folders } from "@/hooks/use_folders";
 import { MAX_FOLDER_DEPTH } from "@/hooks/use_folders/tree";
@@ -502,36 +501,12 @@ export function FolderManagementModal({
               >
                 {t("common.select_a_color")}
               </span>
-              <div
-                aria-labelledby="folder-color-label"
-                className="flex flex-wrap gap-2"
-                role="group"
-              >
-                {TAG_COLOR_PRESETS.map((color) => (
-                  <button
-                    key={color.hex}
-                    className="w-9 h-9 rounded-full"
-                    style={{
-                      backgroundColor: color.hex,
-                      boxShadow:
-                        new_color === color.hex
-                          ? `0 0 0 2px var(--modal-bg), 0 0 0 4px ${color.hex}`
-                          : "none",
-                    }}
-                    title={t(tag_color_label_key(color.variant))}
-                    onClick={() => set_new_color(color.hex)}
-                  />
-                ))}
-                <CustomColorSwatch
-                  class_name="w-9 h-9"
-                  presets={TAG_PRESET_HEXES}
-                  selected_style={(hex) => ({
-                    boxShadow: `0 0 0 2px var(--modal-bg), 0 0 0 4px ${hex}`,
-                  })}
-                  value={new_color}
-                  on_change={set_new_color}
-                />
-              </div>
+              <ColorSwatchRow
+                labelled_by="folder-color-label"
+                max_swatch_size={36}
+                value={new_color}
+                on_change={set_new_color}
+              />
 
               {error && (
                 <p className="text-[13px] text-red-500 mt-4">{error}</p>

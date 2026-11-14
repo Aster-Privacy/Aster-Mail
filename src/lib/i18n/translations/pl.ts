@@ -620,6 +620,7 @@ export const pl = {
     color_custom: "Własny kolor",
     color_brightness: "Jasność",
     color_hex: "Kolor szesnastkowy",
+    color_hex_invalid: "Wpisz kolor szesnastkowy, np. #3b82f6",
     tag_icon_tag: "Etykieta",
     tag_icon_folder: "Folder",
     tag_icon_star: "Gwiazdka",

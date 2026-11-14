@@ -534,6 +534,7 @@ export const de = {
     color_custom: "Benutzerdefinierte Farbe",
     color_brightness: "Helligkeit",
     color_hex: "Hex-Farbe",
+    color_hex_invalid: "Gib eine Hex-Farbe wie #3b82f6 ein",
     tag_icon_tag: "Etikett",
     tag_icon_folder: "Ordner",
     tag_icon_star: "Stern",

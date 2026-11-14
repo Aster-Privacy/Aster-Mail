@@ -267,7 +267,7 @@ describe("mobile drawer folder rename", () => {
     expect(hoisted.update_existing_folder).toHaveBeenCalledWith(
       work.id,
       "WORK",
-      "#000000",
+      "#3b82f6",
     );
     expect(hoisted.show_toast).not.toHaveBeenCalled();
   });

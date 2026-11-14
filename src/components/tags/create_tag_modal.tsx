@@ -34,11 +34,10 @@ import {
   EmailTag,
   TAG_COLOR_PRESETS,
   hex_to_variant,
-  tag_color_label_key,
   type TagIconName,
 } from "@/components/ui/email_tag";
-import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
-import { fill_text_color } from "@/lib/color_wheel";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
+import { DEFAULT_PICKER_COLOR, fill_text_color } from "@/lib/color_wheel";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
 import {
@@ -70,7 +69,7 @@ export function CreateTagModal({
   const { create_new_tag, state: tags_state } = use_tags();
   const [tag_name, set_tag_name] = useState("");
   const [selected_color, set_selected_color] = useState<string>(
-    TAG_COLOR_PRESETS[10].hex,
+    DEFAULT_PICKER_COLOR,
   );
   const [selected_icon, set_selected_icon] = useState<TagIconName | undefined>(
     undefined,
@@ -138,7 +137,7 @@ export function CreateTagModal({
     if (result) {
       on_close();
       set_tag_name("");
-      set_selected_color(TAG_COLOR_PRESETS[10].hex as string);
+      set_selected_color(DEFAULT_PICKER_COLOR);
       set_selected_icon(undefined);
       set_selected_parent_token(undefined);
     } else {
@@ -149,7 +148,7 @@ export function CreateTagModal({
   const handle_close = () => {
     if (is_creating) return;
     set_tag_name("");
-    set_selected_color(TAG_COLOR_PRESETS[10].hex);
+    set_selected_color(DEFAULT_PICKER_COLOR);
     set_selected_icon(undefined);
     set_selected_parent_token(undefined);
     set_error("");
@@ -287,36 +286,12 @@ export function CreateTagModal({
                   >
                     {t("common.color_label")}
                   </span>
-                  <div
-                    aria-labelledby="create-tag-color-label"
-                    className="flex flex-wrap gap-2"
-                    role="group"
-                  >
-                    {TAG_COLOR_PRESETS.map((color) => (
-                      <button
-                        key={color.hex}
-                        className="w-9 h-9 rounded-full"
-                        style={{
-                          backgroundColor: color.hex,
-                          boxShadow:
-                            selected_color === color.hex
-                              ? `0 0 0 2px var(--modal-bg), 0 0 0 4px ${color.hex}`
-                              : "none",
-                        }}
-                        title={t(tag_color_label_key(color.variant))}
-                        onClick={() => set_selected_color(color.hex)}
-                      />
-                    ))}
-                    <CustomColorSwatch
-                      class_name="w-9 h-9"
-                      presets={TAG_PRESET_HEXES}
-                      selected_style={(hex) => ({
-                        boxShadow: `0 0 0 2px var(--modal-bg), 0 0 0 4px ${hex}`,
-                      })}
-                      value={selected_color}
-                      on_change={set_selected_color}
-                    />
-                  </div>
+                  <ColorSwatchRow
+                    labelled_by="create-tag-color-label"
+                    max_swatch_size={36}
+                    value={selected_color}
+                    on_change={set_selected_color}
+                  />
                 </div>
 
                 <div>

@@ -625,6 +625,7 @@ export const fr = {
     color_custom: "Couleur personnalisée",
     color_brightness: "Luminosité",
     color_hex: "Couleur hexadécimale",
+    color_hex_invalid: "Saisissez une couleur hexadécimale comme #3b82f6",
     tag_icon_tag: "Étiquette",
     tag_icon_folder: "Dossier",
     tag_icon_star: "Étoile",
