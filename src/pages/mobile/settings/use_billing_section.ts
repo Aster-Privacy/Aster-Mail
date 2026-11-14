@@ -125,6 +125,8 @@ export function use_billing_section() {
   );
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
+  const [confirm_came_from, set_confirm_came_from] =
+    useState<CancelStep>("reason");
   const [is_verifying_password, set_is_verifying_password] = useState(false);
   const [cancel_totp_code, set_cancel_totp_code] = useState("");
   const [cancel_totp_required, set_cancel_totp_required] = useState(false);
@@ -144,6 +146,7 @@ export function use_billing_section() {
     set_cancel_reason(null);
     set_cancel_reason_text("");
     set_cancel_step("reason");
+    set_confirm_came_from("reason");
     set_cancel_totp_code("");
     set_cancel_totp_required(false);
     set_cancel_impact(null);
@@ -192,7 +195,7 @@ export function use_billing_section() {
   }, [show_cancel_dialog]);
 
   useEffect(() => {
-    if (!show_cancel_dialog || cancel_step !== "impact" || cancel_impact)
+    if (!show_cancel_dialog || cancel_step !== "password" || cancel_impact)
       return;
     let cancelled = false;
 
@@ -1401,6 +1404,8 @@ export function use_billing_section() {
     set_cancel_reason_text,
     cancel_step,
     set_cancel_step,
+    confirm_came_from,
+    set_confirm_came_from,
     is_verifying_password,
     cancel_totp_code,
     set_cancel_totp_code,

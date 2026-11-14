@@ -49,7 +49,8 @@ interface CancelReasonStepProps {
   set_reason: (reason: CancelReason | null) => void;
   reason_text: string;
   set_reason_text: (text: string) => void;
-  on_continue: () => void;
+  on_cancel: () => void;
+  on_see_options?: () => void;
   keep_plan_slot?: ReactNode;
 }
 
@@ -58,7 +59,8 @@ export function CancelReasonStep({
   set_reason,
   reason_text,
   set_reason_text,
-  on_continue,
+  on_cancel,
+  on_see_options,
   keep_plan_slot,
 }: CancelReasonStepProps) {
   const { t } = use_i18n();
@@ -99,13 +101,24 @@ export function CancelReasonStep({
 
       <div className="mt-5 flex flex-row items-center gap-2">
         {keep_plan_slot}
-        <div className="ms-auto flex flex-row items-center gap-3">
+        <div className="ms-auto flex flex-row flex-wrap items-center justify-end gap-2">
+          {on_see_options && (
+            <button
+              className={button_variants({ variant: "primary" })}
+              type="button"
+              onClick={on_see_options}
+            >
+              {t("settings.cancel_see_options")}
+            </button>
+          )}
           <button
-            className={button_variants({ variant: "primary" })}
+            className={button_variants({
+              variant: on_see_options ? "outline" : "primary",
+            })}
             type="button"
-            onClick={on_continue}
+            onClick={on_cancel}
           >
-            {t("settings.cancel_reason_continue")}
+            {t("settings.cancel_now")}
           </button>
         </div>
       </div>

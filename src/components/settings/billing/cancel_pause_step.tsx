@@ -68,7 +68,7 @@ interface CancelPauseStepProps {
   keep_plan_slot?: ReactNode;
   on_pause: (months: number) => void;
   on_back: () => void;
-  on_continue: () => void;
+  on_cancel: () => void;
 }
 
 export function CancelPauseStep({
@@ -79,7 +79,7 @@ export function CancelPauseStep({
   keep_plan_slot,
   on_pause,
   on_back,
-  on_continue,
+  on_cancel,
 }: CancelPauseStepProps) {
   const { t } = use_i18n();
   const [length, set_length] = useState<PauseLength>("1");
@@ -141,12 +141,11 @@ export function CancelPauseStep({
             {t("common.back")}
           </button>
           <button
-            className={`${button_variants({ variant: "ghost" })} whitespace-nowrap`}
-            disabled={is_busy}
+            className={`${button_variants({ variant: "outline" })} whitespace-nowrap`}
             type="button"
-            onClick={on_continue}
+            onClick={on_cancel}
           >
-            {t("settings.cancel_offer_continue")}
+            {t("settings.cancel_now")}
           </button>
         </div>
       </div>

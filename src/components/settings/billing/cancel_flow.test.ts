@@ -21,31 +21,38 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  has_retention_options,
   retention_step_for,
-  step_after_reason,
-  step_before_impact,
+  step_before_confirm,
 } from "@/components/settings/billing/cancel_flow";
 
 const none = { has_save_offer: false, has_plan_offer: false, can_pause: false };
 
 describe("cancel flow", () => {
-  it("goes straight from the reason to the impact when nothing is offered", () => {
+  it("offers no options and returns to the reason when nothing qualifies", () => {
     expect(retention_step_for(none)).toBeNull();
-    expect(step_after_reason(none)).toBe("impact");
-    expect(step_before_impact(none)).toBe("reason");
+    expect(has_retention_options(none)).toBe(false);
+    expect(step_before_confirm(none, "save")).toBe("reason");
   });
 
   it("shows at most one retention step, the save offer first", () => {
     const all = { has_save_offer: true, has_plan_offer: true, can_pause: true };
 
-    expect(step_after_reason(all)).toBe("save");
-    expect(step_before_impact(all)).toBe("save");
+    expect(retention_step_for(all)).toBe("save");
+    expect(has_retention_options(all)).toBe(true);
   });
 
   it("falls back to the plan offer and then to the pause", () => {
     expect(
-      step_after_reason({ ...none, has_plan_offer: true, can_pause: true }),
+      retention_step_for({ ...none, has_plan_offer: true, can_pause: true }),
     ).toBe("offer");
-    expect(step_after_reason({ ...none, can_pause: true })).toBe("pause");
+    expect(retention_step_for({ ...none, can_pause: true })).toBe("pause");
+  });
+
+  it("goes back from the confirmation to the step the user came from", () => {
+    const all = { has_save_offer: true, has_plan_offer: true, can_pause: true };
+
+    expect(step_before_confirm(all, "reason")).toBe("reason");
+    expect(step_before_confirm(all, "save")).toBe("save");
   });
 });

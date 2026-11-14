@@ -1490,3 +1490,17 @@ export async function claim_referral_code(code: string) {
 export async function record_referral_share() {
   return api_client.post<void>("/payments/v1/referrals/share", {});
 }
+
+export interface PublicCancelResponse {
+  received: boolean;
+}
+
+export async function request_public_cancel(
+  address: string,
+  cancel_reason: string | null,
+) {
+  return api_client.post<PublicCancelResponse>("/public/v1/billing/cancel", {
+    address,
+    cancel_reason,
+  });
+}

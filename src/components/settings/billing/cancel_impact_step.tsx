@@ -18,10 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ReactNode } from "react";
-
-import { button_variants } from "@aster/ui";
-
 import { use_i18n } from "@/lib/i18n/context";
 import {
   format_storage,
@@ -33,7 +29,6 @@ export type CancelStep =
   | "save"
   | "offer"
   | "pause"
-  | "impact"
   | "password";
 
 interface ImpactLine {
@@ -42,21 +37,12 @@ interface ImpactLine {
   is_warning?: boolean;
 }
 
-interface CancelImpactStepProps {
+interface CancelImpactListProps {
   impact: CancelImpactResponse | null;
   is_loading: boolean;
-  keep_plan_slot?: ReactNode;
-  on_back: () => void;
-  on_continue: () => void;
 }
 
-export function CancelImpactStep({
-  impact,
-  is_loading,
-  keep_plan_slot,
-  on_back,
-  on_continue,
-}: CancelImpactStepProps) {
+export function CancelImpactList({ impact, is_loading }: CancelImpactListProps) {
   const { t } = use_i18n();
 
   const lines: ImpactLine[] = [];
@@ -154,7 +140,7 @@ export function CancelImpactStep({
   }
 
   return (
-    <div className="py-1">
+    <div>
       {is_loading ? (
         <div className="flex items-center gap-2.5 rounded-lg border border-edge-secondary px-3 py-6">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-edge-secondary border-t-txt-muted" />
@@ -167,7 +153,7 @@ export function CancelImpactStep({
           {t("settings.cancel_impact_unavailable")}
         </p>
       ) : (
-        <ul className="max-h-[40vh] divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] overflow-y-auto rounded-lg border border-edge-secondary">
+        <ul className="max-h-[32vh] divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] overflow-y-auto rounded-lg border border-edge-secondary">
           {lines.map((line) => (
             <li
               key={line.key}
@@ -185,27 +171,6 @@ export function CancelImpactStep({
       <p className="mt-3 text-xs leading-relaxed text-txt-muted">
         {t("settings.cancel_impact_reactivate_hint")}
       </p>
-
-      <div className="mt-5 flex flex-row items-center gap-2">
-        {keep_plan_slot}
-        <div className="ms-auto flex flex-row items-center gap-2">
-          <button
-            className={button_variants({ variant: "ghost" })}
-            type="button"
-            onClick={on_back}
-          >
-            {t("common.back")}
-          </button>
-          <button
-            className={button_variants({ variant: "primary" })}
-            disabled={is_loading}
-            type="button"
-            onClick={on_continue}
-          >
-            {t("settings.cancel_impact_continue")}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

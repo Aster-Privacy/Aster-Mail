@@ -39,7 +39,7 @@ interface CancelOfferStepProps {
   on_switch: () => void;
   on_switch_yearly?: () => void;
   on_back: () => void;
-  on_continue: () => void;
+  on_cancel: () => void;
 }
 
 export function CancelOfferStep({
@@ -51,7 +51,7 @@ export function CancelOfferStep({
   on_switch,
   on_switch_yearly,
   on_back,
-  on_continue,
+  on_cancel,
 }: CancelOfferStepProps) {
   const { t } = use_i18n();
 
@@ -119,12 +119,11 @@ export function CancelOfferStep({
             {t("common.back")}
           </button>
           <button
-            className={button_variants({ variant: "ghost" })}
-            disabled={is_busy}
+            className={button_variants({ variant: "outline" })}
             type="button"
-            onClick={on_continue}
+            onClick={on_cancel}
           >
-            {t("settings.cancel_offer_continue")}
+            {t("settings.cancel_now")}
           </button>
         </div>
       </div>

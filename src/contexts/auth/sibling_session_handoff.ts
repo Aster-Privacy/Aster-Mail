@@ -37,6 +37,7 @@ const SKIPPED_PATH_PREFIXES = [
   "/signup",
   "/invite",
   "/forgot-password",
+  "/cancel",
   "/reset-password",
   "/link-device",
   "/join",

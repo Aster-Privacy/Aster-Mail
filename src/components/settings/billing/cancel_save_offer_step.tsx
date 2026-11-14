@@ -33,7 +33,7 @@ interface CancelSaveOfferStepProps {
   keep_plan_slot?: ReactNode;
   on_accept: () => void;
   on_back: () => void;
-  on_continue: () => void;
+  on_cancel: () => void;
 }
 
 export function CancelSaveOfferStep({
@@ -43,7 +43,7 @@ export function CancelSaveOfferStep({
   keep_plan_slot,
   on_accept,
   on_back,
-  on_continue,
+  on_cancel,
 }: CancelSaveOfferStepProps) {
   const { t } = use_i18n();
 
@@ -84,12 +84,11 @@ export function CancelSaveOfferStep({
             {t("common.back")}
           </button>
           <button
-            className={button_variants({ variant: "ghost" })}
-            disabled={is_busy}
+            className={button_variants({ variant: "outline" })}
             type="button"
-            onClick={on_continue}
+            onClick={on_cancel}
           >
-            {t("settings.cancel_offer_continue")}
+            {t("settings.cancel_now")}
           </button>
         </div>
       </div>

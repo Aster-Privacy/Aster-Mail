@@ -76,6 +76,7 @@ import { use_upgrade_prompt_events } from "@/stores/upgrade_store";
 import { safe_local_get } from "@/lib/safe_storage";
 import { draft_from_mobile_undo } from "@/components/toast/undone_send_draft";
 import { selected_alias_from_location } from "@/components/compose/selected_alias";
+import { PUBLIC_CANCEL_ENABLED } from "@/pages/public_cancel/enabled";
 
 const MobileInbox = lazy_with_retry(
   () => import("@/pages/mobile/mobile_inbox"),
@@ -125,6 +126,9 @@ import("@/pages/mobile/mobile_welcome").catch((caught) =>
 );
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/mobile/mobile_forgot_password"),
+);
+const PublicCancelPage = lazy_with_retry(
+  () => import("@/pages/public_cancel"),
 );
 const ResetPasswordPage = lazy_with_retry(
   () => import("@/pages/reset_password"),
@@ -191,6 +195,7 @@ const AUTH_PREFIXES = [
   "/register",
   "/signup",
   "/forgot-password",
+  "/cancel",
   "/reset-password",
   "/verify-recovery-email",
   "/browser-login",
@@ -816,6 +821,9 @@ function MobileApp() {
               <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              {PUBLIC_CANCEL_ENABLED && (
+                <Route element={<PublicCancelPage />} path="/cancel" />
+              )}
               <Route element={<ResetPasswordPage />} path="/reset-password" />
               <Route
                 element={<VerifyRecoveryEmailPage />}

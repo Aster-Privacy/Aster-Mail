@@ -84,6 +84,7 @@ import { install_global_autoscroll } from "@/lib/global_autoscroll";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
+import { PUBLIC_CANCEL_ENABLED } from "@/pages/public_cancel/enabled";
 
 const IndexPage = lazy_with_retry(() => import("@/pages/index"));
 
@@ -97,6 +98,9 @@ const RegisterPage = lazy_with_retry(() => import("@/pages/register"));
 const InvitePage = lazy_with_retry(() => import("@/pages/invite"));
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/forgot_password"),
+);
+const PublicCancelPage = lazy_with_retry(
+  () => import("@/pages/public_cancel"),
 );
 const ResetPasswordPage = lazy_with_retry(
   () => import("@/pages/reset_password"),
@@ -562,6 +566,9 @@ function App() {
               <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              {PUBLIC_CANCEL_ENABLED && (
+                <Route element={<PublicCancelPage />} path="/cancel" />
+              )}
               <Route element={<ResetPasswordPage />} path="/reset-password" />
               <Route
                 element={<VerifyRecoveryEmailPage />}
