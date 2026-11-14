@@ -96,6 +96,7 @@ import { request_external_link } from "@/utils/external_link_request";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
+import { ForwardedViaLine } from "@/components/email/shared/forwarded_via_line";
 
 export function ThreadMessageBlock(
   props: ThreadMessageBlockProps,
@@ -591,6 +592,7 @@ export function ThreadMessageBlock(
               </Tooltip>
             )}
           </div>
+          {!is_own_message && <ForwardedViaLine sender={message} />}
           {received_on_address && (
             <span className="block w-fit max-w-full truncate text-xs text-txt-muted mt-0.5">
               {t("mail.received_on_prefix", { address: received_on_address })}

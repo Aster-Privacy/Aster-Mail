@@ -25,6 +25,8 @@ import {
   resolve_forwarding_display,
   is_forwarder_authenticated,
   displayed_sender,
+  forwarding_address,
+  parse_original_sender,
 } from "./forwarding_alias";
 
 const SL_ALIAS = {
@@ -302,5 +304,209 @@ describe("displayed_sender", () => {
         sender_email: "real@gmail.com",
       }),
     ).toEqual({ name: "Real Sender", email: "real@gmail.com" });
+  });
+});
+
+describe("addy forwarding details", () => {
+  it("reads the name from the original From header", () => {
+    const result = detect_forwarded_alias(
+      headers({
+        "X-AnonAddy-Original-From-Header": "Jane Doe <jane@example.com>",
+        "X-AnonAddy-Original-Sender": "jane@example.com",
+      }),
+      { email: "shop@addy.io" },
+    );
+
+    expect(result?.service).toBe("addy");
+    expect(result?.original).toEqual({
+      name: "Jane Doe",
+      email: "jane@example.com",
+    });
+  });
+
+  it("falls back to the original sender address", () => {
+    const result = detect_forwarded_alias(
+      headers({ "X-AnonAddy-Original-Sender": "jane@example.com" }),
+      { email: "shop@addy.io" },
+    );
+
+    expect(result?.original.email).toBe("jane@example.com");
+  });
+
+  it.each(["4wrd.cc", "mailer.me", "addymail.com", "user.anonaddy.com"])(
+    "accepts the shared domain %s",
+    (domain) => {
+      const result = detect_forwarded_alias(
+        headers({ "X-AnonAddy-Original-Sender": "jane@example.com" }),
+        { email: `shop@${domain}` },
+      );
+
+      expect(result?.original.email).toBe("jane@example.com");
+    },
+  );
+
+  it("ignores the headers when the From domain is not a forwarder", () => {
+    const result = detect_forwarded_alias(
+      headers({
+        "X-AnonAddy-Original-From-Header": "Bank <security@bank.example>",
+      }),
+      { email: "attacker@evil.example" },
+    );
+
+    expect(result).toBeUndefined();
+  });
+
+  it("ignores lookalike forwarder domains", () => {
+    const result = detect_forwarded_alias(
+      headers({ "X-AnonAddy-Original-Sender": "jane@example.com" }),
+      { email: "shop@notaddy.io" },
+    );
+
+    expect(result).toBeUndefined();
+  });
+
+  it("rejects the forward when the forwarder reports a DMARC failure", () => {
+    const result = detect_forwarded_alias(
+      headers({
+        "X-AnonAddy-Original-From-Header": "Bank <security@bank.example>",
+        "X-AnonAddy-Authentication-Results":
+          "mx.addy.io; spf=fail; dkim=none; dmarc=fail (p=reject)",
+      }),
+      { email: "shop@addy.io" },
+    );
+
+    expect(result).toBeUndefined();
+  });
+
+  it("keeps the forward when the forwarder reports a DMARC pass", () => {
+    const result = detect_forwarded_alias(
+      headers({
+        "X-AnonAddy-Original-From-Header": "Jane <jane@example.com>",
+        "X-AnonAddy-Authentication-Results": "mx.addy.io; dmarc=pass",
+      }),
+      { email: "shop@addy.io" },
+    );
+
+    expect(result?.original.email).toBe("jane@example.com");
+  });
+
+  it("rejects conflicting duplicate headers", () => {
+    const result = detect_forwarded_alias(
+      [
+        { name: "X-AnonAddy-Original-Sender", value: "jane@example.com" },
+        { name: "X-AnonAddy-Original-Sender", value: "ceo@bank.example" },
+      ],
+      { email: "shop@addy.io" },
+    );
+
+    expect(result).toBeUndefined();
+  });
+
+  it("accepts identical duplicate headers", () => {
+    const result = detect_forwarded_alias(
+      [
+        { name: "X-AnonAddy-Original-Sender", value: "jane@example.com" },
+        { name: "x-anonaddy-original-sender", value: "jane@example.com" },
+      ],
+      { email: "shop@addy.io" },
+    );
+
+    expect(result?.original.email).toBe("jane@example.com");
+  });
+
+  it("rejects an oversized header value", () => {
+    const result = detect_forwarded_alias(
+      headers({
+        "X-AnonAddy-Original-From-Header": `${"a".repeat(1000)} <jane@example.com>`,
+      }),
+      { email: "shop@addy.io" },
+    );
+
+    expect(result).toBeUndefined();
+  });
+
+  it("does not resolve when the forwarder failed authentication", () => {
+    const result = resolve_forwarding_display(
+      { email: "shop@addy.io" },
+      headers({ "X-AnonAddy-Original-Sender": "jane@example.com" }),
+      { dkim_result: "fail", dmarc_result: "fail", sender_aligned: false },
+    );
+
+    expect(result).toBeUndefined();
+  });
+
+  it("resolves the display sender for an authenticated forward", () => {
+    const result = resolve_forwarding_display(
+      { name: "shop", email: "shop@addy.io" },
+      headers({
+        "X-AnonAddy-Original-From-Header": "Jane Doe <jane@example.com>",
+      }),
+      { dkim_result: "pass", dmarc_result: "pass", sender_aligned: true },
+    );
+
+    expect(result).toEqual({
+      display_sender_name: "Jane Doe",
+      display_sender_email: "jane@example.com",
+      forwarding_service: "addy",
+    });
+  });
+});
+
+describe("parse_original_sender", () => {
+  it("decodes encoded-word display names", () => {
+    expect(
+      parse_original_sender(
+        "=?UTF-8?B?Sm9zw6kgR2FyY8OtYQ==?= <jose@example.com>",
+      ),
+    ).toEqual({ name: "Jos\u00e9 Garc\u00eda", email: "jose@example.com" });
+  });
+
+  it("strips quotes around the display name", () => {
+    expect(parse_original_sender('"Doe, Jane" <jane@example.com>')).toEqual({
+      name: "Doe, Jane",
+      email: "jane@example.com",
+    });
+  });
+
+  it("removes control and bidi override characters", () => {
+    const parsed = parse_original_sender(
+      "Pay\u202epal\u0007 Team <team@example.com>",
+    );
+
+    expect(parsed?.name).toBe("Pay pal Team");
+  });
+
+  it("caps very long display names", () => {
+    const parsed = parse_original_sender(
+      `${"n".repeat(300)} <long@example.com>`,
+    );
+
+    expect(parsed?.name?.length).toBe(128);
+  });
+
+  it("returns undefined for values without an address", () => {
+    expect(parse_original_sender("not an address")).toBeUndefined();
+    expect(parse_original_sender(undefined)).toBeUndefined();
+  });
+});
+
+describe("forwarding_address", () => {
+  it("returns the literal From when the shown sender differs", () => {
+    expect(
+      forwarding_address({
+        sender_email: "shop@addy.io",
+        display_sender_email: "jane@example.com",
+      }),
+    ).toBe("shop@addy.io");
+  });
+
+  it("returns null without a forwarded display sender", () => {
+    expect(forwarding_address({ sender_email: "jane@example.com" })).toBeNull();
+    expect(
+      forwarding_address({
+        sender_email: "Jane@example.com",
+        display_sender_email: "jane@example.com",
+      }),
+    ).toBeNull();
   });
 });

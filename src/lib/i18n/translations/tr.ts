@@ -9685,6 +9685,8 @@ export const tr = {
     to_recipients_prefix: "{{ recipients }} kişisine",
     received_on_prefix: "{{ address }} adresinde alındı",
     received_via_alias: "{{ address }} takma adresine teslim edildi",
+    forwarded_via: "{{ address }} üzerinden",
+    forwarded_by_label: "Yönlendiren",
     new_reaction: "Yeni tepki",
     load_external_content: "Harici içerik yükle",
     image_loading_settings: "Görsel ayarları",

@@ -20,6 +20,7 @@
 //
 import { get_email_username } from "@/lib/utils";
 import { parse_address, type ParsedAddress } from "@/utils/reply_to";
+import { decode_header_for_display } from "@/services/import/mime_utils";
 
 export type ForwardingService = "simplelogin" | "addy";
 
@@ -54,7 +55,18 @@ const SIMPLELOGIN_DOMAINS = [
   "dralias.com",
 ];
 
-const ADDY_DOMAINS = ["addy.io", "anonaddy.me", "anonaddy.com"];
+const ADDY_DOMAINS = [
+  "addy.io",
+  "anonaddy.me",
+  "anonaddy.com",
+  "4wrd.cc",
+  "mailer.me",
+  "addymail.com",
+];
+
+const MAX_DISPLAY_NAME_LENGTH = 128;
+const MAX_HEADER_VALUE_LENGTH = 998;
+const NAME_CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069]/g;
 
 function domain_of(email: string): string {
   const at = email.lastIndexOf("@");
@@ -73,10 +85,54 @@ function find_header(
   name: string,
 ): string | undefined {
   const target = name.toLowerCase();
-  const match = raw_headers.find((h) => h.name.toLowerCase() === target);
-  const value = match?.value?.trim();
+  const values = raw_headers
+    .filter((h) => h.name.toLowerCase() === target)
+    .map((h) => (typeof h.value === "string" ? h.value.trim() : ""))
+    .filter(Boolean);
 
-  return value || undefined;
+  if (values.length === 0) return undefined;
+  if (values.some((v) => v !== values[0])) return undefined;
+  if (values[0].length > MAX_HEADER_VALUE_LENGTH) return undefined;
+
+  return values[0];
+}
+
+function clean_display_name(name: string | undefined): string | undefined {
+  if (!name) return undefined;
+  const decoded = decode_header_for_display(name)
+    .replace(NAME_CONTROL_CHARS, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^"(.*)"$/, "$1")
+    .trim();
+
+  if (!decoded) return undefined;
+
+  return decoded.length > MAX_DISPLAY_NAME_LENGTH
+    ? decoded.slice(0, MAX_DISPLAY_NAME_LENGTH).trim()
+    : decoded;
+}
+
+export function parse_original_sender(
+  value: string | undefined,
+): ParsedAddress | undefined {
+  if (!value) return undefined;
+  const parsed = parse_address(value);
+
+  if (!parsed?.email) return undefined;
+
+  return { name: clean_display_name(parsed.name), email: parsed.email };
+}
+
+function addy_dmarc_failed(raw_headers: HeaderLike[]): boolean {
+  const target = "x-anonaddy-authentication-results";
+
+  return raw_headers.some(
+    (h) =>
+      h.name.toLowerCase() === target &&
+      typeof h.value === "string" &&
+      /\bdmarc\s*=\s*fail\b/i.test(h.value),
+  );
 }
 
 function same_email(a: string, b: string): boolean {
@@ -106,7 +162,9 @@ export function detect_forwarded_alias(
     const is_forward = !sl_type || /forward/i.test(sl_type);
 
     if (is_forward) {
-      const original = parse_address(sl_original || sl_envelope || "");
+      const original =
+        parse_original_sender(sl_original) ??
+        parse_original_sender(sl_envelope);
 
       if (original?.email && !same_email(original.email, reverse_alias.email)) {
         return { service: "simplelogin", original, reverse_alias };
@@ -114,10 +172,20 @@ export function detect_forwarded_alias(
     }
   }
 
+  const addy_from_header = find_header(
+    raw_headers,
+    "X-AnonAddy-Original-From-Header",
+  );
   const addy_original = find_header(raw_headers, "X-AnonAddy-Original-Sender");
 
-  if (addy_original && matches_forwarder(reverse_alias.email, ADDY_DOMAINS)) {
-    const original = parse_address(addy_original);
+  if (
+    (addy_from_header || addy_original) &&
+    matches_forwarder(reverse_alias.email, ADDY_DOMAINS) &&
+    !addy_dmarc_failed(raw_headers)
+  ) {
+    const original =
+      parse_original_sender(addy_from_header) ??
+      parse_original_sender(addy_original);
 
     if (original?.email && !same_email(original.email, reverse_alias.email)) {
       return { service: "addy", original, reverse_alias };
@@ -200,4 +268,14 @@ export function displayed_sender(item: SenderDisplayFields): {
     name: item.sender_name || "",
     email: item.sender_email || "",
   };
+}
+
+export function forwarding_address(item: SenderDisplayFields): string | null {
+  const shown = item.display_sender_email?.trim();
+  const literal = item.sender_email?.trim();
+
+  if (!shown || !literal) return null;
+  if (same_email(shown, literal)) return null;
+
+  return literal;
 }

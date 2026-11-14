@@ -9040,6 +9040,8 @@ export const hi = {
     to_recipients_prefix: "{{ recipients }} को",
     received_on_prefix: "{{ address }} पर मिला",
     received_via_alias: "आपके एलियास {{ address }} पर पहुंचाया गया",
+    forwarded_via: "{{ address }} के माध्यम से",
+    forwarded_by_label: "द्वारा अग्रेषित",
     new_reaction: "नई प्रतिक्रिया",
     move_to_folder: "फ़ोल्डर में ले जाएं",
     apply_label: "लेबल लगाएं",

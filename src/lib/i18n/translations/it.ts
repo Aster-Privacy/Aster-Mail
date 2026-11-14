@@ -9846,6 +9846,8 @@ export const it = {
     to_recipients_prefix: "a {{ recipients }}",
     received_on_prefix: "ricevuto su {{ address }}",
     received_via_alias: "consegnato al tuo alias {{ address }}",
+    forwarded_via: "tramite {{ address }}",
+    forwarded_by_label: "Inoltrato da",
     new_reaction: "Nuova reazione",
     load_external_content: "Carica contenuto esterno",
     image_loading_settings: "Impostazioni immagini",

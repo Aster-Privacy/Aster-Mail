@@ -10187,6 +10187,8 @@ export const ru = {
     to_recipients_prefix: "кому {{ recipients }}",
     received_on_prefix: "получено на {{ address }}",
     received_via_alias: "доставлено на псевдоним {{ address }}",
+    forwarded_via: "через {{ address }}",
+    forwarded_by_label: "Переслано через",
     new_reaction: "Новая реакция",
     tracker: "трекер",
     trackers: "трекеры",

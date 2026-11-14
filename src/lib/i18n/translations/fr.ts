@@ -10123,6 +10123,8 @@ export const fr = {
     to_recipients_prefix: "à {{ recipients }}",
     received_on_prefix: "reçu sur {{ address }}",
     received_via_alias: "remis à votre alias {{ address }}",
+    forwarded_via: "via {{ address }}",
+    forwarded_by_label: "Transféré par",
     new_reaction: "Nouvelle réaction",
     tracker: "Traqueur",
     trackers: "Traqueurs",

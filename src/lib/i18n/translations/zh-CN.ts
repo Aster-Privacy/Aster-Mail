@@ -8696,6 +8696,8 @@ export const zh_CN = {
     to_recipients_prefix: "给 {{ recipients }}",
     received_on_prefix: "通过 {{ address }} 接收",
     received_via_alias: "已送达别名 {{ address }}",
+    forwarded_via: "通过 {{ address }}",
+    forwarded_by_label: "转发方",
     new_reaction: "新回应",
     download_file_named: "下载 {{ filename }}",
     load_external_content: "加载外部内容",

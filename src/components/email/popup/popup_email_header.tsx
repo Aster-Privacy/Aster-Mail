@@ -55,6 +55,7 @@ import {
   use_sender_trust,
 } from "@/hooks/use_sender_trust";
 import { reply_to_header_value } from "@/utils/reply_to";
+import { ForwardedViaLine } from "@/components/email/shared/forwarded_via_line";
 import { get_label_hints } from "@/stores/label_hints_store";
 
 interface PopupEmailHeaderProps {
@@ -318,6 +319,10 @@ export function PopupEmailHeader({
               )}
             </div>
 
+            <ForwardedViaLine
+              className="block w-fit max-w-full truncate text-xs text-txt-muted"
+              sender={email}
+            />
             <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>

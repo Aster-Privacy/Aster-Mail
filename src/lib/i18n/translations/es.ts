@@ -10011,6 +10011,8 @@ export const es = {
     to_recipients_prefix: "para {{ recipients }}",
     received_on_prefix: "recibido en {{ address }}",
     received_via_alias: "entregado a tu alias {{ address }}",
+    forwarded_via: "a través de {{ address }}",
+    forwarded_by_label: "Reenviado por",
     new_reaction: "Reacción nueva",
     tracker: "Rastreador",
     trackers: "Rastreadores",

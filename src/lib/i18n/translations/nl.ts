@@ -9775,6 +9775,8 @@ export const nl = {
     to_recipients_prefix: "aan {{ recipients }}",
     received_on_prefix: "ontvangen op {{ address }}",
     received_via_alias: "bezorgd op je alias {{ address }}",
+    forwarded_via: "via {{ address }}",
+    forwarded_by_label: "Doorgestuurd door",
     new_reaction: "Nieuwe reactie",
     trash_auto_delete_notice:
       "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd.",

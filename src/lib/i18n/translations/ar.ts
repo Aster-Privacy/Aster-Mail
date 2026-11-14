@@ -9592,6 +9592,8 @@ export const ar = {
     to_recipients_prefix: "إلى {{ recipients }}",
     received_on_prefix: "تم الاستلام على {{ address }}",
     received_via_alias: "تم التسليم إلى الاسم المستعار {{ address }}",
+    forwarded_via: "عبر {{ address }}",
+    forwarded_by_label: "أُعيد توجيهه بواسطة",
     new_reaction: "تفاعل جديد",
     load_external_content: "تحميل المحتوى الخارجي",
     image_loading_settings: "إعدادات الصور",
