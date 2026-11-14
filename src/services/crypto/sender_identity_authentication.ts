@@ -376,6 +376,27 @@ async function is_remembered(
   );
 }
 
+export async function is_sender_identity_published(
+  sender_email: string,
+  sender_identity_key: string,
+): Promise<boolean> {
+  if (!sender_email || !sender_identity_key) return false;
+
+  const peer = sender_email.trim().toLowerCase();
+
+  if ((await resolve_published_identity(peer)) === sender_identity_key) {
+    return true;
+  }
+
+  const published_history = await resolve_published_history(peer);
+
+  if (published_history?.identity_keys.includes(sender_identity_key)) {
+    return true;
+  }
+
+  return (await resolve_address_entry_keys(peer)).includes(sender_identity_key);
+}
+
 export async function authenticate_sender_identity(
   sender_email: string,
   sender_identity_key: string,

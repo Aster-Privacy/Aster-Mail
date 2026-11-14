@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { get_recipient_public_key } from "../api/keys";
+import {
+  extract_username_from_email,
+  get_recipient_public_key,
+} from "../api/keys";
 
 import {
   account_sender_identity,
@@ -239,6 +242,39 @@ async function verify_recipient_bundle(
     accepted_by_user,
     owner_public_key,
   };
+}
+
+export async function is_identity_bound_by_current_bundle(
+  peer_email: string,
+  identity_key: string,
+): Promise<boolean> {
+  const peer = peer_email.trim().toLowerCase();
+  const username = extract_username_from_email(peer);
+
+  if (!username || !identity_key) return false;
+
+  try {
+    const resolved = await resolve_recipient_bundle(username, peer);
+    const bundle = resolved?.entry ?? null;
+
+    if (!resolved || !bundle || bundle.kem_identity_key !== identity_key) {
+      return false;
+    }
+
+    const verification = await verify_recipient_bundle(
+      bundle,
+      username,
+      peer,
+      resolved.trust,
+    );
+
+    return (
+      verification.verdict === "verified" &&
+      (verification.owner_pin === "ok" || verification.owner_pin === "first")
+    );
+  } catch {
+    return false;
+  }
 }
 
 function is_own_published_bundle(

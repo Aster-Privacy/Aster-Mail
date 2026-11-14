@@ -49,7 +49,11 @@ import {
   type PlaintextBinding,
 } from "./ratchet_plaintext_cache";
 import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
-import { has_peer_advertised_pq } from "./ratchet_identity_pin";
+import {
+  has_peer_advertised_pq,
+  lookup_owner_key_pin,
+} from "./ratchet_identity_pin";
+import { is_identity_bound_by_current_bundle } from "./ratchet_encrypt";
 import {
   clear_unauthenticated_plaintext,
   clear_unconfirmed_sender_plaintext,
@@ -88,6 +92,7 @@ import { is_authenticated_ratchet_enforced } from "./crypto_enforcement_policy";
 import {
   authenticate_sender_identity,
   check_sender_identity_continuity,
+  is_sender_identity_published,
   note_message_sender_identity,
   type SenderIdentityContinuity,
   SenderIdentityUnverifiedError,
@@ -965,16 +970,52 @@ async function carry_forward_skipped_keys(
   ratchet.adopt_state(current);
 }
 
-function bootstrap_may_replace_session(
+async function bootstrap_may_replace_session(
+  our_email: string,
+  sender_email: string,
+  vault: EncryptedVault,
   established_identity_key: string | null,
   bootstrap_identity_key: string | null,
   identity_status: SenderIdentityStatus,
-): boolean {
-  if (identity_status === "verified") return true;
+): Promise<boolean> {
+  if (!bootstrap_identity_key) return false;
 
-  return (
+  if (
     established_identity_key !== null &&
     established_identity_key === bootstrap_identity_key
+  ) {
+    return true;
+  }
+
+  const continuity = await sender_continuity(
+    our_email,
+    sender_email,
+    bootstrap_identity_key,
+    vault,
+    true,
+  );
+
+  if (continuity === "known") return true;
+  if (continuity === "new") return identity_status === "verified";
+  if (continuity !== "changed") return false;
+
+  const published = await is_sender_identity_published(
+    sender_email,
+    bootstrap_identity_key,
+  ).catch(() => false);
+
+  if (!published) return false;
+
+  const owner_pin = await lookup_owner_key_pin(
+    sender_email.trim().toLowerCase(),
+  );
+
+  if (owner_pin === "unreadable") return false;
+  if (owner_pin === null) return true;
+
+  return is_identity_bound_by_current_bundle(
+    sender_email,
+    bootstrap_identity_key,
   );
 }
 
@@ -1319,11 +1360,14 @@ async function decrypt_ratchet_for_recipient(
   if (
     ratchet_origin === "bootstrap" &&
     loaded_snapshot &&
-    !bootstrap_may_replace_session(
+    !(await bootstrap_may_replace_session(
+      our_email,
+      sender_email,
+      vault,
       established_identity_key,
       ratchet.get_remote_identity_key(),
       identity_status,
-    )
+    ))
   ) {
     return {
       plaintext,
