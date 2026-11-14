@@ -11394,7 +11394,7 @@ export const nl = {
     auth_fail: "mislukt",
     auth_none: "geen",
     auth_missing: "ontbreekt",
-    category_primary: "Postvak IN",
+    category_primary: "Primair",
     category_important: "Belangrijk",
     category_promotions: "Aanbiedingen",
     category_social: "Sociaal",

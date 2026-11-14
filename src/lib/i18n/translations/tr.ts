@@ -11273,7 +11273,7 @@ export const tr = {
     auth_fail: "başarısız",
     auth_none: "yok",
     auth_missing: "eksik",
-    category_primary: "Gelen Kutusu",
+    category_primary: "Birincil",
     category_important: "Önemli",
     category_promotions: "İndirimler",
     category_social: "Sosyal",

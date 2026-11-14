@@ -11635,7 +11635,7 @@ export const pl = {
     auth_fail: "niepomyślnie",
     auth_none: "brak",
     auth_missing: "brakujący",
-    category_primary: "Odebrane",
+    category_primary: "Podstawowe",
     category_important: "Ważne",
     category_promotions: "Promocje",
     category_social: "Społecznościowe",

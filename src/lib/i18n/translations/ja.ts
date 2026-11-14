@@ -11153,7 +11153,7 @@ export const ja = {
     auth_fail: "失敗",
     auth_none: "なし",
     auth_missing: "なし",
-    category_primary: "受信トレイ",
+    category_primary: "メイン",
     category_important: "重要",
     category_promotions: "セール",
     category_social: "ソーシャル",

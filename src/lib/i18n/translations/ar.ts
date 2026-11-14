@@ -11170,7 +11170,7 @@ export const ar = {
     auth_fail: "فاشل",
     auth_none: "بدون",
     auth_missing: "مفقود",
-    category_primary: "البريد الوارد",
+    category_primary: "أساسي",
     category_important: "مهم",
     category_promotions: "الصفقات",
     category_social: "التواصل",

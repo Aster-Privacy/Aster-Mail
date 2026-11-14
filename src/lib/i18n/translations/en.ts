@@ -11089,7 +11089,7 @@ export const en: Translations = {
     auth_fail: "fail",
     auth_none: "none",
     auth_missing: "missing",
-    category_primary: "Inbox",
+    category_primary: "Primary",
     category_important: "Important",
     category_promotions: "Deals",
     category_social: "Social",

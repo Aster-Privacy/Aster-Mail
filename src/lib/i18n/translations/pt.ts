@@ -11527,7 +11527,7 @@ export const pt = {
     auth_fail: "reprovado",
     auth_none: "nenhum",
     auth_missing: "ausente",
-    category_primary: "Caixa de entrada",
+    category_primary: "Principal",
     category_important: "Importante",
     category_promotions: "Promoções",
     category_social: "Redes sociais",

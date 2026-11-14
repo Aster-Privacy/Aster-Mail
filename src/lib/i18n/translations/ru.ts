@@ -11501,7 +11501,7 @@ export const ru = {
       "Это правило содержит вложенные условия, которые визуальный редактор не может отобразить. Отредактировать можно в режиме Выражений.",
     category_forums: "Обсуждения",
     category_important: "Важное",
-    category_primary: "Входящие",
+    category_primary: "Основные",
     category_promotions: "Скидки",
     category_social: "Соцсети",
     category_updates: "Уведомления",

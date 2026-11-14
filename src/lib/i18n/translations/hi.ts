@@ -11142,7 +11142,7 @@ export const hi = {
     auth_fail: "विफल",
     auth_none: "कोई नहीं",
     auth_missing: "मौजूद नहीं",
-    category_primary: "इनबॉक्स",
+    category_primary: "प्राथमिक",
     category_important: "ज़रूरी",
     category_promotions: "ऑफ़र",
     category_social: "सोशल",
