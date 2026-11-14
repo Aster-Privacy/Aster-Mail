@@ -25,6 +25,7 @@ import { request_cache } from "./api/request_cache";
 import { check_and_replenish_prekeys } from "./crypto/prekey_service";
 import { connection_store } from "./routing/connection_store";
 import { resolve_sync_socket_url } from "./routing/sync_socket_url";
+import { open_sync_socket } from "./routing/pinned_sync_socket";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
@@ -269,7 +270,7 @@ class SyncClient {
       };
 
       this.socket_url = socket_url;
-      this.socket = new WebSocket(socket_url);
+      this.socket = open_sync_socket(socket_url);
 
       this.socket.onopen = () => {
         const token = api_client.get_access_token();

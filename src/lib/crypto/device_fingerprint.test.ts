@@ -23,7 +23,10 @@ import { describe, expect, it } from "vitest";
 import { base64url_encode } from "./device_envelope";
 import {
   device_key_fingerprint,
+  fingerprint_matches,
   fingerprint_of_encoded_device_keys,
+  format_fingerprint_input,
+  normalize_fingerprint_input,
 } from "./device_fingerprint";
 
 const ED = new Uint8Array(32).fill(1);
@@ -88,5 +91,25 @@ describe("fingerprint_of_encoded_device_keys", () => {
         x25519_pk: base64url_encode(X),
       }),
     ).toBeNull();
+  });
+});
+
+describe("typed verification codes", () => {
+  it("keeps only code characters, uppercases them and stops at full length", () => {
+    expect(normalize_fingerprint_input("9b16-af79 0a6a:e2f2 55d3 ffff zz")).toBe(
+      "9B16AF790A6AE2F255D3",
+    );
+    expect(format_fingerprint_input("9b16af790a6ae2f255d3ff")).toBe(VECTOR);
+    expect(format_fingerprint_input("")).toBe("");
+  });
+
+  it("accepts only the full matching code", () => {
+    expect(fingerprint_matches(VECTOR, VECTOR)).toBe(true);
+    expect(fingerprint_matches("9b16af790a6ae2f255d3", VECTOR)).toBe(true);
+    expect(fingerprint_matches("9B16 AF79 0A6A E2F2 55D4", VECTOR)).toBe(false);
+    expect(fingerprint_matches("9B16 AF79 0A6A E2F2 55D", VECTOR)).toBe(false);
+    expect(fingerprint_matches("", VECTOR)).toBe(false);
+    expect(fingerprint_matches(VECTOR, "")).toBe(false);
+    expect(fingerprint_matches("9B16", "9B16")).toBe(false);
   });
 });

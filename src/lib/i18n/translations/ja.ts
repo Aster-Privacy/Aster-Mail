@@ -1165,7 +1165,7 @@ export const ja = {
       "設定では、エイリアスの追加、独自ドメインの接続、2ファクタ認証の有効化ができます。",
     youre_ready: "準備完了",
     youre_ready_description:
-      "メールはエンドツーエンドで暗号化され、鍵はあなただけが持っています。? を押すと、いつでもすべてのキーボードショートカットを確認できます。",
+      "メールは暗号化して保存され、鍵はあなただけが持っています。? を押すと、いつでもすべてのキーボードショートカットを確認できます。",
     skip_tour: "ツアーをスキップ",
     get_started: "はじめる",
     step: "ステップ",
@@ -2124,6 +2124,10 @@ export const ja = {
     zip_archive: "ZIP アーカイブ",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "環境変数によって無効にされているため、このウインドウはサンドボックスなしで動作しています。",
+    sandbox_off_notice:
+      "このウインドウはサンドボックスなしで動作しています。サンドボックスを有効にするには、bubblewrap をインストールしてから Aster Mail を再起動してください。",
     bill_thanks_title: "Aster をご支援いただきありがとうございます",
     bill_thanks_body:
       "あなたのご支援は私たちにとってかけがえのないものです。小さなチームが毎日、心を込めて Aster を作り続けられるのはそのおかげです。",
@@ -2277,7 +2281,7 @@ export const ja = {
       "各メンバーが自分専用の @astermail.org アドレスを取得",
     fam_welcome_step1_point2:
       "完全なプライバシー - メンバー同士のメールは見えません",
-    fam_welcome_step1_point3: "すべてのアカウントに量子耐性の暗号化",
+    fam_welcome_step1_point3: "Aster アカウント間の耐量子暗号化",
     fam_welcome_step2_title: "1つのストレージプールを自由に管理",
     fam_welcome_step2_desc:
       "プランには共有ストレージプールが含まれます。各メンバーへの割り当てを決めて、いつでも調整できます。",
@@ -2645,7 +2649,7 @@ export const ja = {
     invite_title_named: "{{ name }} さんが Aster Mail に招待しました",
     invite_title_generic: "Aster Mail に招待されました",
     invite_subtitle:
-      "Aster Mail はゼロアクセス、エンドツーエンド暗号化のメールサービスです。あなた以外は受信箱を読むことができません。私たちにも読めません。",
+      "Aster Mail はゼロアクセス、エンドツーエンド暗号化のメールサービスです。メールは、あなただけが持つ鍵で暗号化して保存されます。",
     invite_discount_line:
       "今すぐ登録すると、最初のプランが {{ percent }}% オフになります。",
     invite_benefits_heading: "得られるもの",
@@ -4861,7 +4865,7 @@ export const ja = {
       "公開キーサーバーでキーを検索可能にします",
     info_forward_secrecy_title: "前方秘匿性とは？",
     info_forward_secrecy_description:
-      "セッション鍵は自動的にローテーションされます。今日誰かが秘密鍵を入手しても、各セッションが異なる鍵を使用していたため過去のメッセージは読めません。",
+      "暗号化鍵はスケジュールに従って自動的にローテーションされるため、1つの鍵が漏えいしても解読されるメールの範囲は限られます。すべてのデバイスでメールを読めるようにするため、アカウントにはアカウント鍵で暗号化されたメッセージのコピーも保存されます。そのため、パスワードを入手した人は過去のメールを読むことができます。",
     info_key_rotation_interval_title: "鍵ローテーション間隔",
     info_key_rotation_interval_description:
       "暗号化鍵が交換される頻度です。頻繁なほど安全ですが、オーバーヘッドが少し増えます。1週間はほとんどの人に適したデフォルトです。",
@@ -5229,7 +5233,7 @@ export const ja = {
       "すべての暗号化はデータがデバイスから送信される前にブラウザ内で行われます",
     zero_knowledge_storage: "ゼロ知識ストレージ",
     zero_knowledge_storage_description:
-      "私たちはあなたのデータを読むことができません。キーを持っているのはあなただけです。",
+      "私たちは保存されたあなたのデータを読むことができません。キーを持っているのはあなただけです。",
     email_content_attachments: "メール本文と添付ファイル",
     folder_names_structure: "フォルダ名と構造",
     drafts_signatures: "下書きと署名",
@@ -5435,7 +5439,7 @@ export const ja = {
     regenerate_codes_warning:
       "新しいコードを生成すると、現在のリカバリーコードはすぐに使えなくなります。このウィンドウを閉じる前に、新しいセットを安全な場所に保存しておくと安心です。",
     end_to_end_encrypted: "エンドツーエンド暗号化",
-    all_data_protected: "すべてのデータはゼロ知識暗号化で保護されています",
+    all_data_protected: "すべてのデータはゼロアクセス暗号化で保護されています",
     pgp_compatible: "PGP互換",
     pgp_compatible_description:
       "PGPを使用している誰にでも暗号化されたメールを送信できます。",
@@ -7374,7 +7378,7 @@ export const ja = {
     rotate_keys_description_manual:
       "暗号化鍵をローテーションするにはパスワードを入力してください。過去のメールは引き続き読めます。",
     rotate_keys_description_required:
-      "暗号化鍵のローテーション時期です。パスワードを入力して新しい鍵を生成し、前方秘匿性を維持してください。",
+      "暗号化鍵のローテーション時期です。パスワードを入力して新しい鍵を生成してください。",
     rotating: "ローテーション中...",
     rotate_keys: "鍵をローテーション",
     key_rotation_data_loss_warning:
@@ -8152,7 +8156,7 @@ export const ja = {
       "ジャーナリストの方は、記者証を添えてサポートまでご連絡ください。",
     refer_a_friend: "友達を紹介",
     referral_email_body:
-      "こんにちは。\n\nしばらく Aster Mail を使っていますが、とても気に入っています。すべてがエンドツーエンドで暗号化されているので、あなた以外は誰もメールを読めません。運営者でさえ読めません。\n\n試してみたい場合は、こちらが私の招待リンクです。\n\n{{ referral_link }}\n\nあなたが使い始めると二人ともストレージが {{ amount }} 増えるので、あなたにもメリットがあります。\n\nそれでは",
+      "こんにちは。\n\nしばらく Aster Mail を使っていますが、とても気に入っています。メールはあなただけが持つ鍵で暗号化して保存されるので、運営者もメールボックスを読めません。\n\n試してみたい場合は、こちらが私の招待リンクです。\n\n{{ referral_link }}\n\nあなたが使い始めると二人ともストレージが {{ amount }} 増えるので、あなたにもメリットがあります。\n\nそれでは",
     referral_email_subject: "Aster Mail を使ってみませんか",
     referral_how_it_works: "仕組み",
     referral_loading_contacts: "連絡先を読み込み中...",
@@ -8442,7 +8446,7 @@ export const ja = {
     browse_folder: "フォルダを選択",
     money_back_guarantee: "30 日間の返金保証",
     plan_every_plan_includes:
-      "すべてのプランにエンドツーエンド暗号化、ゼロ知識ストレージ、オープンソースのアプリが含まれます。",
+      "すべてのプランにエンドツーエンド暗号化、ゼロアクセスストレージ、オープンソースのアプリが含まれます。",
     cancel_anytime: "いつでも解約できます",
     billed_annually: "年額請求",
     save_annually_hint: "年額プランなら 20% お得",
@@ -8504,7 +8508,7 @@ export const ja = {
     referral_share_message_plain:
       "エンドツーエンド暗号化メールの Aster Mail を使っています。私のリンクから参加してください。",
     referral_email_body_plain:
-      "こんにちは。\n\nしばらく Aster Mail を使っていますが、とても気に入っています。すべてがエンドツーエンドで暗号化されているので、あなた以外は誰もメールを読めません。運営者でさえ読めません。\n\n試してみたい場合は、こちらが私の招待リンクです。\n\n{{ referral_link }}\n\nそれでは",
+      "こんにちは。\n\nしばらく Aster Mail を使っていますが、とても気に入っています。メールはあなただけが持つ鍵で暗号化して保存されるので、運営者もメールボックスを読めません。\n\n試してみたい場合は、こちらが私の招待リンクです。\n\n{{ referral_link }}\n\nそれでは",
     referral_claim_window_closed:
       "このアカウントに招待コードを追加できる期間は終了しました。",
     referral_claim_already: "このアカウントにはすでに招待が登録されています。",
@@ -10290,6 +10294,13 @@ export const ja = {
       "アプリに表示されない場合は、アプリで「このデバイスを確認」を選択してください。このオプションがない場合は、アプリをアップデートしてから、もう一度お試しください。",
     device_code_fingerprint_required_hint:
       "デバイスをリンクする前に、ブラウザでこのデバイスのフィンガープリントの入力が求められます。",
+    device_code_verify_toggle: "このデバイスを確認",
+    link_device_fingerprint_hint:
+      "新しいデバイスに表示されている確認コードを入力してください。デスクトップアプリでは、「このデバイスを確認」を選択すると表示されます。",
+    link_device_fingerprint_incomplete:
+      "デバイスをリンクするには、新しいデバイスの確認コードをすべて入力してください。",
+    device_code_fingerprint_hint:
+      "このデバイスをリンクするには、すでにサインインしているデバイスでこのコードを入力してください。",
     link_device_change_account: "アカウントを切り替える",
     link_device_choose_account: "アカウントを選択",
     link_device_choose_account_description: "新しいデバイスをリンクします",

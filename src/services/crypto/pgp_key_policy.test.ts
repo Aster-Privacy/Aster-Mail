@@ -68,7 +68,37 @@ describe("pgp_key_policy", () => {
     expect(await is_publishable_armored_key(key.toPublic().armor())).toBe(true);
   });
 
-  it("accepts an unparseable key rather than blocking on it", async () => {
-    expect(await is_publishable_armored_key("not-a-pgp-key")).toBe(true);
+  it("rejects a key that cannot be parsed", async () => {
+    expect(await is_publishable_armored_key("not-a-pgp-key")).toBe(false);
+  });
+
+  it("rejects a key whose algorithm cannot be read", async () => {
+    const key = await generate({ type: "ecc", curve: "ed25519Legacy" });
+    const unreadable = {
+      keyPacket: key.keyPacket,
+      getAlgorithmInfo: () => {
+        throw new Error("unreadable");
+      },
+      getSubkeys: () => [],
+    } as unknown as openpgp.Key;
+
+    expect(is_known_bad_key(unreadable)).toBe(true);
+  });
+
+  it("rejects a key whose subkey algorithm cannot be read", async () => {
+    const key = await generate({ type: "ecc", curve: "ed25519Legacy" });
+    const subkey = {
+      keyPacket: key.keyPacket,
+      getAlgorithmInfo: () => {
+        throw new Error("unreadable");
+      },
+    };
+    const wrapped = {
+      keyPacket: key.keyPacket,
+      getAlgorithmInfo: () => key.getAlgorithmInfo(),
+      getSubkeys: () => [subkey],
+    } as unknown as openpgp.Key;
+
+    expect(is_known_bad_key(wrapped)).toBe(true);
   });
 });

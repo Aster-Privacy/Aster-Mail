@@ -280,6 +280,7 @@ export async function generate_rotated_credential(
 
   const rotated_vault: EncryptedVault = {
     ...vault_data,
+    identity_rotation_pending: true,
     identity_key: await reprotect_pgp_key(
       vault_data.identity_key,
       old_login_secret,

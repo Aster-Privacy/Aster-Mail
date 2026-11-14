@@ -26,7 +26,6 @@ import { reencrypt_mail_item_envelope } from "@/services/api/mail";
 import {
   decrypt_envelope_with_bytes,
   decrypt_envelope_with_identity_key,
-  encrypt_envelope_with_identity_key,
   base64_to_array,
   first_base64_byte,
 } from "@/services/crypto/envelope";
@@ -43,6 +42,7 @@ import {
 } from "@/services/crypto/vault_refresh";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { decrypt_envelope_v2_with_vault } from "@/services/crypto/envelope_v2";
+import { encrypt_envelope_for_storage } from "@/services/crypto/stored_envelope_write";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { normalize_envelope_from } from "@/services/crypto/envelope_normalize";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
@@ -116,9 +116,9 @@ export function schedule_legacy_envelope_migration(
         return;
       }
 
-      const { encrypted, nonce } = await encrypt_envelope_with_identity_key(
+      const { encrypted, nonce } = await encrypt_envelope_for_storage(
         snapshot,
-        vault.identity_key,
+        vault,
       );
 
       const response = await reencrypt_mail_item_envelope(item_id, {

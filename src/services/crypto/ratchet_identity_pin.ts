@@ -108,6 +108,7 @@ interface StoredIdentityPin {
   verified: boolean;
   pinned_at: number;
   pq_seen?: boolean;
+  x3dh_seen?: number;
   rotated?: boolean;
   missing_accepted_at?: number;
   address_rooted?: boolean;
@@ -121,6 +122,25 @@ export interface IdentityPinRecord {
 
 function rooted_field(address_rooted: boolean): { address_rooted?: true } {
   return address_rooted ? { address_rooted: true } : {};
+}
+
+function highest_x3dh_seen(
+  stored: number | null | undefined,
+  advertised: number | null | undefined,
+): number {
+  let highest = 1;
+
+  for (const value of [stored, advertised]) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      highest = Math.max(highest, Math.floor(value));
+    }
+  }
+
+  return highest;
+}
+
+function x3dh_field(x3dh_seen: number | undefined): { x3dh_seen?: number } {
+  return x3dh_seen !== undefined && x3dh_seen > 1 ? { x3dh_seen } : {};
 }
 
 export type IdentityPinLookup = IdentityPinRecord | "unreadable" | null;
@@ -208,6 +228,7 @@ function merge_identity_pins(
     verified: left.verified || right.verified,
     pinned_at: Math.min(left.pinned_at, right.pinned_at),
     pq_seen: Boolean(left.pq_seen) || Boolean(right.pq_seen),
+    ...x3dh_field(highest_x3dh_seen(left.x3dh_seen, right.x3dh_seen)),
     ...(left.rotated || right.rotated ? { rotated: true } : {}),
     ...rooted_field(
       Boolean(left.address_rooted) || Boolean(right.address_rooted),
@@ -285,6 +306,7 @@ async function pin_identity_in_lock(
   verified: boolean,
   advertises_pq: boolean,
   address_rooted: boolean,
+  advertised_x3dh: number | null,
 ): Promise<IdentityPinStatus> {
   let read = await load_identity_pin(slot);
 
@@ -294,6 +316,7 @@ async function pin_identity_in_lock(
       verified,
       pinned_at: Date.now(),
       pq_seen: advertises_pq,
+      x3dh_seen: highest_x3dh_seen(null, advertised_x3dh),
       ...rooted_field(address_rooted),
     } satisfies StoredIdentityPin);
 
@@ -307,6 +330,7 @@ async function pin_identity_in_lock(
 
   const existing = read.value;
   const pq_seen = Boolean(existing.pq_seen) || advertises_pq;
+  const x3dh_seen = highest_x3dh_seen(existing.x3dh_seen, advertised_x3dh);
   const rooted = Boolean(existing.address_rooted) || address_rooted;
 
   if (existing.fingerprint !== fingerprint) {
@@ -317,6 +341,7 @@ async function pin_identity_in_lock(
       verified,
       pinned_at: Date.now(),
       pq_seen,
+      x3dh_seen,
       rotated: true,
       ...rooted_field(rooted),
     } satisfies StoredIdentityPin);
@@ -334,12 +359,14 @@ async function pin_identity_in_lock(
   if (
     (verified && !existing.verified) ||
     pq_seen !== Boolean(existing.pq_seen) ||
+    x3dh_seen !== highest_x3dh_seen(existing.x3dh_seen, null) ||
     rooted !== Boolean(existing.address_rooted)
   ) {
     await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
       ...existing,
       verified: existing.verified || verified,
       pq_seen,
+      x3dh_seen,
       ...rooted_field(rooted),
     } satisfies StoredIdentityPin);
   }
@@ -353,6 +380,7 @@ export async function check_and_pin_identity(
   verified: boolean = false,
   advertises_pq: boolean = false,
   address_rooted: boolean = false,
+  advertised_x3dh: number | null = null,
 ): Promise<IdentityPinStatus> {
   try {
     if (!pin_id || !kem_identity_key) {
@@ -372,6 +400,7 @@ export async function check_and_pin_identity(
         verified,
         advertises_pq,
         address_rooted,
+        advertised_x3dh,
       ),
     );
   } catch {
@@ -840,6 +869,7 @@ export async function trust_recipient_keys(
   await with_contact_lock(slot, async () => {
     const known = await load_identity_pin(slot).catch(() => null);
     const pq_seen = Boolean(known && settled_value(known)?.pq_seen);
+    const x3dh_seen = known ? settled_value(known)?.x3dh_seen : undefined;
 
     if (accepted_bundle) {
       await write_contact_entry(ACCEPTED_BUNDLE_PREFIX, slot, {
@@ -856,6 +886,7 @@ export async function trust_recipient_keys(
         verified: false,
         pinned_at: Date.now(),
         pq_seen,
+        ...x3dh_field(x3dh_seen),
         ...rooted_field(address_rooted),
       } satisfies StoredIdentityPin);
     } else if (!known || worst_health([known]) !== "settled") {
@@ -892,6 +923,25 @@ export async function trust_recipient_keys(
   });
 
   dismiss_peer_identity_event(pin_id);
+}
+
+export async function remembered_peer_x3dh_version(
+  pin_id: string,
+): Promise<number> {
+  try {
+    if (!pin_id) return 1;
+
+    const slot = await open_pins(pin_id);
+
+    if (!slot) return 1;
+
+    return highest_x3dh_seen(
+      settled_value(await load_identity_pin(slot))?.x3dh_seen,
+      null,
+    );
+  } catch {
+    return 1;
+  }
 }
 
 export async function has_peer_advertised_pq(pin_id: string): Promise<boolean> {
@@ -988,6 +1038,7 @@ export async function acknowledge_identity_change(
       verified: read.value.verified,
       pinned_at: read.value.pinned_at,
       pq_seen: read.value.pq_seen,
+      ...x3dh_field(read.value.x3dh_seen),
     } satisfies StoredIdentityPin);
   });
 

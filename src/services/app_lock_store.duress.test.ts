@@ -196,6 +196,40 @@ describe("duress PIN in stored settings", () => {
     );
   });
 
+  it("refuses a duress tag sealed without its binding outside the Mac desktop app", async () => {
+    await set_up_lock(true);
+    const config = get_app_lock_config(ACCOUNT)!;
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const sealed = new Uint8Array(
+      await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: nonce },
+        tag_key.current!,
+        new TextEncoder().encode("aster-duress-on1"),
+      ),
+    );
+    const unbound_tag = to_hex(new Uint8Array([...nonce, ...sealed]));
+
+    expect(unbound_tag.length).toBe(config.duress_tag!.length);
+    save_app_lock_config(ACCOUNT, { ...config, duress_tag: unbound_tag });
+
+    expect(await has_duress_pin(ACCOUNT)).toBe(false);
+
+    Reflect.set(window, "__TAURI_INTERNALS__", {});
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    });
+
+    try {
+      expect(await has_duress_pin(ACCOUNT)).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+      Reflect.deleteProperty(window, "__TAURI_INTERNALS__");
+    }
+
+    expect(get_app_lock_config(ACCOUNT)!.duress_tag).not.toBe(unbound_tag);
+    expect(await has_duress_pin(ACCOUNT)).toBe(true);
+  });
+
   it("reports the duress PIN only after it is set", async () => {
     await set_up_lock(false);
     expect(await has_duress_pin(ACCOUNT)).toBe(false);

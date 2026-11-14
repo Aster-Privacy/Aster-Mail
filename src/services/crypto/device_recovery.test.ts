@@ -269,6 +269,42 @@ describe("device recovery", () => {
       expect(await open_device_snapshot(record, secret, other)).toBeNull();
     });
 
+    it("opens an outer layer sealed without its binding only in the Mac desktop app", async () => {
+      const { key, secret, record } = await sealed_record();
+      const aad = new TextEncoder().encode(
+        `aster-device-recovery-v1|${meta.user_id}|${meta.snapshot_id}|${meta.source_hash}`,
+      );
+      const combined = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: record.iv, additionalData: aad },
+        key,
+        record.sealed,
+      );
+      const unbound: DeviceSnapshotRecord = {
+        ...record,
+        sealed: await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv: record.iv },
+          key,
+          combined,
+        ),
+      };
+
+      expect(await open_device_snapshot(unbound, secret, key)).toBeNull();
+
+      Reflect.set(window, "__TAURI_INTERNALS__", {});
+      vi.stubGlobal("navigator", {
+        userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+      });
+
+      try {
+        expect(await open_device_snapshot(unbound, secret, key)).toEqual(
+          payload,
+        );
+      } finally {
+        vi.unstubAllGlobals();
+        Reflect.deleteProperty(window, "__TAURI_INTERNALS__");
+      }
+    });
+
     it("rejects a record whose bound metadata was swapped", async () => {
       const { key, secret, record } = await sealed_record();
 

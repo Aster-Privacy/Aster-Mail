@@ -56,6 +56,12 @@ import {
   set_pending_passphrase,
   write_wrapped_passphrase,
 } from "@/services/app_lock_wrap";
+import {
+  can_native_seal,
+  is_native_sealed,
+  native_open_base64,
+  native_seal_base64,
+} from "@/native/local_secret_seal";
 
 const ENCRYPTED_VAULT_KEY_PREFIX = "astermail_encrypted_vault_";
 const VAULT_NONCE_KEY_PREFIX = "astermail_vault_nonce_";
@@ -202,12 +208,16 @@ export async function store_unwrapped_passphrase(
     String.fromCharCode(...new Uint8Array(encrypted)),
   );
   const iv_base64 = btoa(String.fromCharCode(...iv));
+  const sealed_base64 = await native_seal_base64(encrypted_base64);
 
   remove_stored_passphrase(account_id);
 
   const write = remember_on_device ? safe_local_set : safe_session_set;
 
-  write(SESSION_PASSPHRASE_KEY_PREFIX + account_id, encrypted_base64);
+  write(
+    SESSION_PASSPHRASE_KEY_PREFIX + account_id,
+    sealed_base64 ?? encrypted_base64,
+  );
   write(SESSION_PASSPHRASE_IV_KEY_PREFIX + account_id, iv_base64);
 
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
@@ -296,7 +306,15 @@ export async function get_session_passphrase(
     return null;
   }
 
-  const { encrypted_base64, iv_base64 } = stored;
+  const { iv_base64 } = stored;
+  const was_sealed = is_native_sealed(stored.encrypted_base64);
+  const encrypted_base64 = was_sealed
+    ? await native_open_base64(stored.encrypted_base64)
+    : stored.encrypted_base64;
+
+  if (!encrypted_base64) {
+    return null;
+  }
 
   let current_key = get_session_encryption_key();
 
@@ -334,9 +352,30 @@ export async function get_session_passphrase(
       iv,
     );
 
-    return new TextDecoder().decode(decrypted);
+    const passphrase = new TextDecoder().decode(decrypted);
+
+    if (!was_sealed && can_native_seal()) {
+      await reseal_on_device(account_id, passphrase);
+    }
+
+    return passphrase;
   } catch {
     return null;
+  }
+}
+
+async function reseal_on_device(
+  account_id: string,
+  passphrase: string,
+): Promise<void> {
+  try {
+    await store_session_passphrase(
+      account_id,
+      passphrase,
+      is_session_passphrase_on_device(account_id),
+    );
+  } catch {
+    return;
   }
 }
 

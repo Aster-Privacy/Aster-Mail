@@ -204,7 +204,7 @@ function reply_encryption_options(
     auto_discover_keys: use_pgp || require_encryption,
     encrypt_emails: use_pgp,
     require_encryption,
-    obscure_subject: preferences?.obscure_subject_when_encrypted === true,
+    obscure_subject: preferences?.obscure_subject_when_encrypted !== false,
   };
 }
 

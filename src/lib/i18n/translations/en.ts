@@ -1144,7 +1144,7 @@ export const en: Translations = {
       "Settings is where you add an alias, connect a custom domain, and turn on two-factor authentication.",
     youre_ready: "You're ready",
     youre_ready_description:
-      "Your mail is end-to-end encrypted, and only you hold the keys. Press ? at any time to see every keyboard shortcut.",
+      "Your mail is stored encrypted, and only you hold the keys. Press ? at any time to see every keyboard shortcut.",
     skip_tour: "Skip tour",
     get_started: "Get Started",
     step: "Step",
@@ -2115,6 +2115,10 @@ export const en: Translations = {
     zip_archive: "ZIP archive",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "This window is running without its sandbox because an environment variable turned it off.",
+    sandbox_off_notice:
+      "This window is running without its sandbox. To turn the sandbox on, install bubblewrap, and then restart Aster Mail.",
     bill_thanks_title: "Thanks for supporting Aster",
     bill_thanks_body:
       "Your support means everything to us. It lets a small team keep building Aster with care, every single day.",
@@ -2212,7 +2216,7 @@ export const en: Translations = {
       "Each member gets their own @astermail.org address",
     fam_welcome_step1_point2:
       "Complete privacy - members can't see each other's emails",
-    fam_welcome_step1_point3: "Quantum-safe encryption on every account",
+    fam_welcome_step1_point3: "Post-quantum encryption between Aster accounts",
     fam_welcome_step2_title: "One storage pool, you control it",
     fam_welcome_step2_desc:
       "Your plan comes with a shared pool of storage. Decide how much each member gets and adjust any time.",
@@ -4002,7 +4006,7 @@ export const en: Translations = {
     invite_title_named: "{{ name }} invited you to Aster Mail",
     invite_title_generic: "You've been invited to Aster Mail",
     invite_subtitle:
-      "Aster Mail is zero-access, end-to-end encrypted email. Nobody but you can read your inbox, not even us.",
+      "Aster Mail is zero-access, end-to-end encrypted email. We store your mail encrypted with keys that only you hold.",
     invite_storage_line: "You both get {{ amount }} of extra storage",
     invite_storage_note:
       "Create your free account with this link. The storage lands on both accounts once you start using yours.",
@@ -4843,7 +4847,7 @@ export const en: Translations = {
       "You've used {{percent}}% of your storage. {{plan}} gives you more room.",
     money_back_guarantee: "30-day money-back guarantee",
     plan_every_plan_includes:
-      "Every plan includes end-to-end encryption, zero-knowledge storage, and open-source apps.",
+      "Every plan includes end-to-end encryption, zero-access storage, and open-source apps.",
     cancel_anytime: "Cancel anytime",
     billed_annually: "billed annually",
     save_annually_hint: "Save 20% with yearly",
@@ -5477,7 +5481,7 @@ export const en: Translations = {
     send_referral_to_contacts: "Email all contacts",
     referral_email_subject: "You should try Aster Mail",
     referral_email_body:
-      "Hey,\n\nI've been using Aster Mail for a while now and really like it. Everything is end to end encrypted, so nobody can read your emails except you. Not even the people who run it.\n\nIf you want to give it a try, here's my invite link:\n\n{{ referral_link }}\n\nWe both get {{ amount }} of extra storage once you start using it, so you get something out of it too.\n\nCheers",
+      "Hey,\n\nI've been using Aster Mail for a while now and really like it. It stores your mail encrypted with keys that only you hold, so the people who run it can't read your mailbox.\n\nIf you want to give it a try, here's my invite link:\n\n{{ referral_link }}\n\nWe both get {{ amount }} of extra storage once you start using it, so you get something out of it too.\n\nCheers",
     referral_no_contacts: "No contacts found. Add some contacts first!",
     referral_loading_contacts: "Loading contacts...",
     referral_your_discount: "Your Discount",
@@ -5527,7 +5531,7 @@ export const en: Translations = {
     referral_share_message_plain:
       "I use Aster Mail for end to end encrypted email. Join with my link.",
     referral_email_body_plain:
-      "Hey,\n\nI've been using Aster Mail for a while now and really like it. Everything is end to end encrypted, so nobody can read your emails except you. Not even the people who run it.\n\nIf you want to give it a try, here's my invite link:\n\n{{ referral_link }}\n\nCheers",
+      "Hey,\n\nI've been using Aster Mail for a while now and really like it. It stores your mail encrypted with keys that only you hold, so the people who run it can't read your mailbox.\n\nIf you want to give it a try, here's my invite link:\n\n{{ referral_link }}\n\nCheers",
     referral_claim_window_closed:
       "The window to add an invite code to this account has closed.",
     referral_claim_already: "This account already has an invite on it.",
@@ -5836,7 +5840,7 @@ export const en: Translations = {
       "Make your keys findable on public keyservers",
     info_forward_secrecy_title: "What is Forward Secrecy?",
     info_forward_secrecy_description:
-      "Your session keys rotate automatically on a schedule. Even if someone got your private key today, they couldn't read past messages because each session used a different key that no longer exists.",
+      "Your encryption keys rotate automatically on a schedule, which limits how much mail a single leaked key can unlock. To keep your mail readable on all your devices, your account also stores copies of your messages encrypted with your account keys, so anyone who gets your password can still read your past mail.",
     info_key_rotation_interval_title: "Key rotation interval",
     info_key_rotation_interval_description:
       "How often your encryption key gets swapped out. More frequent means more secure, but slightly more overhead. A week is a good default for most people.",
@@ -6232,7 +6236,7 @@ export const en: Translations = {
       "All encryption happens in your browser before data leaves your device",
     zero_knowledge_storage: "Zero-Access Storage",
     zero_knowledge_storage_description:
-      "We cannot read your data. Only you hold the keys.",
+      "We can't read your stored data. Only you hold the keys.",
     email_content_attachments: "Email content & attachments",
     folder_names_structure: "Folder names & structure",
     drafts_signatures: "Drafts & signatures",
@@ -7748,7 +7752,7 @@ export const en: Translations = {
     rotate_keys_description_manual:
       "Enter your password to rotate your encryption keys. Old emails will remain readable.",
     rotate_keys_description_required:
-      "Your encryption keys are due for rotation. Enter your password to generate new keys and maintain forward secrecy.",
+      "Your encryption keys are due for rotation. Enter your password to generate new keys.",
     rotating: "Rotating...",
     rotate_keys: "Rotate Keys",
     key_rotation_data_loss_warning:
@@ -9872,6 +9876,13 @@ export const en: Translations = {
       "If the app doesn't show it, choose Verify this device in the app. If the app doesn't have that option, update the app, then try again.",
     device_code_fingerprint_required_hint:
       "Your browser asks for this device fingerprint before it links the device.",
+    device_code_verify_toggle: "Verify this device",
+    link_device_fingerprint_hint:
+      "Enter the verification code that your new device shows. In the desktop app, select Verify this device to see it.",
+    link_device_fingerprint_incomplete:
+      "To link the device, enter the full verification code from your new device.",
+    device_code_fingerprint_hint:
+      "To link this device, enter this code on the device that you're already signed in on.",
     link_device_change_account: "Change account",
     link_device_choose_account: "Choose an account",
     link_device_choose_account_description: "To link a new device",

@@ -19,56 +19,126 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ed25519 } from "@noble/curves/ed25519";
+import { randomBytes } from "@noble/hashes/utils";
 
+import type { DevicePubkeys } from "@/native/desktop_device_auth";
 import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
+import {
+  type envelope_version,
+  base64url_decode,
+  base64url_encode,
+  seal_vault_key_for_device,
+} from "@/lib/crypto/device_envelope";
 
-const state = vi.hoisted(() => ({
-  request: vi.fn(),
-  confirm: vi.fn(),
-}));
+const state = {
+  request: null as DevicePubkeys | null,
+  version: 2 as envelope_version,
+  swap_signing_key: false,
+};
 
-vi.mock("@/native/desktop_device_auth", () => ({
-  request_device_code: state.request,
-  poll_device_code_status: vi.fn(),
-  device_challenge: vi.fn(),
-  device_login: vi.fn(),
-}));
+const request_device_code = vi.fn(async (pubkeys: DevicePubkeys) => {
+  state.request = pubkeys;
 
-vi.mock("@/services/account_hub_link", () => {
-  class HubAccountError extends Error {
-    code: string;
-    constructor(code: string) {
-      super(code);
-      this.code = code;
-    }
-  }
-
-  return { HubAccountError, confirm_hub_link: state.confirm };
+  return { code: "ABCD1234", expires_in: 600 };
 });
 
-const { sign_in_with_hub_account } = await import("./hub_linked_login");
+async function sealed_for_request(): Promise<string> {
+  const request = state.request;
 
-describe("hub linked sign-in", () => {
-  beforeEach(() => {
-    state.request.mockReset();
-    state.confirm.mockReset();
-    state.request.mockResolvedValue({ code: "ABCD2345", expires_in: 600 });
-    state.confirm.mockRejectedValue(new Error("stop"));
-  });
+  if (!request) throw new Error("no device code request");
+  const ed25519_pk = state.swap_signing_key
+    ? ed25519.getPublicKey(randomBytes(32))
+    : base64url_decode(request.ed25519_pk);
+  const sealed = await seal_vault_key_for_device(
+    new TextEncoder().encode("hub passphrase"),
+    {
+      ed25519_pk,
+      mlkem_pk: base64url_decode(request.mlkem_pk),
+      x25519_pk: base64url_decode(request.x25519_pk),
+    },
+    state.version,
+  );
+
+  return base64url_encode(sealed);
+}
+
+vi.mock("@/native/desktop_device_auth", () => ({
+  request_device_code: (pubkeys: DevicePubkeys) =>
+    request_device_code(pubkeys),
+  poll_device_code_status: async () => ({
+    status: "confirmed",
+    device_id: "device-1",
+    sealed_envelope: await sealed_for_request(),
+  }),
+  device_challenge: async () => ({
+    challenge_id: "challenge-1",
+    nonce: base64url_encode(new Uint8Array(32).fill(7)),
+  }),
+  device_login: async () => ({
+    user_id: "account-1",
+    username: "user",
+    email: "user@example.com",
+    encrypted_vault: "vault",
+    vault_nonce: "nonce",
+  }),
+}));
+
+const confirm_hub_link = vi.fn(
+  async (_code: string, _account_id: string, _fingerprint: string) =>
+    undefined,
+);
+
+vi.mock("@/services/account_hub_link", () => ({
+  confirm_hub_link: (code: string, account_id: string, fingerprint: string) =>
+    confirm_hub_link(code, account_id, fingerprint),
+  HubAccountError: class HubAccountError extends Error {},
+}));
+
+beforeEach(() => {
+  state.request = null;
+  state.version = 2;
+  state.swap_signing_key = false;
+  request_device_code.mockClear();
+  confirm_hub_link.mockClear();
+});
+
+describe("sign_in_with_hub_account", () => {
+  it.each([1, 2] as const)(
+    "opens a v%i envelope sealed to this sign-in",
+    async (version) => {
+      state.version = version;
+      const { sign_in_with_hub_account } = await import("./hub_linked_login");
+
+      const result = await sign_in_with_hub_account("account-1", "Aster Mail");
+
+      expect(result.passphrase).toBe("hub passphrase");
+      expect(result.login_response.user_id).toBe("account-1");
+    },
+  );
 
   it("sends the fingerprint of the keys it generated with the link request", async () => {
-    await expect(sign_in_with_hub_account("acct_a", "Mail")).rejects.toThrow(
-      "stop",
-    );
+    const { sign_in_with_hub_account } = await import("./hub_linked_login");
 
-    const keys = state.request.mock.calls[0][0];
+    await sign_in_with_hub_account("account-1", "Aster Mail");
+
+    const keys = request_device_code.mock.calls[0][0];
     const fingerprint = fingerprint_of_encoded_device_keys(keys);
 
     expect(fingerprint).toMatch(/^[0-9A-F]{4}( [0-9A-F]{4}){4}$/);
-    expect(state.confirm).toHaveBeenCalledWith(
-      "ABCD2345",
-      "acct_a",
+    expect(confirm_hub_link).toHaveBeenCalledWith(
+      "ABCD1234",
+      "account-1",
       fingerprint,
     );
+  });
+
+  it("refuses a v2 envelope sealed to another signing key", async () => {
+    state.swap_signing_key = true;
+    const { sign_in_with_hub_account } = await import("./hub_linked_login");
+
+    await expect(
+      sign_in_with_hub_account("account-1", "Aster Mail"),
+    ).rejects.toThrow();
   });
 });

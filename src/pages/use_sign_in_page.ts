@@ -493,6 +493,7 @@ export function use_sign_in_page() {
           salt,
           salt_response.data.kdf_version,
           user_hash,
+          salt_response.data,
         );
 
         set_checkout_status(translate("auth.verifying_credentials"));
@@ -705,6 +706,9 @@ export function use_sign_in_page() {
                 prf_out,
                 totp_response.prf_encrypted_passphrase,
                 totp_response.prf_nonce,
+                ((totp_response as any).prf_credential_id as
+                  | Uint8Array
+                  | undefined) ?? null,
               ).catch(() => null);
 
               if (prf_passphrase) {

@@ -1004,7 +1004,7 @@ export const de = {
       "In den Einstellungen fügen Sie einen Alias hinzu, verbinden eine eigene Domain und aktivieren die Zwei-Faktor-Authentifizierung.",
     youre_ready: "Sie sind startklar",
     youre_ready_description:
-      "Ihre E-Mails sind Ende-zu-Ende-verschlüsselt, und nur Sie besitzen die Schlüssel. Drücken Sie jederzeit ?, um alle Tastenkürzel zu sehen.",
+      "Ihre E-Mails werden verschlüsselt gespeichert, und nur Sie besitzen die Schlüssel. Drücken Sie jederzeit ?, um alle Tastenkürzel zu sehen.",
     skip_tour: "Tour überspringen",
     get_started: "Loslegen",
     step: "Schritt",
@@ -2171,6 +2171,10 @@ export const de = {
     zip_archive: "ZIP-Archiv",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "Dieses Fenster läuft ohne Sandbox, weil eine Umgebungsvariable sie ausgeschaltet hat.",
+    sandbox_off_notice:
+      "Dieses Fenster läuft ohne Sandbox. Um die Sandbox einzuschalten, installieren Sie bubblewrap und starten Sie Aster Mail dann neu.",
     bill_thanks_title: "Danke für Ihre Unterstützung",
     bill_thanks_body:
       "Ihre Unterstützung bedeutet uns alles. Sie ermöglicht es einem kleinen Team, Aster jeden Tag mit Sorgfalt weiterzuentwickeln.",
@@ -2269,7 +2273,7 @@ export const de = {
       "Jedes Mitglied erhält eine eigene @astermail.org-Adresse",
     fam_welcome_step1_point2:
       "Volle Privatsphäre - Mitglieder können die E-Mails der anderen nicht sehen",
-    fam_welcome_step1_point3: "Quantensichere Verschlüsselung auf jedem Konto",
+    fam_welcome_step1_point3: "Post-Quanten-Verschlüsselung zwischen Aster-Konten",
     fam_welcome_step2_title: "Ein Speicherpool, den Sie steuern",
     fam_welcome_step2_desc:
       "Ihr Tarif enthält einen gemeinsamen Speicherpool. Legen Sie fest, wie viel jedes Mitglied erhält, und passen Sie es jederzeit an.",
@@ -2658,7 +2662,7 @@ export const de = {
     invite_title_named: "{{ name }} hat Sie zu Aster Mail eingeladen",
     invite_title_generic: "Sie wurden zu Aster Mail eingeladen",
     invite_subtitle:
-      "Aster Mail ist eine Zero-Access-E-Mail mit Ende-zu-Ende-Verschlüsselung. Niemand außer Ihnen kann Ihr Postfach lesen, nicht einmal wir.",
+      "Aster Mail ist eine Zero-Access-E-Mail mit Ende-zu-Ende-Verschlüsselung. Wir speichern Ihre E-Mails verschlüsselt mit Schlüsseln, die nur Sie besitzen.",
     invite_discount_line:
       "Registrieren Sie sich jetzt und erhalten Sie {{ percent }} % Rabatt auf Ihren ersten Tarif.",
     invite_benefits_heading: "Das erhalten Sie",
@@ -4862,7 +4866,7 @@ export const de = {
       "Ihre Schlüssel auf öffentlichen Schlüsselservern auffindbar machen",
     info_forward_secrecy_title: "Was ist Forward Secrecy?",
     info_forward_secrecy_description:
-      "Ihre Sitzungsschlüssel rotieren automatisch. Selbst wenn jemand heute Ihren privaten Schlüssel erlangt hätte, könnte er vergangene Nachrichten nicht lesen, da jede Sitzung einen anderen Schlüssel verwendete.",
+      "Ihre Verschlüsselungsschlüssel rotieren automatisch nach Zeitplan. Das begrenzt, wie viele E-Mails ein einzelner kompromittierter Schlüssel entschlüsseln kann. Damit Ihre E-Mails auf allen Ihren Geräten lesbar bleiben, speichert Ihr Konto außerdem Kopien Ihrer Nachrichten, die mit Ihren Kontoschlüsseln verschlüsselt sind. Wer Ihr Passwort erhält, kann daher weiterhin Ihre bisherigen E-Mails lesen.",
     info_key_rotation_interval_title: "Schlüsselrotationsintervall",
     info_key_rotation_interval_description:
       "Wie oft Ihr Verschlüsselungsschlüssel ausgetauscht wird. Häufiger bedeutet sicherer, aber etwas mehr Overhead. Eine Woche ist für die meisten ein guter Standard.",
@@ -5225,7 +5229,7 @@ export const de = {
       "Die gesamte Verschlüsselung erfolgt in Ihrem Browser, bevor Daten Ihr Gerät verlassen",
     zero_knowledge_storage: "Zero-Access-Speicher",
     zero_knowledge_storage_description:
-      "Wir können Ihre Daten nicht lesen. Nur Sie besitzen die Schlüssel.",
+      "Wir können Ihre gespeicherten Daten nicht lesen. Nur Sie besitzen die Schlüssel.",
     email_content_attachments: "E-Mail-Inhalte & Anhänge",
     folder_names_structure: "Ordnernamen & Struktur",
     drafts_signatures: "Entwürfe & Signaturen",
@@ -7471,7 +7475,7 @@ export const de = {
       "Nach der Rotation wird Ihr vorheriger Schlüssel stillgelegt. E-Mails, die ausschließlich mit Ihrem alten Schlüssel verschlüsselt wurden, können nicht mehr entschlüsselt werden. Dies kann nicht rückgängig gemacht werden.",
     rotating: "Wird rotiert...",
     rotate_keys_description_required:
-      "Ihre Verschlüsselungsschlüssel müssen rotiert werden. Geben Sie Ihr Passwort ein, um neue Schlüssel zu generieren und Forward Secrecy aufrechtzuerhalten.",
+      "Ihre Verschlüsselungsschlüssel müssen rotiert werden. Geben Sie Ihr Passwort ein, um neue Schlüssel zu generieren.",
     rotate_keys_description_manual:
       "Geben Sie Ihr Passwort ein, um Ihre Verschlüsselungsschlüssel zu rotieren. Alte E-Mails bleiben lesbar.",
     current_key_age: "Aktuelles Schlüsselalter",
@@ -8379,7 +8383,7 @@ export const de = {
       "Sie sind Journalist? Wenden Sie sich mit Ihrem Presseausweis an den Support, um Ihren Code zu erhalten.",
     refer_a_friend: "Freund einladen",
     referral_email_body:
-      "Hallo,\n\nich nutze Aster Mail seit einer Weile und bin sehr zufrieden. Alles ist Ende-zu-Ende-verschlüsselt, also kann niemand außer Ihnen Ihre E-Mails lesen. Nicht einmal die Betreiber.\n\nWenn Sie es ausprobieren möchten, hier ist mein Einladungslink:\n\n{{ referral_link }}\n\nWir erhalten beide {{ amount }} zusätzlichen Speicher, sobald Sie damit anfangen, Sie haben also auch etwas davon.\n\nViele Grüße",
+      "Hallo,\n\nich nutze Aster Mail seit einer Weile und bin sehr zufrieden. Ihre E-Mails werden verschlüsselt mit Schlüsseln gespeichert, die nur Sie besitzen, sodass die Betreiber Ihr Postfach nicht lesen können.\n\nWenn Sie es ausprobieren möchten, hier ist mein Einladungslink:\n\n{{ referral_link }}\n\nWir erhalten beide {{ amount }} zusätzlichen Speicher, sobald Sie damit anfangen, Sie haben also auch etwas davon.\n\nViele Grüße",
     referral_email_subject: "Probieren Sie Aster Mail aus",
     referral_how_it_works: "So funktioniert es",
     referral_loading_contacts: "Kontakte werden geladen...",
@@ -8568,7 +8572,7 @@ export const de = {
     browse_folder: "Ordner auswählen",
     money_back_guarantee: "30 Tage Geld-zurück-Garantie",
     plan_every_plan_includes:
-      "Jeder Tarif enthält Ende-zu-Ende-Verschlüsselung, Zero-Knowledge-Speicher und Open-Source-Apps.",
+      "Jeder Tarif enthält Ende-zu-Ende-Verschlüsselung, Zero-Access-Speicher und Open-Source-Apps.",
     cancel_anytime: "Jederzeit kündbar",
     billed_annually: "jährliche Abrechnung",
     save_annually_hint: "Sparen Sie 20 % im Jahresabo",
@@ -8632,7 +8636,7 @@ export const de = {
     referral_share_message_plain:
       "Ich nutze Aster Mail für Ende-zu-Ende-verschlüsselte E-Mails. Registrieren Sie sich über meinen Link.",
     referral_email_body_plain:
-      "Hallo,\n\nich nutze Aster Mail seit einer Weile und bin sehr zufrieden. Alles ist Ende-zu-Ende-verschlüsselt, also kann niemand außer Ihnen Ihre E-Mails lesen. Nicht einmal die Betreiber.\n\nWenn Sie es ausprobieren möchten, hier ist mein Einladungslink:\n\n{{ referral_link }}\n\nViele Grüße",
+      "Hallo,\n\nich nutze Aster Mail seit einer Weile und bin sehr zufrieden. Ihre E-Mails werden verschlüsselt mit Schlüsseln gespeichert, die nur Sie besitzen, sodass die Betreiber Ihr Postfach nicht lesen können.\n\nWenn Sie es ausprobieren möchten, hier ist mein Einladungslink:\n\n{{ referral_link }}\n\nViele Grüße",
     referral_claim_window_closed:
       "Der Zeitraum, in dem sich ein Einladungscode zu diesem Konto hinzufügen lässt, ist abgelaufen.",
     referral_claim_already:
@@ -10663,6 +10667,13 @@ export const de = {
       "Wenn die App ihn nicht anzeigt, wählen Sie in der App „Dieses Gerät überprüfen“. Wenn die App diese Option nicht hat, aktualisieren Sie die App und versuchen Sie es erneut.",
     device_code_fingerprint_required_hint:
       "Ihr Browser fragt nach diesem Gerätefingerabdruck, bevor er das Gerät verknüpft.",
+    device_code_verify_toggle: "Dieses Gerät überprüfen",
+    link_device_fingerprint_hint:
+      "Gib den Prüfcode ein, den dein neues Gerät anzeigt. Wähle in der Desktop-App „Dieses Gerät überprüfen“, um ihn anzuzeigen.",
+    link_device_fingerprint_incomplete:
+      "Gib den vollständigen Prüfcode von deinem neuen Gerät ein, um das Gerät zu verknüpfen.",
+    device_code_fingerprint_hint:
+      "Gib diesen Code auf dem Gerät ein, auf dem du bereits angemeldet bist, um dieses Gerät zu verknüpfen.",
     link_device_change_account: "Konto wechseln",
     link_device_choose_account: "Konto auswählen",
     link_device_choose_account_description: "Um ein neues Gerät zu verknüpfen",

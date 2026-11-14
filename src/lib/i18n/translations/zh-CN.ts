@@ -970,7 +970,7 @@ export const zh_CN = {
       "在设置中，您可以添加别名、连接自定义域名并开启两步验证。",
     youre_ready: "一切就绪",
     youre_ready_description:
-      "您的邮件采用端到端加密，密钥只在您手中。随时按 ? 查看全部键盘快捷键。",
+      "您的邮件以加密形式存储，密钥只在您手中。随时按 ? 查看全部键盘快捷键。",
     skip_tour: "跳过引导",
     get_started: "开始使用",
     step: "步骤",
@@ -1957,6 +1957,10 @@ export const zh_CN = {
     zip_archive: "ZIP 压缩文件",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "由于环境变量关闭了沙盒，此窗口正在没有沙盒的情况下运行。",
+    sandbox_off_notice:
+      "此窗口正在没有沙盒的情况下运行。要开启沙盒，请安装 bubblewrap，然后重新启动 Aster Mail。",
     bill_thanks_title: "感谢您支持 Aster",
     bill_thanks_body:
       "您的支持对我们意义重大。它让一个小团队能够每天用心地继续打造 Aster。",
@@ -2111,7 +2115,7 @@ export const zh_CN = {
       "家庭中的每个人都拥有自己私密、加密的收件箱，与您的完全分离。",
     fam_welcome_step1_point1: "每位成员都有自己的 @astermail.org 地址",
     fam_welcome_step1_point2: "完全隐私 - 成员之间无法查看彼此的邮件",
-    fam_welcome_step1_point3: "每个账户都采用抗量子加密",
+    fam_welcome_step1_point3: "Aster 账户之间采用后量子加密",
     fam_welcome_step2_title: "一个存储池，由您掌控",
     fam_welcome_step2_desc:
       "您的套餐包含共享存储池。决定每位成员的配额，并可随时调整。",
@@ -2437,7 +2441,7 @@ export const zh_CN = {
     invite_title_named: "{{ name }} 邀请您加入 Aster Mail",
     invite_title_generic: "您已被邀请加入 Aster Mail",
     invite_subtitle:
-      "Aster Mail 是零访问、端到端加密的电子邮件服务。除您之外没有人能读取您的收件箱，我们也不能。",
+      "Aster Mail 是零访问、端到端加密的电子邮件服务。我们使用只有您持有的密钥加密存储您的邮件。",
     invite_discount_line: "立即注册，首个套餐享 {{ percent }}% 折扣。",
     invite_benefits_heading: "您将获得",
     invite_benefit_zero_access: "零访问、端到端加密邮件",
@@ -4457,7 +4461,7 @@ export const zh_CN = {
     publish_to_keyservers_description: "在公共密钥服务器上使您的密钥可被查找",
     info_forward_secrecy_title: "什么是前向保密？",
     info_forward_secrecy_description:
-      "您的会话密钥会自动轮换。即使有人今天获得了您的私钥，也无法读取过去的消息，因为每个会话使用了不同的密钥。",
+      "您的加密密钥会按计划自动轮换，从而限制单个泄露的密钥能解开的邮件数量。为了让您的邮件在所有设备上都可读，您的账户还会保存使用账户密钥加密的邮件副本，因此任何获得您密码的人仍然可以读取您过去的邮件。",
     info_key_rotation_interval_title: "密钥轮换间隔",
     info_key_rotation_interval_description:
       "您的加密密钥多久更换一次。更频繁意味着更安全，但开销略大。一周对大多数人来说是个好的默认值。",
@@ -4783,7 +4787,7 @@ export const zh_CN = {
       "所有加密均在浏览器中完成，数据离开设备前即已加密",
     zero_knowledge_storage: "零知识存储",
     zero_knowledge_storage_description:
-      "我们无法读取您的数据。只有您持有密钥。",
+      "我们无法读取您存储的数据。只有您持有密钥。",
     email_content_attachments: "邮件内容和附件",
     folder_names_structure: "文件夹名称和结构",
     drafts_signatures: "草稿和签名",
@@ -4974,7 +4978,7 @@ export const zh_CN = {
     regenerate_codes_warning:
       "您当前的恢复码会在生成新的一组之后立即失效。在关闭这个窗口之前把新的一组保存到安全的地方，可以让您继续受到保护。请输入",
     end_to_end_encrypted: "端到端加密",
-    all_data_protected: "您的所有数据均受零知识加密保护",
+    all_data_protected: "您的所有数据均受零访问加密保护",
     pgp_compatible: "PGP 兼容",
     pgp_compatible_description: "向任何使用 PGP 的人发送加密邮件。",
     emails_decrypted: "已解密邮件",
@@ -6714,7 +6718,7 @@ export const zh_CN = {
     rotate_keys_description_manual:
       "输入您的密码以轮换加密密钥，旧邮件仍可正常阅读。",
     rotate_keys_description_required:
-      "您的加密密钥到了轮换时间。输入密码以生成新密钥，保持前向保密。",
+      "您的加密密钥到了轮换时间。输入密码以生成新密钥。",
     trusted_devices: "受信任的设备",
     trusted_devices_description:
       "您与账户配对的桌面和移动应用。撤销某台设备会将其退出登录，并删除其本地保险库密钥。",
@@ -7499,7 +7503,7 @@ export const zh_CN = {
     refer_a_friend: "推荐朋友",
     referral_email_subject: "推荐您试试 Aster Mail",
     referral_email_body:
-      "您好：\n\n我用 Aster Mail 已经有一段时间了，体验很不错。所有内容都是端到端加密的，除了您自己，没有人能读到您的邮件，运营方也不行。\n\n如果您想试试，这是我的邀请链接：\n\n{{ referral_link }}\n\n您开始使用后，我们双方各获得 {{ amount }} 额外存储空间，您也能有所收获。\n\n祝好",
+      "您好：\n\n我用 Aster Mail 已经有一段时间了，体验很不错。您的邮件使用只有您持有的密钥加密存储，运营方无法读取您的邮箱。\n\n如果您想试试，这是我的邀请链接：\n\n{{ referral_link }}\n\n您开始使用后，我们双方各获得 {{ amount }} 额外存储空间，您也能有所收获。\n\n祝好",
     referral_how_it_works: "工作原理",
     referral_step_share: "把邀请链接分享给朋友、家人或同事。",
     referral_step_signup: "他们通过您的链接创建账户并开始使用。",
@@ -7667,7 +7671,7 @@ export const zh_CN = {
     browse_folder: "选择文件夹",
     money_back_guarantee: "30 天退款保证",
     plan_every_plan_includes:
-      "每个方案都包含端到端加密、零知识存储和开源应用。",
+      "每个方案都包含端到端加密、零访问存储和开源应用。",
     cancel_anytime: "随时可取消",
     billed_annually: "按年计费",
     save_annually_hint: "选择年付可省 20%",
@@ -7726,7 +7730,7 @@ export const zh_CN = {
     referral_share_message_plain:
       "我在用 Aster Mail 收发端到端加密邮件。通过我的链接加入吧。",
     referral_email_body_plain:
-      "您好：\n\n我用 Aster Mail 已经有一段时间了，体验很不错。所有内容都是端到端加密的，除了您自己，没有人能读到您的邮件，运营方也不行。\n\n如果您想试试，这是我的邀请链接：\n\n{{ referral_link }}\n\n祝好",
+      "您好：\n\n我用 Aster Mail 已经有一段时间了，体验很不错。您的邮件使用只有您持有的密钥加密存储，运营方无法读取您的邮箱。\n\n如果您想试试，这是我的邀请链接：\n\n{{ referral_link }}\n\n祝好",
     referral_claim_window_closed: "为此账户添加邀请代码的时限已过。",
     referral_claim_already: "此账户已关联一个邀请。",
     referral_claim_self: "不能使用您自己的邀请代码。",
@@ -9382,6 +9386,10 @@ export const zh_CN = {
       "如果应用未显示设备指纹，请在应用中选择“验证此设备”。如果应用没有该选项，请更新应用，然后重试。",
     device_code_fingerprint_required_hint:
       "浏览器在关联设备之前会要求输入此设备指纹。",
+    device_code_verify_toggle: "验证此设备",
+    link_device_fingerprint_hint: "请输入新设备上显示的验证码。在桌面应用中，选择“验证此设备”即可查看。",
+    link_device_fingerprint_incomplete: "要关联设备，请输入新设备上的完整验证码。",
+    device_code_fingerprint_hint: "要关联此设备，请在你已登录的设备上输入此验证码。",
     link_device_change_account: "切换账号",
     link_device_choose_account: "选择账号",
     link_device_choose_account_description: "以关联新设备",

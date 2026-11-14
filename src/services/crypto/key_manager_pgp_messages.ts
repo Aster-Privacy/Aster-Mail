@@ -28,6 +28,10 @@ import {
 } from "./pgp_key_selection";
 import { with_decrypted_key } from "./key_manager_pgp_usage";
 import { with_aes_kw_fallback } from "./webcrypto_aes_kw";
+import {
+  judge_signatures,
+  type checked_signature,
+} from "./pgp_signature_verdict";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
@@ -82,9 +86,6 @@ export interface detached_signature_result {
 }
 
 const HASH_ALGORITHM_MICALG: Record<number, string> = {
-  1: "pgp-md5",
-  2: "pgp-sha1",
-  3: "pgp-ripemd160",
   8: "pgp-sha256",
   9: "pgp-sha384",
   10: "pgp-sha512",
@@ -92,6 +93,22 @@ const HASH_ALGORITHM_MICALG: Record<number, string> = {
   12: "pgp-sha3-256",
   14: "pgp-sha3-512",
 };
+
+export function micalg_for_signature_hashes(
+  hash_algorithms: unknown[],
+): string | null {
+  const names: string[] = [];
+
+  for (const hash_algorithm of hash_algorithms) {
+    if (typeof hash_algorithm !== "number") return null;
+    const name = HASH_ALGORITHM_MICALG[hash_algorithm];
+
+    if (!name) return null;
+    if (!names.includes(name)) names.push(name);
+  }
+
+  return names.length > 0 ? names.join(",") : null;
+}
 
 export async function sign_detached(
   data: Uint8Array,
@@ -122,19 +139,12 @@ export async function sign_detached_with_keys(
 
     const armored =
       typeof signature === "string" ? signature : signature.toString();
-    let micalg = "pgp-sha512";
+    const parsed = await openpgp.readSignature({ armoredSignature: armored });
+    const micalg = micalg_for_signature_hashes(
+      parsed.packets.map((packet) => packet.hashAlgorithm),
+    );
 
-    try {
-      const parsed = await openpgp.readSignature({ armoredSignature: armored });
-      const packet = parsed.packets[0];
-      const hash_algorithm = packet?.hashAlgorithm;
-
-      if (typeof hash_algorithm === "number") {
-        micalg = HASH_ALGORITHM_MICALG[hash_algorithm] ?? micalg;
-      }
-    } catch {
-      micalg = "pgp-sha512";
-    }
+    if (!micalg) return null;
 
     return { signature: armored, micalg };
   } catch {
@@ -223,33 +233,10 @@ async function parse_verification_keys(
 }
 
 async function evaluate_signatures(
-  signatures: { verified: Promise<boolean> }[] | undefined,
-  keys_provided: boolean,
+  signatures: checked_signature[] | undefined,
+  verification_keys: Key[],
 ): Promise<{ status: sender_verification_status; has_signature: boolean }> {
-  const list = signatures || [];
-  const has_signature = list.length > 0;
-
-  if (!has_signature) return { status: "unsigned", has_signature: false };
-  if (!keys_provided) return { status: "no_keys", has_signature: true };
-
-  let any_valid = false;
-  let any_invalid = false;
-
-  for (const sig of list) {
-    try {
-      const ok = await sig.verified;
-
-      if (ok) any_valid = true;
-      else any_invalid = true;
-    } catch {
-      any_invalid = true;
-    }
-  }
-
-  if (any_valid) return { status: "verified", has_signature: true };
-  if (any_invalid) return { status: "invalid", has_signature: true };
-
-  return { status: "unknown", has_signature: true };
+  return judge_signatures(signatures, verification_keys);
 }
 
 export async function encrypt_message(
@@ -350,8 +337,8 @@ async function decrypt_message_verified_with_private_key(
   );
 
   const evaluated = await evaluate_signatures(
-    result.signatures as { verified: Promise<boolean> }[] | undefined,
-    parsed_verification_keys.length > 0,
+    result.signatures as checked_signature[] | undefined,
+    parsed_verification_keys,
   );
 
   return {
@@ -486,8 +473,8 @@ async function decrypt_message_verifiable_with_private_key(
   );
 
   const evaluated = await evaluate_signatures(
-    unverified.signatures as { verified: Promise<boolean> }[] | undefined,
-    false,
+    unverified.signatures as checked_signature[] | undefined,
+    [],
   );
 
   return {
@@ -503,8 +490,8 @@ async function decrypt_message_verifiable_with_private_key(
         format: "binary",
       });
       const verified = await evaluate_signatures(
-        result.signatures as { verified: Promise<boolean> }[] | undefined,
-        parsed_verification_keys.length > 0,
+        result.signatures as checked_signature[] | undefined,
+        parsed_verification_keys,
       );
 
       return {

@@ -1019,7 +1019,7 @@ export const pt = {
       "Em Definições, pode adicionar um alias, ligar um domínio personalizado e ativar a autenticação de dois fatores.",
     youre_ready: "Tudo pronto",
     youre_ready_description:
-      "O seu correio está encriptado de ponta a ponta e as chaves são só suas. Prima ? a qualquer momento para ver todos os atalhos de teclado.",
+      "O seu correio é guardado encriptado e as chaves são só suas. Prima ? a qualquer momento para ver todos os atalhos de teclado.",
     skip_tour: "Ignorar visita guiada",
     get_started: "Começar",
     step: "Passo",
@@ -2193,6 +2193,10 @@ export const pt = {
     zip_archive: "Arquivo ZIP",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "Esta janela está a ser executada sem a sandbox porque uma variável de ambiente a desativou.",
+    sandbox_off_notice:
+      "Esta janela está a ser executada sem a sandbox. Para ativar a sandbox, instale o bubblewrap e reinicie o Aster Mail.",
     bill_thanks_title: "Obrigado por apoiar o Aster",
     bill_thanks_body:
       "O seu apoio significa tudo para nós. Permite que uma equipa pequena continue a desenvolver o Aster com cuidado, todos os dias.",
@@ -2318,7 +2322,7 @@ export const pt = {
     fam_welcome_step1_point2:
       "Privacidade total - os membros não podem ver os e-mails uns dos outros",
     fam_welcome_step1_point3:
-      "Encriptação resistente a ataques quânticos em todas as contas",
+      "Encriptação pós-quântica entre contas Aster",
     fam_welcome_step2_title:
       "Um único armazenamento partilhado, sob o seu controlo",
     fam_welcome_step2_desc:
@@ -2707,7 +2711,7 @@ export const pt = {
     invite_title_named: "{{ name }} enviou-lhe um convite para o Aster Mail",
     invite_title_generic: "Recebeu um convite para o Aster Mail",
     invite_subtitle:
-      "O Aster Mail é um e-mail de acesso zero, encriptado ponto a ponto. Ninguém além de si pode ler a sua caixa de entrada, nem mesmo nós.",
+      "O Aster Mail é um e-mail de acesso zero, encriptado ponto a ponto. Guardamos o seu correio encriptado com chaves que só estão na sua posse.",
     invite_discount_line:
       "Registe-se agora e obtenha {{ percent }}% de desconto no seu primeiro plano.",
     invite_benefits_heading: "O que obtém",
@@ -4987,7 +4991,7 @@ export const pt = {
       "Tornar as suas chaves localizáveis em servidores de chaves públicos",
     info_forward_secrecy_title: "O que é o sigilo futuro?",
     info_forward_secrecy_description:
-      "As suas chaves de sessão são renovadas automaticamente de acordo com um calendário. Mesmo que alguém obtivesse hoje a sua chave privada, não conseguiria ler mensagens anteriores, porque cada sessão utilizou uma chave diferente que já não existe.",
+      "As suas chaves de encriptação são renovadas automaticamente de acordo com um calendário, o que limita a quantidade de e-mails que uma única chave comprometida consegue desbloquear. Para manter os seus e-mails legíveis em todos os seus dispositivos, a sua conta também guarda cópias das suas mensagens encriptadas com as chaves da sua conta, pelo que quem obtiver a sua palavra-passe continua a conseguir ler os seus e-mails anteriores.",
     info_key_rotation_interval_title: "Intervalo de rotação de chaves",
     info_key_rotation_interval_description:
       "Com que frequência a sua chave de encriptação é substituída. Quanto mais frequente, mais seguro, mas com um pouco mais de processamento. Uma semana é uma boa predefinição para a maioria das pessoas.",
@@ -5366,7 +5370,7 @@ export const pt = {
       "Toda a encriptação acontece no seu navegador antes de os dados saírem do seu dispositivo",
     zero_knowledge_storage: "Armazenamento de acesso zero",
     zero_knowledge_storage_description:
-      "Não conseguimos ler os seus dados. Só o utilizador tem as chaves.",
+      "Não conseguimos ler os seus dados guardados. Só o utilizador tem as chaves.",
     email_content_attachments: "Conteúdo de e-mail e anexos",
     folder_names_structure: "Nomes e estrutura de pastas",
     drafts_signatures: "Rascunhos e assinaturas",
@@ -7620,7 +7624,7 @@ export const pt = {
     rotate_keys_description_manual:
       "Introduza a sua palavra-passe para renovar as suas chaves de encriptação. Os e-mails antigos continuarão legíveis.",
     rotate_keys_description_required:
-      "As suas chaves de encriptação têm de ser renovadas. Introduza a sua palavra-passe para gerar novas chaves e manter o sigilo futuro.",
+      "As suas chaves de encriptação têm de ser renovadas. Introduza a sua palavra-passe para gerar novas chaves.",
     trusted_devices: "Dispositivos confiáveis",
     trusted_devices_description:
       "Aplicações para computador e dispositivos móveis que emparelhou com a sua conta. Revogar um dispositivo termina a sessão nele e elimina a respetiva chave de cofre local.",
@@ -8255,7 +8259,7 @@ export const pt = {
     send_referral_to_contacts: "Enviar e-mail para todos os contactos",
     referral_email_subject: "Devia experimentar o Aster Mail",
     referral_email_body:
-      "Olá,\n\nUso o Aster Mail há algum tempo e gosto mesmo muito. Tudo é encriptado ponto a ponto, por isso ninguém consegue ler os seus e-mails além de si. Nem sequer quem gere o serviço.\n\nSe quiser experimentar, este é o meu link de convite:\n\n{{ referral_link }}\n\nAmbos recebemos {{ amount }} de armazenamento extra assim que começar a usá-lo, por isso também ganha alguma coisa.\n\nUm abraço",
+      "Olá,\n\nUso o Aster Mail há algum tempo e gosto mesmo muito. O seu correio é guardado encriptado com chaves que só estão na sua posse, por isso quem gere o serviço não consegue ler a sua caixa de correio.\n\nSe quiser experimentar, este é o meu link de convite:\n\n{{ referral_link }}\n\nAmbos recebemos {{ amount }} de armazenamento extra assim que começar a usá-lo, por isso também ganha alguma coisa.\n\nUm abraço",
     referral_no_contacts:
       "Nenhum contacto encontrado. Adicione alguns contactos primeiro.",
     referral_loading_contacts: "A carregar contactos...",
@@ -8704,7 +8708,7 @@ export const pt = {
     browse_folder: "Selecionar pasta",
     money_back_guarantee: "Garantia de reembolso de 30 dias",
     plan_every_plan_includes:
-      "Todos os planos incluem criptografia de ponta a ponta, armazenamento de conhecimento zero e apps de código aberto.",
+      "Todos os planos incluem criptografia de ponta a ponta, armazenamento de acesso zero e apps de código aberto.",
     cancel_anytime: "Cancele quando quiser",
     billed_annually: "cobrado anualmente",
     save_annually_hint: "Poupe 20% no plano anual",
@@ -8767,7 +8771,7 @@ export const pt = {
     referral_share_message_plain:
       "Uso o Aster Mail para ter e-mail encriptado ponto a ponto. Adira através do meu link.",
     referral_email_body_plain:
-      "Olá,\n\nUso o Aster Mail há algum tempo e gosto mesmo muito. Tudo é encriptado ponto a ponto, por isso ninguém consegue ler os seus e-mails além de si. Nem sequer quem gere o serviço.\n\nSe quiser experimentar, este é o meu link de convite:\n\n{{ referral_link }}\n\nUm abraço",
+      "Olá,\n\nUso o Aster Mail há algum tempo e gosto mesmo muito. O seu correio é guardado encriptado com chaves que só estão na sua posse, por isso quem gere o serviço não consegue ler a sua caixa de correio.\n\nSe quiser experimentar, este é o meu link de convite:\n\n{{ referral_link }}\n\nUm abraço",
     referral_claim_window_closed:
       "O prazo para adicionar um código de convite a esta conta terminou.",
     referral_claim_already: "Esta conta já tem um convite associado.",
@@ -10640,6 +10644,13 @@ export const pt = {
       "Se a aplicação não a mostrar, escolha Verificar este dispositivo na aplicação. Se a aplicação não tiver essa opção, atualize-a e tente novamente.",
     device_code_fingerprint_required_hint:
       "O navegador pede esta impressão digital do dispositivo antes de associar o dispositivo.",
+    device_code_verify_toggle: "Verificar este dispositivo",
+    link_device_fingerprint_hint:
+      "Introduza o código de verificação apresentado no seu novo dispositivo. Na app para computador, selecione Verificar este dispositivo para o ver.",
+    link_device_fingerprint_incomplete:
+      "Para associar o dispositivo, introduza o código de verificação completo do seu novo dispositivo.",
+    device_code_fingerprint_hint:
+      "Para associar este dispositivo, introduza este código no dispositivo em que já tem sessão iniciada.",
     link_device_change_account: "Mudar de conta",
     link_device_choose_account: "Escolha uma conta",
     link_device_choose_account_description: "Para associar um novo dispositivo",

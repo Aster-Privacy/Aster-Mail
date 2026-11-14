@@ -118,6 +118,7 @@ import {
 import { wait_for_app_unlock } from "@/services/app_lock_wrap";
 import { release_app_lock } from "@/services/app_lock_unlock";
 import { delete_category_index_for_account } from "@/services/category_index";
+import { delete_user_device_snapshots } from "@/services/crypto/device_recovery_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
 import { remember_current_user } from "@/services/current_identity";
@@ -328,7 +329,7 @@ export function use_auth_account_state() {
       }
 
       try {
-        await purge_all_local_data();
+        await purge_all_local_data({ keep_device_recovery: true });
       } catch (e) {
         safe_log_error(e);
       }
@@ -1221,6 +1222,9 @@ export function use_auth_account_state() {
       const result = await storage_remove_account(account_id);
 
       if (result.removed) {
+        await delete_user_device_snapshots(account_id).catch((caught) =>
+          safe_log_error(caught),
+        );
         clear_stored_encrypted_vault(account_id);
         await clear_session_passphrase(account_id);
         clear_session_timeout_data(account_id);

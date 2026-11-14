@@ -52,6 +52,7 @@ import {
   verify_secure_view,
   reply_to_secure_view,
   delete_secure_view,
+  secure_view_unlock_mode,
 } from "@/services/api/secure_view";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -237,7 +238,9 @@ export default function SecureViewPage() {
           return;
         }
 
-        if (!data.requires_password && !data.is_zero_knowledge) {
+        if (secure_view_unlock_mode(data).kind === "refused") {
+          set_error(sv("secure_view.decrypt_failed"));
+        } else if (!data.requires_password && !data.is_zero_knowledge) {
           try {
             const response = await verify_secure_view(token, null);
 
@@ -321,7 +324,13 @@ export default function SecureViewPage() {
   }, [decrypted]);
 
   const handle_open_without_password = async () => {
-    if (!token) return;
+    if (!token || !metadata) return;
+
+    if (secure_view_unlock_mode(metadata).kind !== "password") {
+      set_error(sv("secure_view.decrypt_failed"));
+
+      return;
+    }
 
     set_error("");
     set_is_unlocking(true);
@@ -375,22 +384,24 @@ export default function SecureViewPage() {
 
     if (!password) return;
 
+    const mode = secure_view_unlock_mode(metadata);
+
+    if (mode.kind === "refused") {
+      set_error(sv("secure_view.decrypt_failed"));
+
+      return;
+    }
+
     set_error("");
     set_is_unlocking(true);
 
     try {
-      const is_zk = metadata.is_zero_knowledge;
-
-      if (is_zk && !metadata.kdf_salt) {
-        set_error(sv("secure_view.decrypt_failed"));
-
-        return;
-      }
+      const is_zk = mode.kind === "zero_knowledge";
 
       let proof: string;
 
-      if (is_zk) {
-        proof = await derive_auth_proof(password, metadata.kdf_salt!);
+      if (mode.kind === "zero_knowledge") {
+        proof = await derive_auth_proof(password, mode.kdf_salt);
       } else {
         let password_kdf = metadata.password_kdf;
 
@@ -454,7 +465,11 @@ export default function SecureViewPage() {
         return;
       }
 
-      if (!content.encrypted_subject || !content.encrypted_body) {
+      if (
+        !content.encrypted_subject ||
+        !content.encrypted_body ||
+        (content.kdf_salt !== undefined && content.kdf_salt !== mode.kdf_salt)
+      ) {
         set_error(sv("secure_view.decrypt_failed"));
 
         return;
@@ -463,7 +478,7 @@ export default function SecureViewPage() {
       try {
         const result = await decrypt_secure_message(
           password,
-          content.kdf_salt ?? metadata.kdf_salt!,
+          mode.kdf_salt,
           {
             encrypted_subject: content.encrypted_subject,
             encrypted_body: content.encrypted_body,

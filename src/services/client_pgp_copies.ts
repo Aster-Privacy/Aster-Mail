@@ -31,6 +31,7 @@ import {
 import { build_signed_mime_payload } from "./send_queue_signed_mime";
 import { create_error } from "./send_queue_types";
 import { is_listed_pgp_recipient } from "./recipient_lock_state";
+import { will_encrypt_opportunistically } from "./opportunistic_key_trust";
 
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
@@ -48,6 +49,7 @@ export interface ClientPgpCopyParams {
   force_pgp?: boolean;
   pgp_recipients?: string[];
   require_encryption?: boolean;
+  encrypt_by_default?: boolean;
   obscure_subject?: boolean;
   subject: string;
   body: string;
@@ -63,7 +65,10 @@ export type EncryptionDecision = "encrypt" | "server" | "plain";
 
 export function decide_recipient_encryption(
   info: ExternalKeyInfo | undefined,
-  params: Pick<ClientPgpCopyParams, "force_pgp" | "require_encryption">,
+  params: Pick<
+    ClientPgpCopyParams,
+    "force_pgp" | "require_encryption" | "encrypt_by_default"
+  >,
   listed = false,
 ): EncryptionDecision {
   const found = Boolean(info?.found && info.public_key);
@@ -76,7 +81,12 @@ export function decide_recipient_encryption(
 
   if (!found) return "plain";
 
-  return info?.will_encrypt === true ? "encrypt" : "plain";
+  return will_encrypt_opportunistically(
+    info,
+    params.encrypt_by_default === true,
+  )
+    ? "encrypt"
+    : "plain";
 }
 
 function attachment_bytes(attachments: Attachment[]): number {

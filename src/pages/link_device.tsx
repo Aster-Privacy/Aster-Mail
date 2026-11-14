@@ -32,6 +32,7 @@ import {
   confirm_device_code,
 } from "@/services/api/devices";
 import {
+  choose_envelope_version,
   seal_vault_key_for_device,
   base64url_encode,
   base64url_decode,
@@ -77,6 +78,7 @@ interface DeviceInfo {
   ed25519_pk: string;
   mlkem_pk: string;
   x25519_pk: string;
+  envelope_versions?: number[];
 }
 
 function LinkDeviceShell({
@@ -601,9 +603,12 @@ export default function LinkDevice() {
       try {
         envelope = await seal_vault_key_for_device(
           passphrase_bytes,
-          base64url_decode(device_info.ed25519_pk),
-          base64url_decode(device_info.mlkem_pk),
-          base64url_decode(device_info.x25519_pk),
+          {
+            ed25519_pk: base64url_decode(device_info.ed25519_pk),
+            mlkem_pk: base64url_decode(device_info.mlkem_pk),
+            x25519_pk: base64url_decode(device_info.x25519_pk),
+          },
+          choose_envelope_version(device_info.envelope_versions),
         );
       } finally {
         passphrase_bytes.fill(0);

@@ -24,6 +24,36 @@ import type {
 } from "../crypto/secure_message_crypto";
 import type { SecureViewPasswordKdf } from "../crypto/secure_view_key";
 
+import { base64_to_array } from "../crypto/envelope";
+
+const SECURE_VIEW_SALT_BYTES = 16;
+
+export type SecureViewUnlockMode =
+  | { kind: "zero_knowledge"; kdf_salt: string }
+  | { kind: "password" }
+  | { kind: "refused" };
+
+function is_valid_secure_view_salt(kdf_salt: string): boolean {
+  try {
+    return base64_to_array(kdf_salt).length === SECURE_VIEW_SALT_BYTES;
+  } catch {
+    return false;
+  }
+}
+
+export function secure_view_unlock_mode(
+  metadata: Pick<SecureViewMetadata, "is_zero_knowledge" | "kdf_salt">,
+): SecureViewUnlockMode {
+  if (metadata.kdf_salt !== undefined && metadata.kdf_salt !== null) {
+    return metadata.is_zero_knowledge &&
+      is_valid_secure_view_salt(metadata.kdf_salt)
+      ? { kind: "zero_knowledge", kdf_salt: metadata.kdf_salt }
+      : { kind: "refused" };
+  }
+
+  return metadata.is_zero_knowledge ? { kind: "refused" } : { kind: "password" };
+}
+
 export interface SecureViewMetadata {
   sender_display_name?: string;
   sender_email: string;

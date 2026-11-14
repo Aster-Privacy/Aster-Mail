@@ -112,6 +112,7 @@ export interface UserPreferences {
   auto_discover_keys: boolean;
   require_encryption: boolean;
   obscure_subject_when_encrypted: boolean;
+  obscure_subject_user_set: boolean;
   show_encryption_indicators: boolean;
   publish_to_wkd: boolean;
   publish_to_keyservers: boolean;
@@ -743,7 +744,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   warn_external_recipients: true,
   auto_discover_keys: false,
   require_encryption: false,
-  obscure_subject_when_encrypted: false,
+  obscure_subject_when_encrypted: true,
+  obscure_subject_user_set: false,
   show_encryption_indicators: true,
   publish_to_wkd: false,
   publish_to_keyservers: false,
@@ -1090,6 +1092,10 @@ export function build_merged_preferences(
     merged.swipe_right_action,
     DEFAULT_PREFERENCES.swipe_right_action,
   );
+
+  if (merged.obscure_subject_user_set !== true) {
+    merged.obscure_subject_when_encrypted = true;
+  }
 
   return merged;
 }

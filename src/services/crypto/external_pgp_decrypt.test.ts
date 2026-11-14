@@ -130,6 +130,7 @@ describe("mail encrypted to the imported key", () => {
     await expect(resolve_inbound_pgp_body(ciphertext)).resolves.toEqual({
       body: "hello outside",
       decrypted: true,
+      verified: false,
     });
   });
 

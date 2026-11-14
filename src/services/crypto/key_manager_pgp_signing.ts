@@ -42,20 +42,16 @@ export async function verify_prekey_signature(
       verificationKeys: identity_key,
     });
 
-    let any_valid = false;
+    if (verification.signatures.length === 0) {
+      return false;
+    }
 
     for (const signature of verification.signatures) {
       try {
-        await signature.verified;
-        any_valid = true;
-        break;
+        if ((await signature.verified) !== true) return false;
       } catch {
-        continue;
+        return false;
       }
-    }
-
-    if (!any_valid) {
-      return false;
     }
 
     const extracted_text = signed_message.getText();

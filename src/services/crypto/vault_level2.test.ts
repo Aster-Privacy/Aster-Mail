@@ -305,4 +305,42 @@ describe("write_vault_at_level", () => {
 
     expect(send).toHaveBeenCalledTimes(1);
   });
+
+  it("never reseals an opened 600k vault at 310k on a refusal", async () => {
+    note_opened_vault_iterations(VAULT_KDF_ITERATIONS_LEVEL2);
+    const seal = vi.fn(async (iterations: number) => ({
+      encrypted_vault: `v${iterations}`,
+      vault_nonce: "n",
+    }));
+    const refusal = {
+      status: 409,
+      server_code: "VAULT_LEVEL2_NOT_ADMITTED",
+    };
+    const send = vi.fn(async () => refusal);
+
+    const result = await write_vault_at_level(
+      vault_write_iterations(),
+      seal,
+      send,
+    );
+
+    expect(result.iterations).toBe(VAULT_KDF_ITERATIONS_LEVEL2);
+    expect(result.response).toBe(refusal);
+    expect(seal).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("verified vault level", () => {
+  it("does not let a reported 310k lower an opened 600k vault", () => {
+    note_opened_vault_iterations(VAULT_KDF_ITERATIONS_LEVEL2);
+    record_vault_iterations_from_response({
+      encrypted_vault: "current",
+      vault_kdf_iterations: 310000,
+    });
+
+    expect(vault_write_iterations("current")).toBe(
+      VAULT_KDF_ITERATIONS_LEVEL2,
+    );
+  });
 });

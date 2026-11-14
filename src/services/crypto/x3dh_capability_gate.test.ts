@@ -38,6 +38,7 @@ vi.mock("./pq_prekey_store", () => ({
 
 import {
   perform_x3dh_sender,
+  negotiate_x3dh_version,
   perform_x3dh_receiver,
   bundle_supports_transcript_binding,
   type PrekeyBundle,
@@ -127,6 +128,104 @@ describe("x3dh transcript binding capability gate", () => {
         }),
       ).toBe(true);
     }
+  });
+
+  it("keeps transcript binding for a recipient that advertised it before", async () => {
+    const parties = await build_parties(1);
+
+    const result = await perform_x3dh_sender(
+      parties.sender_identity.secret_key_jwk,
+      parties.bundle,
+      2,
+    );
+
+    expect(result.x3dh_version).toBe(2);
+
+    const received = await perform_x3dh_receiver(
+      parties.recipient_identity.secret_key_jwk,
+      parties.recipient_signed_prekey.secret_key_jwk,
+      parties.sender_identity.public_key_raw,
+      result.ephemeral_public_key,
+      null,
+      null,
+      result.x3dh_version,
+    );
+
+    expect(Array.from(received)).toEqual(Array.from(result.shared_secret));
+  });
+
+  it("keeps transcript binding when a remembered recipient advertises nothing", async () => {
+    const parties = await build_parties(undefined);
+
+    const result = await perform_x3dh_sender(
+      parties.sender_identity.secret_key_jwk,
+      parties.bundle,
+      3,
+    );
+
+    expect(result.x3dh_version).toBe(2);
+  });
+
+  it("uses key bound derivation once the recipient advertises v3", async () => {
+    const parties = await build_parties(3);
+
+    const result = await perform_x3dh_sender(
+      parties.sender_identity.secret_key_jwk,
+      parties.bundle,
+    );
+
+    expect(result.x3dh_version).toBe(3);
+
+    const received = await perform_x3dh_receiver(
+      parties.recipient_identity.secret_key_jwk,
+      parties.recipient_signed_prekey.secret_key_jwk,
+      parties.sender_identity.public_key_raw,
+      result.ephemeral_public_key,
+      null,
+      null,
+      result.x3dh_version,
+    );
+
+    expect(Array.from(received)).toEqual(Array.from(result.shared_secret));
+
+    const older_attempt = await perform_x3dh_receiver(
+      parties.recipient_identity.secret_key_jwk,
+      parties.recipient_signed_prekey.secret_key_jwk,
+      parties.sender_identity.public_key_raw,
+      result.ephemeral_public_key,
+      null,
+      null,
+      2,
+    );
+
+    expect(Array.from(older_attempt)).not.toEqual(
+      Array.from(result.shared_secret),
+    );
+  });
+
+  it("never sends a version newer than this client knows", async () => {
+    const parties = await build_parties(99);
+
+    const result = await perform_x3dh_sender(
+      parties.sender_identity.secret_key_jwk,
+      parties.bundle,
+    );
+
+    expect(result.x3dh_version).toBe(3);
+  });
+
+  it("negotiates from the advertised version and the remembered floor", () => {
+    expect(negotiate_x3dh_version(undefined, undefined)).toBe(1);
+    expect(negotiate_x3dh_version(null, null)).toBe(1);
+    expect(negotiate_x3dh_version(1, 1)).toBe(1);
+    expect(negotiate_x3dh_version(1, 2)).toBe(2);
+    expect(negotiate_x3dh_version(1, 3)).toBe(2);
+    expect(negotiate_x3dh_version(2, 3)).toBe(2);
+    expect(negotiate_x3dh_version(3, 1)).toBe(3);
+    expect(negotiate_x3dh_version(3, undefined)).toBe(3);
+    expect(negotiate_x3dh_version(99, 99)).toBe(3);
+    expect(negotiate_x3dh_version(0, -4)).toBe(1);
+    expect(negotiate_x3dh_version(NaN, Infinity)).toBe(1);
   });
 
   it("stays on legacy derivation for a recipient that only advertises v1", async () => {

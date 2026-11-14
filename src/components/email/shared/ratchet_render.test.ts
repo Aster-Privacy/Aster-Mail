@@ -282,6 +282,9 @@ describe("internal ratchet mail rendering", () => {
       await build_real_internal_envelope("a short reply");
 
     h.vault = receiver_vault;
+    h.names.clear();
+    reset_storage_name_state();
+    reset_contact_entry_state();
 
     // Ignore the writes the sender made while building the envelope; we only
     // care about what the RECEIVE/decrypt path does.

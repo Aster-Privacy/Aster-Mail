@@ -59,7 +59,10 @@ import {
 import { zero_uint8_array } from "./secure_memory";
 import { load_openpgp } from "./openpgp_loader";
 import { with_vault_write_lock } from "./vault_write_lock";
-import { decrypt_aes_gcm_bound_or_unbound } from "./aes_gcm_aad_fallback";
+import {
+  decrypt_aes_gcm_bound_or_unbound,
+  local_unbound_policy,
+} from "./aes_gcm_aad_fallback";
 
 const SNAPSHOT_VERSION = 1;
 const SECRET_LENGTH = 32;
@@ -338,6 +341,7 @@ export async function open_device_snapshot(
     record.snapshot_id,
     record.source_hash,
   );
+  const unbound = local_unbound_policy();
   let combined: Uint8Array | null = null;
   let plaintext: Uint8Array | null = null;
 
@@ -348,6 +352,7 @@ export async function open_device_snapshot(
         record.iv,
         record.sealed,
         aad,
+        unbound,
       ),
     );
 
@@ -361,6 +366,7 @@ export async function open_device_snapshot(
         combined.slice(0, IV_LENGTH),
         combined.slice(IV_LENGTH),
         aad,
+        unbound,
       ),
     );
 

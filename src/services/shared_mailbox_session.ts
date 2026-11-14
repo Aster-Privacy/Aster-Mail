@@ -72,25 +72,6 @@ function signed_grant_key(viewer_id: string, mailbox_user_id: string): string {
   return `${GRANT_SIGNED_KEY_PREFIX}${viewer_id}:${mailbox_user_id}`;
 }
 
-function has_signed_grant(viewer_id: string, mailbox_user_id: string): boolean {
-  try {
-    return (
-      localStorage.getItem(signed_grant_key(viewer_id, mailbox_user_id)) ===
-      "1"
-    );
-  } catch {
-    return true;
-  }
-}
-
-function remember_signed_grant(viewer_id: string, mailbox_user_id: string) {
-  try {
-    localStorage.setItem(signed_grant_key(viewer_id, mailbox_user_id), "1");
-  } catch {
-    return;
-  }
-}
-
 export interface SharedMailboxLoginResult {
   user: User;
   vault: EncryptedVault;
@@ -194,6 +175,10 @@ export async function sync_shared_mailbox_grants(): Promise<
             await build_verification_keys(own_private_keys),
           );
         } catch {
+          opened = null;
+        }
+
+        if (!opened?.verified) {
           const recovered = await recover_lost_keys_once();
 
           if (recovered.length) {
@@ -207,15 +192,7 @@ export async function sync_shared_mailbox_grants(): Promise<
           }
         }
 
-        if (!opened) continue;
-        if (
-          !opened.verified &&
-          (!is_self_grant ||
-            !response.data.viewer_is_owner ||
-            has_signed_grant(viewer_id, mailbox.mailbox_user_id))
-        ) {
-          continue;
-        }
+        if (!opened?.verified) continue;
 
         const payload = opened.payload;
         const mailbox_email =
@@ -231,10 +208,6 @@ export async function sync_shared_mailbox_grants(): Promise<
           continue;
         }
 
-        if (!opened.verified && payload.email.toLowerCase() !== mailbox_email) {
-          continue;
-        }
-
         await store_session_passphrase(
           mailbox.mailbox_user_id,
           payload.login_secret,
@@ -244,14 +217,10 @@ export async function sync_shared_mailbox_grants(): Promise<
           String(mailbox.my_grant.credential_epoch),
         );
 
-        if (opened.verified && is_self_grant) {
-          remember_signed_grant(viewer_id, mailbox.mailbox_user_id);
-        }
-
         if (
           response.data.viewer_is_owner &&
           is_self_grant &&
-          (!opened.verified || payload.mailbox_user_id === "pending") &&
+          placeholder_for_this_mailbox &&
           current?.user
         ) {
           try {
@@ -261,7 +230,6 @@ export async function sync_shared_mailbox_grants(): Promise<
               current.user,
               vault,
             );
-            remember_signed_grant(viewer_id, mailbox.mailbox_user_id);
           } catch (error) {
             console.warn(
               "shared mailbox grant re-seal failed",

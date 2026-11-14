@@ -75,6 +75,13 @@ export interface DecryptedRecord<T> {
 }
 
 export function encode_binding(binding: CalendarBinding): Uint8Array {
+  if (
+    binding.calendar_id.includes("\n") ||
+    (binding.event_id ?? "").includes("\n")
+  ) {
+    throw new Error("calendar binding ids must not contain line breaks");
+  }
+
   const parts = [
     "event_id=" + (binding.event_id ?? ""),
     "calendar_id=" + binding.calendar_id,

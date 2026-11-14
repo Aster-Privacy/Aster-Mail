@@ -58,7 +58,10 @@ import {
 } from "@/services/crypto/inbound_attachment_keys";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
-import { get_account_key_capabilities } from "@/services/api/account_key";
+import {
+  get_account_key_capabilities,
+  peek_account_key_capabilities,
+} from "@/services/api/account_key";
 
 export interface EncryptedAttachmentForSend {
   encrypted_data: string;
@@ -108,20 +111,15 @@ export interface ResolveAttachmentMetaInput {
 
 export const DEFAULT_ATTACHMENT_CONTENT_TYPE = "application/octet-stream";
 
-const AEAD_BINDING_WRITE_ENABLED = false;
-
 function attachment_data_aad(seq: number): Uint8Array {
   return new TextEncoder().encode(`aster-attachment-v2|att=${seq}|part=data`);
 }
 
-function write_aad(aad: Uint8Array): Uint8Array {
-  return AEAD_BINDING_WRITE_ENABLED ? aad : new Uint8Array(0);
-}
-
-async function encrypt_data_with_session_key(
+export async function encrypt_data_with_session_key(
   data: ArrayBuffer,
   session_key: CryptoKey,
   seq: number,
+  bound: boolean,
 ): Promise<{ encrypted: ArrayBuffer; nonce: Uint8Array }> {
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
@@ -129,7 +127,7 @@ async function encrypt_data_with_session_key(
     {
       name: "AES-GCM",
       iv: nonce,
-      additionalData: write_aad(attachment_data_aad(seq)),
+      additionalData: bound ? attachment_data_aad(seq) : new Uint8Array(0),
     },
     session_key,
     data,
@@ -249,6 +247,7 @@ export async function encrypt_attachments_for_send(
 
   try {
     const own_seal = await own_key_seal_when_enabled(attachments.length);
+    const bound = peek_account_key_capabilities().bound_attachment_writes;
     let seq = 0;
 
     for (const attachment of attachments) {
@@ -268,6 +267,7 @@ export async function encrypt_attachments_for_send(
         attachment.data,
         session_key,
         seq,
+        bound,
       );
 
       const meta: AttachmentMeta = {
@@ -808,10 +808,8 @@ export async function decrypt_attachment_data(
         ? get_attachment_key(mail_item_id, seq_num)
         : "";
 
-  const stored_unencrypted = is_unencrypted_stored_attachment(data_nonce_b64);
-
   if (!resolved_key || resolved_key.length === 0) {
-    if (stored_unencrypted) {
+    if (is_unencrypted_stored_attachment(data_nonce_b64)) {
       return read_unencrypted_attachment(encrypted_data_b64);
     }
 
@@ -851,19 +849,7 @@ export async function decrypt_attachment_data(
     }
   }
 
-  try {
-    return await decrypt_aes_gcm_with_fallback(
-      session_key,
-      encrypted_data,
-      nonce,
-    );
-  } catch (error) {
-    if (stored_unencrypted) {
-      return read_unencrypted_attachment(encrypted_data_b64);
-    }
-
-    throw error;
-  }
+  return decrypt_aes_gcm_with_fallback(session_key, encrypted_data, nonce);
 }
 
 async function decrypt_listed_attachment_data(

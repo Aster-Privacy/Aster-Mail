@@ -620,6 +620,7 @@ async function prepare_email_with_plans(
           force_pgp: email.force_pgp,
           pgp_recipients: email.pgp_recipients,
           require_encryption: email.encryption_options?.require_encryption,
+          encrypt_by_default: email.encryption_options?.encrypt_emails,
           obscure_subject,
           subject: email.subject || "",
           body: body_for_encryption,

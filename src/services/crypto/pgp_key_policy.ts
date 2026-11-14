@@ -36,7 +36,7 @@ function packet_is_known_bad(key: KeyLike): boolean {
       MODERN_ALGORITHMS.has(key.getAlgorithmInfo().algorithm)
     );
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -57,7 +57,7 @@ export async function is_publishable_armored_key(
   try {
     key = await openpgp.readKey({ armoredKey: armored_key });
   } catch {
-    return true;
+    return false;
   }
 
   return !is_known_bad_key(key);

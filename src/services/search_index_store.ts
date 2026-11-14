@@ -295,7 +295,7 @@ async function get_snapshot_encryption_key(): Promise<CryptoKey | null> {
     "raw",
     raw,
     { name: "AES-GCM", length: 256 },
-    true,
+    false,
     ["encrypt", "decrypt"],
   );
 

@@ -23,6 +23,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   delete_secure_view,
   reply_to_secure_view,
+  secure_view_unlock_mode,
   select_secure_view_credential,
   verify_secure_view,
 } from "./secure_view";
@@ -51,6 +52,49 @@ function sent_body(index: number): Record<string, unknown> {
 
   return JSON.parse(String(init.body)) as Record<string, unknown>;
 }
+
+const SALT = btoa(String.fromCharCode(...new Uint8Array(16).fill(9)));
+
+describe("secure view unlock mode", () => {
+  it("uses zero knowledge when the server sends a valid salt", () => {
+    expect(
+      secure_view_unlock_mode({ is_zero_knowledge: true, kdf_salt: SALT }),
+    ).toEqual({ kind: "zero_knowledge", kdf_salt: SALT });
+  });
+
+  it("keeps the legacy password mode for legacy messages", () => {
+    expect(secure_view_unlock_mode({ is_zero_knowledge: false })).toEqual({
+      kind: "password",
+    });
+  });
+
+  it("refuses a zero-knowledge message that arrives without a salt", () => {
+    expect(secure_view_unlock_mode({ is_zero_knowledge: true })).toEqual({
+      kind: "refused",
+    });
+    expect(
+      secure_view_unlock_mode({ is_zero_knowledge: true, kdf_salt: "" }),
+    ).toEqual({ kind: "refused" });
+  });
+
+  it("refuses a salt that is not 16 bytes", () => {
+    for (const kdf_salt of [
+      btoa("short"),
+      btoa(String.fromCharCode(...new Uint8Array(32))),
+      "not base64 !!",
+    ]) {
+      expect(
+        secure_view_unlock_mode({ is_zero_knowledge: true, kdf_salt }),
+      ).toEqual({ kind: "refused" });
+    }
+  });
+
+  it("refuses a message that carries a salt but claims to be legacy", () => {
+    expect(
+      secure_view_unlock_mode({ is_zero_knowledge: false, kdf_salt: SALT }),
+    ).toEqual({ kind: "refused" });
+  });
+});
 
 describe("secure view credential selection", () => {
   it("uses only the derived proof for an end-to-end encrypted view", () => {

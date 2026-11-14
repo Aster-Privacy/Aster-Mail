@@ -31,7 +31,7 @@ import {
   clear_session_passphrase,
   is_session_passphrase_pin_locked,
 } from "./session_passphrase";
-import { purge_all_local_data } from "./purge_local_data";
+import { purge_all_local_data, type PurgeOptions } from "./purge_local_data";
 import {
   clear_account_scoped_caches,
   safe_log_error,
@@ -117,6 +117,7 @@ import {
 } from "@/services/app_lock_store";
 import { release_app_lock } from "@/services/app_lock_unlock";
 import { delete_category_index_for_account } from "@/services/category_index";
+import { delete_user_device_snapshots } from "@/services/crypto/device_recovery_store";
 import { ignore_error } from "@/lib/ignore_error";
 
 async function resume_surviving_account(
@@ -394,18 +395,21 @@ export function use_auth_provider_state() {
     ],
   );
 
-  const clear_local_auth_data = useCallback(async () => {
-    await purge_all_local_data();
+  const clear_local_auth_data = useCallback(
+    async (options?: PurgeOptions) => {
+      await purge_all_local_data(options);
 
-    set_state({
-      user: null,
-      is_loading: false,
-      is_authenticated: false,
-      has_keys: false,
-      accounts: [],
-      current_account_id: null,
-    });
-  }, []);
+      set_state({
+        user: null,
+        is_loading: false,
+        is_authenticated: false,
+        has_keys: false,
+        accounts: [],
+        current_account_id: null,
+      });
+    },
+    [],
+  );
 
   const logout_in_flight = useRef(false);
 
@@ -487,6 +491,7 @@ export function use_auth_provider_state() {
         stop_session_timeout();
         clear_vault_from_memory();
         await with_timeout(clear_signed_out_account_caches(current_id), 3000);
+        await with_timeout(delete_user_device_snapshots(current_id), 2000);
         await with_timeout(delete_category_index_for_account(current_id), 2000);
         clear_stored_encrypted_vault(current_id);
         await with_timeout(clear_session_passphrase(current_id), 2000);
@@ -634,7 +639,7 @@ export function use_auth_provider_state() {
       );
 
       if (!keep_accounts) {
-        await clear_local_auth_data();
+        await clear_local_auth_data({ keep_device_recovery: true });
 
         if (path === "/sign-in" || keep_device_pairing) return;
 

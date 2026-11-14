@@ -228,6 +228,7 @@ export async function open_account_key_from_escrow(
         nonce,
         ciphertext,
         seal_aad(user_id, token_version),
+        "accept_unbound",
       ),
     );
 

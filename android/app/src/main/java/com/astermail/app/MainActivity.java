@@ -53,6 +53,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(ClipboardImagePlugin.class);
         registerPlugin(WidgetBridgePlugin.class);
         registerPlugin(ScreenPrivacyPlugin.class);
+        registerPlugin(SecureTokenStorePlugin.class);
         super.onCreate(savedInstanceState);
     }
 

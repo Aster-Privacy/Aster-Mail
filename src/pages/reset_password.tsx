@@ -61,6 +61,7 @@ import {
   verify_reset_second_factor,
 } from "@/services/api/recovery";
 import { classify_totp_error } from "@/services/api/totp";
+import { derive_reset_vault_proof } from "@/services/crypto/reset_vault_proof";
 import {
   is_webauthn_supported,
   perform_webauthn_assertion_with_options,
@@ -539,7 +540,10 @@ export default function ResetPasswordPage() {
 
       if (!lost_everything) {
         set_processing_status(t("auth.reset_unlocking_earlier_mail"));
-        const vault_response = await get_reset_vault(token);
+        const vault_response = await get_reset_vault(
+          token,
+          await derive_reset_vault_proof(current_password, second_factor),
+        );
 
         if (vault_response.error || !vault_response.data) {
           if (
@@ -552,6 +556,13 @@ export default function ResetPasswordPage() {
           }
           if (vault_response.server_code === "SECOND_FACTOR_REQUIRED") {
             require_second_factor();
+
+            return;
+          }
+          if (vault_response.server_code === "CURRENT_PASSWORD_INCORRECT") {
+            await timing_safe_delay();
+            set_error(t("settings.current_password_incorrect"));
+            set_step("password");
 
             return;
           }

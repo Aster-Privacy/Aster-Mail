@@ -81,7 +81,7 @@ export async function ensure_pgp_key_published(options?: {
   if (existing.data) {
     if (
       !(await published_key_is_held(existing.data, vault)) &&
-      (await identity_key_is_publishable(vault.identity_key)) &&
+      (await identity_key_state(vault.identity_key)) === "publishable" &&
       (await republish_identity_key(vault.identity_key, passphrase))
     ) {
       attempted_account_ids.add(account_id);
@@ -99,12 +99,17 @@ export async function ensure_pgp_key_published(options?: {
   }
   if (existing.code !== "NOT_FOUND") return "skipped";
 
-  const healed = (await identity_key_is_publishable(vault.identity_key))
-    ? await republish_identity_key(vault.identity_key, passphrase)
-    : await rekey_unpublishable_identity_key(
-        account?.user?.email ?? null,
-        account?.user?.display_name ?? null,
-      );
+  const state = await identity_key_state(vault.identity_key);
+
+  if (state === "unreadable") return "failed";
+
+  const healed =
+    state === "publishable"
+      ? await republish_identity_key(vault.identity_key, passphrase)
+      : await rekey_unpublishable_identity_key(
+          account?.user?.email ?? null,
+          account?.user?.display_name ?? null,
+        );
 
   if (healed) {
     attempted_account_ids.add(account_id);
@@ -236,9 +241,11 @@ async function rekey_unpublishable_identity_key(
   return rekey_pgp_if_needed(user_email, user_name);
 }
 
-async function identity_key_is_publishable(
+type IdentityKeyState = "publishable" | "known_bad" | "unreadable";
+
+async function identity_key_state(
   armored_identity_key: string,
-): Promise<boolean> {
+): Promise<IdentityKeyState> {
   const openpgp = await load_openpgp();
 
   try {
@@ -246,9 +253,9 @@ async function identity_key_is_publishable(
       armoredKey: armored_identity_key,
     });
 
-    return !is_known_bad_key(private_key);
+    return is_known_bad_key(private_key) ? "known_bad" : "publishable";
   } catch {
-    return true;
+    return "unreadable";
   }
 }
 

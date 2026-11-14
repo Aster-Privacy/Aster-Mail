@@ -28,6 +28,8 @@ const ED25519_PK_BYTES = 32;
 const MLKEM_PK_BYTES = 1184;
 const X25519_PK_BYTES = 32;
 
+export const FINGERPRINT_CHARS = FINGERPRINT_BYTES * 2;
+
 export interface EncodedDeviceKeys {
   ed25519_pk: string;
   mlkem_pk: string;
@@ -62,6 +64,40 @@ export function device_key_fingerprint(
     .toUpperCase();
 
   return hex.match(/.{4}/g)!.join(" ");
+}
+
+export function normalize_fingerprint_input(raw: string): string {
+  return raw
+    .toUpperCase()
+    .replace(/[^0-9A-F]/g, "")
+    .slice(0, FINGERPRINT_CHARS);
+}
+
+export function format_fingerprint_input(raw: string): string {
+  return normalize_fingerprint_input(raw).match(/.{1,4}/g)?.join(" ") ?? "";
+}
+
+export function fingerprint_matches(
+  typed: string,
+  fingerprint: string,
+): boolean {
+  const expected = normalize_fingerprint_input(fingerprint);
+  const actual = normalize_fingerprint_input(typed);
+
+  if (
+    expected.length !== FINGERPRINT_CHARS ||
+    actual.length !== FINGERPRINT_CHARS
+  ) {
+    return false;
+  }
+
+  let difference = 0;
+
+  for (let index = 0; index < FINGERPRINT_CHARS; index++) {
+    difference |= expected.charCodeAt(index) ^ actual.charCodeAt(index);
+  }
+
+  return difference === 0;
 }
 
 export function fingerprint_of_encoded_device_keys(

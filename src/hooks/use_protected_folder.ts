@@ -49,7 +49,12 @@ import {
   decrypt_folder_key,
   array_to_base64,
   base64_to_array,
+  folder_salt_is_current,
 } from "@/services/crypto/folder_protection";
+import {
+  is_folder_kdf_pinned,
+  pin_folder_kdf,
+} from "@/services/crypto/folder_kdf_pin";
 import { use_folders } from "@/hooks/use_folders";
 import { emit_folders_changed } from "@/hooks/mail_events";
 import { use_i18n } from "@/lib/i18n/context";
@@ -231,6 +236,7 @@ export function use_protected_folder(
         const { auth_key, encryption_key } = await derive_password_keys(
           password,
           salt,
+          !is_folder_kdf_pinned(folder_id),
         );
 
         const verify_response = await verify_folder_password(folder_id, {
@@ -277,6 +283,10 @@ export function use_protected_folder(
         );
 
         zero_uint8_array(encryption_key);
+
+        if (folder_salt_is_current(salt)) {
+          pin_folder_kdf(folder_id);
+        }
 
         register_unlock({
           folder_id,
@@ -331,6 +341,8 @@ export function use_protected_folder(
             ),
           );
         }
+
+        pin_folder_kdf(folder_id);
 
         const grant = await request_folder_unlock_grant(
           folder_id,
@@ -409,6 +421,8 @@ export function use_protected_folder(
           );
         }
 
+        pin_folder_kdf(folder_id);
+
         const grant = await request_folder_unlock_grant(
           folder_id,
           change_data.new_password_hash,
@@ -472,7 +486,11 @@ export function use_protected_folder(
 
       try {
         const salt = base64_to_array(unlocked.password_salt);
-        const { auth_key } = await derive_password_keys(password, salt);
+        const { auth_key } = await derive_password_keys(
+          password,
+          salt,
+          !is_folder_kdf_pinned(folder_id),
+        );
 
         const response = await remove_folder_password(folder_id, {
           password_hash: array_to_base64(auth_key),

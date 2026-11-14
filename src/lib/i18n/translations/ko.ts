@@ -1169,7 +1169,7 @@ export const ko = {
       "설정에서 별칭을 추가하고, 사용자 지정 도메인을 연결하고, 2단계 인증을 켤 수 있습니다.",
     youre_ready: "준비되었습니다",
     youre_ready_description:
-      "메일은 종단 간 암호화되며 키는 회원님만 가지고 있습니다. 아무 때나 ?를 누르면 모든 키보드 단축키를 볼 수 있습니다.",
+      "메일은 암호화되어 저장되며 키는 회원님만 가지고 있습니다. 아무 때나 ?를 누르면 모든 키보드 단축키를 볼 수 있습니다.",
     skip_tour: "둘러보기 건너뛰기",
     get_started: "시작하기",
     step: "단계",
@@ -2116,6 +2116,10 @@ export const ko = {
     zip_archive: "ZIP 압축 파일",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "환경 변수가 샌드박스를 껐기 때문에 이 창은 샌드박스 없이 실행 중입니다.",
+    sandbox_off_notice:
+      "이 창은 샌드박스 없이 실행 중입니다. 샌드박스를 켜려면 bubblewrap을 설치한 다음 Aster Mail을(를) 다시 시작하세요.",
     bill_thanks_title: "Aster를 지원해 주셔서 감사합니다",
     bill_thanks_body:
       "여러분의 지원은 저희에게 큰 힘이 됩니다. 덕분에 작은 팀이 매일 정성껏 Aster를 계속 만들어 갈 수 있습니다.",
@@ -2270,7 +2274,7 @@ export const ko = {
       "각 구성원이 자신만의 @astermail.org 주소를 받습니다",
     fam_welcome_step1_point2:
       "완전한 프라이버시 - 구성원끼리 서로의 이메일을 볼 수 없습니다",
-    fam_welcome_step1_point3: "모든 계정에 양자 내성 암호화 적용",
+    fam_welcome_step1_point3: "Aster 계정 간 양자 내성 암호화",
     fam_welcome_step2_title: "하나의 저장 공간, 직접 관리",
     fam_welcome_step2_desc:
       "요금제에 공유 저장 공간이 포함되어 있습니다. 각 구성원에게 얼마를 줄지 정하고 언제든지 조정하세요.",
@@ -2578,7 +2582,7 @@ export const ko = {
     invite_title_named: "{{ name }} 님이 Aster Mail에 초대했습니다",
     invite_title_generic: "Aster Mail에 초대되었습니다",
     invite_subtitle:
-      "Aster Mail은 제로 액세스, 종단 간 암호화 이메일입니다. 당신 외에는 누구도, 심지어 우리조차도 받은편지함을 읽을 수 없습니다.",
+      "Aster Mail은 제로 액세스, 종단 간 암호화 이메일입니다. 메일은 당신만 가진 키로 암호화되어 저장됩니다.",
     invite_discount_line:
       "지금 가입하면 첫 플랜을 {{ percent }}% 할인받을 수 있습니다.",
     invite_benefits_heading: "제공되는 혜택",
@@ -4895,7 +4899,7 @@ export const ko = {
       "공개 키서버에서 키를 찾을 수 있게 합니다",
     info_forward_secrecy_title: "전방 비밀성이란?",
     info_forward_secrecy_description:
-      "세션 키가 자동으로 교체됩니다. 오늘 누군가 개인 키를 얻더라도 각 세션이 다른 키를 사용했기 때문에 과거 메시지를 읽을 수 없습니다.",
+      "암호화 키는 일정에 따라 자동으로 교체되므로 유출된 키 하나로 열 수 있는 메일이 제한됩니다. 모든 기기에서 메일을 읽을 수 있도록 계정은 계정 키로 암호화된 메시지 사본도 보관합니다. 따라서 비밀번호를 얻은 사람은 과거 메일을 계속 읽을 수 있습니다.",
     info_key_rotation_interval_title: "키 교체 간격",
     info_key_rotation_interval_description:
       "암호화 키가 얼마나 자주 교체되는지입니다. 더 자주 교체할수록 안전하지만 오버헤드가 약간 증가합니다. 대부분에게 1주일이 좋은 기본값입니다.",
@@ -5253,7 +5257,7 @@ export const ko = {
       "모든 암호화는 데이터가 기기를 떠나기 전에 브라우저에서 수행됩니다",
     zero_knowledge_storage: "제로 지식 저장소",
     zero_knowledge_storage_description:
-      "우리는 당신의 데이터를 읽을 수 없습니다. 키는 오직 당신만 보유합니다.",
+      "우리는 저장된 당신의 데이터를 읽을 수 없습니다. 키는 오직 당신만 보유합니다.",
     email_content_attachments: "이메일 내용 및 첨부 파일",
     folder_names_structure: "폴더 이름 및 구조",
     drafts_signatures: "임시 저장 및 서명",
@@ -5455,7 +5459,7 @@ export const ko = {
     regenerate_codes_warning:
       "새 코드를 생성하는 즉시 현재 복구 코드는 작동을 멈춥니다. 이 창을 닫기 전에 새 코드를 안전한 곳에 저장해두면 계속 안전하게 사용할 수 있습니다. 입력란에",
     end_to_end_encrypted: "종단간 암호화됨",
-    all_data_protected: "모든 데이터는 제로 지식 암호화로 보호됩니다",
+    all_data_protected: "모든 데이터는 제로 액세스 암호화로 보호됩니다",
     pgp_compatible: "PGP 호환",
     pgp_compatible_description:
       "PGP를 사용하는 누구에게나 암호화된 이메일을 보내세요.",
@@ -7363,7 +7367,7 @@ export const ko = {
     rotate_keys_description_manual:
       "암호화 키를 교체하려면 비밀번호를 입력하세요. 이전 이메일은 계속 읽을 수 있습니다.",
     rotate_keys_description_required:
-      "암호화 키 교체 시기가 되었습니다. 새 키를 생성하고 순방향 비밀성을 유지하려면 비밀번호를 입력하세요.",
+      "암호화 키 교체 시기가 되었습니다. 새 키를 생성하려면 비밀번호를 입력하세요.",
     rotating: "교체 중...",
     rotate_keys: "키 교체",
     key_rotation_data_loss_warning:
@@ -7875,7 +7879,7 @@ export const ko = {
     send_referral_to_contacts: "모든 연락처에 이메일 보내기",
     referral_email_subject: "Aster Mail을 사용해 보세요",
     referral_email_body:
-      "안녕하세요.\n\n한동안 Aster Mail을 쓰고 있는데 아주 마음에 듭니다. 모든 내용이 종단 간 암호화되어 있어서 본인 말고는 아무도 메일을 읽을 수 없습니다. 서비스를 운영하는 쪽도 마찬가지입니다.\n\n한번 써보고 싶다면 제 초대 링크입니다.\n\n{{ referral_link }}\n\n사용을 시작하면 두 사람 모두 저장 공간 {{ amount }}을(를) 받으니 그쪽에도 이득입니다.\n\n감사합니다",
+      "안녕하세요.\n\n한동안 Aster Mail을 쓰고 있는데 아주 마음에 듭니다. 메일이 본인만 가진 키로 암호화되어 저장되기 때문에 서비스를 운영하는 쪽도 메일함을 읽을 수 없습니다.\n\n한번 써보고 싶다면 제 초대 링크입니다.\n\n{{ referral_link }}\n\n사용을 시작하면 두 사람 모두 저장 공간 {{ amount }}을(를) 받으니 그쪽에도 이득입니다.\n\n감사합니다",
     referral_no_contacts: "연락처가 없습니다. 먼저 연락처를 추가하세요!",
     referral_loading_contacts: "연락처 불러오는 중...",
     two_factor_auth_disabled: "이중 인증이 비활성화되었습니다",
@@ -8295,7 +8299,7 @@ export const ko = {
     browse_folder: "폴더 선택",
     money_back_guarantee: "30일 환불 보장",
     plan_every_plan_includes:
-      "모든 요금제에 종단 간 암호화, 제로 지식 저장소, 오픈 소스 앱이 포함됩니다.",
+      "모든 요금제에 종단 간 암호화, 제로 액세스 저장소, 오픈 소스 앱이 포함됩니다.",
     cancel_anytime: "언제든지 해지 가능",
     billed_annually: "연간 청구",
     save_annually_hint: "연간 결제로 20% 절약",
@@ -8356,7 +8360,7 @@ export const ko = {
     referral_share_message_plain:
       "저는 종단 간 암호화 이메일 Aster Mail을 사용합니다. 제 링크로 가입하세요.",
     referral_email_body_plain:
-      "안녕하세요.\n\n한동안 Aster Mail을 쓰고 있는데 아주 마음에 듭니다. 모든 내용이 종단 간 암호화되어 있어서 본인 말고는 아무도 메일을 읽을 수 없습니다. 서비스를 운영하는 쪽도 마찬가지입니다.\n\n한번 써보고 싶다면 제 초대 링크입니다.\n\n{{ referral_link }}\n\n감사합니다",
+      "안녕하세요.\n\n한동안 Aster Mail을 쓰고 있는데 아주 마음에 듭니다. 메일이 본인만 가진 키로 암호화되어 저장되기 때문에 서비스를 운영하는 쪽도 메일함을 읽을 수 없습니다.\n\n한번 써보고 싶다면 제 초대 링크입니다.\n\n{{ referral_link }}\n\n감사합니다",
     referral_claim_window_closed:
       "이 계정에 초대 코드를 추가할 수 있는 기간이 끝났습니다.",
     referral_claim_already: "이 계정에는 이미 초대가 등록되어 있습니다.",
@@ -10106,6 +10110,11 @@ export const ko = {
       "앱에 표시되지 않으면 앱에서 이 기기 확인을 선택하세요. 앱에 이 옵션이 없으면 앱을 업데이트한 다음 다시 시도하세요.",
     device_code_fingerprint_required_hint:
       "기기를 연결하기 전에 브라우저에서 이 기기 지문을 요청합니다.",
+    device_code_verify_toggle: "이 기기 확인",
+    link_device_fingerprint_hint:
+      "새 기기에 표시된 확인 코드를 입력하세요. 데스크톱 앱에서는 이 기기 확인을 선택하면 볼 수 있습니다.",
+    link_device_fingerprint_incomplete: "기기를 연결하려면 새 기기의 전체 확인 코드를 입력하세요.",
+    device_code_fingerprint_hint: "이 기기를 연결하려면 이미 로그인한 기기에서 이 코드를 입력하세요.",
     link_device_change_account: "계정 변경",
     link_device_choose_account: "계정 선택",
     link_device_choose_account_description: "새 기기를 연결합니다",

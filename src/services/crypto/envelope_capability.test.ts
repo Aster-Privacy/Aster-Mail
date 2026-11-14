@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  ENVELOPE_CAPABILITY_BOUND_VERSION,
   ENVELOPE_CAPABILITY_MAX_MARKER,
   ENVELOPE_CAPABILITY_PGP_EXTERNAL_VERSION,
   ENVELOPE_CAPABILITY_REPORT_INTERVAL_MS,
@@ -21,6 +22,7 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
     pq_identity_fingerprint: string | null;
     pgp_external_version: number;
     address_identity_version: number;
+    bound_envelope_version: number;
   }> = [];
 
   let clock = 1_000;
@@ -43,6 +45,7 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
       _x3dh_max_version,
       pgp_external_version,
       address_identity_version,
+      bound_envelope_version,
     ) => {
       posts.push({
         client_id,
@@ -52,6 +55,7 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
         pq_identity_fingerprint,
         pgp_external_version,
         address_identity_version,
+        bound_envelope_version,
       });
 
       return {
@@ -354,7 +358,35 @@ describe("report_envelope_capability_if_due", () => {
     expect(helper.posts).toHaveLength(1);
     expect(
       helper.store.get(`astermail_envelope_capability_reported_${user_id}`),
-    ).toBe("1000|fixed-fingerprint|fixed-pq-fingerprint|1|1");
+    ).toBe("1000|fixed-fingerprint|fixed-pq-fingerprint|1|1|1");
+
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+
+    expect(helper.posts).toHaveLength(1);
+  });
+
+  it("advertises account-bound envelope support version 1", async () => {
+    const { deps, posts } = make_deps();
+
+    await report_envelope_capability_if_due(user_id, false, deps);
+
+    expect(ENVELOPE_CAPABILITY_BOUND_VERSION).toBe(1);
+    expect(posts[0].bound_envelope_version).toBe(1);
+  });
+
+  it("re-reports at once when the stored report predates account-bound envelopes", async () => {
+    const helper = make_deps();
+
+    helper.store.set(
+      `astermail_envelope_capability_reported_${user_id}`,
+      "900|fixed-fingerprint|fixed-pq-fingerprint|1|1",
+    );
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+
+    expect(helper.posts).toHaveLength(1);
+    expect(
+      helper.store.get(`astermail_envelope_capability_reported_${user_id}`),
+    ).toBe("1000|fixed-fingerprint|fixed-pq-fingerprint|1|1|1");
 
     await report_envelope_capability_if_due(user_id, false, helper.deps);
 

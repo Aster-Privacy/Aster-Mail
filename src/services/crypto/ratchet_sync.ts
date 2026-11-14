@@ -35,7 +35,9 @@ import {
   next_sync_version,
   ratchet_state_bound_aad,
 } from "./ratchet_state_container";
+import { raise_sync_counter, read_sync_counter } from "./ratchet_sync_counter";
 import { raise_sync_floor, read_sync_floor } from "./ratchet_sync_floor";
+import { RATCHET_SYNC_SEALED_PREFIX } from "./storage_key_names";
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client } from "@/services/api/client";
@@ -231,7 +233,14 @@ async function read_server_state_record(
     encryption_key,
     conversation_id,
   );
-  const floor = await read_sync_floor(conversation_id);
+  const confirmed = await read_sync_floor(conversation_id);
+  const floor =
+    local_state_present && !merging
+      ? Math.max(
+          confirmed,
+          await read_sync_counter(RATCHET_SYNC_SEALED_PREFIX, conversation_id),
+        )
+      : confirmed;
   const established = floor > 0 || local_state_present;
 
   if (derived && established) {
@@ -272,13 +281,23 @@ async function seal_state_for_server(
   ratchet: DoubleRatchet,
   encryption_key: CryptoKey,
 ): Promise<EncryptedStatePayload & { sync_version: number }> {
+  const conversation_id = ratchet.get_conversation_id();
   const sync_version = next_sync_version(
-    await read_sync_floor(ratchet.get_conversation_id()),
+    Math.max(
+      await read_sync_floor(conversation_id),
+      await read_sync_counter(RATCHET_SYNC_SEALED_PREFIX, conversation_id),
+    ),
     Date.now(),
   );
   const sealed = await encrypt_state_for_server(
     encode_ratchet_state_container(await ratchet.serialize(), sync_version),
     encryption_key,
+  );
+
+  await raise_sync_counter(
+    RATCHET_SYNC_SEALED_PREFIX,
+    conversation_id,
+    sync_version,
   );
 
   return { ...sealed, sync_version };

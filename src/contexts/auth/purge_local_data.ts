@@ -58,6 +58,7 @@ import { clear_all_app_lock_data } from "@/services/app_lock_store";
 import { clear_category_index } from "@/services/category_index";
 import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { clear_all_ratchet_states } from "@/services/crypto/ratchet_state_store";
+import { delete_device_recovery_database } from "@/services/crypto/device_recovery_store";
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { clear_unreadable_attachment_rows } from "@/services/crypto/attachment_crypto";
 import { clear_plaintext_cache } from "@/services/crypto/ratchet_plaintext_cache";
@@ -80,7 +81,10 @@ import { clear_family_cache } from "@/components/settings/billing/family_section
 
 export interface PurgeLocalDataOptions {
   erase_device_traces?: boolean;
+  keep_device_recovery?: boolean;
 }
+
+export type PurgeOptions = PurgeLocalDataOptions;
 
 export interface DeviceEraseOutcome {
   complete: boolean;
@@ -108,6 +112,10 @@ const STORE_STEPS: readonly WipeStep[] = [
   ["ratchet_states", () => clear_all_ratchet_states()],
   ["plaintext_cache", () => clear_plaintext_cache()],
   ["session_data", () => clear_all_session_data()],
+];
+
+const DEVICE_RECOVERY_STEPS: readonly WipeStep[] = [
+  ["device_recovery", () => delete_device_recovery_database()],
 ];
 
 const SESSION_COOKIE_STEPS: readonly WipeStep[] = [
@@ -213,7 +221,9 @@ async function clear_local_caches(): Promise<void> {
   release_engines();
 }
 
-async function sign_out_locally(): Promise<boolean> {
+async function sign_out_locally(
+  keep_device_recovery: boolean,
+): Promise<boolean> {
   const failed: string[] = [];
 
   drop_memory_secrets();
@@ -228,6 +238,9 @@ async function sign_out_locally(): Promise<boolean> {
   await run_steps(STORAGE_STEPS, failed);
   await clear_local_caches();
   await run_steps(STORE_STEPS, failed);
+  if (!keep_device_recovery) {
+    await run_steps(DEVICE_RECOVERY_STEPS, failed);
+  }
 
   api_client.clear_auth_data();
   await run_steps(SESSION_COOKIE_STEPS, failed);
@@ -399,5 +412,5 @@ export async function purge_all_local_data(
 ): Promise<boolean> {
   if (options.erase_device_traces) return (await erase_device_data()).complete;
 
-  return sign_out_locally();
+  return sign_out_locally(options.keep_device_recovery === true);
 }

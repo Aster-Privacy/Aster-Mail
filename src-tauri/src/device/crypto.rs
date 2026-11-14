@@ -50,6 +50,8 @@ const MAGIC_PP: &[u8; 8] = b"ASTERPP\x01";
 const MAGIC_AUTH: &[u8; 8] = b"ASTERAU\x01";
 const MAGIC_REFRESH: &[u8; 8] = b"ASTERRT\x01";
 const MAGIC_PL: &[u8; 8] = b"ASTERPL\x01";
+const MAGIC_LS: &[u8; 8] = b"ASTERLS\x01";
+const LOCAL_SECRET_MAX_BYTES: usize = 4096;
 const PIN_LOCKED_ERROR: &str = "passphrase_pin_locked";
 const KEYCHAIN_UNAVAILABLE_ERROR: &str = "keychain_unavailable";
 const KEYCHAIN_STORE_FAILED_ERROR: &str = "keychain_store_failed";
@@ -263,10 +265,13 @@ fn wrap_key_file_adopt() -> Option<[u8; 32]> {
         Ok(()) => {
             secure_delete_file(&path);
         }
-        Err(e) => tracing::warn!(
-            "device wrap key remains on disk because the system keychain is unavailable: {}",
-            e
-        ),
+        Err(e) => {
+            tracing::warn!(
+                "device wrap key remains on disk because the system keychain is unavailable: {}",
+                e
+            );
+            restrict_legacy_file(&path);
+        }
     }
 
     Some(key)
@@ -519,7 +524,11 @@ fn atomic_write(path: &std::path::Path, data: &[u8]) -> Result<(), String> {
     let tmp = path.with_extension("tmp");
     {
         let mut f = std::fs::File::create(&tmp).map_err(|e| e.to_string())?;
-        set_file_permissions_restrictive(&tmp)?;
+        if let Err(e) = set_file_permissions_restrictive(&tmp) {
+            drop(f);
+            let _ = std::fs::remove_file(&tmp);
+            return Err(e);
+        }
         f.write_all(data).map_err(|e| e.to_string())?;
         f.sync_all().map_err(|e| e.to_string())?;
     }
@@ -649,48 +658,125 @@ fn load_stored() -> Result<Option<StoredIdentity>, String> {
     };
     if let Err(e) = save_stored(&stored) {
         tracing::warn!("identity legacy-to-v2 migration deferred: {}", e);
+        restrict_legacy_file(&path);
     }
     Ok(Some(stored))
+}
+
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+#[cfg(windows)]
+fn system32_tool(name: &str) -> std::path::PathBuf {
+    std::env::var_os("SystemRoot")
+        .map(std::path::PathBuf::from)
+        .filter(|root| root.is_absolute())
+        .unwrap_or_else(|| std::path::PathBuf::from("C:\\Windows"))
+        .join("System32")
+        .join(name)
+}
+
+#[cfg(any(windows, test))]
+fn parse_account_sid(output: &str) -> Option<String> {
+    let sid = output.trim().rsplit(',').next()?.trim().trim_matches('"');
+    let well_formed = sid.starts_with("S-1-")
+        && sid.len() <= 184
+        && sid[2..]
+            .split('-')
+            .all(|part| !part.is_empty() && part.bytes().all(|b| b.is_ascii_digit()));
+
+    well_formed.then(|| sid.to_string())
+}
+
+#[cfg(windows)]
+fn current_account_sid() -> Option<&'static str> {
+    use std::os::windows::process::CommandExt;
+    static SID: std::sync::OnceLock<Option<String>> = std::sync::OnceLock::new();
+
+    SID.get_or_init(|| {
+        let out = std::process::Command::new(system32_tool("whoami.exe"))
+            .args(["/user", "/fo", "csv", "/nh"])
+            .creation_flags(CREATE_NO_WINDOW)
+            .output()
+            .ok()?;
+
+        if !out.status.success() {
+            return None;
+        }
+        parse_account_sid(&String::from_utf8_lossy(&out.stdout))
+    })
+    .as_deref()
+}
+
+#[cfg(windows)]
+fn grant_only(path: &std::path::Path, trustee: &str) -> Result<(), String> {
+    use std::os::windows::process::CommandExt;
+    let out = std::process::Command::new(system32_tool("icacls.exe"))
+        .arg(path)
+        .args(["/inheritance:r", "/grant:r"])
+        .arg(format!("{}:(F)", trustee))
+        .creation_flags(CREATE_NO_WINDOW)
+        .output()
+        .map_err(|e| format!("icacls could not run: {}", e))?;
+
+    if out.status.success() {
+        return Ok(());
+    }
+    Err(format!(
+        "{} {}",
+        String::from_utf8_lossy(&out.stdout).trim(),
+        String::from_utf8_lossy(&out.stderr).trim()
+    )
+    .trim()
+    .to_string())
+}
+
+#[cfg(windows)]
+fn restrict_to_current_account(path: &std::path::Path) -> Result<(), String> {
+    let mut failure = "the current account could not be resolved".to_string();
+
+    if let Some(sid) = current_account_sid() {
+        match grant_only(path, &format!("*{}", sid)) {
+            Ok(()) => return Ok(()),
+            Err(e) => failure = e,
+        }
+    }
+
+    let user = whoami::username()
+        .unwrap_or_else(|_| std::env::var("USERNAME").unwrap_or_default());
+
+    if !user.is_empty() {
+        match grant_only(path, &user) {
+            Ok(()) => return Ok(()),
+            Err(e) => failure = e,
+        }
+    }
+
+    Err(format!(
+        "could not restrict {} to the current account: {}",
+        path.display(),
+        failure
+    ))
 }
 
 fn set_file_permissions_restrictive(path: &std::path::Path) -> Result<(), String> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let perms = std::fs::Permissions::from_mode(0o600);
-        std::fs::set_permissions(path, perms).map_err(|e| e.to_string())?;
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))
+            .map_err(|e| format!("could not restrict {}: {}", path.display(), e))?;
     }
     #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-        let user = whoami::username()
-            .unwrap_or_else(|_| std::env::var("USERNAME").unwrap_or_default());
-        if !user.is_empty() {
-            let target = path.to_string_lossy().into_owned();
-            let grant = format!("{}:(F)", user);
-            match std::process::Command::new("icacls")
-                .args([
-                    target.as_str(),
-                    "/inheritance:r",
-                    "/grant:r",
-                    grant.as_str(),
-                ])
-                .creation_flags(CREATE_NO_WINDOW)
-                .output()
-            {
-                Ok(out) if !out.status.success() => tracing::warn!(
-                    "icacls failed to restrict {}: {}",
-                    path.display(),
-                    String::from_utf8_lossy(&out.stderr).trim()
-                ),
-                Err(e) => tracing::warn!("icacls invocation failed for {}: {}", path.display(), e),
-                _ => {}
-            }
-        }
-    }
+    restrict_to_current_account(path)?;
+    #[cfg(not(any(unix, windows)))]
     let _ = path;
     Ok(())
+}
+
+fn restrict_legacy_file(path: &std::path::Path) {
+    if let Err(e) = set_file_permissions_restrictive(path) {
+        tracing::warn!("{}", e);
+    }
 }
 
 fn save_stored(stored: &StoredIdentity) -> Result<(), String> {
@@ -819,17 +905,120 @@ pub fn device_set_id(device_id: String) -> Result<(), String> {
     save_stored(&stored)
 }
 
+const DEVICE_LOGIN_NONCE_LEN: usize = 32;
+const DEVICE_LOGIN_SIGNATURE_CONTEXT: &[u8] = b"astermail-device-login-v2\0";
+
+fn challenge_signing_input(nonce: &[u8], signature_version: Option<u8>) -> Result<Vec<u8>, String> {
+    if nonce.len() != DEVICE_LOGIN_NONCE_LEN {
+        return Err("invalid challenge".to_string());
+    }
+
+    match signature_version {
+        None => super::challenge::device_challenge_message(nonce),
+        Some(1) => Ok(nonce.to_vec()),
+        Some(2) => Ok([DEVICE_LOGIN_SIGNATURE_CONTEXT, nonce].concat()),
+        Some(_) => Err("unsupported challenge version".to_string()),
+    }
+}
+
 #[tauri::command]
 pub fn device_sign_challenge(
     window: tauri::WebviewWindow,
     nonce_b64: String,
+    signature_version: Option<u8>,
 ) -> Result<String, String> {
     require_primary_webview(&window)?;
     let nonce = b64url_decode(&nonce_b64)?;
-    let message = super::challenge::device_challenge_message(&nonce)?;
+    let input = challenge_signing_input(&nonce, signature_version)?;
     let id = get_or_create_device_identity()?;
-    let sig = id.ed25519_signing_key.sign(&message);
+    let sig = id.ed25519_signing_key.sign(&input);
     Ok(b64url(&sig.to_bytes()))
+}
+
+const ENROLL_INFO_V1: &[u8] = b"astermail-device-enroll-v1";
+const ENROLL_INFO_V2: &[u8] = b"astermail-device-enroll-v2";
+const ENVELOPE_V2_MAGIC: &[u8; 4] = b"AEV2";
+const ENVELOPE_EPH_LEN: usize = 32;
+const ENVELOPE_MLKEM_CT_LEN: usize = 1088;
+const ENVELOPE_NONCE_LEN: usize = 24;
+const ENVELOPE_HEADER_LEN: usize = ENVELOPE_EPH_LEN + ENVELOPE_MLKEM_CT_LEN + ENVELOPE_NONCE_LEN;
+const ENVELOPE_TAG_LEN: usize = 16;
+
+fn envelope_v2_transcript(id: &DeviceIdentity, eph_pk: &[u8], mlkem_ct: &[u8]) -> [u8; 32] {
+    use sha2::Digest;
+
+    let mut hasher = Sha256::new();
+    hasher.update(ENROLL_INFO_V2);
+    hasher.update(ENVELOPE_V2_MAGIC);
+    hasher.update(id.ed25519_signing_key.verifying_key().as_bytes());
+    hasher.update(&id.mlkem_encaps_key_bytes);
+    hasher.update(id.x25519_public_bytes);
+    hasher.update(eph_pk);
+    hasher.update(mlkem_ct);
+    hasher.finalize().into()
+}
+
+fn open_device_envelope(data: &[u8], id: &DeviceIdentity) -> Result<Zeroizing<Vec<u8>>, String> {
+    let (body, versioned) = match data.strip_prefix(ENVELOPE_V2_MAGIC.as_slice()) {
+        Some(rest) => (rest, true),
+        None => (data, false),
+    };
+    if body.len() < ENVELOPE_HEADER_LEN + ENVELOPE_TAG_LEN {
+        return Err("envelope too short".to_string());
+    }
+    let eph_bytes: [u8; ENVELOPE_EPH_LEN] =
+        body[..ENVELOPE_EPH_LEN].try_into().map_err(|_| "slice")?;
+    let mlkem_ct_bytes = &body[ENVELOPE_EPH_LEN..ENVELOPE_EPH_LEN + ENVELOPE_MLKEM_CT_LEN];
+    let nonce_bytes: [u8; ENVELOPE_NONCE_LEN] = body
+        [ENVELOPE_EPH_LEN + ENVELOPE_MLKEM_CT_LEN..ENVELOPE_HEADER_LEN]
+        .try_into()
+        .map_err(|_| "slice")?;
+    let ciphertext = &body[ENVELOPE_HEADER_LEN..];
+    let transcript = versioned.then(|| envelope_v2_transcript(id, &eph_bytes, mlkem_ct_bytes));
+
+    let ct: Ciphertext<MlKem768> =
+        Array::try_from(mlkem_ct_bytes).map_err(|e: _| format!("ct size: {:?}", e))?;
+    let mut ss_pq = id
+        .mlkem_decaps_key
+        .decapsulate(&ct)
+        .map_err(|e| format!("mlkem decaps: {:?}", e))?;
+    let ss_cl = id
+        .x25519_static_secret
+        .diffie_hellman(&XPublicKey::from(eph_bytes));
+
+    let mut ikm = Zeroizing::new([0u8; 64]);
+    ikm[..32].copy_from_slice(ss_pq.as_slice());
+    ikm[32..].copy_from_slice(ss_cl.as_bytes());
+    ss_pq.zeroize();
+    drop(ss_cl);
+
+    let mut info = Vec::with_capacity(ENROLL_INFO_V2.len() + 32);
+    match &transcript {
+        Some(hash) => {
+            info.extend_from_slice(ENROLL_INFO_V2);
+            info.extend_from_slice(hash);
+        }
+        None => info.extend_from_slice(ENROLL_INFO_V1),
+    }
+    let mut shared_key = Zeroizing::new([0u8; 32]);
+    Hkdf::<Sha256>::new(Some(&nonce_bytes), ikm.as_slice())
+        .expand(&info, shared_key.as_mut_slice())
+        .map_err(|e| e.to_string())?;
+
+    let cipher = XChaCha20Poly1305::new((&*shared_key).into());
+    let xnonce = &XNonce::from(nonce_bytes);
+    let opened = match transcript {
+        Some(hash) => {
+            let mut aad = Vec::with_capacity(ENVELOPE_V2_MAGIC.len() + hash.len());
+            aad.extend_from_slice(ENVELOPE_V2_MAGIC);
+            aad.extend_from_slice(&hash);
+            cipher.decrypt(xnonce, Payload { msg: ciphertext, aad: &aad })
+        }
+        None => cipher.decrypt(xnonce, ciphertext),
+    };
+    opened
+        .map(Zeroizing::new)
+        .map_err(|e| format!("decrypt: {:?}", e))
 }
 
 fn is_local_app_url(url: &tauri::Url, allow_dev_hosts: bool) -> bool {
@@ -866,50 +1055,8 @@ pub fn device_unseal_vault_envelope(
     require_primary_webview(&window)?;
     let target_device = resolve_passphrase_device(device_id)?;
     let data = b64url_decode(&envelope_b64)?;
-    if data.len() < 32 + 1088 + 24 + 16 {
-        return Err("envelope too short".to_string());
-    }
-    let x25519_eph_pk_bytes: [u8; 32] = data[0..32].try_into().map_err(|_| "slice")?;
-    let mlkem_ct_bytes = &data[32..32 + 1088];
-    let nonce_bytes: [u8; 24] = data[32 + 1088..32 + 1088 + 24]
-        .try_into()
-        .map_err(|_| "slice")?;
-    let ciphertext = &data[32 + 1088 + 24..];
-
     let id = get_or_create_device_identity()?;
-
-    let ct: Ciphertext<MlKem768> =
-        Array::try_from(mlkem_ct_bytes).map_err(|e: _| format!("ct size: {:?}", e))?;
-    let mut ss_pq = id
-        .mlkem_decaps_key
-        .decapsulate(&ct)
-        .map_err(|e| format!("mlkem decaps: {:?}", e))?;
-
-    let eph_pub = XPublicKey::from(x25519_eph_pk_bytes);
-    let ss_cl = id.x25519_static_secret.diffie_hellman(&eph_pub);
-
-    let mut ikm = [0u8; 64];
-    ikm[..32].copy_from_slice(ss_pq.as_slice());
-    ikm[32..].copy_from_slice(ss_cl.as_bytes());
-
-    let hk = Hkdf::<Sha256>::new(Some(&nonce_bytes), &ikm);
-    let mut shared_key = [0u8; 32];
-    hk.expand(b"astermail-device-enroll-v1", &mut shared_key)
-        .map_err(|e| e.to_string())?;
-
-    ikm.zeroize();
-    ss_pq.zeroize();
-    drop(ss_cl);
-
-    let cipher = XChaCha20Poly1305::new((&shared_key).into());
-    let xnonce = &XNonce::from(nonce_bytes);
-    let plaintext = Zeroizing::new(
-        cipher
-            .decrypt(xnonce, ciphertext)
-            .map_err(|e| format!("decrypt: {:?}", e))?,
-    );
-
-    shared_key.zeroize();
+    let plaintext = open_device_envelope(&data, &id)?;
 
     let encoded = b64url(&plaintext);
     let path = match target_device {
@@ -928,6 +1075,7 @@ fn reseal_legacy_passphrase(path: &std::path::Path, raw: &[u8]) {
         Ok(key) => key,
         Err(e) => {
             tracing::warn!("stored passphrase stays unencrypted on disk: {}", e);
+            restrict_legacy_file(path);
             return;
         }
     };
@@ -1090,6 +1238,50 @@ pub fn device_pin_restore_stored_passphrase(
     let wrap_key = wrap_key_load_or_create()?;
 
     pin_restore_passphrase_file(&path, &wrap_key, &raw)
+}
+
+fn seal_local_secret(wrap_key: &[u8; 32], value: &[u8]) -> Result<Vec<u8>, String> {
+    if value.is_empty() || value.len() > LOCAL_SECRET_MAX_BYTES {
+        return Err("invalid local secret".to_string());
+    }
+
+    aead_seal(wrap_key, MAGIC_LS, value)
+}
+
+fn open_local_secret(wrap_key: &[u8; 32], sealed: &[u8]) -> Result<Vec<u8>, String> {
+    if sealed.len() > 8 + 24 + 16 + LOCAL_SECRET_MAX_BYTES {
+        return Err("invalid local secret".to_string());
+    }
+
+    aead_open(wrap_key, MAGIC_LS, sealed)
+}
+
+#[tauri::command]
+pub fn device_seal_local_secret(
+    window: tauri::WebviewWindow,
+    value_b64: String,
+) -> Result<String, String> {
+    require_primary_webview(&window)?;
+    let value = Zeroizing::new(b64url_decode(&value_b64)?);
+    let wrap_key = Zeroizing::new(wrap_key_load_or_create()?);
+
+    Ok(b64url(&seal_local_secret(&wrap_key, &value)?))
+}
+
+#[tauri::command]
+pub fn device_open_local_secret(
+    window: tauri::WebviewWindow,
+    sealed_b64: String,
+) -> Result<Option<String>, String> {
+    require_primary_webview(&window)?;
+    let sealed = b64url_decode(&sealed_b64)?;
+    let Some(wrap_key) = wrap_key_load()? else {
+        return Ok(None);
+    };
+    let wrap_key = Zeroizing::new(wrap_key);
+    let value = Zeroizing::new(open_local_secret(&wrap_key, &sealed)?);
+
+    Ok(Some(b64url(&value)))
 }
 
 #[tauri::command]
@@ -1296,11 +1488,11 @@ pub struct ProxyResponse {
 }
 
 #[cfg(target_os = "windows")]
-const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (Windows; Tauri)";
+pub(crate) const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (Windows; Tauri)";
 #[cfg(target_os = "macos")]
-const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (macOS; Tauri)";
+pub(crate) const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (macOS; Tauri)";
 #[cfg(all(unix, not(target_os = "macos")))]
-const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (Linux; Tauri)";
+pub(crate) const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (Linux; Tauri)";
 
 const DEVICE_FORWARDED_HEADERS: &[&str] = &[
     "content-type",
@@ -1575,6 +1767,90 @@ pub fn crypto_hmac_sign(
 mod tests {
     use super::*;
 
+    fn envelope_vector() -> HashMap<String, String> {
+        include_str!("../../../src/lib/crypto/device_envelope_vector.txt")
+            .lines()
+            .filter_map(|line| line.split_once('='))
+            .map(|(key, value)| (key.to_string(), value.trim().to_string()))
+            .collect()
+    }
+
+    fn vector_identity(vector: &HashMap<String, String>, ed25519_seed: u8) -> DeviceIdentity {
+        let decaps = b64url_decode(&vector["mlkem_decaps"]).unwrap();
+        let encoded = ml_kem::Encoded::<MlKemDecapKey>::try_from(decaps.as_slice()).unwrap();
+        let scalar: [u8; 32] = b64url_decode(&vector["x25519_scalar"]).unwrap().try_into().unwrap();
+        let x25519_static_secret = StaticSecret::from(scalar);
+        DeviceIdentity {
+            device_id: None,
+            ed25519_signing_key: SigningKey::from_bytes(&[ed25519_seed; 32]),
+            mlkem_decaps_key: MlKemDecapKey::from_bytes(&encoded),
+            mlkem_encaps_key_bytes: b64url_decode(&vector["mlkem_pk"]).unwrap(),
+            x25519_public_bytes: *XPublicKey::from(&x25519_static_secret).as_bytes(),
+            x25519_static_secret,
+        }
+    }
+
+    #[test]
+    fn device_envelope_vector_keys_match() {
+        let vector = envelope_vector();
+        let id = vector_identity(&vector, 0x11);
+        assert_eq!(b64url(&id.x25519_public_bytes), vector["x25519_pk"]);
+        assert_eq!(
+            b64url(id.ed25519_signing_key.verifying_key().as_bytes()),
+            vector["ed25519_pk"]
+        );
+    }
+
+    #[test]
+    fn opens_the_shared_v1_and_v2_vectors() {
+        let vector = envelope_vector();
+        let id = vector_identity(&vector, 0x11);
+        for key in ["envelope", "envelope_v2"] {
+            let data = b64url_decode(&vector[key]).unwrap();
+            let opened = open_device_envelope(&data, &id).unwrap();
+            assert_eq!(opened.as_slice(), vector["plaintext"].as_bytes(), "{key}");
+        }
+    }
+
+    #[test]
+    fn v2_envelope_is_bound_to_the_device_signing_key() {
+        let vector = envelope_vector();
+        let other = vector_identity(&vector, 0x12);
+        let v2 = b64url_decode(&vector["envelope_v2"]).unwrap();
+        assert!(open_device_envelope(&v2, &other).is_err());
+        let v1 = b64url_decode(&vector["envelope"]).unwrap();
+        assert!(open_device_envelope(&v1, &other).is_ok());
+    }
+
+    #[test]
+    fn v2_envelope_rejects_a_stripped_version_header() {
+        let vector = envelope_vector();
+        let id = vector_identity(&vector, 0x11);
+        let v2 = b64url_decode(&vector["envelope_v2"]).unwrap();
+        assert!(open_device_envelope(&v2[ENVELOPE_V2_MAGIC.len()..], &id).is_err());
+    }
+
+    #[test]
+    fn v2_envelope_rejects_tampering() {
+        let vector = envelope_vector();
+        let id = vector_identity(&vector, 0x11);
+        let v2 = b64url_decode(&vector["envelope_v2"]).unwrap();
+        for index in [4, 4 + ENVELOPE_EPH_LEN, 4 + ENVELOPE_HEADER_LEN - 1, v2.len() - 1] {
+            let mut tampered = v2.clone();
+            tampered[index] ^= 1;
+            assert!(open_device_envelope(&tampered, &id).is_err(), "byte {index}");
+        }
+    }
+
+    #[test]
+    fn device_envelope_rejects_short_input() {
+        let vector = envelope_vector();
+        let id = vector_identity(&vector, 0x11);
+        let v2 = b64url_decode(&vector["envelope_v2"]).unwrap();
+        assert!(open_device_envelope(&v2[..4 + ENVELOPE_HEADER_LEN + 15], &id).is_err());
+        assert!(open_device_envelope(&[], &id).is_err());
+    }
+
     #[test]
     fn web_app_request_headers_are_forwarded() {
         for name in [
@@ -1641,6 +1917,10 @@ mod tests {
 
     fn test_key(seed: u8) -> [u8; 32] {
         [seed; 32]
+    }
+
+    fn fresh_key() -> [u8; 32] {
+        rand::random()
     }
 
     fn scratch_path(name: &str) -> std::path::PathBuf {
@@ -1832,6 +2112,49 @@ mod tests {
 
         assert!(!name.trim().is_empty());
         assert!(name.chars().count() <= MACHINE_NAME_MAX_CHARS);
+    }
+
+    #[test]
+    fn local_secret_round_trips_under_its_own_magic() {
+        let key = fresh_key();
+        let sealed = seal_local_secret(&key, b"inner ciphertext").unwrap();
+
+        assert_eq!(&sealed[..8], MAGIC_LS);
+        assert_eq!(open_local_secret(&key, &sealed).unwrap(), b"inner ciphertext");
+    }
+
+    #[test]
+    fn local_secret_does_not_open_other_sealed_blobs() {
+        let key = fresh_key();
+        let passphrase_blob = aead_seal(&key, MAGIC_PP, b"secret").unwrap();
+        let local_blob = seal_local_secret(&key, b"secret").unwrap();
+
+        assert!(open_local_secret(&key, &passphrase_blob).is_err());
+        assert!(aead_open(&key, MAGIC_PP, &local_blob).is_err());
+        assert!(aead_open(&key, MAGIC_AUTH, &local_blob).is_err());
+    }
+
+    #[test]
+    fn local_secret_rejects_the_wrong_key_and_tampering() {
+        let key = fresh_key();
+        let sealed = seal_local_secret(&key, b"secret").unwrap();
+        let mut tampered = sealed.clone();
+        let last = tampered.len() - 1;
+        tampered[last] ^= 1;
+
+        assert!(open_local_secret(&fresh_key(), &sealed).is_err());
+        assert!(open_local_secret(&key, &tampered).is_err());
+        assert!(open_local_secret(&key, &sealed[..40]).is_err());
+    }
+
+    #[test]
+    fn local_secret_rejects_empty_and_oversized_values() {
+        let key = fresh_key();
+
+        assert!(seal_local_secret(&key, b"").is_err());
+        assert!(seal_local_secret(&key, &vec![1u8; LOCAL_SECRET_MAX_BYTES + 1]).is_err());
+        assert!(seal_local_secret(&key, &vec![1u8; LOCAL_SECRET_MAX_BYTES]).is_ok());
+        assert!(open_local_secret(&key, &vec![0u8; 8 + 24 + 16 + LOCAL_SECRET_MAX_BYTES + 1]).is_err());
     }
 
     #[test]
@@ -2203,5 +2526,95 @@ mod tests {
             crypto_aes_gcm_decrypt(key, iv, sealed, Some(Vec::new())).unwrap(),
             b"hi"
         );
+    }
+}
+
+#[cfg(test)]
+mod challenge_signing_tests {
+    use super::*;
+
+    fn fresh_nonce() -> [u8; DEVICE_LOGIN_NONCE_LEN] {
+        rand::random()
+    }
+
+    fn fresh_bytes(len: usize) -> Vec<u8> {
+        (0..len).map(|_| rand::random::<u8>()).collect()
+    }
+
+    #[test]
+    fn refuses_anything_that_is_not_a_login_nonce() {
+        for len in [0usize, 31, 33, 64, 1024] {
+            assert!(challenge_signing_input(&fresh_bytes(len), Some(2)).is_err());
+            assert!(challenge_signing_input(&fresh_bytes(len), None).is_err());
+        }
+    }
+
+    #[test]
+    fn binds_the_login_context_when_the_server_asks_for_it() {
+        let nonce = fresh_nonce();
+        let input = challenge_signing_input(&nonce, Some(2)).unwrap();
+        assert!(input.starts_with(DEVICE_LOGIN_SIGNATURE_CONTEXT));
+        assert!(input.ends_with(&nonce));
+        assert_eq!(input.len(), DEVICE_LOGIN_SIGNATURE_CONTEXT.len() + nonce.len());
+    }
+
+    #[test]
+    fn keeps_the_older_server_format() {
+        let nonce = fresh_nonce();
+        assert_eq!(challenge_signing_input(&nonce, Some(1)).unwrap(), nonce.to_vec());
+    }
+
+    #[test]
+    fn uses_the_labeled_challenge_when_the_server_names_no_version() {
+        let nonce = fresh_nonce();
+        assert_eq!(
+            challenge_signing_input(&nonce, None).unwrap(),
+            super::super::challenge::device_challenge_message(&nonce).unwrap()
+        );
+    }
+
+    #[test]
+    fn refuses_an_unknown_version() {
+        assert!(challenge_signing_input(&fresh_nonce(), Some(3)).is_err());
+    }
+}
+
+#[cfg(test)]
+mod file_restriction_tests {
+    use super::*;
+
+    #[test]
+    fn reads_the_account_sid_from_the_last_field() {
+        assert_eq!(
+            parse_account_sid("\"desk\\sam\",\"S-1-5-21-1-2-3-1001\"\r\n").as_deref(),
+            Some("S-1-5-21-1-2-3-1001")
+        );
+        assert_eq!(
+            parse_account_sid("\"a,b\",\"S-1-5-18\"").as_deref(),
+            Some("S-1-5-18")
+        );
+    }
+
+    #[test]
+    fn refuses_output_that_is_not_a_sid() {
+        for bad in [
+            "",
+            "\"sam\"",
+            "\"sam\",\"S-1-\"",
+            "\"sam\",\"S-1-5-x\"",
+            "\"sam\",\"Everyone:(F)\"",
+            "\"sam\",\"S-1-5-21 /grant x\"",
+        ] {
+            assert!(parse_account_sid(bad).is_none(), "{bad}");
+        }
+    }
+
+    #[test]
+    fn fails_when_the_file_cannot_be_restricted() {
+        let missing = std::env::temp_dir()
+            .join(format!("aster_absent_{}", std::process::id()))
+            .join("none.bin");
+
+        assert!(set_file_permissions_restrictive(&missing).is_err());
     }
 }

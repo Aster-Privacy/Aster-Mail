@@ -59,6 +59,12 @@ pub fn is_known_bad_published_key(armored_public_key: &str) -> bool {
 }
 
 pub fn ensure_publishable_key(armored_public_key: &str) -> Result<()> {
+    if SignedPublicKey::from_string(armored_public_key).is_err() {
+        return Err(CryptoError::InvalidKeyFormat(
+            "the public key cannot be parsed, so it cannot be checked before publishing".into(),
+        ));
+    }
+
     if is_known_bad_published_key(armored_public_key) {
         return Err(CryptoError::InvalidKeyFormat(
             "non-standard PGP key: a v4 key using the modern X25519/Ed25519 algorithm IDs is rejected by strict OpenPGP implementations; regenerate the key as ed25519Legacy".into(),
@@ -98,8 +104,9 @@ mod tests {
     }
 
     #[test]
-    fn unparseable_input_is_fail_open() {
+    fn unparseable_input_is_not_publishable() {
         assert!(!is_known_bad_published_key("not a key"));
-        assert!(ensure_publishable_key("not a key").is_ok());
+        assert!(ensure_publishable_key("not a key").is_err());
+        assert!(ensure_publishable_key("").is_err());
     }
 }

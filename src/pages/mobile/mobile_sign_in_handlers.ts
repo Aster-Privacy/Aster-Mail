@@ -29,6 +29,8 @@ import {
 import { login_user, get_user_salt, get_user_info } from "@/services/api/auth";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
 import { sanitize_username, timing_safe_delay } from "@/services/sanitize";
+import { try_password_forms } from "@/services/sign_in_password_forms";
+import { TURNSTILE_SITE_KEY } from "@/components/auth/turnstile_widget";
 import { is_totp_required_response } from "@/services/api/totp";
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { emit_auth_ready } from "@/hooks/mail_events";
@@ -228,25 +230,44 @@ export function build_mobile_sign_in_handlers(
         return;
       }
 
-      const salt = base64_to_array(salt_response.data.salt);
-      const password_hash = await derive_sign_in_proof(
+      const salt_data = salt_response.data;
+      const salt = base64_to_array(salt_data.salt);
+      let attempt_token = captcha_token;
+      const outcome = await try_password_forms(
         password,
-        salt,
-        salt_response.data.kdf_version,
-        user_hash,
-      );
+        async (form) => {
+          const password_hash = await derive_sign_in_proof(
+            form,
+            salt,
+            salt_data.kdf_version,
+            user_hash,
+            salt_data,
+          );
 
-      set_status(t("auth.verifying_credentials"));
-      const response = await login_user({
-        user_hash,
-        password_hash,
-        remember_me,
-        captcha_token: captcha_token || undefined,
-        is_adding_account,
-      });
+          set_status(t("auth.verifying_credentials"));
+          const result = await login_user({
+            user_hash,
+            password_hash,
+            remember_me,
+            captcha_token: attempt_token || undefined,
+            is_adding_account,
+          });
+
+          if (result.error) clear_pending_login_enrollment();
+
+          return result;
+        },
+        async () => {
+          if (!TURNSTILE_SITE_KEY) return true;
+          attempt_token = (await turnstile_ref.current?.refresh()) || "";
+
+          return attempt_token !== "";
+        },
+      );
+      const response = outcome.response;
+      const signed_in_password = outcome.password;
 
       if (response.error) {
-        clear_pending_login_enrollment();
         const elapsed = Date.now() - start_time;
         const min_time = 1000;
 
@@ -297,6 +318,7 @@ export function build_mobile_sign_in_handlers(
         } else {
           set_active_2fa_method("totp");
         }
+        if (signed_in_password !== password) set_password(signed_in_password);
         set_totp_required(true);
         set_is_loading(false);
 
@@ -307,7 +329,7 @@ export function build_mobile_sign_in_handlers(
       const vault = await decrypt_vault(
         response.data.encrypted_vault,
         response.data.vault_nonce,
-        password,
+        signed_in_password,
       );
 
       set_status(t("auth.getting_user_info"));
@@ -359,7 +381,7 @@ export function build_mobile_sign_in_handlers(
           add_account(
             login_user_data,
             vault,
-            password,
+            signed_in_password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,
@@ -379,7 +401,7 @@ export function build_mobile_sign_in_handlers(
           login(
             login_user_data,
             vault,
-            password,
+            signed_in_password,
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,

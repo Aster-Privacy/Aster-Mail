@@ -1100,7 +1100,7 @@ export const nl = {
       "In Instellingen voeg je een alias toe, koppel je een eigen domein en schakel je tweestapsverificatie in.",
     youre_ready: "Je bent klaar",
     youre_ready_description:
-      "Je e-mail is end-to-end versleuteld en alleen jij hebt de sleutels. Druk op elk moment op ? om alle sneltoetsen te zien.",
+      "Je e-mail wordt versleuteld opgeslagen en alleen jij hebt de sleutels. Druk op elk moment op ? om alle sneltoetsen te zien.",
     skip_tour: "Rondleiding overslaan",
     get_started: "Aan de slag",
     step: "Stap",
@@ -2158,6 +2158,10 @@ export const nl = {
     zip_archive: "ZIP-archief",
   },
   settings: {
+    sandbox_off_by_setting_notice:
+      "Dit venster draait zonder sandbox omdat een omgevingsvariabele die heeft uitgeschakeld.",
+    sandbox_off_notice:
+      "Dit venster draait zonder sandbox. Installeer bubblewrap en start Aster Mail opnieuw om de sandbox in te schakelen.",
     bill_thanks_title: "Bedankt dat je Aster steunt",
     bill_thanks_body:
       "Je steun betekent alles voor ons. Dankzij jou kan een klein team Aster elke dag met zorg blijven bouwen.",
@@ -2273,7 +2277,7 @@ export const nl = {
     fam_welcome_step1_point1: "Elk lid krijgt een eigen @astermail.org-adres",
     fam_welcome_step1_point2:
       "Volledige privacy - leden kunnen elkaars e-mails niet zien",
-    fam_welcome_step1_point3: "Kwantumveilige versleuteling op elk account",
+    fam_welcome_step1_point3: "Post-kwantumversleuteling tussen Aster-accounts",
     fam_welcome_step2_title: "Eén opslagpool, jij bepaalt",
     fam_welcome_step2_desc:
       "Je abonnement bevat een gedeelde opslagpool. Bepaal hoeveel elk lid krijgt en pas het op elk moment aan.",
@@ -2602,7 +2606,7 @@ export const nl = {
     invite_title_named: "{{ name }} heeft je uitgenodigd voor Aster Mail",
     invite_title_generic: "Je bent uitgenodigd voor Aster Mail",
     invite_subtitle:
-      "Aster Mail is zero-access, end-to-end versleutelde e-mail. Niemand behalve jij kan je inbox lezen, wij ook niet.",
+      "Aster Mail is zero-access, end-to-end versleutelde e-mail. We slaan je e-mail versleuteld op met sleutels die alleen jij hebt.",
     invite_discount_line:
       "Meld je nu aan en krijg {{ percent }}% korting op je eerste abonnement.",
     invite_benefits_heading: "Dit krijg je",
@@ -4853,7 +4857,7 @@ export const nl = {
       "Maak je sleutels vindbaar op openbare sleutelservers",
     info_forward_secrecy_title: "Wat is Forward Secrecy?",
     info_forward_secrecy_description:
-      "Je sessiesleutels worden automatisch gewisseld. Zelfs als iemand vandaag je privésleutel zou krijgen, kunnen ze oude berichten niet lezen omdat elke sessie een andere sleutel gebruikte.",
+      "Je versleutelingssleutels worden automatisch volgens een schema gewisseld. Zo kan één uitgelekte sleutel maar een beperkt deel van je e-mail ontgrendelen. Om je e-mail op al je apparaten leesbaar te houden, bewaart je account ook kopieën van je berichten die met je accountsleutels zijn versleuteld. Wie je wachtwoord krijgt, kan je eerdere e-mail dus nog steeds lezen.",
     info_key_rotation_interval_title: "Sleutelrotatie-interval",
     info_key_rotation_interval_description:
       "Hoe vaak je versleutelingssleutel wordt gewisseld. Vaker is veiliger maar vraagt iets meer overhead. Een week is een goede standaard voor de meeste mensen.",
@@ -5222,7 +5226,7 @@ export const nl = {
       "Alle versleuteling vindt plaats in je browser voordat gegevens je apparaat verlaten",
     zero_knowledge_storage: "Zero-access-opslag",
     zero_knowledge_storage_description:
-      "Wij kunnen je gegevens niet lezen. Alleen jij hebt de sleutels.",
+      "Wij kunnen je opgeslagen gegevens niet lezen. Alleen jij hebt de sleutels.",
     email_content_attachments: "E-mailinhoud & bijlagen",
     folder_names_structure: "Mapnamen & structuur",
     drafts_signatures: "Concepten & handtekeningen",
@@ -7517,7 +7521,7 @@ export const nl = {
     rotate_keys_description_manual:
       "Voer je wachtwoord in om je versleutelingssleutels te roteren. Oude e-mails blijven leesbaar.",
     rotate_keys_description_required:
-      "Je versleutelingssleutels zijn toe aan rotatie. Voer je wachtwoord in om nieuwe sleutels te genereren en forward secrecy te behouden.",
+      "Je versleutelingssleutels zijn toe aan rotatie. Voer je wachtwoord in om nieuwe sleutels te genereren.",
     rotating: "Roteren...",
     rotate_keys: "Sleutels roteren",
     key_rotation_data_loss_warning:
@@ -8404,7 +8408,7 @@ export const nl = {
       "Journalist? Neem contact op met support met je perskaart om je code te ontvangen.",
     refer_a_friend: "Vriend doorverwijzen",
     referral_email_body:
-      "Hoi,\n\nik gebruik Aster Mail nu een tijdje en het bevalt me erg goed. Alles is end-to-end versleuteld, dus niemand kan je e-mail lezen behalve jijzelf. Zelfs de beheerders niet.\n\nWil je het proberen, dit is mijn uitnodigingslink:\n\n{{ referral_link }}\n\nWe krijgen allebei {{ amount }} extra opslag zodra jij het gaat gebruiken, dus jij hebt er ook wat aan.\n\nGroeten",
+      "Hoi,\n\nik gebruik Aster Mail nu een tijdje en het bevalt me erg goed. Je e-mail wordt versleuteld opgeslagen met sleutels die alleen jij hebt, dus de beheerders kunnen je mailbox niet lezen.\n\nWil je het proberen, dit is mijn uitnodigingslink:\n\n{{ referral_link }}\n\nWe krijgen allebei {{ amount }} extra opslag zodra jij het gaat gebruiken, dus jij hebt er ook wat aan.\n\nGroeten",
     referral_email_subject: "Probeer Aster Mail eens",
     referral_how_it_works: "Hoe het werkt",
     referral_loading_contacts: "Contacten laden...",
@@ -8585,7 +8589,7 @@ export const nl = {
     browse_folder: "Map selecteren",
     money_back_guarantee: "30 dagen niet-goed-geldterug",
     plan_every_plan_includes:
-      "Elk abonnement bevat end-to-end-versleuteling, zero-knowledge-opslag en opensource-apps.",
+      "Elk abonnement bevat end-to-end-versleuteling, zero-access-opslag en opensource-apps.",
     cancel_anytime: "Altijd opzegbaar",
     billed_annually: "jaarlijks gefactureerd",
     save_annually_hint: "Bespaar 20% met een jaarabonnement",
@@ -8648,7 +8652,7 @@ export const nl = {
     referral_share_message_plain:
       "Ik gebruik Aster Mail voor end-to-end versleutelde e-mail. Doe mee via mijn link.",
     referral_email_body_plain:
-      "Hoi,\n\nik gebruik Aster Mail nu een tijdje en het bevalt me erg goed. Alles is end-to-end versleuteld, dus niemand kan je e-mail lezen behalve jijzelf. Zelfs de beheerders niet.\n\nWil je het proberen, dit is mijn uitnodigingslink:\n\n{{ referral_link }}\n\nGroeten",
+      "Hoi,\n\nik gebruik Aster Mail nu een tijdje en het bevalt me erg goed. Je e-mail wordt versleuteld opgeslagen met sleutels die alleen jij hebt, dus de beheerders kunnen je mailbox niet lezen.\n\nWil je het proberen, dit is mijn uitnodigingslink:\n\n{{ referral_link }}\n\nGroeten",
     referral_claim_window_closed:
       "De periode om een uitnodigingscode aan dit account toe te voegen is voorbij.",
     referral_claim_already: "Aan dit account is al een uitnodiging gekoppeld.",
@@ -10516,6 +10520,13 @@ export const nl = {
       "Als de app de vingerafdruk niet toont, kies dan Dit apparaat verifiëren in de app. Als de app die optie niet heeft, werk de app dan bij en probeer het opnieuw.",
     device_code_fingerprint_required_hint:
       "Je browser vraagt om deze apparaatvingerafdruk voordat het apparaat wordt gekoppeld.",
+    device_code_verify_toggle: "Dit apparaat verifiëren",
+    link_device_fingerprint_hint:
+      "Voer de verificatiecode in die je nieuwe apparaat toont. Kies in de desktop-app Dit apparaat verifiëren om deze te zien.",
+    link_device_fingerprint_incomplete:
+      "Voer de volledige verificatiecode van je nieuwe apparaat in om het apparaat te koppelen.",
+    device_code_fingerprint_hint:
+      "Voer deze code in op het apparaat waarop je al bent ingelogd om dit apparaat te koppelen.",
     link_device_change_account: "Account wijzigen",
     link_device_choose_account: "Kies een account",
     link_device_choose_account_description: "Om een nieuw apparaat te koppelen",

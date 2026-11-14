@@ -2527,6 +2527,8 @@ export interface CommonTranslations {
 }
 
 export interface SettingsTranslations {
+  sandbox_off_by_setting_notice: string;
+  sandbox_off_notice: string;
   bill_action_required: string;
   bill_add_funds: string;
   bill_add_funds_body: string;
@@ -8858,6 +8860,10 @@ export interface AuthTranslations {
   link_device_fingerprint_link_mismatch: string;
   link_device_update_desktop: string;
   device_code_fingerprint_required_hint: string;
+  device_code_verify_toggle: string;
+  link_device_fingerprint_hint: string;
+  link_device_fingerprint_incomplete: string;
+  device_code_fingerprint_hint: string;
   link_device_change_account: string;
   link_device_choose_account: string;
   link_device_choose_account_description: string;

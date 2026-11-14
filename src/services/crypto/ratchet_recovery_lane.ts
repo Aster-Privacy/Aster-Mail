@@ -286,6 +286,7 @@ export async function open_recovery_lane(
       base64_to_array(data.nonce),
       base64_to_array(data.ciphertext),
       info,
+      "accept_unbound",
     );
 
     return new TextDecoder().decode(plaintext);

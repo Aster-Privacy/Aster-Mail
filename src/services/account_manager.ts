@@ -191,15 +191,16 @@ async function desktop_refresh_clear(): Promise<void> {
   }
 }
 
-function without_roster_refresh_tokens(data: AccountsData): AccountsData {
+function without_roster_session_tokens(data: AccountsData): AccountsData {
   return {
     ...data,
     accounts: data.accounts.map((account) => {
-      if (!account.refresh_token) return account;
+      if (!account.refresh_token && !account.access_token) return account;
 
       const persisted = { ...account };
 
       delete persisted.refresh_token;
+      delete persisted.access_token;
 
       return persisted;
     }),
@@ -287,7 +288,7 @@ async function migrate_from_plaintext(): Promise<AccountsData | null> {
       const data = JSON.parse(legacy_stored) as AccountsData;
 
       if (data && Array.isArray(data.accounts)) {
-        await device_store(ACCOUNTS_KEY, data);
+        await device_store(ACCOUNTS_KEY, data, without_roster_session_tokens);
         safe_local_remove(LEGACY_ACCOUNTS_KEY);
 
         return data;
@@ -335,7 +336,7 @@ async function get_accounts_data_async(): Promise<AccountsData> {
 
       if (merged || repaired) {
         try {
-          await device_store(ACCOUNTS_KEY, data);
+          await device_store(ACCOUNTS_KEY, data, without_roster_session_tokens);
         } catch (caught) {
           ignore_error(
             "services/account_manager:get_accounts_data_async",
@@ -428,7 +429,7 @@ async function save_accounts_data(data: AccountsData): Promise<void> {
 
   cached_data = data;
 
-  await device_store(ACCOUNTS_KEY, data, without_roster_refresh_tokens);
+  await device_store(ACCOUNTS_KEY, data, without_roster_session_tokens);
 
   session_roster = null;
   last_load_failed = false;

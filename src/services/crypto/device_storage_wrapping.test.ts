@@ -61,7 +61,11 @@ describe("device storage wrapping", () => {
 
   it("keeps reading entries written before the wrapping key existed", async () => {
     wrap_key_holder.key = null;
-    await device_store("aster_test_entry", { token: "legacy" });
+    await device_store(
+      "aster_test_entry",
+      { token: "legacy" },
+      (value) => value,
+    );
 
     const legacy_raw = JSON.parse(
       localStorage.getItem("aster_test_entry") ?? "{}",
@@ -78,7 +82,11 @@ describe("device storage wrapping", () => {
 
   it("re-wraps a legacy entry on first read", async () => {
     wrap_key_holder.key = null;
-    await device_store("aster_test_entry", { token: "legacy" });
+    await device_store(
+      "aster_test_entry",
+      { token: "legacy" },
+      (value) => value,
+    );
     wrap_key_holder.key = await make_wrap_key();
 
     await device_retrieve_strict("aster_test_entry");

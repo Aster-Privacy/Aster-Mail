@@ -25,6 +25,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   check_rotation_needed,
+  has_pending_identity_rotation,
   perform_key_rotation,
   verify_vault_password,
   type RotationCheckResult,
@@ -33,12 +34,15 @@ import { get_identity_key_status } from "@/services/api/key_rotation";
 import {
   store_vault_in_memory,
   get_vault_from_memory,
+  get_passphrase_from_memory,
 } from "@/services/crypto/memory_key_store";
 import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { sync_vault_with_server } from "@/services/crypto/ensure_ratchet_keys";
 import { show_toast } from "@/components/toast/simple_toast";
 import { user_facing_error } from "@/utils/user_facing_error";
+
+const pending_rotation_accounts = new Set<string>();
 
 const STALE_VAULT_ROTATION_CODES = new Set([
   "STALE_KEY_VAULT",
@@ -255,6 +259,19 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
     preferences?.forward_secrecy_enabled,
     check_rotation,
   ]);
+
+  useEffect(() => {
+    if (!is_authenticated || !has_keys || !user || !preferences) return;
+    if (pending_rotation_accounts.has(user.id)) return;
+    if (!has_pending_identity_rotation(get_vault_from_memory())) return;
+
+    const passphrase = get_passphrase_from_memory();
+
+    if (!passphrase) return;
+
+    pending_rotation_accounts.add(user.id);
+    void perform_rotation(passphrase);
+  }, [is_authenticated, has_keys, user, preferences, perform_rotation]);
 
   return {
     ...state,

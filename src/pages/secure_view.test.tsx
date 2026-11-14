@@ -93,7 +93,7 @@ function metadata(overrides: Partial<SecureViewMetadata>): SecureViewMetadata {
     is_deleted: false,
     time_remaining_seconds: 3600,
     is_zero_knowledge: true,
-    kdf_salt: "c2FsdA",
+    kdf_salt: "c2FsdHNhbHRzYWx0c2FsdA",
     ...overrides,
   };
 }
@@ -253,7 +253,7 @@ describe("secure view page actions", () => {
   it("opens, replies to, and deletes an end-to-end encrypted message without sending what was typed", async () => {
     route_requests(metadata({}), {
       is_zero_knowledge: true,
-      kdf_salt: "c2FsdA",
+      kdf_salt: "c2FsdHNhbHRzYWx0c2FsdA",
       encrypted_subject: { ciphertext: "a", nonce: "b" },
       encrypted_body: { ciphertext: "c", nonce: "d" },
     });
@@ -263,7 +263,7 @@ describe("secure view page actions", () => {
 
     expect(h.decrypt_secure_message).toHaveBeenCalledWith(
       TYPED_SECRET,
-      "c2FsdA",
+      "c2FsdHNhbHRzYWx0c2FsdA",
       expect.anything(),
     );
     expect(container.textContent).toContain("Quarterly numbers");

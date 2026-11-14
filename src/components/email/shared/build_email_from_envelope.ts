@@ -26,7 +26,7 @@ import { is_html_content } from "@/lib/html_text";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
   try_decrypt_ratchet_body,
-  try_decrypt_pgp_body,
+  resolve_inbound_pgp_body,
   has_inbound_pgp_block,
   try_extract_mime_body,
   extract_subject_bundle,
@@ -152,7 +152,9 @@ async function resolve_envelope_body(
   resolved_html = sealed_html_source(resolved_html, ratchet_verified);
   const pre_pgp_text = body_text;
 
-  body_text = await try_decrypt_pgp_body(body_text);
+  const pgp = await resolve_inbound_pgp_body(body_text, envelope.from?.email);
+
+  body_text = pgp.body;
 
   if (is_password_protected_body(body_text)) {
     return {
@@ -166,9 +168,8 @@ async function resolve_envelope_body(
 
   const verification = sent_scope_fields(
     envelope,
-    ratchet_verified ||
-      (has_inbound_pgp_block(pre_pgp_text) && body_text !== pre_pgp_text),
-    ratchet_verified,
+    ratchet_verified || pgp.decrypted,
+    ratchet_verified || pgp.verified === true,
   );
 
   const pre_mime_text = body_text;

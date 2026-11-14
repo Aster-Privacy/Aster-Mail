@@ -154,6 +154,7 @@ import {
   clear_sender_identity_authentication_cache,
   note_message_sender_identity,
 } from "@/services/crypto/sender_identity_authentication";
+import * as recovery_lane from "@/services/crypto/ratchet_recovery_lane";
 import { is_ratchet_verified_body } from "@/utils/email_crypto";
 import { set_trust_own_addresses } from "@/lib/sender_trust_store";
 
@@ -539,6 +540,33 @@ describe("undecryptable-message failure modes", () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const receiver_vault = make_vault((await generate_ratchet_keys())!);
 
+    h.bundle = bundle_for(receiver_vault);
+    h.vault = sender_vault;
+
+    const seal = vi
+      .spyOn(recovery_lane, "seal_recovery_lane")
+      .mockRejectedValueOnce(new Error("seal failed"));
+
+    try {
+      await expect(
+        encrypt_for_ratchet_recipient(
+          SENDER,
+          RECIPIENT,
+          "recipient",
+          "must never ship",
+          sender_vault,
+        ),
+      ).rejects.toBeInstanceOf(RecoveryLaneUnavailableError);
+      expect(seal).toHaveBeenCalledTimes(1);
+    } finally {
+      seal.mockRestore();
+    }
+  });
+
+  it("emits no ratchet body when the post-quantum key is damaged", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
     h.bundle = {
       ...bundle_for(receiver_vault),
       pq_kem_public_key: "bm90LWEta2V5",
@@ -554,7 +582,7 @@ describe("undecryptable-message failure modes", () => {
         "must never ship",
         sender_vault,
       ),
-    ).rejects.toBeInstanceOf(RecoveryLaneUnavailableError);
+    ).resolves.toBeNull();
   });
 
   it("never emits a ratchet body without a recovery lane", async () => {

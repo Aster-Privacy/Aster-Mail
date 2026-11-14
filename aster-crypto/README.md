@@ -2,7 +2,7 @@
 
 # aster-crypto
 
-OpenPGP for [Aster Mail](https://astermail.org), completely written in Rust, compiled to native and WebAssembly at the same time.
+An OpenPGP library from the [Aster Mail](https://astermail.org) project, written in Rust, that compiles to native code and to WebAssembly. The Aster Mail apps don't use this crate today: the web, desktop, and mobile clients do their OpenPGP work with [OpenPGP.js](https://openpgpjs.org) and platform libraries.
 
 ```rust
 use aster_crypto::decrypt::decrypt_and_verify;
@@ -49,9 +49,9 @@ cargo build --target wasm32-unknown-unknown --features wasm --release
 cargo test
 ```
 
-1. The first line is the native build that is inside all of our desktop and mobile apps.
-2. The second produces the WebAssembly bundle that is used by our browser client.
-3. The third one will run the full test suite, including the examples above.
+1. The first line produces the native build.
+2. The second line produces the WebAssembly bundle for browser targets.
+3. The third line runs the full test suite, including the examples above.
    
 ## A note on security
 

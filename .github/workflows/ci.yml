@@ -44,3 +44,29 @@ jobs:
 
       - name: Test
         run: npx vitest run --reporter=dot
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Audit npm dependencies
+        run: npm audit --package-lock-only --omit=dev --audit-level=high
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked --version 0.22.0
+
+      - name: Audit Rust dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          for lock in src-tauri/Cargo.lock aster-crypto/Cargo.lock aster-opaque/Cargo.lock; do
+            cargo audit --file "$lock" --ignore RUSTSEC-2023-0071 --ignore RUSTSEC-2026-0387
+          done

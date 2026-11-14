@@ -332,6 +332,22 @@ describe("ensure_pgp_key_published", () => {
     );
   });
 
+  it("neither publishes nor re-keys an identity key that cannot be read", async () => {
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\nnot-a-key\n",
+    } as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      error: "PGP key not found",
+      code: "NOT_FOUND",
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("failed");
+    expect(republish_pgp_key).not.toHaveBeenCalled();
+    expect(rekey_pgp_if_needed).not.toHaveBeenCalled();
+  });
+
   it("reports failure when the re-key of a rejected key does not run", async () => {
     const armored = await generate_armored_unpublishable_key();
 
