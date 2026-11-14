@@ -537,7 +537,7 @@ export function AccountSection({
             {user?.display_name ?? user?.username ?? ""}
           </p>
           <p className="text-[13px] text-[var(--text-muted)]">
-            {user?.email ?? ""}
+            {primary_identity.email || account_email}
           </p>
         </div>
 
@@ -695,7 +695,7 @@ export function AccountSection({
                     : (address_lock_message ?? undefined)
                   : undefined
             }
-            label={primary_identity.email || account_email}
+            label={account_email}
             on_press={
               address_eligibility?.eligible
                 ? () => set_show_address_change(true)

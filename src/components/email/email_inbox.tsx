@@ -61,6 +61,7 @@ import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 import { is_outgoing_view } from "@/hooks/email_list_helpers";
+import { use_primary_identity } from "@/lib/primary_identity";
 import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { order_tags_as_tree } from "@/hooks/tag_tree";
 
@@ -182,6 +183,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_page_change,
     handle_filter_change,
   } = use_email_inbox_state(props);
+  const display_identity = use_primary_identity(user?.email ?? "");
 
   use_empty_folder_request({
     current_view,
@@ -251,7 +253,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 current_view={current_view}
                 has_load_error={email_state.has_load_error}
                 on_retry={refresh_current_view}
-                user_email={user?.email}
+                user_email={display_identity.email || user?.email}
               />
             )}
           </div>
