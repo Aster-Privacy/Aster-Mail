@@ -25,35 +25,6 @@ import { zero_uint8_array } from "./secure_memory";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 
-//
-// Password-based encryption for password-protected messages sent to
-// external recipients.
-//
-// Key derivation chain:
-//   PBKDF2-SHA256(password, kdf_salt, 310000) → 64 bytes:
-//     bytes[0..32] = kdf_key      (encrypts KEM seed; used as HKDF salt)
-//     bytes[32..64] = auth_verifier (SHA-256 hash → auth_proof for server)
-//
-//   ML-KEM-768 ephemeral keypair generated from a random 64-byte seed:
-//     (kem_pk, kem_sk) = ML-KEM-768.KeyGen(kem_seed)
-//     (kem_ct, kem_ss) = ML-KEM-768.Encaps(kem_pk)
-//
-//   kem_seed is AES-256-GCM encrypted under kdf_key so the recipient can
-//   regenerate the keypair and decapsulate kem_ct to recover kem_ss.
-//
-//   content_key = HKDF-SHA256(ikm=kem_ss, salt=kdf_key, info="aster-secure-send-v2")
-//
-// The server stores: kem_ct, AES-GCM(kem_seed), kdf_salt, SHA-256(auth_verifier),
-// and opaque AES-GCM ciphertexts for subject/body/attachments.  It never holds
-// kem_ss or content_key.
-//
-// The password is the only secret. kem_seed is stored encrypted under a key
-// derived from the password, so anyone who learns or guesses the password can
-// recover kem_ss and content_key. The ML-KEM step is kept for format
-// compatibility and adds no protection beyond the password, including against
-// a quantum adversary.
-//
-
 const AEAD_BINDING_WRITE_ENABLED = true;
 
 const PBKDF2_ITERATIONS = 310000;
