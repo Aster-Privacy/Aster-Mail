@@ -267,6 +267,7 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
 
 vi.mock("@/services/forward_store", () => ({
   get_forward_mail_id: () => null,
+  get_forward_from_candidates: () => [],
   clear_forward_mail_id: () => undefined,
 }));
 

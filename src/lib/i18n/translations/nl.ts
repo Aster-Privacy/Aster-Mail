@@ -576,6 +576,9 @@ export const nl = {
       "Je betaling is niet gelukt. De toegang wordt over {{days}} dagen beperkt.",
     billing_alert_action: "Betalen",
     dismiss: "Negeren",
+    web_sandbox_off_title: "Webinhoud draait zonder de systeemsandbox",
+    web_sandbox_off_body:
+      "Op deze computer kan Aster Mail de bubblewrap-sandbox niet starten, dus webinhoud draait zonder sandbox. Installeer het pakket bubblewrap, sta niet-geprivilegieerde gebruikersnaamruimten toe en start Aster Mail opnieuw om de sandbox weer in te schakelen.",
     load_content: "Laden",
     open_link: "Link openen",
     no_icon: "Geen pictogram",
@@ -928,6 +931,8 @@ export const nl = {
       "Dit bestand kan niet worden getoond. Het is mogelijk verplaatst of verwijderd.",
     attachment_locked:
       "Deze bijlage kan niet worden geopend omdat de versleutelingssleutel niet beschikbaar is op dit apparaat.",
+    attachment_content_mismatch:
+      "Deze bijlage komt niet overeen met het bericht waarmee ze is ontvangen en is daarom niet geopend.",
     scheduled_no_attachments:
       "Geplande e-mails kunnen nog geen bijlagen bevatten. Verstuur nu of verwijder de bestanden om te plannen.",
     scheduled_connected_account:
@@ -1111,6 +1116,10 @@ export const nl = {
       "We konden de sleutels van deze ontvanger niet controleren. Een nieuwe poging laat zien of dit bericht end-to-end kan worden versleuteld.",
     end_to_end_encrypted_label: "End-to-end versleuteld",
     only_you_and_sender: "Alleen jij en de afzender kunnen dit lezen.",
+    only_you_and_sender_details_from_server:
+      "Alleen jij en de afzender kunnen dit lezen. De naam van de afzender, de ontvangers en de datum komen van de server en vallen niet onder end-to-end-versleuteling.",
+    encrypted_to_you_unconfirmed_sender:
+      "Dit bericht is versleuteld met je openbare sleutel. De identiteit van de afzender is niet bevestigd.",
     only_you_can_read_contacts:
       "Alleen jij kunt je contacten lezen. Aster ziet deze gegevens niet.",
     failed_to_send_email:
@@ -1767,6 +1776,9 @@ export const nl = {
     recovery_codes_low_reminder_body:
       "Elke code werkt één keer en je hebt er nog {{count}}. Haal nieuwe codes op zodat je niet buitengesloten raakt.",
     recovery_codes_low_reminder_action: "Nieuwe codes ophalen",
+    recovery_codes_refresh_title: "Vervang je herstelcodes",
+    recovery_codes_refresh_body:
+      "Je opgeslagen herstelcodes gebruiken een oudere, kortere indeling. Haal nieuwe codes op en bewaar ze. Daarna werken je oude codes niet meer.",
     recovery_phrase_migrate_title: "Overstappen op herstelcodes",
     recovery_phrase_migrate_body:
       "Herstelzinnen verdwijnen. Haal nu herstelcodes op zodat je je account nog kunt herstellen.",
@@ -1909,6 +1921,9 @@ export const nl = {
     dns_host_leave_blank: "Laat leeg",
     dns_host_provider_hint:
       "{{provider}} gebruikt deze notatie voor het hostveld. Neem het exact zo over.",
+    dns_host_zone_hint:
+      "Deze hostnaam is relatief ten opzichte van {{zone}}, het domein waar je je DNS-records beheert.",
+    dns_full_record_name: "Volledige recordnaam",
     purchase_congrats_title: "Gefeliciteerd",
     recipient_key_outdated: "De sleutel van de ontvanger is verouderd",
     recipient_key_outdated_desc:
@@ -1920,7 +1935,23 @@ export const nl = {
     key_trust_change_message:
       "De versleutelingssleutel van {{recipients}} is sinds de vorige opvraging gewijzigd. Controleer de nieuwe vingerafdruk via een ander kanaal bij de ontvanger voordat je verzendt.",
     key_trust_change_detail: "{{email}}: was {{prior}}, nu {{current}}.",
+    key_trust_unreadable_message:
+      "De opgeslagen versleutelingssleutel van {{recipients}} kan op dit apparaat niet worden gelezen. Controleer de huidige vingerafdruk via een ander kanaal bij de ontvanger voordat je verzendt.",
+    key_trust_unreadable_detail: "{{email}}: nu {{current}}.",
+    key_trust_own_message:
+      "De versleutelingssleutel voor je adres {{recipients}} is gewijzigd. Als je je sleutels niet hebt hersteld of geen nieuw apparaat hebt ingesteld, vertrouw de nieuwe sleutel dan niet.",
     key_trust_change_confirm: "Nieuwe sleutel vertrouwen",
+    key_trust_missing_title: "Versleutelingssleutel niet gevonden",
+    key_trust_missing_message:
+      "Op dit apparaat was een versleutelingssleutel voor {{recipients}} opgeslagen, maar er is nu geen sleutel beschikbaar. Als je doorgaat, wordt dit bericht zonder end-to-end-versleuteling verzonden. Controleer dit via een ander kanaal bij de ontvanger voordat je verzendt.",
+    key_trust_missing_detail: "{{email}}: was {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: de opgeslagen sleutel kan niet worden gelezen.",
+    key_trust_missing_confirm: "Zonder versleuteling verzenden",
+    key_trust_account_key_detail:
+      "{{email}} accountsleutel: was {{prior}}, nu {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} identiteitssleutel: was {{prior}}, nu {{current}}.",
     post_quantum_downgrade_title:
       "Verzenden zonder de verwachte post-quantumsleutels?",
     post_quantum_downgrade_message:
@@ -3796,6 +3827,14 @@ export const nl = {
       "Ik heb mijn herstelcodes op een veilige plek opgeslagen.",
     recovery_codes_save_failed:
       "Je herstelcodes konden niet op de server worden opgeslagen. Probeer het opnieuw.",
+    recovery_codes_required_save_desc:
+      "Bewaar deze nieuwe codes op een veilige plek. Je huidige codes blijven werken totdat je in de volgende stap bevestigt.",
+    recovery_codes_required_verify_desc:
+      "Voer je wachtwoord in om je nieuwe codes te gaan gebruiken. Daarna werken je vorige codes niet meer.",
+    recovery_codes_required_action: "Codes vervangen",
+    recovery_codes_required_done: "Je nieuwe herstelcodes zijn actief.",
+    recovery_codes_already_replaced:
+      "Je herstelcodes zijn al vervangen op een ander apparaat.",
     legacy_phrase_row: "Herstelzin (verouderd)",
     legacy_phrase_row_desc:
       "Je bestaande herstelzin blijft geldig. Voortaan worden herstelcodes gebruikt.",
@@ -4148,6 +4187,8 @@ export const nl = {
       "Deze sessie is gestart op een ander netwerk of een andere browser, dus Aster Mail heeft je wachtwoord niet gewijzigd. Om het te wijzigen, meld je je af, meld je je opnieuw aan en probeer je het opnieuw.",
     password_change_identity_continuity_required:
       "Aster Mail heeft je wachtwoord niet gewijzigd, omdat de wijziging versleutelingssleutels zou verwijderen die je oudere berichten nodig hebben. Om het opnieuw te proberen, meld je je af, meld je je opnieuw aan en wijzig je je wachtwoord.",
+    password_change_vault_changed:
+      "Je versleutelingssleutels zijn op een ander apparaat gewijzigd terwijl je je wachtwoord wijzigde, dus Aster Mail heeft het niet gewijzigd. Probeer het opnieuw.",
     password_change_vault_out_of_date:
       "Je wachtwoord is op een ander apparaat gewijzigd, dus deze sessie is niet meer actueel. Om je wachtwoord te wijzigen, meld je je af en meld je je opnieuw aan met je huidige wachtwoord.",
     update_password: "Wachtwoord bijwerken",
@@ -4355,6 +4396,12 @@ export const nl = {
     developer_mode: "Ontwikkelaarsmodus",
     developer_mode_description:
       "Toon het tabblad Ontwikkelaar met build-info, cryptostatus en foutopsporingstools",
+    launch_at_login: "Aster Mail openen bij het inloggen",
+    launch_at_login_description: "Aster Mail start wanneer je inlogt op je computer, zodat nieuwe e-mail binnenkomt zonder dat je de app eerst opent.",
+    start_minimized: "Geminimaliseerd starten",
+    start_minimized_description: "Wanneer Aster Mail bij het inloggen opent, blijft het zonder venster op de achtergrond. Klik op het pictogram in het systeemvak of de menubalk om het te openen.",
+    launch_at_login_move_to_applications: "Verplaats Aster Mail eerst naar de map Apps om het bij het inloggen te openen.",
+    launch_at_login_reason: "Open Aster Mail bij het inloggen zodat nieuwe e-mail op de achtergrond binnenkomt.",
     close_to_tray: "Blijven draaien als je het venster sluit",
     close_to_tray_description:
       "Aster Mail blijft in het meldingengebied staan, zodat nieuwe e-mail binnen blijft komen. Zet dit uit om af te sluiten als je het venster sluit.",
@@ -4691,7 +4738,7 @@ export const nl = {
       "Gebruik Snowflake-bridges voor censuurbestendigheid",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Verzoeken worden via een wereldwijd CDN geleid voordat ze Aster bereiken. Je IP-adres blijft verborgen voor Aster en het verkeer gaat op in gewoon CDN-verkeer.",
+      "Verzoeken gaan via een relay die Aster op Cloudflare beheert voordat ze de servers van Aster bereiken. Voor je netwerk ziet het verkeer eruit als gewoon CDN-verkeer, wat kan helpen waar Aster geblokkeerd is. Aster ziet je IP-adres nog steeds. Gebruik Tor om het voor Aster te verbergen.",
     "connection.status_connected": "Verbonden",
     "connection.status_connecting": "Verbinden...",
     "connection.status_error":
@@ -4723,7 +4770,8 @@ export const nl = {
     tlsrpt_record: "TLS-RPT-record",
     tlsrpt_description:
       "Optioneel maar aanbevolen. Ontvangende servers sturen je een dagelijkse samenvatting wanneer versleutelde bezorging aan je domein mislukt, zodat je problemen eerder ziet dan je gebruikers.",
-    dns_instruction_set_tlsrpt_host: "Stel de host in op _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Kopieer de hostnaam hieronder naar het hostveld",
     dns_instruction_set_tlsrpt_value:
       "Plak de TLS-RPT-waarde exact zoals weergegeven",
     optional_step: "Optioneel",
@@ -5104,7 +5152,7 @@ export const nl = {
     dns_instruction_merge_spf:
       "Als je al een SPF-record hebt, voeg dan de include:-richtlijn toe aan je bestaande record",
     dns_instruction_set_dmarc_host:
-      "Stel de host in op _dmarc (zonder je domein)",
+      "Kopieer de hostnaam hieronder naar het hostveld",
     dns_instruction_set_dmarc_value:
       "Stel de waarde in op het onderstaande DMARC-beleid",
     edit_external_account: "Extern account bewerken",
@@ -7130,10 +7178,147 @@ export const nl = {
       "Aster schrijft 30 dagen voor de vervaldatum af van je opgeslagen kaart en mailt je de prijs 15 dagen daarvoor.",
     domain_purchase_manage_auto_renew_error:
       "Automatisch verlengen kon niet worden bijgewerkt. Probeer het opnieuw.",
-    domain_purchase_manage_dns: "Domeininstellingen openen",
+    domain_purchase_manage_dns: "DNS beheren",
     domain_purchase_manage_support_note:
-      "Neem contact op met support om dit domein naar een andere registrar te verhuizen of naar een terugbetaling te vragen.",
+      "Neem contact op met support voor vragen over facturering of een terugbetaling.",
     domain_purchase_manage_support_subject: "Hulp bij {{domain}}",
+    domain_transfer_button: "Verhuizen",
+    domain_transfer_title: "Domein verhuizen",
+    domain_transfer_hint:
+      "Verhuis dit domein naar een andere registrar. Support stuurt de transfercode naar je Aster-inbox.",
+    domain_transfer_message:
+      "Om {{domain}} naar een andere registrar te verhuizen, heb je een verhuiscode nodig. Als je doorgaat, opent Aster een e-mail aan support. Support bevestigt dat het verzoek van dit account komt en stuurt de code daarna naar je Aster-inbox. Een verhuizing duurt meestal 5 tot 7 dagen nadat je die bij de nieuwe registrar hebt gestart.",
+    domain_transfer_locked_message:
+      "Registrars staan geen verhuizingen toe binnen {{count}} dagen na registratie. Je kunt vanaf {{date}} een verhuizing voor {{domain}} aanvragen.",
+    domain_transfer_confirm: "Support mailen",
+    domain_transfer_email_subject: "Verhuisverzoek voor {{domain}}",
+    domain_transfer_email_body:
+      "Ik wil {{domain}} naar een andere registrar verhuizen. Stuur de verhuiscode naar dit adres.\n\nBestelnummer: {{order_id}}\nNieuwe registrar:",
+    purchased_dns_title: "DNS-records",
+    purchased_dns_description:
+      "Records voor {{domain}}. Wijzigingen worden meestal binnen een uur actief.",
+    purchased_dns_locked_title: "Bewerken staat uit",
+    purchased_dns_locked_note:
+      "Je kunt deze records bekijken, maar je kunt ze nu niet wijzigen.",
+    purchased_dns_lock_frozen:
+      "Bewerken is gepauzeerd voor dit domein. Neem contact op met support voor meer informatie.",
+    purchased_dns_lock_payment:
+      "Bewerken staat uit omdat de betaling voor dit domein is teruggedraaid.",
+    purchased_dns_lock_lapsed:
+      "Bewerken staat uit omdat dit domein is verlopen. Verleng het om wijzigingen aan te brengen.",
+    purchased_dns_lock_suspended:
+      "Bewerken staat uit omdat dit domein is opgeschort.",
+    purchased_dns_unlock_title: "Bevestig dat jij het bent",
+    purchased_dns_unlock_description:
+      "Bevestig je identiteit om DNS-records te wijzigen. Bewerken blijft 15 minuten aan.",
+    purchased_dns_unlock: "Bewerken inschakelen",
+    purchased_dns_unlocked: "Bewerken staat aan",
+    purchased_dns_unlocked_for: "Bewerken staat aan voor {{time}}",
+    purchased_dns_lock: "Bewerken uitschakelen",
+    purchased_dns_add: "Record toevoegen",
+    purchased_dns_add_title: "Record toevoegen",
+    purchased_dns_edit_title: "Record bewerken",
+    purchased_dns_added: "Record toegevoegd",
+    purchased_dns_updated: "Record bijgewerkt",
+    purchased_dns_deleted: "Record verwijderd",
+    purchased_dns_delete_title: "Record verwijderen?",
+    purchased_dns_delete_message:
+      "Het {{type}}-record voor {{name}} wordt kort na het verwijderen niet meer opgelost.",
+    purchased_dns_edit_record: "{{type}}-record voor {{name}} bewerken",
+    purchased_dns_copy_record: "Waarde van {{type}}-record voor {{name}} kopiëren",
+    purchased_dns_delete_record: "{{type}}-record voor {{name}} verwijderen",
+    purchased_dns_read_only: "Alleen-lezen",
+    purchased_dns_mail_group: "Aster Mail-records",
+    purchased_dns_mail_group_tip:
+      "Aster beheert deze records zodat je e-mail blijft werken. Je kunt ze niet bewerken of verwijderen.",
+    purchased_dns_your_records: "Jouw records",
+    purchased_dns_empty: "Je hebt nog geen records toegevoegd.",
+    purchased_dns_limit_reached:
+      "Dit domein heeft het maximum van {{count}} records. Verwijder er een om een nieuwe toe te voegen.",
+    purchased_dns_col_type: "Type",
+    purchased_dns_col_name: "Naam",
+    purchased_dns_col_content: "Inhoud",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Acties",
+    purchased_dns_host_hint:
+      "Gebruik @ voor het domein zelf, of voer een subdomein in zoals www.",
+    purchased_dns_field_ipv4: "IPv4-adres",
+    purchased_dns_field_ipv6: "IPv6-adres",
+    purchased_dns_field_target: "Doel",
+    purchased_dns_field_content: "Inhoud",
+    purchased_dns_field_mail_server: "Mailserver",
+    purchased_dns_field_caa_value: "Waarde",
+    purchased_dns_field_priority: "Prioriteit",
+    purchased_dns_field_weight: "Gewicht",
+    purchased_dns_field_port: "Poort",
+    purchased_dns_field_flags: "Flags",
+    purchased_dns_field_tag: "Tag",
+    purchased_dns_ttl_one_hour: "1 uur",
+    purchased_dns_ttl_hours: "{{count}} uur",
+    purchased_dns_ttl_one_day: "1 dag",
+    purchased_dns_ttl_days: "{{count}} dagen",
+    purchased_dns_error_required: "Vul dit veld in.",
+    purchased_dns_error_host:
+      "Voer een geldige naam in. Gebruik letters, cijfers, koppeltekens en underscores, met maximaal 63 tekens per label.",
+    purchased_dns_error_protected_host:
+      "Deze naam is gereserveerd voor Aster Mail-records.",
+    purchased_dns_error_apex_mx:
+      "Aster beheert de mailrecords voor het domein zelf. Voeg MX-records in plaats daarvan toe op een subdomein.",
+    purchased_dns_error_apex_cname:
+      "Een CNAME-record kan het domein zelf niet gebruiken. Gebruik in plaats daarvan een A- of AAAA-record.",
+    purchased_dns_error_apex_spf:
+      "Aster publiceert al een SPF-record voor dit domein, en een domein kan er maar één hebben.",
+    purchased_dns_error_value: "Controleer de waarde en probeer het opnieuw.",
+    purchased_dns_error_ip: "Voer een geldig IP-adres in.",
+    purchased_dns_error_ipv4:
+      "Voer een geldig IPv4-adres in, zoals 203.0.113.10.",
+    purchased_dns_error_ipv6:
+      "Voer een geldig IPv6-adres in, zoals 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Voer een openbaar IP-adres in. Privé-, lokale en gereserveerde adressen zijn niet bereikbaar vanaf internet.",
+    purchased_dns_error_target:
+      "Voer een geldige hostnaam in, zoals example.com.",
+    purchased_dns_error_cname_self:
+      "Een CNAME-record kan niet naar zijn eigen naam verwijzen.",
+    purchased_dns_error_cname_conflict:
+      "Een naam met een CNAME-record kan geen andere records hebben. Verwijder eerst de andere records of kies een andere naam.",
+    purchased_dns_error_txt_length:
+      "TXT-inhoud kan maximaal 2.048 tekens bevatten.",
+    purchased_dns_error_txt_chars:
+      "TXT-inhoud mag alleen standaard afdrukbare tekens bevatten, zonder aanhalingstekens of backslashes.",
+    purchased_dns_error_ttl: "Kies een TTL uit de lijst.",
+    purchased_dns_error_priority: "Voer een prioriteit in van 0 tot 65535.",
+    purchased_dns_error_weight: "Voer een gewicht in van 0 tot 65535.",
+    purchased_dns_error_port: "Voer een poort in van 1 tot 65535.",
+    purchased_dns_error_srv_host:
+      "Een SRV-naam begint met de service en het protocol, zoals _sip._tcp.",
+    purchased_dns_error_caa_flags: "Kies 0 of 128 voor de flags.",
+    purchased_dns_error_caa_tag: "Kies issue, issuewild of iodef als tag.",
+    purchased_dns_error_caa_value:
+      "Voer een waarde in van maximaal 255 tekens, zonder aanhalingstekens of backslashes.",
+    purchased_dns_error_duplicate: "Dit record bestaat al.",
+    purchased_dns_error_too_many:
+      "Dit domein heeft het maximale aantal records. Verwijder er een om een nieuwe toe te voegen.",
+    purchased_dns_error_protected_record:
+      "Aster beheert dit record, dus je kunt het niet wijzigen.",
+    purchased_dns_error_type_change:
+      "Je kunt het type van een record niet wijzigen. Verwijder het en voeg in plaats daarvan een nieuw record toe.",
+    purchased_dns_error_locked: "Bewerken staat uit voor dit domein.",
+    purchased_dns_error_busy: "De registrar is bezet.",
+    purchased_dns_error_not_found: "Dit record bestaat niet meer.",
+    purchased_dns_error_rate_limited: "Je brengt te snel wijzigingen aan.",
+    purchased_dns_error_retry_in:
+      "{{message}} Probeer het over {{count}} seconden opnieuw.",
+    purchased_dns_error_retry_in_one: "{{message}} Probeer het over {{count}} seconde opnieuw.",
+    purchased_dns_ttl_seconds: "{{count}} seconden",
+    purchased_dns_expired_note: "Bewerken is uitgeschakeld. Je wijzigingen zijn nog niet opgeslagen. Als je op Opslaan klikt, bevestig je eerst dat jij het bent.",
+    purchased_dns_filter_placeholder: "Records filteren",
+    purchased_dns_filter_no_results: "Geen records komen overeen met je filter.",
+    purchased_dns_keep_editing: "Doorgaan met bewerken",
+    purchased_dns_error_unlock_failed: "Bewerken kon niet worden ingeschakeld. Probeer het opnieuw.",
+    purchased_dns_error_generic:
+      "Je wijziging kan niet worden opgeslagen. Probeer het opnieuw.",
+    purchased_dns_load_failed: "Kan DNS-records niet laden. Probeer het opnieuw.",
     domain_purchase_filter_all: "Alle",
     domain_purchase_filter_available: "Beschikbaar",
     domain_purchase_filter_taken: "Bezet",
@@ -8034,6 +8219,7 @@ export const nl = {
       "Beveiligingssleutels kunnen worden toegevoegd in de Aster-webapp op app.astermail.org. Je kunt bestaande sleutels hier nog steeds bekijken en verwijderen.",
     passkeys_desktop_note:
       "Toegangssleutels kunnen worden toegevoegd in de Aster-webapp op app.astermail.org. Je kunt bestaande toegangssleutels hier nog steeds bekijken en verwijderen.",
+    passkeys_open_in_browser: "Openen in browser",
     app_lock_pin: "PIN-vergrendeling",
     app_lock_pin_description:
       "Vraagt om een pincode voordat Aster Mail in deze browser wordt getoond. De vergrendeling verbergt je e-mail voor andere mensen die dit apparaat gebruiken, maar versleutelt de hier opgeslagen gegevens niet.",
@@ -8823,6 +9009,8 @@ export const nl = {
       "De versleutelingsidentiteit van deze afzender is veranderd sinds je voor het laatst berichten hebt uitgewisseld. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
     sender_identity_downgraded:
       "De berichten van deze afzender hebben geen post-quantumbescherming meer. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
+    sender_identity_unreadable:
+      "De opgeslagen versleutelingssleutel van deze afzender kan op dit apparaat niet worden gelezen, dus dit bericht kan niet worden geverifieerd. Bevestig de sleutel op een andere manier bij deze persoon en kies daarna Nieuwe sleutel vertrouwen.",
     recipient_identity_changed:
       "De versleutelingssleutel van {{email}} is gewijzigd. Als je dat niet verwachtte, bevestig de wijziging dan op een andere manier met deze persoon voordat je gevoelige informatie verstuurt.",
     message_password_requirements:
@@ -9025,6 +9213,11 @@ export const nl = {
       "{{email}} blokkeren? Je ontvangt geen e-mails meer van deze afzender.",
     unblock_sender: "Afzender deblokkeren",
     unsubscribe: "Uitschrijven",
+    copy_code: "Code kopiëren",
+    copy_code_value: "Code {{code}} kopiëren",
+    copy_subject: "Onderwerp kopiëren",
+    code_copied: "Code gekopieerd",
+    subject_copied: "Onderwerp gekopieerd",
     unsubscribe_confirm_message:
       "Weet je zeker dat je je wilt uitschrijven van deze mailinglijst?",
     max_composers_warning:
@@ -9408,9 +9601,9 @@ export const nl = {
     unstar: "Ster verwijderen",
     mark_unread: "Als ongelezen markeren",
     mark_read: "Als gelezen markeren",
-    verified_sender: "Geverifieerde afzender",
+    verified_sender: "Geverifieerd domein",
     verified_sender_desc:
-      "De afzender van deze e-mail heeft bevestigd eigenaar te zijn van {{domain}}.",
+      "De servers van Aster hebben gecontroleerd dat de afzender eigenaar is van {{domain}}.",
     sender_warning_title: "Controleer het adres van de afzender",
     sender_warning_address_in_name:
       "De naam van de afzender toont {{claimed}}, maar dit bericht komt van {{address}}.",
@@ -9524,6 +9717,7 @@ export const nl = {
     move_n_conversations_one: "{{count}} gesprek verplaatsen",
     move_n_conversations_other: "{{count}} gesprekken verplaatsen",
     view_message: "Bericht bekijken",
+    open_full_view: "Openen in volledige weergave",
     blocking: "Blokkeren...",
     block: "Blokkeren",
     unsubscribe_title: "Uitschrijven",
@@ -9552,6 +9746,9 @@ export const nl = {
       "Deze e-mail is ontvangen op {{ received }}, maar je antwoord wordt verzonden vanaf {{ selected }}. Antwoorden vanaf een ander adres kan dit adres onthullen aan de afzender en het antwoord kan worden geweigerd.",
     reply_from_mismatch_use_received: "Ontvangstadres gebruiken",
     reply_from_mismatch_send_anyway: "Toch verzenden",
+    reply_from_unknown_title: "Controleer het afzenderadres",
+    reply_from_unknown_message:
+      "Aster kan niet bepalen welk van je adressen deze e-mail heeft ontvangen. Je antwoord wordt verzonden vanaf {{ selected }}. Annuleer en kies eerst een ander adres als je vanaf een ander adres wilt verzenden.",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "Op {{ date }} schreef {{ name }}:",
     download_file_named: "{{ filename }} downloaden",
@@ -9573,6 +9770,7 @@ export const nl = {
     link_text_optional: "Linktekst (optioneel)",
     advanced_search: "Geavanceerd",
     load_external_content: "Externe inhoud laden",
+    image_loading_settings: "Afbeeldingsinstellingen",
     image: "afbeelding",
     images: "afbeeldingen",
     tracker: "tracker",
@@ -10100,6 +10298,22 @@ export const nl = {
     sending_reset_link: "Resetlink verzenden...",
     reset_your_password: "Stel je wachtwoord opnieuw in",
     reset_choose_new_password: "Kies een nieuw wachtwoord voor je account.",
+    reset_current_password:
+      "Huidig wachtwoord",
+    reset_current_password_keeps_keys:
+      "Voer je huidige wachtwoord in zodat je versleutelingssleutels hetzelfde blijven en je e-mail leesbaar blijft. Weet je het niet, gebruik dan een herstelcode.",
+    reset_current_password_required:
+      "Voer je huidige wachtwoord in of gebruik een herstelcode.",
+    reset_lost_everything:
+      "Ik ben mijn wachtwoord en herstelcodes kwijt",
+    reset_remember_password:
+      "Ik weet mijn wachtwoord",
+    reset_lost_everything_warning:
+      "Zonder je wachtwoord of een herstelcode kan Aster Mail je versleutelingssleutels niet ontgrendelen. Bij het resetten worden nieuwe sleutels gemaakt en wordt je bestaande e-mail onleesbaar, tenzij je later je vorige wachtwoord of een herstelcode terugvindt.",
+    reset_lost_everything_confirm:
+      "Ik begrijp dat mijn bestaande e-mail onleesbaar wordt",
+    reset_lost_everything_confirm_required:
+      "Bevestig dat je begrijpt dat je bestaande e-mail onleesbaar wordt om zonder wachtwoord te resetten.",
     reset_current_password_optional: "Huidig wachtwoord (optioneel)",
     reset_current_password_hint:
       "Als je je huidige wachtwoord nog weet, voer het dan hier in. Je eerdere e-mail blijft dan direct na het inloggen beschikbaar. Laat je het veld leeg, dan kun je je eerdere e-mail later ontgrendelen met een herstelcode.",
@@ -10167,6 +10381,22 @@ export const nl = {
     review_recovery_email_kept: "Je herstel-e-mail is nog ingesteld.",
     review_no_recovery_email: "Geen herstel-e-mail.",
     review_add: "Toevoegen",
+    recovery_previous_password_placeholder:
+      "Voer je vorige wachtwoord in",
+    recovery_previous_password_body:
+      "Je versleutelingssleutels zijn nog beveiligd met het wachtwoord dat je vóór deze reset gebruikte. Voer dat vorige wachtwoord in om je e-mail leesbaar te houden. Je sleutels blijven hetzelfde en worden vanaf nu beveiligd met je nieuwe wachtwoord.",
+    recovery_previous_password_required:
+      "Voer je vorige wachtwoord in of selecteer Ik weet het niet meer.",
+    recovery_previous_password_incorrect:
+      "Dat wachtwoord ontgrendelt je versleutelingssleutels niet. Controleer het en probeer het opnieuw.",
+    recovery_previous_password_forgot:
+      "Ik weet het niet meer",
+    recovery_previous_password_use:
+      "Mijn vorige wachtwoord invoeren",
+    recovery_previous_password_skipped_warning:
+      "Je wachtwoord wordt gereset en je versleutelingssleutels blijven behouden, maar ze blijven vergrendeld met je vorige wachtwoord. Je e-mail is pas leesbaar nadat je dat wachtwoord invoert via de banner Gegevens herstellen.",
+    review_keys_left_locked:
+      "Je versleutelingssleutels blijven behouden, maar zijn nog vergrendeld met je vorige wachtwoord. Selecteer Gegevens herstellen in de banner en voer dat wachtwoord in om je e-mail te lezen.",
     review_codes_left: "Nog {{count}} herstelcodes over.",
     review_codes_left_one: "Nog {{count}} herstelcode over.",
     review_codes_left_other: "Nog {{count}} herstelcodes over.",
@@ -10264,28 +10494,42 @@ export const nl = {
     device_code_waiting: "Wachten op bevestiging",
     device_code_expires_in: "Verloopt over",
     link_device_title: "Apparaat koppelen",
-    link_device_enter_code: "Voer de code in die op je desktop-app staat.",
+    link_device_enter_code:
+      "Voer de koppelcode in die in de app staat die je koppelt.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "Doorgaan",
     link_device_confirm_prompt: "Wil je dit apparaat koppelen aan je account?",
     link_device_confirm_button: "Apparaat koppelen",
     link_device_confirming: "Apparaat koppelen...",
     link_device_cancel: "Annuleren",
-    link_device_desktop: "Desktop-app",
-    device_fingerprint: "Verificatiecode",
+    link_device_desktop: "Nieuw apparaat",
+    device_fingerprint: "Apparaatvingerafdruk",
+    device_fingerprint_copy: "Apparaatvingerafdruk kopiëren",
+    link_device_grant_notice:
+      "Door te koppelen krijgt de app op {{device}} volledige toegang tot {{email}}, inclusief je e-mail en je versleutelingssleutels.",
+    link_device_own_device_warning:
+      "Ga alleen verder als je dit zelf bent gestart in een Aster-app op je eigen apparaat. Als iemand anders je deze code heeft gegeven, koppel het apparaat dan niet.",
+    link_device_fingerprint_enter:
+      "Voer de apparaatvingerafdruk in die in de app staat die je koppelt. Sommige apps noemen dit een verificatiecode.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Dit komt niet overeen met het apparaat voor deze koppelcode. Vergelijk elk teken met de app die je koppelt en probeer het opnieuw. Als het nog steeds niet overeenkomt, koppel het apparaat dan niet.",
+    link_device_fingerprint_link_mismatch:
+      "De link waarmee deze pagina is geopend, hoort bij een ander apparaat dan deze koppelcode, dus je kunt het apparaat hier niet koppelen. Vraag een nieuwe code aan in de app die je koppelt en probeer het opnieuw.",
+    link_device_update_desktop:
+      "Als de app de vingerafdruk niet toont, kies dan Dit apparaat verifiëren in de app. Als de app die optie niet heeft, werk de app dan bij en probeer het opnieuw.",
+    device_code_fingerprint_required_hint:
+      "Je browser vraagt om deze apparaatvingerafdruk voordat het apparaat wordt gekoppeld.",
     device_code_verify_toggle: "Dit apparaat verifiëren",
     link_device_fingerprint_hint:
       "Voer de verificatiecode in die je nieuwe apparaat toont. Kies in de desktop-app Dit apparaat verifiëren om deze te zien.",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete:
       "Voer de volledige verificatiecode van je nieuwe apparaat in om het apparaat te koppelen.",
-    link_device_fingerprint_mismatch:
-      "Deze code komt niet overeen met je nieuwe apparaat. Controleer de code op je nieuwe apparaat en voer deze opnieuw in. Kies Annuleren als de code nog steeds niet overeenkomt.",
     device_code_fingerprint_hint:
       "Voer deze code in op het apparaat waarop je al bent ingelogd om dit apparaat te koppelen.",
     link_device_change_account: "Account wijzigen",
     link_device_choose_account: "Kies een account",
-    link_device_choose_account_description: "Om je desktop-app te koppelen",
+    link_device_choose_account_description: "Om een nieuw apparaat te koppelen",
     link_device_choose_account_note:
       "Je versleutelingssleutels blijven versleuteld terwijl ze tussen je apparaten worden overgedragen.",
     link_device_use_another_account: "Een ander account gebruiken",
@@ -10297,11 +10541,11 @@ export const nl = {
       "Voer het wachtwoord van dit account in om door te gaan.",
     link_device_success: "Apparaat gekoppeld",
     link_device_success_description:
-      "Je desktop-app is nu gekoppeld. Je kunt dit tabblad sluiten.",
+      "Je apparaat is nu gekoppeld. Je kunt dit tabblad sluiten.",
     link_device_invalid_code:
       "Een koppelcode is 8 tekens lang. Controleer de code en probeer het opnieuw.",
     link_device_expired_code:
-      "Deze code is verlopen of komt niet overeen. Je desktop-app heeft de huidige code.",
+      "Deze code is verlopen of komt niet overeen. De app die je koppelt heeft de huidige code.",
     link_device_failed:
       "Koppeling is niet voltooid. Opnieuw beginnen lost dit meestal op. Je account is ongewijzigd.",
     link_keys_locked_title: "Je sleutelhanger is vergrendeld",
@@ -10670,6 +10914,8 @@ export const nl = {
       "Het berichtwachtwoord is te zwak, dus het bericht is niet verstuurd. Gebruik minstens 12 tekens met een cijfer, een symbool of hoofdletters en kleine letters.",
     recipient_key_untrusted:
       "De versleutelingssleutel van een ontvanger is gewijzigd, dus het bericht is niet verstuurd. Bevestig de wijziging op een andere manier en kies daarna Nieuwe sleutel vertrouwen.",
+    recipient_key_unreadable:
+      "De opgeslagen versleutelingssleutel van een ontvanger kan op dit apparaat niet worden gelezen, dus het bericht is niet verstuurd. Bevestig de sleutel op een andere manier en kies daarna Nieuwe sleutel vertrouwen.",
     key_trust_check_failed:
       "De versleutelingssleutels van de ontvangers konden niet worden gecontroleerd, dus het bericht is niet verstuurd. Controleer je verbinding en probeer het opnieuw.",
     recipient_classification_unavailable:
@@ -10882,6 +11128,8 @@ export const nl = {
       "case_sensitive kan alleen na een tekstwaarde tussen aanhalingstekens staan.",
     expr_internal_error:
       "Deze expressie kon niet worden gelezen. Controleer de syntaxis en probeer het opnieuw.",
+    expr_server_rejected:
+      "Dit deel van de expressie kan niet worden opgeslagen. Controleer de syntaxis en probeer het opnieuw.",
     expr_line_col: "(regel {{line}}, kolom {{col}})",
     editor_description: "Geef je regel een naam en vertel wat deze moet doen.",
     editor_server_notice:
@@ -11019,6 +11267,10 @@ export const nl = {
     regex_invalid:
       "Dit regex-patroon is niet geldig. Controleer de syntaxis en probeer het opnieuw.",
     regex_empty: "Er is een regex-patroon nodig voor het opslaan.",
+    regex_too_complex:
+      "Dit regex-patroon is te complex om op te slaan. Gebruik minder herhalingen of alternatieven en probeer het opnieuw.",
+    regex_invalid_reason:
+      "Dit regex-patroon is ongeldig: {{reason}}",
     regex_too_long: "Deze regex is te lang. Een kortere versie werkt.",
     last_condition_required:
       "Er is minimaal één voorwaarde nodig voordat deze regel kan worden opgeslagen.",
@@ -11469,6 +11721,8 @@ export const nl = {
     invite_card_join: "Deelnemen aan vergadering",
     invite_card_calendar_failed: "Je antwoord is verzonden, maar Aster kon deze afspraak niet aan je agenda toevoegen.",
     invite_card_reply_send_failed: "Je antwoord is niet verzonden. Probeer het opnieuw.",
+    invite_card_reply_address_unavailable:
+      "Aster heeft je antwoord niet verzonden, omdat het adres dat deze uitnodiging ontving geen e-mail kan versturen. Zet dat adres weer aan om te antwoorden.",
     invite_card_organizer_mismatch:
       "{{sender}} heeft deze uitnodiging verstuurd, maar {{organizer}} staat vermeld als organisator. Als je dat niet verwacht, vraag het dan na bij de organisator voordat je reageert.",
     invite_card_reply_confirm:

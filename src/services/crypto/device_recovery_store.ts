@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { release_on_version_change } from "@/lib/idb_release";
+
 const DB_NAME = "astermail_device_recovery";
 const DB_VERSION = 1;
 const KEY_STORE = "device_keys";
@@ -62,7 +64,8 @@ function open_db(): Promise<IDBDatabase> {
         db.createObjectStore(SNAPSHOT_STORE, { keyPath: "snapshot_id" });
       }
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () =>
+      resolve(release_on_version_change(request.result));
   });
 }
 

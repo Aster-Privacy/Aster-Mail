@@ -47,6 +47,7 @@ import {
   preload_email_detail,
 } from "@/components/email/hooks/preload_cache";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { remember_forward_from } from "@/components/email/delivery_reply_address";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
 export type ReplyComposeMode = "reply" | "reply_all" | "forward";
@@ -122,6 +123,14 @@ export function use_open_reply_compose(
         });
       } else if (mode === "forward" && on_forward) {
         set_forward_mail_id(email.id);
+        remember_forward_from(email.id, {
+          is_own_message: email.item_type === "sent",
+          sender_email: email.sender_email,
+          routing_token: email.routing_token,
+          raw_headers,
+          to_emails: email.recipient_addresses,
+          cc_emails,
+        });
         on_forward({
           sender_name: email.sender_name,
           sender_email: email.sender_email,

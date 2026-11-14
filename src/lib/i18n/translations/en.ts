@@ -572,6 +572,9 @@ export const en: Translations = {
       "Your payment did not go through. Access limited in {{days}} days.",
     billing_alert_action: "Pay",
     dismiss: "Dismiss",
+    web_sandbox_off_title: "Web content runs without the system sandbox",
+    web_sandbox_off_body:
+      "On this computer, Aster Mail can't start the bubblewrap sandbox, so web content runs without it. To turn it back on, install the bubblewrap package and allow unprivileged user namespaces, then restart Aster Mail.",
     load_content: "Load",
     open_link: "Open link",
     no_icon: "No icon",
@@ -740,6 +743,9 @@ export const en: Translations = {
     dns_host_leave_blank: "Leave blank",
     dns_host_provider_hint:
       "{{provider}} uses this format for the host field. Copy it exactly as shown.",
+    dns_host_zone_hint:
+      "This host name is relative to {{zone}}, the domain where you manage DNS records.",
+    dns_full_record_name: "Full record name",
     dns_propagation_note: "DNS changes may take up to 48 hours to propagate",
     post: "Post",
     link_copied: "Link copied to clipboard",
@@ -954,6 +960,8 @@ export const en: Translations = {
       "This file couldn't be shown. It may have been moved or deleted.",
     attachment_locked:
       "This attachment can't be opened because its encryption key isn't available on this device.",
+    attachment_content_mismatch:
+      "This attachment doesn't match the message it came with, so it wasn't opened.",
     scheduled_no_attachments:
       "Scheduled emails can't include attachments yet. Send now, or remove the files to schedule it.",
     scheduled_connected_account:
@@ -1156,6 +1164,10 @@ export const en: Translations = {
     end_to_end_encrypted_label: "End-to-End Encrypted",
     encrypted_in_transit_stored: "Encrypted in transit and stored encrypted.",
     only_you_and_sender: "Only you and the sender can read this.",
+    only_you_and_sender_details_from_server:
+      "Only you and the sender can read this. The server supplies the sender's name, the recipients, and the date, so end-to-end encryption doesn't cover them.",
+    encrypted_to_you_unconfirmed_sender:
+      "This message was encrypted with your public key. The sender's identity isn't confirmed.",
     only_you_can_read_contacts:
       "Only you can read your contacts. Aster cannot see this data.",
     wkd_encrypted_description:
@@ -1200,7 +1212,23 @@ export const en: Translations = {
     key_trust_change_message:
       "The encryption key for {{recipients}} changed since the last lookup. Check the new fingerprint with the recipient over another channel before you send.",
     key_trust_change_detail: "{{email}}: was {{prior}}, now {{current}}.",
+    key_trust_unreadable_message:
+      "The saved encryption key for {{recipients}} can't be read on this device. Check the current fingerprint with the recipient over another channel before you send.",
+    key_trust_unreadable_detail: "{{email}}: now {{current}}.",
+    key_trust_own_message:
+      "The encryption key for your address {{recipients}} changed. If you didn't reset your keys or set up a new device, don't trust the new key.",
     key_trust_change_confirm: "Trust new key",
+    key_trust_missing_title: "Encryption key not found",
+    key_trust_missing_message:
+      "{{recipients}} had an encryption key saved on this device, but no key is available now. If you continue, this message is sent without end-to-end encryption. Check with the recipient over another channel before you send.",
+    key_trust_missing_detail: "{{email}}: was {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: the saved key can't be read.",
+    key_trust_missing_confirm: "Send without encryption",
+    key_trust_account_key_detail:
+      "{{email}} account key: was {{prior}}, now {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} identity key: was {{prior}}, now {{current}}.",
     post_quantum_downgrade_title:
       "Send without the expected post-quantum keys?",
     post_quantum_downgrade_message:
@@ -1817,6 +1845,9 @@ export const en: Translations = {
     recovery_codes_low_reminder_body:
       "Each code works once, and you have {{count}} left. Get new codes so you do not get locked out.",
     recovery_codes_low_reminder_action: "Get new codes",
+    recovery_codes_refresh_title: "Replace your recovery codes",
+    recovery_codes_refresh_body:
+      "Your saved recovery codes use an older, shorter format. Get new codes and save them. Your old codes stop working when you do.",
     recovery_phrase_migrate_title: "Switch to recovery codes",
     recovery_phrase_migrate_body:
       "Recovery phrases are going away. Get recovery codes now so you can still recover your account.",
@@ -2240,6 +2271,14 @@ export const en: Translations = {
     recovery_codes_saved_checkbox: "I saved my recovery codes in a safe place.",
     recovery_codes_save_failed:
       "Your recovery codes could not be saved to the server. Try again.",
+    recovery_codes_required_save_desc:
+      "Save these new codes in a safe place. Your current codes keep working until you confirm in the next step.",
+    recovery_codes_required_verify_desc:
+      "To start using your new codes, enter your password. Your previous codes stop working after that.",
+    recovery_codes_required_action: "Replace codes",
+    recovery_codes_required_done: "Your new recovery codes are active.",
+    recovery_codes_already_replaced:
+      "Your recovery codes were already replaced on another device.",
     legacy_phrase_row: "Recovery phrase (legacy)",
     legacy_phrase_row_desc:
       "Your existing recovery phrase remains valid. Recovery codes replace it going forward.",
@@ -2515,6 +2554,7 @@ export const en: Translations = {
       "Security keys can be added in the Aster web app at app.astermail.org. You can still view and remove existing keys here.",
     passkeys_desktop_note:
       "Passkeys can be added in the Aster web app at app.astermail.org. You can still view and remove existing passkeys here.",
+    passkeys_open_in_browser: "Open in browser",
     security_key_registered: "Security key registered successfully",
     security_key_removed: "Security key removed",
     name_your_key: "Name your security key",
@@ -2891,6 +2931,8 @@ export const en: Translations = {
       "This session started on a different network or browser, so Aster Mail didn't change your password. To change it, sign out, sign back in, and try again.",
     password_change_identity_continuity_required:
       "Aster Mail didn't change your password because the change would remove encryption keys your older messages need. To try again, sign out, sign back in, and change your password.",
+    password_change_vault_changed:
+      "Your encryption keys changed on another device while you were changing your password, so Aster Mail didn't change it. Try again.",
     password_change_vault_out_of_date:
       "Your password was changed on another device, so this session is out of date. To change your password, sign out and sign back in with your current password.",
     update_password: "Update Password",
@@ -3346,6 +3388,12 @@ export const en: Translations = {
     developer_mode: "Developer Mode",
     developer_mode_description:
       "Show the Developer tab with build info, crypto status, and debug tools",
+    launch_at_login: "Open Aster Mail when you sign in",
+    launch_at_login_description: "Aster Mail starts when you sign in to your computer, so new mail arrives without opening the app first.",
+    start_minimized: "Start minimized",
+    start_minimized_description: "When Aster Mail opens at sign-in, it stays in the background without a window. To open it, click its icon in the notification area or menu bar.",
+    launch_at_login_move_to_applications: "To open Aster Mail when you sign in, move it to the Applications folder first.",
+    launch_at_login_reason: "Open Aster Mail when you sign in so new mail arrives in the background.",
     close_to_tray: "Keep running when you close the window",
     close_to_tray_description:
       "Aster Mail stays in the notification area so new mail still arrives. Turn this off to quit when you close the window.",
@@ -5652,7 +5700,7 @@ export const en: Translations = {
       "Use Snowflake bridges for censorship resistance",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Requests are routed through a global CDN before reaching Aster. Your IP address stays hidden from Aster, and traffic blends in with regular CDN traffic.",
+      "Requests go through a relay that Aster runs on Cloudflare before they reach Aster servers. To your network, the traffic looks like regular CDN traffic, which can help where Aster is blocked. Aster still sees your IP address. To hide it from Aster, use Tor.",
     "connection.tor_warning":
       "All traffic will be routed through the Tor network. Expect slower performance.",
     "connection.status_connected": "Connected",
@@ -5684,7 +5732,8 @@ export const en: Translations = {
     tlsrpt_record: "TLS-RPT record",
     tlsrpt_description:
       "Optional but recommended. Receiving servers send you a daily summary when encrypted delivery to your domain fails, so you spot problems before your users do.",
-    dns_instruction_set_tlsrpt_host: "Set the host to _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Copy the host name shown below into the host field",
     dns_instruction_set_tlsrpt_value:
       "Paste the TLS-RPT value exactly as shown",
     optional_step: "Optional",
@@ -6114,7 +6163,7 @@ export const en: Translations = {
       "If you already have an SPF record, add the include: directive to your existing record",
     dns_instruction_set_dkim: "Set the value to the DKIM key shown below",
     dns_instruction_set_dmarc_host:
-      "Set the host to _dmarc (do not include your domain name)",
+      "Copy the host name shown below into the host field",
     dns_instruction_set_dmarc_value:
       "Set the value to the DMARC policy shown below",
     edit_external_account: "Edit external account",
@@ -6636,10 +6685,144 @@ export const en: Translations = {
       "Aster charges your saved card 30 days before the expiration date and emails you the price 15 days before that.",
     domain_purchase_manage_auto_renew_error:
       "Couldn't update automatic renewal. Try again.",
-    domain_purchase_manage_dns: "Open domain setup",
+    domain_purchase_manage_dns: "Manage DNS",
     domain_purchase_manage_support_note:
-      "To transfer this domain to another registrar or ask about a refund, contact support.",
+      "For questions about billing or a refund, contact support.",
     domain_purchase_manage_support_subject: "Help with {{domain}}",
+    domain_transfer_button: "Transfer",
+    domain_transfer_title: "Transfer domain",
+    domain_transfer_hint:
+      "Move this domain to another registrar. Support sends the transfer code to your Aster inbox.",
+    domain_transfer_message:
+      "To move {{domain}} to another registrar, you need a transfer code. When you continue, Aster opens an email to support. Support confirms the request came from this account, then sends the code to your Aster inbox. Transfers usually take 5 to 7 days after you start them at the new registrar.",
+    domain_transfer_locked_message:
+      "Registrars don't allow transfers within {{count}} days of registration. You can request a transfer for {{domain}} starting {{date}}.",
+    domain_transfer_confirm: "Write to support",
+    domain_transfer_email_subject: "Transfer request for {{domain}}",
+    domain_transfer_email_body:
+      "I want to transfer {{domain}} to another registrar. Send the transfer code to this address.\n\nOrder ID: {{order_id}}\nNew registrar:",
+    purchased_dns_title: "DNS records",
+    purchased_dns_description:
+      "Records for {{domain}}. Changes usually take effect within an hour.",
+    purchased_dns_locked_title: "Editing is off",
+    purchased_dns_locked_note:
+      "You can view these records, but you can't change them right now.",
+    purchased_dns_lock_frozen:
+      "Editing is paused for this domain. Contact support to learn more.",
+    purchased_dns_lock_payment:
+      "Editing is off because the payment for this domain was reversed.",
+    purchased_dns_lock_lapsed:
+      "Editing is off because this domain expired. Renew it to make changes.",
+    purchased_dns_lock_suspended:
+      "Editing is off because this domain is suspended.",
+    purchased_dns_unlock_title: "Confirm it's you",
+    purchased_dns_unlock_description:
+      "To change DNS records, confirm your identity. Editing stays on for 15 minutes.",
+    purchased_dns_unlock: "Turn on editing",
+    purchased_dns_unlocked: "Editing is on",
+    purchased_dns_unlocked_for: "Editing is on for {{time}}",
+    purchased_dns_lock: "Turn off editing",
+    purchased_dns_add: "Add record",
+    purchased_dns_add_title: "Add record",
+    purchased_dns_edit_title: "Edit record",
+    purchased_dns_added: "Record added",
+    purchased_dns_updated: "Record updated",
+    purchased_dns_deleted: "Record deleted",
+    purchased_dns_delete_title: "Delete record?",
+    purchased_dns_delete_message:
+      "The {{type}} record for {{name}} stops resolving soon after you delete it.",
+    purchased_dns_edit_record: "Edit {{type}} record for {{name}}",
+    purchased_dns_copy_record: "Copy {{type}} record value for {{name}}",
+    purchased_dns_delete_record: "Delete {{type}} record for {{name}}",
+    purchased_dns_read_only: "Read-only",
+    purchased_dns_mail_group: "Aster Mail records",
+    purchased_dns_mail_group_tip:
+      "Aster manages these records so your email keeps working. You can't edit or delete them.",
+    purchased_dns_your_records: "Your records",
+    purchased_dns_empty: "You haven't added any records yet.",
+    purchased_dns_limit_reached:
+      "This domain has the maximum of {{count}} records. Delete one to add another.",
+    purchased_dns_col_type: "Type",
+    purchased_dns_col_name: "Name",
+    purchased_dns_col_content: "Content",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Actions",
+    purchased_dns_host_hint:
+      "Use @ for the domain itself, or enter a subdomain like www.",
+    purchased_dns_field_ipv4: "IPv4 address",
+    purchased_dns_field_ipv6: "IPv6 address",
+    purchased_dns_field_target: "Target",
+    purchased_dns_field_content: "Content",
+    purchased_dns_field_mail_server: "Mail server",
+    purchased_dns_field_caa_value: "Value",
+    purchased_dns_field_priority: "Priority",
+    purchased_dns_field_weight: "Weight",
+    purchased_dns_field_port: "Port",
+    purchased_dns_field_flags: "Flags",
+    purchased_dns_field_tag: "Tag",
+    purchased_dns_ttl_one_hour: "1 hour",
+    purchased_dns_ttl_hours: "{{count}} hours",
+    purchased_dns_ttl_one_day: "1 day",
+    purchased_dns_ttl_days: "{{count}} days",
+    purchased_dns_error_required: "Fill in this field.",
+    purchased_dns_error_host:
+      "Enter a valid name. Use letters, numbers, hyphens, and underscores, with up to 63 characters per label.",
+    purchased_dns_error_protected_host:
+      "This name is reserved for Aster Mail records.",
+    purchased_dns_error_apex_mx:
+      "Mail records for the domain itself are managed by Aster. Add MX records on a subdomain instead.",
+    purchased_dns_error_apex_cname:
+      "A CNAME record can't use the domain itself. Use an A or AAAA record instead.",
+    purchased_dns_error_apex_spf:
+      "Aster already publishes an SPF record for this domain, and a domain can have only one.",
+    purchased_dns_error_value: "Check the value and try again.",
+    purchased_dns_error_ip: "Enter a valid IP address.",
+    purchased_dns_error_ipv4: "Enter a valid IPv4 address, like 203.0.113.10.",
+    purchased_dns_error_ipv6: "Enter a valid IPv6 address, like 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Enter a public IP address. Private, local, and reserved addresses aren't reachable from the internet.",
+    purchased_dns_error_target: "Enter a valid host name, like example.com.",
+    purchased_dns_error_cname_self:
+      "A CNAME record can't point to its own name.",
+    purchased_dns_error_cname_conflict:
+      "A name with a CNAME record can't have other records. Remove the other records first, or choose another name.",
+    purchased_dns_error_txt_length:
+      "TXT content can have up to 2,048 characters.",
+    purchased_dns_error_txt_chars:
+      "TXT content can only use standard printable characters, without quotation marks or backslashes.",
+    purchased_dns_error_ttl: "Choose a TTL from the list.",
+    purchased_dns_error_priority: "Enter a priority from 0 to 65535.",
+    purchased_dns_error_weight: "Enter a weight from 0 to 65535.",
+    purchased_dns_error_port: "Enter a port from 1 to 65535.",
+    purchased_dns_error_srv_host:
+      "An SRV name starts with the service and protocol, like _sip._tcp.",
+    purchased_dns_error_caa_flags: "Choose 0 or 128 for flags.",
+    purchased_dns_error_caa_tag:
+      "Choose issue, issuewild, or iodef for the tag.",
+    purchased_dns_error_caa_value:
+      "Enter a value with up to 255 characters, without quotation marks or backslashes.",
+    purchased_dns_error_duplicate: "This record already exists.",
+    purchased_dns_error_too_many:
+      "This domain has the maximum number of records. Delete one to add another.",
+    purchased_dns_error_protected_record:
+      "Aster manages this record, so you can't change it.",
+    purchased_dns_error_type_change:
+      "You can't change a record's type. Delete it and add a new record instead.",
+    purchased_dns_error_locked: "Editing is off for this domain.",
+    purchased_dns_error_busy: "The registrar is busy.",
+    purchased_dns_error_not_found: "This record no longer exists.",
+    purchased_dns_error_rate_limited: "You're making changes too quickly.",
+    purchased_dns_error_retry_in:
+      "{{message}} Try again in {{count}} seconds.",
+    purchased_dns_error_retry_in_one: "{{message}} Try again in {{count}} second.",
+    purchased_dns_ttl_seconds: "{{count}} seconds",
+    purchased_dns_expired_note: "Editing turned off. Your changes aren't saved yet. When you click Save, you confirm it's you first.",
+    purchased_dns_filter_placeholder: "Filter records",
+    purchased_dns_filter_no_results: "No records match your filter.",
+    purchased_dns_keep_editing: "Keep editing",
+    purchased_dns_error_unlock_failed: "Editing couldn't be turned on. Try again.",
+    purchased_dns_error_generic: "Couldn't save your change. Try again.",
+    purchased_dns_load_failed: "Couldn't load DNS records. Try again.",
     domain_purchase_filter_all: "All",
     domain_purchase_filter_available: "Available",
     domain_purchase_filter_taken: "Taken",
@@ -8605,6 +8788,8 @@ export const en: Translations = {
       "This sender's encryption identity changed since you last exchanged messages. If you did not expect that, confirm it with them another way.",
     sender_identity_downgraded:
       "This sender's messages no longer carry post-quantum protection. If you did not expect that, confirm it with them another way.",
+    sender_identity_unreadable:
+      "The saved encryption key for this sender can't be read on this device, so this message can't be verified. To verify their messages again, confirm their key with them another way, then choose Trust new key.",
     recipient_identity_changed:
       "The encryption key for {{email}} changed. If you did not expect that, confirm the change with them another way before you send anything sensitive.",
     message_password_requirements:
@@ -8668,6 +8853,9 @@ export const en: Translations = {
       "This email was received on {{ received }}, but your reply is set to send from {{ selected }}. Replying from a different address can expose it to the sender, and the reply may be rejected.",
     reply_from_mismatch_use_received: "Use received address",
     reply_from_mismatch_send_anyway: "Send anyway",
+    reply_from_unknown_title: "Check the From address",
+    reply_from_unknown_message:
+      "Aster can't tell which of your addresses received this email. Your reply is set to send from {{ selected }}. To send from a different address, cancel and choose it first.",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "On {{ date }}, {{ name }} wrote:",
     to: "To",
@@ -8741,6 +8929,7 @@ export const en: Translations = {
     press_to_undo: "to undo",
     tap_undo_to_cancel: "Tap the undo button to cancel",
     view_message: "View message",
+    open_full_view: "Open in full view",
     cancel_sending: "Cancel sending email",
     send_immediately: "Send email immediately",
     new_message: "New Message",
@@ -8811,8 +9000,14 @@ export const en: Translations = {
     block: "Block",
     unblock_sender: "Unblock sender",
     unsubscribe: "Unsubscribe",
+    copy_code: "Copy code",
+    copy_code_value: "Copy code {{code}}",
+    copy_subject: "Copy subject",
+    code_copied: "Code copied",
+    subject_copied: "Subject copied",
     load_all_thread_messages: "Load all messages",
     load_external_content: "Load external content",
+    image_loading_settings: "Image settings",
     image: "image",
     images: "images",
     tracker: "tracker",
@@ -9401,9 +9596,9 @@ export const en: Translations = {
     official_sender: "Official Aster address",
     official_sender_desc:
       "This message is from an official Aster address. Aster will never ask for your password or recovery phrase by email.",
-    verified_sender: "Verified sender",
+    verified_sender: "Verified domain",
     verified_sender_desc:
-      "The sender of this email has verified that they own {{domain}}.",
+      "Aster's servers checked that the sender owns {{domain}}.",
     sender_warning_title: "Check the sender's address",
     sender_warning_address_in_name:
       "The sender's name shows {{claimed}}, but this message comes from {{address}}.",
@@ -9654,7 +9849,8 @@ export const en: Translations = {
     device_code_waiting: "Listening for confirmation",
     device_code_expires_in: "Expires in",
     link_device_title: "Link device",
-    link_device_enter_code: "Enter the code shown on your desktop app.",
+    link_device_enter_code:
+      "Enter the linking code shown in the app that you're linking.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "Continue",
     link_device_confirm_prompt:
@@ -9662,21 +9858,34 @@ export const en: Translations = {
     link_device_confirm_button: "Link device",
     link_device_confirming: "Linking device...",
     link_device_cancel: "Cancel",
-    link_device_desktop: "Desktop app",
-    device_fingerprint: "Verification code",
+    link_device_desktop: "New device",
+    device_fingerprint: "Device fingerprint",
+    device_fingerprint_copy: "Copy device fingerprint",
+    link_device_grant_notice:
+      "Linking gives the app on {{device}} full access to {{email}}, including your mail and your encryption keys.",
+    link_device_own_device_warning:
+      "Continue only if you started this in an Aster app on your own device. If someone else gave you this code, don't link the device.",
+    link_device_fingerprint_enter:
+      "Enter the device fingerprint shown in the app that you're linking. Some apps call it a verification code.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "This doesn't match the device for this linking code. Compare each character with the app that you're linking, then try again. If it still doesn't match, don't link the device.",
+    link_device_fingerprint_link_mismatch:
+      "The link that opened this page belongs to a different device than this linking code, so you can't link the device here. Get a new code in the app that you're linking, then try again.",
+    link_device_update_desktop:
+      "If the app doesn't show it, choose Verify this device in the app. If the app doesn't have that option, update the app, then try again.",
+    device_code_fingerprint_required_hint:
+      "Your browser asks for this device fingerprint before it links the device.",
     device_code_verify_toggle: "Verify this device",
     link_device_fingerprint_hint:
       "Enter the verification code that your new device shows. In the desktop app, select Verify this device to see it.",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete:
       "To link the device, enter the full verification code from your new device.",
-    link_device_fingerprint_mismatch:
-      "That code doesn't match your new device. Check the code on your new device and enter it again. If it still doesn't match, select Cancel.",
     device_code_fingerprint_hint:
       "To link this device, enter this code on the device that you're already signed in on.",
     link_device_change_account: "Change account",
     link_device_choose_account: "Choose an account",
-    link_device_choose_account_description: "To link your desktop app",
+    link_device_choose_account_description: "To link a new device",
     link_device_choose_account_note:
       "Your encryption keys stay encrypted as they move between your devices.",
     link_device_use_another_account: "Use another account",
@@ -9688,11 +9897,11 @@ export const en: Translations = {
       "To continue with this account, enter its password.",
     link_device_success: "Device linked",
     link_device_success_description:
-      "Your desktop app is now linked. You can close this tab.",
+      "Your device is now linked. You can close this tab.",
     link_device_invalid_code:
       "A linking code is 8 characters long. Check the code and try again.",
     link_device_expired_code:
-      "This code expired or did not match. Your desktop app has the current one.",
+      "This code expired or did not match. The app that you're linking has the current one.",
     link_device_failed:
       "Linking did not finish. Starting over usually does it. Your account is unchanged.",
     link_keys_locked_title: "Your keyring is locked",
@@ -9988,6 +10197,22 @@ export const en: Translations = {
     sending_reset_link: "Sending reset link...",
     reset_your_password: "Reset your password",
     reset_choose_new_password: "Choose a new password for your account.",
+    reset_current_password:
+      "Current password",
+    reset_current_password_keeps_keys:
+      "Enter your current password so your encryption keys stay the same and your mail stays readable. If you don't know it, use a recovery code instead.",
+    reset_current_password_required:
+      "Enter your current password, or use a recovery code instead.",
+    reset_lost_everything:
+      "I lost my password and recovery codes",
+    reset_remember_password:
+      "I remember my password",
+    reset_lost_everything_warning:
+      "Without your password or a recovery code, Aster Mail can't unlock your encryption keys. Resetting creates new keys, and the mail you already have becomes unreadable unless you later find your previous password or a recovery code.",
+    reset_lost_everything_confirm:
+      "I understand that my existing mail becomes unreadable",
+    reset_lost_everything_confirm_required:
+      "To reset without your password, confirm that you understand your existing mail becomes unreadable.",
     reset_current_password_optional: "Current password (optional)",
     reset_current_password_hint:
       "If you remember your current password, enter it here and your earlier mail stays available as soon as you sign in. If you leave it blank, you can unlock your earlier mail later with a recovery code.",
@@ -10054,6 +10279,22 @@ export const en: Translations = {
     review_recovery_email_kept: "Your recovery email is still set.",
     review_no_recovery_email: "No recovery email.",
     review_add: "Add",
+    recovery_previous_password_placeholder:
+      "Enter your previous password",
+    recovery_previous_password_body:
+      "Your encryption keys are still protected by the password you used before this reset. To keep your mail readable, enter that previous password. Your keys stay the same and your new password protects them from now on.",
+    recovery_previous_password_required:
+      "Enter your previous password, or select I don't remember it.",
+    recovery_previous_password_incorrect:
+      "That password doesn't unlock your encryption keys. Check it and try again.",
+    recovery_previous_password_forgot:
+      "I don't remember it",
+    recovery_previous_password_use:
+      "Enter my previous password",
+    recovery_previous_password_skipped_warning:
+      "Your password is reset and your encryption keys are kept, but they stay locked with your previous password. Your mail can't be read until you enter that password from the Recover data banner.",
+    review_keys_left_locked:
+      "Your encryption keys are kept but still locked with your previous password. To read your mail, select Recover data in the banner and enter that password.",
     review_codes_left: "{{count}} recovery codes left.",
     review_codes_left_one: "{{count}} recovery code left.",
     review_codes_left_other: "{{count}} recovery codes left.",
@@ -10385,6 +10626,8 @@ export const en: Translations = {
       "The message password is too weak, so the message wasn't sent. Use at least 12 characters, and include a number, a symbol, or both uppercase and lowercase letters.",
     recipient_key_untrusted:
       "A recipient's encryption key changed, so the message wasn't sent. To send it, confirm the change with them another way, then choose Trust new key.",
+    recipient_key_unreadable:
+      "A recipient's saved encryption key can't be read on this device, so the message wasn't sent. To send it, confirm their key with them another way, then choose Trust new key.",
     key_trust_check_failed:
       "Couldn't check the recipients' encryption keys, so the message wasn't sent. Check your connection and try again.",
     recipient_classification_unavailable:
@@ -10719,6 +10962,10 @@ export const en: Translations = {
     regex_invalid:
       "This regex pattern is not valid. Check the syntax and try again.",
     regex_empty: "A regex pattern is needed before saving.",
+    regex_too_complex:
+      "This regex pattern is too complex to save. Use fewer repeats or alternatives and try again.",
+    regex_invalid_reason:
+      "This regex pattern is not valid: {{reason}}",
     regex_too_long: "This regex is too long. A trimmed version will work.",
     last_condition_required:
       "At least one condition is needed before this rule can save.",
@@ -10846,6 +11093,8 @@ export const en: Translations = {
       "case_sensitive can only follow a text value in quotation marks.",
     expr_internal_error:
       "This expression could not be read. Check the syntax and try again.",
+    expr_server_rejected:
+      "This part of the expression can't be saved. Check the syntax and try again.",
     expr_line_col: "(line {{line}}, column {{col}})",
     cannot_render_visual:
       "This rule has nested conditions that the visual editor cannot show. The Expression view is where it can be edited.",
@@ -11194,6 +11443,8 @@ export const en: Translations = {
     invite_card_join: "Join meeting",
     invite_card_calendar_failed: "Your reply was sent, but Aster couldn't add this event to your calendar.",
     invite_card_reply_send_failed: "Your reply didn't send. Try again.",
+    invite_card_reply_address_unavailable:
+      "Aster didn't send your reply because the address that received this invitation can't send mail. To reply, turn that address back on.",
     invite_card_organizer_mismatch:
       "{{sender}} sent this invitation, but it lists {{organizer}} as the organizer. If you don't expect that, check with the organizer before you respond.",
     invite_card_reply_confirm:

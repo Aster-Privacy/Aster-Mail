@@ -25,7 +25,11 @@ import {
 
 export type SenderIdentityStatus = "verified" | "unverified" | "mismatch";
 
-export type PeerIdentityEvent = "rotated" | "downgraded" | "untrusted";
+export type PeerIdentityEvent =
+  | "rotated"
+  | "downgraded"
+  | "untrusted"
+  | "unreadable";
 
 export interface PeerIdentityEventRecord {
   peer: string;
@@ -62,11 +66,30 @@ function notify_peer_identity_listeners(): void {
   });
 }
 
+const MAX_TRACKED_ALIASES = 2048;
+const peer_aliases = new Map<string, string>();
+
+function event_key(peer: string): string {
+  const lowered = peer.trim().toLowerCase();
+
+  return peer_aliases.get(lowered) ?? lowered;
+}
+
+export function note_peer_alias(peer: string, canonical_id: string): void {
+  const lowered = peer.trim().toLowerCase();
+
+  if (!lowered || !canonical_id) return;
+
+  peer_aliases.delete(lowered);
+  peer_aliases.set(lowered, canonical_id);
+  evict_oldest(peer_aliases, MAX_TRACKED_ALIASES);
+}
+
 export function record_peer_identity_event(
   peer: string,
   event: PeerIdentityEvent,
 ): void {
-  const key = peer.trim().toLowerCase();
+  const key = event_key(peer);
 
   if (!key) return;
 
@@ -87,11 +110,11 @@ export function get_peer_identity_event(
 ): PeerIdentityEventRecord | null {
   if (!peer) return null;
 
-  return peer_identity_events.get(peer.trim().toLowerCase()) ?? null;
+  return peer_identity_events.get(event_key(peer)) ?? null;
 }
 
 export function dismiss_peer_identity_event(peer: string): void {
-  if (peer_identity_events.delete(peer.trim().toLowerCase())) {
+  if (peer_identity_events.delete(event_key(peer))) {
     notify_peer_identity_listeners();
   }
 }

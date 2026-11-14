@@ -575,6 +575,9 @@ export const ar = {
       "لم تتم عملية الدفع. سيتم تقييد الوصول خلال {{days}} يوماً.",
     billing_alert_action: "ادفع",
     dismiss: "تجاهل",
+    web_sandbox_off_title: "يعمل محتوى الويب دون بيئة العزل الخاصة بالنظام",
+    web_sandbox_off_body:
+      "على هذا الكمبيوتر، لا يستطيع Aster Mail تشغيل بيئة العزل bubblewrap، لذلك يعمل محتوى الويب من دونها. لإعادة تشغيلها، ثبّت حزمة bubblewrap واسمح بمساحات أسماء المستخدمين غير المميزة، ثم أعد تشغيل Aster Mail.",
     load_content: "تحميل",
     open_link: "فتح الرابط",
     no_icon: "بدون أيقونة",
@@ -917,6 +920,8 @@ export const ar = {
     download_reveal_failed: "تعذر إظهار هذا الملف. ربما نُقل أو حُذف.",
     attachment_locked:
       "لا يمكن فتح هذا المرفق لأن مفتاح التشفير الخاص به غير متوفر على هذا الجهاز.",
+    attachment_content_mismatch:
+      "هذا المرفق لا يطابق الرسالة التي وصل معها، لذلك لم يتم فتحه.",
     scheduled_no_attachments:
       "لا يمكن للرسائل المجدولة أن تتضمن مرفقات بعد. أرسلها الآن، أو أزل الملفات لجدولتها.",
     scheduled_connected_account:
@@ -1097,6 +1102,10 @@ export const ar = {
     end_to_end_encrypted_label: "مشفر من طرف إلى طرف",
     encrypted_in_transit_stored: "مشفر أثناء النقل ومخزن بشكل مشفر.",
     only_you_and_sender: "أنت والمرسل فقط يمكنكما قراءة هذا.",
+    only_you_and_sender_details_from_server:
+      "أنت والمرسل فقط يمكنكما قراءة هذا. اسم المرسل والمستلمون والتاريخ مصدرها الخادم ولا يشملها التشفير من طرف إلى طرف.",
+    encrypted_to_you_unconfirmed_sender:
+      "شُفّرت هذه الرسالة بمفتاحك العام. لم يتم تأكيد هوية المرسل.",
     only_you_can_read_contacts:
       "أنت وحدك من يمكنه قراءة جهات اتصالك. لا يرى Aster هذه البيانات.",
     failed_to_send_email: "لم تُرسل هذه الرسالة. حاول مجددًا. مسوّدتك محفوظة.",
@@ -1724,6 +1733,9 @@ export const ar = {
     recovery_codes_low_reminder_body:
       "يعمل كل رمز مرة واحدة، وتبقى لديك {{count}}. احصل على رموز جديدة حتى لا تفقد الوصول إلى حسابك.",
     recovery_codes_low_reminder_action: "الحصول على رموز جديدة",
+    recovery_codes_refresh_title: "استبدل رموز الاسترداد",
+    recovery_codes_refresh_body:
+      "رموز الاسترداد المحفوظة لديك تستخدم تنسيقًا أقدم وأقصر. احصل على رموز جديدة واحفظها. بعد ذلك تتوقف رموزك القديمة عن العمل.",
     recovery_phrase_migrate_title: "انتقل إلى رموز الاسترداد",
     recovery_phrase_migrate_body:
       "سيتوقف العمل بعبارات الاسترداد. احصل على رموز الاسترداد الآن حتى تظل قادرًا على استرداد حسابك.",
@@ -1848,6 +1860,9 @@ export const ar = {
     dns_host_leave_blank: "اتركه فارغًا",
     dns_host_provider_hint:
       "يستخدم {{provider}} هذه الصيغة لحقل المضيف. انسخها تمامًا كما هي.",
+    dns_host_zone_hint:
+      "اسم المضيف هذا نسبي إلى {{zone}}، وهو النطاق الذي تدير فيه سجلات DNS.",
+    dns_full_record_name: "الاسم الكامل للسجل",
     purchase_congrats_title: "تهانينا",
     recipient_key_outdated: "مفتاح المستلم قديم",
     recipient_key_outdated_desc:
@@ -1858,7 +1873,23 @@ export const ar = {
     key_trust_change_message:
       "تغيّر مفتاح التشفير الخاص بـ {{recipients}} منذ آخر عملية بحث. تحقق من البصمة الجديدة مع المُستلِم عبر قناة أخرى قبل الإرسال.",
     key_trust_change_detail: "{{email}}: كانت {{prior}}، وأصبحت {{current}}.",
+    key_trust_unreadable_message:
+      "تعذرت قراءة مفتاح التشفير المحفوظ الخاص بـ {{recipients}} على هذا الجهاز. تحقق من البصمة الحالية مع المُستلِم عبر قناة أخرى قبل الإرسال.",
+    key_trust_unreadable_detail: "{{email}}: أصبحت {{current}}.",
+    key_trust_own_message:
+      "تغيّر مفتاح التشفير لعنوانك {{recipients}}. إذا لم تُعِد تعيين مفاتيحك أو تُعِدّ جهازًا جديدًا، فلا تثق بالمفتاح الجديد.",
     key_trust_change_confirm: "الثقة بالمفتاح الجديد",
+    key_trust_missing_title: "لم يُعثر على مفتاح التشفير",
+    key_trust_missing_message:
+      "كان لدى {{recipients}} مفتاح تشفير محفوظ على هذا الجهاز، لكن لا يتوفر أي مفتاح الآن. إذا تابعت، ستُرسل هذه الرسالة بدون تشفير تام بين الطرفين. تحقق مع المُستلِم عبر قناة أخرى قبل الإرسال.",
+    key_trust_missing_detail: "{{email}}: كان {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: تعذرت قراءة المفتاح المحفوظ.",
+    key_trust_missing_confirm: "الإرسال بدون تشفير",
+    key_trust_account_key_detail:
+      "{{email}} مفتاح الحساب: كان {{prior}}، والآن {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} مفتاح الهوية: كان {{prior}}، والآن {{current}}.",
     post_quantum_downgrade_title:
       "هل تريد الإرسال بدون مفاتيح ما بعد الكم المتوقعة؟",
     post_quantum_downgrade_message:
@@ -2422,6 +2453,14 @@ export const ar = {
     recovery_codes_saved_checkbox: "لقد حفظت رموز الاسترداد في مكان آمن.",
     recovery_codes_save_failed:
       "تعذر حفظ رموز الاسترداد على الخادم. حاول مرة أخرى.",
+    recovery_codes_required_save_desc:
+      "احفظ هذه الرموز الجديدة في مكان آمن. تستمر رموزك الحالية في العمل حتى تؤكد في الخطوة التالية.",
+    recovery_codes_required_verify_desc:
+      "لبدء استخدام رموزك الجديدة، أدخل كلمة المرور. بعد ذلك تتوقف رموزك السابقة عن العمل.",
+    recovery_codes_required_action: "استبدال الرموز",
+    recovery_codes_required_done: "رموز الاسترداد الجديدة مفعّلة.",
+    recovery_codes_already_replaced:
+      "تم استبدال رموز الاسترداد بالفعل على جهاز آخر.",
     legacy_phrase_row: "عبارة الاسترداد (القديمة)",
     legacy_phrase_row_desc:
       "عبارة الاسترداد الحالية لديك تبقى صالحة. رموز الاسترداد تحل محلها من الآن فصاعدًا.",
@@ -4295,6 +4334,8 @@ export const ar = {
       "بدأت هذه الجلسة على شبكة أو متصفح مختلف، لذا لم يغيّر Aster Mail كلمة المرور. لتغييرها، سجّل الخروج ثم سجّل الدخول مرة أخرى وحاول مجددًا.",
     password_change_identity_continuity_required:
       "لم يغيّر Aster Mail كلمة المرور لأن التغيير سيزيل مفاتيح تشفير تحتاجها رسائلك الأقدم. للمحاولة مرة أخرى، سجّل الخروج ثم سجّل الدخول مرة أخرى وغيّر كلمة المرور.",
+    password_change_vault_changed:
+      "تغيّرت مفاتيح التشفير على جهاز آخر أثناء تغيير كلمة المرور، لذلك لم يغيّر Aster Mail كلمة المرور. حاول مرة أخرى.",
     password_change_vault_out_of_date:
       "تم تغيير كلمة المرور على جهاز آخر، لذا هذه الجلسة لم تعد محدّثة. لتغيير كلمة المرور، سجّل الخروج ثم سجّل الدخول مرة أخرى باستخدام كلمة المرور الحالية.",
     update_password: "تحديث كلمة المرور",
@@ -4495,6 +4536,12 @@ export const ar = {
     developer_mode: "وضع المطور",
     developer_mode_description:
       "إظهار علامة تبويب المطور مع معلومات البناء وحالة التشفير وأدوات التصحيح",
+    launch_at_login: "فتح Aster Mail عند تسجيل الدخول",
+    launch_at_login_description: "يبدأ Aster Mail عند تسجيل الدخول إلى الكمبيوتر، لذا يصل البريد الجديد دون فتح التطبيق أولاً.",
+    start_minimized: "البدء مصغرًا",
+    start_minimized_description: "عند فتح Aster Mail عند تسجيل الدخول، يبقى في الخلفية دون نافذة. لفتحه، انقر على أيقونته في منطقة الإشعارات أو شريط القوائم.",
+    launch_at_login_move_to_applications: "لفتح Aster Mail عند تسجيل الدخول، انقله أولاً إلى مجلد التطبيقات.",
+    launch_at_login_reason: "افتح Aster Mail عند تسجيل الدخول ليصل البريد الجديد في الخلفية.",
     close_to_tray: "الاستمرار بالعمل عند إغلاق النافذة",
     close_to_tray_description:
       "يبقى Aster Mail في منطقة الإشعارات ليستمر وصول البريد الجديد. أوقف هذا الخيار للإنهاء عند إغلاق النافذة.",
@@ -4853,7 +4900,7 @@ export const ar = {
       "استخدام جسور Snowflake لمقاومة الرقابة",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "تمرّ الطلبات عبر شبكة CDN عالمية قبل وصولها إلى Aster. يبقى عنوان IP الخاص بك مخفيًا عن Aster، ولا تتميز حركة مرورك عن حركة CDN العادية.",
+      "تمرّ الطلبات عبر مرحّل تشغّله Aster على Cloudflare قبل وصولها إلى خوادم Aster. تبدو حركة المرور لشبكتك مثل حركة CDN العادية، وقد يفيد ذلك في الأماكن التي يُحجب فيها Aster. يظل Aster يرى عنوان IP الخاص بك. لإخفائه عن Aster، استخدم Tor.",
     "connection.status_connected": "متصل",
     "connection.status_connecting": "جارٍ الاتصال...",
     "connection.status_error":
@@ -4885,7 +4932,8 @@ export const ar = {
     tlsrpt_record: "سجل TLS-RPT",
     tlsrpt_description:
       "اختياري لكنه موصى به. ترسل لك الخوادم المستقبِلة ملخصًا يوميًا عند فشل التسليم المشفّر إلى نطاقك، فتكتشف المشكلات قبل مستخدميك.",
-    dns_instruction_set_tlsrpt_host: "اضبط المضيف على _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "انسخ اسم المضيف المعروض أدناه إلى حقل المضيف",
     dns_instruction_set_tlsrpt_value: "الصق قيمة TLS-RPT كما هي تمامًا",
     optional_step: "اختياري",
     gmail_import: "Gmail",
@@ -5251,7 +5299,8 @@ export const ar = {
     dns_instruction_merge_spf:
       "إذا كان لديك سجل SPF بالفعل، أضف توجيه include: إلى سجلك الحالي",
     dns_instruction_set_dkim: "اضبط القيمة على مفتاح DKIM الموضح أدناه",
-    dns_instruction_set_dmarc_host: "اضبط المضيف على _dmarc (بدون نطاقك)",
+    dns_instruction_set_dmarc_host:
+      "انسخ اسم المضيف المعروض أدناه إلى حقل المضيف",
     dns_instruction_set_dmarc_value:
       "اضبط القيمة على سياسة DMARC الموضحة أدناه",
     edit_external_account: "تعديل الحساب الخارجي",
@@ -7119,10 +7168,139 @@ export const ar = {
       "تخصم Aster المبلغ من بطاقتك المحفوظة قبل 30 يومًا من تاريخ الانتهاء وترسل إليك السعر بالبريد الإلكتروني قبل ذلك بـ 15 يومًا.",
     domain_purchase_manage_auto_renew_error:
       "تعذّر تحديث التجديد التلقائي. حاول مرة أخرى.",
-    domain_purchase_manage_dns: "فتح إعداد النطاق",
+    domain_purchase_manage_dns: "إدارة DNS",
     domain_purchase_manage_support_note:
-      "لنقل هذا النطاق إلى مسجّل آخر أو للسؤال عن استرداد المبلغ، تواصل مع الدعم.",
+      "للأسئلة المتعلقة بالفواتير أو استرداد المبلغ، تواصل مع الدعم.",
     domain_purchase_manage_support_subject: "مساعدة بشأن {{domain}}",
+    domain_transfer_button: "نقل",
+    domain_transfer_title: "نقل النطاق",
+    domain_transfer_hint:
+      "انقل هذا النطاق إلى مسجّل آخر. يرسل فريق الدعم رمز النقل إلى بريدك الوارد في Aster.",
+    domain_transfer_message:
+      "لنقل {{domain}} إلى مسجّل آخر، تحتاج إلى رمز نقل. عند المتابعة، تفتح Aster رسالة بريد إلكتروني إلى الدعم. يتأكد الدعم من أن الطلب صادر من هذا الحساب، ثم يرسل الرمز إلى صندوق الوارد في Aster. يستغرق النقل عادةً من 5 إلى 7 أيام بعد بدئه لدى المسجّل الجديد.",
+    domain_transfer_locked_message:
+      "لا يسمح المسجّلون بالنقل خلال {{count}} يومًا من التسجيل. يمكنك طلب نقل {{domain}} بدءًا من {{date}}.",
+    domain_transfer_confirm: "مراسلة الدعم",
+    domain_transfer_email_subject: "طلب نقل {{domain}}",
+    domain_transfer_email_body:
+      "أريد نقل {{domain}} إلى مسجّل آخر. أرسلوا رمز النقل إلى هذا العنوان.\n\nرقم الطلب: {{order_id}}\nالمسجّل الجديد:",
+    purchased_dns_title: "سجلات DNS",
+    purchased_dns_description:
+      "سجلات {{domain}}. تسري التغييرات عادةً خلال ساعة.",
+    purchased_dns_locked_title: "التعديل متوقف",
+    purchased_dns_locked_note:
+      "يمكنك عرض هذه السجلات، لكن لا يمكنك تغييرها الآن.",
+    purchased_dns_lock_frozen:
+      "التعديل متوقف مؤقتًا لهذا النطاق. تواصل مع الدعم لمعرفة المزيد.",
+    purchased_dns_lock_payment: "التعديل متوقف لأن دفعة هذا النطاق أُلغيت.",
+    purchased_dns_lock_lapsed:
+      "التعديل متوقف لأن هذا النطاق انتهت صلاحيته. جدّده لإجراء تغييرات.",
+    purchased_dns_lock_suspended: "التعديل متوقف لأن هذا النطاق معلّق.",
+    purchased_dns_unlock_title: "تأكيد هويتك",
+    purchased_dns_unlock_description:
+      "لتغيير سجلات DNS، أكّد هويتك. يبقى التعديل مفعّلًا لمدة 15 دقيقة.",
+    purchased_dns_unlock: "تفعيل التعديل",
+    purchased_dns_unlocked: "التعديل مفعّل",
+    purchased_dns_unlocked_for: "التعديل مفعّل لمدة {{time}}",
+    purchased_dns_lock: "إيقاف التعديل",
+    purchased_dns_add: "إضافة سجل",
+    purchased_dns_add_title: "إضافة سجل",
+    purchased_dns_edit_title: "تعديل السجل",
+    purchased_dns_added: "تمت إضافة السجل",
+    purchased_dns_updated: "تم تحديث السجل",
+    purchased_dns_deleted: "تم حذف السجل",
+    purchased_dns_delete_title: "هل تريد حذف السجل؟",
+    purchased_dns_delete_message:
+      "يتوقف حل سجل {{type}} الخاص بـ {{name}} بعد وقت قصير من حذفه.",
+    purchased_dns_edit_record: "تعديل سجل {{type}} الخاص بـ {{name}}",
+    purchased_dns_copy_record: "نسخ قيمة سجل {{type}} لـ {{name}}",
+    purchased_dns_delete_record: "حذف سجل {{type}} الخاص بـ {{name}}",
+    purchased_dns_read_only: "للقراءة فقط",
+    purchased_dns_mail_group: "سجلات Aster Mail",
+    purchased_dns_mail_group_tip:
+      "تدير Aster هذه السجلات حتى يستمر بريدك الإلكتروني في العمل. لا يمكنك تعديلها أو حذفها.",
+    purchased_dns_your_records: "سجلاتك",
+    purchased_dns_empty: "لم تُضف أي سجلات بعد.",
+    purchased_dns_limit_reached:
+      "وصل هذا النطاق إلى الحد الأقصى البالغ {{count}} سجلًا. احذف سجلًا لإضافة آخر.",
+    purchased_dns_col_type: "النوع",
+    purchased_dns_col_name: "الاسم",
+    purchased_dns_col_content: "المحتوى",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "الإجراءات",
+    purchased_dns_host_hint:
+      "استخدم @ للنطاق نفسه، أو أدخل نطاقًا فرعيًا مثل www.",
+    purchased_dns_field_ipv4: "عنوان IPv4",
+    purchased_dns_field_ipv6: "عنوان IPv6",
+    purchased_dns_field_target: "الهدف",
+    purchased_dns_field_content: "المحتوى",
+    purchased_dns_field_mail_server: "خادم البريد",
+    purchased_dns_field_caa_value: "القيمة",
+    purchased_dns_field_priority: "الأولوية",
+    purchased_dns_field_weight: "الوزن",
+    purchased_dns_field_port: "المنفذ",
+    purchased_dns_field_flags: "العلامات",
+    purchased_dns_field_tag: "الوسم",
+    purchased_dns_ttl_one_hour: "ساعة واحدة",
+    purchased_dns_ttl_hours: "{{count}} ساعات",
+    purchased_dns_ttl_one_day: "يوم واحد",
+    purchased_dns_ttl_days: "{{count}} أيام",
+    purchased_dns_error_required: "املأ هذا الحقل.",
+    purchased_dns_error_host:
+      "أدخل اسمًا صالحًا. استخدم الأحرف والأرقام والشرطات والشرطات السفلية، بحد أقصى 63 حرفًا لكل جزء.",
+    purchased_dns_error_protected_host: "هذا الاسم محجوز لسجلات Aster Mail.",
+    purchased_dns_error_apex_mx:
+      "تدير Aster سجلات البريد للنطاق نفسه. أضف سجلات MX على نطاق فرعي بدلًا من ذلك.",
+    purchased_dns_error_apex_cname:
+      "لا يمكن لسجل CNAME استخدام النطاق نفسه. استخدم سجل A أو AAAA بدلًا من ذلك.",
+    purchased_dns_error_apex_spf:
+      "تنشر Aster بالفعل سجل SPF لهذا النطاق، ولا يمكن أن يكون للنطاق سوى سجل واحد.",
+    purchased_dns_error_value: "تحقق من القيمة وحاول مرة أخرى.",
+    purchased_dns_error_ip: "أدخل عنوان IP صالحًا.",
+    purchased_dns_error_ipv4: "أدخل عنوان IPv4 صالحًا، مثل 203.0.113.10.",
+    purchased_dns_error_ipv6: "أدخل عنوان IPv6 صالحًا، مثل 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "أدخل عنوان IP عامًا. لا يمكن الوصول إلى العناوين الخاصة والمحلية والمحجوزة من الإنترنت.",
+    purchased_dns_error_target: "أدخل اسم مضيف صالحًا، مثل example.com.",
+    purchased_dns_error_cname_self: "لا يمكن لسجل CNAME أن يشير إلى اسمه.",
+    purchased_dns_error_cname_conflict:
+      "لا يمكن أن يحتوي اسم له سجل CNAME على سجلات أخرى. أزل السجلات الأخرى أولًا، أو اختر اسمًا آخر.",
+    purchased_dns_error_txt_length:
+      "يمكن أن يحتوي محتوى TXT على 2,048 حرفًا كحد أقصى.",
+    purchased_dns_error_txt_chars:
+      "يمكن أن يحتوي محتوى TXT على الأحرف القياسية القابلة للطباعة فقط، دون علامات اقتباس أو شرطات مائلة عكسية.",
+    purchased_dns_error_ttl: "اختر قيمة TTL من القائمة.",
+    purchased_dns_error_priority: "أدخل أولوية من 0 إلى 65535.",
+    purchased_dns_error_weight: "أدخل وزنًا من 0 إلى 65535.",
+    purchased_dns_error_port: "أدخل منفذًا من 1 إلى 65535.",
+    purchased_dns_error_srv_host:
+      "يبدأ اسم SRV بالخدمة والبروتوكول، مثل _sip._tcp.",
+    purchased_dns_error_caa_flags: "اختر 0 أو 128 للعلامات.",
+    purchased_dns_error_caa_tag: "اختر issue أو issuewild أو iodef للوسم.",
+    purchased_dns_error_caa_value:
+      "أدخل قيمة تحتوي على 255 حرفًا كحد أقصى، دون علامات اقتباس أو شرطات مائلة عكسية.",
+    purchased_dns_error_duplicate: "هذا السجل موجود بالفعل.",
+    purchased_dns_error_too_many:
+      "وصل هذا النطاق إلى الحد الأقصى لعدد السجلات. احذف سجلًا لإضافة آخر.",
+    purchased_dns_error_protected_record:
+      "تدير Aster هذا السجل، لذا لا يمكنك تغييره.",
+    purchased_dns_error_type_change:
+      "لا يمكنك تغيير نوع السجل. احذفه وأضف سجلًا جديدًا بدلًا من ذلك.",
+    purchased_dns_error_locked: "التعديل متوقف لهذا النطاق.",
+    purchased_dns_error_busy: "المسجّل مشغول.",
+    purchased_dns_error_not_found: "هذا السجل لم يعد موجودًا.",
+    purchased_dns_error_rate_limited: "أنت تُجري التغييرات بسرعة كبيرة.",
+    purchased_dns_error_retry_in:
+      "{{message}} حاول مرة أخرى بعد {{count}} ثانية.",
+    purchased_dns_error_retry_in_one: "{{message}} حاول مرة أخرى بعد ثانية واحدة.",
+    purchased_dns_ttl_seconds: "{{count}} ثانية",
+    purchased_dns_expired_note: "انتهت مهلة التحرير. لم يتم حفظ تغييراتك بعد. عند النقر على حفظ، سيُطلب منك تأكيد هويتك.",
+    purchased_dns_filter_placeholder: "تصفية السجلات",
+    purchased_dns_filter_no_results: "لا توجد سجلات تطابق عامل التصفية.",
+    purchased_dns_keep_editing: "متابعة التحرير",
+    purchased_dns_error_unlock_failed: "تعذّر تشغيل التحرير. حاول مرة أخرى.",
+    purchased_dns_error_generic: "تعذّر حفظ التغيير. حاول مرة أخرى.",
+    purchased_dns_load_failed: "تعذر تحميل سجلات DNS. حاول مرة أخرى.",
     domain_purchase_filter_all: "الكل",
     domain_purchase_filter_available: "متاح",
     domain_purchase_filter_taken: "محجوز",
@@ -7303,6 +7481,7 @@ export const ar = {
       "يمكنك إضافة مفاتيح الأمان من تطبيق Aster على الويب عبر app.astermail.org. وهنا يمكنك عرض المفاتيح الحالية وإزالتها.",
     passkeys_desktop_note:
       "يمكنك إضافة مفاتيح المرور من تطبيق Aster على الويب عبر app.astermail.org. وهنا يمكنك عرض المفاتيح الحالية وإزالتها.",
+    passkeys_open_in_browser: "فتح في المتصفح",
     app_lock_pin: "قفل التطبيق بالرمز",
     app_lock_pin_description:
       "يطلب رمز PIN قبل عرض Aster Mail في هذا المتصفح. يخفي بريدك عن الآخرين الذين يستخدمون هذا الجهاز، لكنه لا يشفّر البيانات المخزّنة هنا.",
@@ -8682,6 +8861,8 @@ export const ar = {
       "تغيّرت هوية التشفير لهذا المرسل منذ آخر تبادل للرسائل بينكما. إذا لم تكن تتوقع ذلك، فتأكد من الأمر معه بطريقة أخرى.",
     sender_identity_downgraded:
       "لم تعد رسائل هذا المرسل محمية بتشفير ما بعد الكم. إذا لم تكن تتوقع ذلك، فتأكد من الأمر معه بطريقة أخرى.",
+    sender_identity_unreadable:
+      "تعذرت قراءة مفتاح التشفير المحفوظ لهذا المرسل على هذا الجهاز، لذلك لا يمكن التحقق من هذه الرسالة. للتحقق من رسائله مجددًا، أكّد المفتاح معه بطريقة أخرى، ثم اختر الوثوق بالمفتاح الجديد.",
     recipient_identity_changed:
       "تغيّر مفتاح التشفير الخاص بـ {{email}}. إذا لم تكن تتوقع ذلك، فتأكد من التغيير معه بطريقة أخرى قبل إرسال أي معلومات حساسة.",
     message_password_requirements:
@@ -8867,6 +9048,11 @@ export const ar = {
     block_sender: "حظر المرسل",
     unblock_sender: "إلغاء حظر المرسل",
     unsubscribe: "إلغاء الاشتراك",
+    copy_code: "نسخ الرمز",
+    copy_code_value: "نسخ الرمز {{code}}",
+    copy_subject: "نسخ الموضوع",
+    code_copied: "تم نسخ الرمز",
+    subject_copied: "تم نسخ الموضوع",
     edit_draft: "تعديل المسودة",
     schedule: "جدولة",
     scheduling: "جارٍ الجدولة",
@@ -9243,8 +9429,9 @@ export const ar = {
     unstar: "إزالة النجمة",
     mark_unread: "تعليم كغير مقروء",
     mark_read: "تعليم كمقروء",
-    verified_sender: "مرسل موثّق",
-    verified_sender_desc: "أكّد مرسل هذه الرسالة أنه يملك النطاق {{domain}}.",
+    verified_sender: "نطاق موثّق",
+    verified_sender_desc:
+      "تحقّقت خوادم Aster من أن المرسل يملك النطاق {{domain}}.",
     sender_warning_title: "تحقّق من عنوان المرسل",
     sender_warning_address_in_name:
       "يعرض اسم المرسل {{claimed}}، لكن هذه الرسالة واردة من {{address}}.",
@@ -9347,6 +9534,7 @@ export const ar = {
     move_n_conversations_one: "نقل محادثة واحدة",
     move_n_conversations_other: "نقل {{count}} محادثة",
     view_message: "عرض الرسالة",
+    open_full_view: "فتح في عرض كامل",
     block_sender_spam_warning:
       "من الآن فصاعدًا، الرسائل الجديدة من هذا المرسل ستذهب مباشرة إلى المزعج. قائمة الحظر فيها خيار رفع الحظر لاحقًا.",
     block_sender_confirm_message: "حظر {{email}}؟ لن تتلقى رسائل منه بعد الآن.",
@@ -9375,6 +9563,9 @@ export const ar = {
       "تم استلام هذا البريد على {{ received }}، لكن ردك سيُرسل من {{ selected }}. الرد من عنوان مختلف قد يكشفه للمرسل وقد يُرفض الرد.",
     reply_from_mismatch_use_received: "استخدام عنوان الاستلام",
     reply_from_mismatch_send_anyway: "الإرسال على أي حال",
+    reply_from_unknown_title: "تحقق من عنوان المرسل",
+    reply_from_unknown_message:
+      "لا يستطيع Aster تحديد أي من عناوينك استلم هذه الرسالة. سيُرسل ردك من {{ selected }}. للإرسال من عنوان آخر، ألغِ ثم اختره أولًا.",
     forward_subject_prefix: "تحويل:",
     reply_quote_header: "بتاريخ {{ date }}، كتب {{ name }}:",
     download_file_named: "تنزيل {{ filename }}",
@@ -9383,6 +9574,7 @@ export const ar = {
     received_via_alias: "تم التسليم إلى الاسم المستعار {{ address }}",
     new_reaction: "تفاعل جديد",
     load_external_content: "تحميل المحتوى الخارجي",
+    image_loading_settings: "إعدادات الصور",
     images: "صور",
     tracker: "متتبع",
     trackers: "متتبعات",
@@ -9929,6 +10121,22 @@ export const ar = {
     sending_reset_link: "جارٍ إرسال رابط إعادة التعيين...",
     reset_your_password: "إعادة تعيين كلمة المرور",
     reset_choose_new_password: "اختر كلمة مرور جديدة لحسابك.",
+    reset_current_password:
+      "كلمة المرور الحالية",
+    reset_current_password_keeps_keys:
+      "أدخل كلمة المرور الحالية لتبقى مفاتيح التشفير كما هي ويبقى بريدك قابلاً للقراءة. إذا لم تكن تعرفها، فاستخدم رمز استرداد بدلاً من ذلك.",
+    reset_current_password_required:
+      "أدخل كلمة المرور الحالية أو استخدم رمز استرداد بدلاً من ذلك.",
+    reset_lost_everything:
+      "فقدت كلمة المرور ورموز الاسترداد",
+    reset_remember_password:
+      "أتذكر كلمة المرور",
+    reset_lost_everything_warning:
+      "بدون كلمة المرور أو رمز استرداد، لا يمكن لـ Aster Mail فتح مفاتيح التشفير. تؤدي إعادة التعيين إلى إنشاء مفاتيح جديدة، ويصبح بريدك الحالي غير قابل للقراءة ما لم تعثر لاحقًا على كلمة المرور السابقة أو رمز استرداد.",
+    reset_lost_everything_confirm:
+      "أفهم أن بريدي الحالي سيصبح غير قابل للقراءة",
+    reset_lost_everything_confirm_required:
+      "لإعادة التعيين بدون كلمة المرور، أكّد أنك تفهم أن بريدك الحالي سيصبح غير قابل للقراءة.",
     reset_current_password_optional: "كلمة المرور الحالية (اختياري)",
     reset_current_password_hint:
       "إذا كنت تذكر كلمة مرورك الحالية، فأدخلها هنا لتظل رسائلك السابقة متاحة بمجرد تسجيل الدخول. إذا تركت الحقل فارغًا، يمكنك فتح رسائلك السابقة لاحقًا باستخدام رمز استرداد.",
@@ -9993,6 +10201,22 @@ export const ar = {
     review_recovery_email_kept: "بريد الاسترداد ما زال مضبوطًا.",
     review_no_recovery_email: "لا يوجد بريد استرداد.",
     review_add: "إضافة",
+    recovery_previous_password_placeholder:
+      "أدخل كلمة المرور السابقة",
+    recovery_previous_password_body:
+      "لا تزال مفاتيح التشفير محمية بكلمة المرور التي كنت تستخدمها قبل إعادة التعيين هذه. لكي يبقى بريدك قابلاً للقراءة، أدخل كلمة المرور السابقة. تبقى مفاتيحك كما هي وتحميها كلمة المرور الجديدة من الآن فصاعدًا.",
+    recovery_previous_password_required:
+      "أدخل كلمة المرور السابقة أو اختر لا أتذكرها.",
+    recovery_previous_password_incorrect:
+      "كلمة المرور هذه لا تفتح مفاتيح التشفير. تحقق منها وحاول مرة أخرى.",
+    recovery_previous_password_forgot:
+      "لا أتذكرها",
+    recovery_previous_password_use:
+      "إدخال كلمة المرور السابقة",
+    recovery_previous_password_skipped_warning:
+      "تتم إعادة تعيين كلمة المرور ويتم الاحتفاظ بمفاتيح التشفير، لكنها تبقى مقفلة بكلمة المرور السابقة. لا يمكن قراءة بريدك حتى تدخل كلمة المرور تلك من شريط استعادة البيانات.",
+    review_keys_left_locked:
+      "تم الاحتفاظ بمفاتيح التشفير لكنها لا تزال مقفلة بكلمة المرور السابقة. لقراءة بريدك، اختر استعادة البيانات في الشريط وأدخل كلمة المرور تلك.",
     review_codes_left: "تبقى {{count}} من رموز الاسترداد.",
     review_codes_left_zero: "لم يتبق أي رمز استرداد.",
     review_codes_left_one: "تبقى رمز استرداد واحد.",
@@ -10082,28 +10306,41 @@ export const ar = {
     device_code_waiting: "في انتظار التأكيد",
     device_code_expires_in: "ينتهي خلال",
     link_device_title: "ربط الجهاز",
-    link_device_enter_code: "أدخل الرمز المعروض على تطبيق سطح المكتب الخاص بك.",
+    link_device_enter_code: "أدخل رمز الربط المعروض في التطبيق الذي تربطه.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "متابعة",
     link_device_confirm_prompt: "هل تريد ربط هذا الجهاز بحسابك؟",
     link_device_confirm_button: "ربط الجهاز",
     link_device_confirming: "جارٍ ربط الجهاز...",
     link_device_cancel: "إلغاء",
-    link_device_desktop: "تطبيق سطح المكتب",
-    device_fingerprint: "رمز التحقق",
+    link_device_desktop: "جهاز جديد",
+    device_fingerprint: "بصمة الجهاز",
+    device_fingerprint_copy: "نسخ بصمة الجهاز",
+    link_device_grant_notice:
+      "يمنح الربط التطبيق على {{device}} وصولاً كاملاً إلى {{email}}، بما في ذلك بريدك ومفاتيح التشفير الخاصة بك.",
+    link_device_own_device_warning:
+      "تابع فقط إذا كنت قد بدأت هذه العملية بنفسك في أحد تطبيقات Aster على جهازك. إذا أعطاك شخص آخر هذا الرمز، فلا تربط الجهاز.",
+    link_device_fingerprint_enter:
+      "أدخل بصمة الجهاز المعروضة في التطبيق الذي تربطه. بعض التطبيقات تسميها رمز التحقق.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "هذه البصمة لا تطابق الجهاز الخاص برمز الربط هذا. قارن كل حرف بما يعرضه التطبيق الذي تربطه ثم حاول مرة أخرى. إذا استمر عدم التطابق، فلا تربط الجهاز.",
+    link_device_fingerprint_link_mismatch:
+      "الرابط الذي فتح هذه الصفحة يخص جهازاً غير الجهاز الخاص برمز الربط هذا، لذلك لا يمكنك ربط الجهاز هنا. احصل على رمز جديد من التطبيق الذي تربطه ثم حاول مرة أخرى.",
+    link_device_update_desktop:
+      "إذا لم يعرضها التطبيق، فاختر التحقق من هذا الجهاز في التطبيق. إذا لم يكن هذا الخيار متوفراً في التطبيق، فحدّث التطبيق ثم حاول مرة أخرى.",
+    device_code_fingerprint_required_hint:
+      "يطلب متصفحك بصمة الجهاز هذه قبل ربط الجهاز.",
     device_code_verify_toggle: "التحقق من هذا الجهاز",
     link_device_fingerprint_hint:
       "أدخل رمز التحقق الذي يعرضه جهازك الجديد. في تطبيق سطح المكتب، اختر التحقق من هذا الجهاز لعرضه.",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete:
       "لربط الجهاز، أدخل رمز التحقق الكامل من جهازك الجديد.",
-    link_device_fingerprint_mismatch:
-      "هذا الرمز لا يطابق جهازك الجديد. تحقق من الرمز على جهازك الجديد وأدخله مرة أخرى. إذا ظل غير مطابق، فاختر إلغاء.",
     device_code_fingerprint_hint:
       "لربط هذا الجهاز، أدخل هذا الرمز على الجهاز الذي سجّلت الدخول عليه بالفعل.",
     link_device_change_account: "تغيير الحساب",
     link_device_choose_account: "اختر حسابًا",
-    link_device_choose_account_description: "لربط تطبيق سطح المكتب",
+    link_device_choose_account_description: "لربط جهاز جديد",
     link_device_choose_account_note:
       "تبقى مفاتيح التشفير الخاصة بك مشفّرة أثناء انتقالها بين أجهزتك.",
     link_device_use_another_account: "استخدام حساب آخر",
@@ -10115,11 +10352,11 @@ export const ar = {
       "للمتابعة بهذا الحساب، أدخل كلمة المرور الخاصة به.",
     link_device_success: "تم ربط الجهاز",
     link_device_success_description:
-      "تطبيق سطح المكتب الخاص بك مرتبط الآن. يمكنك إغلاق هذه التبويبة.",
+      "جهازك مرتبط الآن. يمكنك إغلاق هذه التبويبة.",
     link_device_invalid_code:
       "رمز الربط مكوّن من 8 أحرف. تحقق من الرمز وحاول مجددًا.",
     link_device_expired_code:
-      "انتهت صلاحية هذا الرمز أو لم يتطابق. تطبيق سطح المكتب الخاص بك لديه الرمز الحالي.",
+      "انتهت صلاحية هذا الرمز أو لم يتطابق. الرمز الحالي معروض في التطبيق الذي تربطه.",
     link_device_failed:
       "الربط لم يكتمل. البداية من جديد عادةً ما تحل الأمر. حسابك لم يتغير.",
     link_keys_locked_title: "سلسلة المفاتيح مقفلة",
@@ -10459,6 +10696,8 @@ export const ar = {
       "كلمة مرور الرسالة ضعيفة جدًا، لذلك لم تُرسل الرسالة. استخدم 12 حرفًا على الأقل، وأضف رقمًا أو رمزًا أو أحرفًا كبيرة وصغيرة.",
     recipient_key_untrusted:
       "تغير مفتاح تشفير أحد المستلمين، لذلك لم تُرسل الرسالة. لإرسالها، أكّد التغيير مع هذا الشخص بطريقة أخرى، ثم اختر الوثوق بالمفتاح الجديد.",
+    recipient_key_unreadable:
+      "تعذرت قراءة مفتاح التشفير المحفوظ لأحد المستلمين على هذا الجهاز، لذلك لم تُرسل الرسالة. لإرسالها، أكّد المفتاح مع هذا الشخص بطريقة أخرى، ثم اختر الوثوق بالمفتاح الجديد.",
     key_trust_check_failed:
       "تعذر التحقق من مفاتيح تشفير المستلمين، لذلك لم تُرسل الرسالة. تحقق من اتصالك وحاول مرة أخرى.",
     recipient_classification_unavailable:
@@ -10661,6 +10900,8 @@ export const ar = {
       "يمكن وضع case_sensitive فقط بعد قيمة نصية بين علامتي اقتباس.",
     expr_internal_error:
       "تعذّرت قراءة هذا التعبير. تحقق من بنية الجملة وحاول مرة أخرى.",
+    expr_server_rejected:
+      "لا يمكن حفظ هذا الجزء من التعبير. تحقق من الصياغة وحاول مرة أخرى.",
     expr_line_col: "(السطر {{line}}، العمود {{col}})",
     editor_description: "سمِّ قاعدتك وحدد ما تفعله.",
     editor_server_notice:
@@ -10805,6 +11046,10 @@ export const ar = {
     regex_invalid:
       "نمط التعبير النمطي هذا غير صالح. تحقق من الصياغة وحاول مجددًا.",
     regex_empty: "نمط تعبير نمطي مطلوب قبل الحفظ.",
+    regex_too_complex:
+      "نمط التعبير النمطي هذا معقد جدًا بحيث لا يمكن حفظه. استخدم تكرارات أو بدائل أقل ثم حاول مرة أخرى.",
+    regex_invalid_reason:
+      "نمط التعبير النمطي هذا غير صالح: {{reason}}",
     regex_too_long: "هذا التعبير النمطي طويل جدًا. نسخة مختصرة ستعمل.",
     last_condition_required: "شرط واحد على الأقل مطلوب قبل حفظ هذه القاعدة.",
     last_action_required: "إجراء واحد على الأقل مطلوب قبل حفظ هذه القاعدة.",
@@ -11231,6 +11476,8 @@ export const ar = {
     invite_card_join: "الانضمام إلى الاجتماع",
     invite_card_calendar_failed: "تم إرسال ردك، لكن تعذّر على Aster إضافة هذا الحدث إلى تقويمك.",
     invite_card_reply_send_failed: "تعذّر إرسال ردك. حاول مرة أخرى.",
+    invite_card_reply_address_unavailable:
+      "لم يرسل Aster ردك لأن العنوان الذي تلقى هذه الدعوة لا يمكنه إرسال البريد. للرد، أعد تفعيل هذا العنوان.",
     invite_card_organizer_mismatch:
       "أرسل {{sender}} هذه الدعوة، لكنها تذكر {{organizer}} بصفته المنظِّم. إذا لم تكن تتوقع ذلك، فتحقق مع المنظِّم قبل الرد.",
     invite_card_reply_confirm:

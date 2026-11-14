@@ -30,6 +30,8 @@ import {
   get_compose_sanitize_options,
   proxy_compose_image_sources,
 } from "@/lib/compose_image_sources";
+import { defer_compose_images } from "@/lib/compose_deferred_images";
+import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration";
 import { plain_text_to_editor_html } from "@/hooks/editor_utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_file_icon_color } from "@/components/compose/compose_shared";
@@ -683,6 +685,7 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
   const flush_editor_input = compose.editor.flush_input;
 
   use_compose_readable_color(compose.message_textarea_ref);
+  use_compose_image_hydration(compose.message_textarea_ref);
 
   useEffect(() => {
     return () => {
@@ -707,7 +710,9 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
         get_compose_sanitize_options(),
       );
 
-      el.innerHTML = proxy_compose_image_sources(safe.html);
+      el.innerHTML = defer_compose_images(
+        compose.contain_quoted_content(proxy_compose_image_sources(safe.html)),
+      );
     }
   });
 

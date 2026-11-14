@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import type { SenderVerificationStatus } from "@/types/email";
+
 export const SENT_ENCRYPTION_FIELD = "sent_encryption";
 
 const MAX_RECIPIENT_COUNT = 100_000;
@@ -170,10 +172,49 @@ export function shows_end_to_end(flags: EncryptionDisplayFlags): boolean {
   );
 }
 
+export interface SenderDisplayFlags extends EncryptionDisplayFlags {
+  sender_verification?: SenderVerificationStatus;
+  is_received?: boolean;
+}
+
+export function displayed_sender_verification(
+  flags: SenderDisplayFlags,
+): SenderVerificationStatus | undefined {
+  const status = flags.sender_verification;
+
+  if (status === "unsigned" && flags.is_external === false) return undefined;
+  if (status && status !== "unknown") return status;
+
+  if (
+    flags.is_received === true &&
+    flags.is_external === true &&
+    !as_sent_encryption_scope(flags.sent_encryption_scope) &&
+    shows_end_to_end(flags)
+  ) {
+    return "no_keys";
+  }
+
+  return status;
+}
+
 export function reaches_outside_recipients(
   flags: EncryptionDisplayFlags,
 ): boolean {
   const scope = as_sent_encryption_scope(flags.sent_encryption_scope);
 
   return scope ? scope === "outside" : !!flags.is_external;
+}
+
+export interface SenderBindingFlags {
+  sent_encryption_scope?: SentEncryptionScope;
+  e2e_sender_bound?: boolean;
+  sender_verification?: string;
+}
+
+export function names_sender_as_reader(flags: SenderBindingFlags): boolean {
+  if (as_sent_encryption_scope(flags.sent_encryption_scope)) return true;
+
+  return (
+    flags.e2e_sender_bound === true || flags.sender_verification === "verified"
+  );
 }

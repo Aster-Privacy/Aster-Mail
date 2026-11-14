@@ -376,6 +376,7 @@ export function use_security() {
       >;
       let master_key_mode = false;
       let old_identity_key = "";
+      let cas_field: { expected_vault_sha256?: string } = {};
       let response!: Awaited<ReturnType<typeof change_password>>;
       const new_password_strength_tier =
         compute_password_strength_tier(new_password);
@@ -396,6 +397,9 @@ export function use_security() {
         }
 
         vault = loaded.vault;
+        cas_field = loaded.server_blob?.vault_sha256
+          ? { expected_vault_sha256: loaded.server_blob.vault_sha256 }
+          : {};
 
         const memory_vault = get_vault_from_memory();
 
@@ -525,6 +529,7 @@ export function use_security() {
                   ...kdf_field,
                   ...kept_app_lock_field(user.id),
                   ...fingerprint_field,
+                  ...cas_field,
                 })
               : change_password({
                   current_password_hash,
@@ -538,6 +543,7 @@ export function use_security() {
                   ...kdf_field,
                   ...kept_app_lock_field(user.id),
                   ...fingerprint_field,
+                  ...cas_field,
                 }),
         );
 

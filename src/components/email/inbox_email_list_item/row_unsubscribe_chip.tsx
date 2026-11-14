@@ -36,7 +36,10 @@ interface RowUnsubscribeChipProps {
     | "list_unsubscribe"
     | "list_unsubscribe_post"
     | "dkim_result"
-  >;
+    | "routing_token"
+    | "recipient_addresses"
+  > &
+    Partial<Pick<InboxEmail, "item_type">>;
 }
 
 export function row_has_unsubscribe_header(
@@ -59,6 +62,13 @@ export function RowUnsubscribeChip({ email }: RowUnsubscribeChipProps) {
   );
   const { unsubscribe, is_pending } = use_unsubscribe_action({
     unsubscribe_info,
+    delivery: {
+      routing_token:
+        !email.item_type || email.item_type === "received"
+          ? email.routing_token
+          : undefined,
+      recipients: email.recipient_addresses,
+    },
     sender_email: email.sender_email,
     sender_name: safe_sender_name(email.sender_name, email.sender_email),
   });

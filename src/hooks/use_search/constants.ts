@@ -35,3 +35,7 @@ export const INDEX_YIELD_MS = 8;
 export const ATTACHMENT_DETAIL_SCAN_LIMIT = 200;
 export const INDEX_TTL_MS = 5 * 60 * 1000;
 export const INDEX_TTL_MS_LOW_NETWORK = 20 * 60 * 1000;
+export const PURGE_FLUSH_MS = 1500;
+export const RECONCILE_INTERVAL_MS = 6 * 60 * 60 * 1000;
+export const RECONCILE_RETRY_MS = 30 * 60 * 1000;
+export const RECONCILE_REQUEST_MIN_MS = 15 * 60 * 1000;

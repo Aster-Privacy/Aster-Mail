@@ -48,10 +48,10 @@ import {
 } from "@/hooks/mail_events";
 import {
   get_external_content_mode,
-  set_external_content_mode,
 } from "@/components/email/viewer_shared";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_remote_content_grants } from "@/hooks/use_remote_content_grants";
 import { use_i18n } from "@/lib/i18n/context";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { get_read_intent } from "@/services/read_intent";
@@ -304,32 +304,8 @@ export function use_popup_viewer({
     [],
   );
 
-  const [loaded_content_types, set_loaded_content_types] = useState<
-    Set<string>
-  >(new Set());
-
-  const handle_load_external_content = useCallback(
-    (types?: string[]) => {
-      if (!types) {
-        set_external_content_state((prev) => ({
-          mode: "loaded",
-          report: prev.report,
-        }));
-        if (email_id) set_external_content_mode(email_id);
-        set_loaded_content_types(new Set());
-
-        return;
-      }
-      set_loaded_content_types((prev) => {
-        const next = new Set(prev);
-
-        for (const t of types) next.add(t);
-
-        return next;
-      });
-    },
-    [email_id],
-  );
+  const { remote_content_grants, grant_remote_content } =
+    use_remote_content_grants(email_id);
 
   const handle_dismiss_external_content = useCallback(() => {
     set_external_content_state((prev) => ({ ...prev, mode: "dismissed" }));
@@ -524,6 +500,8 @@ export function use_popup_viewer({
         is_external: pe.is_external,
         system_origin: pe.system_origin,
         e2e_verified: !!pe.e2e_verified,
+        e2e_sender_bound: !!pe.e2e_sender_bound,
+        e2e_details_sealed: !!pe.e2e_details_sealed,
         sent_encryption_scope: pe.sent_encryption_scope,
         send_status: pe.send_status,
         send_error: pe.send_error,
@@ -678,6 +656,8 @@ export function use_popup_viewer({
           safe_html,
           unsubscribe_info: unsubscribe,
           e2e_verified,
+          e2e_sender_bound,
+          e2e_details_sealed,
           sent_encryption_scope,
         } = await process_envelope_body(
           envelope,
@@ -723,6 +703,8 @@ export function use_popup_viewer({
           is_external: response.data.is_external,
           system_origin: response.data.system_origin,
           e2e_verified,
+          e2e_sender_bound,
+          e2e_details_sealed,
           sent_encryption_scope,
           send_status: response.data.send_status,
           send_error: response.data.send_error,
@@ -740,6 +722,8 @@ export function use_popup_viewer({
           decrypted_metadata,
           e2e_verified,
           sent_encryption_scope,
+          e2e_sender_bound,
+          e2e_details_sealed,
         );
 
         if (should_load_thread) {
@@ -1387,9 +1371,9 @@ export function use_popup_viewer({
     handle_print: actions.handle_print,
     handle_unsubscribe: () => actions.handle_unsubscribe(unsubscribe_info),
     handle_external_content_detected,
-    handle_load_external_content,
+    handle_load_external_content: grant_remote_content,
     handle_dismiss_external_content,
-    loaded_content_types,
+    remote_content_grants,
     handle_per_message_reply: actions.handle_per_message_reply,
     handle_per_message_reply_all: actions.handle_per_message_reply_all,
     handle_per_message_forward: actions.handle_per_message_forward,

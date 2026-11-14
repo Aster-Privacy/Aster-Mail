@@ -25,11 +25,12 @@ import type { LanguageCode } from "@/lib/i18n/types";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 import {
   account_data_write_key,
   retry_after_account_key_load,
 } from "@/services/crypto/account_data_writer";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import { array_to_base64, base64_to_array } from "@/services/crypto/envelope";
 import {
   DEFAULT_ENABLED_CATEGORIES,
@@ -40,6 +41,11 @@ import {
   clamp_inbox_page_size,
 } from "@/lib/inbox_page_size";
 import { ignore_error } from "@/lib/ignore_error";
+import { device_traces_erased } from "@/lib/device_erase_latch";
+import {
+  apply_loaded_error_report_preference,
+  forget_error_report_grant,
+} from "@/services/error_report_consent";
 import {
   DEFAULT_SIDEBAR_SECTION_ORDER,
   sanitize_sidebar_hidden_items,
@@ -363,7 +369,7 @@ async function encrypt_preferences(
 ): Promise<{ encrypted: string; nonce: string }> {
   const key =
     (await account_data_write_key("astermail-preferences-v1")) ??
-    (await derive_preferences_key(vault));
+    (await derive_preferences_key(with_identity_key(vault)));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(JSON.stringify(preferences));
 
@@ -391,7 +397,12 @@ async function decrypt_preferences(
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
   const decrypted = await retry_after_account_key_load(() =>
-    decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data),
+    decrypt_account_context_with_fallback(
+      "astermail-preferences-v1",
+      key,
+      encrypted_data,
+      nonce_data,
+    ),
   );
 
   return JSON.parse(new TextDecoder().decode(decrypted));
@@ -484,7 +495,8 @@ export async function convert_preferences_to_account_key(
 
   try {
     plaintext = new Uint8Array(
-      await decrypt_aes_gcm_with_fallback(
+      await decrypt_account_context_with_fallback(
+        "astermail-preferences-v1",
         await derive_preferences_key(vault),
         ciphertext,
         stored_nonce,
@@ -576,6 +588,10 @@ function write_local_migration_flag(flag: MigrationFlag): void {
 }
 
 export function cache_preferences_locally(prefs: UserPreferences): void {
+  if (device_traces_erased()) return;
+
+  apply_loaded_error_report_preference(prefs.send_error_reports);
+
   try {
     localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(prefs));
     localStorage.setItem(
@@ -613,6 +629,8 @@ export function get_cached_text_size(): {
 }
 
 export function clear_preferences_cache(): void {
+  forget_error_report_grant();
+
   try {
     localStorage.removeItem(PREFS_CACHE_KEY);
   } catch (caught) {

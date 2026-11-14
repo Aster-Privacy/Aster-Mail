@@ -33,6 +33,13 @@ import {
   recovery_nudge,
 } from "@/hooks/use_recovery_status";
 import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
+import { RecoveryCodesModal } from "@/components/settings/security/recovery_codes_modal";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  confirm_recovery_code_refresh_due,
+  dismiss_recovery_code_refresh,
+  is_recovery_code_refresh_due,
+} from "@/services/crypto/recovery_code_refresh";
 import {
   first_run_age_ms,
   is_recovery_snoozed,
@@ -94,18 +101,37 @@ export function RecoveryReminder(): JSX.Element | null {
   const reduce_motion = use_should_reduce_motion();
   const [nudge, set_nudge] = useState<NudgeKind | null>(null);
   const [codes_remaining, set_codes_remaining] = useState(0);
+  const [is_replacing, set_is_replacing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     const age = first_run_age_ms();
+    const is_settled = age !== null && age >= ELIGIBLE_AFTER_MS;
+    const is_refresh_due = is_recovery_code_refresh_due(
+      get_vault_from_memory()?.recovery_codes,
+    );
 
-    if (age === null || age < ELIGIBLE_AFTER_MS) return;
+    if (!is_settled && !is_refresh_due) return;
 
     const check = async () => {
       const values = await load_recovery_status();
 
       if (cancelled || !values) return;
+
+      if (is_refresh_due && values.has_codes) {
+        const still_due = await confirm_recovery_code_refresh_due();
+
+        if (cancelled) return;
+
+        if (still_due) {
+          set_is_replacing(true);
+
+          return;
+        }
+      }
+
+      if (!is_settled) return;
 
       const kind = recovery_nudge(values);
 
@@ -130,6 +156,11 @@ export function RecoveryReminder(): JSX.Element | null {
     set_nudge(null);
   };
 
+  const close_replacement = () => {
+    dismiss_recovery_code_refresh();
+    set_is_replacing(false);
+  };
+
   const handle_setup = () => {
     const target = copy ? copy.target : CODES_TARGET;
 
@@ -140,49 +171,59 @@ export function RecoveryReminder(): JSX.Element | null {
   const duration = reduce_motion ? 0 : 0.25;
 
   return (
-    <AnimatePresence>
-      {is_open && copy && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          aria-modal="true"
-          className="fixed inset-0 z-[65] flex items-center justify-center p-5"
-          exit={{ opacity: 0 }}
-          initial={{ opacity: 0 }}
-          role="dialog"
-          style={{ backgroundColor: "var(--modal-overlay)" }}
-          transition={{ duration }}
-        >
+    <>
+      <RecoveryCodesModal
+        has_codes
+        is_required
+        is_open={is_replacing}
+        mode="regenerate"
+        on_close={close_replacement}
+        on_saved={dismiss_recovery_code_refresh}
+      />
+      <AnimatePresence>
+        {is_open && copy && (
           <motion.div
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-[400px] rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-6"
-            exit={{ opacity: 0, y: reduce_motion ? 0 : 8 }}
-            initial={{ opacity: 0, y: reduce_motion ? 0 : 12 }}
-            transition={{ duration, ease: "easeOut" }}
+            animate={{ opacity: 1 }}
+            aria-modal="true"
+            className="fixed inset-0 z-[65] flex items-center justify-center p-5"
+            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            role="dialog"
+            style={{ backgroundColor: "var(--modal-overlay)" }}
+            transition={{ duration }}
           >
-            <div className="flex items-center gap-2.5">
-              <KeyIcon
-                aria-hidden="true"
-                className="h-5 w-5 flex-shrink-0 text-txt-primary"
-                strokeWidth={1.75}
-              />
-              <h2 className="text-base font-semibold text-txt-primary">
-                {t(copy.title_key)}
-              </h2>
-            </div>
+            <motion.div
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-[400px] rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-6"
+              exit={{ opacity: 0, y: reduce_motion ? 0 : 8 }}
+              initial={{ opacity: 0, y: reduce_motion ? 0 : 12 }}
+              transition={{ duration, ease: "easeOut" }}
+            >
+              <div className="flex items-center gap-2.5">
+                <KeyIcon
+                  aria-hidden="true"
+                  className="h-5 w-5 flex-shrink-0 text-txt-primary"
+                  strokeWidth={1.75}
+                />
+                <h2 className="text-base font-semibold text-txt-primary">
+                  {t(copy.title_key)}
+                </h2>
+              </div>
 
-            <p className="mt-2.5 text-sm leading-relaxed text-txt-secondary">
-              {t(copy.body_key, { count: codes_remaining })}
-            </p>
+              <p className="mt-2.5 text-sm leading-relaxed text-txt-secondary">
+                {t(copy.body_key, { count: codes_remaining })}
+              </p>
 
-            <div className="mt-5 flex items-center justify-end gap-2">
-              <Button variant="ghost" onClick={dismiss}>
-                {t("common.recovery_reminder_later")}
-              </Button>
-              <Button onClick={handle_setup}>{t(copy.action_key)}</Button>
-            </div>
+              <div className="mt-5 flex items-center justify-end gap-2">
+                <Button variant="ghost" onClick={dismiss}>
+                  {t("common.recovery_reminder_later")}
+                </Button>
+                <Button onClick={handle_setup}>{t(copy.action_key)}</Button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

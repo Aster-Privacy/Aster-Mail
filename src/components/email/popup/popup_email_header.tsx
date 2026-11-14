@@ -202,6 +202,7 @@ export function PopupEmailHeader({
       system_origin: email.system_origin,
       sender_verification: email.sender_verification,
       item_type: mail_item?.item_type,
+      e2e_sender_bound: !!email.e2e_sender_bound,
     },
     { shown_name: raw_sender_name, shown_email: show_sender_email },
   );
@@ -222,10 +223,13 @@ export function PopupEmailHeader({
         <div className="flex items-center gap-1 flex-shrink-0">
           <EncryptionInfoDropdown
             e2e_verified={!!email.e2e_verified}
+            sender_bound={!!email.e2e_sender_bound}
+            details_sealed={!!email.e2e_details_sealed}
             sent_encryption_scope={email.sent_encryption_scope}
             has_pq_protection={!!mail_item?.ephemeral_pq_key}
             has_recipient_key={!!mail_item?.has_recipient_key}
             is_external={!!mail_item?.is_external}
+            is_received={mail_item?.item_type === "received"}
             sender_verification={email.sender_verification}
             size={20}
           />

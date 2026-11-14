@@ -52,6 +52,14 @@ export function PasswordStep({
   set_is_password_visible,
   is_confirm_visible,
   set_is_confirm_visible,
+  previous_password,
+  set_previous_password,
+  is_previous_visible,
+  set_is_previous_visible,
+  needs_previous_password,
+  previous_password_skipped,
+  on_skip_previous_password,
+  on_use_previous_password,
   error,
   is_dark,
   reduce_motion,
@@ -144,6 +152,59 @@ export function PasswordStep({
               </button>
             </div>
           </div>
+
+          {needs_previous_password && (
+            <div>
+              <p className="text-sm leading-relaxed text-txt-secondary">
+                {previous_password_skipped
+                  ? t("auth.recovery_previous_password_skipped_warning")
+                  : t("auth.recovery_previous_password_body")}
+              </p>
+              {!previous_password_skipped && (
+                <div className={`mt-3 ${DEPTH_INPUT_WRAPPER_CLASS}`}>
+                  <Input
+                    autoComplete="current-password"
+                    className={INNER_INPUT_CLASS}
+                    maxLength={128}
+                    name="previous_password"
+                    placeholder={t("auth.recovery_previous_password_placeholder")}
+                    status={error ? "error" : "default"}
+                    type={is_previous_visible ? "text" : "password"}
+                    value={previous_password}
+                    onChange={(e) =>
+                      set_previous_password(clamp_password(e.target.value))
+                    }
+                    onKeyDown={(e) => e["key"] === "Enter" && on_submit()}
+                  />
+                  <button
+                    aria-label={
+                      is_previous_visible
+                        ? t("settings.hide_password_toggle")
+                        : t("settings.show_password_toggle")
+                    }
+                    className="flex min-h-[44px] min-w-[44px] items-center justify-center focus:outline-none"
+                    type="button"
+                    onClick={() => set_is_previous_visible(!is_previous_visible)}
+                  >
+                    {is_previous_visible ? <EyeSlashIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              )}
+              <button
+                className="mt-3 text-sm text-txt-tertiary transition-colors hover:opacity-80"
+                type="button"
+                onClick={
+                  previous_password_skipped
+                    ? on_use_previous_password
+                    : on_skip_previous_password
+                }
+              >
+                {previous_password_skipped
+                  ? t("auth.recovery_previous_password_use")
+                  : t("auth.recovery_previous_password_forgot")}
+              </button>
+            </div>
+          )}
         </motion.div>
       </motion.div>
 

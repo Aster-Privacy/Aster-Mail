@@ -30,6 +30,8 @@ import {
   proxy_compose_image_sources,
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
+import { defer_compose_images } from "@/lib/compose_deferred_images";
+import { restore_deferred_compose_images } from "@/lib/compose_deferred_markup";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { is_tracking_pixel } from "@/lib/html_sanitizer_utils";
 import {
@@ -42,6 +44,12 @@ import {
   type UntrustedSourceHandlers,
 } from "@/lib/untrusted_sources";
 import { is_local_resource_url } from "@/lib/url_value";
+import {
+  blocks_remote_images,
+  blocks_tracking_pixels,
+  type RemoteImageMode,
+} from "@/lib/remote_content_policy";
+import { find_own_signature } from "@/lib/signature_html";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 import {
@@ -99,9 +107,12 @@ export function resolve_quoted_image_blocking({
 
   if (displayed) return displayed;
 
-  if (!block_external_content) {
-    return { block_remote_images: false, block_tracking_pixels: false };
-  }
+  const policy = {
+    load_remote_images: load_remote_images as RemoteImageMode,
+    block_external_content,
+    block_remote_images,
+    block_tracking_pixels,
+  };
 
   const resolved = resolve_content_blocking({
     lockdown_active: false,
@@ -109,10 +120,10 @@ export function resolve_quoted_image_blocking({
       !!source_email_id &&
       get_external_content_mode(source_email_id) === "loaded",
     preferences: {
-      block_remote_images,
+      block_remote_images: blocks_remote_images(policy),
       block_remote_fonts: true,
       block_remote_css: true,
-      block_tracking_pixels,
+      block_tracking_pixels: blocks_tracking_pixels(policy),
     },
   });
 
@@ -230,18 +241,38 @@ export function build_quoted_editor_html(
   return template.innerHTML;
 }
 
+function contain_unmarked_draft(
+  root: DocumentFragment,
+  options: EditableQuotedHtmlOptions,
+): void {
+  const signature = find_own_signature(root);
+  const placeholder = document.createComment("");
+
+  signature?.replaceWith(placeholder);
+  contain_quoted_remote_content(root, options);
+  if (signature) placeholder.replaceWith(signature);
+}
+
 export function contain_draft_quotes(
   html: string,
   options: EditableQuotedHtmlOptions,
+  contain_unmarked = false,
 ): string {
-  if (!html.includes("aster_quote")) return html;
+  const has_quote = html.includes("aster_quote");
+
+  if (!has_quote && !contain_unmarked) return html;
 
   const template = document.createElement("template");
 
   template.innerHTML = html;
-  template.content
-    .querySelectorAll(QUOTE_SELECTOR)
-    .forEach((quote) => contain_quoted_remote_content(quote, options));
+
+  if (has_quote) {
+    template.content
+      .querySelectorAll(QUOTE_SELECTOR)
+      .forEach((quote) => contain_quoted_remote_content(quote, options));
+  } else {
+    contain_unmarked_draft(template.content, options);
+  }
 
   return template.innerHTML;
 }
@@ -271,6 +302,11 @@ export function build_editable_quoted_fragment(
     get_trusted_image_origins(),
     PARK_UNTRUSTED_SOURCES,
   );
+
+  const built = template.innerHTML;
+  const deferred = defer_compose_images(built);
+
+  if (deferred !== built) template.innerHTML = deferred;
 
   return template.content;
 }
@@ -394,7 +430,9 @@ function clear_blocked_placeholders(html: string): string {
 
 export function read_compose_editor_html(html: string): string {
   return restore_compose_image_sources(
-    restore_parked_sources(clear_blocked_placeholders(html)),
+    restore_parked_sources(
+      clear_blocked_placeholders(restore_deferred_compose_images(html)),
+    ),
   );
 }
 

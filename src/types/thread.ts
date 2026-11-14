@@ -56,6 +56,8 @@ export interface DecryptedThreadMessage {
   is_external: boolean;
   system_origin?: boolean;
   e2e_verified?: boolean;
+  e2e_sender_bound?: boolean;
+  e2e_details_sealed?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
   has_recipient_key?: boolean;
   is_sending?: boolean;
@@ -68,6 +70,7 @@ export interface DecryptedThreadMessage {
   cc_recipients?: { name: string; email: string }[];
   bcc_recipients?: { name: string; email: string }[];
   raw_headers?: { name: string; value: string }[];
+  routing_token?: string;
   spf_result?: string;
   dkim_result?: string;
   dmarc_result?: string;

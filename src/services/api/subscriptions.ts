@@ -193,12 +193,15 @@ export interface ProxyUnsubscribeParams {
   url?: string;
   mailto_address?: string;
   list_unsubscribe_post?: string;
+  from_address?: string;
+  from_address_hash?: string;
 }
 
 interface ProxyUnsubscribeResponse {
   success: boolean;
   method: string;
   message?: string;
+  code?: string;
 }
 
 export async function proxy_unsubscribe(

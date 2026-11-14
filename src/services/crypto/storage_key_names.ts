@@ -27,6 +27,7 @@ import {
   encrypted_move,
   encrypted_set,
   encrypted_set_if_absent,
+  type EncryptedMoveOutcome,
 } from "./encrypted_storage";
 import {
   get_derived_encryption_key,
@@ -45,6 +46,7 @@ export const IDENTITY_CHANGE_PREFIX = "ratchet_identity_change_";
 export const OWNER_KEY_PIN_PREFIX = "ratchet_owner_key_pin_";
 export const IDENTITY_UNTRUSTED_PREFIX = "ratchet_identity_untrusted_";
 export const ACCEPTED_BUNDLE_PREFIX = "ratchet_accepted_bundle_";
+export const PIN_SPELLINGS_PREFIX = "ratchet_pin_spellings_";
 export const RATCHET_STATE_PREFIX = "ratchet_state_";
 export const RATCHET_PLAINTEXT_PREFIX = "ratchet_plaintext_";
 export const RATCHET_SYNC_FLOOR_PREFIX = "ratchet_sync_floor_";
@@ -57,6 +59,7 @@ const SCOPED_PREFIXES: readonly string[] = [
   OWNER_KEY_PIN_PREFIX,
   IDENTITY_UNTRUSTED_PREFIX,
   ACCEPTED_BUNDLE_PREFIX,
+  PIN_SPELLINGS_PREFIX,
   RATCHET_STATE_PREFIX,
   RATCHET_PLAINTEXT_PREFIX,
   RATCHET_SYNC_FLOOR_PREFIX,
@@ -70,10 +73,14 @@ const ACCOUNT_EXACT_KEY_PREFIXES: readonly string[] = [
 const NAME_KEY_ENTRY = "storage_name_key";
 const NAME_KEY_BYTES = 32;
 const OPAQUE_MARKER = "h1_";
-const OPAQUE_NAME = /^h1_[A-Za-z0-9_-]{43}$/;
+const CANONICAL_MARKER = "h2_";
+const OPAQUE_NAME = /^h[12]_[A-Za-z0-9_-]{43}$/;
 const ACCOUNT_SCOPED_BODY =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_/i;
 const SWEEP_YIELD_EVERY = 25;
+
+export type ScopedRead<T> =
+  { state: "found"; value: T } | { state: "absent" } | { state: "unreadable" };
 
 export class StorageNamesUnavailableError extends Error {
   constructor() {
@@ -83,11 +90,43 @@ export class StorageNamesUnavailableError extends Error {
 }
 
 const name_keys = new Map<string, Promise<CryptoKey>>();
+const unscoped_name_keys = new Map<string, CryptoKey>();
 const swept_accounts = new Set<string>();
 const unreadable_entries = new Map<string, PlainEntry[]>();
 let sweep_in_flight: Promise<StorageNameMigrationResult> | null = null;
 let sweep_requested = false;
 let hooks_armed = false;
+let stored_listing: Promise<Set<string>> | null = null;
+
+export function stored_names(): Promise<Set<string>> {
+  if (stored_listing) return stored_listing;
+
+  const pending = encrypted_list_keys().then((keys) => new Set(keys));
+
+  stored_listing = pending;
+  pending.catch(() => {
+    if (stored_listing === pending) stored_listing = null;
+  });
+
+  return pending;
+}
+
+export function forget_stored_names(): void {
+  stored_listing = null;
+}
+
+function note_stored_name(name: string, present: boolean): void {
+  const pending = stored_listing;
+
+  if (!pending) return;
+
+  pending
+    .then((names) => {
+      if (present) names.add(name);
+      else names.delete(name);
+    })
+    .catch(() => {});
+}
 
 function account_slot(uid: string | null): string {
   return uid ?? "";
@@ -186,6 +225,7 @@ async function load_or_create_name_key(uid: string | null): Promise<CryptoKey> {
   }
 
   await encrypted_set_if_absent(name_key_entry(uid), candidate, wrap);
+  note_stored_name(name_key_entry(uid), true);
 
   const settled = await read_name_key(uid, wrap);
 
@@ -201,7 +241,9 @@ function arm_hooks(): void {
   try {
     on_vault_cleared(() => {
       name_keys.clear();
+      unscoped_name_keys.clear();
       swept_accounts.clear();
+      forget_stored_names();
     });
     on_keys_ready(() => {
       schedule_storage_name_migration();
@@ -238,11 +280,136 @@ async function name_tag(
   key: CryptoKey,
   prefix: string,
   rest: string,
+  marker: string = OPAQUE_MARKER,
 ): Promise<string> {
-  const input = new TextEncoder().encode(`${prefix}\u0000${rest}`);
+  const separator = marker === OPAQUE_MARKER ? "\u0000" : "\u0001";
+  const input = new TextEncoder().encode(`${prefix}${separator}${rest}`);
   const mac = await crypto.subtle.sign("HMAC", key, input);
 
-  return `${OPAQUE_MARKER}${to_base64_url(new Uint8Array(mac))}`;
+  return `${marker}${to_base64_url(new Uint8Array(mac))}`;
+}
+
+export async function canonical_storage_name(
+  prefix: string,
+  uid: string | null,
+  rest: string,
+): Promise<string> {
+  const tag = await name_tag(
+    await name_key_for(uid),
+    prefix,
+    rest,
+    CANONICAL_MARKER,
+  );
+
+  return uid ? `${prefix}${uid}_${tag}` : `${prefix}${tag}`;
+}
+
+export async function legacy_storage_names(
+  prefix: string,
+  uid: string | null,
+  rest: string,
+  storage_key: CryptoKey,
+): Promise<string[]> {
+  const names = [
+    await scoped_storage_name(prefix, uid, rest),
+    plain_name(prefix, uid, rest),
+  ];
+
+  if (!uid) return names;
+
+  names.push(plain_name(prefix, null, rest));
+
+  const unscoped = await unscoped_storage_name(prefix, uid, rest, storage_key);
+
+  if (unscoped) names.push(unscoped);
+
+  return names;
+}
+
+export async function legacy_opaque_starts(
+  prefix: string,
+  uid: string | null,
+  storage_key: CryptoKey,
+): Promise<string[]> {
+  if (!uid) return [`${prefix}${OPAQUE_MARKER}`];
+
+  const starts = [`${prefix}${uid}_${OPAQUE_MARKER}`];
+
+  if (await load_unscoped_name_key(uid, storage_key)) {
+    starts.push(`${prefix}${OPAQUE_MARKER}`);
+  }
+
+  return starts;
+}
+
+export function plain_rest_of(
+  prefix: string,
+  uid: string | null,
+  name: string,
+): string | null {
+  if (!name.startsWith(prefix)) return null;
+
+  const body = name.slice(prefix.length);
+
+  if (uid && body.startsWith(`${uid}_`)) {
+    const rest = body.slice(uid.length + 1);
+
+    return rest && !OPAQUE_NAME.test(rest) ? rest : null;
+  }
+
+  if (OPAQUE_NAME.test(body) || ACCOUNT_SCOPED_BODY.test(body)) return null;
+
+  return body.slice(unscoped_separator(prefix).length) || null;
+}
+
+export async function stored_read<T>(
+  name: string,
+  storage_key: CryptoKey,
+): Promise<ScopedRead<T>> {
+  const value = await encrypted_get<T>(name, storage_key);
+
+  if (value !== null && value !== undefined) return { state: "found", value };
+
+  return (await encrypted_has(name))
+    ? { state: "unreadable" }
+    : { state: "absent" };
+}
+
+export async function stored_write(
+  name: string,
+  value: unknown,
+  storage_key: CryptoKey,
+  options: { if_absent?: boolean } = {},
+): Promise<boolean> {
+  const written = options.if_absent
+    ? await encrypted_set_if_absent(name, value, storage_key)
+    : (await encrypted_set(name, value, storage_key), true);
+
+  note_stored_name(name, true);
+
+  return written;
+}
+
+export async function stored_remove(name: string): Promise<void> {
+  await encrypted_delete(name);
+  note_stored_name(name, false);
+}
+
+async function stored_adopt(
+  from_name: string,
+  to_name: string,
+  storage_key: CryptoKey,
+): Promise<EncryptedMoveOutcome> {
+  const outcome = await encrypted_move(from_name, to_name, storage_key);
+
+  if (outcome === "moved" || outcome === "kept_existing") {
+    note_stored_name(from_name, false);
+    note_stored_name(to_name, true);
+  }
+
+  if (outcome === "missing") note_stored_name(from_name, false);
+
+  return outcome;
 }
 
 export async function scoped_storage_name(
@@ -327,6 +494,56 @@ export async function scoped_get<T>(
   return encrypted_get<T>(name, storage_key);
 }
 
+async function load_unscoped_name_key(
+  uid: string,
+  storage_key: CryptoKey,
+): Promise<CryptoKey | null> {
+  const cached = unscoped_name_keys.get(uid);
+
+  if (cached) return cached;
+
+  arm_hooks();
+
+  try {
+    if (!(await stored_names()).has(name_key_entry(null))) return null;
+
+    const stored = await encrypted_get<string>(
+      name_key_entry(null),
+      storage_key,
+    );
+
+    if (typeof stored !== "string") return null;
+
+    const key = await import_name_key(stored);
+
+    unscoped_name_keys.set(uid, key);
+
+    return key;
+  } catch (caught) {
+    ignore_error(
+      "services/crypto/storage_key_names:load_unscoped_name_key",
+      caught,
+    );
+
+    return null;
+  }
+}
+
+export async function unscoped_storage_name(
+  prefix: string,
+  uid: string | null,
+  rest: string,
+  storage_key: CryptoKey,
+): Promise<string | null> {
+  if (!uid) return null;
+
+  const key = await load_unscoped_name_key(uid, storage_key);
+
+  if (!key) return null;
+
+  return `${prefix}${await name_tag(key, prefix, rest)}`;
+}
+
 export async function scoped_set(
   prefix: string,
   uid: string | null,
@@ -337,6 +554,7 @@ export async function scoped_set(
   const name = await scoped_storage_name(prefix, uid, rest);
 
   await encrypted_set(name, value, storage_key);
+  note_stored_name(name, true);
 }
 
 export async function scoped_delete(
@@ -358,8 +576,10 @@ export async function delete_account_storage(uid: string): Promise<number> {
   if (!uid) return 0;
 
   name_keys.delete(uid);
+  unscoped_name_keys.delete(uid);
   swept_accounts.delete(uid);
   unreadable_entries.delete(uid);
+  forget_stored_names();
 
   const scoped = SCOPED_PREFIXES.map((prefix) => `${prefix}${uid}_`);
   const exact = new Set([
@@ -442,9 +662,13 @@ export async function migrate_storage_names(
 
   const wrap = await wrapping_key();
   const slot = account_slot(uid);
+  const retried = unreadable_entries.get(slot);
+
+  if (!retried) forget_stored_names();
+
   const entries =
-    unreadable_entries.get(slot) ??
-    (await encrypted_list_keys())
+    retried ??
+    [...(await stored_names())]
       .map((key) => classify_plain_entry(key, uid, other_account_ids))
       .filter((entry): entry is PlainEntry => entry !== null);
   const still_unreadable: PlainEntry[] = [];
@@ -452,7 +676,7 @@ export async function migrate_storage_names(
 
   for (const entry of entries) {
     const target = await scoped_storage_name(entry.prefix, uid, entry.rest);
-    const outcome = await encrypted_move(entry.key, target, wrap);
+    const outcome = await stored_adopt(entry.key, target, wrap);
 
     if (outcome === "moved" || outcome === "kept_existing") result.moved += 1;
 
@@ -522,8 +746,10 @@ export function schedule_storage_name_migration(): void {
 
 export function reset_storage_name_state(): void {
   name_keys.clear();
+  unscoped_name_keys.clear();
   swept_accounts.clear();
   unreadable_entries.clear();
+  forget_stored_names();
 }
 
 arm_hooks();

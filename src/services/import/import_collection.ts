@@ -31,6 +31,7 @@ import {
   is_valid_email,
   parse_import_file,
 } from "./parser";
+import { import_relative_path } from "./file_collection";
 import {
   apply_export_metadata,
   build_export_metadata_index,
@@ -66,12 +67,69 @@ interface MboxScan {
 }
 
 const GENERATED_MESSAGE_ID_SUFFIX = "@astermail.local";
-const ARCHIVE_MBOX_NAMES = new Set(["archive", "archives", "archived"]);
+const GENERIC_MBOX_NAMES = new Set([
+  "all mail including spam and trash",
+  "mbox",
+  "export",
+]);
+const MAILBOX_DIRECTORY_SUFFIX = /\.(sbd|mbox)$/i;
+const MBOX_FILE_SUFFIX = /\.(mbox|mbx)$/i;
+const PATH_SEPARATOR = /[\\/]/;
 
-export function mbox_source_folder(file_name: string): string | undefined {
-  const stem = file_name.replace(/\.(mbox|mbx)$/i, "").trim();
+function path_segments(path: string): string[] {
+  return path
+    .split(PATH_SEPARATOR)
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+}
 
-  return ARCHIVE_MBOX_NAMES.has(stem.toLowerCase()) ? stem : undefined;
+export function import_directory_folder(
+  relative_path: string | undefined,
+): string[] {
+  if (!relative_path) return [];
+
+  const segments = path_segments(relative_path);
+
+  return segments
+    .slice(1, -1)
+    .map((segment) => segment.replace(MAILBOX_DIRECTORY_SUFFIX, "").trim())
+    .filter((segment) => segment.length > 0);
+}
+
+export function mbox_source_folder(
+  file_name: string,
+  relative_path?: string,
+): string | undefined {
+  const directories = import_directory_folder(relative_path);
+  const stem = file_name.replace(MBOX_FILE_SUFFIX, "").trim();
+  const parent = path_segments(relative_path ?? "").slice(-2, -1)[0] ?? "";
+  const bundle_name =
+    directories.length === 0 &&
+    stem.toLowerCase() === "mbox" &&
+    /\.mbox$/i.test(parent)
+      ? parent.replace(MAILBOX_DIRECTORY_SUFFIX, "").trim()
+      : "";
+  const leaf =
+    bundle_name || (GENERIC_MBOX_NAMES.has(stem.toLowerCase()) ? "" : stem);
+  const path = [...directories, ...(leaf ? [leaf] : [])].join("/");
+
+  return path || undefined;
+}
+
+export function eml_source_folder(
+  relative_path: string | undefined,
+): string | undefined {
+  const path = import_directory_folder(relative_path).join("/");
+
+  return path || undefined;
+}
+
+function has_source_folder(email: ParsedEmail): boolean {
+  return Boolean(
+    email.source_folder ||
+      email.source_labels?.length ||
+      email.source_folders?.length,
+  );
 }
 
 async function scan_mbox_file(
@@ -83,7 +141,10 @@ async function scan_mbox_file(
   const summaries: ParsedEmail[] = [];
   const ordinals: number[] = [];
   const warnings: string[] = [];
-  const source_folder = mbox_source_folder(file.name);
+  const source_folder = mbox_source_folder(
+    file.name,
+    import_relative_path(file),
+  );
 
   let ordinal = -1;
   let invalid_count = 0;
@@ -226,6 +287,14 @@ export async function build_import_collection(
       if (export_index) {
         for (const email of result.emails) {
           apply_export_metadata(email, file.name, export_index);
+        }
+      }
+
+      const directory_folder = eml_source_folder(import_relative_path(file));
+
+      if (directory_folder) {
+        for (const email of result.emails) {
+          if (!has_source_folder(email)) email.source_folder = directory_folder;
         }
       }
 

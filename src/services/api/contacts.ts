@@ -562,7 +562,7 @@ export async function list_contacts(
   return api_client.get<ContactsListResponse>(endpoint);
 }
 
-const MAX_CONTACT_LIST_PAGES = 100;
+const MAX_CONTACT_LIST_PAGES = 1000;
 
 export async function list_all_contacts(
   page_limit = 100,

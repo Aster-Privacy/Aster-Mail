@@ -33,7 +33,7 @@ import { list_tags, update_tag } from "@/services/api/tags";
 
 import { array_to_base64, base64_to_array } from "../base64";
 
-import { re_encrypt_field } from "./key_helpers";
+import { move_item_fields } from "./key_helpers";
 export async function re_encrypt_mail_metadata(
   old_master_key: Uint8Array,
   new_master_key: Uint8Array,
@@ -124,7 +124,7 @@ export async function re_encrypt_tags(
 
   const [old_key, new_key] = await Promise.all([
     derive_tag_aes_key(old_identity_key, ["decrypt"]),
-    derive_tag_aes_key(new_identity_key, ["encrypt"]),
+    derive_tag_aes_key(new_identity_key, ["encrypt", "decrypt"]),
   ]);
 
   let offset = 0;
@@ -140,42 +140,22 @@ export async function re_encrypt_tags(
 
     for (const tag of resp.data.tags) {
       try {
-        const updates: Record<string, string> = {};
-        const name = await re_encrypt_field(
-          tag.encrypted_name,
-          tag.name_nonce,
+        const updates = await move_item_fields(
+          tag,
+          [
+            ["encrypted_name", "name_nonce"],
+            ["encrypted_color", "color_nonce"],
+            ["encrypted_icon", "icon_nonce"],
+          ],
           old_key,
           new_key,
         );
 
-        updates.encrypted_name = name.encrypted;
-        updates.name_nonce = name.nonce;
+        if (Object.keys(updates).length === 0) continue;
 
-        if (tag.encrypted_color && tag.color_nonce) {
-          const color = await re_encrypt_field(
-            tag.encrypted_color,
-            tag.color_nonce,
-            old_key,
-            new_key,
-          );
+        const saved = await update_tag(tag.id, updates);
 
-          updates.encrypted_color = color.encrypted;
-          updates.color_nonce = color.nonce;
-        }
-
-        if (tag.encrypted_icon && tag.icon_nonce) {
-          const icon = await re_encrypt_field(
-            tag.encrypted_icon,
-            tag.icon_nonce,
-            old_key,
-            new_key,
-          );
-
-          updates.encrypted_icon = icon.encrypted;
-          updates.icon_nonce = icon.nonce;
-        }
-
-        await update_tag(tag.id, updates);
+        if (saved.error) ok = false;
       } catch {
         ok = false;
         continue;

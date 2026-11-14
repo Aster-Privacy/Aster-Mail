@@ -57,7 +57,7 @@ import {
 } from "@/utils/contact_search";
 
 const CONTACT_PAGE_LIMIT = 100;
-const MAX_CONTACT_PAGES = 100;
+const MAX_CONTACT_PAGES = 1000;
 
 export function use_contacts_data() {
   const { t } = use_i18n();

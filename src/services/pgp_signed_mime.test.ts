@@ -42,6 +42,12 @@ const PASSPHRASE = "signed-mime-test";
 let sender_public: string;
 let sender_private: string;
 
+vi.mock("@/services/account_manager", () => ({
+  get_current_account: async () => ({
+    user: { email: "sender@astermail.org" },
+  }),
+}));
+
 vi.mock("./crypto/memory_key_store", () => ({
   get_vault_from_memory: () => ({ identity_key: memory_identity_key }),
   get_passphrase_from_memory: () => memory_passphrase,

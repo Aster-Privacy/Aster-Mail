@@ -60,6 +60,7 @@ import {
   RowUnsubscribeChip,
   row_has_unsubscribe_header,
 } from "./row_unsubscribe_chip";
+import { RowCodeCopyButton } from "./row_code_copy_button";
 
 import {
   NotSpamIcon,
@@ -67,6 +68,7 @@ import {
 } from "@/components/email/spam_action_icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { strip_preview_filler } from "@/utils/preview_text";
+import { detect_verification_code } from "@/utils/verification_code";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
@@ -93,9 +95,11 @@ import {
   cn,
   format_number,
   is_system_address,
+  is_mac_platform,
   is_system_email,
   trust_source_for_display,
 } from "@/lib/utils";
+import { list_click_intent } from "@/lib/list_click_selection";
 import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
 import {
   normalize_alias_candidates,
@@ -139,6 +143,7 @@ export const InboxEmailListItem = memo(
         selection,
         on_toggle_select,
         on_email_click,
+        on_email_double_click,
         on_archive,
         on_spam,
         on_delete,
@@ -231,6 +236,27 @@ export const InboxEmailListItem = memo(
         !is_spam_view &&
         !is_outgoing &&
         row_has_unsubscribe_header(email);
+
+      const can_copy_code =
+        !is_spam_view &&
+        !is_outgoing &&
+        !email.is_spam &&
+        email.phishing_level !== "suspicious" &&
+        email.phishing_level !== "dangerous";
+      const has_readable_preview =
+        show_email_preview &&
+        email.preview !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+        email.preview !== PGP_UNDECRYPTABLE_SENTINEL;
+      const verification_code = useMemo(
+        () =>
+          can_copy_code
+            ? detect_verification_code(
+                email.subject,
+                has_readable_preview ? email.preview : null,
+              )
+            : null,
+        [can_copy_code, has_readable_preview, email.subject, email.preview],
+      );
 
       const current_folder_token = (current_view ?? "").startsWith("folder-")
         ? (current_view ?? "").slice("folder-".length)
@@ -396,7 +422,33 @@ export const InboxEmailListItem = memo(
           )}
           role="button"
           tabIndex={0}
-          onClick={() => on_email_click(email.id)}
+          onClick={(e) => {
+            const intent = list_click_intent(e, is_mac_platform());
+
+            if (intent) {
+              e.preventDefault();
+              on_toggle_select(email.id, { range: intent === "range" });
+
+              return;
+            }
+            on_email_click(email.id);
+          }}
+          onDoubleClick={
+            on_email_double_click
+              ? (e) => {
+                  if (list_click_intent(e, is_mac_platform())) return;
+                  if (
+                    e.target instanceof Element &&
+                    e.target.closest(
+                      'button, a, input, label, [role="checkbox"]',
+                    )
+                  ) {
+                    return;
+                  }
+                  on_email_double_click(email.id);
+                }
+              : undefined
+          }
           onDragEnd={handle_drag_end}
           onDragStart={handle_drag_start}
           onFocusCapture={engage_row}
@@ -405,6 +457,9 @@ export const InboxEmailListItem = memo(
               e.preventDefault();
               on_email_click(email.id);
             }
+          }}
+          onMouseDown={(e) => {
+            if (e.shiftKey && e.button === 0) e.preventDefault();
           }}
           onMouseEnter={engage_row}
           {...props}
@@ -810,7 +865,7 @@ export const InboxEmailListItem = memo(
                 {show_email_preview &&
                   (search_preview_node || email.preview) && (
                     <span className="text-txt-muted" dir="auto">
-                      {" \u2014 "}
+                      {" - "}
                       {search_preview_node ||
                         (email.preview === RATCHET_UNDECRYPTABLE_SENTINEL ||
                         email.preview === PGP_UNDECRYPTABLE_SENTINEL
@@ -822,6 +877,19 @@ export const InboxEmailListItem = memo(
                     </span>
                   )}
               </div>
+              {verification_code && (
+                <span
+                  className={cn(
+                    "hidden sm:inline-flex flex-shrink-0",
+                    show_hover_actions && row_engaged && "group-hover:invisible",
+                  )}
+                >
+                  <RowCodeCopyButton
+                    code={verification_code}
+                    muted={email.is_read}
+                  />
+                </span>
+              )}
               {attachment_previews?.state === "loaded" &&
                 attachment_previews.attachments.length > 0 && (
                   <div
@@ -865,7 +933,13 @@ export const InboxEmailListItem = memo(
             <div
               className={cn(
                 "absolute end-0 top-0 bottom-0 pointer-events-none opacity-0 group-hover:opacity-100 hidden sm:block",
-                show_unsubscribe_chip ? "w-96" : "w-64",
+                show_unsubscribe_chip && verification_code
+                  ? "w-[30rem]"
+                  : show_unsubscribe_chip
+                    ? "w-96"
+                    : verification_code
+                      ? "w-80"
+                      : "w-64",
                 email.is_selected === true
                   ? "mail_row_selected_fade"
                   : is_active
@@ -961,6 +1035,15 @@ export const InboxEmailListItem = memo(
                   }
                 }}
               >
+                {verification_code && (
+                  <span className="me-1 inline-flex">
+                    <RowCodeCopyButton
+                      code={verification_code}
+                      muted={email.is_read}
+                    />
+                  </span>
+                )}
+
                 {show_unsubscribe_chip && <RowUnsubscribeChip email={email} />}
 
                 {on_toggle_read && (

@@ -68,6 +68,7 @@ export interface ThreadMessageItem {
   sender_verified_domain?: string;
   sender_aligned?: boolean;
   is_reaction?: boolean;
+  routing_token?: string;
   reactions?: ReactionSummary[];
 }
 

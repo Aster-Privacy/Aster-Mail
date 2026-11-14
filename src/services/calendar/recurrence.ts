@@ -678,7 +678,7 @@ function period_floor_day(
 ): number {
   const anchor_day_number = day_number(start.year, start.month, start.day);
 
-  let day = anchor_day_number;
+  let day: number;
 
   if (rule.frequency === "daily") {
     day = anchor_day_number + index * rule.interval;

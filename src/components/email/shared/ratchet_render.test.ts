@@ -69,11 +69,13 @@ vi.mock("@/services/crypto/encrypted_storage", async () => ({
   ...(
     await import("@/tests/fixtures/storage_name_support")
   ).storage_name_support(h.names),
-  encrypted_get: vi.fn(async (key: string) =>
-    key.startsWith("storage_name_key") ? h.names.get(key) : undefined,
-  ),
-  encrypted_set: vi.fn(async () => {}),
-  encrypted_delete: vi.fn(async () => {}),
+  encrypted_get: vi.fn(async (key: string) => h.names.get(key) ?? null),
+  encrypted_set: vi.fn(async (key: string, value: unknown) => {
+    h.names.set(key, value);
+  }),
+  encrypted_delete: vi.fn(async (key: string) => {
+    h.names.delete(key);
+  }),
 }));
 
 vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
@@ -100,6 +102,9 @@ vi.mock("@/services/api/client", () => ({
 }));
 
 import { process_envelope_body } from "./build_email_from_envelope";
+
+import { reset_contact_entry_state } from "@/services/crypto/contact_entries";
+import { reset_storage_name_state } from "@/services/crypto/storage_key_names";
 
 import {
   generate_ratchet_keys,
@@ -187,6 +192,9 @@ describe("internal ratchet mail rendering", () => {
   beforeEach(() => {
     h.vault = null;
     h.bundle = null;
+    h.names.clear();
+    reset_storage_name_state();
+    reset_contact_entry_state();
     h.continuity = "known";
   });
 
@@ -274,6 +282,9 @@ describe("internal ratchet mail rendering", () => {
       await build_real_internal_envelope("a short reply");
 
     h.vault = receiver_vault;
+    h.names.clear();
+    reset_storage_name_state();
+    reset_contact_entry_state();
 
     // Ignore the writes the sender made while building the envelope; we only
     // care about what the RECEIVE/decrypt path does.
@@ -349,6 +360,9 @@ describe("server built recipient envelope", () => {
   beforeEach(() => {
     h.vault = null;
     h.bundle = null;
+    h.names.clear();
+    reset_storage_name_state();
+    reset_contact_entry_state();
   });
 
   it("renders html when the server sets body_html to an empty string", async () => {

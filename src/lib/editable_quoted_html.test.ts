@@ -40,6 +40,11 @@ vi.mock("@/lib/image_proxy", async (import_original) => ({
 }));
 
 import {
+  COMPOSE_DEFERRED_BACKGROUND_ATTRIBUTE,
+  COMPOSE_DEFERRED_SRC_ATTRIBUTE,
+  COMPOSE_IMAGE_PLACEHOLDER,
+} from "@/lib/compose_deferred_markup";
+import {
   build_editable_quoted_fragment,
   build_quoted_editor_html,
   contain_draft_quotes,
@@ -113,7 +118,10 @@ describe("editable forwarded message", () => {
     const container = mount('<img src="https://cdn.example/logo.png">');
     const image = container.querySelector("img")!;
 
-    expect(image.getAttribute("src")).toContain("/api/images/v1/proxy?url=");
+    expect(image.getAttribute("src")).toBe(COMPOSE_IMAGE_PLACEHOLDER);
+    expect(image.getAttribute(COMPOSE_DEFERRED_SRC_ATTRIBUTE)).toContain(
+      "/api/images/v1/proxy?url=",
+    );
 
     const result = read_editable_quoted_html(container);
 
@@ -342,11 +350,16 @@ describe.each(PROXY_URLS)(
     it("still loads remote images through the proxy when blocking is off", () => {
       const container = mount(DIOGO_INPUT, false);
 
-      expect(container.querySelector("img")!.getAttribute("src")).toBe(
+      const image = container.querySelector("img")!;
+
+      expect(image.getAttribute("src")).toBe(COMPOSE_IMAGE_PLACEHOLDER);
+      expect(image.getAttribute(COMPOSE_DEFERRED_SRC_ATTRIBUTE)).toBe(
         `${proxy_url}?url=${encodeURIComponent("https://evil.example/px?id=v")}`,
       );
       expect(
-        container.querySelector("table")!.getAttribute("background"),
+        container
+          .querySelector("table")!
+          .getAttribute(COMPOSE_DEFERRED_BACKGROUND_ATTRIBUTE),
       ).toContain(proxy_url);
     });
   },
@@ -401,11 +414,21 @@ describe("quoted reply content", () => {
     h.lockdown = false;
   });
 
-  it("follows the viewer when remote content is not blocked", () => {
+  it("keeps blocking images when only tracking protection is off", () => {
     expect(
       resolve_quoted_image_blocking({
         ...BLOCKING_PREFERENCES,
         block_external_content: false,
+      }),
+    ).toEqual({ block_remote_images: true, block_tracking_pixels: true });
+  });
+
+  it("loads images when the image setting allows them", () => {
+    expect(
+      resolve_quoted_image_blocking({
+        ...BLOCKING_PREFERENCES,
+        block_external_content: false,
+        load_remote_images: "always",
       }),
     ).toEqual({ block_remote_images: false, block_tracking_pixels: false });
   });
@@ -592,6 +615,32 @@ describe("quoted reply content", () => {
     const html = '<p>Only my text</p><img src="https://mine.example/a.png">';
 
     expect(contain_draft_quotes(html, { block_remote_images: true })).toBe(
+      html,
+    );
+  });
+
+  it("contains a forward draft that has no quote wrapper", () => {
+    const html = contain_draft_quotes(
+      `<p>See below</p>---------- Forwarded message ---------<br>${PICTURE}${PIXEL}<div data-aster-signature="1"><img src="https://mine.example/sig.png"></div>`,
+      { block_remote_images: true },
+      true,
+    );
+
+    expect(html).toContain(
+      'data-aster-parked-src="https://cdn.example/photo.png"',
+    );
+    expect(html).not.toContain(' src="https://cdn.example/photo.png"');
+    expect(html).not.toContain("tracker.example");
+    expect(html).toContain(' src="https://mine.example/sig.png"');
+    expect(read_compose_editor_html(html)).toContain(
+      'src="https://cdn.example/photo.png"',
+    );
+  });
+
+  it("leaves an unwrapped forward draft alone when images may load", () => {
+    const html = `<p>See below</p>${PICTURE}`;
+
+    expect(contain_draft_quotes(html, { block_remote_images: false }, true)).toBe(
       html,
     );
   });

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const save_recovery_backup = vi.fn();
+const get_codes_status = vi.fn();
 const build_backup_vault = vi.fn();
 const encrypt_vault_backup = vi.fn();
 const generate_all_recovery_shares = vi.fn();
@@ -8,6 +9,7 @@ const clear_recovery_key = vi.fn();
 const recovery_key = new Uint8Array(32).fill(9);
 
 vi.mock("../api/recovery", () => ({
+  get_codes_status: (...args: unknown[]) => get_codes_status(...args),
   save_recovery_backup: (...args: unknown[]) => save_recovery_backup(...args),
 }));
 
@@ -54,6 +56,7 @@ describe("refresh_recovery_backup", () => {
     });
     generate_all_recovery_shares.mockResolvedValue([{ share_index: 0 }]);
     save_recovery_backup.mockResolvedValue({ data: { success: true } });
+    get_codes_status.mockResolvedValue({ data: { verifier_salts: [null] } });
   });
 
   it("rewraps the backup for every current code without a vault update", async () => {
@@ -61,14 +64,60 @@ describe("refresh_recovery_backup", () => {
 
     expect(build_backup_vault).toHaveBeenCalledWith(vault(), "pass");
     expect(encrypt_vault_backup.mock.calls[0][1]).toBe(recovery_key);
+    expect(get_codes_status).toHaveBeenCalledWith({ skip_cache: true });
     expect(generate_all_recovery_shares).toHaveBeenCalledWith(
       CODES,
       recovery_key,
+      { include_code_hash: true },
     );
     expect(save_recovery_backup).toHaveBeenCalledWith("evb", "vbn", "rks", [
       { share_index: 0 },
     ]);
     expect(clear_recovery_key).toHaveBeenCalledWith(recovery_key);
+  });
+
+  it("reuses the salt of the current code set", async () => {
+    get_codes_status.mockResolvedValue({
+      data: { verifier_salts: ["c2FsdA==", "c2FsdA=="] },
+    });
+
+    await expect(refresh_recovery_backup(vault(), "pass")).resolves.toBe(true);
+
+    expect(generate_all_recovery_shares).toHaveBeenCalledWith(
+      CODES,
+      recovery_key,
+      { verifier_salt: "c2FsdA==", include_code_hash: true },
+    );
+  });
+
+  it("leaves the code hash out once the server no longer needs it", async () => {
+    get_codes_status.mockResolvedValue({
+      data: { verifier_salts: ["c2FsdA=="], code_hash_optional: true },
+    });
+
+    await expect(refresh_recovery_backup(vault(), "pass")).resolves.toBe(true);
+
+    expect(generate_all_recovery_shares).toHaveBeenCalledWith(
+      CODES,
+      recovery_key,
+      { verifier_salt: "c2FsdA==", include_code_hash: false },
+    );
+  });
+
+  it("keeps the code hash when the set is partly salted or the status fails", async () => {
+    get_codes_status.mockResolvedValue({
+      data: { verifier_salts: ["c2FsdA==", null], code_hash_optional: true },
+    });
+
+    await expect(refresh_recovery_backup(vault(), "pass")).resolves.toBe(true);
+
+    get_codes_status.mockRejectedValue(new Error("offline"));
+
+    await expect(refresh_recovery_backup(vault(), "pass")).resolves.toBe(true);
+
+    expect(generate_all_recovery_shares.mock.calls.map((call) => call[2])).toEqual(
+      [{ include_code_hash: true }, { include_code_hash: true }],
+    );
   });
 
   it("does nothing when the vault holds no recovery codes", async () => {

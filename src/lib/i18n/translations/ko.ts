@@ -640,6 +640,9 @@ export const ko = {
       "결제가 완료되지 않았습니다. {{days}}일 후에 액세스가 제한됩니다.",
     billing_alert_action: "결제하기",
     dismiss: "닫기",
+    web_sandbox_off_title: "웹 콘텐츠가 시스템 샌드박스 없이 실행되고 있습니다",
+    web_sandbox_off_body:
+      "이 컴퓨터에서는 Aster Mail이(가) bubblewrap 샌드박스를 시작할 수 없어 웹 콘텐츠가 샌드박스 없이 실행됩니다. 다시 켜려면 bubblewrap 패키지를 설치하고 권한 없는 사용자 네임스페이스를 허용한 다음 Aster Mail을(를) 다시 시작하세요.",
     load_content: "로드",
     open_link: "링크 열기",
     no_icon: "아이콘 없음",
@@ -993,6 +996,8 @@ export const ko = {
       "이 파일을 표시할 수 없습니다. 이동되었거나 삭제되었을 수 있습니다.",
     attachment_locked:
       "이 첨부 파일의 암호화 키를 이 기기에서 사용할 수 없어 열 수 없습니다.",
+    attachment_content_mismatch:
+      "이 첨부 파일이 함께 도착한 메시지와 일치하지 않아 열지 않았습니다.",
     scheduled_no_attachments:
       "예약 메일에는 아직 첨부 파일을 포함할 수 없습니다. 지금 보내거나 파일을 제거한 후 예약하세요.",
     scheduled_connected_account:
@@ -1180,6 +1185,10 @@ export const ko = {
     end_to_end_encrypted_label: "종단간 암호화됨",
     encrypted_in_transit_stored: "전송 및 저장 시 암호화됩니다.",
     only_you_and_sender: "나와 발신자만 이 내용을 읽을 수 있습니다.",
+    only_you_and_sender_details_from_server:
+      "나와 발신자만 이 내용을 읽을 수 있습니다. 발신자 이름, 수신자, 날짜는 서버에서 제공되며 종단간 암호화로 보호되지 않습니다.",
+    encrypted_to_you_unconfirmed_sender:
+      "이 메시지는 내 공개 키로 암호화되었습니다. 발신자의 신원은 확인되지 않았습니다.",
     only_you_can_read_contacts:
       "연락처는 오직 나만 읽을 수 있습니다. Aster는 이 데이터를 볼 수 없습니다.",
     failed_to_send_email:
@@ -1785,6 +1794,9 @@ export const ko = {
     recovery_codes_low_reminder_body:
       "각 코드는 한 번만 사용할 수 있으며 {{count}}개가 남았습니다. 계정이 잠기지 않도록 새 코드를 받으세요.",
     recovery_codes_low_reminder_action: "새 코드 받기",
+    recovery_codes_refresh_title: "복구 코드를 교체하세요",
+    recovery_codes_refresh_body:
+      "저장된 복구 코드는 이전의 짧은 형식을 사용합니다. 새 코드를 받아 저장하세요. 새 코드를 받으면 이전 코드는 작동하지 않습니다.",
     recovery_phrase_migrate_title: "복구 코드로 전환",
     recovery_phrase_migrate_body:
       "복구 문구는 곧 사라집니다. 계정을 계속 복구할 수 있도록 지금 복구 코드를 받으세요.",
@@ -1936,6 +1948,8 @@ export const ko = {
     dns_host_leave_blank: "비워 두기",
     dns_host_provider_hint:
       "{{provider}}은(는) 호스트 항목에 이 형식을 사용합니다. 표시된 그대로 복사하세요.",
+    dns_host_zone_hint: "이 호스트 이름은 DNS 레코드를 관리하는 도메인인 {{zone}} 기준의 상대 이름입니다.",
+    dns_full_record_name: "레코드 전체 이름",
     purchase_congrats_title: "축하합니다",
     recipient_key_outdated: "받는 사람의 키가 오래되었습니다",
     recipient_key_outdated_desc:
@@ -1946,7 +1960,22 @@ export const ko = {
     key_trust_change_message:
       "마지막 조회 이후 {{recipients}}의 암호화 키가 바뀌었습니다. 보내기 전에 다른 경로로 수신자와 새 지문을 확인하세요.",
     key_trust_change_detail: "{{email}}: 이전 {{prior}}, 현재 {{current}}.",
+    key_trust_unreadable_message:
+      "이 기기에서 {{recipients}}의 저장된 암호화 키를 읽을 수 없습니다. 보내기 전에 다른 경로로 수신자와 현재 지문을 확인하세요.",
+    key_trust_unreadable_detail: "{{email}}: 현재 {{current}}.",
+    key_trust_own_message:
+      "내 주소 {{recipients}}의 암호화 키가 변경되었습니다. 키를 재설정하거나 새 기기를 설정하지 않았다면 새 키를 신뢰하지 마세요.",
     key_trust_change_confirm: "새 키 신뢰",
+    key_trust_missing_title: "암호화 키를 찾을 수 없음",
+    key_trust_missing_message:
+      "이 기기에 {{recipients}}의 암호화 키가 저장되어 있었지만 지금은 사용할 수 있는 키가 없습니다. 계속하면 이 메시지는 종단 간 암호화 없이 전송됩니다. 보내기 전에 다른 경로로 수신자에게 확인하세요.",
+    key_trust_missing_detail: "{{email}}: 이전 {{prior}}.",
+    key_trust_missing_unreadable_detail: "{{email}}: 저장된 키를 읽을 수 없습니다.",
+    key_trust_missing_confirm: "암호화 없이 보내기",
+    key_trust_account_key_detail:
+      "{{email}} 계정 키: 이전 {{prior}}, 현재 {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} ID 키: 이전 {{prior}}, 현재 {{current}}.",
     post_quantum_downgrade_title: "예상된 양자 내성 키 없이 보낼까요?",
     post_quantum_downgrade_message:
       "{{recipients}} 계정은 양자 내성 키를 게시하지만, 이 메시지에 전달된 키 번들에는 양자 내성 키가 없습니다. 서버 문제일 수도 있고 키 조회가 조작되었을 수도 있습니다. 양자 내성 보호를 유지하려면 취소하고 나중에 다시 시도하세요.",
@@ -3728,6 +3757,13 @@ export const ko = {
     recovery_codes_saved_checkbox: "복구 코드를 안전한 곳에 저장했습니다.",
     recovery_codes_save_failed:
       "복구 코드를 서버에 저장하지 못했습니다. 다시 시도하세요.",
+    recovery_codes_required_save_desc:
+      "새 코드를 안전한 곳에 저장하세요. 다음 단계에서 확인할 때까지 현재 코드는 계속 작동합니다.",
+    recovery_codes_required_verify_desc:
+      "새 코드를 사용하려면 비밀번호를 입력하세요. 그 후에는 이전 코드가 작동하지 않습니다.",
+    recovery_codes_required_action: "코드 교체",
+    recovery_codes_required_done: "새 복구 코드가 활성화되었습니다.",
+    recovery_codes_already_replaced: "복구 코드가 이미 다른 기기에서 교체되었습니다.",
     legacy_phrase_row: "복구 문구 (기존)",
     legacy_phrase_row_desc:
       "기존 복구 문구는 계속 유효합니다. 이제는 복구 코드를 사용합니다.",
@@ -4182,6 +4218,8 @@ export const ko = {
       "이 세션은 다른 네트워크 또는 브라우저에서 시작되었으므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 비밀번호를 변경하려면 로그아웃한 후 다시 로그인하고 시도해 주세요.",
     password_change_identity_continuity_required:
       "변경하면 이전 메시지에 필요한 암호화 키가 제거되므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 다시 시도하려면 로그아웃한 후 다시 로그인하고 비밀번호를 변경해 주세요.",
+    password_change_vault_changed:
+      "비밀번호를 변경하는 동안 다른 기기에서 암호화 키가 변경되어 Aster Mail이 비밀번호를 변경하지 않았습니다. 다시 시도하세요.",
     password_change_vault_out_of_date:
       "다른 기기에서 비밀번호가 변경되어 이 세션은 최신 상태가 아닙니다. 비밀번호를 변경하려면 로그아웃한 후 현재 비밀번호로 다시 로그인해 주세요.",
     update_password: "비밀번호 업데이트",
@@ -4381,6 +4419,12 @@ export const ko = {
     developer_mode: "개발자 모드",
     developer_mode_description:
       "빌드 정보, 암호화 상태 및 디버그 도구가 있는 개발자 탭을 표시합니다",
+    launch_at_login: "로그인할 때 Aster Mail 열기",
+    launch_at_login_description: "컴퓨터에 로그인하면 Aster Mail이 시작되므로 앱을 먼저 열지 않아도 새 메일이 도착합니다.",
+    start_minimized: "최소화 상태로 시작",
+    start_minimized_description: "로그인할 때 열린 Aster Mail은 창 없이 백그라운드에서 실행됩니다. 열려면 알림 영역이나 메뉴 막대에서 아이콘을 클릭하세요.",
+    launch_at_login_move_to_applications: "로그인할 때 Aster Mail을 열려면 먼저 응용 프로그램 폴더로 옮기세요.",
+    launch_at_login_reason: "새 메일을 백그라운드에서 받기 위해 로그인할 때 Aster Mail을 엽니다.",
     close_to_tray: "창을 닫아도 계속 실행",
     close_to_tray_description:
       "Aster Mail이 알림 영역에 남아 새 메일을 계속 받습니다. 창을 닫을 때 종료하려면 끄세요.",
@@ -4737,7 +4781,7 @@ export const ko = {
       "검열 저항을 위해 Snowflake 브리지를 사용합니다",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "요청이 Aster에 도달하기 전에 글로벌 CDN을 거칩니다. IP 주소가 Aster에 노출되지 않으며, 트래픽이 일반 CDN 트래픽과 구분되지 않습니다.",
+      "요청이 Aster 서버에 도달하기 전에 Aster가 Cloudflare에서 운영하는 릴레이를 거칩니다. 사용 중인 네트워크에서는 이 트래픽이 일반 CDN 트래픽처럼 보이므로 Aster가 차단된 곳에서 도움이 될 수 있습니다. Aster는 여전히 IP 주소를 볼 수 있습니다. Aster에 IP 주소를 숨기려면 Tor를 사용하세요.",
     "connection.status_connected": "연결됨",
     "connection.status_connecting": "연결 중...",
     "connection.status_error":
@@ -4768,7 +4812,7 @@ export const ko = {
     tlsrpt_record: "TLS-RPT 레코드",
     tlsrpt_description:
       "선택 사항이지만 권장합니다. 도메인으로의 암호화 전송이 실패하면 수신 서버가 일일 요약을 보내주므로 사용자보다 먼저 문제를 발견할 수 있습니다.",
-    dns_instruction_set_tlsrpt_host: "호스트를 _smtp._tls 로 설정하세요",
+    dns_instruction_set_tlsrpt_host: "아래에 표시된 호스트 이름을 호스트 항목에 복사하세요",
     dns_instruction_set_tlsrpt_value: "TLS-RPT 값을 표시된 그대로 붙여넣으세요",
     optional_step: "선택",
     gmail_import: "Gmail",
@@ -5144,8 +5188,7 @@ export const ko = {
     dns_instruction_merge_spf:
       "이미 SPF 레코드가 있는 경우 기존 레코드에 include: 디렉티브를 추가하세요",
     dns_instruction_set_dkim: "아래에 표시된 DKIM 키로 값을 설정하세요",
-    dns_instruction_set_dmarc_host:
-      "호스트를 _dmarc로 설정하세요 (도메인은 포함하지 마세요)",
+    dns_instruction_set_dmarc_host: "아래에 표시된 호스트 이름을 호스트 항목에 복사하세요",
     dns_instruction_set_dmarc_value:
       "아래에 표시된 DMARC 정책으로 값을 설정하세요",
     edit_external_account: "외부 계정 편집",
@@ -7047,10 +7090,126 @@ export const ko = {
       "Aster는 만료일 30일 전에 저장된 카드로 결제하며, 그보다 15일 전에 가격을 이메일로 알려 드립니다.",
     domain_purchase_manage_auto_renew_error:
       "자동 갱신을 변경하지 못했습니다. 다시 시도하세요.",
-    domain_purchase_manage_dns: "도메인 설정 열기",
-    domain_purchase_manage_support_note:
-      "이 도메인을 다른 등록기관으로 이전하거나 환불을 문의하려면 지원팀에 연락하세요.",
+    domain_purchase_manage_dns: "DNS 관리",
+    domain_purchase_manage_support_note: "결제 또는 환불에 관한 질문은 지원팀에 문의하세요.",
     domain_purchase_manage_support_subject: "{{domain}} 관련 문의",
+    domain_transfer_button: "이전",
+    domain_transfer_title: "도메인 이전",
+    domain_transfer_hint:
+      "이 도메인을 다른 등록 기관으로 옮깁니다. 지원팀이 이전 코드를 Aster 받은편지함으로 보냅니다.",
+    domain_transfer_message:
+      "{{domain}}을(를) 다른 등록기관으로 옮기려면 이전 코드가 필요합니다. 계속하면 Aster가 지원팀에 보낼 이메일을 엽니다. 지원팀은 요청이 이 계정에서 왔는지 확인한 후 코드를 Aster 받은편지함으로 보내 드립니다. 이전은 보통 새 등록기관에서 시작한 후 5~7일이 걸립니다.",
+    domain_transfer_locked_message:
+      "등록기관은 등록 후 {{count}}일 이내의 이전을 허용하지 않습니다. {{domain}} 이전은 {{date}}부터 요청할 수 있습니다.",
+    domain_transfer_confirm: "지원팀에 문의",
+    domain_transfer_email_subject: "{{domain}} 이전 요청",
+    domain_transfer_email_body:
+      "{{domain}}을(를) 다른 등록기관으로 이전하고 싶습니다. 이전 코드를 이 주소로 보내 주세요.\n\n주문 ID: {{order_id}}\n새 등록기관:",
+    purchased_dns_title: "DNS 레코드",
+    purchased_dns_description: "{{domain}}의 레코드입니다. 변경 사항은 보통 1시간 이내에 적용됩니다.",
+    purchased_dns_locked_title: "편집이 꺼져 있음",
+    purchased_dns_locked_note: "이 레코드를 볼 수는 있지만 지금은 변경할 수 없습니다.",
+    purchased_dns_lock_frozen: "이 도메인의 편집이 일시 중지되었습니다. 자세한 내용은 지원팀에 문의하세요.",
+    purchased_dns_lock_payment: "이 도메인의 결제가 취소되어 편집이 꺼져 있습니다.",
+    purchased_dns_lock_lapsed: "이 도메인이 만료되어 편집이 꺼져 있습니다. 변경하려면 갱신하세요.",
+    purchased_dns_lock_suspended: "이 도메인이 정지되어 편집이 꺼져 있습니다.",
+    purchased_dns_unlock_title: "본인 확인",
+    purchased_dns_unlock_description:
+      "DNS 레코드를 변경하려면 본인 확인을 하세요. 편집은 15분 동안 켜져 있습니다.",
+    purchased_dns_unlock: "편집 켜기",
+    purchased_dns_unlocked: "편집이 켜져 있음",
+    purchased_dns_unlocked_for: "편집이 {{time}} 동안 켜져 있음",
+    purchased_dns_lock: "편집 끄기",
+    purchased_dns_add: "레코드 추가",
+    purchased_dns_add_title: "레코드 추가",
+    purchased_dns_edit_title: "레코드 편집",
+    purchased_dns_added: "레코드를 추가했습니다",
+    purchased_dns_updated: "레코드를 업데이트했습니다",
+    purchased_dns_deleted: "레코드를 삭제했습니다",
+    purchased_dns_delete_title: "레코드를 삭제할까요?",
+    purchased_dns_delete_message: "{{name}}의 {{type}} 레코드는 삭제 후 곧 확인되지 않습니다.",
+    purchased_dns_edit_record: "{{name}}의 {{type}} 레코드 편집",
+    purchased_dns_copy_record: "{{name}}의 {{type}} 레코드 값 복사",
+    purchased_dns_delete_record: "{{name}}의 {{type}} 레코드 삭제",
+    purchased_dns_read_only: "읽기 전용",
+    purchased_dns_mail_group: "Aster Mail 레코드",
+    purchased_dns_mail_group_tip:
+      "이메일이 계속 작동하도록 Aster가 이 레코드를 관리합니다. 편집하거나 삭제할 수 없습니다.",
+    purchased_dns_your_records: "내 레코드",
+    purchased_dns_empty: "아직 추가한 레코드가 없습니다.",
+    purchased_dns_limit_reached:
+      "이 도메인의 레코드가 최대 개수인 {{count}}개에 도달했습니다. 새로 추가하려면 하나를 삭제하세요.",
+    purchased_dns_col_type: "유형",
+    purchased_dns_col_name: "이름",
+    purchased_dns_col_content: "내용",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "작업",
+    purchased_dns_host_hint: "도메인 자체에는 @를 사용하거나 www 같은 하위 도메인을 입력하세요.",
+    purchased_dns_field_ipv4: "IPv4 주소",
+    purchased_dns_field_ipv6: "IPv6 주소",
+    purchased_dns_field_target: "대상",
+    purchased_dns_field_content: "내용",
+    purchased_dns_field_mail_server: "메일 서버",
+    purchased_dns_field_caa_value: "값",
+    purchased_dns_field_priority: "우선 순위",
+    purchased_dns_field_weight: "가중치",
+    purchased_dns_field_port: "포트",
+    purchased_dns_field_flags: "플래그",
+    purchased_dns_field_tag: "태그",
+    purchased_dns_ttl_one_hour: "1시간",
+    purchased_dns_ttl_hours: "{{count}}시간",
+    purchased_dns_ttl_one_day: "1일",
+    purchased_dns_ttl_days: "{{count}}일",
+    purchased_dns_error_required: "이 필드를 입력하세요.",
+    purchased_dns_error_host:
+      "올바른 이름을 입력하세요. 문자, 숫자, 하이픈, 밑줄을 사용할 수 있으며 레이블당 최대 63자입니다.",
+    purchased_dns_error_protected_host: "이 이름은 Aster Mail 레코드용으로 예약되어 있습니다.",
+    purchased_dns_error_apex_mx:
+      "도메인 자체의 메일 레코드는 Aster가 관리합니다. 대신 하위 도메인에 MX 레코드를 추가하세요.",
+    purchased_dns_error_apex_cname:
+      "CNAME 레코드는 도메인 자체에 사용할 수 없습니다. 대신 A 또는 AAAA 레코드를 사용하세요.",
+    purchased_dns_error_apex_spf:
+      "Aster가 이미 이 도메인의 SPF 레코드를 게시하고 있으며, 도메인에는 하나만 있을 수 있습니다.",
+    purchased_dns_error_value: "값을 확인하고 다시 시도하세요.",
+    purchased_dns_error_ip: "올바른 IP 주소를 입력하세요.",
+    purchased_dns_error_ipv4: "203.0.113.10과 같은 올바른 IPv4 주소를 입력하세요.",
+    purchased_dns_error_ipv6: "2001:db8::1과 같은 올바른 IPv6 주소를 입력하세요.",
+    purchased_dns_error_private_ip:
+      "공용 IP 주소를 입력하세요. 사설, 로컬, 예약된 주소는 인터넷에서 접근할 수 없습니다.",
+    purchased_dns_error_target: "example.com과 같은 올바른 호스트 이름을 입력하세요.",
+    purchased_dns_error_cname_self: "CNAME 레코드는 자기 자신의 이름을 가리킬 수 없습니다.",
+    purchased_dns_error_cname_conflict:
+      "CNAME 레코드가 있는 이름에는 다른 레코드를 둘 수 없습니다. 먼저 다른 레코드를 삭제하거나 다른 이름을 선택하세요.",
+    purchased_dns_error_txt_length: "TXT 내용은 최대 2,048자까지 입력할 수 있습니다.",
+    purchased_dns_error_txt_chars:
+      "TXT 내용에는 따옴표나 백슬래시를 제외한 일반적인 인쇄 가능 문자만 사용할 수 있습니다.",
+    purchased_dns_error_ttl: "목록에서 TTL을 선택하세요.",
+    purchased_dns_error_priority: "0에서 65535 사이의 우선 순위를 입력하세요.",
+    purchased_dns_error_weight: "0에서 65535 사이의 가중치를 입력하세요.",
+    purchased_dns_error_port: "1에서 65535 사이의 포트를 입력하세요.",
+    purchased_dns_error_srv_host: "SRV 이름은 _sip._tcp처럼 서비스와 프로토콜로 시작합니다.",
+    purchased_dns_error_caa_flags: "플래그로 0 또는 128을 선택하세요.",
+    purchased_dns_error_caa_tag: "태그로 issue, issuewild, iodef 중 하나를 선택하세요.",
+    purchased_dns_error_caa_value: "따옴표, 백슬래시 없이 최대 255자로 값을 입력하세요.",
+    purchased_dns_error_duplicate: "이 레코드는 이미 있습니다.",
+    purchased_dns_error_too_many:
+      "이 도메인의 레코드가 최대 개수에 도달했습니다. 새로 추가하려면 하나를 삭제하세요.",
+    purchased_dns_error_protected_record: "Aster가 관리하는 레코드이므로 변경할 수 없습니다.",
+    purchased_dns_error_type_change:
+      "레코드 유형은 변경할 수 없습니다. 대신 삭제하고 새 레코드를 추가하세요.",
+    purchased_dns_error_locked: "이 도메인의 편집이 꺼져 있습니다.",
+    purchased_dns_error_busy: "등록기관이 사용 중입니다.",
+    purchased_dns_error_not_found: "이 레코드는 더 이상 존재하지 않습니다.",
+    purchased_dns_error_rate_limited: "변경 속도가 너무 빠릅니다.",
+    purchased_dns_error_retry_in: "{{message}} {{count}}초 후에 다시 시도하세요.",
+    purchased_dns_ttl_seconds: "{{count}}초",
+    purchased_dns_expired_note: "편집이 꺼졌습니다. 변경 사항은 아직 저장되지 않았습니다. 저장을 클릭하면 먼저 본인 확인을 진행합니다.",
+    purchased_dns_filter_placeholder: "레코드 필터링",
+    purchased_dns_filter_no_results: "필터와 일치하는 레코드가 없습니다.",
+    purchased_dns_keep_editing: "계속 편집",
+    purchased_dns_error_unlock_failed: "편집을 켤 수 없습니다. 다시 시도하세요.",
+    purchased_dns_error_generic: "변경 사항을 저장하지 못했습니다. 다시 시도하세요.",
+    purchased_dns_load_failed: "DNS 레코드를 불러오지 못했습니다. 다시 시도하세요.",
     domain_purchase_filter_all: "전체",
     domain_purchase_filter_available: "사용 가능",
     domain_purchase_filter_taken: "사용 중",
@@ -7230,6 +7389,7 @@ export const ko = {
       "보안 키는 app.astermail.org의 Aster 웹 앱에서 추가할 수 있습니다. 여기에서는 기존 키를 보고 삭제할 수 있습니다.",
     passkeys_desktop_note:
       "패스키는 app.astermail.org의 Aster 웹 앱에서 추가할 수 있습니다. 여기에서는 기존 패스키를 보고 삭제할 수 있습니다.",
+    passkeys_open_in_browser: "브라우저에서 열기",
     app_lock_pin: "PIN 잠금",
     app_lock_pin_description:
       "이 브라우저에서 Aster Mail을 표시하기 전에 PIN을 요청합니다. 이 기기를 사용하는 다른 사람에게서 메일을 숨기지만, 여기에 저장된 데이터를 암호화하지는 않습니다.",
@@ -8503,6 +8663,8 @@ export const ko = {
       "이 발신자의 암호화 ID가 마지막으로 메시지를 주고받은 이후 변경되었습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
     sender_identity_downgraded:
       "이 발신자의 메시지에 더 이상 양자 내성 보호가 적용되지 않습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
+    sender_identity_unreadable:
+      "이 기기에서 이 발신자의 저장된 암호화 키를 읽을 수 없어 이 메시지를 확인할 수 없습니다. 메시지를 다시 확인하려면 다른 방법으로 상대방에게 키를 확인한 다음 새 키 신뢰를 선택하세요.",
     recipient_identity_changed:
       "{{email}}의 암호화 키가 변경되었습니다. 예상하지 못한 변경이라면 민감한 정보를 보내기 전에 다른 방법으로 상대방에게 확인하세요.",
     message_password_requirements:
@@ -8691,6 +8853,11 @@ export const ko = {
     block_sender: "발신자 차단",
     unblock_sender: "발신자 차단 해제",
     unsubscribe: "구독 취소",
+    copy_code: "코드 복사",
+    copy_code_value: "코드 {{code}} 복사",
+    copy_subject: "제목 복사",
+    code_copied: "코드를 복사했습니다",
+    subject_copied: "제목을 복사했습니다",
     edit_draft: "임시 저장 편집",
     schedule: "예약",
     scheduling: "예약 중",
@@ -9063,9 +9230,8 @@ export const ko = {
     unstar: "별표 해제",
     mark_unread: "읽지 않음으로 표시",
     mark_read: "읽음으로 표시",
-    verified_sender: "인증된 발신자",
-    verified_sender_desc:
-      "이 이메일의 발신자가 {{domain}}을(를) 소유하고 있음을 확인했습니다.",
+    verified_sender: "인증된 도메인",
+    verified_sender_desc: "Aster 서버가 발신자가 {{domain}}을(를) 소유하고 있음을 확인했습니다.",
     sender_warning_title: "발신자 주소를 확인하세요",
     sender_warning_address_in_name:
       "발신자 이름에는 {{claimed}}(이)라고 표시되지만, 이 메시지는 {{address}}에서 보냈습니다.",
@@ -9170,6 +9336,7 @@ export const ko = {
     move_n_conversations: "{{ count }}개 대화 이동",
     move_n_conversations_other: "{{count}}개 대화 이동",
     view_message: "메시지 보기",
+    open_full_view: "전체 보기로 열기",
     block_sender_spam_warning:
       "지금부터 이 보낸 사람의 새 이메일은 곧바로 스팸으로 이동합니다. 차단 목록에서 차단을 해제할 수 있습니다.",
     block_sender_confirm_message:
@@ -9197,6 +9364,9 @@ export const ko = {
       "이 이메일은 {{ received }}에서 수신했지만 답장은 {{ selected }}에서 전송됩니다. 다른 주소로 답장하면 해당 주소가 발신자에게 노출되거나 답장이 거부될 수 있습니다.",
     reply_from_mismatch_use_received: "수신 주소 사용",
     reply_from_mismatch_send_anyway: "그대로 보내기",
+    reply_from_unknown_title: "보내는 주소를 확인하세요",
+    reply_from_unknown_message:
+      "Aster가 이 이메일을 받은 주소를 확인할 수 없습니다. 답장은 {{ selected }}에서 전송됩니다. 다른 주소에서 보내려면 취소한 다음 먼저 주소를 선택하세요.",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "{{date}}, {{name}} 작성:",
     download_file_named: "{{filename}} 다운로드",
@@ -9205,6 +9375,7 @@ export const ko = {
     received_via_alias: "별칭 {{ address }}(으)로 전달됨",
     new_reaction: "새 반응",
     load_external_content: "외부 콘텐츠 불러오기",
+    image_loading_settings: "이미지 설정",
     image: "이미지",
     images: "이미지",
     tracker: "추적기",
@@ -9734,6 +9905,22 @@ export const ko = {
     sending_reset_link: "재설정 링크 전송 중...",
     reset_your_password: "비밀번호 재설정",
     reset_choose_new_password: "계정의 새 비밀번호를 선택하세요.",
+    reset_current_password:
+      "현재 비밀번호",
+    reset_current_password_keeps_keys:
+      "현재 비밀번호를 입력하면 암호화 키가 그대로 유지되고 메일도 계속 읽을 수 있습니다. 모르는 경우 대신 복구 코드를 사용하세요.",
+    reset_current_password_required:
+      "현재 비밀번호를 입력하거나 대신 복구 코드를 사용하세요.",
+    reset_lost_everything:
+      "비밀번호와 복구 코드를 잃어버렸습니다",
+    reset_remember_password:
+      "비밀번호를 기억합니다",
+    reset_lost_everything_warning:
+      "비밀번호나 복구 코드가 없으면 Aster Mail이 암호화 키를 잠금 해제할 수 없습니다. 재설정하면 새 키가 생성되며, 나중에 이전 비밀번호나 복구 코드를 찾지 않는 한 기존 메일은 읽을 수 없게 됩니다.",
+    reset_lost_everything_confirm:
+      "기존 메일을 읽을 수 없게 된다는 것을 이해합니다",
+    reset_lost_everything_confirm_required:
+      "비밀번호 없이 재설정하려면 기존 메일을 읽을 수 없게 된다는 것을 이해했는지 확인하세요.",
     reset_current_password_optional: "현재 비밀번호(선택 사항)",
     reset_current_password_hint:
       "현재 비밀번호를 기억한다면 여기에 입력하세요. 로그인하는 즉시 이전 메일을 계속 사용할 수 있습니다. 비워 두면 나중에 복구 코드로 이전 메일을 잠금 해제할 수 있습니다.",
@@ -9798,6 +9985,22 @@ export const ko = {
     review_recovery_email_kept: "복구 이메일이 그대로 설정되어 있습니다.",
     review_no_recovery_email: "복구 이메일이 없습니다.",
     review_add: "추가",
+    recovery_previous_password_placeholder:
+      "이전 비밀번호 입력",
+    recovery_previous_password_body:
+      "암호화 키는 이번 재설정 전에 사용하던 비밀번호로 계속 보호되고 있습니다. 메일을 읽을 수 있도록 유지하려면 이전 비밀번호를 입력하세요. 키는 그대로 유지되며 이제부터 새 비밀번호로 보호됩니다.",
+    recovery_previous_password_required:
+      "이전 비밀번호를 입력하거나 기억나지 않음을 선택하세요.",
+    recovery_previous_password_incorrect:
+      "이 비밀번호로는 암호화 키를 잠금 해제할 수 없습니다. 확인 후 다시 시도하세요.",
+    recovery_previous_password_forgot:
+      "기억나지 않음",
+    recovery_previous_password_use:
+      "이전 비밀번호 입력하기",
+    recovery_previous_password_skipped_warning:
+      "비밀번호는 재설정되고 암호화 키는 유지되지만, 이전 비밀번호로 잠긴 상태로 남습니다. 데이터 복구 배너에서 그 비밀번호를 입력할 때까지 메일을 읽을 수 없습니다.",
+    review_keys_left_locked:
+      "암호화 키는 유지되었지만 아직 이전 비밀번호로 잠겨 있습니다. 메일을 읽으려면 배너에서 데이터 복구를 선택하고 그 비밀번호를 입력하세요.",
     review_codes_left: "복구 코드가 {{count}}개 남았습니다.",
     review_codes_left_other: "복구 코드가 {{count}}개 남았습니다.",
     import_mail_step_title: "메일을 함께 가져오세요",
@@ -9882,26 +10085,39 @@ export const ko = {
     device_code_waiting: "페어링 대기 중...",
     device_code_expires_in: "만료까지",
     link_device_title: "기기 연결",
-    link_device_enter_code: "기기에 표시된 코드를 입력하세요",
+    link_device_enter_code: "연결하려는 앱에 표시된 연결 코드를 입력하세요.",
     link_device_code_placeholder: "코드 입력",
     link_device_verify_button: "확인",
     link_device_confirm_prompt: "이 기기를 계정과 연결하시겠습니까?",
     link_device_confirm_button: "연결",
     link_device_confirming: "연결 중...",
     link_device_cancel: "취소",
-    link_device_desktop: "데스크톱 앱",
-    device_fingerprint: "확인 코드",
+    link_device_desktop: "새 기기",
+    device_fingerprint: "기기 지문",
+    device_fingerprint_copy: "기기 지문 복사",
+    link_device_grant_notice:
+      "연결하면 {{device}}의 앱이 메일과 암호화 키를 포함해 {{email}}에 대한 전체 접근 권한을 갖게 됩니다.",
+    link_device_own_device_warning:
+      "본인 기기의 Aster 앱에서 직접 이 과정을 시작한 경우에만 계속하세요. 다른 사람에게서 이 코드를 받았다면 기기를 연결하지 마세요.",
+    link_device_fingerprint_enter:
+      "연결하려는 앱에 표시된 기기 지문을 입력하세요. 일부 앱에서는 인증 코드라고 표시합니다.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "이 연결 코드의 기기와 일치하지 않습니다. 연결하려는 앱과 한 글자씩 비교한 다음 다시 시도하세요. 그래도 일치하지 않으면 기기를 연결하지 마세요.",
+    link_device_fingerprint_link_mismatch:
+      "이 페이지를 연 링크가 이 연결 코드와 다른 기기의 것이어서 여기에서 기기를 연결할 수 없습니다. 연결하려는 앱에서 새 코드를 받은 후 다시 시도하세요.",
+    link_device_update_desktop:
+      "앱에 표시되지 않으면 앱에서 이 기기 확인을 선택하세요. 앱에 이 옵션이 없으면 앱을 업데이트한 다음 다시 시도하세요.",
+    device_code_fingerprint_required_hint:
+      "기기를 연결하기 전에 브라우저에서 이 기기 지문을 요청합니다.",
     device_code_verify_toggle: "이 기기 확인",
     link_device_fingerprint_hint:
       "새 기기에 표시된 확인 코드를 입력하세요. 데스크톱 앱에서는 이 기기 확인을 선택하면 볼 수 있습니다.",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete: "기기를 연결하려면 새 기기의 전체 확인 코드를 입력하세요.",
-    link_device_fingerprint_mismatch:
-      "이 코드는 새 기기와 일치하지 않습니다. 새 기기의 코드를 확인하고 다시 입력하세요. 그래도 일치하지 않으면 취소를 선택하세요.",
     device_code_fingerprint_hint: "이 기기를 연결하려면 이미 로그인한 기기에서 이 코드를 입력하세요.",
     link_device_change_account: "계정 변경",
     link_device_choose_account: "계정 선택",
-    link_device_choose_account_description: "데스크톱 앱을 연결합니다",
+    link_device_choose_account_description: "새 기기를 연결합니다",
     link_device_choose_account_note:
       "암호화 키는 기기 간에 전송되는 동안에도 암호화된 상태로 유지됩니다.",
     link_device_use_another_account: "다른 계정 사용",
@@ -9912,11 +10128,11 @@ export const ko = {
     hub_account_link_failed: "이 계정으로 계속하려면 비밀번호를 입력하세요.",
     link_device_success: "기기가 연결되었습니다",
     link_device_success_description:
-      "기기가 성공적으로 연결되어 메일에 접근할 수 있습니다.",
+      "기기가 연결되었습니다. 이 탭을 닫아도 됩니다.",
     link_device_invalid_code:
       "연결 코드는 8자입니다. 코드를 확인하고 다시 시도하세요.",
     link_device_expired_code:
-      "이 코드는 만료되었습니다. 기기에서 새 코드를 생성하세요.",
+      "이 코드는 만료되었거나 일치하지 않습니다. 연결하려는 앱에 현재 코드가 표시되어 있습니다.",
     link_device_failed: "기기 연결에 실패했습니다. 다시 시도하면 됩니다.",
     link_keys_locked_title: "키링이 잠겨 있습니다",
     link_keys_locked_description:
@@ -10263,6 +10479,8 @@ export const ko = {
       "메시지 암호가 너무 약해 메시지를 보내지 않았습니다. 12자 이상을 사용하고 숫자, 기호 또는 대문자와 소문자를 모두 포함하세요.",
     recipient_key_untrusted:
       "수신자의 암호화 키가 변경되어 메시지를 보내지 않았습니다. 보내려면 다른 방법으로 상대방에게 변경 사항을 확인한 다음 새 키 신뢰를 선택하세요.",
+    recipient_key_unreadable:
+      "이 기기에서 수신자의 저장된 암호화 키를 읽을 수 없어 메시지를 보내지 않았습니다. 보내려면 다른 방법으로 상대방에게 키를 확인한 다음 새 키 신뢰를 선택하세요.",
     key_trust_check_failed:
       "수신자의 암호화 키를 확인할 수 없어 메시지를 보내지 않았습니다. 연결을 확인하고 다시 시도하세요.",
     recipient_classification_unavailable:
@@ -10469,6 +10687,8 @@ export const ko = {
       "case_sensitive는 따옴표로 묶은 텍스트 값 뒤에만 올 수 있습니다.",
     expr_internal_error:
       "이 표현식을 읽을 수 없습니다. 구문을 확인한 후 다시 시도하세요.",
+    expr_server_rejected:
+      "식의 이 부분을 저장할 수 없습니다. 구문을 확인하고 다시 시도하세요.",
     expr_line_col: "({{line}}행, {{col}}열)",
     editor_description: "규칙에 이름을 붙이고 할 일을 지정하세요.",
     editor_server_notice:
@@ -10601,6 +10821,10 @@ export const ko = {
     regex_invalid:
       "이 정규식 패턴은 유효하지 않습니다. 구문을 확인하고 다시 시도하세요.",
     regex_empty: "저장하기 전에 정규식 패턴이 필요합니다.",
+    regex_too_complex:
+      "이 정규식 패턴은 너무 복잡해서 저장할 수 없습니다. 반복이나 대안을 줄인 후 다시 시도하세요.",
+    regex_invalid_reason:
+      "이 정규식 패턴이 올바르지 않습니다: {{reason}}",
     regex_too_long: "이 정규식이 너무 깁니다. 줄인 버전이면 됩니다.",
     last_condition_required:
       "이 규칙을 저장하기 전에 최소 하나의 조건이 필요합니다.",
@@ -11041,6 +11265,8 @@ export const ko = {
     invite_card_join: "회의 참가",
     invite_card_calendar_failed: "답장은 전송되었지만 Aster가 이 일정을 캘린더에 추가하지 못했습니다.",
     invite_card_reply_send_failed: "답장을 보내지 못했습니다. 다시 시도하세요.",
+    invite_card_reply_address_unavailable:
+      "이 초대를 받은 주소로 메일을 보낼 수 없어 Aster가 답장을 보내지 않았습니다. 답장하려면 해당 주소를 다시 켜세요.",
     invite_card_organizer_mismatch:
       "이 초대는 {{sender}}에서 보냈지만 주최자는 {{organizer}}(으)로 표시되어 있습니다. 예상하지 못한 경우 응답하기 전에 주최자에게 확인하세요.",
     invite_card_reply_confirm:

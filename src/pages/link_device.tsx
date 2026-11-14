@@ -37,13 +37,14 @@ import {
   base64url_encode,
   base64url_decode,
 } from "@/lib/crypto/device_envelope";
+import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
 import {
-  FINGERPRINT_CHARS,
-  fingerprint_matches,
-  fingerprint_of_encoded_device_keys,
+  capture_link_commitment,
+  clear_link_commitment,
   format_fingerprint_input,
-  normalize_fingerprint_input,
-} from "@/lib/crypto/device_fingerprint";
+  normalize_fingerprint,
+  read_link_commitment,
+} from "@/lib/device_link_commitment";
 import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
 import { app_pathname } from "@/lib/account_index_url";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -455,14 +456,51 @@ export default function LinkDevice() {
   const [device_info, set_device_info] = useState<DeviceInfo | null>(null);
   const [error, set_error] = useState<string | null>(null);
   const [is_verifying, set_is_verifying] = useState(false);
+  const [link_commitment, set_link_commitment] = useState<string | null>(
+    () => {
+      capture_link_commitment();
+
+      return read_link_commitment();
+    },
+  );
   const [fingerprint_input, set_fingerprint_input] = useState("");
-  const is_fingerprint_input_complete =
-    normalize_fingerprint_input(fingerprint_input).length === FINGERPRINT_CHARS;
+  const identity = use_account_identity();
   const device_fingerprint = useMemo(
     () =>
       device_info ? fingerprint_of_encoded_device_keys(device_info) : null,
     [device_info],
   );
+  const typed_fingerprint = normalize_fingerprint(fingerprint_input);
+  const fingerprint_matches =
+    device_fingerprint !== null && typed_fingerprint === device_fingerprint;
+  const fingerprint_rejected =
+    typed_fingerprint !== null && !fingerprint_matches;
+  const link_conflict =
+    link_commitment !== null &&
+    device_fingerprint !== null &&
+    link_commitment !== device_fingerprint;
+
+  const reset_link = (next_state: PageState) => {
+    clear_link_commitment();
+    set_link_commitment(null);
+    set_device_info(null);
+    set_code_input("");
+    set_fingerprint_input("");
+    set_page_state(next_state);
+  };
+
+  useEffect(() => {
+    const handle_fragment = () => {
+      if (window.location.hash.length < 2) return;
+
+      capture_link_commitment();
+      set_link_commitment(read_link_commitment());
+    };
+
+    window.addEventListener("hashchange", handle_fragment);
+
+    return () => window.removeEventListener("hashchange", handle_fragment);
+  }, []);
 
   useEffect(() => {
     if (auth_loading) return;
@@ -534,6 +572,7 @@ export default function LinkDevice() {
         return;
       }
 
+      set_link_commitment(read_link_commitment());
       set_fingerprint_input("");
       set_device_info(response.data);
       set_page_state("confirming_device");
@@ -545,19 +584,7 @@ export default function LinkDevice() {
   };
 
   const handle_confirm = async () => {
-    if (!device_info || !device_fingerprint) return;
-
-    if (!is_fingerprint_input_complete) {
-      set_error(t("auth.link_device_fingerprint_incomplete"));
-
-      return;
-    }
-
-    if (!fingerprint_matches(fingerprint_input, device_fingerprint)) {
-      set_error(t("auth.link_device_fingerprint_mismatch"));
-
-      return;
-    }
+    if (!device_info || !fingerprint_matches || link_conflict) return;
 
     set_page_state("sealing");
     set_error(null);
@@ -606,10 +633,7 @@ export default function LinkDevice() {
         set_error(t(info.key));
         show_toast(t(info.key), "error");
         if (info.restart) {
-          set_device_info(null);
-          set_fingerprint_input("");
-          set_code_input("");
-          set_page_state("input");
+          reset_link("input");
         } else {
           set_page_state("confirming_device");
         }
@@ -617,6 +641,7 @@ export default function LinkDevice() {
         return;
       }
 
+      clear_link_commitment();
       set_page_state("success");
     } catch (err) {
       const message =
@@ -631,18 +656,13 @@ export default function LinkDevice() {
   };
 
   const handle_restart = () => {
-    set_device_info(null);
-    set_fingerprint_input("");
-    set_code_input("");
     set_error(null);
-    set_page_state("input");
+    reset_link("input");
   };
 
   const open_account_chooser = () => {
-    set_device_info(null);
-    set_code_input("");
     set_error(null);
-    set_page_state("choose_account");
+    reset_link("choose_account");
   };
 
   if (auth_loading || !is_authenticated) {
@@ -770,45 +790,87 @@ export default function LinkDevice() {
               className="mt-3.5 border-t pt-3.5"
               style={{ borderColor: "var(--border-secondary)" }}
             >
-              <label
+              <p
+                className="text-[12px] leading-relaxed"
+                data-testid="link_device_grant"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {t("auth.link_device_grant_notice", {
+                  device: device_info.machine_name,
+                  email: identity.display_email,
+                })}
+              </p>
+              <p
+                className="mt-2 text-[11px] leading-relaxed"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {t("auth.link_device_own_device_warning")}
+              </p>
+            </div>
+            <div
+              className="mt-3.5 border-t pt-3.5"
+              style={{ borderColor: "var(--border-secondary)" }}
+            >
+              <span
                 className="block text-[11px] font-medium leading-tight"
-                htmlFor="link_device_fingerprint_input"
                 style={{ color: "var(--text-muted)" }}
               >
                 {t("auth.device_fingerprint")}
-              </label>
+              </span>
               <input
-                autoFocus
+                aria-describedby="device_fingerprint_help"
+                aria-invalid={fingerprint_rejected || link_conflict}
+                aria-label={t("auth.device_fingerprint")}
                 autoCapitalize="characters"
                 autoComplete="off"
-                className="link_device_code_input mt-2 w-full rounded-[14px] px-4 py-3 text-center font-mono text-[15px] font-semibold tracking-wide text-txt-primary placeholder:text-txt-muted placeholder:font-normal"
+                className="link_device_code_input mt-2 w-full rounded-[12px] px-3 py-2.5 text-center font-mono text-[14px] font-semibold tracking-wide text-txt-primary placeholder:font-normal placeholder:text-txt-muted"
                 data-testid="device_fingerprint_input"
-                id="link_device_fingerprint_input"
                 placeholder={t("auth.link_device_fingerprint_placeholder")}
                 spellCheck={false}
                 type="text"
                 value={fingerprint_input}
-                onChange={(event) => {
+                onChange={(e) => {
                   set_fingerprint_input(
-                    format_fingerprint_input(event.target.value),
+                    format_fingerprint_input(e.target.value),
                   );
                   set_error(null);
                 }}
-                onKeyDown={(event) => {
-                  if (
-                    event.key === "Enter" &&
-                    !is_composing(event) &&
-                    is_fingerprint_input_complete
-                  ) {
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !is_composing(e)) {
                     handle_confirm();
                   }
                 }}
               />
+              {link_conflict && (
+                <span
+                  className="mt-1.5 block text-[11px] leading-relaxed text-red-500"
+                  data-testid="device_fingerprint_link_error"
+                  role="alert"
+                >
+                  {t("auth.link_device_fingerprint_link_mismatch")}
+                </span>
+              )}
+              {fingerprint_rejected && !link_conflict && (
+                <span
+                  className="mt-1.5 block text-[11px] leading-relaxed text-red-500"
+                  data-testid="device_fingerprint_error"
+                  role="alert"
+                >
+                  {t("auth.link_device_fingerprint_mismatch")}
+                </span>
+              )}
+              <span
+                className="mt-1.5 block text-[11px] leading-relaxed"
+                id="device_fingerprint_help"
+                style={{ color: "var(--text-muted)" }}
+              >
+                {t("auth.link_device_fingerprint_enter")}
+              </span>
               <span
                 className="mt-1.5 block text-[11px] leading-relaxed"
                 style={{ color: "var(--text-muted)" }}
               >
-                {t("auth.link_device_fingerprint_hint")}
+                {t("auth.link_device_update_desktop")}
               </span>
             </div>
           </div>
@@ -820,7 +882,7 @@ export default function LinkDevice() {
 
         <Button
           className="w-full mt-6"
-          disabled={!is_fingerprint_input_complete}
+          disabled={!fingerprint_matches || link_conflict}
           size="xl"
           variant="depth"
           onClick={handle_confirm}

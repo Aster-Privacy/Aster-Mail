@@ -80,6 +80,8 @@ vi.mock("@/services/crypto/inbound_attachment_keys", () => ({
   attachment_keys_version: () => 0,
   get_attachment_key: () => "",
   get_attachment_entry: () => null,
+  has_sealed_attachment_manifest: () => false,
+  subscribe_attachment_keys: () => () => {},
 }));
 
 const { AttachmentList } = await import("./attachment_list");

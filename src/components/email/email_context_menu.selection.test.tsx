@@ -136,6 +136,12 @@ function text(): string {
   return container!.textContent ?? "";
 }
 
+function button_labels(): string[] {
+  return Array.from(container!.querySelectorAll("button")).map(
+    (button) => button.textContent ?? "",
+  );
+}
+
 beforeEach(() => {
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -184,7 +190,8 @@ describe("EmailContextMenuContent selection scope", () => {
     expect(text()).toContain("mail.mark_as_unread");
     expect(text()).toContain("mail.archive_action");
     expect(text()).toContain("mail.snooze");
-    expect(text()).toContain("mail.folder");
+    expect(text()).toMatch(/mail\.move_to(?!_)/);
+    expect(button_labels()).toContain("One");
     expect(text()).toContain("mail.move_to_category");
   });
 
@@ -208,7 +215,7 @@ describe("EmailContextMenuContent selection scope", () => {
 
     expect(text()).toContain("mail.menu_applies_to_all:20000");
     expect(text()).not.toContain("mail.snooze");
-    expect(text()).not.toContain("mail.folder");
+    expect(button_labels()).not.toContain("One");
     expect(text()).not.toContain("common.labels");
     expect(text()).toContain("mail.move_to_category");
     expect(text()).toContain("mail.archive_action");
@@ -272,7 +279,7 @@ describe("EmailContextMenuContent selection scope", () => {
 
     render({ on_folder_toggle });
 
-    expect(text()).not.toContain("mail.move_to_inbox");
+    expect(button_labels()).not.toContain("mail.inbox");
 
     render({
       on_folder_toggle,
@@ -283,7 +290,7 @@ describe("EmailContextMenuContent selection scope", () => {
     });
 
     const item = Array.from(container!.querySelectorAll("button")).find(
-      (button) => button.textContent === "mail.move_to_inbox",
+      (button) => button.textContent === "mail.inbox",
     );
 
     await act(async () => {
@@ -302,7 +309,7 @@ describe("EmailContextMenuContent selection scope", () => {
       ],
     });
 
-    expect(text()).toContain("mail.move_to_inbox");
+    expect(button_labels()).toContain("mail.inbox");
   });
 
   it("hides move to inbox in the trash when there is no restore handler", () => {
@@ -315,7 +322,7 @@ describe("EmailContextMenuContent selection scope", () => {
       },
     });
 
-    expect(text()).not.toContain("mail.move_to_inbox");
+    expect(button_labels()).not.toContain("mail.inbox");
   });
 
   it("offers move to inbox for a message in the trash", async () => {
@@ -334,7 +341,7 @@ describe("EmailContextMenuContent selection scope", () => {
     });
 
     const item = Array.from(container!.querySelectorAll("button")).find(
-      (button) => button.textContent === "mail.move_to_inbox",
+      (button) => button.textContent === "mail.inbox",
     );
 
     expect(item).toBeDefined();

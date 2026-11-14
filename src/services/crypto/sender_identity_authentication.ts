@@ -19,12 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { drop_expired_entries, trim_map_to_size } from "@/lib/bounded_map";
-import {
-  SENDER_HISTORY_PREFIX,
-  scoped_get,
-  scoped_set,
-} from "./storage_key_names";
-import { get_derived_encryption_key } from "./memory_key_store";
+import { SENDER_HISTORY_PREFIX } from "./storage_key_names";
 import {
   fetch_prekey_bundle,
   fetch_published_identity_history,
@@ -35,14 +30,27 @@ import {
   record_message_sender_identity,
   type SenderIdentityStatus,
 } from "./ratchet_verification_status";
-import { get_identity_pin_record } from "./ratchet_identity_pin";
+import {
+  MAX_REMEMBERED_IDENTITIES,
+  lookup_identity_pin_record,
+  open_pin_contact,
+  read_sender_history,
+} from "./ratchet_identity_pin";
 import { base64_to_array, compute_hash } from "./key_manager_core";
+import {
+  with_contact_lock,
+  write_contact_entry,
+  type ContactSlot,
+} from "./contact_entries";
 
 import { extract_username_from_email } from "@/services/api/keys";
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const PUBLISHED_CACHE_TTL_MS = 5 * 60 * 1000;
-const MAX_REMEMBERED_IDENTITIES = 12;
+
+interface SenderPeer {
+  address: string;
+  slot: ContactSlot | null;
+}
 
 interface PublishedCacheEntry {
   identity_key: string | null;
@@ -59,9 +67,16 @@ const published_cache = new Map<string, PublishedCacheEntry>();
 const published_history_cache = new Map<string, PublishedHistoryCacheEntry>();
 const status_cache = new Map<string, SenderIdentityStatus>();
 const refresh_cache = new Map<string, number>();
-const history_cache = new Map<string, string[]>();
+const address_entry_cache = new Map<
+  string,
+  { identity_keys: string[]; timestamp: number }
+>();
 
 function bound_peer_caches(): void {
+  if (address_entry_cache.size > MAX_PEER_CACHE) {
+    drop_expired_entries(address_entry_cache, PUBLISHED_CACHE_TTL_MS);
+    trim_map_to_size(address_entry_cache, MAX_PEER_CACHE);
+  }
   if (published_cache.size > MAX_PEER_CACHE) {
     drop_expired_entries(published_cache, PUBLISHED_CACHE_TTL_MS);
     trim_map_to_size(published_cache, MAX_PEER_CACHE);
@@ -72,7 +87,6 @@ function bound_peer_caches(): void {
   }
   trim_map_to_size(status_cache, MAX_PEER_CACHE);
   trim_map_to_size(refresh_cache, MAX_PEER_CACHE);
-  trim_map_to_size(history_cache, MAX_PEER_CACHE);
 }
 
 export class SenderIdentityUnverifiedError extends Error {
@@ -87,99 +101,51 @@ export class SenderIdentityUnverifiedError extends Error {
   }
 }
 
-async function current_account_uid(): Promise<string | null> {
-  try {
-    const { get_current_account_id } =
-      await import("@/services/account_manager");
+async function resolve_sender_peer(sender_email: string): Promise<SenderPeer> {
+  const address = sender_email.trim().toLowerCase();
 
-    return await get_current_account_id();
-  } catch {
-    return null;
-  }
+  return {
+    address,
+    slot: await open_pin_contact(address).catch(() => null),
+  };
 }
 
-function history_key_for(uid: string | null, peer: string): string {
-  return `${uid ?? ""}\u0000${peer}`;
-}
-
-async function history_storage_key(): Promise<CryptoKey | null> {
-  try {
-    const key_bytes = get_derived_encryption_key();
-
-    if (!key_bytes) return null;
-
-    const crypto_key = await crypto.subtle.importKey(
-      "raw",
-      key_bytes,
-      { name: "AES-GCM", length: 256 },
-      true,
-      ["encrypt", "decrypt"],
-    );
-
-    zero_uint8_array(key_bytes);
-
-    return crypto_key;
-  } catch {
-    return null;
-  }
-}
-
-async function read_identity_history(peer: string): Promise<string[] | null> {
-  const uid = await current_account_uid();
-  const cache_key = history_key_for(uid, peer);
-  const cached = history_cache.get(cache_key);
-
-  if (cached) return cached;
-
-  try {
-    const storage_key = await history_storage_key();
-
-    if (!storage_key) return null;
-
-    const stored = await scoped_get<string[]>(
-      SENDER_HISTORY_PREFIX,
-      uid,
-      peer,
-      storage_key,
-    );
-
-    const history = Array.isArray(stored) ? stored : [];
-
-    history_cache.set(cache_key, history);
-
-    return history;
-  } catch {
-    return null;
-  }
-}
-
-async function load_identity_history(peer: string): Promise<string[]> {
-  return (await read_identity_history(peer)) ?? [];
-}
+type RememberOutcome = "stored" | "present" | "refused";
 
 async function remember_identity(
-  peer: string,
+  peer: SenderPeer,
   identity_key: string,
-): Promise<void> {
-  if (!identity_key) return;
+): Promise<RememberOutcome> {
+  const slot = peer.slot;
+
+  if (!slot || !identity_key) return "refused";
 
   try {
-    const history = await read_identity_history(peer);
+    return await with_contact_lock(slot, async () => {
+      const continuity = await resolve_continuity(peer, identity_key);
 
-    if (!history || history.includes(identity_key)) return;
+      if (continuity !== "known" && continuity !== "new") return "refused";
 
-    const next = [identity_key, ...history].slice(0, MAX_REMEMBERED_IDENTITIES);
-    const uid = await current_account_uid();
-    const cache_key = history_key_for(uid, peer);
+      const history = await read_sender_history(slot);
 
-    const storage_key = await history_storage_key();
+      if (history.state !== "found" && history.state !== "absent") {
+        return "refused";
+      }
 
-    if (!storage_key) return;
+      const remembered = history.state === "found" ? history.value : [];
 
-    await scoped_set(SENDER_HISTORY_PREFIX, uid, peer, next, storage_key);
-    history_cache.set(cache_key, next);
+      if (remembered.includes(identity_key)) return "present";
+
+      await write_contact_entry(
+        SENDER_HISTORY_PREFIX,
+        slot,
+        [identity_key, ...remembered].slice(0, MAX_REMEMBERED_IDENTITIES),
+      );
+
+      return "stored";
+    });
   } catch {
-    return;
+    return "refused";
   }
 }
 
@@ -245,6 +211,47 @@ async function resolve_published_history(
   return history;
 }
 
+async function resolve_address_entry_keys(peer: string): Promise<string[]> {
+  const cached = address_entry_cache.get(peer);
+
+  if (cached && Date.now() - cached.timestamp < PUBLISHED_CACHE_TTL_MS) {
+    return cached.identity_keys;
+  }
+
+  const username = extract_username_from_email(peer);
+
+  if (!username) return [];
+
+  const identity_keys: string[] = [];
+
+  try {
+    const entry = await fetch_ratchet_identity(username, peer, true);
+
+    if (entry?.address_scoped === true && entry.kem_identity_key) {
+      identity_keys.push(entry.kem_identity_key);
+    }
+
+    if (entry?.address_scoped === true) {
+      const history = await fetch_published_identity_history(
+        username,
+        peer,
+        true,
+      );
+
+      if (history?.address_scoped === true) {
+        identity_keys.push(...history.identity_keys);
+      }
+    }
+  } catch {
+    identity_keys.length = 0;
+  }
+
+  address_entry_cache.set(peer, { identity_keys, timestamp: Date.now() });
+  bound_peer_caches();
+
+  return identity_keys;
+}
+
 function claim_directory_refresh(peer: string): boolean {
   const last = refresh_cache.get(peer);
 
@@ -258,59 +265,87 @@ function claim_directory_refresh(peer: string): boolean {
 }
 
 async function resolve_directory_status(
-  peer: string,
+  peer: SenderPeer,
   sender_identity_key: string,
   refresh: boolean,
 ): Promise<SenderIdentityStatus> {
   if (refresh) {
-    published_cache.delete(peer);
-    published_history_cache.delete(peer);
+    published_cache.delete(peer.address);
+    published_history_cache.delete(peer.address);
+    address_entry_cache.delete(peer.address);
   }
 
-  const published = await resolve_published_identity(peer);
-  const published_history = await resolve_published_history(peer);
+  const published = await resolve_published_identity(peer.address);
+  const published_history = await resolve_published_history(peer.address);
 
   const published_confirms =
     Boolean(published) && published === sender_identity_key;
   const history_confirms = Boolean(
     published_history?.identity_keys.includes(sender_identity_key),
   );
-
-  if (published_confirms || history_confirms) {
-    const continuity = await check_sender_identity_continuity(
-      peer,
+  const address_entry_confirms =
+    !published_confirms &&
+    !history_confirms &&
+    (await resolve_address_entry_keys(peer.address)).includes(
       sender_identity_key,
     );
 
-    if (continuity !== "changed") {
-      await remember_identity(peer, sender_identity_key);
-    }
-
-    return "verified";
+  if (published_confirms || history_confirms || address_entry_confirms) {
+    return (await remember_identity(peer, sender_identity_key)) === "refused"
+      ? "unverified"
+      : "verified";
   }
 
   return published_history?.history_complete ? "mismatch" : "unverified";
 }
 
-export type SenderIdentityContinuity = "known" | "new" | "changed";
+export type SenderIdentityContinuity =
+  | "known"
+  | "new"
+  | "changed"
+  | "superseded"
+  | "unreadable";
 
-async function matches_pinned_identity(
-  peer: string,
+async function resolve_continuity(
+  peer: SenderPeer,
   sender_identity_key: string,
-): Promise<boolean | null> {
+): Promise<SenderIdentityContinuity> {
+  const slot = peer.slot;
+
+  if (!slot) return "unreadable";
+
   try {
-    const pinned = await get_identity_pin_record(peer);
+    const pinned = await lookup_identity_pin_record(peer.address);
 
-    if (!pinned) return null;
-    if (pinned.rotated) return false;
+    if (pinned === "unreadable") return "unreadable";
 
-    const fingerprint = await compute_hash(
-      base64_to_array(sender_identity_key),
-    );
+    const history = await read_sender_history(slot);
 
-    return pinned.fingerprint === fingerprint;
+    if (history.state !== "found" && history.state !== "absent") {
+      return "unreadable";
+    }
+
+    const remembered = history.state === "found" ? history.value : [];
+
+    if (pinned) {
+      if (pinned.rotated) return "changed";
+
+      const fingerprint = await compute_hash(
+        base64_to_array(sender_identity_key),
+      );
+
+      if (pinned.fingerprint === fingerprint) return "known";
+
+      return remembered.includes(sender_identity_key)
+        ? "superseded"
+        : "changed";
+    }
+
+    if (remembered.includes(sender_identity_key)) return "known";
+
+    return remembered.length > 0 ? "changed" : "new";
   } catch {
-    return null;
+    return "unreadable";
   }
 }
 
@@ -318,18 +353,27 @@ export async function check_sender_identity_continuity(
   sender_email: string,
   sender_identity_key: string,
 ): Promise<SenderIdentityContinuity> {
-  if (!sender_email || !sender_identity_key) return "new";
+  if (!sender_email || !sender_identity_key) return "unreadable";
 
-  const peer = sender_email.toLowerCase();
-  const remembered = await load_identity_history(peer);
+  return resolve_continuity(
+    await resolve_sender_peer(sender_email),
+    sender_identity_key,
+  );
+}
 
-  if (remembered.includes(sender_identity_key)) return "known";
+async function is_remembered(
+  peer: SenderPeer,
+  sender_identity_key: string,
+): Promise<boolean> {
+  if (!peer.slot) return false;
 
-  const pinned = await matches_pinned_identity(peer, sender_identity_key);
+  const history = await read_sender_history(peer.slot).catch(() => null);
 
-  if (pinned === true) return "known";
-
-  return remembered.length > 0 || pinned === false ? "changed" : "new";
+  return Boolean(
+    history &&
+      history.state === "found" &&
+      history.value.includes(sender_identity_key),
+  );
 }
 
 export async function authenticate_sender_identity(
@@ -338,23 +382,26 @@ export async function authenticate_sender_identity(
 ): Promise<SenderIdentityStatus> {
   if (!sender_email || !sender_identity_key) return "unverified";
 
-  const peer = sender_email.toLowerCase();
+  const peer = await resolve_sender_peer(sender_email);
+  const continuity = await resolve_continuity(peer, sender_identity_key);
 
-  const remembered = await load_identity_history(peer);
-
-  if (remembered.includes(sender_identity_key)) {
-    status_cache.set(peer, "verified");
+  if (
+    continuity === "known" &&
+    (await is_remembered(peer, sender_identity_key))
+  ) {
+    status_cache.set(peer.address, "verified");
+    bound_peer_caches();
 
     return "verified";
   }
 
   let status = await resolve_directory_status(peer, sender_identity_key, false);
 
-  if (status !== "verified" && claim_directory_refresh(peer)) {
+  if (status !== "verified" && claim_directory_refresh(peer.address)) {
     status = await resolve_directory_status(peer, sender_identity_key, true);
   }
 
-  status_cache.set(peer, status);
+  status_cache.set(peer.address, status);
   bound_peer_caches();
 
   return status;
@@ -365,7 +412,7 @@ export function peek_sender_identity_status(
 ): SenderIdentityStatus | null {
   if (!sender_email) return null;
 
-  return status_cache.get(sender_email.toLowerCase()) ?? null;
+  return status_cache.get(sender_email.trim().toLowerCase()) ?? null;
 }
 
 export function note_message_sender_identity(
@@ -384,6 +431,6 @@ export function clear_sender_identity_authentication_cache(): void {
   published_cache.clear();
   published_history_cache.clear();
   status_cache.clear();
-  history_cache.clear();
   refresh_cache.clear();
+  address_entry_cache.clear();
 }

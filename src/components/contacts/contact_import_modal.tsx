@@ -77,7 +77,7 @@ const IMPORT_BATCH_SIZE = 25;
 const NO_GROUP_VALUE = "__none__";
 const IMPORT_RETRY_LIMIT = 2;
 const GROUP_ASSIGN_PAGE_LIMIT = 100;
-const MAX_GROUP_ASSIGN_PAGES = 100;
+const MAX_GROUP_ASSIGN_PAGES = 1000;
 const GROUP_ASSIGN_CHUNK = 100;
 
 function preview_name_of(contact: ContactFormData): string {

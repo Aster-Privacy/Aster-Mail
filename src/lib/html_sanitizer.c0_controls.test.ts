@@ -167,7 +167,7 @@ describe("C0 control prefixed remote image URLs", () => {
 
         expect(result.external_content.blocked_items).toContainEqual({
           url: REMOTE,
-          type: "css",
+          type: "image",
         });
         expect(result.html).not.toContain("evil.example");
         expect(

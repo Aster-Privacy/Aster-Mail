@@ -49,6 +49,7 @@ import {
 import { use_signatures } from "@/contexts/signatures_context";
 import {
   is_reply_from_mismatch,
+  is_reply_from_undetermined,
   resolve_own_recipient_address,
 } from "@/components/email/build_reply_from_address";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
@@ -72,6 +73,7 @@ import {
   unique_attachment_name,
 } from "@/components/compose/use_compose_attachments";
 import { use_attachment_session } from "@/components/compose/use_attachment_session";
+import { sender_is_pending } from "@/components/compose/sender_pending";
 import { format_bytes } from "@/lib/utils";
 import {
   emit_email_sent,
@@ -201,6 +203,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     send_after_sender_switch,
     set_send_after_sender_switch,
     from_mismatch_ack_ref,
+    sender_manually_selected_ref,
+    sender_loading,
     pending_send_kind_ref,
     handle_send_ref,
     handle_scheduled_send_ref,
@@ -308,8 +312,24 @@ export function use_reply_modal(props: UseReplyModalProps) {
   const reply_from_mismatch = useCallback((): boolean => {
     if (from_mismatch_ack_ref.current) return false;
 
-    return is_reply_from_mismatch(received_on_address, selected_sender?.email);
-  }, [received_on_address, selected_sender]);
+    if (ghost_mode.is_ghost_enabled) return false;
+
+    return (
+      is_reply_from_mismatch(received_on_address, selected_sender?.email) ||
+      is_reply_from_undetermined({
+        received_on_address,
+        selectable_sender_count: sender_options.filter((s) => s.is_enabled)
+          .length,
+        sender_chosen: sender_manually_selected_ref.current,
+      })
+    );
+  }, [
+    received_on_address,
+    selected_sender,
+    sender_options,
+    ghost_mode.is_ghost_enabled,
+    sender_manually_selected_ref,
+  ]);
 
   const discard_sent_draft = useCallback(
     async (sent_thread_token?: string) => {
@@ -351,6 +371,22 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
   const lock_scope = use_recipient_lock_scope();
 
+  const is_sender_pending = useCallback(
+    () =>
+      sender_is_pending({
+        loading: sender_loading,
+        chosen_by_user:
+          sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
+        selected_email: selected_sender?.email,
+      }),
+    [
+      sender_loading,
+      sender_manually_selected_ref,
+      ghost_mode.is_ghost_enabled,
+      selected_sender?.email,
+    ],
+  );
+
   const handle_send = useCallback(async () => {
     const now = Date.now();
 
@@ -367,6 +403,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
     if (!reply_message.trim()) {
       set_error_message(t("common.empty_body_error"));
+
+      return;
+    }
+
+    if (is_sender_pending()) {
+      show_toast(t("common.loading"), "info");
 
       return;
     }
@@ -838,6 +880,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     attachments,
     attachment_session,
     reply_from_mismatch,
+    is_sender_pending,
   ]);
 
   const schedule_gate_pending_ref = useRef(false);
@@ -849,6 +892,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
     if (attachments.length > 0) {
       set_error_message(t("common.scheduled_no_attachments"));
+
+      return;
+    }
+
+    if (is_sender_pending()) {
+      show_toast(t("common.loading"), "info");
 
       return;
     }
@@ -1067,6 +1116,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     original_email_id,
     original_rfc_message_id,
     attachment_session,
+    is_sender_pending,
   ]);
 
   handle_send_ref.current = handle_send;

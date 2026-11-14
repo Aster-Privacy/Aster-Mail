@@ -26,17 +26,22 @@ import {
   is_internal_recipient,
 } from "../recipient_classification";
 
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import {
+  decrypt_account_context_with_fallback,
+  decrypt_aes_gcm_with_fallback,
+} from "@/services/crypto/legacy_keks";
 import { account_data_write_key } from "@/services/crypto/account_data_writer";
 import { encrypt_with_private_bcc } from "@/services/send_private_bcc";
 import { plain_text_to_html } from "@/services/send_queue_recipients";
 import { describe_sender_refusal } from "@/services/send_refusal";
 import { is_internal_email } from "@/services/api/keys";
 import { build_subject_bundle } from "@/utils/email_crypto";
+import { build_sealed_details } from "@/utils/sealed_message_details";
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { is_future_instant } from "@/utils/schedule_targets";
 import { sanitize_header_value } from "@/services/pgp_protected_mime";
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -204,7 +209,7 @@ async function derive_scheduled_encryption_key(
 async function scheduled_write_key(vault: EncryptedVault): Promise<CryptoKey> {
   return (
     (await account_data_write_key(SCHEDULED_KEY_VERSION)) ??
-    derive_scheduled_encryption_key(vault)
+    derive_scheduled_encryption_key(with_identity_key(vault))
   );
 }
 
@@ -280,7 +285,17 @@ async function build_sealed_delivery(
   options: ScheduledSendOptions,
 ): Promise<ScheduledDelivery> {
   const sealed = await encrypt_with_private_bcc(
-    build_subject_bundle(content.subject || "", content.body),
+    build_subject_bundle(
+      content.subject || "",
+      content.body,
+      [],
+      build_sealed_details({
+        from_name: options.sender_display_name,
+        to: content.to_recipients,
+        cc: content.cc_recipients,
+        sent_at: content.scheduled_at,
+      }),
+    ),
     {
       to: content.to_recipients,
       cc: content.cc_recipients,
@@ -327,7 +342,8 @@ async function decrypt_scheduled_content(
   let plaintext_buffer: ArrayBuffer;
 
   try {
-    plaintext_buffer = await decrypt_aes_gcm_with_fallback(
+    plaintext_buffer = await decrypt_account_context_with_fallback(
+      "astermail-scheduled-v1",
       key,
       ciphertext,
       nonce_bytes,

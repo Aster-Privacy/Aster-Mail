@@ -649,6 +649,155 @@ describe("storage name migration", () => {
   });
 });
 
+describe("names of contact entries", () => {
+  const PIN_PREFIX = "ratchet_identity_pin_";
+
+  it("gives the current entry a name no earlier format shares", async () => {
+    const tab = await open_tab();
+    const current = await tab.names.canonical_storage_name(
+      PIN_PREFIX,
+      ACCOUNT,
+      PEER,
+    );
+    const earlier = await tab.names.legacy_storage_names(
+      PIN_PREFIX,
+      ACCOUNT,
+      PEER,
+      master,
+    );
+
+    expect(current.startsWith(`${PIN_PREFIX}${ACCOUNT}_h2_`)).toBe(true);
+    expect(current.includes(PEER)).toBe(false);
+    expect(earlier).not.toContain(current);
+    expect(
+      await tab.names.canonical_storage_name(PIN_PREFIX, ACCOUNT, PEER),
+    ).toBe(current);
+    expect(
+      await tab.names.canonical_storage_name(PIN_PREFIX, OTHER_ACCOUNT, PEER),
+    ).not.toBe(current);
+  });
+
+  it("lists every earlier name format of one spelling", async () => {
+    const tab = await open_tab();
+    const unscoped = await tab.names.scoped_storage_name(
+      PIN_PREFIX,
+      null,
+      PEER,
+    );
+
+    await tab.storage.encrypted_set(unscoped, { fingerprint: "old" }, master);
+
+    expect(
+      await tab.names.legacy_storage_names(PIN_PREFIX, ACCOUNT, PEER, master),
+    ).toEqual([
+      await tab.names.scoped_storage_name(PIN_PREFIX, ACCOUNT, PEER),
+      `${PIN_PREFIX}${ACCOUNT}_${PEER}`,
+      `${PIN_PREFIX}${PEER}`,
+      unscoped,
+    ]);
+    expect(
+      await tab.names.legacy_opaque_starts(PIN_PREFIX, ACCOUNT, master),
+    ).toEqual([`${PIN_PREFIX}${ACCOUNT}_h1_`, `${PIN_PREFIX}h1_`]);
+  });
+
+  it("leaves out the unscoped opaque name when no earlier name key exists", async () => {
+    const tab = await open_tab();
+
+    expect(
+      await tab.names.unscoped_storage_name(PIN_PREFIX, ACCOUNT, PEER, master),
+    ).toBeNull();
+    expect(
+      await tab.names.legacy_storage_names(PIN_PREFIX, ACCOUNT, PEER, master),
+    ).toHaveLength(3);
+    expect(
+      await tab.names.legacy_opaque_starts(PIN_PREFIX, ACCOUNT, master),
+    ).toEqual([`${PIN_PREFIX}${ACCOUNT}_h1_`]);
+  });
+
+  it("recovers the address only from a readable name", async () => {
+    const tab = await open_tab();
+    const opaque = await tab.names.scoped_storage_name(
+      PIN_PREFIX,
+      ACCOUNT,
+      PEER,
+    );
+    const current = await tab.names.canonical_storage_name(
+      PIN_PREFIX,
+      ACCOUNT,
+      PEER,
+    );
+
+    expect(
+      tab.names.plain_rest_of(
+        PIN_PREFIX,
+        ACCOUNT,
+        `${PIN_PREFIX}${ACCOUNT}_${PEER}`,
+      ),
+    ).toBe(PEER);
+    expect(
+      tab.names.plain_rest_of(PIN_PREFIX, ACCOUNT, `${PIN_PREFIX}${PEER}`),
+    ).toBe(PEER);
+    expect(tab.names.plain_rest_of(PIN_PREFIX, ACCOUNT, opaque)).toBeNull();
+    expect(tab.names.plain_rest_of(PIN_PREFIX, ACCOUNT, current)).toBeNull();
+    expect(
+      tab.names.plain_rest_of(
+        PIN_PREFIX,
+        ACCOUNT,
+        `${PIN_PREFIX}${OTHER_ACCOUNT}_${PEER}`,
+      ),
+    ).toBeNull();
+  });
+
+  it("tells an entry it cannot decrypt from one that is not there", async () => {
+    const tab = await open_tab();
+    const name = await tab.names.canonical_storage_name(
+      PIN_PREFIX,
+      ACCOUNT,
+      PEER,
+    );
+
+    expect(await tab.names.stored_read(name, master)).toEqual({
+      state: "absent",
+    });
+
+    await tab.names.stored_write(name, { fingerprint: "pin-a" }, master);
+
+    expect(await tab.names.stored_read(name, master)).toEqual({
+      state: "found",
+      value: { fingerprint: "pin-a" },
+    });
+
+    vault.key = new Uint8Array(32).fill(9);
+    await tab.storage.encrypted_set(name, { fingerprint: "pin-b" }, master);
+    vault.key = new Uint8Array(32).fill(7);
+
+    expect(await tab.names.stored_read(name, master)).toEqual({
+      state: "unreadable",
+    });
+  });
+
+  it("lists the store once and keeps the listing current across writes", async () => {
+    const tab = await open_tab();
+    const name = await tab.names.canonical_storage_name(
+      PIN_PREFIX,
+      ACCOUNT,
+      PEER,
+    );
+    const first = await tab.names.stored_names();
+
+    expect(first.has(name)).toBe(false);
+
+    await tab.names.stored_write(name, { fingerprint: "pin-a" }, master);
+
+    expect(await tab.names.stored_names()).toBe(first);
+    expect(first.has(name)).toBe(true);
+
+    await tab.names.stored_remove(name);
+
+    expect(first.has(name)).toBe(false);
+  });
+});
+
 describe("delete_account_storage", () => {
   it("removes one account's entries without the vault", async () => {
     const tab = await open_tab();

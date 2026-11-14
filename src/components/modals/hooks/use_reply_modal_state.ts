@@ -92,6 +92,7 @@ import {
   repair_comment_markup,
 } from "@/lib/html_sanitizer";
 import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
+import { defer_compose_images } from "@/lib/compose_deferred_images";
 import {
   build_quoted_editor_html,
   contain_draft_quotes,
@@ -680,9 +681,11 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
     editor_el.insertAdjacentHTML(
       "beforeend",
-      build_quoted_editor_html(
-        sanitize_html(quoted, get_compose_sanitize_options()).html,
-        quote_options_ref.current(),
+      defer_compose_images(
+        build_quoted_editor_html(
+          sanitize_html(quoted, get_compose_sanitize_options()).html,
+          quote_options_ref.current(),
+        ),
       ),
     );
     body_edited_ref.current = true;
@@ -814,9 +817,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           get_compose_sanitize_options(),
         );
 
-        message_editor_ref.current.innerHTML = contain_draft_quotes(
-          sanitized_result.html,
-          quote_options_ref.current(),
+        message_editor_ref.current.innerHTML = defer_compose_images(
+          contain_draft_quotes(sanitized_result.html, quote_options_ref.current()),
         );
         set_reply_message(read_editor_message(message_editor_ref.current));
         mark_inlined_quote_in_draft(message_editor_ref.current);
@@ -867,7 +869,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       if (has_typed_text()) {
         append_template_after_typed_text(
           message_editor_ref.current,
-          sanitized_result.html,
+          defer_compose_images(sanitized_result.html),
         );
         set_reply_message(read_editor_message(message_editor_ref.current));
         mark_signature_applied(signature);
@@ -875,7 +877,9 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         return;
       }
 
-      message_editor_ref.current.innerHTML = sanitized_result.html;
+      message_editor_ref.current.innerHTML = defer_compose_images(
+        sanitized_result.html,
+      );
       mark_signature_applied(signature);
       initial_content_ref.current = read_editor_message(
         message_editor_ref.current,
@@ -1263,6 +1267,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     send_after_sender_switch,
     set_send_after_sender_switch,
     from_mismatch_ack_ref,
+    sender_manually_selected_ref,
+    sender_loading,
     pending_send_kind_ref,
     handle_send_ref,
     handle_scheduled_send_ref,

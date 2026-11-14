@@ -46,6 +46,7 @@ import { encrypt_envelope_for_storage } from "@/services/crypto/stored_envelope_
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { normalize_envelope_from } from "@/services/crypto/envelope_normalize";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
+import { drop_sender_verification } from "@/services/crypto/sender_verification";
 
 export async function try_decrypt_with_identity_key(
   encrypted: string | Uint8Array,
@@ -155,11 +156,8 @@ export async function decrypt_envelope_for_search(
   item_id: string,
   item_type: string,
 ): Promise<DecryptedEnvelope | null> {
-  const envelope = await open_search_envelope(
-    encrypted,
-    nonce,
-    item_id,
-    item_type,
+  const envelope = drop_sender_verification(
+    await open_search_envelope(encrypted, nonce, item_id, item_type),
   );
 
   register_envelope_attachment_keys(item_id, envelope);
@@ -181,7 +179,9 @@ async function open_search_envelope(
       const text = new TextDecoder().decode(encrypted_bytes);
 
       if (!text.startsWith("-----BEGIN PGP")) {
-        const parsed = JSON.parse(text) as DecryptedEnvelope;
+        const parsed = drop_sender_verification(
+          JSON.parse(text) as DecryptedEnvelope,
+        );
 
         schedule_legacy_envelope_migration(item_id, item_type, parsed);
 
@@ -206,7 +206,9 @@ async function open_search_envelope(
           keys,
           passphrase,
         );
-        const parsed = JSON.parse(decrypted) as DecryptedEnvelope;
+        const parsed = drop_sender_verification(
+          JSON.parse(decrypted) as DecryptedEnvelope,
+        );
 
         schedule_legacy_envelope_migration(item_id, item_type, parsed);
 
@@ -255,9 +257,11 @@ async function open_search_envelope(
 
   try {
     if (nonce_bytes.length === 1 && nonce_bytes[0] === 1) {
-      const result = await decrypt_envelope_with_bytes<DecryptedEnvelope>(
-        encrypted,
-        passphrase,
+      const result = drop_sender_verification(
+        await decrypt_envelope_with_bytes<DecryptedEnvelope>(
+          encrypted,
+          passphrase,
+        ),
       );
 
       zero_uint8_array(passphrase);

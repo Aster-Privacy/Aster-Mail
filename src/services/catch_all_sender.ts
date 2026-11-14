@@ -22,6 +22,7 @@ import type { SenderOption } from "@/hooks/use_sender_aliases";
 import type { CustomDomain } from "@/services/api/domains";
 
 import { is_cached_feature_unlocked } from "@/hooks/use_plan_limits";
+import { compute_address_routing_hash } from "@/services/api/domains";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { extract_delivered_to } from "@/utils/delivered_to";
 
@@ -133,4 +134,26 @@ export function catch_all_reply_address(
   );
 
   return registered ? undefined : delivered;
+}
+
+export async function catch_all_address_for_routing_token(
+  routing_token: string | undefined,
+  candidates: (string | null | undefined)[],
+): Promise<string | undefined> {
+  if (!routing_token || !is_catch_all_sending_enabled()) return undefined;
+
+  for (const candidate of candidates) {
+    const email = to_concrete_address(candidate);
+
+    if (!email || !find_catch_all_domain(context_domains, email)) continue;
+    const separator = email.indexOf("@");
+    const hash = await compute_address_routing_hash(
+      email.slice(0, separator),
+      email.slice(separator + 1),
+    );
+
+    if (hash === routing_token) return email;
+  }
+
+  return undefined;
 }

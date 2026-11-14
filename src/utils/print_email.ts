@@ -27,7 +27,18 @@ import {
   plain_text_to_html,
   type ImageLoadMode,
 } from "@/lib/html_sanitizer";
+import {
+  create_deferred_image_session,
+  defer_proxied_images,
+  DEFERRED_BACKGROUND_ATTRIBUTE,
+  DEFERRED_CSS_MARKER_FRAGMENT,
+  DEFERRED_SRC_ATTRIBUTE,
+  type DeferredImageSession,
+} from "@/lib/deferred_proxy_images";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
+import { effective_remote_image_mode } from "@/lib/remote_content_policy";
+import { active_granted_types } from "@/lib/remote_content_grants";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import { is_native_platform } from "@/native/capacitor_bridge";
 import { get_cached_preferences } from "@/services/api/preferences";
@@ -49,6 +60,7 @@ interface PrintEmailData {
   bcc?: Array<{ name?: string; email?: string }>;
   timestamp: string;
   body: string;
+  message_id?: string;
 }
 
 function format_recipients(
@@ -129,8 +141,81 @@ function is_executable_url(value: string): boolean {
   return !PRINTABLE_DATA_MEDIA_TYPES.includes(media_type);
 }
 
+const PRINT_IMAGE_WAIT_MS = 8000;
+
+function has_deferred_images(container: HTMLElement): boolean {
+  if (
+    container.querySelector(
+      `[${DEFERRED_SRC_ATTRIBUTE}],[${DEFERRED_BACKGROUND_ATTRIBUTE}],[style*="${DEFERRED_CSS_MARKER_FRAGMENT}"]`,
+    )
+  ) {
+    return true;
+  }
+
+  return Array.from(container.querySelectorAll("style")).some((el) =>
+    (el.textContent || "").includes(DEFERRED_CSS_MARKER_FRAGMENT),
+  );
+}
+
+export function start_print_images(
+  container: HTMLElement,
+): DeferredImageSession | null {
+  if (!should_defer_proxied_images()) return null;
+  if (!has_deferred_images(container)) return null;
+
+  const session = create_deferred_image_session(get_image_proxy_url());
+
+  session.hydrate(container);
+
+  return session;
+}
+
+export async function wait_for_print_images(
+  session: DeferredImageSession,
+  container: HTMLElement,
+  limit_ms: number = PRINT_IMAGE_WAIT_MS,
+): Promise<void> {
+  let timer = 0;
+  const limit = new Promise<void>((resume) => {
+    timer = window.setTimeout(resume, limit_ms);
+  });
+  const ready = session.settled().then(async () => {
+    await Promise.all(
+      Array.from(container.querySelectorAll("img"), (img) =>
+        img.complete || typeof img.decode !== "function"
+          ? undefined
+          : img.decode().catch(() => undefined),
+      ),
+    );
+  });
+
+  await Promise.race([ready, limit]);
+  window.clearTimeout(timer);
+}
+
+function print_when_images_are_ready(
+  session: DeferredImageSession,
+  container: HTMLElement,
+  cleanup: () => void,
+): void {
+  const proceed = () => {
+    if (!container.isConnected) {
+      cleanup();
+
+      return;
+    }
+
+    run_web_print(cleanup);
+  };
+
+  wait_for_print_images(session, container).then(proceed, proceed);
+}
+
 export function set_print_content(container: HTMLElement, html: string): void {
-  const doc = new DOMParser().parseFromString(html, "text/html");
+  const source = should_defer_proxied_images()
+    ? defer_proxied_images(html, get_image_proxy_url())
+    : html;
+  const doc = new DOMParser().parseFromString(source, "text/html");
 
   doc.body
     .querySelectorAll(FORBIDDEN_PRINT_SELECTOR)
@@ -187,28 +272,88 @@ export function resolve_print_external_content_mode(): ImageLoadMode {
   const preferences = get_cached_preferences();
 
   if (!preferences) return "never";
-  if (preferences.low_network_mode) return "never";
-  if (!preferences.block_external_content) return "always";
 
-  return preferences.load_remote_images;
+  return effective_remote_image_mode(preferences);
+}
+
+const NO_PRINT_GRANTS: ReadonlySet<string> = new Set();
+
+const REMOTE_LOAD_ATTRIBUTES = ["src", "srcset", "background", "poster"];
+
+const REMOTE_URL_PATTERN = /^\s*(https?:|\/\/)/i;
+
+const REMOTE_STYLE_URL_PATTERN = /url\(\s*["']?\s*(https?:|\/\/)/i;
+
+export function print_granted_types(
+  message_id: string | undefined,
+): ReadonlySet<string> {
+  return message_id ? active_granted_types(message_id) : NO_PRINT_GRANTS;
+}
+
+function has_remote_srcset(value: string): boolean {
+  return value
+    .split(",")
+    .some((candidate) => REMOTE_URL_PATTERN.test(candidate));
+}
+
+function strip_remote_loads(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  doc.body.querySelectorAll("*").forEach((el) => {
+    for (const name of REMOTE_LOAD_ATTRIBUTES) {
+      const value = el.getAttribute(name);
+
+      if (value === null) continue;
+
+      const remote =
+        name === "srcset"
+          ? has_remote_srcset(value)
+          : REMOTE_URL_PATTERN.test(value);
+
+      if (remote) el.removeAttribute(name);
+    }
+
+    const style = el.getAttribute("style");
+
+    if (style && REMOTE_STYLE_URL_PATTERN.test(style)) {
+      el.removeAttribute("style");
+    }
+  });
+
+  return doc.body.innerHTML;
 }
 
 export function format_body(
   body: string,
   external_content_mode: ImageLoadMode = resolve_print_external_content_mode(),
   blocked_image_labels?: BlockedImageLabels,
+  granted_types: ReadonlySet<string> = NO_PRINT_GRANTS,
 ): string {
   if (is_html_content(body)) {
     const lockdown = is_any_lockdown_active();
+    const mode: ImageLoadMode = lockdown ? "never" : external_content_mode;
+    const granted = mode === "ask" ? granted_types : NO_PRINT_GRANTS;
     const sanitized = sanitize_html(body, {
-      external_content_mode: lockdown ? "never" : external_content_mode,
+      external_content_mode: mode,
       image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
       sandbox_mode: false,
       lockdown_mode: lockdown,
       blocked_image_labels,
+      content_blocking:
+        mode === "ask"
+          ? {
+              block_remote_images: !granted.has("image"),
+              block_remote_fonts: !granted.has("font"),
+              block_remote_css: !granted.has("css"),
+              block_tracking_pixels: !granted.has("tracking_pixel"),
+            }
+          : undefined,
     }).html;
+    const printable = strip_style_blocks(sanitized);
 
-    return strip_style_blocks(sanitized);
+    if (mode === "always" || granted.size > 0) return printable;
+
+    return strip_remote_loads(printable);
   }
 
   return plain_text_to_html(body);
@@ -371,6 +516,7 @@ function build_print_body(
     email.body,
     external_content_mode,
     print_blocked_image_labels(t),
+    print_granted_types(email.message_id),
   );
 
   let html = `<div class="ap-header">
@@ -422,6 +568,7 @@ export interface PrintThreadMessage {
   to_recipients?: Array<{ name?: string; email: string }>;
   cc_recipients?: Array<{ name?: string; email?: string }>;
   bcc_recipients?: Array<{ name?: string; email?: string }>;
+  message_id?: string;
 }
 
 export interface PrintThreadData {
@@ -438,6 +585,7 @@ function build_thread_message_html(
     msg.body,
     external_content_mode,
     print_blocked_image_labels(t),
+    print_granted_types(msg.message_id),
   );
   const to_formatted = msg.to_recipients
     ? format_recipients(msg.to_recipients)
@@ -529,7 +677,10 @@ export function print_thread(
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 
+  const image_session = native ? null : start_print_images(container);
+
   const cleanup = () => {
+    image_session?.dispose();
     document.body.classList.remove("aster-native-print");
     container.remove();
     style_el.remove();
@@ -544,6 +695,12 @@ export function print_thread(
         setTimeout(cleanup, 500);
       });
     });
+
+    return;
+  }
+
+  if (image_session) {
+    print_when_images_are_ready(image_session, container, cleanup);
 
     return;
   }
@@ -586,7 +743,10 @@ export function setup_thread_print_intercept(
       document.body.classList.add("aster-native-print");
     }
 
+    const image_session = native ? null : start_print_images(container);
+
     cleanup_fn = () => {
+      image_session?.dispose();
       document.body.classList.remove("aster-native-print");
       container.remove();
       style_el.remove();
@@ -635,7 +795,10 @@ export function print_email(
   expand_collapsed_sections(container);
   document.body.appendChild(container);
 
+  const image_session = native ? null : start_print_images(container);
+
   const cleanup = () => {
+    image_session?.dispose();
     document.body.classList.remove("aster-native-print");
     container.remove();
     style_el.remove();
@@ -650,6 +813,12 @@ export function print_email(
         setTimeout(cleanup, 500);
       });
     });
+
+    return;
+  }
+
+  if (image_session) {
+    print_when_images_are_ready(image_session, container, cleanup);
 
     return;
   }

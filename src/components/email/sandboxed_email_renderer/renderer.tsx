@@ -36,7 +36,6 @@ import {
   link_ink_for,
   needs_settle_remeasure,
   resolve_backdrop_color,
-  resolve_native_images,
   safe_hex,
 } from "./helpers";
 
@@ -73,6 +72,12 @@ import {
 } from "@/lib/blocked_image_placeholder";
 import { use_resolved_accent } from "@/lib/resolved_accent";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
+import {
+  create_deferred_image_session,
+  defer_proxied_images,
+  type DeferredImageSession,
+} from "@/lib/deferred_proxy_images";
 import { build_proxied_content_csp } from "@/lib/email_content_csp";
 import { email_font_src, preload_email_fonts } from "@/lib/email_font_sources";
 import {
@@ -171,6 +176,7 @@ export function SandboxedEmailRenderer({
   const settle_timers_ref = useRef<ReturnType<typeof setTimeout>[]>([]);
   const on_document_ready_ref = useRef(on_document_ready);
   const placeholder_cleanup_ref = useRef<(() => void) | null>(null);
+  const image_session_ref = useRef<DeferredImageSession | null>(null);
   const placeholder_labels_ref = useRef<BlockedImageLabels>(
     DEFAULT_BLOCKED_IMAGE_LABELS,
   );
@@ -296,6 +302,14 @@ export function SandboxedEmailRenderer({
       : has_pending_cids
         ? strip_unresolved_cid_references(sanitized_html, true)
         : sanitized_html);
+  const defer_images = should_defer_proxied_images();
+  const display_html = useMemo(
+    () =>
+      defer_images
+        ? defer_proxied_images(resolved_html, get_image_proxy_url())
+        : resolved_html,
+    [resolved_html, defer_images],
+  );
 
   const resolved_accent = use_resolved_accent();
   const app_is_dark = resolved_accent.is_dark;
@@ -579,7 +593,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 <style>${link_hover_css}</style>
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; } a img[data-blocked='true'] { cursor: pointer !important; pointer-events: auto !important; }</style>
 </head>
-<body style="${is_html_email ? html_body_style : plain_body_style}">${strip_unresolved_cid_references(resolved_html)}${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}</body>
+<body style="${is_html_email ? html_body_style : plain_body_style}">${strip_unresolved_cid_references(display_html)}${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}</body>
 </html>`;
 
   const collapse_forwarded_content = useCallback(
@@ -603,8 +617,9 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
   );
 
   const unblock_remote_content = useCallback(
-    (doc: Document) => dom_cleanup.unblock_remote_content(doc),
-    [],
+    (doc: Document) =>
+      dom_cleanup.unblock_remote_content(doc, { defer_proxied: defer_images }),
+    [defer_images],
   );
 
   const handle_load = useCallback(() => {
@@ -623,11 +638,16 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       observer_ref.current.disconnect();
     }
 
+    image_session_ref.current?.dispose();
+    image_session_ref.current = defer_images
+      ? create_deferred_image_session(get_image_proxy_url())
+      : null;
+
     if (load_remote_ref.current) {
       unblock_remote_content(iframe.contentDocument);
     }
 
-    resolve_native_images(iframe.contentDocument);
+    image_session_ref.current?.hydrate(iframe.contentDocument);
     placeholder_cleanup_ref.current?.();
     placeholder_cleanup_ref.current = paint_blocked_images(
       iframe.contentDocument,
@@ -796,6 +816,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     collapse_empty_block_runs,
     trim_trailing_empty_blocks,
     unblock_remote_content,
+    defer_images,
     preserve_formatting,
     is_plain_text,
   ]);
@@ -808,9 +829,9 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
     if (!doc?.body) return;
 
     unblock_remote_content(doc);
+    image_session_ref.current?.hydrate(doc);
     placeholder_cleanup_ref.current?.();
     placeholder_cleanup_ref.current = null;
-    resolve_native_images(doc);
   }, [load_remote_content, unblock_remote_content]);
 
   useEffect(() => {
@@ -827,6 +848,8 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
   useEffect(() => {
     return () => {
       placeholder_cleanup_ref.current?.();
+      image_session_ref.current?.dispose();
+      image_session_ref.current = null;
       observer_ref.current?.disconnect();
       mutation_observer_ref.current?.disconnect();
       if (raf_ref.current) cancelAnimationFrame(raf_ref.current);

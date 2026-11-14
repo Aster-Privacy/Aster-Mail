@@ -24,6 +24,7 @@ import type {
   ExtractedShippingDetails,
 } from "@/services/extraction/types";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
+import type { RemoteContentGrants } from "@/lib/remote_content_grants";
 import type { MailItem } from "@/services/api/mail";
 import type { TranslationKey } from "@/lib/i18n";
 import type { DraftContent } from "@/services/api/multi_drafts";
@@ -48,6 +49,7 @@ import {
   execute_unsubscribe,
   get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
+import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
   persist_unsubscribe,
@@ -86,8 +88,8 @@ interface PopupEmailBodyProps {
   on_close: () => void;
   on_compose?: (email: string) => void;
   on_external_content_detected: (report: ExternalContentReport) => void;
-  on_load_external_content: (types?: string[]) => void;
-  loaded_content_types: Set<string>;
+  on_load_external_content: (message_id: string, types: string[]) => void;
+  remote_content_grants: RemoteContentGrants;
   on_dismiss_external_content: () => void;
   on_per_message_reply: (msg: DecryptedThreadMessage) => void;
   on_per_message_reply_all: (msg: DecryptedThreadMessage) => void;
@@ -142,7 +144,7 @@ export function PopupEmailBody({
   on_compose,
   on_external_content_detected,
   on_load_external_content,
-  loaded_content_types,
+  remote_content_grants,
   on_dismiss_external_content: _on_dismiss_external_content,
   on_per_message_reply: _on_per_message_reply,
   on_per_message_reply_all: _on_per_message_reply_all,
@@ -204,7 +206,10 @@ export function PopupEmailBody({
     const info = email.unsubscribe_info;
 
     try {
-      const result = await execute_unsubscribe(info);
+      const result = await execute_unsubscribe(
+        info,
+        build_unsubscribe_delivery(mail_item, email),
+      );
 
       if (result === "api") {
         show_action_toast({
@@ -255,7 +260,7 @@ export function PopupEmailBody({
 
       return "manual";
     }
-  }, [email, t, mark_unsubscribed]);
+  }, [email, mail_item, t, mark_unsubscribed]);
 
   if (error) {
     return (
@@ -352,7 +357,6 @@ export function PopupEmailBody({
             inline_reply_is_external={is_external_thread}
             inline_reply_msg={inline_reply_msg}
             inline_reply_thread_token={thread_token}
-            loaded_content_types={loaded_content_types}
             main_email_id={email?.id}
             messages={thread_messages}
             on_archive={on_per_message_archive}
@@ -361,6 +365,7 @@ export function PopupEmailBody({
             on_external_content_detected={on_external_content_detected}
             on_forward={handle_inline_forward}
             on_load_external_content={on_load_external_content}
+            remote_content_grants={remote_content_grants}
             on_manual_unsubscribed={() => {
               if (!email) return;
               persist_unsubscribe(email.sender_email, email.sender || "", {

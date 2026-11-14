@@ -33,9 +33,9 @@ import {
   type ProtectedMimeAttachment,
 } from "./pgp_protected_mime";
 import { select_published_signing_key } from "./crypto/published_signing_key";
+import { is_primary_address } from "./crypto/address_identity_entry";
 
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
-import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 export interface SignedMimePayload {
   signed_mime: string;
@@ -61,7 +61,8 @@ export type SigningSkipReason =
   | "vault_identity_key_unavailable"
   | "vault_passphrase_unavailable"
   | "published_key_mismatch_unhealed"
-  | "detached_signature_failed";
+  | "detached_signature_failed"
+  | "sender_has_no_signing_key";
 
 let last_signing_skip_reason: SigningSkipReason | undefined;
 
@@ -118,9 +119,9 @@ export function is_primary_sender(
   from: string,
   primary_address: string | null | undefined,
 ): boolean {
-  if (!primary_address) return false;
+  if (!primary_address?.trim()) return false;
 
-  return same_address_ignoring_dots(sender_address(from), primary_address);
+  return is_primary_address(sender_address(from), primary_address);
 }
 
 async function resolve_primary_address(): Promise<string | null> {
@@ -152,6 +153,14 @@ export async function build_signed_mime_payload(
   const all_recipients = [...params.to, ...params.cc, ...(params.bcc ?? [])];
 
   if (!has_external_recipient(all_recipients)) return undefined;
+
+  const primary_address = await resolve_primary_address();
+
+  if (!is_primary_sender(params.from, primary_address)) {
+    last_signing_skip_reason = "sender_has_no_signing_key";
+
+    return undefined;
+  }
 
   const vault = get_vault_from_memory();
   const passphrase = get_passphrase_from_memory();
@@ -192,10 +201,7 @@ export async function build_signed_mime_payload(
   const external_signing_key = await resolve_external_signing_key();
   let signed: Awaited<ReturnType<typeof sign_detached>> = null;
 
-  if (
-    external_signing_key &&
-    is_primary_sender(params.from, await resolve_primary_address())
-  ) {
+  if (external_signing_key) {
     signed = await sign_detached_with_keys(mime_bytes, [external_signing_key]);
   }
 

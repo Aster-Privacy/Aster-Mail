@@ -39,7 +39,7 @@ import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { show_toast } from "@/components/toast/simple_toast";
 import { block_sender } from "@/services/api/blocked_senders";
-import { resolve_settings_section } from "@/components/settings/settings_content_helpers";
+import { request_settings_target } from "@/components/settings/settings_content_helpers";
 import { set_pending_settings_anchor } from "@/lib/settings_anchor";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { use_compose_host } from "@/components/toast/use_toast_action_hosts";
@@ -86,7 +86,7 @@ export default function EmailDetailPage() {
       const { section: requested, anchor } = read_settings_navigation(
         (e as CustomEvent<unknown>).detail,
       );
-      const section = resolve_settings_section(requested);
+      const section = request_settings_target(requested);
 
       if (anchor) set_pending_settings_anchor(anchor);
       navigate(section ? `/settings/${section}` : "/settings");

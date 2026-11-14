@@ -22,8 +22,14 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { strip_unresolved_cid_references } from "@/lib/cid_resolver";
+import {
+  create_deferred_image_session,
+  defer_proxied_images,
+} from "@/lib/deferred_proxy_images";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
 import { contain_untrusted_html } from "@/lib/untrusted_sources";
+import { resolve_remote_content_preferences } from "@/lib/remote_content_policy";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_external_link } from "@/contexts/external_link_context";
 import { use_preferences_optional } from "@/contexts/preferences_context";
@@ -34,45 +40,68 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
   const { handle_external_link } = use_external_link();
   const preferences = use_preferences_optional()?.preferences;
   const container_ref = useRef<HTMLDivElement>(null);
-  const block_external_content = preferences?.block_external_content ?? false;
-  const block_remote_images = preferences?.block_remote_images ?? true;
-  const block_remote_fonts = preferences?.block_remote_fonts ?? true;
-  const block_remote_css = preferences?.block_remote_css ?? true;
-  const block_tracking_pixels = preferences?.block_tracking_pixels ?? true;
+  const blocking = resolve_remote_content_preferences({
+    load_remote_images: preferences?.load_remote_images ?? "never",
+    block_external_content: preferences?.block_external_content ?? true,
+    block_remote_images: preferences?.block_remote_images ?? true,
+    block_remote_fonts: preferences?.block_remote_fonts ?? true,
+    block_remote_css: preferences?.block_remote_css ?? true,
+    block_tracking_pixels: preferences?.block_tracking_pixels ?? true,
+    low_network_mode: preferences?.low_network_mode ?? false,
+  });
+  const block_remote_images = blocking.block_remote_images;
+  const block_remote_fonts = blocking.block_remote_fonts;
+  const block_remote_css = blocking.block_remote_css;
+  const block_tracking_pixels = blocking.block_tracking_pixels;
 
   const sanitized_html = useMemo(() => {
     const lockdown_mode = is_any_lockdown_active();
-    const content_blocking = block_external_content
-      ? resolve_content_blocking({
-          lockdown_active: lockdown_mode,
-          load_remote_content: false,
-          preferences: {
-            block_remote_images,
-            block_remote_fonts,
-            block_remote_css,
-            block_tracking_pixels,
-          },
-        })
-      : undefined;
+    const content_blocking = resolve_content_blocking({
+      lockdown_active: lockdown_mode,
+      load_remote_content: false,
+      preferences: {
+        block_remote_images,
+        block_remote_fonts,
+        block_remote_css,
+        block_tracking_pixels,
+      },
+    });
 
-    return contain_untrusted_html(
+    const image_proxy_url = get_image_proxy_url();
+    const contained = contain_untrusted_html(
       strip_unresolved_cid_references(
         sanitize_html(strip_style_blocks(html), {
           external_content_mode: lockdown_mode ? "never" : "always",
           lockdown_mode,
-          image_proxy_url: get_image_proxy_url(),
+          image_proxy_url,
           content_blocking,
         }).html,
       ),
     );
+
+    return should_defer_proxied_images()
+      ? defer_proxied_images(contained, image_proxy_url)
+      : contained;
   }, [
     html,
-    block_external_content,
     block_remote_images,
     block_remote_fonts,
     block_remote_css,
     block_tracking_pixels,
   ]);
+
+  useEffect(() => {
+    const container = container_ref.current;
+
+    if (!container || !should_defer_proxied_images()) return;
+
+    const session = create_deferred_image_session(get_image_proxy_url());
+
+    container.innerHTML = sanitized_html;
+    session.hydrate(container);
+
+    return () => session.dispose();
+  }, [sanitized_html]);
 
   useEffect(() => {
     const container = container_ref.current;

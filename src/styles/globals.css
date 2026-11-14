@@ -2534,6 +2534,24 @@ button.press_scale:active {
   -webkit-user-drag: none;
 }
 
+.app_rail_tinted {
+  filter: url("#aster-accent-icon-tint");
+}
+
+.accent_icon_filter_defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+@media (forced-colors: active) {
+  .app_rail_tinted {
+    filter: none;
+  }
+}
+
 .app_rail_column {
   transition:
     width 0.22s cubic-bezier(0.32, 0.72, 0, 1),

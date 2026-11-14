@@ -20,12 +20,15 @@
 //
 import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
+import type { SenderOption } from "@/hooks/use_sender_aliases";
 
 import { useEffect, useState } from "react";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { proxy_compose_image_sources } from "@/lib/compose_image_sources";
 import { use_compose_readable_color } from "@/hooks/use_compose_readable_color";
+import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration";
+import { defer_compose_images } from "@/lib/compose_deferred_images";
 import { EditableQuotedHtml } from "@/components/compose/editable_quoted_html";
 import { CloseIcon } from "@/components/common/icons";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
@@ -41,6 +44,7 @@ import {
 } from "@/components/compose/compose_shared";
 
 interface ForwardBodyProps {
+  selected_sender: SenderOption | null;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   reduce_motion: boolean;
   is_minimized: boolean;
@@ -85,6 +89,7 @@ interface ForwardBodyProps {
 }
 
 export function ForwardBody({
+  selected_sender,
   t,
   reduce_motion,
   is_minimized,
@@ -128,6 +133,7 @@ export function ForwardBody({
   source_email_id,
 }: ForwardBodyProps) {
   use_compose_readable_color(message_editor_ref);
+  use_compose_image_hydration(message_editor_ref);
   const [has_shown_forward, set_has_shown_forward] = useState(false);
 
   useEffect(() => {
@@ -138,8 +144,8 @@ export function ForwardBody({
     const el = message_editor_ref.current;
 
     if (el && message_content && !el.innerHTML) {
-      el.innerHTML = proxy_compose_image_sources(
-        sanitize_compose_paste(message_content),
+      el.innerHTML = defer_compose_images(
+        proxy_compose_image_sources(sanitize_compose_paste(message_content)),
       );
     }
   });
@@ -349,6 +355,7 @@ export function ForwardBody({
           extra_toolbar_items={
             <SignaturePicker
               disabled={is_scheduling}
+              sender={selected_sender}
               on_select={(content) => {
                 editor.apply_signature(content || null);
               }}

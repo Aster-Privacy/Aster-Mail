@@ -54,7 +54,11 @@ import {
   normalize_parsed_envelope,
 } from "@/services/crypto/envelope";
 import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
-import { resolve_inline_pgp_sender_keys } from "@/services/crypto/sender_verification";
+import {
+  drop_sender_verification,
+  resolve_inline_pgp_sender_keys,
+  settle_sender_verification,
+} from "@/services/crypto/sender_verification";
 import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp_messages";
 import {
   drop_sent_encryption_evidence,
@@ -537,14 +541,6 @@ async function resolve_inbound_owner(
   }
 }
 
-function drop_unverified_sender_claim<T>(envelope: T): T {
-  if (envelope && typeof envelope === "object") {
-    delete (envelope as { sender_verification?: unknown }).sender_verification;
-  }
-
-  return envelope;
-}
-
 function collect_envelope_identity_keys(vault: EncryptedVault): string[] {
   return vault_identity_key_materials(vault);
 }
@@ -564,7 +560,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       const text = new TextDecoder().decode(encrypted_bytes);
 
       if (!text.startsWith("-----BEGIN PGP")) {
-        const parsed_obj = drop_unverified_sender_claim(
+        const parsed_obj = drop_sender_verification(
           drop_sent_encryption_evidence(JSON.parse(text)),
         );
 
@@ -597,7 +593,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             external_keys,
           );
           const parsed = normalize_parsed_envelope(
-            drop_unverified_sender_claim(JSON.parse(first_pass.plaintext)),
+            drop_sender_verification(JSON.parse(first_pass.plaintext)),
           ) as T & { from?: { email?: string }; sender_verification?: string };
 
           if (first_pass.has_signature && parsed?.from?.email) {
@@ -608,7 +604,21 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             if (sender_keys.length > 0) {
               const verified_pass = await first_pass.verify(sender_keys);
 
-              parsed.sender_verification = verified_pass.verification;
+              parsed.sender_verification = await settle_sender_verification(
+                parsed.from.email,
+                sender_keys,
+                verified_pass.verification,
+                async () => {
+                  const own_keys =
+                    await derive_public_keys_from_private(envelope_keys);
+
+                  return (
+                    own_keys.length > 0 &&
+                    (await first_pass.verify(own_keys)).verification ===
+                      "verified"
+                  );
+                },
+              );
             } else {
               parsed.sender_verification = "no_keys";
             }
@@ -681,7 +691,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   }
 
   if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
-    return drop_unverified_sender_claim(
+    return drop_sender_verification(
       await decrypt_envelope_v2_with_vault<T>(
         encrypted_envelope,
         get_vault_from_memory(),
@@ -702,7 +712,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
       zero_uint8_array(passphrase_bytes);
 
-      return drop_unverified_sender_claim(result);
+      return drop_sender_verification(result);
     }
 
     zero_uint8_array(passphrase_bytes);
@@ -774,7 +784,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       if (plain) {
         await adopt_recovered_vault_source();
 
-        const parsed_obj = drop_unverified_sender_claim(
+        const parsed_obj = drop_sender_verification(
           drop_sent_encryption_evidence(
             JSON.parse(new TextDecoder().decode(plain)),
           ),
@@ -787,7 +797,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
     }
 
     const finalize_envelope = (plaintext: ArrayBuffer): T => {
-      const parsed = drop_unverified_sender_claim(
+      const parsed = drop_sender_verification(
         JSON.parse(new TextDecoder().decode(plaintext)),
       );
 

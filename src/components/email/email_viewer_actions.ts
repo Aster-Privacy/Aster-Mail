@@ -45,6 +45,8 @@ import {
   resolve_received_on_alias,
 } from "@/components/email/build_reply_from_address";
 import { get_cached_aliases } from "@/components/settings/hooks/use_aliases";
+import { resolve_delivery_reply_address } from "@/components/email/delivery_reply_address";
+import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import {
   get_cached_alias_for_routing_token,
   get_cached_ghost_for_routing_token,
@@ -100,6 +102,7 @@ import { reindex_ids } from "@/services/category_index";
 import { sync_thread_spam } from "@/services/trash_state";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { remember_forward_from } from "@/components/email/delivery_reply_address";
 import { add_alias_pin } from "@/services/api/alias_pins";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
@@ -290,6 +293,14 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
   const handle_forward = useCallback(() => {
     if (!deps.email || !deps.on_forward) return;
     set_forward_mail_id(deps.email.id);
+    remember_forward_from(deps.email.id, {
+      is_own_message: deps.mail_item?.item_type === "sent",
+      sender_email: deps.email.sender_email,
+      routing_token: deps.mail_item?.routing_token,
+      raw_headers: deps.email.raw_headers,
+      to_emails: deps.email.to?.map((r) => r.email),
+      cc_emails: deps.email.cc?.map((r) => r.email),
+    });
     deps.on_forward({
       sender_name: deps.email.sender,
       sender_email: deps.email.sender_email,
@@ -299,7 +310,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       email_timestamp: deps.email.timestamp,
       original_mail_id: deps.email.id,
     });
-  }, [deps.email, deps.on_forward]);
+  }, [deps.email, deps.on_forward, deps.mail_item]);
 
   const handle_edit_thread_draft = useCallback(
     (draft: DraftWithContent) => {
@@ -916,6 +927,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           deps.email.timestamp,
         ),
         body: deps.email.html_content || deps.email.body,
+        message_id: deps.email.id,
       },
       deps.t,
     );
@@ -926,7 +938,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const info = deps.email.unsubscribe_info;
 
     try {
-      const result = await execute_unsubscribe(info);
+      const result = await execute_unsubscribe(
+        info,
+        build_unsubscribe_delivery(deps.mail_item, deps.email),
+      );
 
       if (result === "api") {
         show_action_toast({
@@ -977,7 +992,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         email_ids: [],
       });
     }
-  }, [deps.email, deps.t]);
+  }, [deps.email, deps.mail_item, deps.t]);
 
   const build_reply_data = useCallback(
     (msg: DecryptedThreadMessage, is_reply_all: boolean): ReplyData => {
@@ -1010,12 +1025,9 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           raw_headers: msg.raw_headers,
           to_emails,
           cc_emails,
-          received_on_alias:
-            resolve_received_on_alias(
-              deps.mail_item?.routing_token,
-              get_cached_aliases(),
-            ) ??
-            get_cached_alias_for_routing_token(deps.mail_item?.routing_token),
+          received_on_alias: resolve_delivery_reply_address(
+            msg.routing_token ?? deps.mail_item?.routing_token,
+          ),
         },
         is_own_message,
       );

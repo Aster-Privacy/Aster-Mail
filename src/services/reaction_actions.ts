@@ -35,15 +35,19 @@ import {
 } from "./reaction_restrictions";
 import { get_cached_preferences } from "./api/preferences";
 import {
+  describe_consent_block,
   ensure_post_quantum_consent,
-  type PostQuantumConsentBlock,
 } from "./post_quantum_consent";
 import { SendError, type EncryptionResult } from "./send_queue_types";
 
 import {
+  ensure_sender_alias_caches,
   get_cached_sender_identity_for_address,
+  get_cached_sender_identity_for_routing_token,
+  is_sender_alias_cache_populated,
   type CachedSenderIdentity,
 } from "@/hooks/use_sender_aliases";
+import { extract_delivered_to } from "@/utils/delivered_to";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { clamp_subject } from "@/lib/reply_subject";
 
@@ -52,14 +56,6 @@ export interface ReactionResult {
   error?: string;
   cancelled?: boolean;
   own_reaction_mail_item_id?: string;
-}
-
-function translate_consent_block(block: PostQuantumConsentBlock): string {
-  const errors = get_active_translations().errors;
-
-  return block === "errors.recipient_key_untrusted"
-    ? errors.recipient_key_untrusted
-    : errors.key_trust_check_failed;
 }
 
 type ReactionBody =
@@ -77,7 +73,7 @@ async function seal_reaction_body(
     return {
       ok: false,
       result: consent.blocked_by
-        ? { success: false, error: translate_consent_block(consent.blocked_by) }
+        ? { success: false, error: describe_consent_block(consent.blocked_by) }
         : { success: false, cancelled: true },
     };
   }
@@ -102,28 +98,63 @@ async function seal_reaction_body(
   return { ok: true, result };
 }
 
-function resolve_reaction_sender_identity(
+export type ReactionSender =
+  | { kind: "primary" }
+  | { kind: "identity"; identity: CachedSenderIdentity }
+  | { kind: "undetermined" };
+
+function normalize_address(value: string | undefined): string {
+  return (value ?? "").trim().toLowerCase();
+}
+
+function resolve_cached_reaction_sender(
   message: DecryptedThreadMessage,
   primary_email: string,
-): CachedSenderIdentity | undefined {
-  const candidates = [
+): ReactionSender {
+  const primary = normalize_address(primary_email);
+  const delivered_to = extract_delivered_to(message.raw_headers);
+  const delivered =
+    get_cached_sender_identity_for_routing_token(message.routing_token) ??
+    get_cached_sender_identity_for_address(delivered_to);
+
+  if (delivered) return { kind: "identity", identity: delivered };
+
+  const visible = [
     ...(message.to_recipients ?? []),
     ...(message.cc_recipients ?? []),
-  ];
-  const primary = primary_email.trim().toLowerCase();
-  let identity: CachedSenderIdentity | undefined;
+  ].map((recipient) => normalize_address(recipient.email));
 
-  for (const candidate of candidates) {
-    const email = candidate.email?.trim();
+  if (primary && visible.includes(primary)) return { kind: "primary" };
 
-    if (!email) continue;
-    if (email.toLowerCase() === primary) return undefined;
-    if (identity) continue;
+  for (const address of visible) {
+    const identity = get_cached_sender_identity_for_address(address);
 
-    identity = get_cached_sender_identity_for_address(email);
+    if (identity) return { kind: "identity", identity };
   }
 
-  return identity;
+  if (primary && normalize_address(delivered_to) === primary) {
+    return { kind: "primary" };
+  }
+
+  return { kind: "undetermined" };
+}
+
+export async function resolve_reaction_sender(
+  message: DecryptedThreadMessage,
+  primary_email: string,
+): Promise<ReactionSender> {
+  const cached = resolve_cached_reaction_sender(message, primary_email);
+
+  if (cached.kind === "identity") return cached;
+  if (!message.routing_token && is_sender_alias_cache_populated()) {
+    return cached;
+  }
+
+  await ensure_sender_alias_caches({
+    refresh: Boolean(message.routing_token),
+  });
+
+  return resolve_cached_reaction_sender(message, primary_email);
 }
 
 export function is_own_reaction_address(email: string): boolean {
@@ -212,10 +243,17 @@ export async function send_reaction(
     };
   }
 
-  const alias_identity = resolve_reaction_sender_identity(
-    message,
-    primary_email,
-  );
+  const reaction_sender = await resolve_reaction_sender(message, primary_email);
+
+  if (reaction_sender.kind === "undetermined") {
+    return {
+      success: false,
+      error: get_active_translations().errors.cannot_react_bcc,
+    };
+  }
+
+  const alias_identity =
+    reaction_sender.kind === "identity" ? reaction_sender.identity : undefined;
   const sender_email = alias_identity?.email ?? primary_email;
 
   const recipient_is_internal = is_encrypted_reaction_recipient(recipient);

@@ -263,6 +263,7 @@ export function ReplyModal({
               reduce_motion={modal.reduce_motion}
               remove_attachment={modal.remove_attachment}
               scheduled_time={modal.scheduled_time}
+              selected_sender={modal.selected_sender}
               set_attachment_error={modal.set_attachment_error}
               set_error_message={modal.set_error_message}
               set_expires_at={modal.set_expires_at}

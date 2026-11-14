@@ -436,6 +436,23 @@ export function uint8_to_base64(array: Uint8Array): string {
   return btoa(binary);
 }
 
+export function message_id_key(message_id: string): string {
+  return message_id.replace(/[<>]/g, "").trim().toLowerCase();
+}
+
+export function header_message_ids(value: string | undefined): string[] {
+  if (!value) return [];
+
+  const bracketed = value.match(/<[^<>\s]+>/g);
+
+  if (bracketed) return bracketed.map((id) => id.slice(1, -1));
+
+  return value
+    .split(/\s+/)
+    .map((id) => id.replace(/[<>,]/g, "").trim())
+    .filter((id) => id.includes("@"));
+}
+
 export async function build_thread_map(
   emails: ParsedEmail[],
 ): Promise<Map<string, string>> {
@@ -480,25 +497,25 @@ export async function build_thread_map(
     group_members.delete(root_b);
   };
 
+  const by_key = new Map<string, string>();
+
   for (const email of emails) {
-    const in_reply_to = email.raw_headers["in-reply-to"]
-      ?.replace(/[<>]/g, "")
-      .trim();
+    const key = message_id_key(email.message_id);
 
-    if (in_reply_to && message_id_to_group.has(in_reply_to)) {
-      merge(email.message_id, in_reply_to);
-    }
+    if (key && !by_key.has(key)) by_key.set(key, email.message_id);
+  }
 
-    const references = email.raw_headers["references"];
+  for (const email of emails) {
+    const ref_ids = [
+      ...header_message_ids(email.raw_headers["in-reply-to"]),
+      ...header_message_ids(email.raw_headers["references"]),
+    ];
 
-    if (references) {
-      const ref_ids =
-        references.match(/<[^>]+>/g)?.map((r) => r.replace(/[<>]/g, "")) || [];
+    for (const ref_id of ref_ids) {
+      const target = by_key.get(message_id_key(ref_id));
 
-      for (const ref_id of ref_ids) {
-        if (message_id_to_group.has(ref_id)) {
-          merge(email.message_id, ref_id);
-        }
+      if (target && target !== email.message_id) {
+        merge(email.message_id, target);
       }
     }
   }

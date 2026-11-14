@@ -31,6 +31,8 @@ import { clear_all_pending_send_stashes } from "@/components/compose/pending_sen
 import { clear_pending_toast_actions } from "@/components/toast/toast_action_router";
 import { clear_ratchet_verification_status } from "@/services/crypto/ratchet_verification_status";
 import { clear_sender_identity_authentication_cache } from "@/services/crypto/sender_identity_authentication";
+import { clear_address_key_set_cache } from "@/services/crypto/address_identity_entry";
+import { clear_address_identity_directory_state } from "@/services/crypto/address_identity_directory";
 import { clear_recipient_classification_cache } from "@/services/recipient_classification";
 import { reset_account_key_capabilities_cache } from "@/services/api/account_key";
 import { forget_current_user } from "@/services/current_identity";
@@ -51,6 +53,8 @@ const ACCOUNT_MEMORY_CLEARERS: ReadonlyArray<() => void> = [
   () => clear_pending_toast_actions(),
   () => clear_ratchet_verification_status(),
   () => clear_sender_identity_authentication_cache(),
+  () => clear_address_key_set_cache(),
+  () => clear_address_identity_directory_state(),
   () => clear_recipient_classification_cache(),
   () => reset_account_key_capabilities_cache(),
   () => forget_current_user(),

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { address_receiver_key_sets } from "./address_identity_entry";
+import { is_own_address_identity_key } from "./address_sender_identity";
 import { base64_to_array } from "./base64";
 import {
   DoubleRatchet,
@@ -59,6 +61,7 @@ import {
   record_peer_identity_event,
   type SenderIdentityStatus,
 } from "./ratchet_verification_status";
+import { claim_rotation_notice } from "./rotation_notice";
 import { open_recovery_lane } from "./ratchet_recovery_lane";
 import {
   decrypt_with_peer_session,
@@ -237,8 +240,9 @@ async function sender_continuity(
 ): Promise<SenderIdentityContinuity> {
   if (
     session_bound &&
-    is_own_identity_key(vault, sender_identity_key) &&
-    is_own_sender_address(sender_email, our_email)
+    is_own_sender_address(sender_email, our_email) &&
+    (is_own_identity_key(vault, sender_identity_key) ||
+      is_own_address_identity_key(vault, [sender_email], sender_identity_key))
   ) {
     return "known";
   }
@@ -246,7 +250,7 @@ async function sender_continuity(
   return check_sender_identity_continuity(
     sender_email,
     sender_identity_key,
-  ).catch(() => "changed" as const);
+  ).catch(() => "unreadable" as const);
 }
 
 async function session_sender_identity_key(
@@ -415,8 +419,15 @@ async function attempt_ratchet_decrypt(
 
       void detect_identity_pin_drift(sender_email.toLowerCase(), identity_key);
 
-      if (continuity === "changed") {
+      if (
+        continuity === "changed" &&
+        claim_rotation_notice(sender_email, identity_key)
+      ) {
         record_peer_identity_event(sender_email, "rotated");
+      }
+
+      if (continuity === "unreadable") {
+        record_peer_identity_event(sender_email, "unreadable");
       }
 
       if (dedupe_key && lane_plaintext) {
@@ -433,7 +444,7 @@ async function attempt_ratchet_decrypt(
       const from_escrow = lane_plaintext && !unauthenticated;
       const unconfirmed_sender = from_escrow
         ? is_unconfirmed_sender_plaintext(plaintext)
-        : continuity === "changed";
+        : continuity !== "known" && continuity !== "new";
 
       if (unconfirmed_sender) {
         mark_unconfirmed_sender_plaintext(
@@ -616,7 +627,10 @@ function is_own_identity_key(
   );
 }
 
-function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {
+function receiver_key_sets(
+  vault: EncryptedVault,
+  address = "",
+): RatchetKeySet[] {
   const sets: RatchetKeySet[] = [];
 
   if (
@@ -645,6 +659,10 @@ function receiver_key_sets(vault: EncryptedVault): RatchetKeySet[] {
     ) {
       sets.push(previous);
     }
+  }
+
+  if (sets.length > 0 && address) {
+    sets.push(...address_receiver_key_sets(vault, address));
   }
 
   return sets;
@@ -715,6 +733,7 @@ interface RecoveryLaneCandidate {
 
 function recovery_lane_key_candidates(
   vault: EncryptedVault,
+  address: string,
 ): RecoveryLaneCandidate[] {
   const candidates: RecoveryLaneCandidate[] = [];
 
@@ -745,6 +764,12 @@ function recovery_lane_key_candidates(
     push(previous);
   }
 
+  if (address) {
+    for (const derived of address_receiver_key_sets(vault, address)) {
+      push(derived);
+    }
+  }
+
   return candidates;
 }
 
@@ -753,6 +778,7 @@ async function try_recovery_lanes(
   conversation_ids: string[],
   sender_identity_key: string,
   vault: EncryptedVault,
+  address: string,
 ): Promise<string | null> {
   for (const lane_conversation_id of conversation_ids) {
     const recovered = await try_recovery_lane(
@@ -760,6 +786,7 @@ async function try_recovery_lanes(
       lane_conversation_id,
       sender_identity_key,
       vault,
+      address,
     );
 
     if (recovered !== null) return recovered;
@@ -773,12 +800,14 @@ async function try_recovery_lane(
   conversation_id: string,
   sender_identity_key: string,
   vault: EncryptedVault,
+  address: string,
 ): Promise<string | null> {
   const message_key_base64 = await open_recovery_lane_message_key(
     data,
     conversation_id,
     sender_identity_key,
     vault,
+    address,
   );
 
   if (message_key_base64 === null) return null;
@@ -806,10 +835,11 @@ async function open_recovery_lane_message_key(
   conversation_id: string,
   sender_identity_key: string,
   vault: EncryptedVault,
+  address: string,
 ): Promise<string | null> {
   if (!data.recovery) return null;
 
-  const candidates = recovery_lane_key_candidates(vault);
+  const candidates = recovery_lane_key_candidates(vault, address);
 
   const ordered = [
     ...candidates.filter((c) => c.identity_public === data.recovery?.rid),
@@ -956,7 +986,7 @@ async function decrypt_ratchet_for_recipient(
   vault: EncryptedVault,
   message_key = "",
 ): Promise<RatchetSessionPlaintext | null> {
-  const key_sets = receiver_key_sets(vault);
+  const key_sets = receiver_key_sets(vault, our_email);
 
   if (key_sets.length === 0) {
     const refreshed = await fetch_refreshed_vault();
@@ -1125,7 +1155,7 @@ async function decrypt_ratchet_for_recipient(
       if (refreshed) {
         const tried = new Set(key_sets.map(key_set_fingerprint));
 
-        for (const keys of receiver_key_sets(refreshed.vault)) {
+        for (const keys of receiver_key_sets(refreshed.vault, our_email)) {
           if (tried.has(key_set_fingerprint(keys))) continue;
 
           let candidate: DoubleRatchet | null = null;
@@ -1164,7 +1194,7 @@ async function decrypt_ratchet_for_recipient(
       const recovered_vault = await recover_ratchet_keys_from_history();
 
       for (const keys of recovered_vault
-        ? receiver_key_sets(recovered_vault)
+        ? receiver_key_sets(recovered_vault, our_email)
         : []) {
         let candidate: DoubleRatchet | null = null;
 
@@ -1240,6 +1270,7 @@ async function decrypt_ratchet_for_recipient(
         lane_conversation_ids,
         sender_identity_key,
         vault,
+        our_email,
       );
 
       if (recovered !== null) {
@@ -1257,6 +1288,7 @@ async function decrypt_ratchet_for_recipient(
             lane_conversation_ids,
             sender_identity_key,
             refreshed.vault,
+            our_email,
           );
 
           if (recovered_refreshed !== null) {

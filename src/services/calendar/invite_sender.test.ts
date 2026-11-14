@@ -173,7 +173,7 @@ describe("reply_identity", () => {
     });
   });
 
-  it("falls back to the primary address for a disabled alias", () => {
+  it("never answers for a disabled alias from the primary address", () => {
     set_own_addresses(["old@astermail.org"]);
 
     const identity = reply_identity(
@@ -184,7 +184,113 @@ describe("reply_identity", () => {
     );
 
     expect(identity.attendee_email).toBe("old@astermail.org");
-    expect(identity.reply_email).toBe("me@astermail.org");
+    expect(identity.reply_email).not.toBe("me@astermail.org");
     expect(identity.sender).toBeNull();
+    expect(identity.blocked).toBe(true);
+  });
+
+  it("never answers for an address the sender list does not hold yet", () => {
+    set_own_addresses(["new@astermail.org"]);
+
+    const identity = reply_identity(
+      [],
+      ["new@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.blocked).toBe(true);
+    expect(identity.reply_email).not.toBe("me@astermail.org");
+  });
+
+  it("answers from the primary address when the invitation reached it", () => {
+    const identity = reply_identity(
+      options,
+      ["friend@example.com", "me@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.blocked).toBe(false);
+    expect(identity.reply_email).toBe("me@astermail.org");
+  });
+
+  it("uses the alias name for a reply from an alias", () => {
+    set_own_addresses(["work@astermail.org"]);
+
+    const identity = reply_identity(
+      options,
+      ["work@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.display_name).toBe("Work");
+  });
+
+  it("leaves a nameless alias unnamed instead of using the account name", () => {
+    const nameless: SenderOption[] = options.map((option) =>
+      option.id === "alias-1" ? { ...option, display_name: undefined } : option,
+    );
+
+    set_own_addresses(["work@astermail.org"]);
+
+    const identity = reply_identity(
+      nameless,
+      ["work@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.reply_email).toBe("work@astermail.org");
+    expect(identity.display_name).toBeNull();
+  });
+
+  it("replies from the Ghost Mode address the invitation reached", () => {
+    set_own_addresses(["ghost@astermail.org"]);
+
+    const identity = reply_identity(
+      options,
+      ["friend@example.com", "ghost@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.attendee_email).toBe("ghost@astermail.org");
+    expect(identity.reply_email).toBe("ghost@astermail.org");
+    expect(identity.display_name).toBeNull();
+    expect(identity.sender).toEqual({
+      email: "ghost@astermail.org",
+      address_hash: "hash-ghost",
+    });
+  });
+
+  it("does not reply from a disabled Ghost Mode address", () => {
+    const disabled: SenderOption[] = options.map((option) =>
+      option.id === "ghost-1" ? { ...option, is_enabled: false } : option,
+    );
+
+    set_own_addresses(["ghost@astermail.org"]);
+
+    const identity = reply_identity(
+      disabled,
+      ["ghost@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.sender).toBeNull();
+    expect(identity.blocked).toBe(true);
+  });
+
+  it("keeps the account name for a reply from the primary address", () => {
+    const identity = reply_identity(
+      options,
+      ["me@astermail.org"],
+      "me@astermail.org",
+      "Me",
+    );
+
+    expect(identity.display_name).toBe("Me");
   });
 });

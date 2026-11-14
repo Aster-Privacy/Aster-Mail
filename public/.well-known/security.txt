@@ -1,4 +1,5 @@
 Contact: mailto:security@astermail.org
+Encryption: https://keys.openpgp.org/vks/v1/by-fingerprint/3E1DA8FA5D699CA03F5711CA52F168E7F816A832
 Expires: 2027-03-14T00:00:00.000Z
 Preferred-Languages: en
 Canonical: https://astermail.org/.well-known/security.txt

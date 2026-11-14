@@ -24,8 +24,9 @@ use pgp::composed::{
 };
 use pgp::crypto::ecc_curve::ECCCurve;
 use pgp::crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm};
+use pgp::packet::SignatureType;
 use pgp::ser::Serialize;
-use pgp::types::{CompressionAlgorithm, PublicKeyTrait};
+use pgp::types::{CompressionAlgorithm, PublicKeyTrait, Tag};
 use rand::rngs::OsRng;
 use smallvec::smallvec;
 use zeroize::Zeroizing;
@@ -166,6 +167,49 @@ impl PublicKey {
         emails
     }
 
+    pub fn has_verified_user_id_for(&self, email: &str) -> bool {
+        let wanted = email.trim().to_lowercase();
+        let signed = self.signed_public();
+        let primary = &signed.primary_key;
+
+        let key_revoked = signed
+            .details
+            .revocation_signatures
+            .iter()
+            .any(|signature| {
+                matches!(signature.typ(), SignatureType::KeyRevocation)
+                    && signature.verify_key(primary).is_ok()
+            });
+
+        if key_revoked {
+            return false;
+        }
+
+        signed.details.users.iter().any(|user| {
+            let raw = String::from_utf8_lossy(user.id.id()).to_string();
+
+            if email_from_user_id(&raw).as_deref() != Some(wanted.as_str()) {
+                return false;
+            }
+
+            let self_signed = |types: &[SignatureType]| {
+                user.signatures.iter().any(|signature| {
+                    types.contains(&signature.typ())
+                        && signature
+                            .verify_certification(primary, Tag::UserId, &user.id)
+                            .is_ok()
+                })
+            };
+
+            self_signed(&[
+                SignatureType::CertGeneric,
+                SignatureType::CertPersona,
+                SignatureType::CertCasual,
+                SignatureType::CertPositive,
+            ]) && !self_signed(&[SignatureType::CertRevocation])
+        })
+    }
+
     pub fn is_standalone(&self) -> bool {
         matches!(&self.inner, PublicKeyInner::Standalone(_))
     }
@@ -191,6 +235,72 @@ impl PublicKey {
 
     pub fn encryption_expires_at(&self) -> Option<chrono::DateTime<chrono::Utc>> {
         crate::key_selection::encryption_expires_at(&self.signed_public())
+    }
+
+    pub fn algorithm_profile(&self) -> (String, i32) {
+        use pgp::types::PublicParams;
+
+        let signed = self.signed_public();
+        match signed.primary_key.public_params() {
+            PublicParams::RSA { n, .. } => {
+                let bits = (n.as_bytes().len() * 8) as i32;
+                (format!("rsa{bits}"), bits)
+            }
+            PublicParams::DSA { p, .. } => {
+                let bits = (p.as_bytes().len() * 8) as i32;
+                (format!("dsa{bits}"), bits)
+            }
+            PublicParams::Ed25519 { .. } => ("ed25519".to_string(), 256),
+            PublicParams::X25519 { .. } => ("x25519".to_string(), 256),
+            PublicParams::X448 { .. } => ("x448".to_string(), 448),
+            PublicParams::EdDSALegacy { curve, .. } => {
+                (format!("eddsa_{}", curve_label(curve)), curve_bits(curve))
+            }
+            PublicParams::ECDSA(params) => {
+                use pgp::types::EcdsaPublicParams;
+                let label = match params {
+                    EcdsaPublicParams::P256 { .. } => "p256".to_string(),
+                    EcdsaPublicParams::P384 { .. } => "p384".to_string(),
+                    EcdsaPublicParams::P521 { .. } => "p521".to_string(),
+                    EcdsaPublicParams::Secp256k1 { .. } => "secp256k1".to_string(),
+                    EcdsaPublicParams::Unsupported { curve, .. } => curve_label(curve),
+                };
+                let bits = match params {
+                    EcdsaPublicParams::P384 { .. } => 384,
+                    EcdsaPublicParams::P521 { .. } => 521,
+                    EcdsaPublicParams::P256 { .. } | EcdsaPublicParams::Secp256k1 { .. } => 256,
+                    EcdsaPublicParams::Unsupported { curve, .. } => curve_bits(curve),
+                };
+                (format!("ecdsa_{label}"), bits)
+            }
+            PublicParams::ECDH(params) => {
+                use pgp::types::EcdhPublicParams;
+                let curve = match params {
+                    EcdhPublicParams::Known { curve, .. } => curve,
+                    EcdhPublicParams::Unsupported { curve, .. } => curve,
+                };
+                (format!("ecdh_{}", curve_label(curve)), curve_bits(curve))
+            }
+            PublicParams::Elgamal { p, .. } => {
+                let bits = (p.as_bytes().len() * 8) as i32;
+                (format!("elgamal{bits}"), bits)
+            }
+            PublicParams::Unknown { .. } => ("unknown".to_string(), 0),
+        }
+    }
+}
+
+fn curve_label(curve: &ECCCurve) -> String {
+    curve.to_string().to_lowercase().replace(' ', "_")
+}
+
+fn curve_bits(curve: &ECCCurve) -> i32 {
+    match curve {
+        ECCCurve::P256 => 256,
+        ECCCurve::P384 => 384,
+        ECCCurve::P521 => 521,
+        ECCCurve::Curve25519 | ECCCurve::Ed25519 => 256,
+        _ => 0,
     }
 }
 
@@ -354,6 +464,38 @@ pub fn import_public_key_bytes(bytes: &[u8]) -> Result<PublicKey> {
     })
 }
 
+const MAX_KEYS_PER_IMPORT: usize = 16;
+
+pub fn import_public_keys_bytes(bytes: &[u8]) -> Result<Vec<PublicKey>> {
+    check_import_size(bytes.len())?;
+
+    let parsed: Vec<SignedPublicKey> = if bytes.starts_with(b"-----BEGIN") {
+        let armored = std::str::from_utf8(bytes)
+            .map_err(|_| CryptoError::InvalidKeyFormat(INVALID_KEY_FORMAT_MSG.into()))?;
+        let (keys, _) = SignedPublicKey::from_string_many(armored)
+            .map_err(|_| CryptoError::InvalidKeyFormat(INVALID_KEY_FORMAT_MSG.into()))?;
+        keys.take(MAX_KEYS_PER_IMPORT)
+            .filter_map(|k| k.ok())
+            .collect()
+    } else {
+        SignedPublicKey::from_bytes_many(std::io::Cursor::new(bytes))
+            .take(MAX_KEYS_PER_IMPORT)
+            .filter_map(|k| k.ok())
+            .collect()
+    };
+
+    if parsed.is_empty() {
+        return Err(CryptoError::InvalidKeyFormat(INVALID_KEY_FORMAT_MSG.into()));
+    }
+
+    Ok(parsed
+        .into_iter()
+        .map(|pk| PublicKey {
+            inner: PublicKeyInner::Standalone(pk),
+        })
+        .collect())
+}
+
 pub fn import_secret_key(armored: &str) -> Result<KeyPair> {
     check_import_size(armored.len())?;
     let (secret_key, _) = SignedSecretKey::from_string(armored)
@@ -410,6 +552,91 @@ pub(crate) fn generate_legacy_rsa_keypair(name: &str, email: &str) -> Result<Key
 mod tests {
     use super::*;
     use pgp::crypto::public_key::PublicKeyAlgorithm;
+
+    fn public_key_for(email: &str) -> PublicKey {
+        let keypair = generate_keypair("Alice", email).unwrap();
+        import_public_key(&keypair.public_key_armored().unwrap()).unwrap()
+    }
+
+    #[test]
+    fn import_many_returns_every_key_in_a_binary_stream() {
+        let first = generate_keypair("First", "first@example.org").unwrap();
+        let second = generate_keypair("Second", "second@example.org").unwrap();
+        let mut stream = first.public_key_bytes().unwrap();
+        stream.extend(second.public_key_bytes().unwrap());
+
+        let keys = import_public_keys_bytes(&stream).unwrap();
+
+        assert_eq!(keys.len(), 2);
+        assert!(keys[0].has_verified_user_id_for("first@example.org"));
+        assert!(keys[1].has_verified_user_id_for("second@example.org"));
+    }
+
+    #[test]
+    fn import_many_reads_a_single_armored_key() {
+        let keypair = generate_keypair("Solo", "solo@example.org").unwrap();
+        let armored = keypair.public_key_armored().unwrap();
+
+        let keys = import_public_keys_bytes(armored.as_bytes()).unwrap();
+
+        assert_eq!(keys.len(), 1);
+        assert_eq!(keys[0].fingerprint(), keypair.fingerprint());
+    }
+
+    #[test]
+    fn import_many_rejects_garbage() {
+        assert!(import_public_keys_bytes(b"not a key").is_err());
+    }
+
+    #[test]
+    fn verified_user_id_matches_the_address_in_any_case() {
+        let public = public_key_for("Alice@AsterMail.org");
+
+        assert!(public.has_verified_user_id_for("alice@astermail.org"));
+        assert!(public.has_verified_user_id_for(" ALICE@astermail.org "));
+    }
+
+    #[test]
+    fn verified_user_id_rejects_another_address() {
+        let public = public_key_for("alice@astermail.org");
+
+        assert!(!public.has_verified_user_id_for("mallory@astermail.org"));
+        assert!(!public.has_verified_user_id_for(""));
+    }
+
+    #[test]
+    fn verified_user_id_rejects_an_unsigned_user_id() {
+        let public = public_key_for("alice@astermail.org");
+        let PublicKeyInner::Standalone(mut signed) = public.inner else {
+            panic!("expected a standalone key");
+        };
+        signed.details.users[0].id =
+            pgp::packet::UserId::from_str(Default::default(), "Mallory <mallory@astermail.org>");
+        let forged = PublicKey {
+            inner: PublicKeyInner::Standalone(signed),
+        };
+
+        assert_eq!(
+            forged.user_id_emails(),
+            vec!["mallory@astermail.org".to_string()]
+        );
+        assert!(!forged.has_verified_user_id_for("mallory@astermail.org"));
+        assert!(!forged.has_verified_user_id_for("alice@astermail.org"));
+    }
+
+    #[test]
+    fn verified_user_id_rejects_a_user_id_without_signatures() {
+        let public = public_key_for("alice@astermail.org");
+        let PublicKeyInner::Standalone(mut signed) = public.inner else {
+            panic!("expected a standalone key");
+        };
+        signed.details.users[0].signatures.clear();
+        let stripped = PublicKey {
+            inner: PublicKeyInner::Standalone(signed),
+        };
+
+        assert!(!stripped.has_verified_user_id_for("alice@astermail.org"));
+    }
 
     #[test]
     fn user_id_emails_reads_the_address_of_every_user_id() {
@@ -518,5 +745,24 @@ mod tests {
         assert_eq!(primary_algo, PublicKeyAlgorithm::RSA);
         let sub_algo = PublicKeyTrait::algorithm(&imported.secret_key().secret_subkeys[0]);
         assert_eq!(sub_algo, PublicKeyAlgorithm::RSA);
+    }
+    #[test]
+    fn algorithm_profile_reports_the_real_curve_not_rsa4096() {
+        let keypair = generate_keypair("Curve", "curve@astermail.com").unwrap();
+        let armored = keypair.public_key_armored().unwrap();
+        let imported = import_public_key(&armored).unwrap();
+        let (algorithm, bits) = imported.algorithm_profile();
+        assert_ne!(algorithm, "rsa4096");
+        assert!(bits > 0);
+    }
+
+    #[test]
+    fn algorithm_profile_reports_rsa_modulus_size() {
+        let keypair = generate_legacy_rsa_keypair("Legacy", "legacy@astermail.com").unwrap();
+        let armored = keypair.public_key_armored().unwrap();
+        let imported = import_public_key(&armored).unwrap();
+        let (algorithm, bits) = imported.algorithm_profile();
+        assert!(algorithm.starts_with("rsa"));
+        assert_eq!(algorithm, format!("rsa{bits}"));
     }
 }

@@ -223,6 +223,26 @@ describe("source_labels and folders", () => {
     expect(folder_for_email(email_with({}, "Family"), map)).toBe("tok");
     expect(folder_for_email(email_with({}, "Inbox"), map)).toBeUndefined();
   });
+
+  it("maps mbox file names to system folders or nested custom folders", () => {
+    expect(classify_import_email(email_with({}, "Sent")).sent).toBe(true);
+    expect(classify_import_email(email_with({}, "Junk")).is_spam).toBe(true);
+    expect(classify_import_email(email_with({}, "Spam")).is_spam).toBe(true);
+    expect(classify_import_email(email_with({}, "Trash")).is_trashed).toBe(
+      true,
+    );
+    expect(classify_import_email(email_with({}, "Archive")).is_archived).toBe(
+      true,
+    );
+    expect(
+      extract_source_folders([
+        email_with({}, "Sent"),
+        email_with({}, "Inbox"),
+        email_with({}, "Work/Clients/Acme"),
+        email_with({}, "Receipts"),
+      ]),
+    ).toEqual(["Work/Clients/Acme", "Receipts"]);
+  });
 });
 
 describe("split_label_list", () => {

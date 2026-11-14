@@ -41,6 +41,12 @@ import {
 
 import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
 import {
+  allows_remote_image_grant,
+  effective_remote_image_mode,
+  resolve_remote_content_preferences,
+} from "@/lib/remote_content_policy";
+import { honored_content_types } from "@/lib/remote_content_grants";
+import {
   displayed_image_blocking_from_options,
   use_record_displayed_image_blocking,
 } from "@/components/email/viewer_shared/external_content";
@@ -83,6 +89,7 @@ import {
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
 import { resolve_received_on_address } from "@/utils/delivered_to";
+import { resolve_delivery_reply_address } from "@/components/email/delivery_reply_address";
 import {
   normalize_alias_candidates,
   use_alias_delivery,
@@ -181,7 +188,7 @@ export interface ThreadMessageBlockProps {
   on_manual_unsubscribed?: () => void;
   unsubscribe_url?: string;
   loaded_content_types?: Set<string>;
-  on_load_external_content?: (types?: string[]) => void;
+  on_load_external_content?: (message_id: string, types: string[]) => void;
   island_ref?: Ref<HTMLDivElement>;
 }
 
@@ -195,7 +202,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     external_content_mode,
     on_external_content_detected,
     preloaded_sanitized: preloaded_sanitized_prop,
-    loaded_content_types,
+    loaded_content_types: granted_content_types,
   } = props;
 
   const { t } = use_i18n();
@@ -306,7 +313,11 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     [message.raw_headers],
   );
   const evaluated_trust = use_sender_trust(
-    { ...message, reply_to: reply_to_address },
+    {
+      ...message,
+      reply_to: reply_to_address,
+      e2e_sender_bound: !!message.e2e_sender_bound,
+    },
     { shown_name: raw_sender_name, shown_email: show_sender_email },
   );
   const sender_trust =
@@ -341,8 +352,16 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       received_on_address,
     ],
   );
-  const alias_delivery = use_alias_delivery(undefined, alias_candidates_key);
-  const delivered_to_address = received_on_address ?? alias_delivery?.address;
+  const alias_delivery = use_alias_delivery(
+    message.item_type === "received" ? message.routing_token : undefined,
+    alias_candidates_key,
+  );
+  const delivered_to_address =
+    (message.item_type === "received"
+      ? resolve_delivery_reply_address(message.routing_token)
+      : undefined) ??
+    received_on_address ??
+    alias_delivery?.address;
   const has_plaintext_body =
     !password_protected &&
     !!message.body &&
@@ -469,17 +488,21 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     }
   }, [is_ratchet_undecryptable, message.id]);
 
-  const base_image_mode = is_system
-    ? ("always" as ImageLoadMode)
-    : !preferences.block_external_content
-      ? ("always" as ImageLoadMode)
-      : preferences.load_remote_images;
+  const base_image_mode: ImageLoadMode = is_system
+    ? "always"
+    : effective_remote_image_mode(preferences);
+  const blocking_preferences = resolve_remote_content_preferences(preferences);
 
   const load_remote_content =
     !lockdown_active && external_content_mode === "always";
 
-  const has_loaded_types =
-    loaded_content_types && loaded_content_types.size > 0;
+  const image_grant_allowed =
+    is_system || allows_remote_image_grant(preferences);
+  const loaded_content_types = useMemo(
+    () => honored_content_types(granted_content_types, image_grant_allowed),
+    [granted_content_types, image_grant_allowed],
+  );
+  const has_loaded_types = loaded_content_types.size > 0;
 
   const preloaded_check = useMemo((): {
     renderable: boolean;
@@ -508,10 +531,10 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       load_remote_content,
       loaded_content_types,
       preferences: {
-        block_remote_images: preferences.block_remote_images,
-        block_remote_fonts: preferences.block_remote_fonts,
-        block_remote_css: preferences.block_remote_css,
-        block_tracking_pixels: preferences.block_tracking_pixels,
+        block_remote_images: blocking_preferences.block_remote_images,
+        block_remote_fonts: blocking_preferences.block_remote_fonts,
+        block_remote_css: blocking_preferences.block_remote_css,
+        block_tracking_pixels: blocking_preferences.block_tracking_pixels,
       },
     });
 
@@ -523,11 +546,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
           : base_image_mode,
       lockdown_mode: lockdown_active,
       content_blocking:
-        !is_system && (lockdown_active || preferences.block_external_content)
-          ? {
-              ...resolved_blocking,
-            }
-          : undefined,
+        is_system && !lockdown_active ? undefined : { ...resolved_blocking },
     };
   }, [
     is_system,
@@ -535,11 +554,10 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     load_remote_content,
     loaded_content_types,
     lockdown_active,
-    preferences.block_external_content,
-    preferences.block_remote_images,
-    preferences.block_remote_fonts,
-    preferences.block_remote_css,
-    preferences.block_tracking_pixels,
+    blocking_preferences.block_remote_images,
+    blocking_preferences.block_remote_fonts,
+    blocking_preferences.block_remote_css,
+    blocking_preferences.block_tracking_pixels,
   ]);
 
   use_record_displayed_image_blocking(
@@ -892,6 +910,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     clean_body,
     collapsed_preview,
     lockdown_active,
+    image_grant_allowed,
     is_system,
     is_ghost_sender,
     show_sender_name,

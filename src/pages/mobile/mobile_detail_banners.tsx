@@ -20,6 +20,7 @@
 //
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { TranslationKey } from "@/lib/i18n";
+import type { UnsubscribeDelivery } from "@/utils/unsubscribe_detector";
 
 import { useState, useRef, useEffect } from "react";
 import {
@@ -53,6 +54,7 @@ import { get_undo_send_delay_ms } from "@/services/send_queue";
 
 export function MobileUnsubscribeBanner({
   email,
+  delivery,
   t,
 }: {
   email: {
@@ -66,6 +68,7 @@ export function MobileUnsubscribeBanner({
       method: string;
     };
   };
+  delivery: UnsubscribeDelivery;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   const { preferences } = use_preferences();
@@ -133,7 +136,7 @@ export function MobileUnsubscribeBanner({
       if (cancelled_ref.current) return;
 
       try {
-        const result = await execute_unsubscribe(info as never);
+        const result = await execute_unsubscribe(info as never, delivery);
 
         if (result === "api") {
           record_unsubscribed();
@@ -209,10 +212,12 @@ export function MobileUnsubscribeBanner({
 export function MobileExternalContentBanner({
   report,
   on_load,
+  on_open_settings,
   t,
 }: {
   report: ExternalContentReport;
-  on_load: () => void;
+  on_load?: () => void;
+  on_open_settings?: () => void;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
   const [dismissed, set_dismissed] = useState(false);
@@ -273,13 +278,26 @@ export function MobileExternalContentBanner({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            className="rounded-[var(--aster-radius-control)] bg-[var(--accent-color,#4f6ef7)] px-2.5 py-1 text-[12px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
-            type="button"
-            onClick={on_load}
-          >
-            {t("common.load_content")}
-          </button>
+          {on_load && (
+            <button
+              className="rounded-[var(--aster-radius-control)] bg-[var(--accent-color,#4f6ef7)] px-2.5 py-1 text-[12px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
+              data-testid="load-external-content"
+              type="button"
+              onClick={on_load}
+            >
+              {t("common.load_content")}
+            </button>
+          )}
+          {!on_load && on_open_settings && (
+            <button
+              className="rounded-[var(--aster-radius-control)] px-2.5 py-1 text-[12px] font-medium text-[var(--accent-color,#4f6ef7)] active:bg-[var(--bg-tertiary)]"
+              data-testid="image-loading-settings"
+              type="button"
+              onClick={on_open_settings}
+            >
+              {t("mail.image_loading_settings")}
+            </button>
+          )}
           <button
             className="rounded-[14px] p-1 text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
             type="button"

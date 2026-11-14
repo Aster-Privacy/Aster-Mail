@@ -22,11 +22,12 @@ import { useEffect, useRef, useState } from "react";
 
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_i18n } from "@/lib/i18n/context";
-import { format_fingerprint } from "@/services/api/keys";
 import {
   set_key_trust_prompt_handler,
   type KeyFingerprintChange,
 } from "@/services/key_trust_consent";
+
+import { key_trust_change_details } from "./key_trust_change_details";
 
 export function KeyTrustChangePrompt(): React.ReactElement {
   const { t } = use_i18n();
@@ -58,32 +59,63 @@ export function KeyTrustChangePrompt(): React.ReactElement {
 
   const pending = changes ?? [];
 
-  const details = pending
-    .map((change) =>
-      t("common.key_trust_change_detail", {
-        email: change.email,
-        prior: format_fingerprint(change.prior_fingerprint),
-        current: format_fingerprint(change.new_fingerprint),
-      }),
-    )
-    .join(" ");
+  const details = key_trust_change_details(pending, t);
 
-  const summary = t("common.key_trust_change_message", {
-    recipients: pending.map((change) => change.email).join(", "),
-  });
+  const missing = pending.filter((change) => change.missing);
+  const own = pending.filter((change) => change.own && !change.missing);
+  const changed = pending.filter(
+    (change) => !change.unreadable && !change.missing && !change.own,
+  );
+  const unread = pending.filter(
+    (change) => change.unreadable && !change.missing && !change.own,
+  );
+  const only_missing = missing.length > 0 && missing.length === pending.length;
+
+  const summary = [
+    own.length > 0
+      ? t("common.key_trust_own_message", {
+          recipients: own.map((change) => change.email).join(", "),
+        })
+      : "",
+    changed.length > 0
+      ? t("common.key_trust_change_message", {
+          recipients: changed.map((change) => change.email).join(", "),
+        })
+      : "",
+    unread.length > 0
+      ? t("common.key_trust_unreadable_message", {
+          recipients: unread.map((change) => change.email).join(", "),
+        })
+      : "",
+    missing.length > 0
+      ? t("common.key_trust_missing_message", {
+          recipients: missing.map((change) => change.email).join(", "),
+        })
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <ConfirmModal
       hide_dont_ask
-      confirm_text={t("common.key_trust_change_confirm")}
+      confirm_text={t(
+        missing.length > 0
+          ? "common.key_trust_missing_confirm"
+          : "common.key_trust_change_confirm",
+      )}
       confirm_variant="destructive"
-      description={`${summary} ${details}`}
+      description={details ? `${summary} ${details}` : summary}
       dont_ask={false}
       on_cancel={() => settle(false)}
       on_confirm={() => settle(true)}
       on_dont_ask_change={() => {}}
       show={changes !== null}
-      title={t("common.key_trust_change_title")}
+      title={t(
+        only_missing
+          ? "common.key_trust_missing_title"
+          : "common.key_trust_change_title",
+      )}
     />
   );
 }

@@ -95,6 +95,7 @@ import {
 } from "@/lib/preferred_sender";
 import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
+import { sender_is_pending } from "@/components/compose/sender_pending";
 import {
   type Attachment,
   type DraftStatus,
@@ -135,6 +136,7 @@ import {
 import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
 import {
   get_forward_mail_id,
+  get_forward_from_candidates,
   clear_forward_mail_id,
 } from "@/services/forward_store";
 import { fetch_my_badges } from "@/services/api/user";
@@ -143,10 +145,9 @@ import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { use_signatures } from "@/contexts/signatures_context";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
-import {
-  get_compose_sanitize_options,
-  restore_compose_image_sources,
-} from "@/lib/compose_image_sources";
+import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
+import { defer_compose_images } from "@/lib/compose_deferred_images";
+import { read_compose_editor_html } from "@/lib/editable_quoted_html";
 import { inline_email_css } from "@/lib/forward_css_inliner";
 import {
   app_hour12,
@@ -466,7 +467,7 @@ export function use_forward_modal({
       enabled:
         is_open && preferences.signature_mode === "auto" && !is_plain_text_mode,
       on_swapped: (editor) =>
-        set_forward_message(restore_compose_image_sources(editor.innerHTML)),
+        set_forward_message(read_compose_editor_html(editor.innerHTML)),
     });
 
   useEffect(() => {
@@ -547,10 +548,12 @@ export function use_forward_modal({
       if (has_typed_text) {
         append_template_after_typed_text(
           message_editor_ref.current,
-          sanitized.html,
+          defer_compose_images(sanitized.html),
         );
       } else {
-        message_editor_ref.current.innerHTML = sanitized.html;
+        message_editor_ref.current.innerHTML = defer_compose_images(
+          sanitized.html,
+        );
       }
       mark_signature_applied(signature);
 
@@ -560,7 +563,7 @@ export function use_forward_modal({
         seeded_message = message_editor_ref.current.innerText;
         message_editor_ref.current.innerText = seeded_message;
       } else {
-        seeded_message = restore_compose_image_sources(
+        seeded_message = read_compose_editor_html(
           message_editor_ref.current.innerHTML,
         );
       }
@@ -719,6 +722,7 @@ export function use_forward_modal({
 
     const resolved = resolve_from_sender({
       options: sender_options,
+      thread_addresses: get_forward_from_candidates(effective_mail_id),
       prefer_external: is_external,
       preferred_sender_id,
     });
@@ -735,6 +739,7 @@ export function use_forward_modal({
     preferred_sender_id,
     preferred_sender_ready,
     ghost_mode.is_ghost_enabled,
+    effective_mail_id,
   ]);
 
   useEffect(() => {
@@ -797,6 +802,17 @@ export function use_forward_modal({
 
   const lock_scope = use_recipient_lock_scope();
 
+  const is_sender_pending = useCallback(
+    () =>
+      sender_is_pending({
+        loading: sender_loading,
+        chosen_by_user:
+          sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
+        selected_email: selected_sender?.email,
+      }),
+    [sender_loading, ghost_mode.is_ghost_enabled, selected_sender?.email],
+  );
+
   const handle_forward = useCallback(async () => {
     if (
       !can_acquire_send_lock(
@@ -845,6 +861,12 @@ export function use_forward_modal({
 
     if (is_loading_attachments) {
       set_error_message(t("mail.attaching_original_files"));
+
+      return;
+    }
+
+    if (is_sender_pending()) {
+      show_toast(t("common.loading"), "info");
 
       return;
     }
@@ -1171,6 +1193,7 @@ export function use_forward_modal({
     preferences.show_aster_branding,
     vault,
     attachment_session,
+    is_sender_pending,
   ]);
 
   const schedule_gate_pending_ref = useRef(false);
@@ -1192,6 +1215,12 @@ export function use_forward_modal({
 
     if (is_loading_attachments) {
       set_error_message(t("mail.attaching_original_files"));
+
+      return;
+    }
+
+    if (is_sender_pending()) {
+      show_toast(t("common.loading"), "info");
 
       return;
     }
@@ -1386,6 +1415,7 @@ export function use_forward_modal({
     expires_at,
     original_mail_id,
     attachment_session,
+    is_sender_pending,
   ]);
 
   const get_total_attachments_size = useCallback(() => {

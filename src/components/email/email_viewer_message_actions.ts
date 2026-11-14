@@ -47,6 +47,7 @@ import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { remember_forward_from_message } from "@/components/email/delivery_reply_address";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import {
@@ -84,6 +85,12 @@ export function use_message_actions(
     (msg: DecryptedThreadMessage) => {
       if (!deps.on_forward) return;
       set_forward_mail_id(msg.id);
+      remember_forward_from_message(
+        msg,
+        msg.id === deps.mail_item?.id
+          ? deps.mail_item?.routing_token
+          : undefined,
+      );
       deps.on_forward({
         sender_name: msg.sender_name,
         sender_email: msg.sender_email,
@@ -96,7 +103,7 @@ export function use_message_actions(
         original_mail_id: msg.id,
       });
     },
-    [deps.on_forward],
+    [deps.on_forward, deps.mail_item],
   );
 
   const handle_per_message_archive = useCallback(
@@ -206,6 +213,7 @@ export function use_message_actions(
             timeZone: get_display_time_zone(),
           }),
           body: msg.html_content || msg.body,
+          message_id: msg.id,
         },
         deps.t,
       );

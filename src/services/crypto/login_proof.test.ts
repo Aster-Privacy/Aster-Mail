@@ -55,8 +55,10 @@ import {
 } from "@/services/crypto/key_manager_pgp_keygen";
 import { encrypt_vault } from "@/services/crypto/key_manager_pgp_vault";
 import { hash_email } from "@/services/crypto/key_manager";
+import { erase_local_storage_traces } from "@/contexts/auth/local_data_registry";
 import {
   clear_pending_login_enrollment,
+  convert_stored_login_records,
   derive_account_proof,
   derive_current_account_proof,
   derive_sign_in_proof,
@@ -576,5 +578,163 @@ describe("short login salts", () => {
       "errors.auth_salt_collision",
     );
     expect(login_safety_error_key(new Error("network"))).toBeNull();
+  });
+});
+
+describe("stored record keys", () => {
+  const PINS = "aster:login_v2_accounts";
+  const SALTS = "aster:login_salt_records";
+  const KNOWN = "aster:login_known_accounts";
+  const SECRET = "aster:login_record_secret";
+  const EMAIL = "legacy@astermail.org";
+
+  function seed_earlier_records(user_hash: string, recorded: Uint8Array): void {
+    localStorage.setItem(
+      PINS,
+      JSON.stringify([user_hash_pin_key(user_hash), user_id_pin_key("user-1")]),
+    );
+    localStorage.setItem(
+      SALTS,
+      JSON.stringify([
+        { key: user_hash_pin_key(user_hash), salt: array_to_base64(recorded) },
+        { key: user_id_pin_key("user-1"), salt: array_to_base64(recorded) },
+      ]),
+    );
+    localStorage.setItem(KNOWN, JSON.stringify([user_hash]));
+  }
+
+  function stored_text(): string {
+    return [PINS, SALTS, KNOWN]
+      .map((key) => localStorage.getItem(key) ?? "")
+      .join("\n");
+  }
+
+  it("stores neither the address hash nor the user id", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    pin_accounts([user_hash_pin_key(user_hash), user_id_pin_key("user-1")]);
+    record_login_salt([user_hash_pin_key(user_hash)], salt(4, 16));
+    h.saved_emails = [EMAIL];
+    await remember_saved_login_accounts();
+
+    expect(stored_text()).not.toContain(user_hash);
+    expect(stored_text()).not.toContain("user-1");
+    expect(base64_to_array(localStorage.getItem(SECRET) ?? "")).toHaveLength(
+      32,
+    );
+    expect(is_account_pinned([user_id_pin_key("user-1")])).toBe(true);
+  });
+
+  it("rewrites earlier records on first read and keeps every pin", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    seed_earlier_records(user_hash, salt(4, 16));
+
+    expect(is_account_pinned([user_hash_pin_key(user_hash)])).toBe(true);
+    expect(is_account_pinned([user_id_pin_key("user-1")])).toBe(true);
+    expect(
+      match_login_salt_record([user_id_pin_key("user-1")], salt(4, 16)),
+    ).toBe("match");
+    convert_stored_login_records();
+
+    expect(stored_text()).not.toContain(user_hash);
+    expect(stored_text()).not.toContain("user-1");
+    expect(JSON.parse(localStorage.getItem(PINS) ?? "[]")).toHaveLength(2);
+    expect(JSON.parse(localStorage.getItem(SALTS) ?? "[]")).toHaveLength(2);
+    expect(JSON.parse(localStorage.getItem(KNOWN) ?? "[]")).toHaveLength(1);
+  });
+
+  it("enforces the pin and the recorded salt after the rewrite", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    seed_earlier_records(user_hash, salt(4, 16));
+
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt(3), 1, user_hash),
+    ).rejects.toBeInstanceOf(AuthSaltCollisionError);
+    expect(stored_text()).not.toContain(user_hash);
+    expect(v1_proofs_allowed([user_id_pin_key("user-1")])).toBe(false);
+
+    unpin_accounts([user_hash_pin_key(user_hash)]);
+
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt(9, 16), 1, user_hash),
+    ).rejects.toBeInstanceOf(LegacyLoginSaltError);
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt(4, 16), 1, user_hash),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("keeps an earlier saved-account entry valid for a short salt", async () => {
+    const user_hash = await hash_email(EMAIL);
+
+    localStorage.setItem(KNOWN, JSON.stringify([user_hash]));
+
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt(4, 16), 1, user_hash),
+    ).resolves.toBeTypeOf("string");
+    expect(stored_text()).not.toContain(user_hash);
+  });
+
+  it("finds an earlier-format entry written after the rewrite", () => {
+    pin_accounts([user_hash_pin_key("abc")]);
+
+    const pins = JSON.parse(localStorage.getItem(PINS) ?? "[]") as string[];
+
+    localStorage.setItem(
+      PINS,
+      JSON.stringify([...pins, user_hash_pin_key("later")]),
+    );
+    localStorage.setItem(
+      SALTS,
+      JSON.stringify([
+        { key: user_hash_pin_key("later"), salt: array_to_base64(salt(5, 16)) },
+      ]),
+    );
+
+    expect(is_account_pinned([user_hash_pin_key("later")])).toBe(true);
+    expect(
+      match_login_salt_record([user_hash_pin_key("later")], salt(6, 16)),
+    ).toBe("mismatch");
+    expect(stored_text()).not.toContain("later");
+    expect(is_account_pinned([user_hash_pin_key("abc")])).toBe(true);
+  });
+
+  it("keeps working when the device secret cannot be stored", () => {
+    localStorage.setItem(PINS, JSON.stringify([user_hash_pin_key("abc")]));
+
+    const blocked = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new Error("quota");
+      });
+
+    expect(is_account_pinned([user_hash_pin_key("abc")])).toBe(true);
+    expect(v1_proofs_allowed([user_hash_pin_key("abc")])).toBe(false);
+    blocked.mockRestore();
+    expect(is_account_pinned([user_hash_pin_key("abc")])).toBe(true);
+  });
+
+  it("loses the records together with the secret on a device erase", () => {
+    const pin = user_hash_pin_key("abc");
+
+    pin_accounts([pin]);
+    record_login_salt([pin], salt(4, 16));
+
+    const first_secret = localStorage.getItem(SECRET);
+    const first_pins = localStorage.getItem(PINS);
+
+    erase_local_storage_traces();
+
+    expect(localStorage.getItem(SECRET)).toBeNull();
+    expect(localStorage.getItem(PINS)).toBeNull();
+    expect(localStorage.getItem(SALTS)).toBeNull();
+    expect(is_account_pinned([pin])).toBe(false);
+    expect(match_login_salt_record([pin], salt(4, 16))).toBe("none");
+
+    pin_accounts([pin]);
+
+    expect(localStorage.getItem(SECRET)).not.toBe(first_secret);
+    expect(localStorage.getItem(PINS)).not.toBe(first_pins);
   });
 });

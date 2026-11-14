@@ -57,18 +57,24 @@ import {
   clear_ratchet_verification_status,
   get_peer_identity_event,
 } from "@/services/crypto/ratchet_verification_status";
-import { scoped_storage_name } from "@/services/crypto/storage_key_names";
+import {
+  canonical_storage_name,
+  reset_storage_name_state,
+} from "@/services/crypto/storage_key_names";
+import { reset_contact_entry_state } from "@/services/crypto/contact_entries";
 
 const KEY_A = btoa("identity-key-aaaaaaaaaaaaaaaaaaaaaaaa");
 const KEY_B = btoa("identity-key-bbbbbbbbbbbbbbbbbbbbbbbb");
 
 function pin_name(prefix: string, peer: string): Promise<string> {
-  return scoped_storage_name(prefix, "acct-1", peer);
+  return canonical_storage_name(prefix, "acct-1", peer);
 }
 
 describe("ratchet identity pin pq memory and failure modes", () => {
   beforeEach(() => {
     h.store.clear();
+    reset_storage_name_state();
+    reset_contact_entry_state();
     h.key = new Uint8Array(32).fill(7);
     clear_ratchet_verification_status();
   });
@@ -113,30 +119,30 @@ describe("ratchet identity pin pq memory and failure modes", () => {
   it("remembers the highest handshake version a peer advertised", async () => {
     expect(await remembered_peer_x3dh_version("erin")).toBe(1);
 
-    await check_and_pin_identity("erin", KEY_A, false, false, 2);
+    await check_and_pin_identity("erin", KEY_A, false, false, false, 2);
     expect(await remembered_peer_x3dh_version("erin")).toBe(2);
 
-    await check_and_pin_identity("erin", KEY_A, false, false, 1);
+    await check_and_pin_identity("erin", KEY_A, false, false, false, 1);
     expect(await remembered_peer_x3dh_version("erin")).toBe(2);
 
-    await check_and_pin_identity("erin", KEY_A, false, false, null);
+    await check_and_pin_identity("erin", KEY_A, false, false, false, null);
     expect(await remembered_peer_x3dh_version("erin")).toBe(2);
 
-    await check_and_pin_identity("erin", KEY_A, false, false, 3);
+    await check_and_pin_identity("erin", KEY_A, false, false, false, 3);
     expect(await remembered_peer_x3dh_version("erin")).toBe(3);
   });
 
   it("keeps the remembered handshake version across a verified rotation", async () => {
-    await check_and_pin_identity("frank", KEY_A, true, false, 2);
+    await check_and_pin_identity("frank", KEY_A, true, false, false, 2);
 
-    expect(await check_and_pin_identity("frank", KEY_B, true, false, 1)).toBe(
+    expect(await check_and_pin_identity("frank", KEY_B, true, false, false, 1)).toBe(
       "rotated",
     );
     expect(await remembered_peer_x3dh_version("frank")).toBe(2);
   });
 
   it("reports no remembered handshake version when the pin store is unavailable", async () => {
-    await check_and_pin_identity("grace", KEY_A, false, false, 2);
+    await check_and_pin_identity("grace", KEY_A, false, false, false, 2);
     h.key = null;
 
     expect(await remembered_peer_x3dh_version("grace")).toBe(1);

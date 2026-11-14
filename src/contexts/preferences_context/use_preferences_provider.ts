@@ -81,6 +81,11 @@ import {
 import { get_effective_theme_fields } from "@/lib/theme_sync";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  has_unsaved_error_report_decline,
+  set_error_report_choice,
+} from "@/services/error_report_consent";
+import { device_traces_erased } from "@/lib/device_erase_latch";
+import {
   CLIENT_VAULT_LEVEL,
   VAULT_LEVEL_HEADER,
 } from "@/services/api/client/helpers";
@@ -195,6 +200,21 @@ export function use_preferences_provider() {
               ),
             );
           }
+        }
+
+        if (
+          merged.send_error_reports === true &&
+          has_unsaved_error_report_decline()
+        ) {
+          merged = { ...merged, send_error_reports: false };
+          cache_preferences_locally(merged);
+          set_error_report_choice(false);
+          do_save(merged).catch((caught) =>
+            ignore_error(
+              "contexts/preferences_context/use_preferences_provider:use_preferences_provider",
+              caught,
+            ),
+          );
         }
 
         has_loaded_ref.current = true;
@@ -758,6 +778,7 @@ export function use_preferences_provider() {
 
   useEffect(() => {
     const flush_via_beacon = () => {
+      if (device_traces_erased()) return;
       if (!latest_prefs_ref.current || !beacon_payload_ref.current) return;
 
       if (!has_loaded_ref.current) {

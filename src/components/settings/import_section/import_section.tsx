@@ -85,6 +85,7 @@ import {
   emit_mail_changed,
   emit_refresh_requested,
 } from "@/hooks/mail_events";
+import { note_bulk_mail_removed } from "@/services/search/index_removals";
 
 export function ImportSection() {
   const { t } = use_i18n();
@@ -450,6 +451,7 @@ export function ImportSection() {
             }
           }
 
+          note_bulk_mail_removed();
           emit_mail_changed();
           emit_folders_changed();
           emit_refresh_requested();

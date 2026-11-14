@@ -104,6 +104,7 @@ function sheet_sender(
       ? sender_trust_for({
           ...message,
           reply_to: reply_to_header_value(message.raw_headers),
+          e2e_sender_bound: !!message.e2e_sender_bound,
         })
       : null;
 
@@ -971,9 +972,12 @@ export function MobileMessageDetailsSheet({
               </span>
               <EncryptionInfoDropdown
                 e2e_verified={!!message.e2e_verified}
+                sender_bound={!!message.e2e_sender_bound}
+                details_sealed={!!message.e2e_details_sealed}
                 has_pq_protection={false}
                 has_recipient_key={message.has_recipient_key}
                 is_external={message.is_external}
+                is_received={message.item_type === "received"}
                 label={
                   shows_end_to_end(message)
                     ? t("mail.zero_access_encrypted")

@@ -34,6 +34,7 @@ import {
   base64url_encode,
   base64url_decode,
 } from "@/lib/crypto/device_envelope";
+import { device_key_fingerprint } from "@/lib/crypto/device_fingerprint";
 import { confirm_hub_link, HubAccountError } from "@/services/account_hub_link";
 
 const POLL_ATTEMPTS = 40;
@@ -124,7 +125,15 @@ export async function sign_in_with_hub_account(
       machine_name: machine_name(app_name),
     });
 
-    await confirm_hub_link(code.code, account_id);
+    await confirm_hub_link(
+      code.code,
+      account_id,
+      device_key_fingerprint(
+        recipient.ed25519_pk,
+        recipient.mlkem_pk,
+        recipient.x25519_pk,
+      ),
+    );
 
     const confirmed = await await_confirmation(code.code);
     const passphrase_bytes = open_vault_key_envelope(

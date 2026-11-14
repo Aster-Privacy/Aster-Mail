@@ -163,3 +163,75 @@ describe("expression case_sensitive", () => {
     }
   });
 });
+
+const ONE_TIME_CODE_REGEX = String.raw`\b(?:verification|verify|security|login|one[\s-]?time|2fa|otp)\s*(?:code|passcode|pin)?\s*(?:is|:|-)?\s*(\d(?:[\s-]?\d){3,7})\b`;
+
+function body_regex_value(text: string): string | null {
+  const result = parse(text);
+
+  if (!result.ok) return null;
+  if (result.ast.type !== "body") return null;
+
+  return result.ast.value;
+}
+
+describe("expression string escapes", () => {
+  it("keeps a word boundary escape", () => {
+    expect(body_regex_value(String.raw`body matches_regex "\bcode\b"`)).toBe(
+      String.raw`\bcode\b`,
+    );
+  });
+
+  it("keeps a whitespace escape", () => {
+    expect(body_regex_value(String.raw`body matches_regex "a\s+b"`)).toBe(
+      String.raw`a\s+b`,
+    );
+  });
+
+  it("keeps a digit escape", () => {
+    expect(body_regex_value(String.raw`body matches_regex "\d{6}"`)).toBe(
+      String.raw`\d{6}`,
+    );
+  });
+
+  it("reads a double backslash as one backslash", () => {
+    expect(body_regex_value(String.raw`body matches_regex "a\\.b"`)).toBe(
+      String.raw`a\.b`,
+    );
+  });
+
+  it("reads an escaped quote as a quote", () => {
+    expect(body_regex_value('body contains "say \\"hi\\""')).toBe('say "hi"');
+  });
+
+  it("reads newline and tab escapes as the characters", () => {
+    expect(body_regex_value(String.raw`body contains "a\nb\tc"`)).toBe(
+      "a\nb\tc",
+    );
+  });
+
+  it("parses the one-time code regex", () => {
+    const text = `body matches_regex "${ONE_TIME_CODE_REGEX}"`;
+
+    expect(body_regex_value(text)).toBe(ONE_TIME_CODE_REGEX);
+  });
+
+  it("round-trips backslashes, quotes and control characters", () => {
+    const values = [
+      ONE_TIME_CODE_REGEX,
+      "a\\b",
+      "ends with \\",
+      'quote " and\nnewline\ttab\rreturn',
+    ];
+
+    for (const value of values) {
+      const condition: Condition = {
+        type: "body",
+        operator: "matches_regex",
+        value,
+      };
+
+      expect(round_trip(condition)).toEqual(condition);
+    }
+  });
+});

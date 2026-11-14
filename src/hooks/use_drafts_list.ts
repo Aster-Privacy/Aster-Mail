@@ -47,6 +47,10 @@ import { build_list_preview } from "@/utils/preview_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  on_queued_send_drafts_changed,
+  queued_send_draft_ids,
+} from "@/services/queued_send_drafts";
 
 const DRAFT_FETCH_LIMIT = 50;
 const FETCH_TIMEOUT_MS = 15_000;
@@ -243,6 +247,18 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
 
   const [suppressed_ids, set_suppressed_ids] = useState<ReadonlySet<string>>(
     new Set(),
+  );
+
+  const [queued_ids, set_queued_ids] = useState<ReadonlySet<string>>(() =>
+    queued_send_draft_ids(),
+  );
+
+  useEffect(
+    () =>
+      on_queued_send_drafts_changed(() =>
+        set_queued_ids(queued_send_draft_ids()),
+      ),
+    [],
   );
 
   const abort_ref = useRef<AbortController | null>(null);
@@ -755,10 +771,12 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
 
   const visible_drafts = useMemo(
     () =>
-      suppressed_ids.size > 0
-        ? drafts.filter((d) => !suppressed_ids.has(d.id))
+      suppressed_ids.size > 0 || queued_ids.size > 0
+        ? drafts.filter(
+            (d) => !suppressed_ids.has(d.id) && !queued_ids.has(d.id),
+          )
         : drafts,
-    [drafts, suppressed_ids],
+    [drafts, suppressed_ids, queued_ids],
   );
 
   useEffect(() => {

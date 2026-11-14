@@ -41,6 +41,7 @@ import {
   type TagIconName,
 } from "@/components/ui/email_tag";
 import { use_tags } from "@/hooks/use_tags";
+import { use_remote_content_grants } from "@/hooks/use_remote_content_grants";
 import {
   use_email_viewer,
   type ReplyData,
@@ -52,13 +53,13 @@ import {
   ViewerThreadContent,
   ViewerErrorState,
   get_external_content_mode,
-  set_external_content_mode,
 } from "@/components/email/viewer_shared";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import {
   execute_unsubscribe,
   get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
+import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import { get_label_hints } from "@/stores/label_hints_store";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
@@ -284,16 +285,14 @@ export function FullEmailViewer({
 
     return { mode: cached || "blocked", report: null };
   });
-  const [loaded_content_types, set_loaded_content_types] = useState<
-    Set<string>
-  >(new Set());
+  const { remote_content_grants, grant_remote_content } =
+    use_remote_content_grants(email_id);
 
   if (prev_email_id_ref.current !== email_id) {
     prev_email_id_ref.current = email_id;
     const cached = get_external_content_mode(email_id);
 
     set_external_content_state({ mode: cached || "blocked", report: null });
-    set_loaded_content_types(new Set());
   }
 
   const handle_external_content_detected = useCallback(
@@ -330,29 +329,6 @@ export function FullEmailViewer({
     [],
   );
 
-  const handle_load_external_content = useCallback(
-    (types?: string[]) => {
-      if (!types) {
-        set_external_content_state((prev) => ({
-          mode: "loaded",
-          report: prev.report,
-        }));
-        set_external_content_mode(email_id);
-        set_loaded_content_types(new Set());
-
-        return;
-      }
-      set_loaded_content_types((prev) => {
-        const next = new Set(prev);
-
-        for (const t of types) next.add(t);
-
-        return next;
-      });
-    },
-    [email_id],
-  );
-
   const handle_unsubscribe = useCallback(async (): Promise<
     "success" | "manual"
   > => {
@@ -364,7 +340,10 @@ export function FullEmailViewer({
     const info = email.unsubscribe_info;
 
     try {
-      const result = await execute_unsubscribe(info);
+      const result = await execute_unsubscribe(
+        info,
+        build_unsubscribe_delivery(viewer.mail_item, email),
+      );
 
       if (result === "api") {
         show_action_toast({
@@ -415,7 +394,7 @@ export function FullEmailViewer({
 
       return "manual";
     }
-  }, [viewer.email, t, mark_unsubscribed]);
+  }, [viewer.email, viewer.mail_item, t, mark_unsubscribed]);
 
   const external_content_mode =
     external_content_state.mode === "loaded" ? "always" : undefined;
@@ -566,10 +545,13 @@ export function FullEmailViewer({
                   >
                     <EncryptionInfoDropdown
                       e2e_verified={viewer.e2e_verified}
+                      sender_bound={viewer.e2e_sender_bound}
+                      details_sealed={viewer.e2e_details_sealed}
                       sent_encryption_scope={viewer.sent_encryption_scope}
                       has_pq_protection={viewer.has_pq_protection}
                       has_recipient_key={viewer.has_recipient_key}
                       is_external={viewer.is_external}
+                      is_received={viewer.mail_item?.item_type === "received"}
                       sender_verification={email.sender_verification}
                       size={22}
                     />
@@ -609,13 +591,13 @@ export function FullEmailViewer({
                 current_user_name={viewer.current_user_name}
                 email={email}
                 external_content_mode={external_content_mode}
-                loaded_content_types={loaded_content_types}
+                remote_content_grants={remote_content_grants}
                 on_archive={viewer.handle_per_message_archive}
                 on_draft_saved={viewer.handle_draft_saved}
                 on_edit_thread_draft={viewer.handle_edit_thread_draft}
                 on_external_content_detected={handle_external_content_detected}
                 on_forward={viewer.handle_per_message_forward}
-                on_load_external_content={handle_load_external_content}
+                on_load_external_content={grant_remote_content}
                 on_manual_unsubscribed={() => {
                   if (!email) return;
                   persist_unsubscribe(email.sender_email, email.sender || "", {

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { outgoing_html_to_plain_text } from "./outgoing_plain_text";
+
 export const COMPOSE_CARET_BLOCK = "<div><br></div>";
 
 export const SIGNATURE_GAP_BLOCK = "<div><br></div>";
@@ -281,6 +283,33 @@ export function append_template_after_typed_text(
   if (caret_line && is_empty_block(caret_line)) caret_line.remove();
 
   editor.append(...Array.from(holder.childNodes));
+}
+
+const SIGNATURE_ATTRIBUTES = [
+  "data-aster-signature",
+  "data-aster-signature-id",
+];
+
+export function to_plain_text_signature_node(
+  signature_node: Element,
+): HTMLElement {
+  const doc = signature_node.ownerDocument;
+  const node = doc.createElement("div");
+
+  for (const name of SIGNATURE_ATTRIBUTES) {
+    const value = signature_node.getAttribute(name);
+
+    if (value !== null) node.setAttribute(name, value);
+  }
+
+  outgoing_html_to_plain_text(signature_node.innerHTML)
+    .split("\n")
+    .forEach((line, index) => {
+      if (index > 0) node.appendChild(doc.createElement("br"));
+      if (line) node.appendChild(doc.createTextNode(line));
+    });
+
+  return node;
 }
 
 export function remove_signature_node(signature_node: Element): void {

@@ -33,6 +33,7 @@ import { map_sync_in_chunks } from "@/lib/scheduling";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { type FormatOptions } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
 import { apply_flag_intents } from "@/services/read_intent";
 
 const MAP_CHUNK_SIZE = 25;
@@ -115,9 +116,7 @@ export async function fetch_mail_by_ids_reconciled(
               );
 
               envelope.body_text = bundle.body;
-              if (bundle.subject !== null && !envelope.subject) {
-                envelope.subject = bundle.subject;
-              }
+              settle_bundle_subject(envelope, bundle);
               if (bundle.pgp_undecrypted) cacheable = false;
             } catch {
               envelope.body_text = "";

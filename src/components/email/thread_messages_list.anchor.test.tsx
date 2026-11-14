@@ -188,7 +188,10 @@ describe("thread list when the rest of the thread arrives", () => {
       configurable: true,
       value: 5_000,
     });
-    Object.defineProperty(scroller, "clientHeight", { value: 500 });
+    Object.defineProperty(scroller, "clientHeight", {
+      configurable: true,
+      value: 500,
+    });
     document.body.appendChild(scroller);
     original_rect = HTMLElement.prototype.getBoundingClientRect;
     HTMLElement.prototype.getBoundingClientRect = function (this: HTMLElement) {
@@ -278,6 +281,62 @@ describe("thread list when the rest of the thread arrives", () => {
       0,
     );
     expect(top_of(opened.id)).toBe(before);
+  });
+
+  it("leaves the subject in view when a lone message opens", async () => {
+    const opened = message(0);
+
+    render_list([opened], opened.id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBe(0);
+  });
+
+  it("opens at the subject when the pane kept the previous email's scroll position", async () => {
+    scroller.scrollTop = 1_200;
+    const opened = message(0);
+
+    render_list([opened], opened.id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBe(0);
+  });
+
+  it("leaves the subject in view when the first message is the unread one", async () => {
+    const thread = Array.from({ length: 3 }, (_, i) => ({
+      ...message(i),
+      is_read: false,
+    }));
+
+    render_list(thread, thread[2].id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBe(0);
+  });
+
+  it("leaves the subject in view when the last message already starts in the top half", async () => {
+    const thread = Array.from({ length: 3 }, (_, i) => message(i));
+
+    render_list(thread, thread[2].id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBe(0);
+  });
+
+  it("still brings an unread message further down into view", async () => {
+    Object.defineProperty(scroller, "clientHeight", {
+      configurable: true,
+      value: 200,
+    });
+    const thread = Array.from({ length: 4 }, (_, i) => ({
+      ...message(i),
+      is_read: i < 3,
+    }));
+
+    render_list(thread, thread[3].id);
+    await flush_frames();
+
+    expect(scroller.scrollTop).toBeGreaterThan(0);
   });
 
   it("holds one row per earlier message in a short thread", async () => {

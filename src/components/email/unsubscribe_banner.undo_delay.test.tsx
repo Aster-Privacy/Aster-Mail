@@ -104,6 +104,7 @@ function render_banner() {
       <UnsubscribeBanner
         sender_email="news@example.com"
         sender_name="News"
+        delivery={{ routing_token: "token-alias" }}
         unsubscribe_info={
           {
             has_unsubscribe: true,
@@ -171,6 +172,9 @@ describe("UnsubscribeBanner undo delay", () => {
       await vi.advanceTimersByTimeAsync(1);
     });
     expect(h.execute_unsubscribe).toHaveBeenCalledTimes(1);
+    expect(h.execute_unsubscribe).toHaveBeenCalledWith(expect.anything(), {
+      routing_token: "token-alias",
+    });
   });
 
   it("unsubscribes at once with no undo when the synced period is zero", async () => {

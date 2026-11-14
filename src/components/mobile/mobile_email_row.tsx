@@ -20,8 +20,17 @@
 //
 import type { InboxEmail } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n";
+import type { MobileActionSheetItem } from "@aster/ui";
 
-import { memo, useRef, useCallback, useEffect, useMemo } from "react";
+import {
+  memo,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import {
   AtSymbolIcon,
@@ -30,6 +39,8 @@ import {
   CheckIcon,
   EnvelopeIcon,
   InboxIcon,
+  ClipboardDocumentIcon,
+  DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
 import {
   FaceSmileIcon,
@@ -42,6 +53,13 @@ import {
   type SwipeAction,
 } from "@/components/mobile/swipe_actions";
 import { get_swipe_action } from "@/components/mobile/swipe_action_registry";
+import { MobileActionSheet } from "@/components/mobile/mobile_action_sheet";
+import { copy_with_toast } from "@/utils/copy_with_toast";
+import { detect_verification_code } from "@/utils/verification_code";
+import {
+  PGP_UNDECRYPTABLE_SENTINEL,
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+} from "@/utils/email_crypto";
 import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import { PinIcon } from "@/components/common/icons";
 import { OfficialBadge } from "@/components/email/official_badge";
@@ -120,6 +138,8 @@ export const MobileEmailRow = memo(function MobileEmailRow(
   const long_press_fired = useRef(false);
 
   const touch_start_pos = useRef<{ x: number; y: number } | null>(null);
+  const [is_subject_sheet_open, set_is_subject_sheet_open] = useState(false);
+  const [has_subject_sheet, set_has_subject_sheet] = useState(false);
 
   useEffect(
     () => () => {
@@ -133,23 +153,93 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
   const handle_touch_start = useCallback(
     (e: React.TouchEvent) => {
-      if (selection_mode || !on_long_press) return;
+      if (selection_mode) return;
       const target = e.target as HTMLElement;
 
       if (target.closest("[data-star-btn]")) return;
+      const on_subject = !!target.closest("[data-row-subject]");
+
+      if (!on_subject && !on_long_press) return;
       long_press_fired.current = false;
       touch_start_pos.current = {
         x: e.touches[0].clientX,
         y: e.touches[0].clientY,
       };
       long_press_timer.current = setTimeout(() => {
+        long_press_timer.current = null;
         long_press_fired.current = true;
         haptic_long_press();
-        on_long_press(email.id);
+        if (on_subject) {
+          set_has_subject_sheet(true);
+          set_is_subject_sheet_open(true);
+        } else {
+          on_long_press?.(email.id);
+        }
       }, 500);
     },
     [email.id, on_long_press, selection_mode],
   );
+
+  const close_subject_sheet = useCallback(() => {
+    set_is_subject_sheet_open(false);
+  }, []);
+
+  const subject_sheet_items = useMemo(() => {
+    if (!has_subject_sheet) return [];
+    const can_copy_code =
+      current_view !== "spam" &&
+      !email.is_spam &&
+      email.phishing_level !== "suspicious" &&
+      email.phishing_level !== "dangerous";
+    const readable_preview =
+      show_preview &&
+      email.preview !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+      email.preview !== PGP_UNDECRYPTABLE_SENTINEL
+        ? email.preview
+        : null;
+    const code = can_copy_code
+      ? detect_verification_code(email.subject, readable_preview)
+      : null;
+    const items: MobileActionSheetItem[] = [];
+
+    if (code) {
+      items.push({
+        icon: ClipboardDocumentIcon,
+        label: t("mail.copy_code"),
+        on_action: () =>
+          copy_with_toast(
+            code,
+            t("mail.code_copied"),
+            t("common.failed_to_copy"),
+          ),
+      });
+    }
+    if (email.subject) {
+      const subject = email.subject;
+
+      items.push({
+        icon: DocumentDuplicateIcon,
+        label: t("mail.copy_subject"),
+        on_action: () =>
+          copy_with_toast(
+            subject,
+            t("mail.subject_copied"),
+            t("common.failed_to_copy"),
+          ),
+      });
+    }
+
+    return items;
+  }, [
+    has_subject_sheet,
+    current_view,
+    email.is_spam,
+    email.phishing_level,
+    email.preview,
+    email.subject,
+    show_preview,
+    t,
+  ]);
 
   const handle_touch_move = useCallback((e: React.TouchEvent) => {
     if (!long_press_timer.current || !touch_start_pos.current) return;
@@ -507,12 +597,16 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             </span>
           )}
           <span
-            className={`min-w-0 flex-1 truncate text-[14px] leading-tight ${
+            data-row-subject
+            className={`min-w-0 flex-1 truncate text-[14px] leading-tight select-none [-webkit-touch-callout:none] ${
               !email.is_read
                 ? "font-medium text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)]"
             }`}
             dir="auto"
+            onContextMenu={(e) => {
+              if (!selection_mode) e.preventDefault();
+            }}
           >
             {email.subject || t("mail.no_subject")}
           </span>
@@ -587,8 +681,19 @@ export const MobileEmailRow = memo(function MobileEmailRow(
   }
 
   return (
-    <SwipeActions left_action={left_action} right_action={right_action}>
-      {row_content}
-    </SwipeActions>
+    <>
+      <SwipeActions left_action={left_action} right_action={right_action}>
+        {row_content}
+      </SwipeActions>
+      {subject_sheet_items.length > 0 &&
+        createPortal(
+          <MobileActionSheet
+            is_open={is_subject_sheet_open}
+            items={subject_sheet_items}
+            on_close={close_subject_sheet}
+          />,
+          document.body,
+        )}
+    </>
   );
 });

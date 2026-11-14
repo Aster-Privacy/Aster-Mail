@@ -23,11 +23,12 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 import {
   account_data_write_key,
   retry_after_account_key_load,
 } from "@/services/crypto/account_data_writer";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 
 interface GetDevModeApiResponse {
   encrypted_dev_mode: string | null;
@@ -67,7 +68,7 @@ async function encrypt_dev_mode(
 ): Promise<{ encrypted: string; nonce: string }> {
   const key =
     (await account_data_write_key("astermail-devmode-v1")) ??
-    (await derive_dev_mode_key(vault));
+    (await derive_dev_mode_key(with_identity_key(vault)));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(
     JSON.stringify({ enabled, timestamp: Date.now() }),
@@ -97,7 +98,12 @@ async function decrypt_dev_mode(
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
   const decrypted = await retry_after_account_key_load(() =>
-    decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data),
+    decrypt_account_context_with_fallback(
+      "astermail-devmode-v1",
+      key,
+      encrypted_data,
+      nonce_data,
+    ),
   );
 
   const result = JSON.parse(new TextDecoder().decode(decrypted));

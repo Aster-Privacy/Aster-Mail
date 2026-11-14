@@ -21,7 +21,8 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
+import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import { api_client } from "@/services/api/client";
 
 export type SubscriptionCacheCategory =
@@ -40,6 +41,8 @@ export interface CachedSubscription {
   unsubscribe_link?: string;
   list_unsubscribe_header?: string;
   list_unsubscribe_post?: string;
+  routing_token?: string;
+  recipients?: string[];
   has_one_click: boolean;
   category: SubscriptionCacheCategory;
   status: "active" | "unsubscribed";
@@ -95,6 +98,7 @@ async function derive_subscriptions_key(
 export const SUBSCRIPTION_CACHE_MAX_PLAINTEXT_BYTES = 640 * 1024;
 
 const SUBSCRIPTION_FIELD_MAX_LENGTH = 2048;
+const SUBSCRIPTION_RECIPIENT_LIMIT = 20;
 
 function serialized_size(data: SubscriptionCacheData): number {
   return new TextEncoder().encode(JSON.stringify(data)).length;
@@ -139,6 +143,22 @@ function trim_subscription_fields(
     is_oversized(trimmed.list_unsubscribe_post)
   ) {
     delete trimmed.list_unsubscribe_post;
+  }
+
+  if (
+    trimmed.routing_token !== undefined &&
+    is_oversized(trimmed.routing_token)
+  ) {
+    delete trimmed.routing_token;
+  }
+
+  if (
+    trimmed.recipients !== undefined &&
+    (!Array.isArray(trimmed.recipients) ||
+      trimmed.recipients.length > SUBSCRIPTION_RECIPIENT_LIMIT ||
+      trimmed.recipients.some(is_oversized))
+  ) {
+    delete trimmed.recipients;
   }
 
   return trimmed;
@@ -249,7 +269,7 @@ async function encrypt_subscriptions(
   data: SubscriptionCacheData,
   vault: EncryptedVault,
 ): Promise<{ encrypted: string; nonce: string }> {
-  const key = await derive_subscriptions_key(vault);
+  const key = await derive_subscriptions_key(with_identity_key(vault));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const plaintext = new TextEncoder().encode(
     JSON.stringify(compact_subscription_cache(data)),
@@ -285,7 +305,8 @@ async function decrypt_subscriptions(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(
+  const decrypted = await decrypt_account_context_with_fallback(
+    "astermail-subscriptions-v1",
     key,
     encrypted_data,
     nonce_data,

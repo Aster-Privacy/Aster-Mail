@@ -572,6 +572,9 @@ export const hi = {
       "आपका भुगतान नहीं हो सका। {{days}} दिन में पहुंच सीमित हो जाएगी।",
     billing_alert_action: "भुगतान करें",
     dismiss: "खारिज करें",
+    web_sandbox_off_title: "वेब सामग्री सिस्टम सैंडबॉक्स के बिना चल रही है",
+    web_sandbox_off_body:
+      "इस कंप्यूटर पर Aster Mail bubblewrap सैंडबॉक्स शुरू नहीं कर सकता, इसलिए वेब सामग्री उसके बिना चल रही है। इसे फिर से चालू करने के लिए bubblewrap पैकेज इंस्टॉल करें, बिना विशेषाधिकार वाले यूज़र नेमस्पेस की अनुमति दें, और फिर Aster Mail को रीस्टार्ट करें।",
     load_content: "लोड करें",
     open_link: "लिंक खोलें",
     no_icon: "कोई आइकॉन नहीं",
@@ -741,6 +744,9 @@ export const hi = {
     dns_host_leave_blank: "खाली छोड़ें",
     dns_host_provider_hint:
       "{{provider}} होस्ट फ़ील्ड के लिए यही प्रारूप इस्तेमाल करता है। इसे हूबहू वैसे ही कॉपी करें जैसा दिख रहा है।",
+    dns_host_zone_hint:
+      "यह होस्ट नाम {{zone}} के सापेक्ष है, यानी वह डोमेन जहाँ आप DNS रिकॉर्ड प्रबंधित करते हैं।",
+    dns_full_record_name: "रिकॉर्ड का पूरा नाम",
     dns_propagation_note: "DNS बदलावों को फैलने में 48 घंटे तक लग सकते हैं",
     post: "पोस्ट",
     link_copied: "लिंक क्लिपबोर्ड पर कॉपी हो गया",
@@ -957,6 +963,8 @@ export const hi = {
       "यह फ़ाइल नहीं दिखाई जा सकी। हो सकता है कि इसे हटा दिया गया हो या कहीं और ले जाया गया हो।",
     attachment_locked:
       "यह अटैचमेंट नहीं खुल सकता, क्योंकि इसकी एन्क्रिप्शन कुंजी इस डिवाइस पर उपलब्ध नहीं है।",
+    attachment_content_mismatch:
+      "यह अटैचमेंट उस संदेश से मेल नहीं खाता जिसके साथ यह आया था, इसलिए इसे खोला नहीं गया।",
     scheduled_no_attachments:
       "शेड्यूल किए गए ईमेल में अभी अटैचमेंट नहीं जोड़े जा सकते। अभी भेजें, या शेड्यूल करने के लिए फ़ाइलें हटा दें।",
     scheduled_connected_account:
@@ -1164,6 +1172,10 @@ export const hi = {
     encrypted_in_transit_stored:
       "रास्ते में एन्क्रिप्टेड और एन्क्रिप्टेड रूप में ही सहेजा गया।",
     only_you_and_sender: "इसे सिर्फ़ आप और प्रेषक पढ़ सकते हैं।",
+    only_you_and_sender_details_from_server:
+      "इसे सिर्फ़ आप और प्रेषक पढ़ सकते हैं। प्रेषक का नाम, प्राप्तकर्ता और तारीख़ सर्वर से आते हैं और एंड-टू-एंड एन्क्रिप्शन के दायरे में नहीं हैं।",
+    encrypted_to_you_unconfirmed_sender:
+      "यह संदेश आपकी सार्वजनिक कुंजी से एन्क्रिप्ट किया गया था। प्रेषक की पहचान की पुष्टि नहीं हुई है।",
     only_you_can_read_contacts:
       "आपके संपर्क सिर्फ़ आप पढ़ सकते हैं। Aster यह डेटा नहीं देख सकता।",
     wkd_encrypted_description:
@@ -1210,7 +1222,23 @@ export const hi = {
     key_trust_change_message:
       "पिछली खोज के बाद {{recipients}} की एन्क्रिप्शन कुंजी बदल गई है। भेजने से पहले नई फिंगरप्रिंट की पुष्टि प्रापतकर्ता से किसी दूसरे माध्यम से करें।",
     key_trust_change_detail: "{{email}}: पहले {{prior}}, अब {{current}}।",
+    key_trust_unreadable_message:
+      "{{recipients}} की सहेजी गई एन्क्रिप्शन कुंजी इस डिवाइस पर पढ़ी नहीं जा सकती। भेजने से पहले मौजूदा फिंगरप्रिंट की पुष्टि प्राप्तकर्ता से किसी दूसरे माध्यम से करें।",
+    key_trust_unreadable_detail: "{{email}}: अब {{current}}।",
+    key_trust_own_message:
+      "आपके पते {{recipients}} की एन्क्रिप्शन कुंजी बदल गई है। अगर आपने अपनी कुंजियां रीसेट नहीं कीं या कोई नया डिवाइस सेट अप नहीं किया, तो नई कुंजी पर भरोसा न करें।",
     key_trust_change_confirm: "नई कुंजी पर भरोसा करें",
+    key_trust_missing_title: "एन्क्रिप्शन कुंजी नहीं मिली",
+    key_trust_missing_message:
+      "इस डिवाइस पर {{recipients}} की एन्क्रिप्शन कुंजी सहेजी गई थी, लेकिन अभी कोई कुंजी उपलब्ध नहीं है। अगर आप जारी रखते हैं, तो यह संदेश एंड-टू-एंड एन्क्रिप्शन के बिना भेजा जाएगा। भेजने से पहले किसी दूसरे माध्यम से प्राप्तकर्ता से पुष्टि करें।",
+    key_trust_missing_detail: "{{email}}: पहले {{prior}}।",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: सहेजी गई कुंजी पढ़ी नहीं जा सकती।",
+    key_trust_missing_confirm: "एन्क्रिप्शन के बिना भेजें",
+    key_trust_account_key_detail:
+      "{{email}} खाता कुंजी: पहले {{prior}}, अब {{current}}।",
+    key_trust_identity_key_detail:
+      "{{email}} पहचान कुंजी: पहले {{prior}}, अब {{current}}।",
     post_quantum_downgrade_title:
       "अपेक्षित पोस्ट-क्वांटम कुंजियों के बिना भेजें?",
     post_quantum_downgrade_message:
@@ -1812,6 +1840,9 @@ export const hi = {
     recovery_codes_low_reminder_body_one:
       "हर कोड एक बार काम करता है और आपके पास {{count}} बचा है। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
     recovery_codes_low_reminder_action: "नए कोड पाएं",
+    recovery_codes_refresh_title: "अपने रिकवरी कोड बदलें",
+    recovery_codes_refresh_body:
+      "आपके सहेजे गए रिकवरी कोड पुराने और छोटे फ़ॉर्मैट में हैं। नए कोड पाएं और उन्हें सहेजें। ऐसा करने पर आपके पुराने कोड काम करना बंद कर देते हैं।",
     recovery_phrase_migrate_title: "रिकवरी कोड पर जाएं",
     recovery_phrase_migrate_body:
       "रिकवरी फ़्रेज़ हटाए जा रहे हैं। अभी रिकवरी कोड पाएं ताकि आप आगे भी अपना खाता रिकवर कर सकें।",
@@ -2330,6 +2361,14 @@ export const hi = {
       "मैंने अपने रिकवरी कोड सुरक्षित जगह सहेज लिए हैं।",
     recovery_codes_save_failed:
       "आपके रिकवरी कोड सर्वर पर सहेजे नहीं जा सके। फिर से कोशिश करें।",
+    recovery_codes_required_save_desc:
+      "इन नए कोड को किसी सुरक्षित जगह पर सहेजें। अगले चरण में पुष्टि करने तक आपके मौजूदा कोड काम करते रहते हैं।",
+    recovery_codes_required_verify_desc:
+      "नए कोड इस्तेमाल करना शुरू करने के लिए अपना पासवर्ड डालें। इसके बाद आपके पिछले कोड काम करना बंद कर देते हैं।",
+    recovery_codes_required_action: "कोड बदलें",
+    recovery_codes_required_done: "आपके नए रिकवरी कोड चालू हैं।",
+    recovery_codes_already_replaced:
+      "आपके रिकवरी कोड किसी दूसरे डिवाइस पर पहले ही बदले जा चुके हैं।",
     legacy_phrase_row: "रिकवरी वाक्यांश (पुराना)",
     legacy_phrase_row_desc:
       "आपका मौजूदा रिकवरी वाक्यांश मान्य रहेगा। आगे से रिकवरी कोड इसकी जगह लेंगे।",
@@ -2607,6 +2646,7 @@ export const hi = {
       "सुरक्षा कुंजियां app.astermail.org पर Aster वेब ऐप में जोड़ी जा सकती हैं। मौजूदा कुंजियां आप यहां भी देख और हटा सकते हैं।",
     passkeys_desktop_note:
       "पासकी app.astermail.org पर Aster वेब ऐप में जोड़ी जा सकती हैं। मौजूदा पासकी आप यहां भी देख और हटा सकते हैं।",
+    passkeys_open_in_browser: "ब्राउज़र में खोलें",
     security_key_registered: "सुरक्षा कुंजी पंजीकृत हो गई",
     security_key_removed: "सुरक्षा कुंजी हटा दी गई",
     name_your_key: "अपनी सुरक्षा कुंजी को नाम दें",
@@ -2982,6 +3022,8 @@ export const hi = {
       "यह सत्र किसी दूसरे नेटवर्क या ब्राउज़र पर शुरू हुआ था, इसलिए Aster Mail ने आपका पासवर्ड नहीं बदला। इसे बदलने के लिए साइन आउट करें, फिर साइन इन करके कोशिश करें।",
     password_change_identity_continuity_required:
       "Aster Mail ने आपका पासवर्ड नहीं बदला, क्योंकि इस बदलाव से वे एन्क्रिप्शन कुंजियां हट जातीं जिनकी आपके पुराने संदेशों को ज़रूरत है। फिर से कोशिश करने के लिए साइन आउट करें, फिर साइन इन करें और अपना पासवर्ड बदलें।",
+    password_change_vault_changed:
+      "पासवर्ड बदलते समय किसी दूसरे डिवाइस पर आपकी एन्क्रिप्शन कुंजियां बदल गईं, इसलिए Aster Mail ने आपका पासवर्ड नहीं बदला। फिर से कोशिश करें।",
     password_change_vault_out_of_date:
       "आपका पासवर्ड किसी दूसरे डिवाइस पर बदला गया था, इसलिए यह सत्र अब अद्यतित नहीं है। अपना पासवर्ड बदलने के लिए साइन आउट करें और अपने मौजूदा पासवर्ड से फिर से साइन इन करें।",
     update_password: "पासवर्ड अपडेट करें",
@@ -3428,6 +3470,12 @@ export const hi = {
     developer_mode: "डेवलपर मोड",
     developer_mode_description:
       "बिल्ड जानकारी, क्रिप्टो स्थिति और डीबग टूल के साथ डेवलपर टैब दिखाएं",
+    launch_at_login: "साइन इन करने पर Aster Mail खोलें",
+    launch_at_login_description: "कंप्यूटर में साइन इन करने पर Aster Mail शुरू हो जाता है, ताकि ऐप खोले बिना नया मेल आए।",
+    start_minimized: "छोटा करके शुरू करें",
+    start_minimized_description: "साइन इन पर खुलने पर Aster Mail बिना विंडो के बैकग्राउंड में रहता है। इसे खोलने के लिए, सूचना क्षेत्र या मेन्यू बार में इसके आइकन पर क्लिक करें।",
+    launch_at_login_move_to_applications: "साइन इन पर Aster Mail खोलने के लिए, पहले इसे Applications फ़ोल्डर में ले जाएँ।",
+    launch_at_login_reason: "साइन इन करने पर Aster Mail खोलें ताकि नया मेल बैकग्राउंड में आए।",
     close_to_tray: "विंडो बंद करने पर भी चलता रहे",
     close_to_tray_description:
       "Aster Mail सूचना क्षेत्र में बना रहता है ताकि नया मेल आता रहे। विंडो बंद करते ही ऐप बंद करने के लिए इसे बंद कर दें।",
@@ -5737,7 +5785,7 @@ export const hi = {
       "सेंसरशिप से बचने के लिए Snowflake ब्रिज इस्तेमाल करें",
     "connection.cdn_relay": "CDN रिले",
     "connection.cdn_relay_description":
-      "अनुरोध Aster तक पहुंचने से पहले एक वैश्विक CDN से होकर जाते हैं। आपका IP पता Aster से छिपा रहता है, और ट्रैफ़िक सामान्य CDN ट्रैफ़िक में घुल-मिल जाता है।",
+      "अनुरोध Aster सर्वर तक पहुंचने से पहले उस रिले से होकर जाते हैं जिसे Aster Cloudflare पर चलाता है। आपके नेटवर्क को यह ट्रैफ़िक सामान्य CDN ट्रैफ़िक जैसा दिखता है, जिससे वहां मदद मिल सकती है जहां Aster ब्लॉक है। Aster को आपका IP पता अब भी दिखता है। इसे Aster से छिपाने के लिए Tor का उपयोग करें।",
     "connection.tor_warning":
       "सारा ट्रैफ़िक Tor नेटवर्क से होकर जाएगा। रफ़्तार धीमी रहेगी।",
     "connection.status_connected": "जुड़ गया",
@@ -5768,7 +5816,8 @@ export const hi = {
     tlsrpt_record: "TLS-RPT रिकॉर्ड",
     tlsrpt_description:
       "वैकल्पिक, लेकिन सुझाया गया। जब आपके डोमेन पर एन्क्रिप्टेड डिलीवरी नहीं हो पाती, तो पाने वाले सर्वर आपको रोज़ाना सारांश भेजते हैं, जिससे आप गड़बड़ी अपने उपयोगकर्ताओं से पहले पकड़ लेते हैं।",
-    dns_instruction_set_tlsrpt_host: "होस्ट को _smtp._tls पर सेट करें",
+    dns_instruction_set_tlsrpt_host:
+      "नीचे दिखाया गया होस्ट नाम होस्ट फ़ील्ड में कॉपी करें",
     dns_instruction_set_tlsrpt_value:
       "TLS-RPT मान बिल्कुल वैसा ही पेस्ट करें जैसा दिखाया गया है",
     optional_step: "वैकल्पिक",
@@ -6195,7 +6244,7 @@ export const hi = {
       "अगर आपके पास पहले से SPF रिकॉर्ड है, तो अपने मौजूदा रिकॉर्ड में include: निर्देश जोड़ें",
     dns_instruction_set_dkim: "मान को नीचे दिखाई DKIM कुंजी पर सेट करें",
     dns_instruction_set_dmarc_host:
-      "होस्ट को _dmarc पर सेट करें (अपना डोमेन नाम न जोड़ें)",
+      "नीचे दिखाया गया होस्ट नाम होस्ट फ़ील्ड में कॉपी करें",
     dns_instruction_set_dmarc_value: "मान को नीचे दिखाई DMARC नीति पर सेट करें",
     edit_external_account: "बाहरी खाते में बदलाव करें",
     add_external_account: "बाहरी खाता जोड़ें",
@@ -6713,10 +6762,143 @@ export const hi = {
       "Aster समाप्ति तिथि से 30 दिन पहले आपके सेव किए गए कार्ड से शुल्क लेता है और उससे 15 दिन पहले आपको कीमत ईमेल करता है।",
     domain_purchase_manage_auto_renew_error:
       "अपने आप रिन्यू होने की सेटिंग अपडेट नहीं हो सकी। फिर से कोशिश करें।",
-    domain_purchase_manage_dns: "डोमेन सेटअप खोलें",
+    domain_purchase_manage_dns: "DNS मैनेज करें",
     domain_purchase_manage_support_note:
-      "इस डोमेन को दूसरे रजिस्ट्रार पर ले जाने या रिफ़ंड के बारे में पूछने के लिए सहायता टीम से संपर्क करें।",
+      "बिलिंग या रिफ़ंड से जुड़े सवालों के लिए सहायता टीम से संपर्क करें।",
     domain_purchase_manage_support_subject: "{{domain}} में मदद",
+    domain_transfer_button: "ट्रांसफ़र करें",
+    domain_transfer_title: "डोमेन ट्रांसफ़र करें",
+    domain_transfer_hint:
+      "इस डोमेन को किसी दूसरे रजिस्ट्रार पर ले जाएं। सपोर्ट ट्रांसफ़र कोड आपके Aster इनबॉक्स में भेजता है।",
+    domain_transfer_message:
+      "{{domain}} को दूसरे रजिस्ट्रार पर ले जाने के लिए आपको ट्रांसफ़र कोड चाहिए। जारी रखने पर Aster सहायता टीम के लिए एक ईमेल खोलता है। सहायता टीम पुष्टि करती है कि अनुरोध इसी खाते से आया है, फिर कोड आपके Aster इनबॉक्स में भेजती है। नए रजिस्ट्रार पर ट्रांसफ़र शुरू करने के बाद आम तौर पर इसमें 5 से 7 दिन लगते हैं।",
+    domain_transfer_locked_message:
+      "रजिस्ट्रार रजिस्ट्रेशन के {{count}} दिनों के अंदर ट्रांसफ़र की अनुमति नहीं देते। आप {{date}} से {{domain}} के ट्रांसफ़र का अनुरोध कर सकते हैं।",
+    domain_transfer_confirm: "सहायता टीम को लिखें",
+    domain_transfer_email_subject: "{{domain}} के ट्रांसफ़र का अनुरोध",
+    domain_transfer_email_body:
+      "मैं {{domain}} को दूसरे रजिस्ट्रार पर ट्रांसफ़र करना चाहता/चाहती हूं। ट्रांसफ़र कोड इस पते पर भेजें।\n\nऑर्डर ID: {{order_id}}\nनया रजिस्ट्रार:",
+    purchased_dns_title: "DNS रिकॉर्ड",
+    purchased_dns_description:
+      "{{domain}} के रिकॉर्ड। बदलाव आम तौर पर एक घंटे के अंदर लागू हो जाते हैं।",
+    purchased_dns_locked_title: "एडिटिंग बंद है",
+    purchased_dns_locked_note:
+      "आप ये रिकॉर्ड देख सकते हैं, लेकिन अभी इन्हें बदल नहीं सकते।",
+    purchased_dns_lock_frozen:
+      "इस डोमेन के लिए एडिटिंग रोकी गई है। ज़्यादा जानने के लिए सहायता टीम से संपर्क करें।",
+    purchased_dns_lock_payment:
+      "एडिटिंग बंद है क्योंकि इस डोमेन का भुगतान वापस ले लिया गया था।",
+    purchased_dns_lock_lapsed:
+      "एडिटिंग बंद है क्योंकि इस डोमेन की अवधि खत्म हो गई है। बदलाव करने के लिए इसे रिन्यू करें।",
+    purchased_dns_lock_suspended: "एडिटिंग बंद है क्योंकि यह डोमेन निलंबित है।",
+    purchased_dns_unlock_title: "पुष्टि करें कि यह आप हैं",
+    purchased_dns_unlock_description:
+      "DNS रिकॉर्ड बदलने के लिए अपनी पहचान की पुष्टि करें। एडिटिंग 15 मिनट तक चालू रहती है।",
+    purchased_dns_unlock: "एडिटिंग चालू करें",
+    purchased_dns_unlocked: "एडिटिंग चालू है",
+    purchased_dns_unlocked_for: "एडिटिंग {{time}} के लिए चालू है",
+    purchased_dns_lock: "एडिटिंग बंद करें",
+    purchased_dns_add: "रिकॉर्ड जोड़ें",
+    purchased_dns_add_title: "रिकॉर्ड जोड़ें",
+    purchased_dns_edit_title: "रिकॉर्ड एडिट करें",
+    purchased_dns_added: "रिकॉर्ड जोड़ा गया",
+    purchased_dns_updated: "रिकॉर्ड अपडेट किया गया",
+    purchased_dns_deleted: "रिकॉर्ड मिटाया गया",
+    purchased_dns_delete_title: "रिकॉर्ड मिटाएं?",
+    purchased_dns_delete_message:
+      "मिटाने के कुछ ही देर बाद {{name}} का {{type}} रिकॉर्ड रिज़ॉल्व होना बंद हो जाता है।",
+    purchased_dns_edit_record: "{{name}} का {{type}} रिकॉर्ड एडिट करें",
+    purchased_dns_copy_record: "{{name}} के {{type}} रिकॉर्ड का मान कॉपी करें",
+    purchased_dns_delete_record: "{{name}} का {{type}} रिकॉर्ड मिटाएं",
+    purchased_dns_read_only: "सिर्फ़ पढ़ने के लिए",
+    purchased_dns_mail_group: "Aster Mail रिकॉर्ड",
+    purchased_dns_mail_group_tip:
+      "Aster इन रिकॉर्ड को मैनेज करता है ताकि आपका ईमेल काम करता रहे। आप इन्हें एडिट नहीं कर सकते और न ही मिटा सकते हैं।",
+    purchased_dns_your_records: "आपके रिकॉर्ड",
+    purchased_dns_empty: "आपने अभी तक कोई रिकॉर्ड नहीं जोड़ा है।",
+    purchased_dns_limit_reached:
+      "इस डोमेन में ज़्यादा से ज़्यादा {{count}} रिकॉर्ड हो चुके हैं। नया जोड़ने के लिए एक रिकॉर्ड मिटाएं।",
+    purchased_dns_col_type: "प्रकार",
+    purchased_dns_col_name: "नाम",
+    purchased_dns_col_content: "कॉन्टेंट",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "कार्रवाइयां",
+    purchased_dns_host_hint:
+      "डोमेन के लिए @ इस्तेमाल करें, या www जैसा कोई सबडोमेन डालें।",
+    purchased_dns_field_ipv4: "IPv4 पता",
+    purchased_dns_field_ipv6: "IPv6 पता",
+    purchased_dns_field_target: "टारगेट",
+    purchased_dns_field_content: "कॉन्टेंट",
+    purchased_dns_field_mail_server: "मेल सर्वर",
+    purchased_dns_field_caa_value: "मान",
+    purchased_dns_field_priority: "प्राथमिकता",
+    purchased_dns_field_weight: "वेट",
+    purchased_dns_field_port: "पोर्ट",
+    purchased_dns_field_flags: "फ़्लैग",
+    purchased_dns_field_tag: "टैग",
+    purchased_dns_ttl_one_hour: "1 घंटा",
+    purchased_dns_ttl_hours: "{{count}} घंटे",
+    purchased_dns_ttl_one_day: "1 दिन",
+    purchased_dns_ttl_days: "{{count}} दिन",
+    purchased_dns_error_required: "यह फ़ील्ड भरें।",
+    purchased_dns_error_host:
+      "मान्य नाम डालें। अक्षर, अंक, हाइफ़न और अंडरस्कोर इस्तेमाल करें, हर लेबल में ज़्यादा से ज़्यादा 63 वर्ण।",
+    purchased_dns_error_protected_host:
+      "यह नाम Aster Mail रिकॉर्ड के लिए आरक्षित है।",
+    purchased_dns_error_apex_mx:
+      "डोमेन के मेल रिकॉर्ड Aster मैनेज करता है। इसके बजाय किसी सबडोमेन पर MX रिकॉर्ड जोड़ें।",
+    purchased_dns_error_apex_cname:
+      "CNAME रिकॉर्ड डोमेन के लिए इस्तेमाल नहीं किया जा सकता। इसके बजाय A या AAAA रिकॉर्ड इस्तेमाल करें।",
+    purchased_dns_error_apex_spf:
+      "Aster इस डोमेन के लिए पहले से एक SPF रिकॉर्ड प्रकाशित करता है, और एक डोमेन में सिर्फ़ एक ही हो सकता है।",
+    purchased_dns_error_value: "मान जांचें और फिर से कोशिश करें।",
+    purchased_dns_error_ip: "मान्य IP पता डालें।",
+    purchased_dns_error_ipv4: "मान्य IPv4 पता डालें, जैसे 203.0.113.10.",
+    purchased_dns_error_ipv6: "मान्य IPv6 पता डालें, जैसे 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "सार्वजनिक IP पता डालें। निजी, लोकल और आरक्षित पते इंटरनेट से एक्सेस नहीं किए जा सकते।",
+    purchased_dns_error_target: "मान्य होस्ट नाम डालें, जैसे example.com.",
+    purchased_dns_error_cname_self:
+      "CNAME रिकॉर्ड अपने ही नाम की ओर पॉइंट नहीं कर सकता।",
+    purchased_dns_error_cname_conflict:
+      "जिस नाम पर CNAME रिकॉर्ड है, उस पर दूसरे रिकॉर्ड नहीं हो सकते। पहले दूसरे रिकॉर्ड हटाएं, या कोई और नाम चुनें।",
+    purchased_dns_error_txt_length:
+      "TXT कॉन्टेंट में ज़्यादा से ज़्यादा 2,048 वर्ण हो सकते हैं।",
+    purchased_dns_error_txt_chars:
+      "TXT कॉन्टेंट में सिर्फ़ सामान्य प्रिंट होने वाले वर्ण हो सकते हैं, उद्धरण चिह्न या बैकस्लैश नहीं।",
+    purchased_dns_error_ttl: "सूची से कोई TTL चुनें।",
+    purchased_dns_error_priority: "0 से 65535 तक की प्राथमिकता डालें।",
+    purchased_dns_error_weight: "0 से 65535 तक का वेट डालें।",
+    purchased_dns_error_port: "1 से 65535 तक का पोर्ट डालें।",
+    purchased_dns_error_srv_host:
+      "SRV नाम सेवा और प्रोटोकॉल से शुरू होता है, जैसे _sip._tcp.",
+    purchased_dns_error_caa_flags: "फ़्लैग के लिए 0 या 128 चुनें।",
+    purchased_dns_error_caa_tag: "टैग के लिए issue, issuewild या iodef चुनें।",
+    purchased_dns_error_caa_value:
+      "ज़्यादा से ज़्यादा 255 वर्णों वाला मान डालें, जिसमें उद्धरण चिह्न या बैकस्लैश न हों।",
+    purchased_dns_error_duplicate: "यह रिकॉर्ड पहले से मौजूद है।",
+    purchased_dns_error_too_many:
+      "इस डोमेन में ज़्यादा से ज़्यादा रिकॉर्ड हो चुके हैं। नया जोड़ने के लिए एक रिकॉर्ड मिटाएं।",
+    purchased_dns_error_protected_record:
+      "यह रिकॉर्ड Aster मैनेज करता है, इसलिए आप इसे बदल नहीं सकते।",
+    purchased_dns_error_type_change:
+      "आप रिकॉर्ड का प्रकार नहीं बदल सकते। इसके बजाय इसे मिटाएं और नया रिकॉर्ड जोड़ें।",
+    purchased_dns_error_locked: "इस डोमेन के लिए एडिटिंग बंद है।",
+    purchased_dns_error_busy: "रजिस्ट्रार व्यस्त है।",
+    purchased_dns_error_not_found: "यह रिकॉर्ड अब मौजूद नहीं है।",
+    purchased_dns_error_rate_limited: "आप बहुत तेज़ी से बदलाव कर रहे हैं।",
+    purchased_dns_error_retry_in:
+      "{{message}} {{count}} सेकंड बाद फिर से कोशिश करें।",
+    purchased_dns_error_retry_in_one: "{{message}} {{count}} सेकंड बाद फिर से कोशिश करें।",
+    purchased_dns_ttl_seconds: "{{count}} सेकंड",
+    purchased_dns_expired_note: "बदलाव करना बंद हो गया। आपके बदलाव अभी सेव नहीं हुए हैं। सेव करें पर क्लिक करने पर, पहले आप अपनी पहचान की पुष्टि करेंगे।",
+    purchased_dns_filter_placeholder: "रिकॉर्ड फ़िल्टर करें",
+    purchased_dns_filter_no_results: "कोई भी रिकॉर्ड आपके फ़िल्टर से मेल नहीं खाता।",
+    purchased_dns_keep_editing: "बदलाव जारी रखें",
+    purchased_dns_error_unlock_failed: "बदलाव करना चालू नहीं हो सका। फिर से कोशिश करें।",
+    purchased_dns_error_generic:
+      "आपका बदलाव सेव नहीं हो सका। फिर से कोशिश करें।",
+    purchased_dns_load_failed: "DNS रिकॉर्ड लोड नहीं हो सके। फिर से कोशिश करें।",
     domain_purchase_filter_all: "सभी",
     domain_purchase_filter_available: "उपलब्ध",
     domain_purchase_filter_taken: "लिया जा चुका है",
@@ -8670,6 +8852,8 @@ export const hi = {
       "पिछली बार संदेशों के आदान-प्रदान के बाद से इस प्रेषक की एन्क्रिप्शन पहचान बदल गई है। अगर आपको इसकी उम्मीद नहीं थी, तो किसी दूसरे तरीके से उनसे पुष्टि करें।",
     sender_identity_downgraded:
       "इस प्रेषक के संदेशों में अब पोस्ट-क्वांटम सुरक्षा नहीं है। अगर आपको इसकी उम्मीद नहीं थी, तो किसी दूसरे तरीके से उनसे पुष्टि करें।",
+    sender_identity_unreadable:
+      "इस प्रेषक की सहेजी गई एन्क्रिप्शन कुंजी इस डिवाइस पर पढ़ी नहीं जा सकती, इसलिए इस संदेश की पुष्टि नहीं हो सकती। उनके संदेशों की फिर से पुष्टि करने के लिए, उनसे किसी दूसरे तरीके से कुंजी की पुष्टि करें, फिर नई कुंजी पर भरोसा करें चुनें।",
     recipient_identity_changed:
       "{{email}} की एन्क्रिप्शन कुंजी बदल गई है। अगर आपको इसकी उम्मीद नहीं थी, तो कोई भी संवेदनशील जानकारी भेजने से पहले किसी दूसरे तरीके से उनसे इस बदलाव की पुष्टि करें।",
     message_password_requirements:
@@ -8730,6 +8914,9 @@ export const hi = {
       "यह ईमेल {{ received }} पर मिला था, लेकिन आपका जवाब {{ selected }} से भेजने के लिए तय है। किसी दूसरे पते से जवाब देने पर वह पता प्रेषक को दिख सकता है, और जवाब अस्वीकार भी हो सकता है।",
     reply_from_mismatch_use_received: "जिस पते पर मिला वही इस्तेमाल करें",
     reply_from_mismatch_send_anyway: "फिर भी भेजें",
+    reply_from_unknown_title: "भेजने वाले का पता जांचें",
+    reply_from_unknown_message:
+      "Aster यह तय नहीं कर सकता कि आपके किस पते पर यह ईमेल मिला था। आपका जवाब {{ selected }} से भेजा जाएगा। किसी दूसरे पते से भेजने के लिए, रद्द करें और पहले उसे चुनें।",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "{{ date }} को, {{ name }} ने लिखा:",
     to: "प्रति",
@@ -8803,6 +8990,7 @@ export const hi = {
     press_to_undo: "पहले जैसा करने के लिए",
     tap_undo_to_cancel: "रद्द करने के लिए पहले जैसा करें बटन दबाएं",
     view_message: "संदेश देखें",
+    open_full_view: "पूर्ण दृश्य में खोलें",
     cancel_sending: "ईमेल भेजना रद्द करें",
     send_immediately: "ईमेल तुरंत भेजें",
     new_message: "नया संदेश",
@@ -8869,8 +9057,14 @@ export const hi = {
     block: "ब्लॉक करें",
     unblock_sender: "प्रेषक अनब्लॉक करें",
     unsubscribe: "सदस्यता छोड़ें",
+    copy_code: "कोड कॉपी करें",
+    copy_code_value: "कोड {{code}} कॉपी करें",
+    copy_subject: "विषय कॉपी करें",
+    code_copied: "कोड कॉपी हो गया",
+    subject_copied: "विषय कॉपी हो गया",
     load_all_thread_messages: "सभी संदेश लोड करें",
     load_external_content: "बाहरी सामग्री लोड करें",
+    image_loading_settings: "तस्वीर सेटिंग",
     image: "छवि",
     images: "छवियां",
     tracker: "ट्रैकर",
@@ -9454,9 +9648,9 @@ export const hi = {
     official_sender: "आधिकारिक Aster पता",
     official_sender_desc:
       "यह संदेश एक आधिकारिक Aster पते से है। Aster कभी भी ईमेल से आपका पासवर्ड या रिकवरी वाक्यांश नहीं मांगेगा।",
-    verified_sender: "सत्यापित भेजने वाला",
+    verified_sender: "सत्यापित डोमेन",
     verified_sender_desc:
-      "इस ईमेल के भेजने वाले ने पुष्टि की है कि {{domain}} उनका है।",
+      "Aster के सर्वर ने जाँच की है कि {{domain}} भेजने वाले का है।",
     sender_warning_title: "भेजने वाले का पता जाँचें",
     sender_warning_address_in_name:
       "भेजने वाले के नाम में {{claimed}} दिख रहा है, लेकिन यह संदेश {{address}} से आया है।",
@@ -9701,7 +9895,8 @@ export const hi = {
     device_code_waiting: "पुष्टि की प्रतीक्षा है",
     device_code_expires_in: "समाप्त होने में",
     link_device_title: "डिवाइस लिंक करें",
-    link_device_enter_code: "अपने डेस्कटॉप ऐप पर दिख रहा कोड डालें।",
+    link_device_enter_code:
+      "जिस ऐप को आप लिंक कर रहे हैं, उसमें दिख रहा लिंकिंग कोड डालें।",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "जारी रखें",
     link_device_confirm_prompt:
@@ -9709,18 +9904,18 @@ export const hi = {
     link_device_confirm_button: "डिवाइस लिंक करें",
     link_device_confirming: "डिवाइस लिंक किया जा रहा है...",
     link_device_cancel: "रद्द करें",
-    link_device_desktop: "डेस्कटॉप ऐप",
+    link_device_desktop: "नया डिवाइस",
     hub_accounts_or_password: "या अपने पासवर्ड से साइन इन करें",
     hub_account_password_required: "पासवर्ड आवश्यक है",
     hub_account_link_failed:
       "इस खाते से जारी रखने के लिए, इसका पासवर्ड दर्ज करें।",
     link_device_success: "डिवाइस लिंक हो गया",
     link_device_success_description:
-      "आपका डेस्कटॉप ऐप अब लिंक हो गया है। आप यह टैब बंद कर सकते हैं।",
+      "आपका डिवाइस अब लिंक हो गया है। आप यह टैब बंद कर सकते हैं।",
     link_device_invalid_code:
       "लिंकिंग कोड 8 वर्ण लंबा होता है। कोड जांचें और फिर से कोशिश करें।",
     link_device_expired_code:
-      "यह कोड समाप्त हो चुका है या मेल नहीं खाया। मौजूदा कोड आपके डेस्कटॉप ऐप पर है।",
+      "यह कोड समाप्त हो चुका है या मेल नहीं खाया। मौजूदा कोड उस ऐप में दिख रहा है जिसे आप लिंक कर रहे हैं।",
     link_device_failed:
       "लिंक करना पूरा नहीं हुआ। दोबारा शुरू करने से आमतौर पर काम बन जाता है। आपका खाता जस का तस है।",
     link_keys_locked_title: "आपकी कीरिंग लॉक है",
@@ -9747,20 +9942,33 @@ export const hi = {
     link_device_upgrade_title: "यह डिवाइस लिंक करने के लिए अपग्रेड करें",
     link_device_upgrade_description:
       "अपने खाते से डेस्कटॉप Bridge जोड़ने के लिए Star या उससे ऊपर का प्लान चाहिए। नीचे कोई प्लान चुनें और चेकआउट के तुरंत बाद आपका डिवाइस लिंक हो जाएगा।",
-    device_fingerprint: "पुष्टि कोड",
+    device_fingerprint: "डिवाइस फ़िंगरप्रिंट",
+    device_fingerprint_copy: "डिवाइस फ़िंगरप्रिंट कॉपी करें",
+    link_device_grant_notice:
+      "लिंक करने से {{device}} पर मौजूद ऐप को {{email}} का पूरा ऐक्सेस मिल जाता है, जिसमें आपकी मेल और एन्क्रिप्शन कुंजियां शामिल हैं।",
+    link_device_own_device_warning:
+      "केवल तभी जारी रखें, जब आपने यह प्रक्रिया अपने डिवाइस के किसी Aster ऐप में खुद शुरू की हो। अगर यह कोड आपको किसी और ने दिया है, तो डिवाइस लिंक न करें।",
+    link_device_fingerprint_enter:
+      "जिस ऐप को आप लिंक कर रहे हैं, उसमें दिख रहा डिवाइस फ़िंगरप्रिंट डालें। कुछ ऐप इसे सत्यापन कोड कहते हैं।",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "यह इस लिंकिंग कोड के डिवाइस से मेल नहीं खाता। हर वर्ण का मिलान उस ऐप से करें जिसे आप लिंक कर रहे हैं, फिर दोबारा कोशिश करें। अगर यह फिर भी मेल नहीं खाता, तो डिवाइस को लिंक न करें।",
+    link_device_fingerprint_link_mismatch:
+      "जिस लिंक से यह पेज खुला, वह इस लिंकिंग कोड के डिवाइस के बजाय किसी दूसरे डिवाइस का है, इसलिए आप यहां डिवाइस को लिंक नहीं कर सकते। जिस ऐप को आप लिंक कर रहे हैं, उससे नया कोड लें, फिर दोबारा कोशिश करें।",
+    link_device_update_desktop:
+      "अगर ऐप इसे नहीं दिखाता, तो ऐप में इस डिवाइस की पुष्टि करें चुनें। अगर ऐप में यह विकल्प नहीं है, तो ऐप को अपडेट करें, फिर दोबारा कोशिश करें।",
+    device_code_fingerprint_required_hint:
+      "डिवाइस लिंक करने से पहले आपका ब्राउज़र यह डिवाइस फ़िंगरप्रिंट मांगता है।",
     device_code_verify_toggle: "इस डिवाइस की पुष्टि करें",
     link_device_fingerprint_hint:
       "अपने नए डिवाइस पर दिखाया गया पुष्टि कोड डालें। डेस्कटॉप ऐप में, इसे देखने के लिए इस डिवाइस की पुष्टि करें चुनें।",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete:
       "डिवाइस लिंक करने के लिए, अपने नए डिवाइस से पूरा पुष्टि कोड डालें।",
-    link_device_fingerprint_mismatch:
-      "यह कोड आपके नए डिवाइस से मेल नहीं खाता। अपने नए डिवाइस पर कोड जाँचें और उसे फिर से डालें। अगर यह अब भी मेल नहीं खाता, तो रद्द करें चुनें।",
     device_code_fingerprint_hint:
       "इस डिवाइस को लिंक करने के लिए, यह कोड उस डिवाइस पर डालें जिस पर आप पहले से साइन इन हैं।",
     link_device_change_account: "खाता बदलें",
     link_device_choose_account: "कोई खाता चुनें",
-    link_device_choose_account_description: "अपना डेस्कटॉप ऐप लिंक करने के लिए",
+    link_device_choose_account_description: "नया डिवाइस लिंक करने के लिए",
     link_device_choose_account_note:
       "आपकी एन्क्रिप्शन कुंजियाँ आपके डिवाइसों के बीच जाते समय एन्क्रिप्टेड रहती हैं।",
     link_device_use_another_account: "दूसरा खाता इस्तेमाल करें",
@@ -10038,6 +10246,22 @@ export const hi = {
     sending_reset_link: "रीसेट लिंक भेजा जा रहा है...",
     reset_your_password: "अपना पासवर्ड रीसेट करें",
     reset_choose_new_password: "अपने खाते के लिए नया पासवर्ड चुनें।",
+    reset_current_password:
+      "मौजूदा पासवर्ड",
+    reset_current_password_keeps_keys:
+      "अपना मौजूदा पासवर्ड डालें, ताकि आपकी एन्क्रिप्शन कुंजियां वही रहें और आपका मेल पढ़ा जा सके। अगर आपको यह नहीं पता, तो इसके बजाय रिकवरी कोड इस्तेमाल करें।",
+    reset_current_password_required:
+      "अपना मौजूदा पासवर्ड डालें, या इसके बजाय रिकवरी कोड इस्तेमाल करें।",
+    reset_lost_everything:
+      "मेरा पासवर्ड और रिकवरी कोड खो गए हैं",
+    reset_remember_password:
+      "मुझे अपना पासवर्ड याद है",
+    reset_lost_everything_warning:
+      "पासवर्ड या रिकवरी कोड के बिना Aster Mail आपकी एन्क्रिप्शन कुंजियां अनलॉक नहीं कर सकता। रीसेट करने से नई कुंजियां बनती हैं, और जब तक आप बाद में पिछला पासवर्ड या रिकवरी कोड नहीं ढूंढ लेते, आपका मौजूदा मेल पढ़ा नहीं जा सकेगा।",
+    reset_lost_everything_confirm:
+      "मैं समझता हूं कि मेरा मौजूदा मेल पढ़ा नहीं जा सकेगा",
+    reset_lost_everything_confirm_required:
+      "पासवर्ड के बिना रीसेट करने के लिए पुष्टि करें कि आप समझते हैं कि आपका मौजूदा मेल पढ़ा नहीं जा सकेगा।",
     reset_current_password_optional: "वर्तमान पासवर्ड (वैकल्पिक)",
     reset_current_password_hint:
       "अगर आपको अपना वर्तमान पासवर्ड याद है, तो उसे यहाँ डालें और साइन इन करते ही आपकी पुरानी मेल उपलब्ध रहेगी। अगर आप इसे खाली छोड़ते हैं, तो आप बाद में रिकवरी कोड से अपनी पुरानी मेल अनलॉक कर सकते हैं।",
@@ -10105,6 +10329,22 @@ export const hi = {
     review_recovery_email_kept: "आपका रिकवरी ईमेल अब भी सेट है।",
     review_no_recovery_email: "कोई रिकवरी ईमेल नहीं।",
     review_add: "जोड़ें",
+    recovery_previous_password_placeholder:
+      "अपना पिछला पासवर्ड डालें",
+    recovery_previous_password_body:
+      "आपकी एन्क्रिप्शन कुंजियां अब भी उस पासवर्ड से सुरक्षित हैं जो आप इस रीसेट से पहले इस्तेमाल करते थे। अपना मेल पढ़ने योग्य रखने के लिए वह पिछला पासवर्ड डालें। आपकी कुंजियां वही रहती हैं और अब से आपका नया पासवर्ड उन्हें सुरक्षित रखता है।",
+    recovery_previous_password_required:
+      "अपना पिछला पासवर्ड डालें, या मुझे याद नहीं चुनें।",
+    recovery_previous_password_incorrect:
+      "यह पासवर्ड आपकी एन्क्रिप्शन कुंजियों को अनलॉक नहीं करता। इसे जांचें और फिर से कोशिश करें।",
+    recovery_previous_password_forgot:
+      "मुझे याद नहीं",
+    recovery_previous_password_use:
+      "मेरा पिछला पासवर्ड डालें",
+    recovery_previous_password_skipped_warning:
+      "आपका पासवर्ड रीसेट हो जाता है और आपकी एन्क्रिप्शन कुंजियां रखी जाती हैं, लेकिन वे आपके पिछले पासवर्ड से लॉक रहती हैं। जब तक आप डेटा वापस पाएं बैनर से वह पासवर्ड नहीं डालते, आपका मेल पढ़ा नहीं जा सकता।",
+    review_keys_left_locked:
+      "आपकी एन्क्रिप्शन कुंजियां रखी गई हैं, लेकिन अब भी आपके पिछले पासवर्ड से लॉक हैं। अपना मेल पढ़ने के लिए बैनर में डेटा वापस पाएं चुनें और वह पासवर्ड डालें।",
     review_codes_left: "{{count}} रिकवरी कोड बचे हैं।",
     review_codes_left_one: "{{count}} रिकवरी कोड बचा है।",
     review_codes_left_other: "{{count}} रिकवरी कोड बचे हैं।",
@@ -10438,6 +10678,8 @@ export const hi = {
       "संदेश का पासवर्ड बहुत कमज़ोर है, इसलिए संदेश नहीं भेजा गया। कम से कम 12 वर्णों का उपयोग करें, और एक संख्या, एक चिह्न, या बड़े और छोटे दोनों अक्षर शामिल करें।",
     recipient_key_untrusted:
       "किसी प्राप्तकर्ता की एन्क्रिप्शन कुंजी बदल गई है, इसलिए संदेश नहीं भेजा गया। इसे भेजने के लिए, उनसे किसी दूसरे तरीके से बदलाव की पुष्टि करें, फिर नई कुंजी पर भरोसा करें चुनें।",
+    recipient_key_unreadable:
+      "किसी प्राप्तकर्ता की सहेजी गई एन्क्रिप्शन कुंजी इस डिवाइस पर पढ़ी नहीं जा सकती, इसलिए संदेश नहीं भेजा गया। इसे भेजने के लिए, उनसे किसी दूसरे तरीके से कुंजी की पुष्टि करें, फिर नई कुंजी पर भरोसा करें चुनें।",
     key_trust_check_failed:
       "प्राप्तकर्ताओं की एन्क्रिप्शन कुंजियां जांची नहीं जा सकीं, इसलिए संदेश नहीं भेजा गया। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     recipient_classification_unavailable:
@@ -10776,6 +11018,10 @@ export const hi = {
     regex_invalid:
       "यह regex पैटर्न मान्य नहीं है। सिंटैक्स जांचें और फिर से कोशिश करें।",
     regex_empty: "सहेजने से पहले एक regex पैटर्न चाहिए।",
+    regex_too_complex:
+      "यह regex पैटर्न सहेजने के लिए बहुत जटिल है। कम दोहराव या विकल्प इस्तेमाल करें और फिर से कोशिश करें।",
+    regex_invalid_reason:
+      "यह regex पैटर्न मान्य नहीं है: {{reason}}",
     regex_too_long: "यह regex बहुत लंबा है। छोटा किया हुआ रूप काम करेगा।",
     last_condition_required: "यह नियम सहेजने से पहले कम से कम एक शर्त चाहिए।",
     last_action_required: "यह नियम सहेजने से पहले कम से कम एक कार्रवाई चाहिए।",
@@ -10898,6 +11144,8 @@ export const hi = {
       "case_sensitive केवल उद्धरण चिह्नों में लिखे टेक्स्ट मान के बाद आ सकता है।",
     expr_internal_error:
       "यह एक्सप्रेशन पढ़ा नहीं जा सका। सिंटैक्स जांचकर फिर से कोशिश करें।",
+    expr_server_rejected:
+      "अभिव्यक्ति का यह भाग सहेजा नहीं जा सकता। सिंटैक्स जांचें और फिर से कोशिश करें।",
     expr_line_col: "(पंक्ति {{line}}, स्तंभ {{col}})",
     cannot_render_visual:
       "इस नियम में ऐसी नेस्टेड शर्तें हैं जो विज़ुअल एडिटर नहीं दिखा सकता। इनमें बदलाव एक्सप्रेशन व्यू में किया जा सकता है।",
@@ -11248,6 +11496,8 @@ export const hi = {
     invite_card_join: "मीटिंग में शामिल हों",
     invite_card_calendar_failed: "आपका जवाब भेज दिया गया, लेकिन Aster इस इवेंट को आपके कैलेंडर में नहीं जोड़ सका।",
     invite_card_reply_send_failed: "आपका जवाब नहीं भेजा जा सका। फिर से कोशिश करें।",
+    invite_card_reply_address_unavailable:
+      "Aster ने आपका जवाब नहीं भेजा, क्योंकि जिस पते पर यह आमंत्रण आया वह मेल नहीं भेज सकता। जवाब देने के लिए, उस पते को फिर से चालू करें।",
     invite_card_organizer_mismatch:
       "यह आमंत्रण {{sender}} ने भेजा है, लेकिन इसमें आयोजक के रूप में {{organizer}} दिया गया है। अगर आपको इसकी उम्मीद नहीं थी, तो जवाब देने से पहले आयोजक से पुष्टि करें।",
     invite_card_reply_confirm:

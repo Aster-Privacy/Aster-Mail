@@ -37,6 +37,9 @@ Keep signing with both keys until nearly every install runs a version that reads
    - `package.json` -> `version`
    - `src-tauri/tauri.conf.json` -> `version`
    - `src-tauri/Cargo.toml` -> `[package].version`
+   - `flatpak/org.astermail.Mail.metainfo.xml` -> a new `<release version="..." date="...">` at the top of `<releases>`, because Flathub shows the newest entry as the app version
+
+   CI runs `node scripts/check_release_versions.mjs` and fails when these disagree.
 2. Build per-platform bundles on the target OS:
    - macOS (universal): `npm run tauri:build:universal`
    - Windows: `npm run tauri:build`
@@ -109,4 +112,4 @@ When you build the macOS app on a Mac instead of in CI, sign `Aster.Mail_<versio
 
 ## Signing keys
 
-Both ed25519 keypairs were generated with `tauri signer generate`. The new public key, embedded in `src-tauri/tauri.conf.json` under `plugins.updater.pubkey`, is safe to publish. Never commit a private key. Store each one in a password manager and in CI: the previous key as `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`, and the new key as `TAURI_SIGNING_PRIVATE_KEY_V2` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD_V2`. If you lose a private key, every install that trusts it stops updating until the user reinstalls, so keep a backup.
+Both ed25519 keypairs were generated with `tauri signer generate`. The new public key, embedded in `src-tauri/tauri.conf.json` under `plugins.updater.pubkey`, is safe to publish. Never commit a private key. Store each one in a password manager and in CI: the previous key as `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD_V1`, and the new key as `TAURI_SIGNING_PRIVATE_KEY_V2` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD_V2`. If you lose a private key, every install that trusts it stops updating until the user reinstalls, so keep a backup.

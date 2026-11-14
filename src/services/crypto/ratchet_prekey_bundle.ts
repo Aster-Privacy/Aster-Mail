@@ -36,7 +36,7 @@ import {
   get_vault_from_memory,
   on_keys_ready,
 } from "./memory_key_store";
-import { get_pinned_identity_fingerprint } from "./ratchet_identity_pin";
+import { lookup_pinned_identity } from "./ratchet_identity_pin";
 import { type PrekeyBundle } from "./x3dh";
 
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -55,14 +55,22 @@ export async function detect_identity_pin_drift(
       core_base64_to_array(kem_identity_key),
     );
 
-    const namespaced_pin_id = `ratchet_identity:${pin_id}`;
+    const pinned = await lookup_pinned_identity(pin_id);
+
+    if (!pinned) {
+      return;
+    }
+
+    const namespaced_pin_id = `ratchet_identity:${pinned.id}`;
 
     if (!PINNED_FINGERPRINTS.has(namespaced_pin_id)) {
-      const persisted = await get_pinned_identity_fingerprint(pin_id);
+      pin_fingerprint(
+        namespaced_pin_id,
+        pinned.fingerprint ?? fingerprint,
+        "identity",
+      );
 
-      pin_fingerprint(namespaced_pin_id, persisted ?? fingerprint, "identity");
-
-      if (!persisted) {
+      if (!pinned.fingerprint) {
         return;
       }
     }
@@ -110,13 +118,23 @@ interface RatchetIdentity {
   signed_prekey: string;
   signed_prekey_signature: string;
   pq_kem_public_key?: string | null;
+  address_scoped?: boolean | null;
+}
+
+function lookup_params(email?: string, address_scope = false): string {
+  if (!email) return "";
+
+  const scope = address_scope ? "&scope=address" : "";
+
+  return `?email=${encodeURIComponent(email)}${scope}`;
 }
 
 export async function fetch_ratchet_identity(
   username: string,
   email?: string,
+  address_scope = false,
 ): Promise<RatchetIdentity | null> {
-  const params = email ? `?email=${encodeURIComponent(email)}` : "";
+  const params = lookup_params(email, address_scope);
   const path = `/crypto/v1/ratchet/identity/${encodeURIComponent(username)}${params}`;
 
   if (is_recent_ratchet_miss(path)) return null;
@@ -161,8 +179,9 @@ export async function read_own_published_bundle(
 export async function fetch_prekey_bundle(
   username: string,
   email?: string,
+  address_scope = false,
 ): Promise<PrekeyBundle | null> {
-  const params = email ? `?email=${encodeURIComponent(email)}` : "";
+  const params = lookup_params(email, address_scope);
   const path = `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}${params}`;
 
   if (is_recent_ratchet_miss(path)) return null;
@@ -192,18 +211,21 @@ interface RatchetIdentityHistoryResponse {
   user_id: string;
   entries: RatchetIdentityHistoryEntry[];
   history_complete: boolean;
+  address_scoped?: boolean | null;
 }
 
 export interface PublishedIdentityHistory {
   identity_keys: string[];
   history_complete: boolean;
+  address_scoped?: boolean;
 }
 
 export async function fetch_published_identity_history(
   username: string,
   email?: string,
+  address_scope = false,
 ): Promise<PublishedIdentityHistory | null> {
-  const params = email ? `?email=${encodeURIComponent(email)}` : "";
+  const params = lookup_params(email, address_scope);
   const path = `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}/history${params}`;
 
   if (is_recent_ratchet_miss(path)) return null;
@@ -227,6 +249,7 @@ export async function fetch_published_identity_history(
         (key): key is string => typeof key === "string" && key.length > 0,
       ),
     history_complete: response.data.history_complete === true,
+    ...(response.data.address_scoped === true ? { address_scoped: true } : {}),
   };
 }
 

@@ -22,6 +22,7 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import type {} from "@/services/api/mail";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
+import type { RemoteContentGrants } from "@/lib/remote_content_grants";
 import type { DecryptedEmail } from "@/components/email/use_email_viewer";
 import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
 
@@ -78,8 +79,8 @@ export interface ViewerThreadContentProps {
   on_unsubscribe?: () => Promise<"success" | "manual">;
   on_manual_unsubscribed?: () => void;
   unsubscribe_url?: string;
-  loaded_content_types?: Set<string>;
-  on_load_external_content?: (types?: string[]) => void;
+  remote_content_grants?: RemoteContentGrants;
+  on_load_external_content?: (message_id: string, types: string[]) => void;
 }
 
 export function ViewerThreadContent({
@@ -112,7 +113,7 @@ export function ViewerThreadContent({
   on_unsubscribe,
   on_manual_unsubscribed,
   unsubscribe_url,
-  loaded_content_types,
+  remote_content_grants,
   on_load_external_content,
 }: ViewerThreadContentProps): React.ReactElement {
   const { preferences } = use_preferences();
@@ -248,7 +249,6 @@ export function ViewerThreadContent({
           inline_reply_is_external={is_external_thread}
           inline_reply_msg={inline_reply_msg}
           inline_reply_thread_token={email.thread_token}
-          loaded_content_types={loaded_content_types}
           main_email_id={email.id}
           messages={thread_messages}
           on_archive={on_archive}
@@ -258,6 +258,7 @@ export function ViewerThreadContent({
           on_external_content_detected={on_external_content_detected}
           on_forward={handle_inline_forward}
           on_load_external_content={on_load_external_content}
+          remote_content_grants={remote_content_grants}
           on_manual_unsubscribed={on_manual_unsubscribed}
           on_not_spam={on_not_spam}
           on_print={on_print}

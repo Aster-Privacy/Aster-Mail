@@ -30,6 +30,7 @@ import { api_client } from "@/services/api/client";
 import { republish_pgp_key } from "@/services/api/key_rotation";
 import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
 import { install_missing_identity_key } from "@/services/crypto/install_missing_identity_key";
+import { recover_published_identity_key } from "@/services/crypto/recover_published_identity_key";
 import {
   get_vault_from_memory,
   get_passphrase_from_memory,
@@ -68,6 +69,10 @@ vi.mock("@/services/pgp_rekey_service", () => ({
 
 vi.mock("@/services/crypto/install_missing_identity_key", () => ({
   install_missing_identity_key: vi.fn(async () => true),
+}));
+
+vi.mock("@/services/crypto/recover_published_identity_key", () => ({
+  recover_published_identity_key: vi.fn(async () => "unavailable"),
 }));
 
 const PASSPHRASE = "correct horse battery staple";
@@ -376,6 +381,40 @@ describe("ensure_pgp_key_published", () => {
       "test_user@aster.cx",
       "test_user",
     );
+  });
+
+  it("recovers the published key into a vault that has none", async () => {
+    vi.mocked(recover_published_identity_key).mockResolvedValue("recovered");
+    vi.mocked(get_vault_from_memory).mockReturnValue({} as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { fingerprint: "ABC", public_key_armored: "published" },
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("healed");
+    expect(recover_published_identity_key).toHaveBeenCalledWith(
+      "test-account-id",
+      "published",
+    );
+    expect(install_missing_identity_key).not.toHaveBeenCalled();
+    expect(republish_pgp_key).not.toHaveBeenCalled();
+  });
+
+  it("leaves the published key in place when it cannot be recovered", async () => {
+    vi.mocked(recover_published_identity_key).mockResolvedValue(
+      "second_factor_required",
+    );
+    vi.mocked(get_vault_from_memory).mockReturnValue({} as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { fingerprint: "ABC", public_key_armored: "published" },
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("no_local_key");
+    expect(install_missing_identity_key).not.toHaveBeenCalled();
+    expect(republish_pgp_key).not.toHaveBeenCalled();
   });
 
   it("never replaces a missing identity key when the server holds a published one", async () => {

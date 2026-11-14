@@ -62,6 +62,12 @@ import {
   type DraftWithContent,
 } from "@/services/api/multi_drafts";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
+import {
+  sealed_html_source,
+  has_sealed_details,
+  sealed_timestamp,
+  settle_sealed_fields,
+} from "@/services/crypto/sealed_message_fields";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { sent_copy_encryption_scope } from "@/services/crypto/sent_encryption_evidence";
@@ -74,6 +80,8 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
+import { defer_proxied_images } from "@/lib/deferred_proxy_images";
 import { contain_untrusted_html } from "@/lib/untrusted_sources";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_current_account } from "@/services/account_manager";
@@ -440,9 +448,16 @@ function premeasure_height(
     ? `margin:0;padding:16px 20px;font-family:${email_font_stack};font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;zoom:${email_zoom}`
     : `margin:0;padding:8px 16px 8px 16px;background-color:${body_background || "transparent"};zoom:${email_zoom}`;
 
+  const contained_html = strip_remote_css_fetches(
+    contain_untrusted_html(sanitize_preview_html(sanitized_html)),
+  );
+  const measured_html = should_defer_proxied_images()
+    ? defer_proxied_images(contained_html, get_image_proxy_url())
+    : contained_html;
+
   shadow.innerHTML =
     `<style>${EMAIL_BODY_CSS}</style>` +
-    `<div style="${body_style}">${strip_remote_css_fetches(contain_untrusted_html(sanitize_preview_html(sanitized_html)))}</div>`;
+    `<div style="${body_style}">${measured_html}</div>`;
 
   measure_container.appendChild(wrapper);
 
@@ -537,9 +552,12 @@ export async function preload_email_detail(
         : resolved_text;
 
       const sent_encryption_scope = sent_copy_encryption_scope(envelope);
+      const ratchet_sealed = is_ratchet_verified_body(resolved_text, body_text);
       const e2e_verified =
-        is_ratchet_verified_body(resolved_text, body_text) ||
-        sent_encryption_scope !== undefined;
+        ratchet_sealed || sent_encryption_scope !== undefined;
+      const e2e_sender_bound = e2e_verified;
+
+      resolved_html = sealed_html_source(resolved_html, ratchet_sealed);
       const pre_pgp_text = body_text;
 
       body_text = await try_decrypt_pgp_body(body_text);
@@ -562,6 +580,12 @@ export async function preload_email_detail(
           envelope.subject = subject_bundle.subject;
         }
       }
+
+      settle_sealed_fields(envelope, subject_bundle, ratchet_sealed, item.id);
+      const e2e_details_sealed = has_sealed_details(
+        subject_bundle,
+        ratchet_sealed,
+      );
 
       const pgp_was_decrypted = body_text !== pre_pgp_text;
       const html_has_pgp =
@@ -615,6 +639,8 @@ export async function preload_email_detail(
         is_external: item.is_external,
         system_origin: item.system_origin,
         e2e_verified,
+        e2e_sender_bound,
+        e2e_details_sealed,
         sent_encryption_scope,
         sender_verified_domain: item.sender_verified
           ? item.sender_verified_domain
@@ -670,7 +696,11 @@ export async function preload_email_detail(
         subject: envelope.subject || "",
         body: body_text || "",
         html_content: safe_html,
-        timestamp: item.message_ts || item.created_at,
+        timestamp: sealed_timestamp(
+          envelope,
+          e2e_details_sealed,
+          item.message_ts || item.created_at,
+        ),
         is_read: item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
@@ -678,6 +708,8 @@ export async function preload_email_detail(
         is_external: item.is_external,
         system_origin: item.system_origin,
         e2e_verified,
+        e2e_sender_bound,
+        e2e_details_sealed,
         sent_encryption_scope,
         sender_verified_domain: item.sender_verified
           ? item.sender_verified_domain
@@ -690,6 +722,7 @@ export async function preload_email_detail(
         bcc_recipients: envelope.bcc || [],
         raw_headers: envelope.raw_headers,
         message_group_id: item.message_group_id,
+        routing_token: item.routing_token,
         reactions: item.reactions,
         spf_result: item.spf_result,
         dkim_result: item.dkim_result,

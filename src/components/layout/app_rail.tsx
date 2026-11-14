@@ -22,6 +22,7 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AppRailView } from "@aster/ui";
 
+import { AccentIconFilter } from "@/components/icons/accent_icon_filter";
 import { AppRailIcon } from "@/components/icons/app_rail_icon";
 import { DatedCalendarImage } from "@/components/icons/dated_calendar_image";
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
@@ -213,68 +214,71 @@ function AppRailComponent({
   if (!preferences.show_side_panel) return null;
 
   return (
-    <AppRailView
-      is_hidden={is_hidden}
-      is_panel_visible={is_slot_visible}
-      is_settings_view={is_settings_view}
-      items={[
-        {
-          key: "calendar",
-          label: t("common.app_name_calendar"),
-          selected: is_calendar_open,
-          fallback_icon: (
-            <DatedCalendarImage
-              className="h-6 w-6 shrink-0"
-              fallback={<AppRailIcon name="calendar" />}
-              kind="app"
-            />
-          ),
-          on_click: toggle_calendar,
-        },
-        {
-          key: "contacts",
-          label: t("common.contacts"),
-          selected: is_contacts_open,
-          fallback_icon: <AppRailIcon name="contacts" />,
-          on_click: toggle_contacts,
-        },
-        {
-          key: "security",
-          label: t("common.security_center"),
-          selected: is_security_open,
-          fallback_icon: <AppRailIcon name="security" />,
-          on_click: toggle_security,
-        },
-      ]}
-      labels={{
-        expand: t("common.expand_sidebar"),
-        collapse: t("common.collapse_sidebar"),
-      }}
-      panel={
-        <>
-          <QuickContactsPanel
-            is_open={is_contacts_open}
-            is_swapping={is_swapping}
-            on_close={close_contacts}
-            on_compose={on_compose}
-          />
-          <QuickSecurityPanel
-            is_open={is_security_open}
-            is_swapping={is_swapping}
-            on_close={close_security}
-          />
-          {calendar_origin && (
-            <QuickCalendarPanel
-              is_open={is_calendar_open}
+    <>
+      <AccentIconFilter />
+      <AppRailView
+        is_hidden={is_hidden}
+        is_panel_visible={is_slot_visible}
+        is_settings_view={is_settings_view}
+        items={[
+          {
+            key: "calendar",
+            label: t("common.app_name_calendar"),
+            selected: is_calendar_open,
+            fallback_icon: (
+              <DatedCalendarImage
+                className="h-6 w-6 shrink-0 app_rail_tinted"
+                fallback={<AppRailIcon name="calendar" />}
+                kind="app"
+              />
+            ),
+            on_click: toggle_calendar,
+          },
+          {
+            key: "contacts",
+            label: t("common.contacts"),
+            selected: is_contacts_open,
+            fallback_icon: <AppRailIcon name="contacts" />,
+            on_click: toggle_contacts,
+          },
+          {
+            key: "security",
+            label: t("common.security_center"),
+            selected: is_security_open,
+            fallback_icon: <AppRailIcon name="security" />,
+            on_click: toggle_security,
+          },
+        ]}
+        labels={{
+          expand: t("common.expand_sidebar"),
+          collapse: t("common.collapse_sidebar"),
+        }}
+        panel={
+          <>
+            <QuickContactsPanel
+              is_open={is_contacts_open}
               is_swapping={is_swapping}
-              origin={calendar_origin}
-              on_close={close_calendar}
+              on_close={close_contacts}
+              on_compose={on_compose}
             />
-          )}
-        </>
-      }
-      on_toggle_hidden={toggle_hidden}
-    />
+            <QuickSecurityPanel
+              is_open={is_security_open}
+              is_swapping={is_swapping}
+              on_close={close_security}
+            />
+            {calendar_origin && (
+              <QuickCalendarPanel
+                is_open={is_calendar_open}
+                is_swapping={is_swapping}
+                origin={calendar_origin}
+                on_close={close_calendar}
+              />
+            )}
+          </>
+        }
+        on_toggle_hidden={toggle_hidden}
+      />
+    </>
   );
 }
 

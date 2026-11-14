@@ -28,6 +28,7 @@ import {
 } from "../csrf";
 import { request_cache } from "../request_cache";
 import { token_subject } from "./token_subject";
+import { native_token_store } from "./native_token_store";
 import {
   is_app_network_locked,
   is_endpoint_allowed_while_locked,
@@ -47,8 +48,6 @@ import {
   FOLDER_UNLOCK_HEADER,
   IDENTITY_CHECK_MIN_INTERVAL_MS,
   NATIVE_CSRF_KEY,
-  NATIVE_REFRESH_TOKEN_KEY,
-  NATIVE_TOKEN_KEY,
   PENDING_DELETION_EVENT,
   PENDING_DELETION_SERVER_CODE,
   PROACTIVE_REFRESH_THRESHOLD_MINUTES,
@@ -326,75 +325,27 @@ export class ApiClient {
   }
 
   private async persist_native_token(token: string): Promise<void> {
-    try {
-      const { native_token_set } = await import(
-        "@/native/secure_token_store"
-      );
-
-      await native_token_set(NATIVE_TOKEN_KEY, token);
-    } catch (caught) {
-      ignore_error("services/api/client/api_client:verify_identity", caught);
-    }
+    await native_token_store.persist("access", token);
   }
 
   private async clear_native_token(): Promise<void> {
-    try {
-      const { native_token_remove } = await import(
-        "@/native/secure_token_store"
-      );
-
-      await native_token_remove(NATIVE_TOKEN_KEY);
-    } catch (caught) {
-      ignore_error("services/api/client/api_client:verify_identity", caught);
-    }
+    await native_token_store.clear("access");
   }
 
   private async persist_native_refresh_token(token: string): Promise<void> {
-    try {
-      const { native_token_set } = await import(
-        "@/native/secure_token_store"
-      );
-
-      await native_token_set(NATIVE_REFRESH_TOKEN_KEY, token);
-    } catch (caught) {
-      ignore_error("services/api/client/api_client:verify_identity", caught);
-    }
+    await native_token_store.persist("refresh", token);
   }
 
   private async load_native_refresh_token(): Promise<string | null> {
-    try {
-      const { native_token_get } = await import(
-        "@/native/secure_token_store"
-      );
-
-      return await native_token_get(NATIVE_REFRESH_TOKEN_KEY);
-    } catch {
-      return null;
-    }
+    return native_token_store.load("refresh");
   }
 
   private async clear_native_refresh_token(): Promise<void> {
-    try {
-      const { native_token_remove } = await import(
-        "@/native/secure_token_store"
-      );
-
-      await native_token_remove(NATIVE_REFRESH_TOKEN_KEY);
-    } catch (caught) {
-      ignore_error("services/api/client/api_client:verify_identity", caught);
-    }
+    await native_token_store.clear("refresh");
   }
 
   private async load_native_token(): Promise<string | null> {
-    try {
-      const { native_token_get } = await import(
-        "@/native/secure_token_store"
-      );
-
-      return await native_token_get(NATIVE_TOKEN_KEY);
-    } catch {
-      return null;
-    }
+    return native_token_store.load("access");
   }
 
   private async persist_native_csrf(token: string): Promise<void> {

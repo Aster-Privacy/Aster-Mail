@@ -22,6 +22,7 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ReactionResult } from "@/services/reaction_actions";
 
 import { remove_reaction, send_reaction } from "@/services/reaction_actions";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 
 export interface HeldReaction {
   undo: () => Promise<boolean>;
@@ -46,6 +47,7 @@ function bind_unload_flush(): void {
   unload_bound = true;
 
   window.addEventListener("beforeunload", (event) => {
+    if (device_traces_erased()) return;
     if (held_fires.size === 0 && sends_in_flight === 0) return;
 
     Array.from(held_fires).forEach((fire) => fire());

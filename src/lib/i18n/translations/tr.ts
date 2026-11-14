@@ -583,6 +583,9 @@ export const tr = {
       "Ödemeniz alınamadı. Erişim {{days}} gün içinde kısıtlanacak.",
     billing_alert_action: "Öde",
     dismiss: "Kapat",
+    web_sandbox_off_title: "Web içeriği sistem korumalı alanı olmadan çalışıyor",
+    web_sandbox_off_body:
+      "Bu bilgisayarda Aster Mail, bubblewrap korumalı alanını başlatamıyor, bu nedenle web içeriği korumalı alan olmadan çalışıyor. Yeniden açmak için bubblewrap paketini yükleyin, ayrıcalıksız kullanıcı ad alanlarına izin verin ve Aster Mail uygulamasını yeniden başlatın.",
     load_content: "Yükle",
     open_link: "Bağlantıyı aç",
     no_icon: "Simge yok",
@@ -938,6 +941,8 @@ export const tr = {
       "Bu dosya gösterilemedi. Taşınmış veya silinmiş olabilir.",
     attachment_locked:
       "Bu ek, şifreleme anahtarı bu cihazda kullanılamadığı için açılamıyor.",
+    attachment_content_mismatch:
+      "Bu ek, birlikte geldiği iletiyle eşleşmediği için açılmadı.",
     scheduled_no_attachments:
       "Zamanlanmış e-postalar henüz ek içeremez. Şimdi gönderin veya zamanlamak için dosyaları kaldırın.",
     scheduled_connected_account:
@@ -1131,6 +1136,10 @@ export const tr = {
     encrypted_in_transit_stored:
       "Aktarımda şifreli ve şifreli olarak depolanır.",
     only_you_and_sender: "Yalnızca siz ve gönderen bunu okuyabilir.",
+    only_you_and_sender_details_from_server:
+      "Yalnızca siz ve gönderen bunu okuyabilir. Gönderenin adı, alıcılar ve tarih sunucudan gelir ve uçtan uca şifreleme kapsamında değildir.",
+    encrypted_to_you_unconfirmed_sender:
+      "Bu ileti açık anahtarınızla şifrelendi. Gönderenin kimliği doğrulanmadı.",
     only_you_can_read_contacts:
       "Kişilerinizi yalnızca siz okuyabilirsiniz. Aster bu verileri göremez.",
     failed_to_send_email:
@@ -1880,6 +1889,9 @@ export const tr = {
     recovery_codes_low_reminder_body:
       "Her kod bir kez çalışır ve {{count}} kodunuz kaldı. Hesabınızdan kilitlenmemek için yeni kod alın.",
     recovery_codes_low_reminder_action: "Yeni kod al",
+    recovery_codes_refresh_title: "Kurtarma kodlarınızı değiştirin",
+    recovery_codes_refresh_body:
+      "Kayıtlı kurtarma kodlarınız daha eski ve daha kısa bir biçim kullanıyor. Yeni kod alın ve kaydedin. Bunu yaptığınızda eski kodlarınız çalışmaz.",
     recovery_phrase_migrate_title: "Kurtarma kodlarına geçin",
     recovery_phrase_migrate_body:
       "Kurtarma ifadeleri kaldırılıyor. Hesabınızı hâlâ kurtarabilmek için şimdi kurtarma kodu alın.",
@@ -1897,6 +1909,9 @@ export const tr = {
     dns_host_leave_blank: "Boş bırakın",
     dns_host_provider_hint:
       "{{provider}} ana bilgisayar alanında bu biçimi kullanır. Gösterildiği gibi birebir kopyalayın.",
+    dns_host_zone_hint:
+      "Bu ana bilgisayar adı, DNS kayıtlarınızı yönettiğiniz alan adı olan {{zone}} alanına göredir.",
+    dns_full_record_name: "Kaydın tam adı",
     purchase_congrats_title: "Tebrikler",
     recipient_key_outdated: "Alıcının anahtarı güncel değil",
     recipient_key_outdated_desc:
@@ -1908,7 +1923,23 @@ export const tr = {
     key_trust_change_message:
       "{{recipients}} için şifreleme anahtarı son sorgudan bu yana değişti. Göndermeden önce yeni parmak izini alıcıyla başka bir kanaldan doğrulayın.",
     key_trust_change_detail: "{{email}}: önce {{prior}}, şimdi {{current}}.",
+    key_trust_unreadable_message:
+      "{{recipients}} için kayıtlı şifreleme anahtarı bu cihazda okunamıyor. Göndermeden önce geçerli parmak izini alıcıyla başka bir kanaldan doğrulayın.",
+    key_trust_unreadable_detail: "{{email}}: şimdi {{current}}.",
+    key_trust_own_message:
+      "{{recipients}} adresinizin şifreleme anahtarı değişti. Anahtarlarınızı sıfırlamadıysanız veya yeni bir cihaz kurmadıysanız yeni anahtara güvenmeyin.",
     key_trust_change_confirm: "Yeni anahtara güven",
+    key_trust_missing_title: "Şifreleme anahtarı bulunamadı",
+    key_trust_missing_message:
+      "Bu cihazda {{recipients}} için kayıtlı bir şifreleme anahtarı vardı, ancak şu anda kullanılabilir bir anahtar yok. Devam ederseniz bu ileti uçtan uca şifreleme olmadan gönderilir. Göndermeden önce alıcıyla başka bir kanaldan doğrulayın.",
+    key_trust_missing_detail: "{{email}}: önceki {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: kayıtlı anahtar okunamıyor.",
+    key_trust_missing_confirm: "Şifreleme olmadan gönder",
+    key_trust_account_key_detail:
+      "{{email}} hesap anahtarı: önceden {{prior}}, şimdi {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} kimlik anahtarı: önceden {{prior}}, şimdi {{current}}.",
     post_quantum_downgrade_title:
       "Beklenen post-kuantum anahtarları olmadan gönderilsin mi?",
     post_quantum_downgrade_message:
@@ -2292,6 +2323,14 @@ export const tr = {
       "Kurtarma kodlarımı güvenli bir yere kaydettim.",
     recovery_codes_save_failed:
       "Kurtarma kodlarınız sunucuya kaydedilemedi. Yeniden deneyin.",
+    recovery_codes_required_save_desc:
+      "Bu yeni kodları güvenli bir yere kaydedin. Sonraki adımda onaylayana kadar mevcut kodlarınız çalışmaya devam eder.",
+    recovery_codes_required_verify_desc:
+      "Yeni kodlarınızı kullanmaya başlamak için parolanızı girin. Bundan sonra önceki kodlarınız çalışmaz.",
+    recovery_codes_required_action: "Kodları değiştir",
+    recovery_codes_required_done: "Yeni kurtarma kodlarınız etkin.",
+    recovery_codes_already_replaced:
+      "Kurtarma kodlarınız başka bir cihazda zaten değiştirildi.",
     legacy_phrase_row: "Kurtarma ifadesi (eski)",
     legacy_phrase_row_desc:
       "Mevcut kurtarma ifadeniz geçerli olmaya devam eder. Bundan sonra kurtarma kodları kullanılır.",
@@ -4107,6 +4146,8 @@ export const tr = {
       "Bu oturum farklı bir ağda veya tarayıcıda başlatıldı, bu nedenle Aster Mail parolanızı değiştirmedi. Parolanızı değiştirmek için oturumu kapatın, yeniden oturum açın ve tekrar deneyin.",
     password_change_identity_continuity_required:
       "Bu değişiklik eski iletilerinizin ihtiyaç duyduğu şifreleme anahtarlarını kaldıracağı için Aster Mail parolanızı değiştirmedi. Tekrar denemek için oturumu kapatın, yeniden oturum açın ve parolanızı değiştirin.",
+    password_change_vault_changed:
+      "Siz şifrenizi değiştirirken şifreleme anahtarlarınız başka bir cihazda değişti, bu yüzden Aster Mail şifrenizi değiştirmedi. Yeniden deneyin.",
     password_change_vault_out_of_date:
       "Parolanız başka bir cihazda değiştirildi, bu nedenle bu oturum güncel değil. Parolanızı değiştirmek için oturumu kapatın ve mevcut parolanızla yeniden oturum açın.",
     update_password: "Parolayı Güncelle",
@@ -4323,6 +4364,12 @@ export const tr = {
     developer_mode: "Geliştirici Modu",
     developer_mode_description:
       "Yapı bilgisi, kripto durumu ve hata ayıklama araçlarıyla Geliştirici sekmesini göster",
+    launch_at_login: "Oturum açtığında Aster Mail'i aç",
+    launch_at_login_description: "Bilgisayarında oturum açtığında Aster Mail başlar, böylece uygulamayı açmadan yeni postalar gelir.",
+    start_minimized: "Simge durumunda başlat",
+    start_minimized_description: "Aster Mail oturum açılışında açıldığında pencere olmadan arka planda kalır. Açmak için bildirim alanındaki veya menü çubuğundaki simgesine tıkla.",
+    launch_at_login_move_to_applications: "Aster Mail'i oturum açtığında açmak için önce Uygulamalar klasörüne taşı.",
+    launch_at_login_reason: "Yeni postaların arka planda gelmesi için oturum açtığında Aster Mail'i aç.",
     close_to_tray: "Pencereyi kapattığında çalışmaya devam et",
     close_to_tray_description:
       "Aster Mail bildirim alanında kalır, böylece yeni postalar gelmeye devam eder. Pencereyi kapattığında çıkmak için bunu kapat.",
@@ -4696,7 +4743,7 @@ export const tr = {
       "Sansür direnci için Snowflake köprülerini kullan",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "İstekler Aster'e ulaşmadan önce küresel bir CDN üzerinden yönlendirilir. IP adresiniz Aster'den gizli kalır ve trafiğiniz sıradan CDN trafiğinden ayırt edilemez.",
+      "İstekler, Aster sunucularına ulaşmadan önce Aster'in Cloudflare üzerinde işlettiği bir aktarıcıdan geçer. Ağınız açısından trafik sıradan CDN trafiği gibi görünür; bu, Aster'in engellendiği yerlerde yardımcı olabilir. Aster IP adresinizi yine de görür. IP adresinizi Aster'den gizlemek için Tor kullanın.",
     "connection.status_connected": "Bağlı",
     "connection.status_connecting": "Bağlanıyor...",
     "connection.status_error":
@@ -4728,7 +4775,8 @@ export const tr = {
     tlsrpt_record: "TLS-RPT kaydi",
     tlsrpt_description:
       "Istege bagli ama onerilir. Alici sunucular, alan adiniza sifreli teslimat basarisiz oldugunda size gunluk bir ozet gonderir; boylece sorunlari kullanicilarinizdan once fark edersiniz.",
-    dns_instruction_set_tlsrpt_host: "Host degerini _smtp._tls yapin",
+    dns_instruction_set_tlsrpt_host:
+      "Aşağıda gösterilen ana bilgisayar adını ana bilgisayar alanına kopyalayın",
     dns_instruction_set_tlsrpt_value:
       "TLS-RPT degerini gosterildigi gibi birebir yapistirin",
     optional_step: "Istege bagli",
@@ -5118,7 +5166,7 @@ export const tr = {
     dns_instruction_set_dkim:
       "Değeri aşağıda gösterilen DKIM anahtarına ayarlayın",
     dns_instruction_set_dmarc_host:
-      "Sunucuyu _dmarc olarak ayarlayın (alan adınızı eklemeyin)",
+      "Aşağıda gösterilen ana bilgisayar adını ana bilgisayar alanına kopyalayın",
     dns_instruction_set_dmarc_value:
       "Değeri aşağıda gösterilen DMARC politikasına ayarlayın",
     edit_external_account: "Harici hesabı düzenle",
@@ -7106,10 +7154,147 @@ export const tr = {
       "Aster, kayıtlı kartınızdan son kullanma tarihinden 30 gün önce ödeme alır ve fiyatı bundan 15 gün önce e-postayla gönderir.",
     domain_purchase_manage_auto_renew_error:
       "Otomatik yenileme güncellenemedi. Tekrar deneyin.",
-    domain_purchase_manage_dns: "Alan adı kurulumunu aç",
+    domain_purchase_manage_dns: "DNS'i yönet",
     domain_purchase_manage_support_note:
-      "Bu alan adını başka bir kayıt kuruluşuna taşımak ya da geri ödeme sormak için destek ile iletişime geç.",
+      "Faturalandırma veya geri ödeme ile ilgili sorularınız için destek ile iletişime geçin.",
     domain_purchase_manage_support_subject: "{{domain}} ile ilgili yardım",
+    domain_transfer_button: "Aktar",
+    domain_transfer_title: "Alan adını aktar",
+    domain_transfer_hint:
+      "Bu alan adını başka bir kayıt şirketine taşıyın. Destek ekibi aktarım kodunu Aster gelen kutunuza gönderir.",
+    domain_transfer_message:
+      "{{domain}} alan adını başka bir kayıt kuruluşuna taşımak için bir aktarım koduna ihtiyacınız var. Devam ettiğinizde Aster, desteğe gönderilecek bir e-posta açar. Destek, isteğin bu hesaptan geldiğini doğrular ve ardından kodu Aster gelen kutunuza gönderir. Aktarımlar, yeni kayıt kuruluşunda başlatıldıktan sonra genellikle 5 ila 7 gün sürer.",
+    domain_transfer_locked_message:
+      "Kayıt kuruluşları, kayıttan sonraki {{count}} gün içinde aktarıma izin vermez. {{domain}} için {{date}} tarihinden itibaren aktarım isteyebilirsiniz.",
+    domain_transfer_confirm: "Desteğe yaz",
+    domain_transfer_email_subject: "{{domain}} için aktarım isteği",
+    domain_transfer_email_body:
+      "{{domain}} alan adını başka bir kayıt kuruluşuna aktarmak istiyorum. Aktarım kodunu bu adrese gönderin.\n\nSipariş kimliği: {{order_id}}\nYeni kayıt kuruluşu:",
+    purchased_dns_title: "DNS kayıtları",
+    purchased_dns_description:
+      "{{domain}} için kayıtlar. Değişiklikler genellikle bir saat içinde geçerli olur.",
+    purchased_dns_locked_title: "Düzenleme kapalı",
+    purchased_dns_locked_note:
+      "Bu kayıtları görüntüleyebilirsiniz ancak şu anda değiştiremezsiniz.",
+    purchased_dns_lock_frozen:
+      "Bu alan adı için düzenleme duraklatıldı. Daha fazla bilgi için destek ile iletişime geçin.",
+    purchased_dns_lock_payment:
+      "Bu alan adının ödemesi iade edildiği için düzenleme kapalı.",
+    purchased_dns_lock_lapsed:
+      "Bu alan adının süresi dolduğu için düzenleme kapalı. Değişiklik yapmak için alan adını yenileyin.",
+    purchased_dns_lock_suspended:
+      "Bu alan adı askıya alındığı için düzenleme kapalı.",
+    purchased_dns_unlock_title: "Kimliğinizi doğrulayın",
+    purchased_dns_unlock_description:
+      "DNS kayıtlarını değiştirmek için kimliğinizi doğrulayın. Düzenleme 15 dakika boyunca açık kalır.",
+    purchased_dns_unlock: "Düzenlemeyi aç",
+    purchased_dns_unlocked: "Düzenleme açık",
+    purchased_dns_unlocked_for: "Düzenleme {{time}} boyunca açık",
+    purchased_dns_lock: "Düzenlemeyi kapat",
+    purchased_dns_add: "Kayıt ekle",
+    purchased_dns_add_title: "Kayıt ekle",
+    purchased_dns_edit_title: "Kaydı düzenle",
+    purchased_dns_added: "Kayıt eklendi",
+    purchased_dns_updated: "Kayıt güncellendi",
+    purchased_dns_deleted: "Kayıt silindi",
+    purchased_dns_delete_title: "Kayıt silinsin mi?",
+    purchased_dns_delete_message:
+      "{{name}} için {{type}} kaydı, sildikten kısa süre sonra çözümlenmez.",
+    purchased_dns_edit_record: "{{name}} için {{type}} kaydını düzenle",
+    purchased_dns_copy_record: "{{name}} için {{type}} kaydının değerini kopyala",
+    purchased_dns_delete_record: "{{name}} için {{type}} kaydını sil",
+    purchased_dns_read_only: "Salt okunur",
+    purchased_dns_mail_group: "Aster Mail kayıtları",
+    purchased_dns_mail_group_tip:
+      "E-postanızın çalışmaya devam etmesi için bu kayıtları Aster yönetir. Bunları düzenleyemez veya silemezsiniz.",
+    purchased_dns_your_records: "Kayıtlarınız",
+    purchased_dns_empty: "Henüz kayıt eklemediniz.",
+    purchased_dns_limit_reached:
+      "Bu alan adı en fazla {{count}} kayıt sınırına ulaştı. Yeni bir kayıt eklemek için birini silin.",
+    purchased_dns_col_type: "Tür",
+    purchased_dns_col_name: "Ad",
+    purchased_dns_col_content: "İçerik",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "İşlemler",
+    purchased_dns_host_hint:
+      "Alan adının kendisi için @ kullanın veya www gibi bir alt alan adı girin.",
+    purchased_dns_field_ipv4: "IPv4 adresi",
+    purchased_dns_field_ipv6: "IPv6 adresi",
+    purchased_dns_field_target: "Hedef",
+    purchased_dns_field_content: "İçerik",
+    purchased_dns_field_mail_server: "Posta sunucusu",
+    purchased_dns_field_caa_value: "Değer",
+    purchased_dns_field_priority: "Öncelik",
+    purchased_dns_field_weight: "Ağırlık",
+    purchased_dns_field_port: "Bağlantı noktası",
+    purchased_dns_field_flags: "Bayraklar",
+    purchased_dns_field_tag: "Etiket",
+    purchased_dns_ttl_one_hour: "1 saat",
+    purchased_dns_ttl_hours: "{{count}} saat",
+    purchased_dns_ttl_one_day: "1 gün",
+    purchased_dns_ttl_days: "{{count}} gün",
+    purchased_dns_error_required: "Bu alanı doldurun.",
+    purchased_dns_error_host:
+      "Geçerli bir ad girin. Harf, rakam, kısa çizgi ve alt çizgi kullanın. Her etiket en fazla 63 karakter olabilir.",
+    purchased_dns_error_protected_host:
+      "Bu ad Aster Mail kayıtları için ayrılmıştır.",
+    purchased_dns_error_apex_mx:
+      "Alan adının kendisine ait posta kayıtlarını Aster yönetir. Bunun yerine MX kayıtlarını bir alt alan adına ekleyin.",
+    purchased_dns_error_apex_cname:
+      "CNAME kaydı alan adının kendisi için kullanılamaz. Bunun yerine A veya AAAA kaydı kullanın.",
+    purchased_dns_error_apex_spf:
+      "Aster bu alan adı için zaten bir SPF kaydı yayımlıyor ve bir alan adında yalnızca bir tane olabilir.",
+    purchased_dns_error_value: "Değeri kontrol edip tekrar deneyin.",
+    purchased_dns_error_ip: "Geçerli bir IP adresi girin.",
+    purchased_dns_error_ipv4:
+      "203.0.113.10 gibi geçerli bir IPv4 adresi girin.",
+    purchased_dns_error_ipv6: "2001:db8::1 gibi geçerli bir IPv6 adresi girin.",
+    purchased_dns_error_private_ip:
+      "Herkese açık bir IP adresi girin. Özel, yerel ve ayrılmış adreslere internetten erişilemez.",
+    purchased_dns_error_target:
+      "example.com gibi geçerli bir ana bilgisayar adı girin.",
+    purchased_dns_error_cname_self: "CNAME kaydı kendi adını gösteremez.",
+    purchased_dns_error_cname_conflict:
+      "CNAME kaydı olan bir adın başka kaydı olamaz. Önce diğer kayıtları kaldırın veya başka bir ad seçin.",
+    purchased_dns_error_txt_length:
+      "TXT içeriği en fazla 2.048 karakter olabilir.",
+    purchased_dns_error_txt_chars:
+      "TXT içeriği yalnızca standart yazdırılabilir karakterler içerebilir; tırnak işareti veya ters eğik çizgi kullanılamaz.",
+    purchased_dns_error_ttl: "Listeden bir TTL seçin.",
+    purchased_dns_error_priority: "0 ile 65535 arasında bir öncelik girin.",
+    purchased_dns_error_weight: "0 ile 65535 arasında bir ağırlık girin.",
+    purchased_dns_error_port:
+      "1 ile 65535 arasında bir bağlantı noktası girin.",
+    purchased_dns_error_srv_host:
+      "SRV adı, _sip._tcp gibi hizmet ve protokolle başlar.",
+    purchased_dns_error_caa_flags: "Bayraklar için 0 veya 128 seçin.",
+    purchased_dns_error_caa_tag:
+      "Etiket için issue, issuewild veya iodef seçin.",
+    purchased_dns_error_caa_value:
+      "Tırnak işareti veya ters eğik çizgi içermeyen, en fazla 255 karakterlik bir değer girin.",
+    purchased_dns_error_duplicate: "Bu kayıt zaten var.",
+    purchased_dns_error_too_many:
+      "Bu alan adı en fazla kayıt sayısına ulaştı. Yeni bir kayıt eklemek için birini silin.",
+    purchased_dns_error_protected_record:
+      "Bu kaydı Aster yönettiği için değiştiremezsiniz.",
+    purchased_dns_error_type_change:
+      "Bir kaydın türünü değiştiremezsiniz. Bunun yerine kaydı silip yeni bir kayıt ekleyin.",
+    purchased_dns_error_locked: "Bu alan adı için düzenleme kapalı.",
+    purchased_dns_error_busy: "Kayıt kuruluşu meşgul.",
+    purchased_dns_error_not_found: "Bu kayıt artık mevcut değil.",
+    purchased_dns_error_rate_limited: "Çok hızlı değişiklik yapıyorsunuz.",
+    purchased_dns_error_retry_in:
+      "{{message}} {{count}} saniye sonra tekrar deneyin.",
+    purchased_dns_error_retry_in_one: "{{message}} {{count}} saniye sonra tekrar deneyin.",
+    purchased_dns_ttl_seconds: "{{count}} saniye",
+    purchased_dns_expired_note: "Düzenleme kapatıldı. Değişiklikleriniz henüz kaydedilmedi. Kaydet'i tıkladığınızda önce kimliğinizi doğrularsınız.",
+    purchased_dns_filter_placeholder: "Kayıtları filtrele",
+    purchased_dns_filter_no_results: "Filtrenizle eşleşen kayıt yok.",
+    purchased_dns_keep_editing: "Düzenlemeye devam et",
+    purchased_dns_error_unlock_failed: "Düzenleme açılamadı. Tekrar deneyin.",
+    purchased_dns_error_generic:
+      "Değişikliğiniz kaydedilemedi. Tekrar deneyin.",
+    purchased_dns_load_failed: "DNS kayıtları yüklenemedi. Tekrar deneyin.",
     domain_purchase_filter_all: "Tümü",
     domain_purchase_filter_available: "Uygun",
     domain_purchase_filter_taken: "Alınmış",
@@ -7399,6 +7584,7 @@ export const tr = {
       "Güvenlik anahtarlarını app.astermail.org adresindeki Aster web uygulamasında ekleyebilirsiniz. Burada mevcut anahtarları görüntüleyip kaldırabilirsiniz.",
     passkeys_desktop_note:
       "Geçiş anahtarlarını app.astermail.org adresindeki Aster web uygulamasında ekleyebilirsiniz. Burada mevcut anahtarları görüntüleyip kaldırabilirsiniz.",
+    passkeys_open_in_browser: "Tarayıcıda aç",
     app_lock_pin: "PIN Kilidi",
     app_lock_pin_description:
       "Aster Mail'i bu tarayıcıda göstermeden önce PIN ister. Postanızı bu cihazı kullanan diğer kişilerden gizler, ancak burada depolanan verileri şifrelemez.",
@@ -8749,6 +8935,8 @@ export const tr = {
       "Bu gönderenin şifreleme kimliği son mesajlaşmanızdan bu yana değişti. Bunu beklemiyorsan, bu kişiyle başka bir yoldan doğrula.",
     sender_identity_downgraded:
       "Bu gönderenin mesajları artık kuantum sonrası korumaya sahip değil. Bunu beklemiyorsan, bu kişiyle başka bir yoldan doğrula.",
+    sender_identity_unreadable:
+      "Bu gönderenin kayıtlı şifreleme anahtarı bu cihazda okunamıyor, bu yüzden bu ileti doğrulanamıyor. İletilerini yeniden doğrulamak için anahtarı bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
     recipient_identity_changed:
       "{{email}} için şifreleme anahtarı değişti. Bunu beklemiyorsan, hassas bilgi göndermeden önce bu değişikliği kişiyle başka bir yoldan doğrula.",
     message_password_requirements:
@@ -8942,6 +9130,11 @@ export const tr = {
     block_sender: "Göndereni engelle",
     unblock_sender: "Gönderenin engelini kaldır",
     unsubscribe: "Aboneliği iptal et",
+    copy_code: "Kodu kopyala",
+    copy_code_value: "{{code}} kodunu kopyala",
+    copy_subject: "Konuyu kopyala",
+    code_copied: "Kod kopyalandı",
+    subject_copied: "Konu kopyalandı",
     edit_draft: "Taslağı Düzenle",
     schedule: "Zamanla",
     scheduling: "Zamanlanıyor",
@@ -9323,9 +9516,9 @@ export const tr = {
     unstar: "Yıldızı kaldır",
     mark_unread: "Okunmadı olarak işaretle",
     mark_read: "Okundu olarak işaretle",
-    verified_sender: "Doğrulanmış gönderen",
+    verified_sender: "Doğrulanmış alan adı",
     verified_sender_desc:
-      "Bu e-postanın göndereni {{domain}} alan adının sahibi olduğunu doğruladı.",
+      "Aster sunucuları, gönderenin {{domain}} alan adının sahibi olduğunu doğruladı.",
     sender_warning_title: "Gönderenin adresini kontrol edin",
     sender_warning_address_in_name:
       "Gönderenin adında {{claimed}} görünüyor, ancak bu ileti {{address}} adresinden geliyor.",
@@ -9431,6 +9624,7 @@ export const tr = {
     move_n_conversations_one: "{{count}} görüşmeyi taşı",
     move_n_conversations_other: "{{count}} görüşmeyi taşı",
     view_message: "Mesajı görüntüle",
+    open_full_view: "Tam görünümde aç",
     blocking: "Engelleniyor...",
     block: "Engelle",
     unsubscribe_title: "Aboneliği İptal Et",
@@ -9462,6 +9656,9 @@ export const tr = {
       "Bu e-posta {{ received }} adresinde alındı, ancak yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten yanıtlamak bu adresi gönderene açığa çıkarabilir ve yanıt reddedilebilir.",
     reply_from_mismatch_use_received: "Alınan adresi kullan",
     reply_from_mismatch_send_anyway: "Yine de gönder",
+    reply_from_unknown_title: "Gönderen adresini kontrol edin",
+    reply_from_unknown_message:
+      "Aster bu e-postanın hangi adresinize geldiğini belirleyemiyor. Yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten göndermek için iptal edin ve önce o adresi seçin.",
     forward_subject_prefix: "İlt:",
     reply_quote_header: "{{ date }} tarihinde {{ name }} yazdı:",
     download_file_named: "{{ filename }} dosyasını indir",
@@ -9470,6 +9667,7 @@ export const tr = {
     received_via_alias: "{{ address }} takma adresine teslim edildi",
     new_reaction: "Yeni tepki",
     load_external_content: "Harici içerik yükle",
+    image_loading_settings: "Görsel ayarları",
     image: "görsel",
     images: "görseller",
     tracker: "izleyici",
@@ -10011,6 +10209,22 @@ export const tr = {
     sending_reset_link: "Sıfırlama bağlantısı gönderiliyor...",
     reset_your_password: "Parolanızı sıfırlayın",
     reset_choose_new_password: "Hesabınız için yeni bir parola seçin.",
+    reset_current_password:
+      "Mevcut şifre",
+    reset_current_password_keeps_keys:
+      "Şifreleme anahtarlarınızın aynı kalması ve e-postalarınızın okunabilir kalması için mevcut şifrenizi girin. Bilmiyorsanız bunun yerine bir kurtarma kodu kullanın.",
+    reset_current_password_required:
+      "Mevcut şifrenizi girin veya bunun yerine bir kurtarma kodu kullanın.",
+    reset_lost_everything:
+      "Şifremi ve kurtarma kodlarımı kaybettim",
+    reset_remember_password:
+      "Şifremi hatırlıyorum",
+    reset_lost_everything_warning:
+      "Şifreniz veya bir kurtarma kodu olmadan Aster Mail şifreleme anahtarlarınızın kilidini açamaz. Sıfırlama yeni anahtarlar oluşturur ve önceki şifrenizi veya bir kurtarma kodunu daha sonra bulmadığınız sürece mevcut e-postalarınız okunamaz hale gelir.",
+    reset_lost_everything_confirm:
+      "Mevcut e-postalarımın okunamaz hale geleceğini anlıyorum",
+    reset_lost_everything_confirm_required:
+      "Şifreniz olmadan sıfırlamak için mevcut e-postalarınızın okunamaz hale geleceğini anladığınızı onaylayın.",
     reset_current_password_optional: "Mevcut parola (isteğe bağlı)",
     reset_current_password_hint:
       "Mevcut parolanızı hatırlıyorsanız buraya girin; önceki postalarınız oturum açar açmaz kullanılabilir olur. Boş bırakırsanız önceki postalarınızı daha sonra bir kurtarma koduyla açabilirsiniz.",
@@ -10081,6 +10295,22 @@ export const tr = {
     review_recovery_email_kept: "Kurtarma e-postanız hâlâ ayarlı.",
     review_no_recovery_email: "Kurtarma e-postası yok.",
     review_add: "Ekle",
+    recovery_previous_password_placeholder:
+      "Önceki şifrenizi girin",
+    recovery_previous_password_body:
+      "Şifreleme anahtarlarınız hâlâ bu sıfırlamadan önce kullandığınız şifreyle korunuyor. E-postalarınızın okunabilir kalması için bu önceki şifreyi girin. Anahtarlarınız aynı kalır ve bundan sonra yeni şifreniz tarafından korunur.",
+    recovery_previous_password_required:
+      "Önceki şifrenizi girin veya Hatırlamıyorum seçeneğini seçin.",
+    recovery_previous_password_incorrect:
+      "Bu şifre, şifreleme anahtarlarınızın kilidini açmıyor. Kontrol edip yeniden deneyin.",
+    recovery_previous_password_forgot:
+      "Hatırlamıyorum",
+    recovery_previous_password_use:
+      "Önceki şifremi gir",
+    recovery_previous_password_skipped_warning:
+      "Şifreniz sıfırlanır ve şifreleme anahtarlarınız korunur, ancak önceki şifrenizle kilitli kalır. Bu şifreyi Verileri kurtar başlığından girene kadar e-postalarınız okunamaz.",
+    review_keys_left_locked:
+      "Şifreleme anahtarlarınız korundu ancak hâlâ önceki şifrenizle kilitli. E-postalarınızı okumak için başlıkta Verileri kurtar'ı seçip bu şifreyi girin.",
     review_codes_left: "{{count}} kurtarma kodu kaldı.",
     review_codes_left_one: "{{count}} kurtarma kodu kaldı.",
     review_codes_left_other: "{{count}} kurtarma kodu kaldı.",
@@ -10163,7 +10393,8 @@ export const tr = {
     device_code_waiting: "Onay bekleniyor",
     device_code_expires_in: "Süre sonu",
     link_device_title: "Cihazı bağla",
-    link_device_enter_code: "Masaüstü uygulamanızda gösterilen kodu girin.",
+    link_device_enter_code:
+      "Bağladığınız uygulamada gösterilen bağlama kodunu girin.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "Devam",
     link_device_confirm_prompt:
@@ -10171,22 +10402,34 @@ export const tr = {
     link_device_confirm_button: "Cihazı bağla",
     link_device_confirming: "Cihaz bağlanıyor...",
     link_device_cancel: "İptal",
-    link_device_desktop: "Masaüstü uygulaması",
-    device_fingerprint: "Doğrulama kodu",
+    link_device_desktop: "Yeni cihaz",
+    device_fingerprint: "Cihaz parmak izi",
+    device_fingerprint_copy: "Cihaz parmak izini kopyala",
+    link_device_grant_notice:
+      "Bağlama işlemi, {{device}} üzerindeki uygulamaya e-postalarınız ve şifreleme anahtarlarınız dahil {{email}} hesabına tam erişim verir.",
+    link_device_own_device_warning:
+      "Yalnızca bu işlemi kendi cihazınızdaki bir Aster uygulamasında siz başlattıysanız devam edin. Bu kodu size başka biri verdiyse cihazı bağlamayın.",
+    link_device_fingerprint_enter:
+      "Bağladığınız uygulamada gösterilen cihaz parmak izini girin. Bazı uygulamalar buna doğrulama kodu der.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Bu, bu bağlama kodunun cihazıyla eşleşmiyor. Her karakteri bağladığınız uygulamayla karşılaştırın, ardından yeniden deneyin. Yine eşleşmiyorsa cihazı bağlamayın.",
+    link_device_fingerprint_link_mismatch:
+      "Bu sayfayı açan bağlantı, bu bağlama kodundan farklı bir cihaza ait, bu nedenle cihazı burada bağlayamazsınız. Bağladığınız uygulamadan yeni bir kod alın ve yeniden deneyin.",
+    link_device_update_desktop:
+      "Uygulama bunu göstermiyorsa uygulamada Bu cihazı doğrula seçeneğini belirleyin. Uygulamada bu seçenek yoksa uygulamayı güncelleyin, ardından yeniden deneyin.",
+    device_code_fingerprint_required_hint:
+      "Tarayıcınız cihazı bağlamadan önce bu cihaz parmak izini ister.",
     device_code_verify_toggle: "Bu cihazı doğrula",
     link_device_fingerprint_hint:
       "Yeni cihazınızın gösterdiği doğrulama kodunu girin. Masaüstü uygulamasında görmek için Bu cihazı doğrula'yı seçin.",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete:
       "Cihazı bağlamak için yeni cihazınızdaki doğrulama kodunun tamamını girin.",
-    link_device_fingerprint_mismatch:
-      "Bu kod yeni cihazınızla eşleşmiyor. Yeni cihazınızdaki kodu kontrol edip tekrar girin. Hâlâ eşleşmiyorsa İptal'i seçin.",
     device_code_fingerprint_hint:
       "Bu cihazı bağlamak için bu kodu zaten oturum açtığınız cihaza girin.",
     link_device_change_account: "Hesap değiştir",
     link_device_choose_account: "Bir hesap seçin",
-    link_device_choose_account_description:
-      "Masaüstü uygulamanızı bağlamak için",
+    link_device_choose_account_description: "Yeni bir cihaz bağlamak için",
     link_device_choose_account_note:
       "Şifreleme anahtarlarınız cihazlarınız arasında aktarılırken şifreli kalır.",
     link_device_use_another_account: "Başka bir hesap kullan",
@@ -10197,11 +10440,11 @@ export const tr = {
     hub_account_link_failed: "Bu hesapla devam etmek için parolasını girin.",
     link_device_success: "Cihaz bağlandı",
     link_device_success_description:
-      "Masaüstü uygulamanız artık bağlandı. Bu sekmeyi kapatabilirsiniz.",
+      "Cihazınız artık bağlandı. Bu sekmeyi kapatabilirsiniz.",
     link_device_invalid_code:
       "Bağlantı kodu 8 karakter uzunluğundadır. Kodu kontrol edin ve tekrar deneyin.",
     link_device_expired_code:
-      "Bu kodun süresi doldu veya eşleşmedi. Masaüstü uygulamanızda geçerli kod bulunuyor.",
+      "Bu kodun süresi doldu veya eşleşmedi. Geçerli kod, bağladığınız uygulamada gösteriliyor.",
     link_device_failed:
       "Bağlantı tamamlanamadı. Yeniden başlamak genellikle yeterli olur. Hesabınız değişmedi.",
     link_keys_locked_title: "Anahtarlığınız kilitli",
@@ -10560,6 +10803,8 @@ export const tr = {
       "İleti parolası çok zayıf, bu yüzden ileti gönderilmedi. En az 12 karakter kullanın ve bir rakam, bir sembol ya da büyük ve küçük harfler ekleyin.",
     recipient_key_untrusted:
       "Bir alıcının şifreleme anahtarı değişti, bu yüzden ileti gönderilmedi. Göndermek için değişikliği bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
+    recipient_key_unreadable:
+      "Bir alıcının kayıtlı şifreleme anahtarı bu cihazda okunamıyor, bu yüzden ileti gönderilmedi. Göndermek için anahtarı bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
     key_trust_check_failed:
       "Alıcıların şifreleme anahtarları denetlenemedi, bu yüzden ileti gönderilmedi. Bağlantınızı denetleyip yeniden deneyin.",
     recipient_classification_unavailable:
@@ -10767,6 +11012,8 @@ export const tr = {
       "case_sensitive yalnızca tırnak içindeki bir metin değerinden sonra gelebilir.",
     expr_internal_error:
       "Bu ifade okunamadı. Söz dizimini kontrol edip tekrar deneyin.",
+    expr_server_rejected:
+      "İfadenin bu kısmı kaydedilemiyor. Söz dizimini kontrol edip yeniden deneyin.",
     expr_line_col: "(satır {{line}}, sütun {{col}})",
     editor_description: "Kuralınıza bir ad verin ve ne yapacağını belirtin.",
     editor_server_notice:
@@ -10903,6 +11150,10 @@ export const tr = {
     regex_invalid:
       "Bu regex deseni geçerli değil. Söz dizimini kontrol edin ve tekrar deneyin.",
     regex_empty: "Kaydetmeden önce bir regex kalıbı gerekiyor.",
+    regex_too_complex:
+      "Bu regex kalıbı kaydedilemeyecek kadar karmaşık. Daha az tekrar veya seçenek kullanıp yeniden deneyin.",
+    regex_invalid_reason:
+      "Bu regex kalıbı geçerli değil: {{reason}}",
     regex_too_long: "Bu regex çok uzun. Kırpılmış bir sürüm çalışır.",
     last_condition_required:
       "Bu kural kaydedilebilmesi için en az bir koşul gerekiyor.",
@@ -11339,6 +11590,8 @@ export const tr = {
     invite_card_join: "Toplantıya katıl",
     invite_card_calendar_failed: "Yanıtınız gönderildi ancak Aster bu etkinliği takviminize ekleyemedi.",
     invite_card_reply_send_failed: "Yanıtınız gönderilemedi. Tekrar deneyin.",
+    invite_card_reply_address_unavailable:
+      "Bu daveti alan adres e-posta gönderemediği için Aster yanıtınızı göndermedi. Yanıt vermek için bu adresi yeniden açın.",
     invite_card_organizer_mismatch:
       "Bu davet {{sender}} tarafından gönderildi, ancak düzenleyen olarak {{organizer}} görünüyor. Bunu beklemiyorsanız yanıt vermeden önce düzenleyenle görüşün.",
     invite_card_reply_confirm:

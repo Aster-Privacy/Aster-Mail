@@ -204,13 +204,28 @@ export function resolve_settings_section(
 
   const tab_alias = SECTION_TAB_ALIASES[key];
 
-  if (tab_alias) {
-    request_settings_tab(tab_alias.tab);
-
-    return tab_alias.section;
-  }
+  if (tab_alias) return tab_alias.section;
 
   return SECTION_ALIASES[key];
+}
+
+export function settings_tab_for(
+  candidate: string | null | undefined,
+): string | undefined {
+  if (!candidate) return undefined;
+
+  return SECTION_TAB_ALIASES[candidate.trim()]?.tab;
+}
+
+export function request_settings_target(
+  candidate: string | null | undefined,
+): SettingsSection | undefined {
+  const section = resolve_settings_section(candidate);
+  const tab = settings_tab_for(candidate);
+
+  if (section && tab) request_settings_tab(tab);
+
+  return section;
 }
 
 export interface SettingsContentProps {

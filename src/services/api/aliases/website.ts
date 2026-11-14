@@ -373,18 +373,47 @@ export function validate_website_input(raw: string): string | null {
   return normalized;
 }
 
-export function parse_websites_payload(payload: string): string[] {
-  try {
-    const parsed = JSON.parse(payload);
+function read_website_entries(payload: string): unknown[] {
+  const trimmed = payload.trim();
 
-    if (!Array.isArray(parsed)) return [];
+  if (!trimmed) return [];
 
-    return parsed
-      .filter((entry): entry is string => typeof entry === "string")
-      .map((entry) => normalize_website_url(entry))
-      .filter((entry): entry is string => entry !== null)
-      .slice(0, MAX_ALIAS_WEBSITES);
-  } catch {
-    return [];
+  if (trimmed.startsWith("[") || trimmed.startsWith('"')) {
+    try {
+      const parsed: unknown = JSON.parse(trimmed);
+
+      if (Array.isArray(parsed)) return parsed;
+      if (typeof parsed === "string") return read_website_entries(parsed);
+
+      return [];
+    } catch {
+      return trimmed.split(/[,;\r\n]/);
+    }
   }
+
+  return trimmed.split(/[,;\r\n]/);
+}
+
+export function parse_websites_payload(payload: string): string[] {
+  const seen = new Set<string>();
+  const websites: string[] = [];
+
+  for (const entry of read_website_entries(payload)) {
+    if (typeof entry !== "string") continue;
+
+    const normalized = normalize_website_url(entry.trim());
+
+    if (!normalized) continue;
+
+    const key = normalized.toLowerCase();
+
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    websites.push(normalized);
+
+    if (websites.length >= MAX_ALIAS_WEBSITES) break;
+  }
+
+  return websites;
 }

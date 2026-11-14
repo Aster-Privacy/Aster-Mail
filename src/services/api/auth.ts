@@ -224,6 +224,7 @@ interface ChangePasswordRequest {
   vault_key_fingerprints?: string[];
   vault_kdf_iterations?: number;
   keep_device_lock_id?: string;
+  expected_vault_sha256?: string;
 }
 
 interface ChangePasswordResponse {

@@ -112,6 +112,7 @@ export interface UseComposeSendOptions {
   has_pending_attachment_reads?: () => boolean;
   contacts: DecryptedContact[];
   selected_sender: SenderOption | null;
+  is_sender_pending?: () => boolean;
   has_external_recipients: boolean;
   expires_at: Date | null;
   expiry_password: string | null;
@@ -151,6 +152,7 @@ export function use_compose_send({
   has_pending_attachment_reads,
   contacts,
   selected_sender,
+  is_sender_pending,
   has_external_recipients,
   expires_at,
   expiry_password,
@@ -302,6 +304,12 @@ export function use_compose_send({
 
     if (!user) {
       show_toast(t("errors.session_expired_send"), "error");
+
+      return;
+    }
+
+    if (is_sender_pending?.()) {
+      show_toast(t("common.loading"), "info");
 
       return;
     }
@@ -593,11 +601,12 @@ export function use_compose_send({
         }
       };
 
-      if (pending_draft_id) {
-        void draft_manager
-          .await_pending_save(pending_draft_id)
-          .then(note_kept_draft);
-      }
+      const kept_draft_settled = pending_draft_id
+        ? draft_manager
+            .await_pending_save(pending_draft_id)
+            .then(note_kept_draft)
+            .catch(() => undefined)
+        : Promise.resolve();
 
       const persist_unsent_draft = async (failed: FailedSendData) => {
         if (!vault || !pending_draft_id || draft_deleted) return null;
@@ -751,6 +760,12 @@ export function use_compose_send({
           );
         },
         get_kept_draft: () => {
+          note_kept_draft();
+
+          return draft_deleted ? null : kept_draft;
+        },
+        await_kept_draft: async () => {
+          await kept_draft_settled;
           note_kept_draft();
 
           return draft_deleted ? null : kept_draft;
@@ -981,6 +996,7 @@ export function use_compose_send({
     has_external_recipients,
     enable_offline_queue,
     selected_sender,
+    is_sender_pending,
     attachments,
     is_loading_forward_attachments,
     has_pending_attachment_reads,
@@ -1022,6 +1038,12 @@ export function use_compose_send({
       !scheduled_time
     )
       return;
+
+    if (is_sender_pending?.()) {
+      show_toast(t("common.loading"), "info");
+
+      return;
+    }
 
     if (has_pending_attachment_reads?.()) {
       show_toast(t("common.loading"), "info");
@@ -1259,6 +1281,7 @@ export function use_compose_send({
     vault,
     user,
     attachments,
+    is_sender_pending,
     has_pending_attachment_reads,
     is_loading_forward_attachments,
     clear_all_errors,

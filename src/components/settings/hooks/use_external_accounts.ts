@@ -60,6 +60,7 @@ import {
   emit_refresh_requested,
 } from "@/hooks/mail_events";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { note_bulk_mail_removed } from "@/services/search/index_removals";
 
 export type { TlsMethod, I18nTranslate };
 export {
@@ -543,6 +544,7 @@ export function use_external_accounts() {
             }
           }
 
+          note_bulk_mail_removed();
           emit_mail_changed();
           emit_folders_changed();
           emit_refresh_requested();

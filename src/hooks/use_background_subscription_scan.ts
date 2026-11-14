@@ -38,6 +38,7 @@ import {
 import { list_mail_items } from "@/services/api/mail";
 import { background_page_size } from "@/services/api/client/request_priority";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import { envelope_recipient_addresses } from "@/utils/unsubscribe_delivery";
 import {
   detect_unsubscribe_info,
   get_sender_domain,
@@ -54,6 +55,9 @@ interface ScanEnvelope {
   list_unsubscribe_post?: string;
   body_html?: string;
   body_text?: string;
+  to?: unknown;
+  cc?: unknown;
+  raw_headers?: unknown;
 }
 
 interface ScannedSender {
@@ -62,6 +66,8 @@ interface ScannedSender {
   domain: string;
   count: number;
   last_received: string;
+  routing_token?: string;
+  recipients?: string[];
   unsubscribe_link?: string;
   list_unsubscribe_header?: string;
   list_unsubscribe_post?: string;
@@ -230,6 +236,14 @@ function merge_scanned_senders(
           sender.last_received > existing.last_received
             ? sender.last_received
             : existing.last_received,
+        routing_token:
+          sender.last_received > existing.last_received
+            ? sender.routing_token
+            : existing.routing_token,
+        recipients:
+          sender.last_received > existing.last_received
+            ? sender.recipients
+            : existing.recipients,
         sender_name: is_full_scan
           ? existing.sender_name || sender.name
           : sender.name || existing.sender_name,
@@ -252,6 +266,8 @@ function merge_scanned_senders(
       domain: sender.domain,
       email_count: sender.count,
       last_received: sender.last_received,
+      routing_token: sender.routing_token,
+      recipients: sender.recipients,
       unsubscribe_link: sender.unsubscribe_link,
       list_unsubscribe_header: sender.list_unsubscribe_header,
       list_unsubscribe_post: sender.list_unsubscribe_post,
@@ -605,6 +621,8 @@ export async function run_background_scan(
             if (is_mailing_list) existing.is_mailing_list = true;
             if (item.created_at > existing.last_received) {
               existing.last_received = item.created_at;
+              existing.routing_token = item.routing_token || undefined;
+              existing.recipients = envelope_recipient_addresses(envelope);
             }
             if (!existing.name && envelope.from.name) {
               existing.name = envelope.from.name;
@@ -652,6 +670,8 @@ export async function run_background_scan(
               domain,
               count: 1,
               last_received: item.created_at,
+              routing_token: item.routing_token || undefined,
+              recipients: envelope_recipient_addresses(envelope),
               unsubscribe_link: unsubscribe_info.unsubscribe_link,
               list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
               list_unsubscribe_post: unsubscribe_info.list_unsubscribe_post,

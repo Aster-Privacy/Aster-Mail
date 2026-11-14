@@ -104,6 +104,16 @@ describe("resolve_password_change_error", () => {
     ).toBe(en.settings.password_change_identity_continuity_required);
   });
 
+  it("asks the user to retry when the vault changed on another device", () => {
+    expect(
+      resolve_password_change_error(
+        "Vault changed",
+        translate,
+        "VAULT_CHANGED",
+      ),
+    ).toBe(en.settings.password_change_vault_changed);
+  });
+
   it("keeps the server prose when the code is unknown", () => {
     const resolved = resolve_password_change_error(
       "Current password is incorrect",

@@ -95,6 +95,7 @@ import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_pro
 import { request_external_link } from "@/utils/external_link_request";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
+import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 
 export function ThreadMessageBlock(
   props: ThreadMessageBlockProps,
@@ -158,6 +159,7 @@ export function ThreadMessageBlock(
     password_protected,
     clean_body,
     lockdown_active,
+    image_grant_allowed,
     is_system,
     is_ghost_sender,
     show_sender_name,
@@ -457,23 +459,39 @@ export function ThreadMessageBlock(
 
                 return (
                   <>
-                    {image_count > 0 && (
+                    {!image_grant_allowed &&
+                      image_count + tracker_count > 0 && (
+                        <button
+                          className={btn_class}
+                          data-testid="image-loading-settings"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            open_settings_target({
+                              section: "security",
+                              anchor: SETTINGS_ANCHORS.images,
+                            });
+                          }}
+                        >
+                          {t("mail.image_loading_settings")}
+                        </button>
+                      )}
+                    {image_grant_allowed && image_count > 0 && (
                       <button
                         className={btn_class}
                         onClick={(e) => {
                           e.stopPropagation();
-                          on_load_external_content(["image"]);
+                          on_load_external_content(message.id, ["image"]);
                         }}
                       >
                         {`${t("mail.load_external_content")} (${image_count} ${image_count === 1 ? t("mail.image") : t("mail.images")})`}
                       </button>
                     )}
-                    {tracker_count > 0 && (
+                    {image_grant_allowed && tracker_count > 0 && (
                       <button
                         className={btn_class}
                         onClick={(e) => {
                           e.stopPropagation();
-                          on_load_external_content(["tracking_pixel"]);
+                          on_load_external_content(message.id, ["tracking_pixel"]);
                         }}
                       >
                         {`${t("mail.load_external_content")} (${tracker_count} ${tracker_count === 1 ? t("mail.tracker") : t("mail.trackers")})`}
@@ -484,7 +502,7 @@ export function ThreadMessageBlock(
                         className={btn_class}
                         onClick={(e) => {
                           e.stopPropagation();
-                          on_load_external_content(["font", "css"]);
+                          on_load_external_content(message.id, ["font", "css"]);
                         }}
                       >
                         {(() => {

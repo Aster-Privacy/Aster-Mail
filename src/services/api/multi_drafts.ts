@@ -25,11 +25,12 @@ import { upload_timeout_ms } from "./upload_timeout";
 import { with_session_recovery } from "./session_recovery";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { with_identity_key } from "@/services/crypto/identity_key_required";
 import {
   account_data_write_key,
   retry_after_account_key_load,
 } from "@/services/crypto/account_data_writer";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -300,7 +301,7 @@ async function encrypt_content(
 ): Promise<EncryptedDraftPayload> {
   const key =
     (await account_data_write_key(DRAFT_KEY_VERSION)) ??
-    (await derive_draft_encryption_key(vault));
+    (await derive_draft_encryption_key(with_identity_key(vault)));
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
   const plaintext = new TextEncoder().encode(JSON.stringify(content));
 
@@ -421,7 +422,12 @@ async function decrypt_content(
 
   try {
     plaintext_buffer = await retry_after_account_key_load(() =>
-      decrypt_aes_gcm_with_fallback(key, ciphertext, nonce_bytes),
+      decrypt_account_context_with_fallback(
+        "astermail-draft-v2",
+        key,
+        ciphertext,
+        nonce_bytes,
+      ),
     );
   } catch {
     const fallback = await decrypt_content_with_envelope_keys(encrypted, nonce);

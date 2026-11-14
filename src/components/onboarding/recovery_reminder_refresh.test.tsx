@@ -1,0 +1,224 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import type { RecoveryStatusValues } from "@/hooks/use_recovery_status";
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+
+const state = vi.hoisted(() => ({
+  codes: [] as string[],
+  has_codes: true,
+  server_codes: null as string[] | null,
+  adopted: [] as string[][],
+}));
+
+vi.mock("@/lib/i18n/context", () => ({
+  use_i18n: () => ({ t: (key: string) => key }),
+}));
+
+vi.mock("@/provider", () => ({ use_should_reduce_motion: () => true }));
+
+vi.mock("@/services/crypto/memory_key_store", () => ({
+  get_vault_from_memory: () => ({ recovery_codes: state.codes }),
+  get_vault_owner_id: () => "owner",
+}));
+
+vi.mock("@/services/crypto/vault_cas_write", () => ({
+  adopt_latest_vault_when: async (
+    accept: (vault: { recovery_codes: string[] }) => boolean,
+  ) => {
+    if (!state.server_codes) return null;
+
+    const vault = { recovery_codes: state.server_codes };
+
+    if (!accept(vault)) return null;
+    state.adopted.push(state.server_codes);
+
+    return vault;
+  },
+}));
+
+vi.mock("@/hooks/use_recovery_status", () => ({
+  load_recovery_status: async (): Promise<Partial<RecoveryStatusValues>> => ({
+    has_codes: state.has_codes,
+    codes_remaining: 10,
+  }),
+  recovery_nudge: () => null,
+}));
+
+vi.mock("@/components/settings/security/recovery_codes_modal", () => ({
+  RecoveryCodesModal: (props: {
+    is_open: boolean;
+    is_required?: boolean;
+    mode: string;
+    on_saved: () => void;
+    on_close: () => void;
+  }) =>
+    props.is_open ? (
+      <div data-testid="replace-modal">
+        {props.is_required ? "required" : "optional"}
+        <button onClick={props.on_saved}>saved</button>
+        <button onClick={props.on_close}>close</button>
+      </div>
+    ) : null,
+}));
+
+import { RecoveryReminder } from "./recovery_reminder";
+
+import { reset_recovery_code_refresh } from "@/services/crypto/recovery_code_refresh";
+
+const OUTDATED = ["ASTER-AAAA-BBBB-CCCC", "ASTER-EEEE-FFFF-GGGG"];
+const CURRENT = ["ASTER-AAAA-BBBB-CCCC-DDDD"];
+
+let container: HTMLDivElement;
+let root: Root;
+
+async function mount(): Promise<void> {
+  container = document.createElement("div");
+  document.body.appendChild(container);
+  root = createRoot(container);
+
+  await act(async () => {
+    root.render(<RecoveryReminder />);
+  });
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
+function unmount(): void {
+  act(() => {
+    root.unmount();
+  });
+  container.remove();
+}
+
+function modal(): Element | null {
+  return container.querySelector('[data-testid="replace-modal"]');
+}
+
+function button(label: string): HTMLButtonElement {
+  const found = Array.from(container.querySelectorAll("button")).find(
+    (node) => node.textContent === label,
+  );
+
+  if (!found) throw new Error(`no button ${label}`);
+
+  return found;
+}
+
+describe("recovery code refresh prompt", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    reset_recovery_code_refresh();
+    state.codes = OUTDATED;
+    state.has_codes = true;
+    state.server_codes = null;
+    state.adopted = [];
+  });
+
+  afterEach(() => {
+    unmount();
+  });
+
+  it("opens the required replacement on a device with no first run record", async () => {
+    await mount();
+
+    expect(modal()?.textContent).toContain("required");
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+    expect(container.textContent).not.toContain(
+      "common.recovery_reminder_later",
+    );
+  });
+
+  it("stays away when the saved codes are current", async () => {
+    state.codes = CURRENT;
+
+    await mount();
+
+    expect(modal()).toBeNull();
+  });
+
+  it("stays away when another device already replaced the codes", async () => {
+    state.server_codes = CURRENT;
+
+    await mount();
+
+    expect(modal()).toBeNull();
+    expect(state.adopted).toEqual([CURRENT]);
+  });
+
+  it("opens when the server still holds the older codes", async () => {
+    state.server_codes = OUTDATED;
+
+    await mount();
+
+    expect(modal()?.textContent).toContain("required");
+    expect(state.adopted).toEqual([]);
+  });
+
+  it("stays away when the account has no active codes", async () => {
+    state.has_codes = false;
+
+    await mount();
+
+    expect(modal()).toBeNull();
+  });
+
+  it("returns in the next session when the flow is put off", async () => {
+    await mount();
+
+    await act(async () => {
+      button("close").click();
+    });
+
+    expect(modal()).toBeNull();
+    expect(localStorage.length).toBe(0);
+
+    unmount();
+    await mount();
+
+    expect(modal()).toBeNull();
+
+    unmount();
+    reset_recovery_code_refresh();
+    await mount();
+
+    expect(modal()).not.toBeNull();
+  });
+
+  it("stays open after saving until the flow closes itself", async () => {
+    await mount();
+
+    await act(async () => {
+      button("saved").click();
+    });
+
+    expect(modal()).not.toBeNull();
+
+    await act(async () => {
+      button("close").click();
+    });
+
+    expect(modal()).toBeNull();
+  });
+});

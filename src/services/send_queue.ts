@@ -71,6 +71,11 @@ import {
   encrypt_attachments_with_private_bcc,
   encrypt_with_private_bcc,
 } from "./send_private_bcc";
+import {
+  plan_sealed_attachments,
+  wipe_sealed_attachment_plan,
+  type SealedAttachmentPlan,
+} from "./crypto/attachment_crypto";
 
 import {
   enqueue_action,
@@ -80,6 +85,7 @@ import {
   type SendEmailPayload,
 } from "@/native/offline_queue";
 import { ignore_error } from "@/lib/ignore_error";
+import { device_traces_erased } from "@/lib/device_erase_latch";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -89,6 +95,10 @@ import {
 } from "@/components/compose/compose_shared_core";
 import { format_bytes } from "@/lib/utils";
 import { build_subject_bundle } from "@/utils/email_crypto";
+import {
+  build_sealed_details,
+  sealed_sender_name,
+} from "@/utils/sealed_message_details";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 export type {
@@ -322,10 +332,12 @@ function install_send_queue_unload_guards(): void {
   if (typeof window === "undefined") return;
 
   window.addEventListener("pagehide", () => {
+    if (device_traces_erased()) return;
     send_queue.flush_all_now();
   });
 
   window.addEventListener("beforeunload", (event) => {
+    if (device_traces_erased()) return;
     if (send_queue.pending_count() === 0) return;
 
     send_queue.flush_all_now();
@@ -482,6 +494,24 @@ async function prepare_email_for_server_queue(
   request: QueueEmailRequest;
   is_encrypted: boolean;
 } | null> {
+  const attachment_plans: SealedAttachmentPlan[] = [];
+
+  try {
+    return await prepare_email_with_plans(email, attachment_plans);
+  } finally {
+    for (const plan of attachment_plans) {
+      wipe_sealed_attachment_plan(plan);
+    }
+  }
+}
+
+async function prepare_email_with_plans(
+  email: ServerQueueEmailParams,
+  attachment_plans: SealedAttachmentPlan[],
+): Promise<{
+  request: QueueEmailRequest;
+  is_encrypted: boolean;
+} | null> {
   const readiness = check_send_readiness_internal();
 
   if (readiness.ready === false) {
@@ -535,9 +565,26 @@ async function prepare_email_for_server_queue(
   }
   const sender_email = email.sender_email || current_user.email;
 
+  const attachment_plan =
+    all_attachments.length > 0
+      ? await plan_sealed_attachments(all_attachments)
+      : null;
+
+  if (attachment_plan) attachment_plans.push(attachment_plan);
+
   const bundled_body_for_recipient = build_subject_bundle(
     email.subject || "",
     body_for_encryption,
+    attachment_plan?.manifest,
+    build_sealed_details({
+      from_name: sealed_sender_name(
+        email.sender_display_name,
+        email.sender_alias_hash,
+        current_user.display_name,
+      ),
+      to: email.to,
+      cc: email.cc,
+    }),
   );
 
   const {
@@ -632,8 +679,11 @@ async function prepare_email_for_server_queue(
       { to: email.to, cc: email.cc, bcc: email.bcc },
       internal_copy_is_encrypted,
       client_copies !== undefined,
+      attachment_plan?.session_keys,
     );
   }
+
+  if (attachment_plan) wipe_sealed_attachment_plan(attachment_plan);
 
   const request: QueueEmailRequest = {
     to: email.to,

@@ -20,6 +20,7 @@
 //
 import type { InboxEmail } from "@/types/email";
 import type { AttachmentPreviewEntry } from "@/hooks/use_attachment_previews";
+import type { ListToggleOptions } from "@/lib/list_click_selection";
 
 import { useRef } from "react";
 import { StarIcon } from "@heroicons/react/24/outline";
@@ -45,8 +46,9 @@ export interface InboxEmailListItemProps
   is_active?: boolean;
   is_focused?: boolean;
   selection?: React.RefObject<SelectionSnapshot>;
-  on_toggle_select: (id: string) => void;
+  on_toggle_select: (id: string, options?: ListToggleOptions) => void;
   on_email_click: (id: string) => void;
+  on_email_double_click?: (id: string) => void;
   on_archive?: (email: InboxEmail) => void;
   on_spam?: (email: InboxEmail) => void;
   on_delete?: (email: InboxEmail) => void;

@@ -502,6 +502,9 @@ export const pt_br = {
       "Seu pagamento não foi concluído. O acesso será limitado em {{days}} dias.",
     billing_alert_action: "Pagar",
     dismiss: "Dispensar",
+    web_sandbox_off_title: "O conteúdo da web está sendo executado sem a sandbox do sistema",
+    web_sandbox_off_body:
+      "Neste computador, Aster Mail não consegue iniciar a sandbox bubblewrap, então o conteúdo da web é executado sem ela. Para ativá-la de novo, instale o pacote bubblewrap, permita namespaces de usuário sem privilégios e reinicie Aster Mail.",
     load_content: "Carregar",
     open_link: "Abrir link",
     no_icon: "Sem ícone",
@@ -828,6 +831,8 @@ export const pt_br = {
       "Não foi possível mostrar este arquivo. Ele pode ter sido movido ou apagado.",
     attachment_locked:
       "Este anexo não pode ser aberto porque a chave de criptografia dele não está disponível neste dispositivo.",
+    attachment_content_mismatch:
+      "Este anexo não corresponde à mensagem com a qual chegou, por isso não foi aberto.",
     scheduled_no_attachments:
       "E-mails agendados ainda não podem incluir anexos. Envie agora ou remova os arquivos para agendar.",
     scheduled_connected_account:
@@ -1021,6 +1026,10 @@ export const pt_br = {
     encrypted_in_transit_stored:
       "Criptografado em trânsito e armazenado criptografado.",
     only_you_and_sender: "Apenas você e o remetente podem ler isso.",
+    only_you_and_sender_details_from_server:
+      "Apenas você e o remetente podem ler isso. O nome do remetente, os destinatários e a data vêm do servidor e não são cobertos pela criptografia de ponta a ponta.",
+    encrypted_to_you_unconfirmed_sender:
+      "Esta mensagem foi criptografada com sua chave pública. A identidade do remetente não foi confirmada.",
     only_you_can_read_contacts:
       "Apenas você pode ler seus contatos. A Aster não consegue ver estes dados.",
     failed_to_send_email:
@@ -1912,6 +1921,9 @@ export const pt_br = {
     dns_host_leave_blank: "Deixe em branco",
     dns_host_provider_hint:
       "A {{provider}} usa este formato no campo do host. Copie exatamente como está.",
+    dns_host_zone_hint:
+      "Este nome de host é relativo a {{zone}}, o domínio em que você gerencia os registros DNS.",
+    dns_full_record_name: "Nome completo do registro",
     purchase_congrats_title: "Parabéns",
     recipient_key_outdated: "A chave do destinatário está desatualizada",
     recipient_key_outdated_desc:
@@ -1922,7 +1934,23 @@ export const pt_br = {
     key_trust_change_message:
       "A chave de criptografia de {{recipients}} mudou desde a última consulta. Confirme a nova impressão digital com o destinatário por outro canal antes de enviar.",
     key_trust_change_detail: "{{email}}: antes {{prior}}, agora {{current}}.",
+    key_trust_unreadable_message:
+      "A chave de criptografia salva de {{recipients}} não pode ser lida neste dispositivo. Confirme a impressão digital atual com o destinatário por outro canal antes de enviar.",
+    key_trust_unreadable_detail: "{{email}}: agora {{current}}.",
+    key_trust_own_message:
+      "A chave de criptografia do seu endereço {{recipients}} mudou. Se você não redefiniu suas chaves nem configurou um novo dispositivo, não confie na nova chave.",
     key_trust_change_confirm: "Confiar na nova chave",
+    key_trust_missing_title: "Chave de criptografia não encontrada",
+    key_trust_missing_message:
+      "{{recipients}} tinha uma chave de criptografia salva neste dispositivo, mas nenhuma chave está disponível agora. Se você continuar, esta mensagem será enviada sem criptografia de ponta a ponta. Confirme com o destinatário por outro canal antes de enviar.",
+    key_trust_missing_detail: "{{email}}: era {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: a chave salva não pode ser lida.",
+    key_trust_missing_confirm: "Enviar sem criptografia",
+    key_trust_account_key_detail:
+      "{{email}} chave da conta: era {{prior}}, agora {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} chave de identidade: era {{prior}}, agora {{current}}.",
     post_quantum_downgrade_title:
       "Enviar sem as chaves pós-quânticas esperadas?",
     post_quantum_downgrade_message:
@@ -2140,6 +2168,9 @@ export const pt_br = {
     recovery_codes_low_reminder_body_one:
       "Cada código funciona uma vez, e resta {{count}}. Obtenha novos códigos para não perder o acesso.",
     recovery_codes_low_reminder_action: "Obter novos códigos",
+    recovery_codes_refresh_title: "Substitua seus códigos de recuperação",
+    recovery_codes_refresh_body:
+      "Seus códigos de recuperação salvos usam um formato mais antigo e mais curto. Obtenha novos códigos e salve-os. Depois disso, os códigos antigos deixam de funcionar.",
     recovery_phrase_migrate_title: "Mude para códigos de recuperação",
     recovery_phrase_migrate_body:
       "As frases de recuperação vão deixar de existir. Obtenha códigos de recuperação agora para continuar podendo recuperar sua conta.",
@@ -2319,6 +2350,15 @@ export const pt_br = {
       "Salvei meus códigos de recuperação em um lugar seguro.",
     recovery_codes_save_failed:
       "Não foi possível salvar seus códigos de recuperação no servidor. Tente novamente.",
+    recovery_codes_required_save_desc:
+      "Salve estes novos códigos em um local seguro. Seus códigos atuais continuam funcionando até você confirmar na próxima etapa.",
+    recovery_codes_required_verify_desc:
+      "Para começar a usar seus novos códigos, digite sua senha. Depois disso, os códigos anteriores deixam de funcionar.",
+    recovery_codes_required_action: "Substituir códigos",
+    recovery_codes_required_done:
+      "Seus novos códigos de recuperação estão ativos.",
+    recovery_codes_already_replaced:
+      "Seus códigos de recuperação já foram substituídos em outro dispositivo.",
     legacy_phrase_row: "Frase de recuperação (legado)",
     legacy_phrase_row_desc:
       "Sua frase de recuperação existente continua válida. Daqui em diante são usados códigos de recuperação.",
@@ -4182,6 +4222,8 @@ export const pt_br = {
       "Esta sessão começou em outra rede ou outro navegador, por isso o Aster Mail não alterou sua senha. Para alterá-la, saia da conta, entre novamente e tente de novo.",
     password_change_identity_continuity_required:
       "O Aster Mail não alterou sua senha porque a alteração removeria chaves de criptografia de que suas mensagens mais antigas precisam. Para tentar de novo, saia da conta, entre novamente e altere sua senha.",
+    password_change_vault_changed:
+      "Suas chaves de criptografia mudaram em outro dispositivo enquanto você alterava sua senha, então o Aster Mail não a alterou. Tente novamente.",
     password_change_vault_out_of_date:
       "Sua senha foi alterada em outro dispositivo, por isso esta sessão está desatualizada. Para alterar sua senha, saia da conta e entre novamente com sua senha atual.",
     update_password: "Atualizar senha",
@@ -4397,6 +4439,12 @@ export const pt_br = {
     developer_mode: "Modo desenvolvedor",
     developer_mode_description:
       "Mostrar a aba Desenvolvedor com informações de build, status de criptografia e ferramentas de depuração",
+    launch_at_login: "Abrir o Aster Mail ao entrar",
+    launch_at_login_description: "O Aster Mail inicia quando você entra no computador, para que novos e-mails cheguem sem abrir o app primeiro.",
+    start_minimized: "Iniciar minimizado",
+    start_minimized_description: "Quando o Aster Mail abre ao entrar, ele fica em segundo plano sem janela. Para abrir, clique no ícone dele na área de notificação ou na barra de menus.",
+    launch_at_login_move_to_applications: "Para abrir o Aster Mail ao entrar, mova-o primeiro para a pasta Aplicativos.",
+    launch_at_login_reason: "Abrir o Aster Mail ao entrar para receber novos e-mails em segundo plano.",
     close_to_tray: "Continuar em execução ao fechar a janela",
     close_to_tray_description:
       "O Aster Mail fica na área de notificação para continuar recebendo novos e-mails. Desative esta opção para sair ao fechar a janela.",
@@ -4717,7 +4765,7 @@ export const pt_br = {
       "Usar pontes Snowflake para resistir à censura",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "As solicitações passam por uma CDN global antes de chegar ao Aster. Seu endereço IP fica oculto para o Aster, e o tráfego se mistura com o tráfego comum da CDN.",
+      "As solicitações passam por um relay que o Aster opera na Cloudflare antes de chegar aos servidores do Aster. Para a sua rede, o tráfego parece tráfego comum de CDN, o que pode ajudar onde o Aster está bloqueado. O Aster ainda vê seu endereço IP. Para ocultá-lo do Aster, use o Tor.",
     "connection.status_connected": "Conectado",
     "connection.status_connecting": "Conectando...",
     "connection.status_error":
@@ -4747,7 +4795,8 @@ export const pt_br = {
     tlsrpt_record: "Registro TLS-RPT",
     tlsrpt_description:
       "Opcional, mas recomendado. Os servidores de recebimento enviam a você um resumo diário quando a entrega criptografada para o seu domínio falha, para que você identifique problemas antes dos seus usuários.",
-    dns_instruction_set_tlsrpt_host: "Defina o host como _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Copie o nome do host mostrado abaixo para o campo do host",
     dns_instruction_set_tlsrpt_value:
       "Cole o valor TLS-RPT exatamente como aparece",
     optional_step: "Opcional",
@@ -5141,7 +5190,7 @@ export const pt_br = {
     dns_instruction_set_dkim:
       "Defina o valor para a chave DKIM mostrada abaixo",
     dns_instruction_set_dmarc_host:
-      "Defina o host como _dmarc (sem incluir seu domínio)",
+      "Copie o nome do host mostrado abaixo para o campo do host",
     dns_instruction_set_dmarc_value:
       "Defina o valor para a política DMARC mostrada abaixo",
     edit_external_account: "Editar conta externa",
@@ -7175,10 +7224,149 @@ export const pt_br = {
       "A Aster cobra seu cartão salvo 30 dias antes da data de vencimento e envia o preço por e-mail 15 dias antes.",
     domain_purchase_manage_auto_renew_error:
       "Não foi possível atualizar a renovação automática. Tente novamente.",
-    domain_purchase_manage_dns: "Abrir configuração do domínio",
+    domain_purchase_manage_dns: "Gerenciar DNS",
     domain_purchase_manage_support_note:
-      "Para transferir este domínio para outro registrador ou perguntar sobre um reembolso, entre em contato com o suporte.",
+      "Para dúvidas sobre cobrança ou reembolso, entre em contato com o suporte.",
     domain_purchase_manage_support_subject: "Ajuda com {{domain}}",
+    domain_transfer_button: "Transferir",
+    domain_transfer_title: "Transferir domínio",
+    domain_transfer_hint:
+      "Mova este domínio para outro registrador. O suporte envia o código de transferência para sua caixa de entrada do Aster.",
+    domain_transfer_message:
+      "Para mover {{domain}} para outro registrador, você precisa de um código de transferência. Ao continuar, a Aster abre um e-mail para o suporte. O suporte confirma que a solicitação veio desta conta e, em seguida, envia o código para sua caixa de entrada do Aster. As transferências costumam levar de 5 a 7 dias depois que você as inicia no novo registrador.",
+    domain_transfer_locked_message:
+      "Os registradores não permitem transferências nos {{count}} dias seguintes ao registro. Você pode solicitar a transferência de {{domain}} a partir de {{date}}.",
+    domain_transfer_confirm: "Escrever para o suporte",
+    domain_transfer_email_subject: "Solicitação de transferência de {{domain}}",
+    domain_transfer_email_body:
+      "Quero transferir {{domain}} para outro registrador. Envie o código de transferência para este endereço.\n\nID do pedido: {{order_id}}\nNovo registrador:",
+    purchased_dns_title: "Registros DNS",
+    purchased_dns_description:
+      "Registros de {{domain}}. As alterações costumam entrar em vigor em até uma hora.",
+    purchased_dns_locked_title: "Edição desativada",
+    purchased_dns_locked_note:
+      "Você pode ver estes registros, mas não pode alterá-los no momento.",
+    purchased_dns_lock_frozen:
+      "A edição está pausada para este domínio. Entre em contato com o suporte para saber mais.",
+    purchased_dns_lock_payment:
+      "A edição está desativada porque o pagamento deste domínio foi estornado.",
+    purchased_dns_lock_lapsed:
+      "A edição está desativada porque este domínio expirou. Renove-o para fazer alterações.",
+    purchased_dns_lock_suspended:
+      "A edição está desativada porque este domínio está suspenso.",
+    purchased_dns_unlock_title: "Confirme que é você",
+    purchased_dns_unlock_description:
+      "Para alterar registros DNS, confirme sua identidade. A edição fica ativada por 15 minutos.",
+    purchased_dns_unlock: "Ativar edição",
+    purchased_dns_unlocked: "Edição ativada",
+    purchased_dns_unlocked_for: "Edição ativada por {{time}}",
+    purchased_dns_lock: "Desativar edição",
+    purchased_dns_add: "Adicionar registro",
+    purchased_dns_add_title: "Adicionar registro",
+    purchased_dns_edit_title: "Editar registro",
+    purchased_dns_added: "Registro adicionado",
+    purchased_dns_updated: "Registro atualizado",
+    purchased_dns_deleted: "Registro excluído",
+    purchased_dns_delete_title: "Excluir registro?",
+    purchased_dns_delete_message:
+      "O registro {{type}} de {{name}} deixa de ser resolvido logo após a exclusão.",
+    purchased_dns_edit_record: "Editar registro {{type}} de {{name}}",
+    purchased_dns_copy_record: "Copiar o valor do registro {{type}} de {{name}}",
+    purchased_dns_delete_record: "Excluir registro {{type}} de {{name}}",
+    purchased_dns_read_only: "Somente leitura",
+    purchased_dns_mail_group: "Registros do Aster Mail",
+    purchased_dns_mail_group_tip:
+      "A Aster gerencia estes registros para que seu e-mail continue funcionando. Você não pode editá-los nem excluí-los.",
+    purchased_dns_your_records: "Seus registros",
+    purchased_dns_empty: "Você ainda não adicionou nenhum registro.",
+    purchased_dns_limit_reached:
+      "Este domínio atingiu o máximo de {{count}} registros. Exclua um para adicionar outro.",
+    purchased_dns_col_type: "Tipo",
+    purchased_dns_col_name: "Nome",
+    purchased_dns_col_content: "Conteúdo",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Ações",
+    purchased_dns_host_hint:
+      "Use @ para o próprio domínio ou insira um subdomínio, como www.",
+    purchased_dns_field_ipv4: "Endereço IPv4",
+    purchased_dns_field_ipv6: "Endereço IPv6",
+    purchased_dns_field_target: "Destino",
+    purchased_dns_field_content: "Conteúdo",
+    purchased_dns_field_mail_server: "Servidor de e-mail",
+    purchased_dns_field_caa_value: "Valor",
+    purchased_dns_field_priority: "Prioridade",
+    purchased_dns_field_weight: "Peso",
+    purchased_dns_field_port: "Porta",
+    purchased_dns_field_flags: "Flags",
+    purchased_dns_field_tag: "Tag",
+    purchased_dns_ttl_one_hour: "1 hora",
+    purchased_dns_ttl_hours: "{{count}} horas",
+    purchased_dns_ttl_one_day: "1 dia",
+    purchased_dns_ttl_days: "{{count}} dias",
+    purchased_dns_error_required: "Preencha este campo.",
+    purchased_dns_error_host:
+      "Insira um nome válido. Use letras, números, hifens e sublinhados, com até 63 caracteres por rótulo.",
+    purchased_dns_error_protected_host:
+      "Este nome é reservado para os registros do Aster Mail.",
+    purchased_dns_error_apex_mx:
+      "Os registros de e-mail do próprio domínio são gerenciados pela Aster. Adicione registros MX em um subdomínio.",
+    purchased_dns_error_apex_cname:
+      "Um registro CNAME não pode usar o próprio domínio. Use um registro A ou AAAA.",
+    purchased_dns_error_apex_spf:
+      "A Aster já publica um registro SPF para este domínio, e um domínio só pode ter um.",
+    purchased_dns_error_value: "Verifique o valor e tente novamente.",
+    purchased_dns_error_ip: "Insira um endereço IP válido.",
+    purchased_dns_error_ipv4:
+      "Insira um endereço IPv4 válido, como 203.0.113.10.",
+    purchased_dns_error_ipv6:
+      "Insira um endereço IPv6 válido, como 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Insira um endereço IP público. Endereços privados, locais e reservados não podem ser acessados pela internet.",
+    purchased_dns_error_target:
+      "Insira um nome de host válido, como example.com.",
+    purchased_dns_error_cname_self:
+      "Um registro CNAME não pode apontar para o próprio nome.",
+    purchased_dns_error_cname_conflict:
+      "Um nome com registro CNAME não pode ter outros registros. Remova os outros registros primeiro ou escolha outro nome.",
+    purchased_dns_error_txt_length:
+      "O conteúdo TXT pode ter até 2.048 caracteres.",
+    purchased_dns_error_txt_chars:
+      "O conteúdo TXT só pode conter caracteres imprimíveis padrão, sem aspas nem barras invertidas.",
+    purchased_dns_error_ttl: "Escolha um TTL da lista.",
+    purchased_dns_error_priority: "Insira uma prioridade de 0 a 65535.",
+    purchased_dns_error_weight: "Insira um peso de 0 a 65535.",
+    purchased_dns_error_port: "Insira uma porta de 1 a 65535.",
+    purchased_dns_error_srv_host:
+      "Um nome SRV começa com o serviço e o protocolo, como _sip._tcp.",
+    purchased_dns_error_caa_flags: "Escolha 0 ou 128 para as flags.",
+    purchased_dns_error_caa_tag:
+      "Escolha issue, issuewild ou iodef para a tag.",
+    purchased_dns_error_caa_value:
+      "Insira um valor com até 255 caracteres, sem aspas nem barras invertidas.",
+    purchased_dns_error_duplicate: "Este registro já existe.",
+    purchased_dns_error_too_many:
+      "Este domínio atingiu o número máximo de registros. Exclua um para adicionar outro.",
+    purchased_dns_error_protected_record:
+      "A Aster gerencia este registro, então você não pode alterá-lo.",
+    purchased_dns_error_type_change:
+      "Não é possível alterar o tipo de um registro. Exclua-o e adicione um novo registro.",
+    purchased_dns_error_locked: "A edição está desativada para este domínio.",
+    purchased_dns_error_busy: "O registrador está ocupado.",
+    purchased_dns_error_not_found: "Este registro não existe mais.",
+    purchased_dns_error_rate_limited:
+      "Você está fazendo alterações rápido demais.",
+    purchased_dns_error_retry_in:
+      "{{message}} Tente novamente em {{count}} segundos.",
+    purchased_dns_error_retry_in_one: "{{message}} Tente novamente em {{count}} segundo.",
+    purchased_dns_ttl_seconds: "{{count}} segundos",
+    purchased_dns_expired_note: "A edição foi desativada. Suas alterações ainda não foram salvas. Ao clicar em Salvar, você confirma sua identidade primeiro.",
+    purchased_dns_filter_placeholder: "Filtrar registros",
+    purchased_dns_filter_no_results: "Nenhum registro corresponde ao filtro.",
+    purchased_dns_keep_editing: "Continuar editando",
+    purchased_dns_error_unlock_failed: "Não foi possível ativar a edição. Tente novamente.",
+    purchased_dns_error_generic:
+      "Não foi possível salvar sua alteração. Tente novamente.",
+    purchased_dns_load_failed: "Não foi possível carregar os registros DNS. Tente novamente.",
     domain_purchase_filter_all: "Todos",
     domain_purchase_filter_available: "Disponíveis",
     domain_purchase_filter_taken: "Ocupados",
@@ -7417,6 +7605,7 @@ export const pt_br = {
       "As chaves de segurança podem ser adicionadas no aplicativo web da Aster em app.astermail.org. Você ainda pode visualizar e remover as chaves existentes aqui.",
     passkeys_desktop_note:
       "As chaves de acesso podem ser adicionadas no aplicativo web da Aster em app.astermail.org. Você ainda pode visualizar e remover as chaves de acesso existentes aqui.",
+    passkeys_open_in_browser: "Abrir no navegador",
     app_lock_pin: "Bloqueio por PIN",
     app_lock_pin_description:
       "Pede um PIN antes de mostrar o Aster Mail neste navegador. Ele oculta seus e-mails de outras pessoas que usam este dispositivo, mas não criptografa os dados armazenados aqui.",
@@ -8879,6 +9068,8 @@ export const pt_br = {
       "A identidade de criptografia deste remetente mudou desde a última troca de mensagens. Se você não esperava isso, confirme com essa pessoa por outro meio.",
     sender_identity_downgraded:
       "As mensagens deste remetente já não contam com proteção pós-quântica. Se você não esperava isso, confirme com essa pessoa por outro meio.",
+    sender_identity_unreadable:
+      "A chave de criptografia salva deste remetente não pode ser lida neste dispositivo, então esta mensagem não pode ser verificada. Para voltar a verificar as mensagens dessa pessoa, confirme a chave com ela por outro meio e escolha Confiar na nova chave.",
     recipient_identity_changed:
       "A chave de criptografia de {{email}} mudou. Se você não esperava isso, confirme a mudança com essa pessoa por outro meio antes de enviar informações confidenciais.",
     message_password_requirements:
@@ -9077,6 +9268,11 @@ export const pt_br = {
     block_sender: "Bloquear remetente",
     unblock_sender: "Desbloquear remetente",
     unsubscribe: "Cancelar inscrição",
+    copy_code: "Copiar código",
+    copy_code_value: "Copiar código {{code}}",
+    copy_subject: "Copiar assunto",
+    code_copied: "Código copiado",
+    subject_copied: "Assunto copiado",
     edit_draft: "Editar rascunho",
     schedule: "Agendar",
     scheduling: "Agendando",
@@ -9431,9 +9627,9 @@ export const pt_br = {
     unstar: "Remover estrela",
     mark_unread: "Marcar como não lido",
     mark_read: "Marcar como lido",
-    verified_sender: "Remetente verificado",
+    verified_sender: "Domínio verificado",
     verified_sender_desc:
-      "O remetente deste e-mail verificou que é proprietário de {{domain}}.",
+      "Os servidores da Aster verificaram que o remetente é proprietário de {{domain}}.",
     sender_warning_title: "Verifique o endereço do remetente",
     sender_warning_address_in_name:
       "O nome do remetente mostra {{claimed}}, mas esta mensagem vem de {{address}}.",
@@ -9539,6 +9735,7 @@ export const pt_br = {
     move_n_conversations_one: "Mover {{count}} conversa",
     move_n_conversations_other: "Mover {{count}} conversas",
     view_message: "Ver mensagem",
+    open_full_view: "Abrir em visualização completa",
     blocking: "Bloqueando...",
     block: "Bloquear",
     unsubscribe_title: "Cancelar inscrição",
@@ -9580,6 +9777,9 @@ export const pt_br = {
       "Este e-mail foi recebido em {{ received }}, mas sua resposta será enviada de {{ selected }}. Responder de outro endereço pode revelá-lo ao remetente e a resposta pode ser rejeitada.",
     reply_from_mismatch_use_received: "Usar endereço de recebimento",
     reply_from_mismatch_send_anyway: "Enviar mesmo assim",
+    reply_from_unknown_title: "Verifique o endereço do remetente",
+    reply_from_unknown_message:
+      "O Aster não consegue determinar qual dos seus endereços recebeu este e-mail. Sua resposta será enviada de {{ selected }}. Para enviar de outro endereço, cancele e escolha-o primeiro.",
     forward_subject_prefix: "Enc:",
     reply_quote_header: "Em {{ date }}, {{ name }} escreveu:",
     download_file_named: "Baixar {{ filename }}",
@@ -9588,6 +9788,7 @@ export const pt_br = {
     received_via_alias: "entregue no seu alias {{ address }}",
     new_reaction: "Nova reação",
     load_external_content: "Carregar conteúdo externo",
+    image_loading_settings: "Configurações de imagens",
     image: "imagem",
     images: "imagens",
     tracker: "rastreador",
@@ -10162,6 +10363,22 @@ export const pt_br = {
     sending_reset_link: "Enviando link de redefinição...",
     reset_your_password: "Redefina sua senha",
     reset_choose_new_password: "Escolha uma nova senha para sua conta.",
+    reset_current_password:
+      "Senha atual",
+    reset_current_password_keeps_keys:
+      "Digite sua senha atual para manter suas chaves de criptografia e deixar seus e-mails legíveis. Se não souber, use um código de recuperação.",
+    reset_current_password_required:
+      "Digite sua senha atual ou use um código de recuperação.",
+    reset_lost_everything:
+      "Perdi minha senha e meus códigos de recuperação",
+    reset_remember_password:
+      "Lembro minha senha",
+    reset_lost_everything_warning:
+      "Sem sua senha ou um código de recuperação, o Aster Mail não consegue desbloquear suas chaves de criptografia. A redefinição cria chaves novas, e os e-mails que você já tem ficam ilegíveis, a menos que depois você encontre a senha anterior ou um código de recuperação.",
+    reset_lost_everything_confirm:
+      "Entendo que meus e-mails existentes ficarão ilegíveis",
+    reset_lost_everything_confirm_required:
+      "Para redefinir sem sua senha, confirme que entende que seus e-mails existentes ficarão ilegíveis.",
     reset_current_password_optional: "Senha atual (opcional)",
     reset_current_password_hint:
       "Se você lembra sua senha atual, digite-a aqui e seus e-mails anteriores continuam disponíveis assim que você entrar. Se deixar em branco, você pode desbloquear seus e-mails anteriores depois com um código de recuperação.",
@@ -10276,31 +10493,43 @@ export const pt_br = {
     link_device_confirm_button: "Vincular dispositivo",
     link_device_confirm_prompt: "Deseja vincular este dispositivo à sua conta?",
     link_device_confirming: "Vinculando dispositivo...",
-    link_device_desktop: "Aplicativo desktop",
-    device_fingerprint: "Código de verificação",
+    link_device_desktop: "Novo dispositivo",
+    device_fingerprint: "Impressão digital do dispositivo",
+    device_fingerprint_copy: "Copiar impressão digital do dispositivo",
+    link_device_grant_notice:
+      "Ao vincular, o app em {{device}} recebe acesso total a {{email}}, incluindo seus e-mails e suas chaves de criptografia.",
+    link_device_own_device_warning:
+      "Continue somente se você iniciou este processo em um app do Aster no seu próprio dispositivo. Se outra pessoa passou este código para você, não vincule o dispositivo.",
+    link_device_fingerprint_enter:
+      "Digite a impressão digital do dispositivo mostrada no app que você está vinculando. Alguns apps a chamam de código de verificação.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Isso não corresponde ao dispositivo deste código de vinculação. Compare cada caractere com o app que você está vinculando e tente novamente. Se ainda não corresponder, não vincule o dispositivo.",
+    link_device_fingerprint_link_mismatch:
+      "O link que abriu esta página pertence a um dispositivo diferente do deste código de vinculação, então você não pode vincular o dispositivo aqui. Gere um novo código no app que você está vinculando e tente novamente.",
+    link_device_update_desktop:
+      "Se o app não mostrar, escolha Verificar este dispositivo no app. Se o app não tiver essa opção, atualize o app e tente de novo.",
+    device_code_fingerprint_required_hint:
+      "Seu navegador pede esta impressão digital do dispositivo antes de vincular o dispositivo.",
     device_code_verify_toggle: "Verificar este dispositivo",
     link_device_fingerprint_hint:
       "Digite o código de verificação exibido no seu novo dispositivo. No app para computador, selecione Verificar este dispositivo para vê-lo.",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete:
       "Para vincular o dispositivo, digite o código de verificação completo do seu novo dispositivo.",
-    link_device_fingerprint_mismatch:
-      "Esse código não é igual ao do seu novo dispositivo. Confira o código no seu novo dispositivo e digite-o novamente. Se ainda não for igual, selecione Cancelar.",
     device_code_fingerprint_hint:
       "Para vincular este dispositivo, digite este código no dispositivo em que você já está conectado.",
     link_device_change_account: "Mudar de conta",
     link_device_choose_account: "Escolha uma conta",
-    link_device_choose_account_description:
-      "Para vincular seu aplicativo desktop",
+    link_device_choose_account_description: "Para vincular um novo dispositivo",
     link_device_choose_account_note:
       "Suas chaves de criptografia continuam criptografadas enquanto passam entre seus dispositivos.",
     link_device_use_another_account: "Usar outra conta",
     link_device_use_this_account: "Usar esta conta",
     link_device_other_accounts: "Mudar para outra conta",
     link_device_enter_code:
-      "Digite o código mostrado no seu aplicativo desktop.",
+      "Digite o código de vinculação mostrado no app que você está vinculando.",
     link_device_expired_code:
-      "Este código expirou ou não corresponde. Use o código atual do seu aplicativo desktop.",
+      "Este código expirou ou não corresponde. Use o código atual do app que você está vinculando.",
     link_device_failed:
       "A vinculação não foi concluída. Recomeçar geralmente resolve. Sua conta está inalterada.",
     link_device_invalid_code:
@@ -10311,7 +10540,7 @@ export const pt_br = {
       "Para continuar com esta conta, insira a senha dela.",
     link_device_success: "Dispositivo vinculado",
     link_device_success_description:
-      "Seu aplicativo desktop está agora vinculado. Você pode fechar esta aba.",
+      "Seu dispositivo agora está vinculado. Você pode fechar esta aba.",
     link_device_title: "Vincular dispositivo",
     link_keys_locked_title: "Seu chaveiro está bloqueado",
     link_keys_locked_description:
@@ -10479,6 +10708,22 @@ export const pt_br = {
       "Seu e-mail de recuperação continua configurado.",
     review_no_recovery_email: "Sem e-mail de recuperação.",
     review_add: "Adicionar",
+    recovery_previous_password_placeholder:
+      "Digite sua senha anterior",
+    recovery_previous_password_body:
+      "Suas chaves de criptografia ainda estão protegidas pela senha que você usava antes desta redefinição. Para manter seus e-mails legíveis, digite essa senha anterior. Suas chaves continuam as mesmas e passam a ser protegidas pela nova senha.",
+    recovery_previous_password_required:
+      "Digite sua senha anterior ou selecione Não lembro.",
+    recovery_previous_password_incorrect:
+      "Essa senha não desbloqueia suas chaves de criptografia. Verifique e tente novamente.",
+    recovery_previous_password_forgot:
+      "Não lembro",
+    recovery_previous_password_use:
+      "Digitar minha senha anterior",
+    recovery_previous_password_skipped_warning:
+      "Sua senha é redefinida e suas chaves de criptografia são mantidas, mas continuam bloqueadas com a senha anterior. Você não poderá ler seus e-mails até digitar essa senha no aviso Recuperar dados.",
+    review_keys_left_locked:
+      "Suas chaves de criptografia foram mantidas, mas continuam bloqueadas com a senha anterior. Para ler seus e-mails, selecione Recuperar dados no aviso e digite essa senha.",
     review_codes_left: "Restam {{count}} códigos de recuperação.",
     review_codes_left_one: "Resta {{count}} código de recuperação.",
     review_codes_left_other: "Restam {{count}} códigos de recuperação.",
@@ -10701,6 +10946,8 @@ export const pt_br = {
       "A senha da mensagem é fraca demais, então a mensagem não foi enviada. Use pelo menos 12 caracteres e inclua um número, um símbolo ou letras maiúsculas e minúsculas.",
     recipient_key_untrusted:
       "A chave de criptografia de um destinatário mudou, então a mensagem não foi enviada. Para enviá-la, confirme a mudança com essa pessoa por outro meio e escolha Confiar na nova chave.",
+    recipient_key_unreadable:
+      "A chave de criptografia salva de um destinatário não pode ser lida neste dispositivo, então a mensagem não foi enviada. Para enviá-la, confirme a chave com essa pessoa por outro meio e escolha Confiar na nova chave.",
     key_trust_check_failed:
       "Não foi possível verificar as chaves de criptografia dos destinatários, então a mensagem não foi enviada. Verifique sua conexão e tente novamente.",
     recipient_classification_unavailable:
@@ -10947,6 +11194,8 @@ export const pt_br = {
       "case_sensitive só pode vir depois de um valor de texto entre aspas.",
     expr_internal_error:
       "Não foi possível ler esta expressão. Verifique a sintaxe e tente novamente.",
+    expr_server_rejected:
+      "Não é possível salvar esta parte da expressão. Verifique a sintaxe e tente novamente.",
     expr_line_col: "(linha {{line}}, coluna {{col}})",
     editor_description: "Dê um nome à sua regra e diga o que ela deve fazer.",
     editor_server_notice:
@@ -11088,6 +11337,10 @@ export const pt_br = {
     regex_invalid:
       "Este padrão regex não é válido. Confira a sintaxe e tente novamente.",
     regex_empty: "Um padrão regex é necessário antes de salvar.",
+    regex_too_complex:
+      "Este padrão regex é complexo demais para ser salvo. Use menos repetições ou alternativas e tente novamente.",
+    regex_invalid_reason:
+      "Este padrão regex não é válido: {{reason}}",
     regex_too_long:
       "Este regex é muito longo. Uma versão reduzida vai funcionar.",
     last_condition_required:
@@ -11529,6 +11782,8 @@ export const pt_br = {
     invite_card_join: "Entrar na reunião",
     invite_card_calendar_failed: "Sua resposta foi enviada, mas o Aster não conseguiu adicionar este evento à sua agenda.",
     invite_card_reply_send_failed: "Não foi possível enviar sua resposta. Tente novamente.",
+    invite_card_reply_address_unavailable:
+      "O Aster não enviou sua resposta porque o endereço que recebeu este convite não pode enviar e-mails. Para responder, ative esse endereço novamente.",
     invite_card_organizer_mismatch:
       "{{sender}} enviou este convite, mas ele indica {{organizer}} como organizador. Se você não esperava isso, confirme com o organizador antes de responder.",
     invite_card_reply_confirm:

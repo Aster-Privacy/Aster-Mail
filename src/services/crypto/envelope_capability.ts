@@ -31,6 +31,7 @@ export const ENVELOPE_CAPABILITY_MAX_MARKER = 4;
 export const ENVELOPE_CAPABILITY_X3DH_MAX_VERSION = 3;
 export const ENVELOPE_CAPABILITY_X3DH_ONE_TIME_VERSION = 4;
 export const ENVELOPE_CAPABILITY_PGP_EXTERNAL_VERSION = 1;
+export const ENVELOPE_CAPABILITY_ADDRESS_IDENTITY_VERSION = 1;
 export const ENVELOPE_CAPABILITY_BOUND_VERSION = 1;
 export const ENVELOPE_CAPABILITY_REPORT_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 const ML_KEM_768_PUBLIC_KEY_LENGTH = 1184;
@@ -59,6 +60,7 @@ export interface EnvelopeCapabilityDeps {
     pq_identity_fingerprint: string | null,
     x3dh_max_version: number,
     pgp_external_version: number,
+    address_identity_version: number,
     bound_envelope_version: number,
   ) => Promise<EnvelopeCapabilityResult | null>;
   platform: () => string;
@@ -111,6 +113,7 @@ async function post_capability(
   pq_identity_fingerprint: string | null,
   x3dh_max_version: number,
   pgp_external_version: number,
+  address_identity_version: number,
   bound_envelope_version: number,
 ): Promise<EnvelopeCapabilityResult | null> {
   const response = await api_client.post<EnvelopeCapabilityResult>(
@@ -123,6 +126,7 @@ async function post_capability(
       pq_identity_fingerprint,
       x3dh_max_version,
       pgp_external_version,
+      address_identity_version,
       bound_envelope_version,
     },
   );
@@ -235,12 +239,16 @@ export async function report_envelope_capability_if_due(
   const pq_fingerprint =
     (await deps.pq_identity_fingerprint().catch(() => null)) ?? "";
   const pgp_external_marker = String(ENVELOPE_CAPABILITY_PGP_EXTERNAL_VERSION);
+  const address_identity_marker = String(
+    ENVELOPE_CAPABILITY_ADDRESS_IDENTITY_VERSION,
+  );
   const bound_marker = String(ENVELOPE_CAPABILITY_BOUND_VERSION);
   const [
     last_at,
     last_fingerprint = "",
     last_pq_fingerprint = "",
     last_pgp_external = "",
+    last_address_identity = "",
     last_bound = "",
   ] = (deps.read(LAST_REPORTED_PREFIX + user_id) ?? "").split("|");
   const last = Number(last_at);
@@ -251,6 +259,7 @@ export async function report_envelope_capability_if_due(
     fingerprint === last_fingerprint &&
     pq_fingerprint === last_pq_fingerprint &&
     pgp_external_marker === last_pgp_external &&
+    address_identity_marker === last_address_identity &&
     bound_marker === last_bound &&
     Number.isFinite(last) &&
     last > 0 &&
@@ -280,6 +289,7 @@ export async function report_envelope_capability_if_due(
       pq_fingerprint || null,
       reported_x3dh_version,
       ENVELOPE_CAPABILITY_PGP_EXTERNAL_VERSION,
+      ENVELOPE_CAPABILITY_ADDRESS_IDENTITY_VERSION,
       ENVELOPE_CAPABILITY_BOUND_VERSION,
     )
     .catch(() => null);
@@ -287,7 +297,7 @@ export async function report_envelope_capability_if_due(
   if (result?.success) {
     write(
       LAST_REPORTED_PREFIX + user_id,
-      `${now}|${fingerprint}|${pq_fingerprint}|${pgp_external_marker}|${bound_marker}`,
+      `${now}|${fingerprint}|${pq_fingerprint}|${pgp_external_marker}|${address_identity_marker}|${bound_marker}`,
     );
   }
 

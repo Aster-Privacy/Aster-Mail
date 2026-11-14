@@ -210,6 +210,84 @@ describe("thread_imported_emails", () => {
     ]);
   });
 
+  it("merges a reply that was given its own conversation into its parent's", async () => {
+    setup_mail_items([
+      make_item({
+        id: "reply",
+        thread_token: "reply-token",
+        encrypted_envelope: envelope({
+          subject: "Re: Invoice",
+          message_id: "<reply@example.com>",
+          references: "<parent@example.com>",
+          sent_at: "2026-01-02T00:00:00Z",
+        }),
+      }),
+      make_item({
+        id: "parent",
+        thread_token: "parent-token",
+        encrypted_envelope: envelope({
+          subject: "Invoice",
+          message_id: "<parent@example.com>",
+          sent_at: "2026-01-01T00:00:00Z",
+        }),
+      }),
+    ]);
+
+    const run = await reimport_fresh();
+
+    expect(await run({ relink_all: true })).toBe(1);
+    expect(submitted()).toEqual([
+      expect.objectContaining({
+        item_id: "reply",
+        thread_token: "parent-token",
+      }),
+    ]);
+  });
+
+  it("links sent replies into the conversation they answer", async () => {
+    const received = make_item({
+      id: "parent",
+      encrypted_envelope: envelope({
+        subject: "Plans",
+        message_id: "<parent@example.com>",
+        sent_at: "2026-01-01T00:00:00Z",
+      }),
+    });
+    const sent = make_item({
+      id: "sent-reply",
+      item_type: "sent",
+      encrypted_envelope: envelope({
+        subject: "RE: Plans",
+        message_id: "<sent@aster.cx>",
+        in_reply_to: "<parent@example.com>",
+        sent_at: "2026-01-02T00:00:00Z",
+      }),
+    });
+
+    mock_list_mail_items.mockImplementation(
+      async (params: { item_type: string }) => ({
+        data: {
+          items: params.item_type === "sent" ? [sent] : [received],
+          has_more: false,
+          next_cursor: null,
+        },
+      }),
+    );
+
+    const run = await reimport_fresh();
+
+    await run({ relink_all: true });
+
+    const root = thread_token_from_root(USER_ID, "<parent@example.com>");
+
+    expect(submitted()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ item_id: "parent", thread_token: root }),
+        expect.objectContaining({ item_id: "sent-reply", thread_token: root }),
+      ]),
+    );
+  });
+
   it("never links two unrelated messages that only share a subject", async () => {
     setup_mail_items([
       make_item({

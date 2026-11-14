@@ -29,7 +29,7 @@ import { list_contacts } from "@/services/api/contacts";
 
 import { array_to_base64, base64_to_array } from "../base64";
 
-import { re_encrypt_field } from "./key_helpers";
+import { move_field, re_encrypt_field } from "./key_helpers";
 export async function re_encrypt_contact_field_values(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
@@ -344,8 +344,8 @@ export async function re_encrypt_contact_sync_sources(
 export async function re_encrypt_drafts(
   old_identity_key: string,
   new_identity_key: string,
-): Promise<void> {
-  if (old_identity_key === new_identity_key) return;
+): Promise<boolean> {
+  if (old_identity_key === new_identity_key) return true;
 
   const DRAFT_KEY_SUFFIX = "astermail-draft-v2";
 
@@ -367,10 +367,11 @@ export async function re_encrypt_drafts(
 
   const [old_key, new_key] = await Promise.all([
     derive_draft_aes(old_identity_key, ["decrypt"]),
-    derive_draft_aes(new_identity_key, ["encrypt"]),
+    derive_draft_aes(new_identity_key, ["encrypt", "decrypt"]),
   ]);
 
   let cursor: string | undefined;
+  let ok = true;
 
   while (true) {
     const resp = await api_client.get<{
@@ -389,22 +390,29 @@ export async function re_encrypt_drafts(
       `/mail/v1/drafts?limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`,
     );
 
-    if (resp.error || !resp.data) break;
+    if (resp.error || !resp.data) {
+      ok = false;
+      break;
+    }
 
     for (const draft of resp.data.items) {
       try {
-        const { encrypted, nonce } = await re_encrypt_field(
+        const moved = await move_field(
           draft.encrypted_content,
           draft.content_nonce,
           old_key,
           new_key,
         );
+
+        if (moved.state !== "moved") continue;
+
+        const { encrypted, nonce } = moved;
         const hash_buf = await crypto.subtle.digest(
           HASH_ALG,
           new TextEncoder().encode(encrypted),
         );
 
-        await api_client.put(`/mail/v1/drafts/${draft.id}`, {
+        const saved = await api_client.put(`/mail/v1/drafts/${draft.id}`, {
           encrypted_content: encrypted,
           content_nonce: nonce,
           content_hash: array_to_base64(new Uint8Array(hash_buf)),
@@ -413,7 +421,10 @@ export async function re_encrypt_drafts(
           has_attachments: draft.has_attachments,
           attachment_count: draft.attachment_count,
         });
+
+        if (saved.error) ok = false;
       } catch {
+        ok = false;
         continue;
       }
     }
@@ -421,4 +432,6 @@ export async function re_encrypt_drafts(
     cursor = resp.data.next_cursor;
     if (!resp.data.has_more || !cursor) break;
   }
+
+  return ok;
 }

@@ -145,7 +145,7 @@ describe("ViewerToolbarActions button order", () => {
       "mail.report_spam",
       "mail.move_to_trash",
       "mail.mark_as_unread",
-      "mail.move_to_folder",
+      "mail.move_to",
       "common.more",
     ]);
   });

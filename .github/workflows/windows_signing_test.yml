@@ -9,28 +9,29 @@ permissions:
 
 jobs:
   sign-windows:
+    environment: release
     runs-on: windows-latest
+    permissions:
+      contents: read
+      actions: read
     timeout-minutes: 75
     env:
       SIGNING_POLICY: test-signing
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 20
-          cache: npm
+          package-manager-cache: false
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
         with:
           toolchain: stable
-
-      - name: Rust cache
-        uses: swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-        with:
-          workspaces: src-tauri -> target
 
       - name: Setup MSVC environment
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
@@ -44,11 +45,25 @@ jobs:
           npm run build
 
       - name: Install frontend dependencies
-        run: npm ci --no-audit --no-fund
-
-      - name: Create a throwaway updater key for the bundler
         shell: bash
-        run: npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/throwaway_updater.key"
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund --ignore-scripts
+          npx --no-install patch-package
+
+      - name: Create throwaway updater keys
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run tauri -- signer generate --ci -w "$RUNNER_TEMP/throwaway_updater.key"
+          TEST_V1_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$TEST_V1_PASSWORD"
+          printf '%s' "$TEST_V1_PASSWORD" > "$RUNNER_TEMP/test_updater_v1.password"
+          npm run tauri -- signer generate --ci -p "$TEST_V1_PASSWORD" -w "$RUNNER_TEMP/test_updater_v1.key"
+          TEST_V2_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$TEST_V2_PASSWORD"
+          printf '%s' "$TEST_V2_PASSWORD" > "$RUNNER_TEMP/test_updater_v2.password"
+          npm run tauri -- signer generate --ci -p "$TEST_V2_PASSWORD" -w "$RUNNER_TEMP/test_updater_v2.key"
 
       - name: Build the app binary without installers
         shell: bash
@@ -91,13 +106,16 @@ jobs:
           output-artifact-directory: signed/app_binary
 
       - name: Put the signed app binary back
+        env:
+          APP_BINARY_NAME: ${{ steps.app_binary.outputs.name }}
+          APP_BINARY_PATH: ${{ steps.app_binary.outputs.path }}
         shell: pwsh
         run: |
-          $signed = "signed/app_binary/${{ steps.app_binary.outputs.name }}"
+          $signed = "signed/app_binary/$env:APP_BINARY_NAME"
           $sig = Get-AuthenticodeSignature $signed
           if ($null -eq $sig.SignerCertificate) { throw "app binary came back without a signature" }
           Write-Host "app binary signer: $($sig.SignerCertificate.Subject) ($($sig.Status))"
-          Copy-Item $signed "${{ steps.app_binary.outputs.path }}" -Force
+          Copy-Item $signed "$env:APP_BINARY_PATH" -Force
 
       - name: Bundle the installers from the signed binary
         env:
@@ -149,15 +167,14 @@ jobs:
             Write-Host "$($f.Name) signer: $($sig.SignerCertificate.Subject) ($($sig.Status))"
           }
 
-      - name: Sign the signed installers with the current and the next updater key
-        env:
-          UPDATER_KEY_V1: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          UPDATER_KEY_V1_PASSWORD: ''
-          UPDATER_KEY_V2: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_V2 }}
-          UPDATER_KEY_V2_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD_V2 }}
+      - name: Sign the signed installers with two test updater keys
         shell: bash
         run: |
           set -euo pipefail
+          UPDATER_KEY_V1="$(cat "$RUNNER_TEMP/test_updater_v1.key")"
+          UPDATER_KEY_V1_PASSWORD="$(cat "$RUNNER_TEMP/test_updater_v1.password")"
+          UPDATER_KEY_V2="$(cat "$RUNNER_TEMP/test_updater_v2.key")"
+          UPDATER_KEY_V2_PASSWORD="$(cat "$RUNNER_TEMP/test_updater_v2.password")"
           if [ -z "$UPDATER_KEY_V1" ] || [ -z "$UPDATER_KEY_V2" ]; then
             echo "::error::both updater keys must be set"
             exit 1

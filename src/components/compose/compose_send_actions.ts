@@ -32,7 +32,9 @@ import {
 } from "@/hooks/use_undo_send";
 import {
   forget_queued_send_draft,
+  mark_queued_send_delivered,
   remember_queued_send_draft,
+  waiting_queued_send_draft_count,
 } from "@/services/queued_send_drafts";
 import {
   queue_email,
@@ -47,7 +49,10 @@ import {
   play_email_sent_sound,
   show_email_sent_toast,
 } from "@/components/toast/email_sent_toast";
-import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import {
+  adjust_stats_drafts,
+  invalidate_mail_stats,
+} from "@/hooks/use_mail_stats";
 import {
   emit_email_sent,
   emit_thread_reply_cancelled,
@@ -92,6 +97,7 @@ export interface SendActionContext {
   is_feature_locked?: (feature_key: string) => boolean;
   on_send_failed?: (email_data: FailedSendData) => void | Promise<void>;
   get_kept_draft?: () => { id: string; version: number } | null;
+  await_kept_draft?: () => Promise<{ id: string; version: number } | null>;
   persist_unsent_draft?: (
     email_data: FailedSendData,
   ) => Promise<{ id: string; version: number } | null>;
@@ -236,8 +242,24 @@ function keep_draft_for_tab_send(
     .catch(() => undefined);
 }
 
+const tracked_queue_ids = new Set<string>();
+
 function track_queued_draft(ctx: SendActionContext, queue_id: string) {
-  remember_queued_send_draft(queue_id, ctx.get_kept_draft?.()?.id);
+  const known_draft_id = ctx.get_kept_draft?.()?.id;
+
+  tracked_queue_ids.add(queue_id);
+  remember_queued_send_draft(queue_id, known_draft_id);
+
+  if (known_draft_id || !ctx.await_kept_draft) return;
+
+  void ctx
+    .await_kept_draft()
+    .then((draft) => {
+      if (draft && tracked_queue_ids.has(queue_id)) {
+        remember_queued_send_draft(queue_id, draft.id);
+      }
+    })
+    .catch(() => undefined);
 }
 
 function release_queued_draft(
@@ -245,8 +267,33 @@ function release_queued_draft(
   queue_id: string | null,
   sent: boolean,
 ) {
-  if (queue_id) forget_queued_send_draft(queue_id);
-  if (sent) void ctx.confirm_draft_deleted?.();
+  if (!sent) {
+    if (queue_id) {
+      tracked_queue_ids.delete(queue_id);
+      forget_queued_send_draft(queue_id);
+    }
+
+    return;
+  }
+
+  if (!queue_id) {
+    void ctx.confirm_draft_deleted?.();
+
+    return;
+  }
+
+  tracked_queue_ids.delete(queue_id);
+  mark_queued_send_delivered(queue_id);
+  void Promise.resolve(ctx.confirm_draft_deleted?.())
+    .catch(() => undefined)
+    .then(() => {
+      const was_waiting = waiting_queued_send_draft_count();
+
+      forget_queued_send_draft(queue_id);
+      if (waiting_queued_send_draft_count() < was_waiting) {
+        adjust_stats_drafts(-1);
+      }
+    });
 }
 
 const reply_echoes = new Map<string, ReplyEcho>();

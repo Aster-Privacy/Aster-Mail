@@ -29,6 +29,7 @@ import {
   derive_account_data_key_raw,
   type AccountDataContext,
 } from "./account_data_key";
+import { retired_kek_context } from "./retired_identity_keks";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
@@ -67,6 +68,15 @@ let account_write_epoch = 0;
 let account_key_generation = 0;
 let remembered_raw_key: CryptoKey | null = null;
 let remembered_hkdf_key: CryptoKey | null = null;
+let retired_context_keys = new Map<AccountDataContext, CryptoKey>();
+let retired_read_guard: ((context: AccountDataContext) => boolean) | null =
+  null;
+
+export function set_retired_read_guard(
+  guard: ((context: AccountDataContext) => boolean) | null,
+): void {
+  retired_read_guard = guard;
+}
 
 async function derive_salt_from_passphrase(
   passphrase_bytes: Uint8Array,
@@ -240,13 +250,34 @@ export async function load_legacy_keks_into_memory(
   for (const entry of list) {
     try {
       const raw = base64_to_array(entry.k);
+      const retired_context = retired_kek_context(entry.k);
 
-      await remember_legacy_raw(raw);
+      if (retired_context) {
+        await remember_retired_raw(retired_context, raw);
+      } else {
+        await remember_legacy_raw(raw);
+      }
+
       zero_uint8_array(raw);
     } catch {
       continue;
     }
   }
+}
+
+async function remember_retired_raw(
+  context: AccountDataContext,
+  raw: Uint8Array,
+): Promise<void> {
+  const key = await import_raw_as_aes_key(raw);
+
+  retired_context_keys.set(context, key);
+}
+
+export function get_retired_context_key(
+  context: AccountDataContext,
+): CryptoKey | null {
+  return retired_context_keys.get(context) ?? null;
 }
 
 export async function load_previous_key_derived_keks_into_memory(
@@ -403,6 +434,7 @@ export function clear_account_key_derived_keks(): void {
 export function clear_legacy_keks_from_memory(): void {
   legacy_crypto_keys = [];
   legacy_hkdf_keys = [];
+  retired_context_keys = new Map();
   remembered_raw_key = null;
   remembered_hkdf_key = null;
 }
@@ -589,5 +621,40 @@ export async function decrypt_aes_gcm_with_fallback(
     if (recovered) return recovered;
 
     throw primary_error;
+  }
+}
+
+export async function decrypt_account_context_with_fallback(
+  context: AccountDataContext,
+  primary_key: CryptoKey,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+): Promise<ArrayBuffer> {
+  try {
+    return await decrypt_aes_gcm_with_fallback(primary_key, ciphertext, iv);
+  } catch (primary_error) {
+    const retired = retired_context_keys.get(context);
+
+    if (!retired) throw primary_error;
+
+    let opened: ArrayBuffer;
+
+    try {
+      opened = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        retired,
+        ciphertext,
+      );
+    } catch {
+      throw primary_error;
+    }
+
+    if (retired_read_guard && !retired_read_guard(context)) {
+      new Uint8Array(opened).fill(0);
+
+      throw primary_error;
+    }
+
+    return opened;
   }
 }

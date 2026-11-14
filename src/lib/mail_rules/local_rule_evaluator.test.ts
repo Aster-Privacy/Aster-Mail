@@ -25,6 +25,7 @@ import { describe, expect, it } from "vitest";
 import {
   evaluate_rule_locally,
   local_input_from_envelope,
+  local_input_is_complete,
   rule_supports_local_evaluation,
 } from "@/lib/mail_rules/local_rule_evaluator";
 import {
@@ -199,5 +200,122 @@ describe("local evaluation support", () => {
         input,
       ),
     ).toBe(true);
+  });
+});
+
+describe("attachment name rules", () => {
+  const contract_note_rule = {
+    match_mode: "all" as const,
+    conditions: [
+      {
+        type: "attachment_name",
+        operator: "contains",
+        value: "SP0874",
+        case_sensitive: true,
+      },
+    ] as LeafCondition[],
+  };
+
+  function input_with_attachments(attachment_keys: unknown) {
+    return local_input_from_envelope(
+      {
+        from: "notices@broker.example",
+        subject: "Contract note",
+        attachment_keys,
+      },
+      { has_attachments: true, size_bytes: 2048 },
+    );
+  }
+
+  it("evaluates attachment names on the device", () => {
+    expect(rule_supports_local_evaluation(contract_note_rule)).toBe(true);
+    expect(
+      rule_supports_local_evaluation({
+        match_mode: "all",
+        conditions: [
+          { type: "attachment_name", operator: "matches_regex", value: "^CN" },
+        ],
+      }),
+    ).toBe(false);
+  });
+
+  it("matches a sealed attachment file name", () => {
+    const input = input_with_attachments([
+      { seq: 0, key: "k", filename: "CN_SP0874_13112026.pdf", size: 10 },
+    ]);
+
+    expect(local_input_is_complete(contract_note_rule, input)).toBe(true);
+    expect(evaluate_rule_locally(contract_note_rule, input)).toBe(true);
+  });
+
+  it("respects case sensitivity and ends_with", () => {
+    const input = input_with_attachments([
+      { seq: 0, key: "k", filename: "cn_sp0874.PDF", size: 10 },
+    ]);
+
+    expect(evaluate_rule_locally(contract_note_rule, input)).toBe(false);
+    expect(
+      evaluate_rule_locally(
+        {
+          match_mode: "all",
+          conditions: [
+            { type: "attachment_name", operator: "ends_with", value: ".pdf" },
+          ],
+        },
+        input,
+      ),
+    ).toBe(true);
+  });
+
+  it("never matches an empty value", () => {
+    const input = input_with_attachments([
+      { seq: 0, key: "k", filename: "report.pdf", size: 10 },
+    ]);
+
+    expect(
+      evaluate_rule_locally(
+        {
+          match_mode: "all",
+          conditions: [
+            { type: "attachment_name", operator: "contains", value: "" },
+          ],
+        },
+        input,
+      ),
+    ).toBe(false);
+  });
+
+  it("skips messages whose attachment names are unknown", () => {
+    const negated = {
+      match_mode: "all" as const,
+      conditions: [
+        {
+          type: "not",
+          condition: {
+            type: "attachment_name",
+            operator: "contains",
+            value: "SP0874",
+          },
+        },
+      ] as Condition[],
+    };
+    const keys_only = input_with_attachments([{ seq: 0, key: "k" }]);
+    const missing = input_with_attachments(undefined);
+
+    expect(keys_only.attachment_names).toBeNull();
+    expect(missing.attachment_names).toBeNull();
+    expect(local_input_is_complete(negated, keys_only)).toBe(false);
+    expect(local_input_is_complete(contract_note_rule, missing)).toBe(false);
+    expect(
+      local_input_is_complete(politics_rule, input_from("a@newsclub.org")),
+    ).toBe(true);
+  });
+
+  it("treats a message without attachments as having no names", () => {
+    const input = input_from("a@x.org");
+
+    expect(input.attachment_names).toEqual([]);
+    expect(local_input_is_complete(contract_note_rule, input)).toBe(true);
+    expect(evaluate_rule_locally(contract_note_rule, input)).toBe(false);
   });
 });

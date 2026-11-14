@@ -23,6 +23,7 @@ import { ed25519 } from "@noble/curves/ed25519";
 import { randomBytes } from "@noble/hashes/utils";
 
 import type { DevicePubkeys } from "@/native/desktop_device_auth";
+import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
 import {
   type envelope_version,
   base64url_decode,
@@ -83,8 +84,14 @@ vi.mock("@/native/desktop_device_auth", () => ({
   }),
 }));
 
+const confirm_hub_link = vi.fn(
+  async (_code: string, _account_id: string, _fingerprint: string) =>
+    undefined,
+);
+
 vi.mock("@/services/account_hub_link", () => ({
-  confirm_hub_link: vi.fn(async () => undefined),
+  confirm_hub_link: (code: string, account_id: string, fingerprint: string) =>
+    confirm_hub_link(code, account_id, fingerprint),
   HubAccountError: class HubAccountError extends Error {},
 }));
 
@@ -93,6 +100,7 @@ beforeEach(() => {
   state.version = 2;
   state.swap_signing_key = false;
   request_device_code.mockClear();
+  confirm_hub_link.mockClear();
 });
 
 describe("sign_in_with_hub_account", () => {
@@ -108,6 +116,22 @@ describe("sign_in_with_hub_account", () => {
       expect(result.login_response.user_id).toBe("account-1");
     },
   );
+
+  it("sends the fingerprint of the keys it generated with the link request", async () => {
+    const { sign_in_with_hub_account } = await import("./hub_linked_login");
+
+    await sign_in_with_hub_account("account-1", "Aster Mail");
+
+    const keys = request_device_code.mock.calls[0][0];
+    const fingerprint = fingerprint_of_encoded_device_keys(keys);
+
+    expect(fingerprint).toMatch(/^[0-9A-F]{4}( [0-9A-F]{4}){4}$/);
+    expect(confirm_hub_link).toHaveBeenCalledWith(
+      "ABCD1234",
+      "account-1",
+      fingerprint,
+    );
+  });
 
   it("refuses a v2 envelope sealed to another signing key", async () => {
     state.swap_signing_key = true;

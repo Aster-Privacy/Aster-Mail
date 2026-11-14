@@ -23,9 +23,15 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const desktop_state = { value: false };
+const webauthn_state = { value: true };
+const open_external_mock = vi.fn();
 
 vi.mock("@/native/invoke_bridge", () => ({
   is_desktop: () => desktop_state.value,
+}));
+
+vi.mock("@/utils/open_link", () => ({
+  open_external: (url: string) => open_external_mock(url),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -50,7 +56,7 @@ vi.mock("@/services/api/webauthn", () => ({
 vi.mock("@/services/api/passkeys", () => ({
   register_platform_passkey: vi.fn(),
   register_security_key: vi.fn(),
-  is_passkey_supported: () => true,
+  is_passkey_supported: () => webauthn_state.value,
   is_platform_passkey_available: vi.fn(async () => false),
 }));
 
@@ -99,6 +105,8 @@ describe("PasskeySection desktop gate", () => {
   };
 
   beforeEach(() => {
+    webauthn_state.value = true;
+    open_external_mock.mockClear();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -116,6 +124,42 @@ describe("PasskeySection desktop gate", () => {
     await render();
 
     expect(container.textContent).toContain("settings.passkeys_desktop_note");
+  });
+
+  it("shows the desktop note instead of the browser warning without webauthn", async () => {
+    desktop_state.value = true;
+    webauthn_state.value = false;
+    await render();
+
+    expect(container.textContent).toContain("settings.passkeys_desktop_note");
+    expect(container.textContent).not.toContain("passkeys.not_supported");
+  });
+
+  it("opens security settings in the browser from the desktop note", async () => {
+    desktop_state.value = true;
+    webauthn_state.value = false;
+    await render();
+
+    const button = Array.from(container.querySelectorAll("button")).find(
+      (node) => node.textContent === "settings.passkeys_open_in_browser",
+    );
+
+    expect(button).toBeDefined();
+    await act(async () => {
+      button?.click();
+    });
+    expect(open_external_mock).toHaveBeenCalledWith("/settings/security");
+  });
+
+  it("keeps the browser warning on web without webauthn", async () => {
+    desktop_state.value = false;
+    webauthn_state.value = false;
+    await render();
+
+    expect(container.textContent).toContain("passkeys.not_supported");
+    expect(container.textContent).not.toContain(
+      "settings.passkeys_open_in_browser",
+    );
   });
 
   it("hides the desktop note on web", async () => {

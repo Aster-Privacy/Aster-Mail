@@ -167,7 +167,6 @@ function trim_envelope(envelope: DecryptedEnvelope): DecryptedEnvelope {
     cc: [],
     bcc: [],
     sent_at: source.sent_at,
-    sender_verification: source.sender_verification,
     list_unsubscribe: source.list_unsubscribe,
     list_unsubscribe_post: source.list_unsubscribe_post,
     raw_headers: source.raw_headers?.filter((header) =>

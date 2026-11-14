@@ -83,9 +83,12 @@ function menu_open(): boolean {
 }
 
 function find_item(label: string): HTMLElement {
-  const item = Array.from(
+  const items = Array.from(
     document.querySelectorAll<HTMLElement>('[role="menuitem"]'),
-  ).find((el) => el.textContent?.includes(label));
+  );
+  const item =
+    items.find((el) => el.textContent?.trim() === label) ??
+    items.find((el) => el.textContent?.includes(label));
 
   if (!item) throw new Error(`menu item not found: ${label}`);
 
@@ -159,7 +162,7 @@ describe("EmailContextMenu closing after a move", () => {
     open_menu();
     expect(menu_open()).toBe(true);
 
-    open_submenu("mail.folder");
+    open_submenu("mail.move_to");
     choose("Receipts");
 
     expect(on_folder_toggle).toHaveBeenCalledWith("f-1");

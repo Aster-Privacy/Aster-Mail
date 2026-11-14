@@ -528,6 +528,9 @@ export const zh_CN = {
     billing_alert_body_days: "付款未成功。访问权限将在 {{days}} 天后受限。",
     billing_alert_action: "付款",
     dismiss: "忽略",
+    web_sandbox_off_title: "网页内容正在没有系统沙盒的情况下运行",
+    web_sandbox_off_body:
+      "在这台电脑上，Aster Mail 无法启动 bubblewrap 沙盒，因此网页内容在没有沙盒的情况下运行。要重新启用沙盒，请安装 bubblewrap 软件包并允许非特权用户命名空间，然后重新启动 Aster Mail。",
     load_content: "加载",
     open_link: "打开链接",
     no_icon: "无图标",
@@ -816,6 +819,8 @@ export const zh_CN = {
     download_open_failed: "无法打开此文件。它可能已被移动或删除。",
     download_reveal_failed: "无法显示此文件。它可能已被移动或删除。",
     attachment_locked: "此附件的加密密钥在此设备上不可用，因此无法打开。",
+    attachment_content_mismatch:
+      "此附件与随附的邮件不一致，因此未打开。",
     scheduled_no_attachments:
       "定时邮件暂时无法包含附件。请立即发送，或移除文件后再定时。",
     scheduled_connected_account:
@@ -981,6 +986,9 @@ export const zh_CN = {
     end_to_end_encrypted_label: "端到端加密",
     encrypted_in_transit_stored: "传输中加密并以加密形式存储。",
     only_you_and_sender: "只有您和发件人可以阅读此邮件。",
+    only_you_and_sender_details_from_server:
+      "只有您和发件人可以阅读此邮件。发件人姓名、收件人和日期由服务器提供，不受端到端加密保护。",
+    encrypted_to_you_unconfirmed_sender: "此邮件已使用您的公钥加密。发件人的身份尚未确认。",
     only_you_can_read_contacts:
       "只有您可以读取自己的联系人，Aster 无法看到这些数据。",
     failed_to_send_email: "此邮件未能发送。请重试。您的草稿已保存。",
@@ -1744,6 +1752,9 @@ export const zh_CN = {
     recovery_codes_low_reminder_body:
       "每个代码只能用一次，你还剩 {{count}} 个。请获取新代码，以免被锁定在账户之外。",
     recovery_codes_low_reminder_action: "获取新代码",
+    recovery_codes_refresh_title: "更换恢复代码",
+    recovery_codes_refresh_body:
+      "您保存的恢复代码使用较旧、较短的格式。请获取新代码并妥善保存。获取后，旧代码将停止使用。",
     recovery_phrase_migrate_title: "改用恢复代码",
     recovery_phrase_migrate_body:
       "恢复短语即将停用。请立即获取恢复代码，以便日后仍能找回账户。",
@@ -1790,6 +1801,8 @@ export const zh_CN = {
     upgrade_tooltip: "获得更多存储空间、别名和自定义域名",
     dns_host_leave_blank: "留空",
     dns_host_provider_hint: "{{provider}} 的主机字段使用此格式。请完全照抄。",
+    dns_host_zone_hint: "此主机名相对于 {{zone}}，即您管理 DNS 记录的域名。",
+    dns_full_record_name: "完整记录名称",
     purchase_congrats_title: "恭喜",
     recipient_key_outdated: "收件人的密钥已过期",
     recipient_key_outdated_desc:
@@ -1800,7 +1813,22 @@ export const zh_CN = {
     key_trust_change_message:
       "自上次查询以来，{{recipients}} 的加密密钥已变更。发送前请通过其他渠道与收件人核对新的指纹。",
     key_trust_change_detail: "{{email}}：原为 {{prior}}，现为 {{current}}。",
+    key_trust_unreadable_message:
+      "此设备无法读取 {{recipients}} 的已保存加密密钥。发送前请通过其他渠道与收件人核对当前的指纹。",
+    key_trust_unreadable_detail: "{{email}}：现为 {{current}}。",
+    key_trust_own_message:
+      "你的地址 {{recipients}} 的加密密钥已更改。如果你没有重置密钥或设置新设备，请不要信任新密钥。",
     key_trust_change_confirm: "信任新密钥",
+    key_trust_missing_title: "未找到加密密钥",
+    key_trust_missing_message:
+      "此设备上曾保存 {{recipients}} 的加密密钥，但现在没有可用的密钥。如果继续，此邮件将在没有端到端加密的情况下发送。发送前请通过其他渠道与收件人确认。",
+    key_trust_missing_detail: "{{email}}：之前为 {{prior}}。",
+    key_trust_missing_unreadable_detail: "{{email}}：无法读取已保存的密钥。",
+    key_trust_missing_confirm: "不加密发送",
+    key_trust_account_key_detail:
+      "{{email}} 账户密钥：之前为 {{prior}}，现在为 {{current}}。",
+    key_trust_identity_key_detail:
+      "{{email}} 身份密钥：之前为 {{prior}}，现在为 {{current}}。",
     post_quantum_downgrade_title: "要在缺少预期的后量子密钥的情况下发送吗？",
     post_quantum_downgrade_message:
       "{{recipients}} 已发布后量子密钥，但本次发送获取到的密钥包中没有任何后量子密钥。这可能是服务器故障，也可能是密钥查询遭到篡改。若要保留后量子保护，请取消并稍后重试。",
@@ -2132,6 +2160,11 @@ export const zh_CN = {
     recovery_codes_saved_confirm: "关闭前请先保存新代码，它们只会显示这一次。",
     recovery_codes_saved_checkbox: "我已将恢复代码保存在安全的地方。",
     recovery_codes_save_failed: "无法将恢复代码保存到服务器，请重试。",
+    recovery_codes_required_save_desc: "请将这些新代码保存在安全的地方。在您于下一步确认之前，当前代码仍然有效。",
+    recovery_codes_required_verify_desc: "要开始使用新代码，请输入您的密码。之后，以前的代码将停止使用。",
+    recovery_codes_required_action: "替换代码",
+    recovery_codes_required_done: "您的新恢复代码已生效。",
+    recovery_codes_already_replaced: "您的恢复代码已在另一台设备上替换。",
     legacy_phrase_row: "恢复短语（旧版）",
     legacy_phrase_row_desc: "您现有的恢复短语仍然有效。今后将改用恢复代码。",
     recovery_email_row_moved_hint: "恢复邮箱设置已移至 安全 > 账户恢复",
@@ -3794,6 +3827,8 @@ export const zh_CN = {
       "此会话是在其他网络或浏览器中开始的，因此 Aster Mail 未更改您的密码。若要更改密码，请退出登录后重新登录，然后再试一次。",
     password_change_identity_continuity_required:
       "此更改会移除您较早邮件所需的加密密钥，因此 Aster Mail 未更改您的密码。若要重试，请退出登录后重新登录，然后更改密码。",
+    password_change_vault_changed:
+      "你在更改密码时，加密密钥在另一台设备上发生了变化，因此 Aster Mail 未更改你的密码。请重试。",
     password_change_vault_out_of_date:
       "您的密码已在其他设备上更改，因此此会话已过期。若要更改密码，请退出登录，然后使用当前密码重新登录。",
     update_password: "更新密码",
@@ -3981,6 +4016,12 @@ export const zh_CN = {
     developer_mode: "开发者模式",
     developer_mode_description:
       "显示包含构建信息、加密状态和调试工具的开发者选项卡",
+    launch_at_login: "登录时打开 Aster Mail",
+    launch_at_login_description: "登录电脑时 Aster Mail 会自动启动，无需先打开应用即可收到新邮件。",
+    start_minimized: "以最小化方式启动",
+    start_minimized_description: "在登录时打开的 Aster Mail 会在后台运行，不显示窗口。要打开它，请点击通知区域或菜单栏中的图标。",
+    launch_at_login_move_to_applications: "要在登录时打开 Aster Mail，请先将其移到“应用程序”文件夹。",
+    launch_at_login_reason: "登录时打开 Aster Mail，以便在后台接收新邮件。",
     close_to_tray: "关闭窗口后继续运行",
     close_to_tray_description:
       "Aster Mail 会留在通知区域，新邮件仍然可以接收。关闭此选项后，关闭窗口即退出。",
@@ -4317,7 +4358,7 @@ export const zh_CN = {
     "connection.tor_snowflake_description": "使用 Snowflake 桥接以抵抗审查",
     "connection.cdn_relay": "CDN 中继",
     "connection.cdn_relay_description":
-      "请求在到达 Aster 之前会经过全球 CDN 路由。您的 IP 地址对 Aster 保持隐藏，流量也会与常规 CDN 流量混在一起。",
+      "请求在到达 Aster 服务器之前，会经过 Aster 在 Cloudflare 上运行的中继。在您的网络看来，这些流量与常规 CDN 流量一样，这在 Aster 被屏蔽的地方可能有帮助。Aster 仍然可以看到您的 IP 地址。如需对 Aster 隐藏 IP 地址，请使用 Tor。",
     "connection.status_connected": "已连接",
     "connection.status_connecting": "连接中...",
     "connection.status_error": "连接已断开，我们正在自动重试。",
@@ -4347,7 +4388,7 @@ export const zh_CN = {
     tlsrpt_record: "TLS-RPT 记录",
     tlsrpt_description:
       "可选但建议添加。当发往您域名的加密投递失败时，接收服务器会每天发送一份摘要，让您比用户更早发现问题。",
-    dns_instruction_set_tlsrpt_host: "将主机设为 _smtp._tls",
+    dns_instruction_set_tlsrpt_host: "将下方显示的主机名复制到主机字段",
     dns_instruction_set_tlsrpt_value: "按显示内容原样粘贴 TLS-RPT 值",
     optional_step: "可选",
     gmail_import: "Gmail",
@@ -4685,7 +4726,7 @@ export const zh_CN = {
     dns_instruction_merge_spf:
       "如果您已有 SPF 记录，请将 include: 指令添加到现有记录中",
     dns_instruction_set_dkim: "将值设置为下方显示的 DKIM 密钥",
-    dns_instruction_set_dmarc_host: "将主机设置为 _dmarc（不要包含您的域名）",
+    dns_instruction_set_dmarc_host: "将下方显示的主机名复制到主机字段",
     dns_instruction_set_dmarc_value: "将值设置为下方显示的 DMARC 策略",
     edit_external_account: "编辑外部账户",
     add_external_account: "添加外部账户",
@@ -6407,10 +6448,115 @@ export const zh_CN = {
     domain_purchase_manage_auto_renew_on_note:
       "Aster 会在到期日前 30 天从你保存的银行卡扣款，并提前 15 天通过电子邮件告知价格。",
     domain_purchase_manage_auto_renew_error: "无法更新自动续订。请重试。",
-    domain_purchase_manage_dns: "打开域名设置",
-    domain_purchase_manage_support_note:
-      "如需将此域名转移到其他注册商或咨询退款，请联系支持团队。",
+    domain_purchase_manage_dns: "管理 DNS",
+    domain_purchase_manage_support_note: "如有账单或退款方面的问题，请联系支持团队。",
     domain_purchase_manage_support_subject: "关于 {{domain}} 的帮助",
+    domain_transfer_button: "转移",
+    domain_transfer_title: "转移域名",
+    domain_transfer_hint:
+      "将此域名转移到其他注册商。支持团队会将转移码发送到你的 Aster 收件箱。",
+    domain_transfer_message:
+      "要将 {{domain}} 转移到其他注册商，你需要一个转移码。继续后，Aster 会打开一封发给支持团队的电子邮件。支持团队确认请求来自此账户后，会将转移码发送到你的 Aster 收件箱。在新注册商处发起转移后，通常需要 5 到 7 天完成。",
+    domain_transfer_locked_message:
+      "注册商不允许在注册后 {{count}} 天内转移域名。你可以从 {{date}} 起申请转移 {{domain}}。",
+    domain_transfer_confirm: "联系支持团队",
+    domain_transfer_email_subject: "{{domain}} 的转移申请",
+    domain_transfer_email_body:
+      "我想将 {{domain}} 转移到其他注册商。请将转移码发送到此地址。\n\n订单 ID：{{order_id}}\n新注册商：",
+    purchased_dns_title: "DNS 记录",
+    purchased_dns_description: "{{domain}} 的记录。更改通常会在一小时内生效。",
+    purchased_dns_locked_title: "编辑已关闭",
+    purchased_dns_locked_note: "你可以查看这些记录，但目前无法更改。",
+    purchased_dns_lock_frozen: "此域名的编辑已暂停。如需了解详情，请联系支持团队。",
+    purchased_dns_lock_payment: "此域名的付款已撤销，因此编辑已关闭。",
+    purchased_dns_lock_lapsed: "此域名已过期，因此编辑已关闭。续订后即可更改。",
+    purchased_dns_lock_suspended: "此域名已被暂停，因此编辑已关闭。",
+    purchased_dns_unlock_title: "确认是你本人",
+    purchased_dns_unlock_description: "要更改 DNS 记录，请验证你的身份。编辑将保持开启 15 分钟。",
+    purchased_dns_unlock: "开启编辑",
+    purchased_dns_unlocked: "编辑已开启",
+    purchased_dns_unlocked_for: "编辑已开启，剩余 {{time}}",
+    purchased_dns_lock: "关闭编辑",
+    purchased_dns_add: "添加记录",
+    purchased_dns_add_title: "添加记录",
+    purchased_dns_edit_title: "编辑记录",
+    purchased_dns_added: "已添加记录",
+    purchased_dns_updated: "已更新记录",
+    purchased_dns_deleted: "已删除记录",
+    purchased_dns_delete_title: "删除记录？",
+    purchased_dns_delete_message: "删除后不久，{{name}} 的 {{type}} 记录将停止解析。",
+    purchased_dns_edit_record: "编辑 {{name}} 的 {{type}} 记录",
+    purchased_dns_copy_record: "复制 {{name}} 的 {{type}} 记录值",
+    purchased_dns_delete_record: "删除 {{name}} 的 {{type}} 记录",
+    purchased_dns_read_only: "只读",
+    purchased_dns_mail_group: "Aster Mail 记录",
+    purchased_dns_mail_group_tip: "Aster 管理这些记录，以确保你的电子邮件正常工作。你无法编辑或删除它们。",
+    purchased_dns_your_records: "你的记录",
+    purchased_dns_empty: "你尚未添加任何记录。",
+    purchased_dns_limit_reached: "此域名的记录数已达上限 {{count}} 条。请删除一条后再添加。",
+    purchased_dns_col_type: "类型",
+    purchased_dns_col_name: "名称",
+    purchased_dns_col_content: "内容",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "操作",
+    purchased_dns_host_hint: "使用 @ 表示域名本身，或输入子域名，例如 www。",
+    purchased_dns_field_ipv4: "IPv4 地址",
+    purchased_dns_field_ipv6: "IPv6 地址",
+    purchased_dns_field_target: "目标",
+    purchased_dns_field_content: "内容",
+    purchased_dns_field_mail_server: "邮件服务器",
+    purchased_dns_field_caa_value: "值",
+    purchased_dns_field_priority: "优先级",
+    purchased_dns_field_weight: "权重",
+    purchased_dns_field_port: "端口",
+    purchased_dns_field_flags: "标志",
+    purchased_dns_field_tag: "标签",
+    purchased_dns_ttl_one_hour: "1 小时",
+    purchased_dns_ttl_hours: "{{count}} 小时",
+    purchased_dns_ttl_one_day: "1 天",
+    purchased_dns_ttl_days: "{{count}} 天",
+    purchased_dns_error_required: "请填写此字段。",
+    purchased_dns_error_host: "请输入有效的名称。可使用字母、数字、连字符和下划线，每个标签最多 63 个字符。",
+    purchased_dns_error_protected_host: "此名称已保留给 Aster Mail 记录。",
+    purchased_dns_error_apex_mx: "域名本身的邮件记录由 Aster 管理。请改为在子域名上添加 MX 记录。",
+    purchased_dns_error_apex_cname: "CNAME 记录不能用于域名本身。请改用 A 或 AAAA 记录。",
+    purchased_dns_error_apex_spf: "Aster 已为此域名发布了 SPF 记录，而一个域名只能有一条。",
+    purchased_dns_error_value: "请检查该值，然后重试。",
+    purchased_dns_error_ip: "请输入有效的 IP 地址。",
+    purchased_dns_error_ipv4: "请输入有效的 IPv4 地址，例如 203.0.113.10。",
+    purchased_dns_error_ipv6: "请输入有效的 IPv6 地址，例如 2001:db8::1。",
+    purchased_dns_error_private_ip: "请输入公共 IP 地址。私有、本地和保留地址无法从互联网访问。",
+    purchased_dns_error_target: "请输入有效的主机名，例如 example.com。",
+    purchased_dns_error_cname_self: "CNAME 记录不能指向自身名称。",
+    purchased_dns_error_cname_conflict:
+      "有 CNAME 记录的名称不能有其他记录。请先删除其他记录，或选择其他名称。",
+    purchased_dns_error_txt_length: "TXT 内容最多 2,048 个字符。",
+    purchased_dns_error_txt_chars: "TXT 内容只能使用标准可打印字符，不能包含引号或反斜杠。",
+    purchased_dns_error_ttl: "请从列表中选择 TTL。",
+    purchased_dns_error_priority: "请输入 0 到 65535 之间的优先级。",
+    purchased_dns_error_weight: "请输入 0 到 65535 之间的权重。",
+    purchased_dns_error_port: "请输入 1 到 65535 之间的端口。",
+    purchased_dns_error_srv_host: "SRV 名称以服务和协议开头，例如 _sip._tcp。",
+    purchased_dns_error_caa_flags: "请为标志选择 0 或 128。",
+    purchased_dns_error_caa_tag: "请为标签选择 issue、issuewild 或 iodef。",
+    purchased_dns_error_caa_value: "请输入最多 255 个字符的值，不能包含引号或反斜杠。",
+    purchased_dns_error_duplicate: "此记录已存在。",
+    purchased_dns_error_too_many: "此域名的记录数已达上限。请删除一条后再添加。",
+    purchased_dns_error_protected_record: "此记录由 Aster 管理，因此你无法更改。",
+    purchased_dns_error_type_change: "无法更改记录类型。请删除该记录，然后添加新记录。",
+    purchased_dns_error_locked: "此域名的编辑已关闭。",
+    purchased_dns_error_busy: "注册商繁忙。",
+    purchased_dns_error_not_found: "此记录已不存在。",
+    purchased_dns_error_rate_limited: "你的更改过于频繁。",
+    purchased_dns_error_retry_in: "{{message}} 请在 {{count}} 秒后重试。",
+    purchased_dns_ttl_seconds: "{{count}} 秒",
+    purchased_dns_expired_note: "编辑已关闭。你的更改尚未保存。点击“保存”后，系统会先确认你的身份。",
+    purchased_dns_filter_placeholder: "筛选记录",
+    purchased_dns_filter_no_results: "没有与筛选条件匹配的记录。",
+    purchased_dns_keep_editing: "继续编辑",
+    purchased_dns_error_unlock_failed: "无法开启编辑。请重试。",
+    purchased_dns_error_generic: "无法保存你的更改。请重试。",
+    purchased_dns_load_failed: "无法加载 DNS 记录。请重试。",
     domain_purchase_filter_all: "全部",
     domain_purchase_filter_available: "可注册",
     domain_purchase_filter_taken: "已被注册",
@@ -6607,6 +6753,7 @@ export const zh_CN = {
       "您可以在 app.astermail.org 的 Aster 网页版中添加安全密钥。在这里可以查看和移除已有的密钥。",
     passkeys_desktop_note:
       "您可以在 app.astermail.org 的 Aster 网页版中添加通行密钥。在这里可以查看和移除已有的通行密钥。",
+    passkeys_open_in_browser: "在浏览器中打开",
     app_lock_pin: "PIN 锁定",
     app_lock_pin_description:
       "在此浏览器中显示 Aster Mail 之前要求输入 PIN。它会对使用此设备的其他人隐藏你的邮件，但不会加密存储在此处的数据。",
@@ -7859,6 +8006,8 @@ export const zh_CN = {
       "自上次互发邮件以来，此发件人的加密身份已更改。如果这不在您的预期之内，请通过其他方式向对方确认。",
     sender_identity_downgraded:
       "此发件人的邮件不再受后量子保护。如果这不在您的预期之内，请通过其他方式向对方确认。",
+    sender_identity_unreadable:
+      "此设备无法读取此发件人的已保存加密密钥，因此无法验证此邮件。要重新验证对方的邮件，请通过其他方式与对方确认密钥，然后选择“信任新密钥”。",
     recipient_identity_changed:
       "{{email}} 的加密密钥已更改。如果这不在您的预期之内，请在发送敏感信息前通过其他方式向对方确认。",
     message_password_requirements:
@@ -8034,6 +8183,11 @@ export const zh_CN = {
     block_sender: "屏蔽发件人",
     unblock_sender: "取消屏蔽发件人",
     unsubscribe: "取消订阅",
+    copy_code: "复制验证码",
+    copy_code_value: "复制验证码 {{code}}",
+    copy_subject: "复制主题",
+    code_copied: "验证码已复制",
+    subject_copied: "主题已复制",
     edit_draft: "编辑草稿",
     schedule: "定时发送",
     scheduling: "定时设置中",
@@ -8388,8 +8542,8 @@ export const zh_CN = {
     unstar: "取消星标",
     mark_unread: "标记为未读",
     mark_read: "标记为已读",
-    verified_sender: "已验证的发件人",
-    verified_sender_desc: "此邮件的发件人已验证其拥有 {{domain}}。",
+    verified_sender: "已验证的域名",
+    verified_sender_desc: "Aster 的服务器已核实发件人拥有 {{domain}}。",
     sender_warning_title: "请检查发件人地址",
     sender_warning_address_in_name:
       "发件人名称显示为 {{claimed}}，但此邮件来自 {{address}}。",
@@ -8483,6 +8637,7 @@ export const zh_CN = {
     move_n_conversations: "移动{{ count }}个对话",
     move_n_conversations_other: "移动{{count}}个对话",
     view_message: "查看消息",
+    open_full_view: "在完整视图中打开",
     block_sender_spam_warning:
       "从此以后，这位发件人的新邮件都会直接进入垃圾邮件。您的屏蔽列表中可以再次解除屏蔽。",
     block_sender_confirm_message: "屏蔽{{email}}？您将不再收到他们的邮件。",
@@ -8508,6 +8663,9 @@ export const zh_CN = {
       "这封邮件是在 {{ received }} 收到的，但您的回复将从 {{ selected }} 发送。使用其他地址回复可能会向发件人泄露该地址，回复也可能被拒收。",
     reply_from_mismatch_use_received: "使用接收地址",
     reply_from_mismatch_send_anyway: "仍然发送",
+    reply_from_unknown_title: "请检查发件地址",
+    reply_from_unknown_message:
+      "Aster 无法确定是您的哪个地址收到了这封邮件。回复将从 {{ selected }} 发送。要从其他地址发送，请取消并先选择该地址。",
     forward_subject_prefix: "转发：",
     reply_quote_header: "{{ name }} 于 {{ date }} 写道：",
     all_on_page_selected: "此页所有 {{ count }} 个对话已选中。",
@@ -8521,6 +8679,7 @@ export const zh_CN = {
     new_reaction: "新回应",
     download_file_named: "下载 {{ filename }}",
     load_external_content: "加载外部内容",
+    image_loading_settings: "图片设置",
     image: "图片",
     images: "图片",
     tracker: "追踪器",
@@ -9028,6 +9187,22 @@ export const zh_CN = {
     sending_reset_link: "正在发送重置链接...",
     reset_your_password: "重置您的密码",
     reset_choose_new_password: "为您的账户选择一个新密码。",
+    reset_current_password:
+      "当前密码",
+    reset_current_password_keeps_keys:
+      "输入你的当前密码，这样你的加密密钥保持不变，邮件也能继续阅读。如果你不知道当前密码，请改用恢复码。",
+    reset_current_password_required:
+      "请输入你的当前密码，或改用恢复码。",
+    reset_lost_everything:
+      "我丢失了密码和恢复码",
+    reset_remember_password:
+      "我记得密码",
+    reset_lost_everything_warning:
+      "没有密码或恢复码，Aster Mail 无法解锁你的加密密钥。重置会创建新的密钥，除非你之后找到之前的密码或恢复码，否则现有邮件将无法阅读。",
+    reset_lost_everything_confirm:
+      "我了解现有邮件将无法阅读",
+    reset_lost_everything_confirm_required:
+      "要在没有密码的情况下重置，请确认你了解现有邮件将无法阅读。",
     reset_current_password_optional: "当前密码（可选）",
     reset_current_password_hint:
       "如果您记得当前密码，请在此输入，登录后即可继续使用之前的邮件。如果留空，您可以稍后使用恢复代码解锁之前的邮件。",
@@ -9090,6 +9265,22 @@ export const zh_CN = {
     review_recovery_email_kept: "你的恢复邮箱仍已设置。",
     review_no_recovery_email: "没有恢复邮箱。",
     review_add: "添加",
+    recovery_previous_password_placeholder:
+      "输入你之前的密码",
+    recovery_previous_password_body:
+      "你的加密密钥仍受重置前所用密码的保护。要让你的邮件保持可读，请输入之前的密码。你的密钥保持不变，今后将由新密码保护。",
+    recovery_previous_password_required:
+      "请输入之前的密码，或选择“我不记得了”。",
+    recovery_previous_password_incorrect:
+      "该密码无法解锁你的加密密钥。请检查后重试。",
+    recovery_previous_password_forgot:
+      "我不记得了",
+    recovery_previous_password_use:
+      "输入我之前的密码",
+    recovery_previous_password_skipped_warning:
+      "你的密码已重置，加密密钥会保留，但仍由之前的密码锁定。在你通过“恢复数据”横幅输入该密码之前，将无法阅读邮件。",
+    review_keys_left_locked:
+      "你的加密密钥已保留，但仍由之前的密码锁定。要阅读邮件，请在横幅中选择“恢复数据”并输入该密码。",
     review_codes_left: "还剩 {{count}} 个恢复代码。",
     review_codes_left_other: "还剩 {{count}} 个恢复代码。",
     import_mail_step_title: "把邮件一起带过来",
@@ -9171,25 +9362,37 @@ export const zh_CN = {
     device_code_waiting: "等待确认中",
     device_code_expires_in: "过期时间",
     link_device_title: "关联设备",
-    link_device_enter_code: "输入桌面应用上显示的验证码。",
+    link_device_enter_code: "输入要关联的应用中显示的关联码。",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "继续",
     link_device_confirm_prompt: "您要将此设备关联到您的账户吗？",
     link_device_confirm_button: "关联设备",
     link_device_confirming: "正在关联设备...",
     link_device_cancel: "取消",
-    link_device_desktop: "桌面应用",
-    device_fingerprint: "验证码",
+    link_device_desktop: "新设备",
+    device_fingerprint: "设备指纹",
+    device_fingerprint_copy: "复制设备指纹",
+    link_device_grant_notice:
+      "关联后，{{device}} 上的应用将获得对 {{email}} 的完全访问权限，包括你的邮件和加密密钥。",
+    link_device_own_device_warning:
+      "仅当你是在自己设备上的 Aster 应用中发起此操作时才继续。如果此代码是别人提供给你的，请不要关联设备。",
+    link_device_fingerprint_enter: "输入要关联的应用中显示的设备指纹。有些应用将其称为验证码。",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "这与此关联码对应的设备不匹配。请与要关联的应用逐个字符比对，然后重试。如果仍不匹配，请勿关联设备。",
+    link_device_fingerprint_link_mismatch:
+      "打开此页面的链接属于另一台设备，与此关联码对应的设备不同，因此你无法在此关联设备。请在要关联的应用中获取新代码，然后重试。",
+    link_device_update_desktop:
+      "如果应用未显示设备指纹，请在应用中选择“验证此设备”。如果应用没有该选项，请更新应用，然后重试。",
+    device_code_fingerprint_required_hint:
+      "浏览器在关联设备之前会要求输入此设备指纹。",
     device_code_verify_toggle: "验证此设备",
     link_device_fingerprint_hint: "请输入新设备上显示的验证码。在桌面应用中，选择“验证此设备”即可查看。",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete: "要关联设备，请输入新设备上的完整验证码。",
-    link_device_fingerprint_mismatch:
-      "此验证码与你的新设备不一致。请检查新设备上的验证码并重新输入。如果仍然不一致，请选择“取消”。",
     device_code_fingerprint_hint: "要关联此设备，请在你已登录的设备上输入此验证码。",
     link_device_change_account: "切换账号",
     link_device_choose_account: "选择账号",
-    link_device_choose_account_description: "以关联桌面应用",
+    link_device_choose_account_description: "以关联新设备",
     link_device_choose_account_note:
       "您的加密密钥在设备之间传输时始终保持加密状态。",
     link_device_use_another_account: "使用其他账号",
@@ -9199,10 +9402,10 @@ export const zh_CN = {
     hub_account_password_required: "需要密码",
     hub_account_link_failed: "要继续使用此账户，请输入其密码。",
     link_device_success: "设备已关联",
-    link_device_success_description: "您的桌面应用已关联。您可以关闭此标签页。",
+    link_device_success_description: "你的设备已关联。你可以关闭此标签页。",
     link_device_invalid_code: "关联码为 8 个字符。请检查关联码后重试。",
     link_device_expired_code:
-      "此验证码已过期或不匹配。桌面应用上有最新的验证码。",
+      "此代码已过期或不匹配。要关联的应用中显示的是最新的代码。",
     link_device_failed:
       "关联未能完成。重新开始通常可以解决。您的账户未发生变化。",
     link_keys_locked_title: "您的密钥环已锁定",
@@ -9517,6 +9720,8 @@ export const zh_CN = {
       "邮件密码太弱，因此未发送邮件。请使用至少 12 个字符，并包含数字、符号或大小写字母。",
     recipient_key_untrusted:
       "某位收件人的加密密钥已更改，因此未发送邮件。要发送，请通过其他方式与对方确认此更改，然后选择“信任新密钥”。",
+    recipient_key_unreadable:
+      "此设备无法读取某位收件人的已保存加密密钥，因此未发送邮件。要发送，请通过其他方式与对方确认密钥，然后选择“信任新密钥”。",
     key_trust_check_failed:
       "无法检查收件人的加密密钥，因此未发送邮件。请检查网络连接后重试。",
     recipient_classification_unavailable:
@@ -9694,6 +9899,7 @@ export const zh_CN = {
     expr_unhandled_field: "此字段不能在此处使用。",
     expr_misplaced_case_flag: "case_sensitive 只能跟在带引号的文本值之后。",
     expr_internal_error: "无法读取此表达式。请检查语法后重试。",
+    expr_server_rejected: "无法保存表达式的这一部分。请检查语法后重试。",
     expr_line_col: "(第 {{line}} 行，第 {{col}} 列)",
     editor_description: "为规则命名并指定它的操作。",
     editor_server_notice:
@@ -9818,6 +10024,10 @@ export const zh_CN = {
     regex_lookaround: "不支持先行断言和后行断言。请改写不使用它们的模式。",
     regex_invalid: "此正则表达式模式无效。请检查语法后重试。",
     regex_empty: "保存前需要一个正则表达式模式。",
+    regex_too_complex:
+      "此正则表达式过于复杂，无法保存。请减少重复或备选项后重试。",
+    regex_invalid_reason:
+      "此正则表达式无效：{{reason}}",
     regex_too_long: "此正则表达式太长。精简后的版本可以使用。",
     last_condition_required: "此规则保存前至少需要一个条件。",
     last_action_required: "此规则保存前至少需要一个操作。",
@@ -10231,6 +10441,8 @@ export const zh_CN = {
     invite_card_join: "加入会议",
     invite_card_calendar_failed: "您的答复已发送，但 Aster 无法将此活动添加到您的日历。",
     invite_card_reply_send_failed: "您的答复未能发送，请重试。",
+    invite_card_reply_address_unavailable:
+      "由于收到此邀请的地址无法发送邮件，Aster 未发送您的答复。要答复，请重新启用该地址。",
     invite_card_organizer_mismatch:
       "此邀请由 {{sender}} 发送，但其中列出的组织者是 {{organizer}}。如果这出乎您的意料，请在回复前先与组织者确认。",
     invite_card_reply_confirm:

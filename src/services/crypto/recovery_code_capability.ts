@@ -18,24 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+let is_optional = false;
 
-import { is_sandbox_status } from "./sandbox_notice";
+export function note_code_hash_optional(value: unknown): void {
+  if (typeof value === "boolean") is_optional = value;
+}
 
-describe("sandbox status shape", () => {
-  it("accepts the status the desktop shell reports", () => {
-    expect(is_sandbox_status({ enabled: false, reason: "bwrap_missing" })).toBe(
-      true,
-    );
-    expect(
-      is_sandbox_status({ enabled: true, reason: "probe_passed", detail: null }),
-    ).toBe(true);
-  });
+export function is_code_hash_optional(): boolean {
+  return is_optional;
+}
 
-  it("refuses anything else", () => {
-    expect(is_sandbox_status(null)).toBe(false);
-    expect(is_sandbox_status("off")).toBe(false);
-    expect(is_sandbox_status({ enabled: "no", reason: "x" })).toBe(false);
-    expect(is_sandbox_status({ enabled: false })).toBe(false);
-  });
-});
+export function reset_code_hash_optional(): void {
+  is_optional = false;
+}

@@ -62,6 +62,13 @@ export class KeyPinUnavailableError extends Error {
   }
 }
 
+export class RecipientPinUnreadableError extends KeyPinUnavailableError {
+  constructor(pin_id: string) {
+    super(pin_id);
+    this.name = "RecipientPinUnreadableError";
+  }
+}
+
 export interface RatchetEnvelope {
   type: "double_ratchet_v1" | "double_ratchet_v2";
   sender_identity_key: string;

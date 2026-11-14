@@ -284,6 +284,7 @@ vi.mock("@/components/compose/send_lock", () => ({
 
 vi.mock("@/components/email/build_reply_from_address", () => ({
   is_reply_from_mismatch: () => false,
+  is_reply_from_undetermined: () => false,
   resolve_own_recipient_address: () => undefined,
 }));
 

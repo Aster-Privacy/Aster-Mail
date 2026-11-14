@@ -18,4 +18,5 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+pub mod challenge;
 pub mod crypto;

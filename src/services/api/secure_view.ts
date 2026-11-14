@@ -22,6 +22,7 @@ import type {
   EncryptedField,
   EncryptedSecureAttachment,
 } from "../crypto/secure_message_crypto";
+import type { SecureViewPasswordKdf } from "../crypto/secure_view_key";
 
 import { base64_to_array } from "../crypto/envelope";
 
@@ -64,6 +65,7 @@ export interface SecureViewMetadata {
   time_remaining_seconds: number;
   is_zero_knowledge: boolean;
   kdf_salt?: string;
+  password_kdf?: SecureViewPasswordKdf;
 }
 
 export interface SecureViewContent {
@@ -105,15 +107,30 @@ export async function get_secure_view_metadata(
   return (await response.json()) as SecureViewMetadata;
 }
 
+export interface SecureViewCredential {
+  kind: "auth_proof";
+  auth_proof: string;
+}
+
+export function select_secure_view_credential(
+  auth_proof: string | null,
+): SecureViewCredential | null {
+  return auth_proof ? { kind: "auth_proof", auth_proof } : null;
+}
+
+function credential_fields(
+  credential: SecureViewCredential | null,
+): Record<string, string> {
+  if (!credential) return {};
+
+  return { auth_proof: credential.auth_proof };
+}
+
 export async function verify_secure_view(
   token: string,
-  auth_proof: string | null,
-  password?: string,
+  credential: SecureViewCredential | null,
 ): Promise<SecureViewVerifyResponse> {
-  const body: Record<string, string> = {};
-
-  if (auth_proof !== null) body.auth_proof = auth_proof;
-  if (password !== undefined) body.password = password;
+  const body = credential_fields(credential);
 
   const response = await fetch(
     `/api/view/${encodeURIComponent(token)}/verify`,
@@ -139,45 +156,14 @@ export interface SecureViewReplyResponse {
   error?: string;
 }
 
-export type SecureViewCredential =
-  | { kind: "proof"; auth_proof: string }
-  | { kind: "password"; password: string }
-  | { kind: "none" };
-
-export function secure_view_credential_for_unlock(
-  is_zero_knowledge: boolean,
-  auth_proof: string | null,
-  password: string,
-): SecureViewCredential {
-  if (is_zero_knowledge) {
-    return auth_proof ? { kind: "proof", auth_proof } : { kind: "none" };
-  }
-
-  return password ? { kind: "password", password } : { kind: "none" };
-}
-
-function credential_fields(
-  credential: SecureViewCredential,
-): Record<string, string> {
-  if (credential.kind === "proof") {
-    return { auth_proof: credential.auth_proof };
-  }
-
-  if (credential.kind === "password") {
-    return { password: credential.password };
-  }
-
-  return {};
-}
-
 export async function reply_to_secure_view(
   token: string,
   body: string,
-  credential: SecureViewCredential,
+  credential: SecureViewCredential | null,
 ): Promise<SecureViewReplyResponse> {
   const payload: Record<string, string> = {
-    body,
     ...credential_fields(credential),
+    body,
   };
 
   const response = await fetch(`/api/view/${encodeURIComponent(token)}/reply`, {
@@ -203,9 +189,9 @@ export interface SecureViewDeleteResponse {
 
 export async function delete_secure_view(
   token: string,
-  credential: SecureViewCredential,
+  credential: SecureViewCredential | null,
 ): Promise<SecureViewDeleteResponse> {
-  const payload: Record<string, string> = credential_fields(credential);
+  const payload = credential_fields(credential);
 
   const response = await fetch(`/api/view/${encodeURIComponent(token)}`, {
     method: "DELETE",

@@ -40,6 +40,7 @@ import {
   setup_thread_print_intercept,
 } from "@/utils/print_email_loader";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { remember_forward_from_message } from "@/components/email/delivery_reply_address";
 import { build_thread_print_data as build_thread_print_data_for } from "@/utils/thread_print_data";
 
 export type {
@@ -219,6 +220,10 @@ export function use_email_detail() {
 
       if (last_msg) {
         set_forward_mail_id(last_msg.id);
+        remember_forward_from_message(
+          last_msg,
+          last_msg.id === mail_item?.id ? mail_item?.routing_token : undefined,
+        );
         set_forward_target(last_msg);
         set_is_forward_modal_open(true);
       }
@@ -243,6 +248,8 @@ export function use_email_detail() {
   }, [
     thread_messages,
     mail_item?.thread_token,
+    mail_item?.id,
+    mail_item?.routing_token,
     preferences.default_reply_behavior,
     actions.build_reply_modal_data,
   ]);

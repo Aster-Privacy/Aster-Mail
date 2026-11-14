@@ -1,7 +1,7 @@
 {
   "name": "astermail",
   "private": true,
-  "version": "1.4.81",
+  "version": "1.4.83",
   "description": "Aster Mail - zero-access, end-to-end encrypted email client.",
   "license": "AGPL-3.0-only",
   "author": "Aster Communications Inc.",
@@ -28,15 +28,15 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "playwright test --config=playwright.config.ui.ts",
     "test:a11y": "playwright test --config=playwright.config.a11y.ts",
-    "capacitor:copy:before": "node scripts/prepare_native_dist.mjs",
-    "cap:sync": "node scripts/prepare_native_dist.mjs && npx cap sync",
-    "cap:android": "node scripts/prepare_native_dist.mjs && npx cap run android",
+    "capacitor:copy:before": "node scripts/prepare_native_dist.mjs --capacitor",
+    "cap:sync": "node scripts/prepare_native_dist.mjs --capacitor && npx cap sync",
+    "cap:android": "node scripts/prepare_native_dist.mjs --capacitor && npx cap run android",
     "cap:open:android": "npx cap open android",
-    "build:mobile": "npm run build && node scripts/prepare_native_dist.mjs && npx cap sync",
-    "build:android": "npm run build && node scripts/prepare_native_dist.mjs && npx cap sync android",
-    "android": "node scripts/prepare_native_dist.mjs && npx cap run android",
+    "build:mobile": "npm run build && node scripts/prepare_native_dist.mjs --capacitor && npx cap sync",
+    "build:android": "npm run build && node scripts/prepare_native_dist.mjs --capacitor && npx cap sync android",
+    "android": "node scripts/prepare_native_dist.mjs --capacitor && npx cap run android",
     "android:open": "npx cap open android",
-    "android:live": "node scripts/prepare_native_dist.mjs && npx cap run android --livereload --external",
+    "android:live": "node scripts/prepare_native_dist.mjs --capacitor && npx cap run android --livereload --external",
     "start:windows": "start_windows.bat",
     "start:android": "start_android.bat",
     "tauri": "tauri",
@@ -159,6 +159,15 @@
     "@rollup/rollup-linux-x64-gnu": "^4.64.7"
   },
   "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    },
+    "glob": {
+      "minimatch": "^11.0.1"
+    },
+    "rimraf": {
+      "minimatch": "^11.0.1"
+    },
     "tar": ">=7.5.18",
     "js-yaml": ">=5.2.2",
     "brace-expansion": ">=2.1.2",

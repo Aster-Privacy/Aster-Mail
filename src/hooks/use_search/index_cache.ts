@@ -25,6 +25,11 @@ import {
   INDEX_TTL_MS,
   MAX_INDEX_ITEMS,
   MAX_RAM_INDEX_ITEMS,
+  INDEX_PAGE_LIMIT,
+  RECONCILE_INTERVAL_MS,
+  RECONCILE_RETRY_MS,
+  RECONCILE_REQUEST_MIN_MS,
+  PURGE_FLUSH_MS,
 } from "./constants";
 import { build_search_haystack } from "./matching";
 import { run_index_pipeline } from "./pipeline";
@@ -37,14 +42,24 @@ import {
 } from "./progress";
 import { CachedIndex, ChunkSpan } from "./types";
 
+import { list_encrypted_mail_items, type MailItem } from "@/services/api/mail";
+
 import { ignore_error } from "@/lib/ignore_error";
+import { drop_sender_verification } from "@/services/crypto/sender_verification";
 import {
   queue_vocabulary_entry,
   reset_vocabulary,
 } from "@/services/search/vocabulary";
 import {
   clear_search_snapshots,
+  close_arrival_watch,
+  forget_purged_ids,
   has_index_storage_headroom,
+  note_purged_ids,
+  note_purged_scope,
+  open_arrival_watch,
+  purge_snapshot_entries,
+  stamp_snapshot_verified,
   open_snapshot_reader,
   open_snapshot_writer,
   same_snapshot,
@@ -57,6 +72,7 @@ import {
   type SnapshotWriter,
   type WrittenChunk,
 } from "@/services/search_index_store";
+import { is_expired_mail } from "@/services/search/index_removals";
 import {
   is_index_download_paused,
   reset_index_download_state,
@@ -97,6 +113,8 @@ export let cached_index: CachedIndex | null = null;
 export let index_build_promise: Promise<CachedIndex> | null = null;
 export let build_generation = 0;
 export let deep_index_active = false;
+const building_indexes = new Set<CachedIndex>();
+const counted_hot_drops = new WeakMap<CachedIndex, Set<string>>();
 let account_generation = 0;
 let deep_index_generation = -1;
 
@@ -137,6 +155,7 @@ export function apply_meta(index: CachedIndex, meta: SnapshotMeta): void {
   index.total_indexed = meta.total;
   index.complete = meta.complete;
   index.disk_chunk_ids = disk_ids_after_hot(meta.chunk_ids, index.items.length);
+  counted_hot_drops.delete(index);
 }
 
 function spans_from_layout(layout: WrittenChunk[]): ChunkSpan[] {
@@ -199,6 +218,9 @@ export async function build_index_full(
   }
 
   const index = empty_index(user_email, include_body);
+
+  building_indexes.add(index);
+
   const prior_index = stale ?? null;
   const prior = prior_index?.decrypted;
   const reusable =
@@ -340,6 +362,8 @@ export async function build_index_full(
         ignore_error("hooks/use_search/index_cache:build_index_full", caught),
       );
     throw error;
+  } finally {
+    building_indexes.delete(index);
   }
 }
 
@@ -368,6 +392,8 @@ export async function build_index_front_refresh(
   const prior = stale.decrypted;
   const base = stale.meta as SnapshotMeta;
   const index = empty_index(user_email, include_body);
+
+  building_indexes.add(index);
 
   try {
     const reader = await open_snapshot_reader(user_email);
@@ -491,6 +517,8 @@ export async function build_index_front_refresh(
     index.items.length = 0;
     index.decrypted.clear();
     throw error;
+  } finally {
+    building_indexes.delete(index);
   }
 }
 
@@ -635,7 +663,10 @@ export function clear_search_index(
   snapshots: SearchSnapshotClearScope = "all",
   options: { account_changed?: boolean } = {},
 ): Promise<void> {
-  if (options.account_changed) account_generation++;
+  if (options.account_changed) {
+    account_generation++;
+    forget_purged_ids();
+  }
   cached_index = null;
   build_generation++;
   index_build_promise = null;
@@ -643,8 +674,347 @@ export function clear_search_index(
   clear_folded_patterns();
   reset_index_download_state();
   reset_indexing_progress();
+  reset_index_purge_state();
 
   return clear_search_snapshots(snapshots);
+}
+
+export type PurgedMailScope = "trash" | "spam";
+
+export interface SearchIndexPurge {
+  ids?: string[];
+  scope?: PurgedMailScope;
+}
+
+const pending_purge_ids = new Set<string>();
+const pending_purge_scopes = new Set<PurgedMailScope>();
+let purge_timer: ReturnType<typeof setTimeout> | null = null;
+let purge_flush: Promise<void> = Promise.resolve();
+let reconcile_promise: Promise<number> | null = null;
+let reconcile_attempted_at = 0;
+let reconcile_wanted = false;
+
+function in_purged_scope(
+  item: MailItem,
+  scopes: Set<PurgedMailScope>,
+): boolean {
+  return (
+    (scopes.has("trash") && !!item.is_trashed) ||
+    (scopes.has("spam") && !!item.is_spam)
+  );
+}
+
+function drop_index_entries(
+  index: CachedIndex,
+  should_drop: (item: MailItem) => boolean,
+  already_counted?: Set<string>,
+): string[] {
+  if (index.items.length === 0) return [];
+
+  const dropped: string[] = [];
+  const kept: MailItem[] = [];
+
+  for (const item of index.items) {
+    if (should_drop(item)) {
+      dropped.push(item.id);
+    } else {
+      kept.push(item);
+    }
+  }
+
+  if (dropped.length === 0) return dropped;
+
+  index.items.length = 0;
+  for (const item of kept) index.items.push(item);
+  for (const id of dropped) index.decrypted.delete(id);
+
+  const uncounted = already_counted
+    ? dropped.filter((id) => !already_counted.has(id)).length
+    : dropped.length;
+
+  index.chunk_layout = undefined;
+  index.total_indexed = Math.max(
+    index.items.length,
+    index.total_indexed - uncounted,
+  );
+
+  return dropped;
+}
+
+function drop_hot_entries(
+  should_drop: (item: MailItem) => boolean,
+  already_counted?: Set<string>,
+): string[] {
+  const index = cached_index;
+
+  return index ? drop_index_entries(index, should_drop, already_counted) : [];
+}
+
+function drop_building_entries(should_drop: (item: MailItem) => boolean): void {
+  for (const index of building_indexes) {
+    if (index === cached_index) continue;
+
+    note_purged_ids(drop_index_entries(index, should_drop));
+  }
+}
+
+function remember_hot_drops(ids: string[]): void {
+  const index = cached_index;
+
+  if (!index || ids.length === 0) return;
+
+  let counted = counted_hot_drops.get(index);
+
+  if (!counted) {
+    counted = new Set<string>();
+    counted_hot_drops.set(index, counted);
+  }
+
+  for (const id of ids) counted.add(id);
+}
+
+function settle_disk_purge(removed: string[], hot_removed: string[]): void {
+  const index = cached_index;
+
+  if (!index?.meta || removed.length === 0) return;
+
+  const earlier = counted_hot_drops.get(index);
+  const counted = new Set(hot_removed);
+  let uncounted = 0;
+
+  for (const id of removed) {
+    if (!counted.has(id) && !earlier?.has(id)) uncounted += 1;
+    earlier?.delete(id);
+  }
+
+  index.meta.total = Math.max(0, index.meta.total - removed.length);
+  index.total_indexed = Math.max(
+    index.items.length,
+    index.total_indexed - uncounted,
+  );
+}
+
+async function flush_pending_purge(): Promise<void> {
+  const ids = new Set(pending_purge_ids);
+  const scopes = new Set(pending_purge_scopes);
+
+  pending_purge_ids.clear();
+  pending_purge_scopes.clear();
+
+  if (ids.size === 0 && scopes.size === 0) return;
+
+  const should_drop = (item: MailItem): boolean =>
+    ids.has(item.id) || in_purged_scope(item, scopes);
+  const hot_removed = drop_hot_entries(should_drop);
+  const removed = await purge_snapshot_entries(
+    should_drop,
+    scopes.size === 0 ? { expected: ids.size, ids } : {},
+  );
+
+  note_purged_ids(removed);
+  settle_disk_purge(removed, hot_removed);
+
+  const late = drop_hot_entries(should_drop, new Set(removed));
+
+  if (removed.length > 0 || hot_removed.length > 0 || late.length > 0) {
+    emit_index_refreshed();
+  }
+}
+
+export function purge_search_index(purge: SearchIndexPurge): Promise<void> {
+  const ids = (purge.ids ?? []).filter((id) => !!id);
+
+  if (ids.length === 0 && !purge.scope) return purge_flush;
+
+  for (const id of ids) pending_purge_ids.add(id);
+  if (purge.scope) pending_purge_scopes.add(purge.scope);
+
+  note_purged_ids(ids);
+  if (purge.scope) note_purged_scope(purge.scope);
+
+  const scopes = new Set<PurgedMailScope>(purge.scope ? [purge.scope] : []);
+  const wanted = new Set(ids);
+  const should_drop = (item: MailItem): boolean =>
+    wanted.has(item.id) || in_purged_scope(item, scopes);
+  const dropped = drop_hot_entries(should_drop);
+
+  remember_hot_drops(dropped);
+  note_purged_ids(dropped);
+  drop_building_entries(should_drop);
+  if (dropped.length > 0) emit_index_refreshed();
+  if (purge.scope) {
+    reconcile_attempted_at = 0;
+    reconcile_wanted = true;
+  }
+
+  if (purge_timer) return purge_flush;
+
+  purge_flush = new Promise<void>((resolve) => {
+    purge_timer = setTimeout(() => {
+      purge_timer = null;
+      void flush_pending_purge()
+        .catch((caught) =>
+          ignore_error("hooks/use_search/index_cache:purge", caught),
+        )
+        .finally(resolve);
+    }, PURGE_FLUSH_MS);
+  });
+
+  return purge_flush;
+}
+
+async function list_live_mail_ids(my_gen: number): Promise<Set<string> | null> {
+  const live = new Set<string>();
+  let cursor: string | undefined;
+
+  do {
+    if (is_index_download_paused()) return null;
+
+    const response = await list_encrypted_mail_items({
+      cursor,
+      limit: INDEX_PAGE_LIMIT,
+      include_envelope: false,
+    });
+
+    if (my_gen !== build_generation) return null;
+    if (response.error || !response.data) return null;
+
+    const page = response.data.items ?? [];
+
+    for (const item of page) live.add(item.id);
+
+    cursor = page.length > 0 ? response.data.next_cursor : undefined;
+  } while (cursor && live.size < MAX_INDEX_ITEMS);
+
+  if (cursor) return null;
+
+  const head = await list_encrypted_mail_items({
+    limit: INDEX_PAGE_LIMIT,
+    include_envelope: false,
+  });
+
+  if (my_gen !== build_generation) return null;
+  if (head.error || !head.data) return null;
+
+  for (const item of head.data.items ?? []) live.add(item.id);
+
+  return live;
+}
+
+export function reconcile_search_index(user_email: string): Promise<number> {
+  if (reconcile_promise) return reconcile_promise;
+
+  const my_gen = build_generation;
+  const started_at = Date.now();
+
+  reconcile_attempted_at = started_at;
+  reconcile_wanted = false;
+
+  const arrivals = open_arrival_watch();
+  const run: Promise<number> = (async (): Promise<number> => {
+    const live = await list_live_mail_ids(my_gen);
+
+    if (!live || my_gen !== build_generation) return 0;
+    if (cached_index && cached_index.user_email !== user_email) return 0;
+
+    const should_drop = (item: MailItem): boolean =>
+      is_expired_mail(item, started_at) ||
+      (!live.has(item.id) && !arrivals.has(item.id));
+    const hot_removed = drop_hot_entries(should_drop);
+    const removed = await purge_snapshot_entries(should_drop);
+
+    if (my_gen !== build_generation) return removed.length;
+
+    settle_disk_purge(removed, hot_removed);
+
+    if (await stamp_snapshot_verified(started_at)) {
+      if (cached_index?.meta) cached_index.meta.verified_at = started_at;
+    }
+
+    if (removed.length > 0 || hot_removed.length > 0) emit_index_refreshed();
+
+    return Math.max(removed.length, hot_removed.length);
+  })()
+    .catch((caught): number => {
+      ignore_error("hooks/use_search/index_cache:reconcile", caught);
+
+      return 0;
+    })
+    .finally(() => {
+      close_arrival_watch(arrivals);
+      if (reconcile_promise === run) reconcile_promise = null;
+    });
+
+  reconcile_promise = run;
+
+  return run;
+}
+
+export function is_index_reconcile_due(
+  index: CachedIndex,
+  now: number = Date.now(),
+): boolean {
+  if (!index.meta || index.items.length === 0) return false;
+  if (now - (index.meta.verified_at ?? 0) < RECONCILE_INTERVAL_MS) return false;
+
+  return now - reconcile_attempted_at >= RECONCILE_RETRY_MS;
+}
+
+function schedule_index_reconcile(index: CachedIndex): void {
+  if (reconcile_promise || is_index_download_paused()) return;
+  if (!reconcile_wanted && !is_index_reconcile_due(index)) return;
+
+  void reconcile_search_index(index.user_email);
+}
+
+export function request_index_reconcile(now: number = Date.now()): void {
+  if (reconcile_promise) return;
+  if (now - reconcile_attempted_at < RECONCILE_REQUEST_MIN_MS) return;
+
+  const index = cached_index;
+
+  if (!index || is_index_download_paused()) {
+    reconcile_wanted = true;
+
+    return;
+  }
+
+  void reconcile_search_index(index.user_email);
+}
+
+export function force_index_reconcile(): Promise<number> {
+  reconcile_attempted_at = 0;
+
+  const index = cached_index;
+
+  if (!index || is_index_download_paused()) {
+    reconcile_wanted = true;
+
+    return Promise.resolve(0);
+  }
+
+  const running = reconcile_promise;
+
+  if (running) {
+    reconcile_wanted = true;
+
+    return running.then(() => {
+      if (cached_index !== index) return 0;
+
+      return reconcile_search_index(index.user_email);
+    });
+  }
+
+  return reconcile_search_index(index.user_email);
+}
+
+export function reset_index_purge_state(): void {
+  if (purge_timer) clearTimeout(purge_timer);
+  purge_timer = null;
+  pending_purge_ids.clear();
+  pending_purge_scopes.clear();
+  reconcile_attempted_at = 0;
+  reconcile_wanted = false;
 }
 
 export function mark_search_index_stale(): void {
@@ -737,6 +1107,7 @@ export function start_background_rebuild(
     .then((index) => {
       if (announced_index !== index) emit_index_refreshed();
       announced_index = null;
+      schedule_index_reconcile(index);
 
       return index;
     })
@@ -834,6 +1205,7 @@ export async function hydrate_snapshot_index(
 
       if (!entry) continue;
 
+      drop_sender_verification(entry.envelope);
       index.items.push(item);
       index.decrypted.set(item.id, {
         envelope: entry.envelope,

@@ -110,13 +110,13 @@ describe("native packages ship a slim copy of the web build", () => {
     );
     expect(read("capacitor.config.ts")).toMatch(/webDir:\s*"dist-native"/);
     expect(pkg.scripts["build:mobile"]).toMatch(
-      /node scripts\/prepare_native_dist\.mjs && npx cap sync$/,
+      /node scripts\/prepare_native_dist\.mjs --capacitor && npx cap sync$/,
     );
     expect(pkg.scripts["build:android"]).toMatch(
-      /node scripts\/prepare_native_dist\.mjs && npx cap sync android$/,
+      /node scripts\/prepare_native_dist\.mjs --capacitor && npx cap sync android$/,
     );
     expect(pkg.scripts["capacitor:copy:before"]).toBe(
-      "node scripts/prepare_native_dist.mjs",
+      "node scripts/prepare_native_dist.mjs --capacitor",
     );
   });
 
@@ -132,7 +132,7 @@ describe("native packages ship a slim copy of the web build", () => {
 
     for (const [name, command] of reads_web_dir) {
       expect(command, name).toMatch(
-        /node scripts\/prepare_native_dist\.mjs && npx cap (sync|copy|run|build)\b/,
+        /node scripts\/prepare_native_dist\.mjs --capacitor && npx cap (sync|copy|run|build)\b/,
       );
     }
   });

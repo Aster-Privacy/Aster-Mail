@@ -34,6 +34,7 @@ import {
   summarize_tracking_protection,
 } from "@/components/email/tracking_protection_details";
 import { use_preferences } from "@/contexts/preferences_context";
+import { blocks_tracking_pixels } from "@/lib/remote_content_policy";
 
 interface TrackingProtectionShieldProps {
   report: ExternalContentReport;
@@ -53,7 +54,12 @@ export function TrackingProtectionShield({
   );
   const { total_count } = summary;
 
-  if (!preferences.block_external_content) return null;
+  if (
+    !preferences.block_external_content &&
+    !blocks_tracking_pixels(preferences)
+  ) {
+    return null;
+  }
   if (total_count === 0) return null;
 
   return (

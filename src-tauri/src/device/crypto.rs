@@ -132,22 +132,25 @@ fn is_passphrase_file_name(name: &str) -> bool {
     name.starts_with("device_passphrase") && name.ends_with(".bin")
 }
 
-fn delete_all_passphrase_files() {
+fn delete_all_passphrase_files() -> bool {
     let Ok(legacy) = passphrase_file_path() else {
-        return;
+        return true;
     };
     let Some(dir) = legacy.parent() else {
-        return;
+        return true;
     };
     let Ok(entries) = std::fs::read_dir(dir) else {
-        return;
+        return !dir.exists();
     };
+    let mut removed = true;
+
     for entry in entries.flatten() {
         let name = entry.file_name();
         if is_passphrase_file_name(&name.to_string_lossy()) {
-            secure_delete_file(&entry.path());
+            removed &= secure_delete_file(&entry.path());
         }
     }
+    removed
 }
 
 fn parse_device_id(device_id: Option<String>) -> Result<Option<Uuid>, String> {
@@ -259,7 +262,9 @@ fn wrap_key_file_adopt() -> Option<[u8; 32]> {
     let key = wrap_key_file_load().ok().flatten()?;
 
     match keyring_wrap_key_store(&key) {
-        Ok(()) => secure_delete_file(&path),
+        Ok(()) => {
+            secure_delete_file(&path);
+        }
         Err(e) => {
             tracing::warn!(
                 "device wrap key remains on disk because the system keychain is unavailable: {}",
@@ -404,16 +409,19 @@ fn auth_store_read(slot: &str) -> Result<Option<String>, String> {
     }
 }
 
-fn auth_store_clear_all() {
+fn auth_store_clear_all() -> bool {
+    let mut removed = true;
+
     for slot in [AUTH_SLOT_ACCESS, AUTH_SLOT_CSRF] {
         if let Ok((keyring_user, file_name)) = auth_slot_ids(slot) {
             let _ = keyring_delete(keyring_user);
 
             if let Ok(path) = auth_file_path(file_name) {
-                secure_delete_file(&path);
+                removed &= secure_delete_file(&path);
             }
         }
     }
+    removed
 }
 
 static REFRESH_STORE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
@@ -505,9 +513,10 @@ fn secure_overwrite_file(path: &std::path::Path) {
     let _ = f.sync_all();
 }
 
-fn secure_delete_file(path: &std::path::Path) {
+fn secure_delete_file(path: &std::path::Path) -> bool {
     secure_overwrite_file(path);
     let _ = std::fs::remove_file(path);
+    !path.exists()
 }
 
 fn atomic_write(path: &std::path::Path, data: &[u8]) -> Result<(), String> {
@@ -905,7 +914,8 @@ fn challenge_signing_input(nonce: &[u8], signature_version: Option<u8>) -> Resul
     }
 
     match signature_version {
-        None | Some(1) => Ok(nonce.to_vec()),
+        None => super::challenge::device_challenge_message(nonce),
+        Some(1) => Ok(nonce.to_vec()),
         Some(2) => Ok([DEVICE_LOGIN_SIGNATURE_CONTEXT, nonce].concat()),
         Some(_) => Err("unsupported challenge version".to_string()),
     }
@@ -1011,9 +1021,27 @@ fn open_device_envelope(data: &[u8], id: &DeviceIdentity) -> Result<Zeroizing<Ve
         .map_err(|e| format!("decrypt: {:?}", e))
 }
 
+fn is_local_app_url(url: &tauri::Url, allow_dev_hosts: bool) -> bool {
+    let host = url.host_str().unwrap_or("");
+    match url.scheme() {
+        "tauri" => host == "localhost",
+        "http" | "https" => {
+            host == "tauri.localhost"
+                || (allow_dev_hosts && matches!(host, "127.0.0.1" | "localhost"))
+        }
+        _ => false,
+    }
+}
+
 fn require_primary_webview(window: &tauri::WebviewWindow) -> Result<(), String> {
     if window.label() != "main" {
         return Err("command not available in this window".to_string());
+    }
+    let url = window
+        .url()
+        .map_err(|_| "command not available in this window".to_string())?;
+    if !is_local_app_url(&url, cfg!(debug_assertions)) {
+        return Err("command not available on this page".to_string());
     }
     Ok(())
 }
@@ -1389,7 +1417,9 @@ pub fn device_refresh_token_clear(window: tauri::WebviewWindow) -> Result<(), St
 
     let _guard = REFRESH_STORE_LOCK.lock().map_err(|e| e.to_string())?;
 
-    secure_delete_file(&auth_file_path(REFRESH_FILE_NAME)?);
+    if !secure_delete_file(&auth_file_path(REFRESH_FILE_NAME)?) {
+        return Err("stored session file could not be removed".to_string());
+    }
     Ok(())
 }
 
@@ -1432,14 +1462,21 @@ pub fn device_clear_session(window: tauri::WebviewWindow) -> Result<(), String> 
 #[tauri::command]
 pub fn device_clear_identity(window: tauri::WebviewWindow) -> Result<(), String> {
     require_primary_webview(&window)?;
-    auth_store_clear_all();
-    delete_all_passphrase_files();
+
+    let mut removed = auth_store_clear_all();
+
+    removed &= delete_all_passphrase_files();
 
     if let Ok(path) = identity_file_path() {
-        secure_delete_file(&path);
+        removed &= secure_delete_file(&path);
+        removed &= secure_delete_file(&unreadable_identity_path(&path));
     }
     let _ = keyring_delete(KEYRING_IDENTITY_USER);
     let _ = wrap_key_delete();
+
+    if !removed {
+        return Err("device files could not be removed".to_string());
+    }
     Ok(())
 }
 
@@ -1457,23 +1494,18 @@ pub(crate) const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (macOS; Tauri
 #[cfg(all(unix, not(target_os = "macos")))]
 pub(crate) const DESKTOP_USER_AGENT: &str = "AsterMail-Desktop/1.0 (Linux; Tauri)";
 
+const DEVICE_FORWARDED_HEADERS: &[&str] = &[
+    "content-type",
+    "authorization",
+    "x-csrf-token",
+    "x-folder-unlock",
+    "x-aster-vault-level",
+    "x-aster-device-id",
+];
+
 fn is_device_header_allowed(name: &str) -> bool {
     let n = name.to_ascii_lowercase();
-    matches!(
-        n.as_str(),
-        "content-type"
-            | "content-length"
-            | "accept"
-            | "accept-language"
-            | "accept-encoding"
-            | "authorization"
-            | "x-csrf-token"
-            | "x-requested-with"
-            | "x-device-id"
-            | "if-none-match"
-            | "if-modified-since"
-            | "user-agent"
-    ) || (n.starts_with("x-aster-") && n != "x-aster-client")
+    DEVICE_FORWARDED_HEADERS.contains(&n.as_str())
 }
 
 const ALLOWED_HTTPS_SUFFIXES: &[&str] = &[".astermail.org"];
@@ -1593,6 +1625,16 @@ pub async fn device_http_request(
     })
 }
 
+const MAX_PBKDF2_BITS: u32 = 4096;
+
+fn hkdf_max_bits(hash: &str) -> Result<u32, String> {
+    match hash.to_uppercase().as_str() {
+        "SHA-256" => Ok(255 * 32 * 8),
+        "SHA-512" => Ok(255 * 64 * 8),
+        _ => Err(format!("unsupported hash: {}", hash)),
+    }
+}
+
 #[tauri::command]
 pub fn crypto_pbkdf2(
     password: Vec<u8>,
@@ -1609,6 +1651,9 @@ pub fn crypto_pbkdf2(
     }
     if iterations > 2_000_000 {
         return Err(format!("iterations {} exceeds maximum of 2000000", iterations));
+    }
+    if bits > MAX_PBKDF2_BITS {
+        return Err(format!("bits {} exceeds maximum of {}", bits, MAX_PBKDF2_BITS));
     }
     let dk_len = (bits / 8) as usize;
     let mut dk = vec![0u8; dk_len];
@@ -1639,6 +1684,10 @@ pub fn crypto_hkdf(
 ) -> Result<Vec<u8>, String> {
     if bits == 0 || bits % 8 != 0 {
         return Err(format!("bits must be a non-zero multiple of 8, got {}", bits));
+    }
+    let max_bits = hkdf_max_bits(&hash)?;
+    if bits > max_bits {
+        return Err(format!("bits {} exceeds maximum of {} for {}", bits, max_bits, hash));
     }
     let dk_len = (bits / 8) as usize;
     let mut okm = vec![0u8; dk_len];
@@ -1800,6 +1849,70 @@ mod tests {
         let v2 = b64url_decode(&vector["envelope_v2"]).unwrap();
         assert!(open_device_envelope(&v2[..4 + ENVELOPE_HEADER_LEN + 15], &id).is_err());
         assert!(open_device_envelope(&[], &id).is_err());
+    }
+
+    #[test]
+    fn web_app_request_headers_are_forwarded() {
+        for name in [
+            "Content-Type",
+            "Authorization",
+            "X-CSRF-Token",
+            "X-Folder-Unlock",
+            "X-Aster-Vault-Level",
+            "X-Aster-Device-Id",
+        ] {
+            assert!(is_device_header_allowed(name), "{name}");
+            assert!(is_device_header_allowed(&name.to_ascii_lowercase()), "{name}");
+        }
+    }
+
+    #[test]
+    fn other_request_headers_are_dropped() {
+        for name in [
+            "X-Aster-Client",
+            "X-Aster-Other",
+            "Cookie",
+            "Origin",
+            "Referer",
+            "Host",
+            "User-Agent",
+            "X-Forwarded-For",
+        ] {
+            assert!(!is_device_header_allowed(name), "{name}");
+        }
+    }
+
+    #[test]
+    fn local_app_urls_are_accepted() {
+        for url in ["tauri://localhost/", "http://tauri.localhost/", "https://tauri.localhost/mail"] {
+            assert!(is_local_app_url(&tauri::Url::parse(url).unwrap(), false), "{url}");
+        }
+    }
+
+    #[test]
+    fn remote_and_dev_urls_are_rejected_in_release() {
+        for url in [
+            "https://hooks.stripe.com/",
+            "https://evil.astermail.org/",
+            "https://tauri.localhost.evil.com/",
+            "tauri://evil/",
+            "http://127.0.0.1:1420/",
+            "about:blank",
+        ] {
+            assert!(!is_local_app_url(&tauri::Url::parse(url).unwrap(), false), "{url}");
+        }
+        assert!(is_local_app_url(&tauri::Url::parse("http://127.0.0.1:1420/").unwrap(), true));
+    }
+
+    #[test]
+    fn kdf_output_limits() {
+        assert_eq!(hkdf_max_bits("SHA-256").unwrap(), 65_280);
+        assert_eq!(hkdf_max_bits("sha-512").unwrap(), 130_560);
+        assert!(hkdf_max_bits("SHA-1").is_err());
+        assert!(crypto_pbkdf2(b"pw".to_vec(), b"salt".to_vec(), 1, "SHA-256".into(), 4104).is_err());
+        assert_eq!(crypto_pbkdf2(b"pw".to_vec(), b"salt".to_vec(), 1, "SHA-256".into(), 256).unwrap().len(), 32);
+        assert!(crypto_hkdf(vec![1; 32], vec![], vec![], "SHA-256".into(), 65_288).is_err());
+        assert_eq!(crypto_hkdf(vec![1; 32], vec![], vec![], "SHA-256".into(), 512).unwrap().len(), 64);
     }
 
     fn test_key(seed: u8) -> [u8; 32] {
@@ -2435,8 +2548,16 @@ mod challenge_signing_tests {
     #[test]
     fn keeps_the_older_server_format() {
         let nonce = [9u8; DEVICE_LOGIN_NONCE_LEN];
-        assert_eq!(challenge_signing_input(&nonce, None).unwrap(), nonce.to_vec());
         assert_eq!(challenge_signing_input(&nonce, Some(1)).unwrap(), nonce.to_vec());
+    }
+
+    #[test]
+    fn uses_the_labeled_challenge_when_the_server_names_no_version() {
+        let nonce = [9u8; DEVICE_LOGIN_NONCE_LEN];
+        assert_eq!(
+            challenge_signing_input(&nonce, None).unwrap(),
+            super::super::challenge::device_challenge_message(&nonce).unwrap()
+        );
     }
 
     #[test]

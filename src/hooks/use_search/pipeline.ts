@@ -50,9 +50,18 @@ import { filter_locked_mail_items } from "@/services/locked_folders";
 import { strip_html_tags_bounded } from "@/lib/html_sanitizer";
 import { yield_to_next_paint } from "@/lib/scheduling";
 import { create_work_slicer } from "@/lib/work_slicer";
-import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import {
+  decrypt_body_text_with_bundle,
+  is_ratchet_envelope,
+} from "@/utils/email_crypto";
+import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
+import { is_expired_mail } from "@/services/search/index_removals";
 import {
   bound_index_body,
+  is_purged_id,
+  note_indexed_arrivals,
+  purged_since,
+  scope_purge_mark,
   MAX_INDEX_BODY_CHARS,
   metadata_fingerprint,
   slim_envelope_for_index,
@@ -237,7 +246,11 @@ export async function run_index_pipeline(
     );
 
     if (envelope?.body_text) {
-      if (include_body || !envelope.subject) {
+      if (
+        include_body ||
+        !envelope.subject ||
+        is_ratchet_envelope(envelope.body_text)
+      ) {
         const sender_email = envelope.from?.email || "";
 
         const bundle = await decrypt_body_text_with_bundle(
@@ -247,9 +260,7 @@ export async function run_index_pipeline(
           item.id,
         );
 
-        if (bundle.subject !== null && !envelope.subject) {
-          envelope.subject = bundle.subject;
-        }
+        settle_bundle_subject(envelope, bundle);
         envelope.body_text = include_body ? bundle.body : "";
       } else {
         envelope.body_text = "";
@@ -344,6 +355,7 @@ export async function run_index_pipeline(
       };
     }
 
+    const purge_mark = scope_purge_mark();
     const response = await list_encrypted_mail_items({
       cursor,
       limit: Math.min(page_limit, options.max_items - processed),
@@ -372,7 +384,9 @@ export async function run_index_pipeline(
       }
     }
 
-    page_items = filter_locked_mail_items(page_items);
+    page_items = filter_locked_mail_items(page_items).filter(
+      (item) => !is_purged_id(item.id) && !is_expired_mail(item),
+    );
 
     const envelope_by_id = incremental
       ? await fetch_envelopes(
@@ -381,6 +395,11 @@ export async function run_index_pipeline(
       : null;
 
     const page_entries = await decrypt_page(page_items, envelope_by_id);
+
+    page_items = page_items.filter(
+      (item) => !is_purged_id(item.id) && !purged_since(item, purge_mark),
+    );
+    note_indexed_arrivals(page_items.map((item) => item.id));
 
     if (hot) {
       for (const item of page_items) {

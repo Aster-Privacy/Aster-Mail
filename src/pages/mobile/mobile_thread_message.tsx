@@ -58,6 +58,10 @@ import {
 } from "@/components/email/message_body_parts";
 import { renderable_html_part } from "@/lib/message_markup";
 import { is_system_email } from "@/lib/utils";
+import {
+  effective_remote_image_mode,
+  resolve_remote_content_preferences,
+} from "@/lib/remote_content_policy";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
 import { use_thread_message_attachments } from "@/pages/mobile/use_thread_message_attachments";
@@ -167,7 +171,10 @@ function MobileThreadMessageContent({
   on_reply: (msg: DecryptedThreadMessage) => void;
   on_forward: (msg: DecryptedThreadMessage) => void;
   on_open_menu: (msg: DecryptedThreadMessage) => void;
-  on_external_content_detected?: (report: ExternalContentReport) => void;
+  on_external_content_detected?: (
+    report: ExternalContentReport,
+    message_id: string,
+  ) => void;
   format_detail: (date: Date) => string;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   force_dark_mode?: boolean;
@@ -282,7 +289,11 @@ function MobileThreadMessageContent({
     [message.raw_headers],
   );
   const evaluated_trust = use_sender_trust(
-    { ...message, reply_to: reply_to_address },
+    {
+      ...message,
+      reply_to: reply_to_address,
+      e2e_sender_bound: !!message.e2e_sender_bound,
+    },
     { shown_name: raw_sender_name, shown_email: show_sender_email },
   );
   const sender_trust =
@@ -366,30 +377,20 @@ function MobileThreadMessageContent({
             ? "never"
             : is_system
               ? "always"
-              : preferences.load_remote_images,
+              : effective_remote_image_mode(preferences),
           image_proxy_url: get_image_proxy_url(),
           sandbox_mode: true,
           lockdown_mode: lockdown_active,
-          content_blocking:
-            !is_system && preferences.block_external_content
-              ? {
-                  block_remote_images:
-                    lockdown_active || preferences.block_remote_images,
-                  block_remote_fonts:
-                    lockdown_active || preferences.block_remote_fonts,
-                  block_remote_css:
-                    lockdown_active || preferences.block_remote_css,
-                  block_tracking_pixels:
-                    lockdown_active || preferences.block_tracking_pixels,
-                }
-              : lockdown_active
-                ? {
-                    block_remote_images: true,
-                    block_remote_fonts: true,
-                    block_remote_css: true,
-                    block_tracking_pixels: true,
-                  }
-                : undefined,
+          content_blocking: lockdown_active
+            ? {
+                block_remote_images: true,
+                block_remote_fonts: true,
+                block_remote_css: true,
+                block_tracking_pixels: true,
+              }
+            : is_system
+              ? undefined
+              : resolve_remote_content_preferences(preferences),
         });
 
       return {
@@ -541,10 +542,14 @@ function MobileThreadMessageContent({
       sanitize_result.external_content.blocked_count > 0 &&
       on_external_content_detected
     ) {
-      on_external_content_detected(sanitize_result.external_content);
+      on_external_content_detected(
+        sanitize_result.external_content,
+        message.id,
+      );
     }
   }, [
     is_expanded,
+    message.id,
     sanitize_result.external_content,
     on_external_content_detected,
   ]);

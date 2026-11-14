@@ -71,6 +71,10 @@ import { compare_timestamps_asc } from "@/utils/email_timestamp";
 import { has_readable_body } from "@/components/email/thread_message_merge";
 import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
 import {
+  has_sealed_details,
+  settle_sealed_fields,
+} from "@/services/crypto/sealed_message_fields";
+import {
   as_sent_encryption_scope,
   sent_copy_encryption_scope,
 } from "@/services/crypto/sent_encryption_evidence";
@@ -257,7 +261,9 @@ async function decode_thread_envelope(
   }
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
   let body_content =
-    has_inbound_pgp_block(resolved_text) || !resolved_html
+    has_inbound_pgp_block(resolved_text) ||
+    !resolved_html ||
+    is_ratchet_envelope(resolved_text)
       ? resolved_text
       : resolved_html;
   const quoted_html_pgp =
@@ -265,6 +271,7 @@ async function decode_thread_envelope(
     is_quoted_inbound_pgp(resolved_text, body_content);
   let body_decrypted = false;
   let e2e_verified = false;
+  let ratchet_sealed = false;
 
   if (our_email && body_content.startsWith("{")) {
     const ratchet_env = parse_ratchet_envelope(body_content);
@@ -291,6 +298,7 @@ async function decode_thread_envelope(
             body_content = decrypted;
             body_decrypted = true;
             e2e_verified = is_trusted_ratchet_plaintext(decrypted);
+            ratchet_sealed = e2e_verified;
           } else {
             body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
           }
@@ -339,13 +347,20 @@ async function decode_thread_envelope(
     }
   }
 
+  const attachments_sealed = settle_sealed_fields(
+    envelope,
+    subject_bundle,
+    ratchet_sealed,
+    msg.id,
+  );
+
   const content_is_html = is_html_content(body_content);
   const html_had_pgp =
     resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
   let effective_html: string | undefined =
     (body_decrypted || mime_extracted) && content_is_html
       ? body_content
-      : html_had_pgp && body_decrypted
+      : (html_had_pgp && body_decrypted) || ratchet_sealed
         ? undefined
         : resolved_html;
 
@@ -372,12 +387,17 @@ async function decode_thread_envelope(
     text_part: sender_text_alternative(effective_html, resolved_text),
     sent_at: envelope.sent_at,
     e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
+    e2e_sender_bound: ratchet_sealed || sent_encryption_scope !== undefined,
+    e2e_details_sealed: has_sealed_details(subject_bundle, ratchet_sealed),
     ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
     to_recipients: envelope.to || [],
     cc_recipients: envelope.cc || [],
     bcc_recipients: envelope.bcc || [],
     raw_headers: envelope.raw_headers,
     attachment_keys: envelope.attachment_keys,
+    ...(attachments_sealed
+      ? { sealed_attachment_manifest: subject_bundle.attachment_manifest }
+      : {}),
   };
   const cacheable =
     !pgp_unresolved &&
@@ -475,6 +495,7 @@ export async function fetch_and_decrypt_thread_messages(
         spam_score: msg.spam_score,
         spam_signals: msg.spam_signals,
         is_spam: msg.is_spam,
+        routing_token: msg.routing_token,
         reactions: msg.reactions,
       };
     }
@@ -503,6 +524,8 @@ export async function fetch_and_decrypt_thread_messages(
       is_external: msg.is_external ?? false,
       system_origin: msg.system_origin,
       e2e_verified: content.e2e_verified,
+      e2e_sender_bound: content.e2e_sender_bound,
+      e2e_details_sealed: content.e2e_details_sealed,
       ...(as_sent_encryption_scope(content.sent_encryption_scope)
         ? { sent_encryption_scope: content.sent_encryption_scope }
         : {}),
@@ -525,6 +548,7 @@ export async function fetch_and_decrypt_thread_messages(
       spam_signals: msg.spam_signals,
       is_spam: msg.is_spam,
       message_group_id: msg.message_group_id,
+      routing_token: msg.routing_token,
       reactions: msg.reactions,
     };
   });
@@ -598,6 +622,7 @@ export async function fetch_and_decrypt_virtual_group(
         send_error: item.send_error,
         encrypted_metadata: item.encrypted_metadata,
         metadata_nonce: item.metadata_nonce,
+        routing_token: item.routing_token,
         reactions: item.reactions,
         spf_result: item.spf_result,
         dkim_result: item.dkim_result,
@@ -617,7 +642,9 @@ export async function fetch_and_decrypt_virtual_group(
     }
     const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
     let body_content =
-      has_inbound_pgp_block(resolved_text) || !resolved_html
+      has_inbound_pgp_block(resolved_text) ||
+      !resolved_html ||
+      is_ratchet_envelope(resolved_text)
         ? resolved_text
         : resolved_html;
     const quoted_html_pgp =
@@ -625,6 +652,7 @@ export async function fetch_and_decrypt_virtual_group(
       is_quoted_inbound_pgp(resolved_text, body_content);
     let body_decrypted = false;
     let e2e_verified = false;
+    let ratchet_sealed = false;
 
     if (our_email && body_content.startsWith("{")) {
       const ratchet_env = parse_ratchet_envelope(body_content);
@@ -651,6 +679,7 @@ export async function fetch_and_decrypt_virtual_group(
               body_content = decrypted;
               body_decrypted = true;
               e2e_verified = is_trusted_ratchet_plaintext(decrypted);
+              ratchet_sealed = e2e_verified;
             } else {
               body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
             }
@@ -696,13 +725,15 @@ export async function fetch_and_decrypt_virtual_group(
       }
     }
 
+    settle_sealed_fields(envelope, subject_bundle, ratchet_sealed, item.id);
+
     const content_is_html = is_html_content(body_content);
     const html_had_pgp =
       resolved_html?.includes("-----BEGIN PGP MESSAGE-----") ?? false;
     let effective_html: string | undefined =
       (body_decrypted || mime_extracted) && content_is_html
         ? body_content
-        : html_had_pgp && body_decrypted
+        : (html_had_pgp && body_decrypted) || ratchet_sealed
           ? undefined
           : resolved_html;
 
@@ -740,6 +771,8 @@ export async function fetch_and_decrypt_virtual_group(
       is_external: item.is_external ?? false,
       system_origin: item.system_origin,
       e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
+      e2e_sender_bound: ratchet_sealed || sent_encryption_scope !== undefined,
+      e2e_details_sealed: has_sealed_details(subject_bundle, ratchet_sealed),
       ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
       sender_verified_domain: item.sender_verified
         ? item.sender_verified_domain
@@ -754,6 +787,7 @@ export async function fetch_and_decrypt_virtual_group(
       bcc_recipients: envelope.bcc || [],
       raw_headers: envelope.raw_headers,
       message_group_id: item.message_group_id,
+      routing_token: item.routing_token,
       reactions: item.reactions,
       spf_result: item.spf_result,
       dkim_result: item.dkim_result,

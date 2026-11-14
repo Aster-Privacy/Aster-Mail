@@ -28,7 +28,12 @@ import { WifiIcon } from "@heroicons/react/24/outline";
 
 import { use_index_page_state } from "./use_index_page_state";
 
-import { resolve_settings_section } from "@/components/settings/settings_content_helpers";
+import {
+  request_settings_tab,
+  request_settings_target,
+  resolve_settings_section,
+  settings_tab_for,
+} from "@/components/settings/settings_content_helpers";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Sidebar } from "@/components/layout/sidebar";
 import {
@@ -211,6 +216,12 @@ export default function IndexPage() {
   useEffect(() => preload_when_idle(preload_reply_and_forward), []);
 
   const settings_section = resolve_settings_section(section);
+  const settings_url_tab = settings_tab_for(section);
+
+  useEffect(() => {
+    if (settings_url_tab) request_settings_tab(settings_url_tab);
+  }, [section, settings_url_tab]);
+
   const settings_popup_mode =
     (state.preferences.settings_view_mode ?? "fullpage") === "popup";
 
@@ -375,7 +386,7 @@ export default function IndexPage() {
       );
 
       if (anchor) set_pending_settings_anchor(anchor);
-      state_ref.current.open_settings(resolve_settings_section(requested));
+      state_ref.current.open_settings(request_settings_target(requested));
     };
 
     try {

@@ -71,6 +71,7 @@ import { emit_aliases_changed } from "@/hooks/mail_events";
 import { app_pathname } from "@/lib/account_index_url";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { INSTANT_ALIAS_DELETE_KEY } from "@/components/settings/hooks/use_aliases";
+import { delete_eligible_at } from "@/components/settings/aliases/alias_delete_wait";
 import {
   type AliasSortMode,
   is_alias_sort_mode,
@@ -97,6 +98,7 @@ interface AliasListProps {
   on_alias_toggle: (id: string, enabled: boolean) => void;
   on_alias_delete: (id: string) => void;
   on_alias_too_new?: (eligible_date: string) => void;
+  skips_delete_wait?: (domain_name: string | undefined) => boolean;
   on_domain_addr_delete: (id: string, domain_id: string) => void;
   on_domain_address_toggle?: (
     id: string,
@@ -279,6 +281,7 @@ export function AliasList({
   on_alias_toggle,
   on_alias_delete,
   on_alias_too_new,
+  skips_delete_wait,
   on_domain_addr_delete,
   on_domain_address_toggle,
   on_avatar_changed,
@@ -521,9 +524,8 @@ export function AliasList({
     if (delete_gated) {
       for (const alias of aliases) {
         if (!selected_ids.has(alias.id) || alias.decryption_failed) continue;
-        const eligible = new Date(
-          new Date(alias.created_at).getTime() + 30 * 24 * 60 * 60 * 1000,
-        );
+        if (skips_delete_wait?.(alias.domain)) continue;
+        const eligible = delete_eligible_at(alias.created_at);
 
         if (now < eligible.getTime()) {
           too_new_ids.add(alias.id);

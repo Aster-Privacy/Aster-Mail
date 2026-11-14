@@ -477,17 +477,25 @@ const PRESERVED_LOCAL_KEYS: ReadonlySet<string> = new Set([
   "aster_onion_api_url",
   "aster_onion_mail_url",
   "aster_sw_reset_v1",
+  "aster_onboarding_install_app_done",
 ]);
+
+const ERROR_REPORT_CHOICE_KEY = "aster_error_reports";
+const ERROR_REPORTS_DECLINED = "off";
 
 const PRESERVED_LOCAL_KEY_PREFIXES: readonly string[] = [
   "aster_family_setup_",
   "aster_family_welcome_seen_",
   "aster_family_2fa_banner_dismissed",
   "aster_family_checklist_dismissed_",
+  "aster_onboarding_checklist_dismissed_",
 ];
 
 function should_preserve_local_key(key: string): boolean {
   if (PRESERVED_LOCAL_KEYS.has(key)) return true;
+  if (key === ERROR_REPORT_CHOICE_KEY) {
+    return safe_local_get(key) === ERROR_REPORTS_DECLINED;
+  }
 
   return PRESERVED_LOCAL_KEY_PREFIXES.some((prefix) => key.startsWith(prefix));
 }
@@ -507,7 +515,7 @@ function overwrite_and_remove_local_key(key: string): void {
   safe_local_remove(key);
 }
 
-function secure_clear_local_storage(): void {
+export function secure_clear_local_storage(): void {
   for (const key of SENSITIVE_STORAGE_KEYS) {
     overwrite_and_remove_local_key(key);
   }
@@ -542,6 +550,10 @@ export async function wipe_all_storage(): Promise<void> {
     const { Capacitor } = await import("@capacitor/core");
 
     if (Capacitor.isNativePlatform()) {
+      const { native_token_store } =
+        await import("@/services/api/client/native_token_store");
+
+      await native_token_store.clear_all();
       const { native_token_clear_all } = await import(
         "@/native/secure_token_store"
       );

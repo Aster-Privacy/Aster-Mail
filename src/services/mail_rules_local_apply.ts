@@ -32,6 +32,7 @@ import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelop
 import {
   evaluate_rule_locally,
   local_input_from_envelope,
+  local_input_is_complete,
   rule_supports_local_evaluation,
 } from "@/lib/mail_rules/local_rule_evaluator";
 import { yield_to_browser } from "@/lib/scheduling";
@@ -116,9 +117,14 @@ export async function apply_rule_to_sealed_items(
       continue;
     }
 
-    if (
-      evaluate_rule_locally(rule, local_input_from_envelope(envelope, item))
-    ) {
+    const input = local_input_from_envelope(envelope, item);
+
+    if (!local_input_is_complete(rule, input)) {
+      result.unreadable += 1;
+      continue;
+    }
+
+    if (evaluate_rule_locally(rule, input)) {
       matched_ids.push(item.id);
       result.matched += 1;
     }

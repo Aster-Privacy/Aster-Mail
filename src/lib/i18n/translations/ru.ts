@@ -578,6 +578,9 @@ export const ru = {
       "Платёж не прошёл. Доступ будет ограничен через {{days}} дн.",
     billing_alert_action: "Оплатить",
     dismiss: "Отклонить",
+    web_sandbox_off_title: "Веб-контент работает без системной песочницы",
+    web_sandbox_off_body:
+      "На этом компьютере Aster Mail не может запустить песочницу bubblewrap, поэтому веб-контент работает без нее. Чтобы снова включить ее, установите пакет bubblewrap, разрешите непривилегированные пространства имен пользователей и перезапустите Aster Mail.",
     load_content: "Загрузить",
     open_link: "Открыть ссылку",
     no_icon: "Без значка",
@@ -942,6 +945,8 @@ export const ru = {
       "Не удалось показать этот файл. Возможно, он был перемещен или удален.",
     attachment_locked:
       "Это вложение нельзя открыть, потому что ключ шифрования недоступен на этом устройстве.",
+    attachment_content_mismatch:
+      "Это вложение не соответствует сообщению, с которым оно пришло, поэтому оно не было открыто.",
     scheduled_no_attachments:
       "Запланированные письма пока не могут содержать вложения. Отправьте сейчас или удалите файлы, чтобы запланировать.",
     scheduled_connected_account:
@@ -1133,6 +1138,10 @@ export const ru = {
     end_to_end_encrypted_label: "Сквозное шифрование",
     encrypted_in_transit_stored: "Зашифровано при передаче и хранении.",
     only_you_and_sender: "Только вы и отправитель можете прочитать это.",
+    only_you_and_sender_details_from_server:
+      "Только вы и отправитель можете прочитать это. Имя отправителя, получатели и дата получены с сервера и не защищены сквозным шифрованием.",
+    encrypted_to_you_unconfirmed_sender:
+      "Это сообщение зашифровано вашим открытым ключом. Личность отправителя не подтверждена.",
     only_you_can_read_contacts:
       "Только вы можете читать ваши контакты. Aster их не видит.",
     failed_to_send_email:
@@ -1783,6 +1792,9 @@ export const ru = {
     recovery_codes_low_reminder_body_one:
       "Каждый код работает один раз, у вас остался {{count}}. Получите новые коды, чтобы не потерять доступ.",
     recovery_codes_low_reminder_action: "Получить новые коды",
+    recovery_codes_refresh_title: "Замените коды восстановления",
+    recovery_codes_refresh_body:
+      "Сохранённые коды восстановления имеют старый, более короткий формат. Получите новые коды и сохраните их. После этого старые коды перестанут работать.",
     recovery_phrase_migrate_title: "Перейдите на коды восстановления",
     recovery_phrase_migrate_body:
       "Фразы восстановления скоро перестанут работать. Получите коды восстановления сейчас, чтобы сохранить возможность восстановить аккаунт.",
@@ -1923,6 +1935,9 @@ export const ru = {
     dns_host_leave_blank: "Оставьте пустым",
     dns_host_provider_hint:
       "{{provider}} использует такой формат для поля хоста. Скопируйте его точно.",
+    dns_host_zone_hint:
+      "Это имя хоста указано относительно {{zone}}, домена, в котором вы управляете записями DNS.",
+    dns_full_record_name: "Полное имя записи",
     purchase_congrats_title: "Поздравляем",
     recipient_key_outdated: "Ключ получателя устарел",
     recipient_key_outdated_desc:
@@ -1933,7 +1948,23 @@ export const ru = {
     key_trust_change_message:
       "Ключ шифрования для {{recipients}} изменился со времени последнего запроса. Перед отправкой сверьте новый отпечаток с получателем по другому каналу.",
     key_trust_change_detail: "{{email}}: было {{prior}}, стало {{current}}.",
+    key_trust_unreadable_message:
+      "Сохранённый ключ шифрования для {{recipients}} не удаётся прочитать на этом устройстве. Перед отправкой сверьте текущий отпечаток с получателем по другому каналу.",
+    key_trust_unreadable_detail: "{{email}}: стало {{current}}.",
+    key_trust_own_message:
+      "Ключ шифрования для вашего адреса {{recipients}} изменился. Если вы не сбрасывали ключи и не настраивали новое устройство, не доверяйте новому ключу.",
     key_trust_change_confirm: "Доверять новому ключу",
+    key_trust_missing_title: "Ключ шифрования не найден",
+    key_trust_missing_message:
+      "На этом устройстве был сохранён ключ шифрования для {{recipients}}, но сейчас ключ недоступен. Если вы продолжите, это сообщение будет отправлено без сквозного шифрования. Перед отправкой уточните это у получателя по другому каналу.",
+    key_trust_missing_detail: "{{email}}: был {{prior}}.",
+    key_trust_missing_unreadable_detail:
+      "{{email}}: сохранённый ключ не удаётся прочитать.",
+    key_trust_missing_confirm: "Отправить без шифрования",
+    key_trust_account_key_detail:
+      "{{email}} ключ аккаунта: был {{prior}}, теперь {{current}}.",
+    key_trust_identity_key_detail:
+      "{{email}} ключ идентификации: был {{prior}}, теперь {{current}}.",
     post_quantum_downgrade_title:
       "Отправить без ожидаемых постквантовых ключей?",
     post_quantum_downgrade_message:
@@ -2447,6 +2478,14 @@ export const ru = {
       "Коды восстановления сохранены в надёжном месте.",
     recovery_codes_save_failed:
       "Не удалось сохранить коды восстановления на сервере. Попробуйте ещё раз.",
+    recovery_codes_required_save_desc:
+      "Сохраните эти новые коды в надёжном месте. Текущие коды продолжают работать, пока вы не подтвердите замену на следующем шаге.",
+    recovery_codes_required_verify_desc:
+      "Чтобы начать использовать новые коды, введите пароль. После этого прежние коды перестают работать.",
+    recovery_codes_required_action: "Заменить коды",
+    recovery_codes_required_done: "Новые коды восстановления активны.",
+    recovery_codes_already_replaced:
+      "Коды восстановления уже заменены на другом устройстве.",
     legacy_phrase_row: "Фраза восстановления (устаревшая)",
     legacy_phrase_row_desc:
       "Ваша существующая фраза восстановления продолжает действовать. Теперь вместо неё используются коды восстановления.",
@@ -4294,6 +4333,8 @@ export const ru = {
       "Эта сессия началась в другой сети или в другом браузере, поэтому Aster Mail не изменил ваш пароль. Чтобы изменить его, выйдите из аккаунта, войдите снова и повторите попытку.",
     password_change_identity_continuity_required:
       "Aster Mail не изменил ваш пароль, потому что это удалило бы ключи шифрования, нужные вашим старым сообщениям. Чтобы повторить попытку, выйдите из аккаунта, войдите снова и смените пароль.",
+    password_change_vault_changed:
+      "Ваши ключи шифрования изменились на другом устройстве, пока вы меняли пароль, поэтому Aster Mail не изменил его. Повторите попытку.",
     password_change_vault_out_of_date:
       "Ваш пароль был изменён на другом устройстве, поэтому эта сессия устарела. Чтобы сменить пароль, выйдите из аккаунта и войдите снова с текущим паролем.",
     update_password: "Обновить пароль",
@@ -4512,6 +4553,12 @@ export const ru = {
     developer_mode: "Режим разработчика",
     developer_mode_description:
       "Показывать вкладку «Разработчик» с информацией о сборке, статусом шифрования и инструментами отладки",
+    launch_at_login: "Открывать Aster Mail при входе в систему",
+    launch_at_login_description: "Aster Mail запускается при входе в систему, поэтому новая почта приходит без открытия приложения.",
+    start_minimized: "Запускать свернутым",
+    start_minimized_description: "Если Aster Mail открывается при входе в систему, он работает в фоне без окна. Чтобы открыть его, нажмите на значок в области уведомлений или в строке меню.",
+    launch_at_login_move_to_applications: "Чтобы открывать Aster Mail при входе в систему, сначала переместите его в папку «Программы».",
+    launch_at_login_reason: "Открывать Aster Mail при входе в систему, чтобы новая почта приходила в фоне.",
     close_to_tray: "Продолжать работу после закрытия окна",
     close_to_tray_description:
       "Aster Mail остаётся в области уведомлений, чтобы новая почта продолжала приходить. Отключите этот параметр, чтобы выходить при закрытии окна.",
@@ -4889,7 +4936,7 @@ export const ru = {
       "Использовать мосты Snowflake для обхода цензуры",
     "connection.cdn_relay": "CDN-релей",
     "connection.cdn_relay_description":
-      "Запросы проходят через глобальную CDN, прежде чем попасть в Aster. Ваш IP-адрес скрыт от Aster, а трафик не отличается от обычного трафика CDN.",
+      "Запросы проходят через релей, который Aster поддерживает в Cloudflare, прежде чем попасть на серверы Aster. Для вашей сети трафик выглядит как обычный трафик CDN, что может помочь там, где Aster заблокирован. Aster по-прежнему видит ваш IP-адрес. Чтобы скрыть его от Aster, используйте Tor.",
     "connection.status_connected": "Подключено",
     "connection.status_connecting": "Подключение...",
     "connection.status_error":
@@ -4919,7 +4966,8 @@ export const ru = {
     tlsrpt_record: "Запись TLS-RPT",
     tlsrpt_description:
       "Необязательно, но рекомендуется. Принимающие серверы будут присылать ежедневную сводку, если зашифрованная доставка в ваш домен не удалась, и вы заметите проблему раньше пользователей.",
-    dns_instruction_set_tlsrpt_host: "Укажите хост _smtp._tls",
+    dns_instruction_set_tlsrpt_host:
+      "Скопируйте имя хоста, показанное ниже, в поле хоста",
     dns_instruction_set_tlsrpt_value:
       "Вставьте значение TLS-RPT точно так, как показано",
     optional_step: "Необязательно",
@@ -5312,7 +5360,7 @@ export const ru = {
       "Если у вас уже есть запись SPF, добавьте директиву include: к существующей записи",
     dns_instruction_set_dkim: "Установите значение ключа DKIM, указанное ниже",
     dns_instruction_set_dmarc_host:
-      "Установите хост _dmarc (без вашего домена)",
+      "Скопируйте имя хоста, показанное ниже, в поле хоста",
     dns_instruction_set_dmarc_value:
       "Установите значение политики DMARC, указанное ниже",
     edit_external_account: "Редактировать внешний аккаунт",
@@ -7395,10 +7443,148 @@ export const ru = {
       "Aster списывает оплату с сохранённой карты за 30 дней до окончания срока и присылает цену по почте за 15 дней до этого.",
     domain_purchase_manage_auto_renew_error:
       "Не удалось изменить автопродление. Повторите попытку.",
-    domain_purchase_manage_dns: "Открыть настройку домена",
+    domain_purchase_manage_dns: "Управление DNS",
     domain_purchase_manage_support_note:
-      "Чтобы перенести домен к другому регистратору или спросить о возврате средств, свяжитесь с поддержкой.",
+      "По вопросам оплаты или возврата средств свяжитесь с поддержкой.",
     domain_purchase_manage_support_subject: "Помощь с {{domain}}",
+    domain_transfer_button: "Перенести",
+    domain_transfer_title: "Перенос домена",
+    domain_transfer_hint:
+      "Перенесите этот домен к другому регистратору. Поддержка отправит код переноса во входящие Aster.",
+    domain_transfer_message:
+      "Чтобы перенести {{domain}} к другому регистратору, нужен код переноса. Если продолжить, Aster откроет письмо в поддержку. Поддержка проверит, что запрос отправлен с этого аккаунта, и пришлёт код во входящие Aster. Перенос обычно занимает от 5 до 7 дней после того, как вы начнёте его у нового регистратора.",
+    domain_transfer_locked_message:
+      "Регистраторы не разрешают перенос в течение {{count}} дней после регистрации. Запросить перенос {{domain}} можно с {{date}}.",
+    domain_transfer_confirm: "Написать в поддержку",
+    domain_transfer_email_subject: "Запрос на перенос {{domain}}",
+    domain_transfer_email_body:
+      "Я хочу перенести {{domain}} к другому регистратору. Пришлите код переноса на этот адрес.\n\nНомер заказа: {{order_id}}\nНовый регистратор:",
+    purchased_dns_title: "DNS-записи",
+    purchased_dns_description:
+      "Записи для {{domain}}. Изменения обычно вступают в силу в течение часа.",
+    purchased_dns_locked_title: "Редактирование выключено",
+    purchased_dns_locked_note:
+      "Вы можете просматривать эти записи, но сейчас не можете их изменить.",
+    purchased_dns_lock_frozen:
+      "Редактирование для этого домена приостановлено. Подробности можно узнать в поддержке.",
+    purchased_dns_lock_payment:
+      "Редактирование выключено, потому что платёж за этот домен был отменён.",
+    purchased_dns_lock_lapsed:
+      "Редактирование выключено, потому что срок действия домена истёк. Продлите его, чтобы вносить изменения.",
+    purchased_dns_lock_suspended:
+      "Редактирование выключено, потому что домен заблокирован.",
+    purchased_dns_unlock_title: "Подтвердите, что это вы",
+    purchased_dns_unlock_description:
+      "Чтобы изменить DNS-записи, подтвердите свою личность. Редактирование останется включённым 15 минут.",
+    purchased_dns_unlock: "Включить редактирование",
+    purchased_dns_unlocked: "Редактирование включено",
+    purchased_dns_unlocked_for: "Редактирование включено ещё {{time}}",
+    purchased_dns_lock: "Выключить редактирование",
+    purchased_dns_add: "Добавить запись",
+    purchased_dns_add_title: "Добавление записи",
+    purchased_dns_edit_title: "Изменение записи",
+    purchased_dns_added: "Запись добавлена",
+    purchased_dns_updated: "Запись обновлена",
+    purchased_dns_deleted: "Запись удалена",
+    purchased_dns_delete_title: "Удалить запись?",
+    purchased_dns_delete_message:
+      "Вскоре после удаления запись {{type}} для {{name}} перестанет разрешаться.",
+    purchased_dns_edit_record: "Изменить запись {{type}} для {{name}}",
+    purchased_dns_copy_record: "Копировать значение записи {{type}} для {{name}}",
+    purchased_dns_delete_record: "Удалить запись {{type}} для {{name}}",
+    purchased_dns_read_only: "Только чтение",
+    purchased_dns_mail_group: "Записи Aster Mail",
+    purchased_dns_mail_group_tip:
+      "Aster управляет этими записями, чтобы ваша почта продолжала работать. Их нельзя изменить или удалить.",
+    purchased_dns_your_records: "Ваши записи",
+    purchased_dns_empty: "Вы ещё не добавили ни одной записи.",
+    purchased_dns_limit_reached:
+      "У этого домена максимальное число записей: {{count}}. Удалите одну, чтобы добавить другую.",
+    purchased_dns_col_type: "Тип",
+    purchased_dns_col_name: "Имя",
+    purchased_dns_col_content: "Содержимое",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "Действия",
+    purchased_dns_host_hint:
+      "Используйте @ для самого домена или введите поддомен, например www.",
+    purchased_dns_field_ipv4: "Адрес IPv4",
+    purchased_dns_field_ipv6: "Адрес IPv6",
+    purchased_dns_field_target: "Цель",
+    purchased_dns_field_content: "Содержимое",
+    purchased_dns_field_mail_server: "Почтовый сервер",
+    purchased_dns_field_caa_value: "Значение",
+    purchased_dns_field_priority: "Приоритет",
+    purchased_dns_field_weight: "Вес",
+    purchased_dns_field_port: "Порт",
+    purchased_dns_field_flags: "Флаги",
+    purchased_dns_field_tag: "Тег",
+    purchased_dns_ttl_one_hour: "1 час",
+    purchased_dns_ttl_hours: "Часов: {{count}}",
+    purchased_dns_ttl_one_day: "1 день",
+    purchased_dns_ttl_days: "Дней: {{count}}",
+    purchased_dns_error_required: "Заполните это поле.",
+    purchased_dns_error_host:
+      "Введите допустимое имя. Используйте буквы, цифры, дефисы и подчёркивания, не более 63 символов в каждой метке.",
+    purchased_dns_error_protected_host:
+      "Это имя зарезервировано для записей Aster Mail.",
+    purchased_dns_error_apex_mx:
+      "Почтовыми записями самого домена управляет Aster. Вместо этого добавьте записи MX для поддомена.",
+    purchased_dns_error_apex_cname:
+      "Запись CNAME нельзя использовать для самого домена. Вместо неё используйте запись A или AAAA.",
+    purchased_dns_error_apex_spf:
+      "Aster уже публикует запись SPF для этого домена, а у домена может быть только одна такая запись.",
+    purchased_dns_error_value: "Проверьте значение и повторите попытку.",
+    purchased_dns_error_ip: "Введите допустимый IP-адрес.",
+    purchased_dns_error_ipv4:
+      "Введите допустимый адрес IPv4, например 203.0.113.10.",
+    purchased_dns_error_ipv6:
+      "Введите допустимый адрес IPv6, например 2001:db8::1.",
+    purchased_dns_error_private_ip:
+      "Введите публичный IP-адрес. Частные, локальные и зарезервированные адреса недоступны из интернета.",
+    purchased_dns_error_target:
+      "Введите допустимое имя хоста, например example.com.",
+    purchased_dns_error_cname_self:
+      "Запись CNAME не может указывать на собственное имя.",
+    purchased_dns_error_cname_conflict:
+      "У имени с записью CNAME не может быть других записей. Сначала удалите другие записи или выберите другое имя.",
+    purchased_dns_error_txt_length:
+      "Содержимое TXT может содержать не более 2048 символов.",
+    purchased_dns_error_txt_chars:
+      "Содержимое TXT может содержать только стандартные печатаемые символы, без кавычек и обратных косых черт.",
+    purchased_dns_error_ttl: "Выберите TTL из списка.",
+    purchased_dns_error_priority: "Введите приоритет от 0 до 65535.",
+    purchased_dns_error_weight: "Введите вес от 0 до 65535.",
+    purchased_dns_error_port: "Введите порт от 1 до 65535.",
+    purchased_dns_error_srv_host:
+      "Имя SRV начинается с сервиса и протокола, например _sip._tcp.",
+    purchased_dns_error_caa_flags: "Выберите для флагов значение 0 или 128.",
+    purchased_dns_error_caa_tag:
+      "Выберите для тега issue, issuewild или iodef.",
+    purchased_dns_error_caa_value:
+      "Введите значение длиной не более 255 символов, без кавычек и обратных косых черт.",
+    purchased_dns_error_duplicate: "Такая запись уже существует.",
+    purchased_dns_error_too_many:
+      "У этого домена максимальное число записей. Удалите одну, чтобы добавить другую.",
+    purchased_dns_error_protected_record:
+      "Этой записью управляет Aster, поэтому её нельзя изменить.",
+    purchased_dns_error_type_change:
+      "Тип записи изменить нельзя. Вместо этого удалите её и добавьте новую запись.",
+    purchased_dns_error_locked: "Редактирование для этого домена выключено.",
+    purchased_dns_error_busy: "Регистратор занят.",
+    purchased_dns_error_not_found: "Эта запись больше не существует.",
+    purchased_dns_error_rate_limited: "Вы вносите изменения слишком часто.",
+    purchased_dns_error_retry_in:
+      "{{message}} Повторите попытку через {{count}} с.",
+    purchased_dns_error_retry_in_one: "{{message}} Повторите попытку через {{count}} с.",
+    purchased_dns_ttl_seconds: "Секунд: {{count}}",
+    purchased_dns_expired_note: "Редактирование отключено. Изменения ещё не сохранены. Когда вы нажмёте «Сохранить», сначала подтвердите свою личность.",
+    purchased_dns_filter_placeholder: "Фильтр записей",
+    purchased_dns_filter_no_results: "Нет записей, соответствующих фильтру.",
+    purchased_dns_keep_editing: "Продолжить редактирование",
+    purchased_dns_error_unlock_failed: "Не удалось включить редактирование. Повторите попытку.",
+    purchased_dns_error_generic:
+      "Не удалось сохранить изменение. Повторите попытку.",
+    purchased_dns_load_failed: "Не удалось загрузить DNS-записи. Повторите попытку.",
     domain_purchase_filter_all: "Все",
     domain_purchase_filter_available: "Доступные",
     domain_purchase_filter_taken: "Заняты",
@@ -8179,6 +8365,7 @@ export const ru = {
       "Ключи безопасности добавляются в веб-версии Aster на app.astermail.org. Здесь можно просмотреть и удалить существующие.",
     passkeys_desktop_note:
       "Ключи доступа добавляются в веб-версии Aster на app.astermail.org. Здесь можно просмотреть и удалить существующие.",
+    passkeys_open_in_browser: "Открыть в браузере",
     app_lock_pin: "Блокировка PIN-кодом",
     app_lock_pin_description:
       "Запрашивает PIN-код перед показом Aster Mail в этом браузере. Блокировка скрывает вашу почту от других людей, которые пользуются этим устройством, но не шифрует хранящиеся здесь данные.",
@@ -9031,6 +9218,8 @@ export const ru = {
       "Идентификатор шифрования этого отправителя изменился с момента вашей последней переписки. Если вы этого не ожидали, подтвердите это с ним другим способом.",
     sender_identity_downgraded:
       "Сообщения этого отправителя больше не защищены постквантовым шифрованием. Если вы этого не ожидали, подтвердите это с ним другим способом.",
+    sender_identity_unreadable:
+      "Сохранённый ключ шифрования этого отправителя не удаётся прочитать на этом устройстве, поэтому это сообщение нельзя проверить. Чтобы снова проверять его сообщения, подтвердите ключ с этим человеком другим способом, затем выберите «Доверять новому ключу».",
     recipient_identity_changed:
       "Ключ шифрования {{email}} изменился. Если вы этого не ожидали, подтвердите изменение с этим человеком другим способом, прежде чем отправлять конфиденциальные сведения.",
     message_password_requirements:
@@ -9224,6 +9413,11 @@ export const ru = {
     block_sender: "Заблокировать отправителя",
     unblock_sender: "Разблокировать отправителя",
     unsubscribe: "Отписаться",
+    copy_code: "Копировать код",
+    copy_code_value: "Копировать код {{code}}",
+    copy_subject: "Копировать тему",
+    code_copied: "Код скопирован",
+    subject_copied: "Тема скопирована",
     edit_draft: "Редактировать черновик",
     schedule: "Запланировать",
     scheduling: "Планирование",
@@ -9611,9 +9805,9 @@ export const ru = {
     unstar: "Снять звёздочку",
     mark_unread: "Непрочитанное",
     mark_read: "Прочитанное",
-    verified_sender: "Проверенный отправитель",
+    verified_sender: "Проверенный домен",
     verified_sender_desc:
-      "Отправитель этого письма подтвердил, что владеет доменом {{domain}}.",
+      "Серверы Aster проверили, что отправитель владеет доменом {{domain}}.",
     sender_warning_title: "Проверьте адрес отправителя",
     sender_warning_address_in_name:
       "В имени отправителя указано {{claimed}}, но это письмо пришло с адреса {{address}}.",
@@ -9725,6 +9919,7 @@ export const ru = {
     move_n_conversations_one: "Переместить {{count}} переписку",
     move_n_conversations_other: "Переместить {{count}} переписок",
     view_message: "Просмотреть сообщение",
+    open_full_view: "Открыть в полном окне",
     blocking: "Блокировка...",
     block: "Заблокировать",
     unsubscribe_title: "Отписаться",
@@ -9832,6 +10027,7 @@ export const ru = {
     link_text_optional: "Текст ссылки (необязательно)",
     links_cleaned: "Ссылки очищены",
     load_external_content: "Загрузить внешний контент",
+    image_loading_settings: "Настройки изображений",
     location_label: "Место:",
     message_details: "Детали сообщения",
     message_headers: "Заголовки сообщения",
@@ -9917,6 +10113,9 @@ export const ru = {
       "Это письмо получено на {{ received }}, но ответ будет отправлен с {{ selected }}. Ответ с другого адреса может раскрыть его отправителю и быть отклонён.",
     reply_from_mismatch_use_received: "Использовать адрес получения",
     reply_from_mismatch_send_anyway: "Всё равно отправить",
+    reply_from_unknown_title: "Проверьте адрес отправителя",
+    reply_from_unknown_message:
+      "Aster не может определить, на какой из ваших адресов пришло это письмо. Ответ будет отправлен с адреса {{ selected }}. Чтобы отправить с другого адреса, нажмите «Отмена» и сначала выберите его.",
     search_date_within: "Дата в пределах",
     search_does_not_have: "Не содержит",
     search_from_placeholder: "имя@пример.com",
@@ -10318,6 +10517,22 @@ export const ru = {
     reset_your_password: "Сбросить пароль",
     reset_choose_new_password:
       "Выберите новый пароль для своей учётной записи.",
+    reset_current_password:
+      "Текущий пароль",
+    reset_current_password_keeps_keys:
+      "Введите текущий пароль, чтобы ключи шифрования остались прежними, а почта оставалась читаемой. Если вы его не знаете, используйте код восстановления.",
+    reset_current_password_required:
+      "Введите текущий пароль или используйте код восстановления.",
+    reset_lost_everything:
+      "Я потерял пароль и коды восстановления",
+    reset_remember_password:
+      "Я помню пароль",
+    reset_lost_everything_warning:
+      "Без пароля или кода восстановления Aster Mail не может разблокировать ваши ключи шифрования. При сбросе создаются новые ключи, и уже имеющаяся почта станет нечитаемой, если позже вы не найдёте прежний пароль или код восстановления.",
+    reset_lost_everything_confirm:
+      "Я понимаю, что имеющаяся почта станет нечитаемой",
+    reset_lost_everything_confirm_required:
+      "Чтобы выполнить сброс без пароля, подтвердите, что понимаете: имеющаяся почта станет нечитаемой.",
     reset_current_password_optional: "Текущий пароль (необязательно)",
     reset_current_password_hint:
       "Если вы помните текущий пароль, введите его здесь, и прежняя почта будет доступна сразу после входа. Если оставить поле пустым, прежнюю почту можно будет разблокировать позже с помощью кода восстановления.",
@@ -10384,6 +10599,22 @@ export const ru = {
     review_recovery_email_kept: "Резервный адрес по-прежнему указан.",
     review_no_recovery_email: "Резервный адрес не указан.",
     review_add: "Добавить",
+    recovery_previous_password_placeholder:
+      "Введите прежний пароль",
+    recovery_previous_password_body:
+      "Ваши ключи шифрования всё ещё защищены паролем, который вы использовали до этого сброса. Чтобы ваша почта оставалась читаемой, введите этот прежний пароль. Ключи останутся прежними, и теперь их будет защищать новый пароль.",
+    recovery_previous_password_required:
+      "Введите прежний пароль или выберите «Не помню».",
+    recovery_previous_password_incorrect:
+      "Этот пароль не разблокирует ваши ключи шифрования. Проверьте его и повторите попытку.",
+    recovery_previous_password_forgot:
+      "Не помню",
+    recovery_previous_password_use:
+      "Ввести прежний пароль",
+    recovery_previous_password_skipped_warning:
+      "Пароль будет сброшен, а ключи шифрования сохранятся, но останутся заблокированными прежним паролем. Почту нельзя будет прочитать, пока вы не введёте этот пароль в баннере «Восстановить данные».",
+    review_keys_left_locked:
+      "Ключи шифрования сохранены, но всё ещё заблокированы прежним паролем. Чтобы читать почту, выберите «Восстановить данные» в баннере и введите этот пароль.",
     review_codes_left: "Осталось кодов восстановления: {{count}}.",
     review_codes_left_one: "Остался {{count}} код восстановления.",
     review_codes_left_few: "Осталось {{count}} кода восстановления.",
@@ -10480,31 +10711,43 @@ export const ru = {
     link_device_confirm_prompt:
       "Хотите привязать это устройство к своему аккаунту?",
     link_device_confirming: "Привязка устройства...",
-    link_device_desktop: "Десктопное приложение",
-    device_fingerprint: "Код проверки",
+    link_device_desktop: "Новое устройство",
+    device_fingerprint: "Отпечаток устройства",
+    device_fingerprint_copy: "Скопировать отпечаток устройства",
+    link_device_grant_notice:
+      "Привязка даёт приложению на устройстве {{device}} полный доступ к {{email}}, включая вашу почту и ключи шифрования.",
+    link_device_own_device_warning:
+      "Продолжайте, только если вы сами начали привязку в приложении Aster на своём устройстве. Если этот код вам дал кто-то другой, не привязывайте устройство.",
+    link_device_fingerprint_enter:
+      "Введите отпечаток устройства, показанный в приложении, которое вы привязываете. В некоторых приложениях он называется кодом подтверждения.",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "Это не совпадает с устройством для этого кода привязки. Сравните каждый символ с приложением, которое вы привязываете, и повторите попытку. Если совпадения по-прежнему нет, не привязывайте устройство.",
+    link_device_fingerprint_link_mismatch:
+      "Ссылка, открывшая эту страницу, относится к другому устройству, а не к устройству с этим кодом привязки, поэтому привязать устройство здесь нельзя. Получите новый код в приложении, которое вы привязываете, и повторите попытку.",
+    link_device_update_desktop:
+      "Если приложение его не показывает, выберите в приложении «Проверить это устройство». Если такого пункта нет, обновите приложение и повторите попытку.",
+    device_code_fingerprint_required_hint:
+      "Браузер запрашивает этот отпечаток устройства, прежде чем привязать устройство.",
     device_code_verify_toggle: "Проверить это устройство",
     link_device_fingerprint_hint:
       "Введите код проверки, который показывает новое устройство. В приложении для компьютера выберите «Проверить это устройство», чтобы его увидеть.",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete:
       "Чтобы привязать устройство, введите полный код проверки с нового устройства.",
-    link_device_fingerprint_mismatch:
-      "Этот код не совпадает с кодом нового устройства. Проверьте код на новом устройстве и введите его ещё раз. Если он по-прежнему не совпадает, выберите «Отмена».",
     device_code_fingerprint_hint:
       "Чтобы привязать это устройство, введите этот код на устройстве, на котором вы уже вошли в аккаунт.",
     link_device_change_account: "Сменить аккаунт",
     link_device_choose_account: "Выберите аккаунт",
-    link_device_choose_account_description:
-      "Чтобы привязать приложение для компьютера",
+    link_device_choose_account_description: "Чтобы привязать новое устройство",
     link_device_choose_account_note:
       "Ваши ключи шифрования остаются зашифрованными при передаче между вашими устройствами.",
     link_device_use_another_account: "Использовать другой аккаунт",
     link_device_use_this_account: "Использовать этот аккаунт",
     link_device_other_accounts: "Перейти в другой аккаунт",
     link_device_enter_code:
-      "Введите код, показанный в вашем десктопном приложении.",
+      "Введите код привязки, показанный в приложении, которое вы привязываете.",
     link_device_expired_code:
-      "Срок действия кода истёк или он не совпал. В вашем десктопном приложении есть актуальный код.",
+      "Срок действия кода истёк или он не совпал. Актуальный код показан в приложении, которое вы привязываете.",
     link_device_failed:
       "Привязка не завершена. Обычно помогает начать заново. Ваш аккаунт не изменился.",
     link_device_invalid_code:
@@ -10515,7 +10758,7 @@ export const ru = {
       "Чтобы продолжить с этим аккаунтом, введите его пароль.",
     link_device_success: "Устройство привязано",
     link_device_success_description:
-      "Ваше десктопное приложение теперь привязано. Можете закрыть эту вкладку.",
+      "Ваше устройство теперь привязано. Можете закрыть эту вкладку.",
     link_device_title: "Привязать устройство",
     link_keys_locked_title: "Связка ключей заблокирована",
     link_keys_locked_description:
@@ -10842,6 +11085,8 @@ export const ru = {
       "Пароль сообщения слишком слабый, поэтому сообщение не было отправлено. Используйте не менее 12 символов, включая цифру, специальный символ или заглавные и строчные буквы.",
     recipient_key_untrusted:
       "Ключ шифрования получателя изменился, поэтому сообщение не было отправлено. Чтобы отправить его, подтвердите изменение с этим человеком другим способом, затем выберите «Доверять новому ключу».",
+    recipient_key_unreadable:
+      "Сохранённый ключ шифрования получателя не удаётся прочитать на этом устройстве, поэтому сообщение не было отправлено. Чтобы отправить его, подтвердите ключ с этим человеком другим способом, затем выберите «Доверять новому ключу».",
     key_trust_check_failed:
       "Не удалось проверить ключи шифрования получателей, поэтому сообщение не было отправлено. Проверьте подключение и повторите попытку.",
     recipient_classification_unavailable:
@@ -11085,6 +11330,8 @@ export const ru = {
       "case_sensitive можно указать только после текстового значения в кавычках.",
     expr_internal_error:
       "Не удалось прочитать это выражение. Проверьте синтаксис и повторите попытку.",
+    expr_server_rejected:
+      "Эту часть выражения нельзя сохранить. Проверьте синтаксис и повторите попытку.",
     expr_line_col: "(строка {{line}}, столбец {{col}})",
     editor_description: "Назовите правило и укажите, что оно должно делать.",
     editor_server_notice:
@@ -11287,6 +11534,10 @@ export const ru = {
     regex_empty: "Перед сохранением нужен шаблон regex.",
     regex_invalid:
       "Это регулярное выражение недействительно. Проверьте синтаксис и попробуйте снова.",
+    regex_too_complex:
+      "Этот шаблон regex слишком сложен для сохранения. Используйте меньше повторений или альтернатив и повторите попытку.",
+    regex_invalid_reason:
+      "Этот шаблон regex недопустим: {{reason}}",
     regex_too_long: "Этот regex слишком длинный. Подойдёт сокращённая версия.",
     remove_action: "Удалить действие",
     reorder_failed:
@@ -11672,6 +11923,8 @@ export const ru = {
     invite_card_join: "Присоединиться к встрече",
     invite_card_calendar_failed: "Ваш ответ отправлен, но Aster не удалось добавить это событие в календарь.",
     invite_card_reply_send_failed: "Не удалось отправить ответ. Повторите попытку.",
+    invite_card_reply_address_unavailable:
+      "Aster не отправил ваш ответ, потому что адрес, на который пришло это приглашение, не может отправлять почту. Чтобы ответить, снова включите этот адрес.",
     invite_card_organizer_mismatch:
       "Это приглашение отправлено с адреса {{sender}}, но организатором в нем указан {{organizer}}. Если вы этого не ожидали, уточните у организатора, прежде чем отвечать.",
     invite_card_reply_confirm:

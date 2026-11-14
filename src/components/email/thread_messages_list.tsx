@@ -75,6 +75,10 @@ import {
   opened_message_is_collapsed,
 } from "@/components/email/hooks/use_opened_message_anchor";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
+import {
+  granted_content_types,
+  type RemoteContentGrants,
+} from "@/lib/remote_content_grants";
 import { resolve_reply_references } from "@/lib/reply_references";
 import {
   begin_read_change,
@@ -177,8 +181,8 @@ interface ThreadMessagesListProps {
   on_unsubscribe?: () => Promise<"success" | "manual">;
   on_manual_unsubscribed?: () => void;
   unsubscribe_url?: string;
-  loaded_content_types?: Set<string>;
-  on_load_external_content?: (types?: string[]) => void;
+  remote_content_grants?: RemoteContentGrants;
+  on_load_external_content?: (message_id: string, types: string[]) => void;
   footer?: React.ReactNode;
   on_expand_state_change?: (state: ThreadExpandState) => void;
 }
@@ -244,7 +248,7 @@ export const ThreadMessagesList = forwardRef<
     on_unsubscribe,
     on_manual_unsubscribed,
     unsubscribe_url,
-    loaded_content_types,
+    remote_content_grants,
     on_load_external_content,
     footer,
     on_expand_state_change,
@@ -895,13 +899,15 @@ export const ThreadMessagesList = forwardRef<
       const container = find_scroll_container(el);
 
       if (container) {
-        const el_top = el.getBoundingClientRect().top;
-        const container_top = container.getBoundingClientRect().top;
+        const offset =
+          container.scrollTop +
+          el.getBoundingClientRect().top -
+          container.getBoundingClientRect().top;
+        const top = offset < container.clientHeight / 2 ? 0 : offset;
 
-        container.scrollTo({
-          top: container.scrollTop + (el_top - container_top),
-          behavior: "smooth",
-        });
+        if (top === container.scrollTop) return;
+
+        container.scrollTo({ top, behavior: "smooth" });
       }
     });
   }, [scroll_target_id]);
@@ -1125,7 +1131,10 @@ export const ThreadMessagesList = forwardRef<
               }
             : undefined
         }
-        loaded_content_types={loaded_content_types}
+        loaded_content_types={granted_content_types(
+          remote_content_grants,
+          msg.id,
+        )}
         message={msg}
         message_folder_tokens={applied_folders.get(msg.id)}
         on_archive={on_archive}

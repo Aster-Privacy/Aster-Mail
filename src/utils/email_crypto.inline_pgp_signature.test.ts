@@ -270,10 +270,13 @@ describe("inline PGP end-to-end badge", () => {
     );
 
     expect(unsigned.body_text).toContain("server injected");
-    expect(unsigned.e2e_verified).toBe(false);
+    expect(unsigned.e2e_verified).toBe(true);
+    expect(unsigned.e2e_sender_bound).toBe(false);
     expect(forged.body_text).toContain("claims to be the sender");
-    expect(forged.e2e_verified).toBe(false);
+    expect(forged.e2e_verified).toBe(true);
+    expect(forged.e2e_sender_bound).toBe(false);
     expect(genuine.body_text).toContain("really the sender");
     expect(genuine.e2e_verified).toBe(true);
+    expect(genuine.e2e_sender_bound).toBe(true);
   });
 });

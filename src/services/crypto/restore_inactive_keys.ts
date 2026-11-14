@@ -41,6 +41,7 @@ import {
 import { append_keks_to_list, serialize_kek_for_vault } from "./legacy_keks";
 import { base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
+import { without_retired_keks } from "./retired_identity_keks";
 import {
   derive_encryption_key_from_passphrase,
   get_passphrase_from_memory,
@@ -71,6 +72,7 @@ import {
   type BackupVault,
 } from "./backup_unlocked_keys";
 import {
+  build_verifier_candidates,
   decrypt_recovery_key_with_code,
   decrypt_vault_backup,
   hash_recovery_code,
@@ -103,7 +105,7 @@ export function harvest_vault_storage_keys(
   const harvested: Uint8Array[] = [];
   const encoded_keys = old_vault.data_kek ? [old_vault.data_kek] : [];
 
-  for (const entry of old_vault.legacy_keks ?? []) {
+  for (const entry of without_retired_keks(old_vault.legacy_keks)) {
     encoded_keys.push(entry.k);
   }
 
@@ -365,7 +367,23 @@ export async function restore_inactive_key_sets_with_code(
   code: string,
 ): Promise<CodeRestoreResult> {
   const code_hash = await hash_recovery_code(code);
-  const response = await unlock_inactive_key_sets_with_code(code_hash);
+  let listed: Awaited<ReturnType<typeof list_inactive_key_sets>> | null = null;
+
+  try {
+    listed = await list_inactive_key_sets();
+  } catch {
+    listed = null;
+  }
+
+  const candidates = await build_verifier_candidates(
+    code_hash,
+    listed?.data?.verifier_salts,
+  );
+  const response = await unlock_inactive_key_sets_with_code(
+    code_hash,
+    candidates,
+    candidates.length > 0 && listed?.data?.code_hash_optional === true,
+  );
 
   if (!response.data) {
     throw new Error(

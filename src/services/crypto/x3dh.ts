@@ -123,6 +123,7 @@ interface PrekeyBundle {
   x3dh_max_version?: number | null;
   pq_capable?: boolean | null;
   ec_one_time_prekey?: EcOneTimePrekey | null;
+  address_scoped?: boolean | null;
 }
 
 interface PqReceiverInput {

@@ -31,6 +31,7 @@ import {
   SUBSCRIPTION_CACHE_SAVED_EVENT,
   SUBSCRIPTION_CACHE_VERSION,
 } from "@/services/subscription_cache";
+import { build_listed_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import {
   perform_unsubscribe,
   execute_unsubscribe,
@@ -312,6 +313,7 @@ export function use_subscriptions() {
           sub.sender_email,
           sub.sender_name,
           unsub_info,
+          build_listed_unsubscribe_delivery(sub.routing_token, sub.recipients),
           { skip_confirm: true },
         );
 
@@ -395,6 +397,7 @@ export function use_subscriptions() {
               try {
                 const result = await execute_unsubscribe(
                   unsubscribe_info_from_stored(sub),
+                  build_listed_unsubscribe_delivery(sub.routing_token, sub.recipients),
                   { retry_on_rate_limit: true },
                 );
 

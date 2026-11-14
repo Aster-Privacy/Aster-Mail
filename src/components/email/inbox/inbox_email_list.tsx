@@ -57,6 +57,7 @@ import { use_attachment_previews } from "@/hooks/use_attachment_previews";
 import { ignore_error } from "@/lib/ignore_error";
 import { MAIL_EVENTS, on_mail_event } from "@/hooks/mail_events";
 import { cn } from "@/lib/utils";
+import { type ListToggleOptions } from "@/lib/list_click_selection";
 import {
   is_compact_density,
   list_row_intrinsic_height,
@@ -126,9 +127,10 @@ export interface EmailListProps {
   show_email_preview: boolean;
   show_message_size?: boolean;
   show_thread_count?: boolean;
-  on_toggle_select: (id: string) => void;
+  on_toggle_select: (id: string, options?: ListToggleOptions) => void;
   on_select_only?: (id: string) => void;
   on_email_click: (id: string) => void;
+  on_email_double_click?: (id: string) => void;
   current_view: string;
   folders: { id: string; name: string; color: string; depth?: number }[];
   tags: { tag_token: string; name: string; color: string; depth?: number }[];
@@ -169,6 +171,7 @@ export function EmailList({
   on_toggle_select,
   on_select_only,
   on_email_click,
+  on_email_double_click,
   current_view,
   folders,
   tags,
@@ -322,11 +325,45 @@ export function EmailList({
     }));
   }, [folders, menu_uses_selection, selection_menu]);
 
+  const opened_anchor_ref = useRef<string | null>(null);
+  const on_email_click_ref = useRef(on_email_click);
+
+  on_email_click_ref.current = on_email_click;
+
+  const handle_row_open = useCallback((id: string) => {
+    opened_anchor_ref.current = id;
+    on_email_click_ref.current(id);
+  }, []);
+  const on_email_double_click_ref = useRef(on_email_double_click);
+
+  on_email_double_click_ref.current = on_email_double_click;
+
+  const handle_row_open_full = useCallback((id: string) => {
+    on_email_double_click_ref.current?.(id);
+  }, []);
   const auto_selected_id_ref = useRef<string | null>(null);
   const menu_action_taken_ref = useRef(false);
   const on_toggle_select_ref = useRef(on_toggle_select);
 
   on_toggle_select_ref.current = on_toggle_select;
+
+  const handle_row_toggle = useCallback(
+    (id: string, options?: ListToggleOptions) => {
+      const opened_anchor = opened_anchor_ref.current;
+
+      opened_anchor_ref.current = null;
+      if (options?.range && opened_anchor) {
+        on_toggle_select_ref.current(id, {
+          ...options,
+          anchor_id: opened_anchor,
+        });
+
+        return;
+      }
+      on_toggle_select_ref.current(id, options);
+    },
+    [],
+  );
 
   const handle_menu_open_change = useCallback((open: boolean) => {
     if (!open) {
@@ -614,13 +651,16 @@ export function EmailList({
       is_focused={email.id === focused_email_id}
       on_archive={hover_archive}
       on_delete={hover_delete}
-      on_email_click={on_email_click}
+      on_email_click={handle_row_open}
+      on_email_double_click={
+        on_email_double_click ? handle_row_open_full : undefined
+      }
       on_mark_not_spam={hover_mark_not_spam}
       on_move_to_inbox={hover_move_to_inbox}
       on_restore={hover_restore}
       on_spam={hover_spam}
       on_toggle_read={hover_toggle_read}
-      on_toggle_select={on_toggle_select}
+      on_toggle_select={handle_row_toggle}
       on_toggle_star={hover_toggle_star}
       selection={selection_ref}
       show_email_preview={show_email_preview}

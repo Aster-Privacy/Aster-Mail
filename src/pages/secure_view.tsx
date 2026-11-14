@@ -20,7 +20,10 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { DecryptedSecureMessage } from "@/services/crypto/secure_message_crypto";
-import type { SecureViewMetadata } from "@/services/api/secure_view";
+import type {
+  SecureViewCredential,
+  SecureViewMetadata,
+} from "@/services/api/secure_view";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -40,13 +43,16 @@ import {
   decrypt_secure_message,
 } from "@/services/crypto/secure_message_crypto";
 import {
+  derive_secure_view_key,
+  is_supported_secure_view_kdf,
+} from "@/services/crypto/secure_view_key";
+import {
   get_secure_view_metadata,
+  select_secure_view_credential,
   verify_secure_view,
   reply_to_secure_view,
   delete_secure_view,
-  secure_view_credential_for_unlock,
   secure_view_unlock_mode,
-  type SecureViewCredential,
 } from "@/services/api/secure_view";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -187,9 +193,9 @@ export default function SecureViewPage() {
   const [reload_count, set_reload_count] = useState(0);
   const [metadata, set_metadata] = useState<SecureViewMetadata | null>(null);
   const [password, set_password] = useState("");
-  const [credential, set_credential] = useState<SecureViewCredential>({
-    kind: "none",
-  });
+  const [credential, set_credential] = useState<SecureViewCredential | null>(
+    null,
+  );
   const [is_unlocking, set_is_unlocking] = useState(false);
   const [error, set_error] = useState("");
   const [decrypted, set_decrypted] = useState<DecryptedSecureMessage | null>(
@@ -391,13 +397,35 @@ export default function SecureViewPage() {
 
     try {
       const is_zk = mode.kind === "zero_knowledge";
-      const proof = is_zk
-        ? await derive_auth_proof(password, mode.kdf_salt)
-        : null;
 
-      const response = is_zk
-        ? await verify_secure_view(token, proof)
-        : await verify_secure_view(token, null, password);
+      let proof: string;
+
+      if (mode.kind === "zero_knowledge") {
+        proof = await derive_auth_proof(password, mode.kdf_salt);
+      } else {
+        let password_kdf = metadata.password_kdf;
+
+        if (!is_supported_secure_view_kdf(password_kdf)) {
+          const refreshed = await get_secure_view_metadata(token);
+
+          if (refreshed.is_zero_knowledge === is_zk) {
+            set_metadata(refreshed);
+            password_kdf = refreshed.password_kdf;
+          }
+        }
+
+        if (!is_supported_secure_view_kdf(password_kdf)) {
+          set_error(t("common.something_went_wrong_try_again"));
+
+          return;
+        }
+
+        proof = await derive_secure_view_key(password, password_kdf);
+      }
+
+      const unlock_credential = select_secure_view_credential(proof);
+
+      const response = await verify_secure_view(token, unlock_credential);
 
       if (!response.success || !response.content) {
         const code = response.error || "";
@@ -417,7 +445,7 @@ export default function SecureViewPage() {
 
       const content = response.content;
 
-      set_credential(secure_view_credential_for_unlock(is_zk, proof, password));
+      set_credential(unlock_credential);
 
       if (!is_zk) {
         if (!content.subject || !content.body) {

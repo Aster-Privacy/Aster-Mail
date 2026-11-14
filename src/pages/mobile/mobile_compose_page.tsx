@@ -66,6 +66,7 @@ import { RecipientIdentityNotice } from "@/components/compose/recipient_identity
 import { authenticate_biometric } from "@/native/biometric_auth";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_compose_readable_color } from "@/hooks/use_compose_readable_color";
+import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration";
 import {
   EXPIRATION_FEATURE,
   PASSWORD_FEATURE,
@@ -115,6 +116,7 @@ function MobileComposePage({
   });
 
   use_compose_readable_color(compose.message_textarea_ref);
+  use_compose_image_hydration(compose.message_textarea_ref);
 
   const cc_bcc_visible =
     show_cc_bcc ||

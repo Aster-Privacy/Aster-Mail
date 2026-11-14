@@ -33,6 +33,8 @@ import { is_system_email, is_astermail_sender } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
 import { build_reply_from_address } from "@/components/email/build_reply_from_address";
+import { resolve_delivery_reply_address } from "@/components/email/delivery_reply_address";
+import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -70,6 +72,10 @@ import {
 import { reindex_ids } from "@/services/category_index";
 import { sync_thread_spam } from "@/services/trash_state";
 import { set_forward_mail_id } from "@/services/forward_store";
+import {
+  remember_forward_from,
+  remember_forward_from_message,
+} from "@/components/email/delivery_reply_address";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
 import { request_external_link } from "@/utils/external_link_request";
@@ -585,6 +591,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           raw_headers: deps.email.raw_headers,
           to_emails,
           cc_emails,
+          received_on_alias: resolve_delivery_reply_address(
+            deps.mail_item?.routing_token,
+          ),
         },
         is_own_message,
       );
@@ -639,6 +648,14 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
   const handle_forward = useCallback(() => {
     if (!deps.email || !deps.on_forward) return;
     set_forward_mail_id(deps.email.id);
+    remember_forward_from(deps.email.id, {
+      is_own_message: deps.mail_item?.item_type === "sent",
+      sender_email: deps.email.sender_email,
+      routing_token: deps.mail_item?.routing_token,
+      raw_headers: deps.email.raw_headers,
+      to_emails: deps.email.to?.map((r) => r.email),
+      cc_emails: deps.email.cc?.map((r) => r.email),
+    });
     deps.on_forward({
       sender_name: deps.email.sender,
       sender_email: deps.email.sender_email,
@@ -693,6 +710,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           deps.email.timestamp,
         ),
         body: deps.email.html_content || deps.email.body,
+        message_id: deps.email.id,
       },
       deps.t,
     );
@@ -712,7 +730,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       if (!unsubscribe_info) return;
 
       try {
-        const result = await execute_unsubscribe(unsubscribe_info as never);
+        const result = await execute_unsubscribe(
+          unsubscribe_info as never,
+          build_unsubscribe_delivery(deps.mail_item, deps.email),
+        );
 
         if (result === "api") {
           show_action_toast({
@@ -768,7 +789,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         });
       }
     },
-    [deps.t, deps.email],
+    [deps.t, deps.email, deps.mail_item],
   );
 
   const build_popup_reply_data = useCallback(
@@ -799,6 +820,9 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           raw_headers: msg.raw_headers,
           to_emails,
           cc_emails,
+          received_on_alias: resolve_delivery_reply_address(
+            msg.routing_token ?? deps.mail_item?.routing_token,
+          ),
         },
         is_own_message,
       );
@@ -867,6 +891,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     (msg: DecryptedThreadMessage) => {
       if (!deps.on_forward) return;
       set_forward_mail_id(msg.id);
+      remember_forward_from_message(
+        msg,
+        msg.id === deps.mail_item?.id
+          ? deps.mail_item?.routing_token
+          : undefined,
+      );
       deps.on_forward({
         sender_name: msg.sender_name,
         sender_email: msg.sender_email,
@@ -880,7 +910,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         original_mail_id: msg.id,
       });
     },
-    [deps.on_forward],
+    [deps.on_forward, deps.mail_item],
   );
 
   const handle_per_message_archive = useCallback(
@@ -995,6 +1025,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             timeZone: get_display_time_zone(),
           }),
           body: msg.html_content || msg.body,
+          message_id: msg.id,
         },
         deps.t,
       );

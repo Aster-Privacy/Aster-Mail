@@ -10,6 +10,13 @@
 
 Send your report to this email: security@astermail.org
 
+To encrypt your report, use our OpenPGP key:
+
+- Fingerprint: `3E1D A8FA 5D69 9CA0 3F57 11CA 52F1 68E7 F816 A832`
+- Download: [security@astermail.org public key](https://keys.openpgp.org/vks/v1/by-fingerprint/3E1DA8FA5D699CA03F5711CA52F168E7F816A832)
+
+The same key signs our [warrant canary](https://astermail.org/notices/canary.txt), so you can check the fingerprint against it.
+
 You can also submit reports through our vulnerability disclosure program on Bugcrowd: https://bugcrowd.com/engagements/aster-privacy-vdpc
 
 
@@ -62,3 +69,4 @@ We follow coordinated disclosure. Please give us adequate time to patch the vuln
 We thank the researchers who help keep Aster secure.
 
 - [diogovbs](https://github.com/diogovbs) (September to October 2026): a series of private reports covering the web and desktop clients, remote content handling, and inbound mail processing. We fixed every finding in coordination with the reporter.
+- [NotAFlightRisk](https://github.com/NotAFlightRisk) (October to November 2026): private reports covering sender verification for mail between Aster accounts and the Require encryption setting.

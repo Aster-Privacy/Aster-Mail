@@ -635,6 +635,9 @@ export const ja = {
       "お支払いが完了しませんでした。{{days}}日後にアクセスが制限されます。",
     billing_alert_action: "支払う",
     dismiss: "閉じる",
+    web_sandbox_off_title: "Web コンテンツはシステムのサンドボックスなしで実行されています",
+    web_sandbox_off_body:
+      "このコンピュータでは Aster Mail が bubblewrap サンドボックスを起動できないため、Web コンテンツはサンドボックスなしで実行されています。再度有効にするには、bubblewrap パッケージをインストールし、非特権ユーザー名前空間を許可してから Aster Mail を再起動してください。",
     load_content: "読み込む",
     open_link: "リンクを開く",
     no_icon: "アイコンなし",
@@ -986,6 +989,8 @@ export const ja = {
       "このファイルを表示できませんでした。移動または削除された可能性があります。",
     attachment_locked:
       "この添付ファイルは、暗号化キーがこのデバイスで利用できないため開けません。",
+    attachment_content_mismatch:
+      "この添付ファイルは一緒に届いたメッセージと一致しないため、開かれませんでした。",
     scheduled_no_attachments:
       "予約送信のメールにはまだ添付ファイルを含められません。今すぐ送信するか、ファイルを削除して予約してください。",
     scheduled_connected_account:
@@ -1177,6 +1182,10 @@ export const ja = {
     end_to_end_encrypted_label: "エンドツーエンド暗号化",
     encrypted_in_transit_stored: "転送中も保管中も暗号化されています。",
     only_you_and_sender: "あなたと送信者だけがこのメールを読めます。",
+    only_you_and_sender_details_from_server:
+      "あなたと送信者だけがこのメールを読めます。送信者名、宛先、日付はサーバーから提供されるため、エンドツーエンド暗号化の対象ではありません。",
+    encrypted_to_you_unconfirmed_sender:
+      "このメッセージはあなたの公開鍵で暗号化されています。送信者の身元は確認されていません。",
     only_you_can_read_contacts:
       "連絡先を読めるのはあなただけです。Aster はこのデータを見ることができません。",
     failed_to_send_email:
@@ -1816,6 +1825,9 @@ export const ja = {
     recovery_codes_low_reminder_body:
       "各コードは一度だけ使えます。残りは {{count}} 個です。ロックアウトされないよう新しいコードを取得してください。",
     recovery_codes_low_reminder_action: "新しいコードを取得",
+    recovery_codes_refresh_title: "リカバリーコードを交換してください",
+    recovery_codes_refresh_body:
+      "保存済みのリカバリーコードは、以前の短い形式です。新しいコードを取得して保存してください。取得すると、古いコードは使えなくなります。",
     recovery_phrase_migrate_title: "リカバリーコードに切り替え",
     recovery_phrase_migrate_body:
       "リカバリーフレーズは廃止されます。今のうちにリカバリーコードを取得して、アカウントを復旧できるようにしてください。",
@@ -1938,6 +1950,8 @@ export const ja = {
     dns_host_leave_blank: "空欄のままにする",
     dns_host_provider_hint:
       "{{provider}} はホスト欄にこの形式を使います。表示どおりにコピーしてください。",
+    dns_host_zone_hint: "このホスト名は、DNS レコードを管理しているドメイン {{zone}} からの相対名です。",
+    dns_full_record_name: "レコードの完全な名前",
     purchase_congrats_title: "おめでとうございます",
     recipient_key_outdated: "受信者の鍵が古くなっています",
     recipient_key_outdated_desc:
@@ -1949,7 +1963,22 @@ export const ja = {
       "前回の取得以降に {{recipients}} の暗号化鍵が変更されました。送信する前に、別の手段で受信者と新しいフィンガープリントを確認してください。",
     key_trust_change_detail:
       "{{email}}：以前は {{prior}}、現在は {{current}}。",
+    key_trust_unreadable_message:
+      "このデバイスで {{recipients}} の保存済み暗号鍵を読み取れません。送信する前に、別の手段で受信者と現在のフィンガープリントを確認してください。",
+    key_trust_unreadable_detail: "{{email}}：現在は {{current}}。",
+    key_trust_own_message:
+      "あなたのアドレス {{recipients}} の暗号鍵が変更されました。鍵をリセットしたり新しいデバイスを設定したりしていない場合は、新しい鍵を信頼しないでください。",
     key_trust_change_confirm: "新しい鍵を信頼する",
+    key_trust_missing_title: "暗号化鍵が見つかりません",
+    key_trust_missing_message:
+      "このデバイスには {{recipients}} の暗号化鍵が保存されていましたが、現在は鍵を取得できません。続行すると、このメッセージはエンドツーエンド暗号化なしで送信されます。送信する前に、別の手段で受信者に確認してください。",
+    key_trust_missing_detail: "{{email}}: 以前は {{prior}}。",
+    key_trust_missing_unreadable_detail: "{{email}}: 保存済みの鍵を読み取れません。",
+    key_trust_missing_confirm: "暗号化せずに送信",
+    key_trust_account_key_detail:
+      "{{email}} のアカウントキー: 以前は {{prior}}、現在は {{current}}。",
+    key_trust_identity_key_detail:
+      "{{email}} の ID キー: 以前は {{prior}}、現在は {{current}}。",
     post_quantum_downgrade_title:
       "想定される耐量子鍵がない状態で送信しますか。",
     post_quantum_downgrade_message:
@@ -2307,6 +2336,13 @@ export const ja = {
       "リカバリーコードを安全な場所に保存しました。",
     recovery_codes_save_failed:
       "リカバリーコードをサーバーに保存できませんでした。もう一度お試しください。",
+    recovery_codes_required_save_desc:
+      "新しいコードを安全な場所に保存してください。次の手順で確認するまで、現在のコードは引き続き使えます。",
+    recovery_codes_required_verify_desc:
+      "新しいコードの使用を開始するには、パスワードを入力してください。その後、以前のコードは使えなくなります。",
+    recovery_codes_required_action: "コードを置き換える",
+    recovery_codes_required_done: "新しいリカバリーコードが有効になりました。",
+    recovery_codes_already_replaced: "リカバリーコードは別のデバイスですでに置き換えられています。",
     legacy_phrase_row: "リカバリーフレーズ（旧方式）",
     legacy_phrase_row_desc:
       "既存のリカバリーフレーズは引き続き有効です。今後はリカバリーコードを使用します。",
@@ -4123,6 +4159,8 @@ export const ja = {
       "このセッションは別のネットワークまたはブラウザで開始されたため、Aster Mail はパスワードを変更しませんでした。変更するには、サインアウトしてから再度サインインし、もう一度お試しください。",
     password_change_identity_continuity_required:
       "変更すると以前のメッセージに必要な暗号鍵が削除されるため、Aster Mail はパスワードを変更しませんでした。もう一度試すには、サインアウトしてから再度サインインし、パスワードを変更してください。",
+    password_change_vault_changed:
+      "パスワードの変更中に別のデバイスで暗号鍵が変更されたため、Aster Mail はパスワードを変更しませんでした。もう一度お試しください。",
     password_change_vault_out_of_date:
       "パスワードが別のデバイスで変更されたため、このセッションは最新ではありません。パスワードを変更するには、サインアウトしてから現在のパスワードで再度サインインしてください。",
     update_password: "パスワードを更新",
@@ -4328,6 +4366,12 @@ export const ja = {
     developer_mode: "開発者モード",
     developer_mode_description:
       "ビルド情報、暗号化ステータス、デバッグツールを含む開発者タブを表示します",
+    launch_at_login: "サインイン時に Aster Mail を開く",
+    launch_at_login_description: "コンピュータにサインインすると Aster Mail が起動するため、アプリを開かなくても新着メールが届きます。",
+    start_minimized: "最小化して起動",
+    start_minimized_description: "サインイン時に開いた Aster Mail は、ウィンドウを表示せずにバックグラウンドで動作します。開くには、通知領域またはメニューバーのアイコンをクリックします。",
+    launch_at_login_move_to_applications: "サインイン時に Aster Mail を開くには、先に「アプリケーション」フォルダへ移動してください。",
+    launch_at_login_reason: "新着メールをバックグラウンドで受け取るため、サインイン時に Aster Mail を開きます。",
     close_to_tray: "ウィンドウを閉じても実行を続ける",
     close_to_tray_description:
       "Aster Mail が通知領域に残り、新着メールを受け取り続けます。ウィンドウを閉じたときに終了するには、これをオフにします。",
@@ -4702,7 +4746,7 @@ export const ja = {
       "検閲回避のためにSnowflakeブリッジを使用します",
     "connection.cdn_relay": "CDNリレー",
     "connection.cdn_relay_description":
-      "リクエストはグローバル CDN を経由して Aster に届きます。IP アドレスは Aster から見えず、通信は通常の CDN トラフィックに紛れます。",
+      "リクエストは、Aster が Cloudflare 上で運用するリレーを経由して Aster のサーバーに届きます。お使いのネットワークからは通常の CDN トラフィックのように見えるため、Aster がブロックされている環境で役立つことがあります。Aster には引き続き IP アドレスが見えます。IP アドレスを Aster から隠すには、Tor を使用してください。",
     "connection.status_connected": "接続済み",
     "connection.status_connecting": "接続中...",
     "connection.status_error": "接続が切れたため、自動的に再試行しています。",
@@ -4733,7 +4777,7 @@ export const ja = {
     tlsrpt_record: "TLS-RPT レコード",
     tlsrpt_description:
       "任意ですが推奨します。ドメインへの暗号化配送が失敗すると受信側サーバーが日次の要約を送ってくれるため、利用者より先に問題に気づけます。",
-    dns_instruction_set_tlsrpt_host: "ホストを _smtp._tls に設定します",
+    dns_instruction_set_tlsrpt_host: "下に表示されているホスト名をホスト欄にコピーします",
     dns_instruction_set_tlsrpt_value: "TLS-RPT の値を表示どおりに貼り付けます",
     optional_step: "任意",
     gmail_import: "Gmail",
@@ -5118,8 +5162,7 @@ export const ja = {
     dns_instruction_merge_spf:
       "既にSPFレコードがある場合は、既存のレコードにinclude:ディレクティブを追加してください",
     dns_instruction_set_dkim: "以下に表示されるDKIMキーに値を設定してください",
-    dns_instruction_set_dmarc_host:
-      "ホストを_dmarcに設定してください（ドメイン名は含めないでください）",
+    dns_instruction_set_dmarc_host: "下に表示されているホスト名をホスト欄にコピーします",
     dns_instruction_set_dmarc_value:
       "以下に表示されるDMARCポリシーに値を設定してください",
     edit_external_account: "外部アカウントを編集",
@@ -7059,10 +7102,127 @@ export const ja = {
       "Aster は有効期限の 30 日前に保存済みのカードに請求し、その 15 日前に料金をメールでお知らせします。",
     domain_purchase_manage_auto_renew_error:
       "自動更新を変更できませんでした。もう一度お試しください。",
-    domain_purchase_manage_dns: "ドメイン設定を開く",
-    domain_purchase_manage_support_note:
-      "このドメインを他のレジストラに移管する場合や返金について確認する場合は、サポートに問い合わせてください。",
+    domain_purchase_manage_dns: "DNS を管理",
+    domain_purchase_manage_support_note: "請求や返金についてのご質問は、サポートに問い合わせてください。",
     domain_purchase_manage_support_subject: "{{domain}} に関するお問い合わせ",
+    domain_transfer_button: "移管",
+    domain_transfer_title: "ドメインを移管",
+    domain_transfer_hint:
+      "このドメインを別のレジストラに移管します。移管コードはサポートから Aster の受信トレイに届きます。",
+    domain_transfer_message:
+      "{{domain}} を他のレジストラに移すには、移管コードが必要です。続行すると、Aster がサポート宛てのメールを開きます。サポートはリクエストがこのアカウントからのものであることを確認してから、コードを Aster の受信トレイに送信します。移管は通常、新しいレジストラで手続きを開始してから 5 から 7 日かかります。",
+    domain_transfer_locked_message:
+      "レジストラでは、登録から {{count}} 日以内の移管は認められていません。{{domain}} の移管は {{date}} 以降にリクエストできます。",
+    domain_transfer_confirm: "サポートに連絡",
+    domain_transfer_email_subject: "{{domain}} の移管リクエスト",
+    domain_transfer_email_body:
+      "{{domain}} を他のレジストラに移管したいと考えています。移管コードをこのアドレスに送信してください。\n\n注文 ID: {{order_id}}\n新しいレジストラ:",
+    purchased_dns_title: "DNS レコード",
+    purchased_dns_description: "{{domain}} のレコードです。変更は通常 1 時間以内に反映されます。",
+    purchased_dns_locked_title: "編集はオフです",
+    purchased_dns_locked_note: "これらのレコードは表示できますが、現在は変更できません。",
+    purchased_dns_lock_frozen: "このドメインの編集は一時停止されています。詳しくはサポートに問い合わせてください。",
+    purchased_dns_lock_payment: "このドメインの支払いが取り消されたため、編集はオフになっています。",
+    purchased_dns_lock_lapsed: "このドメインの有効期限が切れたため、編集はオフになっています。変更するには更新してください。",
+    purchased_dns_lock_suspended: "このドメインは停止されているため、編集はオフになっています。",
+    purchased_dns_unlock_title: "本人確認",
+    purchased_dns_unlock_description:
+      "DNS レコードを変更するには、本人確認を行ってください。編集は 15 分間オンのままになります。",
+    purchased_dns_unlock: "編集をオンにする",
+    purchased_dns_unlocked: "編集はオンです",
+    purchased_dns_unlocked_for: "編集はあと {{time}} オンです",
+    purchased_dns_lock: "編集をオフにする",
+    purchased_dns_add: "レコードを追加",
+    purchased_dns_add_title: "レコードを追加",
+    purchased_dns_edit_title: "レコードを編集",
+    purchased_dns_added: "レコードを追加しました",
+    purchased_dns_updated: "レコードを更新しました",
+    purchased_dns_deleted: "レコードを削除しました",
+    purchased_dns_delete_title: "レコードを削除しますか?",
+    purchased_dns_delete_message:
+      "{{name}} の {{type}} レコードは、削除後まもなく名前解決されなくなります。",
+    purchased_dns_edit_record: "{{name}} の {{type}} レコードを編集",
+    purchased_dns_copy_record: "{{name}} の {{type}} レコードの値をコピー",
+    purchased_dns_delete_record: "{{name}} の {{type}} レコードを削除",
+    purchased_dns_read_only: "読み取り専用",
+    purchased_dns_mail_group: "Aster Mail のレコード",
+    purchased_dns_mail_group_tip:
+      "メールが引き続き機能するよう、これらのレコードは Aster が管理しています。編集や削除はできません。",
+    purchased_dns_your_records: "あなたのレコード",
+    purchased_dns_empty: "まだレコードを追加していません。",
+    purchased_dns_limit_reached:
+      "このドメインのレコード数は上限の {{count}} 件に達しています。追加するには 1 件削除してください。",
+    purchased_dns_col_type: "タイプ",
+    purchased_dns_col_name: "名前",
+    purchased_dns_col_content: "内容",
+    purchased_dns_col_ttl: "TTL",
+    purchased_dns_col_actions: "操作",
+    purchased_dns_host_hint: "ドメイン自体には @ を使用するか、www などのサブドメインを入力してください。",
+    purchased_dns_field_ipv4: "IPv4 アドレス",
+    purchased_dns_field_ipv6: "IPv6 アドレス",
+    purchased_dns_field_target: "ターゲット",
+    purchased_dns_field_content: "内容",
+    purchased_dns_field_mail_server: "メールサーバー",
+    purchased_dns_field_caa_value: "値",
+    purchased_dns_field_priority: "優先度",
+    purchased_dns_field_weight: "重み",
+    purchased_dns_field_port: "ポート",
+    purchased_dns_field_flags: "フラグ",
+    purchased_dns_field_tag: "タグ",
+    purchased_dns_ttl_one_hour: "1 時間",
+    purchased_dns_ttl_hours: "{{count}} 時間",
+    purchased_dns_ttl_one_day: "1 日",
+    purchased_dns_ttl_days: "{{count}} 日",
+    purchased_dns_error_required: "この項目を入力してください。",
+    purchased_dns_error_host:
+      "有効な名前を入力してください。使用できるのは英字、数字、ハイフン、アンダースコアで、各ラベルは 63 文字までです。",
+    purchased_dns_error_protected_host: "この名前は Aster Mail のレコード用に予約されています。",
+    purchased_dns_error_apex_mx:
+      "ドメイン自体のメールレコードは Aster が管理しています。代わりにサブドメインに MX レコードを追加してください。",
+    purchased_dns_error_apex_cname:
+      "CNAME レコードはドメイン自体には使用できません。代わりに A または AAAA レコードを使用してください。",
+    purchased_dns_error_apex_spf:
+      "Aster はこのドメインの SPF レコードをすでに公開しています。1 つのドメインに設定できるのは 1 つだけです。",
+    purchased_dns_error_value: "値を確認して、もう一度お試しください。",
+    purchased_dns_error_ip: "有効な IP アドレスを入力してください。",
+    purchased_dns_error_ipv4: "203.0.113.10 のような有効な IPv4 アドレスを入力してください。",
+    purchased_dns_error_ipv6: "2001:db8::1 のような有効な IPv6 アドレスを入力してください。",
+    purchased_dns_error_private_ip:
+      "パブリック IP アドレスを入力してください。プライベート、ローカル、予約済みのアドレスにはインターネットから到達できません。",
+    purchased_dns_error_target: "example.com のような有効なホスト名を入力してください。",
+    purchased_dns_error_cname_self: "CNAME レコードは自身の名前を指すことはできません。",
+    purchased_dns_error_cname_conflict:
+      "CNAME レコードがある名前には、他のレコードを設定できません。先に他のレコードを削除するか、別の名前を選択してください。",
+    purchased_dns_error_txt_length: "TXT の内容は 2,048 文字までです。",
+    purchased_dns_error_txt_chars:
+      "TXT の内容には標準の印刷可能文字のみ使用でき、引用符とバックスラッシュは使用できません。",
+    purchased_dns_error_ttl: "リストから TTL を選択してください。",
+    purchased_dns_error_priority: "優先度は 0 から 65535 の範囲で入力してください。",
+    purchased_dns_error_weight: "重みは 0 から 65535 の範囲で入力してください。",
+    purchased_dns_error_port: "ポートは 1 から 65535 の範囲で入力してください。",
+    purchased_dns_error_srv_host: "SRV の名前は、_sip._tcp のようにサービスとプロトコルで始まります。",
+    purchased_dns_error_caa_flags: "フラグには 0 または 128 を選択してください。",
+    purchased_dns_error_caa_tag: "タグには issue、issuewild、iodef のいずれかを選択してください。",
+    purchased_dns_error_caa_value:
+      "引用符、バックスラッシュを含まない 255 文字以内の値を入力してください。",
+    purchased_dns_error_duplicate: "このレコードはすでに存在します。",
+    purchased_dns_error_too_many: "このドメインのレコード数は上限に達しています。追加するには 1 件削除してください。",
+    purchased_dns_error_protected_record: "このレコードは Aster が管理しているため、変更できません。",
+    purchased_dns_error_type_change:
+      "レコードのタイプは変更できません。代わりに削除して新しいレコードを追加してください。",
+    purchased_dns_error_locked: "このドメインの編集はオフです。",
+    purchased_dns_error_busy: "レジストラが混み合っています。",
+    purchased_dns_error_not_found: "このレコードはもう存在しません。",
+    purchased_dns_error_rate_limited: "変更の頻度が高すぎます。",
+    purchased_dns_error_retry_in: "{{message}} {{count}} 秒後にもう一度お試しください。",
+    purchased_dns_ttl_seconds: "{{count}} 秒",
+    purchased_dns_expired_note: "編集がオフになりました。変更はまだ保存されていません。「保存」をクリックすると、最初に本人確認を行います。",
+    purchased_dns_filter_placeholder: "レコードを絞り込む",
+    purchased_dns_filter_no_results: "フィルタに一致するレコードはありません。",
+    purchased_dns_keep_editing: "編集を続ける",
+    purchased_dns_error_unlock_failed: "編集をオンにできませんでした。もう一度お試しください。",
+    purchased_dns_error_generic: "変更を保存できませんでした。もう一度お試しください。",
+    purchased_dns_load_failed: "DNS レコードを読み込めませんでした。もう一度お試しください。",
     domain_purchase_filter_all: "すべて",
     domain_purchase_filter_available: "利用可能",
     domain_purchase_filter_taken: "取得済み",
@@ -7806,6 +7966,7 @@ export const ja = {
       "セキュリティキーは app.astermail.org の Aster ウェブ版で追加できます。ここでは既存のキーの確認と削除ができます。",
     passkeys_desktop_note:
       "パスキーは app.astermail.org の Aster ウェブ版で追加できます。ここでは既存のパスキーの確認と削除ができます。",
+    passkeys_open_in_browser: "ブラウザで開く",
     app_lock_pin: "PINロック",
     app_lock_pin_description:
       "このブラウザで Aster Mail を表示する前に PIN を求めます。このデバイスを使うほかの人からメールを隠しますが、ここに保存されたデータは暗号化しません。",
@@ -8658,6 +8819,8 @@ export const ja = {
       "この送信者の暗号化 ID は、前回メッセージをやり取りしたときから変更されています。心当たりがない場合は、別の方法で本人に確認してください。",
     sender_identity_downgraded:
       "この送信者のメッセージは耐量子暗号で保護されなくなりました。心当たりがない場合は、別の方法で本人に確認してください。",
+    sender_identity_unreadable:
+      "このデバイスでこの送信者の保存済み暗号鍵を読み取れないため、このメッセージを検証できません。再び検証できるようにするには、別の方法で相手に鍵を確認してから、「新しい鍵を信頼」を選択してください。",
     recipient_identity_changed:
       "{{email}} の暗号鍵が変更されました。心当たりがない場合は、機密情報を送信する前に別の方法で本人に確認してください。",
     message_password_requirements:
@@ -8854,6 +9017,11 @@ export const ja = {
       "{{email}}をブロックしますか？この送信者からのメールは届かなくなります。",
     unblock_sender: "送信者のブロックを解除",
     unsubscribe: "購読解除",
+    copy_code: "コードをコピー",
+    copy_code_value: "コード {{code}} をコピー",
+    copy_subject: "件名をコピー",
+    code_copied: "コードをコピーしました",
+    subject_copied: "件名をコピーしました",
     edit_draft: "下書きを編集",
     schedule: "予約",
     scheduling: "予約中",
@@ -9229,9 +9397,8 @@ export const ja = {
     unstar: "スターを外す",
     mark_unread: "未読にする",
     mark_read: "既読にする",
-    verified_sender: "認証済みの送信者",
-    verified_sender_desc:
-      "このメールの送信者は {{domain}} を所有していることを確認済みです。",
+    verified_sender: "認証済みのドメイン",
+    verified_sender_desc: "Aster のサーバーが、送信者が {{domain}} を所有していることを確認しました。",
     sender_warning_title: "送信者のアドレスを確認してください",
     sender_warning_address_in_name:
       "送信者名には {{claimed}} と表示されていますが、このメッセージは {{address}} から届いています。",
@@ -9338,6 +9505,7 @@ export const ja = {
     move_n_conversations: "{{ count }}件の会話を移動",
     move_n_conversations_other: "{{count}}件の会話を移動",
     view_message: "メッセージを表示",
+    open_full_view: "全画面表示で開く",
     blocking: "ブロック中...",
     block: "ブロック",
     unsubscribe_title: "登録解除",
@@ -9360,6 +9528,9 @@ export const ja = {
       "このメールは {{ received }} で受信しましたが、返信は {{ selected }} から送信されます。別のアドレスから返信すると、そのアドレスが送信者に知られたり、返信が拒否されたりする可能性があります。",
     reply_from_mismatch_use_received: "受信アドレスを使用",
     reply_from_mismatch_send_anyway: "そのまま送信",
+    reply_from_unknown_title: "差出人アドレスを確認してください",
+    reply_from_unknown_message:
+      "このメールをどのアドレスで受信したかを Aster は特定できません。返信は {{ selected }} から送信されます。別のアドレスから送信するには、キャンセルして先にアドレスを選択してください。",
     forward_subject_prefix: "Fwd:",
     reply_quote_header: "{{ date }}、{{ name }} は次のように書きました：",
     download_file_named: "{{ filename }} をダウンロード",
@@ -9381,6 +9552,7 @@ export const ja = {
     link_text_optional: "リンクテキスト（任意）",
     advanced_search: "詳細",
     load_external_content: "外部コンテンツを読み込む",
+    image_loading_settings: "画像の設定",
     image: "画像",
     images: "画像",
     tracker: "トラッカー",
@@ -9913,6 +10085,22 @@ export const ja = {
     reset_your_password: "パスワードをリセット",
     reset_choose_new_password:
       "アカウントの新しいパスワードを選択してください。",
+    reset_current_password:
+      "現在のパスワード",
+    reset_current_password_keeps_keys:
+      "現在のパスワードを入力すると、暗号鍵はそのまま保持され、メールも引き続き読めます。わからない場合は、代わりに復元コードを使用してください。",
+    reset_current_password_required:
+      "現在のパスワードを入力するか、代わりに復元コードを使用してください。",
+    reset_lost_everything:
+      "パスワードと復元コードを紛失しました",
+    reset_remember_password:
+      "パスワードを覚えています",
+    reset_lost_everything_warning:
+      "パスワードまたは復元コードがないと、Aster Mail は暗号鍵のロックを解除できません。リセットすると新しい鍵が作成され、後で以前のパスワードまたは復元コードが見つからない限り、既存のメールは読めなくなります。",
+    reset_lost_everything_confirm:
+      "既存のメールが読めなくなることを理解しました",
+    reset_lost_everything_confirm_required:
+      "パスワードなしでリセットするには、既存のメールが読めなくなることを理解したことを確認してください。",
     reset_current_password_optional: "現在のパスワード（任意）",
     reset_current_password_hint:
       "現在のパスワードを覚えている場合はここに入力すると、サインイン直後から以前のメールを利用できます。空欄のままにした場合は、後からリカバリーコードで以前のメールのロックを解除できます。",
@@ -9979,6 +10167,22 @@ export const ja = {
     review_recovery_email_kept: "リカバリーメールは設定されたままです。",
     review_no_recovery_email: "リカバリーメールはありません。",
     review_add: "追加",
+    recovery_previous_password_placeholder:
+      "以前のパスワードを入力",
+    recovery_previous_password_body:
+      "暗号鍵は、今回のリセット前に使用していたパスワードで引き続き保護されています。メールを読める状態に保つには、その以前のパスワードを入力してください。鍵は変わらず、今後は新しいパスワードで保護されます。",
+    recovery_previous_password_required:
+      "以前のパスワードを入力するか、「覚えていません」を選択してください。",
+    recovery_previous_password_incorrect:
+      "そのパスワードでは暗号鍵のロックを解除できません。確認してもう一度お試しください。",
+    recovery_previous_password_forgot:
+      "覚えていません",
+    recovery_previous_password_use:
+      "以前のパスワードを入力する",
+    recovery_previous_password_skipped_warning:
+      "パスワードはリセットされ、暗号鍵は保持されますが、以前のパスワードでロックされたままです。「データを復元」バナーからそのパスワードを入力するまで、メールは読めません。",
+    review_keys_left_locked:
+      "暗号鍵は保持されていますが、以前のパスワードでロックされたままです。メールを読むには、バナーで「データを復元」を選択し、そのパスワードを入力してください。",
     review_codes_left: "リカバリーコードは残り {{count}} 個です。",
     review_codes_left_other: "リカバリーコードは残り {{count}} 個です。",
     import_mail_step_title: "メールを一緒に持ってくる",
@@ -10065,28 +10269,41 @@ export const ja = {
     device_code_expires_in: "有効期限",
     link_device_title: "デバイスをリンク",
     link_device_enter_code:
-      "デスクトップアプリに表示されたコードを入力してください。",
+      "リンクするアプリに表示されているリンクコードを入力してください。",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "続行",
     link_device_confirm_prompt: "このデバイスをアカウントにリンクしますか？",
     link_device_confirm_button: "デバイスをリンク",
     link_device_confirming: "デバイスをリンク中...",
     link_device_cancel: "キャンセル",
-    link_device_desktop: "デスクトップアプリ",
-    device_fingerprint: "確認コード",
+    link_device_desktop: "新しいデバイス",
+    device_fingerprint: "デバイスのフィンガープリント",
+    device_fingerprint_copy: "デバイスのフィンガープリントをコピー",
+    link_device_grant_notice:
+      "リンクすると、{{device}} のアプリが {{email}} に完全にアクセスできるようになります。メールと暗号鍵も含まれます。",
+    link_device_own_device_warning:
+      "ご自身のデバイスの Aster アプリでこの操作を開始した場合にのみ続行してください。このコードをほかの人から受け取った場合は、デバイスをリンクしないでください。",
+    link_device_fingerprint_enter:
+      "リンクするアプリに表示されているデバイスのフィンガープリントを入力してください。アプリによっては確認コードと表示されます。",
+    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
+    link_device_fingerprint_mismatch:
+      "このリンクコードのデバイスと一致しません。リンクするアプリの表示と 1 文字ずつ比べてから、もう一度お試しください。それでも一致しない場合は、デバイスをリンクしないでください。",
+    link_device_fingerprint_link_mismatch:
+      "このページを開いたリンクは、このリンクコードとは別のデバイスのものであるため、ここではデバイスをリンクできません。リンクするアプリで新しいコードを取得して、もう一度お試しください。",
+    link_device_update_desktop:
+      "アプリに表示されない場合は、アプリで「このデバイスを確認」を選択してください。このオプションがない場合は、アプリをアップデートしてから、もう一度お試しください。",
+    device_code_fingerprint_required_hint:
+      "デバイスをリンクする前に、ブラウザでこのデバイスのフィンガープリントの入力が求められます。",
     device_code_verify_toggle: "このデバイスを確認",
     link_device_fingerprint_hint:
       "新しいデバイスに表示されている確認コードを入力してください。デスクトップアプリでは、「このデバイスを確認」を選択すると表示されます。",
-    link_device_fingerprint_placeholder: "XXXX XXXX XXXX XXXX XXXX",
     link_device_fingerprint_incomplete:
       "デバイスをリンクするには、新しいデバイスの確認コードをすべて入力してください。",
-    link_device_fingerprint_mismatch:
-      "このコードは新しいデバイスと一致しません。新しいデバイスのコードを確認して、もう一度入力してください。それでも一致しない場合は、「キャンセル」を選択してください。",
     device_code_fingerprint_hint:
       "このデバイスをリンクするには、すでにサインインしているデバイスでこのコードを入力してください。",
     link_device_change_account: "アカウントを切り替える",
     link_device_choose_account: "アカウントを選択",
-    link_device_choose_account_description: "デスクトップアプリを連携します",
+    link_device_choose_account_description: "新しいデバイスをリンクします",
     link_device_choose_account_note:
       "暗号鍵は、デバイス間で転送される間も暗号化されたままです。",
     link_device_use_another_account: "別のアカウントを使用",
@@ -10098,11 +10315,11 @@ export const ja = {
       "このアカウントで続行するには、パスワードを入力してください。",
     link_device_success: "デバイスがリンクされました",
     link_device_success_description:
-      "デスクトップアプリがリンクされました。このタブを閉じることができます。",
+      "デバイスがリンクされました。このタブを閉じることができます。",
     link_device_invalid_code:
       "リンクコードは 8 文字です。コードを確認して、もう一度お試しください。",
     link_device_expired_code:
-      "このコードは期限切れか一致しませんでした。デスクトップアプリに現在のコードがあります。",
+      "このコードは期限切れか一致しませんでした。リンクするアプリに現在のコードが表示されています。",
     link_device_failed:
       "リンクが完了しませんでした。最初からやり直すと解決することが多いです。アカウントに変更はありません。",
     link_keys_locked_title: "キーリングがロックされています",
@@ -10464,6 +10681,8 @@ export const ja = {
       "メッセージのパスワードが弱すぎるため、メッセージは送信されませんでした。12 文字以上で、数字、記号、または大文字と小文字の両方を含めてください。",
     recipient_key_untrusted:
       "受信者の暗号鍵が変更されたため、メッセージは送信されませんでした。送信するには、別の方法で相手に変更を確認してから、「新しい鍵を信頼」を選択してください。",
+    recipient_key_unreadable:
+      "このデバイスで受信者の保存済み暗号鍵を読み取れないため、メッセージは送信されませんでした。送信するには、別の方法で相手に鍵を確認してから、「新しい鍵を信頼」を選択してください。",
     key_trust_check_failed:
       "受信者の暗号鍵を確認できなかったため、メッセージは送信されませんでした。接続を確認して、もう一度お試しください。",
     recipient_classification_unavailable:
@@ -10673,6 +10892,8 @@ export const ja = {
       "case_sensitive は引用符で囲んだテキスト値の後にのみ置けます。",
     expr_internal_error:
       "この式を読み取れませんでした。構文を確認して、もう一度お試しください。",
+    expr_server_rejected:
+      "式のこの部分は保存できません。構文を確認して、もう一度お試しください。",
     expr_line_col: "（{{line}} 行、{{col}} 列）",
     editor_description: "ルールに名前を付けて、動作を指定します。",
     editor_server_notice:
@@ -10806,6 +11027,10 @@ export const ja = {
     regex_invalid:
       "この正規表現パターンは有効ではありません。構文を確認して、もう一度お試しください。",
     regex_empty: "保存する前に正規表現パターンが必要です。",
+    regex_too_complex:
+      "この正規表現は複雑すぎるため保存できません。繰り返しや選択肢を減らして、もう一度お試しください。",
+    regex_invalid_reason:
+      "この正規表現は無効です: {{reason}}",
     regex_too_long: "この正規表現は長すぎます。短くすると使えます。",
     last_condition_required:
       "このルールを保存するには少なくとも 1 つの条件が必要です。",
@@ -11254,6 +11479,8 @@ export const ja = {
     invite_card_join: "会議に参加",
     invite_card_calendar_failed: "返答は送信されましたが、Aster はこの予定をカレンダーに追加できませんでした。",
     invite_card_reply_send_failed: "返答を送信できませんでした。もう一度お試しください。",
+    invite_card_reply_address_unavailable:
+      "この招待を受け取ったアドレスからメールを送信できないため、Aster は返答を送信しませんでした。返答するには、そのアドレスを再度有効にしてください。",
     invite_card_organizer_mismatch:
       "この招待は {{sender}} から送信されましたが、主催者は {{organizer}} と記載されています。心当たりがない場合は、返答する前に主催者に確認してください。",
     invite_card_reply_confirm:

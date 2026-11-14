@@ -26,6 +26,9 @@ import {
   is_internal_email,
 } from "@/services/api/keys";
 import { is_recipient_controlled_key } from "@/services/opportunistic_key_trust";
+import { check_owner_key_pin } from "@/services/crypto/ratchet_identity_pin";
+import { record_peer_identity_event } from "@/services/crypto/ratchet_verification_status";
+import { claim_rotation_notice } from "@/services/crypto/rotation_notice";
 
 const RESOLVER_CACHE_TTL_MS = 5 * 60 * 1000;
 const MAX_RESOLVER_CACHE = 1000;
@@ -111,4 +114,60 @@ export async function resolve_inline_pgp_sender_keys(
   } catch {
     return [];
   }
+}
+
+export function drop_sender_verification<Envelope>(
+  envelope: Envelope,
+): Envelope {
+  if (envelope && typeof envelope === "object") {
+    delete (envelope as Record<string, unknown>).sender_verification;
+  }
+
+  return envelope;
+}
+
+export type SenderKeyTrust = "trusted" | "changed" | "unavailable";
+
+export async function check_sender_key_trust(
+  sender_email: string,
+  keys: string[],
+): Promise<SenderKeyTrust> {
+  const sender = sender_email.trim().toLowerCase();
+
+  if (!sender || keys.length === 0) return "unavailable";
+
+  try {
+    for (const key of keys) {
+      const status = await check_owner_key_pin(sender, key);
+
+      if (status === "changed") return "changed";
+      if (status === "unknown") return "unavailable";
+    }
+  } catch {
+    return "unavailable";
+  }
+
+  return "trusted";
+}
+
+export async function settle_sender_verification<Status extends string>(
+  sender_email: string,
+  keys: string[],
+  verification: Status,
+  is_own_signature: () => Promise<boolean>,
+): Promise<Status | "no_keys"> {
+  if (verification !== "verified") return verification;
+
+  const trust = await check_sender_key_trust(sender_email, keys);
+
+  if (trust === "trusted") return verification;
+  if (await is_own_signature()) return verification;
+  if (
+    trust === "changed" &&
+    claim_rotation_notice(sender_email, keys.join("\n"))
+  ) {
+    record_peer_identity_event(sender_email, "rotated");
+  }
+
+  return "no_keys";
 }

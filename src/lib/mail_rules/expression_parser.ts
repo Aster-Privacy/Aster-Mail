@@ -165,6 +165,14 @@ class ParseError extends Error {
   }
 }
 
+const STRING_ESCAPES: Record<string, string> = {
+  '"': '"',
+  "\\": "\\",
+  n: "\n",
+  r: "\r",
+  t: "\t",
+};
+
 function tokenize(text: string): Token[] {
   const tokens: Token[] = [];
   let i = 0;
@@ -252,8 +260,10 @@ function tokenize(text: string): Token[] {
         if (text[i] === "\\" && i + 1 < text.length) {
           const next = text[i + 1];
 
-          if (next === '"' || next === "\\") {
-            v += next;
+          const escaped = STRING_ESCAPES[next];
+
+          if (escaped !== undefined) {
+            v += escaped;
             advance(2);
             continue;
           }
@@ -848,6 +858,8 @@ export function friendly_error(
       return t("mail_rules.expr_misplaced_case_flag");
     case "internal_error":
       return t("mail_rules.expr_internal_error");
+    case "server_rejected":
+      return t("mail_rules.expr_server_rejected");
     default:
       return t("mail_rules.expression_parse_error");
   }
@@ -909,8 +921,16 @@ const NUMERIC_OP_TO_SYM: Record<NumericOperator, string> = {
   equals: "=",
 };
 
+const QUOTE_ESCAPES: Record<string, string> = {
+  '"': '\\"',
+  "\\": "\\\\",
+  "\n": "\\n",
+  "\r": "\\r",
+  "\t": "\\t",
+};
+
 function quote_string(s: string): string {
-  return `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  return `"${s.replace(/["\\\n\r\t]/g, (ch) => QUOTE_ESCAPES[ch])}"`;
 }
 
 function quote_value(s: string, case_sensitive?: boolean): string {
