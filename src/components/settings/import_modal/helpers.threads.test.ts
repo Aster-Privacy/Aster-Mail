@@ -104,3 +104,65 @@ describe("build_thread_map", () => {
     expect(map.size).toBe(0);
   });
 });
+
+describe("build_thread_map subject fallback", () => {
+  const day = 86_400_000;
+
+  function dated(
+    message_id: string,
+    subject: string,
+    from: string,
+    at: number,
+    headers: Record<string, string> = {},
+  ): ParsedEmail {
+    return { ...email(message_id, subject, headers), from, date: new Date(at) };
+  }
+
+  it("links a reply without thread headers to a recent message it answers", async () => {
+    const map = await build_thread_map([
+      dated("one@x.com", "Dinner", "ann@x.com", 0),
+      dated("two@x.com", "Re: Dinner", "ann@x.com", day),
+    ]);
+
+    expect(map.get("two@x.com")).toBeDefined();
+    expect(map.get("two@x.com")).toBe(map.get("one@x.com"));
+  });
+
+  it("keeps messages apart when neither is a reply", async () => {
+    const map = await build_thread_map([
+      dated("one@x.com", "Verify your device", "ann@x.com", 0),
+      dated("two@x.com", "Verify your device", "ann@x.com", day),
+    ]);
+
+    expect(map.size).toBe(0);
+  });
+
+  it("keeps a reply apart from a message outside the time window", async () => {
+    const map = await build_thread_map([
+      dated("one@x.com", "Dinner", "ann@x.com", 0),
+      dated("two@x.com", "Re: Dinner", "ann@x.com", 30 * day),
+    ]);
+
+    expect(map.size).toBe(0);
+  });
+
+  it("keeps a reply apart when nobody took part in both messages", async () => {
+    const map = await build_thread_map([
+      dated("one@x.com", "Dinner", "ann@x.com", 0),
+      dated("two@x.com", "Re: Dinner", "bob@y.com", day),
+    ]);
+
+    expect(map.size).toBe(0);
+  });
+
+  it("never uses the subject when a message carries thread headers", async () => {
+    const map = await build_thread_map([
+      dated("one@x.com", "Dinner", "ann@x.com", 0),
+      dated("two@x.com", "Re: Dinner", "ann@x.com", day, {
+        "in-reply-to": "<elsewhere@x.com>",
+      }),
+    ]);
+
+    expect(map.size).toBe(0);
+  });
+});

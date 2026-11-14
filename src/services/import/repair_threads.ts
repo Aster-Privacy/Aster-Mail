@@ -37,10 +37,11 @@ import {
   normalize_subject,
   strip_angle_brackets,
   thread_token_from_root,
+  THREAD_TOKEN_BYTES,
 } from "@/services/threading/threading_rules";
 
-const FETCH_LIMIT = 50;
-const MAX_PAGES = 60;
+const FETCH_LIMIT = 100;
+const MAX_PAGES = 300;
 const COOLDOWN_MS = 10_000;
 const SUBMIT_BATCH_SIZE = 200;
 
@@ -58,7 +59,7 @@ interface RepairEnvelope {
   raw_headers?: HeaderEntry[];
 }
 
-interface RepairRecord {
+export interface RepairRecord {
   id: string;
   ts: number;
   thread_token: string | null;
@@ -86,13 +87,25 @@ function read_header(
   return null;
 }
 
-function extract_reference_ids(headers: HeaderEntry[] | undefined): string[] {
+function header_ids(value: string | null): string[] {
+  if (!value) return [];
+
+  const bracketed = value.match(/<[^<>]+>/g);
+
+  if (bracketed && bracketed.length > 0) return bracketed;
+
+  return value
+    .split(/[\s,]+/)
+    .map((token) => token.trim())
+    .filter((token) => token.includes("@"));
+}
+
+export function extract_reference_ids(
+  headers: HeaderEntry[] | undefined,
+): string[] {
   const raw = [
-    ...(read_header(headers, "references")?.match(/<[^<>]+>/g) ?? []),
-    ...(read_header(headers, "in-reply-to")?.match(/<[^<>]+>/g) ?? []).slice(
-      0,
-      1,
-    ),
+    ...header_ids(read_header(headers, "references")),
+    ...header_ids(read_header(headers, "in-reply-to")).slice(0, 1),
   ];
   const seen = new Set<string>();
   const ids: string[] = [];
@@ -135,7 +148,7 @@ async function build_record(item: MailItem): Promise<RepairRecord | null> {
   };
 }
 
-const RELINK_DONE_KEY_PREFIX = "aster_thread_relink_v1:";
+const RELINK_DONE_KEY_PREFIX = "aster_thread_relink_v2:";
 
 function relink_done(user_id: string): boolean {
   try {
@@ -153,22 +166,27 @@ function mark_relink_done(user_id: string): void {
   }
 }
 
-async function fetch_items_of_type(
-  item_type: "received" | "sent",
-): Promise<MailItem[]> {
+async function fetch_all_items(): Promise<MailItem[]> {
   const items: MailItem[] = [];
+  const seen = new Set<string>();
   let cursor: string | undefined;
 
   for (let page = 0; page < MAX_PAGES; page++) {
     const response = await list_mail_items({
-      item_type,
+      item_type: "all",
       limit: FETCH_LIMIT,
       cursor,
+      skip_total: true,
     });
 
     if (response.error || !response.data) break;
 
-    items.push(...response.data.items);
+    for (const item of response.data.items) {
+      if (item.item_type !== "received" && item.item_type !== "sent") continue;
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      items.push(item);
+    }
 
     if (!response.data.has_more || !response.data.next_cursor) break;
     cursor = response.data.next_cursor;
@@ -177,25 +195,39 @@ async function fetch_items_of_type(
   return items;
 }
 
-async function fetch_all_items(): Promise<MailItem[]> {
-  const received = await fetch_items_of_type("received");
-  const sent = await fetch_items_of_type("sent");
-  const seen = new Set<string>();
-
-  return [...received, ...sent].filter((item) => {
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
-
-    return true;
-  });
-}
-
 function msgid_key(message_id: string): string {
   return strip_angle_brackets(message_id).toLowerCase();
 }
 
-function group_records(records: RepairRecord[]): RepairRecord[][] {
+function subject_core(normalized: string): string {
+  let current = normalized;
+
+  for (;;) {
+    const next = current
+      .replace(/^\[[^\]]*\]\s*/, "")
+      .replace(/^(re|aw|sv|fw|fwd)\s*(\[\d+\]|\^\d+|\(\d+\))\s*:\s*/, "")
+      .trim();
+
+    if (next === current) break;
+    current = normalize_subject(next);
+  }
+
+  return current.replace(/\s+/g, " ");
+}
+
+export function subjects_compatible(a: string, b: string): boolean {
+  const left = subject_core(a);
+  const right = subject_core(b);
+
+  if (!left || !right) return true;
+  if (left === right) return true;
+
+  return left.includes(right) || right.includes(left);
+}
+
+export function group_records(records: RepairRecord[]): RepairRecord[][] {
   const parent = new Map<string, string>();
+  const root_subject = new Map<string, string | null>();
   const by_msgid = new Map<string, RepairRecord>();
 
   const find = (id: string): string => {
@@ -215,8 +247,30 @@ function group_records(records: RepairRecord[]): RepairRecord[][] {
     return root;
   };
 
+  const union = (a: string, b: string): void => {
+    const root_a = find(a);
+    const root_b = find(b);
+
+    if (root_a === root_b) return;
+
+    const subject_a = root_subject.get(root_a) ?? null;
+    const subject_b = root_subject.get(root_b) ?? null;
+
+    if (
+      subject_a !== null &&
+      subject_b !== null &&
+      !subjects_compatible(subject_a, subject_b)
+    ) {
+      return;
+    }
+
+    parent.set(root_b, root_a);
+    root_subject.set(root_a, subject_a ?? subject_b);
+  };
+
   for (const record of records) {
     parent.set(record.id, record.id);
+    root_subject.set(record.id, record.normalized_subject);
     if (record.message_id) {
       const key = msgid_key(record.message_id);
 
@@ -224,17 +278,36 @@ function group_records(records: RepairRecord[]): RepairRecord[][] {
     }
   }
 
+  const by_import_token = new Map<string, string>();
+
+  for (const record of records) {
+    const token = record.thread_token;
+
+    if (!token || is_rethreadable_token(token)) continue;
+
+    const first = by_import_token.get(token);
+
+    if (first) union(first, record.id);
+    else by_import_token.set(token, record.id);
+  }
+
   for (const record of records) {
     for (const ref of record.ref_ids) {
-      const target = by_msgid.get(msgid_key(ref));
+      const key = msgid_key(ref);
+      const target = by_msgid.get(key);
 
-      if (!target || target.id === record.id) continue;
-      if (target.normalized_subject !== record.normalized_subject) continue;
+      if (target) {
+        if (target.id !== record.id) union(target.id, record.id);
+        continue;
+      }
 
-      const root_a = find(record.id);
-      const root_b = find(target.id);
+      const phantom = `ref:${key}`;
 
-      if (root_a !== root_b) parent.set(root_b, root_a);
+      if (!parent.has(phantom)) {
+        parent.set(phantom, phantom);
+        root_subject.set(phantom, null);
+      }
+      union(phantom, record.id);
     }
   }
 
@@ -251,7 +324,17 @@ function group_records(records: RepairRecord[]): RepairRecord[][] {
   return [...groups.values()];
 }
 
-function plan_updates(
+export function is_rethreadable_token(token: string | null): boolean {
+  if (!token) return false;
+
+  try {
+    return atob(token).length === THREAD_TOKEN_BYTES;
+  } catch {
+    return false;
+  }
+}
+
+export function plan_updates(
   user_id: string,
   records: RepairRecord[],
 ): RethreadItem[] {
@@ -261,7 +344,9 @@ function plan_updates(
     let token: string | null = null;
 
     if (group.length > 1) {
-      const with_token = group.find((record) => record.thread_token);
+      const with_token = group.find((record) =>
+        is_rethreadable_token(record.thread_token),
+      );
       const first_with_id = group.find((record) => record.message_id);
 
       token =

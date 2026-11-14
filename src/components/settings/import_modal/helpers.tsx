@@ -505,6 +505,43 @@ export function header_message_ids(value: string | undefined): string[] {
     .filter((id) => id.includes("@"));
 }
 
+const SUBJECT_FALLBACK_WINDOW_MS = 7 * 86_400_000;
+
+function has_thread_headers(email: ParsedEmail): boolean {
+  return (
+    header_message_ids(email.raw_headers["in-reply-to"]).length > 0 ||
+    header_message_ids(email.raw_headers["references"]).length > 0
+  );
+}
+
+function has_reply_prefix(subject: string): boolean {
+  return /^\s*(re|aw|sv|antw|fw|fwd)\s*(\[\d+\]|\^\d+|\(\d+\))?\s*:/i.test(
+    subject,
+  );
+}
+
+function participants(email: ParsedEmail): Set<string> {
+  const addresses = new Set<string>();
+
+  for (const value of [email.from, ...email.to, ...email.cc]) {
+    const address = extract_email_address(value ?? "").trim().toLowerCase();
+
+    if (address) addresses.add(address);
+  }
+
+  return addresses;
+}
+
+function shares_participant(a: ParsedEmail, b: ParsedEmail): boolean {
+  const left = participants(a);
+
+  for (const address of participants(b)) {
+    if (left.has(address)) return true;
+  }
+
+  return false;
+}
+
 export async function build_thread_map(
   emails: ParsedEmail[],
 ): Promise<Map<string, string>> {
@@ -572,14 +609,15 @@ export async function build_thread_map(
     }
   }
 
-  const subject_groups = new Map<string, string[]>();
+  const subject_groups = new Map<string, ParsedEmail[]>();
 
   for (const email of emails) {
     const root = find_root(email.message_id);
 
     if (
       root === email.message_id &&
-      (group_members.get(root)?.size ?? 0) <= 1
+      (group_members.get(root)?.size ?? 0) <= 1 &&
+      !has_thread_headers(email)
     ) {
       const norm = normalize_subject(email.subject);
 
@@ -587,17 +625,38 @@ export async function build_thread_map(
       const existing = subject_groups.get(norm);
 
       if (existing) {
-        existing.push(email.message_id);
+        existing.push(email);
       } else {
-        subject_groups.set(norm, [email.message_id]);
+        subject_groups.set(norm, [email]);
       }
     }
   }
 
-  for (const [, ids] of subject_groups) {
-    if (ids.length < 2) continue;
-    for (let i = 1; i < ids.length; i++) {
-      merge(ids[0], ids[i]);
+  for (const [, group] of subject_groups) {
+    if (group.length < 2) continue;
+    const ordered = [...group].sort(
+      (a, b) => a.date.getTime() - b.date.getTime(),
+    );
+
+    for (let i = 1; i < ordered.length; i++) {
+      const later = ordered[i];
+
+      if (!has_reply_prefix(later.subject)) continue;
+
+      for (let j = i - 1; j >= 0; j--) {
+        const earlier = ordered[j];
+
+        if (
+          later.date.getTime() - earlier.date.getTime() >
+          SUBJECT_FALLBACK_WINDOW_MS
+        ) {
+          break;
+        }
+        if (shares_participant(earlier, later)) {
+          merge(earlier.message_id, later.message_id);
+          break;
+        }
+      }
     }
   }
 
