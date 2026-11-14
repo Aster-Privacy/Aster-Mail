@@ -21,26 +21,45 @@
 use chrono::{DateTime, Utc};
 use pgp::composed::{SignedPublicKey, SignedPublicSubKey};
 use pgp::crypto::ecc_curve::ECCCurve;
-use pgp::packet::SignatureType;
+use pgp::packet::{Signature, SignatureType};
 use pgp::types::{EcdhPublicParams, PublicKeyTrait, PublicParams};
 
-fn subkey_is_revoked(sub: &SignedPublicSubKey) -> bool {
+fn certified_signatures<'a>(
+    spk: &'a SignedPublicKey,
+    sub: &'a SignedPublicSubKey,
+    typ: SignatureType,
+) -> impl Iterator<Item = &'a Signature> {
     sub.signatures
         .iter()
-        .any(|s| matches!(s.typ(), SignatureType::SubkeyRevocation))
+        .filter(move |s| s.typ() == typ)
+        .filter(move |s| s.verify_key_binding(&spk.primary_key, &sub.key).is_ok())
 }
 
-fn subkey_allows_encryption(sub: &SignedPublicSubKey) -> bool {
-    if !PublicKeyTrait::is_encryption_key(&sub.key) {
-        return false;
-    }
+fn subkey_is_revoked(spk: &SignedPublicKey, sub: &SignedPublicSubKey) -> bool {
+    certified_signatures(spk, sub, SignatureType::SubkeyRevocation)
+        .next()
+        .is_some()
+}
 
+fn subkey_allows_encryption(spk: &SignedPublicKey, sub: &SignedPublicSubKey) -> bool {
+    PublicKeyTrait::is_encryption_key(&sub.key)
+        && bindings_allow_encryption(certified_signatures(spk, sub, SignatureType::SubkeyBinding))
+}
+
+fn subkey_claims_encryption(sub: &SignedPublicSubKey) -> bool {
+    PublicKeyTrait::is_encryption_key(&sub.key)
+        && bindings_allow_encryption(
+            sub.signatures
+                .iter()
+                .filter(|s| s.typ() == SignatureType::SubkeyBinding),
+        )
+}
+
+fn bindings_allow_encryption<'a>(bindings: impl Iterator<Item = &'a Signature>) -> bool {
+    let mut bound = false;
     let mut saw_non_encrypt_flags = false;
-    for sig in sub
-        .signatures
-        .iter()
-        .filter(|s| matches!(s.typ(), SignatureType::SubkeyBinding))
-    {
+    for sig in bindings {
+        bound = true;
         let flags = sig.key_flags();
         if flags.encrypt_comms() || flags.encrypt_storage() {
             return true;
@@ -50,15 +69,12 @@ fn subkey_allows_encryption(sub: &SignedPublicSubKey) -> bool {
         }
     }
 
-    !saw_non_encrypt_flags
+    bound && !saw_non_encrypt_flags
 }
 
-fn subkey_expires_at(sub: &SignedPublicSubKey) -> Option<DateTime<Utc>> {
+fn subkey_expires_at(spk: &SignedPublicKey, sub: &SignedPublicSubKey) -> Option<DateTime<Utc>> {
     let created = *PublicKeyTrait::created_at(&sub.key);
-    let duration = sub
-        .signatures
-        .iter()
-        .filter(|s| matches!(s.typ(), SignatureType::SubkeyBinding))
+    let duration = certified_signatures(spk, sub, SignatureType::SubkeyBinding)
         .filter_map(|s| s.key_expiration_time().copied())
         .max()?;
     Some(created + duration)
@@ -78,8 +94,8 @@ fn subkey_algo_is_supported(sub: &SignedPublicSubKey) -> bool {
 fn capable_subkeys(spk: &SignedPublicKey) -> Vec<&SignedPublicSubKey> {
     spk.public_subkeys
         .iter()
-        .filter(|s| !subkey_is_revoked(s))
-        .filter(|s| subkey_allows_encryption(s))
+        .filter(|s| !subkey_is_revoked(spk, s))
+        .filter(|s| subkey_allows_encryption(spk, s))
         .filter(|s| subkey_algo_is_supported(s))
         .collect()
 }
@@ -87,8 +103,8 @@ fn capable_subkeys(spk: &SignedPublicKey) -> Vec<&SignedPublicSubKey> {
 pub(crate) fn has_unsupported_encryption_subkey(spk: &SignedPublicKey) -> bool {
     spk.public_subkeys
         .iter()
-        .filter(|s| !subkey_is_revoked(s))
-        .filter(|s| subkey_allows_encryption(s))
+        .filter(|s| !subkey_is_revoked(spk, s))
+        .filter(|s| subkey_claims_encryption(s))
         .any(|s| !subkey_algo_is_supported(s))
 }
 
@@ -108,7 +124,7 @@ pub(crate) fn select_encryption_subkey(spk: &SignedPublicKey) -> Option<&SignedP
     if !primary_expired(spk, now) {
         if let Some(valid) = candidates
             .iter()
-            .filter(|s| subkey_expires_at(s).map(|e| e > now).unwrap_or(true))
+            .filter(|s| subkey_expires_at(spk, s).map(|e| e > now).unwrap_or(true))
             .max_by_key(|s| created(s))
             .copied()
         {
@@ -130,14 +146,54 @@ pub(crate) fn has_valid_encryption_subkey(spk: &SignedPublicKey) -> bool {
     }
     capable_subkeys(spk)
         .iter()
-        .any(|s| subkey_expires_at(s).map(|e| e > now).unwrap_or(true))
+        .any(|s| subkey_expires_at(spk, s).map(|e| e > now).unwrap_or(true))
 }
 
 pub(crate) fn encryption_expires_at(spk: &SignedPublicKey) -> Option<DateTime<Utc>> {
     let sub = select_encryption_subkey(spk)?;
-    match (spk.expires_at(), subkey_expires_at(sub)) {
+    match (spk.expires_at(), subkey_expires_at(spk, sub)) {
         (Some(a), Some(b)) => Some(a.min(b)),
         (Some(a), None) => Some(a),
         (None, b) => b,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::keys::generate_keypair;
+
+    fn public(name: &str) -> SignedPublicKey {
+        generate_keypair(name, &format!("{name}@example.com"))
+            .unwrap()
+            .secret_key()
+            .clone()
+            .into()
+    }
+
+    #[test]
+    fn a_subkey_the_primary_key_certified_is_selected() {
+        let owner = public("owner");
+        assert!(select_encryption_subkey(&owner).is_some());
+        assert!(has_valid_encryption_subkey(&owner));
+    }
+
+    #[test]
+    fn a_subkey_certified_by_another_key_is_never_selected() {
+        let mut owner = public("owner");
+        owner.public_subkeys = public("other").public_subkeys;
+        assert!(select_encryption_subkey(&owner).is_none());
+        assert!(!has_encryption_capable_subkey(&owner));
+        assert!(!has_valid_encryption_subkey(&owner));
+    }
+
+    #[test]
+    fn a_revocation_the_primary_key_did_not_make_is_ignored() {
+        let mut owner = public("owner");
+        let foreign = public("other");
+        let mut foreign_binding = foreign.public_subkeys[0].signatures[0].clone();
+        foreign_binding.config.typ = SignatureType::SubkeyRevocation;
+        owner.public_subkeys[0].signatures.push(foreign_binding);
+        assert!(select_encryption_subkey(&owner).is_some());
     }
 }
