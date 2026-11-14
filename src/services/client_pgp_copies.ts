@@ -24,6 +24,8 @@ import type { ExternalKeyInfo } from "./api/keys";
 import { discover_external_keys_batch } from "./api/keys";
 import { array_to_base64, base64_to_array } from "./crypto/base64";
 import { with_aes_kw_fallback } from "./crypto/webcrypto_aes_kw";
+import { check_owner_key_pin } from "./crypto/ratchet_identity_pin";
+import { RecipientPinUnreadableError } from "./crypto/ratchet_types";
 import {
   build_protected_mime_entity,
   type ProtectedMimeAttachment,
@@ -237,6 +239,30 @@ async function encrypt_entity_for(
   }
 }
 
+async function assert_key_unchanged(
+  recipient: string,
+  public_key: string,
+): Promise<void> {
+  const status = await check_owner_key_pin(
+    recipient.trim().toLowerCase(),
+    public_key,
+  ).catch((caught) => {
+    if (!(caught instanceof RecipientPinUnreadableError)) throw caught;
+
+    throw create_error(
+      "encryption_failed",
+      get_active_translations().errors.recipient_key_unreadable,
+    );
+  });
+
+  if (status !== "changed") return;
+
+  throw create_error(
+    "encryption_failed",
+    get_active_translations().errors.recipient_key_untrusted,
+  );
+}
+
 export async function build_client_pgp_copies(
   params: ClientPgpCopyParams,
 ): Promise<Record<string, string> | undefined> {
@@ -332,6 +358,10 @@ async function build_copies_for(
     }
     if (decision !== "encrypt") return copy_failure(listed, listed, false);
     keys.push({ recipient, public_key: info!.public_key! });
+  }
+
+  for (const { recipient, public_key } of keys) {
+    await assert_key_unchanged(recipient, public_key);
   }
 
   const entity = await build_inner_entity(params);

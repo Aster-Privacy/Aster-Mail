@@ -169,7 +169,7 @@ const internal = "someone@astermail.org";
 
 const change = {
   prior_fingerprint: "aaaabbbbccccdddd",
-  new_fingerprint: "1111222233334444",
+  new_fingerprint: "FP_1111222233334444",
   source: "wkd",
   observed_at: "2026-09-15T00:00:00Z",
 };
@@ -229,8 +229,30 @@ describe("external key trust consent", () => {
     expect(discover_external_keys_batch).not.toHaveBeenCalled();
   });
 
+  it("shows the fingerprint of the delivered key in the prompt", async () => {
+    h.changes.set(rotated, change);
+
+    const seen: string[] = [];
+
+    set_key_trust_prompt_handler(async (pending) => {
+      for (const entry of pending) {
+        seen.push(entry.email, entry.prior_fingerprint, entry.new_fingerprint);
+      }
+
+      return true;
+    });
+
+    await ensure_external_key_trust([rotated]);
+
+    expect(seen).toEqual([rotated, change.prior_fingerprint, "FP_KEY"]);
+    expect(h.acknowledged).toEqual([
+      [rotated, change.prior_fingerprint, change.new_fingerprint],
+    ]);
+  });
+
   it("names both fingerprints in the prompt", async () => {
     h.changes.set(rotated, change);
+    h.public_keys.set(rotated, change.new_fingerprint.slice(3));
 
     const seen: string[] = [];
 

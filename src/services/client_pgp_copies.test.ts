@@ -26,6 +26,11 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const discover = vi.fn();
 const signed_payload = vi.fn();
+const pin_status = vi.fn();
+
+vi.mock("./crypto/ratchet_identity_pin", () => ({
+  check_owner_key_pin: (pin_id: string, key: string) => pin_status(pin_id, key),
+}));
 
 vi.mock("./api/keys", () => ({
   discover_external_keys_batch: (emails: string[]) => discover(emails),
@@ -134,6 +139,8 @@ beforeEach(() => {
   discover.mockReset();
   signed_payload.mockReset();
   signed_payload.mockResolvedValue(undefined);
+  pin_status.mockReset();
+  pin_status.mockResolvedValue("ok");
 });
 
 describe("decide_recipient_encryption", () => {
@@ -232,6 +239,38 @@ describe("build_client_pgp_copies", () => {
     await expect(
       decrypt_with(copies!["Bob@Example.org"], bob),
     ).resolves.toContain("Quarterly numbers");
+  });
+
+  it("checks each delivered key against the saved one before encrypting", async () => {
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", bob),
+      ],
+    });
+
+    await build_client_pgp_copies(params());
+
+    expect(pin_status.mock.calls).toEqual([
+      ["pal@example.com", pal.public_key],
+      ["bob@example.org", bob.public_key],
+    ]);
+  });
+
+  it("stops the send when a delivered key differs from the saved one", async () => {
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", bob),
+      ],
+    });
+    pin_status.mockImplementation(async (pin_id: string) =>
+      pin_id === "bob@example.org" ? "changed" : "ok",
+    );
+
+    await expect(build_client_pgp_copies(params())).rejects.toMatchObject({
+      type: "encryption_failed",
+    });
   });
 
   it("leaves the send to the existing path when any recipient lacks a trusted key", async () => {

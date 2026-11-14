@@ -32,7 +32,11 @@ import {
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
 import { decrypt_message_verifiable_with_any_key } from "@/services/crypto/key_manager";
-import { resolve_inline_pgp_sender_keys } from "@/services/crypto/sender_verification";
+import {
+  resolve_inline_pgp_sender_keys,
+  settle_sender_verification,
+} from "@/services/crypto/sender_verification";
+import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp_messages";
 import {
   get_external_decryption_keys,
   settle_external_pgp_key_load,
@@ -571,6 +575,7 @@ export interface ResolvedPgpBody {
 async function is_signed_by_sender(
   decrypted: verifiable_decrypted_message,
   sender_email: string | undefined,
+  own_private_keys: string[],
 ): Promise<boolean> {
   if (!decrypted.has_signature || !sender_email) return false;
 
@@ -580,8 +585,21 @@ async function is_signed_by_sender(
     if (sender_keys.length === 0) return false;
 
     const checked = await decrypted.verify(sender_keys);
+    const settled = await settle_sender_verification(
+      sender_email,
+      sender_keys,
+      checked.verification,
+      async () => {
+        const own_keys = await derive_public_keys_from_private(own_private_keys);
 
-    return checked.verification === "verified";
+        return (
+          own_keys.length > 0 &&
+          (await decrypted.verify(own_keys)).verification === "verified"
+        );
+      },
+    );
+
+    return settled === "verified";
   } catch {
     return false;
   }
@@ -636,7 +654,7 @@ export async function resolve_inbound_pgp_body(
       ? extract_mime_body(decrypted.plaintext)
       : decrypted.plaintext,
     decrypted: true,
-    verified: await is_signed_by_sender(decrypted, sender_email),
+    verified: await is_signed_by_sender(decrypted, sender_email, keys_to_try),
   });
 
   if (keys_to_try.length > 0) {
