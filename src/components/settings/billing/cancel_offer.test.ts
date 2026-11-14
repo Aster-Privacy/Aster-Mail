@@ -23,6 +23,7 @@ import { describe, it, expect } from "vitest";
 import {
   get_cancel_offers,
   get_downgrade_offer,
+  get_save_offer_for,
   get_yearly_offer,
   read_billing_interval,
 } from "./cancel_offer";
@@ -158,5 +159,54 @@ describe("get_cancel_offers", () => {
 
     expect(offers.yearly?.yearly_monthly_cents).toBe(700);
     expect(offers.yearly?.saving_cents).toBe(2388);
+  });
+});
+
+describe("get_save_offer_for", () => {
+  const eligible = { eligible: true, percent_off: 50, months: 6 };
+
+  it("offers the discount for price and trial reasons", () => {
+    expect(get_save_offer_for("too_expensive", eligible)).toEqual({
+      percent_off: 50,
+      months: 6,
+    });
+    expect(get_save_offer_for("just_testing", eligible)).toEqual({
+      percent_off: 50,
+      months: 6,
+    });
+  });
+
+  it("skips other reasons", () => {
+    expect(get_save_offer_for("missing_feature", eligible)).toBeNull();
+    expect(get_save_offer_for(null, eligible)).toBeNull();
+  });
+
+  it("skips when the server says the account is not eligible", () => {
+    expect(
+      get_save_offer_for("too_expensive", {
+        eligible: false,
+      }),
+    ).toBeNull();
+    expect(get_save_offer_for("too_expensive", null)).toBeNull();
+  });
+
+  it("skips malformed terms", () => {
+    expect(
+      get_save_offer_for("too_expensive", { eligible: true, months: 6 }),
+    ).toBeNull();
+    expect(
+      get_save_offer_for("too_expensive", {
+        eligible: true,
+        percent_off: 50,
+        months: 0,
+      }),
+    ).toBeNull();
+    expect(
+      get_save_offer_for("too_expensive", {
+        eligible: true,
+        percent_off: 150,
+        months: 6,
+      }),
+    ).toBeNull();
   });
 });

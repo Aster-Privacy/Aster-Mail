@@ -6548,19 +6548,10 @@ export const tr = {
     cancel_reason_placeholder_privacy_trust: "Bu endişeye ne yol açtı?",
     cancel_reason_placeholder_just_testing: "Neyi öğrenmek istediniz?",
     cancel_reason_placeholder_other: "İptal kararınızın nedeni nedir?",
-    cancel_reason_detail_required:
-      "Bir şeyler yapabilmemiz için kısa bir yanıt yazın.",
     cancel_not_cancellable:
       "Bu abonelik uygulamadan iptal edilemez. İptal için destek ekibiyle iletişime geçin.",
     cancel_failed:
       "Planınız iptal edilmedi. Faturalandırmanız değişmedi, tekrar deneyebilirsiniz.",
-    cancel_early_title: "Bir sorun mu yaşadınız?",
-    cancel_early_description:
-      "Son birkaç gün içinde abone oldunuz, bu yüzden arkasında bir sorun olabilir.",
-    cancel_early_body:
-      "İptal ettiğinizde planınız fatura döneminin sonuna kadar açık kalır ve şimdi devam edebilirsiniz. Bir şey beklediğiniz gibi çalışmadıysa yardım merkezinde sık görülen nedenleri ve ekibe nasıl ulaşacağınızı bulabilirsiniz.",
-    cancel_early_help: "Yardım merkezini aç",
-    cancel_early_continue: "İptale devam et",
     cancel_reason_continue: "Devam",
     cancel_impact_title: "İptal ederseniz neler değişir",
     cancel_impact_description:
@@ -6623,6 +6614,15 @@ export const tr = {
     pause_offer_action: "Bunun yerine duraklat",
     pause_offer_scheduled_toast: "Duraklatma planlandı. Faturalandırma {{date}} tarihinde devam eder.",
     pause_offer_failed: "Planınız duraklatılamadı. Tekrar deneyin.",
+    save_offer_title: "Bunun yerine daha düşük bir fiyat",
+    save_offer_description: "Planınızı koruyup bir süre daha az ödeyebilirsiniz.",
+    save_offer_body: "{{plan}} planınızı sonraki {{count}} aylık ödemede %{{percent}} indirimle koruyun. E-postalarınız, adresleriniz ve ayarlarınız olduğu gibi kalır.",
+    save_offer_body_one: "{{plan}} planınızı sonraki aylık ödemenizde %{{percent}} indirimle koruyun. E-postalarınız, adresleriniz ve ayarlarınız olduğu gibi kalır.",
+    save_offer_action: "Planımı %{{percent}} indirimle koru",
+    save_offer_hint: "İndirim bittiğinde planınız normal fiyatından yenilenir. Bu teklif her hesap için bir kez geçerlidir.",
+    save_offer_applied_toast: "İndiriminiz etkin. Sonraki {{count}} aylık ödemede %{{percent}} daha az ödersiniz.",
+    save_offer_applied_toast_one: "İndiriminiz etkin. Sonraki aylık ödemenizde %{{percent}} daha az ödersiniz.",
+    save_offer_failed: "İndirim uygulanamadı. Tekrar deneyin.",
     pause_cancel_note: "Planınız duraklatıldığı için iptal hemen geçerli olur ve faturalandırma devam etmez.",
     pause_scheduled_title: "Duraklatma planlandı",
     pause_scheduled_body: "Planınız {{start}} tarihinde duraklatılır ve faturalandırma {{end}} tarihinde devam eder. O zamana kadar hiçbir şey değişmez.",
@@ -6692,6 +6692,8 @@ export const tr = {
     offer_modal_dismiss: "Şimdi değil",
     offer_modal_fine_print:
       "{{code}} kodu ödeme sırasında uygulanır. Hesap başına bir kullanım.",
+    offer_modal_first_year_note:
+      "Yıllık faturalandırılır. İlk yıl için {{first}} ödersiniz. İndirim sona erdiğinde planınız, iptal edene kadar yıllık {{price}} ücretle yenilenir.",
     offer_modal_price_note: "İndirim ödeme sırasında uygulanır.",
     offer_modal_subtitle: "{{plan}} planına daha uygun fiyata geçin.",
     offer_modal_title: "Planınızda %{{percent}} tasarruf edin",
@@ -7794,6 +7796,28 @@ export const tr = {
       "Bankanız bu ödemeyi desteklemiyor. Ön ödemeli kartların çoğu abonelik için kullanılamaz. Banka veya kredi kartı deneyin ya da aşağıdan kripto ile ödeyin.",
     card_declined_contact_bank:
       "Bankanız ödemeyi, nedenini bildirmeden reddetti. Bankanızla iletişime geçin veya aşağıdan kripto ile ödeyin.",
+    checkout_decline_insufficient_funds:
+      "Hesapta yeterli bakiye olmadığı için bankanız ödemeyi reddetti. Herhangi bir ücret alınmadı. Başka bir kart veya ödeme yöntemi deneyin.",
+    checkout_decline_expired_card:
+      "Bu kartın süresi doldu. Herhangi bir ücret alınmadı. Geçerli bir kart girin veya başka bir ödeme yöntemi seçin.",
+    checkout_decline_card_details:
+      "Bazı kart bilgileri bankanızdaki kayıtlarla eşleşmiyor. Kart numarasını, son kullanma tarihini, güvenlik kodunu ve posta kodunu kontrol edip tekrar deneyin.",
+    checkout_decline_card_not_supported:
+      "Bankanız bu kartın aboneliklerde kullanılmasına izin vermiyor ve birçok ön ödemeli kart desteklenmiyor. Herhangi bir ücret alınmadı. Banka veya kredi kartı ya da başka bir ödeme yöntemi deneyin.",
+    checkout_decline_contact_bank:
+      "Bankanız ödemeyi reddetti. Herhangi bir ücret alınmadı. Başka bir kart veya ödeme yöntemi deneyin ya da bankanızdan ödemeyi onaylamasını isteyip tekrar deneyin.",
+    checkout_decline_try_again:
+      "Bankanız ödemeyi şu anda işleyemedi. Herhangi bir ücret alınmadı. Biraz bekleyip tekrar deneyin.",
+    checkout_decline_switch_card:
+      "Bunun yerine kartla öde",
+    checkout_decline_switch_wallet:
+      "Bunun yerine Apple Pay veya Google Pay ile öde",
+    checkout_decline_switch_cashapp:
+      "Bunun yerine Cash App ile öde",
+    checkout_decline_switch_crypto:
+      "Bunun yerine kriptoyla öde",
+    checkout_too_many_attempts:
+      "Bankanız birkaç denemeyi reddetti, bu nedenle bu ödemede işlemler duraklatıldı. Herhangi bir ücret alınmadı. Ödeme penceresini kapatıp daha sonra tekrar deneyin veya kriptoyla ödeyin.",
     crypto_pay_button: "Kripto ile öde",
     crypto_summary_plan: "Plan",
     crypto_summary_addon: "Ek paket",

@@ -6619,18 +6619,10 @@ export const ko = {
     cancel_reason_placeholder_privacy_trust: "무엇 때문에 걱정되셨나요?",
     cancel_reason_placeholder_just_testing: "무엇을 확인하고 싶으셨나요?",
     cancel_reason_placeholder_other: "해지를 결정하신 이유는 무엇인가요?",
-    cancel_reason_detail_required: "개선에 반영할 수 있도록 짧게 적어 주세요.",
     cancel_not_cancellable:
       "이 구독은 앱에서 해지할 수 없습니다. 해지하려면 고객지원에 문의하세요.",
     cancel_failed:
       "요금제가 해지되지 않았습니다. 결제 내용은 그대로이니 다시 시도해 보세요.",
-    cancel_early_title: "문제가 있었나요?",
-    cancel_early_description:
-      "최근 며칠 사이에 구독하셨기 때문에 문제가 원인일 수 있습니다.",
-    cancel_early_body:
-      "취소해도 결제 주기가 끝날 때까지 요금제가 유지되며, 지금 바로 진행할 수 있습니다. 예상대로 작동하지 않은 부분이 있다면 도움말 센터에서 주요 원인과 문의 방법을 확인할 수 있습니다.",
-    cancel_early_help: "도움말 센터 열기",
-    cancel_early_continue: "취소 계속하기",
     cancel_reason_continue: "계속",
     cancel_impact_title: "취소하면 달라지는 점",
     cancel_impact_description: "플랜은 {{date}}까지 유지됩니다. 그 이후:",
@@ -6681,6 +6673,13 @@ export const ko = {
     pause_offer_action: "대신 일시 중지",
     pause_offer_scheduled_toast: "일시 중지가 예약되었습니다. {{date}}에 결제가 다시 시작됩니다.",
     pause_offer_failed: "요금제를 일시 중지하지 못했습니다. 다시 시도하세요.",
+    save_offer_title: "대신 더 낮은 가격으로",
+    save_offer_description: "요금제를 유지하면서 한동안 더 적게 결제할 수 있습니다.",
+    save_offer_body: "다음 {{count}}번의 월 결제에 {{percent}}% 할인을 받고 {{plan}} 요금제를 유지하세요. 메일, 주소, 설정은 그대로 유지됩니다.",
+    save_offer_action: "{{percent}}% 할인으로 요금제 유지",
+    save_offer_hint: "할인이 끝나면 요금제는 정상 가격으로 갱신됩니다. 이 혜택은 계정당 한 번만 사용할 수 있습니다.",
+    save_offer_applied_toast: "할인이 적용되었습니다. 다음 {{count}}번의 월 결제가 {{percent}}% 줄어듭니다.",
+    save_offer_failed: "할인을 적용하지 못했습니다. 다시 시도하세요.",
     pause_cancel_note: "요금제가 일시 중지된 상태이므로 취소가 즉시 적용되며 결제는 다시 시작되지 않습니다.",
     pause_scheduled_title: "일시 중지 예약됨",
     pause_scheduled_body: "요금제가 {{start}}에 일시 중지되고 {{end}}에 결제가 다시 시작됩니다. 그때까지는 아무것도 바뀌지 않습니다.",
@@ -6756,6 +6755,8 @@ export const ko = {
     offer_modal_dismiss: "나중에",
     offer_modal_fine_print:
       "코드 {{code}}는 결제 시 적용됩니다. 계정당 한 번 사용할 수 있습니다.",
+    offer_modal_first_year_note:
+      "연간 청구됩니다. 첫해에는 {{first}}를 결제합니다. 할인이 끝나면 취소할 때까지 연 {{price}}에 플랜이 갱신됩니다.",
     offer_modal_price_note: "할인은 결제 시 적용됩니다.",
     offer_modal_subtitle: "더 낮은 가격으로 {{plan}}(으)로 옮겨 보세요.",
     offer_modal_title: "요금제를 {{percent}}% 절약하세요",
@@ -7594,6 +7595,28 @@ export const ko = {
       "은행이 이 결제를 지원하지 않습니다. 선불 카드는 대부분 구독에 사용할 수 없습니다. 체크카드나 신용카드를 사용하거나 아래에서 암호화폐로 결제하세요.",
     card_declined_contact_bank:
       "은행이 이유를 알려주지 않고 결제를 거절했습니다. 은행에 문의하거나 아래에서 암호화폐로 결제하세요.",
+    checkout_decline_insufficient_funds:
+      "계좌 잔액이 부족하여 은행에서 결제를 거절했습니다. 청구된 금액은 없습니다. 다른 카드나 결제 수단을 사용해 보세요.",
+    checkout_decline_expired_card:
+      "이 카드는 유효 기간이 지났습니다. 청구된 금액은 없습니다. 유효한 카드를 입력하거나 다른 결제 수단을 선택하세요.",
+    checkout_decline_card_details:
+      "일부 카드 정보가 은행에 등록된 정보와 일치하지 않습니다. 카드 번호, 유효 기간, 보안 코드, 우편번호를 확인한 후 다시 시도하세요.",
+    checkout_decline_card_not_supported:
+      "은행에서 이 카드의 구독 결제를 허용하지 않으며, 많은 선불카드가 지원되지 않습니다. 청구된 금액은 없습니다. 체크카드나 신용카드 또는 다른 결제 수단을 사용해 보세요.",
+    checkout_decline_contact_bank:
+      "은행에서 결제를 거절했습니다. 청구된 금액은 없습니다. 다른 카드나 결제 수단을 사용하거나, 은행에 결제 승인을 요청한 후 다시 시도하세요.",
+    checkout_decline_try_again:
+      "은행에서 지금 결제를 처리할 수 없습니다. 청구된 금액은 없습니다. 잠시 후 다시 시도하세요.",
+    checkout_decline_switch_card:
+      "카드로 결제하기",
+    checkout_decline_switch_wallet:
+      "Apple Pay 또는 Google Pay로 결제하기",
+    checkout_decline_switch_cashapp:
+      "Cash App으로 결제하기",
+    checkout_decline_switch_crypto:
+      "암호화폐로 결제하기",
+    checkout_too_many_attempts:
+      "은행에서 여러 번 결제를 거절하여 이 결제 창에서는 결제가 일시 중지되었습니다. 청구된 금액은 없습니다. 결제 창을 닫고 나중에 다시 시도하거나 암호화폐로 결제하세요.",
     crypto_pay_button: "암호화폐로 결제",
     crypto_summary_plan: "요금제",
     crypto_summary_addon: "부가 기능",

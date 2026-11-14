@@ -6565,19 +6565,10 @@ export const pt_br = {
     cancel_reason_placeholder_privacy_trust: "O que gerou essa preocupação?",
     cancel_reason_placeholder_just_testing: "O que você queria descobrir?",
     cancel_reason_placeholder_other: "O que fez você decidir cancelar?",
-    cancel_reason_detail_required:
-      "Adicione uma resposta curta para podermos agir.",
     cancel_not_cancellable:
       "Esta assinatura não pode ser cancelada no app. Entre em contato com o suporte para cancelá-la.",
     cancel_failed:
       "Seu plano não foi cancelado. Sua cobrança não mudou, então você pode tentar novamente.",
-    cancel_early_title: "Algo deu errado?",
-    cancel_early_description:
-      "Você assinou nos últimos dias, então pode haver algum problema por trás disso.",
-    cancel_early_body:
-      "Ao cancelar, seu plano continua ativo até o fim do período de cobrança, e você pode prosseguir agora. Se algo não funcionou como esperava, a central de ajuda explica as causas mais comuns e como falar com a equipe.",
-    cancel_early_help: "Abrir a central de ajuda",
-    cancel_early_continue: "Continuar o cancelamento",
     cancel_reason_continue: "Continuar",
     cancel_impact_title: "O que muda se você cancelar",
     cancel_impact_description:
@@ -6639,6 +6630,15 @@ export const pt_br = {
     pause_offer_action: "Pausar em vez disso",
     pause_offer_scheduled_toast: "Sua pausa está agendada. A cobrança é retomada em {{date}}.",
     pause_offer_failed: "Não foi possível pausar seu plano. Tente novamente.",
+    save_offer_title: "Um preço menor",
+    save_offer_description: "Você pode manter seu plano e pagar menos por um tempo.",
+    save_offer_body: "Mantenha o {{plan}} com {{percent}}% de desconto nos próximos {{count}} pagamentos mensais. Seus e-mails, endereços e configurações continuam como estão.",
+    save_offer_body_one: "Mantenha o {{plan}} com {{percent}}% de desconto no próximo pagamento mensal. Seus e-mails, endereços e configurações continuam como estão.",
+    save_offer_action: "Manter meu plano com {{percent}}% de desconto",
+    save_offer_hint: "Quando o desconto terminar, seu plano é renovado pelo preço normal. Esta oferta está disponível uma vez por conta.",
+    save_offer_applied_toast: "Seu desconto está ativo. Você paga {{percent}}% a menos nos próximos {{count}} pagamentos mensais.",
+    save_offer_applied_toast_one: "Seu desconto está ativo. Você paga {{percent}}% a menos no próximo pagamento mensal.",
+    save_offer_failed: "Não foi possível aplicar o desconto. Tente novamente.",
     pause_cancel_note: "Seu plano está pausado, então o cancelamento vale imediatamente e a cobrança não é retomada.",
     pause_scheduled_title: "Pausa agendada",
     pause_scheduled_body: "Seu plano será pausado em {{start}} e a cobrança será retomada em {{end}}. Até lá, nada muda.",
@@ -6710,6 +6710,8 @@ export const pt_br = {
     offer_modal_dismiss: "Agora não",
     offer_modal_fine_print:
       "O código {{code}} é aplicado no pagamento. Um uso por conta.",
+    offer_modal_first_year_note:
+      "Cobrança anual. Você paga {{first}} pelo primeiro ano. Quando o desconto terminar, seu plano será renovado por {{price}} por ano até você cancelar.",
     offer_modal_price_note: "O desconto é aplicado no pagamento.",
     offer_modal_subtitle: "Mude para o {{plan}} por um preço menor.",
     offer_modal_title: "Economize {{percent}}% no seu plano",
@@ -7818,6 +7820,28 @@ export const pt_br = {
       "Seu banco não aceita este pagamento. Muitos cartões pré-pagos não podem ser usados em uma assinatura. Tente um cartão de débito ou crédito, ou pague com cripto abaixo.",
     card_declined_contact_bank:
       "Seu banco recusou o pagamento sem informar o motivo. Entre em contato com seu banco ou pague com cripto abaixo.",
+    checkout_decline_insufficient_funds:
+      "Seu banco recusou o pagamento porque a conta não tem saldo suficiente. Nada foi cobrado. Tente outro cartão ou forma de pagamento.",
+    checkout_decline_expired_card:
+      "Este cartão está vencido. Nada foi cobrado. Insira um cartão válido ou escolha outra forma de pagamento.",
+    checkout_decline_card_details:
+      "Alguns dados do cartão não conferem com os do seu banco. Confira o número, a validade, o código de segurança e o CEP e tente novamente.",
+    checkout_decline_card_not_supported:
+      "Seu banco não permite este cartão em assinaturas, e muitos cartões pré-pagos não são aceitos. Nada foi cobrado. Tente um cartão de débito ou crédito, ou outra forma de pagamento.",
+    checkout_decline_contact_bank:
+      "Seu banco recusou o pagamento. Nada foi cobrado. Tente outro cartão ou forma de pagamento, ou peça ao seu banco para liberar o pagamento e tente novamente.",
+    checkout_decline_try_again:
+      "Seu banco não conseguiu processar o pagamento agora. Nada foi cobrado. Aguarde um momento e tente novamente.",
+    checkout_decline_switch_card:
+      "Pagar com cartão",
+    checkout_decline_switch_wallet:
+      "Pagar com Apple Pay ou Google Pay",
+    checkout_decline_switch_cashapp:
+      "Pagar com Cash App",
+    checkout_decline_switch_crypto:
+      "Pagar com cripto",
+    checkout_too_many_attempts:
+      "Seu banco recusou várias tentativas, então os pagamentos estão pausados neste checkout. Nada foi cobrado. Feche o checkout e tente mais tarde, ou pague com cripto.",
     crypto_pay_button: "Pagar com cripto",
     crypto_summary_plan: "Plano",
     crypto_summary_addon: "Complemento",

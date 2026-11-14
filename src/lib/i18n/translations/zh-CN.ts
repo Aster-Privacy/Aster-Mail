@@ -6017,15 +6017,8 @@ export const zh_CN = {
     cancel_reason_placeholder_privacy_trust: "是什么引起了这个顾虑？",
     cancel_reason_placeholder_just_testing: "您想了解什么？",
     cancel_reason_placeholder_other: "是什么让您决定取消？",
-    cancel_reason_detail_required: "写一句简短的说明，我们才能据此改进。",
     cancel_not_cancellable: "此订阅无法在应用内取消。请联系支持团队取消。",
     cancel_failed: "您的套餐未取消，账单也没有变化，可以再试一次。",
-    cancel_early_title: "是不是出了什么问题？",
-    cancel_early_description: "您在最近几天刚订阅，可能是遇到了什么问题。",
-    cancel_early_body:
-      "取消后，套餐会保留到本计费周期结束，您现在也可以继续操作。如果有功能没有按预期工作，帮助中心列出了常见原因和联系团队的方式。",
-    cancel_early_help: "打开帮助中心",
-    cancel_early_continue: "继续取消",
     cancel_reason_continue: "继续",
     cancel_impact_title: "取消后会有哪些变化",
     cancel_impact_description: "您的方案在 {{date}} 前仍然有效。之后：",
@@ -6069,6 +6062,13 @@ export const zh_CN = {
     pause_offer_action: "改为暂停",
     pause_offer_scheduled_toast: "已安排暂停。将于 {{date}} 恢复计费。",
     pause_offer_failed: "无法暂停您的套餐。请重试。",
+    save_offer_title: "改为享受更低价格",
+    save_offer_description: "您可以保留当前方案，并在一段时间内少付一些。",
+    save_offer_body: "保留 {{plan}}，接下来 {{count}} 次月付享受 {{percent}}% 折扣。您的邮件、地址和设置都保持不变。",
+    save_offer_action: "以 {{percent}}% 折扣保留方案",
+    save_offer_hint: "折扣结束后，方案将按常规价格续订。每个账户只能使用一次此优惠。",
+    save_offer_applied_toast: "折扣已生效。接下来 {{count}} 次月付将减少 {{percent}}%。",
+    save_offer_failed: "无法应用折扣。请重试。",
     pause_cancel_note: "您的套餐已暂停，因此取消会立即生效，且不会恢复计费。",
     pause_scheduled_title: "已安排暂停",
     pause_scheduled_body: "您的套餐将于 {{start}} 暂停，并于 {{end}} 恢复计费。在此之前一切照旧。",
@@ -6140,6 +6140,8 @@ export const zh_CN = {
     offer_modal_badge: "{{percent}}% 折扣",
     offer_modal_dismiss: "暂不",
     offer_modal_fine_print: "优惠码 {{code}} 在结账时生效，每个账户限用一次。",
+    offer_modal_first_year_note:
+      "按年计费。首年费用为 {{first}}。折扣结束后，您的套餐将以每年 {{price}} 自动续订，直至您取消。",
     offer_modal_price_note: "折扣在结账时生效。",
     offer_modal_subtitle: "以更低的价格升级到 {{plan}}。",
     offer_modal_title: "订阅可省 {{percent}}%",
@@ -7311,6 +7313,28 @@ export const zh_CN = {
       "银行不支持这笔支付。许多预付卡无法用于订阅。请改用借记卡或信用卡，或在下方使用加密货币支付。",
     card_declined_contact_bank:
       "银行拒绝了这笔支付，且未说明原因。请联系银行，或在下方使用加密货币支付。",
+    checkout_decline_insufficient_funds:
+      "由于账户余额不足，你的银行拒绝了这笔付款。未产生任何扣款。请尝试其他银行卡或付款方式。",
+    checkout_decline_expired_card:
+      "此卡已过期。未产生任何扣款。请输入有效的银行卡，或选择其他付款方式。",
+    checkout_decline_card_details:
+      "部分银行卡信息与银行记录不符。请检查卡号、有效期、安全码和邮政编码，然后重试。",
+    checkout_decline_card_not_supported:
+      "你的银行不允许此卡用于订阅付款，许多预付卡也不受支持。未产生任何扣款。请尝试借记卡或信用卡，或选择其他付款方式。",
+    checkout_decline_contact_bank:
+      "你的银行拒绝了这笔付款。未产生任何扣款。请尝试其他银行卡或付款方式，或请银行批准此付款后重试。",
+    checkout_decline_try_again:
+      "你的银行目前无法处理这笔付款。未产生任何扣款。请稍候片刻后重试。",
+    checkout_decline_switch_card:
+      "改用银行卡付款",
+    checkout_decline_switch_wallet:
+      "改用 Apple Pay 或 Google Pay 付款",
+    checkout_decline_switch_cashapp:
+      "改用 Cash App 付款",
+    checkout_decline_switch_crypto:
+      "改用加密货币付款",
+    checkout_too_many_attempts:
+      "你的银行拒绝了多次尝试，因此本次结账已暂停付款。未产生任何扣款。请关闭结账稍后重试，或使用加密货币付款。",
     crypto_pay_button: "用加密货币支付",
     crypto_summary_plan: "套餐",
     crypto_summary_addon: "附加项",

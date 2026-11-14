@@ -6646,19 +6646,10 @@ export const es = {
     cancel_reason_placeholder_privacy_trust: "¿Qué te generó esa preocupación?",
     cancel_reason_placeholder_just_testing: "¿Qué querías averiguar?",
     cancel_reason_placeholder_other: "¿Qué te ha llevado a cancelar?",
-    cancel_reason_detail_required:
-      "Escribe una respuesta breve para que podamos actuar.",
     cancel_not_cancellable:
       "Esta suscripción no se puede cancelar en la app. Contacta con el equipo de soporte para cancelarla.",
     cancel_failed:
       "Tu plan no se ha cancelado. Tu facturación no ha cambiado, así que puedes volver a intentarlo.",
-    cancel_early_title: "¿Algo salió mal?",
-    cancel_early_description:
-      "Te suscribiste hace pocos días, así que puede haber un problema detrás.",
-    cancel_early_body:
-      "Al cancelar, tu plan sigue activo hasta el final del periodo de facturación y puedes continuar ahora. Si algo no funcionó como esperabas, el centro de ayuda explica las causas más comunes y cómo contactar con el equipo.",
-    cancel_early_help: "Abrir el centro de ayuda",
-    cancel_early_continue: "Continuar con la cancelación",
     cancel_reason_continue: "Continuar",
     cancel_impact_title: "Qué cambia si cancelas",
     cancel_impact_description:
@@ -6720,6 +6711,15 @@ export const es = {
     pause_offer_action: "Pausar en su lugar",
     pause_offer_scheduled_toast: "Tu pausa está programada. La facturación se reanuda el {{date}}.",
     pause_offer_failed: "No pudimos pausar tu plan. Inténtalo de nuevo.",
+    save_offer_title: "Un precio más bajo",
+    save_offer_description: "Puedes mantener tu plan y pagar menos durante un tiempo.",
+    save_offer_body: "Mantén {{plan}} con un {{percent}} % de descuento en los próximos {{count}} pagos mensuales. Tu correo, tus direcciones y tu configuración se quedan como están.",
+    save_offer_body_one: "Mantén {{plan}} con un {{percent}} % de descuento en tu próximo pago mensual. Tu correo, tus direcciones y tu configuración se quedan como están.",
+    save_offer_action: "Mantener mi plan con un {{percent}} % de descuento",
+    save_offer_hint: "Cuando termine el descuento, tu plan se renueva a su precio normal. Esta oferta está disponible una vez por cuenta.",
+    save_offer_applied_toast: "Tu descuento está activo. Pagas un {{percent}} % menos en los próximos {{count}} pagos mensuales.",
+    save_offer_applied_toast_one: "Tu descuento está activo. Pagas un {{percent}} % menos en tu próximo pago mensual.",
+    save_offer_failed: "No se pudo aplicar el descuento. Inténtalo de nuevo.",
     pause_cancel_note: "Tu plan está en pausa, así que la cancelación se aplica de inmediato y la facturación no se reanuda.",
     pause_scheduled_title: "Pausa programada",
     pause_scheduled_body: "Tu plan se pausa el {{start}} y la facturación se reanuda el {{end}}. Hasta entonces, no cambia nada.",
@@ -6793,6 +6793,8 @@ export const es = {
     offer_modal_dismiss: "Ahora no",
     offer_modal_fine_print:
       "El código {{code}} se aplica al pagar. Un uso por cuenta.",
+    offer_modal_first_year_note:
+      "Facturación anual. Pagas {{first}} por tu primer año. Cuando termine el descuento, tu plan se renueva por {{price}} al año hasta que lo canceles.",
     offer_modal_price_note: "El descuento se aplica al pagar.",
     offer_modal_subtitle: "Pasa a {{plan}} a un precio más bajo.",
     offer_modal_title: "Ahorra un {{percent}} % en tu plan",
@@ -7908,6 +7910,28 @@ export const es = {
       "Tu banco no admite este pago. Muchas tarjetas prepago no sirven para una suscripción. Prueba con una tarjeta de débito o crédito, o paga con criptomonedas más abajo.",
     card_declined_contact_bank:
       "Tu banco rechazó el pago sin decirnos el motivo. Ponte en contacto con tu banco o paga con criptomonedas más abajo.",
+    checkout_decline_insufficient_funds:
+      "Tu banco rechazó el pago porque la cuenta no tiene fondos suficientes. No se realizó ningún cargo. Prueba con otra tarjeta u otro método de pago.",
+    checkout_decline_expired_card:
+      "Esta tarjeta ha caducado. No se realizó ningún cargo. Introduce una tarjeta vigente o elige otro método de pago.",
+    checkout_decline_card_details:
+      "Algunos datos de la tarjeta no coinciden con los de tu banco. Revisa el número, la fecha de caducidad, el código de seguridad y el código postal, y vuelve a intentarlo.",
+    checkout_decline_card_not_supported:
+      "Tu banco no permite usar esta tarjeta para suscripciones, y muchas tarjetas prepago no son compatibles. No se realizó ningún cargo. Prueba con una tarjeta de débito o crédito, o elige otro método de pago.",
+    checkout_decline_contact_bank:
+      "Tu banco rechazó el pago. No se realizó ningún cargo. Prueba con otra tarjeta u otro método de pago, o pide a tu banco que apruebe el pago y vuelve a intentarlo.",
+    checkout_decline_try_again:
+      "Tu banco no pudo procesar el pago en este momento. No se realizó ningún cargo. Espera un momento y vuelve a intentarlo.",
+    checkout_decline_switch_card:
+      "Pagar con tarjeta",
+    checkout_decline_switch_wallet:
+      "Pagar con Apple Pay o Google Pay",
+    checkout_decline_switch_cashapp:
+      "Pagar con Cash App",
+    checkout_decline_switch_crypto:
+      "Pagar con criptomonedas",
+    checkout_too_many_attempts:
+      "Tu banco rechazó varios intentos, así que los pagos están en pausa en este proceso de pago. No se realizó ningún cargo. Cierra el pago y vuelve a intentarlo más tarde, o paga con criptomonedas.",
     crypto_pay_button: "Pagar con cripto",
     crypto_pay_now: "Pagar ahora con cripto",
     crypto_renew_link: "Renovar",

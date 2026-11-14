@@ -6679,19 +6679,10 @@ export const de = {
     cancel_reason_placeholder_just_testing: "Was wollten Sie herausfinden?",
     cancel_reason_placeholder_other:
       "Warum haben Sie sich für die Kündigung entschieden?",
-    cancel_reason_detail_required:
-      "Schreiben Sie kurz etwas dazu, damit wir daran arbeiten können.",
     cancel_not_cancellable:
       "Dieses Abo lässt sich nicht in der App kündigen. Wenden Sie sich an den Support.",
     cancel_failed:
       "Ihr Tarif wurde nicht gekündigt. An Ihrer Abrechnung ändert sich nichts, Sie können es erneut versuchen.",
-    cancel_early_title: "Ist etwas schiefgelaufen?",
-    cancel_early_description:
-      "Sie haben in den letzten Tagen abonniert, daher steckt vielleicht ein Problem dahinter.",
-    cancel_early_body:
-      "Bei einer Kündigung bleibt Ihr Tarif bis zum Ende des Abrechnungszeitraums aktiv, und Sie können jetzt fortfahren. Wenn etwas nicht wie erwartet funktioniert hat, beschreibt das Hilfecenter die häufigsten Ursachen und den Weg zum Team.",
-    cancel_early_help: "Hilfecenter öffnen",
-    cancel_early_continue: "Weiter zur Kündigung",
     cancel_reason_continue: "Weiter",
     cancel_impact_title: "Was sich bei einer Kündigung ändert",
     cancel_impact_description: "Ihr Tarif bleibt bis {{date}} aktiv. Danach:",
@@ -6754,6 +6745,15 @@ export const de = {
     pause_offer_action: "Stattdessen pausieren",
     pause_offer_scheduled_toast: "Ihre Pause ist geplant. Die Abrechnung wird am {{date}} fortgesetzt.",
     pause_offer_failed: "Ihr Tarif konnte nicht pausiert werden. Versuchen Sie es erneut.",
+    save_offer_title: "Stattdessen ein niedrigerer Preis",
+    save_offer_description: "Sie können Ihren Tarif behalten und eine Zeit lang weniger zahlen.",
+    save_offer_body: "Behalten Sie {{plan}} mit {{percent}} % Rabatt für die nächsten {{count}} Monatszahlungen. Ihre E-Mails, Adressen und Einstellungen bleiben unverändert.",
+    save_offer_body_one: "Behalten Sie {{plan}} mit {{percent}} % Rabatt für Ihre nächste Monatszahlung. Ihre E-Mails, Adressen und Einstellungen bleiben unverändert.",
+    save_offer_action: "Tarif mit {{percent}} % Rabatt behalten",
+    save_offer_hint: "Nach Ablauf des Rabatts verlängert sich Ihr Tarif zum regulären Preis. Dieses Angebot gilt einmal pro Konto.",
+    save_offer_applied_toast: "Ihr Rabatt ist aktiv. Sie zahlen für die nächsten {{count}} Monatszahlungen {{percent}} % weniger.",
+    save_offer_applied_toast_one: "Ihr Rabatt ist aktiv. Sie zahlen für Ihre nächste Monatszahlung {{percent}} % weniger.",
+    save_offer_failed: "Der Rabatt konnte nicht angewendet werden. Versuchen Sie es erneut.",
     pause_cancel_note: "Ihr Tarif ist pausiert. Die Kündigung gilt daher sofort, und die Abrechnung wird nicht fortgesetzt.",
     pause_scheduled_title: "Pause geplant",
     pause_scheduled_body: "Ihr Tarif wird am {{start}} pausiert, und die Abrechnung wird am {{end}} fortgesetzt. Bis dahin ändert sich nichts.",
@@ -7826,6 +7826,28 @@ export const de = {
       "Ihre Bank unterstützt diese Zahlung nicht. Viele Prepaid-Karten lassen sich nicht für ein Abo verwenden. Versuchen Sie eine Debit- oder Kreditkarte oder bezahlen Sie unten mit Krypto.",
     card_declined_contact_bank:
       "Ihre Bank hat die Zahlung ohne Angabe eines Grundes abgelehnt. Wenden Sie sich an Ihre Bank oder bezahlen Sie unten mit Krypto.",
+    checkout_decline_insufficient_funds:
+      "Ihre Bank hat die Zahlung abgelehnt, weil das Konto nicht gedeckt ist. Es wurde nichts abgebucht. Verwenden Sie eine andere Karte oder Zahlungsmethode.",
+    checkout_decline_expired_card:
+      "Diese Karte ist abgelaufen. Es wurde nichts abgebucht. Geben Sie eine gültige Karte ein oder wählen Sie eine andere Zahlungsmethode.",
+    checkout_decline_card_details:
+      "Einige Kartendaten stimmen nicht mit den Angaben Ihrer Bank überein. Prüfen Sie Kartennummer, Ablaufdatum, Sicherheitscode und Postleitzahl und versuchen Sie es erneut.",
+    checkout_decline_card_not_supported:
+      "Ihre Bank erlaubt diese Karte nicht für Abonnements, und viele Prepaidkarten werden nicht unterstützt. Es wurde nichts abgebucht. Verwenden Sie eine Debit- oder Kreditkarte oder eine andere Zahlungsmethode.",
+    checkout_decline_contact_bank:
+      "Ihre Bank hat die Zahlung abgelehnt. Es wurde nichts abgebucht. Verwenden Sie eine andere Karte oder Zahlungsmethode, oder bitten Sie Ihre Bank, die Zahlung freizugeben, und versuchen Sie es erneut.",
+    checkout_decline_try_again:
+      "Ihre Bank konnte die Zahlung gerade nicht verarbeiten. Es wurde nichts abgebucht. Warten Sie einen Moment und versuchen Sie es dann erneut.",
+    checkout_decline_switch_card:
+      "Stattdessen mit Karte bezahlen",
+    checkout_decline_switch_wallet:
+      "Stattdessen mit Apple Pay oder Google Pay bezahlen",
+    checkout_decline_switch_cashapp:
+      "Stattdessen mit Cash App bezahlen",
+    checkout_decline_switch_crypto:
+      "Stattdessen mit Krypto bezahlen",
+    checkout_too_many_attempts:
+      "Ihre Bank hat mehrere Versuche abgelehnt, daher sind Zahlungen für diesen Checkout pausiert. Es wurde nichts abgebucht. Schließen Sie den Checkout und versuchen Sie es später erneut, oder bezahlen Sie mit Krypto.",
     crypto_pay_button: "Mit Krypto bezahlen",
     crypto_pay_now: "Mit Krypto bezahlen",
     crypto_renew_link: "Mit Krypto verlängern",
@@ -9014,6 +9036,8 @@ export const de = {
     offer_modal_dismiss: "Nicht jetzt",
     offer_modal_fine_print:
       "Der Code {{code}} gilt an der Kasse. Eine Verwendung pro Konto.",
+    offer_modal_first_year_note:
+      "Jährliche Abrechnung. Für das erste Jahr zahlen Sie {{first}}. Nach Ablauf des Rabatts verlängert sich Ihr Tarif für {{price}} pro Jahr, bis Sie kündigen.",
     offer_modal_price_note: "Der Rabatt gilt an der Kasse.",
     offer_modal_subtitle: "Wechseln Sie günstiger zu {{plan}}.",
     offer_modal_title: "Sparen Sie {{percent}} % bei Ihrem Tarif",

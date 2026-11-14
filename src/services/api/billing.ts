@@ -874,6 +874,29 @@ export async function pause_subscription(
   });
 }
 
+export interface SaveOfferStatus {
+  eligible: boolean;
+  ineligible_reason?: string;
+  percent_off?: number;
+  months?: number;
+}
+
+export interface SaveOfferAccepted {
+  applied: boolean;
+  percent_off: number;
+  months: number;
+}
+
+export async function get_save_offer() {
+  return api_client.get<SaveOfferStatus>("/payments/v1/save-offer");
+}
+
+export async function accept_save_offer(cancel_reason?: string) {
+  return api_client.post<SaveOfferAccepted>("/payments/v1/save-offer/accept", {
+    cancel_reason,
+  });
+}
+
 export async function resume_paused_subscription() {
   return api_client.post<ResumePauseResponse>("/payments/v1/pause/resume", {});
 }

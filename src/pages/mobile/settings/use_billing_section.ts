@@ -22,6 +22,7 @@ import type {
   SubscriptionResponse,
   BillingHistoryItem,
   AvailablePlan,
+  SaveOfferStatus,
 } from "@/services/api/billing";
 import type { plan_term_option } from "@/components/settings/billing/plan_payment_method_modal";
 
@@ -46,7 +47,6 @@ import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import { type CancelStep } from "@/components/settings/billing/cancel_impact_step";
-import { is_early_cancel } from "@/components/settings/billing/cancel_early_step";
 import {
   clear_cancel_password_cache,
   get_cancel_password_hash,
@@ -81,6 +81,8 @@ import {
   get_cancel_impact,
   get_pause_status,
   pause_subscription,
+  get_save_offer,
+  accept_save_offer,
   format_date,
   open_payment_url,
   remember_addon_target,
@@ -123,7 +125,6 @@ export function use_billing_section() {
   );
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
-  const subscription_started_at = subscription?.current_period_start ?? null;
   const [is_verifying_password, set_is_verifying_password] = useState(false);
   const [cancel_totp_code, set_cancel_totp_code] = useState("");
   const [cancel_totp_required, set_cancel_totp_required] = useState(false);
@@ -132,6 +133,8 @@ export function use_billing_section() {
   const [is_impact_loading, set_is_impact_loading] = useState(false);
   const [pause_status, set_pause_status] =
     useState<PauseStatusResponse | null>(null);
+  const [save_offer_status, set_save_offer_status] =
+    useState<SaveOfferStatus | null>(null);
 
   useEffect(() => {
     if (!show_cancel_dialog) return;
@@ -140,16 +143,15 @@ export function use_billing_section() {
     set_show_cancel_password(false);
     set_cancel_reason(null);
     set_cancel_reason_text("");
-    set_cancel_step(
-      is_early_cancel(subscription_started_at) ? "early" : "reason",
-    );
+    set_cancel_step("reason");
     set_cancel_totp_code("");
     set_cancel_totp_required(false);
     set_cancel_impact(null);
     set_pause_status(null);
+    set_save_offer_status(null);
     set_is_verifying_password(false);
     clear_cancel_password_cache();
-  }, [show_cancel_dialog, subscription_started_at]);
+  }, [show_cancel_dialog]);
 
   useEffect(() => {
     if (!show_cancel_dialog) return;
@@ -160,6 +162,25 @@ export function use_billing_section() {
         const response = await get_pause_status();
 
         if (!cancelled && response.data) set_pause_status(response.data);
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [show_cancel_dialog]);
+
+  useEffect(() => {
+    if (!show_cancel_dialog) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const response = await get_save_offer();
+
+        if (!cancelled && response.data) set_save_offer_status(response.data);
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
       }
@@ -211,7 +232,7 @@ export function use_billing_section() {
     set_is_verifying_password(false);
 
     if (outcome === "verified") {
-      set_cancel_step("confirm");
+      handle_cancel();
 
       return;
     }
@@ -332,7 +353,7 @@ export function use_billing_section() {
     useState<UserActiveAddon | null>(null);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
-  >("monthly");
+  >("yearly");
   const [referral_load_failed, set_referral_load_failed] = useState(false);
   const [plans_load_failed, set_plans_load_failed] = useState(false);
   const [addons_load_failed, set_addons_load_failed] = useState(false);
@@ -763,6 +784,49 @@ export function use_billing_section() {
     } finally {
       set_is_action_loading(false);
       set_addon_to_cancel(null);
+    }
+  };
+
+  const refresh_save_offer = async () => {
+    try {
+      request_cache.invalidate("/payments/v1/save-offer");
+      const status = await get_save_offer();
+
+      set_save_offer_status(status.data ?? null);
+    } catch {
+      set_save_offer_status(null);
+    }
+  };
+
+  const handle_accept_save_offer = async () => {
+    if (is_action_loading) return;
+    set_is_action_loading(true);
+    try {
+      const response = await accept_save_offer(cancel_reason ?? undefined);
+
+      if (response.data?.applied) {
+        show_toast(
+          t("settings.save_offer_applied_toast", {
+            percent: response.data.percent_off,
+            count: response.data.months,
+          }),
+          "success",
+          TOAST_DURATION_BILLING_MS,
+        );
+        set_show_cancel_dialog(false);
+        request_cache.invalidate("/payments/v1");
+        await load_data();
+
+        return;
+      }
+      show_toast(t("settings.save_offer_failed"), "error");
+      await refresh_save_offer();
+    } catch (error) {
+      if (import.meta.env.DEV) console.error(error);
+      show_toast(t("settings.save_offer_failed"), "error");
+      await refresh_save_offer();
+    } finally {
+      set_is_action_loading(false);
     }
   };
 
@@ -1346,6 +1410,8 @@ export function use_billing_section() {
     cancel_effective_date,
     pause_status,
     handle_pause,
+    save_offer_status,
+    handle_accept_save_offer,
     handle_password_continue,
     selected_storage,
     set_selected_storage,

@@ -138,6 +138,14 @@ export function BillingSection({
     is_crypto_sub,
   } = state;
   const [show_plans, set_show_plans] = useState(false);
+  const max_yearly_save = Math.max(
+    0,
+    Math.min(
+      ...PLAN_TIERS.filter((tier) => tier.monthly_cents > 0).map((tier) =>
+        Math.floor((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100),
+      ),
+    ),
+  );
   const is_lifetime = !!is_paid_plan && !!subscription?.is_lifetime;
   const { pause_status, reload: reload_pause_status } = use_pause_status(
     pause_refresh_key(subscription),
@@ -281,6 +289,21 @@ export function BillingSection({
                           onClick={() => set_billing_period("yearly")}
                         >
                           {t("settings.billing_yearly")}
+                          {max_yearly_save > 0 && (
+                            <span
+                              className="ms-1.5 text-[11.5px] font-semibold"
+                              style={{
+                                color:
+                                  billing_period === "yearly"
+                                    ? "inherit"
+                                    : "var(--color-success)",
+                              }}
+                            >
+                              {t("settings.billing_save_percent", {
+                                percent: max_yearly_save,
+                              })}
+                            </span>
+                          )}
                         </button>
                       </div>
 

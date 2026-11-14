@@ -6624,19 +6624,10 @@ export const ja = {
     cancel_reason_placeholder_privacy_trust: "何が不安につながりましたか。",
     cancel_reason_placeholder_just_testing: "何を確かめたかったですか。",
     cancel_reason_placeholder_other: "解約を決めた理由を教えてください。",
-    cancel_reason_detail_required:
-      "改善につなげられるよう、ひとことご記入ください。",
     cancel_not_cancellable:
       "このサブスクリプションはアプリから解約できません。解約はサポートにお問い合わせください。",
     cancel_failed:
       "プランは解約されていません。請求内容は変わっていないので、もう一度お試しください。",
-    cancel_early_title: "うまくいかないことがありましたか。",
-    cancel_early_description:
-      "ここ数日でご契約いただいたばかりのため、何か問題があったのかもしれません。",
-    cancel_early_body:
-      "解約しても請求期間の終わりまではプランをご利用いただけます。このまま進めることもできます。想定どおりに動作しなかった場合は、ヘルプセンターに主な原因とお問い合わせ方法を掲載しています。",
-    cancel_early_help: "ヘルプセンターを開く",
-    cancel_early_continue: "解約に進む",
     cancel_reason_continue: "次へ",
     cancel_impact_title: "解約するとどうなるか",
     cancel_impact_description: "プランは {{date}} まで有効です。その後:",
@@ -6688,6 +6679,13 @@ export const ja = {
     pause_offer_action: "代わりに一時停止",
     pause_offer_scheduled_toast: "一時停止を予約しました。{{date}} に請求が再開されます。",
     pause_offer_failed: "プランを一時停止できませんでした。もう一度お試しください。",
+    save_offer_title: "代わりに割引価格で",
+    save_offer_description: "プランをそのまま使い続けながら、しばらくの間お支払いを減らせます。",
+    save_offer_body: "今後 {{count}} 回の月額支払いが {{percent}}% オフで {{plan}} を継続できます。メール、アドレス、設定はそのまま残ります。",
+    save_offer_action: "{{percent}}% オフでプランを継続",
+    save_offer_hint: "割引期間が終わると、プランは通常価格で更新されます。この特典は 1 アカウントにつき 1 回限りです。",
+    save_offer_applied_toast: "割引が適用されました。今後 {{count}} 回の月額支払いが {{percent}}% 安くなります。",
+    save_offer_failed: "割引を適用できませんでした。もう一度お試しください。",
     pause_cancel_note: "プランは一時停止中のため、解約はすぐに反映され、請求は再開されません。",
     pause_scheduled_title: "一時停止を予約済み",
     pause_scheduled_body: "プランは {{start}} に一時停止し、{{end}} に請求が再開されます。それまでは何も変わりません。",
@@ -6767,6 +6765,8 @@ export const ja = {
     offer_modal_dismiss: "後で",
     offer_modal_fine_print:
       "コード {{code}} は支払い時に適用されます。1 アカウントにつき 1 回まで。",
+    offer_modal_first_year_note:
+      "年額請求です。初年度は {{first}} です。割引期間の終了後は、解約するまで年額 {{price}} で自動更新されます。",
     offer_modal_price_note: "割引は支払い時に適用されます。",
     offer_modal_subtitle: "{{plan}} をより安く利用できます。",
     offer_modal_title: "プランが {{percent}}% お得",
@@ -7725,6 +7725,28 @@ export const ja = {
       "銀行がこの決済に対応していません。プリペイドカードの多くはサブスクリプションに使えません。デビットカードまたはクレジットカードを試すか、下の暗号資産でお支払いください。",
     card_declined_contact_bank:
       "銀行が理由を示さずに決済を拒否しました。銀行にお問い合わせいただくか、下の暗号資産でお支払いください。",
+    checkout_decline_insufficient_funds:
+      "残高不足のため、銀行が支払いを拒否しました。請求は発生していません。別のカードまたは支払い方法をお試しください。",
+    checkout_decline_expired_card:
+      "このカードは有効期限が切れています。請求は発生していません。有効なカードを入力するか、別の支払い方法を選択してください。",
+    checkout_decline_card_details:
+      "カード情報の一部が銀行の登録内容と一致しません。カード番号、有効期限、セキュリティコード、郵便番号を確認して、もう一度お試しください。",
+    checkout_decline_card_not_supported:
+      "このカードは銀行によりサブスクリプションでの利用が許可されていません。多くのプリペイドカードも対象外です。請求は発生していません。デビットカードかクレジットカード、または別の支払い方法をお試しください。",
+    checkout_decline_contact_bank:
+      "銀行が支払いを拒否しました。請求は発生していません。別のカードまたは支払い方法を使うか、銀行に支払いの承認を依頼してから、もう一度お試しください。",
+    checkout_decline_try_again:
+      "銀行は現在この支払いを処理できません。請求は発生していません。しばらく待ってから、もう一度お試しください。",
+    checkout_decline_switch_card:
+      "カードで支払う",
+    checkout_decline_switch_wallet:
+      "Apple Pay または Google Pay で支払う",
+    checkout_decline_switch_cashapp:
+      "Cash App で支払う",
+    checkout_decline_switch_crypto:
+      "暗号資産で支払う",
+    checkout_too_many_attempts:
+      "銀行が複数回の支払いを拒否したため、このチェックアウトでの支払いを一時停止しました。請求は発生していません。チェックアウトを閉じて後でもう一度お試しいただくか、暗号資産で支払ってください。",
     crypto_pay_button: "仮想通貨で支払う",
     crypto_pay_now: "仮想通貨で支払う",
     crypto_renew_link: "仮想通貨で更新",

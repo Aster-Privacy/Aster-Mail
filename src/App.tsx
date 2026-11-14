@@ -69,6 +69,7 @@ import { request_special_offer_checkout } from "@/stores/special_offer_store";
 import {
   AliasCapUpsellModalHost,
   SpecialOfferModalHost,
+  OfferModalHost,
   UpgradeModalHost,
 } from "@/components/upgrade/upgrade_modal_hosts";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
@@ -653,6 +654,7 @@ function App() {
       <ProfilePictureDialog />
       <ErrorBoundary fallback={null}>
         <SpecialOfferModalHost />
+        <OfferModalHost />
       </ErrorBoundary>
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />

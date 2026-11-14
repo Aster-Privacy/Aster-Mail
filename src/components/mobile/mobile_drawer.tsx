@@ -31,6 +31,7 @@ import {
 
 import { use_platform } from "@/hooks/use_platform";
 import { create_folder_error_message } from "@/lib/folder_error_message";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
@@ -331,7 +332,11 @@ export const MobileDrawer = memo(function MobileDrawer({
 
     set_is_creating_folder(false);
     if (!result.folder) {
-      show_toast(create_folder_error_message(result.code, t), "error");
+      if (result.code === "PLAN_LIMIT_EXCEEDED") {
+        show_plan_limit_upgrade({ resource: "folders" });
+      } else {
+        show_toast(create_folder_error_message(result.code, t), "error");
+      }
 
       return;
     }

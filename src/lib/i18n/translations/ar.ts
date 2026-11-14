@@ -6694,19 +6694,10 @@ export const ar = {
     cancel_reason_placeholder_privacy_trust: "ما الذي أثار هذا القلق؟",
     cancel_reason_placeholder_just_testing: "ما الذي كنت تأمل معرفته؟",
     cancel_reason_placeholder_other: "ما الذي دفعك إلى الإلغاء؟",
-    cancel_reason_detail_required:
-      "أضف إجابة قصيرة حتى نتمكن من التصرف بناءً عليها.",
     cancel_not_cancellable:
       "لا يمكن إلغاء هذا الاشتراك من التطبيق. تواصل مع الدعم لإلغائه.",
     cancel_failed:
       "لم يتم إلغاء خطتك، ولم يطرأ أي تغيير على فوترتك، لذا يمكنك المحاولة مرة أخرى.",
-    cancel_early_title: "هل حدث خطأ ما؟",
-    cancel_early_description:
-      "لقد اشتركت خلال الأيام القليلة الماضية، وربما كانت هناك مشكلة وراء ذلك.",
-    cancel_early_body:
-      "الإلغاء يبقي خطتك حتى نهاية فترة الفوترة، ويمكنك المتابعة الآن. وإذا لم يعمل شيء كما توقعت، فمركز المساعدة يشرح الأسباب الشائعة وطريقة التواصل مع الفريق.",
-    cancel_early_help: "افتح مركز المساعدة",
-    cancel_early_continue: "متابعة الإلغاء",
     cancel_reason_continue: "متابعة",
     cancel_impact_title: "ما الذي يتغير إذا ألغيت",
     cancel_impact_description: "تظل خطتك نشطة حتى {{date}}. بعد ذلك:",
@@ -6766,6 +6757,15 @@ export const ar = {
     pause_offer_action: "إيقاف مؤقت بدلاً من ذلك",
     pause_offer_scheduled_toast: "تمت جدولة الإيقاف المؤقت. تُستأنف الفوترة في {{date}}.",
     pause_offer_failed: "تعذّر إيقاف خطتك مؤقتًا. حاول مرة أخرى.",
+    save_offer_title: "سعر أقل بدلاً من الإلغاء",
+    save_offer_description: "يمكنك الاحتفاظ بخطتك ودفع مبلغ أقل لفترة.",
+    save_offer_body: "احتفظ بخطة {{plan}} بخصم {{percent}}% على الدفعات الشهرية الـ {{count}} القادمة. يبقى بريدك وعناوينك وإعداداتك كما هي.",
+    save_offer_body_one: "احتفظ بخطة {{plan}} بخصم {{percent}}% على دفعتك الشهرية القادمة. يبقى بريدك وعناوينك وإعداداتك كما هي.",
+    save_offer_action: "الاحتفاظ بخطتي بخصم {{percent}}%",
+    save_offer_hint: "بعد انتهاء الخصم، تتجدد خطتك بسعرها المعتاد. هذا العرض متاح مرة واحدة لكل حساب.",
+    save_offer_applied_toast: "تم تفعيل الخصم. تدفع أقل بنسبة {{percent}}% على الدفعات الشهرية الـ {{count}} القادمة.",
+    save_offer_applied_toast_one: "تم تفعيل الخصم. تدفع أقل بنسبة {{percent}}% على دفعتك الشهرية القادمة.",
+    save_offer_failed: "تعذر تطبيق الخصم. حاول مرة أخرى.",
     pause_cancel_note: "خطتك متوقفة مؤقتًا، لذا يسري الإلغاء فورًا ولن تُستأنف الفوترة.",
     pause_scheduled_title: "تمت جدولة الإيقاف المؤقت",
     pause_scheduled_body: "تتوقف خطتك مؤقتًا في {{start}} وتُستأنف الفوترة في {{end}}. لن يتغير شيء حتى ذلك الحين.",
@@ -6842,6 +6842,8 @@ export const ar = {
     offer_modal_dismiss: "ليس الآن",
     offer_modal_fine_print:
       "يُطبَّق الرمز {{code}} عند الدفع. استخدام واحد لكل حساب.",
+    offer_modal_first_year_note:
+      "تُدفع سنويًا. تدفع {{first}} عن السنة الأولى. عند انتهاء الخصم، تتجدد خطتك بسعر {{price}} سنويًا حتى تلغيها.",
     offer_modal_price_note: "يُطبَّق الخصم عند الدفع.",
     offer_modal_subtitle: "انتقل إلى {{plan}} بسعر أقل.",
     offer_modal_title: "وفّر {{percent}}٪ على خطتك",
@@ -7685,6 +7687,28 @@ export const ar = {
       "لا يدعم البنك هذه العملية. لا يمكن استخدام كثير من البطاقات المدفوعة مسبقًا للاشتراك. جرّب بطاقة خصم أو ائتمان، أو ادفع بالعملات المشفرة أدناه.",
     card_declined_contact_bank:
       "رفض البنك عملية الدفع دون ذكر السبب. تواصل مع البنك أو ادفع بالعملات المشفرة أدناه.",
+    checkout_decline_insufficient_funds:
+      "رفض البنك الدفع لأن رصيد الحساب غير كافٍ. لم يتم خصم أي مبلغ. جرّب بطاقة أو طريقة دفع أخرى.",
+    checkout_decline_expired_card:
+      "انتهت صلاحية هذه البطاقة. لم يتم خصم أي مبلغ. أدخل بطاقة سارية أو اختر طريقة دفع أخرى.",
+    checkout_decline_card_details:
+      "بعض بيانات البطاقة لا تطابق بيانات البنك. تحقق من رقم البطاقة وتاريخ انتهاء الصلاحية ورمز الأمان والرمز البريدي، ثم حاول مرة أخرى.",
+    checkout_decline_card_not_supported:
+      "لا يسمح البنك باستخدام هذه البطاقة في الاشتراكات، وكثير من البطاقات المدفوعة مسبقًا غير مدعوم. لم يتم خصم أي مبلغ. جرّب بطاقة خصم أو ائتمان، أو طريقة دفع أخرى.",
+    checkout_decline_contact_bank:
+      "رفض البنك الدفع. لم يتم خصم أي مبلغ. جرّب بطاقة أو طريقة دفع أخرى، أو اطلب من البنك الموافقة على الدفع ثم حاول مرة أخرى.",
+    checkout_decline_try_again:
+      "تعذّر على البنك معالجة الدفع الآن. لم يتم خصم أي مبلغ. انتظر لحظة ثم حاول مرة أخرى.",
+    checkout_decline_switch_card:
+      "ادفع ببطاقة بدلًا من ذلك",
+    checkout_decline_switch_wallet:
+      "ادفع عبر Apple Pay أو Google Pay بدلًا من ذلك",
+    checkout_decline_switch_cashapp:
+      "ادفع عبر Cash App بدلًا من ذلك",
+    checkout_decline_switch_crypto:
+      "ادفع بالعملات المشفرة بدلًا من ذلك",
+    checkout_too_many_attempts:
+      "رفض البنك عدة محاولات، لذا أُوقف الدفع مؤقتًا في هذه العملية. لم يتم خصم أي مبلغ. أغلق نافذة الدفع وحاول لاحقًا، أو ادفع بالعملات المشفرة.",
     crypto_pay_button: "الدفع بالعملة المشفرة",
     crypto_summary_plan: "الخطة",
     crypto_summary_addon: "الإضافة",
