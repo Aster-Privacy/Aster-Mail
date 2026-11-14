@@ -256,7 +256,7 @@ fn registration_is_deterministic_for_a_fixed_seed() {
     );
 }
 
-const VECTORS: &str = include_str!("../vectors/login_v3.txt");
+const VECTORS: &str = include_str!("../../vectors/login_v3.txt");
 
 fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
