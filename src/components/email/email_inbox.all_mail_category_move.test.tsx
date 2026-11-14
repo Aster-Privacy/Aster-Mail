@@ -140,9 +140,9 @@ vi.mock("@/components/email/use_email_inbox_state", async () => {
       const reading_pane_position = "right";
       const split_email_id = props.split_email_id ?? null;
       const is_split_view = !!split_email_id;
-      const is_full_view_mode = view_mode === "fullpage";
+      const is_full_view_mode = false;
       const show_full_email_viewer = is_full_view_mode && !!split_email_id;
-      const is_bottom_pane = reading_pane_position === "bottom";
+      const is_bottom_pane = false;
       const split_pane = use_split_pane({
         is_split_view,
         is_bottom_pane,
