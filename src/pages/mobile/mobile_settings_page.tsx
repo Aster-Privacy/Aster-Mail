@@ -103,6 +103,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_primary_identity } from "@/lib/primary_identity";
 import { use_referral_summary } from "@/hooks/use_referral_summary";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -159,6 +160,7 @@ function MobileSettingsPage() {
         })
       : null;
   const { user, logout, current_account_id } = use_auth();
+  const primary_identity = use_primary_identity(user?.email ?? "");
   const { stats } = use_mail_stats();
   const { preferences } = use_preferences();
   const { limits } = use_plan_limits();
@@ -490,7 +492,7 @@ function MobileSettingsPage() {
                       {user?.display_name ?? user?.username ?? ""}
                     </p>
                     <p className="truncate text-[13px] text-[var(--text-muted)]">
-                      {user?.email ?? ""}
+                      {primary_identity.email || (user?.email ?? "")}
                     </p>
                   </div>
                   <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />

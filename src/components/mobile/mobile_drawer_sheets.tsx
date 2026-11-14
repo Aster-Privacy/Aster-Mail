@@ -47,6 +47,7 @@ import {
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { use_resubscribe } from "@/hooks/use_resubscribe";
+import { use_primary_identity } from "@/lib/primary_identity";
 import { MobileAccountList } from "@/components/mobile/mobile_account_list";
 
 interface AccountMenuSheetProps {
@@ -72,6 +73,8 @@ export function AccountMenuSheet({
 }: AccountMenuSheetProps) {
   const { can_resubscribe, resubscribe } = use_resubscribe(is_open);
   const { t } = use_i18n();
+  const account_email = user?.email ?? "";
+  const primary_identity = use_primary_identity(account_email);
 
   return (
     <MobileBottomSheet
@@ -80,7 +83,7 @@ export function AccountMenuSheet({
       on_close={on_close}
     >
       <AccountMenuSheetView
-        email={user?.email ?? ""}
+        email={primary_identity.email || account_email}
         logo_src={mail_logo_url}
         name={user?.display_name ?? user?.username ?? ""}
         settings_label={t("settings.title")}
