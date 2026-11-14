@@ -628,7 +628,7 @@ describe("thread_imported_emails", () => {
 
     const run = await reimport_fresh();
 
-    await run();
+    await run({ relink_all: true });
 
     const root = thread_token_from_root(USER_ID, "<move@example.com>");
     const items = submitted();
