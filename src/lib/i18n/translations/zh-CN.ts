@@ -10110,7 +10110,7 @@ export const zh_CN = {
     auth_fail: "失败",
     auth_none: "无",
     auth_missing: "缺失",
-    category_primary: "收件箱",
+    category_primary: "主要",
     category_important: "重要",
     category_promotions: "促销",
     category_social: "社交",

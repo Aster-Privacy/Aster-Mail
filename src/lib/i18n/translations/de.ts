@@ -11418,7 +11418,7 @@ export const de = {
       "Diese Regel hat verschachtelte Bedingungen, die der visuelle Editor nicht anzeigen kann. Die Ausdrucksansicht ermöglicht die Bearbeitung.",
     category_forums: "Diskussionen",
     category_important: "Wichtig",
-    category_primary: "Posteingang",
+    category_primary: "Primär",
     category_promotions: "Angebote",
     category_social: "Soziale Netzwerke",
     category_updates: "Benachrichtigungen",

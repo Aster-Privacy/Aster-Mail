@@ -11439,7 +11439,7 @@ export const it = {
     auth_fail: "fallito",
     auth_none: "nessuno",
     auth_missing: "mancante",
-    category_primary: "Posta in arrivo",
+    category_primary: "Principale",
     category_important: "Importante",
     category_promotions: "Promozioni",
     category_social: "Social",

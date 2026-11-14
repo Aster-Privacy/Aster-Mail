@@ -11275,7 +11275,7 @@ export const es = {
       "Esta regla tiene condiciones anidadas que el editor visual no puede mostrar. La vista Expresión es donde se puede editar.",
     category_forums: "Debates",
     category_important: "Importante",
-    category_primary: "Bandeja de entrada",
+    category_primary: "Principal",
     category_promotions: "Descuentos",
     category_social: "Social",
     category_updates: "Notificaciones",

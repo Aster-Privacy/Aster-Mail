@@ -10912,7 +10912,7 @@ export const ko = {
     auth_fail: "실패",
     auth_none: "없음",
     auth_missing: "누락",
-    category_primary: "받은편지함",
+    category_primary: "기본",
     category_important: "중요",
     category_promotions: "할인",
     category_social: "소셜",

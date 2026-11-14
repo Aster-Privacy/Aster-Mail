@@ -11409,7 +11409,7 @@ export const fr = {
       "Cette règle a des conditions imbriquées que l'éditeur visuel ne peut pas afficher. La vue Expression permet de la modifier.",
     category_forums: "Discussions",
     category_important: "Important",
-    category_primary: "Boîte de réception",
+    category_primary: "Principal",
     category_promotions: "Bons plans",
     category_social: "Réseaux sociaux",
     category_updates: "Notifications",
