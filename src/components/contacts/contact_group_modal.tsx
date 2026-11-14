@@ -41,6 +41,7 @@ import {
   TAG_COLOR_PRESETS,
   tag_color_label_key,
 } from "@/components/ui/email_tag";
+import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
 import {
   use_contact_groups,
   MAX_CONTACT_GROUPS,
@@ -259,6 +260,15 @@ export function ContactGroupModal({
                   onClick={() => set_color(preset.hex)}
                 />
               ))}
+              <CustomColorSwatch
+                class_name="contact_group_swatch aspect-square w-full"
+                presets={TAG_COLOR_PRESETS.map((preset) => preset.hex)}
+                selected_style={(hex) =>
+                  ({ "--swatch-ring": hex }) as CSSProperties
+                }
+                value={color}
+                on_change={set_color}
+              />
             </div>
           </div>
 

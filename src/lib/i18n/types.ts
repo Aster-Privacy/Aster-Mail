@@ -1292,6 +1292,9 @@ export interface CommonTranslations {
   color_fuchsia: string;
   color_pink: string;
   color_rose: string;
+  color_custom: string;
+  color_brightness: string;
+  color_hex: string;
   tag_icon_tag: string;
   tag_icon_folder: string;
   tag_icon_star: string;

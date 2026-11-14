@@ -116,6 +116,7 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { compress_contact_avatar_file } from "@/utils/contact_avatar_image";
 import { format_full_datetime } from "@/utils/date_format";
+import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
 
 export function ContactDetailPanel({
   t,
@@ -433,6 +434,17 @@ export function ContactDetailPanel({
                   />
                 );
               })}
+              <CustomColorSwatch
+                align="end"
+                class_name="w-6 h-6"
+                presets={COLOR_SWATCHES.map((c) => c.value)}
+                selected_style={() => ({
+                  boxShadow:
+                    "0 0 0 2px var(--aster-floating-bg, var(--bg-primary)), 0 0 0 4px var(--text-primary)",
+                })}
+                value={banner}
+                on_change={handle_color_pick}
+              />
             </div>
           </div>
         )}

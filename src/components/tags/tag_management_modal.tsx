@@ -43,6 +43,8 @@ import {
   tag_color_label_key,
   type TagIconName,
 } from "@/components/ui/email_tag";
+import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
+import { fill_text_color } from "@/lib/color_wheel";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
 import {
@@ -53,6 +55,8 @@ import {
 } from "@/hooks/tag_tree";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
+
+const TAG_PRESET_HEXES = TAG_COLOR_PRESETS.map((preset) => preset.hex);
 
 const MAX_TAG_NAME_LENGTH = 100;
 
@@ -402,6 +406,15 @@ export function TagManagementModal({
                     onClick={() => set_new_color(color.hex)}
                   />
                 ))}
+                <CustomColorSwatch
+                  class_name="w-9 h-9"
+                  presets={TAG_PRESET_HEXES}
+                  selected_style={(hex) => ({
+                    boxShadow: `0 0 0 2px var(--modal-bg), 0 0 0 4px ${hex}`,
+                  })}
+                  value={new_color}
+                  on_change={set_new_color}
+                />
               </div>
 
               {error && (
@@ -423,7 +436,10 @@ export function TagManagementModal({
               <Button
                 className="flex-1 label_folder_action"
                 disabled={is_loading}
-                style={{ backgroundColor: new_color, color: "#fff" }}
+                style={{
+                  backgroundColor: new_color,
+                  color: fill_text_color(new_color, TAG_PRESET_HEXES),
+                }}
                 variant="depth"
                 onClick={handle_recolor}
               >

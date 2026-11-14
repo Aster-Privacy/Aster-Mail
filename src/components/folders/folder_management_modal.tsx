@@ -43,11 +43,15 @@ import {
   TAG_COLOR_PRESETS,
   tag_color_label_key,
 } from "@/components/ui/email_tag";
+import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
+import { fill_text_color } from "@/lib/color_wheel";
 import { has_sibling_named, use_folders } from "@/hooks/use_folders";
 import { MAX_FOLDER_DEPTH } from "@/hooks/use_folders/tree";
 import { use_i18n } from "@/lib/i18n/context";
 import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
 import { is_composing } from "@/utils/ime";
+
+const TAG_PRESET_HEXES = TAG_COLOR_PRESETS.map((preset) => preset.hex);
 
 const MAX_FOLDER_NAME_LENGTH = 100;
 
@@ -518,6 +522,15 @@ export function FolderManagementModal({
                     onClick={() => set_new_color(color.hex)}
                   />
                 ))}
+                <CustomColorSwatch
+                  class_name="w-9 h-9"
+                  presets={TAG_PRESET_HEXES}
+                  selected_style={(hex) => ({
+                    boxShadow: `0 0 0 2px var(--modal-bg), 0 0 0 4px ${hex}`,
+                  })}
+                  value={new_color}
+                  on_change={set_new_color}
+                />
               </div>
 
               {error && (
@@ -537,7 +550,10 @@ export function FolderManagementModal({
               <Button
                 className="flex-1 label_folder_action"
                 disabled={is_loading}
-                style={{ backgroundColor: new_color, color: "#fff" }}
+                style={{
+                  backgroundColor: new_color,
+                  color: fill_text_color(new_color, TAG_PRESET_HEXES),
+                }}
                 variant="depth"
                 onClick={handle_recolor}
               >

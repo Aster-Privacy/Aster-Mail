@@ -42,6 +42,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { open_profile_picture_dialog } from "@/stores/profile_picture_dialog_store";
 import { PROFILE_COLORS } from "@/constants/profile";
+import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -500,6 +501,38 @@ export function AccountSection({
     set_saving_name(false);
   }, [display_name, saving_name, user, update_user, t]);
 
+  const save_profile_color = async (
+    color: string,
+    prev: string | undefined,
+  ) => {
+    set_pending_profile_color(color);
+    try {
+      update_preference("profile_color", color, true);
+      if (user) {
+        await update_user({ ...user, profile_color: color });
+      }
+      const { update_profile_color } =
+        await import("@/services/api/user");
+      const response = await update_profile_color(color);
+
+      if (response.error) {
+        update_preference("profile_color", prev, true);
+        if (user) {
+          await update_user({
+            ...user,
+            profile_color: prev || undefined,
+          });
+        }
+        show_toast(
+          t("common.failed_save_profile_color"),
+          "error",
+        );
+      }
+    } finally {
+      set_pending_profile_color(null);
+    }
+  };
+
   return (
     <div className="flex h-full flex-col">
       <SettingsHeader
@@ -579,36 +612,9 @@ export function AccountSection({
                       : "none",
                 }}
                 type="button"
-                onClick={async () => {
-                  const prev = active_profile_color;
-
-                  set_pending_profile_color(color);
-                  try {
-                    update_preference("profile_color", color, true);
-                    if (user) {
-                      await update_user({ ...user, profile_color: color });
-                    }
-                    const { update_profile_color } =
-                      await import("@/services/api/user");
-                    const response = await update_profile_color(color);
-
-                    if (response.error) {
-                      update_preference("profile_color", prev, true);
-                      if (user) {
-                        await update_user({
-                          ...user,
-                          profile_color: prev || undefined,
-                        });
-                      }
-                      show_toast(
-                        t("common.failed_save_profile_color"),
-                        "error",
-                      );
-                    }
-                  } finally {
-                    set_pending_profile_color(null);
-                  }
-                }}
+                onClick={() =>
+                  void save_profile_color(color, active_profile_color)
+                }
               >
                 {active_profile_color === color && (
                   <CheckIcon
@@ -618,6 +624,21 @@ export function AccountSection({
                 )}
               </button>
             ))}
+            <CustomColorSwatch
+              class_name="h-10 w-10"
+              presets={PROFILE_COLORS}
+              selected_style={(hex) => ({
+                boxShadow: `0 0 0 2px var(--bg-primary), 0 0 0 4px ${hex}`,
+              })}
+              value={active_profile_color ?? ""}
+              on_change={set_pending_profile_color}
+              on_commit={(hex) =>
+                void save_profile_color(
+                  hex,
+                  user?.profile_color || preferences.profile_color,
+                )
+              }
+            />
           </div>
         </SettingsGroup>
 

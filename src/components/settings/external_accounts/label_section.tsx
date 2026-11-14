@@ -20,8 +20,6 @@
 //
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
-import { HexColorPicker } from "react-colorful";
-
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -32,7 +30,10 @@ import {
   TAG_COLOR_PRESETS,
   tag_color_label_key,
 } from "@/components/ui/email_tag";
+import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
 import { HEX_COLOR_REGEX } from "@/components/settings/hooks/use_external_accounts";
+
+const LABEL_PRESET_HEXES = TAG_COLOR_PRESETS.map((preset) => preset.hex);
 
 interface LabelSectionProps {
   form_label_name: string;
@@ -49,7 +50,6 @@ export function LabelSection({
   set_form_label_name,
   form_label_color,
   set_form_label_color,
-  handle_label_color_change,
   handle_label_color_input,
   t,
 }: LabelSectionProps) {
@@ -104,15 +104,10 @@ export function LabelSection({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-auto p-3 z-[70]"
+              className="w-[288px] p-3 z-[70]"
               sideOffset={6}
             >
               <div className="space-y-3">
-                <HexColorPicker
-                  color={form_label_color}
-                  style={{ width: "100%" }}
-                  onChange={handle_label_color_change}
-                />
                 <div className="flex flex-wrap gap-1.5">
                   {TAG_COLOR_PRESETS.map((color) => (
                     <button
@@ -133,6 +128,16 @@ export function LabelSection({
                       onClick={() => set_form_label_color(color.hex)}
                     />
                   ))}
+                  <CustomColorSwatch
+                    class_name="w-9 h-9"
+                    content_class_name="z-[300]"
+                    presets={LABEL_PRESET_HEXES}
+                    selected_style={(hex) => ({
+                      boxShadow: `0 0 0 2px var(--modal-bg), 0 0 0 3.5px ${hex}`,
+                    })}
+                    value={form_label_color}
+                    on_change={set_form_label_color}
+                  />
                 </div>
                 <Input
                   aria-label={t("settings.hex_color_value")}

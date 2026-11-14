@@ -106,6 +106,7 @@ import {
   rule_run_status_label,
   trim_address_values,
 } from "@/components/modals/rule_editor_helpers";
+import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
 import { ignore_error } from "@/lib/ignore_error";
 import { rule_supports_local_evaluation } from "@/lib/mail_rules/local_rule_evaluator";
 import { classify_rule_save_error } from "@/lib/mail_rules/rule_save_error";
@@ -857,6 +858,16 @@ export function RuleEditorModal({
                 onClick={() => set_color(c)}
               />
             ))}
+            <CustomColorSwatch
+              align="end"
+              class_name="w-5 h-5"
+              presets={RULE_COLORS}
+              selected_style={(hex) => ({
+                boxShadow: `0 0 0 2px var(--modal-bg, white), 0 0 0 3px ${hex}`,
+              })}
+              value={color}
+              on_change={set_color}
+            />
           </div>
         </div>
 

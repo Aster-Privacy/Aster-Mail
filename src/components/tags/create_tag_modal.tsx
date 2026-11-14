@@ -37,6 +37,8 @@ import {
   tag_color_label_key,
   type TagIconName,
 } from "@/components/ui/email_tag";
+import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
+import { fill_text_color } from "@/lib/color_wheel";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
 import {
@@ -47,6 +49,8 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
+
+const TAG_PRESET_HEXES = TAG_COLOR_PRESETS.map((preset) => preset.hex);
 
 const MAX_TAG_NAME_LENGTH = 100;
 
@@ -303,6 +307,15 @@ export function CreateTagModal({
                         onClick={() => set_selected_color(color.hex)}
                       />
                     ))}
+                    <CustomColorSwatch
+                      class_name="w-9 h-9"
+                      presets={TAG_PRESET_HEXES}
+                      selected_style={(hex) => ({
+                        boxShadow: `0 0 0 2px var(--modal-bg), 0 0 0 4px ${hex}`,
+                      })}
+                      value={selected_color}
+                      on_change={set_selected_color}
+                    />
                   </div>
                 </div>
 
@@ -349,7 +362,10 @@ export function CreateTagModal({
                 className="label_folder_action"
                 disabled={!trimmed_name || is_creating || !!validation_error}
                 is_loading={is_creating}
-                style={{ backgroundColor: selected_color, color: "#fff" }}
+                style={{
+                  backgroundColor: selected_color,
+                  color: fill_text_color(selected_color, TAG_PRESET_HEXES),
+                }}
                 variant="depth"
                 onClick={handle_create}
               >

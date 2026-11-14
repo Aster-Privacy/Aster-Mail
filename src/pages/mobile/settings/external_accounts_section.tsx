@@ -59,6 +59,7 @@ import {
 } from "@/components/settings/hooks/use_external_accounts";
 import { is_syncing as check_is_syncing } from "@/services/sync_manager";
 import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
+import { CustomColorSwatch } from "@/components/ui/color_wheel_picker";
 
 export function ExternalAccountsSection({
   on_back,
@@ -440,6 +441,14 @@ export function ExternalAccountsSection({
                       onClick={() => state.set_form_label_color(color.hex)}
                     />
                   ))}
+                  <CustomColorSwatch
+                    presets={TAG_COLOR_PRESETS.map((preset) => preset.hex)}
+                    selected_style={(hex) => ({
+                      boxShadow: `0 0 0 2px var(--bg-primary), 0 0 0 3.5px ${hex}`,
+                    })}
+                    value={state.form_label_color}
+                    on_change={state.set_form_label_color}
+                  />
                 </div>
                 <Input
                   className="mt-2 w-full font-mono"
