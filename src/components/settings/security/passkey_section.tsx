@@ -68,7 +68,6 @@ import {
   register_platform_passkey,
   register_security_key,
   is_passkey_supported,
-  is_platform_passkey_available,
 } from "@/services/api/passkeys";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
@@ -244,9 +243,6 @@ export function PasskeySection() {
   const [registering, set_registering] = useState<
     "passkey" | "security_key" | null
   >(null);
-  const [platform_available, set_platform_available] = useState<boolean | null>(
-    null,
-  );
   const desktop_app = is_desktop();
   const webauthn_supported = is_passkey_supported();
 
@@ -273,7 +269,6 @@ export function PasskeySection() {
 
   useEffect(() => {
     load_keys();
-    is_platform_passkey_available().then(set_platform_available);
   }, [load_keys]);
 
   const handle_remove = useCallback(
@@ -552,20 +547,18 @@ export function PasskeySection() {
 
         {webauthn_supported && !desktop_app && (
           <div className="flex flex-wrap items-center gap-2">
-            {platform_available !== false && (
-              <Button
-                disabled={registering !== null}
-                size="sm"
-                variant="outline"
-                onClick={handle_add_passkey}
-              >
-                <FingerPrintIcon className="w-4 h-4 me-2" />
-                {registering === "passkey" && <ButtonSpinner size="xs" />}
-                {registering === "passkey"
-                  ? t("passkeys.registering")
-                  : t("passkeys.add_passkey")}
-              </Button>
-            )}
+            <Button
+              disabled={registering !== null}
+              size="sm"
+              variant="outline"
+              onClick={handle_add_passkey}
+            >
+              <FingerPrintIcon className="w-4 h-4 me-2" />
+              {registering === "passkey" && <ButtonSpinner size="xs" />}
+              {registering === "passkey"
+                ? t("passkeys.registering")
+                : t("passkeys.add_passkey")}
+            </Button>
             <Button
               disabled={registering !== null}
               size="sm"
