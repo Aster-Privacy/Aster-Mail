@@ -54,6 +54,7 @@ import { get_user_info } from "@/services/api/auth";
 import { use_should_reduce_motion } from "@/provider";
 import { Logo } from "@/components/auth/auth_styles";
 import { Spinner } from "@/components/ui/spinner";
+import { format_guard_time } from "@/components/guard/guard_waiting_screen";
 
 const WEB_LINK_DEVICE_URL = "https://app.astermail.org/link-device";
 
@@ -114,7 +115,44 @@ export async function resolve_device_login_session(
 }
 
 type FlowState =
-  "requesting_code" | "showing_code" | "completing" | "error" | "expired";
+  | "requesting_code"
+  | "showing_code"
+  | "activation_pending"
+  | "completing"
+  | "error"
+  | "expired";
+
+const ACTIVATION_POLL_MS = 30_000;
+
+async function with_pairing_action_pk(
+  pubkeys: DevicePubkeys,
+): Promise<DevicePubkeys> {
+  try {
+    const desktop = await import("@/native/desktop_guard_keys");
+    const action_pk = await desktop.prepare_pairing_action_pk(pubkeys);
+
+    return action_pk ? { ...pubkeys, action_pk } : pubkeys;
+  } catch {
+    return pubkeys;
+  }
+}
+
+async function adopt_pairing_key(
+  ed25519_pk: string,
+  login_response: unknown,
+  device_id: string,
+): Promise<void> {
+  const user_id = (login_response as { user_id?: unknown } | null)?.user_id;
+
+  if (typeof user_id !== "string") return;
+  try {
+    const desktop = await import("@/native/desktop_guard_keys");
+
+    await desktop.adopt_pairing_guard_device(ed25519_pk, user_id, device_id);
+  } catch {
+    return;
+  }
+}
 
 const page_variants = {
   initial: { opacity: 0, y: 8 },
@@ -162,6 +200,7 @@ export function DesktopCodeSignIn({
   const [time_left, set_time_left] = useState(0);
   const [error_detail, set_error_detail] = useState<string | null>(null);
   const [flow_key, set_flow_key] = useState(0);
+  const [activates_at, set_activates_at] = useState<string | null>(null);
   const poll_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdown_ref = useRef<ReturnType<typeof setInterval> | null>(null);
   const poll_count_ref = useRef(0);
@@ -190,6 +229,7 @@ export function DesktopCodeSignIn({
 
     let cancelled = false;
     const is_first_flow = flow_key === 0;
+    let device_key = "";
 
     const fail = (detail: string) => {
       if (cancelled) return;
@@ -215,6 +255,8 @@ export function DesktopCodeSignIn({
           return;
         }
 
+        await adopt_pairing_key(device_key, result.login_response, device_id);
+
         const session = await resolve_device_login_session(
           result.login_response,
           result.passphrase,
@@ -227,6 +269,46 @@ export function DesktopCodeSignIn({
         if (import.meta.env.DEV) console.error(err);
         fail(`complete:${error_message(err)}`);
       }
+    };
+
+    const wait_for_activation = (
+      pending_code: string,
+      at: string | null,
+    ) => {
+      stop_polling();
+      if (cancelled) return;
+      set_activates_at(at);
+      set_flow_state("activation_pending");
+      poll_ref.current = setTimeout(async () => {
+        if (cancelled || !active_ref.current) return;
+        let status: Awaited<ReturnType<typeof poll_device_code_status>>;
+
+        try {
+          status = await poll_device_code_status(pending_code);
+        } catch (poll_err) {
+          if (import.meta.env.DEV) console.error(poll_err);
+          wait_for_activation(pending_code, at);
+
+          return;
+        }
+        if (cancelled) return;
+        if (
+          status.status === "confirmed" &&
+          status.device_id &&
+          status.sealed_envelope
+        ) {
+          await finish(status.device_id, status.sealed_envelope);
+
+          return;
+        }
+        if (status.status === "expired") {
+          forget_link_code(pending_code);
+          set_flow_state("expired");
+
+          return;
+        }
+        wait_for_activation(pending_code, status.activates_at ?? at);
+      }, ACTIVATION_POLL_MS);
     };
 
     const schedule_poll = (
@@ -268,6 +350,11 @@ export function DesktopCodeSignIn({
 
             return;
           }
+          if (status.status === "activation_pending") {
+            wait_for_activation(entry.code, status.activates_at ?? null);
+
+            return;
+          }
           if (status.status === "expired") {
             forget_link_code(entry.code);
             remaining = remaining.filter((other) => other.code !== entry.code);
@@ -299,12 +386,14 @@ export function DesktopCodeSignIn({
       }
 
       try {
-        const device_key = pubkeys.ed25519_pk;
+        device_key = pubkeys.ed25519_pk;
         let watched = load_link_codes(device_key);
         let current = is_first_flow ? pick_reusable_code(watched) : null;
 
         if (!current) {
-          const result = await request_device_code(pubkeys);
+          const result = await request_device_code(
+            await with_pairing_action_pk(pubkeys),
+          );
 
           if (cancelled) return;
 
@@ -504,6 +593,36 @@ export function DesktopCodeSignIn({
               >
                 {t(error_view.action_key)}
               </button>
+            </motion.div>
+          )}
+
+          {flow_state === "activation_pending" && (
+            <motion.div
+              key="activation_pending"
+              animate="animate"
+              className="flex flex-col items-center w-full max-w-sm px-4"
+              data-testid="device_activation_pending"
+              exit="exit"
+              initial={reduce_motion ? false : "initial"}
+              transition={page_transition}
+              variants={page_variants}
+            >
+              {cancel_button}
+              <Logo />
+              <h1 className="text-xl font-semibold mt-6 text-txt-primary text-center">
+                {t("guard.mail_app_activation_title")}
+              </h1>
+              <p
+                className="text-sm mt-2 leading-relaxed text-txt-tertiary text-center"
+                role="status"
+              >
+                {t("guard.mail_app_activates_at", {
+                  date: format_guard_time(activates_at ?? ""),
+                })}
+              </p>
+              <div className="mt-6">
+                <Spinner size="md" />
+              </div>
             </motion.div>
           )}
 

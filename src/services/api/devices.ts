@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SignedAction } from "./guard";
+
 import { api_client, ApiResponse } from "./client";
 
 export type DeviceType = "desktop" | "mobile" | "bridge";
@@ -72,6 +74,8 @@ export interface DeviceCodeVerifyResponse {
   x25519_pk: string;
   machine_name: string;
   envelope_versions?: number[];
+  action_pk?: string | null;
+  keys_digest?: string;
 }
 
 export interface DeviceCodeConfirmResponse {
@@ -91,9 +95,10 @@ export async function verify_device_code(
 export async function confirm_device_code(
   code: string,
   sealed_envelope: string,
+  action?: SignedAction,
 ): Promise<ApiResponse<DeviceCodeConfirmResponse>> {
   return api_client.post<DeviceCodeConfirmResponse>(
     "/core/v1/auth/device/code/confirm",
-    { code, sealed_envelope },
+    action ? { code, sealed_envelope, action } : { code, sealed_envelope },
   );
 }

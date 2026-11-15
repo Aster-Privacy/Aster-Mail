@@ -26,6 +26,7 @@ const h = vi.hoisted(() => ({
   verify: vi.fn(),
   confirm: vi.fn(),
   seal: vi.fn(),
+  guard: vi.fn(),
   accounts: [] as { id: string; kind?: string; user: { email: string } }[],
 }));
 
@@ -52,7 +53,7 @@ vi.mock("@/contexts/auth_context", () => ({
     switch_to_account: vi.fn(),
     set_is_adding_account: vi.fn(),
     max_account_limit: 3,
-    user: { email: "ada@astermail.org", display_name: "Ada" },
+    user: { id: "u1", email: "ada@astermail.org", display_name: "Ada" },
   }),
 }));
 
@@ -71,6 +72,10 @@ vi.mock("@/lib/primary_identity", () => ({
 vi.mock("@/services/api/devices", () => ({
   verify_device_code: h.verify,
   confirm_device_code: h.confirm,
+}));
+
+vi.mock("@/services/guard/device_code_approval", () => ({
+  guard_device_code_action: h.guard,
 }));
 
 vi.mock("@/lib/crypto/device_envelope", async (original) => ({
@@ -215,6 +220,8 @@ describe("link device approval", () => {
     h.verify.mockReset();
     h.confirm.mockReset();
     h.seal.mockReset();
+    h.guard.mockReset();
+    h.guard.mockResolvedValue({ kind: "off" });
     h.verify.mockResolvedValue({ data: valid_keys() });
     h.seal.mockResolvedValue(new Uint8Array([1, 2, 3]));
     h.confirm.mockResolvedValue({
@@ -484,5 +491,55 @@ describe("link device approval", () => {
 
     expect(h.confirm).toHaveBeenCalledTimes(1);
     expect(container.textContent).toContain("auth.link_device_success");
+  });
+
+  it("signs the approval when the account requires it", async () => {
+    const action = { nonce: "n", signature: "s", proof: null };
+
+    h.verify.mockResolvedValue({
+      data: { ...valid_keys(), action_pk: "apk", keys_digest: "kd" },
+    });
+    h.guard.mockResolvedValue({ kind: "signed", action });
+    await render_page();
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.guard).toHaveBeenCalledWith(
+      "u1",
+      expect.objectContaining({ action_pk: "apk", keys_digest: "kd" }),
+    );
+    expect(h.confirm).toHaveBeenCalledWith(
+      "ABCD2345",
+      expect.any(String),
+      action,
+    );
+    expect(container.textContent).toContain("auth.link_device_success");
+  });
+
+  it("confirms without an approval when the account does not require it", async () => {
+    await render_page();
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.confirm).toHaveBeenCalledTimes(1);
+    expect(h.confirm.mock.calls[0]).toHaveLength(2);
+  });
+
+  it.each([
+    ["needs_approver", "guard.link_device_needs_approver"],
+    ["keys_mismatch", "guard.link_device_keys_changed"],
+  ])("stops before sealing on %s", async (kind, message) => {
+    h.guard.mockResolvedValue({ kind });
+    await render_page();
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.seal).not.toHaveBeenCalled();
+    expect(h.confirm).not.toHaveBeenCalled();
+    expect(container.textContent).toContain(message);
+    expect(container.textContent).not.toContain("auth.link_device_success");
   });
 });

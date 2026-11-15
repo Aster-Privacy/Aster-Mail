@@ -63,6 +63,7 @@ import { set_post_switch_path } from "@/lib/post_switch_path";
 import { api_client } from "@/services/api/client";
 import { has_stored_session_passphrase } from "@/contexts/auth/session_passphrase";
 import { UNLIMITED_ACCOUNTS } from "@/services/plan_limits";
+import { guard_device_code_action } from "@/services/guard/device_code_approval";
 
 type PageState =
   | "choose_account"
@@ -79,6 +80,8 @@ interface DeviceInfo {
   mlkem_pk: string;
   x25519_pk: string;
   envelope_versions?: number[];
+  action_pk?: string | null;
+  keys_digest?: string;
 }
 
 function LinkDeviceShell({
@@ -449,6 +452,7 @@ export default function LinkDevice() {
     is_loading: auth_loading,
     has_keys,
     accounts,
+    user,
   } = use_auth();
 
   const [page_state, set_page_state] = useState<PageState>("choose_account");
@@ -590,6 +594,22 @@ export default function LinkDevice() {
     set_error(null);
 
     try {
+      const guard = await guard_device_code_action(user?.id, device_info);
+
+      if (guard.kind === "needs_approver" || guard.kind === "keys_mismatch") {
+        const message = t(
+          guard.kind === "needs_approver"
+            ? "guard.link_device_needs_approver"
+            : "guard.link_device_keys_changed",
+        );
+
+        set_error(message);
+        show_toast(message, "error");
+        set_page_state("confirming_device");
+
+        return;
+      }
+
       const passphrase = get_passphrase_from_memory();
 
       if (!passphrase) {
@@ -617,7 +637,10 @@ export default function LinkDevice() {
       const envelope_b64 = base64url_encode(envelope);
       const normalized = code_input.replace(/-/g, "");
 
-      const response = await confirm_device_code(normalized, envelope_b64);
+      const response =
+        guard.kind === "signed"
+          ? await confirm_device_code(normalized, envelope_b64, guard.action)
+          : await confirm_device_code(normalized, envelope_b64);
 
       if (response.error === "plan_upgrade_required") {
         set_error(null);
