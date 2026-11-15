@@ -221,6 +221,11 @@ export function QuickCalendarPanel({
     const src = new URL(CALENDAR_PANEL_PATH, origin);
 
     src.searchParams.set("theme", theme_ref.current);
+
+    if (frame_key > 0) {
+      src.searchParams.set("attempt", String(frame_key));
+    }
+
     set_frame_src(src.href);
     set_frame_state("loading");
     arm_timer(FIRST_READY_TIMEOUT_MS);

@@ -396,6 +396,90 @@ describe("quick calendar panel", () => {
     expect(container.textContent).not.toContain("calendar.panel_load_failed");
   });
 
+  const click_retry = async () => {
+    const retry = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "common.retry",
+    );
+
+    expect(retry).toBeTruthy();
+
+    await act(async () => {
+      retry?.click();
+    });
+  };
+
+  it("loads a fresh frame at a new address when retrying", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    const first = frame();
+
+    await act(async () => {
+      vi.advanceTimersByTime(20_000);
+    });
+    await click_retry();
+
+    const second = frame();
+
+    expect(second).not.toBeNull();
+    expect(second).not.toBe(first);
+    expect(second?.getAttribute("src")).toBe(
+      `${ORIGIN}/mail-panel?theme=light&attempt=1`,
+    );
+
+    await act(async () => {
+      vi.advanceTimersByTime(20_000);
+    });
+    await click_retry();
+
+    expect(frame()?.getAttribute("src")).toBe(
+      `${ORIGIN}/mail-panel?theme=light&attempt=2`,
+    );
+  });
+
+  it("gives a retried frame the full wait before failing again", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      vi.advanceTimersByTime(20_000);
+    });
+    await click_retry();
+
+    await act(async () => {
+      vi.advanceTimersByTime(19_999);
+    });
+
+    expect(frame()).not.toBeNull();
+    expect(container.textContent).not.toContain("calendar.panel_load_failed");
+
+    await act(async () => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(frame()).toBeNull();
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+  });
+
+  it("shows the panel when a retried frame reports in", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      vi.advanceTimersByTime(20_000);
+    });
+    await click_retry();
+    await send({ source: "aster-calendar-panel", type: "ready" });
+
+    expect(frame()?.className).toContain("opacity-100");
+
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(container.textContent).not.toContain("calendar.panel_load_failed");
+  });
+
   it("stays ready once the panel has reported in", async () => {
     vi.useFakeTimers();
     await render_panel(true);

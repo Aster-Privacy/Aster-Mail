@@ -1241,6 +1241,24 @@ export class ApiClient {
     }
   }
 
+  is_intentional_logout(): boolean {
+    return this.intentional_logout;
+  }
+
+  async confirm_signed_out_elsewhere(account_id: string): Promise<boolean> {
+    if (this.intentional_logout) return false;
+
+    const response = await this.get<{ user_id: string }>("/core/v1/auth/me", {
+      skip_cache: true,
+      skip_session_refresh: true,
+      skip_dedup: true,
+    });
+
+    if (response.data?.user_id) return response.data.user_id !== account_id;
+
+    return response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN";
+  }
+
   end_intentional_logout(): void {
     this.intentional_logout = false;
     this.suspend_account_persist_flag = false;
