@@ -501,7 +501,7 @@ export function AccountSection({
 
   const save_profile_color = async (
     color: string,
-    prev: string | undefined,
+    prev: string,
   ) => {
     set_pending_profile_color(color);
     try {
