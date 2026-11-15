@@ -32,6 +32,7 @@ import { logout_user } from "@/services/api/auth";
 import { purge_favicon_cache } from "@/lib/favicon_cache_db";
 import { clear_icon_cache } from "@/lib/icon_cache";
 import { wipe_all_storage } from "@/services/crypto/secure_storage";
+import { delete_guard_database } from "@/services/crypto/guard_key_store";
 import {
   logout_all as storage_logout_all,
   clear_cache,
@@ -105,6 +106,7 @@ const DEVICE_TRACES_STEP = "device_traces";
 const STORAGE_STEPS: readonly WipeStep[] = [
   ["account_storage", () => storage_logout_all()],
   ["secure_storage", () => wipe_all_storage()],
+  ["guard_device", () => delete_guard_database()],
 ];
 
 const STORE_STEPS: readonly WipeStep[] = [
