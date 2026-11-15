@@ -55,7 +55,6 @@ import {
 } from "@/services/crypto/legacy_keks";
 import { with_aes_kw_fallback } from "@/services/crypto/webcrypto_aes_kw";
 import { ignore_error } from "@/lib/ignore_error";
-import { MAX_LEGACY_IDENTITY_KEYS } from "@/services/crypto/identity_key_materials";
 import { fetch_latest_vault } from "@/services/crypto/vault_cas_write";
 import {
   VAULT_KDF_ITERATIONS_LEGACY,
@@ -245,33 +244,6 @@ export async function check_rotation_needed(
 
 export const VAULT_CHANGED_CODE = "VAULT_CHANGED";
 
-export function apply_key_history_limit(
-  previous_keys: string[],
-  legacy_identity_keys: string[] | undefined,
-  key_history_limit: number,
-): { previous_keys: string[]; legacy_identity_keys: string[] | undefined } {
-  const kept =
-    key_history_limit > 0 && previous_keys.length > key_history_limit
-      ? previous_keys.slice(0, key_history_limit)
-      : previous_keys;
-  const trimmed = previous_keys.slice(kept.length);
-
-  if (trimmed.length === 0) {
-    return { previous_keys: kept, legacy_identity_keys };
-  }
-
-  const retained: string[] = [];
-
-  for (const key of [...trimmed, ...(legacy_identity_keys ?? [])]) {
-    if (key && !retained.includes(key)) retained.push(key);
-  }
-
-  return {
-    previous_keys: kept,
-    legacy_identity_keys: retained.slice(0, MAX_LEGACY_IDENTITY_KEYS),
-  };
-}
-
 export function has_pending_identity_rotation(
   vault: EncryptedVault | null | undefined,
 ): boolean {
@@ -398,11 +370,15 @@ export async function perform_key_rotation(
       await crypto.subtle.digest(HASH_ALG, old_tag_material),
     );
 
-    const { previous_keys, legacy_identity_keys } = apply_key_history_limit(
-      [old_identity_key, ...(current_vault.previous_keys ?? [])],
-      current_vault.legacy_identity_keys,
-      key_history_limit,
-    );
+    let previous_keys = current_vault.previous_keys
+      ? [...current_vault.previous_keys]
+      : [];
+
+    previous_keys.unshift(old_identity_key);
+
+    if (key_history_limit > 0 && previous_keys.length > key_history_limit) {
+      previous_keys = previous_keys.slice(0, key_history_limit);
+    }
 
     let legacy_keks = current_vault.legacy_keks;
 
@@ -436,7 +412,6 @@ export async function perform_key_rotation(
       ...current_vault,
       identity_key: new_keypair.secret_key,
       previous_keys,
-      ...(legacy_identity_keys ? { legacy_identity_keys } : {}),
       signed_prekey: new_prekey.public_key,
       signed_prekey_private: new_prekey.secret_key,
       legacy_keks,

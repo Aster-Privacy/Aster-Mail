@@ -40,6 +40,7 @@ import { get_vault_history, update_vault } from "@/services/api/key_rotation";
 import { get_current_account } from "@/services/account_manager";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { private_key_unlocks } from "@/services/crypto/identity_key_materials";
+import { get_cached_preferences } from "@/services/api/preferences";
 
 const PGP_PRIVATE_KEY_HEADER = "-----BEGIN PGP PRIVATE KEY";
 
@@ -330,6 +331,8 @@ export async function recover_pgp_keys_from_history_locked(): Promise<EncryptedV
   const user_id = current_account?.user?.id;
 
   if (!vault?.identity_key || !passphrase || !user_id) return null;
+
+  if ((get_cached_preferences()?.key_history_limit ?? 0) > 0) return null;
 
   if (pgp_recovery_attempted_for === user_id) return null;
 

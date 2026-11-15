@@ -28,6 +28,7 @@ const get_vault_from_memory = vi.fn();
 const get_passphrase_from_memory = vi.fn();
 const get_current_account = vi.fn();
 const private_key_unlocks = vi.fn();
+const get_cached_preferences = vi.fn();
 
 const KEY_HEADER = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n";
 
@@ -61,6 +62,10 @@ vi.mock("@/services/account_manager", () => ({
 
 vi.mock("@/services/crypto/identity_key_materials", () => ({
   private_key_unlocks: (...args: unknown[]) => private_key_unlocks(...args),
+}));
+
+vi.mock("@/services/api/preferences", () => ({
+  get_cached_preferences: () => get_cached_preferences(),
 }));
 
 vi.mock("@/services/crypto/openpgp_loader", () => ({
@@ -153,6 +158,7 @@ describe("recover_pgp_keys_from_history", () => {
         : Promise.resolve(JSON.parse(blob)),
     );
     private_key_unlocks.mockResolvedValue(true);
+    get_cached_preferences.mockReturnValue(null);
     update_vault.mockResolvedValue({ success: true });
   });
 
@@ -168,6 +174,14 @@ describe("recover_pgp_keys_from_history", () => {
     expect(update_vault).toHaveBeenCalledTimes(1);
     expect(update_vault.mock.calls[0][5]).toBe(recovered);
     expect(update_vault.mock.calls[0][6]).toBe(memory_vault);
+  });
+
+  it("leaves the vault alone when the user limits key history", async () => {
+    get_cached_preferences.mockReturnValue({ key_history_limit: 3 });
+
+    expect(await recover_pgp_keys_from_history()).toBeNull();
+    expect(get_vault_history).not.toHaveBeenCalled();
+    expect(update_vault).not.toHaveBeenCalled();
   });
 
   it("matches keys by fingerprint so a re-protected copy is not added twice", async () => {
