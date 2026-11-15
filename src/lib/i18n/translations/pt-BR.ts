@@ -10783,6 +10783,8 @@ export const pt_br = {
     print_codes: "Imprimir",
     codes_copied: "Códigos copiados.",
     i_saved_these_codes: "Salvei estes códigos",
+    recovered_account_address:
+      "O endereço da sua conta é {{address}}. Use este endereço para entrar.",
     review_security_title: "Revise sua segurança",
     review_security_desc: "Sua senha foi alterada e sua conta foi recuperada.",
     review_devices_signed_out: "Os outros dispositivos foram desconectados.",

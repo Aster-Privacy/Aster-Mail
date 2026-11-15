@@ -9201,6 +9201,7 @@ export interface AuthTranslations {
   print_codes: string;
   codes_copied: string;
   i_saved_these_codes: string;
+  recovered_account_address: string;
   review_security_title: string;
   review_security_desc: string;
   review_devices_signed_out: string;

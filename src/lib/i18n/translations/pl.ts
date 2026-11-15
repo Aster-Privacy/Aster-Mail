@@ -10704,6 +10704,8 @@ export const pl = {
     print_codes: "Drukuj",
     codes_copied: "Skopiowano kody.",
     i_saved_these_codes: "Zapisałem te kody",
+    recovered_account_address:
+      "Adres Twojego konta to {{address}}. Użyj tego adresu, aby się zalogować.",
     review_security_title: "Sprawdź zabezpieczenia",
     review_security_desc: "Hasło zostało zmienione, a konto odzyskane.",
     review_devices_signed_out: "Inne urządzenia zostały wylogowane.",

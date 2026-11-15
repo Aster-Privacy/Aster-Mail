@@ -10677,6 +10677,8 @@ export const ru = {
     print_codes: "Печать",
     codes_copied: "Коды скопированы.",
     i_saved_these_codes: "Я сохранил эти коды",
+    recovered_account_address:
+      "Адрес вашего аккаунта: {{address}}. Используйте этот адрес для входа.",
     review_security_title: "Проверьте безопасность",
     review_security_desc: "Пароль изменен, аккаунт восстановлен.",
     review_devices_signed_out: "Другие устройства вышли из аккаунта.",

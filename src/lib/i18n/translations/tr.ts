@@ -10371,6 +10371,8 @@ export const tr = {
     print_codes: "Yazdır",
     codes_copied: "Kodlar kopyalandı.",
     i_saved_these_codes: "Bu kodları kaydettim",
+    recovered_account_address:
+      "Hesap adresiniz {{address}}. Oturum açmak için bu adresi kullanın.",
     review_security_title: "Güvenliğinizi gözden geçirin",
     review_security_desc: "Parolanız değiştirildi ve hesabınız kurtarıldı.",
     review_devices_signed_out: "Diğer cihazların oturumu kapatıldı.",

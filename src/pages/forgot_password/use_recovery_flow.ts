@@ -148,6 +148,42 @@ function read_handoff(state: unknown): {
   return { username: clean, email_domain: domain };
 }
 
+export interface RecoveredAccountAddress {
+  username: string;
+  email_domain: "astermail.org" | "aster.cx";
+  address: string;
+}
+
+export function parse_account_address(
+  value: unknown,
+): RecoveredAccountAddress | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  const at_index = trimmed.lastIndexOf("@");
+
+  if (at_index <= 0) return null;
+  const domain = trimmed.substring(at_index + 1).toLowerCase();
+
+  if (domain !== "astermail.org" && domain !== "aster.cx") return null;
+  const clean = sanitize_username(trimmed.substring(0, at_index));
+
+  if (!clean) return null;
+
+  return {
+    username: clean,
+    email_domain: domain,
+    address: `${clean}@${domain}`,
+  };
+}
+
+export function sign_in_path_for(
+  recovered: RecoveredAccountAddress | null,
+): string {
+  return recovered
+    ? `/sign-in?u=${encodeURIComponent(recovered.address)}`
+    : "/sign-in";
+}
+
 export function use_recovery_flow() {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -193,6 +229,8 @@ export function use_recovery_flow() {
     recovery_email_kept: false,
     keys_left_locked: false,
   });
+  const [recovered_account, set_recovered_account] =
+    useState<RecoveredAccountAddress | null>(null);
   const [resend_cooldown, set_resend_cooldown] = useState(0);
   const [is_resending, set_is_resending] = useState(false);
   const copy_timer_ref = useRef<number | null>(null);
@@ -248,6 +286,16 @@ export function use_recovery_flow() {
     }
 
     return clean_username;
+  };
+
+  const adopt_recovered_address = (value: unknown) => {
+    const recovered = parse_account_address(value);
+
+    if (!recovered) return;
+    set_recovered_account(recovered);
+    set_email(recovered.address);
+    set_username(recovered.username);
+    set_email_domain(recovered.email_domain);
   };
 
   const handle_email_next = () => {
@@ -402,6 +450,8 @@ export function use_recovery_flow() {
         nonce: response.data.recovery_key_nonce,
       });
       set_recovery_token(response.data.recovery_token);
+      set_recovered_account(null);
+      adopt_recovered_address(response.data.account_address);
 
       const { encrypted_recovery_email, recovery_email_nonce } = response.data;
 
@@ -527,6 +577,8 @@ export function use_recovery_flow() {
           t("auth.recovery_failed"),
       );
     }
+
+    adopt_recovered_address(complete_response.data.account_address);
 
     if (!vault_uses_master_key) {
       store_pending_reencryption({
@@ -709,6 +761,12 @@ export function use_recovery_flow() {
     print_current_page();
   };
 
+  const sign_in_path = sign_in_path_for(recovered_account);
+
+  const handle_navigate_sign_in = () => {
+    navigate(sign_in_path);
+  };
+
   const handle_codes_continue = () => {
     set_new_recovery_codes([]);
     set_is_key_visible(false);
@@ -757,6 +815,9 @@ export function use_recovery_flow() {
     codes_saved,
     set_codes_saved,
     review,
+    recovered_address: recovered_account?.address ?? "",
+    sign_in_path,
+    handle_navigate_sign_in,
     is_email_locked,
     resend_cooldown,
     is_resending,

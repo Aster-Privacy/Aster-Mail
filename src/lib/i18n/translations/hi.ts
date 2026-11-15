@@ -10404,6 +10404,8 @@ export const hi = {
     print_codes: "प्रिंट करें",
     codes_copied: "कोड कॉपी हो गए।",
     i_saved_these_codes: "मैंने ये कोड सेव कर लिए हैं",
+    recovered_account_address:
+      "आपके खाते का पता {{address}} है। साइन इन करने के लिए इसी पते का उपयोग करें।",
     review_security_title: "अपनी सुरक्षा जांचें",
     review_security_desc:
       "आपका पासवर्ड बदल दिया गया और आपका खाता रिकवर हो गया।",

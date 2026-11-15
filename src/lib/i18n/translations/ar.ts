@@ -10277,6 +10277,8 @@ export const ar = {
     print_codes: "طباعة",
     codes_copied: "تم نسخ الرموز.",
     i_saved_these_codes: "لقد حفظت هذه الرموز",
+    recovered_account_address:
+      "عنوان حسابك هو {{address}}. استخدم هذا العنوان لتسجيل الدخول.",
     review_security_title: "راجع أمان حسابك",
     review_security_desc: "تم تغيير كلمة المرور واسترداد حسابك.",
     review_devices_signed_out: "تم تسجيل الخروج من الأجهزة الأخرى.",
