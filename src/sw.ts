@@ -20,6 +20,13 @@
 //
 /// <reference lib="webworker" />
 import { kept_across_updates } from "@/lib/app_update_caches";
+import {
+  GUARD_PUSH_SW_MESSAGE,
+  GUARD_PUSH_URL,
+  guard_push_body,
+  guard_push_tag,
+  read_guard_push,
+} from "@/lib/guard_push";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   push_fallback_body,
@@ -157,6 +164,19 @@ async function push_notification_body(is_reaction: boolean): Promise<string> {
   }
 }
 
+async function read_push_strings(): Promise<Record<string, unknown> | null> {
+  try {
+    const cache = await caches.open(PUSH_STRINGS_CACHE);
+    const stored = await cache.match(PUSH_STRINGS_URL);
+
+    if (!stored) return null;
+
+    return (await stored.json()) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 async function push_has_muted_categories(): Promise<boolean> {
   try {
     const cache = await caches.open(PUSH_STRINGS_CACHE);
@@ -191,6 +211,26 @@ self.addEventListener("push", (event: PushEvent) => {
       });
       const is_test = data.type === "test";
       const app_is_open = clients.length > 0;
+      const guard = read_guard_push(data);
+
+      if (guard) {
+        if (app_is_open) {
+          for (const client of clients) {
+            client.postMessage({ type: GUARD_PUSH_SW_MESSAGE, payload: guard });
+          }
+
+          return;
+        }
+        await self.registration.showNotification("Aster Mail", {
+          body: guard_push_body(guard, await read_push_strings()),
+          icon: "/pwa-192x192.png",
+          badge: "/favicon-32x32.png",
+          tag: guard_push_tag(guard),
+          data: { url: GUARD_PUSH_URL },
+        });
+
+        return;
+      }
 
       if (app_is_open && !is_test) {
         for (const client of clients) {

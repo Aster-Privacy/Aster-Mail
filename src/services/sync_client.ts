@@ -51,6 +51,7 @@ import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
+import { receive_guard_frame } from "@/services/guard/guard_events";
 import {
   begin_live_sync_session,
   set_sync_live_probe,
@@ -87,6 +88,7 @@ type ServerMessageType =
   | "folders_changed"
   | "tags_changed"
   | "mail_mutation"
+  | "guard"
   | "ping"
   | "pong";
 
@@ -103,6 +105,8 @@ interface ServerMessage {
   action?: string;
   item_ids?: string[];
   origin_device?: string | null;
+  id?: string;
+  account_id?: string;
 }
 
 const HEARTBEAT_INTERVAL_MS = 30000;
@@ -631,6 +635,12 @@ class SyncClient {
 
     if (data.type === "mail_mutation") {
       this.handle_mail_mutation(data);
+
+      return;
+    }
+
+    if (data.type === "guard") {
+      void receive_guard_frame(data);
 
       return;
     }
