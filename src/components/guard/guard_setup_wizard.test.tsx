@@ -304,6 +304,9 @@ function render_wizard(is_open = true) {
       />,
     );
   });
+  const start = container.querySelector('[data-testid="guard_setup_start"]');
+
+  if (start) click(start as HTMLElement);
 }
 
 async function go_to_confirm() {
@@ -337,6 +340,26 @@ afterEach(() => {
 });
 
 describe("guard setup wizard", () => {
+  it("opens on the intro and moves to the choices on start", () => {
+    act(() => {
+      root.render(
+        <GuardSetupWizard
+          is_open
+          user_id="0f8fad5b-d9cb-469f-a165-70867728950e"
+          on_changed={on_changed}
+          on_close={() => undefined}
+        />,
+      );
+    });
+    expect(by_test_id("guard_setup_intro")).toBeTruthy();
+    expect(by_test_id("guard_hero")).toBeTruthy();
+    expect(container.textContent).toContain("guard.intro_rescue_body");
+    expect(container.querySelector('[data-testid="guard_setup_steps"]')).toBeNull();
+    click(by_test_id("guard_setup_start"));
+    expect(container.querySelector('[data-testid="guard_setup_intro"]')).toBeNull();
+    expect(by_test_id("guard_setup_steps")).toBeTruthy();
+  });
+
   it("dims dependent toggles while the parent is off", () => {
     render_wizard();
     expect(by_label("guard.setup_scope_forwarding").checked).toBe(true);

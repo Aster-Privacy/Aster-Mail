@@ -40,7 +40,6 @@ import {
   EyeSlashIcon,
   FingerPrintIcon,
   KeyIcon,
-  LockClosedIcon,
   PhotoIcon,
   ShieldCheckIcon,
   ShieldExclamationIcon,
@@ -61,6 +60,7 @@ import {
 import { request_guard_setup } from "@/services/guard/guard_setup_request";
 import { resolve_remote_content_preferences } from "@/lib/remote_content_policy";
 import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
+import { GuardMarkIcon } from "@/components/guard/guard_visuals";
 import {
   format_key_fingerprint,
   use_security_overview,
@@ -114,7 +114,7 @@ const CRITERION_ICONS: Record<SecurityCriterionId, PanelIcon> = {
   tracking_pixels: EyeSlashIcon,
   remote_images: PhotoIcon,
   strip_exif: DocumentMinusIcon,
-  guard_enabled: LockClosedIcon,
+  guard_enabled: GuardMarkIcon,
 };
 
 function SecurityScoreRing({

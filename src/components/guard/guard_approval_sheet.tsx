@@ -51,7 +51,7 @@ import {
   GuardDetailRow,
   GuardFlag,
   GuardIconTile,
-  GuardLogo,
+  GuardMarkIcon,
   GuardOsIcon,
   use_guard_now,
 } from "@/components/guard/guard_visuals";
@@ -394,7 +394,12 @@ export function GuardApprovalSheet({
           ) : (
             <>
               <ModalHeader className="items-center pe-6 text-center">
-                <GuardLogo className="mb-4" />
+                <div className="mb-4 flex justify-center">
+                  <GuardMarkIcon
+                    className="h-12 w-12 text-brand"
+                    data-testid="guard_approve_mark"
+                  />
+                </div>
                 <ModalTitle className="text-center">
                   {t("guard.approve_title")}
                 </ModalTitle>

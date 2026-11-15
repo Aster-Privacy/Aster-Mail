@@ -437,3 +437,146 @@ export function GuardChip({
     </span>
   );
 }
+
+const GUARD_SHIELD_PATH =
+  "M12 2.9c-2.3 1.35-4.6 2.2-7.1 2.55-.1 0-.15.1-.15.2v5.6c0 4.55 3 8.3 7.25 9.95 4.25-1.65 7.25-5.4 7.25-9.95v-5.6c0-.1-.05-.2-.15-.2-2.5-.35-4.8-1.2-7.1-2.55Z";
+const GUARD_STAR_PATH =
+  "M12 7.7Q12.7 10.9 15.9 11.6Q12.7 12.3 12 15.5Q11.3 12.3 8.1 11.6Q11.3 10.9 12 7.7Z";
+
+export function GuardMarkIcon({
+  className,
+  "data-testid": test_id,
+}: {
+  className?: string;
+  "data-testid"?: string;
+}) {
+  return (
+    <svg
+      aria-hidden
+      className={className}
+      data-testid={test_id}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      viewBox="0 0 24 24"
+    >
+      <path d={GUARD_SHIELD_PATH} />
+      <path d={GUARD_STAR_PATH} />
+    </svg>
+  );
+}
+
+export function GuardHero({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden
+      className={className}
+      data-testid="guard_hero"
+      fill="none"
+      height={150}
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      viewBox="0 0 300 150"
+      width={300}
+    >
+      <g opacity={0.45} strokeDasharray="2 6">
+        <path d="M72 75H124" />
+        <path d="M216 75H226" />
+      </g>
+      <g transform="translate(18 34)">
+        <rect height={82} rx={9} width={44} x={0} y={0} />
+        <path d="M17 8h10" />
+        <circle cx={22} cy={41} r={7} strokeWidth={1.6} />
+        <path d="m19 41 2 2 4-4" strokeWidth={1.6} />
+      </g>
+      <g transform="translate(228 40)">
+        <rect height={44} rx={5} width={60} x={4} y={0} />
+        <path d="M0 54h68" />
+        <text
+          fill="currentColor"
+          fontSize={17}
+          fontWeight={600}
+          letterSpacing={2}
+          stroke="none"
+          textAnchor="middle"
+          x={34}
+          y={29}
+        >
+          42
+        </text>
+      </g>
+      <g strokeWidth={0.42} transform="translate(110 15) scale(5)">
+        <path d={GUARD_SHIELD_PATH} />
+        <path d={GUARD_STAR_PATH} />
+      </g>
+    </svg>
+  );
+}
+
+export type GuardFeatureKind = "approve" | "hold" | "rescue";
+
+export function GuardFeatureIcon({
+  kind,
+  className,
+}: {
+  kind: GuardFeatureKind;
+  className?: string;
+}) {
+  return (
+    <svg
+      aria-hidden
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.5}
+      viewBox="0 0 24 24"
+    >
+      {kind === "approve" && (
+        <>
+          <rect height={18.5} rx={2.25} width={10.5} x={6.75} y={2.75} />
+          <path d="M10.5 5.75h3" />
+          <path d="m9.75 13 1.6 1.6 3-3.2" />
+        </>
+      )}
+      {kind === "hold" && (
+        <>
+          <circle cx={12} cy={12} r={8.75} />
+          <path d="M12 7.5V12l3 2" />
+        </>
+      )}
+      {kind === "rescue" && (
+        <>
+          <circle cx={8} cy={15.5} r={4.25} />
+          <path d="m11 12.5 8.5-8.5M16.5 7l2.5 2.5M14.5 9l1.75 1.75" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+export function GuardPlatformGlyph({
+  name,
+  device_type,
+}: {
+  name: string;
+  device_type: string;
+}) {
+  const platform = guard_device_platform(name, device_type);
+  const Icon =
+    platform === null || platform === "browser"
+      ? GlobeAltIcon
+      : PLATFORM_ICONS[platform];
+
+  return (
+    <Icon
+      aria-hidden
+      className="h-3.5 w-3.5 shrink-0 text-txt-secondary"
+    />
+  );
+}

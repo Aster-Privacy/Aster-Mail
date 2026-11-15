@@ -19,16 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
-import {
-  Button,
-  IslandSection,
-  IslandSections,
-  SettingControlRow,
-} from "@aster/ui";
-import {
-  ShieldCheckIcon,
-  ShieldExclamationIcon,
-} from "@heroicons/react/24/outline";
+import { Button, IslandSection, IslandSections } from "@aster/ui";
 
 import { GuardDevicesList } from "@/components/guard/guard_devices_list";
 import { GuardHeldChanges } from "@/components/guard/guard_held_changes";
@@ -37,11 +28,15 @@ import {
   GuardSwitchesPanel,
   use_guard_device,
 } from "@/components/guard/guard_switches_panel";
-import { GuardChip } from "@/components/guard/guard_visuals";
+import {
+  GuardMarkIcon,
+  GuardPlatformGlyph,
+} from "@/components/guard/guard_visuals";
 import { use_auth } from "@/contexts/auth_context";
 import { use_guard_status } from "@/hooks/use_guard_status";
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
+import { cn } from "@/lib/utils";
 import { GUARD_SWITCH } from "@/services/api/guard";
 import {
   GUARD_SETUP_OPEN_EVENT,
@@ -49,6 +44,7 @@ import {
 } from "@/services/guard/guard_setup_request";
 
 const GUARD_SWITCH_BITS = Object.values(GUARD_SWITCH);
+const GUARD_HEADER_DEVICE_LIMIT = 3;
 
 export function count_guard_protections(switches: number) {
   return {
@@ -87,58 +83,78 @@ export function GuardSection() {
 
   if (!user_id || !status) return null;
   const is_on = status.switches !== 0;
-  const protections = count_guard_protections(status.switches);
+
+  const shown_devices = status.devices.slice(0, GUARD_HEADER_DEVICE_LIMIT);
+  const hidden_devices = status.devices.length - shown_devices.length;
 
   return (
     <IslandSections>
-      <IslandSection
-        description={t("guard.section_description")}
-        icon={<ShieldExclamationIcon />}
+      <section
+        className="flex flex-col items-center px-6 pb-6 pt-4 text-center"
+        data-testid="guard_section_header"
         id={SETTINGS_ANCHORS.guard}
-        title={t("guard.section_title")}
       >
-        <SettingControlRow
-          control={
-            is_on ? (
-              <GuardChip
-                icon={<ShieldCheckIcon aria-hidden className="h-4 w-4" />}
-                test_id="guard_section_state"
-                tone="success"
-              >
-                {t("guard.section_protections_count", protections)}
-              </GuardChip>
-            ) : (
-              <span className="flex items-center gap-3">
-                <GuardChip test_id="guard_section_state" tone="neutral">
-                  {t("guard.section_off")}
-                </GuardChip>
-                <Button
-                  data-testid="guard_set_up"
-                  size="sm"
-                  variant="depth"
-                  onClick={() => set_wizard_open(true)}
-                >
-                  {t("guard.section_set_up")}
-                </Button>
-              </span>
-            )
-          }
-          description={
-            is_on
-              ? t("guard.section_on_description")
-              : t("guard.section_off_description")
-          }
-          label={t("guard.section_title")}
+        <GuardMarkIcon
+          className={cn(
+            "h-14 w-14",
+            is_on ? "text-brand" : "text-txt-secondary",
+          )}
+          data-testid="guard_section_mark"
         />
-        {is_on && (
+        <h2
+          className="mt-4 text-[22px] font-semibold leading-7 text-txt-primary"
+          data-state={is_on ? "on" : "off"}
+          data-testid="guard_section_state"
+        >
+          {is_on ? t("guard.section_header_on") : t("guard.section_header_off")}
+        </h2>
+        <p className="mt-1 max-w-md text-sm text-txt-secondary">
+          {is_on
+            ? t("guard.section_header_on_description")
+            : t("guard.intro_lead")}
+        </p>
+        {is_on && shown_devices.length > 0 && (
+          <ul
+            className="mt-4 flex flex-wrap items-center justify-center gap-x-[18px] gap-y-2 text-[13px] text-txt-secondary"
+            data-testid="guard_section_devices"
+          >
+            {shown_devices.map((entry) => (
+              <li key={entry.id} className="flex items-center gap-1.5">
+                <GuardPlatformGlyph
+                  device_type={entry.device_type}
+                  name={entry.name}
+                />
+                <span className="max-w-[160px] truncate">{entry.name}</span>
+              </li>
+            ))}
+            {hidden_devices > 0 && (
+              <li>
+                {t("guard.section_more_devices", { count: hidden_devices })}
+              </li>
+            )}
+          </ul>
+        )}
+        {!is_on && (
+          <Button
+            className="mt-5"
+            data-testid="guard_set_up"
+            variant="depth"
+            onClick={() => set_wizard_open(true)}
+          >
+            {t("guard.intro_start")}
+          </Button>
+        )}
+      </section>
+      {is_on && (
+        <IslandSection title={t("guard.section_protections_title")}>
           <GuardSwitchesPanel
             device={device}
             status={status}
             user_id={user_id}
             on_refresh={on_refresh}
           />
-        )}
-      </IslandSection>
+        </IslandSection>
+      )}
       {is_on && (
         <GuardHeldChanges
           device={device}

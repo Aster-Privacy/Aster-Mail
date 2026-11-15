@@ -34,11 +34,16 @@ import {
   EnvelopeIcon,
   KeyIcon,
   LifebuoyIcon,
-  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
 import { GuardCodeCard } from "@/components/guard/guard_code_card";
-import { GuardIconTile } from "@/components/guard/guard_visuals";
+import type { GuardFeatureKind } from "@/components/guard/guard_visuals";
+import {
+  GuardFeatureIcon,
+  GuardHero,
+  GuardIconTile,
+  GuardMarkIcon,
+} from "@/components/guard/guard_visuals";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Button } from "@/components/ui/button";
@@ -66,7 +71,13 @@ import {
 import { enroll_guard } from "@/services/guard/guard_enroll";
 import { copy_text } from "@/utils/copy_text";
 
-type WizardStep = "choose" | "rescue" | "confirm" | "done";
+type WizardStep = "intro" | "choose" | "rescue" | "confirm" | "done";
+
+const INTRO_FEATURES: [GuardFeatureKind, TranslationKey, TranslationKey][] = [
+  ["approve", "guard.intro_approve_title", "guard.intro_approve_body"],
+  ["hold", "guard.intro_hold_title", "guard.intro_hold_body"],
+  ["rescue", "guard.intro_rescue_title", "guard.intro_rescue_body"],
+];
 
 type WizardMessage = "already_on" | "error" | null;
 
@@ -322,7 +333,7 @@ export function GuardSetupWizard({
 }: GuardSetupWizardProps) {
   const { t } = use_i18n();
   const step_up = use_guard_step_up();
-  const [step, set_step] = useState<WizardStep>("choose");
+  const [step, set_step] = useState<WizardStep>("intro");
   const [selection, set_selection] = useState<GuardSelection>({
     switches: GUARD_DEFAULT_SWITCHES,
     hold_scopes: GUARD_ALL_SCOPES,
@@ -336,7 +347,7 @@ export function GuardSetupWizard({
 
   useEffect(() => {
     if (!is_open) return;
-    set_step("choose");
+    set_step("intro");
     set_selection({
       switches: GUARD_DEFAULT_SWITCHES,
       hold_scopes: GUARD_ALL_SCOPES,
@@ -427,6 +438,56 @@ export function GuardSetupWizard({
         size="lg"
       >
         <div data-testid="guard_setup_wizard">
+          {step === "intro" && (
+            <div
+              className="mx-auto flex w-full max-w-[420px] flex-col items-center px-6 pb-6 pt-10 text-center"
+              data-testid="guard_setup_intro"
+            >
+              <GuardHero className="h-auto w-full max-w-[300px] text-brand" />
+              <ModalTitle className="mt-[26px] !text-[26px] font-semibold !leading-8 tracking-[-0.2px] text-txt-primary">
+                {t("guard.intro_title")}
+              </ModalTitle>
+              <ModalDescription className="mx-2 mt-2 text-[15px] leading-[22px] text-txt-secondary">
+                {t("guard.intro_lead")}
+              </ModalDescription>
+              <ul className="mt-8 flex w-full flex-col gap-[22px] text-start">
+                {INTRO_FEATURES.map(([kind, title, body]) => (
+                  <li key={kind} className="flex items-start gap-4">
+                    <GuardFeatureIcon
+                      className="mt-px h-[22px] w-[22px] shrink-0 text-txt-secondary"
+                      kind={kind}
+                    />
+                    <div className="min-w-0">
+                      <p className="mb-[3px] text-[15px] font-semibold text-txt-primary">
+                        {t(title)}
+                      </p>
+                      <p className="text-sm leading-5 text-txt-secondary">
+                        {t(body)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-10 text-[12.5px] text-txt-muted">
+                {t("guard.intro_note")}
+              </p>
+              <Button
+                className="mt-3 h-[52px] w-full rounded-[14px] text-base"
+                data-testid="guard_setup_start"
+                variant="depth"
+                onClick={() => set_step("choose")}
+              >
+                {t("guard.intro_start")}
+              </Button>
+              <Button
+                className="mt-2.5 h-[52px] w-full rounded-[14px] text-base"
+                variant="ghost"
+                onClick={on_close}
+              >
+                {t("guard.intro_not_now")}
+              </Button>
+            </div>
+          )}
           {step === "choose" && (
             <>
               <ModalHeader>
@@ -595,9 +656,7 @@ export function GuardSetupWizard({
             <>
               <ModalHeader>
                 <div className="mb-3 flex justify-center">
-                  <GuardIconTile size="lg" tone="success">
-                    <ShieldCheckIcon className="h-7 w-7" />
-                  </GuardIconTile>
+                  <GuardMarkIcon className="h-12 w-12 text-brand" />
                 </div>
                 <ModalTitle>{t("guard.setup_done_title")}</ModalTitle>
                 <ModalDescription>
