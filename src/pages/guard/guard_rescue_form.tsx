@@ -1,0 +1,239 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import type {
+  GuardRescueStart,
+  GuardRescueState,
+} from "@/services/api/guard";
+
+import { useEffect, useRef, useState } from "react";
+
+import { format_guard_time } from "@/components/guard/guard_waiting_screen";
+import { Button } from "@/components/ui/button";
+import { use_i18n } from "@/lib/i18n/context";
+import { guard_rescue_status } from "@/services/api/guard";
+
+export const GUARD_RESCUE_STORAGE_KEY = "aster_guard_rescue";
+export const GUARD_SETUP_AFTER_RESCUE_KEY = "aster_guard_setup_after_rescue";
+export const GUARD_RESCUE_POLL_MS = 60_000;
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function local_store(): Storage | null {
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function session_store(): Storage | null {
+  try {
+    return typeof window === "undefined" ? null : window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+export function save_guard_rescue(rescue: GuardRescueStart): void {
+  if (!UUID_PATTERN.test(rescue.rescue_id)) return;
+  try {
+    local_store()?.setItem(
+      GUARD_RESCUE_STORAGE_KEY,
+      JSON.stringify({
+        rescue_id: rescue.rescue_id,
+        apply_after: rescue.apply_after,
+      }),
+    );
+  } catch {
+    return;
+  }
+}
+
+export function load_guard_rescue(): GuardRescueStart | null {
+  try {
+    const raw = local_store()?.getItem(GUARD_RESCUE_STORAGE_KEY);
+
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<GuardRescueStart>;
+
+    if (
+      typeof parsed.rescue_id !== "string" ||
+      !UUID_PATTERN.test(parsed.rescue_id) ||
+      typeof parsed.apply_after !== "string"
+    ) {
+      return null;
+    }
+
+    return { rescue_id: parsed.rescue_id, apply_after: parsed.apply_after };
+  } catch {
+    return null;
+  }
+}
+
+export function clear_guard_rescue(): void {
+  try {
+    local_store()?.removeItem(GUARD_RESCUE_STORAGE_KEY);
+  } catch {
+    return;
+  }
+}
+
+export function mark_setup_after_rescue(): void {
+  try {
+    session_store()?.setItem(GUARD_SETUP_AFTER_RESCUE_KEY, "1");
+  } catch {
+    return;
+  }
+}
+
+export function take_setup_after_rescue(): boolean {
+  try {
+    const store = session_store();
+
+    if (store?.getItem(GUARD_SETUP_AFTER_RESCUE_KEY) !== "1") return false;
+    store.removeItem(GUARD_SETUP_AFTER_RESCUE_KEY);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function is_visible(): boolean {
+  return typeof document === "undefined" || document.visibilityState !== "hidden";
+}
+
+export function use_guard_rescue_status(rescue: GuardRescueStart | null) {
+  const [state, set_state] = useState<GuardRescueState>("pending");
+  const [apply_after, set_apply_after] = useState(rescue?.apply_after ?? "");
+  const last_check = useRef(0);
+  const rescue_id = rescue?.rescue_id ?? "";
+
+  useEffect(() => {
+    if (!rescue) return;
+    save_guard_rescue(rescue);
+    set_apply_after(rescue.apply_after);
+  }, [rescue]);
+
+  useEffect(() => {
+    if (!UUID_PATTERN.test(rescue_id)) return;
+    let alive = true;
+    let done = false;
+
+    const check = async () => {
+      if (done || !is_visible()) return;
+      const now = Date.now();
+
+      if (last_check.current && now - last_check.current < GUARD_RESCUE_POLL_MS) {
+        return;
+      }
+      last_check.current = now;
+      const response = await guard_rescue_status(rescue_id);
+
+      if (!alive || response.error || !response.data) return;
+      const next = response.data.status;
+
+      if (response.data.apply_after) set_apply_after(response.data.apply_after);
+      set_state(next);
+      if (next !== "pending") {
+        done = true;
+        clear_guard_rescue();
+      }
+    };
+
+    void check();
+    const timer = window.setInterval(() => void check(), GUARD_RESCUE_POLL_MS);
+    const on_visible = () => void check();
+
+    document.addEventListener("visibilitychange", on_visible);
+
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", on_visible);
+    };
+  }, [rescue_id]);
+
+  return { state, apply_after };
+}
+
+interface GuardRescueProgressProps {
+  rescue: GuardRescueStart | null;
+  on_back: () => void;
+}
+
+export function GuardRescueProgress({ rescue, on_back }: GuardRescueProgressProps) {
+  const { t } = use_i18n();
+  const { state, apply_after } = use_guard_rescue_status(rescue);
+
+  if (state === "applied") {
+    return (
+      <div className="space-y-4 text-center" data-testid="guard_rescue_applied">
+        <p className="text-sm font-medium text-txt-primary">
+          {t("guard.rescue_applied_title")}
+        </p>
+        <p className="text-sm text-txt-muted">{t("guard.rescue_applied_body")}</p>
+        <Button
+          className="w-full"
+          data-testid="guard_rescue_sign_in"
+          variant="depth"
+          onClick={() => {
+            mark_setup_after_rescue();
+            on_back();
+          }}
+        >
+          {t("guard.rescue_sign_in")}
+        </Button>
+      </div>
+    );
+  }
+
+  if (state === "vetoed" || state === "cancelled") {
+    return (
+      <div className="space-y-4 text-center" data-testid="guard_rescue_stopped">
+        <p className="text-sm font-medium text-txt-primary">
+          {t("guard.rescue_stopped_title")}
+        </p>
+        <p className="text-sm text-txt-muted">{t("guard.rescue_stopped_body")}</p>
+        <Button className="w-full" variant="depth" onClick={on_back}>
+          {t("guard.sign_in_back")}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 text-center" data-testid="guard_rescue_waiting">
+      <p className="text-sm font-medium text-txt-primary">
+        {t("guard.rescue_waiting_title")}
+      </p>
+      <p className="text-sm text-txt-muted" role="status">
+        {t("guard.sign_in_rescue_started", {
+          date: format_guard_time(apply_after),
+        })}
+      </p>
+      <Button className="w-full" variant="outline" onClick={on_back}>
+        {t("guard.sign_in_back")}
+      </Button>
+    </div>
+  );
+}

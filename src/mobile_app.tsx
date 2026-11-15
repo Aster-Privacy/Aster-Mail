@@ -128,6 +128,9 @@ import("@/pages/mobile/mobile_welcome").catch((caught) =>
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/mobile/mobile_forgot_password"),
 );
+const GuardVetoPage = lazy_with_retry(
+  () => import("@/pages/guard/guard_veto_page"),
+);
 const PublicCancelPage = lazy_with_retry(
   () => import("@/pages/public_cancel"),
 );
@@ -199,6 +202,7 @@ const AUTH_PREFIXES = [
   "/register",
   "/signup",
   "/forgot-password",
+  "/guard/veto",
   "/cancel",
   "/reset-password",
   "/verify-recovery-email",
@@ -825,6 +829,7 @@ function MobileApp() {
               <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              <Route element={<GuardVetoPage />} path="/guard/veto" />
               {PUBLIC_CANCEL_ENABLED && (
                 <Route element={<PublicCancelPage />} path="/cancel" />
               )}

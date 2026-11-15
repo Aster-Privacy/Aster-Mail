@@ -30,6 +30,7 @@ const PUBLIC_ENTRY_PATHS = [
   "/signup",
   "/invite",
   "/forgot-password",
+  "/guard/veto",
   "/cancel",
   "/reset-password",
   "/verify-recovery-email",

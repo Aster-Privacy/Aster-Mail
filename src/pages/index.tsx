@@ -152,6 +152,7 @@ import { ExternalAccountHealthBanner } from "@/components/common/external_accoun
 import { PaymentPastDueBanner } from "@/components/common/payment_past_due_banner";
 import { use_payment_past_due } from "@/hooks/use_payment_past_due";
 import { SurveyBanner } from "@/components/survey/survey_banner";
+import { GuardRescueTopBanner } from "@/components/guard/guard_rescue_banner";
 import { ReviewPromptBanner } from "@/components/review/review_prompt_banner";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklist";
 import { RecoveryReminder } from "@/components/onboarding/recovery_reminder";
@@ -457,6 +458,7 @@ export default function IndexPage() {
           <NotificationBanner />
         )}
         {!state.is_settings_route && <ExternalAccountHealthBanner />}
+        <GuardRescueTopBanner />
         <SurveyBanner on_visibility_change={set_is_survey_visible} />
         {!is_survey_visible && !payment_past_due.is_past_due && (
           <ReviewPromptBanner />

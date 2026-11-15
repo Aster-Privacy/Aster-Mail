@@ -39,6 +39,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
+import { GuardRescueProgress } from "@/pages/guard/guard_rescue_form";
 
 export function format_guard_time(iso: string): string {
   const ms = Date.parse(iso);
@@ -247,14 +248,7 @@ export function GuardWaitingScreen({
       <EndedState kind="error" message={t("guard.sign_in_error")} on_back={on_back} />
     );
   } else if (state.phase === "rescue") {
-    body = (
-      <EndedState
-        message={t("guard.sign_in_rescue_started", {
-          date: format_guard_time(state.rescue?.apply_after ?? ""),
-        })}
-        on_back={on_back}
-      />
-    );
+    body = <GuardRescueProgress rescue={state.rescue} on_back={on_back} />;
   } else if (state.phase === "starting" || state.number === null) {
     body = (
       <p className="text-sm text-center text-txt-muted" role="status">

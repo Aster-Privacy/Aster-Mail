@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { GuardRequiredInfo } from "@/services/api/client/helpers";
+import type { GuardRescueStart } from "@/services/api/guard";
 import type {
   GuardSignInDeps,
   GuardSignInFinish,
@@ -29,14 +30,22 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { GuardWaitingScreen } from "@/components/guard/guard_waiting_screen";
 import { use_guard_sign_in } from "@/components/guard/use_guard_sign_in";
+import {
+  GuardRescueProgress,
+  load_guard_rescue,
+} from "@/pages/guard/guard_rescue_form";
 import { GUARD_REQUIRED_EVENT } from "@/services/api/client/helpers";
 import {
   default_guard_sign_in_deps,
   read_stored_guard_sign_in,
 } from "@/services/guard/guard_sign_in";
 
+export type GuardGateStart =
+  | GuardSignInStart
+  | { kind: "rescue"; rescue: GuardRescueStart };
+
 export interface GuardSignInGate {
-  guard_start: GuardSignInStart | null;
+  guard_start: GuardGateStart | null;
   set_guard_user_hash: (user_hash: string | null) => void;
   clear_guard: () => void;
 }
@@ -45,11 +54,14 @@ export function use_guard_sign_in_gate(
   deps: GuardSignInDeps = default_guard_sign_in_deps,
 ): GuardSignInGate {
   const user_hash_ref = useRef<string | null>(null);
-  const [guard_start, set_guard_start] = useState<GuardSignInStart | null>(
+  const [guard_start, set_guard_start] = useState<GuardGateStart | null>(
     () => {
       const stored = read_stored_guard_sign_in(deps.storage(), deps.now());
 
-      return stored ? { kind: "stored", stored } : null;
+      if (stored) return { kind: "stored", stored };
+      const rescue = load_guard_rescue();
+
+      return rescue ? { kind: "rescue", rescue } : null;
     },
   );
 
@@ -75,18 +87,51 @@ export function use_guard_sign_in_gate(
 }
 
 interface GuardSignInPanelProps {
-  start: GuardSignInStart;
+  start: GuardGateStart;
   on_complete: GuardSignInFinish;
   on_back: () => void;
   deps?: GuardSignInDeps;
 }
 
-export function GuardSignInPanel({
+export function GuardSignInPanel(props: GuardSignInPanelProps) {
+  const { start, on_back } = props;
+
+  if (start.kind === "rescue") {
+    return <GuardRescueScreen rescue={start.rescue} on_back={on_back} />;
+  }
+
+  return <GuardSignInFlow {...props} start={start} />;
+}
+
+function GuardRescueScreen({
+  rescue,
+  on_back,
+}: {
+  rescue: GuardRescueStart;
+  on_back: () => void;
+}) {
+  return (
+    <div className="w-full" data-testid="guard_rescue_screen">
+      <div className="flex justify-center mb-6">
+        <img
+          alt="Aster"
+          className="h-10"
+          decoding="async"
+          draggable={false}
+          src="/text_logo.png"
+        />
+      </div>
+      <GuardRescueProgress rescue={rescue} on_back={on_back} />
+    </div>
+  );
+}
+
+function GuardSignInFlow({
   start,
   on_complete,
   on_back,
   deps,
-}: GuardSignInPanelProps) {
+}: GuardSignInPanelProps & { start: GuardSignInStart }) {
   const guard = use_guard_sign_in(start, on_complete, deps);
 
   return (

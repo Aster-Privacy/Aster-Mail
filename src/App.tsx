@@ -100,6 +100,9 @@ const InvitePage = lazy_with_retry(() => import("@/pages/invite"));
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/forgot_password"),
 );
+const GuardVetoPage = lazy_with_retry(
+  () => import("@/pages/guard/guard_veto_page"),
+);
 const PublicCancelPage = lazy_with_retry(
   () => import("@/pages/public_cancel"),
 );
@@ -570,6 +573,7 @@ function App() {
               <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              <Route element={<GuardVetoPage />} path="/guard/veto" />
               {PUBLIC_CANCEL_ENABLED && (
                 <Route element={<PublicCancelPage />} path="/cancel" />
               )}
