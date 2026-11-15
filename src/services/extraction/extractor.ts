@@ -93,23 +93,31 @@ function own_message_text(
   text: string,
   html?: string,
 ): string {
-  const full = normalize_email_text(text, html);
-
-  if (is_forwarded_message(subject, full)) return full;
-
-  const reply = is_reply_subject(subject);
   const source = extraction_source(text, html).slice(
     0,
     MAX_EXTRACTION_CHARS * 4,
   );
-  const readable = is_html_content(source)
+
+  if (!source) return "";
+
+  const is_html = is_html_content(source);
+  const marker_text = is_html
+    ? source.replace(/<[^>]*>/g, "\n")
+    : decode_basic_entities(source);
+
+  if (is_forwarded_message(subject, marker_text)) {
+    return normalize_email_text(text, html);
+  }
+
+  const reply = is_reply_subject(subject);
+  const readable = is_html
     ? html_to_readable_plain_text(without_quoted_markup(source, reply))
     : decode_basic_entities(source);
   const own = without_quoted_lines(readable).slice(0, MAX_EXTRACTION_CHARS);
 
   if (own) return own;
 
-  return reply ? "" : full;
+  return reply ? "" : normalize_email_text(text, html);
 }
 
 function clean_text_field(value: string | null | undefined): string | null {
