@@ -10536,6 +10536,8 @@ export const it = {
     print_codes: "Stampa",
     codes_copied: "Codici copiati.",
     i_saved_these_codes: "Ho salvato questi codici",
+    recovered_account_address:
+      "L'indirizzo del tuo account è {{address}}. Usa questo indirizzo per accedere.",
     review_security_title: "Controlla la tua sicurezza",
     review_security_desc:
       "La tua password è stata cambiata e il tuo account è stato recuperato.",

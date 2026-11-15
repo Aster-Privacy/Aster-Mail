@@ -38,6 +38,7 @@ export interface InitiateRecoveryResponse {
   recovery_token: string;
   encrypted_recovery_email?: string;
   recovery_email_nonce?: string;
+  account_address?: string;
 }
 
 export interface RecoveryEmailReencryption {
@@ -107,6 +108,7 @@ export interface CodesStepUp {
 
 interface CompleteRecoveryResponse {
   success: boolean;
+  account_address?: string;
 }
 
 interface SaveRecoveryBackupResponse {

@@ -134,6 +134,8 @@ export default function ForgotPasswordPage() {
     codes_saved,
     set_codes_saved,
     review,
+    recovered_address,
+    handle_navigate_sign_in,
     email,
     resend_cooldown,
     is_resending,
@@ -805,6 +807,16 @@ export default function ForgotPasswordPage() {
               false,
             )}
           >
+            {recovered_address && (
+              <p
+                className="mb-4 w-full text-[15px] text-txt-primary"
+                data-testid="recovered-account-address"
+              >
+                {t("auth.recovered_account_address", {
+                  address: recovered_address,
+                })}
+              </p>
+            )}
             <div className="w-full divide-y divide-edge-secondary">
               <ReviewRow label={t("auth.review_devices_signed_out")} />
               {review.second_factors_removed && (
@@ -832,7 +844,7 @@ export default function ForgotPasswordPage() {
                 className="w-full"
                 size="xl"
                 variant="depth"
-                onClick={() => navigate("/sign-in")}
+                onClick={handle_navigate_sign_in}
               >
                 {t("auth.sign_in")}
               </Button>

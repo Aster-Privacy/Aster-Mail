@@ -9341,6 +9341,8 @@ export const zh_CN = {
     print_codes: "打印",
     codes_copied: "已复制代码。",
     i_saved_these_codes: "我已保存这些代码",
+    recovered_account_address:
+      "你的账户地址是 {{address}}。请使用此地址登录。",
     review_security_title: "检查你的安全设置",
     review_security_desc: "你的密码已更改，账户已恢复。",
     review_devices_signed_out: "其他设备已退出登录。",

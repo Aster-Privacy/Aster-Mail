@@ -10241,6 +10241,8 @@ export const ja = {
     print_codes: "印刷",
     codes_copied: "コードをコピーしました。",
     i_saved_these_codes: "これらのコードを保存しました",
+    recovered_account_address:
+      "アカウントのアドレスは {{address}} です。サインインにはこのアドレスを使用してください。",
     review_security_title: "セキュリティを確認する",
     review_security_desc: "パスワードが変更され、アカウントが復元されました。",
     review_devices_signed_out: "他のデバイスからログアウトしました。",

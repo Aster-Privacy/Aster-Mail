@@ -10355,6 +10355,8 @@ export const en: Translations = {
     print_codes: "Print",
     codes_copied: "Codes copied.",
     i_saved_these_codes: "I saved these codes",
+    recovered_account_address:
+      "Your account address is {{address}}. Use this address to sign in.",
     review_security_title: "Review your security",
     review_security_desc:
       "Your password was changed and your account was recovered.",

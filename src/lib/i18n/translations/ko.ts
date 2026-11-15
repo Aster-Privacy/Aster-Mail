@@ -10060,6 +10060,8 @@ export const ko = {
     print_codes: "인쇄",
     codes_copied: "코드를 복사했습니다.",
     i_saved_these_codes: "이 코드를 저장했습니다",
+    recovered_account_address:
+      "계정 주소는 {{address}}입니다. 이 주소로 로그인하세요.",
     review_security_title: "보안 검토",
     review_security_desc: "비밀번호가 변경되었고 계정이 복구되었습니다.",
     review_devices_signed_out: "다른 기기에서 로그아웃되었습니다.",

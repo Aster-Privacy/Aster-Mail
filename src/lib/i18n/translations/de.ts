@@ -10529,6 +10529,8 @@ export const de = {
     print_codes: "Drucken",
     codes_copied: "Codes kopiert.",
     i_saved_these_codes: "Ich habe diese Codes gespeichert",
+    recovered_account_address:
+      "Ihre Kontoadresse lautet {{address}}. Verwenden Sie diese Adresse zum Anmelden.",
     review_security_title: "Sicherheit überprüfen",
     review_security_desc:
       "Ihr Passwort wurde geändert und Ihr Konto wurde wiederhergestellt.",

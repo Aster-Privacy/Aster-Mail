@@ -10456,6 +10456,8 @@ export const nl = {
     print_codes: "Afdrukken",
     codes_copied: "Codes gekopieerd.",
     i_saved_these_codes: "Ik heb deze codes opgeslagen",
+    recovered_account_address:
+      "Je accountadres is {{address}}. Gebruik dit adres om in te loggen.",
     review_security_title: "Controleer je beveiliging",
     review_security_desc:
       "Je wachtwoord is gewijzigd en je account is hersteld.",
