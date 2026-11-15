@@ -60,6 +60,7 @@ import { VanguardSection } from "@/components/settings/security/vanguard_section
 import { SessionSection } from "@/components/settings/security/session_section";
 import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
 import { AccountRecoverySection } from "@/components/settings/security/account_recovery_section";
+import { GuardSection } from "@/components/guard/guard_section";
 import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
 import { use_security } from "@/components/settings/hooks/use_security";
 import { use_recovery_status } from "@/hooks/use_recovery_status";
@@ -267,6 +268,8 @@ export function SecuritySection({
       <div id={SETTINGS_ANCHORS.passkeys}>
         <PasskeySection />
       </div>
+
+      <GuardSection />
 
       <div id={SETTINGS_ANCHORS.sessions}>
         <SessionSection

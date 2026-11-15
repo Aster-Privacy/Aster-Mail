@@ -42,6 +42,8 @@ import {
 
 import { MobileExternalKeyGroup } from "./external_key_group";
 
+import { GuardSection } from "@/components/guard/guard_section";
+
 import { reprotect_vault_keys_for_password_change } from "@/services/crypto/identity_key_materials";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -748,6 +750,10 @@ export function SecuritySection({
             </div>
           )}
         </SettingsGroup>
+
+        <div className="px-4 py-2">
+          <GuardSection />
+        </div>
 
         <SettingsGroup title={t("settings.login_alerts")}>
           <SettingsRow
