@@ -4040,6 +4040,9 @@ export const zh_CN = {
     email_view_description: "选择点击邮件时的打开方式",
     popup: "弹出窗口",
     popup_description: "在可拖拽、可调整大小的弹出窗口中打开",
+    close_popup_on_outside_click: "点击外部关闭弹出窗口",
+    close_popup_on_outside_click_description:
+      "当邮件在弹出窗口中打开时，点击弹出窗口外的任意位置即可将其关闭",
     split_view: "分栏视图",
     split_view_description: "并排显示邮件列表和预览",
     full_page: "全页视图",

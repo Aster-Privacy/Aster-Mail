@@ -4501,6 +4501,9 @@ export const fr = {
     popup: "Fenêtre contextuelle",
     popup_description:
       "S'ouvre dans une fenêtre déplaçable et redimensionnable",
+    close_popup_on_outside_click: "Fermer la fenêtre en cliquant à l'extérieur",
+    close_popup_on_outside_click_description:
+      "Lorsque les e-mails s'ouvrent dans une fenêtre contextuelle, un clic n'importe où à l'extérieur la ferme",
     split_view: "Vue partagée",
     split_view_description:
       "Affiche la liste des e-mails et l'aperçu côte à côte",

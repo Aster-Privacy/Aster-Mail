@@ -6252,6 +6252,9 @@ export const de = {
       "Wählen Sie, wie E-Mails beim Anklicken geöffnet werden",
     popup_description:
       "Öffnet sich in einem verschiebbaren Popup, das in der Größe angepasst werden kann",
+    close_popup_on_outside_click: "Popup durch Klicken außerhalb schließen",
+    close_popup_on_outside_click_description:
+      "Wenn E-Mails in einem Popup geöffnet werden, schließt ein Klick außerhalb des Popups es",
     full_page_description:
       "Öffnet E-Mail in Vollbreitenansicht ohne Posteingangsliste",
     thread_count_position: "Position des Thread-Zähler-Badges",

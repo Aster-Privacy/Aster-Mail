@@ -91,7 +91,7 @@ export function SimpleToast({ position }: SimpleToastProps) {
   const { layout, y_offset } = use_toast_position(position);
 
   return (
-    <div className="aster_simple_toast_host">
+    <div className="aster_simple_toast_host" data-popup-outside-ignore="">
       <SimpleToastView
         dismiss_label={t("common.dismiss")}
         layout={layout}

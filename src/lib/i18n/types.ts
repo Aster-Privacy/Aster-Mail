@@ -3618,6 +3618,8 @@ export interface SettingsTranslations {
   email_view_description: string;
   popup: string;
   popup_description: string;
+  close_popup_on_outside_click: string;
+  close_popup_on_outside_click_description: string;
   split_view: string;
   split_view_description: string;
   full_page: string;

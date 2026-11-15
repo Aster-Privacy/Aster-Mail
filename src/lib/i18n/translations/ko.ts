@@ -4443,6 +4443,9 @@ export const ko = {
     email_view_description: "이메일을 클릭했을 때 여는 방식을 선택합니다",
     popup: "팝업",
     popup_description: "크기 조절 및 이동 가능한 팝업으로 엽니다",
+    close_popup_on_outside_click: "바깥쪽을 클릭하여 팝업 닫기",
+    close_popup_on_outside_click_description:
+      "이메일이 팝업으로 열려 있을 때 팝업 바깥 아무 곳이나 클릭하면 팝업이 닫힙니다",
     split_view: "분할 보기",
     split_view_description: "이메일 목록과 미리보기를 나란히 표시합니다",
     full_page: "전체 페이지",

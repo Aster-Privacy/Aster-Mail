@@ -267,6 +267,7 @@ function ComposeDock({ children }: { children: ReactNode }) {
   return (
     <div
       className="fixed bottom-0 start-0 end-0 z-50 pointer-events-none"
+      data-popup-outside-ignore=""
       style={{ paddingInlineEnd: `${panel_inset}px` }}
     >
       {children}

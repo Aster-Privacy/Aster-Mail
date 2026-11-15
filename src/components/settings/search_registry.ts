@@ -1026,6 +1026,14 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     ],
   },
   {
+    label: "Close popup by clicking outside",
+    label_key: "settings.close_popup_on_outside_click",
+    section: "appearance",
+    breadcrumb: "Appearance > Layout",
+    crumb_key: "settings_search.layout",
+    keywords: ["popup", "click outside", "close popup", "dismiss"],
+  },
+  {
     label: "Compose window mode",
     label_key: "settings.compose_window_mode",
     section: "appearance",

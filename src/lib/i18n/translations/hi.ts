@@ -3506,6 +3506,9 @@ export const hi = {
     popup: "पॉपअप",
     popup_description:
       "ऐसे पॉपअप में खुलता है जिसे खींचा और आकार में बदला जा सकता है",
+    close_popup_on_outside_click: "बाहर क्लिक करके पॉपअप बंद करें",
+    close_popup_on_outside_click_description:
+      "जब ईमेल पॉपअप में खुलते हैं, तो पॉपअप के बाहर कहीं भी क्लिक करने से वह बंद हो जाता है",
     split_view: "बंटा हुआ दृश्य",
     split_view_description: "ईमेल सूची और झलक साथ-साथ दिखाता है",
     full_page: "पूरा पेज",

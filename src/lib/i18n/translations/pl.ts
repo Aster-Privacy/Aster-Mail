@@ -4617,6 +4617,9 @@ export const pl = {
     email_view_description: "Wybierz, jak e-maile otwierają się po kliknięciu",
     popup: "Okno wyskakujące",
     popup_description: "Otwiera się w przesuwanym oknie, które można zmieniać",
+    close_popup_on_outside_click: "Zamykaj okno po kliknięciu poza nim",
+    close_popup_on_outside_click_description:
+      "Gdy e-maile otwierają się w wyskakującym oknie, kliknięcie w dowolnym miejscu poza nim je zamyka",
     split_view: "Widok podzielony",
     split_view_description: "Pokazuje listę e-maili i podgląd obok siebie",
     full_page: "Pełna strona",
