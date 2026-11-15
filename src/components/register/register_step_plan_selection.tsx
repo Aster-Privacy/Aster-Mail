@@ -859,6 +859,14 @@ export const RegisterStepPlanSelection = ({
           : t("settings.prices_converted_note")}
       </p>
 
+      <p
+        className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold"
+        style={{ color: "var(--color-success)" }}
+      >
+        <ShieldCheckIcon aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
+        {t("settings.money_back_guarantee")}
+      </p>
+
       {is_loading ? (
         <div className="flex items-center gap-2 mt-10 text-txt-tertiary">
           <Spinner size="md" />
