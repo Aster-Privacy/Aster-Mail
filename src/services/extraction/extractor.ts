@@ -36,6 +36,12 @@ import {
   html_to_readable_plain_text,
   is_html_content,
 } from "@/lib/html_sanitizer";
+import {
+  is_forwarded_message,
+  is_reply_subject,
+  without_quoted_lines,
+  without_quoted_markup,
+} from "./own_content";
 
 const BASIC_ENTITIES: Record<string, string> = {
   "&amp;": "&",
@@ -80,6 +86,30 @@ function normalize_email_text(text: string, html?: string): string {
     : decode_basic_entities(bounded);
 
   return readable.slice(0, MAX_EXTRACTION_CHARS);
+}
+
+function own_message_text(
+  subject: string,
+  text: string,
+  html?: string,
+): string {
+  const full = normalize_email_text(text, html);
+
+  if (is_forwarded_message(subject, full)) return full;
+
+  const reply = is_reply_subject(subject);
+  const source = extraction_source(text, html).slice(
+    0,
+    MAX_EXTRACTION_CHARS * 4,
+  );
+  const readable = is_html_content(source)
+    ? html_to_readable_plain_text(without_quoted_markup(source, reply))
+    : decode_basic_entities(source);
+  const own = without_quoted_lines(readable).slice(0, MAX_EXTRACTION_CHARS);
+
+  if (own) return own;
+
+  return reply ? "" : full;
 }
 
 function clean_text_field(value: string | null | undefined): string | null {
@@ -1643,7 +1673,7 @@ export function extract_email_details(
   from_name: string,
 ): EmailExtractionResult {
   const clean_subject = decode_basic_entities(subject);
-  const clean_text = normalize_email_text(body_text, body_html);
+  const clean_text = own_message_text(clean_subject, body_text, body_html);
   const is_purchase = is_purchase_email(clean_subject, clean_text);
   const is_shipping = is_shipping_email(clean_subject, clean_text);
 
