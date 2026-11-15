@@ -41,7 +41,10 @@ import {
 import { prepare_image_attachments } from "@/services/image_size_reduction";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
-import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
+import {
+  editor_plain_text,
+  escape_html as escape_plain_text,
+} from "@/hooks/editor_utils";
 import { as_quotable_html } from "@/lib/html_text";
 import {
   store_pending_send_payload,
@@ -560,7 +563,7 @@ export function use_forward_modal({
       let seeded_message: string;
 
       if (is_plain_text_ref.current) {
-        seeded_message = message_editor_ref.current.innerText;
+        seeded_message = editor_plain_text(message_editor_ref.current);
         message_editor_ref.current.innerText = seeded_message;
       } else {
         seeded_message = read_compose_editor_html(
@@ -775,7 +778,7 @@ export function use_forward_modal({
     const element = message_editor_ref.current;
 
     if (element) {
-      const text = element.innerText;
+      const text = editor_plain_text(element);
 
       if (is_plain_text_mode) {
         const html = escape_plain_text(text).replace(/\n/g, "<br>");

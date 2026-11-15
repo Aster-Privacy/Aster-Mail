@@ -251,6 +251,97 @@ export function plain_text_to_editor_html(text: string): string {
     .join("");
 }
 
+const EDITOR_LINE_TAGS = new Set([
+  "ADDRESS",
+  "ARTICLE",
+  "ASIDE",
+  "BLOCKQUOTE",
+  "CENTER",
+  "DD",
+  "DIV",
+  "DL",
+  "DT",
+  "FIGCAPTION",
+  "FIGURE",
+  "FOOTER",
+  "H1",
+  "H2",
+  "H3",
+  "H4",
+  "H5",
+  "H6",
+  "HEADER",
+  "HR",
+  "LI",
+  "OL",
+  "P",
+  "PRE",
+  "SECTION",
+  "TABLE",
+  "TR",
+  "UL",
+]);
+
+const EDITOR_SKIPPED_TAGS = new Set(["SCRIPT", "STYLE", "TEMPLATE"]);
+
+export function editor_plain_text(root: HTMLElement): string {
+  const lines: string[] = [];
+  let current = "";
+  let open = false;
+
+  const end_line = () => {
+    lines.push(current);
+    current = "";
+    open = false;
+  };
+
+  const visit = (node: Node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const parts = (node as Text).data
+        .replace(/\u200B/g, "")
+        .replace(/\r\n?/g, "\n")
+        .split("\n");
+
+      parts.forEach((part, index) => {
+        if (index > 0) end_line();
+        if (part) {
+          current += part;
+          open = true;
+        }
+      });
+
+      return;
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+    const el = node as Element;
+    const tag = el.tagName.toUpperCase();
+
+    if (EDITOR_SKIPPED_TAGS.has(tag)) return;
+
+    if (tag === "BR") {
+      end_line();
+
+      return;
+    }
+
+    const is_line = EDITOR_LINE_TAGS.has(tag);
+
+    if (is_line && open) end_line();
+
+    for (const child of Array.from(el.childNodes)) visit(child);
+
+    if (is_line && open) end_line();
+  };
+
+  for (const child of Array.from(root.childNodes)) visit(child);
+
+  if (open) end_line();
+
+  return lines.join("\n");
+}
+
 export function strip_editor_fillers(html: string): string {
   return html.replace(/\u200B/g, "");
 }

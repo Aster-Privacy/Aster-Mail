@@ -103,6 +103,7 @@ import {
 import { inline_email_css } from "@/lib/forward_css_inliner";
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 import {
+  editor_plain_text,
   escape_html as escape_plain_text,
   escaped_html_to_plain_text,
 } from "@/hooks/editor_utils";
@@ -267,7 +268,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       return read_compose_editor_html(editor.innerHTML);
     }
 
-    const text = editor.innerText;
+    const text = editor_plain_text(editor);
 
     editor.innerText = text;
 

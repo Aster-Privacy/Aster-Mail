@@ -303,11 +303,7 @@ async function setup(text: string, plain = true) {
   await act(async () => {
     stable.editor_change.current(text);
     if (plain) {
-      Object.defineProperty(latest.message_editor_ref.current!, "innerText", {
-        value: text,
-        writable: true,
-        configurable: true,
-      });
+      latest.message_editor_ref.current!.textContent = text;
     } else latest.message_editor_ref.current!.innerHTML = text;
   });
 }
