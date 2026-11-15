@@ -63,11 +63,39 @@ export interface RatchetKeySet {
 }
 
 export const RATCHET_PREVIOUS_KEYS_LIMIT = 32;
+export const RATCHET_HISTORY_MAX_BYTES = 480 * 1024;
+
+function ratchet_key_set_bytes(set: RatchetKeySet): number {
+  return JSON.stringify(set).length + 1;
+}
+
+export function ratchet_history_bytes(sets: RatchetKeySet[]): number {
+  return sets.reduce((total, set) => total + ratchet_key_set_bytes(set), 0);
+}
+
+export function cap_ratchet_history(
+  sets: RatchetKeySet[],
+  count_limit: number | null = null,
+): RatchetKeySet[] {
+  const kept = count_limit === null ? [...sets] : sets.slice(0, count_limit);
+  let bytes = ratchet_history_bytes(kept);
+
+  while (
+    kept.length > RATCHET_PREVIOUS_KEYS_LIMIT &&
+    bytes > RATCHET_HISTORY_MAX_BYTES
+  ) {
+    const dropped = kept.pop();
+
+    if (dropped) bytes -= ratchet_key_set_bytes(dropped);
+  }
+
+  return kept;
+}
 
 export function merge_previous_ratchet_keys(
   ...groups: Array<RatchetKeySet[] | undefined>
 ): RatchetKeySet[] {
-  return dedupe_ratchet_keys(...groups).slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+  return cap_ratchet_history(dedupe_ratchet_keys(...groups));
 }
 
 export function dedupe_ratchet_keys(
@@ -123,7 +151,7 @@ export function retain_previous_ratchet_keys(
     });
   }
 
-  return previous.slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+  return cap_ratchet_history(previous);
 }
 
 export interface EncryptedVault {

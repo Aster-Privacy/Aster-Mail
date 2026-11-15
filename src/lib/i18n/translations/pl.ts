@@ -5107,7 +5107,7 @@ export const pl = {
       "Udostępnij swoje klucze na publicznych serwerach kluczy",
     info_forward_secrecy_title: "Czym jest utajnianie z wyprzedzeniem?",
     info_forward_secrecy_description:
-      "Twoje klucze szyfrowania są automatycznie rotowane według harmonogramu, co ogranicza, ile poczty może odblokować pojedynczy wyciekły klucz. Aby Twoja poczta była czytelna na wszystkich Twoich urządzeniach, Twoje konto przechowuje też kopie wiadomości zaszyfrowane kluczami konta, więc każdy, kto zdobędzie Twoje hasło, nadal może przeczytać Twoją wcześniejszą pocztę.",
+      "Twoje klucze szyfrowania są automatycznie rotowane według harmonogramu, co ogranicza, ile nowej poczty może odblokować pojedynczy wyciekły klucz. Aby Twoja poczta była czytelna na wszystkich Twoich urządzeniach, Twoje konto przechowuje Twoje poprzednie klucze i kopie wiadomości chronione Twoim hasłem, więc każdy, kto zdobędzie Twoje hasło, nadal może przeczytać Twoją wcześniejszą pocztę.",
     info_key_rotation_interval_title: "Interwał rotacji kluczy",
     info_key_rotation_interval_description:
       "Jak często Twój klucz szyfrowania jest wymieniany. Częściej oznacza bezpieczniej, ale z nieco większym obciążeniem. Tydzień to dobra wartość domyślna dla większości.",
@@ -7749,13 +7749,17 @@ export const pl = {
     encryption_keys_updated: "Twoje klucze szyfrowania zostały zaktualizowane",
     current_key_age: "Wiek bieżącego klucza",
     rotate_keys_description_manual:
-      "Wprowadź hasło, aby zrotować klucze szyfrowania. Stare e-maile pozostaną czytelne.",
+      "Wprowadź hasło, aby zrotować klucze szyfrowania.",
     rotate_keys_description_required:
       "Twoje klucze szyfrowania wymagają rotacji. Wprowadź hasło, aby wygenerować nowe klucze.",
     rotating: "Rotowanie...",
     rotate_keys: "Rotuj klucze",
-    key_rotation_data_loss_warning:
-      "Po rotacji poprzedni klucz zostaje wycofany. Wiadomości zaszyfrowane wyłącznie starym kluczem nie będą już możliwe do odszyfrowania. Tej operacji nie można cofnąć.",
+    key_rotation_prune_warning:
+      "Ta rotacja usunie Twoje najstarsze klucze (liczba: {{count}}). Potem nie otworzysz wiadomości zaszyfrowanych wyłącznie tymi kluczami. Tej operacji nie można cofnąć.",
+    key_rotation_prune_warning_one:
+      "Ta rotacja usunie Twój najstarszy klucz. Potem nie otworzysz wiadomości zaszyfrowanych wyłącznie tym kluczem. Tej operacji nie można cofnąć.",
+    key_rotation_history_kept:
+      "Twoje konto zachowuje poprzednie klucze, więc poczta, którą już masz, pozostaje czytelna.",
     bulk_unsubscribe: "Masowa rezygnacja",
     senders_unsubscribed: "Zrezygnowano z {{ count }} nadawców",
     senders_unsubscribed_one: "Zrezygnowano z {{ count }} nadawcy",

@@ -5904,7 +5904,7 @@ export const en: Translations = {
       "Make your keys findable on public keyservers",
     info_forward_secrecy_title: "What is Forward Secrecy?",
     info_forward_secrecy_description:
-      "Your encryption keys rotate automatically on a schedule, which limits how much mail a single leaked key can unlock. To keep your mail readable on all your devices, your account also stores copies of your messages encrypted with your account keys, so anyone who gets your password can still read your past mail.",
+      "Your encryption keys rotate automatically on a schedule, which limits how much new mail a single leaked key can unlock. To keep your mail readable on all your devices, your account keeps your previous keys and copies of your messages, protected by your password. Anyone who gets your password can still read your past mail.",
     info_key_rotation_interval_title: "Key rotation interval",
     info_key_rotation_interval_description:
       "How often your encryption key gets swapped out. More frequent means more secure, but slightly more overhead. A week is a good default for most people.",
@@ -7834,13 +7834,17 @@ export const en: Translations = {
     encryption_keys_updated: "Your encryption keys have been updated",
     current_key_age: "Current Key Age",
     rotate_keys_description_manual:
-      "Enter your password to rotate your encryption keys. Old emails will remain readable.",
+      "Enter your password to rotate your encryption keys.",
     rotate_keys_description_required:
       "Your encryption keys are due for rotation. Enter your password to generate new keys.",
     rotating: "Rotating...",
     rotate_keys: "Rotate Keys",
-    key_rotation_data_loss_warning:
-      "Once rotated, your previous key is retired. Any emails that were encrypted exclusively to your old key will no longer be decryptable. This cannot be undone.",
+    key_rotation_prune_warning:
+      "Rotating now removes your {{count}} oldest keys. You can't open mail encrypted only to those keys after this, and you can't undo it.",
+    key_rotation_prune_warning_one:
+      "Rotating now removes your oldest key. You can't open mail encrypted only to that key after this, and you can't undo it.",
+    key_rotation_history_kept:
+      "Your account keeps your previous keys, so the mail you already have stays readable.",
     bulk_unsubscribe: "Bulk Unsubscribe",
     senders_unsubscribed: "{{ count }} senders unsubscribed",
     senders_unsubscribed_one: "{{ count }} sender unsubscribed",

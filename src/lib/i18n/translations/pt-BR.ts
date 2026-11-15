@@ -4894,7 +4894,7 @@ export const pt_br = {
       "Tornar suas chaves encontráveis em servidores de chaves públicos",
     info_forward_secrecy_title: "O que é sigilo direto?",
     info_forward_secrecy_description:
-      "Suas chaves de criptografia são trocadas automaticamente em intervalos programados, o que limita quantos e-mails uma única chave vazada consegue desbloquear. Para manter seus e-mails legíveis em todos os seus dispositivos, sua conta também guarda cópias das suas mensagens criptografadas com as chaves da sua conta, então quem obtiver sua senha ainda consegue ler seus e-mails anteriores.",
+      "Suas chaves de criptografia são trocadas automaticamente em intervalos programados, o que limita quantos e-mails novos uma única chave vazada consegue desbloquear. Para manter seus e-mails legíveis em todos os seus dispositivos, sua conta guarda suas chaves anteriores e cópias das suas mensagens, protegidas pela sua senha, então quem obtiver sua senha ainda consegue ler seus e-mails anteriores.",
     info_key_rotation_interval_title: "Intervalo de rotação de chaves",
     info_key_rotation_interval_description:
       "Com que frequência sua chave de criptografia é substituída. Quanto mais frequente, mais seguro, mas com um pouco mais de processamento. Uma semana é um bom padrão para a maioria das pessoas.",
@@ -7530,8 +7530,12 @@ export const pt_br = {
     current_key_age: "Idade da chave atual",
     rotating: "Rotacionando...",
     rotate_keys: "Rotacionar chaves",
-    key_rotation_data_loss_warning:
-      "Após a rotação, sua chave anterior é desativada. E-mails criptografados exclusivamente com sua chave antiga não poderão mais ser descriptografados. Esta ação é irreversível.",
+    key_rotation_prune_warning:
+      "Esta rotação remove suas {{count}} chaves mais antigas. Depois disso, você não conseguirá abrir e-mails criptografados apenas com essas chaves, e não é possível desfazer.",
+    key_rotation_prune_warning_one:
+      "Esta rotação remove sua chave mais antiga. Depois disso, você não conseguirá abrir e-mails criptografados apenas com essa chave, e não é possível desfazer.",
+    key_rotation_history_kept:
+      "Sua conta mantém suas chaves anteriores, então os e-mails que você já tem continuam legíveis.",
     bulk_unsubscribe: "Cancelamento em massa",
     senders_unsubscribed: "{{ count }} remetentes com inscrição cancelada",
     senders_unsubscribed_one: "{{ count }} remetente com inscrição cancelada",
@@ -7544,7 +7548,7 @@ export const pt_br = {
     all_clear: "Tudo limpo",
     no_subscriptions_found: "Nenhuma inscrição encontrada",
     rotate_keys_description_manual:
-      "Digite sua senha para rotacionar suas chaves de criptografia. E-mails antigos continuarão legíveis.",
+      "Digite sua senha para rotacionar suas chaves de criptografia.",
     rotate_keys_description_required:
       "Suas chaves de criptografia precisam ser rotacionadas. Digite sua senha para gerar novas chaves.",
     trusted_devices: "Dispositivos confiáveis",

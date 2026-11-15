@@ -133,6 +133,7 @@ export function use_security() {
   const {
     key_age_hours,
     key_fingerprint,
+    removed_key_count: rotation_removed_key_count,
     perform_rotation,
     show_manual_rotation_modal,
     show_modal: show_rotation_modal,
@@ -1036,6 +1037,7 @@ export function use_security() {
 
     key_age_hours,
     key_fingerprint,
+    rotation_removed_key_count,
     perform_rotation,
     show_manual_rotation_modal,
     show_rotation_modal,

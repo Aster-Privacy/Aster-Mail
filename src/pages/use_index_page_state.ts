@@ -147,6 +147,7 @@ export function use_index_page_state() {
     show_modal: show_rotation_modal,
     key_age_hours,
     key_fingerprint,
+    removed_key_count: rotation_removed_key_count,
     perform_rotation,
     close_modal: close_rotation_modal,
   } = use_key_rotation();
@@ -1875,6 +1876,7 @@ export function use_index_page_state() {
     show_rotation_modal,
     key_age_hours,
     key_fingerprint,
+    rotation_removed_key_count,
     perform_rotation,
     close_rotation_modal,
     unsubscribe_sender,

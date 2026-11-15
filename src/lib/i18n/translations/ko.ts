@@ -4906,7 +4906,7 @@ export const ko = {
       "공개 키서버에서 키를 찾을 수 있게 합니다",
     info_forward_secrecy_title: "전방 비밀성이란?",
     info_forward_secrecy_description:
-      "암호화 키는 일정에 따라 자동으로 교체되므로 유출된 키 하나로 열 수 있는 메일이 제한됩니다. 모든 기기에서 메일을 읽을 수 있도록 계정은 계정 키로 암호화된 메시지 사본도 보관합니다. 따라서 비밀번호를 얻은 사람은 과거 메일을 계속 읽을 수 있습니다.",
+      "암호화 키는 일정에 따라 자동으로 교체되므로 유출된 키 하나로 열 수 있는 새 메일이 제한됩니다. 모든 기기에서 메일을 읽을 수 있도록 계정은 이전 키와 메시지 사본을 비밀번호로 보호하여 보관합니다. 따라서 비밀번호를 얻은 사람은 과거 메일을 계속 읽을 수 있습니다.",
     info_key_rotation_interval_title: "키 교체 간격",
     info_key_rotation_interval_description:
       "암호화 키가 얼마나 자주 교체되는지입니다. 더 자주 교체할수록 안전하지만 오버헤드가 약간 증가합니다. 대부분에게 1주일이 좋은 기본값입니다.",
@@ -7427,13 +7427,15 @@ export const ko = {
     encryption_keys_updated: "암호화 키가 업데이트되었습니다",
     current_key_age: "현재 키 사용 기간",
     rotate_keys_description_manual:
-      "암호화 키를 교체하려면 비밀번호를 입력하세요. 이전 이메일은 계속 읽을 수 있습니다.",
+      "암호화 키를 교체하려면 비밀번호를 입력하세요.",
     rotate_keys_description_required:
       "암호화 키 교체 시기가 되었습니다. 새 키를 생성하려면 비밀번호를 입력하세요.",
     rotating: "교체 중...",
     rotate_keys: "키 교체",
-    key_rotation_data_loss_warning:
-      "교체 후 이전 키는 폐기됩니다. 이전 키로만 암호화된 이메일은 더 이상 복호화할 수 없습니다. 이 작업은 되돌릴 수 없습니다.",
+    key_rotation_prune_warning:
+      "지금 교체하면 가장 오래된 키 {{count}}개가 삭제됩니다. 이후에는 이 키로만 암호화된 메일을 열 수 없으며, 이 작업은 되돌릴 수 없습니다.",
+    key_rotation_history_kept:
+      "계정에 이전 키가 보관되므로 기존 메일은 계속 읽을 수 있습니다.",
     bulk_unsubscribe: "일괄 구독 해제",
     senders_unsubscribed: "발신자 {{ count }}명 구독 해제됨",
     opened_in_browser: "{{ count }}개 보관됨 - 수동 확인이 필요할 수 있습니다",

@@ -4959,7 +4959,7 @@ export const es = {
       "Hacer tus claves encontrables en servidores de claves públicos",
     info_forward_secrecy_title: "¿Qué es la confidencialidad persistente?",
     info_forward_secrecy_description:
-      "Tus claves de cifrado rotan automáticamente según una programación, lo que limita cuántos correos puede desbloquear una sola clave filtrada. Para que tus correos sigan siendo legibles en todos tus dispositivos, tu cuenta también guarda copias de tus mensajes cifradas con las claves de tu cuenta, así que quien obtenga tu contraseña podrá seguir leyendo tus correos anteriores.",
+      "Tus claves de cifrado rotan automáticamente según una programación, lo que limita cuántos correos nuevos puede desbloquear una sola clave filtrada. Para que tus correos sigan siendo legibles en todos tus dispositivos, tu cuenta guarda tus claves anteriores y copias de tus mensajes, protegidas con tu contraseña, así que quien obtenga tu contraseña podrá seguir leyendo tus correos anteriores.",
     info_key_rotation_interval_title: "Intervalo de rotación de claves",
     info_key_rotation_interval_description:
       "Con qué frecuencia se reemplaza tu clave de cifrado. Más frecuente es más seguro, pero con algo más de carga. Una semana es un buen valor predeterminado.",
@@ -7150,13 +7150,17 @@ export const es = {
     encryption_keys_updated: "Tus claves de cifrado se han actualizado",
     current_key_age: "Antigüedad de la clave actual",
     rotate_keys_description_manual:
-      "Escribe tu contraseña para rotar las claves de cifrado. Los correos antiguos seguirán siendo legibles.",
+      "Escribe tu contraseña para rotar las claves de cifrado.",
     rotate_keys_description_required:
       "Toca rotar tus claves de cifrado. Escribe tu contraseña para generar claves nuevas.",
     rotating: "Rotando...",
     rotate_keys: "Rotar claves",
-    key_rotation_data_loss_warning:
-      "Una vez rotadas, tu clave anterior queda retirada. Los correos cifrados exclusivamente con tu clave anterior ya no serán descifrables. Esto no se puede deshacer.",
+    key_rotation_prune_warning:
+      "Al rotar ahora se eliminan tus {{count}} claves más antiguas. Después no podrás abrir los correos cifrados solo con esas claves, y no se puede deshacer.",
+    key_rotation_prune_warning_one:
+      "Al rotar ahora se elimina tu clave más antigua. Después no podrás abrir los correos cifrados solo con esa clave, y no se puede deshacer.",
+    key_rotation_history_kept:
+      "Tu cuenta conserva tus claves anteriores, así que los correos que ya tienes siguen siendo legibles.",
     bulk_unsubscribe: "Cancelación masiva",
     senders_unsubscribed: "{{ count }} remitentes cancelados",
     senders_unsubscribed_one: "{{ count }} remitente cancelado",

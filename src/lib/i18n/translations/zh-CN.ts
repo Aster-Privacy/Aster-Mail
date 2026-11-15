@@ -4468,7 +4468,7 @@ export const zh_CN = {
     publish_to_keyservers_description: "在公共密钥服务器上使您的密钥可被查找",
     info_forward_secrecy_title: "什么是前向保密？",
     info_forward_secrecy_description:
-      "您的加密密钥会按计划自动轮换，从而限制单个泄露的密钥能解开的邮件数量。为了让您的邮件在所有设备上都可读，您的账户还会保存使用账户密钥加密的邮件副本，因此任何获得您密码的人仍然可以读取您过去的邮件。",
+      "您的加密密钥会按计划自动轮换，从而限制单个泄露的密钥能解开的新邮件数量。为了让您的邮件在所有设备上都可读，您的账户会保存您以前的密钥和邮件副本，并由您的密码保护，因此任何获得您密码的人仍然可以读取您过去的邮件。",
     info_key_rotation_interval_title: "密钥轮换间隔",
     info_key_rotation_interval_description:
       "您的加密密钥多久更换一次。更频繁意味着更安全，但开销略大。一周对大多数人来说是个好的默认值。",
@@ -6767,8 +6767,10 @@ export const zh_CN = {
     current_key_age: "当前密钥使用时长",
     rotating: "轮换中...",
     rotate_keys: "轮换密钥",
-    key_rotation_data_loss_warning:
-      "轮换后，您的旧密钥将被停用。仅用旧密钥加密的邮件将无法再解密。此操作不可撤销。",
+    key_rotation_prune_warning:
+      "现在轮换将删除您最旧的 {{count}} 个密钥。之后您将无法打开仅用这些密钥加密的邮件，且此操作不可撤销。",
+    key_rotation_history_kept:
+      "您的账户会保留以前的密钥，因此您已有的邮件仍可阅读。",
     bulk_unsubscribe: "批量退订",
     senders_unsubscribed: "已退订 {{ count }} 位发件人",
     opened_in_browser: "{{ count }} 个已归档 - 可能需要手动确认",
@@ -6779,7 +6781,7 @@ export const zh_CN = {
     all_clear: "一切就绪",
     no_subscriptions_found: "未找到任何订阅",
     rotate_keys_description_manual:
-      "输入您的密码以轮换加密密钥，旧邮件仍可正常阅读。",
+      "输入您的密码以轮换加密密钥。",
     rotate_keys_description_required:
       "您的加密密钥到了轮换时间。输入密码以生成新密钥。",
     trusted_devices: "受信任的设备",

@@ -7275,7 +7275,9 @@ export interface SettingsTranslations {
   rotate_keys_description_required: string;
   rotating: string;
   rotate_keys: string;
-  key_rotation_data_loss_warning: string;
+  key_rotation_prune_warning: string;
+  key_rotation_prune_warning_one?: string;
+  key_rotation_history_kept: string;
   bulk_unsubscribe: string;
   senders_unsubscribed: string;
   senders_unsubscribed_one?: string;

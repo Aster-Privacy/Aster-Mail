@@ -45,6 +45,10 @@ function key_set(tag: string, spk = tag): RatchetKeySet {
   };
 }
 
+function large_key_set(tag: string): RatchetKeySet {
+  return { ...key_set(tag), ratchet_pq_identity_key: "x".repeat(20 * 1024) };
+}
+
 function vault_with(
   current: RatchetKeySet | null,
   previous: RatchetKeySet[] = [],
@@ -105,10 +109,21 @@ describe("merge_ratchet_key_history", () => {
     expect(merged).toEqual([key_set("a")]);
   });
 
-  it("caps the history", () => {
+  it("keeps a long history of small sets", () => {
     const many = Array.from(
       { length: RATCHET_PREVIOUS_KEYS_LIMIT + 5 },
       (_, i) => key_set(`k${i}`),
+    );
+
+    expect(merge_ratchet_key_history(null, many)).toHaveLength(
+      RATCHET_PREVIOUS_KEYS_LIMIT + 5,
+    );
+  });
+
+  it("caps a history that exceeds the byte budget", () => {
+    const many = Array.from(
+      { length: RATCHET_PREVIOUS_KEYS_LIMIT + 20 },
+      (_, i) => large_key_set(`k${i}`),
     );
 
     expect(merge_ratchet_key_history(null, many)).toHaveLength(
@@ -176,7 +191,7 @@ describe("carry_displaced_ratchet_keys", () => {
   it("keeps the target history ahead of displaced keys when the cap is hit", () => {
     const target_history = Array.from(
       { length: RATCHET_PREVIOUS_KEYS_LIMIT },
-      (_, i) => key_set(`target-${i}`),
+      (_, i) => large_key_set(`target-${i}`),
     );
     const server = vault_with(key_set("server"), target_history);
     const memory = vault_with(key_set("memory"));

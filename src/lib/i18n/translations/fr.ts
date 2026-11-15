@@ -5000,7 +5000,7 @@ export const fr = {
     info_forward_secrecy_title:
       "Qu'est-ce que la confidentialité persistante ?",
     info_forward_secrecy_description:
-      "Vos clés de chiffrement tournent automatiquement selon un calendrier, ce qui limite le nombre d'e-mails qu'une seule clé compromise peut déverrouiller. Pour que vos e-mails restent lisibles sur tous vos appareils, votre compte conserve aussi des copies de vos messages chiffrées avec les clés de votre compte. Toute personne qui obtient votre mot de passe peut donc encore lire vos anciens e-mails.",
+      "Vos clés de chiffrement tournent automatiquement selon un calendrier, ce qui limite le nombre de nouveaux e-mails qu'une seule clé compromise peut déverrouiller. Pour que vos e-mails restent lisibles sur tous vos appareils, votre compte conserve vos anciennes clés et des copies de vos messages, protégées par votre mot de passe. Toute personne qui obtient votre mot de passe peut donc encore lire vos anciens e-mails.",
     info_key_rotation_interval_title: "Intervalle de rotation des clés",
     info_key_rotation_interval_description:
       "La fréquence à laquelle votre clé de chiffrement est remplacée. Plus souvent est plus sûr, mais avec un peu plus de surcharge. Une semaine est un bon défaut pour la plupart.",
@@ -7228,13 +7228,17 @@ export const fr = {
     senders_unsubscribed_one: "{{ count }} expéditeur désabonné",
     bulk_unsubscribe: "Désabonnement en masse",
     rotate_keys: "Renouveler les clés",
-    key_rotation_data_loss_warning:
-      "Une fois la rotation effectuée, votre ancienne clé est retirée. Les e-mails chiffrés exclusivement avec votre ancienne clé ne pourront plus être déchiffrés. Cette action est irréversible.",
+    key_rotation_prune_warning:
+      "Ce renouvellement supprime vos {{count}} clés les plus anciennes. Vous ne pourrez plus ouvrir les e-mails chiffrés uniquement avec ces clés, et cette action est irréversible.",
+    key_rotation_prune_warning_one:
+      "Ce renouvellement supprime votre clé la plus ancienne. Vous ne pourrez plus ouvrir les e-mails chiffrés uniquement avec cette clé, et cette action est irréversible.",
+    key_rotation_history_kept:
+      "Votre compte conserve vos anciennes clés, donc vos e-mails existants restent lisibles.",
     rotating: "Renouvellement...",
     rotate_keys_description_required:
       "Vos clés de chiffrement doivent être renouvelées. Saisissez votre mot de passe pour générer de nouvelles clés.",
     rotate_keys_description_manual:
-      "Saisissez votre mot de passe pour renouveler vos clés de chiffrement. Vos anciens e-mails restent lisibles.",
+      "Saisissez votre mot de passe pour renouveler vos clés de chiffrement.",
     current_key_age: "Âge de la clé actuelle",
     encryption_keys_updated: "Vos clés de chiffrement ont été mises à jour",
     keys_rotated_successfully: "Clés renouvelées avec succès",

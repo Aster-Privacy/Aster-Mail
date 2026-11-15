@@ -6146,13 +6146,17 @@ export const it = {
       "Le tue chiavi di crittografia sono state aggiornate",
     current_key_age: "Età chiave attuale",
     rotate_keys_description_manual:
-      "Inserisci la tua password per ruotare le chiavi di crittografia. Le vecchie email resteranno leggibili.",
+      "Inserisci la tua password per ruotare le chiavi di crittografia.",
     rotate_keys_description_required:
       "Le tue chiavi di crittografia devono essere ruotate. Inserisci la tua password per generare nuove chiavi.",
     rotating: "Rotazione in corso...",
     rotate_keys: "Ruota chiavi",
-    key_rotation_data_loss_warning:
-      "Una volta ruotata, la tua chiave precedente viene ritirata. Le email cifrate esclusivamente con la vecchia chiave non potranno più essere decifrate. Questa azione è irreversibile.",
+    key_rotation_prune_warning:
+      "Questa rotazione rimuove le tue {{count}} chiavi più vecchie. Dopo non potrai aprire le email cifrate solo con quelle chiavi, e l'azione è irreversibile.",
+    key_rotation_prune_warning_one:
+      "Questa rotazione rimuove la tua chiave più vecchia. Dopo non potrai aprire le email cifrate solo con quella chiave, e l'azione è irreversibile.",
+    key_rotation_history_kept:
+      "Il tuo account conserva le chiavi precedenti, quindi le email che hai già restano leggibili.",
     bulk_unsubscribe: "Annullamento iscrizione in blocco",
     senders_unsubscribed: "{{ count }} mittenti disiscritti",
     senders_unsubscribed_one: "{{ count }} mittente disiscritto",
@@ -6299,7 +6303,7 @@ export const it = {
       "Rendi le tue chiavi trovabili sui keyserver pubblici",
     info_forward_secrecy_title: "Cos'è la Forward Secrecy?",
     info_forward_secrecy_description:
-      "Le tue chiavi di crittografia ruotano automaticamente secondo una pianificazione, il che limita quante email può sbloccare una singola chiave compromessa. Per mantenere le tue email leggibili su tutti i tuoi dispositivi, il tuo account conserva anche copie dei tuoi messaggi cifrate con le chiavi del tuo account, quindi chiunque ottenga la tua password può comunque leggere le tue email passate.",
+      "Le tue chiavi di crittografia ruotano automaticamente secondo una pianificazione, il che limita quante nuove email può sbloccare una singola chiave compromessa. Per mantenere le tue email leggibili su tutti i tuoi dispositivi, il tuo account conserva le tue chiavi precedenti e copie dei tuoi messaggi, protette dalla tua password, quindi chiunque ottenga la tua password può comunque leggere le tue email passate.",
     info_key_rotation_interval_title: "Intervallo di rotazione chiavi",
     info_key_rotation_interval_description:
       "Con quale frequenza viene sostituita la tua chiave di cifratura. Più frequente significa più sicuro, ma con un po' più di overhead. Una settimana è un buon default per la maggior parte.",

@@ -4861,7 +4861,7 @@ export const nl = {
       "Maak je sleutels vindbaar op openbare sleutelservers",
     info_forward_secrecy_title: "Wat is Forward Secrecy?",
     info_forward_secrecy_description:
-      "Je versleutelingssleutels worden automatisch volgens een schema gewisseld. Zo kan één uitgelekte sleutel maar een beperkt deel van je e-mail ontgrendelen. Om je e-mail op al je apparaten leesbaar te houden, bewaart je account ook kopieën van je berichten die met je accountsleutels zijn versleuteld. Wie je wachtwoord krijgt, kan je eerdere e-mail dus nog steeds lezen.",
+      "Je versleutelingssleutels worden automatisch volgens een schema gewisseld. Zo kan één uitgelekte sleutel maar een beperkt deel van je nieuwe e-mail ontgrendelen. Om je e-mail op al je apparaten leesbaar te houden, bewaart je account je eerdere sleutels en kopieën van je berichten, beschermd met je wachtwoord. Wie je wachtwoord krijgt, kan je eerdere e-mail dus nog steeds lezen.",
     info_key_rotation_interval_title: "Sleutelrotatie-interval",
     info_key_rotation_interval_description:
       "Hoe vaak je versleutelingssleutel wordt gewisseld. Vaker is veiliger maar vraagt iets meer overhead. Een week is een goede standaard voor de meeste mensen.",
@@ -7582,13 +7582,17 @@ export const nl = {
     encryption_keys_updated: "Je versleutelingssleutels zijn bijgewerkt",
     current_key_age: "Huidige sleutelleeftijd",
     rotate_keys_description_manual:
-      "Voer je wachtwoord in om je versleutelingssleutels te roteren. Oude e-mails blijven leesbaar.",
+      "Voer je wachtwoord in om je versleutelingssleutels te roteren.",
     rotate_keys_description_required:
       "Je versleutelingssleutels zijn toe aan rotatie. Voer je wachtwoord in om nieuwe sleutels te genereren.",
     rotating: "Roteren...",
     rotate_keys: "Sleutels roteren",
-    key_rotation_data_loss_warning:
-      "Na rotatie wordt je vorige sleutel ingetrokken. E-mails die uitsluitend met je oude sleutel zijn versleuteld, kunnen niet meer worden ontsleuteld. Dit kan niet ongedaan worden gemaakt.",
+    key_rotation_prune_warning:
+      "Deze rotatie verwijdert je {{count}} oudste sleutels. E-mails die alleen met die sleutels zijn versleuteld, kun je daarna niet meer openen. Dit kan niet ongedaan worden gemaakt.",
+    key_rotation_prune_warning_one:
+      "Deze rotatie verwijdert je oudste sleutel. E-mails die alleen met die sleutel zijn versleuteld, kun je daarna niet meer openen. Dit kan niet ongedaan worden gemaakt.",
+    key_rotation_history_kept:
+      "Je account bewaart je eerdere sleutels, dus de e-mail die je al hebt blijft leesbaar.",
     bulk_unsubscribe: "Bulk uitschrijven",
     senders_unsubscribed: "{{ count }} afzenders uitgeschreven",
     senders_unsubscribed_one: "{{ count }} afzender uitgeschreven",

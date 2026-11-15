@@ -4873,7 +4873,7 @@ export const tr = {
       "Anahtarlarınızı genel anahtar sunucularında bulunabilir yapın",
     info_forward_secrecy_title: "İletim Gizliliği Nedir?",
     info_forward_secrecy_description:
-      "Şifreleme anahtarlarınız bir plana göre otomatik olarak döndürülür. Bu, sızan tek bir anahtarın açabileceği e-posta miktarını sınırlar. E-postalarınızın tüm cihazlarınızda okunabilir kalması için hesabınız, mesajlarınızın hesap anahtarlarınızla şifrelenmiş kopyalarını da saklar. Bu nedenle parolanızı ele geçiren biri geçmiş e-postalarınızı yine de okuyabilir.",
+      "Şifreleme anahtarlarınız bir plana göre otomatik olarak döndürülür. Bu, sızan tek bir anahtarın açabileceği yeni e-posta miktarını sınırlar. E-postalarınızın tüm cihazlarınızda okunabilir kalması için hesabınız önceki anahtarlarınızı ve mesajlarınızın kopyalarını parolanızla korunmuş olarak saklar. Bu nedenle parolanızı ele geçiren biri geçmiş e-postalarınızı yine de okuyabilir.",
     info_key_rotation_interval_title: "Anahtar Döndürme Aralığı",
     info_key_rotation_interval_description:
       "Şifreleme anahtarınızın ne sıklıkla değiştirildiği. Daha sık daha güvenli demektir ama biraz ek yük getirir. Çoğu için bir hafta iyi bir varsayılandır.",
@@ -7046,13 +7046,17 @@ export const tr = {
     encryption_keys_updated: "Şifreleme anahtarlarınız güncellendi",
     current_key_age: "Mevcut anahtar yaşı",
     rotate_keys_description_manual:
-      "Şifreleme anahtarlarınızı yenilemek için parolanızı girin. Eski postalar okunabilir kalır.",
+      "Şifreleme anahtarlarınızı yenilemek için parolanızı girin.",
     rotate_keys_description_required:
       "Şifreleme anahtarlarınızın yenilenme zamanı geldi. Yeni anahtar oluşturmak için parolanızı girin.",
     rotating: "Döndürülüyor...",
     rotate_keys: "Anahtarları döndür",
-    key_rotation_data_loss_warning:
-      "Döndürme işleminin ardından önceki anahtarınız kullanımdan kaldırılır. Yalnızca eski anahtarınızla şifrelenmiş e-postalar artık şifresi çözülemez. Bu işlem geri alınamaz.",
+    key_rotation_prune_warning:
+      "Bu döndürme en eski {{count}} anahtarınızı kaldırır. Bundan sonra yalnızca bu anahtarlarla şifrelenmiş e-postaları açamazsınız ve bu işlem geri alınamaz.",
+    key_rotation_prune_warning_one:
+      "Bu döndürme en eski anahtarınızı kaldırır. Bundan sonra yalnızca bu anahtarla şifrelenmiş e-postaları açamazsınız ve bu işlem geri alınamaz.",
+    key_rotation_history_kept:
+      "Hesabınız önceki anahtarlarınızı saklar, bu yüzden mevcut e-postalarınız okunabilir kalır.",
     bulk_unsubscribe: "Toplu abonelikten çıkma",
     senders_unsubscribed: "{{ count }} gönderenden abonelik iptal edildi",
     senders_unsubscribed_one: "{{ count }} gönderenden abonelik iptal edildi",
