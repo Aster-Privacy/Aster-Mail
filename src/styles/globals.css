@@ -2707,24 +2707,32 @@ button.press_scale:active {
   color: var(--color-danger);
 }
 
-.contact_group_swatch {
-  position: relative;
-  border-radius: 9999px;
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--text-primary) 14%, transparent);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+.color_swatch_row {
+  gap: clamp(4px, 1.5vw, 8px);
 }
 
-.contact_group_swatch:hover {
+.color_row_swatch {
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--text-primary) 14%, transparent);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition:
+    transform 0.15s ease,
+    outline-color 0.15s ease;
+}
+
+.color_row_swatch:hover {
   transform: scale(1.08);
 }
 
-.contact_group_swatch[data-selected="true"] {
-  box-shadow:
-    0 0 0 2px var(--modal-bg),
-    0 0 0 4px var(--swatch-ring, var(--accent-color));
+.color_row_swatch[data-selected="true"] {
+  outline-color: var(--text-primary);
+}
+
+html:not([data-input-modality="keyboard"])
+  .color_row_swatch[data-selected="true"]:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
 }
 
 .quick_contacts_footer {
@@ -4321,12 +4329,6 @@ html:not(.dark) .sender_logo_light > img {
   );
   color: var(--tag-icon-accent, var(--accent-color));
   box-shadow: inset 0 0 0 1.5px var(--tag-icon-accent, var(--accent-color));
-}
-
-.contact_group_color_grid {
-  display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
-  gap: 6px;
 }
 
 .contact_group_preview {

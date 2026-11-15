@@ -66,7 +66,6 @@ import {
   TypedList,
 } from "./fields";
 import {
-  COLOR_SWATCHES,
   ContactDetailPanelProps,
   DATE_TYPE_OPTIONS,
   DEFAULT_BANNER,
@@ -116,6 +115,7 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { compress_contact_avatar_file } from "@/utils/contact_avatar_image";
 import { format_full_datetime } from "@/utils/date_format";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 
 export function ContactDetailPanel({
   t,
@@ -414,25 +414,14 @@ export function ContactDetailPanel({
                 />
               </div>
             </div>
-            <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-[var(--aster-floating-bg,var(--bg-primary))] shadow-[var(--aster-floating-shadow)]">
-              {COLOR_SWATCHES.map((c) => {
-                const active = c.value === banner;
-
-                return (
-                  <button
-                    key={c.key}
-                    aria-label={`${t("common.color")} ${c.key}`}
-                    className="relative w-6 h-6 rounded-full transition-transform hover:scale-110"
-                    style={{
-                      backgroundColor: c.value,
-                      boxShadow: active
-                        ? "0 0 0 2px var(--aster-floating-bg, var(--bg-primary)), 0 0 0 4px var(--text-primary)"
-                        : "none",
-                    }}
-                    onClick={() => handle_color_pick(c.value)}
-                  />
-                );
-              })}
+            <div className="absolute end-4 -bottom-6 flex items-center px-1.5 py-1 rounded-full bg-[var(--aster-floating-bg,var(--bg-primary))] shadow-[var(--aster-floating-shadow)]">
+              <ColorSwatchRow
+                class_name=""
+                label={t("common.color")}
+                max_swatch_size={24}
+                value={draft.profile_color}
+                on_change={handle_color_pick}
+              />
             </div>
           </div>
         )}

@@ -67,6 +67,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { PROFILE_COLORS } from "@/constants/profile";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 import { get_initials, get_active_locale } from "@/lib/initials";
 import { get_contrast_text } from "@/lib/avatar_color";
 import {
@@ -639,6 +640,48 @@ export function AccountSection() {
     set_show_step_up(true);
   };
 
+  const save_profile_color = async (c: string, prev: string) => {
+    const revert = async () => {
+      set_color(prev);
+      update_preference("profile_color", prev, true);
+      if (user) {
+        await update_user({
+          ...user,
+          profile_color: prev || undefined,
+        }).catch((caught) =>
+          ignore_error(
+            "components/settings/account_section:revert_color",
+            caught,
+          ),
+        );
+      }
+      show_toast(
+        t("common.failed_save_profile_color"),
+        "error",
+      );
+    };
+
+    color_saving_ref.current = true;
+    try {
+      set_color(c);
+      update_preference("profile_color", c, true);
+      if (user) {
+        await update_user({ ...user, profile_color: c });
+      }
+      const response = await update_profile_color(c);
+
+      if (response.error) await revert();
+    } catch (caught) {
+      ignore_error(
+        "components/settings/account_section:update_color",
+        caught,
+      );
+      await revert();
+    } finally {
+      color_saving_ref.current = false;
+    }
+  };
+
   const has_custom_picture = !!user?.profile_picture;
   const picture = user?.profile_picture || "/profile.webp";
 
@@ -692,78 +735,24 @@ export function AccountSection() {
               <CameraIcon className="w-6 h-6 text-white" />
             </span>
           </button>
-          <div
-            aria-label={t("auth.profile_color")}
-            className="flex items-center gap-2.5"
-            role="radiogroup"
-          >
-            {PROFILE_COLORS.map((c) => {
-              const is_selected = c === color;
-
-              return (
-                <button
-                  key={c}
-                  aria-checked={is_selected}
-                  aria-label={c}
-                  className="relative w-9 h-9 rounded-full"
-                  role="radio"
-                  style={{
-                    backgroundColor: c,
-                    outline: is_selected
-                      ? "2px solid var(--text-primary)"
-                      : "none",
-                    outlineOffset: 2,
-                    boxShadow: is_selected
-                      ? `0 2px 8px ${c}50`
-                      : `inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.15), 0 2px 6px ${c}30`,
-                  }}
-                  type="button"
-                  onClick={async () => {
-                    const prev = color;
-                    const revert = async () => {
-                      set_color(prev);
-                      update_preference("profile_color", prev, true);
-                      if (user) {
-                        await update_user({
-                          ...user,
-                          profile_color: prev || undefined,
-                        }).catch((caught) =>
-                          ignore_error(
-                            "components/settings/account_section:revert_color",
-                            caught,
-                          ),
-                        );
-                      }
-                      show_toast(
-                        t("common.failed_save_profile_color"),
-                        "error",
-                      );
-                    };
-
-                    color_saving_ref.current = true;
-                    try {
-                      set_color(c);
-                      update_preference("profile_color", c, true);
-                      if (user) {
-                        await update_user({ ...user, profile_color: c });
-                      }
-                      const response = await update_profile_color(c);
-
-                      if (response.error) await revert();
-                    } catch (caught) {
-                      ignore_error(
-                        "components/settings/account_section:update_color",
-                        caught,
-                      );
-                      await revert();
-                    } finally {
-                      color_saving_ref.current = false;
-                    }
-                  }}
-                />
-              );
-            })}
-          </div>
+          <ColorSwatchRow
+            class_name="w-full max-w-[360px]"
+            label={t("auth.profile_color")}
+            max_swatch_size={36}
+            value={color}
+            on_change={(hex) => {
+              color_saving_ref.current = true;
+              set_color(hex);
+            }}
+            on_commit={(hex) =>
+              void save_profile_color(
+                hex,
+                user?.profile_color ||
+                  preferences.profile_color ||
+                  PROFILE_COLORS[5],
+              )
+            }
+          />
         </div>
       </Island>
 

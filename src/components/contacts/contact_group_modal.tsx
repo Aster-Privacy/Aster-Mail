@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { CSSProperties } from "react";
 import type { ContactGroup } from "@/types/contacts";
 import type { TagIconName } from "@/components/ui/email_tag";
 
@@ -37,10 +36,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { ContactGroupGlyph } from "@/components/common/contacts/contact_group_glyph";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
-import {
-  TAG_COLOR_PRESETS,
-  tag_color_label_key,
-} from "@/components/ui/email_tag";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
+import { COLOR_ROW_PRESET_HEXES } from "@/lib/color_wheel";
 import {
   use_contact_groups,
   MAX_CONTACT_GROUPS,
@@ -71,7 +68,7 @@ export function ContactGroupModal({
   const is_editing = Boolean(group);
   const group_count = existing_count ?? groups.length;
   const default_color =
-    TAG_COLOR_PRESETS[group_count % TAG_COLOR_PRESETS.length].hex;
+    COLOR_ROW_PRESET_HEXES[group_count % COLOR_ROW_PRESET_HEXES.length];
 
   const [name, set_name] = useState("");
   const [color, set_color] = useState<string>(default_color);
@@ -236,30 +233,12 @@ export function ContactGroupModal({
             >
               {t("common.color")}
             </span>
-            <div
-              aria-labelledby="contact_group_color_label"
-              className="contact_group_color_grid"
-              role="group"
-            >
-              {TAG_COLOR_PRESETS.map((preset) => (
-                <button
-                  key={preset.hex}
-                  aria-label={t(tag_color_label_key(preset.variant))}
-                  aria-pressed={preset.hex === color}
-                  className="contact_group_swatch aspect-square w-full rounded-full"
-                  data-selected={preset.hex === color}
-                  style={
-                    {
-                      backgroundColor: preset.hex,
-                      "--swatch-ring": preset.hex,
-                    } as CSSProperties
-                  }
-                  title={t(tag_color_label_key(preset.variant))}
-                  type="button"
-                  onClick={() => set_color(preset.hex)}
-                />
-              ))}
-            </div>
+            <ColorSwatchRow
+              labelled_by="contact_group_color_label"
+              max_swatch_size={36}
+              value={color}
+              on_change={set_color}
+            />
           </div>
 
           <div className="space-y-2">
