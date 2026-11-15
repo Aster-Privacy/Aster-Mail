@@ -58,11 +58,12 @@ interface AccountProtectionScoreProps {
   block_tracking_pixels: boolean;
   block_remote_images: boolean;
   strip_exif_on_compose: boolean;
+  guard_enabled?: boolean | null;
   security_loaded?: boolean;
   on_criterion_click?: Array<(() => void) | undefined>;
 }
 
-const WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1] as const;
+const CRITERION_WEIGHT = 1;
 
 export function AccountProtectionScore({
   totp_enabled,
@@ -73,6 +74,7 @@ export function AccountProtectionScore({
   block_tracking_pixels,
   block_remote_images,
   strip_exif_on_compose,
+  guard_enabled = null,
   security_loaded = true,
   on_criterion_click,
 }: AccountProtectionScoreProps) {
@@ -90,6 +92,7 @@ export function AccountProtectionScore({
     block_tracking_pixels,
     block_remote_images,
     strip_exif_on_compose,
+    guard_enabled,
   });
 
   const bar_pct = security_percent(criteria);
@@ -197,7 +200,7 @@ export function AccountProtectionScore({
                       </span>
                       {!criterion.met && (
                         <span className="text-xs font-semibold text-txt-muted tabular-nums">
-                          +{WEIGHTS[i]}
+                          +{CRITERION_WEIGHT}
                         </span>
                       )}
                       {is_clickable && (

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   IslandSection,
@@ -43,6 +43,10 @@ import { use_guard_status } from "@/hooks/use_guard_status";
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
 import { GUARD_SWITCH } from "@/services/api/guard";
+import {
+  GUARD_SETUP_OPEN_EVENT,
+  take_guard_setup_request,
+} from "@/services/guard/guard_setup_request";
 
 const GUARD_SWITCH_BITS = Object.values(GUARD_SWITCH);
 
@@ -59,11 +63,27 @@ export function GuardSection() {
   const user_id = user?.id ?? null;
   const { status, refresh } = use_guard_status(!!user_id);
   const [wizard_open, set_wizard_open] = useState(false);
+  const [setup_wanted, set_setup_wanted] = useState(false);
   const { device } = use_guard_device(
     user_id,
     `${status?.version ?? 0}:${status?.this_device?.id ?? ""}`,
   );
   const on_refresh = () => void refresh();
+
+  useEffect(() => {
+    const on_request = () => set_setup_wanted(take_guard_setup_request());
+
+    on_request();
+    window.addEventListener(GUARD_SETUP_OPEN_EVENT, on_request);
+
+    return () => window.removeEventListener(GUARD_SETUP_OPEN_EVENT, on_request);
+  }, []);
+
+  useEffect(() => {
+    if (!setup_wanted || !status) return;
+    set_setup_wanted(false);
+    if (status.switches === 0) set_wizard_open(true);
+  }, [setup_wanted, status]);
 
   if (!user_id || !status) return null;
   const is_on = status.switches !== 0;
