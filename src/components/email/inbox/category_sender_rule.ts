@@ -25,6 +25,7 @@ import { trim_map_to_size, trim_set_to_size } from "@/lib/bounded_map";
 import { is_custom_category_id } from "@/data/category_catalog";
 import { create_rule } from "@/services/api/mail_rules";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import { ignore_error } from "@/lib/ignore_error";
 
 type Translate = (
@@ -88,6 +89,7 @@ async function create_sender_rule(
     actions: [{ type: "categorize", category }],
   });
 
+  if (held_of(response)) return;
   show_toast(
     response.data
       ? t("mail.sender_rule_created", { category: category_label })

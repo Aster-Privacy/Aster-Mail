@@ -55,6 +55,7 @@ import {
 import { open_external } from "@/utils/open_link";
 import { Spinner } from "@/components/ui/spinner";
 import { apply_input_transform } from "@/utils/input_transform";
+import { format_guard_time } from "@/components/guard/guard_waiting_screen";
 
 const SUPPORT_MAIL_URL = "mailto:support@astermail.org";
 const HELP_CENTER_URL = "https://astermail.org/help";
@@ -147,6 +148,7 @@ export default function ForgotPasswordPage() {
     handle_download_txt,
     handle_print_codes,
     handle_codes_continue,
+    guard_held_until,
   } = use_recovery_flow();
 
   const go_to = (next: typeof step) => {
@@ -744,6 +746,30 @@ export default function ForgotPasswordPage() {
                 onClick={handle_codes_continue}
               >
                 {t("common.continue")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
+        );
+
+      case "guard_held":
+        return (
+          <StepLayout
+            header={header(
+              t("guard.recovery_held_title"),
+              t("guard.recovery_held_body", {
+                time: format_guard_time(guard_held_until ?? ""),
+              }),
+            )}
+          >
+            <ActionRow>
+              <Button
+                className="w-full"
+                data-testid="recovery_guard_held_back"
+                size="xl"
+                variant="depth"
+                onClick={() => navigate("/sign-in")}
+              >
+                {t("auth.back_to_sign_in")}
               </Button>
             </ActionRow>
           </StepLayout>

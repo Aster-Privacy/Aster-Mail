@@ -28,6 +28,7 @@ import {
 import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { Button } from "@/components/ui/button";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import {
   Modal,
   ModalHeader,
@@ -133,6 +134,11 @@ export function TotpDisableModal({
         password_hash,
       });
 
+      if (held_of(response)) {
+        on_close();
+
+        return;
+      }
       if (response.error) {
         const kind = classify_totp_error(response);
 

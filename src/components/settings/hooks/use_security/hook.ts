@@ -116,6 +116,7 @@ import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
 import { generate_auth_salt, login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import { ignore_error } from "@/lib/ignore_error";
 import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
 import {
@@ -380,6 +381,7 @@ export function use_security() {
       let response!: Awaited<ReturnType<typeof change_password>>;
       const new_password_strength_tier =
         compute_password_strength_tier(new_password);
+      let change_held = false;
 
       const committed = await with_vault_write_lock(async () => {
         const loaded = await load_password_change_vault(
@@ -549,6 +551,13 @@ export function use_security() {
 
         response = written.response;
 
+        if (held_of(response)) {
+          change_held = true;
+          set_password_loading(false);
+
+          return false;
+        }
+
         const new_encrypted_vault = written.sealed.encrypted_vault;
         const new_vault_nonce = written.sealed.vault_nonce;
 
@@ -586,7 +595,16 @@ export function use_security() {
         return true;
       });
 
-      if (!committed) return;
+      if (!committed) {
+        if (change_held) {
+          set_show_password_section(false);
+          set_current_password("");
+          set_new_password("");
+          set_confirm_password("");
+        }
+
+        return;
+      }
 
       try {
         await store_session_passphrase(
@@ -885,6 +903,7 @@ export function use_security() {
         timeout,
       ]);
 
+      if (held_of(response)) return;
       if ("data" in response && response.data?.success) {
         set_sessions((prev) => prev.filter((s) => s.id !== session_id));
       } else {
@@ -918,6 +937,7 @@ export function use_security() {
       );
       const response = await Promise.race([revoke_all_sessions(), timeout]);
 
+      if (held_of(response)) return;
       if ("data" in response && response.data?.success) {
         const revoked_count = sessions.filter((s) => !s.is_current).length;
 

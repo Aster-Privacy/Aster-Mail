@@ -31,6 +31,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { GuardDevicesList } from "@/components/guard/guard_devices_list";
+import { GuardHeldChanges } from "@/components/guard/guard_held_changes";
 import { GuardSetupWizard } from "@/components/guard/guard_setup_wizard";
 import {
   GuardSwitchesPanel,
@@ -118,6 +119,13 @@ export function GuardSection() {
           />
         )}
       </IslandSection>
+      {is_on && (
+        <GuardHeldChanges
+          device={device}
+          user_id={user_id}
+          on_refresh={on_refresh}
+        />
+      )}
       {is_on && (
         <GuardDevicesList
           device={device}

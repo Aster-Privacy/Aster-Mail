@@ -389,6 +389,7 @@ export function AccountSection({
 
     const r = await save_recovery_email(normalized, vault);
 
+    if (r.held) return;
     if (r.code === "STEP_UP_REQUIRED" || r.code === "TOTP_REQUIRED") {
       request_recovery_step_up(normalized);
 
@@ -421,6 +422,11 @@ export function AccountSection({
         credentials,
       );
 
+      if (r.held) {
+        set_show_step_up(false);
+
+        return;
+      }
       if (r.code === "CONFLICT") {
         throw new Error(r.error || t("common.recovery_conflict"));
       }
@@ -440,6 +446,12 @@ export function AccountSection({
       set_show_step_up(false);
     } else {
       const r = await remove_recovery_email(credentials);
+
+      if (r.held) {
+        set_show_step_up(false);
+
+        return;
+      }
 
       if (r.error || !r.data?.success) {
         throw new Error(r.error || t("common.step_up_error"));

@@ -43,7 +43,8 @@ export type RecoveryStep =
   | "processing"
   | "new_codes"
   | "review_security"
-  | "email_sent";
+  | "email_sent"
+  | "guard_held";
 
 export const page_variants = {
   initial: { opacity: 0, y: 12 },
