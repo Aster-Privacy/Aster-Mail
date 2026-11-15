@@ -4465,6 +4465,9 @@ export const pt_br = {
     popup: "Janela flutuante",
     popup_description:
       "Abre em uma janela flutuante que pode ser arrastada e redimensionada",
+    close_popup_on_outside_click: "Fechar a janela flutuante ao clicar fora",
+    close_popup_on_outside_click_description:
+      "Quando os e-mails abrem em uma janela flutuante, clicar em qualquer lugar fora dela a fecha",
     split_view: "Visualização dividida",
     split_view_description:
       "Mostra lista de e-mails e visualização lado a lado",

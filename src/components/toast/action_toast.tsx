@@ -391,6 +391,7 @@ export function ActionToast({ position }: ActionToastProps) {
           key="action-toast"
           animate={{ opacity: 1, y: 0 }}
           className={`fixed ${layout.anchor} z-[100]`}
+          data-popup-outside-ignore=""
           exit={{ opacity: 0, y: y_offset }}
           initial={reduce_motion ? false : { opacity: 0, y: y_offset }}
           style={layout.style}

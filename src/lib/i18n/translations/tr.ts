@@ -4390,6 +4390,9 @@ export const tr = {
     popup: "Açılır pencere",
     popup_description:
       "Sürüklenebilir ve yeniden boyutlandırılabilir açılır pencerede açılır",
+    close_popup_on_outside_click: "Dışarı tıklayarak açılır pencereyi kapat",
+    close_popup_on_outside_click_description:
+      "E-postalar açılır pencerede açıldığında, pencerenin dışında herhangi bir yere tıklamak onu kapatır",
     split_view: "Bölünmüş görünüm",
     split_view_description: "E-posta listesini ve önizlemeyi yan yana gösterir",
     full_page: "Tam sayfa",

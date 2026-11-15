@@ -4390,6 +4390,9 @@ export const ja = {
     email_view_description: "メールをクリックしたときの表示方法を選択します",
     popup: "ポップアップ",
     popup_description: "ドラッグ・リサイズ可能なポップアップで開きます",
+    close_popup_on_outside_click: "外側をクリックしてポップアップを閉じる",
+    close_popup_on_outside_click_description:
+      "メールをポップアップで開いているとき、ポップアップの外側をクリックすると閉じます",
     split_view: "分割表示",
     split_view_description: "メールリストとプレビューを並べて表示します",
     full_page: "全画面",

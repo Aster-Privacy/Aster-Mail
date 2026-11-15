@@ -4465,6 +4465,9 @@ export const es = {
     popup: "Ventana emergente",
     popup_description:
       "Se abre en una ventana emergente que se puede arrastrar y redimensionar",
+    close_popup_on_outside_click: "Cerrar la ventana emergente al hacer clic fuera",
+    close_popup_on_outside_click_description:
+      "Cuando los correos se abren en una ventana emergente, hacer clic en cualquier lugar fuera de ella la cierra",
     split_view: "Vista dividida",
     split_view_description:
       "Muestra la lista de correos y la vista previa lado a lado",

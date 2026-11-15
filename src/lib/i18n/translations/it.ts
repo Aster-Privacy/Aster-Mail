@@ -4544,6 +4544,9 @@ export const it = {
       "Scegli come si aprono le email quando ci clicchi sopra",
     popup: "Finestra a comparsa",
     popup_description: "Si apre in un popup trascinabile ridimensionabile",
+    close_popup_on_outside_click: "Chiudi il popup facendo clic all'esterno",
+    close_popup_on_outside_click_description:
+      "Quando le email si aprono in un popup, un clic in qualsiasi punto all'esterno del popup lo chiude",
     split_view: "Vista divisa",
     split_view_description: "Mostra l'elenco email e l'anteprima affiancati",
     full_page: "Pagina intera",

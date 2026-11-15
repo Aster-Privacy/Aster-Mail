@@ -3421,6 +3421,9 @@ export const en: Translations = {
     email_view_description: "Choose how emails open when you click on them",
     popup: "Popup",
     popup_description: "Opens in a draggable popup that can be resized",
+    close_popup_on_outside_click: "Close popup by clicking outside",
+    close_popup_on_outside_click_description:
+      "When emails open in a popup, clicking anywhere outside the popup closes it",
     split_view: "Split view",
     split_view_description: "Shows email list and preview side by side",
     full_page: "Full page",

@@ -6226,6 +6226,9 @@ export const nl = {
       "Kies hoe e-mails worden geopend wanneer je erop klikt",
     popup_description:
       "Opent in een versleepbaar venster dat kan worden aangepast",
+    close_popup_on_outside_click: "Pop-up sluiten door erbuiten te klikken",
+    close_popup_on_outside_click_description:
+      "Als e-mails in een pop-up openen, sluit een klik ergens buiten de pop-up deze",
     full_page_description: "Opent e-mail in volledig breedte zonder inboxlijst",
     thread_count_position: "Positie van draadtelling badge",
     thread_count_position_description:

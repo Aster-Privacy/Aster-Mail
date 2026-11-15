@@ -728,6 +728,7 @@ export const InlineReplyComposer = forwardRef<
         />
         <div
           className="aster_floating aster_dialog_surface fixed inset-4 sm:inset-8 md:inset-12 z-50 flex flex-col overflow-hidden"
+          data-inline-reply-composer=""
           onDragOver={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -759,6 +760,7 @@ export const InlineReplyComposer = forwardRef<
     <div
       ref={set_refs}
       className="overflow-hidden [&_[contenteditable]]:!min-h-[120px]"
+      data-inline-reply-composer=""
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();

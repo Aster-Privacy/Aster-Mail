@@ -4560,6 +4560,9 @@ export const ar = {
     email_view_description: "اختر كيفية فتح الرسائل عند النقر عليها",
     popup: "نافذة منبثقة",
     popup_description: "تُفتح في نافذة منبثقة قابلة للسحب وتغيير الحجم",
+    close_popup_on_outside_click: "إغلاق النافذة المنبثقة بالنقر خارجها",
+    close_popup_on_outside_click_description:
+      "عند فتح الرسائل في نافذة منبثقة، يؤدي النقر في أي مكان خارجها إلى إغلاقها",
     split_view: "عرض مقسم",
     split_view_description: "يعرض قائمة الرسائل والمعاينة جنبًا إلى جنب",
     full_page: "صفحة كاملة",
