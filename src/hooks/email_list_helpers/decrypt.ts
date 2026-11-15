@@ -32,6 +32,10 @@ import {
 import { on_account_keys_added } from "@/services/crypto/account_key_events";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import {
+  keys_added_by_recovery,
+  recover_pgp_keys_from_history,
+} from "@/services/crypto/vault_key_recovery";
+import {
   adopt_refreshed_vault,
   fetch_refreshed_vault,
 } from "@/services/crypto/vault_refresh";
@@ -310,7 +314,20 @@ async function open_envelope(
 
             return opened_attempt(healed);
           }
+
+          pgp_keys.push(...refreshed_keys);
         }
+      }
+
+      const recovered_keys = keys_added_by_recovery(
+        await recover_pgp_keys_from_history().catch(() => null),
+        pgp_keys,
+      );
+
+      if (recovered_keys.length > 0) {
+        const recovered = await decrypt_pgp_with_keys(recovered_keys);
+
+        if (recovered) return opened_attempt(recovered);
       }
 
       return EXHAUSTED_ATTEMPT;

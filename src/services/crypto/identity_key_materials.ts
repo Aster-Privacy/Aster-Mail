@@ -25,7 +25,7 @@ import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
-export const MAX_PREVIOUS_KEYS = 10;
+export const MAX_PREVIOUS_KEYS = 32;
 export const MAX_LEGACY_IDENTITY_KEYS = 32;
 
 type IdentityKeySource = Pick<

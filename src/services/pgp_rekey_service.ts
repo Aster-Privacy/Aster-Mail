@@ -39,8 +39,9 @@ import {
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { get_current_account } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
+import { MAX_PREVIOUS_KEYS } from "@/services/crypto/identity_key_materials";
 
-const PREVIOUS_KEYS_LIMIT = 10;
+const PREVIOUS_KEYS_LIMIT = MAX_PREVIOUS_KEYS;
 
 let rekey_in_progress = false;
 
