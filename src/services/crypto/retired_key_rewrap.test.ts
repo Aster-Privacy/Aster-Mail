@@ -2903,8 +2903,10 @@ describe("run_retired_key_rewrap", () => {
 
     const moved = await tag_row("t2", new_key, "Two");
 
+    const second_row = h.tags[1];
+
     change_on_read("/mail/v1/tags", 1, () => {
-      setTimeout(() => Object.assign(h.tags[1], moved), 0);
+      setTimeout(() => Object.assign(second_row, moved), 0);
     });
     h.on_put = (path) => {
       if (path.endsWith("/t1")) Object.assign(h.tags[1], moved);
