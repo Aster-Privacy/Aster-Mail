@@ -43,6 +43,7 @@ import { MobileDrawer } from "@/components/mobile/mobile_drawer";
 import { MobileFab } from "@/components/mobile/mobile_fab";
 import { SimpleToast } from "@/components/toast/simple_toast";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
+import { GuardApprovalHost } from "@/components/guard/guard_approval_sheet";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
@@ -911,6 +912,9 @@ function MobileApp() {
         <UndoSendPreviewModal />
         <UnsubscribeConfirmationModal />
         <KeyTrustChangePrompt />
+        <ErrorBoundary fallback={null}>
+          <GuardApprovalHost show_rescue_banner />
+        </ErrorBoundary>
         <PostQuantumSendPrompt />
         <ErrorBoundary fallback={null}>
           <UpgradeModalHost />

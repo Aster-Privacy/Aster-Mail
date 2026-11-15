@@ -56,6 +56,7 @@ import { ActionToast } from "@/components/toast/action_toast";
 import { SimpleToast } from "@/components/toast/simple_toast";
 import { DesktopDownloadNotifier } from "@/native/desktop_download_bridge";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
+import { GuardApprovalHost } from "@/components/guard/guard_approval_sheet";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import {
@@ -663,6 +664,9 @@ function App() {
       <UnsubscribeConfirmationModal />
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
+      <ErrorBoundary fallback={null}>
+        <GuardApprovalHost />
+      </ErrorBoundary>
       <ErrorBoundary fallback={null}>
         <UpgradeModalHost />
         <AliasCapUpsellModalHost />
