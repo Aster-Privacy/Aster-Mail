@@ -568,6 +568,7 @@ export interface SnapshotWriter {
   }): Promise<SnapshotMeta | null>;
   discard(): Promise<void>;
   lost_kept_chunks(): boolean;
+  conflicted(): boolean;
 }
 
 function verified_at_of(record: { verified_at?: unknown } | null): number {
@@ -792,6 +793,7 @@ export async function open_snapshot_writer(
   let storage_exhausted = false;
   let superseded = false;
   let lost_kept = false;
+  let conflicted = false;
   let purged_after_write = false;
   const watch = open_purge_watch();
 
@@ -844,7 +846,7 @@ export async function open_snapshot_writer(
       return;
     }
 
-    const chunk_id = next_chunk_id++;
+    let chunk_id = -1;
     const chunk_items = buffer_items;
     const chunk_entries = buffer_items.map((item, i) =>
       to_persisted_entry(item.id, buffer_sources[i]),
@@ -863,17 +865,28 @@ export async function open_snapshot_writer(
         return;
       }
 
-      await encrypted_set_plaintext(
-        chunk_record_key(key, chunk_id),
-        plaintext,
-        encryption_key,
-      );
+      await enqueue_snapshot_write(async () => {
+        const live_keys = await encrypted_list_keys();
 
-      await encrypted_set(
-        gram_record_key(key, chunk_id),
-        digest.grams,
-        encryption_key,
-      );
+        chunk_id = Math.max(
+          next_chunk_id,
+          highest_chunk_id(live_keys, chunk_prefix) + 1,
+          highest_chunk_id(live_keys, grams_prefix) + 1,
+        );
+        next_chunk_id = chunk_id + 1;
+
+        await encrypted_set_plaintext(
+          chunk_record_key(key, chunk_id),
+          plaintext,
+          encryption_key,
+        );
+
+        await encrypted_set(
+          gram_record_key(key, chunk_id),
+          digest.grams,
+          encryption_key,
+        );
+      });
       written_summaries.set(chunk_id, digest.summary);
 
       written_ids.push(chunk_id);
@@ -884,14 +897,21 @@ export async function open_snapshot_writer(
       if (import.meta.env.DEV) console.error("search_snapshot_flush", error);
 
       storage_exhausted = true;
-      written_summaries.delete(chunk_id);
 
-      await secure_overwrite_and_delete(chunk_record_key(key, chunk_id)).catch(
-        (caught) => ignore_error("services/search_index_store:flush", caught),
-      );
-      await secure_overwrite_and_delete(gram_record_key(key, chunk_id)).catch(
-        (caught) => ignore_error("services/search_index_store:flush", caught),
-      );
+      if (chunk_id >= 0) {
+        written_summaries.delete(chunk_id);
+
+        await secure_overwrite_and_delete(
+          chunk_record_key(key, chunk_id),
+        ).catch((caught) =>
+          ignore_error("services/search_index_store:flush", caught),
+        );
+        await secure_overwrite_and_delete(
+          gram_record_key(key, chunk_id),
+        ).catch((caught) =>
+          ignore_error("services/search_index_store:flush", caught),
+        );
+      }
     } finally {
       drop_buffer();
     }
@@ -967,6 +987,7 @@ export async function open_snapshot_writer(
     storage_exhausted: () => storage_exhausted,
     layout: () => (purged_after_write ? [] : [...layout]),
     lost_kept_chunks: () => lost_kept,
+    conflicted: () => conflicted,
     add_page: async (items, entries) => {
       if (storage_exhausted || superseded) return;
 
@@ -1045,6 +1066,17 @@ export async function open_snapshot_writer(
         const keys = await encrypted_list_keys();
         const present = new Set(keys);
 
+        const current = await read_manifest(key, encryption_key, user_email);
+        const replaced_meanwhile = on_disk
+          ? !current || !same_snapshot(current, on_disk)
+          : !!current;
+
+        if (replaced_meanwhile) {
+          conflicted = true;
+
+          return await abandon();
+        }
+
         if (
           !written_ids.every((id) => present.has(chunk_record_key(key, id)))
         ) {
@@ -1057,7 +1089,6 @@ export async function open_snapshot_writer(
           return await abandon();
         }
 
-        const current = await read_manifest(key, encryption_key, user_email);
         const unchanged =
           fresh_ids.length === 0 &&
           !!current &&
@@ -1177,8 +1208,26 @@ const purge_watches = new Set<PurgeWatch>();
 const scope_purge_counts: ScopePurgeMark = { trash: 0, spam: 0 };
 let purge_queue: Promise<unknown> = Promise.resolve();
 
+const SNAPSHOT_WRITE_LOCK = "astermail_search_snapshot_write";
+
+function snapshot_lock_manager(): LockManager | null {
+  try {
+    if (typeof navigator === "undefined") return null;
+
+    const manager = navigator.locks;
+
+    return typeof manager?.request === "function" ? manager : null;
+  } catch {
+    return null;
+  }
+}
+
 function enqueue_snapshot_write<T>(task: () => Promise<T>): Promise<T> {
-  const run = purge_queue.then(task);
+  const manager = snapshot_lock_manager();
+  const locked = manager
+    ? () => manager.request(SNAPSHOT_WRITE_LOCK, task) as Promise<T>
+    : task;
+  const run = purge_queue.then(locked);
 
   purge_queue = run.catch(() => undefined);
 

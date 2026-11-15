@@ -77,7 +77,7 @@ export interface PipelineOptions {
   prior?: Map<string, DecryptedIndexEntry>;
   my_gen: number;
   start_cursor?: string;
-  stop_at_id?: string;
+  stop_at_ids?: ReadonlySet<string>;
   max_items: number;
   hot: CachedIndex | null;
   writer: SnapshotWriter | null;
@@ -373,10 +373,10 @@ export async function run_index_pipeline(
 
     let page_items = response.data.items;
 
-    if (options.stop_at_id) {
-      const boundary = page_items.findIndex(
-        (item) => item.id === options.stop_at_id,
-      );
+    const stop_ids = options.stop_at_ids;
+
+    if (stop_ids && stop_ids.size > 0) {
+      const boundary = page_items.findIndex((item) => stop_ids.has(item.id));
 
       if (boundary >= 0) {
         page_items = page_items.slice(0, boundary);
