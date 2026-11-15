@@ -20,8 +20,16 @@
 //
 import type {} from "@/lib/i18n/types";
 
+import { IANA_TLDS } from "./iana_tlds";
+
 export const MAX_ALIAS_WEBSITES = 10;
 export const MAX_WEBSITE_URL_LENGTH = 200;
+
+function has_userinfo(url: string): boolean {
+  const authority = url.match(/^[a-zA-Z][a-zA-Z0-9+.-]*:[\\/]*([^\\/?#]*)/)?.[1];
+
+  return authority?.includes("@") ?? false;
+}
 
 export function normalize_website_url(raw: string): string | null {
   const cleaned = raw.replace(/[\u0000-\u001f\u007f\s]/g, "");
@@ -40,6 +48,9 @@ export function normalize_website_url(raw: string): string | null {
     if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
       return null;
     }
+    if (parsed.username || parsed.password || has_userinfo(with_scheme)) {
+      return null;
+    }
     if (!parsed.hostname || !parsed.hostname.includes(".")) return null;
 
     return with_scheme;
@@ -48,315 +59,33 @@ export function normalize_website_url(raw: string): string | null {
   }
 }
 
-export const KNOWN_LONG_TLDS = new Set([
-  "com",
-  "net",
-  "org",
-  "edu",
-  "gov",
-  "mil",
-  "int",
-  "info",
-  "biz",
-  "name",
-  "pro",
-  "app",
-  "dev",
-  "art",
-  "bar",
-  "bet",
-  "bid",
-  "bio",
-  "blog",
-  "boo",
-  "bot",
-  "buy",
-  "cab",
-  "cafe",
-  "cam",
-  "camp",
-  "car",
-  "cards",
-  "care",
-  "cash",
-  "casa",
-  "chat",
-  "city",
-  "click",
-  "cloud",
-  "club",
-  "code",
-  "coffee",
-  "college",
-  "company",
-  "computer",
-  "cool",
-  "coop",
-  "credit",
-  "data",
-  "date",
-  "day",
-  "deals",
-  "design",
-  "diet",
-  "digital",
-  "direct",
-  "dog",
-  "domains",
-  "download",
-  "earth",
-  "eco",
-  "email",
-  "energy",
-  "eng",
-  "events",
-  "exchange",
-  "expert",
-  "family",
-  "fan",
-  "fans",
-  "farm",
-  "fashion",
-  "film",
-  "finance",
-  "fish",
-  "fit",
-  "fitness",
-  "flowers",
-  "football",
-  "forum",
-  "foundation",
-  "fun",
-  "fund",
-  "fyi",
-  "gallery",
-  "game",
-  "games",
-  "garden",
-  "gift",
-  "gives",
-  "global",
-  "gold",
-  "golf",
-  "graphics",
-  "green",
-  "group",
-  "guide",
-  "guru",
-  "haus",
-  "health",
-  "help",
-  "here",
-  "hockey",
-  "holdings",
-  "holiday",
-  "homes",
-  "horse",
-  "host",
-  "hosting",
-  "house",
-  "how",
-  "icu",
-  "ink",
-  "institute",
-  "insure",
-  "irish",
-  "jobs",
-  "jetzt",
-  "kim",
-  "kitchen",
-  "land",
-  "law",
-  "lawyer",
-  "lease",
-  "legal",
-  "life",
-  "lighting",
-  "limited",
-  "link",
-  "live",
-  "loan",
-  "loans",
-  "lol",
-  "love",
-  "ltd",
-  "luxury",
-  "mail",
-  "management",
-  "market",
-  "marketing",
-  "media",
-  "meet",
-  "meme",
-  "memorial",
-  "men",
-  "menu",
-  "mobi",
-  "moda",
-  "moe",
-  "money",
-  "monster",
-  "mortgage",
-  "moscow",
-  "movie",
-  "museum",
-  "music",
-  "network",
-  "new",
-  "news",
-  "ngo",
-  "ninja",
-  "now",
-  "one",
-  "ong",
-  "onl",
-  "online",
-  "ooo",
-  "page",
-  "partners",
-  "parts",
-  "party",
-  "pet",
-  "photo",
-  "photography",
-  "photos",
-  "pics",
-  "pictures",
-  "pink",
-  "pizza",
-  "place",
-  "plus",
-  "poker",
-  "porn",
-  "post",
-  "press",
-  "prof",
-  "promo",
-  "properties",
-  "property",
-  "pub",
-  "quest",
-  "racing",
-  "radio",
-  "recipes",
-  "red",
-  "rehab",
-  "reise",
-  "reisen",
-  "rent",
-  "rentals",
-  "repair",
-  "report",
-  "rest",
-  "restaurant",
-  "review",
-  "reviews",
-  "rich",
-  "rip",
-  "rocks",
-  "rodeo",
-  "run",
-  "sale",
-  "salon",
-  "school",
-  "science",
-  "services",
-  "sex",
-  "sexy",
-  "shoes",
-  "shop",
-  "shopping",
-  "show",
-  "singles",
-  "site",
-  "ski",
-  "soccer",
-  "social",
-  "software",
-  "solar",
-  "solutions",
-  "space",
-  "sport",
-  "store",
-  "stream",
-  "studio",
-  "study",
-  "style",
-  "sucks",
-  "supply",
-  "support",
-  "surf",
-  "systems",
-  "tattoo",
-  "tax",
-  "team",
-  "tech",
-  "technology",
-  "tel",
-  "tennis",
-  "theater",
-  "tickets",
-  "tips",
-  "tires",
-  "today",
-  "tools",
-  "top",
-  "tours",
-  "town",
-  "toys",
-  "trade",
-  "trading",
-  "training",
-  "travel",
-  "tube",
-  "university",
-  "uno",
-  "vacations",
-  "ventures",
-  "vet",
-  "video",
-  "villas",
-  "vin",
-  "vip",
-  "vision",
-  "vodka",
-  "vote",
-  "voyage",
-  "wang",
-  "watch",
-  "weather",
-  "webcam",
-  "website",
-  "wedding",
-  "wiki",
-  "win",
-  "wine",
-  "work",
-  "works",
-  "world",
-  "wtf",
-  "xin",
-  "xyz",
-  "yoga",
-  "zone",
-]);
-
+export const MAX_WEBSITE_HOSTNAME_LENGTH = 253;
+export const MAX_WEBSITE_LABEL_LENGTH = 63;
 export const HOST_LABEL_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
+function canonical_hostname(hostname: string): string {
+  return hostname.toLowerCase().replace(/\.$/, "");
+}
+
 export function is_plausible_website_host(hostname: string): boolean {
-  const host = hostname.toLowerCase().replace(/\.$/, "");
+  const host = canonical_hostname(hostname);
+
+  if (!host || host.length > MAX_WEBSITE_HOSTNAME_LENGTH) return false;
+
   const labels = host.split(".");
 
   if (labels.length < 2) return false;
-  if (labels.some((label) => !HOST_LABEL_PATTERN.test(label))) return false;
+  if (
+    labels.some(
+      (label) =>
+        label.length > MAX_WEBSITE_LABEL_LENGTH ||
+        !HOST_LABEL_PATTERN.test(label),
+    )
+  ) {
+    return false;
+  }
 
-  const tld = labels[labels.length - 1];
-
-  if (tld.startsWith("xn--")) return tld.length > 4;
-  if (!/^[a-z]+$/.test(tld)) return false;
-  if (tld.length === 2) return true;
-
-  return KNOWN_LONG_TLDS.has(tld);
+  return IANA_TLDS.has(labels[labels.length - 1]);
 }
 
 export function validate_website_input(raw: string): string | null {
@@ -365,12 +94,19 @@ export function validate_website_input(raw: string): string | null {
   if (!normalized) return null;
 
   try {
-    if (!is_plausible_website_host(new URL(normalized).hostname)) return null;
+    const parsed = new URL(normalized);
+    const hostname = canonical_hostname(parsed.hostname);
+
+    if (!is_plausible_website_host(hostname)) return null;
+
+    const port = parsed.port ? `:${parsed.port}` : "";
+    const path = parsed.pathname === "/" ? "" : parsed.pathname;
+    const canonical = `${parsed.protocol}//${hostname}${port}${path}${parsed.search}${parsed.hash}`;
+
+    return canonical.length > MAX_WEBSITE_URL_LENGTH ? null : canonical;
   } catch {
     return null;
   }
-
-  return normalized;
 }
 
 function read_website_entries(payload: string): unknown[] {
