@@ -99,6 +99,7 @@ import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 import { record_vault_iterations_from_response } from "@/services/crypto/vault_level2";
 import { get_device_id } from "@/services/device_id";
 import { ignore_error } from "@/lib/ignore_error";
+import { note_server_date } from "@/lib/server_clock";
 import {
   routed_fetch,
   get_effective_base_url,
@@ -1974,6 +1975,12 @@ export class ApiClient {
           background?.controller,
         );
         const { response, read_text } = timed;
+
+        note_server_date(
+          response.headers?.get?.("date"),
+          started_at,
+          Date.now(),
+        );
 
         release_deadline = timed.release;
 
