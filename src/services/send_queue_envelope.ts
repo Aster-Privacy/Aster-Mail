@@ -53,6 +53,7 @@ import { type MailItemMetadata } from "@/types/email";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
+import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 
 const HTML_TAG_PROBE = /<[a-z][\s\S]*>/i;
 
@@ -112,38 +113,15 @@ export async function create_sent_envelope(
     : (() => {
         if (typeof DOMParser === "undefined") return "";
 
-        let doc: Document;
-
         try {
-          doc = new DOMParser().parseFromString(
+          return outgoing_html_to_plain_text(
             DOMPurify.sanitize(repair_comment_markup(email.body), {
               FORBID_TAGS: PLAIN_TEXT_FORBIDDEN_TAGS,
             }),
-            "text/html",
-          );
+          ).trim();
         } catch {
           return "";
         }
-
-        doc
-          .querySelectorAll(
-            "script, style, head, noscript, template, iframe, object, embed",
-          )
-          .forEach((el) => el.remove());
-
-        doc.querySelectorAll("br").forEach((el) => {
-          el.replaceWith(doc.createTextNode("\n"));
-        });
-
-        doc
-          .querySelectorAll("p, div, li, tr, h1, h2, h3, h4, h5, h6")
-          .forEach((el) => {
-            el.append(doc.createTextNode("\n"));
-          });
-
-        const text = doc.body?.textContent || "";
-
-        return text.replace(/\n{3,}/g, "\n\n").trim();
       })();
 
   const envelope: MailEnvelope = {

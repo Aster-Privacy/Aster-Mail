@@ -111,7 +111,10 @@ import {
 } from "@/services/attachment_rejection";
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
-import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
+import {
+  editor_plain_text,
+  escape_html as escape_plain_text,
+} from "@/hooks/editor_utils";
 import { ignore_error } from "@/lib/ignore_error";
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
@@ -261,7 +264,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const element = message_editor_ref.current;
 
     if (element) {
-      const text = element.innerText;
+      const text = editor_plain_text(element);
 
       if (is_plain_text_mode) {
         const html = escape_plain_text(text).replace(/\n/g, "<br>");

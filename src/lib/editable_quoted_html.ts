@@ -34,6 +34,7 @@ import { defer_compose_images } from "@/lib/compose_deferred_images";
 import { restore_deferred_compose_images } from "@/lib/compose_deferred_markup";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { is_tracking_pixel } from "@/lib/html_sanitizer_utils";
+import { editor_text_breaks_to_elements } from "@/lib/html_source_whitespace";
 import {
   escape_style_terminator,
   strip_css_urls,
@@ -428,7 +429,7 @@ function clear_blocked_placeholders(html: string): string {
   return template.innerHTML;
 }
 
-export function read_compose_editor_html(html: string): string {
+function restore_editor_sources(html: string): string {
   return restore_compose_image_sources(
     restore_parked_sources(
       clear_blocked_placeholders(restore_deferred_compose_images(html)),
@@ -436,6 +437,10 @@ export function read_compose_editor_html(html: string): string {
   );
 }
 
+export function read_compose_editor_html(html: string): string {
+  return restore_editor_sources(editor_text_breaks_to_elements(html));
+}
+
 export function read_editable_quoted_html(container: HTMLElement): string {
-  return read_compose_editor_html(container.innerHTML);
+  return restore_editor_sources(container.innerHTML);
 }

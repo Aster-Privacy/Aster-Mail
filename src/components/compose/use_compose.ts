@@ -78,7 +78,11 @@ import {
   resolve_quoted_image_blocking,
   type EditableQuotedHtmlOptions,
 } from "@/lib/editable_quoted_html";
-import { escape_html, escaped_html_to_plain_text } from "@/hooks/editor_utils";
+import {
+  editor_plain_text,
+  escape_html,
+  escaped_html_to_plain_text,
+} from "@/hooks/editor_utils";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
 import { build_compose_default_block } from "@/lib/compose_defaults";
 import {
@@ -1000,7 +1004,7 @@ export function use_compose({
             );
             set_message(
               is_plain_text_ref.current
-                ? message_textarea_ref.current.innerText
+                ? editor_plain_text(message_textarea_ref.current)
                 : read_compose_editor_html(
                     message_textarea_ref.current.innerHTML,
                   ),
@@ -1124,7 +1128,7 @@ export function use_compose({
           contain_draft_quotes(resolved_html, quote_options_ref.current()),
         );
         if (is_plain_text_ref.current) {
-          const text = message_textarea_ref.current.innerText;
+          const text = editor_plain_text(message_textarea_ref.current);
 
           message_textarea_ref.current.innerText = text;
           set_message(text);
@@ -1176,7 +1180,7 @@ export function use_compose({
         stale.remove();
         set_message(
           is_plain_text_ref.current
-            ? editor.innerText
+            ? editor_plain_text(editor)
             : read_compose_editor_html(editor.innerHTML),
         );
       }
@@ -1212,7 +1216,7 @@ export function use_compose({
     }
     set_message(
       is_plain_text_ref.current
-        ? editor.innerText
+        ? editor_plain_text(editor)
         : read_compose_editor_html(editor.innerHTML),
     );
     last_signature_id_ref.current = target.id;
