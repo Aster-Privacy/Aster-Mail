@@ -20,8 +20,10 @@
 //
 import { describe, it, expect } from "vitest";
 
+import { IANA_TLDS } from "./aliases/iana_tlds";
 import {
   MAX_ALIAS_WEBSITES,
+  is_plausible_website_host,
   normalize_website_url,
   validate_website_input,
   parse_websites_payload,
@@ -160,5 +162,97 @@ describe("validate_website_input", () => {
     expect(validate_website_input("-bad.com")).toBeNull();
     expect(validate_website_input("bad-.com")).toBeNull();
     expect(validate_website_input("localhost")).toBeNull();
+  });
+});
+
+describe("validate_website_input across the full IANA list", () => {
+  it("accepts long generic top-level domains", () => {
+    expect(validate_website_input("federated.nexus")).toBe(
+      "https://federated.nexus",
+    );
+    expect(validate_website_input("https://federated.nexus/")).toBe(
+      "https://federated.nexus",
+    );
+    expect(validate_website_input("sub.example.travel")).toBe(
+      "https://sub.example.travel",
+    );
+    expect(validate_website_input("studio.photography")).toBe(
+      "https://studio.photography",
+    );
+    expect(validate_website_input("brand.accountants")).toBe(
+      "https://brand.accountants",
+    );
+  });
+
+  it("accepts punycode and unicode hostnames as punycode", () => {
+    expect(validate_website_input("xn--80aswg.xn--p1ai")).toBe(
+      "https://xn--80aswg.xn--p1ai",
+    );
+    expect(validate_website_input("сайт.рф")).toBe(
+      "https://xn--80aswg.xn--p1ai",
+    );
+  });
+
+  it("normalizes case and the trailing dot of the host", () => {
+    expect(validate_website_input("HTTPS://Federated.NEXUS./Path?q=1")).toBe(
+      "https://federated.nexus/Path?q=1",
+    );
+  });
+
+  it("accepts every top-level domain in the bundled list", () => {
+    const rejected = [...IANA_TLDS].filter(
+      (tld) => validate_website_input(`example.${tld}`) === null,
+    );
+
+    expect(IANA_TLDS.size).toBeGreaterThan(1000);
+    expect(rejected).toEqual([]);
+  });
+
+  it("rejects hosts that are not public domains", () => {
+    expect(validate_website_input("foo")).toBeNull();
+    expect(validate_website_input("foo.")).toBeNull();
+    expect(validate_website_input("-a.com")).toBeNull();
+    expect(validate_website_input("a..com")).toBeNull();
+    expect(validate_website_input("localhost")).toBeNull();
+    expect(validate_website_input("http://localhost:8080")).toBeNull();
+    expect(validate_website_input("app.localhost")).toBeNull();
+    expect(validate_website_input("printer.local")).toBeNull();
+    expect(validate_website_input("db.internal")).toBeNull();
+    expect(validate_website_input("127.0.0.1")).toBeNull();
+    expect(validate_website_input("http://10.0.0.1/admin")).toBeNull();
+    expect(validate_website_input("http://[::1]/")).toBeNull();
+    expect(validate_website_input("example.zz")).toBeNull();
+  });
+
+  it("rejects credentials and non-web schemes", () => {
+    expect(validate_website_input("http://user:pass@x.com")).toBeNull();
+    expect(validate_website_input("https://user@x.com")).toBeNull();
+    expect(validate_website_input("https://@x.com")).toBeNull();
+    expect(validate_website_input("javascript:alert(1)")).toBeNull();
+    expect(validate_website_input("ftp://files.example.com")).toBeNull();
+  });
+
+  it("rejects oversized hosts and labels", () => {
+    expect(validate_website_input(`${"a".repeat(296)}.com`)).toBeNull();
+    expect(
+      is_plausible_website_host(`${"a".repeat(64)}.com`),
+    ).toBe(false);
+    expect(
+      is_plausible_website_host(`${"a".repeat(63)}.com`),
+    ).toBe(true);
+    expect(
+      is_plausible_website_host(
+        `${Array.from({ length: 4 }, () => "a".repeat(63)).join(".")}.com`,
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("normalize_website_url userinfo", () => {
+  it("drops stored entries that carry credentials", () => {
+    expect(normalize_website_url("http://user:pass@x.com")).toBeNull();
+    expect(parse_websites_payload('["https://a:b@x.com","https://ok.com"]')).toEqual(
+      ["https://ok.com"],
+    );
   });
 });
