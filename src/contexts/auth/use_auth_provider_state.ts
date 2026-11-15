@@ -119,6 +119,10 @@ import { release_app_lock } from "@/services/app_lock_unlock";
 import { delete_category_index_for_account } from "@/services/category_index";
 import { delete_user_device_snapshots } from "@/services/crypto/device_recovery_store";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  announce_sign_out,
+  watch_sign_out_signal,
+} from "@/services/sign_out_signal";
 
 async function resume_surviving_account(
   survivor: StoredAccount,
@@ -486,6 +490,10 @@ export function use_auth_provider_state() {
       }
 
       await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
+      await with_timeout(
+        announce_sign_out([current_id ?? state.user?.id]),
+        1000,
+      );
 
       if (other && current_id) {
         stop_session_timeout();
@@ -553,6 +561,7 @@ export function use_auth_provider_state() {
     navigate,
     state.accounts,
     state.current_account_id,
+    state.user?.id,
   ]);
 
   const logout_all_handler = useCallback(async () => {
@@ -595,6 +604,14 @@ export function use_auth_provider_state() {
       }
 
       await with_timeout(api_client.post("/core/v1/auth/logout-all", {}), 3000);
+      await with_timeout(
+        announce_sign_out([
+          state.current_account_id,
+          state.user?.id,
+          ...state.accounts.map((account) => account.id),
+        ]),
+        1000,
+      );
 
       await with_timeout(clear_local_auth_data(), 4000);
     } catch (e) {
@@ -612,11 +629,17 @@ export function use_auth_provider_state() {
         );
       }
     }
-  }, [clear_local_auth_data, navigate]);
+  }, [
+    clear_local_auth_data,
+    navigate,
+    state.accounts,
+    state.current_account_id,
+    state.user?.id,
+  ]);
 
   useEffect(() => {
     const sign_out_keeping_other_accounts = async (
-      message_key: TranslationKey,
+      message_key: TranslationKey | null,
       reason?: string,
       keep_device_pairing = false,
     ) => {
@@ -643,7 +666,7 @@ export function use_auth_provider_state() {
 
         if (path === "/sign-in" || keep_device_pairing) return;
 
-        show_toast(t(message_key), "info");
+        if (message_key) show_toast(t(message_key), "info");
         await api_client
           .clear_session_cookies()
           .catch((caught) =>
@@ -693,7 +716,7 @@ export function use_auth_provider_state() {
 
       const query = params.toString();
 
-      show_toast(t(message_key), "info");
+      if (message_key) show_toast(t(message_key), "info");
       navigate(query ? `/sign-in?${query}` : "/sign-in");
     };
 
@@ -737,6 +760,17 @@ export function use_auth_provider_state() {
       await sign_out_keeping_other_accounts("common.signed_out_inactivity");
     };
 
+    const handle_signed_out_elsewhere = async () => {
+      if (api_client.is_intentional_logout()) return;
+
+      session_expired_muted_until.current = Date.now() + 15000;
+      sync_client.disconnect();
+      api_client.clear_auth_data();
+      api_client.set_authenticated(false);
+
+      await sign_out_keeping_other_accounts(null);
+    };
+
     const handle_session_revoked = async () => {
       await sign_out_keeping_other_accounts("common.device_revoked");
     };
@@ -774,6 +808,11 @@ export function use_auth_provider_state() {
       handle_session_revoked,
     );
 
+    window.addEventListener(
+      "astermail:signed-out-elsewhere",
+      handle_signed_out_elsewhere,
+    );
+
     return () => {
       window.removeEventListener(
         "astermail:session-expired",
@@ -790,6 +829,10 @@ export function use_auth_provider_state() {
       window.removeEventListener(
         "astermail:session-revoked",
         handle_session_revoked,
+      );
+      window.removeEventListener(
+        "astermail:signed-out-elsewhere",
+        handle_signed_out_elsewhere,
       );
     };
   }, [
@@ -830,6 +873,30 @@ export function use_auth_provider_state() {
 
     process_offline_queue().catch(safe_log_error);
   }, [state.is_authenticated, state.current_account_id]);
+
+  const signed_in_account_id = state.is_authenticated
+    ? (state.current_account_id ?? state.user?.id ?? null)
+    : null;
+
+  useEffect(() => {
+    if (!signed_in_account_id) return;
+
+    return watch_sign_out_signal({
+      account_id: signed_in_account_id,
+      on_signal: async () => {
+        if (api_client.is_intentional_logout()) return true;
+
+        const signed_out =
+          await api_client.confirm_signed_out_elsewhere(signed_in_account_id);
+
+        if (signed_out) {
+          window.dispatchEvent(new Event("astermail:signed-out-elsewhere"));
+        }
+
+        return signed_out;
+      },
+    });
+  }, [signed_in_account_id]);
 
   useEffect(() => {
     if (state.has_keys) preload_openpgp();
