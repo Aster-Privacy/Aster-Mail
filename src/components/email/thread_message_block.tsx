@@ -78,6 +78,7 @@ import { EmailAuthIndicator } from "@/components/email/email_auth_indicator";
 import { SenderTrustBanner } from "@/components/email/banners/sender_trust_banner";
 import { summarize_email_authentication } from "@/utils/email_authentication";
 import { catch_all_reply_address } from "@/services/catch_all_sender";
+import { remember_inline_forward_from } from "@/components/email/delivery_reply_address";
 import { show_toast } from "@/components/toast/simple_toast";
 import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
@@ -228,6 +229,10 @@ export function ThreadMessageBlock(
           ...all_to_emails,
           ...original_cc_emails,
         ]));
+
+    if (inline_mode === "forward") {
+      remember_inline_forward_from(message, inline_reply_from);
+    }
 
     return (
       <div
