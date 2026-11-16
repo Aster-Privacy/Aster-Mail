@@ -37,6 +37,10 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import {
+  keys_added_by_recovery,
+  recover_pgp_keys_from_history,
+} from "@/services/crypto/vault_key_recovery";
+import {
   adopt_refreshed_vault,
   fetch_refreshed_vault,
 } from "@/services/crypto/vault_refresh";
@@ -229,12 +233,25 @@ async function open_search_envelope(
           ].filter((key) => !tried.has(key));
 
           if (refreshed_keys.length > 0) {
-            const healed = await decrypt_pgp_with_keys(refreshed_keys);
+            try {
+              const healed = await decrypt_pgp_with_keys(refreshed_keys);
 
-            await adopt_refreshed_vault(refreshed);
+              await adopt_refreshed_vault(refreshed);
 
-            return healed;
+              return healed;
+            } catch {
+              pgp_keys.push(...refreshed_keys);
+            }
           }
+        }
+
+        const recovered_keys = keys_added_by_recovery(
+          await recover_pgp_keys_from_history().catch(() => null),
+          pgp_keys,
+        );
+
+        if (recovered_keys.length > 0) {
+          return await decrypt_pgp_with_keys(recovered_keys);
         }
 
         throw pgp_error;

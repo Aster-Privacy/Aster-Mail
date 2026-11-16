@@ -39,6 +39,10 @@ import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { get_vault_history, update_vault } from "@/services/api/key_rotation";
 import { get_current_account } from "@/services/account_manager";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
+import { private_key_unlocks } from "@/services/crypto/identity_key_materials";
+import { get_cached_preferences } from "@/services/api/preferences";
+
+const PGP_PRIVATE_KEY_HEADER = "-----BEGIN PGP PRIVATE KEY";
 
 async function derive_public_or_null(
   armored_secret_key: string,
@@ -288,4 +292,146 @@ export async function recover_ratchet_keys_from_history_locked(): Promise<Encryp
 
 export function recover_ratchet_keys_from_history(): Promise<EncryptedVault | null> {
   return with_vault_write_lock(recover_ratchet_keys_from_history_locked);
+}
+
+let pgp_recovery_attempted_for: string | null = null;
+
+export function reset_pgp_key_recovery_state(): void {
+  pgp_recovery_attempted_for = null;
+}
+
+async function private_key_fingerprint(
+  armored: string | undefined | null,
+): Promise<string | null> {
+  if (typeof armored !== "string") return null;
+  if (!armored.trimStart().startsWith(PGP_PRIVATE_KEY_HEADER)) return null;
+
+  try {
+    const openpgp = await load_openpgp();
+    const key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+    return key.getFingerprint().toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function archived_pgp_keys(vault: EncryptedVault): string[] {
+  return [
+    vault.identity_key,
+    ...(vault.previous_keys ?? []),
+    ...(vault.legacy_identity_keys ?? []),
+  ].filter((key): key is string => typeof key === "string" && key.length > 0);
+}
+
+export async function recover_pgp_keys_from_history_locked(): Promise<EncryptedVault | null> {
+  const vault = get_vault_from_memory();
+  const passphrase = get_passphrase_from_memory();
+  const current_account = await get_current_account();
+  const user_id = current_account?.user?.id;
+
+  if (!vault?.identity_key || !passphrase || !user_id) return null;
+
+  if ((get_cached_preferences()?.key_history_limit ?? 0) > 0) return null;
+
+  if (pgp_recovery_attempted_for === user_id) return null;
+
+  pgp_recovery_attempted_for = user_id;
+
+  const response = await get_vault_history();
+  const entries = response.data?.entries ?? [];
+
+  const known = new Set<string>();
+
+  for (const key of [vault.identity_key, ...(vault.previous_keys ?? [])]) {
+    const fingerprint = await private_key_fingerprint(key);
+
+    if (fingerprint) known.add(fingerprint);
+  }
+
+  const candidates: string[] = [...(vault.legacy_identity_keys ?? [])];
+
+  for (const entry of entries) {
+    try {
+      candidates.push(
+        ...archived_pgp_keys(
+          await decrypt_vault(entry.encrypted_vault, entry.vault_nonce, passphrase),
+        ),
+      );
+    } catch {
+      continue;
+    }
+  }
+
+  const recovered: string[] = [];
+
+  for (const key of candidates) {
+    const fingerprint = await private_key_fingerprint(key);
+
+    if (!fingerprint || known.has(fingerprint)) continue;
+    if (!(await private_key_unlocks(key, passphrase))) continue;
+
+    known.add(fingerprint);
+    recovered.push(key);
+  }
+
+  if (!recovered.length) return null;
+
+  const next_vault: EncryptedVault = {
+    ...vault,
+    previous_keys: [...(vault.previous_keys ?? []), ...recovered],
+  };
+  const { encrypted_vault, vault_nonce } = await encrypt_vault(
+    next_vault,
+    passphrase,
+  );
+
+  try {
+    const roundtrip = await decrypt_vault(
+      encrypted_vault,
+      vault_nonce,
+      passphrase,
+    );
+
+    if (
+      roundtrip.identity_key !== next_vault.identity_key ||
+      (roundtrip.previous_keys?.length ?? 0) !==
+        (next_vault.previous_keys?.length ?? 0)
+    ) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
+  const saved = await update_vault(
+    encrypted_vault,
+    vault_nonce,
+    next_vault.data_kek ? MASTER_KEY_VAULT_FORMAT : next_vault.vault_format,
+    user_id,
+    true,
+    next_vault,
+    vault,
+  );
+
+  if (!saved.success) return null;
+
+  return saved.vault ?? next_vault;
+}
+
+export function recover_pgp_keys_from_history(): Promise<EncryptedVault | null> {
+  return with_vault_write_lock(recover_pgp_keys_from_history_locked);
+}
+
+export function keys_added_by_recovery(
+  recovered: EncryptedVault | null,
+  tried: string[],
+): string[] {
+  if (!recovered?.identity_key) return [];
+
+  const seen = new Set(tried);
+
+  return [recovered.identity_key, ...(recovered.previous_keys ?? [])].filter(
+    (key) => !seen.has(key),
+  );
 }
