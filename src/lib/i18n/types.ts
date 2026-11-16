@@ -2327,6 +2327,14 @@ export interface CommonTranslations {
   no_contact_details: string;
   failed_to_remove_from_group: string;
   group_empty_hint: string;
+  open_group_label: string;
+  add_members: string;
+  add_members_count: string;
+  add_members_title: string;
+  add_members_none_left: string;
+  edit_group: string;
+  group_empty_add_hint: string;
+  group_members_label: string;
   group_empty_title: string;
   remove_from_group: string;
   removed_from_group: string;

@@ -2112,6 +2112,14 @@ export const ko = {
     export_selection: "선택 항목 내보내기",
     group_created: "그룹을 만듦",
     group_deleted: "그룹을 삭제함",
+    open_group_label: "{{name}} 그룹 열기, {{count}}",
+    add_members: "멤버 추가",
+    add_members_count: "{{count}}명 추가",
+    add_members_title: "{{name}}에 멤버 추가",
+    add_members_none_left: "모든 연락처가 이미 이 그룹에 있습니다.",
+    edit_group: "그룹 편집",
+    group_empty_add_hint: "이 그룹에 연락처를 추가하려면 멤버 추가를 선택하세요.",
+    group_members_label: "{{name}} 멤버",
     group_empty_hint:
       "이 그룹을 채우려면 연락처 탭에서 연락처를 선택하고 그룹에 추가를 사용합니다.",
     group_modal_description:
