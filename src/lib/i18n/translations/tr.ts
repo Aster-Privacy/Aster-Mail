@@ -5930,6 +5930,7 @@ export const tr = {
     duplicates_skipped: "{{count}} kopya atlandı",
     duplicates_skipped_one: "{{count}} kopya atlandı",
     import_attachments_filled: "Daha önce içe aktarılan {{count}} iletiye ekler eklendi",
+    import_attachments_filled_one: "Daha önce içe aktarılan {{count}} iletiye ekler eklendi",
     import_review_ready: "{{count}} e-posta içe aktarılmaya hazır.",
     import_review_ready_one: "{{count}} e-posta içe aktarılmaya hazır.",
     import_review_trash_found: "Bunlardan {{count}} tanesi eski hesabınızda Çöp Kutusu'ndaydı. Nereye taşınacaklarını seçin.",
