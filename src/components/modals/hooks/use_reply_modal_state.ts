@@ -347,45 +347,34 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
   const sender_resolution_ready =
     !sender_loading && (preferred_sender_ready || !!preferred_sender_id);
 
-  const resolved_sender = useMemo(
-    () =>
-      resolve_from_sender({
-        options: sender_options,
-        draft_from: existing_draft?.content.from_email,
-        thread_addresses: [
-          reply_from_address,
-          ...(original_to ?? []),
-          ...(original_cc ?? []),
-        ],
-        prefer_external: is_external,
-        preferred_sender_id,
-      }),
-    [
-      sender_options,
-      existing_draft?.content.from_email,
+  const resolved_sender = resolve_from_sender({
+    options: sender_options,
+    draft_from: existing_draft?.content.from_email,
+    thread_addresses: [
       reply_from_address,
-      original_to,
-      original_cc,
-      is_external,
-      preferred_sender_id,
+      ...(original_to ?? []),
+      ...(original_cc ?? []),
     ],
-  );
+    prefer_external: is_external,
+    preferred_sender_id,
+  });
+  const resolved_sender_option = resolved_sender?.option ?? null;
 
   const expected_sender_email = sender_resolution_ready
-    ? (resolved_sender?.option.email ?? null)
+    ? (resolved_sender_option?.email ?? null)
     : null;
 
   useEffect(() => {
     if (!sender_resolution_ready) return;
     if (sender_manually_selected_ref.current) return;
     if (ghost_mode.is_ghost_enabled) return;
-    if (!resolved_sender) return;
-    if (resolved_sender.option.id === selected_sender?.id) return;
+    if (!resolved_sender_option) return;
+    if (resolved_sender_option.id === selected_sender?.id) return;
 
-    set_selected_sender_state(resolved_sender.option);
+    set_selected_sender_state(resolved_sender_option);
   }, [
     sender_resolution_ready,
-    resolved_sender,
+    resolved_sender_option,
     selected_sender,
     ghost_mode.is_ghost_enabled,
   ]);
@@ -580,8 +569,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       });
 
       quote_header_text_ref.current =
-        new DOMParser().parseFromString(header, "text/html").body
-          .textContent ?? "";
+        new DOMParser().parseFromString(header, "text/html").body.textContent ??
+        "";
 
       if (for_display === "plain") {
         const quoted_text = outgoing_html_to_plain_text(
@@ -829,7 +818,10 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         );
 
         message_editor_ref.current.innerHTML = defer_compose_images(
-          contain_draft_quotes(sanitized_result.html, quote_options_ref.current()),
+          contain_draft_quotes(
+            sanitized_result.html,
+            quote_options_ref.current(),
+          ),
         );
         set_reply_message(read_editor_message(message_editor_ref.current));
         mark_inlined_quote_in_draft(message_editor_ref.current);

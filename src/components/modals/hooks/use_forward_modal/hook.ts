@@ -721,32 +721,29 @@ export function use_forward_modal({
   const sender_resolution_ready =
     !sender_loading && (preferred_sender_ready || !!preferred_sender_id);
 
-  const resolved_sender = useMemo(
-    () =>
-      resolve_from_sender({
-        options: sender_options,
-        thread_addresses: get_forward_from_candidates(effective_mail_id),
-        prefer_external: is_external,
-        preferred_sender_id,
-      }),
-    [sender_options, effective_mail_id, is_external, preferred_sender_id],
-  );
+  const resolved_sender = resolve_from_sender({
+    options: sender_options,
+    thread_addresses: get_forward_from_candidates(effective_mail_id),
+    prefer_external: is_external,
+    preferred_sender_id,
+  });
+  const resolved_sender_option = resolved_sender?.option ?? null;
 
   const expected_sender_email = sender_resolution_ready
-    ? (resolved_sender?.option.email ?? null)
+    ? (resolved_sender_option?.email ?? null)
     : null;
 
   useEffect(() => {
     if (!sender_resolution_ready) return;
     if (sender_manually_selected_ref.current) return;
     if (ghost_mode.is_ghost_enabled) return;
-    if (!resolved_sender) return;
-    if (resolved_sender.option.id === selected_sender?.id) return;
+    if (!resolved_sender_option) return;
+    if (resolved_sender_option.id === selected_sender?.id) return;
 
-    set_selected_sender_state(resolved_sender.option);
+    set_selected_sender_state(resolved_sender_option);
   }, [
     sender_resolution_ready,
-    resolved_sender,
+    resolved_sender_option,
     selected_sender,
     ghost_mode.is_ghost_enabled,
   ]);
