@@ -400,6 +400,12 @@ export const ru = {
     global: "Глобальные",
     search_emojis: "Поиск эмодзи...",
     skin_tone: "Тон кожи",
+    skin_tone_default: "По умолчанию",
+    skin_tone_light: "Светлый",
+    skin_tone_medium_light: "Умеренно светлый",
+    skin_tone_medium: "Средний",
+    skin_tone_medium_dark: "Умеренно тёмный",
+    skin_tone_dark: "Тёмный",
     wrap: "Свернуть",
     unwrap: "Развернуть",
     source_copied_to_clipboard: "Исходный код скопирован в буфер обмена",
@@ -6457,6 +6463,12 @@ export const ru = {
     info_relative_dates_title: "Относительные даты",
     info_relative_dates_description:
       "Когда параметр включён, письма за сегодня и вчера отображаются как «Сегодня» и «Вчера». Отключите его, чтобы всегда видеть дату и время отправки или получения письма: в списке писем, в самом письме и при печати.",
+    emoji_skin_tone: "Тон кожи эмодзи",
+    emoji_skin_tone_description:
+      "Тон кожи для эмодзи людей и рук в реакциях и в панели эмодзи",
+    info_emoji_skin_tone_title: "Тон кожи эмодзи",
+    info_emoji_skin_tone_description:
+      "Выберите тон кожи для эмодзи людей и рук. Выбор применяется к панели эмодзи и к отправляемым реакциям и синхронизируется на всех ваших устройствах. Эмодзи без тонов кожи не меняются.",
     compose_from_selected_alias: "Писать от выбранного псевдонима",
     compose_from_selected_alias_description:
       "Новые письма отправляются от псевдонима, открытого на боковой панели",

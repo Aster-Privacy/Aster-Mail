@@ -1391,6 +1391,14 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     keywords: ["emoji reactions", "thumbs up"],
   },
   {
+    label: "Emoji Skin Tone",
+    label_key: "settings.emoji_skin_tone",
+    section: "behavior",
+    breadcrumb: "Behavior > Reading & Conversations",
+    crumb_key: "settings_search.reading_and_conversations",
+    keywords: ["emoji", "skin tone", "reactions", "hand", "color"],
+  },
+  {
     label: "Purge Protected Folder Contents",
     label_key: "settings.purge_locked_folder_on_delete",
     section: "behavior",

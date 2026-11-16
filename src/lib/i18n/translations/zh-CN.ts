@@ -348,6 +348,12 @@ export const zh_CN = {
     global: "全局",
     search_emojis: "搜索表情...",
     skin_tone: "肤色",
+    skin_tone_default: "默认",
+    skin_tone_light: "浅色",
+    skin_tone_medium_light: "中等浅色",
+    skin_tone_medium: "中等",
+    skin_tone_medium_dark: "中等深色",
+    skin_tone_dark: "深色",
     wrap: "换行",
     unwrap: "取消换行",
     source_copied_to_clipboard: "源代码已复制到剪贴板",
@@ -5684,6 +5690,11 @@ export const zh_CN = {
     info_relative_dates_title: "相对日期",
     info_relative_dates_description:
       "开启后，今天和昨天的邮件显示为“今天”和“昨天”。关闭后，邮件列表、邮件正文和打印内容中始终显示邮件的发送或接收日期和时间。",
+    emoji_skin_tone: "表情符号肤色",
+    emoji_skin_tone_description: "回应和表情符号选择器中人物和手势表情符号的肤色",
+    info_emoji_skin_tone_title: "表情符号肤色",
+    info_emoji_skin_tone_description:
+      "为人物和手势表情符号选择肤色。你的选择会应用到表情符号选择器和你发送的回应，并同步到你的所有设备。没有肤色的表情符号保持不变。",
     compose_from_selected_alias: "使用所选别名撰写",
     compose_from_selected_alias_description:
       "新邮件使用您在侧边栏中打开的别名作为发件人",

@@ -21,6 +21,7 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { CustomCategoryRule } from "@/data/category_catalog";
 import type { LanguageCode } from "@/lib/i18n/types";
+import type { SkinTone } from "@/config/emoji/skin_tones";
 
 import { api_client } from "./client";
 
@@ -41,6 +42,7 @@ import {
   clamp_inbox_page_size,
 } from "@/lib/inbox_page_size";
 import { ignore_error } from "@/lib/ignore_error";
+import { is_skin_tone, normalize_skin_tone } from "@/config/emoji/skin_tones";
 import { device_traces_erased } from "@/lib/device_erase_latch";
 import {
   apply_loaded_error_report_preference,
@@ -70,6 +72,7 @@ export interface UserPreferences {
   time_format: "12h" | "24h";
   calendar_week_starts_on?: WeekStartPreference;
   relative_dates: boolean;
+  emoji_skin_tone: SkinTone;
   compose_from_selected_alias: boolean;
   auto_save_drafts: boolean;
   auto_save_recent_recipients: boolean;
@@ -195,7 +198,11 @@ export interface UserPreferences {
   dyslexia_font: boolean;
   text_spacing: boolean;
   color_vision_mode:
-    "none" | "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia";
+    | "none"
+    | "protanopia"
+    | "deuteranopia"
+    | "tritanopia"
+    | "achromatopsia";
   external_link_warning_dismissed: boolean;
   notification_banner_dismissed: boolean;
   account_security_banner_dismissed: boolean;
@@ -563,6 +570,39 @@ type MigrationFlag =
   | "migration_viewer_toolbar_v1_done"
   | "migration_signature_placement_v1_done";
 
+export const LEGACY_SKIN_TONE_STORAGE_KEY = "aster_emoji_skin_tone";
+
+export function take_legacy_skin_tone(
+  server: Record<string, unknown>,
+): SkinTone | null {
+  try {
+    const stored = localStorage.getItem(LEGACY_SKIN_TONE_STORAGE_KEY);
+
+    if (stored === null) return null;
+    if (
+      server.emoji_skin_tone !== undefined ||
+      !is_skin_tone(stored) ||
+      stored === "default"
+    ) {
+      localStorage.removeItem(LEGACY_SKIN_TONE_STORAGE_KEY);
+
+      return null;
+    }
+
+    return stored;
+  } catch {
+    return null;
+  }
+}
+
+function clear_legacy_skin_tone(): void {
+  try {
+    localStorage.removeItem(LEGACY_SKIN_TONE_STORAGE_KEY);
+  } catch (caught) {
+    ignore_error("services/api/preferences:clear_legacy_skin_tone", caught);
+  }
+}
+
 function read_local_migration_flag(flag: MigrationFlag): boolean {
   try {
     const raw = localStorage.getItem(MIGRATION_FLAGS_KEY);
@@ -708,6 +748,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   date_format: locale_date_format(),
   time_format: locale_time_format(),
   relative_dates: true,
+  emoji_skin_tone: "default",
   compose_from_selected_alias: false,
   auto_save_drafts: true,
   auto_save_recent_recipients: true,
@@ -872,7 +913,10 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 type GetPreferencesViaHttpResult =
-  UserPreferences | "not_found" | "decrypt_failed" | null;
+  | UserPreferences
+  | "not_found"
+  | "decrypt_failed"
+  | null;
 
 async function get_preferences_via_http(
   vault: EncryptedVault,
@@ -1083,6 +1127,7 @@ export function build_merged_preferences(
   }
 
   merged.relative_dates = merged.relative_dates !== false;
+  merged.emoji_skin_tone = normalize_skin_tone(merged.emoji_skin_tone);
   merged.compose_from_selected_alias =
     merged.compose_from_selected_alias === true;
 
@@ -1269,10 +1314,21 @@ export async function get_preferences(
       needs_migration_save = true;
     }
 
+    const legacy_skin_tone = take_legacy_skin_tone(
+      preferences as unknown as Record<string, unknown>,
+    );
+
+    if (legacy_skin_tone) {
+      merged.emoji_skin_tone = legacy_skin_tone;
+      needs_migration_save = true;
+    }
+
     if (needs_migration_save) {
       const ok = await save_preferences_via_http(merged, vault).catch(
         () => false,
       );
+
+      if (ok && legacy_skin_tone) clear_legacy_skin_tone();
 
       if (!ok) {
         save_preferences_via_http(merged, vault).catch((caught) =>

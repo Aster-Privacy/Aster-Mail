@@ -449,6 +449,12 @@ export const ko = {
     global: "전역",
     search_emojis: "이모지 검색...",
     skin_tone: "피부톤",
+    skin_tone_default: "기본",
+    skin_tone_light: "밝은 톤",
+    skin_tone_medium_light: "약간 밝은 톤",
+    skin_tone_medium: "중간 톤",
+    skin_tone_medium_dark: "약간 어두운 톤",
+    skin_tone_dark: "어두운 톤",
     wrap: "줄바꿈",
     unwrap: "줄바꿈 해제",
     source_copied_to_clipboard: "소스가 클립보드에 복사됨",
@@ -6258,6 +6264,11 @@ export const ko = {
     info_relative_dates_title: "상대 날짜",
     info_relative_dates_description:
       "켜면 오늘과 어제에 주고받은 메일이 오늘, 어제로 표시됩니다. 끄면 메일 목록과 메일 본문, 인쇄물에서 메일을 보내거나 받은 날짜와 시간이 항상 표시됩니다.",
+    emoji_skin_tone: "이모티콘 피부톤",
+    emoji_skin_tone_description: "반응과 이모티콘 선택기에서 사람 및 손 이모티콘에 사용할 피부톤",
+    info_emoji_skin_tone_title: "이모티콘 피부톤",
+    info_emoji_skin_tone_description:
+      "사람 및 손 이모티콘에 사용할 피부톤을 선택하세요. 선택한 피부톤은 이모티콘 선택기와 보내는 반응에 적용되며 모든 기기에 동기화됩니다. 피부톤이 없는 이모티콘은 그대로 유지됩니다.",
     compose_from_selected_alias: "선택한 별칭으로 작성",
     compose_from_selected_alias_description:
       "새 메시지에 사이드바에서 열어 둔 별칭을 보낸 사람으로 사용합니다",

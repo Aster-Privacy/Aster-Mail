@@ -416,6 +416,12 @@ export const es = {
     global: "Global",
     search_emojis: "Buscar emojis...",
     skin_tone: "Tono de piel",
+    skin_tone_default: "Predeterminado",
+    skin_tone_light: "Claro",
+    skin_tone_medium_light: "Claro medio",
+    skin_tone_medium: "Medio",
+    skin_tone_medium_dark: "Oscuro medio",
+    skin_tone_dark: "Oscuro",
     wrap: "Ajustar",
     unwrap: "Desajustar",
     source_copied_to_clipboard: "Fuente copiada al portapapeles",
@@ -6354,6 +6360,12 @@ export const es = {
     info_relative_dates_title: "Fechas relativas",
     info_relative_dates_description:
       "Cuando esta opción está activada, los mensajes de hoy y de ayer aparecen como Hoy y Ayer. Desactívala para mostrar siempre la fecha y la hora en que se envió o recibió un mensaje, en la lista de mensajes, en el mensaje y al imprimirlo.",
+    emoji_skin_tone: "Tono de piel de emoji",
+    emoji_skin_tone_description:
+      "Tono de piel para los emoji de personas y manos en reacciones y en el selector de emoji",
+    info_emoji_skin_tone_title: "Tono de piel de emoji",
+    info_emoji_skin_tone_description:
+      "Elige el tono de piel para los emoji de personas y manos. Tu elección se aplica al selector de emoji y a las reacciones que envías, y se sincroniza con todos tus dispositivos. Los emoji sin tonos de piel no cambian.",
     compose_from_selected_alias: "Redactar desde el alias seleccionado",
     compose_from_selected_alias_description:
       "Los mensajes nuevos usan como remitente el alias que tienes abierto en la barra lateral",

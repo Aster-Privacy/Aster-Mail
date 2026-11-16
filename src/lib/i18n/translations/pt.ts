@@ -323,6 +323,12 @@ export const pt = {
     global: "Global",
     search_emojis: "Pesquisar emojis...",
     skin_tone: "Tom de pele",
+    skin_tone_default: "Predefinido",
+    skin_tone_light: "Claro",
+    skin_tone_medium_light: "Claro médio",
+    skin_tone_medium: "Médio",
+    skin_tone_medium_dark: "Escuro médio",
+    skin_tone_dark: "Escuro",
     wrap: "Quebrar linha",
     unwrap: "Desfazer quebra",
     source_copied_to_clipboard:
@@ -6403,6 +6409,12 @@ export const pt = {
     info_relative_dates_title: "Datas relativas",
     info_relative_dates_description:
       "Quando está ativado, as mensagens de hoje e de ontem aparecem como Hoje e Ontem. Desative para mostrar sempre a data e a hora em que uma mensagem foi enviada ou recebida, na lista de mensagens, na mensagem e ao imprimir.",
+    emoji_skin_tone: "Tom de pele dos emojis",
+    emoji_skin_tone_description:
+      "Tom de pele para emojis de pessoas e mãos nas reações e no seletor de emojis",
+    info_emoji_skin_tone_title: "Tom de pele dos emojis",
+    info_emoji_skin_tone_description:
+      "Escolha o tom de pele para emojis de pessoas e mãos. A sua escolha aplica-se ao seletor de emojis e às reações que envia, e é sincronizada com todos os seus dispositivos. Os emojis sem tons de pele ficam iguais.",
     compose_from_selected_alias: "Escrever a partir do alias selecionado",
     compose_from_selected_alias_description:
       "As novas mensagens usam como remetente o alias que tem aberto na barra lateral",

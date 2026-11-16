@@ -1070,6 +1070,12 @@ export interface CommonTranslations {
   global: string;
   search_emojis: string;
   skin_tone: string;
+  skin_tone_default: string;
+  skin_tone_light: string;
+  skin_tone_medium_light: string;
+  skin_tone_medium: string;
+  skin_tone_medium_dark: string;
+  skin_tone_dark: string;
   wrap: string;
   unwrap: string;
   source_copied_to_clipboard: string;
@@ -3485,6 +3491,10 @@ export interface SettingsTranslations {
   relative_dates_description: string;
   info_relative_dates_title: string;
   info_relative_dates_description: string;
+  emoji_skin_tone: string;
+  emoji_skin_tone_description: string;
+  info_emoji_skin_tone_title: string;
+  info_emoji_skin_tone_description: string;
   compose_from_selected_alias: string;
   compose_from_selected_alias_description: string;
   info_compose_from_selected_alias_title: string;

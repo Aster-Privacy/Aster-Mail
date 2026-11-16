@@ -401,6 +401,12 @@ export const tr = {
     global: "Genel",
     search_emojis: "Emoji ara...",
     skin_tone: "Ten rengi",
+    skin_tone_default: "Varsayılan",
+    skin_tone_light: "Açık",
+    skin_tone_medium_light: "Orta açık",
+    skin_tone_medium: "Orta",
+    skin_tone_medium_dark: "Orta koyu",
+    skin_tone_dark: "Koyu",
     wrap: "Kaydır",
     unwrap: "Kaydırmayı kaldır",
     source_copied_to_clipboard: "Kaynak panoya kopyalandı",
@@ -6253,6 +6259,12 @@ export const tr = {
     info_relative_dates_title: "Göreli tarihler",
     info_relative_dates_description:
       "Bu açıkken bugün ve dün gelen iletiler Bugün ve Dün olarak görünür. İletinin gönderildiği veya alındığı tarih ve saatin ileti listesinde, iletide ve yazdırmada her zaman görünmesi için kapatın.",
+    emoji_skin_tone: "Emoji ten rengi",
+    emoji_skin_tone_description:
+      "Tepkilerde ve emoji seçicide kişi ve el emojileri için ten rengi",
+    info_emoji_skin_tone_title: "Emoji ten rengi",
+    info_emoji_skin_tone_description:
+      "Kişi ve el emojileri için ten rengini seçin. Seçiminiz emoji seçiciye ve gönderdiğiniz tepkilere uygulanır ve tüm cihazlarınızla eşitlenir. Ten rengi olmayan emojiler değişmez.",
     compose_from_selected_alias: "Seçili takma addan yaz",
     compose_from_selected_alias_description:
       "Yeni iletiler, kenar çubuğunda açık olan takma adı gönderen olarak kullanır",
