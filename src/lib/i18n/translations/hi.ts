@@ -8524,6 +8524,15 @@ export const hi = {
     alias_tab_domains: "डोमेन",
     alias_tab_directories: "डायरेक्टरी",
     alias_tab_ghost: "घोस्ट एलियास",
+    alias_tab_sending: "भेजना",
+    sending_blocks_title: "भेजना बंद किए गए उपनाम",
+    sending_blocks_description: "किसी उपनाम से मेल जाना रोकने के लिए उसका भेजना बंद करें। उपनाम पर मेल आना जारी रहता है।",
+    sending_blocks_search_placeholder: "उपनाम खोजें",
+    sending_blocks_empty: "आपके पास अभी कोई उपनाम या डोमेन पता नहीं है।",
+    sending_blocks_no_results: "आपकी खोज से कोई उपनाम मेल नहीं खाता।",
+    sending_blocks_sending_allowed: "भेजने की अनुमति है",
+    sending_blocks_toggle_label: "{{ email }} से भेजने की अनुमति दें",
+    sending_blocks_update_failed: "इस उपनाम के लिए भेजना अपडेट नहीं हो सका। फिर से कोशिश करें।",
     alias_tab_preferences: "पसंद",
     alias_search_placeholder: "एलियास खोजें...",
     alias_filter_all: "सभी",
@@ -8998,6 +9007,9 @@ export const hi = {
     reply_from_mismatch_message:
       "यह ईमेल {{ received }} पर मिला था, लेकिन आपका जवाब {{ selected }} से भेजने के लिए तय है। किसी दूसरे पते से जवाब देने पर वह पता प्रेषक को दिख सकता है, और जवाब अस्वीकार भी हो सकता है।",
     reply_from_mismatch_use_received: "जिस पते पर मिला वही इस्तेमाल करें",
+    sending_disabled_badge: "भेजना बंद है",
+    reply_from_mismatch_banner: "यह ईमेल {{ received }} पर मिला था, लेकिन आपका जवाब {{ selected }} से भेजा जाएगा।",
+    reply_from_mismatch_banner_switch: "{{ received }} से भेजें",
     reply_from_mismatch_send_anyway: "फिर भी भेजें",
     reply_from_unknown_title: "भेजने वाले का पता जांचें",
     reply_from_unknown_message:
@@ -10605,6 +10617,7 @@ export const hi = {
       "Windows Hello, YubiKey या आपके पासवर्ड मैनेजर से एक दूसरा चरण जोड़ता है।",
   },
   errors: {
+    alias_sending_disabled: "इस उपनाम से भेजना बंद है। पहले इसे चालू करें।",
     auth_salt_collision:
       "सर्वर ने एक असुरक्षित मान भेजा, इसलिए साइन इन रोक दिया गया और कुछ भी अनलॉक नहीं हुआ। दोबारा कोशिश करने से पहले सहायता से संपर्क करें।",
     legacy_login_salt_new_device:

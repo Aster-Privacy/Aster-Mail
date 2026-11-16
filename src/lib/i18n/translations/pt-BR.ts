@@ -3212,6 +3212,15 @@ export const pt_br = {
     alias_tab_domains: "Domínios",
     alias_tab_directories: "Diretórios",
     alias_tab_ghost: "Aliases fantasma",
+    alias_tab_sending: "Envio",
+    sending_blocks_title: "Aliases com envio desativado",
+    sending_blocks_description: "Desative o envio de um alias para impedir que e-mails saiam dele. O alias continua recebendo e-mails.",
+    sending_blocks_search_placeholder: "Pesquisar aliases",
+    sending_blocks_empty: "Você ainda não tem aliases nem endereços de domínio.",
+    sending_blocks_no_results: "Nenhum alias corresponde à sua pesquisa.",
+    sending_blocks_sending_allowed: "Envio permitido",
+    sending_blocks_toggle_label: "Permitir envio de {{ email }}",
+    sending_blocks_update_failed: "Não foi possível atualizar o envio deste alias. Tente novamente.",
     alias_tab_preferences: "Preferências",
     alias_search_placeholder: "Pesquisar aliases...",
     alias_filter_all: "Todos",
@@ -9861,6 +9870,9 @@ export const pt_br = {
     reply_from_mismatch_message:
       "Este e-mail foi recebido em {{ received }}, mas sua resposta será enviada de {{ selected }}. Responder de outro endereço pode revelá-lo ao remetente e a resposta pode ser rejeitada.",
     reply_from_mismatch_use_received: "Usar endereço de recebimento",
+    sending_disabled_badge: "Envio desativado",
+    reply_from_mismatch_banner: "Este e-mail foi recebido em {{ received }}, mas sua resposta será enviada de {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Enviar de {{ received }}",
     reply_from_mismatch_send_anyway: "Enviar mesmo assim",
     reply_from_unknown_title: "Verifique o endereço do remetente",
     reply_from_unknown_message:
@@ -10867,6 +10879,7 @@ export const pt_br = {
     rename_saved: "Nome atualizado",
   },
   errors: {
+    alias_sending_disabled: "O envio deste alias está desativado. Primeiro ative-o.",
     auth_salt_collision:
       "O login foi interrompido porque o servidor enviou um valor inseguro, então nada foi desbloqueado. Entre em contato com o suporte antes de tentar novamente.",
     legacy_login_salt_new_device:

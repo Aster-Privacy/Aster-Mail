@@ -39,6 +39,9 @@ export interface ReplyFromMismatchState {
   on_cancel: () => void;
   on_send_anyway: () => void;
   on_use_received: () => void;
+  banner_visible?: boolean;
+  on_banner_dismiss?: () => void;
+  on_banner_use_received?: () => void;
 }
 
 const ANIMATION_DURATION = 150;

@@ -3226,6 +3226,15 @@ export const fr = {
     alias_tab_domains: "Domaines",
     alias_tab_directories: "Répertoires",
     alias_tab_ghost: "Alias éphémères",
+    alias_tab_sending: "Envoi",
+    sending_blocks_title: "Alias avec envoi désactivé",
+    sending_blocks_description: "Désactivez l'envoi d'un alias pour qu'aucun e-mail ne parte depuis celui-ci. L'alias continue de recevoir des e-mails.",
+    sending_blocks_search_placeholder: "Rechercher des alias",
+    sending_blocks_empty: "Vous n'avez encore aucun alias ni adresse de domaine.",
+    sending_blocks_no_results: "Aucun alias ne correspond à votre recherche.",
+    sending_blocks_sending_allowed: "Envoi autorisé",
+    sending_blocks_toggle_label: "Autoriser l'envoi depuis {{ email }}",
+    sending_blocks_update_failed: "Impossible de mettre à jour l'envoi pour cet alias. Réessayez.",
     alias_tab_preferences: "Préférences",
     alias_search_placeholder: "Rechercher des alias...",
     alias_filter_all: "Tous",
@@ -10131,6 +10140,9 @@ export const fr = {
     reply_from_mismatch_message:
       "Cet e-mail a été reçu sur {{ received }}, mais votre réponse sera envoyée depuis {{ selected }}. Répondre depuis une autre adresse peut la révéler à l'expéditeur et la réponse peut être rejetée.",
     reply_from_mismatch_use_received: "Utiliser l'adresse de réception",
+    sending_disabled_badge: "Envoi désactivé",
+    reply_from_mismatch_banner: "Cet e-mail a été reçu sur {{ received }}, mais votre réponse partira de {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Envoyer depuis {{ received }}",
     reply_from_mismatch_send_anyway: "Envoyer quand même",
     reply_from_unknown_title: "Vérifiez l'adresse d'expédition",
     reply_from_unknown_message:
@@ -10956,6 +10968,7 @@ export const fr = {
     rename_saved: "Nom mis à jour",
   },
   errors: {
+    alias_sending_disabled: "L'envoi depuis cet alias est désactivé. Activez-le d'abord.",
     auth_salt_collision:
       "La connexion a été interrompue parce que le serveur a envoyé une valeur non sécurisée. Rien n'a été déverrouillé. Contactez l'assistance avant de réessayer.",
     legacy_login_salt_new_device:

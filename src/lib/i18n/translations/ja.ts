@@ -3169,6 +3169,15 @@ export const ja = {
     alias_tab_domains: "ドメイン",
     alias_tab_directories: "ディレクトリ",
     alias_tab_ghost: "ゴーストエイリアス",
+    alias_tab_sending: "送信",
+    sending_blocks_title: "送信が無効なエイリアス",
+    sending_blocks_description: "エイリアスの送信をオフにすると、そのエイリアスからメールは送信されません。受信は引き続き可能です。",
+    sending_blocks_search_placeholder: "エイリアスを検索",
+    sending_blocks_empty: "エイリアスやドメインアドレスはまだありません。",
+    sending_blocks_no_results: "検索に一致するエイリアスはありません。",
+    sending_blocks_sending_allowed: "送信可能",
+    sending_blocks_toggle_label: "{{ email }} からの送信を許可",
+    sending_blocks_update_failed: "このエイリアスの送信設定を更新できませんでした。もう一度お試しください。",
     alias_tab_preferences: "設定",
     alias_search_placeholder: "エイリアスを検索...",
     alias_filter_all: "すべて",
@@ -9610,6 +9619,9 @@ export const ja = {
     reply_from_mismatch_message:
       "このメールは {{ received }} で受信しましたが、返信は {{ selected }} から送信されます。別のアドレスから返信すると、そのアドレスが送信者に知られたり、返信が拒否されたりする可能性があります。",
     reply_from_mismatch_use_received: "受信アドレスを使用",
+    sending_disabled_badge: "送信無効",
+    reply_from_mismatch_banner: "このメールは {{ received }} で受信しましたが、返信は {{ selected }} から送信されます。",
+    reply_from_mismatch_banner_switch: "{{ received }} から送信",
     reply_from_mismatch_send_anyway: "そのまま送信",
     reply_from_unknown_title: "差出人アドレスを確認してください",
     reply_from_unknown_message:
@@ -10571,6 +10583,7 @@ export const ja = {
     rename_saved: "名前を更新しました",
   },
   errors: {
+    alias_sending_disabled: "このエイリアスからの送信は無効になっています。先に有効にしてください。",
     auth_salt_collision:
       "サーバーが安全でない値を送信したため、サインインを中止しました。何もロック解除されていません。再試行する前にサポートに問い合わせてください。",
     legacy_login_salt_new_device:

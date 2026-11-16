@@ -53,6 +53,7 @@ import { is_composing } from "@/utils/ime";
 import { format_number } from "@/lib/utils";
 import { fold_search_text } from "@/utils/search_fold";
 import { ButtonSpinner } from "@/components/ui/spinner";
+import { show_toast } from "@/components/toast/simple_toast";
 
 function SenderAliasIcon({
   address,
@@ -132,6 +133,22 @@ function CatchAllBadge() {
       }}
     >
       {t("settings.catch_all_label")}
+    </span>
+  );
+}
+
+function SendingDisabledBadge() {
+  const { t } = use_i18n();
+
+  return (
+    <span
+      data-sending-disabled-badge
+      className="inline-flex flex-shrink-0 items-center rounded-[14px] border px-1.5 py-px text-[11px] font-medium leading-4 text-[var(--color-danger)]"
+      style={{
+        borderColor: "color-mix(in srgb, var(--color-danger) 30%, transparent)",
+      }}
+    >
+      {t("mail.sending_disabled_badge")}
     </span>
   );
 }
@@ -220,7 +237,8 @@ function render_option(
       data-sender-active={is_active || undefined}
     >
       <button
-        className="flex items-center gap-2 text-start flex-1 min-w-0"
+        aria-disabled={option.sending_disabled || undefined}
+        className={`flex items-center gap-2 text-start flex-1 min-w-0 ${option.sending_disabled ? "opacity-60" : ""}`}
         type="button"
         onClick={on_click}
       >
@@ -229,6 +247,7 @@ function render_option(
           <div className="flex items-center gap-1.5 min-w-0">
             <p className="text-sm truncate text-txt-primary">{option.email}</p>
             {option.is_catch_all && <CatchAllBadge />}
+            {option.sending_disabled && <SendingDisabledBadge />}
           </div>
           {option.display_name && (
             <p className="text-xs truncate text-txt-muted">
@@ -466,6 +485,7 @@ export function SenderSelector({
         <SenderOptionIcon option={display_option} size="xs" />
         <span className="text-sm text-txt-primary">{display_option.email}</span>
         {display_option.is_catch_all && <CatchAllBadge />}
+        {display_option.sending_disabled && <SendingDisabledBadge />}
       </div>
     );
   }
@@ -503,6 +523,12 @@ export function SenderSelector({
     active_index >= 0 ? visible_options[active_index]?.id : undefined;
 
   const select_option = (option: SenderOption) => {
+    if (option.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
+
+      return;
+    }
+
     on_select(option);
     set_is_open(false);
   };
@@ -556,6 +582,7 @@ export function SenderSelector({
         <SenderOptionIcon option={display_option} size="xs" />
         <span className="text-sm text-txt-primary">{display_option.email}</span>
         {display_option.is_catch_all && <CatchAllBadge />}
+        {display_option.sending_disabled && <SendingDisabledBadge />}
         <ChevronDownIcon className="w-3.5 h-3.5 text-txt-muted" />
       </button>
 

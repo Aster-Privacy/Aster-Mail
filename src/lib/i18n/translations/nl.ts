@@ -3135,6 +3135,15 @@ export const nl = {
     alias_tab_domains: "Domeinen",
     alias_tab_directories: "Directory's",
     alias_tab_ghost: "Ghost-aliassen",
+    alias_tab_sending: "Verzenden",
+    sending_blocks_title: "Aliassen met verzenden uitgeschakeld",
+    sending_blocks_description: "Schakel verzenden voor een alias uit zodat er geen mail meer vanaf wordt verstuurd. De alias blijft mail ontvangen.",
+    sending_blocks_search_placeholder: "Aliassen zoeken",
+    sending_blocks_empty: "Je hebt nog geen aliassen of domeinadressen.",
+    sending_blocks_no_results: "Geen aliassen gevonden voor je zoekopdracht.",
+    sending_blocks_sending_allowed: "Verzenden toegestaan",
+    sending_blocks_toggle_label: "Verzenden vanaf {{ email }} toestaan",
+    sending_blocks_update_failed: "Kan verzenden voor deze alias niet bijwerken. Probeer het opnieuw.",
     alias_tab_preferences: "Voorkeuren",
     alias_search_placeholder: "Aliassen zoeken...",
     alias_filter_all: "Alle",
@@ -9830,6 +9839,9 @@ export const nl = {
     reply_from_mismatch_message:
       "Deze e-mail is ontvangen op {{ received }}, maar je antwoord wordt verzonden vanaf {{ selected }}. Antwoorden vanaf een ander adres kan dit adres onthullen aan de afzender en het antwoord kan worden geweigerd.",
     reply_from_mismatch_use_received: "Ontvangstadres gebruiken",
+    sending_disabled_badge: "Verzenden uitgeschakeld",
+    reply_from_mismatch_banner: "Deze e-mail is ontvangen op {{ received }}, maar je antwoord wordt verzonden vanaf {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Verzenden vanaf {{ received }}",
     reply_from_mismatch_send_anyway: "Toch verzenden",
     reply_from_unknown_title: "Controleer het afzenderadres",
     reply_from_unknown_message:
@@ -10804,6 +10816,7 @@ export const nl = {
     rename_saved: "Naam bijgewerkt",
   },
   errors: {
+    alias_sending_disabled: "Verzenden vanaf deze alias is uitgeschakeld. Schakel het eerst in.",
     auth_salt_collision:
       "Het aanmelden is gestopt omdat de server een onveilige waarde heeft gestuurd, dus er is niets ontgrendeld. Neem contact op met support voordat je het opnieuw probeert.",
     legacy_login_salt_new_device:

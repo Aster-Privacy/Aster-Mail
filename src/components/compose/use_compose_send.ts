@@ -314,6 +314,12 @@ export function use_compose_send({
       return;
     }
 
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
+
+      return;
+    }
+
     if (has_pending_attachment_reads?.()) {
       show_toast(t("common.loading"), "info");
       return;
@@ -1041,6 +1047,12 @@ export function use_compose_send({
 
     if (is_sender_pending?.()) {
       show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
 
       return;
     }

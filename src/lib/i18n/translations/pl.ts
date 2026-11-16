@@ -3369,6 +3369,15 @@ export const pl = {
     alias_tab_domains: "Domeny",
     alias_tab_directories: "Katalogi",
     alias_tab_ghost: "Aliasy widmo",
+    alias_tab_sending: "Wysyłanie",
+    sending_blocks_title: "Aliasy z wyłączonym wysyłaniem",
+    sending_blocks_description: "Wyłącz wysyłanie dla aliasu, aby nie wychodziła z niego poczta. Alias nadal odbiera wiadomości.",
+    sending_blocks_search_placeholder: "Szukaj aliasów",
+    sending_blocks_empty: "Nie masz jeszcze aliasów ani adresów domeny.",
+    sending_blocks_no_results: "Żaden alias nie pasuje do wyszukiwania.",
+    sending_blocks_sending_allowed: "Wysyłanie dozwolone",
+    sending_blocks_toggle_label: "Zezwól na wysyłanie z {{ email }}",
+    sending_blocks_update_failed: "Nie udało się zaktualizować wysyłania dla tego aliasu. Spróbuj ponownie.",
     alias_tab_preferences: "Preferencje",
     alias_search_placeholder: "Szukaj aliasów...",
     alias_filter_all: "Wszystkie",
@@ -10080,6 +10089,9 @@ export const pl = {
     reply_from_mismatch_message:
       "Ta wiadomość została odebrana na {{ received }}, ale odpowiedź zostanie wysłana z {{ selected }}. Odpowiedź z innego adresu może ujawnić go nadawcy i zostać odrzucona.",
     reply_from_mismatch_use_received: "Użyj adresu odbioru",
+    sending_disabled_badge: "Wysyłanie wyłączone",
+    reply_from_mismatch_banner: "Ta wiadomość dotarła na {{ received }}, ale odpowiedź zostanie wysłana z {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Wyślij z {{ received }}",
     reply_from_mismatch_send_anyway: "Wyślij mimo to",
     reply_from_unknown_title: "Sprawdź adres nadawcy",
     reply_from_unknown_message:
@@ -11039,6 +11051,7 @@ export const pl = {
     rename_saved: "Nazwa zaktualizowana",
   },
   errors: {
+    alias_sending_disabled: "Wysyłanie z tego aliasu jest wyłączone. Najpierw je włącz.",
     auth_salt_collision:
       "Logowanie zostało przerwane, ponieważ serwer wysłał niebezpieczną wartość, więc nic nie zostało odblokowane. Skontaktuj się z pomocą, zanim spróbujesz ponownie.",
     legacy_login_salt_new_device:

@@ -3217,6 +3217,15 @@ export const it = {
     alias_tab_domains: "Domini",
     alias_tab_directories: "Directory",
     alias_tab_ghost: "Alias temporanei",
+    alias_tab_sending: "Invio",
+    sending_blocks_title: "Alias con invio disattivato",
+    sending_blocks_description: "Disattiva l'invio per un alias per impedire che la posta parta da esso. L'alias continua a ricevere posta.",
+    sending_blocks_search_placeholder: "Cerca alias",
+    sending_blocks_empty: "Non hai ancora alias o indirizzi di dominio.",
+    sending_blocks_no_results: "Nessun alias corrisponde alla ricerca.",
+    sending_blocks_sending_allowed: "Invio consentito",
+    sending_blocks_toggle_label: "Consenti l'invio da {{ email }}",
+    sending_blocks_update_failed: "Impossibile aggiornare l'invio per questo alias. Riprova.",
     alias_tab_preferences: "Preferenze",
     alias_search_placeholder: "Cerca alias...",
     alias_filter_all: "Tutti",
@@ -9901,6 +9910,9 @@ export const it = {
     reply_from_mismatch_message:
       "Questa email è stata ricevuta su {{ received }}, ma la risposta verrà inviata da {{ selected }}. Rispondere da un altro indirizzo può rivelarlo al mittente e la risposta potrebbe essere rifiutata.",
     reply_from_mismatch_use_received: "Usa l'indirizzo di ricezione",
+    sending_disabled_badge: "Invio disattivato",
+    reply_from_mismatch_banner: "Questa email è stata ricevuta su {{ received }}, ma la risposta verrà inviata da {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Invia da {{ received }}",
     reply_from_mismatch_send_anyway: "Invia comunque",
     reply_from_unknown_title: "Controlla l'indirizzo del mittente",
     reply_from_unknown_message:
@@ -10876,6 +10888,7 @@ export const it = {
     rename_saved: "Nome aggiornato",
   },
   errors: {
+    alias_sending_disabled: "L'invio da questo alias è disattivato. Prima attivalo.",
     auth_salt_collision:
       "L'accesso è stato interrotto perché il server ha inviato un valore non sicuro, quindi non è stato sbloccato nulla. Contatta l'assistenza prima di riprovare.",
     legacy_login_salt_new_device:

@@ -7760,6 +7760,15 @@ export interface SettingsTranslations {
   alias_tab_domains: string;
   alias_tab_directories: string;
   alias_tab_ghost: string;
+  alias_tab_sending: string;
+  sending_blocks_title: string;
+  sending_blocks_description: string;
+  sending_blocks_search_placeholder: string;
+  sending_blocks_empty: string;
+  sending_blocks_no_results: string;
+  sending_blocks_sending_allowed: string;
+  sending_blocks_toggle_label: string;
+  sending_blocks_update_failed: string;
   alias_tab_preferences: string;
   alias_search_placeholder: string;
   alias_filter_all: string;
@@ -8005,6 +8014,9 @@ export interface MailTranslations {
   reply_from_mismatch_title: string;
   reply_from_mismatch_message: string;
   reply_from_mismatch_use_received: string;
+  sending_disabled_badge: string;
+  reply_from_mismatch_banner: string;
+  reply_from_mismatch_banner_switch: string;
   reply_from_mismatch_send_anyway: string;
   reply_from_unknown_title: string;
   reply_from_unknown_message: string;
@@ -9313,6 +9325,7 @@ export interface AuthTranslations {
 }
 
 export interface ErrorTranslations {
+  alias_sending_disabled: string;
   crypto_module_unavailable: string;
   ratchet_key_generation_failed: string;
   auth_salt_collision: string;

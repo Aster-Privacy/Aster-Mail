@@ -8433,6 +8433,15 @@ export const en: Translations = {
     alias_tab_domains: "Domains",
     alias_tab_directories: "Directories",
     alias_tab_ghost: "Ghost Aliases",
+    alias_tab_sending: "Sending",
+    sending_blocks_title: "Sending disabled aliases",
+    sending_blocks_description: "Turn off sending for an alias to stop mail from going out from it. The alias still receives mail.",
+    sending_blocks_search_placeholder: "Search aliases",
+    sending_blocks_empty: "You have no aliases or domain addresses yet.",
+    sending_blocks_no_results: "No aliases match your search.",
+    sending_blocks_sending_allowed: "Sending allowed",
+    sending_blocks_toggle_label: "Allow sending from {{ email }}",
+    sending_blocks_update_failed: "Couldn't update sending for this alias. Try again.",
     alias_tab_preferences: "Preferences",
     alias_search_placeholder: "Search aliases...",
     alias_filter_all: "All",
@@ -8938,6 +8947,9 @@ export const en: Translations = {
     reply_from_mismatch_message:
       "This email was received on {{ received }}, but your reply is set to send from {{ selected }}. Replying from a different address can expose it to the sender, and the reply may be rejected.",
     reply_from_mismatch_use_received: "Use received address",
+    sending_disabled_badge: "Sending disabled",
+    reply_from_mismatch_banner: "This email was received on {{ received }}, but your reply is set to send from {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Send from {{ received }}",
     reply_from_mismatch_send_anyway: "Send anyway",
     reply_from_unknown_title: "Check the From address",
     reply_from_unknown_message:
@@ -10556,6 +10568,7 @@ export const en: Translations = {
       "Adds a second factor using Windows Hello, a YubiKey, or your password manager.",
   },
   errors: {
+    alias_sending_disabled: "Sending from this alias is disabled. First enable it.",
     auth_salt_collision:
       "Sign-in stopped because the server sent an unsafe value, so nothing was unlocked. Contact support before you try again.",
     legacy_login_salt_new_device:

@@ -3154,6 +3154,15 @@ export const tr = {
     alias_tab_domains: "Alan Adları",
     alias_tab_directories: "Dizinler",
     alias_tab_ghost: "Hayalet Rumuzlar",
+    alias_tab_sending: "Gönderme",
+    sending_blocks_title: "Gönderimi devre dışı takma adlar",
+    sending_blocks_description: "Bir takma adın gönderimini kapatarak ondan e-posta çıkmasını durdurun. Takma ad e-posta almaya devam eder.",
+    sending_blocks_search_placeholder: "Takma adlarda ara",
+    sending_blocks_empty: "Henüz takma adınız veya alan adı adresiniz yok.",
+    sending_blocks_no_results: "Aramanızla eşleşen takma ad yok.",
+    sending_blocks_sending_allowed: "Gönderime izin var",
+    sending_blocks_toggle_label: "{{ email }} adresinden göndermeye izin ver",
+    sending_blocks_update_failed: "Bu takma adın gönderim ayarı güncellenemedi. Tekrar deneyin.",
     alias_tab_preferences: "Tercihler",
     alias_search_placeholder: "Rumuzlarda ara...",
     alias_filter_all: "Tümü",
@@ -9740,6 +9749,9 @@ export const tr = {
     reply_from_mismatch_message:
       "Bu e-posta {{ received }} adresinde alındı, ancak yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten yanıtlamak bu adresi gönderene açığa çıkarabilir ve yanıt reddedilebilir.",
     reply_from_mismatch_use_received: "Alınan adresi kullan",
+    sending_disabled_badge: "Gönderim devre dışı",
+    reply_from_mismatch_banner: "Bu e-posta {{ received }} adresine geldi, ancak yanıtınız {{ selected }} adresinden gönderilecek.",
+    reply_from_mismatch_banner_switch: "{{ received }} adresinden gönder",
     reply_from_mismatch_send_anyway: "Yine de gönder",
     reply_from_unknown_title: "Gönderen adresini kontrol edin",
     reply_from_unknown_message:
@@ -10701,6 +10713,7 @@ export const tr = {
     rename_saved: "Ad güncellendi",
   },
   errors: {
+    alias_sending_disabled: "Bu takma addan gönderim devre dışı. Önce etkinleştirin.",
     auth_salt_collision:
       "Sunucu güvenli olmayan bir değer gönderdiği için oturum açma durduruldu ve hiçbir şeyin kilidi açılmadı. Yeniden denemeden önce destek ile iletişime geç.",
     legacy_login_salt_new_device:

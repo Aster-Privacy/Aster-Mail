@@ -519,12 +519,15 @@ export function use_compose({
           sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
         draft_from: edit_draft?.from_email,
         selected_email: selected_sender?.email,
+        resolution_ready: preferred_sender_ready || !!preferred_sender_id,
       }),
     [
       aliases_loading,
       ghost_mode.is_ghost_enabled,
       edit_draft?.from_email,
       selected_sender?.email,
+      preferred_sender_ready,
+      preferred_sender_id,
     ],
   );
 

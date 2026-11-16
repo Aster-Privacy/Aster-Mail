@@ -3332,6 +3332,15 @@ export const ru = {
     alias_tab_domains: "Домены",
     alias_tab_directories: "Каталоги",
     alias_tab_ghost: "Призрачные псевдонимы",
+    alias_tab_sending: "Отправка",
+    sending_blocks_title: "Псевдонимы с отключённой отправкой",
+    sending_blocks_description: "Отключите отправку для псевдонима, чтобы с него не уходила почта. Псевдоним продолжит получать письма.",
+    sending_blocks_search_placeholder: "Поиск псевдонимов",
+    sending_blocks_empty: "У вас пока нет псевдонимов или адресов домена.",
+    sending_blocks_no_results: "Нет псевдонимов, соответствующих запросу.",
+    sending_blocks_sending_allowed: "Отправка разрешена",
+    sending_blocks_toggle_label: "Разрешить отправку с {{ email }}",
+    sending_blocks_update_failed: "Не удалось обновить отправку для этого псевдонима. Повторите попытку.",
     alias_tab_preferences: "Настройки",
     alias_search_placeholder: "Поиск псевдонимов...",
     alias_filter_all: "Все",
@@ -10199,6 +10208,9 @@ export const ru = {
     reply_from_mismatch_message:
       "Это письмо получено на {{ received }}, но ответ будет отправлен с {{ selected }}. Ответ с другого адреса может раскрыть его отправителю и быть отклонён.",
     reply_from_mismatch_use_received: "Использовать адрес получения",
+    sending_disabled_badge: "Отправка отключена",
+    reply_from_mismatch_banner: "Это письмо получено на {{ received }}, но ответ будет отправлен с {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Отправить с {{ received }}",
     reply_from_mismatch_send_anyway: "Всё равно отправить",
     reply_from_unknown_title: "Проверьте адрес отправителя",
     reply_from_unknown_message:
@@ -11014,6 +11026,7 @@ export const ru = {
     rename_saved: "Имя обновлено",
   },
   errors: {
+    alias_sending_disabled: "Отправка с этого псевдонима отключена. Сначала включите её.",
     auth_salt_collision:
       "Вход остановлен, потому что сервер отправил небезопасное значение, поэтому ничего не было разблокировано. Свяжитесь с поддержкой, прежде чем повторить попытку.",
     legacy_login_salt_new_device:

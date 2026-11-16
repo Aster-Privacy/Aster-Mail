@@ -344,39 +344,49 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
   const is_mac = editor.is_mac;
 
+  const sender_resolution_ready =
+    !sender_loading && (preferred_sender_ready || !!preferred_sender_id);
+
+  const resolved_sender = useMemo(
+    () =>
+      resolve_from_sender({
+        options: sender_options,
+        draft_from: existing_draft?.content.from_email,
+        thread_addresses: [
+          reply_from_address,
+          ...(original_to ?? []),
+          ...(original_cc ?? []),
+        ],
+        prefer_external: is_external,
+        preferred_sender_id,
+      }),
+    [
+      sender_options,
+      existing_draft?.content.from_email,
+      reply_from_address,
+      original_to,
+      original_cc,
+      is_external,
+      preferred_sender_id,
+    ],
+  );
+
+  const expected_sender_email = sender_resolution_ready
+    ? (resolved_sender?.option.email ?? null)
+    : null;
+
   useEffect(() => {
-    if (sender_loading) return;
+    if (!sender_resolution_ready) return;
     if (sender_manually_selected_ref.current) return;
     if (ghost_mode.is_ghost_enabled) return;
-    if (!preferred_sender_ready && !preferred_sender_id) return;
+    if (!resolved_sender) return;
+    if (resolved_sender.option.id === selected_sender?.id) return;
 
-    const resolved = resolve_from_sender({
-      options: sender_options,
-      draft_from: existing_draft?.content.from_email,
-      thread_addresses: [
-        reply_from_address,
-        ...(original_to ?? []),
-        ...(original_cc ?? []),
-      ],
-      prefer_external: is_external,
-      preferred_sender_id,
-    });
-
-    if (!resolved) return;
-    if (resolved.option.id === selected_sender?.id) return;
-
-    set_selected_sender_state(resolved.option);
+    set_selected_sender_state(resolved_sender.option);
   }, [
-    sender_options,
-    sender_loading,
-    existing_draft?.content.from_email,
+    sender_resolution_ready,
+    resolved_sender,
     selected_sender,
-    reply_from_address,
-    original_to,
-    original_cc,
-    is_external,
-    preferred_sender_id,
-    preferred_sender_ready,
     ghost_mode.is_ghost_enabled,
   ]);
 
@@ -1270,6 +1280,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     from_mismatch_ack_ref,
     sender_manually_selected_ref,
     sender_loading,
+    sender_resolution_ready,
+    expected_sender_email,
     pending_send_kind_ref,
     handle_send_ref,
     handle_scheduled_send_ref,

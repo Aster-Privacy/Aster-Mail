@@ -3090,6 +3090,15 @@ export const ko = {
     alias_tab_domains: "도메인",
     alias_tab_directories: "디렉터리",
     alias_tab_ghost: "고스트 별칭",
+    alias_tab_sending: "보내기",
+    sending_blocks_title: "보내기가 비활성화된 별칭",
+    sending_blocks_description: "별칭의 보내기를 끄면 해당 별칭에서 메일이 나가지 않습니다. 별칭은 계속 메일을 받습니다.",
+    sending_blocks_search_placeholder: "별칭 검색",
+    sending_blocks_empty: "아직 별칭이나 도메인 주소가 없습니다.",
+    sending_blocks_no_results: "검색과 일치하는 별칭이 없습니다.",
+    sending_blocks_sending_allowed: "보내기 허용됨",
+    sending_blocks_toggle_label: "{{ email }}에서 보내기 허용",
+    sending_blocks_update_failed: "이 별칭의 보내기 설정을 업데이트하지 못했습니다. 다시 시도하세요.",
     alias_tab_preferences: "환경설정",
     alias_search_placeholder: "별칭 검색...",
     alias_filter_all: "전체",
@@ -9447,6 +9456,9 @@ export const ko = {
     reply_from_mismatch_message:
       "이 이메일은 {{ received }}에서 수신했지만 답장은 {{ selected }}에서 전송됩니다. 다른 주소로 답장하면 해당 주소가 발신자에게 노출되거나 답장이 거부될 수 있습니다.",
     reply_from_mismatch_use_received: "수신 주소 사용",
+    sending_disabled_badge: "보내기 비활성화됨",
+    reply_from_mismatch_banner: "이 이메일은 {{ received }}(으)로 받았지만 답장은 {{ selected }}에서 보내집니다.",
+    reply_from_mismatch_banner_switch: "{{ received }}에서 보내기",
     reply_from_mismatch_send_anyway: "그대로 보내기",
     reply_from_unknown_title: "보내는 주소를 확인하세요",
     reply_from_unknown_message:
@@ -10381,6 +10393,7 @@ export const ko = {
     rename_saved: "이름이 업데이트되었습니다",
   },
   errors: {
+    alias_sending_disabled: "이 별칭에서 보내기가 비활성화되어 있습니다. 먼저 활성화하세요.",
     auth_salt_collision:
       "서버가 안전하지 않은 값을 보내 로그인이 중단되었으며 아무것도 잠금 해제되지 않았습니다. 다시 시도하기 전에 지원팀에 문의하세요.",
     legacy_login_salt_new_device:

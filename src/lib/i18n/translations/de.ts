@@ -3207,6 +3207,15 @@ export const de = {
     alias_tab_domains: "Domains",
     alias_tab_directories: "Verzeichnisse",
     alias_tab_ghost: "Ghost-Aliase",
+    alias_tab_sending: "Senden",
+    sending_blocks_title: "Aliasse mit deaktiviertem Senden",
+    sending_blocks_description: "Deaktiviere das Senden für einen Alias, damit von ihm keine E-Mails mehr ausgehen. Der Alias empfängt weiterhin E-Mails.",
+    sending_blocks_search_placeholder: "Aliasse suchen",
+    sending_blocks_empty: "Du hast noch keine Aliasse oder Domain-Adressen.",
+    sending_blocks_no_results: "Keine Aliasse entsprechen deiner Suche.",
+    sending_blocks_sending_allowed: "Senden erlaubt",
+    sending_blocks_toggle_label: "Senden von {{ email }} erlauben",
+    sending_blocks_update_failed: "Das Senden für diesen Alias konnte nicht aktualisiert werden. Versuche es erneut.",
     alias_tab_preferences: "Einstellungen",
     alias_search_placeholder: "Aliase durchsuchen...",
     alias_filter_all: "Alle",
@@ -10108,6 +10117,9 @@ export const de = {
     reply_from_mismatch_message:
       "Diese E-Mail wurde an {{ received }} empfangen, Ihre Antwort wird aber von {{ selected }} gesendet. Eine Antwort von einer anderen Adresse kann diese dem Absender offenlegen, und die Antwort kann abgelehnt werden.",
     reply_from_mismatch_use_received: "Empfangsadresse verwenden",
+    sending_disabled_badge: "Senden deaktiviert",
+    reply_from_mismatch_banner: "Diese E-Mail ging an {{ received }}, aber deine Antwort wird von {{ selected }} gesendet.",
+    reply_from_mismatch_banner_switch: "Von {{ received }} senden",
     reply_from_mismatch_send_anyway: "Trotzdem senden",
     reply_from_unknown_title: "Absenderadresse prüfen",
     reply_from_unknown_message:
@@ -10952,6 +10964,7 @@ export const de = {
     rename_saved: "Name aktualisiert",
   },
   errors: {
+    alias_sending_disabled: "Das Senden von diesem Alias ist deaktiviert. Aktiviere es zuerst.",
     auth_salt_collision:
       "Die Anmeldung wurde abgebrochen, weil der Server einen unsicheren Wert gesendet hat. Es wurde nichts entsperrt. Kontaktieren Sie den Support, bevor Sie es erneut versuchen.",
     legacy_login_salt_new_device:

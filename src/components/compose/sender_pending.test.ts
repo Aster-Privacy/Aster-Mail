@@ -105,3 +105,103 @@ describe("sender_is_pending", () => {
     ).toBe(false);
   });
 });
+
+describe("sender_is_pending for replies and forwards", () => {
+  it("waits while a thread-bound composer is still loading addresses", () => {
+    expect(
+      sender_is_pending({
+        loading: true,
+        chosen_by_user: false,
+        selected_email: "me@astermail.org",
+        thread_bound: true,
+      }),
+    ).toBe(true);
+  });
+
+  it("waits until sender resolution is ready", () => {
+    expect(
+      sender_is_pending({
+        loading: false,
+        chosen_by_user: false,
+        selected_email: "me@astermail.org",
+        thread_bound: true,
+        resolution_ready: false,
+      }),
+    ).toBe(true);
+  });
+
+  it("waits while the selected address differs from the expected one", () => {
+    expect(
+      sender_is_pending({
+        loading: false,
+        chosen_by_user: false,
+        selected_email: "me@astermail.org",
+        thread_bound: true,
+        resolution_ready: true,
+        expected_email: "shopping@astermail.org",
+      }),
+    ).toBe(true);
+    expect(
+      sender_is_pending({
+        loading: false,
+        chosen_by_user: false,
+        thread_bound: true,
+        resolution_ready: true,
+        expected_email: "shopping@astermail.org",
+      }),
+    ).toBe(true);
+  });
+
+  it("is ready once the expected address is selected", () => {
+    expect(
+      sender_is_pending({
+        loading: false,
+        chosen_by_user: false,
+        selected_email: "Shopping@astermail.org",
+        thread_bound: true,
+        resolution_ready: true,
+        expected_email: "shopping@astermail.org",
+      }),
+    ).toBe(false);
+  });
+
+  it("never waits once the user picks the sender", () => {
+    expect(
+      sender_is_pending({
+        loading: true,
+        chosen_by_user: true,
+        selected_email: "me@astermail.org",
+        thread_bound: true,
+        resolution_ready: false,
+        expected_email: "shopping@astermail.org",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("resolve_from_sender with plus addresses", () => {
+  it("picks the alias a plus-tagged address was delivered to", () => {
+    const resolved = resolve_from_sender({
+      options,
+      thread_addresses: ["shopping+orders@astermail.org"],
+    });
+
+    expect(resolved?.option.id).toBe("alias-1");
+  });
+
+  it("prefers an exact match over the untagged base", () => {
+    const resolved = resolve_from_sender({
+      options: [
+        ...options,
+        {
+          id: "alias-2",
+          email: "shopping+orders@astermail.org",
+          type: "alias",
+        },
+      ],
+      thread_addresses: ["shopping+orders@astermail.org"],
+    });
+
+    expect(resolved?.option.id).toBe("alias-2");
+  });
+});

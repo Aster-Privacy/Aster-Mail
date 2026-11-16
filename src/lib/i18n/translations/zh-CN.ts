@@ -2907,6 +2907,15 @@ export const zh_CN = {
     alias_tab_domains: "域名",
     alias_tab_directories: "目录",
     alias_tab_ghost: "幽灵别名",
+    alias_tab_sending: "发送",
+    sending_blocks_title: "已禁用发送的别名",
+    sending_blocks_description: "关闭某个别名的发送功能后，将无法从该别名发出邮件。该别名仍可接收邮件。",
+    sending_blocks_search_placeholder: "搜索别名",
+    sending_blocks_empty: "你还没有别名或域名地址。",
+    sending_blocks_no_results: "没有与搜索匹配的别名。",
+    sending_blocks_sending_allowed: "允许发送",
+    sending_blocks_toggle_label: "允许从 {{ email }} 发送",
+    sending_blocks_update_failed: "无法更新此别名的发送设置。请重试。",
     alias_tab_preferences: "偏好设置",
     alias_search_placeholder: "搜索别名……",
     alias_filter_all: "全部",
@@ -8747,6 +8756,9 @@ export const zh_CN = {
     reply_from_mismatch_message:
       "这封邮件是在 {{ received }} 收到的，但您的回复将从 {{ selected }} 发送。使用其他地址回复可能会向发件人泄露该地址，回复也可能被拒收。",
     reply_from_mismatch_use_received: "使用接收地址",
+    sending_disabled_badge: "已禁用发送",
+    reply_from_mismatch_banner: "此邮件发送至 {{ received }}，但你的回复将从 {{ selected }} 发出。",
+    reply_from_mismatch_banner_switch: "从 {{ received }} 发送",
     reply_from_mismatch_send_anyway: "仍然发送",
     reply_from_unknown_title: "请检查发件地址",
     reply_from_unknown_message:
@@ -9642,6 +9654,7 @@ export const zh_CN = {
     rename_saved: "名称已更新",
   },
   errors: {
+    alias_sending_disabled: "已禁用从此别名发送。请先启用。",
     auth_salt_collision:
       "由于服务器发送了不安全的值，登录已停止，没有解锁任何内容。请先联系支持团队，然后再重试。",
     legacy_login_salt_new_device:

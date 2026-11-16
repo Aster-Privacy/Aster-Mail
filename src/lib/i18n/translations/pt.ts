@@ -3247,6 +3247,15 @@ export const pt = {
     alias_tab_domains: "Domínios",
     alias_tab_directories: "Diretórios",
     alias_tab_ghost: "Aliases fantasma",
+    alias_tab_sending: "Envio",
+    sending_blocks_title: "Alias com envio desativado",
+    sending_blocks_description: "Desative o envio de um alias para impedir que saia correio a partir dele. O alias continua a receber correio.",
+    sending_blocks_search_placeholder: "Pesquisar alias",
+    sending_blocks_empty: "Ainda não tem alias nem endereços de domínio.",
+    sending_blocks_no_results: "Nenhum alias corresponde à pesquisa.",
+    sending_blocks_sending_allowed: "Envio permitido",
+    sending_blocks_toggle_label: "Permitir envio a partir de {{ email }}",
+    sending_blocks_update_failed: "Não foi possível atualizar o envio deste alias. Tente novamente.",
     alias_tab_preferences: "Preferências",
     alias_search_placeholder: "Pesquisar aliases...",
     alias_filter_all: "Todos",
@@ -9922,6 +9931,9 @@ export const pt = {
     reply_from_mismatch_message:
       "Este e-mail foi recebido em {{ received }}, mas a sua resposta será enviada de {{ selected }}. Responder de outro endereço pode revelá-lo ao remetente e a resposta pode ser rejeitada.",
     reply_from_mismatch_use_received: "Utilizar o endereço de receção",
+    sending_disabled_badge: "Envio desativado",
+    reply_from_mismatch_banner: "Este email foi recebido em {{ received }}, mas a sua resposta será enviada a partir de {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Enviar a partir de {{ received }}",
     reply_from_mismatch_send_anyway: "Enviar mesmo assim",
     reply_from_unknown_title: "Verifique o endereço do remetente",
     reply_from_unknown_message:
@@ -10930,6 +10942,7 @@ export const pt = {
     rename_saved: "Nome atualizado",
   },
   errors: {
+    alias_sending_disabled: "O envio a partir deste alias está desativado. Ative-o primeiro.",
     auth_salt_collision:
       "O início de sessão foi interrompido porque o servidor enviou um valor inseguro, por isso nada foi desbloqueado. Contacte o suporte antes de tentar novamente.",
     legacy_login_salt_new_device:

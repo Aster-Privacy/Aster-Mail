@@ -3205,6 +3205,15 @@ export const es = {
     alias_tab_domains: "Dominios",
     alias_tab_directories: "Directorios",
     alias_tab_ghost: "Alias fantasma",
+    alias_tab_sending: "Envío",
+    sending_blocks_title: "Alias con envío desactivado",
+    sending_blocks_description: "Desactiva el envío de un alias para que no salga correo desde él. El alias sigue recibiendo correo.",
+    sending_blocks_search_placeholder: "Buscar alias",
+    sending_blocks_empty: "Aún no tienes alias ni direcciones de dominio.",
+    sending_blocks_no_results: "Ningún alias coincide con tu búsqueda.",
+    sending_blocks_sending_allowed: "Envío permitido",
+    sending_blocks_toggle_label: "Permitir enviar desde {{ email }}",
+    sending_blocks_update_failed: "No se pudo actualizar el envío de este alias. Inténtalo de nuevo.",
     alias_tab_preferences: "Preferencias",
     alias_search_placeholder: "Buscar alias...",
     alias_filter_all: "Todos",
@@ -10020,6 +10029,9 @@ export const es = {
     reply_from_mismatch_message:
       "Este correo se recibió en {{ received }}, pero tu respuesta se enviará desde {{ selected }}. Responder desde otra dirección puede revelarla al remitente y la respuesta podría ser rechazada.",
     reply_from_mismatch_use_received: "Usar dirección de recepción",
+    sending_disabled_badge: "Envío desactivado",
+    reply_from_mismatch_banner: "Este correo se recibió en {{ received }}, pero tu respuesta se enviará desde {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Enviar desde {{ received }}",
     reply_from_mismatch_send_anyway: "Enviar de todos modos",
     reply_from_unknown_title: "Comprueba la dirección del remitente",
     reply_from_unknown_message:
@@ -10828,6 +10840,7 @@ export const es = {
     rename_saved: "Nombre actualizado",
   },
   errors: {
+    alias_sending_disabled: "El envío desde este alias está desactivado. Primero actívalo.",
     auth_salt_collision:
       "El inicio de sesión se detuvo porque el servidor envió un valor no seguro, así que no se desbloqueó nada. Contacta con soporte antes de volver a intentarlo.",
     legacy_login_salt_new_device:

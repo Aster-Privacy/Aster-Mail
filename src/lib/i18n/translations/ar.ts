@@ -3265,6 +3265,15 @@ export const ar = {
     alias_tab_domains: "النطاقات",
     alias_tab_directories: "الأدلة",
     alias_tab_ghost: "الأسماء المستعارة الشبحية",
+    alias_tab_sending: "الإرسال",
+    sending_blocks_title: "الأسماء المستعارة المعطّل إرسالها",
+    sending_blocks_description: "أوقف الإرسال لاسم مستعار حتى لا يخرج منه أي بريد. يستمر الاسم المستعار في استقبال البريد.",
+    sending_blocks_search_placeholder: "البحث في الأسماء المستعارة",
+    sending_blocks_empty: "ليس لديك أسماء مستعارة أو عناوين نطاق بعد.",
+    sending_blocks_no_results: "لا توجد أسماء مستعارة تطابق بحثك.",
+    sending_blocks_sending_allowed: "الإرسال مسموح",
+    sending_blocks_toggle_label: "السماح بالإرسال من {{ email }}",
+    sending_blocks_update_failed: "تعذّر تحديث الإرسال لهذا الاسم المستعار. حاول مرة أخرى.",
     alias_tab_preferences: "التفضيلات",
     alias_search_placeholder: "البحث في الأسماء المستعارة...",
     alias_filter_all: "الكل",
@@ -9647,6 +9656,9 @@ export const ar = {
     reply_from_mismatch_message:
       "تم استلام هذا البريد على {{ received }}، لكن ردك سيُرسل من {{ selected }}. الرد من عنوان مختلف قد يكشفه للمرسل وقد يُرفض الرد.",
     reply_from_mismatch_use_received: "استخدام عنوان الاستلام",
+    sending_disabled_badge: "الإرسال معطّل",
+    reply_from_mismatch_banner: "تم استلام هذه الرسالة على {{ received }}، لكن ردك سيُرسل من {{ selected }}.",
+    reply_from_mismatch_banner_switch: "الإرسال من {{ received }}",
     reply_from_mismatch_send_anyway: "الإرسال على أي حال",
     reply_from_unknown_title: "تحقق من عنوان المرسل",
     reply_from_unknown_message:
@@ -10607,6 +10619,7 @@ export const ar = {
     rename_saved: "تم تحديث الاسم",
   },
   errors: {
+    alias_sending_disabled: "الإرسال من هذا الاسم المستعار معطّل. فعّله أولاً.",
     auth_salt_collision:
       "توقف تسجيل الدخول لأن الخادم أرسل قيمة غير آمنة، لذلك لم يتم فتح أي شيء. تواصل مع الدعم قبل المحاولة مرة أخرى.",
     legacy_login_salt_new_device:
