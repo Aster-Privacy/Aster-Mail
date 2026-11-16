@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import type { MailItemMetadata } from "@/types/email";
+import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 
 import {
   ENVELOPE_FETCH_CHUNK,
@@ -33,7 +33,11 @@ import {
   reset_legacy_migration_state,
 } from "./envelope";
 import { build_generation } from "./index_cache";
-import { build_search_haystack, searchable_body_source } from "./matching";
+import {
+  build_search_haystack,
+  envelope_attachments,
+  searchable_body_source,
+} from "./matching";
 import { report_indexing_counts } from "./progress";
 import { CachedIndex, DecryptedIndexEntry } from "./types";
 
@@ -70,6 +74,17 @@ import {
 } from "@/services/search_index_store";
 import { is_index_download_paused } from "@/services/search/index_download_control";
 import { add_vocabulary_entry } from "@/services/search/vocabulary";
+import { build_body_terms } from "@/services/search_body_terms";
+
+function attachment_names(envelope: DecryptedEnvelope): string[] {
+  const names: string[] = [];
+
+  for (const attachment of envelope_attachments(envelope) ?? []) {
+    if (attachment.filename) names.push(attachment.filename);
+  }
+
+  return names;
+}
 
 export interface PipelineOptions {
   user_email: string;
@@ -233,6 +248,7 @@ export async function run_index_pipeline(
           search_body_text: "",
           meta_fp,
           has_body: include_body,
+          ...(include_body ? { index_terms: [] } : {}),
         },
         fresh: false,
       };
@@ -274,14 +290,22 @@ export async function run_index_pipeline(
     const metadata = await index_metadata(item);
 
     return slicer.run(() => {
-      const bounded_body = bound_index_body(
-        envelope
-          ? strip_html_tags_bounded(
-              searchable_body_source(envelope),
-              MAX_INDEX_BODY_CHARS,
-            )
-          : "",
-      );
+      const stripped_body = envelope
+        ? strip_html_tags_bounded(
+            searchable_body_source(envelope),
+            MAX_INDEX_BODY_CHARS,
+          )
+        : "";
+      const bounded_body = bound_index_body(stripped_body);
+      const term_source =
+        stripped_body.length > MAX_INDEX_BODY_CHARS
+          ? stripped_body.slice(0, MAX_INDEX_BODY_CHARS)
+          : stripped_body;
+      const index_terms = !include_body
+        ? undefined
+        : envelope
+          ? build_body_terms(term_source, attachment_names(envelope))
+          : [];
 
       if (envelope) {
         envelope.body_text = bounded_body.preview_text;
@@ -296,6 +320,7 @@ export async function run_index_pipeline(
           meta_fp,
           has_body: include_body,
           haystack: envelope ? build_search_haystack(envelope) : undefined,
+          ...(index_terms ? { index_terms } : {}),
         },
         fresh: envelope !== null,
       };

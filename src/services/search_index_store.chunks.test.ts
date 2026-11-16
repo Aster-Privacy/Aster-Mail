@@ -73,6 +73,7 @@ import {
   metadata_fingerprint,
   slim_envelope_for_index,
   MAX_INDEX_BODY_CHARS,
+  MAX_INDEX_INLINE_BODY_CHARS,
   MAX_INDEX_PREVIEW_CHARS,
   SNAPSHOT_CHUNK_SIZE,
   type PersistableEntry,
@@ -84,6 +85,8 @@ import {
   FLAG_READ,
   FLAG_UNREAD,
 } from "@/services/search_chunk_filter";
+
+const WRITES_PER_CHUNK = 3;
 
 const user_email = "user@example.com";
 
@@ -608,10 +611,10 @@ describe("bound_index_body", () => {
     expect(bounded.preview_text).toBe("Quarterly Report");
   });
 
-  it("caps the search copy at the index body budget", () => {
+  it("caps the inline search copy at the inline body budget", () => {
     const bounded = bound_index_body("a".repeat(MAX_INDEX_BODY_CHARS + 5000));
 
-    expect(bounded.search_text).toHaveLength(MAX_INDEX_BODY_CHARS);
+    expect(bounded.search_text).toHaveLength(MAX_INDEX_INLINE_BODY_CHARS);
   });
 
   it("caps the preview copy at the preview budget", () => {
@@ -700,7 +703,7 @@ describe("snapshot writer under storage pressure", () => {
     const writer = await open_snapshot_writer(user_email);
     const page = make_page(0, SNAPSHOT_CHUNK_SIZE * 2);
 
-    write_hook.fail_after = 2;
+    write_hook.fail_after = WRITES_PER_CHUNK;
 
     await writer!.add_page(page.items, page.entries);
 
@@ -725,7 +728,7 @@ describe("snapshot writer under storage pressure", () => {
     const writer = await open_snapshot_writer(user_email);
     const page = make_page(0, SNAPSHOT_CHUNK_SIZE * 2);
 
-    write_hook.fail_after = 2;
+    write_hook.fail_after = WRITES_PER_CHUNK;
 
     await writer!.add_page(page.items, page.entries);
 
