@@ -34,7 +34,6 @@ import type {
   PhoneEntryType,
   AddressEntryType,
   DateEntryType,
-  RelatedPersonType,
   SocialNetworkType,
   WebsiteType,
   InstantMessengerType,
@@ -250,17 +249,6 @@ export const DATE_TYPE_OPTIONS: DateEntryType[] = [
   "anniversary",
   "graduation",
   "wedding",
-  "other",
-];
-export const RELATED_TYPE_OPTIONS: RelatedPersonType[] = [
-  "assistant",
-  "manager",
-  "spouse",
-  "partner",
-  "child",
-  "parent",
-  "sibling",
-  "friend",
   "other",
 ];
 export const SOCIAL_TYPE_OPTIONS: SocialNetworkType[] = [

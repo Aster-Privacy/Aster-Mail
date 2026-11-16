@@ -36,9 +36,7 @@ import type {
   DateEntry,
   DateEntryType,
   RelatedPersonEntry,
-  RelatedPersonType,
   SocialNetworkEntry,
-  SocialNetworkType,
   WebsiteEntry,
   WebsiteType,
   InstantMessengerEntry,
@@ -71,6 +69,17 @@ import {
 } from "@/utils/vcard_labels";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { note_local_contact_write } from "@/services/contact_local_writes";
+import {
+  encode_relation,
+  normalize_related_people,
+  relation_from_android_type,
+  relation_from_label,
+  relation_from_vcard_types,
+} from "@/utils/contact_relations";
+import {
+  normalize_social_networks,
+  social_from_vcard_tokens,
+} from "@/utils/contact_socials";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -438,32 +447,58 @@ const VCARD_DATE_TYPES: Record<string, DateEntryType> = {
   wedding: "wedding",
 };
 
-const VCARD_RELATION_TYPES: Record<string, RelatedPersonType> = {
-  assistant: "assistant",
-  manager: "manager",
-  supervisor: "manager",
-  spouse: "spouse",
-  partner: "partner",
-  child: "child",
-  parent: "parent",
-  father: "parent",
-  mother: "parent",
-  sibling: "sibling",
-  brother: "sibling",
-  sister: "sibling",
-  friend: "friend",
-};
+const ANDROID_RELATION_MIMETYPE = "vnd.android.cursor.item/relation";
 
-const VCARD_SOCIAL_TYPES: Record<string, SocialNetworkType> = {
-  twitter: "twitter",
-  x: "twitter",
-  linkedin: "linkedin",
-  github: "github",
-  instagram: "instagram",
-  facebook: "facebook",
-  mastodon: "mastodon",
-  bluesky: "bluesky",
-};
+function raw_type_params(key: string): string[] {
+  return key
+    .split(";")
+    .slice(1)
+    .flatMap((param) => {
+      const separator = param.indexOf("=");
+
+      if (separator < 0) return [param];
+
+      return param.slice(0, separator).trim().toUpperCase() === "TYPE"
+        ? param.slice(separator + 1).split(",")
+        : [];
+    })
+    .map((value) => value.replace(/"/g, "").trim())
+    .filter(Boolean);
+}
+
+function vcard_relation_entry(
+  key: string,
+  text: string,
+  group_label: string | undefined,
+): RelatedPersonEntry | null {
+  const person = text.trim();
+
+  if (!person || /^urn:uuid:/i.test(person)) return null;
+  const resolved = group_label?.trim()
+    ? relation_from_label(group_label)
+    : relation_from_vcard_types(raw_type_params(key));
+
+  return encode_relation(resolved.kind, resolved.label, person);
+}
+
+function android_relation_entry(value: string): RelatedPersonEntry | null {
+  const [mimetype, name = "", type_raw = "", label = ""] =
+    split_vcard_value(value);
+
+  if (mimetype?.trim().toLowerCase() !== ANDROID_RELATION_MIMETYPE) {
+    return null;
+  }
+  const person = name.trim();
+
+  if (!person) return null;
+  const type_int = Number.parseInt(type_raw.trim(), 10);
+  const resolved = relation_from_android_type(
+    Number.isFinite(type_int) ? type_int : 0,
+    label,
+  );
+
+  return encode_relation(resolved.kind, resolved.label, person);
+}
 
 const VCARD_MESSENGER_TYPES: Record<string, InstantMessengerType> = {
   signal: "signal",
@@ -781,16 +816,27 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
           break;
         }
         case "X-SOCIALPROFILE": {
-          const handle = text.trim();
+          const raw_handle = text.trim();
+          const x_user = raw_param_value(key, "x-user");
+          const handle = /^x-apple:/i.test(raw_handle)
+            ? x_user || raw_handle.slice("x-apple:".length).trim()
+            : raw_handle;
 
           if (!handle) break;
-          const type = mapped_type(
-            VCARD_SOCIAL_TYPES,
-            [raw_param_value(key, "x-user"), ...params],
-            "other",
+          const resolved = social_from_vcard_tokens(
+            [
+              raw_param_value(key, "x-service-type"),
+              ...raw_type_params(key),
+            ].filter(Boolean),
+            group_label,
           );
+          const type = resolved.type;
 
-          social_networks.push({ value: handle, type });
+          social_networks.push(
+            resolved.label
+              ? { value: handle, type, label: resolved.label }
+              : { value: handle, type },
+          );
           if (type === "linkedin" || type === "twitter" || type === "github") {
             contact.social_links = { ...contact.social_links, [type]: handle };
           }
@@ -805,14 +851,17 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
           break;
         }
         case "RELATED":
-        case "X-ABRELATEDNAMES": {
-          const person = text.trim();
+        case "X-ABRELATEDNAMES":
+        case "X-ASTER-RELATED": {
+          const entry = vcard_relation_entry(key, text, group_label);
 
-          if (!person) break;
-          related_people.push({
-            value: person,
-            type: mapped_type(VCARD_RELATION_TYPES, params, "other"),
-          });
+          if (entry) related_people.push(entry);
+          break;
+        }
+        case "X-ANDROID-CUSTOM": {
+          const entry = android_relation_entry(value);
+
+          if (entry) related_people.push(entry);
           break;
         }
         case "ANNIVERSARY": {
@@ -900,8 +949,16 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
       };
     }
     if (date_entries.length) contact.date_entries = date_entries;
-    if (related_people.length) contact.related_people = related_people;
-    if (social_networks.length) contact.social_networks = social_networks;
+    const normalized_relations = normalize_related_people(related_people);
+
+    if (normalized_relations?.length) {
+      contact.related_people = normalized_relations;
+    }
+    const normalized_socials = normalize_social_networks(social_networks);
+
+    if (normalized_socials?.length) {
+      contact.social_networks = normalized_socials;
+    }
     if (websites.length) contact.websites = websites;
     if (instant_messengers.length) {
       contact.instant_messengers = instant_messengers;
@@ -1857,16 +1914,21 @@ export function parse_csv(
     const related_people: RelatedPersonEntry[] = [];
 
     for (const slot of relations.values()) {
-      const label = clean_label(slot.label ?? slot.implied_type);
+      const resolved = relation_from_label(
+        (slot.label ?? slot.implied_type ?? "").replace(/^\*\s*/, ""),
+      );
 
       for (const person of slot.values) {
-        related_people.push({
-          value: person,
-          type: mapped_type(VCARD_RELATION_TYPES, [label], "other"),
-        });
+        related_people.push(
+          encode_relation(resolved.kind, resolved.label, person),
+        );
       }
     }
-    if (related_people.length > 0) contact.related_people = related_people;
+    const normalized_relations = normalize_related_people(related_people);
+
+    if (normalized_relations?.length) {
+      contact.related_people = normalized_relations;
+    }
 
     const instant_messengers: InstantMessengerEntry[] = [];
 

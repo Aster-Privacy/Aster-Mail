@@ -41,6 +41,7 @@ import { is_typing } from "@/hooks/use_keyboard_shortcuts";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { contact_matches_query } from "@/utils/contact_search";
+import { relation_kind_key } from "@/utils/contact_relations";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { is_contact_trashed } from "@/lib/contact_trash";
 import { reconcile_entry_fields } from "@/components/common/hooks/contacts_state_helpers";
@@ -104,7 +105,9 @@ export function use_contacts_modal({
 
     if (search_query.trim()) {
       result = result.filter((contact) =>
-        contact_matches_query(contact, search_query),
+        contact_matches_query(contact, search_query, (kind) =>
+          t(relation_kind_key(kind)),
+        ),
       );
     }
 
@@ -147,7 +150,7 @@ export function use_contacts_modal({
     });
 
     return result;
-  }, [contacts, search_query, sort_by, filter_by]);
+  }, [contacts, search_query, sort_by, filter_by, t]);
 
   const selection_state = useMemo(() => {
     const filtered_ids = new Set(filtered_contacts.map((c) => c.id));

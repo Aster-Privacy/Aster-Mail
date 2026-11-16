@@ -57,6 +57,8 @@ import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { is_contact_trashed } from "@/lib/contact_trash";
 import { note_local_contact_write } from "@/services/contact_local_writes";
+import { normalize_related_people } from "@/utils/contact_relations";
+import { normalize_social_networks } from "@/utils/contact_socials";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -341,6 +343,12 @@ export async function encrypt_contact_data(data: ContactFormData): Promise<{
   const payload = {
     ...strip_known_contact_keys(extra_fields),
     ...known,
+    ...(known.related_people !== undefined && {
+      related_people: normalize_related_people(known.related_people),
+    }),
+    ...(known.social_networks !== undefined && {
+      social_networks: normalize_social_networks(known.social_networks),
+    }),
     _version: CONTACT_DATA_VERSION,
     _encrypted_at: new Date().toISOString(),
   };

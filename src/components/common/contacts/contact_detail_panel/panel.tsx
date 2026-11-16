@@ -23,7 +23,6 @@ import type {
   EmailEntryType,
   PhoneEntryType,
   DateEntryType,
-  RelatedPersonType,
   SocialNetworkType,
   WebsiteType,
   InstantMessengerType,
@@ -74,7 +73,6 @@ import {
   FIELD_CLASS,
   IM_TYPE_OPTIONS,
   PHONE_TYPE_OPTIONS,
-  RELATED_TYPE_OPTIONS,
   SOCIAL_TYPE_OPTIONS,
   WEBSITE_TYPE_OPTIONS,
   empty_edit_state,
@@ -82,6 +80,7 @@ import {
   to_edit_state,
 } from "./helpers";
 import { ContactView } from "./contact_view";
+import { RelationList } from "./relation_list";
 
 import { sync_legacy_fields } from "@/components/common/hooks/contacts_state_helpers";
 import { build_contact_mail_query } from "@/utils/contact_mail_search";
@@ -114,6 +113,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { compress_contact_avatar_file } from "@/utils/contact_avatar_image";
+import { normalize_related_people } from "@/utils/contact_relations";
+import {
+  MAX_SOCIAL_LABEL_LENGTH,
+  MAX_SOCIAL_NETWORKS,
+  MAX_SOCIAL_VALUE_LENGTH,
+  normalize_social_networks,
+} from "@/utils/contact_socials";
 import { format_full_datetime } from "@/utils/date_format";
 import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 
@@ -229,8 +235,10 @@ export function ContactDetailPanel({
 
   const handle_save = async () => {
     const date_entries = draft.date_entries.filter((d) => d.value.trim());
-    const related_people = draft.related_people.filter((r) => r.value.trim());
-    const social_networks = draft.social_networks.filter((s) => s.value.trim());
+    const related_people =
+      normalize_related_people(draft.related_people) ?? [];
+    const social_networks =
+      normalize_social_networks(draft.social_networks) ?? [];
     const websites = draft.websites.filter((w) => w.value.trim());
     const instant_messengers = draft.instant_messengers.filter((m) =>
       m.value.trim(),
@@ -957,41 +965,12 @@ export function ContactDetailPanel({
                 />
               </div>
               <div>
-                <FieldLabel icon={UsersIcon}>
-                  {t("common.related_people")}
-                </FieldLabel>
-                <TypedList
+                <FieldLabel icon={UsersIcon}>{t("common.relations")}</FieldLabel>
+                <RelationList
                   disabled={!is_editing}
                   entries={draft.related_people}
-                  on_add={() =>
-                    update_list("related_people", (l) => [
-                      ...l,
-                      { value: "", type: "assistant" },
-                    ])
-                  }
-                  on_change={(idx, value) =>
-                    update_list("related_people", (l) =>
-                      l.map((r, i) => (i === idx ? { ...r, value } : r)),
-                    )
-                  }
-                  on_remove={(idx) =>
-                    update_list("related_people", (l) =>
-                      l.filter((_, i) => i !== idx),
-                    )
-                  }
-                  on_type_change={(idx, type) =>
-                    update_list("related_people", (l) =>
-                      l.map((r, i) =>
-                        i === idx
-                          ? { ...r, type: type as RelatedPersonType }
-                          : r,
-                      ),
-                    )
-                  }
-                  options={RELATED_TYPE_OPTIONS}
-                  placeholder={t("common.name")}
+                  on_change={(next) => update_list("related_people", () => next)}
                   t={t}
-                  type_default="assistant"
                 />
               </div>
               <div>
@@ -1062,8 +1041,17 @@ export function ContactDetailPanel({
                   {t("common.social_networks")}
                 </FieldLabel>
                 <TypedList
+                  allow_custom
                   disabled={!is_editing}
                   entries={draft.social_networks}
+                  label_max_length={MAX_SOCIAL_LABEL_LENGTH}
+                  max_entries={MAX_SOCIAL_NETWORKS}
+                  value_max_length={MAX_SOCIAL_VALUE_LENGTH}
+                  on_label_change={(idx, label) =>
+                    update_list("social_networks", (l) =>
+                      l.map((s, i) => (i === idx ? { ...s, label } : s)),
+                    )
+                  }
                   on_add={() =>
                     update_list("social_networks", (l) => [
                       ...l,

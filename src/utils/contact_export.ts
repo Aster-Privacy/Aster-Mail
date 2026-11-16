@@ -22,6 +22,16 @@ import type { DecryptedContact } from "@/types/contacts";
 
 import { vcard_date_value } from "@/utils/date_utils";
 import {
+  decode_related_people,
+  relation_ab_label,
+  relation_csv_label,
+  relation_vcard_type,
+} from "@/utils/contact_relations";
+import {
+  is_social_network_type,
+  social_vcard_type_param,
+} from "@/utils/contact_socials";
+import {
   typed_vcard_lines,
   type VCardGroupCounter,
 } from "@/utils/vcard_labels";
@@ -77,6 +87,9 @@ const vcard_photo_of = (
     data: match[2].replace(/\s+/g, ""),
   };
 };
+
+const is_known_social = (type: unknown): boolean =>
+  typeof type === "string" && type !== "other" && is_social_network_type(type);
 
 const type_param = (type?: string): string =>
   type ? `;TYPE=${type.replace(/[^A-Za-z-]/g, "").toUpperCase()}` : "";
@@ -196,10 +209,23 @@ export const contact_to_vcard = (
   }
 
   for (const entry of contact.social_networks ?? []) {
-    if (!entry.value?.trim()) continue;
-    push(
-      `X-SOCIALPROFILE${type_param(entry.type)}:${escape_value(entry.value)}`,
-    );
+    if (typeof entry?.value !== "string" || !entry.value.trim()) continue;
+    const value = escape_value(entry.value.trim());
+    const custom_label =
+      typeof entry.label === "string" ? entry.label.trim() : "";
+
+    if (custom_label && !is_known_social(entry.type)) {
+      group_counter.value += 1;
+      const group = `item${group_counter.value}`;
+      const param = social_vcard_type_param(custom_label);
+
+      push(
+        `${group}.X-SOCIALPROFILE${param ? `;TYPE=${param}` : ""}:${value}`,
+      );
+      push(`${group}.X-ABLabel:${escape_value(custom_label)}`);
+      continue;
+    }
+    push(`X-SOCIALPROFILE${type_param(entry.type)}:${value}`);
   }
 
   for (const entry of contact.instant_messengers ?? []) {
@@ -211,9 +237,18 @@ export const contact_to_vcard = (
     );
   }
 
-  for (const entry of contact.related_people ?? []) {
-    if (!entry.value?.trim()) continue;
-    push(`RELATED${type_param(entry.type)}:${escape_value(entry.value)}`);
+  for (const decoded of decode_related_people(contact.related_people)) {
+    group_counter.value += 1;
+    const group = `item${group_counter.value}`;
+    const std_type = relation_vcard_type(decoded.kind);
+    const ab_label = relation_ab_label(decoded);
+
+    push(
+      `${group}.RELATED${std_type ? `;TYPE=${std_type}` : ""};VALUE=text:${escape_value(
+        decoded.value.trim(),
+      )}`,
+    );
+    if (ab_label) push(`${group}.X-ABLabel:${escape_value(ab_label)}`);
   }
 
   for (const entry of contact.date_entries ?? []) {
@@ -314,7 +349,20 @@ export const contacts_to_csv = (contacts: DecryptedContact[]): string => {
     return `"${safe.replace(/"/g, '""')}"`;
   };
 
-  const rows = contacts.map((contact) => {
+  const relations_of = contacts.map((contact) =>
+    decode_related_people(contact.related_people),
+  );
+  const relation_columns = relations_of.reduce(
+    (max, list) => Math.max(max, list.length),
+    0,
+  );
+  const headers: string[] = [...CONTACT_CSV_HEADERS];
+
+  for (let index = 1; index <= relation_columns; index++) {
+    headers.push(`Relation ${index} - Label`, `Relation ${index} - Value`);
+  }
+
+  const rows = contacts.map((contact, contact_index) => {
     const emails = (
       contact.email_entries?.length
         ? contact.email_entries.map((entry) => entry.value)
@@ -347,11 +395,18 @@ export const contacts_to_csv = (contacts: DecryptedContact[]): string => {
       contact.birthday || "",
       contact.notes || "",
       contact.is_favorite ? "true" : "false",
+      ...Array.from({ length: relation_columns }).flatMap((_, index) => {
+        const decoded = relations_of[contact_index][index];
+
+        return decoded
+          ? [relation_csv_label(decoded), decoded.value.trim()]
+          : ["", ""];
+      }),
     ];
   });
 
   return [
-    CONTACT_CSV_HEADERS.map(escape_cell).join(","),
+    headers.map(escape_cell).join(","),
     ...rows.map((row) => row.map(escape_cell).join(",")),
   ].join("\r\n");
 };
