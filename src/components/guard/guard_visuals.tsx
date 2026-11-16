@@ -404,6 +404,7 @@ export function prepare_flag_svg(source: string): string | null {
   svg.setAttribute("width", "18");
   svg.setAttribute("height", "12");
   svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("shape-rendering", "crispEdges");
   svg.setAttribute("aria-hidden", "true");
   svg.setAttribute("focusable", "false");
   svg.setAttribute("class", "block h-full w-full");
@@ -438,7 +439,7 @@ export function GuardFlag({ code }: { code?: string | null }) {
   return (
     <span
       aria-hidden
-      className="guard_flag relative inline-block h-3 w-[18px] shrink-0 overflow-hidden rounded-[2px]"
+      className="inline-block h-3 w-[18px] shrink-0 overflow-hidden rounded-[2px]"
       data-testid="guard_flag"
     >
       <span

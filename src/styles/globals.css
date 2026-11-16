@@ -5476,15 +5476,6 @@ html[data-input-modality="keyboard"]
   transform: rotate(-45deg);
 }
 
-.guard_flag::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-primary) 14%, transparent);
-  pointer-events: none;
-}
-
 .guard_tree_child:not(:last-child) > .guard_tree_trunk {
   position: absolute;
   inset-inline-start: calc(var(--guard_tree_x) - var(--guard_tree_indent));
