@@ -156,7 +156,7 @@
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-arm64-gnu": "^4.60.2",
-    "@rollup/rollup-linux-x64-gnu": "^4.64.7"
+    "@rollup/rollup-linux-x64-gnu": "^4.68.0"
   },
   "overrides": {
     "@typescript-eslint/typescript-estree": {
