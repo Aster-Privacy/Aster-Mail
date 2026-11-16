@@ -64,6 +64,8 @@ export const pt = {
       "Os contactos a quem escreve com mais frequência aparecem aqui.",
     group_contact_count: "{{count}} contactos",
     group_contact_count_one: "{{count}} contacto",
+    group_member_count: "{{count}} membros",
+    group_member_count_one: "{{count}} membro",
     group_created: "Grupo criado",
     group_deleted: "Grupo eliminado",
     open_group_label: "Abrir o grupo {{name}}, {{count}}",

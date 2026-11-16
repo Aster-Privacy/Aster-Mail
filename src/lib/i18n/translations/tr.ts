@@ -64,6 +64,8 @@ export const tr = {
     frequent_contacts_hint: "En sık yazdığınız kişiler burada görünür.",
     group_contact_count: "{{count}} kişi",
     group_contact_count_one: "{{count}} kişi",
+    group_member_count: "{{count}} üye",
+    group_member_count_one: "{{count}} üye",
     group_created: "Grup oluşturuldu",
     group_deleted: "Grup silindi",
     open_group_label: "{{name}} grubunu aç, {{count}}",

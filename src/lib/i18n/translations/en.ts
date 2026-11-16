@@ -2088,6 +2088,8 @@ export const en: Translations = {
     failed_to_move_to_trash: "Couldn’t move the contact to Trash.",
     group_contact_count: "{{count}} contacts",
     group_contact_count_one: "{{count}} contact",
+    group_member_count: "{{count}} members",
+    group_member_count_one: "{{count}} member",
     group_created: "Group created",
     group_deleted: "Group deleted",
     open_group_label: "Open group {{name}}, {{count}}",

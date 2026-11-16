@@ -2341,6 +2341,8 @@ export interface CommonTranslations {
   failed_to_add_to_group: string;
   group_contact_count: string;
   group_contact_count_one?: string;
+  group_member_count: string;
+  group_member_count_one?: string;
   select_contact: string;
   deselect_contact: string;
   clear_selection: string;

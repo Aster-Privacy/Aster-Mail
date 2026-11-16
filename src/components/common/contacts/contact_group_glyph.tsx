@@ -83,6 +83,8 @@ export function ContactGroupAvatar({
       style={
         {
           "--group-tint": tint,
+          backgroundColor: tint,
+          color: "#ffffff",
           width: size_px,
           height: size_px,
         } as CSSProperties

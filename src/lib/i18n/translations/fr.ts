@@ -64,6 +64,8 @@ export const fr = {
       "Les contacts auxquels vous écrivez le plus souvent apparaissent ici.",
     group_contact_count: "{{count}} contacts",
     group_contact_count_one: "{{count}} contact",
+    group_member_count: "{{count}} membres",
+    group_member_count_one: "{{count}} membre",
     group_created: "Groupe créé",
     group_deleted: "Groupe supprimé",
     open_group_label: "Ouvrir le groupe {{name}}, {{count}}",

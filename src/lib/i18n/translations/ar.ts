@@ -63,6 +63,8 @@ export const ar = {
     frequent_contacts_hint: "تظهر هنا جهات الاتصال التي تراسلها أكثر من غيرها.",
     group_contact_count: "{{count}} جهة اتصال",
     group_contact_count_one: "{{count}} جهة اتصال",
+    group_member_count: "{{count}} أعضاء",
+    group_member_count_one: "{{count}} عضو",
     group_created: "تم إنشاء المجموعة",
     group_deleted: "تم حذف المجموعة",
     open_group_label: "فتح المجموعة {{name}}، {{count}}",

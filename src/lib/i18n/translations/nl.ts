@@ -57,6 +57,8 @@ export const nl = {
       "De contacten die je het vaakst mailt, verschijnen hier.",
     group_contact_count: "{{count}} contacten",
     group_contact_count_one: "{{count}} contact",
+    group_member_count: "{{count}} leden",
+    group_member_count_one: "{{count}} lid",
     group_created: "Groep aangemaakt",
     group_deleted: "Groep verwijderd",
     open_group_label: "Groep {{name}} openen, {{count}}",

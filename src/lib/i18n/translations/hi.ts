@@ -2089,6 +2089,8 @@ export const hi = {
     failed_to_move_to_trash: "संपर्क को ट्रैश में नहीं ले जाया जा सका।",
     group_contact_count: "{{count}} संपर्क",
     group_contact_count_one: "{{count}} संपर्क",
+    group_member_count: "{{count}} सदस्य",
+    group_member_count_one: "{{count}} सदस्य",
     group_created: "समूह बनाया गया",
     group_deleted: "समूह हटाया गया",
     open_group_label: "समूह {{name}} खोलें, {{count}}",

@@ -62,6 +62,8 @@ export const ru = {
       "Контакты, которым вы пишете чаще всего, появляются здесь.",
     group_contact_count: "Контактов: {{count}}",
     group_contact_count_one: "{{count}} контакт",
+    group_member_count: "Участников: {{count}}",
+    group_member_count_one: "{{count}} участник",
     group_created: "Группа создана",
     group_deleted: "Группа удалена",
     open_group_label: "Открыть группу {{name}}, {{count}}",

@@ -525,7 +525,7 @@ export function ContactGroupsPane({
               className="truncate text-[12.5px] leading-[1.35] text-txt-muted"
               data-testid="contact_group_count"
             >
-              {t("common.group_contact_count", { count })}
+              {t("common.group_member_count", { count })}
             </p>
           </div>
           <Button
@@ -760,7 +760,7 @@ export function ContactGroupsPane({
           </div>
         ) : (
           visible_groups.map((group) => {
-            const count_label = t("common.group_contact_count", {
+            const count_label = t("common.group_member_count", {
               count: count_of(group),
             });
 

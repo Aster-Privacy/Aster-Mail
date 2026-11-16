@@ -58,6 +58,8 @@ export const it = {
     frequent_contacts_hint: "I contatti a cui scrivi più spesso compaiono qui.",
     group_contact_count: "{{count}} contatti",
     group_contact_count_one: "{{count}} contatto",
+    group_member_count: "{{count}} membri",
+    group_member_count_one: "{{count}} membro",
     group_created: "Gruppo creato",
     group_deleted: "Gruppo eliminato",
     open_group_label: "Apri il gruppo {{name}}, {{count}}",

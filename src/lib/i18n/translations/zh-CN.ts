@@ -1957,6 +1957,7 @@ export const zh_CN = {
     failed_to_load_groups: "无法载入您的群组。",
     failed_to_move_to_trash: "无法将联系人移到废纸篓。",
     group_contact_count: "{{count}} 个联系人",
+    group_member_count: "{{count}} 名成员",
     group_empty_hint:
       "若要填充此群组，请在“联系人”标签页中选择联系人，然后使用“添加到群组”。",
     group_modal_description: "创建群组，一次给多个联系人写邮件。",

@@ -2129,6 +2129,8 @@ export const de = {
       "Hier erscheinen die Kontakte, denen Sie am häufigsten schreiben.",
     group_contact_count: "{{count}} Kontakte",
     group_contact_count_one: "{{count}} Kontakt",
+    group_member_count: "{{count}} Mitglieder",
+    group_member_count_one: "{{count}} Mitglied",
     group_created: "Gruppe erstellt",
     group_deleted: "Gruppe gelöscht",
     open_group_label: "Gruppe {{name}} öffnen, {{count}}",

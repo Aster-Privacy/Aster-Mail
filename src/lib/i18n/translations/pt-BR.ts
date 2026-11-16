@@ -63,6 +63,8 @@ export const pt_br = {
       "Os contatos para quem você mais escreve aparecem aqui.",
     group_contact_count: "{{count}} contatos",
     group_contact_count_one: "{{count}} contato",
+    group_member_count: "{{count}} membros",
+    group_member_count_one: "{{count}} membro",
     group_created: "Grupo criado",
     group_deleted: "Grupo excluído",
     open_group_label: "Abrir o grupo {{name}}, {{count}}",

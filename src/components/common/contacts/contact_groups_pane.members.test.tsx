@@ -277,10 +277,31 @@ describe("contact group member view", () => {
 
     const row = by_test_id("contact_group_row_g_alpha")!;
 
-    expect(row.textContent).toContain("common.group_contact_count(count=2)");
+    expect(row.textContent).toContain("common.group_member_count(count=2)");
     expect(row.getAttribute("aria-label")).toBe(
-      "common.open_group_label(name=Alpha,count=common.group_contact_count(count=2))",
+      "common.open_group_label(name=Alpha,count=common.group_member_count(count=2))",
     );
+  });
+
+  it("fills the group avatar with the group color and a white icon", async () => {
+    await render_list();
+    await click(groups_tab());
+
+    const row_avatar = by_test_id("contact_group_row_g_alpha")!.querySelector(
+      '[data-testid="contact_group_avatar"]',
+    ) as HTMLElement;
+
+    expect(row_avatar.style.backgroundColor).toBe("#3b82f6");
+    expect(row_avatar.style.color).toBe("#ffffff");
+
+    await click(by_test_id("contact_group_row_g_alpha"));
+
+    const header_avatar = by_test_id("contact_group_view")!.querySelector(
+      '[data-testid="contact_group_avatar"]',
+    ) as HTMLElement;
+
+    expect(header_avatar.style.backgroundColor).toBe("#3b82f6");
+    expect(header_avatar.style.color).toBe("#ffffff");
   });
 
   it("opens a group, lists its members, and opens a member", async () => {
@@ -291,7 +312,7 @@ describe("contact group member view", () => {
     expect(current_location).toBe("/contacts?group_view=g_alpha");
     expect(by_test_id("contact_group_title")!.textContent).toBe("Alpha");
     expect(by_test_id("contact_group_count")!.textContent).toBe(
-      "common.group_contact_count(count=2)",
+      "common.group_member_count(count=2)",
     );
 
     const member_rows = Array.from(

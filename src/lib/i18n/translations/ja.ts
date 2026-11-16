@@ -105,6 +105,7 @@ export const ja = {
     frequent_contacts_hint:
       "最もよくメールをやり取りする相手がここに表示されます。",
     group_contact_count: "{{count}} 件の連絡先",
+    group_member_count: "メンバー {{count}} 人",
     group_created: "グループを作成しました",
     group_deleted: "グループを削除しました",
     open_group_label: "グループ「{{name}}」を開く、{{count}}",

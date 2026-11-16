@@ -105,6 +105,7 @@ export const ko = {
     frequent_contacts_hint:
       "메일을 가장 자주 주고받는 사람이 여기에 표시됩니다.",
     group_contact_count: "연락처 {{count}}개",
+    group_member_count: "멤버 {{count}}명",
     group_empty_title: "이 그룹에 연락처가 없습니다",
     group_name: "그룹 이름",
     groups: "그룹",
