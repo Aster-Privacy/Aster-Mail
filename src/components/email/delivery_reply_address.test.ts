@@ -22,6 +22,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   build_forward_from_candidates,
   remember_forward_from_message,
+  remember_inline_forward_from,
   resolve_received_reply_from,
 } from "@/components/email/delivery_reply_address";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
@@ -197,5 +198,95 @@ describe("build_forward_from_candidates", () => {
     clear_forward_mail_id();
 
     expect(get_forward_from_candidates("mail-1")).toEqual([]);
+  });
+});
+
+describe("remember_inline_forward_from", () => {
+  const options = [
+    { id: "primary", email: "primary@astermail.org", is_enabled: true },
+    { id: "shop", email: "shop@astermail.org", is_enabled: true },
+    { id: "catch", email: "sales@mydomain.com", is_enabled: true },
+  ];
+
+  beforeEach(() => {
+    cached.aliases = [];
+    cached.alias_by_token = {};
+    cached.ghost_by_token = {};
+    clear_forward_mail_id();
+  });
+
+  it("defaults an inline forward to the address a reply would use", () => {
+    remember_inline_forward_from(
+      {
+        id: "mail-inline",
+        item_type: "received",
+        to_recipients: [{ email: "list@example.com" }],
+      },
+      "shop@astermail.org",
+    );
+
+    expect(
+      resolve_from_sender({
+        options,
+        thread_addresses: get_forward_from_candidates("mail-inline"),
+        preferred_sender_id: "primary",
+      })?.option.id,
+    ).toBe("shop");
+  });
+
+  it("defaults an inline forward to a catch-all address", () => {
+    remember_inline_forward_from(
+      {
+        id: "mail-catch",
+        item_type: "received",
+        to_recipients: [{ email: "sales@mydomain.com" }],
+      },
+      "sales@mydomain.com",
+    );
+
+    expect(
+      resolve_from_sender({
+        options,
+        thread_addresses: get_forward_from_candidates("mail-catch"),
+        preferred_sender_id: "primary",
+      })?.option.id,
+    ).toBe("catch");
+  });
+
+  it("keeps the sending address for an inline forward from Sent", () => {
+    remember_inline_forward_from(
+      {
+        id: "mail-sent",
+        item_type: "sent",
+        sender_email: "shop@astermail.org",
+        to_recipients: [{ email: "friend@example.com" }],
+      },
+      "shop@astermail.org",
+    );
+
+    expect(get_forward_from_candidates("mail-sent")).toEqual([
+      "shop@astermail.org",
+    ]);
+  });
+
+  it("falls back to the default sender when the alias is disabled", () => {
+    remember_inline_forward_from(
+      {
+        id: "mail-disabled",
+        item_type: "received",
+        to_recipients: [{ email: "shop@astermail.org" }],
+      },
+      "shop@astermail.org",
+    );
+
+    expect(
+      resolve_from_sender({
+        options: options.map((option) =>
+          option.id === "shop" ? { ...option, is_enabled: false } : option,
+        ),
+        thread_addresses: get_forward_from_candidates("mail-disabled"),
+        preferred_sender_id: "primary",
+      })?.option.id,
+    ).toBe("primary");
   });
 });
