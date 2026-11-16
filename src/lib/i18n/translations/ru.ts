@@ -2821,7 +2821,7 @@ export const ru = {
     invite_benefit_zero_access:
       "Почта с нулевым доступом и сквозным шифрованием",
     invite_benefit_no_ads: "Без рекламы, без слежки",
-    invite_benefit_open_source: "Открытый исходный код, прошедший аудит",
+    invite_benefit_open_source: "Открытый исходный код, доступный для проверки",
     invite_cta_create_account: "Получить скидку {{ percent }}%",
     invite_cta_sign_in: "Уже есть аккаунт? Войти",
     invite_not_found_title: "Эта пригласительная ссылка недоступна",

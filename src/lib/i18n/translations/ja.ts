@@ -2669,7 +2669,7 @@ export const ja = {
     invite_benefits_heading: "得られるもの",
     invite_benefit_zero_access: "ゼロアクセス、エンドツーエンド暗号化メール",
     invite_benefit_no_ads: "広告なし、トラッキングなし",
-    invite_benefit_open_source: "オープンソースで監査済み",
+    invite_benefit_open_source: "オープンソースで誰でもコードを確認可能",
     invite_cta_create_account: "{{ percent }}%割引を受け取る",
     invite_cta_sign_in: "すでにアカウントをお持ちですか？サインイン",
     invite_not_found_title: "この招待リンクは利用できません",

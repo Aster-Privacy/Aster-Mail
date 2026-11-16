@@ -2696,7 +2696,7 @@ export const pt_br = {
     invite_benefit_zero_access:
       "E-mail de acesso zero, criptografado de ponta a ponta",
     invite_benefit_no_ads: "Sem anúncios, sem rastreamento",
-    invite_benefit_open_source: "Código aberto e auditado",
+    invite_benefit_open_source: "Código aberto que qualquer pessoa pode revisar",
     invite_cta_create_account: "Resgatar meu desconto de {{ percent }}%",
     invite_cta_sign_in: "Já tem uma conta? Entrar",
     invite_not_found_title: "Este link de convite não está disponível",

@@ -2852,7 +2852,7 @@ export const pl = {
     invite_benefit_zero_access:
       "Poczta z zerowym dostępem i szyfrowaniem end-to-end",
     invite_benefit_no_ads: "Bez reklam, bez śledzenia",
-    invite_benefit_open_source: "Open source i poddane audytowi",
+    invite_benefit_open_source: "Otwarty kod, który każdy może sprawdzić",
     invite_cta_create_account: "Odbierz {{ percent }}% zniżki",
     invite_cta_sign_in: "Masz już konto? Zaloguj się",
     invite_not_found_title: "Ten link zaproszenia jest niedostępny",

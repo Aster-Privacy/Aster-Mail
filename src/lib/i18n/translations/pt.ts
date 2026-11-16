@@ -2732,7 +2732,7 @@ export const pt = {
     invite_benefit_zero_access:
       "E-mail de acesso zero, encriptado ponto a ponto",
     invite_benefit_no_ads: "Sem anúncios, sem rastreamento",
-    invite_benefit_open_source: "Código aberto e auditado",
+    invite_benefit_open_source: "Código aberto que qualquer pessoa pode revisar",
     invite_cta_create_account: "Obter o meu desconto de {{ percent }}%",
     invite_cta_sign_in: "Já tem uma conta? Iniciar sessão",
     invite_not_found_title: "Este link de convite não está disponível",

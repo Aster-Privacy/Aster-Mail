@@ -4143,7 +4143,7 @@ export const hi = {
     invite_benefits_heading: "आपको क्या मिलता है",
     invite_benefit_zero_access: "ज़ीरो-एक्सेस, एंड-टू-एंड एन्क्रिप्टेड ईमेल",
     invite_benefit_no_ads: "कोई विज्ञापन नहीं, कोई ट्रैकिंग नहीं",
-    invite_benefit_open_source: "ओपन सोर्स और ऑडिट किया हुआ",
+    invite_benefit_open_source: "ओपन सोर्स, कोई भी कोड जांच सकता है",
     invite_cta_create_account: "मेरी {{ percent }}% छूट लें",
     invite_cta_create_account_storage: "मेरा मुफ़्त खाता बनाएं",
     invite_cta_sign_in: "पहले से खाता है? साइन इन करें",

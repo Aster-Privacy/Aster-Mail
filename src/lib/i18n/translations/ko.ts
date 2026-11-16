@@ -2602,7 +2602,7 @@ export const ko = {
     invite_benefits_heading: "제공되는 혜택",
     invite_benefit_zero_access: "제로 액세스, 종단 간 암호화 이메일",
     invite_benefit_no_ads: "광고 없음, 추적 없음",
-    invite_benefit_open_source: "오픈소스 및 감사 완료",
+    invite_benefit_open_source: "누구나 코드를 확인할 수 있는 오픈소스",
     invite_cta_create_account: "{{ percent }}% 할인 받기",
     invite_cta_sign_in: "이미 계정이 있으신가요? 로그인",
     invite_not_found_title: "이 초대 링크를 사용할 수 없습니다",

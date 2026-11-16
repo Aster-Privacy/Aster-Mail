@@ -2712,7 +2712,7 @@ export const fr = {
     invite_benefit_zero_access:
       "Messagerie chiffrée de bout en bout, à accès zéro",
     invite_benefit_no_ads: "Sans publicité, sans traçage",
-    invite_benefit_open_source: "Open source et audité",
+    invite_benefit_open_source: "Open source, code vérifiable par tous",
     invite_cta_create_account: "Profiter de {{ percent }}% de réduction",
     invite_cta_sign_in: "Vous avez déjà un compte ? Se connecter",
     invite_not_found_title: "Ce lien d'invitation n'est pas disponible",

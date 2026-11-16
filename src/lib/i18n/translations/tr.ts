@@ -2657,7 +2657,7 @@ export const tr = {
     invite_benefits_heading: "Neler kazanırsınız",
     invite_benefit_zero_access: "Sıfır erişimli, uçtan uca şifrelenmiş e-posta",
     invite_benefit_no_ads: "Reklam yok, takip yok",
-    invite_benefit_open_source: "Açık kaynak ve denetlenmiş",
+    invite_benefit_open_source: "Herkesin inceleyebileceği açık kaynak kod",
     invite_cta_create_account: "%{{ percent }} indirimi al",
     invite_cta_sign_in: "Zaten hesabınız var mı? Giriş yapın",
     invite_not_found_title: "Bu davet bağlantısı kullanılamıyor",

@@ -2706,7 +2706,7 @@ export const it = {
     invite_benefit_zero_access:
       "Posta a crittografia end-to-end e accesso zero",
     invite_benefit_no_ads: "Nessuna pubblicità, nessun tracciamento",
-    invite_benefit_open_source: "Open source e verificato",
+    invite_benefit_open_source: "Open source, codice verificabile da chiunque",
     invite_cta_create_account: "Ottieni il mio {{ percent }}% di sconto",
     invite_cta_sign_in: "Hai già un account? Accedi",
     invite_not_found_title: "Questo link di invito non è disponibile",
