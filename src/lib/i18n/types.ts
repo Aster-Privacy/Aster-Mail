@@ -1220,6 +1220,16 @@ export interface CommonTranslations {
   type_parent: string;
   type_sibling: string;
   type_friend: string;
+  type_relative: string;
+  type_mother: string;
+  type_father: string;
+  type_brother: string;
+  type_sister: string;
+  relations: string;
+  add_relation: string;
+  remove_relation: string;
+  relation_type: string;
+  social_link_placeholder: string;
   type_twitter: string;
   type_linkedin: string;
   type_github: string;

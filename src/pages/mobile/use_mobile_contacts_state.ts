@@ -38,6 +38,7 @@ import {
 import { request_cache } from "@/services/api/request_cache";
 import { use_i18n } from "@/lib/i18n/context";
 import { contact_matches_query } from "@/utils/contact_search";
+import { relation_kind_key } from "@/utils/contact_relations";
 import { use_should_reduce_motion } from "@/provider";
 import { apply_server_group_membership } from "@/utils/contact_group_membership";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -378,8 +379,12 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
 
     if (!search_query.trim()) return result;
 
-    return result.filter((c) => contact_matches_query(c, search_query));
-  }, [contacts, search_query, filter, group_filter]);
+    return result.filter((c) =>
+      contact_matches_query(c, search_query, (kind) =>
+        t(relation_kind_key(kind)),
+      ),
+    );
+  }, [contacts, search_query, filter, group_filter, t]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, DecryptedContact[]> = {};

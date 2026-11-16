@@ -42,6 +42,7 @@ import {
   ADDRESS_TYPE_OPTIONS,
   EMAIL_TYPE_OPTIONS,
   PHONE_TYPE_OPTIONS,
+  SOCIAL_TYPE_OPTIONS,
   entry_type_text,
   format_address_lines,
   type_label_key,
@@ -50,6 +51,11 @@ import {
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { show_toast } from "@/components/toast/simple_toast";
 import { format_contact_date } from "@/utils/date_utils";
+import {
+  decode_related_people,
+  relation_display_label,
+} from "@/utils/contact_relations";
+import { social_href } from "@/utils/contact_socials";
 
 interface ContactViewProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -62,6 +68,7 @@ interface ContactViewProps {
 interface DetailRow {
   key: string;
   icon: ReactNode;
+  title?: string;
   lines: { key: string; text: string; href?: string; label?: string }[];
 }
 
@@ -193,7 +200,8 @@ export function ContactView({
       lines: socials.map((entry, index) => ({
         key: `social_${index}`,
         text: entry.value,
-        label: t(type_label_key(entry.type)),
+        href: social_href(entry) ?? undefined,
+        label: entry_type_text(t, entry, SOCIAL_TYPE_OPTIONS),
       })),
     });
   }
@@ -214,16 +222,17 @@ export function ContactView({
     });
   }
 
-  const related = draft.related_people.filter((entry) => entry.value.trim());
+  const related = decode_related_people(draft.related_people);
 
   if (related.length > 0) {
     rows.push({
       key: "related",
       icon: <UsersIcon className="h-[18px] w-[18px]" />,
+      title: t("common.relations"),
       lines: related.map((entry, index) => ({
         key: `related_${index}`,
         text: entry.value,
-        label: t(type_label_key(entry.type)),
+        label: relation_display_label(t, entry),
       })),
     });
   }
@@ -291,7 +300,13 @@ export function ContactView({
       ) : (
         <div className="aster_island aster_island_divided">
           {rows.map((row) => (
-            <div key={row.key} className="aster_island_row items-start">
+            <div
+              key={row.key}
+              aria-label={row.title}
+              className="aster_island_row items-start"
+              data-testid={`contact_view_row_${row.key}`}
+              role={row.title ? "group" : undefined}
+            >
               <span className="aster_island_row_icon">{row.icon}</span>
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 {row.lines.map((line) => (
