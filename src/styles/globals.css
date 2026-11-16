@@ -2869,6 +2869,239 @@ html:not([data-input-modality="keyboard"])
   color: var(--text-primary);
 }
 
+.contact_list_notice {
+  gap: 12px;
+  min-height: 0;
+  padding: 10px 12px 10px 14px;
+}
+
+.contact_list_notice_icon {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.contact_list_notice_icon > svg {
+  width: 20px;
+  height: 20px;
+}
+
+.contact_list_notice_title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--text-primary);
+}
+
+.contact_list_notice_text {
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text-muted);
+}
+
+.contact_list_icon_button {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--text-muted);
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease,
+    transform 0.12s ease-out;
+}
+
+.contact_list_icon_button:hover {
+  background-color: var(--aster-hover);
+  color: var(--text-primary);
+}
+
+.contact_list_icon_button:active {
+  transform: scale(0.96);
+}
+
+.contact_list_icon_button:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+.contact_list_icon_button[data-tone="danger"]:hover {
+  background-color: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+}
+
+.contact_list_header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin: 4px 8px 0;
+  padding: 4px 6px 4px 12px;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.contact_list_header_label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.contact_list_header[data-selecting="true"] .contact_list_header_label {
+  color: var(--text-primary);
+}
+
+.contact_list_header_rule {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background-color: var(--border-secondary);
+}
+
+.contact_list_title_row {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 10px;
+}
+
+.contact_list_title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.contact_list_title_lock {
+  display: inline-flex;
+  color: var(--text-muted);
+}
+
+.contact_list_toolbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: auto;
+}
+
+.contact_list_toolbar_button {
+  display: inline-flex;
+  height: 32px;
+  min-width: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-inline: 7px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease,
+    transform 0.12s ease-out;
+}
+
+.contact_list_toolbar_button:hover:not(:disabled) {
+  background-color: var(--aster-hover);
+  color: var(--text-primary);
+}
+
+.contact_list_toolbar_button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.contact_list_toolbar_button:disabled {
+  opacity: 0.45;
+}
+
+.contact_list_toolbar_button:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+.contact_list_toolbar_button[aria-pressed="true"] {
+  background-color: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  color: var(--text-primary);
+}
+
+.contact_list_toolbar_divider {
+  width: 1px;
+  height: 18px;
+  margin-inline: 6px;
+  background-color: var(--border-secondary);
+}
+
+.contact_list_tabs {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.contact_list_tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.contact_list_tab {
+  display: inline-flex;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 12px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease;
+}
+
+.contact_list_tab:hover {
+  background-color: var(--aster-hover);
+  color: var(--text-primary);
+}
+
+.contact_list_tab[aria-selected="true"] {
+  background-color: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  color: var(--text-primary);
+}
+
+.contact_list_tab:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+.contact_list_tab_count {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
 .contact_import_stat[data-tone="success"] {
   background-color: var(--color-success);
   border-color: var(--color-success);
@@ -4386,6 +4619,80 @@ html:not(.dark) .sender_logo_light > img {
 
 .contact_view_link:hover {
   text-decoration: underline;
+}
+
+.contact_view_row {
+  gap: 14px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.contact_view_row.items-start .contact_view_row_icon {
+  margin-top: 1px;
+}
+
+.contact_view_line {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.contact_view_value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.contact_view_line_label {
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted);
+}
+
+.contact_view_copy {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition:
+    opacity 0.14s ease,
+    background-color 0.14s ease,
+    color 0.14s ease;
+}
+
+.contact_view_line:hover .contact_view_copy,
+.contact_view_copy:focus-visible {
+  opacity: 1;
+}
+
+.contact_view_copy:hover {
+  background-color: var(--aster-hover);
+  color: var(--text-primary);
+}
+
+.contact_view_copy:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+@media (hover: none) {
+  .contact_view_copy {
+    opacity: 0.7;
+  }
+}
+
+.contact_detail_more_button {
+  aspect-ratio: 1 / 1;
+  justify-content: center;
+  padding-inline: 0;
 }
 
 .contact_tab_strip {
