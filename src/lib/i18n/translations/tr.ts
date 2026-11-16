@@ -7599,12 +7599,18 @@ export const tr = {
     bridge_upgrade_benefit_platforms:
       "Windows, macOS ve Linux'ta kullanılabilir",
     bridge_upgrade_benefit_cli: "Sunucular için komut satırı sürümü içerir",
-    bridge_cli_download: "İndir",
+    bridge_cli_download_windows: "Windows arşivini indir",
+    bridge_cli_download_macos: "macOS arşivini indir",
+    bridge_cli_download_linux: "Linux arşivini indir",
     bridge_cli_install_hint:
       "Platformunuza uygun arşivi indirin, ayıklayın ve ikili dosyayı PATH dizininize taşıyın.",
     bridge_cli_install_hint_windows:
       "Arşivi indirin, ayıklayın ve klasörü PATH değişkeninize ekleyin.",
     bridge_cli_copy_command: "Kurulum komutlarını kopyala",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "Terminal",
+    bridge_upgrade_summary:
+      "Aster Bridge, Star ve daha üst tüm planlara dahildir.",
     bridge_cli_docs_link: "Komut satırı kılavuzunu okuyun",
     bridge_cli_name: "Komut satırı",
     bridge_cli_desc:
@@ -7620,7 +7626,7 @@ export const tr = {
     bridge_coming_soon: "Yakında",
     bridge_info_link: "Daha fazla bilgi",
     bridge_popover_description:
-      "Masaüstünüzde çalışan hafif bir yerel proxy. Posta kutunuzu şifresini çözer ve herhangi bir e-posta istemcisinin bağlanabilmesi için standart IMAP ve SMTP üzerinden sunar.",
+      "Bilgisayarınızda çalışan hafif bir uygulama. E-postalarınızın şifresini yerel olarak çözer ve standart IMAP ile SMTP üzerinden sunar, böylece herhangi bir e-posta istemcisi bağlanabilir.",
     bridge_installations: "Bağlı kurulumlar",
     bridge_installations_description:
       "Her giriş, hesabınızla eşleştirilmiş bir Bridge uygulamasıdır. İptal edilmesi, bu kurulumu kullanan tüm posta istemcilerinin bağlantısını keser.",
@@ -7640,8 +7646,9 @@ export const tr = {
     bridge_support_github: "GitHub",
     bridge_support_reddit: "Reddit",
     desktop_bridge_title: "Masaüstü Posta İstemcisi",
+    desktop_bridge_description_short: "Bilgisayarınız için Aster Bridge'i indirin.",
     desktop_bridge_description:
-      "Thunderbird, Apple Mail, Outlook veya herhangi bir IMAP/JMAP istemcisiyle Aster'i kullanın. Aster Bridge yerel olarak çalışır ve şifresi çözülmüş posta kutunuzu favori istemcinize sunar.",
+      "Thunderbird, Apple Mail, Outlook veya herhangi bir IMAP/JMAP istemcisiyle Aster'i kullanın. Aster Bridge bilgisayarınızda çalışır, e-postalarınızın şifresini orada çözer ve bunları e-posta istemcinize iletir.",
     desktop_bridge_set_up: "{{ client }} kur",
     desktop_bridge_install_hint:
       "Aster Bridge'in yüklü ve çalışıyor olması gerekir. Ayarlar > Bridge bölümünden indirin.",

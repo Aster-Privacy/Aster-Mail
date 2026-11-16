@@ -7919,8 +7919,9 @@ export const de = {
       "Nach dem Löschen kann diese Domain 30 Tage lang nicht erneut hinzugefügt werden.",
     delete_domain_warning:
       "Alle Adressen auf dieser Domain hören sofort nach dem Entfernen auf, E-Mails zu empfangen. Dies kann nicht rückgängig gemacht werden.",
+    desktop_bridge_description_short: "Laden Sie Aster Bridge für Ihren Computer herunter.",
     desktop_bridge_description:
-      "Verwenden Sie Aster mit Thunderbird, Apple Mail, Outlook oder einem anderen IMAP/JMAP-Client. Aster Bridge läuft lokal und stellt Ihr entschlüsseltes Postfach Ihrem bevorzugten Client zur Verfügung.",
+      "Verwenden Sie Aster mit Thunderbird, Apple Mail, Outlook oder einem anderen IMAP/JMAP-Client. Aster Bridge läuft auf Ihrem Computer, entschlüsselt dort Ihre E-Mails und gibt sie an Ihren Mail-Client weiter.",
     desktop_bridge_install_hint:
       "Aster Bridge muss installiert sein und ausgeführt werden. Laden Sie es unter Einstellungen > Bridge herunter.",
     desktop_bridge_not_opened:
@@ -7970,12 +7971,18 @@ export const de = {
       "Läuft lokal, damit Ihre E-Mails verschlüsselt bleiben",
     bridge_upgrade_benefit_platforms: "Verfügbar für Windows, macOS und Linux",
     bridge_upgrade_benefit_cli: "Enthält eine Befehlszeilenversion für Server",
-    bridge_cli_download: "Herunterladen",
+    bridge_cli_download_windows: "Windows-Archiv herunterladen",
+    bridge_cli_download_macos: "macOS-Archiv herunterladen",
+    bridge_cli_download_linux: "Linux-Archiv herunterladen",
     bridge_cli_install_hint:
       "Laden Sie das Archiv für Ihre Plattform herunter, entpacken Sie es und verschieben Sie die Binärdatei in Ihren PATH.",
     bridge_cli_install_hint_windows:
       "Laden Sie das Archiv herunter, entpacken Sie es und fügen Sie den Ordner Ihrem PATH hinzu.",
     bridge_cli_copy_command: "Installationsbefehle kopieren",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "Terminal",
+    bridge_upgrade_summary:
+      "Aster Bridge ist in Star und allen höheren Tarifen enthalten.",
     bridge_cli_docs_link: "Zur Befehlszeilen-Anleitung",
     bridge_cli_name: "Befehlszeile",
     bridge_cli_desc:
@@ -7991,7 +7998,7 @@ export const de = {
     bridge_coming_soon: "Demnächst verfügbar",
     bridge_info_link: "Mehr erfahren",
     bridge_popover_description:
-      "Ein leichtgewichtiger lokaler Proxy, der auf Ihrem Desktop läuft. Er entschlüsselt Ihr Postfach und stellt es über Standard-IMAP und -SMTP bereit, sodass jeder E-Mail-Client eine Verbindung herstellen kann.",
+      "Eine schlanke App, die auf Ihrem Computer läuft. Sie entschlüsselt Ihre E-Mails lokal und stellt sie über die Standards IMAP und SMTP bereit, sodass sich jeder Mail-Client verbinden kann.",
     bridge_installations: "Verbundene Installationen",
     bridge_installations_description:
       "Jeder Eintrag ist eine Bridge-App, die mit Ihrem Konto gekoppelt ist. Durch das Widerrufen wird die Verbindung zu allen Mail-Clients getrennt, die diese Installation verwenden.",

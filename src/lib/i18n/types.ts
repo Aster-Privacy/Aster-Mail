@@ -2732,7 +2732,12 @@ export interface SettingsTranslations {
   bridge_support_github_desc: string;
   bridge_cli_name: string;
   bridge_cli_desc: string;
-  bridge_cli_download: string;
+  bridge_cli_download_windows: string;
+  bridge_cli_download_macos: string;
+  bridge_cli_download_linux: string;
+  bridge_cli_shell_powershell: string;
+  bridge_cli_shell_terminal: string;
+  bridge_upgrade_summary: string;
   bridge_cli_install_hint: string;
   bridge_cli_copy_command: string;
   bridge_cli_docs_link: string;
@@ -2797,6 +2802,7 @@ export interface SettingsTranslations {
   smtp_token_not_e2e_title: string;
   smtp_token_not_e2e_body: string;
   desktop_bridge_title: string;
+  desktop_bridge_description_short: string;
   desktop_bridge_description: string;
   desktop_bridge_set_up: string;
   desktop_bridge_install_hint: string;

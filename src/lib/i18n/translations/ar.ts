@@ -3958,12 +3958,18 @@ export const ar = {
     bridge_upgrade_benefit_local: "يعمل محليًا، لذا يبقى بريدك مشفّرًا",
     bridge_upgrade_benefit_platforms: "متوفر على Windows وmacOS وLinux",
     bridge_upgrade_benefit_cli: "يتضمّن إصدارًا لسطر الأوامر للخوادم",
-    bridge_cli_download: "تنزيل",
+    bridge_cli_download_windows: "تنزيل أرشيف Windows",
+    bridge_cli_download_macos: "تنزيل أرشيف macOS",
+    bridge_cli_download_linux: "تنزيل أرشيف Linux",
     bridge_cli_install_hint:
       "نزّل الأرشيف المناسب لنظامك، ثم استخرجه وانقل الملف التنفيذي إلى مسار PATH.",
     bridge_cli_install_hint_windows:
       "نزّل الأرشيف، ثم استخرجه وأضف المجلد إلى مسار PATH.",
     bridge_cli_copy_command: "نسخ أوامر التثبيت",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "الطرفية",
+    bridge_upgrade_summary:
+      "يتوفر Aster Bridge مع خطة Star وجميع الخطط الأعلى.",
     bridge_cli_docs_link: "اقرأ دليل سطر الأوامر",
     bridge_cli_name: "سطر الأوامر",
     bridge_cli_desc: "يشغّل الخوادم نفسها بدون نافذة، على خادم أو عبر SSH.",
@@ -3978,7 +3984,7 @@ export const ar = {
     bridge_coming_soon: "قريبًا",
     bridge_info_link: "معرفة المزيد",
     bridge_popover_description:
-      "وكيل محلي خفيف الوزن يعمل على سطح المكتب. يفك تشفير صندوق البريد ويقدمه عبر IMAP وSMTP القياسيين حتى يتمكن أي عميل بريد إلكتروني من الاتصال به.",
+      "تطبيق خفيف يعمل على جهاز الكمبيوتر. يفك تشفير بريدك محليًا ويتيحه عبر IMAP وSMTP القياسيين، حتى يتمكن أي عميل بريد من الاتصال به.",
     bridge_installations: "التثبيتات المتصلة",
     bridge_installations_description:
       "كل إدخال هو تطبيق Bridge مرتبط بحسابك. سيؤدي إلغاؤه إلى قطع اتصال جميع عملاء البريد الذين يستخدمون هذا التثبيت.",
@@ -3998,8 +4004,9 @@ export const ar = {
     bridge_support_github: "GitHub",
     bridge_support_reddit: "Reddit",
     desktop_bridge_title: "عميل البريد لسطح المكتب",
+    desktop_bridge_description_short: "نزّل Aster Bridge على جهاز الكمبيوتر.",
     desktop_bridge_description:
-      "استخدم Aster مع Thunderbird أو Apple Mail أو Outlook أو أي عميل IMAP/JMAP. يعمل Aster Bridge محليًا ويقدم صندوق بريدك المفك تشفيره لعميلك المفضل.",
+      "استخدم Aster مع Thunderbird أو Apple Mail أو Outlook أو أي عميل IMAP/JMAP. يعمل Aster Bridge على جهاز الكمبيوتر، ويفك تشفير بريدك هناك، ثم يمرره إلى عميل البريد.",
     desktop_bridge_set_up: "إعداد {{ client }}",
     desktop_bridge_install_hint:
       "يجب تثبيت Aster Bridge وتشغيله. نزّله من الإعدادات > Bridge.",

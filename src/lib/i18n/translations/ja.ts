@@ -7816,8 +7816,9 @@ export const ja = {
     delete_domain_cooldown: "削除後、このドメインは30日間再追加できません。",
     delete_domain_warning:
       "このドメインの全アドレスは削除直後からメールを受信できなくなります。この操作は元に戻せません。",
+    desktop_bridge_description_short: "お使いのコンピュータ用のAster Bridgeをダウンロードしてください。",
     desktop_bridge_description:
-      "Thunderbird、Apple Mail、Outlook、またはその他のIMAP/JMAPクライアントでAsterを使用できます。Aster Bridgeはローカルで動作し、復号したメールボックスをお好みのクライアントに提供します。",
+      "Thunderbird、Apple Mail、Outlook、またはその他のIMAP/JMAPクライアントでAsterを使用できます。Aster Bridgeはお使いのコンピュータで動作し、そこでメールを復号してメールクライアントに渡します。",
     desktop_bridge_install_hint:
       "Aster Bridge をインストールして起動しておく必要があります。設定 > Bridge からダウンロードしてください。",
     desktop_bridge_not_opened:
@@ -7865,12 +7866,18 @@ export const ja = {
       "ローカルで動作するため、メールは暗号化されたままです",
     bridge_upgrade_benefit_platforms: "Windows、macOS、Linux で利用できます",
     bridge_upgrade_benefit_cli: "サーバー向けのコマンドライン版が含まれます",
-    bridge_cli_download: "ダウンロード",
+    bridge_cli_download_windows: "Windows用アーカイブをダウンロード",
+    bridge_cli_download_macos: "macOS用アーカイブをダウンロード",
+    bridge_cli_download_linux: "Linux用アーカイブをダウンロード",
     bridge_cli_install_hint:
       "お使いのプラットフォーム用のアーカイブをダウンロードし、展開してバイナリを PATH に移動します。",
     bridge_cli_install_hint_windows:
       "アーカイブをダウンロードし、展開してフォルダを PATH に追加します。",
     bridge_cli_copy_command: "インストールコマンドをコピー",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "ターミナル",
+    bridge_upgrade_summary:
+      "Aster Bridge は Star 以上のすべてのプランに含まれています。",
     bridge_cli_docs_link: "コマンドラインガイドを読む",
     bridge_cli_name: "コマンドライン",
     bridge_cli_desc:
@@ -7886,7 +7893,7 @@ export const ja = {
     bridge_coming_soon: "近日公開",
     bridge_info_link: "詳しく見る",
     bridge_popover_description:
-      "デスクトップで動作する軽量なローカルプロキシ。メールボックスを復号化し、標準のIMAPとSMTPで提供するため、あらゆるメールクライアントが接続できます。",
+      "お使いのコンピュータで動作する軽量なアプリです。メールをローカルで復号し、標準のIMAPとSMTPで利用できるようにするため、どのメールクライアントからでも接続できます。",
     bridge_installations: "接続済みインストール",
     bridge_installations_description:
       "各エントリはアカウントにペアリングされたBridgeアプリです。失効させると、そのインストールを使用するすべてのメールクライアントが切断されます。",
