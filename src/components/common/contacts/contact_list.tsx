@@ -374,33 +374,33 @@ export function ContactList({
 
   return (
     <div className="@container/contact-list w-full min-w-0 md:w-1/2 md:flex-shrink-0 md:border-e md:border-edge-primary min-h-0 flex flex-col">
-      <div className="flex flex-shrink-0 flex-wrap items-center gap-2 px-4 pt-4 pb-2">
+      <div className="contact_list_title_row" data-testid="contact_list_title_row">
         <div className="md:hidden">
           <MobileMenuButton on_click={on_mobile_menu_toggle} />
         </div>
-        <h1 className="flex-shrink-0 whitespace-nowrap text-[20px] font-semibold leading-none text-txt-primary">
-          {t("common.contacts")}
-        </h1>
-        <div className="flex-1" />
-        <div className="contact_encryption_info h-8 w-8 flex-shrink-0 flex items-center justify-center">
-          <EncryptionInfoDropdown
-            description_key="common.only_you_can_read_contacts"
-            e2e_verified
-            has_pq_protection={true}
-            is_external={false}
-            size={20}
-          />
+        <div className="contact_list_title">
+          <h1 className="truncate text-[20px] font-semibold leading-7 text-txt-primary">
+            {t("common.contacts")}
+          </h1>
+          <span className="contact_encryption_info contact_list_title_lock">
+            <EncryptionInfoDropdown
+              description_key="common.only_you_can_read_contacts"
+              e2e_verified
+              has_pq_protection={true}
+              is_external={false}
+              size={16}
+            />
+          </span>
         </div>
-        <div className="ms-auto flex max-w-full flex-shrink-0 flex-wrap items-center gap-1.5">
+        <div className="contact_list_toolbar">
           <DropdownMenu>
             <Tooltip tip={`${t("common.sort")}: ${sort_label}`}>
               <DropdownMenuTrigger asChild>
-                <Button
+                <button
                   aria-label={`${t("common.sort")}: ${sort_label}`}
-                  className="h-9 flex-shrink-0 whitespace-nowrap gap-1.5 rounded-full px-3 text-[13px] font-medium text-[var(--text-secondary)] hover:bg-[var(--aster-hover)] hover:text-[var(--text-primary)]"
+                  className="contact_list_toolbar_button"
                   disabled={!is_list_tab}
-                  size="sm"
-                  variant="ghost"
+                  type="button"
                 >
                   {sort_by === "name_desc" || sort_by === "last_name_desc" ? (
                     <BarsArrowUpIcon className="w-[18px] h-[18px]" />
@@ -411,7 +411,7 @@ export function ContactList({
                     {sort_label}
                   </span>
                   <ChevronDownIcon className="hidden @min-[560px]/contact-list:inline-block w-3.5 h-3.5 flex-shrink-0 opacity-60" />
-                </Button>
+                </button>
               </DropdownMenuTrigger>
             </Tooltip>
             <DropdownMenuContent align="end" className="w-52">
@@ -433,16 +433,14 @@ export function ContactList({
           </DropdownMenu>
 
           <Tooltip tip={t("settings.density")}>
-            <Button
+            <button
               aria-label={
                 is_compact
                   ? t("settings.density_comfortable")
                   : t("settings.density_compact")
               }
-              aria-pressed={is_compact}
-              className="h-9 w-9 flex-shrink-0 rounded-full hover:bg-[var(--aster-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
-              size="icon"
-              variant="ghost"
+              className="contact_list_toolbar_button"
+              type="button"
               onClick={() => set_view_mode(is_compact ? "list" : "compact")}
             >
               {is_compact ? (
@@ -450,20 +448,19 @@ export function ContactList({
               ) : (
                 <Bars2Icon className="w-[18px] h-[18px]" />
               )}
-            </Button>
+            </button>
           </Tooltip>
 
           <DropdownMenu>
             <Tooltip tip={t("common.manage_contacts")}>
               <DropdownMenuTrigger asChild>
-                <Button
+                <button
                   aria-label={t("common.manage_contacts")}
-                  className="h-9 w-9 flex-shrink-0 rounded-full hover:bg-[var(--aster-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
-                  size="icon"
-                  variant="ghost"
+                  className="contact_list_toolbar_button"
+                  type="button"
                 >
                   <EllipsisHorizontalIcon className="w-[18px] h-[18px]" />
-                </Button>
+                </button>
               </DropdownMenuTrigger>
             </Tooltip>
             <DropdownMenuContent align="end" className="w-56">
@@ -514,12 +511,13 @@ export function ContactList({
             </DropdownMenuContent>
           </DropdownMenu>
 
+          <span aria-hidden="true" className="contact_list_toolbar_divider" />
           <DropdownMenu>
             <Tooltip tip={t("common.create_contact")}>
               <DropdownMenuTrigger asChild>
                 <Button
                   aria-label={t("common.create_contact")}
-                  className="h-9 flex-shrink-0 whitespace-nowrap gap-1.5 rounded-[var(--aster-radius-control)] px-3.5 text-[13px] font-medium"
+                  className="h-8 flex-shrink-0 whitespace-nowrap gap-1.5 rounded-[var(--aster-radius-control)] px-3 text-[13px] font-medium"
                   size="sm"
                   variant="primary"
                 >
@@ -560,23 +558,20 @@ export function ContactList({
         </div>
       </div>
 
-      <div className="flex flex-shrink-0 px-4 pt-1 pb-2">
-        <div
-          className="inline-flex min-w-0 items-center gap-0.5 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_6%,var(--bg-primary))] p-1 max-w-full overflow-x-auto scrollbar-hide"
-          role="tablist"
-        >
+      <div className="flex flex-shrink-0 px-3 pb-2">
+        <div className="contact_list_tabs" role="tablist">
           {tab_items.map((item) => (
             <button
               key={item.key}
               aria-selected={tab === item.key}
-              className="flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium whitespace-nowrap text-txt-muted transition-colors hover:text-txt-primary aria-selected:bg-[var(--bg-primary)] aria-selected:text-txt-primary aria-selected:shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:aria-selected:bg-[color-mix(in_srgb,var(--text-primary)_15%,var(--bg-primary))] dark:aria-selected:shadow-none flex-shrink-0"
+              className="contact_list_tab"
               role="tab"
               type="button"
               onClick={() => set_tab(item.key)}
             >
               {item.label}
               {item.count > 0 && (
-                <span className="text-[12px] font-medium text-txt-muted tabular-nums">
+                <span className="contact_list_tab_count">
                   {format_number(item.count)}
                 </span>
               )}
@@ -636,43 +631,61 @@ export function ContactList({
           is_list_tab ? "" : "hidden",
         )}
       >
-        {show_birthday_card && (
-          <div className="aster_island mx-4 mt-1 mb-1 flex flex-shrink-0 items-start gap-2.5 px-3.5 py-2.5">
-            <CakeIcon className="mt-[1px] h-4 w-4 flex-shrink-0 text-[var(--accent-color)]" />
-            <div className="min-w-0 flex-1">
-              <p className="text-[12.5px] font-medium text-txt-primary">
-                {upcoming_birthdays_count > 0
-                  ? t("common.birthdays_upcoming", {
-                      count: upcoming_birthdays_count,
-                    })
-                  : t("common.add_birthdays")}
-              </p>
-              <p className="mt-0.5 text-[12px] leading-relaxed text-txt-muted">
-                {t("common.add_birthdays_hint")}
-              </p>
-            </div>
-            <button
-              aria-label={t("common.dismiss")}
-              className="quick_contacts_notice_link flex-shrink-0"
-              type="button"
-              onClick={dismiss_birthday_card}
-            >
-              <XMarkIcon className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-        {tab === "contacts" && !has_selection && duplicate_count > 0 && (
-          <div className="aster_island aster_island_tone_accent mx-4 mt-1 mb-1 flex flex-shrink-0 items-center gap-2 px-3.5 py-2 text-[12.5px]">
-            <span className="min-w-0 flex-1 truncate">
-              {t("common.duplicates_found", { count: duplicate_count })}
-            </span>
-            <button
-              className="quick_contacts_notice_link flex-shrink-0"
-              type="button"
-              onClick={open_merge_review}
-            >
-              {t("common.review_duplicates")}
-            </button>
+        {(show_birthday_card ||
+          (tab === "contacts" && !has_selection && duplicate_count > 0)) && (
+          <div className="aster_island aster_island_divided contact_list_notices mx-4 mt-1 mb-1 flex-shrink-0">
+            {tab === "contacts" && !has_selection && duplicate_count > 0 && (
+              <div className="aster_island_row contact_list_notice">
+                <span aria-hidden="true" className="contact_list_notice_icon">
+                  <Square2StackIcon />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="contact_list_notice_title">
+                    {t("common.duplicates_found", { count: duplicate_count })}
+                  </p>
+                  <p className="contact_list_notice_text">
+                    {t("common.duplicates_found_hint")}
+                  </p>
+                </div>
+                <button
+                  aria-label={t("common.review_duplicates")}
+                  className="aster_pill aster_pill_tonal aster_pill_sm flex-shrink-0"
+                  type="button"
+                  onClick={open_merge_review}
+                >
+                  {t("common.review")}
+                </button>
+              </div>
+            )}
+            {show_birthday_card && (
+              <div className="aster_island_row contact_list_notice">
+                <span aria-hidden="true" className="contact_list_notice_icon">
+                  <CakeIcon />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="contact_list_notice_title">
+                    {upcoming_birthdays_count > 0
+                      ? t("common.birthdays_upcoming", {
+                          count: upcoming_birthdays_count,
+                        })
+                      : t("common.add_birthdays")}
+                  </p>
+                  <p className="contact_list_notice_text">
+                    {t("common.add_birthdays_hint")}
+                  </p>
+                </div>
+                <Tooltip tip={t("common.dismiss")}>
+                  <button
+                    aria-label={t("common.dismiss")}
+                    className="contact_list_icon_button flex-shrink-0"
+                    type="button"
+                    onClick={dismiss_birthday_card}
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                </Tooltip>
+              </div>
+            )}
           </div>
         )}
         <div className="aster_island mx-4 mt-1 mb-1 flex flex-shrink-0 items-center gap-3 px-3.5 py-2">
@@ -692,127 +705,133 @@ export function ContactList({
             }
           />
         </div>
-        {has_selection ? (
-          <div className="flex flex-shrink-0 flex-wrap items-center gap-1 px-4 py-2">
-            <Tooltip
-              tip={
-                selection_state.all_selected
-                  ? t("common.deselect_all")
-                  : t("common.select_all")
-              }
+        {(has_selection || filtered_contacts.length > 0) && (
+          <div
+            className="contact_list_header"
+            data-selecting={has_selection ? "true" : undefined}
+          >
+            <span
+              className={cn(
+                "flex flex-shrink-0 items-center justify-center",
+                is_compact ? "w-8" : "w-10",
+              )}
             >
-              <span className="flex items-center pe-2">
-                <Checkbox
-                  aria-label={
-                    selection_state.all_selected
-                      ? t("common.deselect_all")
-                      : t("common.select_all")
-                  }
-                  checked={selection_state.all_selected}
-                  indeterminate={selection_state.some_selected}
-                  onCheckedChange={on_toggle_select_all}
-                />
-              </span>
-            </Tooltip>
-            <span className="text-[12px] tabular-nums font-medium text-txt-primary pe-2">
-              {t("common.selected_count", {
-                count: selection_state.selected_count,
-              })}
+              <Checkbox
+                aria-label={
+                  has_selection && selection_state.all_selected
+                    ? t("common.deselect_all")
+                    : t("common.select_all")
+                }
+                checked={has_selection && selection_state.all_selected}
+                id={select_all_id}
+                indeterminate={has_selection && selection_state.some_selected}
+                onCheckedChange={on_toggle_select_all}
+              />
             </span>
-            <Tooltip tip={t("common.favorite")}>
-              <button
-                aria-label={t("common.favorite")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-full text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
-                type="button"
-                onClick={on_toggle_favorite_selected}
-              >
-                {selected_all_favorited ? (
-                  <StarIconSolid className="w-4 h-4 text-amber-400" />
-                ) : (
-                  <StarIcon className="w-4 h-4" />
-                )}
-              </button>
-            </Tooltip>
-            <ManageGroupsMenu
-              on_set_membership={on_set_group_membership}
-              selected_contacts={selected_contacts}
-            />
-            <Tooltip tip={t("common.send_email")}>
-              <button
-                aria-label={t("common.send_email")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-full text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
-                type="button"
-                onClick={on_compose_to_selected}
-              >
-                <EnvelopeIcon className="w-4 h-4" />
-              </button>
-            </Tooltip>
-            <Tooltip tip={t("common.copy")}>
-              <button
-                aria-label={t("common.copy")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-full text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
-                type="button"
-                onClick={on_copy_emails}
-              >
-                <ClipboardDocumentIcon className="w-4 h-4" />
-              </button>
-            </Tooltip>
-            <DropdownMenu>
-              <Tooltip tip={t("common.export_selection")}>
-                <DropdownMenuTrigger asChild>
+            <label
+              className="contact_list_header_label"
+              htmlFor={select_all_id}
+            >
+              {has_selection
+                ? t("common.selected_count", {
+                    count: selection_state.selected_count,
+                  })
+                : t("common.contact_count", {
+                    count: filtered_contacts.length,
+                  })}
+            </label>
+            {has_selection && (
+              <div className="flex flex-shrink-0 items-center gap-0.5">
+                <Tooltip
+                  tip={
+                    selected_all_favorited
+                      ? t("common.remove_from_favorites")
+                      : t("common.add_to_favorites")
+                  }
+                >
                   <button
-                    aria-label={t("common.export_selection")}
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-full text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
+                    aria-label={
+                      selected_all_favorited
+                        ? t("common.remove_from_favorites")
+                        : t("common.add_to_favorites")
+                    }
+                    aria-pressed={selected_all_favorited}
+                    className="contact_list_icon_button"
                     type="button"
+                    onClick={on_toggle_favorite_selected}
                   >
-                    <ArrowDownTrayIcon className="w-4 h-4" />
+                    {selected_all_favorited ? (
+                      <StarIconSolid className="h-4 w-4 text-amber-400" />
+                    ) : (
+                      <StarIcon className="h-4 w-4" />
+                    )}
                   </button>
-                </DropdownMenuTrigger>
-              </Tooltip>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => on_export_contacts(true, "vcard")}
-                >
-                  {t("common.export_selection_vcf")}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => on_export_contacts(true, "csv")}
-                >
-                  {t("common.export_selection_csv")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Tooltip tip={t("common.delete")}>
-              <button
-                aria-label={t("common.delete")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-full text-[var(--color-danger)] hover:bg-[color-mix(in_srgb,var(--color-danger)_12%,transparent)] transition-colors"
-                type="button"
-                onClick={on_delete_selected}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </button>
-            </Tooltip>
-          </div>
-        ) : (
-          filtered_contacts.length > 0 && (
-            <div className="flex min-h-12 items-center gap-1 px-4 py-2">
-              <span className="flex items-center pe-2">
-                <Checkbox
-                  checked={false}
-                  id={select_all_id}
-                  onCheckedChange={on_toggle_select_all}
+                </Tooltip>
+                <ManageGroupsMenu
+                  on_set_membership={on_set_group_membership}
+                  selected_contacts={selected_contacts}
                 />
-              </span>
-              <label
-                className="cursor-pointer text-[12px] font-medium text-txt-muted"
-                htmlFor={select_all_id}
-              >
-                {t("common.select_all")}
-              </label>
-            </div>
-          )
+                <Tooltip tip={t("common.send_email")}>
+                  <button
+                    aria-label={t("common.send_email")}
+                    className="contact_list_icon_button"
+                    type="button"
+                    onClick={on_compose_to_selected}
+                  >
+                    <EnvelopeIcon className="h-4 w-4" />
+                  </button>
+                </Tooltip>
+                <Tooltip tip={t("common.copy")}>
+                  <button
+                    aria-label={t("common.copy")}
+                    className="contact_list_icon_button"
+                    type="button"
+                    onClick={on_copy_emails}
+                  >
+                    <ClipboardDocumentIcon className="h-4 w-4" />
+                  </button>
+                </Tooltip>
+                <DropdownMenu>
+                  <Tooltip tip={t("common.export_selection")}>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        aria-label={t("common.export_selection")}
+                        className="contact_list_icon_button"
+                        type="button"
+                      >
+                        <ArrowDownTrayIcon className="h-4 w-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                  </Tooltip>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => on_export_contacts(true, "vcard")}
+                    >
+                      {t("common.export_selection_vcf")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => on_export_contacts(true, "csv")}
+                    >
+                      {t("common.export_selection_csv")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <span aria-hidden="true" className="contact_list_header_rule" />
+                <Tooltip tip={t("common.delete")}>
+                  <button
+                    aria-label={t("common.delete")}
+                    className="contact_list_icon_button"
+                    data-tone="danger"
+                    type="button"
+                    onClick={on_delete_selected}
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </button>
+                </Tooltip>
+              </div>
+            )}
+          </div>
         )}
-
         {error && (
           <div className="aster_island aster_island_tone_danger mx-4 mt-2 px-3.5 py-2">
             <p className="text-[12px] text-[var(--color-danger)]">{error}</p>

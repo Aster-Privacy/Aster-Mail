@@ -42,7 +42,6 @@ import {
   MapPinIcon,
   GlobeAltIcon,
   HashtagIcon,
-  ClockIcon,
   StarIcon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -52,9 +51,12 @@ import {
   ArrowDownTrayIcon,
   ChatBubbleBottomCenterTextIcon,
   IdentificationIcon,
+  EllipsisHorizontalIcon,
+  ClockIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { Button, Tooltip } from "@aster/ui";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -110,6 +112,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { compress_contact_avatar_file } from "@/utils/contact_avatar_image";
@@ -436,6 +442,16 @@ export function ContactDetailPanel({
 
         {!is_creating_new && selected_contact && (
           <div className="flex flex-wrap items-center gap-2 mb-6">
+            {selected_contact.emails[0] && (
+              <button
+                className="aster_pill aster_pill_filled aster_pill_sm"
+                type="button"
+                onClick={() => on_compose_email(selected_contact.emails[0])}
+              >
+                <EnvelopeIcon className="w-4 h-4" />
+                {t("common.send_email")}
+              </button>
+            )}
             {!is_editing && (
               <button
                 className="aster_pill aster_pill_tonal aster_pill_sm"
@@ -449,96 +465,96 @@ export function ContactDetailPanel({
                 {t("common.edit")}
               </button>
             )}
-            {selected_contact.emails[0] && (
-              <button
-                className="aster_pill aster_pill_tonal aster_pill_sm"
-                type="button"
-                onClick={() => on_compose_email(selected_contact.emails[0])}
-              >
-                <EnvelopeIcon className="w-4 h-4" />
-                {t("common.send_email")}
-              </button>
-            )}
-            <button
-              className={`aster_pill aster_pill_sm ${show_history ? "bg-[color-mix(in_srgb,var(--accent-color)_16%,var(--bg-primary))] text-txt-primary" : "aster_pill_tonal"}`}
-              type="button"
-              onClick={() => set_show_history(!show_history)}
-            >
-              <ClockIcon className="w-4 h-4" />
-              {t("common.history")}
-            </button>
-            {contact_mail_query && (
-              <button
-                className="aster_pill aster_pill_tonal aster_pill_sm"
-                type="button"
-                onClick={handle_search_mail}
-              >
-                <MagnifyingGlassIcon className="w-4 h-4" />
-                {t("common.all_mail")}
-              </button>
-            )}
-            <button
-              className="aster_pill aster_pill_tonal aster_pill_sm"
-              type="button"
-              onClick={() => on_toggle_favorite?.(selected_contact)}
-            >
-              {selected_contact.is_favorite ? (
-                <StarSolidIcon className="w-4 h-4 text-amber-400" />
-              ) : (
-                <StarIcon className="w-4 h-4" />
-              )}
-              {selected_contact.is_favorite
-                ? t("common.favorited")
-                : t("common.favorite")}
-            </button>
-            {!is_editing && (
-              <DropdownMenu>
+            <DropdownMenu>
+              <Tooltip tip={t("common.more_actions")}>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="aster_pill aster_pill_tonal aster_pill_sm"
+                    aria-label={t("common.more_actions")}
+                    className="aster_pill aster_pill_tonal aster_pill_sm contact_detail_more_button"
                     type="button"
                   >
-                    <ArrowUpOnSquareIcon className="w-4 h-4" />
-                    {t("common.share_contact")}
+                    <EllipsisHorizontalIcon className="w-5 h-5" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56">
-                  {on_share_via_email && (
-                    <DropdownMenuItem onSelect={handle_share_via_email}>
-                      <EnvelopeIcon className="w-4 h-4" />
-                      {t("common.share_contact_via_email")}
-                    </DropdownMenuItem>
+              </Tooltip>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem
+                  aria-checked={show_history}
+                  role="menuitemcheckbox"
+                  onSelect={() => set_show_history(!show_history)}
+                >
+                  <ClockIcon className="w-4 h-4" />
+                  <span className="flex-1">{t("common.history")}</span>
+                  {show_history && (
+                    <CheckIcon className="w-4 h-4 text-txt-muted" />
                   )}
-                  <DropdownMenuItem onSelect={handle_share_text}>
-                    <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
-                    {t("common.share_as_text")}
+                </DropdownMenuItem>
+                {contact_mail_query && (
+                  <DropdownMenuItem onSelect={handle_search_mail}>
+                    <MagnifyingGlassIcon className="w-4 h-4" />
+                    {t("common.all_mail")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={handle_share_vcard}>
-                    <IdentificationIcon className="w-4 h-4" />
-                    {t("common.share_as_vcard")}
+                )}
+                {on_toggle_favorite && (
+                  <DropdownMenuItem
+                    onSelect={() => on_toggle_favorite(selected_contact)}
+                  >
+                    {selected_contact.is_favorite ? (
+                      <StarSolidIcon className="w-4 h-4 text-amber-400" />
+                    ) : (
+                      <StarIcon className="w-4 h-4" />
+                    )}
+                    {selected_contact.is_favorite
+                      ? t("common.remove_from_favorites")
+                      : t("common.add_to_favorites")}
                   </DropdownMenuItem>
-                  {can_share_native && (
-                    <DropdownMenuItem onSelect={handle_download_vcard}>
-                      <ArrowDownTrayIcon className="w-4 h-4" />
-                      {t("common.export_selection_vcf")}
+                )}
+                {!is_editing && (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <ArrowUpOnSquareIcon className="w-4 h-4" />
+                      {t("common.share_contact")}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-56">
+                      {on_share_via_email && (
+                        <DropdownMenuItem onSelect={handle_share_via_email}>
+                          <EnvelopeIcon className="w-4 h-4" />
+                          {t("common.share_contact_via_email")}
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onSelect={handle_share_text}>
+                        <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
+                        {t("common.share_as_text")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={handle_share_vcard}>
+                        <IdentificationIcon className="w-4 h-4" />
+                        {t("common.share_as_vcard")}
+                      </DropdownMenuItem>
+                      {can_share_native && (
+                        <DropdownMenuItem onSelect={handle_download_vcard}>
+                          <ArrowDownTrayIcon className="w-4 h-4" />
+                          {t("common.export_selection_vcf")}
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                )}
+                {!is_editing && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                      onSelect={() => on_delete_request(selected_contact)}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                      {t("common.delete")}
                     </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            {!is_editing && (
-              <button
-                className="aster_pill aster_pill_tonal aster_pill_sm"
-                type="button"
-                onClick={() => on_delete_request(selected_contact)}
-              >
-                <TrashIcon className="w-4 h-4" />
-                {t("common.delete")}
-              </button>
-            )}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
-
         {show_history && selected_contact ? (
           <div className="space-y-6">
             <div>

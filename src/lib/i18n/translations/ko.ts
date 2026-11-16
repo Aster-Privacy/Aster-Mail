@@ -2120,6 +2120,10 @@ export const ko = {
     no_contact_details:
       "이 연락처에는 아직 정보가 없습니다. 편집을 눌러 추가하세요.",
     review_duplicates: "중복 연락처 검토",
+    review: "검토",
+    add_to_favorites: "즐겨찾기에 추가",
+    remove_from_favorites: "즐겨찾기에서 삭제",
+    duplicates_found_hint: "병합하면 한 사람당 연락처가 하나만 남습니다.",
     share_contact_via_email: "새 메일에 첨부",
     share_contact_device: "다른 앱으로 공유",
     biometry_fingerprint: "지문",

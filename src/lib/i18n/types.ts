@@ -2275,6 +2275,10 @@ export interface CommonTranslations {
   contacts_merged: string;
   duplicates_found: string;
   review_duplicates: string;
+  review: string;
+  add_to_favorites: string;
+  remove_from_favorites: string;
+  duplicates_found_hint: string;
   no_email: string;
   groups: string;
   group_name: string;

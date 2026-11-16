@@ -188,7 +188,7 @@ describe("contact list select-all and auto-save rows", () => {
   it("labels select-all and the auto-save switch as separate controls", async () => {
     await render_list();
 
-    const select_all = control_for("common.select_all");
+    const select_all = control_for("common.contact_count");
     const auto_save_switch = control_for(
       "settings.auto_save_recipients_to_contacts",
     );
@@ -197,6 +197,7 @@ describe("contact list select-all and auto-save rows", () => {
     expect(auto_save_switch).toBeTruthy();
     expect(select_all).not.toBe(auto_save_switch);
     expect(select_all!.getAttribute("role")).toBeNull();
+    expect(select_all!.getAttribute("aria-label")).toBe("common.select_all");
     expect(auto_save_switch!.getAttribute("role")).toBe("switch");
     expect(auto_save_switch!.getAttribute("aria-checked")).toBe("false");
     expect(
@@ -236,8 +237,8 @@ describe("contact list select-all and auto-save rows", () => {
   it("selects all from the checkbox and from its label", async () => {
     await render_list();
 
-    await click(control_for("common.select_all")!);
-    await click(label_for("common.select_all"));
+    await click(control_for("common.contact_count")!);
+    await click(label_for("common.contact_count"));
 
     expect(on_toggle_select_all).toHaveBeenCalledTimes(2);
     expect(update_preference).not.toHaveBeenCalled();
