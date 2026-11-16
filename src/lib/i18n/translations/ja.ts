@@ -451,6 +451,12 @@ export const ja = {
     global: "グローバル",
     search_emojis: "絵文字を検索...",
     skin_tone: "肌の色",
+    skin_tone_default: "デフォルト",
+    skin_tone_light: "明るい",
+    skin_tone_medium_light: "やや明るい",
+    skin_tone_medium: "中間",
+    skin_tone_medium_dark: "やや暗い",
+    skin_tone_dark: "暗い",
     wrap: "折り返す",
     unwrap: "折り返しを解除",
     source_copied_to_clipboard: "ソースをクリップボードにコピーしました",
@@ -6247,6 +6253,11 @@ export const ja = {
     info_relative_dates_title: "相対的な日付",
     info_relative_dates_description:
       "オンにすると、今日と昨日のメールは「今日」「昨日」と表示されます。オフにすると、メール一覧、メール本文、印刷のいずれでも送受信した日付と時刻が常に表示されます。",
+    emoji_skin_tone: "絵文字の肌の色",
+    emoji_skin_tone_description: "リアクションと絵文字ピッカーで使う人物や手の絵文字の肌の色",
+    info_emoji_skin_tone_title: "絵文字の肌の色",
+    info_emoji_skin_tone_description:
+      "人物や手の絵文字に使う肌の色を選びます。選んだ色は絵文字ピッカーと送信するリアクションに適用され、すべてのデバイスで同期されます。肌の色がない絵文字は変わりません。",
     compose_from_selected_alias: "選択中のエイリアスで作成",
     compose_from_selected_alias_description:
       "サイドバーで開いているエイリアスを新規メッセージの差出人にします",

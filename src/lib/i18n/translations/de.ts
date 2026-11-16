@@ -314,6 +314,12 @@ export const de = {
     global: "Global",
     search_emojis: "Emojis suchen...",
     skin_tone: "Hautton",
+    skin_tone_default: "Standard",
+    skin_tone_light: "Hell",
+    skin_tone_medium_light: "Mittelhell",
+    skin_tone_medium: "Mittel",
+    skin_tone_medium_dark: "Mitteldunkel",
+    skin_tone_dark: "Dunkel",
     wrap: "Umbrechen",
     unwrap: "Entfalten",
     source_copied_to_clipboard: "Quelltext in die Zwischenablage kopiert",
@@ -6244,6 +6250,12 @@ export const de = {
     info_relative_dates_title: "Relative Datumsangaben",
     info_relative_dates_description:
       "Wenn diese Option aktiviert ist, werden Nachrichten von heute und gestern als Heute und Gestern angezeigt. Schalten Sie sie aus, um Datum und Uhrzeit des Sendens oder Empfangs immer anzuzeigen: in der Nachrichtenliste, in der Nachricht selbst und im Ausdruck.",
+    emoji_skin_tone: "Emoji-Hautton",
+    emoji_skin_tone_description:
+      "Hautton für Personen- und Hand-Emojis in Reaktionen und in der Emoji-Auswahl",
+    info_emoji_skin_tone_title: "Emoji-Hautton",
+    info_emoji_skin_tone_description:
+      "Wähle den Hautton für Personen- und Hand-Emojis. Deine Auswahl gilt für die Emoji-Auswahl und für die Reaktionen, die du sendest, und wird mit allen deinen Geräten synchronisiert. Emojis ohne Hauttöne bleiben unverändert.",
     compose_from_selected_alias: "Aus ausgewähltem Alias verfassen",
     compose_from_selected_alias_description:
       "Neue Nachrichten verwenden den Alias, den Sie in der Seitenleiste geöffnet haben, als Absender",

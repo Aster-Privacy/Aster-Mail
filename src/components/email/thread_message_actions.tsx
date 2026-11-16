@@ -55,91 +55,12 @@ import {
   preload_emoji_picker,
 } from "@/components/compose/lazy_emoji_picker";
 import { preload_when_idle } from "@/utils/lazy_with_retry";
-
-interface ReactionChipGroup {
-  emoji: string;
-  count: number;
-  reactor_names: string[];
-  includes_self: boolean;
-  self_reaction_mail_item_id?: string;
-}
-
-interface PendingReaction {
-  emoji: string;
-  reaction_mail_item_id?: string;
-}
-
-function group_reactions(
-  reactions: DecryptedThreadMessage["reactions"],
-  self_email?: string,
-): ReactionChipGroup[] {
-  if (!reactions?.length) return [];
-
-  const groups = new Map<string, ReactionChipGroup>();
-
-  for (const reaction of reactions) {
-    if (!reaction.emoji) continue;
-
-    const existing = groups.get(reaction.emoji) ?? {
-      emoji: reaction.emoji,
-      count: 0,
-      reactor_names: [],
-      includes_self: false,
-    };
-
-    existing.count += 1;
-
-    const is_self =
-      reaction.is_own === true ||
-      (!!self_email &&
-        reaction.reactor_email?.toLowerCase().trim() ===
-          self_email.toLowerCase().trim());
-
-    if (is_self) {
-      existing.includes_self = true;
-      existing.self_reaction_mail_item_id = reaction.reaction_mail_item_id;
-    } else if (reaction.reactor_email) {
-      existing.reactor_names.push(reaction.reactor_email);
-    }
-
-    groups.set(reaction.emoji, existing);
-  }
-
-  return Array.from(groups.values());
-}
-
-function merge_pending_reactions(
-  groups: ReactionChipGroup[],
-  pending_reactions: PendingReaction[],
-): ReactionChipGroup[] {
-  if (!pending_reactions.length) return groups;
-
-  const merged = groups.map((group) => ({ ...group }));
-
-  for (const pending of pending_reactions) {
-    const existing = merged.find((group) => group.emoji === pending.emoji);
-
-    if (existing) {
-      if (!existing.includes_self) {
-        existing.includes_self = true;
-        existing.count += 1;
-      }
-
-      existing.self_reaction_mail_item_id =
-        existing.self_reaction_mail_item_id ?? pending.reaction_mail_item_id;
-    } else {
-      merged.push({
-        emoji: pending.emoji,
-        count: 1,
-        reactor_names: [],
-        includes_self: true,
-        self_reaction_mail_item_id: pending.reaction_mail_item_id,
-      });
-    }
-  }
-
-  return merged;
-}
+import {
+  group_reactions,
+  merge_pending_reactions,
+  type PendingReaction,
+  type ReactionChipGroup,
+} from "@/components/email/reaction_groups";
 
 interface ThreadMessageActionsProps {
   message: DecryptedThreadMessage;

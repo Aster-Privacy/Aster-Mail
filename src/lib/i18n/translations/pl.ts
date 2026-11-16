@@ -410,6 +410,12 @@ export const pl = {
     global: "Globalne",
     search_emojis: "Szukaj emoji...",
     skin_tone: "Odcień skóry",
+    skin_tone_default: "Domyślny",
+    skin_tone_light: "Jasny",
+    skin_tone_medium_light: "Średnio jasny",
+    skin_tone_medium: "Średni",
+    skin_tone_medium_dark: "Średnio ciemny",
+    skin_tone_dark: "Ciemny",
     wrap: "Zawiń",
     unwrap: "Rozwiń",
     source_copied_to_clipboard: "Źródło skopiowane do schowka",
@@ -6506,6 +6512,12 @@ export const pl = {
     info_relative_dates_title: "Daty względne",
     info_relative_dates_description:
       "Gdy ta opcja jest włączona, wiadomości z dzisiaj i wczoraj są oznaczane jako Dzisiaj i Wczoraj. Wyłącz ją, aby zawsze widzieć datę i godzinę wysłania lub odebrania wiadomości: na liście wiadomości, w samej wiadomości i na wydruku.",
+    emoji_skin_tone: "Odcień skóry emoji",
+    emoji_skin_tone_description:
+      "Odcień skóry dla emoji osób i dłoni w reakcjach i selektorze emoji",
+    info_emoji_skin_tone_title: "Odcień skóry emoji",
+    info_emoji_skin_tone_description:
+      "Wybierz odcień skóry dla emoji osób i dłoni. Wybór dotyczy selektora emoji i wysyłanych reakcji oraz synchronizuje się na wszystkich Twoich urządzeniach. Emoji bez odcieni skóry pozostają bez zmian.",
     compose_from_selected_alias: "Pisz z wybranego aliasu",
     compose_from_selected_alias_description:
       "Nowe wiadomości używają jako nadawcy aliasu otwartego na pasku bocznym",

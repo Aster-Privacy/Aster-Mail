@@ -397,6 +397,12 @@ export const nl = {
     global: "Globaal",
     search_emojis: "Emoji's zoeken...",
     skin_tone: "Huidskleur",
+    skin_tone_default: "Standaard",
+    skin_tone_light: "Licht",
+    skin_tone_medium_light: "Middellicht",
+    skin_tone_medium: "Middel",
+    skin_tone_medium_dark: "Middeldonker",
+    skin_tone_dark: "Donker",
     wrap: "Omwikkelen",
     unwrap: "Uitvouwen",
     source_copied_to_clipboard: "Bron naar klembord gekopieerd",
@@ -6221,6 +6227,12 @@ export const nl = {
     info_relative_dates_title: "Relatieve datums",
     info_relative_dates_description:
       "Als dit aanstaat, worden berichten van vandaag en gisteren weergegeven als Vandaag en Gisteren. Zet het uit om altijd de datum en tijd te tonen waarop een bericht is verzonden of ontvangen: in de berichtenlijst, in het bericht en bij het afdrukken.",
+    emoji_skin_tone: "Huidskleur van emoji",
+    emoji_skin_tone_description:
+      "Huidskleur voor emoji van personen en handen in reacties en de emojikiezer",
+    info_emoji_skin_tone_title: "Huidskleur van emoji",
+    info_emoji_skin_tone_description:
+      "Kies de huidskleur voor emoji van personen en handen. Je keuze geldt voor de emojikiezer en voor de reacties die je verstuurt, en wordt gesynchroniseerd met al je apparaten. Emoji zonder huidskleuren blijven hetzelfde.",
     compose_from_selected_alias: "Opstellen vanaf geselecteerde alias",
     compose_from_selected_alias_description:
       "Nieuwe berichten gebruiken de alias die je in de zijbalk hebt geopend als afzender",

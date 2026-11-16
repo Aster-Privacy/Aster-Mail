@@ -374,6 +374,12 @@ export const en: Translations = {
     global: "Global",
     search_emojis: "Search emojis...",
     skin_tone: "Skin tone",
+    skin_tone_default: "Default",
+    skin_tone_light: "Light",
+    skin_tone_medium_light: "Medium-light",
+    skin_tone_medium: "Medium",
+    skin_tone_medium_dark: "Medium-dark",
+    skin_tone_dark: "Dark",
     wrap: "Wrap",
     unwrap: "Unwrap",
     source_copied_to_clipboard: "Source copied to clipboard",
@@ -3240,6 +3246,12 @@ export const en: Translations = {
     info_relative_dates_title: "Relative Dates",
     info_relative_dates_description:
       "When this is on, messages from today and yesterday show as Today and Yesterday. Turn it off to always show the date and time a message was sent or received, in the message list, in the message itself, and on printouts.",
+    emoji_skin_tone: "Emoji Skin Tone",
+    emoji_skin_tone_description:
+      "Skin tone for people and hand emoji in reactions and the emoji picker",
+    info_emoji_skin_tone_title: "Emoji Skin Tone",
+    info_emoji_skin_tone_description:
+      "Choose the skin tone you want for people and hand emoji. Your choice applies to the emoji picker and to the reactions you send, and it syncs to all your devices. Emoji that have no skin tones stay the same.",
     compose_from_selected_alias: "Compose from Selected Alias",
     compose_from_selected_alias_description:
       "New messages use the alias you have open in the sidebar as the sender",

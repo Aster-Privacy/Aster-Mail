@@ -394,6 +394,12 @@ export const ar = {
     global: "عام",
     search_emojis: "بحث عن رموز تعبيرية...",
     skin_tone: "لون البشرة",
+    skin_tone_default: "افتراضي",
+    skin_tone_light: "فاتح",
+    skin_tone_medium_light: "فاتح متوسط",
+    skin_tone_medium: "متوسط",
+    skin_tone_medium_dark: "داكن متوسط",
+    skin_tone_dark: "داكن",
     wrap: "التفاف",
     unwrap: "إلغاء الالتفاف",
     source_copied_to_clipboard: "تم نسخ المصدر إلى الحافظة",
@@ -6345,6 +6351,12 @@ export const ar = {
     info_relative_dates_title: "التواريخ النسبية",
     info_relative_dates_description:
       "عند تفعيل هذا الخيار، تظهر رسائل اليوم والأمس بكلمتي اليوم والأمس. أوقفه لإظهار تاريخ ووقت إرسال الرسالة أو استلامها دائمًا في قائمة الرسائل وفي الرسالة وعند الطباعة.",
+    emoji_skin_tone: "لون بشرة الرموز التعبيرية",
+    emoji_skin_tone_description:
+      "لون البشرة لرموز الأشخاص والأيدي في التفاعلات ومنتقي الرموز التعبيرية",
+    info_emoji_skin_tone_title: "لون بشرة الرموز التعبيرية",
+    info_emoji_skin_tone_description:
+      "اختر لون البشرة لرموز الأشخاص والأيدي. يُطبَّق اختيارك على منتقي الرموز التعبيرية وعلى التفاعلات التي ترسلها، ويُزامَن مع جميع أجهزتك. تبقى الرموز التي ليس لها ألوان بشرة كما هي.",
     compose_from_selected_alias: "الإنشاء من الاسم المستعار المحدد",
     compose_from_selected_alias_description:
       "تستخدم الرسائل الجديدة الاسم المستعار المفتوح في الشريط الجانبي كمرسل",

@@ -375,6 +375,12 @@ export const hi = {
     global: "वैश्विक",
     search_emojis: "इमोजी खोजें...",
     skin_tone: "त्वचा का रंग",
+    skin_tone_default: "डिफ़ॉल्ट",
+    skin_tone_light: "हल्का",
+    skin_tone_medium_light: "मध्यम हल्का",
+    skin_tone_medium: "मध्यम",
+    skin_tone_medium_dark: "मध्यम गहरा",
+    skin_tone_dark: "गहरा",
     wrap: "लपेटें",
     unwrap: "लपेटना हटाएं",
     source_copied_to_clipboard: "स्रोत क्लिपबोर्ड पर कॉपी हो गया",
@@ -3326,6 +3332,12 @@ export const hi = {
     info_relative_dates_title: "सापेक्ष तिथियाँ",
     info_relative_dates_description:
       "यह चालू होने पर आज और कल के संदेश आज और कल के रूप में दिखते हैं। इसे बंद करने पर संदेश सूची, संदेश और प्रिंट में हमेशा वह तिथि और समय दिखेगा जब संदेश भेजा या प्राप्त हुआ।",
+    emoji_skin_tone: "इमोजी त्वचा का रंग",
+    emoji_skin_tone_description:
+      "प्रतिक्रियाओं और इमोजी पिकर में लोगों और हाथों वाले इमोजी के लिए त्वचा का रंग",
+    info_emoji_skin_tone_title: "इमोजी त्वचा का रंग",
+    info_emoji_skin_tone_description:
+      "लोगों और हाथों वाले इमोजी के लिए त्वचा का रंग चुनें। आपकी पसंद इमोजी पिकर और आपकी भेजी गई प्रतिक्रियाओं पर लागू होती है, और आपके सभी डिवाइस पर सिंक होती है। जिन इमोजी में त्वचा के रंग नहीं होते, वे वैसे ही रहते हैं।",
     compose_from_selected_alias: "चुने गए एलियास से लिखें",
     compose_from_selected_alias_description:
       "नए संदेश साइडबार में खुले एलियास को प्रेषक के रूप में इस्तेमाल करते हैं",

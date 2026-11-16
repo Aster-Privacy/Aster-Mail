@@ -415,6 +415,12 @@ export const fr = {
     global: "Mondial",
     search_emojis: "Rechercher des émojis...",
     skin_tone: "Teinte de peau",
+    skin_tone_default: "Par défaut",
+    skin_tone_light: "Claire",
+    skin_tone_medium_light: "Moyennement claire",
+    skin_tone_medium: "Moyenne",
+    skin_tone_medium_dark: "Moyennement foncée",
+    skin_tone_dark: "Foncée",
     wrap: "Renvoyer à la ligne",
     unwrap: "Ne pas renvoyer à la ligne",
     source_copied_to_clipboard: "Source copiée dans le presse-papiers",
@@ -6413,6 +6419,12 @@ export const fr = {
     info_relative_dates_title: "Dates relatives",
     info_relative_dates_description:
       "Lorsque cette option est activée, les messages d’aujourd’hui et d’hier s’affichent avec la mention Aujourd’hui et Hier. Désactivez-la pour toujours afficher la date et l’heure d’envoi ou de réception d’un message, dans la liste des messages, dans le message et à l’impression.",
+    emoji_skin_tone: "Teinte de peau des emoji",
+    emoji_skin_tone_description:
+      "Teinte de peau des emoji de personnes et de mains dans les réactions et le sélecteur d'emoji",
+    info_emoji_skin_tone_title: "Teinte de peau des emoji",
+    info_emoji_skin_tone_description:
+      "Choisissez la teinte de peau des emoji de personnes et de mains. Votre choix s'applique au sélecteur d'emoji et aux réactions que vous envoyez, et il est synchronisé sur tous vos appareils. Les emoji sans teinte de peau restent identiques.",
     compose_from_selected_alias: "Rédiger depuis l'alias sélectionné",
     compose_from_selected_alias_description:
       "Les nouveaux messages utilisent comme expéditeur l'alias ouvert dans la barre latérale",

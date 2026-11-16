@@ -27,6 +27,7 @@ import {
   Button,
   IslandSection,
   IslandSections,
+  SettingControlRow,
   SettingToggleRow,
 } from "@aster/ui";
 import {
@@ -96,6 +97,8 @@ import { use_register_search_items } from "@/components/settings/search_context"
 import { type LanguageCode } from "@/services/translation/engine_types";
 import { derive_accepted_languages } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
+import { SkinToneSwatches } from "@/components/settings/skin_tone_swatches";
+import { normalize_skin_tone } from "@/config/emoji/skin_tones";
 import {
   INBOX_PAGE_SIZE_OPTIONS,
   clamp_inbox_page_size,
@@ -168,6 +171,19 @@ export function BehaviorSection() {
         "timestamp",
         "date",
         "time",
+      ],
+    },
+    {
+      label: t("settings.emoji_skin_tone"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
+      keywords: [
+        "emoji",
+        "skin",
+        "tone",
+        "reaction",
+        "reactions",
+        "hand",
+        "color",
       ],
     },
     {
@@ -819,6 +835,27 @@ export function BehaviorSection() {
             )
           }
           title={t("settings.relative_dates")}
+        />
+
+        <SettingControlRow
+          control={
+            <SkinToneSwatches
+              label={t("settings.emoji_skin_tone")}
+              value={normalize_skin_tone(preferences.emoji_skin_tone)}
+              on_change={(tone) =>
+                update_preference("emoji_skin_tone", tone, true)
+              }
+            />
+          }
+          control_width="auto"
+          description={t("settings.emoji_skin_tone_description")}
+          info={
+            <InfoPopover
+              description={t("settings.info_emoji_skin_tone_description")}
+              title={t("settings.info_emoji_skin_tone_title")}
+            />
+          }
+          label={t("settings.emoji_skin_tone")}
         />
 
         <ToggleSetting
