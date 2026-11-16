@@ -248,7 +248,7 @@ export default function JoinFamilyPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-edge-secondary p-5 space-y-3 bg-surf-primary">
+        <div className="account_menu_card rounded-[18px] p-5 space-y-3">
           <p className="text-xs font-semibold text-txt-muted uppercase tracking-wide">
             {t("settings.family_join_benefits_heading")}
           </p>

@@ -615,7 +615,7 @@ export default function SecureViewPage() {
     switch (view_state) {
       case "loading":
         return (
-          <div className="flex w-full flex-col items-center gap-4 rounded-2xl border border-edge-secondary bg-surf-card p-8">
+          <div className="flex w-full flex-col items-center gap-4 account_menu_card rounded-[18px] p-8">
             <Spinner className="h-8 w-8 text-blue-500" size="lg" />
             <p className="text-sm text-txt-tertiary">
               {sv("secure_view.loading")}
@@ -625,7 +625,7 @@ export default function SecureViewPage() {
 
       case "not_found":
         return (
-          <div className="w-full rounded-2xl border border-edge-secondary bg-surf-card p-8">
+          <div className="w-full account_menu_card rounded-[18px] p-8">
             <p className="text-center text-sm text-txt-tertiary">
               {sv("secure_view.not_found")}
             </p>
@@ -634,7 +634,7 @@ export default function SecureViewPage() {
 
       case "load_failed":
         return (
-          <div className="flex w-full flex-col items-center gap-4 rounded-2xl border border-edge-secondary bg-surf-card p-8">
+          <div className="flex w-full flex-col items-center gap-4 account_menu_card rounded-[18px] p-8">
             <p className="text-center text-sm text-txt-tertiary">
               {t("common.something_went_wrong_try_again")}
             </p>
@@ -652,7 +652,7 @@ export default function SecureViewPage() {
 
       case "expired":
         return (
-          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-start">
+          <div className="w-full space-y-5 account_menu_card rounded-[18px] p-6 text-start">
             {render_meta()}
             <p className="text-sm text-txt-tertiary">
               {sv("secure_view.expired")}
@@ -662,7 +662,7 @@ export default function SecureViewPage() {
 
       case "deleted":
         return (
-          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-start">
+          <div className="w-full space-y-5 account_menu_card rounded-[18px] p-6 text-start">
             {render_meta()}
             <p className="text-sm text-txt-tertiary">
               {sv("secure_view.deleted")}
@@ -672,7 +672,7 @@ export default function SecureViewPage() {
 
       case "ready":
         return (
-          <div className="w-full space-y-5 rounded-2xl border border-edge-secondary bg-surf-card p-6 text-start">
+          <div className="w-full space-y-5 account_menu_card rounded-[18px] p-6 text-start">
             {render_meta()}
 
             {metadata?.requires_password && (
@@ -740,7 +740,7 @@ export default function SecureViewPage() {
       case "unlocked":
         return (
           decrypted && (
-            <div className="w-full overflow-hidden rounded-2xl border border-edge-secondary bg-surf-card text-start">
+            <div className="w-full overflow-hidden account_menu_card rounded-[18px] text-start">
               <div className="space-y-3 border-b border-edge-secondary px-6 pb-4 pt-6">
                 {render_meta()}
                 <h2 className="break-words text-xl font-semibold text-txt-primary">
@@ -761,7 +761,7 @@ export default function SecureViewPage() {
                   {decrypted.attachments.map((attachment, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-edge-secondary bg-surf-tertiary px-3 py-2"
+                      className="flex items-center justify-between gap-3 rounded-[12px] bg-surf-tertiary px-3 py-2"
                     >
                       <span className="truncate text-sm text-txt-primary">
                         {attachment.filename}
