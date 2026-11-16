@@ -11679,6 +11679,7 @@ export const nl = {
     beta_waitlist_tag: "Bèta",
     panel_open_calendar: "Agenda openen",
     panel_load_failed: "Je agenda is niet geladen.",
+    panel_try_again: "Opnieuw proberen",
     beta_waitlist_start: "De bèta begint naar verwachting op 1 november.",
     beta_waitlist_features_title: "Wat je krijgt",
     beta_waitlist_info_title: "Over de Agenda-bèta",

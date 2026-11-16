@@ -11885,6 +11885,7 @@ export const ru = {
     beta_waitlist_tag: "Бета",
     panel_open_calendar: "Открыть Календарь",
     panel_load_failed: "Не удалось загрузить календарь.",
+    panel_try_again: "Повторить",
     beta_waitlist_start: "Бета-версия, как ожидается, начнётся 1 ноября.",
     beta_waitlist_features_title: "Что входит",
     beta_waitlist_info_title: "О бета-версии Календаря",

@@ -11742,6 +11742,7 @@ export const pt_br = {
     beta_waitlist_tag: "Beta",
     panel_open_calendar: "Abrir Calendário",
     panel_load_failed: "Sua agenda não carregou.",
+    panel_try_again: "Tentar novamente",
     beta_waitlist_start: "A beta deve começar em 1º de novembro.",
     beta_waitlist_features_title: "O que está incluído",
     beta_waitlist_info_title: "Sobre o beta do Calendário",

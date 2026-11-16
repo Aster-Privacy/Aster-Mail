@@ -41,8 +41,8 @@ export const CALENDAR_PANEL_PATH = "/mail-panel";
 export const CALENDAR_PANEL_SOURCE = "aster-calendar-panel";
 export const MAIL_HOST_SOURCE = "aster-mail";
 
-const FIRST_READY_TIMEOUT_MS = 20_000;
-const LOAD_READY_TIMEOUT_MS = 15_000;
+export const FIRST_READY_TIMEOUT_MS = 10_000;
+export const LOAD_READY_TIMEOUT_MS = 5_000;
 const PANEL_MESSAGE_TYPES = new Set(["ready", "close", "status"]);
 const FRAME_SANDBOX =
   "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms";
@@ -369,7 +369,7 @@ export function QuickCalendarPanel({
             </p>
             <div className="flex w-full max-w-[240px] flex-col gap-2">
               <Button size="md" variant="outline" onClick={retry}>
-                {t("common.retry")}
+                {t("calendar.panel_try_again")}
               </Button>
               <Button
                 size="md"

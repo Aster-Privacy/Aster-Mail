@@ -23,6 +23,8 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import {
+  FIRST_READY_TIMEOUT_MS,
+  LOAD_READY_TIMEOUT_MS,
   QuickCalendarPanel,
   read_panel_message,
   resolve_calendar_panel_origin,
@@ -426,7 +428,7 @@ describe("quick calendar panel", () => {
     await render_panel(true);
 
     await act(async () => {
-      vi.advanceTimersByTime(20_000);
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
     });
 
     expect(frame()).toBeNull();
@@ -434,7 +436,7 @@ describe("quick calendar panel", () => {
 
     const buttons = Array.from(container.querySelectorAll("button"));
     const retry = buttons.find(
-      (button) => button.textContent === "common.retry",
+      (button) => button.textContent === "calendar.panel_try_again",
     );
     const open = buttons.find(
       (button) => button.textContent === "calendar.panel_open_calendar",
@@ -456,7 +458,7 @@ describe("quick calendar panel", () => {
 
   const click_retry = async () => {
     const retry = Array.from(container.querySelectorAll("button")).find(
-      (button) => button.textContent === "common.retry",
+      (button) => button.textContent === "calendar.panel_try_again",
     );
 
     expect(retry).toBeTruthy();
@@ -473,7 +475,7 @@ describe("quick calendar panel", () => {
     const first = frame();
 
     await act(async () => {
-      vi.advanceTimersByTime(20_000);
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
     });
     await click_retry();
 
@@ -486,7 +488,7 @@ describe("quick calendar panel", () => {
     );
 
     await act(async () => {
-      vi.advanceTimersByTime(20_000);
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
     });
     await click_retry();
 
@@ -500,12 +502,12 @@ describe("quick calendar panel", () => {
     await render_panel(true);
 
     await act(async () => {
-      vi.advanceTimersByTime(20_000);
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
     });
     await click_retry();
 
     await act(async () => {
-      vi.advanceTimersByTime(19_999);
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS - 1);
     });
 
     expect(frame()).not.toBeNull();
@@ -524,7 +526,7 @@ describe("quick calendar panel", () => {
     await render_panel(true);
 
     await act(async () => {
-      vi.advanceTimersByTime(20_000);
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
     });
     await click_retry();
     await send({ source: "aster-calendar-panel", type: "ready" });
@@ -548,5 +550,51 @@ describe("quick calendar panel", () => {
     });
 
     expect(frame()?.className).toContain("opacity-100");
+  });
+
+  it("shows the retry state within a few seconds when the frame is refused", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      frame()?.dispatchEvent(new Event("load"));
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(5_999);
+    });
+
+    expect(frame()).toBeNull();
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+    expect(container.textContent).toContain("calendar.panel_try_again");
+  });
+
+  it("gives up on a frame that never loads within ten seconds", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      vi.advanceTimersByTime(10_000);
+    });
+
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+  });
+
+  it("waits for a loaded frame to report in before failing", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      frame()?.dispatchEvent(new Event("load"));
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(LOAD_READY_TIMEOUT_MS - 1);
+    });
+    await send({ source: "aster-calendar-panel", type: "ready" });
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(frame()?.className).toContain("opacity-100");
+    expect(container.textContent).not.toContain("calendar.panel_load_failed");
   });
 });
