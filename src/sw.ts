@@ -24,6 +24,8 @@ import {
   GUARD_PUSH_SW_MESSAGE,
   GUARD_PUSH_URL,
   guard_push_body,
+  guard_push_is_silent,
+  guard_push_resolved_tag,
   guard_push_tag,
   read_guard_push,
 } from "@/lib/guard_push";
@@ -214,6 +216,15 @@ self.addEventListener("push", (event: PushEvent) => {
       const guard = read_guard_push(data);
 
       if (guard) {
+        const resolved_tag = guard_push_resolved_tag(guard);
+
+        if (resolved_tag) {
+          const open = await self.registration
+            .getNotifications({ tag: resolved_tag })
+            .catch(() => []);
+
+          for (const notification of open) notification.close();
+        }
         if (app_is_open) {
           for (const client of clients) {
             client.postMessage({ type: GUARD_PUSH_SW_MESSAGE, payload: guard });
@@ -221,6 +232,7 @@ self.addEventListener("push", (event: PushEvent) => {
 
           return;
         }
+        if (guard_push_is_silent(guard)) return;
         await self.registration.showNotification("Aster Mail", {
           body: guard_push_body(guard, await read_push_strings()),
           icon: "/pwa-192x192.png",

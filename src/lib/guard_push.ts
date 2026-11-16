@@ -72,3 +72,23 @@ export function guard_push_body(
 export function guard_push_tag(payload: GuardPushPayload): string {
   return `guard_${payload.event}_${payload.id}`;
 }
+
+const GUARD_RESOLVING_EVENTS = new Set([
+  "sign_in_approved",
+  "sign_in_denied",
+  "sign_in_expired",
+]);
+
+const GUARD_SILENT_EVENTS = new Set(["sign_in_denied", "sign_in_expired"]);
+
+export function guard_push_resolved_tag(
+  payload: GuardPushPayload,
+): string | null {
+  if (!GUARD_RESOLVING_EVENTS.has(payload.event)) return null;
+
+  return guard_push_tag({ ...payload, event: "sign_in_request" });
+}
+
+export function guard_push_is_silent(payload: GuardPushPayload): boolean {
+  return GUARD_SILENT_EVENTS.has(payload.event);
+}

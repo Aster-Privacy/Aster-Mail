@@ -63,7 +63,7 @@ const REQUEST_ID = "11111111-2222-4333-8444-555555555555";
 const TOKEN = "gt_fake";
 const NOW = Date.parse("2026-11-15T10:00:00Z");
 const EXPIRES = "2026-11-15T10:05:00Z";
-const USER_ID = "u_fake";
+const USER_ID = "22222222-3333-4444-8555-666666666666";
 const USER_HASH = "uh_fake";
 const RESCUE = "23456-789BC-DFGHJ-KMNPQ-RTVWX";
 
@@ -184,7 +184,7 @@ function complete_body(envelope: string | null) {
       encrypted_vault: "v",
       vault_nonce: "n",
       guard: {
-        device_id: "dev_1",
+        device_id: "33333333-4444-4555-8666-777777777777",
         code_secret_sealed: base64url_encode(new Uint8Array(80)),
         approval_envelope: envelope,
       },
@@ -361,11 +361,11 @@ describe("GuardSignInController complete", () => {
       `pending:${REQUEST_ID}`,
       USER_ID,
     );
-    expect(device.set_device_id).toHaveBeenCalledWith("dev_1");
+    expect(device.set_device_id).toHaveBeenCalledWith("33333333-4444-4555-8666-777777777777");
     expect(device.store_code_secret).toHaveBeenCalled();
     expect(device.open_envelope).toHaveBeenCalledWith(
       expect.any(Uint8Array),
-      "dev_1",
+      "33333333-4444-4555-8666-777777777777",
     );
     expect(finish).toHaveBeenCalledWith(
       expect.objectContaining({ user_id: USER_ID }),
@@ -399,7 +399,7 @@ describe("GuardSignInController complete", () => {
 describe("GuardSignInController resume", () => {
   it("signs a resume with a known device instead of making a new one", async () => {
     hints.set(USER_HASH, USER_ID);
-    devices.set(USER_ID, fake_device("dev_known"));
+    devices.set(USER_ID, fake_device("44444444-5555-4666-8777-888888888888"));
     mock(api.guard_sign_in_resume_nonce).mockResolvedValueOnce({
       data: { nonce: base64url_encode(new Uint8Array(32).fill(7)), expires_at: EXPIRES },
     });
@@ -408,13 +408,13 @@ describe("GuardSignInController resume", () => {
     controller.start();
     await flush();
     expect(api.guard_sign_in_resume_nonce).toHaveBeenCalledWith(TOKEN, {
-      device_id: "dev_known",
+      device_id: "44444444-5555-4666-8777-888888888888",
     });
     expect(deps.create_device).not.toHaveBeenCalled();
     const body = mock(api.guard_sign_in_begin).mock.calls[0][1];
 
     expect(body.resume).toEqual({
-      device_id: "dev_known",
+      device_id: "44444444-5555-4666-8777-888888888888",
       nonce: base64url_encode(new Uint8Array(32).fill(7)),
       signature: base64url_encode(new Uint8Array(64).fill(9)),
     });

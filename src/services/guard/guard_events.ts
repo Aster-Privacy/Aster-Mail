@@ -33,6 +33,13 @@ export const GUARD_EVENT_NAMES = [
   "rescue_vetoed",
   "guard_enabled",
   "prompts_paused",
+  "sign_in_approved",
+  "sign_in_denied",
+  "sign_in_expired",
+  "device_added",
+  "device_removed",
+  "rescue_completed",
+  "guard_disabled",
 ] as const;
 
 export type GuardEventName = (typeof GUARD_EVENT_NAMES)[number];

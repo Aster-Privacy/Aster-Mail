@@ -22,6 +22,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   guard_push_body,
+  guard_push_is_silent,
+  guard_push_resolved_tag,
   guard_push_tag,
   GUARD_PUSH_FALLBACK_ACTIVITY,
   GUARD_PUSH_FALLBACK_SIGN_IN,
@@ -213,5 +215,35 @@ describe("guard push text", () => {
     );
     expect(guard_push_tag(payload!)).toBe("guard_sign_in_request_r1");
     expect(read_guard_push({ type: "new_mail" })).toBeNull();
+  });
+
+  it("closes the prompt when a request is resolved elsewhere", () => {
+    const approved = read_guard_push(frame("sign_in_approved"))!;
+    const denied = read_guard_push(frame("sign_in_denied"))!;
+    const expired = read_guard_push(frame("sign_in_expired"))!;
+    const held = read_guard_push(frame("change_held"))!;
+
+    expect(guard_push_resolved_tag(approved)).toBe("guard_sign_in_request_r1");
+    expect(guard_push_resolved_tag(denied)).toBe("guard_sign_in_request_r1");
+    expect(guard_push_resolved_tag(expired)).toBe("guard_sign_in_request_r1");
+    expect(guard_push_resolved_tag(held)).toBeNull();
+    expect(guard_push_is_silent(approved)).toBe(false);
+    expect(guard_push_is_silent(denied)).toBe(true);
+    expect(guard_push_is_silent(expired)).toBe(true);
+    expect(guard_push_is_silent(held)).toBe(false);
+  });
+
+  it("accepts the new alert events", () => {
+    for (const name of [
+      "sign_in_approved",
+      "sign_in_denied",
+      "sign_in_expired",
+      "device_added",
+      "device_removed",
+      "rescue_completed",
+      "guard_disabled",
+    ]) {
+      expect(parse_guard_event(frame(name))?.event).toBe(name);
+    }
   });
 });
