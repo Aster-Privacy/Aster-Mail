@@ -33,11 +33,13 @@ import {
 } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
+  batch_index_updates,
   get_index_entries,
   is_fully_built,
   is_index_capped,
   note_recent_pin,
   remove_ids as remove_index_ids,
+  restore_category_entry_locally,
   upsert_entries,
   wait_for_index_ready,
 } from "@/services/category_index";
@@ -706,53 +708,70 @@ export function use_inbox_bulk_actions({
         return;
       }
 
+      const snapshots = new Map(
+        get_index_entries(ids).map((entry) => [entry.id, { ...entry }]),
+      );
+      const restore = (restore_ids: readonly string[]): void => {
+        batch_index_updates(() => {
+          for (const id of restore_ids) {
+            restore_category_entry_locally(id, snapshots.get(id));
+          }
+        });
+      };
+
+      batch_index_updates(() => {
+        for (const id of ids) note_recent_pin(id, category);
+        upsert_entries(
+          [...snapshots.values()].map((entry) => ({
+            ...entry,
+            category,
+            category_pinned: true,
+          })),
+          undefined,
+          undefined,
+          true,
+        );
+      });
+
+      selection.exit_select_all_mode();
+      selection.handle_clear_selection();
+      set_current_page(0);
+      fetch_page(0, page_size, { silent: true });
+      show_action_toast({
+        message: t("mail.moved_to_category"),
+        action_type: "folder",
+        email_ids: [],
+      });
+
       try {
         const result = await bulk_update_metadata_by_ids(ids, {
           category,
           category_pinned: true,
         });
         const failed = new Set(result.failed_ids);
-        const moved_ids = ids.filter((id) => !failed.has(id));
+        const moved_count = ids.length - failed.size;
 
-        for (const id of moved_ids) note_recent_pin(id, category);
-        upsert_entries(
-          get_index_entries(moved_ids).map((entry) => ({
-            ...entry,
-            category,
-            category_pinned: true,
-          })),
-        );
-
-        selection.exit_select_all_mode();
-        selection.handle_clear_selection();
-        set_current_page(0);
-        fetch_page(0, page_size, { force: true });
         mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
 
         if (failed.size > 0) {
+          restore([...failed]);
+          fetch_page(0, page_size, { silent: true });
           show_toast(
-            moved_ids.length === 0
+            moved_count === 0
               ? result.undecryptable_ids.length > 0
                 ? t("errors.metadata_undecryptable_change")
                 : t("common.failed_to_update_emails")
               : t("common.bulk_action_partially_applied", {
-                  count: moved_ids.length,
+                  count: moved_count,
                   total: ids.length,
                 }),
             "error",
           );
-
-          return;
         }
-
-        show_action_toast({
-          message: t("mail.moved_to_category"),
-          action_type: "folder",
-          email_ids: [],
-        });
       } catch (e) {
         if (import.meta.env.DEV) console.error(e);
-        fetch_page(0, page_size, { force: true });
+        restore(ids);
+        fetch_page(0, page_size, { silent: true });
         show_toast(t("common.something_went_wrong"), "error");
       }
     },

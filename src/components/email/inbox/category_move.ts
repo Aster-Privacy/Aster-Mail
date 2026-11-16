@@ -28,15 +28,16 @@ import type {
 } from "@/services/category_index";
 import type { PreviousCategoryState } from "@/services/crypto/mail_metadata_core";
 
-import { displayed_category } from "@/services/effective_category";
+import { effective_category } from "@/services/effective_category";
 import {
-  apply_category_pin_locally,
+  apply_category_pins_locally,
+  batch_index_updates,
   get_index_entries,
-  get_thread_entry_ids,
+  group_thread_entries,
   is_thread_grouping,
   restore_category_entry_locally,
-  restore_message_category,
-  set_message_category,
+  thread_category_of,
+  write_category_states,
 } from "@/services/category_index";
 import {
   bulk_action_result,
@@ -50,7 +51,6 @@ import {
 import { maybe_offer_sender_rule } from "@/components/email/inbox/category_sender_rule";
 import { ignore_error } from "@/lib/ignore_error";
 
-const CATEGORY_MOVE_CONCURRENCY = 6;
 const MAX_OWN_WRITES = 500;
 
 type Translate = (
@@ -107,10 +107,11 @@ interface MemberMove {
 interface RowMove {
   item: CategoryMoveItem;
   members: MemberMove[];
+  undone?: boolean;
 }
 
-interface RowOutcome {
-  applied: boolean;
+interface WriteOutcome {
+  failed_ids: Set<string>;
   undecryptable: boolean;
 }
 
@@ -205,48 +206,58 @@ function enqueue(run: () => Promise<void>): Promise<void> {
   return move_queue;
 }
 
+
 function plan_row_moves(
   items: readonly CategoryMoveItem[],
   category: EmailCategory,
 ): RowMove[] {
+  const grouping = is_thread_grouping();
+  const tokens = new Set<string>();
+
+  if (grouping) {
+    for (const item of items) {
+      if (item.thread_token) tokens.add(item.thread_token);
+    }
+  }
+
+  const threads = group_thread_entries(tokens);
+  const heads = new Map(
+    get_index_entries(items.map((item) => item.id)).map((entry) => [
+      entry.id,
+      entry,
+    ]),
+  );
   const claimed = new Set<string>();
   const rows: RowMove[] = [];
 
   for (const item of items) {
     if (claimed.has(item.id)) continue;
-    if (displayed_category(item) === category) continue;
 
-    const sibling_ids =
-      item.thread_token && is_thread_grouping()
-        ? get_thread_entry_ids(item.thread_token).filter(
-            (id) => id !== item.id && !claimed.has(id),
-          )
-        : [];
-    const entries = new Map(
-      get_index_entries([item.id, ...sibling_ids]).map((entry) => [
-        entry.id,
-        entry,
-      ]),
-    );
+    const thread =
+      grouping && item.thread_token ? threads.get(item.thread_token) : null;
+    const shown =
+      (thread ? thread_category_of(thread) : null) ??
+      effective_category(item);
+
+    if (shown === category) continue;
+
     const members: MemberMove[] = [
-      { target: with_latest_blob(item), entry: entries.get(item.id) },
+      { target: with_latest_blob(item), entry: heads.get(item.id) },
     ];
 
     claimed.add(item.id);
-    for (const id of sibling_ids) {
-      const entry = entries.get(id);
-
-      claimed.add(id);
-      if (!entry) continue;
+    for (const entry of thread ?? []) {
+      if (entry.id === item.id || claimed.has(entry.id)) continue;
+      claimed.add(entry.id);
       if (entry.category_pinned && entry.category === category) continue;
       members.push({
         target: with_latest_blob({
-          id,
+          id: entry.id,
           thread_token: entry.thread_token,
           is_read: entry.is_read,
           raw_timestamp: entry.message_ts,
         }),
-        entry,
+        entry: { ...entry },
       });
     }
 
@@ -256,21 +267,39 @@ function plan_row_moves(
   return rows;
 }
 
+function restore_member_locally(member: MemberMove): void {
+  restore_category_entry_locally(member.target.id, member.entry);
+}
+
 function apply_rows_locally(
   rows: readonly RowMove[],
   category: EmailCategory,
   update_email?: CategoryMoveUpdateEmail,
 ): void {
+  batch_index_updates(() => {
+    apply_category_pins_locally(
+      rows.flatMap((row) => row.members.map((member) => member.target)),
+      category,
+    );
+  });
   for (const row of rows) {
-    for (const member of row.members) {
-      apply_category_pin_locally(member.target, category);
-    }
     update_email?.(row.item.id, { mail_category: category });
   }
 }
 
-function restore_member_locally(member: MemberMove): void {
-  restore_category_entry_locally(member.target.id, member.entry);
+function restore_rows_locally(
+  rows: readonly RowMove[],
+  update_email?: CategoryMoveUpdateEmail,
+): void {
+  if (rows.length === 0) return;
+  batch_index_updates(() => {
+    for (const row of rows) {
+      for (const member of row.members) restore_member_locally(member);
+    }
+  });
+  for (const row of rows) {
+    update_email?.(row.item.id, { mail_category: row.item.mail_category });
+  }
 }
 
 function apply_blob(
@@ -293,71 +322,22 @@ function apply_blob(
   });
 }
 
-async function safe_write(
-  write: () => Promise<CategoryWriteResult>,
-): Promise<CategoryWriteResult> {
+interface StateWrite {
+  target: CategoryMoveTarget;
+  state: PreviousCategoryState;
+}
+
+async function safe_write_all(
+  writes: readonly StateWrite[],
+): Promise<Map<string, CategoryWriteResult>> {
+  if (writes.length === 0) return new Map();
   try {
-    return await write();
+    return await write_category_states(writes);
   } catch (caught) {
     ignore_error("components/email/inbox/category_move:write", caught);
 
-    return { applied: false, undecryptable: false };
+    return new Map();
   }
-}
-
-async function run_in_pool<T>(
-  items: readonly T[],
-  worker: (item: T) => Promise<void>,
-): Promise<void> {
-  let cursor = 0;
-  const next = async (): Promise<void> => {
-    while (cursor < items.length) {
-      const item = items[cursor];
-
-      cursor += 1;
-      await worker(item);
-    }
-  };
-
-  await Promise.all(
-    Array.from(
-      { length: Math.min(CATEGORY_MOVE_CONCURRENCY, items.length) },
-      next,
-    ),
-  );
-}
-
-async function write_row(
-  row: RowMove,
-  category: EmailCategory,
-): Promise<RowOutcome> {
-  const [head, ...siblings] = row.members;
-  const head_result = await safe_write(() =>
-    set_message_category(head.target, category),
-  );
-
-  remember_write(head.target.id, head_result);
-  if (!head_result.applied) {
-    for (const member of row.members) restore_member_locally(member);
-
-    return { applied: false, undecryptable: head_result.undecryptable };
-  }
-  head.written = head_result;
-
-  for (const sibling of siblings) {
-    const result = await safe_write(() =>
-      set_message_category(sibling.target, category),
-    );
-
-    remember_write(sibling.target.id, result);
-    if (result.applied) {
-      sibling.written = result;
-    } else {
-      restore_member_locally(sibling);
-    }
-  }
-
-  return { applied: true, undecryptable: false };
 }
 
 function written_target(member: MemberMove): CategoryMoveTarget {
@@ -379,55 +359,120 @@ function previous_state(member: MemberMove): PreviousCategoryState {
   return member.written?.previous ?? { category_pinned: false };
 }
 
+async function write_rows(
+  rows: readonly RowMove[],
+  category: EmailCategory,
+  update_email?: CategoryMoveUpdateEmail,
+): Promise<WriteOutcome> {
+  const state: PreviousCategoryState = { category, category_pinned: true };
+  const outcomes = await safe_write_all(
+    rows.flatMap((row) =>
+      row.members.map((member) => ({ target: member.target, state })),
+    ),
+  );
+  const failed_ids = new Set<string>();
+  const failed_rows: RowMove[] = [];
+  const failed_members: MemberMove[] = [];
+  const orphaned: MemberMove[] = [];
+  let undecryptable = false;
+
+  for (const row of rows) {
+    for (const member of row.members) {
+      const result = outcomes.get(member.target.id);
+
+      remember_write(member.target.id, result);
+      if (result?.applied) member.written = result;
+    }
+
+    const head = row.members[0];
+
+    if (!head.written) {
+      failed_ids.add(row.item.id);
+      failed_rows.push(row);
+      undecryptable =
+        undecryptable || outcomes.get(head.target.id)?.undecryptable === true;
+      for (const member of row.members) {
+        if (member.written) orphaned.push(member);
+      }
+      continue;
+    }
+
+    for (const member of row.members) {
+      if (!member.written && !row.undone) failed_members.push(member);
+    }
+    if (!row.undone) apply_blob(row.item.id, head.written, update_email);
+  }
+
+  if (failed_members.length > 0) {
+    batch_index_updates(() => {
+      for (const member of failed_members) restore_member_locally(member);
+    });
+  }
+  restore_rows_locally(
+    failed_rows.filter((row) => !row.undone),
+    update_email,
+  );
+  if (orphaned.length > 0) {
+    const reverted = await safe_write_all(
+      orphaned.map((member) => ({
+        target: with_latest_blob(written_target(member)),
+        state: previous_state(member),
+      })),
+    );
+
+    for (const member of orphaned) {
+      remember_write(member.target.id, reverted.get(member.target.id));
+      member.written = undefined;
+    }
+  }
+
+  return { failed_ids, undecryptable };
+}
+
 async function undo_rows(
   rows: readonly RowMove[],
   category: EmailCategory,
   options: CategoryMoveOptions,
 ): Promise<void> {
   const { t, update_email } = options;
-  let failed = false;
+  const members = rows.flatMap((row) =>
+    row.members
+      .filter((member) => member.written)
+      .map((member) => ({ row, member })),
+  );
+  const outcomes = await safe_write_all(
+    members.map(({ member }) => ({
+      target: with_latest_blob(written_target(member)),
+      state: previous_state(member),
+    })),
+  );
+  const reapply: CategoryMoveTarget[] = [];
   let undecryptable = false;
 
-  for (const row of rows) {
-    for (const member of row.members) {
-      if (member.written) restore_member_locally(member);
+  for (const { row, member } of members) {
+    const result = outcomes.get(member.target.id);
+    const is_head = member.target.id === row.item.id;
+
+    remember_write(member.target.id, result);
+    if (result?.applied) {
+      if (is_head) apply_blob(row.item.id, result, update_email);
+      continue;
     }
-    update_email?.(row.item.id, { mail_category: row.item.mail_category });
+
+    undecryptable = undecryptable || result?.undecryptable === true;
+    reapply.push(member.target);
+    if (is_head) update_email?.(row.item.id, { mail_category: category });
   }
 
-  await run_in_pool(rows, async (row) => {
-    for (const member of row.members) {
-      if (!member.written) continue;
+  if (reapply.length === 0) return;
 
-      const is_head = member.target.id === row.item.id;
-      const result = await safe_write(() =>
-        restore_message_category(
-          with_latest_blob(written_target(member)),
-          previous_state(member),
-        ),
-      );
-
-      remember_write(member.target.id, result);
-      if (result.applied) {
-        if (is_head) apply_blob(row.item.id, result, update_email);
-        continue;
-      }
-
-      failed = true;
-      undecryptable = undecryptable || result.undecryptable;
-      apply_category_pin_locally(member.target, category);
-      if (is_head) update_email?.(row.item.id, { mail_category: category });
-    }
-  });
-
-  if (failed) {
-    show_toast(
-      undecryptable
-        ? t("errors.metadata_undecryptable_change")
-        : t("common.something_went_wrong"),
-      "error",
-    );
-  }
+  batch_index_updates(() => apply_category_pins_locally(reapply, category));
+  show_toast(
+    undecryptable
+      ? t("errors.metadata_undecryptable_change")
+      : t("common.something_went_wrong"),
+    "error",
+  );
 }
 
 export function move_items_to_category(
@@ -442,40 +487,49 @@ export function move_items_to_category(
 
   apply_rows_locally(rows, category, update_email);
 
+  const row_ids = rows.map((row) => row.item.id);
+
+  show_bulk_result_toast({
+    result: bulk_action_result(row_ids, []),
+    t,
+    success_message: t("mail.moved_to_category"),
+    error_message: t("common.something_went_wrong"),
+    action_type: "folder",
+    email_ids: row_ids,
+    on_undo: () => {
+      const live = rows.filter((row) => !row.undone);
+
+      for (const row of live) row.undone = true;
+      restore_rows_locally(live, update_email);
+
+      return enqueue(() => undo_rows(live, category, options));
+    },
+  });
+
   return enqueue(async () => {
-    const failed_ids = new Set<string>();
-    let undecryptable = false;
+    const { failed_ids, undecryptable } = await write_rows(
+      rows,
+      category,
+      update_email,
+    );
 
-    await run_in_pool(rows, async (row) => {
-      const outcome = await write_row(row, category);
+    if (failed_ids.size > 0) {
+      show_toast(
+        undecryptable
+          ? t("errors.metadata_undecryptable_change")
+          : failed_ids.size === rows.length
+            ? t("common.something_went_wrong")
+            : t("common.bulk_action_partially_applied", {
+                count: rows.length - failed_ids.size,
+                total: rows.length,
+              }),
+        "error",
+      );
+    }
 
-      if (outcome.applied) {
-        apply_blob(row.item.id, row.members[0].written, update_email);
-
-        return;
-      }
-
-      failed_ids.add(row.item.id);
-      undecryptable = undecryptable || outcome.undecryptable;
-      update_email?.(row.item.id, { mail_category: row.item.mail_category });
-    });
-
-    const moved = rows.filter((row) => !failed_ids.has(row.item.id));
-
-    show_bulk_result_toast({
-      result: bulk_action_result(
-        rows.map((row) => row.item.id),
-        [...failed_ids],
-      ),
-      t,
-      success_message: t("mail.moved_to_category"),
-      error_message: undecryptable
-        ? t("errors.metadata_undecryptable_change")
-        : t("common.something_went_wrong"),
-      action_type: "folder",
-      email_ids: moved.map((row) => row.item.id),
-      on_undo: () => enqueue(() => undo_rows(moved, category, options)),
-    });
+    const moved = rows.filter(
+      (row) => !failed_ids.has(row.item.id) && !row.undone,
+    );
 
     if (moved.length > 0) {
       maybe_offer_sender_rule(

@@ -108,6 +108,13 @@ import { batch_archive as api_batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  assemble_cached_page,
+  forget_rows,
+  patch_row,
+  remember_rows,
+  type RowStore,
+} from "./email_list_helpers/row_store";
 
 const EMPTY_STATE: EmailListState = {
   emails: [],
@@ -385,6 +392,7 @@ export function use_category_inbox(
         (detail.folders !== undefined && detail.folders.length > 0);
 
       if (left_inbox) {
+        forget_rows(row_store.current, [detail.id]);
         remove_ids([detail.id]);
         set_state((prev) => {
           const had_email = prev.emails.some((e) => e.id === detail.id);
@@ -405,6 +413,7 @@ export function use_category_inbox(
         set_ids_read([detail.id], detail.is_read);
       }
 
+      patch_row(row_store.current, detail.id, detail);
       set_state((prev) => ({
         ...prev,
         emails: prev.emails.map((e) =>
@@ -420,6 +429,7 @@ export function use_category_inbox(
       const id_set = new Set(detail.ids);
 
       for (const id of detail.ids) mark_preload_stale(id);
+      forget_rows(row_store.current, detail.ids);
       remove_ids(detail.ids);
 
       evict_cache_entries_touching(page_cache.current, id_set);
@@ -459,6 +469,7 @@ export function use_category_inbox(
   const keys_ready_account_ref = useRef<string | null>(null);
   const abort_ref = useRef<AbortController | null>(null);
   const page_cache = useRef<Map<string, InboxEmail[]>>(new Map());
+  const row_store = useRef<RowStore>(new Map());
   const last_arrival_fetch_ref = useRef(0);
   const fetch_retry_ref = useRef<{ sig: string; attempts: number }>({
     sig: "",
@@ -501,14 +512,21 @@ export function use_category_inbox(
             ),
           )
         : undefined;
+    const switch_rows =
+      switch_cached ??
+      assemble_cached_page(
+        row_store.current,
+        switch_ids,
+        is_representative_unread,
+      );
 
-    if (switch_cached) {
+    if (switch_rows) {
       const switch_total = get_category_total(active_category, read_filter);
 
       set_state((prev) =>
         build_list_state(
           prev,
-          correct_received_rows(switch_cached),
+          correct_received_rows(switch_rows),
           switch_total,
           (page + 1) * page_size < switch_total,
         ),
@@ -538,6 +556,7 @@ export function use_category_inbox(
       if (keys_ready_account_ref.current !== account) {
         keys_ready_account_ref.current = account;
         page_cache.current.clear();
+        row_store.current.clear();
         last_signature_ref.current = "";
         early_paint_scope_ref.current = "";
       }
@@ -707,7 +726,29 @@ export function use_category_inbox(
         return;
       }
 
-      if (!silent) {
+      const assembled = force
+        ? null
+        : assemble_cached_page(
+            row_store.current,
+            ids,
+            is_representative_unread,
+          );
+
+      if (assembled) {
+        snapshot_painted = true;
+        set_state((prev) =>
+          build_list_state(
+            prev,
+            correct_received_rows(assembled),
+            total,
+            has_more,
+          ),
+        );
+      }
+
+      const quiet = silent || assembled !== null;
+
+      if (!quiet) {
         set_state((prev) => ({ ...prev, is_loading: true }));
       }
       fetch_in_flight_ref.current = true;
@@ -715,7 +756,7 @@ export function use_category_inbox(
       const owner = user?.email || "";
 
       if (
-        !silent &&
+        !quiet &&
         !force &&
         target_page === 0 &&
         owner &&
@@ -820,6 +861,7 @@ export function use_category_inbox(
         );
 
         touch_cache_entry(page_cache.current, cache_key, grouped);
+        remember_rows(row_store.current, grouped);
 
         if (target_page === 0 && owner && read_filter === "all") {
           schedule_list_snapshot(
@@ -910,6 +952,15 @@ export function use_category_inbox(
           const key = build_page_cache_key(tab, 0, page_variant, ids);
 
           if (page_cache.current.has(key)) continue;
+          if (
+            assemble_cached_page(
+              row_store.current,
+              ids,
+              is_representative_unread,
+            )
+          ) {
+            continue;
+          }
 
           try {
             const { emails: fetched, request_ok } =
@@ -926,6 +977,7 @@ export function use_category_inbox(
                 : received_only;
 
             touch_cache_entry(page_cache.current, key, grouped);
+            remember_rows(row_store.current, grouped);
             schedule_list_snapshot(`category:${tab}`, account, key, grouped);
           } catch {
             return;
@@ -950,6 +1002,7 @@ export function use_category_inbox(
     format_options,
     user?.email,
     preferences.conversation_grouping,
+    index_version,
   ]);
 
   useEffect(() => {
@@ -1030,6 +1083,7 @@ export function use_category_inbox(
       if (!has_passphrase_in_memory()) return;
       request_cache.invalidate("GET:/mail/v1/messages");
       page_cache.current.clear();
+      row_store.current.clear();
       last_signature_ref.current = "";
       set_state((prev) => {
         if (prev.emails.length > 0) {
@@ -1181,6 +1235,7 @@ export function use_category_inbox(
           page_cache.current.delete(key);
         }
       }
+      patch_row(row_store.current, id, updates);
 
       set_state((prev) => ({
         ...prev,
