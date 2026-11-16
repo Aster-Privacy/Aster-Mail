@@ -1457,6 +1457,9 @@ export interface CommonTranslations {
   link_copied: string;
   invite_sent: string;
   email_sent: string;
+  undo_send_already_sent: string;
+  undo_send_failed: string;
+  undo_send_failed_offline: string;
   undo_send_too_late: string;
   email_sent_successfully: string;
   scheduled_email_cancelled: string;

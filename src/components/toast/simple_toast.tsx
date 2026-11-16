@@ -32,6 +32,10 @@ import {
   use_toast_position,
   type ToastPosition,
 } from "@/components/toast/toast_position";
+import {
+  stack_clear_of_action_toast,
+  use_action_toast_box,
+} from "@/components/toast/toast_offset";
 
 export type { ToastPosition };
 
@@ -88,7 +92,9 @@ export function SimpleToast({ position }: SimpleToastProps) {
     };
   }, [t]);
 
-  const { layout, y_offset } = use_toast_position(position);
+  const { layout: base_layout, y_offset } = use_toast_position(position);
+  const action_toast_box = use_action_toast_box();
+  const layout = stack_clear_of_action_toast(base_layout, action_toast_box);
 
   return (
     <div className="aster_simple_toast_host" data-popup-outside-ignore="">

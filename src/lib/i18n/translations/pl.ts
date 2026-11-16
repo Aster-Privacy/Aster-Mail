@@ -780,6 +780,9 @@ export const pl = {
     link_copied: "Link skopiowany do schowka",
     invite_sent: "Zaproszenie wysłane!",
     email_sent: "E-mail wysłany.",
+    undo_send_already_sent: "Nie udało się cofnąć. Już wysłano.",
+    undo_send_failed: "Nie udało się cofnąć. Spróbuj ponownie.",
+    undo_send_failed_offline: "Nie udało się cofnąć. Sprawdź połączenie.",
     undo_send_too_late:
       "Ta wiadomość została już wysłana i nie można jej wycofać.",
     email_sent_successfully: "E-mail wysłany pomyślnie",

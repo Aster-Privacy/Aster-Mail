@@ -677,6 +677,10 @@ export const pt_br = {
     link_copied: "Link copiado para a área de transferência",
     invite_sent: "Convite enviado",
     email_sent: "E-mail enviado.",
+    undo_send_already_sent: "Não foi possível desfazer. Já enviado.",
+    undo_send_failed: "Não foi possível desfazer. Tente novamente.",
+    undo_send_failed_offline:
+      "Não foi possível desfazer. Verifique sua conexão.",
     undo_send_too_late:
       "Esta mensagem já foi enviada e não pode ser recuperada.",
     email_sent_successfully: "E-mail enviado com sucesso",

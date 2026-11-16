@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import {
   handle_restored_send_settled,
@@ -26,6 +26,8 @@ import {
   take_interrupted_tab_sends,
   next_interrupted_tab_send_check_ms,
   use_undo_send,
+  undo_send_manager as local_undo_manager,
+  type UndoSendCancelOutcome,
 } from "@/hooks/use_undo_send";
 import { is_typing } from "@/hooks/use_keyboard_shortcuts";
 import { undo_send_manager as server_undo_manager } from "@/services/undo_send_manager";
@@ -39,7 +41,10 @@ import { use_auth } from "@/contexts/auth_context";
 import {
   release_action_toast,
   show_action_toast,
+  undo_action_toast_by_key,
+  type UndoToastResult,
 } from "@/components/toast/action_toast";
+import { plan_undo_send_result } from "@/components/toast/undo_send_result";
 import { use_toast_action_bridge } from "@/components/toast/use_toast_action_hosts";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -69,6 +74,24 @@ export function UndoSendContainer({
     use_undo_send();
 
   const is_mac = useMemo(() => is_mac_platform(), []);
+
+  const to_toast_result = useCallback(
+    (
+      id: string,
+      outcome: UndoSendCancelOutcome,
+    ): UndoToastResult | undefined => {
+      const plan = plan_undo_send_result(outcome, !!local_undo_manager.get(id));
+
+      if (!plan) return undefined;
+
+      return {
+        message: t(plan.message_key),
+        tone: plan.tone,
+        keep_undo: plan.keep_undo,
+      };
+    },
+    [t],
+  );
   const shown_ids_ref = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -135,7 +158,29 @@ export function UndoSendContainer({
           event.preventDefault();
           const most_recent = pending_sends[pending_sends.length - 1];
 
-          void cancel_send(most_recent.id);
+          void undo_action_toast_by_key(undo_send_toast_key(most_recent.id))
+            .then(async (handled) => {
+              if (handled) return;
+
+              const outcome = await cancel_send(most_recent.id);
+              const result = to_toast_result(most_recent.id, outcome);
+
+              if (!result) return;
+
+              show_action_toast({
+                message: result.message,
+                action_type: "archive",
+                sound: "none",
+                email_ids: [],
+                result_tone: result.tone,
+              });
+            })
+            .catch((caught) =>
+              ignore_error(
+                "components/toast/undo_send_container:undo_shortcut",
+                caught,
+              ),
+            );
         }
       }
     };
@@ -143,7 +188,7 @@ export function UndoSendContainer({
     window.addEventListener("keydown", handle_keydown);
 
     return () => window.removeEventListener("keydown", handle_keydown);
-  }, [pending_sends, cancel_send, is_mac]);
+  }, [pending_sends, cancel_send, is_mac, to_toast_result]);
 
   useEffect(() => {
     for (const pending of pending_sends) {
@@ -170,13 +215,8 @@ export function UndoSendContainer({
             },
           },
         ],
-        on_undo: async () => {
-          const cancelled = await cancel_send(pending_data.id);
-
-          if (!cancelled) {
-            throw new Error("undo_send_cancel_rejected");
-          }
-        },
+        on_undo: async () =>
+          to_toast_result(pending_data.id, await cancel_send(pending_data.id)),
       });
     }
 
@@ -188,7 +228,14 @@ export function UndoSendContainer({
         release_action_toast(undo_send_toast_key(id));
       }
     }
-  }, [pending_sends, cancel_send, send_immediately, get_time_remaining, t]);
+  }, [
+    pending_sends,
+    cancel_send,
+    send_immediately,
+    get_time_remaining,
+    to_toast_result,
+    t,
+  ]);
 
   return null;
 }

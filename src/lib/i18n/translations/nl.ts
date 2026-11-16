@@ -759,6 +759,10 @@ export const nl = {
     link_copied: "Link naar klembord gekopieerd",
     invite_sent: "Uitnodiging verzonden!",
     email_sent: "E-mail verzonden.",
+    undo_send_already_sent: "Ongedaan maken mislukt. Al verzonden.",
+    undo_send_failed: "Ongedaan maken mislukt. Probeer het opnieuw.",
+    undo_send_failed_offline:
+      "Ongedaan maken mislukt. Controleer je verbinding.",
     undo_send_too_late:
       "Dit bericht is al verzonden en kan niet worden teruggehaald.",
     email_sent_successfully: "E-mail succesvol verzonden",

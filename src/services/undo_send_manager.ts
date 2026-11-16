@@ -27,7 +27,7 @@ import { describe_send_refusal } from "./send_refusal";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 
-export type UndoCancelResult = "cancelled" | "expired" | "failed";
+export type UndoCancelResult = "cancelled" | "expired" | "failed" | "offline";
 
 export interface PendingSend {
   queue_id: string;
@@ -140,6 +140,16 @@ class UndoSendManager {
     const response = await undo_send_api.cancel_email(queue_id);
 
     if (response.error) {
+      if (response.status === 409 || response.code === "CONFLICT") {
+        return "expired";
+      }
+      if (
+        response.code === "NETWORK_ERROR" ||
+        response.code === "TIMEOUT_ERROR"
+      ) {
+        return "offline";
+      }
+
       return "failed";
     }
 
