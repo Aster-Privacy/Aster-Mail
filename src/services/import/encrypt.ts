@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ImportedAttachmentData } from "@/services/api/email_import";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { ParsedEmail } from "./parser";
 
@@ -66,6 +67,7 @@ export interface EncryptedImportEmail {
   routing_token?: string;
   sender_alias_hash?: string;
   msgid_hash?: string;
+  attachments?: ImportedAttachmentData[];
 }
 
 // Deterministic hash of the message content so re-importing the same email

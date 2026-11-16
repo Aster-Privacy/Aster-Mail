@@ -7369,7 +7369,7 @@ export const it = {
     drag_drop_files: "Trascina e rilascia i tuoi file qui",
     supported_import_formats: "Supporta file MBOX, EML, CSV e PST",
     import_file_attachments_note:
-      "Le importazioni da file portano i tuoi messaggi, ma non i loro allegati. Per importare anche gli allegati, collega invece il tuo account, un'opzione disponibile nei piani a pagamento.",
+      "Con i piani a pagamento, le importazioni da file portano i tuoi messaggi con i relativi allegati. Con il piano gratuito, portano i tuoi messaggi senza allegati.",
     browse_files: "Sfoglia file",
     importing_emails_progress: "Importazione email...",
     emails_of_total: "{{current}} di {{total}} email",
@@ -7378,6 +7378,8 @@ export const it = {
     emails_imported_count_one: "{{count}} email importata",
     duplicates_skipped: "{{count}} duplicati saltati",
     duplicates_skipped_one: "{{count}} duplicato saltato",
+    import_attachments_filled: "Allegati aggiunti a {{count}} messaggi importati in precedenza",
+    import_attachments_filled_one: "Allegati aggiunti a {{count}} messaggio importato in precedenza",
     import_review_ready: "{{count}} email sono pronte per l'importazione.",
     import_review_ready_one: "{{count}} email è pronta per l'importazione.",
     import_review_trash_found: "{{count}} di queste erano nel cestino del tuo vecchio account. Scegli dove metterle.",

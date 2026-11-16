@@ -6156,7 +6156,7 @@ export const pl = {
     drag_drop_files: "Przeciągnij i upuść pliki tutaj",
     supported_import_formats: "Obsługiwane formaty: MBOX, EML, CSV i PST",
     import_file_attachments_note:
-      "Import z pliku przenosi wiadomości, ale bez ich załączników. Aby zaimportować także załączniki, połącz zamiast tego swoje konto. Ta opcja jest dostępna w płatnych planach.",
+      "W płatnych planach import z pliku przenosi wiadomości razem z załącznikami. W planie darmowym import z pliku przenosi wiadomości bez załączników.",
     browse_files: "Przeglądaj pliki",
     importing_emails_progress: "Importowanie e-maili...",
     emails_of_total: "{{current}} z {{total}} e-maili",
@@ -6166,6 +6166,8 @@ export const pl = {
     emails_imported_count_few: "Zaimportowano {{count}} e-maile",
     duplicates_skipped: "Pominięto {{count}} duplikatów",
     duplicates_skipped_one: "Pominięto {{count}} duplikat",
+    import_attachments_filled: "Dodano załączniki do wcześniej zaimportowanych wiadomości: {{count}}",
+    import_attachments_filled_one: "Dodano załączniki do {{count}} wcześniej zaimportowanej wiadomości",
     duplicates_skipped_few: "Pominięto {{count}} duplikaty",
     import_review_ready: "Wiadomości gotowe do importu: {{count}}.",
     import_review_ready_one: "{{count}} wiadomość jest gotowa do importu.",

@@ -7378,7 +7378,7 @@ export const en: Translations = {
     drag_drop_files: "Drag and drop your files here",
     supported_import_formats: "Supports MBOX, EML, CSV, and PST files",
     import_file_attachments_note:
-      "File imports bring in your messages but not their attachments. To import attachments too, connect your account instead, which is available on paid plans.",
+      "On paid plans, file imports bring in your messages with their attachments. On the free plan, file imports bring in your messages without attachments.",
     browse_files: "Browse Files",
     browse_folder: "Select Folder",
     importing_emails_progress: "Importing emails...",
@@ -7388,6 +7388,8 @@ export const en: Translations = {
     emails_imported_count_one: "{{count}} email imported",
     duplicates_skipped: "{{count}} duplicates skipped",
     duplicates_skipped_one: "{{count}} duplicate skipped",
+    import_attachments_filled: "Added attachments to {{count}} messages you imported before",
+    import_attachments_filled_one: "Added attachments to {{count}} message you imported before",
     import_review_ready: "{{count}} emails are ready to import.",
     import_review_ready_one: "{{count}} email is ready to import.",
     import_review_trash_found: "{{count}} of them were in Trash in your old account. Choose where to put them.",

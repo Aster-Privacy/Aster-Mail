@@ -6121,7 +6121,7 @@ export const ru = {
     drag_drop_files: "Перетащите файлы в эту область",
     supported_import_formats: "Поддерживаются форматы MBOX, EML, CSV и PST",
     import_file_attachments_note:
-      "При импорте из файла переносятся письма, но не их вложения. Чтобы импортировать и вложения, подключите аккаунт напрямую. Это доступно на платных тарифах.",
+      "На платных тарифах при импорте из файла переносятся письма вместе с вложениями. На бесплатном тарифе письма переносятся без вложений.",
     browse_files: "Выбрать файлы",
     importing_emails_progress: "Импорт писем...",
     emails_of_total: "{{current}} из {{total}} писем",
@@ -6131,6 +6131,8 @@ export const ru = {
     emails_imported_count_few: "{{count}} письма импортированы",
     duplicates_skipped: "{{count}} дубликатов пропущено",
     duplicates_skipped_one: "{{count}} дубликат пропущен",
+    import_attachments_filled: "Вложения добавлены к ранее импортированным письмам: {{count}}",
+    import_attachments_filled_one: "Вложения добавлены к {{count}} ранее импортированному письму",
     duplicates_skipped_few: "{{count}} дубликата пропущены",
     import_review_ready: "Готово к импорту писем: {{count}}.",
     import_review_ready_one: "{{count}} письмо готово к импорту.",

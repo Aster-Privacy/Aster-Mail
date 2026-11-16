@@ -5890,7 +5890,7 @@ export const de = {
     drag_drop_files: "Dateien hierher ziehen und ablegen",
     supported_import_formats: "Unterstützt MBOX-, EML-, CSV- und PST-Dateien",
     import_file_attachments_note:
-      "Beim Dateiimport werden Ihre Nachrichten übernommen, aber nicht deren Anhänge. Um auch Anhänge zu importieren, verbinden Sie stattdessen Ihr Konto. Das ist in den kostenpflichtigen Tarifen verfügbar.",
+      "In den kostenpflichtigen Tarifen werden beim Dateiimport Ihre Nachrichten mit ihren Anhängen übernommen. Im kostenlosen Tarif werden Ihre Nachrichten ohne Anhänge übernommen.",
     browse_files: "Dateien durchsuchen",
     importing_emails_progress: "E-Mails werden importiert...",
     emails_of_total: "{{current}} von {{total}} E-Mails",
@@ -5899,6 +5899,8 @@ export const de = {
     emails_imported_count_one: "{{count}} E-Mail importiert",
     duplicates_skipped: "{{count}} Duplikate übersprungen",
     duplicates_skipped_one: "{{count}} Duplikat übersprungen",
+    import_attachments_filled: "Anhänge zu {{count}} bereits importierten Nachrichten hinzugefügt",
+    import_attachments_filled_one: "Anhänge zu {{count}} bereits importierten Nachricht hinzugefügt",
     import_review_ready: "{{count}} E-Mails sind bereit zum Import.",
     import_review_ready_one: "{{count}} E-Mail ist bereit zum Import.",
     import_review_trash_found: "{{count}} davon lagen in Ihrem alten Konto im Papierkorb. Wählen Sie, wohin sie verschoben werden.",

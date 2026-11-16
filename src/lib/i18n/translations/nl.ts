@@ -5894,7 +5894,7 @@ export const nl = {
     drag_drop_files: "Sleep je bestanden hierheen",
     supported_import_formats: "Ondersteunt MBOX-, EML-, CSV- en PST-bestanden",
     import_file_attachments_note:
-      "Met een bestandsimport komen je berichten binnen, maar niet hun bijlagen. Koppel in plaats daarvan je account om ook bijlagen te importeren. Dat kan met een betaald abonnement.",
+      "Met een betaald abonnement komen bij een bestandsimport je berichten met hun bijlagen binnen. Met het gratis abonnement komen je berichten zonder bijlagen binnen.",
     browse_files: "Bestanden selecteren",
     importing_emails_progress: "E-mails importeren...",
     emails_of_total: "{{current}} van {{total}} e-mails",
@@ -5903,6 +5903,8 @@ export const nl = {
     emails_imported_count_one: "{{count}} e-mail geïmporteerd",
     duplicates_skipped: "{{count}} duplicaten overgeslagen",
     duplicates_skipped_one: "{{count}} duplicaat overgeslagen",
+    import_attachments_filled: "Bijlagen toegevoegd aan {{count}} eerder geïmporteerde berichten",
+    import_attachments_filled_one: "Bijlagen toegevoegd aan {{count}} eerder geïmporteerd bericht",
     import_review_ready: "{{count}} e-mails zijn klaar om te importeren.",
     import_review_ready_one: "{{count}} e-mail is klaar om te importeren.",
     import_review_trash_found: "{{count}} daarvan stonden in de prullenbak van je oude account. Kies waar ze heen gaan.",

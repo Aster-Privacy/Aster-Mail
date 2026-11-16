@@ -7453,7 +7453,7 @@ export const hi = {
     drag_drop_files: "अपनी फ़ाइलें यहां खींचकर छोड़ें",
     supported_import_formats: "MBOX, EML, CSV और PST फ़ाइलें चलती हैं",
     import_file_attachments_note:
-      "फ़ाइल इंपोर्ट से आपके संदेश आ जाते हैं, लेकिन उनके अटैचमेंट नहीं आते। अटैचमेंट भी इंपोर्ट करने के लिए, इसके बजाय अपना खाता कनेक्ट करें। यह सुविधा पेड प्लान में उपलब्ध है।",
+      "पेड प्लान में, फ़ाइल इंपोर्ट से आपके संदेश उनके अटैचमेंट के साथ आते हैं। फ़्री प्लान में, फ़ाइल इंपोर्ट से आपके संदेश बिना अटैचमेंट के आते हैं।",
     browse_files: "फ़ाइलें देखें",
     browse_folder: "फ़ोल्डर चुनें",
     importing_emails_progress: "ईमेल इंपोर्ट हो रही हैं...",
@@ -7463,6 +7463,8 @@ export const hi = {
     emails_imported_count_one: "{{count}} ईमेल इंपोर्ट हुआ",
     duplicates_skipped: "{{count}} डुप्लीकेट छोड़े गए",
     duplicates_skipped_one: "{{count}} डुप्लीकेट छोड़ा गया",
+    import_attachments_filled: "पहले इंपोर्ट किए गए {{count}} संदेशों में अटैचमेंट जोड़े गए",
+    import_attachments_filled_one: "पहले इंपोर्ट किए गए {{count}} संदेश में अटैचमेंट जोड़े गए",
     import_review_ready: "{{count}} ईमेल इंपोर्ट के लिए तैयार हैं।",
     import_review_ready_one: "{{count}} ईमेल इंपोर्ट के लिए तैयार है।",
     import_review_trash_found: "इनमें से {{count}} आपके पुराने खाते के ट्रैश में थे। चुनें कि इन्हें कहां रखना है।",

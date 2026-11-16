@@ -6030,7 +6030,7 @@ export const ar = {
     drag_drop_files: "اسحب وأفلت ملفاتك هنا",
     supported_import_formats: "يدعم ملفات MBOX و EML و CSV و PST",
     import_file_attachments_note:
-      "تجلب عمليات استيراد الملفات رسائلك ولكن من دون مرفقاتها. لاستيراد المرفقات أيضًا، اربط حسابك بدلًا من ذلك، وهو خيار متاح في الخطط المدفوعة.",
+      "في الخطط المدفوعة، تجلب عمليات استيراد الملفات رسائلك مع مرفقاتها. في الخطة المجانية، تجلب عمليات استيراد الملفات رسائلك من دون مرفقات.",
     browse_files: "تصفح الملفات",
     importing_emails_progress: "جارٍ استيراد الرسائل...",
     emails_of_total: "{{current}} من {{total}} رسالة",
@@ -6039,6 +6039,8 @@ export const ar = {
     emails_imported_count_one: "تم استيراد {{count}} رسالة",
     duplicates_skipped: "تم تخطي {{count}} مكرر",
     duplicates_skipped_one: "تم تخطي {{count}} مكرر",
+    import_attachments_filled: "تمت إضافة المرفقات إلى {{count}} من الرسائل التي استوردتها من قبل",
+    import_attachments_filled_one: "تمت إضافة المرفقات إلى رسالة واحدة استوردتها من قبل",
     import_review_ready: "{{count}} رسالة جاهزة للاستيراد.",
     import_review_ready_one: "رسالة واحدة جاهزة للاستيراد.",
     import_review_trash_found: "كان {{count}} منها في سلة المهملات في حسابك القديم. اختر مكان وضعها.",
