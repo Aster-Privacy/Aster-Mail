@@ -157,6 +157,10 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     handle_bulk_mark_unread,
     handle_bulk_toggle_star,
     handle_bulk_spam,
+    handle_bulk_tag_toggle,
+    handle_bulk_folder_toggle,
+    get_tag_status_for_selection,
+    get_folder_status_for_selection,
     handle_select_by_filter,
     active_filter_count,
     is_loading,
@@ -704,7 +708,15 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 }
               : undefined
           }
-          folders={menu_folders}
+          folders={
+            menu_selection
+              ? menu_folders.map((folder) => ({
+                  ...folder,
+                  is_assigned:
+                    get_folder_status_for_selection(folder.id) === "all",
+                }))
+              : menu_folders
+          }
           on_archive={() =>
             menu_selection
               ? void handle_bulk_archive()
@@ -731,7 +743,10 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           }
           on_find_from_sender={() => handle_find_from_sender(menu_email)}
           on_folder_toggle={
-            menu_selection ? undefined : handle_menu_folder_toggle
+            menu_selection
+              ? (folder_token: string) =>
+                  void handle_bulk_folder_toggle(folder_token)
+              : handle_menu_folder_toggle
           }
           on_forward={() => open_reply_compose("forward", menu_email)}
           on_mark_read={
@@ -780,7 +795,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                   }
                 }, true)
           }
-          on_tag_toggle={menu_selection ? undefined : handle_menu_tag_toggle}
+          on_tag_toggle={
+            menu_selection
+              ? (tag_token: string) => void handle_bulk_tag_toggle(tag_token)
+              : handle_menu_tag_toggle
+          }
           on_toggle_pin={() =>
             void run_single(
               (emails) =>
@@ -798,7 +817,15 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             )
           }
           selection={menu_selection ?? undefined}
-          tags={menu_tags}
+          tags={
+            menu_selection
+              ? menu_tags.map((tag) => ({
+                  ...tag,
+                  is_assigned:
+                    get_tag_status_for_selection(tag.tag_token) === "all",
+                }))
+              : menu_tags
+          }
         />
       )}
     </ContextMenu>
@@ -818,6 +845,13 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             current_email_index={is_split_view ? search_nav_index : undefined}
             current_page={search_page}
             filtered_count={filtered_results.length}
+            folders={menu_folders.map((folder) => ({
+              folder_token: folder.id,
+              name: folder.name,
+              color: folder.color,
+              depth: folder.depth,
+              status: get_folder_status_for_selection(folder.id),
+            }))}
             hide_filter={true}
             hide_quick_actions={true}
             hide_view_switcher={true}
@@ -836,6 +870,9 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             leading_toolbar_slot={sort_dropdown}
             on_archive={handle_bulk_archive}
             on_delete={handle_bulk_delete}
+            on_folder_toggle={(folder_token) =>
+              void handle_bulk_folder_toggle(folder_token)
+            }
             on_mark_read={handle_bulk_mark_read}
             on_mark_unread={handle_bulk_mark_unread}
             on_navigate_next={
@@ -853,6 +890,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             }
             on_settings_click={on_settings_click || (() => {})}
             on_spam={handle_bulk_spam}
+            on_tag_toggle={(tag_token) => void handle_bulk_tag_toggle(tag_token)}
             on_toggle_select_all={
               paged_results.length > 0 ? handle_select_all_visible : undefined
             }
@@ -862,6 +900,13 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             search_context={query}
             selected_count={selected_ids.size}
             some_selected={selection_some_selected}
+            tags={menu_tags.map((tag) => ({
+              tag_token: tag.tag_token,
+              name: tag.name,
+              color: tag.color,
+              depth: tag.depth,
+              status: get_tag_status_for_selection(tag.tag_token),
+            }))}
             total_email_count={filtered_results.length}
             view_title={t("common.search")}
           />
