@@ -2626,7 +2626,7 @@ export const nl = {
     invite_benefits_heading: "Dit krijg je",
     invite_benefit_zero_access: "Zero-access, end-to-end versleutelde e-mail",
     invite_benefit_no_ads: "Geen advertenties, geen tracking",
-    invite_benefit_open_source: "Open source en geauditeerd",
+    invite_benefit_open_source: "Open source, iedereen kan de code bekijken",
     invite_cta_create_account: "Claim mijn {{ percent }}% korting",
     invite_cta_sign_in: "Heb je al een account? Inloggen",
     invite_not_found_title: "Deze uitnodigingslink is niet beschikbaar",

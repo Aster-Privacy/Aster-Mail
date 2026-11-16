@@ -2779,7 +2779,7 @@ export const ar = {
     invite_benefit_zero_access:
       "بريد إلكتروني معدوم الوصول ومشفّر من طرف إلى طرف",
     invite_benefit_no_ads: "بدون إعلانات، بدون تتبع",
-    invite_benefit_open_source: "مفتوح المصدر وخاضع للتدقيق",
+    invite_benefit_open_source: "مفتوح المصدر، ويمكن لأي شخص مراجعة الشيفرة",
     invite_cta_create_account: "احصل على خصم {{ percent }}%",
     invite_cta_sign_in: "لديك حساب بالفعل؟ سجّل الدخول",
     invite_not_found_title: "رابط الدعوة هذا غير متاح",

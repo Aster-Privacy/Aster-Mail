@@ -2683,7 +2683,7 @@ export const de = {
     invite_benefit_zero_access:
       "Zero-access, Ende-zu-Ende-verschlüsselte E-Mail",
     invite_benefit_no_ads: "Keine Werbung, kein Tracking",
-    invite_benefit_open_source: "Open Source und geprüft",
+    invite_benefit_open_source: "Open Source, jeder kann den Code prüfen",
     invite_cta_create_account: "{{ percent }}% Rabatt sichern",
     invite_cta_sign_in: "Schon ein Konto? Anmelden",
     invite_not_found_title: "Dieser Einladungslink ist nicht verfügbar",

@@ -2460,7 +2460,7 @@ export const zh_CN = {
     invite_benefits_heading: "您将获得",
     invite_benefit_zero_access: "零访问、端到端加密邮件",
     invite_benefit_no_ads: "无广告，无追踪",
-    invite_benefit_open_source: "开源且经过审计",
+    invite_benefit_open_source: "开源代码，任何人都可以审查",
     invite_cta_create_account: "领取 {{ percent }}% 折扣",
     invite_cta_sign_in: "已有账户？登录",
     invite_not_found_title: "此邀请链接不可用",
