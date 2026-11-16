@@ -292,6 +292,8 @@ export async function build_index_full(
       throw new Error("search_index_cancelled");
     }
 
+    index.pending_body = writer;
+
     const result = await run_index_pipeline({
       user_email,
       include_body,
@@ -325,6 +327,8 @@ export async function build_index_full(
         restamp_after_ms: SNAPSHOT_RESTAMP_MS,
         is_current,
       });
+
+      index.pending_body = null;
 
       if (meta) {
         apply_meta(index, meta);
@@ -385,6 +389,7 @@ export async function build_index_full(
       );
     throw error;
   } finally {
+    index.pending_body = null;
     building_indexes.delete(index);
   }
 }

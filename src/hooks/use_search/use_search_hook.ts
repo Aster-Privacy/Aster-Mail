@@ -48,6 +48,7 @@ import { reset_indexing_progress, subscribe_index_refresh } from "./progress";
 import { entry_haystack } from "./haystack";
 import { load_attachment_details } from "./attachment_details";
 import { scan_search_index } from "./scan";
+import { create_body_probe } from "./body_probe";
 import {
   PROGRESS_FLUSH_MS,
   can_refine_scan,
@@ -487,9 +488,18 @@ export function use_search() {
 
         if (controller.signal.aborted) return;
 
+        const body_probe =
+          body_allowed &&
+          (index.include_body || index.meta?.include_body === true)
+            ? create_body_probe(terms, operators)
+            : null;
+
         const visit = (item: MailItem, data: DecryptedIndexEntry): boolean => {
           const { envelope, metadata, search_body_text } = data;
           const hay = entry_haystack(data);
+          const body_hit = body_probe
+            ? (term: string) => body_probe.matches(term, item.id, data)
+            : undefined;
 
           if (
             !matches_query(
@@ -504,6 +514,7 @@ export function use_search() {
               search_body_text,
               hay,
               attachment_details,
+              body_hit,
             )
           ) {
             return true;
@@ -576,7 +587,10 @@ export function use_search() {
 
         let stopped = false;
 
-        if (can_refine_scan(reusable, terms, operators, options_key, index)) {
+        if (
+          !body_probe &&
+          can_refine_scan(reusable, terms, operators, options_key, index)
+        ) {
           for (const candidate of reusable!.candidates) {
             if (!visit(candidate.item, candidate.entry)) {
               stopped = true;
@@ -612,6 +626,7 @@ export function use_search() {
                 label_name_to_tokens: options?.label_name_to_tokens,
                 probe_terms,
               }),
+              body_probe,
               known_empty: known_empty_chunks(
                 empty_chunks_ref.current,
                 terms,

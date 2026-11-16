@@ -27,8 +27,12 @@ import type {
 
 import { type MailItem } from "@/services/api/mail";
 import { type ParsedOperator } from "@/utils/search_operators";
-import { type SnapshotMeta } from "@/services/search_index_store";
+import {
+  type SnapshotMeta,
+  type SnapshotWriter,
+} from "@/services/search_index_store";
 import { type ChunkSkipPlan } from "@/services/search_chunk_filter";
+import { type BodyProbe } from "./body_probe";
 
 export interface ActiveFilter {
   id: string;
@@ -180,6 +184,7 @@ export interface DecryptedIndexEntry {
   meta_fp: string;
   has_body: boolean;
   haystack?: SearchHaystack;
+  index_terms?: string[];
 }
 
 export interface CachedIndex {
@@ -193,6 +198,10 @@ export interface CachedIndex {
   complete: boolean;
   meta: SnapshotMeta | null;
   chunk_layout?: ChunkSpan[];
+  pending_body?: Pick<
+    SnapshotWriter,
+    "written_chunk_ids" | "read_body_hits"
+  > | null;
 }
 
 export interface ChunkSpan {
@@ -210,6 +219,7 @@ export interface IndexingProgress {
 
 export interface ScanOptions {
   skip?: ChunkSkipPlan | null;
+  body_probe?: BodyProbe | null;
   known_empty?: ReadonlySet<number> | null;
   on_chunk?: () => void;
   on_chunk_settled?: (chunk_id: number) => void;

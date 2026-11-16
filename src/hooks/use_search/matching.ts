@@ -159,6 +159,7 @@ export function matches_operator(
   search_body_text?: string,
   haystack?: SearchHaystack,
   attachment_details?: AttachmentDetails,
+  body_hit?: (term: string) => boolean,
 ): boolean {
   const val = op.value.toLowerCase();
   const hay = haystack ?? build_search_haystack(envelope);
@@ -389,7 +390,8 @@ export function matches_operator(
           search_body_text ??
             strip_html_tags(searchable_body_source(envelope)).toLowerCase(),
           term,
-        )
+        ) ||
+        body_hit?.(term) === true
       );
     }
     default:
@@ -438,6 +440,7 @@ export function matches_query(
   search_body_text?: string,
   haystack?: SearchHaystack,
   attachment_details?: AttachmentDetails,
+  body_hit?: (term: string) => boolean,
 ): boolean {
   if (!envelope) return false;
 
@@ -460,7 +463,8 @@ export function matches_query(
         includes_folded(hay.sender_name, term) ||
         includes_folded(hay.sender_email, term) ||
         includes_folded(hay.recipients, term) ||
-        (search_body && includes_folded(body, term))
+        (search_body &&
+          (includes_folded(body, term) || body_hit?.(term) === true))
       );
     }
     let match = false;
@@ -475,7 +479,7 @@ export function matches_query(
     if (fields!.includes("recipient"))
       match = match || includes_folded(hay.recipients, term);
     if (search_body && fields!.includes("body"))
-      match = match || includes_folded(body, term);
+      match = match || includes_folded(body, term) || body_hit?.(term) === true;
 
     return match;
   };
@@ -492,6 +496,7 @@ export function matches_query(
           search_body_text,
           hay,
           attachment_details,
+          body_hit,
         );
 
   if (operators.length > 0) {
