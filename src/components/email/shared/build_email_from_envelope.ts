@@ -152,7 +152,11 @@ async function resolve_envelope_body(
   resolved_html = sealed_html_source(resolved_html, ratchet_verified);
   const pre_pgp_text = body_text;
 
-  const pgp = await resolve_inbound_pgp_body(body_text, envelope.from?.email);
+  const pgp = await resolve_inbound_pgp_body(
+    body_text,
+    envelope.from?.email,
+    message_id,
+  );
 
   body_text = pgp.body;
 

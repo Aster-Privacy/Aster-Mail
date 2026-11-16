@@ -21,7 +21,14 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { PendingSendAttachment } from "@/services/pending_send_attachments";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import { AnimatePresence } from "framer-motion";
 
 import { AttachmentCard } from "./card";
@@ -78,6 +85,11 @@ import { format_bytes } from "@/lib/utils";
 import { without_body_inline_images } from "@/lib/cid_resolver";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import { get_pending_send_attachments } from "@/services/pending_send_attachments";
+import {
+  get_decrypted_mime_attachments,
+  mime_attachment_bytes,
+  subscribe_decrypted_mime_attachments,
+} from "@/services/decrypted_mime_attachments";
 
 function attachment_error_key(error: unknown): TranslationKey {
   if (error instanceof AttachmentIntegrityError) {
@@ -89,10 +101,36 @@ function attachment_error_key(error: unknown): TranslationKey {
     : "common.download_failed";
 }
 
+function use_decrypted_mime_files(
+  mail_item_id: string,
+  inline_refs: AttachmentListProps["inline_refs"],
+): PendingSendAttachment[] {
+  const parts = useSyncExternalStore(
+    subscribe_decrypted_mime_attachments,
+    () => get_decrypted_mime_attachments(mail_item_id),
+  );
+
+  return useMemo(
+    () =>
+      without_body_inline_images(parts, inline_refs).map((part, index) => ({
+        id: `${mail_item_id}:mime:${index}`,
+        filename: part.filename,
+        content_type: part.content_type,
+        size_bytes: part.data.byteLength,
+        data: mime_attachment_bytes(part),
+      })),
+    [parts, inline_refs, mail_item_id],
+  );
+}
+
 export function AttachmentList(
   props: AttachmentListProps,
 ): React.ReactElement | null {
   const { mail_item_id } = props;
+  const decrypted_files = use_decrypted_mime_files(
+    mail_item_id,
+    props.inline_refs,
+  );
   const kept_ref = useRef<{
     mail_item_id: string;
     files: PendingSendAttachment[];
@@ -112,6 +150,15 @@ export function AttachmentList(
 
   if (files && files.length > 0) {
     return <PendingAttachmentList files={files} mail_item_id={mail_item_id} />;
+  }
+
+  if (decrypted_files.length > 0) {
+    return (
+      <PendingAttachmentList
+        files={decrypted_files}
+        mail_item_id={mail_item_id}
+      />
+    );
   }
 
   return <ServerAttachmentList {...props} />;

@@ -93,13 +93,28 @@ export function settle_sealed_fields(
 }
 
 export function settle_bundle_subject(
-  envelope: { subject: string; from?: { name: string; email: string } },
+  envelope: {
+    subject: string;
+    from?: { name: string; email: string };
+    attachment_metadata?: Array<{ filename?: string; content_type?: string }>;
+  },
   bundle: {
     subject: string | null;
     sealed?: boolean;
     details?: SubjectBundle["details"];
+    decrypted_attachments?: Array<{ filename: string; content_type: string }>;
   },
 ): void {
+  if (
+    bundle.decrypted_attachments &&
+    bundle.decrypted_attachments.length > 0 &&
+    !envelope.attachment_metadata?.length
+  ) {
+    envelope.attachment_metadata = bundle.decrypted_attachments.map(
+      ({ filename, content_type }) => ({ filename, content_type }),
+    );
+  }
+
   if (bundle.sealed === true && bundle.details && envelope.from) {
     envelope.from = { ...envelope.from, name: bundle.details.from_name };
   }

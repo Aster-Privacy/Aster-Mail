@@ -120,6 +120,15 @@ export function envelope_attachments(
   return list && list.length > 0 ? list : null;
 }
 
+export function envelope_has_attachments(
+  envelope: DecryptedEnvelope | null | undefined,
+  metadata: { has_attachments?: boolean } | null | undefined,
+): boolean {
+  if (metadata?.has_attachments) return true;
+
+  return (envelope?.attachment_metadata?.length ?? 0) > 0;
+}
+
 export function operator_needs_attachment_details(op: ParsedOperator): boolean {
   if (BODY_CONTENT_OPERATOR_TYPES.has(op.type)) return true;
 
@@ -189,8 +198,8 @@ export function matches_operator(
       return includes_folded(hay.subject, fold_search_text(val) || val);
     case "has": {
       if (is_attachment_presence(val))
-        return metadata?.has_attachments ?? false;
-      if (!metadata?.has_attachments) return false;
+        return envelope_has_attachments(envelope, metadata);
+      if (!envelope_has_attachments(envelope, metadata)) return false;
       const ext_map: Record<string, string[]> = {
         pdf: [".pdf"],
         image: [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp"],
@@ -295,7 +304,7 @@ export function matches_operator(
     }
     case "filename":
     case "attachment": {
-      if (!metadata?.has_attachments) return false;
+      if (!envelope_has_attachments(envelope, metadata)) return false;
       const attachments =
         envelope_attachments(envelope) ?? attachment_details?.get(item.id);
 
@@ -569,7 +578,7 @@ export function to_search_result(
     is_trashed: item.is_trashed ?? false,
     is_archived: item.is_archived ?? false,
     snoozed_until: item.snoozed_until ?? metadata?.snoozed_until,
-    has_attachment: metadata?.has_attachments ?? false,
+    has_attachment: envelope_has_attachments(envelope, metadata),
     item_type: item.item_type,
     is_outgoing: !!first_recipient,
     actual_sender_email: from.email,

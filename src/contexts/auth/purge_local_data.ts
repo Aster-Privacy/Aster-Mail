@@ -54,6 +54,7 @@ import { clear_never_correct_terms } from "@/services/search/spelling";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
 import { clear_attachment_preview_cache as revoke_attachment_preview_blobs } from "@/services/attachment_preview_cache";
+import { clear_decrypted_mime_attachments } from "@/services/decrypted_mime_attachments";
 import { clear_all_app_lock_data } from "@/services/app_lock_store";
 import { clear_category_index } from "@/services/category_index";
 import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
@@ -216,6 +217,7 @@ async function clear_local_caches(): Promise<void> {
   clear_unreadable_attachment_rows();
   clear_attachment_preview_cache();
   revoke_attachment_preview_blobs();
+  clear_decrypted_mime_attachments();
   clear_translation_cache();
   clear_detection_cache();
   release_engines();

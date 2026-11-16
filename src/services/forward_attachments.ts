@@ -37,6 +37,10 @@ import {
   get_max_total_attachments_size,
 } from "@/services/attachment_limits";
 import { format_bytes } from "@/lib/utils";
+import {
+  get_decrypted_mime_attachments,
+  mime_attachment_bytes,
+} from "@/services/decrypted_mime_attachments";
 
 export type ForwardDropReason = "undecryptable" | "unavailable";
 
@@ -80,6 +84,62 @@ function is_inline_source_attachment(
   return false;
 }
 
+function carry_decrypted_parts(
+  parts: ReturnType<typeof get_decrypted_mime_attachments>,
+  body_html: string,
+  existing_bytes: number,
+  on_dropped: LoadForwardAttachmentsOptions["on_dropped"],
+): Attachment[] {
+  const inline_cids = new Set(
+    extract_cid_references(body_html).map(normalize_reference),
+  );
+  const inline_filenames = new Set(
+    Array.from(extract_cid_inline_filenames(body_html)).map(
+      normalize_reference,
+    ),
+  );
+  const carried: Attachment[] = [];
+  let running_total = existing_bytes;
+  let unavailable = 0;
+
+  for (const part of parts) {
+    const as_meta = {
+      filename: part.filename,
+      content_type: part.content_type,
+      content_id: part.content_id,
+    } as AttachmentMeta;
+
+    if (is_inline_source_attachment(as_meta, inline_cids, inline_filenames)) {
+      continue;
+    }
+
+    const size = part.data.byteLength;
+
+    if (
+      size > get_max_attachment_size() ||
+      running_total + size > get_max_total_attachments_size()
+    ) {
+      unavailable += 1;
+      continue;
+    }
+
+    running_total += size;
+    carried.push({
+      id: generate_attachment_id(),
+      name: part.filename,
+      size: format_bytes(size),
+      size_bytes: size,
+      mime_type: part.content_type,
+      data: mime_attachment_bytes(part),
+      content_id: part.content_id,
+    });
+  }
+
+  if (unavailable > 0) on_dropped?.(unavailable, "unavailable");
+
+  return carried;
+}
+
 export async function load_forward_attachments(
   mail_item_id: string,
   options: LoadForwardAttachmentsOptions = {},
@@ -92,6 +152,12 @@ export async function load_forward_attachments(
   } = options;
 
   if (!mail_item_id) return [];
+
+  const decrypted_parts = get_decrypted_mime_attachments(mail_item_id);
+
+  if (decrypted_parts.length > 0) {
+    return carry_decrypted_parts(decrypted_parts, body_html, existing_bytes, on_dropped);
+  }
 
   let response;
 

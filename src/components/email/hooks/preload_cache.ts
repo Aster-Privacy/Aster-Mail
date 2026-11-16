@@ -560,7 +560,7 @@ export async function preload_email_detail(
       resolved_html = sealed_html_source(resolved_html, ratchet_sealed);
       const pre_pgp_text = body_text;
 
-      body_text = await try_decrypt_pgp_body(body_text);
+      body_text = await try_decrypt_pgp_body(body_text, item.id);
 
       const password_protected = is_password_protected_body(body_text);
       const pre_mime_text = body_text;

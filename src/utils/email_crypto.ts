@@ -21,6 +21,8 @@
 import type { verifiable_decrypted_message } from "@/services/crypto/key_manager_pgp";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
+import { extract_mime_attachments } from "@/utils/mime_attachment_parts";
+import { set_decrypted_mime_attachments } from "@/services/decrypted_mime_attachments";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_passphrase_from_memory,
@@ -570,6 +572,7 @@ export interface ResolvedPgpBody {
   body: string;
   decrypted: boolean;
   verified: boolean;
+  decrypted_attachments?: DecryptedAttachmentSummary[];
 }
 
 async function is_signed_by_sender(
@@ -605,9 +608,33 @@ async function is_signed_by_sender(
   }
 }
 
+export interface DecryptedAttachmentSummary {
+  filename: string;
+  content_type: string;
+  content_id?: string;
+}
+
+function keep_decrypted_attachments(
+  plaintext: string,
+  mail_item_id: string | undefined,
+): DecryptedAttachmentSummary[] {
+  if (!/^content-type\s*:/im.test(plaintext)) return [];
+
+  const parts = extract_mime_attachments(plaintext);
+
+  if (mail_item_id) set_decrypted_mime_attachments(mail_item_id, parts);
+
+  return parts.map(({ filename, content_type, content_id }) => ({
+    filename,
+    content_type,
+    ...(content_id ? { content_id } : {}),
+  }));
+}
+
 export async function resolve_inbound_pgp_body(
   body_text: string,
   sender_email?: string,
+  mail_item_id?: string,
 ): Promise<ResolvedPgpBody> {
   const split = split_pgp_block(body_text);
 
@@ -649,13 +676,21 @@ export async function resolve_inbound_pgp_body(
 
   const finish = async (
     decrypted: verifiable_decrypted_message,
-  ): Promise<ResolvedPgpBody> => ({
-    body: /^content-type\s*:/im.test(decrypted.plaintext)
-      ? extract_mime_body(decrypted.plaintext)
-      : decrypted.plaintext,
-    decrypted: true,
-    verified: await is_signed_by_sender(decrypted, sender_email, keys_to_try),
-  });
+  ): Promise<ResolvedPgpBody> => {
+    const decrypted_attachments = keep_decrypted_attachments(
+      decrypted.plaintext,
+      mail_item_id,
+    );
+
+    return {
+      body: /^content-type\s*:/im.test(decrypted.plaintext)
+        ? extract_mime_body(decrypted.plaintext)
+        : decrypted.plaintext,
+      decrypted: true,
+      verified: await is_signed_by_sender(decrypted, sender_email, keys_to_try),
+      ...(decrypted_attachments.length > 0 ? { decrypted_attachments } : {}),
+    };
+  };
 
   if (keys_to_try.length > 0) {
     try {
@@ -693,8 +728,15 @@ export async function resolve_inbound_pgp_body(
   return unavailable;
 }
 
-export async function try_decrypt_pgp_body(body_text: string): Promise<string> {
-  const resolved = await resolve_inbound_pgp_body(body_text);
+export async function try_decrypt_pgp_body(
+  body_text: string,
+  mail_item_id?: string,
+): Promise<string> {
+  const resolved = await resolve_inbound_pgp_body(
+    body_text,
+    undefined,
+    mail_item_id,
+  );
 
   return resolved.body;
 }
@@ -930,6 +972,7 @@ export interface DecryptedBodyText {
   body: string;
   pgp_undecrypted: boolean;
   sealed: boolean;
+  decrypted_attachments?: DecryptedAttachmentSummary[];
 }
 
 async function resolve_body_text(
@@ -951,7 +994,7 @@ async function resolve_body_text(
 
   const sealed = is_ratchet_verified_body(body_text, result);
   const had_pgp_block = has_inbound_pgp_block(result);
-  const pgp = await resolve_inbound_pgp_body(result);
+  const pgp = await resolve_inbound_pgp_body(result, undefined, message_id);
 
   result = pgp.body;
 
@@ -975,6 +1018,7 @@ async function resolve_body_text(
     body: result,
     pgp_undecrypted: had_pgp_block && !pgp.decrypted,
     sealed,
+    decrypted_attachments: pgp.decrypted_attachments ?? [],
   };
 }
 
@@ -997,6 +1041,7 @@ export async function decrypt_body_text(
 export interface DecryptedBodyBundle extends SubjectBundle {
   pgp_undecrypted: boolean;
   sealed: boolean;
+  decrypted_attachments?: DecryptedAttachmentSummary[];
 }
 
 export async function decrypt_body_text_with_bundle(
@@ -1016,6 +1061,9 @@ export async function decrypt_body_text_with_bundle(
     ...extract_subject_bundle(resolved.body),
     pgp_undecrypted: resolved.pgp_undecrypted,
     sealed: resolved.sealed,
+    ...(resolved.decrypted_attachments?.length
+      ? { decrypted_attachments: resolved.decrypted_attachments }
+      : {}),
   };
 }
 

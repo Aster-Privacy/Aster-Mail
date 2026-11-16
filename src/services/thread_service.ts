@@ -318,6 +318,7 @@ async function decode_thread_envelope(
     const resolved = await resolve_inbound_pgp_body(
       body_content,
       envelope.from?.email,
+      msg.id,
     );
 
     body_content = resolved.body;
@@ -697,6 +698,7 @@ export async function fetch_and_decrypt_virtual_group(
       const resolved = await resolve_inbound_pgp_body(
         body_content,
         envelope.from?.email,
+        item.id,
       );
 
       body_content = resolved.body;
