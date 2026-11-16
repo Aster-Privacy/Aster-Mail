@@ -57,10 +57,15 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Button, Checkbox, PillButton, Switch, Tooltip } from "@aster/ui";
-import { useCallback, useId, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { ContactGroupsPane } from "@/components/common/contacts/contact_groups_pane";
+import {
+  ContactGroupsPane,
+  type ContactsLoadStatus,
+} from "@/components/common/contacts/contact_groups_pane";
+import { GROUP_VIEW_PARAM } from "@/components/common/contacts/contact_group_members";
 import { ContactTrashPane } from "@/components/common/contacts/contact_trash_pane";
 import { ContactMergeModal } from "@/components/contacts/contact_merge_modal";
 import { ContactBulkCreateModal } from "@/components/contacts/contact_bulk_create_modal";
@@ -144,6 +149,12 @@ interface ContactListProps {
   group_filter: string | null;
   on_set_group_filter: (group_id: string | null) => void;
   on_set_group_membership: (group_id: string, should_add: boolean) => void;
+  on_set_group_members?: (
+    group_id: string,
+    contact_ids: string[],
+    should_add: boolean,
+  ) => Promise<boolean>;
+  on_refresh_group_memberships?: () => Promise<boolean> | void;
   selected_contacts: DecryptedContact[];
   on_compose_to_recipients: (recipients: string) => void;
   on_bulk_create: (entries: ContactFormData[]) => Promise<void>;
@@ -217,6 +228,9 @@ function has_display_name(contact: DecryptedContact): boolean {
   );
 }
 
+const resolve_false = async () => false;
+const noop = () => {};
+
 export function ContactList({
   t,
   contacts,
@@ -261,6 +275,8 @@ export function ContactList({
   group_filter,
   on_set_group_filter,
   on_set_group_membership,
+  on_set_group_members = resolve_false,
+  on_refresh_group_memberships = noop,
   selected_contacts,
 }: ContactListProps) {
   const { preferences, update_preference } = use_preferences();
@@ -274,7 +290,39 @@ export function ContactList({
   );
   const is_compact = view_mode === "compact";
   const avatar_px = is_compact ? 32 : 40;
-  const [tab, set_tab] = useState<ContactTab>("contacts");
+  const [search_params, set_search_params] = useSearchParams();
+  const group_view_id = search_params.get(GROUP_VIEW_PARAM);
+  const [tab, set_tab] = useState<ContactTab>(() =>
+    group_view_id ? "groups" : "contacts",
+  );
+
+  useEffect(() => {
+    if (group_view_id) set_tab("groups");
+  }, [group_view_id]);
+
+  const select_tab = useCallback(
+    (next: ContactTab) => {
+      set_tab(next);
+      if (next === "groups") return;
+      set_search_params(
+        (previous) => {
+          if (!previous.has(GROUP_VIEW_PARAM)) return previous;
+          const updated = new URLSearchParams(previous);
+
+          updated.delete(GROUP_VIEW_PARAM);
+
+          return updated;
+        },
+        { replace: true },
+      );
+    },
+    [set_search_params],
+  );
+  const contacts_status: ContactsLoadStatus = is_loading
+    ? "loading"
+    : error && contacts.length === 0
+      ? "failed"
+      : "ready";
   const [is_bulk_create_open, set_is_bulk_create_open] = useState(false);
   const [birthday_card_dismissed, set_birthday_card_dismissed] = useState(() =>
     read_birthday_card_dismissed(),
@@ -504,7 +552,7 @@ export function ContactList({
                 {t("common.print_contacts")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => set_tab("trash")}>
+              <DropdownMenuItem onClick={() => select_tab("trash")}>
                 <TrashIcon className="w-4 h-4" />
                 {t("mail.trash")}
               </DropdownMenuItem>
@@ -532,7 +580,7 @@ export function ContactList({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem
                 onClick={() => {
-                  set_tab("contacts");
+                  select_tab("contacts");
                   on_add_click();
                 }}
               >
@@ -546,7 +594,7 @@ export function ContactList({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  set_tab("groups");
+                  select_tab("groups");
                   set_is_group_modal_open(true);
                 }}
               >
@@ -567,7 +615,7 @@ export function ContactList({
               className="contact_list_tab"
               role="tab"
               type="button"
-              onClick={() => set_tab(item.key)}
+              onClick={() => select_tab(item.key)}
             >
               {item.label}
               {item.count > 0 && (
@@ -614,13 +662,21 @@ export function ContactList({
       >
         <ContactGroupsPane
           contacts={contacts}
+          contacts_status={contacts_status}
+          is_active={tab === "groups"}
           is_modal_open={is_group_modal_open}
           on_compose_to={on_compose_to_recipients}
           on_count_change={handle_group_count_change}
           on_modal_close={() => set_is_group_modal_open(false)}
           on_modal_open={() => set_is_group_modal_open(true)}
           on_open_contact={set_selected_contact}
+          on_refresh_memberships={() => {
+            void on_refresh_group_memberships();
+          }}
+          on_retry_contacts={on_contacts_refresh}
+          on_set_members={on_set_group_members}
           search_query={search_query}
+          selected_contact_id={selected_contact?.id ?? null}
           t={t}
         />
       </div>
