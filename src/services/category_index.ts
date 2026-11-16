@@ -42,6 +42,7 @@ import { background_page_size } from "@/services/api/client/request_priority";
 import {
   decrypt_mail_metadata,
   update_item_metadata,
+  write_items_metadata,
 } from "@/services/crypto/mail_metadata";
 import {
   classify,
@@ -3520,7 +3521,7 @@ export interface CategoryWriteResult {
   metadata_version?: number;
 }
 
-const MAX_RECENT_RECLASSIFY_META = 200;
+const MAX_RECENT_RECLASSIFY_META = 5000;
 
 function remember_own_metadata_write(id: string, encrypted_metadata: string) {
   recent_reclassify_meta.delete(id);
@@ -3573,6 +3574,126 @@ async function write_category_state(
   };
 }
 
+export async function write_category_states(
+  writes: ReadonlyArray<{
+    target: CategoryMoveTarget;
+    state: PreviousCategoryState;
+  }>,
+): Promise<Map<string, CategoryWriteResult>> {
+  const results = await write_items_metadata(
+    writes.map(({ target, state }) => ({
+      id: target.id,
+      current: {
+        encrypted_metadata: target.encrypted_metadata,
+        metadata_nonce: target.metadata_nonce,
+        metadata_version: target.metadata_version,
+      },
+      updates: {
+        category: state.category,
+        category_pinned: state.category_pinned ? true : undefined,
+      },
+    })),
+  );
+  const outcomes = new Map<string, CategoryWriteResult>();
+
+  batch_index_updates(() => {
+    for (const { target } of writes) {
+      const result = results.get(target.id);
+
+      if (!result?.success) {
+        outcomes.set(target.id, {
+          applied: false,
+          undecryptable: result?.undecryptable === true,
+        });
+        continue;
+      }
+
+      if (result.encrypted) {
+        remember_own_metadata_write(
+          target.id,
+          result.encrypted.encrypted_metadata,
+        );
+        emit_mail_item_updated({
+          id: target.id,
+          encrypted_metadata: result.encrypted.encrypted_metadata,
+          metadata_nonce: result.encrypted.metadata_nonce,
+        });
+      }
+
+      outcomes.set(target.id, {
+        applied: true,
+        undecryptable: false,
+        previous: result.previous,
+        encrypted_metadata: result.encrypted?.encrypted_metadata,
+        metadata_nonce: result.encrypted?.metadata_nonce,
+        metadata_version: result.written_version,
+      });
+    }
+  });
+
+  return outcomes;
+}
+
+export function group_thread_entries(
+  thread_tokens: ReadonlySet<string>,
+): Map<string, CategoryIndexEntry[]> {
+  const groups = new Map<string, CategoryIndexEntry[]>();
+
+  if (thread_tokens.size === 0) return groups;
+  for (const entry of entries_map.values()) {
+    const token = entry.thread_token;
+
+    if (!token || !thread_tokens.has(token)) continue;
+    const group = groups.get(token);
+
+    if (group) group.push(entry);
+    else groups.set(token, [entry]);
+  }
+
+  return groups;
+}
+
+export function thread_category_of(
+  entries: Iterable<CategoryIndexEntry>,
+): EmailCategory | null {
+  const wall = now_ms();
+  let newest: CategoryIndexEntry | null = null;
+  let newest_ts = -1;
+  let pinned: EmailCategory | undefined;
+  let pinned_ts = -1;
+
+  for (const entry of entries) {
+    if (entry.snoozed_until && safe_ts(entry.snoozed_until) > wall) continue;
+    const ts = safe_ts(entry.message_ts);
+
+    if (ts > newest_ts) {
+      newest = entry;
+      newest_ts = ts;
+    }
+    if (entry.category_pinned && ts >= pinned_ts) {
+      pinned = entry.category;
+      pinned_ts = ts;
+    }
+  }
+
+  if (!newest) return null;
+
+  return fold_category(pinned ?? newest.category);
+}
+
+export function apply_category_pins_locally(
+  targets: readonly CategoryMoveTarget[],
+  category: EmailCategory,
+): void {
+  for (const target of targets) note_recent_pin(target.id, category);
+  upsert_entries(
+    targets.map((target) => pinned_category_entry(target, category)),
+    undefined,
+    undefined,
+    true,
+  );
+}
+
 export function pinned_category_entry(
   target: CategoryMoveTarget,
   category: EmailCategory,
@@ -3598,7 +3719,12 @@ export function apply_category_pin_locally(
   category: EmailCategory,
 ): void {
   note_recent_pin(target.id, category);
-  upsert_entries([pinned_category_entry(target, category)]);
+  upsert_entries(
+    [pinned_category_entry(target, category)],
+    undefined,
+    undefined,
+    true,
+  );
 }
 
 export function restore_category_entry_locally(
@@ -3610,14 +3736,21 @@ export function restore_category_entry_locally(
     if (snapshot.category_pinned) note_recent_pin(id, snapshot.category);
     const current = entries_map.get(id);
 
-    upsert_entries([
-      {
-        ...snapshot,
-        is_read: current?.is_read ?? snapshot.is_read,
-        is_pinned: current?.is_pinned ?? snapshot.is_pinned,
-        snoozed_until: current ? current.snoozed_until : snapshot.snoozed_until,
-      },
-    ]);
+    upsert_entries(
+      [
+        {
+          ...snapshot,
+          is_read: current?.is_read ?? snapshot.is_read,
+          is_pinned: current?.is_pinned ?? snapshot.is_pinned,
+          snoozed_until: current
+            ? current.snoozed_until
+            : snapshot.snoozed_until,
+        },
+      ],
+      undefined,
+      undefined,
+      true,
+    );
 
     return;
   }
@@ -3663,30 +3796,13 @@ export function get_thread_category(
 ): EmailCategory | null {
   if (!thread_token || !thread_grouping) return null;
 
-  const wall = now_ms();
-  let newest: CategoryIndexEntry | null = null;
-  let newest_ts = -1;
-  let pinned: EmailCategory | undefined;
-  let pinned_ts = -1;
+  const members: CategoryIndexEntry[] = [];
 
   for (const entry of entries_map.values()) {
-    if (entry.thread_token !== thread_token) continue;
-    if (entry.snoozed_until && safe_ts(entry.snoozed_until) > wall) continue;
-    const ts = safe_ts(entry.message_ts);
-
-    if (ts > newest_ts) {
-      newest = entry;
-      newest_ts = ts;
-    }
-    if (entry.category_pinned && ts >= pinned_ts) {
-      pinned = entry.category;
-      pinned_ts = ts;
-    }
+    if (entry.thread_token === thread_token) members.push(entry);
   }
 
-  if (!newest) return null;
-
-  return fold_category(pinned ?? newest.category);
+  return thread_category_of(members);
 }
 
 export async function clear_category_index(): Promise<void> {

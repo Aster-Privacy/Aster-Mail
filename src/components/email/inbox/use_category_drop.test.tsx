@@ -75,19 +75,45 @@ const get_index_entries = vi.fn<(ids: string[]) => CategoryIndexEntry[]>();
 const get_thread_entry_ids = vi.fn<(token: string) => string[]>();
 const grouping = { on: false };
 
+interface StateWrite {
+  target: MoveTarget;
+  state: { category?: EmailCategory; category_pinned: boolean };
+}
+
+async function write_category_states(
+  writes: readonly StateWrite[],
+): Promise<Map<string, CategoryWriteResult>> {
+  const results = await Promise.all(
+    writes.map(({ target, state }) =>
+      state.category_pinned && state.category
+        ? set_message_category(target, state.category)
+        : restore_message_category(target, state),
+    ),
+  );
+
+  return new Map(
+    writes.map(({ target }, index) => [target.id, results[index]!]),
+  );
+}
+
 vi.mock("@/services/category_index", () => ({
-  set_message_category: (target: MoveTarget, category: EmailCategory) =>
-    set_message_category(target, category),
-  restore_message_category: (
-    target: MoveTarget,
-    previous: { category?: EmailCategory; category_pinned: boolean },
-  ) => restore_message_category(target, previous),
-  apply_category_pin_locally: (...args: unknown[]) =>
-    apply_category_pin_locally(...args),
+  write_category_states: (writes: readonly StateWrite[]) =>
+    write_category_states(writes),
+  apply_category_pins_locally: (targets: readonly MoveTarget[]) => {
+    for (const target of targets) apply_category_pin_locally(target);
+  },
+  batch_index_updates: (run: () => void) => run(),
   restore_category_entry_locally: (...args: unknown[]) =>
     restore_category_entry_locally(...args),
   get_index_entries: (ids: string[]) => get_index_entries(ids),
-  get_thread_entry_ids: (token: string) => get_thread_entry_ids(token),
+  group_thread_entries: (tokens: ReadonlySet<string>) =>
+    new Map(
+      [...tokens].map((token) => [
+        token,
+        get_index_entries(get_thread_entry_ids(token)),
+      ]),
+    ),
+  thread_category_of: () => null,
   get_thread_category: () => undefined,
   is_thread_grouping: () => grouping.on,
   fold_to_active_tab: (raw?: EmailCategory) => raw ?? "primary",
@@ -237,7 +263,7 @@ describe("use_category_drop", () => {
     expect(show_toast).not.toHaveBeenCalled();
   });
 
-  it("moves the row before the request resolves and reports success once", async () => {
+  it("moves the row and offers undo before the request resolves", async () => {
     let resolve_move: (value: CategoryWriteResult) => void = () => {};
 
     set_message_category.mockImplementation(
@@ -258,7 +284,7 @@ describe("use_category_drop", () => {
 
     await flush();
 
-    expect(show_action_toast).not.toHaveBeenCalled();
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       resolve_move(applied_result);
@@ -290,7 +316,7 @@ describe("use_category_drop", () => {
       "common.something_went_wrong",
       "error",
     );
-    expect(show_action_toast).not.toHaveBeenCalled();
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
   });
 
   it("rolls back and names the undecryptable condition instead of reporting success", async () => {
@@ -310,7 +336,7 @@ describe("use_category_drop", () => {
       "errors.metadata_undecryptable_change",
       "error",
     );
-    expect(show_action_toast).not.toHaveBeenCalled();
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
   });
 
   it("offers a sender rule only after the same sender repeats", async () => {
@@ -348,10 +374,13 @@ describe("use_category_drop", () => {
     ]);
     expect(show_action_toast).toHaveBeenCalledTimes(1);
     expect(show_action_toast.mock.calls[0]![0]).toMatchObject({
-      message: "common.bulk_action_partially_applied",
-      email_ids: ["a"],
+      message: "mail.moved_to_category",
+      email_ids: ["a", "b"],
     });
-    expect(show_toast).not.toHaveBeenCalled();
+    expect(show_toast).toHaveBeenCalledWith(
+      "common.bulk_action_partially_applied",
+      "error",
+    );
   });
 
   it("keeps both changes when a second drop lands while the first is in flight", async () => {
@@ -553,7 +582,8 @@ describe("use_category_drop", () => {
       await harness.drop("primary", ["a"]);
     });
 
-    expect(set_message_category).toHaveBeenCalledTimes(1);
+    expect(set_message_category).toHaveBeenCalledTimes(2);
+    expect(restore_message_category).not.toHaveBeenCalled();
     expect(
       restore_category_entry_locally.mock.calls.map((call) => call[0]),
     ).toEqual(["a", "b"]);
