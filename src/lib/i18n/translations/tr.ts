@@ -5948,6 +5948,7 @@ export const tr = {
     duplicates_skipped_one: "{{count}} kopya atlandı",
     import_attachments_filled: "Daha önce içe aktarılan {{count}} iletiye ekler eklendi",
     import_attachments_filled_one: "Daha önce içe aktarılan {{count}} iletiye ekler eklendi",
+    import_attachment_daily_limit: "İçe aktarılan ekler için bugünkü sınıra ulaştınız, bu nedenle bazı iletiler ekleri olmadan geldi. Ekleri eklemek için aynı dosyayı yarın yeniden içe aktarın.",
     import_review_ready: "{{count}} e-posta içe aktarılmaya hazır.",
     import_review_ready_one: "{{count}} e-posta içe aktarılmaya hazır.",
     import_review_trash_found: "Bunlardan {{count}} tanesi eski hesabınızda Çöp Kutusu'ndaydı. Nereye taşınacaklarını seçin.",

@@ -6303,6 +6303,7 @@ export interface SettingsTranslations {
   duplicates_skipped_one?: string;
   import_attachments_filled: string;
   import_attachments_filled_one?: string;
+  import_attachment_daily_limit: string;
   import_review_ready: string;
   import_review_ready_one?: string;
   import_review_trash_found: string;

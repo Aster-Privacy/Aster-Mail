@@ -112,6 +112,7 @@ export interface StoreEmailsResponse {
   success: boolean;
   attachments_filled_count?: number;
   attachments_allowed?: boolean;
+  attachment_daily_limit_reached?: boolean;
 }
 
 export interface CheckDuplicatesRequest {

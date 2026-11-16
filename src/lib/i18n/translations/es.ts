@@ -6047,6 +6047,7 @@ export const es = {
     duplicates_skipped_one: "{{count}} duplicado omitido",
     import_attachments_filled: "Se añadieron los adjuntos a {{count}} mensajes que importaste antes",
     import_attachments_filled_one: "Se añadieron los adjuntos a {{count}} mensaje que importaste antes",
+    import_attachment_daily_limit: "Alcanzaste el límite de hoy para adjuntos importados, así que algunos mensajes llegaron sin ellos. Para añadirlos, importa el mismo archivo de nuevo mañana.",
     import_review_ready: "{{count}} correos están listos para importar.",
     import_review_ready_one: "{{count}} correo está listo para importar.",
     import_review_trash_found: "{{count}} de ellos estaban en la papelera de tu cuenta anterior. Elige dónde ponerlos.",

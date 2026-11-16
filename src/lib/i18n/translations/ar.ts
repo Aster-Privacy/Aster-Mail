@@ -6051,6 +6051,7 @@ export const ar = {
     duplicates_skipped_one: "تم تخطي {{count}} مكرر",
     import_attachments_filled: "تمت إضافة المرفقات إلى {{count}} من الرسائل التي استوردتها من قبل",
     import_attachments_filled_one: "تمت إضافة المرفقات إلى رسالة واحدة استوردتها من قبل",
+    import_attachment_daily_limit: "وصلت إلى الحد اليومي للمرفقات المستوردة، لذلك وصلت بعض الرسائل بدون مرفقاتها. لإضافتها، استورد الملف نفسه مرة أخرى غدًا.",
     import_review_ready: "{{count}} رسالة جاهزة للاستيراد.",
     import_review_ready_one: "رسالة واحدة جاهزة للاستيراد.",
     import_review_trash_found: "كان {{count}} منها في سلة المهملات في حسابك القديم. اختر مكان وضعها.",

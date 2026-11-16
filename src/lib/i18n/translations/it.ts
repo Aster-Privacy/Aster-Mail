@@ -7390,6 +7390,7 @@ export const it = {
     duplicates_skipped_one: "{{count}} duplicato saltato",
     import_attachments_filled: "Allegati aggiunti a {{count}} messaggi importati in precedenza",
     import_attachments_filled_one: "Allegati aggiunti a {{count}} messaggio importato in precedenza",
+    import_attachment_daily_limit: "Hai raggiunto il limite giornaliero per gli allegati importati, quindi alcuni messaggi sono arrivati senza allegati. Per aggiungerli, importa di nuovo lo stesso file domani.",
     import_review_ready: "{{count}} email sono pronte per l'importazione.",
     import_review_ready_one: "{{count}} email è pronta per l'importazione.",
     import_review_trash_found: "{{count}} di queste erano nel cestino del tuo vecchio account. Scegli dove metterle.",

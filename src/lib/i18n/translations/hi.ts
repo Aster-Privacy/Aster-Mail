@@ -7475,6 +7475,7 @@ export const hi = {
     duplicates_skipped_one: "{{count}} डुप्लीकेट छोड़ा गया",
     import_attachments_filled: "पहले इंपोर्ट किए गए {{count}} संदेशों में अटैचमेंट जोड़े गए",
     import_attachments_filled_one: "पहले इंपोर्ट किए गए {{count}} संदेश में अटैचमेंट जोड़े गए",
+    import_attachment_daily_limit: "आपने आज के लिए इंपोर्ट किए गए अटैचमेंट की सीमा पूरी कर ली है, इसलिए कुछ संदेश बिना अटैचमेंट के आए। उन्हें जोड़ने के लिए, कल वही फ़ाइल फिर से इंपोर्ट करें।",
     import_review_ready: "{{count}} ईमेल इंपोर्ट के लिए तैयार हैं।",
     import_review_ready_one: "{{count}} ईमेल इंपोर्ट के लिए तैयार है।",
     import_review_trash_found: "इनमें से {{count}} आपके पुराने खाते के ट्रैश में थे। चुनें कि इन्हें कहां रखना है।",

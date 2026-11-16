@@ -6143,6 +6143,7 @@ export const ru = {
     duplicates_skipped_one: "{{count}} дубликат пропущен",
     import_attachments_filled: "Вложения добавлены к ранее импортированным письмам: {{count}}",
     import_attachments_filled_one: "Вложения добавлены к {{count}} ранее импортированному письму",
+    import_attachment_daily_limit: "Вы достигли дневного лимита импортируемых вложений, поэтому некоторые письма импортированы без них. Чтобы добавить вложения, импортируйте тот же файл завтра.",
     duplicates_skipped_few: "{{count}} дубликата пропущены",
     import_review_ready: "Готово к импорту писем: {{count}}.",
     import_review_ready_one: "{{count}} письмо готово к импорту.",

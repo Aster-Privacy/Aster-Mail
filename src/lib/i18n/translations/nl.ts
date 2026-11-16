@@ -5915,6 +5915,7 @@ export const nl = {
     duplicates_skipped_one: "{{count}} duplicaat overgeslagen",
     import_attachments_filled: "Bijlagen toegevoegd aan {{count}} eerder geïmporteerde berichten",
     import_attachments_filled_one: "Bijlagen toegevoegd aan {{count}} eerder geïmporteerd bericht",
+    import_attachment_daily_limit: "Je hebt de daglimiet voor geïmporteerde bijlagen bereikt, dus sommige berichten zijn zonder bijlagen geïmporteerd. Importeer morgen hetzelfde bestand opnieuw om ze toe te voegen.",
     import_review_ready: "{{count}} e-mails zijn klaar om te importeren.",
     import_review_ready_one: "{{count}} e-mail is klaar om te importeren.",
     import_review_trash_found: "{{count}} daarvan stonden in de prullenbak van je oude account. Kies waar ze heen gaan.",

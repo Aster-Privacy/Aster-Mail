@@ -5941,6 +5941,7 @@ export const ja = {
     emails_imported_count: "{{count}}件のメールをインポートしました",
     duplicates_skipped: "{{count}}件の重複をスキップしました",
     import_attachments_filled: "以前にインポートした {{count}} 件のメッセージに添付ファイルを追加しました",
+    import_attachment_daily_limit: "本日のインポート添付ファイルの上限に達したため、一部のメッセージは添付ファイルなしでインポートされました。追加するには、明日同じファイルをもう一度インポートしてください。",
     import_review_ready: "{{count}} 件のメールをインポートできます。",
     import_review_ready_one: "{{count}} 件のメールをインポートできます。",
     import_review_trash_found: "そのうち {{count}} 件は以前のアカウントのゴミ箱にありました。移動先を選択してください。",

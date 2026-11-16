@@ -6106,6 +6106,7 @@ export const fr = {
     duplicates_skipped_one: "{{count}} doublon ignoré",
     import_attachments_filled: "Pièces jointes ajoutées à {{count}} messages importés précédemment",
     import_attachments_filled_one: "Pièces jointes ajoutées à {{count}} message importé précédemment",
+    import_attachment_daily_limit: "Vous avez atteint la limite quotidienne de pièces jointes importées, certains messages ont donc été importés sans elles. Pour les ajouter, importez à nouveau le même fichier demain.",
     import_review_ready: "{{count}} e-mails sont prêts à être importés.",
     import_review_ready_one: "{{count}} e-mail est prêt à être importé.",
     import_review_trash_found: "{{count}} d'entre eux se trouvaient dans la corbeille de votre ancien compte. Choisissez où les placer.",
