@@ -124,7 +124,7 @@ export function ContactGroupAddMembersModal({
             {t("common.add_members_none_left")}
           </p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Input
               autoFocus
               aria-label={t("common.search_contacts")}
@@ -136,40 +136,37 @@ export function ContactGroupAddMembersModal({
             />
             <div
               aria-label={t("common.add_members")}
-              className="max-h-[320px] overflow-y-auto"
+              className="contact_group_picker max-h-[340px] overflow-y-auto overscroll-contain"
               role="group"
             >
               {candidates.length === 0 ? (
-                <p className="py-6 text-center text-[13px] text-txt-muted">
+                <p className="px-3 py-8 text-center text-[13px] text-txt-muted">
                   {t("common.no_contacts_match", { query: trimmed_query })}
                 </p>
               ) : (
                 candidates.map((contact) => {
                   const name = contact_display_name(contact);
                   const checkbox_id = `contact_group_add_${contact.id}`;
+                  const is_checked = picked.has(contact.id);
 
                   return (
                     <label
                       key={contact.id}
-                      className="flex cursor-pointer items-center gap-3 rounded-[var(--aster-radius-control)] px-2 py-1.5 hover:bg-[var(--aster-hover)]"
+                      className="contact_group_option"
+                      data-checked={is_checked}
                       data-testid={`contact_group_add_option_${contact.id}`}
                       htmlFor={checkbox_id}
                       style={{
                         contentVisibility: "auto",
-                        containIntrinsicSize: "auto 44px",
+                        containIntrinsicSize: "auto 48px",
                       }}
                     >
-                      <Checkbox
-                        checked={picked.has(contact.id)}
-                        id={checkbox_id}
-                        onCheckedChange={() => toggle(contact.id)}
-                      />
                       <ContactAvatar
                         avatar_url={contact.avatar_url}
                         email={contact.emails[0]}
                         name={name}
                         profile_color={contact.profile_color}
-                        size_px={28}
+                        size_px={32}
                       />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-[13.5px] font-medium text-txt-primary">
@@ -181,6 +178,11 @@ export function ContactGroupAddMembersModal({
                           </span>
                         )}
                       </span>
+                      <Checkbox
+                        checked={is_checked}
+                        id={checkbox_id}
+                        onCheckedChange={() => toggle(contact.id)}
+                      />
                     </label>
                   );
                 })

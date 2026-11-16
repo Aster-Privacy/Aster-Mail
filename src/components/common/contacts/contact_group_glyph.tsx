@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { CSSProperties } from "react";
 import type { TagIconName } from "@/components/ui/email_tag";
+
+import { UserGroupIcon } from "@heroicons/react/24/outline";
 
 import { tag_icon_map } from "@/components/ui/email_tag";
 
@@ -51,6 +54,44 @@ export function ContactGroupGlyph({
           style={{ backgroundColor: tint }}
         />
       )}
+    </span>
+  );
+}
+
+interface ContactGroupAvatarProps {
+  color?: string;
+  icon?: TagIconName;
+  size_px?: number;
+  class_name?: string;
+}
+
+export function ContactGroupAvatar({
+  color,
+  icon,
+  size_px = 40,
+  class_name = "",
+}: ContactGroupAvatarProps) {
+  const tint = color || DEFAULT_CONTACT_GROUP_COLOR;
+  const IconComponent = (icon && tag_icon_map[icon]) || UserGroupIcon;
+  const icon_px = Math.round(size_px * 0.5);
+
+  return (
+    <span
+      aria-hidden="true"
+      className={`contact_group_avatar ${class_name}`}
+      data-testid="contact_group_avatar"
+      style={
+        {
+          "--group-tint": tint,
+          width: size_px,
+          height: size_px,
+        } as CSSProperties
+      }
+    >
+      <IconComponent
+        style={{ width: icon_px, height: icon_px }}
+        strokeWidth={1.75}
+      />
     </span>
   );
 }

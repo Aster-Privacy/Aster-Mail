@@ -415,4 +415,50 @@ describe("contact group member view", () => {
     expect(by_test_id("contact_group_view")).toBeNull();
     expect(current_location).toBe("/contacts");
   });
+
+  it("keeps one primary action and moves the rest into the overflow menu", async () => {
+    await render_list();
+    await click(groups_tab());
+    await click(by_test_id("contact_group_row_g_alpha"));
+
+    expect(by_test_id("contact_group_add")!.textContent).toContain(
+      "common.add_members",
+    );
+    expect(by_test_id("contact_group_edit")).toBeNull();
+    expect(by_test_id("contact_group_delete")).toBeNull();
+
+    const trigger = by_test_id("contact_group_menu")!;
+
+    expect(trigger.getAttribute("aria-label")).toBe("common.more_actions");
+    await act(async () => {
+      trigger.dispatchEvent(
+        new MouseEvent("pointerdown", { bubbles: true, button: 0 }),
+      );
+    });
+    await flush();
+
+    expect(by_test_id("contact_group_email")).toBeTruthy();
+    expect(by_test_id("contact_group_edit")).toBeTruthy();
+    expect(by_test_id("contact_group_delete")).toBeTruthy();
+  });
+
+  it("marks a picked contact as selected in the add members dialog", async () => {
+    await render_list();
+    await click(groups_tab());
+    await click(by_test_id("contact_group_row_g_alpha"));
+    await click(by_test_id("contact_group_add"));
+
+    const option = by_test_id("contact_group_add_option_c_bruno")!;
+
+    expect(option.getAttribute("data-checked")).toBe("false");
+    await click(option.querySelector('button, input[type="checkbox"]'));
+    expect(
+      by_test_id("contact_group_add_option_c_bruno")!.getAttribute(
+        "data-checked",
+      ),
+    ).toBe("true");
+    expect(by_test_id("contact_group_add_confirm")!.textContent).toBe(
+      "common.add_members_count(count=1)",
+    );
+  });
 });

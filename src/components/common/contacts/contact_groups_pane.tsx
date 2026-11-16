@@ -33,6 +33,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeftIcon,
   CloudIcon,
+  EllipsisHorizontalIcon,
   EnvelopeIcon,
   PencilSquareIcon,
   PlusIcon,
@@ -44,8 +45,15 @@ import {
 import { Button, Tooltip } from "@aster/ui";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
-import { ContactGroupGlyph } from "@/components/common/contacts/contact_group_glyph";
+import { ContactGroupAvatar } from "@/components/common/contacts/contact_group_glyph";
 import { ContactGroupAddMembersModal } from "@/components/common/contacts/contact_group_add_members_modal";
 import {
   GROUP_VIEW_PARAM,
@@ -97,9 +105,6 @@ const GROUP_VIEW_REFRESH_MS = 30_000;
 interface GroupViewHistoryState {
   group_view_pushed?: boolean;
 }
-
-const icon_button_class =
-  "inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[var(--icon-secondary)] transition-colors hover:bg-[var(--aster-hover)] hover:text-[var(--icon-active)]";
 
 export function ContactGroupsPane({
   t,
@@ -365,7 +370,10 @@ export function ContactGroupsPane({
   }, [groups, search_query]);
 
   const contacts_ready = contacts_status === "ready";
-  const member_counts = useMemo(() => group_member_counts(contacts), [contacts]);
+  const member_counts = useMemo(
+    () => group_member_counts(contacts),
+    [contacts],
+  );
 
   const count_of = useCallback(
     (group: ContactGroup) =>
@@ -445,7 +453,7 @@ export function ContactGroupsPane({
               <button
                 ref={back_button_ref}
                 aria-label={t("common.back")}
-                className={icon_button_class}
+                className="contact_group_icon_button"
                 data-testid="contact_group_back"
                 type="button"
                 onClick={() => close_view(true)}
@@ -487,12 +495,12 @@ export function ContactGroupsPane({
         className="flex min-h-0 flex-1 flex-col"
         data-testid="contact_group_view"
       >
-        <div className="flex flex-shrink-0 items-center gap-2 px-4 py-3">
+        <div className="contact_group_header flex flex-shrink-0 items-center gap-2 px-3 py-3 @min-[420px]/contact-list:gap-3 @min-[420px]/contact-list:px-4">
           <Tooltip tip={t("common.back")}>
             <button
               ref={back_button_ref}
               aria-label={t("common.back")}
-              className={icon_button_class}
+              className="contact_group_icon_button"
               data-testid="contact_group_back"
               type="button"
               onClick={() => close_view(true)}
@@ -500,70 +508,81 @@ export function ContactGroupsPane({
               <ArrowLeftIcon className="h-[18px] w-[18px] rtl:rotate-180" />
             </button>
           </Tooltip>
-          <span className="contact_group_badge">
-            <ContactGroupGlyph color={open_group.color} icon={open_group.icon} />
-          </span>
+          <ContactGroupAvatar
+            color={open_group.color}
+            icon={open_group.icon}
+            size_px={40}
+          />
           <div className="min-w-0 flex-1">
             <h2
-              className="truncate text-[15px] font-semibold text-txt-primary"
+              className="truncate text-[16px] font-semibold leading-[1.3] tracking-[-0.01em] text-txt-primary"
               data-testid="contact_group_title"
               title={open_group.name}
             >
               {open_group.name}
             </h2>
             <p
-              className="text-[12px] text-txt-muted"
+              className="truncate text-[12.5px] leading-[1.35] text-txt-muted"
               data-testid="contact_group_count"
             >
               {t("common.group_contact_count", { count })}
             </p>
           </div>
-          {member_emails && (
-            <Tooltip tip={t("common.email_group")}>
-              <button
-                aria-label={t("common.email_group")}
-                className={icon_button_class}
-                type="button"
-                onClick={() => on_compose_to(member_emails)}
-              >
-                <EnvelopeIcon className="h-[18px] w-[18px]" />
-              </button>
+          <Button
+            aria-label={t("common.add_members")}
+            className="h-9 flex-shrink-0 gap-1.5 rounded-[var(--aster-radius-control)] px-2.5 text-[13px] font-medium @min-[420px]/contact-list:px-3.5"
+            data-testid="contact_group_add"
+            disabled={!contacts_ready}
+            size="sm"
+            variant="primary"
+            onClick={() => set_group_to_fill(open_group)}
+          >
+            <UserPlusIcon className="h-4 w-4" />
+            <span className="hidden @min-[420px]/contact-list:inline">
+              {t("common.add_members")}
+            </span>
+          </Button>
+          <DropdownMenu>
+            <Tooltip tip={t("common.more_actions")}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label={t("common.more_actions")}
+                  className="contact_group_icon_button h-9 w-9"
+                  data-testid="contact_group_menu"
+                  type="button"
+                >
+                  <EllipsisHorizontalIcon className="h-5 w-5" />
+                </button>
+              </DropdownMenuTrigger>
             </Tooltip>
-          )}
-          <Tooltip tip={t("common.add_members")}>
-            <button
-              aria-label={t("common.add_members")}
-              className={icon_button_class}
-              data-testid="contact_group_add"
-              disabled={!contacts_ready}
-              type="button"
-              onClick={() => set_group_to_fill(open_group)}
-            >
-              <UserPlusIcon className="h-[18px] w-[18px]" />
-            </button>
-          </Tooltip>
-          <Tooltip tip={t("common.edit_group")}>
-            <button
-              aria-label={t("common.edit_group")}
-              className={icon_button_class}
-              data-testid="contact_group_edit"
-              type="button"
-              onClick={() => set_group_to_edit(open_group)}
-            >
-              <PencilSquareIcon className="h-[18px] w-[18px]" />
-            </button>
-          </Tooltip>
-          <Tooltip tip={t("common.delete_group")}>
-            <button
-              aria-label={t("common.delete_group")}
-              className={`${icon_button_class} hover:text-[var(--color-danger)]`}
-              data-testid="contact_group_delete"
-              type="button"
-              onClick={() => set_group_to_delete(open_group)}
-            >
-              <TrashIcon className="h-[18px] w-[18px]" />
-            </button>
-          </Tooltip>
+            <DropdownMenuContent align="end" className="w-52">
+              {member_emails && (
+                <DropdownMenuItem
+                  data-testid="contact_group_email"
+                  onSelect={() => on_compose_to(member_emails)}
+                >
+                  <EnvelopeIcon className="h-4 w-4" />
+                  {t("common.email_group")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                data-testid="contact_group_edit"
+                onSelect={() => set_group_to_edit(open_group)}
+              >
+                <PencilSquareIcon className="h-4 w-4" />
+                {t("common.edit_group")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                data-testid="contact_group_delete"
+                onSelect={() => set_group_to_delete(open_group)}
+              >
+                <TrashIcon className="h-4 w-4" />
+                {t("common.delete_group")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 py-2">
@@ -587,7 +606,10 @@ export function ContactGroupsPane({
               </Button>
             </div>
           ) : members.length === 0 ? (
-            <div className="contact_empty_state" data-testid="contact_group_empty">
+            <div
+              className="contact_empty_state"
+              data-testid="contact_group_empty"
+            >
               <span className="contact_empty_state_glyph">
                 <UserGroupIcon strokeWidth={1.25} />
               </span>
@@ -612,7 +634,7 @@ export function ContactGroupsPane({
               aria-label={t("common.group_members_label", {
                 name: open_group.name,
               })}
-              className="flex flex-col"
+              className="flex flex-col px-1"
             >
               {members.map((contact) => {
                 const name = contact_display_name(contact);
@@ -622,12 +644,12 @@ export function ContactGroupsPane({
                 return (
                   <li
                     key={contact.id}
-                    className="contact_group_member_row contact_row group/member my-0.5 flex w-full items-center gap-3 rounded-[var(--aster-radius-control)] px-3 py-2"
+                    className="contact_group_member_row my-px flex w-full items-center gap-3 px-2.5 py-1.5"
                     data-active={is_selected}
                     data-testid={`contact_group_member_${contact.id}`}
                     style={{
                       contentVisibility: "auto",
-                      containIntrinsicSize: "auto 52px",
+                      containIntrinsicSize: "auto 54px",
                     }}
                   >
                     <button
@@ -641,7 +663,7 @@ export function ContactGroupsPane({
                         email={primary_email}
                         name={name}
                         profile_color={contact.profile_color}
-                        size_px={36}
+                        size_px={40}
                       />
                       <span className="min-w-0 flex-1">
                         <span className="contact_row_name block truncate text-[14px] font-medium text-txt-primary">
@@ -657,8 +679,9 @@ export function ContactGroupsPane({
                     <Tooltip tip={t("common.remove_from_group")}>
                       <button
                         aria-label={`${t("common.remove_from_group")}: ${name || t("common.unnamed")}`}
-                        className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-[var(--color-danger)] focus-visible:opacity-100 group-hover/member:opacity-100 disabled:opacity-40"
+                        className="contact_group_icon_button contact_group_reveal disabled:opacity-40"
                         data-testid={`contact_group_remove_${contact.id}`}
+                        data-tone="danger"
                         disabled={pending_removal.has(contact.id)}
                         type="button"
                         onClick={() => void remove_member(contact)}
@@ -744,7 +767,7 @@ export function ContactGroupsPane({
             return (
               <div
                 key={group.id}
-                className="contact_group_row group/group my-0.5 flex w-full items-center gap-3 rounded-[var(--aster-radius-control)] px-3 py-2"
+                className="contact_group_row my-0.5 flex w-full items-center gap-1 rounded-[var(--aster-radius-control)] py-1.5 pe-2 ps-3"
               >
                 <button
                   ref={(element) => {
@@ -760,14 +783,16 @@ export function ContactGroupsPane({
                   type="button"
                   onClick={() => open_view(group)}
                 >
-                  <span className="contact_group_badge">
-                    <ContactGroupGlyph color={group.color} icon={group.icon} />
-                  </span>
+                  <ContactGroupAvatar
+                    color={group.color}
+                    icon={group.icon}
+                    size_px={40}
+                  />
                   <span className="min-w-0 flex-1">
                     <span className="contact_group_row_name block truncate text-[14px] font-medium text-txt-primary">
                       {group.name}
                     </span>
-                    <span className="contact_group_row_sub block text-[12px] text-txt-muted">
+                    <span className="contact_group_row_sub block truncate text-[12px] text-txt-muted">
                       {count_label}
                     </span>
                   </span>
@@ -775,7 +800,7 @@ export function ContactGroupsPane({
                 <Tooltip tip={t("common.edit_group")}>
                   <button
                     aria-label={`${t("common.edit_group")}: ${group.name}`}
-                    className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-txt-primary focus-visible:opacity-100 group-hover/group:opacity-100"
+                    className="contact_group_icon_button contact_group_reveal"
                     data-testid={`contact_group_row_edit_${group.id}`}
                     type="button"
                     onClick={() => set_group_to_edit(group)}
@@ -786,8 +811,9 @@ export function ContactGroupsPane({
                 <Tooltip tip={t("common.delete_group")}>
                   <button
                     aria-label={`${t("common.delete_group")}: ${group.name}`}
-                    className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-[var(--color-danger)] focus-visible:opacity-100 group-hover/group:opacity-100"
+                    className="contact_group_icon_button contact_group_reveal"
                     data-testid={`contact_group_row_delete_${group.id}`}
+                    data-tone="danger"
                     type="button"
                     onClick={() => set_group_to_delete(group)}
                   >
