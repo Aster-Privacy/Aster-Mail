@@ -50,6 +50,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { set_pending_settings_anchor } from "@/lib/settings_anchor";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
+import { use_quick_settings_toggle } from "@/components/settings/use_quick_settings_toggle";
 import { Spinner } from "@/components/ui/spinner";
 import {
   lazy_on_demand,
@@ -196,7 +197,6 @@ export default function IndexPage() {
   const payment_past_due = use_payment_past_due();
   const navigate = useNavigate();
   const { section } = useParams<{ section?: string }>();
-  const [is_quick_settings_open, set_is_quick_settings_open] = useState(false);
   const [is_survey_visible, set_is_survey_visible] = useState(false);
   const [checklist_complete, set_checklist_complete] = useState(false);
   const [checklist_visible, set_checklist_visible] = useState<boolean | null>(
@@ -237,14 +237,14 @@ export default function IndexPage() {
 
   state_ref.current = state;
 
-  const toggle_quick_settings = useCallback(() => {
-    if (window.matchMedia("(min-width: 1024px)").matches) {
-      set_is_quick_settings_open((prev) => !prev);
-    } else {
-      set_is_quick_settings_open(false);
-      state_ref.current.open_settings();
-    }
+  const open_full_settings = useCallback(() => {
+    state_ref.current.open_settings();
   }, []);
+  const {
+    is_open: is_quick_settings_open,
+    set_is_open: set_is_quick_settings_open,
+    toggle: toggle_quick_settings,
+  } = use_quick_settings_toggle(open_full_settings);
 
   const handle_top_bar_settings_click = useCallback(() => {
     const current = state_ref.current;
