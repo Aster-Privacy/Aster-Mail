@@ -687,6 +687,10 @@ export const de = {
     link_copied: "Link in die Zwischenablage kopiert",
     invite_sent: "Einladung gesendet!",
     email_sent: "E-Mail gesendet.",
+    undo_send_already_sent: "Rückgängig fehlgeschlagen. Bereits gesendet.",
+    undo_send_failed: "Rückgängig fehlgeschlagen. Versuchen Sie es erneut.",
+    undo_send_failed_offline:
+      "Rückgängig fehlgeschlagen. Prüfen Sie Ihre Verbindung.",
     undo_send_too_late:
       "Diese Nachricht wurde bereits gesendet und kann nicht zurückgerufen werden.",
     email_sent_successfully: "E-Mail erfolgreich gesendet",

@@ -783,6 +783,10 @@ export const it = {
     link_copied: "Link copiato negli appunti",
     invite_sent: "Invito inviato!",
     email_sent: "Email inviata.",
+    undo_send_already_sent: "Annullamento non riuscito. Già inviato.",
+    undo_send_failed: "Annullamento non riuscito. Riprova.",
+    undo_send_failed_offline:
+      "Annullamento non riuscito. Controlla la connessione.",
     undo_send_too_late:
       "Questo messaggio è già stato inviato e non può essere richiamato.",
     email_sent_successfully: "Email inviata con successo",

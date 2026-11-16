@@ -766,6 +766,9 @@ export const hi = {
     link_copied: "लिंक क्लिपबोर्ड पर कॉपी हो गया",
     invite_sent: "निमंत्रण भेज दिया गया",
     email_sent: "ईमेल भेज दिया गया।",
+    undo_send_already_sent: "पूर्ववत नहीं हो सका। पहले ही भेजा जा चुका है।",
+    undo_send_failed: "पूर्ववत नहीं हो सका। फिर से कोशिश करें।",
+    undo_send_failed_offline: "पूर्ववत नहीं हो सका। अपना कनेक्शन जांचें।",
     undo_send_too_late:
       "यह संदेश पहले ही भेजा जा चुका है और वापस नहीं लिया जा सकता।",
     email_sent_successfully: "ईमेल सफलतापूर्वक भेज दिया गया",

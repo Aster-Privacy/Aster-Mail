@@ -22,6 +22,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const cancel_send = vi.fn();
 const show_toast = vi.fn();
+const cancel_server = vi.fn();
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -30,7 +31,8 @@ const show_toast = vi.fn();
 vi.mock("@/services/send_queue", () => ({
   cancel_send: (...args: unknown[]) => cancel_send(...args),
   send_now: vi.fn(),
-  cancel_server_queued_email_with_reason: vi.fn(),
+  cancel_server_queued_email_with_reason: (...args: unknown[]) =>
+    cancel_server(...args),
   send_server_queued_immediately: vi.fn(),
 }));
 
@@ -106,15 +108,15 @@ describe("undoing a locally queued send", () => {
 
     window.addEventListener("astermail:undo-send", listener);
     const result = await mount_hook();
-    let outcome = true;
+    let outcome = "";
 
     await act(async () => {
       outcome = await result.current.cancel_send("local-1");
     });
     window.removeEventListener("astermail:undo-send", listener);
 
-    expect(outcome).toBe(false);
-    expect(show_toast).toHaveBeenCalledWith(expect.any(String), "error");
+    expect(outcome).toBe("too_late");
+    expect(show_toast).not.toHaveBeenCalled();
     expect(listener).not.toHaveBeenCalled();
     expect(undo_send_manager.get("local-1")).toBeDefined();
   });
@@ -133,14 +135,14 @@ describe("undoing a locally queued send", () => {
 
     window.addEventListener("astermail:undo-send", listener);
     const result = await mount_hook();
-    let outcome = false;
+    let outcome = "";
 
     await act(async () => {
       outcome = await result.current.cancel_send("local-2");
     });
     window.removeEventListener("astermail:undo-send", listener);
 
-    expect(outcome).toBe(true);
+    expect(outcome).toBe("cancelled");
     expect(listener).toHaveBeenCalledTimes(1);
     expect(undo_send_manager.get("local-2")).toBeUndefined();
   });
@@ -188,7 +190,7 @@ describe("sends that wait on a timer in this tab", () => {
 
     window.addEventListener("astermail:undo-send", listener);
     const result = await mount_hook();
-    let outcome = false;
+    let outcome = "";
 
     await act(async () => {
       outcome = await result.current.cancel_send("tab-1");
@@ -196,7 +198,7 @@ describe("sends that wait on a timer in this tab", () => {
     window.removeEventListener("astermail:undo-send", listener);
     vi.advanceTimersByTime(10_000);
 
-    expect(outcome).toBe(true);
+    expect(outcome).toBe("cancelled");
     expect(on_timer).not.toHaveBeenCalled();
     expect(cancel_send).not.toHaveBeenCalled();
     expect(listener).toHaveBeenCalledTimes(1);
@@ -275,7 +277,7 @@ describe("sends that wait on a timer in this tab", () => {
 
     window.addEventListener("astermail:undo-send", listener);
     const result = await mount_hook();
-    let outcome = true;
+    let outcome = "";
 
     await act(async () => {
       outcome = await result.current.cancel_send("tab-3");
@@ -283,8 +285,8 @@ describe("sends that wait on a timer in this tab", () => {
     });
     window.removeEventListener("astermail:undo-send", listener);
 
-    expect(outcome).toBe(false);
-    expect(show_toast).toHaveBeenCalledWith(expect.any(String), "error");
+    expect(outcome).toBe("too_late");
+    expect(show_toast).not.toHaveBeenCalled();
     expect(listener).not.toHaveBeenCalled();
     expect(on_send_immediately).not.toHaveBeenCalled();
     expect(undo_send_manager.get("tab-3")?.is_in_flight).toBe(true);
@@ -394,5 +396,92 @@ describe("sends that wait on a timer in this tab", () => {
     expect(localStorage.getItem("astermail:waiting_tab_sends")).toBeNull();
     expect(on_send_immediately).not.toHaveBeenCalled();
     expect(undo_send_manager.get("server-1")).toBeDefined();
+  });
+});
+
+function add_server_queued_send(id: string) {
+  undo_send_manager.add({
+    id,
+    to: ["a@example.com"],
+    subject: "s",
+    body: "b",
+    scheduled_time: Date.now() + 20_000,
+    total_seconds: 20,
+    is_server_queued: true,
+    server_queue_id: `server-${id}`,
+  });
+}
+
+describe("undoing a send the server holds", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    await act(async () => {
+      mounted_roots.splice(0).forEach((root) => root.unmount());
+    });
+    undo_send_manager.get_all().forEach((p) => undo_send_manager.remove(p.id));
+  });
+
+  it("reports a message the server already sent as too late", async () => {
+    add_server_queued_send("srv-1");
+    cancel_server.mockResolvedValue("expired");
+    const result = await mount_hook();
+    let outcome = "";
+
+    await act(async () => {
+      outcome = await result.current.cancel_send("srv-1");
+    });
+
+    expect(outcome).toBe("too_late");
+    expect(show_toast).not.toHaveBeenCalled();
+    expect(undo_send_manager.get("srv-1")).toBeDefined();
+  });
+
+  it("keeps offline and server failures apart", async () => {
+    add_server_queued_send("srv-2");
+    const result = await mount_hook();
+    let outcomes: string[] = [];
+
+    cancel_server.mockResolvedValueOnce("offline");
+    cancel_server.mockResolvedValueOnce("failed");
+    cancel_server.mockRejectedValueOnce(new Error("boom"));
+    await act(async () => {
+      outcomes = [
+        await result.current.cancel_send("srv-2"),
+        await result.current.cancel_send("srv-2"),
+        await result.current.cancel_send("srv-2"),
+      ];
+    });
+
+    expect(outcomes).toEqual(["offline", "failed", "failed"]);
+    expect(show_toast).not.toHaveBeenCalled();
+  });
+
+  it("sends one cancel request for repeated clicks", async () => {
+    add_server_queued_send("srv-3");
+    let finish: (value: string) => void = () => {};
+
+    cancel_server.mockReturnValue(
+      new Promise<string>((done) => {
+        finish = done;
+      }),
+    );
+    const listener = vi.fn();
+
+    window.addEventListener("astermail:undo-send", listener);
+    const result = await mount_hook();
+    let outcomes: string[] = [];
+
+    await act(async () => {
+      const first = result.current.cancel_send("srv-3");
+      const second = result.current.cancel_send("srv-3");
+
+      finish("cancelled");
+      outcomes = await Promise.all([first, second]);
+    });
+    window.removeEventListener("astermail:undo-send", listener);
+
+    expect(cancel_server).toHaveBeenCalledTimes(1);
+    expect(outcomes).toEqual(["cancelled", "cancelled"]);
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 });

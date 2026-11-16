@@ -30,8 +30,6 @@ import { ignore_error } from "@/lib/ignore_error";
 import { device_traces_erased } from "@/lib/device_erase_latch";
 import { emit_email_sent, emit_thread_reply_sent } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { show_toast } from "@/components/toast/simple_toast";
-import { get_active_translations } from "@/lib/i18n/translations";
 import {
   cancel_send as cancel_queue_send,
   send_now as send_queue_now,
@@ -470,9 +468,81 @@ export function dispatch_undo_send_event(
   );
 }
 
+export type UndoSendCancelOutcome =
+  "cancelled" | "too_late" | "failed" | "offline";
+
+function outcome_from_server(
+  result: "cancelled" | "expired" | "failed" | "offline",
+): UndoSendCancelOutcome {
+  if (result === "expired") return "too_late";
+
+  return result;
+}
+
+async function cancel_pending_send(id: string): Promise<UndoSendCancelOutcome> {
+  const pending = undo_send_manager.get(id);
+
+  if (!pending) return "too_late";
+
+  let payload: PendingSendPayload | undefined;
+
+  if (pending.is_server_queued && pending.server_queue_id) {
+    const result = await cancel_server_queued_email_with_reason(
+      pending.server_queue_id,
+    ).catch((caught) => {
+      ignore_error("hooks/use_undo_send:use_undo_send", caught);
+
+      return "failed" as const;
+    });
+    const outcome = outcome_from_server(result);
+
+    if (outcome !== "cancelled") return outcome;
+
+    payload = take_pending_send_payload(id);
+    undo_send_manager.remove(id);
+  } else if (pending.timeout_id !== undefined) {
+    if (pending.is_in_flight || pending.scheduled_time <= Date.now()) {
+      return "too_late";
+    }
+
+    payload = take_pending_send_payload(id);
+    undo_send_manager.remove(id);
+    pending.on_undo?.();
+  } else {
+    const cancelled = cancel_queue_send(id);
+
+    if (!cancelled) return "too_late";
+
+    payload = take_pending_send_payload(id);
+    undo_send_manager.remove(id);
+  }
+
+  remove_pending_thread_reply(id);
+  play_iconic_sound("undo_send");
+  dispatch_undo_send_event(id, pending, payload);
+
+  return "cancelled";
+}
+
+const cancels_in_flight = new Map<string, Promise<UndoSendCancelOutcome>>();
+
+export function cancel_undo_send(id: string): Promise<UndoSendCancelOutcome> {
+  const running = cancels_in_flight.get(id);
+
+  if (running) return running;
+
+  const run = cancel_pending_send(id).finally(() => {
+    cancels_in_flight.delete(id);
+  });
+
+  cancels_in_flight.set(id, run);
+
+  return run;
+}
+
 interface UseUndoSendReturn {
   pending_sends: PendingSend[];
-  cancel_send: (id: string) => Promise<boolean>;
+  cancel_send: (id: string) => Promise<UndoSendCancelOutcome>;
   send_immediately: (id: string) => void;
   get_time_remaining: (id: string) => number;
   remove_pending: (id: string) => void;
@@ -487,70 +557,10 @@ export function use_undo_send(): UseUndoSendReturn {
     return unsubscribe;
   }, []);
 
-  const cancel_send = useCallback(async (id: string): Promise<boolean> => {
-    const pending = undo_send_manager.get(id);
-
-    if (!pending) return false;
-
-    let payload: PendingSendPayload | undefined;
-
-    if (pending.is_server_queued && pending.server_queue_id) {
-      const outcome = await cancel_server_queued_email_with_reason(
-        pending.server_queue_id,
-      ).catch((caught) => {
-        ignore_error("hooks/use_undo_send:use_undo_send", caught);
-
-        return "failed" as const;
-      });
-
-      if (outcome !== "cancelled") {
-        show_toast(
-          outcome === "failed"
-            ? get_active_translations().common.something_went_wrong_try_again
-            : get_active_translations().common.undo_send_too_late,
-          "error",
-        );
-
-        return false;
-      }
-
-      payload = take_pending_send_payload(id);
-      undo_send_manager.remove(id);
-    } else if (pending.timeout_id !== undefined) {
-      if (pending.is_in_flight || pending.scheduled_time <= Date.now()) {
-        show_toast(
-          get_active_translations().common.undo_send_too_late,
-          "error",
-        );
-
-        return false;
-      }
-
-      payload = take_pending_send_payload(id);
-      undo_send_manager.remove(id);
-      pending.on_undo?.();
-    } else {
-      const cancelled = cancel_queue_send(id);
-
-      if (!cancelled) {
-        show_toast(
-          get_active_translations().common.undo_send_too_late,
-          "error",
-        );
-
-        return false;
-      }
-
-      payload = take_pending_send_payload(id);
-      undo_send_manager.remove(id);
-    }
-
-    remove_pending_thread_reply(id);
-    play_iconic_sound("undo_send");
-    dispatch_undo_send_event(id, pending, payload);
-
-    return true;
-  }, []);
+  const cancel_send = useCallback(
+    (id: string): Promise<UndoSendCancelOutcome> => cancel_undo_send(id),
+    [],
+  );
 
   const send_immediately = useCallback((id: string): void => {
     const pending = undo_send_manager.get(id);

@@ -789,6 +789,9 @@ export const fr = {
     link_copied: "Lien copié dans le presse-papiers",
     invite_sent: "Invitation envoyée !",
     email_sent: "E-mail envoyé.",
+    undo_send_already_sent: "Impossible d’annuler. Déjà envoyé.",
+    undo_send_failed: "Impossible d’annuler. Réessayez.",
+    undo_send_failed_offline: "Impossible d’annuler. Vérifiez votre connexion.",
     undo_send_too_late:
       "Ce message a déjà été envoyé et ne peut pas être rappelé.",
     email_sent_successfully: "E-mail envoyé avec succès",
