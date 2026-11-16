@@ -31,6 +31,7 @@ import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { use_auth } from "@/contexts/auth_context";
 import { GUARD_ACTION, id_subject } from "@/lib/crypto/guard_action";
 import { use_i18n } from "@/lib/i18n/context";
+import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 import { take_setup_after_rescue } from "@/pages/guard/guard_rescue_form";
 import { use_should_reduce_motion } from "@/provider";
 import { guard_veto } from "@/services/api/guard";
@@ -135,10 +136,24 @@ export function GuardRescueBanner({ user_id }: { user_id: string | null }) {
               </div>
               <div className="ms-4 flex flex-shrink-0 items-center gap-1.5">
                 {phase === "stopped" ? (
-                  <GuardBannerPill
-                    label={t("common.done")}
-                    on_click={() => set_rescue_id(null)}
-                  />
+                  <>
+                    <GuardBannerPill
+                      emphasis
+                      label={t("guard.panic_change_password")}
+                      test_id="guard_rescue_change_password"
+                      on_click={() => {
+                        set_rescue_id(null);
+                        open_settings_target({
+                          section: "security",
+                          anchor: SETTINGS_ANCHORS.password,
+                        });
+                      }}
+                    />
+                    <GuardBannerPill
+                      label={t("common.done")}
+                      on_click={() => set_rescue_id(null)}
+                    />
+                  </>
                 ) : (
                   <GuardBannerPill
                     emphasis

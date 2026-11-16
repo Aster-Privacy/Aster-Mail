@@ -256,6 +256,42 @@ export function GuardLogo({ className }: { className?: string }) {
   );
 }
 
+export function GuardResultView({
+  title,
+  body,
+  actions,
+  children,
+  test_id,
+  live = false,
+  className,
+}: {
+  title: string;
+  body?: string;
+  actions: ReactNode;
+  children?: ReactNode;
+  test_id?: string;
+  live?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      aria-live={live ? "polite" : undefined}
+      className={cn("flex flex-col items-center text-center", className)}
+      data-testid={test_id}
+    >
+      <GuardLogo className="mb-5" />
+      <h2 className="text-lg font-semibold text-txt-primary">{title}</h2>
+      {body && (
+        <p className="mt-1.5 max-w-sm text-sm text-txt-muted" role="status">
+          {body}
+        </p>
+      )}
+      {children}
+      <div className="mt-6 flex w-full flex-col gap-2">{actions}</div>
+    </div>
+  );
+}
+
 type TileTone = "neutral" | "brand" | "danger" | "warning" | "success";
 
 const TILE_TONES: Record<TileTone, string> = {
@@ -266,18 +302,9 @@ const TILE_TONES: Record<TileTone, string> = {
   success: "text-emerald-600 dark:text-emerald-400",
 };
 
-const TILE_TINTS: Record<TileTone, string> = {
-  neutral: "bg-surf-tertiary",
-  brand: "bg-brand/10",
-  danger: "bg-red-500/10",
-  warning: "bg-amber-500/15",
-  success: "bg-emerald-500/15",
-};
-
 const TILE_SIZES = {
   md: "h-6 min-w-6",
   lg: "h-12 w-12 [&>svg]:h-11 [&>svg]:w-11",
-  tinted: "h-9 w-9 rounded-xl [&>svg]:h-5 [&>svg]:w-5",
 } as const;
 
 export function GuardIconTile({
@@ -298,7 +325,6 @@ export function GuardIconTile({
         "flex shrink-0 items-center justify-center",
         TILE_SIZES[size],
         TILE_TONES[tone],
-        size === "tinted" && TILE_TINTS[tone],
         className,
       )}
     >
@@ -403,11 +429,11 @@ export function GuardFlag({ code }: { code?: string | null }) {
 type ChipTone = "neutral" | "brand" | "danger" | "warning" | "success";
 
 const CHIP_TONES: Record<ChipTone, string> = {
-  neutral: "bg-surf-tertiary text-txt-secondary",
-  brand: "bg-brand/10 text-brand",
-  danger: "bg-red-500/10 text-red-600 dark:text-red-400",
-  warning: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-  success: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  neutral: "text-txt-secondary",
+  brand: "text-brand",
+  danger: "text-red-600 dark:text-red-400",
+  warning: "text-amber-700 dark:text-amber-300",
+  success: "text-emerald-700 dark:text-emerald-300",
 };
 
 export function GuardChip({
@@ -426,7 +452,7 @@ export function GuardChip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium tabular-nums",
+        "inline-flex items-center gap-1.5 text-xs font-medium tabular-nums [&>svg]:text-txt-muted",
         CHIP_TONES[tone],
         className,
       )}
@@ -437,11 +463,6 @@ export function GuardChip({
     </span>
   );
 }
-
-const GUARD_SHIELD_PATH =
-  "M12 2.9c-2.3 1.35-4.6 2.2-7.1 2.55-.1 0-.15.1-.15.2v5.6c0 4.55 3 8.3 7.25 9.95 4.25-1.65 7.25-5.4 7.25-9.95v-5.6c0-.1-.05-.2-.15-.2-2.5-.35-4.8-1.2-7.1-2.55Z";
-const GUARD_STAR_PATH =
-  "M12 7.7Q12.7 10.9 15.9 11.6Q12.7 12.3 12 15.5Q11.3 12.3 8.1 11.6Q11.3 10.9 12 7.7Z";
 
 export function GuardMarkIcon({
   className,
@@ -462,57 +483,10 @@ export function GuardMarkIcon({
       strokeWidth={1.5}
       viewBox="0 0 24 24"
     >
-      <path d={GUARD_SHIELD_PATH} />
-      <path d={GUARD_STAR_PATH} />
-    </svg>
-  );
-}
-
-export function GuardHero({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden
-      className={className}
-      data-testid="guard_hero"
-      fill="none"
-      height={150}
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      viewBox="0 0 300 150"
-      width={300}
-    >
-      <g opacity={0.45} strokeDasharray="2 6">
-        <path d="M72 75H124" />
-        <path d="M216 75H226" />
-      </g>
-      <g transform="translate(18 34)">
-        <rect height={82} rx={9} width={44} x={0} y={0} />
-        <path d="M17 8h10" />
-        <circle cx={22} cy={41} r={7} strokeWidth={1.6} />
-        <path d="m19 41 2 2 4-4" strokeWidth={1.6} />
-      </g>
-      <g transform="translate(228 40)">
-        <rect height={44} rx={5} width={60} x={4} y={0} />
-        <path d="M0 54h68" />
-        <text
-          fill="currentColor"
-          fontSize={17}
-          fontWeight={600}
-          letterSpacing={2}
-          stroke="none"
-          textAnchor="middle"
-          x={34}
-          y={29}
-        >
-          42
-        </text>
-      </g>
-      <g strokeWidth={0.42} transform="translate(110 15) scale(5)">
-        <path d={GUARD_SHIELD_PATH} />
-        <path d={GUARD_STAR_PATH} />
-      </g>
+      <path d="M12 2.714A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.18 3.28 9.6 7.9 11.29" />
+      <path d="M12 2.714A11.959 11.959 0 0 0 20.25 6h.152c.388 1.18.598 2.441.598 3.75 0 .37-.02.74-.05 1.1" />
+      <rect height={5.25} rx={1.125} width={7.5} x={13.5} y={16.5} />
+      <path d="M15 16.5v-1.5a2.25 2.25 0 0 1 4.5 0v1.5" />
     </svg>
   );
 }

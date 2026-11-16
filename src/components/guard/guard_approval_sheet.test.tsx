@@ -582,6 +582,8 @@ describe("GuardApprovalSheet", () => {
       container.querySelector('[data-testid="guard_approve_result_denied"]'),
     ).not.toBeNull();
     expect(container.textContent).toContain("guard.approve_denied_body");
+    expect(container.textContent).toContain("guard.panic_change_password");
+    expect(on_done).not.toHaveBeenCalled();
   });
 
   it("shows an unknown device when the context cannot be read", () => {

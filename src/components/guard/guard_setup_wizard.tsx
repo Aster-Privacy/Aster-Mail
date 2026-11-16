@@ -23,7 +23,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import type { ReactNode } from "react";
 
-import { useEffect, useMemo, useState } from "react";
+import { Children, useEffect, useMemo, useState } from "react";
 import { SettingToggleRow } from "@aster/ui";
 import {
   ArrowDownTrayIcon,
@@ -40,9 +40,7 @@ import { GuardCodeCard } from "@/components/guard/guard_code_card";
 import type { GuardFeatureKind } from "@/components/guard/guard_visuals";
 import {
   GuardFeatureIcon,
-  GuardHero,
-  GuardIconTile,
-  GuardMarkIcon,
+  GuardLogo,
 } from "@/components/guard/guard_visuals";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -147,24 +145,34 @@ interface SwitchRowsProps {
 function GuardSubOptions({
   active,
   label,
+  parent,
   children,
   test_id,
 }: {
   active: boolean;
   label?: string;
+  parent: ReactNode;
   children: ReactNode;
   test_id: string;
 }) {
   return (
-    <div
-      aria-disabled={active ? undefined : true}
-      aria-label={label}
-      className="mx-4 mb-3 overflow-hidden rounded-2xl bg-surf-secondary"
-      data-active={active}
-      data-testid={test_id}
-      role="group"
-    >
-      {children}
+    <div className="guard_tree">
+      <div className="guard_tree_parent">{parent}</div>
+      <div
+        aria-disabled={active ? undefined : true}
+        aria-label={label}
+        className="guard_tree_children"
+        data-active={active}
+        data-testid={test_id}
+        role="group"
+      >
+        {Children.toArray(children).map((child, index) => (
+          <div key={index} className="guard_tree_child">
+            <span aria-hidden className="guard_tree_trunk" />
+            {child}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -204,23 +212,25 @@ export function GuardSwitchRows({
 
   return (
     <>
-      <SettingToggleRow
-        checked={nda}
-        description={describe("guard.setup_new_device_approval_description")}
-        disabled={disabled}
-        icon={<DevicePhoneMobileIcon />}
-        label={t("guard.setup_new_device_approval")}
-        on_change={(on) =>
-          on_change(
-            toggle_guard_switch(
-              selection,
-              GUARD_SWITCH.new_device_approval,
-              on,
-            ),
-          )
-        }
-      />
       <GuardSubOptions
+        parent={
+          <SettingToggleRow
+            checked={nda}
+            description={describe("guard.setup_new_device_approval_description")}
+            disabled={disabled}
+            icon={<DevicePhoneMobileIcon />}
+            label={t("guard.setup_new_device_approval")}
+            on_change={(on) =>
+              on_change(
+                toggle_guard_switch(
+                  selection,
+                  GUARD_SWITCH.new_device_approval,
+                  on,
+                ),
+              )
+            }
+          />
+        }
         active={nda}
         test_id="guard_setup_device_options"
       >
@@ -242,19 +252,21 @@ export function GuardSwitchRows({
           }
         />
       </GuardSubOptions>
-      <SettingToggleRow
-        checked={hold}
-        description={describe("guard.setup_hold_changes_description")}
-        disabled={disabled}
-        icon={<ClockIcon />}
-        label={t("guard.setup_hold_changes")}
-        on_change={(on) =>
-          on_change(
-            toggle_guard_switch(selection, GUARD_SWITCH.hold_changes, on),
-          )
-        }
-      />
       <GuardSubOptions
+        parent={
+          <SettingToggleRow
+            checked={hold}
+            description={describe("guard.setup_hold_changes_description")}
+            disabled={disabled}
+            icon={<ClockIcon />}
+            label={t("guard.setup_hold_changes")}
+            on_change={(on) =>
+              on_change(
+                toggle_guard_switch(selection, GUARD_SWITCH.hold_changes, on),
+              )
+            }
+          />
+        }
         active={hold}
         label={t("guard.setup_hold_scopes_title")}
         test_id="guard_setup_hold_scopes"
@@ -304,19 +316,19 @@ function WizardSteps({ step }: { step: number }) {
 
   return (
     <div
-      className="mb-3 flex items-center gap-3"
+      className="-mt-1 mb-3 me-2 flex h-7 items-center gap-3"
       data-testid="guard_setup_steps"
     >
       <span className="shrink-0 text-xs font-medium text-txt-muted tabular-nums">
         {t("guard.setup_step_counter", { step })}
       </span>
-      <div aria-hidden className="flex max-w-[120px] flex-1 gap-1">
+      <div aria-hidden className="flex min-w-0 flex-1 gap-1.5">
         {Array.from({ length: WIZARD_STEP_COUNT }, (_, index) => (
           <span
             key={index}
             className={cn(
               "h-1.5 flex-1 rounded-full transition-colors",
-              index < step ? "bg-brand" : "bg-surf-tertiary",
+              index < step ? "bg-brand" : "bg-[color-mix(in_srgb,var(--text-muted)_26%,transparent)]",
             )}
           />
         ))}
@@ -443,8 +455,8 @@ export function GuardSetupWizard({
               className="mx-auto flex w-full max-w-[420px] flex-col items-center px-6 pb-6 pt-10 text-center"
               data-testid="guard_setup_intro"
             >
-              <GuardHero className="h-auto w-full max-w-[300px] text-brand" />
-              <ModalTitle className="mt-[26px] !text-[26px] font-semibold !leading-8 tracking-[-0.2px] text-txt-primary">
+              <GuardLogo className="mb-6" />
+              <ModalTitle className="!text-[26px] font-semibold !leading-8 tracking-[-0.2px] text-txt-primary">
                 {t("guard.intro_title")}
               </ModalTitle>
               <ModalDescription className="mx-2 mt-2 text-[15px] leading-[22px] text-txt-secondary">
@@ -610,9 +622,10 @@ export function GuardSetupWizard({
                     ([flag]) => (selection.switches & flag) !== 0,
                   ).map(([flag, key]) => (
                     <li key={flag} className="flex items-center gap-3">
-                      <GuardIconTile size="tinted" tone="brand">
-                        <CheckIcon />
-                      </GuardIconTile>
+                      <CheckIcon
+                        aria-hidden
+                        className="h-5 w-5 shrink-0 text-txt-muted"
+                      />
                       <span className="text-sm font-medium text-txt-primary">
                         {t(key)}
                       </span>
@@ -654,12 +667,12 @@ export function GuardSetupWizard({
           )}
           {step === "done" && (
             <>
-              <ModalHeader>
-                <div className="mb-3 flex justify-center">
-                  <GuardMarkIcon className="h-12 w-12 text-brand" />
-                </div>
-                <ModalTitle>{t("guard.setup_done_title")}</ModalTitle>
-                <ModalDescription>
+              <ModalHeader className="items-center pe-6 text-center">
+                <GuardLogo className="mb-5" />
+                <ModalTitle className="text-center">
+                  {t("guard.setup_done_title")}
+                </ModalTitle>
+                <ModalDescription className="text-center">
                   {t("guard.setup_done_description")}
                 </ModalDescription>
               </ModalHeader>

@@ -21,19 +21,14 @@
 import type { GuardSignInState } from "@/services/guard/guard_sign_in";
 
 import { useState } from "react";
-import {
-  ClockIcon,
-  DevicePhoneMobileIcon,
-  ExclamationTriangleIcon,
-  NoSymbolIcon,
-} from "@heroicons/react/24/outline";
+import { ClockIcon } from "@heroicons/react/24/outline";
 
 import { GuardCodeEntry } from "@/components/guard/guard_code_entry";
 import {
   format_guard_countdown,
   GuardChip,
-  GuardIconTile,
   GuardLogo,
+  GuardResultView,
   use_guard_now,
 } from "@/components/guard/guard_visuals";
 import { Button } from "@/components/ui/button";
@@ -49,6 +44,19 @@ export function format_guard_time(iso: string): string {
   return new Date(ms).toLocaleString(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
+  });
+}
+
+export function format_guard_short_time(iso: string): string {
+  const ms = Date.parse(iso);
+
+  if (Number.isNaN(ms)) return "";
+
+  return new Date(ms).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 
@@ -151,7 +159,7 @@ function NumberCard({
           </span>
         ))}
       </p>
-      <div className="mt-4 flex flex-wrap justify-center gap-2">
+      <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1">
         <GuardChip
           icon={
             <span className="relative flex h-2 w-2">
@@ -173,10 +181,10 @@ function NumberCard({
   );
 }
 
-const ENDED_TILES = {
-  denied: { tone: "danger", icon: NoSymbolIcon },
-  expired: { tone: "warning", icon: ClockIcon },
-  error: { tone: "danger", icon: ExclamationTriangleIcon },
+const ENDED_TITLES = {
+  denied: "guard.sign_in_denied_title",
+  expired: "guard.sign_in_expired_title",
+  error: "guard.sign_in_error_title",
 } as const;
 
 function EndedState({
@@ -184,26 +192,23 @@ function EndedState({
   message,
   on_back,
 }: {
-  kind: keyof typeof ENDED_TILES;
+  kind: keyof typeof ENDED_TITLES;
   message: string;
   on_back: () => void;
 }) {
   const { t } = use_i18n();
-  const tile = ENDED_TILES[kind];
-  const Icon = tile.icon;
 
   return (
-    <div className="flex flex-col items-center space-y-4 text-center">
-      <GuardIconTile size="lg" tone={tile.tone}>
-        <Icon className="h-7 w-7" />
-      </GuardIconTile>
-      <p className="text-sm text-txt-primary" role="status">
-        {message}
-      </p>
-      <Button className="w-full" size="lg" variant="depth" onClick={on_back}>
-        {t("guard.sign_in_back")}
-      </Button>
-    </div>
+    <GuardResultView
+      actions={
+        <Button className="w-full" size="lg" variant="depth" onClick={on_back}>
+          {t("guard.sign_in_back")}
+        </Button>
+      }
+      body={message}
+      test_id={`guard_sign_in_ended_${kind}`}
+      title={t(ENDED_TITLES[kind])}
+    />
   );
 }
 
@@ -219,11 +224,6 @@ export function GuardWaitingScreen({
   const header = (
     <div className="text-center mb-6">
       <GuardLogo className="mb-6" />
-      <div className="mb-4 flex justify-center">
-        <GuardIconTile size="lg" tone="brand">
-          <DevicePhoneMobileIcon className="h-7 w-7" />
-        </GuardIconTile>
-      </div>
       <h2 className="text-xl font-semibold mb-2 text-txt-primary">
         {t("guard.sign_in_waiting_title")}
       </h2>
@@ -233,6 +233,11 @@ export function GuardWaitingScreen({
     </div>
   );
 
+  const ended =
+    state.phase === "denied" ||
+    state.phase === "expired" ||
+    state.phase === "error" ||
+    state.phase === "rescue";
   let body: JSX.Element;
 
   if (state.phase === "denied") {
@@ -321,7 +326,7 @@ export function GuardWaitingScreen({
 
   return (
     <div className="w-full max-w-sm mx-auto" data-testid="guard_waiting_screen">
-      {header}
+      {!ended && header}
       {body}
     </div>
   );

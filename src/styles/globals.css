@@ -5415,3 +5415,70 @@ html[data-input-modality="keyboard"]
     height: 3rem !important;
   }
 }
+
+.guard_tree {
+  --guard_tree_line: color-mix(in srgb, var(--text-muted) 45%, transparent);
+  --guard_tree_indent: 34px;
+  --guard_tree_x: calc(var(--aster-island-row-pad-x, 16px) + 10.25px);
+}
+
+.guard_tree_parent {
+  position: relative;
+}
+
+.guard_tree_parent::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--guard_tree_x);
+  top: calc(50% + 15px);
+  bottom: 0;
+  border-inline-start: 1.5px solid var(--guard_tree_line);
+  pointer-events: none;
+}
+
+.guard_tree_children {
+  padding-inline-start: var(--guard_tree_indent);
+}
+
+.guard_tree_child {
+  position: relative;
+}
+
+.guard_tree_child::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--guard_tree_x) - var(--guard_tree_indent));
+  top: 0;
+  height: calc(50% + 0.75px);
+  width: calc(var(--guard_tree_indent) - 13.5px);
+  border-inline-start: 1.5px solid var(--guard_tree_line);
+  border-bottom: 1.5px solid var(--guard_tree_line);
+  border-end-start-radius: 8px;
+  pointer-events: none;
+}
+
+.guard_tree_child::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--guard_tree_x) - var(--guard_tree_indent) + 13.75px);
+  top: calc(50% - 3.5px);
+  width: 7px;
+  height: 7px;
+  border-top: 1.5px solid var(--guard_tree_line);
+  border-inline-end: 1.5px solid var(--guard_tree_line);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+[dir="rtl"] .guard_tree_child::after {
+  transform: rotate(-45deg);
+}
+
+.guard_tree_child:not(:last-child) > .guard_tree_trunk {
+  position: absolute;
+  inset-inline-start: calc(var(--guard_tree_x) - var(--guard_tree_indent));
+  top: 50%;
+  bottom: 0;
+  border-inline-start: 1.5px solid var(--guard_tree_line);
+  pointer-events: none;
+}

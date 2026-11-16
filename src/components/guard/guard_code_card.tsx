@@ -110,7 +110,7 @@ export function GuardCodeCard({ device }: GuardCodeCardProps) {
       data-testid="guard_code_card"
     >
       <div className="flex items-start gap-3">
-        <GuardIconTile tone="brand">
+        <GuardIconTile>
           <KeyIcon className="h-5 w-5" />
         </GuardIconTile>
         <div className="min-w-0">

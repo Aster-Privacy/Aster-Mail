@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  is_top_position,
   resolve_toast_layout,
   resolve_toast_position,
   type ResolvedToastPosition,
@@ -35,13 +36,20 @@ export {
 } from "@aster/ui";
 export type { ToastPosition, ToastPositionLayout } from "@aster/ui";
 
+export function center_toast_position(
+  position: ToastPosition,
+): ToastPosition {
+  return is_top_position(position) ? "top" : "bottom";
+}
+
 export function use_toast_position(
   override?: ToastPosition,
   lift_above_island = false,
 ): ResolvedToastPosition {
   const { preferences } = use_preferences();
-  const position =
-    override ?? resolve_toast_position(preferences.toast_position);
+  const position = center_toast_position(
+    override ?? resolve_toast_position(preferences.toast_position),
+  );
 
   return resolve_toast_layout(position, lift_above_island);
 }

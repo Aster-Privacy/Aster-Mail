@@ -112,15 +112,6 @@ function GuardRescueScreen({
 }) {
   return (
     <div className="w-full" data-testid="guard_rescue_screen">
-      <div className="flex justify-center mb-6">
-        <img
-          alt="Aster"
-          className="h-10"
-          decoding="async"
-          draggable={false}
-          src="/text_logo.png"
-        />
-      </div>
       <GuardRescueProgress rescue={rescue} on_back={on_back} />
     </div>
   );

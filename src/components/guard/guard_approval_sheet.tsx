@@ -27,10 +27,8 @@ import type {
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  CheckCircleIcon,
   ClockIcon,
   MapPinIcon,
-  NoSymbolIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
 
@@ -50,9 +48,9 @@ import {
   GuardChip,
   GuardDetailRow,
   GuardFlag,
-  GuardIconTile,
-  GuardMarkIcon,
+  GuardLogo,
   GuardOsIcon,
+  GuardResultView,
   use_guard_now,
 } from "@/components/guard/guard_visuals";
 import { format_guard_time } from "@/components/guard/guard_waiting_screen";
@@ -73,6 +71,7 @@ import {
 import { OtpInput } from "@/components/ui/otp_input";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 import { use_should_reduce_motion } from "@/provider";
 import {
   get_passphrase_from_memory,
@@ -228,38 +227,46 @@ function SheetResult({
   const { t } = use_i18n();
   const approved = kind === "approved";
 
+  const change_password = () => {
+    on_close();
+    open_settings_target({
+      section: "security",
+      anchor: SETTINGS_ANCHORS.password,
+    });
+  };
+
   return (
-    <div
-      aria-live="polite"
-      className="flex flex-col items-center px-6 pb-6 pt-8 text-center"
-      data-testid={`guard_approve_result_${kind}`}
-    >
-      <GuardIconTile size="lg" tone={approved ? "success" : "danger"}>
-        {approved ? (
-          <CheckCircleIcon className="h-7 w-7" />
+    <GuardResultView
+      live
+      actions={
+        approved ? (
+          <Button className="w-full" size="lg" variant="depth" onClick={on_close}>
+            {t("common.done")}
+          </Button>
         ) : (
-          <NoSymbolIcon className="h-7 w-7" />
-        )}
-      </GuardIconTile>
-      <h2 className="mt-4 text-lg font-semibold text-txt-primary">
-        {t(approved ? "guard.approve_approved" : "guard.approve_denied")}
-      </h2>
-      <p className="mt-1 max-w-sm text-sm text-txt-muted">
-        {t(
-          approved
-            ? "guard.approve_approved_body"
-            : "guard.approve_denied_body",
-        )}
-      </p>
-      <Button
-        className="mt-6 w-full"
-        size="lg"
-        variant="outline"
-        onClick={on_close}
-      >
-        {t("common.done")}
-      </Button>
-    </div>
+          <>
+            <Button
+              className="w-full"
+              data-testid="guard_approve_change_password"
+              size="lg"
+              variant="depth"
+              onClick={change_password}
+            >
+              {t("guard.panic_change_password")}
+            </Button>
+            <Button className="w-full" size="lg" variant="outline" onClick={on_close}>
+              {t("common.done")}
+            </Button>
+          </>
+        )
+      }
+      body={t(
+        approved ? "guard.approve_approved_body" : "guard.approve_denied_body",
+      )}
+      className="px-6 pb-6 pt-8"
+      test_id={`guard_approve_result_${kind}`}
+      title={t(approved ? "guard.approve_approved" : "guard.approve_denied")}
+    />
   );
 }
 
@@ -294,6 +301,7 @@ export function GuardApprovalSheet({
 
       return;
     }
+    if (result === "denied") return;
     const timer = window.setTimeout(() => on_done(request_id), finish_delay_ms);
 
     return () => window.clearTimeout(timer);
@@ -394,12 +402,7 @@ export function GuardApprovalSheet({
           ) : (
             <>
               <ModalHeader className="items-center pe-6 text-center">
-                <div className="mb-4 flex justify-center">
-                  <GuardMarkIcon
-                    className="h-12 w-12 text-brand"
-                    data-testid="guard_approve_mark"
-                  />
-                </div>
+                <GuardLogo className="mb-5" />
                 <ModalTitle className="text-center">
                   {t("guard.approve_title")}
                 </ModalTitle>

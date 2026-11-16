@@ -30,7 +30,9 @@ import {
   ModalTitle,
   ModalBody,
 } from "@/components/ui/modal";
+import { GuardMarkIcon } from "@/components/guard/guard_visuals";
 import {
+  SECURITY_LOCK_COLOR,
   SecurityLockIcon,
   security_status_from_percent,
   type SecurityStatus,
@@ -189,10 +191,24 @@ export function AccountProtectionScore({
                         click_handler();
                       }}
                     >
-                      <SecurityLockIcon
-                        className="w-4 h-4 flex-shrink-0"
-                        status={criterion.met ? "strong" : "weak"}
-                      />
+                      {criterion.id === "guard_enabled" ? (
+                        <span
+                          className="inline-flex flex-shrink-0"
+                          style={{
+                            color:
+                              SECURITY_LOCK_COLOR[
+                                criterion.met ? "strong" : "weak"
+                              ],
+                          }}
+                        >
+                          <GuardMarkIcon className="w-4 h-4" />
+                        </span>
+                      ) : (
+                        <SecurityLockIcon
+                          className="w-4 h-4 flex-shrink-0"
+                          status={criterion.met ? "strong" : "weak"}
+                        />
+                      )}
                       <span
                         className={`text-sm flex-1 ${criterion.met ? "text-txt-primary" : "text-txt-muted"}`}
                       >

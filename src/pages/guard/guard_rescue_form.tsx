@@ -25,6 +25,7 @@ import type {
 
 import { useEffect, useRef, useState } from "react";
 
+import { GuardResultView } from "@/components/guard/guard_visuals";
 import { format_guard_time } from "@/components/guard/guard_waiting_screen";
 import { Button } from "@/components/ui/button";
 import { use_i18n } from "@/lib/i18n/context";
@@ -187,53 +188,55 @@ export function GuardRescueProgress({ rescue, on_back }: GuardRescueProgressProp
 
   if (state === "applied") {
     return (
-      <div className="space-y-4 text-center" data-testid="guard_rescue_applied">
-        <p className="text-sm font-medium text-txt-primary">
-          {t("guard.rescue_applied_title")}
-        </p>
-        <p className="text-sm text-txt-muted">{t("guard.rescue_applied_body")}</p>
-        <Button
-          className="w-full"
-          data-testid="guard_rescue_sign_in"
-          variant="depth"
-          onClick={() => {
-            mark_setup_after_rescue();
-            on_back();
-          }}
-        >
-          {t("guard.rescue_sign_in")}
-        </Button>
-      </div>
+      <GuardResultView
+        actions={
+          <Button
+            className="w-full"
+            data-testid="guard_rescue_sign_in"
+            size="lg"
+            variant="depth"
+            onClick={() => {
+              mark_setup_after_rescue();
+              on_back();
+            }}
+          >
+            {t("guard.rescue_sign_in")}
+          </Button>
+        }
+        body={t("guard.rescue_applied_body")}
+        test_id="guard_rescue_applied"
+        title={t("guard.rescue_applied_title")}
+      />
     );
   }
 
   if (state === "vetoed" || state === "cancelled") {
     return (
-      <div className="space-y-4 text-center" data-testid="guard_rescue_stopped">
-        <p className="text-sm font-medium text-txt-primary">
-          {t("guard.rescue_stopped_title")}
-        </p>
-        <p className="text-sm text-txt-muted">{t("guard.rescue_stopped_body")}</p>
-        <Button className="w-full" variant="depth" onClick={on_back}>
-          {t("guard.sign_in_back")}
-        </Button>
-      </div>
+      <GuardResultView
+        actions={
+          <Button className="w-full" size="lg" variant="depth" onClick={on_back}>
+            {t("guard.sign_in_back")}
+          </Button>
+        }
+        body={t("guard.rescue_stopped_body")}
+        test_id="guard_rescue_stopped"
+        title={t("guard.rescue_stopped_title")}
+      />
     );
   }
 
   return (
-    <div className="space-y-4 text-center" data-testid="guard_rescue_waiting">
-      <p className="text-sm font-medium text-txt-primary">
-        {t("guard.rescue_waiting_title")}
-      </p>
-      <p className="text-sm text-txt-muted" role="status">
-        {t("guard.sign_in_rescue_started", {
-          date: format_guard_time(apply_after),
-        })}
-      </p>
-      <Button className="w-full" variant="outline" onClick={on_back}>
-        {t("guard.sign_in_back")}
-      </Button>
-    </div>
+    <GuardResultView
+      actions={
+        <Button className="w-full" size="lg" variant="depth" onClick={on_back}>
+          {t("guard.sign_in_back")}
+        </Button>
+      }
+      body={t("guard.sign_in_rescue_started", {
+        date: format_guard_time(apply_after),
+      })}
+      test_id="guard_rescue_waiting"
+      title={t("guard.rescue_waiting_title")}
+    />
   );
 }

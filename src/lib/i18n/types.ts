@@ -9580,6 +9580,9 @@ export interface GuardTranslations {
   sign_in_denied: string;
   sign_in_expired: string;
   sign_in_error: string;
+  sign_in_denied_title: string;
+  sign_in_expired_title: string;
+  sign_in_error_title: string;
   sign_in_use_code: string;
   sign_in_code_label: string;
   sign_in_code_hint: string;

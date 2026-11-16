@@ -352,7 +352,7 @@ describe("guard setup wizard", () => {
       );
     });
     expect(by_test_id("guard_setup_intro")).toBeTruthy();
-    expect(by_test_id("guard_hero")).toBeTruthy();
+    expect(container.querySelector('[data-testid="guard_hero"]')).toBeNull();
     expect(container.textContent).toContain("guard.intro_rescue_body");
     expect(container.querySelector('[data-testid="guard_setup_steps"]')).toBeNull();
     click(by_test_id("guard_setup_start"));

@@ -27,7 +27,7 @@ import {
   GuardPanicDialog,
 } from "@/components/guard/guard_panic_dialog";
 import { use_guard_device } from "@/components/guard/guard_switches_panel";
-import { format_guard_time } from "@/components/guard/guard_waiting_screen";
+import { format_guard_short_time } from "@/components/guard/guard_waiting_screen";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
@@ -48,7 +48,9 @@ export function GuardHeldToast() {
 
       if (!info?.id) return;
       show_toast(
-        t("guard.held_toast", { time: format_guard_time(info.apply_after) }),
+        t("guard.held_toast", {
+          time: format_guard_short_time(info.apply_after),
+        }),
         "info",
         GUARD_HELD_TOAST_MS,
         { label: t("guard.held_view"), on_click: open_guard_settings },

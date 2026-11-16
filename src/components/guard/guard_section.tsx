@@ -19,7 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
-import { Button, IslandSection, IslandSections } from "@aster/ui";
+import {
+  Button,
+  IslandSection,
+  IslandSections,
+  SettingControlRow,
+} from "@aster/ui";
 
 import { GuardDevicesList } from "@/components/guard/guard_devices_list";
 import { GuardHeldChanges } from "@/components/guard/guard_held_changes";
@@ -36,7 +41,6 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_guard_status } from "@/hooks/use_guard_status";
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
-import { cn } from "@/lib/utils";
 import { GUARD_SWITCH } from "@/services/api/guard";
 import {
   GUARD_SETUP_OPEN_EVENT,
@@ -89,62 +93,71 @@ export function GuardSection() {
 
   return (
     <IslandSections>
-      <section
-        className="flex flex-col items-center px-6 pb-6 pt-4 text-center"
+      <IslandSection
         data-testid="guard_section_header"
+        icon={<GuardMarkIcon />}
         id={SETTINGS_ANCHORS.guard}
+        title={t("guard.section_title")}
       >
-        <GuardMarkIcon
-          className={cn(
-            "h-14 w-14",
-            is_on ? "text-brand" : "text-txt-secondary",
-          )}
-          data-testid="guard_section_mark"
+        <SettingControlRow
+          control={
+            is_on ? undefined : (
+              <Button
+                data-testid="guard_set_up"
+                size="sm"
+                variant="outline"
+                onClick={() => set_wizard_open(true)}
+              >
+                {t("guard.intro_start")}
+              </Button>
+            )
+          }
+          control_width="auto"
+          description={
+            <>
+              {is_on
+                ? t("guard.section_header_on_description")
+                : t("guard.section_description")}
+              {is_on && shown_devices.length > 0 && (
+                <span
+                  className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-txt-muted"
+                  data-testid="guard_section_devices"
+                >
+                  {shown_devices.map((entry) => (
+                    <span
+                      key={entry.id}
+                      className="inline-flex min-w-0 items-center gap-1.5"
+                    >
+                      <GuardPlatformGlyph
+                        device_type={entry.device_type}
+                        name={entry.name}
+                      />
+                      <span className="max-w-[160px] truncate">
+                        {entry.name}
+                      </span>
+                    </span>
+                  ))}
+                  {hidden_devices > 0 && (
+                    <span>
+                      {t("guard.section_more_devices", {
+                        count: hidden_devices,
+                      })}
+                    </span>
+                  )}
+                </span>
+              )}
+            </>
+          }
+          label={
+            <span
+              data-state={is_on ? "on" : "off"}
+              data-testid="guard_section_state"
+            >
+              {is_on ? t("guard.section_on") : t("guard.section_off")}
+            </span>
+          }
         />
-        <h2
-          className="mt-4 text-[22px] font-semibold leading-7 text-txt-primary"
-          data-state={is_on ? "on" : "off"}
-          data-testid="guard_section_state"
-        >
-          {is_on ? t("guard.section_header_on") : t("guard.section_header_off")}
-        </h2>
-        <p className="mt-1 max-w-md text-sm text-txt-secondary">
-          {is_on
-            ? t("guard.section_header_on_description")
-            : t("guard.intro_lead")}
-        </p>
-        {is_on && shown_devices.length > 0 && (
-          <ul
-            className="mt-4 flex flex-wrap items-center justify-center gap-x-[18px] gap-y-2 text-[13px] text-txt-secondary"
-            data-testid="guard_section_devices"
-          >
-            {shown_devices.map((entry) => (
-              <li key={entry.id} className="flex items-center gap-1.5">
-                <GuardPlatformGlyph
-                  device_type={entry.device_type}
-                  name={entry.name}
-                />
-                <span className="max-w-[160px] truncate">{entry.name}</span>
-              </li>
-            ))}
-            {hidden_devices > 0 && (
-              <li>
-                {t("guard.section_more_devices", { count: hidden_devices })}
-              </li>
-            )}
-          </ul>
-        )}
-        {!is_on && (
-          <Button
-            className="mt-5"
-            data-testid="guard_set_up"
-            variant="depth"
-            onClick={() => set_wizard_open(true)}
-          >
-            {t("guard.intro_start")}
-          </Button>
-        )}
-      </section>
+      </IslandSection>
       {is_on && (
         <IslandSection title={t("guard.section_protections_title")}>
           <GuardSwitchesPanel

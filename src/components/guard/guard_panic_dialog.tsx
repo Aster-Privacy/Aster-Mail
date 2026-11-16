@@ -28,11 +28,9 @@ import {
   ArrowRightStartOnRectangleIcon,
   ComputerDesktopIcon,
   NoSymbolIcon,
-  ShieldCheckIcon,
-  ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
 
-import { GuardIconTile } from "@/components/guard/guard_visuals";
+import { GuardLogo, GuardResultView } from "@/components/guard/guard_visuals";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,20 +52,16 @@ function PanicRow({
   icon: Icon,
   text,
   count,
-  done = false,
   test_id,
 }: {
   icon: ComponentType<{ className?: string }>;
   text: string;
   count?: number;
-  done?: boolean;
   test_id?: string;
 }) {
   return (
     <li className="flex items-center gap-3" data-testid={test_id}>
-      <GuardIconTile size="tinted" tone={done ? "success" : "danger"}>
-        <Icon />
-      </GuardIconTile>
+      <Icon className="h-5 w-5 shrink-0 text-txt-muted" />
       <span className="flex min-w-0 items-baseline gap-1.5 text-sm text-txt-primary">
         {count !== undefined && (
           <span className="text-lg font-semibold tabular-nums text-txt-primary">
@@ -179,45 +173,40 @@ export function GuardPanicDialog({
         size="md"
       >
         <div data-testid="guard_panic_dialog">
-          <ModalHeader>
-            <div className="mb-3">
-              <GuardIconTile size="lg" tone={phase === "done" ? "success" : "danger"}>
-                {phase === "done" ? (
-                  <ShieldCheckIcon className="h-7 w-7" />
-                ) : (
-                  <ShieldExclamationIcon className="h-7 w-7" />
-                )}
-              </GuardIconTile>
-            </div>
-            <ModalTitle>
-              {phase === "done"
-                ? t("guard.panic_done_title")
-                : t("guard.panic_title")}
-            </ModalTitle>
-            <ModalDescription>
-              {phase === "done"
-                ? t("guard.panic_done_description")
-                : t("guard.panic_description")}
-            </ModalDescription>
-          </ModalHeader>
-          <ModalBody>
-            {phase !== "done" && (
+          {phase === "done" && result ? (
+            <GuardResultView
+              actions={
+                <>
+                  {result.can_reset_password_now && (
+                    <Button
+                      className="w-full"
+                      data-testid="guard_panic_change_password"
+                      size="lg"
+                      variant="depth"
+                      onClick={change_password}
+                    >
+                      {t("guard.panic_change_password")}
+                    </Button>
+                  )}
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    variant={result.can_reset_password_now ? "outline" : "depth"}
+                    onClick={on_close}
+                  >
+                    {t("common.done")}
+                  </Button>
+                </>
+              }
+              body={t("guard.panic_done_description")}
+              className="px-6 pb-6 pt-8"
+              title={t("guard.panic_done_title")}
+            >
               <ul
-                className="mb-4 flex flex-col gap-3"
-                data-testid="guard_panic_steps"
-              >
-                <PanicRow icon={ArrowRightStartOnRectangleIcon} text={t("guard.panic_will_sign_out")} />
-                <PanicRow icon={ComputerDesktopIcon} text={t("guard.panic_will_remove_devices")} />
-                <PanicRow icon={NoSymbolIcon} text={t("guard.panic_will_cancel_changes")} />
-              </ul>
-            )}
-            {phase === "done" && result && (
-              <ul
-                className="mb-4 flex flex-col gap-3"
+                className="mt-5 flex flex-col gap-3 self-stretch text-start"
                 data-testid="guard_panic_counts"
               >
                 <PanicRow
-                  done
                   icon={ArrowRightStartOnRectangleIcon}
                   test_id="guard_panic_sessions"
                   count={result.signed_out_sessions}
@@ -226,7 +215,6 @@ export function GuardPanicDialog({
                   })}
                 />
                 <PanicRow
-                  done
                   icon={ComputerDesktopIcon}
                   test_id="guard_panic_devices"
                   count={result.removed_devices}
@@ -235,7 +223,6 @@ export function GuardPanicDialog({
                   })}
                 />
                 <PanicRow
-                  done
                   icon={NoSymbolIcon}
                   test_id="guard_panic_changes"
                   count={result.cancelled_changes}
@@ -244,44 +231,47 @@ export function GuardPanicDialog({
                   })}
                 />
               </ul>
-            )}
-            {phase === "done" && result && !result.can_reset_password_now && (
-              <p className="pb-2 text-sm text-txt-muted">
-                {t("guard.panic_password_later")}
-              </p>
-            )}
-            {phase === "error" && (
-              <p
-                className="mb-2 rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
-                role="alert"
-              >
-                {t("guard.panic_error")}
-              </p>
-            )}
-            {!device && phase !== "done" && (
-              <p className="pb-2 text-sm text-txt-muted">
-                {t("guard.panic_needs_approver")}
-              </p>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            {phase === "done" ? (
-              <>
-                <Button variant="outline" onClick={on_close}>
-                  {t("common.done")}
-                </Button>
-                {result?.can_reset_password_now && (
-                  <Button
-                    data-testid="guard_panic_change_password"
-                    variant="depth"
-                    onClick={change_password}
+              {!result.can_reset_password_now && (
+                <p className="mt-4 text-sm text-txt-muted">
+                  {t("guard.panic_password_later")}
+                </p>
+              )}
+            </GuardResultView>
+          ) : (
+            <>
+              <ModalHeader className="items-center pe-6 text-center">
+                <GuardLogo className="mb-5" />
+                <ModalTitle className="text-center">
+                  {t("guard.panic_title")}
+                </ModalTitle>
+                <ModalDescription className="text-center">
+                  {t("guard.panic_description")}
+                </ModalDescription>
+              </ModalHeader>
+              <ModalBody>
+                <ul
+                  className="mb-4 flex flex-col gap-3"
+                  data-testid="guard_panic_steps"
+                >
+                  <PanicRow icon={ArrowRightStartOnRectangleIcon} text={t("guard.panic_will_sign_out")} />
+                  <PanicRow icon={ComputerDesktopIcon} text={t("guard.panic_will_remove_devices")} />
+                  <PanicRow icon={NoSymbolIcon} text={t("guard.panic_will_cancel_changes")} />
+                </ul>
+                {phase === "error" && (
+                  <p
+                    className="mb-2 rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
+                    role="alert"
                   >
-                    {t("guard.panic_change_password")}
-                  </Button>
+                    {t("guard.panic_error")}
+                  </p>
                 )}
-              </>
-            ) : (
-              <>
+                {!device && (
+                  <p className="pb-2 text-sm text-txt-muted">
+                    {t("guard.panic_needs_approver")}
+                  </p>
+                )}
+              </ModalBody>
+              <ModalFooter>
                 <Button
                   disabled={phase === "running"}
                   variant="outline"
@@ -298,9 +288,9 @@ export function GuardPanicDialog({
                 >
                   {t("guard.panic_confirm")}
                 </Button>
-              </>
-            )}
-          </ModalFooter>
+              </ModalFooter>
+            </>
+          )}
         </div>
       </Modal>
       {step_up.step_up_modal}

@@ -91,20 +91,29 @@ describe("action toast position", () => {
     expect(element.style.bottom).toBe("24px");
   });
 
-  it("follows the notification position preference", () => {
-    toast_position = "top-right";
+  it("follows a top position preference and stays centered", () => {
+    toast_position = "top";
     const element = mount();
 
-    expect(element.className).toContain("right-4");
-    expect(element.className).not.toContain("inset-x-0");
+    expect(element.className).toContain("inset-x-0");
     expect(element.style.bottom).toBe("");
   });
 
-  it("honors an explicit position override", () => {
+  it("centers a saved corner preference", () => {
+    toast_position = "top-right";
+    const element = mount();
+
+    expect(element.className).toContain("inset-x-0");
+    expect(element.className).not.toContain("right-4");
+    expect(element.style.bottom).toBe("");
+  });
+
+  it("centers an explicit corner override", () => {
     toast_position = "top-right";
     const element = mount("bottom-left");
 
-    expect(element.className).toContain("left-4");
+    expect(element.className).toContain("inset-x-0");
+    expect(element.className).not.toContain("left-4");
     expect(element.style.bottom).toBe("24px");
   });
 });
