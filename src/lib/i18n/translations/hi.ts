@@ -11496,6 +11496,7 @@ export const hi = {
     beta_waitlist_tag: "बीटा",
     panel_open_calendar: "कैलेंडर खोलें",
     panel_load_failed: "आपका कैलेंडर लोड नहीं हुआ।",
+    panel_try_again: "फिर से कोशिश करें",
     beta_waitlist_start: "बीटा 1 नवंबर को शुरू होने की उम्मीद है।",
     beta_waitlist_features_title: "इसमें क्या शामिल है",
     beta_waitlist_info_title: "कैलेंडर बीटा के बारे में",

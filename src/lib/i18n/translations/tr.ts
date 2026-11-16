@@ -11589,6 +11589,7 @@ export const tr = {
     beta_waitlist_tag: "Beta",
     panel_open_calendar: "Takvimi aç",
     panel_load_failed: "Takviminiz yüklenemedi.",
+    panel_try_again: "Tekrar dene",
     beta_waitlist_start: "Betanın 1 Kasım'da başlaması bekleniyor.",
     beta_waitlist_features_title: "Neler dahil",
     beta_waitlist_info_title: "Takvim beta sürümü hakkında",

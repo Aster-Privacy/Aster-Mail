@@ -11469,6 +11469,7 @@ export const ja = {
     beta_waitlist_tag: "ベータ",
     panel_open_calendar: "カレンダーを開く",
     panel_load_failed: "カレンダーを読み込めませんでした。",
+    panel_try_again: "再試行",
     beta_waitlist_start: "ベータ版は11月1日に開始される予定です。",
     beta_waitlist_features_title: "含まれる機能",
     beta_waitlist_info_title: "カレンダーベータについて",

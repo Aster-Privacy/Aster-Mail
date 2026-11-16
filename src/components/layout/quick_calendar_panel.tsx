@@ -26,7 +26,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_panel_inset } from "@/hooks/use_panel_inset";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
-import { useTheme } from "@/contexts/theme_context";
+import {
+  use_host_appearance,
+  type HostAppearance,
+} from "@/components/layout/use_host_appearance";
 import { is_tauri } from "@/native/desktop_device_auth";
 import { open_external } from "@/utils/open_link";
 import {
@@ -38,8 +41,8 @@ export const CALENDAR_PANEL_PATH = "/mail-panel";
 export const CALENDAR_PANEL_SOURCE = "aster-calendar-panel";
 export const MAIL_HOST_SOURCE = "aster-mail";
 
-const FIRST_READY_TIMEOUT_MS = 20_000;
-const LOAD_READY_TIMEOUT_MS = 15_000;
+export const FIRST_READY_TIMEOUT_MS = 10_000;
+export const LOAD_READY_TIMEOUT_MS = 5_000;
 const PANEL_MESSAGE_TYPES = new Set(["ready", "close", "status"]);
 const FRAME_SANDBOX =
   "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms";
@@ -169,11 +172,11 @@ export function QuickCalendarPanel({
   on_close,
 }: QuickCalendarPanelProps) {
   const { t } = use_i18n();
-  const { theme } = useTheme();
+  const appearance = use_host_appearance();
   const panel_ref = useRef<HTMLElement | null>(null);
   const frame_ref = useRef<HTMLIFrameElement | null>(null);
   const on_close_ref = useRef(on_close);
-  const theme_ref = useRef(theme);
+  const appearance_ref = useRef(appearance);
   const timer_ref = useRef<number | null>(null);
   const [has_opened, set_has_opened] = useState(is_open);
   const [frame_state, set_frame_state] = useState<FrameState>("loading");
@@ -183,7 +186,7 @@ export function QuickCalendarPanel({
   const frame_state_ref = useRef<FrameState>(frame_state);
 
   on_close_ref.current = on_close;
-  theme_ref.current = theme;
+  appearance_ref.current = appearance;
   frame_state_ref.current = frame_state;
 
   const { is_visible, is_closing } = use_panel_transition(is_open, is_swapping);
@@ -220,7 +223,12 @@ export function QuickCalendarPanel({
 
     const src = new URL(CALENDAR_PANEL_PATH, origin);
 
-    src.searchParams.set("theme", theme_ref.current);
+    src.searchParams.set("theme", appearance_ref.current.theme);
+    src.searchParams.set("palette", appearance_ref.current.palette);
+
+    if (appearance_ref.current.accent) {
+      src.searchParams.set("accent", appearance_ref.current.accent);
+    }
 
     if (frame_key > 0) {
       src.searchParams.set("attempt", String(frame_key));
@@ -234,13 +242,19 @@ export function QuickCalendarPanel({
   }, [has_opened, frame_key, origin, arm_timer, clear_timer]);
 
   const post_theme = useCallback(
-    (next_theme: string) => {
+    (next: HostAppearance) => {
       const target = frame_ref.current?.contentWindow;
 
       if (!target) return;
 
       target.postMessage(
-        { source: MAIL_HOST_SOURCE, type: "theme", theme: next_theme },
+        {
+          source: MAIL_HOST_SOURCE,
+          type: "theme",
+          theme: next.theme,
+          palette: next.palette,
+          accent: next.accent,
+        },
         origin,
       );
     },
@@ -275,8 +289,8 @@ export function QuickCalendarPanel({
   }, [has_opened, origin, clear_timer]);
 
   useEffect(() => {
-    if (frame_state === "ready") post_theme(theme);
-  }, [frame_state, theme, post_theme]);
+    if (frame_state === "ready") post_theme(appearance);
+  }, [frame_state, appearance, post_theme]);
 
   useEffect(() => {
     if (frame_state !== "ready") return;
@@ -320,7 +334,7 @@ export function QuickCalendarPanel({
           referrerPolicy="strict-origin"
           sandbox={FRAME_SANDBOX}
           src={frame_src}
-          style={{ colorScheme: theme }}
+          style={{ colorScheme: appearance.theme }}
           tabIndex={frame_state === "ready" ? 0 : -1}
           title={t("common.app_name_calendar")}
           onLoad={handle_frame_load}
@@ -355,7 +369,7 @@ export function QuickCalendarPanel({
             </p>
             <div className="flex w-full max-w-[240px] flex-col gap-2">
               <Button size="md" variant="outline" onClick={retry}>
-                {t("common.retry")}
+                {t("calendar.panel_try_again")}
               </Button>
               <Button
                 size="md"
