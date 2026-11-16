@@ -6278,6 +6278,8 @@ export interface SettingsTranslations {
   emails_imported_count_one?: string;
   duplicates_skipped: string;
   duplicates_skipped_one?: string;
+  import_attachments_filled: string;
+  import_attachments_filled_one?: string;
   import_review_ready: string;
   import_review_ready_one?: string;
   import_review_trash_found: string;

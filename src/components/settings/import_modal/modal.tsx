@@ -68,6 +68,15 @@ import {
   type EncryptedImportEmail,
 } from "@/services/import/encrypt";
 import {
+  MAX_IMPORT_BATCH_ATTACHMENT_BYTES,
+  encrypt_import_attachments,
+  encrypted_attachment_bytes,
+} from "@/services/import/attachments";
+import {
+  plan_import_fills,
+  should_flush_import_batch,
+} from "@/services/import/import_fill";
+import {
   create_import_job,
   update_import_job,
   store_imported_emails,
@@ -142,6 +151,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     drafts_skipped: number;
     invalid: number;
     failed: number;
+    attachments_filled?: number;
     quota_exceeded?: boolean;
     folders_skipped?: number;
     labels_created?: number;
@@ -419,6 +429,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         const all_hashes = Array.from(message_id_hashes.values());
         const DUPLICATE_CHECK_BATCH_SIZE = 1000;
         const existing_hashes = new Set<string>();
+        const missing_attachment_hashes = new Set<string>();
+        let attachments_allowed = false;
 
         for (
           let i = 0;
@@ -446,7 +458,21 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               existing_hashes.add(hash);
             }
           }
+          if (duplicates_response.data?.attachments_allowed) {
+            attachments_allowed = true;
+          }
+          for (const hash of duplicates_response.data?.missing_attachments ??
+            []) {
+            missing_attachment_hashes.add(hash);
+          }
         }
+
+        const fill_indices = plan_import_fills(
+          emails,
+          message_id_hashes,
+          missing_attachment_hashes,
+          attachments_allowed,
+        );
 
         const seen_hashes = new Set<string>();
         const indices_to_import = new Set<number>();
@@ -476,6 +502,14 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             if (routing.routing_token || routing.sender_alias_hash) {
               link_entries.push({ message_id_hash: hash, ...routing });
             }
+          }
+
+          if (hash && fill_indices.has(index) && !seen_hashes.has(hash)) {
+            seen_hashes.add(hash);
+            indices_to_import.add(index);
+            emails_to_import.push(email);
+
+            return;
           }
 
           if (!hash || existing_hashes.has(hash) || seen_hashes.has(hash)) {
@@ -659,7 +693,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         const BATCH_SIZE = 10;
         let quota_exceeded = false;
         let attempted_count = 0;
+        let attachments_filled = 0;
         let encrypted_batch: EncryptedImportEmail[] = [];
+        let encrypted_batch_bytes = 0;
 
         const report_store_progress = () => {
           set_progress({
@@ -675,6 +711,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           const batch = encrypted_batch;
 
           encrypted_batch = [];
+          encrypted_batch_bytes = 0;
           if (batch.length === 0) return;
 
           const store_response = await job_calls.run(() =>
@@ -691,6 +728,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
             imported_count += stored_count;
             store_duplicate_count += duplicate_count;
+            attachments_filled +=
+              store_response.data.attachments_filled_count ?? 0;
             failed_count +=
               batch.length -
               stored_count -
@@ -707,7 +746,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           report_store_progress();
         };
 
-        for await (const item of collection.load(indices_to_import)) {
+        for await (const item of collection.load(indices_to_import, {
+          attachment_content: attachments_allowed,
+        })) {
           if (cancel_ref.current || quota_exceeded) break;
           ensure_job_alive();
 
@@ -795,14 +836,48 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 ),
               );
 
+              if (attachments_allowed) {
+                try {
+                  const attachments = await encrypt_import_attachments(email);
+
+                  if (attachments.length > 0) {
+                    encrypted.attachments = attachments;
+                  }
+                } catch (caught) {
+                  ignore_error(
+                    "components/settings/import_modal/modal:attachments",
+                    caught,
+                  );
+                }
+              }
+
+              const email_bytes =
+                encrypted.encrypted_envelope.length +
+                encrypted_attachment_bytes(encrypted.attachments);
+
+              if (
+                should_flush_import_batch(
+                  encrypted_batch.length,
+                  encrypted_batch_bytes,
+                  email_bytes,
+                  MAX_IMPORT_BATCH_ATTACHMENT_BYTES,
+                )
+              ) {
+                await flush_batch();
+              }
+
               encrypted_batch.push(encrypted);
+              encrypted_batch_bytes += email_bytes;
             } catch (error) {
               if (import.meta.env.DEV) console.error(error);
               failed_count++;
             }
           }
 
-          if (encrypted_batch.length >= BATCH_SIZE) {
+          if (
+            encrypted_batch.length >= BATCH_SIZE ||
+            encrypted_batch_bytes >= MAX_IMPORT_BATCH_ATTACHMENT_BYTES
+          ) {
             await flush_batch();
           } else if (attempted_count % BATCH_SIZE === 0) {
             report_store_progress();
@@ -832,7 +907,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
         set_import_result({
           imported: imported_count,
-          duplicates: total_duplicates,
+          duplicates: Math.max(0, total_duplicates - attachments_filled),
+          attachments_filled,
           drafts_skipped: drafts_skipped_count,
           invalid: invalid_count,
           failed: failed_count,
@@ -845,7 +921,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         });
         set_step("complete");
 
-        if (imported_count > 0) {
+        if (imported_count > 0 || attachments_filled > 0) {
           invalidate_mail_cache();
           emit_mail_changed();
           thread_imported_emails({ relink_all: true })
@@ -1362,6 +1438,13 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                     count: import_result.imported,
                   })}
                 </p>
+                {(import_result.attachments_filled ?? 0) > 0 && (
+                  <p className="text-xs text-txt-muted">
+                    {t("settings.import_attachments_filled", {
+                      count: import_result.attachments_filled ?? 0,
+                    })}
+                  </p>
+                )}
                 {import_result.duplicates > 0 && (
                   <p className="text-xs text-txt-muted">
                     {t("settings.duplicates_skipped", {

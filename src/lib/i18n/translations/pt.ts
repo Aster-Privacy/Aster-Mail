@@ -6063,7 +6063,7 @@ export const pt = {
     drag_drop_files: "Arraste e largue os seus ficheiros aqui",
     supported_import_formats: "Suporta ficheiros MBOX, EML, CSV e PST",
     import_file_attachments_note:
-      "As importações de ficheiros trazem as suas mensagens, mas não os anexos. Para importar também os anexos, ligue antes a sua conta, uma opção disponível nos planos pagos.",
+      "Nos planos pagos, as importações de ficheiros trazem as suas mensagens com os anexos. No plano gratuito, trazem as suas mensagens sem anexos.",
     browse_files: "Procurar ficheiros",
     importing_emails_progress: "A importar e-mails...",
     emails_of_total: "{{current}} de {{total}} e-mails",
@@ -6072,6 +6072,8 @@ export const pt = {
     emails_imported_count_one: "{{count}} e-mail importado",
     duplicates_skipped: "{{count}} duplicados ignorados",
     duplicates_skipped_one: "{{count}} duplicado ignorado",
+    import_attachments_filled: "Anexos adicionados a {{count}} mensagens importadas anteriormente",
+    import_attachments_filled_one: "Anexos adicionados a {{count}} mensagem importada anteriormente",
     import_review_ready: "{{count}} emails estão prontos para importar.",
     import_review_ready_one: "{{count}} email está pronto para importar.",
     import_review_trash_found: "{{count}} deles estavam no lixo da sua conta antiga. Escolha onde colocá-los.",

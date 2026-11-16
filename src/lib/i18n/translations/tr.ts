@@ -5920,7 +5920,7 @@ export const tr = {
     drag_drop_files: "Dosyalarınızı buraya sürükleyip bırakın",
     supported_import_formats: "MBOX, EML, CSV ve PST dosyalarını destekler",
     import_file_attachments_note:
-      "Dosyadan içe aktarma iletilerinizi getirir ancak eklerini getirmez. Ekleri de içe aktarmak için bunun yerine hesabınızı bağlayın. Bu seçenek ücretli planlarda kullanılabilir.",
+      "Ücretli planlarda dosyadan içe aktarma iletilerinizi ekleriyle birlikte getirir. Ücretsiz planda iletileriniz ekleri olmadan gelir.",
     browse_files: "Dosyalara Göz At",
     importing_emails_progress: "E-postalar içe aktarılıyor...",
     emails_of_total: "{{current}} / {{total}} e-posta",
@@ -5929,6 +5929,7 @@ export const tr = {
     emails_imported_count_one: "{{count}} e-posta içe aktarıldı",
     duplicates_skipped: "{{count}} kopya atlandı",
     duplicates_skipped_one: "{{count}} kopya atlandı",
+    import_attachments_filled: "Daha önce içe aktarılan {{count}} iletiye ekler eklendi",
     import_review_ready: "{{count}} e-posta içe aktarılmaya hazır.",
     import_review_ready_one: "{{count}} e-posta içe aktarılmaya hazır.",
     import_review_trash_found: "Bunlardan {{count}} tanesi eski hesabınızda Çöp Kutusu'ndaydı. Nereye taşınacaklarını seçin.",

@@ -6078,7 +6078,7 @@ export const fr = {
     supported_import_formats:
       "Prend en charge les fichiers MBOX, EML, CSV et PST",
     import_file_attachments_note:
-      "Les importations de fichiers ajoutent vos messages, mais pas leurs pièces jointes. Pour importer aussi les pièces jointes, connectez plutôt votre compte, une option disponible avec les forfaits payants.",
+      "Avec les forfaits payants, les importations de fichiers ajoutent vos messages avec leurs pièces jointes. Avec le forfait gratuit, elles ajoutent vos messages sans pièces jointes.",
     browse_files: "Parcourir les fichiers",
     importing_emails_progress: "Importation des e-mails en cours...",
     emails_of_total: "{{current}} sur {{total}} e-mails",
@@ -6087,6 +6087,8 @@ export const fr = {
     emails_imported_count_one: "{{count}} e-mail importé",
     duplicates_skipped: "{{count}} doublons ignorés",
     duplicates_skipped_one: "{{count}} doublon ignoré",
+    import_attachments_filled: "Pièces jointes ajoutées à {{count}} messages importés précédemment",
+    import_attachments_filled_one: "Pièces jointes ajoutées à {{count}} message importé précédemment",
     import_review_ready: "{{count}} e-mails sont prêts à être importés.",
     import_review_ready_one: "{{count}} e-mail est prêt à être importé.",
     import_review_trash_found: "{{count}} d'entre eux se trouvaient dans la corbeille de votre ancien compte. Choisissez où les placer.",
