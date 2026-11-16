@@ -4870,7 +4870,7 @@ export const de = {
       "Ihre Schlüssel auf öffentlichen Schlüsselservern auffindbar machen",
     info_forward_secrecy_title: "Was ist Forward Secrecy?",
     info_forward_secrecy_description:
-      "Ihre Verschlüsselungsschlüssel rotieren automatisch nach Zeitplan. Das begrenzt, wie viele E-Mails ein einzelner kompromittierter Schlüssel entschlüsseln kann. Damit Ihre E-Mails auf allen Ihren Geräten lesbar bleiben, speichert Ihr Konto außerdem Kopien Ihrer Nachrichten, die mit Ihren Kontoschlüsseln verschlüsselt sind. Wer Ihr Passwort erhält, kann daher weiterhin Ihre bisherigen E-Mails lesen.",
+      "Ihre Verschlüsselungsschlüssel rotieren automatisch nach Zeitplan. Das begrenzt, wie viele neue E-Mails ein einzelner kompromittierter Schlüssel entschlüsseln kann. Damit Ihre E-Mails auf allen Ihren Geräten lesbar bleiben, speichert Ihr Konto Ihre bisherigen Schlüssel und Kopien Ihrer Nachrichten, geschützt durch Ihr Passwort. Wer Ihr Passwort erhält, kann daher weiterhin Ihre bisherigen E-Mails lesen.",
     info_key_rotation_interval_title: "Schlüsselrotationsintervall",
     info_key_rotation_interval_description:
       "Wie oft Ihr Verschlüsselungsschlüssel ausgetauscht wird. Häufiger bedeutet sicherer, aber etwas mehr Overhead. Eine Woche ist für die meisten ein guter Standard.",
@@ -7532,13 +7532,17 @@ export const de = {
     senders_unsubscribed_one: "{{ count }} Absender abgemeldet",
     bulk_unsubscribe: "Massenabmeldung",
     rotate_keys: "Schlüssel rotieren",
-    key_rotation_data_loss_warning:
-      "Nach der Rotation wird Ihr vorheriger Schlüssel stillgelegt. E-Mails, die ausschließlich mit Ihrem alten Schlüssel verschlüsselt wurden, können nicht mehr entschlüsselt werden. Dies kann nicht rückgängig gemacht werden.",
+    key_rotation_prune_warning:
+      "Bei dieser Rotation werden Ihre {{count}} ältesten Schlüssel entfernt. E-Mails, die nur mit diesen Schlüsseln verschlüsselt sind, können Sie danach nicht mehr öffnen. Dies kann nicht rückgängig gemacht werden.",
+    key_rotation_prune_warning_one:
+      "Bei dieser Rotation wird Ihr ältester Schlüssel entfernt. E-Mails, die nur mit diesem Schlüssel verschlüsselt sind, können Sie danach nicht mehr öffnen. Dies kann nicht rückgängig gemacht werden.",
+    key_rotation_history_kept:
+      "Ihr Konto behält Ihre bisherigen Schlüssel, sodass Ihre vorhandenen E-Mails lesbar bleiben.",
     rotating: "Wird rotiert...",
     rotate_keys_description_required:
       "Ihre Verschlüsselungsschlüssel müssen rotiert werden. Geben Sie Ihr Passwort ein, um neue Schlüssel zu generieren.",
     rotate_keys_description_manual:
-      "Geben Sie Ihr Passwort ein, um Ihre Verschlüsselungsschlüssel zu rotieren. Alte E-Mails bleiben lesbar.",
+      "Geben Sie Ihr Passwort ein, um Ihre Verschlüsselungsschlüssel zu rotieren.",
     current_key_age: "Aktuelles Schlüsselalter",
     encryption_keys_updated:
       "Ihre Verschlüsselungsschlüssel wurden aktualisiert",

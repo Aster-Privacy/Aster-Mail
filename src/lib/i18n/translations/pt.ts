@@ -4998,7 +4998,7 @@ export const pt = {
       "Tornar as suas chaves localizáveis em servidores de chaves públicos",
     info_forward_secrecy_title: "O que é o sigilo futuro?",
     info_forward_secrecy_description:
-      "As suas chaves de encriptação são renovadas automaticamente de acordo com um calendário, o que limita a quantidade de e-mails que uma única chave comprometida consegue desbloquear. Para manter os seus e-mails legíveis em todos os seus dispositivos, a sua conta também guarda cópias das suas mensagens encriptadas com as chaves da sua conta, pelo que quem obtiver a sua palavra-passe continua a conseguir ler os seus e-mails anteriores.",
+      "As suas chaves de encriptação são renovadas automaticamente de acordo com um calendário, o que limita a quantidade de e-mails novos que uma única chave comprometida consegue desbloquear. Para manter os seus e-mails legíveis em todos os seus dispositivos, a sua conta guarda as suas chaves anteriores e cópias das suas mensagens, protegidas pela sua palavra-passe, pelo que quem obtiver a sua palavra-passe continua a conseguir ler os seus e-mails anteriores.",
     info_key_rotation_interval_title: "Intervalo de rotação de chaves",
     info_key_rotation_interval_description:
       "Com que frequência a sua chave de encriptação é substituída. Quanto mais frequente, mais seguro, mas com um pouco mais de processamento. Uma semana é uma boa predefinição para a maioria das pessoas.",
@@ -7670,8 +7670,12 @@ export const pt = {
     current_key_age: "Idade da chave atual",
     rotating: "A renovar...",
     rotate_keys: "Renovar chaves",
-    key_rotation_data_loss_warning:
-      "Após a rotação, a sua chave anterior é desativada. Os e-mails encriptados apenas com a sua chave antiga deixarão de poder ser desencriptados. Esta ação é irreversível.",
+    key_rotation_prune_warning:
+      "Esta renovação remove as suas {{count}} chaves mais antigas. Depois disso, não conseguirá abrir e-mails encriptados apenas com essas chaves, e esta ação é irreversível.",
+    key_rotation_prune_warning_one:
+      "Esta renovação remove a sua chave mais antiga. Depois disso, não conseguirá abrir e-mails encriptados apenas com essa chave, e esta ação é irreversível.",
+    key_rotation_history_kept:
+      "A sua conta mantém as suas chaves anteriores, pelo que os e-mails que já tem continuam legíveis.",
     bulk_unsubscribe: "Cancelamento em massa",
     senders_unsubscribed: "{{ count }} remetentes com subscrição cancelada",
     senders_unsubscribed_one: "{{ count }} remetente com subscrição cancelada",
@@ -7685,7 +7689,7 @@ export const pt = {
     all_clear: "Tudo limpo",
     no_subscriptions_found: "Nenhuma subscrição encontrada",
     rotate_keys_description_manual:
-      "Introduza a sua palavra-passe para renovar as suas chaves de encriptação. Os e-mails antigos continuarão legíveis.",
+      "Introduza a sua palavra-passe para renovar as suas chaves de encriptação.",
     rotate_keys_description_required:
       "As suas chaves de encriptação têm de ser renovadas. Introduza a sua palavra-passe para gerar novas chaves.",
     trusted_devices: "Dispositivos confiáveis",

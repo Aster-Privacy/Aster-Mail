@@ -846,6 +846,7 @@ export default function IndexPage() {
             is_open={state.show_rotation_modal}
             key_age_hours={state.key_age_hours}
             key_fingerprint={state.key_fingerprint}
+            removed_key_count={state.rotation_removed_key_count}
             on_close={state.close_rotation_modal}
             on_rotate={state.perform_rotation}
           />

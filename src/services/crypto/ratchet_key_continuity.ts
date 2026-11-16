@@ -20,7 +20,7 @@
 //
 import type { EncryptedVault, RatchetKeySet } from "./key_manager_core";
 
-import { RATCHET_PREVIOUS_KEYS_LIMIT } from "./key_manager_core";
+import { cap_ratchet_history } from "./key_manager_core";
 
 export function current_ratchet_key_set(
   vault: EncryptedVault | null | undefined,
@@ -107,13 +107,13 @@ export function merge_ratchet_key_history(
       .map((set) => set.ratchet_identity_public),
   );
 
-  return merged
-    .filter(
+  return cap_ratchet_history(
+    merged.filter(
       (set) =>
         (set.ratchet_signed_prekey && set.ratchet_signed_prekey_public) ||
         !identities_with_prekey.has(set.ratchet_identity_public),
-    )
-    .slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+    ),
+  );
 }
 
 export function retain_replaced_ratchet_keys(

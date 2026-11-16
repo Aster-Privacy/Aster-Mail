@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -39,6 +39,7 @@ import {
 import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { sync_vault_with_server } from "@/services/crypto/ensure_ratchet_keys";
+import { plan_rotation_history } from "@/services/crypto/rotation_history";
 import { show_toast } from "@/components/toast/simple_toast";
 import { user_facing_error } from "@/utils/user_facing_error";
 
@@ -234,6 +235,17 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
     [user, preferences, state.current_public_key, t],
   );
 
+  const removed_key_count = useMemo(() => {
+    if (!state.show_modal || !preferences) return 0;
+
+    const vault = get_vault_from_memory();
+
+    if (!vault) return 0;
+
+    return plan_rotation_history(vault, preferences.key_history_limit)
+      .removed_key_count;
+  }, [state.show_modal, preferences]);
+
   const show_manual_rotation_modal = useCallback(() => {
     set_state((prev) => ({ ...prev, show_modal: true }));
   }, []);
@@ -275,6 +287,7 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
 
   return {
     ...state,
+    removed_key_count,
     check_rotation,
     perform_rotation,
     show_manual_rotation_modal,
