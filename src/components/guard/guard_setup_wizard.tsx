@@ -24,12 +24,13 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import type { ReactNode } from "react";
 
 import { Children, useEffect, useMemo, useState } from "react";
-import { SettingToggleRow } from "@aster/ui";
+import { Checkbox, SettingToggleRow } from "@aster/ui";
 import {
   ArrowDownTrayIcon,
   ArrowUturnRightIcon,
   CheckIcon,
   ClockIcon,
+  DocumentDuplicateIcon,
   DevicePhoneMobileIcon,
   EnvelopeIcon,
   KeyIcon,
@@ -45,7 +46,7 @@ import {
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { OtpInput } from "@/components/ui/otp_input";
 import {
   Modal,
   ModalBody,
@@ -539,52 +540,83 @@ export function GuardSetupWizard({
                 </ModalDescription>
               </ModalHeader>
               <ModalBody>
-                <div className="space-y-4">
-                  <div
-                    className="grid grid-cols-5 gap-2 rounded-xl border border-edge-primary bg-surf-secondary p-3 font-mono text-sm text-txt-primary"
-                    data-testid="guard_rescue_code"
-                  >
-                    {groups.map((group, index) => (
-                      <span key={index} className="text-center tracking-wider">
-                        {group}
-                      </span>
-                    ))}
+                <div className="flex flex-col gap-5">
+                  <div className="rounded-2xl bg-surf-secondary px-3 pb-3 pt-4 sm:px-4">
+                    <div
+                      aria-label={t("guard.setup_rescue_title")}
+                      className="grid grid-cols-5 gap-1 font-mono text-[13px] font-semibold text-txt-primary min-[400px]:text-[15px] sm:gap-2 sm:text-base"
+                      data-testid="guard_rescue_code"
+                      role="group"
+                    >
+                      {groups.map((group, index) => (
+                        <span
+                          key={index}
+                          className="select-all text-center tracking-[0.08em] sm:tracking-[0.14em]"
+                        >
+                          {group}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex items-center justify-center gap-2">
+                      <Button
+                        className="gap-1.5"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => void copy_code()}
+                      >
+                        <DocumentDuplicateIcon
+                          aria-hidden
+                          className="h-4 w-4"
+                        />
+                        {t("common.copy")}
+                      </Button>
+                      <Button
+                        className="gap-1.5"
+                        size="sm"
+                        variant="ghost"
+                        onClick={download_code}
+                      >
+                        <ArrowDownTrayIcon aria-hidden className="h-4 w-4" />
+                        {t("common.download")}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => void copy_code()}>
-                      {t("common.copy")}
-                    </Button>
-                    <Button variant="outline" onClick={download_code}>
-                      {t("common.download")}
-                    </Button>
-                  </div>
-                  <label className="flex items-center gap-2 text-sm text-txt-primary">
-                    <input
+                  <div className="flex items-center gap-3">
+                    <Checkbox
                       checked={saved}
                       data-testid="guard_rescue_saved"
-                      type="checkbox"
-                      onChange={(e) => set_saved(e.target.checked)}
+                      id="guard_rescue_saved"
+                      onCheckedChange={(v) => set_saved(v === true)}
                     />
-                    {t("guard.setup_rescue_saved")}
-                  </label>
-                  <div className="space-y-2">
                     <label
-                      className="block text-sm font-medium text-txt-primary"
-                      htmlFor="guard_rescue_group"
+                      className="cursor-pointer select-none text-sm text-txt-primary"
+                      htmlFor="guard_rescue_saved"
+                    >
+                      {t("guard.setup_rescue_saved")}
+                    </label>
+                  </div>
+                  <div className="flex flex-col items-center gap-3">
+                    <p
+                      className="text-center text-sm text-txt-secondary"
+                      id="guard_rescue_group_label"
                     >
                       {t("guard.setup_rescue_confirm_label")}
-                    </label>
-                    <Input
-                      autoComplete="off"
-                      className="font-mono uppercase tracking-wider"
-                      id="guard_rescue_group"
-                      maxLength={RESCUE_GROUP_SIZE + 2}
-                      spellCheck={false}
-                      type="text"
-                      value={typed_group}
-                      onChange={(e) =>
-                        set_typed_group(clean_group(e.target.value))
+                    </p>
+                    <OtpInput
+                      aria_label={t("guard.setup_rescue_confirm_label")}
+                      autofocus={false}
+                      id_prefix="guard_rescue_group"
+                      input_mode="text"
+                      length={RESCUE_GROUP_SIZE}
+                      sanitize={clean_group}
+                      status={
+                        typed_group.length === RESCUE_GROUP_SIZE &&
+                        !group_matches
+                          ? "error"
+                          : "default"
                       }
+                      value={typed_group}
+                      onChange={set_typed_group}
                     />
                   </div>
                 </div>

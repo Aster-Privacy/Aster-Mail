@@ -21,6 +21,7 @@
 import { useEffect, useState } from "react";
 import {
   Button,
+  InfoPopover,
   IslandSection,
   IslandSections,
   SettingControlRow,
@@ -98,6 +99,12 @@ export function GuardSection() {
         icon={<GuardMarkIcon />}
         id={SETTINGS_ANCHORS.guard}
         title={t("guard.section_title")}
+        title_info={
+          <InfoPopover
+            description={t("guard.section_info_description")}
+            title={t("guard.section_info_title")}
+          />
+        }
       >
         <SettingControlRow
           control={

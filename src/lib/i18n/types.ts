@@ -9663,6 +9663,8 @@ export interface GuardTranslations {
   switches_no_rescue_code: string;
   switches_not_an_approver: string;
   switches_locked_reason: string;
+  section_info_title: string;
+  section_info_description: string;
   switches_add_this_browser: string;
   switches_join_waiting: string;
   switches_join_failed: string;
@@ -9703,6 +9705,8 @@ export interface GuardTranslations {
   panic_description: string;
   panic_confirm: string;
   panic_done_title: string;
+  panic_done_info_title: string;
+  panic_done_info_description: string;
   panic_done_description: string;
   panic_signed_out_sessions: string;
   panic_removed_devices: string;

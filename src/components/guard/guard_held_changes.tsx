@@ -268,8 +268,15 @@ export function GuardHeldChanges({
                     left: format_time_left(change.apply_after, now),
                   })}
                   {urgent && (
-                    <span className="mt-0.5 block text-red-500">
-                      {t("guard.held_urgent_body")}
+                    <span
+                      className="mt-1 flex items-start gap-1.5 text-red-500"
+                      data-testid="guard_held_urgent"
+                    >
+                      <ExclamationTriangleIcon
+                        aria-hidden
+                        className="mt-px h-4 w-4 shrink-0"
+                      />
+                      <span>{t("guard.held_urgent_body")}</span>
                     </span>
                   )}
                 </>

@@ -33,6 +33,7 @@ import {
 import { GuardLogo, GuardResultView } from "@/components/guard/guard_visuals";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { Button } from "@/components/ui/button";
+import { InfoPopover } from "@/components/ui/info_popover";
 import {
   Modal,
   ModalBody,
@@ -201,6 +202,12 @@ export function GuardPanicDialog({
               body={t("guard.panic_done_description")}
               className="px-6 pb-6 pt-8"
               title={t("guard.panic_done_title")}
+              title_info={
+                <InfoPopover
+                  description={t("guard.panic_done_info_description")}
+                  title={t("guard.panic_done_info_title")}
+                />
+              }
             >
               <ul
                 className="mt-5 flex flex-col gap-3 self-stretch text-start"

@@ -23,6 +23,7 @@ import type { GuardDevice } from "@/services/guard/guard_device";
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 
 import { GuardSetupWizard } from "@/components/guard/guard_setup_wizard";
 import { use_guard_device } from "@/components/guard/guard_switches_panel";
@@ -128,8 +129,17 @@ export function GuardRescueBanner({ user_id }: { user_id: string | null }) {
             transition={{ duration: reduce_motion ? 0 : 0.2 }}
           >
             <div className="flex items-center justify-between px-4 py-1.5">
-              <div className="flex min-w-0 items-center gap-1.5">
-                <GuardMarkIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-90" />
+              <div className="flex min-w-0 items-center gap-2">
+                <ExclamationTriangleIcon
+                  aria-hidden
+                  className="h-4 w-4 flex-shrink-0"
+                  data-testid="guard_rescue_banner_warning"
+                />
+                <span className="flex flex-shrink-0 items-center gap-1 text-xs font-semibold">
+                  <GuardMarkIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                  {t("guard.section_title")}
+                </span>
+                <span aria-hidden className="h-3 w-px flex-shrink-0 bg-white/40" />
                 <span className="truncate text-xs font-medium opacity-95">
                   {message}
                 </span>

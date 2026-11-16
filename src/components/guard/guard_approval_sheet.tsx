@@ -507,7 +507,16 @@ export function GuardApprovalSheet({
   );
 }
 
-const REFRESH_EVENTS = new Set(["sign_in_request", "guard_enabled", "panic"]);
+const REFRESH_EVENTS = new Set([
+  "sign_in_request",
+  "sign_in_approved",
+  "sign_in_denied",
+  "sign_in_expired",
+  "guard_enabled",
+  "guard_disabled",
+  "rescue_completed",
+  "panic",
+]);
 
 export function GuardApprovalHost({
   show_rescue_banner = false,

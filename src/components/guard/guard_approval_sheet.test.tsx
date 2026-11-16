@@ -501,7 +501,7 @@ describe("GuardApprovalSheet", () => {
     expect(container.textContent).toContain("<b>Berlin</b>");
   });
 
-  it("draws the country flag as an image before the place", async () => {
+  it("draws the country flag as an inline vector before the place", async () => {
     const v = view();
 
     v.context = { ...v.context!, country_code: "de" };
@@ -513,8 +513,14 @@ describe("GuardApprovalSheet", () => {
     }
     const flag = container.querySelector('[data-testid="guard_flag"]');
 
-    expect(flag?.tagName).toBe("IMG");
-    expect(flag?.getAttribute("src")).toBeTruthy();
+    const svg = flag?.querySelector("svg");
+
+    expect(flag?.tagName).toBe("SPAN");
+    expect(svg).toBeTruthy();
+    expect(svg?.getAttribute("width")).toBe("18");
+    expect(svg?.getAttribute("height")).toBe("12");
+    expect(svg?.getAttribute("preserveAspectRatio")).toBe("none");
+    expect(flag?.querySelector("script, foreignObject")).toBeNull();
     expect(flag?.nextElementSibling?.textContent).toBe("Berlin, Germany");
     expect(container.textContent).not.toMatch(/[\u{1F1E6}-\u{1F1FF}]/u);
     expect(container.textContent).not.toContain("DE");

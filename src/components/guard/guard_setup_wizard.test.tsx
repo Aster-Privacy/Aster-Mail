@@ -56,6 +56,25 @@ vi.mock("@/lib/i18n/context", () => ({
 }));
 
 vi.mock("@aster/ui", () => ({
+  Checkbox: ({
+    checked,
+    id,
+    onCheckedChange,
+    "data-testid": test_id,
+  }: {
+    checked: boolean;
+    id?: string;
+    onCheckedChange: (on: boolean) => void;
+    "data-testid"?: string;
+  }) => (
+    <input
+      checked={checked}
+      data-testid={test_id}
+      id={id}
+      type="checkbox"
+      onChange={(e) => onCheckedChange(e.target.checked)}
+    />
+  ),
   SettingToggleRow: ({
     label,
     checked,
@@ -315,7 +334,7 @@ async function go_to_confirm() {
 
   click(by_test_id("guard_rescue_saved"));
   type_into(
-    container.querySelector("#guard_rescue_group") as HTMLInputElement,
+    container.querySelector("#guard_rescue_group_0") as HTMLInputElement,
     code.slice(-5),
   );
   click(by_test_id("guard_rescue_continue"));
@@ -400,7 +419,7 @@ describe("guard setup wizard", () => {
     click(by_test_id("guard_rescue_saved"));
     expect(next.disabled).toBe(true);
     const input = container.querySelector(
-      "#guard_rescue_group",
+      "#guard_rescue_group_0",
     ) as HTMLInputElement;
 
     type_into(input, "ZZZZZ");

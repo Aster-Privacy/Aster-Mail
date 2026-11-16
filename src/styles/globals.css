@@ -5417,9 +5417,9 @@ html[data-input-modality="keyboard"]
 }
 
 .guard_tree {
-  --guard_tree_line: color-mix(in srgb, var(--text-muted) 60%, transparent);
+  --guard_tree_line: color-mix(in srgb, var(--text-tertiary) 85%, transparent);
   --guard_tree_indent: 34px;
-  --guard_tree_w: 2px;
+  --guard_tree_w: 2.5px;
   --guard_tree_x: calc(var(--aster-island-row-pad-x, 16px) + 10px);
 }
 
@@ -5451,7 +5451,7 @@ html[data-input-modality="keyboard"]
   inset-inline-start: calc(var(--guard_tree_x) - var(--guard_tree_indent));
   top: 0;
   height: calc(50% + 1px);
-  width: calc(var(--guard_tree_indent) - 13.5px);
+  width: calc(var(--guard_tree_indent) - 13px);
   border-inline-start: var(--guard_tree_w) solid var(--guard_tree_line);
   border-bottom: var(--guard_tree_w) solid var(--guard_tree_line);
   border-end-start-radius: 8px;
@@ -5461,10 +5461,11 @@ html[data-input-modality="keyboard"]
 .guard_tree_child::after {
   content: "";
   position: absolute;
-  inset-inline-start: calc(var(--guard_tree_x) - var(--guard_tree_indent) + 13.75px);
-  top: calc(50% - 3.75px);
-  width: 7.5px;
-  height: 7.5px;
+  inset-inline-start: calc(var(--guard_tree_x) - var(--guard_tree_indent) + 13.5px);
+  top: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border-start-end-radius: 1px;
   border-top: var(--guard_tree_w) solid var(--guard_tree_line);
   border-inline-end: var(--guard_tree_w) solid var(--guard_tree_line);
   transform: rotate(45deg);
@@ -5473,6 +5474,15 @@ html[data-input-modality="keyboard"]
 
 [dir="rtl"] .guard_tree_child::after {
   transform: rotate(-45deg);
+}
+
+.guard_flag::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-primary) 14%, transparent);
+  pointer-events: none;
 }
 
 .guard_tree_child:not(:last-child) > .guard_tree_trunk {

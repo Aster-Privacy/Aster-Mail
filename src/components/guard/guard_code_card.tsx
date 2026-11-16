@@ -21,21 +21,22 @@
 import type { GuardDevice } from "@/services/guard/guard_device";
 
 import { useEffect, useRef } from "react";
-import { KeyIcon } from "@heroicons/react/24/outline";
+import { AnimatePresence, motion } from "framer-motion";
+import { DocumentDuplicateIcon } from "@heroicons/react/24/outline";
 
-import { GuardIconTile } from "@/components/guard/guard_visuals";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Button } from "@/components/ui/button";
 import { use_guard_code } from "@/hooks/use_guard_code";
 import { GUARD_CODE_STEP_SECONDS } from "@/lib/crypto/guard_code";
 import { use_i18n } from "@/lib/i18n/context";
+import { cn } from "@/lib/utils";
 import { is_tauri } from "@/native/desktop_device_auth";
+import { use_should_reduce_motion } from "@/provider";
 import { copy_text } from "@/utils/copy_text";
 
 export const GUARD_CLIPBOARD_CLEAR_MS = 30_000;
 
-const RING_RADIUS = 18;
-const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+const GUARD_CODE_WARN_SECONDS = 5;
 
 export async function clear_copied_code(code: string): Promise<void> {
   try {
@@ -49,6 +50,49 @@ export async function clear_copied_code(code: string): Promise<void> {
 
 interface GuardCodeCardProps {
   device: GuardDevice | null;
+}
+
+function GuardCodeChars({ code }: { code: string }) {
+  const reduce_motion = use_should_reduce_motion();
+
+  return (
+    <div
+      aria-live="polite"
+      className="flex items-center justify-center gap-1.5 sm:gap-2"
+      data-testid="guard_code_value"
+    >
+      {code.split("").map((char, index) => (
+        <span
+          key={index}
+          className="relative flex h-14 w-11 items-center justify-center overflow-hidden rounded-xl bg-surf-secondary font-mono text-[28px] font-semibold text-txt-primary sm:h-16 sm:w-12 sm:text-[32px]"
+        >
+          <AnimatePresence initial={false} mode="popLayout">
+            <motion.span
+              key={`${index}_${char}`}
+              animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+              exit={
+                reduce_motion
+                  ? { opacity: 0 }
+                  : { y: -18, opacity: 0, filter: "blur(4px)" }
+              }
+              initial={
+                reduce_motion
+                  ? { opacity: 0 }
+                  : { y: 18, opacity: 0, filter: "blur(4px)" }
+              }
+              transition={{
+                duration: reduce_motion ? 0.12 : 0.32,
+                delay: reduce_motion ? 0 : index * 0.035,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              {char}
+            </motion.span>
+          </AnimatePresence>
+        </span>
+      ))}
+    </div>
+  );
 }
 
 export function GuardCodeCard({ device }: GuardCodeCardProps) {
@@ -82,87 +126,66 @@ export function GuardCodeCard({ device }: GuardCodeCardProps) {
   if (!code) {
     return (
       <div
-        className="rounded-2xl border border-edge-primary bg-surf-primary px-4 py-4 shadow-sm"
+        className="flex flex-col items-center text-center"
         data-testid="guard_code_card"
       >
-        <div className="flex items-start gap-3">
-          <GuardIconTile>
-            <KeyIcon className="h-5 w-5" />
-          </GuardIconTile>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("guard.code_title")}
-            </p>
-            <p className="mt-0.5 text-sm text-txt-muted">
-              {t("guard.code_unavailable")}
-            </p>
-          </div>
-        </div>
+        <p className="text-sm font-medium text-txt-primary">
+          {t("guard.code_title")}
+        </p>
+        <p className="mt-1 max-w-sm text-sm text-txt-muted">
+          {t("guard.code_unavailable")}
+        </p>
       </div>
     );
   }
 
   const progress = seconds_left / GUARD_CODE_STEP_SECONDS;
+  const warn = seconds_left <= GUARD_CODE_WARN_SECONDS;
 
   return (
     <div
-      className="rounded-2xl border border-edge-primary bg-surf-primary px-4 py-4 shadow-sm"
+      className="flex flex-col items-center text-center"
       data-testid="guard_code_card"
     >
-      <div className="flex items-start gap-3">
-        <GuardIconTile>
-          <KeyIcon className="h-5 w-5" />
-        </GuardIconTile>
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-txt-primary">
-            {t("guard.code_title")}
-          </p>
-          <p className="mt-0.5 text-sm text-txt-muted">
-            {t("guard.code_description")}
-          </p>
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-txt-muted">
+        {t("guard.code_title")}
+      </p>
+      <div className="mt-3">
+        <GuardCodeChars code={code} />
+        <div
+          aria-hidden
+          className="mt-3 h-1 w-full overflow-hidden rounded-full bg-edge-primary"
+        >
+          <div
+            className={cn(
+              "h-full rounded-full transition-[width,background-color] duration-1000 ease-linear",
+              warn ? "bg-amber-500" : "bg-brand",
+            )}
+            data-testid="guard_code_progress"
+            style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }}
+          />
         </div>
       </div>
-      <div className="mt-4 flex items-center gap-4 rounded-xl bg-surf-secondary px-4 py-3">
-        <span
-          aria-live="polite"
-          className="font-mono text-3xl font-semibold tracking-[0.35em] text-txt-primary"
-          data-testid="guard_code_value"
-        >
-          {code}
-        </span>
-        <span className="relative inline-flex h-11 w-11 items-center justify-center">
-          <svg aria-hidden className="h-11 w-11 -rotate-90" viewBox="0 0 44 44">
-            <circle
-              className="stroke-edge-primary"
-              cx="22"
-              cy="22"
-              fill="none"
-              r={RING_RADIUS}
-              strokeWidth="3"
-            />
-            <circle
-              className="stroke-brand transition-[stroke-dashoffset] duration-1000 ease-linear"
-              cx="22"
-              cy="22"
-              fill="none"
-              r={RING_RADIUS}
-              strokeDasharray={RING_LENGTH}
-              strokeDashoffset={RING_LENGTH * (1 - progress)}
-              strokeLinecap="round"
-              strokeWidth="3"
-            />
-          </svg>
-          <span className="absolute text-xs tabular-nums text-txt-muted">
-            {seconds_left}
-          </span>
-          <span className="sr-only">
-            {t("guard.code_seconds_left", { seconds: seconds_left })}
-          </span>
-        </span>
-        <Button className="ml-auto" variant="outline" onClick={() => void copy()}>
-          {t("guard.code_copy")}
-        </Button>
-      </div>
+      <p
+        className={cn(
+          "mt-2 text-xs tabular-nums transition-colors",
+          warn ? "text-amber-600 dark:text-amber-400" : "text-txt-muted",
+        )}
+      >
+        {t("guard.code_seconds_left", { seconds: seconds_left })}
+      </p>
+      <Button
+        className="mt-4 gap-1.5"
+        size="sm"
+        variant="outline"
+        onClick={() => void copy()}
+      >
+        <DocumentDuplicateIcon aria-hidden className="h-4 w-4" />
+        {t("guard.code_copy")}
+      </Button>
+      <p className="mt-4 max-w-sm text-sm text-txt-muted">
+        {t("guard.code_description")}
+      </p>
     </div>
   );
 }

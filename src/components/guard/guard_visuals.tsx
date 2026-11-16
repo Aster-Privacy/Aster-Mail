@@ -21,6 +21,7 @@
 import type { ComponentType, ReactNode } from "react";
 
 import { useEffect, useState } from "react";
+import DOMPurify from "dompurify";
 import {
   FaAndroid,
   FaApple,
@@ -258,6 +259,7 @@ export function GuardLogo({ className }: { className?: string }) {
 
 export function GuardResultView({
   title,
+  title_info,
   body,
   actions,
   children,
@@ -266,6 +268,7 @@ export function GuardResultView({
   className,
 }: {
   title: string;
+  title_info?: ReactNode;
   body?: string;
   actions: ReactNode;
   children?: ReactNode;
@@ -280,7 +283,10 @@ export function GuardResultView({
       data-testid={test_id}
     >
       <GuardLogo className="mb-5" />
-      <h2 className="text-lg font-semibold text-txt-primary">{title}</h2>
+      <div className="flex items-center justify-center gap-1.5">
+        <h2 className="text-lg font-semibold text-txt-primary">{title}</h2>
+        {title_info}
+      </div>
       {body && (
         <p className="mt-1.5 max-w-sm text-sm text-txt-muted" role="status">
           {body}
@@ -372,36 +378,54 @@ export function GuardDetailRow({
   );
 }
 
-const FLAG_URLS = import.meta.glob<string>(
+const FLAG_SOURCES = import.meta.glob<string>(
   "/node_modules/country-flag-icons/3x2/*.svg",
-  { query: "?url", import: "default" },
+  { query: "?raw", import: "default" },
 );
 
 function flag_loader(code: string | null | undefined) {
   if (!code || !/^[A-Za-z]{2}$/.test(code)) return null;
 
   return (
-    FLAG_URLS[
+    FLAG_SOURCES[
       `/node_modules/country-flag-icons/3x2/${code.toUpperCase()}.svg`
     ] ?? null
   );
 }
 
+export function prepare_flag_svg(source: string): string | null {
+  const clean = DOMPurify.sanitize(source, {
+    USE_PROFILES: { svg: true },
+    RETURN_DOM: true,
+  }) as unknown as HTMLElement;
+  const svg = clean.querySelector("svg");
+
+  if (!svg) return null;
+  svg.setAttribute("width", "18");
+  svg.setAttribute("height", "12");
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  svg.setAttribute("class", "block h-full w-full");
+
+  return svg.outerHTML;
+}
+
 export function GuardFlag({ code }: { code?: string | null }) {
-  const [url, set_url] = useState<string | null>(null);
+  const [markup, set_markup] = useState<string | null>(null);
 
   useEffect(() => {
     const load = flag_loader(code);
     let active = true;
 
-    set_url(null);
+    set_markup(null);
     if (!load) return;
     load()
-      .then((value) => {
-        if (active) set_url(value);
+      .then((source) => {
+        if (active) set_markup(prepare_flag_svg(source));
       })
       .catch(() => {
-        if (active) set_url(null);
+        if (active) set_markup(null);
       });
 
     return () => {
@@ -409,20 +433,19 @@ export function GuardFlag({ code }: { code?: string | null }) {
     };
   }, [code]);
 
-  if (!url) return null;
+  if (!markup) return null;
 
   return (
-    <img
-      alt=""
+    <span
       aria-hidden
-      className="h-3 w-4 shrink-0 rounded-[2px] object-cover"
+      className="guard_flag relative inline-block h-3 w-[18px] shrink-0 overflow-hidden rounded-[2px]"
       data-testid="guard_flag"
-      decoding="async"
-      draggable={false}
-      height={12}
-      src={url}
-      width={16}
-    />
+    >
+      <span
+        dangerouslySetInnerHTML={{ __html: markup }}
+        className="block h-full w-full"
+      />
+    </span>
   );
 }
 
