@@ -84,6 +84,7 @@ export interface SearchResultItem {
   dkim_result?: string;
   dmarc_result?: string;
   folders?: { folder_token: string; name: string }[];
+  tag_tokens?: string[];
   thread_token?: string;
   thread_message_count?: number;
   grouped_email_ids?: string[];

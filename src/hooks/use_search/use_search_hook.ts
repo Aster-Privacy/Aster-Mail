@@ -31,9 +31,14 @@ import {
   build_search_index,
   mark_search_index_stale,
   patch_indexed_flags,
+  patch_indexed_membership,
   reset_index_cache,
   type IndexedFlagPatch,
 } from "./index_cache";
+import {
+  patch_results_membership,
+  type MembershipPatch,
+} from "./membership_patch";
 import {
   matches_query,
   query_requires_body,
@@ -232,6 +237,22 @@ export function use_search() {
     [],
   );
 
+  const apply_membership_patch = useCallback(
+    (ids: string[], patch: MembershipPatch) => {
+      if (ids.length === 0) return;
+
+      patch_indexed_membership(ids, patch);
+      last_scan_ref.current = null;
+
+      set_state((prev) => {
+        const next = patch_results_membership(prev.results, ids, patch);
+
+        return next ? { ...prev, results: next } : prev;
+      });
+    },
+    [],
+  );
+
   const restore_hidden_results = useCallback(async () => {
     const ids = Array.from(hidden_ids_ref.current);
 
@@ -287,6 +308,16 @@ export function use_search() {
         is_spam: detail.is_spam,
         is_archived: detail.is_archived,
       });
+
+      if (detail.tags !== undefined || detail.folders !== undefined) {
+        apply_membership_patch([detail.id], {
+          tag_tokens: detail.tags?.map((tag) => tag.id),
+          folders: detail.folders?.map((folder) => ({
+            folder_token: folder.folder_token,
+            name: folder.name,
+          })),
+        });
+      }
     };
 
     const handle_soft_refresh = () => {
@@ -320,7 +351,7 @@ export function use_search() {
         handle_soft_refresh,
       );
     };
-  }, [apply_flag_patch, restore_hidden_results]);
+  }, [apply_flag_patch, apply_membership_patch, restore_hidden_results]);
 
   const search = useCallback(
     async (
@@ -844,6 +875,7 @@ export function use_search() {
     clear_results,
     clear_index,
     apply_flag_patch,
+    apply_membership_patch,
     start_index_build,
     load_more,
     set_query,

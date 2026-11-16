@@ -1260,6 +1260,59 @@ export function patch_indexed_flags(
   }
 }
 
+export interface IndexedMembershipPatch {
+  tag_tokens?: string[];
+  add_tag_tokens?: string[];
+  remove_tag_tokens?: string[];
+  folders?: { folder_token: string; name: string; color?: string }[];
+  remove_folder_tokens?: string[];
+}
+
+export function patch_indexed_membership(
+  ids: string[],
+  patch: IndexedMembershipPatch,
+): void {
+  if (!cached_index || ids.length === 0) return;
+
+  const wanted = new Set(ids);
+  const removed_tags = new Set(patch.remove_tag_tokens ?? []);
+  const removed_folders = new Set(patch.remove_folder_tokens ?? []);
+
+  for (const item of cached_index.items) {
+    if (!wanted.has(item.id)) continue;
+
+    if (
+      patch.tag_tokens !== undefined ||
+      removed_tags.size > 0 ||
+      (patch.add_tag_tokens?.length ?? 0) > 0
+    ) {
+      const tokens = (patch.tag_tokens ?? item.tag_tokens ?? []).filter(
+        (token) => !removed_tags.has(token),
+      );
+
+      for (const token of patch.add_tag_tokens ?? []) {
+        if (!tokens.includes(token)) tokens.push(token);
+      }
+      item.tag_tokens = tokens;
+    }
+    if (patch.folders !== undefined) {
+      item.labels = patch.folders.map((folder) => ({
+        token: folder.folder_token,
+        name: folder.name,
+        color: folder.color ?? "",
+      }));
+      item.folders = [];
+    } else if (removed_folders.size > 0) {
+      item.labels = (item.labels ?? []).filter(
+        (label) => !removed_folders.has(label.token),
+      );
+      item.folders = (item.folders ?? []).filter(
+        (folder) => !removed_folders.has(folder.token),
+      );
+    }
+  }
+}
+
 export async function prewarm_search_index(
   user_email: string,
   include_body: boolean,

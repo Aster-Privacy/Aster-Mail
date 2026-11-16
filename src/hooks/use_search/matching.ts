@@ -592,5 +592,6 @@ export function to_search_result(
         name: f.name,
       })),
     ],
+    tag_tokens: [...(item.tag_tokens ?? [])],
   };
 }
