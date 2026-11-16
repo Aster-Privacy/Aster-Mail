@@ -2457,12 +2457,18 @@ export const hi = {
       "यह स्थानीय रूप से चलता है, इसलिए आपका मेल एन्क्रिप्टेड रहता है",
     bridge_upgrade_benefit_platforms: "Windows, macOS और Linux पर उपलब्ध",
     bridge_upgrade_benefit_cli: "सर्वर के लिए कमांड-लाइन संस्करण शामिल है",
-    bridge_cli_download: "डाउनलोड करें",
+    bridge_cli_download_windows: "Windows आर्काइव डाउनलोड करें",
+    bridge_cli_download_macos: "macOS आर्काइव डाउनलोड करें",
+    bridge_cli_download_linux: "Linux आर्काइव डाउनलोड करें",
     bridge_cli_install_hint:
       "अपने प्लेटफ़ॉर्म के लिए संग्रह डाउनलोड करें, उसे निकालें और बाइनरी को अपने PATH में ले जाएँ।",
     bridge_cli_install_hint_windows:
       "संग्रह डाउनलोड करें, उसे निकालें और फ़ोल्डर को अपने PATH में जोड़ें।",
     bridge_cli_copy_command: "इंस्टॉल कमांड कॉपी करें",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "टर्मिनल",
+    bridge_upgrade_summary:
+      "Aster Bridge, Star और उससे ऊपर के सभी प्लान में शामिल है।",
     bridge_cli_docs_link: "कमांड-लाइन गाइड पढ़ें",
     bridge_cli_name: "कमांड लाइन",
     bridge_cli_desc:
@@ -2478,10 +2484,11 @@ export const hi = {
     bridge_coming_soon: "जल्द आ रहा है",
     bridge_info_link: "और जानें",
     bridge_popover_description:
-      "एक हल्का लोकल प्रॉक्सी जो आपके डेस्कटॉप पर चलता है। यह आपका मेलबॉक्स डिक्रिप्ट करके उसे मानक IMAP और SMTP पर उपलब्ध कराता है, ताकि कोई भी ईमेल क्लाइंट उससे जुड़ सके।",
+      "एक हल्का ऐप जो आपके कंप्यूटर पर चलता है। यह आपके मेल को स्थानीय रूप से डिक्रिप्ट करता है और उसे मानक IMAP और SMTP पर उपलब्ध कराता है, ताकि कोई भी मेल क्लाइंट उससे जुड़ सके।",
     desktop_bridge_title: "डेस्कटॉप मेल क्लाइंट",
+    desktop_bridge_description_short: "अपने कंप्यूटर के लिए Aster Bridge डाउनलोड करें।",
     desktop_bridge_description:
-      "Aster को Thunderbird, Apple Mail, Outlook या किसी भी IMAP/JMAP क्लाइंट के साथ इस्तेमाल करें। Aster Bridge आपके डिवाइस पर चलता है और आपका डिक्रिप्ट किया हुआ मेलबॉक्स आपके पसंदीदा क्लाइंट को उपलब्ध कराता है।",
+      "Aster को Thunderbird, Apple Mail, Outlook या किसी भी IMAP/JMAP क्लाइंट के साथ इस्तेमाल करें। Aster Bridge आपके कंप्यूटर पर चलता है, वहीं आपके मेल को डिक्रिप्ट करता है, और उसे आपके मेल क्लाइंट तक पहुंचाता है।",
     desktop_bridge_set_up: "{{ client }} सेट अप करें",
     desktop_bridge_install_hint:
       "Aster Bridge इंस्टॉल होकर चलता रहना चाहिए। इसे सेटिंग > Bridge से डाउनलोड करें।",

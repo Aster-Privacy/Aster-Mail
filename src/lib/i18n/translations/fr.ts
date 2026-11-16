@@ -8090,8 +8090,9 @@ export const fr = {
       "Vous devez attendre avant de supprimer ce domaine.",
     delete_domain_warning:
       "Toutes les adresses de ce domaine cesseront de recevoir des e-mails dès que vous le supprimerez, et cette action est irréversible.",
+    desktop_bridge_description_short: "Téléchargez Aster Bridge pour votre ordinateur.",
     desktop_bridge_description:
-      "Utilisez Aster avec Thunderbird, Apple Mail, Outlook ou tout client IMAP/JMAP. Aster Bridge s'exécute en local et met votre boîte aux lettres déchiffrée à disposition de votre client préféré.",
+      "Utilisez Aster avec Thunderbird, Apple Mail, Outlook ou tout client IMAP/JMAP. Aster Bridge s'exécute sur votre ordinateur, y déchiffre vos e-mails et les transmet à votre client de messagerie.",
     desktop_bridge_install_hint:
       "Aster Bridge doit être installé et en cours d'exécution. Téléchargez-le depuis Paramètres > Bridge.",
     desktop_bridge_not_opened:
@@ -8144,12 +8145,18 @@ export const fr = {
     bridge_upgrade_benefit_platforms: "Disponible sur Windows, macOS et Linux",
     bridge_upgrade_benefit_cli:
       "Inclut une version en ligne de commande pour les serveurs",
-    bridge_cli_download: "Télécharger",
+    bridge_cli_download_windows: "Télécharger l'archive Windows",
+    bridge_cli_download_macos: "Télécharger l'archive macOS",
+    bridge_cli_download_linux: "Télécharger l'archive Linux",
     bridge_cli_install_hint:
       "Téléchargez l'archive correspondant à votre plateforme, extrayez-la, puis déplacez le binaire dans votre PATH.",
     bridge_cli_install_hint_windows:
       "Téléchargez l'archive, extrayez-la, puis ajoutez le dossier à votre PATH.",
     bridge_cli_copy_command: "Copier les commandes d'installation",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "Terminal",
+    bridge_upgrade_summary:
+      "Aster Bridge est inclus dans Star et dans toutes les formules supérieures.",
     bridge_cli_docs_link: "Lire le guide de la ligne de commande",
     bridge_cli_name: "Ligne de commande",
     bridge_cli_desc:
@@ -8165,7 +8172,7 @@ export const fr = {
     bridge_coming_soon: "Bientôt disponible",
     bridge_info_link: "En savoir plus",
     bridge_popover_description:
-      "Un proxy local léger qui s'exécute sur votre bureau. Il déchiffre votre boîte aux lettres et la sert via IMAP et SMTP standard afin que n'importe quel client de messagerie puisse s'y connecter.",
+      "Une app légère qui s'exécute sur votre ordinateur. Elle déchiffre vos e-mails en local et les rend disponibles via les protocoles standard IMAP et SMTP, pour que tout client de messagerie puisse s'y connecter.",
     bridge_installations: "Installations connectées",
     bridge_installations_description:
       "Chaque entrée est une application Bridge associée à votre compte. La révoquer déconnecte tous les clients de messagerie utilisant cette installation.",

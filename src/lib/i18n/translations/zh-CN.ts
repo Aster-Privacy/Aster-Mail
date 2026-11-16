@@ -6938,12 +6938,18 @@ export const zh_CN = {
     bridge_upgrade_benefit_local: "在本地运行，您的邮件始终保持加密",
     bridge_upgrade_benefit_platforms: "支持 Windows、macOS 和 Linux",
     bridge_upgrade_benefit_cli: "包含适用于服务器的命令行版本",
-    bridge_cli_download: "下载",
+    bridge_cli_download_windows: "下载 Windows 压缩包",
+    bridge_cli_download_macos: "下载 macOS 压缩包",
+    bridge_cli_download_linux: "下载 Linux 压缩包",
     bridge_cli_install_hint:
       "下载适用于您的平台的压缩包，解压后将二进制文件移动到 PATH 中。",
     bridge_cli_install_hint_windows:
       "下载压缩包，解压后将该文件夹添加到 PATH 中。",
     bridge_cli_copy_command: "复制安装命令",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "终端",
+    bridge_upgrade_summary:
+      "Aster Bridge 包含在 Star 及所有更高级的套餐中。",
     bridge_cli_docs_link: "阅读命令行指南",
     bridge_cli_name: "命令行",
     bridge_cli_desc:
@@ -6958,7 +6964,7 @@ export const zh_CN = {
     bridge_coming_soon: "即将推出",
     bridge_info_link: "了解更多",
     bridge_popover_description:
-      "运行在桌面端的轻量级本地代理。它解密您的邮箱并通过标准IMAP和SMTP提供服务，使任何邮件客户端都能连接。",
+      "一款在您的电脑上运行的轻量应用。它在本地解密您的邮件，并通过标准 IMAP 和 SMTP 提供，任何邮件客户端都可以连接到它。",
     bridge_installations: "已连接的安装",
     bridge_installations_description:
       "每个条目都是与您的账户配对的Bridge应用。撤销它将断开使用该安装的所有邮件客户端。",
@@ -6976,8 +6982,9 @@ export const zh_CN = {
     bridge_support_github: "GitHub",
     bridge_support_reddit: "Reddit",
     desktop_bridge_title: "Aster Bridge",
+    desktop_bridge_description_short: "下载适用于您电脑的 Aster Bridge。",
     desktop_bridge_description:
-      "将 Aster 与 Thunderbird、Apple Mail、Outlook 或任何 IMAP/JMAP 客户端配合使用。Aster Bridge 在本地运行，并将解密后的邮箱重新提供给您常用的客户端。",
+      "将 Aster 与 Thunderbird、Apple Mail、Outlook 或任何 IMAP/JMAP 客户端配合使用。Aster Bridge 在您的电脑上运行，在本机解密您的邮件，然后将其交给您的邮件客户端。",
     desktop_bridge_set_up: "设置 {{client}}",
     desktop_bridge_install_hint:
       "必须安装并运行 Aster Bridge。请前往“设置 > Bridge”下载。",

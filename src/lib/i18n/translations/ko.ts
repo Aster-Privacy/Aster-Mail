@@ -3848,12 +3848,18 @@ export const ko = {
     bridge_upgrade_benefit_platforms:
       "Windows, macOS, Linux에서 사용할 수 있습니다",
     bridge_upgrade_benefit_cli: "서버용 명령줄 버전이 포함됩니다",
-    bridge_cli_download: "다운로드",
+    bridge_cli_download_windows: "Windows 아카이브 다운로드",
+    bridge_cli_download_macos: "macOS 아카이브 다운로드",
+    bridge_cli_download_linux: "Linux 아카이브 다운로드",
     bridge_cli_install_hint:
       "사용 중인 플랫폼용 아카이브를 다운로드하고 압축을 푼 다음 바이너리를 PATH로 옮깁니다.",
     bridge_cli_install_hint_windows:
       "아카이브를 다운로드하고 압축을 푼 다음 폴더를 PATH에 추가합니다.",
     bridge_cli_copy_command: "설치 명령 복사",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "터미널",
+    bridge_upgrade_summary:
+      "Aster Bridge는 Star 및 모든 상위 요금제에 포함되어 있습니다.",
     bridge_cli_docs_link: "명령줄 가이드 읽기",
     bridge_cli_name: "명령줄",
     bridge_cli_desc:
@@ -3869,7 +3875,7 @@ export const ko = {
     bridge_coming_soon: "곧 제공",
     bridge_info_link: "자세히 알아보기",
     bridge_popover_description:
-      "데스크톱에서 실행되는 경량 로컬 프록시. 메일함을 복호화하여 표준 IMAP과 SMTP로 제공하므로 모든 메일 클라이언트가 연결할 수 있습니다.",
+      "컴퓨터에서 실행되는 가벼운 앱입니다. 메일을 로컬에서 복호화하고 표준 IMAP 및 SMTP로 제공하므로 어떤 메일 클라이언트든 연결할 수 있습니다.",
     bridge_installations: "연결된 설치",
     bridge_installations_description:
       "각 항목은 계정에 연결된 Bridge 앱입니다. 취소하면 해당 설치를 사용하는 모든 메일 클라이언트 연결이 끊깁니다.",
@@ -3889,8 +3895,9 @@ export const ko = {
     bridge_support_github: "GitHub",
     bridge_support_reddit: "Reddit",
     desktop_bridge_title: "데스크톱 메일 클라이언트",
+    desktop_bridge_description_short: "컴퓨터용 Aster Bridge를 다운로드하세요.",
     desktop_bridge_description:
-      "Thunderbird, Apple Mail, Outlook 또는 IMAP/JMAP 클라이언트와 함께 Aster를 사용하세요. Aster Bridge가 로컬에서 실행되어 복호화된 메일함을 클라이언트에 제공합니다.",
+      "Thunderbird, Apple Mail, Outlook 또는 IMAP/JMAP 클라이언트와 함께 Aster를 사용하세요. Aster Bridge는 컴퓨터에서 실행되며 그곳에서 메일을 복호화한 뒤 메일 클라이언트로 전달합니다.",
     desktop_bridge_set_up: "{{ client }} 설정",
     desktop_bridge_install_hint:
       "Aster Bridge가 설치되어 실행 중이어야 합니다. 설정 > Bridge에서 다운로드하세요.",

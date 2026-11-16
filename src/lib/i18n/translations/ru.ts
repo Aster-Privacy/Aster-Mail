@@ -8115,8 +8115,9 @@ export const ru = {
       "После удаления этот домен нельзя будет добавить снова в течение 30 дней.",
     delete_domain_warning:
       "Все адреса на этом домене перестанут получать почту сразу после удаления. Это действие нельзя отменить.",
+    desktop_bridge_description_short: "Скачайте Aster Bridge для своего компьютера.",
     desktop_bridge_description:
-      "Используйте Aster с Thunderbird, Apple Mail, Outlook или любым IMAP/JMAP-клиентом. Aster Bridge работает локально и передаёт расшифрованный почтовый ящик вашему клиенту.",
+      "Используйте Aster с Thunderbird, Apple Mail, Outlook или любым IMAP/JMAP-клиентом. Aster Bridge работает на вашем компьютере, расшифровывает там почту и передаёт её вашему почтовому клиенту.",
     desktop_bridge_install_hint:
       "Aster Bridge должен быть установлен и запущен. Скачайте его в разделе Настройки > Bridge.",
     desktop_bridge_not_opened:
@@ -8168,12 +8169,18 @@ export const ru = {
     bridge_upgrade_benefit_platforms: "Доступно для Windows, macOS и Linux",
     bridge_upgrade_benefit_cli:
       "Включает версию для командной строки на серверах",
-    bridge_cli_download: "Скачать",
+    bridge_cli_download_windows: "Скачать архив для Windows",
+    bridge_cli_download_macos: "Скачать архив для macOS",
+    bridge_cli_download_linux: "Скачать архив для Linux",
     bridge_cli_install_hint:
       "Скачайте архив для своей платформы, распакуйте его и переместите исполняемый файл в PATH.",
     bridge_cli_install_hint_windows:
       "Скачайте архив, распакуйте его и добавьте папку в PATH.",
     bridge_cli_copy_command: "Скопировать команды установки",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "Терминал",
+    bridge_upgrade_summary:
+      "Aster Bridge входит в тариф Star и во все тарифы выше.",
     bridge_cli_docs_link: "Руководство по командной строке",
     bridge_cli_name: "Командная строка",
     bridge_cli_desc: "Запускает те же серверы без окна, на сервере или по SSH.",
@@ -8188,7 +8195,7 @@ export const ru = {
     bridge_coming_soon: "Скоро",
     bridge_info_link: "Подробнее",
     bridge_popover_description:
-      "Лёгкий локальный прокси, работающий на вашем компьютере. Расшифровывает почтовый ящик и передаёт его через стандартные IMAP и SMTP, чтобы любой почтовый клиент мог подключиться.",
+      "Лёгкое приложение, которое работает на вашем компьютере. Оно расшифровывает почту локально и делает её доступной по стандартным IMAP и SMTP, чтобы к нему мог подключиться любой почтовый клиент.",
     bridge_installations: "Подключённые установки",
     bridge_installations_description:
       "Каждая запись - это приложение Bridge, связанное с вашим аккаунтом. Отзыв отключает все почтовые клиенты, использующие эту установку.",

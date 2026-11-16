@@ -7974,8 +7974,9 @@ export const nl = {
       "Na verwijdering kan dit domein 30 dagen lang niet opnieuw worden toegevoegd.",
     delete_domain_warning:
       "Weet je zeker dat je dit domein wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    desktop_bridge_description_short: "Download Aster Bridge voor je computer.",
     desktop_bridge_description:
-      "Gebruik Aster met Thunderbird, Apple Mail, Outlook of elke andere IMAP/JMAP-client. Aster Bridge draait lokaal en biedt je ontsleutelde mailbox aan je favoriete client aan.",
+      "Gebruik Aster met Thunderbird, Apple Mail, Outlook of elke andere IMAP/JMAP-client. Aster Bridge draait op je computer, ontsleutelt daar je e-mail en geeft die door aan je e-mailclient.",
     desktop_bridge_install_hint:
       "Aster Bridge moet geïnstalleerd zijn en actief zijn. Download het via Instellingen > Bridge.",
     desktop_bridge_not_opened:
@@ -8025,12 +8026,18 @@ export const nl = {
       "Beschikbaar voor Windows, macOS en Linux",
     bridge_upgrade_benefit_cli:
       "Inclusief een opdrachtregelversie voor servers",
-    bridge_cli_download: "Downloaden",
+    bridge_cli_download_windows: "Windows-archief downloaden",
+    bridge_cli_download_macos: "macOS-archief downloaden",
+    bridge_cli_download_linux: "Linux-archief downloaden",
     bridge_cli_install_hint:
       "Download het archief voor je platform, pak het uit en verplaats het binaire bestand naar je PATH.",
     bridge_cli_install_hint_windows:
       "Download het archief, pak het uit en voeg de map toe aan je PATH.",
     bridge_cli_copy_command: "Installatieopdrachten kopiëren",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "Terminal",
+    bridge_upgrade_summary:
+      "Aster Bridge is inbegrepen bij Star en elk hoger abonnement.",
     bridge_cli_docs_link: "Lees de opdrachtregelhandleiding",
     bridge_cli_name: "Opdrachtregel",
     bridge_cli_desc:
@@ -8046,7 +8053,7 @@ export const nl = {
     bridge_coming_soon: "Binnenkort beschikbaar",
     bridge_info_link: "Meer informatie",
     bridge_popover_description:
-      "Een lichtgewicht lokale proxy die op je bureaublad draait. Het decodeert je mailbox en serveert deze via standaard IMAP en SMTP, zodat elke e-mailclient er verbinding mee kan maken.",
+      "Een lichte app die op je computer draait. Hij ontsleutelt je e-mail lokaal en maakt die beschikbaar via standaard IMAP en SMTP, zodat elke e-mailclient verbinding kan maken.",
     bridge_installations: "Verbonden installaties",
     bridge_installations_description:
       "Elke vermelding is een Bridge-app gekoppeld aan je account. Het intrekken ervan verbreekt alle e-mailclients die die installatie gebruiken.",

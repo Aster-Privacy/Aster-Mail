@@ -2367,10 +2367,16 @@ export const en: Translations = {
     bridge_cli_name: "Command line",
     bridge_cli_desc:
       "Run aster-bridge without a window, on a server or over SSH.",
-    bridge_cli_download: "Download",
+    bridge_cli_download_windows: "Download Windows archive",
+    bridge_cli_download_macos: "Download macOS archive",
+    bridge_cli_download_linux: "Download Linux archive",
     bridge_cli_install_hint:
       "Download the archive for your platform, then extract it and move the binary onto your PATH.",
     bridge_cli_copy_command: "Copy the install commands",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "Terminal",
+    bridge_upgrade_summary:
+      "Aster Bridge is included with Star and every higher plan.",
     bridge_cli_docs_link: "Read the command-line guide",
     bridge_cli_windows_link: "Windows",
     bridge_cli_macos_link: "macOS",
@@ -2383,10 +2389,11 @@ export const en: Translations = {
     bridge_coming_soon: "Coming soon",
     bridge_info_link: "Learn more",
     bridge_popover_description:
-      "A lightweight local proxy that runs on your desktop. It decrypts your mailbox and re-serves it over standard IMAP and SMTP so any email client can connect to it.",
+      "A lightweight app that runs on your computer. It decrypts your mail locally and makes it available over standard IMAP and SMTP, so any mail client can connect to it.",
     desktop_bridge_title: "Desktop Mail Client",
+    desktop_bridge_description_short: "Download Aster Bridge for your computer.",
     desktop_bridge_description:
-      "Use Aster with Thunderbird, Apple Mail, Outlook, or any IMAP/JMAP client. Aster Bridge runs locally and re-serves your decrypted mailbox to your favorite client.",
+      "Use Aster with Thunderbird, Apple Mail, Outlook, or any IMAP/JMAP client. Aster Bridge runs on your computer, decrypts your mail there, and passes it to your mail client.",
     desktop_bridge_set_up: "Set up {{ client }}",
     desktop_bridge_install_hint:
       "Aster Bridge must be installed and running. Download it from Settings > Bridge.",

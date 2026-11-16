@@ -7713,12 +7713,18 @@ export const it = {
     bridge_upgrade_benefit_platforms: "Disponibile su Windows, macOS e Linux",
     bridge_upgrade_benefit_cli:
       "Include una versione a riga di comando per i server",
-    bridge_cli_download: "Scarica",
+    bridge_cli_download_windows: "Scarica l'archivio per Windows",
+    bridge_cli_download_macos: "Scarica l'archivio per macOS",
+    bridge_cli_download_linux: "Scarica l'archivio per Linux",
     bridge_cli_install_hint:
       "Scarica l'archivio per la tua piattaforma, estrailo e sposta il binario nel tuo PATH.",
     bridge_cli_install_hint_windows:
       "Scarica l'archivio, estrailo e aggiungi la cartella al tuo PATH.",
     bridge_cli_copy_command: "Copia i comandi di installazione",
+    bridge_cli_shell_powershell: "PowerShell",
+    bridge_cli_shell_terminal: "Terminale",
+    bridge_upgrade_summary:
+      "Aster Bridge è incluso in Star e in tutti i piani superiori.",
     bridge_cli_docs_link: "Leggi la guida alla riga di comando",
     bridge_cli_name: "Riga di comando",
     bridge_cli_desc:
@@ -7734,7 +7740,7 @@ export const it = {
     bridge_coming_soon: "Presto disponibile",
     bridge_info_link: "Scopri di più",
     bridge_popover_description:
-      "Un proxy locale leggero che viene eseguito sul desktop. Decripta la tua casella di posta e la fornisce tramite IMAP e SMTP standard in modo che qualsiasi client di posta possa connettersi.",
+      "Un'app leggera che funziona sul tuo computer. Decifra la tua posta in locale e la rende disponibile tramite IMAP e SMTP standard, così qualsiasi client di posta può collegarsi.",
     bridge_installations: "Installazioni connesse",
     bridge_installations_description:
       "Ogni voce è un'app Bridge abbinata al tuo account. Revocarla disconnette tutti i client di posta che utilizzano quell'installazione.",
@@ -7754,8 +7760,9 @@ export const it = {
     bridge_support_github: "GitHub",
     bridge_support_reddit: "Reddit",
     desktop_bridge_title: "Client di posta desktop",
+    desktop_bridge_description_short: "Scarica Aster Bridge per il tuo computer.",
     desktop_bridge_description:
-      "Usa Aster con Thunderbird, Apple Mail, Outlook o qualsiasi client IMAP/JMAP. Aster Bridge gira in locale e serve la tua casella decifrata al client preferito.",
+      "Usa Aster con Thunderbird, Apple Mail, Outlook o qualsiasi client IMAP/JMAP. Aster Bridge funziona sul tuo computer, decifra lì la tua posta e la passa al tuo client di posta.",
     desktop_bridge_set_up: "Configura {{ client }}",
     desktop_bridge_install_hint:
       "Aster Bridge deve essere installato e in esecuzione. Scaricalo da Impostazioni > Bridge.",
