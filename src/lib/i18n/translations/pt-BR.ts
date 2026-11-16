@@ -5975,6 +5975,7 @@ export const pt_br = {
     duplicates_skipped_one: "{{count}} duplicata ignorada",
     import_attachments_filled: "Anexos adicionados a {{count}} mensagens importadas antes",
     import_attachments_filled_one: "Anexos adicionados a {{count}} mensagem importada antes",
+    import_attachment_daily_limit: "Você atingiu o limite de hoje para anexos importados, então algumas mensagens chegaram sem eles. Para adicioná-los, importe o mesmo arquivo novamente amanhã.",
     import_review_ready: "{{count}} e-mails estão prontos para importar.",
     import_review_ready_one: "{{count}} e-mail está pronto para importar.",
     import_review_trash_found: "{{count}} deles estavam na lixeira da sua conta antiga. Escolha onde colocá-los.",

@@ -6178,6 +6178,7 @@ export const pl = {
     duplicates_skipped_one: "Pominięto {{count}} duplikat",
     import_attachments_filled: "Dodano załączniki do wcześniej zaimportowanych wiadomości: {{count}}",
     import_attachments_filled_one: "Dodano załączniki do {{count}} wcześniej zaimportowanej wiadomości",
+    import_attachment_daily_limit: "Osiągnięto dzisiejszy limit importowanych załączników, więc niektóre wiadomości zaimportowano bez nich. Aby je dodać, zaimportuj ten sam plik jutro.",
     duplicates_skipped_few: "Pominięto {{count}} duplikaty",
     import_review_ready: "Wiadomości gotowe do importu: {{count}}.",
     import_review_ready_one: "{{count}} wiadomość jest gotowa do importu.",

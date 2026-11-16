@@ -7400,6 +7400,7 @@ export const en: Translations = {
     duplicates_skipped_one: "{{count}} duplicate skipped",
     import_attachments_filled: "Added attachments to {{count}} messages you imported before",
     import_attachments_filled_one: "Added attachments to {{count}} message you imported before",
+    import_attachment_daily_limit: "You reached today's limit for imported attachments, so some messages came in without them. To add them, import the same file again tomorrow.",
     import_review_ready: "{{count}} emails are ready to import.",
     import_review_ready_one: "{{count}} email is ready to import.",
     import_review_trash_found: "{{count}} of them were in Trash in your old account. Choose where to put them.",

@@ -5956,6 +5956,7 @@ export const ko = {
     emails_imported_count: "{{count}}개 이메일 가져옴",
     duplicates_skipped: "{{count}}개 중복 건너뜀",
     import_attachments_filled: "이전에 가져온 메시지 {{count}}개에 첨부 파일을 추가했습니다",
+    import_attachment_daily_limit: "오늘 가져올 수 있는 첨부 파일 한도에 도달하여 일부 메시지는 첨부 파일 없이 가져왔습니다. 첨부 파일을 추가하려면 내일 같은 파일을 다시 가져오세요.",
     import_review_ready: "{{count}}개의 이메일을 가져올 준비가 되었습니다.",
     import_review_ready_one: "{{count}}개의 이메일을 가져올 준비가 되었습니다.",
     import_review_trash_found: "그중 {{count}}개는 이전 계정의 휴지통에 있었습니다. 어디에 둘지 선택하세요.",

@@ -5911,6 +5911,7 @@ export const de = {
     duplicates_skipped_one: "{{count}} Duplikat übersprungen",
     import_attachments_filled: "Anhänge zu {{count}} bereits importierten Nachrichten hinzugefügt",
     import_attachments_filled_one: "Anhänge zu {{count}} bereits importierten Nachricht hinzugefügt",
+    import_attachment_daily_limit: "Sie haben das heutige Limit für importierte Anhänge erreicht, daher wurden einige Nachrichten ohne Anhänge importiert. Um sie hinzuzufügen, importieren Sie dieselbe Datei morgen erneut.",
     import_review_ready: "{{count}} E-Mails sind bereit zum Import.",
     import_review_ready_one: "{{count}} E-Mail ist bereit zum Import.",
     import_review_trash_found: "{{count}} davon lagen in Ihrem alten Konto im Papierkorb. Wählen Sie, wohin sie verschoben werden.",

@@ -74,6 +74,7 @@ import {
 } from "@/services/import/attachments";
 import {
   plan_import_fills,
+  store_with_rate_limit_retry,
   should_flush_import_batch,
 } from "@/services/import/import_fill";
 import {
@@ -152,6 +153,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     invalid: number;
     failed: number;
     attachments_filled?: number;
+    attachment_daily_limit?: boolean;
     quota_exceeded?: boolean;
     folders_skipped?: number;
     labels_created?: number;
@@ -694,6 +696,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         let quota_exceeded = false;
         let attempted_count = 0;
         let attachments_filled = 0;
+        let attachment_daily_limit = false;
         let encrypted_batch: EncryptedImportEmail[] = [];
         let encrypted_batch_bytes = 0;
 
@@ -714,8 +717,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           encrypted_batch_bytes = 0;
           if (batch.length === 0) return;
 
-          const store_response = await job_calls.run(() =>
-            store_imported_emails(active_job_id, batch),
+          const store_response = await store_with_rate_limit_retry(
+            () =>
+              job_calls.run(() => store_imported_emails(active_job_id, batch)),
+            () => cancel_ref.current,
           );
 
           if (is_job_lost_response(store_response)) {
@@ -738,6 +743,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
             if (store_response.data.quota_exceeded) {
               quota_exceeded = true;
+            }
+            if (store_response.data.attachment_daily_limit_reached) {
+              attachment_daily_limit = true;
             }
           } else {
             failed_count += batch.length;
@@ -836,7 +844,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 ),
               );
 
-              if (attachments_allowed) {
+              if (attachments_allowed && !attachment_daily_limit) {
                 try {
                   const attachments = await encrypt_import_attachments(email);
 
@@ -909,6 +917,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           imported: imported_count,
           duplicates: Math.max(0, total_duplicates - attachments_filled),
           attachments_filled,
+          attachment_daily_limit,
           drafts_skipped: drafts_skipped_count,
           invalid: invalid_count,
           failed: failed_count,
@@ -1504,6 +1513,11 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                     {t("settings.import_labels_skipped", {
                       count: import_result.labels_skipped ?? 0,
                     })}
+                  </p>
+                )}
+                {import_result.attachment_daily_limit && (
+                  <p className="text-xs text-amber-500">
+                    {t("settings.import_attachment_daily_limit")}
                   </p>
                 )}
                 {import_result.quota_exceeded && (

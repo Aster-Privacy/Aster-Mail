@@ -5414,6 +5414,7 @@ export const zh_CN = {
     emails_imported_count: "已导入 {{count}} 封邮件",
     duplicates_skipped: "已跳过 {{count}} 封重复邮件",
     import_attachments_filled: "已为之前导入的 {{count}} 封邮件添加附件",
+    import_attachment_daily_limit: "你已达到今日导入附件的上限，因此部分邮件未带附件导入。如需添加附件，请明天再次导入同一文件。",
     import_review_ready: "{{count}} 封邮件可以导入。",
     import_review_ready_one: "{{count}} 封邮件可以导入。",
     import_review_trash_found: "其中 {{count}} 封在你旧账户的废纸篓中。请选择放置位置。",
