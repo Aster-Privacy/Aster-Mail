@@ -29,7 +29,6 @@ import {
 } from "./quick_calendar_panel";
 
 const mocks = vi.hoisted(() => ({
-  theme: "light" as "light" | "dark",
   open_external: vi.fn(),
 }));
 
@@ -53,7 +52,7 @@ vi.mock("@/components/layout/use_panel_transition", () => ({
 }));
 
 vi.mock("@/contexts/theme_context", () => ({
-  useTheme: () => ({ theme: mocks.theme }),
+  useTheme: () => ({ theme: "light" }),
 }));
 
 vi.mock("@/utils/open_link", () => ({
@@ -231,7 +230,8 @@ describe("quick calendar panel", () => {
   };
 
   beforeEach(() => {
-    mocks.theme = "light";
+    document.documentElement.className = "light";
+    document.documentElement.removeAttribute("style");
     mocks.open_external.mockReset();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -243,6 +243,8 @@ describe("quick calendar panel", () => {
       root.unmount();
     });
     container.remove();
+    document.documentElement.className = "";
+    document.documentElement.removeAttribute("style");
     vi.useRealTimers();
   });
 
@@ -254,7 +256,7 @@ describe("quick calendar panel", () => {
     await render_panel(true);
 
     expect(frame()?.getAttribute("src")).toBe(
-      `${ORIGIN}/mail-panel?theme=light`,
+      `${ORIGIN}/mail-panel?theme=light&palette=default`,
     );
     expect(frame()?.getAttribute("sandbox")).toContain("allow-scripts");
     expect(frame()?.getAttribute("sandbox")).not.toContain(
@@ -307,19 +309,75 @@ describe("quick calendar panel", () => {
     await send({ source: "aster-calendar-panel", type: "ready" });
 
     expect(post).toHaveBeenCalledWith(
-      { source: "aster-mail", type: "theme", theme: "light" },
+      {
+        source: "aster-mail",
+        type: "theme",
+        theme: "light",
+        palette: "default",
+        accent: "",
+      },
       ORIGIN,
     );
 
-    mocks.theme = "dark";
-    await render_panel(true);
+    await act(async () => {
+      document.documentElement.className = "dark";
+    });
 
     expect(post).toHaveBeenLastCalledWith(
-      { source: "aster-mail", type: "theme", theme: "dark" },
+      {
+        source: "aster-mail",
+        type: "theme",
+        theme: "dark",
+        palette: "default",
+        accent: "",
+      },
       ORIGIN,
     );
     expect(frame()?.getAttribute("src")).toBe(
-      `${ORIGIN}/mail-panel?theme=light`,
+      `${ORIGIN}/mail-panel?theme=light&palette=default`,
+    );
+  });
+
+  it("sends the dark appearance a dark-only palette forces over a light preference", async () => {
+    document.documentElement.className = "dark theme-aster-blue";
+    document.documentElement.style.setProperty("--accent-color", "#4F7DF3");
+
+    await render_panel(true);
+
+    expect(frame()?.getAttribute("src")).toBe(
+      `${ORIGIN}/mail-panel?theme=dark&palette=aster-blue&accent=%234f7df3`,
+    );
+    expect(frame()?.style.colorScheme).toBe("dark");
+
+    const post = vi.spyOn(frame()?.contentWindow as Window, "postMessage");
+
+    await send({ source: "aster-calendar-panel", type: "ready" });
+
+    expect(post).toHaveBeenCalledWith(
+      {
+        source: "aster-mail",
+        type: "theme",
+        theme: "dark",
+        palette: "aster-blue",
+        accent: "#4f7df3",
+      },
+      ORIGIN,
+    );
+
+    await act(async () => {
+      document.documentElement.className = "light";
+      document.documentElement.removeAttribute("style");
+    });
+
+    expect(post).toHaveBeenLastCalledWith(
+      {
+        source: "aster-mail",
+        type: "theme",
+        theme: "light",
+        palette: "default",
+        accent: "",
+      },
+      ORIGIN,
     );
   });
 
@@ -424,7 +482,7 @@ describe("quick calendar panel", () => {
     expect(second).not.toBeNull();
     expect(second).not.toBe(first);
     expect(second?.getAttribute("src")).toBe(
-      `${ORIGIN}/mail-panel?theme=light&attempt=1`,
+      `${ORIGIN}/mail-panel?theme=light&palette=default&attempt=1`,
     );
 
     await act(async () => {
@@ -433,7 +491,7 @@ describe("quick calendar panel", () => {
     await click_retry();
 
     expect(frame()?.getAttribute("src")).toBe(
-      `${ORIGIN}/mail-panel?theme=light&attempt=2`,
+      `${ORIGIN}/mail-panel?theme=light&palette=default&attempt=2`,
     );
   });
 
