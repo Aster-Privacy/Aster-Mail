@@ -27,6 +27,7 @@ import { Badge, Island, IslandRow, IslandSection } from "@aster/ui";
 
 import { GuardDeviceIcon } from "@/components/guard/guard_visuals";
 import { format_guard_time } from "@/components/guard/guard_waiting_screen";
+import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
@@ -47,6 +48,7 @@ export function GuardDevicesList({
   on_refresh,
 }: GuardDevicesListProps) {
   const { t } = use_i18n();
+  const step_up = use_guard_step_up();
   const [confirm_id, set_confirm_id] = useState<string | null>(null);
   const [busy_id, set_busy_id] = useState<string | null>(null);
   const this_id = status.this_device?.id ?? null;
@@ -56,7 +58,15 @@ export function GuardDevicesList({
     if (!device || busy_id) return;
     set_busy_id(device_id);
     try {
-      const response = await remove_approver_device(device, user_id, device_id);
+      const proof = await step_up.request_proof();
+
+      if (!proof) return;
+      const response = await remove_approver_device(
+        device,
+        user_id,
+        device_id,
+        proof,
+      );
 
       if (response.held) {
         show_toast(
@@ -156,6 +166,7 @@ export function GuardDevicesList({
           if (id) void remove(id);
         }}
       />
+      {step_up.step_up_modal}
     </IslandSection>
   );
 }

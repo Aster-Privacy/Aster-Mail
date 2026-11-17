@@ -121,6 +121,7 @@ function by_test_id(id: string): HTMLElement | null {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mock(api.guard_veto).mockReset();
   listener = null;
   window.localStorage.clear();
   window.sessionStorage.clear();
@@ -137,7 +138,7 @@ afterEach(() => {
 });
 
 describe("GuardVetoPage", () => {
-  it("clears the link before calling the server", async () => {
+  it("clears the link and waits for a press before calling the server", async () => {
     window.history.replaceState(null, "", `/guard/veto?id=${RESCUE_ID}&t=tok_fake`);
     mock(api.guard_veto).mockImplementation(async () => {
       expect(window.location.search).toBe("");
@@ -151,6 +152,12 @@ describe("GuardVetoPage", () => {
           <GuardVetoPage />
         </MemoryRouter>,
       );
+    });
+    await flush();
+    expect(window.location.search).toBe("");
+    expect(api.guard_veto).not.toHaveBeenCalled();
+    act(() => {
+      (by_test_id("guard_veto_stop_button") as HTMLButtonElement).click();
     });
     await flush();
 
@@ -193,8 +200,40 @@ describe("GuardVetoPage", () => {
       );
     });
     await flush();
+    act(() => {
+      (by_test_id("guard_veto_stop_button") as HTMLButtonElement).click();
+    });
+    await flush();
 
     expect(by_test_id("guard_veto_invalid")).not.toBeNull();
+  });
+
+  it("lets the person try again after a network error", async () => {
+    window.history.replaceState(null, "", `/guard/veto?id=${RESCUE_ID}&t=tok_fake`);
+    mock(api.guard_veto)
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce({ data: { status: "vetoed" } });
+
+    act(() => {
+      root.render(
+        <MemoryRouter>
+          <GuardVetoPage />
+        </MemoryRouter>,
+      );
+    });
+    await flush();
+    act(() => {
+      (by_test_id("guard_veto_stop_button") as HTMLButtonElement).click();
+    });
+    await flush();
+    expect(by_test_id("guard_veto_error")).not.toBeNull();
+    act(() => {
+      (by_test_id("guard_veto_stop_button") as HTMLButtonElement).click();
+    });
+    await flush();
+
+    expect(api.guard_veto).toHaveBeenCalledTimes(2);
+    expect(by_test_id("guard_veto_done")).not.toBeNull();
   });
 });
 

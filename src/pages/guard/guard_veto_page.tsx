@@ -27,7 +27,7 @@ import { guard_veto } from "@/services/api/guard";
 
 export const GUARD_VETO_INVALID = "GUARD_VETO_INVALID";
 
-type VetoPhase = "working" | "done" | "invalid" | "error";
+type VetoPhase = "confirm" | "working" | "done" | "invalid" | "error";
 
 export function take_veto_params(): { id: string; t: string } | null {
   if (typeof window === "undefined") return null;
@@ -62,7 +62,8 @@ function use_no_referrer() {
 export default function GuardVetoPage() {
   const { t } = use_i18n();
   const navigate = useNavigate();
-  const [phase, set_phase] = useState<VetoPhase>("working");
+  const [phase, set_phase] = useState<VetoPhase>("confirm");
+  const params_ref = useRef<{ id: string; t: string } | null>(null);
   const started = useRef(false);
 
   use_no_referrer();
@@ -70,13 +71,19 @@ export default function GuardVetoPage() {
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    const params = take_veto_params();
+    params_ref.current = take_veto_params();
+    if (!params_ref.current) set_phase("invalid");
+  }, []);
+
+  const submit = () => {
+    const params = params_ref.current;
 
     if (!params) {
       set_phase("invalid");
 
       return;
     }
+    set_phase("working");
     void guard_veto(params)
       .then((response) => {
         if (!response.error && response.data) {
@@ -92,13 +99,15 @@ export default function GuardVetoPage() {
         }
       })
       .catch(() => set_phase("error"));
-  }, []);
+  };
 
   const title =
     phase === "done" ? t("guard.veto_done_title") : t("guard.veto_title");
   let message: string;
 
-  if (phase === "working") {
+  if (phase === "confirm") {
+    message = t("guard.veto_prompt");
+  } else if (phase === "working") {
     message = t("guard.veto_working");
   } else if (phase === "done") {
     message = t("guard.veto_done_body");
@@ -131,11 +140,23 @@ export default function GuardVetoPage() {
               : "text-sm text-txt-muted"
           }
           data-testid={`guard_veto_${phase}`}
-          role={phase === "working" ? "status" : "alert"}
+          role={
+            phase === "working" || phase === "confirm" ? "status" : "alert"
+          }
         >
           {message}
         </p>
-        {phase !== "working" && (
+        {(phase === "confirm" || phase === "error") && (
+          <Button
+            className="w-full"
+            data-testid="guard_veto_stop_button"
+            variant="destructive"
+            onClick={submit}
+          >
+            {t("guard.veto_confirm")}
+          </Button>
+        )}
+        {phase !== "working" && phase !== "confirm" && (
           <Button
             className="w-full"
             variant="depth"

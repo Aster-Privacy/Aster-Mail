@@ -24,9 +24,10 @@ import {
   GUARD_PUSH_SW_MESSAGE,
   GUARD_PUSH_URL,
   guard_push_body,
-  guard_push_is_silent,
+  guard_push_is_ended,
+  guard_push_notification_tag,
   guard_push_resolved_tag,
-  guard_push_tag,
+  guard_window_is_watching,
   read_guard_push,
 } from "@/lib/guard_push";
 import { ignore_error } from "@/lib/ignore_error";
@@ -216,6 +217,9 @@ self.addEventListener("push", (event: PushEvent) => {
       const guard = read_guard_push(data);
 
       if (guard) {
+        for (const client of clients) {
+          client.postMessage({ type: GUARD_PUSH_SW_MESSAGE, payload: guard });
+        }
         const resolved_tag = guard_push_resolved_tag(guard);
 
         if (resolved_tag) {
@@ -225,20 +229,14 @@ self.addEventListener("push", (event: PushEvent) => {
 
           for (const notification of open) notification.close();
         }
-        if (app_is_open) {
-          for (const client of clients) {
-            client.postMessage({ type: GUARD_PUSH_SW_MESSAGE, payload: guard });
-          }
-
-          return;
-        }
-        if (guard_push_is_silent(guard)) return;
+        if (guard_window_is_watching(clients)) return;
         await self.registration.showNotification("Aster Mail", {
           body: guard_push_body(guard, await read_push_strings()),
           icon: "/pwa-192x192.png",
           badge: "/favicon-32x32.png",
-          tag: guard_push_tag(guard),
-          data: { url: GUARD_PUSH_URL },
+          tag: guard_push_notification_tag(guard),
+          data: { url: GUARD_PUSH_URL, guard: true },
+          ...(guard_push_is_ended(guard) ? { silent: true } : {}),
         });
 
         return;
@@ -275,11 +273,20 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.notification.close();
 
   const url_to_open = sanitize_notification_path(event.notification.data?.url);
+  const is_guard = event.notification.data?.guard === true;
 
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((window_clients) => {
+        if (is_guard) {
+          const app_window =
+            window_clients.find(
+              (client) => client.visibilityState === "visible",
+            ) ?? window_clients[0];
+
+          if (app_window && "focus" in app_window) return app_window.focus();
+        }
         for (const client of window_clients) {
           if (client.url.includes(url_to_open) && "focus" in client) {
             return client.focus();

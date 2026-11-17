@@ -21,7 +21,7 @@
 import type { ReactNode } from "react";
 import type { StepUpProof } from "@/services/api/guard";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { StepUpModal } from "@/components/settings/step_up_modal";
 import { use_i18n } from "@/lib/i18n/context";
@@ -45,6 +45,16 @@ export function use_guard_step_up(): GuardStepUp {
     set_is_open(false);
     resolve?.(proof);
   }, []);
+
+  useEffect(
+    () => () => {
+      const resolve = resolver_ref.current;
+
+      resolver_ref.current = null;
+      resolve?.(null);
+    },
+    [],
+  );
 
   const request_proof = useCallback(() => {
     resolver_ref.current?.(null);

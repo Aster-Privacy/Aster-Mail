@@ -37,6 +37,7 @@ import {
 
 import { BrowserIcon } from "@/components/settings/security/browser_icon";
 import { use_i18n } from "@/lib/i18n/context";
+import { server_now } from "@/lib/server_clock";
 import { cn } from "@/lib/utils";
 import { app_locale } from "@/utils/date_format";
 
@@ -228,10 +229,10 @@ export function format_guard_countdown(ms: number): string {
 }
 
 export function use_guard_now(interval_ms = 1000): number {
-  const [now, set_now] = useState(() => Date.now());
+  const [now, set_now] = useState(() => server_now());
 
   useEffect(() => {
-    const timer = window.setInterval(() => set_now(Date.now()), interval_ms);
+    const timer = window.setInterval(() => set_now(server_now()), interval_ms);
 
     return () => window.clearInterval(timer);
   }, [interval_ms]);
@@ -412,6 +413,39 @@ export function prepare_flag_svg(source: string): string | null {
   return svg.outerHTML;
 }
 
+const FLAG_RASTER_SCALE = 4;
+
+export function flag_svg_url(markup: string): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
+}
+
+export function rasterize_flag(markup: string): Promise<string> {
+  const vector = flag_svg_url(markup);
+
+  return new Promise((resolve) => {
+    const image = new Image();
+
+    image.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+
+        canvas.width = 18 * FLAG_RASTER_SCALE;
+        canvas.height = 12 * FLAG_RASTER_SCALE;
+        const context = canvas.getContext("2d");
+
+        if (!context) return resolve(vector);
+        context.imageSmoothingEnabled = false;
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/png"));
+      } catch {
+        resolve(vector);
+      }
+    };
+    image.onerror = () => resolve(vector);
+    image.src = vector;
+  });
+}
+
 export function GuardFlag({ code }: { code?: string | null }) {
   const [markup, set_markup] = useState<string | null>(null);
 
@@ -423,7 +457,18 @@ export function GuardFlag({ code }: { code?: string | null }) {
     if (!load) return;
     load()
       .then((source) => {
-        if (active) set_markup(prepare_flag_svg(source));
+        const markup = prepare_flag_svg(source);
+
+        if (!markup) {
+          if (active) set_markup(null);
+
+          return;
+        }
+        if (active) set_markup(flag_svg_url(markup));
+
+        return rasterize_flag(markup).then((url) => {
+          if (active) set_markup(url);
+        });
       })
       .catch(() => {
         if (active) set_markup(null);
@@ -437,16 +482,16 @@ export function GuardFlag({ code }: { code?: string | null }) {
   if (!markup) return null;
 
   return (
-    <span
+    <img
+      alt=""
       aria-hidden
-      className="inline-block h-3 w-[18px] shrink-0 overflow-hidden rounded-[2px]"
+      className="block h-3 w-[18px] shrink-0 select-none"
       data-testid="guard_flag"
-    >
-      <span
-        dangerouslySetInnerHTML={{ __html: markup }}
-        className="block h-full w-full"
-      />
-    </span>
+      draggable={false}
+      height={12}
+      src={markup}
+      width={18}
+    />
   );
 }
 

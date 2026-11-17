@@ -27,6 +27,13 @@ const h = vi.hoisted(() => ({
   confirm: vi.fn(),
   seal: vi.fn(),
   guard: vi.fn(),
+  order: [] as string[],
+  proof: { type: "password", password_hash: "ph", totp_code: null } as {
+    type: "password";
+    password_hash: string;
+    totp_code: null;
+  } | null,
+  request_proof: vi.fn(),
   accounts: [] as { id: string; kind?: string; user: { email: string } }[],
 }));
 
@@ -72,6 +79,13 @@ vi.mock("@/lib/primary_identity", () => ({
 vi.mock("@/services/api/devices", () => ({
   verify_device_code: h.verify,
   confirm_device_code: h.confirm,
+}));
+
+vi.mock("@/components/guard/use_guard_step_up", () => ({
+  use_guard_step_up: () => ({
+    request_proof: h.request_proof,
+    step_up_modal: null,
+  }),
 }));
 
 vi.mock("@/services/guard/device_code_approval", () => ({
@@ -222,6 +236,14 @@ describe("link device approval", () => {
     h.seal.mockReset();
     h.guard.mockReset();
     h.guard.mockResolvedValue({ kind: "off" });
+    h.order = [];
+    h.proof = { type: "password", password_hash: "ph", totp_code: null };
+    h.request_proof.mockReset();
+    h.request_proof.mockImplementation(async () => {
+      h.order.push("proof");
+
+      return h.proof;
+    });
     h.verify.mockResolvedValue({ data: valid_keys() });
     h.seal.mockResolvedValue(new Uint8Array([1, 2, 3]));
     h.confirm.mockResolvedValue({
@@ -508,6 +530,7 @@ describe("link device approval", () => {
     expect(h.guard).toHaveBeenCalledWith(
       "u1",
       expect.objectContaining({ action_pk: "apk", keys_digest: "kd" }),
+      h.request_proof,
     );
     expect(h.confirm).toHaveBeenCalledWith(
       "ABCD2345",
@@ -540,6 +563,75 @@ describe("link device approval", () => {
     expect(h.seal).not.toHaveBeenCalled();
     expect(h.confirm).not.toHaveBeenCalled();
     expect(container.textContent).toContain(message);
+    expect(container.textContent).not.toContain("auth.link_device_success");
+  });
+
+  function guard_with_step_up(): void {
+    h.verify.mockResolvedValue({
+      data: { ...valid_keys(), action_pk: "apk", keys_digest: "kd" },
+    });
+    h.guard.mockImplementation(
+      async (
+        _user: string,
+        _keys: unknown,
+        request_proof: () => Promise<unknown>,
+      ) => {
+        const proof = await request_proof();
+
+        if (!proof) return { kind: "canceled" };
+
+        return { kind: "signed", action: { nonce: "n", signature: "s", proof } };
+      },
+    );
+    h.confirm.mockImplementation(async () => {
+      h.order.push("confirm");
+
+      return { data: { device_id: "d", machine_name: "m" } };
+    });
+  }
+
+  it("asks for a step-up before confirming and sends the proof", async () => {
+    guard_with_step_up();
+    await render_page();
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.order).toEqual(["proof", "confirm"]);
+    expect(h.confirm.mock.calls[0][2]).toEqual(
+      expect.objectContaining({ proof: h.proof }),
+    );
+    expect(container.textContent).toContain("auth.link_device_success");
+  });
+
+  it("sends nothing when the step-up is canceled", async () => {
+    guard_with_step_up();
+    h.proof = null;
+    await render_page();
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.request_proof).toHaveBeenCalledTimes(1);
+    expect(h.seal).not.toHaveBeenCalled();
+    expect(h.confirm).not.toHaveBeenCalled();
+    expect(container.textContent).not.toContain("auth.link_device_failed");
+    expect(button("auth.link_device_confirm_button")).toBeDefined();
+  });
+
+  it("explains a refused step-up", async () => {
+    guard_with_step_up();
+    h.confirm.mockResolvedValue({
+      error: "Confirm your identity to continue.",
+      status: 403,
+      server_code: "STEP_UP_REQUIRED",
+    });
+    await render_page();
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(container.textContent).toContain("guard.link_device_step_up_failed");
     expect(container.textContent).not.toContain("auth.link_device_success");
   });
 });

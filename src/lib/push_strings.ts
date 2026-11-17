@@ -26,7 +26,11 @@ const PUSH_MUTES_URL = "/__aster_push_mutes";
 export async function publish_push_strings(
   new_message: string,
   new_reaction?: string,
-  guard?: { guard_sign_in: string; guard_activity: string },
+  guard?: {
+    guard_sign_in: string;
+    guard_activity: string;
+    guard_ended: string;
+  },
 ): Promise<void> {
   if (typeof caches === "undefined" || !new_message) return;
 

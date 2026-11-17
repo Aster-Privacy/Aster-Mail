@@ -34,12 +34,14 @@ export async function cancel_held_change(
   device: GuardDevice,
   user_id: string,
   change_id: string,
+  proof: StepUpProof | null,
 ): Promise<ApiResponse<{ status: string }>> {
   const action = await sign_guard_action(
     device,
     user_id,
     GUARD_ACTION.cancel,
     id_subject(change_id),
+    proof,
   );
 
   return cancel_guard_change(change_id, action);
@@ -66,12 +68,14 @@ export async function remove_approver_device(
   device: GuardDevice,
   user_id: string,
   device_id: string,
+  proof: StepUpProof | null,
 ): Promise<ApiResponse<{ status: string }>> {
   const action = await sign_guard_action(
     device,
     user_id,
     GUARD_ACTION.remove_device,
     id_subject(device_id),
+    proof,
   );
 
   return remove_guard_device(device_id, action);

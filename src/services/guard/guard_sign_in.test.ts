@@ -30,10 +30,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { base64url_encode } from "@/lib/crypto/device_envelope";
 import { number_hash } from "@/lib/crypto/guard_action";
+import { set_server_time_offset_for_tests } from "@/lib/server_clock";
 import * as api from "@/services/api/guard";
 import {
   GUARD_POLL_INTERVAL_MS,
   GUARD_SIGN_IN_STORAGE_KEY,
+  default_guard_sign_in_deps,
   GuardSignInController,
   normalize_guard_code,
   read_stored_guard_sign_in,
@@ -141,13 +143,17 @@ function make_deps(): GuardSignInDeps {
   };
 }
 
-function fresh(user_hash: string | null = null) {
+function fresh(
+  user_hash: string | null = null,
+  user_id: string | null = null,
+) {
   return {
     kind: "fresh" as const,
     info: {
       request_id: REQUEST_ID,
       guard_token: TOKEN,
       expires_at: EXPIRES,
+      user_id,
       methods: ["approve" as const, "code" as const, "rescue" as const],
     },
     user_hash,
@@ -210,6 +216,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  set_server_time_offset_for_tests(null);
   vi.useRealTimers();
 });
 
@@ -396,6 +403,102 @@ describe("GuardSignInController complete", () => {
   });
 });
 
+describe("GuardSignInController clock and interruptions", () => {
+  it("keeps waiting when the local clock runs ahead of the server", async () => {
+    const six_minutes = 6 * 60 * 1000;
+
+    vi.setSystemTime(NOW + six_minutes);
+    set_server_time_offset_for_tests(-six_minutes);
+    deps = { ...deps, now: default_guard_sign_in_deps.now };
+    const { controller } = make();
+
+    controller.start();
+    await flush();
+    expect(controller.get_state().phase).toBe("waiting");
+    expect(
+      read_stored_guard_sign_in(storage as unknown as Storage)?.request_id,
+    ).toBe(REQUEST_ID);
+    controller.stop();
+  });
+
+  it("does not sign in after Back is pressed during completion", async () => {
+    let release: (value: unknown) => void = () => undefined;
+
+    mock(api.guard_sign_in_status).mockResolvedValueOnce({
+      data: { status: "approved", expires_at: EXPIRES, apply_after: null },
+    });
+    mock(api.guard_sign_in_complete).mockReturnValueOnce(
+      new Promise((resolve) => {
+        release = resolve;
+      }),
+    );
+    const { controller, finish } = make();
+
+    controller.start();
+    await flush();
+    await tick(1000);
+    expect(controller.get_state().phase).toBe("completing");
+    controller.cancel();
+    release(complete_body(null));
+    await flush();
+    expect(finish).not.toHaveBeenCalled();
+    expect(controller.get_state().phase).not.toBe("done");
+  });
+
+  it("retries completion once after a network failure", async () => {
+    mock(api.guard_sign_in_status).mockResolvedValueOnce({
+      data: { status: "approved", expires_at: EXPIRES, apply_after: null },
+    });
+    mock(api.guard_sign_in_complete)
+      .mockResolvedValueOnce({ error: "network" })
+      .mockResolvedValueOnce(complete_body(null));
+    const { controller, finish } = make();
+
+    controller.start();
+    await flush();
+    await tick(1000);
+    expect(api.guard_sign_in_complete).toHaveBeenCalledTimes(2);
+    expect(finish).toHaveBeenCalledTimes(1);
+    expect(controller.get_state().phase).toBe("done");
+  });
+
+  it("does not retry completion the server refused", async () => {
+    mock(api.guard_sign_in_status).mockResolvedValueOnce({
+      data: { status: "approved", expires_at: EXPIRES, apply_after: null },
+    });
+    mock(api.guard_sign_in_complete).mockResolvedValueOnce({
+      error: "bad",
+      status: 400,
+      server_code: "GUARD_ACTION_INVALID",
+    });
+    const { controller, finish } = make();
+
+    controller.start();
+    await flush();
+    await tick(1000);
+    expect(api.guard_sign_in_complete).toHaveBeenCalledTimes(1);
+    expect(finish).not.toHaveBeenCalled();
+    expect(controller.get_state().phase).toBe("error");
+  });
+
+  it("retries finishing the sign-in once", async () => {
+    mock(api.guard_sign_in_status).mockResolvedValueOnce({
+      data: { status: "approved", expires_at: EXPIRES, apply_after: null },
+    });
+    mock(api.guard_sign_in_complete).mockResolvedValueOnce(complete_body(null));
+    const finish = vi
+      .fn(async () => undefined)
+      .mockRejectedValueOnce(new Error("vault"));
+    const { controller } = make(fresh(), finish);
+
+    controller.start();
+    await flush();
+    await tick(1000);
+    expect(finish).toHaveBeenCalledTimes(2);
+    expect(controller.get_state().phase).toBe("done");
+  });
+});
+
 describe("GuardSignInController resume", () => {
   it("signs a resume with a known device instead of making a new one", async () => {
     hints.set(USER_HASH, USER_ID);
@@ -431,6 +534,109 @@ describe("GuardSignInController resume", () => {
     expect(deps.create_device).toHaveBeenCalled();
     expect(mock(api.guard_sign_in_begin).mock.calls[0][1].resume).toBeNull();
     controller.stop();
+  });
+
+  it("resumes by the account id when there is no username hint", async () => {
+    devices.set(USER_ID, fake_device("44444444-5555-4666-8777-888888888888"));
+    mock(api.guard_sign_in_resume_nonce).mockResolvedValueOnce({
+      data: { nonce: base64url_encode(new Uint8Array(32).fill(7)), expires_at: EXPIRES },
+    });
+    const { controller } = make(fresh(null, USER_ID));
+
+    controller.start();
+    await flush();
+    expect(deps.read_hint).not.toHaveBeenCalled();
+    expect(deps.create_device).not.toHaveBeenCalled();
+    expect(mock(api.guard_sign_in_begin).mock.calls[0][1].resume).toEqual(
+      expect.objectContaining({ device_id: "44444444-5555-4666-8777-888888888888" }),
+    );
+    controller.stop();
+  });
+
+  it("replaces a device the server no longer knows", async () => {
+    devices.set(USER_ID, fake_device("44444444-5555-4666-8777-888888888888"));
+    mock(api.guard_sign_in_resume_nonce).mockResolvedValueOnce({
+      error: "not found",
+      status: 404,
+    });
+    const { controller } = make(fresh(null, USER_ID));
+
+    controller.start();
+    await flush();
+    expect(deps.create_device).toHaveBeenCalled();
+    expect(mock(api.guard_sign_in_begin).mock.calls[0][1].resume).toBeNull();
+    controller.stop();
+  });
+
+  it("keeps the enrolled device when the resume check fails for another reason", async () => {
+    const old = fake_device("44444444-5555-4666-8777-888888888888");
+
+    devices.set(USER_ID, old);
+    mock(api.guard_sign_in_resume_nonce).mockResolvedValueOnce({
+      error: "unavailable",
+      status: 503,
+    });
+    const { controller } = make(fresh(null, USER_ID));
+
+    controller.start();
+    await flush();
+    expect(deps.create_device).not.toHaveBeenCalled();
+    expect(api.guard_sign_in_begin).not.toHaveBeenCalled();
+    expect(devices.get(USER_ID)).toBe(old);
+    expect(old.forget).not.toHaveBeenCalled();
+    expect(controller.get_state().phase).toBe("error");
+  });
+
+  it("keeps the pending device until the approval is fully opened", async () => {
+    mock(api.guard_sign_in_status).mockResolvedValueOnce({
+      data: { status: "approved", expires_at: EXPIRES, apply_after: null },
+    });
+    mock(api.guard_sign_in_complete).mockResolvedValueOnce(
+      complete_body(base64url_encode(new Uint8Array(40))),
+    );
+    const { controller, finish } = make();
+
+    controller.start();
+    await flush();
+    const pending = devices.get(`pending:${REQUEST_ID}`) as FakeDevice;
+
+    pending.open_envelope.mockRejectedValueOnce(new Error("bad envelope"));
+    await tick(1000);
+    await flush();
+    expect(deps.rekey_device).not.toHaveBeenCalled();
+    expect(pending.forget).toHaveBeenCalled();
+    expect(finish).not.toHaveBeenCalled();
+    expect(controller.get_state().phase).toBe("error");
+  });
+
+  it("refuses an approval for a different account", async () => {
+    mock(api.guard_sign_in_status).mockResolvedValueOnce({
+      data: { status: "approved", expires_at: EXPIRES, apply_after: null },
+    });
+    mock(api.guard_sign_in_complete).mockResolvedValueOnce(complete_body(null));
+    const { controller, finish } = make(
+      fresh(null, "99999999-3333-4444-8555-666666666666"),
+    );
+
+    controller.start();
+    await flush();
+    await tick(1000);
+    expect(finish).not.toHaveBeenCalled();
+    expect(deps.rekey_device).not.toHaveBeenCalled();
+    expect(controller.get_state().phase).toBe("error");
+  });
+
+  it("forgets the new device when the screen closes before it is sent", async () => {
+    const { controller } = make();
+
+    controller.start();
+    controller.stop();
+    await flush();
+    const created = mock(deps.create_device).mock.results[0];
+    const device = (await created?.value) as FakeDevice | undefined;
+
+    expect(device?.forget).toHaveBeenCalled();
+    expect(storage.getItem(GUARD_SIGN_IN_STORAGE_KEY)).toBeNull();
   });
 });
 
@@ -546,5 +752,23 @@ describe("GuardSignInController codes", () => {
     );
     await tick(5000);
     expect(api.guard_sign_in_status).not.toHaveBeenCalled();
+  });
+
+  it("ignores a rescue answer that arrives after the person canceled", async () => {
+    let answer: (v: unknown) => void = () => {};
+    mock(api.guard_sign_in_rescue).mockImplementationOnce(
+      () => new Promise((resolve) => (answer = resolve)),
+    );
+    const { controller } = make();
+
+    controller.start();
+    await flush();
+    const pending = controller.start_rescue(RESCUE);
+
+    controller.cancel();
+    answer({ data: { rescue_id: "r1", apply_after: "2026-11-18T10:00:00Z" } });
+
+    expect(await pending).toBe(false);
+    expect(controller.get_state().phase).not.toBe("rescue");
   });
 });

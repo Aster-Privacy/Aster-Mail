@@ -30,8 +30,10 @@ import { format_guard_time } from "@/components/guard/guard_waiting_screen";
 import { Button } from "@/components/ui/button";
 import { use_i18n } from "@/lib/i18n/context";
 import { guard_rescue_status } from "@/services/api/guard";
+import { GUARD_RESCUE_STORAGE_KEY } from "@/services/guard/guard_rescue_storage";
 
-export const GUARD_RESCUE_STORAGE_KEY = "aster_guard_rescue";
+export { GUARD_RESCUE_STORAGE_KEY };
+
 export const GUARD_SETUP_AFTER_RESCUE_KEY = "aster_guard_setup_after_rescue";
 export const GUARD_RESCUE_POLL_MS = 60_000;
 

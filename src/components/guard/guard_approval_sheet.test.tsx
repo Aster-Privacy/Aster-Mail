@@ -47,6 +47,7 @@ const h = vi.hoisted(() => ({
     totp_code: null;
   } | null,
   nonce_counter: 0,
+  switch_to_account: vi.fn(async (_id: string) => undefined),
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -130,8 +131,44 @@ vi.mock("@/components/guard/use_guard_step_up", () => ({
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({
     user: { id: "u1" },
-    switch_to_account: async () => undefined,
+    accounts: [
+      { id: "u1", user: { id: "u1", email: "first@astermail.org" } },
+      { id: "u2", user: { id: "u2", email: "second@astermail.org" } },
+    ],
+    switch_to_account: h.switch_to_account,
   }),
+}));
+
+vi.mock("@/components/modals/confirmation_modal", () => ({
+  ConfirmationModal: ({
+    is_open,
+    title,
+    message,
+    confirm_text,
+    cancel_text,
+    on_confirm,
+    on_cancel,
+  }: {
+    is_open: boolean;
+    title: string;
+    message: string;
+    confirm_text?: string;
+    cancel_text?: string | null;
+    on_confirm: () => void;
+    on_cancel: () => void;
+  }) =>
+    is_open ? (
+      <div data-testid="guard_switch_prompt">
+        <p>{title}</p>
+        <p>{message}</p>
+        <button type="button" onClick={on_confirm}>
+          {confirm_text}
+        </button>
+        <button type="button" onClick={on_cancel}>
+          {cancel_text}
+        </button>
+      </div>
+    ) : null,
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -178,6 +215,10 @@ import {
   GuardApprovalSheet,
 } from "@/components/guard/guard_approval_sheet";
 import { load_guard_requests } from "@/services/guard/guard_approval";
+import {
+  emit_guard_event,
+  reset_guard_events_for_tests,
+} from "@/services/guard/guard_events";
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -213,7 +254,7 @@ function summary(
     id: REQUEST_ID,
     kind: "sign_in",
     created_at: "2026-11-15T10:00:00Z",
-    expires_at: "2026-11-15T10:05:00Z",
+    expires_at: "2099-11-15T10:05:00Z",
     context: base64url_encode(new Uint8Array([1, 2, 3])),
     new_device: new_device_keys(),
     envelope_versions: [2],
@@ -334,6 +375,7 @@ beforeEach(() => {
   h.vault_listeners = [];
   h.proof = { type: "password", password_hash: "ph", totp_code: null };
   h.nonce_counter = 0;
+  reset_guard_events_for_tests({ open_channel: () => null });
   device = fake_device();
   on_done = vi.fn<(request_id: string) => void>();
   container = document.createElement("div");
@@ -355,6 +397,18 @@ describe("GuardApprovalSheet", () => {
     type_number("4a2");
     expect(typed()).toBe("42");
     expect(button("guard.approve_confirm").disabled).toBe(false);
+  });
+
+  it("disables Approve once the request has expired", async () => {
+    render(view({ expires_at: "2020-01-01T00:00:00Z" }));
+    type_number("42");
+    expect(button("guard.approve_confirm").disabled).toBe(true);
+    await act(async () => {
+      number_input().dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+      );
+    });
+    expect(api.approve_guard_request).not.toHaveBeenCalled();
   });
 
   it("approves with an envelope and a signature over the typed number", async () => {
@@ -480,9 +534,18 @@ describe("GuardApprovalSheet", () => {
 
     expect(api.deny_guard_request).toHaveBeenCalledWith(
       REQUEST_ID,
-      expect.objectContaining({ proof: null }),
+      expect.objectContaining({ proof: h.proof }),
     );
     expect(on_done).toHaveBeenCalledWith(REQUEST_ID);
+  });
+
+  it("denies nothing when the step-up is dismissed", async () => {
+    h.proof = null;
+    render(view());
+    await click("guard.approve_deny");
+
+    expect(api.deny_guard_request).not.toHaveBeenCalled();
+    expect(on_done).not.toHaveBeenCalled();
   });
 
   it("renders the decrypted context as text only", () => {
@@ -513,14 +576,19 @@ describe("GuardApprovalSheet", () => {
     }
     const flag = container.querySelector('[data-testid="guard_flag"]');
 
-    const svg = flag?.querySelector("svg");
+    const src = flag?.getAttribute("src") ?? "";
+    const prefix = "data:image/svg+xml;charset=utf-8,";
+    const svg = new DOMParser()
+      .parseFromString(decodeURIComponent(src.slice(prefix.length)), "image/svg+xml")
+      .querySelector("svg");
 
-    expect(flag?.tagName).toBe("SPAN");
+    expect(flag?.tagName).toBe("IMG");
+    expect(src.startsWith(prefix)).toBe(true);
     expect(svg).toBeTruthy();
     expect(svg?.getAttribute("width")).toBe("18");
     expect(svg?.getAttribute("height")).toBe("12");
     expect(svg?.getAttribute("preserveAspectRatio")).toBe("none");
-    expect(flag?.querySelector("script, foreignObject")).toBeNull();
+    expect(svg?.querySelector("script, foreignObject")).toBeNull();
     expect(flag?.nextElementSibling?.textContent).toBe("Berlin, Germany");
     expect(container.textContent).not.toMatch(/[\u{1F1E6}-\u{1F1FF}]/u);
     expect(container.textContent).not.toContain("DE");
@@ -655,5 +723,53 @@ describe("GuardApprovalHost", () => {
       container.querySelector('[data-testid="guard_approval_sheet"]'),
     ).not.toBeNull();
     expect(container.textContent).toContain("Berlin, Germany");
+  });
+
+  it("asks before switching to another signed-in account", async () => {
+    await act(async () => {
+      root.render(<GuardApprovalHost />);
+    });
+    await act(async () => {
+      emit_guard_event({
+        event: "sign_in_request",
+        id: REQUEST_ID,
+        account_id: "u2",
+      });
+    });
+
+    expect(h.switch_to_account).not.toHaveBeenCalled();
+    const prompt = container.querySelector(
+      '[data-testid="guard_switch_prompt"]',
+    );
+
+    expect(prompt).not.toBeNull();
+    expect(prompt?.textContent).toContain(
+      "guard.switch_account_message:second@astermail.org",
+    );
+    await act(async () => {
+      button("guard.switch_account_confirm").click();
+    });
+    expect(h.switch_to_account).toHaveBeenCalledWith("u2");
+  });
+
+  it("does not switch when the prompt is dismissed", async () => {
+    await act(async () => {
+      root.render(<GuardApprovalHost />);
+    });
+    await act(async () => {
+      emit_guard_event({
+        event: "sign_in_request",
+        id: REQUEST_ID,
+        account_id: "u2",
+      });
+    });
+    await act(async () => {
+      button("common.not_now").click();
+    });
+
+    expect(h.switch_to_account).not.toHaveBeenCalled();
+    expect(
+      container.querySelector('[data-testid="guard_switch_prompt"]'),
+    ).toBeNull();
   });
 });

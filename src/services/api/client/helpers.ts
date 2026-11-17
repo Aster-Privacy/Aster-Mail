@@ -236,6 +236,7 @@ export interface GuardRequiredInfo {
   request_id: string;
   guard_token: string;
   expires_at: string;
+  user_id: string | null;
   methods: GuardSignInMethod[];
 }
 
@@ -304,7 +305,9 @@ export function parse_guard_required(
       m === "approve" || m === "code" || m === "rescue",
   );
 
-  return { request_id, guard_token, expires_at, methods };
+  const user_id = read_string(details, "user_id") ?? null;
+
+  return { request_id, guard_token, expires_at, user_id, methods };
 }
 
 const MAX_RETRY_AFTER_HEADER_SECS = 86_400;

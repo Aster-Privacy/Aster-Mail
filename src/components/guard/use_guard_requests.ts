@@ -65,8 +65,13 @@ export function use_guard_requests(user_id: string | null): GuardRequests {
       return;
     }
 
-    const views = await load_guard_requests(found);
+    let views: GuardRequestView[];
 
+    try {
+      views = await load_guard_requests(found);
+    } catch {
+      return;
+    }
     if (generation !== generation_ref.current) return;
     set_requests(views);
   }, [user_id]);

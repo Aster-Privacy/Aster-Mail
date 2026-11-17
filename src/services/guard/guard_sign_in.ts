@@ -40,6 +40,7 @@ import {
 } from "@/lib/crypto/guard_action";
 import { GUARD_ALPHABET, GUARD_CODE_LENGTH } from "@/lib/crypto/guard_code";
 import { normalize_rescue_code } from "@/lib/crypto/guard_rescue_code";
+import { server_now } from "@/lib/server_clock";
 import { code_secret_aad } from "@/lib/crypto/guard_seal";
 import {
   GUARD_ENVELOPE_VERSIONS,
@@ -90,6 +91,7 @@ export interface StoredGuardSignIn {
   number: number;
   device_key: string;
   user_hash: string | null;
+  user_id?: string | null;
 }
 
 export type GuardSignInStart =
@@ -154,7 +156,7 @@ export const default_guard_sign_in_deps: GuardSignInDeps = {
   write_hint: write_guard_hint,
   device_name: default_guard_device_name,
   storage: session_storage,
-  now: () => Date.now(),
+  now: () => server_now(),
 };
 
 function is_stored(value: unknown): value is StoredGuardSignIn {
@@ -167,13 +169,16 @@ function is_stored(value: unknown): value is StoredGuardSignIn {
     typeof v.expires_at === "string" &&
     typeof v.number === "number" &&
     typeof v.device_key === "string" &&
-    (v.user_hash === null || typeof v.user_hash === "string")
+    (v.user_hash === null || typeof v.user_hash === "string") &&
+    (v.user_id === undefined ||
+      v.user_id === null ||
+      typeof v.user_id === "string")
   );
 }
 
 export function read_stored_guard_sign_in(
   storage: Storage | null = session_storage(),
-  now: number = Date.now(),
+  now: number = server_now(),
 ): StoredGuardSignIn | null {
   if (!storage) return null;
   try {
@@ -216,11 +221,13 @@ export class GuardSignInController {
   private stopped = false;
   private started = false;
   private finishing = false;
+  private canceled = false;
   private request_id: string;
   private token: string;
   private expires_at: string;
   private device_key: string | null = null;
   private user_hash: string | null;
+  private account_id: string | null;
   private number: number | null = null;
   private readonly start_from: GuardSignInStart;
 
@@ -235,11 +242,13 @@ export class GuardSignInController {
       this.token = start.info.guard_token;
       this.expires_at = start.info.expires_at;
       this.user_hash = start.user_hash;
+      this.account_id = start.info.user_id ?? null;
     } else {
       this.request_id = start.stored.request_id;
       this.token = start.stored.guard_token;
       this.expires_at = start.stored.expires_at;
       this.user_hash = start.stored.user_hash;
+      this.account_id = start.stored.user_id ?? null;
       this.device_key = start.stored.device_key;
       this.number = start.stored.number;
     }
@@ -313,6 +322,7 @@ export class GuardSignInController {
       number: this.number,
       device_key: this.device_key,
       user_hash: this.user_hash,
+      user_id: this.account_id,
     };
 
     try {
@@ -367,8 +377,11 @@ export class GuardSignInController {
     key: string;
     resume: GuardResume;
   } | null> {
-    if (!this.user_hash) return null;
-    const user_id = await this.deps.read_hint(this.user_hash).catch(() => null);
+    const user_id =
+      this.account_id ??
+      (this.user_hash
+        ? await this.deps.read_hint(this.user_hash).catch(() => null)
+        : null);
 
     if (!user_id) return null;
     const device = await this.deps.get_device(user_id).catch(() => null);
@@ -377,7 +390,15 @@ export class GuardSignInController {
     if (!device || !device_id) return null;
     const nonce = await guard_sign_in_resume_nonce(this.token, { device_id });
 
-    if (nonce.error || !nonce.data) return null;
+    if (nonce.error || !nonce.data) {
+      if (
+        nonce.status === 404 ||
+        is_gone(nonce.server_code, nonce.status)
+      ) {
+        return null;
+      }
+      throw new Error("guard_sign_in: resume unavailable");
+    }
     const pub = await device.public_keys();
     const digest = keys_digest(
       pub.ed25519_pk,
@@ -421,7 +442,11 @@ export class GuardSignInController {
           this.deps.device_name(),
         );
       }
-      if (this.stopped) return;
+      if (this.stopped) {
+        await this.drop_pending_device();
+
+        return;
+      }
 
       const pub = await device.public_keys();
 
@@ -440,7 +465,11 @@ export class GuardSignInController {
         resume,
       });
 
-      if (this.stopped) return;
+      if (this.stopped) {
+        await this.drop_pending_device();
+
+        return;
+      }
       if (response.error || !response.data) {
         this.end(
           is_gone(response.server_code, response.status) ? "expired" : "error",
@@ -537,6 +566,31 @@ export class GuardSignInController {
     }
   }
 
+  private async request_completion(): Promise<
+    Awaited<ReturnType<typeof guard_sign_in_complete>>
+  > {
+    const response = await guard_sign_in_complete(this.token);
+
+    if (!response.error || response.data || this.canceled) return response;
+    if (response.server_code || (response.status && response.status < 500)) {
+      return response;
+    }
+
+    return guard_sign_in_complete(this.token);
+  }
+
+  private async run_finish(
+    data: Parameters<GuardSignInFinish>[0],
+    passphrase: string | null,
+  ): Promise<void> {
+    try {
+      await this.finish(data, passphrase);
+    } catch {
+      if (this.canceled) return;
+      await this.finish(data, passphrase);
+    }
+  }
+
   private async complete(): Promise<void> {
     if (this.finishing || this.stopped) return;
     this.finishing = true;
@@ -544,8 +598,9 @@ export class GuardSignInController {
     this.update({ phase: "completing" });
 
     try {
-      const response = await guard_sign_in_complete(this.token);
+      const response = await this.request_completion();
 
+      if (this.canceled) return;
       if (response.error || !response.data) {
         this.finishing = false;
         this.end(
@@ -559,9 +614,12 @@ export class GuardSignInController {
       const key = this.device_key;
 
       if (!user_id || !key) throw new Error("guard_sign_in: incomplete");
-      if (key !== user_id) await this.deps.rekey_device(key, user_id);
-      const device = await this.deps.get_device(user_id);
+      if (this.account_id && this.account_id !== user_id) {
+        throw new Error("guard_sign_in: account mismatch");
+      }
+      const device = await this.deps.get_device(key);
 
+      if (this.canceled) return;
       if (!device) throw new Error("guard_sign_in: device missing");
       const device_id = data.guard.device_id;
 
@@ -582,15 +640,19 @@ export class GuardSignInController {
           bytes.fill(0);
         }
       }
+      if (this.canceled) return;
+      if (key !== user_id) await this.deps.rekey_device(key, user_id);
       if (this.user_hash) {
         await this.deps.write_hint(this.user_hash, user_id).catch(() => undefined);
       }
+      if (this.canceled) return;
       this.stopped = true;
       this.forget_storage();
       this.update({ phase: "done" });
-      await this.finish(data, passphrase);
+      await this.run_finish(data, passphrase);
     } catch {
       this.finishing = false;
+      if (this.canceled) return;
       this.end("error");
     }
   }
@@ -654,6 +716,7 @@ export class GuardSignInController {
     }
     const response = await guard_sign_in_rescue(this.token, code);
 
+    if (this.stopped || this.finishing) return false;
     if (response.error || !response.data) {
       if (is_gone(response.server_code, response.status)) {
         this.end("expired");
@@ -679,6 +742,7 @@ export class GuardSignInController {
 
   cancel(): void {
     this.clear_timer();
+    this.canceled = true;
     this.stopped = true;
     this.forget_storage();
     void this.drop_pending_device();

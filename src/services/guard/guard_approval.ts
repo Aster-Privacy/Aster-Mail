@@ -74,6 +74,7 @@ export type GuardApproveOutcome =
 
 export type GuardDenyOutcome =
   | { kind: "denied" }
+  | { kind: "canceled" }
   | { kind: "gone" }
   | { kind: "error" };
 
@@ -246,15 +247,20 @@ export async function deny_guard_sign_in(
   request: GuardRequestSummary,
   user_id: string,
   device: GuardDevice,
+  request_proof: () => Promise<StepUpProof | null>,
 ): Promise<GuardDenyOutcome> {
   let action;
 
   try {
+    const proof = await request_proof();
+
+    if (!proof) return { kind: "canceled" };
     action = await sign_guard_action(
       device,
       user_id,
       GUARD_ACTION.deny,
       id_subject(request.id),
+      proof,
     );
   } catch {
     return { kind: "error" };

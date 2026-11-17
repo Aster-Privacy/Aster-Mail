@@ -20,7 +20,12 @@
 //
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { stub_module, delete_device_recovery_database } = vi.hoisted(() => {
+const {
+  stub_module,
+  delete_device_recovery_database,
+  local_keys,
+  removed_keys,
+} = vi.hoisted(() => {
   const skip = (key: string | symbol) =>
     typeof key === "symbol" || key === "then";
   const callable = (): unknown =>
@@ -40,6 +45,8 @@ const { stub_module, delete_device_recovery_database } = vi.hoisted(() => {
   return {
     stub_module,
     delete_device_recovery_database: vi.fn(async () => undefined),
+    local_keys: [] as string[],
+    removed_keys: [] as string[],
   };
 });
 
@@ -82,10 +89,14 @@ vi.mock("@/stores/special_offer_status", () => stub_module());
 vi.mock("@/stores/external_account_health_store", () => stub_module());
 vi.mock("@/lib/ignore_error", () => stub_module());
 vi.mock("@/lib/safe_storage", () => ({
-  safe_local_keys: () => [],
-  safe_local_remove: () => undefined,
+  safe_local_keys: () => [...local_keys],
+  safe_local_remove: (key: string) => {
+    removed_keys.push(key);
+  },
 }));
-vi.mock("@/services/calendar/invite_answers", () => stub_module());
+vi.mock("@/services/calendar/invite_answers", () => ({
+  INVITE_ANSWER_PREFIX: "aster_invite_answer:",
+}));
 vi.mock("@/components/email/hooks/preload_cache_store", () => stub_module());
 vi.mock("@/components/settings/billing/billing_cache", () => stub_module());
 vi.mock(
@@ -101,6 +112,17 @@ describe("purge_all_local_data device recovery", () => {
   beforeEach(() => {
     delete_device_recovery_database.mockReset();
     delete_device_recovery_database.mockResolvedValue(undefined);
+    local_keys.length = 0;
+    removed_keys.length = 0;
+  });
+
+  it("forgets a pending Aster Guard rescue on sign-out", async () => {
+    local_keys.push("aster_guard_rescue", "aster_theme");
+
+    await purge_all_local_data();
+
+    expect(removed_keys).toContain("aster_guard_rescue");
+    expect(removed_keys).not.toContain("aster_theme");
   });
 
   it("deletes the device recovery database by default", async () => {

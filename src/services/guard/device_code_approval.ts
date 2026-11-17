@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SignedAction } from "@/services/api/guard";
+import type { SignedAction, StepUpProof } from "@/services/api/guard";
 import type { DeviceCodeVerifyResponse } from "@/services/api/devices";
 
 import { base64url_decode } from "@/lib/crypto/device_envelope";
@@ -40,7 +40,8 @@ export type DeviceCodeGuardResult =
   | { kind: "off" }
   | { kind: "signed"; action: SignedAction }
   | { kind: "needs_approver" }
-  | { kind: "keys_mismatch" };
+  | { kind: "keys_mismatch" }
+  | { kind: "canceled" };
 
 export function bytes_equal(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false;
@@ -63,6 +64,7 @@ export function device_code_digest(keys: DeviceCodeKeys): Uint8Array {
 export async function guard_device_code_action(
   user_id: string | undefined,
   keys: DeviceCodeKeys,
+  request_proof: () => Promise<StepUpProof | null>,
 ): Promise<DeviceCodeGuardResult> {
   const status = await get_guard_status();
 
@@ -89,11 +91,15 @@ export async function guard_device_code_action(
     if (!bytes_equal(server_digest, digest)) return { kind: "keys_mismatch" };
   }
 
+  const proof = await request_proof();
+
+  if (!proof) return { kind: "canceled" };
   const action = await sign_guard_action(
     device,
     user_id,
     GUARD_ACTION.approve,
     approve_subject(null, digest, 0),
+    proof,
   );
 
   return { kind: "signed", action };

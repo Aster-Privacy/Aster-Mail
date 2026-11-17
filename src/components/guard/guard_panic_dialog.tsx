@@ -46,7 +46,6 @@ import { GUARD_ACTION, PANIC_SUBJECT } from "@/lib/crypto/guard_action";
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 import { guard_panic } from "@/services/api/guard";
-import { STEP_UP_REQUIRED_CODE } from "@/services/api/step_up";
 import { sign_guard_action } from "@/services/guard/sign_action";
 
 function PanicRow({
@@ -91,25 +90,19 @@ async function run_panic(
   user_id: string,
   request_proof: () => Promise<StepUpProof | null>,
 ): Promise<GuardPanicResult | "canceled" | null> {
-  let proof: StepUpProof | null = null;
+  const proof = await request_proof();
 
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const action = await sign_guard_action(
-      device,
-      user_id,
-      GUARD_ACTION.panic,
-      PANIC_SUBJECT,
-      proof,
-    );
-    const response = await guard_panic(action);
+  if (!proof) return "canceled";
+  const action = await sign_guard_action(
+    device,
+    user_id,
+    GUARD_ACTION.panic,
+    PANIC_SUBJECT,
+    proof,
+  );
+  const response = await guard_panic(action);
 
-    if (response.data && !response.error) return response.data;
-    if (response.server_code !== STEP_UP_REQUIRED_CODE || proof) return null;
-    proof = await request_proof();
-    if (!proof) return "canceled";
-  }
-
-  return null;
+  return response.data && !response.error ? response.data : null;
 }
 
 interface GuardPanicDialogProps {

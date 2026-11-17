@@ -9618,6 +9618,11 @@ export interface GuardTranslations {
   approve_denied: string;
   push_sign_in: string;
   push_activity: string;
+  push_ended: string;
+  switch_account_title: string;
+  switch_account_message: string;
+  switch_account_confirm: string;
+  link_device_step_up_failed: string;
   code_title: string;
   code_description: string;
   code_copy: string;
@@ -9730,6 +9735,8 @@ export interface GuardTranslations {
   veto_invalid: string;
   veto_error: string;
   veto_sign_in: string;
+  veto_prompt: string;
+  veto_confirm: string;
   rescue_banner: string;
   rescue_banner_stop: string;
   rescue_banner_stopped: string;

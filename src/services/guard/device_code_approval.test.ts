@@ -63,6 +63,8 @@ import {
 
 const USER = "11111111-1111-4111-8111-111111111111";
 const NONCE = base64url_encode(new Uint8Array(32).fill(7));
+const PROOF = { type: "password" as const, password_hash: "ph", totp_code: null };
+const request_proof = vi.fn(async () => PROOF as typeof PROOF | null);
 
 function keys(action_pk: Uint8Array | null = null) {
   return {
@@ -84,13 +86,15 @@ describe("guard approval for a device code", () => {
     status_mock.mockReset();
     challenge_mock.mockReset();
     device_mock.mockReset();
+    request_proof.mockReset();
+    request_proof.mockResolvedValue(PROOF);
     challenge_mock.mockResolvedValue({ data: { nonce: NONCE } });
   });
 
   it("stays out of the way on a server without guard", async () => {
     status_mock.mockResolvedValue({ error: "not found", status: 404 });
 
-    await expect(guard_device_code_action(USER, keys())).resolves.toEqual({
+    await expect(guard_device_code_action(USER, keys(), request_proof)).resolves.toEqual({
       kind: "off",
     });
     expect(device_mock).not.toHaveBeenCalled();
@@ -100,7 +104,7 @@ describe("guard approval for a device code", () => {
   it("stays out of the way when new device approval is off", async () => {
     status_mock.mockResolvedValue({ data: { switches: 2, hold_scopes: 7 } });
 
-    await expect(guard_device_code_action(USER, keys())).resolves.toEqual({
+    await expect(guard_device_code_action(USER, keys(), request_proof)).resolves.toEqual({
       kind: "off",
     });
     expect(challenge_mock).not.toHaveBeenCalled();
@@ -110,7 +114,7 @@ describe("guard approval for a device code", () => {
     status_mock.mockResolvedValue({ data: { switches: 1, hold_scopes: 0 } });
     device_mock.mockResolvedValue(null);
 
-    await expect(guard_device_code_action(USER, keys())).resolves.toEqual({
+    await expect(guard_device_code_action(USER, keys(), request_proof)).resolves.toEqual({
       kind: "needs_approver",
     });
     expect(challenge_mock).not.toHaveBeenCalled();
@@ -132,16 +136,18 @@ describe("guard approval for a device code", () => {
       action_pk,
     );
 
-    const result = await guard_device_code_action(USER, {
-      ...input,
-      keys_digest: base64url_encode(digest),
-    });
+    const result = await guard_device_code_action(
+      USER,
+      { ...input, keys_digest: base64url_encode(digest) },
+      request_proof,
+    );
 
     expect(result.kind).toBe("signed");
     if (result.kind !== "signed") return;
     expect(base64url_decode(result.action.signature)).toHaveLength(64);
     expect(result.action.nonce).toBe(NONCE);
-    expect(result.action.proof).toBeNull();
+    expect(request_proof).toHaveBeenCalledTimes(1);
+    expect(result.action.proof).toEqual(PROOF);
     expect(device_mock).toHaveBeenCalledWith(USER);
     expect(sign).toHaveBeenCalledWith(
       build_action_message(
@@ -161,11 +167,27 @@ describe("guard approval for a device code", () => {
     device_mock.mockResolvedValue(device);
 
     await expect(
-      guard_device_code_action(USER, {
-        ...keys(),
-        keys_digest: base64url_encode(new Uint8Array(32).fill(9)),
-      }),
+      guard_device_code_action(
+        USER,
+        { ...keys(), keys_digest: base64url_encode(new Uint8Array(32).fill(9)) },
+        request_proof,
+      ),
     ).resolves.toEqual({ kind: "keys_mismatch" });
     expect(sign).not.toHaveBeenCalled();
+    expect(request_proof).not.toHaveBeenCalled();
+  });
+
+  it("signs nothing when the step-up is canceled", async () => {
+    status_mock.mockResolvedValue({ data: { switches: 1, hold_scopes: 0 } });
+    const { sign, device } = fake_device();
+
+    device_mock.mockResolvedValue(device);
+    request_proof.mockResolvedValue(null);
+
+    await expect(
+      guard_device_code_action(USER, keys(), request_proof),
+    ).resolves.toEqual({ kind: "canceled" });
+    expect(sign).not.toHaveBeenCalled();
+    expect(challenge_mock).not.toHaveBeenCalled();
   });
 });

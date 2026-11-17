@@ -438,7 +438,9 @@ describe("guard switches panel", () => {
     h.switches_held = true;
     render_panel(make_status(), device);
     act(() => by_label("guard.setup_hold_changes").click());
-    await flush();
+    await wait_until(
+      () => !!container.querySelector('[data-testid="guard_switches_held"]'),
+    );
 
     expect(h.proof_requests).toBe(0);
     expect(h.switches_body).toMatchObject({
@@ -663,7 +665,7 @@ describe("guard devices list", () => {
       "guard.devices_remove_this_device",
     );
     act(() => by_test_id("confirm_yes").click());
-    await flush();
+    await wait_until(() => h.removed.length > 0);
     expect(h.removed).toEqual([THIS_ID]);
   });
 
@@ -682,13 +684,15 @@ describe("guard devices list", () => {
       );
     });
     act(() => by_test_id(`guard_device_remove_${PIXEL_ID}`).click());
-    await flush();
+    await wait_until(() => h.removed.length > 0);
 
     expect(container.querySelector('[data-testid="confirm_modal"]')).toBeNull();
     expect(h.removed).toEqual([PIXEL_ID]);
     const call = vi.mocked(remove_guard_device).mock.calls.at(-1)!;
-    const action = call[1] as { signature: string };
+    const action = call[1] as { signature: string; proof: unknown };
 
+    expect(h.proof_requests).toBe(1);
+    expect(action.proof).toEqual(h.proof);
     expect(
       await verify(
         USER_ID,

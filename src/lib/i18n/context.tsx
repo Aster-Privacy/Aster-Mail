@@ -291,6 +291,7 @@ export function I18nProvider({
       {
         guard_sign_in: translations.guard?.push_sign_in ?? "",
         guard_activity: translations.guard?.push_activity ?? "",
+        guard_ended: translations.guard?.push_ended ?? "",
       },
     );
   }, [language, is_rtl, translations]);

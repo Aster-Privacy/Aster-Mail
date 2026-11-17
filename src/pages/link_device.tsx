@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ReactNode } from "react";
+import type { StepUpProof } from "@/services/api/guard";
 
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -64,6 +65,7 @@ import { api_client } from "@/services/api/client";
 import { has_stored_session_passphrase } from "@/contexts/auth/session_passphrase";
 import { UNLIMITED_ACCOUNTS } from "@/services/plan_limits";
 import { guard_device_code_action } from "@/services/guard/device_code_approval";
+import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 
 type PageState =
   | "choose_account"
@@ -445,6 +447,21 @@ function AccountChooser({
 }
 
 export default function LinkDevice() {
+  const step_up = use_guard_step_up();
+
+  return (
+    <>
+      <LinkDeviceFlow request_proof={step_up.request_proof} />
+      {step_up.step_up_modal}
+    </>
+  );
+}
+
+function LinkDeviceFlow({
+  request_proof,
+}: {
+  request_proof: () => Promise<StepUpProof | null>;
+}) {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const {
@@ -594,8 +611,17 @@ export default function LinkDevice() {
     set_error(null);
 
     try {
-      const guard = await guard_device_code_action(user?.id, device_info);
+      const guard = await guard_device_code_action(
+        user?.id,
+        device_info,
+        request_proof,
+      );
 
+      if (guard.kind === "canceled") {
+        set_page_state("confirming_device");
+
+        return;
+      }
       if (guard.kind === "needs_approver" || guard.kind === "keys_mismatch") {
         const message = t(
           guard.kind === "needs_approver"

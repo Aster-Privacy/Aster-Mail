@@ -192,7 +192,15 @@ export function GuardHeldChanges({
     if (!device || busy_id) return;
     set_busy_id(change.id);
     try {
-      const response = await cancel_held_change(device, user_id, change.id);
+      const proof = await step_up.request_proof();
+
+      if (!proof) return;
+      const response = await cancel_held_change(
+        device,
+        user_id,
+        change.id,
+        proof,
+      );
 
       if (response.error) {
         show_toast(t("guard.held_error"), "error");

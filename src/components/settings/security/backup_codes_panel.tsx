@@ -78,14 +78,18 @@ export function BackupCodesPanel({ backup_codes }: BackupCodesPanelProps) {
       </div>
       <div className="grid grid-cols-2 gap-2">
         <Button
-          className="w-full"
+          className="w-full min-w-0 whitespace-nowrap"
           variant="secondary"
           onClick={() => copy(backup_codes.join("\n"))}
         >
-          <ClipboardDocumentIcon className="w-4 h-4 me-2" />
-          {t("settings.copy_all_codes")}
+          <ClipboardDocumentIcon className="w-4 h-4 me-2 shrink-0" />
+          <span className="truncate">{t("settings.copy_all_codes")}</span>
         </Button>
-        <Button className="w-full" variant="secondary" onClick={download}>
+        <Button
+          className="w-full min-w-0 whitespace-nowrap"
+          variant="secondary"
+          onClick={download}
+        >
           <ArrowDownTrayIcon className="w-4 h-4 me-2" />
           {t("common.download")}
         </Button>

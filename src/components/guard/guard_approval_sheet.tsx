@@ -60,6 +60,7 @@ import {
 } from "@/components/guard/use_guard_requests";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { Button } from "@/components/ui/button";
 import {
   Modal,
@@ -71,6 +72,7 @@ import {
 import { OtpInput } from "@/components/ui/otp_input";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { server_now } from "@/lib/server_clock";
 import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 import { use_should_reduce_motion } from "@/provider";
 import {
@@ -338,8 +340,11 @@ export function GuardApprovalSheet({
     }
   };
 
+  const expired = Date.parse(view.summary.expires_at) <= now;
+
   const approve = async (value = number) => {
     if (busy || value.length !== 2) return;
+    if (Date.parse(view.summary.expires_at) <= server_now()) return;
     set_busy("approve");
     set_message(null);
     try {
@@ -363,7 +368,14 @@ export function GuardApprovalSheet({
     set_busy("deny");
     set_message(null);
     try {
-      const outcome = await deny_guard_sign_in(view.summary, user_id, device);
+      const outcome = await deny_guard_sign_in(
+        view.summary,
+        user_id,
+        device,
+        step_up.request_proof,
+      );
+
+      if (outcome.kind === "canceled") return;
 
       if (
         then_panic &&
@@ -469,7 +481,7 @@ export function GuardApprovalSheet({
               <div className="flex flex-col gap-2 px-6 pb-5 pt-2">
                 <Button
                   className="w-full"
-                  disabled={busy !== null || number.length !== 2}
+                  disabled={busy !== null || expired || number.length !== 2}
                   is_loading={busy === "approve"}
                   size="lg"
                   variant="depth"
@@ -523,9 +535,14 @@ export function GuardApprovalHost({
 }: {
   show_rescue_banner?: boolean;
 } = {}) {
-  const { user, switch_to_account } = use_auth();
+  const { t } = use_i18n();
+  const { user, accounts, switch_to_account } = use_auth();
   const user_id = user?.id ?? null;
   const { requests, device, dismiss } = use_guard_requests(user_id);
+  const [switch_target, set_switch_target] = useState<string | null>(null);
+  const switch_account = switch_target
+    ? accounts.find((account) => account.id === switch_target)
+    : undefined;
 
   useEffect(() => {
     set_guard_event_account(user_id);
@@ -533,7 +550,7 @@ export function GuardApprovalHost({
     const stop_listening = on_guard_event((event) => {
       if (event.account_id !== user_id) {
         if (event.event === "sign_in_request") {
-          void switch_to_account(event.account_id).catch(() => undefined);
+          set_switch_target(event.account_id);
         }
 
         return;
@@ -548,8 +565,19 @@ export function GuardApprovalHost({
       stop_bridge();
       set_guard_event_account(null);
     };
-  }, [user_id, switch_to_account]);
+  }, [user_id]);
+
+  useEffect(() => {
+    set_switch_target(null);
+  }, [user_id]);
   const current = requests[0];
+
+  const confirm_switch = () => {
+    const target = switch_target;
+
+    set_switch_target(null);
+    if (target) void switch_to_account(target).catch(() => undefined);
+  };
 
   return (
     <>
@@ -561,6 +589,18 @@ export function GuardApprovalHost({
         </div>
       )}
       <GuardSetupAfterRescue user_id={user_id} />
+      <ConfirmationModal
+        cancel_text={t("common.not_now")}
+        confirm_text={t("guard.switch_account_confirm")}
+        is_open={!!switch_account}
+        message={t("guard.switch_account_message", {
+          email: switch_account?.user.email ?? "",
+        })}
+        title={t("guard.switch_account_title")}
+        variant="info"
+        on_cancel={() => set_switch_target(null)}
+        on_confirm={confirm_switch}
+      />
       {current && device && user_id && (
         <GuardApprovalSheet
           key={current.summary.id}

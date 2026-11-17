@@ -161,7 +161,15 @@ export function GuardSwitchesPanel({
   const cancel_held = async () => {
     if (!device || !shown_held) return;
     try {
-      const response = await cancel_held_change(device, user_id, shown_held.id);
+      const proof = await step_up.request_proof();
+
+      if (!proof) return;
+      const response = await cancel_held_change(
+        device,
+        user_id,
+        shown_held.id,
+        proof,
+      );
 
       if (response.error) {
         show_toast(t("guard.switches_error"), "error");

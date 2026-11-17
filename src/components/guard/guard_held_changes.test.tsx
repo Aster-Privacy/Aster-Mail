@@ -139,7 +139,13 @@ vi.mock("@/services/guard/sign_action", () => ({
 }));
 
 vi.mock("@/services/guard/guard_changes", () => ({
-  cancel_held_change: async (_d: unknown, _u: string, id: string) => {
+  cancel_held_change: async (
+    _d: unknown,
+    _u: string,
+    id: string,
+    proof: unknown,
+  ) => {
+    if (!proof) throw new Error("missing proof");
     h.cancelled.push(id);
 
     return { data: { status: "cancelled" } };
@@ -273,7 +279,7 @@ describe("GuardHeldChanges", () => {
     expect(has(`guard_held_cancel_${RESCUE_ID}`)).toBe(true);
   });
 
-  it("cancels without a step-up", async () => {
+  it("asks for a step-up before canceling a held change", async () => {
     const on_refresh = vi.fn();
 
     await render(
@@ -286,8 +292,19 @@ describe("GuardHeldChanges", () => {
     await click(`guard_held_cancel_${FORWARD_ID}`);
 
     expect(h.cancelled).toEqual([FORWARD_ID]);
-    expect(h.proof_requests).toBe(0);
+    expect(h.proof_requests).toBe(1);
     expect(on_refresh).toHaveBeenCalled();
+  });
+
+  it("cancels nothing when the step-up is dismissed", async () => {
+    h.proof = null;
+    await render(
+      <GuardHeldChanges device={DEVICE} user_id={USER_ID} on_refresh={vi.fn()} />,
+    );
+    await click(`guard_held_cancel_${FORWARD_ID}`);
+
+    expect(h.proof_requests).toBe(1);
+    expect(h.cancelled).toEqual([]);
   });
 
   it("asks for a step-up before applying a change early", async () => {
@@ -399,8 +416,9 @@ describe("GuardPanicDialog", () => {
     );
     await click("guard_panic_confirm");
 
+    expect(h.proof_requests).toBe(1);
     expect(h.panic_calls).toHaveLength(1);
-    expect(h.panic_calls[0].proof).toBeNull();
+    expect(h.panic_calls[0].proof).toEqual(h.proof);
     expect(
       container.querySelector('[data-testid="guard_panic_sessions"]')
         ?.textContent,
@@ -415,11 +433,9 @@ describe("GuardPanicDialog", () => {
     ).toContain("2");
   });
 
-  it("retries with a step-up proof when the server asks for one", async () => {
-    h.panic_responses = [
-      { error: "step up", server_code: "STEP_UP_REQUIRED" },
-      { data: RESULT },
-    ];
+  it("sends nothing when the step-up is canceled", async () => {
+    h.proof = null;
+    h.panic_responses = [{ data: RESULT }];
     await render(
       <GuardPanicDialog
         device={DEVICE}
@@ -431,8 +447,7 @@ describe("GuardPanicDialog", () => {
     await click("guard_panic_confirm");
 
     expect(h.proof_requests).toBe(1);
-    expect(h.panic_calls.map((c) => c.proof)).toEqual([null, h.proof]);
-    expect(has("guard_panic_counts")).toBe(true);
+    expect(h.panic_calls).toHaveLength(0);
   });
 
   it("offers Change password only when the server allows it now", async () => {

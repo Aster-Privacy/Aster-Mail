@@ -22,11 +22,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   guard_push_body,
-  guard_push_is_silent,
+  guard_push_is_ended,
+  guard_push_notification_tag,
   guard_push_resolved_tag,
   guard_push_tag,
   GUARD_PUSH_FALLBACK_ACTIVITY,
+  GUARD_PUSH_FALLBACK_ENDED,
   GUARD_PUSH_FALLBACK_SIGN_IN,
+  guard_window_is_watching,
   read_guard_push,
 } from "@/lib/guard_push";
 import { GUARD_HELD_EVENT } from "@/services/api/client/helpers";
@@ -198,39 +201,72 @@ describe("guard events", () => {
 });
 
 describe("guard push text", () => {
+  const REQUEST = "5b0c7d2e-1f3a-4c5b-9d6e-7f8091a2b3c4";
+  const ACCOUNT = "0e1f2a3b-4c5d-4e6f-8a9b-0c1d2e3f4a5b";
+  const PROMPT_TAG = `guard_sign_in_request_${REQUEST}`;
+  const push = (event: string) => frame(event, REQUEST, ACCOUNT);
+
   it("never includes context details", () => {
     const payload = read_guard_push({
-      ...frame("sign_in_request"),
+      ...push("sign_in_request"),
       city: "Berlin",
       browser: "Firefox on Windows",
     });
 
-    expect(payload).toEqual(frame("sign_in_request"));
+    expect(payload).toEqual(push("sign_in_request"));
     expect(guard_push_body(payload!, null)).toBe(GUARD_PUSH_FALLBACK_SIGN_IN);
     expect(
       guard_push_body(payload!, { guard_sign_in: "Neue Anmeldung" }),
     ).toBe("Neue Anmeldung");
-    expect(guard_push_body(read_guard_push(frame("panic"))!, {})).toBe(
+    expect(guard_push_body(read_guard_push(push("panic"))!, {})).toBe(
       GUARD_PUSH_FALLBACK_ACTIVITY,
     );
-    expect(guard_push_tag(payload!)).toBe("guard_sign_in_request_r1");
+    expect(guard_push_tag(payload!)).toBe(PROMPT_TAG);
     expect(read_guard_push({ type: "new_mail" })).toBeNull();
   });
 
-  it("closes the prompt when a request is resolved elsewhere", () => {
-    const approved = read_guard_push(frame("sign_in_approved"))!;
-    const denied = read_guard_push(frame("sign_in_denied"))!;
-    const expired = read_guard_push(frame("sign_in_expired"))!;
-    const held = read_guard_push(frame("change_held"))!;
+  it("rejects ids that are not UUIDs", () => {
+    expect(read_guard_push(frame("sign_in_request", "r1", ACCOUNT))).toBeNull();
+    expect(read_guard_push(frame("sign_in_request", REQUEST, "u1"))).toBeNull();
+    expect(
+      read_guard_push(frame("sign_in_request", `${REQUEST}/../x`, ACCOUNT)),
+    ).toBeNull();
+    expect(read_guard_push(frame("Sign In!", REQUEST, ACCOUNT))).toBeNull();
+  });
 
-    expect(guard_push_resolved_tag(approved)).toBe("guard_sign_in_request_r1");
-    expect(guard_push_resolved_tag(denied)).toBe("guard_sign_in_request_r1");
-    expect(guard_push_resolved_tag(expired)).toBe("guard_sign_in_request_r1");
+  it("closes the prompt when a request is resolved elsewhere", () => {
+    const approved = read_guard_push(push("sign_in_approved"))!;
+    const denied = read_guard_push(push("sign_in_denied"))!;
+    const expired = read_guard_push(push("sign_in_expired"))!;
+    const held = read_guard_push(push("change_held"))!;
+
+    expect(guard_push_resolved_tag(approved)).toBe(PROMPT_TAG);
+    expect(guard_push_resolved_tag(denied)).toBe(PROMPT_TAG);
+    expect(guard_push_resolved_tag(expired)).toBe(PROMPT_TAG);
     expect(guard_push_resolved_tag(held)).toBeNull();
-    expect(guard_push_is_silent(approved)).toBe(false);
-    expect(guard_push_is_silent(denied)).toBe(true);
-    expect(guard_push_is_silent(expired)).toBe(true);
-    expect(guard_push_is_silent(held)).toBe(false);
+    expect(guard_push_is_ended(approved)).toBe(false);
+    expect(guard_push_is_ended(denied)).toBe(true);
+    expect(guard_push_is_ended(expired)).toBe(true);
+    expect(guard_push_is_ended(held)).toBe(false);
+    expect(guard_push_notification_tag(denied)).toBe(PROMPT_TAG);
+    expect(guard_push_notification_tag(expired)).toBe(PROMPT_TAG);
+    expect(guard_push_body(denied, null)).toBe(GUARD_PUSH_FALLBACK_ENDED);
+    expect(guard_push_body(expired, { guard_ended: "Beendet" })).toBe(
+      "Beendet",
+    );
+  });
+
+  it("treats only a focused, visible window as watching", () => {
+    expect(guard_window_is_watching([])).toBe(false);
+    expect(
+      guard_window_is_watching([{ focused: false, visibilityState: "hidden" }]),
+    ).toBe(false);
+    expect(
+      guard_window_is_watching([{ focused: false, visibilityState: "visible" }]),
+    ).toBe(false);
+    expect(
+      guard_window_is_watching([{ focused: true, visibilityState: "visible" }]),
+    ).toBe(true);
   });
 
   it("accepts the new alert events", () => {
