@@ -259,6 +259,57 @@ function extract_domain(url: string): string {
   }
 }
 
+const MAX_REPORTED_DOMAINS = 50;
+
+function link_host(url: string): string {
+  try {
+    const parsed = new URL(url);
+
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+
+    return parsed.hostname.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+export async function report_phishing(
+  urls: string[],
+  sender_email: string,
+): Promise<void> {
+  const hosts = new Set<string>();
+
+  for (const url of urls) {
+    if (hosts.size >= MAX_REPORTED_DOMAINS) break;
+    const host = link_host(url);
+
+    if (host) hosts.add(host);
+  }
+
+  const at = sender_email.lastIndexOf("@");
+  const sender_domain =
+    at >= 0
+      ? sender_email
+          .slice(at + 1)
+          .trim()
+          .toLowerCase()
+      : "";
+
+  if (hosts.size === 0 && !sender_domain) return;
+
+  const body: { domain_hashes: string[]; sender_domain_hash?: string } = {
+    domain_hashes: await Promise.all(
+      [...hosts].map(async (host) => bytes_to_hex(await sha256_hash(host))),
+    ),
+  };
+
+  if (sender_domain) {
+    body.sender_domain_hash = bytes_to_hex(await sha256_hash(sender_domain));
+  }
+
+  await api_client.post("/phishing/v1/report", body);
+}
+
 export function cleanup_blocklist(): void {
   if (update_timer) {
     clearInterval(update_timer);

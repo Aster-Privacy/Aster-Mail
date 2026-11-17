@@ -92,7 +92,7 @@ const BRAND_DISPLAY_NAMES: Record<string, string[]> = {
   discord: ["discord.com"],
 };
 
-function extract_urls_from_html(html: string): string[] {
+export function extract_urls_from_html(html: string): string[] {
   const urls: string[] = [];
   const href_regex = /href\s*=\s*["']([^"']+)["']/gi;
   let match;
