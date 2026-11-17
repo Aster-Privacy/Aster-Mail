@@ -573,11 +573,17 @@ describe("GuardApprovalSheet", () => {
 
     v.context = { ...v.context!, country_code: "de" };
     render(v);
-    for (let i = 0; i < 20; i++) {
-      await act(async () => {
-        await new Promise((r) => setTimeout(r, 0));
-      });
-    }
+    await vi.waitFor(
+      async () => {
+        await act(async () => {
+          await new Promise((r) => setTimeout(r, 0));
+        });
+        expect(
+          container.querySelector('[data-testid="guard_flag"]'),
+        ).not.toBeNull();
+      },
+      { timeout: 10000, interval: 20 },
+    );
     const flag = container.querySelector('[data-testid="guard_flag"]');
 
     const src = flag?.getAttribute("src") ?? "";

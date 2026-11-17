@@ -163,6 +163,11 @@ vi.mock("@/components/modals/confirmation_modal", () => ({
 
 vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
 
+vi.mock("@/components/guard/guard_rescue_rotate_dialog", () => ({
+  GuardRescueRotateDialog: ({ is_open }: { is_open: boolean }) =>
+    is_open ? <div data-testid="guard_rescue_rotate_dialog_stub" /> : null,
+}));
+
 vi.mock("@/components/guard/use_guard_step_up", () => ({
   use_guard_step_up: () => ({
     request_proof: vi.fn(async () => {
@@ -501,6 +506,23 @@ describe("guard switches panel", () => {
         action.signature,
       ),
     ).toBe(true);
+  });
+
+  it("opens the rescue code dialog from the rescue row", async () => {
+    const device = await create_guard_device(USER_ID, "Firefox on Windows");
+
+    render_panel(make_status(), device);
+    await wait_until(
+      () => !!container.querySelector('[data-testid="guard_rescue_row"]'),
+    );
+
+    expect(
+      container.querySelector(
+        '[data-testid="guard_rescue_rotate_dialog_stub"]',
+      ),
+    ).toBeNull();
+    act(() => by_test_id("guard_rescue_rotate_open").click());
+    expect(by_test_id("guard_rescue_rotate_dialog_stub")).not.toBeNull();
   });
 
   it("shows the not-an-approver state without a local device", async () => {

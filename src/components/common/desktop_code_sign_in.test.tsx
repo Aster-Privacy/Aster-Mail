@@ -519,7 +519,9 @@ describe("desktop code sign-in", () => {
 
     await render_sign_in();
     await advance(3_000);
+    await advance(1_000);
 
+    expect(calls).toBe(1);
     expect(
       container!.querySelector('[data-testid="device_activation_pending"]'),
     ).not.toBeNull();

@@ -22,6 +22,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
+import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
+
 const h = vi.hoisted(() => ({
   verify: vi.fn(),
   confirm: vi.fn(),
@@ -153,6 +155,12 @@ function valid_keys() {
     machine_name: "desk",
   };
 }
+
+const ACTION_PK = encode(33, 4);
+const ACTION_FINGERPRINT = fingerprint_of_encoded_device_keys({
+  ...valid_keys(),
+  action_pk: ACTION_PK,
+}) as string;
 
 async function type_into(input: Element | null, value: string): Promise<void> {
   if (!(input instanceof HTMLInputElement)) throw new Error("input missing");
@@ -519,17 +527,17 @@ describe("link device approval", () => {
     const action = { nonce: "n", signature: "s", proof: null };
 
     h.verify.mockResolvedValue({
-      data: { ...valid_keys(), action_pk: "apk", keys_digest: "kd" },
+      data: { ...valid_keys(), action_pk: ACTION_PK, keys_digest: "kd" },
     });
     h.guard.mockResolvedValue({ kind: "signed", action });
     await render_page();
     await enter_code();
-    await enter_fingerprint(FINGERPRINT);
+    await enter_fingerprint(ACTION_FINGERPRINT);
     await approve();
 
     expect(h.guard).toHaveBeenCalledWith(
       "u1",
-      expect.objectContaining({ action_pk: "apk", keys_digest: "kd" }),
+      expect.objectContaining({ action_pk: ACTION_PK, keys_digest: "kd" }),
       h.request_proof,
     );
     expect(h.confirm).toHaveBeenCalledWith(
@@ -568,7 +576,7 @@ describe("link device approval", () => {
 
   function guard_with_step_up(): void {
     h.verify.mockResolvedValue({
-      data: { ...valid_keys(), action_pk: "apk", keys_digest: "kd" },
+      data: { ...valid_keys(), action_pk: ACTION_PK, keys_digest: "kd" },
     });
     h.guard.mockImplementation(
       async (
@@ -594,7 +602,7 @@ describe("link device approval", () => {
     guard_with_step_up();
     await render_page();
     await enter_code();
-    await enter_fingerprint(FINGERPRINT);
+    await enter_fingerprint(ACTION_FINGERPRINT);
     await approve();
 
     expect(h.order).toEqual(["proof", "confirm"]);
@@ -609,7 +617,7 @@ describe("link device approval", () => {
     h.proof = null;
     await render_page();
     await enter_code();
-    await enter_fingerprint(FINGERPRINT);
+    await enter_fingerprint(ACTION_FINGERPRINT);
     await approve();
 
     expect(h.request_proof).toHaveBeenCalledTimes(1);
@@ -628,7 +636,7 @@ describe("link device approval", () => {
     });
     await render_page();
     await enter_code();
-    await enter_fingerprint(FINGERPRINT);
+    await enter_fingerprint(ACTION_FINGERPRINT);
     await approve();
 
     expect(container.textContent).toContain("guard.link_device_step_up_failed");
