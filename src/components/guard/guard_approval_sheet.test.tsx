@@ -130,9 +130,15 @@ vi.mock("@/components/guard/use_guard_step_up", () => ({
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({
-    user: { id: "u1" },
+    user: { id: "22222222-3333-4444-8555-666666666666" },
     accounts: [
-      { id: "u1", user: { id: "u1", email: "first@astermail.org" } },
+      {
+        id: "22222222-3333-4444-8555-666666666666",
+        user: {
+          id: "22222222-3333-4444-8555-666666666666",
+          email: "first@astermail.org",
+        },
+      },
       { id: "u2", user: { id: "u2", email: "second@astermail.org" } },
     ],
     switch_to_account: h.switch_to_account,
@@ -700,7 +706,7 @@ describe("GuardApprovalHost", () => {
       await new Promise((r) => setTimeout(r, 0));
     });
 
-    expect(device_module.get_guard_device).toHaveBeenCalledWith("u1");
+    expect(device_module.get_guard_device).toHaveBeenCalledWith(USER_ID);
     expect(api.list_guard_requests).not.toHaveBeenCalled();
     expect(container.innerHTML).toBe("");
   });
