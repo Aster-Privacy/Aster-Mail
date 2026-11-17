@@ -27,6 +27,7 @@ export type RegistrationStep =
   | "recovery_email"
   | "recovery_email_verification"
   | "recovery_email_gate"
+  | "install_limit"
   | "academic_offer"
   | "plan_selection"
   | "download_apps"

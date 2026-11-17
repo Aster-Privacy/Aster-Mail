@@ -9169,6 +9169,10 @@ export interface AuthTranslations {
   abuse_blocked_proof: string;
   abuse_blocked_risk: string;
   abuse_block_reference: string;
+  install_limit_title: string;
+  install_limit_body: string;
+  install_limit_sign_in: string;
+  install_limit_upgrade: string;
   sign_up_temporarily_unavailable: string;
   account_created_sign_in_pending: string;
   contact_support: string;

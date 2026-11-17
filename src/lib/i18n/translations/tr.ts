@@ -10517,6 +10517,11 @@ export const tr = {
     abuse_blocked_risk:
       "Güvenlik sistemimiz bu kaydı doğrulayamadı. İncelenmesi için referans kodunuzla birlikte hello@astermail.org adresine yazın.",
     abuse_block_reference: "Referans: {{reference}}",
+    install_limit_title: "Bu cihazdaki hesap sınırına ulaştınız",
+    install_limit_body:
+      "Her cihazda belirli sayıda ücretsiz hesap oluşturulabilir ve bu cihaz bu sayıya ulaştı. Devam etmek için mevcut bir hesabınızda oturum açın veya daha fazla hesap eklemek için hesaplarınızdan birini yükseltin.",
+    install_limit_sign_in: "Giriş Yap",
+    install_limit_upgrade: "Yükselt",
     sign_up_temporarily_unavailable:
       "Kayıt geçici olarak kullanılamıyor. Birkaç dakika sonra yeniden deneyin.",
     account_created_sign_in_pending:

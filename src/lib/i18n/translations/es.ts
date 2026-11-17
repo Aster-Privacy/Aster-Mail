@@ -10647,6 +10647,12 @@ export const es = {
     abuse_blocked_risk:
       "Nuestro sistema de seguridad no pudo verificar este registro. Para que lo revisen, escribe a hello@astermail.org e incluye tu código de referencia.",
     abuse_block_reference: "Referencia: {{reference}}",
+    install_limit_title:
+      "Has alcanzado el límite de cuentas en este dispositivo",
+    install_limit_body:
+      "Cada dispositivo puede crear un número determinado de cuentas gratuitas, y este ya lo ha alcanzado. Para continuar, inicia sesión en una cuenta que ya tengas o mejora el plan de una de tus cuentas para añadir más.",
+    install_limit_sign_in: "Iniciar sesión",
+    install_limit_upgrade: "Mejorar plan",
     sign_up_temporarily_unavailable:
       "El registro no está disponible temporalmente. Vuelve a intentarlo en unos minutos.",
     account_created_sign_in_pending:

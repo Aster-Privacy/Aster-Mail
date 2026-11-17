@@ -10705,6 +10705,11 @@ export const de = {
     abuse_blocked_risk:
       "Unser Sicherheitssystem konnte diese Registrierung nicht bestätigen. Für eine Überprüfung wenden Sie sich an hello@astermail.org und geben Sie Ihre Referenznummer an.",
     abuse_block_reference: "Referenz: {{reference}}",
+    install_limit_title: "Sie haben das Kontolimit auf diesem Gerät erreicht",
+    install_limit_body:
+      "Auf jedem Gerät lässt sich eine festgelegte Anzahl kostenloser Konten erstellen, und dieses Gerät hat sie erreicht. Um fortzufahren, melden Sie sich bei einem bestehenden Konto an oder erweitern Sie eines Ihrer Konten, um weitere hinzuzufügen.",
+    install_limit_sign_in: "Anmelden",
+    install_limit_upgrade: "Erweitern",
     sign_up_temporarily_unavailable:
       "Die Registrierung ist vorübergehend nicht verfügbar. Versuchen Sie es in ein paar Minuten erneut.",
     account_created_sign_in_pending:

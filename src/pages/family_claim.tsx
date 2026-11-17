@@ -30,6 +30,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_registration } from "@/components/register/hooks/use_registration";
 import { RegisterStepPassword } from "@/components/register/register_step_password";
 import { RegisterStepKeys } from "@/components/register/register_step_keys";
+import { RegisterStepInstallLimit } from "@/components/register/register_step_install_limit";
 import {
   RegisterStepRecoveryCodes,
   RegisterStepRecoveryEmail,
@@ -85,6 +86,8 @@ function ClaimFlow({
         return <RegisterStepRecoveryEmailVerification reg={reg} />;
       case "recovery_email_gate":
         return <RegisterStepRecoveryEmailGate reg={reg} />;
+      case "install_limit":
+        return <RegisterStepInstallLimit reg={reg} />;
       default:
         return <RegisterStepPassword reg={reg} />;
     }

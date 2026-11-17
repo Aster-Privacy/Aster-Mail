@@ -10745,6 +10745,11 @@ export const pt = {
     abuse_blocked_risk:
       "O nosso sistema de segurança não conseguiu verificar este registo. Para que seja analisado, escreva para hello@astermail.org e indique o seu código de referência.",
     abuse_block_reference: "Referência: {{reference}}",
+    install_limit_title: "Atingiu o limite de contas neste dispositivo",
+    install_limit_body:
+      "Cada dispositivo pode criar um número definido de contas gratuitas, e este já o atingiu. Para continuar, inicie sessão numa conta que já tem ou atualize o plano de uma das suas contas para adicionar mais.",
+    install_limit_sign_in: "Iniciar sessão",
+    install_limit_upgrade: "Atualizar plano",
     sign_up_temporarily_unavailable:
       "O registo está temporariamente indisponível. Tente novamente dentro de alguns minutos.",
     account_created_sign_in_pending:

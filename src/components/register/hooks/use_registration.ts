@@ -195,6 +195,7 @@ const PRE_CREATION_STEPS: ReadonlySet<RegistrationStep> = new Set([
   "email",
   "password",
   "generating",
+  "install_limit",
 ]);
 
 const RESUMABLE_STEPS: ReadonlySet<RegistrationStep> = new Set([
@@ -372,6 +373,38 @@ function is_abuse_block_response(response: {
 
 export type RegistrationSessionIssue = "login_failed" | "no_session";
 
+export const INSTALL_LIMIT_CODE = "INSTALL_ACCOUNT_LIMIT";
+
+const UPGRADE_PLAN_PATTERN = /^[a-z][a-z0-9_]{0,31}$/;
+
+export function is_install_limit_response(response: {
+  code?: string;
+  server_code?: string;
+}): boolean {
+  return (
+    response.code === INSTALL_LIMIT_CODE ||
+    response.server_code === INSTALL_LIMIT_CODE
+  );
+}
+
+export function read_upgrade_plan(
+  details?: Record<string, unknown>,
+): string | null {
+  const plan = details?.upgrade_plan;
+
+  return typeof plan === "string" && UPGRADE_PLAN_PATTERN.test(plan)
+    ? plan
+    : null;
+}
+
+export function install_limit_upgrade_path(plan: string | null): string {
+  const billing_path = plan
+    ? `/settings/billing?plan=${encodeURIComponent(plan)}`
+    : "/settings/billing";
+
+  return `/sign-in?next=${encodeURIComponent(billing_path)}`;
+}
+
 function read_abuse_block(details?: Record<string, unknown>): AbuseBlock {
   const kind = details?.kind;
   const reference = details?.reference;
@@ -471,6 +504,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const [error, set_error] = useState("");
   const [is_abuse_blocked, set_is_abuse_blocked] = useState(false);
   const [abuse_block, set_abuse_block] = useState<AbuseBlock | null>(null);
+  const [install_limit_plan, set_install_limit_plan] = useState<
+    string | null
+  >(null);
   const [session_issue, set_session_issue] =
     useState<RegistrationSessionIssue | null>(null);
   const [password_breach_warning, set_password_breach_warning] =
@@ -847,6 +883,22 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_is_completing_registration,
   ]);
 
+  const show_install_limit = (details?: Record<string, unknown>) => {
+    pending_register_params_ref.current = null;
+    pending_vault_data_ref.current = null;
+    set_error("");
+    set_install_limit_plan(read_upgrade_plan(details));
+    set_step("install_limit");
+  };
+
+  const handle_install_limit_sign_in = () => {
+    navigate("/sign-in");
+  };
+
+  const handle_install_limit_upgrade = () => {
+    navigate(install_limit_upgrade_path(install_limit_plan));
+  };
+
   const handle_password_next = async () => {
     set_error("");
     if (await validate_password_step()) {
@@ -992,6 +1044,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
         }
         await timing_safe_delay();
         rearm_captcha();
+        if (is_install_limit_response(response)) {
+          show_install_limit(response.details);
+          registration_promise_ref.current = null;
+
+          return;
+        }
         if (is_abuse_block_response(response)) {
           const block = read_abuse_block(response.details);
 
@@ -1555,6 +1613,11 @@ export function use_registration(options?: RegistrationClaimOptions) {
       }
       await timing_safe_delay();
       rearm_captcha();
+      if (is_install_limit_response(response)) {
+        show_install_limit(response.details);
+
+        return;
+      }
       if (is_abuse_block_response(response)) {
         const block = read_abuse_block(response.details);
 
@@ -1693,6 +1756,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_error,
     is_abuse_blocked,
     abuse_block,
+    install_limit_plan,
     session_issue,
     password_breach_warning,
     handle_password_blur,
@@ -1729,6 +1793,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
     handle_recovery_email_continue,
     handle_recovery_email_skip,
     handle_recovery_email_gate_submit,
+    handle_install_limit_sign_in,
+    handle_install_limit_upgrade,
     handle_advance_from_recovery_key,
     handle_open_download,
     handle_download_apps_continue,

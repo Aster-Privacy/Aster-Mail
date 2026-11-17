@@ -10688,6 +10688,12 @@ export const it = {
     abuse_blocked_risk:
       "Il nostro sistema di sicurezza non è riuscito a verificare questa iscrizione. Per farla esaminare, scriva a hello@astermail.org indicando il numero di riferimento.",
     abuse_block_reference: "Riferimento: {{reference}}",
+    install_limit_title:
+      "Hai raggiunto il limite di account su questo dispositivo",
+    install_limit_body:
+      "Ogni dispositivo può creare un numero stabilito di account gratuiti, e questo lo ha raggiunto. Per continuare, accedi a un account che hai già oppure aggiorna il piano di uno dei tuoi account per aggiungerne altri.",
+    install_limit_sign_in: "Accedi",
+    install_limit_upgrade: "Aggiorna",
     sign_up_temporarily_unavailable:
       "L'iscrizione è temporaneamente non disponibile. Riprovi tra qualche minuto.",
     account_created_sign_in_pending:

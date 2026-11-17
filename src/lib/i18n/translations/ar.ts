@@ -10432,6 +10432,11 @@ export const ar = {
     abuse_blocked_risk:
       "تعذّر على نظام الأمان لدينا التحقق من هذا التسجيل. لمراجعته، تواصل مع hello@astermail.org وأرفق الرقم المرجعي.",
     abuse_block_reference: "الرقم المرجعي: {{reference}}",
+    install_limit_title: "لقد وصلت إلى الحد الأقصى للحسابات على هذا الجهاز",
+    install_limit_body:
+      "يمكن لكل جهاز إنشاء عدد محدد من الحسابات المجانية، وقد وصل هذا الجهاز إلى هذا العدد. للمتابعة، سجّل الدخول إلى حساب لديك بالفعل، أو قم بترقية أحد حساباتك لإضافة المزيد.",
+    install_limit_sign_in: "تسجيل الدخول",
+    install_limit_upgrade: "ترقية",
     sign_up_temporarily_unavailable:
       "التسجيل غير متاح مؤقتًا. حاول مرة أخرى بعد بضع دقائق.",
     account_created_sign_in_pending:
