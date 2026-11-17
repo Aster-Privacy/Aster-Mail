@@ -10382,6 +10382,12 @@ export const ja = {
     abuse_blocked_risk:
       "セキュリティシステムでこの登録を確認できませんでした。確認をご希望の場合は、参照番号を添えて hello@astermail.org にお問い合わせください。",
     abuse_block_reference: "参照番号: {{reference}}",
+    install_limit_title: "このデバイスで作成できるアカウント数の上限に達しました",
+    install_limit_body:
+      "各デバイスで作成できる無料アカウントの数には上限があり、このデバイスはその上限に達しています。続けるには、お持ちのアカウントにサインインするか、いずれかのアカウントをアップグレードしてアカウントを追加してください。",
+    install_limit_sign_in: "サインイン",
+    install_limit_upgrade: "アップグレード",
+    verifying_your_device: "デバイスを確認中...",
     sign_up_temporarily_unavailable: "現在、新規登録を一時的にご利用いただけません。数分後にもう一度お試しください。",
     account_created_sign_in_pending:
       "アカウントの準備はできていますが、まだサインインしていません。復元コードを保存してから、続行してサインインしてください。",

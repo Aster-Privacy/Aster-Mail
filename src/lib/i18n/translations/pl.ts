@@ -10857,6 +10857,12 @@ export const pl = {
     abuse_blocked_risk:
       "Nasz system bezpieczeństwa nie mógł zweryfikować tej rejestracji. Aby zgłosić ją do sprawdzenia, napisz na hello@astermail.org i podaj swój numer referencyjny.",
     abuse_block_reference: "Numer referencyjny: {{reference}}",
+    install_limit_title: "Osiągnięto limit kont na tym urządzeniu",
+    install_limit_body:
+      "Na każdym urządzeniu można utworzyć określoną liczbę bezpłatnych kont, a to urządzenie osiągnęło ten limit. Aby kontynuować, zaloguj się na konto, które już masz, lub ulepsz plan jednego ze swoich kont, aby dodać kolejne.",
+    install_limit_sign_in: "Zaloguj się",
+    install_limit_upgrade: "Ulepsz",
+    verifying_your_device: "Weryfikowanie urządzenia...",
     sign_up_temporarily_unavailable:
       "Rejestracja jest tymczasowo niedostępna. Spróbuj ponownie za kilka minut.",
     account_created_sign_in_pending:

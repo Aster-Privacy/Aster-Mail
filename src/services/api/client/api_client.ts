@@ -2132,6 +2132,19 @@ export class ApiClient {
           }
 
           if (
+            response.status === 403 &&
+            error_data.code === "INSTALL_ACCOUNT_LIMIT"
+          ) {
+            return {
+              error: get_active_translations().auth.install_limit_title,
+              code: "FORBIDDEN",
+              status: response.status,
+              server_code: error_data.code,
+              details: error_data.details,
+            };
+          }
+
+          if (
             response.status === 422 &&
             error_data.code === "RECOVERY_EMAIL_REQUIRED"
           ) {

@@ -10303,6 +10303,12 @@ export const hi = {
     abuse_blocked_risk:
       "हमारा सुरक्षा सिस्टम इस साइन अप की पुष्टि नहीं कर सका। इसकी समीक्षा के लिए hello@astermail.org से संपर्क करें और अपना संदर्भ कोड साथ भेजें।",
     abuse_block_reference: "संदर्भ: {{reference}}",
+    install_limit_title: "आप इस डिवाइस पर खातों की सीमा तक पहुंच गए हैं",
+    install_limit_body:
+      "हर डिवाइस पर तय संख्या में ही मुफ़्त खाते बनाए जा सकते हैं, और यह डिवाइस उस सीमा तक पहुंच गया है। जारी रखने के लिए, अपने किसी मौजूदा खाते में साइन इन करें, या और खाते जोड़ने के लिए अपने किसी खाते को अपग्रेड करें।",
+    install_limit_sign_in: "साइन इन करें",
+    install_limit_upgrade: "अपग्रेड करें",
+    verifying_your_device: "आपके डिवाइस की पुष्टि की जा रही है...",
     sign_up_temporarily_unavailable:
       "साइन अप अभी कुछ समय के लिए उपलब्ध नहीं है। कुछ मिनट बाद फिर कोशिश करें।",
     account_created_sign_in_pending:

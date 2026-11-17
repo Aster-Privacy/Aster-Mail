@@ -10612,6 +10612,12 @@ export const pt_br = {
     abuse_blocked_risk:
       "Nosso sistema de segurança não conseguiu verificar este cadastro. Para que ele seja analisado, escreva para hello@astermail.org e informe seu código de referência.",
     abuse_block_reference: "Referência: {{reference}}",
+    install_limit_title: "Você atingiu o limite de contas neste dispositivo",
+    install_limit_body:
+      "Cada dispositivo pode criar um número definido de contas gratuitas, e este já atingiu esse número. Para continuar, entre em uma conta que você já tem ou atualize o plano de uma das suas contas para adicionar mais.",
+    install_limit_sign_in: "Entrar",
+    install_limit_upgrade: "Atualizar plano",
+    verifying_your_device: "Verificando seu dispositivo...",
     sign_up_temporarily_unavailable:
       "O cadastro está temporariamente indisponível. Tente de novo em alguns minutos.",
     account_created_sign_in_pending:

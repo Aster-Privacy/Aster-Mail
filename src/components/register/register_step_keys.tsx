@@ -93,9 +93,10 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
     reg.t("auth.preparing_pgp_key"),
     reg.t("auth.creating_your_account"),
   ];
-  const current_step_index = steps.findIndex(
-    (s) => s === reg.generation_status,
-  );
+  const current_step_index =
+    reg.generation_status === reg.t("auth.verifying_your_device")
+      ? steps.length - 1
+      : steps.findIndex((s) => s === reg.generation_status);
   const is_final_step = current_step_index === steps.length - 1;
   const progress =
     current_step_index >= 0

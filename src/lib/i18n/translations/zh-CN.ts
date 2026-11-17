@@ -9481,6 +9481,12 @@ export const zh_CN = {
     abuse_blocked_risk:
       "我们的安全系统无法验证此次注册。如需人工审核，请联系 hello@astermail.org 并附上你的参考编号。",
     abuse_block_reference: "参考编号：{{reference}}",
+    install_limit_title: "此设备已达到账户数量上限",
+    install_limit_body:
+      "每台设备可创建的免费账户数量有限，此设备已达到上限。如需继续，请登录已有账户，或升级你的某个账户以添加更多账户。",
+    install_limit_sign_in: "登录",
+    install_limit_upgrade: "升级",
+    verifying_your_device: "正在验证你的设备...",
     sign_up_temporarily_unavailable: "注册暂时不可用。请几分钟后再试。",
     account_created_sign_in_pending: "你的账户已创建好，但你还没有登录。请先保存恢复代码，然后继续登录。",
     contact_support: "联系支持",

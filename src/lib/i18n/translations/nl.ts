@@ -10617,6 +10617,12 @@ export const nl = {
     abuse_blocked_risk:
       "Ons beveiligingssysteem kon deze aanmelding niet verifiëren. Neem voor een controle contact op met hello@astermail.org en vermeld je referentienummer.",
     abuse_block_reference: "Referentie: {{reference}}",
+    install_limit_title: "Je hebt het accountlimiet op dit apparaat bereikt",
+    install_limit_body:
+      "Op elk apparaat kun je een vast aantal gratis accounts aanmaken, en dit apparaat heeft dat aantal bereikt. Log in op een account dat je al hebt om verder te gaan, of upgrade een van je accounts om er meer toe te voegen.",
+    install_limit_sign_in: "Inloggen",
+    install_limit_upgrade: "Upgraden",
+    verifying_your_device: "Je apparaat wordt geverifieerd...",
     sign_up_temporarily_unavailable:
       "Aanmelden is tijdelijk niet beschikbaar. Probeer het over een paar minuten opnieuw.",
     account_created_sign_in_pending:
