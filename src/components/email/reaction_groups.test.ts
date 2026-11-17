@@ -112,3 +112,64 @@ describe("reaction grouping with skin tones", () => {
     expect(groups.filter((group) => group.includes_self)).toHaveLength(2);
   });
 });
+
+describe("reaction counting", () => {
+  it("counts a reaction on mail you sent yourself once", () => {
+    const groups = group_reactions(
+      [
+        reaction("inbox_copy", THUMBS_UP_MEDIUM, "me@example.com"),
+        reaction("sent_copy", THUMBS_UP_MEDIUM, "me@example.com", true),
+      ],
+      "me@example.com",
+    );
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({
+      emoji: THUMBS_UP_MEDIUM,
+      count: 1,
+      includes_self: true,
+      self_reaction_mail_item_id: "sent_copy",
+    });
+  });
+
+  it("counts the same person reacting twice with one emoji once", () => {
+    const groups = group_reactions(
+      [
+        reaction("a", THUMBS_UP, "Ana@Example.com"),
+        reaction("b", THUMBS_UP, "ana@example.com "),
+      ],
+      "me@example.com",
+    );
+
+    expect(groups[0]).toMatchObject({
+      count: 1,
+      reactor_names: ["Ana@Example.com"],
+    });
+  });
+
+  it("counts different people with the same emoji separately", () => {
+    const groups = group_reactions(
+      [
+        reaction("a", THUMBS_UP, "ana@example.com"),
+        reaction("b", THUMBS_UP, "ben@example.com"),
+        reaction("c", THUMBS_UP, "me@example.com", true),
+      ],
+      "me@example.com",
+    );
+
+    expect(groups[0]).toMatchObject({ count: 3, includes_self: true });
+  });
+
+  it("keeps a pending reaction at one after the server copies arrive", () => {
+    const groups = group_reactions(
+      [
+        reaction("inbox_copy", THUMBS_UP, "me@example.com"),
+        reaction("sent_copy", THUMBS_UP, "me@example.com", true),
+      ],
+      "me@example.com",
+    );
+    const merged = merge_pending_reactions(groups, [{ emoji: THUMBS_UP }]);
+
+    expect(merged[0]).toMatchObject({ count: 1, includes_self: true });
+  });
+});
