@@ -1841,6 +1841,14 @@ fn open_guard_seal(
         .map_err(|_| "guard seal open failed".to_string())
 }
 
+const GUARD_CODE_SECRET_DOMAIN: &[u8] = b"aster-guard-code-secret-v1";
+
+fn guard_seal_aad_allowed(aad: &[u8]) -> bool {
+    aad.len() == GUARD_SEAL_SALT.len() + 32 && aad.starts_with(GUARD_SEAL_SALT)
+        || aad.len() == GUARD_CODE_SECRET_DOMAIN.len() + 16
+            && aad.starts_with(GUARD_CODE_SECRET_DOMAIN)
+}
+
 #[tauri::command]
 pub fn device_open_guard_seal(
     window: tauri::WebviewWindow,
@@ -1850,6 +1858,9 @@ pub fn device_open_guard_seal(
     require_primary_webview(&window)?;
     let data = b64url_decode(&sealed_b64).map_err(|_| "guard seal".to_string())?;
     let aad = b64url_decode(&aad_b64).map_err(|_| "guard seal".to_string())?;
+    if !guard_seal_aad_allowed(&aad) {
+        return Err("guard seal".to_string());
+    }
     let id = get_or_create_device_identity()?;
     let plaintext = open_guard_seal(&data, &aad, &id)?;
     Ok(b64url(&plaintext))
@@ -1858,6 +1869,25 @@ pub fn device_open_guard_seal(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn guard_seal_aad_only_accepts_guard_shapes() {
+        let mut context = GUARD_SEAL_SALT.to_vec();
+        context.extend_from_slice(&[1u8; 32]);
+        assert!(guard_seal_aad_allowed(&context));
+        let mut code = GUARD_CODE_SECRET_DOMAIN.to_vec();
+        code.extend_from_slice(&[2u8; 16]);
+        assert!(guard_seal_aad_allowed(&code));
+        assert!(!guard_seal_aad_allowed(&context[..context.len() - 1]));
+        assert!(!guard_seal_aad_allowed(&code[..code.len() - 1]));
+        assert!(!guard_seal_aad_allowed(b""));
+        let mut other = b"aster-device-envelope-v1".to_vec();
+        other.extend_from_slice(&[3u8; 16]);
+        assert!(!guard_seal_aad_allowed(&other));
+        let mut wrong_len_code = GUARD_CODE_SECRET_DOMAIN.to_vec();
+        wrong_len_code.extend_from_slice(&[2u8; 32]);
+        assert!(!guard_seal_aad_allowed(&wrong_len_code));
+    }
 
     fn guard_test_identity() -> DeviceIdentity {
         let (dk, ek): (MlKemDecapKey, MlKemEncapKey) = MlKem768::generate(&mut OsRng);
