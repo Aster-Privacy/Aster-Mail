@@ -65,7 +65,11 @@ import { MobileBillingReturnHandler } from "@/pages/mobile/mobile_billing_return
 import { MobileDomainOrderReturn } from "@/pages/mobile/mobile_domain_order_return";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
-import { SuspendedAccountGate } from "@/components/common/suspended_account_gate";
+import {
+  SuspendedPage,
+  SuspensionStatusWatcher,
+} from "@/components/common/suspended_account_gate";
+import { SUSPENDED_PATH, use_suspension_state } from "@/lib/suspension_state";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { FullPageLoader } from "@/components/common/full_page_loader";
@@ -180,6 +184,7 @@ function MobileProtectedRoute({ children }: { children: React.ReactNode }) {
   const { is_authenticated, is_loading, is_completing_registration } =
     use_auth();
   const location = useLocation();
+  const suspension_state = use_suspension_state();
 
   if (is_loading) {
     return null;
@@ -189,10 +194,15 @@ function MobileProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate replace state={{ from: location }} to="/welcome" />;
   }
 
+  if (is_authenticated && suspension_state === "suspended") {
+    return <Navigate replace to={SUSPENDED_PATH} />;
+  }
+
   return <>{children}</>;
 }
 
 const AUTH_PREFIXES = [
+  "/suspended",
   "/welcome",
   "/sign-in",
   "/register",
@@ -819,6 +829,7 @@ function MobileApp() {
                 path="/settings/:section?"
               />
               <Route element={<MobileWelcomePage />} path="/welcome" />
+              <Route element={<SuspendedPage />} path={SUSPENDED_PATH} />
               <Route element={<SignInPage />} path="/sign-in" />
               <Route element={<RegisterPage />} path="/register" />
               <Route element={<InvitePage />} path="/invite/:code" />
@@ -902,7 +913,7 @@ function MobileApp() {
             </Suspense>
           )}
         </AnimatePresence>
-        <SuspendedAccountGate />
+        <SuspensionStatusWatcher />
         <PendingDeletionDialog />
         <Family2faDialog />
         <SimpleToast position="top" />

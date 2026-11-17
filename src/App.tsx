@@ -46,7 +46,11 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { ProtectedRoute } from "@/components/common/protected_route";
-import { SuspendedAccountGate } from "@/components/common/suspended_account_gate";
+import {
+  SuspendedPage,
+  SuspensionStatusWatcher,
+} from "@/components/common/suspended_account_gate";
+import { SUSPENDED_PATH } from "@/lib/suspension_state";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
@@ -451,7 +455,7 @@ function App() {
         <BillingSuccessHandler />
       </ErrorBoundary>
       <CheckoutReturnHandler />
-      <SuspendedAccountGate />
+      <SuspensionStatusWatcher />
       <PendingDeletionDialog />
       <Family2faDialog />
       <UpdateBanner />
@@ -564,6 +568,7 @@ function App() {
                 }
                 path="/alias/:alias_address"
               />
+              <Route element={<SuspendedPage />} path={SUSPENDED_PATH} />
               <Route element={<SignInPage />} path="/sign-in" />
               <Route element={<RegisterPage />} path="/register" />
               <Route element={<InvitePage />} path="/invite/:code" />

@@ -1603,6 +1603,8 @@ export const it = {
       "Puoi ancora scaricare una copia dei tuoi dati. La tua posta viene decifrata solo su questo dispositivo, quindi nessun altro può leggere l'esportazione.",
     suspended_download: "Scarica i tuoi dati",
     suspended_start_appeal: "Presenta ricorso",
+    suspended_limited_access:
+      "Finché questo account è sospeso, puoi presentare ricorso, scaricare i tuoi dati o uscire.",
     settings_disabled_suspended:
       "Le impostazioni sono disattivate mentre il suo account è sospeso. hello@astermail.org può aiutarla con un ricorso o con maggiori dettagli.",
     new_email_body: "Hai una nuova email",

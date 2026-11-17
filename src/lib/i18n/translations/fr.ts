@@ -1622,6 +1622,8 @@ export const fr = {
       "Vous pouvez toujours télécharger une copie de vos données. Vos e-mails sont déchiffrés uniquement sur cet appareil, donc personne d'autre ne peut lire l'export.",
     suspended_download: "Télécharger vos données",
     suspended_start_appeal: "Faire appel",
+    suspended_limited_access:
+      "Tant que ce compte est suspendu, vous pouvez faire appel, télécharger vos données ou vous déconnecter.",
     submitting: "Envoi en cours...",
     no_folders_available: "Aucun dossier disponible",
     select_destination_folder: "Sélectionner le dossier de destination",

@@ -1518,6 +1518,8 @@ export const de = {
       "Sie können weiterhin eine Kopie Ihrer Daten herunterladen. Ihre E-Mails werden nur auf diesem Gerät entschlüsselt, sodass niemand sonst den Export lesen kann.",
     suspended_download: "Ihre Daten herunterladen",
     suspended_start_appeal: "Einspruch einlegen",
+    suspended_limited_access:
+      "Solange dieses Konto gesperrt ist, können Sie Einspruch einlegen, Ihre Daten herunterladen oder sich abmelden.",
     submitting: "Wird gesendet...",
     no_folders_available: "Keine Ordner verfügbar",
     select_destination_folder: "Zielordner auswählen",

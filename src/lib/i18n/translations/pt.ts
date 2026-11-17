@@ -1550,6 +1550,8 @@ export const pt = {
       "Ainda pode transferir uma cópia dos seus dados. O seu correio é desencriptado apenas neste dispositivo, por isso mais ninguém pode ler a exportação.",
     suspended_download: "Transferir os seus dados",
     suspended_start_appeal: "Enviar recurso",
+    suspended_limited_access:
+      "Enquanto esta conta estiver suspensa, pode enviar um recurso, transferir os seus dados ou terminar sessão.",
     action_undone: "Ação desfeita",
     add_display_name_placeholder: "Adicionar nome apresentado",
     adding_file_would_exceed_limit:

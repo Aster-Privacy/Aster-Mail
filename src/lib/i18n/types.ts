@@ -2237,6 +2237,7 @@ export interface CommonTranslations {
   suspended_download_hint: string;
   suspended_download: string;
   suspended_start_appeal: string;
+  suspended_limited_access: string;
   settings_disabled_suspended: string;
   pending_deletion_title: string;
   pending_deletion_body: string;

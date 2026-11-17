@@ -1533,6 +1533,8 @@ export const pt_br = {
       "Você ainda pode baixar uma cópia dos seus dados. Seus e-mails são descriptografados apenas neste dispositivo, então ninguém mais pode ler a exportação.",
     suspended_download: "Baixar seus dados",
     suspended_start_appeal: "Enviar recurso",
+    suspended_limited_access:
+      "Enquanto esta conta estiver suspensa, você pode enviar um recurso, baixar seus dados ou sair.",
     action_undone: "Ação desfeita",
     add_display_name_placeholder: "Adicionar nome de exibição",
     adding_file_would_exceed_limit:
