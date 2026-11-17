@@ -260,39 +260,73 @@ function extract_domain(url: string): string {
 }
 
 const MAX_REPORTED_DOMAINS = 50;
+const TEXT_URL = /https?:\/\/[^\s<>"'()]+/gi;
+const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/;
 
-function link_host(url: string): string {
+export interface ReportableMessage {
+  item_type: string;
+  is_external: boolean;
+  sender_email?: string;
+  html_content?: string;
+  text_part?: string;
+  body?: string;
+}
+
+function reportable_host(url: string): string {
   try {
     const parsed = new URL(url);
 
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
 
-    return parsed.hostname.toLowerCase();
+    if (!host.includes(".") || IPV4.test(host) || host.startsWith("[")) {
+      return "";
+    }
+
+    return host;
   } catch {
     return "";
   }
 }
 
-export async function report_phishing(
-  urls: string[],
-  sender_email: string,
+function message_links(msg: ReportableMessage): string[] {
+  const html = msg.html_content || msg.body || "";
+  const links: string[] = [];
+
+  if (html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+
+    for (const anchor of doc.querySelectorAll("a[href]")) {
+      links.push((anchor.getAttribute("href") || "").trim());
+    }
+  }
+
+  if (links.length === 0) {
+    links.push(...((msg.text_part || msg.body || "").match(TEXT_URL) ?? []));
+  }
+
+  return links;
+}
+
+export async function report_phishing_message(
+  msg: ReportableMessage,
 ): Promise<void> {
+  if (msg.item_type !== "received" || !msg.is_external) return;
+
   const hosts = new Set<string>();
 
-  for (const url of urls) {
+  for (const link of message_links(msg)) {
     if (hosts.size >= MAX_REPORTED_DOMAINS) break;
-    const host = link_host(url);
+    const host = reportable_host(link);
 
     if (host) hosts.add(host);
   }
 
+  const sender_email = msg.sender_email || "";
   const at = sender_email.lastIndexOf("@");
   const sender_domain =
     at >= 0
-      ? sender_email
-          .slice(at + 1)
-          .trim()
-          .toLowerCase()
+      ? reportable_host(`https://${sender_email.slice(at + 1).trim()}`)
       : "";
 
   if (hosts.size === 0 && !sender_domain) return;

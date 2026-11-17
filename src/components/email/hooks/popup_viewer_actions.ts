@@ -63,6 +63,7 @@ import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import { report_phishing_message } from "@/lib/phishing_blocklist";
 import {
   is_mail_item_in_trash,
   is_thread_message_in_trash,
@@ -1054,6 +1055,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             ),
           );
         }
+        report_phishing_message(msg).catch((caught) =>
+          ignore_error(
+            "components/email/hooks/popup_viewer_actions:report_phishing",
+            caught,
+          ),
+        );
         show_toast(deps.t("common.reported_as_phishing"), "success");
         if (msg.id === deps.email_id) close_or_advance(deps.email_id);
       } else {

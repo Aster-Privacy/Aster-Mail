@@ -28,14 +28,14 @@ import { createRoot, type Root } from "react-dom/client";
 const update_item_metadata = vi.hoisted(() =>
   vi.fn(async () => ({ success: true, encrypted: null })),
 );
-const report_phishing = vi.hoisted(() => vi.fn(async () => {}));
+const report_phishing_message = vi.hoisted(() => vi.fn(async () => {}));
 const report_spam_sender = vi.hoisted(() =>
   vi.fn(async () => ({ data: { success: true } })),
 );
 
 vi.mock("@/lib/phishing_blocklist", async (import_original) => ({
   ...(await import_original<typeof import("@/lib/phishing_blocklist")>()),
-  report_phishing,
+  report_phishing_message,
 }));
 
 vi.mock("@/services/api/mail", async (import_original) => ({
@@ -149,7 +149,7 @@ describe("report phishing", () => {
       globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
     update_item_metadata.mockClear();
-    report_phishing.mockClear();
+    report_phishing_message.mockClear();
     report_spam_sender.mockClear();
     thread = [phishing_message];
   });
@@ -165,10 +165,7 @@ describe("report phishing", () => {
     });
 
     expect(report_spam_sender).toHaveBeenCalledWith("alerts@spoof.example");
-    expect(report_phishing).toHaveBeenCalledWith(
-      ["https://login.bad.example/verify"],
-      "alerts@spoof.example",
-    );
+    expect(report_phishing_message).toHaveBeenCalledWith(phishing_message);
   });
 
   it("reports nothing when the message could not be moved", async () => {
@@ -181,6 +178,6 @@ describe("report phishing", () => {
       await latest.handle_per_message_report_phishing(phishing_message);
     });
 
-    expect(report_phishing).not.toHaveBeenCalled();
+    expect(report_phishing_message).not.toHaveBeenCalled();
   });
 });

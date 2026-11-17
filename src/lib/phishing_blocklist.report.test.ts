@@ -18,9 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ReportableMessage } from "./phishing_blocklist";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { report_phishing } from "./phishing_blocklist";
+import { report_phishing_message } from "./phishing_blocklist";
 
 import { api_client } from "@/services/api/client";
 
@@ -41,16 +43,39 @@ async function domain_hash_hex(domain: string): Promise<string> {
     .join("");
 }
 
+function received(fields: Partial<ReportableMessage>): ReportableMessage {
+  return {
+    item_type: "received",
+    is_external: true,
+    sender_email: "",
+    body: "",
+    ...fields,
+  };
+}
+
+function sent_hashes(): {
+  domain_hashes: string[];
+  sender_domain_hash?: string;
+} {
+  return mocked_post.mock.calls[0][1] as {
+    domain_hashes: string[];
+    sender_domain_hash?: string;
+  };
+}
+
 beforeEach(() => {
   mocked_post.mockReset();
   mocked_post.mockResolvedValue({ data: { success: true } } as never);
 });
 
-describe("report_phishing", () => {
+describe("report_phishing_message", () => {
   it("sends the hashed link hosts and sender domain", async () => {
-    await report_phishing(
-      ["https://Login.Bad.example/verify?token=secret", "http://bad.example/"],
-      "Alerts@Mail.Spoof.example",
+    await report_phishing_message(
+      received({
+        sender_email: "Alerts@Mail.Spoof.example",
+        html_content:
+          '<a href="https://Login.Bad.example/verify?token=secret">a</a><a href="http://bad.example/">b</a>',
+      }),
     );
 
     expect(mocked_post).toHaveBeenCalledWith("/phishing/v1/report", {
@@ -63,45 +88,113 @@ describe("report_phishing", () => {
   });
 
   it("never sends a path, query or the sender's address", async () => {
-    await report_phishing(
-      ["https://bad.example/reset/alice?token=secret"],
-      "alice@spoof.example",
+    await report_phishing_message(
+      received({
+        sender_email: "alice@spoof.example",
+        html_content:
+          '<a href="https://bad.example/reset/alice?token=secret">x</a>',
+      }),
     );
 
-    const body = JSON.stringify(mocked_post.mock.calls[0][1]);
+    const body = JSON.stringify(sent_hashes());
 
     expect(body).not.toContain("secret");
     expect(body).not.toContain("alice");
     expect(body).not.toContain("bad.example");
   });
 
-  it("sends each host once and at most fifty", async () => {
-    const urls = Array.from(
-      { length: 80 },
-      (_, i) => `https://host${i % 60}.example/`,
+  it("reads links written in upper case, unquoted or with entities", async () => {
+    await report_phishing_message(
+      received({
+        html_content:
+          '<a href="HTTPS://one.example/">a</a><a href=https://two.example/x>b</a><a href="https://&#116;hree.example/">c</a><a href="mailto:x@four.example">d</a>',
+      }),
     );
 
-    await report_phishing(urls, "");
-
-    const body = mocked_post.mock.calls[0][1] as { domain_hashes: string[] };
-
-    expect(body.domain_hashes).toHaveLength(50);
-    expect(new Set(body.domain_hashes).size).toBe(50);
+    expect(sent_hashes().domain_hashes).toEqual([
+      await domain_hash_hex("one.example"),
+      await domain_hash_hex("two.example"),
+      await domain_hash_hex("three.example"),
+    ]);
   });
 
-  it("sends nothing when there is nothing to report", async () => {
-    await report_phishing([], "");
-    await report_phishing(["not a url"], "no-at-sign");
+  it("finds the links of a plain text email", async () => {
+    await report_phishing_message(
+      received({ body: "Verify now: https://bad.example/login, thanks" }),
+    );
+
+    expect(sent_hashes().domain_hashes).toEqual([
+      await domain_hash_hex("bad.example"),
+    ]);
+  });
+
+  it("leaves out addresses, local names and intranet hosts", async () => {
+    await report_phishing_message(
+      received({
+        html_content: [
+          "http://192.168.1.1/",
+          "http://[::1]/",
+          "http://localhost/",
+          "http://intranet/",
+          "https://bad.example/",
+        ]
+          .map((url) => `<a href="${url}">x</a>`)
+          .join(""),
+      }),
+    );
+
+    expect(sent_hashes().domain_hashes).toEqual([
+      await domain_hash_hex("bad.example"),
+    ]);
+  });
+
+  it("hashes a domain one way however it is written", async () => {
+    await report_phishing_message(
+      received({
+        sender_email: "x@Bücher.example.",
+        html_content: '<a href="https://bücher.example./">x</a>',
+      }),
+    );
+
+    const punycode = await domain_hash_hex("xn--bcher-kva.example");
+
+    expect(sent_hashes()).toEqual({
+      domain_hashes: [punycode],
+      sender_domain_hash: punycode,
+    });
+  });
+
+  it("sends each host once and at most fifty", async () => {
+    const html = Array.from(
+      { length: 80 },
+      (_, i) => `<a href="https://host${i % 60}.example/">x</a>`,
+    ).join("");
+
+    await report_phishing_message(received({ html_content: html }));
+
+    expect(sent_hashes().domain_hashes).toHaveLength(50);
+    expect(new Set(sent_hashes().domain_hashes).size).toBe(50);
+  });
+
+  it("reports only external mail that was received", async () => {
+    const html = '<a href="https://bad.example/">x</a>';
+
+    await report_phishing_message(
+      received({ html_content: html, item_type: "sent" }),
+    );
+    await report_phishing_message(
+      received({ html_content: html, is_external: false }),
+    );
 
     expect(mocked_post).not.toHaveBeenCalled();
   });
 
-  it("reports the sender domain alone when the email has no links", async () => {
-    await report_phishing([], "x@spoof.example");
+  it("sends nothing when there is nothing to report", async () => {
+    await report_phishing_message(received({ body: "no links here" }));
+    await report_phishing_message(
+      received({ sender_email: "no-at-sign", body: "http://localhost/" }),
+    );
 
-    expect(mocked_post).toHaveBeenCalledWith("/phishing/v1/report", {
-      domain_hashes: [],
-      sender_domain_hash: await domain_hash_hex("spoof.example"),
-    });
+    expect(mocked_post).not.toHaveBeenCalled();
   });
 });
