@@ -10437,7 +10437,6 @@ export const ar = {
       "يمكن لكل جهاز إنشاء عدد محدد من الحسابات المجانية، وقد وصل هذا الجهاز إلى هذا العدد. للمتابعة، سجّل الدخول إلى حساب لديك بالفعل، أو قم بترقية أحد حساباتك لإضافة المزيد.",
     install_limit_sign_in: "تسجيل الدخول",
     install_limit_upgrade: "ترقية",
-    verifying_your_device: "جارٍ التحقق من جهازك...",
     sign_up_temporarily_unavailable:
       "التسجيل غير متاح مؤقتًا. حاول مرة أخرى بعد بضع دقائق.",
     account_created_sign_in_pending:

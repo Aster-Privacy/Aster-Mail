@@ -10522,7 +10522,6 @@ export const tr = {
       "Her cihazda belirli sayıda ücretsiz hesap oluşturulabilir ve bu cihaz bu sayıya ulaştı. Devam etmek için mevcut bir hesabınızda oturum açın veya daha fazla hesap eklemek için hesaplarınızdan birini yükseltin.",
     install_limit_sign_in: "Giriş Yap",
     install_limit_upgrade: "Yükselt",
-    verifying_your_device: "Cihazınız doğrulanıyor...",
     sign_up_temporarily_unavailable:
       "Kayıt geçici olarak kullanılamıyor. Birkaç dakika sonra yeniden deneyin.",
     account_created_sign_in_pending:

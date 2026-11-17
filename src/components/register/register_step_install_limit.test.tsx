@@ -92,7 +92,6 @@ describe("install limit screen", () => {
     expect(en.auth.install_limit_body).toBeTruthy();
     expect(en.auth.install_limit_sign_in).toBeTruthy();
     expect(en.auth.install_limit_upgrade).toBeTruthy();
-    expect(en.auth.verifying_your_device).toBeTruthy();
   });
 });
 

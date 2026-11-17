@@ -10694,7 +10694,6 @@ export const it = {
       "Ogni dispositivo può creare un numero stabilito di account gratuiti, e questo lo ha raggiunto. Per continuare, accedi a un account che hai già oppure aggiorna il piano di uno dei tuoi account per aggiungerne altri.",
     install_limit_sign_in: "Accedi",
     install_limit_upgrade: "Aggiorna",
-    verifying_your_device: "Verifica del dispositivo in corso...",
     sign_up_temporarily_unavailable:
       "L'iscrizione è temporaneamente non disponibile. Riprovi tra qualche minuto.",
     account_created_sign_in_pending:

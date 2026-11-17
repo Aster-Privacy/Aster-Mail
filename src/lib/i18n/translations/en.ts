@@ -10262,7 +10262,6 @@ export const en: Translations = {
       "Each device can create a set number of free accounts, and this one has reached it. To continue, sign in to an account you already have, or upgrade one of your accounts to add more.",
     install_limit_sign_in: "Sign in",
     install_limit_upgrade: "Upgrade",
-    verifying_your_device: "Verifying your device...",
     sign_up_temporarily_unavailable:
       "Sign-up is temporarily unavailable. Try again in a few minutes.",
     account_created_sign_in_pending:

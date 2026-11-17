@@ -10750,7 +10750,6 @@ export const pt = {
       "Cada dispositivo pode criar um número definido de contas gratuitas, e este já o atingiu. Para continuar, inicie sessão numa conta que já tem ou atualize o plano de uma das suas contas para adicionar mais.",
     install_limit_sign_in: "Iniciar sessão",
     install_limit_upgrade: "Atualizar plano",
-    verifying_your_device: "A verificar o seu dispositivo...",
     sign_up_temporarily_unavailable:
       "O registo está temporariamente indisponível. Tente novamente dentro de alguns minutos.",
     account_created_sign_in_pending:

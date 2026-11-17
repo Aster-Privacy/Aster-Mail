@@ -10617,7 +10617,6 @@ export const pt_br = {
       "Cada dispositivo pode criar um número definido de contas gratuitas, e este já atingiu esse número. Para continuar, entre em uma conta que você já tem ou atualize o plano de uma das suas contas para adicionar mais.",
     install_limit_sign_in: "Entrar",
     install_limit_upgrade: "Atualizar plano",
-    verifying_your_device: "Verificando seu dispositivo...",
     sign_up_temporarily_unavailable:
       "O cadastro está temporariamente indisponível. Tente de novo em alguns minutos.",
     account_created_sign_in_pending:

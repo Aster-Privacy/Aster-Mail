@@ -9173,7 +9173,6 @@ export interface AuthTranslations {
   install_limit_body: string;
   install_limit_sign_in: string;
   install_limit_upgrade: string;
-  verifying_your_device: string;
   sign_up_temporarily_unavailable: string;
   account_created_sign_in_pending: string;
   contact_support: string;

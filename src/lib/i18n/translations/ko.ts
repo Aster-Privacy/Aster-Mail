@@ -10206,7 +10206,6 @@ export const ko = {
       "기기마다 만들 수 있는 무료 계정 수가 정해져 있으며, 이 기기는 그 한도에 도달했습니다. 계속하려면 이미 있는 계정으로 로그인하거나, 계정 중 하나를 업그레이드하여 계정을 더 추가하세요.",
     install_limit_sign_in: "로그인",
     install_limit_upgrade: "업그레이드",
-    verifying_your_device: "기기를 확인하는 중...",
     sign_up_temporarily_unavailable:
       "지금은 가입을 일시적으로 사용할 수 없습니다. 몇 분 후에 다시 시도하세요.",
     account_created_sign_in_pending:

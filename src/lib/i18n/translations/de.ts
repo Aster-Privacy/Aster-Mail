@@ -10710,7 +10710,6 @@ export const de = {
       "Auf jedem Gerät lässt sich eine festgelegte Anzahl kostenloser Konten erstellen, und dieses Gerät hat sie erreicht. Um fortzufahren, melden Sie sich bei einem bestehenden Konto an oder erweitern Sie eines Ihrer Konten, um weitere hinzuzufügen.",
     install_limit_sign_in: "Anmelden",
     install_limit_upgrade: "Erweitern",
-    verifying_your_device: "Ihr Gerät wird überprüft...",
     sign_up_temporarily_unavailable:
       "Die Registrierung ist vorübergehend nicht verfügbar. Versuchen Sie es in ein paar Minuten erneut.",
     account_created_sign_in_pending:
