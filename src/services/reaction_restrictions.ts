@@ -109,11 +109,21 @@ export function own_reaction_count(
 ): number {
   const me = normalize(user_email);
 
-  return (message.reactions ?? []).filter(
-    (reaction) =>
+  const own_emojis = new Set<string>();
+
+  for (const reaction of message.reactions ?? []) {
+    const is_mine =
       reaction.is_own === true ||
-      (!!me && normalize(reaction.reactor_email) === me),
-  ).length;
+      (!!me && normalize(reaction.reactor_email) === me);
+
+    if (is_mine) {
+      own_emojis.add(
+        reaction.emoji || `item:${reaction.reaction_mail_item_id}`,
+      );
+    }
+  }
+
+  return own_emojis.size;
 }
 
 function is_addressed_to(

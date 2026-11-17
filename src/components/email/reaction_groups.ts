@@ -40,6 +40,8 @@ export function group_reactions(
   if (!reactions?.length) return [];
 
   const groups = new Map<string, ReactionChipGroup>();
+  const seen_reactors = new Map<string, Set<string>>();
+  const self_key = self_email?.toLowerCase().trim();
 
   for (const reaction of reactions) {
     if (!reaction.emoji) continue;
@@ -50,23 +52,32 @@ export function group_reactions(
       reactor_names: [],
       includes_self: false,
     };
+    const seen = seen_reactors.get(reaction.emoji) ?? new Set<string>();
 
-    existing.count += 1;
-
+    const reactor_email = reaction.reactor_email?.toLowerCase().trim();
     const is_self =
-      reaction.is_own === true ||
-      (!!self_email &&
-        reaction.reactor_email?.toLowerCase().trim() ===
-          self_email.toLowerCase().trim());
+      reaction.is_own === true || (!!self_key && reactor_email === self_key);
+    const reactor_key = is_self
+      ? "self"
+      : reactor_email || `item:${reaction.reaction_mail_item_id}`;
+    const is_new_reactor = !seen.has(reactor_key);
+
+    if (is_new_reactor) {
+      seen.add(reactor_key);
+      existing.count += 1;
+    }
 
     if (is_self) {
       existing.includes_self = true;
-      existing.self_reaction_mail_item_id = reaction.reaction_mail_item_id;
-    } else if (reaction.reactor_email) {
+      if (reaction.is_own === true || !existing.self_reaction_mail_item_id) {
+        existing.self_reaction_mail_item_id = reaction.reaction_mail_item_id;
+      }
+    } else if (reaction.reactor_email && is_new_reactor) {
       existing.reactor_names.push(reaction.reactor_email);
     }
 
     groups.set(reaction.emoji, existing);
+    seen_reactors.set(reaction.emoji, seen);
   }
 
   return Array.from(groups.values());
