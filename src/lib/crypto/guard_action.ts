@@ -32,6 +32,7 @@ export const GUARD_ACTION = {
   switches: 9,
   join: 10,
   resume: 11,
+  rotate_rescue: 12,
 } as const;
 
 export type GuardActionCode = (typeof GUARD_ACTION)[keyof typeof GUARD_ACTION];
@@ -48,6 +49,7 @@ const APPROVE_DOMAIN = encoder.encode("aster-guard-approve-v1");
 const ID_DOMAIN = encoder.encode("aster-guard-id-v1");
 const SWITCHES_DOMAIN = encoder.encode("aster-guard-switches-v1");
 const NUMBER_DOMAIN = encoder.encode("aster-guard-number-v1");
+const RESCUE_ROTATE_DOMAIN = encoder.encode("aster-guard-rescue-rotate-v1");
 const UUID_PATTERN =
   /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
 
@@ -159,6 +161,10 @@ function u32_le(value: number): Uint8Array {
 
 export function switches_subject(switches: number, hold_scopes: number): Uint8Array {
   return sha256(concat_bytes(SWITCHES_DOMAIN, u32_le(switches), u32_le(hold_scopes)));
+}
+
+export function rescue_rotate_subject(normalized_code: string): Uint8Array {
+  return sha256(concat_bytes(RESCUE_ROTATE_DOMAIN, encoder.encode(normalized_code)));
 }
 
 export function is_guard_number(number: number): boolean {

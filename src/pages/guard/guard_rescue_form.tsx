@@ -36,6 +36,7 @@ export { GUARD_RESCUE_STORAGE_KEY };
 
 export const GUARD_SETUP_AFTER_RESCUE_KEY = "aster_guard_setup_after_rescue";
 export const GUARD_RESCUE_POLL_MS = 60_000;
+export const GUARD_SETUP_AFTER_RESCUE_TTL_MS = 30 * 60_000;
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -56,6 +57,10 @@ function session_store(): Storage | null {
   }
 }
 
+function valid_account(value: unknown): string | null {
+  return typeof value === "string" && UUID_PATTERN.test(value) ? value : null;
+}
+
 export function save_guard_rescue(rescue: GuardRescueStart): void {
   if (!UUID_PATTERN.test(rescue.rescue_id)) return;
   try {
@@ -64,6 +69,7 @@ export function save_guard_rescue(rescue: GuardRescueStart): void {
       JSON.stringify({
         rescue_id: rescue.rescue_id,
         apply_after: rescue.apply_after,
+        account_id: valid_account(rescue.account_id),
       }),
     );
   } catch {
@@ -86,7 +92,11 @@ export function load_guard_rescue(): GuardRescueStart | null {
       return null;
     }
 
-    return { rescue_id: parsed.rescue_id, apply_after: parsed.apply_after };
+    return {
+      rescue_id: parsed.rescue_id,
+      apply_after: parsed.apply_after,
+      account_id: valid_account(parsed.account_id),
+    };
   } catch {
     return null;
   }
@@ -100,22 +110,39 @@ export function clear_guard_rescue(): void {
   }
 }
 
-export function mark_setup_after_rescue(): void {
+export function mark_setup_after_rescue(
+  account_id: string | null | undefined,
+  now: number = Date.now(),
+): void {
   try {
-    session_store()?.setItem(GUARD_SETUP_AFTER_RESCUE_KEY, "1");
+    session_store()?.setItem(
+      GUARD_SETUP_AFTER_RESCUE_KEY,
+      JSON.stringify({ account_id: valid_account(account_id), at: now }),
+    );
   } catch {
     return;
   }
 }
 
-export function take_setup_after_rescue(): boolean {
+export function take_setup_after_rescue(
+  user_id: string,
+  now: number = Date.now(),
+): boolean {
   try {
     const store = session_store();
+    const raw = store?.getItem(GUARD_SETUP_AFTER_RESCUE_KEY);
 
-    if (store?.getItem(GUARD_SETUP_AFTER_RESCUE_KEY) !== "1") return false;
+    if (!store || !raw) return false;
     store.removeItem(GUARD_SETUP_AFTER_RESCUE_KEY);
+    const parsed = JSON.parse(raw) as { account_id?: unknown; at?: unknown };
+    const account_id = valid_account(parsed.account_id);
 
-    return true;
+    if (typeof parsed.at !== "number") return false;
+    if (now - parsed.at < 0 || now - parsed.at > GUARD_SETUP_AFTER_RESCUE_TTL_MS) {
+      return false;
+    }
+
+    return account_id === null || account_id === user_id;
   } catch {
     return false;
   }
@@ -198,7 +225,7 @@ export function GuardRescueProgress({ rescue, on_back }: GuardRescueProgressProp
             size="lg"
             variant="depth"
             onClick={() => {
-              mark_setup_after_rescue();
+              mark_setup_after_rescue(rescue?.account_id);
               on_back();
             }}
           >

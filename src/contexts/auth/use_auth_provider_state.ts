@@ -119,6 +119,7 @@ import { release_app_lock } from "@/services/app_lock_unlock";
 import { delete_category_index_for_account } from "@/services/category_index";
 import { delete_user_device_snapshots } from "@/services/crypto/device_recovery_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { leave_guard_on_sign_out } from "@/services/guard/guard_leave";
 
 async function resume_surviving_account(
   survivor: StoredAccount,
@@ -485,6 +486,16 @@ export function use_auth_provider_state() {
         );
       }
 
+      if (current_id) {
+        await with_timeout(leave_guard_on_sign_out(current_id), 3000).catch(
+          (caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+              caught,
+            ),
+        );
+      }
+
       await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
 
       if (other && current_id) {
@@ -594,6 +605,18 @@ export function use_auth_provider_state() {
         );
       }
 
+      if (state.current_account_id) {
+        await with_timeout(
+          leave_guard_on_sign_out(state.current_account_id),
+          3000,
+        ).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+      }
+
       await with_timeout(api_client.post("/core/v1/auth/logout-all", {}), 3000);
 
       await with_timeout(clear_local_auth_data(), 4000);
@@ -612,7 +635,7 @@ export function use_auth_provider_state() {
         );
       }
     }
-  }, [clear_local_auth_data, navigate]);
+  }, [clear_local_auth_data, navigate, state.current_account_id]);
 
   useEffect(() => {
     const sign_out_keeping_other_accounts = async (

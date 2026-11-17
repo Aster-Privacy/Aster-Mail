@@ -450,6 +450,33 @@ describe("desktop code sign-in", () => {
     );
   });
 
+  it("shows a verification code that covers the action key it sent", async () => {
+    const encode = (length: number, value: number) =>
+      btoa(String.fromCharCode(...new Uint8Array(length).fill(value)))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+
+    invoke_mock.mockResolvedValue({
+      ed25519_pk: encode(32, 1),
+      mlkem_pk: encode(1184, 2),
+      x25519_pk: encode(32, 3),
+      machine_name: "desk",
+      device_id: null,
+    });
+    prepare_pairing_mock.mockResolvedValue(encode(33, 4));
+
+    await render_sign_in();
+
+    expect(
+      container!.querySelector('[data-testid="device_fingerprint"]')
+        ?.textContent,
+    ).toContain("66ED 3B45 08A0 8B87 6C46");
+    expect(localStorage.getItem("aster_device_link_codes")).toContain(
+      encode(33, 4),
+    );
+  });
+
   it("sends the action key with a new code request", async () => {
     prepare_pairing_mock.mockResolvedValue("action-pk");
 

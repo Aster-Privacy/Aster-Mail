@@ -388,12 +388,15 @@ export function DesktopCodeSignIn({
       try {
         device_key = pubkeys.ed25519_pk;
         let watched = load_link_codes(device_key);
-        let current = is_first_flow ? pick_reusable_code(watched) : null;
+        let current = is_first_flow
+          ? pick_reusable_code(
+              watched.filter((entry) => entry.action_pk !== undefined),
+            )
+          : null;
 
         if (!current) {
-          const result = await request_device_code(
-            await with_pairing_action_pk(pubkeys),
-          );
+          const sent_keys = await with_pairing_action_pk(pubkeys);
+          const result = await request_device_code(sent_keys);
 
           if (cancelled) return;
 
@@ -401,6 +404,7 @@ export function DesktopCodeSignIn({
             code: result.code,
             device_key,
             expires_at: Date.now() + result.expires_in * 1000,
+            action_pk: sent_keys.action_pk ?? null,
           };
 
           remember_link_code(issued);
@@ -417,7 +421,12 @@ export function DesktopCodeSignIn({
 
         const active = current;
 
-        set_device_fingerprint(fingerprint_of_encoded_device_keys(pubkeys));
+        set_device_fingerprint(
+          fingerprint_of_encoded_device_keys({
+            ...pubkeys,
+            action_pk: active.action_pk ?? null,
+          }),
+        );
         set_code(active.code);
         set_time_left(
           Math.max(0, Math.round((active.expires_at - Date.now()) / 1000)),

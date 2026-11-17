@@ -27,6 +27,7 @@ export interface DeviceLinkCode {
   code: string;
   device_key: string;
   expires_at: number;
+  action_pk?: string | null;
 }
 
 function is_link_code(value: unknown): value is DeviceLinkCode {
@@ -36,7 +37,10 @@ function is_link_code(value: unknown): value is DeviceLinkCode {
   return (
     typeof entry.code === "string" &&
     typeof entry.device_key === "string" &&
-    typeof entry.expires_at === "number"
+    typeof entry.expires_at === "number" &&
+    (entry.action_pk === undefined ||
+      entry.action_pk === null ||
+      typeof entry.action_pk === "string")
   );
 }
 

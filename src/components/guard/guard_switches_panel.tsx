@@ -26,6 +26,7 @@ import type { GuardSelection } from "@/components/guard/guard_setup_wizard";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SettingNote } from "@aster/ui";
 
+import { GuardRescueRotateDialog } from "@/components/guard/guard_rescue_rotate_dialog";
 import { GuardSwitchRows } from "@/components/guard/guard_setup_wizard";
 import { format_guard_time } from "@/components/guard/guard_waiting_screen";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
@@ -117,6 +118,7 @@ export function GuardSwitchesPanel({
   const [held_off, set_held_off] = useState<GuardHeldOff | null>(null);
   const [join, set_join] = useState<GuardJoinPending | null>(null);
   const [join_failed, set_join_failed] = useState(false);
+  const [rotate_open, set_rotate_open] = useState(false);
   const join_ref = useRef<GuardJoinPending | null>(null);
   const is_approver = !!device && !!status.this_device;
   const shown_held = held_off ?? held_switch_off(status);
@@ -271,6 +273,36 @@ export function GuardSwitchesPanel({
           <SettingNote tone="warning">
             {t("guard.switches_no_rescue_code")}
           </SettingNote>
+        </div>
+      )}
+      {is_approver && device && (
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+          data-testid="guard_rescue_row"
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("guard.rescue_row_title")}
+            </p>
+            <p className="text-sm text-txt-muted">
+              {t("guard.rescue_row_body")}
+            </p>
+          </div>
+          <Button
+            data-testid="guard_rescue_rotate_open"
+            size="sm"
+            variant="outline"
+            onClick={() => set_rotate_open(true)}
+          >
+            {t("guard.rescue_rotate_button")}
+          </Button>
+          <GuardRescueRotateDialog
+            device={device}
+            is_open={rotate_open}
+            user_id={user_id}
+            on_changed={on_refresh}
+            on_close={() => set_rotate_open(false)}
+          />
         </div>
       )}
       {!is_approver && (

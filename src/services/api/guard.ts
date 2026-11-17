@@ -222,6 +222,7 @@ export interface GuardJoinComplete {
 export interface GuardRescueStart {
   rescue_id: string;
   apply_after: string;
+  account_id?: string | null;
 }
 
 export type GuardRescueState = "pending" | "applied" | "vetoed" | "cancelled";
@@ -486,6 +487,24 @@ export function remove_guard_device(
     `${GUARD_BASE}/devices/${path_id(id)}/remove`,
     { action },
   );
+}
+
+export function rotate_guard_rescue_code(body: {
+  rescue_code: string;
+  action: SignedAction;
+}): Promise<ApiResponse<{ status: "applied"; id: string }>> {
+  return api_client.post<{ status: "applied"; id: string }>(
+    `${GUARD_BASE}/rescue-code`,
+    body,
+  );
+}
+
+export function guard_device_leave(
+  action: SignedAction,
+): Promise<ApiResponse<{ status: string }>> {
+  return api_client.post<{ status: string }>(`${GUARD_BASE}/device/leave`, {
+    action,
+  });
 }
 
 export function guard_panic(

@@ -31,7 +31,11 @@ import {
   GUARD_RESCUE_POLL_MS,
   GUARD_RESCUE_STORAGE_KEY,
   GUARD_SETUP_AFTER_RESCUE_KEY,
+  GUARD_SETUP_AFTER_RESCUE_TTL_MS,
   GuardRescueProgress,
+  load_guard_rescue,
+  mark_setup_after_rescue,
+  save_guard_rescue,
   take_setup_after_rescue,
 } from "@/pages/guard/guard_rescue_form";
 import GuardVetoPage from "@/pages/guard/guard_veto_page";
@@ -105,6 +109,8 @@ function mock(fn: unknown): Mocked {
 const USER_ID = "33333333-4444-4555-8666-777777777777";
 const RESCUE_ID = "7c9e6679-7425-40de-944b-e07fc1f90ae7";
 const LATER = "2026-11-18T10:00:00Z";
+const ACCOUNT_A = "0f8fad5b-d9cb-469f-a165-70867728950e";
+const ACCOUNT_B = "6ba7b810-9dad-41d1-80b4-00c04fd430c8";
 
 let container: HTMLDivElement;
 let root: Root;
@@ -317,7 +323,7 @@ describe("GuardRescueProgress", () => {
 
     expect(
       JSON.parse(window.localStorage.getItem(GUARD_RESCUE_STORAGE_KEY) ?? "{}"),
-    ).toEqual({ rescue_id: RESCUE_ID, apply_after: LATER });
+    ).toEqual({ rescue_id: RESCUE_ID, apply_after: LATER, account_id: null });
     expect(by_test_id("guard_rescue_waiting")).not.toBeNull();
   });
 
@@ -333,7 +339,11 @@ describe("GuardRescueProgress", () => {
     act(() => {
       root.render(
         <GuardRescueProgress
-          rescue={{ rescue_id: RESCUE_ID, apply_after: LATER }}
+          rescue={{
+            rescue_id: RESCUE_ID,
+            apply_after: LATER,
+            account_id: ACCOUNT_A,
+          }}
           on_back={on_back}
         />,
       );
@@ -352,8 +362,51 @@ describe("GuardRescueProgress", () => {
 
     act(() => (by_test_id("guard_rescue_sign_in") as HTMLButtonElement).click());
     expect(on_back).toHaveBeenCalled();
-    expect(window.sessionStorage.getItem(GUARD_SETUP_AFTER_RESCUE_KEY)).toBe("1");
-    expect(take_setup_after_rescue()).toBe(true);
-    expect(take_setup_after_rescue()).toBe(false);
+    expect(
+      JSON.parse(
+        window.sessionStorage.getItem(GUARD_SETUP_AFTER_RESCUE_KEY) ?? "{}",
+      ).account_id,
+    ).toBe(ACCOUNT_A);
+    expect(take_setup_after_rescue(ACCOUNT_A)).toBe(true);
+    expect(take_setup_after_rescue(ACCOUNT_A)).toBe(false);
+  });
+
+  it("opens setup after a rescue only for the rescued account", () => {
+    const now = Date.parse("2026-11-15T10:00:00Z");
+
+    mark_setup_after_rescue(ACCOUNT_A, now);
+    expect(take_setup_after_rescue(ACCOUNT_B, now)).toBe(false);
+    expect(take_setup_after_rescue(ACCOUNT_A, now)).toBe(false);
+
+    mark_setup_after_rescue(ACCOUNT_A, now);
+    expect(take_setup_after_rescue(ACCOUNT_A, now + 60_000)).toBe(true);
+  });
+
+  it("drops a stale or malformed setup marker", () => {
+    const now = Date.parse("2026-11-15T10:00:00Z");
+
+    mark_setup_after_rescue(ACCOUNT_A, now);
+    expect(
+      take_setup_after_rescue(ACCOUNT_A, now + GUARD_SETUP_AFTER_RESCUE_TTL_MS + 1),
+    ).toBe(false);
+
+    window.sessionStorage.setItem(GUARD_SETUP_AFTER_RESCUE_KEY, "1");
+    expect(take_setup_after_rescue(ACCOUNT_A, now)).toBe(false);
+    expect(window.sessionStorage.getItem(GUARD_SETUP_AFTER_RESCUE_KEY)).toBeNull();
+  });
+
+  it("keeps the rescued account with the stored rescue", () => {
+    save_guard_rescue({
+      rescue_id: RESCUE_ID,
+      apply_after: LATER,
+      account_id: ACCOUNT_A,
+    });
+    expect(load_guard_rescue()?.account_id).toBe(ACCOUNT_A);
+
+    window.localStorage.setItem(
+      GUARD_RESCUE_STORAGE_KEY,
+      JSON.stringify({ rescue_id: RESCUE_ID, apply_after: LATER, account_id: "x" }),
+    );
+    expect(load_guard_rescue()?.account_id).toBeNull();
   });
 });

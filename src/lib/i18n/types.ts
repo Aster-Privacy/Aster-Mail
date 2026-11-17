@@ -9667,6 +9667,15 @@ export interface GuardTranslations {
   switches_paused_until: string;
   switches_recovery_wait_pending: string;
   switches_no_rescue_code: string;
+  rescue_row_title: string;
+  rescue_row_body: string;
+  rescue_rotate_button: string;
+  rescue_rotate_title: string;
+  rescue_rotate_description: string;
+  rescue_rotate_confirm: string;
+  rescue_rotate_applied: string;
+  rescue_rotate_held: string;
+  rescue_rotate_error: string;
   switches_not_an_approver: string;
   switches_locked_reason: string;
   section_info_title: string;

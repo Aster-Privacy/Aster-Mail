@@ -557,6 +557,7 @@ export class GuardSignInController {
           rescue: this.state.rescue ?? {
             rescue_id: "",
             apply_after: apply_after ?? "",
+            account_id: this.account_id,
           },
         });
 
@@ -731,7 +732,11 @@ export class GuardSignInController {
     this.stopped = true;
     this.forget_storage();
     void this.drop_pending_device();
-    this.update({ phase: "rescue", rescue: response.data, rescue_error: false });
+    this.update({
+      phase: "rescue",
+      rescue: { ...response.data, account_id: this.account_id },
+      rescue_error: false,
+    });
 
     return true;
   }

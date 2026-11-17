@@ -224,7 +224,7 @@ export function GuardSetupAfterRescue({ user_id }: { user_id: string | null }) {
   useEffect(() => {
     if (!user_id || checked.current) return;
     checked.current = true;
-    if (take_setup_after_rescue()) set_is_open(true);
+    if (take_setup_after_rescue(user_id)) set_is_open(true);
   }, [user_id]);
 
   if (!user_id) return null;
