@@ -60,10 +60,17 @@ vi.mock("framer-motion", async () => {
       div: ({
         children,
         className,
+        "data-testid": test_id,
       }: {
         children: React.ReactNode;
         className?: string;
-      }) => react.createElement("div", { className }, children),
+        "data-testid"?: string;
+      }) =>
+        react.createElement(
+          "div",
+          { className, "data-testid": test_id },
+          children,
+        ),
     },
   };
 });
@@ -519,7 +526,6 @@ describe("desktop code sign-in", () => {
 
     await render_sign_in();
     await advance(3_000);
-    await advance(1_000);
 
     expect(calls).toBe(1);
     expect(
