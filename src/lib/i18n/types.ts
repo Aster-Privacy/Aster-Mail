@@ -9611,6 +9611,7 @@ export interface GuardTranslations {
   approve_deny: string;
   approve_wrong_number: string;
   approve_request_ended: string;
+  approve_number_rejected: string;
   approve_unlock_first: string;
   approve_keys_changed: string;
   approve_error: string;
@@ -9689,6 +9690,8 @@ export interface GuardTranslations {
   held_cancelled: string;
   held_skipped: string;
   held_error: string;
+  held_already_ended: string;
+  held_stale: string;
   held_toast: string;
   held_view: string;
   held_kind_forwarding_change: string;
@@ -9704,6 +9707,7 @@ export interface GuardTranslations {
   held_kind_guard_switches_off: string;
   held_kind_account_recovery: string;
   held_kind_rescue: string;
+  held_kind_rescue_code_rotation: string;
   held_kind_unknown: string;
   not_me: string;
   panic_title: string;

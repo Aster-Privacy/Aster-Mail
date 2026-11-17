@@ -79,7 +79,13 @@ export interface GuardPendingChange {
   kind: GuardHoldKind;
   apply_after: string;
   created_at: string;
+  subject_key?: string | null;
+  created_by_device?: string | null;
+  skippable?: boolean;
+  cancellable?: boolean;
 }
+
+export type GuardSkipStatus = "applied" | "failed_stale";
 
 export interface GuardThisDevice {
   id: string;
@@ -99,8 +105,8 @@ export interface GuardStatus extends GuardSwitches {
 }
 
 export interface GuardNewDevice {
-  device_type: GuardDeviceType;
-  name: string;
+  device_type: GuardDeviceType | null;
+  name: string | null;
   ed25519_pk: string;
   mlkem_pk: string;
   x25519_pk: string;
@@ -445,8 +451,8 @@ export function list_guard_changes(): Promise<
 export function cancel_guard_change(
   id: string,
   action: SignedAction,
-): Promise<ApiResponse<{ status: string }>> {
-  return api_client.post<{ status: string }>(
+): Promise<ApiResponse<{ cancelled: boolean }>> {
+  return api_client.post<{ cancelled: boolean }>(
     `${GUARD_BASE}/changes/${path_id(id)}/cancel`,
     { action },
   );
@@ -456,8 +462,8 @@ export function skip_guard_change(
   id: string,
   action: SignedAction,
   proof: StepUpProof | null,
-): Promise<ApiResponse<{ status: string }>> {
-  return api_client.post<{ status: string }>(
+): Promise<ApiResponse<{ status: GuardSkipStatus }>> {
+  return api_client.post<{ status: GuardSkipStatus }>(
     `${GUARD_BASE}/changes/${path_id(id)}/skip`,
     { action: { ...action, proof: proof ?? action.proof } },
   );

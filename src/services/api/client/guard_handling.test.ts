@@ -160,6 +160,16 @@ describe("guard response handling", () => {
     },
   );
 
+  it("keeps a rescue code rotation as its own kind", async () => {
+    vi.mocked(routed_fetch).mockResolvedValue(
+      reply(202, held_body("rescue_code_rotation")),
+    );
+
+    const result = await api_client.post("/core/v1/x?case=rotation", {});
+
+    expect(result.held?.kind).toBe("rescue_code_rotation");
+  });
+
   it("maps an unknown kind to unknown and not skippable", async () => {
     vi.mocked(routed_fetch).mockResolvedValue(
       reply(202, held_body("future_kind")),

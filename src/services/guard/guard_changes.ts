@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ApiResponse } from "@/services/api/client/helpers";
-import type { StepUpProof } from "@/services/api/guard";
+import type { GuardSkipStatus, StepUpProof } from "@/services/api/guard";
 import type { GuardDevice } from "@/services/guard/guard_device";
 
 import { GUARD_ACTION, id_subject } from "@/lib/crypto/guard_action";
@@ -35,7 +35,7 @@ export async function cancel_held_change(
   user_id: string,
   change_id: string,
   proof: StepUpProof | null,
-): Promise<ApiResponse<{ status: string }>> {
+): Promise<ApiResponse<{ cancelled: boolean }>> {
   const action = await sign_guard_action(
     device,
     user_id,
@@ -52,7 +52,7 @@ export async function skip_held_change(
   user_id: string,
   change_id: string,
   proof: StepUpProof,
-): Promise<ApiResponse<{ status: string }>> {
+): Promise<ApiResponse<{ status: GuardSkipStatus }>> {
   const action = await sign_guard_action(
     device,
     user_id,

@@ -75,6 +75,7 @@ export const HELD_KIND_KEYS = {
   guard_switches_off: "guard.held_kind_guard_switches_off",
   account_recovery: "guard.held_kind_account_recovery",
   rescue: "guard.held_kind_rescue",
+  rescue_code_rotation: "guard.held_kind_rescue_code_rotation",
   unknown: "guard.held_kind_unknown",
 } as const satisfies Record<GuardHoldKind, string>;
 
@@ -99,8 +100,17 @@ const HELD_KIND_ICONS: Record<
   guard_switches_off: ShieldExclamationIcon,
   account_recovery: LifebuoyIcon,
   rescue: ExclamationTriangleIcon,
+  rescue_code_rotation: KeyIcon,
   unknown: QuestionMarkCircleIcon,
 };
+
+export function can_cancel_hold(change: GuardPendingChange): boolean {
+  return change.cancellable !== false;
+}
+
+export function can_skip_hold(change: GuardPendingChange): boolean {
+  return change.skippable !== false && is_guard_hold_skippable(change.kind);
+}
 
 export function hold_progress(change: GuardPendingChange, now: number): number {
   const start = Date.parse(change.created_at);
@@ -204,6 +214,8 @@ export function GuardHeldChanges({
 
       if (response.error) {
         show_toast(t("guard.held_error"), "error");
+      } else if (response.data?.cancelled === false) {
+        show_toast(t("guard.held_already_ended"), "info");
       } else {
         show_toast(t("guard.held_cancelled"), "success");
       }
@@ -231,6 +243,8 @@ export function GuardHeldChanges({
 
       if (response.error) {
         show_toast(t("guard.held_error"), "error");
+      } else if (response.data?.status === "failed_stale") {
+        show_toast(t("guard.held_stale"), "error");
       } else {
         show_toast(t("guard.held_skipped"), "success");
       }
@@ -304,7 +318,7 @@ export function GuardHeldChanges({
                     <ShieldExclamationIcon aria-hidden className="h-4 w-4" />
                     {t("guard.not_me")}
                   </Button>
-                  {device && (
+                  {device && can_cancel_hold(change) && (
                     <Button
                       data-testid={`guard_held_cancel_${change.id}`}
                       disabled={busy_id !== null}
@@ -315,7 +329,7 @@ export function GuardHeldChanges({
                       {t("common.cancel")}
                     </Button>
                   )}
-                  {device && is_guard_hold_skippable(change.kind) && (
+                  {device && can_skip_hold(change) && (
                     <Button
                       data-testid={`guard_held_skip_${change.id}`}
                       disabled={busy_id !== null}

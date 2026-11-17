@@ -214,6 +214,7 @@ import {
   GuardApprovalHost,
   GuardApprovalSheet,
 } from "@/components/guard/guard_approval_sheet";
+import { GUARD_REQUESTS_REFRESH_EVENT } from "@/components/guard/use_guard_requests";
 import { load_guard_requests } from "@/services/guard/guard_approval";
 import {
   emit_guard_event,
@@ -436,30 +437,27 @@ describe("GuardApprovalSheet", () => {
     expect(on_done).toHaveBeenCalledWith(REQUEST_ID);
   });
 
-  it("keeps the digits on a wrong number and signs a fresh challenge on retry", async () => {
+  it("ends the request when the server rejects the number", async () => {
     vi.mocked(api.approve_guard_request).mockResolvedValueOnce({
       error: "wrong",
       server_code: "GUARD_WRONG_NUMBER",
-      status: 400,
+      status: 403,
     } as never);
     render(view());
     type_number("42");
     await click("guard.approve_confirm");
 
-    expect(typed()).toBe("42");
-    expect(container.textContent).toContain("guard.approve_wrong_number");
+    expect(container.textContent).toContain("guard.approve_number_rejected");
+    expect(button("guard.approve_confirm").disabled).toBe(true);
+    expect(number_input().disabled).toBe(true);
     expect(on_done).not.toHaveBeenCalled();
 
-    type_number("57");
-    await click("guard.approve_confirm");
-
-    const nonces = vi
-      .mocked(api.approve_guard_request)
-      .mock.calls.map((c) => c[1].action.nonce);
-
-    expect(api.guard_challenge).toHaveBeenCalledTimes(2);
-    expect(new Set(nonces).size).toBe(2);
-    expect(on_done).toHaveBeenCalledWith(REQUEST_ID);
+    await act(async () => {
+      number_input().dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+      );
+    });
+    expect(api.approve_guard_request).toHaveBeenCalledTimes(1);
   });
 
   it("closes with the request ended message when the request is gone", async () => {
@@ -723,6 +721,38 @@ describe("GuardApprovalHost", () => {
       container.querySelector('[data-testid="guard_approval_sheet"]'),
     ).not.toBeNull();
     expect(container.textContent).toContain("Berlin, Germany");
+  });
+
+  it("keeps a settled sheet open after the request leaves the list", async () => {
+    vi.mocked(device_module.get_guard_device)
+      .mockResolvedValueOnce(device)
+      .mockResolvedValueOnce(device);
+    vi.mocked(api.list_guard_requests)
+      .mockResolvedValueOnce({ data: { requests: [summary()] } } as never)
+      .mockResolvedValueOnce({ data: { requests: [] } } as never);
+    vi.mocked(api.approve_guard_request).mockResolvedValueOnce({
+      error: "wrong",
+      server_code: "GUARD_WRONG_NUMBER",
+      status: 403,
+    } as never);
+    await act(async () => {
+      root.render(<GuardApprovalHost />);
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    type_number("42");
+    await click("guard.approve_confirm");
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent(GUARD_REQUESTS_REFRESH_EVENT));
+      await new Promise((r) => setTimeout(r, 0));
+    });
+
+    expect(api.list_guard_requests).toHaveBeenCalledTimes(2);
+    expect(
+      container.querySelector('[data-testid="guard_approval_sheet"]'),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("guard.approve_number_rejected");
   });
 
   it("asks before switching to another signed-in account", async () => {

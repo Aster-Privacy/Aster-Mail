@@ -40,7 +40,11 @@ const h = vi.hoisted(() => ({
     kind: string;
     apply_after: string;
     created_at: string;
+    skippable?: boolean;
+    cancellable?: boolean;
   }[],
+  cancel_response: { data: { cancelled: true } } as unknown,
+  skip_response: { data: { status: "applied" } } as unknown,
   cancelled: [] as string[],
   skipped: [] as { id: string; proof: unknown }[],
   proof: { type: "password", password_hash: "ph", totp_code: null } as unknown,
@@ -148,7 +152,7 @@ vi.mock("@/services/guard/guard_changes", () => ({
     if (!proof) throw new Error("missing proof");
     h.cancelled.push(id);
 
-    return { data: { status: "cancelled" } };
+    return h.cancel_response;
   },
   skip_held_change: async (
     _d: unknown,
@@ -158,10 +162,11 @@ vi.mock("@/services/guard/guard_changes", () => ({
   ) => {
     h.skipped.push({ id, proof });
 
-    return { data: { status: "applied" } };
+    return h.skip_response;
   },
 }));
 
+import * as toast from "@/components/toast/simple_toast";
 import {
   GuardHeldChanges,
   hold_progress,
@@ -234,6 +239,8 @@ beforeEach(() => {
   ];
   h.cancelled = [];
   h.skipped = [];
+  h.cancel_response = { data: { cancelled: true } };
+  h.skip_response = { data: { status: "applied" } };
   h.proof_requests = 0;
   h.proof = { type: "password", password_hash: "ph", totp_code: null };
   h.panic_calls = [];
@@ -277,6 +284,89 @@ describe("GuardHeldChanges", () => {
     expect(has(`guard_held_skip_${RESCUE_ID}`)).toBe(false);
     expect(has(`guard_held_skip_${ODD_ID}`)).toBe(false);
     expect(has(`guard_held_cancel_${RESCUE_ID}`)).toBe(true);
+  });
+
+  it("follows the server on which changes can be canceled or applied early", async () => {
+    h.changes = [
+      {
+        id: FORWARD_ID,
+        kind: "forwarding_change",
+        apply_after: LATER,
+        created_at: CREATED,
+        skippable: false,
+        cancellable: true,
+      },
+      {
+        id: RESCUE_ID,
+        kind: "rescue",
+        apply_after: LATER,
+        created_at: CREATED,
+        skippable: false,
+        cancellable: false,
+      },
+    ];
+    await render(
+      <GuardHeldChanges
+        device={DEVICE}
+        user_id={USER_ID}
+        on_refresh={() => {}}
+      />,
+    );
+
+    expect(has(`guard_held_cancel_${FORWARD_ID}`)).toBe(true);
+    expect(has(`guard_held_skip_${FORWARD_ID}`)).toBe(false);
+    expect(has(`guard_held_cancel_${RESCUE_ID}`)).toBe(false);
+    expect(has(`guard_held_not_me_${RESCUE_ID}`)).toBe(true);
+  });
+
+  it("labels a held rescue code rotation", async () => {
+    h.changes = [
+      {
+        id: FORWARD_ID,
+        kind: "rescue_code_rotation",
+        apply_after: LATER,
+        created_at: CREATED,
+      },
+    ];
+    await render(
+      <GuardHeldChanges
+        device={DEVICE}
+        user_id={USER_ID}
+        on_refresh={() => {}}
+      />,
+    );
+
+    expect(container.textContent).toContain(
+      "guard.held_kind_rescue_code_rotation",
+    );
+    expect(container.textContent).not.toContain("guard.held_kind_unknown");
+    expect(has(`guard_held_skip_${FORWARD_ID}`)).toBe(true);
+  });
+
+  it("says the change already ended when there was nothing to cancel", async () => {
+    h.cancel_response = { data: { cancelled: false } };
+    await render(
+      <GuardHeldChanges device={DEVICE} user_id={USER_ID} on_refresh={vi.fn()} />,
+    );
+    await click(`guard_held_cancel_${FORWARD_ID}`);
+
+    expect(toast.show_toast).toHaveBeenLastCalledWith(
+      "guard.held_already_ended",
+      "info",
+    );
+  });
+
+  it("reports a stale change instead of saying it was applied", async () => {
+    h.skip_response = { data: { status: "failed_stale" } };
+    await render(
+      <GuardHeldChanges device={DEVICE} user_id={USER_ID} on_refresh={vi.fn()} />,
+    );
+    await click(`guard_held_skip_${FORWARD_ID}`);
+
+    expect(toast.show_toast).toHaveBeenLastCalledWith(
+      "guard.held_stale",
+      "error",
+    );
   });
 
   it("asks for a step-up before canceling a held change", async () => {

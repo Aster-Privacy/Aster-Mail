@@ -24,7 +24,7 @@ import type {
   GuardRequestView,
 } from "@/services/guard/guard_approval";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ClockIcon,
@@ -91,6 +91,7 @@ import {
 
 type SheetMessage =
   | "wrong_number"
+  | "number_rejected"
   | "request_ended"
   | "unlock_first"
   | "keys_changed"
@@ -99,6 +100,7 @@ type SheetMessage =
 
 const MESSAGE_KEYS = {
   wrong_number: "guard.approve_wrong_number",
+  number_rejected: "guard.approve_number_rejected",
   request_ended: "guard.approve_request_ended",
   unlock_first: "guard.approve_unlock_first",
   keys_changed: "guard.approve_keys_changed",
@@ -114,6 +116,7 @@ interface GuardApprovalSheetProps {
   user_id: string;
   device: GuardDevice;
   on_done: (request_id: string) => void;
+  on_settled?: (view: GuardRequestView) => void;
   finish_delay_ms?: number;
 }
 
@@ -277,6 +280,7 @@ export function GuardApprovalSheet({
   user_id,
   device,
   on_done,
+  on_settled,
   finish_delay_ms = 2400,
 }: GuardApprovalSheetProps) {
   const { t } = use_i18n();
@@ -288,7 +292,12 @@ export function GuardApprovalSheet({
   const [busy, set_busy] = useState<"approve" | "deny" | null>(null);
   const [result, set_result] = useState<"approved" | "denied" | null>(null);
   const [shake, set_shake] = useState(0);
+  const [ended, set_ended] = useState(false);
   const request_id = view.summary.id;
+
+  useEffect(() => {
+    if (result || ended) on_settled?.(view);
+  }, [result, ended, on_settled, view]);
 
   useEffect(() => {
     if (message !== "unlock_first") return;
@@ -320,6 +329,12 @@ export function GuardApprovalSheet({
         set_shake((count) => count + 1);
 
         return;
+      case "number_rejected":
+        set_ended(true);
+        set_message("number_rejected");
+        set_shake((count) => count + 1);
+
+        return;
       case "gone":
         show_toast(t("guard.approve_request_ended"), "info");
         on_done(request_id);
@@ -343,7 +358,7 @@ export function GuardApprovalSheet({
   const expired = Date.parse(view.summary.expires_at) <= now;
 
   const approve = async (value = number) => {
-    if (busy || value.length !== 2) return;
+    if (busy || ended || value.length !== 2) return;
     if (Date.parse(view.summary.expires_at) <= server_now()) return;
     set_busy("approve");
     set_message(null);
@@ -366,7 +381,7 @@ export function GuardApprovalSheet({
   const deny = async (then_panic = false) => {
     if (busy) return;
     set_busy("deny");
-    set_message(null);
+    if (!ended) set_message(null);
     try {
       const outcome = await deny_guard_sign_in(
         view.summary,
@@ -453,12 +468,15 @@ export function GuardApprovalSheet({
                       <OtpInput
                         autofocus
                         aria_label={t("guard.approve_number_label")}
-                        disabled={busy !== null}
+                        disabled={busy !== null || ended}
                         id_prefix="guard_approve_digit"
                         length={2}
                         size="lg"
                         status={
-                          message === "wrong_number" ? "error" : "default"
+                          message === "wrong_number" ||
+                          message === "number_rejected"
+                            ? "error"
+                            : "default"
                         }
                         value={number}
                         onChange={(value) => {
@@ -481,7 +499,9 @@ export function GuardApprovalSheet({
               <div className="flex flex-col gap-2 px-6 pb-5 pt-2">
                 <Button
                   className="w-full"
-                  disabled={busy !== null || expired || number.length !== 2}
+                  disabled={
+                    busy !== null || ended || expired || number.length !== 2
+                  }
                   is_loading={busy === "approve"}
                   size="lg"
                   variant="depth"
@@ -539,6 +559,7 @@ export function GuardApprovalHost({
   const { user, accounts, switch_to_account } = use_auth();
   const user_id = user?.id ?? null;
   const { requests, device, dismiss } = use_guard_requests(user_id);
+  const [settled, set_settled] = useState<GuardRequestView | null>(null);
   const [switch_target, set_switch_target] = useState<string | null>(null);
   const switch_account = switch_target
     ? accounts.find((account) => account.id === switch_target)
@@ -569,8 +590,17 @@ export function GuardApprovalHost({
 
   useEffect(() => {
     set_switch_target(null);
+    set_settled(null);
   }, [user_id]);
-  const current = requests[0];
+  const current = settled ?? requests[0];
+
+  const finish = useCallback(
+    (request_id: string) => {
+      set_settled(null);
+      dismiss(request_id);
+    },
+    [dismiss],
+  );
 
   const confirm_switch = () => {
     const target = switch_target;
@@ -607,7 +637,8 @@ export function GuardApprovalHost({
           device={device}
           user_id={user_id}
           view={current}
-          on_done={dismiss}
+          on_done={finish}
+          on_settled={set_settled}
         />
       )}
     </>

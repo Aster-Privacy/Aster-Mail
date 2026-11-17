@@ -66,6 +66,7 @@ export interface GuardRequestView {
 export type GuardApproveOutcome =
   | { kind: "approved" }
   | { kind: "wrong_number" }
+  | { kind: "number_rejected" }
   | { kind: "gone" }
   | { kind: "locked" }
   | { kind: "keys_changed" }
@@ -236,7 +237,7 @@ export async function approve_guard_sign_in(
 
   if (!response.error) return { kind: "approved" };
   if (response.server_code === "GUARD_WRONG_NUMBER") {
-    return { kind: "wrong_number" };
+    return { kind: "number_rejected" };
   }
   if (is_gone(response.status, response.server_code)) return { kind: "gone" };
 

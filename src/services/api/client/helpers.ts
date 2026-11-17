@@ -207,6 +207,7 @@ export const GUARD_HOLD_KINDS = [
   "guard_switches_off",
   "account_recovery",
   "rescue",
+  "rescue_code_rotation",
 ] as const;
 
 export type GuardHoldKind = (typeof GUARD_HOLD_KINDS)[number] | "unknown";

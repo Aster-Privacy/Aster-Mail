@@ -233,7 +233,7 @@ vi.mock("@/services/api/guard", async (original) => {
 
       return { data: { status: "removed" } };
     }),
-    cancel_guard_change: vi.fn(async () => ({ data: { status: "cancelled" } })),
+    cancel_guard_change: vi.fn(async () => ({ data: { cancelled: true } })),
   };
 });
 
