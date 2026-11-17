@@ -4027,6 +4027,9 @@ export const en: Translations = {
     family_invite_expires: "Expires {{date}}",
     family_invite_pending: "Pending",
     family_invite_revoke: "Revoke",
+    family_join_signed_in_as: "Signed in as {{ email }}",
+    family_join_already_in_group:
+      "This account already belongs to a family plan. To join with another account, switch to it and open this link again.",
     family_invite_wrong_recipient:
       "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
     family_join_inviter: "{{ name }} invited you",

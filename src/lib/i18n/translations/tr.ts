@@ -2644,6 +2644,9 @@ export const tr = {
     family_invite_expires: "Son geçerlilik: {{date}}",
     family_invite_pending: "Beklemede",
     family_invite_revoke: "İptal Et",
+    family_join_signed_in_as: "{{ email }} olarak oturum açıldı",
+    family_join_already_in_group:
+      "Bu hesap zaten bir aile planına dahil. Başka bir hesapla katılmak için o hesaba geçin ve bu bağlantıyı yeniden açın.",
     family_invite_wrong_recipient:
       "Bu davet farklı bir adrese gönderildi. Göndericiden davet bağlantısını doğrudan paylaşmasını isteyin.",
     family_member_owner: "Sahip",

@@ -2450,6 +2450,9 @@ export const zh_CN = {
     family_invite_expires: "{{date}} 过期",
     family_invite_pending: "待处理",
     family_invite_revoke: "撤销",
+    family_join_signed_in_as: "已登录为 {{ email }}",
+    family_join_already_in_group:
+      "此账户已加入家庭方案。如需使用其他账户加入，请切换到该账户后重新打开此链接。",
     family_invite_wrong_recipient:
       "这份邀请发送给了另一个地址。请让发件人直接分享邀请链接。",
     family_member_owner: "所有者",

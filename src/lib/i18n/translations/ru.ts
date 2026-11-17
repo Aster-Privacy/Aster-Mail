@@ -2808,6 +2808,9 @@ export const ru = {
     family_invite_expires: "Истекает {{date}}",
     family_invite_pending: "Ожидание",
     family_invite_revoke: "Отозвать",
+    family_join_signed_in_as: "Вы вошли как {{ email }}",
+    family_join_already_in_group:
+      "Этот аккаунт уже входит в семейный тариф. Чтобы присоединиться с другим аккаунтом, переключитесь на него и снова откройте эту ссылку.",
     family_invite_wrong_recipient:
       "Это приглашение отправлено на другой адрес. Попросите отправителя поделиться ссылкой напрямую.",
     family_member_owner: "Владелец",

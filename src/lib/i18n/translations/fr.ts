@@ -2700,6 +2700,9 @@ export const fr = {
     family_invite_expires: "Expire le {{date}}",
     family_invite_pending: "En attente",
     family_invite_revoke: "Révoquer",
+    family_join_signed_in_as: "Connecté en tant que {{ email }}",
+    family_join_already_in_group:
+      "Ce compte fait déjà partie d'un forfait familial. Pour rejoindre le forfait avec un autre compte, passez à ce compte et rouvrez ce lien.",
     family_invite_wrong_recipient:
       "Cette invitation a été envoyée à une autre adresse. Demandez à l’expéditeur de partager le lien directement.",
     family_member_owner: "Propriétaire",

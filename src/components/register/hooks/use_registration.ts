@@ -240,6 +240,15 @@ interface RegistrationResumeState {
   plan_step_shown: boolean;
   finish_path: string;
   open_domain_purchase: boolean;
+  invite_return_path: string | null;
+}
+
+const INVITE_RETURN_PATH_REGEX = /^\/join\/family\?token=[A-Za-z0-9_-]{16,128}$/;
+
+function to_invite_return_path(path: unknown): string | null {
+  return typeof path === "string" && INVITE_RETURN_PATH_REGEX.test(path)
+    ? path
+    : null;
 }
 
 function read_url_username(search: string): string {
@@ -286,6 +295,7 @@ function read_resume_state(): RegistrationResumeState | null {
           ? parsed.finish_path
           : "/",
       open_domain_purchase: parsed.open_domain_purchase === true,
+      invite_return_path: to_invite_return_path(parsed.invite_return_path),
     };
   } catch {
     return null;
@@ -547,6 +557,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const complete_registration_ref = useRef<() => Promise<void>>();
   const plan_step_shown_ref = useRef(false);
   const finish_path_ref = useRef(resume_state_ref.current?.finish_path ?? "/");
+  const invite_return_path_ref = useRef<string | null>(
+    resume_state_ref.current?.invite_return_path ??
+      to_invite_return_path(get_safe_next_path()),
+  );
   const open_domain_purchase_ref = useRef(
     resume_state_ref.current?.open_domain_purchase ?? false,
   );
@@ -590,6 +604,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       plan_step_shown: plan_step_shown_ref.current,
       finish_path: finish_path_ref.current,
       open_domain_purchase: open_domain_purchase_ref.current,
+      invite_return_path: invite_return_path_ref.current,
     };
 
     safe_session_set(REGISTRATION_RESUME_KEY, JSON.stringify(state));
@@ -1232,7 +1247,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const finalize_registration = async (target_path?: string) => {
     await persist_registration_state();
 
-    const destination = target_path ?? finish_path_ref.current;
+    const destination =
+      invite_return_path_ref.current ?? target_path ?? finish_path_ref.current;
 
     if (open_domain_purchase_ref.current) {
       safe_session_set("alias_domains_purchase_open", "1");
@@ -1250,7 +1266,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   ) => {
     finish_path_ref.current = finish_path;
     open_domain_purchase_ref.current = open_domain_purchase;
-    if (is_claim) {
+    if (is_claim || invite_return_path_ref.current) {
       await finalize_registration();
 
       return;

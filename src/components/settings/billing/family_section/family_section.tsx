@@ -172,7 +172,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [revoking_invite_id, set_revoking_invite_id] = useState<string | null>(
     null,
   );
-  const invite_defaults_seeded = useRef(false);
+  const invite_storage_edited = useRef(false);
   const [invite_loading, set_invite_loading] = useState(false);
   const [show_invite_form, set_show_invite_form] = useState(false);
   const [remove_target, set_remove_target] = useState<FamilyMemberInfo | null>(
@@ -198,6 +198,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const [wizard_step, set_wizard_step] = useState(1);
   const [wizard_invite_email, set_wizard_invite_email] = useState("");
   const [wizard_invite_gb, set_wizard_invite_gb] = useState("500");
+  const edit_wizard_invite_gb = (value: string) => {
+    invite_storage_edited.current = true;
+    set_wizard_invite_gb(value);
+  };
   const [wizard_invite_loading, set_wizard_invite_loading] = useState(false);
   const [wizard_sent_email, set_wizard_sent_email] = useState("");
   const [wizard_captcha, set_wizard_captcha] = useState<string | null>(null);
@@ -369,8 +373,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           ),
         );
 
-        if (!invite_defaults_seeded.current) {
-          invite_defaults_seeded.current = true;
+        if (!invite_storage_edited.current) {
           set_invite_storage_gb(default_gb);
           set_wizard_invite_gb(default_gb);
         }
@@ -512,6 +515,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       }
       set_wizard_sent_email(email);
       set_wizard_step(3);
+      invite_storage_edited.current = false;
       await load_group();
     } catch {
       show_toast(t("settings.failed_save_setting"), "error");
@@ -582,6 +586,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       show_toast(t("settings.family_invite_sent"), "success");
       set_invite_email("");
       set_show_invite_form(false);
+      invite_storage_edited.current = false;
       await load_group();
     } catch {
       show_toast(t("settings.failed_save_setting"), "error");
@@ -621,6 +626,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
       } catch {
         show_toast(t("common.failed_to_copy"), "error");
       }
+      invite_storage_edited.current = false;
       await load_group();
     } catch {
       show_toast(t("settings.failed_save_setting"), "error");
@@ -1318,7 +1324,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     min="1"
                     type="number"
                     value={invite_storage_gb}
-                    onChange={(e) => set_invite_storage_gb(e.target.value)}
+                    onChange={(e) => {
+                      invite_storage_edited.current = true;
+                      set_invite_storage_gb(e.target.value);
+                    }}
                   />
                   <span className="pointer-events-none absolute end-3.5 top-1/2 -translate-y-1/2 text-[13px] text-txt-muted">
                     {t("settings.fam_org_gb")}
@@ -1704,7 +1713,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                             type="number"
                             value={wizard_invite_gb}
                             onChange={(e) =>
-                              set_wizard_invite_gb(e.target.value)
+                              edit_wizard_invite_gb(e.target.value)
                             }
                           />
                           <span className="text-xs text-txt-muted">

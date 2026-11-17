@@ -2695,6 +2695,9 @@ export const it = {
     family_invite_expires: "Scade il {{date}}",
     family_invite_pending: "In sospeso",
     family_invite_revoke: "Revoca",
+    family_join_signed_in_as: "Accesso effettuato come {{ email }}",
+    family_join_already_in_group:
+      "Questo account fa già parte di un piano famiglia. Per unirti con un altro account, passa a quell'account e apri di nuovo questo link.",
     family_invite_wrong_recipient:
       "Questo invito è stato inviato a un altro indirizzo. Chiedi a chi te l’ha mandato di condividere direttamente il link.",
     family_member_owner: "Proprietario",
