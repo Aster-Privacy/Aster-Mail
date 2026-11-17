@@ -135,6 +135,11 @@ import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import {
+  initial_requested_plan,
+  should_open_requested_plan,
+  strip_requested_plan,
+} from "@/components/settings/billing/requested_plan";
+import {
   SKELETON_MIN_VISIBLE_MS,
   use_delayed_flag,
 } from "@/hooks/use_delayed_flag";
@@ -357,6 +362,7 @@ export function BillingSection() {
   >(null);
   const [plan_method_target, set_plan_method_target] =
     useState<AvailablePlan | null>(null);
+  const requested_plan_ref = useRef<string | null>(initial_requested_plan());
   const [crypto_back_plan, set_crypto_back_plan] =
     useState<AvailablePlan | null>(null);
   const [crypto_back_addon, set_crypto_back_addon] =
@@ -417,6 +423,22 @@ export function BillingSection() {
     );
     set_plan_method_target(plan);
   }, [plans, resume_tick]);
+
+  useEffect(() => {
+    strip_requested_plan();
+  }, []);
+
+  useEffect(() => {
+    const requested = requested_plan_ref.current;
+
+    if (!requested || is_initial_load || plans.length === 0) return;
+    requested_plan_ref.current = null;
+    if (!should_open_requested_plan(requested, subscription?.plan.code)) return;
+
+    const plan = plans.find((entry) => entry.code === requested);
+
+    if (plan) set_plan_method_target(plan);
+  }, [plans, is_initial_load, subscription]);
 
   useEffect(() => {
     if (!window.location.pathname.endsWith("/settings/credits")) return;

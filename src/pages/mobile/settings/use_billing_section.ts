@@ -27,6 +27,11 @@ import type {
 import type { plan_term_option } from "@/components/settings/billing/plan_payment_method_modal";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import {
+  initial_requested_plan,
+  should_open_requested_plan,
+  strip_requested_plan,
+} from "@/components/settings/billing/requested_plan";
 
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import {
@@ -965,6 +970,27 @@ export function use_billing_section() {
     set_method_modal_plan(plan);
     set_show_method_modal(true);
   };
+
+  const requested_plan_ref = useRef<string | null>(initial_requested_plan());
+
+  useEffect(() => {
+    strip_requested_plan();
+  }, []);
+
+  useEffect(() => {
+    const requested = requested_plan_ref.current;
+
+    if (!requested || is_loading || plans.length === 0) return;
+    requested_plan_ref.current = null;
+    if (!should_open_requested_plan(requested, subscription?.plan.code)) return;
+
+    const plan = plans.find((entry) => entry.code === requested);
+
+    if (plan) {
+      set_method_modal_plan(plan);
+      set_show_method_modal(true);
+    }
+  }, [plans, is_loading, subscription]);
 
   const handle_pay_with_card = async (plan: AvailablePlan) => {
     if (is_action_loading) return;
