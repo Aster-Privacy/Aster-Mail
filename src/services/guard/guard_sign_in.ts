@@ -551,6 +551,7 @@ export class GuardSignInController {
         this.clear_timer();
         this.stopped = true;
         this.forget_storage();
+        void this.drop_pending_device();
         this.update({
           phase: "rescue",
           rescue: this.state.rescue ?? {

@@ -163,6 +163,24 @@ export async function write_guard_hint(
   );
 }
 
+export async function delete_guard_hints_for(user_id: string): Promise<void> {
+  if (!idb_available()) return;
+  const keys = await with_store<IDBValidKey[]>("readonly", (store) =>
+    store.getAllKeys(),
+  );
+
+  for (const key of keys ?? []) {
+    if (typeof key !== "string" || !key.startsWith(HINT_PREFIX)) continue;
+    const value = await with_store<unknown>("readonly", (store) =>
+      store.get(key),
+    );
+
+    if (value === user_id) {
+      await with_store("readwrite", (store) => store.delete(key));
+    }
+  }
+}
+
 export async function delete_guard_database(): Promise<void> {
   if (!idb_available()) return;
 

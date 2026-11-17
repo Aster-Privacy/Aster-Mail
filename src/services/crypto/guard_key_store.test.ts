@@ -38,7 +38,10 @@ import {
 } from "@/services/guard/guard_device";
 import {
   delete_guard_database,
+  delete_guard_hints_for,
   GUARD_DB_NAME,
+  read_guard_hint,
+  write_guard_hint,
 } from "@/services/crypto/guard_key_store";
 import {
   code_secret_aad,
@@ -85,6 +88,7 @@ function fake_db(name: string) {
             get: (key: string) => op(() => data.get(key)),
             put: (value: unknown, key: string) => op(() => data.set(key, value)),
             delete: (key: string) => op(() => data.delete(key)),
+            getAllKeys: () => op(() => Array.from(data.keys())),
           };
         },
       };
@@ -268,6 +272,20 @@ describe("guard device key store", () => {
     await create_guard_device(USER_B, "Pixel 9");
     await delete_guard_database();
     expect(await get_guard_device(USER_B)).toBeNull();
+  });
+
+  it("removes only the removed account's username hints", async () => {
+    await create_guard_device(USER_A, "Pixel 9");
+    await write_guard_hint("hash_a", USER_A);
+    await write_guard_hint("hash_a2", USER_A);
+    await write_guard_hint("hash_b", USER_B);
+
+    await delete_guard_hints_for(USER_A);
+
+    expect(await read_guard_hint("hash_a")).toBeNull();
+    expect(await read_guard_hint("hash_a2")).toBeNull();
+    expect(await read_guard_hint("hash_b")).toBe(USER_B);
+    expect(await get_guard_device(USER_A)).not.toBeNull();
   });
 
   it("stores the device id", async () => {

@@ -782,11 +782,12 @@ async function clear_account_key_storage(account_id: string): Promise<void> {
   }
 
   try {
-    const { delete_guard_record } = await import(
+    const { delete_guard_hints_for, delete_guard_record } = await import(
       "@/services/crypto/guard_key_store"
     );
 
     await delete_guard_record(account_id);
+    await delete_guard_hints_for(account_id);
   } catch (caught) {
     ignore_error("services/account_manager:clear_guard_record", caught);
   }

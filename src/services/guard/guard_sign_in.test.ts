@@ -320,6 +320,28 @@ describe("GuardSignInController begin", () => {
     expect(api.guard_sign_in_status).toHaveBeenCalledTimes(1);
   });
 
+  it("forgets the pending device when a rescue takes over the request", async () => {
+    mock(api.guard_sign_in_status).mockResolvedValueOnce({
+      data: {
+        status: "rescue_pending",
+        expires_at: EXPIRES,
+        apply_after: "2026-11-19T10:00:00Z",
+      },
+    });
+    const { controller } = make();
+
+    controller.start();
+    await flush();
+    const pending = devices.get(`pending:${REQUEST_ID}`) as FakeDevice;
+
+    await tick(1000);
+    expect(controller.get_state().phase).toBe("rescue");
+    expect(pending.forget).toHaveBeenCalled();
+    expect(storage.getItem(GUARD_SIGN_IN_STORAGE_KEY)).toBeNull();
+    await tick(5000);
+    expect(api.guard_sign_in_status).toHaveBeenCalledTimes(1);
+  });
+
   it("ends as expired on a 410", async () => {
     mock(api.guard_sign_in_status).mockResolvedValueOnce({
       error: "gone",
