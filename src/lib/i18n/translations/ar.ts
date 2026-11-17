@@ -2767,6 +2767,9 @@ export const ar = {
     family_invite_expires: "تنتهي الصلاحية في {{date}}",
     family_invite_pending: "قيد الانتظار",
     family_invite_revoke: "إلغاء",
+    family_join_signed_in_as: "تم تسجيل الدخول باسم {{ email }}",
+    family_join_already_in_group:
+      "هذا الحساب ينتمي بالفعل إلى خطة عائلية. للانضمام بحساب آخر، انتقل إليه وافتح هذا الرابط مرة أخرى.",
     family_invite_wrong_recipient:
       "أُرسلت هذه الدعوة إلى عنوان مختلف. اطلب من المرسل مشاركة رابط الدعوة مباشرةً.",
     family_member_owner: "المالك",

@@ -2657,6 +2657,9 @@ export const ja = {
     family_invite_expires: "有効期限 {{date}}",
     family_invite_pending: "保留中",
     family_invite_revoke: "取り消す",
+    family_join_signed_in_as: "{{ email }} としてログイン中",
+    family_join_already_in_group:
+      "このアカウントはすでにファミリープランに参加しています。別のアカウントで参加するには、そのアカウントに切り替えてからこのリンクをもう一度開いてください。",
     family_invite_wrong_recipient:
       "この招待は別のアドレス宛てに送られています。送信者に招待リンクを直接共有してもらってください。",
     family_member_owner: "オーナー",

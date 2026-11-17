@@ -4114,6 +4114,9 @@ export const hi = {
     family_invite_expires: "{{date}} को खत्म होगा",
     family_invite_pending: "बाकी",
     family_invite_revoke: "रद्द करें",
+    family_join_signed_in_as: "{{ email }} के रूप में साइन इन है",
+    family_join_already_in_group:
+      "यह खाता पहले से एक फ़ैमिली प्लान में है। किसी दूसरे खाते से जुड़ने के लिए, उस खाते पर जाएँ और यह लिंक फिर से खोलें।",
     family_invite_wrong_recipient:
       "यह आमंत्रण किसी दूसरे पते पर भेजा गया था। इसके बजाय भेजने वाले से आमंत्रण लिंक सीधे साझा करने को कहें।",
     family_join_inviter: "{{ name }} ने आपको आमंत्रित किया",

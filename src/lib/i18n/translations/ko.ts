@@ -2590,6 +2590,9 @@ export const ko = {
     family_invite_expires: "{{date}}에 만료",
     family_invite_pending: "대기 중",
     family_invite_revoke: "취소",
+    family_join_signed_in_as: "{{ email }}(으)로 로그인됨",
+    family_join_already_in_group:
+      "이 계정은 이미 가족 요금제에 속해 있습니다. 다른 계정으로 참여하려면 해당 계정으로 전환한 후 이 링크를 다시 여세요.",
     family_invite_wrong_recipient:
       "이 초대는 다른 주소로 발송되었습니다. 보낸 사람에게 초대 링크를 직접 공유해 달라고 요청하세요.",
     family_member_owner: "소유자",

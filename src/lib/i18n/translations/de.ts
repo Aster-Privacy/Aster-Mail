@@ -2671,6 +2671,9 @@ export const de = {
     family_invite_expires: "Läuft am {{date}} ab",
     family_invite_pending: "Ausstehend",
     family_invite_revoke: "Widerrufen",
+    family_join_signed_in_as: "Angemeldet als {{ email }}",
+    family_join_already_in_group:
+      "Dieses Konto gehört bereits zu einem Familientarif. Um mit einem anderen Konto beizutreten, wechseln Sie zu diesem Konto und öffnen Sie diesen Link erneut.",
     family_invite_wrong_recipient:
       "Diese Einladung wurde an eine andere Adresse gesendet. Bitten Sie den Absender, den Einladungslink direkt zu teilen.",
     family_member_owner: "Inhaber",

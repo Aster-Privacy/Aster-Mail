@@ -2615,6 +2615,9 @@ export const nl = {
     family_invite_expires: "Verloopt op {{date}}",
     family_invite_pending: "In afwachting",
     family_invite_revoke: "Intrekken",
+    family_join_signed_in_as: "Aangemeld als {{ email }}",
+    family_join_already_in_group:
+      "Dit account hoort al bij een gezinsabonnement. Als je met een ander account wilt deelnemen, schakel je naar dat account en open je deze link opnieuw.",
     family_invite_wrong_recipient:
       "Deze uitnodiging is naar een ander adres gestuurd. Vraag de afzender om de link rechtstreeks te delen.",
     family_member_owner: "Eigenaar",

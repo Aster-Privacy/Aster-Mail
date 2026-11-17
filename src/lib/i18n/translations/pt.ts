@@ -2721,6 +2721,9 @@ export const pt = {
     family_invite_expires: "Expira em {{date}}",
     family_invite_pending: "Pendente",
     family_invite_revoke: "Revogar",
+    family_join_signed_in_as: "Sessão iniciada como {{ email }}",
+    family_join_already_in_group:
+      "Esta conta já pertence a um plano familiar. Para aderir com outra conta, mude para essa conta e abra novamente esta ligação.",
     family_invite_wrong_recipient:
       "Este convite foi enviado para outro endereço. Peça à pessoa que o enviou para partilhar diretamente a ligação de convite.",
     family_member_owner: "Proprietário",

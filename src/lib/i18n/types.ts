@@ -4087,6 +4087,8 @@ export interface SettingsTranslations {
   family_join_invalid_link: string;
   family_join_failed: string;
   family_join_sign_in_cta: string;
+  family_join_signed_in_as: string;
+  family_join_already_in_group: string;
   family_join_terms_prefix: string;
   family_join_terms_link: string;
   family_join_terms_and: string;

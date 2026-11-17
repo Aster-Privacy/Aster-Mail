@@ -40,7 +40,6 @@ const SKIPPED_PATH_PREFIXES = [
   "/cancel",
   "/reset-password",
   "/link-device",
-  "/join",
   "/family",
   "/view",
   "/book",

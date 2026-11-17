@@ -2685,6 +2685,9 @@ export const pt_br = {
     family_invite_expires: "Expira em {{date}}",
     family_invite_pending: "Pendente",
     family_invite_revoke: "Revogar",
+    family_join_signed_in_as: "Conectado como {{ email }}",
+    family_join_already_in_group:
+      "Esta conta já faz parte de um plano familiar. Para participar com outra conta, troque para ela e abra este link novamente.",
     family_invite_wrong_recipient:
       "Este convite foi enviado para outro endereço. Peça a quem enviou para compartilhar o link diretamente.",
     family_member_owner: "Proprietário",

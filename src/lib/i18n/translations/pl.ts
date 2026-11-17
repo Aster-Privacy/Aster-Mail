@@ -2839,6 +2839,9 @@ export const pl = {
     family_invite_expires: "Wygasa {{date}}",
     family_invite_pending: "Oczekujące",
     family_invite_revoke: "Cofnij",
+    family_join_signed_in_as: "Zalogowano jako {{ email }}",
+    family_join_already_in_group:
+      "To konto należy już do planu rodzinnego. Aby dołączyć z innego konta, przełącz się na nie i ponownie otwórz ten link.",
     family_invite_wrong_recipient:
       "To zaproszenie wysłano na inny adres. Poproś nadawcę o udostępnienie linku bezpośrednio.",
     family_member_owner: "Właściciel",

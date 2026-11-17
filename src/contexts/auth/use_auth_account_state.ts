@@ -49,6 +49,7 @@ import {
   with_timeout,
 } from "./auth_helpers";
 import { clear_signed_out_account_caches } from "./signed_out_account_caches";
+import { build_restore_sign_in_path } from "./restore_sign_in_path";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import {
@@ -730,7 +731,13 @@ export function use_auth_account_state() {
             : app_pathname();
 
           if (path !== "/sign-in" && path !== "/register") {
-            navigate(`/sign-in?u=${encodeURIComponent(local)}`);
+            navigate(
+              build_restore_sign_in_path(
+                local,
+                path,
+                uses_hash ? "" : window.location.search,
+              ),
+            );
           }
 
           return;
