@@ -25,6 +25,7 @@ import { clear_csrf_cache } from "./csrf";
 import { is_totp_required_response } from "./totp";
 
 import { sign_in_v3, take_pending_login_v3 } from "@/services/crypto/login_v3";
+import { apply_sign_in_scope } from "@/lib/suspension_state";
 
 interface RecoveryShareData {
   code_hash: string;
@@ -121,6 +122,7 @@ interface LoginResponse {
   access_token?: string;
   needs_prekey_replenishment?: boolean;
   is_suspended?: boolean;
+  session_scope?: string;
 }
 
 interface UserInfoResponse {
@@ -310,6 +312,7 @@ export async function login_user(
       );
     }
     api_client.set_authenticated(true);
+    apply_sign_in_scope(response.data);
   }
 
   return response;

@@ -1584,6 +1584,8 @@ export const tr = {
       "Verilerinizin bir kopyasını yine de indirebilirsiniz. Postanızın şifresi yalnızca bu cihazda çözülür, bu nedenle dışa aktarılan dosyayı başka kimse okuyamaz.",
     suspended_download: "Verilerinizi indirin",
     suspended_start_appeal: "İtiraz başlat",
+    suspended_limited_access:
+      "Bu hesap askıya alınmışken itiraz başlatabilir, verilerinizi indirebilir veya oturumu kapatabilirsiniz.",
     settings_disabled_suspended:
       "Hesabınız askıdayken ayarlar kapalıdır. İtiraz etmek veya ayrıntı almak için hello@astermail.org adresine yazın.",
     new_email_body: "Yeni bir e-postanız var",

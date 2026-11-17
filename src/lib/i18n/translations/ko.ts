@@ -1620,6 +1620,8 @@ export const ko = {
       "데이터 사본은 계속 다운로드할 수 있습니다. 메일은 이 기기에서만 복호화되므로 다른 사람은 내보낸 파일을 읽을 수 없습니다.",
     suspended_download: "데이터 다운로드",
     suspended_start_appeal: "이의 신청 시작",
+    suspended_limited_access:
+      "이 계정이 정지된 동안에는 이의 신청, 데이터 다운로드, 로그아웃만 할 수 있습니다.",
     settings_disabled_suspended:
       "계정이 정지된 동안 설정은 사용할 수 없습니다. 이의 신청이나 자세한 안내는 hello@astermail.org에서 도움을 받을 수 있습니다.",
     new_email_body: "새 이메일이 도착했습니다",

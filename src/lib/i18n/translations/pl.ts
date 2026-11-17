@@ -1625,6 +1625,8 @@ export const pl = {
       "Nadal możesz pobrać kopię swoich danych. Twoja poczta jest odszyfrowywana tylko na tym urządzeniu, więc nikt inny nie może odczytać eksportu.",
     suspended_download: "Pobierz swoje dane",
     suspended_start_appeal: "Złóż odwołanie",
+    suspended_limited_access:
+      "Dopóki to konto jest zawieszone, możesz złożyć odwołanie, pobrać swoje dane lub się wylogować.",
     settings_disabled_suspended:
       "Ustawienia są wyłączone, gdy konto jest zawieszone. hello@astermail.org może pomóc z odwołaniem lub szczegółami.",
     new_email_body: "Masz nowy e-mail",

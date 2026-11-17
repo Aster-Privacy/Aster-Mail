@@ -1625,6 +1625,8 @@ export const en: Translations = {
       "You can still download a copy of your data. Your mail is decrypted on this device only, so nobody else can read the export.",
     suspended_download: "Download your data",
     suspended_start_appeal: "Start appeal",
+    suspended_limited_access:
+      "While this account is suspended, you can start an appeal, download your data, or sign out.",
     pending_deletion_title: "Account scheduled for deletion",
     pending_deletion_body:
       "Your account is scheduled for deletion. Cancel the deletion to keep your account and restore access to your mail.",

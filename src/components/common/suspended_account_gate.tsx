@@ -26,6 +26,7 @@ import {
   lazy,
   Suspense,
 } from "react";
+import { Navigate } from "react-router-dom";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
@@ -37,6 +38,14 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { WorkspaceSwitcher } from "@/components/layout/workspace_switcher";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { WarningIcon } from "@/components/auth/auth_styles";
+import { FullPageLoader } from "@/components/common/full_page_loader";
+import { use_folders } from "@/hooks/use_folders";
+import {
+  ACCOUNT_SUSPENDED_EVENT,
+  reset_suspension_state,
+  set_suspension_state,
+  use_suspension_state,
+} from "@/lib/suspension_state";
 
 const ExportModal = lazy(() =>
   import("@/components/settings/export_modal").then((m) => ({
@@ -44,24 +53,28 @@ const ExportModal = lazy(() =>
   })),
 );
 
-export const ACCOUNT_SUSPENDED_EVENT = "aster:account-suspended";
+export { ACCOUNT_SUSPENDED_EVENT };
 const TERMS_URL = "https://astermail.org/terms";
 const APPEAL_URL = "https://astermail.org/appeal";
+const SUSPENSION_ENDPOINT = "/core/v1/account/suspension";
 
-interface AccountStatus {
-  status: string;
+interface SuspensionStatus {
+  suspended: boolean;
   suspended_at: string | null;
   deletion_eligible_at: string | null;
+  appeal_url: string | null;
 }
 
 interface SuspensionDetails {
   suspended_at: Date | null;
   deletion_eligible_at: Date | null;
+  appeal_url: string;
 }
 
 const EMPTY_DETAILS: SuspensionDetails = {
   suspended_at: null,
   deletion_eligible_at: null,
+  appeal_url: APPEAL_URL,
 };
 
 function parse_date(value: string | null | undefined): Date | null {
@@ -87,6 +100,17 @@ function split_on_token(text: string, token: string): [string, string] {
   return [text.slice(0, index), text.slice(index + token.length)];
 }
 
+function safe_appeal_base(value: string | null | undefined): string {
+  if (!value) return APPEAL_URL;
+  try {
+    const parsed = new URL(value);
+
+    return parsed.protocol === "https:" ? parsed.toString() : APPEAL_URL;
+  } catch {
+    return APPEAL_URL;
+  }
+}
+
 const RowChevron = () => (
   <svg
     aria-hidden="true"
@@ -101,23 +125,83 @@ const RowChevron = () => (
   </svg>
 );
 
-export function build_appeal_url(address: string): string {
-  return address
-    ? `${APPEAL_URL}?address=${encodeURIComponent(address)}`
-    : APPEAL_URL;
+export function build_appeal_url(address: string, base = APPEAL_URL): string {
+  const url = safe_appeal_base(base);
+
+  if (!address) return url;
+
+  const separator = url.includes("?") ? "&" : "?";
+
+  return `${url}${separator}address=${encodeURIComponent(address)}`;
 }
 
-export function SuspendedAccountGate() {
+async function fetch_suspension_status(): Promise<SuspensionStatus | null> {
+  const response = await api_client.get<SuspensionStatus>(
+    SUSPENSION_ENDPOINT,
+    { skip_cache: true },
+  );
+
+  return response.data ?? null;
+}
+
+export function SuspensionStatusWatcher() {
+  const { is_authenticated, user } = use_auth();
+  const checked_user = useRef<string | null>(null);
+  const user_id = user?.id ?? null;
+
+  useEffect(() => {
+    if (!is_authenticated || !user_id) {
+      if (checked_user.current !== null) reset_suspension_state();
+      checked_user.current = null;
+
+      return;
+    }
+
+    if (checked_user.current === user_id) return;
+    if (checked_user.current !== null) reset_suspension_state();
+    checked_user.current = user_id;
+
+    let cancelled = false;
+
+    fetch_suspension_status()
+      .then((status) => {
+        if (cancelled || !status) return;
+        set_suspension_state(status.suspended ? "suspended" : "active");
+      })
+      .catch((caught) =>
+        ignore_error("components/common/suspended_account_gate:watch", caught),
+      );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [is_authenticated, user_id]);
+
+  return null;
+}
+
+export function SuspendedPage() {
+  const { is_authenticated, is_loading } = use_auth();
+  const state = use_suspension_state();
+
+  if (is_loading) return <FullPageLoader />;
+  if (!is_authenticated) return <Navigate replace to="/sign-in" />;
+  if (state === "active") return <Navigate replace to="/" />;
+  if (state === "unknown") return <FullPageLoader />;
+
+  return <SuspendedAccountScreen />;
+}
+
+export function SuspendedAccountScreen() {
   const { t } = use_i18n();
-  const { is_authenticated, logout, user } = use_auth();
+  const { logout, user } = use_auth();
   const { preferences } = use_preferences();
-  const was_authenticated = useRef(false);
-  const is_signing_out = useRef(false);
-  const [is_visible, set_is_visible] = useState(false);
   const [details, set_details] = useState<SuspensionDetails>(EMPTY_DETAILS);
   const [is_export_open, set_is_export_open] = useState(false);
   const [is_switcher_open, set_is_switcher_open] = useState(false);
   const [is_busy, set_is_busy] = useState(false);
+
+  use_folders();
 
   const account_email = user?.email ?? "";
   const primary_identity = use_primary_identity(account_email);
@@ -125,78 +209,31 @@ export function SuspendedAccountGate() {
   const display_name =
     user?.display_name || user?.username || display_email.split("@")[0];
 
-  const load_status = useCallback(async () => {
-    const response = await api_client.get<AccountStatus>(
-      "/core/v1/account/status",
-      { skip_cache: true },
-    );
+  const load_details = useCallback(async () => {
+    const status = await fetch_suspension_status();
 
-    if (response.data?.status === "suspended") {
-      set_details({
-        suspended_at: parse_date(response.data.suspended_at),
-        deletion_eligible_at: parse_date(response.data.deletion_eligible_at),
-      });
-      set_is_visible(true);
-
-      return true;
-    }
-
-    return false;
-  }, []);
-
-  const handle_suspended_signal = useCallback(() => {
-    if (is_signing_out.current) return;
-    set_is_visible(true);
-    load_status().catch((caught) =>
-      ignore_error("components/common/suspended_account_gate:signal", caught),
-    );
-  }, [load_status]);
-
-  useEffect(() => {
-    window.addEventListener(ACCOUNT_SUSPENDED_EVENT, handle_suspended_signal);
-
-    return () => {
-      window.removeEventListener(
-        ACCOUNT_SUSPENDED_EVENT,
-        handle_suspended_signal,
-      );
-    };
-  }, [handle_suspended_signal]);
-
-  useEffect(() => {
-    if (!is_authenticated) {
-      if (was_authenticated.current) {
-        set_is_visible(false);
-        set_is_export_open(false);
-        set_details(EMPTY_DETAILS);
-      }
-      was_authenticated.current = false;
+    if (!status) return;
+    if (!status.suspended) {
+      set_suspension_state("active");
 
       return;
     }
 
-    was_authenticated.current = true;
-    is_signing_out.current = false;
+    set_details({
+      suspended_at: parse_date(status.suspended_at),
+      deletion_eligible_at: parse_date(status.deletion_eligible_at),
+      appeal_url: safe_appeal_base(status.appeal_url),
+    });
+  }, []);
 
-    let cancelled = false;
-
-    load_status()
-      .then((suspended) => {
-        if (cancelled) return;
-        if (!suspended) set_is_visible(false);
-      })
-      .catch((caught) =>
-        ignore_error("components/common/suspended_account_gate:check", caught),
-      );
-
-    return () => {
-      cancelled = true;
-    };
-  }, [is_authenticated, user?.id, load_status]);
+  useEffect(() => {
+    load_details().catch((caught) =>
+      ignore_error("components/common/suspended_account_gate:load", caught),
+    );
+  }, [load_details, user?.id]);
 
   const handle_sign_out = async () => {
     set_is_busy(true);
-    is_signing_out.current = true;
 
     try {
       await logout();
@@ -207,13 +244,9 @@ export function SuspendedAccountGate() {
       );
     }
 
-    set_is_visible(false);
+    reset_suspension_state();
     set_is_busy(false);
   };
-
-  if (!is_visible) {
-    return null;
-  }
 
   const [alert_before, alert_after] = split_on_token(
     t("common.suspended_alert"),
@@ -233,12 +266,10 @@ export function SuspendedAccountGate() {
         : "";
 
   return (
-    <div
+    <main
       aria-labelledby="suspended_account_title"
-      aria-modal="true"
       className="fixed inset-0 z-[55] overflow-y-auto bg-surf-primary text-txt-primary"
       data-testid="suspended_account_gate"
-      role="dialog"
     >
       <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4 pt-[max(2rem,env(safe-area-inset-top))]">
         <div className="flex w-full max-w-[440px] flex-col items-start px-4 text-start">
@@ -310,6 +341,12 @@ export function SuspendedAccountGate() {
               {status_line}
             </p>
           )}
+          <p
+            className="mt-1.5 text-sm leading-relaxed text-txt-tertiary"
+            data-testid="suspended_limited_access"
+          >
+            {t("common.suspended_limited_access")}
+          </p>
 
           <div
             className="mt-4 flex w-full items-start gap-2.5 rounded-lg px-4 py-3 text-sm leading-relaxed"
@@ -338,7 +375,7 @@ export function SuspendedAccountGate() {
             <a
               className="account_menu_row flex w-full items-center gap-3.5 rounded-[16px] px-3.5 py-3.5 no-underline"
               data-testid="suspended_start_appeal"
-              href={build_appeal_url(display_email)}
+              href={build_appeal_url(display_email, details.appeal_url)}
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -397,6 +434,6 @@ export function SuspendedAccountGate() {
           />
         </Suspense>
       )}
-    </div>
+    </main>
   );
 }

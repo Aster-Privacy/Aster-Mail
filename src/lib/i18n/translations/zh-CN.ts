@@ -1484,6 +1484,8 @@ export const zh_CN = {
       "您仍然可以下载数据副本。您的邮件仅在此设备上解密，因此其他人无法读取导出的内容。",
     suspended_download: "下载您的数据",
     suspended_start_appeal: "开始申诉",
+    suspended_limited_access:
+      "此账户被暂停期间，你可以提出申诉、下载你的数据或退出登录。",
     new_email_body: "您有一封新邮件",
     new_emails_body_one: "您有 {{count}} 封新邮件",
     new_emails_body: "您有 {{count}} 封新邮件",

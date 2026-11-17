@@ -1624,6 +1624,8 @@ export const ja = {
       "データのコピーは引き続きダウンロードできます。メールはこのデバイス上でのみ復号されるため、エクスポートを他の人が読むことはできません。",
     suspended_download: "データをダウンロード",
     suspended_start_appeal: "異議申し立てを開始",
+    suspended_limited_access:
+      "このアカウントが停止されている間は、異議申し立て、データのダウンロード、サインアウトのみ行えます。",
     settings_disabled_suspended:
       "アカウントが停止されている間、設定は無効になっています。異議申し立てや詳細については hello@astermail.org がお力になれます。",
     new_email_body: "新しいメールが届いています",

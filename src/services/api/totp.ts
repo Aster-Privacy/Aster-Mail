@@ -20,6 +20,7 @@
 //
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
+import { apply_sign_in_scope } from "@/lib/suspension_state";
 
 export interface TotpSetupInitiateResponse {
   secret: string;
@@ -55,6 +56,7 @@ export interface TotpVerifyResponse {
   access_token?: string;
   needs_prekey_replenishment?: boolean;
   is_suspended?: boolean;
+  session_scope?: string;
   prf_encrypted_passphrase?: string;
   prf_nonce?: string;
 }
@@ -132,6 +134,7 @@ export async function verify_totp_login(
       );
     }
     api_client.set_authenticated(true);
+    apply_sign_in_scope(response.data);
   }
 
   return response;
@@ -154,6 +157,7 @@ export async function verify_backup_code_login(
       );
     }
     api_client.set_authenticated(true);
+    apply_sign_in_scope(response.data);
   }
 
   return response;

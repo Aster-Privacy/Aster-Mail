@@ -1598,6 +1598,8 @@ export const nl = {
       "Je kunt nog steeds een kopie van je gegevens downloaden. Je e-mail wordt alleen op dit apparaat ontsleuteld, dus niemand anders kan de export lezen.",
     suspended_download: "Je gegevens downloaden",
     suspended_start_appeal: "Bezwaar maken",
+    suspended_limited_access:
+      "Zolang dit account is opgeschort, kun je bezwaar maken, je gegevens downloaden of uitloggen.",
     settings_disabled_suspended:
       "Instellingen zijn uitgeschakeld zolang je account is opgeschort. hello@astermail.org kan helpen met bezwaar of meer informatie.",
     new_email_body: "Je hebt een nieuwe e-mail",
