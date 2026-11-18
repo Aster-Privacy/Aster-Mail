@@ -76,6 +76,13 @@ function Harness() {
   return null;
 }
 
+function set_visibility(state: DocumentVisibilityState): void {
+  Object.defineProperty(document, "visibilityState", {
+    configurable: true,
+    get: () => state,
+  });
+}
+
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
@@ -100,6 +107,7 @@ describe("use_email_list_events background poll", () => {
     container?.remove();
     root = null;
     container = null;
+    set_visibility("visible");
     vi.useRealTimers();
   });
 
@@ -156,6 +164,44 @@ describe("use_email_list_events background poll", () => {
 
     await act(async () => {
       document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    expect(hoisted.silent_fetch).toHaveBeenCalledTimes(1);
+  });
+  it("keeps polling every five minutes while the window is hidden and the connection is down", async () => {
+    set_visibility("hidden");
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(POLL_MS * 4);
+    });
+
+    expect(hoisted.silent_fetch).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(POLL_MS);
+    });
+
+    expect(hoisted.silent_fetch).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(POLL_MS * 5);
+    });
+
+    expect(hoisted.silent_fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("polls every fifteen minutes while the window is hidden and the connection is up", async () => {
+    set_visibility("hidden");
+    hoisted.socket_live = true;
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(POLL_MS * 14);
+    });
+
+    expect(hoisted.silent_fetch).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(POLL_MS);
     });
 
     expect(hoisted.silent_fetch).toHaveBeenCalledTimes(1);
