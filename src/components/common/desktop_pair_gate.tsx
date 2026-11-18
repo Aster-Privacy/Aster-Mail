@@ -37,6 +37,7 @@ import {
   clear_device_session,
   clear_explicit_sign_out,
   relogin_with_retries,
+  resume_device_login_after_unlock,
   take_explicit_sign_out,
 } from "@/native/desktop_device_auth";
 import {
@@ -195,6 +196,20 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
         }
 
         if (outcome === "locked") {
+          set_checked(true);
+          const resumed = await resume_device_login_after_unlock(current?.id);
+
+          if (cancelled) return;
+          if (resumed) {
+            const resumed_outcome = await finalize(resumed);
+
+            if (cancelled || resumed_outcome === "signed_in") return;
+            if (resumed_outcome === "unavailable") {
+              set_gate_state("unavailable");
+
+              return;
+            }
+          }
           set_gate_state("pair");
 
           return;

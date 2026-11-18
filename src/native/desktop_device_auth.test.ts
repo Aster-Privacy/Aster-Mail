@@ -554,6 +554,144 @@ describe("device relogin decisions", () => {
   });
 });
 
+describe("resuming a PIN locked device login", () => {
+  function seal_stored_passphrase(): void {
+    const base = invoke_mock.getMockImplementation();
+
+    invoke_mock.mockImplementation(
+      (cmd: string, args?: Record<string, unknown>) => {
+        if (cmd === "device_get_stored_passphrase") {
+          return Promise.reject("passphrase_pin_locked");
+        }
+
+        return base?.(cmd, args);
+      },
+    );
+  }
+
+  function unlock_source(options: {
+    locked: boolean;
+    unlocks?: boolean;
+    passphrase?: string | null;
+  }) {
+    return {
+      is_locked: vi.fn(() => options.locked),
+      wait_for_unlock: vi.fn(() => Promise.resolve(options.unlocks ?? true)),
+      read_passphrase: vi.fn(() =>
+        Promise.resolve(
+          options.passphrase === undefined ? "pass" : options.passphrase,
+        ),
+      ),
+    };
+  }
+
+  it("finishes the sign in with the unlocked passphrase instead of pairing again", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: true });
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "locked",
+    );
+    const resumed = await module.resume_device_login_after_unlock(
+      "account-1",
+      source,
+    );
+
+    expect(source.wait_for_unlock).toHaveBeenCalledWith("account-1");
+    expect(source.read_passphrase).toHaveBeenCalledWith("account-1");
+    expect(resumed).toEqual({
+      login_response: expect.objectContaining({
+        encrypted_vault: "vault",
+        vault_nonce: "vault-nonce",
+      }),
+      passphrase: "pass",
+      device_id: "device-1",
+    });
+    expect(
+      invoke_mock.mock.calls.some(([cmd]) => cmd === "device_forget_account"),
+    ).toBe(false);
+  });
+
+  it("reads the passphrase at once when the app is already unlocked", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: false });
+
+    await module.attempt_device_relogin("device-1");
+    const resumed = await module.resume_device_login_after_unlock(
+      "account-1",
+      source,
+    );
+
+    expect(source.wait_for_unlock).not.toHaveBeenCalled();
+    expect(resumed?.passphrase).toBe("pass");
+  });
+
+  it("gives up when the unlock is abandoned", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: true, unlocks: false });
+
+    await module.attempt_device_relogin("device-1");
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
+    expect(source.read_passphrase).not.toHaveBeenCalled();
+  });
+
+  it("gives up when no passphrase is available after the unlock", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: true, passphrase: null });
+
+    await module.attempt_device_relogin("device-1");
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
+  });
+
+  it("has nothing to resume after a normal sign in", async () => {
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: true });
+
+    await module.attempt_device_relogin("device-1");
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
+    expect(source.wait_for_unlock).not.toHaveBeenCalled();
+  });
+
+  it("drops the locked login once the device is forgotten", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: false });
+
+    await module.attempt_device_relogin("device-1");
+    await module.forget_device_account("device-1");
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
+  });
+
+  it("resumes only once", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: false });
+
+    await module.attempt_device_relogin("device-1");
+    await module.resume_device_login_after_unlock("account-1", source);
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
+  });
+});
+
 describe("explicit sign out flag", () => {
   it("is consumed once after a sign out", async () => {
     const module = await import("./desktop_device_auth");
