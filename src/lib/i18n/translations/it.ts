@@ -7526,6 +7526,13 @@ export const it = {
     scanning_progress: "Scansione ({{processed}}/{{total}})",
     no_snoozed_senders: "Nessun mittente posticipato",
     no_subscriptions_detected: "Nessuna iscrizione rilevata",
+    delete_selected_subscriptions: "Elimina ({{count}})",
+    delete_subscriptions_title: "Eliminare {{count}} iscrizioni?",
+    delete_subscriptions_title_one: "Eliminare {{count}} iscrizione?",
+    delete_subscriptions_body: "Non puoi ripristinare le voci eliminate. Se un mittente ti scrive di nuovo, ricompare in questo elenco.",
+    subscriptions_deleted: "{{count}} iscrizioni eliminate",
+    subscriptions_deleted_one: "{{count}} iscrizione eliminata",
+    delete_subscriptions_failed: "Impossibile eliminare le iscrizioni selezionate",
     snoozed_appear_here: "I mittenti che posticipi appariranno qui",
     scan_inbox_description:
       "Clicca 'Scansiona posta in arrivo' per rilevare newsletter ed email di marketing",

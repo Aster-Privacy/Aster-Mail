@@ -7593,6 +7593,13 @@ export const hi = {
     scanning_progress: "स्कैन हो रहा है ({{processed}}/{{total}})",
     no_snoozed_senders: "कोई स्नूज़ किया गया प्रेषक नहीं",
     no_subscriptions_detected: "कोई सदस्यता नहीं मिली",
+    delete_selected_subscriptions: "हटाएं ({{count}})",
+    delete_subscriptions_title: "{{count}} सदस्यताएं हटाएं?",
+    delete_subscriptions_title_one: "{{count}} सदस्यता हटाएं?",
+    delete_subscriptions_body: "हटाई गई एंट्री को वापस नहीं लाया जा सकता। अगर कोई भेजने वाला आपको फिर से ईमेल करता है, तो वह इस सूची में फिर से दिखेगा।",
+    subscriptions_deleted: "{{count}} सदस्यताएं हटाई गईं",
+    subscriptions_deleted_one: "{{count}} सदस्यता हटाई गई",
+    delete_subscriptions_failed: "चुनी गई सदस्यताएं हटाई नहीं जा सकीं",
     snoozed_appear_here: "आपके स्नूज़ किए गए प्रेषक यहां दिखेंगे",
     scan_inbox_description:
       "न्यूज़लेटर और मार्केटिंग ईमेल पहचानने के लिए 'इनबॉक्स स्कैन करें' पर क्लिक करें",

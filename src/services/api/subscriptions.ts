@@ -220,3 +220,17 @@ export async function delete_subscription(
     `/mail/v1/subscriptions/${subscription_id}`,
   );
 }
+
+export interface DeleteSubscriptionsResponse {
+  success: boolean;
+  deleted: number;
+}
+
+export async function delete_subscriptions_by_sender(
+  sender_emails: string[],
+): Promise<{ data?: DeleteSubscriptionsResponse; error?: string }> {
+  return api_client.post<DeleteSubscriptionsResponse>(
+    "/mail/v1/subscriptions/delete",
+    { sender_emails },
+  );
+}

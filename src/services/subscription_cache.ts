@@ -26,11 +26,7 @@ import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_
 import { api_client } from "@/services/api/client";
 
 export type SubscriptionCacheCategory =
-  | "newsletter"
-  | "marketing"
-  | "social"
-  | "transactional"
-  | "unknown";
+  "newsletter" | "marketing" | "social" | "transactional" | "unknown";
 
 export interface CachedSubscription {
   sender_email: string;
@@ -61,12 +57,140 @@ export interface SubscriptionScanProgress {
   carried: string[];
 }
 
+export interface DeletedSubscription {
+  sender_email: string;
+  deleted_at: string;
+}
+
 export interface SubscriptionCacheData {
   subscriptions: CachedSubscription[];
   last_scan_ts: string;
   last_scan_message_ts?: string;
   version?: number;
   scan_progress?: SubscriptionScanProgress;
+  deleted?: DeletedSubscription[];
+}
+
+export const MAX_DELETED_SUBSCRIPTIONS = 1000;
+
+export function normalize_sender_email(sender_email: string): string {
+  return typeof sender_email === "string"
+    ? sender_email.trim().toLowerCase()
+    : "";
+}
+
+function parse_time(value: unknown): number {
+  const parsed = typeof value === "string" ? Date.parse(value) : NaN;
+
+  return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+export function merge_deleted_subscriptions(
+  ...lists: Array<DeletedSubscription[] | undefined>
+): DeletedSubscription[] {
+  const merged = new Map<string, DeletedSubscription>();
+
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+
+    for (const entry of list) {
+      if (!entry || typeof entry !== "object") continue;
+
+      const sender_email = normalize_sender_email(entry.sender_email);
+      const deleted_time = parse_time(entry.deleted_at);
+
+      if (!sender_email.includes("@") || !Number.isFinite(deleted_time)) {
+        continue;
+      }
+
+      const existing = merged.get(sender_email);
+
+      if (!existing || parse_time(existing.deleted_at) < deleted_time) {
+        merged.set(sender_email, {
+          sender_email,
+          deleted_at: entry.deleted_at,
+        });
+      }
+    }
+  }
+
+  return Array.from(merged.values())
+    .sort((a, b) => parse_time(b.deleted_at) - parse_time(a.deleted_at))
+    .slice(0, MAX_DELETED_SUBSCRIPTIONS);
+}
+
+export function is_deleted_subscription(
+  subscription: CachedSubscription,
+  deleted: DeletedSubscription[] | undefined,
+): boolean {
+  if (!Array.isArray(deleted) || deleted.length === 0) return false;
+
+  const sender_email = normalize_sender_email(subscription.sender_email);
+  const tombstone = deleted.find((d) => d.sender_email === sender_email);
+
+  if (!tombstone) return false;
+
+  const received = parse_time(subscription.last_received);
+
+  if (!Number.isFinite(received)) return true;
+
+  return received <= parse_time(tombstone.deleted_at);
+}
+
+export function apply_deleted_subscriptions(
+  data: SubscriptionCacheData,
+  extra: DeletedSubscription[] = [],
+): SubscriptionCacheData {
+  const deleted = merge_deleted_subscriptions(data.deleted, extra);
+
+  if (deleted.length === 0) {
+    if (data.deleted === undefined) return data;
+
+    const without: SubscriptionCacheData = { ...data };
+
+    delete without.deleted;
+
+    return without;
+  }
+
+  const subscriptions = Array.isArray(data.subscriptions)
+    ? data.subscriptions.filter((s) => !is_deleted_subscription(s, deleted))
+    : [];
+
+  return { ...data, subscriptions, deleted };
+}
+
+export function with_deleted_senders(
+  data: SubscriptionCacheData,
+  sender_emails: string[],
+  deleted_at: string = new Date().toISOString(),
+): SubscriptionCacheData {
+  const removed = new Set(sender_emails.map(normalize_sender_email));
+  const remaining = data.subscriptions.filter(
+    (sub) => !removed.has(normalize_sender_email(sub.sender_email)),
+  );
+
+  return apply_deleted_subscriptions(
+    { ...data, subscriptions: remaining },
+    sender_emails.map((sender_email) => ({ sender_email, deleted_at })),
+  );
+}
+
+const known_deleted = new Map<string, DeletedSubscription[]>();
+
+function remember_deleted(
+  vault: EncryptedVault,
+  deleted: DeletedSubscription[] | undefined,
+): DeletedSubscription[] {
+  const account = vault.identity_key || "";
+  const merged = merge_deleted_subscriptions(
+    known_deleted.get(account),
+    deleted,
+  );
+
+  known_deleted.set(account, merged);
+
+  return merged;
 }
 
 interface GetSubscriptionsApiResponse {
@@ -333,10 +457,15 @@ export async function load_subscription_cache(
       return null;
     }
 
-    return await decrypt_subscriptions(
+    const decrypted = await decrypt_subscriptions(
       encrypted_subscriptions,
       subscriptions_nonce,
       vault,
+    );
+
+    return apply_deleted_subscriptions(
+      decrypted,
+      remember_deleted(vault, decrypted.deleted),
     );
   } catch {
     return null;
@@ -348,7 +477,11 @@ export async function save_subscription_cache(
   vault: EncryptedVault,
 ): Promise<boolean> {
   try {
-    const { encrypted, nonce } = await encrypt_subscriptions(data, vault);
+    const outgoing = apply_deleted_subscriptions(
+      data,
+      remember_deleted(vault, data.deleted),
+    );
+    const { encrypted, nonce } = await encrypt_subscriptions(outgoing, vault);
 
     const response = await api_client.put<SaveSubscriptionsApiResponse>(
       "/settings/v1/preferences/subscriptions",

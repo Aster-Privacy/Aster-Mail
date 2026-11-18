@@ -6041,6 +6041,13 @@ export const de = {
     scanning_progress: "Scannen ({{processed}}/{{total}})",
     no_snoozed_senders: "Keine zurückgestellten Absender",
     no_subscriptions_detected: "Keine Abonnements erkannt",
+    delete_selected_subscriptions: "Löschen ({{count}})",
+    delete_subscriptions_title: "{{count}} Abonnements löschen?",
+    delete_subscriptions_title_one: "{{count}} Abonnement löschen?",
+    delete_subscriptions_body: "Gelöschte Einträge kannst du nicht wiederherstellen. Wenn dir ein Absender erneut schreibt, erscheint er wieder in dieser Liste.",
+    subscriptions_deleted: "{{count}} Abonnements gelöscht",
+    subscriptions_deleted_one: "{{count}} Abonnement gelöscht",
+    delete_subscriptions_failed: "Die ausgewählten Abonnements konnten nicht gelöscht werden",
     snoozed_appear_here: "Absender, die Sie zurückstellen, erscheinen hier",
     scan_inbox_description:
       "Klicken Sie auf 'Posteingang scannen', um Newsletter und Marketing-E-Mails zu erkennen",

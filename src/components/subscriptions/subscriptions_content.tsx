@@ -22,7 +22,11 @@ import type { CachedSubscription } from "@/services/subscription_cache";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { MagnifyingGlassIcon, Bars3Icon } from "@heroicons/react/24/outline";
+import {
+  MagnifyingGlassIcon,
+  Bars3Icon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { Badge, Checkbox, IslandEmpty, PillButton } from "@aster/ui";
 
@@ -38,6 +42,12 @@ import { use_page_search } from "@/hooks/use_page_search";
 import { use_external_link } from "@/contexts/external_link_context";
 import { calendar_day_diff } from "@/utils/date_format";
 import { get_manual_unsubscribe_url } from "@/utils/unsubscribe_detector";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import {
+  reduce_subscription_selection,
+  subscription_bar_actions,
+  type SubscriptionBarAction,
+} from "@/components/subscriptions/subscription_selection";
 import {
   get_category_badge_color,
   get_category_label,
@@ -79,6 +89,7 @@ export function SubscriptionsContent({
     unsubscribe,
     bulk_unsubscribe,
     reactivate,
+    delete_senders,
   } = use_subscriptions();
   const scan_in_flight = use_subscription_scan_in_flight();
 
@@ -90,6 +101,8 @@ export function SubscriptionsContent({
   const [failed_unsub_ids, set_failed_unsub_ids] = useState<Set<string>>(
     new Set(),
   );
+  const [pending_delete, set_pending_delete] = useState<string[]>([]);
+  const [is_deleting, set_is_deleting] = useState(false);
 
   const active_subscriptions = useMemo(
     () => subscriptions.filter((s) => s.status === "active"),
@@ -105,16 +118,18 @@ export function SubscriptionsContent({
     set_selected_ids((prev) => {
       if (prev.size === 0) return prev;
 
-      const still_active = new Set(
-        active_subscriptions.map((s) => s.sender_email),
-      );
+      const tab_list =
+        active_tab === "active"
+          ? active_subscriptions
+          : unsubscribed_subscriptions;
+      const still_listed = new Set(tab_list.map((s) => s.sender_email));
       const next = new Set(
-        Array.from(prev).filter((email) => still_active.has(email)),
+        Array.from(prev).filter((email) => still_listed.has(email)),
       );
 
       return next.size === prev.size ? prev : next;
     });
-  }, [active_subscriptions]);
+  }, [active_tab, active_subscriptions, unsubscribed_subscriptions]);
 
   const current_list = useMemo(() => {
     const base =
@@ -224,19 +239,81 @@ export function SubscriptionsContent({
     }
   }, [visible_selected_count, current_list]);
 
-  const handle_bulk_unsubscribe = useCallback(async () => {
-    const emails = Array.from(selected_ids);
+  const handle_bulk_unsubscribe = useCallback(
+    async (emails: string[]) => {
+      const failed = await bulk_unsubscribe(emails);
 
-    const failed = await bulk_unsubscribe(emails);
+      if (!failed) return;
 
-    if (!failed) return;
+      set_selected_ids(new Set(failed));
 
-    set_selected_ids(new Set(failed));
+      if (failed.length > 0) {
+        set_failed_unsub_ids((prev) => new Set([...prev, ...failed]));
+      }
+    },
+    [bulk_unsubscribe],
+  );
 
-    if (failed.length > 0) {
-      set_failed_unsub_ids((prev) => new Set([...prev, ...failed]));
+  const handle_bar_action = useCallback(
+    (action: SubscriptionBarAction) => {
+      const result = reduce_subscription_selection(
+        selected_ids,
+        current_list.map((s) => s.sender_email),
+        action,
+      );
+
+      set_selected_ids(result.selected);
+
+      if (result.unsubscribe_request.length > 0) {
+        handle_bulk_unsubscribe(result.unsubscribe_request);
+      }
+
+      if (result.reactivate_request.length > 0) {
+        void (async () => {
+          for (const email of result.reactivate_request) {
+            await reactivate(email);
+          }
+        })();
+      }
+
+      if (result.delete_request.length > 0) {
+        set_pending_delete(result.delete_request);
+      }
+    },
+    [selected_ids, current_list, handle_bulk_unsubscribe, reactivate],
+  );
+
+  const handle_request_delete = useCallback(
+    (e: React.MouseEvent, sender_email: string) => {
+      e.stopPropagation();
+      set_pending_delete([sender_email]);
+    },
+    [],
+  );
+
+  const handle_confirm_delete = useCallback(async () => {
+    const emails = pending_delete;
+
+    if (emails.length === 0) return;
+
+    set_is_deleting(true);
+
+    const deleted = await delete_senders(emails);
+
+    set_is_deleting(false);
+    set_pending_delete([]);
+
+    if (deleted) {
+      const removed = new Set(emails);
+
+      set_selected_ids(
+        (prev) =>
+          new Set(Array.from(prev).filter((email) => !removed.has(email))),
+      );
     }
-  }, [selected_ids, bulk_unsubscribe]);
+  }, [pending_delete, delete_senders]);
+
+  const bar_selected_count = visible_selected_count;
 
   const handle_unsubscribe = useCallback(
     async (e: React.MouseEvent, sender_email: string) => {
@@ -328,7 +405,7 @@ export function SubscriptionsContent({
         </div>
       ) : (
         <div className="aster_scrollbar_thin flex-1 overflow-y-auto px-4 pb-4 pt-1">
-          {active_tab === "active" && current_list.length > 0 && (
+          {current_list.length > 0 && (
             <div className="flex items-center gap-3 px-4 pb-2 pt-1">
               <Checkbox
                 checked={
@@ -357,6 +434,7 @@ export function SubscriptionsContent({
                 on_click={handle_sender_click}
                 on_open_unsubscribe_page={handle_open_unsubscribe_page}
                 on_reactivate={handle_reactivate}
+                on_request_delete={handle_request_delete}
                 on_toggle_select={handle_toggle_select}
                 on_unsubscribe={handle_unsubscribe}
                 subscription={sub}
@@ -367,22 +445,57 @@ export function SubscriptionsContent({
         </div>
       )}
 
-      {selected_ids.size > 0 && active_tab === "active" && (
+      {bar_selected_count > 0 && (
         <div className="flex-shrink-0 px-4 pb-4 pt-2">
-          <div className="aster_island aster_island_pad_sm flex items-center justify-between gap-3 ps-4">
+          <div className="aster_island aster_island_pad_sm flex flex-wrap items-center justify-between gap-3 ps-4">
             <span className="text-sm text-txt-secondary">
-              {selected_ids.size} {t("common.selected")}
+              {bar_selected_count} {t("common.selected")}
             </span>
-            <PillButton
-              size="sm"
-              variant="danger"
-              onClick={handle_bulk_unsubscribe}
-            >
-              {t("mail.unsubscribe")} ({selected_ids.size})
-            </PillButton>
+            <div className="flex flex-wrap items-center gap-2">
+              {subscription_bar_actions(active_tab).map((action) => (
+                <PillButton
+                  key={action}
+                  size="sm"
+                  variant={
+                    action === "deselect"
+                      ? "outline"
+                      : action === "reactivate"
+                        ? "tonal"
+                        : "danger"
+                  }
+                  onClick={() => handle_bar_action(action)}
+                >
+                  {action === "deselect"
+                    ? t("common.deselect_all")
+                    : action === "reactivate"
+                      ? `${t("settings.reactivate")} (${bar_selected_count})`
+                      : action === "unsubscribe"
+                        ? `${t("mail.unsubscribe")} (${bar_selected_count})`
+                        : t("settings.delete_selected_subscriptions", {
+                            count: bar_selected_count,
+                          })}
+                </PillButton>
+              ))}
+            </div>
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("common.delete")}
+        is_loading={is_deleting}
+        is_open={pending_delete.length > 0}
+        message={t("settings.delete_subscriptions_body")}
+        title={t("settings.delete_subscriptions_title", {
+          count: pending_delete.length,
+        })}
+        variant="danger"
+        on_cancel={() => {
+          if (!is_deleting) set_pending_delete([]);
+        }}
+        on_confirm={handle_confirm_delete}
+      />
     </div>
   );
 }
@@ -421,6 +534,7 @@ interface SubscriptionRowProps {
     sub: CachedSubscription,
   ) => void;
   on_reactivate: (e: React.MouseEvent, sender_email: string) => void;
+  on_request_delete: (e: React.MouseEvent, sender_email: string) => void;
 }
 
 function SubscriptionRow({
@@ -434,6 +548,7 @@ function SubscriptionRow({
   on_unsubscribe,
   on_open_unsubscribe_page,
   on_reactivate,
+  on_request_delete,
 }: SubscriptionRowProps) {
   const { t } = use_i18n();
   const shown_name =
@@ -452,14 +567,12 @@ function SubscriptionRow({
       }}
       onClick={is_clickable ? () => on_click(sub) : undefined}
     >
-      {active_tab === "active" && (
-        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-          <Checkbox
-            checked={is_selected}
-            onCheckedChange={() => on_toggle_select(sub.sender_email)}
-          />
-        </div>
-      )}
+      <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <Checkbox
+          checked={is_selected}
+          onCheckedChange={() => on_toggle_select(sub.sender_email)}
+        />
+      </div>
 
       <ProfileAvatar
         use_domain_logo
@@ -533,6 +646,15 @@ function SubscriptionRow({
           {t("settings.reactivate")}
         </PillButton>
       )}
+      <button
+        aria-label={t("common.delete")}
+        className="flex items-center justify-center w-8 h-8 rounded-full flex-shrink-0 transition-colors hover:bg-[var(--aster-hover)] text-txt-muted"
+        title={t("common.delete")}
+        type="button"
+        onClick={(e) => on_request_delete(e, sub.sender_email)}
+      >
+        <TrashIcon className="w-4 h-4" />
+      </button>
     </div>
   );
 }
