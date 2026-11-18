@@ -20,12 +20,22 @@
 //
 use std::io::Write;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tauri::Manager;
 
 const COMPAT_MODE_MARKER: &str = "compat_mode";
 const WEBVIEW_RESET_MARKER: &str = "webview_reset_pending";
+#[cfg(windows)]
+const WEBVIEW_STALL_MARKER: &str = "webview_stalled";
+#[cfg(windows)]
+const RESTART_WAIT_ENV: &str = "ASTER_MAIL_RESTART_AFTER_PID";
+#[cfg(windows)]
+const RESTART_WAIT_LIMIT: Duration = Duration::from_secs(15);
+#[cfg(windows)]
+const HELPER_TIMEOUT: Duration = Duration::from_secs(15);
+#[cfg(windows)]
+const MAIN_WINDOW_TITLE: &str = "Aster Mail";
 #[cfg(all(unix, not(target_os = "macos")))]
 const SOFTWARE_RENDERING_MARKER: &str = "software_rendering";
 #[cfg(all(unix, not(target_os = "macos")))]
@@ -39,9 +49,43 @@ const WATCHDOG_GIVE_UP: Duration = Duration::from_secs(600);
 pub const COMPAT_BROWSER_ARGS: &str =
     "--disable-gpu --disable-gpu-compositing --disable-software-rasterizer";
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(u8)]
+pub enum SetupStage {
+    Starting = 0,
+    TrayReady = 1,
+    CreatingWindow = 2,
+    WindowCreated = 3,
+    Finished = 4,
+}
+
+impl SetupStage {
+    fn from_u8(value: u8) -> Self {
+        match value {
+            1 => Self::TrayReady,
+            2 => Self::CreatingWindow,
+            3 => Self::WindowCreated,
+            4 => Self::Finished,
+            _ => Self::Starting,
+        }
+    }
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Starting => "setup started",
+            Self::TrayReady => "tray ready",
+            Self::CreatingWindow => "creating the webview window",
+            Self::WindowCreated => "webview window created",
+            Self::Finished => "setup finished",
+        }
+    }
+}
+
 pub struct BootState {
     script_ran: AtomicBool,
     painted: AtomicBool,
+    stage: AtomicU8,
+    created: Instant,
 }
 
 impl BootState {
@@ -49,7 +93,31 @@ impl BootState {
         Self {
             script_ran: AtomicBool::new(false),
             painted: AtomicBool::new(false),
+            stage: AtomicU8::new(SetupStage::Starting as u8),
+            created: Instant::now(),
         }
+    }
+
+    fn advance_stage(&self, stage: SetupStage) -> bool {
+        self.stage.fetch_max(stage as u8, Ordering::SeqCst) < stage as u8
+    }
+
+    pub fn enter_stage(&self, stage: SetupStage) {
+        if self.advance_stage(stage) {
+            log_line(&format!(
+                "startup: {} after {}ms",
+                stage.label(),
+                self.created.elapsed().as_millis()
+            ));
+        }
+    }
+
+    pub fn stage(&self) -> SetupStage {
+        SetupStage::from_u8(self.stage.load(Ordering::SeqCst))
+    }
+
+    pub fn setup_finished(&self) -> bool {
+        self.stage() == SetupStage::Finished
     }
 
     pub fn mark_script_ran(&self) {
@@ -81,8 +149,10 @@ impl BootState {
     }
 }
 
+const APP_DIR_NAME: &str = "com.astermail.mail";
+
 pub fn app_local_dir() -> Option<PathBuf> {
-    dirs::data_local_dir().map(|d| d.join("com.astermail.mail"))
+    dirs::data_local_dir().map(|d| d.join(APP_DIR_NAME))
 }
 
 fn marker_path(name: &str) -> Option<PathBuf> {
@@ -120,7 +190,11 @@ pub fn log_line(message: &str) {
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_secs())
         .unwrap_or(0);
-    if let Ok(mut file) = std::fs::OpenOptions::new().create(true).append(true).open(&path) {
+    if let Ok(mut file) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+    {
         let _ = writeln!(file, "{stamp} {message}");
     }
 }
@@ -183,6 +257,12 @@ pub fn request_display_reset() {
 pub fn prepare() {
     log_line("---- launch ----");
 
+    #[cfg(windows)]
+    {
+        wait_for_previous_instance();
+        clear_stalled_webview();
+    }
+
     if marker_exists(WEBVIEW_RESET_MARKER) {
         remove_marker(WEBVIEW_RESET_MARKER);
         log_line("purging webview render caches");
@@ -222,31 +302,246 @@ pub fn apply_compat_browser_args(config: &mut tauri::utils::config::Config) {
 }
 
 #[cfg(windows)]
-fn webview2_runtime_version() -> String {
+fn run_hidden_bounded(program: &str, args: &[&str], timeout: Duration) -> Option<String> {
+    use std::io::Read;
     use std::os::windows::process::CommandExt;
     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-    for root in ["HKLM\\SOFTWARE\\WOW6432Node", "HKLM\\SOFTWARE", "HKCU\\SOFTWARE"] {
+    let mut child = std::process::Command::new(program)
+        .args(args)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .creation_flags(CREATE_NO_WINDOW)
+        .spawn()
+        .ok()?;
+    let mut stdout = child.stdout.take()?;
+    let reader = std::thread::spawn(move || {
+        let mut output = String::new();
+        let _ = stdout.read_to_string(&mut output);
+        output
+    });
+    let started = Instant::now();
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                let output = reader.join().unwrap_or_default();
+                return status.success().then_some(output);
+            }
+            Ok(None) if started.elapsed() < timeout => {
+                std::thread::sleep(Duration::from_millis(100));
+            }
+            _ => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return None;
+            }
+        }
+    }
+}
+
+#[cfg(windows)]
+fn webview2_runtime_version() -> String {
+    for root in [
+        "HKLM\\SOFTWARE\\WOW6432Node",
+        "HKLM\\SOFTWARE",
+        "HKCU\\SOFTWARE",
+    ] {
         let key = format!(
             "{root}\\Microsoft\\EdgeUpdate\\Clients\\{{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}}"
         );
-        let output = std::process::Command::new("reg")
-            .args(["query", &key, "/v", "pv"])
-            .creation_flags(CREATE_NO_WINDOW)
-            .output();
-        if let Ok(output) = output {
-            if output.status.success() {
-                let text = String::from_utf8_lossy(&output.stdout);
-                if let Some(value) = text.split_whitespace().last() {
-                    if value.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
-                        return value.to_string();
-                    }
-                }
+        let Some(text) = run_hidden_bounded("reg", &["query", &key, "/v", "pv"], HELPER_TIMEOUT)
+        else {
+            continue;
+        };
+        if let Some(value) = text.split_whitespace().last() {
+            if value
+                .chars()
+                .next()
+                .map(|c| c.is_ascii_digit())
+                .unwrap_or(false)
+            {
+                return value.to_string();
             }
         }
     }
     "not detected".to_string()
 }
 
+#[cfg(windows)]
+fn webview_process_script(stop: bool) -> String {
+    let action = if stop {
+        "$found | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }; "
+    } else {
+        ""
+    };
+    format!(
+        "$found = @(Get-CimInstance Win32_Process -Filter \"Name = 'msedgewebview2.exe'\" | Where-Object {{ $_.CommandLine -like '*\\{APP_DIR_NAME}\\EBWebView*' }}); {action}$found.Count"
+    )
+}
+
+#[cfg(windows)]
+fn encode_powershell(script: &str) -> String {
+    use base64::Engine;
+    let wide: Vec<u8> = script
+        .encode_utf16()
+        .flat_map(|unit| unit.to_le_bytes())
+        .collect();
+    base64::engine::general_purpose::STANDARD.encode(wide)
+}
+
+#[cfg(windows)]
+fn webview_processes_for_profile(stop: bool) -> Option<u32> {
+    let encoded = encode_powershell(&webview_process_script(stop));
+    run_hidden_bounded(
+        "powershell",
+        &["-NoProfile", "-NonInteractive", "-EncodedCommand", &encoded],
+        HELPER_TIMEOUT,
+    )
+    .and_then(|text| text.trim().parse::<u32>().ok())
+}
+
+#[cfg(windows)]
+fn stop_webview_after_exit_script(pid: u32) -> String {
+    format!(
+        "Wait-Process -Id {pid} -Timeout {} -ErrorAction SilentlyContinue; {}",
+        HELPER_TIMEOUT.as_secs(),
+        webview_process_script(true)
+    )
+}
+
+#[cfg(windows)]
+fn stop_webview_after_exit() -> bool {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    let encoded = encode_powershell(&stop_webview_after_exit_script(std::process::id()));
+    std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-EncodedCommand", &encoded])
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .creation_flags(CREATE_NO_WINDOW)
+        .spawn()
+        .is_ok()
+}
+
+#[cfg(windows)]
+mod native {
+    use std::time::Duration;
+    use windows::core::BOOL;
+    use windows::Win32::Foundation::{CloseHandle, HWND, LPARAM, WAIT_OBJECT_0};
+    use windows::Win32::System::Threading::{
+        GetCurrentProcess, OpenProcess, TerminateProcess, WaitForSingleObject, PROCESS_SYNCHRONIZE,
+    };
+    use windows::Win32::UI::WindowsAndMessaging::{
+        EnumWindows, GetWindowThreadProcessId, InternalGetWindowText, IsIconic, IsWindowVisible,
+    };
+
+    struct Search {
+        pid: u32,
+        title: Vec<u16>,
+        found: bool,
+    }
+
+    unsafe extern "system" fn visit(hwnd: HWND, lparam: LPARAM) -> BOOL {
+        let search = &mut *(lparam.0 as *mut Search);
+        let mut pid = 0u32;
+        GetWindowThreadProcessId(hwnd, Some(&mut pid as *mut u32));
+        if pid != search.pid || !IsWindowVisible(hwnd).as_bool() || IsIconic(hwnd).as_bool() {
+            return BOOL(1);
+        }
+        let mut buffer = [0u16; 128];
+        let length = InternalGetWindowText(hwnd, &mut buffer).max(0) as usize;
+        if buffer[..length] == search.title[..] {
+            search.found = true;
+            return BOOL(0);
+        }
+        BOOL(1)
+    }
+
+    pub fn window_on_screen(title: &str) -> bool {
+        let mut search = Search {
+            pid: std::process::id(),
+            title: title.encode_utf16().collect(),
+            found: false,
+        };
+        unsafe {
+            let _ = EnumWindows(Some(visit), LPARAM(&mut search as *mut Search as isize));
+        }
+        search.found
+    }
+
+    pub fn wait_for_exit(pid: u32, limit: Duration) -> bool {
+        unsafe {
+            let Ok(handle) = OpenProcess(PROCESS_SYNCHRONIZE, false, pid) else {
+                return true;
+            };
+            let result = WaitForSingleObject(handle, limit.as_millis() as u32);
+            let _ = CloseHandle(handle);
+            result == WAIT_OBJECT_0
+        }
+    }
+
+    pub fn terminate_now() -> ! {
+        unsafe {
+            let _ = TerminateProcess(GetCurrentProcess(), 0);
+        }
+        std::process::exit(0)
+    }
+}
+
+#[cfg(windows)]
+fn parse_restart_pid(value: Option<&std::ffi::OsStr>, own_pid: u32) -> Option<u32> {
+    value
+        .and_then(|text| text.to_str())
+        .and_then(|text| text.trim().parse::<u32>().ok())
+        .filter(|pid| *pid != 0 && *pid != own_pid)
+}
+
+#[cfg(windows)]
+fn wait_for_previous_instance() {
+    let value = std::env::var_os(RESTART_WAIT_ENV);
+    if value.is_none() {
+        return;
+    }
+    std::env::remove_var(RESTART_WAIT_ENV);
+    let Some(pid) = parse_restart_pid(value.as_deref(), std::process::id()) else {
+        return;
+    };
+    let exited = native::wait_for_exit(pid, RESTART_WAIT_LIMIT);
+    log_line(&format!(
+        "restarted after a stalled launch, previous process {}",
+        if exited { "exited" } else { "is still running" }
+    ));
+}
+
+#[cfg(windows)]
+fn clear_stalled_webview() {
+    if !marker_exists(WEBVIEW_STALL_MARKER) {
+        return;
+    }
+    remove_marker(WEBVIEW_STALL_MARKER);
+    match webview_processes_for_profile(true) {
+        Some(count) => log_line(&format!("stopped {count} leftover webview processes")),
+        None => log_line("could not check for leftover webview processes"),
+    }
+}
+
+#[cfg(windows)]
+fn restart_without_event_loop() -> ! {
+    log_line("restarting without the event loop");
+    if let Ok(exe) = std::env::current_exe() {
+        let spawned = std::process::Command::new(exe)
+            .args(std::env::args_os().skip(1))
+            .env(RESTART_WAIT_ENV, std::process::id().to_string())
+            .spawn();
+        if let Err(error) = spawned {
+            log_line(&format!("restart failed: {error}"));
+        }
+    }
+    native::terminate_now()
+}
+
+#[cfg(not(windows))]
 fn window_is_on_screen(app: &tauri::AppHandle) -> bool {
     let Some(window) = app.get_webview_window("main") else {
         return false;
@@ -254,8 +549,20 @@ fn window_is_on_screen(app: &tauri::AppHandle) -> bool {
     window.is_visible().unwrap_or(true) && !window.is_minimized().unwrap_or(false)
 }
 
+fn main_window_on_screen(app: &tauri::AppHandle, setup_finished: bool) -> bool {
+    #[cfg(windows)]
+    {
+        let _ = (app, setup_finished);
+        native::window_on_screen(MAIN_WINDOW_TITLE)
+    }
+    #[cfg(not(windows))]
+    {
+        setup_finished && window_is_on_screen(app)
+    }
+}
+
 #[cfg(windows)]
-fn warn_and_restart(app: &tauri::AppHandle) {
+fn show_restart_warning() {
     rfd::MessageDialog::new()
         .set_title("Aster Mail - Display Problem")
         .set_description(
@@ -263,6 +570,11 @@ fn warn_and_restart(app: &tauri::AppHandle) {
         )
         .set_level(rfd::MessageLevel::Warning)
         .show();
+}
+
+#[cfg(windows)]
+fn warn_and_restart(app: &tauri::AppHandle) {
+    show_restart_warning();
     app.restart();
 }
 
@@ -284,24 +596,48 @@ Aster Mail will now restart in compatibility mode. Your mail is unaffected.",
 }
 
 #[cfg(windows)]
-fn report_persistent_failure(app: &tauri::AppHandle) {
-    let runtime = webview2_runtime_version();
-    log_line(&format!("webview2 runtime version: {runtime}"));
+fn persistent_failure_description(runtime: &str, closing: bool) -> String {
     let log_hint = app_local_dir()
         .map(|d| d.join(BOOT_LOG_FILE).display().to_string())
         .unwrap_or_else(|| BOOT_LOG_FILE.to_string());
-    let description = format!(
-        "Aster Mail still cannot draw its window, even with hardware acceleration turned off.\n\nThe Microsoft WebView2 Runtime on this computer appears to be damaged. To repair it:\n\n1. Open Windows Settings, then Apps, then Installed apps.\n2. Find \"Microsoft Edge WebView2 Runtime\", choose Modify, then Repair.\n3. If Repair is unavailable, reinstall it from https://developer.microsoft.com/microsoft-edge/webview2/\n4. Start Aster Mail again.\n\nDetected WebView2 runtime: {runtime}\n\nIf this keeps happening, email support@astermail.org, mention code WV2-BOOT, and attach this file:\n{log_hint}\n\nQuit Aster Mail now?"
-    );
+    let ending = if closing {
+        "Aster Mail will now close."
+    } else {
+        "Quit Aster Mail now?"
+    };
+    format!(
+        "Aster Mail still cannot draw its window, even with hardware acceleration turned off.\n\nThe Microsoft WebView2 Runtime on this computer appears to be damaged, or other software on this computer is blocking it. To repair it:\n\n1. Open Windows Settings, then Apps, then Installed apps.\n2. Find \"Microsoft Edge WebView2 Runtime\", choose Modify, then Repair.\n3. If Repair is unavailable, reinstall it from https://developer.microsoft.com/microsoft-edge/webview2/\n4. Start Aster Mail again.\n\nDetected WebView2 runtime: {runtime}\n\nIf this keeps happening, email support@astermail.org, mention code WV2-BOOT, and attach this file:\n{log_hint}\n\n{ending}"
+    )
+}
+
+#[cfg(windows)]
+fn report_persistent_failure(app: &tauri::AppHandle) {
+    let runtime = webview2_runtime_version();
+    log_line(&format!("webview2 runtime version: {runtime}"));
     let answer = rfd::MessageDialog::new()
         .set_title("Aster Mail - Display Problem")
-        .set_description(&description)
+        .set_description(persistent_failure_description(&runtime, false))
         .set_level(rfd::MessageLevel::Error)
         .set_buttons(rfd::MessageButtons::YesNo)
         .show();
     if answer == rfd::MessageDialogResult::Yes {
         app.exit(0);
     }
+}
+
+#[cfg(windows)]
+fn report_stalled_failure(runtime: &str) -> ! {
+    rfd::MessageDialog::new()
+        .set_title("Aster Mail - Display Problem")
+        .set_description(persistent_failure_description(runtime, true))
+        .set_level(rfd::MessageLevel::Error)
+        .set_buttons(rfd::MessageButtons::Ok)
+        .show();
+    log_line("closing after a stalled launch");
+    if !stop_webview_after_exit() {
+        log_line("could not schedule webview cleanup");
+    }
+    native::terminate_now()
 }
 
 #[cfg(not(windows))]
@@ -319,50 +655,127 @@ fn report_persistent_failure(app: &tauri::AppHandle) {
         .blocking_show();
 }
 
+#[derive(Debug, PartialEq, Eq)]
+enum WatchdogStep {
+    Healthy,
+    Wait,
+    Failed,
+    GiveUp,
+}
+
+#[derive(Default)]
+struct WatchdogClock {
+    on_screen: Duration,
+}
+
+impl WatchdogClock {
+    fn step(&mut self, usable: bool, on_screen: bool, elapsed: Duration) -> WatchdogStep {
+        if usable {
+            return WatchdogStep::Healthy;
+        }
+        if on_screen {
+            self.on_screen += POLL_INTERVAL;
+            if self.on_screen >= BOOT_TIMEOUT {
+                return WatchdogStep::Failed;
+            }
+        }
+        if elapsed >= WATCHDOG_GIVE_UP {
+            return WatchdogStep::GiveUp;
+        }
+        WatchdogStep::Wait
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum Recovery {
+    RestartInCompat,
+    RestartWithoutEventLoop,
+    Report,
+    ReportAndClose,
+}
+
+fn choose_recovery(compat_active: bool, setup_finished: bool, can_restart: bool) -> Recovery {
+    match (compat_active || !can_restart, setup_finished) {
+        (false, true) => Recovery::RestartInCompat,
+        (false, false) => Recovery::RestartWithoutEventLoop,
+        (true, true) => Recovery::Report,
+        (true, false) => Recovery::ReportAndClose,
+    }
+}
+
 pub fn spawn_watchdog(app: tauri::AppHandle) {
     std::thread::spawn(move || {
         let started = Instant::now();
-        let mut on_screen = Duration::ZERO;
+        let mut clock = WatchdogClock::default();
 
         loop {
             let state: tauri::State<BootState> = app.state();
-            if state.is_usable() {
-                log_line(&format!(
-                    "boot healthy after {}ms",
-                    started.elapsed().as_millis()
-                ));
-                return;
-            }
-
-            if window_is_on_screen(&app) {
-                on_screen += POLL_INTERVAL;
-                if on_screen >= BOOT_TIMEOUT {
-                    break;
+            let setup_finished = state.setup_finished();
+            let stalled = cfg!(windows) && !setup_finished;
+            let on_screen = stalled || main_window_on_screen(&app, setup_finished);
+            match clock.step(state.is_usable(), on_screen, started.elapsed()) {
+                WatchdogStep::Healthy => {
+                    log_line(&format!(
+                        "boot healthy after {}ms",
+                        started.elapsed().as_millis()
+                    ));
+                    return;
                 }
+                WatchdogStep::GiveUp => {
+                    log_line("watchdog stood down, window never became visible");
+                    return;
+                }
+                WatchdogStep::Failed => break,
+                WatchdogStep::Wait => std::thread::sleep(POLL_INTERVAL),
             }
-
-            if started.elapsed() >= WATCHDOG_GIVE_UP {
-                log_line("watchdog stood down, window never became visible");
-                return;
-            }
-
-            std::thread::sleep(POLL_INTERVAL);
         }
 
         let state: tauri::State<BootState> = app.state();
+        let setup_finished = state.setup_finished();
         log_line(&format!(
-            "boot failed: script_ran={} painted={} compat={}",
+            "boot failed: stage={} script_ran={} painted={} compat={}",
+            state.stage().label(),
             state.script_ran(),
             state.painted(),
             compat_mode_active()
         ));
 
-        #[cfg(any(windows, all(unix, not(target_os = "macos"))))]
-        if !compat_mode_active() {
-            write_marker(COMPAT_MODE_MARKER);
-            write_marker(WEBVIEW_RESET_MARKER);
-            warn_and_restart(&app);
-            return;
+        #[cfg(windows)]
+        let runtime = if setup_finished {
+            String::new()
+        } else {
+            let runtime = webview2_runtime_version();
+            let processes = webview_processes_for_profile(false)
+                .map(|count| count.to_string())
+                .unwrap_or_else(|| "unknown".to_string());
+            log_line(&format!(
+                "startup stalled: webview2 runtime {runtime}, webview processes for this profile {processes}"
+            ));
+            write_marker(WEBVIEW_STALL_MARKER);
+            runtime
+        };
+
+        let can_restart = cfg!(any(windows, all(unix, not(target_os = "macos"))));
+        match choose_recovery(compat_mode_active(), setup_finished, can_restart) {
+            Recovery::RestartInCompat => {
+                write_marker(COMPAT_MODE_MARKER);
+                write_marker(WEBVIEW_RESET_MARKER);
+                #[cfg(any(windows, all(unix, not(target_os = "macos"))))]
+                warn_and_restart(&app);
+                return;
+            }
+            Recovery::RestartWithoutEventLoop => {
+                write_marker(COMPAT_MODE_MARKER);
+                write_marker(WEBVIEW_RESET_MARKER);
+                #[cfg(windows)]
+                {
+                    show_restart_warning();
+                    restart_without_event_loop();
+                }
+                #[cfg(not(windows))]
+                return;
+            }
+            Recovery::Report | Recovery::ReportAndClose => {}
         }
 
         #[cfg(all(unix, not(target_os = "macos")))]
@@ -373,6 +786,10 @@ pub fn spawn_watchdog(app: tauri::AppHandle) {
         }
 
         write_marker(WEBVIEW_RESET_MARKER);
+        #[cfg(windows)]
+        if !setup_finished {
+            report_stalled_failure(&runtime);
+        }
         report_persistent_failure(&app);
     });
 }
@@ -399,4 +816,137 @@ pub fn show_fatal_webview_error(error: &str) {
     }
     #[cfg(not(windows))]
     eprintln!("failed to initialize webview: {error}");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stage_only_moves_forward() {
+        let state = BootState::new();
+        assert_eq!(state.stage(), SetupStage::Starting);
+        assert!(state.advance_stage(SetupStage::CreatingWindow));
+        assert!(!state.advance_stage(SetupStage::TrayReady));
+        assert!(!state.advance_stage(SetupStage::CreatingWindow));
+        assert_eq!(state.stage(), SetupStage::CreatingWindow);
+        assert!(!state.setup_finished());
+        assert!(state.advance_stage(SetupStage::Finished));
+        assert!(state.setup_finished());
+    }
+
+    #[test]
+    fn stage_round_trips_through_its_number() {
+        for stage in [
+            SetupStage::Starting,
+            SetupStage::TrayReady,
+            SetupStage::CreatingWindow,
+            SetupStage::WindowCreated,
+            SetupStage::Finished,
+        ] {
+            assert_eq!(SetupStage::from_u8(stage as u8), stage);
+        }
+        assert_eq!(SetupStage::from_u8(200), SetupStage::Starting);
+    }
+
+    #[test]
+    fn watchdog_fails_after_the_window_stays_dark() {
+        let mut clock = WatchdogClock::default();
+        let polls = (BOOT_TIMEOUT.as_millis() / POLL_INTERVAL.as_millis()) as usize;
+        for _ in 1..polls {
+            assert_eq!(clock.step(false, true, Duration::ZERO), WatchdogStep::Wait);
+        }
+        assert_eq!(
+            clock.step(false, true, Duration::ZERO),
+            WatchdogStep::Failed
+        );
+    }
+
+    #[test]
+    fn watchdog_ignores_time_while_the_window_is_hidden() {
+        let mut clock = WatchdogClock::default();
+        for _ in 0..1000 {
+            assert_eq!(clock.step(false, false, Duration::ZERO), WatchdogStep::Wait);
+        }
+        assert_eq!(
+            clock.step(false, false, WATCHDOG_GIVE_UP),
+            WatchdogStep::GiveUp
+        );
+    }
+
+    #[test]
+    fn watchdog_reports_healthy_once_painted() {
+        let mut clock = WatchdogClock::default();
+        assert_eq!(clock.step(false, true, Duration::ZERO), WatchdogStep::Wait);
+        assert_eq!(
+            clock.step(true, true, Duration::ZERO),
+            WatchdogStep::Healthy
+        );
+    }
+
+    #[test]
+    fn stalled_setup_restarts_without_the_event_loop() {
+        assert_eq!(
+            choose_recovery(false, false, true),
+            Recovery::RestartWithoutEventLoop
+        );
+        assert_eq!(choose_recovery(true, false, true), Recovery::ReportAndClose);
+    }
+
+    #[test]
+    fn finished_setup_keeps_the_regular_recovery() {
+        assert_eq!(
+            choose_recovery(false, true, true),
+            Recovery::RestartInCompat
+        );
+        assert_eq!(choose_recovery(true, true, true), Recovery::Report);
+        assert_eq!(choose_recovery(false, true, false), Recovery::Report);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn restart_pid_is_parsed_and_validated() {
+        use std::ffi::OsStr;
+        assert_eq!(parse_restart_pid(Some(OsStr::new("4242")), 1), Some(4242));
+        assert_eq!(parse_restart_pid(Some(OsStr::new(" 17 ")), 1), Some(17));
+        assert_eq!(parse_restart_pid(Some(OsStr::new("1")), 1), None);
+        assert_eq!(parse_restart_pid(Some(OsStr::new("0")), 1), None);
+        assert_eq!(parse_restart_pid(Some(OsStr::new("abc")), 1), None);
+        assert_eq!(parse_restart_pid(None, 1), None);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn webview_cleanup_only_targets_this_profile() {
+        let script = webview_process_script(true);
+        assert!(script.contains("msedgewebview2.exe"));
+        assert!(script.contains(r"\com.astermail.mail\EBWebView"));
+        let after_exit = stop_webview_after_exit_script(4242);
+        assert!(after_exit.starts_with("Wait-Process -Id 4242 -Timeout 15 "));
+        assert!(after_exit.contains("Stop-Process"));
+        assert_eq!(encode_powershell("a"), "YQA=");
+        assert!(script.contains("Stop-Process"));
+        assert!(!webview_process_script(false).contains("Stop-Process"));
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn hidden_command_returns_output_and_times_out() {
+        let output = run_hidden_bounded("cmd", &["/C", "echo ready"], HELPER_TIMEOUT);
+        assert_eq!(output.as_deref().map(str::trim), Some("ready"));
+        let started = Instant::now();
+        let stuck = run_hidden_bounded(
+            "powershell",
+            &["-NoProfile", "-Command", "Start-Sleep -Seconds 30"],
+            Duration::from_secs(2),
+        );
+        assert!(stuck.is_none());
+        assert!(started.elapsed() < Duration::from_secs(10));
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn missing_window_is_not_on_screen() {
+        assert!(!native::window_on_screen("no window has this title 7f3c"));
+    }
 }
