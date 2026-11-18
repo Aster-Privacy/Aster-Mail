@@ -1318,12 +1318,30 @@ export function patch_indexed_membership(
   }
 }
 
+async function existing_index_has_body(
+  user_email: string,
+): Promise<boolean | null> {
+  if (cached_index && cached_index.user_email === user_email) {
+    return cached_index.include_body;
+  }
+
+  const reader = await open_snapshot_reader(user_email);
+
+  if (!reader || reader.meta.chunk_ids.length === 0) return null;
+
+  return reader.meta.include_body;
+}
+
 export async function prewarm_search_index(
   user_email: string,
   include_body: boolean,
 ): Promise<void> {
   try {
-    await build_search_index(user_email, include_body);
+    const has_body = await existing_index_has_body(user_email);
+
+    if (has_body === null) return;
+
+    await build_search_index(user_email, include_body && has_body);
   } catch {
     return;
   }
