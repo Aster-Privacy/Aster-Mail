@@ -624,6 +624,10 @@ fn tray_available(app: &tauri::AppHandle) -> bool {
     available
 }
 
+fn boot_guard_state(app: &tauri::App) -> State<'_, boot_guard::BootState> {
+    app.state()
+}
+
 fn main() {
     boot_guard::prepare();
 
@@ -755,6 +759,8 @@ fn main() {
             launch_at_login::set_start_minimized,
         ])
         .setup(|app| {
+            boot_guard::log_line("startup: setup started");
+
             #[cfg(target_os = "macos")]
             app.manage(DockPresenceState::default());
 
@@ -787,93 +793,6 @@ fn main() {
                 launch_at_login::launched_at_login(std::env::args_os()),
                 launch_at_login::start_minimized(),
             );
-
-            let window_config = app
-                .config()
-                .app
-                .windows
-                .iter()
-                .find(|window| window.label == "main")
-                .cloned()
-                .ok_or("main window is missing from the app configuration")?;
-
-            let navigation_handle = app.handle().clone();
-            let new_window_handle = app.handle().clone();
-            let download_handle = app.handle().clone();
-            let pending_downloads: std::sync::Arc<
-                std::sync::Mutex<std::collections::HashMap<String, std::path::PathBuf>>,
-            > = Default::default();
-
-            let main_window = tauri::WebviewWindowBuilder::from_config(app, &window_config)?
-                .on_navigation(move |url| {
-                    if is_app_navigation(url) {
-                        return true;
-                    }
-                    if should_forward_to_app(url) {
-                        let _ = navigation_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
-                    }
-
-                    false
-                })
-                .on_new_window(move |url, _features| {
-                    if should_forward_to_app(&url) {
-                        let _ = new_window_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
-                    }
-
-                    NewWindowResponse::Deny
-                })
-                .on_download(move |_webview, event| {
-                    match event {
-                        DownloadEvent::Requested { url, destination } => {
-                            resolve_download_destination(&download_handle, destination);
-                            if let Ok(mut pending) = pending_downloads.lock() {
-                                pending.insert(url.to_string(), destination.clone());
-                            }
-                        }
-                        DownloadEvent::Finished { url, path, success } => {
-                            let requested = pending_downloads
-                                .lock()
-                                .ok()
-                                .and_then(|mut pending| pending.remove(url.as_str()));
-
-                            let saved = path.or(requested);
-
-                            match (success, saved) {
-                                (true, Some(saved)) => {
-                                    mark_download_quarantined(&saved);
-                                    downloads::record_finished(&download_handle, saved);
-                                }
-                                (_, saved) => {
-                                    downloads::record_failed(&download_handle, saved.as_deref());
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-
-                    true
-                })
-                .visible(window_config.visible && !start_hidden)
-                .build()?;
-
-            if start_hidden {
-                let _ = main_window.hide();
-            }
-
-            window_fit::fit_to_work_area(
-                &main_window,
-                (
-                    window_config.min_width.unwrap_or(0.0),
-                    window_config.min_height.unwrap_or(0.0),
-                ),
-            );
-
-            let startup_zoom = interface_zoom::saved_zoom();
-            if (startup_zoom - interface_zoom::ZOOM_DEFAULT).abs() > f64::EPSILON {
-                if let Err(error) = main_window.set_zoom(startup_zoom) {
-                    tracing::warn!(%error, "could not apply the saved interface size");
-                }
-            }
 
             let tray_icon = tauri::image::Image::from_bytes(TRAY_ICON)?;
 
@@ -952,6 +871,7 @@ fn main() {
                 })
                 .build(app);
 
+            let tray_ready = tray_result.is_ok();
             match tray_result {
                 Ok(tray) => {
                     let state: State<TrayState> = app.state();
@@ -962,9 +882,6 @@ fn main() {
                 Err(error) => {
                     tracing::warn!(%error, "tray icon is unavailable");
                     boot_guard::log_line(&format!("tray icon is unavailable: {error}"));
-                    if start_hidden {
-                        show_main_window(app.handle());
-                    }
                 }
             }
 
@@ -984,7 +901,108 @@ fn main() {
                 });
             }
 
+            boot_guard_state(app).enter_stage(boot_guard::SetupStage::TrayReady);
             boot_guard::spawn_watchdog(app.handle().clone());
+
+            let start_hidden = start_hidden && tray_ready;
+
+            let window_config = app
+                .config()
+                .app
+                .windows
+                .iter()
+                .find(|window| window.label == "main")
+                .cloned()
+                .ok_or("main window is missing from the app configuration")?;
+
+            let navigation_handle = app.handle().clone();
+            let new_window_handle = app.handle().clone();
+            let download_handle = app.handle().clone();
+            let pending_downloads: std::sync::Arc<
+                std::sync::Mutex<std::collections::HashMap<String, std::path::PathBuf>>,
+            > = Default::default();
+
+            let window_builder = tauri::WebviewWindowBuilder::from_config(app, &window_config)?
+                .on_navigation(move |url| {
+                    if is_app_navigation(url) {
+                        return true;
+                    }
+                    if should_forward_to_app(url) {
+                        let _ = navigation_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
+                    }
+
+                    false
+                })
+                .on_new_window(move |url, _features| {
+                    if should_forward_to_app(&url) {
+                        let _ = new_window_handle.emit(LINK_ACTIVATED_EVENT, url.to_string());
+                    }
+
+                    NewWindowResponse::Deny
+                })
+                .on_download(move |_webview, event| {
+                    match event {
+                        DownloadEvent::Requested { url, destination } => {
+                            resolve_download_destination(&download_handle, destination);
+                            if let Ok(mut pending) = pending_downloads.lock() {
+                                pending.insert(url.to_string(), destination.clone());
+                            }
+                        }
+                        DownloadEvent::Finished { url, path, success } => {
+                            let requested = pending_downloads
+                                .lock()
+                                .ok()
+                                .and_then(|mut pending| pending.remove(url.as_str()));
+
+                            let saved = path.or(requested);
+
+                            match (success, saved) {
+                                (true, Some(saved)) => {
+                                    mark_download_quarantined(&saved);
+                                    downloads::record_finished(&download_handle, saved);
+                                }
+                                (_, saved) => {
+                                    downloads::record_failed(&download_handle, saved.as_deref());
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+
+                    true
+                })
+                .visible(window_config.visible && !start_hidden);
+
+            boot_guard_state(app).enter_stage(boot_guard::SetupStage::CreatingWindow);
+            let main_window = match window_builder.build() {
+                Ok(window) => window,
+                Err(error) => {
+                    boot_guard::show_fatal_webview_error(&error.to_string());
+                    std::process::exit(1);
+                }
+            };
+            boot_guard_state(app).enter_stage(boot_guard::SetupStage::WindowCreated);
+
+            if start_hidden {
+                let _ = main_window.hide();
+            }
+
+            window_fit::fit_to_work_area(
+                &main_window,
+                (
+                    window_config.min_width.unwrap_or(0.0),
+                    window_config.min_height.unwrap_or(0.0),
+                ),
+            );
+
+            let startup_zoom = interface_zoom::saved_zoom();
+            if (startup_zoom - interface_zoom::ZOOM_DEFAULT).abs() > f64::EPSILON {
+                if let Err(error) = main_window.set_zoom(startup_zoom) {
+                    tracing::warn!(%error, "could not apply the saved interface size");
+                }
+            }
+
+            boot_guard_state(app).enter_stage(boot_guard::SetupStage::Finished);
 
             Ok(())
         })
