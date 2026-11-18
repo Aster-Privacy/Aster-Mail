@@ -130,6 +130,7 @@ beforeEach(() => {
         data: {
           access_token: "token",
           csrf_token: "csrf",
+          user_id: "account-1",
           encrypted_vault: "vault",
           vault_nonce: "vault-nonce",
         },
@@ -676,6 +677,38 @@ describe("resuming a PIN locked device login", () => {
     await expect(
       module.resume_device_login_after_unlock("account-1", source),
     ).resolves.toBeNull();
+  });
+
+  it("names the locked account when the account list cannot be read", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+
+    expect(module.locked_device_login_account_id()).toBeNull();
+    await module.attempt_device_relogin("device-1");
+    expect(module.locked_device_login_account_id()).toBe("account-1");
+  });
+
+  it("asks for the PIN only while the passphrase is still locked", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const on_unlock_needed = vi.fn();
+
+    await module.attempt_device_relogin("device-1");
+    await module.resume_device_login_after_unlock(
+      "account-1",
+      unlock_source({ locked: true }),
+      on_unlock_needed,
+    );
+    expect(on_unlock_needed).toHaveBeenCalledWith("account-1");
+
+    on_unlock_needed.mockClear();
+    await module.attempt_device_relogin("device-1");
+    await module.resume_device_login_after_unlock(
+      "account-1",
+      unlock_source({ locked: false }),
+      on_unlock_needed,
+    );
+    expect(on_unlock_needed).not.toHaveBeenCalled();
   });
 
   it("resumes only once", async () => {

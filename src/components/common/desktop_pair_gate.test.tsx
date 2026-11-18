@@ -31,6 +31,9 @@ const forget_mock = vi.fn();
 const clear_session_mock = vi.fn();
 const resolve_session_mock = vi.fn();
 const update_device_id_mock = vi.fn();
+const current_account_mock = vi.fn();
+const locked_account_mock = vi.fn();
+const settle_unlock_mock = vi.fn();
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key, language: "en" }),
@@ -79,10 +82,7 @@ vi.mock("@/contexts/auth_context", () => ({
 }));
 
 vi.mock("@/services/account_manager", () => ({
-  get_current_account: async () => ({
-    id: "account_1",
-    device_id: "device_1",
-  }),
+  get_current_account: async () => current_account_mock(),
   update_account_device_id: (...args: unknown[]) =>
     update_device_id_mock(...args),
 }));
@@ -93,8 +93,31 @@ vi.mock("./desktop_code_sign_in", () => ({
     resolve_session_mock(...args),
 }));
 
+vi.mock("@/components/mobile/app_lock", () => ({
+  WebPinOverlay: ({
+    account_id,
+    on_sign_out,
+  }: {
+    account_id: string;
+    on_sign_out: () => void;
+  }) => (
+    <button type="button" onClick={on_sign_out}>
+      {`pin_overlay:${account_id}`}
+    </button>
+  ),
+}));
+
+vi.mock("@/services/app_lock_store", () => ({
+  get_app_lock_config: () => ({ enabled: true, digits: 4 }),
+}));
+
+vi.mock("@/services/app_lock_wrap", () => ({
+  settle_app_unlock: (...args: unknown[]) => settle_unlock_mock(...args),
+}));
+
 vi.mock("@/native/desktop_device_auth", () => ({
   is_tauri: () => true,
+  locked_device_login_account_id: () => locked_account_mock(),
   init_desktop_device_auth: async () => undefined,
   consume_pending_device_login: () => consume_pending_mock(),
   relogin_with_retries: (...args: unknown[]) => relogin_mock(...args),
@@ -154,6 +177,11 @@ describe("desktop pair gate with a PIN locked device", () => {
     update_device_id_mock.mockResolvedValue(undefined);
     login_mock.mockResolvedValue(undefined);
     resolve_session_mock.mockResolvedValue(resolved_session);
+    current_account_mock.mockReturnValue({
+      id: "account_1",
+      device_id: "device_1",
+    });
+    locked_account_mock.mockReturnValue("account_1");
   });
 
   afterEach(async () => {
@@ -168,7 +196,11 @@ describe("desktop pair gate with a PIN locked device", () => {
 
     await render_gate();
 
-    expect(resume_mock).toHaveBeenCalledWith("account_1");
+    expect(resume_mock).toHaveBeenCalledWith(
+      "account_1",
+      undefined,
+      expect.any(Function),
+    );
     expect(resolve_session_mock).toHaveBeenCalledWith(
       resumed_login.login_response,
       "unlocked passphrase",
@@ -201,6 +233,51 @@ describe("desktop pair gate with a PIN locked device", () => {
     expect(forget_mock).not.toHaveBeenCalled();
     expect(container!.textContent).toContain("common.retry");
     expect(container!.textContent).not.toContain("pair_screen");
+  });
+
+  it("unlocks with the signed in account when the account list cannot be read", async () => {
+    current_account_mock.mockReturnValue(null);
+    resume_mock.mockResolvedValue(resumed_login);
+
+    await render_gate();
+
+    expect(resume_mock).toHaveBeenCalledWith(
+      "account_1",
+      undefined,
+      expect.any(Function),
+    );
+    expect(login_mock).toHaveBeenCalledTimes(1);
+    expect(container!.textContent).not.toContain("pair_screen");
+  });
+
+  it("shows the PIN prompt itself while the device waits for an unlock", async () => {
+    current_account_mock.mockReturnValue(null);
+    let finish: (value: unknown) => void = () => undefined;
+
+    resume_mock.mockImplementation(
+      (account_id: string, _source: unknown, on_needed: (id: string) => void) =>
+        new Promise((resolve) => {
+          on_needed(account_id);
+          finish = resolve;
+        }),
+    );
+    settle_unlock_mock.mockImplementation(() => finish(null));
+
+    await render_gate();
+
+    const overlay = container!.querySelector("button");
+
+    expect(container!.textContent).toContain("pin_overlay:account_1");
+    expect(container!.textContent).not.toContain("pair_screen");
+
+    await act(async () => {
+      overlay!.click();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(settle_unlock_mock).toHaveBeenCalledWith("account_1", false);
+    expect(login_mock).not.toHaveBeenCalled();
+    expect(container!.textContent).toContain("pair_screen");
   });
 
   it("still forgets a pairing the server rejects", async () => {

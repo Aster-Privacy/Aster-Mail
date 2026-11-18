@@ -448,9 +448,19 @@ async function load_app_unlock_source(): Promise<AppUnlockSource> {
   };
 }
 
+export function locked_device_login_account_id(): string | null {
+  const response = locked_device_login?.login_response;
+
+  if (!response || typeof response !== "object") return null;
+  const user_id = (response as { user_id?: unknown }).user_id;
+
+  return typeof user_id === "string" && user_id ? user_id : null;
+}
+
 export async function resume_device_login_after_unlock(
   account_id: string | null | undefined,
   source?: AppUnlockSource,
+  on_unlock_needed?: (account_id: string) => void,
 ): Promise<PendingDeviceLogin | null> {
   const locked = locked_device_login;
 
@@ -460,6 +470,7 @@ export async function resume_device_login_after_unlock(
   const unlock = source ?? (await load_app_unlock_source());
 
   if (unlock.is_locked(account_id)) {
+    on_unlock_needed?.(account_id);
     if (!(await unlock.wait_for_unlock(account_id))) return null;
   }
 
