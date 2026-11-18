@@ -43,6 +43,10 @@ import {
   decrypt_recovery_key_with_code,
   decrypt_vault_backup,
 } from "@/services/crypto/recovery_key";
+import {
+  clear_pending_login_enrollment,
+  derive_sign_in_proof,
+} from "@/services/crypto/login_proof";
 
 vi.mock("@/services/api/client", () => ({
   api_client: {
@@ -755,5 +759,150 @@ describe("RecoveryCodesModal", () => {
     expect(container.textContent).not.toContain(
       "common.recovery_codes_refresh_title",
     );
+  });
+
+  const VECTOR_PASSWORD = "correct horse battery staple";
+  const VECTOR_SALT = "AwoRGB8mLTQ7QklQV15lbHN6gYiPlp2kq7K5wMfO1dw=";
+  const VECTOR_V1 = "XnL6tFV3TRwDPvUgnnpmj5DRZ1eIsfjyarnjpTeizpI=";
+  const VECTOR_V2 = "lt7cv+lGceHuBtBcJAY2A+isJA4gKnKKIDpxk0j9Skk=";
+
+  async function open_totp_step(salt = btoa("0123456789abcdef0123456789abcdef")) {
+    mocked_get.mockResolvedValue({
+      data: { salt, totp_required: true, kdf_version: 2 },
+    } as never);
+    render_modal();
+    await submit_password("settings.recovery_codes_regenerate", VECTOR_PASSWORD);
+    await wait_until(
+      () => container.querySelector("#codes-totp-code") !== null,
+    );
+
+    return container.querySelector("#codes-totp-code") as HTMLInputElement;
+  }
+
+  async function submit_totp(input: HTMLInputElement, value: string) {
+    set_input(input, value);
+    await act(async () => {
+      find_button("settings.recovery_codes_regenerate").click();
+    });
+  }
+
+  it("sends the same v2 proof that sign-in derives", async () => {
+    vi.useRealTimers();
+    mocked_get.mockResolvedValue({
+      data: { salt: VECTOR_SALT, totp_required: false, kdf_version: 2 },
+    } as never);
+    render_modal();
+
+    await submit_password("settings.recovery_codes_regenerate", VECTOR_PASSWORD);
+    await wait_until(() => mocked_step_up.mock.calls.length === 1);
+
+    const sign_in_proof = await derive_sign_in_proof(
+      VECTOR_PASSWORD,
+      Uint8Array.from(atob(VECTOR_SALT), (c) => c.charCodeAt(0)),
+      2,
+      "vector-user-hash",
+    );
+
+    clear_pending_login_enrollment();
+
+    expect(sign_in_proof).toBe(VECTOR_V2);
+    expect(mocked_step_up.mock.calls[0][0]).toBe(sign_in_proof);
+  });
+
+  it("sends the v1 proof when the account has no v2 hash", async () => {
+    vi.useRealTimers();
+    mocked_get.mockResolvedValue({
+      data: { salt: VECTOR_SALT, totp_required: false },
+    } as never);
+    render_modal();
+
+    await submit_password("settings.recovery_codes_regenerate", VECTOR_PASSWORD);
+    await wait_until(() => mocked_step_up.mock.calls.length === 1);
+
+    expect(mocked_step_up.mock.calls[0][0]).toBe(VECTOR_V1);
+  });
+
+  it("says the authenticator code was wrong, not the password", async () => {
+    vi.useRealTimers();
+    mocked_step_up.mockResolvedValue({
+      error: "Invalid verification code",
+      code: "VALIDATION_ERROR",
+      status: 400,
+      server_code: "INVALID_TWO_FACTOR_CODE",
+    } as never);
+    const totp_input = await open_totp_step();
+
+    await submit_totp(totp_input, "123456");
+    await wait_until(() =>
+      (container.textContent ?? "").includes("settings.invalid_2fa_code"),
+    );
+
+    expect(container.textContent).not.toContain(
+      "settings.incorrect_password_error",
+    );
+    expect(
+      (container.querySelector("#codes-totp-code") as HTMLInputElement).value,
+    ).toBe("");
+    expect(mocked_save).not.toHaveBeenCalled();
+  });
+
+  it("asks to wait for a new code when the code was already used", async () => {
+    vi.useRealTimers();
+    mocked_step_up.mockResolvedValue({
+      error: "That code was already used.",
+      code: "VALIDATION_ERROR",
+      status: 400,
+      server_code: "TOTP_CODE_REPLAYED",
+    } as never);
+    const totp_input = await open_totp_step();
+
+    await submit_totp(totp_input, "123456");
+    await wait_until(() =>
+      (container.textContent ?? "").includes("auth.two_fa_code_already_used"),
+    );
+
+    expect(mocked_save).not.toHaveBeenCalled();
+  });
+
+  it("still says the password was wrong when it was", async () => {
+    vi.useRealTimers();
+    mocked_step_up.mockResolvedValue({
+      error: "Invalid credentials",
+      code: "UNAUTHORIZED",
+      status: 401,
+      server_code: "INVALID_CREDENTIALS",
+    } as never);
+    const totp_input = await open_totp_step();
+
+    await submit_totp(totp_input, "123456");
+    await wait_until(() =>
+      (container.textContent ?? "").includes(
+        "settings.incorrect_password_error",
+      ),
+    );
+
+    expect(container.textContent).not.toContain("settings.invalid_2fa_code");
+  });
+
+  it("keeps all six digits of a pasted code with a space", async () => {
+    vi.useRealTimers();
+    const totp_input = await open_totp_step();
+
+    await submit_totp(totp_input, "123 456");
+    await wait_until(() => mocked_save.mock.calls.length === 1);
+
+    expect(mocked_step_up).toHaveBeenCalledWith(expect.any(String), "123456");
+  });
+
+  it("does not send a code shorter than six digits", async () => {
+    vi.useRealTimers();
+    const totp_input = await open_totp_step();
+
+    await submit_totp(totp_input, "12345");
+    await wait_until(() =>
+      (container.textContent ?? "").includes("settings.please_enter_2fa_code"),
+    );
+
+    expect(mocked_step_up).not.toHaveBeenCalled();
   });
 });
