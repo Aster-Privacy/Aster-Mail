@@ -9441,6 +9441,7 @@ export const tr = {
     remove_formatting: "Biçimlendirmeyi kaldır",
     font_color: "Yazı rengi",
     highlight_color: "Vurgu rengi",
+    remove_highlight: "Vurguyu kaldır",
     write_message_placeholder: "Mesaj yazın",
     enter_password_placeholder: "Parolayı girin...",
     folder: "Klasör",

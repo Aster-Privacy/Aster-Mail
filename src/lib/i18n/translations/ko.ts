@@ -9149,6 +9149,7 @@ export const ko = {
     remove_formatting: "서식 제거",
     font_color: "글자 색상",
     highlight_color: "강조 색상",
+    remove_highlight: "강조 제거",
     write_message_placeholder: "메시지 작성",
     enter_password_placeholder: "비밀번호 입력...",
     folder: "폴더",

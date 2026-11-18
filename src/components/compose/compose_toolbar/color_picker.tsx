@@ -52,12 +52,14 @@ export function ColorPickerPopover({
   bg_color,
   on_font_color_change,
   on_bg_color_change,
+  on_bg_color_remove,
   on_before_open,
 }: {
   font_color: string;
   bg_color: string;
   on_font_color_change: (color: string) => void;
   on_bg_color_change: (color: string) => void;
+  on_bg_color_remove?: () => void;
   on_before_open?: () => void;
 }) {
   const { t } = use_i18n();
@@ -200,6 +202,38 @@ export function ColorPickerPopover({
               </div>
             </div>
             <div className="p-2.5">
+              {mode === "highlight" && on_bg_color_remove && (
+                <button
+                  className="mb-2.5 w-full flex items-center gap-2 rounded-md px-1 py-1 text-xs text-txt-secondary hover:bg-[var(--aster-hover)] hover:text-txt-primary"
+                  type="button"
+                  onClick={() => {
+                    on_bg_color_remove();
+                    set_open(false);
+                  }}
+                  onMouseDown={(e) => e.preventDefault()}
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-6 h-6 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10.5"
+                      stroke="rgba(128,128,128,0.45)"
+                    />
+                    <path
+                      d="M5 19L19 5"
+                      stroke="#ef4444"
+                      strokeLinecap="round"
+                      strokeWidth="1.75"
+                    />
+                  </svg>
+                  {t("mail.remove_highlight")}
+                </button>
+              )}
               <div className="grid grid-cols-8 gap-1.5">
                 {PRESET_COLORS.map((color) => {
                   const selected =

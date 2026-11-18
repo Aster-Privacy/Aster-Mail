@@ -9642,6 +9642,7 @@ export const de = {
     remove_formatting: "Formatierung entfernen",
     font_color: "Schriftfarbe",
     highlight_color: "Hervorhebungsfarbe",
+    remove_highlight: "Hervorhebung entfernen",
     write_message_placeholder: "Nachricht schreiben",
     enter_password_placeholder: "Passwort eingeben...",
     folder: "Ordner",

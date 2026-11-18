@@ -9633,6 +9633,7 @@ export const pt = {
     remove_formatting: "Remover formatação",
     font_color: "Cor da fonte",
     highlight_color: "Cor de destaque",
+    remove_highlight: "Remover destaque",
     write_message_placeholder: "Escrever mensagem",
     enter_password_placeholder: "Introduza a palavra-passe...",
     folder: "Pasta",

@@ -9343,6 +9343,7 @@ export const en: Translations = {
     remove_formatting: "Remove formatting",
     font_color: "Font color",
     highlight_color: "Highlight color",
+    remove_highlight: "Remove highlight",
     write_message_placeholder: "Write message",
     enter_password_placeholder: "Enter password...",
     folder: "Folder",

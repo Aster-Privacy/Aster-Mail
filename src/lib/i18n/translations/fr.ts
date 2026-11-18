@@ -9654,6 +9654,7 @@ export const fr = {
     remove_formatting: "Supprimer la mise en forme",
     font_color: "Couleur du texte",
     highlight_color: "Couleur de surlignage",
+    remove_highlight: "Supprimer le surlignage",
     write_message_placeholder: "Écrire un message",
     enter_password_placeholder: "Saisir le mot de passe...",
     folder: "Dossier",

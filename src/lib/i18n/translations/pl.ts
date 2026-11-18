@@ -9783,6 +9783,7 @@ export const pl = {
     remove_formatting: "Usuń formatowanie",
     font_color: "Kolor czcionki",
     highlight_color: "Kolor podświetlenia",
+    remove_highlight: "Usuń podświetlenie",
     write_message_placeholder: "Napisz wiadomość",
     enter_password_placeholder: "Wprowadź hasło...",
     folder: "Folder",

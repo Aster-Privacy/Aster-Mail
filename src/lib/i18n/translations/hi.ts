@@ -9400,6 +9400,7 @@ export const hi = {
     remove_formatting: "फ़ॉर्मैटिंग हटाएं",
     font_color: "फ़ॉन्ट का रंग",
     highlight_color: "हाइलाइट का रंग",
+    remove_highlight: "हाइलाइट हटाएं",
     write_message_placeholder: "संदेश लिखें",
     enter_password_placeholder: "पासवर्ड डालें...",
     folder: "फ़ोल्डर",

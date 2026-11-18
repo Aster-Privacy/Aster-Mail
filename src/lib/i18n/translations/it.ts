@@ -9600,6 +9600,7 @@ export const it = {
     remove_formatting: "Rimuovi formattazione",
     font_color: "Colore del testo",
     highlight_color: "Colore evidenziazione",
+    remove_highlight: "Rimuovi evidenziazione",
     write_message_placeholder: "Scrivi messaggio",
     enter_password_placeholder: "Inserisci password...",
     folder: "Cartella",

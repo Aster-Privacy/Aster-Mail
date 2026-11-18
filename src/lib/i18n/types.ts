@@ -8383,6 +8383,7 @@ export interface MailTranslations {
   remove_formatting: string;
   font_color: string;
   highlight_color: string;
+  remove_highlight: string;
   write_message_placeholder: string;
   enter_password_placeholder: string;
   folder: string;

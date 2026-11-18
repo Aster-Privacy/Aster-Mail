@@ -816,6 +816,7 @@ export function use_editor({
     apply_signature,
     set_font_color: fmt.set_font_color,
     set_background_color: fmt.set_background_color,
+    remove_background_color: fmt.remove_background_color,
     set_font_size: fmt.set_font_size,
     set_font_family: fmt.set_font_family,
     handle_paste,
