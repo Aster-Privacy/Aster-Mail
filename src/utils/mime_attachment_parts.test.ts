@@ -243,6 +243,35 @@ describe("extract_mime_attachments", () => {
       "kept.pdf",
     ]);
   });
+
+  it("keeps a public key file the sender attached to a signed message", async () => {
+    const key_name = "publickey - dana@example.net - 0x27E4DF72.asc";
+    const key_bytes = new TextEncoder().encode(
+      "-----BEGIN PGP PUBLIC KEY BLOCK-----\r\n\r\nxjMEav2isBYJKwYBBAHaRw8BAQdA\r\n=Ndyi\r\n-----END PGP PUBLIC KEY BLOCK-----\r\n",
+    );
+    const signed = multipart(
+      "signed",
+      "sig",
+      [
+        multipart("mixed", "inner", [
+          text_part("html", "<div>My key is attached.</div>"),
+          file_part({
+            filename_header: `filename="${key_name}"; name="${key_name}"`,
+            content_type: `application/pgp-keys; filename="${key_name}"; name="${key_name}"`,
+            data: key_bytes,
+          }),
+        ]),
+        'Content-Type: application/pgp-signature; name="signature.asc"\r\nContent-Disposition: attachment; filename="signature.asc"\r\n\r\n-----BEGIN PGP SIGNATURE-----\r\nAAAA\r\n-----END PGP SIGNATURE-----',
+      ],
+      '; protocol="application/pgp-signature"; micalg=pgp-sha256',
+    );
+
+    const parts = extract_mime_attachments(signed);
+
+    expect(parts.map((p) => p.filename)).toEqual([key_name]);
+    expect(parts[0]?.content_type).toBe("application/pgp-keys");
+    expect(await sha256_hex(parts[0]!.data)).toBe(await sha256_hex(key_bytes));
+  });
 });
 
 describe("decode_encoded_words", () => {
