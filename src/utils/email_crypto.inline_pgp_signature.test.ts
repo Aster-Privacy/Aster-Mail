@@ -171,6 +171,7 @@ describe("inline PGP end-to-end badge", () => {
       body: "no signature",
       decrypted: true,
       verified: false,
+      sender_verification: "unsigned",
     });
     expect(h.discover_calls).toBe(0);
   });
@@ -186,6 +187,7 @@ describe("inline PGP end-to-end badge", () => {
       body: "signed by sender",
       decrypted: true,
       verified: true,
+      sender_verification: "verified",
     });
   });
 

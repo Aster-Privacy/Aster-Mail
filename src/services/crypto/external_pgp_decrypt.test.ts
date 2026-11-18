@@ -131,6 +131,7 @@ describe("mail encrypted to the imported key", () => {
       body: "hello outside",
       decrypted: true,
       verified: false,
+      sender_verification: "unsigned",
     });
   });
 

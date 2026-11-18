@@ -160,6 +160,10 @@ async function resolve_envelope_body(
 
   body_text = pgp.body;
 
+  if (pgp.decrypted && pgp.sender_verification) {
+    envelope.sender_verification = pgp.sender_verification;
+  }
+
   if (is_password_protected_body(body_text)) {
     return {
       body_text,

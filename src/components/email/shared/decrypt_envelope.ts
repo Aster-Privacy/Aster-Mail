@@ -77,6 +77,7 @@ import {
 } from "@/services/crypto/external_pgp_key";
 
 import { get_current_account } from "@/services/account_manager";
+import { is_internal_email } from "@/services/api/keys";
 
 const INBOUND_ECIES_MARKER = 0x02;
 const INBOUND_ECIES_COMPRESSED_MARKER = 0x03;
@@ -622,10 +623,10 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             } else {
               parsed.sender_verification = "no_keys";
             }
-          } else {
-            parsed.sender_verification = first_pass.has_signature
-              ? "no_keys"
-              : "unsigned";
+          } else if (first_pass.has_signature) {
+            parsed.sender_verification = "no_keys";
+          } else if (is_internal_email(parsed?.from?.email ?? "")) {
+            parsed.sender_verification = "unsigned";
           }
 
           if (has_sent_encryption_evidence(parsed)) {

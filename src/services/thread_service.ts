@@ -25,6 +25,7 @@ import type {
   ThreadWithMessages,
 } from "@/services/api/mail";
 import type { ThreadMessageItem } from "@/services/api/mail_threads";
+import type { SenderVerificationStatus } from "@/types/email";
 
 import {
   get_thread_messages,
@@ -272,6 +273,8 @@ async function decode_thread_envelope(
   let body_decrypted = false;
   let e2e_verified = false;
   let ratchet_sealed = false;
+  let pgp_sender_bound = false;
+  let pgp_sender_verification: SenderVerificationStatus | undefined;
 
   if (our_email && body_content.startsWith("{")) {
     const ratchet_env = parse_ratchet_envelope(body_content);
@@ -324,7 +327,11 @@ async function decode_thread_envelope(
     body_content = resolved.body;
     pgp_unresolved = !resolved.decrypted && !body_decrypted;
     body_decrypted = body_decrypted || resolved.decrypted;
-    e2e_verified = e2e_verified || resolved.verified;
+    e2e_verified = e2e_verified || resolved.decrypted;
+    pgp_sender_bound = resolved.verified;
+    if (resolved.decrypted) {
+      pgp_sender_verification = resolved.sender_verification;
+    }
   }
 
   const password_protected = is_password_protected_body(body_content);
@@ -388,9 +395,13 @@ async function decode_thread_envelope(
     text_part: sender_text_alternative(effective_html, resolved_text),
     sent_at: envelope.sent_at,
     e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
-    e2e_sender_bound: ratchet_sealed || sent_encryption_scope !== undefined,
+    e2e_sender_bound:
+      ratchet_sealed || pgp_sender_bound || sent_encryption_scope !== undefined,
     e2e_details_sealed: has_sealed_details(subject_bundle, ratchet_sealed),
     ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
+    ...(pgp_sender_verification
+      ? { sender_verification: pgp_sender_verification }
+      : {}),
     to_recipients: envelope.to || [],
     cc_recipients: envelope.cc || [],
     bcc_recipients: envelope.bcc || [],
@@ -527,6 +538,9 @@ export async function fetch_and_decrypt_thread_messages(
       e2e_verified: content.e2e_verified,
       e2e_sender_bound: content.e2e_sender_bound,
       e2e_details_sealed: content.e2e_details_sealed,
+      ...(content.sender_verification
+        ? { sender_verification: content.sender_verification }
+        : {}),
       ...(as_sent_encryption_scope(content.sent_encryption_scope)
         ? { sent_encryption_scope: content.sent_encryption_scope }
         : {}),
@@ -654,6 +668,8 @@ export async function fetch_and_decrypt_virtual_group(
     let body_decrypted = false;
     let e2e_verified = false;
     let ratchet_sealed = false;
+    let pgp_sender_bound = false;
+    let pgp_sender_verification: SenderVerificationStatus | undefined;
 
     if (our_email && body_content.startsWith("{")) {
       const ratchet_env = parse_ratchet_envelope(body_content);
@@ -703,7 +719,11 @@ export async function fetch_and_decrypt_virtual_group(
 
       body_content = resolved.body;
       body_decrypted = body_decrypted || resolved.decrypted;
-      e2e_verified = e2e_verified || resolved.verified;
+      e2e_verified = e2e_verified || resolved.decrypted;
+      pgp_sender_bound = resolved.verified;
+      if (resolved.decrypted) {
+        pgp_sender_verification = resolved.sender_verification;
+      }
     }
 
     const password_protected = is_password_protected_body(body_content);
@@ -773,9 +793,15 @@ export async function fetch_and_decrypt_virtual_group(
       is_external: item.is_external ?? false,
       system_origin: item.system_origin,
       e2e_verified: e2e_verified || sent_encryption_scope !== undefined,
-      e2e_sender_bound: ratchet_sealed || sent_encryption_scope !== undefined,
+      e2e_sender_bound:
+        ratchet_sealed ||
+        pgp_sender_bound ||
+        sent_encryption_scope !== undefined,
       e2e_details_sealed: has_sealed_details(subject_bundle, ratchet_sealed),
       ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
+      ...(pgp_sender_verification
+        ? { sender_verification: pgp_sender_verification }
+        : {}),
       sender_verified_domain: item.sender_verified
         ? item.sender_verified_domain
         : undefined,
