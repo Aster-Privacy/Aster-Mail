@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { InboxEmail } from "@/types/email";
+
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
 import { release_on_version_change } from "@/lib/idb_release";
@@ -308,8 +310,44 @@ function message_links(msg: ReportableMessage): string[] {
   return links;
 }
 
-export async function report_phishing_message(
+export function inbox_email_reportable(email: InboxEmail): ReportableMessage {
+  return {
+    item_type: email.item_type,
+    is_external: email.is_external === true,
+    sender_email: email.sender_email,
+    html_content: email.body_html,
+  };
+}
+
+export function report_phishing_message(msg: ReportableMessage): Promise<void> {
+  return send_phishing_verdict(msg, "phishing");
+}
+
+export function report_not_phishing_message(
   msg: ReportableMessage,
+): Promise<void> {
+  return send_phishing_verdict(msg, "not_phishing");
+}
+
+export function report_not_phishing_once_per_sender(
+  emails: InboxEmail[],
+): void {
+  const seen = new Set<string>();
+
+  for (const email of emails) {
+    const sender = (email.sender_email || "").trim().toLowerCase();
+
+    if (!sender || seen.has(sender)) continue;
+    seen.add(sender);
+    report_not_phishing_message(inbox_email_reportable(email)).catch((caught) =>
+      ignore_error("lib/phishing_blocklist:report_not_phishing", caught),
+    );
+  }
+}
+
+async function send_phishing_verdict(
+  msg: ReportableMessage,
+  verdict: "phishing" | "not_phishing",
 ): Promise<void> {
   if (msg.item_type !== "received" || !msg.is_external) return;
 
@@ -331,7 +369,12 @@ export async function report_phishing_message(
 
   if (hosts.size === 0 && !sender_domain) return;
 
-  const body: { domain_hashes: string[]; sender_domain_hash?: string } = {
+  const body: {
+    verdict: "phishing" | "not_phishing";
+    domain_hashes: string[];
+    sender_domain_hash?: string;
+  } = {
+    verdict,
     domain_hashes: await Promise.all(
       [...hosts].map(async (host) => bytes_to_hex(await sha256_hash(host))),
     ),

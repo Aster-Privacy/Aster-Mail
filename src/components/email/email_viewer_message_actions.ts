@@ -45,7 +45,10 @@ import {
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
-import { report_phishing_message } from "@/lib/phishing_blocklist";
+import {
+  report_not_phishing_message,
+  report_phishing_message,
+} from "@/lib/phishing_blocklist";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { remember_forward_from_message } from "@/components/email/delivery_reply_address";
@@ -286,6 +289,12 @@ export function use_message_actions(
             ),
           );
         }
+        report_not_phishing_message(msg).catch((caught) =>
+          ignore_error(
+            "components/email/email_viewer_message_actions:report_not_phishing",
+            caught,
+          ),
+        );
         reindex_ids([msg.id]);
         emit_mail_item_updated({ id: msg.id, is_spam: false });
         emit_mail_changed();

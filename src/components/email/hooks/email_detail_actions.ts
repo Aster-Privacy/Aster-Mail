@@ -42,7 +42,10 @@ import {
   get_cached_ghost_for_routing_token,
 } from "@/hooks/use_sender_aliases";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
-import { report_phishing_message } from "@/lib/phishing_blocklist";
+import {
+  report_not_phishing_message,
+  report_phishing_message,
+} from "@/lib/phishing_blocklist";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -586,6 +589,12 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
             ),
           );
         }
+        report_not_phishing_message(msg).catch((caught) =>
+          ignore_error(
+            "components/email/hooks/email_detail_actions:report_not_phishing",
+            caught,
+          ),
+        );
         emit_mail_items_removed({ ids: [msg.id] });
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.navigate(deps.get_next_email_destination());

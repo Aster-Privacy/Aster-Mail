@@ -19,10 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ReportableMessage } from "./phishing_blocklist";
+import type { InboxEmail } from "@/types/email";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { report_phishing_message } from "./phishing_blocklist";
+import {
+  inbox_email_reportable,
+  report_not_phishing_once_per_sender,
+  report_not_phishing_message,
+  report_phishing_message,
+} from "./phishing_blocklist";
 
 import { api_client } from "@/services/api/client";
 
@@ -79,6 +85,7 @@ describe("report_phishing_message", () => {
     );
 
     expect(mocked_post).toHaveBeenCalledWith("/phishing/v1/report", {
+      verdict: "phishing",
       domain_hashes: [
         await domain_hash_hex("login.bad.example"),
         await domain_hash_hex("bad.example"),
@@ -159,6 +166,7 @@ describe("report_phishing_message", () => {
     const punycode = await domain_hash_hex("xn--bcher-kva.example");
 
     expect(sent_hashes()).toEqual({
+      verdict: "phishing",
       domain_hashes: [punycode],
       sender_domain_hash: punycode,
     });
@@ -196,5 +204,88 @@ describe("report_phishing_message", () => {
     );
 
     expect(mocked_post).not.toHaveBeenCalled();
+  });
+});
+
+describe("report_not_phishing_message", () => {
+  it("sends the same hashes as a not phishing verdict", async () => {
+    const msg = received({
+      sender_email: "news@shop.example",
+      html_content: '<a href="https://shop.example/sale">x</a>',
+    });
+
+    await report_not_phishing_message(msg);
+
+    expect(mocked_post).toHaveBeenCalledWith("/phishing/v1/report", {
+      verdict: "not_phishing",
+      domain_hashes: [await domain_hash_hex("shop.example")],
+      sender_domain_hash: await domain_hash_hex("shop.example"),
+    });
+  });
+
+  it("keeps the same limits as a report", async () => {
+    await report_not_phishing_message(
+      received({
+        html_content: '<a href="https://shop.example/">x</a>',
+        is_external: false,
+      }),
+    );
+    await report_not_phishing_message(
+      received({ html_content: '<a href="http://10.0.0.1/">x</a>' }),
+    );
+
+    expect(mocked_post).not.toHaveBeenCalled();
+  });
+});
+
+describe("inbox_email_reportable", () => {
+  it("reads a list item as a reportable message", () => {
+    const email = {
+      item_type: "received",
+      is_external: true,
+      sender_email: "news@shop.example",
+      body_html: '<a href="https://shop.example/">x</a>',
+      preview: "Sale",
+    } as unknown as InboxEmail;
+
+    expect(inbox_email_reportable(email)).toEqual({
+      item_type: "received",
+      is_external: true,
+      sender_email: "news@shop.example",
+      html_content: '<a href="https://shop.example/">x</a>',
+    });
+  });
+
+  it("treats a list item of unknown origin as internal", () => {
+    const email = {
+      item_type: "received",
+      sender_email: "x@shop.example",
+    } as unknown as InboxEmail;
+
+    expect(inbox_email_reportable(email).is_external).toBe(false);
+  });
+});
+
+describe("report_not_phishing_once_per_sender", () => {
+  it("sends one verdict per sender", async () => {
+    const email = (sender_email: string) =>
+      ({
+        item_type: "received",
+        is_external: true,
+        sender_email,
+      }) as unknown as InboxEmail;
+
+    report_not_phishing_once_per_sender([
+      email("a@one.example"),
+      email("b@one.example"),
+      email("a@one.example"),
+    ]);
+    await vi.waitFor(() => expect(mocked_post).toHaveBeenCalledTimes(2));
+
+    expect(
+      mocked_post.mock.calls.every(
+        ([, body]) => (body as { verdict: string }).verdict === "not_phishing",
+      ),
+    ).toBe(true);
   });
 });

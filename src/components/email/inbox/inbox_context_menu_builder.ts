@@ -63,6 +63,10 @@ import {
   report_spam_sender,
   remove_spam_sender,
 } from "@/services/api/mail";
+import {
+  inbox_email_reportable,
+  report_not_phishing_message,
+} from "@/lib/phishing_blocklist";
 import { set_thread_trashed, sync_thread_spam } from "@/services/trash_state";
 import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
 import { open_email_in_new_window } from "@/utils/open_email_window";
@@ -579,6 +583,13 @@ export function build_context_menu_actions(
           ),
         );
       }
+      report_not_phishing_message(inbox_email_reportable(email)).catch(
+        (caught) =>
+          ignore_error(
+            "components/email/inbox/inbox_context_menu_builder:report_not_phishing",
+            caught,
+          ),
+      );
       show_action_toast({
         message: t("common.marked_as_not_spam"),
         action_type: "not_spam",

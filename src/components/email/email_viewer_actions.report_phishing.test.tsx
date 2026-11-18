@@ -29,6 +29,7 @@ const update_item_metadata = vi.hoisted(() =>
   vi.fn(async () => ({ success: true, encrypted: null })),
 );
 const report_phishing_message = vi.hoisted(() => vi.fn(async () => {}));
+const report_not_phishing_message = vi.hoisted(() => vi.fn(async () => {}));
 const report_spam_sender = vi.hoisted(() =>
   vi.fn(async () => ({ data: { success: true } })),
 );
@@ -36,6 +37,7 @@ const report_spam_sender = vi.hoisted(() =>
 vi.mock("@/lib/phishing_blocklist", async (import_original) => ({
   ...(await import_original<typeof import("@/lib/phishing_blocklist")>()),
   report_phishing_message,
+  report_not_phishing_message,
 }));
 
 vi.mock("@/services/api/mail", async (import_original) => ({
@@ -150,6 +152,7 @@ describe("report phishing", () => {
     ).IS_REACT_ACT_ENVIRONMENT = true;
     update_item_metadata.mockClear();
     report_phishing_message.mockClear();
+    report_not_phishing_message.mockClear();
     report_spam_sender.mockClear();
     thread = [phishing_message];
   });
@@ -178,6 +181,16 @@ describe("report phishing", () => {
       await latest.handle_per_message_report_phishing(phishing_message);
     });
 
+    expect(report_phishing_message).not.toHaveBeenCalled();
+  });
+
+  it("tells the blocklist a message marked not spam is not phishing", async () => {
+    render();
+    await act(async () => {
+      await latest.handle_per_message_not_spam(phishing_message);
+    });
+
+    expect(report_not_phishing_message).toHaveBeenCalledWith(phishing_message);
     expect(report_phishing_message).not.toHaveBeenCalled();
   });
 });
