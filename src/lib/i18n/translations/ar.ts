@@ -1126,7 +1126,7 @@ export const ar = {
     protected_in_transit: "محمي أثناء النقل",
     encryption_available: "التشفير متاح",
     encryption_available_desc:
-      "ينشر هذا المستلم مفتاح تشفير صالحًا للاستخدام. انقر على القفل لتشفير هذه الرسالة من طرف إلى طرف.",
+      "لدى هذا المستلم مفتاح على خادم مفاتيح عام لا يستطيع Aster التحقق منه. لتشفير هذه الرسالة تشفيرًا تامًا بين الطرفين، انقر على القفل.",
     click_to_encrypt: "انقر لتشفير هذه الرسالة من طرف إلى طرف",
     click_to_disable_encryption: "مشفّرة - انقر لإيقاف التشفير لهذه الرسالة",
     encryption_status_unknown: "حالة التشفير غير متاحة",
@@ -2272,7 +2272,7 @@ export const ar = {
     add_to_group: "الإضافة إلى مجموعة",
     checking_for_keys: "جارٍ البحث عن المفاتيح",
     contact_encryption_info:
-      "عندما تنشر جهة اتصال مفتاحًا عامًا، يشفّر Aster رسائلك إليها تلقائيًا.",
+      "عندما تنشر جهة الاتصال مفتاحًا عامًا موثّقًا، يشفّر Aster رسائلك إليها تلقائيًا.",
     contacts_in_trash_notice:
       "تُحذف جهات الاتصال الموجودة في المهملات نهائيًا بعد 30 يومًا.",
     delete_group_confirmation:
@@ -5076,7 +5076,8 @@ export const ar = {
     delete_your_account: "حذف حسابك",
     auto_discover_keys_title: "اكتشاف مفاتيح المستلمين تلقائيًا",
     encrypt_by_default_title: "التشفير افتراضيًا",
-    encrypt_by_default_description: "التشفير تلقائيًا عند توفر مفتاح المستلم",
+    encrypt_by_default_description:
+      "التشفير تلقائيًا عندما ينشر المستلم مفتاحًا موثّقًا",
     require_encryption_title: "طلب التشفير",
     require_encryption_description:
       "منع الإرسال بدون تشفير للمستلمين ذوي المفاتيح المعروفة",
@@ -5179,10 +5180,10 @@ export const ar = {
       "يعرض تحذيراً قبل فتح أي رابط خارج Aster. يساعدك على رصد محاولات التصيد قبل النقر.",
     info_auto_discover_keys_title: "اكتشاف المفاتيح تلقائياً",
     info_auto_discover_keys_description:
-      "يجلب تلقائياً مفاتيح التشفير لجهات اتصالك لإرسال بريد مشفر دون إعداد يدوي.",
+      "يبحث عن المفاتيح العامة لمستلميك عبر WKD وDANE وAutocrypt وخوادم المفاتيح العامة أثناء كتابة رسالة.",
     info_encrypt_by_default_title: "التشفير افتراضياً",
     info_encrypt_by_default_description:
-      "يشفر تلقائياً الرسائل الصادرة عندما يتوفر المفتاح العام للمستلم. لا حاجة لتفعيل التشفير يدوياً لكل رسالة.",
+      "يشفّر البريد الصادر تلقائيًا عندما يأتي مفتاح المستلم من نطاقه الخاص عبر WKD أو DANE، أو من Autocrypt. لا يستطيع Aster التحقق من مفتاح موجود على خادم مفاتيح عام فقط، لذا لاستخدامه انقر على القفل في الرسالة.",
     info_show_encryption_indicators_title: "مؤشرات التشفير",
     info_show_encryption_indicators_description:
       "يعرض أيقونة قفل على الرسائل يوضح إن كانت مشفرة أو موقعة أو لا شيء.",
@@ -5447,7 +5448,7 @@ export const ar = {
     drafts_signatures: "المسودات والتوقيعات",
     contact_information_label: "معلومات جهة الاتصال",
     auto_discover_keys_description:
-      "البحث تلقائيًا في WKD وخوادم المفاتيح عند الكتابة",
+      "البحث عن مفاتيح المستلمين عبر WKD وDANE وخوادم المفاتيح أثناء الكتابة",
     key_published_wkd: "تم نشر المفتاح إلى WKD",
     key_removed_wkd: "تمت إزالة المفتاح من WKD",
     failed_publish_wkd:

@@ -1204,7 +1204,7 @@ export const ja = {
     protected_in_transit: "転送中は保護されています",
     encryption_available: "暗号化が利用できます",
     encryption_available_desc:
-      "この受信者は使用可能な暗号鍵を公開しています。鍵アイコンをクリックすると、このメッセージをエンドツーエンドで暗号化します。",
+      "この受信者には、Aster が検証できない公開鍵サーバー上の鍵があります。このメッセージをエンドツーエンドで暗号化するには、鍵アイコンをクリックしてください。",
     click_to_encrypt: "クリックしてこのメッセージをエンドツーエンドで暗号化",
     click_to_disable_encryption:
       "暗号化済み - クリックするとこのメッセージでは無効になります",
@@ -2115,7 +2115,7 @@ export const ja = {
     checking_for_keys: "鍵を確認しています",
     compose_to_selection: "選択した連絡先に作成",
     contact_encryption_info:
-      "連絡先が公開鍵を公開すると、Aster はその相手へのメールを自動的に暗号化します。",
+      "連絡先が検証済みの公開鍵を公開している場合、Aster はその連絡先へのメールを自動で暗号化します。",
     contacts_merged: "連絡先を統合しました",
     delete_group_confirmation:
       "「{{name}}」を削除すると、グループだけが削除されます。連絡先はアドレス帳に残ります。",
@@ -4910,8 +4910,7 @@ export const ja = {
     delete_your_account: "アカウントを削除する",
     auto_discover_keys_title: "受信者のキーを自動検出",
     encrypt_by_default_title: "デフォルトで暗号化",
-    encrypt_by_default_description:
-      "受信者のキーが利用可能な場合に自動的に暗号化します",
+    encrypt_by_default_description: "受信者が検証済みの鍵を公開している場合に自動で暗号化します",
     require_encryption_title: "暗号化を必須にする",
     require_encryption_description:
       "既知のキーを持つ受信者への非暗号化送信を防止します",
@@ -5014,10 +5013,10 @@ export const ja = {
       "Aster外部のリンクを開く前に警告を表示します。クリック前にフィッシングの試みを特定するのに役立ちます。",
     info_auto_discover_keys_title: "鍵の自動検出",
     info_auto_discover_keys_description:
-      "連絡先の暗号化鍵を自動取得し、手動設定なしで暗号化メールを送れるようにします。",
+      "メッセージの作成中に、WKD、DANE、Autocrypt、公開鍵サーバーで受信者の公開鍵を検索します。",
     info_encrypt_by_default_title: "デフォルトで暗号化",
     info_encrypt_by_default_description:
-      "受信者の公開鍵が利用可能な場合、送信メールを自動暗号化します。メッセージごとに暗号化を切り替える必要がありません。",
+      "受信者の鍵が WKD または DANE を通じて本人のドメインから、または Autocrypt から取得された場合、送信メールを自動で暗号化します。公開鍵サーバーにしかない鍵は Aster では検証できません。その鍵を使うには、メッセージの鍵アイコンをクリックしてください。",
     info_show_encryption_indicators_title: "暗号化インジケーター",
     info_show_encryption_indicators_description:
       "メールに鍵アイコンを表示し、メッセージが暗号化済み・署名済み・またはどちらでもないかを示します。",
@@ -5298,8 +5297,7 @@ export const ja = {
     folder_names_structure: "フォルダ名と構造",
     drafts_signatures: "下書きと署名",
     contact_information_label: "連絡先情報",
-    auto_discover_keys_description:
-      "メール作成時にWKDとキーサーバーを自動的に検索します",
+    auto_discover_keys_description: "作成中に WKD、DANE、鍵サーバーで受信者の鍵を検索します",
     key_published_wkd: "WKDにキーを公開しました",
     key_removed_wkd: "WKDからキーを削除しました",
     failed_publish_wkd:

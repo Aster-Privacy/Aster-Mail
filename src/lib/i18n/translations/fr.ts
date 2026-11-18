@@ -1189,7 +1189,7 @@ export const fr = {
     protected_in_transit: "Protégé en transit",
     encryption_available: "Chiffrement disponible",
     encryption_available_desc:
-      "Ce destinataire publie une clé de chiffrement utilisable. Cliquez sur le cadenas pour chiffrer ce message de bout en bout.",
+      "Ce destinataire a une clé sur un serveur de clés public qu'Aster ne peut pas vérifier. Pour chiffrer ce message de bout en bout, cliquez sur le cadenas.",
     click_to_encrypt: "Cliquez pour chiffrer ce message de bout en bout",
     click_to_disable_encryption:
       "Chiffré - cliquez pour désactiver pour ce message",
@@ -2181,7 +2181,7 @@ export const fr = {
       "Ajoutez un anniversaire à un contact et Aster vous le rappelle avant la date.",
     compose_to_selection: "Écrire à la sélection",
     contact_encryption_info:
-      "Quand un contact publie une clé publique, Aster chiffre automatiquement les messages que vous lui envoyez.",
+      "Quand un contact publie une clé publique vérifiée, Aster chiffre automatiquement les messages que vous lui envoyez.",
     contacts_in_trash_notice:
       "Les contacts placés dans la corbeille sont supprimés définitivement au bout de 30 jours.",
     delete_group_confirmation:
@@ -5042,7 +5042,7 @@ export const fr = {
       "Découverte automatique des clés des destinataires",
     encrypt_by_default_title: "Chiffrer par défaut",
     encrypt_by_default_description:
-      "Chiffrer automatiquement lorsque la clé du destinataire est disponible",
+      "Chiffrer automatiquement quand un destinataire publie une clé vérifiée",
     require_encryption_title: "Exiger le chiffrement",
     require_encryption_description:
       "Empêcher l'envoi non chiffré aux destinataires dont les clés sont connues",
@@ -5147,10 +5147,10 @@ export const fr = {
       "Affiche un avertissement avant d'ouvrir un lien qui sort d'Aster. Aide à repérer les tentatives d'hameçonnage avant de cliquer.",
     info_auto_discover_keys_title: "Découverte automatique des clés",
     info_auto_discover_keys_description:
-      "Récupère automatiquement les clés de chiffrement de vos contacts pour envoyer des mails chiffrés sans configuration manuelle.",
+      "Recherche les clés publiques de vos destinataires via WKD, DANE, Autocrypt et les serveurs de clés publics pendant que vous rédigez un message.",
     info_encrypt_by_default_title: "Chiffrer par défaut",
     info_encrypt_by_default_description:
-      "Chiffre automatiquement les e-mails sortants quand la clé publique d'un destinataire est disponible. Pas besoin d'activer le chiffrement par message.",
+      "Chiffre automatiquement les e-mails sortants quand la clé d'un destinataire provient de son propre domaine via WKD ou DANE, ou d'Autocrypt. Aster ne peut pas vérifier une clé présente uniquement sur un serveur de clés public. Pour l'utiliser, cliquez sur le cadenas dans le message.",
     info_show_encryption_indicators_title: "Indicateurs de chiffrement",
     info_show_encryption_indicators_description:
       "Affiche une icône de cadenas sur les e-mails pour indiquer si un message est chiffré, signé ou ni l'un ni l'autre.",
@@ -5451,7 +5451,7 @@ export const fr = {
     drafts_signatures: "Brouillons et signatures",
     contact_information_label: "Informations de contact",
     auto_discover_keys_description:
-      "Rechercher automatiquement sur WKD et les serveurs de clés lors de la rédaction",
+      "Rechercher les clés des destinataires via WKD, DANE et les serveurs de clés pendant la rédaction",
     key_published_wkd: "Clé publiée sur WKD",
     key_removed_wkd: "Clé retirée de WKD",
     failed_publish_wkd:

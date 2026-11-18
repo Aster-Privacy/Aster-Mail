@@ -1179,7 +1179,7 @@ export const it = {
     protected_in_transit: "Protetto in transito",
     encryption_available: "Crittografia disponibile",
     encryption_available_desc:
-      "Questo destinatario pubblica una chiave di crittografia utilizzabile. Fai clic sul lucchetto per crittografare questo messaggio end-to-end.",
+      "Questo destinatario ha una chiave su un keyserver pubblico che Aster non può verificare. Per cifrare questo messaggio end-to-end, fai clic sul lucchetto.",
     click_to_encrypt: "Fai clic per crittografare questo messaggio end-to-end",
     click_to_disable_encryption:
       "Crittografato - fai clic per disattivarlo per questo messaggio",
@@ -2177,7 +2177,7 @@ export const it = {
     clear_selection: "Annulla la selezione",
     compose_to_selection: "Scrivi alla selezione",
     contact_encryption_info:
-      "Quando un contatto pubblica una chiave pubblica, Aster cifra automaticamente i messaggi che gli invii.",
+      "Quando un contatto pubblica una chiave pubblica verificata, Aster cifra automaticamente i messaggi che gli invii.",
     contacts_in_trash_notice:
       "I contatti nel cestino vengono eliminati definitivamente dopo 30 giorni.",
     delete_group_confirmation:
@@ -6353,7 +6353,7 @@ export const it = {
       "Scopri automaticamente le chiavi dei destinatari",
     encrypt_by_default_title: "Crittografa per impostazione predefinita",
     encrypt_by_default_description:
-      "Crittografa automaticamente quando la chiave del destinatario è disponibile",
+      "Cifra automaticamente quando un destinatario pubblica una chiave verificata",
     require_encryption_title: "Richiedi crittografia",
     require_encryption_description:
       "Impedisci l'invio non crittografato a destinatari con chiavi note",
@@ -6457,10 +6457,10 @@ export const it = {
       "Mostra un avviso prima di aprire qualsiasi link che va fuori da Aster. Aiuta a individuare tentativi di phishing prima di fare clic.",
     info_auto_discover_keys_title: "Scoperta automatica chiavi",
     info_auto_discover_keys_description:
-      "Recupera automaticamente le chiavi di cifratura per i tuoi contatti per inviare mail cifrate senza configurazione manuale.",
+      "Cerca le chiavi pubbliche dei tuoi destinatari tramite WKD, DANE, Autocrypt e keyserver pubblici mentre scrivi un messaggio.",
     info_encrypt_by_default_title: "Cifra per impostazione predefinita",
     info_encrypt_by_default_description:
-      "Cifra automaticamente le e-mail in uscita quando è disponibile la chiave pubblica del destinatario. Non è necessario attivare la cifratura per ogni messaggio.",
+      "Cifra automaticamente le e-mail in uscita quando la chiave di un destinatario proviene dal suo dominio tramite WKD o DANE, oppure da Autocrypt. Aster non può verificare una chiave presente solo su un keyserver pubblico: per usarla, fai clic sul lucchetto nel messaggio.",
     info_show_encryption_indicators_title: "Indicatori di cifratura",
     info_show_encryption_indicators_description:
       "Mostra un'icona lucchetto sulle e-mail per indicare se un messaggio è cifrato, firmato o nessuno dei due.",
@@ -6751,7 +6751,7 @@ export const it = {
     drafts_signatures: "Bozze e firme",
     contact_information_label: "Informazioni di contatto",
     auto_discover_keys_description:
-      "Cerca automaticamente su WKD e keyserver durante la composizione",
+      "Cerca le chiavi dei destinatari tramite WKD, DANE e keyserver mentre scrivi",
     key_published_wkd: "Chiave pubblicata su WKD",
     key_removed_wkd: "Chiave rimossa da WKD",
     failed_publish_wkd:

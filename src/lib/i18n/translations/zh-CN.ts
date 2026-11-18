@@ -1008,7 +1008,7 @@ export const zh_CN = {
     protected_in_transit: "传输中受保护",
     encryption_available: "可用加密",
     encryption_available_desc:
-      "该收件人已发布可用的加密密钥。点击锁形图标即可对此邮件进行端到端加密。",
+      "此收件人在公共密钥服务器上有一个 Aster 无法验证的密钥。要对此邮件进行端到端加密，请点击锁形图标。",
     click_to_encrypt: "点击对此邮件进行端到端加密",
     click_to_disable_encryption: "已加密 - 点击可对此邮件关闭",
     encryption_status_unknown: "无法获取加密状态",
@@ -1949,8 +1949,7 @@ export const zh_CN = {
     checking_for_keys: "正在查找密钥",
     compose_to_selection: "给所选联系人写邮件",
     contact_change_undone: "已撤消更改",
-    contact_encryption_info:
-      "当联系人公布公钥后，Aster 会自动加密您发给对方的邮件。",
+    contact_encryption_info: "当联系人发布已验证的公钥时，Aster 会自动加密你发给对方的邮件。",
     contact_moved_to_trash: "联系人已移到废纸篓",
     contacts_in_trash_notice: "废纸篓中的联系人将在 30 天后永久删除。",
     contacts_moved_to_trash: "联系人已移到废纸篓",
@@ -4510,7 +4509,7 @@ export const zh_CN = {
     delete_your_account: "删除您的账户",
     auto_discover_keys_title: "自动发现收件人密钥",
     encrypt_by_default_title: "默认加密",
-    encrypt_by_default_description: "当收件人密钥可用时自动加密",
+    encrypt_by_default_description: "收件人发布已验证的密钥时自动加密",
     require_encryption_title: "要求加密",
     require_encryption_description: "禁止向拥有已知密钥的收件人发送未加密邮件",
     show_encryption_indicators_title: "显示加密指示器",
@@ -4607,10 +4606,10 @@ export const zh_CN = {
       "在打开Aster以外的链接前显示警告。帮助您在点击前识别钓鱼攻击。",
     info_auto_discover_keys_title: "自动发现密钥",
     info_auto_discover_keys_description:
-      "自动获取联系人的加密密钥，无需手动设置即可向他们发送加密邮件。",
+      "在你撰写邮件时，通过 WKD、DANE、Autocrypt 和公共密钥服务器查找收件人的公钥。",
     info_encrypt_by_default_title: "默认加密",
     info_encrypt_by_default_description:
-      "当收件人的公钥可用时，自动加密外发邮件。无需逐条消息切换加密。",
+      "当收件人的密钥通过 WKD 或 DANE 来自其自己的域名，或来自 Autocrypt 时，自动加密外发邮件。Aster 无法验证仅存在于公共密钥服务器上的密钥，如需使用此类密钥，请点击邮件中的锁形图标。",
     info_show_encryption_indicators_title: "加密指示器",
     info_show_encryption_indicators_description:
       "在邮件上显示锁图标，告知您邮件是否已加密、已签名或两者都不是。便于一眼了解哪些内容受到保护。",
@@ -4852,7 +4851,7 @@ export const zh_CN = {
     folder_names_structure: "文件夹名称和结构",
     drafts_signatures: "草稿和签名",
     contact_information_label: "联系人信息",
-    auto_discover_keys_description: "撰写邮件时自动搜索 WKD 和密钥服务器",
+    auto_discover_keys_description: "撰写时通过 WKD、DANE 和密钥服务器查找收件人密钥",
     key_published_wkd: "密钥已发布到 WKD",
     key_removed_wkd: "密钥已从 WKD 移除",
     failed_publish_wkd:

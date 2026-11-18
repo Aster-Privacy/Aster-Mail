@@ -1060,7 +1060,7 @@ export const pt = {
     protected_in_transit: "Protegido em trânsito",
     encryption_available: "Encriptação disponível",
     encryption_available_desc:
-      "Este destinatário publica uma chave de encriptação utilizável. Clique no cadeado para encriptar esta mensagem de ponta a ponta.",
+      "Este destinatário tem uma chave num servidor de chaves público que o Aster não consegue verificar. Para encriptar esta mensagem ponto a ponto, clique no cadeado.",
     click_to_encrypt: "Clique para encriptar esta mensagem de ponta a ponta",
     click_to_disable_encryption:
       "Encriptado - clique para desativar nesta mensagem",
@@ -2189,7 +2189,7 @@ export const pt = {
     checking_for_keys: "A procurar chaves...",
     compose_to_selection: "Escrever para a seleção",
     contact_encryption_info:
-      "Quando um contacto publica uma chave pública, o Aster encripta automaticamente as mensagens que lhe envia.",
+      "Quando um contacto publica uma chave pública verificada, o Aster encripta automaticamente as mensagens que lhe envia.",
     contacts_in_trash_notice:
       "Os contactos no Lixo são eliminados definitivamente após 30 dias.",
     contacts_merged: "Contactos combinados",
@@ -5042,7 +5042,7 @@ export const pt = {
       "Descobrir chaves de destinatários automaticamente",
     encrypt_by_default_title: "Encriptar por predefinição",
     encrypt_by_default_description:
-      "Encriptar automaticamente quando a chave do destinatário estiver disponível",
+      "Encriptar automaticamente quando um destinatário publica uma chave verificada",
     require_encryption_title: "Exigir encriptação",
     require_encryption_description:
       "Impedir o envio sem encriptação para destinatários com chaves conhecidas",
@@ -5146,10 +5146,10 @@ export const pt = {
       "Mostra um aviso antes de abrir qualquer link que saia do Aster. Ajuda a identificar tentativas de phishing antes de clicar.",
     info_auto_discover_keys_title: "Descoberta automática de chaves",
     info_auto_discover_keys_description:
-      "Obtém automaticamente as chaves de encriptação dos seus contactos para que lhes possa enviar correio encriptado sem qualquer configuração manual.",
+      "Procura as chaves públicas dos seus destinatários através de WKD, DANE, Autocrypt e servidores de chaves públicos enquanto escreve uma mensagem.",
     info_encrypt_by_default_title: "Encriptar por predefinição",
     info_encrypt_by_default_description:
-      "Encripta automaticamente os e-mails enviados quando a chave pública do destinatário está disponível. Não precisa de ativar a encriptação em cada mensagem.",
+      "Encripta automaticamente os e-mails enviados quando a chave de um destinatário vem do próprio domínio através de WKD ou DANE, ou do Autocrypt. O Aster não consegue verificar uma chave que está apenas num servidor de chaves público. Para a usar, clique no cadeado na mensagem.",
     info_show_encryption_indicators_title: "Indicadores de encriptação",
     info_show_encryption_indicators_description:
       "Mostra um ícone de cadeado nos e-mails para indicar se uma mensagem está encriptada, assinada ou nenhuma das duas. Útil para saber rapidamente o que está protegido.",
@@ -5442,7 +5442,7 @@ export const pt = {
     drafts_signatures: "Rascunhos e assinaturas",
     contact_information_label: "Informações de contacto",
     auto_discover_keys_description:
-      "Pesquisar automaticamente no WKD e em servidores de chaves ao escrever",
+      "Procurar chaves de destinatários através de WKD, DANE e servidores de chaves durante a escrita",
     key_published_wkd: "Chave publicada no WKD",
     key_removed_wkd: "Chave removida do WKD",
     failed_publish_wkd:

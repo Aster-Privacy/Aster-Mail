@@ -1200,7 +1200,7 @@ export const ko = {
     protected_in_transit: "전송 중 보호됨",
     encryption_available: "암호화 사용 가능",
     encryption_available_desc:
-      "이 수신자는 사용 가능한 암호화 키를 공개하고 있습니다. 자반쇠를 클릭하면 이 메시지를 종단간 암호화합니다.",
+      "이 수신자는 Aster가 검증할 수 없는 공개 키 서버의 키를 가지고 있습니다. 이 메시지를 종단 간 암호화하려면 자물쇠를 클릭하세요.",
     click_to_encrypt: "클릭하면 이 메시지를 종단간 암호화합니다",
     click_to_disable_encryption: "암호화됨 - 클릭하면 이 메시지에서 해제됩니다",
     encryption_status_unknown: "암호화 상태를 확인할 수 없음",
@@ -2103,7 +2103,7 @@ export const ko = {
     checking_for_keys: "키를 확인하는 중",
     contact_change_undone: "변경을 실행 취소함",
     contact_encryption_info:
-      "연락처가 공개 키를 게시하면 Aster가 해당 상대에게 보내는 메일을 자동으로 암호화합니다.",
+      "연락처가 검증된 공개 키를 게시하면 Aster가 해당 연락처에게 보내는 메일을 자동으로 암호화합니다.",
     contact_moved_to_trash: "연락처를 휴지통으로 옮김",
     contact_restored: "연락처를 복원함",
     contacts_exported: "연락처를 내보냄",
@@ -4950,8 +4950,7 @@ export const ko = {
     delete_your_account: "계정 삭제하기",
     auto_discover_keys_title: "수신자 키 자동 검색",
     encrypt_by_default_title: "기본 암호화",
-    encrypt_by_default_description:
-      "수신자 키가 사용 가능하면 자동으로 암호화합니다",
+    encrypt_by_default_description: "수신자가 검증된 키를 게시하면 자동으로 암호화",
     require_encryption_title: "암호화 필수",
     require_encryption_description:
       "알려진 키가 있는 수신자에게 암호화되지 않은 전송을 방지합니다",
@@ -5054,10 +5053,10 @@ export const ko = {
       "Aster 외부로 이동하는 링크를 열기 전에 경고를 표시합니다. 클릭 전에 피싱 시도를 파악하는 데 도움이 됩니다.",
     info_auto_discover_keys_title: "키 자동 검색",
     info_auto_discover_keys_description:
-      "연락처의 암호화 키를 자동으로 가져와 수동 설정 없이 암호화 메일을 보낼 수 있게 합니다.",
+      "메시지를 작성하는 동안 WKD, DANE, Autocrypt 및 공개 키 서버에서 수신자의 공개 키를 검색합니다.",
     info_encrypt_by_default_title: "기본 암호화",
     info_encrypt_by_default_description:
-      "수신자의 공개 키가 있을 때 발신 이메일을 자동으로 암호화합니다. 메시지마다 암호화를 켤 필요가 없습니다.",
+      "수신자의 키가 WKD 또는 DANE를 통해 수신자 자신의 도메인에서 오거나 Autocrypt에서 오면 보내는 메일을 자동으로 암호화합니다. 공개 키 서버에만 있는 키는 Aster가 검증할 수 없으므로, 그런 키를 사용하려면 메시지에서 자물쇠를 클릭하세요.",
     info_show_encryption_indicators_title: "암호화 표시",
     info_show_encryption_indicators_description:
       "이메일에 자물쇠 아이콘을 표시하여 메시지가 암호화, 서명 또는 둘 다 아닌지 알려줍니다.",
@@ -5329,8 +5328,7 @@ export const ko = {
     folder_names_structure: "폴더 이름 및 구조",
     drafts_signatures: "임시 저장 및 서명",
     contact_information_label: "연락처 정보",
-    auto_discover_keys_description:
-      "작성 시 WKD 및 키서버에서 자동으로 검색합니다",
+    auto_discover_keys_description: "작성하는 동안 WKD, DANE 및 키 서버에서 수신자 키 검색",
     key_published_wkd: "WKD에 키가 게시되었습니다",
     key_removed_wkd: "WKD에서 키가 제거되었습니다",
     failed_publish_wkd:
