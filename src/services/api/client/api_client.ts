@@ -2165,7 +2165,11 @@ export class ApiClient {
           ) {
             const on_auth_endpoint = is_auth_endpoint(endpoint);
 
-            if (!skip_upgrade_prompt && !on_auth_endpoint) {
+            if (
+              !skip_upgrade_prompt &&
+              !on_auth_endpoint &&
+              is_state_changing_method(method)
+            ) {
               window.dispatchEvent(
                 new CustomEvent("aster:plan-limit-hit", {
                   detail: {
