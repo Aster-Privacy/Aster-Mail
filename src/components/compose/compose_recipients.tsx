@@ -46,6 +46,7 @@ import {
   normalize_recipient_address,
   use_recipient_classification,
 } from "@/services/recipient_classification";
+import { is_unregistered_aster_address } from "@/services/recipient_existence";
 import { is_valid_email } from "@/components/compose/compose_shared";
 import {
   forget_field_lock_statuses,
@@ -422,6 +423,18 @@ export function RecipientField({
           next.set(email, "encrypted");
 
           return next;
+        });
+        void is_unregistered_aster_address(email).then((unregistered) => {
+          if (!unregistered || generation !== generation_ref.current) return;
+          set_encryption_map((prev) => {
+            if (!prev.has(email)) return prev;
+
+            const next = new Map(prev);
+
+            next.delete(email);
+
+            return next;
+          });
         });
       } else {
         const retries = retry_count_ref.current.get(email) || 0;

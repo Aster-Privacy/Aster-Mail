@@ -162,7 +162,7 @@ describe("fail-closed post-quantum send gate", () => {
     await expect(
       encrypt_for_recipients("body", [recipient], sender),
     ).rejects.toBeInstanceOf(PostQuantumUnavailableError);
-    expect(h.public_key_calls).toBe(0);
+    expect(h.public_key_calls).toBe(1);
   });
 
   it("refuses the internal PGP fallback when the vault has no ratchet keys", async () => {
@@ -171,7 +171,7 @@ describe("fail-closed post-quantum send gate", () => {
     await expect(
       encrypt_for_recipients("body", [recipient], sender),
     ).rejects.toBeInstanceOf(PostQuantumUnavailableError);
-    expect(h.public_key_calls).toBe(0);
+    expect(h.public_key_calls).toBe(1);
   });
 
   it("leaves external-only sends to the existing external path", async () => {

@@ -11327,6 +11327,8 @@ export const pl = {
       "Masz włączone obowiązkowe szyfrowanie i żaden z odbiorców nie ma klucza na pliku. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
     recipient_keys_unavailable:
       "Brak klucza szyfrowania dla {{recipients}}. Sprawdź, czy adres jest poprawny, a następnie spróbuj ponownie. Wersja robocza jest zapisana.",
+    recipient_not_on_aster:
+      "Żadne konto Aster Mail nie używa adresu {{recipients}}. Sprawdź pisownię, a następnie spróbuj ponownie. Wersja robocza jest zapisana.",
     cannot_send_no_recovery_key:
       "Aster nie może jeszcze wysłać tej wiadomości, ponieważ konto odbiorcy nie ma kluczy do jej odczytania. Poproś go o otwarcie Aster na dowolnym urządzeniu lub o aktualizację aplikacji, aby odświeżyć klucze, a potem spróbuj ponownie. Wersja robocza jest zapisana.",
     message_password_too_weak:

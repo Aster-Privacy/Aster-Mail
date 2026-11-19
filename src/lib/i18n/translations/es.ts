@@ -11079,6 +11079,8 @@ export const es = {
       "Tienes activado el cifrado obligatorio y ninguno de tus destinatarios tiene una clave registrada. Pídeles que compartan una o desactiva el cifrado obligatorio en Ajustes para enviarlo. Tu borrador está guardado.",
     recipient_keys_unavailable:
       "No hay ninguna clave de cifrado disponible para {{recipients}}. Comprueba que la dirección sea correcta y vuelve a intentarlo. Tu borrador está guardado.",
+    recipient_not_on_aster:
+      "Ninguna cuenta de Aster Mail usa {{recipients}}. Comprueba la ortografía y vuelve a intentarlo. Tu borrador está guardado.",
     cannot_send_no_recovery_key:
       "Aster todavía no puede enviar este mensaje porque a la cuenta del destinatario le faltan las claves para leerlo. Pídale que abra Aster en cualquier dispositivo o que actualice la aplicación para renovar esas claves y vuelva a intentarlo. Su borrador está guardado.",
     message_password_too_weak:

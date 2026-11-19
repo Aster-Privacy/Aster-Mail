@@ -867,7 +867,10 @@ export function use_compose_send({
           forget_send(send_fingerprint);
 
           if (mixed_consent.blocked_by)
-            show_toast(t(mixed_consent.blocked_by), "error");
+            show_toast(
+              mixed_consent.message ?? t(mixed_consent.blocked_by),
+              "error",
+            );
 
           return;
         }
@@ -938,7 +941,9 @@ export function use_compose_send({
         last_send_time_ref.current = 0;
         forget_send(send_fingerprint);
 
-        if (consent.blocked_by) show_toast(t(consent.blocked_by), "error");
+        if (consent.blocked_by) {
+          show_toast(consent.message ?? t(consent.blocked_by), "error");
+        }
 
         return;
       }

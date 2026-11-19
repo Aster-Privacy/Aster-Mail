@@ -9484,6 +9484,7 @@ export interface ErrorTranslations {
   sender_address_refused: string;
   cannot_send_no_recipient_keys: string;
   recipient_keys_unavailable: string;
+  recipient_not_on_aster: string;
   cannot_send_no_recovery_key: string;
   message_password_too_weak: string;
   recipient_key_untrusted: string;

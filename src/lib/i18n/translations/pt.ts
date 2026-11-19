@@ -11185,6 +11185,8 @@ export const pt = {
       "Tem a encriptação obrigatória ativada e nenhum dos seus destinatários tem uma chave registada. Pedir-lhes que partilhem uma, ou desativar a encriptação obrigatória nas Definições, permitirá o envio. O seu rascunho está guardado.",
     recipient_keys_unavailable:
       "Não há nenhuma chave de encriptação disponível para {{recipients}}. Verifique se o endereço está correto e tente novamente. O seu rascunho está guardado.",
+    recipient_not_on_aster:
+      "Nenhuma conta do Aster Mail utiliza {{recipients}}. Verifique a ortografia e tente novamente. O seu rascunho está guardado.",
     cannot_send_no_recovery_key:
       "O Aster ainda não pode enviar esta mensagem porque faltam na conta do destinatário as chaves necessárias para a ler. Peça-lhe que abra o Aster em qualquer dispositivo ou atualize a aplicação para renovar essas chaves e tente novamente. O seu rascunho está guardado.",
     message_password_too_weak:

@@ -19,10 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { confirm_internal_key_trust } from "./key_trust_consent";
+import { find_unregistered_aster_addresses } from "./recipient_existence";
 import {
   check_post_quantum_status,
   type PostQuantumCoverage,
 } from "./send_queue_encryption";
+import { recipient_not_on_aster_message } from "./send_queue_types";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -35,12 +37,14 @@ export interface PostQuantumConsent {
   proceed: boolean;
   allow_non_post_quantum: boolean;
   blocked_by?: PostQuantumConsentBlock;
+  message?: string;
 }
 
 export type PostQuantumConsentBlock =
   | "errors.recipient_key_untrusted"
   | "errors.recipient_key_unreadable"
-  | "errors.key_trust_check_failed";
+  | "errors.key_trust_check_failed"
+  | "errors.recipient_not_on_aster";
 
 export function describe_consent_block(block: PostQuantumConsentBlock): string {
   const errors = get_active_translations().errors;
@@ -136,6 +140,16 @@ export async function ensure_post_quantum_consent(
 
   if (missing.length === 0) {
     return { proceed: true, allow_non_post_quantum: false };
+  }
+
+  const unregistered = await find_unregistered_aster_addresses(missing);
+
+  if (unregistered.length > 0) {
+    return {
+      ...BLOCKED,
+      blocked_by: "errors.recipient_not_on_aster",
+      message: recipient_not_on_aster_message(unregistered),
+    };
   }
 
   const allowed = await request_post_quantum_send_confirmation(
