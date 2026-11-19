@@ -5173,6 +5173,13 @@ html:not(.dark) .sender_logo_light > img {
   animation: aster_tip_fade_in 120ms ease-out;
 }
 
+.aster_tip_portal {
+  max-width: min(320px, calc(100vw - 24px));
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
 .profile_avatar_edit {
   outline: none;
   box-shadow: 0 0 0 4px var(--aster-island-fill, var(--bg-primary));
