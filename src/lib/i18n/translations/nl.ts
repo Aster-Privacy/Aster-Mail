@@ -1145,7 +1145,7 @@ export const nl = {
     protected_in_transit: "Beschermd tijdens verzending",
     encryption_available: "Versleuteling beschikbaar",
     encryption_available_desc:
-      "Deze ontvanger publiceert een bruikbare versleutelingssleutel. Klik op het slotje om dit bericht end-to-end te versleutelen.",
+      "Deze ontvanger heeft een sleutel op een openbare keyserver die Aster niet kan verifiëren. Klik op het hangslot om dit bericht end-to-end te versleutelen.",
     click_to_encrypt: "Klik om dit bericht end-to-end te versleutelen",
     click_to_disable_encryption:
       "Versleuteld - klik om dit uit te zetten voor dit bericht",
@@ -2156,7 +2156,7 @@ export const nl = {
     checking_for_keys: "Sleutels zoeken",
     compose_to_selection: "Selectie mailen",
     contact_encryption_info:
-      "Zodra een contact een openbare sleutel publiceert, versleutelt Aster automatisch de berichten die je verstuurt.",
+      "Zodra een contact een geverifieerde openbare sleutel publiceert, versleutelt Aster automatisch de berichten die je verstuurt.",
     contact_moved_to_trash: "Contact naar de prullenmand verplaatst",
     contacts_in_trash_notice:
       "Contacten in de prullenmand worden na 30 dagen definitief verwijderd.",
@@ -4905,7 +4905,7 @@ export const nl = {
     auto_discover_keys_title: "Ontvangersleutels automatisch ontdekken",
     encrypt_by_default_title: "Standaard versleutelen",
     encrypt_by_default_description:
-      "Automatisch versleutelen wanneer ontvangersleutel beschikbaar is",
+      "Automatisch versleutelen wanneer een ontvanger een geverifieerde sleutel publiceert",
     require_encryption_title: "Versleuteling vereisen",
     require_encryption_description:
       "Voorkom onversleuteld verzenden naar ontvangers met bekende sleutels",
@@ -5009,10 +5009,10 @@ export const nl = {
       "Toont een waarschuwing voordat een link buiten Aster wordt geopend. Helpt phishingpogingen te herkennen voordat je doorklikt.",
     info_auto_discover_keys_title: "Sleutels automatisch ontdekken",
     info_auto_discover_keys_description:
-      "Haalt automatisch versleutelingssleutels op voor je contacten zodat je hen versleutelde mail kunt sturen zonder handmatige installatie.",
+      "Zoekt tijdens het schrijven van een bericht de openbare sleutels van je ontvangers via WKD, DANE, Autocrypt en openbare keyservers.",
     info_encrypt_by_default_title: "Standaard versleutelen",
     info_encrypt_by_default_description:
-      "Versleutelt uitgaande e-mails automatisch wanneer de openbare sleutel van een ontvanger beschikbaar is. Geen handmatig schakelen per bericht nodig.",
+      "Versleutelt uitgaande e-mails automatisch wanneer de sleutel van een ontvanger via WKD of DANE van diens eigen domein komt, of via Autocrypt. Aster kan een sleutel die alleen op een openbare keyserver staat niet verifiëren. Klik op het hangslot in het bericht om zo'n sleutel te gebruiken.",
     info_show_encryption_indicators_title: "Versleutelingsindicatoren",
     info_show_encryption_indicators_description:
       "Toont een slotpictogram op e-mails om aan te geven of een bericht versleuteld, ondertekend of geen van beide is.",
@@ -5295,7 +5295,7 @@ export const nl = {
     drafts_signatures: "Concepten & handtekeningen",
     contact_information_label: "Contactinformatie",
     auto_discover_keys_description:
-      "Zoek automatisch WKD en sleutelservers bij het opstellen",
+      "Tijdens het schrijven sleutels van ontvangers zoeken via WKD, DANE en keyservers",
     key_published_wkd: "Sleutel gepubliceerd naar WKD",
     key_removed_wkd: "Sleutel verwijderd van WKD",
     failed_publish_wkd:

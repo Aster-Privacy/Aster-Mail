@@ -1181,7 +1181,7 @@ export const es = {
     protected_in_transit: "Protegido en tránsito",
     encryption_available: "Cifrado disponible",
     encryption_available_desc:
-      "Este destinatario publica una clave de cifrado utilizable. Haz clic en el candado para cifrar este mensaje de extremo a extremo.",
+      "Este destinatario tiene una clave en un servidor de claves público que Aster no puede verificar. Para cifrar este mensaje de extremo a extremo, haz clic en el candado.",
     click_to_encrypt: "Haz clic para cifrar este mensaje de extremo a extremo",
     click_to_disable_encryption:
       "Cifrado - haz clic para desactivarlo en este mensaje",
@@ -2169,7 +2169,7 @@ export const es = {
     add_birthdays_hint:
       "Añade un cumpleaños a un contacto y Aster te lo recuerda antes de la fecha.",
     contact_encryption_info:
-      "Cuando un contacto publica una clave pública, Aster cifra automáticamente el correo que le envías.",
+      "Cuando un contacto publica una clave pública verificada, Aster cifra automáticamente el correo que le envías.",
     contacts_in_trash_notice:
       "Los contactos de la papelera se eliminan definitivamente a los 30 días.",
     delete_group_confirmation:
@@ -5002,7 +5002,7 @@ export const es = {
       "Descubrir claves de destinatarios automáticamente",
     encrypt_by_default_title: "Cifrar por defecto",
     encrypt_by_default_description:
-      "Cifrar automáticamente cuando la clave del destinatario esté disponible",
+      "Cifrar automáticamente cuando un destinatario publica una clave verificada",
     require_encryption_title: "Requerir cifrado",
     require_encryption_description:
       "Impedir enviar sin cifrar a destinatarios con claves conocidas",
@@ -5106,10 +5106,10 @@ export const es = {
       "Muestra una advertencia antes de abrir cualquier enlace que va fuera de Aster. Ayuda a detectar intentos de phishing antes de hacer clic.",
     info_auto_discover_keys_title: "Descubrimiento automático de claves",
     info_auto_discover_keys_description:
-      "Obtiene automáticamente las claves de cifrado de tus contactos para enviarles correos cifrados sin configuración manual.",
+      "Busca las claves públicas de tus destinatarios mediante WKD, DANE, Autocrypt y servidores de claves públicos mientras escribes un mensaje.",
     info_encrypt_by_default_title: "Cifrar por defecto",
     info_encrypt_by_default_description:
-      "Cifra automáticamente los correos salientes cuando la clave pública de un destinatario está disponible. No necesitas activar el cifrado por mensaje.",
+      "Cifra automáticamente el correo saliente cuando la clave de un destinatario procede de su propio dominio mediante WKD o DANE, o de Autocrypt. Aster no puede verificar una clave que solo está en un servidor de claves público, así que para usarla, haz clic en el candado del mensaje.",
     info_show_encryption_indicators_title: "Indicadores de cifrado",
     info_show_encryption_indicators_description:
       "Muestra un icono de candado en los correos para indicar si un mensaje está cifrado, firmado o ninguno de los dos.",
@@ -5399,7 +5399,7 @@ export const es = {
     drafts_signatures: "Borradores y firmas",
     contact_information_label: "Información de contacto",
     auto_discover_keys_description:
-      "Buscar automáticamente en WKD y servidores de claves al redactar",
+      "Buscar claves de destinatarios mediante WKD, DANE y servidores de claves mientras escribes",
     key_published_wkd: "Clave publicada en WKD",
     key_removed_wkd: "Clave eliminada de WKD",
     failed_publish_wkd:

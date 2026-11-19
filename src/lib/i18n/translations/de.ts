@@ -1035,7 +1035,7 @@ export const de = {
     protected_in_transit: "Geschützt bei der Übertragung",
     encryption_available: "Verschlüsselung verfügbar",
     encryption_available_desc:
-      "Dieser Empfänger veröffentlicht einen nutzbaren Verschlüsselungsschlüssel. Klicken Sie auf das Schloss, um diese Nachricht Ende-zu-Ende zu verschlüsseln.",
+      "Dieser Empfänger hat einen Schlüssel auf einem öffentlichen Keyserver, den Aster nicht verifizieren kann. Um diese Nachricht Ende-zu-Ende zu verschlüsseln, klicken Sie auf das Schloss.",
     click_to_encrypt:
       "Klicken Sie, um diese Nachricht Ende-zu-Ende zu verschlüsseln",
     click_to_disable_encryption:
@@ -2098,7 +2098,7 @@ export const de = {
     compose_to_selection: "An Auswahl schreiben",
     contact_change_undone: "Änderung rückgängig gemacht",
     contact_encryption_info:
-      "Wenn ein Kontakt einen öffentlichen Schlüssel veröffentlicht, verschlüsselt Aster Ihre E-Mails an ihn automatisch.",
+      "Wenn ein Kontakt einen verifizierten öffentlichen Schlüssel veröffentlicht, verschlüsselt Aster Ihre E-Mails an ihn automatisch.",
     contact_moved_to_trash: "Kontakt in den Papierkorb verschoben",
     contact_restored: "Kontakt wiederhergestellt",
     contacts_created: "{{count}} Kontakte erstellt",
@@ -4914,7 +4914,7 @@ export const de = {
     auto_discover_keys_title: "Empfängerschlüssel automatisch erkennen",
     encrypt_by_default_title: "Standardmäßig verschlüsseln",
     encrypt_by_default_description:
-      "Automatisch verschlüsseln, wenn der Empfängerschlüssel verfügbar ist",
+      "Automatisch verschlüsseln, wenn ein Empfänger einen verifizierten Schlüssel veröffentlicht",
     require_encryption_title: "Verschlüsselung erforderlich",
     require_encryption_description:
       "Unverschlüsseltes Senden an Empfänger mit bekannten Schlüsseln verhindern",
@@ -5018,10 +5018,10 @@ export const de = {
       "Zeigt eine Warnung, bevor ein Link außerhalb von Aster geöffnet wird. Hilft, Phishing-Versuche zu erkennen, bevor Sie durchklicken.",
     info_auto_discover_keys_title: "Schlüssel automatisch entdecken",
     info_auto_discover_keys_description:
-      "Ruft automatisch Verschlüsselungsschlüssel für Ihre Kontakte ab, sodass Sie ihnen verschlüsselte Mails ohne manuelle Einrichtung senden können.",
+      "Sucht beim Schreiben einer Nachricht über WKD, DANE, Autocrypt und öffentliche Keyserver nach den öffentlichen Schlüsseln Ihrer Empfänger.",
     info_encrypt_by_default_title: "Standardmäßig verschlüsseln",
     info_encrypt_by_default_description:
-      "Verschlüsselt ausgehende E-Mails automatisch, wenn der öffentliche Schlüssel des Empfängers verfügbar ist. Kein manuelles Umschalten pro Nachricht.",
+      "Verschlüsselt ausgehende E-Mails automatisch, wenn der Schlüssel eines Empfängers über WKD oder DANE von dessen eigener Domain oder über Autocrypt stammt. Einen Schlüssel, der nur auf einem öffentlichen Keyserver liegt, kann Aster nicht verifizieren. Um ihn zu verwenden, klicken Sie in der Nachricht auf das Schloss.",
     info_show_encryption_indicators_title: "Verschlüsselungsindikatoren",
     info_show_encryption_indicators_description:
       "Zeigt ein Schloss-Symbol an E-Mails, das angibt, ob eine Nachricht verschlüsselt, signiert oder keines von beidem ist.",
@@ -5298,7 +5298,7 @@ export const de = {
     drafts_signatures: "Entwürfe & Signaturen",
     contact_information_label: "Kontaktinformationen",
     auto_discover_keys_description:
-      "Automatisch WKD und Schlüsselserver beim Verfassen durchsuchen",
+      "Beim Schreiben Empfängerschlüssel über WKD, DANE und Keyserver suchen",
     key_published_wkd: "Schlüssel auf WKD veröffentlicht",
     key_removed_wkd: "Schlüssel von WKD entfernt",
     failed_publish_wkd:

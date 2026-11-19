@@ -1177,7 +1177,7 @@ export const en: Translations = {
       "This recipient's published key is expired or invalid, so the message cannot be end-to-end encrypted. It will be sent protected in transit only.",
     encryption_available: "Encryption available",
     encryption_available_desc:
-      "This recipient publishes a usable encryption key. Click the padlock to encrypt this message end-to-end.",
+      "This recipient has a key on a public keyserver that Aster can't verify. To encrypt this message end-to-end, click the padlock.",
     click_to_encrypt: "Click to encrypt this message end-to-end",
     click_to_disable_encryption:
       "Encrypted - click to turn off for this message",
@@ -2074,7 +2074,7 @@ export const en: Translations = {
     compose_to_selection: "Write to selected",
     contact_change_undone: "Change undone",
     contact_encryption_info:
-      "When a contact publishes a public key, Aster encrypts your mail to them automatically.",
+      "When a contact publishes a verified public key, Aster encrypts your mail to them automatically.",
     contact_moved_to_trash: "Contact moved to Trash",
     contact_restored: "Contact restored",
     contacts_exported: "Contacts exported",
@@ -5937,7 +5937,7 @@ export const en: Translations = {
     auto_discover_keys_title: "Auto-discover recipient keys",
     encrypt_by_default_title: "Encrypt by default",
     encrypt_by_default_description:
-      "Automatically encrypt when recipient key is available",
+      "Encrypt automatically when a recipient publishes a verified key",
     require_encryption_title: "Require encryption",
     require_encryption_description:
       "Prevent sending unencrypted to recipients with known keys",
@@ -6047,10 +6047,10 @@ export const en: Translations = {
       "Shows a warning before opening any link that goes outside Aster. Helps you spot phishing attempts before you click through.",
     info_auto_discover_keys_title: "Auto-discover Keys",
     info_auto_discover_keys_description:
-      "Automatically fetches encryption keys for your contacts so you can send them encrypted mail without any manual setup.",
+      "Looks up your recipients' public keys through WKD, DANE, Autocrypt, and public keyservers while you write a message.",
     info_encrypt_by_default_title: "Encrypt by Default",
     info_encrypt_by_default_description:
-      "Automatically encrypts outgoing emails when a recipient's public key is available. No need to toggle encryption per message.",
+      "Encrypts outgoing mail automatically when a recipient's key comes from their own domain through WKD or DANE, or from Autocrypt. Aster can't verify a key that's only on a public keyserver, so to use one, click the padlock in the message.",
     info_show_encryption_indicators_title: "Encryption Indicators",
     info_show_encryption_indicators_description:
       "Shows a lock icon on emails to tell you whether a message is encrypted, signed, or neither. Handy for knowing what's protected at a glance.",
@@ -6357,7 +6357,7 @@ export const en: Translations = {
     drafts_signatures: "Drafts & signatures",
     contact_information_label: "Contact information",
     auto_discover_keys_description:
-      "Automatically search WKD and keyservers when composing",
+      "Look up recipient keys through WKD, DANE, and keyservers as you write",
     key_published_wkd: "Key published to WKD",
     key_removed_wkd: "Key removed from WKD",
     failed_publish_wkd:

@@ -1158,7 +1158,7 @@ export const tr = {
     protected_in_transit: "Aktarımda Korumalı",
     encryption_available: "Şifreleme kullanılabilir",
     encryption_available_desc:
-      "Bu alıcı kullanılabilir bir şifreleme anahtarı yayımlıyor. Bu iletiyi uçtan uca şifrelemek için kilide tıklayın.",
+      "Bu alıcının, herkese açık bir anahtar sunucusunda Aster'ın doğrulayamadığı bir anahtarı var. Bu iletiyi uçtan uca şifrelemek için kilide tıklayın.",
     click_to_encrypt: "Bu iletiyi uçtan uca şifrelemek için tıklayın",
     click_to_disable_encryption:
       "Şifrelendi - bu ileti için kapatmak üzere tıklayın",
@@ -2138,7 +2138,7 @@ export const tr = {
       "Bir kişiye doğum günü ekleyin, Aster tarihten önce size hatırlatsın.",
     checking_for_keys: "Anahtarlar aranıyor",
     contact_encryption_info:
-      "Bir kişi açık anahtar yayınladığında Aster, ona gönderdiğiniz iletileri otomatik olarak şifreler.",
+      "Bir kişi doğrulanmış bir açık anahtar yayınladığında Aster, ona gönderdiğiniz iletileri otomatik olarak şifreler.",
     contacts_in_trash_notice:
       "Çöp kutusundaki kişiler 30 gün sonra kalıcı olarak silinir.",
     delete_group_confirmation:
@@ -4916,7 +4916,7 @@ export const tr = {
     auto_discover_keys_title: "Alıcı anahtarlarını otomatik bul",
     encrypt_by_default_title: "Varsayılan olarak şifrele",
     encrypt_by_default_description:
-      "Alıcı anahtarı mevcut olduğunda otomatik olarak şifrele",
+      "Alıcı doğrulanmış bir anahtar yayınladığında otomatik şifrele",
     require_encryption_title: "Şifreleme zorunlu kıl",
     require_encryption_description:
       "Bilinen anahtarları olan alıcılara şifrelenmemiş gönderimi engelle",
@@ -5020,10 +5020,10 @@ export const tr = {
       "Aster dışına çıkan bir bağlantıya tıklamadan önce uyarı gösterir. Tıklamadan önce kimlik avı girişimlerini fark etmenize yardımcı olur.",
     info_auto_discover_keys_title: "Anahtarları Otomatik Keşfet",
     info_auto_discover_keys_description:
-      "Kişilerinizin şifreleme anahtarlarını otomatik alır ve manuel kurulum gerektirmeden şifreli mail göndermenizi sağlar.",
+      "Bir ileti yazarken alıcılarınızın açık anahtarlarını WKD, DANE, Autocrypt ve herkese açık anahtar sunucularında arar.",
     info_encrypt_by_default_title: "Varsayılan Olarak Şifrele",
     info_encrypt_by_default_description:
-      "Alıcının genel anahtarı mevcut olduğunda giden e-postaları otomatik şifreler. Her mesaj için şifrelemeyi ayrıca açmanıza gerek kalmaz.",
+      "Alıcının anahtarı WKD veya DANE ile kendi alan adından ya da Autocrypt'ten geldiğinde giden e-postaları otomatik şifreler. Aster, yalnızca herkese açık bir anahtar sunucusunda bulunan bir anahtarı doğrulayamaz. Böyle bir anahtarı kullanmak için iletideki kilide tıklayın.",
     info_show_encryption_indicators_title: "Şifreleme Göstergeleri",
     info_show_encryption_indicators_description:
       "E-postalarda bir kilit simgesi göstererek mesajın şifreli, imzalı veya hiçbiri olduğunu belirtir.",
@@ -5311,7 +5311,7 @@ export const tr = {
     drafts_signatures: "Taslaklar ve imzalar",
     contact_information_label: "Kişi bilgileri",
     auto_discover_keys_description:
-      "Oluştururken WKD ve anahtar sunucularını otomatik ara",
+      "Yazarken alıcı anahtarlarını WKD, DANE ve anahtar sunucularında ara",
     key_published_wkd: "Anahtar WKD'ye yayınlandı",
     key_removed_wkd: "Anahtar WKD'den kaldırıldı",
     failed_publish_wkd:

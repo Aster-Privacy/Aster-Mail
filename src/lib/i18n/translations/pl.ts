@@ -1180,7 +1180,7 @@ export const pl = {
     protected_in_transit: "Chronione w tranzycie",
     encryption_available: "Szyfrowanie dostępne",
     encryption_available_desc:
-      "Ten odbiorca publikuje działający klucz szyfrowania. Kliknij kłódkę, aby zaszyfrować tę wiadomość end-to-end.",
+      "Ten odbiorca ma klucz na publicznym serwerze kluczy, którego Aster nie może zweryfikować. Aby zaszyfrować tę wiadomość end-to-end, kliknij kłódkę.",
     click_to_encrypt: "Kliknij, aby zaszyfrować tę wiadomość end-to-end",
     click_to_disable_encryption:
       "Zaszyfrowane - kliknij, aby wyłączyć dla tej wiadomości",
@@ -2329,7 +2329,7 @@ export const pl = {
       "Dodaj urodziny do kontaktu, a Aster przypomni ci o nich przed terminem.",
     checking_for_keys: "Szukanie kluczy",
     contact_encryption_info:
-      "Gdy kontakt opublikuje klucz publiczny, Aster automatycznie szyfruje wysyłane do niego wiadomości.",
+      "Gdy kontakt opublikuje zweryfikowany klucz publiczny, Aster automatycznie szyfruje wysyłane do niego wiadomości.",
     contact_moved_to_trash: "Kontakt przeniesiony do kosza",
     contact_restored: "Kontakt przywrócony",
     contacts_in_trash_notice:
@@ -5150,7 +5150,7 @@ export const pl = {
     auto_discover_keys_title: "Automatyczne wykrywanie kluczy odbiorców",
     encrypt_by_default_title: "Szyfruj domyślnie",
     encrypt_by_default_description:
-      "Automatycznie szyfruj, gdy klucz odbiorcy jest dostępny",
+      "Szyfruj automatycznie, gdy odbiorca opublikuje zweryfikowany klucz",
     require_encryption_title: "Wymagaj szyfrowania",
     require_encryption_description:
       "Zapobiegaj wysyłaniu nieszyfrowanych wiadomości do odbiorców ze znanymi kluczami",
@@ -5254,10 +5254,10 @@ export const pl = {
       "Wyświetla ostrzeżenie przed otwarciem linku prowadzącego poza Aster. Pomaga wykryć próby phishingu zanim klikniesz.",
     info_auto_discover_keys_title: "Automatyczne odkrywanie kluczy",
     info_auto_discover_keys_description:
-      "Automatycznie pobiera klucze szyfrowania Twoich kontaktów, by wysyłać im zaszyfrowane maile bez ręcznej konfiguracji.",
+      "Podczas pisania wiadomości wyszukuje klucze publiczne odbiorców przez WKD, DANE, Autocrypt i publiczne serwery kluczy.",
     info_encrypt_by_default_title: "Szyfruj domyślnie",
     info_encrypt_by_default_description:
-      "Automatycznie szyfruje wychodzące e-maile, gdy dostępny jest klucz publiczny odbiorcy. Nie musisz włączać szyfrowania per wiadomość.",
+      "Automatycznie szyfruje wychodzące e-maile, gdy klucz odbiorcy pochodzi z jego własnej domeny przez WKD lub DANE albo z Autocrypt. Aster nie może zweryfikować klucza, który jest tylko na publicznym serwerze kluczy. Aby go użyć, kliknij kłódkę w wiadomości.",
     info_show_encryption_indicators_title: "Wskaźniki szyfrowania",
     info_show_encryption_indicators_description:
       "Wyświetla ikonę kłódki na e-mailach, wskazując czy wiadomość jest zaszyfrowana, podpisana lub żadne z tych.",
@@ -5541,7 +5541,7 @@ export const pl = {
     drafts_signatures: "Szkice i podpisy",
     contact_information_label: "Informacje kontaktowe",
     auto_discover_keys_description:
-      "Automatycznie wyszukuj w WKD i na serwerach kluczy podczas redagowania",
+      "Podczas pisania wyszukuj klucze odbiorców przez WKD, DANE i serwery kluczy",
     key_published_wkd: "Klucz opublikowany w WKD",
     key_removed_wkd: "Klucz usunięty z WKD",
     failed_publish_wkd:
