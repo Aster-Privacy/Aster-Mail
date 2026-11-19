@@ -6045,6 +6045,13 @@ export const nl = {
     scanning_progress: "Scannen ({{processed}}/{{total}})",
     no_snoozed_senders: "Geen uitgestelde afzenders",
     no_subscriptions_detected: "Geen abonnementen gedetecteerd",
+    delete_selected_subscriptions: "Verwijderen ({{count}})",
+    delete_subscriptions_title: "{{count}} abonnementen verwijderen?",
+    delete_subscriptions_title_one: "{{count}} abonnement verwijderen?",
+    delete_subscriptions_body: "Je kunt verwijderde items niet herstellen. Als een afzender je opnieuw mailt, verschijnt die weer in deze lijst.",
+    subscriptions_deleted: "{{count}} abonnementen verwijderd",
+    subscriptions_deleted_one: "{{count}} abonnement verwijderd",
+    delete_subscriptions_failed: "Kan de geselecteerde abonnementen niet verwijderen",
     snoozed_appear_here: "Afzenders die je uitstelt verschijnen hier",
     scan_inbox_description:
       "Klik op 'Inbox scannen' om nieuwsbrieven en marketing-e-mails te detecteren",

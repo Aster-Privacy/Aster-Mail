@@ -6235,6 +6235,13 @@ export const fr = {
     scanning_progress: "Analyse ({{processed}}/{{total}})",
     no_snoozed_senders: "Aucun expéditeur en veille",
     no_subscriptions_detected: "Aucun abonnement détecté",
+    delete_selected_subscriptions: "Supprimer ({{count}})",
+    delete_subscriptions_title: "Supprimer {{count}} abonnements ?",
+    delete_subscriptions_title_one: "Supprimer {{count}} abonnement ?",
+    delete_subscriptions_body: "Vous ne pouvez pas restaurer les entrées supprimées. Si un expéditeur vous écrit à nouveau, il réapparaît dans cette liste.",
+    subscriptions_deleted: "{{count}} abonnements supprimés",
+    subscriptions_deleted_one: "{{count}} abonnement supprimé",
+    delete_subscriptions_failed: "Impossible de supprimer les abonnements sélectionnés",
     snoozed_appear_here:
       "Les expéditeurs que vous mettez en veille apparaîtront ici",
     scan_inbox_description:

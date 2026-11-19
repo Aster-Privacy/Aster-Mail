@@ -7518,6 +7518,13 @@ export const en: Translations = {
     scanning_progress: "Scanning ({{processed}}/{{total}})",
     no_snoozed_senders: "No snoozed senders",
     no_subscriptions_detected: "No subscriptions detected",
+    delete_selected_subscriptions: "Delete ({{count}})",
+    delete_subscriptions_title: "Delete {{count}} subscriptions?",
+    delete_subscriptions_title_one: "Delete {{count}} subscription?",
+    delete_subscriptions_body: "You can't restore deleted entries. If a sender emails you again, it appears in this list again.",
+    subscriptions_deleted: "Deleted {{count}} subscriptions",
+    subscriptions_deleted_one: "Deleted {{count}} subscription",
+    delete_subscriptions_failed: "Can't delete the selected subscriptions",
     snoozed_appear_here: "Senders you snooze will appear here",
     scan_inbox_description:
       "Click 'Scan Inbox' to detect newsletters and marketing emails",

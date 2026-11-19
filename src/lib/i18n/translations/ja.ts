@@ -6057,6 +6057,11 @@ export const ja = {
     scanning_progress: "スキャン中（{{processed}}/{{total}}）",
     no_snoozed_senders: "スヌーズした送信者はいません",
     no_subscriptions_detected: "購読は検出されませんでした",
+    delete_selected_subscriptions: "削除 ({{count}})",
+    delete_subscriptions_title: "{{count}} 件の購読を削除しますか?",
+    delete_subscriptions_body: "削除した項目は復元できません。送信者から再びメールが届くと、このリストに再び表示されます。",
+    subscriptions_deleted: "{{count}} 件の購読を削除しました",
+    delete_subscriptions_failed: "選択した購読を削除できませんでした",
     snoozed_appear_here: "スヌーズした送信者はここに表示されます",
     scan_inbox_description:
       "「受信トレイをスキャン」をクリックしてニュースレターやマーケティングメールを検出します",

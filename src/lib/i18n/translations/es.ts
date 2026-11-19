@@ -6175,6 +6175,13 @@ export const es = {
     scanning_progress: "Escaneando ({{processed}}/{{total}})",
     no_snoozed_senders: "Sin remitentes pospuestos",
     no_subscriptions_detected: "No se detectaron suscripciones",
+    delete_selected_subscriptions: "Eliminar ({{count}})",
+    delete_subscriptions_title: "¿Eliminar {{count}} suscripciones?",
+    delete_subscriptions_title_one: "¿Eliminar {{count}} suscripción?",
+    delete_subscriptions_body: "No puedes restaurar las entradas eliminadas. Si un remitente vuelve a escribirte, aparecerá de nuevo en esta lista.",
+    subscriptions_deleted: "Se eliminaron {{count}} suscripciones",
+    subscriptions_deleted_one: "Se eliminó {{count}} suscripción",
+    delete_subscriptions_failed: "No se pudieron eliminar las suscripciones seleccionadas",
     snoozed_appear_here: "Los remitentes que pospongas aparecerán aquí",
     scan_inbox_description:
       "Haz clic en 'Escanear bandeja' para detectar boletines y correos de marketing",

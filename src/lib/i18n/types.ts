@@ -6404,6 +6404,13 @@ export interface SettingsTranslations {
   scanning_progress: string;
   no_snoozed_senders: string;
   no_subscriptions_detected: string;
+  delete_selected_subscriptions: string;
+  delete_subscriptions_title: string;
+  delete_subscriptions_title_one?: string;
+  delete_subscriptions_body: string;
+  subscriptions_deleted: string;
+  subscriptions_deleted_one?: string;
+  delete_subscriptions_failed: string;
   snoozed_appear_here: string;
   scan_inbox_description: string;
   emails_count: string;

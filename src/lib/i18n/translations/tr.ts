@@ -6074,6 +6074,13 @@ export const tr = {
     scanning_progress: "Taranıyor ({{processed}}/{{total}})",
     no_snoozed_senders: "Ertelenen gönderen yok",
     no_subscriptions_detected: "Abonelik algılanmadı",
+    delete_selected_subscriptions: "Sil ({{count}})",
+    delete_subscriptions_title: "{{count}} abonelik silinsin mi?",
+    delete_subscriptions_title_one: "{{count}} abonelik silinsin mi?",
+    delete_subscriptions_body: "Silinen girişleri geri yükleyemezsiniz. Bir gönderen size tekrar e-posta gönderirse bu listede yeniden görünür.",
+    subscriptions_deleted: "{{count}} abonelik silindi",
+    subscriptions_deleted_one: "{{count}} abonelik silindi",
+    delete_subscriptions_failed: "Seçilen abonelikler silinemedi",
     snoozed_appear_here: "Ertelediğiniz göndericiler burada görünecek",
     scan_inbox_description:
       "Bültenleri ve pazarlama e-postalarını algılamak için 'Gelen Kutusunu Tara' düğmesine tıklayın",

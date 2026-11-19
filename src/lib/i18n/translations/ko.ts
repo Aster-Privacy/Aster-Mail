@@ -6067,6 +6067,11 @@ export const ko = {
     scanning_progress: "스캔 중 ({{processed}}/{{total}})",
     no_snoozed_senders: "다시 알림 설정된 발신자 없음",
     no_subscriptions_detected: "구독이 감지되지 않았습니다",
+    delete_selected_subscriptions: "삭제 ({{count}})",
+    delete_subscriptions_title: "구독 {{count}}개를 삭제하시겠습니까?",
+    delete_subscriptions_body: "삭제한 항목은 복원할 수 없습니다. 발신자가 다시 메일을 보내면 이 목록에 다시 표시됩니다.",
+    subscriptions_deleted: "구독 {{count}}개를 삭제했습니다",
+    delete_subscriptions_failed: "선택한 구독을 삭제할 수 없습니다",
     snoozed_appear_here: "다시 알림 설정한 발신자가 여기에 표시됩니다",
     scan_inbox_description:
       "'받은 편지함 스캔'을 클릭하여 뉴스레터 및 마케팅 이메일을 감지하세요",

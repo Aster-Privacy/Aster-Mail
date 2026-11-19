@@ -6220,6 +6220,13 @@ export const pt = {
     scanning_progress: "A verificar ({{processed}}/{{total}})",
     no_snoozed_senders: "Nenhum remetente adiado",
     no_subscriptions_detected: "Nenhuma subscrição detetada",
+    delete_selected_subscriptions: "Eliminar ({{count}})",
+    delete_subscriptions_title: "Eliminar {{count}} subscrições?",
+    delete_subscriptions_title_one: "Eliminar {{count}} subscrição?",
+    delete_subscriptions_body: "Não pode restaurar as entradas eliminadas. Se um remetente lhe enviar um email novamente, volta a aparecer nesta lista.",
+    subscriptions_deleted: "{{count}} subscrições eliminadas",
+    subscriptions_deleted_one: "{{count}} subscrição eliminada",
+    delete_subscriptions_failed: "Não foi possível eliminar as subscrições selecionadas",
     snoozed_appear_here: "Remetentes que adiar aparecerão aqui",
     scan_inbox_description:
       "Clique em 'Verificar caixa de entrada' para detetar newsletters e e-mails de marketing",
