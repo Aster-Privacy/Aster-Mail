@@ -71,6 +71,16 @@ describe("shipped proxy config", () => {
     expect(check).toContain("exit 1");
   });
 
+  it("keeps a mounted read-only config and refuses an unusable one", () => {
+    const check = read("nginx_entrypoint/15_require_backend_env.envsh");
+
+    expect(check).toContain("aster_mounted_conf=/etc/nginx/conf.d/default.conf");
+    expect(check).toContain("NGINX_ENVSUBST_TEMPLATE_DIR=/nonexistent/aster-mail-templates");
+    expect(check).toContain("is neither mounted nor read-only");
+    expect(check).toContain("exists but is empty or unreadable");
+    expect(check).toMatch(/else\s+aster_require_backend_env\s+fi/);
+  });
+
   it("writes no unused map file into the image", () => {
     expect(read("Dockerfile")).not.toContain("onion_secret_map");
   });
