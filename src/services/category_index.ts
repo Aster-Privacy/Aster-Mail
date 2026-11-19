@@ -113,6 +113,8 @@ const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // instead of deferring forever to a dead `build_in_progress` latch.
 const BUILD_STALE_MS = 90000;
 const BUILD_FETCH_DEADLINE_MS = 75000;
+const BUILD_RESUME_BASE_DELAY_MS = 5000;
+const BUILD_RESUME_MAX_DELAY_MS = 120000;
 const OPEN_DB_DEADLINE_MS = 10000;
 const MAX_NEW_HEADS = 3;
 
@@ -208,6 +210,9 @@ let build_progress_ms = 0;
 let build_processed = 0;
 let build_token = 0;
 let build_owner_token = 0;
+let build_resume: BuildResumePoint | null = null;
+let build_resume_timer: ReturnType<typeof setTimeout> | null = null;
+let build_resume_failures = 0;
 let arrival_baseline_token = -1;
 let version = 0;
 let sort_order: "asc" | "desc" = "desc";
@@ -240,6 +245,44 @@ let custom_categories: CustomCategoryRule[] = [];
 let custom_categories_hash = hash_text("[]");
 let built_custom_categories_key: string | null = null;
 let full_builds_completed = 0;
+
+interface BuildResumePoint {
+  cursor: string;
+  processed: number;
+  seen: Set<string>;
+  prebuild_ids: Set<string>;
+  generation: number;
+}
+
+function cancel_build_resume(): void {
+  if (build_resume_timer) {
+    clearTimeout(build_resume_timer);
+    build_resume_timer = null;
+  }
+  build_resume = null;
+}
+
+function reset_build_resume(): void {
+  cancel_build_resume();
+  build_resume_failures = 0;
+}
+
+function schedule_build_resume(point: BuildResumePoint): void {
+  build_resume = point;
+  if (build_resume_timer) clearTimeout(build_resume_timer);
+
+  const delay = Math.min(
+    BUILD_RESUME_BASE_DELAY_MS * 2 ** build_resume_failures,
+    BUILD_RESUME_MAX_DELAY_MS,
+  );
+
+  build_resume_failures += 1;
+  build_resume_timer = setTimeout(() => {
+    build_resume_timer = null;
+    if (fully_built || !build_resume) return;
+    void build_index();
+  }, delay);
+}
 
 export function set_active_tabs(tabs: string[]): void {
   const next = tabs.includes("primary") ? tabs : ["primary", ...tabs];
@@ -2270,6 +2313,13 @@ export async function build_index(options?: {
   }
   if (fully_built && !options?.force) return;
 
+  const resume =
+    !options?.force && build_resume?.generation === index_generation
+      ? build_resume
+      : null;
+
+  cancel_build_resume();
+
   const token = build_token;
 
   build_owner_token = token;
@@ -2283,11 +2333,12 @@ export async function build_index(options?: {
   ]).catch(() => [null, null] as const);
 
   try {
-    let cursor: string | undefined;
-    let processed = 0;
+    let cursor: string | undefined = resume?.cursor;
+    let processed = resume?.processed ?? 0;
     let reached_end = false;
-    const seen = new Set<string>();
-    const prebuild_ids = new Set(entries_map.keys());
+    let fetch_failed = false;
+    const seen = resume?.seen ?? new Set<string>();
+    const prebuild_ids = resume?.prebuild_ids ?? new Set(entries_map.keys());
 
     for (;;) {
       if (options?.signal?.aborted || token !== build_token) return;
@@ -2307,8 +2358,11 @@ export async function build_index(options?: {
         BUILD_FETCH_DEADLINE_MS,
       );
 
-      if (!response?.data) break;
       if (token !== build_token) return;
+      if (!response?.data) {
+        fetch_failed = true;
+        break;
+      }
 
       const { items, has_more, next_cursor } = response.data;
 
@@ -2377,6 +2431,17 @@ export async function build_index(options?: {
 
     fully_built = reached_end || processed >= BUILD_CAP;
     build_capped = !reached_end && processed >= BUILD_CAP;
+    if (fully_built) {
+      reset_build_resume();
+    } else if (fetch_failed && !options?.signal?.aborted) {
+      schedule_build_resume({
+        cursor: cursor ?? "",
+        processed,
+        seen,
+        prebuild_ids,
+        generation: index_generation,
+      });
+    }
     if (fully_built) arrival_baseline_token = token;
     last_build_ms = now_ms();
     session_reconciled = true;
@@ -3280,6 +3345,7 @@ export function clear_category_index_memory(): void {
 
   build_token += 1;
   index_generation += 1;
+  reset_build_resume();
   clear_entry_previews();
   build_in_progress = false;
   build_capped = false;
@@ -3825,6 +3891,7 @@ export async function clear_category_index(): Promise<void> {
 
   build_token += 1;
   index_generation += 1;
+  reset_build_resume();
   clear_entry_previews();
   entries_map = new Map();
   clear_all_read_intents();
