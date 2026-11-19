@@ -9731,6 +9731,7 @@ export const ru = {
     remove_formatting: "Убрать форматирование",
     font_color: "Цвет шрифта",
     highlight_color: "Цвет выделения",
+    remove_highlight: "Убрать выделение",
     write_message_placeholder: "Написать сообщение",
     enter_password_placeholder: "Введите пароль...",
     folder: "Папка",

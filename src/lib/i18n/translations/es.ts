@@ -9547,6 +9547,7 @@ export const es = {
     remove_formatting: "Eliminar formato",
     font_color: "Color de fuente",
     highlight_color: "Color de resaltado",
+    remove_highlight: "Quitar resaltado",
     write_message_placeholder: "Escribe un mensaje",
     enter_password_placeholder: "Ingresa la contraseña...",
     folder: "Carpeta",

@@ -9314,6 +9314,7 @@ export const ja = {
     remove_formatting: "書式を削除",
     font_color: "文字色",
     highlight_color: "ハイライト色",
+    remove_highlight: "ハイライトを解除",
     write_message_placeholder: "メッセージを入力",
     enter_password_placeholder: "パスワードを入力...",
     folder: "フォルダ",

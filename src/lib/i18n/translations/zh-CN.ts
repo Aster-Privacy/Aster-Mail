@@ -8474,6 +8474,7 @@ export const zh_CN = {
     remove_formatting: "清除格式",
     font_color: "字体颜色",
     highlight_color: "高亮颜色",
+    remove_highlight: "移除高亮",
     write_message_placeholder: "写消息",
     enter_password_placeholder: "输入密码...",
     folder: "文件夹",

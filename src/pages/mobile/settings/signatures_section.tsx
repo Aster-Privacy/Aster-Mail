@@ -504,6 +504,11 @@ export function SignaturesSection({
                       rich_editor.set_background_color(color),
                     )
                   }
+                  on_bg_color_remove={() =>
+                    apply_with_frozen_selection(() =>
+                      rich_editor.remove_background_color(),
+                    )
+                  }
                   on_font_color_change={(color) =>
                     apply_with_frozen_selection(() =>
                       rich_editor.set_font_color(color),

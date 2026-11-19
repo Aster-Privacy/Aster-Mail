@@ -9367,6 +9367,7 @@ export const ar = {
     remove_formatting: "إزالة التنسيق",
     font_color: "لون الخط",
     highlight_color: "لون التمييز",
+    remove_highlight: "إزالة التمييز",
     write_message_placeholder: "اكتب رسالة",
     enter_password_placeholder: "أدخل كلمة المرور...",
     folder: "مجلد",

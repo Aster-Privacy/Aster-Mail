@@ -9532,6 +9532,7 @@ export const nl = {
     remove_formatting: "Opmaak verwijderen",
     font_color: "Tekstkleur",
     highlight_color: "Markeerkleur",
+    remove_highlight: "Markering verwijderen",
     write_message_placeholder: "Schrijf bericht",
     enter_password_placeholder: "Voer wachtwoord in...",
     folder: "Map",

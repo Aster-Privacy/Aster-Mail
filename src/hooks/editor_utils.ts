@@ -507,6 +507,7 @@ export interface UseEditorReturn {
   apply_signature: (html: string | null) => void;
   set_font_color: (color: string) => void;
   set_background_color: (color: string) => void;
+  remove_background_color: () => void;
   set_font_size: (size: FontSizeLabel) => void;
   set_font_family: (family: string) => void;
 
