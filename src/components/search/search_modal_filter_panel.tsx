@@ -129,18 +129,21 @@ export function SearchModalFilterPanel({
                 <InputRow
                   label={t("common.subject_label")}
                   on_change={(value) => update("subject", value)}
+                  placeholder={t("mail.search_subject_placeholder")}
                   value={filters.subject}
                 />
                 <RowDivider />
                 <InputRow
                   label={t("mail.search_has_words")}
                   on_change={(value) => update("has_words", value)}
+                  placeholder={t("mail.search_has_words_placeholder")}
                   value={filters.has_words}
                 />
                 <RowDivider />
                 <InputRow
                   label={t("mail.search_does_not_have")}
                   on_change={(value) => update("does_not_have", value)}
+                  placeholder={t("mail.search_does_not_have_placeholder")}
                   value={filters.does_not_have}
                 />
                 <RowDivider />

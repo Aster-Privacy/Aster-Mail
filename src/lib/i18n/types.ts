@@ -8585,6 +8585,9 @@ export interface MailTranslations {
   search_scope_all: string;
   search_from_placeholder: string;
   search_to_placeholder: string;
+  search_subject_placeholder: string;
+  search_has_words_placeholder: string;
+  search_does_not_have_placeholder: string;
   search_has_words: string;
   search_section_message: string;
   search_section_filters: string;
