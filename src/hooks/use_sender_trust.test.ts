@@ -45,6 +45,60 @@ describe("sender_trust_input", () => {
     ).toBe(false);
   });
 
+  it("trusts your own sent copy from an official address", () => {
+    const own_context = {
+      own_addresses: ["Hello@astermail.org"],
+      contacts: [],
+    };
+    const sent = {
+      sender_name: "Aster Mail",
+      sender_email: "hello@astermail.org",
+      is_external: true,
+      item_type: "sent",
+    };
+
+    expect(sender_trust_input(sent, own_context).is_internal).toBe(true);
+    expect(
+      evaluate_sender_trust(sender_trust_input(sent, own_context)).warning,
+    ).toBeNull();
+    expect(
+      evaluate_sender_trust(
+        sender_trust_input({ ...sent, item_type: "received" }, own_context),
+      ).warning?.kind,
+    ).toBe("home_brand_name");
+    expect(
+      sender_trust_input(sent, { own_addresses: [], contacts: [] })
+        .is_internal,
+    ).toBe(false);
+  });
+
+  it("trusts an official address delivered inside Aster when the signature check fails", () => {
+    const delivered = {
+      sender_name: "Aster Mail",
+      sender_email: "hello@astermail.org",
+      is_external: false,
+      sender_verification: "invalid",
+      item_type: "received",
+    };
+
+    expect(
+      evaluate_sender_trust(sender_trust_input(delivered, context)).warning,
+    ).toBeNull();
+    expect(
+      evaluate_sender_trust(
+        sender_trust_input({ ...delivered, is_external: true }, context),
+      ).warning?.kind,
+    ).toBe("home_brand_name");
+    expect(
+      evaluate_sender_trust(
+        sender_trust_input(
+          { ...delivered, sender_email: "aster-help@astermail.org" },
+          context,
+        ),
+      ).warning?.kind,
+    ).toBe("home_brand_name");
+  });
+
   it("drops internal and verified status when the shown sender is rewritten", () => {
     const input = sender_trust_input(
       {
