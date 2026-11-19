@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { verifiable_decrypted_message } from "@/services/crypto/key_manager_pgp";
+import type { SenderVerificationStatus } from "@/types/email";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { extract_mime_attachments } from "@/utils/mime_attachment_parts";
@@ -39,6 +40,10 @@ import {
   settle_sender_verification,
 } from "@/services/crypto/sender_verification";
 import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp_messages";
+import {
+  find_nested_signed_part,
+  verify_nested_signed_part,
+} from "@/services/crypto/nested_signed_mime";
 import {
   get_external_decryption_keys,
   settle_external_pgp_key_load,
@@ -572,39 +577,68 @@ export interface ResolvedPgpBody {
   body: string;
   decrypted: boolean;
   verified: boolean;
+  sender_verification?: SenderVerificationStatus;
   decrypted_attachments?: DecryptedAttachmentSummary[];
 }
 
-async function is_signed_by_sender(
+interface sender_signature_evidence {
+  has_signature: boolean;
+  verify: (keys: string[]) => Promise<SenderVerificationStatus>;
+}
+
+function signature_evidence(
+  decrypted: verifiable_decrypted_message,
+): sender_signature_evidence {
+  if (decrypted.has_signature) {
+    return {
+      has_signature: true,
+      verify: async (keys) => (await decrypted.verify(keys)).verification,
+    };
+  }
+
+  const nested = find_nested_signed_part(decrypted.plaintext);
+
+  if (!nested) {
+    return { has_signature: false, verify: async () => "unsigned" };
+  }
+
+  return {
+    has_signature: true,
+    verify: (keys) => verify_nested_signed_part(nested, keys),
+  };
+}
+
+async function judge_sender_signature(
   decrypted: verifiable_decrypted_message,
   sender_email: string | undefined,
   own_private_keys: string[],
-): Promise<boolean> {
-  if (!decrypted.has_signature || !sender_email) return false;
+): Promise<SenderVerificationStatus> {
+  const evidence = signature_evidence(decrypted);
+
+  if (!evidence.has_signature) return "unsigned";
+  if (!sender_email) return "no_keys";
 
   try {
     const sender_keys = await resolve_inline_pgp_sender_keys(sender_email);
 
-    if (sender_keys.length === 0) return false;
+    if (sender_keys.length === 0) return "no_keys";
 
-    const checked = await decrypted.verify(sender_keys);
-    const settled = await settle_sender_verification(
+    return await settle_sender_verification(
       sender_email,
       sender_keys,
-      checked.verification,
+      await evidence.verify(sender_keys),
       async () => {
-        const own_keys = await derive_public_keys_from_private(own_private_keys);
+        const own_keys =
+          await derive_public_keys_from_private(own_private_keys);
 
         return (
           own_keys.length > 0 &&
-          (await decrypted.verify(own_keys)).verification === "verified"
+          (await evidence.verify(own_keys)) === "verified"
         );
       },
     );
-
-    return settled === "verified";
   } catch {
-    return false;
+    return "unknown";
   }
 }
 
@@ -682,12 +716,19 @@ export async function resolve_inbound_pgp_body(
       mail_item_id,
     );
 
+    const sender_verification = await judge_sender_signature(
+      decrypted,
+      sender_email,
+      keys_to_try,
+    );
+
     return {
       body: /^content-type\s*:/im.test(decrypted.plaintext)
         ? extract_mime_body(decrypted.plaintext)
         : decrypted.plaintext,
       decrypted: true,
-      verified: await is_signed_by_sender(decrypted, sender_email, keys_to_try),
+      verified: sender_verification === "verified",
+      sender_verification,
       ...(decrypted_attachments.length > 0 ? { decrypted_attachments } : {}),
     };
   };
