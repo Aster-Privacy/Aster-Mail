@@ -10798,6 +10798,8 @@ export const en: Translations = {
       "Aster couldn't send this message from the address in the From field. To send it, choose a different address. Your draft is saved.",
     cannot_send_no_recipient_keys:
       "You have required encryption turned on, and none of your recipients have a key on file. Asking them to share one, or turning off required encryption in Settings, will let this send. Your draft is saved.",
+    recipient_keys_unavailable:
+      "No encryption key is available for {{recipients}}. Check that the address is correct, then try again. Your draft is saved.",
     post_quantum_unavailable:
       "Aster keeps messages between Aster accounts under post-quantum encryption, and {{recipients}} has not published post-quantum keys yet. Ask them to open Aster or update their app, then try again. Your draft is saved.",
     cannot_send_no_recovery_key:

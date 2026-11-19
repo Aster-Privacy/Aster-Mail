@@ -61,6 +61,7 @@ import { is_internal_recipient } from "./recipient_classification";
 import {
   PostQuantumUnavailableError,
   create_error,
+  recipient_keys_unavailable_error,
   type EncryptionResult,
   type SendReadinessResult,
 } from "./send_queue_types";
@@ -502,10 +503,7 @@ export async function encrypt_for_recipients(
     const username = await resolve_username_for_key_lookup(recipient);
 
     if (!username) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
+      throw recipient_keys_unavailable_error([recipient]);
     }
 
     const key_response = await get_recipient_public_key(username, recipient);
@@ -518,10 +516,7 @@ export async function encrypt_for_recipients(
         );
       }
 
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
+      throw recipient_keys_unavailable_error([recipient]);
     }
 
     await assert_owner_key_trusted(recipient, key_response.data.public_key);
@@ -529,10 +524,7 @@ export async function encrypt_for_recipients(
   }
 
   if (public_keys.length === 0) {
-    throw create_error(
-      "encryption_failed",
-      get_active_translations().errors.cannot_send_no_recipient_keys,
-    );
+    throw recipient_keys_unavailable_error(internal_recipients);
   }
 
   await load_openpgp();

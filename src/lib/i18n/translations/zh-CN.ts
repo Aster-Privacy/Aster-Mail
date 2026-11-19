@@ -9881,6 +9881,8 @@ export const zh_CN = {
       "Aster 无法从“发件人”栏中的地址发送这封邮件。要发送邮件，请选择其他地址。你的草稿已保存。",
     cannot_send_no_recipient_keys:
       "您已开启强制加密，但所有收件人均没有密钥记录。请他们分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
+    recipient_keys_unavailable:
+      "{{recipients}} 没有可用的加密密钥。请确认地址正确，然后重试。您的草稿已保存。",
     cannot_send_no_recovery_key:
       "Aster 暂时无法发送此邮件，因为收件人的账户缺少读取所需的密钥。请其在任意设备上打开 Aster 或更新应用以刷新密钥，然后重试。您的草稿已保存。",
     message_password_too_weak:

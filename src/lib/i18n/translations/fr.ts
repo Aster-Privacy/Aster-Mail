@@ -11207,6 +11207,8 @@ export const fr = {
       "Aster n'a pas pu envoyer ce message depuis l'adresse du champ De. Pour l'envoyer, choisissez une autre adresse. Votre brouillon est enregistré.",
     cannot_send_no_recipient_keys:
       "Le chiffrement obligatoire est activé et aucun de vos destinataires n'a de clé enregistrée. Demandez-leur d'en partager une, ou désactivez le chiffrement obligatoire dans Paramètres pour envoyer ce message. Votre brouillon est enregistré.",
+    recipient_keys_unavailable:
+      "Aucune clé de chiffrement n'est disponible pour {{recipients}}. Vérifiez que l'adresse est correcte, puis réessayez. Votre brouillon est enregistré.",
     cannot_send_no_recovery_key:
       "Aster ne peut pas encore envoyer ce message car il manque au compte du destinataire les clés pour le lire. Demandez-lui d'ouvrir Aster sur un appareil ou de mettre à jour son application pour renouveler ces clés, puis réessayez. Votre brouillon est enregistré.",
     message_password_too_weak:

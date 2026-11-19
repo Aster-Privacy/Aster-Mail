@@ -11126,6 +11126,8 @@ export const it = {
       "Aster non ha potuto inviare questo messaggio dall'indirizzo nel campo Da. Per inviarlo, scegli un altro indirizzo. La bozza è salvata.",
     cannot_send_no_recipient_keys:
       "Ha la crittografia obbligatoria attivata e nessuno dei suoi destinatari ha una chiave registrata. Chiedere loro di condividerne una, o disattivare la crittografia obbligatoria in Impostazioni, permetterà l'invio. La sua bozza è salvata.",
+    recipient_keys_unavailable:
+      "Nessuna chiave di crittografia disponibile per {{recipients}}. Verifichi che l'indirizzo sia corretto, quindi riprovi. La sua bozza è salvata.",
     cannot_send_no_recovery_key:
       "Aster non può ancora inviare questo messaggio perché all'account del destinatario mancano le chiavi per leggerlo. Chieda di aprire Aster su un qualsiasi dispositivo o di aggiornare l'app per rinnovare quelle chiavi, poi riprovi. La sua bozza è salvata.",
     message_password_too_weak:

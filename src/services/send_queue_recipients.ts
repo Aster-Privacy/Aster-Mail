@@ -24,7 +24,10 @@ import {
   get_recipient_public_key,
 } from "./api/keys";
 import { is_internal_recipient } from "./recipient_classification";
-import { create_error } from "./send_queue_types";
+import {
+  create_error,
+  recipient_keys_unavailable_error,
+} from "./send_queue_types";
 import {
   check_owner_key_pin,
   flag_recipient_untrusted,
@@ -101,6 +104,33 @@ export async function assert_owner_key_trusted(
   );
 }
 
+async function fetch_recipient_public_key(
+  recipient: string,
+): Promise<string> {
+  const username = await resolve_username_for_key_lookup(recipient);
+
+  if (!username) {
+    throw recipient_keys_unavailable_error([recipient]);
+  }
+
+  const key_response = await get_recipient_public_key(username, recipient);
+
+  if (key_response.error || !key_response.data) {
+    if (key_response.code && key_response.code !== "NOT_FOUND") {
+      throw create_error(
+        "encryption_failed",
+        get_active_translations().errors.failed_encrypt_envelope,
+      );
+    }
+
+    throw recipient_keys_unavailable_error([recipient]);
+  }
+
+  await assert_owner_key_trusted(recipient, key_response.data.public_key);
+
+  return key_response.data.public_key;
+}
+
 export async function fetch_internal_public_keys(
   recipients: string[],
 ): Promise<string[]> {
@@ -108,26 +138,7 @@ export async function fetch_internal_public_keys(
   const public_keys: string[] = [];
 
   for (const recipient of internal_recipients) {
-    const username = await resolve_username_for_key_lookup(recipient);
-
-    if (!username) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
-    }
-
-    const key_response = await get_recipient_public_key(username, recipient);
-
-    if (key_response.error || !key_response.data) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
-    }
-
-    await assert_owner_key_trusted(recipient, key_response.data.public_key);
-    public_keys.push(key_response.data.public_key);
+    public_keys.push(await fetch_recipient_public_key(recipient));
   }
 
   return public_keys;

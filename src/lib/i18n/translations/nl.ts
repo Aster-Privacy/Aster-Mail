@@ -11088,6 +11088,8 @@ export const nl = {
       "Aster kon dit bericht niet verzenden vanaf het adres in het veld Van. Kies een ander adres om het te verzenden. Je concept is opgeslagen.",
     cannot_send_no_recipient_keys:
       "Je hebt vereiste versleuteling ingeschakeld, en geen van je ontvangers heeft een sleutel in het archief. Hen vragen er een te delen, of vereiste versleuteling uitschakelen in Instellingen, laat dit verzenden. Je concept is opgeslagen.",
+    recipient_keys_unavailable:
+      "Er is geen versleutelingssleutel beschikbaar voor {{recipients}}. Controleer of het adres klopt en probeer het opnieuw. Je concept is opgeslagen.",
     cannot_send_no_recovery_key:
       "Aster kan dit bericht nog niet verzenden omdat het account van de ontvanger de sleutels mist om het te lezen. Vraag hen Aster op een apparaat te openen of hun app bij te werken om die sleutels te vernieuwen, en probeer het daarna opnieuw. Je concept is opgeslagen.",
     message_password_too_weak:

@@ -11205,6 +11205,8 @@ export const de = {
       "Aster konnte diese Nachricht nicht von der Adresse im Feld „Von“ senden. Wähle eine andere Adresse, um sie zu senden. Dein Entwurf ist gespeichert.",
     cannot_send_no_recipient_keys:
       "Sie haben die erforderliche Verschlüsselung aktiviert und keiner Ihrer Empfänger hat einen hinterlegten Schlüssel. Bitten Sie sie, einen zu teilen, oder deaktivieren Sie die erforderliche Verschlüsselung in Einstellungen. Ihr Entwurf ist gespeichert.",
+    recipient_keys_unavailable:
+      "Für {{recipients}} ist kein Verschlüsselungsschlüssel verfügbar. Prüfen Sie, ob die Adresse stimmt, und versuchen Sie es dann erneut. Ihr Entwurf ist gespeichert.",
     cannot_send_no_recovery_key:
       "Aster kann diese Nachricht noch nicht senden, weil dem Konto des Empfängers die Schlüssel zum Lesen fehlen. Bitten Sie ihn, Aster auf einem beliebigen Gerät zu öffnen oder die App zu aktualisieren, um die Schlüssel zu erneuern, und versuchen Sie es dann erneut. Ihr Entwurf ist gespeichert.",
     message_password_too_weak:

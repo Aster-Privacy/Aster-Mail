@@ -23,7 +23,11 @@ import type { Attachment } from "@/components/compose/compose_shared";
 import { encrypt_for_recipients } from "./send_queue_body_encryption";
 import { fetch_internal_public_keys } from "./send_queue_recipients";
 import { is_internal_recipient } from "./recipient_classification";
-import { create_error, type EncryptionResult } from "./send_queue_types";
+import {
+  create_error,
+  recipient_keys_unavailable_error,
+  type EncryptionResult,
+} from "./send_queue_types";
 import {
   encrypt_attachments_for_send,
   type EncryptedAttachmentForSend,
@@ -178,10 +182,7 @@ export async function encrypt_attachments_with_private_bcc(
     }
 
     if (sealing_keys.length === 0) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
+      throw recipient_keys_unavailable_error(shared_internal);
     }
 
     const sealed_private_keys: Record<string, string[]> = {};
@@ -218,9 +219,8 @@ export async function encrypt_attachments_with_private_bcc(
     shared_keys.length === 0 &&
     (!split_outside_copy || shared_internal.length > 0)
   ) {
-    throw create_error(
-      "encryption_failed",
-      get_active_translations().errors.cannot_send_no_recipient_keys,
+    throw recipient_keys_unavailable_error(
+      shared_internal.length > 0 ? shared_internal : targets,
     );
   }
 

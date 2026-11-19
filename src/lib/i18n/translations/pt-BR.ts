@@ -11120,6 +11120,8 @@ export const pt_br = {
       "Não foi possível enviar esta mensagem a partir do endereço no campo De. Para enviá-la, escolha outro endereço. Seu rascunho está salvo.",
     cannot_send_no_recipient_keys:
       "Você tem criptografia obrigatória ativada, e nenhum dos seus destinatários tem uma chave registrada. Pedir que compartilhem uma, ou desativar a criptografia obrigatória em Configurações, vai permitir o envio. Seu rascunho está salvo.",
+    recipient_keys_unavailable:
+      "Nenhuma chave de criptografia está disponível para {{recipients}}. Confira se o endereço está correto e tente novamente. Seu rascunho está salvo.",
     cannot_send_no_recovery_key:
       "O Aster ainda não pode enviar esta mensagem porque a conta do destinatário não tem as chaves para lê-la. Peça que abra o Aster em qualquer dispositivo ou atualize o aplicativo para renovar essas chaves e tente de novo. Seu rascunho está salvo.",
     message_password_too_weak:

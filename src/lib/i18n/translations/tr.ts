@@ -10976,6 +10976,8 @@ export const tr = {
       "Aster bu iletiyi Kimden alanındaki adresten gönderemedi. Göndermek için başka bir adres seçin. Taslağınız kaydedildi.",
     cannot_send_no_recipient_keys:
       "Zorunlu şifreleme açık ve hiçbir alıcınızın kayıtlı anahtarı yok. Onlardan anahtar paylaşmalarını isteyin veya Ayarlar'dan zorunlu şifrelemeyi kapatın. Taslağınız kaydedildi.",
+    recipient_keys_unavailable:
+      "{{recipients}} için kullanılabilir bir şifreleme anahtarı yok. Adresin doğru olduğunu kontrol edip tekrar deneyin. Taslağınız kaydedildi.",
     cannot_send_no_recovery_key:
       "Aster bu iletiyi henüz gönderemiyor çünkü alıcının hesabında onu okumak için gereken anahtarlar yok. Ondan Aster'ı herhangi bir cihazda açmasını veya uygulamasını güncellemesini isteyin, sonra yeniden deneyin. Taslağınız kaydedildi.",
     message_password_too_weak:
