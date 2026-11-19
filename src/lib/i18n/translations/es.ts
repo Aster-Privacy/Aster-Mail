@@ -11825,6 +11825,7 @@ export const es = {
     panel_open_calendar: "Abrir Calendario",
     panel_load_failed: "Tu calendario no se cargó.",
     panel_try_again: "Reintentar",
+    panel_set_up: "Para ver tus eventos aquí, configura Aster Calendar.",
     beta_waitlist_start: "Se espera que la beta comience el 1 de noviembre.",
     beta_waitlist_features_title: "Qué incluye",
     beta_waitlist_info_title: "Acerca de la beta de Calendario",

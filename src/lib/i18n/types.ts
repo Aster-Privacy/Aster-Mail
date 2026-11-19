@@ -199,6 +199,7 @@ export interface CalendarTranslations {
   panel_open_calendar: string;
   panel_load_failed: string;
   panel_try_again: string;
+  panel_set_up: string;
   beta_waitlist_start: string;
   beta_waitlist_features_title: string;
   beta_waitlist_info_title: string;
