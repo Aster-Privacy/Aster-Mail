@@ -121,7 +121,7 @@ describe("sending to an Aster address with no account behind it", () => {
       "/crypto/v1/keys/public/greenmile?email=greenmile%40astermail.org",
     ]);
     expect(err.message).toBe(
-      en.errors.recipient_keys_unavailable.replace("{{recipients}}", UNKNOWN),
+      en.errors.recipient_not_on_aster.replace("{{recipients}}", UNKNOWN),
     );
     expect(err.message).not.toBe(en.errors.cannot_send_no_recipient_keys);
   });
@@ -130,7 +130,7 @@ describe("sending to an Aster address with no account behind it", () => {
     const err = await rejection(fetch_internal_public_keys([UNKNOWN]));
 
     expect(err.message).toBe(
-      en.errors.recipient_keys_unavailable.replace("{{recipients}}", UNKNOWN),
+      en.errors.recipient_not_on_aster.replace("{{recipients}}", UNKNOWN),
     );
   });
 

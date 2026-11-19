@@ -28,6 +28,7 @@ import {
   create_error,
   recipient_keys_unavailable_error,
 } from "./send_queue_types";
+import { missing_recipient_key_error } from "./recipient_existence";
 import {
   check_owner_key_pin,
   flag_recipient_untrusted,
@@ -123,7 +124,7 @@ async function fetch_recipient_public_key(
       );
     }
 
-    throw recipient_keys_unavailable_error([recipient]);
+    throw missing_recipient_key_error(recipient, key_response);
   }
 
   await assert_owner_key_trusted(recipient, key_response.data.public_key);

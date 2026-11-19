@@ -89,6 +89,20 @@ export function recipient_keys_unavailable_error(
   );
 }
 
+export function recipient_not_on_aster_message(recipients: string[]): string {
+  return get_active_translations().errors.recipient_not_on_aster.replace(
+    "{{recipients}}",
+    recipients.join(", "),
+  );
+}
+
+export function recipient_not_on_aster_error(recipients: string[]): SendError {
+  return create_error(
+    "encryption_failed",
+    recipient_not_on_aster_message(recipients),
+  );
+}
+
 export function format_time_remaining(resets_at: string): string {
   const reset_time = new Date(resets_at).getTime();
   const now = Date.now();

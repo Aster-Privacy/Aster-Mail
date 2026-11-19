@@ -370,7 +370,8 @@ export async function send_reply(
 
   if (!consent.proceed) {
     if (consent.blocked_by) {
-      const message = describe_consent_block(consent.blocked_by);
+      const message =
+        consent.message ?? describe_consent_block(consent.blocked_by);
 
       callbacks.on_error?.(message);
 
@@ -572,7 +573,8 @@ export async function send_forward(
 
   if (!consent.proceed) {
     if (consent.blocked_by) {
-      const message = describe_consent_block(consent.blocked_by);
+      const message =
+        consent.message ?? describe_consent_block(consent.blocked_by);
 
       callbacks.on_error?.(message);
 
