@@ -64,6 +64,11 @@ import {
 import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { has_outdated_recovery_codes } from "@/services/crypto/recovery_code_refresh";
 import {
+  TOTP_CODE_LENGTH,
+  normalize_totp_input,
+  step_up_error_key,
+} from "./recovery_codes_step_up";
+import {
   generate_recovery_key,
   encrypt_vault_backup,
   generate_all_recovery_shares,
@@ -211,11 +216,27 @@ export function RecoveryCodesModal({
     );
     const step_up = await verify_codes_step_up(
       hash,
-      totp_required && totp_code.trim() ? totp_code.trim() : undefined,
+      totp_required && totp_code ? totp_code : undefined,
     );
 
     if (step_up.error || !step_up.data?.step_up_token) {
-      set_error(step_up.error || t("settings.incorrect_password_error"));
+      const error_key = step_up_error_key(step_up);
+
+      if (step_up.server_code === "TOTP_REQUIRED") {
+        set_totp_required(true);
+        set_totp_code("");
+      }
+      if (
+        step_up.server_code === "INVALID_TWO_FACTOR_CODE" ||
+        step_up.server_code === "TOTP_CODE_REPLAYED"
+      ) {
+        set_totp_code("");
+      }
+      set_error(
+        error_key
+          ? t(error_key)
+          : step_up.error || t("settings.incorrect_password_error"),
+      );
       rejected_attempts_ref.current += 1;
 
       if (rejected_attempts_ref.current >= DEFER_AFTER_REJECTED_ATTEMPTS) {
@@ -458,7 +479,7 @@ export function RecoveryCodesModal({
       return;
     }
 
-    if (totp_required && !totp_code.trim()) {
+    if (totp_required && totp_code.length !== TOTP_CODE_LENGTH) {
       set_error(t("settings.please_enter_2fa_code"));
 
       return;
@@ -636,16 +657,13 @@ export function RecoveryCodesModal({
                     disabled={is_working}
                     id="codes-totp-code"
                     inputMode="numeric"
-                    maxLength={6}
                     placeholder="000000"
                     status={error ? "error" : "default"}
                     type="text"
                     value={totp_code}
                     onChange={(e) => {
                       set_totp_code(
-                        apply_input_transform(e.target, (v) =>
-                          v.replace(/\D/g, "").slice(0, 6),
-                        ),
+                        apply_input_transform(e.target, normalize_totp_input),
                       );
                       if (error) set_error("");
                     }}
