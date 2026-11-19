@@ -69,6 +69,11 @@ import {
 } from "@/services/api/domains";
 import { strip_formula_guard } from "@/components/settings/aliases/alias_export_utils";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  TurnstileWidget,
+  type TurnstileWidgetRef,
+  TURNSTILE_SITE_KEY,
+} from "@/components/auth/turnstile_widget";
 
 type ImportStep = "select" | "preview" | "progress" | "done";
 type ConflictMode = "skip" | "update";
@@ -454,6 +459,28 @@ export function AliasImportModal({
   const [progress_total, set_progress_total] = useState(0);
   const [result, set_result] = useState<ImportResult | null>(null);
   const [error_msg, set_error_msg] = useState<string | null>(null);
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const turnstile_required = !!TURNSTILE_SITE_KEY;
+  const unused_captcha_token_ref = useRef<string | null>(null);
+  const [captcha_token, set_captcha_token] = useState<string | null>(null);
+
+  const store_captcha_token = (token: string | null) => {
+    unused_captcha_token_ref.current = token;
+    set_captcha_token(token);
+  };
+
+  const take_captcha_token = async (): Promise<string | undefined> => {
+    if (!turnstile_required) return undefined;
+    const ready = unused_captcha_token_ref.current;
+
+    unused_captcha_token_ref.current = null;
+    if (ready) return ready;
+    const fresh = (await turnstile_ref.current?.refresh()) ?? "";
+
+    unused_captcha_token_ref.current = null;
+
+    return fresh || undefined;
+  };
 
   const reset = () => {
     set_step("select");
@@ -467,6 +494,7 @@ export function AliasImportModal({
     set_progress_total(0);
     set_result(null);
     set_error_msg(null);
+    store_captcha_token(null);
     if (file_ref.current) file_ref.current.value = "";
   };
 
@@ -693,7 +721,10 @@ export function AliasImportModal({
           const batch = items.slice(i, i + 100);
 
           try {
-            const resp = await bulk_create_aliases(batch);
+            const resp = await bulk_create_aliases(
+              batch,
+              await take_captcha_token(),
+            );
 
             if (resp.error) {
               failed += batch.length;
@@ -740,6 +771,7 @@ export function AliasImportModal({
                   note: r.note,
                   is_enabled: r.enabled,
                 })),
+                await take_captcha_token(),
               );
 
               if (resp.error) {
@@ -1101,6 +1133,15 @@ export function AliasImportModal({
           </div>
         )}
 
+        {turnstile_required &&
+          (step === "preview" || step === "progress") && (
+            <TurnstileWidget
+              ref={turnstile_ref}
+              on_expire={() => store_captcha_token(null)}
+              on_verify={store_captcha_token}
+            />
+          )}
+
         {step === "done" && result && (
           <div className="space-y-3 py-2">
             <p className="text-sm font-semibold text-txt-primary">
@@ -1181,12 +1222,16 @@ export function AliasImportModal({
                 set_parsed_rows([]);
                 set_preview_rows([]);
                 set_error_msg(null);
+                store_captcha_token(null);
               }}
             >
               {t("common.back")}
             </Button>
             <Button
-              disabled={import_action_count === 0}
+              disabled={
+                import_action_count === 0 ||
+                (turnstile_required && !captcha_token)
+              }
               variant="depth"
               onClick={handle_import}
             >

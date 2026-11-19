@@ -356,15 +356,10 @@ export function SplitEmailViewer({
           email_ids: [],
         });
         mark_unsubscribed(email.sender_email);
-        persist_unsubscribe(
-          email.sender_email,
-          email.sender || "",
-          {
-            unsubscribe_link: info.unsubscribe_link,
-            list_unsubscribe_header: info.list_unsubscribe_header,
-          },
-          "manual",
-        );
+        persist_unsubscribe(email.sender_email, email.sender || "", {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
+        });
 
         return "success";
       }

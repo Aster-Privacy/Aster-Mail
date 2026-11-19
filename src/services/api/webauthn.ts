@@ -18,11 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ReauthProof } from "./step_up";
+
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
 import { TotpVerifyResponse } from "./totp";
 
 import { get_active_translations } from "@/lib/i18n/translations";
+import {
+  open_passkey_name,
+  passkey_name_for_server,
+} from "@/services/crypto/passkey_name";
 
 export interface HardwareKeyInfo {
   id: string;
@@ -116,15 +122,25 @@ function array_buffer_to_base64_url(buffer: ArrayBuffer): string {
 export async function list_hardware_keys(): Promise<
   ApiResponse<HardwareKeysListResponse>
 > {
-  return api_client.get<HardwareKeysListResponse>(
+  const response = await api_client.get<HardwareKeysListResponse>(
     "/core/v1/auth/hardware-keys",
   );
+
+  if (!response.data?.keys) return response;
+
+  const keys = await Promise.all(
+    response.data.keys.map(async (key) => ({
+      ...key,
+      name_encrypted: await open_passkey_name(key.name_encrypted),
+    })),
+  );
+
+  return { ...response, data: { ...response.data, keys } };
 }
 
-export async function initiate_hardware_key_registration(proof?: {
-  password_hash: string;
-  totp_code?: string;
-}): Promise<ApiResponse<HardwareKeyRegistrationOptions>> {
+export async function initiate_hardware_key_registration(
+  proof?: ReauthProof,
+): Promise<ApiResponse<HardwareKeyRegistrationOptions>> {
   return api_client.post<HardwareKeyRegistrationOptions>(
     "/core/v1/auth/hardware-keys/register/initiate",
     proof ?? {},
@@ -145,13 +161,16 @@ export async function complete_hardware_key_registration(request: {
 }): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
   return api_client.post<HardwareKeyRegistrationCompleteResponse>(
     "/core/v1/auth/hardware-keys/register/complete",
-    request,
+    {
+      ...request,
+      name_encrypted: await passkey_name_for_server(request.name_encrypted),
+    },
   );
 }
 
 export async function remove_hardware_key(
   key_id: string,
-  credentials?: { password_hash: string; totp_code?: string },
+  credentials?: ReauthProof,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
     `/core/v1/auth/hardware-keys/${key_id}`,
@@ -165,7 +184,7 @@ export async function rename_hardware_key(
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.put<{ success: boolean }>(
     `/core/v1/auth/hardware-keys/${key_id}`,
-    { friendly_name },
+    { friendly_name: await passkey_name_for_server(friendly_name) },
   );
 }
 
@@ -388,6 +407,21 @@ export async function perform_step_up_webauthn_assertion(): Promise<StepUpHardwa
   }
 
   return perform_webauthn_assertion_with_options(options_res.data);
+}
+
+export async function step_up_key_assertion_if_enrolled(
+  totp_required: boolean,
+): Promise<StepUpHardwareKeyAssertion | undefined> {
+  if (totp_required) return undefined;
+  const keys = await list_hardware_keys();
+
+  if (!keys.data) {
+    throw new Error(keys.error || get_active_translations().errors.load_failed);
+  }
+
+  return keys.data.keys.length > 0
+    ? perform_step_up_webauthn_assertion()
+    : undefined;
 }
 
 export async function perform_webauthn_assertion_with_options(

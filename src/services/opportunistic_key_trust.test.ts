@@ -93,11 +93,21 @@ describe("trusts_key_for_opportunistic", () => {
 });
 
 describe("will_encrypt_opportunistically", () => {
-  it("keeps the server flag as an upgrade only", () => {
+  it("follows the sender's setting and the key source", () => {
+    expect(will_encrypt_opportunistically(info(), true, NOW)).toBe(true);
+    expect(will_encrypt_opportunistically(info(), false, NOW)).toBe(false);
+  });
+
+  it("decides without the server's encryption flag", () => {
     expect(
-      will_encrypt_opportunistically(info({ will_encrypt: true }), false),
-    ).toBe(true);
-    expect(will_encrypt_opportunistically(info(), true)).toBe(true);
-    expect(will_encrypt_opportunistically(info(), false)).toBe(false);
+      will_encrypt_opportunistically(info({ will_encrypt: true }), false, NOW),
+    ).toBe(false);
+    expect(
+      will_encrypt_opportunistically(
+        info({ source: "keyserver", will_encrypt: true }),
+        true,
+        NOW,
+      ),
+    ).toBe(false);
   });
 });

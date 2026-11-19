@@ -54,7 +54,7 @@ async function get_storage_encryption_key(): Promise<CryptoKey> {
     "raw",
     encryption_key,
     { name: "AES-GCM", length: 256 },
-    true,
+    false,
     ["encrypt", "decrypt"],
   );
 

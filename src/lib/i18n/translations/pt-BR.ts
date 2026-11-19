@@ -122,6 +122,19 @@ export const pt_br = {
     delete_folder_password_required: "Digite a senha da sua conta.",
     delete_folder_totp_required:
       "Digite o código de autenticação de dois fatores.",
+    mail_key_upgrade_title: "Atualizando seus e-mails salvos",
+    mail_key_upgrade_running:
+      "O Aster Mail está criptografando novamente suas mensagens salvas com suas chaves atuais. Mantenha esta janela aberta até terminar.",
+    mail_key_upgrade_progress: "{count} mensagens verificadas",
+    mail_key_upgrade_progress_one: "{count} mensagem verificada",
+    mail_key_upgrade_failed:
+      "O Aster Mail não conseguiu concluir a atualização das suas mensagens salvas. Seus e-mails não foram alterados. Verifique sua conexão e tente novamente.",
+    mail_key_upgrade_retry: "Tentar novamente",
+    mail_key_upgrade_done_title: "E-mails salvos atualizados",
+    mail_key_upgrade_skipped: "Ainda não foi possível atualizar {count} mensagens.",
+    mail_key_upgrade_skipped_one: "Ainda não foi possível atualizar {count} mensagem.",
+    mail_key_upgrade_unreadable: "Seus e-mails salvos estão atualizados. O Aster Mail não conseguiu abrir {count} mensagens antigas com suas chaves, então elas ficam como estavam.",
+    mail_key_upgrade_unreadable_one: "Seus e-mails salvos estão atualizados. O Aster Mail não conseguiu abrir {count} mensagem antiga com suas chaves, então ela fica como estava.",
     delete_folder_verification_failed:
       "Confira sua senha e o código e tente novamente.",
     qr_code: "Código QR",
@@ -1398,6 +1411,9 @@ export const pt_br = {
     empty: "Vazio",
     files_protected_in_transit:
       "Estes arquivos foram protegidos e criptografados em trânsito.",
+    files_outside_encrypted_label: "Fora da mensagem criptografada",
+    files_outside_encrypted:
+      "Estes arquivos não fazem parte da mensagem criptografada. Abra-os somente se você confiar no remetente.",
     create_subfolder: "Criar subpasta",
     mute_notifications: "Silenciar notificações",
     unmute_notifications: "Reativar notificações",
@@ -2336,6 +2352,9 @@ export const pt_br = {
     sender_pictures: "Fotos do remetente",
     sender_pictures_description:
       "Mostra a foto ou as iniciais do remetente ao lado de cada mensagem na sua caixa de entrada.",
+    sender_logos: "Logotipos de empresas",
+    sender_logos_description:
+      "Mostra os logotipos das empresas que enviam e-mails para você. O Aster Mail obtém cada logotipo pelo servidor usando o domínio do remetente.",
     fam_welcome_step1_title: "Bem-vindo ao seu plano familiar",
     fam_welcome_step1_desc:
       "Cada pessoa da sua família tem a própria caixa de entrada privada e criptografada, totalmente separada da sua.",
@@ -3271,6 +3290,15 @@ export const pt_br = {
     alias_tab_domains: "Domínios",
     alias_tab_directories: "Diretórios",
     alias_tab_ghost: "Aliases fantasma",
+    alias_tab_sending: "Envio",
+    sending_blocks_title: "Aliases com envio desativado",
+    sending_blocks_description: "Desative o envio de um alias para impedir que e-mails saiam dele. O alias continua recebendo e-mails.",
+    sending_blocks_search_placeholder: "Pesquisar aliases",
+    sending_blocks_empty: "Você ainda não tem aliases nem endereços de domínio.",
+    sending_blocks_no_results: "Nenhum alias corresponde à sua pesquisa.",
+    sending_blocks_sending_allowed: "Envio permitido",
+    sending_blocks_toggle_label: "Permitir envio de {{ email }}",
+    sending_blocks_update_failed: "Não foi possível atualizar o envio deste alias. Tente novamente.",
     alias_tab_preferences: "Preferências",
     alias_search_placeholder: "Pesquisar aliases...",
     alias_filter_all: "Todos",
@@ -4293,8 +4321,6 @@ export const pt_br = {
     updating: "Atualizando...",
     password_change_encrypted_data_warning:
       "Suas etiquetas, assinaturas e modelos são recriptografados quando você muda sua senha. Se sua conexão cair durante esse processo, esses dados não poderão ser recuperados.",
-    password_changed_items_unreadable:
-      "Sua senha foi alterada. {{count}} itens criptografados mantiveram a criptografia anterior porque a chave deles não estava disponível. A entrega de e-mails não é afetada. Para restaurá-los, entre em contato com o suporte.",
     password_change_background_reencrypt_failed:
       "Sua senha foi alterada, mas parte dos e-mails enviados e das configurações não terminou de ser recriptografada. Entre em contato com o suporte se algum e-mail ou configuração aparecer ilegível.",
     previous_password: "Senha anterior",
@@ -9248,6 +9274,8 @@ export const pt_br = {
     recipient_identity_untrusted:
       "A chave de criptografia de {{email}} mudou e não é possível confirmar a nova chave. Para enviar para este endereço, confirme a mudança com essa pessoa por outro meio e escolha Confiar na nova chave.",
     trust_new_key: "Confiar na nova chave",
+    trust_new_key_failed:
+      "A chave de criptografia mudou ou não pôde ser verificada, então ela não foi marcada como confiável. Para revisar a chave atual, tente novamente.",
     load_all_thread_messages: "Carregar todas as mensagens",
     move_to_category: "Mover para a categoria",
     menu_applies_to_selection: "Aplica-se a {count} selecionados",
@@ -9948,6 +9976,9 @@ export const pt_br = {
     reply_from_mismatch_message:
       "Este e-mail foi recebido em {{ received }}, mas sua resposta será enviada de {{ selected }}. Responder de outro endereço pode revelá-lo ao remetente e a resposta pode ser rejeitada.",
     reply_from_mismatch_use_received: "Usar endereço de recebimento",
+    sending_disabled_badge: "Envio desativado",
+    reply_from_mismatch_banner: "Este e-mail foi recebido em {{ received }}, mas sua resposta será enviada de {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Enviar de {{ received }}",
     reply_from_mismatch_send_anyway: "Enviar mesmo assim",
     reply_from_unknown_title: "Verifique o endereço do remetente",
     reply_from_unknown_message:
@@ -10254,6 +10285,14 @@ export const pt_br = {
     forward_message_heading: "Encaminhar mensagem",
   },
   auth: {
+    continue_with_app: "Continuar com {{app}}",
+    sibling_waiting: "Confirme o login na janela que foi aberta.",
+    sibling_popup_blocked: "A janela de confirmação foi bloqueada. Permita pop-ups para este site e tente novamente.",
+    sibling_failed: "O login com {{app}} não foi concluído. Tente novamente ou entre com sua senha.",
+    handoff_approve_title: "Entrar no {{app}}?",
+    handoff_approve_body: "{{app}} está pedindo para entrar como {{email}}. Continue apenas se você iniciou este login.",
+    handoff_approve_done: "Você pode fechar esta janela.",
+    handoff_approve_signed_out: "Você não está conectado aqui. Feche esta janela e entre com sua senha.",
     passkey_verification: "Verificar com passkey",
     use_passkey_or_key:
       "Use o Windows Hello, o Face ID ou sua chave de segurança",
@@ -10302,6 +10341,7 @@ export const pt_br = {
     authenticating: "Autenticando...",
     fetching_auth_data: "Buscando dados de autenticação...",
     verifying_credentials: "Verificando credenciais...",
+    sign_in_standard_protection: "A proteção de login avançada não está disponível no momento, então você entrou com a proteção padrão.",
     decrypting_vault: "Descriptografando seu cofre de chaves...",
     getting_user_info: "Obtendo informações do usuário...",
     checkout_confirm_title: "Concluir o login",
@@ -10959,12 +10999,11 @@ export const pt_br = {
     rename_saved: "Nome atualizado",
   },
   errors: {
+    alias_sending_disabled: "O envio deste alias está desativado. Primeiro ative-o.",
     auth_salt_collision:
       "O login foi interrompido porque o servidor enviou um valor inseguro, então nada foi desbloqueado. Entre em contato com o suporte antes de tentar novamente.",
     legacy_login_salt_new_device:
       "Para concluir uma atualização de segurança da sua conta, entre em um dispositivo que você já usou com o Aster. Se não for possível, redefina sua senha com sua chave de recuperação.",
-    legacy_login_salt_sign_in_again:
-      "Para concluir uma atualização de segurança da sua conta, saia e entre novamente.",
     upload_too_large:
       "O envio é grande demais. Para continuar, remova ou reduza um arquivo e tente novamente.",
     failed_remove_reaction:
@@ -11199,6 +11238,8 @@ export const pt_br = {
       "Este e-mail não foi enviado. Tente novamente. Seu rascunho está salvo.",
     send_unconfirmed:
       "O Aster não conseguiu confirmar o envio deste e-mail. Verifique Enviados antes de tentar novamente. Seu rascunho está salvo.",
+    scheduled_unverifiable:
+      "Não é possível verificar este e-mail agendado, então você só pode cancelá-lo.",
     scheduled_may_have_sent:
       "Este e-mail agendado não foi cancelado porque pode já ter sido enviado. Verifique Enviados.",
     attachments_too_large:
@@ -11234,6 +11275,8 @@ export const pt_br = {
       "Não foi possível processar essa solicitação. Atualize a página e tente novamente.",
     session_identity_mismatch:
       "Este dispositivo estava conectado a outra conta, então desconectamos você para manter as contas separadas. Basta entrar novamente. Seus dados estão intactos.",
+    vault_rolled_back:
+      "Este dispositivo tem uma cópia mais recente das suas chaves de criptografia do que a enviada pelo servidor, então o Aster Mail não usou a cópia mais antiga. Entre novamente. Se isso continuar acontecendo, fale com o suporte.",
     key_material_unavailable:
       "Suas chaves privadas estão bloqueadas neste dispositivo. Sua senha as desbloqueará. Suas chaves no servidor estão intactas.",
     max_accounts:
@@ -11754,6 +11797,10 @@ export const pt_br = {
       "Excluir {{address}}? O endereço deixará de receber e-mails e não poderá ser registrado novamente.",
     delete_confirm_title: "Excluir caixa compartilhada",
     access_unavailable: "Esta caixa compartilhada não está mais disponível",
+    member_key_untrusted:
+      "A chave de criptografia de um membro mudou ou não pôde ser verificada, então o acesso não foi atualizado. Para continuar, confirme a nova chave com essa pessoa por outro meio, escolha Confiar na nova chave em uma conversa com ela e tente novamente.",
+    unknown_member_access:
+      "Alguém que não é membro ativo do seu plano familiar tem acesso a esta caixa de correio, então as chaves não foram renovadas. Entre em contato com o suporte da Aster.",
   },
   review_prompt: {
     banner_message:

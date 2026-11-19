@@ -19,6 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  HANDOFF_GRANT_WAIT_MS,
+  check_grant,
+  consume_grant,
+  type GrantStorage,
+} from "@/lib/session_handoff/session_handoff_grant";
+import {
   build_handoff_message,
   is_handoff_user_id,
   parse_handoff_port_request,
@@ -38,15 +44,14 @@ const LAST_ACTIVITY_KEY_PREFIX = "astermail_last_activity_";
 const APP_LOCK_KEY_PREFIX = "aster:app_lock:";
 const MIN_TIMEOUT_MINUTES = 5;
 const DEFAULT_TIMEOUT_MINUTES = 30;
+const GRANT_POLL_MS = 500;
 
-export interface BridgeStorage {
-  get(key: string): string | null;
-  keys(): string[];
-}
+export type BridgeStorage = GrantStorage;
 
 export interface BridgeDeps {
   storage: BridgeStorage;
   now(): number;
+  sleep(ms: number): Promise<void>;
   load_session_key(): Promise<CryptoKey | null>;
   fetch_current_user(): Promise<unknown>;
   decrypt(
@@ -151,19 +156,7 @@ export function read_local_session(
   return { encrypted_passphrase, passphrase_iv, encrypted_vault, vault_nonce };
 }
 
-export function list_local_session_user_ids(storage: BridgeStorage): string[] {
-  return storage
-    .keys()
-    .filter(
-      (key) =>
-        key.startsWith(SESSION_PASSPHRASE_KEY_PREFIX) &&
-        !key.startsWith(SESSION_PASSPHRASE_IV_KEY_PREFIX),
-    )
-    .map((key) => key.slice(SESSION_PASSPHRASE_KEY_PREFIX.length))
-    .filter(is_handoff_user_id);
-}
-
-function user_from_me_response(value: unknown): HandoffUser | null {
+export function user_from_me_response(value: unknown): HandoffUser | null {
   if (typeof value !== "object" || value === null) return null;
 
   const me = value as Record<string, unknown>;
@@ -200,13 +193,11 @@ async function decrypt_passphrase(
   }
 }
 
-export async function handle_probe(deps: BridgeDeps): Promise<boolean> {
-  const now = deps.now();
-  const candidates = list_local_session_user_ids(deps.storage).filter(
-    (id) => read_local_session(deps.storage, id, now) !== null,
-  );
-
-  if (candidates.length === 0) return false;
+async function has_usable_session(
+  deps: BridgeDeps,
+  user_id: string,
+): Promise<boolean> {
+  if (!read_local_session(deps.storage, user_id, deps.now())) return false;
 
   try {
     return (await deps.load_session_key()) !== null;
@@ -215,10 +206,36 @@ export async function handle_probe(deps: BridgeDeps): Promise<boolean> {
   }
 }
 
+export async function handle_probe(
+  deps: BridgeDeps,
+  grant_id: string,
+  audience: string,
+  wait: boolean,
+): Promise<boolean> {
+  const deadline = deps.now() + (wait ? HANDOFF_GRANT_WAIT_MS : 0);
+
+  for (;;) {
+    const status = check_grant(deps.storage, grant_id, audience, deps.now());
+
+    if (status.state === "approved") {
+      return has_usable_session(deps, status.user_id);
+    }
+    if (status.state === "denied" || deps.now() >= deadline) return false;
+
+    await deps.sleep(GRANT_POLL_MS);
+  }
+}
+
 export async function handle_request(
   deps: BridgeDeps,
+  grant_id: string,
+  audience: string,
   user_id: string,
 ): Promise<HandoffSession | null> {
+  if (!consume_grant(deps.storage, grant_id, audience, user_id, deps.now())) {
+    return null;
+  }
+
   const local = read_local_session(deps.storage, user_id, deps.now());
 
   if (!local) return null;
@@ -255,6 +272,7 @@ export async function handle_request(
 
 export async function answer_port_message(
   deps: BridgeDeps,
+  audience: string,
   data: unknown,
 ): Promise<HandoffBridgeReply | null> {
   const request = parse_handoff_port_request(data);
@@ -262,10 +280,22 @@ export async function answer_port_message(
   if (!request) return null;
 
   if (request.type === "probe") {
-    return { type: "probe_result", available: await handle_probe(deps) };
+    const available = await handle_probe(
+      deps,
+      request.grant,
+      audience,
+      request.wait,
+    );
+
+    return { type: "probe_result", available };
   }
 
-  const session = await handle_request(deps, request.user_id);
+  const session = await handle_request(
+    deps,
+    request.grant,
+    audience,
+    request.user_id,
+  );
 
   return session ? { type: "session", session } : { type: "unavailable" };
 }

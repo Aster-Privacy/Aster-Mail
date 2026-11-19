@@ -510,6 +510,18 @@ export function BehaviorSection({
             }
           />
           <SettingsRow
+            description={t("settings.sender_logos_description")}
+            label={t("settings.sender_logos")}
+            trailing={
+              <Switch
+                checked={preferences.load_sender_logos === true}
+                onCheckedChange={(v) =>
+                  update_preference("load_sender_logos", v, true)
+                }
+              />
+            }
+          />
+          <SettingsRow
             description={t("settings.relative_dates_description")}
             label={t("settings.relative_dates")}
             trailing={

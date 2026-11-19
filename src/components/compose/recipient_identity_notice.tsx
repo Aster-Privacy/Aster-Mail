@@ -29,9 +29,10 @@ import {
 import { acknowledge_identity_change } from "@/services/crypto/ratchet_identity_pin";
 import {
   get_recipient_identity_status,
-  trust_recipient_identity,
   type RecipientIdentityStatus,
 } from "@/services/crypto/recipient_identity_check";
+import { confirm_internal_key_trust } from "@/services/key_trust_consent";
+import { show_toast } from "@/components/toast/simple_toast";
 import { subscribe_peer_identity_events } from "@/services/crypto/ratchet_verification_status";
 
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -141,8 +142,10 @@ export function RecipientIdentityNotice({
               className="flex-shrink-0 font-medium text-txt-secondary hover:text-txt-primary"
               type="button"
               onClick={() => {
-                trust_recipient_identity(email)
-                  .catch(() => undefined)
+                confirm_internal_key_trust([email])
+                  .catch(() => {
+                    show_toast(t("mail.trust_new_key_failed"), "error");
+                  })
                   .finally(() => set_event_tick((v) => v + 1));
               }}
             >

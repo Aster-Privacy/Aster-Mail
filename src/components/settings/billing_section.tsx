@@ -84,6 +84,7 @@ import {
 } from "@/components/toast/simple_toast";
 import { addon_return_url } from "@/lib/addon_return_url";
 import { use_i18n } from "@/lib/i18n/context";
+import { payment_url_or_throw } from "@/lib/payment_url";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { safe_local_set } from "@/lib/safe_storage";
 import {
@@ -149,6 +150,7 @@ import {
   get_cancel_password_hash,
 } from "@/components/settings/billing/cancel_password";
 import { use_plan_features } from "@/components/settings/billing/use_plan_features";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 interface BillingCache {
   user_id: string | null;
@@ -787,8 +789,7 @@ export function BillingSection() {
   ) => {
     if (is_action_loading) return;
 
-    const is_tauri =
-      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+    const is_tauri = has_tauri_runtime();
 
     if (is_tauri && !has_card_subscription) {
       set_is_action_loading(true);
@@ -852,8 +853,7 @@ export function BillingSection() {
     const checkout_interval =
       term === "yearly" ? "year" : term === "biennial" ? "biennial" : "month";
 
-    const is_tauri =
-      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+    const is_tauri = has_tauri_runtime();
 
     if (has_card_subscription) {
       set_plan_change_confirm_target({ plan, interval: checkout_interval });
@@ -979,8 +979,7 @@ export function BillingSection() {
     if (!plan_change_confirm_target) return;
     const { plan, interval } = plan_change_confirm_target;
 
-    const is_tauri =
-      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+    const is_tauri = has_tauri_runtime();
 
     set_is_action_loading(true);
     try {
@@ -1067,12 +1066,13 @@ export function BillingSection() {
         addon_return_url("cancelled"),
         addon.billing_interval,
       );
-      const url = response.data?.url;
+      const url = response.data?.url
+        ? payment_url_or_throw(response.data.url)
+        : undefined;
 
       if (url) {
         remember_addon_target(addon.id);
-        const is_tauri =
-          typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+        const is_tauri = has_tauri_runtime();
 
         if (is_tauri) {
           const core = await import("@tauri-apps/api/core");

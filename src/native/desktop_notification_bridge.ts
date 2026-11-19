@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 const NOTIFICATION_ACTIVATED_EVENT = "aster://notification-activated";
 
 type NotificationOpenListener = (email_id: string) => void;
@@ -26,7 +28,7 @@ let active_listener: NotificationOpenListener | null = null;
 let queued_email_id: string | null = null;
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export function deliver_notification_open(email_id: string): void {

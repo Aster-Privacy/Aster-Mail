@@ -659,6 +659,7 @@ export function use_popup_viewer({
           e2e_sender_bound,
           e2e_details_sealed,
           sent_encryption_scope,
+          decrypted_content_tag,
         } = await process_envelope_body(
           envelope,
           user?.email,
@@ -724,6 +725,7 @@ export function use_popup_viewer({
           sent_encryption_scope,
           e2e_sender_bound,
           e2e_details_sealed,
+          decrypted_content_tag,
         );
 
         if (should_load_thread) {

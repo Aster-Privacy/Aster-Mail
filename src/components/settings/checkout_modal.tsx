@@ -52,6 +52,7 @@ import {
   build_stripe_appearance,
 } from "@/lib/stripe_appearance";
 import { stripe_locale } from "@/lib/stripe_locale";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export type checkout_phase =
   "loading" | "ready" | "processing" | "success" | "error";
@@ -292,10 +293,9 @@ export function CheckoutModal({
       fonts:
         typeof window !== "undefined"
           ? (() => {
-              const font_origin =
-                "__TAURI_INTERNALS__" in window
-                  ? "https://app.astermail.org"
-                  : window.location.origin;
+              const font_origin = has_tauri_runtime()
+                ? "https://app.astermail.org"
+                : window.location.origin;
 
               return [
                 {

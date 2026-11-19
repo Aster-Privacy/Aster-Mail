@@ -76,9 +76,8 @@ describe("upgrade_vault_to_master_key", () => {
 
     expect(is_master_key_vault(vault)).toBe(false);
 
-    const upgraded = await upgrade_vault_to_master_key(vault, OLD_PASSWORD);
+    await upgrade_vault_to_master_key(vault, OLD_PASSWORD);
 
-    expect(upgraded).toBe(true);
     expect(is_master_key_vault(vault)).toBe(true);
 
     const password_key = array_to_base64(
@@ -134,9 +133,8 @@ describe("upgrade_vault_to_master_key", () => {
       vault_format: 2,
     };
 
-    const upgraded = await upgrade_vault_to_master_key(vault, OLD_PASSWORD);
+    await upgrade_vault_to_master_key(vault, OLD_PASSWORD);
 
-    expect(upgraded).toBe(true);
     expect(vault.data_kek).toBe(existing);
     expect(vault.legacy_keks).toBeUndefined();
   });
@@ -154,9 +152,8 @@ describe("upgrade_vault_to_master_key", () => {
       vault_format: 2,
     };
 
-    const upgraded = await upgrade_vault_to_master_key(vault, OLD_PASSWORD);
+    await upgrade_vault_to_master_key(vault, OLD_PASSWORD);
 
-    expect(upgraded).toBe(true);
     expect(vault.data_kek).not.toBe(password_key);
     expect(vault.data_kek_random).toBe(true);
     expect(vault.legacy_keks?.map((entry) => entry.k)).toContain(password_key);

@@ -362,6 +362,8 @@ export interface SharedMailboxesTranslations {
   delete_confirm_message: string;
   delete_confirm_title: string;
   access_unavailable: string;
+  member_key_untrusted: string;
+  unknown_member_access: string;
 }
 
 export interface PasskeysTranslations {
@@ -1031,6 +1033,17 @@ export interface CommonTranslations {
   delete_folder_deleted_no_purge: string;
   delete_folder_password_required: string;
   delete_folder_totp_required: string;
+  mail_key_upgrade_title: string;
+  mail_key_upgrade_running: string;
+  mail_key_upgrade_progress: string;
+  mail_key_upgrade_progress_one?: string;
+  mail_key_upgrade_failed: string;
+  mail_key_upgrade_retry: string;
+  mail_key_upgrade_done_title: string;
+  mail_key_upgrade_skipped: string;
+  mail_key_upgrade_skipped_one?: string;
+  mail_key_upgrade_unreadable: string;
+  mail_key_upgrade_unreadable_one?: string;
   delete_folder_verification_failed: string;
   collapse_all: string;
   expand_all: string;
@@ -1871,6 +1884,8 @@ export interface CommonTranslations {
   wkd_encrypted_description: string;
   files_end_to_end_encrypted: string;
   files_protected_in_transit: string;
+  files_outside_encrypted_label: string;
+  files_outside_encrypted: string;
   sender_verified: string;
   sender_verified_desc: string;
   sender_invalid: string;
@@ -2645,6 +2660,8 @@ export interface SettingsTranslations {
   quick_categories_turned_off: string;
   sender_pictures: string;
   sender_pictures_description: string;
+  sender_logos: string;
+  sender_logos_description: string;
   quick_preview_text: string;
   quick_more_appearance: string;
   quick_layout: string;
@@ -3274,7 +3291,6 @@ export interface SettingsTranslations {
   update_password: string;
   updating: string;
   password_change_encrypted_data_warning: string;
-  password_changed_items_unreadable: string;
   password_change_background_reencrypt_failed: string;
   previous_password: string;
   password_change_sent_mail_locked: string;
@@ -7839,6 +7855,15 @@ export interface SettingsTranslations {
   alias_tab_domains: string;
   alias_tab_directories: string;
   alias_tab_ghost: string;
+  alias_tab_sending: string;
+  sending_blocks_title: string;
+  sending_blocks_description: string;
+  sending_blocks_search_placeholder: string;
+  sending_blocks_empty: string;
+  sending_blocks_no_results: string;
+  sending_blocks_sending_allowed: string;
+  sending_blocks_toggle_label: string;
+  sending_blocks_update_failed: string;
   alias_tab_preferences: string;
   alias_search_placeholder: string;
   alias_filter_all: string;
@@ -8037,6 +8062,7 @@ export interface MailTranslations {
   message_password_requirements: string;
   recipient_identity_untrusted: string;
   trust_new_key: string;
+  trust_new_key_failed: string;
   encrypted_message_unavailable: string;
   pgp_password_protected_title: string;
   pgp_password_protected_description: string;
@@ -8084,6 +8110,9 @@ export interface MailTranslations {
   reply_from_mismatch_title: string;
   reply_from_mismatch_message: string;
   reply_from_mismatch_use_received: string;
+  sending_disabled_badge: string;
+  reply_from_mismatch_banner: string;
+  reply_from_mismatch_banner_switch: string;
   reply_from_mismatch_send_anyway: string;
   reply_from_unknown_title: string;
   reply_from_unknown_message: string;
@@ -8920,6 +8949,14 @@ export interface MailTranslations {
 }
 
 export interface AuthTranslations {
+  continue_with_app: string;
+  sibling_waiting: string;
+  sibling_popup_blocked: string;
+  sibling_failed: string;
+  handoff_approve_title: string;
+  handoff_approve_body: string;
+  handoff_approve_done: string;
+  handoff_approve_signed_out: string;
   captcha_load_failed: string;
   sign_in: string;
   sign_out: string;
@@ -9062,6 +9099,7 @@ export interface AuthTranslations {
   authenticating: string;
   fetching_auth_data: string;
   verifying_credentials: string;
+  sign_in_standard_protection: string;
   decrypting_vault: string;
   getting_user_info: string;
   checkout_confirm_title: string;
@@ -9397,11 +9435,11 @@ export interface AuthTranslations {
 }
 
 export interface ErrorTranslations {
+  alias_sending_disabled: string;
   crypto_module_unavailable: string;
   ratchet_key_generation_failed: string;
   auth_salt_collision: string;
   legacy_login_salt_new_device: string;
-  legacy_login_salt_sign_in_again: string;
   upload_too_large: string;
   post_quantum_unavailable: string;
   generic: string;
@@ -9499,11 +9537,13 @@ export interface ErrorTranslations {
   failed_queue_forward: string;
   failed_send: string;
   send_unconfirmed: string;
+  scheduled_unverifiable: string;
   scheduled_may_have_sent: string;
   incorrect_password: string;
   no_keys_available: string;
   session_expired_login: string;
   session_identity_mismatch: string;
+  vault_rolled_back: string;
   key_material_unavailable: string;
   storage_compromised: string;
   registration_failed: string;

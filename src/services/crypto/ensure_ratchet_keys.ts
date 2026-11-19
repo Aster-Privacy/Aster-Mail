@@ -53,6 +53,10 @@ import {
 import { recover_ratchet_keys_from_history_locked } from "./vault_key_recovery";
 import { open_vault_for_write, write_vault_merged } from "./vault_cas_write";
 import { published_bundle_needs_resigning } from "./published_signing_key";
+import {
+  accept_recovered_vault,
+  is_rolled_back_vault,
+} from "./vault_generation";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -388,6 +392,7 @@ interface ServerVaultView {
   encrypted_vault?: string;
   vault_nonce?: string;
   vault_format?: number;
+  vault_recovered_write_count?: number;
 }
 
 export type VaultFreshness =
@@ -396,7 +401,12 @@ export type VaultFreshness =
   | { status: "unverified" };
 
 type ServerVaultFetch =
-  | { kind: "ok"; encrypted_vault: string; vault_nonce: string }
+  | {
+      kind: "ok";
+      encrypted_vault: string;
+      vault_nonce: string;
+      vault_recovered_write_count?: number;
+    }
   | { kind: "missing" }
   | { kind: "error" };
 
@@ -422,6 +432,7 @@ async function fetch_server_vault(): Promise<ServerVaultFetch> {
       kind: "ok",
       encrypted_vault: response.data.encrypted_vault,
       vault_nonce: response.data.vault_nonce,
+      vault_recovered_write_count: response.data.vault_recovered_write_count,
     };
   } catch {
     return { kind: "error" };
@@ -470,20 +481,33 @@ export async function sync_vault_with_server(): Promise<VaultFreshness> {
 
   if (!passphrase) return { status: "unverified" };
 
-  let adopted: EncryptedVault;
+  let server_copy: EncryptedVault;
 
   try {
-    adopted = carry_displaced_ratchet_keys(
-      await decrypt_vault(
-        server_vault.encrypted_vault,
-        server_vault.vault_nonce,
-        passphrase,
-      ),
-      get_vault_from_memory(),
+    server_copy = await decrypt_vault(
+      server_vault.encrypted_vault,
+      server_vault.vault_nonce,
+      passphrase,
     );
   } catch {
     return { status: "unverified" };
   }
+
+  if (
+    !accept_recovered_vault(
+      user_id,
+      server_copy,
+      server_vault.vault_recovered_write_count,
+    ) &&
+    is_rolled_back_vault(user_id, server_copy)
+  ) {
+    return { status: "unverified" };
+  }
+
+  const adopted = carry_displaced_ratchet_keys(
+    server_copy,
+    get_vault_from_memory(),
+  );
 
   await store_vault_in_memory(adopted, passphrase, user_id);
 

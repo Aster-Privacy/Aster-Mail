@@ -272,6 +272,102 @@ describe("post-quantum session signature", () => {
 
     expect(second?.ephemeral_key).toBe(first?.ephemeral_key);
   });
+
+  it("encapsulates to the signed post-quantum identity key, never the unsigned one-time prekey", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_with_onetime_prekey(receiver_vault);
+
+    const first = await send("one", sender_vault);
+
+    expect(first?.pq_key_id).toBe(-1);
+    expect(await receive(first!, sender_vault, receiver_vault)).toBe("one");
+  });
+});
+
+describe("post-quantum key coverage", () => {
+  beforeEach(reset_harness);
+
+  it("encapsulates in hybrid mode to a post-quantum key the signature does not cover", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.verification = { ...UNSIGNED_V1 };
+    h.bundle = bundle_for(receiver_vault);
+
+    const first = await send("one", sender_vault);
+
+    expect(first?.pq_ciphertext).toBeDefined();
+    expect(first?.pq_key_id).toBe(-1);
+    expect(await receive(first!, sender_vault, receiver_vault)).toBe("one");
+  });
+
+  it("refuses a new session when a peer once seen with a signed post-quantum key loses the signature", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const next_sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    expect((await send("one", sender_vault))?.pq_key_id).toBe(-1);
+
+    h.verification = { ...UNSIGNED_V1 };
+
+    expect(await send("two", next_sender_vault)).toBeNull();
+  });
+
+  it("starts a new session for a peer that never published a post-quantum key", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const next_sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.verification = { ...UNSIGNED_V1 };
+    h.bundle = bundle_for(receiver_vault, false);
+
+    expect(await send("one", sender_vault)).not.toBeNull();
+    expect(await send("two", next_sender_vault)).not.toBeNull();
+  });
+});
+
+describe("handshake version pin", () => {
+  beforeEach(reset_harness);
+
+  it("keeps the signed handshake version when a later bundle drops it", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const next_sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = { ...bundle_for(receiver_vault), x3dh_max_version: 3 };
+
+    expect((await send("one", sender_vault))?.x3dh_v).toBe(3);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const second = await send("two", next_sender_vault);
+
+    expect(second?.x3dh_v).toBe(3);
+    expect(await receive(second!, next_sender_vault, receiver_vault)).toBe(
+      "two",
+    );
+  });
+
+  it("does not remember a handshake version from a bundle the signature does not cover", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const next_sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.verification = { ...UNSIGNED_V1 };
+    h.bundle = { ...bundle_for(receiver_vault, false), x3dh_max_version: 3 };
+
+    expect(await send("one", sender_vault)).not.toBeNull();
+
+    h.bundle = bundle_for(receiver_vault, false);
+
+    const second = await send("two", next_sender_vault);
+
+    expect(second?.x3dh_v ?? 1).toBe(1);
+  });
 });
 
 describe("recovery lane post-quantum parity", () => {

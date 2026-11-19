@@ -77,6 +77,39 @@ vi.mock("@/services/api/domains", () => ({
       : { valid: false, error: "Invalid" },
 }));
 
+const captcha = vi.hoisted(() => ({ issued: 0 }));
+
+vi.mock("@/components/auth/turnstile_widget", async () => {
+  const { forwardRef, useEffect, useImperativeHandle } = await import("react");
+
+  return {
+    TURNSTILE_SITE_KEY: "test-site-key",
+    TurnstileWidget: forwardRef<
+      { reset: () => void; refresh: () => Promise<string> },
+      { on_verify: (token: string) => void }
+    >(function mock_turnstile({ on_verify }, ref) {
+      const issue = () => {
+        captcha.issued += 1;
+        const token = `captcha-${captcha.issued}`;
+
+        on_verify(token);
+
+        return token;
+      };
+
+      useImperativeHandle(ref, () => ({
+        reset: () => {},
+        refresh: async () => issue(),
+      }));
+      useEffect(() => {
+        issue();
+      }, []);
+
+      return null;
+    }),
+  };
+});
+
 vi.mock("@/hooks/use_plan_limits", () => ({
   use_plan_limits: () => ({ limits: { plan_code: "free" } }),
 }));
@@ -241,6 +274,7 @@ beforeEach(() => {
     async (_id, _name, items) =>
       ({ data: { created: items.length, failed: 0 } }) as never,
   );
+  captcha.issued = 0;
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -607,6 +641,7 @@ sales@example.com,Sales,,true
           is_enabled: true,
         },
       ],
+      "captcha-1",
     );
   });
 
@@ -666,6 +701,7 @@ sales@example.com,Sales,true
       "domain-1",
       "example.com",
       expect.any(Array),
+      "captcha-1",
     );
     expect(bulk_create_aliases).not.toHaveBeenCalled();
   });
@@ -715,5 +751,48 @@ describe("pick_target_domain", () => {
 
   it("returns an empty string when no domain is selectable", () => {
     expect(pick_target_domain([row("example.com")], [])).toBe("");
+  });
+});
+
+describe("bulk create captcha", () => {
+  it("sends a fresh captcha token with every bulk create batch", async () => {
+    const rows = Array.from(
+      { length: 150 },
+      (_, i) => `imported${i}@astermail.org,,true`,
+    ).join("\n");
+
+    await render_modal();
+    await load_csv(`${EXPORT_HEADER}\n${rows}\n`);
+    await confirm_import();
+
+    const calls = vi.mocked(bulk_create_aliases).mock.calls;
+
+    expect(calls).toHaveLength(2);
+    expect(calls[0][0]).toHaveLength(100);
+    expect(calls[1][0]).toHaveLength(50);
+    expect(calls[0][1]).toBe("captcha-1");
+    expect(calls[1][1]).toBe("captcha-2");
+  });
+
+  it("sends a fresh captcha token with every custom domain batch", async () => {
+    const rows = Array.from(
+      { length: 150 },
+      (_, i) => `imported${i}@example.com,,true`,
+    ).join("\n");
+
+    await render_modal({
+      available_domains: ["example.com"],
+      custom_domains: [{ name: "example.com", id: "domain-1" }],
+    });
+    await load_csv(`${EXPORT_HEADER}\n${rows}\n`);
+    await confirm_import();
+
+    const calls = vi.mocked(bulk_add_domain_addresses).mock.calls;
+
+    expect(calls).toHaveLength(2);
+    expect(calls[0][2]).toHaveLength(100);
+    expect(calls[1][2]).toHaveLength(50);
+    expect(calls[0][3]).toBe("captcha-1");
+    expect(calls[1][3]).toBe("captcha-2");
   });
 });

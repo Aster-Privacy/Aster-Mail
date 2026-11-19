@@ -27,7 +27,10 @@ import {
   get_vault_from_memory,
   store_vault_in_memory,
 } from "../memory_key_store";
-import { with_vault_write_lock_bounded } from "../vault_write_lock";
+import {
+  is_vault_write_lock_timeout,
+  with_vault_write_lock_bounded,
+} from "../vault_write_lock";
 import {
   fetch_latest_vault,
   fetch_server_vault_snapshot,
@@ -36,9 +39,17 @@ import {
   write_vault_merged,
 } from "../vault_cas_write";
 import { zero_uint8_array } from "../secure_memory";
-import { derive_ios_key_material_bytes } from "../legacy_ios_envelope";
+import { derive_server_known_raws } from "../legacy_ios_envelope";
+import {
+  get_session_server_known_ids,
+  note_server_known_raws,
+  strip_server_known_keks,
+} from "../server_known_keys";
+import { is_rolled_back_vault } from "../vault_generation";
+import { mark_keks_for_retirement } from "../retired_storage_keks";
 import {
   collect_prior_storage_keys,
+  derive_password_storage_keys,
   install_random_storage_key,
   is_weak_storage_vault,
 } from "../storage_write_key";
@@ -64,7 +75,10 @@ export type StorageVaultOutcome =
 
 export type StorageRekeyFinish = "done" | "superseded" | "failed";
 
-type CasWrite = "written" | "conflict" | "failed";
+type CasWrite =
+  | { status: "written"; vault: EncryptedVault }
+  | { status: "conflict" }
+  | { status: "failed" };
 
 async function current_user_id(): Promise<string | null> {
   const account = await get_current_account();
@@ -75,15 +89,36 @@ async function current_user_id(): Promise<string | null> {
 async function decrypt_snapshot(
   snapshot: ServerVaultSnapshot,
   passphrase: string,
+  user_id: string,
 ): Promise<EncryptedVault | null> {
   try {
-    return await decrypt_vault(
+    const vault = await decrypt_vault(
       snapshot.encrypted_vault,
       snapshot.vault_nonce,
       passphrase,
     );
+
+    return is_rolled_back_vault(user_id, vault) ? null : vault;
   } catch {
     return null;
+  }
+}
+
+function needs_cleanup(vault: EncryptedVault): boolean {
+  if (strip_server_known_keks(vault).removed.length > 0) return true;
+
+  const persisted = new Set(vault.server_known_kek_ids ?? []);
+
+  return get_session_server_known_ids().some((id) => !persisted.has(id));
+}
+
+async function note_server_known_storage_keys(passphrase: string) {
+  const raws = await derive_server_known_raws(passphrase);
+
+  try {
+    note_server_known_raws(raws);
+  } finally {
+    raws.forEach((raw) => zero_uint8_array(raw));
   }
 }
 
@@ -125,10 +160,12 @@ async function write_vault_with_cas(
     max_conflict_retries: 0,
   });
 
-  if (result.status === "written") return "written";
-  if (result.status === "failed") return "failed";
+  if (result.status === "written") {
+    return { status: "written", vault: result.vault };
+  }
+  if (result.status === "failed") return { status: "failed" };
 
-  return "conflict";
+  return { status: "conflict" };
 }
 
 async function rotate_locked(passphrase: string): Promise<StorageVaultOutcome> {
@@ -136,65 +173,74 @@ async function rotate_locked(passphrase: string): Promise<StorageVaultOutcome> {
 
   if (!user_id) return { status: "skipped", reason: "no_account" };
 
-  const key_material = await derive_ios_key_material_bytes(passphrase);
+  await note_server_known_storage_keys(passphrase);
 
-  try {
-    for (let attempt = 0; attempt <= MAX_VAULT_CONFLICT_RETRIES; attempt++) {
-      const fetched = await fetch_latest_vault();
+  for (let attempt = 0; attempt <= MAX_VAULT_CONFLICT_RETRIES; attempt++) {
+    const fetched = await fetch_latest_vault();
 
-      if (fetched.kind !== "ok") {
-        return { status: "skipped", reason: "vault_unavailable" };
-      }
+    if (fetched.kind !== "ok") {
+      return { status: "skipped", reason: "vault_unavailable" };
+    }
 
-      if (!fetched.snapshot.vault_sha256) {
-        return { status: "skipped", reason: STORAGE_STEP_UNSUPPORTED };
-      }
+    if (!fetched.snapshot.vault_sha256) {
+      return { status: "skipped", reason: STORAGE_STEP_UNSUPPORTED };
+    }
 
-      const snapshot: ServerVaultSnapshot = {
-        ...fetched.snapshot,
-        vault_sha256: fetched.snapshot.vault_sha256,
-      };
-      const vault = await decrypt_snapshot(snapshot, passphrase);
+    const snapshot: ServerVaultSnapshot = {
+      ...fetched.snapshot,
+      vault_sha256: fetched.snapshot.vault_sha256,
+    };
+    const vault = await decrypt_snapshot(snapshot, passphrase, user_id);
 
-      if (!vault) return { status: "skipped", reason: STORAGE_STEP_UNREADABLE };
+    if (!vault) return { status: "skipped", reason: STORAGE_STEP_UNREADABLE };
 
-      if (!(await is_weak_storage_vault(vault, passphrase, key_material))) {
-        await adopt_server_vault(vault, snapshot, passphrase, user_id);
+    const weak = await is_weak_storage_vault(vault, passphrase);
 
-        return { status: attempt > 0 ? "adopted" : "current", vault };
-      }
+    if (!weak && !needs_cleanup(vault)) {
+      await adopt_server_vault(vault, snapshot, passphrase, user_id);
 
-      const next: EncryptedVault = { ...vault };
-      const prior_keys = await collect_prior_storage_keys(
+      return { status: attempt > 0 ? "adopted" : "current", vault };
+    }
+
+    const next: EncryptedVault = { ...vault };
+
+    if (weak) {
+      const prior_keys = await collect_prior_storage_keys(vault, passphrase);
+      const password_keys = await derive_password_storage_keys(
         vault,
         passphrase,
-        key_material,
       );
 
       try {
         install_random_storage_key(next, prior_keys);
+        next.pending_retire_kek_ids = mark_keks_for_retirement(
+          next.pending_retire_kek_ids,
+          password_keys,
+          next.data_kek,
+        );
       } finally {
         prior_keys.forEach((raw) => zero_uint8_array(raw));
-      }
-
-      const outcome = await write_vault_with_cas(
-        next,
-        vault,
-        snapshot,
-        passphrase,
-        user_id,
-      );
-
-      if (outcome === "written") return { status: "rotated", vault: next };
-      if (outcome === "failed") {
-        return { status: "skipped", reason: "write_failed" };
+        password_keys.forEach((raw) => zero_uint8_array(raw));
       }
     }
 
-    return { status: "skipped", reason: "conflict_retries_exhausted" };
-  } finally {
-    key_material.forEach((raw) => zero_uint8_array(raw));
+    const outcome = await write_vault_with_cas(
+      next,
+      vault,
+      snapshot,
+      passphrase,
+      user_id,
+    );
+
+    if (outcome.status === "written") {
+      return { status: weak ? "rotated" : "adopted", vault: outcome.vault };
+    }
+    if (outcome.status === "failed") {
+      return { status: "skipped", reason: "write_failed" };
+    }
   }
+
+  return { status: "skipped", reason: "conflict_retries_exhausted" };
 }
 
 export function ensure_random_storage_key(
@@ -203,7 +249,12 @@ export function ensure_random_storage_key(
   return with_vault_write_lock_bounded(
     () => rotate_locked(passphrase),
     VAULT_LOCK_WAIT_MS,
-  );
+  ).catch((error: unknown): StorageVaultOutcome => {
+    if (is_vault_write_lock_timeout(error)) {
+      return { status: "skipped", reason: "vault_lock_timeout" };
+    }
+    throw error;
+  });
 }
 
 async function finish_locked(
@@ -219,7 +270,7 @@ async function finish_locked(
 
     if (!snapshot) return "failed";
 
-    const vault = await decrypt_snapshot(snapshot, passphrase);
+    const vault = await decrypt_snapshot(snapshot, passphrase, user_id);
 
     if (!vault) return "failed";
 
@@ -251,8 +302,8 @@ async function finish_locked(
       user_id,
     );
 
-    if (outcome === "written") return "done";
-    if (outcome === "failed") return "failed";
+    if (outcome.status === "written") return "done";
+    if (outcome.status === "failed") return "failed";
   }
 
   return "failed";
@@ -263,10 +314,11 @@ export async function server_storage_key_matches(
   expected_data_kek: string,
 ): Promise<boolean> {
   const snapshot = await fetch_server_vault_snapshot();
+  const user_id = await current_user_id();
 
-  if (!snapshot) return false;
+  if (!snapshot || !user_id) return false;
 
-  const vault = await decrypt_snapshot(snapshot, passphrase);
+  const vault = await decrypt_snapshot(snapshot, passphrase, user_id);
 
   return vault?.data_kek === expected_data_kek && vault.data_kek_random === true;
 }
@@ -278,5 +330,8 @@ export function mark_storage_rekey_done(
   return with_vault_write_lock_bounded(
     () => finish_locked(passphrase, expected_data_kek),
     VAULT_LOCK_WAIT_MS,
-  );
+  ).catch((error: unknown): StorageRekeyFinish => {
+    if (is_vault_write_lock_timeout(error)) return "failed";
+    throw error;
+  });
 }

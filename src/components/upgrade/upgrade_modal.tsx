@@ -83,6 +83,7 @@ import {
   type UpgradeLimitKey,
 } from "@/stores/upgrade_store";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const USAGE_NOT_REPORTED: ReadonlySet<UpgradeLimitKey> = new Set([
   "max_labels",
@@ -212,7 +213,7 @@ function term_id_for_interval(interval: UpgradeInterval | null): string {
 }
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export function UpgradeModal() {
@@ -781,7 +782,9 @@ export function UpgradeModal() {
             </div>
           ) : null}
 
-          {!is_storage && limit_info && !USAGE_NOT_REPORTED.has(state.limit_key) ? (
+          {!is_storage &&
+          limit_info &&
+          !USAGE_NOT_REPORTED.has(state.limit_key) ? (
             <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-sm font-medium text-txt-primary">

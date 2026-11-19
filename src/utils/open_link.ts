@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { public_web_url } from "@/lib/public_origin";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const REPEAT_OPEN_WINDOW_MS = 1000;
 
@@ -58,8 +59,7 @@ export function open_external(url: string, features?: string): Window | null {
     return null;
   }
 
-  const is_desktop =
-    typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  const is_desktop = has_tauri_runtime();
 
   if (is_desktop) {
     if (is_repeat_open(normalized)) return null;

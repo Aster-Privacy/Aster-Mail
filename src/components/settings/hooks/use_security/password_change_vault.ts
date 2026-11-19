@@ -26,12 +26,17 @@ import {
   decrypt_vault,
   type EncryptedVault,
 } from "@/services/crypto/key_manager";
+import {
+  accept_recovered_vault,
+  is_rolled_back_vault,
+} from "@/services/crypto/vault_generation";
 
 export type PasswordChangeVaultFailure =
   | "session_expired"
   | "wrong_password"
   | "salt_collision"
   | "out_of_date"
+  | "rolled_back"
   | "unavailable";
 
 export const PASSWORD_CHANGE_VAULT_ERROR_KEYS: Record<
@@ -42,6 +47,7 @@ export const PASSWORD_CHANGE_VAULT_ERROR_KEYS: Record<
   wrong_password: "settings.current_password_incorrect",
   salt_collision: "errors.auth_salt_collision",
   out_of_date: "settings.password_change_vault_out_of_date",
+  rolled_back: "errors.vault_rolled_back",
   unavailable: "settings.failed_get_auth_data",
 };
 
@@ -112,6 +118,7 @@ export async function load_password_change_vault(
       encrypted_vault: string;
       vault_nonce: string;
       vault_sha256?: string | null;
+      vault_recovered_write_count?: number;
     }>("/core/v1/auth/vault");
   } catch {
     return { kind: "error", reason: "unavailable" };
@@ -138,6 +145,17 @@ export async function load_password_change_vault(
       vault_nonce,
       current_password,
     );
+
+    if (
+      !accept_recovered_vault(
+        user_id,
+        vault,
+        response.data?.vault_recovered_write_count,
+      ) &&
+      is_rolled_back_vault(user_id, vault)
+    ) {
+      return { kind: "error", reason: "rolled_back" };
+    }
 
     const vault_sha256 = response.data?.vault_sha256?.trim() || null;
 

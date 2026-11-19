@@ -105,6 +105,7 @@ import {
   has_recipient_identity_changed,
   RecipientKeysChangedError,
   trust_recipient_identity,
+  snapshot_recipient_keys,
 } from "@/services/crypto/recipient_identity_check";
 import { KeyPinUnavailableError } from "@/services/crypto/ratchet_types";
 
@@ -214,7 +215,7 @@ describe("get_recipient_identity_status", () => {
     h.pin_health = "unreadable";
     h.owner_key = "new";
 
-    await trust_recipient_identity("alice@astermail.org");
+    await trust_recipient_identity("alice@astermail.org", await snapshot_recipient_keys("alice@astermail.org"));
 
     expect(h.trusted).toHaveLength(1);
     expect(h.trusted[0][2]).toBe("new");
@@ -234,7 +235,7 @@ describe("get_recipient_identity_status", () => {
     h.pinned_owner = "fp:old";
     h.owner_key = "new";
 
-    await trust_recipient_identity("Alice@astermail.org");
+    await trust_recipient_identity("Alice@astermail.org", await snapshot_recipient_keys("Alice@astermail.org"));
 
     expect(h.trusted).toEqual([
       ["alice@astermail.org", "key-two", "new", published_identity("key-two")],
@@ -251,7 +252,7 @@ describe("get_recipient_identity_status", () => {
       signed_prekey_signature: "sig",
     };
 
-    await trust_recipient_identity("alice@astermail.org");
+    await trust_recipient_identity("alice@astermail.org", await snapshot_recipient_keys("alice@astermail.org"));
 
     expect(h.trusted).toEqual([
       ["alice@astermail.org", "key-two", "new", h.bundle],
@@ -264,7 +265,7 @@ describe("get_recipient_identity_status", () => {
     h.owner_key = "new";
     h.fail_bundle_fetch = true;
 
-    await trust_recipient_identity("alice@astermail.org");
+    await trust_recipient_identity("alice@astermail.org", await snapshot_recipient_keys("alice@astermail.org"));
 
     expect(h.trusted).toEqual([["alice@astermail.org", null, "new", null]]);
   });
@@ -273,7 +274,7 @@ describe("get_recipient_identity_status", () => {
     h.pinned = "key-one";
     h.identity = published_identity("key-one");
 
-    await trust_recipient_identity("alice@astermail.org");
+    await trust_recipient_identity("alice@astermail.org", await snapshot_recipient_keys("alice@astermail.org"));
 
     expect(h.trusted).toEqual([
       ["alice@astermail.org", "key-one", null, published_identity("key-one")],
@@ -284,7 +285,7 @@ describe("get_recipient_identity_status", () => {
     h.flagged = true;
 
     await expect(
-      trust_recipient_identity("alice@astermail.org"),
+      trust_recipient_identity("alice@astermail.org", await snapshot_recipient_keys("alice@astermail.org")),
     ).rejects.toBeInstanceOf(KeyPinUnavailableError);
     expect(h.trusted).toEqual([]);
   });
@@ -346,7 +347,7 @@ describe("get_recipient_identity_status", () => {
     expect(h.fetch_calls).toEqual([["tej-berlin", "tej-berlin@astermail.org"]]);
     expect(h.owner_calls).toEqual([["tej-berlin", "tej-berlin@astermail.org"]]);
 
-    await trust_recipient_identity("Tej-Berlin@astermail.org");
+    await trust_recipient_identity("Tej-Berlin@astermail.org", await snapshot_recipient_keys("Tej-Berlin@astermail.org"));
 
     expect(h.trusted).toEqual([
       ["tej-berlin@astermail.org", "key-one", "owner", h.bundle],
@@ -360,7 +361,7 @@ describe("get_recipient_identity_status", () => {
     h.verdict = "tampered";
     h.fail_bundle_fetch = true;
 
-    await trust_recipient_identity("alice@astermail.org");
+    await trust_recipient_identity("alice@astermail.org", await snapshot_recipient_keys("alice@astermail.org"));
 
     expect(h.trusted).toEqual([
       [
@@ -481,6 +482,40 @@ describe("describe_recipient_identity_change", () => {
 
     await expect(
       trust_recipient_identity("bob@astermail.org", change.keys),
+    ).rejects.toBeInstanceOf(RecipientKeysChangedError);
+    expect(h.trusted).toEqual([]);
+  });
+
+  it("refuses to trust when the signed prekey or post-quantum key changed after the prompt", async () => {
+    h.pinned_owner = "fp:old";
+    h.owner_key = "new";
+    h.pinned = "ab";
+    h.identity = published_identity("cd");
+
+    const change = await describe_recipient_identity_change(
+      "alice@astermail.org",
+    );
+
+    h.identity = { ...published_identity("cd"), signed_prekey: "spk-two" };
+
+    await expect(
+      trust_recipient_identity("alice@astermail.org", change.keys),
+    ).rejects.toBeInstanceOf(RecipientKeysChangedError);
+
+    h.identity = { ...published_identity("cd"), pq_kem_public_key: "pq-two" };
+
+    await expect(
+      trust_recipient_identity("alice@astermail.org", change.keys),
+    ).rejects.toBeInstanceOf(RecipientKeysChangedError);
+    expect(h.trusted).toEqual([]);
+  });
+
+  it("refuses to trust without the keys the prompt showed", async () => {
+    h.owner_key = "new";
+    h.identity = published_identity("cd");
+
+    await expect(
+      trust_recipient_identity("alice@astermail.org", null),
     ).rejects.toBeInstanceOf(RecipientKeysChangedError);
     expect(h.trusted).toEqual([]);
   });

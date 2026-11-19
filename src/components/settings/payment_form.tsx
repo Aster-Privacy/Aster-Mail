@@ -80,6 +80,7 @@ import {
 } from "@/components/settings/billing/checkout_decline";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { payment_url_or_throw } from "@/lib/payment_url";
 import type { TranslationKey } from "@/lib/i18n/types";
 import {
   use_stripe_theme_tokens,
@@ -644,10 +645,7 @@ export function PaymentForm({
 
         if (response.data?.url) {
           try {
-            const parsed = new URL(response.data.url);
-
-            if (parsed.protocol !== "https:")
-              throw new Error("invalid_protocol");
+            const parsed = new URL(payment_url_or_throw(response.data.url));
             if (is_tauri_env()) {
               await open_payment_url(parsed.toString());
               set_phase("ready");

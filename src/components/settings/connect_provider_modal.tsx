@@ -29,18 +29,17 @@ import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { start_oauth_authorize } from "@/services/api/external_accounts";
+import { checked_provider_sign_in_url } from "@/lib/provider_sign_in_url";
 import {
   DESKTOP_OAUTH_CALLBACK_EVENT,
   DESKTOP_OAUTH_RETURN_TO,
   expect_oauth_state,
   type DesktopOAuthCallbackDetail,
 } from "@/native/desktop_oauth_bridge";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 function is_tauri(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
-  );
+  return has_tauri_runtime();
 }
 
 const REASON_KEY_MAP: Record<string, TranslationKey> = {
@@ -186,12 +185,12 @@ export function ConnectProviderModal({
         return;
       }
 
-      let parsed: URL;
+      const parsed = checked_provider_sign_in_url(
+        provider,
+        result.data.authorize_url,
+      );
 
-      try {
-        parsed = new URL(result.data.authorize_url);
-        if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
-      } catch {
+      if (!parsed) {
         show_toast(
           t("settings.oauth_import_error", {
             reason: t("settings.oauth_reason_unknown"),

@@ -104,6 +104,7 @@ export interface SecureMessageFieldPayload {
 
 export interface SecureMessagePayload {
   kdf_salt: string;
+  kdf_version?: number;
   auth_proof: string;
   kem_ciphertext: string;
   encrypted_kem_seed: string;

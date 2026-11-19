@@ -20,6 +20,11 @@
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+vi.mock("./ratchet_sync_format", () => ({
+  ratchet_sync_writes_bound: vi.fn(async () => true),
+  vault_requires_bound_state: vi.fn(() => false),
+}));
+
 vi.mock("@/services/api/client", () => {
   return {
     api_client: {
@@ -32,8 +37,8 @@ vi.mock("@/services/api/client", () => {
 });
 
 vi.mock("@/services/crypto/legacy_keks", () => ({
-  decrypt_aes_gcm_with_fallback: vi.fn(),
-  decrypt_with_remembered_derived_key: vi.fn(async () => null),
+  decrypt_aes_gcm_with_fallback: vi.fn(async () => null),
+  decrypt_with_legacy_derived_keys: vi.fn(async () => null),
 }));
 
 vi.mock("./double_ratchet", () => ({
@@ -47,11 +52,11 @@ vi.mock("./ratchet_state_store", () => ({
   archive_ratchet_state: vi.fn(),
 }));
 
-import { sync_ratchet_to_server } from "./ratchet_sync";
+import { sync_ratchet_to_server, type RatchetSyncKey } from "./ratchet_sync";
 import { archive_ratchet_state } from "./ratchet_state_store";
+import { array_to_base64 } from "./base64";
 
 import { api_client } from "@/services/api/client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 const mock_post = api_client.post as unknown as ReturnType<typeof vi.fn>;
 const mock_put = api_client.put as unknown as ReturnType<typeof vi.fn>;
@@ -59,18 +64,22 @@ const mock_get = api_client.get as unknown as ReturnType<typeof vi.fn>;
 
 function make_fake_ratchet(conversation_id: string) {
   return {
-    serialize: vi.fn().mockResolvedValue({ stub: true }),
+    serialize: vi.fn().mockResolvedValue({ stub: true, state: {} }),
     get_conversation_id: () => conversation_id,
   } as unknown as Parameters<typeof sync_ratchet_to_server>[0];
 }
 
-async function make_fake_key(): Promise<CryptoKey> {
+async function make_fake_key(): Promise<RatchetSyncKey> {
   const raw = new Uint8Array(32);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt", "decrypt"],
+  );
 
-  return crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, [
-    "encrypt",
-    "decrypt",
-  ]);
+  return { state_key: key, compat_key: key, user_id: "user-1" };
 }
 
 function ok_response(version: number) {
@@ -224,17 +233,27 @@ describe("absorbing a conflicting server state", () => {
   const mock_archive = archive_ratchet_state as unknown as ReturnType<
     typeof vi.fn
   >;
-  const mock_decrypt = decrypt_aes_gcm_with_fallback as unknown as ReturnType<
-    typeof vi.fn
-  >;
+  async function decodable_response(
+    key: RatchetSyncKey,
+    conversation_id: string,
+    container: unknown,
+    version: number,
+  ) {
+    const nonce = crypto.getRandomValues(new Uint8Array(12));
+    const sealed = await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: nonce },
+      key.compat_key,
+      new TextEncoder().encode(JSON.stringify(container)),
+    );
 
-  function decodable_response(version: number) {
     return {
       data: {
         id: "1",
-        conversation_id: "x",
-        encrypted_state: "AAAA",
-        state_nonce: "AAAA",
+        conversation_id: array_to_base64(
+          new TextEncoder().encode(conversation_id),
+        ),
+        encrypted_state: array_to_base64(new Uint8Array(sealed)),
+        state_nonce: array_to_base64(nonce),
         state_version: version,
         updated_at: "now",
       },
@@ -268,7 +287,6 @@ describe("absorbing a conflicting server state", () => {
     mock_put.mockReset();
     mock_get.mockReset();
     mock_archive.mockReset();
-    mock_decrypt.mockReset();
   });
 
   it("archives the local state before a newer server epoch replaces it", async () => {
@@ -276,9 +294,8 @@ describe("absorbing a conflicting server state", () => {
     const local = make_state(conversation_id, 1, "root-local");
     const remote = make_state(conversation_id, 2, "root-remote");
 
-    mock_decrypt.mockResolvedValue(
-      new TextEncoder().encode(JSON.stringify({ ...remote, sync_version: 5 })),
-    );
+    const key = await make_fake_key();
+    const container = { ...remote, sync_version: 5 };
 
     const ratchet = {
       serialize: vi.fn().mockResolvedValue(local),
@@ -286,11 +303,13 @@ describe("absorbing a conflicting server state", () => {
       adopt_state: vi.fn(),
     } as unknown as Parameters<typeof sync_ratchet_to_server>[0];
 
-    mock_get.mockResolvedValueOnce(decodable_response(7));
-    mock_get.mockResolvedValue(decodable_response(9));
+    mock_get.mockResolvedValueOnce(
+      await decodable_response(key, conversation_id, container, 7),
+    );
+    mock_get.mockResolvedValue(
+      await decodable_response(key, conversation_id, container, 9),
+    );
     mock_put.mockResolvedValue(err_response("CONFLICT", "version conflict"));
-
-    const key = await make_fake_key();
 
     await sync_ratchet_to_server(ratchet, key).catch(() => undefined);
 
@@ -306,9 +325,8 @@ describe("absorbing a conflicting server state", () => {
     const local = make_state(conversation_id, 1, "root-shared");
     const remote = make_state(conversation_id, 1, "root-shared");
 
-    mock_decrypt.mockResolvedValue(
-      new TextEncoder().encode(JSON.stringify({ ...remote, sync_version: 5 })),
-    );
+    const key = await make_fake_key();
+    const container = { ...remote, sync_version: 5 };
 
     const ratchet = {
       serialize: vi.fn().mockResolvedValue(local),
@@ -316,11 +334,13 @@ describe("absorbing a conflicting server state", () => {
       adopt_state: vi.fn(),
     } as unknown as Parameters<typeof sync_ratchet_to_server>[0];
 
-    mock_get.mockResolvedValueOnce(decodable_response(7));
-    mock_get.mockResolvedValue(decodable_response(9));
+    mock_get.mockResolvedValueOnce(
+      await decodable_response(key, conversation_id, container, 7),
+    );
+    mock_get.mockResolvedValue(
+      await decodable_response(key, conversation_id, container, 9),
+    );
     mock_put.mockResolvedValue(err_response("CONFLICT", "version conflict"));
-
-    const key = await make_fake_key();
 
     await sync_ratchet_to_server(ratchet, key).catch(() => undefined);
 

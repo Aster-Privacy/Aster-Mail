@@ -254,10 +254,11 @@ export async function get_twin_address(): Promise<
 
 export async function bulk_create_aliases(
   aliases: BulkCreateAliasItem[],
+  captcha_token?: string,
 ): Promise<ApiResponse<BulkCreateAliasResponse>> {
   return api_client.post<BulkCreateAliasResponse>(
     "/addresses/v1/aliases/bulk-create",
-    { aliases },
+    { aliases, captcha_token },
   );
 }
 

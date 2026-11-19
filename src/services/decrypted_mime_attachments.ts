@@ -27,27 +27,54 @@ const MAX_STORED_BYTES = 256 * 1024 * 1024;
 
 const NO_PARTS: MimeAttachmentPart[] = [];
 
-const store = new Map<string, MimeAttachmentPart[]>();
+interface StoredParts {
+  content_tag: string;
+  parts: MimeAttachmentPart[];
+}
+
+const store = new Map<string, StoredParts>();
 const listeners = new Set<Listener>();
 
 function stored_bytes(): number {
   let total = 0;
 
-  for (const parts of store.values()) {
-    for (const part of parts) total += part.data.byteLength;
+  for (const entry of store.values()) {
+    for (const part of entry.parts) total += part.data.byteLength;
   }
 
   return total;
 }
 
+function notify(mail_item_id: string): void {
+  for (const listener of listeners) listener(mail_item_id);
+}
+
+export async function decrypted_content_tag(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(text),
+  );
+
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
 export function set_decrypted_mime_attachments(
   mail_item_id: string,
   parts: MimeAttachmentPart[],
+  content_tag: string,
 ): void {
-  if (!mail_item_id || parts.length === 0) return;
+  if (!mail_item_id) return;
+
+  if (parts.length === 0) {
+    if (store.delete(mail_item_id)) notify(mail_item_id);
+
+    return;
+  }
 
   store.delete(mail_item_id);
-  store.set(mail_item_id, parts);
+  store.set(mail_item_id, { content_tag, parts });
 
   while (
     store.size > 1 &&
@@ -59,7 +86,7 @@ export function set_decrypted_mime_attachments(
     store.delete(oldest);
   }
 
-  for (const listener of listeners) listener(mail_item_id);
+  notify(mail_item_id);
 }
 
 export function get_decrypted_mime_attachments(
@@ -67,7 +94,18 @@ export function get_decrypted_mime_attachments(
 ): MimeAttachmentPart[] {
   if (!mail_item_id) return NO_PARTS;
 
-  return store.get(mail_item_id) ?? NO_PARTS;
+  return store.get(mail_item_id)?.parts ?? NO_PARTS;
+}
+
+export function get_shown_decrypted_mime_attachments(
+  mail_item_id: string | undefined,
+  content_tag: string | undefined,
+): MimeAttachmentPart[] {
+  if (!mail_item_id || !content_tag) return NO_PARTS;
+
+  const entry = store.get(mail_item_id);
+
+  return entry && entry.content_tag === content_tag ? entry.parts : NO_PARTS;
 }
 
 export function subscribe_decrypted_mime_attachments(
@@ -84,9 +122,7 @@ export function clear_decrypted_mime_attachments(): void {
   const cleared = Array.from(store.keys());
 
   store.clear();
-  for (const mail_item_id of cleared) {
-    for (const listener of listeners) listener(mail_item_id);
-  }
+  for (const mail_item_id of cleared) notify(mail_item_id);
 }
 
 export function mime_attachment_bytes(part: MimeAttachmentPart): ArrayBuffer {

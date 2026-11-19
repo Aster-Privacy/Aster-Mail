@@ -61,6 +61,7 @@ interface EscrowPage {
 export type EscrowOpen =
   | { state: "current" }
   | { state: "stale"; plaintext: Uint8Array; aad: Uint8Array | undefined }
+  | { state: "quarantined" }
   | { state: "unreadable" };
 
 export function escrow_aad_modes(
@@ -98,15 +99,20 @@ export async function open_escrow_row(
 
     if (stale) return { state: "stale", plaintext: stale, aad };
   }
-  if (keys.escrow_fallback && !row.message_id.startsWith(BOUND_PREFIX)) {
-    const recovered = await keys.escrow_fallback(ciphertext, nonce);
+  if (!row.message_id.startsWith(BOUND_PREFIX)) {
+    for (const aad of modes) {
+      const untrusted = await open_with_any(
+        keys.untrusted_escrow,
+        ciphertext,
+        nonce,
+        aad,
+      );
 
-    if (recovered) {
-      return {
-        state: "stale",
-        plaintext: new Uint8Array(recovered),
-        aad: escrow_aad_v2(row.message_id),
-      };
+      if (untrusted) {
+        zero_uint8_array(untrusted);
+
+        return { state: "quarantined" };
+      }
     }
   }
 
@@ -162,6 +168,10 @@ export const escrow_step: ResealStep = {
 
         if (opened.state === "current") {
           ctx.counts.current += 1;
+          continue;
+        }
+        if (opened.state === "quarantined") {
+          ctx.counts.quarantined += 1;
           continue;
         }
         if (opened.state === "unreadable") {

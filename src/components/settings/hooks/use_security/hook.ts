@@ -59,6 +59,7 @@ import {
   derive_kek_from_password,
   keep_password_change_keks,
 } from "@/services/crypto/legacy_keks";
+import { mark_keks_for_retirement } from "@/services/crypto/retired_storage_keks";
 import {
   get_preferences,
   save_preferences,
@@ -74,17 +75,12 @@ import {
   convert_before_password_change,
   sent_mail_needs_password_reseal,
 } from "@/services/account_data_conversion";
-import { re_encrypt_user_data } from "@/services/crypto/password_change_reencrypt";
-import {
-  reencrypt_settings_password_change,
-  reencrypt_identity_scoped_password_change,
-} from "@/services/crypto/recovery_reencrypt";
+import { reencrypt_identity_scoped_password_change } from "@/services/crypto/recovery_reencrypt";
 import {
   get_vault_from_memory,
   store_vault_in_memory,
   is_master_key_vault,
   MASTER_KEY_VAULT_FORMAT,
-  get_storage_kdf_version,
 } from "@/services/crypto/memory_key_store";
 import { upgrade_vault_to_master_key } from "@/services/crypto/vault_master_key_upgrade";
 import {
@@ -321,8 +317,6 @@ export function use_security() {
     set_password_success(false);
     set_password_unreadable_notice("");
 
-    let unreadable_item_count = 0;
-
     if (!user?.email) {
       set_password_error(t("settings.user_not_found"));
 
@@ -375,7 +369,6 @@ export function use_security() {
       let sent_mail_conversion!: Awaited<
         ReturnType<typeof convert_before_password_change>
       >;
-      let master_key_mode = false;
       let old_identity_key = "";
       let cas_field: { expected_vault_sha256?: string } = {};
       let response!: Awaited<ReturnType<typeof change_password>>;
@@ -434,8 +427,6 @@ export function use_security() {
 
         await upgrade_vault_to_master_key(vault, current_password);
 
-        master_key_mode = is_master_key_vault(vault);
-
         old_identity_key = vault.identity_key;
 
         const old_prefs_key_raw =
@@ -477,6 +468,11 @@ export function use_security() {
           old_folder_hash,
           old_tag_hash,
         ]);
+        vault.pending_retire_kek_ids = mark_keks_for_retirement(
+          vault.pending_retire_kek_ids,
+          retired_raws,
+          vault.data_kek,
+        );
 
         const vault_key_fingerprints =
           await collect_vault_key_fingerprints(vault);
@@ -484,68 +480,24 @@ export function use_security() {
           ? { vault_key_fingerprints }
           : {};
 
-        const reencrypted = master_key_mode
-          ? null
-          : await re_encrypt_user_data(current_password, new_password, {
-              data_kek: vault.data_kek,
-              legacy_keks: vault.legacy_keks,
-              kdf_version: get_storage_kdf_version(vault),
-            });
-
-        if (reencrypted) {
-          const { skipped } = reencrypted;
-
-          unreadable_item_count =
-            skipped.alias_ids.length +
-            skipped.contact_ids.length +
-            skipped.domain_address_ids.length +
-            skipped.unreadable_field_count;
-        }
-
         const written = await write_vault_at_level(
           vault_write_iterations(),
           (iterations) => encrypt_vault(vault, new_password, iterations),
           (sealed, kdf_field) =>
-            reencrypted
-              ? change_password({
-                  current_password_hash,
-                  new_password_hash,
-                  new_password_hash_v2,
-                  new_password_salt,
-                  new_encrypted_vault: sealed.encrypted_vault,
-                  new_vault_nonce: sealed.vault_nonce,
-                  re_encrypted_aliases: reencrypted.re_encrypted_aliases,
-                  re_encrypted_contacts: reencrypted.re_encrypted_contacts,
-                  re_encrypted_pins: reencrypted.re_encrypted_pins,
-                  re_encrypted_alias_contacts:
-                    reencrypted.re_encrypted_alias_contacts,
-                  re_encrypted_destinations:
-                    reencrypted.re_encrypted_destinations,
-                  re_encrypted_directories:
-                    reencrypted.re_encrypted_directories,
-                  re_encrypted_domain_addresses:
-                    reencrypted.re_encrypted_domain_addresses,
-                  unreadable_alias_ids: reencrypted.skipped.alias_ids,
-                  new_password_strength_tier,
-                  ...kdf_field,
-                  ...kept_app_lock_field(user.id),
-                  ...fingerprint_field,
-                  ...cas_field,
-                })
-              : change_password({
-                  current_password_hash,
-                  new_password_hash,
-                  new_password_hash_v2,
-                  new_password_salt,
-                  new_encrypted_vault: sealed.encrypted_vault,
-                  new_vault_nonce: sealed.vault_nonce,
-                  vault_format: MASTER_KEY_VAULT_FORMAT,
-                  new_password_strength_tier,
-                  ...kdf_field,
-                  ...kept_app_lock_field(user.id),
-                  ...fingerprint_field,
-                  ...cas_field,
-                }),
+            change_password({
+              current_password_hash,
+              new_password_hash,
+              new_password_hash_v2,
+              new_password_salt,
+              new_encrypted_vault: sealed.encrypted_vault,
+              new_vault_nonce: sealed.vault_nonce,
+              vault_format: MASTER_KEY_VAULT_FORMAT,
+              new_password_strength_tier,
+              ...kdf_field,
+              ...kept_app_lock_field(user.id),
+              ...fingerprint_field,
+              ...cas_field,
+            }),
         );
 
         response = written.response;
@@ -687,19 +639,10 @@ export function use_security() {
         })
         .catch(note_reencrypt_failure);
 
-      if (master_key_mode) {
-        reencrypt_identity_scoped_password_change(
-          old_identity_key,
-          vault.identity_key,
-        ).catch(note_reencrypt_failure);
-      } else {
-        reencrypt_settings_password_change(
-          current_password,
-          new_password,
-          old_identity_key,
-          vault.identity_key,
-        ).catch(note_reencrypt_failure);
-      }
+      reencrypt_identity_scoped_password_change(
+        old_identity_key,
+        vault.identity_key,
+      ).catch(note_reencrypt_failure);
 
       set_security_status((prev) => ({
         two_factor_enabled: prev?.two_factor_enabled ?? false,
@@ -708,16 +651,6 @@ export function use_security() {
         password_strength_tier: new_password_strength_tier,
       }));
       fetch_security_status();
-
-      if (unreadable_item_count > 0) {
-        set_password_unreadable_notice((prev) => {
-          const message = t(
-            "settings.password_changed_items_unreadable",
-          ).replace("{{count}}", String(unreadable_item_count));
-
-          return prev ? `${prev} ${message}` : message;
-        });
-      }
 
       set_password_success(true);
       show_toast(t("settings.password_changed_success"), "success");

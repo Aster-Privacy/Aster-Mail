@@ -36,7 +36,8 @@ import {
   get_peer_identity_event,
   subscribe_peer_identity_events,
 } from "@/services/crypto/ratchet_verification_status";
-import { trust_recipient_identity } from "@/services/crypto/recipient_identity_check";
+import { confirm_internal_key_trust } from "@/services/key_trust_consent";
+import { show_toast } from "@/components/toast/simple_toast";
 import { should_retry_cid, cid_retry_delay_ms } from "@/lib/cid_retry";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 import {
@@ -653,8 +654,10 @@ export function EmailViewerContent({
                   data-testid="sender-identity-trust"
                   type="button"
                   onClick={() => {
-                    trust_recipient_identity(email.sender.email).catch(
-                      () => undefined,
+                    confirm_internal_key_trust([], [email.sender.email]).catch(
+                      () => {
+                        show_toast(t("mail.trust_new_key_failed"), "error");
+                      },
                     );
                   }}
                 >

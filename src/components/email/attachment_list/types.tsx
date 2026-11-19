@@ -70,6 +70,7 @@ export const PREVIEW_READY_TIMEOUT_MS = 6000;
 
 export interface AttachmentListProps {
   mail_item_id: string;
+  decrypted_content_tag?: string;
   is_external?: boolean;
   has_recipient_key?: boolean;
   e2e_verified?: boolean;

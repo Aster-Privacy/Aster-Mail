@@ -76,6 +76,7 @@ import {
   billing_row_icon,
 } from "@/components/settings/billing/billing_more_section";
 import text_logo_url from "@/assets/text_logo.webp";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const tile_base =
   "relative rounded-xl border text-start transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50";
@@ -225,8 +226,7 @@ export function CreditsSection({
 
       if (res.data?.url) {
         const url = payment_url_or_throw(res.data.url);
-        const is_tauri =
-          typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+        const is_tauri = has_tauri_runtime();
 
         if (is_tauri) {
           const core = await import("@tauri-apps/api/core");

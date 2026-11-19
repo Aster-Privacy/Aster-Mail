@@ -159,6 +159,14 @@ export const zh_CN = {
       "已删除文件夹。其中的邮件仍保留在您的账户里。",
     delete_folder_password_required: "请输入账户密码。",
     delete_folder_totp_required: "请输入双重验证码。",
+    mail_key_upgrade_title: "正在更新已保存的邮件",
+    mail_key_upgrade_running: "Aster Mail 正在使用你当前的密钥重新加密已保存的邮件。请在完成前保持此窗口打开。",
+    mail_key_upgrade_progress: "已检查 {count} 封邮件",
+    mail_key_upgrade_failed: "Aster Mail 未能完成已保存邮件的更新。你的邮件没有任何改动。请检查网络连接，然后重试。",
+    mail_key_upgrade_retry: "重试",
+    mail_key_upgrade_done_title: "已保存的邮件已更新",
+    mail_key_upgrade_skipped: "还有 {count} 封邮件未能更新。",
+    mail_key_upgrade_unreadable: "已保存的邮件已是最新。Aster Mail 无法用你的密钥打开 {count} 封较早的邮件，因此这些邮件保持原样。",
     delete_folder_verification_failed: "请检查密码和验证码，然后重试。",
     qr_code: "二维码",
     profile_picture_removed: "头像已移除",
@@ -1250,6 +1258,9 @@ export const zh_CN = {
     state_province: "省/州",
     files_end_to_end_encrypted: "这些文件已端到端加密。",
     files_protected_in_transit: "这些文件在传输过程中受到保护和加密。",
+    files_outside_encrypted_label: "不在加密邮件内",
+    files_outside_encrypted:
+      "这些文件不属于加密邮件。请仅在信任发件人时打开。",
     duplicate_send_blocked:
       "这封邮件刚刚已发送。再次发送前，请先查看已发送文件夹。",
     empty_body_error: "这封邮件需要填写主题或正文才能发送。",
@@ -2147,6 +2158,9 @@ export const zh_CN = {
     sender_pictures: "发件人头像",
     sender_pictures_description:
       "在收件箱中每封邮件旁显示发件人的头像或姓名首字母。",
+    sender_logos: "公司徽标",
+    sender_logos_description:
+      "显示给你发邮件的公司的徽标。Aster Mail 会通过其服务器，根据发件人的域名获取每个徽标。",
     fam_welcome_step1_title: "欢迎使用家庭套餐",
     fam_welcome_step1_desc:
       "家庭中的每个人都拥有自己私密、加密的收件箱，与您的完全分离。",
@@ -2959,6 +2973,15 @@ export const zh_CN = {
     alias_tab_domains: "域名",
     alias_tab_directories: "目录",
     alias_tab_ghost: "幽灵别名",
+    alias_tab_sending: "发送",
+    sending_blocks_title: "已禁用发送的别名",
+    sending_blocks_description: "关闭某个别名的发送功能后，将无法从该别名发出邮件。该别名仍可接收邮件。",
+    sending_blocks_search_placeholder: "搜索别名",
+    sending_blocks_empty: "你还没有别名或域名地址。",
+    sending_blocks_no_results: "没有与搜索匹配的别名。",
+    sending_blocks_sending_allowed: "允许发送",
+    sending_blocks_toggle_label: "允许从 {{ email }} 发送",
+    sending_blocks_update_failed: "无法更新此别名的发送设置。请重试。",
     alias_tab_preferences: "偏好设置",
     alias_search_placeholder: "搜索别名……",
     alias_filter_all: "全部",
@@ -3891,8 +3914,6 @@ export const zh_CN = {
     updating: "更新中...",
     password_change_encrypted_data_warning:
       "更改密码时，您的标签、签名和模板将被重新加密。如果此过程中断开连接，这些数据将无法恢复。",
-    password_changed_items_unreadable:
-      "密码已更改。{{count}} 个加密项目因密钥不可用而保留了先前的加密。邮件投递不受影响。如需恢复，请联系支持团队。",
     password_change_background_reencrypt_failed:
       "密码已更改，但部分已发送邮件和设置未完成重新加密。如果邮件或设置无法读取，请联系支持团队。",
     previous_password: "先前的密码",
@@ -8173,6 +8194,8 @@ export const zh_CN = {
     recipient_identity_untrusted:
       "{{email}} 的加密密钥已更改，且无法确认新密钥。要发送到此地址，请通过其他方式与对方确认此更改，然后选择“信任新密钥”。",
     trust_new_key: "信任新密钥",
+    trust_new_key_failed:
+      "加密密钥已更改或无法检查，因此未将其设为可信。要查看当前密钥，请重试。",
     load_all_thread_messages: "加载所有邮件",
     move_to_category: "移至分类",
     menu_applies_to_selection: "适用于已选的 {count} 项",
@@ -8821,6 +8844,9 @@ export const zh_CN = {
     reply_from_mismatch_message:
       "这封邮件是在 {{ received }} 收到的，但您的回复将从 {{ selected }} 发送。使用其他地址回复可能会向发件人泄露该地址，回复也可能被拒收。",
     reply_from_mismatch_use_received: "使用接收地址",
+    sending_disabled_badge: "已禁用发送",
+    reply_from_mismatch_banner: "此邮件发送至 {{ received }}，但你的回复将从 {{ selected }} 发出。",
+    reply_from_mismatch_banner_switch: "从 {{ received }} 发送",
     reply_from_mismatch_send_anyway: "仍然发送",
     reply_from_unknown_title: "请检查发件地址",
     reply_from_unknown_message:
@@ -9092,6 +9118,14 @@ export const zh_CN = {
       "您经常把 {{sender}} 的邮件移到{{category}}。要自动处理吗？",
   },
   auth: {
+    continue_with_app: "使用 {{app}} 继续",
+    sibling_waiting: "请在打开的窗口中确认登录。",
+    sibling_popup_blocked: "确认窗口被拦截。请允许此网站的弹出窗口，然后重试。",
+    sibling_failed: "使用 {{app}} 登录未完成。请重试，或使用密码登录。",
+    handoff_approve_title: "登录 {{app}}？",
+    handoff_approve_body: "{{app}} 请求以 {{email}} 的身份登录。仅当此登录由你本人发起时才继续。",
+    handoff_approve_done: "你可以关闭此窗口。",
+    handoff_approve_signed_out: "你尚未在此登录。请关闭此窗口并使用密码登录。",
     passkey_verification: "使用 Passkey 验证",
     use_passkey_or_key: "使用 Windows Hello、Face ID 或您的安全密钥",
     use_passkey_instead: "改用 Passkey",
@@ -9139,6 +9173,7 @@ export const zh_CN = {
     authenticating: "验证中...",
     fetching_auth_data: "获取验证数据中...",
     verifying_credentials: "验证凭据中...",
+    sign_in_standard_protection: "增强登录保护暂时不可用，因此你已使用标准保护登录。",
     decrypting_vault: "解密密钥库中...",
     getting_user_info: "获取用户信息中...",
     checkout_confirm_title: "完成登录",
@@ -9721,12 +9756,11 @@ export const zh_CN = {
     rename_saved: "名称已更新",
   },
   errors: {
+    alias_sending_disabled: "已禁用从此别名发送。请先启用。",
     auth_salt_collision:
       "由于服务器发送了不安全的值，登录已停止，没有解锁任何内容。请先联系支持团队，然后再重试。",
     legacy_login_salt_new_device:
       "要完成账户的安全更新，请在以前使用过 Aster 的设备上登录。如果无法做到，请使用恢复密钥重置密码。",
-    legacy_login_salt_sign_in_again:
-      "要完成账户的安全更新，请退出登录后重新登录。",
     upload_too_large: "上传内容过大。请移除或压缩一个文件后重试。",
     failed_remove_reaction: "回应删除失败，请重试。",
     cannot_react_own_message: "无法对自己的邮件添加回应。",
@@ -9910,6 +9944,8 @@ export const zh_CN = {
       "我们无法保存此转发以便稍后发送。请重试。您的草稿已保存。",
     failed_send: "此邮件未能发送。请重试。您的草稿已保存。",
     send_unconfirmed: "Aster 无法确认此邮件是否已发送。请先查看“已发送”，再重试。您的草稿已保存。",
+    scheduled_unverifiable:
+      "无法验证这封定时邮件，因此您只能取消它。",
     scheduled_may_have_sent: "此定时邮件可能已发送，因此未取消。请查看“已发送”。",
     incorrect_password: "密码不正确。请重试。您的账户未被锁定。",
     no_keys_available:
@@ -9918,6 +9954,8 @@ export const zh_CN = {
       "您的会话已结束。请重新登录以继续。您的数据和草稿已保存在服务器上。",
     session_identity_mismatch:
       "此设备曾登录另一个账户，为了保持账户彼此独立，我们已将您退出登录。重新登录即可，您的数据未受影响。",
+    vault_rolled_back:
+      "此设备上的加密密钥副本比服务器发送的更新，因此 Aster Mail 未使用较旧的副本。请重新登录。如果此问题持续出现，请联系支持团队。",
     key_material_unavailable:
       "您的私钥在此设备上被锁定。您的密码可以解锁它们。服务器上的密钥未受影响。",
     storage_compromised:
@@ -10409,6 +10447,10 @@ export const zh_CN = {
       "删除 {{address}}？该地址将不再接收邮件，且无法重新注册。",
     delete_confirm_title: "删除共享邮箱",
     access_unavailable: "此共享邮箱已不可用",
+    member_key_untrusted:
+      "某位成员的加密密钥已更改或无法检查，因此未更新其访问权限。要继续，请通过其他方式与该成员确认新密钥，在与其的对话中选择“信任新密钥”，然后重试。",
+    unknown_member_access:
+      "有不属于你家庭方案活跃成员的人可以访问此邮箱，因此未更新其密钥。请联系 Aster 支持。",
   },
   review_prompt: {
     banner_message:

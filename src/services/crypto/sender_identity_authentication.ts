@@ -376,6 +376,18 @@ async function is_remembered(
   );
 }
 
+export async function has_received_sender_identity(
+  sender_email: string,
+  sender_identity_key: string,
+): Promise<boolean> {
+  if (!sender_email || !sender_identity_key) return false;
+
+  return is_remembered(
+    await resolve_sender_peer(sender_email),
+    sender_identity_key,
+  );
+}
+
 export async function is_sender_identity_published(
   sender_email: string,
   sender_identity_key: string,

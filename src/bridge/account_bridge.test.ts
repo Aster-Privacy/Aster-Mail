@@ -255,8 +255,40 @@ describe("account bridge", () => {
     expect(state.purge).toHaveBeenCalledTimes(1);
   });
 
-  it("lets the support site sign out one account", async () => {
+  it("refuses a support site sign-out of one account", async () => {
     const reply = await ask(SUPPORT_ORIGIN, {
+      action: "sign_out",
+      account_ids: ["acct_a"],
+    });
+
+    expect(reply).toMatchObject({ ok: false, error: "unsupported" });
+    expect(state.remove).not.toHaveBeenCalled();
+  });
+
+  it("refuses a support site sign-out of another account", async () => {
+    const reply = await ask(SUPPORT_ORIGIN, {
+      action: "sign_out",
+      account_ids: ["acct_b"],
+    });
+
+    expect(reply).toMatchObject({ ok: false, error: "unsupported" });
+    expect(state.remove).not.toHaveBeenCalled();
+  });
+
+  it("refuses a support site sign-out when no account is current", async () => {
+    state.current_id = null;
+
+    const reply = await ask(SUPPORT_ORIGIN, {
+      action: "sign_out",
+      account_ids: ["acct_a"],
+    });
+
+    expect(reply).toMatchObject({ ok: false, error: "unsupported" });
+    expect(state.remove).not.toHaveBeenCalled();
+  });
+
+  it("still lets the app sign out another account", async () => {
+    const reply = await ask(LINK_ORIGIN, {
       action: "sign_out",
       account_ids: ["acct_b"],
     });

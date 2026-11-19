@@ -26,6 +26,11 @@ import {
   load_pq_secret,
 } from "@/services/crypto/pq_prekey_store";
 import { has_vault_in_memory } from "@/services/crypto/memory_key_store";
+import {
+  read_reconciler_limits,
+  write_reconciler_limits,
+  type ReconcilerLimits,
+} from "@/services/crypto/pq_reconciler_limits";
 
 const RECONCILER_DISABLED_FLAG = "astermail_pq_reconciler_disabled";
 const RECONCILER_RAN_AT_PREFIX = "astermail_pq_reconciler_at_";
@@ -70,28 +75,54 @@ async function current_uid(): Promise<string | null> {
   }
 }
 
-function ran_recently(uid: string | null): boolean {
+function drop_legacy_limits(uid: string | null): void {
   try {
-    const raw = localStorage.getItem(RECONCILER_RAN_AT_PREFIX + (uid ?? ""));
-
-    if (!raw) return false;
-    const ts = parseInt(raw, 10);
-
-    return !Number.isNaN(ts) && Date.now() - ts < RECONCILE_INTERVAL_MS;
+    for (const prefix of [
+      RECONCILER_RAN_AT_PREFIX,
+      SELF_HEAL_AT_PREFIX,
+      SELF_HEAL_KEYS_PREFIX,
+    ]) {
+      localStorage.removeItem(prefix + (uid ?? ""));
+    }
   } catch {
-    return true;
+    return;
   }
 }
 
-function mark_ran(uid: string | null): void {
+function within(ts: number, interval_ms: number): boolean {
+  const age = Date.now() - ts;
+
+  return ts > 0 && age >= -interval_ms && age < interval_ms;
+}
+
+async function load_limits(
+  uid: string | null,
+): Promise<ReconcilerLimits | null> {
+  drop_legacy_limits(uid);
+
   try {
-    localStorage.setItem(
-      RECONCILER_RAN_AT_PREFIX + (uid ?? ""),
-      String(Date.now()),
-    );
+    return await read_reconciler_limits(uid);
   } catch {
-    /* best-effort */
+    return null;
   }
+}
+
+async function save_limits(
+  uid: string | null,
+  limits: ReconcilerLimits,
+): Promise<void> {
+  try {
+    await write_reconciler_limits(uid, limits);
+  } catch {
+    return;
+  }
+}
+
+async function mark_ran(uid: string | null): Promise<void> {
+  const limits = await load_limits(uid);
+
+  if (!limits) return;
+  await save_limits(uid, { ...limits, ran_at: Date.now() });
 }
 
 function try_acquire_lock(): boolean {
@@ -181,8 +212,9 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
   if (!has_vault_in_memory()) return;
 
   const uid = await current_uid();
+  const limits = await load_limits(uid);
 
-  if (ran_recently(uid)) return;
+  if (!limits || within(limits.ran_at, RECONCILE_INTERVAL_MS)) return;
   if (!try_acquire_lock()) return;
 
   try {
@@ -194,7 +226,7 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
     const local_count = local_ids.length;
 
     if (server_count <= local_count) {
-      mark_ran(uid);
+      await mark_ran(uid);
 
       return;
     }
@@ -208,7 +240,7 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
         unknown_ids.length === 0 ||
         (await server_secrets_readable(unknown_ids))
       ) {
-        mark_ran(uid);
+        await mark_ran(uid);
 
         if (is_dev()) {
           console.info(
@@ -240,7 +272,7 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
       return;
     }
 
-    mark_ran(uid);
+    await mark_ran(uid);
 
     if (is_dev()) {
       console.info("[pq_reconciler] complete: fresh pq prekeys uploaded");
@@ -254,53 +286,37 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
   }
 }
 
-function read_self_heal_keys(uid: string | null): Record<string, number> {
-  const raw = localStorage.getItem(SELF_HEAL_KEYS_PREFIX + (uid ?? ""));
+function fresh_self_heal_keys(
+  limits: ReconcilerLimits,
+): Record<string, number> {
+  const fresh: Record<string, number> = {};
 
-  if (!raw) return {};
+  for (const [key_id, ts] of Object.entries(limits.self_heal_keys)) {
+    const age = Date.now() - ts;
 
-  try {
-    const parsed: unknown = JSON.parse(raw);
-
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      return {};
-    }
-
-    const now = Date.now();
-    const fresh: Record<string, number> = {};
-
-    for (const [key_id, ts] of Object.entries(
-      parsed as Record<string, unknown>,
-    )) {
-      if (
-        typeof ts === "number" &&
-        now - ts >= 0 &&
-        now - ts < SELF_HEAL_KEY_TTL_MS
-      ) {
-        fresh[key_id] = ts;
-      }
-    }
-
-    return fresh;
-  } catch {
-    return {};
+    if (age >= 0 && age < SELF_HEAL_KEY_TTL_MS) fresh[key_id] = ts;
   }
+
+  return fresh;
 }
 
-function remember_self_heal_key(uid: string | null, key_id: number): void {
-  try {
-    const entries = Object.entries(read_self_heal_keys(uid));
+async function remember_self_heal_key(
+  uid: string | null,
+  key_id: number,
+): Promise<void> {
+  const limits = await load_limits(uid);
 
-    entries.push([String(key_id), Date.now()]);
-    entries.sort((a, b) => a[1] - b[1]);
+  if (!limits) return;
 
-    localStorage.setItem(
-      SELF_HEAL_KEYS_PREFIX + (uid ?? ""),
-      JSON.stringify(Object.fromEntries(entries.slice(-SELF_HEAL_KEYS_MAX))),
-    );
-  } catch {
-    /* best-effort */
-  }
+  const entries = Object.entries(fresh_self_heal_keys(limits));
+
+  entries.push([String(key_id), Date.now()]);
+  entries.sort((a, b) => a[1] - b[1]);
+
+  await save_limits(uid, {
+    ...limits,
+    self_heal_keys: Object.fromEntries(entries.slice(-SELF_HEAL_KEYS_MAX)),
+  });
 }
 
 export async function handle_missing_pq_secret(key_id?: number): Promise<void> {
@@ -313,34 +329,22 @@ export async function handle_missing_pq_secret(key_id?: number): Promise<void> {
   try {
     const uid = await current_uid();
 
-    try {
-      if (
-        key_id !== undefined &&
-        read_self_heal_keys(uid)[String(key_id)] !== undefined
-      ) {
-        return;
-      }
+    const limits = await load_limits(uid);
 
-      const raw = localStorage.getItem(SELF_HEAL_AT_PREFIX + (uid ?? ""));
-
-      if (raw) {
-        const ts = parseInt(raw, 10);
-
-        if (!Number.isNaN(ts) && Date.now() - ts < SELF_HEAL_INTERVAL_MS) {
-          return;
-        }
-      }
-      localStorage.setItem(
-        SELF_HEAL_AT_PREFIX + (uid ?? ""),
-        String(Date.now()),
-      );
-    } catch {
+    if (!limits) return;
+    if (
+      key_id !== undefined &&
+      fresh_self_heal_keys(limits)[String(key_id)] !== undefined
+    ) {
       return;
     }
+    if (within(limits.self_heal_at, SELF_HEAL_INTERVAL_MS)) return;
+
+    await save_limits(uid, { ...limits, self_heal_at: Date.now() });
 
     const ok = await rotate_pq_pool();
 
-    if (ok && key_id !== undefined) remember_self_heal_key(uid, key_id);
+    if (ok && key_id !== undefined) await remember_self_heal_key(uid, key_id);
 
     if (is_dev()) {
       console.info("[pq_reconciler] self-heal after missing secret: %s", ok);

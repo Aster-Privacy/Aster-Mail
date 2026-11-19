@@ -179,6 +179,16 @@ export const ja = {
     delete_folder_password_required:
       "アカウントのパスワードを入力してください。",
     delete_folder_totp_required: "2ファクタ認証コードを入力してください。",
+    mail_key_upgrade_title: "保存済みのメールを更新しています",
+    mail_key_upgrade_running:
+      "Aster Mail は保存済みのメッセージを現在の鍵で再暗号化しています。完了するまでこのウィンドウを開いたままにしてください。",
+    mail_key_upgrade_progress: "{count} 件のメッセージを確認しました",
+    mail_key_upgrade_failed:
+      "Aster Mail は保存済みのメッセージの更新を完了できませんでした。メールは変更されていません。接続を確認してから、もう一度お試しください。",
+    mail_key_upgrade_retry: "再試行",
+    mail_key_upgrade_done_title: "保存済みメールを更新しました",
+    mail_key_upgrade_skipped: "{count} 件のメッセージをまだ更新できていません。",
+    mail_key_upgrade_unreadable: "保存済みメールは最新です。Aster Mail はお使いの鍵で {count} 件の古いメッセージを開けなかったため、それらは元のままです。",
     delete_folder_verification_failed:
       "パスワードとコードを確認して、もう一度お試しください。",
     qr_code: "QRコード",
@@ -1418,6 +1428,9 @@ export const ja = {
       "これらのファイルはエンドツーエンドで暗号化されています。",
     files_protected_in_transit:
       "これらのファイルは転送中に保護・暗号化されていました。",
+    files_outside_encrypted_label: "暗号化されたメッセージ外",
+    files_outside_encrypted:
+      "これらのファイルは暗号化されたメッセージに含まれていません。送信者を信頼できる場合にのみ開いてください。",
     duplicate_send_blocked:
       "このメッセージは送信されたばかりです。もう一度送信する前に、送信済みフォルダを確認してください。",
     empty_body_error: "送信する前に、件名か本文のテキストが必要です。",
@@ -2312,6 +2325,9 @@ export const ja = {
     sender_pictures: "送信者の画像",
     sender_pictures_description:
       "受信トレイの各メッセージの横に送信者の写真またはイニシャルを表示します。",
+    sender_logos: "企業のロゴ",
+    sender_logos_description:
+      "メールを送ってくる企業のロゴを表示します。Aster Mail は送信者のドメインを使い、自社サーバー経由で各ロゴを取得します。",
     fam_welcome_step1_title: "ファミリープランへようこそ",
     fam_welcome_step1_desc:
       "家族一人ひとりが、あなたのものとは完全に分離された、プライベートで暗号化された受信トレイを持てます。",
@@ -3222,6 +3238,15 @@ export const ja = {
     alias_tab_domains: "ドメイン",
     alias_tab_directories: "ディレクトリ",
     alias_tab_ghost: "ゴーストエイリアス",
+    alias_tab_sending: "送信",
+    sending_blocks_title: "送信が無効なエイリアス",
+    sending_blocks_description: "エイリアスの送信をオフにすると、そのエイリアスからメールは送信されません。受信は引き続き可能です。",
+    sending_blocks_search_placeholder: "エイリアスを検索",
+    sending_blocks_empty: "エイリアスやドメインアドレスはまだありません。",
+    sending_blocks_no_results: "検索に一致するエイリアスはありません。",
+    sending_blocks_sending_allowed: "送信可能",
+    sending_blocks_toggle_label: "{{ email }} からの送信を許可",
+    sending_blocks_update_failed: "このエイリアスの送信設定を更新できませんでした。もう一度お試しください。",
     alias_tab_preferences: "設定",
     alias_search_placeholder: "エイリアスを検索...",
     alias_filter_all: "すべて",
@@ -4224,8 +4249,6 @@ export const ja = {
     updating: "更新中...",
     password_change_encrypted_data_warning:
       "パスワード変更時にラベル、署名、テンプレートが再暗号化されます。この処理中に接続が切れると、そのデータは復元できません。",
-    password_changed_items_unreadable:
-      "パスワードを変更しました。鍵が利用できなかったため、{{count}} 件の暗号化された項目は以前の暗号化のままです。メールの配信には影響しません。復元するには、サポートにお問い合わせください。",
     password_change_background_reencrypt_failed:
       "パスワードは変更されましたが、送信済みメールと設定の一部の再暗号化が完了していません。メールや設定が読めない場合はサポートにご連絡ください。",
     previous_password: "以前のパスワード",
@@ -8983,6 +9006,8 @@ export const ja = {
     recipient_identity_untrusted:
       "{{email}} の暗号鍵が変更され、新しい鍵を確認できません。このアドレスに送信するには、別の方法で相手に変更を確認してから、「新しい鍵を信頼」を選択してください。",
     trust_new_key: "新しい鍵を信頼",
+    trust_new_key_failed:
+      "暗号化キーが変更されたか確認できなかったため、信頼されませんでした。現在のキーを確認するには、もう一度お試しください。",
     load_all_thread_messages: "すべてのメッセージを読み込む",
     move_to_category: "カテゴリに移動",
     menu_applies_to_selection: "選択した {count} 件に適用",
@@ -9683,6 +9708,9 @@ export const ja = {
     reply_from_mismatch_message:
       "このメールは {{ received }} で受信しましたが、返信は {{ selected }} から送信されます。別のアドレスから返信すると、そのアドレスが送信者に知られたり、返信が拒否されたりする可能性があります。",
     reply_from_mismatch_use_received: "受信アドレスを使用",
+    sending_disabled_badge: "送信無効",
+    reply_from_mismatch_banner: "このメールは {{ received }} で受信しましたが、返信は {{ selected }} から送信されます。",
+    reply_from_mismatch_banner_switch: "{{ received }} から送信",
     reply_from_mismatch_send_anyway: "そのまま送信",
     reply_from_unknown_title: "差出人アドレスを確認してください",
     reply_from_unknown_message:
@@ -9960,6 +9988,14 @@ export const ja = {
       "{{sender}} からのメールを {{category}} によく移動しています。今後は自動的に振り分けますか。",
   },
   auth: {
+    continue_with_app: "{{app}} で続行",
+    sibling_waiting: "開いたウィンドウでサインインを確認してください。",
+    sibling_popup_blocked: "確認ウィンドウがブロックされました。このサイトのポップアップを許可してから、もう一度お試しください。",
+    sibling_failed: "{{app}} でのサインインが完了しませんでした。もう一度試すか、パスワードでサインインしてください。",
+    handoff_approve_title: "{{app}} にサインインしますか?",
+    handoff_approve_body: "{{app}} が {{email}} としてのサインインを求めています。このサインインをご自身で開始した場合のみ続行してください。",
+    handoff_approve_done: "このウィンドウは閉じてかまいません。",
+    handoff_approve_signed_out: "ここではサインインしていません。このウィンドウを閉じて、パスワードでサインインしてください。",
     passkey_verification: "パスキーで認証",
     use_passkey_or_key:
       "Windows Hello、Face ID、またはセキュリティキーを使用します",
@@ -10009,6 +10045,7 @@ export const ja = {
     authenticating: "認証中...",
     fetching_auth_data: "認証データを取得中...",
     verifying_credentials: "認証情報を確認中...",
+    sign_in_standard_protection: "強化されたサインイン保護は現在利用できないため、標準の保護でサインインしました。",
     decrypting_vault: "キー保管庫を復号中...",
     getting_user_info: "ユーザー情報を取得中...",
     checkout_confirm_title: "サインインを完了",
@@ -10649,12 +10686,11 @@ export const ja = {
     rename_saved: "名前を更新しました",
   },
   errors: {
+    alias_sending_disabled: "このエイリアスからの送信は無効になっています。先に有効にしてください。",
     auth_salt_collision:
       "サーバーが安全でない値を送信したため、サインインを中止しました。何もロック解除されていません。再試行する前にサポートに問い合わせてください。",
     legacy_login_salt_new_device:
       "アカウントのセキュリティ更新を完了するには、以前 Aster を使用したデバイスでサインインしてください。それができない場合は、リカバリーキーでパスワードをリセットしてください。",
-    legacy_login_salt_sign_in_again:
-      "アカウントのセキュリティ更新を完了するには、サインアウトしてからもう一度サインインしてください。",
     upload_too_large:
       "アップロードするデータが大きすぎます。続けるには、ファイルを削除するか小さくしてからやり直してください。",
     failed_remove_reaction:
@@ -10871,6 +10907,8 @@ export const ja = {
       "このメールを送信できませんでした。もう一度お試しください。下書きは保存されています。",
     send_unconfirmed:
       "Aster はこのメールの送信を確認できませんでした。もう一度送信する前に送信済みを確認してください。下書きは保存されています。",
+    scheduled_unverifiable:
+      "この予約メールは検証できないため、キャンセルのみ可能です。",
     scheduled_may_have_sent:
       "この予約メールは既に送信された可能性があるため、キャンセルされませんでした。送信済みを確認してください。",
     incorrect_password:
@@ -10881,6 +10919,8 @@ export const ja = {
       "セッションが終了しました。続行するには、もう一度サインインしてください。データと下書きはサーバーに保存されています。",
     session_identity_mismatch:
       "このデバイスは別のアカウントでサインインしていたため、アカウントを分離するためにサインアウトしました。もう一度サインインするだけで大丈夫です。データはそのままです。",
+    vault_rolled_back:
+      "このデバイスには、サーバーから送られたものより新しい暗号化キーのコピーがあるため、Aster Mail は古いコピーを使用しませんでした。もう一度サインインしてください。この問題が続く場合は、サポートにお問い合わせください。",
     key_material_unavailable:
       "このデバイスで秘密鍵がロックされています。パスワードで解除できます。サーバー上の鍵には影響ありません。",
     storage_compromised:
@@ -11432,6 +11472,10 @@ export const ja = {
       "{{address}} を削除しますか？このアドレスはメールを受信できなくなり、再登録もできません。",
     delete_confirm_title: "共有メールボックスの削除",
     access_unavailable: "この共有メールボックスは利用できなくなりました",
+    member_key_untrusted:
+      "メンバーの暗号化キーが変更されたか確認できなかったため、アクセスは更新されませんでした。続行するには、別の方法でそのメンバーと新しい鍵を確認し、そのメンバーとの会話で「新しい鍵を信頼」を選んでから、もう一度お試しください。",
+    unknown_member_access:
+      "ファミリープランの有効なメンバーではない人がこのメールボックスにアクセスできるため、鍵は更新されませんでした。Aster サポートにお問い合わせください。",
   },
   review_prompt: {
     banner_message:

@@ -99,6 +99,14 @@ describe("identity key requirement for account data writes", () => {
     );
   });
 
+  it("refuses a vault whose identity key is a placeholder string", () => {
+    for (const placeholder of ["undefined", "null", "  ", "[object Object]"]) {
+      expect(() => with_identity_key(vault_with(placeholder))).toThrow(
+        IdentityKeyMissingError,
+      );
+    }
+  });
+
   it("applies the check on every write path", () => {
     for (const [file, expected] of Object.entries(WRITERS)) {
       const source = readFileSync(resolve(src_root, file), "utf8");

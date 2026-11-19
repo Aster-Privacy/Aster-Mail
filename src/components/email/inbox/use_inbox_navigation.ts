@@ -40,6 +40,7 @@ interface ScheduledEmail {
   full_body: string;
   scheduled_at: string;
   status?: string;
+  content_verified?: boolean;
 }
 
 interface UseInboxNavigationOptions {
@@ -275,6 +276,7 @@ export function use_inbox_navigation({
               body: scheduled.full_body,
               scheduled_at: scheduled.scheduled_at,
               status: scheduled.status,
+              content_verified: scheduled.content_verified,
             });
           }
         }

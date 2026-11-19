@@ -28,23 +28,34 @@ import { DoubleRatchet, type SerializedState } from "./double_ratchet";
 import {
   merge_discards_local_epoch,
   merge_ratchet_states,
+  merge_retired_ratchet_state,
+  retired_send_target,
+  shares_ratchet_epoch,
 } from "./ratchet_state_merge";
 import {
   decode_ratchet_state_container,
   encode_ratchet_state_container,
+  encode_ratchet_state_header,
+  header_matches_state,
   next_sync_version,
   ratchet_state_bound_aad,
+  ratchet_state_sync_aad,
+  split_ratchet_state_payload,
+  type RatchetStateHeader,
 } from "./ratchet_state_container";
 import { raise_sync_counter, read_sync_counter } from "./ratchet_sync_counter";
 import { raise_sync_floor, read_sync_floor } from "./ratchet_sync_floor";
 import { RATCHET_SYNC_SEALED_PREFIX } from "./storage_key_names";
+import {
+  ratchet_sync_writes_bound,
+  vault_requires_bound_state,
+} from "./ratchet_sync_format";
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { api_client } from "@/services/api/client";
 import {
   decrypt_aes_gcm_with_fallback,
   decrypt_with_legacy_derived_keys,
-  decrypt_with_remembered_derived_key,
 } from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { trim_map_to_size } from "@/lib/bounded_map";
@@ -76,107 +87,276 @@ interface EncryptedStatePayload {
   state_nonce: string;
 }
 
-async function encrypt_state_for_server(
-  state: string,
-  encryption_key: CryptoKey,
-): Promise<EncryptedStatePayload> {
-  const encoder = new TextEncoder();
-  const state_bytes = encoder.encode(state);
-  const nonce = crypto.getRandomValues(new Uint8Array(12));
+export interface RatchetSyncKey {
+  state_key: CryptoKey;
+  compat_key: CryptoKey;
+  user_id: string;
+}
 
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce },
-    encryption_key,
-    state_bytes,
+export class RatchetStateRetiredKeyError extends Error {
+  constructor() {
+    super("Synced ratchet state refused: retired key");
+    this.name = "RatchetStateRetiredKeyError";
+  }
+}
+
+const bound_server_copies = new Set<string>();
+
+async function encrypt_legacy_state_for_server(
+  container: string,
+  sync_key: RatchetSyncKey,
+): Promise<EncryptedStatePayload> {
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = new Uint8Array(
+    await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: nonce },
+      sync_key.compat_key,
+      new TextEncoder().encode(container),
+    ),
   );
 
   return {
-    encrypted_state: array_to_base64(new Uint8Array(ciphertext)),
+    encrypted_state: array_to_base64(ciphertext),
     state_nonce: array_to_base64(nonce),
   };
+}
+
+async function encrypt_state_for_server(
+  container: string,
+  header: RatchetStateHeader,
+  sync_key: RatchetSyncKey,
+  conversation_id: string,
+): Promise<EncryptedStatePayload> {
+  const header_bytes = encode_ratchet_state_header(header);
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = new Uint8Array(
+    await crypto.subtle.encrypt(
+      {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: ratchet_state_sync_aad(
+          sync_key.user_id,
+          conversation_id,
+          header_bytes,
+        ),
+      },
+      sync_key.state_key,
+      new TextEncoder().encode(container),
+    ),
+  );
+  const payload = new Uint8Array(header_bytes.length + ciphertext.length);
+
+  payload.set(header_bytes, 0);
+  payload.set(ciphertext, header_bytes.length);
+
+  return {
+    encrypted_state: array_to_base64(payload),
+    state_nonce: array_to_base64(nonce),
+  };
+}
+
+interface OpenedState {
+  plaintext: string;
+  opened_bound: boolean;
+  header: RatchetStateHeader | null;
+}
+
+async function try_decrypt(
+  key: CryptoKey,
+  nonce: Uint8Array,
+  ciphertext: Uint8Array,
+  additional_data?: Uint8Array,
+): Promise<ArrayBuffer | null> {
+  return crypto.subtle
+    .decrypt(
+      additional_data
+        ? { name: "AES-GCM", iv: nonce, additionalData: additional_data }
+        : { name: "AES-GCM", iv: nonce },
+      key,
+      ciphertext,
+    )
+    .catch(() => null);
+}
+
+async function open_under_retired_key(
+  bytes: Uint8Array,
+  nonce: Uint8Array,
+  sync_key: RatchetSyncKey,
+  conversation_id: string,
+): Promise<ArrayBuffer | null> {
+  const payload = split_ratchet_state_payload(bytes);
+  const sealed = payload
+    ? await decrypt_with_legacy_derived_keys(
+        derive_ratchet_state_key_from_base,
+        payload.ciphertext,
+        nonce,
+        ratchet_state_sync_aad(
+          sync_key.user_id,
+          conversation_id,
+          payload.header_bytes,
+        ),
+      )
+    : null;
+  const opened =
+    sealed ??
+    (await decrypt_with_legacy_derived_keys(
+      derive_ratchet_encryption_key_from_base,
+      bytes,
+      nonce,
+    )) ??
+    (await decrypt_aes_gcm_with_fallback(
+      sync_key.compat_key,
+      bytes,
+      nonce,
+    ).catch(() => null));
+
+  return opened ?? null;
+}
+
+async function opens_under_retired_key(
+  bytes: Uint8Array,
+  nonce: Uint8Array,
+  sync_key: RatchetSyncKey,
+  conversation_id: string,
+): Promise<boolean> {
+  const opened = await open_under_retired_key(
+    bytes,
+    nonce,
+    sync_key,
+    conversation_id,
+  );
+
+  if (!opened) return false;
+
+  new Uint8Array(opened).fill(0);
+
+  return true;
+}
+
+async function read_retired_state_for_merge(
+  lookup: { encrypted_state: string; state_nonce: string },
+  sync_key: RatchetSyncKey,
+  conversation_id: string,
+): Promise<SerializedState | null> {
+  const opened = await open_under_retired_key(
+    base64_to_array(lookup.encrypted_state),
+    base64_to_array(lookup.state_nonce),
+    sync_key,
+    conversation_id,
+  );
+
+  if (!opened) return null;
+
+  const bytes = new Uint8Array(opened);
+
+  if (
+    vault_requires_bound_state() &&
+    !split_ratchet_state_payload(base64_to_array(lookup.encrypted_state))
+  ) {
+    bytes.fill(0);
+
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(new TextDecoder().decode(bytes));
+
+    if (parsed?.conversation_id !== conversation_id || !parsed.state) {
+      return null;
+    }
+
+    return parsed as SerializedState;
+  } catch {
+    return null;
+  } finally {
+    bytes.fill(0);
+  }
+}
+
+async function absorb_retired_state(
+  ratchet: DoubleRatchet,
+  encryption_key: RatchetSyncKey,
+  lookup: { encrypted_state: string; state_nonce: string },
+): Promise<AbsorbOutcome> {
+  const local = await ratchet.serialize();
+  const remote = await read_retired_state_for_merge(
+    lookup,
+    encryption_key,
+    local.conversation_id,
+  );
+
+  if (!remote || !shares_ratchet_epoch(local.state, remote.state)) {
+    return "refused";
+  }
+
+  ratchet.adopt_state(merge_retired_ratchet_state(local, remote));
+  await ratchet.advance_send_chain_to(retired_send_target(local, remote));
+
+  return "absorbed";
 }
 
 async function open_state_from_server(
   encrypted_state: string,
   state_nonce: string,
-  encryption_key: CryptoKey,
+  sync_key: RatchetSyncKey,
   conversation_id: string,
-): Promise<{ plaintext: string; opened_bound: boolean; derived: boolean }> {
-  const ciphertext = base64_to_array(encrypted_state);
+): Promise<OpenedState> {
+  const bytes = base64_to_array(encrypted_state);
   const nonce = base64_to_array(state_nonce);
   const decoder = new TextDecoder();
+  const payload = split_ratchet_state_payload(bytes);
 
-  try {
-    const bound = await crypto.subtle.decrypt(
-      {
-        name: "AES-GCM",
-        iv: nonce,
-        additionalData: ratchet_state_bound_aad(conversation_id),
-      },
-      encryption_key,
-      ciphertext,
+  if (payload) {
+    const sealed = await try_decrypt(
+      sync_key.state_key,
+      nonce,
+      payload.ciphertext,
+      ratchet_state_sync_aad(
+        sync_key.user_id,
+        conversation_id,
+        payload.header_bytes,
+      ),
     );
 
+    if (sealed) {
+      return {
+        plaintext: decoder.decode(sealed),
+        opened_bound: true,
+        header: payload.header,
+      };
+    }
+  }
+
+  const bound = await try_decrypt(
+    sync_key.compat_key,
+    nonce,
+    bytes,
+    ratchet_state_bound_aad(conversation_id),
+  );
+
+  if (bound) {
     return {
       plaintext: decoder.decode(bound),
       opened_bound: true,
-      derived: false,
-    };
-  } catch {
-    const unbound = await crypto.subtle
-      .decrypt({ name: "AES-GCM", iv: nonce }, encryption_key, ciphertext)
-      .catch(() => null);
-
-    if (unbound) {
-      return {
-        plaintext: decoder.decode(unbound),
-        opened_bound: false,
-        derived: false,
-      };
-    }
-
-    const remembered = await decrypt_with_remembered_derived_key(
-      derive_ratchet_encryption_key_from_base,
-      ciphertext,
-      nonce,
-    );
-
-    if (remembered) {
-      return {
-        plaintext: decoder.decode(remembered),
-        opened_bound: false,
-        derived: true,
-      };
-    }
-
-    const legacy = await decrypt_aes_gcm_with_fallback(
-      encryption_key,
-      ciphertext,
-      nonce,
-    ).catch(() => null);
-
-    if (legacy) {
-      return {
-        plaintext: decoder.decode(legacy),
-        opened_bound: false,
-        derived: false,
-      };
-    }
-
-    const derived = await decrypt_with_legacy_derived_keys(
-      derive_ratchet_encryption_key_from_base,
-      ciphertext,
-      nonce,
-    );
-
-    if (!derived) throw new RatchetStateUnreadableError();
-
-    return {
-      plaintext: decoder.decode(derived),
-      opened_bound: false,
-      derived: true,
+      header: null,
     };
   }
+
+  const unbound = await try_decrypt(sync_key.compat_key, nonce, bytes);
+
+  if (unbound) {
+    return {
+      plaintext: decoder.decode(unbound),
+      opened_bound: false,
+      header: null,
+    };
+  }
+
+  if (await opens_under_retired_key(bytes, nonce, sync_key, conversation_id)) {
+    throw new RatchetStateRetiredKeyError();
+  }
+
+  throw new RatchetStateUnreadableError();
 }
 
 interface ServerStateRead {
@@ -187,7 +367,7 @@ interface ServerStateRead {
 async function read_server_state(
   encrypted_state: string,
   state_nonce: string,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
   conversation_id: string,
   local_state_present: boolean,
 ): Promise<SerializedState> {
@@ -206,7 +386,7 @@ async function read_server_state(
 async function read_server_state_for_merge(
   encrypted_state: string,
   state_nonce: string,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
   conversation_id: string,
 ): Promise<ServerStateRead> {
   return read_server_state_record(
@@ -222,15 +402,15 @@ async function read_server_state_for_merge(
 async function read_server_state_record(
   encrypted_state: string,
   state_nonce: string,
-  encryption_key: CryptoKey,
+  sync_key: RatchetSyncKey,
   conversation_id: string,
   local_state_present: boolean,
   merging: boolean,
 ): Promise<ServerStateRead> {
-  const { plaintext, opened_bound, derived } = await open_state_from_server(
+  const { plaintext, opened_bound, header } = await open_state_from_server(
     encrypted_state,
     state_nonce,
-    encryption_key,
+    sync_key,
     conversation_id,
   );
   const confirmed = await read_sync_floor(conversation_id);
@@ -242,11 +422,6 @@ async function read_server_state_record(
         )
       : confirmed;
   const established = floor > 0 || local_state_present;
-
-  if (derived && established) {
-    throw new Error("Synced ratchet state refused: unbound");
-  }
-
   const decoded = decode_ratchet_state_container(
     plaintext,
     conversation_id,
@@ -258,6 +433,19 @@ async function read_server_state_record(
 
   if (decoded.kind !== "accepted") {
     throw new Error(`Synced ratchet state refused: ${decoded.kind}`);
+  }
+
+  if (!header && vault_requires_bound_state()) {
+    throw new Error("Synced ratchet state refused: legacy_after_bound");
+  }
+
+  if (header) bound_server_copies.add(conversation_id);
+
+  if (
+    header &&
+    !header_matches_state(header, decoded.state, decoded.sync_version)
+  ) {
+    throw new Error("Synced ratchet state refused: header_mismatch");
   }
 
   const versioned = decoded.sync_version !== null;
@@ -279,7 +467,7 @@ async function has_local_state(conversation_id: string): Promise<boolean> {
 
 async function seal_state_for_server(
   ratchet: DoubleRatchet,
-  encryption_key: CryptoKey,
+  sync_key: RatchetSyncKey,
 ): Promise<EncryptedStatePayload & { sync_version: number }> {
   const conversation_id = ratchet.get_conversation_id();
   const sync_version = next_sync_version(
@@ -287,12 +475,19 @@ async function seal_state_for_server(
       await read_sync_floor(conversation_id),
       await read_sync_counter(RATCHET_SYNC_SEALED_PREFIX, conversation_id),
     ),
-    Date.now(),
   );
-  const sealed = await encrypt_state_for_server(
-    encode_ratchet_state_container(await ratchet.serialize(), sync_version),
-    encryption_key,
-  );
+  const serialized = await ratchet.serialize();
+  const container = encode_ratchet_state_container(serialized, sync_version);
+  const sealed = (await ratchet_sync_writes_bound(
+    bound_server_copies.has(conversation_id),
+  ))
+    ? await encrypt_state_for_server(
+        container,
+        { epoch: serialized.state.epoch ?? 0, sync_version },
+        sync_key,
+        conversation_id,
+      )
+    : await encrypt_legacy_state_for_server(container, sync_key);
 
   await raise_sync_counter(
     RATCHET_SYNC_SEALED_PREFIX,
@@ -370,7 +565,7 @@ type AbsorbOutcome = "absorbed" | "refused" | "unreadable";
 
 async function absorb_server_state(
   ratchet: DoubleRatchet,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
   lookup: Pick<
     Extract<LookupResult, { kind: "found" }>,
     "encrypted_state" | "state_nonce"
@@ -395,6 +590,12 @@ async function absorb_server_state(
 
     return "absorbed";
   } catch (error) {
+    if (error instanceof RatchetStateRetiredKeyError) {
+      return absorb_retired_state(ratchet, encryption_key, lookup).catch(
+        () => "refused" as const,
+      );
+    }
+
     return error instanceof RatchetStateUnreadableError
       ? "unreadable"
       : "refused";
@@ -403,7 +604,7 @@ async function absorb_server_state(
 
 async function absorb_or_refuse_overwrite(
   ratchet: DoubleRatchet,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
   lookup: Pick<
     Extract<LookupResult, { kind: "found" }>,
     "encrypted_state" | "state_nonce"
@@ -420,7 +621,7 @@ async function absorb_or_refuse_overwrite(
 
 async function do_sync(
   ratchet: DoubleRatchet,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
   initial_version_hint?: number,
 ): Promise<number> {
   const conversation_id = ratchet.get_conversation_id();
@@ -522,7 +723,7 @@ async function do_sync(
 
 export async function sync_ratchet_to_server(
   ratchet: DoubleRatchet,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
   server_version?: number,
 ): Promise<number> {
   const conversation_id = ratchet.get_conversation_id();
@@ -589,7 +790,7 @@ async function fetch_server_state_record(
 
 export async function load_ratchet_from_server(
   conversation_id: string,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
 ): Promise<{ ratchet: DoubleRatchet; version: number } | null> {
   const record = await fetch_server_state_record(conversation_id);
 
@@ -617,7 +818,7 @@ interface ListedRatchetState {
 
 export async function load_ratchet_for_merge(
   conversation_id: string,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
 ): Promise<ServerStateRead | null> {
   const record = await fetch_server_state_record(conversation_id);
 
@@ -633,7 +834,7 @@ export async function load_ratchet_for_merge(
 
 async function load_listed_ratchet_state(
   listed: ListedRatchetState,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
 ): Promise<{ ratchet: DoubleRatchet; version: number } | null> {
   if (!listed.encrypted_state || !listed.state_nonce) {
     return load_ratchet_from_server(listed.conversation_id, encryption_key);
@@ -656,7 +857,7 @@ async function load_listed_ratchet_state(
 async function absorb_listed_into_local(
   local_ratchet: DoubleRatchet,
   listed: ListedRatchetState,
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
 ): Promise<DoubleRatchet | null> {
   const record =
     listed.encrypted_state && listed.state_nonce
@@ -688,7 +889,7 @@ async function absorb_listed_into_local(
 }
 
 export async function list_server_ratchet_states(
-  _encryption_key: CryptoKey,
+  _encryption_key: RatchetSyncKey,
 ): Promise<ListedRatchetState[]> {
   const response = await api_client.get<RatchetStateResponse[]>(
     `${API_BASE}/states`,
@@ -716,7 +917,7 @@ interface SyncResult {
 }
 
 export async function sync_all_ratchet_states(
-  encryption_key: CryptoKey,
+  encryption_key: RatchetSyncKey,
 ): Promise<SyncResult> {
   const result: SyncResult = { synced: [], conflicts: [], errors: [] };
 
@@ -838,16 +1039,48 @@ export async function derive_ratchet_encryption_key_from_base(
   );
 }
 
+export async function derive_ratchet_state_key_from_base(
+  key_material: CryptoKey,
+): Promise<CryptoKey> {
+  return crypto.subtle.deriveKey(
+    {
+      name: "HKDF",
+      salt: new TextEncoder().encode("Aster Mail_Ratchet_State_Sync"),
+      info: new TextEncoder().encode("ratchet_state_sync_key_v3"),
+      hash: HASH_ALG,
+    },
+    key_material,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+async function import_hkdf_base(master_key: Uint8Array): Promise<CryptoKey> {
+  return crypto.subtle.importKey("raw", master_key, "HKDF", false, [
+    "deriveKey",
+  ]);
+}
+
 export async function derive_ratchet_encryption_key(
   master_key: Uint8Array,
 ): Promise<CryptoKey> {
-  const key_material = await crypto.subtle.importKey(
-    "raw",
-    master_key,
-    "HKDF",
-    false,
-    ["deriveKey"],
+  return derive_ratchet_encryption_key_from_base(
+    await import_hkdf_base(master_key),
   );
+}
 
-  return derive_ratchet_encryption_key_from_base(key_material);
+export async function derive_ratchet_sync_key(
+  master_key: Uint8Array,
+  user_id: string,
+): Promise<RatchetSyncKey> {
+  if (!user_id) throw new Error("Ratchet sync needs an account");
+
+  const base = await import_hkdf_base(master_key);
+
+  return {
+    state_key: await derive_ratchet_state_key_from_base(base),
+    compat_key: await derive_ratchet_encryption_key_from_base(base),
+    user_id,
+  };
 }

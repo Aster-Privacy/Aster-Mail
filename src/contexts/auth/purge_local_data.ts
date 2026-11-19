@@ -79,6 +79,7 @@ import { INVITE_ANSWER_PREFIX } from "@/services/calendar/invite_answers";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache_store";
 import { clear_billing_cache } from "@/components/settings/billing/billing_cache";
 import { clear_family_cache } from "@/components/settings/billing/family_section/family_cache";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export interface PurgeLocalDataOptions {
   erase_device_traces?: boolean;
@@ -252,7 +253,7 @@ async function sign_out_locally(
 }
 
 function runs_in_desktop_shell(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 async function capture_paired_device_id(): Promise<string | null> {

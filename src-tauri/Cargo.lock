@@ -151,6 +151,8 @@ dependencies = [
  "keyring",
  "libsqlite3-sys",
  "ml-kem",
+ "notify-rust",
+ "objc2",
  "objc2-app-kit",
  "objc2-foundation",
  "oo7",
@@ -189,6 +191,7 @@ dependencies = [
  "windows-registry 0.100.0",
  "x11-dl",
  "x25519-dalek",
+ "zbus 5.15.0",
  "zeroize",
 ]
 

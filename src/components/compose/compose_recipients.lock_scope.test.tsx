@@ -44,7 +44,7 @@ vi.mock("@/lib/i18n/context", () => ({
 
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({
-    preferences: { show_encryption_indicators: true },
+    preferences: { show_encryption_indicators: true, encrypt_emails: true },
   }),
 }));
 
@@ -55,10 +55,15 @@ vi.mock("@/services/api/keys", () => ({
       email,
       found: true,
       public_key: "key",
+      source: "wkd",
       will_encrypt: true,
       expires_at: null,
     })),
   })),
+}));
+
+vi.mock("@/services/opportunistic_key_trust", () => ({
+  opportunistic_lock_status: async () => "encrypted",
 }));
 
 vi.mock("@/services/recipient_classification", () => ({

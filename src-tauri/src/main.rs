@@ -31,6 +31,8 @@ mod default_mail_store;
 mod device;
 mod downloads;
 #[cfg(all(unix, not(target_os = "macos")))]
+mod download_origin;
+#[cfg(all(unix, not(target_os = "macos")))]
 mod external_link;
 #[cfg(all(unix, not(target_os = "macos")))]
 mod flatpak;
@@ -170,8 +172,10 @@ fn mark_download_quarantined(path: &std::path::Path) {
     downloads::mark_from_internet(path);
 }
 
-#[cfg(not(any(target_os = "macos", windows)))]
-fn mark_download_quarantined(_path: &std::path::Path) {}
+#[cfg(all(unix, not(target_os = "macos")))]
+fn mark_download_quarantined(path: &std::path::Path) {
+    download_origin::mark_download(path);
+}
 
 fn resolve_download_destination(app: &tauri::AppHandle, destination: &mut std::path::PathBuf) {
     if destination.is_absolute() {
@@ -561,13 +565,19 @@ static WEBKIT_KEYCHAIN_RESET_DONE: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
 
 #[cfg(target_os = "macos")]
-fn clear_stale_webkit_keychain() {
-    use std::process::Command;
+const KEYCHAIN_TOOL: &str = "/usr/bin/security";
 
+#[cfg(target_os = "macos")]
+fn keychain_delete_command() -> std::process::Command {
+    let mut command = std::process::Command::new(KEYCHAIN_TOOL);
+    command.args(["delete-generic-password", "-s", "com.astermail.mail", "-l", "Aster Mail Desktop web mail web crypto master key"]);
+    command
+}
+
+#[cfg(target_os = "macos")]
+fn clear_stale_webkit_keychain() {
     for _ in 0..5 {
-        let result = Command::new("security")
-            .args(["delete-generic-password", "-s", "com.astermail.mail", "-l", "Aster Mail Desktop web mail web crypto master key"])
-            .output();
+        let result = keychain_delete_command().output();
         match result {
             Ok(output) if output.status.success() => continue,
             _ => break,
@@ -1331,5 +1341,18 @@ mod navigation_tests {
             let parsed = Url::parse(url).expect("valid url");
             assert!(is_app_navigation_for_build(&parsed, false), "{url}");
         }
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod keychain_tool_tests {
+    use super::keychain_delete_command;
+
+    #[test]
+    fn keychain_tool_runs_from_the_system_path() {
+        let command = keychain_delete_command();
+
+        assert_eq!(command.get_program(), std::ffi::OsStr::new("/usr/bin/security"));
+        assert!(std::path::Path::new(command.get_program()).is_absolute());
     }
 }

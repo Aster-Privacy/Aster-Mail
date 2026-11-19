@@ -66,6 +66,7 @@ import { PinIcon } from "@/components/common/icons";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { fold_search_text } from "@/utils/search_fold";
 
 export function MobileSenderSheet({
@@ -107,6 +108,12 @@ export function MobileSenderSheet({
   };
 
   const handle_select = (sender: SenderOption) => {
+    if (sender.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
+
+      return;
+    }
+
     set_sender_query("");
     on_select(sender);
   };
@@ -142,7 +149,8 @@ export function MobileSenderSheet({
               className="flex w-full items-center gap-1 rounded-[14px] active:bg-[var(--bg-tertiary)]"
             >
               <button
-                className="flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-start"
+                aria-disabled={sender.sending_disabled || undefined}
+                className={`flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-start ${sender.sending_disabled ? "opacity-60" : ""}`}
                 type="button"
                 onClick={() => handle_select(sender)}
               >
@@ -157,6 +165,11 @@ export function MobileSenderSheet({
                         className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${sender_type_color(sender.type)}`}
                       >
                         {sender_type_label(sender.type, t)}
+                      </span>
+                    )}
+                    {sender.sending_disabled && (
+                      <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-danger)]">
+                        {t("mail.sending_disabled_badge")}
                       </span>
                     )}
                   </div>

@@ -29,10 +29,25 @@ const cached_bindings = new Map<string, unknown>();
 const cached_unconfirmed = new Map<string, boolean>();
 const foreign_keys = new Set<string>();
 
+const vault_state: {
+  data_kek_random: boolean;
+  server_known_kek_ids: string[] | undefined;
+} = { data_kek_random: true, server_known_kek_ids: undefined };
+
 vi.mock("./memory_key_store", () => ({
   get_derived_encryption_key: () => new Uint8Array(MASTER),
   get_vault_from_memory: () => ({
     data_kek: Buffer.from(MASTER).toString("base64"),
+    data_kek_random: vault_state.data_kek_random,
+    server_known_kek_ids: vault_state.server_known_kek_ids,
+  }),
+}));
+
+const escrow_switch = vi.hoisted(() => ({ bound_only: true }));
+
+vi.mock("@/services/api/account_key", () => ({
+  get_account_key_capabilities: async () => ({
+    bound_escrow_writes: escrow_switch.bound_only,
   }),
 }));
 
@@ -86,6 +101,7 @@ import {
   upload_to_escrow,
 } from "./message_escrow";
 import { array_to_base64, base64_to_array } from "./base64";
+import { server_known_kek_id } from "./server_known_keys";
 import {
   clear_ratchet_verification_status,
   is_unconfirmed_sender_plaintext,
@@ -162,6 +178,71 @@ describe("escrow entries are bound to their message", () => {
     foreign_keys.clear();
     clear_escrow_miss_cache();
     clear_ratchet_verification_status();
+    vault_state.data_kek_random = true;
+    vault_state.server_known_kek_ids = undefined;
+    escrow_switch.bound_only = true;
+  });
+
+  it("never verifies a bound entry under a storage key the server can derive", async () => {
+    escrow_switch.bound_only = false;
+
+    try {
+      await upload_to_escrow(KEY, "real body", ALICE);
+    } finally {
+      escrow_switch.bound_only = true;
+    }
+    serve_posted();
+    vault_state.server_known_kek_ids = [server_known_kek_id(MASTER)];
+
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBeNull();
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "real body",
+      verified: false,
+      unconfirmed_sender: false,
+    });
+    expect(cached_flags.get(KEY)).toBe(true);
+  });
+
+  it("never verifies a bound entry under a password-derived storage key", async () => {
+    escrow_switch.bound_only = false;
+
+    try {
+      await upload_to_escrow(KEY, "real body", ALICE);
+    } finally {
+      escrow_switch.bound_only = true;
+    }
+    serve_posted();
+    vault_state.data_kek_random = false;
+
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBeNull();
+    expect((await fetch_from_escrow(KEY, ALICE))?.verified).toBe(false);
+  });
+
+  it("writes no bound entry while the storage key is server-derivable", async () => {
+    vault_state.server_known_kek_ids = [server_known_kek_id(MASTER)];
+    await upload_to_escrow(KEY, "real body", ALICE);
+
+    expect(posted).toEqual([]);
+
+    escrow_switch.bound_only = false;
+
+    try {
+      await upload_to_escrow(KEY, "real body", ALICE);
+    } finally {
+      escrow_switch.bound_only = true;
+    }
+
+    expect(posted.map((entry) => entry.message_id)).toEqual([KEY]);
+  });
+
+  it("caches nothing from a full sync while the storage key is server-derivable", async () => {
+    await upload_to_escrow("mail-a:BA==:1", "body of a", ALICE);
+    serve_posted();
+    vault_state.server_known_kek_ids = [server_known_kek_id(MASTER)];
+
+    await sync_escrow_to_cache();
+
+    expect(cached.has("mail-a:BA==:1")).toBe(false);
   });
 
   it("carries an unconfirmed sender key to the other devices", async () => {
@@ -236,13 +317,41 @@ describe("escrow entries are bound to their message", () => {
     expect(cached.has(KEY)).toBe(false);
   });
 
-  it("writes a sender-bound entry and a v2 entry for the mobile apps", async () => {
-    await upload_to_escrow(KEY, "real body", ALICE);
+  it("keeps writing the unbound entry until the server retires it", async () => {
+    escrow_switch.bound_only = false;
+
+    try {
+      await upload_to_escrow(KEY, "real body", ALICE);
+    } finally {
+      escrow_switch.bound_only = true;
+    }
 
     expect(posted.map((entry) => entry.message_id)).toEqual([
       bound_escrow_key(KEY),
       KEY,
     ]);
+  });
+
+  it("writes only a sender-bound entry", async () => {
+    await upload_to_escrow(KEY, "real body", ALICE);
+
+    expect(posted.map((entry) => entry.message_id)).toEqual([
+      bound_escrow_key(KEY),
+    ]);
+  });
+
+  it("reads an entry another device wrote without a sender only as unverified", async () => {
+    served.set(KEY, await seal(KEY, "mobile body", escrow_aad_v2(KEY)));
+    served.set("mail-old:BA==:1", await seal("mail-old:BA==:1", "old body"));
+
+    expect((await fetch_from_escrow(KEY, ALICE))?.verified).toBe(false);
+    expect(cached_flags.get(KEY)).toBe(true);
+    expect(
+      (await fetch_from_escrow("mail-old:BA==:1", ALICE))?.verified,
+    ).toBe(false);
+    expect(cached_flags.get("mail-old:BA==:1")).toBe(true);
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBeNull();
+    expect(posted).toHaveLength(0);
   });
 
   it("verifies a bound entry for the sender it was written for", async () => {
@@ -382,16 +491,12 @@ describe("escrow entries are bound to their message", () => {
         key,
         base64_to_array(entry.encrypted_plaintext),
       );
-    const [v3, v2] = posted;
+    const [v3] = posted;
 
-    expect(new TextDecoder().decode(await open(v2, escrow_aad_v2(KEY)))).toBe(
-      "secret body",
-    );
     expect(new TextDecoder().decode(await open(v3, escrow_aad_v3(KEY)))).toBe(
       bound_body("alice@astermail.org", "conv-a", "secret body"),
     );
-    await expect(open(v2)).rejects.toThrow();
-    await expect(open(v2, escrow_aad_v2("mail-2:BA==:3"))).rejects.toThrow();
+    await expect(open(v3)).rejects.toThrow();
     await expect(open(v3, escrow_aad_v2(KEY))).rejects.toThrow();
     await expect(open(v3, escrow_aad_v3("mail-2:BA==:3"))).rejects.toThrow();
   });

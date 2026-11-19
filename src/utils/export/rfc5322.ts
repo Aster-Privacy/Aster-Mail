@@ -218,7 +218,7 @@ async function* emit_attachment_part(
   att: ExportAttachment,
 ): AsyncGenerator<Uint8Array> {
   const cid_header = att.content_id
-    ? `Content-ID: <${att.content_id}>\r\n`
+    ? `Content-ID: <${att.content_id.replace(/[\r\n]/g, "")}>\r\n`
     : "";
   const disposition = att.is_inline ? "inline" : "attachment";
 

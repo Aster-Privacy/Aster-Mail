@@ -18,15 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
+
 const PRINT_ROOT_ID = "aster-print-root";
 const PRINT_STYLES_ID = "aster-print-styles";
 const PRINT_CLEANUP_FALLBACK_MS = 60000;
 
 function is_desktop_shell(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
-  );
+  return has_tauri_runtime();
 }
 
 function is_mac_platform(): boolean {

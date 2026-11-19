@@ -22,7 +22,10 @@ import { array_to_base64, base64_to_array } from "./base64";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_bound_or_unbound } from "@/services/crypto/aes_gcm_aad_fallback";
+import {
+  decrypt_aes_gcm_bound_or_unbound,
+  stored_unbound_policy,
+} from "@/services/crypto/aes_gcm_aad_fallback";
 
 const ECDH_ALGORITHM = "ECDH";
 const ECDH_CURVE = "P-256";
@@ -77,6 +80,7 @@ export interface RatchetState {
   bootstrap?: BootstrapData;
   remote_identity_key?: string;
   header_bound?: boolean;
+  weak_bootstrap?: boolean;
 }
 
 export interface SerializedState {
@@ -167,6 +171,7 @@ function clone_state(state: RatchetState): RatchetState {
     bootstrap: state.bootstrap ? { ...state.bootstrap } : undefined,
     remote_identity_key: state.remote_identity_key,
     header_bound: state.header_bound,
+    weak_bootstrap: state.weak_bootstrap,
   };
 }
 
@@ -346,13 +351,19 @@ async function decrypt_with_key(
     ["decrypt"],
   );
 
+  const unbound = stored_unbound_policy();
+
+  if (!associated_data && unbound === "refuse_unbound") {
+    throw new Error("Refusing an unbound ratchet message");
+  }
+
   const plaintext = associated_data
     ? await decrypt_aes_gcm_bound_or_unbound(
         key,
         nonce,
         ciphertext,
         associated_data,
-        "accept_unbound",
+        unbound,
       )
     : await crypto.subtle.decrypt(
         { name: "AES-GCM", iv: nonce },
@@ -778,6 +789,15 @@ export class DoubleRatchet {
     return this.state.remote_identity_key ?? null;
   }
 
+  is_weak_bootstrap(): boolean {
+    return this.state.weak_bootstrap === true;
+  }
+
+  mark_weak_bootstrap(): void {
+    this.state.weak_bootstrap = true;
+    this.state.dirty_since_sync = true;
+  }
+
   set_remote_identity_key(remote_identity_key: string): void {
     this.state.remote_identity_key = remote_identity_key;
     this.state.dirty_since_sync = true;
@@ -796,6 +816,35 @@ export class DoubleRatchet {
     }
 
     this.state = clone_state(data.state);
+  }
+
+  async advance_send_chain_to(target: number): Promise<void> {
+    const start = this.state.send_message_number;
+
+    if (
+      !this.state.chain_key_send ||
+      !Number.isSafeInteger(target) ||
+      target <= start ||
+      target - start > MAX_SKIP
+    ) {
+      return;
+    }
+
+    let chain_key = base64_to_array(this.state.chain_key_send);
+
+    for (let number = start; number < target; number++) {
+      const { new_chain_key, message_key } = await kdf_chain_key(chain_key);
+
+      zero_uint8_array(message_key);
+      zero_uint8_array(chain_key);
+      chain_key = new_chain_key;
+    }
+
+    this.state.chain_key_send = array_to_base64(chain_key);
+    this.state.send_message_number = target;
+    this.state.dirty_since_sync = true;
+    this.state.updated_at = Date.now();
+    zero_uint8_array(chain_key);
   }
 
   static deserialize(data: SerializedState): DoubleRatchet {

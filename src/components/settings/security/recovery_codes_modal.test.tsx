@@ -32,6 +32,7 @@ import {
   save_recovery_backup,
   verify_codes_step_up,
 } from "@/services/api/recovery";
+import { step_up_key_assertion_if_enrolled } from "@/services/api/webauthn";
 import {
   get_vault_from_memory,
   store_vault_in_memory,
@@ -54,6 +55,10 @@ vi.mock("@/services/api/client", () => ({
     post: vi.fn(),
     put: vi.fn(),
   },
+}));
+
+vi.mock("@/services/api/webauthn", () => ({
+  step_up_key_assertion_if_enrolled: vi.fn(),
 }));
 
 vi.mock("@/services/api/recovery", () => ({
@@ -88,6 +93,24 @@ vi.mock("@/services/crypto/key_manager_pgp_vault", async (import_original) => ({
     encrypted_vault: "encrypted-vault",
     vault_nonce: "vault-nonce",
   })),
+  prepare_vault_write: vi.fn(
+    async (_vault: unknown, _password: string, first: number) => ({
+      write: async (
+        send: (
+          sealed: { encrypted_vault: string; vault_nonce: string },
+          field: { vault_kdf_iterations?: number },
+        ) => Promise<unknown>,
+      ) => {
+        const sealed = {
+          encrypted_vault: "encrypted-vault",
+          vault_nonce: "vault-nonce",
+        };
+        const field = first === 600000 ? { vault_kdf_iterations: first } : {};
+
+        return { response: await send(sealed, field), sealed, iterations: first };
+      },
+    }),
+  ),
 }));
 
 vi.mock("@/contexts/auth/session_passphrase", () => ({
@@ -165,6 +188,7 @@ vi.mock("@aster/ui", async (import_original) => ({
 const mocked_get = vi.mocked(api_client.get);
 const mocked_save = vi.mocked(save_recovery_backup);
 const mocked_step_up = vi.mocked(verify_codes_step_up);
+const mocked_key_assertion = vi.mocked(step_up_key_assertion_if_enrolled);
 const mocked_vault = vi.mocked(get_vault_from_memory);
 const mocked_store_vault = vi.mocked(store_vault_in_memory);
 const on_close = vi.fn();
@@ -305,6 +329,7 @@ describe("RecoveryCodesModal", () => {
     mocked_save.mockReset();
     vi.mocked(read_latest_vault).mockClear();
     mocked_step_up.mockReset();
+    mocked_key_assertion.mockReset().mockResolvedValue(undefined);
     mocked_vault.mockReset();
     mocked_store_vault.mockClear();
     on_close.mockReset();
@@ -356,7 +381,11 @@ describe("RecoveryCodesModal", () => {
       () => container.querySelectorAll(".font-mono").length === 10,
     );
 
-    expect(mocked_step_up).toHaveBeenCalledWith(expect.any(String), undefined);
+    expect(mocked_step_up).toHaveBeenCalledWith(
+      expect.any(String),
+      undefined,
+      undefined,
+    );
 
     const [encrypted_backup, backup_nonce, backup_salt, shares, options] =
       mocked_save.mock.calls[0];
@@ -502,7 +531,53 @@ describe("RecoveryCodesModal", () => {
     });
     await wait_until(() => mocked_save.mock.calls.length === 1);
 
-    expect(mocked_step_up).toHaveBeenCalledWith(expect.any(String), "123456");
+    expect(mocked_step_up).toHaveBeenCalledWith(
+      expect.any(String),
+      "123456",
+      undefined,
+    );
+    expect(mocked_key_assertion).toHaveBeenCalledWith(true);
+  });
+
+  it("confirms with the security key when the account has no authenticator app", async () => {
+    vi.useRealTimers();
+    const assertion = {
+      raw_id: "key-id",
+      response: {
+        authenticator_data: "auth-data",
+        client_data_json: "client-data",
+        signature: "signature",
+      },
+      challenge_token: "challenge",
+    };
+
+    mocked_key_assertion.mockResolvedValue(assertion);
+    render_modal();
+
+    await submit_password("settings.recovery_codes_regenerate");
+    await wait_until(() => mocked_save.mock.calls.length === 1);
+
+    expect(mocked_key_assertion).toHaveBeenCalledWith(false);
+    expect(mocked_step_up).toHaveBeenCalledWith(
+      expect.any(String),
+      undefined,
+      assertion,
+    );
+  });
+
+  it("stops before the step-up when the security key check fails", async () => {
+    vi.useRealTimers();
+    mocked_key_assertion.mockRejectedValue(new Error("cancelled"));
+    render_modal();
+
+    await submit_password("settings.recovery_codes_regenerate");
+    await wait_until(() => mocked_key_assertion.mock.calls.length === 1);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    });
+
+    expect(mocked_step_up).not.toHaveBeenCalled();
+    expect(mocked_save).not.toHaveBeenCalled();
   });
 
   it("shows stored codes with used ones struck through", async () => {
@@ -891,7 +966,11 @@ describe("RecoveryCodesModal", () => {
     await submit_totp(totp_input, "123 456");
     await wait_until(() => mocked_save.mock.calls.length === 1);
 
-    expect(mocked_step_up).toHaveBeenCalledWith(expect.any(String), "123456");
+    expect(mocked_step_up).toHaveBeenCalledWith(
+      expect.any(String),
+      "123456",
+      undefined,
+    );
   });
 
   it("does not send a code shorter than six digits", async () => {

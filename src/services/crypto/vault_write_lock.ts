@@ -53,26 +53,34 @@ export function with_vault_write_lock<T>(fn: () => Promise<T>): Promise<T> {
   return with_tab_lock(() => manager.request(LOCK_NAME, fn));
 }
 
+export class VaultWriteLockTimeoutError extends Error {
+  constructor() {
+    super("vault write lock wait timed out");
+    this.name = "VaultWriteLockTimeoutError";
+  }
+}
+
+export function is_vault_write_lock_timeout(error: unknown): boolean {
+  return error instanceof VaultWriteLockTimeoutError;
+}
+
 export function with_vault_write_lock_bounded<T>(
   fn: () => Promise<T>,
   wait_ms: number,
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    let started = false;
-    const run = (): Promise<void> => {
-      if (started) return Promise.resolve();
-      started = true;
-
-      return fn().then(resolve, reject);
-    };
+    let timed_out = false;
     const timer = setTimeout(() => {
-      void run();
+      timed_out = true;
+      reject(new VaultWriteLockTimeoutError());
     }, wait_ms);
 
     void with_vault_write_lock(() => {
       clearTimeout(timer);
 
-      return run();
+      if (timed_out) return Promise.resolve();
+
+      return fn().then(resolve, reject);
     });
   });
 }

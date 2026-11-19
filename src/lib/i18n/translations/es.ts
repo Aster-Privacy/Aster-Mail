@@ -140,6 +140,19 @@ export const es = {
     delete_folder_password_required: "Introduce la contraseña de tu cuenta.",
     delete_folder_totp_required:
       "Introduce el código de verificación en dos pasos.",
+    mail_key_upgrade_title: "Actualizando tu correo guardado",
+    mail_key_upgrade_running:
+      "Aster Mail está volviendo a cifrar tus mensajes guardados con tus claves actuales. Mantén esta ventana abierta hasta que termine.",
+    mail_key_upgrade_progress: "{count} mensajes revisados",
+    mail_key_upgrade_progress_one: "{count} mensaje revisado",
+    mail_key_upgrade_failed:
+      "Aster Mail no pudo terminar de actualizar tus mensajes guardados. Tu correo no ha cambiado. Comprueba tu conexión e inténtalo de nuevo.",
+    mail_key_upgrade_retry: "Reintentar",
+    mail_key_upgrade_done_title: "Correo guardado actualizado",
+    mail_key_upgrade_skipped: "No se pudieron actualizar {count} mensajes todavía.",
+    mail_key_upgrade_skipped_one: "No se pudo actualizar {count} mensaje todavía.",
+    mail_key_upgrade_unreadable: "Tu correo guardado está al día. Aster Mail no pudo abrir {count} mensajes antiguos con tus claves, así que se quedan como estaban.",
+    mail_key_upgrade_unreadable_one: "Tu correo guardado está al día. Aster Mail no pudo abrir {count} mensaje antiguo con tus claves, así que se queda como estaba.",
     delete_folder_verification_failed:
       "Comprueba tu contraseña y el código, y vuelve a intentarlo.",
     qr_code: "Código QR",
@@ -1693,6 +1706,9 @@ export const es = {
       "Cierra sesión y vuelve a iniciarla para recargar tus claves, y si el mensaje sigue sin abrirse, escribe a hello@astermail.org.",
     files_protected_in_transit:
       "Estos archivos fueron protegidos y cifrados en tránsito.",
+    files_outside_encrypted_label: "Fuera del mensaje cifrado",
+    files_outside_encrypted:
+      "Estos archivos no forman parte del mensaje cifrado. Ábrelos solo si confías en el remitente.",
     allow_sender: "Añadir a la lista de permitidos",
     remove_from_allowlist_action: "Quitar de la lista de permitidos",
     failed_to_allow_sender:
@@ -2320,6 +2336,9 @@ export const es = {
     sender_pictures: "Fotos del remitente",
     sender_pictures_description:
       "Muestra la foto o las iniciales del remitente junto a cada mensaje de tu bandeja de entrada.",
+    sender_logos: "Logotipos de empresas",
+    sender_logos_description:
+      "Muestra los logotipos de las empresas que te escriben. Aster Mail obtiene cada logotipo a través de su servidor con el dominio del remitente.",
     fam_welcome_step1_title: "Bienvenido a tu plan familiar",
     fam_welcome_step1_desc:
       "Cada persona de tu familia tiene su propia bandeja privada y cifrada, completamente separada de la tuya.",
@@ -3263,6 +3282,15 @@ export const es = {
     alias_tab_domains: "Dominios",
     alias_tab_directories: "Directorios",
     alias_tab_ghost: "Alias fantasma",
+    alias_tab_sending: "Envío",
+    sending_blocks_title: "Alias con envío desactivado",
+    sending_blocks_description: "Desactiva el envío de un alias para que no salga correo desde él. El alias sigue recibiendo correo.",
+    sending_blocks_search_placeholder: "Buscar alias",
+    sending_blocks_empty: "Aún no tienes alias ni direcciones de dominio.",
+    sending_blocks_no_results: "Ningún alias coincide con tu búsqueda.",
+    sending_blocks_sending_allowed: "Envío permitido",
+    sending_blocks_toggle_label: "Permitir enviar desde {{ email }}",
+    sending_blocks_update_failed: "No se pudo actualizar el envío de este alias. Inténtalo de nuevo.",
     alias_tab_preferences: "Preferencias",
     alias_search_placeholder: "Buscar alias...",
     alias_filter_all: "Todos",
@@ -4292,8 +4320,6 @@ export const es = {
     updating: "Actualizando...",
     password_change_encrypted_data_warning:
       "Tus etiquetas, firmas y plantillas se vuelven a cifrar al cambiar la contraseña. Si tu conexión se cae durante este proceso, esos datos no se podrán recuperar.",
-    password_changed_items_unreadable:
-      "Tu contraseña cambió. {{count}} elementos cifrados conservaron su cifrado anterior porque su clave no estaba disponible. La entrega de correo no se ve afectada. Para restaurarlos, contacta con el soporte.",
     password_change_background_reencrypt_failed:
       "Tu contraseña cambió, pero parte de tu correo enviado y de tus ajustes no terminó de cifrarse de nuevo. Ponte en contacto con el equipo de soporte si algo aparece ilegible.",
     previous_password: "Contraseña anterior",
@@ -9216,6 +9242,8 @@ export const es = {
     recipient_identity_untrusted:
       "La clave de cifrado de {{email}} cambió y no se puede confirmar la nueva clave. Para enviar a esta dirección, confirma el cambio con esa persona por otro medio y elige Confiar en la nueva clave.",
     trust_new_key: "Confiar en la nueva clave",
+    trust_new_key_failed:
+      "La clave de cifrado cambió o no se pudo comprobar, así que no se marcó como de confianza. Para revisar la clave actual, inténtalo de nuevo.",
     load_all_thread_messages: "Cargar todos los mensajes",
     move_to_category: "Mover a la categoría",
     menu_applies_to_selection: "Se aplica a {count} seleccionados",
@@ -10106,6 +10134,9 @@ export const es = {
     reply_from_mismatch_message:
       "Este correo se recibió en {{ received }}, pero tu respuesta se enviará desde {{ selected }}. Responder desde otra dirección puede revelarla al remitente y la respuesta podría ser rechazada.",
     reply_from_mismatch_use_received: "Usar dirección de recepción",
+    sending_disabled_badge: "Envío desactivado",
+    reply_from_mismatch_banner: "Este correo se recibió en {{ received }}, pero tu respuesta se enviará desde {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Enviar desde {{ received }}",
     reply_from_mismatch_send_anyway: "Enviar de todos modos",
     reply_from_unknown_title: "Comprueba la dirección del remitente",
     reply_from_unknown_message:
@@ -10223,6 +10254,14 @@ export const es = {
       "Sueles mover el correo de {{sender}} a {{category}}. ¿Quieres que se haga automáticamente?",
   },
   auth: {
+    continue_with_app: "Continuar con {{app}}",
+    sibling_waiting: "Confirma el inicio de sesión en la ventana que se abrió.",
+    sibling_popup_blocked: "Se bloqueó la ventana de confirmación. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.",
+    sibling_failed: "No se completó el inicio de sesión con {{app}}. Inténtalo de nuevo o inicia sesión con tu contraseña.",
+    handoff_approve_title: "¿Iniciar sesión en {{app}}?",
+    handoff_approve_body: "{{app}} solicita iniciar sesión como {{email}}. Continúa solo si iniciaste tú este inicio de sesión.",
+    handoff_approve_done: "Puedes cerrar esta ventana.",
+    handoff_approve_signed_out: "No has iniciado sesión aquí. Cierra esta ventana e inicia sesión con tu contraseña.",
     passkey_verification: "Verificar con clave de acceso",
     use_passkey_or_key: "Usa Windows Hello, Face ID o tu llave de seguridad",
     use_passkey_instead: "Usar clave de acceso en su lugar",
@@ -10270,6 +10309,7 @@ export const es = {
     authenticating: "Autenticando...",
     fetching_auth_data: "Obteniendo datos de autenticación...",
     verifying_credentials: "Verificando credenciales...",
+    sign_in_standard_protection: "La protección de inicio de sesión mejorada no está disponible en este momento, así que iniciaste sesión con la protección estándar.",
     decrypting_vault: "Descifrando tu bóveda de claves...",
     getting_user_info: "Obteniendo información del usuario...",
     checkout_confirm_title: "Termina de iniciar sesión",
@@ -10920,12 +10960,11 @@ export const es = {
     rename_saved: "Nombre actualizado",
   },
   errors: {
+    alias_sending_disabled: "El envío desde este alias está desactivado. Primero actívalo.",
     auth_salt_collision:
       "El inicio de sesión se detuvo porque el servidor envió un valor no seguro, así que no se desbloqueó nada. Contacta con soporte antes de volver a intentarlo.",
     legacy_login_salt_new_device:
       "Para completar una actualización de seguridad de tu cuenta, inicia sesión en un dispositivo que ya hayas usado con Aster. Si no puedes, restablece tu contraseña con tu clave de recuperación.",
-    legacy_login_salt_sign_in_again:
-      "Para completar una actualización de seguridad de tu cuenta, cierra sesión y vuelve a iniciarla.",
     upload_too_large:
       "La carga es demasiado grande. Para continuar, quita o reduce un archivo y vuelve a intentarlo.",
     failed_remove_reaction:
@@ -11154,6 +11193,8 @@ export const es = {
       "Este correo no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
     send_unconfirmed:
       "Aster no pudo confirmar que este correo se envió. Revisa Enviados antes de volver a intentarlo. Tu borrador está guardado.",
+    scheduled_unverifiable:
+      "No se puede verificar este correo programado, así que solo puedes cancelarlo.",
     scheduled_may_have_sent:
       "Este correo programado no se canceló porque es posible que ya se haya enviado. Revisa Enviados.",
     attachments_too_large:
@@ -11188,6 +11229,8 @@ export const es = {
       "No pudimos procesar esa solicitud. Actualiza la página e inténtalo de nuevo.",
     session_identity_mismatch:
       "Este dispositivo tenía la sesión iniciada en otra cuenta, así que cerramos la sesión para mantener las cuentas separadas. Basta con volver a iniciar sesión. Tus datos están intactos.",
+    vault_rolled_back:
+      "Este dispositivo tiene una copia más reciente de tus claves de cifrado que la que envió el servidor, así que Aster Mail no usó la copia anterior. Vuelve a iniciar sesión. Si esto sigue ocurriendo, contacta con el soporte.",
     key_material_unavailable:
       "Tus claves privadas están bloqueadas en este dispositivo. Tu contraseña las desbloqueará. Tus claves en el servidor no se han tocado.",
     max_accounts:
@@ -11707,6 +11750,10 @@ export const es = {
       "¿Eliminar {{address}}? La dirección dejará de recibir correo y no podrá registrarse de nuevo.",
     delete_confirm_title: "Eliminar buzón compartido",
     access_unavailable: "Este buzón compartido ya no está disponible",
+    member_key_untrusted:
+      "La clave de cifrado de un miembro cambió o no se pudo comprobar, así que su acceso no se actualizó. Para continuar, confirma la nueva clave con esa persona por otro medio, elige Confiar en la nueva clave en una conversación con ella y vuelve a intentarlo.",
+    unknown_member_access:
+      "Alguien que no es miembro activo de tu plan familiar tiene acceso a este buzón, así que sus claves no se renovaron. Contacta con el soporte de Aster.",
   },
   review_prompt: {
     banner_message:

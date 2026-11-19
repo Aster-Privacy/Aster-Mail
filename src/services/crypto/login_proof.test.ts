@@ -45,6 +45,7 @@ vi.mock("@/services/account_manager", () => ({
 
 import {
   AuthSaltCollisionError,
+  IncorrectCurrentPasswordError,
   LegacyLoginSaltError,
   login_safety_error_key,
 } from "@/services/crypto/auth_salt_guard";
@@ -70,8 +71,6 @@ import {
   read_kdf_version,
   record_current_account_login_salt,
   record_login_salt,
-  remember_saved_login_accounts,
-  seed_session_login_salt,
   unpin_accounts,
   user_hash_pin_key,
   user_id_pin_key,
@@ -320,11 +319,11 @@ describe("short login salts", () => {
     expect(h.post).not.toHaveBeenCalled();
   });
 
-  it("lets a saved account sign in and rotates its salt", async () => {
+  it("lets a recorded account sign in and rotates its salt", async () => {
     const user_hash = await hash_email(EMAIL);
     const short = salt(4, 16);
 
-    h.saved_emails = [EMAIL];
+    record_login_salt([user_hash_pin_key(user_hash)], short);
     h.post.mockResolvedValue({ data: { kdf_version: 2 } });
 
     const sent = await derive_sign_in_proof(PASSWORD, short, 1, user_hash);
@@ -341,7 +340,8 @@ describe("short login salts", () => {
     expect(path).toBe("/core/v1/auth/me/login-salt");
     expect(body.password_hash).toBe(hash);
     expect(new_salt.length).toBe(32);
-    expect(body.new_password_hash).toBe(expected.hash);
+    expect(body).not.toHaveProperty("new_password_hash");
+    expect(JSON.stringify(body)).not.toContain(expected.hash);
     expect(body.new_password_hash_v2).toBe(expected.hash_v2);
     expect(is_account_pinned([user_id_pin_key("user-1")])).toBe(true);
     expect(match_login_salt_record([user_id_pin_key("user-1")], new_salt)).toBe(
@@ -353,7 +353,7 @@ describe("short login salts", () => {
     const user_hash = await hash_email(EMAIL);
     const short = salt(4, 16);
 
-    h.saved_emails = [EMAIL];
+    record_login_salt([user_hash_pin_key(user_hash)], short);
     h.post
       .mockResolvedValueOnce({ error: "conflict" })
       .mockResolvedValueOnce({ data: { kdf_version: 2 } });
@@ -399,43 +399,14 @@ describe("short login salts", () => {
     ).rejects.toBeInstanceOf(LegacyLoginSaltError);
   });
 
-  it("asks a signed-in user to sign in again at step-up", async () => {
+  it("points a signed-in user to the recovery key reset at step-up", async () => {
     h.account_id = "user-1";
 
     await expect(
       derive_current_account_proof(PASSWORD, salt(4, 16), 1),
     ).rejects.toMatchObject({
-      translation_key: "errors.legacy_login_salt_sign_in_again",
+      translation_key: "errors.legacy_login_salt_new_device",
     });
-  });
-
-  it("trusts the first step-up salt for an account saved on this device", async () => {
-    h.account_id = "user-1";
-    h.saved_emails = [EMAIL];
-
-    await expect(
-      derive_current_account_proof(PASSWORD, salt(4, 16), 1),
-    ).resolves.toBeTypeOf("string");
-    expect(
-      match_login_salt_record([user_id_pin_key("user-1")], salt(4, 16)),
-    ).toBe("match");
-    await expect(
-      derive_current_account_proof(PASSWORD, salt(9, 16), 1),
-    ).rejects.toMatchObject({
-      translation_key: "errors.legacy_login_salt_sign_in_again",
-    });
-  });
-
-  it("still knows a remembered account after it is signed out", async () => {
-    const user_hash = await hash_email(EMAIL);
-
-    h.saved_emails = [EMAIL];
-    await remember_saved_login_accounts();
-    h.saved_emails = [];
-
-    await expect(
-      derive_sign_in_proof(PASSWORD, salt(4, 16), 1, user_hash),
-    ).resolves.toBeTypeOf("string");
   });
 
   it("allows step-up once the salt is recorded for the account", async () => {
@@ -464,92 +435,6 @@ describe("short login salts", () => {
     ).resolves.toBeTypeOf("string");
   });
 
-  it("seeds the salt record from a signed-in session", async () => {
-    const user_hash = await hash_email(EMAIL);
-
-    h.account_id = "user-1";
-    h.saved_emails = [EMAIL];
-    h.get.mockResolvedValue({ data: { salt: array_to_base64(salt(4, 16)) } });
-
-    await seed_session_login_salt("user-1", EMAIL);
-
-    expect(h.get).toHaveBeenCalledWith("/crypto/v1/encryption/salt", {
-      skip_cache: true,
-    });
-    expect(
-      match_login_salt_record([user_hash_pin_key(user_hash)], salt(4, 16)),
-    ).toBe("match");
-    expect(
-      match_login_salt_record([user_id_pin_key("user-1")], salt(4, 16)),
-    ).toBe("match");
-    await expect(
-      derive_sign_in_proof(PASSWORD, salt(9, 16), 1, user_hash),
-    ).rejects.toBeInstanceOf(LegacyLoginSaltError);
-  });
-
-  it("never replaces an existing salt record when seeding", async () => {
-    const user_hash = await hash_email(EMAIL);
-
-    h.account_id = "user-1";
-    record_login_salt(
-      [user_id_pin_key("user-1"), user_hash_pin_key(user_hash)],
-      salt(4, 16),
-    );
-
-    await seed_session_login_salt("user-1", EMAIL);
-
-    expect(h.get).not.toHaveBeenCalled();
-    expect(
-      match_login_salt_record([user_hash_pin_key(user_hash)], salt(4, 16)),
-    ).toBe("match");
-  });
-
-  it("fills only the missing key when seeding", async () => {
-    const user_hash = await hash_email(EMAIL);
-
-    h.account_id = "user-1";
-    record_login_salt([user_id_pin_key("user-1")], salt(4, 16));
-    h.get.mockResolvedValue({ data: { salt: array_to_base64(salt(9, 16)) } });
-
-    await seed_session_login_salt("user-1", EMAIL);
-
-    expect(
-      match_login_salt_record([user_id_pin_key("user-1")], salt(4, 16)),
-    ).toBe("match");
-    expect(
-      match_login_salt_record([user_hash_pin_key(user_hash)], salt(9, 16)),
-    ).toBe("match");
-  });
-
-  it("does not seed after the account changes mid-request", async () => {
-    const user_hash = await hash_email(EMAIL);
-
-    h.account_id = "user-1";
-    h.get.mockImplementation(async () => {
-      h.account_id = "user-2";
-
-      return { data: { salt: array_to_base64(salt(4, 16)) } };
-    });
-
-    await seed_session_login_salt("user-1", EMAIL);
-
-    expect(
-      match_login_salt_record([user_hash_pin_key(user_hash)], salt(4, 16)),
-    ).toBe("none");
-  });
-
-  it("does not seed when the salt request fails", async () => {
-    h.account_id = "user-1";
-    h.get.mockResolvedValue({ error: "offline" });
-
-    await expect(
-      seed_session_login_salt("user-1", EMAIL),
-    ).resolves.toBeUndefined();
-    expect(
-      match_login_salt_record([user_id_pin_key("user-1")], salt(4, 16)),
-    ).toBe("none");
-  });
-
   it("forgets recorded salts", () => {
     const pin = user_hash_pin_key("abc");
 
@@ -572,7 +457,10 @@ describe("short login salts", () => {
       "errors.legacy_login_salt_new_device",
     );
     expect(login_safety_error_key(new LegacyLoginSaltError("step_up"))).toBe(
-      "errors.legacy_login_salt_sign_in_again",
+      "errors.legacy_login_salt_new_device",
+    );
+    expect(login_safety_error_key(new IncorrectCurrentPasswordError())).toBe(
+      "errors.incorrect_password",
     );
     expect(login_safety_error_key(new AuthSaltCollisionError())).toBe(
       "errors.auth_salt_collision",
@@ -614,8 +502,6 @@ describe("stored record keys", () => {
 
     pin_accounts([user_hash_pin_key(user_hash), user_id_pin_key("user-1")]);
     record_login_salt([user_hash_pin_key(user_hash)], salt(4, 16));
-    h.saved_emails = [EMAIL];
-    await remember_saved_login_accounts();
 
     expect(stored_text()).not.toContain(user_hash);
     expect(stored_text()).not.toContain("user-1");
@@ -641,7 +527,7 @@ describe("stored record keys", () => {
     expect(stored_text()).not.toContain("user-1");
     expect(JSON.parse(localStorage.getItem(PINS) ?? "[]")).toHaveLength(2);
     expect(JSON.parse(localStorage.getItem(SALTS) ?? "[]")).toHaveLength(2);
-    expect(JSON.parse(localStorage.getItem(KNOWN) ?? "[]")).toHaveLength(1);
+    expect(localStorage.getItem(KNOWN)).toBeNull();
   });
 
   it("enforces the pin and the recorded salt after the rewrite", async () => {
@@ -665,15 +551,15 @@ describe("stored record keys", () => {
     ).resolves.toBeTypeOf("string");
   });
 
-  it("keeps an earlier saved-account entry valid for a short salt", async () => {
+  it("drops the earlier saved-account list without trusting it", async () => {
     const user_hash = await hash_email(EMAIL);
 
     localStorage.setItem(KNOWN, JSON.stringify([user_hash]));
 
     await expect(
       derive_sign_in_proof(PASSWORD, salt(4, 16), 1, user_hash),
-    ).resolves.toBeTypeOf("string");
-    expect(stored_text()).not.toContain(user_hash);
+    ).rejects.toBeInstanceOf(LegacyLoginSaltError);
+    expect(localStorage.getItem(KNOWN)).toBeNull();
   });
 
   it("finds an earlier-format entry written after the rewrite", () => {

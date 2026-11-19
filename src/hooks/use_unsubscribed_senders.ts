@@ -21,21 +21,29 @@
 import { useState, useEffect, useCallback } from "react";
 
 import {
+  delete_subscription,
   list_subscriptions,
-  reactivate_subscription,
-  track_subscription,
-  unsubscribe,
 } from "@/services/api/subscriptions";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  finish_legacy_record_removal,
+  list_cached_unsubscribed_senders,
+  move_legacy_unsubscribed_senders,
+  set_cached_sender_status,
+  type ImportedUnsubscribedSender,
+} from "@/services/subscription_cache";
 import { header_unsubscribe_link } from "@/utils/unsubscribe_detector";
 
 const LOAD_PAGE_SIZE = 100;
 const LOAD_MAX_PAGES = 50;
 const LOAD_ATTEMPTS = 3;
 const LOAD_RETRY_DELAY_MS = 2_000;
+const LEGACY_DELETE_CONCURRENCY = 4;
 const MAX_SENDER_NAME_LENGTH = 255;
 const MAX_UNSUBSCRIBE_FIELD_LENGTH = 2048;
 
 const cached_unsubscribed = new Set<string>();
+const legacy_subscription_ids = new Map<string, string>();
 let cache_loaded = false;
 let cache_generation = 0;
 let load_promise: Promise<boolean> | null = null;
@@ -49,6 +57,7 @@ export function normalize_sender_email(sender_email: string): string {
 
 export function clear_unsubscribed_senders_cache(): void {
   cached_unsubscribed.clear();
+  legacy_subscription_ids.clear();
   cache_loaded = false;
   cache_generation += 1;
   load_promise = null;
@@ -84,7 +93,6 @@ export async function persist_unsubscribe(
     unsubscribe_link?: string;
     list_unsubscribe_header?: string;
   },
-  method: "auto" | "link" | "manual" = "manual",
 ): Promise<void> {
   const normalized = normalize_sender_email(sender_email);
 
@@ -97,11 +105,13 @@ export async function persist_unsubscribe(
     new CustomEvent(UNSUBSCRIBE_EVENT, { detail: { sender_email } }),
   );
 
+  const vault = get_vault_from_memory();
+
+  if (!vault || generation !== cache_generation) return;
+
   try {
-    const track_result = await track_subscription({
-      sender_email: normalized,
-      sender_name:
-        sender_name.trim().slice(0, MAX_SENDER_NAME_LENGTH) || undefined,
+    await set_cached_sender_status(vault, normalized, true, {
+      sender_name: sender_name.trim().slice(0, MAX_SENDER_NAME_LENGTH),
       unsubscribe_link: sanitize_unsubscribe_link(
         header_unsubscribe_link(info),
       ),
@@ -109,12 +119,6 @@ export async function persist_unsubscribe(
         info.list_unsubscribe_header,
       ),
     });
-
-    if (generation !== cache_generation) return;
-
-    if (track_result.data?.subscription_id) {
-      await unsubscribe(track_result.data.subscription_id, method);
-    }
   } catch {
     return;
   }
@@ -127,46 +131,159 @@ export async function persist_resubscribe(sender_email: string): Promise<void> {
 
   const generation = cache_generation;
 
+  if (!cache_loaded) await load_unsubscribed_senders();
+
+  const legacy_id = legacy_subscription_ids.get(normalized);
+
   remove_unsubscribed_sender(sender_email);
 
+  const vault = get_vault_from_memory();
+
   try {
-    const track_result = await track_subscription({ sender_email: normalized });
+    if (vault && generation === cache_generation) {
+      await set_cached_sender_status(vault, normalized, false);
+    }
 
-    if (generation !== cache_generation) return;
+    if (legacy_id && generation === cache_generation) {
+      const result = await delete_subscription(legacy_id);
 
-    if (track_result.data?.subscription_id) {
-      await reactivate_subscription(track_result.data.subscription_id);
+      if (!result.error) legacy_subscription_ids.delete(normalized);
     }
   } catch {
     return;
   }
 }
 
-async function fetch_unsubscribed_senders(
+interface LegacyRecord {
+  id: string;
+  sender_email: string;
+  unsubscribed: boolean;
+  details: ImportedUnsubscribedSender;
+}
+
+async function fetch_legacy_records(
   generation: number,
-): Promise<boolean> {
-  const collected: string[] = [];
+): Promise<LegacyRecord[] | null> {
+  const collected: LegacyRecord[] = [];
 
   for (let page = 0; page < LOAD_MAX_PAGES; page += 1) {
     const res = await list_subscriptions({
-      status: "unsubscribed",
       limit: LOAD_PAGE_SIZE,
       offset: page * LOAD_PAGE_SIZE,
     });
 
-    if (generation !== cache_generation || !res.data) return false;
+    if (generation !== cache_generation || !res.data) return null;
 
     for (const sub of res.data.subscriptions) {
-      collected.push(normalize_sender_email(sub.sender_email));
+      const sender_email = normalize_sender_email(sub.sender_email ?? "");
+
+      collected.push({
+        id: sub.id,
+        sender_email,
+        unsubscribed: sub.status === "unsubscribed",
+        details: {
+          sender_email,
+          sender_name: (sub.sender_name ?? "")
+            .trim()
+            .slice(0, MAX_SENDER_NAME_LENGTH),
+          unsubscribe_link: sanitize_unsubscribe_link(sub.unsubscribe_link),
+        },
+      });
     }
 
     if (!res.data.has_more || res.data.subscriptions.length === 0) break;
   }
 
-  for (const sender_email of collected) {
+  return collected;
+}
+
+async function delete_legacy_record(id: string): Promise<boolean> {
+  try {
+    const result = await delete_subscription(id);
+
+    return !result.error || result.status === 404;
+  } catch {
+    return false;
+  }
+}
+
+async function move_legacy_records_to_cache(
+  vault: NonNullable<ReturnType<typeof get_vault_from_memory>>,
+  records: LegacyRecord[],
+  generation: number,
+): Promise<void> {
+  const pending_ids = await move_legacy_unsubscribed_senders(
+    vault,
+    records
+      .filter((r) => r.unsubscribed && r.sender_email.includes("@"))
+      .map((r) => ({ ...r.details, id: r.id })),
+  );
+
+  if (!pending_ids?.length || generation !== cache_generation) return;
+
+  const by_id = new Map(records.map((r) => [r.id, r] as const));
+  const queue = [...pending_ids];
+  const settled: string[] = [];
+  const worker = async () => {
+    for (;;) {
+      const id = queue.shift();
+
+      if (!id || generation !== cache_generation) return;
+
+      const record = by_id.get(id);
+
+      if (record && !record.unsubscribed) {
+        settled.push(id);
+        continue;
+      }
+      if (!(await delete_legacy_record(id))) continue;
+
+      settled.push(id);
+      if (record && legacy_subscription_ids.get(record.sender_email) === id) {
+        legacy_subscription_ids.delete(record.sender_email);
+      }
+    }
+  };
+
+  await Promise.all(
+    Array.from({ length: LEGACY_DELETE_CONCURRENCY }, () => worker()),
+  );
+
+  if (settled.length > 0) {
+    await finish_legacy_record_removal(vault, settled);
+  }
+}
+
+async function fetch_unsubscribed_senders(
+  generation: number,
+): Promise<boolean> {
+  const vault = get_vault_from_memory();
+  const [legacy, sealed] = await Promise.all([
+    fetch_legacy_records(generation),
+    vault ? list_cached_unsubscribed_senders(vault) : Promise.resolve([]),
+  ]);
+
+  if (generation !== cache_generation || !legacy || !sealed) return false;
+
+  const sealed_set = new Set(sealed.map(normalize_sender_email));
+
+  for (const sender_email of Array.from(sealed_set)) {
     cached_unsubscribed.add(sender_email);
   }
+  for (const record of legacy) {
+    if (!record.sender_email.includes("@")) continue;
+    if (record.unsubscribed) cached_unsubscribed.add(record.sender_email);
+    legacy_subscription_ids.set(record.sender_email, record.id);
+  }
   cache_loaded = true;
+
+  if (vault && legacy.length > 0) {
+    try {
+      await move_legacy_records_to_cache(vault, legacy, generation);
+    } catch {
+      return true;
+    }
+  }
 
   return true;
 }

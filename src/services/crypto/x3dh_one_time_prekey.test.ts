@@ -70,6 +70,7 @@ import {
   type PrekeyBundle,
   type X3dhSenderResult,
 } from "./x3dh";
+import { ONE_TIME_PREKEY_GRACE_MS } from "./one_time_prekey_watch";
 
 const ONE_TIME_PREKEY_ID = 4242;
 const PQ_PREKEY_ID = 77;
@@ -443,5 +444,116 @@ describe("x3dh one-time bound handshake", () => {
     });
 
     expect(to_hex(await receive(parties, sent))).not.toBe(sender_secret);
+  });
+});
+
+describe("one-time prekey disappearance", () => {
+  it("flags a peer that offered a one-time prekey and then offers none", async () => {
+    const parties = await build_parties({
+      x3dh_max_version: 4,
+      with_one_time_prekey: true,
+    });
+
+    const first = await perform_x3dh_sender(
+      parties.sender_identity.secret_key_jwk,
+      parties.bundle,
+    );
+
+    expect(first.one_time_prekey_id).toBe(ONE_TIME_PREKEY_ID);
+    expect(first.one_time_prekey_missing).not.toBe(true);
+
+    const stripped: PrekeyBundle = {
+      ...parties.bundle,
+      ec_one_time_prekey: null,
+    };
+    const second = await perform_x3dh_sender(
+      parties.sender_identity.secret_key_jwk,
+      stripped,
+    );
+
+    expect(second.one_time_prekey_id).toBeUndefined();
+    expect(second.one_time_prekey_missing).toBe(true);
+    expect(to_hex(await receive(parties, second))).toBe(
+      to_hex(second.shared_secret),
+    );
+  });
+
+  it("seals a second handshake inside the grace window with the signed prekey alone", async () => {
+    const parties = await build_parties({
+      x3dh_max_version: 4,
+      with_one_time_prekey: true,
+    });
+    const stripped: PrekeyBundle = {
+      ...parties.bundle,
+      ec_one_time_prekey: null,
+    };
+    const start = 1_900_000_000_000;
+    const clock = vi.spyOn(Date, "now").mockReturnValue(start);
+
+    try {
+      await perform_x3dh_sender(
+        parties.sender_identity.secret_key_jwk,
+        parties.bundle,
+      );
+
+      const graced = await perform_x3dh_sender(
+        parties.sender_identity.secret_key_jwk,
+        stripped,
+      );
+
+      expect(graced.one_time_prekey_missing).toBe(true);
+
+      clock.mockReturnValue(start + 60_000);
+
+      const withheld = await perform_x3dh_sender(
+        parties.sender_identity.secret_key_jwk,
+        stripped,
+      ).catch(() => null);
+
+      expect(withheld).not.toBeNull();
+      expect(withheld?.one_time_prekey_id).toBeUndefined();
+      expect(withheld?.one_time_prekey_missing).toBe(true);
+      expect(
+        (withheld as { one_time_prekey_withheld?: boolean } | null)
+          ?.one_time_prekey_withheld,
+      ).toBe(true);
+      expect(to_hex(await receive(parties, withheld!))).toBe(
+        to_hex(withheld!.shared_secret),
+      );
+
+      const offered = await perform_x3dh_sender(
+        parties.sender_identity.secret_key_jwk,
+        parties.bundle,
+      );
+
+      expect(offered.one_time_prekey_id).toBe(ONE_TIME_PREKEY_ID);
+
+      clock.mockReturnValue(start + ONE_TIME_PREKEY_GRACE_MS + 1);
+
+      const exhausted = await perform_x3dh_sender(
+        parties.sender_identity.secret_key_jwk,
+        stripped,
+      );
+
+      expect(exhausted.one_time_prekey_missing).toBe(true);
+      expect(to_hex(await receive(parties, exhausted))).toBe(
+        to_hex(exhausted.shared_secret),
+      );
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
+  it("does not flag a peer that never offered a one-time prekey", async () => {
+    const parties = await build_parties({ x3dh_max_version: 4 });
+
+    for (let i = 0; i < 2; i++) {
+      const sent = await perform_x3dh_sender(
+        parties.sender_identity.secret_key_jwk,
+        parties.bundle,
+      );
+
+      expect(sent.one_time_prekey_missing).not.toBe(true);
+    }
   });
 });

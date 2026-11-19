@@ -59,6 +59,7 @@ import {
   remember_crypto_selection,
 } from "@/components/settings/billing/billing_constants";
 import { is_onion_host } from "@/lib/onion_host";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 type TermMonths = 1 | 3 | 6 | 12 | 24;
 type Step = "term" | "method";
@@ -351,8 +352,7 @@ export function crypto_term_modal({
   const handle_stripe = async () => {
     set_is_loading(true);
     try {
-      const is_tauri =
-        typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const is_tauri = has_tauri_runtime();
       const origin = is_tauri
         ? "https://app.astermail.org"
         : window.location.origin;

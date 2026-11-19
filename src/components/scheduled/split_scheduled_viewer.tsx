@@ -38,7 +38,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   cancel_scheduled_email,
   send_scheduled_now,
-  get_scheduled_email,
+  get_scheduled_email_for_edit,
   reschedule_email,
   type ScheduledEmailWithContent,
 } from "@/services/api/scheduled";
@@ -73,6 +73,7 @@ interface ScheduledData {
   body: string;
   scheduled_at: string;
   status?: string;
+  content_verified?: boolean;
 }
 
 interface SplitScheduledViewerProps {
@@ -156,6 +157,8 @@ export function SplitScheduledViewer({
     set_current_scheduled_at(scheduled_data.scheduled_at);
   }, [scheduled_data.scheduled_at]);
 
+  const is_unreadable = scheduled_data.content_verified === false;
+
   const copy_to_clipboard = useCallback(
     async (text: string, label: string) => {
       try {
@@ -195,7 +198,7 @@ export function SplitScheduledViewer({
 
   const handle_reschedule = useCallback(
     async (date: Date | null) => {
-      if (!date) return;
+      if (!date || is_unreadable) return;
 
       set_is_rescheduling(true);
 
@@ -218,10 +221,12 @@ export function SplitScheduledViewer({
         show_toast(response.error || t("common.something_went_wrong"), "error");
       }
     },
-    [scheduled_data.id, t],
+    [scheduled_data.id, t, is_unreadable],
   );
 
   const handle_send_now = useCallback(async () => {
+    if (is_unreadable) return;
+
     set_is_sending_now(true);
 
     const response = await send_scheduled_now(scheduled_data.id);
@@ -240,14 +245,17 @@ export function SplitScheduledViewer({
     } else {
       show_toast(response.error || t("common.something_went_wrong"), "error");
     }
-  }, [scheduled_data.id, on_close, t]);
+  }, [scheduled_data.id, on_close, t, is_unreadable]);
 
   const handle_edit = useCallback(async () => {
-    if (!vault || !on_edit) return;
+    if (!vault || !on_edit || is_unreadable) return;
 
     set_is_loading_content(true);
 
-    const response = await get_scheduled_email(scheduled_data.id, vault);
+    const response = await get_scheduled_email_for_edit(
+      scheduled_data.id,
+      vault,
+    );
 
     set_is_loading_content(false);
 
@@ -257,7 +265,7 @@ export function SplitScheduledViewer({
     } else {
       show_toast(response.error || t("common.something_went_wrong"), "error");
     }
-  }, [scheduled_data.id, vault, on_edit, on_close, t]);
+  }, [scheduled_data.id, vault, on_edit, on_close, t, is_unreadable]);
 
   const primary_recipient = scheduled_data.to_recipients[0] || "";
   const recipient_name =
@@ -391,51 +399,65 @@ export function SplitScheduledViewer({
       </div>
 
       <div className="flex items-center gap-2 px-3 @md:px-4 py-3 border-t border-edge-primary">
-        <Button
-          className="flex-1"
-          disabled={is_sending_now}
-          is_loading={is_sending_now}
-          variant="depth"
-          onClick={handle_send_now}
-        >
-          <PaperAirplaneIcon className="w-4 h-4" />
-          {t("common.send_now")}
-        </Button>
-        <SchedulePicker
-          force_picker
-          on_schedule={handle_reschedule}
-          scheduled_time={new Date(current_scheduled_at)}
-          tooltip_key="common.reschedule"
-          trigger={
-            <button
-              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
-              disabled={is_rescheduling}
-              type="button"
-            >
-              <ClockIcon className="w-4 h-4" />
-              {t("common.reschedule")}
-            </button>
-          }
-        />
-        {on_edit && (
+        {is_unreadable ? (
           <button
-            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
-            disabled={is_loading_content}
-            onClick={handle_edit}
+            className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-red-500 shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
+            disabled={is_cancelling}
+            type="button"
+            onClick={() => set_show_cancel_confirm(true)}
           >
-            <PencilIcon className="w-4 h-4" />
-            {t("common.edit")}
-            {is_loading_content && <ButtonSpinner />}
+            <TrashIcon aria-hidden="true" className="w-4 h-4" />
+            {t("common.cancel_scheduled")}
           </button>
+        ) : (
+          <>
+            <Button
+              className="flex-1"
+              disabled={is_sending_now}
+              is_loading={is_sending_now}
+              variant="depth"
+              onClick={handle_send_now}
+            >
+              <PaperAirplaneIcon className="w-4 h-4" />
+              {t("common.send_now")}
+            </Button>
+            <SchedulePicker
+              force_picker
+              on_schedule={handle_reschedule}
+              scheduled_time={new Date(current_scheduled_at)}
+              tooltip_key="common.reschedule"
+              trigger={
+                <button
+                  className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
+                  disabled={is_rescheduling}
+                  type="button"
+                >
+                  <ClockIcon className="w-4 h-4" />
+                  {t("common.reschedule")}
+                </button>
+              }
+            />
+            {on_edit && (
+              <button
+                className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
+                disabled={is_loading_content}
+                onClick={handle_edit}
+              >
+                <PencilIcon className="w-4 h-4" />
+                {t("common.edit")}
+                {is_loading_content && <ButtonSpinner />}
+              </button>
+            )}
+            <button
+              aria-label={t("mail.cancel_scheduled_email")}
+              className="h-10 w-10 flex items-center justify-center rounded-[10px] transition-colors hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={is_cancelling}
+              onClick={() => set_show_cancel_confirm(true)}
+            >
+              <TrashIcon aria-hidden="true" className="w-4 h-4 text-red-500" />
+            </button>
+          </>
         )}
-        <button
-          aria-label={t("mail.cancel_scheduled_email")}
-          className="h-10 w-10 flex items-center justify-center rounded-[10px] transition-colors hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={is_cancelling}
-          onClick={() => set_show_cancel_confirm(true)}
-        >
-          <TrashIcon aria-hidden="true" className="w-4 h-4 text-red-500" />
-        </button>
       </div>
 
       <ConfirmationModal

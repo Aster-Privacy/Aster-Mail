@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { useEffect, useCallback, useMemo, useRef } from "react";
+import { useEffect, useCallback, useMemo, useRef, useState } from "react";
 
 import {
   UseReplyModalProps,
@@ -52,6 +52,7 @@ import {
   is_reply_from_undetermined,
   resolve_own_recipient_address,
 } from "@/components/email/build_reply_from_address";
+import { same_sender_identity } from "@/utils/address_dots";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import {
   build_send_fingerprint,
@@ -74,6 +75,7 @@ import {
 } from "@/components/compose/use_compose_attachments";
 import { use_attachment_session } from "@/components/compose/use_attachment_session";
 import { sender_is_pending } from "@/components/compose/sender_pending";
+import { use_send_when_sender_ready } from "@/components/compose/use_send_when_sender_ready";
 import { format_bytes } from "@/lib/utils";
 import {
   emit_email_sent,
@@ -142,6 +144,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     is_external,
     reply_from_address,
     original_rfc_message_id,
+    existing_draft,
   } = props;
   const { limits: plan_limits, is_feature_locked } = use_plan_limits();
   const {
@@ -208,6 +211,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     from_mismatch_ack_ref,
     sender_manually_selected_ref,
     sender_loading,
+    sender_resolution_ready,
+    expected_sender_email,
     pending_send_kind_ref,
     handle_send_ref,
     handle_scheduled_send_ref,
@@ -318,7 +323,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     if (ghost_mode.is_ghost_enabled) return false;
 
     return (
-      is_reply_from_mismatch(received_on_address, selected_sender?.email) ||
+      (!sender_manually_selected_ref.current &&
+        is_reply_from_mismatch(received_on_address, selected_sender?.email)) ||
       is_reply_from_undetermined({
         received_on_address,
         selectable_sender_count: sender_options.filter((s) => s.is_enabled)
@@ -380,14 +386,26 @@ export function use_reply_modal(props: UseReplyModalProps) {
         loading: sender_loading,
         chosen_by_user:
           sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
+        draft_from: existing_draft?.content.from_email,
         selected_email: selected_sender?.email,
+        thread_bound: true,
+        resolution_ready: sender_resolution_ready,
+        expected_email: expected_sender_email,
       }),
     [
       sender_loading,
       sender_manually_selected_ref,
       ghost_mode.is_ghost_enabled,
+      existing_draft?.content.from_email,
       selected_sender?.email,
+      sender_resolution_ready,
+      expected_sender_email,
     ],
+  );
+
+  const { wait_for_sender } = use_send_when_sender_ready(
+    is_sender_pending,
+    is_open,
   );
 
   const handle_send = useCallback(async () => {
@@ -411,7 +429,14 @@ export function use_reply_modal(props: UseReplyModalProps) {
     }
 
     if (is_sender_pending()) {
+      wait_for_sender(() => handle_send_ref.current());
       show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
 
       return;
     }
@@ -884,6 +909,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     attachment_session,
     reply_from_mismatch,
     is_sender_pending,
+    wait_for_sender,
   ]);
 
   const schedule_gate_pending_ref = useRef(false);
@@ -900,7 +926,14 @@ export function use_reply_modal(props: UseReplyModalProps) {
     }
 
     if (is_sender_pending()) {
+      wait_for_sender(() => handle_scheduled_send_ref.current());
       show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
 
       return;
     }
@@ -1120,6 +1153,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     original_rfc_message_id,
     attachment_session,
     is_sender_pending,
+    wait_for_sender,
   ]);
 
   handle_send_ref.current = handle_send;
@@ -1137,16 +1171,59 @@ export function use_reply_modal(props: UseReplyModalProps) {
   }, []);
 
   const from_mismatch_sender_match = useMemo(() => {
-    const normalized = received_on_address?.trim().toLowerCase();
+    const received = received_on_address?.trim();
 
-    if (!normalized) return null;
+    if (!received) return null;
+
+    const enabled = sender_options.filter(
+      (s) => s.is_enabled && !!s.email?.trim(),
+    );
+    const lowered = received.toLowerCase();
 
     return (
-      sender_options.find(
-        (s) => s.is_enabled && s.email?.trim().toLowerCase() === normalized,
-      ) ?? null
+      enabled.find((s) => s.email.trim().toLowerCase() === lowered) ??
+      enabled.find((s) => same_sender_identity(s.email, received)) ??
+      null
     );
   }, [received_on_address, sender_options]);
+
+  const [from_banner_dismissed, set_from_banner_dismissed] = useState(false);
+
+  const from_banner_visible = useMemo(() => {
+    if (!is_open || from_banner_dismissed) return false;
+    if (ghost_mode.is_ghost_enabled) return false;
+    if (is_sender_pending()) return false;
+
+    return is_reply_from_mismatch(received_on_address, selected_sender?.email);
+  }, [
+    is_open,
+    from_banner_dismissed,
+    ghost_mode.is_ghost_enabled,
+    is_sender_pending,
+    received_on_address,
+    selected_sender?.email,
+  ]);
+
+  const handle_from_banner_dismiss = useCallback(() => {
+    from_mismatch_ack_ref.current = true;
+    set_from_banner_dismissed(true);
+  }, [from_mismatch_ack_ref]);
+
+  const handle_from_banner_use_received = useCallback(() => {
+    if (!from_mismatch_sender_match) return;
+    if (from_mismatch_sender_match.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
+
+      return;
+    }
+    sender_manually_selected_ref.current = true;
+    set_selected_sender(from_mismatch_sender_match);
+  }, [
+    from_mismatch_sender_match,
+    sender_manually_selected_ref,
+    set_selected_sender,
+    t,
+  ]);
 
   const handle_from_mismatch_cancel = useCallback(() => {
     pending_send_kind_ref.current = null;
@@ -1173,9 +1250,13 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
   useEffect(() => {
     if (!send_after_sender_switch) return;
-    const received = received_on_address?.trim().toLowerCase();
+    const received = received_on_address?.trim();
 
-    if (received && selected_sender?.email?.trim().toLowerCase() === received) {
+    if (
+      received &&
+      selected_sender?.email &&
+      same_sender_identity(selected_sender.email, received)
+    ) {
       set_send_after_sender_switch(false);
       run_pending_send();
     }
@@ -1190,6 +1271,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     if (!is_open) {
       set_show_from_mismatch(false);
       set_send_after_sender_switch(false);
+      set_from_banner_dismissed(false);
       from_mismatch_ack_ref.current = false;
       pending_send_kind_ref.current = null;
     }
@@ -1581,6 +1663,9 @@ export function use_reply_modal(props: UseReplyModalProps) {
       on_cancel: handle_from_mismatch_cancel,
       on_send_anyway: handle_from_mismatch_send_anyway,
       on_use_received: handle_from_mismatch_use_received,
+      banner_visible: from_banner_visible,
+      on_banner_dismiss: handle_from_banner_dismiss,
+      on_banner_use_received: handle_from_banner_use_received,
     },
   };
 }

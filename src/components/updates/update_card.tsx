@@ -20,12 +20,12 @@
 //
 import type { UpdateInstallState } from "@/components/updates/use_update_installer";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import {
+  ArrowTopRightOnSquareIcon,
   CheckIcon,
-  ChevronDownIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/20/solid";
 
@@ -33,17 +33,13 @@ import { Button } from "@/components/ui/button";
 import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
-import {
-  parse_release_notes,
-  tokenize_release_note,
-  type ReleaseNoteSection,
-} from "@/components/updates/release_notes";
+import { release_notes_url } from "@/services/updates/updater";
+import { open_external } from "@/utils/open_link";
 
 export type UpdateCardVariant = "floating" | "inline";
 
 export interface UpdateCardProps {
   version: string;
-  notes?: string;
   install: UpdateInstallState;
   variant?: UpdateCardVariant;
   on_install: () => void;
@@ -308,105 +304,8 @@ function ProgressBar({
   );
 }
 
-function ReleaseNoteText({ text }: { text: string }) {
-  return (
-    <>
-      {tokenize_release_note(text).map((token, index) =>
-        token.kind === "strong" ? (
-          <strong key={index} className="font-semibold text-txt-primary">
-            {token.text}
-          </strong>
-        ) : token.kind === "code" ? (
-          <code
-            key={index}
-            className="rounded-[5px] bg-surf-hover px-1 py-px font-mono text-[11.5px] text-txt-primary"
-          >
-            {token.text}
-          </code>
-        ) : (
-          <span key={index}>{token.text}</span>
-        ),
-      )}
-    </>
-  );
-}
-
-function ReleaseNotes({
-  sections,
-  reduce_motion,
-}: {
-  sections: ReleaseNoteSection[];
-  reduce_motion: boolean;
-}) {
-  const scroll_ref = useRef<HTMLDivElement>(null);
-  const [fade_top, set_fade_top] = useState(false);
-  const [fade_bottom, set_fade_bottom] = useState(false);
-
-  const measure = () => {
-    const element = scroll_ref.current;
-
-    if (!element) return;
-    set_fade_top(element.scrollTop > 2);
-    set_fade_bottom(
-      element.scrollTop + element.clientHeight < element.scrollHeight - 2,
-    );
-  };
-
-  useEffect(measure, [sections]);
-
-  const mask = `linear-gradient(to bottom, ${
-    fade_top ? "transparent 0, black 16px" : "black 0"
-  }, ${fade_bottom ? "black calc(100% - 24px), transparent 100%" : "black 100%"})`;
-  let item_index = 0;
-
-  return (
-    <div className="mt-3 overflow-hidden rounded-[12px] bg-surf-secondary">
-      <div
-        ref={scroll_ref}
-        className="max-h-[236px] overflow-y-auto overscroll-contain px-3.5 py-3 [scrollbar-width:thin]"
-        style={{ maskImage: mask, WebkitMaskImage: mask }}
-        onScroll={measure}
-      >
-        <div className="flex flex-col gap-3.5">
-          {sections.map((section, section_index) => (
-            <section key={section_index}>
-              {section.title && (
-                <h4 className="mb-2 text-[12px] font-semibold leading-4 text-txt-primary">
-                  {section.title}
-                </h4>
-              )}
-              <ul className="flex flex-col gap-2">
-                {section.items.map((item, index) => {
-                  const delay = Math.min(item_index++ * 0.03, 0.3);
-
-                  return (
-                    <motion.li
-                      key={index}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="relative ps-4 text-[12.5px] leading-[18px] text-txt-secondary"
-                      initial={reduce_motion ? false : { opacity: 0, y: 4 }}
-                      transition={{ duration: 0.22, delay, ease: EASE }}
-                    >
-                      <span
-                        aria-hidden
-                        className="absolute start-1 top-[7px] h-[5px] w-[5px] rounded-full bg-brand"
-                      />
-                      <ReleaseNoteText text={item} />
-                    </motion.li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function UpdateCard({
   version,
-  notes,
   install,
   variant = "floating",
   on_install,
@@ -414,13 +313,10 @@ export function UpdateCard({
 }: UpdateCardProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
-  const [notes_open, set_notes_open] = useState(false);
-  const notes_id = useId();
   const { phase, percent, downloaded, total, seconds_left } = install;
   const show_actions = phase === "idle" || phase === "failed";
   const can_dismiss = show_actions && Boolean(on_dismiss);
-  const note_sections = useMemo(() => parse_release_notes(notes), [notes]);
-  const has_notes = note_sections.length > 0 && phase === "idle";
+  const notes_url = phase === "idle" ? release_notes_url(version) : null;
 
   const title =
     phase === "preparing"
@@ -556,25 +452,6 @@ export function UpdateCard({
       </AnimatePresence>
 
       <AnimatePresence initial={false}>
-        {has_notes && notes_open && (
-          <motion.div
-            key="notes"
-            animate={{ opacity: 1, height: "auto" }}
-            className="overflow-hidden"
-            exit={{ opacity: 0, height: 0 }}
-            id={notes_id}
-            initial={{ opacity: 0, height: 0 }}
-            transition={text_transition}
-          >
-            <ReleaseNotes
-              reduce_motion={reduce_motion}
-              sections={note_sections}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence initial={false}>
         {show_actions && (
           <motion.div
             key="actions"
@@ -585,21 +462,14 @@ export function UpdateCard({
             transition={text_transition}
           >
             <div className="flex items-center gap-2 pt-3.5">
-              {has_notes && (
+              {notes_url && (
                 <button
-                  aria-controls={notes_id}
-                  aria-expanded={notes_open}
                   className="-ms-1.5 flex h-8 items-center gap-1 rounded-lg px-1.5 text-[12.5px] font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
                   type="button"
-                  onClick={() => set_notes_open((open) => !open)}
+                  onClick={() => open_external(notes_url)}
                 >
                   {t("settings.updates_whats_new")}
-                  <ChevronDownIcon
-                    aria-hidden
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      notes_open ? "rotate-180" : ""
-                    }`}
-                  />
+                  <ArrowTopRightOnSquareIcon aria-hidden className="h-4 w-4" />
                 </button>
               )}
               <div className="ms-auto flex items-center gap-2">

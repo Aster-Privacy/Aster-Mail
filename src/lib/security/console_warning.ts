@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 const has_been_shown = { current: false };
 
 export function show_self_xss_warning(): void {
@@ -25,10 +26,7 @@ export function show_self_xss_warning(): void {
   has_been_shown.current = true;
 
   if (typeof window === "undefined" || typeof console === "undefined") return;
-  if (
-    (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
-  )
-    return;
+  if (has_tauri_runtime()) return;
 
   console.log("%cStop!", "color: #dc2626; font-size: 60px; font-weight: 800;");
   console.log(

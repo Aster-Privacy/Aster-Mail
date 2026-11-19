@@ -47,6 +47,10 @@ interface RenderProps {
   e2e_verified?: boolean;
   sender_bound?: boolean;
   sent_encryption_scope?: "internal" | "outside";
+  context?: "message" | "attachments";
+  description_key?: "common.files_outside_encrypted";
+  heading_key?: "common.files_outside_encrypted_label";
+  show_cipher?: boolean;
 }
 
 const mounted: Array<{ root: Root; container: HTMLDivElement }> = [];
@@ -66,7 +70,11 @@ function render_open(props: RenderProps): string {
         has_pq_protection={props.has_pq_protection ?? false}
         has_recipient_key={props.has_recipient_key}
         is_external={props.is_external}
+        context={props.context}
+        description_key={props.description_key}
+        heading_key={props.heading_key}
         sent_encryption_scope={props.sent_encryption_scope}
+        show_cipher={props.show_cipher}
       />,
     );
   });
@@ -165,5 +173,38 @@ describe("EncryptionInfoDropdown end to end evidence", () => {
     const text = render_open({ is_external: true, e2e_verified: true });
 
     expect(text).toContain("common.protected_in_transit");
+  });
+
+  it("shows the cipher line for end to end files", () => {
+    const text = render_open({
+      context: "attachments",
+      is_external: false,
+      e2e_verified: true,
+    });
+
+    expect(text).toContain("common.files_end_to_end_encrypted");
+    expect(text).toContain("AES-256-GCM");
+  });
+
+  it("leaves the cipher line out for files outside the encrypted message", () => {
+    const text = render_open({
+      context: "attachments",
+      is_external: false,
+      e2e_verified: true,
+      description_key: "common.files_outside_encrypted",
+      heading_key: "common.files_outside_encrypted_label",
+      show_cipher: false,
+    });
+
+    expect(text).toContain("common.files_outside_encrypted_label");
+    expect(text).not.toContain("AES-256-GCM");
+    expect(text).not.toContain("KEM-768");
+  });
+
+  it("leaves the cipher line out when nothing is end to end", () => {
+    const text = render_open({ is_external: true });
+
+    expect(text).toContain("common.protected_in_transit");
+    expect(text).not.toContain("AES-256-GCM");
   });
 });

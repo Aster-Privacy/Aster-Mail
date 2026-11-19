@@ -24,6 +24,10 @@ const get_mock = vi.fn();
 const post_mock = vi.fn();
 const delete_mock = vi.fn();
 
+vi.mock("@/services/api/account_key", () => ({
+  get_account_key_capabilities: async () => ({ bound_prekey_writes: true }),
+}));
+
 vi.mock("@/services/api/client", () => ({
   api_client: {
     get: (...args: unknown[]) => get_mock(...args),
@@ -41,6 +45,9 @@ vi.mock("./memory_key_store", () => ({
     data_kek: Buffer.from(new Uint8Array(32).fill(master_byte)).toString(
       "base64",
     ),
+    prekey_seal_key: Buffer.from(
+      new Uint8Array(32).fill(master_byte + 64),
+    ).toString("base64"),
   }),
 }));
 
@@ -79,6 +86,8 @@ vi.mock("@/services/account_manager", () => ({
 
 import {
   backfill_pq_secrets_to_server,
+  delete_pq_secret,
+  drop_server_pq_secret,
   select_ids_missing_on_server,
   upload_state_is_current,
 } from "./pq_prekey_store";
@@ -401,5 +410,66 @@ describe("backfill decides uploads from the server secret list", () => {
 
     expect(nonces).toHaveLength(2);
     expect(nonces[0]).not.toBe(nonces[1]);
+  });
+});
+
+describe("removing a pq prekey secret from the server", () => {
+  const KEY_ID = 4242;
+  const DELETE_URL = `/crypto/v1/ratchet/pq-secret/${KEY_ID}`;
+
+  function has_local_copy(): boolean {
+    return storage.has(`pq_prekey_secret_u1_${KEY_ID}`);
+  }
+
+  it("drops a server copy only when the server deleted it, keeping the local copy until then", async () => {
+    seed_local([KEY_ID]);
+
+    const refused: unknown[] = [
+      { data: { success: true } },
+      { data: { success: true, deleted: false } },
+      { error: "Not found", code: "NOT_FOUND" },
+      { error: "server error" },
+    ];
+
+    for (const reply of refused) {
+      delete_mock.mockResolvedValueOnce(reply);
+      expect(await drop_server_pq_secret(KEY_ID)).toBe(false);
+      expect(has_local_copy()).toBe(true);
+    }
+
+    delete_mock.mockRejectedValueOnce(new Error("offline"));
+    expect(await drop_server_pq_secret(KEY_ID)).toBe(false);
+    expect(has_local_copy()).toBe(true);
+
+    delete_mock.mockResolvedValueOnce({
+      data: { success: true, deleted: true },
+    });
+    expect(await drop_server_pq_secret(KEY_ID)).toBe(true);
+    expect(has_local_copy()).toBe(false);
+    expect(delete_mock).toHaveBeenLastCalledWith(DELETE_URL);
+  });
+
+  it("counts a rollback as done only when the server reports the row gone", async () => {
+    delete_mock.mockResolvedValueOnce({
+      data: { success: true, deleted: true },
+    });
+    expect(await delete_pq_secret(KEY_ID)).toBe(true);
+
+    delete_mock.mockResolvedValueOnce({
+      data: { success: true, deleted: false },
+    });
+    expect(await delete_pq_secret(KEY_ID)).toBe(true);
+
+    delete_mock.mockResolvedValueOnce({
+      error: "Not found",
+      code: "NOT_FOUND",
+    });
+    expect(await delete_pq_secret(KEY_ID)).toBe(true);
+
+    delete_mock.mockResolvedValueOnce({ data: { success: true } });
+    expect(await delete_pq_secret(KEY_ID)).toBe(false);
+
+    delete_mock.mockResolvedValueOnce({ error: "server error" });
+    expect(await delete_pq_secret(KEY_ID)).toBe(false);
   });
 });

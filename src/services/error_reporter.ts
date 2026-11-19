@@ -31,6 +31,7 @@ import {
   get_effective_base_url,
   routed_fetch,
 } from "@/services/routing/routing_provider";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const SURFACE = "mail_app";
 const MAX_REPORTS_PER_SESSION = 40;
@@ -183,7 +184,7 @@ export interface ClientErrorInput {
 
 function platform(): string {
   try {
-    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    if (has_tauri_runtime()) {
       return "desktop";
     }
     if (Capacitor.isNativePlatform()) {

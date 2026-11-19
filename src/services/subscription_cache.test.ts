@@ -29,7 +29,9 @@ const put_mock = vi.fn();
 
 vi.mock("@/services/api/client", () => ({
   api_client: {
-    get: vi.fn(),
+    get: vi.fn(async () => ({
+      data: { encrypted_subscriptions: null, subscriptions_nonce: null },
+    })),
     put: (...args: unknown[]) => put_mock(...args),
   },
 }));

@@ -28,6 +28,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { get_subscription } from "@/services/api/billing";
 import { ignore_error } from "@/lib/ignore_error";
 import { open_external } from "@/utils/open_link";
+import { exact_host_https_url, INVOICE_HOSTS } from "@/lib/payment_url";
 
 const RECHECK_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -46,18 +47,7 @@ function days_remaining(grace_period_end: string | null): number | null {
 export function hosted_pay_url(
   value: string | null | undefined,
 ): string | null {
-  if (!value) return null;
-
-  try {
-    const parsed = new URL(value);
-
-    if (parsed.protocol !== "https:") return null;
-    if (parsed.hostname !== "invoice.stripe.com") return null;
-
-    return parsed.toString();
-  } catch {
-    return null;
-  }
+  return exact_host_https_url(value, INVOICE_HOSTS)?.toString() ?? null;
 }
 
 export function BillingAlertBanner() {

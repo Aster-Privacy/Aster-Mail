@@ -73,6 +73,7 @@ import { format_hour_choice } from "@/utils/date_format";
 import { use_offer_preferences } from "@/hooks/use_offer_preferences";
 import { BUILTIN_CATEGORIES } from "@/data/category_catalog";
 import { category_icon } from "@/data/category_icons";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
@@ -230,7 +231,7 @@ function get_permission_state(): PermissionState {
   return Notification.permission;
 }
 
-const is_tauri = "__TAURI_INTERNALS__" in window;
+const is_tauri = has_tauri_runtime();
 
 function MutedCategoriesSetting() {
   const { preferences, update_preference } = use_preferences();

@@ -27,8 +27,14 @@ import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 const UNLOCKED_KEY_CACHE_MAX_ENTRIES = 64;
 const FAILED_UNLOCK_MAX_ENTRIES = 64;
+export const UNLOCKED_KEY_IDLE_TTL_MS = 15 * 60 * 1000;
 
-const UNLOCKED_KEY_CACHE = new Map<string, Promise<PrivateKey>>();
+interface UnlockedKeyEntry {
+  key: Promise<PrivateKey>;
+  last_used: number;
+}
+
+const UNLOCKED_KEY_CACHE = new Map<string, UnlockedKeyEntry>();
 const FAILED_UNLOCKS = new Set<string>();
 
 export class unlock_failed_error extends Error {
@@ -49,6 +55,14 @@ async function unlocked_key_cache_id(
   );
 }
 
+function drop_idle_keys(now: number): void {
+  for (const [id, entry] of UNLOCKED_KEY_CACHE) {
+    if (now - entry.last_used >= UNLOCKED_KEY_IDLE_TTL_MS) {
+      UNLOCKED_KEY_CACHE.delete(id);
+    }
+  }
+}
+
 function evict_oldest<T>(entries: Map<string, T> | Set<string>, max: number) {
   while (entries.size > max) {
     const oldest = entries.keys().next();
@@ -67,13 +81,17 @@ export async function unlock_private_key(
 
   if (FAILED_UNLOCKS.has(cache_id)) throw new unlock_failed_error();
 
+  const now = Date.now();
+
+  drop_idle_keys(now);
+
   const cached = UNLOCKED_KEY_CACHE.get(cache_id);
 
   if (cached) {
     UNLOCKED_KEY_CACHE.delete(cache_id);
-    UNLOCKED_KEY_CACHE.set(cache_id, cached);
+    UNLOCKED_KEY_CACHE.set(cache_id, { key: cached.key, last_used: now });
 
-    return cached;
+    return cached.key;
   }
 
   const pending = openpgp
@@ -85,7 +103,7 @@ export async function unlock_private_key(
       }),
     );
 
-  UNLOCKED_KEY_CACHE.set(cache_id, pending);
+  UNLOCKED_KEY_CACHE.set(cache_id, { key: pending, last_used: now });
   evict_oldest(UNLOCKED_KEY_CACHE, UNLOCKED_KEY_CACHE_MAX_ENTRIES);
 
   try {

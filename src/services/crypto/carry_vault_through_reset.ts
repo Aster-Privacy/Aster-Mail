@@ -32,12 +32,23 @@ import {
   harvest_storage_keys,
 } from "./restore_inactive_keys";
 import { MASTER_KEY_VAULT_FORMAT } from "./memory_key_store";
+import { mark_keks_for_retirement } from "./retired_storage_keks";
+import { with_retired_storage_hashes } from "./retired_storage_hashes";
 import { zero_uint8_array } from "./secure_memory";
 import {
   collect_prior_storage_keys,
   has_pending_storage_rekey,
   install_random_storage_key,
 } from "./storage_write_key";
+
+function merge_folder_pins(
+  old_vault: EncryptedVault,
+  fresh_vault: EncryptedVault,
+): EncryptedVault["folder_pins"] {
+  if (!old_vault.folder_pins && !fresh_vault.folder_pins) return undefined;
+
+  return { ...old_vault.folder_pins, ...fresh_vault.folder_pins };
+}
 
 export async function carry_vault_through_reset(
   old_vault: EncryptedVault,
@@ -70,6 +81,9 @@ export async function carry_vault_through_reset(
       retain_previous_ratchet_keys(old_vault),
     ),
   };
+  const folder_pins = merge_folder_pins(old_vault, fresh_vault);
+
+  if (folder_pins) carried.folder_pins = folder_pins;
 
   delete carried.storage_rekey;
 
@@ -111,11 +125,38 @@ export async function carry_vault_through_reset(
     }
   }
 
+  const pending_retire_kek_ids = mark_keks_for_retirement(
+    [
+      ...(old_vault.pending_retire_kek_ids ?? []),
+      ...(fresh_vault.pending_retire_kek_ids ?? []),
+    ],
+    harvested,
+    carried.data_kek,
+  );
+
+  if (pending_retire_kek_ids.length > 0) {
+    carried.pending_retire_kek_ids = pending_retire_kek_ids;
+  }
+
   for (const raw of harvested) zero_uint8_array(raw);
 
   if (old_vault.escrow_seed && !fresh_vault.escrow_seed) {
     carried.escrow_seed = old_vault.escrow_seed;
+
+    if (old_vault.escrow_format === undefined) {
+      delete carried.escrow_format;
+    } else {
+      carried.escrow_format = old_vault.escrow_format;
+    }
   }
 
-  return carried;
+  if (old_vault.prekey_seal_key && !fresh_vault.prekey_seal_key) {
+    carried.prekey_seal_key = old_vault.prekey_seal_key;
+  }
+
+  if (old_vault.prekey_seal_migrated === true) {
+    carried.prekey_seal_migrated = true;
+  }
+
+  return with_retired_storage_hashes(carried, old_vault);
 }

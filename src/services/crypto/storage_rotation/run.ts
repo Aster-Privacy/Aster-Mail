@@ -59,6 +59,7 @@ import {
   deleted_alias_directories_step,
 } from "./steps_categories";
 import { escrow_step } from "./steps_escrow";
+import { mail_envelopes_step } from "./steps_mail_envelopes";
 import { mail_metadata_step } from "./steps_mail_metadata";
 import { pq_secrets_step } from "./steps_pq_secrets";
 
@@ -85,6 +86,7 @@ export const DEFAULT_RESEAL_STEPS: ResealStep[] = [
   templates_step,
   sync_sources_step,
   mail_metadata_step,
+  mail_envelopes_step,
   escrow_step,
 ];
 
@@ -98,6 +100,7 @@ export type ResealRunStatus =
 export interface ResealRunResult {
   status: ResealRunStatus;
   counts: StepCounts;
+  held_rows?: number;
   reason?: string;
   incomplete?: string[];
 }
@@ -124,7 +127,9 @@ function fresh_progress(key_id: string): ResealProgress {
 export function needs_storage_reseal(
   vault: Pick<EncryptedVault, "data_kek_random" | "storage_rekey"> | null,
 ): boolean {
-  return vault?.data_kek_random === true && vault.storage_rekey?.state === "pending";
+  return (
+    vault?.data_kek_random === true && vault.storage_rekey?.state === "pending"
+  );
 }
 
 export async function run_storage_reseal(
@@ -156,11 +161,16 @@ export async function run_reseal_steps(
       stored && stored.key_id === keys.key_id
         ? stored
         : fresh_progress(keys.key_id);
+    const earlier_held = progress.held_rows ?? 0;
+    const held_rows = () => earlier_held + counts.quarantined;
     const ctx: ResealStepContext = {
       keys,
       api: options.api,
       progress,
-      persist: () => options.store.save(progress),
+      persist: () => {
+        progress.held_rows = held_rows();
+        options.store.save(progress);
+      },
       sleep: options.sleep ?? default_sleep,
       is_cancelled: options.is_cancelled ?? (() => false),
       still_current: options.still_current,
@@ -206,7 +216,7 @@ export async function run_reseal_steps(
     }
     options.store.clear();
 
-    return { status: finish, counts };
+    return { status: finish, counts, held_rows: held_rows() };
   } catch (caught) {
     if (caught instanceof ResealInterrupted) {
       return { status: "interrupted", counts, reason: caught.message };

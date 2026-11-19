@@ -44,6 +44,7 @@ import { MobileFab } from "@/components/mobile/mobile_fab";
 import { SimpleToast } from "@/components/toast/simple_toast";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
+import { CreationTokenPrompt } from "@/components/auth/creation_token_prompt";
 import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { ProfilePictureDialog } from "@/components/profile/profile_picture_dialog";
@@ -923,6 +924,7 @@ function MobileApp() {
         <UnsubscribeConfirmationModal />
         <KeyTrustChangePrompt />
         <PostQuantumSendPrompt />
+        <CreationTokenPrompt />
         <ErrorBoundary fallback={null}>
           <UpgradeModalHost />
           <AliasCapUpsellModalHost />

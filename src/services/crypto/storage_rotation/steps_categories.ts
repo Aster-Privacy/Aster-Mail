@@ -29,6 +29,7 @@ import {
   ratchet_state_bound_aad,
 } from "../ratchet_state_container";
 import { zero_uint8_array } from "../secure_memory";
+import { FIELD_KIND_TEMPLATE } from "../field_format";
 
 import {
   decode_b64,
@@ -52,6 +53,7 @@ import {
   parse_json_object,
   pause_between_batches,
   post_storage_rekey,
+  reseal_bound_field,
   reseal_field,
   send_batch,
   send_items_splitting,
@@ -197,6 +199,7 @@ interface AddressOwner {
 interface SealedPair {
   ciphertext_field: string;
   nonce_field: string;
+  label: string;
 }
 
 function finish_step(
@@ -1225,6 +1228,7 @@ async function plan_pairs(
   ctx: ResealStepContext,
   row: Record<string, unknown>,
   pairs: SealedPair[],
+  field_kind?: string,
 ): Promise<Record<string, string>> {
   const body: Record<string, string> = {};
   const results: ResealResult[] = [];
@@ -1232,11 +1236,16 @@ async function plan_pairs(
   for (const pair of pairs) {
     const ciphertext = row[pair.ciphertext_field];
     const nonce = row[pair.nonce_field];
-    const result = await reseal_field(
-      ctx.keys,
-      typeof ciphertext === "string" ? ciphertext : null,
-      typeof nonce === "string" ? nonce : null,
-    );
+    const ciphertext_b64 = typeof ciphertext === "string" ? ciphertext : null;
+    const nonce_b64 = typeof nonce === "string" ? nonce : null;
+    const record_id = typeof row.id === "string" ? row.id : null;
+    const result = field_kind
+      ? await reseal_bound_field(ctx.keys, ciphertext_b64, nonce_b64, {
+          kind: field_kind,
+          field: pair.label,
+          record_id,
+        })
+      : await reseal_field(ctx.keys, ciphertext_b64, nonce_b64);
 
     results.push(result);
     if (is_sealed(result)) {
@@ -1268,14 +1277,17 @@ function same_pairs(
 const NAME_PAIR: SealedPair = {
   ciphertext_field: "encrypted_name",
   nonce_field: "name_nonce",
+  label: "name",
 };
 const CONTENT_PAIR: SealedPair = {
   ciphertext_field: "encrypted_content",
   nonce_field: "content_nonce",
+  label: "content",
 };
 const CATEGORY_PAIR: SealedPair = {
   ciphertext_field: "encrypted_category",
   nonce_field: "category_nonce",
+  label: "category",
 };
 
 function editable_rows_step<T extends SignatureRow>(
@@ -1283,6 +1295,7 @@ function editable_rows_step<T extends SignatureRow>(
   list_path: string,
   list_key: string,
   pairs: SealedPair[],
+  field_kind?: string,
 ): ResealStep {
   return {
     name,
@@ -1302,7 +1315,7 @@ function editable_rows_step<T extends SignatureRow>(
 
       for (const row of rows) {
         const record = row as unknown as Record<string, unknown>;
-        const body = await plan_pairs(ctx, record, pairs);
+        const body = await plan_pairs(ctx, record, pairs, field_kind);
 
         if (Object.keys(body).length === 0) continue;
 
@@ -1343,6 +1356,7 @@ export const templates_step = editable_rows_step<TemplateRow>(
   "/mail/v1/templates",
   "templates",
   [NAME_PAIR, CATEGORY_PAIR, CONTENT_PAIR],
+  FIELD_KIND_TEMPLATE,
 );
 
 export const sync_sources_step: ResealStep = {

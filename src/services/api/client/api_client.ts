@@ -106,6 +106,8 @@ import {
   report_client_error,
 } from "@/services/error_reporter";
 
+const ALIAS_SENDING_DISABLED_SERVER_CODE = "ALIAS_SENDING_DISABLED";
+
 const RATE_LIMIT_DEFAULT_HOLD_MS = 2000;
 const RATE_LIMIT_MAX_HOLD_MS = 15_000;
 const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
@@ -2339,16 +2341,22 @@ export class ApiClient {
           const generic_rate_limit =
             error_code === "RATE_LIMIT_EXCEEDED" && !error_data.resets_at;
 
-          const sanitized_error = generic_rate_limit
-            ? this.get_generic_error_message("RATE_LIMIT_EXCEEDED")
-            : import.meta.env.DEV
-              ? error_data.error ||
-                `Request failed with status ${response.status}`
-              : response.status < 500 &&
-                  error_data.error &&
-                  should_show_server_message(error_data.code, error_data.error)
-                ? error_data.error
-                : this.get_generic_error_message(error_code);
+          const sanitized_error =
+            error_data.code === ALIAS_SENDING_DISABLED_SERVER_CODE
+              ? get_active_translations().errors.alias_sending_disabled
+              : generic_rate_limit
+                ? this.get_generic_error_message("RATE_LIMIT_EXCEEDED")
+                : import.meta.env.DEV
+                  ? error_data.error ||
+                    `Request failed with status ${response.status}`
+                  : response.status < 500 &&
+                      error_data.error &&
+                      should_show_server_message(
+                        error_data.code,
+                        error_data.error,
+                      )
+                    ? error_data.error
+                    : this.get_generic_error_message(error_code);
 
           last_error = {
             error: sanitized_error,
@@ -2374,6 +2382,7 @@ export class ApiClient {
             response.status === 403 &&
             error_data.code !== "ACCOUNT_LOCKED" &&
             error_data.code !== "SENDER_NOT_AUTHORIZED" &&
+            error_data.code !== ALIAS_SENDING_DISABLED_SERVER_CODE &&
             error_data.code !== "APP_LOCK_PROOF_INVALID" &&
             is_state_changing_method(method) &&
             attempt === 0 &&

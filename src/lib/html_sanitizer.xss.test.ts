@@ -302,6 +302,224 @@ describe("sanitize_html neutralizes CSS overlay clickjacking", () => {
     );
   });
 
+  it("keeps hidden preheaders positioned inside the sandboxed render", () => {
+    const { html } = sanitize_html(
+      '<div style="position:absolute;left:-9999px">Preview text</div><p>Body</p>',
+      { sandbox_mode: true },
+    );
+
+    expect(html).toMatch(/position\s*:\s*absolute/i);
+    expect(html).toMatch(/left\s*:\s*-9999px/i);
+  });
+
+  it("keeps markup placed in the main document from leaving the flow", () => {
+    const { html } = sanitize_html(
+      '<style>a{position:absolute}</style><div style="position:absolute;top:0;left:0;z-index:99">Over</div>',
+      { sandbox_mode: false },
+    );
+
+    expect(html).not.toMatch(/absolute/i);
+    expect(html).not.toMatch(/<style/i);
+    expect(html).toMatch(/position\s*:\s*relative/i);
+    expect(sanitize_style("position:absolute;top:4px", false)).toMatch(
+      /position\s*:\s*relative/i,
+    );
+  });
+
+  it("allows only in-flow positions in the main document", () => {
+    for (const value of [
+      "-webkit-sticky",
+      "var(--p)",
+      "absolute",
+      "fixed !important",
+      "ABSOLUTE",
+    ]) {
+      const out = sanitize_style(`position:${value};top:0`, false);
+
+      expect(out).toMatch(/position\s*:\s*relative/i);
+      expect(out).not.toMatch(/sticky|var\(|absolute|fixed/i);
+    }
+    expect(sanitize_style("position:static", false)).toBe("position:static");
+    expect(sanitize_style("position: relative !important", false)).toBe(
+      "position: relative !important",
+    );
+  });
+
+  it("drops stacking and transform properties in the main document", () => {
+    const out = sanitize_style(
+      "z-index:2147483647;transform:translate(0,-900px);-webkit-transform:scale(40);translate:0 -900px;rotate:5deg;scale:30;offset-path:path('M0 0');color:red",
+      false,
+    );
+
+    expect(out).not.toMatch(
+      /z-index|transform|translate|rotate|scale|offset-path/i,
+    );
+    expect(out).toContain("color:red");
+  });
+
+  it("clamps negative offsets and margins in the main document", () => {
+    const out = sanitize_style(
+      "position:relative;top:-400px;left: -9999px;inset:-10px 0 -2em;margin:-1px 5px -.5em;margin-top:-5e2px !important;bottom:-0",
+      false,
+    );
+
+    expect(out).not.toMatch(/-\s*[\d.]/);
+    expect(out).toContain("top:0");
+    expect(out).toContain("left: 0");
+    expect(out).toContain("inset:0 0 0");
+    expect(out).toContain("margin:0 5px 0");
+    expect(out).toContain("margin-top:0 !important");
+  });
+
+  it("drops computed offsets that could resolve to negative values in the main document", () => {
+    const out = sanitize_style(
+      "margin-top:calc(0px - 900px);top:var(--t);left:min(-50px,0px);padding:4px",
+      false,
+    );
+
+    expect(out).not.toMatch(/margin-top|top:|left:|calc|var\(|min\(/i);
+    expect(out).toMatch(/padding\s*:\s*4px/);
+  });
+
+  it("keeps ordinary newsletter layout styles in the main document", () => {
+    const style =
+      "margin: 0 auto; padding: 12px 24px; max-width: 600px; position: relative; top: 2px; font-family: 'Helvetica Neue', Arial; background-color: #f4f4f4; letter-spacing: -0.2px; text-indent: -1px";
+
+    expect(sanitize_style(style, false)).toBe(style);
+  });
+
+  it("hides offscreen preheaders instead of moving them into view", () => {
+    for (const style of [
+      "position:absolute;left:-9999px",
+      "position: fixed; top: -5000px",
+      "position:absolute !important;top:-10000px !important",
+      "position:absolute;left:-100%",
+      "position:absolute;inset:-60em auto auto -60em",
+    ]) {
+      expect(sanitize_style(style, false)).toBe("display: none");
+      expect(sanitize_style(style, false, true)).toBe("display: none");
+    }
+
+    const { html } = sanitize_html(
+      '<div style="position:absolute;left:-9999px">Preview text</div><p>Body</p>',
+      { sandbox_mode: false },
+    );
+
+    expect(html).toMatch(/display:\s*none/);
+    expect(html).not.toMatch(/left/);
+  });
+
+  it("keeps small negative offsets and in-place layouts visible", () => {
+    expect(
+      sanitize_style("position:absolute;top:-8px;right:-8px", false, true),
+    ).toBe("position:absolute;top:-8px;right:-8px");
+    expect(sanitize_style("position:relative;left:-9999px", false)).not.toBe(
+      "display: none",
+    );
+    expect(sanitize_style("margin-top:-600px", false, true)).toBe(
+      "margin-top:-600px",
+    );
+  });
+
+  it("keeps the source layout when the surface contains the message", () => {
+    const style =
+      "position:absolute;top:8px;left:-12px;z-index:2;transform:rotate(-3deg);margin:-40px auto 0";
+
+    expect(sanitize_style(style, false, true).replace(/\s/g, "")).toBe(
+      style.replace(/\s/g, ""),
+    );
+  });
+
+  it("keeps contained layouts from leaving their surface", () => {
+    for (const value of ["fixed", "sticky", "-webkit-sticky", "var(--p)"]) {
+      const out = sanitize_style(
+        `position:${value};top:0;left:0;width:100vw;height:100vh;z-index:2147483647`,
+        false,
+        true,
+      );
+
+      expect(out).toMatch(/position\s*:\s*relative/i);
+      expect(out).not.toMatch(/fixed|sticky|var\(/i);
+    }
+  });
+
+  it("keeps quoted markup from overlaying the page", () => {
+    const { html } = sanitize_html(
+      '<div style="position:-webkit-sticky;top:-200px;z-index:9999;transform:scale(50);margin-left:-300px">Over</div><p style="margin:0 auto">Body</p>',
+      { sandbox_mode: false },
+    );
+
+    expect(html).not.toMatch(/sticky|z-index|transform|-\d/i);
+    expect(html).toMatch(/position\s*:\s*relative/i);
+    expect(html).toContain("margin:0 auto");
+  });
+
+  it("leaves positioned styles alone inside the sandboxed frame", () => {
+    const style =
+      "position:absolute;z-index:3;transform:rotate(2deg);top:-4px;margin-left:-20px;left:calc(50% - 10px)";
+
+    expect(sanitize_style(style, true)).toBe(style);
+  });
+
+  const quoted_overlay_styles = [
+    'content: "x; position: absolute; top:0; left:0; width:100vw; height:100vh; z-index:2147483647; background:#fff"',
+    "content: 'x; position: absolute; top:0; left:0; width:100vw; height:100vh; z-index:2147483647; background:#fff'",
+    'content: "x\\"; position: absolute; top:0; left:0; width:100vw; height:100vh; z-index:2147483647; background:#fff"',
+    'cursor: url("x; position: absolute; top:0; left:0; z-index:2147483647"), auto',
+  ];
+
+  function read_overlay(style: string): {
+    position: string;
+    z_index: string;
+  } {
+    const element = document.createElement("div");
+
+    element.setAttribute("style", style);
+
+    return { position: element.style.position, z_index: element.style.zIndex };
+  }
+
+  it("keeps quoted values from turning into positioning declarations", () => {
+    for (const style of quoted_overlay_styles) {
+      const out = sanitize_style(style, false);
+
+      expect(out).not.toMatch(/position\s*:\s*absolute/i);
+      expect(out).not.toMatch(/z-index/i);
+      expect(read_overlay(out)).toEqual({ position: "", z_index: "" });
+    }
+  });
+
+  it("keeps quoted values in markup from lifting content over the page", () => {
+    for (const style of quoted_overlay_styles) {
+      const source = document.createElement("div");
+
+      source.setAttribute("style", style);
+      source.textContent = "Over";
+
+      const host = document.createElement("div");
+
+      host.innerHTML = sanitize_html(source.outerHTML).html;
+
+      const styled = host.querySelector("div");
+      const out = styled?.getAttribute("style") ?? "";
+
+      expect(out).not.toMatch(/position\s*:\s*absolute/i);
+      expect(out).not.toMatch(/z-index/i);
+    }
+  });
+
+  it("keeps empty generated content, plain cursors, and content alignment", () => {
+    expect(sanitize_style('content: ""', false)).toBe('content: ""');
+    expect(sanitize_style("content: none", false)).toBe("content: none");
+    expect(sanitize_style("content: counter(item)", false)).toBe(
+      "content: none",
+    );
+    expect(sanitize_style("cursor: pointer", false)).toBe("cursor: pointer");
+    expect(sanitize_style("align-content: center", false)).toBe(
+      "align-content: center",
+    );
+  });
+
   it("does not mangle legitimate CSS that merely resembles positioning", () => {
     const out = sanitize_style(
       "background-attachment:fixed;background-position:center;color:red",

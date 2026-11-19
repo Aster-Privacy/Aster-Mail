@@ -20,6 +20,7 @@
 //
 import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const SESSION_TIMEOUT_KEY = "astermail_session_timeout_config";
 const LAST_ACTIVITY_KEY_PREFIX = "astermail_last_activity_";
@@ -491,7 +492,7 @@ export function start_session_timeout(
   on_timeout?: () => void,
   options: StartSessionTimeoutOptions = {},
 ): void {
-  if ("__TAURI_INTERNALS__" in window) {
+  if (has_tauri_runtime()) {
     return;
   }
 
@@ -535,7 +536,7 @@ export function stop_session_timeout(): void {
 }
 
 export function check_session_expired(account_id: string): boolean {
-  if ("__TAURI_INTERNALS__" in window) {
+  if (has_tauri_runtime()) {
     return false;
   }
 

@@ -30,6 +30,10 @@ import { TorUnavailableError } from "./routing/tor_unavailable_error";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";
+import {
+  IdentityKeyMissingError,
+  is_usable_identity_key,
+} from "@/services/crypto/identity_key_required";
 import { is_onion_host } from "@/lib/onion_host";
 import {
   is_any_lockdown_active,
@@ -983,6 +987,10 @@ async function derive_key(
   vault: EncryptedVault,
   context: string,
 ): Promise<CryptoKey> {
+  if (!is_usable_identity_key(vault.identity_key)) {
+    throw new IdentityKeyMissingError();
+  }
+
   const encoder = new TextEncoder();
   const raw_key = encoder.encode(vault.identity_key);
 

@@ -25,14 +25,22 @@ import {
   encrypted_delete,
 } from "./encrypted_storage";
 import { has_vault_in_memory } from "./memory_key_store";
+import {
+  load_prekey_seal_key,
+  load_prekey_sealer,
+  open_server_prekey_secret,
+  prekey_seal_writes_ready,
+  seal_prekey_secret,
+} from "./prekey_seal";
 import { load_storage_write_key_bytes } from "./storage_write_key";
-import { derive_ratchet_encryption_key } from "./ratchet_sync";
 
 import { api_client } from "@/services/api/client";
 
 const EC_PREKEY_STORAGE_PREFIX = "ec_one_time_prekey_secret_";
 const EC_PREKEY_SECRET_ROUTE = "/crypto/v1/keys/ec-prekeys/secret";
 const EC_PREKEY_ROUTE = "/crypto/v1/keys/ec-prekeys";
+const EC_PREKEY_IDS_ROUTE = "/crypto/v1/keys/ec-prekeys/ids";
+const EC_PREKEY_ID_MAX_PAGES = 1000;
 const EC_SCALAR_LEN = 32;
 const EC_KEY_ID_MAX = 0x7fffffff;
 const EC_MISSING_TTL_MS = 10 * 60 * 1000;
@@ -111,20 +119,6 @@ async function get_storage_key(): Promise<CryptoKey> {
   }
 }
 
-async function get_sync_key(): Promise<CryptoKey | null> {
-  if (!has_vault_in_memory()) return null;
-
-  const master = await load_storage_write_key_bytes();
-
-  if (!master) return null;
-
-  try {
-    return await derive_ratchet_encryption_key(master);
-  } finally {
-    master.fill(0);
-  }
-}
-
 async function current_account_uid(): Promise<string | null> {
   try {
     const { get_current_account_id } =
@@ -166,7 +160,7 @@ export async function ec_one_time_storage_available(): Promise<boolean> {
 
     await get_storage_key();
 
-    return (await get_sync_key()) !== null;
+    return (await load_prekey_sealer()) !== null;
   } catch {
     return false;
   }
@@ -174,27 +168,20 @@ export async function ec_one_time_storage_available(): Promise<boolean> {
 
 export async function encrypt_ec_one_time_secret(
   d: string,
+  key_id: number,
 ): Promise<{ encrypted_secret: string; secret_nonce: string } | null> {
+  if (!is_valid_key_id(key_id)) return null;
+
   const scalar = base64url_to_scalar(d);
 
   if (!scalar) return null;
 
   try {
-    const sync_key = await get_sync_key();
+    const sealer = await load_prekey_sealer();
 
-    if (!sync_key) return null;
+    if (!sealer) return null;
 
-    const nonce = crypto.getRandomValues(new Uint8Array(12));
-    const ciphertext = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv: nonce },
-      sync_key,
-      scalar,
-    );
-
-    return {
-      encrypted_secret: array_to_base64(new Uint8Array(ciphertext)),
-      secret_nonce: array_to_base64(nonce),
-    };
+    return await sealer.seal("ec", key_id, scalar);
   } catch {
     return null;
   } finally {
@@ -245,35 +232,169 @@ export async function has_local_ec_one_time_secret(
   return (await load_local_secret(key_id, uid)) !== null;
 }
 
-async function fetch_server_secret(key_id: number): Promise<string | null> {
-  const sync_key = await get_sync_key();
+interface ServerEcSecret {
+  key_id: number;
+  encrypted_secret: string;
+  secret_nonce: string;
+}
 
-  if (!sync_key) return null;
-
-  const response = await api_client.get<{
-    key_id: number;
-    encrypted_secret: string;
-    secret_nonce: string;
-  }>(`${EC_PREKEY_SECRET_ROUTE}/${key_id}`);
+async function fetch_server_row(
+  key_id: number,
+): Promise<ServerEcSecret | null> {
+  const response = await api_client.get<ServerEcSecret>(
+    `${EC_PREKEY_SECRET_ROUTE}/${key_id}`,
+  );
 
   if (response.error || !response.data) return null;
 
   if (response.data.key_id !== key_id) return null;
 
-  const plaintext = new Uint8Array(
-    await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: base64_to_array(response.data.secret_nonce) },
-      sync_key,
-      base64_to_array(response.data.encrypted_secret),
-    ),
+  return response.data;
+}
+
+async function open_server_row(
+  key_id: number,
+  row: ServerEcSecret,
+): Promise<{ scalar: Uint8Array; legacy: boolean } | null> {
+  const opened = await open_server_prekey_secret("ec", key_id, row);
+
+  if (!opened) return null;
+
+  if (opened.secret.length === EC_SCALAR_LEN) {
+    return { scalar: opened.secret, legacy: opened.legacy };
+  }
+
+  opened.secret.fill(0);
+
+  return null;
+}
+
+async function put_resealed_secret(
+  seal_key: CryptoKey,
+  key_id: number,
+  scalar: Uint8Array,
+): Promise<boolean> {
+  const sealed = await seal_prekey_secret(seal_key, "ec", key_id, scalar);
+  const response = await api_client.put(
+    `${EC_PREKEY_SECRET_ROUTE}/${key_id}`,
+    sealed,
   );
 
-  try {
-    if (plaintext.length !== EC_SCALAR_LEN) return null;
+  return !response.error || response.code === "NOT_FOUND";
+}
 
-    return scalar_to_base64url(plaintext);
+async function reseal_legacy_row(
+  key_id: number,
+  scalar: Uint8Array,
+): Promise<void> {
+  try {
+    if (!(await prekey_seal_writes_ready())) return;
+
+    const seal_key = await load_prekey_seal_key();
+
+    if (seal_key) await put_resealed_secret(seal_key, key_id, scalar);
+  } catch {
+    return;
+  }
+}
+
+async function fetch_server_secret(key_id: number): Promise<string | null> {
+  if (!has_vault_in_memory()) return null;
+
+  const row = await fetch_server_row(key_id);
+
+  if (!row) return null;
+
+  const opened = await open_server_row(key_id, row);
+
+  if (!opened) return null;
+
+  try {
+    if (opened.legacy) await reseal_legacy_row(key_id, opened.scalar);
+
+    return scalar_to_base64url(opened.scalar);
   } finally {
-    plaintext.fill(0);
+    opened.scalar.fill(0);
+  }
+}
+
+function parse_key_ids(value: unknown): number[] | null {
+  if (!Array.isArray(value) || !value.every(is_valid_key_id)) return null;
+
+  return [...new Set(value as number[])];
+}
+
+async function list_server_key_ids(): Promise<number[] | null> {
+  const all = new Set<number>();
+  let after: number | null = null;
+
+  for (let page = 0; page < EC_PREKEY_ID_MAX_PAGES; page++) {
+    const route: string =
+      after === null
+        ? EC_PREKEY_IDS_ROUTE
+        : `${EC_PREKEY_IDS_ROUTE}?after=${after}`;
+    const listing = await api_client.get<{
+      key_ids?: unknown;
+      next_after?: unknown;
+    }>(route);
+
+    if (listing.error || !listing.data) return null;
+
+    const key_ids = parse_key_ids(listing.data.key_ids);
+
+    if (!key_ids) return null;
+
+    for (const key_id of key_ids) all.add(key_id);
+
+    const next: unknown = listing.data.next_after;
+
+    if (next === undefined || next === null) return [...all];
+
+    if (!is_valid_key_id(next) || (after !== null && next <= after)) {
+      return null;
+    }
+
+    after = next;
+  }
+
+  return null;
+}
+
+export async function reseal_server_ec_secrets(
+  seal_key: CryptoKey | null,
+  on_unopenable?: (key_id: number) => void,
+): Promise<boolean> {
+  try {
+    const key_ids = await list_server_key_ids();
+
+    if (!key_ids) return false;
+
+    for (const key_id of key_ids) {
+      const row = await fetch_server_row(key_id);
+
+      if (!row) continue;
+
+      const opened = await open_server_row(key_id, row);
+
+      if (!opened) {
+        on_unopenable?.(key_id);
+        continue;
+      }
+
+      try {
+        if (!opened.legacy || !seal_key) continue;
+
+        if (!(await put_resealed_secret(seal_key, key_id, opened.scalar))) {
+          return false;
+        }
+      } finally {
+        opened.scalar.fill(0);
+      }
+    }
+
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -343,6 +464,24 @@ export async function delete_ec_one_time_secret(key_id: number): Promise<void> {
   } catch {
     return;
   }
+}
+
+export async function drop_server_ec_secret(key_id: number): Promise<boolean> {
+  if (!is_valid_key_id(key_id)) return false;
+
+  try {
+    const response = await api_client.delete<{ deleted?: unknown }>(
+      `${EC_PREKEY_ROUTE}/${key_id}`,
+    );
+
+    if (response.error || response.data?.deleted !== true) return false;
+  } catch {
+    return false;
+  }
+
+  await delete_local_ec_one_time_secret(key_id);
+
+  return true;
 }
 
 export function reset_ec_one_time_missing_cache(): void {

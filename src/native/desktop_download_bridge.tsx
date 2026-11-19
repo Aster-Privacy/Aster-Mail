@@ -26,6 +26,7 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_mac_platform } from "@/lib/utils";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export const DOWNLOAD_FINISHED_EVENT = "aster://download-finished";
 export const DOWNLOAD_FAILED_EVENT = "aster://download-failed";
@@ -55,7 +56,7 @@ function load_tauri_core(): Promise<typeof import("@tauri-apps/api/core")> {
 }
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 async function run_download_command(

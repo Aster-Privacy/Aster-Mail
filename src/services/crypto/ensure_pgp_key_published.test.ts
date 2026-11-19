@@ -23,6 +23,7 @@ import * as openpgp from "openpgp";
 
 import {
   ensure_pgp_key_published,
+  held_public_key_armored,
   reset_pgp_publish_attempt,
 } from "./ensure_pgp_key_published";
 
@@ -454,5 +455,70 @@ describe("ensure_pgp_key_published", () => {
 
     expect(result).toBe("skipped");
     expect(install_missing_identity_key).not.toHaveBeenCalled();
+  });
+});
+
+describe("held_public_key_armored", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  async function fingerprint_of(armored: string): Promise<string> {
+    return (await openpgp.readPrivateKey({ armoredKey: armored }))
+      .getFingerprint()
+      .toUpperCase();
+  }
+
+  it("exports the public half of the key this device holds", async () => {
+    const armored = await generate_armored_private_key();
+
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: armored,
+    } as never);
+
+    const exported = await openpgp.readKey({
+      armoredKey: (await held_public_key_armored(
+        await fingerprint_of(armored),
+      ))!,
+    });
+
+    expect(exported.isPrivate()).toBe(false);
+    expect(exported.getFingerprint().toUpperCase()).toBe(
+      await fingerprint_of(armored),
+    );
+  });
+
+  it("finds an older key the vault still holds", async () => {
+    const current = await generate_armored_private_key();
+    const previous = await generate_armored_private_key();
+
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: current,
+      previous_keys: [previous],
+    } as never);
+
+    expect(
+      await held_public_key_armored(await fingerprint_of(previous)),
+    ).not.toBeNull();
+  });
+
+  it("refuses a fingerprint the server chose for a key this device lacks", async () => {
+    const armored = await generate_armored_private_key();
+    const server_key = await generate_armored_private_key();
+
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: armored,
+    } as never);
+
+    expect(
+      await held_public_key_armored(await fingerprint_of(server_key)),
+    ).toBeNull();
+    expect(await held_public_key_armored("")).toBeNull();
+  });
+
+  it("refuses when no vault is unlocked", async () => {
+    vi.mocked(get_vault_from_memory).mockReturnValue(null as never);
+
+    expect(await held_public_key_armored("ABCD")).toBeNull();
   });
 });

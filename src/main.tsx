@@ -75,6 +75,7 @@ import { watch_device_erase } from "@/lib/device_erase_latch";
 import { capture_support_return } from "@/lib/support_return";
 import { capture_link_commitment } from "@/lib/device_link_commitment";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const DesktopApp = lazy_with_retry(() => import("@/App"));
 const MobileApp = lazy_with_retry(() => import("@/mobile_app"));
@@ -180,8 +181,7 @@ watch_device_erase((signal) => {
 
 connection_store.initialize().catch((caught) => ignore_error("main", caught));
 
-const is_tauri_runtime =
-  typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+const is_tauri_runtime = has_tauri_runtime();
 
 if (is_tauri_runtime) {
   void import("@tauri-apps/api/core")

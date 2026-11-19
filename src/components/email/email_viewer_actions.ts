@@ -949,15 +949,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           action_type: "not_spam",
           email_ids: [],
         });
-        persist_unsubscribe(
-          deps.email.sender_email,
-          deps.email.sender || "",
-          {
-            unsubscribe_link: info.unsubscribe_link,
-            list_unsubscribe_header: info.list_unsubscribe_header,
-          },
-          "manual",
-        );
+        persist_unsubscribe(deps.email.sender_email, deps.email.sender || "", {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
+        });
       } else {
         const url = get_manual_unsubscribe_url(info);
         const lockdown = is_any_lockdown_active();

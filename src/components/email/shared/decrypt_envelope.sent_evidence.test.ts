@@ -158,6 +158,22 @@ describe("decrypt_mail_envelope sent encryption evidence", () => {
     expect(sent_copy_pgp_verified(opened)).toBe(true);
   });
 
+  it("drops evidence and sender checks on a self-signed copy marked unverified", async () => {
+    const opened = await open(
+      as_base64(
+        await seal_to_own(
+          JSON.stringify({ ...sent_envelope(), legacy_unverified: true }),
+          own_key,
+        ),
+      ),
+    );
+
+    expect(opened?.subject).toBe("Sent copy");
+    expect(opened?.sent_encryption).toBeUndefined();
+    expect(sent_copy_pgp_verified(opened)).toBe(false);
+    expect(opened?.sender_verification).toBe("unsigned");
+  });
+
   it("drops evidence on a copy signed by another key", async () => {
     const opened = await open(
       as_base64(

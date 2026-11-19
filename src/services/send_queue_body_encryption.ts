@@ -54,6 +54,7 @@ import {
 } from "./crypto/ratchet_manager";
 import {
   assert_owner_key_trusted,
+  owner_key_pinned_before_send,
   resolve_own_username_for_key_lookup,
   resolve_username_for_key_lookup,
 } from "./send_queue_recipients";
@@ -379,11 +380,20 @@ export async function encrypt_for_recipients(
     vault = get_vault_from_memory();
   }
 
+  const pinned_before = new Map<string, boolean>();
+
   if (
     sender_email &&
     vault?.ratchet_identity_key &&
     vault?.ratchet_identity_public
   ) {
+    for (const recipient of internal_recipients) {
+      pinned_before.set(
+        recipient.toLowerCase(),
+        await owner_key_pinned_before_send(recipient),
+      );
+    }
+
     const ratchet_sender = await resolve_ratchet_sender(sender_email);
     const sender_identity = await resolve_sender_identity(
       ratchet_sender,
@@ -531,7 +541,11 @@ export async function encrypt_for_recipients(
       throw missing_recipient_key_error(recipient, key_response);
     }
 
-    await assert_owner_key_trusted(recipient, key_response.data.public_key);
+    await assert_owner_key_trusted(
+      recipient,
+      key_response.data.public_key,
+      pinned_before.get(recipient.toLowerCase()),
+    );
     public_keys.push(key_response.data.public_key);
   }
 
