@@ -22,6 +22,8 @@ import type { SentEncryptionEvidence } from "./crypto/sent_encryption_evidence";
 import type { RecipientKeyResult } from "@/utils/email_crypto";
 import type { PendingSend } from "./undo_send_manager";
 
+import { get_active_translations } from "@/lib/i18n/translations";
+
 export type SendErrorType =
   | "vault_unavailable"
   | "encryption_failed"
@@ -73,6 +75,18 @@ export function create_error(
   status?: number,
 ): SendError {
   return new SendError(message, type, status);
+}
+
+export function recipient_keys_unavailable_error(
+  recipients: string[],
+): SendError {
+  return create_error(
+    "encryption_failed",
+    get_active_translations().errors.recipient_keys_unavailable.replace(
+      "{{recipients}}",
+      recipients.join(", "),
+    ),
+  );
 }
 
 export function format_time_remaining(resets_at: string): string {
