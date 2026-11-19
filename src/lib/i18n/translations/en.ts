@@ -11535,6 +11535,7 @@ export const en: Translations = {
     panel_open_calendar: "Open Calendar",
     panel_load_failed: "Your calendar did not load.",
     panel_try_again: "Try again",
+    panel_set_up: "To see your events here, set up Aster Calendar.",
     beta_waitlist_start: "The beta is expected to start on November 1.",
     beta_waitlist_features_title: "What's included",
     beta_waitlist_info_title: "About the Calendar beta",

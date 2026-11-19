@@ -11679,6 +11679,7 @@ export const tr = {
     panel_open_calendar: "Takvimi aç",
     panel_load_failed: "Takviminiz yüklenemedi.",
     panel_try_again: "Tekrar dene",
+    panel_set_up: "Etkinliklerinizi burada görmek için Aster Calendar'ı kurun.",
     beta_waitlist_start: "Betanın 1 Kasım'da başlaması bekleniyor.",
     beta_waitlist_features_title: "Neler dahil",
     beta_waitlist_info_title: "Takvim beta sürümü hakkında",

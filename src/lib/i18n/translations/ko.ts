@@ -11338,6 +11338,7 @@ export const ko = {
     panel_open_calendar: "캘린더 열기",
     panel_load_failed: "캘린더를 불러오지 못했습니다.",
     panel_try_again: "다시 시도",
+    panel_set_up: "여기에서 일정을 보려면 Aster Calendar를 설정하세요.",
     beta_waitlist_start: "베타는 11월 1일에 시작될 예정입니다.",
     beta_waitlist_features_title: "포함된 기능",
     beta_waitlist_info_title: "캘린더 베타 정보",

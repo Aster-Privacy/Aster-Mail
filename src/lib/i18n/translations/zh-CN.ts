@@ -10521,6 +10521,7 @@ export const zh_CN = {
     panel_open_calendar: "打开日历",
     panel_load_failed: "日历未能加载。",
     panel_try_again: "重试",
+    panel_set_up: "要在此处查看您的日程，请设置 Aster Calendar。",
     beta_waitlist_start: "测试版预计将于 11 月 1 日开始。",
     beta_waitlist_features_title: "包含的功能",
     beta_waitlist_info_title: "关于日历测试版",

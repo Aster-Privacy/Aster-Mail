@@ -11809,6 +11809,7 @@ export const nl = {
     panel_open_calendar: "Agenda openen",
     panel_load_failed: "Je agenda is niet geladen.",
     panel_try_again: "Opnieuw proberen",
+    panel_set_up: "Stel Aster Calendar in om je afspraken hier te zien.",
     beta_waitlist_start: "De bèta begint naar verwachting op 1 november.",
     beta_waitlist_features_title: "Wat je krijgt",
     beta_waitlist_info_title: "Over de Agenda-bèta",

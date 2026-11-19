@@ -12018,6 +12018,7 @@ export const ru = {
     panel_open_calendar: "Открыть Календарь",
     panel_load_failed: "Не удалось загрузить календарь.",
     panel_try_again: "Повторить",
+    panel_set_up: "Чтобы видеть здесь свои события, настройте Aster Calendar.",
     beta_waitlist_start: "Бета-версия, как ожидается, начнётся 1 ноября.",
     beta_waitlist_features_title: "Что входит",
     beta_waitlist_info_title: "О бета-версии Календаря",

@@ -11963,6 +11963,7 @@ export const fr = {
     panel_open_calendar: "Ouvrir Calendrier",
     panel_load_failed: "Votre agenda ne s'est pas chargé.",
     panel_try_again: "Réessayer",
+    panel_set_up: "Pour voir vos événements ici, configurez Aster Calendar.",
     beta_waitlist_start: "La bêta devrait commencer le 1er novembre.",
     beta_waitlist_features_title: "Ce qui est inclus",
     beta_waitlist_info_title: "À propos de la bêta d'Agenda",
