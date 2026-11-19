@@ -484,7 +484,9 @@ export function use_email_viewer({
       set_has_recipient_key(!!preloaded.mail_item.has_recipient_key);
       set_has_pq_protection(!!preloaded.mail_item.ephemeral_pq_key);
       set_mail_item(preloaded.mail_item);
-      set_is_read(preloaded.email.is_read);
+      set_is_read(
+        get_read_intent(preloaded.mail_item.id) ?? preloaded.email.is_read,
+      );
       set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
       set_thread_messages(preloaded.thread_messages);
       set_thread_draft(preloaded.thread_draft);
@@ -836,7 +838,7 @@ export function use_email_viewer({
         set_has_recipient_key(!!item.has_recipient_key);
         set_has_pq_protection(!!item.ephemeral_pq_key);
         set_mail_item(item_with_metadata);
-        set_is_read(is_read_on_server);
+        set_is_read(get_read_intent(item.id) ?? is_read_on_server);
         set_is_pinned(decrypted_metadata?.is_pinned ?? false);
       }
 

@@ -531,7 +531,7 @@ export function use_popup_viewer({
 
       set_email(decrypted);
       set_mail_item(preloaded.mail_item);
-      set_is_read(pe.is_read);
+      set_is_read(get_read_intent(preloaded.mail_item.id) ?? pe.is_read);
       set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
       set_thread_messages(preloaded.thread_messages);
       set_pending_thread_count(0);
@@ -624,7 +624,7 @@ export function use_popup_viewer({
         response.data.is_read ?? decrypted_metadata?.is_read ?? false;
 
       set_mail_item(item_with_metadata);
-      set_is_read(is_read_on_server);
+      set_is_read(get_read_intent(response.data.id) ?? is_read_on_server);
       set_is_pinned(decrypted_metadata?.is_pinned ?? false);
 
       const envelope = await decrypt_mail_envelope(
