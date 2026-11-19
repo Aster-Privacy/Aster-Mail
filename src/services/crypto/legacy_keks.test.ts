@@ -18,11 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
   MAX_LEGACY_KEKS,
+  clear_legacy_keks_from_memory,
+  decrypt_account_context_with_fallback,
   keep_password_change_keks,
+  load_legacy_keks_into_memory,
   serialize_kek_for_vault,
 } from "./legacy_keks";
 
@@ -67,5 +70,59 @@ describe("keep_password_change_keks", () => {
     const twice = keep_password_change_keks(once, fresh);
 
     expect(twice.map((entry) => entry.k)).toEqual(once.map((entry) => entry.k));
+  });
+});
+
+describe("decrypt_account_context_with_fallback without a primary key", () => {
+  const plaintext = new TextEncoder().encode("legacy scheduled body");
+
+  async function sealed_under_retired_scheduled_key() {
+    const raw = new Uint8Array(
+      await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode("undefinedastermail-scheduled-v1"),
+      ),
+    );
+    const key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, [
+      "encrypt",
+    ]);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext = new Uint8Array(
+      await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext),
+    );
+
+    return { raw, iv, ciphertext };
+  }
+
+  afterEach(() => {
+    clear_legacy_keks_from_memory();
+  });
+
+  it("opens legacy data through the remembered retired key", async () => {
+    const { raw, iv, ciphertext } = await sealed_under_retired_scheduled_key();
+
+    await load_legacy_keks_into_memory([serialize_kek_for_vault(raw)]);
+
+    const opened = await decrypt_account_context_with_fallback(
+      "astermail-scheduled-v1",
+      null,
+      ciphertext,
+      iv,
+    );
+
+    expect(new Uint8Array(opened)).toEqual(plaintext);
+  });
+
+  it("refuses when no retired key is remembered", async () => {
+    const { iv, ciphertext } = await sealed_under_retired_scheduled_key();
+
+    await expect(
+      decrypt_account_context_with_fallback(
+        "astermail-scheduled-v1",
+        null,
+        ciphertext,
+        iv,
+      ),
+    ).rejects.toThrow();
   });
 });

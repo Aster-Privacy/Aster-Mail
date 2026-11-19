@@ -750,7 +750,6 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
                 list_unsubscribe_header:
                   unsubscribe_info.list_unsubscribe_header,
               },
-              "manual",
             );
           }
         } else {

@@ -103,6 +103,7 @@ declare global {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const MAIL_ITEM_ID = "5d0c7a10-0000-4000-8000-00000000d3c1";
+const SHOWN_TAG = "shown-content-tag";
 
 function part(
   filename: string,
@@ -119,6 +120,10 @@ function part(
   };
 }
 
+function store_parts(parts: ReturnType<typeof part>[]) {
+  set_decrypted_mime_attachments(MAIL_ITEM_ID, parts, SHOWN_TAG);
+}
+
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
 
@@ -130,6 +135,7 @@ async function render_list(inline_refs?: { cids: Set<string>; filenames: Set<str
   act(() => {
     root!.render(
       <AttachmentList
+        decrypted_content_tag={SHOWN_TAG}
         hint_attachment_count={0}
         inline_refs={inline_refs}
         mail_item_id={MAIL_ITEM_ID}
@@ -173,7 +179,7 @@ describe("attachments recovered from a decrypted MIME message", () => {
   });
 
   it("lists every decrypted file without asking the server", async () => {
-    set_decrypted_mime_attachments(MAIL_ITEM_ID, [
+    store_parts([
       part("résumé.pdf", "application/pdf", [37, 80, 68, 70]),
       part("notes.txt", "text/plain", [104, 105]),
     ]);
@@ -191,7 +197,7 @@ describe("attachments recovered from a decrypted MIME message", () => {
     expect(container?.textContent).not.toContain("late.pdf");
 
     await act(async () => {
-      set_decrypted_mime_attachments(MAIL_ITEM_ID, [
+      store_parts([
         part("late.pdf", "application/pdf", [1, 2, 3]),
       ]);
     });
@@ -200,7 +206,7 @@ describe("attachments recovered from a decrypted MIME message", () => {
   });
 
   it("leaves out inline images the body already shows", async () => {
-    set_decrypted_mime_attachments(MAIL_ITEM_ID, [
+    store_parts([
       part("chart.png", "image/png", [137, 80, 78, 71], {
         content_id: "chart@test.invalid",
         is_inline: true,
@@ -218,7 +224,7 @@ describe("attachments recovered from a decrypted MIME message", () => {
   });
 
   it("carries decrypted files into a forward with their bytes", async () => {
-    set_decrypted_mime_attachments(MAIL_ITEM_ID, [
+    store_parts([
       part("chart.png", "image/png", [137, 80, 78, 71], {
         content_id: "chart@test.invalid",
         is_inline: true,

@@ -24,9 +24,10 @@
 // paints nothing over the dark window background. Routes there live in the
 // fragment, so the path must be moved into the hash before reloading.
 import { ignore_error } from "@/lib/ignore_error";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 function uses_hash_router(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 function safe_internal_url(path: string): URL {

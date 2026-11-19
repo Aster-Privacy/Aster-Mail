@@ -89,6 +89,14 @@ async function compute_content_hash(
   return compute_import_dedupe_hash(identity_key, "content", canonical);
 }
 
+function import_sort_bucket(date: Date): string {
+  const bucket = new Date(date.getTime());
+
+  bucket.setUTCHours(12, 0, 0, 0);
+
+  return bucket.toISOString();
+}
+
 export async function encrypt_imported_email(
   email: ParsedEmail,
   vault: EncryptedVault,
@@ -151,7 +159,7 @@ export async function encrypt_imported_email(
     encrypted_envelope: sealed.encrypted,
     envelope_nonce: sealed.nonce,
     content_hash,
-    received_at: email.date.toISOString(),
+    received_at: import_sort_bucket(email.date),
   };
 }
 

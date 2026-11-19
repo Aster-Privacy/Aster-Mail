@@ -42,6 +42,7 @@ const h = vi.hoisted(() => ({
   preferences_result: "converted" as string,
   on_list: null as null | (() => void),
   data_kek: undefined as string | undefined,
+  legacy_keks: [] as { k: string; added_at: string }[],
 }));
 
 vi.mock("./crypto/memory_key_store", () => ({
@@ -60,6 +61,7 @@ vi.mock("./crypto/memory_key_store", () => ({
           identity_key: h.identity_key,
           previous_keys: h.previous_keys,
           data_kek: h.data_kek,
+          legacy_keks: h.legacy_keks,
         }
       : null,
 }));
@@ -127,6 +129,10 @@ import {
   base64_to_array,
   encrypt_envelope,
 } from "./crypto/envelope";
+import {
+  clear_auth_salt_session_state,
+  note_auth_salt_used,
+} from "./crypto/auth_salt_guard";
 import { ATTACHMENT_META_V2_NONCE } from "./crypto/attachment_meta_v2";
 import { encrypt_envelope_v2_bytes } from "./crypto/envelope_v2";
 import { decrypt_message_verified_with_any_key } from "./crypto/key_manager_pgp_messages";
@@ -186,11 +192,22 @@ async function legacy_envelope(data: object, passphrase = PASSPHRASE) {
   return (await encrypt_envelope(data, passphrase)).encrypted;
 }
 
-async function pgp_meta(plaintext: string, public_key: string) {
+async function pgp_meta(
+  plaintext: string,
+  public_key: string,
+  signing_key?: string,
+) {
   const message = await openpgp.createMessage({ text: plaintext });
+  const signing_keys = signing_key
+    ? await openpgp.decryptKey({
+        privateKey: await openpgp.readPrivateKey({ armoredKey: signing_key }),
+        passphrase: PASSPHRASE,
+      })
+    : undefined;
   const armored = await openpgp.encrypt({
     message,
     encryptionKeys: await openpgp.readKey({ armoredKey: public_key }),
+    signingKeys: signing_keys,
   });
 
   return array_to_base64(new TextEncoder().encode(armored as string));
@@ -255,6 +272,8 @@ beforeEach(() => {
   h.preferences_result = "converted";
   h.on_list = null;
   h.data_kek = undefined;
+  h.legacy_keks = [];
+  clear_auth_salt_session_state();
 });
 
 describe("background sent mail conversion", () => {
@@ -385,15 +404,13 @@ describe("background sent mail conversion", () => {
 
     const rows = [
       {
-        id: "a_plain",
-        encrypted_meta: array_to_base64(
-          new TextEncoder().encode(meta("plain.pdf")),
-        ),
+        id: "a_pgp_own_key",
+        encrypted_meta: await pgp_meta(meta("own.pdf"), own_public, own_key),
         meta_nonce: LEGACY_META_NONCE,
       },
       {
         id: "a_pgp_old_key",
-        encrypted_meta: await pgp_meta(meta("old.pdf"), old_public),
+        encrypted_meta: await pgp_meta(meta("old.pdf"), old_public, old_key),
         meta_nonce: LEGACY_META_NONCE,
       },
       {
@@ -414,7 +431,7 @@ describe("background sent mail conversion", () => {
 
     expect(summary?.converted).toBe(3);
     expect(h.meta_writes.map((write) => write.id)).toEqual([
-      "a_plain",
+      "a_pgp_own_key",
       "a_pgp_old_key",
       "a_password",
     ]);
@@ -424,11 +441,11 @@ describe("background sent mail conversion", () => {
     );
 
     expect(opened.map((text) => JSON.parse(text).filename)).toEqual([
-      "plain.pdf",
+      "own.pdf",
       "old.pdf",
       "pw.pdf",
     ]);
-    expect(opened[0]).toBe(meta("plain.pdf"));
+    expect(opened[0]).toBe(meta("own.pdf"));
 
     for (const write of h.meta_writes) {
       const source = rows.find((row) => row.id === write.id)!;
@@ -439,6 +456,68 @@ describe("background sent mail conversion", () => {
     }
     expect(h.progress).toContainEqual({ sent_mail_done: true });
   });
+
+  it("never converts plain metadata stored with a legacy nonce", async () => {
+    h.status = status({ remaining_sent: 0, remaining_attachments: 1 });
+    h.pages = one_page([{ id: "m1", attachment_count: 1 }]);
+    h.attachments.m1 = [
+      {
+        id: "a_plain",
+        encrypted_meta: array_to_base64(
+          new TextEncoder().encode(
+            JSON.stringify({
+              filename: "invoice.pdf",
+              content_type: "application/pdf",
+              session_key: "c2Vzc2lvbg==",
+            }),
+          ),
+        ),
+        meta_nonce: LEGACY_META_NONCE,
+      },
+    ];
+
+    const summary = await run();
+
+    expect(summary?.unreadable).toBe(1);
+    expect(summary?.converted).toBe(0);
+    expect(h.meta_writes).toEqual([]);
+  });
+
+  it("never converts PGP metadata without the owner's signature", async () => {
+    const meta = JSON.stringify({
+      filename: "invoice.pdf",
+      content_type: "application/pdf",
+      session_key: "c2Vzc2lvbg==",
+    });
+    const stranger = await generate();
+
+    h.previous_keys = [old_key];
+    h.status = status({ remaining_sent: 0, remaining_attachments: 3 });
+    h.pages = one_page([{ id: "m1", attachment_count: 3 }]);
+    h.attachments.m1 = [
+      {
+        id: "a_unsigned",
+        encrypted_meta: await pgp_meta(meta, own_public),
+        meta_nonce: LEGACY_META_NONCE,
+      },
+      {
+        id: "a_unsigned_old_key",
+        encrypted_meta: await pgp_meta(meta, old_public),
+        meta_nonce: LEGACY_META_NONCE,
+      },
+      {
+        id: "a_stranger_signed",
+        encrypted_meta: await pgp_meta(meta, own_public, stranger.private_key),
+        meta_nonce: LEGACY_META_NONCE,
+      },
+    ];
+
+    const summary = await run();
+
+    expect(summary?.unreadable).toBe(3);
+    expect(summary?.converted).toBe(0);
+    expect(h.meta_writes).toEqual([]);
+  }, 30000);
 
   it("treats the v2 marker nonce as not legacy", () => {
     expect(is_legacy_meta_nonce(ATTACHMENT_META_V2_NONCE)).toBe(false);
@@ -922,6 +1001,111 @@ describe("recovering sent mail with a previous password", () => {
     expect(h.sent_writes).toEqual([]);
     expect(read_locked_sent_mail("account-1")).toBe(1);
     expect(h.progress).not.toContainEqual({ sent_mail_done: true });
+  });
+
+  async function login_salted_item(id: string, data: object, password: string) {
+    const salt = Uint8Array.from(
+      { length: 16 },
+      (_, i) => (0x33 + i * 41) & 0xff,
+    );
+    const material = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"],
+    );
+    const key = new Uint8Array(
+      await crypto.subtle.deriveBits(
+        { name: "PBKDF2", salt, iterations: 310000, hash: "SHA-256" },
+        material,
+        256,
+      ),
+    );
+    const aes = await crypto.subtle.importKey(
+      "raw",
+      key,
+      { name: "AES-GCM" },
+      false,
+      ["encrypt"],
+    );
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const sealed = new Uint8Array(
+      await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        aes,
+        new TextEncoder().encode(JSON.stringify(data)),
+      ),
+    );
+    const combined = new Uint8Array(salt.length + iv.length + sealed.length);
+
+    combined.set(salt, 0);
+    combined.set(iv, salt.length);
+    combined.set(sealed, salt.length + iv.length);
+    note_auth_salt_used(salt);
+
+    return {
+      item: {
+        id,
+        encrypted_envelope: array_to_base64(combined),
+        envelope_nonce: SENTINEL,
+      },
+      key,
+      salt,
+    };
+  }
+
+  it("reseals login-salted mail whose key the vault holds", async () => {
+    const envelope = { subject: "Sent under the sign-in salt" };
+    const planted = await login_salted_item(
+      "m1",
+      envelope,
+      "previous password",
+    );
+
+    h.legacy_keks = [
+      { k: array_to_base64(planted.key), added_at: "2026-01-01T00:00:00Z" },
+    ];
+    h.pages = one_page([planted.item]);
+
+    const summary = await recover_sent_mail_with_password(
+      "account-1",
+      "previous password",
+    );
+
+    expect(summary?.converted).toBe(1);
+    expect(h.sent_writes).toHaveLength(1);
+    expect(await open_sealed(h.sent_writes[0].sealed)).toBe(
+      JSON.stringify({ ...envelope, legacy_unverified: true }),
+    );
+    expect(base64_to_array(h.sent_writes[0].sealed).slice(0, 16)).not.toEqual(
+      planted.salt,
+    );
+  });
+
+  it("refuses login-salted mail whose key the vault does not hold", async () => {
+    const planted = await login_salted_item(
+      "m1",
+      { subject: "forged" },
+      "previous password",
+    );
+
+    h.legacy_keks = [
+      {
+        k: array_to_base64(new Uint8Array(32).fill(4)),
+        added_at: "2026-01-01T00:00:00Z",
+      },
+    ];
+    h.pages = one_page([planted.item]);
+
+    const summary = await recover_sent_mail_with_password(
+      "account-1",
+      "previous password",
+    );
+
+    expect(summary?.converted).toBe(0);
+    expect(summary?.unreadable).toBe(1);
+    expect(h.sent_writes).toEqual([]);
   });
 
   it("does not record completion when a write fails", async () => {

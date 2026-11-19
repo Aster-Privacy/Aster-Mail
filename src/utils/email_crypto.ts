@@ -23,7 +23,10 @@ import type { SenderVerificationStatus } from "@/types/email";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { extract_mime_attachments } from "@/utils/mime_attachment_parts";
-import { set_decrypted_mime_attachments } from "@/services/decrypted_mime_attachments";
+import {
+  decrypted_content_tag,
+  set_decrypted_mime_attachments,
+} from "@/services/decrypted_mime_attachments";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_passphrase_from_memory,
@@ -41,7 +44,7 @@ import {
 } from "@/services/crypto/sender_verification";
 import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp_messages";
 import {
-  find_nested_signed_part,
+  inspect_nested_signed_mime,
   verify_nested_signed_part,
 } from "@/services/crypto/nested_signed_mime";
 import {
@@ -116,13 +119,14 @@ export async function try_decrypt_ratchet_body(
 export function is_ratchet_verified_body(
   raw_body: string | null | undefined,
   decrypted_body: string | null | undefined,
+  message_id?: string,
 ): boolean {
   return (
     is_ratchet_envelope(raw_body) &&
     !!decrypted_body &&
     decrypted_body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
     !is_ratchet_envelope(decrypted_body) &&
-    is_trusted_ratchet_plaintext(decrypted_body)
+    is_trusted_ratchet_plaintext(decrypted_body, message_id)
   );
 }
 
@@ -579,11 +583,17 @@ export interface ResolvedPgpBody {
   verified: boolean;
   sender_verification?: SenderVerificationStatus;
   decrypted_attachments?: DecryptedAttachmentSummary[];
+  decrypted_content_tag?: string;
 }
 
 interface sender_signature_evidence {
   has_signature: boolean;
+  shown_text: string;
   verify: (keys: string[]) => Promise<SenderVerificationStatus>;
+}
+
+function signed_part_text(signed_text: string): string {
+  return signed_text.startsWith("\r\n") ? signed_text.slice(2) : signed_text;
 }
 
 function signature_evidence(
@@ -592,29 +602,41 @@ function signature_evidence(
   if (decrypted.has_signature) {
     return {
       has_signature: true,
+      shown_text: decrypted.plaintext,
       verify: async (keys) => (await decrypted.verify(keys)).verification,
     };
   }
 
-  const nested = find_nested_signed_part(decrypted.plaintext);
+  const nested = inspect_nested_signed_mime(decrypted.plaintext);
 
-  if (!nested) {
-    return { has_signature: false, verify: async () => "unsigned" };
+  if (nested.kind === "none") {
+    return {
+      has_signature: false,
+      shown_text: decrypted.plaintext,
+      verify: async () => "unsigned",
+    };
+  }
+
+  if (nested.kind === "malformed") {
+    return {
+      has_signature: true,
+      shown_text: decrypted.plaintext,
+      verify: async () => "unknown",
+    };
   }
 
   return {
     has_signature: true,
-    verify: (keys) => verify_nested_signed_part(nested, keys),
+    shown_text: signed_part_text(nested.part.signed_text),
+    verify: (keys) => verify_nested_signed_part(nested.part, keys),
   };
 }
 
 async function judge_sender_signature(
-  decrypted: verifiable_decrypted_message,
+  evidence: sender_signature_evidence,
   sender_email: string | undefined,
   own_private_keys: string[],
 ): Promise<SenderVerificationStatus> {
-  const evidence = signature_evidence(decrypted);
-
   if (!evidence.has_signature) return "unsigned";
   if (!sender_email) return "no_keys";
 
@@ -651,12 +673,15 @@ export interface DecryptedAttachmentSummary {
 function keep_decrypted_attachments(
   plaintext: string,
   mail_item_id: string | undefined,
+  content_tag: string,
 ): DecryptedAttachmentSummary[] {
-  if (!/^content-type\s*:/im.test(plaintext)) return [];
+  const parts = /^content-type\s*:/im.test(plaintext)
+    ? extract_mime_attachments(plaintext)
+    : [];
 
-  const parts = extract_mime_attachments(plaintext);
-
-  if (mail_item_id) set_decrypted_mime_attachments(mail_item_id, parts);
+  if (mail_item_id) {
+    set_decrypted_mime_attachments(mail_item_id, parts, content_tag);
+  }
 
   return parts.map(({ filename, content_type, content_id }) => ({
     filename,
@@ -711,24 +736,29 @@ export async function resolve_inbound_pgp_body(
   const finish = async (
     decrypted: verifiable_decrypted_message,
   ): Promise<ResolvedPgpBody> => {
+    const evidence = signature_evidence(decrypted);
+    const shown = evidence.shown_text;
+    const content_tag = await decrypted_content_tag(shown);
     const decrypted_attachments = keep_decrypted_attachments(
-      decrypted.plaintext,
+      shown,
       mail_item_id,
+      content_tag,
     );
 
     const sender_verification = await judge_sender_signature(
-      decrypted,
+      evidence,
       sender_email,
       keys_to_try,
     );
 
     return {
-      body: /^content-type\s*:/im.test(decrypted.plaintext)
-        ? extract_mime_body(decrypted.plaintext)
-        : decrypted.plaintext,
+      body: /^content-type\s*:/im.test(shown)
+        ? extract_mime_body(shown)
+        : shown,
       decrypted: true,
       verified: sender_verification === "verified",
       sender_verification,
+      decrypted_content_tag: content_tag,
       ...(decrypted_attachments.length > 0 ? { decrypted_attachments } : {}),
     };
   };
@@ -1033,7 +1063,7 @@ async function resolve_body_text(
     message_id,
   );
 
-  const sealed = is_ratchet_verified_body(body_text, result);
+  const sealed = is_ratchet_verified_body(body_text, result, message_id);
   const had_pgp_block = has_inbound_pgp_block(result);
   const pgp = await resolve_inbound_pgp_body(result, undefined, message_id);
 

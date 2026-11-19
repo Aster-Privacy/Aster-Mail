@@ -24,6 +24,11 @@ import { user_facing_error } from "@/utils/user_facing_error";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_storage_write_crypto_key } from "@/services/crypto/storage_write_key";
 import { get_active_translations } from "@/lib/i18n/translations";
+import {
+  FIELD_KIND_TEMPLATE,
+  open_bound_field,
+  seal_field,
+} from "@/services/crypto/field_format";
 
 export interface TemplateFormData {
   name: string;
@@ -128,21 +133,30 @@ async function get_encryption_key(): Promise<CryptoKey> {
   return key;
 }
 
+type TemplateField = "name" | "category" | "content";
+
+function template_binding(field: TemplateField, record_id?: string | null) {
+  return { kind: FIELD_KIND_TEMPLATE, field, record_id: record_id ?? null };
+}
+
 async function encrypt_string(
   plaintext: string,
+  field: TemplateField,
+  record_id?: string | null,
 ): Promise<{ encrypted: string; nonce: string }> {
   const key = await get_encryption_key();
   const encoder = new TextEncoder();
   const data = encoder.encode(plaintext);
   const nonce = crypto.getRandomValues(new Uint8Array(12));
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce },
+  const ciphertext = await seal_field(
     key,
     data,
+    nonce,
+    template_binding(field, record_id),
   );
 
   return {
-    encrypted: array_to_base64(new Uint8Array(ciphertext)),
+    encrypted: array_to_base64(ciphertext),
     nonce: array_to_base64(nonce),
   };
 }
@@ -150,12 +164,23 @@ async function encrypt_string(
 async function decrypt_string(
   encrypted: string,
   nonce: string,
+  field: TemplateField,
+  record_id: string,
 ): Promise<string> {
   const key = await get_encryption_key();
   const ciphertext = base64_to_array(encrypted);
   const iv = base64_to_array(nonce);
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, iv);
   const decoder = new TextDecoder();
+  const bound = await open_bound_field(
+    key,
+    ciphertext,
+    iv,
+    template_binding(field, record_id),
+  );
+
+  if (bound) return decoder.decode(bound);
+
+  const decrypted = await decrypt_aes_gcm_with_fallback(key, ciphertext, iv);
 
   return decoder.decode(decrypted);
 }
@@ -164,9 +189,24 @@ export async function decrypt_template(
   template: Template,
 ): Promise<DecryptedTemplate> {
   const [name, category, content] = await Promise.all([
-    decrypt_string(template.encrypted_name, template.name_nonce),
-    decrypt_string(template.encrypted_category, template.category_nonce),
-    decrypt_string(template.encrypted_content, template.content_nonce),
+    decrypt_string(
+      template.encrypted_name,
+      template.name_nonce,
+      "name",
+      template.id,
+    ),
+    decrypt_string(
+      template.encrypted_category,
+      template.category_nonce,
+      "category",
+      template.id,
+    ),
+    decrypt_string(
+      template.encrypted_content,
+      template.content_nonce,
+      "content",
+      template.id,
+    ),
   ]);
 
   return {
@@ -252,9 +292,9 @@ export async function create_template(
   try {
     const [encrypted_name, encrypted_category, encrypted_content] =
       await Promise.all([
-        encrypt_string(data.name),
-        encrypt_string(data.category),
-        encrypt_string(data.content),
+        encrypt_string(data.name, "name"),
+        encrypt_string(data.category, "category"),
+        encrypt_string(data.content, "content"),
       ]);
 
     const request: CreateTemplateRequest = {
@@ -289,21 +329,21 @@ export async function update_template(
     const request: UpdateTemplateRequest = {};
 
     if (data.name !== undefined) {
-      const encrypted = await encrypt_string(data.name);
+      const encrypted = await encrypt_string(data.name, "name", template_id);
 
       request.encrypted_name = encrypted.encrypted;
       request.name_nonce = encrypted.nonce;
     }
 
     if (data.category !== undefined) {
-      const encrypted = await encrypt_string(data.category);
+      const encrypted = await encrypt_string(data.category, "category", template_id);
 
       request.encrypted_category = encrypted.encrypted;
       request.category_nonce = encrypted.nonce;
     }
 
     if (data.content !== undefined) {
-      const encrypted = await encrypt_string(data.content);
+      const encrypted = await encrypt_string(data.content, "content", template_id);
 
       request.encrypted_content = encrypted.encrypted;
       request.content_nonce = encrypted.nonce;

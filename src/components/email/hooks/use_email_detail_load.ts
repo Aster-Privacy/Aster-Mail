@@ -889,9 +889,13 @@ export function use_email_detail_load() {
             )
           : null;
 
-      const attachment_meta_ready = prefetch_attachment_meta([email_id]);
+      let attachment_meta_ready: Promise<void> = Promise.resolve();
+      const start_attachment_prefetch = (): void => {
+        attachment_meta_ready = prefetch_attachment_meta([email_id]);
+        void prefetch_attachment_previews(email_id);
+      };
 
-      void prefetch_attachment_previews(email_id);
+      if (!envelope) start_attachment_prefetch();
 
       if (envelope) {
         const {
@@ -902,12 +906,15 @@ export function use_email_detail_load() {
           e2e_sender_bound,
           e2e_details_sealed,
           sent_encryption_scope,
+          decrypted_content_tag,
         } = await process_envelope_body(
             envelope,
             user?.email,
             response.data.id,
             response.data.dkim_result,
           );
+
+        start_attachment_prefetch();
 
         const decrypted: import("@/components/email/hooks/email_detail_types").DecryptedEmail =
           {
@@ -967,6 +974,7 @@ export function use_email_detail_load() {
           sent_encryption_scope,
           e2e_sender_bound,
           e2e_details_sealed,
+          decrypted_content_tag,
         );
 
         if (should_load_thread) {

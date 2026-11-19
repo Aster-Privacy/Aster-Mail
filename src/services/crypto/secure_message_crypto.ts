@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
+import { argon2idAsync } from "@noble/hashes/argon2";
 
 import { array_to_base64, base64_to_array } from "./envelope";
 import { zero_uint8_array } from "./secure_memory";
@@ -28,6 +29,38 @@ import { HASH_ALG } from "@/services/crypto/constants";
 const AEAD_BINDING_WRITE_ENABLED = true;
 
 const PBKDF2_ITERATIONS = 310000;
+const ARGON2ID_MEMORY_KIB = 65536;
+const ARGON2ID_ITERATIONS = 3;
+const ARGON2ID_PARALLELISM = 1;
+const ARGON2ID_VERSION = 0x13;
+
+export const SECURE_KDF_V1 = 1;
+export const SECURE_KDF_V2 = 2;
+
+export type SecureKdfVersion = typeof SECURE_KDF_V1 | typeof SECURE_KDF_V2;
+
+let secure_kdf_write_v2 = false;
+
+export function set_secure_kdf_write_v2(enabled: boolean): void {
+  secure_kdf_write_v2 = enabled;
+}
+
+export function secure_kdf_write_version(): SecureKdfVersion {
+  return secure_kdf_write_v2 ? SECURE_KDF_V2 : SECURE_KDF_V1;
+}
+
+export function parse_secure_kdf_version(
+  value: number | null | undefined,
+): SecureKdfVersion {
+  if (value === undefined || value === null || value === SECURE_KDF_V1) {
+    return SECURE_KDF_V1;
+  }
+  if (value === SECURE_KDF_V2) {
+    return SECURE_KDF_V2;
+  }
+
+  throw new Error("secure_view_kdf_unsupported");
+}
 const SALT_LENGTH = 16;
 const KEM_SEED_LENGTH = 64;
 const NONCE_LENGTH = 12;
@@ -71,6 +104,7 @@ export interface SecureAttachmentInput {
 
 export interface EncryptedSecureMessage {
   kdf_salt: string;
+  kdf_version: SecureKdfVersion;
   auth_proof: string;
   kem_ciphertext: string;
   encrypted_kem_seed: string;
@@ -98,10 +132,23 @@ interface RawMaterial {
   auth_verifier: Uint8Array;
 }
 
-async function derive_raw_material(
+async function derive_argon2id_bytes(
   password_bytes: Uint8Array,
   salt: Uint8Array,
-): Promise<RawMaterial> {
+): Promise<Uint8Array> {
+  return argon2idAsync(password_bytes, salt, {
+    m: ARGON2ID_MEMORY_KIB,
+    t: ARGON2ID_ITERATIONS,
+    p: ARGON2ID_PARALLELISM,
+    dkLen: KDF_KEY_BYTES + AUTH_VERIFIER_BYTES,
+    version: ARGON2ID_VERSION,
+  });
+}
+
+async function derive_pbkdf2_bytes(
+  password_bytes: Uint8Array,
+  salt: Uint8Array,
+): Promise<Uint8Array> {
   const key_material = await crypto.subtle.importKey(
     "raw",
     password_bytes,
@@ -121,7 +168,18 @@ async function derive_raw_material(
     DERIVED_BITS,
   );
 
-  const derived_bytes = new Uint8Array(derived);
+  return new Uint8Array(derived);
+}
+
+async function derive_raw_material(
+  password_bytes: Uint8Array,
+  salt: Uint8Array,
+  kdf_version: SecureKdfVersion,
+): Promise<RawMaterial> {
+  const derived_bytes =
+    kdf_version === SECURE_KDF_V2
+      ? await derive_argon2id_bytes(password_bytes, salt)
+      : await derive_pbkdf2_bytes(password_bytes, salt);
   const kdf_key_bytes = new Uint8Array(derived_bytes.slice(0, KDF_KEY_BYTES));
   const auth_verifier = new Uint8Array(
     derived_bytes.slice(KDF_KEY_BYTES, KDF_KEY_BYTES + AUTH_VERIFIER_BYTES),
@@ -249,11 +307,12 @@ export async function encrypt_secure_message(
   password: string,
   plaintext: SecureMessagePlaintext,
   attachments: SecureAttachmentInput[] = [],
+  kdf_version: SecureKdfVersion = secure_kdf_write_version(),
 ): Promise<EncryptedSecureMessage> {
   const encoder = new TextEncoder();
   const password_bytes = encoder.encode(password);
   const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
-  const material = await derive_raw_material(password_bytes, salt);
+  const material = await derive_raw_material(password_bytes, salt, kdf_version);
 
   zero_uint8_array(password_bytes);
 
@@ -355,6 +414,7 @@ export async function encrypt_secure_message(
 
     return {
       kdf_salt: array_to_base64(salt),
+      kdf_version,
       auth_proof,
       kem_ciphertext: array_to_base64(kem_ct),
       encrypted_kem_seed: array_to_base64(
@@ -373,11 +433,12 @@ export async function encrypt_secure_message(
 export async function derive_auth_proof(
   password: string,
   kdf_salt: string,
+  kdf_version: SecureKdfVersion = SECURE_KDF_V1,
 ): Promise<string> {
   const encoder = new TextEncoder();
   const password_bytes = encoder.encode(password);
   const salt = base64_to_array(kdf_salt);
-  const material = await derive_raw_material(password_bytes, salt);
+  const material = await derive_raw_material(password_bytes, salt, kdf_version);
 
   zero_uint8_array(password_bytes);
   zero_uint8_array(material.kdf_key_bytes);
@@ -403,12 +464,13 @@ export async function decrypt_secure_message(
   password: string,
   kdf_salt: string,
   bundle: SecureMessageBundle,
+  kdf_version: SecureKdfVersion = SECURE_KDF_V1,
 ): Promise<DecryptedSecureMessage> {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   const password_bytes = encoder.encode(password);
   const salt = base64_to_array(kdf_salt);
-  const material = await derive_raw_material(password_bytes, salt);
+  const material = await derive_raw_material(password_bytes, salt, kdf_version);
 
   zero_uint8_array(password_bytes);
 

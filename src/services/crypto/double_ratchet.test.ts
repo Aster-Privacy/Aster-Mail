@@ -275,3 +275,59 @@ describe("DoubleRatchet sync-safety (dirty tracking)", () => {
     );
   });
 });
+
+describe("DoubleRatchet send chain catch-up", () => {
+  async function pair() {
+    const shared_secret = crypto.getRandomValues(new Uint8Array(32));
+    const receiver_keypair = await generate_keypair();
+    const sender = await DoubleRatchet.init_sender(
+      shared_secret,
+      receiver_keypair.public_key,
+      "conv_catch_up",
+    );
+    const receiver = await DoubleRatchet.init_receiver(
+      shared_secret,
+      receiver_keypair,
+      "conv_catch_up",
+    );
+
+    return { sender, receiver };
+  }
+
+  it("lands on the same send chain as a device that already sent those messages", async () => {
+    const { sender, receiver } = await pair();
+    const copy = DoubleRatchet.deserialize(await sender.serialize());
+
+    await sender.encrypt("one");
+    await sender.encrypt("two");
+    await sender.encrypt("three");
+    await copy.advance_send_chain_to(3);
+
+    const sent = (await sender.serialize()).state;
+    const caught_up = (await copy.serialize()).state;
+
+    expect(caught_up.send_message_number).toBe(3);
+    expect(caught_up.chain_key_send).toBe(sent.chain_key_send);
+
+    const next = await copy.encrypt("four");
+
+    expect(next.header.message_number).toBe(3);
+    expect(await receiver.decrypt(next)).toBe("four");
+  });
+
+  it("moves nothing for a target behind or too far ahead", async () => {
+    const { sender } = await pair();
+
+    await sender.encrypt("one");
+
+    const before = (await sender.serialize()).state;
+
+    await sender.advance_send_chain_to(0);
+    await sender.advance_send_chain_to(1 + 1001);
+
+    const after = (await sender.serialize()).state;
+
+    expect(after.send_message_number).toBe(before.send_message_number);
+    expect(after.chain_key_send).toBe(before.chain_key_send);
+  });
+});

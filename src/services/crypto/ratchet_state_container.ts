@@ -21,6 +21,9 @@
 import type { SerializedState } from "./double_ratchet";
 
 const BOUND_AAD_PREFIX = "aster-ratchet-state-v2:";
+const SYNC_AAD_LABEL = "aster-ratchet-state-v3";
+const RATCHET_STATE_MAGIC = new Uint8Array([0x41, 0x52, 0x53, 0x03]);
+const RATCHET_STATE_HEADER_LENGTH = RATCHET_STATE_MAGIC.length + 16;
 
 export type RatchetStateRefusal =
   "malformed" | "wrong_conversation" | "rolled_back" | "unbound";
@@ -33,8 +36,110 @@ export function ratchet_state_bound_aad(conversation_id: string): Uint8Array {
   return new TextEncoder().encode(`${BOUND_AAD_PREFIX}${conversation_id}`);
 }
 
-export function next_sync_version(floor: number, now_ms: number): number {
-  return Math.max(now_ms, floor + 1);
+export interface RatchetStateHeader {
+  epoch: number;
+  sync_version: number;
+}
+
+export interface RatchetStatePayload {
+  header: RatchetStateHeader;
+  header_bytes: Uint8Array;
+  ciphertext: Uint8Array;
+}
+
+export function encode_ratchet_state_header(
+  header: RatchetStateHeader,
+): Uint8Array {
+  if (
+    !Number.isSafeInteger(header.epoch) ||
+    header.epoch < 0 ||
+    !Number.isSafeInteger(header.sync_version) ||
+    header.sync_version < 0
+  ) {
+    throw new Error("Ratchet state header out of range");
+  }
+
+  const bytes = new Uint8Array(RATCHET_STATE_HEADER_LENGTH);
+  const view = new DataView(bytes.buffer);
+
+  bytes.set(RATCHET_STATE_MAGIC, 0);
+  view.setBigUint64(RATCHET_STATE_MAGIC.length, BigInt(header.epoch));
+  view.setBigUint64(
+    RATCHET_STATE_MAGIC.length + 8,
+    BigInt(header.sync_version),
+  );
+
+  return bytes;
+}
+
+export function split_ratchet_state_payload(
+  bytes: Uint8Array,
+): RatchetStatePayload | null {
+  if (bytes.length <= RATCHET_STATE_HEADER_LENGTH) return null;
+
+  for (let i = 0; i < RATCHET_STATE_MAGIC.length; i++) {
+    if (bytes[i] !== RATCHET_STATE_MAGIC[i]) return null;
+  }
+
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const epoch = view.getBigUint64(RATCHET_STATE_MAGIC.length);
+  const sync_version = view.getBigUint64(RATCHET_STATE_MAGIC.length + 8);
+  const max = BigInt(Number.MAX_SAFE_INTEGER);
+
+  if (epoch > max || sync_version > max) return null;
+
+  return {
+    header: { epoch: Number(epoch), sync_version: Number(sync_version) },
+    header_bytes: bytes.slice(0, RATCHET_STATE_HEADER_LENGTH),
+    ciphertext: bytes.slice(RATCHET_STATE_HEADER_LENGTH),
+  };
+}
+
+function length_prefixed(value: string): Uint8Array {
+  const encoded = new TextEncoder().encode(value);
+  const out = new Uint8Array(4 + encoded.length);
+
+  new DataView(out.buffer).setUint32(0, encoded.length);
+  out.set(encoded, 4);
+
+  return out;
+}
+
+export function ratchet_state_sync_aad(
+  user_id: string,
+  conversation_id: string,
+  header_bytes: Uint8Array,
+): Uint8Array {
+  const parts = [
+    new TextEncoder().encode(SYNC_AAD_LABEL),
+    length_prefixed(user_id),
+    length_prefixed(conversation_id),
+    header_bytes,
+  ];
+  const out = new Uint8Array(parts.reduce((n, part) => n + part.length, 0));
+  let offset = 0;
+
+  for (const part of parts) {
+    out.set(part, offset);
+    offset += part.length;
+  }
+
+  return out;
+}
+
+export function header_matches_state(
+  header: RatchetStateHeader,
+  state: SerializedState,
+  sync_version: number | null,
+): boolean {
+  return (
+    sync_version === header.sync_version &&
+    (state.state.epoch ?? 0) === header.epoch
+  );
+}
+
+export function next_sync_version(floor: number): number {
+  return Math.max(0, Number.isSafeInteger(floor) ? floor : 0) + 1;
 }
 
 export function encode_ratchet_state_container(

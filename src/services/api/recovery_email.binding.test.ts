@@ -23,6 +23,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const post_calls: { url: string; body: unknown }[] = [];
 const put_calls: { url: string; body: unknown }[] = [];
 let server_response: Record<string, unknown> = {};
+let put_stores_copy = false;
 
 vi.mock("./client", () => ({
   api_client: {
@@ -34,6 +35,19 @@ vi.mock("./client", () => ({
     }),
     put: vi.fn(async (url: string, body: unknown) => {
       put_calls.push({ url, body });
+
+      if (put_stores_copy) {
+        const { encrypted_email, email_nonce } = body as Record<
+          string,
+          unknown
+        >;
+
+        server_response = {
+          ...server_response,
+          encrypted_email,
+          email_nonce,
+        };
+      }
 
       return { data: { success: true }, error: undefined };
     }),
@@ -182,6 +196,8 @@ describe("recovery email read path", () => {
     post_calls.length = 0;
     put_calls.length = 0;
     server_response = {};
+    put_stores_copy = false;
+    localStorage.clear();
     clear_recovery_email_cache();
     clear_legacy_keks_from_memory();
     clear_account_key_derived_keks();
@@ -364,6 +380,7 @@ describe("recovery email read path", () => {
     expect(put_calls).toEqual([]);
     expect(post_calls.length).toBe(1);
     post_calls.length = 0;
+    localStorage.clear();
     offer(await seal(retired.key, "retired@example.com"));
 
     const carried = await reencrypt_recovery_email(
@@ -490,6 +507,63 @@ describe("recovery email read path", () => {
     }
   });
 
+  it("stops opening the retired key after this device moved the address", async () => {
+    put_stores_copy = true;
+    const retired = await retired_context_key(RECOVERY_CONTEXT);
+    const holding = {
+      ...vault,
+      legacy_keks: [
+        { k: retired.encoded, added_at: "2026-01-01T00:00:00.000Z" },
+      ],
+    } as Vault;
+
+    offer(await seal(retired.key, "first@example.com"));
+    expect((await get_recovery_email(holding)).data.email).toBe(
+      "first@example.com",
+    );
+    await settle();
+    expect(put_calls.length).toBe(1);
+
+    clear_recovery_email_cache();
+    put_calls.length = 0;
+    offer(await seal(retired.key, "replayed@example.com"));
+
+    const { data } = await get_recovery_email(holding);
+
+    await settle();
+
+    expect(data.email).toBeNull();
+    expect(put_calls).toEqual([]);
+  });
+
+  it("stops opening the retired key after reading the current copy", async () => {
+    const retired = await retired_context_key(RECOVERY_CONTEXT);
+    const holding = {
+      ...vault,
+      legacy_keks: [
+        { k: retired.encoded, added_at: "2026-01-01T00:00:00.000Z" },
+      ],
+    } as Vault;
+    const sealed = await encrypt_recovery_email("user@example.com", holding);
+
+    offer({ encrypted_email: sealed.encrypted, email_nonce: sealed.nonce });
+    expect((await get_recovery_email(holding)).data.email).toBe(
+      "user@example.com",
+    );
+    await settle();
+
+    clear_recovery_email_cache();
+    put_calls.length = 0;
+    offer(await seal(retired.key, "replayed@example.com"));
+
+    const { data } = await get_recovery_email(holding);
+
+    await settle();
+
+    expect(data.email).toBeNull();
+    expect(put_calls).toEqual([]);
+  });
+
   it("stops opening the retired key once the vault no longer holds it", async () => {
     const retired = await retired_context_key(RECOVERY_CONTEXT);
     const other = await retired_context_key("astermail-draft-v1");
@@ -586,6 +660,8 @@ describe("recovery email write paths", () => {
     post_calls.length = 0;
     put_calls.length = 0;
     server_response = {};
+    put_stores_copy = false;
+    localStorage.clear();
     clear_recovery_email_cache();
     clear_legacy_keks_from_memory();
     clear_account_key_derived_keks();

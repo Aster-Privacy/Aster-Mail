@@ -39,7 +39,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 import { discover_external_keys_batch } from "@/services/api/keys";
-import { will_encrypt_opportunistically } from "@/services/opportunistic_key_trust";
+import { opportunistic_lock_status } from "@/services/opportunistic_key_trust";
 import {
   classify_recipients,
   is_internal_recipient,
@@ -484,31 +484,23 @@ export function RecipientField({
 
     const run_discovery = (pending: string[]) => {
       discover_external_keys_batch(pending)
-        .then((result) => {
+        .then(async (result) => {
           if (generation !== generation_ref.current) return;
 
           const key_map = new Map<string, EncryptionStatus>();
 
           if (result.data) {
             for (const info of result.data) {
-              const key_present = info.found && info.public_key !== null;
-              const expired =
-                info.expires_at !== null &&
-                Date.parse(info.expires_at) <= Date.now();
-              const status: EncryptionStatus = will_encrypt_opportunistically(
+              const status: EncryptionStatus = await opportunistic_lock_status(
                 info,
                 encrypt_by_default_ref.current,
-              )
-                ? "encrypted"
-                : key_present && expired
-                  ? "key_invalid"
-                  : key_present
-                    ? "available"
-                    : "transit";
+              ).catch(() => "unknown" as const);
 
               key_map.set(info.email.toLowerCase(), status);
             }
           }
+
+          if (generation !== generation_ref.current) return;
 
           const resolved_statuses = new Map<string, EncryptionStatus>();
           const retry_delays: number[] = [];

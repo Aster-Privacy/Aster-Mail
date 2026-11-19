@@ -34,6 +34,39 @@ const PGP_PRIVATE_KEY_HEADER = "-----BEGIN PGP PRIVATE KEY";
 
 const attempted_account_ids = new Set<string>();
 
+function normalize_fingerprint(value: string): string {
+  return value.replace(/[^0-9a-f]/gi, "").toLowerCase();
+}
+
+export async function held_public_key_armored(
+  fingerprint: string,
+): Promise<string | null> {
+  const vault = get_vault_from_memory();
+  const wanted = normalize_fingerprint(fingerprint);
+
+  if (!vault || !wanted) return null;
+
+  const openpgp = await load_openpgp();
+  const candidates = [vault.identity_key, ...(vault.previous_keys ?? [])];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string" || !candidate) continue;
+    try {
+      const private_key = await openpgp.readPrivateKey({
+        armoredKey: candidate,
+      });
+
+      if (normalize_fingerprint(private_key.getFingerprint()) === wanted) {
+        return private_key.toPublic().armor();
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
 export function reset_pgp_publish_attempt(): void {
   attempted_account_ids.clear();
 }

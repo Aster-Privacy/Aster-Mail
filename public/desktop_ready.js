@@ -1,7 +1,14 @@
 (function () {
+  if (!Object.getOwnPropertyDescriptor(window, "__TAURI_INTERNALS__")) return;
+
   var internals = window.__TAURI_INTERNALS__;
 
-  if (!internals || !internals.invoke) return;
+  if (typeof internals !== "object" || internals === null) return;
+
+  var prototype = Object.getPrototypeOf(internals);
+
+  if (prototype !== Object.prototype && prototype !== null) return;
+  if (typeof internals.invoke !== "function") return;
 
   var send = function (command) {
     try {

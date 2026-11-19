@@ -25,6 +25,10 @@ import type { ApiResponse } from "@/services/api/client/helpers";
 import { decrypt_vault, encrypt_vault } from "./key_manager";
 import { is_retired_kek } from "./retired_identity_keks";
 import {
+  merge_retired_storage_hashes,
+  RETIRED_STORAGE_HASHES_FIELD,
+} from "./retired_storage_hashes";
+import {
   get_passphrase_bytes,
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -33,6 +37,26 @@ import {
   store_vault_in_memory,
 } from "./memory_key_store";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
+import { merge_lane_replay_maps } from "./lane_replay";
+import {
+  accept_recovered_vault,
+  apply_generation_markers,
+  is_rolled_back_vault,
+  next_vault_generation,
+  VAULT_ROLLED_BACK,
+} from "./vault_generation";
+import {
+  get_session_server_known_ids,
+  merge_server_known_ids,
+  strip_server_known_keks,
+} from "./server_known_keys";
+import { strip_retired_storage_keks } from "./retired_storage_keks";
+import { merge_mail_legacy_retired_marker } from "./mail_legacy_retirement";
+import { merge_folder_key_pins } from "./folder_kdf_pin";
+import {
+  is_valid_untagged_snapshot,
+  merge_untagged_snapshot,
+} from "./scheduled_untagged_snapshot";
 import {
   note_vault_written,
   vault_write_iterations,
@@ -61,6 +85,7 @@ interface ServerVaultView {
   encrypted_vault?: string;
   vault_nonce?: string;
   vault_sha256?: string;
+  vault_recovered_write_count?: number;
 }
 
 export interface ServerVaultSnapshot {
@@ -73,12 +98,33 @@ export interface FetchedVault {
   encrypted_vault: string;
   vault_nonce: string;
   vault_sha256: string | null;
+  vault_recovered_write_count?: number;
 }
 
 export type FetchResult =
   | { kind: "ok"; snapshot: FetchedVault }
   | { kind: "missing" }
   | { kind: "error" };
+
+function clean_for_seal(vault: EncryptedVault): EncryptedVault {
+  const stripped = strip_server_known_keks(strip_retired_storage_keks(vault));
+  const ids = merge_server_known_ids(vault.server_known_kek_ids, [
+    ...stripped.removed_ids,
+    ...get_session_server_known_ids(),
+  ]);
+  const next: EncryptedVault = { ...stripped.vault };
+
+  if (ids.length > 0) {
+    next.server_known_kek_ids = ids;
+  } else {
+    delete next.server_known_kek_ids;
+  }
+  if (next.legacy_keks && next.legacy_keks.length === 0) {
+    delete next.legacy_keks;
+  }
+
+  return next;
+}
 
 export interface VaultWriteRequest {
   next: EncryptedVault;
@@ -178,6 +224,57 @@ function merge_legacy_keks(
   return server ?? (withheld ? undefined : next);
 }
 
+function larger_generation(a: unknown, b: unknown): number | undefined {
+  const values = [a, b].filter(
+    (value): value is number =>
+      typeof value === "number" && Number.isSafeInteger(value) && value > 0,
+  );
+
+  return values.length ? Math.max(...values) : undefined;
+}
+
+function merged_floors(
+  a: unknown,
+  b: unknown,
+): Record<string, number> | undefined {
+  const out: Record<string, number> = {};
+
+  for (const source of [a, b]) {
+    if (!source || typeof source !== "object") continue;
+    for (const [key, value] of Object.entries(source)) {
+      const best = larger_generation(out[key], value);
+
+      if (best !== undefined) out[key] = best;
+    }
+  }
+
+  return Object.keys(out).length ? out : undefined;
+}
+
+function keep_monotonic_fields(
+  merged: VaultRecord,
+  server: EncryptedVault,
+  next: EncryptedVault,
+): void {
+  const generation = larger_generation(
+    server.recovery_backup_generation,
+    next.recovery_backup_generation,
+  );
+
+  if (generation !== undefined) merged.recovery_backup_generation = generation;
+
+  if (server.ratchet_state_v2 === true || next.ratchet_state_v2 === true) {
+    merged.ratchet_state_v2 = true;
+  }
+
+  const floors = merged_floors(
+    server.ratchet_sync_floors,
+    next.ratchet_sync_floors,
+  );
+
+  if (floors) merged.ratchet_sync_floors = floors;
+}
+
 export function merge_vault_for_write(
   server: EncryptedVault,
   base: EncryptedVault | null,
@@ -193,7 +290,14 @@ export function merge_vault_for_write(
   ]);
 
   for (const key of keys) {
-    if (key === "legacy_keks" || key === "vault_format") continue;
+    if (
+      key === "legacy_keks" ||
+      key === "vault_format" ||
+      key === RETIRED_STORAGE_HASHES_FIELD ||
+      key === "lane_replay"
+    ) {
+      continue;
+    }
     if (is_storage_key_field(key) && !owns_storage_key) continue;
 
     const changed = base_record
@@ -217,6 +321,77 @@ export function merge_vault_for_write(
 
   if (legacy_keks) merged.legacy_keks = legacy_keks;
 
+  const known_ids = merge_server_known_ids(server.server_known_kek_ids, [
+    ...(base?.server_known_kek_ids ?? []),
+    ...(next.server_known_kek_ids ?? []),
+  ]);
+
+  if (known_ids.length > 0) merged.server_known_kek_ids = known_ids;
+
+  const swept_ids = merge_server_known_ids(server.server_known_swept_ids, [
+    ...(base?.server_known_swept_ids ?? []),
+    ...(next.server_known_swept_ids ?? []),
+  ]);
+
+  if (swept_ids.length > 0) merged.server_known_swept_ids = swept_ids;
+
+  const retired_ids = merge_server_known_ids(server.retired_storage_kek_ids, [
+    ...(base?.retired_storage_kek_ids ?? []),
+    ...(next.retired_storage_kek_ids ?? []),
+  ]);
+
+  if (retired_ids.length > 0) merged.retired_storage_kek_ids = retired_ids;
+
+  const retired_marker = merge_mail_legacy_retired_marker(
+    server.mail_legacy_retired,
+    base?.mail_legacy_retired,
+    next.mail_legacy_retired,
+  );
+
+  if (retired_marker) merged.mail_legacy_retired = retired_marker;
+
+  const folder_key_pins = merge_folder_key_pins(
+    server.folder_key_pins,
+    base?.folder_key_pins,
+    next.folder_key_pins,
+  );
+
+  if (folder_key_pins) merged.folder_key_pins = folder_key_pins;
+
+  const untagged_snapshot = merge_untagged_snapshot(
+    server.scheduled_untagged,
+    base?.scheduled_untagged,
+    next.scheduled_untagged,
+  );
+
+  if (
+    server.scheduled_untagged !== undefined &&
+    !is_valid_untagged_snapshot(server.scheduled_untagged)
+  ) {
+    merged.scheduled_untagged = server.scheduled_untagged;
+  } else if (untagged_snapshot) {
+    merged.scheduled_untagged = untagged_snapshot;
+  }
+
+  if (server.scheduled_untagged_ids !== undefined) {
+    merged.scheduled_untagged_ids = server.scheduled_untagged_ids;
+  }
+
+  const retired_hashes = merge_retired_storage_hashes(server, base, next);
+
+  if (retired_hashes) {
+    merged[RETIRED_STORAGE_HASHES_FIELD] = retired_hashes;
+  }
+
+  if (server.lane_replay !== undefined || next.lane_replay !== undefined) {
+    merged.lane_replay = merge_lane_replay_maps(
+      server.lane_replay,
+      next.lane_replay,
+    );
+  }
+
+  keep_monotonic_fields(merged, server, next);
+
   merged.vault_format = Math.max(
     server.vault_format ?? 1,
     next.vault_format ?? 1,
@@ -228,7 +403,15 @@ export function merge_vault_for_write(
     }
   }
 
-  return merged as unknown as EncryptedVault;
+  if (typeof server.prekey_seal_key === "string") {
+    merged.prekey_seal_key = server.prekey_seal_key;
+  }
+
+  if (server.prekey_seal_migrated === true) {
+    merged.prekey_seal_migrated = true;
+  }
+
+  return strip_retired_storage_keks(merged as unknown as EncryptedVault);
 }
 
 export function is_vault_conflict(response: {
@@ -263,6 +446,7 @@ export async function fetch_latest_vault(): Promise<FetchResult> {
         encrypted_vault: data.encrypted_vault,
         vault_nonce: data.vault_nonce,
         vault_sha256: data.vault_sha256 ?? null,
+        vault_recovered_write_count: data.vault_recovered_write_count,
       },
     };
   } catch {
@@ -333,7 +517,12 @@ export async function adopt_latest_vault_when(
 
   const latest = await read_latest_vault(passphrase);
 
-  if (!latest || !accept(latest.vault) || get_vault_owner_id() !== owner_id) {
+  if (
+    !latest ||
+    is_rolled_back_vault(owner_id, latest.vault) ||
+    !accept(latest.vault) ||
+    get_vault_owner_id() !== owner_id
+  ) {
     return null;
   }
 
@@ -399,6 +588,20 @@ async function write_once(
 
   if (
     server &&
+    !accept_recovered_vault(
+      user_id,
+      server,
+      fetched.kind === "ok"
+        ? fetched.snapshot.vault_recovered_write_count
+        : undefined,
+    ) &&
+    is_rolled_back_vault(user_id, server)
+  ) {
+    return { status: "failed", error: VAULT_ROLLED_BACK };
+  }
+
+  if (
+    server &&
     request.owns_storage_key &&
     base &&
     !storage_key_fields_match(server, base)
@@ -406,16 +609,30 @@ async function write_once(
     return { status: "superseded", vault: server };
   }
 
-  const merged = without_dropped_keks(
-    server
-      ? merge_vault_for_write(
-          server,
-          base,
-          request.next,
-          request.owns_storage_key === true,
-        )
-      : request.next,
-    request.drop_legacy_keks,
+  const merged = clean_for_seal(
+    without_dropped_keks(
+      server
+        ? merge_vault_for_write(
+            server,
+            base,
+            request.next,
+            request.owns_storage_key === true,
+          )
+        : request.next,
+      request.drop_legacy_keks,
+    ),
+  );
+
+  merged.vault_generation = next_vault_generation(
+    user_id,
+    ...(server ? [server] : []),
+    request.next,
+  );
+  apply_generation_markers(
+    user_id,
+    merged,
+    ...(server ? [server] : []),
+    request.next,
   );
   const vault_key_fingerprints = await collect_vault_key_fingerprints(merged);
   const vault_format = Math.max(

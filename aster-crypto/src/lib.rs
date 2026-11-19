@@ -32,7 +32,7 @@ pub use decrypt::{
     decrypt_and_verify_with_passphrase, decrypt_message, decrypt_message_with_passphrase,
 };
 pub use encrypt::{encrypt_and_sign_with_passphrase, encrypt_message};
-pub use error::{CryptoError, Result};
+pub use error::{CryptoError, RecipientKeyProblem, Result};
 pub use key_policy::{ensure_publishable_key, is_known_bad_published_key};
 pub use keys::{
     generate_keypair, generate_keypair_with_password, import_public_key, import_public_key_bytes,

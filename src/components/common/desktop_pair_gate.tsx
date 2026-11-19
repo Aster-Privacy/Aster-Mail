@@ -98,6 +98,8 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
         session.passphrase,
         session.encrypted_vault,
         session.vault_nonce,
+        true,
+        session.vault_recovered_write_count,
       );
       await update_account_device_id(session.user.id, session.device_id).catch(
         (caught) =>

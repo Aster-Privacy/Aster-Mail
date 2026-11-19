@@ -40,22 +40,25 @@ vi.mock("./key_manager", () => ({
   }),
 }));
 
-vi.mock("@/services/crypto/legacy_ios_envelope", () => ({
-  decrypt_legacy_ios_envelope: vi.fn(
-    async (ciphertext: Uint8Array, nonce: Uint8Array) => {
-      if (!mobile_key.value) return null;
+const decrypt_with_mobile_key = vi.hoisted(
+  () => async (ciphertext: Uint8Array, nonce: Uint8Array) => {
+    if (!mobile_key.value) return null;
 
-      try {
-        return await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: nonce },
-          mobile_key.value,
-          ciphertext,
-        );
-      } catch {
-        return null;
-      }
-    },
-  ),
+    try {
+      return await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: nonce },
+        mobile_key.value,
+        ciphertext,
+      );
+    } catch {
+      return null;
+    }
+  },
+);
+
+vi.mock("@/services/crypto/legacy_ios_envelope", () => ({
+  decrypt_legacy_ios_envelope: vi.fn(decrypt_with_mobile_key),
+  decrypt_legacy_ios_mail_envelope: vi.fn(decrypt_with_mobile_key),
 }));
 
 import {

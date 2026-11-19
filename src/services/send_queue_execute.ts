@@ -571,6 +571,7 @@ export async function execute_external_send(
 
     secure_message = {
       kdf_salt: encrypted_secure.kdf_salt,
+      kdf_version: encrypted_secure.kdf_version,
       auth_proof: encrypted_secure.auth_proof,
       kem_ciphertext: encrypted_secure.kem_ciphertext,
       encrypted_kem_seed: encrypted_secure.encrypted_kem_seed,

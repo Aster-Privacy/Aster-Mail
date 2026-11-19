@@ -20,13 +20,12 @@
 //
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-const switches = vi.hoisted(() => ({ vault: false, attachment: false }));
+const switches = vi.hoisted(() => ({ vault: false }));
 
 vi.mock("@/services/api/account_key", () => ({
   get_account_key_capabilities: async () => ({}),
   peek_account_key_capabilities: () => ({
     bound_vault_writes: switches.vault,
-    bound_attachment_writes: switches.attachment,
   }),
 }));
 
@@ -58,7 +57,6 @@ async function attachment_key(): Promise<CryptoKey> {
 
 beforeEach(() => {
   switches.vault = false;
-  switches.attachment = false;
   reset_level2_state();
 });
 
@@ -109,30 +107,12 @@ describe("vault write form", () => {
 describe("attachment write form", () => {
   const data = new TextEncoder().encode("file body");
 
-  it("writes the unbound form while the switch is off", async () => {
+  it("binds the data to its slot", async () => {
     const key = await attachment_key();
     const { encrypted, nonce } = await encrypt_data_with_session_key(
       data.buffer,
       key,
       2,
-      false,
-    );
-    const plain = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
-      key,
-      encrypted,
-    );
-
-    expect(new Uint8Array(plain)).toEqual(data);
-  });
-
-  it("binds the data to its slot when the switch is on", async () => {
-    const key = await attachment_key();
-    const { encrypted, nonce } = await encrypt_data_with_session_key(
-      data.buffer,
-      key,
-      2,
-      true,
     );
     const plain = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: nonce, additionalData: ATTACHMENT_AAD },

@@ -25,10 +25,20 @@ import {
 } from "@/components/ui/title_tip_layer";
 import { forward_iframe_outside_interaction } from "@/lib/iframe_outside_interaction";
 import {
+  is_mailto_link,
+  parse_mailto_link,
+  keep_safe_mailto_fields,
+} from "@/lib/mailto_link";
+import {
+  deliver_mailto_draft,
+  has_mailto_listener,
+} from "@/native/desktop_mailto_bridge";
+import {
   LINK_MENU_EVENT,
   link_menu_host,
   type LinkMenuDetail,
 } from "@/lib/link_menu_event";
+import { request_external_link } from "@/utils/external_link_request";
 
 const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
 const ABSOLUTE_URL_REGEX = /^[a-z][a-z0-9+.-]*:/i;
@@ -87,13 +97,77 @@ function attach_frame_tips(
   iframe_doc.documentElement.addEventListener("pointerleave", hide);
 }
 
-function resolve_link_url(link: HTMLAnchorElement, href: string): string {
+function resolve_link_url(link: MessageLink, href: string): string {
+  if (is_mailto_link(href)) return keep_safe_mailto_fields(href);
   if (ABSOLUTE_URL_REGEX.test(href)) return href;
 
   return link.href || href;
 }
 
-function activate_link(link: HTMLAnchorElement, href: string): void {
+const IN_DOCUMENT_ANCHOR_PREFIX = "aster_anchor_";
+
+type MessageLink = HTMLAnchorElement | HTMLAreaElement;
+
+function in_frame_anchor(href: string): string | null {
+  const trimmed = href.trim();
+
+  return trimmed.startsWith("#") ? trimmed.slice(1) : null;
+}
+
+function decode_anchor_name(raw_name: string): string {
+  try {
+    return decodeURIComponent(raw_name);
+  } catch {
+    return raw_name;
+  }
+}
+
+function find_frame_anchor(iframe_doc: Document, name: string): Element | null {
+  const by_id = iframe_doc.getElementById(name);
+
+  if (by_id) return by_id;
+
+  for (const element of Array.from(iframe_doc.querySelectorAll("[name]"))) {
+    if (element.getAttribute("name") === name) return element;
+  }
+
+  return null;
+}
+
+function scroll_to_frame_anchor(iframe_doc: Document, raw_name: string): void {
+  const name = decode_anchor_name(raw_name);
+
+  if (!name) return;
+
+  const candidates = name.startsWith(IN_DOCUMENT_ANCHOR_PREFIX)
+    ? [name]
+    : [name, `${IN_DOCUMENT_ANCHOR_PREFIX}${name}`];
+
+  for (const candidate of candidates) {
+    const target = find_frame_anchor(iframe_doc, candidate);
+
+    if (target) {
+      target.scrollIntoView({ block: "start" });
+
+      return;
+    }
+  }
+}
+
+function open_mailto(href: string): void {
+  const safe_link = keep_safe_mailto_fields(href);
+  const draft = has_mailto_listener() ? parse_mailto_link(safe_link) : null;
+
+  if (draft) {
+    deliver_mailto_draft({ ...draft, bcc: [] });
+
+    return;
+  }
+
+  void request_external_link(safe_link);
+}
+
+function activate_link(link: MessageLink, href: string): void {
   if (href.startsWith("aster:")) {
     const path = href.slice("aster:".length);
 
@@ -225,7 +299,7 @@ export function attach_iframe_interactions(
   iframe_body.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
 
-    if (target.tagName === "IMG" && !target.closest("a")) {
+    if (target.tagName === "IMG" && !target.closest("a, area")) {
       if (target.getAttribute("data-blocked") !== "true") {
         const img_el = target as HTMLImageElement;
 
@@ -240,27 +314,44 @@ export function attach_iframe_interactions(
       }
     }
 
-    const link = target.closest("a");
+    const link = target.closest("a, area");
 
     if (!link) return;
     const href = link.getAttribute("href") || "";
 
-    if (!href || href.startsWith("#") || href.startsWith("mailto:")) return;
+    if (!href) return;
+
+    const anchor_name = in_frame_anchor(href);
+
+    if (anchor_name !== null) {
+      e.preventDefault();
+      e.stopPropagation();
+      scroll_to_frame_anchor(iframe_doc, anchor_name);
+
+      return;
+    }
 
     e.preventDefault();
     e.stopPropagation();
 
-    activate_link(link as HTMLAnchorElement, href);
+    if (is_mailto_link(href)) {
+      open_mailto(href);
+
+      return;
+    }
+
+    activate_link(link as MessageLink, href);
   });
 
   iframe_body.addEventListener("contextmenu", (e) => {
-    const link = (e.target as HTMLElement).closest("a");
+    const link = (e.target as HTMLElement).closest("a, area");
 
     if (!link) return;
     const href = link.getAttribute("href") || "";
 
-    if (!href || href.startsWith("#") || href.startsWith("aster:")) return;
-    const url = resolve_link_url(link as HTMLAnchorElement, href);
+    if (!href || in_frame_anchor(href) !== null || href.startsWith("aster:"))
+      return;
+    const url = resolve_link_url(link as MessageLink, href);
 
     if (!link_menu_host(url)) return;
 
@@ -285,17 +376,30 @@ export function attach_iframe_interactions(
     if ((e as MouseEvent).button !== 1) return;
 
     const target = e.target as HTMLElement;
-    const link = target.closest("a");
+    const link = target.closest("a, area");
 
     if (!link) return;
     const href = link.getAttribute("href") || "";
 
-    if (!href || href.startsWith("#") || href.startsWith("mailto:")) return;
+    if (!href) return;
+
+    if (in_frame_anchor(href) !== null) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      return;
+    }
 
     e.preventDefault();
     e.stopPropagation();
 
-    activate_link(link as HTMLAnchorElement, href);
+    if (is_mailto_link(href)) {
+      open_mailto(href);
+
+      return;
+    }
+
+    activate_link(link as MessageLink, href);
   });
 
   iframe_doc.addEventListener("keydown", (e) => {

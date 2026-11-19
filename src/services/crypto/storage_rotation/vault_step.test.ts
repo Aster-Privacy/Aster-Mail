@@ -156,6 +156,7 @@ describe("storage key vault step", () => {
   }, 120000);
 
   beforeEach(() => {
+    localStorage.clear();
     server.vault = null;
     server.puts = 0;
     server.before_put = undefined;
@@ -250,7 +251,10 @@ describe("storage key vault step", () => {
     expect(await mark_storage_rekey_done(PASSWORD, data_kek)).toBe("done");
     expect(server.puts).toBe(puts);
 
-    const newer = random_vault();
+    const newer = {
+      ...random_vault(),
+      vault_generation: (finished.vault_generation ?? 0) + 1,
+    };
 
     await put_server_vault(newer);
     expect(await server_storage_key_matches(PASSWORD, data_kek)).toBe(false);

@@ -67,3 +67,15 @@ To check the starting point as well, download `openpgp@6.3.2` from the npm regis
 ### Updating OpenPGP.js
 
 When you bump the `openpgp` version, apply the same change to the new `dist/openpgp.min.mjs`, run `npx patch-package openpgp`, delete the old patch file, and update the file name in this document.
+
+## `@aster+ui+0.2.2.patch`
+
+The patch adds one optional prop, `show_cipher`, to `EncryptionInfoDropdownView` in `@aster/ui`. It changes `dist/index.js`, `dist/index.cjs`, and the two type declaration files. Nothing else in the package differs from the published `@aster-privacy/ui@0.2.2`.
+
+### What it changes
+
+The dropdown always printed the cipher line (`AES-256-GCM` with `KEM-768` or `ML-KEM-768`) under its description. With the patch, the line renders only when `show_cipher` is `true`, which stays the default, and it carries `data-testid="encryption_cipher_line"`. The app passes `show_cipher` as `true` only for content that is end-to-end encrypted, so the dropdown for files that are not in the encrypted message no longer names those ciphers.
+
+### Updating `@aster/ui`
+
+When a published `@aster/ui` release includes the `show_cipher` prop, delete this patch file and this section. Until then, apply the same change to the new `dist` files, run `npx patch-package @aster/ui`, delete the old patch file, and update the file name in this document.

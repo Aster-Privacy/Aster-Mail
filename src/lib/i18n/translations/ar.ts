@@ -121,6 +121,19 @@ export const ar = {
       "تم حذف المجلد. الرسائل بداخله تبقى في حسابك.",
     delete_folder_password_required: "أدخل كلمة سر حسابك.",
     delete_folder_totp_required: "أدخل رمز المصادقة بخطوتين.",
+    mail_key_upgrade_title: "جارٍ تحديث بريدك المحفوظ",
+    mail_key_upgrade_running:
+      "يعيد Aster Mail تشفير رسائلك المحفوظة باستخدام مفاتيحك الحالية. أبقِ هذه النافذة مفتوحة حتى تنتهي العملية.",
+    mail_key_upgrade_progress: "تم فحص {count} رسالة",
+    mail_key_upgrade_progress_one: "تم فحص رسالة واحدة ({count})",
+    mail_key_upgrade_failed:
+      "تعذّر على Aster Mail إكمال تحديث رسائلك المحفوظة. لم يتغير بريدك. تحقق من اتصالك، ثم حاول مرة أخرى.",
+    mail_key_upgrade_retry: "إعادة المحاولة",
+    mail_key_upgrade_done_title: "تم تحديث البريد المحفوظ",
+    mail_key_upgrade_skipped: "تعذّر تحديث {count} رسالة حتى الآن.",
+    mail_key_upgrade_skipped_one: "تعذّر تحديث رسالة واحدة ({count}) حتى الآن.",
+    mail_key_upgrade_unreadable: "بريدك المحفوظ محدَّث. تعذّر على Aster Mail فتح {count} رسالة قديمة بمفاتيحك، لذا تبقى كما هي.",
+    mail_key_upgrade_unreadable_one: "بريدك المحفوظ محدَّث. تعذّر على Aster Mail فتح رسالة قديمة واحدة ({count}) بمفاتيحك، لذا تبقى كما هي.",
     delete_folder_verification_failed:
       "تحقق من كلمة السر والرمز ثم أعد المحاولة.",
     qr_code: "رمز QR",
@@ -1345,6 +1358,9 @@ export const ar = {
     state_province: "الولاية / المقاطعة",
     files_end_to_end_encrypted: "هذه الملفات مشفرة من طرف إلى طرف.",
     files_protected_in_transit: "هذه الملفات كانت محمية ومشفرة أثناء النقل.",
+    files_outside_encrypted_label: "ليست ضمن الرسالة المشفرة",
+    files_outside_encrypted:
+      "هذه الملفات ليست جزءًا من الرسالة المشفرة. لا تفتحها إلا إذا كنت تثق بالمرسل.",
     duplicate_send_blocked:
       "تم إرسال هذه الرسالة للتو. تحقق من مجلد العناصر المرسلة قبل إرسالها مرة أخرى.",
     empty_body_error: "موضوع أو نص رسالة لازم قبل أن تُرسل.",
@@ -2435,6 +2451,9 @@ export const ar = {
     sender_pictures: "صور المرسلين",
     sender_pictures_description:
       "يعرض صورة المرسل أو الأحرف الأولى من اسمه بجوار كل رسالة في البريد الوارد.",
+    sender_logos: "شعارات الشركات",
+    sender_logos_description:
+      "عرض شعارات الشركات التي تراسلك. يجلب Aster Mail كل شعار عبر خادمه باستخدام نطاق المرسل.",
     fam_welcome_step1_title: "مرحباً بك في خطة العائلة",
     fam_welcome_step1_desc:
       "يحصل كل فرد في عائلتك على صندوق وارد خاص ومشفّر - منفصل تماماً عن صندوقك.",
@@ -3323,6 +3342,15 @@ export const ar = {
     alias_tab_domains: "النطاقات",
     alias_tab_directories: "الأدلة",
     alias_tab_ghost: "الأسماء المستعارة الشبحية",
+    alias_tab_sending: "الإرسال",
+    sending_blocks_title: "الأسماء المستعارة المعطّل إرسالها",
+    sending_blocks_description: "أوقف الإرسال لاسم مستعار حتى لا يخرج منه أي بريد. يستمر الاسم المستعار في استقبال البريد.",
+    sending_blocks_search_placeholder: "البحث في الأسماء المستعارة",
+    sending_blocks_empty: "ليس لديك أسماء مستعارة أو عناوين نطاق بعد.",
+    sending_blocks_no_results: "لا توجد أسماء مستعارة تطابق بحثك.",
+    sending_blocks_sending_allowed: "الإرسال مسموح",
+    sending_blocks_toggle_label: "السماح بالإرسال من {{ email }}",
+    sending_blocks_update_failed: "تعذّر تحديث الإرسال لهذا الاسم المستعار. حاول مرة أخرى.",
     alias_tab_preferences: "التفضيلات",
     alias_search_placeholder: "البحث في الأسماء المستعارة...",
     alias_filter_all: "الكل",
@@ -4411,8 +4439,6 @@ export const ar = {
     updating: "جارٍ التحديث...",
     password_change_encrypted_data_warning:
       "تُعاد تشفير التسميات والتوقيعات والقوالب عند تغيير كلمة المرور. إذا انقطع الاتصال خلال هذه العملية، فلن يمكن استرداد هذه البيانات.",
-    password_changed_items_unreadable:
-      "تم تغيير كلمة السر. احتفظ {{count}} من العناصر المشفّرة بتشفيرها السابق لأنّ مفتاحها لم يكن متاحاً. لا يتأثر تسليم البريد. للاستعادة، تواصل مع الدعم.",
     password_change_background_reencrypt_failed:
       "تم تغيير كلمة السر، لكن بعض الرسائل المرسلة والإعدادات لم تكتمل إعادة تشفيرها. تواصل مع الدعم إذا ظهرت رسائل أو إعدادات غير مقروءة.",
     previous_password: "كلمة السر السابقة",
@@ -9049,6 +9075,8 @@ export const ar = {
     recipient_identity_untrusted:
       "تغير مفتاح التشفير الخاص بـ {{email}}، ولا يمكن تأكيد المفتاح الجديد. للإرسال إلى هذا العنوان، أكّد التغيير مع هذا الشخص بطريقة أخرى، ثم اختر الوثوق بالمفتاح الجديد.",
     trust_new_key: "الوثوق بالمفتاح الجديد",
+    trust_new_key_failed:
+      "تغيّر مفتاح التشفير أو تعذّر التحقق منه، لذلك لم يتم الوثوق به. لمراجعة المفتاح الحالي، حاول مرة أخرى.",
     load_all_thread_messages: "تحميل كل الرسائل",
     move_to_category: "النقل إلى فئة",
     menu_applies_to_selection: "ينطبق على {count} محددة",
@@ -9742,6 +9770,9 @@ export const ar = {
     reply_from_mismatch_message:
       "تم استلام هذا البريد على {{ received }}، لكن ردك سيُرسل من {{ selected }}. الرد من عنوان مختلف قد يكشفه للمرسل وقد يُرفض الرد.",
     reply_from_mismatch_use_received: "استخدام عنوان الاستلام",
+    sending_disabled_badge: "الإرسال معطّل",
+    reply_from_mismatch_banner: "تم استلام هذه الرسالة على {{ received }}، لكن ردك سيُرسل من {{ selected }}.",
+    reply_from_mismatch_banner_switch: "الإرسال من {{ received }}",
     reply_from_mismatch_send_anyway: "الإرسال على أي حال",
     reply_from_unknown_title: "تحقق من عنوان المرسل",
     reply_from_unknown_message:
@@ -10033,6 +10064,14 @@ export const ar = {
       "يؤثر هذا في {{count}} رسالة كلها في {{scope}}.",
   },
   auth: {
+    continue_with_app: "المتابعة باستخدام {{app}}",
+    sibling_waiting: "أكّد تسجيل الدخول في النافذة التي فُتحت.",
+    sibling_popup_blocked: "تم حظر نافذة التأكيد. اسمح بالنوافذ المنبثقة لهذا الموقع، ثم حاول مرة أخرى.",
+    sibling_failed: "لم يكتمل تسجيل الدخول باستخدام {{app}}. حاول مرة أخرى، أو سجّل الدخول بكلمة المرور.",
+    handoff_approve_title: "تسجيل الدخول إلى {{app}}؟",
+    handoff_approve_body: "يطلب {{app}} تسجيل الدخول باسم {{email}}. تابع فقط إذا كنت أنت من بدأ تسجيل الدخول هذا.",
+    handoff_approve_done: "يمكنك إغلاق هذه النافذة.",
+    handoff_approve_signed_out: "لم تسجّل الدخول هنا. أغلق هذه النافذة وسجّل الدخول بكلمة المرور.",
     passkey_verification: "التحقق باستخدام مفتاح المرور",
     use_passkey_or_key:
       "استخدم Windows Hello أو Face ID أو مفتاح الأمان الخاص بك",
@@ -10081,6 +10120,7 @@ export const ar = {
     authenticating: "جارٍ المصادقة...",
     fetching_auth_data: "جارٍ جلب بيانات المصادقة...",
     verifying_credentials: "جارٍ التحقق من بيانات الاعتماد...",
+    sign_in_standard_protection: "الحماية المحسّنة لتسجيل الدخول غير متاحة حاليًا، لذلك سجّلت الدخول بالحماية القياسية.",
     decrypting_vault: "جارٍ فك تشفير خزنة المفاتيح...",
     getting_user_info: "جارٍ الحصول على معلومات المستخدم...",
     checkout_confirm_title: "إكمال تسجيل الدخول",
@@ -10707,12 +10747,11 @@ export const ar = {
     rename_saved: "تم تحديث الاسم",
   },
   errors: {
+    alias_sending_disabled: "الإرسال من هذا الاسم المستعار معطّل. فعّله أولاً.",
     auth_salt_collision:
       "توقف تسجيل الدخول لأن الخادم أرسل قيمة غير آمنة، لذلك لم يتم فتح أي شيء. تواصل مع الدعم قبل المحاولة مرة أخرى.",
     legacy_login_salt_new_device:
       "لإكمال تحديث أمني لحسابك، سجّل الدخول على جهاز استخدمته مع Aster من قبل. إذا تعذّر ذلك، فأعد تعيين كلمة المرور باستخدام مفتاح الاسترداد.",
-    legacy_login_salt_sign_in_again:
-      "لإكمال تحديث أمني لحسابك، سجّل الخروج ثم سجّل الدخول مرة أخرى.",
     upload_too_large:
       "حجم الملفات المرفوعة كبير جدا. للمتابعة، احذف ملفا أو صغّر حجمه ثم أعد المحاولة.",
     failed_remove_reaction: "تعذر إزالة التفاعل. يرجى المحاولة مرة أخرى.",
@@ -10908,12 +10947,16 @@ export const ar = {
     failed_send: "لم تُرسل هذه الرسالة. حاول مجددًا. مسوّدتك محفوظة.",
     send_unconfirmed:
       "تعذّر على Aster التأكد من إرسال هذا البريد. تحقق من مجلد المرسل قبل المحاولة مجددًا. مسوّدتك محفوظة.",
+    scheduled_unverifiable:
+      "لا يمكن التحقق من هذه الرسالة المجدولة، لذا يمكنك إلغاؤها فقط.",
     scheduled_may_have_sent:
       "لم يُلغَ هذا البريد المجدول لأنه ربما أُرسل بالفعل. تحقق من مجلد المرسل.",
     no_keys_available:
       "مفاتيحك الخاصة مقفلة على هذا الجهاز. كلمة مرورك ستفتحها. مفاتيحك على الخادم لم تُمَس.",
     session_identity_mismatch:
       "تم تسجيل الدخول على هذا الجهاز إلى حساب آخر، لذلك قمنا بتسجيل خروجك للحفاظ على فصل الحسابات. يكفي تسجيل الدخول مرة أخرى. بياناتك لم تُمس.",
+    vault_rolled_back:
+      "يحتوي هذا الجهاز على نسخة أحدث من مفاتيح التشفير الخاصة بك من النسخة التي أرسلها الخادم، لذلك لم يستخدم Aster Mail النسخة الأقدم. سجّل الدخول مرة أخرى. إذا استمر حدوث ذلك، فتواصل مع الدعم.",
     key_material_unavailable:
       "مفاتيحك الخاصة مقفلة على هذا الجهاز. كلمة مرورك ستفتحها. مفاتيحك على الخادم لم تُمَس.",
     storage_compromised:
@@ -11462,6 +11505,10 @@ export const ar = {
       "هل تريد حذف {{address}}؟ سيتوقف العنوان عن استقبال البريد ولا يمكن تسجيله مجددًا.",
     delete_confirm_title: "حذف صندوق البريد المشترك",
     access_unavailable: "صندوق البريد المشترك هذا لم يعد متاحًا",
+    member_key_untrusted:
+      "تغيّر مفتاح التشفير الخاص بأحد الأعضاء أو تعذّر التحقق منه، لذلك لم يتم تحديث وصوله. للمتابعة، أكّد المفتاح الجديد مع هذا العضو بطريقة أخرى، واختر الوثوق بالمفتاح الجديد في محادثة معه، ثم أعد المحاولة.",
+    unknown_member_access:
+      "لدى شخص ليس عضوًا نشطًا في خطتك العائلية وصول إلى صندوق البريد هذا، لذلك لم يتم تجديد مفاتيحه. تواصل مع دعم Aster.",
   },
   review_prompt: {
     banner_message:

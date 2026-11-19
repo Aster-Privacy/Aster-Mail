@@ -53,7 +53,7 @@ import {
   base64_to_array,
   normalize_parsed_envelope,
 } from "@/services/crypto/envelope";
-import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
+import { decrypt_legacy_ios_mail_envelope } from "@/services/crypto/legacy_ios_envelope";
 import {
   drop_sender_verification,
   resolve_inline_pgp_sender_keys,
@@ -63,9 +63,14 @@ import { derive_public_keys_from_private } from "@/services/crypto/key_manager_p
 import {
   drop_sent_encryption_evidence,
   has_sent_encryption_evidence,
+  is_legacy_unverified,
+  settle_legacy_unverified,
 } from "@/services/crypto/sent_encryption_evidence";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { decrypt_envelope_v2_with_vault } from "@/services/crypto/envelope_v2";
+import {
+  is_stored_envelope_sentinel,
+  open_stored_envelope,
+} from "@/services/crypto/stored_envelope_read";
 import {
   is_crypto_module_load_error,
   load_openpgp,
@@ -640,6 +645,11 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             if (!self_signed) drop_sent_encryption_evidence(parsed);
           }
 
+          if (is_legacy_unverified(parsed)) {
+            parsed.sender_verification = "unsigned";
+            drop_sent_encryption_evidence(parsed);
+          }
+
           register_envelope_attachment_keys(mail_item_id, parsed);
 
           return parsed as T;
@@ -691,11 +701,15 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
     await wait_for_keys_ready();
   }
 
-  if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
-    return drop_sender_verification(
-      await decrypt_envelope_v2_with_vault<T>(
-        encrypted_envelope,
-        get_vault_from_memory(),
+  if (is_stored_envelope_sentinel(nonce_bytes)) {
+    return settle_legacy_unverified(
+      drop_sender_verification(
+        await open_stored_envelope<T>(
+          encrypted_envelope,
+          nonce_bytes,
+          get_vault_from_memory(),
+          mail_item_id,
+        ),
       ),
     );
   }
@@ -713,7 +727,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
 
       zero_uint8_array(passphrase_bytes);
 
-      return drop_sender_verification(result);
+      return settle_legacy_unverified(drop_sender_verification(result));
     }
 
     zero_uint8_array(passphrase_bytes);
@@ -798,8 +812,10 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
     }
 
     const finalize_envelope = (plaintext: ArrayBuffer): T => {
-      const parsed = drop_sender_verification(
-        JSON.parse(new TextDecoder().decode(plaintext)),
+      const parsed = settle_legacy_unverified(
+        drop_sender_verification(
+          JSON.parse(new TextDecoder().decode(plaintext)),
+        ),
       );
 
       register_envelope_attachment_keys(mail_item_id, parsed);
@@ -853,7 +869,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       }
     }
 
-    const legacy_plaintext = await decrypt_legacy_ios_envelope(
+    const legacy_plaintext = await decrypt_legacy_ios_mail_envelope(
       enc_bytes,
       nonce_bytes,
     );

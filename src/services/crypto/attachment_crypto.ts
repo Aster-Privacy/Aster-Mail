@@ -57,11 +57,8 @@ import {
   type InboundAttachmentEntry,
 } from "@/services/crypto/inbound_attachment_keys";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
-import {
-  get_account_key_capabilities,
-  peek_account_key_capabilities,
-} from "@/services/api/account_key";
+import { decrypt_legacy_ios_mail_envelope } from "@/services/crypto/legacy_ios_envelope";
+import { get_account_key_capabilities } from "@/services/api/account_key";
 
 export interface EncryptedAttachmentForSend {
   encrypted_data: string;
@@ -70,6 +67,8 @@ export interface EncryptedAttachmentForSend {
   sender_meta_nonce: string;
   recipient_encrypted_meta?: string;
   recipient_metas?: Record<string, string>;
+  internal_encrypted_data?: string;
+  internal_data_nonce?: string;
   size_bytes: number;
 }
 
@@ -119,7 +118,6 @@ export async function encrypt_data_with_session_key(
   data: ArrayBuffer,
   session_key: CryptoKey,
   seq: number,
-  bound: boolean,
 ): Promise<{ encrypted: ArrayBuffer; nonce: Uint8Array }> {
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
@@ -127,7 +125,7 @@ export async function encrypt_data_with_session_key(
     {
       name: "AES-GCM",
       iv: nonce,
-      additionalData: bound ? attachment_data_aad(seq) : new Uint8Array(0),
+      additionalData: attachment_data_aad(seq),
     },
     session_key,
     data,
@@ -208,6 +206,43 @@ export function wipe_sealed_attachment_plan(plan: SealedAttachmentPlan): void {
   for (const key of plan.session_keys) zero_uint8_array(key);
 }
 
+async function encrypt_outside_copy(
+  attachment: Attachment,
+  meta: AttachmentMeta,
+  seq: number,
+): Promise<{ encrypted_data: string; data_nonce: string; plain_meta: string }> {
+  const outside_raw_key = crypto.getRandomValues(new Uint8Array(32));
+
+  try {
+    const outside_key = await crypto.subtle.importKey(
+      "raw",
+      outside_raw_key,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt"],
+    );
+    const { encrypted, nonce } = await encrypt_data_with_session_key(
+      attachment.data,
+      outside_key,
+      seq,
+    );
+    const outside_meta: AttachmentMeta = {
+      ...meta,
+      session_key: array_to_base64(outside_raw_key),
+    };
+
+    return {
+      encrypted_data: array_to_base64(new Uint8Array(encrypted)),
+      data_nonce: array_to_base64(nonce),
+      plain_meta: array_to_base64(
+        new TextEncoder().encode(JSON.stringify(outside_meta)),
+      ),
+    };
+  } finally {
+    zero_uint8_array(outside_raw_key);
+  }
+}
+
 export async function encrypt_attachments_for_send(
   attachments: Attachment[],
   recipient_public_keys?: string[],
@@ -247,7 +282,10 @@ export async function encrypt_attachments_for_send(
 
   try {
     const own_seal = await own_key_seal_when_enabled(attachments.length);
-    const bound = peek_account_key_capabilities().bound_attachment_writes;
+    const separate_outside_copy =
+      split_outside_copy &&
+      attachments.length > 0 &&
+      (await get_account_key_capabilities()).split_attachment_copies;
     let seq = 0;
 
     for (const attachment of attachments) {
@@ -267,7 +305,6 @@ export async function encrypt_attachments_for_send(
         attachment.data,
         session_key,
         seq,
-        bound,
       );
 
       const meta: AttachmentMeta = {
@@ -320,9 +357,15 @@ export async function encrypt_attachments_for_send(
             )
           : undefined;
 
-      const recipient_encrypted_meta = split_outside_copy
-        ? plain_meta
-        : (sealed_shared_meta ?? plain_meta);
+      const outside_copy = separate_outside_copy
+        ? await encrypt_outside_copy(attachment, meta, seq)
+        : null;
+
+      const recipient_encrypted_meta = outside_copy
+        ? outside_copy.plain_meta
+        : split_outside_copy
+          ? plain_meta
+          : (sealed_shared_meta ?? plain_meta);
 
       const recipient_metas: Record<string, string> = {};
 
@@ -345,13 +388,22 @@ export async function encrypt_attachments_for_send(
         );
       }
 
+      const internal_data = array_to_base64(new Uint8Array(encrypted));
+      const internal_nonce = array_to_base64(nonce);
+
       results.push({
-        encrypted_data: array_to_base64(new Uint8Array(encrypted)),
-        data_nonce: array_to_base64(nonce),
+        encrypted_data: outside_copy ? outside_copy.encrypted_data : internal_data,
+        data_nonce: outside_copy ? outside_copy.data_nonce : internal_nonce,
         sender_encrypted_meta: sender_meta.encrypted,
         sender_meta_nonce: array_to_base64(meta_nonce_placeholder),
         recipient_encrypted_meta,
         ...(Object.keys(recipient_metas).length > 0 ? { recipient_metas } : {}),
+        ...(outside_copy
+          ? {
+              internal_encrypted_data: internal_data,
+              internal_data_nonce: internal_nonce,
+            }
+          : {}),
         size_bytes: attachment.size_bytes,
       });
 
@@ -733,7 +785,7 @@ async function decrypt_mobile_authored_meta(
 ): Promise<AttachmentMeta | null> {
   if (!is_sealed_meta_nonce(meta_nonce)) return null;
 
-  const plaintext = await decrypt_legacy_ios_envelope(
+  const plaintext = await decrypt_legacy_ios_mail_envelope(
     base64_to_array(encrypted_meta),
     base64_to_array(meta_nonce as string),
   );

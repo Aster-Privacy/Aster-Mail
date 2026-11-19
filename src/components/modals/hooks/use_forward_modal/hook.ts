@@ -99,6 +99,7 @@ import {
 import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
 import { sender_is_pending } from "@/components/compose/sender_pending";
+import { use_send_when_sender_ready } from "@/components/compose/use_send_when_sender_ready";
 import {
   type Attachment,
   type DraftStatus,
@@ -717,32 +718,34 @@ export function use_forward_modal({
     };
   }, [is_open, original_mail_id, effective_mail_id]);
 
+  const sender_resolution_ready =
+    !sender_loading && (preferred_sender_ready || !!preferred_sender_id);
+
+  const resolved_sender = resolve_from_sender({
+    options: sender_options,
+    thread_addresses: get_forward_from_candidates(effective_mail_id),
+    prefer_external: is_external,
+    preferred_sender_id,
+  });
+  const resolved_sender_option = resolved_sender?.option ?? null;
+
+  const expected_sender_email = sender_resolution_ready
+    ? (resolved_sender_option?.email ?? null)
+    : null;
+
   useEffect(() => {
-    if (sender_loading) return;
+    if (!sender_resolution_ready) return;
     if (sender_manually_selected_ref.current) return;
     if (ghost_mode.is_ghost_enabled) return;
-    if (!preferred_sender_ready && !preferred_sender_id) return;
+    if (!resolved_sender_option) return;
+    if (resolved_sender_option.id === selected_sender?.id) return;
 
-    const resolved = resolve_from_sender({
-      options: sender_options,
-      thread_addresses: get_forward_from_candidates(effective_mail_id),
-      prefer_external: is_external,
-      preferred_sender_id,
-    });
-
-    if (!resolved) return;
-    if (resolved.option.id === selected_sender?.id) return;
-
-    set_selected_sender_state(resolved.option);
+    set_selected_sender_state(resolved_sender_option);
   }, [
-    is_external,
-    sender_options,
-    sender_loading,
+    sender_resolution_ready,
+    resolved_sender_option,
     selected_sender,
-    preferred_sender_id,
-    preferred_sender_ready,
     ghost_mode.is_ghost_enabled,
-    effective_mail_id,
   ]);
 
   useEffect(() => {
@@ -812,8 +815,24 @@ export function use_forward_modal({
         chosen_by_user:
           sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
         selected_email: selected_sender?.email,
+        thread_bound: true,
+        resolution_ready: sender_resolution_ready,
+        expected_email: expected_sender_email,
       }),
-    [sender_loading, ghost_mode.is_ghost_enabled, selected_sender?.email],
+    [
+      sender_loading,
+      ghost_mode.is_ghost_enabled,
+      selected_sender?.email,
+      sender_resolution_ready,
+      expected_sender_email,
+    ],
+  );
+
+  const forward_send_ref = useRef<() => void>(() => {});
+  const forward_scheduled_ref = useRef<() => void>(() => {});
+  const { wait_for_sender } = use_send_when_sender_ready(
+    is_sender_pending,
+    is_open,
   );
 
   const handle_forward = useCallback(async () => {
@@ -869,7 +888,14 @@ export function use_forward_modal({
     }
 
     if (is_sender_pending()) {
+      wait_for_sender(() => forward_send_ref.current());
       show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
 
       return;
     }
@@ -1197,7 +1223,10 @@ export function use_forward_modal({
     vault,
     attachment_session,
     is_sender_pending,
+    wait_for_sender,
   ]);
+
+  forward_send_ref.current = handle_forward;
 
   const schedule_gate_pending_ref = useRef(false);
 
@@ -1223,7 +1252,14 @@ export function use_forward_modal({
     }
 
     if (is_sender_pending()) {
+      wait_for_sender(() => forward_scheduled_ref.current());
       show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
 
       return;
     }
@@ -1421,7 +1457,10 @@ export function use_forward_modal({
     original_mail_id,
     attachment_session,
     is_sender_pending,
+    wait_for_sender,
   ]);
+
+  forward_scheduled_ref.current = handle_scheduled_send;
 
   const get_total_attachments_size = useCallback(() => {
     return attachments.reduce((total, att) => total + att.size_bytes, 0);

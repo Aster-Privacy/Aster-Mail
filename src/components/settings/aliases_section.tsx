@@ -47,6 +47,7 @@ import { GhostAliasesSection } from "@/components/settings/ghost_aliases_section
 import { AliasImportModal } from "@/components/settings/aliases/alias_import_modal";
 import { AliasExportModal } from "@/components/settings/aliases/alias_export_modal";
 import { AliasPreferencesPanel } from "@/components/settings/aliases/alias_preferences_panel";
+import { AliasSendingBlocksSection } from "@/components/settings/aliases/alias_sending_blocks_section";
 import { ignore_error } from "@/lib/ignore_error";
 import { emit_aliases_changed } from "@/hooks/mail_events";
 import {
@@ -56,7 +57,13 @@ import {
 
 export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 
-const ALIAS_TABS = ["aliases", "directories", "ghost", "preferences"] as const;
+const ALIAS_TABS = [
+  "aliases",
+  "directories",
+  "ghost",
+  "sending",
+  "preferences",
+] as const;
 
 type AliasTab = (typeof ALIAS_TABS)[number];
 
@@ -190,6 +197,7 @@ export function AliasesSection() {
     { key: "aliases", label: t("settings.alias_tab_aliases") },
     { key: "directories", label: t("settings.alias_tab_directories") },
     { key: "ghost", label: t("settings.alias_tab_ghost") },
+    { key: "sending", label: t("settings.alias_tab_sending") },
     { key: "preferences", label: t("settings.alias_tab_preferences") },
   ];
 
@@ -335,6 +343,8 @@ export function AliasesSection() {
       {active_tab === "directories" && <AliasDirectoriesSection />}
 
       {active_tab === "ghost" && <GhostAliasesSection />}
+
+      {active_tab === "sending" && <AliasSendingBlocksSection />}
 
       {active_tab === "preferences" && (
         <AliasPreferencesPanel

@@ -19,15 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { Capacitor } from "@capacitor/core";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const NATIVE_API_BASE_URL = "https://app.astermail.org/api";
 const NATIVE_WS_BASE_URL = "wss://app.astermail.org/ws";
 
 export function is_native_app(): boolean {
-  return (
-    Capacitor.isNativePlatform() ||
-    (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window)
-  );
+  return Capacitor.isNativePlatform() || has_tauri_runtime();
 }
 
 export function get_api_base_url(): string {

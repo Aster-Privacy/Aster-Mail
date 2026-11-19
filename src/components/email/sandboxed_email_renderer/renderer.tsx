@@ -103,6 +103,7 @@ import { connection_store } from "@/services/routing/connection_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { reveal_on_fonts_ready } from "@/components/email/reveal_on_fonts_ready";
 import { ignore_error } from "@/lib/ignore_error";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export interface SandboxedEmailRendererProps {
   sanitized_html: string;
@@ -548,7 +549,7 @@ a:focus-visible {
       return `http://${host}`;
     }
 
-    return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window
+    return has_tauri_runtime()
       ? "https://app.astermail.org"
       : window.location.origin;
   })();

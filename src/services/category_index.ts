@@ -60,6 +60,7 @@ import {
   type CustomCategoryRule,
 } from "@/data/category_catalog";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
+import { is_ratchet_body_text } from "@/services/crypto/ratchet_types";
 import {
   emit_mail_item_updated,
   on_mail_event,
@@ -183,6 +184,10 @@ function chunk_record_key(account_key: string, index: number): string {
 }
 
 function preview_record_key(account_key: string): string {
+  return `${account_key}:previews_v2`;
+}
+
+function legacy_preview_record_key(account_key: string): string {
   return `${account_key}:previews`;
 }
 
@@ -1052,6 +1057,15 @@ function remember_entry_preview(id: string, preview: CategoryPreview): void {
   ) {
     return;
   }
+
+  preview_version += 1;
+  previews_dirty = true;
+  schedule_persist();
+  notify_soon(!build_in_progress);
+}
+
+function forget_entry_preview(id: string): void {
+  if (!entry_previews.delete(id)) return;
 
   preview_version += 1;
   previews_dirty = true;
@@ -2043,6 +2057,7 @@ interface DecodedItem {
   key: string;
   custom_categories: CustomCategoryRule[];
   entry: CategoryIndexEntry;
+  sealed_body: boolean;
 }
 
 const decoded_items = new Map<string, DecodedItem>();
@@ -2065,6 +2080,7 @@ function remember_decoded_item(
   item: MailItem,
   entry: CategoryIndexEntry,
   rules: CustomCategoryRule[],
+  sealed_body: boolean,
 ): void {
   decoded_items.delete(item.id);
   decoded_items.set(item.id, {
@@ -2072,6 +2088,7 @@ function remember_decoded_item(
     key: decoded_item_key(item),
     custom_categories: rules,
     entry,
+    sealed_body,
   });
 
   while (decoded_items.size > MAX_DECODED_ITEMS) {
@@ -2109,13 +2126,15 @@ function reuse_decoded_item(item: MailItem): CategoryIndexEntry | null {
   const existing = entries_map.get(item.id);
   const preview = entry_previews.get(item.id);
 
-  if (!decoded || !existing || !preview) return null;
+  if (!decoded || !existing) return null;
+  if (!preview && !decoded.sealed_body) return null;
   if (existing.needs_reclassify) return null;
   if (decoded.custom_categories !== custom_categories) return null;
   if (decoded.envelope !== item.encrypted_envelope) return null;
   if (decoded.key !== decoded_item_key(item)) return null;
 
-  remember_entry_preview(item.id, preview);
+  if (decoded.sealed_body) forget_entry_preview(item.id);
+  else if (preview) remember_entry_preview(item.id, preview);
 
   return refresh_item_fields(decoded.entry, item);
 }
@@ -2211,7 +2230,11 @@ async function item_to_entry(
       ? item.snoozed_until
       : undefined;
 
-  if (envelope) {
+  const sealed_body = is_ratchet_body_text(envelope?.body_text);
+
+  if (envelope && sealed_body) {
+    forget_entry_preview(item.id);
+  } else if (envelope) {
     remember_entry_preview(
       item.id,
       build_category_preview(
@@ -2248,7 +2271,7 @@ async function item_to_entry(
     },
   };
 
-  if (envelope) remember_decoded_item(item, result.entry, rules);
+  if (envelope) remember_decoded_item(item, result.entry, rules, sealed_body);
 
   return result;
 }
@@ -3950,6 +3973,7 @@ export async function delete_category_index_for_account(
 
       store.delete(account_id);
       store.delete(preview_record_key(account_id));
+      store.delete(legacy_preview_record_key(account_id));
       for (let i = 0; i < PERSIST_CHUNK_COUNT; i++) {
         store.delete(chunk_record_key(account_id, i));
       }

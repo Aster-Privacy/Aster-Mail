@@ -48,6 +48,10 @@ import {
 } from "@/components/settings/billing/billing_constants";
 import { create_family_group } from "@/services/api/family";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  is_https_payment_url,
+  payment_url_or_throw,
+} from "@/lib/payment_url";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
@@ -1248,7 +1252,7 @@ export function use_billing_section() {
       const url = response.data?.url;
 
       if (url) {
-        window.location.assign(url);
+        window.location.assign(payment_url_or_throw(url));
       } else {
         show_toast(
           server_error_text(
@@ -1356,7 +1360,7 @@ export function use_billing_section() {
 
       const parsed = new URL(checkout_url);
 
-      if (parsed.protocol !== "https:") {
+      if (!is_https_payment_url(parsed.toString())) {
         show_toast(
           t("settings.failed_checkout"),
           "error",

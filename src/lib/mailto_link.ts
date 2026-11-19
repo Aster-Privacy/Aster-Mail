@@ -146,3 +146,41 @@ export function parse_mailto_link(raw_link: string): MailtoDraft | null {
 
   return draft;
 }
+
+export function is_mailto_link(raw_link: string): boolean {
+  return (
+    raw_link.trim().slice(0, MAILTO_PREFIX.length).toLowerCase() ===
+    MAILTO_PREFIX
+  );
+}
+
+const SAFE_MAILTO_FIELDS = new Set(["to", "cc", "subject", "body"]);
+
+export function keep_safe_mailto_fields(raw_link: string): string {
+  const link = raw_link.trim();
+  const fragment_index = link.indexOf("#");
+  const without_fragment =
+    fragment_index === -1 ? link : link.slice(0, fragment_index);
+  const query_index = without_fragment.indexOf("?");
+
+  if (query_index === -1) return without_fragment;
+
+  const kept_pairs = without_fragment
+    .slice(query_index + 1)
+    .split(/[&;]/)
+    .filter((pair) => {
+      if (!pair) return false;
+
+      const separator_index = pair.indexOf("=");
+      const name = decode_component(
+        separator_index === -1 ? pair : pair.slice(0, separator_index),
+      )
+        .trim()
+        .toLowerCase();
+
+      return SAFE_MAILTO_FIELDS.has(name);
+    });
+  const path = without_fragment.slice(0, query_index);
+
+  return kept_pairs.length ? `${path}?${kept_pairs.join("&")}` : path;
+}

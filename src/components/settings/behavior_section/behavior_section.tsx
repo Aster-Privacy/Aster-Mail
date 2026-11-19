@@ -130,6 +130,7 @@ import {
   reading_pane_patch,
   type ReadingPanePosition,
 } from "@/lib/reading_pane";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
@@ -295,9 +296,8 @@ export function BehaviorSection() {
       return false;
     }
   });
-  const is_web =
-    !Capacitor.isNativePlatform() && !("__TAURI_INTERNALS__" in window);
-  const is_desktop_app = "__TAURI_INTERNALS__" in window;
+  const is_web = !Capacitor.isNativePlatform() && !has_tauri_runtime();
+  const is_desktop_app = has_tauri_runtime();
   const [close_to_tray, set_close_to_tray_state] = useState(() =>
     get_close_to_tray(),
   );
@@ -890,6 +890,23 @@ export function BehaviorSection() {
             )
           }
           title={t("settings.sender_pictures")}
+        />
+
+        <ToggleSetting
+          description={t("settings.sender_logos_description")}
+          enabled={preferences.load_sender_logos === true}
+          info={{
+            title: t("settings.sender_logos"),
+            description: t("settings.sender_logos_description"),
+          }}
+          on_toggle={() =>
+            update_preference(
+              "load_sender_logos",
+              preferences.load_sender_logos !== true,
+              true,
+            )
+          }
+          title={t("settings.sender_logos")}
         />
 
         <ToggleSetting

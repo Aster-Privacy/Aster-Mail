@@ -117,7 +117,7 @@ async function generate_one_time_prekey(
 
   if (!private_jwk.d) return null;
 
-  const encrypted = await encrypt_ec_one_time_secret(private_jwk.d);
+  const encrypted = await encrypt_ec_one_time_secret(private_jwk.d, key_id);
 
   if (!encrypted) return null;
 

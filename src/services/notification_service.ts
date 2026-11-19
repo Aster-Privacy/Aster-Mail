@@ -29,6 +29,7 @@ import {
 import { ignore_error } from "@/lib/ignore_error";
 import { play_iconic_sound } from "@/services/iconic_sounds";
 import { open_message_in_view_mode } from "@/components/toast/toast_action_router";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export type NotificationType = "new_email" | "reply" | "reaction";
 
@@ -46,7 +47,7 @@ let last_sound_played_at = 0;
 const SOUND_MIN_INTERVAL_MS = 3000;
 
 function is_tauri(): boolean {
-  return "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 async function show_tauri_notification(

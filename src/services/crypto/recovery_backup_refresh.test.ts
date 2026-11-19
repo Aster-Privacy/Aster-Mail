@@ -8,6 +8,17 @@ const generate_all_recovery_shares = vi.fn();
 const clear_recovery_key = vi.fn();
 const recovery_key = new Uint8Array(32).fill(9);
 
+vi.mock("../api/sync_format_readiness", () => ({
+  get_sync_format_readiness: async () => ({
+    ratchet_sync_bound: true,
+    recovery_backup_bound: true,
+  }),
+}));
+
+vi.mock("./vault_cas_write", () => ({
+  write_vault_merged: async () => ({ status: "written" }),
+}));
+
 vi.mock("../api/recovery", () => ({
   get_codes_status: (...args: unknown[]) => get_codes_status(...args),
   save_recovery_backup: (...args: unknown[]) => save_recovery_backup(...args),

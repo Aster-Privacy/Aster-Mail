@@ -20,6 +20,11 @@
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+vi.mock("./ratchet_sync_format", () => ({
+  ratchet_sync_writes_bound: vi.fn(async () => true),
+  vault_requires_bound_state: vi.fn(() => false),
+}));
+
 vi.mock("@/services/api/client", () => ({
   api_client: {
     post: vi.fn(),
@@ -30,8 +35,8 @@ vi.mock("@/services/api/client", () => ({
 }));
 
 vi.mock("@/services/crypto/legacy_keks", () => ({
-  decrypt_aes_gcm_with_fallback: vi.fn(),
-  decrypt_with_remembered_derived_key: vi.fn(async () => null),
+  decrypt_aes_gcm_with_fallback: vi.fn(async () => null),
+  decrypt_with_legacy_derived_keys: vi.fn(async () => null),
 }));
 
 vi.mock("./double_ratchet", () => ({
@@ -45,7 +50,7 @@ vi.mock("./ratchet_state_store", () => ({
   archive_ratchet_state: vi.fn(),
 }));
 
-import { sync_all_ratchet_states } from "./ratchet_sync";
+import { sync_all_ratchet_states, type RatchetSyncKey } from "./ratchet_sync";
 import { DoubleRatchet } from "./double_ratchet";
 import {
   list_ratchet_conversations,
@@ -53,15 +58,13 @@ import {
   save_ratchet_state,
 } from "./ratchet_state_store";
 
+import { array_to_base64 } from "./base64";
+
 import { api_client } from "@/services/api/client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 const mock_get = api_client.get as unknown as ReturnType<typeof vi.fn>;
 const mock_put = api_client.put as unknown as ReturnType<typeof vi.fn>;
 const mock_post = api_client.post as unknown as ReturnType<typeof vi.fn>;
-const mock_decrypt = decrypt_aes_gcm_with_fallback as unknown as ReturnType<
-  typeof vi.fn
->;
 const mock_deserialize = DoubleRatchet.deserialize as unknown as ReturnType<
   typeof vi.fn
 >;
@@ -77,12 +80,39 @@ function encode_id(conversation_id: string): string {
   return btoa(conversation_id);
 }
 
-function listed(conversation_id: string, version: number, with_state = true) {
+const DEFAULT_CONTAINER = { state: { stub: true } };
+let container: unknown = DEFAULT_CONTAINER;
+
+async function aes_key(fill: number): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "raw",
+    new Uint8Array(32).fill(fill),
+    { name: "AES-GCM" },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+async function listed(
+  conversation_id: string,
+  version: number,
+  with_state = true,
+  seal_fill = 0,
+) {
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const sealed = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce },
+    await aes_key(seal_fill),
+    new TextEncoder().encode(JSON.stringify(container)),
+  );
+
   return {
     id: conversation_id,
     conversation_id: encode_id(conversation_id),
-    encrypted_state: with_state ? "AAAA" : undefined,
-    state_nonce: with_state ? "AAAA" : undefined,
+    encrypted_state: with_state
+      ? array_to_base64(new Uint8Array(sealed))
+      : undefined,
+    state_nonce: with_state ? array_to_base64(nonce) : undefined,
     state_version: version,
     updated_at: "now",
   };
@@ -98,14 +128,10 @@ function fake_ratchet(conversation_id: string, version = 0, dirty = false) {
   };
 }
 
-async function make_key(): Promise<CryptoKey> {
-  return crypto.subtle.importKey(
-    "raw",
-    new Uint8Array(32),
-    { name: "AES-GCM" },
-    false,
-    ["encrypt", "decrypt"],
-  );
+async function make_key(): Promise<RatchetSyncKey> {
+  const key = await aes_key(0);
+
+  return { state_key: key, compat_key: key, user_id: "user-1" };
 }
 
 function state_fetches(): unknown[][] {
@@ -119,15 +145,13 @@ describe("sync_all_ratchet_states with listed states", () => {
     mock_get.mockReset();
     mock_put.mockReset();
     mock_post.mockReset();
-    mock_decrypt.mockReset();
     mock_deserialize.mockReset();
     mock_list_local.mockReset();
     mock_load_local.mockReset();
     mock_save.mockReset();
 
-    mock_decrypt.mockImplementation(async () =>
-      new TextEncoder().encode(JSON.stringify({ state: { stub: true } })),
-    );
+    vi.restoreAllMocks();
+    container = DEFAULT_CONTAINER;
     mock_deserialize.mockImplementation(() => fake_ratchet("restored"));
     mock_save.mockResolvedValue(undefined);
   });
@@ -135,7 +159,9 @@ describe("sync_all_ratchet_states with listed states", () => {
   it("restores conversations missing locally without one request each", async () => {
     const ids = Array.from({ length: 25 }, (_, index) => `conv-${index}`);
 
-    mock_get.mockResolvedValue({ data: ids.map((id) => listed(id, 3)) });
+    mock_get.mockResolvedValue({
+      data: await Promise.all(ids.map((id) => listed(id, 3))),
+    });
     mock_list_local.mockResolvedValue([]);
 
     const result = await sync_all_ratchet_states(await make_key());
@@ -172,21 +198,17 @@ describe("sync_all_ratchet_states with listed states", () => {
       adopt_state: vi.fn(),
     };
 
-    mock_decrypt.mockImplementation(async () =>
-      new TextEncoder().encode(
-        JSON.stringify({
-          state: {
-            ...ratchet_state,
-            send_message_number: 6,
-            chain_key_send: "send-ahead",
-            conversation_id: "conv-a",
-          },
-          conversation_id: "conv-a",
-          sync_version: 5,
-        }),
-      ),
-    );
-    mock_get.mockResolvedValue({ data: [listed("conv-a", 5)] });
+    container = {
+      state: {
+        ...ratchet_state,
+        send_message_number: 6,
+        chain_key_send: "send-ahead",
+        conversation_id: "conv-a",
+      },
+      conversation_id: "conv-a",
+      sync_version: 5,
+    };
+    mock_get.mockResolvedValue({ data: [await listed("conv-a", 5)] });
     mock_list_local.mockResolvedValue(["conv-a"]);
     mock_load_local.mockResolvedValue(local);
 
@@ -212,7 +234,7 @@ describe("sync_all_ratchet_states with listed states", () => {
       adopt_state: vi.fn(),
     };
 
-    mock_get.mockResolvedValue({ data: [listed("conv-a", 5)] });
+    mock_get.mockResolvedValue({ data: [await listed("conv-a", 5)] });
     mock_list_local.mockResolvedValue(["conv-a"]);
     mock_load_local.mockResolvedValue(local);
 
@@ -225,25 +247,30 @@ describe("sync_all_ratchet_states with listed states", () => {
   });
 
   it("leaves an up-to-date local state untouched", async () => {
-    mock_get.mockResolvedValue({ data: [listed("conv-a", 2)] });
+    mock_get.mockResolvedValue({ data: [await listed("conv-a", 2)] });
     mock_list_local.mockResolvedValue(["conv-a"]);
     mock_load_local.mockResolvedValue(fake_ratchet("conv-a", 2));
 
-    const result = await sync_all_ratchet_states(await make_key());
+    const key = await make_key();
+    const decrypt_spy = vi.spyOn(crypto.subtle, "decrypt");
+    const result = await sync_all_ratchet_states(key);
 
     expect(mock_get).toHaveBeenCalledTimes(1);
-    expect(mock_decrypt).not.toHaveBeenCalled();
+    expect(decrypt_spy).not.toHaveBeenCalled();
     expect(mock_save).not.toHaveBeenCalled();
     expect(result.synced).toEqual([]);
   });
 
   it("falls back to a single fetch when the listing has no state", async () => {
+    const without_state = await listed("conv-old", 1, false);
+    const with_state = await listed("conv-old", 1);
+
     mock_get.mockImplementation(async (endpoint: string) => {
       if (endpoint.endsWith("/states")) {
-        return { data: [listed("conv-old", 1, false)] };
+        return { data: [without_state] };
       }
 
-      return { data: listed("conv-old", 1) };
+      return { data: with_state };
     });
     mock_list_local.mockResolvedValue([]);
 
@@ -255,10 +282,9 @@ describe("sync_all_ratchet_states with listed states", () => {
 
   it("reports a state that fails to decrypt and keeps going", async () => {
     mock_get.mockResolvedValue({
-      data: [listed("conv-bad", 1), listed("conv-good", 1)],
+      data: [await listed("conv-bad", 1, true, 9), await listed("conv-good", 1)],
     });
     mock_list_local.mockResolvedValue([]);
-    mock_decrypt.mockRejectedValueOnce(new Error("bad key"));
 
     const result = await sync_all_ratchet_states(await make_key());
 

@@ -24,7 +24,11 @@ import type {
   SkippedMessageKey,
 } from "./double_ratchet";
 
+import { sha256 } from "@noble/hashes/sha256";
+import { bytesToHex } from "@noble/hashes/utils";
+
 const MAX_MERGED_SKIPPED_KEYS = 2000;
+const MAX_RETIRED_SEND_CATCH_UP = 1000;
 
 function skipped_key_id(key: SkippedMessageKey): string {
   return `${key.dh_public}:${key.message_number}`;
@@ -65,6 +69,13 @@ function same_epoch(a: RatchetState, b: RatchetState): boolean {
   );
 }
 
+export function shares_ratchet_epoch(
+  a: RatchetState,
+  b: RatchetState,
+): boolean {
+  return same_epoch(a, b);
+}
+
 function pick_newer_epoch(
   local: RatchetState,
   remote: RatchetState,
@@ -80,7 +91,19 @@ function pick_newer_epoch(
     return local.updated_at > remote.updated_at ? local : remote;
   }
 
-  return local.root_key > remote.root_key ? local : remote;
+  return root_key_digest(local) > root_key_digest(remote) ? local : remote;
+}
+
+function root_key_digest(state: RatchetState): string {
+  return bytesToHex(sha256(new TextEncoder().encode(state.root_key ?? "")));
+}
+
+function created_at_or_zero(state: RatchetState): number {
+  const value = state.created_at;
+
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : 0;
 }
 
 function pick_winner(
@@ -90,11 +113,7 @@ function pick_winner(
 ): RatchetState {
   if (remote_versioned) return pick_newer_epoch(local, remote);
 
-  if (
-    typeof remote.created_at !== "number" ||
-    typeof local.created_at !== "number" ||
-    remote.created_at < local.created_at
-  ) {
+  if (created_at_or_zero(remote) < created_at_or_zero(local)) {
     return local;
   }
 
@@ -140,11 +159,18 @@ export function merge_ratchet_states(
   if (!same_epoch(local.state, remote.state)) {
     const winner = pick_winner(local.state, remote.state, remote_versioned);
     const keep_local_skipped = !remote_versioned && winner === local.state;
+    const header_bound =
+      local.state.header_bound || remote.state.header_bound || undefined;
 
     return {
       conversation_id: local.conversation_id,
       state: {
         ...winner,
+        remote_identity_key:
+          winner.remote_identity_key ||
+          local.state.remote_identity_key ||
+          remote.state.remote_identity_key,
+        header_bound,
         skipped_message_keys: keep_local_skipped
           ? merge_skipped_keys(local_skipped, [])
           : merged_skipped,
@@ -187,12 +213,58 @@ export function merge_ratchet_states(
       epoch: Math.max(local.state.epoch ?? 0, remote.state.epoch ?? 0),
       bootstrap: local.state.bootstrap ?? remote.state.bootstrap,
       remote_identity_key:
-        local.state.remote_identity_key ?? remote.state.remote_identity_key,
+        local.state.remote_identity_key || remote.state.remote_identity_key,
       header_bound:
-        local.state.header_bound || remote.state.header_bound,
+        local.state.header_bound || remote.state.header_bound || undefined,
+      weak_bootstrap:
+        local.state.weak_bootstrap || remote.state.weak_bootstrap,
       skipped_message_keys,
       dirty_since_sync: true,
       updated_at: Math.max(local.state.updated_at, remote.state.updated_at),
     },
   };
+}
+
+export function merge_retired_ratchet_state(
+  local: SerializedState,
+  remote: SerializedState,
+): SerializedState {
+  if (local.conversation_id !== remote.conversation_id) {
+    throw new Error("Ratchet state conversation mismatch");
+  }
+
+  return {
+    conversation_id: local.conversation_id,
+    state: {
+      ...local.state,
+      skipped_message_keys: merge_skipped_keys(
+        local.state.skipped_message_keys ?? [],
+        [],
+      ),
+      dirty_since_sync: true,
+    },
+  };
+}
+
+export function retired_send_target(
+  local: SerializedState,
+  remote: SerializedState,
+): number {
+  const current = local.state.send_message_number;
+
+  if (
+    local.conversation_id !== remote.conversation_id ||
+    local.state.chain_key_send === null ||
+    !same_epoch(local.state, remote.state)
+  ) {
+    return current;
+  }
+
+  const target = remote.state.send_message_number;
+
+  return Number.isSafeInteger(target) &&
+    target > current &&
+    target - current <= MAX_RETIRED_SEND_CATCH_UP
+    ? target
+    : current;
 }

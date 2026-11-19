@@ -20,9 +20,11 @@
 //
 import {
   ACCEPTED_BUNDLE_PREFIX,
+  FIRST_CONTACT_PREFIX,
   IDENTITY_CHANGE_PREFIX,
   IDENTITY_PIN_PREFIX,
   IDENTITY_UNTRUSTED_PREFIX,
+  LANE_SENDER_PIN_PREFIX,
   OWNER_KEY_PIN_PREFIX,
   SENDER_HISTORY_PREFIX,
 } from "./storage_key_names";
@@ -108,6 +110,7 @@ interface StoredIdentityPin {
   verified: boolean;
   pinned_at: number;
   pq_seen?: boolean;
+  pq_signed_seen?: boolean;
   x3dh_seen?: number;
   rotated?: boolean;
   missing_accepted_at?: number;
@@ -118,6 +121,7 @@ export interface IdentityPinRecord {
   fingerprint: string;
   rotated: boolean;
   address_rooted: boolean;
+  verified?: boolean;
 }
 
 function rooted_field(address_rooted: boolean): { address_rooted?: true } {
@@ -139,6 +143,12 @@ function highest_x3dh_seen(
   return highest;
 }
 
+function signed_pq_field(signed: boolean | undefined): {
+  pq_signed_seen?: true;
+} {
+  return signed ? { pq_signed_seen: true } : {};
+}
+
 function x3dh_field(x3dh_seen: number | undefined): { x3dh_seen?: number } {
   return x3dh_seen !== undefined && x3dh_seen > 1 ? { x3dh_seen } : {};
 }
@@ -157,6 +167,8 @@ const PIN_PREFIXES: readonly string[] = [
   OWNER_KEY_PIN_PREFIX,
   IDENTITY_UNTRUSTED_PREFIX,
   ACCEPTED_BUNDLE_PREFIX,
+  FIRST_CONTACT_PREFIX,
+  LANE_SENDER_PIN_PREFIX,
 ];
 
 export const MAX_REMEMBERED_IDENTITIES = 12;
@@ -212,6 +224,155 @@ export async function read_sender_history(
     : read;
 }
 
+interface StoredFirstContact {
+  pending: string[];
+  confirmed: string[];
+}
+
+function capped_keys(keys: string[]): string[] {
+  return [...new Set(keys)].slice(-MAX_REMEMBERED_IDENTITIES);
+}
+
+function normalize_first_contact(stored: unknown): StoredFirstContact {
+  const record =
+    stored && typeof stored === "object"
+      ? (stored as Record<string, unknown>)
+      : {};
+
+  return {
+    pending: remembered_keys(record.pending),
+    confirmed: remembered_keys(record.confirmed),
+  };
+}
+
+function merge_first_contact(
+  left: unknown,
+  right: unknown,
+): StoredFirstContact {
+  const first = normalize_first_contact(left);
+  const second = normalize_first_contact(right);
+
+  return {
+    pending: capped_keys([...first.pending, ...second.pending]),
+    confirmed: capped_keys([...first.confirmed, ...second.confirmed]),
+  };
+}
+
+async function load_first_contact(
+  slot: ContactSlot,
+): Promise<ContactRead<StoredFirstContact>> {
+  const read = await read_contact_entry<unknown>(
+    FIRST_CONTACT_PREFIX,
+    slot,
+    () => true,
+    merge_first_contact,
+  );
+
+  return read.state === "found"
+    ? { ...read, value: normalize_first_contact(read.value) }
+    : read;
+}
+
+async function confirm_first_contact_in_lock(
+  slot: ContactSlot,
+  identity_key: string,
+): Promise<void> {
+  const read = await load_first_contact(slot).catch(() => null);
+  const current = (read && settled_value(read)) ?? {
+    pending: [],
+    confirmed: [],
+  };
+
+  await write_contact_entry(FIRST_CONTACT_PREFIX, slot, {
+    pending: current.pending.filter((key) => key !== identity_key),
+    confirmed: capped_keys([
+      ...current.confirmed.filter((key) => key !== identity_key),
+      identity_key,
+    ]),
+  } satisfies StoredFirstContact);
+}
+
+export async function note_first_contact_identity(
+  pin_id: string,
+  identity_key: string,
+): Promise<void> {
+  if (!pin_id || !identity_key) return;
+
+  try {
+    const slot = await open_pins(pin_id);
+
+    if (!slot) return;
+
+    await with_contact_lock(slot, async () => {
+      const read = await load_first_contact(slot);
+
+      if (!is_settled(read)) return;
+
+      const current = settled_value(read) ?? { pending: [], confirmed: [] };
+
+      if (
+        current.pending.includes(identity_key) ||
+        current.confirmed.includes(identity_key)
+      ) {
+        return;
+      }
+
+      await write_contact_entry(FIRST_CONTACT_PREFIX, slot, {
+        pending: capped_keys([...current.pending, identity_key]),
+        confirmed: current.confirmed,
+      } satisfies StoredFirstContact);
+    });
+  } catch {
+    return;
+  }
+}
+
+export type FirstContactStanding =
+  "confirmed" | "pending" | "absent" | "unreadable";
+
+export async function first_contact_standing(
+  pin_id: string,
+  identity_key: string,
+): Promise<FirstContactStanding> {
+  if (!pin_id || !identity_key) return "unreadable";
+
+  try {
+    const slot = await open_pins(pin_id);
+
+    if (!slot) return "unreadable";
+
+    const read = await load_first_contact(slot);
+
+    if (!is_settled(read)) return "unreadable";
+
+    const record = settled_value(read);
+
+    if (record?.confirmed.includes(identity_key)) return "confirmed";
+    if (record?.pending.includes(identity_key)) return "pending";
+    if ((record?.pending.length ?? 0) >= MAX_REMEMBERED_IDENTITIES) {
+      return "unreadable";
+    }
+
+    return "absent";
+  } catch {
+    return "unreadable";
+  }
+}
+
+export async function is_identity_confirmed_by_user(
+  pin_id: string,
+  identity_key: string,
+): Promise<boolean> {
+  return (await first_contact_standing(pin_id, identity_key)) === "confirmed";
+}
+
+export async function is_first_contact_unconfirmed(
+  pin_id: string,
+  identity_key: string,
+): Promise<boolean> {
+  return !(await is_identity_confirmed_by_user(pin_id, identity_key));
+}
+
 function same_fingerprint(
   left: { fingerprint: string },
   right: { fingerprint: string },
@@ -228,6 +389,9 @@ function merge_identity_pins(
     verified: left.verified || right.verified,
     pinned_at: Math.min(left.pinned_at, right.pinned_at),
     pq_seen: Boolean(left.pq_seen) || Boolean(right.pq_seen),
+    ...signed_pq_field(
+      Boolean(left.pq_signed_seen) || Boolean(right.pq_signed_seen),
+    ),
     ...x3dh_field(highest_x3dh_seen(left.x3dh_seen, right.x3dh_seen)),
     ...(left.rotated || right.rotated ? { rotated: true } : {}),
     ...rooted_field(
@@ -307,6 +471,7 @@ async function pin_identity_in_lock(
   advertises_pq: boolean,
   address_rooted: boolean,
   advertised_x3dh: number | null,
+  signs_pq: boolean,
 ): Promise<IdentityPinStatus> {
   let read = await load_identity_pin(slot);
 
@@ -316,6 +481,7 @@ async function pin_identity_in_lock(
       verified,
       pinned_at: Date.now(),
       pq_seen: advertises_pq,
+      ...signed_pq_field(signs_pq),
       x3dh_seen: highest_x3dh_seen(null, advertised_x3dh),
       ...rooted_field(address_rooted),
     } satisfies StoredIdentityPin);
@@ -330,6 +496,7 @@ async function pin_identity_in_lock(
 
   const existing = read.value;
   const pq_seen = Boolean(existing.pq_seen) || advertises_pq;
+  const pq_signed_seen = Boolean(existing.pq_signed_seen) || signs_pq;
   const x3dh_seen = highest_x3dh_seen(existing.x3dh_seen, advertised_x3dh);
   const rooted = Boolean(existing.address_rooted) || address_rooted;
 
@@ -341,6 +508,7 @@ async function pin_identity_in_lock(
       verified,
       pinned_at: Date.now(),
       pq_seen,
+      ...signed_pq_field(pq_signed_seen),
       x3dh_seen,
       rotated: true,
       ...rooted_field(rooted),
@@ -359,6 +527,7 @@ async function pin_identity_in_lock(
   if (
     (verified && !existing.verified) ||
     pq_seen !== Boolean(existing.pq_seen) ||
+    pq_signed_seen !== Boolean(existing.pq_signed_seen) ||
     x3dh_seen !== highest_x3dh_seen(existing.x3dh_seen, null) ||
     rooted !== Boolean(existing.address_rooted)
   ) {
@@ -366,6 +535,7 @@ async function pin_identity_in_lock(
       ...existing,
       verified: existing.verified || verified,
       pq_seen,
+      ...signed_pq_field(pq_signed_seen),
       x3dh_seen,
       ...rooted_field(rooted),
     } satisfies StoredIdentityPin);
@@ -381,6 +551,7 @@ export async function check_and_pin_identity(
   advertises_pq: boolean = false,
   address_rooted: boolean = false,
   advertised_x3dh: number | null = null,
+  signs_pq: boolean = false,
 ): Promise<IdentityPinStatus> {
   try {
     if (!pin_id || !kem_identity_key) {
@@ -401,6 +572,7 @@ export async function check_and_pin_identity(
         advertises_pq,
         address_rooted,
         advertised_x3dh,
+        signs_pq,
       ),
     );
   } catch {
@@ -861,6 +1033,7 @@ export async function trust_recipient_keys(
   armored_public_key: string | null,
   accepted_bundle: RecipientBundleBinding | null = null,
   address_rooted: boolean = false,
+  confirmed_by_user: boolean = false,
 ): Promise<void> {
   const slot = await open_pins(pin_id);
 
@@ -869,6 +1042,9 @@ export async function trust_recipient_keys(
   await with_contact_lock(slot, async () => {
     const known = await load_identity_pin(slot).catch(() => null);
     const pq_seen = Boolean(known && settled_value(known)?.pq_seen);
+    const pq_signed_seen = Boolean(
+      known && settled_value(known)?.pq_signed_seen,
+    );
     const x3dh_seen = known ? settled_value(known)?.x3dh_seen : undefined;
 
     if (accepted_bundle) {
@@ -886,6 +1062,7 @@ export async function trust_recipient_keys(
         verified: false,
         pinned_at: Date.now(),
         pq_seen,
+        ...signed_pq_field(pq_signed_seen),
         ...x3dh_field(x3dh_seen),
         ...rooted_field(address_rooted),
       } satisfies StoredIdentityPin);
@@ -917,6 +1094,10 @@ export async function trust_recipient_keys(
       );
     }
 
+    if (confirmed_by_user && kem_identity_key) {
+      await confirm_first_contact_in_lock(slot, kem_identity_key);
+    }
+
     await delete_contact_entry(IDENTITY_CHANGE_PREFIX, slot);
     await delete_contact_entry(IDENTITY_UNTRUSTED_PREFIX, slot);
     await mark_contact_reviewed(slot);
@@ -941,6 +1122,20 @@ export async function remembered_peer_x3dh_version(
     );
   } catch {
     return 1;
+  }
+}
+
+export async function has_peer_signed_pq(pin_id: string): Promise<boolean> {
+  try {
+    if (!pin_id) return false;
+
+    const slot = await open_pins(pin_id);
+
+    if (!slot) return false;
+
+    return settled_value(await load_identity_pin(slot))?.pq_signed_seen === true;
+  } catch {
+    return false;
   }
 }
 
@@ -975,6 +1170,7 @@ export async function lookup_identity_pin_record(
       fingerprint: read.value.fingerprint,
       rotated: read.value.rotated === true || read.conflict,
       address_rooted: read.value.address_rooted === true,
+      verified: read.value.verified === true && !read.conflict,
     };
   } catch {
     return "unreadable";
@@ -1038,6 +1234,7 @@ export async function acknowledge_identity_change(
       verified: read.value.verified,
       pinned_at: read.value.pinned_at,
       pq_seen: read.value.pq_seen,
+      ...signed_pq_field(read.value.pq_signed_seen),
       ...x3dh_field(read.value.x3dh_seen),
     } satisfies StoredIdentityPin);
   });

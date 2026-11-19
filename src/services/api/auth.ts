@@ -24,8 +24,14 @@ import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
 import { is_totp_required_response } from "./totp";
 
-import { sign_in_v3, take_pending_login_v3 } from "@/services/crypto/login_v3";
 import { apply_sign_in_scope } from "@/lib/suspension_state";
+import { ignore_error } from "@/lib/ignore_error";
+import {
+  is_login_v3_pinned,
+  sign_in_v3,
+  take_pending_login_v3,
+  unpin_login_v3,
+} from "@/services/crypto/login_v3";
 
 interface RecoveryShareData {
   code_hash: string;
@@ -119,6 +125,7 @@ interface LoginResponse {
   csrf_token: string;
   encrypted_vault: string;
   vault_nonce: string;
+  vault_recovered_write_count?: number;
   access_token?: string;
   needs_prekey_replenishment?: boolean;
   is_suspended?: boolean;
@@ -285,19 +292,42 @@ export async function get_retired_login_salts(): Promise<string[]> {
   const response = await api_client.get<RetiredLoginSaltsResponse>(
     "/core/v1/auth/me/login-salt",
   );
+  if (response.error) throw new Error(response.error);
+
   const salts = response.data?.retired_salts;
 
-  if (response.error || !Array.isArray(salts)) return [];
+  if (!Array.isArray(salts)) return [];
 
   return salts.filter((entry): entry is string => typeof entry === "string");
+}
+
+async function notify_standard_protection(): Promise<void> {
+  try {
+    const [{ show_toast }, { get_active_translations }] = await Promise.all([
+      import("@/components/toast/simple_toast"),
+      import("@/lib/i18n/translations"),
+    ]);
+
+    show_toast(
+      get_active_translations().auth.sign_in_standard_protection,
+      "info",
+    );
+  } catch (caught) {
+    ignore_error("services/api/auth:standard_protection_notice", caught);
+  }
 }
 
 export async function login_user(
   request: LoginRequest,
 ): Promise<ApiResponse<LoginResponse>> {
   const v1_proof = take_pending_login_v3(request.user_hash);
+  const v3_response = v1_proof
+    ? await sign_in_v3<LoginResponse>(request, v1_proof)
+    : null;
+  const left_pinned_method =
+    !v3_response && is_login_v3_pinned(request.user_hash);
   const response =
-    (v1_proof ? await sign_in_v3<LoginResponse>(request, v1_proof) : null) ??
+    v3_response ??
     (await api_client.post<LoginResponse>("/core/v1/auth/login", request));
 
   if (response.data && !is_totp_required_response(response.data)) {
@@ -313,6 +343,11 @@ export async function login_user(
     }
     api_client.set_authenticated(true);
     apply_sign_in_scope(response.data);
+  }
+
+  if (left_pinned_method && response.data && !response.error) {
+    unpin_login_v3(request.user_hash);
+    void notify_standard_protection();
   }
 
   return response;

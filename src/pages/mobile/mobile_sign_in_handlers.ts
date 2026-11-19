@@ -385,6 +385,7 @@ export function build_mobile_sign_in_handlers(
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,
+            response.data.vault_recovered_write_count,
           ),
         );
 
@@ -405,6 +406,7 @@ export function build_mobile_sign_in_handlers(
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,
+            response.data.vault_recovered_write_count,
           ),
         );
       }

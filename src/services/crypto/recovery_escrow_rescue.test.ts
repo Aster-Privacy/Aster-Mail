@@ -23,8 +23,11 @@ vi.mock("openpgp", async (import_original) => ({
 }));
 
 import { rescue_account_key_from_escrow } from "./recovery_escrow_rescue";
+import { seal_legacy_escrow_entry } from "./recovery_escrow_fixtures";
 import {
-  derive_escrow_keypair,
+  ESCROW_FORMAT,
+  derive_escrow_keys,
+  derive_legacy_escrow_keypair,
   encode_escrow_seed,
   generate_escrow_seed,
   seal_account_key_to_escrow,
@@ -38,14 +41,48 @@ function make_account_key(fill: number): Uint8Array {
   return new Uint8Array(32).fill(fill);
 }
 
+function current_source(seed: Uint8Array) {
+  return {
+    escrow_seed: encode_escrow_seed(seed),
+    escrow_format: ESCROW_FORMAT,
+  };
+}
+
+function legacy_source(seed: Uint8Array) {
+  return { escrow_seed: encode_escrow_seed(seed) };
+}
+
 async function make_escrow(seed: Uint8Array, versions: number[]) {
-  const keypair = derive_escrow_keypair(seed, USER_ID);
+  const keys = derive_escrow_keys(seed, USER_ID);
   const entries = [];
 
   for (const token_version of versions) {
     entries.push({
       token_version,
       sealed: await seal_account_key_to_escrow(
+        make_account_key(token_version),
+        keys,
+        USER_ID,
+        token_version,
+      ),
+    });
+  }
+
+  return {
+    user_id: USER_ID,
+    escrow_public_key: array_to_base64(keys.public_key),
+    entries,
+  };
+}
+
+async function make_legacy_escrow(seed: Uint8Array, versions: number[]) {
+  const keypair = derive_legacy_escrow_keypair(seed, USER_ID);
+  const entries = [];
+
+  for (const token_version of versions) {
+    entries.push({
+      token_version,
+      sealed: await seal_legacy_escrow_entry(
         make_account_key(token_version),
         keypair.public_key,
         USER_ID,
@@ -78,7 +115,7 @@ describe("rescue_account_key_from_escrow", () => {
   it("returns null without an escrow seed", async () => {
     const result = await rescue_account_key_from_escrow(
       "token",
-      undefined,
+      {},
       "identity",
       "password",
     );
@@ -88,15 +125,13 @@ describe("rescue_account_key_from_escrow", () => {
   });
 
   it("returns null when the server has no escrow entries", async () => {
-    const seed = generate_escrow_seed();
-
     fetch_recovery_escrow_keys.mockResolvedValue({
       data: { user_id: USER_ID, escrow_public_key: null, entries: [] },
     });
 
     const result = await rescue_account_key_from_escrow(
       "token",
-      encode_escrow_seed(seed),
+      current_source(generate_escrow_seed()),
       "identity",
       "password",
     );
@@ -106,7 +141,6 @@ describe("rescue_account_key_from_escrow", () => {
 
   it("re-seals the highest token version to the new identity key", async () => {
     const seed = generate_escrow_seed();
-    const encoded = encode_escrow_seed(seed);
 
     fetch_recovery_escrow_keys.mockResolvedValue({
       data: await make_escrow(seed, [1, 2, 3]),
@@ -114,7 +148,7 @@ describe("rescue_account_key_from_escrow", () => {
 
     const result = await rescue_account_key_from_escrow(
       "token",
-      encoded,
+      current_source(seed),
       "new-identity",
       "new-password",
     );
@@ -130,17 +164,165 @@ describe("rescue_account_key_from_escrow", () => {
     expect(serial).toBe(4);
   });
 
-  it("returns null when the seed does not match the published public key", async () => {
+  it("skips entries the server sealed to the published key", async () => {
     const seed = generate_escrow_seed();
-    const other_seed = generate_escrow_seed();
+    const escrow = await make_escrow(seed, [1]);
+    const published = derive_escrow_keys(seed, USER_ID).public_key;
+    const server_key = new Uint8Array(32).fill(0xee);
+
+    escrow.entries.push({
+      token_version: 9,
+      sealed: await seal_account_key_to_escrow(
+        server_key,
+        {
+          public_key: published,
+          auth_key: crypto.getRandomValues(new Uint8Array(32)),
+        },
+        USER_ID,
+        9,
+      ),
+    });
+    escrow.entries.push({
+      token_version: 8,
+      sealed: await seal_legacy_escrow_entry(
+        server_key,
+        published,
+        USER_ID,
+        8,
+      ),
+    });
+    fetch_recovery_escrow_keys.mockResolvedValue({ data: escrow });
+
+    const result = await rescue_account_key_from_escrow(
+      "token",
+      legacy_source(seed),
+      "new-identity",
+      "new-password",
+    );
+
+    expect(result).not.toBeNull();
+    expect(sealed_account_keys).toEqual([Array.from(make_account_key(1))]);
+    expect(seal_account_key_token.mock.calls[0][3]).toBe(2);
+  });
+
+  it("signs in nothing when every entry came from the server", async () => {
+    const seed = generate_escrow_seed();
+    const published = derive_escrow_keys(seed, USER_ID).public_key;
 
     fetch_recovery_escrow_keys.mockResolvedValue({
-      data: await make_escrow(other_seed, [1]),
+      data: {
+        user_id: USER_ID,
+        escrow_public_key: array_to_base64(published),
+        entries: [
+          {
+            token_version: 4,
+            sealed: await seal_legacy_escrow_entry(
+              new Uint8Array(32).fill(0xee),
+              published,
+              USER_ID,
+              4,
+            ),
+          },
+        ],
+      },
     });
 
     const result = await rescue_account_key_from_escrow(
       "token",
-      encode_escrow_seed(seed),
+      current_source(seed),
+      "new-identity",
+      "new-password",
+    );
+
+    expect(result).toBeNull();
+    expect(seal_account_key_token).not.toHaveBeenCalled();
+  });
+
+  it("refuses the legacy format once the account has moved on", async () => {
+    const seed = generate_escrow_seed();
+
+    fetch_recovery_escrow_keys.mockResolvedValue({
+      data: await make_legacy_escrow(seed, [1, 2]),
+    });
+
+    const result = await rescue_account_key_from_escrow(
+      "token",
+      current_source(seed),
+      "new-identity",
+      "new-password",
+    );
+
+    expect(result).toBeNull();
+    expect(seal_account_key_token).not.toHaveBeenCalled();
+  });
+
+  it("opens legacy entries for an account that has not moved on", async () => {
+    const seed = generate_escrow_seed();
+
+    fetch_recovery_escrow_keys.mockResolvedValue({
+      data: await make_legacy_escrow(seed, [1, 2]),
+    });
+
+    const result = await rescue_account_key_from_escrow(
+      "token",
+      legacy_source(seed),
+      "new-identity",
+      "new-password",
+    );
+
+    expect(result).toEqual({ token: TOKEN, fingerprint: FINGERPRINT });
+    expect(sealed_account_keys[0]).toEqual(Array.from(make_account_key(2)));
+    expect(seal_account_key_token.mock.calls[0][3]).toBe(3);
+  });
+
+  it("opens current entries for an account that is not marked yet", async () => {
+    const seed = generate_escrow_seed();
+
+    fetch_recovery_escrow_keys.mockResolvedValue({
+      data: await make_escrow(seed, [5]),
+    });
+
+    const result = await rescue_account_key_from_escrow(
+      "token",
+      legacy_source(seed),
+      "new-identity",
+      "new-password",
+    );
+
+    expect(result).not.toBeNull();
+    expect(sealed_account_keys[0]).toEqual(Array.from(make_account_key(5)));
+  });
+
+  it("skips entries with an invalid token version", async () => {
+    const seed = generate_escrow_seed();
+    const escrow = await make_escrow(seed, [2]);
+
+    escrow.entries.push({
+      token_version: -1,
+      sealed: escrow.entries[0].sealed,
+    });
+    fetch_recovery_escrow_keys.mockResolvedValue({ data: escrow });
+
+    const result = await rescue_account_key_from_escrow(
+      "token",
+      current_source(seed),
+      "new-identity",
+      "new-password",
+    );
+
+    expect(result).not.toBeNull();
+    expect(seal_account_key_token).toHaveBeenCalledTimes(1);
+    expect(seal_account_key_token.mock.calls[0][3]).toBe(3);
+  });
+
+  it("returns null when the seed does not match the published public key", async () => {
+    fetch_recovery_escrow_keys.mockResolvedValue({
+      data: await make_escrow(generate_escrow_seed(), [1]),
+    });
+
+    const result = await rescue_account_key_from_escrow(
+      "token",
+      current_source(generate_escrow_seed()),
       "new-identity",
       "new-password",
     );
@@ -158,7 +340,7 @@ describe("rescue_account_key_from_escrow", () => {
 
     const result = await rescue_account_key_from_escrow(
       "token",
-      encode_escrow_seed(seed),
+      current_source(seed),
       "new-identity",
       "new-password",
     );
@@ -168,13 +350,11 @@ describe("rescue_account_key_from_escrow", () => {
   });
 
   it("returns null when the fetch fails", async () => {
-    const seed = generate_escrow_seed();
-
     fetch_recovery_escrow_keys.mockResolvedValue({ error: "unauthorized" });
 
     const result = await rescue_account_key_from_escrow(
       "token",
-      encode_escrow_seed(seed),
+      current_source(generate_escrow_seed()),
       "new-identity",
       "new-password",
     );
@@ -192,7 +372,7 @@ describe("rescue_account_key_from_escrow", () => {
 
     const result = await rescue_account_key_from_escrow(
       "token",
-      encode_escrow_seed(seed),
+      current_source(seed),
       "new-identity",
       "new-password",
     );

@@ -59,6 +59,7 @@ import { reset_opened_mail_scope } from "@/services/user_opened_mail";
 import { clear_own_mail_mutations } from "@/services/own_mail_mutations";
 import { reset_unseen_reactions } from "@/services/unseen_reactions";
 import { clear_profiles_cache } from "@/services/api/profiles";
+import { clear_external_key_cache } from "@/services/api/keys";
 import { clear_contact_photo_cache } from "@/services/contact_photo_cache";
 import { clear_unsubscribed_senders_cache } from "@/hooks/use_unsubscribed_senders";
 import { clear_removed_items } from "@/services/removed_items";
@@ -141,6 +142,7 @@ export async function clear_account_scoped_caches(
   clear_attachment_keys();
   clear_unreadable_attachment_rows();
   clear_profiles_cache();
+  clear_external_key_cache();
   clear_contact_photo_cache();
   clear_unsubscribed_senders_cache();
   clear_removed_items();

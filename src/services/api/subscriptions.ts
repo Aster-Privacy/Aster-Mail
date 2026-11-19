@@ -42,16 +42,6 @@ export interface Subscription {
   status: SubscriptionStatus;
 }
 
-export interface SubscriptionStats {
-  total_subscriptions: number;
-  active: number;
-  unsubscribed: number;
-  newsletters: number;
-  marketing: number;
-  social: number;
-  total_emails_from_subscriptions: number;
-}
-
 interface ListSubscriptionsResponse {
   subscriptions: Subscription[];
   total: number;
@@ -72,39 +62,6 @@ interface UnsubscribeResponse {
   message?: string;
 }
 
-interface BulkUnsubscribeResponse {
-  success: boolean;
-  processed: number;
-  succeeded: number;
-  failed: number;
-  results: Array<{
-    subscription_id: string;
-    success: boolean;
-    error?: string;
-  }>;
-}
-
-interface ScanResponse {
-  success: boolean;
-  new_subscriptions: number;
-  updated_subscriptions: number;
-  message: string;
-}
-
-interface TrackSubscriptionParams {
-  sender_email: string;
-  sender_name?: string;
-  unsubscribe_link?: string;
-  list_unsubscribe_header?: string;
-  category?: SubscriptionCategory;
-}
-
-interface TrackSubscriptionResponse {
-  success: boolean;
-  subscription_id: string;
-  is_new: boolean;
-}
-
 export async function list_subscriptions(
   params: ListSubscriptionsParams = {},
 ): Promise<{ data?: ListSubscriptionsResponse; error?: string }> {
@@ -122,70 +79,6 @@ export async function list_subscriptions(
     : "/mail/v1/subscriptions";
 
   return api_client.get<ListSubscriptionsResponse>(endpoint);
-}
-
-export async function get_subscription(
-  subscription_id: string,
-): Promise<{ data?: Subscription; error?: string }> {
-  return api_client.get<Subscription>(
-    `/mail/v1/subscriptions/${subscription_id}`,
-  );
-}
-
-export async function get_subscription_stats(): Promise<{
-  data?: SubscriptionStats;
-  error?: string;
-}> {
-  return api_client.get<SubscriptionStats>("/mail/v1/subscriptions/stats");
-}
-
-export async function unsubscribe(
-  subscription_id: string,
-  method: "auto" | "link" | "manual" = "auto",
-): Promise<{ data?: UnsubscribeResponse; error?: string }> {
-  return api_client.post<UnsubscribeResponse>(
-    "/mail/v1/subscriptions/unsubscribe",
-    {
-      subscription_id,
-      method,
-    },
-  );
-}
-
-export async function bulk_unsubscribe(
-  subscription_ids: string[],
-): Promise<{ data?: BulkUnsubscribeResponse; error?: string }> {
-  return api_client.post<BulkUnsubscribeResponse>(
-    "/mail/v1/subscriptions/bulk-unsubscribe",
-    { subscription_ids },
-  );
-}
-
-export async function reactivate_subscription(
-  subscription_id: string,
-): Promise<{ data?: UnsubscribeResponse; error?: string }> {
-  return api_client.post<UnsubscribeResponse>(
-    "/mail/v1/subscriptions/reactivate",
-    {
-      subscription_id,
-    },
-  );
-}
-
-export async function scan_subscriptions(): Promise<{
-  data?: ScanResponse;
-  error?: string;
-}> {
-  return api_client.post<ScanResponse>("/mail/v1/subscriptions/scan", {});
-}
-
-export async function track_subscription(
-  params: TrackSubscriptionParams,
-): Promise<{ data?: TrackSubscriptionResponse; error?: string }> {
-  return api_client.post<TrackSubscriptionResponse>(
-    "/mail/v1/subscriptions/track",
-    params,
-  );
 }
 
 export interface ProxyUnsubscribeParams {
@@ -215,7 +108,7 @@ export async function proxy_unsubscribe(
 
 export async function delete_subscription(
   subscription_id: string,
-): Promise<{ data?: UnsubscribeResponse; error?: string }> {
+): Promise<ApiResponse<UnsubscribeResponse>> {
   return api_client.delete<UnsubscribeResponse>(
     `/mail/v1/subscriptions/${subscription_id}`,
   );

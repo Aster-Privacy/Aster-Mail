@@ -110,6 +110,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { open_external } from "@/utils/open_link";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { get_safe_next_path } from "@/pages/sign_in_helpers";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export class RatchetKeyGenerationError extends Error {
   constructor() {
@@ -826,9 +827,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     "recovery_email"
   > | null>(null);
   const pending_vault_data_ref = useRef<EncryptedVault | null>(null);
-  const post_create_sign_in_ref = useRef<(() => Promise<boolean>) | null>(
-    null,
-  );
+  const post_create_sign_in_ref = useRef<(() => Promise<boolean>) | null>(null);
   const retrying_sign_in_ref = useRef(false);
   const prekey_publish_ref = useRef<Promise<boolean> | null>(null);
 
@@ -1297,7 +1296,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const show_sample_notification = () => {
-    if ("__TAURI_INTERNALS__" in window) return;
+    if (has_tauri_runtime()) return;
     try {
       const sample = new Notification(t("auth.notifications_turned_on"), {
         body: t("auth.notifications_sample_body"),

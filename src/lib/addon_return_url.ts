@@ -18,13 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 export const ADDON_PURCHASE_PARAM = "addon_purchase";
 
 export function addon_return_url(
   status: "success" | "cancelled",
 ): string | undefined {
   if (typeof window === "undefined") return undefined;
-  if ("__TAURI_INTERNALS__" in window) return undefined;
+  if (has_tauri_runtime()) return undefined;
 
   try {
     const url = new URL(window.location.href);

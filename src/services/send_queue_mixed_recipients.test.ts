@@ -66,6 +66,7 @@ vi.mock("@/services/api/keys", async (import_original) => {
 
 vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
   check_owner_key_pin: vi.fn(async () => "ok"),
+  lookup_owner_key_pin: vi.fn(async () => ({ fingerprint: "pinned", conflict: false })),
   is_recipient_flagged_untrusted: vi.fn(async () => false),
   flag_recipient_untrusted: vi.fn(async () => undefined),
 }));

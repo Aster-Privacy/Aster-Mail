@@ -127,6 +127,19 @@ export const nl = {
       "Map verwijderd. De e-mails erin blijven in je account.",
     delete_folder_password_required: "Voer je accountwachtwoord in.",
     delete_folder_totp_required: "Voer je tweestapsverificatiecode in.",
+    mail_key_upgrade_title: "Je opgeslagen e-mail wordt bijgewerkt",
+    mail_key_upgrade_running:
+      "Aster Mail versleutelt je opgeslagen berichten opnieuw met je huidige sleutels. Houd dit venster open tot het klaar is.",
+    mail_key_upgrade_progress: "{count} berichten gecontroleerd",
+    mail_key_upgrade_progress_one: "{count} bericht gecontroleerd",
+    mail_key_upgrade_failed:
+      "Aster Mail kon het bijwerken van je opgeslagen berichten niet voltooien. Je e-mail is niet gewijzigd. Controleer je verbinding en probeer het opnieuw.",
+    mail_key_upgrade_retry: "Opnieuw proberen",
+    mail_key_upgrade_done_title: "Opgeslagen e-mail bijgewerkt",
+    mail_key_upgrade_skipped: "{count} berichten konden nog niet worden bijgewerkt.",
+    mail_key_upgrade_skipped_one: "{count} bericht kon nog niet worden bijgewerkt.",
+    mail_key_upgrade_unreadable: "Je opgeslagen e-mail is bijgewerkt. Aster Mail kon {count} oudere berichten niet openen met je sleutels, dus die blijven ongewijzigd.",
+    mail_key_upgrade_unreadable_one: "Je opgeslagen e-mail is bijgewerkt. Aster Mail kon {count} ouder bericht niet openen met je sleutels, dus dat blijft ongewijzigd.",
     delete_folder_verification_failed:
       "Controleer je wachtwoord en code en probeer het opnieuw.",
     qr_code: "QR-code",
@@ -1377,6 +1390,9 @@ export const nl = {
     files_end_to_end_encrypted: "Deze bestanden zijn end-to-end versleuteld.",
     files_protected_in_transit:
       "Deze bestanden waren beveiligd en versleuteld tijdens het transport.",
+    files_outside_encrypted_label: "Niet in het versleutelde bericht",
+    files_outside_encrypted:
+      "Deze bestanden maken geen deel uit van het versleutelde bericht. Open ze alleen als je de afzender vertrouwt.",
     failed_to_queue_offline:
       "We konden deze e-mail niet in de wachtrij zetten om later te verzenden. Probeer het opnieuw. Je concept is opgeslagen.",
     duplicate_send_blocked:
@@ -2311,6 +2327,9 @@ export const nl = {
     sender_pictures: "Afzenderafbeeldingen",
     sender_pictures_description:
       "Toont de foto of initialen van de afzender naast elk bericht in je Postvak IN.",
+    sender_logos: "Bedrijfslogo's",
+    sender_logos_description:
+      "Toon logo's van bedrijven die je mailen. Aster Mail haalt elk logo op via de eigen server met het domein van de afzender.",
     fam_welcome_step1_title: "Welkom bij je familieabonnement",
     fam_welcome_step1_desc:
       "Iedereen in je familie krijgt een eigen privé, versleutelde inbox - volledig gescheiden van de jouwe.",
@@ -3194,6 +3213,15 @@ export const nl = {
     alias_tab_domains: "Domeinen",
     alias_tab_directories: "Directory's",
     alias_tab_ghost: "Ghost-aliassen",
+    alias_tab_sending: "Verzenden",
+    sending_blocks_title: "Aliassen met verzenden uitgeschakeld",
+    sending_blocks_description: "Schakel verzenden voor een alias uit zodat er geen mail meer vanaf wordt verstuurd. De alias blijft mail ontvangen.",
+    sending_blocks_search_placeholder: "Aliassen zoeken",
+    sending_blocks_empty: "Je hebt nog geen aliassen of domeinadressen.",
+    sending_blocks_no_results: "Geen aliassen gevonden voor je zoekopdracht.",
+    sending_blocks_sending_allowed: "Verzenden toegestaan",
+    sending_blocks_toggle_label: "Verzenden vanaf {{ email }} toestaan",
+    sending_blocks_update_failed: "Kan verzenden voor deze alias niet bijwerken. Probeer het opnieuw.",
     alias_tab_preferences: "Voorkeuren",
     alias_search_placeholder: "Aliassen zoeken...",
     alias_filter_all: "Alle",
@@ -4258,8 +4286,6 @@ export const nl = {
     updating: "Bijwerken...",
     password_change_encrypted_data_warning:
       "Je labels, handtekeningen en sjablonen worden opnieuw versleuteld bij een wachtwoordwijziging. Als je verbinding tijdens dit proces wegvalt, kunnen die gegevens niet worden hersteld.",
-    password_changed_items_unreadable:
-      "Je wachtwoord is gewijzigd. {{count}} versleutelde items behouden hun eerdere versleuteling omdat hun sleutel niet beschikbaar was. De bezorging van e-mail wordt niet beïnvloed. Neem contact op met de ondersteuning om ze te herstellen.",
     password_change_background_reencrypt_failed:
       "Je wachtwoord is gewijzigd, maar een deel van je verzonden berichten en instellingen is niet opnieuw versleuteld. Neem contact op met de klantenservice als berichten of instellingen onleesbaar lijken.",
     previous_password: "Vorig wachtwoord",
@@ -9189,6 +9215,8 @@ export const nl = {
     recipient_identity_untrusted:
       "De versleutelingssleutel voor {{email}} is gewijzigd en de nieuwe sleutel kan niet worden bevestigd. Bevestig de wijziging op een andere manier en kies daarna Nieuwe sleutel vertrouwen om naar dit adres te versturen.",
     trust_new_key: "Nieuwe sleutel vertrouwen",
+    trust_new_key_failed:
+      "De versleutelingssleutel is gewijzigd of kon niet worden gecontroleerd, dus deze is niet vertrouwd. Probeer het opnieuw om de huidige sleutel te bekijken.",
     load_all_thread_messages: "Alle berichten laden",
     move_to_category: "Naar categorie verplaatsen",
     menu_applies_to_selection: "Geldt voor {count} geselecteerde",
@@ -9917,6 +9945,9 @@ export const nl = {
     reply_from_mismatch_message:
       "Deze e-mail is ontvangen op {{ received }}, maar je antwoord wordt verzonden vanaf {{ selected }}. Antwoorden vanaf een ander adres kan dit adres onthullen aan de afzender en het antwoord kan worden geweigerd.",
     reply_from_mismatch_use_received: "Ontvangstadres gebruiken",
+    sending_disabled_badge: "Verzenden uitgeschakeld",
+    reply_from_mismatch_banner: "Deze e-mail is ontvangen op {{ received }}, maar je antwoord wordt verzonden vanaf {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Verzenden vanaf {{ received }}",
     reply_from_mismatch_send_anyway: "Toch verzenden",
     reply_from_unknown_title: "Controleer het afzenderadres",
     reply_from_unknown_message:
@@ -10192,6 +10223,14 @@ export const nl = {
       "Je verplaatst berichten van {{sender}} vaak naar {{category}}. Wil je dat automatisch doen?",
   },
   auth: {
+    continue_with_app: "Doorgaan met {{app}}",
+    sibling_waiting: "Bevestig het inloggen in het venster dat is geopend.",
+    sibling_popup_blocked: "Het bevestigingsvenster is geblokkeerd. Sta pop-ups toe voor deze site en probeer het opnieuw.",
+    sibling_failed: "Inloggen met {{app}} is niet voltooid. Probeer het opnieuw of log in met je wachtwoord.",
+    handoff_approve_title: "Inloggen bij {{app}}?",
+    handoff_approve_body: "{{app}} vraagt om in te loggen als {{email}}. Ga alleen door als je deze inlogpoging zelf hebt gestart.",
+    handoff_approve_done: "Je kunt dit venster sluiten.",
+    handoff_approve_signed_out: "Je bent hier niet ingelogd. Sluit dit venster en log in met je wachtwoord.",
     passkey_verification: "Verifiëren met Passkey",
     use_passkey_or_key:
       "Gebruik Windows Hello, Face ID of je beveiligingssleutel",
@@ -10239,6 +10278,7 @@ export const nl = {
     authenticating: "Authenticeren...",
     fetching_auth_data: "Authenticatiegegevens ophalen...",
     verifying_credentials: "Inloggegevens verifiëren...",
+    sign_in_standard_protection: "Uitgebreide aanmeldbeveiliging is nu niet beschikbaar, dus je bent aangemeld met standaardbeveiliging.",
     decrypting_vault: "Je sleutelkluis ontsleutelen...",
     getting_user_info: "Gebruikersinformatie ophalen...",
     checkout_confirm_title: "Aanmelden voltooien",
@@ -10896,12 +10936,11 @@ export const nl = {
     rename_saved: "Naam bijgewerkt",
   },
   errors: {
+    alias_sending_disabled: "Verzenden vanaf deze alias is uitgeschakeld. Schakel het eerst in.",
     auth_salt_collision:
       "Het aanmelden is gestopt omdat de server een onveilige waarde heeft gestuurd, dus er is niets ontgrendeld. Neem contact op met support voordat je het opnieuw probeert.",
     legacy_login_salt_new_device:
       "Om een beveiligingsupdate van je account af te ronden, log je in op een apparaat dat je eerder met Aster hebt gebruikt. Lukt dat niet, stel dan je wachtwoord opnieuw in met je herstelsleutel.",
-    legacy_login_salt_sign_in_again:
-      "Om een beveiligingsupdate van je account af te ronden, log je uit en daarna opnieuw in.",
     upload_too_large:
       "De upload is te groot. Verwijder of verklein een bestand om verder te gaan.",
     failed_remove_reaction:
@@ -11120,6 +11159,8 @@ export const nl = {
       "Deze e-mail is niet verzonden. Probeer het opnieuw. Je concept is opgeslagen.",
     send_unconfirmed:
       "Aster kon niet bevestigen dat deze e-mail is verzonden. Controleer Verzonden voordat je het opnieuw probeert. Je concept is opgeslagen.",
+    scheduled_unverifiable:
+      "Deze geplande e-mail kan niet worden geverifieerd. Je kunt hem alleen annuleren.",
     scheduled_may_have_sent:
       "Deze geplande e-mail is niet geannuleerd, omdat hij mogelijk al is verzonden. Controleer Verzonden.",
     incorrect_password:
@@ -11130,6 +11171,8 @@ export const nl = {
       "Je sessie is beëindigd. Meld je opnieuw aan om verder te gaan. Je gegevens en concepten zijn op de server opgeslagen.",
     session_identity_mismatch:
       "Op dit apparaat was een ander account aangemeld, dus hebben we je afgemeld om de accounts gescheiden te houden. Opnieuw aanmelden is genoeg. Je gegevens zijn onaangetast.",
+    vault_rolled_back:
+      "Dit apparaat heeft een nieuwere kopie van je versleutelingssleutels dan de kopie die de server stuurde, dus Aster Mail heeft de oudere kopie niet gebruikt. Log opnieuw in. Neem contact op met support als dit blijft gebeuren.",
     key_material_unavailable:
       "Je privésleutels zijn vergrendeld op dit apparaat. Je wachtwoord ontgrendelt ze. Je sleutels op de server zijn onaangetast.",
     storage_compromised:
@@ -11687,6 +11730,10 @@ export const nl = {
       "{{address}} verwijderen? Het adres ontvangt geen mail meer en kan niet opnieuw worden geregistreerd.",
     delete_confirm_title: "Gedeelde mailbox verwijderen",
     access_unavailable: "Deze gedeelde mailbox is niet meer beschikbaar",
+    member_key_untrusted:
+      "De versleutelingssleutel van een lid is gewijzigd of kon niet worden gecontroleerd, dus de toegang is niet bijgewerkt. Bevestig de nieuwe sleutel op een andere manier met dit lid, kies Nieuwe sleutel vertrouwen in een gesprek met dit lid en probeer het daarna opnieuw.",
+    unknown_member_access:
+      "Iemand die geen actief lid van je gezinsabonnement is, heeft toegang tot deze mailbox, dus de sleutels zijn niet vernieuwd. Neem contact op met Aster-support.",
   },
   review_prompt: {
     banner_message:

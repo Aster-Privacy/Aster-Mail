@@ -27,8 +27,12 @@ import {
   compute_agreement_bits,
 } from "./key_manager";
 import { load_pq_secret } from "./pq_prekey_store";
+import { judge_one_time_prekey_offer } from "./one_time_prekey_watch";
 import { complete_p256_private_jwk } from "./p256_jwk";
-import { is_pqxdh_transcript_binding_enabled } from "./crypto_enforcement_policy";
+import {
+  is_pqxdh_transcript_binding_enabled,
+  is_signed_ratchet_keys_required,
+} from "./crypto_enforcement_policy";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
@@ -111,6 +115,8 @@ interface X3dhSenderResult {
   x3dh_version: number;
   one_time_prekey_id?: number;
   signed_prekey_id?: string;
+  one_time_prekey_missing?: boolean;
+  one_time_prekey_withheld?: boolean;
 }
 
 interface PrekeyBundle {
@@ -355,8 +361,15 @@ export function negotiate_x3dh_version(
 ): number {
   return Math.max(
     bounded_x3dh_version(advertised, X3DH_VERSION_MAX),
-    bounded_x3dh_version(remembered, X3DH_VERSION_TRANSCRIPT_BOUND),
+    bounded_x3dh_version(remembered, X3DH_VERSION_MAX),
+    minimum_x3dh_version(),
   );
+}
+
+export function minimum_x3dh_version(): number {
+  return is_signed_ratchet_keys_required()
+    ? X3DH_VERSION_MAX
+    : X3DH_VERSION_LEGACY;
 }
 
 function receiver_x3dh_version(
@@ -403,19 +416,25 @@ function select_pq_encapsulation_target(recipient_bundle: PrekeyBundle): {
     }
   }
 
-  if (recipient_bundle.pq_kem_public_key) {
-    const identity = base64_to_array(recipient_bundle.pq_kem_public_key);
+  return select_pq_identity_key(recipient_bundle);
+}
 
-    if (identity.length === ML_KEM_768_EK_LEN) {
-      return {
-        public_key: identity,
-        key_id: PQ_IDENTITY_KEY_ID,
-        mode: "identity",
-      };
-    }
-  }
+function select_pq_identity_key(recipient_bundle: PrekeyBundle): {
+  public_key: Uint8Array;
+  key_id: number;
+  mode: "identity";
+} | null {
+  if (!recipient_bundle.pq_kem_public_key) return null;
 
-  return null;
+  const identity = base64_to_array(recipient_bundle.pq_kem_public_key);
+
+  if (identity.length !== ML_KEM_768_EK_LEN) return null;
+
+  return {
+    public_key: identity,
+    key_id: PQ_IDENTITY_KEY_ID,
+    mode: "identity",
+  };
 }
 
 function select_one_time_prekey(recipient_bundle: PrekeyBundle): {
@@ -424,6 +443,8 @@ function select_one_time_prekey(recipient_bundle: PrekeyBundle): {
 } | null {
   const advertised = recipient_bundle.x3dh_max_version;
   const offered = recipient_bundle.ec_one_time_prekey;
+
+  if (is_signed_ratchet_keys_required()) return null;
 
   if (
     typeof advertised !== "number" ||
@@ -462,39 +483,27 @@ export function restrict_bundle_to_signed_pq_key(
   recipient_bundle: PrekeyBundle,
   signature_covers_pq_identity: boolean,
 ): PrekeyBundle {
-  if (!signature_covers_pq_identity) return recipient_bundle;
-
-  if (!recipient_bundle.pq_prekey || !recipient_bundle.pq_kem_public_key) {
+  if (!signature_covers_pq_identity && !is_signed_ratchet_keys_required()) {
     return recipient_bundle;
   }
 
-  if (
-    base64_to_array(recipient_bundle.pq_kem_public_key).length !==
-    ML_KEM_768_EK_LEN
-  ) {
-    return recipient_bundle;
-  }
+  const { pq_prekey: _unsigned_prekey, ...without_one_time } = recipient_bundle;
 
-  const { pq_prekey: _unsigned_prekey, ...signed_only } = recipient_bundle;
-
-  return signed_only;
+  return without_one_time;
 }
 
 export function bundle_has_signed_pq_identity(
   recipient_bundle: PrekeyBundle,
   signature_covers_pq_identity: boolean,
 ): boolean {
-  if (!signature_covers_pq_identity) return false;
-
   return (
-    select_pq_encapsulation_target(
-      restrict_bundle_to_signed_pq_key(recipient_bundle, true),
-    )?.mode === "identity"
+    signature_covers_pq_identity &&
+    select_pq_identity_key(recipient_bundle) !== null
   );
 }
 
 export function bundle_supports_pq(recipient_bundle: PrekeyBundle): boolean {
-  return select_pq_encapsulation_target(recipient_bundle) !== null;
+  return select_pq_identity_key(recipient_bundle) !== null;
 }
 
 function carries_post_quantum_material(recipient_bundle: PrekeyBundle): boolean {
@@ -504,8 +513,28 @@ function carries_post_quantum_material(recipient_bundle: PrekeyBundle): boolean 
   );
 }
 
+function carries_usable_one_time_pq_key(
+  recipient_bundle: PrekeyBundle,
+): boolean {
+  if (!recipient_bundle.pq_prekey?.public_key) return false;
+
+  try {
+    return (
+      base64_to_array(recipient_bundle.pq_prekey.public_key).length ===
+      ML_KEM_768_EK_LEN
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function bundle_is_downgraded(recipient_bundle: PrekeyBundle): boolean {
-  if (bundle_supports_pq(recipient_bundle)) return false;
+  if (
+    bundle_supports_pq(recipient_bundle) ||
+    carries_usable_one_time_pq_key(recipient_bundle)
+  ) {
+    return false;
+  }
 
   return (
     recipient_bundle.pq_capable === true ||
@@ -547,6 +576,31 @@ export async function perform_x3dh_sender(
     recipient_signed_prekey_raw,
   );
 
+  const sender_identity_raw = jwk_to_raw_public(sender_identity_jwk);
+
+  const binding_enabled =
+    is_pqxdh_transcript_binding_enabled() && sender_identity_raw !== null;
+
+  let one_time_target = binding_enabled
+    ? select_one_time_prekey(recipient_bundle)
+    : null;
+  let one_time_public: CryptoKey | null = null;
+
+  if (one_time_target) {
+    try {
+      one_time_public = await import_ke_public_key(one_time_target.public_key);
+    } catch {
+      one_time_target = null;
+    }
+  }
+
+  const one_time_verdict = binding_enabled
+    ? await judge_one_time_prekey_offer(
+        recipient_identity_raw,
+        one_time_public !== null,
+      )
+    : "never_offered";
+
   const ephemeral = await generate_ephemeral_keypair();
 
   const dh1 = await compute_agreement_bits(
@@ -570,22 +624,11 @@ export async function perform_x3dh_sender(
 
   const pq_target = select_pq_encapsulation_target(recipient_bundle);
 
-  const sender_identity_raw = jwk_to_raw_public(sender_identity_jwk);
-
-  const binding_enabled =
-    is_pqxdh_transcript_binding_enabled() && sender_identity_raw !== null;
-
-  let one_time_target = binding_enabled
-    ? select_one_time_prekey(recipient_bundle)
-    : null;
   let dh4: Uint8Array | null = null;
 
-  if (one_time_target) {
+  if (one_time_target && one_time_public) {
     try {
-      dh4 = await compute_agreement_bits(
-        ephemeral.secret_key,
-        await import_ke_public_key(one_time_target.public_key),
-      );
+      dh4 = await compute_agreement_bits(ephemeral.secret_key, one_time_public);
     } catch {
       one_time_target = null;
       dh4 = null;
@@ -674,6 +717,12 @@ export async function perform_x3dh_sender(
       recipient_signed_prekey_raw,
     );
   }
+
+  if (one_time_verdict === "grace" || one_time_verdict === "withheld") {
+    result.one_time_prekey_missing = true;
+  }
+
+  if (one_time_verdict === "withheld") result.one_time_prekey_withheld = true;
 
   return result;
 }

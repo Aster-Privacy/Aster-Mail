@@ -107,7 +107,7 @@ beforeEach(() => {
           return Promise.reject(new Error("bad envelope"));
         }
 
-        return Promise.resolve("cGFzcw");
+        return Promise.resolve();
       }
       if (cmd === "device_sign_challenge") return Promise.resolve("signature");
       if (cmd === "device_get_stored_passphrase") {
@@ -917,5 +917,54 @@ describe("erasing the device pairing", () => {
 
     expect(invoke_mock).not.toHaveBeenCalled();
     expect(delete_mock).not.toHaveBeenCalled();
+  });
+});
+
+describe("device challenge format", () => {
+  async function signed_version(challenge: Record<string, unknown>) {
+    post_mock.mockImplementation((path: string) => {
+      if (path === "/core/v1/auth/device/challenge") {
+        return Promise.resolve({ data: challenge, error: null });
+      }
+      if (path === "/core/v1/auth/device/login") {
+        return Promise.resolve({
+          data: {
+            access_token: "token",
+            csrf_token: "csrf",
+            encrypted_vault: "vault",
+            vault_nonce: "vault-nonce",
+          },
+          error: null,
+        });
+      }
+
+      return Promise.resolve({ data: null, error: "unexpected" });
+    });
+
+    const module = await import("./desktop_device_auth");
+
+    await module.init_desktop_device_auth();
+
+    const call = invoke_mock.mock.calls.find(
+      ([cmd]) => cmd === "device_sign_challenge",
+    );
+
+    return call?.[1];
+  }
+
+  it("asks for the default format when the server names no version", async () => {
+    expect(
+      await signed_version({ challenge_id: "challenge-1", nonce: "nonce" }),
+    ).toEqual({ nonceB64: "nonce", signatureVersion: null });
+  });
+
+  it("passes the version the server asks for", async () => {
+    expect(
+      await signed_version({
+        challenge_id: "challenge-1",
+        nonce: "nonce",
+        signature_version: 2,
+      }),
+    ).toEqual({ nonceB64: "nonce", signatureVersion: 2 });
   });
 });

@@ -97,7 +97,11 @@ function decode_css_hex(hex: string): string {
   return String.fromCodePoint(cp);
 }
 
-function decode_css_escapes(css: string): string {
+function keep_quote_escaped(char: string, keep_quotes: boolean): string {
+  return keep_quotes && (char === '"' || char === "'") ? "\\" + char : char;
+}
+
+function decode_css_escapes(css: string, keep_quotes = false): string {
   let result = "";
   let index = 0;
 
@@ -121,7 +125,7 @@ function decode_css_escapes(css: string): string {
       }
       const decoded = decode_css_hex(hex[0]);
 
-      if (decoded !== "\\") result += decoded;
+      if (decoded !== "\\") result += keep_quote_escaped(decoded, keep_quotes);
       continue;
     }
 
@@ -131,7 +135,7 @@ function decode_css_escapes(css: string): string {
     if (next === undefined || next === "\\" || /[\n\r\f]/.test(next)) {
       continue;
     }
-    result += next;
+    result += keep_quote_escaped(next, keep_quotes);
   }
 
   return result;
@@ -706,9 +710,216 @@ export function block_remote_fonts(css: string): string {
   return result;
 }
 
-export function sanitize_style(style: string, sandbox_mode: boolean): string {
+const CSS_BLOCK_OPENERS: Record<string, string> = {
+  "(": ")",
+  "[": "]",
+  "{": "}",
+};
+
+function split_css_declarations(css: string): string[] {
+  const declarations: string[] = [];
+  const closers: string[] = [];
+  let quote: string | null = null;
+  let start = 0;
+
+  for (let i = 0; i < css.length; i++) {
+    const char = css[i];
+
+    if (quote) {
+      if (char === "\\") i++;
+      else if (char === quote || char === "\n") quote = null;
+      continue;
+    }
+
+    if (char === "\\") i++;
+    else if (char === '"' || char === "'") quote = char;
+    else if (CSS_BLOCK_OPENERS[char]) closers.push(CSS_BLOCK_OPENERS[char]);
+    else if (char === closers[closers.length - 1]) closers.pop();
+    else if (char === ";" && closers.length === 0) {
+      declarations.push(css.slice(start, i));
+      start = i + 1;
+    }
+  }
+  declarations.push(css.slice(start));
+
+  return declarations;
+}
+
+const IN_FLOW_POSITIONS = new Set(["static", "relative"]);
+
+const CONTAINED_POSITIONS = new Set(["static", "relative", "absolute"]);
+
+const OUT_OF_PAGE_POSITIONS = new Set(["absolute", "fixed"]);
+
+const OUT_OF_FLOW_PROPERTY =
+  /^(?:-[a-z]+-)?(?:z-index|transform|translate|rotate|scale|offset(?:-[a-z]+)?)$/;
+
+const OFFSET_PROPERTY =
+  /^(?:-[a-z]+-)?(?:top|right|bottom|left|inset(?:-[a-z]+)*|margin(?:-[a-z]+)*)$/;
+
+const BOX_OFFSET_PROPERTY = /^(?:top|right|bottom|left|inset(?:-[a-z]+)*)$/;
+
+const NEGATIVE_LENGTH = /(^|[\s,])-[\d.][^\s,!]*/g;
+
+const NEGATIVE_DIMENSION = /(?:^|[\s,(])-(\d*\.?\d+)([a-z%]*)/gi;
+
+const OFF_PAGE_DISTANCE_PX = 500;
+
+const UNIT_TO_PX: Record<string, number> = {
+  "": 1,
+  px: 1,
+  pt: 4 / 3,
+  pc: 16,
+  em: 16,
+  rem: 16,
+  ex: 8,
+  ch: 8,
+  in: 96,
+  cm: 96 / 2.54,
+  mm: 96 / 25.4,
+  "%": 6,
+  vw: 6,
+  vh: 6,
+  vmin: 6,
+  vmax: 6,
+};
+
+const IMPORTANT_SUFFIX = /\s*!\s*important\s*$/i;
+
+const EMPTY_CONTENT_VALUE =
+  /^\s*(?:none|""|''|"\s*"|'\s*')?\s*(?:!\s*important\s*)?$/i;
+
+const CSS_URL_CALL = /url\s*\(/i;
+
+interface CssDeclaration {
+  property: string;
+  value: string;
+}
+
+function parse_declaration(declaration: string): CssDeclaration | null {
+  const colon_index = declaration.indexOf(":");
+
+  if (colon_index === -1) return null;
+
+  return {
+    property: declaration.slice(0, colon_index).trim().toLowerCase(),
+    value: declaration.slice(colon_index + 1),
+  };
+}
+
+function position_keyword(value: string): string {
+  return value.replace(IMPORTANT_SUFFIX, "").trim().toLowerCase();
+}
+
+function reaches_off_page(value: string): boolean {
+  for (const match of value.matchAll(NEGATIVE_DIMENSION)) {
+    const scale = UNIT_TO_PX[match[2].toLowerCase()];
+
+    if (
+      scale !== undefined &&
+      parseFloat(match[1]) * scale >= OFF_PAGE_DISTANCE_PX
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function is_moved_off_page(css: string): boolean {
+  let positioned_out = false;
+  let negative_offset = false;
+
+  for (const declaration of split_css_declarations(css)) {
+    const parsed = parse_declaration(declaration);
+
+    if (!parsed) continue;
+
+    if (parsed.property === "position") {
+      positioned_out = OUT_OF_PAGE_POSITIONS.has(
+        position_keyword(parsed.value),
+      );
+    } else if (
+      BOX_OFFSET_PROPERTY.test(parsed.property) &&
+      reaches_off_page(parsed.value)
+    ) {
+      negative_offset = true;
+    }
+  }
+
+  return positioned_out && negative_offset;
+}
+
+function keep_declaration_in_flow(
+  declaration: string,
+  contained_layout: boolean,
+): string | null {
+  const parsed = parse_declaration(declaration);
+
+  if (!parsed) return declaration;
+
+  const { property, value } = parsed;
+
+  if (property === "content") {
+    return EMPTY_CONTENT_VALUE.test(value) ? declaration : "content: none";
+  }
+
+  if (property === "cursor") {
+    return CSS_URL_CALL.test(value) ? "cursor: default" : declaration;
+  }
+
+  if (property === "position") {
+    const allowed = contained_layout ? CONTAINED_POSITIONS : IN_FLOW_POSITIONS;
+
+    return allowed.has(position_keyword(value))
+      ? declaration
+      : "position: relative";
+  }
+
+  if (contained_layout) return declaration;
+
+  if (OUT_OF_FLOW_PROPERTY.test(property)) return null;
+
+  if (OFFSET_PROPERTY.test(property)) {
+    if (value.includes("(")) return null;
+
+    const clamped = value.replace(
+      NEGATIVE_LENGTH,
+      (_match, lead: string) => `${lead}0`,
+    );
+
+    return `${declaration.slice(0, declaration.indexOf(":"))}:${clamped}`;
+  }
+
+  return declaration;
+}
+
+function keep_declarations_in_flow(
+  css: string,
+  contained_layout: boolean,
+): string {
+  return split_css_declarations(css)
+    .map((declaration) =>
+      keep_declaration_in_flow(declaration, contained_layout),
+    )
+    .filter((declaration): declaration is string => declaration !== null)
+    .join(";");
+}
+
+function strip_declaration_urls(css: string): string {
+  return split_css_declarations(css)
+    .map((declaration) => strip_css_urls(declaration))
+    .filter((declaration) => split_css_declarations(declaration).length === 1)
+    .join(";");
+}
+
+export function sanitize_style(
+  style: string,
+  sandbox_mode: boolean,
+  contained_layout = false,
+): string {
   const decoded = strip_css_comments(
-    decode_css_escapes(decode_css_entities(style)),
+    decode_css_escapes(decode_css_entities(style), !sandbox_mode),
   );
 
   for (const pattern of DANGEROUS_CSS_PATTERNS) {
@@ -723,26 +934,20 @@ export function sanitize_style(style: string, sandbox_mode: boolean): string {
   result = result.replace(/javascript\s*:[^;]*/gi, "");
   result = result.replace(/vbscript\s*:[^;]*/gi, "");
 
+  if (!sandbox_mode && is_moved_off_page(result)) {
+    return "display: none";
+  }
+
   result = result.replace(
     /position\s*:\s*(fixed|sticky)/gi,
     "position: relative",
   );
 
   if (!sandbox_mode) {
-    result = strip_css_urls(result);
-    result = result.replace(
-      /position\s*:\s*(absolute|fixed|sticky)/gi,
-      "position: relative",
-    );
-    result = result.replace(
-      /cursor\s*:[^;]*url\s*\([^)]*\)[^;]*/gi,
-      "cursor: default",
-    );
-    result = result.replace(
-      /content\s*:\s*(?!["']?\s*["']?\s*;|["']?\s*["']?\s*$|none\s*;|none\s*$|""\s*;|""\s*$|''\s*;|''\s*$)[^;]*/gi,
-      "content: none",
-    );
+    result = strip_declaration_urls(result);
+    result = keep_declarations_in_flow(result, contained_layout);
     result = cap_css_dimension(result);
+    result = keep_declarations_in_flow(result, contained_layout);
   }
 
   return result;

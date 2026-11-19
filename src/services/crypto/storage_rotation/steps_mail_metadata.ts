@@ -33,9 +33,10 @@ import {
   walk_id_pages,
 } from "./step_helpers";
 import { zero_uint8_array } from "../secure_memory";
+import { MAIL_METADATA_CONTEXT } from "../constants";
 
 export const MAIL_METADATA_PATH = "/core/v1/auth/me/storage-rekey/mail-metadata";
-export const MAIL_METADATA_CONTEXT = "mail-item-metadata";
+export { MAIL_METADATA_CONTEXT };
 
 const MAIL_METADATA_BATCH_SIZE = 250;
 

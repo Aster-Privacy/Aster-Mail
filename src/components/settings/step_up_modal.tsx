@@ -56,7 +56,6 @@ interface StepUpModalProps {
   description: string;
   confirm_label: string;
   destructive?: boolean;
-  password_only?: boolean;
 }
 
 export function StepUpModal({
@@ -67,7 +66,6 @@ export function StepUpModal({
   description,
   confirm_label,
   destructive = false,
-  password_only = false,
 }: StepUpModalProps) {
   const { t } = use_i18n();
   const [password, set_password] = useState("");
@@ -121,8 +119,8 @@ export function StepUpModal({
         ignore_error("components/settings/step_up_modal:StepUpModal", caught);
       });
 
-    if (!password_only) void load_hardware_keys();
-  }, [is_open, load_hardware_keys, password_only]);
+    void load_hardware_keys();
+  }, [is_open, load_hardware_keys]);
 
   const can_submit =
     !!password && (!totp_required || code.length === 6) && !is_loading;

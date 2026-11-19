@@ -21,7 +21,8 @@
 export const MAIL_WEB_ORIGIN = "https://app.astermail.org";
 export const CALENDAR_WEB_ORIGIN = "https://calendar.astermail.org";
 export const SESSION_BRIDGE_PATH = "/session_bridge.html";
-export const SESSION_HANDOFF_PROTOCOL = "aster-session-handoff-1";
+export const SESSION_APPROVAL_HASH_PREFIX = "#approve=";
+export const SESSION_HANDOFF_PROTOCOL = "aster-session-handoff-2";
 
 const SIBLING_ORIGINS: ReadonlyMap<string, string> = new Map([
   [MAIL_WEB_ORIGIN, CALENDAR_WEB_ORIGIN],
@@ -31,6 +32,7 @@ const SIBLING_ORIGINS: ReadonlyMap<string, string> = new Map([
 const USER_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const BASE64_PATTERN = /^[A-Za-z0-9+/_-]+={0,2}$/;
+const GRANT_ID_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 
 const MAX_PASSPHRASE_LENGTH = 4096;
 const MAX_ENCRYPTED_VAULT_LENGTH = 16 * 1024 * 1024;
@@ -58,7 +60,8 @@ export interface HandoffSession {
 }
 
 export type HandoffPortRequest =
-  { type: "probe" } | { type: "request"; user_id: string };
+  | { type: "probe"; grant: string; wait: boolean }
+  | { type: "request"; grant: string; user_id: string };
 
 export type HandoffBridgeReply =
   | { type: "probe_result"; available: boolean }
@@ -71,6 +74,10 @@ export function get_handoff_sibling_origin(origin: string): string | null {
 
 export function is_handoff_user_id(value: unknown): value is string {
   return typeof value === "string" && USER_ID_PATTERN.test(value);
+}
+
+export function is_handoff_grant_id(value: unknown): value is string {
+  return typeof value === "string" && GRANT_ID_PATTERN.test(value);
 }
 
 function is_plain_record(value: unknown): value is Record<string, unknown> {
@@ -129,17 +136,22 @@ export function parse_handoff_port_request(
   value: unknown,
 ): HandoffPortRequest | null {
   if (!is_protocol_message(value)) return null;
+  if (!is_handoff_grant_id(value.grant)) return null;
 
-  if (value.type === "probe" && has_only_keys(value, ["protocol", "type"])) {
-    return { type: "probe" };
+  if (
+    value.type === "probe" &&
+    has_only_keys(value, ["protocol", "type", "grant", "wait"]) &&
+    (value.wait === undefined || typeof value.wait === "boolean")
+  ) {
+    return { type: "probe", grant: value.grant, wait: value.wait === true };
   }
 
   if (
     value.type === "request" &&
-    has_only_keys(value, ["protocol", "type", "user_id"]) &&
+    has_only_keys(value, ["protocol", "type", "grant", "user_id"]) &&
     is_handoff_user_id(value.user_id)
   ) {
-    return { type: "request", user_id: value.user_id };
+    return { type: "request", grant: value.grant, user_id: value.user_id };
   }
 
   return null;

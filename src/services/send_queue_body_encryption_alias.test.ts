@@ -84,6 +84,7 @@ vi.mock("@/services/api/keys", () => ({
 
 vi.mock("@/services/send_queue_recipients", () => ({
   assert_owner_key_trusted: vi.fn(async () => {}),
+  owner_key_pinned_before_send: vi.fn(async () => true),
   resolve_own_username_for_key_lookup: vi.fn(async () => "me"),
   resolve_username_for_key_lookup: vi.fn(async () => "peer"),
 }));

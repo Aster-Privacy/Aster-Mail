@@ -738,6 +738,7 @@ export async function create_ghost_alias(
   local_part: string,
   expires_in_days: number,
   thread_token_hash?: string,
+  captcha_token?: string,
 ): Promise<ApiResponse<CreateGhostAliasResponse>> {
   const normalized = local_part.toLowerCase().trim();
   const alias_hash = await compute_alias_hash(normalized, GHOST_DOMAIN);
@@ -755,6 +756,10 @@ export async function create_ghost_alias(
 
   if (thread_token_hash) {
     request.thread_token_hash = thread_token_hash;
+  }
+
+  if (captcha_token) {
+    request.captcha_token = captcha_token;
   }
 
   return api_client.post<CreateGhostAliasResponse>(

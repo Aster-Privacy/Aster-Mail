@@ -18,8 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 export function uses_native_translation_assets(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 function to_array_buffer(payload: unknown): ArrayBuffer {

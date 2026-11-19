@@ -127,6 +127,19 @@ export const tr = {
       "Klasör silindi. İçindeki posta hesabınızda kalır.",
     delete_folder_password_required: "Hesap parolanızı girin.",
     delete_folder_totp_required: "İki adımlı doğrulama kodunuzu girin.",
+    mail_key_upgrade_title: "Kayıtlı e-postalarınız güncelleniyor",
+    mail_key_upgrade_running:
+      "Aster Mail, kayıtlı iletilerinizi mevcut anahtarlarınızla yeniden şifreliyor. İşlem bitene kadar bu pencereyi açık tutun.",
+    mail_key_upgrade_progress: "{count} ileti kontrol edildi",
+    mail_key_upgrade_progress_one: "{count} ileti kontrol edildi",
+    mail_key_upgrade_failed:
+      "Aster Mail kayıtlı iletilerinizin güncellenmesini tamamlayamadı. E-postalarınız değişmedi. Bağlantınızı kontrol edip yeniden deneyin.",
+    mail_key_upgrade_retry: "Yeniden dene",
+    mail_key_upgrade_done_title: "Kayıtlı postalar güncellendi",
+    mail_key_upgrade_skipped: "{count} ileti henüz güncellenemedi.",
+    mail_key_upgrade_skipped_one: "{count} ileti henüz güncellenemedi.",
+    mail_key_upgrade_unreadable: "Kayıtlı postalarınız güncel. Aster Mail {count} eski iletiyi anahtarlarınızla açamadı, bu nedenle bunlar olduğu gibi kalıyor.",
+    mail_key_upgrade_unreadable_one: "Kayıtlı postalarınız güncel. Aster Mail {count} eski iletiyi anahtarlarınızla açamadı, bu nedenle bu ileti olduğu gibi kalıyor.",
     delete_folder_verification_failed:
       "Parolanızı ve kodunuzu kontrol edip yeniden deneyin.",
     qr_code: "QR kodu",
@@ -1659,6 +1672,9 @@ export const tr = {
       "Çıkış yapıp tekrar giriş yapmak anahtarlarınızı yeniden yükler. Mesaj hâlâ açılmazsa, hello@astermail.org yardımcı olabilir.",
     files_protected_in_transit:
       "Bu dosyalar aktarım sırasında korunmuş ve şifrelenmiştir.",
+    files_outside_encrypted_label: "Şifreli mesajın dışında",
+    files_outside_encrypted:
+      "Bu dosyalar şifreli mesajın parçası değil. Yalnızca gönderene güveniyorsanız açın.",
     allow_sender: "İzin listesine ekle",
     remove_from_allowlist_action: "İzin listesinden kaldır",
     failed_to_allow_sender:
@@ -2298,6 +2314,9 @@ export const tr = {
     sender_pictures: "Gönderen resimleri",
     sender_pictures_description:
       "Gelen kutunuzdaki her iletinin yanında gönderenin fotoğrafını veya baş harflerini gösterir.",
+    sender_logos: "Şirket logoları",
+    sender_logos_description:
+      "Size e-posta gönderen şirketlerin logolarını gösterir. Aster Mail her logoyu gönderenin alan adını kullanarak kendi sunucusu üzerinden alır.",
     fam_welcome_step1_title: "Aile planınıza hoş geldiniz",
     fam_welcome_step1_desc:
       "Ailenizdeki herkes kendi özel, şifreli gelen kutusuna sahip olur - sizinkinden tamamen ayrı.",
@@ -3212,6 +3231,15 @@ export const tr = {
     alias_tab_domains: "Alan Adları",
     alias_tab_directories: "Dizinler",
     alias_tab_ghost: "Hayalet Rumuzlar",
+    alias_tab_sending: "Gönderme",
+    sending_blocks_title: "Gönderimi devre dışı takma adlar",
+    sending_blocks_description: "Bir takma adın gönderimini kapatarak ondan e-posta çıkmasını durdurun. Takma ad e-posta almaya devam eder.",
+    sending_blocks_search_placeholder: "Takma adlarda ara",
+    sending_blocks_empty: "Henüz takma adınız veya alan adı adresiniz yok.",
+    sending_blocks_no_results: "Aramanızla eşleşen takma ad yok.",
+    sending_blocks_sending_allowed: "Gönderime izin var",
+    sending_blocks_toggle_label: "{{ email }} adresinden göndermeye izin ver",
+    sending_blocks_update_failed: "Bu takma adın gönderim ayarı güncellenemedi. Tekrar deneyin.",
     alias_tab_preferences: "Tercihler",
     alias_search_placeholder: "Rumuzlarda ara...",
     alias_filter_all: "Tümü",
@@ -4216,8 +4244,6 @@ export const tr = {
     updating: "Güncelleniyor...",
     password_change_encrypted_data_warning:
       "Etiketleriniz, imzalarınız ve şablonlarınız parola değişikliğinde yeniden şifrelenir. Bu işlem sırasında bağlantı kesilirse o veriler kurtarılamaz.",
-    password_changed_items_unreadable:
-      "Parolan değiştirildi. Anahtarları kullanılamadığı için {{count}} şifreli öğe önceki şifrelemesini korudu. Posta teslimi bundan etkilenmez. Bunları geri yüklemek için destek ekibine başvur.",
     password_change_background_reencrypt_failed:
       "Parolan değişti ancak gönderilen postalarının ve ayarlarının bir bölümü yeniden şifrelenmedi. Postaların veya ayarların okunamaz görünüyorsa destek ekibine ulaş.",
     previous_password: "Önceki parola",
@@ -9114,6 +9140,8 @@ export const tr = {
     recipient_identity_untrusted:
       "{{email}} için şifreleme anahtarı değişti ve yeni anahtar doğrulanamıyor. Bu adrese göndermek için değişikliği bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
     trust_new_key: "Yeni anahtara güven",
+    trust_new_key_failed:
+      "Şifreleme anahtarı değişti veya denetlenemedi, bu yüzden güvenilir olarak işaretlenmedi. Geçerli anahtarı incelemek için yeniden deneyin.",
     load_all_thread_messages: "Tüm mesajları yükle",
     move_to_category: "Kategoriye taşı",
     menu_applies_to_selection: "{count} seçili öğeye uygulanır",
@@ -9826,6 +9854,9 @@ export const tr = {
     reply_from_mismatch_message:
       "Bu e-posta {{ received }} adresinde alındı, ancak yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten yanıtlamak bu adresi gönderene açığa çıkarabilir ve yanıt reddedilebilir.",
     reply_from_mismatch_use_received: "Alınan adresi kullan",
+    sending_disabled_badge: "Gönderim devre dışı",
+    reply_from_mismatch_banner: "Bu e-posta {{ received }} adresine geldi, ancak yanıtınız {{ selected }} adresinden gönderilecek.",
+    reply_from_mismatch_banner_switch: "{{ received }} adresinden gönder",
     reply_from_mismatch_send_anyway: "Yine de gönder",
     reply_from_unknown_title: "Gönderen adresini kontrol edin",
     reply_from_unknown_message:
@@ -10100,6 +10131,14 @@ export const tr = {
       "{{sender}} kişisinden gelen iletileri sık sık {{category}} kategorisine taşıyorsunuz. Bu otomatik yapılsın mı?",
   },
   auth: {
+    continue_with_app: "{{app}} ile devam et",
+    sibling_waiting: "Açılan pencerede oturum açmayı onaylayın.",
+    sibling_popup_blocked: "Onay penceresi engellendi. Bu site için açılır pencerelere izin verin ve tekrar deneyin.",
+    sibling_failed: "{{app}} ile oturum açma tamamlanmadı. Tekrar deneyin veya parolanızla oturum açın.",
+    handoff_approve_title: "{{app}} uygulamasında oturum açılsın mı?",
+    handoff_approve_body: "{{app}}, {{email}} olarak oturum açmak istiyor. Yalnızca bu oturum açmayı siz başlattıysanız devam edin.",
+    handoff_approve_done: "Bu pencereyi kapatabilirsiniz.",
+    handoff_approve_signed_out: "Burada oturum açmadınız. Bu pencereyi kapatın ve parolanızla oturum açın.",
     passkey_verification: "Passkey ile Doğrula",
     use_passkey_or_key:
       "Windows Hello, Face ID veya güvenlik anahtarınızı kullanın",
@@ -10148,6 +10187,7 @@ export const tr = {
     authenticating: "Kimlik doğrulanıyor...",
     fetching_auth_data: "Kimlik doğrulama verileri alınıyor...",
     verifying_credentials: "Kimlik bilgileri doğrulanıyor...",
+    sign_in_standard_protection: "Gelişmiş oturum açma koruması şu anda kullanılamıyor, bu yüzden standart korumayla oturum açtınız.",
     decrypting_vault: "Anahtar kasanız çözülüyor...",
     getting_user_info: "Kullanıcı bilgileri alınıyor...",
     checkout_confirm_title: "Oturum açmayı tamamlayın",
@@ -10792,12 +10832,11 @@ export const tr = {
     rename_saved: "Ad güncellendi",
   },
   errors: {
+    alias_sending_disabled: "Bu takma addan gönderim devre dışı. Önce etkinleştirin.",
     auth_salt_collision:
       "Sunucu güvenli olmayan bir değer gönderdiği için oturum açma durduruldu ve hiçbir şeyin kilidi açılmadı. Yeniden denemeden önce destek ile iletişime geç.",
     legacy_login_salt_new_device:
       "Hesabınızın güvenlik güncellemesini tamamlamak için daha önce Aster ile kullandığınız bir cihazda oturum açın. Bunu yapamıyorsanız parolanızı kurtarma anahtarınızla sıfırlayın.",
-    legacy_login_salt_sign_in_again:
-      "Hesabınızın güvenlik güncellemesini tamamlamak için oturumu kapatıp yeniden açın.",
     upload_too_large:
       "Yükleme çok büyük. Devam etmek için bir dosyayı kaldırın veya küçültün, sonra yeniden deneyin.",
     failed_remove_reaction: "Tepki kaldırılamadı. Lütfen tekrar deneyin.",
@@ -11008,6 +11047,8 @@ export const tr = {
       "Bu e-posta gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     send_unconfirmed:
       "Aster bu e-postanın gönderildiğini doğrulayamadı. Tekrar denemeden önce Gönderilmiş klasörünü kontrol edin. Taslağınız kaydedildi.",
+    scheduled_unverifiable:
+      "Bu planlanmış e-posta doğrulanamıyor, bu yüzden yalnızca iptal edebilirsiniz.",
     scheduled_may_have_sent:
       "Bu zamanlanmış e-posta zaten gönderilmiş olabileceği için iptal edilmedi. Gönderilmiş klasörünü kontrol edin.",
     incorrect_password:
@@ -11018,6 +11059,8 @@ export const tr = {
       "Oturumunuz sona erdi. Devam etmek için tekrar giriş yapın. Verileriniz ve taslaklarınız sunucuda kayıtlı.",
     session_identity_mismatch:
       "Bu cihazda başka bir hesapla oturum açılmıştı, hesapları ayrı tutmak için oturumunuzu kapattık. Yeniden giriş yapmanız yeterli. Verileriniz olduğu gibi duruyor.",
+    vault_rolled_back:
+      "Bu cihazda, sunucunun gönderdiğinden daha yeni bir şifreleme anahtarı kopyası var, bu yüzden Aster Mail eski kopyayı kullanmadı. Tekrar oturum açın. Bu sorun devam ederse destek ekibiyle iletişime geçin.",
     key_material_unavailable:
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     storage_compromised:
@@ -11561,6 +11604,10 @@ export const tr = {
       "{{address}} silinsin mi? Adres artık posta almayacak ve yeniden kaydedilemeyecek.",
     delete_confirm_title: "Ortak posta kutusunu sil",
     access_unavailable: "Bu ortak posta kutusu artık kullanılamıyor",
+    member_key_untrusted:
+      "Bir üyenin şifreleme anahtarı değişti veya doğrulanamadı, bu nedenle erişimi güncellenmedi. Devam etmek için yeni anahtarı bu kişiyle başka bir yoldan doğrulayın, onunla bir konuşmada Yeni anahtara güven seçeneğini belirleyin ve yeniden deneyin.",
+    unknown_member_access:
+      "Aile planınızın etkin üyesi olmayan biri bu posta kutusuna erişebiliyor, bu nedenle anahtarları yenilenmedi. Aster destek ekibiyle iletişime geçin.",
   },
   review_prompt: {
     banner_message:

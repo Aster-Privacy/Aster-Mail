@@ -36,6 +36,10 @@ import {
   CALENDAR_WEB_ORIGIN,
   MAIL_WEB_ORIGIN,
 } from "@/lib/session_handoff/session_handoff_protocol";
+import {
+  HANDOFF_GRANT_HASH_PREFIX,
+  mint_panel_handoff_grant,
+} from "@/contexts/auth/sibling_session_handoff";
 
 export const CALENDAR_PANEL_PATH = "/mail-panel";
 export const CALENDAR_PANEL_SOURCE = "aster-calendar-panel";
@@ -127,6 +131,14 @@ export function read_panel_message(
   return record.type as CalendarPanelMessageType;
 }
 
+export function is_signed_out_status(data: unknown): boolean {
+  if (typeof data !== "object" || data === null) return false;
+
+  const record = data as Record<string, unknown>;
+
+  return record.type === "status" && record.status === "signed_out";
+}
+
 export function open_calendar_externally(): void {
   open_external(CALENDAR_WEB_ORIGIN);
 }
@@ -184,6 +196,8 @@ export function QuickCalendarPanel({
   const [frame_src, set_frame_src] = useState<string | null>(null);
 
   const frame_state_ref = useRef<FrameState>(frame_state);
+  const grant_refreshed_ref = useRef(false);
+  const signed_out_ref = useRef(false);
 
   on_close_ref.current = on_close;
   appearance_ref.current = appearance;
@@ -197,6 +211,24 @@ export function QuickCalendarPanel({
   useEffect(() => {
     if (is_open) set_has_opened(true);
   }, [is_open]);
+
+  const reload_with_fresh_grant = useCallback(() => {
+    grant_refreshed_ref.current = true;
+    signed_out_ref.current = false;
+    set_frame_key((key) => key + 1);
+  }, []);
+
+  useEffect(() => {
+    if (is_open) return;
+
+    grant_refreshed_ref.current = false;
+  }, [is_open]);
+
+  useEffect(() => {
+    if (is_open && signed_out_ref.current && !grant_refreshed_ref.current) {
+      reload_with_fresh_grant();
+    }
+  }, [is_open, reload_with_fresh_grant]);
 
   const clear_timer = useCallback(() => {
     if (timer_ref.current !== null) {
@@ -233,6 +265,10 @@ export function QuickCalendarPanel({
     if (frame_key > 0) {
       src.searchParams.set("attempt", String(frame_key));
     }
+
+    const grant = mint_panel_handoff_grant(src.origin);
+
+    if (grant) src.hash = HANDOFF_GRANT_HASH_PREFIX + grant;
 
     set_frame_src(src.href);
     set_frame_state("loading");
@@ -279,6 +315,16 @@ export function QuickCalendarPanel({
         return;
       }
 
+      if (type === "status") {
+        signed_out_ref.current = is_signed_out_status(event.data);
+
+        if (signed_out_ref.current && !grant_refreshed_ref.current) {
+          reload_with_fresh_grant();
+
+          return;
+        }
+      }
+
       clear_timer();
       set_frame_state("ready");
     };
@@ -286,7 +332,7 @@ export function QuickCalendarPanel({
     window.addEventListener("message", handle_message);
 
     return () => window.removeEventListener("message", handle_message);
-  }, [has_opened, origin, clear_timer]);
+  }, [has_opened, origin, clear_timer, reload_with_fresh_grant]);
 
   useEffect(() => {
     if (frame_state === "ready") post_theme(appearance);
@@ -312,6 +358,8 @@ export function QuickCalendarPanel({
   }, [arm_timer]);
 
   const retry = useCallback(() => {
+    grant_refreshed_ref.current = false;
+    signed_out_ref.current = false;
     set_frame_key((key) => key + 1);
   }, []);
 

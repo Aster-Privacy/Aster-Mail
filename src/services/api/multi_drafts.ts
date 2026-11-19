@@ -25,12 +25,24 @@ import { upload_timeout_ms } from "./upload_timeout";
 import { with_session_recovery } from "./session_recovery";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { with_identity_key } from "@/services/crypto/identity_key_required";
+import {
+  IdentityKeyMissingError,
+  is_usable_identity_key,
+  with_identity_key,
+} from "@/services/crypto/identity_key_required";
 import {
   account_data_write_key,
   retry_after_account_key_load,
 } from "@/services/crypto/account_data_writer";
-import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_account_data_crypto_keys } from "@/services/crypto/legacy_keks";
+import { is_server_known_encoded } from "@/services/crypto/server_known_keys";
+import { decrypt_envelope_with_identity_key } from "@/services/crypto/envelope";
+import { decrypt_envelope_with_session_passphrase } from "@/services/crypto/session_passphrase_envelope";
+import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
+import {
+  is_stored_envelope_sentinel,
+  open_stored_envelope,
+} from "@/services/crypto/stored_envelope_read";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
@@ -176,7 +188,7 @@ export class DraftDecryptionError extends Error {
   }
 }
 
-const DRAFT_KEY_VERSION = "astermail-draft-v2";
+const DRAFT_KEY_VERSION = "astermail-draft-v2" as const;
 const NONCE_LENGTH = 12;
 const DRAFT_EXPIRATION_DAYS = 7;
 
@@ -274,6 +286,10 @@ function secure_clear_array(array: Uint8Array): void {
 async function derive_draft_encryption_key(
   vault: EncryptedVault,
 ): Promise<CryptoKey> {
+  if (!is_usable_identity_key(vault.identity_key)) {
+    throw new IdentityKeyMissingError();
+  }
+
   const key_material = new TextEncoder().encode(
     vault.identity_key + DRAFT_KEY_VERSION,
   );
@@ -392,16 +408,71 @@ export function normalize_draft_content(parsed: unknown): DraftContent {
   };
 }
 
+const DRAFT_ENVELOPE_NONCE_LENGTH = 12;
+const OWN_KEYS_ONLY = { allow_legacy_keys: false };
+
+async function open_own_draft_envelope(
+  encrypted: string,
+  nonce_bytes: Uint8Array,
+  vault: EncryptedVault,
+): Promise<unknown> {
+  if (is_stored_envelope_sentinel(nonce_bytes)) {
+    const own_vault =
+      vault.data_kek && is_server_known_encoded(vault.data_kek, vault)
+        ? { ...vault, data_kek: undefined }
+        : vault;
+
+    return open_stored_envelope<unknown>(
+      encrypted,
+      nonce_bytes,
+      own_vault,
+      null,
+    );
+  }
+
+  if (nonce_bytes.length === 1 && nonce_bytes[0] === 1) {
+    return decrypt_envelope_with_session_passphrase<unknown>(
+      encrypted,
+      OWN_KEYS_ONLY,
+    );
+  }
+
+  if (nonce_bytes.length !== DRAFT_ENVELOPE_NONCE_LENGTH) return null;
+
+  const encrypted_bytes = base64_to_uint8_array(encrypted);
+
+  const identity_keys = vault_identity_key_materials(vault).filter(
+    is_usable_identity_key,
+  );
+
+  for (const identity_key of identity_keys) {
+    const opened = await decrypt_envelope_with_identity_key<unknown>(
+      identity_key,
+      encrypted_bytes,
+      nonce_bytes,
+      (plaintext) => JSON.parse(new TextDecoder().decode(plaintext)),
+      OWN_KEYS_ONLY,
+    );
+
+    if (opened) return opened;
+  }
+
+  return null;
+}
+
 async function decrypt_content_with_envelope_keys(
   encrypted: string,
   nonce: string,
+  vault: EncryptedVault,
 ): Promise<DraftContent | null> {
   try {
-    const { decrypt_envelope } =
-      await import("@/hooks/email_list_helpers/decrypt");
-    const envelope = await decrypt_envelope(encrypted, nonce);
+    const envelope = await open_own_draft_envelope(
+      encrypted,
+      base64_to_uint8_array(nonce),
+      vault,
+    );
 
-    if (!envelope) return null;
+    if (!envelope || typeof envelope !== "object") return null;
 
     return normalize_draft_content(envelope);
   } catch {
@@ -409,28 +480,76 @@ async function decrypt_content_with_envelope_keys(
   }
 }
 
+async function previous_draft_keys(
+  vault: EncryptedVault,
+): Promise<CryptoKey[]> {
+  const keys: CryptoKey[] = [];
+
+  for (const previous of vault.previous_keys ?? []) {
+    if (!is_usable_identity_key(previous)) continue;
+
+    keys.push(
+      await derive_draft_encryption_key({ ...vault, identity_key: previous }),
+    );
+  }
+
+  return keys;
+}
+
+async function open_own_draft_ciphertext(
+  key: CryptoKey | null,
+  previous_keys: CryptoKey[],
+  ciphertext: Uint8Array,
+  nonce_bytes: Uint8Array,
+): Promise<ArrayBuffer> {
+  const candidates = [
+    ...(key ? [key] : []),
+    ...get_account_data_crypto_keys(DRAFT_KEY_VERSION),
+    ...previous_keys,
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      return await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: nonce_bytes },
+        candidate,
+        ciphertext,
+      );
+    } catch {
+      continue;
+    }
+  }
+
+  throw new DraftDecryptionError(
+    get_active_translations().errors.failed_decrypt_draft,
+  );
+}
+
 async function decrypt_content(
   encrypted: string,
   nonce: string,
   vault: EncryptedVault,
 ): Promise<DraftContent> {
-  const key = await derive_draft_encryption_key(vault);
+  const key = is_usable_identity_key(vault.identity_key)
+    ? await derive_draft_encryption_key(vault)
+    : null;
   const ciphertext = base64_to_uint8_array(encrypted);
   const nonce_bytes = base64_to_uint8_array(nonce);
 
   let plaintext_buffer: ArrayBuffer;
 
   try {
+    const previous_keys = await previous_draft_keys(vault);
+
     plaintext_buffer = await retry_after_account_key_load(() =>
-      decrypt_account_context_with_fallback(
-        "astermail-draft-v2",
-        key,
-        ciphertext,
-        nonce_bytes,
-      ),
+      open_own_draft_ciphertext(key, previous_keys, ciphertext, nonce_bytes),
     );
   } catch {
-    const fallback = await decrypt_content_with_envelope_keys(encrypted, nonce);
+    const fallback = await decrypt_content_with_envelope_keys(
+      encrypted,
+      nonce,
+      vault,
+    );
 
     if (fallback) return fallback;
 

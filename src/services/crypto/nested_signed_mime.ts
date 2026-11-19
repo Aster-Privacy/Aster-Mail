@@ -59,46 +59,69 @@ function content_type_line(headers: string): string | null {
   return match ? match[1] : null;
 }
 
-export function find_nested_signed_part(
+export type nested_signed_inspection =
+  | { kind: "none" }
+  | { kind: "malformed" }
+  | { kind: "part"; part: nested_signed_part };
+
+const NOT_SIGNED: nested_signed_inspection = { kind: "none" };
+const MALFORMED: nested_signed_inspection = { kind: "malformed" };
+
+function count_matches(text: string, pattern: RegExp): number {
+  return text.match(pattern)?.length ?? 0;
+}
+
+export function inspect_nested_signed_mime(
   plaintext: string,
-): nested_signed_part | null {
-  if (plaintext.length > MAX_SIGNED_MIME_BYTES) return null;
+): nested_signed_inspection {
+  if (plaintext.length > MAX_SIGNED_MIME_BYTES) return NOT_SIGNED;
 
   const canonical = plaintext.replace(/\r?\n/g, "\r\n");
   const entity = split_entity(canonical);
 
-  if (!entity) return null;
+  if (!entity) return NOT_SIGNED;
 
   const content_type = content_type_line(entity.headers);
 
   if (!content_type || !/^\s*multipart\/signed\b/i.test(content_type)) {
-    return null;
+    return NOT_SIGNED;
   }
 
   const protocol = header_param(content_type, "protocol");
   const boundary = header_param(content_type, "boundary");
 
   if (!boundary || protocol?.toLowerCase() !== "application/pgp-signature") {
-    return null;
+    return NOT_SIGNED;
+  }
+
+  if (
+    count_matches(entity.headers, /(?:^|\r\n)content-type\s*:/gi) !== 1 ||
+    count_matches(entity.headers, /boundary\s*=/gi) !== 1
+  ) {
+    return MALFORMED;
   }
 
   const delimiter = `--${boundary}`;
   const body = `\r\n${entity.body}`;
   const first = body.indexOf(`\r\n${delimiter}\r\n`);
 
-  if (first < 0) return null;
+  if (first < 0) return NOT_SIGNED;
 
   const signed_start = first + delimiter.length + 4;
   const second = body.indexOf(`\r\n${delimiter}\r\n`, signed_start);
 
-  if (second < 0) return null;
+  if (second < 0) return NOT_SIGNED;
 
   const signature_start = second + delimiter.length + 4;
   const closing = body.indexOf(`\r\n${delimiter}--`, signature_start);
 
-  if (closing < 0) return null;
+  if (closing < 0) return NOT_SIGNED;
 
-  const signature_entity = split_entity(body.slice(signature_start, closing));
+  const signature_region = body.slice(signature_start, closing);
+
+  if (signature_region.includes(`\r\n${delimiter}`)) return MALFORMED;
+
+  const signature_entity = split_entity(signature_region);
   const signature_type = signature_entity
     ? content_type_line(signature_entity.headers)
     : null;
@@ -109,12 +132,25 @@ export function find_nested_signed_part(
     !/^\s*application\/pgp-signature\b/i.test(signature_type) ||
     !signature_entity.body.includes("-----BEGIN PGP SIGNATURE-----")
   ) {
-    return null;
+    return NOT_SIGNED;
+  }
+
+  const armored_signature = signature_entity.body.trim();
+
+  if (
+    !armored_signature.startsWith("-----BEGIN PGP SIGNATURE-----") ||
+    !armored_signature.endsWith("-----END PGP SIGNATURE-----") ||
+    count_matches(armored_signature, /-----BEGIN PGP /g) !== 1
+  ) {
+    return MALFORMED;
   }
 
   return {
-    signed_text: body.slice(signed_start, second),
-    armored_signature: signature_entity.body.trim(),
+    kind: "part",
+    part: {
+      signed_text: body.slice(signed_start, second),
+      armored_signature,
+    },
   };
 }
 

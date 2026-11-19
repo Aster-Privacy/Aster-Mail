@@ -33,6 +33,7 @@ import {
   check_owner_key_pin,
   flag_recipient_untrusted,
   is_recipient_flagged_untrusted,
+  lookup_owner_key_pin,
 } from "./crypto/ratchet_identity_pin";
 import { RecipientPinUnreadableError } from "./crypto/ratchet_types";
 
@@ -77,21 +78,40 @@ export async function resolve_own_username_for_key_lookup(
   return extract_username_from_email(email);
 }
 
+export async function owner_key_pinned_before_send(
+  recipient: string,
+): Promise<boolean> {
+  const found = await lookup_owner_key_pin(recipient.trim().toLowerCase());
+
+  return found !== null && found !== "unreadable";
+}
+
 export async function assert_owner_key_trusted(
   recipient: string,
   armored_public_key: string,
+  pinned_before_send?: boolean,
 ): Promise<void> {
   const pin_id = recipient.trim().toLowerCase();
 
-  const owner_changed =
-    (await check_owner_key_pin(pin_id, armored_public_key).catch((caught) => {
+  const status = await check_owner_key_pin(pin_id, armored_public_key).catch(
+    (caught) => {
       if (!(caught instanceof RecipientPinUnreadableError)) throw caught;
 
       throw create_error(
         "encryption_failed",
         get_active_translations().errors.recipient_key_unreadable,
       );
-    })) === "changed";
+    },
+  );
+
+  if (status === "ok" && pinned_before_send === false) {
+    throw create_error(
+      "encryption_failed",
+      get_active_translations().errors.recipient_key_untrusted,
+    );
+  }
+
+  const owner_changed = status === "changed";
 
   if (!owner_changed && !(await is_recipient_flagged_untrusted(pin_id))) {
     return;

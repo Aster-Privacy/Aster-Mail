@@ -26,7 +26,10 @@ import type { SkinTone } from "@/config/emoji/skin_tones";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { with_identity_key } from "@/services/crypto/identity_key_required";
+import {
+  is_usable_identity_key,
+  with_identity_key,
+} from "@/services/crypto/identity_key_required";
 import {
   account_data_write_key,
   retry_after_account_key_load,
@@ -79,6 +82,7 @@ export interface UserPreferences {
   density: string;
   mail_list_density: string;
   show_profile_pictures: boolean;
+  load_sender_logos: boolean;
   show_email_preview: boolean;
   default_send_mode: string;
   undo_send_period: string;
@@ -398,7 +402,9 @@ async function decrypt_preferences(
   nonce: string,
   vault: EncryptedVault,
 ): Promise<UserPreferences> {
-  const key = await derive_preferences_key(vault);
+  const key = is_usable_identity_key(vault.identity_key)
+    ? await derive_preferences_key(vault)
+    : null;
   const encrypted_data = Uint8Array.from(atob(encrypted), (c) =>
     c.charCodeAt(0),
   );
@@ -505,7 +511,9 @@ export async function convert_preferences_to_account_key(
     plaintext = new Uint8Array(
       await decrypt_account_context_with_fallback(
         "astermail-preferences-v1",
-        await derive_preferences_key(vault),
+        is_usable_identity_key(vault.identity_key)
+          ? await derive_preferences_key(vault)
+          : null,
         ciphertext,
         stored_nonce,
       ),
@@ -755,6 +763,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   density: "Comfortable",
   mail_list_density: "compact",
   show_profile_pictures: true,
+  load_sender_logos: false,
   show_email_preview: true,
   default_send_mode: "Send",
   undo_send_period: "10 seconds",

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "./key_manager_core";
+import type { StoredEnvelopeBinding } from "./envelope_v2";
 
 import { encrypt_envelope_with_identity_key } from "./envelope";
 import {
@@ -26,17 +27,33 @@ import {
   envelope_v2_write_key,
   wipe_envelope_v2_keys,
 } from "./envelope_v2";
+import { stored_envelope_binding } from "./stored_envelope_read";
 import { is_level2_admitted } from "./vault_level2";
+
+import { peek_account_key_capabilities } from "@/services/api/account_key";
+
+export function stored_envelope_write_binding(
+  item_id: string | null | undefined,
+): StoredEnvelopeBinding | undefined {
+  if (!peek_account_key_capabilities().bound_envelope_writes) return undefined;
+
+  return stored_envelope_binding(item_id);
+}
 
 export async function encrypt_envelope_for_storage(
   data: object,
   vault: EncryptedVault,
+  item_id?: string,
 ): Promise<{ encrypted: string; nonce: string }> {
   const data_kek = is_level2_admitted() ? envelope_v2_write_key(vault) : null;
 
   if (data_kek) {
     try {
-      return await encrypt_envelope_v2(data, data_kek);
+      return await encrypt_envelope_v2(
+        data,
+        data_kek,
+        stored_envelope_write_binding(item_id),
+      );
     } finally {
       wipe_envelope_v2_keys([data_kek]);
     }

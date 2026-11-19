@@ -43,6 +43,19 @@ export const en: Translations = {
       "Deleted the folder. The mail inside stays in your account.",
     delete_folder_password_required: "Enter your account password.",
     delete_folder_totp_required: "Enter your two-factor authentication code.",
+    mail_key_upgrade_title: "Updating your saved mail",
+    mail_key_upgrade_running:
+      "Aster Mail is re-encrypting your saved messages with your current keys. Keep this window open until it finishes.",
+    mail_key_upgrade_progress: "{count} messages checked",
+    mail_key_upgrade_progress_one: "{count} message checked",
+    mail_key_upgrade_failed:
+      "Aster Mail couldn't finish updating your saved messages. Your mail is unchanged. Check your connection, then try again.",
+    mail_key_upgrade_retry: "Try again",
+    mail_key_upgrade_done_title: "Saved mail updated",
+    mail_key_upgrade_skipped: "{count} messages couldn't be updated yet.",
+    mail_key_upgrade_skipped_one: "{count} message couldn't be updated yet.",
+    mail_key_upgrade_unreadable: "Your saved mail is up to date. Aster Mail couldn't open {count} older messages with your keys, so they stay as they were.",
+    mail_key_upgrade_unreadable_one: "Your saved mail is up to date. Aster Mail couldn't open {count} older message with your keys, so it stays as it was.",
     delete_folder_verification_failed:
       "Check your password and code, then try again.",
     qr_code: "QR code",
@@ -1198,6 +1211,9 @@ export const en: Translations = {
     files_end_to_end_encrypted: "These files are end-to-end encrypted.",
     files_protected_in_transit:
       "These files were protected and encrypted in transit.",
+    files_outside_encrypted_label: "Not in the encrypted message",
+    files_outside_encrypted:
+      "These files aren't part of the encrypted message. Open them only if you trust the sender.",
     sender_verified: "Sender verified",
     sender_verified_desc:
       "The signature on this message matches the sender's published key.",
@@ -2248,6 +2264,9 @@ export const en: Translations = {
     sender_pictures: "Sender pictures",
     sender_pictures_description:
       "Show the sender's photo or initials next to each message in your inbox.",
+    sender_logos: "Company logos",
+    sender_logos_description:
+      "Show logos for companies that email you. Aster Mail gets each logo through its server using the sender's domain.",
     fam_welcome_step1_title: "Welcome to your family plan",
     fam_welcome_step1_desc:
       "Everyone in your family gets their own private, encrypted inbox - completely separate from yours.",
@@ -2985,8 +3004,6 @@ export const en: Translations = {
     updating: "Updating...",
     password_change_encrypted_data_warning:
       "Your labels, signatures, and templates are re-encrypted when you change your password. If your connection drops during this, that data cannot be recovered.",
-    password_changed_items_unreadable:
-      "Your password changed. {{count}} encrypted items kept their earlier encryption because their key wasn't available. Mail delivery isn't affected. To restore them, contact support.",
     password_change_background_reencrypt_failed:
       "Your password changed, but some of your sent mail and settings did not finish re-encrypting. Contact support if any mail or settings look unreadable.",
     previous_password: "Previous password",
@@ -8518,6 +8535,15 @@ export const en: Translations = {
     alias_tab_domains: "Domains",
     alias_tab_directories: "Directories",
     alias_tab_ghost: "Ghost Aliases",
+    alias_tab_sending: "Sending",
+    sending_blocks_title: "Sending disabled aliases",
+    sending_blocks_description: "Turn off sending for an alias to stop mail from going out from it. The alias still receives mail.",
+    sending_blocks_search_placeholder: "Search aliases",
+    sending_blocks_empty: "You have no aliases or domain addresses yet.",
+    sending_blocks_no_results: "No aliases match your search.",
+    sending_blocks_sending_allowed: "Sending allowed",
+    sending_blocks_toggle_label: "Allow sending from {{ email }}",
+    sending_blocks_update_failed: "Couldn't update sending for this alias. Try again.",
     alias_tab_preferences: "Preferences",
     alias_search_placeholder: "Search aliases...",
     alias_filter_all: "All",
@@ -8968,6 +8994,8 @@ export const en: Translations = {
     recipient_identity_untrusted:
       "The encryption key for {{email}} changed, and the new key can't be confirmed. To send to this address, confirm the change with them another way, then choose Trust new key.",
     trust_new_key: "Trust new key",
+    trust_new_key_failed:
+      "The encryption key changed or couldn't be checked, so it wasn't trusted. To review the current key, try again.",
     encrypted_message_unavailable:
       "This message could not be decrypted. The sender may have used an outdated key.",
     pgp_password_protected_title: "Password protected message",
@@ -9023,6 +9051,9 @@ export const en: Translations = {
     reply_from_mismatch_message:
       "This email was received on {{ received }}, but your reply is set to send from {{ selected }}. Replying from a different address can expose it to the sender, and the reply may be rejected.",
     reply_from_mismatch_use_received: "Use received address",
+    sending_disabled_badge: "Sending disabled",
+    reply_from_mismatch_banner: "This email was received on {{ received }}, but your reply is set to send from {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Send from {{ received }}",
     reply_from_mismatch_send_anyway: "Send anyway",
     reply_from_unknown_title: "Check the From address",
     reply_from_unknown_message:
@@ -9963,6 +9994,14 @@ export const en: Translations = {
       "You keep moving mail from {{sender}} to {{category}}. Do it automatically?",
   },
   auth: {
+    continue_with_app: "Continue with {{app}}",
+    sibling_waiting: "Confirm the sign-in in the window that opened.",
+    sibling_popup_blocked: "The confirmation window was blocked. Allow pop-ups for this site, then try again.",
+    sibling_failed: "Sign-in with {{app}} didn't complete. Try again, or sign in with your password.",
+    handoff_approve_title: "Sign in to {{app}}?",
+    handoff_approve_body: "{{app}} is asking to sign in as {{email}}. Continue only if you started this sign-in.",
+    handoff_approve_done: "You can close this window.",
+    handoff_approve_signed_out: "You aren't signed in here. Close this window and sign in with your password.",
     captcha_load_failed:
       "The security check could not load. Check your connection or any content blocker, then try again.",
     sign_in: "Sign In",
@@ -10114,6 +10153,7 @@ export const en: Translations = {
     authenticating: "Authenticating...",
     fetching_auth_data: "Fetching authentication data...",
     verifying_credentials: "Verifying credentials...",
+    sign_in_standard_protection: "Enhanced sign-in protection is unavailable right now, so you signed in with standard protection.",
     decrypting_vault: "Decrypting your key vault...",
     getting_user_info: "Getting user info...",
     checkout_confirm_title: "Finish signing in",
@@ -10647,12 +10687,11 @@ export const en: Translations = {
       "Adds a second factor using Windows Hello, a YubiKey, or your password manager.",
   },
   errors: {
+    alias_sending_disabled: "Sending from this alias is disabled. First enable it.",
     auth_salt_collision:
       "Sign-in stopped because the server sent an unsafe value, so nothing was unlocked. Contact support before you try again.",
     legacy_login_salt_new_device:
       "To finish a security update to your account, sign in on a device you've used with Aster before. If you can't, reset your password with your recovery key.",
-    legacy_login_salt_sign_in_again:
-      "To finish a security update to your account, sign out and sign in again.",
     upload_too_large:
       "The upload is too large. To continue, remove or shrink a file and try again.",
     generic: "That did not work. Try again.",
@@ -10831,6 +10870,8 @@ export const en: Translations = {
     failed_send: "This email did not send. Try again. Your draft is saved.",
     send_unconfirmed:
       "Aster could not confirm that this email was sent. Check Sent before you try again. Your draft is saved.",
+    scheduled_unverifiable:
+      "This scheduled email can't be verified, so you can only cancel it.",
     scheduled_may_have_sent:
       "This scheduled email was not canceled because it may have already been sent. Check Sent.",
     incorrect_password:
@@ -10841,6 +10882,8 @@ export const en: Translations = {
       "Your session has ended. Sign in again to continue. Your data and drafts are saved on the server.",
     session_identity_mismatch:
       "This device was signed in to a different account, so we signed you out to keep the accounts separate. Signing in again is all that is needed. Your data is untouched.",
+    vault_rolled_back:
+      "This device has a newer copy of your encryption keys than the one the server sent, so Aster Mail didn't use the older copy. Sign in again. If this keeps happening, contact support.",
     key_material_unavailable:
       "Your private keys are locked on this device. Your password will unlock them. Your keys on the server are untouched.",
     storage_compromised:
@@ -11417,6 +11460,10 @@ export const en: Translations = {
       "Delete {{address}}? The address stops receiving mail and cannot be registered again.",
     delete_confirm_title: "Delete shared mailbox",
     access_unavailable: "This shared mailbox is no longer available",
+    member_key_untrusted:
+      "A member's encryption key changed or couldn't be checked, so their access wasn't updated. To continue, confirm the new key with them another way, choose Trust new key in a conversation with them, and then try again.",
+    unknown_member_access:
+      "Someone who isn't an active member of your family plan has access to this mailbox, so its keys weren't renewed. Contact Aster support.",
   },
   review_prompt: {
     banner_message:

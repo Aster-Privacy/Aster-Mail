@@ -19,7 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+import type { PrekeyBundle } from "@/services/crypto/x3dh";
 
+import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
@@ -173,5 +175,34 @@ describe("sent-from-alias self copy", () => {
     );
 
     expect(result).toBe("self copy body");
+  });
+
+  it("starts a self copy session without a one-time post-quantum prekey", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const onetime = ml_kem768.keygen();
+
+    h.vault = sender_vault;
+    h.bundle = bundle_for(sender_vault);
+
+    const self_copy = await encrypt_for_ratchet_recipient(
+      GHOST_ALIAS,
+      GHOST_ALIAS,
+      "windy",
+      "self copy body",
+      sender_vault,
+      undefined,
+      undefined,
+      {
+        ...(bundle_for(sender_vault) as PrekeyBundle),
+        pq_prekey: {
+          key_id: 77,
+          public_key: btoa(String.fromCharCode(...onetime.publicKey)),
+        },
+      },
+    );
+
+    expect(self_copy).not.toBeNull();
+    expect(self_copy!.pq_key_id).not.toBe(77);
+    expect(self_copy!.pq_ciphertext).toBeUndefined();
   });
 });

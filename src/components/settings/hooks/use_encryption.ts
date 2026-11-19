@@ -34,6 +34,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { api_client } from "@/services/api/client";
 import {
   ensure_pgp_key_published,
+  held_public_key_armored,
   type PgpPublishHealResult,
 } from "@/services/crypto/ensure_pgp_key_published";
 import { base64_to_array } from "@/services/crypto/key_manager";
@@ -416,7 +417,11 @@ export function use_encryption() {
     if (!pgp_key) return;
 
     try {
-      const blob = new Blob([pgp_key.public_key_armored], {
+      const armored = await held_public_key_armored(pgp_key.fingerprint);
+
+      if (!armored) throw new Error("key not held");
+
+      const blob = new Blob([armored], {
         type: "application/pgp-keys",
       });
 
@@ -596,7 +601,11 @@ export function use_encryption() {
     if (!pgp_key) return;
 
     try {
-      await copy_text_or_throw(pgp_key.public_key_armored);
+      const armored = await held_public_key_armored(pgp_key.fingerprint);
+
+      if (!armored) throw new Error("key not held");
+
+      await copy_text_or_throw(armored);
       show_toast(t("settings.copied_to_clipboard"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");

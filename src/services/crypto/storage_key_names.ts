@@ -46,11 +46,15 @@ export const IDENTITY_CHANGE_PREFIX = "ratchet_identity_change_";
 export const OWNER_KEY_PIN_PREFIX = "ratchet_owner_key_pin_";
 export const IDENTITY_UNTRUSTED_PREFIX = "ratchet_identity_untrusted_";
 export const ACCEPTED_BUNDLE_PREFIX = "ratchet_accepted_bundle_";
+export const FIRST_CONTACT_PREFIX = "ratchet_first_contact_";
+export const LANE_SENDER_PIN_PREFIX = "ratchet_lane_sender_pin_";
+export const LANE_SEEN_PREFIX = "ratchet_lane_seen_";
 export const PIN_SPELLINGS_PREFIX = "ratchet_pin_spellings_";
 export const RATCHET_STATE_PREFIX = "ratchet_state_";
 export const RATCHET_PLAINTEXT_PREFIX = "ratchet_plaintext_";
 export const RATCHET_SYNC_FLOOR_PREFIX = "ratchet_sync_floor_";
 export const RATCHET_SYNC_SEALED_PREFIX = "ratchet_sync_sealed_";
+export const PQ_RECONCILER_LIMITS_PREFIX = "pq_reconciler_limits_";
 
 const SCOPED_PREFIXES: readonly string[] = [
   SENDER_HISTORY_PREFIX,
@@ -59,11 +63,15 @@ const SCOPED_PREFIXES: readonly string[] = [
   OWNER_KEY_PIN_PREFIX,
   IDENTITY_UNTRUSTED_PREFIX,
   ACCEPTED_BUNDLE_PREFIX,
+  FIRST_CONTACT_PREFIX,
+  LANE_SENDER_PIN_PREFIX,
+  LANE_SEEN_PREFIX,
   PIN_SPELLINGS_PREFIX,
   RATCHET_STATE_PREFIX,
   RATCHET_PLAINTEXT_PREFIX,
   RATCHET_SYNC_FLOOR_PREFIX,
   RATCHET_SYNC_SEALED_PREFIX,
+  PQ_RECONCILER_LIMITS_PREFIX,
 ];
 
 const ACCOUNT_EXACT_KEY_PREFIXES: readonly string[] = [

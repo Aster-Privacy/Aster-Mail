@@ -22,6 +22,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { ENVELOPE_VERSIONS } from "@/lib/crypto/device_envelope";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export type DeviceAuthErrorCode =
   "challenge_failed" | "login_failed" | "code_generation_failed";
@@ -63,7 +64,7 @@ export interface DeviceCodeStatus {
 }
 
 export function is_tauri(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 async function invoke<T>(
@@ -374,7 +375,7 @@ export async function complete_device_pairing(
 
   try {
     await invoke("device_set_id", { deviceId: device_id });
-    await invoke<string>("device_unseal_vault_envelope", {
+    await invoke<void>("device_unseal_vault_envelope", {
       envelopeB64: sealed_envelope,
       deviceId: device_id,
     });

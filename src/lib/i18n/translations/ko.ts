@@ -178,6 +178,16 @@ export const ko = {
       "폴더를 삭제했습니다. 안에 있던 메일은 계정에 남아 있습니다.",
     delete_folder_password_required: "계정 비밀번호를 입력하세요.",
     delete_folder_totp_required: "2단계 인증 코드를 입력하세요.",
+    mail_key_upgrade_title: "저장된 메일 업데이트 중",
+    mail_key_upgrade_running:
+      "Aster Mail이 저장된 메시지를 현재 키로 다시 암호화하고 있습니다. 완료될 때까지 이 창을 열어 두세요.",
+    mail_key_upgrade_progress: "메시지 {count}개 확인됨",
+    mail_key_upgrade_failed:
+      "Aster Mail이 저장된 메시지 업데이트를 완료하지 못했습니다. 메일은 변경되지 않았습니다. 연결을 확인한 후 다시 시도하세요.",
+    mail_key_upgrade_retry: "다시 시도",
+    mail_key_upgrade_done_title: "저장된 메일이 업데이트됨",
+    mail_key_upgrade_skipped: "메시지 {count}개를 아직 업데이트하지 못했습니다.",
+    mail_key_upgrade_unreadable: "저장된 메일이 최신 상태입니다. Aster Mail이 사용자의 키로 오래된 메시지 {count}개를 열 수 없어 해당 메시지는 그대로 유지됩니다.",
     delete_folder_verification_failed:
       "비밀번호와 코드를 확인한 뒤 다시 시도하세요.",
     qr_code: "QR 코드",
@@ -1416,6 +1426,9 @@ export const ko = {
     files_end_to_end_encrypted: "이 파일은 종단간 암호화되어 있습니다.",
     files_protected_in_transit:
       "이 파일은 전송 중에 보호되고 암호화되었습니다.",
+    files_outside_encrypted_label: "암호화된 메시지에 포함되지 않음",
+    files_outside_encrypted:
+      "이 파일은 암호화된 메시지에 포함되어 있지 않습니다. 보낸 사람을 신뢰하는 경우에만 여세요.",
     duplicate_send_blocked:
       "이 메일은 방금 발송되었습니다. 다시 보내기 전에 보낸편지함을 확인하세요.",
     empty_body_error: "이 메일이 발송되려면 제목이나 본문이 필요합니다.",
@@ -2305,6 +2318,9 @@ export const ko = {
     sender_pictures: "보낸사람 사진",
     sender_pictures_description:
       "받은편지함의 각 메시지 옆에 보낸사람의 사진 또는 이니셜을 표시합니다.",
+    sender_logos: "회사 로고",
+    sender_logos_description:
+      "메일을 보내는 회사의 로고를 표시합니다. Aster Mail은 보낸사람의 도메인으로 서버를 통해 각 로고를 가져옵니다.",
     fam_welcome_step1_title: "가족 요금제에 오신 것을 환영합니다",
     fam_welcome_step1_desc:
       "가족 구성원 모두가 내 것과 완전히 분리된 자신만의 비공개 암호화 받은편지함을 갖게 됩니다.",
@@ -3143,6 +3159,15 @@ export const ko = {
     alias_tab_domains: "도메인",
     alias_tab_directories: "디렉터리",
     alias_tab_ghost: "고스트 별칭",
+    alias_tab_sending: "보내기",
+    sending_blocks_title: "보내기가 비활성화된 별칭",
+    sending_blocks_description: "별칭의 보내기를 끄면 해당 별칭에서 메일이 나가지 않습니다. 별칭은 계속 메일을 받습니다.",
+    sending_blocks_search_placeholder: "별칭 검색",
+    sending_blocks_empty: "아직 별칭이나 도메인 주소가 없습니다.",
+    sending_blocks_no_results: "검색과 일치하는 별칭이 없습니다.",
+    sending_blocks_sending_allowed: "보내기 허용됨",
+    sending_blocks_toggle_label: "{{ email }}에서 보내기 허용",
+    sending_blocks_update_failed: "이 별칭의 보내기 설정을 업데이트하지 못했습니다. 다시 시도하세요.",
     alias_tab_preferences: "환경설정",
     alias_search_placeholder: "별칭 검색...",
     alias_filter_all: "전체",
@@ -4290,8 +4315,6 @@ export const ko = {
     updating: "업데이트 중...",
     password_change_encrypted_data_warning:
       "비밀번호를 변경하면 라벨, 서명, 템플릿이 재암호화됩니다. 이 과정 중 연결이 끊기면 해당 데이터는 복구할 수 없습니다.",
-    password_changed_items_unreadable:
-      "비밀번호를 변경했습니다. 키를 사용할 수 없어 암호화된 항목 {{count}}개가 이전 암호화를 유지합니다. 메일 수신에는 영향이 없습니다. 복원하려면 지원팀에 문의하세요.",
     password_change_background_reencrypt_failed:
       "비밀번호가 변경되었지만 보낸 메일과 설정 일부가 다시 암호화되지 않았습니다. 메일이나 설정이 읽힐 수 없는 상태라면 고객 지원에 문의하세요.",
     previous_password: "이전 비밀번호",
@@ -8828,6 +8851,8 @@ export const ko = {
     recipient_identity_untrusted:
       "{{email}}의 암호화 키가 변경되었으며 새 키를 확인할 수 없습니다. 이 주소로 보내려면 다른 방법으로 상대방에게 변경 사항을 확인한 다음 새 키 신뢰를 선택하세요.",
     trust_new_key: "새 키 신뢰",
+    trust_new_key_failed:
+      "암호화 키가 변경되었거나 확인할 수 없어 신뢰하지 않았습니다. 현재 키를 검토하려면 다시 시도하세요.",
     load_all_thread_messages: "모든 메시지 불러오기",
     move_to_category: "카테고리로 이동",
     menu_applies_to_selection: "선택한 {count}개에 적용",
@@ -9520,6 +9545,9 @@ export const ko = {
     reply_from_mismatch_message:
       "이 이메일은 {{ received }}에서 수신했지만 답장은 {{ selected }}에서 전송됩니다. 다른 주소로 답장하면 해당 주소가 발신자에게 노출되거나 답장이 거부될 수 있습니다.",
     reply_from_mismatch_use_received: "수신 주소 사용",
+    sending_disabled_badge: "보내기 비활성화됨",
+    reply_from_mismatch_banner: "이 이메일은 {{ received }}(으)로 받았지만 답장은 {{ selected }}에서 보내집니다.",
+    reply_from_mismatch_banner_switch: "{{ received }}에서 보내기",
     reply_from_mismatch_send_anyway: "그대로 보내기",
     reply_from_unknown_title: "보내는 주소를 확인하세요",
     reply_from_unknown_message:
@@ -9791,6 +9819,14 @@ export const ko = {
       "{{sender}}의 메일을 {{category}}(으)로 자주 옮기고 있습니다. 자동으로 처리할까요?",
   },
   auth: {
+    continue_with_app: "{{app}}(으)로 계속",
+    sibling_waiting: "열린 창에서 로그인을 확인하세요.",
+    sibling_popup_blocked: "확인 창이 차단되었습니다. 이 사이트의 팝업을 허용한 후 다시 시도하세요.",
+    sibling_failed: "{{app}}(으)로 로그인하지 못했습니다. 다시 시도하거나 비밀번호로 로그인하세요.",
+    handoff_approve_title: "{{app}}에 로그인할까요?",
+    handoff_approve_body: "{{app}}에서 {{email}}(으)로 로그인하려고 합니다. 직접 시작한 로그인인 경우에만 계속하세요.",
+    handoff_approve_done: "이 창을 닫아도 됩니다.",
+    handoff_approve_signed_out: "여기에 로그인되어 있지 않습니다. 이 창을 닫고 비밀번호로 로그인하세요.",
     passkey_verification: "패스키로 인증",
     use_passkey_or_key: "Windows Hello, Face ID 또는 보안 키를 사용하세요",
     use_passkey_instead: "대신 패스키 사용",
@@ -9839,6 +9875,7 @@ export const ko = {
     authenticating: "인증 중...",
     fetching_auth_data: "인증 데이터 가져오는 중...",
     verifying_credentials: "자격 증명 확인 중...",
+    sign_in_standard_protection: "강화된 로그인 보호를 지금 사용할 수 없어 표준 보호로 로그인했습니다.",
     decrypting_vault: "키 금고 복호화 중...",
     getting_user_info: "사용자 정보 가져오는 중...",
     checkout_confirm_title: "로그인 완료",
@@ -10459,12 +10496,11 @@ export const ko = {
     rename_saved: "이름이 업데이트되었습니다",
   },
   errors: {
+    alias_sending_disabled: "이 별칭에서 보내기가 비활성화되어 있습니다. 먼저 활성화하세요.",
     auth_salt_collision:
       "서버가 안전하지 않은 값을 보내 로그인이 중단되었으며 아무것도 잠금 해제되지 않았습니다. 다시 시도하기 전에 지원팀에 문의하세요.",
     legacy_login_salt_new_device:
       "계정의 보안 업데이트를 완료하려면 이전에 Aster를 사용한 기기에서 로그인하세요. 그럴 수 없다면 복구 키로 비밀번호를 재설정하세요.",
-    legacy_login_salt_sign_in_again:
-      "계정의 보안 업데이트를 완료하려면 로그아웃한 후 다시 로그인하세요.",
     upload_too_large:
       "업로드 용량이 너무 큽니다. 계속하려면 파일을 삭제하거나 크기를 줄인 다음 다시 시도하세요.",
     failed_remove_reaction: "반응을 삭제하지 못했습니다. 다시 시도해 주세요.",
@@ -10669,12 +10705,16 @@ export const ko = {
       "이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     send_unconfirmed:
       "Aster에서 이 이메일이 전송되었는지 확인하지 못했습니다. 다시 시도하기 전에 보낸 편지함을 확인하세요. 임시 보관함에 저장되었습니다.",
+    scheduled_unverifiable:
+      "이 예약 이메일은 확인할 수 없으므로 취소만 할 수 있습니다.",
     scheduled_may_have_sent:
       "이 예약된 이메일은 이미 전송되었을 수 있어 취소되지 않았습니다. 보낸 편지함을 확인하세요.",
     no_keys_available:
       "암호화 키를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
     session_identity_mismatch:
       "이 기기가 다른 계정으로 로그인되어 있어 계정을 분리하기 위해 로그아웃했습니다. 다시 로그인하기만 하면 됩니다. 데이터는 그대로입니다.",
+    vault_rolled_back:
+      "이 기기에는 서버가 보낸 것보다 최신 암호화 키 사본이 있으므로 Aster Mail이 이전 사본을 사용하지 않았습니다. 다시 로그인하세요. 이 문제가 계속되면 지원팀에 문의하세요.",
     key_material_unavailable:
       "키 자료를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
     storage_compromised:
@@ -11222,6 +11262,10 @@ export const ko = {
       "{{address}}을(를) 삭제할까요? 이 주소는 더 이상 메일을 받지 못하며 다시 등록할 수 없습니다.",
     delete_confirm_title: "공유 메일함 삭제",
     access_unavailable: "이 공유 메일함은 더 이상 사용할 수 없습니다",
+    member_key_untrusted:
+      "구성원의 암호화 키가 변경되었거나 확인할 수 없어 액세스가 업데이트되지 않았습니다. 계속하려면 다른 방법으로 해당 구성원과 새 키를 확인하고, 해당 구성원과의 대화에서 새 키 신뢰를 선택한 다음 다시 시도하세요.",
+    unknown_member_access:
+      "패밀리 요금제의 활성 구성원이 아닌 사람이 이 메일함에 액세스할 수 있어 키가 갱신되지 않았습니다. Aster 지원팀에 문의하세요.",
   },
   review_prompt: {
     banner_message:

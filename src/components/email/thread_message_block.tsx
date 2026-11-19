@@ -1006,6 +1006,7 @@ export function ThreadMessageBlock(
           onClick={(e) => e.stopPropagation()}
         >
           <AttachmentList
+            decrypted_content_tag={message.decrypted_content_tag}
             e2e_verified={!!message.e2e_verified}
             has_recipient_key={message.has_recipient_key}
             hint_attachment_count={message.attachments?.length ?? 0}

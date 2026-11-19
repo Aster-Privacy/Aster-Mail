@@ -19,7 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { array_to_base64, base64_to_array } from "./base64";
-import { load_storage_write_key_bytes } from "./storage_write_key";
+import {
+  load_storage_write_key_bytes,
+  load_verifying_storage_key_bytes,
+} from "./storage_write_key";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
 import {
   is_cached_plaintext_foreign,
@@ -176,16 +179,24 @@ async function derive_escrow_key(master_key: Uint8Array): Promise<CryptoKey> {
   return derive_escrow_key_from_base(key_material);
 }
 
-async function get_escrow_key(): Promise<CryptoKey | null> {
-  const master_key = await load_storage_write_key_bytes();
-
+async function escrow_key_from(
+  master_key: Uint8Array | null,
+): Promise<CryptoKey | null> {
   if (!master_key) return null;
 
-  const key = await derive_escrow_key(master_key);
+  try {
+    return await derive_escrow_key(master_key);
+  } finally {
+    master_key.fill(0);
+  }
+}
 
-  master_key.fill(0);
+async function get_escrow_key(): Promise<CryptoKey | null> {
+  return escrow_key_from(await load_storage_write_key_bytes());
+}
 
-  return key;
+async function get_verifying_escrow_key(): Promise<CryptoKey | null> {
+  return escrow_key_from(await load_verifying_storage_key_bytes());
 }
 
 const ESCROW_AAD_V2_PREFIX = "aster.escrow.v2\0";
@@ -360,27 +371,44 @@ export async function upload_to_escrow(
 ): Promise<void> {
   if (!dedupe_key || !plaintext) return;
 
-  const plaintext_bytes = new TextEncoder().encode(plaintext);
-
-  if (plaintext_bytes.length > MAX_ESCROW_PLAINTEXT_BYTES) return;
+  if (new TextEncoder().encode(plaintext).length > MAX_ESCROW_PLAINTEXT_BYTES) {
+    return;
+  }
 
   const escrow_key = await get_escrow_key();
 
   if (!escrow_key) return;
 
-  await post_escrow_entry(
-    escrow_key,
-    bound_escrow_key(dedupe_key),
-    encode_bound_payload(binding, plaintext, unconfirmed_sender),
-    escrow_aad_v3(dedupe_key),
-  );
+  const verifying_key = await get_verifying_escrow_key();
+
+  if (verifying_key) {
+    await post_escrow_entry(
+      verifying_key,
+      bound_escrow_key(dedupe_key),
+      encode_bound_payload(binding, plaintext, unconfirmed_sender),
+      escrow_aad_v3(dedupe_key),
+    );
+  }
+
+  if (await unbound_escrow_writes_retired()) return;
 
   await post_escrow_entry(
     escrow_key,
     dedupe_key,
-    plaintext_bytes,
+    new TextEncoder().encode(plaintext),
     escrow_aad_v2(dedupe_key),
   );
+}
+
+async function unbound_escrow_writes_retired(): Promise<boolean> {
+  try {
+    const { get_account_key_capabilities } =
+      await import("@/services/api/account_key");
+
+    return (await get_account_key_capabilities()).bound_escrow_writes === true;
+  } catch {
+    return false;
+  }
 }
 
 async function get_escrow_row(row_key: string): Promise<EscrowEntry | null> {
@@ -413,14 +441,12 @@ async function open_bound_row(
     const ciphertext = base64_to_array(row.encrypted_plaintext);
     const nonce = base64_to_array(row.plaintext_nonce);
     const additional_data = escrow_aad_v3(dedupe_key);
-    const opened =
-      (await open_escrow(escrow_key, ciphertext, nonce, additional_data)) ??
-      (await decrypt_with_legacy_derived_keys(
-        derive_escrow_key_from_base,
-        ciphertext,
-        nonce,
-        additional_data,
-      ));
+    const opened = await open_escrow(
+      escrow_key,
+      ciphertext,
+      nonce,
+      additional_data,
+    );
 
     return opened ? decode_bound_payload(opened) : null;
   } catch {
@@ -472,11 +498,11 @@ export async function fetch_verified_from_escrow(
 
   if (await claimed_by_other_sender(dedupe_key, binding)) return null;
 
-  const escrow_key = await get_escrow_key();
+  const verifying_key = await get_verifying_escrow_key();
 
-  if (!escrow_key) return null;
+  if (!verifying_key) return null;
 
-  const bound = await lookup_bound_escrow(escrow_key, dedupe_key);
+  const bound = await lookup_bound_escrow(verifying_key, dedupe_key);
 
   if (!bound || !payload_matches_binding(bound, binding)) return null;
 
@@ -497,7 +523,10 @@ export async function fetch_from_escrow(
 
   if (!escrow_key) return null;
 
-  const bound = await lookup_bound_escrow(escrow_key, dedupe_key);
+  const verifying_key = await get_verifying_escrow_key();
+  const bound = verifying_key
+    ? await lookup_bound_escrow(verifying_key, dedupe_key)
+    : null;
 
   if (bound) {
     if (!payload_matches_binding(bound, binding)) return null;
@@ -534,7 +563,7 @@ export async function fetch_from_escrow(
 }
 
 export async function sync_escrow_to_cache(): Promise<void> {
-  const escrow_key = await get_escrow_key();
+  const escrow_key = await get_verifying_escrow_key();
 
   if (!escrow_key) return;
 

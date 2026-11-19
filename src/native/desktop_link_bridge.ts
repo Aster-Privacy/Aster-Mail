@@ -18,11 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 const LINK_ACTIVATED_EVENT = "aster://link-activated";
 const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export function dispatch_activated_link(raw_url: string): void {

@@ -53,6 +53,7 @@ import {
   clear_vault_from_memory,
   re_trigger_keys_ready,
 } from "@/services/crypto/memory_key_store";
+import { refuse_rolled_back_vault } from "@/services/crypto/vault_generation";
 import {
   type User,
   type StoredAccount,
@@ -123,6 +124,7 @@ import {
   announce_sign_out,
   watch_sign_out_signal,
 } from "@/services/sign_out_signal";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 async function resume_surviving_account(
   survivor: StoredAccount,
@@ -427,7 +429,7 @@ export function use_auth_provider_state() {
     let reload_into_survivor = false;
     const fallback_timer = window.setTimeout(() => {
       try {
-        if ("__TAURI_INTERNALS__" in window) return;
+        if (has_tauri_runtime()) return;
         hard_redirect(nav_target);
       } catch (caught) {
         ignore_error(
@@ -546,7 +548,7 @@ export function use_auth_provider_state() {
       try {
         if (reload_into_survivor) {
           hard_redirect(nav_target);
-        } else if (!("__TAURI_INTERNALS__" in window)) {
+        } else if (!has_tauri_runtime()) {
           navigate(nav_target);
         }
       } catch (caught) {
@@ -567,7 +569,7 @@ export function use_auth_provider_state() {
   const logout_all_handler = useCallback(async () => {
     const fallback_timer = window.setTimeout(() => {
       try {
-        if ("__TAURI_INTERNALS__" in window) return;
+        if (has_tauri_runtime()) return;
         hard_redirect("/sign-in");
       } catch (caught) {
         ignore_error(
@@ -619,7 +621,7 @@ export function use_auth_provider_state() {
     } finally {
       clearTimeout(fallback_timer);
       try {
-        if (!("__TAURI_INTERNALS__" in window)) {
+        if (!has_tauri_runtime()) {
           navigate("/sign-in");
         }
       } catch (caught) {
@@ -1142,11 +1144,10 @@ export function use_auth_provider_state() {
 
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {
-      await store_vault_in_memory(
-        vault,
-        passphrase,
-        state.user?.id ?? state.current_account_id ?? undefined,
-      );
+      const owner_id = state.user?.id ?? state.current_account_id ?? undefined;
+
+      refuse_rolled_back_vault(owner_id, vault);
+      await store_vault_in_memory(vault, passphrase, owner_id);
       ensure_level2_storage(state.user?.id ?? state.current_account_id);
 
       if (state.current_account_id) {

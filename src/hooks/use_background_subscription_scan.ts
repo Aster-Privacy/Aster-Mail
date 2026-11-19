@@ -74,6 +74,42 @@ interface ScannedSender {
   has_one_click: boolean;
   is_mailing_list: boolean;
   category: SubscriptionCacheCategory;
+  route_received?: string;
+}
+
+interface UnsubscribeRoute {
+  routing_token?: string;
+  recipients?: string[];
+  unsubscribe_link?: string;
+  list_unsubscribe_header?: string;
+  list_unsubscribe_post?: string;
+  has_one_click: boolean;
+}
+
+function unsubscribe_route(source: UnsubscribeRoute): UnsubscribeRoute {
+  return {
+    routing_token: source.routing_token,
+    recipients: source.recipients,
+    unsubscribe_link: source.unsubscribe_link,
+    list_unsubscribe_header: source.list_unsubscribe_header,
+    list_unsubscribe_post: source.list_unsubscribe_post,
+    has_one_click: source.has_one_click,
+  };
+}
+
+function has_unsubscribe_route(route: UnsubscribeRoute): boolean {
+  return !!(route.unsubscribe_link || route.list_unsubscribe_header);
+}
+
+function pick_unsubscribe_route(
+  newer: UnsubscribeRoute,
+  older: UnsubscribeRoute,
+): UnsubscribeRoute {
+  return unsubscribe_route(
+    has_unsubscribe_route(newer) || !has_unsubscribe_route(older)
+      ? newer
+      : older,
+  );
 }
 
 export interface BackgroundScanOptions {
@@ -231,28 +267,15 @@ function merge_scanned_senders(
 
       subscriptions.set(email, {
         ...existing,
+        ...pick_unsubscribe_route(newer, older),
         email_count: existing.email_count + sender.count,
         last_received:
           sender.last_received > existing.last_received
             ? sender.last_received
             : existing.last_received,
-        routing_token:
-          sender.last_received > existing.last_received
-            ? sender.routing_token
-            : existing.routing_token,
-        recipients:
-          sender.last_received > existing.last_received
-            ? sender.recipients
-            : existing.recipients,
         sender_name: is_full_scan
           ? existing.sender_name || sender.name
           : sender.name || existing.sender_name,
-        unsubscribe_link: newer.unsubscribe_link || older.unsubscribe_link,
-        list_unsubscribe_header:
-          newer.list_unsubscribe_header || older.list_unsubscribe_header,
-        list_unsubscribe_post:
-          newer.list_unsubscribe_post || older.list_unsubscribe_post,
-        has_one_click: sender.has_one_click || existing.has_one_click,
         category:
           existing.category === "unknown" ? sender.category : existing.category,
       });
@@ -615,14 +638,32 @@ export async function run_background_scan(
             envelope.body_text,
           );
           const existing = sender_counts.get(email);
+          const message_route: UnsubscribeRoute = {
+            routing_token: item.routing_token || undefined,
+            recipients: envelope_recipient_addresses(envelope),
+            unsubscribe_link: unsubscribe_info.unsubscribe_link,
+            list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
+            list_unsubscribe_post: unsubscribe_info.list_unsubscribe_post,
+            has_one_click: unsubscribe_info.method === "one-click",
+          };
+          const message_has_route = has_unsubscribe_route(message_route);
 
           if (existing) {
             existing.count++;
             if (is_mailing_list) existing.is_mailing_list = true;
-            if (item.created_at > existing.last_received) {
-              existing.last_received = item.created_at;
-              existing.routing_token = item.routing_token || undefined;
-              existing.recipients = envelope_recipient_addresses(envelope);
+
+            const newer_message = item.created_at > existing.last_received;
+            const takes_route = message_has_route
+              ? !existing.route_received ||
+                item.created_at > existing.route_received
+              : !existing.route_received && newer_message;
+
+            if (newer_message) existing.last_received = item.created_at;
+            if (takes_route) {
+              Object.assign(existing, message_route);
+              existing.route_received = message_has_route
+                ? item.created_at
+                : undefined;
             }
             if (!existing.name && envelope.from.name) {
               existing.name = envelope.from.name;
@@ -633,29 +674,6 @@ export async function run_background_scan(
                 envelope.from.name || email,
                 unsubscribe_info.has_unsubscribe,
               );
-            }
-            if (
-              !existing.unsubscribe_link &&
-              unsubscribe_info.unsubscribe_link
-            ) {
-              existing.unsubscribe_link = unsubscribe_info.unsubscribe_link;
-            }
-            if (
-              !existing.list_unsubscribe_header &&
-              unsubscribe_info.list_unsubscribe_header
-            ) {
-              existing.list_unsubscribe_header =
-                unsubscribe_info.list_unsubscribe_header;
-            }
-            if (
-              !existing.list_unsubscribe_post &&
-              unsubscribe_info.list_unsubscribe_post
-            ) {
-              existing.list_unsubscribe_post =
-                unsubscribe_info.list_unsubscribe_post;
-            }
-            if (unsubscribe_info.method === "one-click") {
-              existing.has_one_click = true;
             }
           } else {
             const category = categorize_sender(
@@ -670,12 +688,8 @@ export async function run_background_scan(
               domain,
               count: 1,
               last_received: item.created_at,
-              routing_token: item.routing_token || undefined,
-              recipients: envelope_recipient_addresses(envelope),
-              unsubscribe_link: unsubscribe_info.unsubscribe_link,
-              list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
-              list_unsubscribe_post: unsubscribe_info.list_unsubscribe_post,
-              has_one_click: unsubscribe_info.method === "one-click",
+              ...message_route,
+              route_received: message_has_route ? item.created_at : undefined,
               is_mailing_list,
               category,
             });

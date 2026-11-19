@@ -136,6 +136,19 @@ export const pl = {
       "Folder usunięty. Wiadomości w środku pozostają na koncie.",
     delete_folder_password_required: "Wpisz hasło konta.",
     delete_folder_totp_required: "Wpisz kod uwierzytelniania dwuskładnikowego.",
+    mail_key_upgrade_title: "Aktualizowanie zapisanej poczty",
+    mail_key_upgrade_running:
+      "Aster Mail ponownie szyfruje zapisane wiadomości przy użyciu bieżących kluczy. Nie zamykaj tego okna do zakończenia.",
+    mail_key_upgrade_progress: "Sprawdzone wiadomości: {count}",
+    mail_key_upgrade_progress_one: "Sprawdzone wiadomości: {count}",
+    mail_key_upgrade_failed:
+      "Aster Mail nie może dokończyć aktualizacji zapisanych wiadomości. Twoja poczta nie została zmieniona. Sprawdź połączenie i spróbuj ponownie.",
+    mail_key_upgrade_retry: "Spróbuj ponownie",
+    mail_key_upgrade_done_title: "Zapisana poczta zaktualizowana",
+    mail_key_upgrade_skipped: "Nie udało się jeszcze zaktualizować wiadomości: {count}.",
+    mail_key_upgrade_skipped_one: "Nie udało się jeszcze zaktualizować wiadomości: {count}.",
+    mail_key_upgrade_unreadable: "Zapisana poczta jest aktualna. Aster Mail nie mógł otworzyć starszych wiadomości za pomocą Twoich kluczy, więc pozostają bez zmian: {count}.",
+    mail_key_upgrade_unreadable_one: "Zapisana poczta jest aktualna. Aster Mail nie mógł otworzyć starszych wiadomości za pomocą Twoich kluczy, więc pozostają bez zmian: {count}.",
     delete_folder_verification_failed:
       "Sprawdź hasło i kod, a potem spróbuj ponownie.",
     qr_code: "Kod QR",
@@ -1414,6 +1427,9 @@ export const pl = {
     files_end_to_end_encrypted: "Te pliki są szyfrowane end-to-end.",
     files_protected_in_transit:
       "Te pliki były chronione i szyfrowane podczas przesyłania.",
+    files_outside_encrypted_label: "Poza zaszyfrowaną wiadomością",
+    files_outside_encrypted:
+      "Te pliki nie są częścią zaszyfrowanej wiadomości. Otwieraj je tylko wtedy, gdy ufasz nadawcy.",
     duplicate_send_blocked:
       "Ta wiadomość została właśnie wysłana. Sprawdź folder Wysłane, zanim wyślesz ją ponownie.",
     empty_body_error:
@@ -2481,6 +2497,9 @@ export const pl = {
     sender_pictures: "Zdjęcia nadawców",
     sender_pictures_description:
       "Pokazuje zdjęcie lub inicjały nadawcy obok każdej wiadomości w skrzynce odbiorczej.",
+    sender_logos: "Logo firm",
+    sender_logos_description:
+      "Pokazuj logo firm, które do Ciebie piszą. Aster Mail pobiera każde logo przez swój serwer na podstawie domeny nadawcy.",
     fam_welcome_step1_title: "Witaj w planie rodzinnym",
     fam_welcome_step1_desc:
       "Każda osoba w Twojej rodzinie ma własną prywatną, szyfrowaną skrzynkę - całkowicie oddzieloną od Twojej.",
@@ -3427,6 +3446,15 @@ export const pl = {
     alias_tab_domains: "Domeny",
     alias_tab_directories: "Katalogi",
     alias_tab_ghost: "Aliasy widmo",
+    alias_tab_sending: "Wysyłanie",
+    sending_blocks_title: "Aliasy z wyłączonym wysyłaniem",
+    sending_blocks_description: "Wyłącz wysyłanie dla aliasu, aby nie wychodziła z niego poczta. Alias nadal odbiera wiadomości.",
+    sending_blocks_search_placeholder: "Szukaj aliasów",
+    sending_blocks_empty: "Nie masz jeszcze aliasów ani adresów domeny.",
+    sending_blocks_no_results: "Żaden alias nie pasuje do wyszukiwania.",
+    sending_blocks_sending_allowed: "Wysyłanie dozwolone",
+    sending_blocks_toggle_label: "Zezwól na wysyłanie z {{ email }}",
+    sending_blocks_update_failed: "Nie udało się zaktualizować wysyłania dla tego aliasu. Spróbuj ponownie.",
     alias_tab_preferences: "Preferencje",
     alias_search_placeholder: "Szukaj aliasów...",
     alias_filter_all: "Wszystkie",
@@ -4445,8 +4473,6 @@ export const pl = {
     updating: "Aktualizowanie...",
     password_change_encrypted_data_warning:
       "Twoje etykiety, podpisy i szablony są ponownie szyfrowane przy zmianie hasła. Jeśli połączenie zostanie przerwane w trakcie, tych danych nie będzie można odzyskać.",
-    password_changed_items_unreadable:
-      "Twoje hasło zostało zmienione. {{count}} zaszyfrowanych elementów zachowało wcześniejsze szyfrowanie, ponieważ ich klucz był niedostępny. Nie ma to wpływu na dostarczanie poczty. Aby je przywrócić, skontaktuj się z pomocą techniczną.",
     password_change_background_reencrypt_failed:
       "Twoje hasło zostało zmienione, ale część wysłanych wiadomości i ustawień nie została ponownie zaszyfrowana. Skontaktuj się z pomocą techniczną, jeśli coś wygląda na nieczytelne.",
     previous_password: "Poprzednie hasło",
@@ -9443,6 +9469,8 @@ export const pl = {
     recipient_identity_untrusted:
       "Klucz szyfrowania dla {{email}} zmienił się i nie można potwierdzić nowego klucza. Aby wysłać wiadomość na ten adres, potwierdź zmianę z tą osobą w inny sposób, a następnie wybierz Zaufaj nowemu kluczowi.",
     trust_new_key: "Zaufaj nowemu kluczowi",
+    trust_new_key_failed:
+      "Klucz szyfrowania zmienił się lub nie można go było sprawdzić, więc nie został uznany za zaufany. Aby przejrzeć bieżący klucz, spróbuj ponownie.",
     load_all_thread_messages: "Załaduj wszystkie wiadomości",
     move_to_category: "Przenieś do kategorii",
     menu_applies_to_selection: "Dotyczy {count} zaznaczonych",
@@ -10170,6 +10198,9 @@ export const pl = {
     reply_from_mismatch_message:
       "Ta wiadomość została odebrana na {{ received }}, ale odpowiedź zostanie wysłana z {{ selected }}. Odpowiedź z innego adresu może ujawnić go nadawcy i zostać odrzucona.",
     reply_from_mismatch_use_received: "Użyj adresu odbioru",
+    sending_disabled_badge: "Wysyłanie wyłączone",
+    reply_from_mismatch_banner: "Ta wiadomość dotarła na {{ received }}, ale odpowiedź zostanie wysłana z {{ selected }}.",
+    reply_from_mismatch_banner_switch: "Wyślij z {{ received }}",
     reply_from_mismatch_send_anyway: "Wyślij mimo to",
     reply_from_unknown_title: "Sprawdź adres nadawcy",
     reply_from_unknown_message:
@@ -10445,6 +10476,14 @@ export const pl = {
       "Często przenosisz wiadomości od {{sender}} do {{category}}. Robić to automatycznie?",
   },
   auth: {
+    continue_with_app: "Kontynuuj z {{app}}",
+    sibling_waiting: "Potwierdź logowanie w otwartym oknie.",
+    sibling_popup_blocked: "Okno potwierdzenia zostało zablokowane. Zezwól na wyskakujące okna dla tej witryny i spróbuj ponownie.",
+    sibling_failed: "Logowanie przez {{app}} nie zostało ukończone. Spróbuj ponownie lub zaloguj się hasłem.",
+    handoff_approve_title: "Zalogować się do {{app}}?",
+    handoff_approve_body: "{{app}} prosi o zalogowanie jako {{email}}. Kontynuuj tylko wtedy, gdy to Ty rozpocząłeś to logowanie.",
+    handoff_approve_done: "Możesz zamknąć to okno.",
+    handoff_approve_signed_out: "Nie jesteś tu zalogowany. Zamknij to okno i zaloguj się hasłem.",
     passkey_verification: "Zweryfikuj za pomocą klucza dostępu",
     use_passkey_or_key:
       "Użyj Windows Hello, Face ID lub swojego klucza bezpieczeństwa",
@@ -10493,6 +10532,7 @@ export const pl = {
     authenticating: "Uwierzytelnianie...",
     fetching_auth_data: "Pobieranie danych uwierzytelniania...",
     verifying_credentials: "Weryfikowanie poświadczeń...",
+    sign_in_standard_protection: "Rozszerzona ochrona logowania jest teraz niedostępna, więc zalogowano Cię ze standardową ochroną.",
     decrypting_vault: "Odszyfrowywanie sejfu kluczy...",
     getting_user_info: "Pobieranie informacji o użytkowniku...",
     checkout_confirm_title: "Dokończ logowanie",
@@ -11134,12 +11174,11 @@ export const pl = {
     rename_saved: "Nazwa zaktualizowana",
   },
   errors: {
+    alias_sending_disabled: "Wysyłanie z tego aliasu jest wyłączone. Najpierw je włącz.",
     auth_salt_collision:
       "Logowanie zostało przerwane, ponieważ serwer wysłał niebezpieczną wartość, więc nic nie zostało odblokowane. Skontaktuj się z pomocą, zanim spróbujesz ponownie.",
     legacy_login_salt_new_device:
       "Aby dokończyć aktualizację zabezpieczeń konta, zaloguj się na urządzeniu, na którym używasz już Aster. Jeśli to niemożliwe, zresetuj hasło za pomocą klucza odzyskiwania.",
-    legacy_login_salt_sign_in_again:
-      "Aby dokończyć aktualizację zabezpieczeń konta, wyloguj się i zaloguj ponownie.",
     upload_too_large:
       "Przesyłane dane są za duże. Aby kontynuować, usuń plik lub zmniejsz jego rozmiar i spróbuj ponownie.",
     failed_remove_reaction: "Nie udało się usunąć reakcji. Spróbuj ponownie.",
@@ -11356,6 +11395,8 @@ export const pl = {
       "Ta wiadomość nie została wysłana. Spróbuj ponownie. Szkic jest zapisany.",
     send_unconfirmed:
       "Aster nie może potwierdzić, że ta wiadomość została wysłana. Zanim spróbujesz ponownie, sprawdź folder Wysłane. Szkic jest zapisany.",
+    scheduled_unverifiable:
+      "Nie można zweryfikować tej zaplanowanej wiadomości, więc możesz ją tylko anulować.",
     scheduled_may_have_sent:
       "Ten zaplanowany e-mail nie został anulowany, ponieważ mógł już zostać wysłany. Sprawdź folder Wysłane.",
     incorrect_password:
@@ -11366,6 +11407,8 @@ export const pl = {
       "Sesja wygasła. Zaloguj się ponownie, aby kontynuować. Dane i wersje robocze są zapisane na serwerze.",
     session_identity_mismatch:
       "To urządzenie było zalogowane na inne konto, więc wylogowaliśmy Cię, aby konta pozostały oddzielone. Wystarczy zalogować się ponownie. Twoje dane są nienaruszone.",
+    vault_rolled_back:
+      "To urządzenie ma nowszą kopię Twoich kluczy szyfrowania niż ta wysłana przez serwer, więc Aster Mail nie użył starszej kopii. Zaloguj się ponownie. Jeśli problem będzie się powtarzał, skontaktuj się z pomocą techniczną.",
     key_material_unavailable:
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     storage_compromised:
@@ -11930,6 +11973,10 @@ export const pl = {
       "Usunąć {{address}}? Adres przestanie odbierać pocztę i nie będzie mógł zostać ponownie zarejestrowany.",
     delete_confirm_title: "Usuń wspólną skrzynkę",
     access_unavailable: "Ta wspólna skrzynka nie jest już dostępna",
+    member_key_untrusted:
+      "Klucz szyfrowania członka zmienił się lub nie można go było sprawdzić, więc jego dostęp nie został zaktualizowany. Aby kontynuować, potwierdź nowy klucz z tą osobą w inny sposób, wybierz Zaufaj nowemu kluczowi w rozmowie z nią i spróbuj ponownie.",
+    unknown_member_access:
+      "Osoba, która nie jest aktywnym członkiem Twojego planu rodzinnego, ma dostęp do tej skrzynki, więc jej klucze nie zostały odnowione. Skontaktuj się z pomocą techniczną Aster.",
   },
   review_prompt: {
     banner_message:

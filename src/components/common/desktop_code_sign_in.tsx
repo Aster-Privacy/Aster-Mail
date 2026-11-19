@@ -63,6 +63,7 @@ export interface DeviceSignInSession {
   passphrase: string;
   encrypted_vault: string;
   vault_nonce: string;
+  vault_recovered_write_count?: number;
   device_id: string;
 }
 
@@ -72,6 +73,7 @@ interface DeviceLoginResponse {
   email: string;
   encrypted_vault: string;
   vault_nonce: string;
+  vault_recovered_write_count?: number;
 }
 
 export async function resolve_device_login_session(
@@ -109,6 +111,7 @@ export async function resolve_device_login_session(
     passphrase,
     encrypted_vault: lr.encrypted_vault,
     vault_nonce: lr.vault_nonce,
+    vault_recovered_write_count: lr.vault_recovered_write_count,
     device_id,
   };
 }

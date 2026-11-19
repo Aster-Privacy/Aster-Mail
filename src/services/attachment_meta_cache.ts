@@ -22,8 +22,15 @@ import {
   batch_attachment_meta,
   type AttachmentMetaItem,
 } from "@/services/api/attachments";
-import { resolve_attachment_meta } from "@/services/crypto/attachment_crypto";
-import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
+import {
+  DEFAULT_ATTACHMENT_CONTENT_TYPE,
+  resolve_attachment_meta,
+} from "@/services/crypto/attachment_crypto";
+import {
+  attachment_keys_version,
+  get_attachment_entry,
+  listed_attachment_rows,
+} from "@/services/crypto/inbound_attachment_keys";
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface CachedAttachmentMeta {
@@ -42,13 +49,55 @@ export interface CachedAttachmentMeta {
 const MAX_CACHED_MAIL_ITEMS = 200;
 const MAX_META_BATCH_SIZE = 50;
 
-const meta_cache = new Map<string, CachedAttachmentMeta[]>();
+interface MetaCacheEntry {
+  items: CachedAttachmentMeta[];
+  keys_version: number;
+}
+
+const meta_cache = new Map<string, MetaCacheEntry>();
 const meta_in_flight = new Map<string, Promise<void>>();
+
+function current_cache_entry(mail_item_id: string): MetaCacheEntry | null {
+  const entry = meta_cache.get(mail_item_id);
+
+  if (!entry) return null;
+
+  if (entry.keys_version !== attachment_keys_version(mail_item_id)) {
+    meta_cache.delete(mail_item_id);
+
+    return null;
+  }
+
+  return entry;
+}
+
+function with_sealed_fields(item: CachedAttachmentMeta): CachedAttachmentMeta {
+  const sealed = get_attachment_entry(item.mail_item_id, item.seq_num);
+
+  if (sealed?.sealed !== true) return item;
+
+  const filename = sealed.filename ?? null;
+
+  return {
+    ...item,
+    filename,
+    content_type:
+      filename === null
+        ? null
+        : (sealed.content_type ?? DEFAULT_ATTACHMENT_CONTENT_TYPE),
+    content_id: sealed.content_id,
+    is_inline: sealed.is_inline === true,
+  };
+}
 
 export function get_cached_attachment_meta(
   mail_item_id: string,
 ): CachedAttachmentMeta[] | null {
-  return meta_cache.get(mail_item_id) ?? null;
+  const entry = current_cache_entry(mail_item_id);
+
+  if (!entry) return null;
+
+  return listed_attachment_rows(entry.items).map(with_sealed_fields);
 }
 
 export function clear_attachment_meta_cache(): void {
@@ -58,6 +107,7 @@ export function clear_attachment_meta_cache(): void {
 function store_cached_meta(
   mail_item_id: string,
   items: CachedAttachmentMeta[],
+  keys_version: number,
 ): void {
   if (items.some((item) => item.filename === null)) return;
 
@@ -70,7 +120,7 @@ function store_cached_meta(
     if (!oldest.done) meta_cache.delete(oldest.value);
   }
 
-  meta_cache.set(mail_item_id, items);
+  meta_cache.set(mail_item_id, { items, keys_version });
 }
 
 async function to_cached_meta(
@@ -110,7 +160,7 @@ export function prefetch_attachment_meta(
 
   for (const mail_item_id of mail_item_ids) {
     if (!mail_item_id) continue;
-    if (meta_cache.has(mail_item_id)) continue;
+    if (current_cache_entry(mail_item_id)) continue;
 
     const in_flight = meta_in_flight.get(mail_item_id);
 
@@ -131,6 +181,9 @@ export function prefetch_attachment_meta(
           offset += MAX_META_BATCH_SIZE
         ) {
           const chunk = to_fetch.slice(offset, offset + MAX_META_BATCH_SIZE);
+          const versions = new Map(
+            chunk.map((id) => [id, attachment_keys_version(id)]),
+          );
           const response = await batch_attachment_meta(chunk);
           const items = response.data?.items;
 
@@ -140,7 +193,11 @@ export function prefetch_attachment_meta(
             const list = listed_attachment_rows(items[mail_item_id] ?? []);
             const cached = await Promise.all(list.map(to_cached_meta));
 
-            store_cached_meta(mail_item_id, cached);
+            store_cached_meta(
+              mail_item_id,
+              cached,
+              versions.get(mail_item_id) ?? 0,
+            );
           }
         }
       } catch (caught) {

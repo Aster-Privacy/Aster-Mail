@@ -334,6 +334,12 @@ describe("resolve_own_recipient_address", () => {
     ).toBeUndefined();
   });
 
+  it("finds an owned alias delivered with a plus tag", () => {
+    expect(
+      resolve_own_recipient_address(["shopping+orders@aster.cx"], own),
+    ).toBe("shopping+orders@aster.cx");
+  });
+
   it("handles missing input", () => {
     expect(resolve_own_recipient_address(undefined, own)).toBeUndefined();
     expect(resolve_own_recipient_address([], own)).toBeUndefined();
@@ -393,6 +399,15 @@ describe("is_reply_from_mismatch", () => {
     expect(is_reply_from_mismatch(undefined, "me@astermail.org")).toBe(false);
     expect(is_reply_from_mismatch("", "me@astermail.org")).toBe(false);
     expect(is_reply_from_mismatch("   ", "me@astermail.org")).toBe(false);
+  });
+
+  it("treats a plus-tagged delivery as the same alias", () => {
+    expect(
+      is_reply_from_mismatch("shopping+orders@aster.cx", "shopping@aster.cx"),
+    ).toBe(false);
+    expect(
+      is_reply_from_mismatch("shopping+orders@aster.cx", "me@astermail.org"),
+    ).toBe(true);
   });
 
   it("stays quiet when no sender is selected yet", () => {

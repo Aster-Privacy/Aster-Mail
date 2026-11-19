@@ -21,6 +21,7 @@
 export const VAULT_KDF_ITERATIONS_LEGACY = 310000;
 export const VAULT_KDF_ITERATIONS_LEVEL2 = 600000;
 export const VAULT_LEVEL2_NOT_ADMITTED = "VAULT_LEVEL2_NOT_ADMITTED";
+export const VAULT_KDF_DOWNGRADE = "VAULT_KDF_DOWNGRADE";
 export const ENVELOPE_V2_ADMISSION_PATH =
   "/core/v1/auth/me/storage-rekey/envelope-v2";
 
@@ -163,6 +164,29 @@ export function is_level2_refusal(response: {
   );
 }
 
+export function is_vault_kdf_downgrade(response: {
+  status?: number;
+  server_code?: string;
+}): boolean {
+  return (
+    response.status === 409 && response.server_code === VAULT_KDF_DOWNGRADE
+  );
+}
+
+export function stored_vault_write_iterations(
+  stored: unknown,
+  encrypted_vault?: string | null,
+): VaultKdfIterations {
+  if (parse_vault_kdf_iterations(stored) === VAULT_KDF_ITERATIONS_LEVEL2) {
+    return VAULT_KDF_ITERATIONS_LEVEL2;
+  }
+
+  return encrypted_vault &&
+    known_vault_kdf_iterations(encrypted_vault) === VAULT_KDF_ITERATIONS_LEVEL2
+    ? VAULT_KDF_ITERATIONS_LEVEL2
+    : VAULT_KDF_ITERATIONS_LEGACY;
+}
+
 export interface AdmissionApi {
   post<T>(
     path: string,
@@ -257,16 +281,17 @@ export async function write_vault_at_level<R extends object>(
     sealed: SealedVault,
     field: { vault_kdf_iterations?: VaultKdfIterations },
   ) => Promise<R>,
+  own_vault = true,
 ): Promise<{ response: R; sealed: SealedVault; iterations: VaultKdfIterations }> {
   const sealed = await seal(first);
   const response = await send(sealed, vault_kdf_field(first));
 
   if (
     first === VAULT_KDF_ITERATIONS_LEVEL2 &&
-    current_vault_iterations !== VAULT_KDF_ITERATIONS_LEVEL2 &&
+    (!own_vault || current_vault_iterations !== VAULT_KDF_ITERATIONS_LEVEL2) &&
     is_level2_refusal(response as { status?: number; server_code?: string })
   ) {
-    mark_level2_refused();
+    if (own_vault) mark_level2_refused();
     const fallback = await seal(VAULT_KDF_ITERATIONS_LEGACY);
     const retried = await send(fallback, {});
 
@@ -274,6 +299,23 @@ export async function write_vault_at_level<R extends object>(
       response: retried,
       sealed: fallback,
       iterations: VAULT_KDF_ITERATIONS_LEGACY,
+    };
+  }
+
+  if (
+    first !== VAULT_KDF_ITERATIONS_LEVEL2 &&
+    is_vault_kdf_downgrade(response as { status?: number; server_code?: string })
+  ) {
+    const stronger = await seal(VAULT_KDF_ITERATIONS_LEVEL2);
+    const retried = await send(
+      stronger,
+      vault_kdf_field(VAULT_KDF_ITERATIONS_LEVEL2),
+    );
+
+    return {
+      response: retried,
+      sealed: stronger,
+      iterations: VAULT_KDF_ITERATIONS_LEVEL2,
     };
   }
 
