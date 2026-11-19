@@ -1108,7 +1108,12 @@ export function use_compose({
     if (is_fresh_reply_forward && edit_draft) {
       content = caret_block + signature_block + edit_draft.message;
     } else {
-      content = caret_block + signature_block + footer_html;
+      const spaced_footer =
+        caret_block && !signature_block
+          ? footer_html.replace(/^<br><br>/, "<br>")
+          : footer_html;
+
+      content = caret_block + signature_block + spaced_footer;
     }
 
     const sanitized_result = sanitize_html(
