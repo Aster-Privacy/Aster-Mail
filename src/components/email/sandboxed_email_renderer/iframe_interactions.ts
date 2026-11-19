@@ -317,6 +317,7 @@ export function attach_iframe_interactions(
     const link = target.closest("a, area");
 
     if (!link) return;
+    if (e.detail > 0) (link as HTMLElement).blur();
     const href = link.getAttribute("href") || "";
 
     if (!href) return;
