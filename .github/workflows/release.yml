@@ -192,6 +192,9 @@ jobs:
           if [ "$LEG" = "win" ]; then
             source scripts/use_msvc_toolchain.sh
           fi
+          if [ "$LEG" = "mac" ]; then
+            export NODE_OPTIONS="--max-old-space-size=6144"
+          fi
           TAURI_SIGNING_PRIVATE_KEY="$(cat "$RUNNER_TEMP/throwaway_updater.key")"
           export TAURI_SIGNING_PRIVATE_KEY
           npm run tauri build -- $ARGS
