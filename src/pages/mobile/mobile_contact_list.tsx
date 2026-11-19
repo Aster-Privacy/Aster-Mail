@@ -229,6 +229,7 @@ export function MobileContactList({
 
       <div className="flex gap-2 px-4 pb-2 overflow-x-auto">
         <button
+          aria-pressed={filter === "all" && !group_filter}
           className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
             filter === "all"
               ? "bg-[var(--accent-color)] text-[var(--accent-fg)]"
@@ -242,8 +243,9 @@ export function MobileContactList({
         >
           {t("common.contacts")} ({contacts.length})
         </button>
-        {favorites_count > 0 && (
+        {(favorites_count > 0 || filter === "favorites") && (
           <button
+            aria-pressed={filter === "favorites"}
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
               filter === "favorites"
                 ? "bg-[var(--accent-color)] text-[var(--accent-fg)]"
