@@ -1574,6 +1574,26 @@ describe("mark_link_buttons", () => {
     ).toBe(false);
   });
 
+  it("marks a link that fills a painted table cell", () => {
+    const doc = build_document();
+
+    doc.body.innerHTML =
+      '<table><tr><td bgcolor="#3260e0"><a href="https://example.test" id="cell">Open your inbox</a></td></tr></table>' +
+      '<table><tr><td data-bgimage="linear-gradient(red, blue)"><a href="https://example.test" id="styled">Download</a></td></tr></table>' +
+      '<div data-bg="rgb(255, 244, 204)">Read the <a href="https://example.test" id="inline">guide</a> first</div>';
+
+    expect(mark_link_buttons(doc, fake_view())).toBe(2);
+    expect(
+      doc.getElementById("cell")!.hasAttribute(LINK_BUTTON_ATTRIBUTE),
+    ).toBe(true);
+    expect(
+      doc.getElementById("styled")!.hasAttribute(LINK_BUTTON_ATTRIBUTE),
+    ).toBe(true);
+    expect(
+      doc.getElementById("inline")!.hasAttribute(LINK_BUTTON_ATTRIBUTE),
+    ).toBe(false);
+  });
+
   it("does not count a link twice", () => {
     const doc = build_document();
 
