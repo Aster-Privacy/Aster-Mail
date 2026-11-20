@@ -68,6 +68,9 @@
   </provides>
 
   <releases>
+    <release version="1.4.86" date="2026-11-20">
+      <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.86</url>
+    </release>
     <release version="1.4.85" date="2026-11-19">
       <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.85</url>
     </release>
