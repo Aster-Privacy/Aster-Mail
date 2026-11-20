@@ -81,4 +81,24 @@ describe("icon cache", () => {
 
     expect(second.is_icon_failed("bank.example")).toBe(false);
   });
+
+  it("retries a failed domain after its retry time in the same session", async () => {
+    const cache = await load_icon_cache();
+
+    cache.mark_icon_failed("slow.example", 15 * 60 * 1000);
+    expect(cache.is_icon_failed("slow.example")).toBe(true);
+
+    vi.advanceTimersByTime(15 * 60 * 1000 + 1);
+
+    expect(cache.is_icon_failed("slow.example")).toBe(false);
+  });
+
+  it("expires a failed domain after six hours without a retry time", async () => {
+    const cache = await load_icon_cache();
+
+    cache.mark_icon_failed("gone.example");
+    vi.advanceTimersByTime(6 * 60 * 60 * 1000 + 1);
+
+    expect(cache.is_icon_failed("gone.example")).toBe(false);
+  });
 });
