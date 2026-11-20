@@ -82,7 +82,7 @@ export interface UserPreferences {
   density: string;
   mail_list_density: string;
   show_profile_pictures: boolean;
-  load_sender_logos: boolean;
+  hide_sender_logos: boolean;
   show_email_preview: boolean;
   default_send_mode: string;
   undo_send_period: string;
@@ -763,7 +763,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   density: "Comfortable",
   mail_list_density: "compact",
   show_profile_pictures: true,
-  load_sender_logos: false,
+  hide_sender_logos: false,
   show_email_preview: true,
   default_send_mode: "Send",
   undo_send_period: "10 seconds",

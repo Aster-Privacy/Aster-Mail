@@ -56,21 +56,30 @@ afterEach(async () => {
 });
 
 describe("company logos", () => {
-  it("requests no logo from the server by default", () => {
+  it("requests no logo from the server before settings load", () => {
     expect(get_favicon_url("shop.example")).toBe(PENDING_FAVICON_SRC);
   });
 
-  it("keeps logos off for an account whose saved settings predate the switch", () => {
+  it("shows logos for an account whose saved settings predate the switch", () => {
     const saved: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
 
-    delete saved.load_sender_logos;
+    delete saved.hide_sender_logos;
 
-    expect(build_merged_preferences(saved, null).load_sender_logos).toBe(
+    expect(build_merged_preferences(saved, null).hide_sender_logos).toBe(
       false,
     );
   });
 
-  it("requests the logo once the person turns logos on", async () => {
+  it("keeps logos hidden for an account that turned them off", () => {
+    const saved: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      hide_sender_logos: true,
+    };
+
+    expect(build_merged_preferences(saved, null).hide_sender_logos).toBe(true);
+  });
+
+  it("requests the logo once settings turn logos on", async () => {
     (await logo_switch()).set_sender_logos_enabled(true);
 
     expect(get_favicon_url("shop.example")).toBe(
