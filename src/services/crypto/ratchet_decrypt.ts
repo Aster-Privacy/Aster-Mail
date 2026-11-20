@@ -217,9 +217,19 @@ async function prefer_escrowed_plaintext(
   if (!is_unauthenticated_plaintext(plaintext)) return plaintext;
   if (escrow_upgrade_misses.has(dedupe_key)) return plaintext;
 
-  const escrowed = await fetch_verified_from_escrow(dedupe_key, binding).catch(
-    () => null,
-  );
+  let escrowed: string | null;
+
+  try {
+    escrowed = await fetch_verified_from_escrow(dedupe_key, binding);
+  } catch (error) {
+    if (
+      !(error instanceof Error && error.name === "EscrowUnavailableError")
+    ) {
+      note_escrow_upgrade_miss(dedupe_key);
+    }
+
+    return plaintext;
+  }
 
   if (escrowed === null) {
     note_escrow_upgrade_miss(dedupe_key);

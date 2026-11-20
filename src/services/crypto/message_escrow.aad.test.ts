@@ -417,7 +417,7 @@ describe("escrow entries are bound to their message", () => {
     expect(cached.has(KEY)).toBe(false);
   });
 
-  it("does not verify a v2 entry relabeled as a bound entry", async () => {
+  it("refuses a v2 entry relabeled as a bound entry", async () => {
     const v2 = await seal(KEY, "mobile body", escrow_aad_v2(KEY));
 
     served.set(bound_escrow_key(KEY), {
@@ -426,11 +426,8 @@ describe("escrow entries are bound to their message", () => {
     });
     served.set(KEY, v2);
 
-    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
-      plaintext: "mobile body",
-      verified: false,
-      unconfirmed_sender: false,
-    });
+    expect(await fetch_verified_from_escrow(KEY, ALICE)).toBeNull();
+    expect(await fetch_from_escrow(KEY, ALICE)).toBeNull();
   });
 
   it("does not verify a bound entry moved to another message", async () => {
