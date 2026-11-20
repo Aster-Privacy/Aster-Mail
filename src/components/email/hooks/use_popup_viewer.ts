@@ -418,6 +418,9 @@ export function use_popup_viewer({
 
         if (result.success) {
           if (still_open) set_is_read(true);
+          set_thread_messages((prev) =>
+            with_message_read(prev, current_email_id, true),
+          );
           if (result.encrypted && still_open) {
             set_mail_item((prev) =>
               prev

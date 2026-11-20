@@ -604,6 +604,9 @@ export function use_email_viewer({
 
             if (result.success && !cancelled) {
               set_is_read(true);
+              set_thread_messages((prev) =>
+                with_message_read(prev, item.id, true),
+              );
               if (result.encrypted) {
                 set_mail_item((prev) =>
                   prev
@@ -885,6 +888,9 @@ export function use_email_viewer({
           if (result.success) {
             if (!cancelled) {
               set_is_read(true);
+              set_thread_messages((prev) =>
+                with_message_read(prev, item.id, true),
+              );
               if (result.encrypted) {
                 set_mail_item((prev) =>
                   prev
