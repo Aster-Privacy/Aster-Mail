@@ -20,6 +20,7 @@
 //
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod address_race;
 mod badge;
 mod badges_data;
 mod boot_guard;

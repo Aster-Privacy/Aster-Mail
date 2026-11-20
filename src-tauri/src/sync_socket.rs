@@ -30,7 +30,7 @@ use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::http::header::{ORIGIN, USER_AGENT};
 use tokio_tungstenite::tungstenite::http::HeaderValue;
 use tokio_tungstenite::tungstenite::Message;
-use tokio_tungstenite::{connect_async_tls_with_config, Connector};
+use tokio_tungstenite::{client_async_tls_with_config, Connector};
 
 const SYNC_SOCKET_EVENT: &str = "aster://sync-socket";
 const PRIMARY_WINDOW: &str = "main";
@@ -207,13 +207,22 @@ pub async fn sync_socket_open(
     );
 
     let connector = Connector::Rustls(crate::http_client::pinned_tls_config()?);
-    let (stream, _) = tokio::time::timeout(
-        CONNECT_TIMEOUT,
-        connect_async_tls_with_config(request, None, true, Some(connector)),
-    )
+    let host = url
+        .host_str()
+        .ok_or_else(|| "invalid sync socket url".to_string())?
+        .to_string();
+    let port = url.port_or_known_default().unwrap_or(443);
+    let (stream, _) = tokio::time::timeout(CONNECT_TIMEOUT, async move {
+        let tcp = crate::address_race::connect_host(&host, port)
+            .await
+            .map_err(|_| "sync socket connection failed".to_string())?;
+        let _ = tcp.set_nodelay(true);
+        client_async_tls_with_config(request, tcp, None, Some(connector))
+            .await
+            .map_err(|_| "sync socket connection failed".to_string())
+    })
     .await
-    .map_err(|_| "sync socket connection timed out".to_string())?
-    .map_err(|_| "sync socket connection failed".to_string())?;
+    .map_err(|_| "sync socket connection timed out".to_string())??;
 
     let id = sockets.next_id.fetch_add(1, Ordering::Relaxed) + 1;
     let (sender, receiver) = unbounded_channel();
