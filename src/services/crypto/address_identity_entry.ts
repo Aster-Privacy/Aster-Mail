@@ -373,7 +373,7 @@ function verify_digest(
       signature,
       digest,
       public_key,
-      { lowS: false },
+      { lowS: true },
     );
   } catch {
     return false;
