@@ -26,11 +26,10 @@ COPY nginx_entrypoint/15_require_backend_env.envsh /docker-entrypoint.d/15_requi
 RUN chmod 0755 /docker-entrypoint.d/15_require_backend_env.envsh
 
 COPY nginx.conf /etc/nginx/templates/default.conf.template
-COPY dist /usr/share/nginx/html
+COPY --chown=appuser:appgroup dist /usr/share/nginx/html
 
 RUN find /usr/share/nginx/html -name '*.map' -type f -delete
 
-RUN chown -R appuser:appgroup /usr/share/nginx/html
 
 USER appuser
 
