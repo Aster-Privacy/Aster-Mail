@@ -551,6 +551,7 @@ async function start_sender_session(
       x3dh_result.shared_secret,
       base64_to_array(bundle.signed_prekey),
       conversation_id,
+      bundle.kem_identity_key,
     );
     const ephemeral_key = array_to_base64(x3dh_result.ephemeral_public_key);
     const pq_ciphertext =

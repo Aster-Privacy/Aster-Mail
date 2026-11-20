@@ -103,6 +103,19 @@ async function add_conversation_to_index(
   }
 }
 
+function deserialize_or_null(
+  serialized: SerializedState,
+): DoubleRatchet | null {
+  try {
+    return DoubleRatchet.deserialize(serialized);
+  } catch (error) {
+    if (error instanceof Error && error.name === "InvalidRatchetStateError") {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export async function save_ratchet_state(
   ratchet: DoubleRatchet,
 ): Promise<void> {
@@ -193,12 +206,14 @@ export async function load_archived_ratchet_states(
     await write_archive(storage_key, uid, name, kept);
   }
 
-  return kept.map((entry) =>
-    DoubleRatchet.deserialize({
+  return kept.flatMap((entry) => {
+    const ratchet = deserialize_or_null({
       state: entry.state,
       conversation_id: entry.conversation_id,
-    }),
-  );
+    });
+
+    return ratchet ? [ratchet] : [];
+  });
 }
 
 export async function archive_ratchet_state(
@@ -253,7 +268,7 @@ export async function load_ratchet_state(
 
   if (!state) return null;
 
-  return DoubleRatchet.deserialize(state);
+  return deserialize_or_null(state);
 }
 
 export async function delete_ratchet_state(

@@ -51,13 +51,12 @@ import {
 } from "./ratchet_plaintext_cache";
 import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
 import {
-  has_peer_advertised_pq,
   first_contact_standing,
   is_first_contact_unconfirmed,
   is_identity_confirmed_by_user,
   lookup_owner_key_pin,
   note_first_contact_identity,
-  remembered_peer_x3dh_version,
+  read_peer_downgrade_floor,
 } from "./ratchet_identity_pin";
 import { is_identity_bound_by_current_bundle } from "./ratchet_encrypt";
 import {
@@ -1063,18 +1062,22 @@ async function init_receiver_from_bootstrap(
       : null;
 
   const peer = sender_email.toLowerCase();
+  const floor = await read_peer_downgrade_floor(peer);
+  const floor_unreadable = floor === "unreadable";
   const pq_missing =
     !pq_input &&
     !!keys.ratchet_pq_identity_public &&
-    (await has_peer_advertised_pq(peer));
+    !floor_unreadable &&
+    floor.pq_seen;
 
   if (pq_missing) {
     record_peer_identity_event(sender_email, "downgraded");
   }
 
   const weak_bootstrap =
+    floor_unreadable ||
     pq_missing ||
-    is_below_remembered_x3dh(data.x3dh_v, await remembered_peer_x3dh_version(peer));
+    is_below_remembered_x3dh(data.x3dh_v, floor.x3dh_version);
 
   const shared_secret = await perform_x3dh_receiver(
     receiver_identity_jwk,
