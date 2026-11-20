@@ -788,6 +788,19 @@ async function fetch_server_state_record(
   return response.data;
 }
 
+function deserialize_or_null(
+  serialized: SerializedState,
+): DoubleRatchet | null {
+  try {
+    return DoubleRatchet.deserialize(serialized);
+  } catch (error) {
+    if (error instanceof Error && error.name === "InvalidRatchetStateError") {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export async function load_ratchet_from_server(
   conversation_id: string,
   encryption_key: RatchetSyncKey,
@@ -803,7 +816,9 @@ export async function load_ratchet_from_server(
     conversation_id,
     await has_local_state(conversation_id),
   );
-  const ratchet = DoubleRatchet.deserialize(serialized);
+  const ratchet = deserialize_or_null(serialized);
+
+  if (!ratchet) return null;
 
   return { ratchet, version: record.state_version };
 }
@@ -848,10 +863,11 @@ async function load_listed_ratchet_state(
     await has_local_state(listed.conversation_id),
   );
 
-  return {
-    ratchet: DoubleRatchet.deserialize(serialized),
-    version: listed.version,
-  };
+  const ratchet = deserialize_or_null(serialized);
+
+  if (!ratchet) return null;
+
+  return { ratchet, version: listed.version };
 }
 
 async function absorb_listed_into_local(
