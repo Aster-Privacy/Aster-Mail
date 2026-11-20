@@ -181,20 +181,47 @@ describe("unsigned key agreement fields with the signed key switch on", () => {
     h.require_signed = true;
   });
 
-  it("ignores a one-time prekey the owner never signed so the recipient can still read the message", async () => {
+  it("keeps the advertised one-time prekey so the handshake stays one-time bound", async () => {
+    const one_time = await generate_keypair();
     const parties = await build_parties({
       x3dh_max_version: 4,
-      ec_one_time_prekey: await injected_one_time_prekey(),
+      ec_one_time_prekey: {
+        key_id: INJECTED_PREKEY_ID,
+        public_key: array_to_base64(one_time.public_key_raw),
+      },
     });
+
+    h.one_time_secrets.set(INJECTED_PREKEY_ID, one_time.secret_key_jwk);
 
     const sent = await perform_x3dh_sender(
       parties.sender_identity.secret_key_jwk,
       parties.bundle,
     );
 
-    expect(sent.x3dh_version).toBe(X3DH_VERSION_KEY_BOUND);
-    expect(sent.one_time_prekey_id).toBeUndefined();
+    expect(sent.x3dh_version).toBe(X3DH_VERSION_ONE_TIME_BOUND);
+    expect(sent.one_time_prekey_id).toBe(INJECTED_PREKEY_ID);
+    expect(sent.one_time_prekey_missing).toBeUndefined();
     expect(to_hex(await receive(parties, sent))).toBe(
+      to_hex(sent.shared_secret),
+    );
+  });
+
+  it("gives the server nothing from a swapped one-time prekey beyond a failed handshake", async () => {
+    const real_one_time = await generate_keypair();
+    const parties = await build_parties({
+      x3dh_max_version: 4,
+      ec_one_time_prekey: await injected_one_time_prekey(),
+    });
+
+    h.one_time_secrets.set(INJECTED_PREKEY_ID, real_one_time.secret_key_jwk);
+
+    const sent = await perform_x3dh_sender(
+      parties.sender_identity.secret_key_jwk,
+      parties.bundle,
+    );
+
+    expect(sent.x3dh_version).toBe(X3DH_VERSION_ONE_TIME_BOUND);
+    expect(to_hex(await receive(parties, sent))).not.toBe(
       to_hex(sent.shared_secret),
     );
   });

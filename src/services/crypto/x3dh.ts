@@ -444,8 +444,6 @@ function select_one_time_prekey(recipient_bundle: PrekeyBundle): {
   const advertised = recipient_bundle.x3dh_max_version;
   const offered = recipient_bundle.ec_one_time_prekey;
 
-  if (is_signed_ratchet_keys_required()) return null;
-
   if (
     typeof advertised !== "number" ||
     !Number.isFinite(advertised) ||
