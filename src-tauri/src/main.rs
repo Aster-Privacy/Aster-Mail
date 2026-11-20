@@ -60,6 +60,9 @@ use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 const LINK_ACTIVATED_EVENT: &str = "aster://link-activated";
 
+pub(crate) const RELOAD_WITHOUT_OPEN_EMAIL_JS: &str =
+    "history.replaceState(history.state, '', location.pathname + location.search); location.reload();";
+
 const APP_NAVIGATION_HOSTS: &[&str] = &[
     "tauri.localhost",
     "asset.localhost",
@@ -676,7 +679,7 @@ fn main() {
                     mail_notification::queue_open(app, open, was_visible);
                 }
                 if !was_visible {
-                    let _ = window.eval("window.location.reload()");
+                    let _ = window.eval(RELOAD_WITHOUT_OPEN_EMAIL_JS);
                 }
                 show_main_window(app);
             }

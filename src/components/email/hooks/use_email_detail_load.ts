@@ -33,6 +33,7 @@ import {
 } from "@/stores/ghost_alias_store";
 import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import { get_mail_item } from "@/services/api/mail";
+import { is_missing_mail_item } from "@/lib/stale_open_email";
 import {
   fetch_and_decrypt_thread_messages,
   fetch_and_decrypt_virtual_group,
@@ -306,6 +307,17 @@ export function use_email_detail_load() {
     },
     [navigate, is_popup_window],
   );
+  const leave_missing_email = useCallback(() => {
+    if (is_popup_window) {
+      window.close();
+
+      return;
+    }
+    navigate("/", { replace: true });
+  }, [navigate, is_popup_window]);
+  const leave_missing_email_ref = useRef(leave_missing_email);
+
+  leave_missing_email_ref.current = leave_missing_email;
 
   const current_email_index = useMemo(() => {
     if (!email_id || email_list.length === 0) return -1;
@@ -714,6 +726,14 @@ export function use_email_detail_load() {
       if (is_stale()) return;
 
       if (is_new_open) revert_user_opened_mail(email_id);
+
+      if (is_missing_mail_item(response)) {
+        set_is_loading(false);
+        leave_missing_email_ref.current();
+
+        return;
+      }
+
       set_error(response.error);
       set_is_loading(false);
 

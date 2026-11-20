@@ -91,6 +91,7 @@ import { subscribe_mailto_drafts } from "@/native/desktop_mailto_bridge";
 import { subscribe_notification_opens } from "@/native/desktop_notification_bridge";
 import { open_message_in_view_mode } from "@/components/toast/toast_action_router";
 import { on_user_opened_mail } from "@/services/user_opened_mail";
+import { resolve_welcome_auto_open } from "@/lib/stale_open_email";
 import {
   build_alias_view,
   parse_alias_direction,
@@ -610,18 +611,23 @@ export function use_index_page_state() {
 
     if (!should_open) return;
     if (location.hash.startsWith("#")) return;
-    if (Object.keys(email_subject_map).length === 0) return;
 
-    const welcome_entry = Object.entries(email_subject_map).find(
-      ([, subject]) => subject.toLowerCase().includes("welcome to aster"),
-    );
+    const welcome = resolve_welcome_auto_open(email_subject_map);
 
-    if (welcome_entry) {
-      has_auto_opened_welcome.current = true;
-      localStorage.removeItem("show_onboarding");
-      handle_navigate_to(welcome_entry[0]);
+    if (welcome.kind === "wait") return;
+
+    has_auto_opened_welcome.current = true;
+    localStorage.removeItem("show_onboarding");
+
+    if (welcome.kind !== "open") return;
+
+    set_preview_local_email(null);
+    if (use_popup_mode) {
+      set_popup_email_id(welcome.email_id);
+    } else {
+      set_split_email_id(welcome.email_id);
     }
-  }, [email_subject_map, handle_navigate_to, location.hash]);
+  }, [email_subject_map, location.hash, use_popup_mode]);
 
   const handle_email_click = useCallback(
     (id: string) => {
