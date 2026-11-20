@@ -20,6 +20,7 @@
 //
 import type { DecryptedEnvelope } from "@/types/email";
 
+import { is_server_sealed_envelope_marker } from "@/components/email/shared/envelope_markers";
 import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
 import {
   get_passphrase_bytes,
@@ -376,7 +377,7 @@ async function open_envelope(
 
     if (
       nonce_bytes.length === 12 &&
-      (first_byte === 2 || first_byte === 3 || first_byte === 4)
+      is_server_sealed_envelope_marker(first_byte)
     ) {
       const { decrypt_mail_envelope } =
         await import("@/components/email/shared/decrypt_envelope");
