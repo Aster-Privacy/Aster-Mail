@@ -168,7 +168,9 @@ function rendered_title_keys(): Map<string, string> {
 
 describe("settings search coverage", () => {
   const rendered = rendered_title_keys();
-  const indexed = new Set(SETTINGS_SEARCH_REGISTRY.map((e) => e.label_key));
+  const indexed = new Set<string>(
+    SETTINGS_SEARCH_REGISTRY.map((e) => e.label_key),
+  );
 
   it("finds the settings rows it scans", () => {
     expect(rendered.size).toBeGreaterThan(300);
