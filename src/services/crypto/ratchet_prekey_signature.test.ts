@@ -377,6 +377,27 @@ describe("ratchet prekey bundle signature", () => {
     expect(verification.strict).toBe(true);
   });
 
+  it("reports when a verified bundle was signed", async () => {
+    const before = Date.now() - 5000;
+    const field = await sign_ratchet_prekey_bundle(
+      owner_private,
+      PASSPHRASE,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+    );
+
+    const verification = await verify_ratchet_prekey_bundle_detailed(
+      field,
+      KEM_IDENTITY,
+      SIGNED_PREKEY,
+      owner_public,
+    );
+
+    expect(verification.verdict).toBe("verified");
+    expect(verification.signed_at).toBeGreaterThanOrEqual(before);
+    expect(verification.signed_at).toBeLessThanOrEqual(Date.now() + 5000);
+  });
+
   it("never returns 'tampered' for a legacy bundle even with a wrong key", async () => {
     const input = new TextEncoder().encode(KEM_IDENTITY + SIGNED_PREKEY);
     const hash = await crypto.subtle.digest("SHA-256", input);
