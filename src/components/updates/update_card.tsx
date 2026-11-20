@@ -456,7 +456,7 @@ export function UpdateCard({
           <motion.div
             key="actions"
             animate={{ opacity: 1, height: "auto" }}
-            className="overflow-hidden"
+            className="-mx-1.5 overflow-hidden px-1.5"
             exit={{ opacity: 0, height: 0 }}
             initial={{ opacity: 0, height: 0 }}
             transition={text_transition}
