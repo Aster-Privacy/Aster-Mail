@@ -202,6 +202,15 @@ export async function merge_identity_keys_with(
   return { previous_keys, legacy_identity_keys, absorbed };
 }
 
+export function is_armored_private_key(
+  value: string | null | undefined,
+): value is string {
+  return (
+    typeof value === "string" &&
+    value.trimStart().startsWith("-----BEGIN PGP PRIVATE KEY BLOCK-----")
+  );
+}
+
 export async function reprotect_vault_keys_for_password_change(
   vault: EncryptedVault,
   current_password: string,
@@ -209,15 +218,22 @@ export async function reprotect_vault_keys_for_password_change(
 ): Promise<void> {
   const retained = await retained_identity_key_materials(vault);
 
-  const reprotected_identity_key = await reprotect_pgp_key(
-    vault.identity_key,
-    current_password,
-    new_password,
-  );
+  const reprotected_identity_key = is_armored_private_key(vault.identity_key)
+    ? await reprotect_pgp_key(
+        vault.identity_key,
+        current_password,
+        new_password,
+      )
+    : vault.identity_key;
 
   const reprotected_previous: string[] = [];
 
   for (const previous_key of vault.previous_keys ?? []) {
+    if (!is_armored_private_key(previous_key)) {
+      reprotected_previous.push(previous_key);
+      continue;
+    }
+
     try {
       reprotected_previous.push(
         await reprotect_pgp_key(previous_key, current_password, new_password),
@@ -227,7 +243,9 @@ export async function reprotect_vault_keys_for_password_change(
     }
   }
 
-  const signed_prekey_private = vault.signed_prekey_private
+  const signed_prekey_private = is_armored_private_key(
+    vault.signed_prekey_private,
+  )
     ? await reprotect_pgp_key(
         vault.signed_prekey_private,
         current_password,
