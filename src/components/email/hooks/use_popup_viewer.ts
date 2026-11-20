@@ -102,6 +102,7 @@ import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
 import { use_reactions_seen } from "@/hooks/use_reactions_seen";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
+import { with_message_read } from "@/components/email/hooks/detail_read_state";
 import {
   claim_auto_read,
   is_read_ticket_current,
@@ -914,6 +915,16 @@ export function use_popup_viewer({
 
     const handle_mail_item_updated = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
+
+      if (!detail) return;
+
+      if (detail.is_read !== undefined) {
+        const next_read = detail.is_read;
+
+        set_thread_messages((prev) =>
+          with_message_read(prev, detail.id, next_read),
+        );
+      }
 
       if (detail.id !== email_id) return;
 
