@@ -97,6 +97,11 @@ import {
   include_opened_message,
   keep_unchanged_messages,
 } from "@/components/email/thread_message_merge";
+import {
+  with_item_read_intent,
+  with_message_read,
+  with_read_intents,
+} from "@/components/email/hooks/detail_read_state";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import {
   claim_auto_read,
@@ -422,11 +427,54 @@ export function use_email_detail_load() {
     set_is_mobile_sidebar_open((prev) => !prev);
   }, []);
 
+  const [email_read_override, set_email_read_override] = useState<{
+    id: string;
+    is_read: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    set_email_read_override(null);
+  }, [email_id]);
+
+  useEffect(
+    () =>
+      on_mail_event(MAIL_EVENTS.MAIL_ITEM_UPDATED, (detail) => {
+        if (!detail || detail.is_read === undefined) return;
+        const next_read = detail.is_read;
+
+        set_thread_messages((prev) =>
+          with_message_read(prev, detail.id, next_read),
+        );
+        set_email_read_override({ id: detail.id, is_read: next_read });
+      }),
+    [],
+  );
+
+  const opened_read_intent = useCallback(
+    (id: string) => (get_read_intent(id) === true ? true : undefined),
+    [],
+  );
+
+  const read_thread_messages = useMemo(
+    () => with_read_intents(thread_messages, opened_read_intent),
+    [thread_messages, opened_read_intent],
+  );
+
+  const read_email = useMemo(() => {
+    if (email && email_read_override?.id === email.id) {
+      return email.is_read === email_read_override.is_read
+        ? email
+        : { ...email, is_read: email_read_override.is_read };
+    }
+
+    return with_item_read_intent(email, opened_read_intent);
+  }, [email, email_read_override, opened_read_intent]);
+
   const actions = use_email_detail_actions({
     email_id,
     mail_item,
-    email,
-    thread_messages,
+    email: read_email,
+    thread_messages: read_thread_messages,
     thread_ghost_email,
     is_archive_loading,
     is_trash_loading,
@@ -1184,7 +1232,7 @@ export function use_email_detail_load() {
     update_preference,
     save_now,
     mail_item,
-    email,
+    email: read_email,
     is_loading,
     error,
     is_sender_dropdown_open,
@@ -1210,7 +1258,7 @@ export function use_email_detail_load() {
     is_archive_loading,
     is_trash_loading,
     is_mobile_sidebar_open,
-    thread_messages,
+    thread_messages: read_thread_messages,
     set_thread_messages,
     thread_truncated,
     set_thread_truncated,

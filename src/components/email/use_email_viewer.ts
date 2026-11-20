@@ -103,6 +103,7 @@ import {
 import { sync_client } from "@/services/sync_client";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
+import { with_message_read } from "@/components/email/hooks/detail_read_state";
 import { register_open_reader } from "@/hooks/open_reader_registry";
 import { use_conversation_catch_up_read } from "@/hooks/use_conversation_catch_up_read";
 import {
@@ -608,6 +609,9 @@ export function use_email_viewer({
 
             if (result.success && !cancelled) {
               set_is_read(true);
+              set_thread_messages((prev) =>
+                with_message_read(prev, item.id, true),
+              );
               if (result.encrypted) {
                 set_mail_item((prev) =>
                   prev
@@ -896,6 +900,9 @@ export function use_email_viewer({
           if (result.success) {
             if (!cancelled) {
               set_is_read(true);
+              set_thread_messages((prev) =>
+                with_message_read(prev, item.id, true),
+              );
               if (result.encrypted) {
                 set_mail_item((prev) =>
                   prev
@@ -1144,6 +1151,16 @@ export function use_email_viewer({
 
     const handle_mail_item_updated = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
+
+      if (!detail) return;
+
+      if (detail.is_read !== undefined) {
+        const next_read = detail.is_read;
+
+        set_thread_messages((prev) =>
+          with_message_read(prev, detail.id, next_read),
+        );
+      }
 
       if (detail.id !== email_id) return;
 
