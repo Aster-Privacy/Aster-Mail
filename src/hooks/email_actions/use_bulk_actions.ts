@@ -37,6 +37,7 @@ import {
 } from "../email_action_types";
 
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import { report_not_phishing_once_per_sender } from "@/lib/phishing_blocklist";
 import {
   batch_archive as api_batch_archive,
   batch_unarchive as api_batch_unarchive,
@@ -924,6 +925,7 @@ export function use_bulk_actions(
             ),
           );
         }
+        report_not_phishing_once_per_sender(emails);
       }
 
       return result;

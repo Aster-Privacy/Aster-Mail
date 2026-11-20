@@ -30,6 +30,7 @@ import {
   report_spam_sender,
   remove_spam_sender,
 } from "@/services/api/mail";
+import { report_not_phishing_once_per_sender } from "@/lib/phishing_blocklist";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { set_thread_trashed } from "@/services/trash_state";
@@ -171,6 +172,8 @@ function update_spam_senders(emails: InboxEmail[], is_spam: boolean): void {
 
     request.catch((caught) => ignore_error(LOG_SCOPE, caught));
   }
+
+  if (!is_spam) report_not_phishing_once_per_sender(emails);
 }
 
 export async function move_out_of_bin(
