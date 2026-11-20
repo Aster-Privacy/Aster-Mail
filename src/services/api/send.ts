@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { OutgoingPriority } from "@/services/mail_priority";
 import { api_client, type ApiResponse } from "./client";
 import { with_session_recovery } from "./session_recovery";
 
@@ -65,6 +66,7 @@ interface SimpleSendRequest {
   forward_original_mail_id?: string;
   in_reply_to?: string;
   plain_text?: boolean;
+  priority?: OutgoingPriority;
   external_pgp_bodies?: Record<string, string>;
   obscure_subject?: boolean;
 }
@@ -143,6 +145,7 @@ interface ExternalSendRequest {
   external_pgp_bodies?: Record<string, string>;
   in_reply_to?: string;
   plain_text?: boolean;
+  priority?: OutgoingPriority;
   obscure_subject?: boolean;
 }
 

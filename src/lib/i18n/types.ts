@@ -8118,6 +8118,15 @@ export interface MailTranslations {
   reply_from_unknown_title: string;
   reply_from_unknown_message: string;
   forward_subject_prefix: string;
+  forward_as_attachment: string;
+  forward_as_attachment_failed: string;
+  priority: string;
+  priority_high: string;
+  priority_normal: string;
+  priority_low: string;
+  high_priority: string;
+  low_priority: string;
+  field_not_editable: string;
   reply_quote_header: string;
   to: string;
   cc: string;

@@ -33,6 +33,7 @@ import {
 } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
+import { ReadOnlyField } from "@/components/compose/read_only_field";
 
 interface ForwardHeaderProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -338,14 +339,11 @@ export function ForwardHeader({
             recipients={[...recipients.to, ...recipients.cc, ...recipients.bcc]}
           />
 
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--aster-floating-divider)]">
-            <span className="text-sm flex-shrink-0 text-txt-tertiary">
-              {t("common.subject_label")}
-            </span>
-            <span className="text-sm truncate text-txt-primary">
-              {t("mail.forward_subject_prefix")} {email_subject}
-            </span>
-          </div>
+          <ReadOnlyField
+            dir="auto"
+            label={t("common.subject_label")}
+            value={`${t("mail.forward_subject_prefix")} ${email_subject}`}
+          />
         </div>
       )}
     </>

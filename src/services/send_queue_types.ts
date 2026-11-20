@@ -18,6 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type {
+  OutgoingPriority,
+  PriorityHeader,
+} from "@/services/mail_priority";
 import type { SentEncryptionEvidence } from "./crypto/sent_encryption_evidence";
 import type { RecipientKeyResult } from "@/utils/email_crypto";
 import type { PendingSend } from "./undo_send_manager";
@@ -149,6 +153,7 @@ export interface EmailParams {
   allow_non_post_quantum?: boolean;
   client_send_id?: string;
   is_plain_text?: boolean;
+  priority?: OutgoingPriority;
 }
 
 export interface QueueCallbacks {
@@ -184,6 +189,7 @@ export interface MailEnvelope {
   bcc: { name: string; email: string }[];
   sent_at: string;
   sent_encryption?: SentEncryptionEvidence;
+  raw_headers?: PriorityHeader[];
 }
 
 export interface EncryptionResult {

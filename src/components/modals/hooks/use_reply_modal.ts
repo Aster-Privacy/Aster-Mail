@@ -35,6 +35,10 @@ import {
   undo_send_manager,
 } from "@/hooks/use_undo_send";
 import { send_reply, type OriginalEmail } from "@/services/mail_actions";
+import {
+  outgoing_priority,
+  type MailPriority,
+} from "@/services/mail_priority";
 import { build_reply_subject } from "@/lib/reply_subject";
 import { resolve_reply_prefix } from "@/lib/reply_defaults";
 import {
@@ -243,6 +247,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     build_quoted_content,
     exec_format_command,
   } = use_reply_modal_state(props);
+  const [priority, set_priority] = useState<MailPriority>("normal");
 
   const { signatures } = use_signatures();
   const placement_inputs_ref = useRef({
@@ -684,6 +689,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         attachments: attachments.length > 0 ? attachments : undefined,
         require_encryption: preferences.require_encryption === true,
         is_plain_text: is_plain_text_mode,
+        priority: outgoing_priority(priority),
         lock_scope,
       },
       {
@@ -905,6 +911,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     include_quoted,
     user,
     is_plain_text_mode,
+    priority,
     attachments,
     attachment_session,
     reply_from_mismatch,
@@ -1626,6 +1633,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     show_delete_confirm,
     set_show_delete_confirm,
     is_plain_text_mode,
+    priority,
+    set_priority,
     message_editor_ref,
     file_input_ref,
     attachments_scroll_ref,

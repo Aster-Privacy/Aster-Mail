@@ -23,6 +23,7 @@ import type {
   DraftAttachmentData,
 } from "@/services/api/multi_drafts";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { MailPriority } from "@/services/mail_priority";
 
 import { purify_outgoing_html } from "@/lib/html_sanitizer_compose";
 import {
@@ -53,6 +54,8 @@ export interface ComposeToolbarState {
   editor?: import("@/hooks/use_editor").UseEditorReturn;
   is_plain_text_mode?: boolean;
   toggle_plain_text_mode?: () => void;
+  priority?: MailPriority;
+  set_priority?: (priority: MailPriority) => void;
   has_external_recipients?: boolean;
   pgp_enabled?: boolean;
   pgp_override?: boolean | null;

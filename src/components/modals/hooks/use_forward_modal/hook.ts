@@ -30,6 +30,10 @@ import {
 } from "react";
 
 import {
+  outgoing_priority,
+  type MailPriority,
+} from "@/services/mail_priority";
+import {
   UseForwardModalProps,
   apply_inline_image_substitutions,
   strip_unresolved_cid_images,
@@ -269,6 +273,7 @@ export function use_forward_modal({
   const [is_plain_text_mode, set_is_plain_text_mode] = useState(
     preferences.compose_mode === "plain_text",
   );
+  const [priority, set_priority] = useState<MailPriority>("normal");
   const is_plain_text_ref = useRef(is_plain_text_mode);
   const default_plain_text_ref = useRef(false);
 
@@ -499,6 +504,7 @@ export function use_forward_modal({
       set_is_forward_visible(false);
       is_plain_text_ref.current = default_plain_text_ref.current;
       set_is_plain_text_mode(default_plain_text_ref.current);
+      set_priority("normal");
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       content_initialized_ref.current = false;
@@ -1082,6 +1088,7 @@ export function use_forward_modal({
         forward_original_mail_id: fwd_server_source_id,
         require_encryption: preferences.require_encryption === true,
         is_plain_text: is_plain_text_mode,
+        priority: outgoing_priority(priority),
         lock_scope,
       },
       {
@@ -1206,6 +1213,7 @@ export function use_forward_modal({
     forward_message,
     outgoing_forward_message,
     is_plain_text_mode,
+    priority,
     preferences.undo_send_period,
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
@@ -1708,6 +1716,8 @@ export function use_forward_modal({
 
   return {
     lock_scope,
+    priority,
+    set_priority,
     t,
     reduce_motion,
     user,

@@ -574,7 +574,7 @@ export function SenderSelector({
         aria-controls={is_open ? panel_id : undefined}
         aria-expanded={is_open}
         aria-haspopup="listbox"
-        className="flex items-center gap-1.5 py-1 px-1.5 -ms-1.5 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-hover)] disabled:opacity-50 disabled:hover:bg-transparent"
+        className="flex items-center gap-1.5 py-1 px-1.5 -ms-1.5 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-hover)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
         disabled={disabled}
         type="button"
         onClick={() => set_is_open(!is_open)}

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { priority_headers } from "@/services/mail_priority";
 import DOMPurify from "dompurify";
 
 import {
@@ -124,6 +125,7 @@ export async function create_sent_envelope(
         }
       })();
 
+  const priority_header_list = priority_headers(email.priority);
   const envelope: MailEnvelope = {
     version: 1,
     subject: email.envelope_subject || email.subject,
@@ -135,6 +137,9 @@ export async function create_sent_envelope(
     bcc: (email.bcc || []).map((e) => ({ name: "", email: e })),
     sent_at: new Date().toISOString(),
     ...(sent_encryption ? { sent_encryption } : {}),
+    ...(priority_header_list.length > 0
+      ? { raw_headers: priority_header_list }
+      : {}),
   };
 
   try {
