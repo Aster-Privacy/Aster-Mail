@@ -27,7 +27,7 @@ const h = vi.hoisted(() => ({
   vault: null as unknown,
   bundle: null as unknown,
   store: new Map<string, unknown>(),
-  trust: null as null | "entry",
+  trust: null as null | "entry" | "endorsed",
   pin_read_fails: false,
   bundle_verification: {
     verdict: "verified" as "verified" | "legacy",
@@ -140,6 +140,7 @@ import {
   encrypt_for_ratchet_recipient,
   recipient_post_quantum_status,
 } from "@/services/crypto/ratchet_manager";
+import { is_identity_bound_by_current_bundle } from "@/services/crypto/ratchet_encrypt";
 import { RecipientPinUnreadableError } from "@/services/crypto/ratchet_types";
 import {
   has_peer_signed_pq,
@@ -240,4 +241,38 @@ describe("recipient bundle trust", () => {
     ).rejects.toBeInstanceOf(RecipientPinUnreadableError);
   });
 
+  it("does not count a self-signed address entry as binding a sender identity on first contact", async () => {
+    h.vault = await make_vault();
+    h.bundle = pq_bundle_for(await make_vault());
+    h.trust = "entry";
+
+    const identity = (h.bundle as { kem_identity_key: string }).kem_identity_key;
+
+    expect(await is_identity_bound_by_current_bundle(RECIPIENT, identity)).toBe(
+      false,
+    );
+  });
+
+  it("counts an endorsed address entry as binding a sender identity", async () => {
+    h.vault = await make_vault();
+    h.bundle = pq_bundle_for(await make_vault());
+    h.trust = "endorsed";
+
+    const identity = (h.bundle as { kem_identity_key: string }).kem_identity_key;
+
+    expect(await is_identity_bound_by_current_bundle(RECIPIENT, identity)).toBe(
+      true,
+    );
+  });
+
+  it("keeps post-quantum sending for a self-signed address entry on first contact", async () => {
+    h.vault = await make_vault();
+    h.bundle = pq_bundle_for(await make_vault());
+    h.trust = "entry";
+
+    expect(
+      await recipient_post_quantum_status(SENDER, RECIPIENT, "recipient"),
+    ).toBe("supported");
+    expect(await send(h.vault as EncryptedVault)).not.toBeNull();
+  });
 });

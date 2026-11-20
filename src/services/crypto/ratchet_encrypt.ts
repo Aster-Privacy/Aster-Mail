@@ -235,6 +235,7 @@ type BundleVerification = Awaited<
   flagged_untrusted: boolean;
   accepted_by_user: boolean;
   owner_public_key: string | null;
+  self_bound?: boolean;
 };
 
 async function address_entry_owner_pin(
@@ -273,14 +274,17 @@ async function verify_address_entry_bundle(
     };
   }
 
+  const owner_pin = await address_entry_owner_pin(pin_id, bundle, trust);
+
   return {
     verdict: "verified",
     format: "v2",
-    strict: true,
-    owner_pin: await address_entry_owner_pin(pin_id, bundle, trust),
+    strict: trust !== "entry" || owner_pin === "ok",
+    owner_pin,
     flagged_untrusted,
     accepted_by_user: false,
     owner_public_key: null,
+    self_bound: true,
   };
 }
 
@@ -436,7 +440,10 @@ function is_bundle_verification_rejected(
 function signature_covers_pq_identity(
   verification: BundleVerification,
 ): boolean {
-  return verification.verdict === "verified" && verification.strict;
+  return (
+    verification.verdict === "verified" &&
+    (verification.strict || verification.self_bound === true)
+  );
 }
 
 async function is_pq_identity_signed_by_owner(
