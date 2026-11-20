@@ -51,6 +51,7 @@ vi.mock("@/services/account_manager", () => ({
 import {
   check_and_pin_identity,
   has_peer_advertised_pq,
+  read_peer_downgrade_floor,
   remembered_peer_x3dh_version,
 } from "@/services/crypto/ratchet_identity_pin";
 import {
@@ -153,5 +154,53 @@ describe("ratchet identity pin pq memory and failure modes", () => {
 
     expect(await check_and_pin_identity("dave", KEY_A)).toBe("unknown");
     expect(await has_peer_advertised_pq("dave")).toBe(false);
+  });
+
+  it("reads the downgrade floor a peer has shown", async () => {
+    expect(await read_peer_downgrade_floor("henry")).toEqual({
+      x3dh_version: 1,
+      pq_seen: false,
+      pq_signed_seen: false,
+    });
+
+    await check_and_pin_identity("henry", KEY_A, true, true, false, 2, true);
+
+    expect(await read_peer_downgrade_floor("henry")).toEqual({
+      x3dh_version: 2,
+      pq_seen: true,
+      pq_signed_seen: true,
+    });
+  });
+
+  it("reports the downgrade floor as unreadable when the pin store is unavailable", async () => {
+    await check_and_pin_identity("iris", KEY_A, true, true, false, 2, true);
+    h.key = null;
+
+    expect(await read_peer_downgrade_floor("iris")).toBe("unreadable");
+  });
+
+  it("reports the downgrade floor as unreadable without a peer", async () => {
+    expect(await read_peer_downgrade_floor("")).toBe("unreadable");
+  });
+
+  it("reports the downgrade floor as unreadable when the stored pin cannot be read", async () => {
+    await check_and_pin_identity("jack", KEY_A, true, true, false, 2, true);
+
+    const { encrypted_get } = await import(
+      "@/services/crypto/encrypted_storage"
+    );
+
+    vi.mocked(encrypted_get).mockRejectedValue(new Error("decrypt failed"));
+
+    try {
+      expect(await read_peer_downgrade_floor("jack")).toBe("unreadable");
+    } finally {
+      vi.mocked(encrypted_get).mockReset();
+      vi.mocked(encrypted_get).mockImplementation(async (key: string) =>
+        h.store.has(key)
+          ? JSON.parse(JSON.stringify(h.store.get(key)))
+          : null,
+      );
+    }
   });
 });

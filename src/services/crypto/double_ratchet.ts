@@ -22,10 +22,7 @@ import { array_to_base64, base64_to_array } from "./base64";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
-import {
-  decrypt_aes_gcm_bound_or_unbound,
-  stored_unbound_policy,
-} from "@/services/crypto/aes_gcm_aad_fallback";
+import { stored_unbound_policy } from "@/services/crypto/aes_gcm_aad_fallback";
 
 const ECDH_ALGORITHM = "ECDH";
 const ECDH_CURVE = "P-256";
@@ -337,12 +334,18 @@ async function encrypt_with_key(
   };
 }
 
+interface OpenedMessage {
+  plaintext: Uint8Array;
+  header_bound: boolean;
+}
+
 async function decrypt_with_key(
   ciphertext: Uint8Array,
   nonce: Uint8Array,
   message_key: Uint8Array,
   associated_data: Uint8Array | null,
-): Promise<Uint8Array> {
+  bound_session = false,
+): Promise<OpenedMessage> {
   const key = await crypto.subtle.importKey(
     "raw",
     message_key,
@@ -351,27 +354,129 @@ async function decrypt_with_key(
     ["decrypt"],
   );
 
-  const unbound = stored_unbound_policy();
+  const unbound = bound_session ? "refuse_unbound" : stored_unbound_policy();
 
-  if (!associated_data && unbound === "refuse_unbound") {
-    throw new Error("Refusing an unbound ratchet message");
+  if (!associated_data) {
+    if (unbound === "refuse_unbound") {
+      throw new Error("Refusing an unbound ratchet message");
+    }
+
+    const plaintext = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce },
+      key,
+      ciphertext,
+    );
+
+    return { plaintext: new Uint8Array(plaintext), header_bound: false };
   }
 
-  const plaintext = associated_data
-    ? await decrypt_aes_gcm_bound_or_unbound(
-        key,
-        nonce,
-        ciphertext,
-        associated_data,
-        unbound,
-      )
-    : await crypto.subtle.decrypt(
+  try {
+    const plaintext = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce, additionalData: associated_data },
+      key,
+      ciphertext,
+    );
+
+    return { plaintext: new Uint8Array(plaintext), header_bound: true };
+  } catch (bound_error) {
+    if (unbound === "refuse_unbound") throw bound_error;
+
+    try {
+      const plaintext = await crypto.subtle.decrypt(
         { name: "AES-GCM", iv: nonce },
         key,
         ciphertext,
       );
 
-  return new Uint8Array(plaintext);
+      return { plaintext: new Uint8Array(plaintext), header_bound: false };
+    } catch {
+      throw bound_error;
+    }
+  }
+}
+
+export class InvalidRatchetStateError extends Error {
+  constructor() {
+    super("Invalid ratchet state");
+    this.name = "InvalidRatchetStateError";
+  }
+}
+
+function is_record(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function is_optional(
+  value: unknown,
+  check: (inner: unknown) => boolean,
+): boolean {
+  return value === undefined || value === null || check(value);
+}
+
+function is_string(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function is_nullable_string(value: unknown): boolean {
+  return value === null || typeof value === "string";
+}
+
+function is_boolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
+}
+
+function is_finite_number(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function is_epoch(value: unknown): boolean {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
+function is_skipped_key(value: unknown): boolean {
+  return (
+    is_record(value) &&
+    is_string(value.dh_public) &&
+    is_header_counter(value.message_number) &&
+    is_string(value.message_key) &&
+    is_finite_number(value.timestamp)
+  );
+}
+
+function is_valid_serialized_state(data: unknown): data is SerializedState {
+  if (!is_record(data) || !is_string(data.conversation_id)) return false;
+
+  const state = data.state;
+
+  if (!is_record(state)) return false;
+
+  const keypair = state.dh_keypair;
+  const skipped = state.skipped_message_keys;
+
+  return (
+    is_record(keypair) &&
+    is_string(keypair.public_key) &&
+    is_string(keypair.secret_key) &&
+    is_nullable_string(state.dh_remote_public) &&
+    is_string(state.root_key) &&
+    is_nullable_string(state.chain_key_send) &&
+    is_nullable_string(state.chain_key_recv) &&
+    is_header_counter(state.send_message_number) &&
+    is_header_counter(state.recv_message_number) &&
+    is_header_counter(state.previous_chain_length) &&
+    is_optional(state.epoch, is_epoch) &&
+    Array.isArray(skipped) &&
+    skipped.length <= MAX_TOTAL_SKIPPED_KEYS &&
+    skipped.every(is_skipped_key) &&
+    is_optional(state.version, is_finite_number) &&
+    is_optional(state.dirty_since_sync, is_boolean) &&
+    is_optional(state.created_at, is_finite_number) &&
+    is_optional(state.updated_at, is_finite_number) &&
+    is_optional(state.bootstrap, is_record) &&
+    is_optional(state.remote_identity_key, is_string) &&
+    is_optional(state.header_bound, is_boolean) &&
+    is_optional(state.weak_bootstrap, is_boolean)
+  );
 }
 
 export class DoubleRatchet {
@@ -387,6 +492,7 @@ export class DoubleRatchet {
     shared_secret: Uint8Array,
     remote_public_key: Uint8Array,
     conversation_id: string,
+    remote_identity_key?: string,
   ): Promise<DoubleRatchet> {
     const dh_keypair = await generate_dh_keypair();
     const secret_key = await import_secret_key(
@@ -419,6 +525,7 @@ export class DoubleRatchet {
       dirty_since_sync: false,
       created_at: Date.now(),
       updated_at: Date.now(),
+      ...(remote_identity_key ? { remote_identity_key } : {}),
     };
 
     return new DoubleRatchet(state, conversation_id);
@@ -465,6 +572,10 @@ export class DoubleRatchet {
   async encrypt_returning_message_key(
     plaintext: string,
   ): Promise<{ message: EncryptedMessage; message_key: Uint8Array }> {
+    if (this.state.send_message_number >= MAX_HEADER_COUNTER) {
+      throw new Error("Cannot encrypt: sending chain is exhausted");
+    }
+
     const encoder = new TextEncoder();
     const plaintext_bytes = encoder.encode(plaintext);
 
@@ -518,14 +629,14 @@ export class DoubleRatchet {
         ? serialize_header_for_ad(message.header)
         : null;
 
-    const plaintext_bytes = await decrypt_with_key(
+    const opened = await decrypt_with_key(
       base64_to_array(message.ciphertext),
       base64_to_array(message.nonce),
       message_key,
       ad,
     );
 
-    return new TextDecoder().decode(plaintext_bytes);
+    return new TextDecoder().decode(opened.plaintext);
   }
 
   async decrypt(message: EncryptedMessage): Promise<string> {
@@ -537,17 +648,21 @@ export class DoubleRatchet {
       throw new Error("Refusing an unbound header on a bound session");
     }
 
-    const skipped_plaintext = await DoubleRatchet.try_skipped_message_keys_on(
+    if (message.header.message_number >= MAX_HEADER_COUNTER) {
+      throw new Error("Malformed ratchet header");
+    }
+
+    const skipped = await DoubleRatchet.try_skipped_message_keys_on(
       this.state,
       message,
     );
 
-    if (skipped_plaintext !== null) {
+    if (skipped !== null) {
       this.state.dirty_since_sync = true;
       this.state.updated_at = Date.now();
-      if (header_bound) this.state.header_bound = true;
+      if (skipped.header_bound) this.state.header_bound = true;
 
-      return skipped_plaintext;
+      return new TextDecoder().decode(skipped.plaintext);
     }
 
     const work = clone_state(this.state);
@@ -584,14 +699,15 @@ export class DoubleRatchet {
         ? serialize_header_for_ad(message.header)
         : null;
 
-    let plaintext_bytes: Uint8Array;
+    let opened: OpenedMessage;
 
     try {
-      plaintext_bytes = await decrypt_with_key(
+      opened = await decrypt_with_key(
         ciphertext,
         nonce,
         message_key,
         ad,
+        this.state.header_bound === true,
       );
     } catch (error) {
       zero_uint8_array(chain_key);
@@ -603,7 +719,7 @@ export class DoubleRatchet {
     work.recv_message_number++;
     work.dirty_since_sync = true;
     work.updated_at = Date.now();
-    if (header_bound) work.header_bound = true;
+    if (opened.header_bound) work.header_bound = true;
     this.state = work;
 
     zero_uint8_array(chain_key);
@@ -611,13 +727,13 @@ export class DoubleRatchet {
 
     const decoder = new TextDecoder();
 
-    return decoder.decode(plaintext_bytes);
+    return decoder.decode(opened.plaintext);
   }
 
   private static async try_skipped_message_keys_on(
     state: RatchetState,
     message: EncryptedMessage,
-  ): Promise<string | null> {
+  ): Promise<OpenedMessage | null> {
     const index = state.skipped_message_keys.findIndex(
       (k) =>
         k.dh_public === message.header.dh_public &&
@@ -638,14 +754,15 @@ export class DoubleRatchet {
         ? serialize_header_for_ad(message.header)
         : null;
 
-    let plaintext_bytes: Uint8Array;
+    let opened: OpenedMessage;
 
     try {
-      plaintext_bytes = await decrypt_with_key(
+      opened = await decrypt_with_key(
         ciphertext,
         nonce,
         message_key,
         ad,
+        state.header_bound === true,
       );
     } catch {
       zero_uint8_array(message_key);
@@ -656,9 +773,7 @@ export class DoubleRatchet {
     state.skipped_message_keys.splice(index, 1);
     zero_uint8_array(message_key);
 
-    const decoder = new TextDecoder();
-
-    return decoder.decode(plaintext_bytes);
+    return opened;
   }
 
   private static async skip_message_keys_on(
@@ -783,6 +898,10 @@ export class DoubleRatchet {
 
   set_bootstrap(bootstrap: BootstrapData): void {
     this.state.bootstrap = bootstrap;
+
+    if (!this.state.remote_identity_key && bootstrap.recipient_identity_key) {
+      this.state.remote_identity_key = bootstrap.recipient_identity_key;
+    }
   }
 
   get_remote_identity_key(): string | null {
@@ -805,7 +924,7 @@ export class DoubleRatchet {
 
   async serialize(): Promise<SerializedState> {
     return {
-      state: { ...this.state },
+      state: structuredClone(this.state),
       conversation_id: this.conversation_id,
     };
   }
@@ -825,7 +944,8 @@ export class DoubleRatchet {
       !this.state.chain_key_send ||
       !Number.isSafeInteger(target) ||
       target <= start ||
-      target - start > MAX_SKIP
+      target - start > MAX_SKIP ||
+      target > MAX_HEADER_COUNTER
     ) {
       return;
     }
@@ -847,7 +967,20 @@ export class DoubleRatchet {
     zero_uint8_array(chain_key);
   }
 
+  static try_deserialize(data: SerializedState): DoubleRatchet | null {
+    try {
+      return DoubleRatchet.deserialize(data);
+    } catch (error) {
+      if (error instanceof InvalidRatchetStateError) return null;
+      throw error;
+    }
+  }
+
   static deserialize(data: SerializedState): DoubleRatchet {
+    if (!is_valid_serialized_state(data)) {
+      throw new InvalidRatchetStateError();
+    }
+
     if (data.state.dirty_since_sync === undefined) {
       data.state.dirty_since_sync = true;
     }

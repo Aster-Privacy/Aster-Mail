@@ -54,9 +54,7 @@ import {
   check_and_pin_identity,
   check_owner_key_pin,
   flag_recipient_untrusted,
-  has_peer_advertised_pq,
-  has_peer_signed_pq,
-  remembered_peer_x3dh_version,
+  read_peer_downgrade_floor,
   is_recipient_bundle_accepted,
   is_recipient_flagged_untrusted,
   is_identity_confirmed_by_user,
@@ -237,6 +235,7 @@ type BundleVerification = Awaited<
   flagged_untrusted: boolean;
   accepted_by_user: boolean;
   owner_public_key: string | null;
+  self_bound?: boolean;
 };
 
 async function address_entry_owner_pin(
@@ -275,14 +274,17 @@ async function verify_address_entry_bundle(
     };
   }
 
+  const owner_pin = await address_entry_owner_pin(pin_id, bundle, trust);
+
   return {
     verdict: "verified",
     format: "v2",
-    strict: true,
-    owner_pin: await address_entry_owner_pin(pin_id, bundle, trust),
+    strict: trust !== "entry" || owner_pin === "ok",
+    owner_pin,
     flagged_untrusted,
     accepted_by_user: false,
     owner_public_key: null,
+    self_bound: true,
   };
 }
 
@@ -438,7 +440,10 @@ function is_bundle_verification_rejected(
 function signature_covers_pq_identity(
   verification: BundleVerification,
 ): boolean {
-  return verification.verdict === "verified" && verification.strict;
+  return (
+    verification.verdict === "verified" &&
+    (verification.strict || verification.self_bound === true)
+  );
 }
 
 async function is_pq_identity_signed_by_owner(
@@ -546,6 +551,7 @@ async function start_sender_session(
       x3dh_result.shared_secret,
       base64_to_array(bundle.signed_prekey),
       conversation_id,
+      bundle.kem_identity_key,
     );
     const ephemeral_key = array_to_base64(x3dh_result.ephemeral_public_key);
     const pq_ciphertext =
@@ -816,15 +822,22 @@ async function encrypt_for_ratchet_recipient_unlocked(
       const advertises_pq = Boolean(bundle.pq_kem_public_key);
       const covers_pq = signature_covers_pq_identity(bundle_verification);
       const signs_pq = bundle_has_signed_pq_identity(bundle, covers_pq);
-      const pq_downgraded =
-        bundle_is_downgraded(bundle) ||
-        (!advertises_pq && (await has_peer_advertised_pq(bundle_peer))) ||
-        (!signs_pq && (await has_peer_signed_pq(bundle_peer)));
 
       if (is_bundle_untrusted(bundle_verification)) {
         await flag_recipient_untrusted(bundle_peer);
         throw new RecipientKeyUntrustedError(recipient_email);
       }
+
+      const floor = await read_peer_downgrade_floor(bundle_peer);
+
+      if (floor === "unreadable") {
+        throw new RecipientPinUnreadableError(bundle_peer);
+      }
+
+      const pq_downgraded =
+        bundle_is_downgraded(bundle) ||
+        (!advertises_pq && floor.pq_seen) ||
+        (!signs_pq && floor.pq_signed_seen);
 
       const bundle_rejected =
         pq_downgraded || is_bundle_verification_rejected(bundle_verification);
@@ -852,6 +865,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
         resolved_bundle.scoped,
         covers_pq ? bundle.x3dh_max_version : null,
         signs_pq,
+        bundle_verification.signed_at ?? null,
       );
 
       if (identity_pin_status === "drift") {
@@ -869,7 +883,13 @@ async function encrypt_for_ratchet_recipient_unlocked(
 
       let started: StartedSenderSession;
 
-      const remembered_version = await remembered_peer_x3dh_version(bundle_peer);
+      const pinned_floor = await read_peer_downgrade_floor(bundle_peer);
+
+      if (pinned_floor === "unreadable") {
+        throw new RecipientPinUnreadableError(bundle_peer);
+      }
+
+      const remembered_version = pinned_floor.x3dh_version;
 
       const outcome = await start_session_with_fresh_bundle(
         conversation_id,
@@ -1127,10 +1147,14 @@ export async function recipient_post_quantum_status(
   const peer = (recipient_email ?? recipient_username).toLowerCase();
   const signs_pq = bundle_has_signed_pq_identity(bundle, covers_pq);
 
-  return bundle_is_downgraded(bundle) ||
-    (!signs_pq && (await has_peer_signed_pq(peer)))
-    ? "downgraded"
-    : "unsupported";
+  if (bundle_is_downgraded(bundle)) return "downgraded";
+  if (signs_pq) return "unsupported";
+
+  const floor = await read_peer_downgrade_floor(peer);
+
+  if (floor === "unreadable") throw new RecipientPinUnreadableError(peer);
+
+  return floor.pq_signed_seen ? "downgraded" : "unsupported";
 }
 
 export async function recipient_supports_post_quantum(

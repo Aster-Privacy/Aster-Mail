@@ -115,6 +115,7 @@ interface StoredIdentityPin {
   rotated?: boolean;
   missing_accepted_at?: number;
   address_rooted?: boolean;
+  signed_at?: number;
 }
 
 export interface IdentityPinRecord {
@@ -463,6 +464,28 @@ function settled_value<T>(read: ContactRead<T>): T | null {
   return read.state === "found" ? read.value : null;
 }
 
+const SIGNED_AT_SKEW_MS = 60 * 60 * 1000;
+
+function signed_at_field(
+  previous: number | undefined,
+  signed_at: number | null,
+): { signed_at?: number } {
+  const latest = Math.max(previous ?? 0, signed_at ?? 0);
+
+  return latest > 0 ? { signed_at: latest } : {};
+}
+
+function is_signed_before_pin(
+  previous: number | undefined,
+  signed_at: number | null,
+): boolean {
+  return (
+    previous !== undefined &&
+    signed_at !== null &&
+    signed_at + SIGNED_AT_SKEW_MS < previous
+  );
+}
+
 async function pin_identity_in_lock(
   slot: ContactSlot,
   pin_id: string,
@@ -472,6 +495,7 @@ async function pin_identity_in_lock(
   address_rooted: boolean,
   advertised_x3dh: number | null,
   signs_pq: boolean,
+  signed_at: number | null,
 ): Promise<IdentityPinStatus> {
   let read = await load_identity_pin(slot);
 
@@ -484,6 +508,7 @@ async function pin_identity_in_lock(
       ...signed_pq_field(signs_pq),
       x3dh_seen: highest_x3dh_seen(null, advertised_x3dh),
       ...rooted_field(address_rooted),
+      ...signed_at_field(undefined, signed_at),
     } satisfies StoredIdentityPin);
 
     if (created) return "first";
@@ -502,6 +527,7 @@ async function pin_identity_in_lock(
 
   if (existing.fingerprint !== fingerprint) {
     if (!verified) return "drift";
+    if (is_signed_before_pin(existing.signed_at, signed_at)) return "drift";
 
     await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
       fingerprint,
@@ -512,6 +538,7 @@ async function pin_identity_in_lock(
       x3dh_seen,
       rotated: true,
       ...rooted_field(rooted),
+      ...signed_at_field(existing.signed_at, signed_at),
     } satisfies StoredIdentityPin);
     await write_contact_entry(IDENTITY_CHANGE_PREFIX, slot, {
       previous_fingerprint: existing.fingerprint,
@@ -529,7 +556,9 @@ async function pin_identity_in_lock(
     pq_seen !== Boolean(existing.pq_seen) ||
     pq_signed_seen !== Boolean(existing.pq_signed_seen) ||
     x3dh_seen !== highest_x3dh_seen(existing.x3dh_seen, null) ||
-    rooted !== Boolean(existing.address_rooted)
+    rooted !== Boolean(existing.address_rooted) ||
+    signed_at_field(existing.signed_at, signed_at).signed_at !==
+      existing.signed_at
   ) {
     await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
       ...existing,
@@ -538,6 +567,7 @@ async function pin_identity_in_lock(
       ...signed_pq_field(pq_signed_seen),
       x3dh_seen,
       ...rooted_field(rooted),
+      ...signed_at_field(existing.signed_at, signed_at),
     } satisfies StoredIdentityPin);
   }
 
@@ -552,6 +582,7 @@ export async function check_and_pin_identity(
   address_rooted: boolean = false,
   advertised_x3dh: number | null = null,
   signs_pq: boolean = false,
+  signed_at: number | null = null,
 ): Promise<IdentityPinStatus> {
   try {
     if (!pin_id || !kem_identity_key) {
@@ -573,6 +604,7 @@ export async function check_and_pin_identity(
         address_rooted,
         advertised_x3dh,
         signs_pq,
+        signed_at,
       ),
     );
   } catch {
@@ -1104,6 +1136,38 @@ export async function trust_recipient_keys(
   });
 
   dismiss_peer_identity_event(pin_id);
+}
+
+export interface PeerDowngradeFloor {
+  x3dh_version: number;
+  pq_seen: boolean;
+  pq_signed_seen: boolean;
+}
+
+export async function read_peer_downgrade_floor(
+  pin_id: string,
+): Promise<PeerDowngradeFloor | "unreadable"> {
+  if (!pin_id) return "unreadable";
+
+  try {
+    const slot = await open_pins(pin_id);
+
+    if (!slot) return "unreadable";
+
+    const read = await load_identity_pin(slot);
+
+    if (!is_settled(read)) return "unreadable";
+
+    const pin = settled_value(read);
+
+    return {
+      x3dh_version: highest_x3dh_seen(pin?.x3dh_seen, null),
+      pq_seen: pin?.pq_seen === true,
+      pq_signed_seen: pin?.pq_signed_seen === true,
+    };
+  } catch {
+    return "unreadable";
+  }
 }
 
 export async function remembered_peer_x3dh_version(

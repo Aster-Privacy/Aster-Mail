@@ -38,6 +38,9 @@ import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const RATCHET_INDEX_KEY = "ratchet_conversation_index";
 const MAX_ARCHIVED_RATCHET_STATES = 3;
+export const ARCHIVED_RATCHET_STATE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+type ArchivedRatchetState = SerializedState & { archived_at?: number };
 
 async function get_storage_encryption_key(): Promise<CryptoKey> {
   if (!has_vault_in_memory()) {
@@ -100,6 +103,19 @@ async function add_conversation_to_index(
   }
 }
 
+function deserialize_or_null(
+  serialized: SerializedState,
+): DoubleRatchet | null {
+  try {
+    return DoubleRatchet.deserialize(serialized);
+  } catch (error) {
+    if (error instanceof Error && error.name === "InvalidRatchetStateError") {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export async function save_ratchet_state(
   ratchet: DoubleRatchet,
 ): Promise<void> {
@@ -121,22 +137,83 @@ function archived_entry_id(state: SerializedState): string {
   return `${state.state.dh_keypair.public_key}:${state.state.root_key}`;
 }
 
+function is_archive_expired(entry: ArchivedRatchetState, now: number): boolean {
+  return (
+    typeof entry.archived_at === "number" &&
+    now - entry.archived_at > ARCHIVED_RATCHET_STATE_MAX_AGE_MS
+  );
+}
+
+function stamp_and_prune(
+  stored: ArchivedRatchetState[],
+  now: number,
+): { kept: ArchivedRatchetState[]; changed: boolean } {
+  let changed = false;
+  const kept: ArchivedRatchetState[] = [];
+
+  for (const entry of stored) {
+    if (is_archive_expired(entry, now)) {
+      changed = true;
+      continue;
+    }
+
+    if (typeof entry.archived_at !== "number") {
+      changed = true;
+      kept.push({ ...entry, archived_at: now });
+      continue;
+    }
+
+    kept.push(entry);
+  }
+
+  return { kept, changed };
+}
+
+async function write_archive(
+  storage_key: CryptoKey,
+  uid: string | null,
+  name: string,
+  entries: ArchivedRatchetState[],
+): Promise<void> {
+  if (entries.length === 0) {
+    await scoped_delete(RATCHET_STATE_PREFIX, uid, name);
+
+    return;
+  }
+
+  await scoped_set(RATCHET_STATE_PREFIX, uid, name, entries, storage_key);
+}
+
 export async function load_archived_ratchet_states(
   conversation_id: string,
 ): Promise<DoubleRatchet[]> {
   const storage_key = await get_storage_encryption_key();
   const uid = await current_account_uid();
-  const archived = await scoped_get<SerializedState[]>(
+  const name = archive_name(conversation_id);
+  const archived = await scoped_get<ArchivedRatchetState[]>(
     RATCHET_STATE_PREFIX,
     uid,
-    archive_name(conversation_id),
+    name,
     storage_key,
     { include_unscoped: false },
   );
 
   if (!archived || archived.length === 0) return [];
 
-  return archived.map((entry) => DoubleRatchet.deserialize(entry));
+  const { kept, changed } = stamp_and_prune(archived, Date.now());
+
+  if (changed) {
+    await write_archive(storage_key, uid, name, kept);
+  }
+
+  return kept.flatMap((entry) => {
+    const ratchet = deserialize_or_null({
+      state: entry.state,
+      conversation_id: entry.conversation_id,
+    });
+
+    return ratchet ? [ratchet] : [];
+  });
 }
 
 export async function archive_ratchet_state(
@@ -145,25 +222,31 @@ export async function archive_ratchet_state(
   const storage_key = await get_storage_encryption_key();
   const uid = await current_account_uid();
   const name = archive_name(state.conversation_id);
+  const now = Date.now();
   const stored =
-    (await scoped_get<SerializedState[]>(
+    (await scoped_get<ArchivedRatchetState[]>(
       RATCHET_STATE_PREFIX,
       uid,
       name,
       storage_key,
       { include_unscoped: false },
     )) || [];
+  const { kept: live } = stamp_and_prune(stored, now);
   const id = archived_entry_id(state);
-  const kept = stored.filter((entry) => archived_entry_id(entry) !== id);
+  const previous = live.find((entry) => archived_entry_id(entry) === id);
+  const kept = live.filter((entry) => archived_entry_id(entry) !== id);
 
-  kept.push(state);
+  kept.push({
+    state: state.state,
+    conversation_id: state.conversation_id,
+    archived_at: previous?.archived_at ?? now,
+  });
 
-  await scoped_set(
-    RATCHET_STATE_PREFIX,
+  await write_archive(
+    storage_key,
     uid,
     name,
     kept.slice(Math.max(0, kept.length - MAX_ARCHIVED_RATCHET_STATES)),
-    storage_key,
   );
 }
 
@@ -185,7 +268,7 @@ export async function load_ratchet_state(
 
   if (!state) return null;
 
-  return DoubleRatchet.deserialize(state);
+  return deserialize_or_null(state);
 }
 
 export async function delete_ratchet_state(

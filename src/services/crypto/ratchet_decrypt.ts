@@ -23,6 +23,7 @@ import { is_own_address_identity_key } from "./address_sender_identity";
 import { base64_to_array } from "./base64";
 import {
   DoubleRatchet,
+  InvalidRatchetStateError,
   type EncryptedMessage,
   type SerializedState,
 } from "./double_ratchet";
@@ -50,13 +51,12 @@ import {
 } from "./ratchet_plaintext_cache";
 import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
 import {
-  has_peer_advertised_pq,
   first_contact_standing,
   is_first_contact_unconfirmed,
   is_identity_confirmed_by_user,
   lookup_owner_key_pin,
   note_first_contact_identity,
-  remembered_peer_x3dh_version,
+  read_peer_downgrade_floor,
 } from "./ratchet_identity_pin";
 import { is_identity_bound_by_current_bundle } from "./ratchet_encrypt";
 import {
@@ -71,6 +71,7 @@ import {
   type SenderIdentityStatus,
 } from "./ratchet_verification_status";
 import { claim_rotation_notice } from "./rotation_notice";
+import { claim_bootstrap, type BootstrapClaim } from "./bootstrap_replay";
 import {
   claim_lane_nonce,
   lookup_lane_sender_pin,
@@ -215,9 +216,19 @@ async function prefer_escrowed_plaintext(
   if (!is_unauthenticated_plaintext(plaintext)) return plaintext;
   if (escrow_upgrade_misses.has(dedupe_key)) return plaintext;
 
-  const escrowed = await fetch_verified_from_escrow(dedupe_key, binding).catch(
-    () => null,
-  );
+  let escrowed: string | null;
+
+  try {
+    escrowed = await fetch_verified_from_escrow(dedupe_key, binding);
+  } catch (error) {
+    if (
+      !(error instanceof Error && error.name === "EscrowUnavailableError")
+    ) {
+      note_escrow_upgrade_miss(dedupe_key);
+    }
+
+    return plaintext;
+  }
 
   if (escrowed === null) {
     note_escrow_upgrade_miss(dedupe_key);
@@ -400,7 +411,12 @@ async function settle_cached_plaintext(
       ))
     ) {
       clear_unconfirmed_sender_plaintext(plaintext, dedupe_key);
-      note_message_sender_identity(message_id ?? dedupe_key, sender_email);
+      record_message_sender_identity(
+        message_id ?? dedupe_key,
+        await authenticate_sender_identity(sender_email, judged_key).catch(
+          () => "unverified" as const,
+        ),
+      );
       await set_cached_ratchet_plaintext(
         dedupe_key,
         plaintext,
@@ -504,9 +520,10 @@ async function attempt_ratchet_decrypt(
         bound_identity_key !== null,
       );
 
-      await authenticate_sender_identity(sender_email, identity_key).catch(
-        () => "unverified" as const,
-      );
+      const sender_status = await authenticate_sender_identity(
+        sender_email,
+        identity_key,
+      ).catch(() => "unverified" as const);
 
       if (
         !lane_plaintext &&
@@ -566,9 +583,9 @@ async function attempt_ratchet_decrypt(
           "unverified",
         );
       } else {
-        note_message_sender_identity(
+        record_message_sender_identity(
           message_id ?? dedupe_key ?? "",
-          sender_email,
+          sender_status,
         );
       }
 
@@ -1045,18 +1062,22 @@ async function init_receiver_from_bootstrap(
       : null;
 
   const peer = sender_email.toLowerCase();
+  const floor = await read_peer_downgrade_floor(peer);
+  const floor_unreadable = floor === "unreadable";
   const pq_missing =
     !pq_input &&
     !!keys.ratchet_pq_identity_public &&
-    (await has_peer_advertised_pq(peer));
+    !floor_unreadable &&
+    floor.pq_seen;
 
   if (pq_missing) {
     record_peer_identity_event(sender_email, "downgraded");
   }
 
   const weak_bootstrap =
+    floor_unreadable ||
     pq_missing ||
-    is_below_remembered_x3dh(data.x3dh_v, await remembered_peer_x3dh_version(peer));
+    is_below_remembered_x3dh(data.x3dh_v, floor.x3dh_version);
 
   const shared_secret = await perform_x3dh_receiver(
     receiver_identity_jwk,
@@ -1177,6 +1198,18 @@ async function bootstrap_may_replace_session(
   );
 }
 
+function session_already_on_chain(
+  snapshot: SerializedState,
+  dh_public: string,
+): boolean {
+  return (
+    snapshot.state.dh_remote_public === dh_public ||
+    snapshot.state.skipped_message_keys.some(
+      (skipped) => skipped.dh_public === dh_public,
+    )
+  );
+}
+
 async function decrypt_ratchet_for_recipient(
   our_email: string,
   sender_email: string,
@@ -1217,7 +1250,12 @@ async function decrypt_ratchet_for_recipient(
     nonce: data.nonce,
   };
 
-  const loaded_ratchet = await load_ratchet_state(conversation_id);
+  const loaded_ratchet = await load_ratchet_state(conversation_id).catch(
+    (error: unknown) => {
+      if (error instanceof InvalidRatchetStateError) return null;
+      throw error;
+    },
+  );
   const loaded_snapshot = loaded_ratchet
     ? await snapshot_ratchet_state(loaded_ratchet)
     : null;
@@ -1231,6 +1269,26 @@ async function decrypt_ratchet_for_recipient(
   let first_contact = false;
 
   let plaintext: string | null = null;
+  const bootstrap_seen: { claim: BootstrapClaim | null } = { claim: null };
+
+  const claim_opened_bootstrap = async (): Promise<boolean> => {
+    if (ratchet_origin !== "bootstrap" || plaintext === null) return true;
+
+    bootstrap_seen.claim ??= await claim_bootstrap(
+      sender_email,
+      sender_identity_key,
+      data,
+      message_key,
+    );
+
+    if (bootstrap_seen.claim !== "replayed") return true;
+
+    plaintext = null;
+    ratchet = null;
+    ratchet_origin = "loaded";
+
+    return false;
+  };
 
   if (ratchet) {
     try {
@@ -1339,6 +1397,10 @@ async function decrypt_ratchet_for_recipient(
       }
     }
 
+    if (!(await claim_opened_bootstrap())) {
+      throw new Error("Opening message was already used");
+    }
+
     if (plaintext === null || !ratchet) {
       const server_sync_key = await get_sync_encryption_key();
 
@@ -1439,6 +1501,10 @@ async function decrypt_ratchet_for_recipient(
           );
         }
       }
+    }
+
+    if (!(await claim_opened_bootstrap())) {
+      throw new Error("Opening message was already used");
     }
 
     if ((plaintext === null || !ratchet) && identity_status === "verified") {
@@ -1545,14 +1611,16 @@ async function decrypt_ratchet_for_recipient(
   if (
     ratchet_origin === "bootstrap" &&
     loaded_snapshot &&
-    !(await bootstrap_may_replace_session(
-      our_email,
-      sender_email,
-      vault,
-      established_identity_key,
-      ratchet.get_remote_identity_key(),
-      identity_status,
-    ))
+    (bootstrap_seen.claim !== "first" ||
+      session_already_on_chain(loaded_snapshot, data.header.dh_public) ||
+      !(await bootstrap_may_replace_session(
+        our_email,
+        sender_email,
+        vault,
+        established_identity_key,
+        ratchet.get_remote_identity_key(),
+        identity_status,
+      )))
   ) {
     return {
       plaintext,

@@ -24,6 +24,7 @@ import {
   load_verifying_storage_key_bytes,
 } from "./storage_write_key";
 import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
+import { stored_unbound_policy } from "./aes_gcm_aad_fallback";
 import {
   is_cached_plaintext_foreign,
   set_cached_ratchet_plaintext,
@@ -235,7 +236,10 @@ async function decrypt_escrow_payload(
 
   if (bound) return bound;
 
-  const unbound = await open_escrow(escrow_key, ciphertext, nonce);
+  const accepts_unbound = stored_unbound_policy() === "accept_unbound";
+  const unbound = accepts_unbound
+    ? await open_escrow(escrow_key, ciphertext, nonce)
+    : null;
 
   if (unbound) return unbound;
 
@@ -247,6 +251,8 @@ async function decrypt_escrow_payload(
   );
 
   if (legacy_bound) return legacy_bound;
+
+  if (!accepts_unbound) throw new Error("escrow entry did not decrypt");
 
   const recovered = await decrypt_with_legacy_derived_keys(
     derive_escrow_key_from_base,
@@ -411,8 +417,13 @@ async function unbound_escrow_writes_retired(): Promise<boolean> {
   }
 }
 
-async function get_escrow_row(row_key: string): Promise<EscrowEntry | null> {
-  if (has_recent_escrow_miss(row_key)) return null;
+type EscrowRowLookup =
+  | { state: "absent" }
+  | { state: "unavailable" }
+  | { state: "found"; row: EscrowEntry };
+
+async function lookup_escrow_row(row_key: string): Promise<EscrowRowLookup> {
+  if (has_recent_escrow_miss(row_key)) return { state: "absent" };
 
   const response = await api_client.get<EscrowEntry>(
     `${API_BASE}/plaintext/${encodeURIComponent(row_key)}`,
@@ -421,15 +432,21 @@ async function get_escrow_row(row_key: string): Promise<EscrowEntry | null> {
   if (response.code === "NOT_FOUND") {
     record_escrow_miss(row_key);
 
-    return null;
+    return { state: "absent" };
   }
 
-  if (response.error || !response.data) return null;
+  if (response.error || !response.data) return { state: "unavailable" };
 
   escrow_misses.delete(row_key);
   flush_escrow_misses();
 
-  return response.data;
+  return { state: "found", row: response.data };
+}
+
+async function get_escrow_row(row_key: string): Promise<EscrowEntry | null> {
+  const lookup = await lookup_escrow_row(row_key);
+
+  return lookup.state === "found" ? lookup.row : null;
 }
 
 async function open_bound_row(
@@ -454,15 +471,34 @@ async function open_bound_row(
   }
 }
 
+export class EscrowUnavailableError extends Error {
+  constructor() {
+    super("escrow lookup unavailable");
+    this.name = "EscrowUnavailableError";
+  }
+}
+
+type BoundEscrowLookup =
+  | { state: "absent" }
+  | { state: "unavailable" }
+  | { state: "refused" }
+  | { state: "opened"; payload: BoundEscrowPayload };
+
 async function lookup_bound_escrow(
   escrow_key: CryptoKey,
   dedupe_key: string,
-): Promise<BoundEscrowPayload | null> {
-  const row = await get_escrow_row(bound_escrow_key(dedupe_key));
+): Promise<BoundEscrowLookup> {
+  const row_key = bound_escrow_key(dedupe_key);
+  const first = await lookup_escrow_row(row_key);
+  const lookup =
+    first.state === "unavailable" ? await lookup_escrow_row(row_key) : first;
 
-  if (!row) return null;
+  if (lookup.state === "absent") return { state: "absent" };
+  if (lookup.state === "unavailable") return { state: "unavailable" };
 
-  return open_bound_row(escrow_key, row, dedupe_key);
+  const payload = await open_bound_row(escrow_key, lookup.row, dedupe_key);
+
+  return payload ? { state: "opened", payload } : { state: "refused" };
 }
 
 async function claimed_by_other_sender(
@@ -502,9 +538,14 @@ export async function fetch_verified_from_escrow(
 
   if (!verifying_key) return null;
 
-  const bound = await lookup_bound_escrow(verifying_key, dedupe_key);
+  const lookup = await lookup_bound_escrow(verifying_key, dedupe_key);
 
-  if (!bound || !payload_matches_binding(bound, binding)) return null;
+  if (lookup.state === "unavailable") throw new EscrowUnavailableError();
+  if (lookup.state !== "opened") return null;
+
+  const bound = lookup.payload;
+
+  if (!payload_matches_binding(bound, binding)) return null;
 
   await adopt_bound_payload(dedupe_key, bound, binding);
 
@@ -524,11 +565,16 @@ export async function fetch_from_escrow(
   if (!escrow_key) return null;
 
   const verifying_key = await get_verifying_escrow_key();
-  const bound = verifying_key
+  const lookup: BoundEscrowLookup = verifying_key
     ? await lookup_bound_escrow(verifying_key, dedupe_key)
-    : null;
+    : { state: "absent" };
 
-  if (bound) {
+  if (lookup.state === "unavailable") throw new EscrowUnavailableError();
+  if (lookup.state === "refused") return null;
+
+  if (lookup.state === "opened") {
+    const bound = lookup.payload;
+
     if (!payload_matches_binding(bound, binding)) return null;
 
     await adopt_bound_payload(dedupe_key, bound, binding);

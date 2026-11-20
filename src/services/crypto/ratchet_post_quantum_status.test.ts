@@ -47,6 +47,11 @@ vi.mock("./ratchet_identity_pin", async (import_original) => ({
   is_recipient_flagged_untrusted: vi.fn(async () => false),
   is_recipient_bundle_accepted: vi.fn(async () => h.accepted),
   has_peer_signed_pq: vi.fn(async () => h.signed_pq_seen),
+  read_peer_downgrade_floor: vi.fn(async () => ({
+    x3dh_version: 0,
+    pq_seen: h.signed_pq_seen,
+    pq_signed_seen: h.signed_pq_seen,
+  })),
   flag_recipient_untrusted: vi.fn(async (pin_id: string) => {
     h.flagged.push(pin_id);
   }),
