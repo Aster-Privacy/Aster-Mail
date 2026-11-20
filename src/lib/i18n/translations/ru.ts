@@ -2592,6 +2592,21 @@ export const ru = {
     smtp_token_copy_all: "Скопировать всё",
     smtp_token_last_used: "Последнее использование",
     smtp_token_never_used: "Никогда",
+    smtp_token_details_title: "Параметры подключения",
+    smtp_token_details_description:
+      "Используйте эти параметры, чтобы подключить почтовый клиент или приложение.",
+    smtp_token_password_hidden: "Скрыт",
+    smtp_token_password_hidden_note:
+      "Пароль показывается только один раз, когда вы создаёте токен, и его нельзя показать снова. Если у вас его больше нет, отзовите этот токен и создайте новый.",
+    smtp_token_rename_title: "Переименовать токен",
+    smtp_token_rename_description:
+      "Переименование не меняет пароль и настройки в ваших приложениях.",
+    smtp_token_renamed_toast: "Токен переименован",
+    smtp_token_rename_failed:
+      "Не удалось переименовать токен. Повторите попытку.",
+    smtp_token_rename_unavailable:
+      "Переименование пока недоступно. Повторите попытку позже.",
+    smtp_token_rename_invalid: "Введите название длиной до 64 символов.",
     smtp_token_revoke_title: "Отозвать токен?",
     smtp_token_revoke_message:
       "Это безвозвратно отзовёт {{ name }}. Любое приложение, использующее его, больше не сможет отправлять почту.",

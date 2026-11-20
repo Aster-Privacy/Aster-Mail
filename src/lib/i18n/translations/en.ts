@@ -2498,6 +2498,20 @@ export const en: Translations = {
     smtp_token_copy_all: "Copy all",
     smtp_token_last_used: "Last used",
     smtp_token_never_used: "Never",
+    smtp_token_details_title: "Setup details",
+    smtp_token_details_description:
+      "Use these settings to connect your mail client or app.",
+    smtp_token_password_hidden: "Hidden",
+    smtp_token_password_hidden_note:
+      "The password appears only once, when you generate the token, and can't be shown again. If you no longer have it, revoke this token and generate a new one.",
+    smtp_token_rename_title: "Rename token",
+    smtp_token_rename_description:
+      "Renaming doesn't change the password or the settings in your apps.",
+    smtp_token_renamed_toast: "Token renamed",
+    smtp_token_rename_failed: "Couldn't rename the token. Try again.",
+    smtp_token_rename_unavailable:
+      "Renaming isn't available yet. Try again later.",
+    smtp_token_rename_invalid: "Enter a name with up to 64 characters.",
     smtp_token_revoke_title: "Revoke token?",
     smtp_token_revoke_message:
       "This will permanently revoke {{ name }}. Any app using it will no longer be able to send mail.",

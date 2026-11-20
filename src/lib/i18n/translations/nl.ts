@@ -2398,6 +2398,21 @@ export const nl = {
     smtp_token_copy_all: "Alles kopiëren",
     smtp_token_last_used: "Laatst gebruikt",
     smtp_token_never_used: "Nooit",
+    smtp_token_details_title: "Configuratiegegevens",
+    smtp_token_details_description:
+      "Gebruik deze instellingen om je e-mailprogramma of app te verbinden.",
+    smtp_token_password_hidden: "Verborgen",
+    smtp_token_password_hidden_note:
+      "Het wachtwoord verschijnt maar één keer, wanneer je het token genereert, en kan niet opnieuw worden getoond. Als je het niet meer hebt, trek je dit token in en genereer je een nieuw token.",
+    smtp_token_rename_title: "Token hernoemen",
+    smtp_token_rename_description:
+      "Hernoemen verandert het wachtwoord en de instellingen in je apps niet.",
+    smtp_token_renamed_toast: "Token hernoemd",
+    smtp_token_rename_failed:
+      "Het token kan niet worden hernoemd. Probeer het opnieuw.",
+    smtp_token_rename_unavailable:
+      "Hernoemen is nog niet beschikbaar. Probeer het later opnieuw.",
+    smtp_token_rename_invalid: "Voer een naam in van maximaal 64 tekens.",
     smtp_token_revoke_title: "Token intrekken?",
     smtp_token_revoke_message:
       "Hiermee wordt {{ name }} permanent ingetrokken. Elke app die deze gebruikt, kan dan geen e-mail meer verzenden.",

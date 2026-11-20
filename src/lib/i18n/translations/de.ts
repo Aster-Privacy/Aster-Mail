@@ -2449,6 +2449,21 @@ export const de = {
     smtp_token_copy_all: "Alle kopieren",
     smtp_token_last_used: "Zuletzt verwendet",
     smtp_token_never_used: "Nie",
+    smtp_token_details_title: "Einrichtungsdetails",
+    smtp_token_details_description:
+      "Verwende diese Einstellungen, um dein E-Mail-Programm oder deine App zu verbinden.",
+    smtp_token_password_hidden: "Verborgen",
+    smtp_token_password_hidden_note:
+      "Das Passwort wird nur einmal angezeigt, wenn du das Token erstellst, und kann nicht erneut angezeigt werden. Wenn du es nicht mehr hast, widerrufe dieses Token und erstelle ein neues.",
+    smtp_token_rename_title: "Token umbenennen",
+    smtp_token_rename_description:
+      "Das Umbenennen ändert weder das Passwort noch die Einstellungen in deinen Apps.",
+    smtp_token_renamed_toast: "Token umbenannt",
+    smtp_token_rename_failed:
+      "Das Token konnte nicht umbenannt werden. Versuche es erneut.",
+    smtp_token_rename_unavailable:
+      "Das Umbenennen ist noch nicht verfügbar. Versuche es später erneut.",
+    smtp_token_rename_invalid: "Gib einen Namen mit höchstens 64 Zeichen ein.",
     smtp_token_revoke_title: "Token widerrufen?",
     smtp_token_revoke_message:
       "Dadurch wird {{ name }} dauerhaft widerrufen. Jede App, die ihn verwendet, kann dann keine E-Mails mehr senden.",

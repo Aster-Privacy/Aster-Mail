@@ -3217,6 +3217,16 @@ export interface SettingsTranslations {
   smtp_token_copy_all: string;
   smtp_token_last_used: string;
   smtp_token_never_used: string;
+  smtp_token_details_title: string;
+  smtp_token_details_description: string;
+  smtp_token_password_hidden: string;
+  smtp_token_password_hidden_note: string;
+  smtp_token_rename_title: string;
+  smtp_token_rename_description: string;
+  smtp_token_renamed_toast: string;
+  smtp_token_rename_failed: string;
+  smtp_token_rename_unavailable: string;
+  smtp_token_rename_invalid: string;
   smtp_token_revoke_title: string;
   smtp_token_revoke_message: string;
   smtp_token_revoked_toast: string;

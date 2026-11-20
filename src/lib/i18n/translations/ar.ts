@@ -2565,6 +2565,20 @@ export const ar = {
     smtp_token_copy_all: "نسخ الكل",
     smtp_token_last_used: "آخر استخدام",
     smtp_token_never_used: "أبدًا",
+    smtp_token_details_title: "تفاصيل الإعداد",
+    smtp_token_details_description:
+      "استخدم هذه الإعدادات لربط عميل البريد أو التطبيق لديك.",
+    smtp_token_password_hidden: "مخفية",
+    smtp_token_password_hidden_note:
+      "تظهر كلمة المرور مرة واحدة فقط عند إنشاء الرمز، ولا يمكن عرضها مجددًا. إذا لم تعد لديك، فألغِ هذا الرمز وأنشئ رمزًا جديدًا.",
+    smtp_token_rename_title: "إعادة تسمية الرمز",
+    smtp_token_rename_description:
+      "إعادة التسمية لا تغيّر كلمة المرور ولا الإعدادات في تطبيقاتك.",
+    smtp_token_renamed_toast: "تمت إعادة تسمية الرمز",
+    smtp_token_rename_failed: "تعذّرت إعادة تسمية الرمز. حاول مجددًا.",
+    smtp_token_rename_unavailable:
+      "إعادة التسمية غير متاحة بعد. حاول مجددًا لاحقًا.",
+    smtp_token_rename_invalid: "أدخل اسمًا لا يزيد على 64 حرفًا.",
     smtp_token_revoke_title: "إلغاء الرمز؟",
     smtp_token_revoke_message:
       "سيؤدي هذا إلى إلغاء {{ name }} نهائيًا. لن يتمكن أي تطبيق يستخدمه من إرسال البريد بعد الآن.",

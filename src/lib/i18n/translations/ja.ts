@@ -2445,6 +2445,17 @@ export const ja = {
     smtp_token_copy_all: "すべてコピー",
     smtp_token_last_used: "最終使用",
     smtp_token_never_used: "なし",
+    smtp_token_details_title: "設定の詳細",
+    smtp_token_details_description: "この設定を使って、メールクライアントやアプリを接続します。",
+    smtp_token_password_hidden: "非表示",
+    smtp_token_password_hidden_note:
+      "パスワードはトークンの生成時に一度だけ表示され、再表示はできません。パスワードが手元にない場合は、このトークンを取り消して新しいトークンを生成してください。",
+    smtp_token_rename_title: "トークンの名前を変更",
+    smtp_token_rename_description: "名前を変更しても、パスワードやアプリ側の設定は変わりません。",
+    smtp_token_renamed_toast: "トークンの名前を変更しました",
+    smtp_token_rename_failed: "トークンの名前を変更できませんでした。もう一度お試しください。",
+    smtp_token_rename_unavailable: "名前の変更はまだ利用できません。しばらくしてからもう一度お試しください。",
+    smtp_token_rename_invalid: "64文字以内の名前を入力してください。",
     smtp_token_revoke_title: "トークンを取り消しますか？",
     smtp_token_revoke_message:
       "これにより {{ name }} が完全に取り消されます。このトークンを使用しているアプリは、以後メールを送信できなくなります。",

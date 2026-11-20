@@ -2383,6 +2383,17 @@ export const ko = {
     smtp_token_copy_all: "모두 복사",
     smtp_token_last_used: "마지막 사용",
     smtp_token_never_used: "없음",
+    smtp_token_details_title: "설정 세부 정보",
+    smtp_token_details_description: "이 설정을 사용해 메일 클라이언트나 앱을 연결하세요.",
+    smtp_token_password_hidden: "숨김",
+    smtp_token_password_hidden_note:
+      "암호는 토큰을 생성할 때 한 번만 표시되며 다시 볼 수 없습니다. 암호가 더 이상 없다면 이 토큰을 취소하고 새 토큰을 생성하세요.",
+    smtp_token_rename_title: "토큰 이름 변경",
+    smtp_token_rename_description: "이름을 변경해도 암호나 앱의 설정은 바뀌지 않습니다.",
+    smtp_token_renamed_toast: "토큰 이름을 변경했습니다",
+    smtp_token_rename_failed: "토큰 이름을 변경할 수 없습니다. 다시 시도하세요.",
+    smtp_token_rename_unavailable: "이름 변경은 아직 사용할 수 없습니다. 나중에 다시 시도하세요.",
+    smtp_token_rename_invalid: "64자 이내의 이름을 입력하세요.",
     smtp_token_revoke_title: "토큰을 폐기하시겠습니까?",
     smtp_token_revoke_message:
       "{{ name }}이(가) 영구적으로 폐기됩니다. 이를 사용하는 모든 앱은 더 이상 메일을 보낼 수 없게 됩니다.",
