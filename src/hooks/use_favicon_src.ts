@@ -47,6 +47,12 @@ import {
 } from "@/services/sender_logos_state";
 import { ignore_error } from "@/lib/ignore_error";
 
+function retry_after_ms(headers: Headers): number | undefined {
+  const match = /max-age=(\d+)/.exec(headers.get("cache-control") ?? "");
+
+  return match ? Number(match[1]) * 1000 : undefined;
+}
+
 const cookieless_loads = new Map<string, Promise<string | null>>();
 
 function load_cookieless_favicon(
@@ -65,7 +71,9 @@ function load_cookieless_favicon(
   const promise = routed_fetch(url, { credentials: "omit" })
     .then((r) => {
       if (!r.ok) {
-        if (r.status >= 400 && r.status < 500) mark_icon_failed(domain);
+        if (r.status === 404 || r.status === 410) {
+          mark_icon_failed(domain, retry_after_ms(r.headers));
+        }
 
         return null;
       }

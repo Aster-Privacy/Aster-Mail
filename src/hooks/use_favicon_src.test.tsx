@@ -214,7 +214,35 @@ describe("use_favicon_src", () => {
     await settle();
 
     expect(observed[observed.length - 1]).toBe("data:,");
-    expect(mark_icon_failed).toHaveBeenCalledWith("missing.example");
+    expect(mark_icon_failed).toHaveBeenCalledWith("missing.example", undefined);
+  });
+
+  it("uses the server retry time for a missing favicon", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    fetch_mock.mockResolvedValue(
+      new Response(null, {
+        status: 404,
+        headers: { "cache-control": "private, max-age=900" },
+      }),
+    );
+    mount("slow.example");
+    await settle();
+
+    expect(mark_icon_failed).toHaveBeenCalledWith("slow.example", 900_000);
+  });
+
+  it("does not mark a rate limited favicon as failed", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    vi.mocked(mark_icon_failed).mockClear();
+    fetch_mock.mockResolvedValue(new Response(null, { status: 429 }));
+    mount("busy.example");
+    await settle();
+
+    expect(mark_icon_failed).not.toHaveBeenCalled();
   });
 
   it("does not ask again for a favicon that is already known to be missing", async () => {

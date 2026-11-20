@@ -24,10 +24,18 @@ const STORAGE_KEY = "aster_icon_cache_v10";
 const RETIRED_STORAGE_KEYS: readonly string[] = ["aster_icon_cache_v9"];
 const OK_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const FAIL_TTL_MS = 6 * 60 * 60 * 1000;
+const MIN_FAIL_TTL_MS = 60 * 1000;
 
 interface StoredEntry {
   status: "ok" | "fail";
   ts: number;
+  ttl?: number;
+}
+
+function entry_ttl(entry: StoredEntry): number {
+  if (entry.status === "ok") return OK_TTL_MS;
+
+  return entry.ttl ?? FAIL_TTL_MS;
 }
 
 const memory_cache = new Map<string, StoredEntry>();
@@ -43,9 +51,7 @@ function load_from_storage(): void {
     let pruned = false;
 
     for (const [domain, entry] of Object.entries(entries)) {
-      const ttl = entry.status === "ok" ? OK_TTL_MS : FAIL_TTL_MS;
-
-      if (now - entry.ts > ttl) {
+      if (now - entry.ts > entry_ttl(entry)) {
         pruned = true;
         continue;
       }
@@ -102,7 +108,18 @@ export function clear_icon_cache(): void {
 }
 
 export function is_icon_failed(domain: string): boolean {
-  return memory_cache.get(domain)?.status === "fail";
+  const entry = memory_cache.get(domain);
+
+  if (entry?.status !== "fail") return false;
+
+  if (Date.now() - entry.ts > entry_ttl(entry)) {
+    memory_cache.delete(domain);
+    schedule_flush();
+
+    return false;
+  }
+
+  return true;
 }
 
 export function mark_icon_ok(domain: string): void {
@@ -111,8 +128,10 @@ export function mark_icon_ok(domain: string): void {
   schedule_flush();
 }
 
-export function mark_icon_failed(domain: string): void {
-  if (memory_cache.get(domain)?.status === "fail") return;
-  memory_cache.set(domain, { status: "fail", ts: Date.now() });
+export function mark_icon_failed(domain: string, ttl_ms?: number): void {
+  if (is_icon_failed(domain)) return;
+  const ttl = Math.min(Math.max(ttl_ms ?? FAIL_TTL_MS, MIN_FAIL_TTL_MS), FAIL_TTL_MS);
+
+  memory_cache.set(domain, { status: "fail", ts: Date.now(), ttl });
   schedule_flush();
 }
