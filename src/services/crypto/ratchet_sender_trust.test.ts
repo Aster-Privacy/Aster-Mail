@@ -130,6 +130,21 @@ vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
   ),
 }));
 
+vi.mock(
+  "@/services/crypto/sender_identity_authentication",
+  async (import_original) => {
+    const actual =
+      await import_original<
+        typeof import("@/services/crypto/sender_identity_authentication")
+      >();
+
+    return {
+      ...actual,
+      authenticate_sender_identity: vi.fn(actual.authenticate_sender_identity),
+    };
+  },
+);
+
 vi.mock("@/services/crypto/message_escrow", () => ({
   upload_to_escrow: vi.fn(async () => {}),
   fetch_from_escrow: vi.fn(async () => null),
@@ -191,7 +206,10 @@ import {
   parse_ratchet_envelope,
   decrypt_ratchet_message,
 } from "@/services/crypto/ratchet_manager";
-import { clear_sender_identity_authentication_cache } from "@/services/crypto/sender_identity_authentication";
+import {
+  authenticate_sender_identity,
+  clear_sender_identity_authentication_cache,
+} from "@/services/crypto/sender_identity_authentication";
 import {
   MAX_REMEMBERED_IDENTITIES,
   note_first_contact_identity,
@@ -546,6 +564,86 @@ describe("sender trust for ratchet mail", () => {
     expect(await receive(next, receiver_vault, "m2")).toBe("second");
     expect(get_message_sender_identity("m2")).toBe("verified");
     expect(is_trusted_ratchet_plaintext("second")).toBe(true);
+  });
+
+  it("marks each message with its own check even when another check for the sender lands in between", async () => {
+    const { receiver_vault, sender_vault, sender_store, receiver_store } =
+      await establish();
+
+    restore(sender_store);
+    const next = await send("second", sender_vault);
+
+    restore(receiver_store);
+    await confirm_sender(receiver_vault, sender_vault);
+
+    const original = vi
+      .mocked(authenticate_sender_identity)
+      .getMockImplementation()!;
+
+    vi.mocked(authenticate_sender_identity).mockImplementation(
+      async (email, key) => {
+        await original(email, key);
+
+        return "mismatch";
+      },
+    );
+
+    try {
+      expect(await receive(next, receiver_vault, "m2")).toBe("second");
+    } finally {
+      vi.mocked(authenticate_sender_identity).mockImplementation(original);
+    }
+
+    expect(get_message_sender_identity("m2")).toBe("mismatch");
+  });
+
+  function session_entries() {
+    return JSON.stringify(
+      [...h.store.entries()]
+        .filter(([key]) => key.startsWith("ratchet_state_"))
+        .sort(([left], [right]) => (left < right ? -1 : 1)),
+    );
+  }
+
+  it("refuses an opening message that arrives again under another message id", async () => {
+    const { first, receiver_vault, receiver_store } = await establish();
+
+    restore(receiver_store);
+    h.cache.clear();
+    const before = session_entries();
+
+    const replayed = await receive(first, receiver_vault, "m9").catch(
+      () => null,
+    );
+
+    expect(replayed).not.toBe("first");
+    expect(get_message_sender_identity("m9")).not.toBe("verified");
+    expect(session_entries()).toBe(before);
+  });
+
+  it("opens an opening message again under its own id without resetting the session", async () => {
+    const { first, receiver_vault, receiver_store } = await establish();
+
+    restore(receiver_store);
+    h.cache.clear();
+    const before = session_entries();
+
+    expect(await receive(first, receiver_vault, "m1")).toBe("first");
+    expect(session_entries()).toBe(before);
+  });
+
+  it("still accepts a new opening message after the sender starts over", async () => {
+    const { receiver_vault, sender_vault, receiver_store } = await establish();
+
+    restore(new Map());
+    const restart = await send("again", sender_vault);
+
+    restore(receiver_store);
+    h.cache.clear();
+    const before = session_entries();
+
+    expect(await receive(restart, receiver_vault, "m3")).toBe("again");
+    expect(session_entries()).not.toBe(before);
   });
 
   it("keeps a new bootstrap from an unconfirmed identity unverified", async () => {

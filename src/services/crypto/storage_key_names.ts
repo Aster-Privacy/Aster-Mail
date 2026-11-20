@@ -49,6 +49,7 @@ export const ACCEPTED_BUNDLE_PREFIX = "ratchet_accepted_bundle_";
 export const FIRST_CONTACT_PREFIX = "ratchet_first_contact_";
 export const LANE_SENDER_PIN_PREFIX = "ratchet_lane_sender_pin_";
 export const LANE_SEEN_PREFIX = "ratchet_lane_seen_";
+export const BOOTSTRAP_SEEN_PREFIX = "ratchet_bootstrap_seen_";
 export const PIN_SPELLINGS_PREFIX = "ratchet_pin_spellings_";
 export const RATCHET_STATE_PREFIX = "ratchet_state_";
 export const RATCHET_PLAINTEXT_PREFIX = "ratchet_plaintext_";
@@ -66,6 +67,7 @@ const SCOPED_PREFIXES: readonly string[] = [
   FIRST_CONTACT_PREFIX,
   LANE_SENDER_PIN_PREFIX,
   LANE_SEEN_PREFIX,
+  BOOTSTRAP_SEEN_PREFIX,
   PIN_SPELLINGS_PREFIX,
   RATCHET_STATE_PREFIX,
   RATCHET_PLAINTEXT_PREFIX,

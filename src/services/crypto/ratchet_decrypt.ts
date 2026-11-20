@@ -23,6 +23,7 @@ import { is_own_address_identity_key } from "./address_sender_identity";
 import { base64_to_array } from "./base64";
 import {
   DoubleRatchet,
+  InvalidRatchetStateError,
   type EncryptedMessage,
   type SerializedState,
 } from "./double_ratchet";
@@ -71,6 +72,7 @@ import {
   type SenderIdentityStatus,
 } from "./ratchet_verification_status";
 import { claim_rotation_notice } from "./rotation_notice";
+import { claim_bootstrap, type BootstrapClaim } from "./bootstrap_replay";
 import {
   claim_lane_nonce,
   lookup_lane_sender_pin,
@@ -400,7 +402,12 @@ async function settle_cached_plaintext(
       ))
     ) {
       clear_unconfirmed_sender_plaintext(plaintext, dedupe_key);
-      note_message_sender_identity(message_id ?? dedupe_key, sender_email);
+      record_message_sender_identity(
+        message_id ?? dedupe_key,
+        await authenticate_sender_identity(sender_email, judged_key).catch(
+          () => "unverified" as const,
+        ),
+      );
       await set_cached_ratchet_plaintext(
         dedupe_key,
         plaintext,
@@ -504,9 +511,10 @@ async function attempt_ratchet_decrypt(
         bound_identity_key !== null,
       );
 
-      await authenticate_sender_identity(sender_email, identity_key).catch(
-        () => "unverified" as const,
-      );
+      const sender_status = await authenticate_sender_identity(
+        sender_email,
+        identity_key,
+      ).catch(() => "unverified" as const);
 
       if (
         !lane_plaintext &&
@@ -566,9 +574,9 @@ async function attempt_ratchet_decrypt(
           "unverified",
         );
       } else {
-        note_message_sender_identity(
+        record_message_sender_identity(
           message_id ?? dedupe_key ?? "",
-          sender_email,
+          sender_status,
         );
       }
 
@@ -1177,6 +1185,18 @@ async function bootstrap_may_replace_session(
   );
 }
 
+function session_already_on_chain(
+  snapshot: SerializedState,
+  dh_public: string,
+): boolean {
+  return (
+    snapshot.state.dh_remote_public === dh_public ||
+    snapshot.state.skipped_message_keys.some(
+      (skipped) => skipped.dh_public === dh_public,
+    )
+  );
+}
+
 async function decrypt_ratchet_for_recipient(
   our_email: string,
   sender_email: string,
@@ -1217,7 +1237,12 @@ async function decrypt_ratchet_for_recipient(
     nonce: data.nonce,
   };
 
-  const loaded_ratchet = await load_ratchet_state(conversation_id);
+  const loaded_ratchet = await load_ratchet_state(conversation_id).catch(
+    (error: unknown) => {
+      if (error instanceof InvalidRatchetStateError) return null;
+      throw error;
+    },
+  );
   const loaded_snapshot = loaded_ratchet
     ? await snapshot_ratchet_state(loaded_ratchet)
     : null;
@@ -1231,6 +1256,26 @@ async function decrypt_ratchet_for_recipient(
   let first_contact = false;
 
   let plaintext: string | null = null;
+  const bootstrap_seen: { claim: BootstrapClaim | null } = { claim: null };
+
+  const claim_opened_bootstrap = async (): Promise<boolean> => {
+    if (ratchet_origin !== "bootstrap" || plaintext === null) return true;
+
+    bootstrap_seen.claim ??= await claim_bootstrap(
+      sender_email,
+      sender_identity_key,
+      data,
+      message_key,
+    );
+
+    if (bootstrap_seen.claim !== "replayed") return true;
+
+    plaintext = null;
+    ratchet = null;
+    ratchet_origin = "loaded";
+
+    return false;
+  };
 
   if (ratchet) {
     try {
@@ -1339,6 +1384,10 @@ async function decrypt_ratchet_for_recipient(
       }
     }
 
+    if (!(await claim_opened_bootstrap())) {
+      last_error = new Error("Opening message was already used");
+    }
+
     if (plaintext === null || !ratchet) {
       const server_sync_key = await get_sync_encryption_key();
 
@@ -1439,6 +1488,10 @@ async function decrypt_ratchet_for_recipient(
           );
         }
       }
+    }
+
+    if (!(await claim_opened_bootstrap())) {
+      last_error = new Error("Opening message was already used");
     }
 
     if ((plaintext === null || !ratchet) && identity_status === "verified") {
@@ -1545,14 +1598,16 @@ async function decrypt_ratchet_for_recipient(
   if (
     ratchet_origin === "bootstrap" &&
     loaded_snapshot &&
-    !(await bootstrap_may_replace_session(
-      our_email,
-      sender_email,
-      vault,
-      established_identity_key,
-      ratchet.get_remote_identity_key(),
-      identity_status,
-    ))
+    (bootstrap_seen.claim !== "first" ||
+      session_already_on_chain(loaded_snapshot, data.header.dh_public) ||
+      !(await bootstrap_may_replace_session(
+        our_email,
+        sender_email,
+        vault,
+        established_identity_key,
+        ratchet.get_remote_identity_key(),
+        identity_status,
+      )))
   ) {
     return {
       plaintext,
