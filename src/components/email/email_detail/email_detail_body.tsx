@@ -46,6 +46,8 @@ import { ShippingDetailsBanner } from "@/components/email/banners/shipping_detai
 import { use_email_extraction } from "@/components/email/hooks/use_email_extraction";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
+import { PriorityBadge } from "@/components/email/priority_badge";
+import { priority_from_headers } from "@/services/mail_priority";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_system_email } from "@/lib/utils";
 import { is_mail_item_in_trash } from "@/components/email/viewer_shared/trash_placement";
@@ -203,6 +205,9 @@ export function EmailDetailBody({
                 <span className="text-xs sm:text-sm text-txt-muted">
                   {email.timestamp}
                 </span>
+                <PriorityBadge
+                  priority={priority_from_headers(email.raw_headers)}
+                />
                 {thread_messages.length > 1 && (
                   <span className="text-xs text-txt-muted">
                     ·{" "}

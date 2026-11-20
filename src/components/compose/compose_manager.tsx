@@ -139,7 +139,14 @@ export interface ComposeInstance {
   initial_to?: string;
   initial_ghost_mode?: boolean;
   initial_from_alias?: string | null;
+  initial_attachments?: File[];
+  initial_subject?: string;
   is_minimized: boolean;
+}
+
+export interface ComposeOpenExtras {
+  initial_attachments?: File[];
+  initial_subject?: string;
 }
 
 interface ComposeManagerProps {
@@ -170,6 +177,7 @@ export function use_compose_manager() {
       edit_draft?: EditDraftData | null,
       initial_to?: string,
       initial_ghost_mode?: boolean,
+      extras?: ComposeOpenExtras,
     ) => {
       const current = instances_ref.current;
       const draft_owner = edit_draft
@@ -214,6 +222,8 @@ export function use_compose_manager() {
           edit_draft,
           initial_to,
           initial_ghost_mode,
+          initial_attachments: extras?.initial_attachments,
+          initial_subject: extras?.initial_subject,
           initial_from_alias: edit_draft
             ? null
             : selected_alias_from_location(
@@ -376,8 +386,10 @@ export function ComposeManager({
                 >
                   <ComposeWindow
                     edit_draft={instance.edit_draft}
+                    initial_attachments={instance.initial_attachments}
                     initial_from_alias={instance.initial_from_alias}
                     initial_ghost_mode={instance.initial_ghost_mode}
+                    initial_subject={instance.initial_subject}
                     initial_to={instance.initial_to}
                     instance_id={instance.id}
                     is_minimized={instance.is_minimized}

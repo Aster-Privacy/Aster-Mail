@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { priority_request_field } from "@/services/mail_priority";
 import { resolve_current_user } from "./current_identity";
 import { create_attachment } from "./api/attachments";
 import { mark_thread_read } from "./api/mail";
@@ -326,6 +327,7 @@ async function execute_send_with_plans(
     forward_original_mail_id: email.forward_original_mail_id,
     in_reply_to: email.in_reply_to,
     ...(email.is_plain_text ? { plain_text: true } : {}),
+    ...priority_request_field(email.priority),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
     obscure_subject,
   };
@@ -713,6 +715,7 @@ export async function execute_external_send(
       : {}),
     in_reply_to: email.in_reply_to,
     ...(email.is_plain_text && !is_secure_external ? { plain_text: true } : {}),
+    ...priority_request_field(email.priority),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
     ...(is_secure_external ? {} : { obscure_subject: obscure_outer_subject }),
   };

@@ -93,6 +93,10 @@ import { open_message_in_view_mode } from "@/components/toast/toast_action_route
 import { on_user_opened_mail } from "@/services/user_opened_mail";
 import { resolve_welcome_auto_open } from "@/lib/stale_open_email";
 import {
+  FORWARD_AS_ATTACHMENT_EVENT,
+  type ForwardAsAttachmentDetail,
+} from "@/services/forward_as_attachment";
+import {
   build_alias_view,
   parse_alias_direction,
 } from "@/hooks/email_list_helpers/alias_view";
@@ -1269,6 +1273,30 @@ export function use_index_page_state() {
     return () =>
       window.removeEventListener("astermail:undo-send", handle_undo_send);
   }, [is_mobile, open_compose_instance, t]);
+
+  useEffect(() => {
+    const handle_forward_as_attachment = (e: Event) => {
+      const detail = (e as CustomEvent<ForwardAsAttachmentDetail>).detail;
+
+      if (!detail?.files?.length) return;
+      close_settings();
+      open_compose_instance(null, undefined, undefined, {
+        initial_attachments: detail.files,
+        initial_subject: detail.subject,
+      });
+    };
+
+    window.addEventListener(
+      FORWARD_AS_ATTACHMENT_EVENT,
+      handle_forward_as_attachment,
+    );
+
+    return () =>
+      window.removeEventListener(
+        FORWARD_AS_ATTACHMENT_EVENT,
+        handle_forward_as_attachment,
+      );
+  }, [close_settings, open_compose_instance]);
 
   useEffect(() => {
     const handle_prefilled_compose = (e: Event) => {

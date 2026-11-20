@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { MailPriority } from "@/services/mail_priority";
 import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
@@ -99,6 +100,8 @@ interface ReplyBodyProps {
   handle_delete_draft: () => void;
   is_plain_text_mode: boolean;
   toggle_plain_text_mode: () => void;
+  priority?: MailPriority;
+  set_priority?: (priority: MailPriority) => void;
   handle_template_select: (content: string) => void;
   is_mac: boolean;
   from_mismatch?: ReplyFromMismatchState;
@@ -152,6 +155,8 @@ export function ReplyBody({
   handle_delete_draft,
   is_plain_text_mode,
   toggle_plain_text_mode,
+  priority,
+  set_priority,
   handle_template_select,
   is_mac,
   from_mismatch,
@@ -438,6 +443,8 @@ export function ReplyBody({
             editor,
             is_plain_text_mode,
             toggle_plain_text_mode,
+            priority,
+            set_priority,
           }}
           extra_toolbar_items={
             <SignaturePicker

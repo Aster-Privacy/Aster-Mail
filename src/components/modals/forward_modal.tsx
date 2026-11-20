@@ -29,6 +29,7 @@ import { ForwardHeader } from "@/components/modals/forward/forward_header";
 import { ForwardBody } from "@/components/modals/forward/forward_body";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { is_valid_email } from "@/components/compose/compose_shared";
+import { use_mail_drop_attach } from "@/components/compose/use_forward_as_attachment";
 
 interface ForwardModalProps {
   is_open: boolean;
@@ -58,6 +59,7 @@ export function ForwardModal({
   thread_token,
   thread_ghost_email,
 }: ForwardModalProps) {
+  const attach_dropped_mail = use_mail_drop_attach();
   const modal = use_forward_modal({
     is_open,
     on_close,
@@ -141,6 +143,8 @@ export function ForwardModal({
 
               if (files.length > 0) {
                 modal.handle_files_drop(files);
+              } else {
+                attach_dropped_mail(e.dataTransfer, modal.handle_files_drop);
               }
             }}
           >
@@ -201,6 +205,7 @@ export function ForwardModal({
               message_content={modal.forward_message}
               message_editor_ref={modal.message_editor_ref}
               on_discard={modal.request_discard}
+              priority={modal.priority}
               recipients_count={
                 modal.recipients.to.length +
                 (is_valid_email(modal.inputs.to.trim()) ? 1 : 0)
@@ -214,6 +219,7 @@ export function ForwardModal({
               set_expires_at={modal.set_expires_at}
               set_expiry_password={modal.set_expiry_password}
               set_is_forward_visible={modal.set_is_forward_visible}
+              set_priority={modal.set_priority}
               set_scheduled_time={modal.set_scheduled_time}
               source_email_id={original_mail_id}
               t={modal.t}
