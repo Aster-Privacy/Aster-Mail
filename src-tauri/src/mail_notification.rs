@@ -138,7 +138,7 @@ pub fn activate(app: &tauri::AppHandle, open: NotificationOpen) {
     queue_open(app, open, was_visible);
 
     if !was_visible {
-        let _ = window.eval("window.location.reload()");
+        let _ = window.eval(crate::RELOAD_WITHOUT_OPEN_EMAIL_JS);
     }
 
     crate::show_main_window(app);

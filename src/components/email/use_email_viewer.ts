@@ -30,6 +30,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { use_guarded_trash_actions } from "@/components/email/use_permanent_delete_confirm";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
+import { is_missing_mail_item } from "@/lib/stale_open_email";
 import { request_cache } from "@/services/api/request_cache";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -237,6 +238,10 @@ export function use_email_viewer({
   use_refresh_listener = false,
   grouped_email_ids,
 }: UseEmailViewerOptions) {
+  const on_dismiss_ref = useRef(on_dismiss);
+
+  on_dismiss_ref.current = on_dismiss;
+
   const local_email =
     email_id === UNDO_SEND_PREVIEW_ID ? incoming_local_email : undefined;
   const { t } = use_i18n();
@@ -664,6 +669,13 @@ export function use_email_viewer({
       const result = await get_mail_item(email_id);
 
       if (result.error || !result.data) {
+        if (!cancelled && is_missing_mail_item(result)) {
+          set_is_loading(false);
+          on_dismiss_ref.current();
+
+          return;
+        }
+
         if (!cancelled && !reloading_same_email) {
           set_error(t("common.failed_to_load_email"));
           set_is_loading(false);

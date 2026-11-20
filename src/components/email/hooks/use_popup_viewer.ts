@@ -28,6 +28,7 @@ import { use_guarded_trash_actions } from "@/components/email/use_permanent_dele
 import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
 import { REPLY_ARRIVAL_POLL_DELAYS_MS } from "@/components/email/use_email_viewer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
+import { is_missing_mail_item } from "@/lib/stale_open_email";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_draft_by_thread,
@@ -141,6 +142,10 @@ export function use_popup_viewer({
   | "snoozed_until"
   | "grouped_email_ids"
 >) {
+  const on_close_ref = useRef(on_close);
+
+  on_close_ref.current = on_close;
+
   const local_email =
     email_id === UNDO_SEND_PREVIEW_ID ? incoming_local_email : undefined;
   const { user } = use_auth();
@@ -574,6 +579,12 @@ export function use_popup_viewer({
     if (response.error) {
       requested_email_id_ref.current = null;
       if (!is_same_email) revert_user_opened_mail(email_id);
+      if (is_missing_mail_item(response)) {
+        on_close_ref.current();
+
+        return;
+      }
+
       set_error(response.error);
 
       return;
