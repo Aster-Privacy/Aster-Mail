@@ -43,17 +43,20 @@ const { build_merged_preferences, DEFAULT_PREFERENCES } = await import(
   "@/services/api/preferences"
 );
 
-describe("company logos before the person opts in", () => {
+describe("company logos before settings load", () => {
   it("requests no logo from the server", () => {
     expect(get_favicon_url("shop.example")).toBe(PENDING_FAVICON_SRC);
   });
 
-  it("keeps logos off for saved settings that predate the switch", () => {
-    const saved: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
+  it("shows logos for saved settings that carry the retired opt-in key", () => {
+    const saved: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      load_sender_logos: false,
+    };
 
-    delete saved.load_sender_logos;
+    delete saved.hide_sender_logos;
 
-    expect(build_merged_preferences(saved, null).load_sender_logos).toBe(
+    expect(build_merged_preferences(saved, null).hide_sender_logos).toBe(
       false,
     );
   });

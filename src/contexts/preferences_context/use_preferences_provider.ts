@@ -463,8 +463,8 @@ export function use_preferences_provider() {
   }, [preferences.badge_count]);
 
   useEffect(() => {
-    set_sender_logos_enabled(preferences.load_sender_logos === true);
-  }, [preferences.load_sender_logos]);
+    set_sender_logos_enabled(preferences.hide_sender_logos !== true);
+  }, [preferences.hide_sender_logos]);
 
   useEffect(() => {
     set_iconic_sounds_enabled(preferences.iconic_sounds_enabled === true);

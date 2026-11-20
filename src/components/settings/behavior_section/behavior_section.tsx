@@ -894,15 +894,15 @@ export function BehaviorSection() {
 
         <ToggleSetting
           description={t("settings.sender_logos_description")}
-          enabled={preferences.load_sender_logos === true}
+          enabled={preferences.hide_sender_logos !== true}
           info={{
             title: t("settings.sender_logos"),
             description: t("settings.sender_logos_description"),
           }}
           on_toggle={() =>
             update_preference(
-              "load_sender_logos",
-              preferences.load_sender_logos !== true,
+              "hide_sender_logos",
+              preferences.hide_sender_logos !== true,
               true,
             )
           }

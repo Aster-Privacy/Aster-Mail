@@ -514,9 +514,9 @@ export function BehaviorSection({
             label={t("settings.sender_logos")}
             trailing={
               <Switch
-                checked={preferences.load_sender_logos === true}
+                checked={preferences.hide_sender_logos !== true}
                 onCheckedChange={(v) =>
-                  update_preference("load_sender_logos", v, true)
+                  update_preference("hide_sender_logos", !v, true)
                 }
               />
             }
