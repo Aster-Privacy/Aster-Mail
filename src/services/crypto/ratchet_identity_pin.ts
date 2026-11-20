@@ -1106,6 +1106,38 @@ export async function trust_recipient_keys(
   dismiss_peer_identity_event(pin_id);
 }
 
+export interface PeerDowngradeFloor {
+  x3dh_version: number;
+  pq_seen: boolean;
+  pq_signed_seen: boolean;
+}
+
+export async function read_peer_downgrade_floor(
+  pin_id: string,
+): Promise<PeerDowngradeFloor | "unreadable"> {
+  if (!pin_id) return "unreadable";
+
+  try {
+    const slot = await open_pins(pin_id);
+
+    if (!slot) return "unreadable";
+
+    const read = await load_identity_pin(slot);
+
+    if (!is_settled(read)) return "unreadable";
+
+    const pin = settled_value(read);
+
+    return {
+      x3dh_version: highest_x3dh_seen(pin?.x3dh_seen, null),
+      pq_seen: pin?.pq_seen === true,
+      pq_signed_seen: pin?.pq_signed_seen === true,
+    };
+  } catch {
+    return "unreadable";
+  }
+}
+
 export async function remembered_peer_x3dh_version(
   pin_id: string,
 ): Promise<number> {
