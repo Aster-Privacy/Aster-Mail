@@ -104,7 +104,7 @@ async function storage_key(): Promise<CryptoKey> {
   );
 }
 
-async function read_raw(): Promise<StoredArchive[] | undefined> {
+async function read_raw(): Promise<StoredArchive[] | null | undefined> {
   return scoped_get<StoredArchive[]>(
     RATCHET_STATE_PREFIX,
     "user-1",
@@ -168,7 +168,7 @@ describe("archived ratchet state expiry", () => {
     vi.setSystemTime(START + 31 * DAY_MS);
 
     expect(await loaded_tags()).toEqual([]);
-    expect(await read_raw()).toBeUndefined();
+    expect(await read_raw()).toBeFalsy();
   });
 
   it("prunes expired states when a new state is archived", async () => {
