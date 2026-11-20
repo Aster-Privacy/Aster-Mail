@@ -1398,7 +1398,7 @@ async function decrypt_ratchet_for_recipient(
     }
 
     if (!(await claim_opened_bootstrap())) {
-      last_error = new Error("Opening message was already used");
+      throw new Error("Opening message was already used");
     }
 
     if (plaintext === null || !ratchet) {
@@ -1504,7 +1504,7 @@ async function decrypt_ratchet_for_recipient(
     }
 
     if (!(await claim_opened_bootstrap())) {
-      last_error = new Error("Opening message was already used");
+      throw new Error("Opening message was already used");
     }
 
     if ((plaintext === null || !ratchet) && identity_status === "verified") {
