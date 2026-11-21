@@ -301,4 +301,19 @@ describe("sync_shared_mailbox_grants", () => {
     );
     expect(h.store_secret).toHaveBeenCalledWith("shared-1", "SECRET");
   });
+
+  it("opens nothing when the granting member's key fails its pin check", async () => {
+    serve(mailbox("other-1", "other"), false);
+    grant_opens(true);
+    h.fetch_member_public_key.mockRejectedValue(new Error("key changed"));
+
+    await sync_shared_mailbox_grants();
+
+    expect(h.fetch_member_public_key).toHaveBeenCalledWith(
+      "other",
+      "other@astermail.org",
+    );
+    expect(h.open_grant).not.toHaveBeenCalled();
+    expect(h.store_secret).not.toHaveBeenCalled();
+  });
 });

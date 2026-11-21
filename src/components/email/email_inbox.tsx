@@ -270,7 +270,11 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           <div>
             {filtered_emails.length > 0 && (
               <EmailList
-                categories_enabled={categories.enabled}
+                categories_enabled={
+                  categories.enabled ||
+                  (current_view === "all" &&
+                    preferences.inbox_categories_enabled !== false)
+                }
                 current_view={current_view}
                 density={resolve_list_density(preferences.mail_list_density)}
                 focused_email_id={focused_email_id}

@@ -39,6 +39,17 @@ export const page_transition = {
 
 let remembered_next_path: string | null = null;
 
+const OTHER_ORIGIN_START = /^\/[/\\]/;
+const URL_CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
+
+function is_app_local_path(path: string): boolean {
+  return (
+    path.startsWith("/") &&
+    !OTHER_ORIGIN_START.test(path) &&
+    !URL_CONTROL_CHARACTERS.test(path)
+  );
+}
+
 function read_next_path_from_url(): string | null {
   try {
     const raw = new URLSearchParams(window.location.search).get("next");
@@ -47,12 +58,11 @@ function read_next_path_from_url(): string | null {
 
     const decoded = decodeURIComponent(raw);
 
-    if (!decoded.startsWith("/")) return null;
-    if (decoded.length > 1 && (decoded[1] === "/" || decoded[1] === "\\"))
-      return null;
+    if (!is_app_local_path(decoded)) return null;
 
     const path = strip_account_prefix(decoded);
 
+    if (!is_app_local_path(path)) return null;
     if (path.startsWith("/sign-in") || path.startsWith("/register"))
       return null;
 

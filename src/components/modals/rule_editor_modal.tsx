@@ -90,7 +90,6 @@ import {
 import {
   ACTION_LABEL_KEYS,
   ADDABLE_ACTION_TYPES,
-  RULE_COLORS,
   UNAVAILABLE_ACTION_TYPES,
   condition_has_value,
   condition_ready_to_save,
@@ -106,6 +105,8 @@ import {
   rule_run_status_label,
   trim_address_values,
 } from "@/components/modals/rule_editor_helpers";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
+import { DEFAULT_PICKER_COLOR } from "@/lib/color_wheel";
 import { ignore_error } from "@/lib/ignore_error";
 import { rule_supports_local_evaluation } from "@/lib/mail_rules/local_rule_evaluator";
 import { classify_rule_save_error } from "@/lib/mail_rules/rule_save_error";
@@ -141,7 +142,7 @@ export function RuleEditorModal({
   const is_edit = !!rule;
 
   const [name, set_name] = React.useState("");
-  const [color, set_color] = React.useState(RULE_COLORS[0]);
+  const [color, set_color] = React.useState(DEFAULT_PICKER_COLOR);
   const [match_mode, set_match_mode] = React.useState<MatchMode>("all");
   const [conditions, set_conditions] = React.useState<Condition[]>([]);
   const [new_indices, set_new_indices] = React.useState<Set<number>>(new Set());
@@ -192,7 +193,7 @@ export function RuleEditorModal({
     if (!is_open) return;
     if (rule) {
       set_name(rule.name);
-      set_color(rule.color || RULE_COLORS[0]);
+      set_color(rule.color || DEFAULT_PICKER_COLOR);
       set_match_mode(rule.match_mode);
       set_conditions(rule.conditions);
       set_actions(strip_unavailable_actions(rule.actions));
@@ -218,7 +219,7 @@ export function RuleEditorModal({
       }
     } else if (seed) {
       set_name(seed.name);
-      set_color(seed.color || RULE_COLORS[0]);
+      set_color(seed.color || DEFAULT_PICKER_COLOR);
       set_match_mode(seed.match_mode);
       set_conditions(seed.conditions);
       set_actions(strip_unavailable_actions(seed.actions));
@@ -239,7 +240,7 @@ export function RuleEditorModal({
       }
     } else {
       set_name("");
-      set_color(RULE_COLORS[0]);
+      set_color(DEFAULT_PICKER_COLOR);
       set_match_mode("all");
       set_conditions([]);
       set_actions([]);
@@ -841,23 +842,13 @@ export function RuleEditorModal({
             value={name}
             onChange={(e) => set_name(e.target.value)}
           />
-          <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-            {RULE_COLORS.map((c) => (
-              <button
-                key={c}
-                aria-label={c}
-                className="w-5 h-5 rounded-full border-2 transition-shadow"
-                style={{
-                  backgroundColor: c,
-                  borderColor: color === c ? c : "transparent",
-                  boxShadow:
-                    color === c ? `0 0 0 2px white, 0 0 0 3px ${c}` : undefined,
-                }}
-                type="button"
-                onClick={() => set_color(c)}
-              />
-            ))}
-          </div>
+          <ColorSwatchRow
+            class_name="shrink-0"
+            label={t("common.color")}
+            max_swatch_size={20}
+            value={color}
+            on_change={set_color}
+          />
         </div>
 
         <div>

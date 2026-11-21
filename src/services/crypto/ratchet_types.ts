@@ -108,6 +108,15 @@ export function parse_ratchet_envelope(body: string): RatchetEnvelope | null {
   }
 }
 
+export function is_ratchet_body_text(body: string | null | undefined): boolean {
+  if (!body) return false;
+
+  return (
+    parse_ratchet_envelope(body) !== null ||
+    body.includes('"type":"double_ratchet')
+  );
+}
+
 export function is_post_quantum_recipient_data(
   data: RatchetRecipientData | null | undefined,
 ): boolean {

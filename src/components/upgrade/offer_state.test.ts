@@ -53,6 +53,13 @@ describe("offer_discount_percent", () => {
     expect(offer_discount_percent("")).toBeNull();
     expect(offer_discount_percent("Two months free")).toBeNull();
     expect(offer_discount_percent("0% off")).toBeNull();
+    expect(offer_discount_percent("100% off")).toBeNull();
+  });
+
+  it("keeps decimal percentages intact", () => {
+    expect(offer_discount_percent("25.5% off for your first 3 months")).toBe(
+      25.5,
+    );
   });
 });
 
@@ -107,5 +114,17 @@ describe("should_show_offer", () => {
   it("hides an offer once it is dismissed", () => {
     dismiss_offer(offer.code);
     expect(should_show_offer(offer, now)).toBe(false);
+  });
+
+  it("skips an ongoing discount whose renewal price the popup cannot state", () => {
+    expect(
+      should_show_offer(
+        {
+          ...offer,
+          discount_label: "20% off for as long as you stay subscribed",
+        },
+        now,
+      ),
+    ).toBe(false);
   });
 });

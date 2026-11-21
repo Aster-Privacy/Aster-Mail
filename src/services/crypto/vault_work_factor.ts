@@ -32,10 +32,12 @@ import {
   type SealedVault,
   type VaultKdfIterations,
 } from "./vault_level2";
+import { is_rolled_back_vault } from "./vault_generation";
 
 export const VAULT_CHANGED = "VAULT_CHANGED";
 
 const BACKOFF_KEY_PREFIX = "astermail_vault_work_factor_backoff_";
+const FLOOR_KEY_PREFIX = "astermail_vault_work_factor_floor_";
 
 export const VAULT_WORK_FACTOR_BACKOFF_BASE_MS = 60 * 60 * 1000;
 export const VAULT_WORK_FACTOR_BACKOFF_MAX_MS = 7 * 24 * 60 * 60 * 1000;
@@ -45,6 +47,7 @@ export type VaultWorkFactorResult =
   | "already"
   | "changed"
   | "refused"
+  | "downgraded"
   | "unavailable"
   | "backoff"
   | "failed";
@@ -157,6 +160,50 @@ function clear_backoff(store: KeyValueStore | null, user_id: string): void {
   }
 }
 
+function read_floor_pin(store: KeyValueStore | null, user_id: string): boolean {
+  try {
+    return (
+      store?.getItem(`${FLOOR_KEY_PREFIX}${user_id}`) ===
+      String(VAULT_KDF_ITERATIONS_LEVEL2)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function pin_floor(store: KeyValueStore | null, user_id: string): void {
+  try {
+    store?.setItem(
+      `${FLOOR_KEY_PREFIX}${user_id}`,
+      String(VAULT_KDF_ITERATIONS_LEVEL2),
+    );
+  } catch {
+    return;
+  }
+}
+
+function vault_reached_level2(vault: EncryptedVault): boolean {
+  return vault.vault_kdf_floor === VAULT_KDF_ITERATIONS_LEVEL2;
+}
+
+async function opens_at(
+  deps: VaultWorkFactorDeps,
+  view: CurrentVaultView,
+  passphrase: string,
+  iterations: VaultKdfIterations,
+): Promise<EncryptedVault | null> {
+  try {
+    return await deps.decrypt(
+      view.encrypted_vault as string,
+      view.vault_nonce as string,
+      passphrase,
+      iterations,
+    );
+  } catch {
+    return null;
+  }
+}
+
 function same_vault(a: EncryptedVault, b: EncryptedVault): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
@@ -165,20 +212,25 @@ export async function upgrade_vault_work_factor(
   user_id: string,
   deps: VaultWorkFactorDeps,
 ): Promise<VaultWorkFactorResult> {
-  if (!user_id || !is_level2_admitted()) return "unavailable";
+  if (!user_id) return "unavailable";
 
   const store = deps.storage();
+  const pinned = read_floor_pin(store, user_id);
+
+  if (!pinned && !is_level2_admitted()) return "unavailable";
+
   const now = deps.now ?? Date.now;
   const backoff = read_vault_work_factor_backoff(store, user_id);
 
   if (backoff && now() < backoff.next_at) return "backoff";
 
-  const result = await attempt_vault_work_factor(user_id, deps);
+  const result = await attempt_vault_work_factor(user_id, deps, pinned);
 
   if (result === "failed") {
     record_failure(store, user_id, now());
   } else if (result === "upgraded" || result === "already") {
     clear_backoff(store, user_id);
+    pin_floor(store, user_id);
   }
 
   return result;
@@ -187,6 +239,7 @@ export async function upgrade_vault_work_factor(
 async function attempt_vault_work_factor(
   user_id: string,
   deps: VaultWorkFactorDeps,
+  pinned: boolean,
 ): Promise<VaultWorkFactorResult> {
   const passphrase = deps.get_passphrase();
 
@@ -202,19 +255,28 @@ async function attempt_vault_work_factor(
 
     if (
       parse_vault_kdf_iterations(view.vault_kdf_iterations) ===
-      VAULT_KDF_ITERATIONS_LEVEL2
+        VAULT_KDF_ITERATIONS_LEVEL2 &&
+      (await opens_at(deps, view, passphrase, VAULT_KDF_ITERATIONS_LEVEL2))
     ) {
       return "already";
     }
 
     if (!view.vault_sha256) return "unavailable";
 
-    const vault = await deps.decrypt(
+    const opened = await deps.decrypt(
       view.encrypted_vault,
       view.vault_nonce,
       passphrase,
       VAULT_KDF_ITERATIONS_LEGACY,
     );
+
+    if (is_rolled_back_vault(user_id, opened)) return "failed";
+
+    const lowered = pinned || vault_reached_level2(opened);
+    const vault: EncryptedVault = {
+      ...opened,
+      vault_kdf_floor: VAULT_KDF_ITERATIONS_LEVEL2,
+    };
     const sealed = await deps.encrypt(
       vault,
       passphrase,
@@ -249,6 +311,8 @@ async function attempt_vault_work_factor(
     }
 
     if (is_level2_refusal(response)) {
+      if (lowered) return "downgraded";
+
       mark_level2_refused();
 
       return "refused";

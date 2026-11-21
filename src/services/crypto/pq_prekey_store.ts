@@ -28,11 +28,15 @@ import {
 import { has_vault_in_memory } from "./memory_key_store";
 import { load_storage_write_key_bytes } from "./storage_write_key";
 import {
-  derive_ratchet_encryption_key,
-  derive_ratchet_encryption_key_from_base,
-} from "./ratchet_sync";
-import { decrypt_with_legacy_derived_keys } from "./legacy_keks";
+  load_prekey_sealer,
+  open_server_prekey_secret,
+  prekey_seal_key_fingerprint,
+  prekey_seal_writes_ready,
+  prekey_sealer_for_key,
+  type PrekeySealer,
+} from "./prekey_seal";
 import { zero_uint8_array } from "./secure_memory";
+import { is_prekey_secret_key_binding_enabled } from "./prekey_secret_binding";
 import { ignore_error } from "@/lib/ignore_error";
 
 import { api_client } from "@/services/api/client";
@@ -249,78 +253,19 @@ async function update_index(
   }
 }
 
-async function get_sync_key(): Promise<CryptoKey | null> {
-  if (!has_vault_in_memory()) return null;
-  const master = await load_storage_write_key_bytes();
-
-  if (!master) return null;
-  try {
-    return await derive_ratchet_encryption_key(master);
-  } finally {
-    master.fill(0);
-  }
-}
-
-async function encrypt_pq_for_server(
-  secret: Uint8Array,
-  sync_key: CryptoKey,
-): Promise<{ encrypted_secret: string; secret_nonce: string }> {
-  const nonce = crypto.getRandomValues(new Uint8Array(12));
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce },
-    sync_key,
-    secret,
-  );
-
-  return {
-    encrypted_secret: array_to_base64(new Uint8Array(ciphertext)),
-    secret_nonce: array_to_base64(nonce),
-  };
-}
-
-async function decrypt_pq_from_server(
-  encrypted_secret: string,
-  secret_nonce: string,
-  sync_key: CryptoKey,
-): Promise<{ secret: Uint8Array; legacy: boolean }> {
-  const ciphertext = base64_to_array(encrypted_secret);
-  const nonce = base64_to_array(secret_nonce);
-
-  try {
-    const plaintext = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv: nonce },
-      sync_key,
-      ciphertext,
-    );
-
-    return { secret: new Uint8Array(plaintext), legacy: false };
-  } catch (primary_error) {
-    const recovered = await decrypt_with_legacy_derived_keys(
-      derive_ratchet_encryption_key_from_base,
-      ciphertext,
-      nonce,
-    );
-
-    if (!recovered) {
-      throw primary_error;
-    }
-
-    return { secret: new Uint8Array(recovered), legacy: true };
-  }
-}
-
 async function upload_pq_secret_to_server(
   key_id: number,
   secret: Uint8Array,
 ): Promise<void> {
   try {
-    const sync_key = await get_sync_key();
+    const sealer = await load_prekey_sealer();
 
-    if (!sync_key) return;
+    if (!sealer) return;
 
-    const { encrypted_secret, secret_nonce } = await encrypt_pq_for_server(
+    const { encrypted_secret, secret_nonce } = await sealer.seal(
+      "pq",
+      key_id,
       secret,
-      sync_key,
     );
 
     const response = await api_client.post("/crypto/v1/ratchet/pq-secret", {
@@ -348,24 +293,16 @@ async function upload_pq_secrets_bulk(
 ): Promise<void> {
   if (items.length === 0) return;
 
-  const sync_key = await get_sync_key_or_null();
+  const sealer = await load_prekey_sealer();
 
-  if (!sync_key) return;
+  if (!sealer) return;
 
-  await post_pq_secrets_bulk(items, sync_key);
-}
-
-async function get_sync_key_or_null(): Promise<CryptoKey | null> {
-  try {
-    return await get_sync_key();
-  } catch {
-    return null;
-  }
+  await post_pq_secrets_bulk(items, sealer);
 }
 
 async function post_pq_secrets_bulk(
   items: { key_id: number; secret: Uint8Array }[],
-  sync_key: CryptoKey,
+  sealer: PrekeySealer,
 ): Promise<boolean> {
   if (items.length === 0) return true;
 
@@ -377,9 +314,10 @@ async function post_pq_secrets_bulk(
     }[] = [];
 
     for (const { key_id, secret } of items) {
-      const { encrypted_secret, secret_nonce } = await encrypt_pq_for_server(
+      const { encrypted_secret, secret_nonce } = await sealer.seal(
+        "pq",
+        key_id,
         secret,
-        sync_key,
       );
 
       secrets.push({ key_id, encrypted_secret, secret_nonce });
@@ -405,10 +343,19 @@ async function post_pq_secrets_bulk(
   }
 }
 
-function reupload_under_current_key(key_id: number, secret: Uint8Array): void {
+function reupload_under_current_key(
+  key_id: number,
+  secret: Uint8Array,
+  refresh_legacy_copy: boolean,
+): void {
   const copy = secret.slice();
 
-  upload_pq_secret_to_server(key_id, copy)
+  prekey_seal_writes_ready()
+    .then((ready) =>
+      ready || refresh_legacy_copy
+        ? upload_pq_secret_to_server(key_id, copy)
+        : undefined,
+    )
     .catch((caught) =>
       ignore_error("services/crypto/pq_prekey_store:reupload", caught),
     )
@@ -419,9 +366,7 @@ async function fetch_pq_secret_from_server(
   key_id: number,
 ): Promise<{ secret: Uint8Array | null; not_found: boolean }> {
   try {
-    const sync_key = await get_sync_key();
-
-    if (!sync_key) return { secret: null, not_found: false };
+    if (!has_vault_in_memory()) return { secret: null, not_found: false };
 
     const response = await api_client.get<{
       key_id: number;
@@ -433,13 +378,26 @@ async function fetch_pq_secret_from_server(
       return { secret: null, not_found: response.code === "NOT_FOUND" };
     }
 
-    const opened = await decrypt_pq_from_server(
-      response.data.encrypted_secret,
-      response.data.secret_nonce,
-      sync_key,
+    if (response.data.key_id !== key_id) {
+      return { secret: null, not_found: false };
+    }
+
+    const opened = await open_server_prekey_secret(
+      "pq",
+      key_id,
+      response.data,
     );
 
-    if (opened.legacy) reupload_under_current_key(key_id, opened.secret);
+    if (!opened) return { secret: null, not_found: false };
+
+    if (opened.legacy) {
+      reupload_under_current_key(
+        key_id,
+        opened.secret,
+        opened.recovered ||
+          (!opened.bound && is_prekey_secret_key_binding_enabled()),
+      );
+    }
 
     return { secret: opened.secret, not_found: false };
   } catch {
@@ -447,15 +405,26 @@ async function fetch_pq_secret_from_server(
   }
 }
 
-async function delete_pq_secret_on_server(key_id: number): Promise<boolean> {
+type ServerPqDeleteOutcome = "deleted" | "absent" | "failed";
+
+async function delete_pq_secret_on_server(
+  key_id: number,
+): Promise<ServerPqDeleteOutcome> {
   try {
-    const response = await api_client.delete(
+    const response = await api_client.delete<{ deleted?: unknown }>(
       `/crypto/v1/ratchet/pq-secret/${key_id}`,
     );
 
-    return !response.error || response.code === "NOT_FOUND";
+    if (response.error) {
+      return response.code === "NOT_FOUND" ? "absent" : "failed";
+    }
+
+    if (response.data?.deleted === true) return "deleted";
+    if (response.data?.deleted === false) return "absent";
+
+    return "failed";
   } catch {
-    return false;
+    return "failed";
   }
 }
 
@@ -610,7 +579,7 @@ export async function load_pq_secret(
   }
 }
 
-export async function delete_pq_secret(key_id: number): Promise<boolean> {
+async function delete_local_pq_secret(key_id: number): Promise<void> {
   try {
     const storage_key = await get_storage_key();
     const uid = await current_account_uid();
@@ -624,10 +593,22 @@ export async function delete_pq_secret(key_id: number): Promise<boolean> {
       current.filter((id) => id !== key_id),
     );
   } catch {
-    /* fall through */
+    return;
   }
+}
 
-  return delete_pq_secret_on_server(key_id);
+export async function delete_pq_secret(key_id: number): Promise<boolean> {
+  await delete_local_pq_secret(key_id);
+
+  return (await delete_pq_secret_on_server(key_id)) !== "failed";
+}
+
+export async function drop_server_pq_secret(key_id: number): Promise<boolean> {
+  if ((await delete_pq_secret_on_server(key_id)) !== "deleted") return false;
+
+  await delete_local_pq_secret(key_id);
+
+  return true;
 }
 
 export async function fetch_server_pq_key_ids(): Promise<Set<number> | null> {
@@ -725,6 +706,79 @@ export async function fetch_server_pq_secret_ids(): Promise<Set<number> | null> 
   }
 }
 
+export async function reseal_server_pq_secrets(
+  seal_key: CryptoKey | null,
+  on_unopenable?: (key_id: number) => void,
+): Promise<boolean> {
+  const key_ids = await fetch_server_pq_secret_ids();
+
+  if (!key_ids) return false;
+
+  const pending: { key_id: number; secret: Uint8Array }[] = [];
+
+  const flush = async (): Promise<boolean> => {
+    try {
+      if (!seal_key) return true;
+
+      return await post_pq_secrets_bulk(
+        pending,
+        prekey_sealer_for_key(seal_key),
+      );
+    } catch {
+      return false;
+    } finally {
+      for (const entry of pending) entry.secret.fill(0);
+      pending.length = 0;
+    }
+  };
+
+  try {
+    for (const key_id of key_ids) {
+      const response = await api_client.get<{
+        key_id: number;
+        encrypted_secret: string;
+        secret_nonce: string;
+      }>(`/crypto/v1/ratchet/pq-secret/${key_id}`);
+
+      if (response.error || !response.data) {
+        if (response.code === "NOT_FOUND") continue;
+
+        return false;
+      }
+
+      if (response.data.key_id !== key_id) continue;
+
+      const opened = await open_server_prekey_secret(
+        "pq",
+        key_id,
+        response.data,
+      );
+
+      if (!opened) {
+        on_unopenable?.(key_id);
+        continue;
+      }
+
+      if (!opened.legacy || !seal_key) {
+        opened.secret.fill(0);
+        continue;
+      }
+
+      pending.push({ key_id, secret: opened.secret });
+
+      if (pending.length >= PQ_BACKFILL_CHUNK && !(await flush())) {
+        return false;
+      }
+    }
+
+    return await flush();
+  } catch {
+    for (const entry of pending) entry.secret.fill(0);
+
+    return false;
+  }
+}
+
 async function read_upload_state(
   storage_key: CryptoKey,
   uid: string | null,
@@ -748,45 +802,21 @@ async function write_upload_state(
   }
 }
 
-async function wrap_key_fingerprint(master: Uint8Array): Promise<string> {
-  const hmac_key = await crypto.subtle.importKey(
-    "raw",
-    master,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    hmac_key,
-    new TextEncoder().encode(PQ_WRAP_FINGERPRINT_LABEL),
-  );
-
-  return array_to_base64(new Uint8Array(signature));
-}
-
 async function get_wrap_material(): Promise<{
-  sync_key: CryptoKey;
+  sealer: PrekeySealer;
   fingerprint: string | null;
 } | null> {
-  if (!has_vault_in_memory()) return null;
-  const master = await load_storage_write_key_bytes();
+  const sealer = await load_prekey_sealer();
 
-  if (!master) return null;
-  try {
-    const sync_key = await derive_ratchet_encryption_key(master);
-    let fingerprint: string | null = null;
+  if (!sealer) return null;
 
-    try {
-      fingerprint = await wrap_key_fingerprint(master);
-    } catch {
-      fingerprint = null;
-    }
-
-    return { sync_key, fingerprint };
-  } finally {
-    master.fill(0);
-  }
+  return {
+    sealer,
+    fingerprint:
+      sealer.format === "v1"
+        ? await prekey_seal_key_fingerprint(PQ_WRAP_FINGERPRINT_LABEL)
+        : sealer.format,
+  };
 }
 
 export async function backfill_pq_secrets_to_server(): Promise<void> {
@@ -822,7 +852,7 @@ export async function backfill_pq_secrets_to_server(): Promise<void> {
     const flush = async () => {
       if (pending.length === 0) return;
       try {
-        const ok = await post_pq_secrets_bulk(pending, wrap.sync_key);
+        const ok = await post_pq_secrets_bulk(pending, wrap.sealer);
 
         if (!ok) all_posted = false;
       } catch (error) {

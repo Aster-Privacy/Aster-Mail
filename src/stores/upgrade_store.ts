@@ -43,6 +43,7 @@ export type UpgradeLimitKey =
   | "max_linked_accounts"
   | "max_external_accounts"
   | "max_send_only_accounts"
+  | "max_labels"
   | "generic";
 
 export interface UpgradeState {
@@ -117,6 +118,8 @@ const RESOURCE_TO_LIMIT_KEY: Record<string, UpgradeLimitKey> = {
   "connected accounts": "max_external_accounts",
   "send-only accounts": "max_send_only_accounts",
   "send-only account": "max_send_only_accounts",
+  labels: "max_labels",
+  folders: "max_labels",
 };
 
 function resolve_limit_key(resource: string | null): UpgradeLimitKey {
@@ -132,6 +135,7 @@ const AUTH_ROUTES = [
   "/signup",
   "/invite",
   "/forgot-password",
+  "/cancel",
   "/reset-password",
   "/verify-recovery-email",
   "/link-device",

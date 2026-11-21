@@ -67,10 +67,18 @@ import {
   choose_envelope_version,
   seal_vault_key_for_device,
 } from "@/lib/crypto/device_envelope";
-import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerprint";
+import {
+  fingerprint_matches,
+  fingerprint_of_encoded_device_keys,
+} from "@/lib/crypto/device_fingerprint";
+import {
+  get_active_language,
+  get_translations_async,
+} from "@/lib/i18n/translations";
+import { ask_device_fingerprint } from "./account_bridge_prompt";
 
 const CHANNEL = "aster_account_link";
-const SUPPORT_SITE_ACTIONS = new Set(["accounts", "sign_out"]);
+const SUPPORT_SITE_ACTIONS = new Set(["accounts"]);
 const MAX_FAILED_LINKS_PER_TAB = 3;
 const LINK_ATTEMPTS_KEY = "aster_bridge_link_attempts";
 const MAX_ACCOUNTS = 20;
@@ -81,13 +89,15 @@ const ACCOUNT_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
 const PROFILE_PICTURE_PATTERN =
   /^(https:\/\/|data:image\/(png|jpeg|webp|gif);base64,)/i;
 const ACCOUNTS_CHANGED_DEBOUNCE_MS = 150;
+const FINGERPRINT_PROMPT_TIMEOUT_MS = 120_000;
 
 type bridge_error =
   | "rate_limited"
   | "session"
   | "code_not_found"
   | "fingerprint_mismatch"
-  | "fingerprint_required"
+  | "declined"
+  | "busy"
   | "storage_unreadable"
   | "unsupported"
   | "unavailable";
@@ -127,6 +137,7 @@ interface session_call<T> {
 let link_state: link_attempts = { failed: 0, linked: 0 };
 let parent_origin: string | null = null;
 let changed_timer: number | null = null;
+let prompt_open = false;
 
 function error_from_api_code(code: ApiErrorCode | undefined): bridge_error {
   if (code === "UNAUTHORIZED" || code === "FORBIDDEN") return "session";
@@ -229,9 +240,7 @@ function personal_accounts(accounts: StoredAccount[]): StoredAccount[] {
     .slice(0, MAX_ACCOUNTS);
 }
 
-async function handle_accounts(
-  trusted_app: boolean,
-): Promise<bridge_result> {
+async function handle_accounts(trusted_app: boolean): Promise<bridge_result> {
   if (!trusted_app) return { ok: true, accounts: [] };
 
   const accounts = await get_all_accounts();
@@ -439,10 +448,62 @@ async function handle_link_preview(
   };
 }
 
+function fill(template: string, params: Record<string, string>): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key: string) =>
+    key in params ? params[key] : match,
+  );
+}
+
+async function ask_user_for_fingerprint(
+  machine_name: string,
+  email: string,
+): Promise<string | null> {
+  const t = await get_translations_async(get_active_language());
+
+  return ask_device_fingerprint(
+    document,
+    {
+      title: t.auth.link_device_title,
+      requester: parent_origin ?? "",
+      notice: fill(t.auth.link_device_grant_notice, {
+        device: machine_name || t.auth.link_device_desktop,
+        email,
+      }),
+      warning: t.auth.link_device_own_device_warning,
+      label: t.auth.device_fingerprint,
+      hint: t.auth.link_device_fingerprint_enter,
+      placeholder: t.auth.link_device_fingerprint_placeholder,
+      confirm_label: t.auth.link_device_confirm_button,
+      cancel_label: t.auth.link_device_cancel,
+    },
+    FINGERPRINT_PROMPT_TIMEOUT_MS,
+  );
+}
+
 async function handle_link(
   code: string,
   account_id: string,
-  expected_fingerprint: string,
+  parent_fingerprint: string | null,
+): Promise<bridge_result> {
+  if (prompt_open) return { ok: false, error: "busy" };
+
+  prompt_open = true;
+
+  try {
+    return await link_with_user_fingerprint(
+      code,
+      account_id,
+      parent_fingerprint,
+    );
+  } finally {
+    prompt_open = false;
+  }
+}
+
+async function link_with_user_fingerprint(
+  code: string,
+  account_id: string,
+  parent_fingerprint: string | null,
 ): Promise<bridge_result> {
   const attempts = load_link_attempts();
 
@@ -465,9 +526,29 @@ async function handle_link(
     return { ok: false, error: verified.error ?? "code_not_found" };
   }
 
-  if (
-    fingerprint_of_encoded_device_keys(verified.data) !== expected_fingerprint
-  ) {
+  const fingerprint = fingerprint_of_encoded_device_keys(verified.data);
+
+  if (!fingerprint) return { ok: false, error: "code_not_found" };
+
+  if (parent_fingerprint !== null && parent_fingerprint !== fingerprint) {
+    return { ok: false, error: "fingerprint_mismatch" };
+  }
+
+  const typed = await ask_user_for_fingerprint(
+    String(verified.data.machine_name ?? "").slice(0, 128),
+    account.user.email,
+  );
+
+  if (typed === null) {
+    save_link_attempts({
+      ...link_state,
+      failed: Math.max(0, link_state.failed - 1),
+    });
+
+    return { ok: false, error: "declined" };
+  }
+
+  if (!fingerprint_matches(typed, fingerprint)) {
     return { ok: false, error: "fingerprint_mismatch" };
   }
 
@@ -556,14 +637,7 @@ async function handle_sign_out(
   all: unknown,
   trusted_app: boolean,
 ): Promise<bridge_result> {
-  if (
-    !trusted_app &&
-    (all !== undefined ||
-      !Array.isArray(account_ids) ||
-      account_ids.length !== 1)
-  ) {
-    return { ok: false, error: "unsupported" };
-  }
+  if (!trusted_app) return { ok: false, error: "unsupported" };
 
   const accounts = personal_accounts(await get_all_accounts());
 
@@ -655,7 +729,7 @@ function handle(
         ACCOUNT_ID_PATTERN.test(request.account_id)
       ) {
         if (request.fingerprint === undefined || request.fingerprint === null) {
-          return Promise.resolve({ ok: false, error: "fingerprint_required" });
+          return handle_link(request.code, request.account_id, null);
         }
         if (
           typeof request.fingerprint === "string" &&

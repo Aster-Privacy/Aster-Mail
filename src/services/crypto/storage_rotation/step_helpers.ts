@@ -21,11 +21,15 @@
 import type { ApiResponse } from "@/services/api/client";
 import type { ResealKeys, SealedValue } from "./reseal_keys";
 import type { ResealStepContext } from "./reseal_io";
+import type { FieldBinding } from "../field_format";
 
 import {
+  decode_b64,
   open_under_old,
+  open_with_any,
   opens_under_new,
   seal_under_new,
+  try_open,
 } from "./reseal_keys";
 import {
   BATCH_PAUSE_MS,
@@ -36,6 +40,7 @@ import {
   require_ok,
 } from "./reseal_io";
 import { zero_uint8_array } from "../secure_memory";
+import { field_aad_candidates, field_write_aad } from "../field_format";
 
 export const STORAGE_REKEY_PATH = "/core/v1/auth/me/storage-rekey";
 export const USER_REKEY_PATH = "/core/v1/auth/me/rekey";
@@ -191,6 +196,60 @@ export async function reseal_field(
   } finally {
     zero_uint8_array(sealed.plaintext);
   }
+}
+
+export async function reseal_bound_field(
+  keys: ResealKeys,
+  ciphertext_b64: string | null | undefined,
+  nonce_b64: string | null | undefined,
+  binding: FieldBinding,
+): Promise<SealedValue | "current" | "unreadable" | "absent"> {
+  if (!ciphertext_b64 || !nonce_b64) return "absent";
+
+  const ciphertext = decode_b64(ciphertext_b64);
+  const nonce = decode_b64(nonce_b64);
+
+  if (!ciphertext || !nonce) return "unreadable";
+
+  const candidates = field_aad_candidates(binding);
+
+  for (const additional_data of candidates) {
+    const opened = await try_open(
+      keys.new_aes,
+      ciphertext,
+      nonce,
+      additional_data,
+    );
+
+    if (opened) {
+      zero_uint8_array(opened);
+
+      return "current";
+    }
+  }
+
+  for (const additional_data of candidates) {
+    const plaintext = await open_with_any(
+      keys.old_aes,
+      ciphertext,
+      nonce,
+      additional_data,
+    );
+
+    if (!plaintext) continue;
+
+    try {
+      return await seal_under_new(
+        keys,
+        plaintext,
+        field_write_aad(binding, additional_data),
+      );
+    } finally {
+      zero_uint8_array(plaintext);
+    }
+  }
+
+  return "unreadable";
 }
 
 export function decode_text(bytes: Uint8Array): string {

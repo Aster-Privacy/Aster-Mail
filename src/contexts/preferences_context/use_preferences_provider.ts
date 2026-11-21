@@ -66,6 +66,7 @@ import {
   request_notification_permission,
 } from "@/services/notification_service";
 import { set_low_network_mode } from "@/services/low_network_state";
+import { set_sender_logos_enabled } from "@/services/sender_logos_state";
 import { set_iconic_sounds_enabled } from "@/services/iconic_sounds";
 import {
   set_reply_include_quoted,
@@ -460,6 +461,10 @@ export function use_preferences_provider() {
   useEffect(() => {
     set_badge_count_enabled(preferences.badge_count !== false);
   }, [preferences.badge_count]);
+
+  useEffect(() => {
+    set_sender_logos_enabled(preferences.hide_sender_logos !== true);
+  }, [preferences.hide_sender_logos]);
 
   useEffect(() => {
     set_iconic_sounds_enabled(preferences.iconic_sounds_enabled === true);

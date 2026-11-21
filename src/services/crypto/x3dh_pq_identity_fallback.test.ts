@@ -41,6 +41,7 @@ vi.mock("./pq_prekey_store", () => ({
 import {
   perform_x3dh_sender,
   perform_x3dh_receiver,
+  bundle_is_downgraded,
   bundle_supports_pq,
   restrict_bundle_to_signed_pq_key,
   PQ_IDENTITY_KEY_ID,
@@ -185,9 +186,40 @@ describe("X3DH post-quantum fallback chain", () => {
     expect(restrict_bundle_to_signed_pq_key(parties.bundle, false)).toBe(
       parties.bundle,
     );
+    expect(bundle_is_downgraded(parties.bundle)).toBe(false);
   });
 
-  it("keeps the one-time prekey when the bundle has no usable PQ identity key", async () => {
+  it("does not report a bundle as downgraded when its signature leaves the PQ identity key uncovered", async () => {
+    const parties = await build_parties();
+
+    expect(bundle_is_downgraded(parties.bundle)).toBe(false);
+  });
+
+  it("still encapsulates in hybrid mode to a PQ identity key the signature does not cover", async () => {
+    const parties = await build_parties();
+
+    const result = await perform_x3dh_sender(
+      parties.sender_identity.secret_key_jwk,
+      restrict_bundle_to_signed_pq_key(parties.bundle, false),
+    );
+
+    expect(result.pq_mode).toBe("identity");
+    expect(result.pq_ciphertext).toBeDefined();
+  });
+
+  it("does not flag a bundle whose only post-quantum key is a one-time prekey", async () => {
+    const parties = await build_parties();
+    const junk = new Uint8Array(ML_KEM_768_EK_LEN);
+
+    crypto.getRandomValues(junk);
+    delete parties.bundle.pq_kem_public_key;
+    parties.bundle.pq_prekey = { key_id: 9, public_key: array_to_base64(junk) };
+
+    expect(bundle_supports_pq(parties.bundle)).toBe(false);
+    expect(bundle_is_downgraded(parties.bundle)).toBe(false);
+  });
+
+  it("drops an unsigned one-time prekey even when the bundle has no usable PQ identity key", async () => {
     const parties = await build_parties();
     const onetime = ml_kem768.keygen();
 
@@ -199,7 +231,8 @@ describe("X3DH post-quantum fallback chain", () => {
 
     expect(
       restrict_bundle_to_signed_pq_key(parties.bundle, true).pq_prekey,
-    ).toBeDefined();
+    ).toBeUndefined();
+    expect(bundle_is_downgraded(parties.bundle)).toBe(false);
   });
 
   it("falls back to the PQ identity key when no one-time prekey is left", async () => {

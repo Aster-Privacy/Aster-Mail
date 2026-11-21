@@ -81,9 +81,11 @@ import {
   generate_rotated_credential,
   get_grant_signing_keys,
   get_own_grant_public_key,
+  plan_rotation_grantees,
   SHARED_MAILBOX_GRANT_VERSION,
 } from "@/services/crypto/shared_mailbox";
 import { decrypt_vault } from "@/services/crypto/key_manager_pgp";
+import { stored_vault_write_iterations } from "@/services/crypto/vault_level2";
 import {
   sync_shared_mailbox_grants,
   clear_shared_mailbox_session,
@@ -390,22 +392,36 @@ export function SharedMailboxesTab({
           throw new Error(t("shared_mailboxes.access_unavailable"));
         }
 
+        const grantees = plan_rotation_grantees(mailbox.grants, group.members);
+
+        if (!grantees) {
+          throw new Error(t("shared_mailboxes.unknown_member_access"));
+        }
+
         const vault = await decrypt_vault(
           mailbox.my_grant.encrypted_vault,
           mailbox.my_grant.vault_nonce,
           old_secret,
+          undefined,
+          false,
         );
-        const rotated = await generate_rotated_credential(vault, old_secret);
+        const rotated = await generate_rotated_credential(
+          vault,
+          old_secret,
+          stored_vault_write_iterations(
+            mailbox.my_grant.vault_kdf_iterations,
+            mailbox.my_grant.encrypted_vault,
+          ),
+        );
 
+        const expected_vault_updated_at = mailbox.my_grant.vault_updated_at;
         const grants: { member_user_id: string; wrapped_grant: string }[] = [];
 
-        for (const grant of mailbox.grants) {
-          if (!grant.username || !grant.email_domain) continue;
-          const member_email = `${grant.username}@${grant.email_domain}`;
+        for (const grantee of grantees) {
           const public_key =
-            grant.member_user_id === my_user_id
+            grantee.member_user_id === my_user_id
               ? await get_own_grant_public_key()
-              : await fetch_member_public_key(grant.username, member_email);
+              : await fetch_member_public_key(grantee.username, grantee.email);
           const wrapped = await seal_grant(
             {
               v: SHARED_MAILBOX_GRANT_VERSION,
@@ -418,22 +434,26 @@ export function SharedMailboxesTab({
           );
 
           grants.push({
-            member_user_id: grant.member_user_id,
+            member_user_id: grantee.member_user_id,
             wrapped_grant: wrapped,
           });
         }
 
-        const response = await rotate_shared_mailbox(mailbox.id, {
-          password_hash: rotated.password_hash,
-          password_hash_v2: rotated.password_hash_v2,
-          password_salt: rotated.password_salt,
-          argon2_params: { memory: 65536, iterations: 3, parallelism: 4 },
-          encrypted_vault: rotated.encrypted_vault,
-          vault_nonce: rotated.vault_nonce,
-          vault_format: 2,
-          expected_vault_updated_at: mailbox.my_grant.vault_updated_at,
-          grants,
-        });
+        const { response } = await rotated.vault_write.write(
+          (sealed, kdf_field) =>
+            rotate_shared_mailbox(mailbox.id, {
+              password_hash: rotated.password_hash,
+              password_hash_v2: rotated.password_hash_v2,
+              password_salt: rotated.password_salt,
+              argon2_params: { memory: 65536, iterations: 3, parallelism: 4 },
+              encrypted_vault: sealed.encrypted_vault,
+              vault_nonce: sealed.vault_nonce,
+              vault_format: 2,
+              expected_vault_updated_at,
+              grants,
+              ...kdf_field,
+            }),
+        );
 
         if (response.error) {
           if (!silent) {
@@ -472,7 +492,7 @@ export function SharedMailboxesTab({
         set_busy_mailbox(null);
       }
     },
-    [busy_mailbox, t, load, my_user_id],
+    [busy_mailbox, t, load, my_user_id, group.members],
   );
 
   const handle_toggle_member = useCallback(

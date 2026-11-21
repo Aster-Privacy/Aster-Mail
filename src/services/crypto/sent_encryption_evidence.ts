@@ -131,6 +131,39 @@ export function drop_sent_encryption_evidence<T>(envelope: T): T {
   return envelope;
 }
 
+export const LEGACY_UNVERIFIED_FIELD = "legacy_unverified";
+
+export function is_legacy_unverified(envelope: unknown): boolean {
+  if (!envelope || typeof envelope !== "object") return false;
+
+  return LEGACY_UNVERIFIED_FIELD in envelope;
+}
+
+export function settle_legacy_unverified<T>(envelope: T): T {
+  return is_legacy_unverified(envelope)
+    ? drop_sent_encryption_evidence(envelope)
+    : envelope;
+}
+
+export function mark_legacy_unverified_plaintext(
+  plaintext: Uint8Array,
+): Uint8Array | null {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(new TextDecoder().decode(plaintext));
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return null;
+  }
+
+  return new TextEncoder().encode(
+    JSON.stringify({ ...parsed, [LEGACY_UNVERIFIED_FIELD]: true }),
+  );
+}
+
 export function sent_copy_encryption_scope(
   envelope: unknown,
 ): SentEncryptionScope | undefined {

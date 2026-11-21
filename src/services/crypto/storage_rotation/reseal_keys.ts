@@ -22,7 +22,10 @@ import type { EncryptedVault } from "../key_manager";
 
 import { array_to_base64, base64_to_array } from "../base64";
 import { zero_uint8_array } from "../secure_memory";
-import { without_retired_keks } from "../retired_identity_keks";
+import {
+  is_public_constant_kek_raw,
+  without_retired_keks,
+} from "../retired_identity_keks";
 import {
   STORAGE_WRITE_KEY_LENGTH,
   decode_vault_storage_key,
@@ -40,11 +43,6 @@ export const NONCE_LENGTH = 12;
 export const METADATA_HKDF_SALT = "aster-metadata-salt-v1";
 export const METADATA_HKDF_INFO_PREFIX = "aster-metadata-encryption-v1:";
 
-export type EscrowFallback = (
-  ciphertext: Uint8Array,
-  nonce: Uint8Array,
-) => Promise<ArrayBuffer | null>;
-
 export interface SealedValue {
   ciphertext: string;
   nonce: string;
@@ -56,9 +54,10 @@ export interface ResealKeys {
   new_escrow: CryptoKey;
   old_aes: CryptoKey[];
   old_escrow: CryptoKey[];
+  untrusted_escrow: CryptoKey[];
+  untrusted_envelope: CryptoKey[];
   new_ratchet: CryptoKey;
   old_ratchet: CryptoKey[];
-  escrow_fallback: EscrowFallback | null;
   hmac(info: string): Promise<CryptoKey>;
   old_hmacs(info: string): Promise<CryptoKey[]>;
   metadata_key(context: string): Promise<CryptoKey>;
@@ -68,8 +67,7 @@ export interface ResealKeys {
 
 export interface ResealKeyOptions {
   extra_old_raws?: Uint8Array[];
-  extra_old_aes?: CryptoKey[];
-  escrow_fallback?: EscrowFallback | null;
+  untrusted_old_raws?: Uint8Array[];
 }
 
 type StorageKeySource = Pick<
@@ -107,6 +105,18 @@ export async function derive_escrow_aes_key(
     { name: "AES-GCM", length: 256 },
     false,
     ["encrypt", "decrypt"],
+  );
+}
+
+export async function import_open_only_aes_key(
+  raw: Uint8Array,
+): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
   );
 }
 
@@ -205,20 +215,49 @@ export async function build_reseal_keys(
 
   if (!new_raw || new_raw.length !== STORAGE_WRITE_KEY_LENGTH) return null;
 
-  const old_raws = collect_old_storage_raws(vault, options.extra_old_raws);
+  const collected_raws = collect_old_storage_raws(
+    vault,
+    options.extra_old_raws,
+  );
+  const trusted_raws = collected_raws.filter(
+    (raw) => !is_public_constant_kek_raw(raw),
+  );
+  const public_raws = collected_raws.filter((raw) =>
+    is_public_constant_kek_raw(raw),
+  );
+  const untrusted_raws = collect_old_storage_raws(
+    { data_kek: vault.data_kek },
+    [...(options.untrusted_old_raws ?? []), ...public_raws],
+  ).filter((raw) => {
+    const duplicate = trusted_raws.some((seen) => bytes_equal(seen, raw));
+
+    if (duplicate) zero_uint8_array(raw);
+
+    return !duplicate;
+  });
+
+  public_raws.forEach((raw) => zero_uint8_array(raw));
   const key_id = await storage_key_id(new_raw);
   const new_aes = await import_storage_aes_key(new_raw);
   const new_escrow = await derive_escrow_aes_key(new_raw);
-  const old_aes = [
-    ...(await Promise.all(old_raws.map((raw) => import_storage_aes_key(raw)))),
-    ...(options.extra_old_aes ?? []),
-  ];
-  const old_escrow = await Promise.all(
-    old_raws.map((raw) => derive_escrow_aes_key(raw)),
+  const old_aes = await Promise.all(
+    trusted_raws.map((raw) => import_storage_aes_key(raw)),
   );
+  const old_escrow = await Promise.all(
+    trusted_raws.map((raw) => derive_escrow_aes_key(raw)),
+  );
+  const untrusted_escrow = await Promise.all(
+    untrusted_raws.map((raw) => derive_escrow_aes_key(raw)),
+  );
+
+  const untrusted_envelope = await Promise.all(
+    untrusted_raws.map((raw) => import_open_only_aes_key(raw)),
+  );
+
+  untrusted_raws.forEach((raw) => zero_uint8_array(raw));
   const new_ratchet = await derive_ratchet_aes_key(new_raw);
   const old_ratchet = await Promise.all(
-    old_raws.map((raw) => derive_ratchet_aes_key(raw)),
+    trusted_raws.map((raw) => derive_ratchet_aes_key(raw)),
   );
   const new_hmacs = new Map<string, Promise<CryptoKey>>();
   const old_hmac_sets = new Map<string, Promise<CryptoKey[]>>();
@@ -233,9 +272,10 @@ export async function build_reseal_keys(
     new_escrow,
     old_aes,
     old_escrow,
+    untrusted_escrow,
+    untrusted_envelope,
     new_ratchet,
     old_ratchet,
-    escrow_fallback: options.escrow_fallback ?? null,
     old_hmacs(info: string): Promise<CryptoKey[]> {
       if (disposed) {
         return Promise.reject(new Error("reseal keys disposed"));
@@ -245,7 +285,7 @@ export async function build_reseal_keys(
 
       if (!pending) {
         pending = Promise.all(
-          old_raws.map((raw) => derive_storage_hmac_key(raw, info)),
+          trusted_raws.map((raw) => derive_storage_hmac_key(raw, info)),
         );
         old_hmac_sets.set(info, pending);
       }
@@ -289,7 +329,7 @@ export async function build_reseal_keys(
 
       if (!pending) {
         pending = Promise.all(
-          old_raws.map((raw) => derive_metadata_aes_key(raw, context)),
+          trusted_raws.map((raw) => derive_metadata_aes_key(raw, context)),
         );
         old_metadata_sets.set(context, pending);
       }
@@ -300,7 +340,7 @@ export async function build_reseal_keys(
       if (disposed) return;
       disposed = true;
       zero_uint8_array(new_raw);
-      old_raws.forEach((raw) => zero_uint8_array(raw));
+      trusted_raws.forEach((raw) => zero_uint8_array(raw));
     },
   };
 }
@@ -347,7 +387,9 @@ export async function open_with_any(
   return null;
 }
 
-export function decode_b64(value: string | null | undefined): Uint8Array | null {
+export function decode_b64(
+  value: string | null | undefined,
+): Uint8Array | null {
   if (!value) return null;
 
   try {

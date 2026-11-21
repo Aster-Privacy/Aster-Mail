@@ -40,6 +40,7 @@ import { StepRecoveryEmail } from "@/pages/mobile/mobile_register/step_recovery_
 import { StepRecoveryEmailVerification } from "@/pages/mobile/mobile_register/step_recovery_email_verification";
 import { RegisterStepPlanSelection } from "@/components/register/register_step_plan_selection";
 import { RegisterStepRecoveryEmailGate } from "@/components/register/register_step_recovery";
+import { RegisterStepInstallLimit } from "@/components/register/register_step_install_limit";
 
 const MOBILE_STEP_ORDER = [
   "email",
@@ -117,10 +118,12 @@ export default function MobileRegisterPage() {
     effective_step !== "email" &&
     effective_step !== "generating" &&
     effective_step !== "recovery_email_gate" &&
+    effective_step !== "install_limit" &&
     effective_step !== "plan_selection";
   const show_progress =
     effective_step !== "generating" &&
     effective_step !== "recovery_email_gate" &&
+    effective_step !== "install_limit" &&
     effective_step !== "plan_selection";
 
   const render_step = () => {
@@ -174,6 +177,9 @@ export default function MobileRegisterPage() {
 
       case "recovery_email_gate":
         return <RegisterStepRecoveryEmailGate reg={reg} />;
+
+      case "install_limit":
+        return <RegisterStepInstallLimit reg={reg} />;
 
       default:
         return null;

@@ -34,6 +34,7 @@ export interface MyGrant {
   encrypted_vault: string;
   vault_nonce: string;
   vault_updated_at: string;
+  vault_kdf_iterations?: number;
   granted_by: string;
   granted_by_username: string;
   granted_by_email_domain: string;
@@ -90,6 +91,7 @@ export interface RotateSharedMailboxParams {
   encrypted_vault: string;
   vault_nonce: string;
   vault_format: number;
+  vault_kdf_iterations?: number;
   expected_vault_updated_at: string;
   grants: { member_user_id: string; wrapped_grant: string }[];
 }

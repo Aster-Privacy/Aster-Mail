@@ -69,6 +69,11 @@ vi.mock("@/services/crypto/key_manager", async (importOriginal) => ({
   decrypt_vault: vi.fn(async () => h.refreshed_vault),
 }));
 
+vi.mock("@/services/crypto/vault_key_recovery", () => ({
+  keys_added_by_recovery: () => [],
+  recover_pgp_keys_from_history: async () => null,
+}));
+
 import { decrypt_envelope } from "@/hooks/email_list_helpers/decrypt";
 import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
 import { encrypt_envelope_with_identity_key } from "@/services/crypto/envelope";

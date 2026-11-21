@@ -28,11 +28,15 @@ import {
 } from "./key_manager";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { decrypt_aes_gcm_bound_or_unbound } from "@/services/crypto/aes_gcm_aad_fallback";
+import {
+  decrypt_aes_gcm_bound_or_unbound,
+  stored_unbound_policy,
+} from "@/services/crypto/aes_gcm_aad_fallback";
 
 export const RECOVERY_LANE_VERSION = 1;
 
 const LANE_LABEL = "aster.ratchet.recovery.lane.v1";
+const SENDER_LANE_LABEL = "aster.ratchet.recovery.lane.sender.v1";
 const AES_ALG = "AES-GCM";
 const NONCE_BYTES = 12;
 
@@ -43,11 +47,61 @@ export interface RecoveryLaneData {
   ciphertext: string;
   nonce: string;
   rid: string;
+  sct?: string;
+  snonce?: string;
+  t?: number;
 }
 
 export interface RecoveryLaneRecipientKeys {
   identity_public: string;
   pq_identity_public?: string;
+}
+
+export interface RecoveryLaneTranscript {
+  dh_public: string;
+  previous_chain_length: number;
+  message_number: number;
+  nonce: string;
+  sent_at: number;
+}
+
+export type RecoveryLaneBinding = "transcript" | "legacy" | "none";
+
+export class RecoveryLaneSenderKeyMissingError extends Error {
+  constructor() {
+    super("recovery lane needs the sender identity key");
+    this.name = "RecoveryLaneSenderKeyMissingError";
+  }
+}
+
+export function recovery_lane_transcript(
+  message: {
+    header: {
+      dh_public: string;
+      previous_chain_length: number;
+      message_number: number;
+    };
+    nonce: string;
+  },
+  sent_at: number,
+): RecoveryLaneTranscript {
+  return {
+    dh_public: message.header.dh_public,
+    previous_chain_length: message.header.previous_chain_length,
+    message_number: message.header.message_number,
+    nonce: message.nonce,
+    sent_at,
+  };
+}
+
+export function recovery_lane_sent_at(data: RecoveryLaneData): number | null {
+  const sent_at = data.t;
+
+  return typeof sent_at === "number" &&
+    Number.isSafeInteger(sent_at) &&
+    sent_at > 0
+    ? sent_at
+    : null;
 }
 
 export interface RecoveryLaneOwnKeys {
@@ -56,19 +110,14 @@ export interface RecoveryLaneOwnKeys {
   pq_identity_secret?: string;
 }
 
-async function build_binding_info(
-  conversation_id: string,
-  sender_identity_public: string,
-  recipient: RecoveryLaneRecipientKeys,
-): Promise<Uint8Array> {
+interface LaneSecrets {
+  dh_secret: Uint8Array;
+  pq_secret: Uint8Array | null;
+}
+
+async function frame_and_digest(values: string[]): Promise<Uint8Array> {
   const encoder = new TextEncoder();
-  const parts = [
-    LANE_LABEL,
-    conversation_id,
-    sender_identity_public,
-    recipient.identity_public,
-    recipient.pq_identity_public ?? "",
-  ].map((part) => encoder.encode(part));
+  const parts = values.map((part) => encoder.encode(part));
 
   let total_length = 0;
 
@@ -90,10 +139,52 @@ async function build_binding_info(
   return new Uint8Array(await crypto.subtle.digest(HASH_ALG, framed));
 }
 
-async function lane_salt(): Promise<Uint8Array> {
+function build_binding_info(
+  conversation_id: string,
+  sender_identity_public: string,
+  recipient: RecoveryLaneRecipientKeys,
+): Promise<Uint8Array> {
+  return frame_and_digest([
+    LANE_LABEL,
+    conversation_id,
+    sender_identity_public,
+    recipient.identity_public,
+    recipient.pq_identity_public ?? "",
+  ]);
+}
+
+function build_sender_binding_info(
+  conversation_id: string,
+  sender_identity_public: string,
+  recipient: RecoveryLaneRecipientKeys,
+  epk: string,
+  kem_ct: string,
+  transcript: RecoveryLaneTranscript | null,
+): Promise<Uint8Array> {
+  return frame_and_digest([
+    SENDER_LANE_LABEL,
+    conversation_id,
+    sender_identity_public,
+    recipient.identity_public,
+    recipient.pq_identity_public ?? "",
+    epk,
+    kem_ct,
+    ...(transcript
+      ? [
+          transcript.dh_public,
+          String(transcript.previous_chain_length),
+          String(transcript.message_number),
+          transcript.nonce,
+          String(transcript.sent_at),
+        ]
+      : []),
+  ]);
+}
+
+async function lane_salt(label: string): Promise<Uint8Array> {
   const digest = await crypto.subtle.digest(
     HASH_ALG,
-    new TextEncoder().encode(LANE_LABEL),
+    new TextEncoder().encode(label),
   );
 
   return new Uint8Array(digest);
@@ -102,6 +193,7 @@ async function lane_salt(): Promise<Uint8Array> {
 async function derive_lane_key(
   secrets: Uint8Array[],
   info: Uint8Array,
+  label: string,
 ): Promise<CryptoKey> {
   let total_length = 0;
 
@@ -130,7 +222,7 @@ async function derive_lane_key(
       {
         name: "HKDF",
         hash: HASH_ALG,
-        salt: await lane_salt(),
+        salt: await lane_salt(label),
         info,
       },
       hkdf_key,
@@ -141,6 +233,72 @@ async function derive_lane_key(
   } finally {
     concatenated.fill(0);
   }
+}
+
+function lane_secrets(
+  secrets: LaneSecrets,
+  static_secret: Uint8Array | null,
+): Uint8Array[] {
+  return [
+    secrets.dh_secret,
+    ...(static_secret ? [static_secret] : []),
+    ...(secrets.pq_secret ? [secrets.pq_secret] : []),
+  ];
+}
+
+async function sender_static_agreement(
+  identity_jwk: string,
+  peer_identity_public: string,
+): Promise<Uint8Array> {
+  let own_private: CryptoKey;
+
+  try {
+    own_private = await import_ke_private_key(
+      JSON.parse(identity_jwk) as JsonWebKey,
+    );
+  } catch {
+    throw new RecoveryLaneSenderKeyMissingError();
+  }
+
+  const peer_public = await import_ke_public_key(
+    base64_to_array(peer_identity_public),
+  );
+
+  return compute_agreement_bits(own_private, peer_public);
+}
+
+async function static_agreement(
+  identity_jwk: string,
+  peer_identity_public: string,
+): Promise<Uint8Array> {
+  const own_private = await import_ke_private_key(
+    JSON.parse(identity_jwk) as JsonWebKey,
+  );
+  const peer_public = await import_ke_public_key(
+    base64_to_array(peer_identity_public),
+  );
+
+  return compute_agreement_bits(own_private, peer_public);
+}
+
+async function seal_with_key(
+  key: CryptoKey,
+  plaintext: string,
+  info: Uint8Array,
+): Promise<{ ciphertext: string; nonce: string }> {
+  const nonce = crypto.getRandomValues(new Uint8Array(NONCE_BYTES));
+  const ciphertext = new Uint8Array(
+    await crypto.subtle.encrypt(
+      { name: AES_ALG, iv: nonce, additionalData: info },
+      key,
+      new TextEncoder().encode(plaintext),
+    ),
+  );
+
+  return {
+    ciphertext: array_to_base64(ciphertext),
+    nonce: array_to_base64(nonce),
+  };
 }
 
 export function can_seal_recovery_lane(
@@ -162,12 +320,29 @@ export function recovery_lane_is_post_quantum(
   );
 }
 
-export async function seal_recovery_lane(
+function recovery_lane_has_sender_proof(
+  data: RecoveryLaneData,
+): boolean {
+  return (
+    typeof data.sct === "string" &&
+    data.sct.length > 0 &&
+    typeof data.snonce === "string" &&
+    data.snonce.length > 0
+  );
+}
+
+interface SealedLane {
+  lane: RecoveryLaneData;
+  secrets: LaneSecrets;
+  kem_ct: string | undefined;
+}
+
+async function seal_unbound_part(
   plaintext: string,
   conversation_id: string,
   sender_identity_public: string,
   recipient: RecoveryLaneRecipientKeys,
-): Promise<RecoveryLaneData> {
+): Promise<SealedLane> {
   const info = await build_binding_info(
     conversation_id,
     sender_identity_public,
@@ -180,54 +355,183 @@ export async function seal_recovery_lane(
     ["deriveBits"],
   );
 
-  const ephemeral_public_raw = new Uint8Array(
-    await crypto.subtle.exportKey("raw", ephemeral.publicKey),
+  const epk = array_to_base64(
+    new Uint8Array(await crypto.subtle.exportKey("raw", ephemeral.publicKey)),
   );
 
   const recipient_identity = await import_ke_public_key(
     base64_to_array(recipient.identity_public),
   );
 
-  const dh_secret = await compute_agreement_bits(
-    ephemeral.privateKey,
-    recipient_identity,
-  );
-
   const encapsulation = recovery_lane_is_post_quantum(recipient)
     ? ml_kem768.encapsulate(base64_to_array(recipient.pq_identity_public!))
     : null;
+  const kem_ct = encapsulation
+    ? array_to_base64(encapsulation.cipherText)
+    : undefined;
 
-  const pq_secret = encapsulation?.sharedSecret ?? null;
+  const secrets: LaneSecrets = {
+    dh_secret: await compute_agreement_bits(
+      ephemeral.privateKey,
+      recipient_identity,
+    ),
+    pq_secret: encapsulation?.sharedSecret ?? null,
+  };
 
   try {
     const lane_key = await derive_lane_key(
-      pq_secret ? [dh_secret, pq_secret] : [dh_secret],
+      lane_secrets(secrets, null),
       info,
+      LANE_LABEL,
     );
-    const nonce = crypto.getRandomValues(new Uint8Array(NONCE_BYTES));
+    const sealed = await seal_with_key(lane_key, plaintext, info);
 
-    const ciphertext = new Uint8Array(
-      await crypto.subtle.encrypt(
-        { name: AES_ALG, iv: nonce, additionalData: info },
-        lane_key,
-        new TextEncoder().encode(plaintext),
-      ),
+    return {
+      lane: {
+        v: RECOVERY_LANE_VERSION,
+        epk,
+        kem_ct,
+        ciphertext: sealed.ciphertext,
+        nonce: sealed.nonce,
+        rid: recipient.identity_public,
+      },
+      secrets,
+      kem_ct,
+    };
+  } catch (error) {
+    secrets.dh_secret.fill(0);
+    secrets.pq_secret?.fill(0);
+    throw error;
+  }
+}
+
+export async function seal_unbound_recovery_lane(
+  plaintext: string,
+  conversation_id: string,
+  sender_identity_public: string,
+  recipient: RecoveryLaneRecipientKeys,
+): Promise<RecoveryLaneData> {
+  const sealed = await seal_unbound_part(
+    plaintext,
+    conversation_id,
+    sender_identity_public,
+    recipient,
+  );
+
+  sealed.secrets.dh_secret.fill(0);
+  sealed.secrets.pq_secret?.fill(0);
+
+  return sealed.lane;
+}
+
+export async function seal_recovery_lane(
+  plaintext: string,
+  conversation_id: string,
+  sender_identity_public: string,
+  recipient: RecoveryLaneRecipientKeys,
+  sender_identity_jwk: string | undefined,
+  transcript: RecoveryLaneTranscript,
+): Promise<RecoveryLaneData> {
+  if (!sender_identity_jwk) throw new RecoveryLaneSenderKeyMissingError();
+
+  const sent_at = transcript.sent_at;
+
+  if (!Number.isSafeInteger(sent_at) || sent_at <= 0) {
+    throw new Error("recovery lane needs a send time");
+  }
+
+  const sealed = await seal_unbound_part(
+    plaintext,
+    conversation_id,
+    sender_identity_public,
+    recipient,
+  );
+  let static_secret: Uint8Array | null = null;
+
+  try {
+    static_secret = await sender_static_agreement(
+      sender_identity_jwk,
+      recipient.identity_public,
+    );
+
+    const sender_info = await build_sender_binding_info(
+      conversation_id,
+      sender_identity_public,
+      recipient,
+      sealed.lane.epk,
+      sealed.kem_ct ?? "",
+      transcript,
+    );
+    const sender_key = await derive_lane_key(
+      lane_secrets(sealed.secrets, static_secret),
+      sender_info,
+      SENDER_LANE_LABEL,
+    );
+    const sender_sealed = await seal_with_key(
+      sender_key,
+      plaintext,
+      sender_info,
     );
 
     return {
-      v: RECOVERY_LANE_VERSION,
-      epk: array_to_base64(ephemeral_public_raw),
-      kem_ct: encapsulation
-        ? array_to_base64(encapsulation.cipherText)
-        : undefined,
-      ciphertext: array_to_base64(ciphertext),
-      nonce: array_to_base64(nonce),
-      rid: recipient.identity_public,
+      ...sealed.lane,
+      sct: sender_sealed.ciphertext,
+      snonce: sender_sealed.nonce,
+      t: sent_at,
     };
   } finally {
-    dh_secret.fill(0);
-    pq_secret?.fill(0);
+    sealed.secrets.dh_secret.fill(0);
+    sealed.secrets.pq_secret?.fill(0);
+    static_secret?.fill(0);
   }
+}
+
+async function recover_lane_secrets(
+  data: RecoveryLaneData,
+  own_keys: RecoveryLaneOwnKeys,
+): Promise<LaneSecrets | null> {
+  if (data.kem_ct && !own_keys.pq_identity_secret) return null;
+
+  const identity_private = await import_ke_private_key(
+    JSON.parse(own_keys.identity_jwk) as JsonWebKey,
+  );
+  const ephemeral_public = await import_ke_public_key(
+    base64_to_array(data.epk),
+  );
+  const dh_secret = await compute_agreement_bits(
+    identity_private,
+    ephemeral_public,
+  );
+
+  if (!data.kem_ct) return { dh_secret, pq_secret: null };
+
+  const pq_secret_key = base64_to_array(own_keys.pq_identity_secret!);
+
+  try {
+    return {
+      dh_secret,
+      pq_secret: ml_kem768.decapsulate(
+        base64_to_array(data.kem_ct),
+        pq_secret_key,
+      ),
+    };
+  } catch (error) {
+    dh_secret.fill(0);
+    throw error;
+  } finally {
+    pq_secret_key.fill(0);
+  }
+}
+
+function own_lane_recipient(
+  data: RecoveryLaneData,
+  own_keys: RecoveryLaneOwnKeys,
+  own_pq_identity_public: string,
+): RecoveryLaneRecipientKeys {
+  return {
+    identity_public: own_keys.identity_public,
+    pq_identity_public: data.kem_ct ? own_pq_identity_public : "",
+  };
 }
 
 export async function open_recovery_lane(
@@ -236,65 +540,100 @@ export async function open_recovery_lane(
   sender_identity_public: string,
   own_keys: RecoveryLaneOwnKeys,
   own_pq_identity_public: string,
+  transcript: RecoveryLaneTranscript | null,
 ): Promise<string | null> {
-  if (data.v !== RECOVERY_LANE_VERSION) return null;
+  if (
+    data.v !== RECOVERY_LANE_VERSION ||
+    !recovery_lane_has_sender_proof(data)
+  ) {
+    return null;
+  }
 
-  const info = await build_binding_info(
-    conversation_id,
-    sender_identity_public,
-    {
-      identity_public: own_keys.identity_public,
-      pq_identity_public: data.kem_ct ? own_pq_identity_public : "",
-    },
-  );
-
-  let dh_secret: Uint8Array | null = null;
-  let pq_secret: Uint8Array | null = null;
-  let pq_secret_key: Uint8Array | null = null;
+  let secrets: LaneSecrets | null = null;
+  let static_secret: Uint8Array | null = null;
 
   try {
-    const identity_private = await import_ke_private_key(
-      JSON.parse(own_keys.identity_jwk) as JsonWebKey,
+    secrets = await recover_lane_secrets(data, own_keys);
+
+    if (!secrets) return null;
+
+    static_secret = await static_agreement(
+      own_keys.identity_jwk,
+      sender_identity_public,
     );
 
-    const ephemeral_public = await import_ke_public_key(
-      base64_to_array(data.epk),
+    const sender_info = await build_sender_binding_info(
+      conversation_id,
+      sender_identity_public,
+      own_lane_recipient(data, own_keys, own_pq_identity_public),
+      data.epk,
+      data.kem_ct ?? "",
+      transcript,
     );
-
-    dh_secret = await compute_agreement_bits(
-      identity_private,
-      ephemeral_public,
+    const sender_key = await derive_lane_key(
+      lane_secrets(secrets, static_secret),
+      sender_info,
+      SENDER_LANE_LABEL,
     );
-
-    if (data.kem_ct) {
-      if (!own_keys.pq_identity_secret) return null;
-
-      pq_secret_key = base64_to_array(own_keys.pq_identity_secret);
-      pq_secret = ml_kem768.decapsulate(
-        base64_to_array(data.kem_ct),
-        pq_secret_key,
-      );
-    }
-
-    const lane_key = await derive_lane_key(
-      pq_secret ? [dh_secret, pq_secret] : [dh_secret],
-      info,
-    );
-
-    const plaintext = await decrypt_aes_gcm_bound_or_unbound(
-      lane_key,
-      base64_to_array(data.nonce),
-      base64_to_array(data.ciphertext),
-      info,
-      "accept_unbound",
+    const plaintext = await crypto.subtle.decrypt(
+      {
+        name: AES_ALG,
+        iv: base64_to_array(data.snonce!),
+        additionalData: sender_info,
+      },
+      sender_key,
+      base64_to_array(data.sct!),
     );
 
     return new TextDecoder().decode(plaintext);
   } catch {
     return null;
   } finally {
-    dh_secret?.fill(0);
-    pq_secret?.fill(0);
-    pq_secret_key?.fill(0);
+    secrets?.dh_secret.fill(0);
+    secrets?.pq_secret?.fill(0);
+    static_secret?.fill(0);
+  }
+}
+
+export async function open_unauthenticated_recovery_lane(
+  data: RecoveryLaneData,
+  conversation_id: string,
+  sender_identity_public: string,
+  own_keys: RecoveryLaneOwnKeys,
+  own_pq_identity_public: string,
+): Promise<string | null> {
+  if (data.v !== RECOVERY_LANE_VERSION) return null;
+
+  let secrets: LaneSecrets | null = null;
+
+  try {
+    secrets = await recover_lane_secrets(data, own_keys);
+
+    if (!secrets) return null;
+
+    const info = await build_binding_info(
+      conversation_id,
+      sender_identity_public,
+      own_lane_recipient(data, own_keys, own_pq_identity_public),
+    );
+    const lane_key = await derive_lane_key(
+      lane_secrets(secrets, null),
+      info,
+      LANE_LABEL,
+    );
+    const plaintext = await decrypt_aes_gcm_bound_or_unbound(
+      lane_key,
+      base64_to_array(data.nonce),
+      base64_to_array(data.ciphertext),
+      info,
+      stored_unbound_policy(),
+    );
+
+    return new TextDecoder().decode(plaintext);
+  } catch {
+    return null;
+  } finally {
+    secrets?.dh_secret.fill(0);
+    secrets?.pq_secret?.fill(0);
   }
 }

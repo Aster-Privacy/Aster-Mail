@@ -19,6 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "../api/client";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import {
+  RATCHET_SYNC_VERSION_BOUND,
+  RECOVERY_BACKUP_VERSION_BOUND,
+} from "../api/sync_format_readiness";
 
 import { array_to_base64, base64_to_array } from "./base64";
 import { get_vault_from_memory } from "./memory_key_store";
@@ -33,6 +38,7 @@ export const ENVELOPE_CAPABILITY_X3DH_ONE_TIME_VERSION = 4;
 export const ENVELOPE_CAPABILITY_PGP_EXTERNAL_VERSION = 1;
 export const ENVELOPE_CAPABILITY_ADDRESS_IDENTITY_VERSION = 1;
 export const ENVELOPE_CAPABILITY_BOUND_VERSION = 1;
+export const ENVELOPE_CAPABILITY_STORED_KEY_VERSION = 1;
 export const ENVELOPE_CAPABILITY_REPORT_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
 const ML_KEM_768_PUBLIC_KEY_LENGTH = 1184;
 
@@ -45,6 +51,7 @@ export interface EnvelopeCapabilityResult {
   pq_hybrid_enabled: boolean;
   identity_verified: boolean;
   pq_identity_attested: boolean;
+  stored_keys_ready?: boolean;
 }
 
 export interface EnvelopeCapabilityDeps {
@@ -62,6 +69,7 @@ export interface EnvelopeCapabilityDeps {
     pgp_external_version: number,
     address_identity_version: number,
     bound_envelope_version: number,
+    stored_key_version: number,
   ) => Promise<EnvelopeCapabilityResult | null>;
   platform: () => string;
   identity_fingerprint: () => Promise<string | null>;
@@ -98,11 +106,7 @@ function random_client_id(): string {
 }
 
 function current_platform(): string {
-  const tauri =
-    typeof window !== "undefined" &&
-    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
-
-  return tauri ? "desktop" : "web";
+  return has_tauri_runtime() ? "desktop" : "web";
 }
 
 async function post_capability(
@@ -115,6 +119,7 @@ async function post_capability(
   pgp_external_version: number,
   address_identity_version: number,
   bound_envelope_version: number,
+  stored_key_version: number,
 ): Promise<EnvelopeCapabilityResult | null> {
   const response = await api_client.post<EnvelopeCapabilityResult>(
     "/crypto/v1/ratchet/envelope-capability",
@@ -128,6 +133,9 @@ async function post_capability(
       pgp_external_version,
       address_identity_version,
       bound_envelope_version,
+      stored_key_version,
+      ratchet_sync_version: RATCHET_SYNC_VERSION_BOUND,
+      recovery_backup_version: RECOVERY_BACKUP_VERSION_BOUND,
     },
   );
 
@@ -243,6 +251,7 @@ export async function report_envelope_capability_if_due(
     ENVELOPE_CAPABILITY_ADDRESS_IDENTITY_VERSION,
   );
   const bound_marker = String(ENVELOPE_CAPABILITY_BOUND_VERSION);
+  const stored_key_marker = String(ENVELOPE_CAPABILITY_STORED_KEY_VERSION);
   const [
     last_at,
     last_fingerprint = "",
@@ -250,6 +259,7 @@ export async function report_envelope_capability_if_due(
     last_pgp_external = "",
     last_address_identity = "",
     last_bound = "",
+    last_stored_key = "",
   ] = (deps.read(LAST_REPORTED_PREFIX + user_id) ?? "").split("|");
   const last = Number(last_at);
   const elapsed = now - last;
@@ -261,6 +271,7 @@ export async function report_envelope_capability_if_due(
     pgp_external_marker === last_pgp_external &&
     address_identity_marker === last_address_identity &&
     bound_marker === last_bound &&
+    stored_key_marker === last_stored_key &&
     Number.isFinite(last) &&
     last > 0 &&
     elapsed >= 0 &&
@@ -291,13 +302,14 @@ export async function report_envelope_capability_if_due(
       ENVELOPE_CAPABILITY_PGP_EXTERNAL_VERSION,
       ENVELOPE_CAPABILITY_ADDRESS_IDENTITY_VERSION,
       ENVELOPE_CAPABILITY_BOUND_VERSION,
+      ENVELOPE_CAPABILITY_STORED_KEY_VERSION,
     )
     .catch(() => null);
 
   if (result?.success) {
     write(
       LAST_REPORTED_PREFIX + user_id,
-      `${now}|${fingerprint}|${pq_fingerprint}|${pgp_external_marker}|${address_identity_marker}|${bound_marker}`,
+      `${now}|${fingerprint}|${pq_fingerprint}|${pgp_external_marker}|${address_identity_marker}|${bound_marker}|${stored_key_marker}`,
     );
   }
 

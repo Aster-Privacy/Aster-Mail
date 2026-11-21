@@ -18,14 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EscrowEntry } from "../api/recovery";
+import type { EncryptedVault } from "./key_manager_core";
+
 import { fetch_recovery_escrow_keys } from "../api/recovery";
 
 import { seal_account_key_token } from "./account_key_token";
 import { array_to_base64 } from "./base64";
 import {
+  ESCROW_FORMAT,
   decode_escrow_seed,
-  derive_escrow_keypair,
+  derive_escrow_keys,
+  derive_legacy_escrow_keypair,
   open_account_key_from_escrow,
+  open_legacy_account_key_from_escrow,
+  zero_escrow_keys,
+  type EscrowKeypair,
+  type EscrowKeys,
 } from "./recovery_key_escrow";
 import { zero_uint8_array } from "./secure_memory";
 
@@ -35,6 +44,13 @@ export interface RescuedAccountKeyToken {
   token: string;
   fingerprint: string;
 }
+
+export type EscrowRescueSource = Pick<
+  EncryptedVault,
+  "escrow_seed" | "escrow_format"
+>;
+
+type EntryOpener = (entry: EscrowEntry) => Promise<Uint8Array | null>;
 
 async function reseal(
   account_key: Uint8Array,
@@ -61,19 +77,49 @@ async function reseal(
   }
 }
 
+function select_opener(
+  escrow_public_key: string,
+  user_id: string,
+  keys: EscrowKeys,
+  legacy: EscrowKeypair | null,
+): EntryOpener | null {
+  if (array_to_base64(keys.public_key) === escrow_public_key) {
+    return (entry) =>
+      open_account_key_from_escrow(
+        entry.sealed,
+        keys,
+        user_id,
+        entry.token_version,
+      );
+  }
+
+  if (legacy && array_to_base64(legacy.public_key) === escrow_public_key) {
+    return (entry) =>
+      open_legacy_account_key_from_escrow(
+        entry.sealed,
+        legacy.private_key,
+        user_id,
+        entry.token_version,
+      );
+  }
+
+  return null;
+}
+
 export async function rescue_account_key_from_escrow(
   recovery_token: string,
-  escrow_seed: string | undefined,
+  source: EscrowRescueSource,
   new_identity_private_key: string,
   new_password: string,
 ): Promise<RescuedAccountKeyToken | null> {
-  if (!escrow_seed) return null;
+  if (!source.escrow_seed) return null;
 
-  const seed = decode_escrow_seed(escrow_seed);
+  const seed = decode_escrow_seed(source.escrow_seed);
 
   if (!seed) return null;
 
-  let keypair: ReturnType<typeof derive_escrow_keypair> | null = null;
+  let keys: EscrowKeys | null = null;
+  let legacy: EscrowKeypair | null = null;
 
   try {
     const response = await fetch_recovery_escrow_keys(recovery_token);
@@ -84,21 +130,22 @@ export async function rescue_account_key_from_escrow(
 
     if (!user_id || !escrow_public_key || entries.length === 0) return null;
 
-    keypair = derive_escrow_keypair(seed, user_id);
+    keys = derive_escrow_keys(seed, user_id);
+    legacy =
+      source.escrow_format === ESCROW_FORMAT
+        ? null
+        : derive_legacy_escrow_keypair(seed, user_id);
 
-    if (array_to_base64(keypair.public_key) !== escrow_public_key) return null;
+    const open_entry = select_opener(escrow_public_key, user_id, keys, legacy);
+
+    if (!open_entry) return null;
 
     const ordered = [...entries].sort(
       (a, b) => b.token_version - a.token_version,
     );
 
     for (const entry of ordered) {
-      const account_key = await open_account_key_from_escrow(
-        entry.sealed,
-        keypair.private_key,
-        user_id,
-        entry.token_version,
-      );
+      const account_key = await open_entry(entry);
 
       if (!account_key) continue;
 
@@ -121,6 +168,7 @@ export async function rescue_account_key_from_escrow(
     return null;
   } finally {
     zero_uint8_array(seed);
-    if (keypair) zero_uint8_array(keypair.private_key);
+    zero_escrow_keys(keys);
+    zero_escrow_keys(legacy);
   }
 }

@@ -247,6 +247,18 @@ export async function discover_external_key(
   return { error: response.error };
 }
 
+export const MAX_EXTERNAL_DISCOVERY_BATCH = 20;
+
+function chunk_emails(emails: string[], size: number): string[][] {
+  const chunks: string[][] = [];
+
+  for (let index = 0; index < emails.length; index += size) {
+    chunks.push(emails.slice(index, index + size));
+  }
+
+  return chunks;
+}
+
 export async function discover_external_keys_batch(
   emails: string[],
 ): Promise<ApiResponse<ExternalKeyInfo[]>> {
@@ -256,27 +268,46 @@ export async function discover_external_keys_batch(
 
   const results: ExternalKeyInfo[] = [];
   const emails_to_fetch: string[] = [];
+  const queued = new Set<string>();
 
   for (const email of emails) {
     const cached = get_cached_key(email);
 
     if (cached) {
       results.push(cached);
-    } else {
-      emails_to_fetch.push(email);
+      continue;
     }
+
+    const normalized = email.toLowerCase();
+
+    if (queued.has(normalized)) continue;
+
+    queued.add(normalized);
+    emails_to_fetch.push(email);
   }
 
   if (emails_to_fetch.length === 0) {
     return { data: results };
   }
 
-  const response = await api_client.post<DiscoverKeysResponse>(
-    "/crypto/v1/keys/external/discover/batch",
-    { emails: emails_to_fetch },
-  );
+  let failed = false;
+  let first_error: string | undefined;
 
-  if (response.data) {
+  for (const chunk of chunk_emails(
+    emails_to_fetch,
+    MAX_EXTERNAL_DISCOVERY_BATCH,
+  )) {
+    const response = await api_client.post<DiscoverKeysResponse>(
+      "/crypto/v1/keys/external/discover/batch",
+      { emails: chunk },
+    );
+
+    if (!response.data) {
+      failed = true;
+      first_error ??= response.error;
+      continue;
+    }
+
     for (const key_response of response.data.keys) {
       const key_info = await vet_discovered_key({
         email: key_response.email,
@@ -293,13 +324,15 @@ export async function discover_external_keys_batch(
 
       results.push(key_info);
     }
+  }
 
+  if (!failed) {
     return { data: results };
   }
 
   return {
     data: results.length > 0 ? results : undefined,
-    error: response.error,
+    error: first_error,
   };
 }
 

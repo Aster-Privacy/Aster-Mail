@@ -33,7 +33,7 @@ export function offer_discount_percent(
 ): number | null {
   if (!discount_label) return null;
 
-  const match = discount_label.match(/(\d{1,2})\s*%/);
+  const match = discount_label.match(/(?<![\d.])(\d{1,3}(?:\.\d+)?)\s*%/);
 
   if (!match) return null;
 
@@ -42,6 +42,14 @@ export function offer_discount_percent(
   if (!Number.isFinite(percent) || percent <= 0 || percent >= 100) return null;
 
   return percent;
+}
+
+const ONGOING_DISCOUNT_PATTERN = /as long as you stay subscribed/i;
+
+export function offer_discount_is_ongoing(
+  discount_label: string | null | undefined,
+): boolean {
+  return !!discount_label && ONGOING_DISCOUNT_PATTERN.test(discount_label);
 }
 
 export function offer_is_live(
@@ -151,6 +159,7 @@ export function should_show_offer(
   now: number = Date.now(),
 ): boolean {
   if (!offer_is_live(offer, now)) return false;
+  if (offer_discount_is_ongoing(offer!.discount_label)) return false;
 
   return (
     !is_offer_dismissed(offer!.code) && !is_offer_snoozed(offer!.code, now)

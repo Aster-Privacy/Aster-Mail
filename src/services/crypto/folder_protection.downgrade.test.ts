@@ -79,7 +79,10 @@ describe("locked folder password derivation", () => {
   });
 
   it("creates and changes passwords only in the current format", async () => {
-    const { data, folder_key } = await prepare_set_password("hunter2");
+    const { data, folder_key } = await prepare_set_password(
+      "hunter2",
+      "folder-a",
+    );
 
     expect(base64_to_array(data.password_salt)).toHaveLength(32);
 
@@ -88,6 +91,7 @@ describe("locked folder password derivation", () => {
       "hunter3",
       LEGACY_SALT,
       folder_key,
+      "folder-a",
     );
 
     expect(base64_to_array(change.new_password_salt)).toHaveLength(32);

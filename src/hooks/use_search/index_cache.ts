@@ -40,7 +40,7 @@ import {
   report_indexing_counts,
   reset_indexing_progress,
 } from "./progress";
-import { CachedIndex, ChunkSpan } from "./types";
+import { CachedIndex, ChunkSpan, DecryptedIndexEntry } from "./types";
 
 import { list_encrypted_mail_items, type MailItem } from "@/services/api/mail";
 
@@ -69,6 +69,7 @@ import {
   type ReusableChunk,
   type SearchSnapshotClearScope,
   type SnapshotMeta,
+  type SnapshotReader,
   type SnapshotWriter,
   type WrittenChunk,
 } from "@/services/search_index_store";
@@ -231,7 +232,7 @@ export async function build_index_full(
     counted && reusable
       ? Math.min(prior_index?.total_indexed ?? 0, MAX_RAM_INDEX_ITEMS)
       : 0;
-  const run_id = counted ? begin_indexing_run() : undefined;
+  const run_id = counted ? begin_indexing_run(floor) : undefined;
   const total_request = counted
     ? fetch_mailbox_index_total(MAX_INDEX_ITEMS)
     : Promise.resolve(0);
@@ -291,6 +292,8 @@ export async function build_index_full(
       throw new Error("search_index_cancelled");
     }
 
+    index.pending_body = writer;
+
     const result = await run_index_pipeline({
       user_email,
       include_body,
@@ -325,9 +328,32 @@ export async function build_index_full(
         is_current,
       });
 
+      index.pending_body = null;
+
       if (meta) {
         apply_meta(index, meta);
         index.chunk_layout = spans_from_layout(writer.layout());
+      } else if (writer.conflicted()) {
+        const adopted = await adopt_disk_snapshot(
+          user_email,
+          include_body,
+          my_gen,
+        );
+
+        if (adopted) {
+          index.items.length = 0;
+          index.decrypted.clear();
+          if (run_id !== undefined) {
+            announced_index = adopted;
+            emit_index_refreshed();
+            end_indexing_run(
+              run_id,
+              adopted.complete ? adopted.total_indexed : undefined,
+            );
+          }
+
+          return adopted;
+        }
       }
     }
 
@@ -363,6 +389,7 @@ export async function build_index_full(
       );
     throw error;
   } finally {
+    index.pending_body = null;
     building_indexes.delete(index);
   }
 }
@@ -380,6 +407,107 @@ export function serves_better_than_partial(
   );
 }
 
+const CANCELLED = "search_index_cancelled";
+
+export function kept_disk_chunk_ids(index: CachedIndex): number[] {
+  const chunk_ids = index.meta?.chunk_ids ?? [];
+  const tail = index.disk_chunk_ids;
+  const offset = chunk_ids.length - tail.length;
+
+  if (
+    index.items.length > 0 &&
+    offset > 0 &&
+    tail.every((id, i) => chunk_ids[offset + i] === id)
+  ) {
+    return chunk_ids.slice(offset);
+  }
+
+  return chunk_ids.slice(front_chunk_count(index));
+}
+
+function entry_from_persisted(
+  entry: PersistedSearchEntry,
+): DecryptedIndexEntry {
+  drop_sender_verification(entry.envelope);
+
+  return {
+    envelope: entry.envelope,
+    metadata: entry.metadata,
+    search_body_text: entry.search_body_text,
+    meta_fp: entry.meta_fp,
+    has_body: entry.has_body,
+    haystack: entry.envelope ? build_search_haystack(entry.envelope) : undefined,
+  };
+}
+
+async function adopt_disk_snapshot(
+  user_email: string,
+  include_body: boolean,
+  my_gen: number,
+): Promise<CachedIndex | null> {
+  const on_disk = await hydrate_snapshot_index(user_email);
+
+  if (my_gen !== build_generation) throw new Error(CANCELLED);
+  if (
+    !on_disk ||
+    !index_is_body_compatible(on_disk, user_email, include_body)
+  ) {
+    return null;
+  }
+
+  cached_index = on_disk;
+
+  if (on_disk.meta && !on_disk.meta.complete && !is_index_download_paused()) {
+    schedule_deep_index(user_email, on_disk.include_body, on_disk.meta);
+  }
+
+  return on_disk;
+}
+
+interface FrontBoundary {
+  keep_ids: number[];
+  stop_ids: Set<string>;
+  absorbed: Map<string, DecryptedIndexEntry>;
+  absorbed_count: number;
+}
+
+async function find_front_boundary(
+  reader: SnapshotReader,
+  keep_ids: number[],
+): Promise<FrontBoundary | null> {
+  const absorbed = new Map<string, DecryptedIndexEntry>();
+  let absorbed_count = 0;
+
+  for (let i = 0; i < keep_ids.length; i++) {
+    const chunk = await reader.read(keep_ids[i]);
+
+    if (!chunk) return null;
+    if (chunk.items.length === 0) continue;
+
+    const has_next = i < keep_ids.length - 1;
+
+    if (
+      has_next &&
+      absorbed_count + chunk.items.length < SNAPSHOT_CHUNK_SIZE
+    ) {
+      for (const entry of chunk.entries) {
+        absorbed.set(entry.id, entry_from_persisted(entry));
+      }
+      absorbed_count += chunk.items.length;
+      continue;
+    }
+
+    return {
+      keep_ids: keep_ids.slice(i),
+      stop_ids: new Set(chunk.items.map((item) => item.id)),
+      absorbed,
+      absorbed_count,
+    };
+  }
+
+  return null;
+}
+
 export async function build_index_front_refresh(
   user_email: string,
   include_body: boolean,
@@ -389,28 +517,41 @@ export async function build_index_front_refresh(
   if (is_index_download_paused()) return stale;
 
   const my_gen = build_generation;
-  const prior = stale.decrypted;
   const base = stale.meta as SnapshotMeta;
   const index = empty_index(user_email, include_body);
+  const is_current = () => my_gen === build_generation;
+  let unfinished_writer: SnapshotWriter | null = null;
 
   building_indexes.add(index);
 
+  const drop_partial = (): void => {
+    index.items.length = 0;
+    index.decrypted.clear();
+  };
+
+  const release_writer = async (): Promise<void> => {
+    const writer = unfinished_writer;
+
+    unfinished_writer = null;
+    await writer
+      ?.discard()
+      .catch((caught) =>
+        ignore_error(
+          "hooks/use_search/index_cache:build_index_front_refresh",
+          caught,
+        ),
+      );
+  };
+
   try {
     const reader = await open_snapshot_reader(user_email);
-    const keep_ids = base.chunk_ids.slice(front_chunk_count(stale));
-    const boundary_chunk = reader ? await reader.read(keep_ids[0]) : null;
-    const boundary_id = boundary_chunk?.items[0]?.id;
 
-    if (my_gen !== build_generation) {
-      throw new Error("search_index_cancelled");
-    }
+    if (!is_current()) throw new Error(CANCELLED);
 
     if (reader && !same_snapshot(reader.meta, base) && !adopted_from_disk) {
       const on_disk = await hydrate_snapshot_index(user_email);
 
-      if (my_gen !== build_generation) {
-        throw new Error("search_index_cancelled");
-      }
+      if (!is_current()) throw new Error(CANCELLED);
 
       if (on_disk && can_refresh_front(on_disk, include_body)) {
         return build_index_front_refresh(
@@ -424,32 +565,56 @@ export async function build_index_front_refresh(
       return build_index_full(user_email, include_body, on_disk ?? stale);
     }
 
-    if (!boundary_id || !reader || !same_snapshot(reader.meta, base)) {
+    const boundary =
+      reader && same_snapshot(reader.meta, base)
+        ? await find_front_boundary(reader, kept_disk_chunk_ids(stale))
+        : null;
+
+    if (!is_current()) throw new Error(CANCELLED);
+
+    if (!boundary) {
       return build_index_full(user_email, include_body, stale);
     }
+
+    const prior =
+      boundary.absorbed.size > 0
+        ? new Map([...stale.decrypted, ...boundary.absorbed])
+        : stale.decrypted;
+    const front_total = stale.items.length + boundary.absorbed_count;
+    const stored_chunks = stored_hot_chunks(stale);
+    const writer = await open_snapshot_writer(
+      user_email,
+      base,
+      stored_chunks,
+      is_current,
+    );
+
+    unfinished_writer = writer;
+
+    if (!is_current()) throw new Error(CANCELLED);
 
     const result = await run_index_pipeline({
       user_email,
       include_body,
       prior,
       my_gen,
-      stop_at_id: boundary_id,
-      max_items: MAX_RAM_INDEX_ITEMS + 1,
+      stop_at_ids: boundary.stop_ids,
+      max_items: MAX_INDEX_ITEMS,
       hot: index,
-      writer: null,
+      writer,
       pausable: true,
     });
 
     if (result.paused) {
-      index.items.length = 0;
-      index.decrypted.clear();
+      drop_partial();
+      await release_writer();
 
       return stale;
     }
 
-    if (!result.reached_boundary || result.processed > MAX_RAM_INDEX_ITEMS) {
-      index.items.length = 0;
-      index.decrypted.clear();
+    if (!result.reached_boundary) {
+      drop_partial();
+      await release_writer();
 
       return build_index_full(user_email, include_body, stale);
     }
@@ -457,65 +622,76 @@ export async function build_index_front_refresh(
     index.built_at = Date.now();
     index.total_indexed = Math.max(index.items.length, base.total);
     index.complete = base.complete;
-    index.disk_chunk_ids = keep_ids;
+    index.disk_chunk_ids = boundary.keep_ids;
     index.meta = base;
 
-    const stored_chunks = stored_hot_chunks(stale);
     const unchanged =
       !stored_chunks &&
+      boundary.absorbed_count === 0 &&
       result.fresh_count === 0 &&
-      index.items.length === prior.size;
-    const writer = unchanged
-      ? null
-      : await open_snapshot_writer(
-          user_email,
-          base,
-          stored_chunks,
-          () => my_gen === build_generation,
-        );
+      index.items.length === stale.decrypted.size &&
+      result.processed === stale.items.length;
 
-    if (writer) {
-      await writer.add_page(index.items, index.decrypted);
+    if (!writer) {
+      cached_index = index;
 
-      if (writer.storage_exhausted() || my_gen !== build_generation) {
-        await writer.discard();
-      } else {
-        const meta = await writer.finish({
-          next_cursor: base.next_cursor,
-          complete: base.complete,
-          include_body,
-          keep_chunk_ids: keep_ids,
-          kept_total: Math.max(base.total - stale.items.length, 0),
-          restamp_after_ms: SNAPSHOT_RESTAMP_MS,
-          is_current: () => my_gen === build_generation,
-        });
+      return index;
+    }
 
-        if (meta) {
-          apply_meta(index, meta);
-          index.chunk_layout = spans_from_layout(writer.layout());
-        } else if (writer.lost_kept_chunks()) {
-          index.items.length = 0;
-          index.decrypted.clear();
+    if (unchanged || writer.storage_exhausted() || !is_current()) {
+      await release_writer();
+    } else {
+      unfinished_writer = null;
 
-          return build_index_full(user_email, include_body, stale);
+      const meta = await writer.finish({
+        next_cursor: base.next_cursor,
+        complete: base.complete,
+        include_body,
+        keep_chunk_ids: boundary.keep_ids,
+        kept_total: Math.max(base.total - front_total, 0),
+        restamp_after_ms: SNAPSHOT_RESTAMP_MS,
+        is_current,
+      });
+
+      if (meta) {
+        apply_meta(index, meta);
+        index.chunk_layout = spans_from_layout(writer.layout());
+      } else if (writer.conflicted()) {
+        drop_partial();
+
+        const adopted = adopted_from_disk
+          ? null
+          : await adopt_disk_snapshot(user_email, include_body, my_gen);
+
+        if (adopted && can_refresh_front(adopted, include_body)) {
+          return build_index_front_refresh(
+            user_email,
+            include_body,
+            adopted,
+            true,
+          );
         }
+
+        return adopted ?? stale;
+      } else if (writer.lost_kept_chunks()) {
+        drop_partial();
+
+        return build_index_full(user_email, include_body, stale);
       }
     }
 
-    if (my_gen !== build_generation) {
-      throw new Error("search_index_cancelled");
-    }
+    if (!is_current()) throw new Error(CANCELLED);
 
     cached_index = index;
 
-    if (index.meta && !index.meta.complete) {
+    if (index.meta && !index.meta.complete && !is_index_download_paused()) {
       schedule_deep_index(user_email, include_body, index.meta);
     }
 
     return index;
   } catch (error) {
-    index.items.length = 0;
-    index.decrypted.clear();
+    drop_partial();
+    await release_writer();
     throw error;
   } finally {
     building_indexes.delete(index);
@@ -533,7 +709,7 @@ export function schedule_deep_index(
   if (base.total >= MAX_INDEX_ITEMS) return;
 
   const my_gen = build_generation;
-  const run_id = begin_indexing_run();
+  const run_id = begin_indexing_run(base.total);
 
   deep_index_active = true;
   deep_index_generation = my_gen;
@@ -616,7 +792,27 @@ export async function run_deep_index(
         is_current: () => my_gen === build_generation,
       });
 
-      if (!next || my_gen !== build_generation) return;
+      if (my_gen !== build_generation) return;
+
+      if (!next) {
+        if (!writer.conflicted()) return;
+
+        const reader = await open_snapshot_reader(user_email);
+
+        if (my_gen !== build_generation || !reader) return;
+        if (reader.meta.total < meta.total && !reader.meta.complete) return;
+
+        meta = reader.meta;
+        if (
+          cached_index &&
+          cached_index.user_email === user_email &&
+          cached_index.include_body === include_body
+        ) {
+          apply_meta(cached_index, meta);
+        }
+        emit_index_refreshed();
+        continue;
+      }
 
       meta = next;
 
@@ -1069,12 +1265,83 @@ export function patch_indexed_flags(
   }
 }
 
+export interface IndexedMembershipPatch {
+  tag_tokens?: string[];
+  add_tag_tokens?: string[];
+  remove_tag_tokens?: string[];
+  folders?: { folder_token: string; name: string; color?: string }[];
+  remove_folder_tokens?: string[];
+}
+
+export function patch_indexed_membership(
+  ids: string[],
+  patch: IndexedMembershipPatch,
+): void {
+  if (!cached_index || ids.length === 0) return;
+
+  const wanted = new Set(ids);
+  const removed_tags = new Set(patch.remove_tag_tokens ?? []);
+  const removed_folders = new Set(patch.remove_folder_tokens ?? []);
+
+  for (const item of cached_index.items) {
+    if (!wanted.has(item.id)) continue;
+
+    if (
+      patch.tag_tokens !== undefined ||
+      removed_tags.size > 0 ||
+      (patch.add_tag_tokens?.length ?? 0) > 0
+    ) {
+      const tokens = (patch.tag_tokens ?? item.tag_tokens ?? []).filter(
+        (token) => !removed_tags.has(token),
+      );
+
+      for (const token of patch.add_tag_tokens ?? []) {
+        if (!tokens.includes(token)) tokens.push(token);
+      }
+      item.tag_tokens = tokens;
+    }
+    if (patch.folders !== undefined) {
+      item.labels = patch.folders.map((folder) => ({
+        token: folder.folder_token,
+        name: folder.name,
+        color: folder.color ?? "",
+      }));
+      item.folders = [];
+    } else if (removed_folders.size > 0) {
+      item.labels = (item.labels ?? []).filter(
+        (label) => !removed_folders.has(label.token),
+      );
+      item.folders = (item.folders ?? []).filter(
+        (folder) => !removed_folders.has(folder.token),
+      );
+    }
+  }
+}
+
+async function existing_index_has_body(
+  user_email: string,
+): Promise<boolean | null> {
+  if (cached_index && cached_index.user_email === user_email) {
+    return cached_index.include_body;
+  }
+
+  const reader = await open_snapshot_reader(user_email);
+
+  if (!reader || reader.meta.chunk_ids.length === 0) return null;
+
+  return reader.meta.include_body;
+}
+
 export async function prewarm_search_index(
   user_email: string,
   include_body: boolean,
 ): Promise<void> {
   try {
-    await build_search_index(user_email, include_body);
+    const has_body = await existing_index_has_body(user_email);
+
+    if (has_body === null) return;
+
+    await build_search_index(user_email, include_body && has_body);
   } catch {
     return;
   }
@@ -1089,10 +1356,14 @@ export function start_background_rebuild(
     return index_build_promise;
   }
 
+  const keeps_body =
+    !!stale && stale.user_email === user_email && stale.include_body;
+  const wanted_body = include_body || keeps_body;
+
   if (is_deep_index_running()) {
     const running_for = stale ?? null;
 
-    if (index_is_body_compatible(running_for, user_email, include_body)) {
+    if (index_is_body_compatible(running_for, user_email, wanted_body)) {
       return Promise.resolve(running_for);
     }
 
@@ -1100,9 +1371,9 @@ export function start_background_rebuild(
   }
 
   const promise = (
-    stale && can_refresh_front(stale, include_body)
-      ? build_index_front_refresh(user_email, include_body, stale)
-      : build_index_full(user_email, include_body, stale)
+    stale && can_refresh_front(stale, wanted_body)
+      ? build_index_front_refresh(user_email, wanted_body, stale)
+      : build_index_full(user_email, wanted_body, stale)
   )
     .then((index) => {
       if (announced_index !== index) emit_index_refreshed();
@@ -1134,7 +1405,7 @@ function can_refresh_front(index: CachedIndex, include_body: boolean): boolean {
   return (
     index.items.length > 0 &&
     !!index.meta &&
-    index.meta.chunk_ids.length > front_chunk_count(index) &&
+    kept_disk_chunk_ids(index).length > 0 &&
     (index.meta.include_body || !include_body)
   );
 }
@@ -1205,18 +1476,8 @@ export async function hydrate_snapshot_index(
 
       if (!entry) continue;
 
-      drop_sender_verification(entry.envelope);
       index.items.push(item);
-      index.decrypted.set(item.id, {
-        envelope: entry.envelope,
-        metadata: entry.metadata,
-        search_body_text: entry.search_body_text,
-        meta_fp: entry.meta_fp,
-        has_body: entry.has_body,
-        haystack: entry.envelope
-          ? build_search_haystack(entry.envelope)
-          : undefined,
-      });
+      index.decrypted.set(item.id, entry_from_persisted(entry));
       queue_vocabulary_entry(entry.envelope, entry.search_body_text);
     }
 

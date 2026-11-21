@@ -253,6 +253,8 @@ describe("SignInPage on the desktop app", () => {
       "pass",
       "ev",
       "nonce",
+      true,
+      undefined,
     );
     expect(add_account_mock).not.toHaveBeenCalled();
     expect(update_account_device_id_mock).toHaveBeenCalledWith(
@@ -281,6 +283,8 @@ describe("SignInPage on the desktop app", () => {
       "pass",
       "ev",
       "nonce",
+      true,
+      undefined,
     );
     expect(login_mock).not.toHaveBeenCalled();
     expect(update_account_device_id_mock).toHaveBeenCalledWith(

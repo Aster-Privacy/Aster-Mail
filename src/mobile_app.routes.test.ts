@@ -29,6 +29,7 @@ const PUBLIC_PATHS = [
   "/signup",
   "/invite/:code",
   "/forgot-password",
+  "/cancel",
   "/reset-password",
   "/verify-recovery-email",
   "/terms",

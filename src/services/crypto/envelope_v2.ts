@@ -21,14 +21,22 @@
 import { array_to_base64, base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
 import { without_retired_keks } from "./retired_identity_keks";
+import {
+  is_public_mail_kek,
+  is_server_known_encoded,
+} from "./server_known_keys";
 import { normalize_parsed_envelope } from "./envelope";
+import { is_password_derived_storage_key } from "./password_storage_keys";
 
 import type { EncryptedVault } from "./key_manager_core";
 
 export const ENVELOPE_V1_NONCE = "AQ==";
 export const ENVELOPE_V2_NONCE = "Ag==";
+export const ENVELOPE_V3_NONCE = "Aw==";
 
 const ENVELOPE_V2_INFO = "aster-envelope-v2";
+const ENVELOPE_V3_INFO = "aster-envelope-v3";
+const ENVELOPE_V3_DOMAIN = "aster-stored-envelope-v3|mail_item";
 const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const KEY_LENGTH = 32;
@@ -55,6 +63,42 @@ export function is_envelope_v2_nonce(
   nonce_b64: string | null | undefined,
 ): boolean {
   return decode_sentinel(nonce_b64) === 2;
+}
+
+export interface StoredEnvelopeBinding {
+  owner_id: string;
+  item_id: string;
+}
+
+function is_binding_part(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0 && !value.includes("\0");
+}
+
+export function envelope_v3_aad(
+  binding: StoredEnvelopeBinding | null | undefined,
+): Uint8Array | null {
+  if (!binding) return null;
+  if (!is_binding_part(binding.owner_id) || !is_binding_part(binding.item_id)) {
+    return null;
+  }
+
+  return new TextEncoder().encode(
+    `${ENVELOPE_V3_DOMAIN}\0${binding.owner_id}\0${binding.item_id}`,
+  );
+}
+
+export function is_envelope_v3_nonce(
+  nonce_b64: string | null | undefined,
+): boolean {
+  return decode_sentinel(nonce_b64) === 3;
+}
+
+export function is_stored_envelope_v2_family_nonce(
+  nonce_b64: string | null | undefined,
+): boolean {
+  const sentinel = decode_sentinel(nonce_b64);
+
+  return sentinel === 2 || sentinel === 3;
 }
 
 function decode_key(value: string | undefined | null): Uint8Array | null {
@@ -86,7 +130,14 @@ export function envelope_v2_keys_from_vault(
   if (current) keys.push(current);
 
   for (const entry of without_retired_keks(vault.legacy_keks)) {
-    const legacy = decode_key(entry?.k);
+    if (
+      !entry?.k ||
+      is_public_mail_kek(entry.k) ||
+      is_server_known_encoded(entry.k, vault)
+    )
+      continue;
+
+    const legacy = decode_key(entry.k);
 
     if (legacy) keys.push(legacy);
   }
@@ -97,6 +148,8 @@ export function envelope_v2_keys_from_vault(
 export function envelope_v2_write_key(
   vault: EncryptedVault | null | undefined,
 ): Uint8Array | null {
+  if (is_password_derived_storage_key(vault?.data_kek)) return null;
+
   return decode_key(vault?.data_kek);
 }
 
@@ -108,6 +161,7 @@ async function derive_envelope_v2_key(
   kek: Uint8Array,
   salt: Uint8Array,
   usage: KeyUsage,
+  info: string,
 ): Promise<CryptoKey> {
   const ikm = await crypto.subtle.importKey("raw", kek, "HKDF", false, [
     "deriveKey",
@@ -118,7 +172,7 @@ async function derive_envelope_v2_key(
       name: "HKDF",
       hash: "SHA-256",
       salt,
-      info: new TextEncoder().encode(ENVELOPE_V2_INFO),
+      info: new TextEncoder().encode(info),
     },
     ikm,
     { name: "AES-GCM", length: 256 },
@@ -127,17 +181,34 @@ async function derive_envelope_v2_key(
   );
 }
 
+function gcm_params(
+  iv: Uint8Array,
+  aad: Uint8Array | null,
+): AesGcmParams {
+  return aad ? { name: "AES-GCM", iv, additionalData: aad } : { name: "AES-GCM", iv };
+}
+
 export async function encrypt_envelope_v2_bytes(
   plaintext: Uint8Array,
   kek: Uint8Array,
   fixed?: { salt: Uint8Array; iv: Uint8Array },
+  binding?: StoredEnvelopeBinding,
 ): Promise<string> {
+  const aad = binding ? envelope_v3_aad(binding) : null;
+
+  if (binding && !aad) throw new Error("invalid stored envelope binding");
+
   const salt =
     fixed?.salt ?? crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
   const iv = fixed?.iv ?? crypto.getRandomValues(new Uint8Array(IV_LENGTH));
-  const key = await derive_envelope_v2_key(kek, salt, "encrypt");
+  const key = await derive_envelope_v2_key(
+    kek,
+    salt,
+    "encrypt",
+    aad ? ENVELOPE_V3_INFO : ENVELOPE_V2_INFO,
+  );
   const sealed = new Uint8Array(
-    await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext),
+    await crypto.subtle.encrypt(gcm_params(iv, aad), key, plaintext),
   );
   const combined = new Uint8Array(SALT_LENGTH + IV_LENGTH + sealed.length);
 
@@ -151,13 +222,19 @@ export async function encrypt_envelope_v2_bytes(
 export async function encrypt_envelope_v2(
   data: object,
   kek: Uint8Array,
+  binding?: StoredEnvelopeBinding,
 ): Promise<{ encrypted: string; nonce: string }> {
   const plaintext = new TextEncoder().encode(JSON.stringify(data));
 
   try {
     return {
-      encrypted: await encrypt_envelope_v2_bytes(plaintext, kek),
-      nonce: ENVELOPE_V2_NONCE,
+      encrypted: await encrypt_envelope_v2_bytes(
+        plaintext,
+        kek,
+        undefined,
+        binding,
+      ),
+      nonce: binding ? ENVELOPE_V3_NONCE : ENVELOPE_V2_NONCE,
     };
   } finally {
     zero_uint8_array(plaintext);
@@ -167,7 +244,12 @@ export async function encrypt_envelope_v2(
 export async function decrypt_envelope_v2_bytes(
   encrypted_b64: string,
   keys: Uint8Array[],
+  binding?: StoredEnvelopeBinding,
 ): Promise<Uint8Array | null> {
+  const aad = binding ? envelope_v3_aad(binding) : null;
+
+  if (binding && !aad) return null;
+
   let combined: Uint8Array;
 
   try {
@@ -184,9 +266,14 @@ export async function decrypt_envelope_v2_bytes(
 
   for (const kek of keys) {
     try {
-      const key = await derive_envelope_v2_key(kek, salt, "decrypt");
+      const key = await derive_envelope_v2_key(
+        kek,
+        salt,
+        "decrypt",
+        aad ? ENVELOPE_V3_INFO : ENVELOPE_V2_INFO,
+      );
       const plain = await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv },
+        gcm_params(iv, aad),
         key,
         ciphertext,
       );
@@ -203,8 +290,9 @@ export async function decrypt_envelope_v2_bytes(
 export async function decrypt_envelope_v2_plaintext(
   encrypted_b64: string,
   keys: Uint8Array[],
+  binding?: StoredEnvelopeBinding,
 ): Promise<string | null> {
-  const bytes = await decrypt_envelope_v2_bytes(encrypted_b64, keys);
+  const bytes = await decrypt_envelope_v2_bytes(encrypted_b64, keys, binding);
 
   if (!bytes) return null;
 
@@ -220,8 +308,13 @@ export async function decrypt_envelope_v2_plaintext(
 export async function decrypt_envelope_v2<T>(
   encrypted_b64: string,
   keys: Uint8Array[],
+  binding?: StoredEnvelopeBinding,
 ): Promise<T | null> {
-  const json = await decrypt_envelope_v2_plaintext(encrypted_b64, keys);
+  const json = await decrypt_envelope_v2_plaintext(
+    encrypted_b64,
+    keys,
+    binding,
+  );
 
   if (json === null) return null;
 
@@ -235,11 +328,12 @@ export async function decrypt_envelope_v2<T>(
 export async function decrypt_envelope_v2_with_vault<T>(
   encrypted_b64: string,
   vault: EncryptedVault | null | undefined,
+  binding?: StoredEnvelopeBinding,
 ): Promise<T | null> {
   const keys = envelope_v2_keys_from_vault(vault);
 
   try {
-    return await decrypt_envelope_v2<T>(encrypted_b64, keys);
+    return await decrypt_envelope_v2<T>(encrypted_b64, keys, binding);
   } finally {
     wipe_envelope_v2_keys(keys);
   }

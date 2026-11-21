@@ -129,6 +129,25 @@ describe("passkey passphrase wrap", () => {
       await open_passphrase_with_prf(PRF_OUTPUT, "***", VECTOR_NONCE, null),
     ).toBeNull();
   });
+
+  it("still opens an unbound wrap another app stored after a bound one", async () => {
+    expect(
+      await open_passphrase_with_prf(
+        PRF_OUTPUT,
+        BOUND_VECTOR,
+        VECTOR_NONCE,
+        CREDENTIAL_ID,
+      ),
+    ).toBe("vector passphrase");
+    expect(
+      await open_passphrase_with_prf(
+        PRF_OUTPUT,
+        UNBOUND_VECTOR,
+        VECTOR_NONCE,
+        CREDENTIAL_ID,
+      ),
+    ).toBe("vector passphrase");
+  });
 });
 
 describe("assertion user verification", () => {

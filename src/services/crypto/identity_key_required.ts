@@ -18,6 +18,25 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+const PLACEHOLDER_IDENTITY_KEYS = new Set([
+  "undefined",
+  "null",
+  "nan",
+  "[object object]",
+]);
+
+export function is_usable_identity_key(
+  identity_key: unknown,
+): identity_key is string {
+  if (typeof identity_key !== "string") return false;
+
+  const trimmed = identity_key.trim();
+
+  return (
+    trimmed.length > 0 && !PLACEHOLDER_IDENTITY_KEYS.has(trimmed.toLowerCase())
+  );
+}
+
 export class IdentityKeyMissingError extends Error {
   constructor() {
     super("identity key is not available");
@@ -28,7 +47,9 @@ export class IdentityKeyMissingError extends Error {
 export function with_identity_key<T extends { identity_key?: string | null }>(
   vault: T,
 ): T {
-  if (!vault.identity_key) throw new IdentityKeyMissingError();
+  if (!is_usable_identity_key(vault.identity_key)) {
+    throw new IdentityKeyMissingError();
+  }
 
   return vault;
 }

@@ -48,6 +48,7 @@ import {
 } from "@/components/email/hooks/preload_cache";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { remember_forward_from } from "@/components/email/delivery_reply_address";
+import { extract_reply_to } from "@/utils/reply_to";
 import mail_logo_url from "@/assets/mail_logo.webp";
 
 export type ReplyComposeMode = "reply" | "reply_all" | "forward";
@@ -69,6 +70,9 @@ export function use_open_reply_compose(
         const is_own_message = email.item_type === "sent";
         const is_forwarded = !is_own_message && !!email.display_sender_email;
         const first_recipient = email.recipient_addresses?.[0];
+        const reply_to = raw_headers
+          ? extract_reply_to(raw_headers)
+          : email.reply_to;
         const { recipient_name, recipient_email } = build_reply_recipient(
           {
             sender_name: email.sender_name,
@@ -76,8 +80,8 @@ export function use_open_reply_compose(
             first_to: first_recipient
               ? { name: "", email: first_recipient }
               : undefined,
-            reply_to: email.reply_to
-              ? { name: email.reply_to.name ?? "", email: email.reply_to.email }
+            reply_to: reply_to
+              ? { name: reply_to.name ?? "", email: reply_to.email }
               : undefined,
             reply_alias: is_forwarded
               ? { name: email.sender_name, email: email.sender_email }

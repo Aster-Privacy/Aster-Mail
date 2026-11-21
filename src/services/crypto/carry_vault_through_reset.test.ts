@@ -47,6 +47,7 @@ import {
   derive_encryption_key_from_passphrase,
 } from "./memory_key_store";
 import { generate_ratchet_keys } from "./ratchet_keys";
+import { retired_storage_kek_id } from "./retired_storage_keks";
 
 const OLD_PASSWORD = "Old-Passw0rd-for-carry";
 const NEW_PASSWORD = "New-Passw0rd-after-reset";
@@ -108,6 +109,33 @@ function keks_of(vault: EncryptedVault): string[] {
 }
 
 describe("carry_vault_through_reset", () => {
+  it("carries the retired storage key hashes forward", LONG_TEST, async () => {
+    const old_vault: EncryptedVault = {
+      identity_key: await identity_for(OLD_PASSWORD),
+      previous_keys: [],
+      signed_prekey: "old-spk",
+      signed_prekey_private: "old-spk-private",
+      recovery_codes: ["OLDCODE-1"],
+      data_kek: array_to_base64(crypto.getRandomValues(new Uint8Array(32))),
+      data_kek_random: true,
+      vault_format: MASTER_KEY_VAULT_FORMAT,
+      kdf_version: STORAGE_KDF_VERSION_STRETCHED,
+      retired_storage_key_hashes: ["retired-hash-one", "retired-hash-two"],
+    };
+
+    const carried = await carry_vault_through_reset(
+      old_vault,
+      OLD_PASSWORD,
+      await fresh_vault_for(NEW_PASSWORD),
+      NEW_PASSWORD,
+    );
+
+    expect(carried.retired_storage_key_hashes).toEqual([
+      "retired-hash-one",
+      "retired-hash-two",
+    ]);
+  });
+
   it(
     "keeps a random master key and relocks the identity key under the new password",
     LONG_TEST,
@@ -229,6 +257,12 @@ describe("carry_vault_through_reset", () => {
       expect(keks_of(carried)).not.toContain(carried.data_kek);
       expect(carried.storage_rekey?.state).toBe("pending");
       expect(carried.storage_rekey?.prior_keys).toContain(promoted);
+      expect(carried.pending_retire_kek_ids).toContain(
+        retired_storage_kek_id(base64_to_array(promoted)),
+      );
+      expect(carried.pending_retire_kek_ids).not.toContain(
+        retired_storage_kek_id(base64_to_array(carried.data_kek!)),
+      );
     },
   );
 
@@ -296,4 +330,97 @@ describe("carry_vault_through_reset", () => {
       expect(carried.legacy_identity_keys).toContain(stranger);
     },
   );
+
+  it(
+    "carries the prekey seal key and its migration state",
+    LONG_TEST,
+    async () => {
+      const seal_key = array_to_base64(
+        crypto.getRandomValues(new Uint8Array(32)),
+      );
+      const old_vault: EncryptedVault = {
+        identity_key: await identity_for(OLD_PASSWORD),
+        signed_prekey: "old-spk",
+        signed_prekey_private: "old-spk-private",
+        recovery_codes: [],
+        prekey_seal_key: seal_key,
+        prekey_seal_migrated: true,
+      };
+      const fresh = await fresh_vault_for(NEW_PASSWORD);
+
+      const carried = await carry_vault_through_reset(
+        old_vault,
+        OLD_PASSWORD,
+        fresh,
+        NEW_PASSWORD,
+      );
+
+      expect(carried.prekey_seal_key).toBe(seal_key);
+      expect(carried.prekey_seal_migrated).toBe(true);
+    },
+  );
+
+  it(
+    "carries the escrow seed together with its format",
+    LONG_TEST,
+    async () => {
+      const base: EncryptedVault = {
+        identity_key: await identity_for(OLD_PASSWORD),
+        signed_prekey: "old-spk",
+        signed_prekey_private: "old-spk-private",
+        recovery_codes: [],
+        data_kek: array_to_base64(crypto.getRandomValues(new Uint8Array(32))),
+        vault_format: MASTER_KEY_VAULT_FORMAT,
+        escrow_seed: "c2VlZA==",
+      };
+      const fresh = await fresh_vault_for(NEW_PASSWORD);
+
+      const marked = await carry_vault_through_reset(
+        { ...base, escrow_format: 2 },
+        OLD_PASSWORD,
+        { ...fresh, escrow_format: 2 },
+        NEW_PASSWORD,
+      );
+      const unmarked = await carry_vault_through_reset(
+        base,
+        OLD_PASSWORD,
+        { ...fresh, escrow_format: 2 },
+        NEW_PASSWORD,
+      );
+
+      expect(marked.escrow_seed).toBe("c2VlZA==");
+      expect(marked.escrow_format).toBe(2);
+      expect(unmarked.escrow_seed).toBe("c2VlZA==");
+      expect(unmarked.escrow_format).toBeUndefined();
+    },
+  );
+
+  it("keeps the folder pins of the old vault", LONG_TEST, async () => {
+    const base: EncryptedVault = {
+      identity_key: await identity_for(OLD_PASSWORD),
+      signed_prekey: "old-spk",
+      signed_prekey_private: "old-spk-private",
+      recovery_codes: [],
+      data_kek: array_to_base64(crypto.getRandomValues(new Uint8Array(32))),
+      vault_format: MASTER_KEY_VAULT_FORMAT,
+      folder_pins: {
+        "folder-a": { key: "digest-a", current: true },
+        "folder-b": { key: "digest-b", current: false },
+      },
+    };
+    const fresh = await fresh_vault_for(NEW_PASSWORD);
+
+    const carried = await carry_vault_through_reset(
+      base,
+      OLD_PASSWORD,
+      { ...fresh, folder_pins: { "folder-c": { key: "digest-c", current: true } } },
+      NEW_PASSWORD,
+    );
+
+    expect(carried.folder_pins).toEqual({
+      "folder-a": { key: "digest-a", current: true },
+      "folder-b": { key: "digest-b", current: false },
+      "folder-c": { key: "digest-c", current: true },
+    });
+  });
 });

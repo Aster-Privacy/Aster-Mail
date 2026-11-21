@@ -46,7 +46,12 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { ProtectedRoute } from "@/components/common/protected_route";
-import { SuspendedAccountGate } from "@/components/common/suspended_account_gate";
+import {
+  SuspendedPage,
+  SuspensionStatusWatcher,
+} from "@/components/common/suspended_account_gate";
+import { SUSPENDED_PATH } from "@/lib/suspension_state";
+import { MailKeyUpgradeGate } from "@/components/common/mail_key_upgrade_gate";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
@@ -57,6 +62,7 @@ import { SimpleToast } from "@/components/toast/simple_toast";
 import { DesktopDownloadNotifier } from "@/native/desktop_download_bridge";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
+import { CreationTokenPrompt } from "@/components/auth/creation_token_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import {
   show_checkout_cancelled_upgrade,
@@ -69,6 +75,7 @@ import { request_special_offer_checkout } from "@/stores/special_offer_store";
 import {
   AliasCapUpsellModalHost,
   SpecialOfferModalHost,
+  OfferModalHost,
   UpgradeModalHost,
 } from "@/components/upgrade/upgrade_modal_hosts";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
@@ -83,6 +90,7 @@ import { install_global_autoscroll } from "@/lib/global_autoscroll";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
+import { PUBLIC_CANCEL_ENABLED } from "@/pages/public_cancel/enabled";
 
 const IndexPage = lazy_with_retry(() => import("@/pages/index"));
 
@@ -96,6 +104,12 @@ const RegisterPage = lazy_with_retry(() => import("@/pages/register"));
 const InvitePage = lazy_with_retry(() => import("@/pages/invite"));
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/forgot_password"),
+);
+const PublicCancelPage = lazy_with_retry(
+  () => import("@/pages/public_cancel"),
+);
+const PublicCancelConfirmPage = lazy_with_retry(
+  () => import("@/pages/public_cancel/confirm_page"),
 );
 const ResetPasswordPage = lazy_with_retry(
   () => import("@/pages/reset_password"),
@@ -443,7 +457,7 @@ function App() {
         <BillingSuccessHandler />
       </ErrorBoundary>
       <CheckoutReturnHandler />
-      <SuspendedAccountGate />
+      <SuspensionStatusWatcher />
       <PendingDeletionDialog />
       <Family2faDialog />
       <UpdateBanner />
@@ -556,11 +570,21 @@ function App() {
                 }
                 path="/alias/:alias_address"
               />
+              <Route element={<SuspendedPage />} path={SUSPENDED_PATH} />
               <Route element={<SignInPage />} path="/sign-in" />
               <Route element={<RegisterPage />} path="/register" />
               <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              {PUBLIC_CANCEL_ENABLED && (
+                <Route element={<PublicCancelPage />} path="/cancel" />
+              )}
+              {PUBLIC_CANCEL_ENABLED && (
+                <Route
+                  element={<PublicCancelConfirmPage />}
+                  path="/cancel/confirm"
+                />
+              )}
               <Route element={<ResetPasswordPage />} path="/reset-password" />
               <Route
                 element={<VerifyRecoveryEmailPage />}
@@ -646,6 +670,7 @@ function App() {
       <UnsubscribeConfirmationModal />
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
+      <CreationTokenPrompt />
       <ErrorBoundary fallback={null}>
         <UpgradeModalHost />
         <AliasCapUpsellModalHost />
@@ -653,11 +678,13 @@ function App() {
       <ProfilePictureDialog />
       <ErrorBoundary fallback={null}>
         <SpecialOfferModalHost />
+        <OfferModalHost />
       </ErrorBoundary>
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />
       <EmailNotificationManager />
       <FolderUnlockPrompt />
+      <MailKeyUpgradeGate />
       <OfflineIndicator position="top" />
     </AppLock>
   );

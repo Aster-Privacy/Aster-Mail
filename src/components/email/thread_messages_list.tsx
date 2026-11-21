@@ -57,6 +57,7 @@ import {
   emit_mail_soft_refresh,
   mail_event_bus,
   MAIL_EVENTS,
+  type MailItemUpdatedEventDetail,
 } from "@/hooks/mail_events";
 import { get_cached_folders } from "@/hooks/use_folders";
 import { order_folders_as_tree } from "@/hooks/use_folders/tree";
@@ -465,11 +466,20 @@ export const ThreadMessagesList = forwardRef<
     return initial;
   });
 
+  const local_read_overrides = useRef<LocalFlagOverrides>(new Map());
+  const synced_read = useRef<Map<string, boolean>>(new Map());
+
+  const resolve_read = (msg: DecryptedThreadMessage): boolean =>
+    resolve_local_flag(local_read_overrides.current, msg.id) ??
+    synced_read.current.get(msg.id) ??
+    get_read_intent(msg.id) ??
+    msg.is_read;
+
   const [read_ids, set_read_ids] = useState<Set<string>>(() => {
     const initial = new Set<string>();
 
     messages.forEach((msg) => {
-      if (msg.is_read) {
+      if (resolve_read(msg)) {
         initial.add(msg.id);
       }
     });
@@ -478,7 +488,9 @@ export const ThreadMessagesList = forwardRef<
   });
 
   const read_ids_ref = useRef<Set<string>>(read_ids);
-  const local_read_overrides = useRef<LocalFlagOverrides>(new Map());
+  const messages_ref = useRef(messages);
+
+  messages_ref.current = messages;
   const local_star_overrides = useRef<LocalFlagOverrides>(new Map());
   const auto_read_ids = useRef<Set<string>>(new Set());
   const pending_read_updates = useRef<
@@ -513,17 +525,59 @@ export const ThreadMessagesList = forwardRef<
 
   useEffect(() => {
     const new_read = new Set<string>();
+    const listed = new Set(messages.map((msg) => msg.id));
+
+    for (const [id, value] of synced_read.current) {
+      const msg = messages.find((m) => m.id === id);
+
+      if (!listed.has(id) || msg?.is_read === value) {
+        synced_read.current.delete(id);
+      }
+    }
 
     messages.forEach((msg) => {
-      const read =
-        resolve_local_flag(local_read_overrides.current, msg.id) ?? msg.is_read;
-
-      if (read) {
+      if (resolve_read(msg)) {
         new_read.add(msg.id);
       }
     });
     set_read_ids(new_read);
   }, [messages]);
+
+  useEffect(() => {
+    const handle_item_updated = (event: Event) => {
+      const detail = (event as CustomEvent<MailItemUpdatedEventDetail>)
+        .detail;
+
+      if (!detail || detail.is_read === undefined) return;
+      if (!messages_ref.current.some((m) => m.id === detail.id)) return;
+
+      const next_read = detail.is_read;
+
+      synced_read.current.set(detail.id, next_read);
+      local_read_overrides.current.delete(detail.id);
+      set_read_ids((prev) => {
+        if (prev.has(detail.id) === next_read) return prev;
+        const next = new Set(prev);
+
+        if (next_read) {
+          next.add(detail.id);
+        } else {
+          next.delete(detail.id);
+        }
+
+        return next;
+      });
+    };
+
+    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_updated);
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEM_UPDATED,
+        handle_item_updated,
+      );
+    };
+  }, []);
 
   const message_ids_key = useMemo(
     () => regular_messages.map((m) => m.id).join(","),

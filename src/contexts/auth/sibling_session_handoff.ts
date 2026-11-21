@@ -24,9 +24,27 @@ import type { User } from "@/services/account_manager";
 import { decrypt_vault_with_lock } from "./vault_decryption";
 
 import {
+  await_sibling_approval,
   open_bridge_channel,
   request_sibling_session,
 } from "@/lib/session_handoff/session_handoff_client";
+import {
+  generate_grant_id,
+  local_grant_storage,
+  write_grant,
+} from "@/lib/session_handoff/session_handoff_grant";
+import {
+  SESSION_APPROVAL_HASH_PREFIX,
+  SESSION_BRIDGE_PATH,
+  get_handoff_sibling_origin,
+  is_handoff_grant_id,
+} from "@/lib/session_handoff/session_handoff_protocol";
+import {
+  safe_session_get,
+  safe_session_remove,
+  safe_session_set,
+} from "@/lib/safe_storage";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 import { api_client } from "@/services/api/client";
 import { get_csrf_token_from_cookie } from "@/services/api/csrf";
 import { verify_auth_status } from "@/services/api/auth";
@@ -37,13 +55,21 @@ const SKIPPED_PATH_PREFIXES = [
   "/signup",
   "/invite",
   "/forgot-password",
+  "/cancel",
   "/reset-password",
   "/link-device",
-  "/join",
   "/family",
   "/view",
   "/book",
 ];
+
+export const HANDOFF_GRANT_HASH_PREFIX = "#handoff=";
+
+const PENDING_GRANT_KEY = "aster_session_handoff_grant";
+const APPROVAL_WINDOW_FEATURES = "popup=yes,width=440,height=400";
+const PANEL_GRANT_TTL_MS = 60 * 1000;
+
+export type SiblingSignInResult = "approved" | "blocked" | "failed";
 
 export interface SiblingSessionLogin {
   user: User;
@@ -55,11 +81,94 @@ export interface SiblingSessionLogin {
 
 export function can_attempt_sibling_handoff(pathname: string): boolean {
   if (typeof window === "undefined") return false;
-  if ("__TAURI_INTERNALS__" in window) return false;
+  if (has_tauri_runtime()) return false;
+  if (sibling_app_origin() === null) return false;
 
   return !SKIPPED_PATH_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
+}
+
+export function has_sibling_session_cookie(): boolean {
+  return get_csrf_token_from_cookie() !== null;
+}
+
+export function sibling_app_origin(): string | null {
+  if (typeof window === "undefined") return null;
+  if (has_tauri_runtime()) return null;
+
+  return get_handoff_sibling_origin(window.location.origin);
+}
+
+function take_hash_grant(): string | null {
+  const { hash, pathname, search } = window.location;
+
+  if (!hash.startsWith(HANDOFF_GRANT_HASH_PREFIX)) return null;
+
+  window.history.replaceState(window.history.state, "", pathname + search);
+
+  const grant = hash.slice(HANDOFF_GRANT_HASH_PREFIX.length);
+
+  return is_handoff_grant_id(grant) ? grant : null;
+}
+
+export function take_pending_handoff_grant(): string | null {
+  const from_hash = take_hash_grant();
+  const stored = safe_session_get(PENDING_GRANT_KEY);
+
+  if (stored !== null) safe_session_remove(PENDING_GRANT_KEY);
+  if (from_hash) return from_hash;
+
+  return is_handoff_grant_id(stored) ? stored : null;
+}
+
+export async function start_sibling_sign_in(): Promise<SiblingSignInResult> {
+  const sibling_origin = sibling_app_origin();
+
+  if (!sibling_origin || !has_sibling_session_cookie()) return "failed";
+
+  const grant = generate_grant_id();
+  const popup = window.open(
+    `${sibling_origin}${SESSION_BRIDGE_PATH}${SESSION_APPROVAL_HASH_PREFIX}${grant}`,
+    "_blank",
+    APPROVAL_WINDOW_FEATURES,
+  );
+
+  if (!popup) return "blocked";
+
+  const approved = await await_sibling_approval(
+    window.location.origin,
+    grant,
+    open_bridge_channel,
+  );
+
+  if (!approved) return "failed";
+
+  safe_session_set(PENDING_GRANT_KEY, grant);
+
+  return "approved";
+}
+
+export function mint_panel_handoff_grant(audience: string): string | null {
+  const user_id = api_client.get_cached_user_info()?.user_id;
+
+  if (!user_id) return null;
+
+  const grant = generate_grant_id();
+  const now = Date.now();
+  const written = write_grant(
+    local_grant_storage,
+    grant,
+    {
+      user_id,
+      audience,
+      expires_at: now + PANEL_GRANT_TTL_MS,
+      state: "approved",
+    },
+    now,
+  );
+
+  return written ? grant : null;
 }
 
 async function verify_server_session(): Promise<string | null> {
@@ -76,15 +185,19 @@ export async function obtain_sibling_session(
 ): Promise<SiblingSessionLogin | null> {
   if (!can_attempt_sibling_handoff(pathname)) return null;
 
+  const grant = take_pending_handoff_grant();
+
+  if (!grant) return null;
+
   const session = await request_sibling_session(
     {
       origin: window.location.origin,
-      has_session_cookie: () => get_csrf_token_from_cookie() !== null,
+      has_session_cookie: has_sibling_session_cookie,
       verify_server_session,
       has_local_lock: (user_id) => get_app_lock_config(user_id) !== null,
       open_channel: open_bridge_channel,
     },
-    { expected_user_id },
+    { grant, expected_user_id },
   );
 
   if (!session) return null;

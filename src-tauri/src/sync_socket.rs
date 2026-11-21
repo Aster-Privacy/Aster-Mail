@@ -30,7 +30,7 @@ use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::http::header::{ORIGIN, USER_AGENT};
 use tokio_tungstenite::tungstenite::http::HeaderValue;
 use tokio_tungstenite::tungstenite::Message;
-use tokio_tungstenite::{connect_async_tls_with_config, Connector};
+use tokio_tungstenite::{client_async_tls_with_config, Connector};
 
 const SYNC_SOCKET_EVENT: &str = "aster://sync-socket";
 const PRIMARY_WINDOW: &str = "main";
@@ -38,6 +38,8 @@ const SOCKET_ORIGIN: &str = "https://tauri.localhost";
 const SOCKET_DOMAIN: &str = "astermail.org";
 const SOCKET_DOMAIN_SUFFIX: &str = ".astermail.org";
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
+const IDLE_TIMEOUT: Duration = Duration::from_secs(90);
+const SEND_TIMEOUT: Duration = Duration::from_secs(15);
 const MAX_OUTGOING_BYTES: usize = 1024 * 1024;
 
 enum Outgoing {
@@ -118,40 +120,65 @@ fn emit(app: &AppHandle, id: u64, kind: &'static str, data: Option<String>) {
     let _ = app.emit_to(PRIMARY_WINDOW, SYNC_SOCKET_EVENT, SocketEvent { id, kind, data });
 }
 
-async fn pump<S>(app: AppHandle, id: u64, stream: S, mut outgoing: UnboundedReceiver<Outgoing>)
+async fn run_socket<S, F>(
+    stream: S,
+    mut outgoing: UnboundedReceiver<Outgoing>,
+    idle_timeout: Duration,
+    send_timeout: Duration,
+    mut on_text: F,
+) where
+    S: futures_util::Stream<Item = Result<Message, tokio_tungstenite::tungstenite::Error>>
+        + futures_util::Sink<Message>
+        + Unpin,
+    F: FnMut(String),
+{
+    let (mut sink, mut source) = stream.split();
+    let mut last_incoming = tokio::time::Instant::now();
+
+    loop {
+        let idle_deadline = last_incoming + idle_timeout;
+
+        tokio::select! {
+            next = outgoing.recv() => match next {
+                Some(Outgoing::Text(text)) => {
+                    let sent = tokio::time::timeout(send_timeout, sink.send(Message::text(text))).await;
+                    if !matches!(sent, Ok(Ok(()))) {
+                        break;
+                    }
+                }
+                Some(Outgoing::Close) | None => {
+                    let _ = tokio::time::timeout(send_timeout, sink.send(Message::Close(None))).await;
+                    break;
+                }
+            },
+            next = source.next() => {
+                last_incoming = tokio::time::Instant::now();
+                match next {
+                    Some(Ok(Message::Text(text))) => on_text(text.as_str().to_owned()),
+                    Some(Ok(Message::Close(_))) | Some(Err(_)) | None => break,
+                    Some(Ok(_)) => {
+                        let flushed = tokio::time::timeout(send_timeout, sink.flush()).await;
+                        if !matches!(flushed, Ok(Ok(()))) {
+                            break;
+                        }
+                    }
+                }
+            },
+            _ = tokio::time::sleep_until(idle_deadline) => break,
+        }
+    }
+}
+
+async fn pump<S>(app: AppHandle, id: u64, stream: S, outgoing: UnboundedReceiver<Outgoing>)
 where
     S: futures_util::Stream<Item = Result<Message, tokio_tungstenite::tungstenite::Error>>
         + futures_util::Sink<Message>
         + Unpin,
 {
-    let (mut sink, mut source) = stream.split();
-
-    loop {
-        tokio::select! {
-            next = outgoing.recv() => match next {
-                Some(Outgoing::Text(text)) => {
-                    if sink.send(Message::text(text)).await.is_err() {
-                        break;
-                    }
-                }
-                Some(Outgoing::Close) | None => {
-                    let _ = sink.send(Message::Close(None)).await;
-                    break;
-                }
-            },
-            next = source.next() => match next {
-                Some(Ok(Message::Text(text))) => {
-                    emit(&app, id, "message", Some(text.as_str().to_owned()));
-                }
-                Some(Ok(Message::Close(_))) | Some(Err(_)) | None => break,
-                Some(Ok(_)) => {
-                    if sink.flush().await.is_err() {
-                        break;
-                    }
-                }
-            },
-        }
-    }
+    run_socket(stream, outgoing, IDLE_TIMEOUT, SEND_TIMEOUT, |text| {
+        emit(&app, id, "message", Some(text))
+    })
+    .await;
 
     app.state::<SyncSockets>().release(id);
     emit(&app, id, "close", None);
@@ -180,13 +207,22 @@ pub async fn sync_socket_open(
     );
 
     let connector = Connector::Rustls(crate::http_client::pinned_tls_config()?);
-    let (stream, _) = tokio::time::timeout(
-        CONNECT_TIMEOUT,
-        connect_async_tls_with_config(request, None, true, Some(connector)),
-    )
+    let host = url
+        .host_str()
+        .ok_or_else(|| "invalid sync socket url".to_string())?
+        .to_string();
+    let port = url.port_or_known_default().unwrap_or(443);
+    let (stream, _) = tokio::time::timeout(CONNECT_TIMEOUT, async move {
+        let tcp = crate::address_race::connect_host(&host, port)
+            .await
+            .map_err(|_| "sync socket connection failed".to_string())?;
+        let _ = tcp.set_nodelay(true);
+        client_async_tls_with_config(request, tcp, None, Some(connector))
+            .await
+            .map_err(|_| "sync socket connection failed".to_string())
+    })
     .await
-    .map_err(|_| "sync socket connection timed out".to_string())?
-    .map_err(|_| "sync socket connection failed".to_string())?;
+    .map_err(|_| "sync socket connection timed out".to_string())??;
 
     let id = sockets.next_id.fetch_add(1, Ordering::Relaxed) + 1;
     let (sender, receiver) = unbounded_channel();
@@ -274,6 +310,132 @@ mod tests {
         assert!(matches!(first_rx.try_recv(), Ok(Outgoing::Close)));
         assert!(sockets.sender(1).is_none());
         assert!(sockets.sender(2).is_some());
+    }
+
+    struct FakeSocket {
+        incoming: UnboundedReceiver<Result<Message, tokio_tungstenite::tungstenite::Error>>,
+        sent: UnboundedSender<Message>,
+        stall_sends: bool,
+    }
+
+    impl futures_util::Stream for FakeSocket {
+        type Item = Result<Message, tokio_tungstenite::tungstenite::Error>;
+
+        fn poll_next(
+            self: std::pin::Pin<&mut Self>,
+            cx: &mut std::task::Context<'_>,
+        ) -> std::task::Poll<Option<Self::Item>> {
+            self.get_mut().incoming.poll_recv(cx)
+        }
+    }
+
+    impl futures_util::Sink<Message> for FakeSocket {
+        type Error = ();
+
+        fn poll_ready(
+            self: std::pin::Pin<&mut Self>,
+            _cx: &mut std::task::Context<'_>,
+        ) -> std::task::Poll<Result<(), ()>> {
+            if self.stall_sends {
+                std::task::Poll::Pending
+            } else {
+                std::task::Poll::Ready(Ok(()))
+            }
+        }
+
+        fn start_send(self: std::pin::Pin<&mut Self>, item: Message) -> Result<(), ()> {
+            let _ = self.sent.send(item);
+            Ok(())
+        }
+
+        fn poll_flush(
+            self: std::pin::Pin<&mut Self>,
+            cx: &mut std::task::Context<'_>,
+        ) -> std::task::Poll<Result<(), ()>> {
+            self.poll_ready(cx)
+        }
+
+        fn poll_close(
+            self: std::pin::Pin<&mut Self>,
+            _cx: &mut std::task::Context<'_>,
+        ) -> std::task::Poll<Result<(), ()>> {
+            std::task::Poll::Ready(Ok(()))
+        }
+    }
+
+    struct Harness {
+        incoming: UnboundedSender<Result<Message, tokio_tungstenite::tungstenite::Error>>,
+        outgoing: UnboundedSender<Outgoing>,
+        sent: UnboundedReceiver<Message>,
+        texts: std::sync::Arc<Mutex<Vec<String>>>,
+        task: tokio::task::JoinHandle<()>,
+    }
+
+    fn start_socket(stall_sends: bool, idle_timeout: Duration, send_timeout: Duration) -> Harness {
+        let (incoming, incoming_rx) = unbounded_channel();
+        let (sent_tx, sent) = unbounded_channel();
+        let (outgoing, outgoing_rx) = unbounded_channel();
+        let texts = std::sync::Arc::new(Mutex::new(Vec::new()));
+        let seen = texts.clone();
+        let socket = FakeSocket {
+            incoming: incoming_rx,
+            sent: sent_tx,
+            stall_sends,
+        };
+        let task = tokio::spawn(run_socket(socket, outgoing_rx, idle_timeout, send_timeout, move |text| {
+            seen.lock().unwrap().push(text)
+        }));
+
+        Harness {
+            incoming,
+            outgoing,
+            sent,
+            texts,
+            task,
+        }
+    }
+
+    #[tokio::test]
+    async fn a_connection_that_stops_receiving_is_closed_even_while_pings_go_out() {
+        let mut harness = start_socket(false, Duration::from_millis(200), Duration::from_secs(5));
+
+        for _ in 0..20 {
+            if harness.task.is_finished() {
+                break;
+            }
+            let _ = harness.outgoing.send(Outgoing::Text("{\"type\":\"ping\"}".to_string()));
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+
+        assert!(harness.task.is_finished());
+        assert!(harness.sent.try_recv().is_ok());
+    }
+
+    #[tokio::test]
+    async fn incoming_traffic_keeps_the_connection_open() {
+        let harness = start_socket(false, Duration::from_millis(200), Duration::from_secs(5));
+
+        for index in 0..8 {
+            let _ = harness.incoming.send(Ok(Message::text(format!("{index}"))));
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+
+        assert!(!harness.task.is_finished());
+        assert_eq!(harness.texts.lock().unwrap().len(), 8);
+
+        let _ = harness.outgoing.send(Outgoing::Close);
+        let finished = tokio::time::timeout(Duration::from_secs(2), harness.task).await;
+        assert!(finished.is_ok());
+    }
+
+    #[tokio::test]
+    async fn a_stalled_send_cannot_hold_the_socket_open() {
+        let harness = start_socket(true, Duration::from_secs(60), Duration::from_millis(100));
+
+        let _ = harness.outgoing.send(Outgoing::Text("{\"type\":\"ping\"}".to_string()));
+        let finished = tokio::time::timeout(Duration::from_secs(2), harness.task).await;
+
+        assert!(finished.is_ok());
     }
 
     #[test]

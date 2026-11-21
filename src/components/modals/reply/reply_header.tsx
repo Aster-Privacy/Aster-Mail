@@ -31,6 +31,7 @@ import { CloseIcon } from "@/components/common/icons";
 import { RecipientField } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
+import { ReadOnlyField } from "@/components/compose/read_only_field";
 import { use_i18n } from "@/lib/i18n/context";
 import { build_reply_subject } from "@/lib/reply_subject";
 import { resolve_reply_prefix } from "@/lib/reply_defaults";
@@ -315,17 +316,16 @@ export function ReplyHeader({
             recipients={[...recipients.to, ...recipients.cc, ...recipients.bcc]}
           />
 
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--aster-floating-divider)]">
-            <span className="text-sm flex-shrink-0 text-txt-tertiary">
-              {t("mail.subject")}
-            </span>
-            <span className="text-sm truncate text-txt-primary" dir="auto">
-              {build_reply_subject(
+          <ReadOnlyField
+            dir="auto"
+            label={t("mail.subject")}
+            value={
+              build_reply_subject(
                 original_subject,
                 resolve_reply_prefix(t("mail.reply_subject_prefix")),
-              ) || t("mail.no_subject")}
-            </span>
-          </div>
+              ) || t("mail.no_subject")
+            }
+          />
         </div>
       )}
     </>

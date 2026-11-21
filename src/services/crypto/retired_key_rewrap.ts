@@ -41,7 +41,6 @@ import {
   encrypt_calendar_payload,
   type CalendarBinding,
 } from "@/services/calendar/calendar_crypto";
-import { is_draft_busy } from "@/services/draft_activity";
 import { ignore_error } from "@/lib/ignore_error";
 
 const LOCK_NAME = "aster-retired-key-rewrap";
@@ -717,14 +716,6 @@ interface DraftPage {
   has_more: boolean;
 }
 
-async function content_hash(encrypted: string): Promise<string> {
-  return array_to_base64(
-    new Uint8Array(
-      await crypto.subtle.digest(HASH_ALG, new TextEncoder().encode(encrypted)),
-    ),
-  );
-}
-
 async function walk_drafts(
   visit: (draft: DraftRow) => Promise<PassResult>,
 ): Promise<PassResult> {
@@ -761,31 +752,31 @@ async function walk_drafts(
   return result;
 }
 
-const rewrap_drafts: PassHandler = (env) =>
-  walk_drafts((draft) =>
-    rewrap_blob(
-      env,
-      draft.encrypted_content,
-      draft.content_nonce,
-      async (sealed) => {
-        const saved = await api_client.put<{ success?: boolean }>(
-          `/mail/v1/drafts/${draft.id}`,
-          {
-            encrypted_content: sealed.encrypted,
-            content_nonce: sealed.nonce,
-            content_hash: await content_hash(sealed.encrypted),
-            version: draft.version,
-            size_bytes: sealed.encrypted.length,
-            has_attachments: draft.has_attachments === true,
-            attachment_count: draft.attachment_count ?? 0,
-          },
-        );
+async function park_retired_draft(
+  env: PassEnv,
+  draft: DraftRow,
+): Promise<PassResult> {
+  const result = empty_pass(true);
 
-        return !saved.error && saved.data?.success === true;
-      },
-      async () => !is_draft_busy(draft.id),
-    ),
+  result.checked = 1;
+
+  const opened = await open_under(
+    env.retired,
+    draft.encrypted_content,
+    draft.content_nonce,
   );
+
+  if (opened) {
+    opened.fill(0);
+    result.held = 1;
+    result.parked = 1;
+  }
+
+  return result;
+}
+
+const rewrap_drafts: PassHandler = (env) =>
+  walk_drafts((draft) => park_retired_draft(env, draft));
 
 interface ScheduledPage {
   items: { id: string }[];
@@ -861,58 +852,11 @@ async function remove_finished_scheduled(
   return !removed.error;
 }
 
-async function replace_scheduled(
-  env: PassEnv,
-  id: string,
-  row: ScheduledRow,
-  envelope: Uint8Array | null,
-  recipients: Uint8Array | null,
-): Promise<boolean> {
-  if (!row.envelope_nonce) return false;
-
-  const target = await env.target();
-  const next_envelope: Sealed | null = envelope
-    ? await reseal(target, envelope)
-    : row.encrypted_envelope
-      ? { encrypted: row.encrypted_envelope, nonce: row.envelope_nonce }
-      : null;
-  const next_recipients: Sealed | null = recipients
-    ? await reseal(target, recipients)
-    : row.encrypted_recipients && row.recipients_nonce
-      ? { encrypted: row.encrypted_recipients, nonce: row.recipients_nonce }
-      : null;
-
-  if (!next_envelope || !next_recipients) return false;
-  if (!(await env.active())) return false;
-
-  const saved = await api_client.patch<{ id?: string }>(
-    `${SCHEDULED_PATH}/${id}`,
-    {
-      envelope: {
-        encrypted_envelope: next_envelope.encrypted,
-        envelope_nonce: next_envelope.nonce,
-        encrypted_recipients: next_recipients.encrypted,
-        recipients_nonce: next_recipients.nonce,
-        expected_envelope_nonce: row.envelope_nonce,
-      },
-    },
-  );
-
-  if (saved.error || saved.data?.id !== id) return false;
-
-  const stored = await read_scheduled(id);
-
-  return (
-    stored?.envelope_nonce === next_envelope.nonce &&
-    stored.recipients_nonce === next_recipients.nonce
-  );
-}
-
 async function rewrap_scheduled_row(
   env: PassEnv,
   id: string,
   row: ScheduledRow,
-): Promise<"current" | "held" | "invalid" | "rewrapped"> {
+): Promise<"current" | "held" | "parked" | "rewrapped"> {
   const envelope = await open_under(
     env.retired,
     row.encrypted_envelope,
@@ -924,32 +868,25 @@ async function rewrap_scheduled_row(
     row.recipients_nonce,
   );
 
+  envelope?.fill(0);
+  recipients?.fill(0);
+
+  if (!envelope && !recipients) return "current";
+
+  const status = row.status ?? "";
+
+  if (!SCHEDULED_FINISHED.has(status)) {
+    return SCHEDULED_EDITABLE.has(status) ? "parked" : "held";
+  }
+
+  if (!env.write) return "held";
+
   try {
-    if (!envelope && !recipients) return "current";
-    if (!env.write) return "held";
-
-    const status = row.status ?? "";
-    let done = false;
-
-    if (SCHEDULED_FINISHED.has(status)) {
-      done = await remove_finished_scheduled(env, id, row);
-    } else if (SCHEDULED_EDITABLE.has(status)) {
-      if (
-        (envelope && !has_shape(envelope, "json")) ||
-        (recipients && !has_shape(recipients, "json"))
-      ) {
-        return "invalid";
-      }
-
-      done = await replace_scheduled(env, id, row, envelope, recipients);
-    }
-
-    return done ? "rewrapped" : "held";
+    return (await remove_finished_scheduled(env, id, row))
+      ? "rewrapped"
+      : "held";
   } catch {
     return "held";
-  } finally {
-    envelope?.fill(0);
-    recipients?.fill(0);
   }
 }
 
@@ -976,7 +913,7 @@ const rewrap_scheduled: PassHandler = async (env) => {
 
     if (outcome === "rewrapped") result.rewrapped++;
     if (outcome === "held") result.held++;
-    if (outcome === "invalid") {
+    if (outcome === "parked") {
       result.held++;
       result.parked++;
     }
@@ -1278,10 +1215,9 @@ interface RecoveryEmailRow {
 const RECOVERY_EMAIL_PATH = "/core/v1/recovery/email";
 
 const scan_recovery_email: PassHandler = async (env) => {
-  const response = await api_client.get<RecoveryEmailRow>(
-    RECOVERY_EMAIL_PATH,
-    { skip_cache: true },
-  );
+  const response = await api_client.get<RecoveryEmailRow>(RECOVERY_EMAIL_PATH, {
+    skip_cache: true,
+  });
 
   if (response.error || !response.data) return empty_pass(false);
 

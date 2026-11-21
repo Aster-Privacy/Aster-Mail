@@ -191,7 +191,17 @@ export async function resolve_external_signing_key(): Promise<PrivateKey | null>
 }
 
 export function export_external_public_key(): string | null {
-  return state.record?.public_key_armored ?? null;
+  const record = state.record;
+
+  if (state.status !== "ready" || !unlocked || !record) return null;
+
+  if (
+    normalize_external_fingerprint(record.fingerprint) !== unlocked.fingerprint
+  ) {
+    return null;
+  }
+
+  return unlocked.key.toPublic().armor();
 }
 
 export function clear_external_pgp_key(): void {
@@ -875,7 +885,7 @@ export async function preview_external_key_revocation(
 
   return build_revoked_public_key(
     input,
-    current.public_key_armored,
+    export_external_public_key() ?? current.public_key_armored,
     normalize_external_fingerprint(current.fingerprint),
   ).catch(() => null);
 }

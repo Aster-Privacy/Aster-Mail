@@ -98,6 +98,7 @@ import { reset_pgp_decrypt_pool } from "@/workers/pgp_decrypt_pool";
 import {
   clear_external_pgp_key,
   delete_external_key,
+  export_external_public_key,
   get_external_decryption_keys,
   get_external_key_state,
   get_external_signing_key,
@@ -395,6 +396,64 @@ describe("choosing the signing key", () => {
     expect(await resolve_external_signing_key()).toBeNull();
     expect(api_client.get).toHaveBeenCalledTimes(1);
     expect(get_external_key_state().record?.published).toBe(false);
+  });
+});
+
+describe("exporting the external public key", () => {
+  it("exports the public half of the unlocked key", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+
+    const exported = await openpgp.readKey({
+      armoredKey: export_external_public_key()!,
+    });
+
+    expect(exported.isPrivate()).toBe(false);
+    expect(exported.getFingerprint().toLowerCase()).toBe(
+      await fingerprint_of(first_armored),
+    );
+  });
+
+  it("ignores a public key the server swapped into the record", async () => {
+    expect((await upload_external_key(await prepare(first_armored))).ok).toBe(
+      true,
+    );
+    await set_external_key_published(true);
+
+    const server_armored = (
+      await openpgp.readPrivateKey({ armoredKey: second_armored })
+    )
+      .toPublic()
+      .armor();
+
+    vi.spyOn(Date, "now").mockReturnValue(Date.now() + 10 * 60 * 1000);
+    vi.mocked(api_client.get).mockResolvedValueOnce({
+      data: {
+        key: await server_record(first_armored, {
+          published: true,
+          public_key_armored: server_armored,
+        }),
+      },
+    } as never);
+    await resolve_external_signing_key();
+
+    expect(get_external_key_state().record?.public_key_armored).toBe(
+      server_armored,
+    );
+
+    const exported = await openpgp.readKey({
+      armoredKey: export_external_public_key()!,
+    });
+
+    expect(exported.getFingerprint().toLowerCase()).toBe(
+      await fingerprint_of(first_armored),
+    );
+    expect(export_external_public_key()).not.toBe(server_armored);
+  });
+
+  it("exports nothing when no key is unlocked", () => {
+    expect(export_external_public_key()).toBeNull();
   });
 });
 

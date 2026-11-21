@@ -127,10 +127,12 @@ describe("collapse_source_whitespace on pasted clipboard html", () => {
   it("keeps spacing inside elements styled to preserve whitespace", () => {
     expect(
       collapse('<div style="white-space: pre-wrap">a    b\n  c</div>'),
-    ).toBe('<div style="white-space: pre-wrap">a    b\n  c</div>');
+    ).toBe('<div style="white-space: pre-wrap">a &nbsp; &nbsp;b<br>&nbsp; c</div>');
     expect(
       collapse('<div style="white-space-collapse: preserve">a    b\n  c</div>'),
-    ).toBe('<div style="white-space-collapse: preserve">a    b\n  c</div>');
+    ).toBe(
+      '<div style="white-space-collapse: preserve">a &nbsp; &nbsp;b<br>&nbsp; c</div>',
+    );
   });
 
   it("collapses spaces but keeps newlines for pre-line content", () => {
@@ -138,7 +140,7 @@ describe("collapse_source_whitespace on pasted clipboard html", () => {
       collapse(
         '<div style="white-space: pre-line">one   two  \n   three</div>',
       ),
-    ).toBe('<div style="white-space: pre-line">one two\nthree</div>');
+    ).toBe('<div style="white-space: pre-line">one two<br>three</div>');
   });
 
   it("goes back to collapsing inside a normal child of a preserved parent", () => {

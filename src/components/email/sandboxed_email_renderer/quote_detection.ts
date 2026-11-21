@@ -118,6 +118,8 @@ export interface QuoteLine {
   block: Node;
 }
 
+export type QuoteText = Pick<QuoteLine, "text">;
+
 export interface QuoteStart {
   start: number;
   body_from: number;
@@ -243,7 +245,7 @@ export function collect_lines(root: Element): QuoteLine[] {
   return lines;
 }
 
-function is_header_block(lines: QuoteLine[], index: number): boolean {
+function is_header_block(lines: QuoteText[], index: number): boolean {
   if (!FROM_LINE_RE.test(lines[index].text)) return false;
 
   let has_date = false;
@@ -261,7 +263,7 @@ function is_header_block(lines: QuoteLine[], index: number): boolean {
 }
 
 function with_separator(
-  lines: QuoteLine[],
+  lines: QuoteText[],
   start: number,
   body_from: number,
 ): QuoteStart {
@@ -282,7 +284,7 @@ function wraps_into_attribution(text: string, next: string | undefined) {
   return is_attribution_text(`${text} ${next}`);
 }
 
-export function find_quote_start(lines: QuoteLine[]): QuoteStart | null {
+export function find_quote_start(lines: QuoteText[]): QuoteStart | null {
   for (let i = 0; i < lines.length; i++) {
     const text = lines[i].text;
 

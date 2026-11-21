@@ -27,6 +27,9 @@ import type {
   PhoneEntry,
 } from "@/types/contacts";
 
+import { normalize_related_people } from "@/utils/contact_relations";
+import { normalize_social_networks } from "@/utils/contact_socials";
+
 export type SortOption =
   | "name_asc"
   | "name_desc"
@@ -121,6 +124,14 @@ export function sync_legacy_fields(form: ContactFormData): ContactFormData {
 
     next.address =
       index >= 0 ? plain_address(next.address_entries[index]) : undefined;
+  }
+
+  if (form.related_people !== undefined) {
+    next.related_people = normalize_related_people(form.related_people);
+  }
+
+  if (form.social_networks !== undefined) {
+    next.social_networks = normalize_social_networks(form.social_networks);
   }
 
   return next;

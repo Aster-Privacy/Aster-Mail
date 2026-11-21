@@ -56,6 +56,8 @@ export interface SenderTrustOverrides {
   shown_email?: string | null;
 }
 
+const OWN_OUTGOING_TYPES = new Set(["sent", "scheduled", "draft"]);
+
 function recorded_status(raw: string | null | undefined): string {
   const value = (raw ?? "").trim().toLowerCase();
 
@@ -93,6 +95,14 @@ export function sender_trust_input(
     message.system_origin !== true &&
     message.sender_verification !== "verified";
   const drop_verified = is_rewritten || unbound_internal;
+  const actual_key = actual_email.trim().toLowerCase();
+  const own_outgoing =
+    !is_rewritten &&
+    OWN_OUTGOING_TYPES.has(message.item_type ?? "") &&
+    actual_key !== "" &&
+    context.own_addresses.some(
+      (address) => address.trim().toLowerCase() === actual_key,
+    );
 
   return {
     name,
@@ -109,9 +119,11 @@ export function sender_trust_input(
       ? undefined
       : (message.sender_verified_domain ?? undefined),
     is_internal:
-      !is_rewritten &&
-      message.is_external === false &&
-      message.sender_verification !== "invalid",
+      own_outgoing ||
+      (!is_rewritten &&
+        message.is_external === false &&
+        message.sender_verification !== "invalid"),
+    internal_route: !is_rewritten && message.is_external === false,
     own_addresses: context.own_addresses,
     contacts: context.contacts,
   };

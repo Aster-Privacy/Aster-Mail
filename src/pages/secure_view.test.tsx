@@ -53,7 +53,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => h.i18n,
 }));
 
-vi.mock("@/services/crypto/secure_message_crypto", () => ({
+vi.mock("@/services/crypto/secure_message_crypto", async (original) => ({
+  ...(await original<typeof import("@/services/crypto/secure_message_crypto")>()),
   derive_auth_proof: h.derive_auth_proof,
   decrypt_secure_message: h.decrypt_secure_message,
 }));
@@ -265,6 +266,7 @@ describe("secure view page actions", () => {
       TYPED_SECRET,
       "c2FsdHNhbHRzYWx0c2FsdA",
       expect.anything(),
+      1,
     );
     expect(container.textContent).toContain("Quarterly numbers");
 
@@ -283,6 +285,31 @@ describe("secure view page actions", () => {
     expect(serialized_requests()).not.toContain(SERVER_FIELD);
     expect(h.derive_secure_view_key).not.toHaveBeenCalled();
     expect(container.querySelector("textarea")).toBeNull();
+  });
+
+  it("sends no proof when a server presents an end-to-end encrypted view as a password view with weak settings", async () => {
+    route_requests(
+      legacy_view({
+        password_kdf: {
+          ...PASSWORD_KDF,
+          memory_kib: 64,
+          iterations: 1,
+          parallelism: 1,
+        },
+      }),
+      LEGACY_CONTENT,
+    );
+
+    await render_page();
+    await unlock();
+
+    expect(h.derive_secure_view_key).not.toHaveBeenCalled();
+    expect(h.derive_auth_proof).not.toHaveBeenCalled();
+    expect(
+      fetch_mock.mock.calls.some(([url]) => String(url).endsWith("/verify")),
+    ).toBe(false);
+    expect(serialized_requests()).not.toContain(TYPED_SECRET);
+    expect(container.textContent).not.toContain("Quarterly numbers");
   });
 
   it("sends nothing when an end-to-end encrypted view arrives without a salt", async () => {

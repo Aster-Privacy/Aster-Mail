@@ -37,7 +37,7 @@ function english(key: string): string {
 }
 
 const CANONICAL = [
-  ["primary", "Inbox"],
+  ["primary", "Primary"],
   ["promotions", "Deals"],
   ["newsletters", "Newsletters"],
   ["social", "Social"],

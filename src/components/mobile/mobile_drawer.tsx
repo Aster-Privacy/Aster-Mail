@@ -31,6 +31,7 @@ import {
 
 import { use_platform } from "@/hooks/use_platform";
 import { create_folder_error_message } from "@/lib/folder_error_message";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
@@ -39,7 +40,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { has_sibling_named, use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
-import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
+import { DEFAULT_PICKER_COLOR } from "@/lib/color_wheel";
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
 import {
   create_alias,
@@ -132,10 +133,10 @@ export const MobileDrawer = memo(function MobileDrawer({
   const [new_folder_name, set_new_folder_name] = useState("");
   const [new_label_name, set_new_label_name] = useState("");
   const [new_folder_color, set_new_folder_color] = useState<string>(
-    TAG_COLOR_PRESETS[10].hex,
+    DEFAULT_PICKER_COLOR,
   );
   const [new_label_color, set_new_label_color] = useState<string>(
-    TAG_COLOR_PRESETS[10].hex,
+    DEFAULT_PICKER_COLOR,
   );
   const [new_label_icon, set_new_label_icon] = useState<string | undefined>(
     undefined,
@@ -275,8 +276,8 @@ export const MobileDrawer = memo(function MobileDrawer({
       set_show_create_label(false);
       set_new_folder_name("");
       set_new_label_name("");
-      set_new_folder_color(TAG_COLOR_PRESETS[10].hex);
-      set_new_label_color(TAG_COLOR_PRESETS[10].hex);
+      set_new_folder_color(DEFAULT_PICKER_COLOR);
+      set_new_label_color(DEFAULT_PICKER_COLOR);
       set_new_label_icon(undefined);
       set_show_create_alias(false);
       set_new_alias_local("");
@@ -331,12 +332,16 @@ export const MobileDrawer = memo(function MobileDrawer({
 
     set_is_creating_folder(false);
     if (!result.folder) {
-      show_toast(create_folder_error_message(result.code, t), "error");
+      if (result.code === "PLAN_LIMIT_EXCEEDED") {
+        show_plan_limit_upgrade({ resource: "folders" });
+      } else {
+        show_toast(create_folder_error_message(result.code, t), "error");
+      }
 
       return;
     }
     set_new_folder_name("");
-    set_new_folder_color(TAG_COLOR_PRESETS[10].hex);
+    set_new_folder_color(DEFAULT_PICKER_COLOR);
     set_show_create_folder(false);
   }, [
     new_folder_name,
@@ -361,7 +366,7 @@ export const MobileDrawer = memo(function MobileDrawer({
       return;
     }
     set_new_label_name("");
-    set_new_label_color(TAG_COLOR_PRESETS[10].hex);
+    set_new_label_color(DEFAULT_PICKER_COLOR);
     set_new_label_icon(undefined);
     set_show_create_label(false);
   }, [
@@ -445,7 +450,7 @@ export const MobileDrawer = memo(function MobileDrawer({
   const handle_open_edit_folder = useCallback((folder: DecryptedFolder) => {
     set_editing_folder(folder);
     set_edit_folder_name(folder.name);
-    set_edit_folder_color(folder.color || TAG_COLOR_PRESETS[10].hex);
+    set_edit_folder_color(folder.color || DEFAULT_PICKER_COLOR);
   }, []);
 
   const handle_save_folder = useCallback(async () => {
@@ -497,7 +502,7 @@ export const MobileDrawer = memo(function MobileDrawer({
   const handle_open_edit_tag = useCallback((tag: DecryptedTag) => {
     set_editing_tag(tag);
     set_edit_tag_name(tag.name);
-    set_edit_tag_color(tag.color || TAG_COLOR_PRESETS[10].hex);
+    set_edit_tag_color(tag.color || DEFAULT_PICKER_COLOR);
     set_edit_tag_icon(tag.icon || undefined);
   }, []);
 
@@ -679,7 +684,7 @@ export const MobileDrawer = memo(function MobileDrawer({
         on_close={() => {
           set_show_create_folder(false);
           set_new_folder_name("");
-          set_new_folder_color(TAG_COLOR_PRESETS[10].hex);
+          set_new_folder_color(DEFAULT_PICKER_COLOR);
         }}
         set_folder_color={set_new_folder_color}
         set_folder_name={set_new_folder_name}
@@ -696,7 +701,7 @@ export const MobileDrawer = memo(function MobileDrawer({
         on_close={() => {
           set_show_create_label(false);
           set_new_label_name("");
-          set_new_label_color(TAG_COLOR_PRESETS[10].hex);
+          set_new_label_color(DEFAULT_PICKER_COLOR);
           set_new_label_icon(undefined);
         }}
         set_label_color={set_new_label_color}

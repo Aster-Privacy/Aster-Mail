@@ -337,6 +337,38 @@ const STOPWORDS: Readonly<Record<string, readonly string[]>> = {
     "hoje",
     "amanhã",
     "abraços",
+    "em",
+    "já",
+    "onde",
+    "neste",
+    "nesta",
+    "deste",
+    "desta",
+    "nisso",
+    "vosso",
+    "vossa",
+    "vossos",
+    "vossas",
+    "agradeço",
+    "boa",
+    "bom",
+    "pela",
+    "pelos",
+    "pelas",
+    "foi",
+    "tem",
+    "têm",
+    "há",
+    "estou",
+    "estão",
+    "ainda",
+    "agora",
+    "depois",
+    "lhe",
+    "fazer",
+    "gostaria",
+    "desde",
+    "porque",
   ],
   tr: [
     "için",
@@ -384,6 +416,26 @@ const DISCRIMINATIVE_STOPWORDS: ReadonlyMap<string, LanguageCode> = (() => {
   return discriminative;
 })();
 
+const ORTHOGRAPHY_MARKERS: ReadonlyArray<{
+  language: LanguageCode;
+  pattern: RegExp;
+}> = [
+  { language: "pt", pattern: /[ãõ]/ },
+  { language: "es", pattern: /ñ/ },
+];
+
+function token_language(token: string): LanguageCode | null {
+  const stopword = DISCRIMINATIVE_STOPWORDS.get(token);
+
+  if (stopword) return stopword;
+
+  for (const marker of ORTHOGRAPHY_MARKERS) {
+    if (marker.pattern.test(token)) return marker.language;
+  }
+
+  return null;
+}
+
 const TOKEN_SPLIT = /[^\p{L}]+/u;
 const TRAILING_WEIGHT_FLOOR = 0.35;
 
@@ -405,7 +457,7 @@ function detect_by_stopwords(text: string): DetectionResult | null {
   const raw_hits = new Map<LanguageCode, number>();
 
   for (let index = 0; index < tokens.length; index += 1) {
-    const language = DISCRIMINATIVE_STOPWORDS.get(tokens[index]);
+    const language = token_language(tokens[index]);
 
     if (!language) continue;
 

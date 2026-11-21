@@ -106,6 +106,8 @@ import {
   report_client_error,
 } from "@/services/error_reporter";
 
+const ALIAS_SENDING_DISABLED_SERVER_CODE = "ALIAS_SENDING_DISABLED";
+
 const RATE_LIMIT_DEFAULT_HOLD_MS = 2000;
 const RATE_LIMIT_MAX_HOLD_MS = 15_000;
 const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
@@ -1241,6 +1243,24 @@ export class ApiClient {
     }
   }
 
+  is_intentional_logout(): boolean {
+    return this.intentional_logout;
+  }
+
+  async confirm_signed_out_elsewhere(account_id: string): Promise<boolean> {
+    if (this.intentional_logout) return false;
+
+    const response = await this.get<{ user_id: string }>("/core/v1/auth/me", {
+      skip_cache: true,
+      skip_session_refresh: true,
+      skip_dedup: true,
+    });
+
+    if (response.data?.user_id) return response.data.user_id !== account_id;
+
+    return response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN";
+  }
+
   end_intentional_logout(): void {
     this.intentional_logout = false;
     this.suspend_account_persist_flag = false;
@@ -2114,6 +2134,19 @@ export class ApiClient {
           }
 
           if (
+            response.status === 403 &&
+            error_data.code === "INSTALL_ACCOUNT_LIMIT"
+          ) {
+            return {
+              error: get_active_translations().auth.install_limit_title,
+              code: "FORBIDDEN",
+              status: response.status,
+              server_code: error_data.code,
+              details: error_data.details,
+            };
+          }
+
+          if (
             response.status === 422 &&
             error_data.code === "RECOVERY_EMAIL_REQUIRED"
           ) {
@@ -2132,7 +2165,11 @@ export class ApiClient {
           ) {
             const on_auth_endpoint = is_auth_endpoint(endpoint);
 
-            if (!skip_upgrade_prompt && !on_auth_endpoint) {
+            if (
+              !skip_upgrade_prompt &&
+              !on_auth_endpoint &&
+              is_state_changing_method(method)
+            ) {
               window.dispatchEvent(
                 new CustomEvent("aster:plan-limit-hit", {
                   detail: {
@@ -2308,16 +2345,22 @@ export class ApiClient {
           const generic_rate_limit =
             error_code === "RATE_LIMIT_EXCEEDED" && !error_data.resets_at;
 
-          const sanitized_error = generic_rate_limit
-            ? this.get_generic_error_message("RATE_LIMIT_EXCEEDED")
-            : import.meta.env.DEV
-              ? error_data.error ||
-                `Request failed with status ${response.status}`
-              : response.status < 500 &&
-                  error_data.error &&
-                  should_show_server_message(error_data.code, error_data.error)
-                ? error_data.error
-                : this.get_generic_error_message(error_code);
+          const sanitized_error =
+            error_data.code === ALIAS_SENDING_DISABLED_SERVER_CODE
+              ? get_active_translations().errors.alias_sending_disabled
+              : generic_rate_limit
+                ? this.get_generic_error_message("RATE_LIMIT_EXCEEDED")
+                : import.meta.env.DEV
+                  ? error_data.error ||
+                    `Request failed with status ${response.status}`
+                  : response.status < 500 &&
+                      error_data.error &&
+                      should_show_server_message(
+                        error_data.code,
+                        error_data.error,
+                      )
+                    ? error_data.error
+                    : this.get_generic_error_message(error_code);
 
           last_error = {
             error: sanitized_error,
@@ -2343,6 +2386,7 @@ export class ApiClient {
             response.status === 403 &&
             error_data.code !== "ACCOUNT_LOCKED" &&
             error_data.code !== "SENDER_NOT_AUTHORIZED" &&
+            error_data.code !== ALIAS_SENDING_DISABLED_SERVER_CODE &&
             error_data.code !== "APP_LOCK_PROOF_INVALID" &&
             is_state_changing_method(method) &&
             attempt === 0 &&

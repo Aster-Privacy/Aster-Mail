@@ -109,12 +109,15 @@ export interface DateEntry {
 
 export interface RelatedPersonEntry {
   value: string;
-  type: RelatedPersonType;
+  type: string;
+  label?: string;
+  relation?: string;
 }
 
 export interface SocialNetworkEntry {
   value: string;
   type: SocialNetworkType;
+  label?: string;
 }
 
 export interface WebsiteEntry {

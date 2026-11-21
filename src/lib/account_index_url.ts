@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ignore_error } from "@/lib/ignore_error";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const ACCOUNT_PREFIX_PATTERN = /^\/u\/(\d{1,9})(?=\/|$)/;
 const ACCOUNT_INDEX_HINT_KEY = "aster_account_index";
@@ -30,6 +31,7 @@ const PUBLIC_ENTRY_PATHS = [
   "/signup",
   "/invite",
   "/forgot-password",
+  "/cancel",
   "/reset-password",
   "/verify-recovery-email",
   "/terms",
@@ -46,7 +48,7 @@ let pending_url_request: number | null = null;
 
 export function account_index_routing_enabled(): boolean {
   if (typeof window === "undefined") return false;
-  if ("__TAURI_INTERNALS__" in window) return false;
+  if (has_tauri_runtime()) return false;
 
   const capacitor = (
     window as unknown as {

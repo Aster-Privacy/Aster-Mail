@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 import type { DecryptedContact } from "@/types/contacts";
 
+import type { RelationKind } from "@/utils/contact_relations";
+
 import { fold_search_text } from "@/utils/search_fold";
+import { relation_search_terms } from "@/utils/contact_relations";
 
 function digits_of(value: string): string {
   return value.replace(/\D+/g, "");
@@ -28,7 +31,28 @@ export function fold_contact_query(query: string): string {
   return fold_search_text(query.trim().replace(/\s+/g, " "));
 }
 
-export function build_contact_haystack(contact: DecryptedContact): string {
+export type RelationKindName = (kind: RelationKind) => string;
+
+function text_values(entries: unknown, keys: string[]): string[] {
+  if (!Array.isArray(entries)) return [];
+  const values: string[] = [];
+
+  for (const entry of entries) {
+    if (!entry || typeof entry !== "object") continue;
+    for (const key of keys) {
+      const value = (entry as Record<string, unknown>)[key];
+
+      if (typeof value === "string") values.push(value);
+    }
+  }
+
+  return values;
+}
+
+export function build_contact_haystack(
+  contact: DecryptedContact,
+  kind_name?: RelationKindName,
+): string {
   const first = contact.first_name || "";
   const last = contact.last_name || "";
   const middle = contact.middle_name || "";
@@ -57,8 +81,8 @@ export function build_contact_haystack(contact: DecryptedContact): string {
     ...(contact.email_entries || []).map((e) => e.value),
     ...phones,
     ...phones.map(digits_of),
-    ...(contact.related_people || []).map((r) => r.value),
-    ...(contact.social_networks || []).map((s) => s.value),
+    ...relation_search_terms(contact.related_people, kind_name),
+    ...text_values(contact.social_networks, ["value", "label"]),
     ...(contact.websites || []).map((w) => w.value),
     ...(contact.instant_messengers || []).map((m) => m.value),
   ];
@@ -90,9 +114,10 @@ export function haystack_matches_query(
 export function contact_matches_query(
   contact: DecryptedContact,
   query: string,
+  kind_name?: RelationKindName,
 ): boolean {
   return haystack_matches_query(
-    build_contact_haystack(contact),
+    build_contact_haystack(contact, kind_name),
     fold_contact_query(query),
   );
 }

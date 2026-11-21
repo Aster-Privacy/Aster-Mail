@@ -29,6 +29,7 @@ import {
   account_index_path,
   get_active_account_index,
 } from "@/lib/account_index_url";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export const SENT_ROUTE = "/sent";
 export const HOME_ROUTE = "/";
@@ -83,7 +84,7 @@ export function hard_navigation_target(path: string): string {
   const account_index = get_active_account_index();
 
   if (account_index !== null) return account_index_path(account_index, path);
-  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+  if (has_tauri_runtime()) {
     return `#${path}`;
   }
 

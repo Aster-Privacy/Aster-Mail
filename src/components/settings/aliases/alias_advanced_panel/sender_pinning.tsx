@@ -22,9 +22,10 @@ import type {} from "@/services/api/aliases";
 import type {} from "@/lib/i18n/types";
 
 import { useCallback, useEffect, useState } from "react";
-import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { TrashIcon, PlusIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { Button, Input, Island, IslandEmpty, IslandRow } from "@aster/ui";
 
+import { ContactPickModal } from "./contact_pick_modal";
 import { INPUT_CLASS, PanelRow, ROW_DELETE_BUTTON_CLASS } from "./shared";
 
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -72,6 +73,7 @@ export function SenderPinningPanel({
   const [load_error, set_load_error] = useState(false);
   const [email, set_email] = useState("");
   const [busy, set_busy] = useState(false);
+  const [picker_open, set_picker_open] = useState(false);
 
   const load = useCallback(async () => {
     if (locked) {
@@ -154,6 +156,14 @@ export function SenderPinningPanel({
       set_busy(false);
     }
   };
+
+  const add_picked_sender = useCallback(
+    (address: string) =>
+      domain_address_id
+        ? add_domain_address_pin(domain_address_id, address)
+        : add_alias_pin(alias_id!, address),
+    [alias_id, domain_address_id],
+  );
 
   const handle_remove = async (pin_id: string) => {
     const response = domain_address_id
@@ -241,7 +251,25 @@ export function SenderPinningPanel({
               <PlusIcon className="w-4 h-4" />
               {t("settings.alias_sender_add")}
             </Button>
+            <Button
+              data-testid="alias_sender_add_from_contacts"
+              disabled={loading || load_error}
+              size="lg"
+              variant="outline"
+              onClick={() => set_picker_open(true)}
+            >
+              <UsersIcon className="w-4 h-4" />
+              {t("settings.alias_sender_add_from_contacts")}
+            </Button>
           </Island>
+
+          <ContactPickModal
+            is_open={picker_open}
+            on_add={add_picked_sender}
+            on_close={() => set_picker_open(false)}
+            on_finished={load}
+            pins={pins}
+          />
 
           {loading ? (
             <Island className="flex justify-center" padding="md">

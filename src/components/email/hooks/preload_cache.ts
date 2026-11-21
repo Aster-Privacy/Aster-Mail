@@ -529,8 +529,6 @@ export async function preload_email_detail(
 
       if (!envelope) return;
 
-      const attachment_meta_ready = prefetch_attachment_meta([target_id]);
-
       let resolved_html = envelope.body_html ?? envelope.html_body ?? undefined;
 
       if (resolved_html && /^content-type\s*:/im.test(resolved_html)) {
@@ -552,7 +550,11 @@ export async function preload_email_detail(
         : resolved_text;
 
       const sent_encryption_scope = sent_copy_encryption_scope(envelope);
-      const ratchet_sealed = is_ratchet_verified_body(resolved_text, body_text);
+      const ratchet_sealed = is_ratchet_verified_body(
+        resolved_text,
+        body_text,
+        item.id,
+      );
       const e2e_verified =
         ratchet_sealed || sent_encryption_scope !== undefined;
       const e2e_sender_bound = e2e_verified;
@@ -560,7 +562,7 @@ export async function preload_email_detail(
       resolved_html = sealed_html_source(resolved_html, ratchet_sealed);
       const pre_pgp_text = body_text;
 
-      body_text = await try_decrypt_pgp_body(body_text);
+      body_text = await try_decrypt_pgp_body(body_text, item.id);
 
       const password_protected = is_password_protected_body(body_text);
       const pre_mime_text = body_text;
@@ -582,6 +584,7 @@ export async function preload_email_detail(
       }
 
       settle_sealed_fields(envelope, subject_bundle, ratchet_sealed, item.id);
+      const attachment_meta_ready = prefetch_attachment_meta([target_id]);
       const e2e_details_sealed = has_sealed_details(
         subject_bundle,
         ratchet_sealed,

@@ -96,10 +96,22 @@ vi.mock(
 
     return {
       ...actual,
+      authenticate_sender_identity: vi.fn(actual.authenticate_sender_identity),
       note_message_sender_identity: vi.fn(actual.note_message_sender_identity),
     };
   },
 );
+
+vi.mock("@/services/crypto/ensure_ratchet_keys", () => ({
+  ensure_ratchet_keys: vi.fn(async () => true),
+}));
+
+vi.mock("@/services/crypto/lane_replay_sync", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/lane_replay_sync")
+  >()),
+  queue_lane_replay: vi.fn(),
+}));
 
 vi.mock("@/services/api/client", () => ({
   api_client: {
@@ -125,6 +137,7 @@ import {
   build_ratchet_envelope,
   parse_ratchet_envelope,
   decrypt_ratchet_message,
+  derive_conversation_id,
   RecoveryLaneUnavailableError,
 } from "@/services/crypto/ratchet_manager";
 
@@ -136,6 +149,7 @@ import {
 import {
   acknowledge_identity_change,
   check_and_pin_identity,
+  trust_recipient_keys,
 } from "@/services/crypto/ratchet_identity_pin";
 import {
   get_cached_ratchet_plaintext,
@@ -151,10 +165,16 @@ import {
   mark_unconfirmed_sender_plaintext,
 } from "@/services/crypto/ratchet_verification_status";
 import {
+  authenticate_sender_identity,
+  check_sender_identity_continuity,
   clear_sender_identity_authentication_cache,
   note_message_sender_identity,
 } from "@/services/crypto/sender_identity_authentication";
 import * as recovery_lane from "@/services/crypto/ratchet_recovery_lane";
+import { seal_recovery_lane as seal_legacy_recovery_lane } from "@/tests/fixtures/legacy_recovery_lane";
+import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
+import { queue_lane_replay } from "@/services/crypto/lane_replay_sync";
+import { lookup_lane_sender_pin } from "@/services/crypto/ratchet_lane_sender_pin";
 import { is_ratchet_verified_body } from "@/utils/email_crypto";
 import { set_trust_own_addresses } from "@/lib/sender_trust_store";
 
@@ -536,7 +556,69 @@ describe("undecryptable-message failure modes", () => {
     expect(await receive(second, receiver_vault, "m2")).toBe("two");
   });
 
+  it("heals a damaged sender identity key before sealing the recovery lane", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+    await send("opens the session", sender_vault);
+
+    vi.mocked(ensure_ratchet_keys).mockClear();
+    vi.mocked(ensure_ratchet_keys).mockResolvedValueOnce(true);
+
+    const data = await encrypt_for_ratchet_recipient(
+      SENDER,
+      RECIPIENT,
+      "recipient",
+      "healed before sealing",
+      sender_vault,
+      {
+        identity_jwk: "damaged",
+        identity_public: sender_vault.ratchet_identity_public!,
+      },
+    );
+
+    expect(ensure_ratchet_keys).toHaveBeenCalledTimes(1);
+    expect(data?.recovery?.sct).toBeTruthy();
+    expect(data?.recovery?.t).toBeGreaterThan(0);
+  });
+
+  it("sends without a recovery lane when the sender identity key cannot be healed", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+    await send("opens the session", sender_vault);
+
+    vi.mocked(ensure_ratchet_keys).mockClear();
+    vi.mocked(ensure_ratchet_keys).mockResolvedValueOnce(false);
+
+    const unbound = vi.spyOn(recovery_lane, "seal_unbound_recovery_lane");
+
+    try {
+      const data = await encrypt_for_ratchet_recipient(
+        SENDER,
+        RECIPIENT,
+        "recipient",
+        "sent without a lane",
+        sender_vault,
+        {
+          identity_jwk: "damaged",
+          identity_public: sender_vault.ratchet_identity_public!,
+        },
+      );
+
+      expect(ensure_ratchet_keys).toHaveBeenCalledTimes(1);
+      expect(data).not.toBeNull();
+      expect(data).not.toHaveProperty("recovery");
+      expect(unbound).not.toHaveBeenCalled();
+    } finally {
+      unbound.mockRestore();
+    }
+  });
+
   it("blocks the send when the recovery lane cannot be sealed", async () => {
+
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const receiver_vault = make_vault((await generate_ratchet_keys())!);
 
@@ -773,8 +855,452 @@ describe("recovery lane trust", () => {
     h.store.clear();
     h.vault = receiver_vault;
 
-    return { envelope, parsed, receiver_vault };
+    return { envelope, parsed, receiver_vault, sender_vault };
   }
+
+  async function lane_messages(bodies: string[]) {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const parsed_list = [];
+
+    for (const body of bodies) {
+      const parsed = parse_ratchet_envelope(await send(body, sender_vault))!;
+
+      Reflect.deleteProperty(parsed.recipients[RECIPIENT], "ephemeral_key");
+      parsed_list.push(parsed);
+    }
+
+    h.store.clear();
+    h.vault = receiver_vault;
+    await check_and_pin_identity(SENDER, sender_vault.ratchet_identity_public!);
+
+    return { parsed_list, receiver_vault, sender_vault };
+  }
+
+  async function with_directory_verified<T>(run: () => Promise<T>): Promise<T> {
+    const original = vi
+      .mocked(authenticate_sender_identity)
+      .getMockImplementation();
+
+    vi.mocked(authenticate_sender_identity).mockResolvedValue("verified");
+
+    try {
+      return await run();
+    } finally {
+      vi.mocked(authenticate_sender_identity).mockImplementation(original!);
+    }
+  }
+
+  it("trusts a sender-bound lane from a pinned sender key", async () => {
+    const { parsed_list, receiver_vault } = await lane_messages([
+      "sender-bound lane",
+    ]);
+
+    expect(parsed_list[0].recipients[RECIPIENT].recovery?.sct).toBeTruthy();
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed_list[0],
+      receiver_vault,
+      "lane-bound",
+    );
+
+    expect(plaintext).toBe("sender-bound lane");
+    expect(is_unauthenticated_plaintext(plaintext, "lane-bound")).toBe(false);
+  });
+
+  it("does not confirm a sender-bound lane on a directory-verified key alone", async () => {
+    const { parsed, receiver_vault, sender_vault } =
+      await lane_message("directory only");
+
+    const plaintext = await with_directory_verified(() =>
+      decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parsed,
+        receiver_vault,
+        "lane-directory",
+      ),
+    );
+
+    expect(plaintext).toBe("directory only");
+    expect(is_unauthenticated_plaintext(plaintext, "lane-directory")).toBe(
+      true,
+    );
+    expect(
+      await check_sender_identity_continuity(
+        SENDER,
+        sender_vault.ratchet_identity_public!,
+      ),
+    ).not.toBe("known");
+  });
+
+  it("shows a replayed sender-bound lane as unconfirmed", async () => {
+    const { parsed_list, receiver_vault } = await lane_messages([
+      "approve the payment",
+    ]);
+    const original = JSON.stringify(parsed_list[0]);
+
+    const first = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      JSON.parse(original),
+      receiver_vault,
+      "lane-original",
+    );
+
+    expect(first).toBe("approve the payment");
+    expect(is_unauthenticated_plaintext(first, "lane-original")).toBe(false);
+
+    const replayed = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      JSON.parse(original),
+      receiver_vault,
+      "lane-replayed",
+    );
+
+    expect(replayed).toBe("approve the payment");
+    expect(is_unauthenticated_plaintext(replayed, "lane-replayed")).toBe(true);
+    expect(is_unauthenticated_plaintext(first, "lane-original")).toBe(false);
+
+    const reopened = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      JSON.parse(original),
+      receiver_vault,
+      "lane-original",
+    );
+
+    expect(reopened).toBe("approve the payment");
+    expect(is_unauthenticated_plaintext(reopened, "lane-original")).toBe(false);
+  });
+
+  it("refuses a lane without its sender part once the sender has sent a bound lane", async () => {
+    const { parsed_list, receiver_vault } = await lane_messages([
+      "bound first",
+      "stripped second",
+    ]);
+
+    expect(
+      await decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parsed_list[0],
+        receiver_vault,
+        "lane-pin-1",
+      ),
+    ).toBe("bound first");
+
+    const recovery = parsed_list[1].recipients[RECIPIENT].recovery!;
+
+    Reflect.deleteProperty(recovery, "sct");
+    Reflect.deleteProperty(recovery, "snonce");
+
+    const stripped = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed_list[1],
+      receiver_vault,
+      "lane-pin-2",
+    );
+
+    expect(stripped).toBe("stripped second");
+    expect(is_unauthenticated_plaintext(stripped, "lane-pin-2")).toBe(true);
+    expect(get_message_sender_identity("lane-pin-2")).toBe("unverified");
+  });
+
+  async function as_legacy_lane(
+    parsed: NonNullable<ReturnType<typeof parse_ratchet_envelope>>,
+    sender_vault: EncryptedVault,
+    receiver_vault: EncryptedVault,
+  ) {
+    const data = parsed.recipients[RECIPIENT];
+    const lane = data.recovery!;
+    const conversation_id = await derive_conversation_id(SENDER, RECIPIENT);
+    const message_key = await recovery_lane.open_recovery_lane(
+      lane,
+      conversation_id,
+      sender_vault.ratchet_identity_public!,
+      {
+        identity_jwk: receiver_vault.ratchet_identity_key!,
+        identity_public: receiver_vault.ratchet_identity_public!,
+        pq_identity_secret: receiver_vault.ratchet_pq_identity_key,
+      },
+      receiver_vault.ratchet_pq_identity_public!,
+      recovery_lane.recovery_lane_transcript(data, lane.t!),
+    );
+
+    expect(message_key).not.toBeNull();
+
+    data.recovery = await seal_legacy_recovery_lane(
+      message_key!,
+      conversation_id,
+      sender_vault.ratchet_identity_public!,
+      {
+        identity_public: receiver_vault.ratchet_identity_public!,
+        pq_identity_public: receiver_vault.ratchet_pq_identity_public,
+      },
+      sender_vault.ratchet_identity_key,
+    );
+
+    expect(data.recovery.sct).toBeTruthy();
+    expect(data.recovery.t).toBeUndefined();
+  }
+
+  it("verifies an older sender-bound lane against the pinned sender key", async () => {
+    const { parsed_list, receiver_vault, sender_vault } = await lane_messages([
+      "older client mail",
+    ]);
+
+    await as_legacy_lane(parsed_list[0], sender_vault, receiver_vault);
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed_list[0],
+      receiver_vault,
+      "lane-legacy-known",
+    );
+
+    expect(plaintext).toBe("older client mail");
+    expect(is_unauthenticated_plaintext(plaintext, "lane-legacy-known")).toBe(
+      false,
+    );
+    expect(await lookup_lane_sender_pin(SENDER)).toBe("unpinned");
+  });
+
+  it("keeps an older sender-bound lane unverified for an unknown sender key", async () => {
+    const { parsed, receiver_vault, sender_vault } = await lane_message(
+      "older client first contact",
+    );
+
+    await as_legacy_lane(parsed, sender_vault, receiver_vault);
+
+    const plaintext = await with_directory_verified(() =>
+      decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parsed,
+        receiver_vault,
+        "lane-legacy-unknown",
+      ),
+    );
+
+    expect(plaintext).toBe("older client first contact");
+    expect(is_unauthenticated_plaintext(plaintext, "lane-legacy-unknown")).toBe(
+      true,
+    );
+  });
+
+  it("keeps an older sender-bound lane unverified once the sender sends bound lanes", async () => {
+    const { parsed_list, receiver_vault, sender_vault } = await lane_messages([
+      "current client",
+      "older client later",
+    ]);
+
+    expect(
+      await decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parsed_list[0],
+        receiver_vault,
+        "lane-cutover-1",
+      ),
+    ).toBe("current client");
+
+    await as_legacy_lane(parsed_list[1], sender_vault, receiver_vault);
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed_list[1],
+      receiver_vault,
+      "lane-cutover-2",
+    );
+
+    expect(plaintext).toBe("older client later");
+    expect(is_unauthenticated_plaintext(plaintext, "lane-cutover-2")).toBe(
+      true,
+    );
+  });
+
+  it("shows a lane at or below the saved floor as replayed", async () => {
+    const { parsed_list, receiver_vault } = await lane_messages([
+      "below the floor",
+    ]);
+    const sent_at = parsed_list[0].recipients[RECIPIENT].recovery!.t!;
+
+    h.vault = {
+      ...receiver_vault,
+      lane_replay: { [SENDER]: { f: sent_at, e: [] } },
+    };
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed_list[0],
+      receiver_vault,
+      "lane-floor",
+    );
+
+    expect(plaintext).toBe("below the floor");
+    expect(is_unauthenticated_plaintext(plaintext, "lane-floor")).toBe(true);
+  });
+
+  it("shows a lane at or below the shared floor of dropped senders as replayed", async () => {
+    const { parsed_list, receiver_vault } = await lane_messages([
+      "below the shared floor",
+    ]);
+    const sent_at = parsed_list[0].recipients[RECIPIENT].recovery!.t!;
+
+    h.vault = {
+      ...receiver_vault,
+      lane_replay: { "*": { f: sent_at, e: [] } },
+    };
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed_list[0],
+      receiver_vault,
+      "lane-shared-floor",
+    );
+
+    expect(plaintext).toBe("below the shared floor");
+    expect(
+      is_unauthenticated_plaintext(plaintext, "lane-shared-floor"),
+    ).toBe(true);
+  });
+
+  it("keeps the replay record across devices through the vault", async () => {
+    const { parsed_list, receiver_vault } = await lane_messages([
+      "seen on the first device",
+    ]);
+    const original = JSON.stringify(parsed_list[0]);
+
+    vi.mocked(queue_lane_replay).mockClear();
+
+    const first = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      JSON.parse(original),
+      receiver_vault,
+      "lane-device-1",
+    );
+
+    expect(is_unauthenticated_plaintext(first, "lane-device-1")).toBe(false);
+    expect(queue_lane_replay).toHaveBeenCalledTimes(1);
+
+    const [queued_sender, queued_record] =
+      vi.mocked(queue_lane_replay).mock.calls[0];
+
+    expect(queued_sender).toBe(SENDER);
+
+    const kept = [...snapshot_state()].filter(
+      ([key]) => !key.includes("ratchet_lane_seen_"),
+    );
+
+    restore_state(new Map(kept));
+    h.vault = {
+      ...receiver_vault,
+      lane_replay: { [queued_sender]: queued_record },
+    };
+
+    const replayed = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      JSON.parse(original),
+      receiver_vault,
+      "lane-device-2",
+    );
+
+    expect(replayed).toBe("seen on the first device");
+    expect(is_unauthenticated_plaintext(replayed, "lane-device-2")).toBe(true);
+
+    const reopened = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      JSON.parse(original),
+      receiver_vault,
+      "lane-device-1",
+    );
+
+    expect(is_unauthenticated_plaintext(reopened, "lane-device-1")).toBe(false);
+  });
+
+  it("keeps opening a lane without its sender part from an unpinned sender", async () => {
+    const { parsed_list, receiver_vault } = await lane_messages([
+      "older sender",
+    ]);
+    const recovery = parsed_list[0].recipients[RECIPIENT].recovery!;
+
+    Reflect.deleteProperty(recovery, "sct");
+    Reflect.deleteProperty(recovery, "snonce");
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed_list[0],
+      receiver_vault,
+      "lane-unpinned",
+    );
+
+    expect(plaintext).toBe("older sender");
+    expect(is_unauthenticated_plaintext(plaintext, "lane-unpinned")).toBe(true);
+  });
+
+  it("keeps a genuine message trusted when a planted copy of its text carries a warning", async () => {
+    const { parsed_list, receiver_vault } = await lane_messages([
+      "same words",
+    ]);
+
+    mark_unauthenticated_plaintext("same words", "planted-item");
+
+    const plaintext = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parsed_list[0],
+      receiver_vault,
+      "genuine-item",
+    );
+
+    expect(plaintext).toBe("same words");
+    expect(is_unauthenticated_plaintext(plaintext, "genuine-item")).toBe(false);
+    expect(is_unauthenticated_plaintext(plaintext, "planted-item")).toBe(true);
+  });
+
+  it("keeps the warning on a lane without its sender part even for a verified sender", async () => {
+    const { parsed, receiver_vault } = await lane_message("stripped lane");
+    const recovery = parsed.recipients[RECIPIENT].recovery!;
+
+    Reflect.deleteProperty(recovery, "sct");
+    Reflect.deleteProperty(recovery, "snonce");
+    const original = vi
+      .mocked(authenticate_sender_identity)
+      .getMockImplementation();
+
+    vi.mocked(authenticate_sender_identity).mockResolvedValue("verified");
+
+    try {
+      const plaintext = await decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parsed,
+        receiver_vault,
+        "lane-stripped",
+      );
+
+      expect(plaintext).toBe("stripped lane");
+      expect(is_unauthenticated_plaintext(plaintext)).toBe(true);
+    } finally {
+      vi.mocked(authenticate_sender_identity).mockImplementation(original!);
+    }
+  });
 
   it("never marks lane-recovered mail as verified or escrows it", async () => {
     const { envelope, parsed, receiver_vault } = await lane_message(
@@ -1131,7 +1657,7 @@ describe("recovery lane trust", () => {
     );
   });
 
-  it("keeps ratchet-decrypted mail verified once the sender key is known and escrows it bound to the sender", async () => {
+  it("verifies ratchet mail once the first contact is confirmed and escrows it bound to the sender", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const receiver_vault = make_vault((await generate_ratchet_keys())!);
 
@@ -1148,12 +1674,22 @@ describe("recovery lane trust", () => {
 
     expect(first_plaintext).toBe("first contact");
     expect(is_unauthenticated_plaintext(first_plaintext)).toBe(false);
-    expect(is_ratchet_verified_body(first, first_plaintext)).toBe(true);
+    expect(is_ratchet_verified_body(first, first_plaintext)).toBe(false);
     expect(upload_to_escrow).toHaveBeenLastCalledWith(
       expect.stringContaining("ratchet-0"),
       "first contact",
       expect.objectContaining({ sender: SENDER }),
+      true,
+    );
+
+    h.vault = receiver_vault;
+    await trust_recipient_keys(
+      SENDER,
+      sender_vault.ratchet_identity_public!,
+      null,
+      null,
       false,
+      true,
     );
 
     const plaintext = await receive(second, receiver_vault, "ratchet-1");
@@ -1222,6 +1758,15 @@ describe("recovery lane trust", () => {
     );
 
     h.vault = receiver_vault;
+    await trust_recipient_keys(
+      SENDER,
+      sender_vault.ratchet_identity_public!,
+      null,
+      null,
+      false,
+      true,
+    );
+
     const relabeled = parse_ratchet_envelope(second)!;
 
     relabeled.sender_identity_key = other_vault.ratchet_identity_public!;
@@ -1343,6 +1888,26 @@ describe("recovery lane trust", () => {
       async () => new_vault.ratchet_identity_public!,
     );
 
+    const unconfirmed = await decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      relabeled,
+      receiver_vault,
+      "judged-1",
+    );
+
+    expect(is_ratchet_verified_body(after, unconfirmed)).toBe(false);
+
+    h.vault = receiver_vault;
+    await trust_recipient_keys(
+      SENDER,
+      new_vault.ratchet_identity_public!,
+      null,
+      null,
+      false,
+      true,
+    );
+
     const settled = await decrypt_ratchet_message(
       RECIPIENT,
       SENDER,
@@ -1409,7 +1974,7 @@ describe("recovery lane trust", () => {
     expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
   });
 
-  it("verifies a first message whose sender key the directory vouches for", async () => {
+  it("shows a first message as unverified even when the directory vouches for the sender key", async () => {
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const receiver_vault = make_vault((await generate_ratchet_keys())!);
 
@@ -1424,13 +1989,13 @@ describe("recovery lane trust", () => {
     const plaintext = await receive(envelope, receiver_vault, "ratchet-2");
 
     expect(plaintext).toBe("served by the directory");
-    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
     expect(set_cached_ratchet_plaintext).toHaveBeenCalledWith(
       expect.stringContaining("ratchet-2"),
       "served by the directory",
       false,
       expect.objectContaining({ sender: SENDER }),
-      false,
+      true,
       sender_vault.ratchet_identity_public!,
     );
   });

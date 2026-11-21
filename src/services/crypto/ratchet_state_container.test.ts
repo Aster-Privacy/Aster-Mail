@@ -41,8 +41,8 @@ describe("ratchet state container", () => {
   });
 
   it("moves the version forward even when the clock is behind", () => {
-    expect(next_sync_version(10, 500)).toBe(500);
-    expect(next_sync_version(900, 500)).toBe(901);
+    expect(next_sync_version(10)).toBe(11);
+    expect(next_sync_version(900)).toBe(901);
   });
 
   it("keeps the fields older readers expect and adds the version", () => {

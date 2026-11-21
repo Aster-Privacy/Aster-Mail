@@ -22,8 +22,16 @@
 import type { EncryptedVault } from "./key_manager";
 
 import { get_codes_status, save_recovery_backup } from "../api/recovery";
+import { get_sync_format_readiness } from "../api/sync_format_readiness";
 
 import { build_backup_vault } from "./backup_unlocked_keys";
+import { get_vault_from_memory } from "./memory_key_store";
+import { write_vault_merged } from "./vault_cas_write";
+import {
+  next_recovery_backup_binding,
+  raise_recovery_backup_floor,
+  type RecoveryBackupBinding,
+} from "./recovery_backup_floor";
 import {
   clear_recovery_key,
   encrypt_vault_backup,
@@ -38,6 +46,84 @@ export function recovery_codes_of(vault: EncryptedVault): string[] {
   return (vault.recovery_codes ?? []).filter(
     (code) => typeof code === "string" && code.length > 0,
   );
+}
+
+export async function recovery_backup_binding_if_ready(
+  user_id: string,
+  known_generation = 0,
+): Promise<RecoveryBackupBinding | null> {
+  if (!user_id) return null;
+
+  const binding = next_recovery_backup_binding(
+    user_id,
+    Math.max(
+      known_generation,
+      get_vault_from_memory()?.recovery_backup_generation ?? 0,
+    ),
+  );
+
+  if (binding.generation > 1) return binding;
+
+  const readiness = await get_sync_format_readiness();
+
+  return readiness.recovery_backup_bound ? binding : null;
+}
+
+export async function current_recovery_backup_binding(
+  vault?: EncryptedVault,
+): Promise<RecoveryBackupBinding | null> {
+  const { get_current_account } = await import("@/services/account_manager");
+
+  return recovery_backup_binding_if_ready(
+    (await get_current_account())?.user?.id ?? "",
+    vault?.recovery_backup_generation ?? 0,
+  );
+}
+
+export async function record_recovery_backup_generation(
+  binding: RecoveryBackupBinding | null,
+  vault: EncryptedVault | null,
+  passphrase?: string,
+): Promise<void> {
+  if (!binding) return;
+
+  raise_recovery_backup_floor(binding.user_id, binding.generation);
+
+  const base = vault ?? get_vault_from_memory();
+
+  if (!base) return;
+
+  try {
+    await write_vault_merged({
+      next: { ...base, recovery_backup_generation: binding.generation },
+      base,
+      passphrase,
+      user_id: binding.user_id,
+    });
+  } catch (caught) {
+    ignore_error("services/crypto/recovery_backup_refresh:generation", caught);
+  }
+}
+
+export async function stored_user_id_for_email(
+  email: string,
+): Promise<string | null> {
+  const wanted = email.trim().toLowerCase();
+
+  if (!wanted) return null;
+
+  try {
+    const { get_all_accounts } = await import("@/services/account_manager");
+    const match = (await get_all_accounts()).find(
+      (account) => account.user?.email?.trim().toLowerCase() === wanted,
+    );
+
+    return match?.user?.id ?? null;
+  } catch (caught) {
+    ignore_error("services/crypto/recovery_backup_refresh:accounts", caught);
+
+    return null;
+  }
 }
 
 async function current_set_share_options(): Promise<RecoveryShareOptions> {
@@ -70,9 +156,11 @@ export async function refresh_recovery_backup(
   const recovery_key = generate_recovery_key();
 
   try {
+    const binding = await current_recovery_backup_binding(vault);
     const backup = await encrypt_vault_backup(
       await build_backup_vault(vault, passphrase),
       recovery_key,
+      binding,
     );
     const shares = await generate_all_recovery_shares(
       codes,
@@ -86,7 +174,11 @@ export async function refresh_recovery_backup(
       shares,
     );
 
-    return !response.error && response.data?.success === true;
+    if (response.error || response.data?.success !== true) return false;
+
+    await record_recovery_backup_generation(binding, vault, passphrase);
+
+    return true;
   } catch (caught) {
     ignore_error("services/crypto/recovery_backup_refresh", caught);
 
@@ -94,4 +186,19 @@ export async function refresh_recovery_backup(
   } finally {
     clear_recovery_key(recovery_key);
   }
+}
+
+export async function reseal_unbound_recovery_backup(
+  vault: EncryptedVault,
+  passphrase: string,
+): Promise<boolean> {
+  if ((vault.recovery_backup_generation ?? 0) > 0) return false;
+
+  if (recovery_codes_of(vault).length === 0) return false;
+
+  const readiness = await get_sync_format_readiness();
+
+  if (!readiness.recovery_backup_bound) return false;
+
+  return refresh_recovery_backup(vault, passphrase);
 }

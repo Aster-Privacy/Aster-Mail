@@ -105,6 +105,9 @@ export function FormatTools({ compose }: { compose: ComposeToolbarState }) {
               editor.set_background_color(color),
             )
           }
+          on_bg_color_remove={() =>
+            apply_with_frozen_selection(() => editor.remove_background_color())
+          }
           on_font_color_change={(color) =>
             apply_with_frozen_selection(() => editor.set_font_color(color))
           }

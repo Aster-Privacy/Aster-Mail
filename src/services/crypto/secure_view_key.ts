@@ -36,8 +36,9 @@ export interface SecureViewPasswordKdf {
 const KDF_ALGORITHM = "argon2id";
 const KDF_VERSION = 19;
 const KEY_LENGTH = 32;
-const MIN_MEMORY_KIB = 8;
+const MIN_MEMORY_KIB = 65536;
 const MAX_MEMORY_KIB = 262144;
+const MIN_ITERATIONS = 3;
 const MAX_ITERATIONS = 16;
 const MAX_PARALLELISM = 16;
 const MIN_SALT_BYTES = 8;
@@ -62,7 +63,7 @@ export function is_supported_secure_view_kdf(
     kdf.version === KDF_VERSION &&
     kdf.key_length === KEY_LENGTH &&
     in_range(kdf.parallelism, 1, MAX_PARALLELISM) &&
-    in_range(kdf.iterations, 1, MAX_ITERATIONS) &&
+    in_range(kdf.iterations, MIN_ITERATIONS, MAX_ITERATIONS) &&
     in_range(
       kdf.memory_kib,
       Math.max(MIN_MEMORY_KIB, 8 * kdf.parallelism),

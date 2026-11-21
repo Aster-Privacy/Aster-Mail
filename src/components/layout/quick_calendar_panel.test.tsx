@@ -23,14 +23,21 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import {
+  FIRST_READY_TIMEOUT_MS,
+  LOAD_READY_TIMEOUT_MS,
   QuickCalendarPanel,
   read_panel_message,
   resolve_calendar_panel_origin,
 } from "./quick_calendar_panel";
 
 const mocks = vi.hoisted(() => ({
-  theme: "light" as "light" | "dark",
   open_external: vi.fn(),
+  mint_grant: vi.fn((): string | null => null),
+}));
+
+vi.mock("@/contexts/auth/sibling_session_handoff", () => ({
+  HANDOFF_GRANT_HASH_PREFIX: "#handoff=",
+  mint_panel_handoff_grant: mocks.mint_grant,
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -53,7 +60,7 @@ vi.mock("@/components/layout/use_panel_transition", () => ({
 }));
 
 vi.mock("@/contexts/theme_context", () => ({
-  useTheme: () => ({ theme: mocks.theme }),
+  useTheme: () => ({ theme: "light" }),
 }));
 
 vi.mock("@/utils/open_link", () => ({
@@ -231,8 +238,11 @@ describe("quick calendar panel", () => {
   };
 
   beforeEach(() => {
-    mocks.theme = "light";
+    document.documentElement.className = "light";
+    document.documentElement.removeAttribute("style");
     mocks.open_external.mockReset();
+    mocks.mint_grant.mockReset();
+    mocks.mint_grant.mockReturnValue(null);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -243,7 +253,126 @@ describe("quick calendar panel", () => {
       root.unmount();
     });
     container.remove();
+    document.documentElement.className = "";
+    document.documentElement.removeAttribute("style");
     vi.useRealTimers();
+  });
+
+  describe("when the panel reports it is signed out", () => {
+    const signed_out = {
+      source: "aster-calendar-panel",
+      type: "status",
+      status: "signed_out",
+    };
+    const base_src = `${ORIGIN}/mail-panel?theme=light&palette=default`;
+
+    beforeEach(() => {
+      let count = 0;
+
+      mocks.mint_grant.mockImplementation(() => `grant${++count}`);
+    });
+
+    it("reloads the panel once with a fresh grant", async () => {
+      await render_panel(true);
+
+      const first = frame();
+
+      expect(first?.getAttribute("src")).toBe(`${base_src}#handoff=grant1`);
+
+      await send({ source: "aster-calendar-panel", type: "ready" });
+      await send(signed_out);
+
+      const second = frame();
+
+      expect(second).not.toBe(first);
+      expect(second?.getAttribute("src")).toBe(
+        `${base_src}&attempt=1#handoff=grant2`,
+      );
+      expect(second?.className).toContain("opacity-0");
+
+      await send({ source: "aster-calendar-panel", type: "ready" });
+      await send(signed_out);
+
+      expect(frame()).toBeNull();
+      expect(mocks.mint_grant).toHaveBeenCalledTimes(2);
+    });
+
+    it("shows a set up state when Calendar has never been set up", async () => {
+      vi.useFakeTimers();
+      await render_panel(true);
+      await send({ source: "aster-calendar-panel", type: "ready" });
+      await send(signed_out);
+      await send({ source: "aster-calendar-panel", type: "ready" });
+      await send(signed_out);
+
+      expect(frame()).toBeNull();
+      expect(container.querySelector("[aria-hidden='true'] .grid")).toBeNull();
+      expect(container.textContent).toContain("calendar.panel_set_up");
+      expect(container.textContent).not.toContain("calendar.panel_load_failed");
+
+      const labels = Array.from(container.querySelectorAll("button"))
+        .map((button) => button.textContent)
+        .filter(Boolean);
+
+      expect(labels).toEqual([
+        "calendar.panel_open_calendar",
+        "calendar.panel_try_again",
+      ]);
+
+      const find_button = (label: string) =>
+        Array.from(container.querySelectorAll("button")).find(
+          (button) => button.textContent === label,
+        );
+
+      await act(async () => {
+        find_button("calendar.panel_open_calendar")?.click();
+      });
+
+      expect(mocks.open_external).toHaveBeenCalledWith(ORIGIN);
+
+      await act(async () => {
+        vi.advanceTimersByTime(60_000);
+      });
+
+      expect(container.textContent).toContain("calendar.panel_set_up");
+
+      await act(async () => {
+        find_button("calendar.panel_try_again")?.click();
+      });
+
+      expect(frame()).not.toBeNull();
+      expect(container.textContent).not.toContain("calendar.panel_set_up");
+    });
+
+    it("tries a fresh grant again when the panel is reopened", async () => {
+      await render_panel(true);
+      await send(signed_out);
+      await send(signed_out);
+      await render_panel(false);
+
+      expect(mocks.mint_grant).toHaveBeenCalledTimes(2);
+
+      await render_panel(true);
+
+      expect(frame()?.getAttribute("src")).toBe(
+        `${base_src}&attempt=2#handoff=grant3`,
+      );
+    });
+
+    it("does not reload for other panel states", async () => {
+      await render_panel(true);
+      await send({
+        source: "aster-calendar-panel",
+        type: "status",
+        status: "locked",
+      });
+      await render_panel(false);
+      await render_panel(true);
+
+      expect(frame()?.getAttribute("src")).toBe(`${base_src}#handoff=grant1`);
+      expect(frame()?.className).toContain("opacity-100");
+      expect(mocks.mint_grant).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("does not load the frame until the panel first opens", async () => {
@@ -254,7 +383,7 @@ describe("quick calendar panel", () => {
     await render_panel(true);
 
     expect(frame()?.getAttribute("src")).toBe(
-      `${ORIGIN}/mail-panel?theme=light`,
+      `${ORIGIN}/mail-panel?theme=light&palette=default`,
     );
     expect(frame()?.getAttribute("sandbox")).toContain("allow-scripts");
     expect(frame()?.getAttribute("sandbox")).not.toContain(
@@ -307,19 +436,75 @@ describe("quick calendar panel", () => {
     await send({ source: "aster-calendar-panel", type: "ready" });
 
     expect(post).toHaveBeenCalledWith(
-      { source: "aster-mail", type: "theme", theme: "light" },
+      {
+        source: "aster-mail",
+        type: "theme",
+        theme: "light",
+        palette: "default",
+        accent: "",
+      },
       ORIGIN,
     );
 
-    mocks.theme = "dark";
-    await render_panel(true);
+    await act(async () => {
+      document.documentElement.className = "dark";
+    });
 
     expect(post).toHaveBeenLastCalledWith(
-      { source: "aster-mail", type: "theme", theme: "dark" },
+      {
+        source: "aster-mail",
+        type: "theme",
+        theme: "dark",
+        palette: "default",
+        accent: "",
+      },
       ORIGIN,
     );
     expect(frame()?.getAttribute("src")).toBe(
-      `${ORIGIN}/mail-panel?theme=light`,
+      `${ORIGIN}/mail-panel?theme=light&palette=default`,
+    );
+  });
+
+  it("sends the dark appearance a dark-only palette forces over a light preference", async () => {
+    document.documentElement.className = "dark theme-aster-blue";
+    document.documentElement.style.setProperty("--accent-color", "#4F7DF3");
+
+    await render_panel(true);
+
+    expect(frame()?.getAttribute("src")).toBe(
+      `${ORIGIN}/mail-panel?theme=dark&palette=aster-blue&accent=%234f7df3`,
+    );
+    expect(frame()?.style.colorScheme).toBe("dark");
+
+    const post = vi.spyOn(frame()?.contentWindow as Window, "postMessage");
+
+    await send({ source: "aster-calendar-panel", type: "ready" });
+
+    expect(post).toHaveBeenCalledWith(
+      {
+        source: "aster-mail",
+        type: "theme",
+        theme: "dark",
+        palette: "aster-blue",
+        accent: "#4f7df3",
+      },
+      ORIGIN,
+    );
+
+    await act(async () => {
+      document.documentElement.className = "light";
+      document.documentElement.removeAttribute("style");
+    });
+
+    expect(post).toHaveBeenLastCalledWith(
+      {
+        source: "aster-mail",
+        type: "theme",
+        theme: "light",
+        palette: "default",
+        accent: "",
+      },
+      ORIGIN,
     );
   });
 
@@ -368,7 +553,7 @@ describe("quick calendar panel", () => {
     await render_panel(true);
 
     await act(async () => {
-      vi.advanceTimersByTime(20_000);
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
     });
 
     expect(frame()).toBeNull();
@@ -376,7 +561,7 @@ describe("quick calendar panel", () => {
 
     const buttons = Array.from(container.querySelectorAll("button"));
     const retry = buttons.find(
-      (button) => button.textContent === "common.retry",
+      (button) => button.textContent === "calendar.panel_try_again",
     );
     const open = buttons.find(
       (button) => button.textContent === "calendar.panel_open_calendar",
@@ -396,6 +581,90 @@ describe("quick calendar panel", () => {
     expect(container.textContent).not.toContain("calendar.panel_load_failed");
   });
 
+  const click_retry = async () => {
+    const retry = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent === "calendar.panel_try_again",
+    );
+
+    expect(retry).toBeTruthy();
+
+    await act(async () => {
+      retry?.click();
+    });
+  };
+
+  it("loads a fresh frame at a new address when retrying", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    const first = frame();
+
+    await act(async () => {
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
+    });
+    await click_retry();
+
+    const second = frame();
+
+    expect(second).not.toBeNull();
+    expect(second).not.toBe(first);
+    expect(second?.getAttribute("src")).toBe(
+      `${ORIGIN}/mail-panel?theme=light&palette=default&attempt=1`,
+    );
+
+    await act(async () => {
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
+    });
+    await click_retry();
+
+    expect(frame()?.getAttribute("src")).toBe(
+      `${ORIGIN}/mail-panel?theme=light&palette=default&attempt=2`,
+    );
+  });
+
+  it("gives a retried frame the full wait before failing again", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
+    });
+    await click_retry();
+
+    await act(async () => {
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS - 1);
+    });
+
+    expect(frame()).not.toBeNull();
+    expect(container.textContent).not.toContain("calendar.panel_load_failed");
+
+    await act(async () => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(frame()).toBeNull();
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+  });
+
+  it("shows the panel when a retried frame reports in", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      vi.advanceTimersByTime(FIRST_READY_TIMEOUT_MS);
+    });
+    await click_retry();
+    await send({ source: "aster-calendar-panel", type: "ready" });
+
+    expect(frame()?.className).toContain("opacity-100");
+
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(container.textContent).not.toContain("calendar.panel_load_failed");
+  });
+
   it("stays ready once the panel has reported in", async () => {
     vi.useFakeTimers();
     await render_panel(true);
@@ -406,5 +675,111 @@ describe("quick calendar panel", () => {
     });
 
     expect(frame()?.className).toContain("opacity-100");
+  });
+
+  it("shows the retry state within a few seconds when the frame is refused", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      frame()?.dispatchEvent(new Event("load"));
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(5_999);
+    });
+
+    expect(frame()).toBeNull();
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+    expect(container.textContent).toContain("calendar.panel_try_again");
+  });
+
+  it("gives up on a frame that never loads within ten seconds", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      vi.advanceTimersByTime(10_000);
+    });
+
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+  });
+
+  it("waits for a loaded frame to report in before failing", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    await act(async () => {
+      frame()?.dispatchEvent(new Event("load"));
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(LOAD_READY_TIMEOUT_MS - 1);
+    });
+    await send({ source: "aster-calendar-panel", type: "ready" });
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(frame()?.className).toContain("opacity-100");
+    expect(container.textContent).not.toContain("calendar.panel_load_failed");
+  });
+
+  it("settles when the panel reports a calendar error", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+    await send({ source: "aster-calendar-panel", type: "ready" });
+    await send({
+      source: "aster-calendar-panel",
+      type: "status",
+      status: "failed",
+    });
+
+    expect(frame()?.className).toContain("opacity-100");
+    expect(container.querySelector("[aria-hidden='true'] .grid")).toBeNull();
+
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(frame()?.className).toContain("opacity-100");
+  });
+
+  it("fails within ten seconds even when the frame keeps reloading", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    for (let step = 0; step < 4; step += 1) {
+      await act(async () => {
+        frame()?.dispatchEvent(new Event("load"));
+      });
+      await act(async () => {
+        vi.advanceTimersByTime(LOAD_READY_TIMEOUT_MS / 2);
+      });
+    }
+
+    expect(frame()).toBeNull();
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+  });
+
+  it("fails instead of loading forever when the frame address cannot be built", async () => {
+    mocks.mint_grant.mockImplementation(() => {
+      throw new Error("storage unavailable");
+    });
+    await render_panel(true);
+
+    expect(frame()).toBeNull();
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+    expect(container.textContent).toContain("calendar.panel_try_again");
+  });
+
+  it("shows the calendar once it loads", async () => {
+    await render_panel(true);
+
+    expect(container.querySelector("[aria-hidden='true']")).not.toBeNull();
+
+    await send({ source: "aster-calendar-panel", type: "ready" });
+
+    expect(frame()?.className).toContain("opacity-100");
+    expect(container.querySelector("[aria-hidden='true']")).toBeNull();
+    expect(container.textContent).not.toContain("calendar.panel_load_failed");
   });
 });

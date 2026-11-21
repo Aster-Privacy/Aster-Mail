@@ -154,7 +154,7 @@ describe("x3dh transcript binding capability gate", () => {
     expect(Array.from(received)).toEqual(Array.from(result.shared_secret));
   });
 
-  it("keeps transcript binding when a remembered recipient advertises nothing", async () => {
+  it("keeps the remembered handshake version when a recipient advertises nothing", async () => {
     const parties = await build_parties(undefined);
 
     const result = await perform_x3dh_sender(
@@ -163,7 +163,19 @@ describe("x3dh transcript binding capability gate", () => {
       3,
     );
 
-    expect(result.x3dh_version).toBe(2);
+    expect(result.x3dh_version).toBe(3);
+
+    const received = await perform_x3dh_receiver(
+      parties.recipient_identity.secret_key_jwk,
+      parties.recipient_signed_prekey.secret_key_jwk,
+      parties.sender_identity.public_key_raw,
+      result.ephemeral_public_key,
+      null,
+      null,
+      result.x3dh_version,
+    );
+
+    expect(Array.from(received)).toEqual(Array.from(result.shared_secret));
   });
 
   it("uses key bound derivation once the recipient advertises v3", async () => {
@@ -219,8 +231,10 @@ describe("x3dh transcript binding capability gate", () => {
     expect(negotiate_x3dh_version(null, null)).toBe(1);
     expect(negotiate_x3dh_version(1, 1)).toBe(1);
     expect(negotiate_x3dh_version(1, 2)).toBe(2);
-    expect(negotiate_x3dh_version(1, 3)).toBe(2);
-    expect(negotiate_x3dh_version(2, 3)).toBe(2);
+    expect(negotiate_x3dh_version(1, 3)).toBe(3);
+    expect(negotiate_x3dh_version(2, 3)).toBe(3);
+    expect(negotiate_x3dh_version(undefined, 3)).toBe(3);
+    expect(negotiate_x3dh_version(3, 4)).toBe(3);
     expect(negotiate_x3dh_version(3, 1)).toBe(3);
     expect(negotiate_x3dh_version(3, undefined)).toBe(3);
     expect(negotiate_x3dh_version(99, 99)).toBe(3);

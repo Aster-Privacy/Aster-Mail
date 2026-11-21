@@ -30,6 +30,7 @@ import {
   attachment_records_fetch_failed,
 } from "@/services/attachment_preview_cache";
 import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
+import { get_decrypted_mime_attachments } from "@/services/decrypted_mime_attachments";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
@@ -548,6 +549,12 @@ async function plan_cid_resolution(
   url_mode: CidUrlMode,
   cid_refs: string[],
 ): Promise<CidResolutionPlan> {
+  const local_parts = get_decrypted_mime_attachments(mail_item_id);
+
+  if (local_parts.length > 0) {
+    return plan_local_cid_resolution(html, url_mode, cid_refs, local_parts);
+  }
+
   const records = await fetch_attachment_records(mail_item_id);
 
   if (records.length === 0) {
@@ -731,6 +738,61 @@ async function plan_cid_resolution(
     unresolved: failed
       ? Math.max(distinct_ref_count - replacements.length, 0)
       : 0,
+    is_final: false,
+  };
+}
+
+function plan_local_cid_resolution(
+  html: string,
+  url_mode: CidUrlMode,
+  cid_refs: string[],
+  parts: ReturnType<typeof get_decrypted_mime_attachments>,
+): CidResolutionPlan {
+  const images = parts.filter(
+    (part) => resolved_image_content_type(part) !== null,
+  );
+  const replacements: CidReplacement[] = [];
+  const consumed = new Set<(typeof images)[number]>();
+  const keys_for = (part: (typeof images)[number]): string[] =>
+    [
+      part.content_id,
+      part.filename,
+      part.filename ? strip_extension(part.filename) : undefined,
+    ].flatMap((value) => (value ? [normalize_cid(value)] : []));
+  const distinct_refs = new Map<string, string>();
+
+  for (const ref of cid_refs) distinct_refs.set(normalize_cid(ref), ref);
+
+  for (const [key, original_cid] of distinct_refs) {
+    const part = images.find(
+      (candidate) => !consumed.has(candidate) && keys_for(candidate).includes(key),
+    );
+
+    if (!part) continue;
+
+    consumed.add(part);
+
+    const content_type = resolved_image_content_type(part) ?? "image/png";
+
+    replacements.push(
+      url_mode === "data"
+        ? {
+            original_cid,
+            data_url: `data:${content_type};base64,${array_to_base64(part.data)}`,
+          }
+        : {
+            original_cid,
+            blob: new Blob([part.data], {
+              type: content_type,
+            }),
+          },
+    );
+  }
+
+  return {
+    html,
+    replacements,
+    unresolved: Math.max(distinct_refs.size - replacements.length, 0),
     is_final: false,
   };
 }

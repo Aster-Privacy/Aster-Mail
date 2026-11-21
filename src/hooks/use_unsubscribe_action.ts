@@ -74,15 +74,10 @@ export function use_unsubscribe_action({
     if (pending_timeout_ref.current) return;
 
     const record_unsubscribed = () =>
-      persist_unsubscribe(
-        sender_email,
-        sender_name,
-        {
-          unsubscribe_link: unsubscribe_info.unsubscribe_link,
-          list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
-        },
-        "manual",
-      );
+      persist_unsubscribe(sender_email, sender_name, {
+        unsubscribe_link: unsubscribe_info.unsubscribe_link,
+        list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
+      });
 
     cancelled_ref.current = false;
     set_is_pending(true);

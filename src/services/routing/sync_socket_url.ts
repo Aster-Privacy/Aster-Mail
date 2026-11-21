@@ -20,6 +20,7 @@
 //
 import { connection_store } from "./connection_store";
 import { is_relay_host_allowed } from "./cdn_relay_transport";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const NATIVE_API_URL = "https://app.astermail.org/api";
 
@@ -36,8 +37,7 @@ export function resolve_sync_socket_url(): string | null {
     return `${to_socket_url(relay_url.replace(/\/+$/, ""))}/ws`;
   }
 
-  const is_native =
-    typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  const is_native = has_tauri_runtime();
   const api_url = is_native
     ? NATIVE_API_URL
     : import.meta.env.VITE_API_URL || "";

@@ -31,6 +31,8 @@ import { decrypt_contact, get_contact, encrypt_contact_data } from "./contacts";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { note_local_contact_write } from "@/services/contact_local_writes";
+import { merge_related_people } from "@/utils/contact_relations";
+import { merge_social_networks } from "@/utils/contact_socials";
 
 interface ListDuplicatesResponse {
   items: DuplicateCandidate[];
@@ -200,5 +202,13 @@ export function merge_contact_fields(
     groups: [
       ...new Set([...(contact_1.groups || []), ...(contact_2.groups || [])]),
     ],
+    related_people: merge_related_people([
+      contact_1.related_people,
+      contact_2.related_people,
+    ]),
+    social_networks: merge_social_networks([
+      contact_1.social_networks,
+      contact_2.social_networks,
+    ]),
   };
 }

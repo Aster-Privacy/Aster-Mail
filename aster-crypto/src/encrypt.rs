@@ -53,9 +53,7 @@ fn is_aead_capable_algo(algo: PublicKeyAlgorithm) -> bool {
 }
 
 fn select_public_encryption_subkey(spk: &SignedPublicKey) -> Result<&SignedPublicSubKey> {
-    crate::key_selection::select_encryption_subkey(spk).ok_or_else(|| {
-        CryptoError::Encryption("recipient key has no usable encryption subkey".into())
-    })
+    crate::key_selection::select_encryption_subkey(spk).map_err(CryptoError::UnusableRecipientKey)
 }
 
 pub(crate) fn subkey_supports_seipdv2(version: KeyVersion, algo: PublicKeyAlgorithm) -> bool {

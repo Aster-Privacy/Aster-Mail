@@ -19,14 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ParsedEmail, ParseProgressCallback } from "./types";
+import type { MultipartOptions } from "./mime_utils";
 
 import { MAX_SINGLE_EMAIL_SIZE } from "./types";
-import { parse_eml } from "./eml_parser";
+import { parse_eml, read_eml_text } from "./eml_parser";
 import {
   iterate_mbox_segments,
   parse_mbox_header_summary,
 } from "./mbox_parser";
 import {
+  is_eml_import_file,
   is_mbox_import_file,
   is_valid_email,
   parse_import_file,
@@ -52,11 +54,19 @@ export interface ImportCollection {
   summaries: ParsedEmail[];
   errors: string[];
   warnings: string[];
-  load(indices: Set<number>): AsyncGenerator<ImportLoadItem>;
+  load(
+    indices: Set<number>,
+    options?: MultipartOptions,
+  ): AsyncGenerator<ImportLoadItem>;
 }
 
 type ImportPart =
-  | { kind: "memory"; start: number; emails: ParsedEmail[] }
+  | {
+      kind: "memory";
+      start: number;
+      emails: ParsedEmail[];
+      eml_file: File | null;
+    }
   | { kind: "mbox"; start: number; file: File; ordinals: number[] };
 
 interface MboxScan {
@@ -127,8 +137,8 @@ export function eml_source_folder(
 function has_source_folder(email: ParsedEmail): boolean {
   return Boolean(
     email.source_folder ||
-      email.source_labels?.length ||
-      email.source_folders?.length,
+    email.source_labels?.length ||
+    email.source_folders?.length,
   );
 }
 
@@ -218,9 +228,34 @@ async function scan_mbox_file(
   return { summaries, ordinals, errors: [], warnings };
 }
 
-function load_mbox_email(raw_email: string, summary: ParsedEmail) {
+export function needs_attachment_content(email: ParsedEmail): boolean {
+  return email.attachments.some(
+    (attachment) => attachment.content.length === 0,
+  );
+}
+
+async function with_eml_attachment_content(
+  email: ParsedEmail,
+  file: File,
+): Promise<ParsedEmail> {
   try {
-    const email = parse_eml(raw_email);
+    const reparsed = parse_eml(await read_eml_text(file), {
+      attachment_content: true,
+    });
+
+    return { ...email, attachments: reparsed.attachments };
+  } catch {
+    return email;
+  }
+}
+
+function load_mbox_email(
+  raw_email: string,
+  summary: ParsedEmail,
+  options: MultipartOptions = {},
+) {
+  try {
+    const email = parse_eml(raw_email, options);
 
     if (
       email.message_id !== summary.message_id &&
@@ -303,7 +338,12 @@ export async function build_import_collection(
       warnings.push(...result.warnings);
 
       if (result.emails.length > 0) {
-        parts.push({ kind: "memory", start, emails: result.emails });
+        const eml_file =
+          result.emails.length === 1 && (await is_eml_import_file(file))
+            ? file
+            : null;
+
+        parts.push({ kind: "memory", start, emails: result.emails, eml_file });
       }
     }
 
@@ -318,15 +358,26 @@ export async function build_import_collection(
     }
   }
 
-  async function* load(indices: Set<number>): AsyncGenerator<ImportLoadItem> {
+  async function* load(
+    indices: Set<number>,
+    options: MultipartOptions = {},
+  ): AsyncGenerator<ImportLoadItem> {
     for (const part of parts) {
       if (part.kind === "memory") {
         for (let j = 0; j < part.emails.length; j++) {
           const index = part.start + j;
 
-          if (indices.has(index)) {
-            yield { index, email: part.emails[j], status: "ready" };
-          }
+          if (!indices.has(index)) continue;
+
+          const email = part.emails[j];
+          const loaded =
+            options.attachment_content &&
+            part.eml_file &&
+            needs_attachment_content(email)
+              ? await with_eml_attachment_content(email, part.eml_file)
+              : email;
+
+          yield { index, email: loaded, status: "ready" };
         }
         continue;
       }
@@ -349,7 +400,10 @@ export async function build_import_collection(
 
         if (index === undefined) continue;
 
-        yield { index, ...load_mbox_email(raw_email, summaries[index]) };
+        yield {
+          index,
+          ...load_mbox_email(raw_email, summaries[index], options),
+        };
 
         remaining--;
         if (remaining === 0) break;

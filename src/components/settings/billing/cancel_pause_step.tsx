@@ -23,6 +23,7 @@ import { useState, type ReactNode } from "react";
 import { button_variants } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { CancelStepActions } from "@/components/settings/billing/cancel_step_actions";
 import { format_date } from "@/services/api/billing";
 import { BillingSegmented } from "@/components/settings/billing/billing_segmented";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -68,7 +69,7 @@ interface CancelPauseStepProps {
   keep_plan_slot?: ReactNode;
   on_pause: (months: number) => void;
   on_back: () => void;
-  on_continue: () => void;
+  on_cancel: () => void;
 }
 
 export function CancelPauseStep({
@@ -79,7 +80,7 @@ export function CancelPauseStep({
   keep_plan_slot,
   on_pause,
   on_back,
-  on_continue,
+  on_cancel,
 }: CancelPauseStepProps) {
   const { t } = use_i18n();
   const [length, set_length] = useState<PauseLength>("1");
@@ -130,26 +131,12 @@ export function CancelPauseStep({
         </button>
       </div>
 
-      <div className="mt-5 flex flex-col gap-2 max-sm:[&_button]:w-full sm:flex-row sm:items-center">
-        {keep_plan_slot}
-        <div className="flex flex-col gap-2 sm:ml-auto sm:flex-row sm:items-center">
-          <button
-            className={`${button_variants({ variant: "ghost" })} whitespace-nowrap`}
-            type="button"
-            onClick={on_back}
-          >
-            {t("common.back")}
-          </button>
-          <button
-            className={`${button_variants({ variant: "ghost" })} whitespace-nowrap`}
-            disabled={is_busy}
-            type="button"
-            onClick={on_continue}
-          >
-            {t("settings.cancel_offer_continue")}
-          </button>
-        </div>
-      </div>
+      <CancelStepActions
+        is_busy={is_busy}
+        keep_plan_slot={keep_plan_slot}
+        on_back={on_back}
+        on_cancel={on_cancel}
+      />
     </div>
   );
 }

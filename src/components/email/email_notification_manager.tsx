@@ -43,6 +43,7 @@ import {
   get_locked_folder_tokens,
   has_protected_folders,
 } from "@/services/locked_folders";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const REPLY_STATE_TIMEOUT_MS = 1500;
 const ARRIVAL_BURST_WINDOW_MS = 1500;
@@ -165,7 +166,7 @@ async function is_email_notification_suppressed(
 }
 
 function is_tauri(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 const NOTIFIED_TTL_MS = 6 * 60 * 60 * 1000;

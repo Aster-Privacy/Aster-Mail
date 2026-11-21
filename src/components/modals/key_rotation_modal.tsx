@@ -45,6 +45,7 @@ interface KeyRotationModalProps {
   on_rotate: (password: string) => Promise<string | null>;
   key_age_hours: number | null;
   key_fingerprint: string | null;
+  removed_key_count?: number;
   is_manual?: boolean;
 }
 
@@ -56,6 +57,7 @@ export function KeyRotationModal({
   on_rotate,
   key_age_hours,
   key_fingerprint,
+  removed_key_count = 0,
   is_manual = false,
 }: KeyRotationModalProps) {
   const { t } = use_i18n();
@@ -288,15 +290,35 @@ export function KeyRotationModal({
                       : t("settings.rotate_keys_description_required")}
                   </p>
 
-                  <div
-                    className="flex items-start gap-2 mb-4 p-3 rounded-lg"
-                    style={{ backgroundColor: "rgba(234, 179, 8, 0.1)" }}
-                  >
-                    <ExclamationTriangleIcon className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-[13px] text-yellow-600 dark:text-yellow-400">
-                      {t("settings.key_rotation_data_loss_warning")}
-                    </p>
-                  </div>
+                  {removed_key_count > 0 ? (
+                    <div
+                      className="flex items-start gap-2 mb-4 p-3 rounded-lg"
+                      style={{ backgroundColor: "rgba(234, 179, 8, 0.1)" }}
+                    >
+                      <ExclamationTriangleIcon className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-[13px] text-yellow-600 dark:text-yellow-400">
+                        {t("settings.key_rotation_prune_warning", {
+                          count: removed_key_count,
+                        })}
+                      </p>
+                    </div>
+                  ) : (
+                    <div
+                      className="flex items-start gap-2 mb-4 p-3 rounded-lg"
+                      style={{ backgroundColor: "var(--bg-tertiary)" }}
+                    >
+                      <CheckCircleIcon
+                        className="w-4 h-4 flex-shrink-0 mt-0.5"
+                        style={{ color: "var(--text-muted)" }}
+                      />
+                      <p
+                        className="text-[13px]"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        {t("settings.key_rotation_history_kept")}
+                      </p>
+                    </div>
+                  )}
 
                   <div>
                     <label

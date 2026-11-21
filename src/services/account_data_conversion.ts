@@ -39,7 +39,10 @@ import {
   is_attachment_meta_v2_nonce,
   open_attachment_meta_kek_text,
 } from "./crypto/attachment_meta_v2";
-import { decrypt_message_with_any_key } from "./crypto/key_manager";
+import {
+  decrypt_message_verified_with_any_key,
+  derive_public_keys_from_private,
+} from "./crypto/key_manager_pgp_messages";
 import { load_openpgp } from "./crypto/openpgp_loader";
 import {
   get_passphrase_bytes,
@@ -48,6 +51,7 @@ import {
 } from "./crypto/memory_key_store";
 import { zero_uint8_array } from "./crypto/secure_memory";
 import { seal_sent_plaintext } from "./crypto/sent_copy_seal";
+import { open_vouched_login_salted_envelope } from "./crypto/vouched_login_salt_envelope";
 import { write_locked_sent_mail } from "./locked_sent_mail_store";
 
 import { ignore_error } from "@/lib/ignore_error";
@@ -212,6 +216,21 @@ async function open_legacy_envelope(
     if (plaintext !== null) return plaintext;
   }
 
+  const vault = get_vault_from_memory();
+
+  for (const passphrase_bytes of [
+    keys.passphrase_bytes,
+    ...(keys.fallback_passphrase_bytes ?? []),
+  ]) {
+    const plaintext = await open_vouched_login_salted_envelope(
+      encrypted_b64,
+      passphrase_bytes,
+      vault,
+    );
+
+    if (plaintext !== null) return plaintext;
+  }
+
   return null;
 }
 
@@ -290,18 +309,27 @@ async function open_attachment_meta(
   if (text.startsWith(PGP_MESSAGE_HEADER)) {
     await load_openpgp();
 
+    const own_keys = [keys.identity_key, ...keys.previous_keys];
+
     try {
-      return await decrypt_message_with_any_key(
+      const own_public_keys = await derive_public_keys_from_private(own_keys);
+
+      if (own_public_keys.length === 0) return null;
+
+      const opened = await decrypt_message_verified_with_any_key(
         text,
-        [keys.identity_key, ...keys.previous_keys],
+        own_keys,
         keys.passphrase,
+        own_public_keys,
       );
+
+      return opened.verification === "verified" ? opened.plaintext : null;
     } catch {
       return null;
     }
   }
 
-  if (text && is_attachment_meta_text(text)) return text;
+  if (text && is_attachment_meta_text(text)) return null;
 
   const legacy = await open_legacy_envelope(encrypted_meta, keys);
 

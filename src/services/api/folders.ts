@@ -399,6 +399,7 @@ export interface SetFolderPasswordRequest {
   password_salt: string;
   encrypted_folder_key: string;
   folder_key_nonce: string;
+  folder_key_version?: number;
 }
 
 export interface SetFolderPasswordResponse {
@@ -413,6 +414,7 @@ export interface VerifyFolderPasswordResponse {
   verified: boolean;
   encrypted_folder_key?: string;
   folder_key_nonce?: string;
+  folder_key_version?: number;
   unlock_token?: string;
   unlock_expires_at?: string;
 }
@@ -432,6 +434,7 @@ export interface ChangeFolderPasswordRequest {
   new_password_salt: string;
   new_encrypted_folder_key: string;
   new_folder_key_nonce: string;
+  new_folder_key_version?: number;
 }
 
 export interface ChangeFolderPasswordResponse {

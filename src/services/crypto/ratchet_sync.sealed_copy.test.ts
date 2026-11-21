@@ -23,6 +23,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const floors = vi.hoisted(() => new Map<string, number>());
 const counters = vi.hoisted(() => new Map<string, number>());
 
+vi.mock("./ratchet_sync_format", () => ({
+  ratchet_sync_writes_bound: vi.fn(async () => true),
+  vault_requires_bound_state: vi.fn(() => false),
+}));
+
 vi.mock("@/services/api/client", () => ({
   api_client: {
     post: vi.fn(),
@@ -64,7 +69,11 @@ vi.mock("./ratchet_sync_counter", () => ({
   ),
 }));
 
-import { load_ratchet_from_server, sync_ratchet_to_server } from "./ratchet_sync";
+import {
+  load_ratchet_from_server,
+  sync_ratchet_to_server,
+  type RatchetSyncKey,
+} from "./ratchet_sync";
 import { DoubleRatchet } from "./double_ratchet";
 import { load_ratchet_state } from "./ratchet_state_store";
 import { RATCHET_SYNC_SEALED_PREFIX } from "./storage_key_names";
@@ -90,14 +99,16 @@ interface SealedBody {
   state_nonce: string;
 }
 
-async function sync_key(): Promise<CryptoKey> {
-  return crypto.subtle.importKey(
+async function sync_key(): Promise<RatchetSyncKey> {
+  const key = await crypto.subtle.importKey(
     "raw",
     new Uint8Array(32).map((_, index) => index),
     { name: "AES-GCM" },
     false,
     ["encrypt", "decrypt"],
   );
+
+  return { state_key: key, compat_key: key, user_id: "user-1" };
 }
 
 function ratchet_state(send_message_number: number) {
@@ -149,13 +160,13 @@ function state_response(body: SealedBody, version = 3) {
 }
 
 async function seal_copy(
-  key: CryptoKey,
+  key: RatchetSyncKey,
   sync_version: number,
 ): Promise<SealedBody> {
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const sealed = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: nonce },
-    key,
+    key.compat_key,
     new TextEncoder().encode(
       JSON.stringify({
         state: { ...ratchet_state(4), conversation_id: CONV },
@@ -172,7 +183,7 @@ async function seal_copy(
 }
 
 async function upload_that_the_server_never_confirms(
-  key: CryptoKey,
+  key: RatchetSyncKey,
 ): Promise<SealedBody[]> {
   mock_get.mockResolvedValue({ code: "NOT_FOUND", error: "not found" });
   mock_post.mockResolvedValue({ error: "unavailable" });

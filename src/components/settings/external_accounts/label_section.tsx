@@ -20,18 +20,13 @@
 //
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
-import { HexColorPicker } from "react-colorful";
-
 import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  TAG_COLOR_PRESETS,
-  tag_color_label_key,
-} from "@/components/ui/email_tag";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 import { HEX_COLOR_REGEX } from "@/components/settings/hooks/use_external_accounts";
 
 interface LabelSectionProps {
@@ -49,7 +44,6 @@ export function LabelSection({
   set_form_label_name,
   form_label_color,
   set_form_label_color,
-  handle_label_color_change,
   handle_label_color_input,
   t,
 }: LabelSectionProps) {
@@ -104,36 +98,16 @@ export function LabelSection({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-auto p-3 z-[70]"
+              className="w-[288px] p-3 z-[70]"
               sideOffset={6}
             >
               <div className="space-y-3">
-                <HexColorPicker
-                  color={form_label_color}
-                  style={{ width: "100%" }}
-                  onChange={handle_label_color_change}
+                <ColorSwatchRow
+                  label={t("common.color")}
+                  max_swatch_size={36}
+                  value={form_label_color}
+                  on_change={set_form_label_color}
                 />
-                <div className="flex flex-wrap gap-1.5">
-                  {TAG_COLOR_PRESETS.map((color) => (
-                    <button
-                      key={color.hex}
-                      aria-label={t("settings.select_color", {
-                        name: t(tag_color_label_key(color.variant)),
-                      })}
-                      className="w-9 h-9 rounded-full"
-                      style={{
-                        backgroundColor: color.hex,
-                        boxShadow:
-                          form_label_color.toLowerCase() === color.hex
-                            ? `0 0 0 2px var(--modal-bg), 0 0 0 3.5px ${color.hex}`
-                            : "none",
-                      }}
-                      title={t(tag_color_label_key(color.variant))}
-                      type="button"
-                      onClick={() => set_form_label_color(color.hex)}
-                    />
-                  ))}
-                </div>
                 <Input
                   aria-label={t("settings.hex_color_value")}
                   className="w-full font-mono"

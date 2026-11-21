@@ -19,11 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ignore_error } from "@/lib/ignore_error";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export interface DesktopUpdateInfo {
   version: string;
   current_version: string;
-  notes?: string;
   date?: string;
 }
 
@@ -49,17 +49,27 @@ export function update_progress_percent(
 const AUTO_UPDATE_KEY = "aster_desktop_auto_update";
 const LAST_CHECK_KEY = "aster_desktop_last_check";
 const LAST_NOTIFIED_VERSION_KEY = "aster_desktop_last_notified_version";
+const RELEASES_URL =
+  "https://github.com/Aster-Privacy/Aster-Mail/releases/tag/";
+const RELEASE_VERSION_PATTERN = /^\d{1,4}\.\d{1,4}\.\d{1,6}$/;
+
+export function release_notes_url(version: string): string | null {
+  const trimmed = version.trim().replace(/^v/, "");
+
+  if (!RELEASE_VERSION_PATTERN.test(trimmed)) return null;
+
+  return `${RELEASES_URL}v${trimmed}`;
+}
 
 export function is_desktop_runtime(): boolean {
   if (typeof window === "undefined") return false;
   const w = window as unknown as {
-    __TAURI_INTERNALS__?: unknown;
     __ASTER_FLATPAK__?: unknown;
   };
 
   if (w.__ASTER_FLATPAK__) return false;
 
-  return Boolean(w.__TAURI_INTERNALS__);
+  return has_tauri_runtime();
 }
 
 export function get_auto_update_enabled(): boolean {
@@ -115,7 +125,6 @@ export function mark_version_notified(version: string): void {
 interface TauriUpdate {
   version: string;
   currentVersion: string;
-  body?: string;
   date?: string;
   download: (
     on_event?: (event: {
@@ -179,7 +188,6 @@ export async function check_for_update(): Promise<DesktopUpdateInfo | null> {
   return {
     version: result.version,
     current_version: result.currentVersion,
-    notes: result.body,
     date: result.date,
   };
 }

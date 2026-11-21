@@ -58,7 +58,7 @@ import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_m
 import { PurchasedDomainManageModal } from "@/components/settings/aliases/purchased_domain_manage_modal";
 import { PurchasedDnsEditor } from "@/components/settings/aliases/purchased_dns_editor";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
-import { is_https_payment_url } from "@/lib/payment_url";
+import { checked_payment_url } from "@/lib/payment_url";
 import { open_payment_url } from "@/services/api/billing";
 import { is_tauri_env } from "@/services/api/client/helpers";
 import { ignore_error } from "@/lib/ignore_error";
@@ -334,17 +334,15 @@ export function DomainsSection() {
         auto_renew,
       );
 
-      if (
-        response.data?.checkout_url &&
-        is_https_payment_url(response.data.checkout_url)
-      ) {
-        if (is_tauri_env()) {
-          await open_payment_url(response.data.checkout_url);
-          pending_desktop_renew_ref.current = true;
+      const renew_checkout_url = checked_payment_url(
+        response.data?.checkout_url,
+      );
 
-          return;
+      if (renew_checkout_url) {
+        await open_payment_url(renew_checkout_url);
+        if (is_tauri_env()) {
+          pending_desktop_renew_ref.current = true;
         }
-        window.location.href = response.data.checkout_url;
 
         return;
       }

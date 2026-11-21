@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { MailPriority } from "@/services/mail_priority";
 import type { DecryptedContact } from "@/types/contacts";
 import type { DecryptedRecentRecipient } from "@/types/recent_recipients";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
@@ -78,7 +79,11 @@ import {
   resolve_quoted_image_blocking,
   type EditableQuotedHtmlOptions,
 } from "@/lib/editable_quoted_html";
-import { escape_html, escaped_html_to_plain_text } from "@/hooks/editor_utils";
+import {
+  editor_plain_text,
+  escape_html,
+  escaped_html_to_plain_text,
+} from "@/hooks/editor_utils";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
 import { build_compose_default_block } from "@/lib/compose_defaults";
 import {
@@ -131,6 +136,7 @@ export interface UseComposeOptions {
   initial_to?: string;
   selected_alias?: string | null;
   initial_attachments?: File[];
+  initial_subject?: string;
   session_storage_key: string;
   init_trigger?: unknown;
   load_contacts_trigger?: unknown;
@@ -171,6 +177,8 @@ export interface UseComposeReturn {
   is_mac: boolean;
   is_plain_text_mode: boolean;
   toggle_plain_text_mode: () => void;
+  priority: MailPriority;
+  set_priority: (priority: MailPriority) => void;
   show_plain_text_confirm: boolean;
   confirm_plain_text_mode: () => void;
   cancel_plain_text_confirm: () => void;
@@ -253,6 +261,7 @@ export function use_compose({
   initial_to,
   selected_alias,
   initial_attachments,
+  initial_subject,
   session_storage_key,
   init_trigger,
   load_contacts_trigger,
@@ -307,6 +316,7 @@ export function use_compose({
     useState<VisibilityState>(INITIAL_VISIBILITY);
 
   const [subject, set_subject] = useState("");
+  const [priority, set_priority] = useState<MailPriority>("normal");
   const [message, set_message] = useState("");
 
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
@@ -515,12 +525,15 @@ export function use_compose({
           sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
         draft_from: edit_draft?.from_email,
         selected_email: selected_sender?.email,
+        resolution_ready: preferred_sender_ready || !!preferred_sender_id,
       }),
     [
       aliases_loading,
       ghost_mode.is_ghost_enabled,
       edit_draft?.from_email,
       selected_sender?.email,
+      preferred_sender_ready,
+      preferred_sender_id,
     ],
   );
 
@@ -529,6 +542,7 @@ export function use_compose({
     subject,
     message: outgoing_message,
     is_plain_text: editor_hook.is_plain_text_mode,
+    priority,
     attachments: attachment_hook.attachments,
     has_pending_attachment_reads: attachment_hook.has_pending_attachment_reads,
     is_loading_forward_attachments,
@@ -1000,7 +1014,7 @@ export function use_compose({
             );
             set_message(
               is_plain_text_ref.current
-                ? message_textarea_ref.current.innerText
+                ? editor_plain_text(message_textarea_ref.current)
                 : read_compose_editor_html(
                     message_textarea_ref.current.innerHTML,
                   ),
@@ -1028,6 +1042,10 @@ export function use_compose({
         if (emails.length > 0) {
           dispatch_recipients({ type: "SET", field: "to", emails });
         }
+      }
+
+      if (initial_subject) {
+        set_subject(initial_subject);
       }
 
       if (initial_attachments && initial_attachments.length > 0) {
@@ -1101,7 +1119,12 @@ export function use_compose({
     if (is_fresh_reply_forward && edit_draft) {
       content = caret_block + signature_block + edit_draft.message;
     } else {
-      content = caret_block + signature_block + footer_html;
+      const spaced_footer =
+        caret_block && !signature_block
+          ? footer_html.replace(/^<br><br>/, "<br>")
+          : footer_html;
+
+      content = caret_block + signature_block + spaced_footer;
     }
 
     const sanitized_result = sanitize_html(
@@ -1124,7 +1147,7 @@ export function use_compose({
           contain_draft_quotes(resolved_html, quote_options_ref.current()),
         );
         if (is_plain_text_ref.current) {
-          const text = message_textarea_ref.current.innerText;
+          const text = editor_plain_text(message_textarea_ref.current);
 
           message_textarea_ref.current.innerText = text;
           set_message(text);
@@ -1176,7 +1199,7 @@ export function use_compose({
         stale.remove();
         set_message(
           is_plain_text_ref.current
-            ? editor.innerText
+            ? editor_plain_text(editor)
             : read_compose_editor_html(editor.innerHTML),
         );
       }
@@ -1212,7 +1235,7 @@ export function use_compose({
     }
     set_message(
       is_plain_text_ref.current
-        ? editor.innerText
+        ? editor_plain_text(editor)
         : read_compose_editor_html(editor.innerHTML),
     );
     last_signature_id_ref.current = target.id;
@@ -1365,6 +1388,8 @@ export function use_compose({
     is_mac: editor_hook.editor.is_mac,
     is_plain_text_mode: editor_hook.is_plain_text_mode,
     toggle_plain_text_mode: editor_hook.toggle_plain_text_mode,
+    priority,
+    set_priority,
     show_plain_text_confirm: editor_hook.show_plain_text_confirm,
     confirm_plain_text_mode: editor_hook.confirm_plain_text_mode,
     cancel_plain_text_confirm: editor_hook.cancel_plain_text_confirm,

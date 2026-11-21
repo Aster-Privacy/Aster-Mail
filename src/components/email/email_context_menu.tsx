@@ -45,6 +45,7 @@ import {
   Squares2X2Icon,
   MagnifyingGlassIcon,
   ArrowTopRightOnSquareIcon,
+  PaperClipIcon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -54,6 +55,7 @@ import {
 import { PinIcon } from "@/components/common/icons";
 import { category_icon } from "@/data/category_icons";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_forward_as_attachment } from "@/components/compose/use_forward_as_attachment";
 import {
   get_active_tab_options,
   get_version as get_category_index_version,
@@ -183,6 +185,7 @@ function EmailContextMenuContentInner({
   disabled = false,
 }: EmailContextMenuContentProps): React.ReactElement {
   const { t } = use_i18n();
+  const forward_mail_as_attachment = use_forward_as_attachment();
   const [loading_action, set_loading_action] = useState<string | null>(null);
 
   useSyncExternalStore(subscribe_category_index, get_category_index_version);
@@ -383,6 +386,20 @@ function EmailContextMenuContentInner({
         >
           <ArrowUturnRightIcon className="me-2 h-4 w-4 rtl:-scale-x-100" />
           {t("mail.forward")}
+        </ContextMenuItem>
+      )}
+
+      {!is_selection && on_forward && !is_drafts && !is_scheduled && (
+        <ContextMenuItem
+          disabled={loading_action === "forward_as_attachment"}
+          onClick={() =>
+            handle_action("forward_as_attachment", () =>
+              forward_mail_as_attachment([email.id]),
+            )
+          }
+        >
+          <PaperClipIcon className="me-2 h-4 w-4" />
+          {t("mail.forward_as_attachment")}
         </ContextMenuItem>
       )}
 

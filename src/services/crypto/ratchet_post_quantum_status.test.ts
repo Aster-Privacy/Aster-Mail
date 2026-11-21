@@ -32,6 +32,7 @@ const h = vi.hoisted(() => ({
   accepted: false,
   flagged: [] as string[],
   identity: null as Record<string, unknown> | null,
+  signed_pq_seen: false,
 }));
 
 vi.mock("../api/keys", () => ({
@@ -45,6 +46,12 @@ vi.mock("./ratchet_identity_pin", async (import_original) => ({
   check_owner_key_pin: vi.fn(async () => h.owner_pin),
   is_recipient_flagged_untrusted: vi.fn(async () => false),
   is_recipient_bundle_accepted: vi.fn(async () => h.accepted),
+  has_peer_signed_pq: vi.fn(async () => h.signed_pq_seen),
+  read_peer_downgrade_floor: vi.fn(async () => ({
+    x3dh_version: 0,
+    pq_seen: h.signed_pq_seen,
+    pq_signed_seen: h.signed_pq_seen,
+  })),
   flag_recipient_untrusted: vi.fn(async (pin_id: string) => {
     h.flagged.push(pin_id);
   }),
@@ -107,6 +114,7 @@ describe("recipient_post_quantum_status", () => {
     h.bootstrap = null;
     h.flagged = [];
     h.identity = null;
+    h.signed_pq_seen = false;
   });
 
   it("reports supported for a verified bundle whose signature covers the post-quantum key", async () => {
@@ -115,12 +123,21 @@ describe("recipient_post_quantum_status", () => {
     ).resolves.toBe("supported");
   });
 
-  it("reports unsupported for a verified v1 bundle whose signature does not cover the post-quantum key", async () => {
+  it("reports unsupported, not downgraded, for a verified v1 bundle that carries an uncovered post-quantum key", async () => {
     h.verification = { verdict: "verified", format: "v1", strict: false };
 
     await expect(
       recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
     ).resolves.toBe("unsupported");
+  });
+
+  it("reports downgraded for a v1 bundle from a peer that previously signed its post-quantum key", async () => {
+    h.verification = { verdict: "verified", format: "v1", strict: false };
+    h.signed_pq_seen = true;
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("downgraded");
   });
 
   it("reports downgraded on first contact when the published post-quantum key is unusable", async () => {
@@ -160,8 +177,35 @@ describe("recipient_post_quantum_status", () => {
     ).resolves.toBe("unsupported");
   });
 
-  it("reports unsupported for a legacy hash-bound bundle", async () => {
+  it("reports unsupported for a legacy hash-bound bundle that carries post-quantum keys", async () => {
     h.verification = { verdict: "legacy", format: "hash", strict: false };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
+  });
+
+  it("reports unsupported for a legacy bundle whose only post-quantum key is a server-supplied one-time prekey", async () => {
+    h.verification = { verdict: "legacy", format: "hash", strict: false };
+    h.bundle = {
+      kem_identity_key: "kem",
+      signed_prekey: "spk",
+      signed_prekey_signature: "sig",
+      pq_prekey: { key_id: 77, public_key: pq_key },
+    };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("unsupported");
+  });
+
+  it("reports unsupported for a legacy hash-bound bundle without post-quantum keys", async () => {
+    h.verification = { verdict: "legacy", format: "hash", strict: false };
+    h.bundle = {
+      kem_identity_key: "kem",
+      signed_prekey: "spk",
+      signed_prekey_signature: "sig",
+    };
 
     await expect(
       recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),

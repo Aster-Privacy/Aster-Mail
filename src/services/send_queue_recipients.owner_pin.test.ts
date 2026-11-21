@@ -23,6 +23,7 @@ const h = vi.hoisted(() => ({
   status: "ok" as "first" | "ok" | "changed" | "unknown",
   flagged: false,
   flag_calls: [] as string[],
+  lookup: null as { fingerprint: string; conflict: boolean } | "unreadable" | null,
 }));
 
 vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
@@ -31,6 +32,7 @@ vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
     h.flag_calls.push(pin_id);
   }),
   is_recipient_flagged_untrusted: vi.fn(async () => h.flagged),
+  lookup_owner_key_pin: vi.fn(async () => h.lookup),
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -48,7 +50,10 @@ vi.mock("@/lib/i18n/translations", () => ({
   }),
 }));
 
-import { assert_owner_key_trusted } from "./send_queue_recipients";
+import {
+  assert_owner_key_trusted,
+  owner_key_pinned_before_send,
+} from "./send_queue_recipients";
 import { SendError } from "./send_queue_types";
 
 describe("assert_owner_key_trusted", () => {
@@ -56,6 +61,7 @@ describe("assert_owner_key_trusted", () => {
     h.status = "ok";
     h.flagged = false;
     h.flag_calls = [];
+    h.lookup = null;
   });
 
   it("allows a recipient whose owner key matches the pin", async () => {
@@ -63,6 +69,21 @@ describe("assert_owner_key_trusted", () => {
       assert_owner_key_trusted("Bob@astermail.org", "key"),
     ).resolves.toBeUndefined();
     expect(h.flag_calls).toEqual([]);
+  });
+
+  it("refuses a fallback key that the same send pinned for the first time", async () => {
+    h.status = "ok";
+
+    await expect(
+      assert_owner_key_trusted("bob@astermail.org", "key", false),
+    ).rejects.toBeInstanceOf(SendError);
+    expect(h.flag_calls).toEqual([]);
+  });
+
+  it("allows a fallback key that was pinned before the send", async () => {
+    await expect(
+      assert_owner_key_trusted("bob@astermail.org", "key", true),
+    ).resolves.toBeUndefined();
   });
 
   it("allows the first key seen for a recipient", async () => {
@@ -88,5 +109,25 @@ describe("assert_owner_key_trusted", () => {
     await expect(
       assert_owner_key_trusted("bob@astermail.org", "key"),
     ).rejects.toBeInstanceOf(SendError);
+  });
+});
+
+describe("owner_key_pinned_before_send", () => {
+  beforeEach(() => {
+    h.lookup = null;
+  });
+
+  it("treats a pin that cannot be read as not pinned", async () => {
+    h.lookup = "unreadable";
+
+    expect(await owner_key_pinned_before_send("bob@astermail.org")).toBe(false);
+  });
+
+  it("treats a missing pin as not pinned and a stored pin as pinned", async () => {
+    expect(await owner_key_pinned_before_send("bob@astermail.org")).toBe(false);
+
+    h.lookup = { fingerprint: "fp", conflict: false };
+
+    expect(await owner_key_pinned_before_send("Bob@astermail.org")).toBe(true);
   });
 });

@@ -36,7 +36,9 @@ import {
   forget_device_account,
   clear_device_session,
   clear_explicit_sign_out,
+  locked_device_login_account_id,
   relogin_with_retries,
+  resume_device_login_after_unlock,
   take_explicit_sign_out,
 } from "@/native/desktop_device_auth";
 import {
@@ -49,9 +51,12 @@ import { emit_auth_ready } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import { Logo } from "@/components/auth/auth_styles";
 import { Spinner } from "@/components/ui/spinner";
+import { WebPinOverlay } from "@/components/mobile/app_lock";
+import { get_app_lock_config } from "@/services/app_lock_store";
+import { settle_app_unlock } from "@/services/app_lock_wrap";
 import { ignore_error } from "@/lib/ignore_error";
 
-type GateState = "loading" | "completing" | "pair" | "unavailable";
+type GateState = "loading" | "completing" | "pair" | "unavailable" | "unlock";
 
 type FinalizeOutcome = "signed_in" | "rejected" | "unavailable" | "locked";
 
@@ -80,6 +85,9 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
   const [init_key, set_init_key] = useState(0);
   const [gate_state, set_gate_state] = useState<GateState>("loading");
   const [retry_round, set_retry_round] = useState(0);
+  const [unlock_account_id, set_unlock_account_id] = useState<string | null>(
+    null,
+  );
   const prev_auth_ref = useRef(is_authenticated);
 
   const sign_in_with_session = useCallback(
@@ -90,6 +98,8 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
         session.passphrase,
         session.encrypted_vault,
         session.vault_nonce,
+        true,
+        session.vault_recovered_write_count,
       );
       await update_account_device_id(session.user.id, session.device_id).catch(
         (caught) =>
@@ -195,6 +205,30 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
         }
 
         if (outcome === "locked") {
+          set_checked(true);
+          const resumed = await resume_device_login_after_unlock(
+            current?.id ?? locked_device_login_account_id(),
+            undefined,
+            (account_id) => {
+              if (cancelled) return;
+              set_unlock_account_id(account_id);
+              set_gate_state("unlock");
+            },
+          );
+
+          set_unlock_account_id(null);
+
+          if (cancelled) return;
+          if (resumed) {
+            const resumed_outcome = await finalize(resumed);
+
+            if (cancelled || resumed_outcome === "signed_in") return;
+            if (resumed_outcome === "unavailable") {
+              set_gate_state("unavailable");
+
+              return;
+            }
+          }
           set_gate_state("pair");
 
           return;
@@ -262,6 +296,23 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
   if (gate_state === "pair") {
     return <DesktopCodeSignIn on_signed_in={sign_in_with_session} />;
+  }
+
+  if (gate_state === "unlock" && unlock_account_id) {
+    const lock_config = get_app_lock_config(unlock_account_id);
+    const pin_type = lock_config?.pin_type ?? "numeric";
+
+    return (
+      <WebPinOverlay
+        account_id={unlock_account_id}
+        digits={pin_type === "numeric" ? lock_config?.digits || 4 : 0}
+        on_sign_out={() => settle_app_unlock(unlock_account_id, false)}
+        on_unlock={() => settle_app_unlock(unlock_account_id, true)}
+        pin_type={pin_type}
+        reduce_motion={reduce_motion}
+        t={t}
+      />
+    );
   }
 
   return (

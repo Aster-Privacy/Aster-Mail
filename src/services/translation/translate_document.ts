@@ -40,7 +40,11 @@ import {
   restore_entities,
   segment_nodes,
 } from "./text_prepare";
-import { read_translation, write_translation } from "./translation_cache";
+import {
+  read_translation,
+  source_text_hash,
+  write_translation,
+} from "./translation_cache";
 
 export interface TranslateBodyOptions {
   root: HTMLElement;
@@ -206,12 +210,14 @@ export async function translate_message_body({
 
   if (nodes.length === 0) return EMPTY_RESULT;
 
+  const originals = read_node_text(nodes);
   const cache_parts = {
     account_id,
     message_id,
     source: from,
     target: to,
     model_version: MODEL_VERSION,
+    source_hash: source_text_hash(originals),
   };
   const cached = read_translation(cache_parts);
 
@@ -238,7 +244,6 @@ export async function translate_message_body({
   if (signal.aborted) return EMPTY_RESULT;
   if (!supported) return UNSUPPORTED_RESULT;
 
-  const originals = read_node_text(nodes);
   const limit = translatable_prefix(originals);
   const head = originals.slice(0, limit);
   const protections = head.map((text) => protect_entities(text));

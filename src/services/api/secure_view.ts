@@ -21,15 +21,17 @@
 import type {
   EncryptedField,
   EncryptedSecureAttachment,
+  SecureKdfVersion,
 } from "../crypto/secure_message_crypto";
 import type { SecureViewPasswordKdf } from "../crypto/secure_view_key";
 
 import { base64_to_array } from "../crypto/envelope";
+import { parse_secure_kdf_version } from "../crypto/secure_message_crypto";
 
 const SECURE_VIEW_SALT_BYTES = 16;
 
 export type SecureViewUnlockMode =
-  | { kind: "zero_knowledge"; kdf_salt: string }
+  | { kind: "zero_knowledge"; kdf_salt: string; kdf_version: SecureKdfVersion }
   | { kind: "password" }
   | { kind: "refused" };
 
@@ -42,16 +44,33 @@ function is_valid_secure_view_salt(kdf_salt: string): boolean {
 }
 
 export function secure_view_unlock_mode(
-  metadata: Pick<SecureViewMetadata, "is_zero_knowledge" | "kdf_salt">,
+  metadata: Pick<
+    SecureViewMetadata,
+    "is_zero_knowledge" | "kdf_salt" | "kdf_version"
+  >,
 ): SecureViewUnlockMode {
   if (metadata.kdf_salt !== undefined && metadata.kdf_salt !== null) {
-    return metadata.is_zero_knowledge &&
-      is_valid_secure_view_salt(metadata.kdf_salt)
-      ? { kind: "zero_knowledge", kdf_salt: metadata.kdf_salt }
-      : { kind: "refused" };
+    if (
+      !metadata.is_zero_knowledge ||
+      !is_valid_secure_view_salt(metadata.kdf_salt)
+    ) {
+      return { kind: "refused" };
+    }
+
+    try {
+      return {
+        kind: "zero_knowledge",
+        kdf_salt: metadata.kdf_salt,
+        kdf_version: parse_secure_kdf_version(metadata.kdf_version),
+      };
+    } catch {
+      return { kind: "refused" };
+    }
   }
 
-  return metadata.is_zero_knowledge ? { kind: "refused" } : { kind: "password" };
+  return metadata.is_zero_knowledge
+    ? { kind: "refused" }
+    : { kind: "password" };
 }
 
 export interface SecureViewMetadata {
@@ -65,12 +84,14 @@ export interface SecureViewMetadata {
   time_remaining_seconds: number;
   is_zero_knowledge: boolean;
   kdf_salt?: string;
+  kdf_version?: number;
   password_kdf?: SecureViewPasswordKdf;
 }
 
 export interface SecureViewContent {
   is_zero_knowledge: boolean;
   kdf_salt?: string;
+  kdf_version?: number;
   encrypted_subject?: EncryptedField;
   encrypted_body?: EncryptedField;
   encrypted_attachments?: EncryptedSecureAttachment[];

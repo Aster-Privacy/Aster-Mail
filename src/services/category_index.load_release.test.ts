@@ -121,7 +121,7 @@ async function seed(): Promise<void> {
     transaction.onerror = () => reject(transaction.error);
     store.put(META, "acct1");
     store.put(CHUNK, "acct1:c0");
-    store.put(PREVIEWS, "acct1:previews");
+    store.put(PREVIEWS, "acct1:previews_v2");
   });
   db.close();
 }

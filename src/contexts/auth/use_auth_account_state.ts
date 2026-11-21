@@ -49,12 +49,9 @@ import {
   with_timeout,
 } from "./auth_helpers";
 import { clear_signed_out_account_caches } from "./signed_out_account_caches";
+import { build_restore_sign_in_path } from "./restore_sign_in_path";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
-import {
-  remember_saved_login_accounts,
-  seed_session_login_salt,
-} from "@/services/crypto/login_proof";
 import {
   init_desktop_device_auth,
   forget_device_account,
@@ -122,7 +119,14 @@ import { delete_user_device_snapshots } from "@/services/crypto/device_recovery_
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
 import { remember_current_user } from "@/services/current_identity";
-import { flush_pending_login_enrollment } from "@/services/crypto/login_proof";
+import {
+  flush_pending_login_enrollment,
+  seed_login_salt_record_from_session,
+} from "@/services/crypto/login_proof";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import { VaultRolledBackError } from "@/services/crypto/vault_generation";
+
+import { refuse_rolled_back_vault_with_notice } from "./rolled_back_vault_notice";
 
 export function use_auth_account_state() {
   const { t } = use_i18n();
@@ -162,6 +166,7 @@ export function use_auth_account_state() {
         encrypted_vault?: string,
         vault_nonce?: string,
         remember_on_device?: boolean,
+        vault_recovered_write_count?: number,
       ) => Promise<void>)
     | null
   >(null);
@@ -376,7 +381,6 @@ export function use_auth_account_state() {
       try {
         const data = await initialize_accounts();
 
-        void remember_saved_login_accounts();
         const current = await get_current_account();
 
         if (!current) {
@@ -396,7 +400,7 @@ export function use_auth_account_state() {
         await api_client.load_tokens_for_account(current.id);
         api_client.set_expected_user_id(current.user.id);
 
-        if ("__TAURI_INTERNALS__" in window) {
+        if (has_tauri_runtime()) {
           await init_desktop_device_auth(current.device_id ?? null);
 
           if (!current.device_id) {
@@ -422,6 +426,13 @@ export function use_auth_account_state() {
         const pin_locked_at_start = is_session_passphrase_pin_locked(
           current.id,
         );
+
+        let refused_rolled_back_vault = false;
+        const note_rolled_back_vault = (caught: unknown) => {
+          if (caught instanceof VaultRolledBackError) {
+            refused_rolled_back_vault = true;
+          }
+        };
 
         const restore_session_keys = async (): Promise<boolean> => {
           if (has_vault_in_memory_for(current.user.id)) return true;
@@ -458,8 +469,18 @@ export function use_auth_account_state() {
               current.user.id,
             );
 
+            if (vault !== null) {
+              await seed_login_salt_record_from_session().catch((caught) =>
+                ignore_error(
+                  "contexts/auth/use_auth_account_state:init",
+                  caught,
+                ),
+              );
+            }
+
             return vault !== null;
           } catch (caught) {
+            note_rolled_back_vault(caught);
             ignore_error("contexts/auth/use_auth_account_state:init", caught);
 
             return false;
@@ -496,7 +517,7 @@ export function use_auth_account_state() {
             current_account_id: current.id,
           });
 
-          const uses_hash = "__TAURI_INTERNALS__" in window;
+          const uses_hash = has_tauri_runtime();
           const path = uses_hash
             ? window.location.hash.slice(1).split("?")[0] || "/"
             : app_pathname();
@@ -526,9 +547,13 @@ export function use_auth_account_state() {
             username: cached_info.username ?? current.user.username,
             email: cached_info.email ?? current.user.email,
             display_name:
-              cached_info.display_name || current.user.display_name || undefined,
+              cached_info.display_name ||
+              current.user.display_name ||
+              undefined,
             profile_color:
-              cached_info.profile_color || current.user.profile_color || undefined,
+              cached_info.profile_color ||
+              current.user.profile_color ||
+              undefined,
             profile_picture:
               cached_info.profile_picture ||
               current.user.profile_picture ||
@@ -557,9 +582,6 @@ export function use_auth_account_state() {
             safe_log_error(e);
           });
           backfill_user_profile(user);
-          seed_session_login_salt(user.id, user.email).catch((caught) =>
-            ignore_error("contexts/auth/use_auth_account_state:init", caught),
-          );
           ensure_default_labels(get_vault_from_memory(), t).catch(
             console.error,
           );
@@ -607,11 +629,7 @@ export function use_auth_account_state() {
 
         let has_keys = await session_keys_restore;
 
-        if (
-          !has_keys &&
-          !pin_locked_at_start &&
-          "__TAURI_INTERNALS__" in window
-        ) {
+        if (!has_keys && !pin_locked_at_start && has_tauri_runtime()) {
           try {
             const { invoke } = await import("@tauri-apps/api/core");
             const raw_b64 = await invoke<string | null>(
@@ -649,6 +667,7 @@ export function use_auth_account_state() {
                     );
                   }
                 } catch (caught) {
+                  note_rolled_back_vault(caught);
                   ignore_error(
                     "contexts/auth/use_auth_account_state:init",
                     caught,
@@ -671,6 +690,10 @@ export function use_auth_account_state() {
         }
 
         if (!has_keys) {
+          if (refused_rolled_back_vault) {
+            show_toast(t("errors.vault_rolled_back"), "error");
+          }
+
           sync_client.disconnect();
           api_client.set_authenticated(false);
 
@@ -678,10 +701,7 @@ export function use_auth_account_state() {
 
           if (current_kind === "shared") {
             await clear_shared_mailbox_session(current.id).catch((caught) =>
-              ignore_error(
-                "contexts/auth/use_auth_account_state:init",
-                caught,
-              ),
+              ignore_error("contexts/auth/use_auth_account_state:init", caught),
             );
             const remaining = await get_all_accounts();
             const fallback = remaining.find((a) => a.kind !== "shared");
@@ -724,13 +744,19 @@ export function use_auth_account_state() {
           });
 
           const local = current.user.email.split("@")[0] ?? "";
-          const uses_hash = "__TAURI_INTERNALS__" in window;
+          const uses_hash = has_tauri_runtime();
           const path = uses_hash
             ? window.location.hash.slice(1).split("?")[0] || "/"
             : app_pathname();
 
           if (path !== "/sign-in" && path !== "/register") {
-            navigate(`/sign-in?u=${encodeURIComponent(local)}`);
+            navigate(
+              build_restore_sign_in_path(
+                local,
+                path,
+                uses_hash ? "" : window.location.search,
+              ),
+            );
           }
 
           return;
@@ -906,6 +932,7 @@ export function use_auth_account_state() {
       encrypted_vault?: string,
       vault_nonce?: string,
       remember_on_device: boolean = true,
+      vault_recovered_write_count?: number,
     ) => {
       const previous_owner_id = get_last_vault_owner_id();
 
@@ -917,6 +944,12 @@ export function use_auth_account_state() {
         }
       }
 
+      refuse_rolled_back_vault_with_notice(
+        user.id,
+        vault,
+        () => show_toast(t("errors.vault_rolled_back"), "error"),
+        vault_recovered_write_count,
+      );
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
       ensure_level2_storage(user.id);
@@ -1042,7 +1075,14 @@ export function use_auth_account_state() {
       encrypted_vault?: string,
       vault_nonce?: string,
       remember_on_device: boolean = true,
+      vault_recovered_write_count?: number,
     ) => {
+      refuse_rolled_back_vault_with_notice(
+        user.id,
+        vault,
+        () => show_toast(t("errors.vault_rolled_back"), "error"),
+        vault_recovered_write_count,
+      );
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
       ensure_level2_storage(user.id);
@@ -1178,7 +1218,7 @@ export function use_auth_account_state() {
     async (account_id: string) => {
       const is_current = account_id === state.current_account_id;
 
-      if ("__TAURI_INTERNALS__" in window) {
+      if (has_tauri_runtime()) {
         const stored = (await get_all_accounts()).find(
           (a) => a.id === account_id,
         );

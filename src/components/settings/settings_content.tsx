@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SettingsSearchHit } from "@/components/settings/use_settings_search";
 import type {
   NavGroup,
   NavItem,
@@ -47,11 +48,11 @@ import { StorageSection } from "./settings_lazy_sections";
 import {
   flatten_nav_items,
   request_settings_tab,
+  resolve_nav_target,
   set_persisted_section,
 } from "./settings_content_helpers";
 import { use_settings_content } from "./use_settings_content";
 
-import { SearchRegistryProvider } from "@/components/settings/search_context";
 import {
   StorageMeter,
   scroll_to_storage_addons,
@@ -86,13 +87,17 @@ export type { SettingsSection } from "./settings_content_helpers";
 const BREADCRUMB_LINK_CLASS =
   "rounded-sm outline-none transition-colors hover:text-txt-primary hover:underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_50%,transparent)]";
 
+function format_hit_crumb(hit: SettingsSearchHit): string {
+  return [hit.section_label, hit.crumb]
+    .filter((part): part is string => Boolean(part))
+    .join(" > ");
+}
+
 export function SettingsContent(props: SettingsContentProps) {
   return (
-    <SearchRegistryProvider>
-      <SettingsCacheProvider>
-        <SettingsContentInner {...props} />
-      </SettingsCacheProvider>
-    </SearchRegistryProvider>
+    <SettingsCacheProvider>
+      <SettingsContentInner {...props} />
+    </SettingsCacheProvider>
   );
 }
 
@@ -334,10 +339,12 @@ function SettingsContentInner(props: SettingsContentProps) {
   }, [results_open]);
 
   const open_search_result = useCallback(
-    (entry: { section: Section; label: string; tab?: string }) => {
-      if (entry.tab) request_settings_tab(entry.tab);
-      handle_desktop_nav_click(entry.section);
-      set_scroll_target(entry.label);
+    (hit: SettingsSearchHit) => {
+      const target = resolve_nav_target(hit.entry.section);
+
+      if (target.tab) request_settings_tab(target.tab);
+      handle_desktop_nav_click(target.section);
+      set_scroll_target(hit.label);
       set_search_query("");
     },
     [handle_desktop_nav_click],
@@ -428,18 +435,21 @@ function SettingsContentInner(props: SettingsContentProps) {
                       {t("common.no_results")}
                     </div>
                   ) : (
-                    registry_results.map((entry, idx) => {
+                    registry_results.map((hit, idx) => {
+                      const target_section = resolve_nav_target(
+                        hit.entry.section,
+                      ).section;
                       const nav_item = flatten_nav_items(nav_items).find(
-                        (n) => n.id === entry.section,
+                        (n) => n.id === target_section,
                       );
                       const is_active = idx === active_result_index;
 
                       return (
                         <button
-                          key={`${entry.section}-${idx}`}
+                          key={hit.entry.id}
                           className={`w-full flex items-center gap-2.5 px-3 py-2 text-start rounded-[10px] transition-colors duration-100 cursor-pointer ${is_active ? "bg-surf-hover" : ""}`}
                           type="button"
-                          onClick={() => open_search_result(entry)}
+                          onClick={() => open_search_result(hit)}
                           onMouseMove={() => set_active_result_index(idx)}
                         >
                           {nav_item && (
@@ -447,11 +457,11 @@ function SettingsContentInner(props: SettingsContentProps) {
                           )}
                           <div className="flex-1 min-w-0">
                             <span className="block truncate text-[13px] font-medium text-txt-primary">
-                              {entry.label}
+                              {hit.label}
                             </span>
                           </div>
                           <span className="text-[11px] flex-shrink-0 ms-2 text-txt-muted">
-                            {entry.breadcrumb}
+                            {format_hit_crumb(hit)}
                           </span>
                         </button>
                       );
@@ -618,26 +628,28 @@ function SettingsContentInner(props: SettingsContentProps) {
               {is_searching ? (
                 <>
                   {search_results.map(render_mobile_nav_item)}
-                  {registry_results.map((entry, idx) => (
+                  {registry_results.map((hit) => (
                     <button
-                      key={`${entry.section}-${idx}`}
+                      key={hit.entry.id}
                       className="w-full flex flex-col items-start gap-0.5 px-4 py-3 text-start transition-colors duration-150 border-b border-b-edge-primary"
                       type="button"
                       onClick={() => {
-                        if (entry.tab) request_settings_tab(entry.tab);
-                        set_section(entry.section);
-                        set_persisted_section(entry.section);
-                        set_scroll_target(entry.label);
+                        const target = resolve_nav_target(hit.entry.section);
+
+                        if (target.tab) request_settings_tab(target.tab);
+                        set_section(target.section);
+                        set_persisted_section(target.section);
+                        set_scroll_target(hit.label);
                         set_search_query("");
                         set_show_mobile_nav(false);
-                        on_section_change(entry.section);
+                        on_section_change(target.section);
                       }}
                     >
                       <span className="text-[15px] text-txt-primary">
-                        {entry.label}
+                        {hit.label}
                       </span>
                       <span className="text-[12px] text-txt-muted">
-                        {entry.breadcrumb}
+                        {format_hit_crumb(hit)}
                       </span>
                     </button>
                   ))}

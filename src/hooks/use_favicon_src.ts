@@ -29,7 +29,7 @@ import {
   PENDING_FAVICON_SRC,
   get_favicon_url,
   is_valid_favicon_domain,
-  same_origin_favicon_domain,
+  api_favicon_domain,
 } from "@/lib/favicon_url";
 import {
   adopt_favicon_blob,
@@ -41,7 +41,17 @@ import {
 } from "@/lib/favicon_cache_db";
 import { is_icon_failed, mark_icon_failed } from "@/lib/icon_cache";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
+import {
+  are_sender_logos_enabled,
+  subscribe_sender_logos,
+} from "@/services/sender_logos_state";
 import { ignore_error } from "@/lib/ignore_error";
+
+function retry_after_ms(headers: Headers): number | undefined {
+  const match = /max-age=(\d+)/.exec(headers.get("cache-control") ?? "");
+
+  return match ? Number(match[1]) * 1000 : undefined;
+}
 
 const cookieless_loads = new Map<string, Promise<string | null>>();
 
@@ -61,7 +71,9 @@ function load_cookieless_favicon(
   const promise = routed_fetch(url, { credentials: "omit" })
     .then((r) => {
       if (!r.ok) {
-        if (r.status >= 400 && r.status < 500) mark_icon_failed(domain);
+        if (r.status === 404 || r.status === 410) {
+          mark_icon_failed(domain, retry_after_ms(r.headers));
+        }
 
         return null;
       }
@@ -96,24 +108,31 @@ function load_cookieless_favicon(
 }
 
 function resolve_initial_src(domain: string): string {
+  if (!are_sender_logos_enabled()) return PENDING_FAVICON_SRC;
   const cached = peek_favicon_object_url(domain);
 
   if (cached) return cached;
   const url = get_favicon_url(domain);
 
-  return same_origin_favicon_domain(url) ? PENDING_FAVICON_SRC : url;
+  return api_favicon_domain(url) ? PENDING_FAVICON_SRC : url;
 }
 
 export function use_favicon_src(domain: string, enabled = true): string {
+  const logos_enabled = useSyncExternalStore(
+    subscribe_sender_logos,
+    are_sender_logos_enabled,
+    are_sender_logos_enabled,
+  );
   const [src, set_src] = useState(() => resolve_initial_src(domain));
-  const [prev_domain, set_prev_domain] = useState(domain);
+  const [prev_key, set_prev_key] = useState({ domain, logos_enabled });
 
-  if (domain !== prev_domain) {
-    set_prev_domain(domain);
+  if (domain !== prev_key.domain || logos_enabled !== prev_key.logos_enabled) {
+    set_prev_key({ domain, logos_enabled });
     set_src(resolve_initial_src(domain));
   }
 
   useEffect(() => {
+    if (!logos_enabled) return;
     if (!domain || !is_valid_favicon_domain(domain)) return;
 
     if (is_any_lockdown_active()) return;
@@ -124,7 +143,7 @@ export function use_favicon_src(domain: string, enabled = true): string {
 
     let cancelled = false;
     const url = get_favicon_url(domain);
-    const fetch_cookieless = enabled && same_origin_favicon_domain(url) !== null;
+    const fetch_cookieless = enabled && api_favicon_domain(url) !== null;
 
     get_favicon_object_url(domain)
       .then((object_url) => {
@@ -146,9 +165,9 @@ export function use_favicon_src(domain: string, enabled = true): string {
     return () => {
       cancelled = true;
     };
-  }, [domain, enabled]);
+  }, [domain, enabled, logos_enabled]);
 
-  return src;
+  return logos_enabled ? src : PENDING_FAVICON_SRC;
 }
 
 export function use_favicon_look(domain: string): LogoLook | null {
@@ -223,6 +242,8 @@ export function store_favicon_if_api_url(
   loaded_src: string,
 ): void {
   if (!loaded_src.includes("/api/images/v1/favicon/")) return;
+
+  if (!are_sender_logos_enabled()) return;
 
   if (is_any_lockdown_active()) return;
 

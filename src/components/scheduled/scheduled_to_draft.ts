@@ -31,6 +31,7 @@ import {
   emit_scheduled_changed,
 } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export type ScheduledToDraftResult =
   { data: DraftClickData } | { error: string | undefined };
@@ -39,6 +40,10 @@ export async function scheduled_to_draft(
   email: ScheduledEmailWithContent,
   vault: EncryptedVault,
 ): Promise<ScheduledToDraftResult> {
+  if (email.content_verified === false) {
+    return { error: get_active_translations().errors.scheduled_unverifiable };
+  }
+
   const { content } = email;
   const is_reply = Boolean(
     content.in_reply_to || content.thread_id || content.reply_to_id,

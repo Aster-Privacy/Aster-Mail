@@ -72,3 +72,78 @@ describe("compose deep link", () => {
     expect(read_pending()?.to).toBe("");
   });
 });
+
+describe("deep link routing", () => {
+  afterEach(() => {
+    window.history.replaceState({}, "", "/");
+  });
+
+  it("opens the screens the widgets link to from the app scheme", () => {
+    for (const screen of ["starred", "drafts"]) {
+      expect(handle_deep_link(`astermail://${screen}`)).toBe(true);
+      expect(window.location.pathname).toBe(`/${screen}`);
+    }
+
+    expect(handle_deep_link("astermail://inbox")).toBe(true);
+    expect(window.location.pathname).toBe("/");
+  });
+
+  it("opens other app paths from the app scheme inside the app", () => {
+    expect(handle_deep_link("astermail://link-device?code=123456")).toBe(true);
+    expect(window.location.pathname).toBe("/link-device");
+    expect(window.location.search).toBe("?code=123456");
+  });
+
+  it("leaves shared content to the share handler without navigating", () => {
+    expect(handle_deep_link("astermail://share?text=hi")).toBe(true);
+    expect(window.location.pathname).toBe("/");
+  });
+
+  it("refuses app scheme paths that would leave the app", () => {
+    for (const url of [
+      "astermail:////evil.example/x",
+      "astermail:///\\evil.example/x",
+      "astermail://\t/evil.example/x",
+      "astermail://\n/evil.example/x",
+    ]) {
+      expect(() => handle_deep_link(url)).not.toThrow();
+      expect(handle_deep_link(url)).toBe(false);
+      expect(window.location.pathname).toBe("/");
+    }
+  });
+
+  it("refuses web links whose path would leave the app", () => {
+    expect(handle_deep_link("https://app.astermail.org//evil.example/x")).toBe(
+      false,
+    );
+    expect(window.location.pathname).toBe("/");
+  });
+
+  it("opens a known settings section from the app scheme", () => {
+    expect(handle_deep_link("astermail://settings/security")).toBe(true);
+    expect(window.location.pathname).toBe("/settings/security");
+
+    expect(handle_deep_link("astermail://settings/signatures")).toBe(true);
+    expect(window.location.pathname).toBe("/settings/signatures");
+  });
+
+  it("falls back to the settings home for an unknown section", () => {
+    expect(handle_deep_link("astermail://settings/%2F%2Fevil.example")).toBe(
+      true,
+    );
+    expect(window.location.pathname).toBe("/settings");
+  });
+
+  it("still opens other app paths from a verified web link", () => {
+    expect(
+      handle_deep_link("https://app.astermail.org/reset-password?token=abc"),
+    ).toBe(true);
+    expect(window.location.pathname).toBe("/reset-password");
+    expect(window.location.search).toBe("?token=abc");
+  });
+
+  it("ignores links from other sites", () => {
+    expect(handle_deep_link("https://evil.example/starred")).toBe(false);
+    expect(window.location.pathname).toBe("/");
+  });
+});

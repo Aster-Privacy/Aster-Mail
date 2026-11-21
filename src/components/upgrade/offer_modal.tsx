@@ -22,8 +22,8 @@ import type { PendingOffer } from "@/services/api/billing";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { CheckIcon } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 
 import {
   dismiss_offer,
@@ -31,14 +31,10 @@ import {
   should_show_offer,
   snooze_offer,
 } from "./offer_state";
-import { OfferHero } from "./offer_hero";
+import { OfferLedHero } from "./offer_led_hero";
 
-import {
-  Modal,
-  ModalBody,
-  ModalDescription,
-  ModalTitle,
-} from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { Modal, ModalTitle } from "@/components/ui/modal";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_subscription, format_price } from "@/services/api/billing";
@@ -153,123 +149,110 @@ export function OfferModal() {
           : t("settings.win_back_offer_expires_in", { days: days_left });
 
   const full_monthly_cents = Math.round(tier.yearly_cents / 12);
-  const offer_monthly_cents = percent
-    ? Math.round((full_monthly_cents * (100 - percent)) / 100)
-    : full_monthly_cents;
+  const first_year_cents = percent
+    ? tier.yearly_cents - Math.round((tier.yearly_cents * percent) / 100)
+    : null;
+  const offer_monthly_cents =
+    first_year_cents === null
+      ? full_monthly_cents
+      : Math.round(first_year_cents / 12);
 
   const benefits = checkout_highlights(tier.id, t).slice(0, 3);
+
+  const title =
+    percent === null
+      ? t("settings.win_back_offer_title", {
+          discount: offer.discount_label,
+        })
+      : t("settings.offer_modal_title", { percent });
 
   return (
     <Modal
       is_open={is_open && !is_blocked && !upgrade_state.is_open}
       on_close={handle_close}
+      panel_class_name="special_offer_panel"
+      show_close_button={false}
       size="sm"
     >
-      <div className="relative h-40 overflow-hidden rounded-t-xl">
-        <OfferHero
-          label={
-            percent === null
-              ? t("settings.win_back_offer_title", {
-                  discount: offer.discount_label,
-                })
-              : t("settings.offer_modal_title", { percent })
-          }
-        />
+      <OfferLedHero percent={percent} plan_name={tier.name} />
 
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-16"
-          style={{
-            backgroundImage:
-              "linear-gradient(to top, var(--modal-bg), transparent)",
-          }}
-        />
+      <button
+        aria-label={t("common.close")}
+        className="absolute end-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur-sm transition-colors hover:bg-black/55 focus:outline-none"
+        type="button"
+        onClick={handle_close}
+      >
+        <XMarkIcon className="h-4 w-4" />
+      </button>
 
-        {percent !== null && (
-          <span className="plan_galaxy_badge absolute start-5 top-5 inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wide">
-            {t("settings.offer_modal_badge", { percent })}
-          </span>
-        )}
-
+      <div className="px-6 pb-6 pt-5">
+        <ModalTitle className="text-[22px] font-semibold leading-[1.2] tracking-[-0.015em] text-txt-primary">
+          {title}
+        </ModalTitle>
+        <p className="mt-2 text-[13px] leading-relaxed text-txt-secondary">
+          {t("settings.offer_modal_subtitle", { plan: tier.name })}
+        </p>
         {expiry_text && (
-          <span className="absolute end-5 top-5 inline-flex items-center rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+          <p className="mt-2 text-[12px] font-medium text-txt-tertiary">
             {expiry_text}
-          </span>
-        )}
-      </div>
-
-      <ModalBody className="space-y-5 pt-1">
-        <div className="text-center">
-          <ModalTitle className="text-[22px] font-bold leading-tight">
-            {percent === null
-              ? t("settings.win_back_offer_title", {
-                  discount: offer.discount_label,
-                })
-              : t("settings.offer_modal_title", { percent })}
-          </ModalTitle>
-          <ModalDescription className="mt-1.5 text-[13px]">
-            {t("settings.offer_modal_subtitle", { plan: tier.name })}
-          </ModalDescription>
-        </div>
-
-        <div className="rounded-2xl border border-edge-secondary bg-surf-tertiary px-4 py-3.5 text-center">
-          <div className="flex items-baseline justify-center gap-2">
-            <span className="text-[34px] font-bold leading-none tracking-tight text-txt-primary">
-              {money(offer_monthly_cents)}
-            </span>
-            {percent !== null && (
-              <span className="text-base text-txt-muted line-through">
-                {money(full_monthly_cents)}
-              </span>
-            )}
-          </div>
-          <p className="mt-1.5 text-xs text-txt-muted">
-            {t("settings.offer_modal_price_note")}
           </p>
+        )}
+
+        <div className="mt-4 flex items-baseline gap-2.5">
+          <span className="text-[32px] font-semibold leading-none tracking-[-0.025em] text-txt-primary">
+            {money(offer_monthly_cents)}
+          </span>
+          <span className="text-[13px] font-medium text-txt-secondary">
+            {t("settings.per_month_short")}
+          </span>
+          {percent !== null && (
+            <span className="text-[15px] font-medium text-txt-tertiary line-through">
+              {money(full_monthly_cents)}
+            </span>
+          )}
         </div>
+        <p className="mt-1.5 mb-4 text-[13px] font-medium text-txt-secondary">
+          {first_year_cents === null
+            ? t("settings.offer_modal_price_note")
+            : t("settings.offer_modal_first_year_note", {
+                first: money(first_year_cents),
+                price: money(tier.yearly_cents),
+              })}
+        </p>
+
+        <ul className="special_offer_features">
+          {benefits.map((benefit) => (
+            <li key={benefit} className="special_offer_feature">
+              <CheckCircleIcon
+                aria-hidden="true"
+                className="special_offer_check h-[18px] w-[18px]"
+                strokeWidth={2}
+              />
+              <p className="special_offer_feature_title">{benefit}</p>
+            </li>
+          ))}
+        </ul>
 
         <Button
-          className="plan_galaxy_cta w-full"
-          variant="primary"
+          className="mt-5 w-full !h-11 !text-[15px] !font-semibold"
+          variant="depth"
           onClick={handle_accept}
         >
           {t("settings.offer_modal_action")}
         </Button>
 
-        <ul className="space-y-2.5">
-          {benefits.map((benefit) => (
-            <li key={benefit} className="flex items-start gap-2.5">
-              <span
-                aria-hidden="true"
-                className="mt-0.5 flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full"
-                style={{
-                  backgroundColor:
-                    "color-mix(in srgb, var(--accent-color) 16%, transparent)",
-                }}
-              >
-                <CheckIcon
-                  className="h-3 w-3"
-                  style={{ color: "var(--accent-color)" }}
-                />
-              </span>
-              <span className="text-[13px] text-txt-secondary">{benefit}</span>
-            </li>
-          ))}
-        </ul>
+        <p className="mt-4 text-center text-[12px] leading-relaxed text-txt-tertiary">
+          {t("settings.offer_modal_fine_print", { code: offer.code })}
+        </p>
 
-        <div className="border-t border-edge-secondary pt-4 text-center">
-          <p className="text-[11px] leading-relaxed text-txt-muted">
-            {t("settings.offer_modal_fine_print", { code: offer.code })}
-          </p>
-          <button
-            className="mt-3 text-xs font-medium text-txt-muted underline underline-offset-2"
-            type="button"
-            onClick={handle_dismiss}
-          >
-            {t("settings.offer_modal_dismiss")}
-          </button>
-        </div>
-      </ModalBody>
+        <button
+          className="mt-3.5 w-full text-center text-[12px] text-txt-secondary underline underline-offset-2 transition-colors hover:text-txt-primary"
+          type="button"
+          onClick={handle_dismiss}
+        >
+          {t("settings.offer_modal_dismiss")}
+        </button>
+      </div>
     </Modal>
   );
 }

@@ -55,15 +55,25 @@ import {
   type StoredGramFilter,
 } from "@/services/search_chunk_filter";
 import { yield_to_visible_page } from "@/lib/scheduling";
+import {
+  build_chunk_postings,
+  drop_postings_slots,
+  parse_postings,
+  postings_prefix_slots,
+  term_bucket,
+  type ParsedPostings,
+  type StoredPostings,
+} from "@/services/search_body_terms";
 
 export type SearchSnapshotClearScope = SnapshotClearScope | "all";
 
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
-const MANIFEST_VERSION = 7;
+const MANIFEST_VERSION = 8;
 
 export const SNAPSHOT_CHUNK_SIZE = 2000;
-export const MAX_INDEX_BODY_CHARS = 2048;
+export const MAX_INDEX_BODY_CHARS = 32768;
+export const MAX_INDEX_INLINE_BODY_CHARS = 2048;
 const MAX_INDEX_ATTACHMENTS = 50;
 const MAX_INDEX_ATTACHMENT_FIELD_CHARS = 255;
 
@@ -74,6 +84,7 @@ const STORAGE_MAX_USAGE_RATIO = 0.9;
 const CHUNK_CACHE_SIZE = 2;
 const GRAM_CACHE_SIZE = 48;
 const SUMMARY_CACHE_SIZE = 16;
+const POSTINGS_CACHE_SIZE = 192;
 const SERIALIZE_YIELD_MS = 8;
 
 interface SearchIndexManifest {
@@ -120,6 +131,7 @@ export interface PersistableEntry {
   search_body_text: string;
   meta_fp: string;
   has_body: boolean;
+  index_terms?: string[];
 }
 
 export function to_persisted_entry(
@@ -219,8 +231,8 @@ export interface BoundedIndexBody {
 
 export function bound_index_body(stripped_body: string): BoundedIndexBody {
   const bounded =
-    stripped_body.length > MAX_INDEX_BODY_CHARS
-      ? stripped_body.slice(0, MAX_INDEX_BODY_CHARS)
+    stripped_body.length > MAX_INDEX_INLINE_BODY_CHARS
+      ? stripped_body.slice(0, MAX_INDEX_INLINE_BODY_CHARS)
       : stripped_body;
 
   return {
@@ -318,6 +330,198 @@ function gram_record_key(base_key: string, index: number): string {
   return `${base_key}_grams_${index}`;
 }
 
+function term_ids_key(base_key: string, index: number): string {
+  return `${base_key}_tid_${index}`;
+}
+
+function term_bucket_key(
+  base_key: string,
+  index: number,
+  bucket: number,
+): string {
+  return `${base_key}_tp_${index}_${bucket}`;
+}
+
+interface TermIdsRecord {
+  ids: string[];
+  buckets: number[];
+  complete?: boolean;
+}
+
+function chunk_scoped_id(record_key: string, base_key: string): number | null {
+  for (const marker of ["_chunk_", "_grams_", "_tid_", "_tp_"]) {
+    const prefix = `${base_key}${marker}`;
+
+    if (!record_key.startsWith(prefix)) continue;
+
+    const id = Number(record_key.slice(prefix.length).split("_")[0]);
+
+    return Number.isInteger(id) ? id : -1;
+  }
+
+  return null;
+}
+
+async function write_chunk_terms(
+  base_key: string,
+  chunk_id: number,
+  ids: string[],
+  terms: readonly (readonly string[] | undefined)[],
+  complete: boolean,
+  encryption_key: CryptoKey,
+): Promise<void> {
+  const postings = build_chunk_postings(terms);
+  const buckets = [...postings.keys()].sort((a, b) => a - b);
+
+  for (const bucket of buckets) {
+    await encrypted_set(
+      term_bucket_key(base_key, chunk_id, bucket),
+      postings.get(bucket)!,
+      encryption_key,
+    );
+  }
+
+  await encrypted_set(
+    term_ids_key(base_key, chunk_id),
+    { ids, buckets, complete } satisfies TermIdsRecord,
+    encryption_key,
+  );
+}
+
+async function recover_entry_terms(
+  base_key: string,
+  chunk_ids: readonly number[],
+  wanted: ReadonlySet<string>,
+  encryption_key: CryptoKey,
+): Promise<Map<string, string[]>> {
+  const recovered = new Map<string, string[]>();
+  let remaining = wanted.size;
+
+  for (const chunk_id of chunk_ids) {
+    if (remaining === 0) break;
+
+    const record = await encrypted_get<TermIdsRecord>(
+      term_ids_key(base_key, chunk_id),
+      encryption_key,
+    ).catch(() => null);
+
+    if (!record || !Array.isArray(record.ids) || record.complete !== true) {
+      continue;
+    }
+
+    const slot_ids = new Map<number, string>();
+
+    record.ids.forEach((id, slot) => {
+      if (id && wanted.has(id) && !recovered.has(id)) {
+        slot_ids.set(slot, id);
+        recovered.set(id, []);
+        remaining--;
+      }
+    });
+
+    if (slot_ids.size === 0) continue;
+
+    for (const bucket of record.buckets ?? []) {
+      const postings = parse_postings(
+        await encrypted_get<StoredPostings>(
+          term_bucket_key(base_key, chunk_id, bucket),
+          encryption_key,
+        ).catch(() => null),
+      );
+
+      if (!postings) continue;
+
+      postings.terms.forEach((term, i) => {
+        let slot = 0;
+
+        for (const step of postings.slots[i]) {
+          slot += step;
+
+          const id = slot_ids.get(slot);
+
+          if (id) recovered.get(id)!.push(term);
+        }
+      });
+    }
+  }
+
+  for (const terms of recovered.values()) terms.sort();
+
+  return recovered;
+}
+
+async function delete_chunk_terms(
+  base_key: string,
+  chunk_id: number,
+  encryption_key: CryptoKey,
+): Promise<void> {
+  const record = await encrypted_get<TermIdsRecord>(
+    term_ids_key(base_key, chunk_id),
+    encryption_key,
+  ).catch(() => null);
+
+  for (const bucket of record?.buckets ?? []) {
+    await secure_overwrite_and_delete(
+      term_bucket_key(base_key, chunk_id, bucket),
+    );
+  }
+
+  await secure_overwrite_and_delete(term_ids_key(base_key, chunk_id));
+}
+
+async function drop_chunk_term_slots(
+  base_key: string,
+  chunk_id: number,
+  dropped_ids: ReadonlySet<string>,
+  encryption_key: CryptoKey,
+): Promise<void> {
+  const record = await encrypted_get<TermIdsRecord>(
+    term_ids_key(base_key, chunk_id),
+    encryption_key,
+  );
+
+  if (!record || !Array.isArray(record.ids)) return;
+
+  const dropped = new Set<number>();
+  const ids = record.ids.map((id, slot) => {
+    if (!dropped_ids.has(id)) return id;
+    dropped.add(slot);
+
+    return "";
+  });
+
+  if (dropped.size === 0) return;
+
+  const buckets: number[] = [];
+
+  for (const bucket of record.buckets ?? []) {
+    const bucket_key = term_bucket_key(base_key, chunk_id, bucket);
+    const stored = await encrypted_get<StoredPostings>(
+      bucket_key,
+      encryption_key,
+    );
+    const next = stored ? drop_postings_slots(stored, dropped) : null;
+
+    if (!next || next.t.length === 0) {
+      await secure_overwrite_and_delete(bucket_key);
+      continue;
+    }
+
+    await encrypted_set(bucket_key, next, encryption_key);
+    buckets.push(bucket);
+  }
+
+  await encrypted_set(
+    term_ids_key(base_key, chunk_id),
+    {
+      ids,
+      buckets,
+      complete: record.complete === true,
+    } satisfies TermIdsRecord,
+    encryption_key,
+  );
+}
+
 function summary_group_key(base_key: string, group: number): string {
   return `${base_key}_sumg_${group}`;
 }
@@ -332,6 +536,8 @@ interface SummaryGroupRecord {
 
 const chunk_cache = new Map<string, SearchIndexChunk>();
 const gram_cache = new Map<string, GramFilter | null>();
+const postings_cache = new Map<string, ParsedPostings | null>();
+const term_ids_cache = new Map<string, TermIdsRecord | null>();
 const summary_cache = new Map<string, Record<string, ChunkSummary>>();
 let snapshot_clear_count = 0;
 
@@ -366,6 +572,8 @@ function cache_write<T>(
 export function invalidate_snapshot_caches(): void {
   chunk_cache.clear();
   gram_cache.clear();
+  postings_cache.clear();
+  term_ids_cache.clear();
   summary_cache.clear();
 }
 
@@ -546,6 +754,10 @@ export interface SnapshotReader {
   read(chunk_id: number): Promise<SearchIndexChunk | null>;
   read_summaries(chunk_ids: number[]): Promise<Map<number, ChunkSummary>>;
   read_grams(chunk_id: number): Promise<GramFilter | null>;
+  read_body_hits(
+    chunk_id: number,
+    words: readonly string[],
+  ): Promise<Map<string, Set<string>> | null>;
 }
 
 export interface SnapshotWriter {
@@ -554,6 +766,11 @@ export interface SnapshotWriter {
     entries: Map<string, PersistableEntry>,
   ): Promise<void>;
   written_count(): number;
+  written_chunk_ids(): number[];
+  read_body_hits(
+    chunk_id: number,
+    words: readonly string[],
+  ): Promise<Map<string, Set<string>> | null>;
   storage_exhausted(): boolean;
   layout(): WrittenChunk[];
   finish(options: {
@@ -568,6 +785,7 @@ export interface SnapshotWriter {
   }): Promise<SnapshotMeta | null>;
   discard(): Promise<void>;
   lost_kept_chunks(): boolean;
+  conflicted(): boolean;
 }
 
 function verified_at_of(record: { verified_at?: unknown } | null): number {
@@ -623,6 +841,68 @@ function highest_chunk_id(keys: string[], chunk_prefix: string): number {
   }
 
   return highest;
+}
+
+async function read_chunk_body_hits(
+  key: string,
+  encryption_key: CryptoKey,
+  chunk_id: number,
+  words: readonly string[],
+  still_current: () => boolean,
+): Promise<Map<string, Set<string>> | null> {
+  const ids_key = term_ids_key(key, chunk_id);
+  let record: TermIdsRecord | null = null;
+
+  if (term_ids_cache.has(ids_key)) {
+    record = cache_read(term_ids_cache, ids_key) ?? null;
+  } else {
+    record = await encrypted_get<TermIdsRecord>(ids_key, encryption_key).catch(
+      () => null,
+    );
+    if (record && !Array.isArray(record.ids)) record = null;
+    if (still_current()) {
+      cache_write(term_ids_cache, ids_key, record, GRAM_CACHE_SIZE);
+    }
+  }
+
+  if (!record || record.complete !== true) return null;
+
+  const present = new Set(record.buckets ?? []);
+  const hits = new Map<string, Set<string>>();
+
+  for (const word of words) {
+    if (hits.has(word)) continue;
+
+    const ids = new Set<string>();
+    const bucket = term_bucket(word);
+
+    hits.set(word, ids);
+    if (!present.has(bucket)) continue;
+
+    const bucket_key = term_bucket_key(key, chunk_id, bucket);
+    let postings: ParsedPostings | null;
+
+    if (postings_cache.has(bucket_key)) {
+      postings = cache_read(postings_cache, bucket_key) ?? null;
+    } else {
+      postings = parse_postings(
+        await encrypted_get<StoredPostings>(bucket_key, encryption_key).catch(
+          () => null,
+        ),
+      );
+      if (still_current()) {
+        cache_write(postings_cache, bucket_key, postings, POSTINGS_CACHE_SIZE);
+      }
+    }
+
+    for (const slot of postings_prefix_slots(postings, word)) {
+      const id = record.ids[slot];
+
+      if (id) ids.add(id);
+    }
+  }
+
+  return hits;
 }
 
 export async function open_snapshot_reader(
@@ -749,6 +1029,14 @@ export async function open_snapshot_reader(
 
         return filter;
       },
+      read_body_hits: (chunk_id: number, words: readonly string[]) =>
+        read_chunk_body_hits(
+          key,
+          encryption_key,
+          chunk_id,
+          words,
+          still_current,
+        ),
     };
   } catch (error) {
     if (import.meta.env.DEV) console.error("search_snapshot_open", error);
@@ -792,10 +1080,12 @@ export async function open_snapshot_writer(
   let storage_exhausted = false;
   let superseded = false;
   let lost_kept = false;
+  let conflicted = false;
   let purged_after_write = false;
   const watch = open_purge_watch();
 
   const drop_buffer = (): void => {
+    for (const source of buffer_sources) delete source.index_terms;
     buffer_items = [];
     buffer_sources = [];
   };
@@ -844,10 +1134,31 @@ export async function open_snapshot_writer(
       return;
     }
 
-    const chunk_id = next_chunk_id++;
+    let chunk_id = -1;
     const chunk_items = buffer_items;
     const chunk_entries = buffer_items.map((item, i) =>
       to_persisted_entry(item.id, buffer_sources[i]),
+    );
+    const missing_terms = new Set<string>();
+
+    buffer_sources.forEach((source, i) => {
+      if (source.has_body && source.index_terms === undefined) {
+        missing_terms.add(chunk_items[i].id);
+      }
+    });
+
+    const recovered_terms =
+      missing_terms.size > 0
+        ? await recover_entry_terms(
+            key,
+            [...new Set([...written_ids, ...(on_disk?.chunk_ids ?? [])])],
+            missing_terms,
+            encryption_key,
+          ).catch(() => new Map<string, string[]>())
+        : new Map<string, string[]>();
+    const chunk_terms = buffer_sources.map(
+      (source, i) =>
+        source.index_terms ?? recovered_terms.get(chunk_items[i].id),
     );
 
     try {
@@ -863,17 +1174,40 @@ export async function open_snapshot_writer(
         return;
       }
 
-      await encrypted_set_plaintext(
-        chunk_record_key(key, chunk_id),
-        plaintext,
-        encryption_key,
-      );
+      await enqueue_snapshot_write(async () => {
+        const live_keys = await encrypted_list_keys();
 
-      await encrypted_set(
-        gram_record_key(key, chunk_id),
-        digest.grams,
-        encryption_key,
-      );
+        chunk_id = Math.max(
+          next_chunk_id,
+          highest_chunk_id(live_keys, chunk_prefix) + 1,
+          highest_chunk_id(live_keys, grams_prefix) + 1,
+          highest_chunk_id(live_keys, `${key}_tid_`) + 1,
+        );
+        next_chunk_id = chunk_id + 1;
+
+        await encrypted_set_plaintext(
+          chunk_record_key(key, chunk_id),
+          plaintext,
+          encryption_key,
+        );
+
+        await encrypted_set(
+          gram_record_key(key, chunk_id),
+          digest.grams,
+          encryption_key,
+        );
+
+        await write_chunk_terms(
+          key,
+          chunk_id,
+          chunk_items.map((item) => item.id),
+          chunk_terms,
+          buffer_sources.every(
+            (source, i) => !source.has_body || chunk_terms[i] !== undefined,
+          ),
+          encryption_key,
+        );
+      });
       written_summaries.set(chunk_id, digest.summary);
 
       written_ids.push(chunk_id);
@@ -884,14 +1218,22 @@ export async function open_snapshot_writer(
       if (import.meta.env.DEV) console.error("search_snapshot_flush", error);
 
       storage_exhausted = true;
-      written_summaries.delete(chunk_id);
 
-      await secure_overwrite_and_delete(chunk_record_key(key, chunk_id)).catch(
-        (caught) => ignore_error("services/search_index_store:flush", caught),
-      );
-      await secure_overwrite_and_delete(gram_record_key(key, chunk_id)).catch(
-        (caught) => ignore_error("services/search_index_store:flush", caught),
-      );
+      if (chunk_id >= 0) {
+        written_summaries.delete(chunk_id);
+
+        await secure_overwrite_and_delete(
+          chunk_record_key(key, chunk_id),
+        ).catch((caught) =>
+          ignore_error("services/search_index_store:flush", caught),
+        );
+        await secure_overwrite_and_delete(gram_record_key(key, chunk_id)).catch(
+          (caught) => ignore_error("services/search_index_store:flush", caught),
+        );
+        await delete_chunk_terms(key, chunk_id, encryption_key).catch(
+          (caught) => ignore_error("services/search_index_store:flush", caught),
+        );
+      }
     } finally {
       drop_buffer();
     }
@@ -964,9 +1306,14 @@ export async function open_snapshot_writer(
 
   const writer: SnapshotWriter = {
     written_count: () => written + buffer_items.length,
+    written_chunk_ids: () =>
+      superseded || purged_after_write ? [] : [...written_ids],
+    read_body_hits: (chunk_id, words) =>
+      read_chunk_body_hits(key, encryption_key, chunk_id, words, () => false),
     storage_exhausted: () => storage_exhausted,
     layout: () => (purged_after_write ? [] : [...layout]),
     lost_kept_chunks: () => lost_kept,
+    conflicted: () => conflicted,
     add_page: async (items, entries) => {
       if (storage_exhausted || superseded) return;
 
@@ -996,6 +1343,7 @@ export async function open_snapshot_writer(
         fresh_ids.flatMap((id) => [
           secure_overwrite_and_delete(chunk_record_key(key, id)),
           secure_overwrite_and_delete(gram_record_key(key, id)),
+          delete_chunk_terms(key, id, encryption_key),
         ]),
       );
     },
@@ -1014,6 +1362,7 @@ export async function open_snapshot_writer(
           fresh_ids.flatMap((id) => [
             secure_overwrite_and_delete(chunk_record_key(key, id)),
             secure_overwrite_and_delete(gram_record_key(key, id)),
+            delete_chunk_terms(key, id, encryption_key),
           ]),
         );
         invalidate_snapshot_caches();
@@ -1045,6 +1394,17 @@ export async function open_snapshot_writer(
         const keys = await encrypted_list_keys();
         const present = new Set(keys);
 
+        const current = await read_manifest(key, encryption_key, user_email);
+        const replaced_meanwhile = on_disk
+          ? !current || !same_snapshot(current, on_disk)
+          : !!current;
+
+        if (replaced_meanwhile) {
+          conflicted = true;
+
+          return await abandon();
+        }
+
         if (
           !written_ids.every((id) => present.has(chunk_record_key(key, id)))
         ) {
@@ -1057,7 +1417,6 @@ export async function open_snapshot_writer(
           return await abandon();
         }
 
-        const current = await read_manifest(key, encryption_key, user_email);
         const unchanged =
           fresh_ids.length === 0 &&
           !!current &&
@@ -1097,16 +1456,11 @@ export async function open_snapshot_writer(
         await Promise.all(
           keys
             .filter((k) => {
-              const prefix = k.startsWith(chunk_prefix)
-                ? chunk_prefix
-                : k.startsWith(grams_prefix)
-                  ? grams_prefix
-                  : null;
+              const id = chunk_scoped_id(k, key);
 
-              if (!prefix) return false;
-              const id = Number(k.slice(prefix.length));
+              if (id === null) return false;
 
-              return !Number.isInteger(id) || !live.has(id);
+              return id < 0 || !live.has(id);
             })
             .map((k) => secure_overwrite_and_delete(k)),
         );
@@ -1177,8 +1531,26 @@ const purge_watches = new Set<PurgeWatch>();
 const scope_purge_counts: ScopePurgeMark = { trash: 0, spam: 0 };
 let purge_queue: Promise<unknown> = Promise.resolve();
 
+const SNAPSHOT_WRITE_LOCK = "astermail_search_snapshot_write";
+
+function snapshot_lock_manager(): LockManager | null {
+  try {
+    if (typeof navigator === "undefined") return null;
+
+    const manager = navigator.locks;
+
+    return typeof manager?.request === "function" ? manager : null;
+  } catch {
+    return null;
+  }
+}
+
 function enqueue_snapshot_write<T>(task: () => Promise<T>): Promise<T> {
-  const run = purge_queue.then(task);
+  const manager = snapshot_lock_manager();
+  const locked = manager
+    ? () => manager.request(SNAPSHOT_WRITE_LOCK, task) as Promise<T>
+    : task;
+  const run = purge_queue.then(locked);
 
   purge_queue = run.catch(() => undefined);
 
@@ -1429,6 +1801,7 @@ async function run_snapshot_purge(
       digest.grams,
       encryption_key,
     );
+    await drop_chunk_term_slots(key, chunk_id, dropped, encryption_key);
 
     summaries[String(chunk_id)] = digest.summary;
     await write_group(group);
@@ -1449,7 +1822,10 @@ async function run_snapshot_purge(
 
   const latest = await encrypted_get<SearchIndexManifest>(key, encryption_key);
 
-  if (is_current_manifest(latest) && cleared_at_start === snapshot_clear_count) {
+  if (
+    is_current_manifest(latest) &&
+    cleared_at_start === snapshot_clear_count
+  ) {
     await encrypted_set(
       key,
       {

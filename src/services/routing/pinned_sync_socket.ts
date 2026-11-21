@@ -22,6 +22,7 @@ import { is_tauri_env } from "./tauri_proxy_transport";
 
 const SYNC_SOCKET_EVENT = "aster://sync-socket";
 const PINNED_DOMAIN = "astermail.org";
+const CLOSE_GRACE_MS = 5000;
 
 const CONNECTING = 0;
 const OPEN = 1;
@@ -69,6 +70,7 @@ export class PinnedSyncSocket {
   private unlisten: (() => void) | null = null;
   private early: SocketEvent[] = [];
   private listeners = new Map<string, Map<SocketListener, boolean>>();
+  private close_grace_timer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(url: string) {
     void this.start(url);
@@ -171,6 +173,10 @@ export class PinnedSyncSocket {
   private finish(): void {
     if (this.readyState === CLOSED) return;
     this.readyState = CLOSED;
+    if (this.close_grace_timer) {
+      clearTimeout(this.close_grace_timer);
+      this.close_grace_timer = null;
+    }
     this.early = [];
     this.unlisten?.();
     this.unlisten = null;
@@ -196,6 +202,10 @@ export class PinnedSyncSocket {
     this.readyState = CLOSING;
     if (!was_open || this.id === null || !this.invoke) return;
 
+    this.close_grace_timer = setTimeout(() => {
+      this.close_grace_timer = null;
+      this.finish();
+    }, CLOSE_GRACE_MS);
     this.invoke("sync_socket_close", { id: this.id }).catch(() =>
       this.finish(),
     );

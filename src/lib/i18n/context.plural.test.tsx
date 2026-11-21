@@ -140,6 +140,7 @@ const counted_keys: TranslationKey[] = [
   "common.contacts_created",
   "common.delete_folder_purged_items",
   "common.group_contact_count",
+  "common.group_member_count",
   "common.n_contacts_imported",
   "common.n_conversations_marked_as_spam",
   "common.n_items",

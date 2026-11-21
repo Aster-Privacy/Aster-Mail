@@ -29,6 +29,7 @@ import {
   update_mail_item,
 } from "@/services/api/mail";
 import { derive_metadata_key } from "@/services/crypto/envelope";
+import { MAIL_METADATA_CONTEXT } from "@/services/crypto/constants";
 import { list_tags, update_tag } from "@/services/api/tags";
 
 import { array_to_base64, base64_to_array } from "../base64";
@@ -38,11 +39,9 @@ export async function re_encrypt_mail_metadata(
   old_master_key: Uint8Array,
   new_master_key: Uint8Array,
 ): Promise<boolean> {
-  const METADATA_CONTEXT = "mail-item-metadata";
-
   const [old_key, new_key] = await Promise.all([
-    derive_metadata_key(old_master_key, METADATA_CONTEXT),
-    derive_metadata_key(new_master_key, METADATA_CONTEXT),
+    derive_metadata_key(old_master_key, MAIL_METADATA_CONTEXT),
+    derive_metadata_key(new_master_key, MAIL_METADATA_CONTEXT),
   ]);
 
   let ok = true;

@@ -631,6 +631,7 @@ export async function bulk_add_domain_addresses(
     note?: string;
     is_enabled?: boolean;
   }>,
+  captcha_token?: string,
 ): Promise<ApiResponse<{ created: number; failed: number }>> {
   const addresses = await Promise.all(
     items.map(async (item) => {
@@ -677,7 +678,7 @@ export async function bulk_add_domain_addresses(
 
   return api_client.post<{ created: number; failed: number }>(
     `/addresses/v1/domains/${domain_id}/bulk-addresses`,
-    { addresses },
+    { addresses, captcha_token },
   );
 }
 
@@ -793,9 +794,11 @@ export async function update_domain_address(
 export async function delete_domain_address(
   domain_id: string,
   address_id: string,
+  address?: string,
 ): Promise<ApiResponse<{ success: boolean }>> {
   return api_client.delete<{ success: boolean }>(
     `/addresses/v1/domains/${domain_id}/addresses/${address_id}`,
+    address ? { data: { address } } : undefined,
   );
 }
 

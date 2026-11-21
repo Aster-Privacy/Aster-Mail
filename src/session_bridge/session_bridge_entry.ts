@@ -20,48 +20,45 @@
 //
 import {
   answer_port_message,
+  read_local_session,
   to_wire,
+  user_from_me_response,
   type BridgeDeps,
   type BridgeStorage,
 } from "./session_bridge_core";
+import {
+  create_approval,
+  mount_approval,
+  show_approval_message,
+  type ApprovalStrings,
+} from "./session_bridge_approval";
 
 import {
+  CALENDAR_WEB_ORIGIN,
+  SESSION_APPROVAL_HASH_PREFIX,
   get_handoff_sibling_origin,
   is_handoff_connect_message,
+  is_handoff_grant_id,
+  type HandoffUser,
 } from "@/lib/session_handoff/session_handoff_protocol";
+import {
+  HANDOFF_GRANT_WAIT_MS,
+  local_grant_storage,
+} from "@/lib/session_handoff/session_handoff_grant";
+import {
+  get_active_language,
+  get_translations_async,
+} from "@/lib/i18n/translations";
 
 const SESSION_KEY_DB_NAME = "astermail_session_keys";
 const SESSION_KEY_STORE = "keys";
 const SESSION_KEY_ID = "session_encryption_key";
 const IDB_TIMEOUT_MS = 4000;
 const ME_TIMEOUT_MS = 4000;
-const BRIDGE_LIFETIME_MS = 15000;
+const BRIDGE_LIFETIME_MS = HANDOFF_GRANT_WAIT_MS + 15000;
 const ME_ENDPOINT = "/api/core/v1/auth/me";
 
-const local_storage: BridgeStorage = {
-  get(key) {
-    try {
-      return window.localStorage.getItem(key);
-    } catch {
-      return null;
-    }
-  },
-  keys() {
-    try {
-      const result: string[] = [];
-
-      for (let i = 0; i < window.localStorage.length; i += 1) {
-        const key = window.localStorage.key(i);
-
-        if (key !== null) result.push(key);
-      }
-
-      return result;
-    } catch {
-      return [];
-    }
-  },
-};
+const local_storage: BridgeStorage = local_grant_storage;
 
 function open_existing_session_key_db(): Promise<IDBDatabase | null> {
   return new Promise((resolve) => {
@@ -174,6 +171,7 @@ async function fetch_current_user(): Promise<unknown> {
 const bridge_deps: BridgeDeps = {
   storage: local_storage,
   now: () => Date.now(),
+  sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   load_session_key,
   fetch_current_user,
   decrypt: (key, ciphertext, iv) =>
@@ -184,12 +182,107 @@ const bridge_deps: BridgeDeps = {
     ),
 };
 
-function start_bridge(): void {
-  if (window.parent === window) return;
+function fill(template: string, params: Record<string, string>): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key: string) =>
+    key in params ? params[key] : match,
+  );
+}
 
+async function load_approval_strings(
+  audience: string,
+  email: string,
+): Promise<ApprovalStrings & { signed_out: string }> {
+  const language = get_active_language();
+  const t = await get_translations_async(language);
+  const app =
+    audience === CALENDAR_WEB_ORIGIN
+      ? t.calendar.aster_calendar
+      : t.common.aster_mail;
+
+  document.documentElement.lang = language;
+
+  return {
+    title: fill(t.auth.handoff_approve_title, { app }),
+    body: fill(t.auth.handoff_approve_body, { app, email }),
+    continue_label: t.common.continue,
+    cancel_label: t.common.cancel,
+    done: t.auth.handoff_approve_done,
+    signed_out: t.auth.handoff_approve_signed_out,
+  };
+}
+
+async function read_signed_in_user(): Promise<HandoffUser | null> {
+  let me: unknown = null;
+
+  try {
+    me = await fetch_current_user();
+  } catch {
+    return null;
+  }
+
+  const user = user_from_me_response(me);
+
+  if (!user || !read_local_session(local_storage, user.id, Date.now())) {
+    return null;
+  }
+
+  return user;
+}
+
+async function run_approval(
+  grant_id: string,
+  audience: string,
+): Promise<void> {
+  window.opener = null;
+  window.history.replaceState(null, "", window.location.pathname);
+
+  const user = await read_signed_in_user();
+  const strings = await load_approval_strings(audience, user?.email ?? "");
+  const approval = create_approval({
+    storage: local_storage,
+    now: () => Date.now(),
+    grant_id,
+    audience,
+    user_id: user?.id ?? null,
+  });
+  const close_soon = () => window.setTimeout(() => window.close(), 400);
+
+  window.addEventListener("pagehide", () => {
+    if (!approval.is_decided()) approval.deny();
+  });
+
+  if (!user) {
+    approval.deny();
+    show_approval_message(document, window, strings.signed_out);
+
+    return;
+  }
+
+  mount_approval(document, window, strings, approval, close_soon);
+}
+
+function start_approval(sibling_origin: string): void {
+  const hash = window.location.hash;
+
+  if (!hash.startsWith(SESSION_APPROVAL_HASH_PREFIX)) return;
+
+  const grant_id = hash.slice(SESSION_APPROVAL_HASH_PREFIX.length);
+
+  if (!is_handoff_grant_id(grant_id)) return;
+
+  void run_approval(grant_id, sibling_origin);
+}
+
+function start_bridge(): void {
   const sibling_origin = get_handoff_sibling_origin(window.location.origin);
 
   if (!sibling_origin) return;
+
+  if (window.parent === window) {
+    start_approval(sibling_origin);
+
+    return;
+  }
 
   let connected = false;
 
@@ -219,7 +312,7 @@ function start_bridge(): void {
       if (busy || closed) return;
       busy = true;
 
-      answer_port_message(bridge_deps, port_event.data)
+      answer_port_message(bridge_deps, sibling_origin, port_event.data)
         .then((reply) => {
           if (closed) return;
           if (!reply) {

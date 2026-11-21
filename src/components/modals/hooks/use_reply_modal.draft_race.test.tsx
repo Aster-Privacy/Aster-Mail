@@ -318,7 +318,9 @@ vi.mock("@/lib/ignore_error", () => ({ ignore_error: () => undefined }));
 
 const { use_reply_modal } = await import("./use_reply_modal");
 const { store_pending_send_payload } = await import("@/hooks/use_undo_send");
-const { escaped_html_to_plain_text } = await import("@/hooks/editor_utils");
+const { editor_plain_text, escaped_html_to_plain_text } = await import(
+  "@/hooks/editor_utils",
+);
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -797,11 +799,7 @@ describe("reply modal drafts around a send", () => {
 
     Object.assign(latest!.message_editor_ref, { current: element });
     await act(async () => latest!.toggle_plain_text_mode());
-    Object.defineProperty(element, "innerText", {
-      configurable: true,
-      writable: true,
-      value: "Sounds good",
-    });
+    element.textContent = "Sounds good";
     await type_reply(element.innerText);
     await act(async () => {
       await latest!.handle_send();
@@ -826,11 +824,7 @@ describe("reply modal drafts around a send", () => {
 
     Object.assign(latest!.message_editor_ref, { current: element });
     await act(async () => latest!.toggle_plain_text_mode());
-    Object.defineProperty(element, "innerText", {
-      configurable: true,
-      writable: true,
-      value: typed,
-    });
+    element.textContent = typed;
     await type_reply(typed);
     await act(async () => {
       await latest!.handle_send();
@@ -867,11 +861,7 @@ describe("reply modal drafts around a send", () => {
 
     Object.assign(latest!.message_editor_ref, { current: element });
     await act(async () => latest!.toggle_plain_text_mode());
-    Object.defineProperty(element, "innerText", {
-      configurable: true,
-      writable: true,
-      value: "Use <project> & check\nThen restart.",
-    });
+    element.textContent = "Use <project> & check\nThen restart.";
     await type_reply(element.innerText);
     await act(async () => latest!.toggle_plain_text_mode());
 
@@ -1299,11 +1289,7 @@ describe("reply modal drafts around a send", () => {
 
       Object.assign(latest!.message_editor_ref, { current: element });
       await act(async () => latest!.toggle_plain_text_mode());
-      Object.defineProperty(element, "innerText", {
-        configurable: true,
-        writable: true,
-        value: text,
-      });
+      element.textContent = text;
       await type_reply(text);
 
       return element;
@@ -1349,16 +1335,12 @@ describe("reply modal drafts around a send", () => {
       );
       const element = document.createElement("div");
 
-      Object.defineProperty(element, "innerText", {
-        configurable: true,
-        writable: true,
-        value: "",
-      });
+      element.textContent = "";
       Object.assign(latest!.message_editor_ref, { current: element });
       await advance(0);
 
       expect(latest!.is_plain_text_mode).toBe(true);
-      expect(element.innerText).toBe(typed);
+      expect(editor_plain_text(element)).toBe(typed);
       expect(latest!.reply_message).toBe(typed);
 
       await advance(1_600);

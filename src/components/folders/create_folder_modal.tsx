@@ -36,8 +36,9 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   TAG_COLOR_PRESETS,
-  tag_color_label_key,
 } from "@/components/ui/email_tag";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
+import { DEFAULT_PICKER_COLOR, fill_text_color } from "@/lib/color_wheel";
 import {
   use_folders,
   build_folder_tree,
@@ -52,6 +53,8 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
+
+const TAG_PRESET_HEXES = TAG_COLOR_PRESETS.map((preset) => preset.hex);
 
 interface CreateFolderModalProps {
   is_open: boolean;
@@ -69,7 +72,7 @@ export function CreateFolderModal({
   const { create_new_folder, state: folders_state } = use_folders();
   const [folder_name, set_folder_name] = useState("");
   const [selected_color, set_selected_color] = useState<string>(
-    TAG_COLOR_PRESETS[10].hex,
+    DEFAULT_PICKER_COLOR,
   );
   const [is_creating, set_is_creating] = useState(false);
   const [error, set_error] = useState("");
@@ -130,7 +133,7 @@ export function CreateFolderModal({
     if (result.folder) {
       on_close();
       set_folder_name("");
-      set_selected_color(TAG_COLOR_PRESETS[10].hex);
+      set_selected_color(DEFAULT_PICKER_COLOR);
       set_selected_parent_token(undefined);
     } else {
       set_error(create_folder_error_message(result.code, t));
@@ -140,7 +143,7 @@ export function CreateFolderModal({
   const handle_close = () => {
     if (is_creating) return;
     set_folder_name("");
-    set_selected_color(TAG_COLOR_PRESETS[10].hex);
+    set_selected_color(DEFAULT_PICKER_COLOR);
     set_selected_parent_token(undefined);
     set_error("");
     on_close();
@@ -287,27 +290,12 @@ export function CreateFolderModal({
                   >
                     {t("common.color")}
                   </span>
-                  <div
-                    aria-labelledby="create-folder-color-label"
-                    className="flex flex-wrap gap-2"
-                    role="group"
-                  >
-                    {TAG_COLOR_PRESETS.map((color) => (
-                      <button
-                        key={color.hex}
-                        className="w-9 h-9 rounded-full"
-                        style={{
-                          backgroundColor: color.hex,
-                          boxShadow:
-                            selected_color === color.hex
-                              ? `0 0 0 2px var(--modal-bg), 0 0 0 4px ${color.hex}`
-                              : "none",
-                        }}
-                        title={t(tag_color_label_key(color.variant))}
-                        onClick={() => set_selected_color(color.hex)}
-                      />
-                    ))}
-                  </div>
+                  <ColorSwatchRow
+                    labelled_by="create-folder-color-label"
+                    max_swatch_size={36}
+                    value={selected_color}
+                    on_change={set_selected_color}
+                  />
                 </div>
 
                 <div className="flex items-center gap-2.5 pt-2">
@@ -349,7 +337,10 @@ export function CreateFolderModal({
                 className="label_folder_action"
                 disabled={!trimmed_name || is_creating || !!validation_error}
                 is_loading={is_creating}
-                style={{ backgroundColor: selected_color, color: "#fff" }}
+                style={{
+                  backgroundColor: selected_color,
+                  color: fill_text_color(selected_color, TAG_PRESET_HEXES),
+                }}
                 variant="depth"
                 onClick={handle_create}
               >

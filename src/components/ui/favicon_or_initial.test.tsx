@@ -88,7 +88,8 @@ describe("FaviconOrInitial", () => {
     expect(image_sources(container)).toEqual(["blob:local/shop"]);
   });
 
-  it("passes other sources through unchanged", () => {
+  it("loads the native app favicon without cookies", () => {
+    loaded.value = "blob:local/shop";
     const container = render(
       <FaviconOrInitial
         initial="S"
@@ -96,9 +97,15 @@ describe("FaviconOrInitial", () => {
       />,
     );
 
-    expect(image_sources(container)).toEqual([
-      "https://app.astermail.org/api/images/v1/favicon/shop.example",
-    ]);
+    expect(image_sources(container)).toEqual(["blob:local/shop"]);
+  });
+
+  it("passes other sources through unchanged", () => {
+    const container = render(
+      <FaviconOrInitial initial="S" src="https://cdn.example/logo.png" />,
+    );
+
+    expect(image_sources(container)).toEqual(["https://cdn.example/logo.png"]);
   });
 });
 
