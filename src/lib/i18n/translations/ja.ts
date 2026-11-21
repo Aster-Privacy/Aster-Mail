@@ -4940,7 +4940,10 @@ export const ja = {
     show_encryption_indicators_description:
       "暗号化されたメッセージにロックアイコンを表示します",
     publish_keys_wkd_title: "WKDにキーを公開",
-    publish_keys_wkd_description: "Web Key Directoryでキーを検出可能にします",
+    publish_keys_wkd_description:
+      "プライマリアドレスのキーをWeb Key Directoryで検出可能にします。",
+    publish_keys_wkd_not_covered:
+      "WKDは、エイリアスやカスタムドメインのアドレスのキーを公開しません。対象外: {{addresses}}",
     publish_to_keyservers_title: "キーサーバーに公開",
     publish_to_keyservers_description:
       "公開キーサーバーでキーを検索可能にします",

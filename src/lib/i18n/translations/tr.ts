@@ -4950,7 +4950,9 @@ export const tr = {
       "Şifreli mesajlarda kilit simgelerini göster",
     publish_keys_wkd_title: "Anahtarları WKD'ye yayınla",
     publish_keys_wkd_description:
-      "Anahtarlarınızı Web Key Directory aracılığıyla keşfedilebilir yapın",
+      "Birincil adresinizin anahtarını Web Key Directory aracılığıyla keşfedilebilir yapın.",
+    publish_keys_wkd_not_covered:
+      "WKD, takma adların veya özel alan adı adreslerinin anahtarlarını yayımlamaz. Kapsam dışı: {{addresses}}",
     publish_to_keyservers_title: "Anahtar sunucularına yayınla",
     publish_to_keyservers_description:
       "Anahtarlarınızı genel anahtar sunucularında bulunabilir yapın",

@@ -5111,7 +5111,9 @@ export const ar = {
       "عرض أيقونات القفل على الرسائل المشفرة",
     publish_keys_wkd_title: "نشر المفاتيح إلى WKD",
     publish_keys_wkd_description:
-      "جعل مفاتيحك قابلة للاكتشاف عبر دليل مفاتيح الويب",
+      "جعل مفتاح عنوانك الأساسي قابلًا للاكتشاف عبر دليل مفاتيح الويب.",
+    publish_keys_wkd_not_covered:
+      "لا ينشر WKD مفاتيح الأسماء المستعارة أو عناوين النطاق المخصص. غير مشمولة: {{addresses}}",
     publish_to_keyservers_title: "النشر إلى خوادم المفاتيح",
     publish_to_keyservers_description:
       "جعل مفاتيحك قابلة للعثور عليها في خوادم المفاتيح العامة",

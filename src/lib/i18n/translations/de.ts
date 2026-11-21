@@ -4948,7 +4948,9 @@ export const de = {
       "Schloss-Symbole bei verschlüsselten Nachrichten anzeigen",
     publish_keys_wkd_title: "Schlüssel auf WKD veröffentlichen",
     publish_keys_wkd_description:
-      "Ihre Schlüssel über das Web Key Directory auffindbar machen",
+      "Den Schlüssel Ihrer primären Adresse über das Web Key Directory auffindbar machen.",
+    publish_keys_wkd_not_covered:
+      "WKD veröffentlicht keine Schlüssel für Aliase oder Adressen eigener Domains. Nicht abgedeckt: {{addresses}}",
     publish_to_keyservers_title: "Auf Schlüsselservern veröffentlichen",
     publish_to_keyservers_description:
       "Ihre Schlüssel auf öffentlichen Schlüsselservern auffindbar machen",

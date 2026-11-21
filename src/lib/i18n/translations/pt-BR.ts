@@ -4972,7 +4972,9 @@ export const pt_br = {
       "Exibir ícones de cadeado em mensagens criptografadas",
     publish_keys_wkd_title: "Publicar chaves no WKD",
     publish_keys_wkd_description:
-      "Tornar suas chaves descobríveis via Web Key Directory",
+      "Tornar a chave do seu endereço principal descobrível via Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "O WKD não publica chaves de aliases nem de endereços de domínio personalizado. Não incluídos: {{addresses}}",
     publish_to_keyservers_title: "Publicar em servidores de chaves",
     publish_to_keyservers_description:
       "Tornar suas chaves encontráveis em servidores de chaves públicos",
