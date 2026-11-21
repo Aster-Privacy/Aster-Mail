@@ -12481,6 +12481,7 @@ export const pl = {
     folder_lock_mode: "blokuj po wyjściu, odblokowany na sesję, tryb blokady",
     cancellation_period: "opóźnienie cofnięcia wysłania, czas na cofnięcie, sekundy, opóźnienie wysyłki, opóźnij wysłanie, zaplanowane wysłanie",
     confirm_delete: "potwierdzenie usunięcia, pytaj przed usunięciem",
+    confirm_permanent_delete: "potwierdzenie trwałego usunięcia, pytaj przed trwałym usunięciem",
     confirm_archive: "potwierdzenie archiwizacji, pytaj przed archiwizacją",
     confirm_spam: "potwierdzenie spamu, pytaj przed oznaczeniem jako spam",
     spam_filter_enabled: "filtr spamu, filtr niechcianej poczty, niechciana poczta, ustawienia spamu, czułość spamu, niski średni wysoki",

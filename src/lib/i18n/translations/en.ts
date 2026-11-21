@@ -11963,6 +11963,7 @@ export const en: Translations = {
     folder_lock_mode: "lock on leave, unlocked for session",
     cancellation_period: "undo send delay, undo window, seconds, send delay, delay send, scheduled send",
     confirm_delete: "delete confirmation, ask before delete",
+    confirm_permanent_delete: "permanent delete confirmation, ask before deleting forever, delete permanently",
     confirm_archive: "archive confirmation, ask before archive",
     confirm_spam: "spam confirmation, ask before spam",
     spam_filter_enabled: "spam filter, junk filter, junk mail, spam settings, spam sensitivity, low medium high",

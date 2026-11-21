@@ -12109,6 +12109,7 @@ export const tr = {
     folder_lock_mode: "klasör kilit modu, çıkınca kilitle, oturum boyunca açık",
     cancellation_period: "iptal süresi, geri alma gecikmesi, saniye, gönderme gecikmesi, zamanlanmış gönderim",
     confirm_delete: "silmeyi onayla, silmeden önce sor",
+    confirm_permanent_delete: "kalıcı silmeyi onayla, kalıcı olarak silmeden önce sor",
     confirm_archive: "arşivlemeyi onayla, arşivlemeden önce sor",
     confirm_spam: "spam onayı, spam olarak işaretlemeden önce sor",
     spam_filter_enabled: "spam filtresini etkinleştir, spam filtresi, gereksiz posta filtresi, gereksiz posta, spam hassasiyeti, düşük orta yüksek",

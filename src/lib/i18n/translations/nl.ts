@@ -12241,6 +12241,7 @@ export const nl = {
     folder_lock_mode: "vergrendelen bij verlaten, ontgrendeld voor sessie, vergrendelmodus",
     cancellation_period: "vertraging verzenden ongedaan maken, annuleringstermijn, seconden, verzendvertraging, vertraagd verzenden, gepland verzenden",
     confirm_delete: "bevestiging verwijderen, vragen voor verwijderen",
+    confirm_permanent_delete: "definitief verwijderen bevestigen, vragen voor definitief verwijderen",
     confirm_archive: "bevestiging archiveren, vragen voor archiveren",
     confirm_spam: "bevestiging spam, vragen voor spam markeren",
     spam_filter_enabled: "spamfilter, ongewenste mail, junkfilter, spaminstellingen, spamgevoeligheid, laag gemiddeld hoog",

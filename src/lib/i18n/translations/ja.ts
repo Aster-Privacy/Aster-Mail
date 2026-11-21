@@ -11979,6 +11979,7 @@ export const ja = {
     folder_lock_mode: "フォルダロックモード, 離れたらロック, セッション中はロック解除",
     cancellation_period: "取り消し可能時間, 送信取り消しの猶予, 取り消し時間, 秒, 送信の遅延, 遅延送信, 予約送信",
     confirm_delete: "削除の確認, 削除前に確認, 削除する前に確認",
+    confirm_permanent_delete: "完全に削除の確認, 完全に削除する前に確認",
     confirm_archive: "アーカイブの確認, アーカイブ前に確認",
     confirm_spam: "迷惑メールの確認, 迷惑メール報告前に確認",
     spam_filter_enabled: "迷惑メールフィルタを有効化, 迷惑メールフィルタ, スパムフィルタ, 迷惑メール, スパム設定, フィルタの感度, 低 中 高",
