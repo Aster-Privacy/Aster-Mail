@@ -18,11 +18,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { get_email_username } from "@/lib/utils";
+import { EMAIL_REGEX, get_email_username } from "@/lib/utils";
 import { parse_address, type ParsedAddress } from "@/utils/reply_to";
 import { decode_header_for_display } from "@/services/import/mime_utils";
 
-export type ForwardingService = "simplelogin" | "addy";
+export type ForwardingService = "simplelogin" | "addy" | "addy_custom";
 
 export interface ForwardedAliasInfo {
   service: ForwardingService;
@@ -222,17 +222,129 @@ export function is_forwarder_authenticated(
   return dkim === "pass";
 }
 
+function is_known_forwarder(email: string): boolean {
+  return (
+    matches_forwarder(email, ADDY_DOMAINS) ||
+    matches_forwarder(email, SIMPLELOGIN_DOMAINS)
+  );
+}
+
+export function decode_custom_domain_forward_address(
+  from_email: string,
+): string | undefined {
+  const trimmed = from_email.trim();
+
+  if (!EMAIL_REGEX.test(trimmed)) return undefined;
+  const at = trimmed.lastIndexOf("@");
+
+  if (at <= 0) return undefined;
+  const local = trimmed.slice(0, at);
+  const plus = local.lastIndexOf("+");
+
+  if (plus <= 0) return undefined;
+  const tag = local.slice(plus + 1);
+
+  if (tag.split("=").length !== 2) return undefined;
+  const eq = tag.lastIndexOf("=");
+  const decoded = `${tag.slice(0, eq)}@${tag.slice(eq + 1)}`;
+
+  if (!EMAIL_REGEX.test(decoded)) return undefined;
+
+  return decoded;
+}
+
+function is_custom_forward_authenticated(
+  auth: ForwardingAuthResults | undefined,
+): boolean {
+  if (!auth) return false;
+  if (auth.sender_aligned === false) return false;
+
+  return auth_status(auth.dmarc_result) === "pass";
+}
+
+function header_present(raw_headers: HeaderLike[], name: string): boolean {
+  const target = name.toLowerCase();
+
+  return raw_headers.some((h) => h.name.toLowerCase() === target);
+}
+
+export function detect_custom_domain_forward(
+  raw_headers: HeaderLike[] | undefined,
+  literal_from: { name?: string; email: string } | undefined,
+  auth: ForwardingAuthResults | undefined,
+): ForwardedAliasInfo | undefined {
+  if (!raw_headers || raw_headers.length === 0) return undefined;
+  if (!literal_from?.email) return undefined;
+  if (is_known_forwarder(literal_from.email)) return undefined;
+
+  const decoded = decode_custom_domain_forward_address(literal_from.email);
+
+  if (!decoded) return undefined;
+  if (!is_custom_forward_authenticated(auth)) return undefined;
+  if (addy_dmarc_failed(raw_headers)) return undefined;
+
+  const sender_header = "X-AnonAddy-Original-Sender";
+  const from_header_name = "X-AnonAddy-Original-From-Header";
+  const sender_value = find_header(raw_headers, sender_header);
+  const from_header_value = find_header(raw_headers, from_header_name);
+
+  if (!sender_value && header_present(raw_headers, sender_header)) {
+    return undefined;
+  }
+  if (!from_header_value && header_present(raw_headers, from_header_name)) {
+    return undefined;
+  }
+
+  const from_header = parse_original_sender(from_header_value);
+  const bound = sender_value
+    ? parse_original_sender(sender_value)
+    : from_header;
+
+  if (!bound?.email || !same_email(bound.email, decoded)) return undefined;
+  if (same_email(bound.email, literal_from.email)) return undefined;
+
+  const name =
+    from_header && same_email(from_header.email, decoded)
+      ? from_header.name
+      : undefined;
+
+  return {
+    service: "addy_custom",
+    original: { name, email: bound.email },
+    reverse_alias: {
+      name: literal_from.name || undefined,
+      email: literal_from.email,
+    },
+  };
+}
+
+export function custom_forward_via_domain(
+  item: SenderDisplayFields,
+): string | null {
+  const shown = item.display_sender_email?.trim();
+  const literal = item.sender_email?.trim();
+
+  if (!shown || !literal) return null;
+  if (is_known_forwarder(literal)) return null;
+  const decoded = decode_custom_domain_forward_address(literal);
+
+  if (!decoded || !same_email(decoded, shown)) return null;
+
+  return domain_of(literal) || null;
+}
+
 export function resolve_forwarding_display(
   from: { name?: string; email: string } | undefined,
   raw_headers: HeaderLike[] | undefined,
   auth?: ForwardingAuthResults,
 ): ForwardingDisplay | undefined {
-  if (!is_forwarder_authenticated(auth)) return undefined;
-
   const literal = from?.email
     ? { name: from.name, email: from.email }
     : undefined;
-  const forwarded = detect_forwarded_alias(raw_headers, literal);
+  const forwarded =
+    (is_forwarder_authenticated(auth)
+      ? detect_forwarded_alias(raw_headers, literal)
+      : undefined) ?? detect_custom_domain_forward(raw_headers, literal, auth);
 
   if (!forwarded) return undefined;
 
