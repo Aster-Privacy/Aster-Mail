@@ -549,6 +549,8 @@ export function strip_html_tags_bounded(
   return strip_html_tags(html);
 }
 
+const CDATA_SECTION_PATTERN = /<!\[CDATA\[[\s\S]*?\]\]>/g;
+
 export function strip_html_tags(html: string): string {
   if (!html || typeof html !== "string") return "";
 
@@ -558,7 +560,7 @@ export function strip_html_tags(html: string): string {
 
   try {
     doc = new DOMParser().parseFromString(
-      repair_comment_markup(html),
+      repair_comment_markup(html.replace(CDATA_SECTION_PATTERN, "")),
       "text/html",
     );
   } catch {
@@ -567,7 +569,7 @@ export function strip_html_tags(html: string): string {
 
   doc
     .querySelectorAll(
-      "script, style, head, noscript, template, iframe, object, embed",
+      "script, style, head, title, noscript, template, iframe, object, embed, xml",
     )
     .forEach((el) => el.remove());
 
@@ -591,4 +593,312 @@ export function quotable_source(message: {
   html_content?: string;
 }): string {
   return message.html_content || message.body || "";
+}
+
+const CSS_AT_RULE_NAMES = new Set([
+  "charset",
+  "container",
+  "counter-style",
+  "document",
+  "font-face",
+  "font-feature-values",
+  "import",
+  "keyframes",
+  "layer",
+  "media",
+  "namespace",
+  "page",
+  "property",
+  "supports",
+  "viewport",
+]);
+
+const CSS_STATEMENT_AT_RULE_NAMES = new Set([
+  "charset",
+  "import",
+  "layer",
+  "namespace",
+]);
+
+const CSS_AT_RULE_NAME_PATTERN = /@(?:-[a-z]+-)?([a-z][a-z-]*)/iy;
+
+const CSS_SELECTOR_TOKEN_PATTERN =
+  /^([a-z][a-z0-9]*|\*)?((?:[.#][\w-]+|\[[^\]]*\]|::?[a-z-]+(?:\([^)]*\))?)*)$/i;
+
+const CSS_TYPE_SELECTORS = new Set([
+  "*",
+  "a",
+  "abbr",
+  "address",
+  "article",
+  "aside",
+  "b",
+  "big",
+  "blockquote",
+  "body",
+  "br",
+  "button",
+  "caption",
+  "center",
+  "cite",
+  "code",
+  "col",
+  "colgroup",
+  "dd",
+  "div",
+  "dl",
+  "dt",
+  "em",
+  "figcaption",
+  "figure",
+  "font",
+  "footer",
+  "form",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "header",
+  "hr",
+  "html",
+  "i",
+  "iframe",
+  "img",
+  "input",
+  "label",
+  "li",
+  "main",
+  "mark",
+  "nav",
+  "ol",
+  "p",
+  "picture",
+  "pre",
+  "s",
+  "section",
+  "small",
+  "span",
+  "strike",
+  "strong",
+  "sub",
+  "sup",
+  "svg",
+  "table",
+  "tbody",
+  "td",
+  "tfoot",
+  "th",
+  "thead",
+  "tr",
+  "u",
+  "ul",
+  "video",
+]);
+
+function is_css_selector_token(token: string): boolean {
+  const match = CSS_SELECTOR_TOKEN_PATTERN.exec(token);
+
+  if (!match) return false;
+
+  const type_selector = match[1]?.toLowerCase();
+  const qualifiers = match[2] ?? "";
+
+  if (!type_selector) return qualifiers.length > 0;
+
+  return CSS_TYPE_SELECTORS.has(type_selector);
+}
+
+const CSS_DECLARATION_PATTERN = /^(-{0,2}[a-z][a-z0-9_-]*)\s*:[^;{}]*$/i;
+
+const CSS_SINGLE_WORD_PROPERTIES = new Set([
+  "background",
+  "border",
+  "bottom",
+  "clear",
+  "clip",
+  "color",
+  "content",
+  "cursor",
+  "direction",
+  "display",
+  "filter",
+  "flex",
+  "float",
+  "font",
+  "gap",
+  "grid",
+  "height",
+  "left",
+  "margin",
+  "opacity",
+  "outline",
+  "overflow",
+  "padding",
+  "position",
+  "right",
+  "src",
+  "top",
+  "transform",
+  "transition",
+  "visibility",
+  "width",
+  "zoom",
+]);
+
+const CSS_LEADING_NOISE_PATTERN = /\s+|<!--|--!?>|\/\*[\s\S]*?\*\//y;
+
+const CSS_SELECTOR_LIMIT = 512;
+
+const CSS_BLOCK_LIMIT = 8192;
+
+const CSS_SCAN_LIMIT = 131072;
+
+function is_css_selector(selector: string): boolean {
+  const trimmed = selector.trim();
+
+  if (!trimmed) return false;
+
+  return trimmed.split(",").every((part) => {
+    const tokens = part
+      .trim()
+      .split(/\s*[>+~]\s*|\s+/)
+      .filter(Boolean);
+
+    return (
+      tokens.length > 0 &&
+      tokens.every(is_css_selector_token)
+    );
+  });
+}
+
+function is_css_declaration_block(block: string): boolean {
+  const declarations = block
+    .split(";")
+    .map((declaration) => declaration.trim())
+    .filter(Boolean);
+
+  return (
+    declarations.length > 0 &&
+    declarations.every((declaration) => {
+      const match = CSS_DECLARATION_PATTERN.exec(declaration);
+
+      if (!match) return false;
+
+      const property = match[1].toLowerCase();
+
+      return property.includes("-") || CSS_SINGLE_WORD_PROPERTIES.has(property);
+    })
+  );
+}
+
+function skip_css_at_rule(text: string, start: number): number {
+  CSS_AT_RULE_NAME_PATTERN.lastIndex = start;
+  const name = CSS_AT_RULE_NAME_PATTERN.exec(text);
+
+  if (!name) return -1;
+
+  const rule_name = name[1].toLowerCase();
+
+  if (!CSS_AT_RULE_NAMES.has(rule_name)) return -1;
+
+  const semicolon = text.indexOf(";", start);
+  const open = text.indexOf("{", start);
+
+  if (semicolon !== -1 && (open === -1 || semicolon < open)) {
+    if (!CSS_STATEMENT_AT_RULE_NAMES.has(rule_name)) return -1;
+
+    return semicolon - start <= CSS_SELECTOR_LIMIT ? semicolon + 1 : -1;
+  }
+
+  if (open === -1 || open - start > CSS_SELECTOR_LIMIT) return -1;
+
+  const limit = Math.min(text.length, start + CSS_SCAN_LIMIT);
+  let depth = 0;
+
+  for (let index = open; index < limit; index += 1) {
+    if (text[index] === "{") depth += 1;
+    else if (text[index] === "}") {
+      depth -= 1;
+
+      if (depth === 0) return index + 1;
+    }
+  }
+
+  return -1;
+}
+
+function skip_css_rule(
+  text: string,
+  start: number,
+  allow_empty_block: boolean,
+): number {
+  const open = text.indexOf("{", start);
+
+  if (open === -1 || open - start > CSS_SELECTOR_LIMIT) return -1;
+
+  const close = text.indexOf("}", open + 1);
+
+  if (close === -1 || close - open > CSS_BLOCK_LIMIT) return -1;
+
+  const block = text.slice(open + 1, close);
+
+  if (block.includes("{")) return -1;
+  if (!is_css_selector(text.slice(start, open))) return -1;
+
+  if (!block.trim()) return allow_empty_block ? close + 1 : -1;
+
+  return is_css_declaration_block(block) ? close + 1 : -1;
+}
+
+export function strip_leading_css_rules(text: string): string {
+  if (!text || typeof text !== "string") return "";
+
+  let cursor = 0;
+  let kept_from = 0;
+
+  while (cursor < text.length && cursor < CSS_SCAN_LIMIT) {
+    CSS_LEADING_NOISE_PATTERN.lastIndex = cursor;
+
+    if (CSS_LEADING_NOISE_PATTERN.exec(text)) {
+      cursor = CSS_LEADING_NOISE_PATTERN.lastIndex;
+
+      if (kept_from > 0) kept_from = cursor;
+
+      continue;
+    }
+
+    const end =
+      text[cursor] === "@"
+        ? skip_css_at_rule(text, cursor)
+        : skip_css_rule(text, cursor, kept_from > 0);
+
+    if (end === -1) break;
+
+    cursor = end;
+    kept_from = end;
+  }
+
+  return kept_from === 0 ? text : text.slice(kept_from).trimStart();
+}
+
+export function has_leading_css_rules(text: string): boolean {
+  return !!text && strip_leading_css_rules(text) !== text;
+}
+
+export function preview_body_source(
+  body_text: string | undefined,
+  body_html: string | undefined,
+): string {
+  const text = body_text ?? "";
+  const html = body_html ?? "";
+
+  if (text && html && has_leading_css_rules(text)) return html;
+
+  return text || html;
+}
+
+export function html_to_preview_text(source: string, min_chars: number): string {
+  return strip_leading_css_rules(strip_html_tags_bounded(source, min_chars));
 }

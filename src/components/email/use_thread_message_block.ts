@@ -57,8 +57,8 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
-  strip_html_tags_bounded,
 } from "@/lib/html_sanitizer";
+import { html_to_preview_text } from "@/lib/html_text";
 import {
   html_has_renderable_content,
   readable_text_with_fallback,
@@ -269,7 +269,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     return guard_body_step(
       "components/email/use_thread_message_block:collapsed_preview",
       () => {
-        const plain = strip_html_tags_bounded(
+        const plain = html_to_preview_text(
           extract_preview_html(clean_body),
           600,
         )

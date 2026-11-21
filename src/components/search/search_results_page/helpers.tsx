@@ -26,7 +26,7 @@ import type {
 } from "@/components/email/inbox/inbox_types";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { strip_html_tags } from "@/lib/html_sanitizer";
+import { strip_html_tags, strip_leading_css_rules } from "@/lib/html_text";
 import { strip_preview_filler } from "@/utils/preview_text";
 
 export const MIN_LIST_WIDTH = 280;
@@ -35,7 +35,7 @@ export const SLOW_SEARCH_MS = 6000;
 
 export function extract_snippet(preview: string, terms: string[]): string {
   if (!preview || terms.length === 0) return "";
-  const plain = strip_preview_filler(strip_html_tags(preview));
+  const plain = strip_preview_filler(strip_leading_css_rules(strip_html_tags(preview)));
   const lower = plain.toLowerCase();
 
   let earliest_index = -1;

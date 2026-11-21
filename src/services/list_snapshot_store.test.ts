@@ -66,6 +66,7 @@ vi.mock("@/utils/date_format", () => ({
 }));
 
 import {
+  LIST_SNAPSHOT_PREVIEW_VERSION,
   cancel_pending_list_snapshots,
   drop_list_snapshot,
   read_list_snapshot,
@@ -233,6 +234,32 @@ describe("list snapshot store", () => {
     h.account_id = "acct-2";
 
     expect(await read()).toBeNull();
+  });
+
+  it("drops a snapshot saved with an older preview format", async () => {
+    schedule_list_snapshot(SCOPE, OWNER, SIGNATURE, make_rows());
+    await settle();
+
+    expect(LIST_SNAPSHOT_PREVIEW_VERSION).toBeGreaterThan(1);
+    expect(await read()).not.toBeNull();
+
+    const fake_secure = await import("@/services/crypto/secure_storage");
+    const stored = JSON.parse(
+      await fake_secure.secure_decrypt(h.disk.get(RECORD_KEY) as string),
+    ) as Record<string, unknown>;
+
+    expect(stored.preview_version).toBe(LIST_SNAPSHOT_PREVIEW_VERSION);
+
+    for (const legacy of [undefined, LIST_SNAPSHOT_PREVIEW_VERSION - 1]) {
+      const downgraded = { ...stored, preview_version: legacy };
+
+      h.disk.set(
+        RECORD_KEY,
+        await fake_secure.secure_encrypt(JSON.stringify(downgraded)),
+      );
+
+      expect(await read()).toBeNull();
+    }
   });
 
   it("expires after a week", async () => {
