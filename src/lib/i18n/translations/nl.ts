@@ -2592,6 +2592,13 @@ export const nl = {
       "Schakel een categorie in om de meldingen ervan te dempen. Gedempte categorieën ontvangen nog steeds e-mail en verschijnen in je inbox.",
     muted_categories_empty:
       "Schakel inboxcategorieën in om te kiezen welke je dempt.",
+    learn_from_moves: "Leren van je verplaatsingen",
+    learn_from_moves_description: "Als je een e-mail naar een categorie verplaatst, gaat toekomstige e-mail van die afzender daar ook heen. Dit blijft versleuteld en wordt nooit met ons gedeeld.",
+    forget_learned_senders: "Geleerde afzenders vergeten ({{count}})",
+    forget_learned_senders_one: "Geleerde afzenders vergeten ({{count}})",
+    forget_learned_senders_title: "Geleerde afzenders vergeten?",
+    forget_learned_senders_description: "E-mail van deze afzenders wordt weer automatisch gesorteerd. E-mail die je zelf hebt verplaatst, blijft waar je hem neerzette.",
+    forget_learned_senders_confirm: "Vergeten",
     custom_categories_title: "Aangepaste categorieën",
     custom_categories_tutorial:
       "Maak je eigen categorie. Match e-mails op afzenderdomein of een trefwoord in het onderwerp.",
@@ -12544,6 +12551,7 @@ export const nl = {
     export_title: "mail downloaden, back-up e-mails, mbox, eml, contacten exporteren, takeout, abonnementenbeheer, afmelden, nieuwsbrieven, mailinglijsten",
     folder_retention_add: "map automatisch opschonen, bewaartermijn, automatisch verwijderen, map opschonen, oude e-mails verwijderen, e-mails laten verlopen, ouder dan",
     inbox_categories: "tabbladen, categorietabbladen, inbox sorteren, primair, aanbiedingen, nieuwsbrieven, sociaal, meldingen, aankopen, discussies, financiën, reizen, winkelen, promoties",
+    learn_from_category_moves: "leren, geleerde afzenders, categorie onthouden, automatisch sorteren, afzendercategorie, vergeten, geleerde afzenders wissen, geleerde categorieën herstellen",
     custom_categories_title: "categorie toevoegen, nieuwe categorie, eigen tabblad, eigen categorieën",
     settings_search_ghost_aliases: "spookmodus, verlopende alias, tijdelijk e-mailadres, wegwerpadres, spookalias maken, anoniem adres, gemaskeerd e-mailadres, e-mailadres verbergen, anonieme e-mail",
     ghost_aliases_compose_cta: "spookmodus opstellen, anoniem verzenden, spookbericht",

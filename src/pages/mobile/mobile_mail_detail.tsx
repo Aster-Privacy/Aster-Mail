@@ -540,7 +540,15 @@ function MobileMailDetail() {
         on_select={(category) => {
           if (!category_item) return;
           void move_items_to_category(
-            [mail_item_move_item(category_item, detail.email?.sender_email)],
+            [
+              mail_item_move_item(
+                category_item,
+                detail.email?.sender_email,
+                display_messages.find(
+                  (message) => message.id === category_item.id,
+                )?.sender_verification,
+              ),
+            ],
             category,
             { t: detail.t, custom_categories: preferences.custom_categories },
           );

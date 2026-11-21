@@ -671,7 +671,13 @@ export function ViewerToolbarActions({
             <CategoryMoveDropdownSub
               on_select={(category) => {
                 void move_items_to_category(
-                  [mail_item_move_item(mail_item, email?.sender_email)],
+                  [
+                    mail_item_move_item(
+                      mail_item,
+                      email?.sender_email,
+                      email?.sender_verification,
+                    ),
+                  ],
                   category,
                   { t, custom_categories: preferences.custom_categories },
                 );

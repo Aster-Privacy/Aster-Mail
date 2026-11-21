@@ -2670,6 +2670,13 @@ export const it = {
       "Attiva una categoria per silenziare le sue notifiche. Le categorie silenziate continuano a ricevere email e appaiono nella tua casella di posta.",
     muted_categories_empty:
       "Attiva le categorie della casella di posta per scegliere quali silenziare.",
+    learn_from_moves: "Impara dai tuoi spostamenti",
+    learn_from_moves_description: "Quando sposti un'email in una categoria, anche le email future di quel mittente finiscono lì. Questi dati restano crittografati e non vengono mai condivisi con noi.",
+    forget_learned_senders: "Dimentica i mittenti appresi ({{count}})",
+    forget_learned_senders_one: "Dimentica i mittenti appresi ({{count}})",
+    forget_learned_senders_title: "Dimenticare i mittenti appresi?",
+    forget_learned_senders_description: "Le email di questi mittenti vengono di nuovo ordinate automaticamente. Le email che hai spostato tu restano dove le hai messe.",
+    forget_learned_senders_confirm: "Dimentica",
     custom_categories_title: "Categorie personalizzate",
     custom_categories_tutorial:
       "Crea la tua categoria personalizzata. Abbina le email in base al dominio del mittente o a una parola chiave nell'oggetto.",
@@ -12621,6 +12628,7 @@ export const it = {
     export_title: "esporta email, scarica posta, backup email, mbox, eml, esporta contatti, gestione iscrizioni, annulla iscrizione, newsletter, mailing list",
     folder_retention_add: "aggiungi pulizia automatica, pulizia cartella, conservazione, eliminazione automatica, elimina email vecchie, scadenza email, più vecchie di",
     inbox_categories: "categorie posta in arrivo, schede, schede categoria, ordina posta, principale, offerte, newsletter, social, notifiche, acquisti, finanza, viaggi, promozioni",
+    learn_from_category_moves: "imparare, mittenti appresi, ricorda categoria, ordinamento automatico, categoria del mittente, dimentica, cancella mittenti appresi, reimposta categorie apprese",
     custom_categories_title: "categorie personalizzate, aggiungi categoria, nuova categoria, scheda personalizzata",
     settings_search_ghost_aliases: "alias fantasma, modalità fantasma, alias temporaneo, email temporanea, indirizzo usa e getta, indirizzo anonimo, email mascherata, nascondi email",
     ghost_aliases_compose_cta: "scrivi in modalità fantasma, composizione fantasma, invio anonimo",

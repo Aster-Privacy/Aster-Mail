@@ -27,6 +27,7 @@ import { create_rule } from "@/services/api/mail_rules";
 import { show_toast } from "@/components/toast/simple_toast";
 import { held_of } from "@/services/guard/held_outcome";
 import { ignore_error } from "@/lib/ignore_error";
+import { is_learning_enabled } from "@/services/learned_category_senders";
 
 type Translate = (
   key: TranslationKey,
@@ -106,6 +107,7 @@ export function maybe_offer_sender_rule(
   t: Translate,
 ): void {
   if (is_custom_category_id(category)) return;
+  if (is_learning_enabled()) return;
 
   const sender_email = sole_sender(moved);
 

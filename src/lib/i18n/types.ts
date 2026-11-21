@@ -227,6 +227,7 @@ export interface SettingsKeywordsTranslations {
   export_title: string;
   folder_retention_add: string;
   inbox_categories: string;
+  learn_from_category_moves: string;
   custom_categories_title: string;
   settings_search_ghost_aliases: string;
   ghost_aliases_compose_cta: string;
@@ -3862,6 +3863,13 @@ export interface SettingsTranslations {
   muted_categories: string;
   muted_categories_description: string;
   muted_categories_empty: string;
+  learn_from_moves: string;
+  learn_from_moves_description: string;
+  forget_learned_senders: string;
+  forget_learned_senders_one?: string;
+  forget_learned_senders_title: string;
+  forget_learned_senders_description: string;
+  forget_learned_senders_confirm: string;
   custom_categories_title: string;
   custom_categories_tutorial: string;
   custom_category_locked_badge: string;

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { EmailCategory } from "@/types/email";
+import type { DecryptedEnvelope, EmailCategory } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { PreviousCategoryState } from "@/services/crypto/mail_metadata_core";
 
@@ -48,8 +48,8 @@ import {
   classify,
   CATEGORY_TABS,
   CLASSIFIER_VERSION,
-  is_locked_to_primary,
   set_active_custom_categories,
+  set_active_learned_senders,
 } from "@/services/mail_categorizer";
 import {
   BUILTIN_CATEGORY_IDS,
@@ -130,6 +130,8 @@ export interface CategoryIndexEntry {
   snoozed_until?: string;
   needs_reclassify?: boolean;
   source?: string;
+  sender_key?: string;
+  learned?: string;
 }
 
 export interface CategoryCount {
@@ -903,6 +905,7 @@ async function ensure_loaded(): Promise<boolean> {
       loaded_for_account = account_id;
       schedule_persist();
       notify();
+      refresh_learned_entries();
 
       return true;
     } finally {
@@ -929,6 +932,15 @@ function apply_upsert(
     if (!existing && is_recently_removed(raw.id)) continue;
 
     let entry = raw;
+
+    if (existing?.sender_key && entry.sender_key === undefined) {
+      entry = {
+        ...entry,
+        sender_key: existing.sender_key,
+        learned: existing.learned,
+      };
+    }
+
     const intended =
       get_read_intent(raw.id, fetched_at, raw.is_read) ??
       (scope_read_applies(raw.message_ts, fetched_at) ? true : undefined);
@@ -959,7 +971,9 @@ function apply_upsert(
       (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "") ||
       (existing.needs_reclassify ?? false) !==
         (entry.needs_reclassify ?? false) ||
-      existing.source !== entry.source
+      existing.source !== entry.source ||
+      existing.sender_key !== entry.sender_key ||
+      existing.learned !== entry.learned
     ) {
       entries_map.set(entry.id, entry);
       mark_dirty(entry.id);
@@ -2132,6 +2146,7 @@ function reuse_decoded_item(item: MailItem): CategoryIndexEntry | null {
   if (decoded.custom_categories !== custom_categories) return null;
   if (decoded.envelope !== item.encrypted_envelope) return null;
   if (decoded.key !== decoded_item_key(item)) return null;
+  if (learned_is_stale(existing)) return null;
 
   if (decoded.sealed_body) forget_entry_preview(item.id);
   else if (preview) remember_entry_preview(item.id, preview);
@@ -2180,6 +2195,79 @@ function item_source(item: MailItem, rules_hash: string): string {
   );
 }
 
+let learned_by_key = new Map<string, string>();
+let learned_by_email = new Map<string, string>();
+
+function learned_sender_key(email: string): string {
+  return hash_text(email.trim().toLowerCase());
+}
+
+function learned_fields_for(
+  envelope: DecryptedEnvelope,
+): Pick<CategoryIndexEntry, "sender_key" | "learned"> {
+  if (envelope.sender_verification === "invalid") return {};
+
+  const email = (envelope.from?.email || "").trim().toLowerCase();
+
+  if (!email) return {};
+
+  const learned = learned_by_email.get(email);
+
+  return learned
+    ? { sender_key: learned_sender_key(email), learned }
+    : { sender_key: learned_sender_key(email) };
+}
+
+function learned_is_stale(entry: CategoryIndexEntry): boolean {
+  if (!entry.sender_key || entry.category_pinned) return false;
+
+  return entry.learned !== learned_by_key.get(entry.sender_key);
+}
+
+function refresh_learned_entries(): void {
+  const stale: string[] = [];
+
+  for (const entry of entries_map.values()) {
+    if (entry.needs_reclassify) continue;
+    if (learned_is_stale(entry)) stale.push(entry.id);
+  }
+
+  if (stale.length === 0) return;
+
+  for (const id of stale) decoded_items.delete(id);
+
+  reindex_ids(stale);
+}
+
+export function set_learned_senders(
+  list: readonly { sender: string; category: string }[],
+): void {
+  const by_email = new Map<string, string>();
+  const by_key = new Map<string, string>();
+
+  for (const entry of list) {
+    const email = entry.sender.trim().toLowerCase();
+
+    if (!email || by_email.has(email)) continue;
+    by_email.set(email, entry.category);
+    by_key.set(learned_sender_key(email), entry.category);
+  }
+
+  const unchanged =
+    by_key.size === learned_by_key.size &&
+    Array.from(by_key).every(
+      ([key, category]) => learned_by_key.get(key) === category,
+    );
+
+  set_active_learned_senders(by_email);
+  learned_by_email = by_email;
+  learned_by_key = by_key;
+
+  if (unchanged) return;
+
+  refresh_learned_entries();
+}
+
 function reuse_indexed_entry(
   item: MailItem,
   source: string,
@@ -2188,6 +2276,7 @@ function reuse_indexed_entry(
 
   if (!existing || existing.needs_reclassify) return null;
   if (existing.source !== source) return null;
+  if (learned_is_stale(existing)) return null;
 
   return refresh_item_fields(existing, item);
 }
@@ -2232,6 +2321,7 @@ async function item_to_entry(
   const known_entry = envelope ? undefined : entries_map.get(item.id);
 
   const sealed_body = is_ratchet_body_text(envelope?.body_text);
+  const learned_fields = envelope ? learned_fields_for(envelope) : {};
 
   if (envelope && sealed_body) {
     forget_entry_preview(item.id);
@@ -2258,17 +2348,17 @@ async function item_to_entry(
             custom_categories: rules,
             rule_category: item.rule_category,
             trust: item,
+            learned_senders: learned_by_email,
           })
         : (known_entry?.category ?? item.rule_category ?? "primary"),
       ...(envelope ? {} : { needs_reclassify: true }),
       category_pinned: envelope
-        ? metadata?.category_pinned === true &&
-          !!metadata?.category &&
-          !is_locked_to_primary(envelope, item)
+        ? metadata?.category_pinned === true && !!metadata?.category
         : known_entry?.category_pinned === true,
       is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
       ...(snoozed_until ? { snoozed_until } : {}),
       ...(envelope ? { source } : {}),
+      ...learned_fields,
     },
   };
 
