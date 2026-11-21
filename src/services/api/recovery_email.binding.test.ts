@@ -724,6 +724,32 @@ describe("recovery email write paths", () => {
     ).toBe("user@example.com");
   });
 
+  it("passes the server reason through so the caller can ask for a password", async () => {
+    const { api_client } = await import("./client");
+
+    vi.mocked(api_client.put).mockResolvedValueOnce({
+      data: undefined,
+      error: "To make this change, confirm your password.",
+      code: "FORBIDDEN",
+      server_code: "STEP_UP_REQUIRED",
+    } as never);
+
+    const result = await save_recovery_email("user@example.com", vault);
+
+    expect(result.data.success).toBe(false);
+    expect(result.code).toBe("FORBIDDEN");
+    expect(result.server_code).toBe("STEP_UP_REQUIRED");
+
+    await save_recovery_email("user@example.com", vault, {
+      password_hash: "proof",
+    });
+
+    expect(
+      (put_calls[put_calls.length - 1].body as { password_hash?: string })
+        .password_hash,
+    ).toBe("proof");
+  });
+
   it("keeps the strict check for saving", async () => {
     for (const address of EARLIER_CLIENT_ADDRESSES) {
       expect(is_readable_recovery_email(address)).toBe(true);
