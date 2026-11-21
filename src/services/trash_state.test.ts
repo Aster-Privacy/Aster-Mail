@@ -22,6 +22,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const api_mock = vi.hoisted(() => ({
   trash_thread: vi.fn(),
+  spam_thread: vi.fn(),
   restore_mail_item: vi.fn(),
 }));
 
@@ -35,6 +36,7 @@ const metadata_mock = vi.hoisted(() => ({
 
 vi.mock("@/services/api/mail", () => ({
   trash_thread: api_mock.trash_thread,
+  spam_thread: api_mock.spam_thread,
   restore_mail_item: api_mock.restore_mail_item,
 }));
 
@@ -46,7 +48,24 @@ vi.mock("@/lib/ignore_error", () => ({
   ignore_error: vi.fn(),
 }));
 
-import { set_thread_trashed, restore_item_from_trash } from "./trash_state";
+vi.mock("@/services/api/rate_limit_retry", async (load_actual) => {
+  const actual =
+    await load_actual<typeof import("@/services/api/rate_limit_retry")>();
+
+  return {
+    ...actual,
+    with_rate_limit_retry: <T>(
+      request: () => Promise<import("@/services/api/client").ApiResponse<T>>,
+    ) => actual.with_rate_limit_retry(request, { wait: async () => {} }),
+  };
+});
+
+import {
+  set_thread_trashed,
+  set_threads_trashed,
+  sync_thread_spam,
+  restore_item_from_trash,
+} from "./trash_state";
 
 describe("trash_state", () => {
   beforeEach(() => {
@@ -101,6 +120,114 @@ describe("trash_state", () => {
       const result = await set_thread_trashed("thread-1", [], false);
 
       expect(result.data?.trashed).toBe(1);
+    });
+  });
+
+  describe("set_threads_trashed", () => {
+    it("writes the blob once for every conversation that moved", async () => {
+      api_mock.trash_thread.mockImplementation(async (token: string) => ({
+        data: { trashed: 1, ids: [`${token}-server`] },
+      }));
+
+      const targets = Array.from({ length: 30 }, (_, i) => ({
+        thread_token: `t${i}`,
+        known_ids: [`t${i}-known`],
+      }));
+      const result = await set_threads_trashed(targets, true);
+
+      expect(result.failed_tokens).toEqual([]);
+      expect(api_mock.trash_thread).toHaveBeenCalledTimes(30);
+      expect(metadata_mock.bulk_update_metadata_by_ids).toHaveBeenCalledTimes(
+        1,
+      );
+
+      const [ids, updates] = metadata_mock.bulk_update_metadata_by_ids.mock
+        .calls[0] as unknown as [string[], unknown];
+
+      expect(ids).toHaveLength(60);
+      expect(updates).toEqual({ is_trashed: true });
+    });
+
+    it("keeps at most four requests in flight", async () => {
+      let active = 0;
+      let peak = 0;
+
+      api_mock.trash_thread.mockImplementation(async () => {
+        active += 1;
+        peak = Math.max(peak, active);
+        await Promise.resolve();
+        active -= 1;
+
+        return { data: { trashed: 1, ids: [] } };
+      });
+
+      await set_threads_trashed(
+        Array.from({ length: 20 }, (_, i) => ({
+          thread_token: `t${i}`,
+          known_ids: [],
+        })),
+        true,
+      );
+
+      expect(peak).toBeLessThanOrEqual(4);
+    });
+
+    it("sends a rate limited request again and succeeds", async () => {
+      api_mock.trash_thread
+        .mockResolvedValueOnce({
+          error: "Too many requests",
+          code: "RATE_LIMIT_EXCEEDED",
+          status: 429,
+          retry_after_secs: 60,
+        })
+        .mockResolvedValueOnce({ data: { trashed: 1, ids: ["m1"] } });
+
+      const result = await set_threads_trashed(
+        [{ thread_token: "t1", known_ids: ["m1"] }],
+        true,
+      );
+
+      expect(result.failed_tokens).toEqual([]);
+      expect(api_mock.trash_thread).toHaveBeenCalledTimes(2);
+    });
+
+    it("reports the conversations that failed and writes only the rest", async () => {
+      api_mock.trash_thread.mockImplementation(async (token: string) => {
+        if (token === "bad") return { data: null, error: "Server error" };
+        if (token === "thrown") throw new Error("network");
+
+        return { data: { trashed: 1, ids: [`${token}-m`] } };
+      });
+
+      const result = await set_threads_trashed(
+        [
+          { thread_token: "good", known_ids: [] },
+          { thread_token: "bad", known_ids: ["bad-m"] },
+          { thread_token: "thrown", known_ids: ["thrown-m"] },
+        ],
+        true,
+      );
+
+      expect(result.failed_tokens.sort()).toEqual(["bad", "thrown"]);
+      expect(metadata_mock.bulk_update_metadata_by_ids.mock.calls).toEqual([
+        [["good-m"], { is_trashed: true }],
+      ]);
+    });
+  });
+
+  describe("sync_thread_spam", () => {
+    it("writes the blob once for all conversations", async () => {
+      api_mock.spam_thread.mockImplementation(async (token: string) => ({
+        data: { updated: 1, ids: [`${token}-m`] },
+      }));
+
+      const ids = await sync_thread_spam(["a", "b", undefined, "a"], true);
+
+      expect(ids.sort()).toEqual(["a-m", "b-m"]);
+      expect(api_mock.spam_thread).toHaveBeenCalledTimes(2);
+      expect(metadata_mock.bulk_update_metadata_by_ids.mock.calls).toEqual([
+        [expect.any(Array), { is_spam: true, is_trashed: false }],
+      ]);
     });
   });
 

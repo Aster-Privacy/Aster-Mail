@@ -30,9 +30,14 @@ import {
   type SpamThreadResponse,
 } from "@/services/api/mail";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
+import {
+  run_bounded,
+  with_rate_limit_retry,
+} from "@/services/api/rate_limit_retry";
 import { ignore_error } from "@/lib/ignore_error";
 
 const LOG_SCOPE = "services/trash_state";
+const THREAD_ACTION_CONCURRENCY = 4;
 
 function merge_ids(server_ids: string[] | undefined, known_ids: string[]) {
   return Array.from(new Set([...(server_ids ?? []), ...known_ids]));
@@ -54,7 +59,9 @@ export async function set_thread_trashed(
   known_ids: string[],
   is_trashed: boolean,
 ): Promise<ApiResponse<TrashThreadResponse>> {
-  const result = await trash_thread(thread_token, is_trashed);
+  const result = await with_rate_limit_retry(() =>
+    trash_thread(thread_token, is_trashed),
+  );
 
   if (result.data) {
     await write_trash_flag(merge_ids(result.data.ids, known_ids), {
@@ -65,12 +72,51 @@ export async function set_thread_trashed(
   return result;
 }
 
+export interface ThreadTrashTarget {
+  thread_token: string;
+  known_ids: string[];
+}
+
+export async function set_threads_trashed(
+  targets: ThreadTrashTarget[],
+  is_trashed: boolean,
+): Promise<{ failed_tokens: string[] }> {
+  const failed_tokens: string[] = [];
+  const changed_ids = new Set<string>();
+
+  await run_bounded(targets, THREAD_ACTION_CONCURRENCY, async (target) => {
+    try {
+      const result = await with_rate_limit_retry(() =>
+        trash_thread(target.thread_token, is_trashed),
+      );
+
+      if (!result.data) {
+        failed_tokens.push(target.thread_token);
+
+        return;
+      }
+      for (const id of merge_ids(result.data.ids, target.known_ids)) {
+        changed_ids.add(id);
+      }
+    } catch (caught) {
+      ignore_error(LOG_SCOPE, caught);
+      failed_tokens.push(target.thread_token);
+    }
+  });
+
+  await write_trash_flag(Array.from(changed_ids), { is_trashed });
+
+  return { failed_tokens };
+}
+
 export async function set_thread_spam(
   thread_token: string,
   known_ids: string[],
   is_spam: boolean,
 ): Promise<ApiResponse<SpamThreadResponse>> {
-  const result = await spam_thread(thread_token, is_spam);
+  const result = await with_rate_limit_retry(() =>
+    spam_thread(thread_token, is_spam),
+  );
 
   if (result.data) {
     const ids = is_spam
@@ -95,17 +141,30 @@ export async function sync_thread_spam(
   const tokens = Array.from(
     new Set(thread_tokens.filter((token): token is string => !!token)),
   );
-  const results = await Promise.all(
-    tokens.map((token) =>
-      set_thread_spam(token, [], is_spam).catch((caught) => {
-        ignore_error(LOG_SCOPE, caught);
+  const changed_ids = new Set<string>();
 
-        return null;
-      }),
-    ),
-  );
+  await run_bounded(tokens, THREAD_ACTION_CONCURRENCY, async (token) => {
+    try {
+      const result = await with_rate_limit_retry(() =>
+        spam_thread(token, is_spam),
+      );
 
-  return results.flatMap((result) => result?.data?.ids ?? []);
+      for (const id of result.data?.ids ?? []) changed_ids.add(id);
+    } catch (caught) {
+      ignore_error(LOG_SCOPE, caught);
+    }
+  });
+
+  const ids = Array.from(changed_ids);
+
+  if (ids.length > 0) {
+    await bulk_update_metadata_by_ids(
+      ids,
+      is_spam ? { is_spam: true, is_trashed: false } : { is_spam: false },
+    ).catch((caught) => ignore_error(LOG_SCOPE, caught));
+  }
+
+  return ids;
 }
 
 export async function restore_item_from_trash(
@@ -113,7 +172,9 @@ export async function restore_item_from_trash(
   known_ids: string[],
   request: RestoreMailItemRequest = {},
 ): Promise<ApiResponse<RestoreMailItemResponse>> {
-  const result = await restore_mail_item(item_id, request);
+  const result = await with_rate_limit_retry(() =>
+    restore_mail_item(item_id, request),
+  );
 
   if (result.data) {
     await write_trash_flag(merge_ids(result.data.restored_ids, known_ids), {

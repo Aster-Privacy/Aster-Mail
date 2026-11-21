@@ -1738,6 +1738,26 @@ export const pl = {
       "Nieprawidłowe hasło lub kod weryfikacyjny. Spróbuj ponownie.",
     step_up_security_key_hint:
       "Po wpisaniu hasła zostaniesz poproszony o weryfikację kluczem bezpieczeństwa.",
+    security_key_add_step_up_hint:
+      "Po wpisaniu hasła potwierdź tożsamość kluczem bezpieczeństwa, który jest już na Twoim koncie. Nowy klucz dodasz w następnym kroku.",
+    security_key_add_ready:
+      "Podłącz klucz bezpieczeństwa, który chcesz dodać, a następnie wybierz Kontynuuj.",
+    security_key_confirmation_expired:
+      "Potwierdzenie wygasło. Potwierdź hasło ponownie, aby kontynuować.",
+    security_key_error_canceled:
+      "Żądanie klucza bezpieczeństwa zostało anulowane. Spróbuj ponownie w dogodnej chwili.",
+    security_key_error_timed_out:
+      "Upłynął czas żądania klucza bezpieczeństwa. Spróbuj ponownie i dotknij klucza, gdy przeglądarka o to poprosi.",
+    security_key_error_already_registered:
+      "Ten klucz bezpieczeństwa jest już na Twoim koncie. Użyj innego klucza.",
+    security_key_error_not_supported:
+      "Klucze bezpieczeństwa nie są dostępne w tej przeglądarce lub na tej stronie. Spróbuj w innej przeglądarce.",
+    security_key_error_needs_pin:
+      "Ten klucz bezpieczeństwa nie może ukończyć żądania. Jeśli klucz nie ma kodu PIN, ustaw go i spróbuj ponownie.",
+    security_key_error_not_recognized:
+      "Aster nie mógł zweryfikować klucza bezpieczeństwa, który jest już na Twoim koncie. Podłącz klucz, który został już dodany, a nie nowy, i spróbuj ponownie.",
+    security_key_error_failed:
+      "Wystąpił problem z kluczem bezpieczeństwa. Spróbuj ponownie.",
     recovery_email_removed: "E-mail odzyskiwania został usunięty",
     recovery_email_hidden: "Zapisano na tym koncie",
     failed_save_profile_color:
@@ -1989,9 +2009,9 @@ export const pl = {
     recovery_codes_low_reminder_body_few:
       "Każdy kod działa raz, a zostały Ci {{count}}. Pobierz nowe kody, aby nie stracić dostępu.",
     recovery_codes_low_reminder_action: "Pobierz nowe kody",
-    recovery_codes_refresh_title: "Wymień kody odzyskiwania",
+    recovery_codes_refresh_title: "Pobierz nowe kody odzyskiwania",
     recovery_codes_refresh_body:
-      "Twoje zapisane kody odzyskiwania mają starszy, krótszy format. Pobierz nowe kody i zapisz je. Od tej chwili stare kody przestają działać.",
+      "Twoje kody odzyskiwania są nieaktualne. Pobierz nowe kody i zapisz je w bezpiecznym miejscu. Gdy otrzymasz nowe kody, stare przestaną działać.",
     recovery_phrase_migrate_title: "Przejdź na kody odzyskiwania",
     recovery_phrase_migrate_body:
       "Frazy odzyskiwania zostaną wycofane. Pobierz teraz kody odzyskiwania, aby nadal móc odzyskać konto.",
@@ -5184,7 +5204,9 @@ export const pl = {
       "Wyświetlaj ikony kłódki na zaszyfrowanych wiadomościach",
     publish_keys_wkd_title: "Publikuj klucze w WKD",
     publish_keys_wkd_description:
-      "Udostępnij swoje klucze przez Web Key Directory",
+      "Udostępnij klucz swojego adresu głównego przez Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD nie publikuje kluczy aliasów ani adresów własnej domeny. Nieobjęte: {{addresses}}",
     publish_to_keyservers_title: "Publikuj na serwerach kluczy",
     publish_to_keyservers_description:
       "Udostępnij swoje klucze na publicznych serwerach kluczy",

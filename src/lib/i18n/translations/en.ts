@@ -191,6 +191,26 @@ export const en: Translations = {
     step_up_error: "Incorrect password or verification code. Please try again.",
     step_up_security_key_hint:
       "After you enter your password, you'll be asked to verify with your security key.",
+    security_key_add_step_up_hint:
+      "After you enter your password, verify with a security key that's already on your account. You add the new key in the next step.",
+    security_key_add_ready:
+      "Connect the security key you want to add, then select Continue.",
+    security_key_confirmation_expired:
+      "Your confirmation expired. Confirm your password again to continue.",
+    security_key_error_canceled:
+      "The security key request was canceled. Try again when you're ready.",
+    security_key_error_timed_out:
+      "The security key request timed out. Try again and touch your key when your browser asks.",
+    security_key_error_already_registered:
+      "This security key is already on your account. Use a different key.",
+    security_key_error_not_supported:
+      "Security keys aren't available in this browser or on this page. Try a different browser.",
+    security_key_error_needs_pin:
+      "This security key can't complete the request. If the key has no PIN, set one up, then try again.",
+    security_key_error_not_recognized:
+      "Aster couldn't verify a security key that's already on your account. Connect a key you've already added, not a new one, then try again.",
+    security_key_error_failed:
+      "Something went wrong with the security key. Try again.",
     recovery_email_removed: "Recovery email removed",
     recovery_email_hidden: "Saved on this account",
     profile_picture_updated: "Profile picture updated",
@@ -1886,9 +1906,9 @@ export const en: Translations = {
     recovery_codes_low_reminder_body:
       "Each code works once, and you have {{count}} left. Get new codes so you do not get locked out.",
     recovery_codes_low_reminder_action: "Get new codes",
-    recovery_codes_refresh_title: "Replace your recovery codes",
+    recovery_codes_refresh_title: "Get new recovery codes",
     recovery_codes_refresh_body:
-      "Your saved recovery codes use an older, shorter format. Get new codes and save them. Your old codes stop working when you do.",
+      "Your recovery codes are out of date. Get new codes and save them somewhere safe. Once you have the new codes, the old ones no longer work.",
     recovery_phrase_migrate_title: "Switch to recovery codes",
     recovery_phrase_migrate_body:
       "Recovery phrases are going away. Get recovery codes now so you can still recover your account.",
@@ -5965,7 +5985,9 @@ export const en: Translations = {
       "Display lock icons on encrypted messages",
     publish_keys_wkd_title: "Publish keys to WKD",
     publish_keys_wkd_description:
-      "Make your keys discoverable via Web Key Directory",
+      "Make the key for your primary address discoverable through Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD doesn't publish keys for aliases or custom domain addresses. Not covered: {{addresses}}",
     publish_to_keyservers_title: "Publish to keyservers",
     publish_to_keyservers_description:
       "Make your keys findable on public keyservers",

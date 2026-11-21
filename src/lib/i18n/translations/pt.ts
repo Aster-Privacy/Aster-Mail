@@ -1809,9 +1809,9 @@ export const pt = {
     recovery_codes_low_reminder_body_one:
       "Cada código funciona uma vez e resta-te {{count}}. Obtém novos códigos para não perderes o acesso.",
     recovery_codes_low_reminder_action: "Obter novos códigos",
-    recovery_codes_refresh_title: "Substitui os teus códigos de recuperação",
+    recovery_codes_refresh_title: "Obtém novos códigos de recuperação",
     recovery_codes_refresh_body:
-      "Os teus códigos de recuperação guardados usam um formato mais antigo e mais curto. Obtém novos códigos e guarda-os. Depois disso, os códigos antigos deixam de funcionar.",
+      "Os teus códigos de recuperação estão desatualizados. Obtém novos códigos e guarda-os num local seguro. Depois de teres os novos códigos, os antigos deixam de funcionar.",
     recovery_phrase_migrate_title: "Muda para códigos de recuperação",
     recovery_phrase_migrate_body:
       "As frases de recuperação vão desaparecer. Obtém códigos de recuperação agora para ainda poderes recuperar a tua conta.",
@@ -1892,6 +1892,26 @@ export const pt = {
       "Palavra-passe ou código de verificação incorretos. Tente novamente.",
     step_up_security_key_hint:
       "Depois de introduzir a sua palavra-passe, terá de confirmar com a sua chave de segurança.",
+    security_key_add_step_up_hint:
+      "Depois de introduzir a sua palavra-passe, confirme com uma chave de segurança que já esteja na sua conta. A nova chave é adicionada no passo seguinte.",
+    security_key_add_ready:
+      "Ligue a chave de segurança que pretende adicionar e, em seguida, selecione Continuar.",
+    security_key_confirmation_expired:
+      "A sua confirmação expirou. Confirme novamente a sua palavra-passe para continuar.",
+    security_key_error_canceled:
+      "O pedido da chave de segurança foi cancelado. Tente novamente quando quiser.",
+    security_key_error_timed_out:
+      "O pedido da chave de segurança expirou. Tente novamente e toque na chave quando o navegador pedir.",
+    security_key_error_already_registered:
+      "Esta chave de segurança já está na sua conta. Utilize outra chave.",
+    security_key_error_not_supported:
+      "As chaves de segurança não estão disponíveis neste navegador ou nesta página. Experimente outro navegador.",
+    security_key_error_needs_pin:
+      "Esta chave de segurança não consegue concluir o pedido. Se a chave não tiver PIN, defina um e tente novamente.",
+    security_key_error_not_recognized:
+      "O Aster não conseguiu confirmar uma chave de segurança que já esteja na sua conta. Ligue uma chave que já tenha adicionado, não a nova, e tente novamente.",
+    security_key_error_failed:
+      "Ocorreu um problema com a chave de segurança. Tente novamente.",
     rename_label: "Renomear etiqueta",
     rename_label_description: "Introduza um novo nome para esta etiqueta",
     save_recovery_codes_dialog: "Guardar códigos de recuperação",
@@ -5076,7 +5096,9 @@ export const pt = {
       "Apresentar ícones de cadeado em mensagens encriptadas",
     publish_keys_wkd_title: "Publicar chaves no WKD",
     publish_keys_wkd_description:
-      "Tornar as suas chaves detetáveis através do Web Key Directory",
+      "Tornar a chave do seu endereço principal detetável através do Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "O WKD não publica chaves de aliases nem de endereços de domínio personalizado. Não incluídos: {{addresses}}",
     publish_to_keyservers_title: "Publicar em servidores de chaves",
     publish_to_keyservers_description:
       "Tornar as suas chaves localizáveis em servidores de chaves públicos",

@@ -1633,6 +1633,22 @@ export const zh_CN = {
     step_up_description: "为了您的安全，请确认密码以继续。",
     step_up_error: "密码或验证码不正确，请重试。",
     step_up_security_key_hint: "输入密码后，系统会要求您使用安全密钥进行验证。",
+    security_key_add_step_up_hint:
+      "输入密码后，请使用账户中已有的安全密钥进行验证。新密钥将在下一步添加。",
+    security_key_add_ready: "连接要添加的安全密钥，然后选择“继续”。",
+    security_key_confirmation_expired: "确认已过期。请再次确认密码以继续。",
+    security_key_error_canceled: "安全密钥请求已取消。准备好后请重试。",
+    security_key_error_timed_out:
+      "安全密钥请求已超时。请重试，并在浏览器提示时触摸密钥。",
+    security_key_error_already_registered:
+      "此安全密钥已在您的账户中。请使用其他密钥。",
+    security_key_error_not_supported:
+      "此浏览器或此页面无法使用安全密钥。请尝试其他浏览器。",
+    security_key_error_needs_pin:
+      "此安全密钥无法完成请求。如果密钥尚未设置 PIN，请先设置 PIN，然后重试。",
+    security_key_error_not_recognized:
+      "Aster 无法验证账户中已有的安全密钥。请连接已添加的密钥而不是新密钥，然后重试。",
+    security_key_error_failed: "安全密钥出现问题。请重试。",
     recovery_email_removed: "恢复邮箱已移除",
     recovery_email_hidden: "已保存在此账户",
     failed_save_profile_color: "您选择的颜色未能保存。请重试。",
@@ -1796,9 +1812,9 @@ export const zh_CN = {
     recovery_codes_low_reminder_body:
       "每个代码只能用一次，你还剩 {{count}} 个。请获取新代码，以免被锁定在账户之外。",
     recovery_codes_low_reminder_action: "获取新代码",
-    recovery_codes_refresh_title: "更换恢复代码",
+    recovery_codes_refresh_title: "获取新的恢复代码",
     recovery_codes_refresh_body:
-      "您保存的恢复代码使用较旧、较短的格式。请获取新代码并妥善保存。获取后，旧代码将停止使用。",
+      "您的恢复代码已过期。请获取新代码并保存在安全的地方。获取新代码后，旧代码将无法使用。",
     recovery_phrase_migrate_title: "改用恢复代码",
     recovery_phrase_migrate_body:
       "恢复短语即将停用。请立即获取恢复代码，以便日后仍能找回账户。",
@@ -4535,7 +4551,10 @@ export const zh_CN = {
     show_encryption_indicators_title: "显示加密指示器",
     show_encryption_indicators_description: "在加密消息上显示锁定图标",
     publish_keys_wkd_title: "将密钥发布到 WKD",
-    publish_keys_wkd_description: "通过 Web Key Directory 使您的密钥可被发现",
+    publish_keys_wkd_description:
+      "通过 Web Key Directory 使您主地址的密钥可被发现。",
+    publish_keys_wkd_not_covered:
+      "WKD 不会发布别名或自定义域名地址的密钥。未涵盖：{{addresses}}",
     publish_to_keyservers_title: "发布到密钥服务器",
     publish_to_keyservers_description: "在公共密钥服务器上使您的密钥可被查找",
     info_forward_secrecy_title: "什么是前向保密？",

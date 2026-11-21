@@ -1857,6 +1857,26 @@ export const pt_br = {
       "Senha ou código de verificação incorretos. Tente novamente.",
     step_up_security_key_hint:
       "Depois de digitar sua senha, você precisará verificar com sua chave de segurança.",
+    security_key_add_step_up_hint:
+      "Depois de digitar sua senha, verifique com uma chave de segurança que já esteja na sua conta. A nova chave é adicionada na próxima etapa.",
+    security_key_add_ready:
+      "Conecte a chave de segurança que você quer adicionar e selecione Continuar.",
+    security_key_confirmation_expired:
+      "Sua confirmação expirou. Confirme sua senha novamente para continuar.",
+    security_key_error_canceled:
+      "A solicitação da chave de segurança foi cancelada. Tente novamente quando quiser.",
+    security_key_error_timed_out:
+      "A solicitação da chave de segurança expirou. Tente novamente e toque na chave quando o navegador pedir.",
+    security_key_error_already_registered:
+      "Esta chave de segurança já está na sua conta. Use outra chave.",
+    security_key_error_not_supported:
+      "As chaves de segurança não estão disponíveis neste navegador ou nesta página. Tente outro navegador.",
+    security_key_error_needs_pin:
+      "Esta chave de segurança não consegue concluir a solicitação. Se a chave não tiver PIN, configure um e tente novamente.",
+    security_key_error_not_recognized:
+      "O Aster não conseguiu verificar uma chave de segurança que já esteja na sua conta. Conecte uma chave que você já adicionou, não a nova, e tente novamente.",
+    security_key_error_failed:
+      "Ocorreu um problema com a chave de segurança. Tente novamente.",
     rename_label: "Renomear etiqueta",
     rename_label_description: "Digite um novo nome para esta etiqueta",
     save_recovery_codes_dialog: "Salvar códigos de recuperação",
@@ -2224,9 +2244,9 @@ export const pt_br = {
     recovery_codes_low_reminder_body_one:
       "Cada código funciona uma vez, e resta {{count}}. Obtenha novos códigos para não perder o acesso.",
     recovery_codes_low_reminder_action: "Obter novos códigos",
-    recovery_codes_refresh_title: "Substitua seus códigos de recuperação",
+    recovery_codes_refresh_title: "Obtenha novos códigos de recuperação",
     recovery_codes_refresh_body:
-      "Seus códigos de recuperação salvos usam um formato mais antigo e mais curto. Obtenha novos códigos e salve-os. Depois disso, os códigos antigos deixam de funcionar.",
+      "Seus códigos de recuperação estão desatualizados. Obtenha novos códigos e salve-os em um lugar seguro. Depois que você tiver os novos códigos, os antigos deixam de funcionar.",
     recovery_phrase_migrate_title: "Mude para códigos de recuperação",
     recovery_phrase_migrate_body:
       "As frases de recuperação vão deixar de existir. Obtenha códigos de recuperação agora para continuar podendo recuperar sua conta.",
@@ -4972,7 +4992,9 @@ export const pt_br = {
       "Exibir ícones de cadeado em mensagens criptografadas",
     publish_keys_wkd_title: "Publicar chaves no WKD",
     publish_keys_wkd_description:
-      "Tornar suas chaves descobríveis via Web Key Directory",
+      "Tornar a chave do seu endereço principal descobrível via Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "O WKD não publica chaves de aliases nem de endereços de domínio personalizado. Não incluídos: {{addresses}}",
     publish_to_keyservers_title: "Publicar em servidores de chaves",
     publish_to_keyservers_description:
       "Tornar suas chaves encontráveis em servidores de chaves públicos",

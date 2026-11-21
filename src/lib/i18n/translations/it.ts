@@ -1722,6 +1722,26 @@ export const it = {
     step_up_error: "Password o codice di verifica errati. Riprova.",
     step_up_security_key_hint:
       "Dopo aver inserito la password, ti verrà chiesto di verificare con la tua chiave di sicurezza.",
+    security_key_add_step_up_hint:
+      "Dopo aver inserito la password, verifica con una chiave di sicurezza già presente nel tuo account. La nuova chiave si aggiunge nel passaggio successivo.",
+    security_key_add_ready:
+      "Collega la chiave di sicurezza che vuoi aggiungere, quindi seleziona Continua.",
+    security_key_confirmation_expired:
+      "La conferma è scaduta. Conferma di nuovo la password per continuare.",
+    security_key_error_canceled:
+      "La richiesta della chiave di sicurezza è stata annullata. Riprova quando vuoi.",
+    security_key_error_timed_out:
+      "La richiesta della chiave di sicurezza è scaduta. Riprova e tocca la chiave quando il browser lo chiede.",
+    security_key_error_already_registered:
+      "Questa chiave di sicurezza è già presente nel tuo account. Usa un'altra chiave.",
+    security_key_error_not_supported:
+      "Le chiavi di sicurezza non sono disponibili in questo browser o in questa pagina. Prova con un altro browser.",
+    security_key_error_needs_pin:
+      "Questa chiave di sicurezza non può completare la richiesta. Se la chiave non ha un PIN, impostane uno e riprova.",
+    security_key_error_not_recognized:
+      "Aster non ha potuto verificare una chiave di sicurezza già presente nel tuo account. Collega una chiave che hai già aggiunto, non quella nuova, e riprova.",
+    security_key_error_failed:
+      "Si è verificato un problema con la chiave di sicurezza. Riprova.",
     recovery_email_removed: "Email di recupero rimossa",
     recovery_email_hidden: "Salvato in questo account",
     failed_save_profile_color: "Il colore scelto non è stato salvato. Riprova.",
@@ -1975,9 +1995,9 @@ export const it = {
     recovery_codes_low_reminder_body_one:
       "Ogni codice funziona una volta e te ne resta {{count}}. Ottieni nuovi codici per non perdere l'accesso.",
     recovery_codes_low_reminder_action: "Ottieni nuovi codici",
-    recovery_codes_refresh_title: "Sostituisci i tuoi codici di recupero",
+    recovery_codes_refresh_title: "Ottieni nuovi codici di recupero",
     recovery_codes_refresh_body:
-      "I codici di recupero che hai salvato usano un formato precedente e più corto. Ottieni nuovi codici e salvali. Da quel momento i vecchi codici non funzionano più.",
+      "I tuoi codici di recupero non sono più aggiornati. Ottieni nuovi codici e salvali in un luogo sicuro. Quando hai i nuovi codici, quelli vecchi non funzionano più.",
     recovery_phrase_migrate_title: "Passa ai codici di recupero",
     recovery_phrase_migrate_body:
       "Le frasi di recupero stanno per essere rimosse. Ottieni ora i codici di recupero per poter ancora recuperare il tuo account.",
@@ -6387,7 +6407,9 @@ export const it = {
       "Mostra icone lucchetto sui messaggi crittografati",
     publish_keys_wkd_title: "Pubblica chiavi su WKD",
     publish_keys_wkd_description:
-      "Rendi le tue chiavi scopribili tramite Web Key Directory",
+      "Rendi la chiave del tuo indirizzo principale reperibile tramite Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD non pubblica le chiavi degli alias né degli indirizzi di dominio personalizzato. Non inclusi: {{addresses}}",
     publish_to_keyservers_title: "Pubblica sui keyserver",
     publish_to_keyservers_description:
       "Rendi le tue chiavi trovabili sui keyserver pubblici",

@@ -1833,9 +1833,9 @@ export const ko = {
     recovery_codes_low_reminder_body:
       "각 코드는 한 번만 사용할 수 있으며 {{count}}개가 남았습니다. 계정이 잠기지 않도록 새 코드를 받으세요.",
     recovery_codes_low_reminder_action: "새 코드 받기",
-    recovery_codes_refresh_title: "복구 코드를 교체하세요",
+    recovery_codes_refresh_title: "새 복구 코드를 받으세요",
     recovery_codes_refresh_body:
-      "저장된 복구 코드는 이전의 짧은 형식을 사용합니다. 새 코드를 받아 저장하세요. 새 코드를 받으면 이전 코드는 작동하지 않습니다.",
+      "현재 복구 코드는 오래된 코드입니다. 새 코드를 받아 안전한 곳에 저장하세요. 새 코드를 받으면 이전 코드는 더 이상 작동하지 않습니다.",
     recovery_phrase_migrate_title: "복구 코드로 전환",
     recovery_phrase_migrate_body:
       "복구 문구는 곧 사라집니다. 계정을 계속 복구할 수 있도록 지금 복구 코드를 받으세요.",
@@ -1865,6 +1865,26 @@ export const ko = {
       "비밀번호 또는 인증 코드가 올바르지 않습니다. 다시 시도하세요.",
     step_up_security_key_hint:
       "비밀번호를 입력하면 보안 키로 추가 인증을 진행하게 됩니다.",
+    security_key_add_step_up_hint:
+      "비밀번호를 입력한 후 계정에 이미 등록된 보안 키로 인증하세요. 새 키는 다음 단계에서 추가합니다.",
+    security_key_add_ready:
+      "추가할 보안 키를 연결한 다음 '계속'을 선택하세요.",
+    security_key_confirmation_expired:
+      "확인이 만료되었습니다. 계속하려면 비밀번호를 다시 확인하세요.",
+    security_key_error_canceled:
+      "보안 키 요청이 취소되었습니다. 준비되면 다시 시도하세요.",
+    security_key_error_timed_out:
+      "보안 키 요청 시간이 초과되었습니다. 다시 시도하고 브라우저에서 요청하면 키를 터치하세요.",
+    security_key_error_already_registered:
+      "이 보안 키는 이미 계정에 등록되어 있습니다. 다른 키를 사용하세요.",
+    security_key_error_not_supported:
+      "이 브라우저 또는 이 페이지에서는 보안 키를 사용할 수 없습니다. 다른 브라우저를 사용해 보세요.",
+    security_key_error_needs_pin:
+      "이 보안 키로는 요청을 완료할 수 없습니다. 키에 PIN이 없으면 PIN을 설정한 후 다시 시도하세요.",
+    security_key_error_not_recognized:
+      "계정에 이미 등록된 보안 키를 확인하지 못했습니다. 새 키가 아니라 이미 추가한 키를 연결한 후 다시 시도하세요.",
+    security_key_error_failed:
+      "보안 키에 문제가 발생했습니다. 다시 시도하세요.",
     recovery_email_removed: "복구 이메일이 제거되었습니다",
     recovery_email_hidden: "이 계정에 저장됨",
     failed_save_profile_color:
@@ -4981,7 +5001,9 @@ export const ko = {
       "암호화된 메시지에 잠금 아이콘을 표시합니다",
     publish_keys_wkd_title: "WKD에 키 게시",
     publish_keys_wkd_description:
-      "Web Key Directory를 통해 키를 검색 가능하게 합니다",
+      "Web Key Directory를 통해 기본 주소의 키를 검색 가능하게 합니다.",
+    publish_keys_wkd_not_covered:
+      "WKD는 별칭이나 사용자 도메인 주소의 키를 게시하지 않습니다. 포함되지 않음: {{addresses}}",
     publish_to_keyservers_title: "키서버에 게시",
     publish_to_keyservers_description:
       "공개 키서버에서 키를 찾을 수 있게 합니다",

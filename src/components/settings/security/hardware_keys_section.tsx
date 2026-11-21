@@ -68,8 +68,16 @@ import {
   type ReauthProof,
   type StepUpCredentials,
 } from "@/services/api/step_up";
+import { SECURITY_KEY_PROMPT_ERROR } from "@/services/api/webauthn_errors";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
+
+const CONFIRMED_OPTIONS_MAX_AGE_MS = 100_000;
+
+interface ConfirmedRegistrationOptions {
+  options: HardwareKeyRegistrationOptions;
+  confirmed_at: number;
+}
 
 export function HardwareKeysSection() {
   const { t } = use_i18n();
@@ -88,6 +96,8 @@ export function HardwareKeysSection() {
   );
   const [step_up_key_id, set_step_up_key_id] = useState<string | null>(null);
   const [register_step_up, set_register_step_up] = useState(false);
+  const [confirmed_options, set_confirmed_options] =
+    useState<ConfirmedRegistrationOptions | null>(null);
 
   const fetch_keys = useCallback(async (silent = false) => {
     if (!silent) set_is_loading(true);
@@ -157,6 +167,9 @@ export function HardwareKeysSection() {
     }
 
     if (result.error) {
+      if (result.server_code !== SECURITY_KEY_PROMPT_ERROR) {
+        set_confirmed_options(null);
+      }
       show_toast(result.error, "error");
       set_is_registering(false);
 
@@ -171,11 +184,31 @@ export function HardwareKeysSection() {
 
     set_is_registering(false);
     set_show_add_modal(false);
+    set_confirmed_options(null);
     set_key_name("");
     fetch_keys(true);
   };
 
-  const handle_register = () => run_register();
+  const handle_register = () => {
+    if (!confirmed_options) {
+      void run_register();
+
+      return;
+    }
+
+    if (
+      Date.now() - confirmed_options.confirmed_at >
+      CONFIRMED_OPTIONS_MAX_AGE_MS
+    ) {
+      set_confirmed_options(null);
+      show_toast(t("common.security_key_confirmation_expired"), "error");
+      set_register_step_up(true);
+
+      return;
+    }
+
+    void run_register(confirmed_options.options);
+  };
 
   const handle_register_step_up_confirm = async (
     credentials: StepUpCredentials,
@@ -187,8 +220,11 @@ export function HardwareKeysSection() {
     if (!options_response.data) {
       throw new Error(options_response.error || t("errors.generic"));
     }
+    set_confirmed_options({
+      options: options_response.data,
+      confirmed_at: Date.now(),
+    });
     set_register_step_up(false);
-    void run_register(options_response.data);
   };
 
   const handle_remove = async (
@@ -257,6 +293,7 @@ export function HardwareKeysSection() {
   const handle_close_modal = () => {
     if (!is_registering) {
       set_show_add_modal(false);
+      set_confirmed_options(null);
       set_key_name("");
     }
   };
@@ -414,7 +451,11 @@ export function HardwareKeysSection() {
       >
         <ModalHeader>
           <ModalTitle>{t("settings.add_security_key")}</ModalTitle>
-          <ModalDescription>{t("settings.name_your_key")}</ModalDescription>
+          <ModalDescription>
+            {confirmed_options
+              ? t("common.security_key_add_ready")
+              : t("settings.name_your_key")}
+          </ModalDescription>
         </ModalHeader>
         <ModalBody>
           <Input
@@ -485,6 +526,7 @@ export function HardwareKeysSection() {
         is_open={register_step_up}
         on_close={() => set_register_step_up(false)}
         on_confirm={handle_register_step_up_confirm}
+        security_key_hint={t("common.security_key_add_step_up_hint")}
         title={t("passkeys.add_security_key")}
       />
     </>

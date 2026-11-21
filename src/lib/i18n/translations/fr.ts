@@ -1863,9 +1863,9 @@ export const fr = {
     recovery_codes_low_reminder_body:
       "Chaque code fonctionne une fois et il vous en reste {{count}}. Obtenez de nouveaux codes pour ne pas perdre l'accès.",
     recovery_codes_low_reminder_action: "Obtenir de nouveaux codes",
-    recovery_codes_refresh_title: "Remplacez vos codes de récupération",
+    recovery_codes_refresh_title: "Obtenez de nouveaux codes de récupération",
     recovery_codes_refresh_body:
-      "Vos codes de récupération enregistrés utilisent un ancien format plus court. Obtenez de nouveaux codes et enregistrez-les. Vos anciens codes cessent alors de fonctionner.",
+      "Vos codes de récupération sont obsolètes. Obtenez de nouveaux codes et conservez-les en lieu sûr. Une fois les nouveaux codes obtenus, les anciens ne fonctionnent plus.",
     recovery_phrase_migrate_title: "Passez aux codes de récupération",
     recovery_phrase_migrate_body:
       "Les phrases de récupération vont disparaître. Obtenez des codes de récupération maintenant pour pouvoir encore récupérer votre compte.",
@@ -1941,6 +1941,26 @@ export const fr = {
       "Mot de passe ou code de vérification incorrect. Veuillez réessayer.",
     step_up_security_key_hint:
       "Après avoir saisi votre mot de passe, vous devrez vérifier votre identité avec votre clé de sécurité.",
+    security_key_add_step_up_hint:
+      "Après avoir saisi votre mot de passe, validez avec une clé de sécurité déjà associée à votre compte. Vous ajoutez la nouvelle clé à l'étape suivante.",
+    security_key_add_ready:
+      "Connectez la clé de sécurité que vous voulez ajouter, puis sélectionnez Continuer.",
+    security_key_confirmation_expired:
+      "Votre confirmation a expiré. Confirmez à nouveau votre mot de passe pour continuer.",
+    security_key_error_canceled:
+      "La demande de clé de sécurité a été annulée. Réessayez quand vous êtes prêt.",
+    security_key_error_timed_out:
+      "La demande de clé de sécurité a expiré. Réessayez et touchez votre clé lorsque votre navigateur vous le demande.",
+    security_key_error_already_registered:
+      "Cette clé de sécurité est déjà associée à votre compte. Utilisez une autre clé.",
+    security_key_error_not_supported:
+      "Les clés de sécurité ne sont pas disponibles dans ce navigateur ou sur cette page. Essayez un autre navigateur.",
+    security_key_error_needs_pin:
+      "Cette clé de sécurité ne peut pas terminer la demande. Si la clé n'a pas de code PIN, configurez-en un, puis réessayez.",
+    security_key_error_not_recognized:
+      "Aster n'a pas pu valider une clé de sécurité déjà associée à votre compte. Connectez une clé que vous avez déjà ajoutée, pas la nouvelle, puis réessayez.",
+    security_key_error_failed:
+      "Un problème est survenu avec la clé de sécurité. Réessayez.",
     save_recovery_codes_dialog: "Enregistrer les codes de récupération",
     save_recovery_codes_title: "Codes de récupération",
     scanning_mailbox: "Analyse de la boîte aux lettres...",
@@ -5076,7 +5096,9 @@ export const fr = {
       "Afficher des icônes de cadenas sur les messages chiffrés",
     publish_keys_wkd_title: "Publier les clés sur WKD",
     publish_keys_wkd_description:
-      "Rendre vos clés découvrables via Web Key Directory",
+      "Rendre la clé de votre adresse principale découvrable via Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD ne publie pas les clés des alias ni des adresses de domaine personnalisé. Non couvertes : {{addresses}}",
     publish_to_keyservers_title: "Publier sur les serveurs de clés",
     publish_to_keyservers_description:
       "Rendre vos clés trouvables sur les serveurs de clés publics",

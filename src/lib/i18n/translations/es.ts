@@ -1850,9 +1850,9 @@ export const es = {
     recovery_codes_low_reminder_body_one:
       "Cada código funciona una vez y te queda {{count}}. Obtén códigos nuevos para no perder el acceso.",
     recovery_codes_low_reminder_action: "Obtener códigos nuevos",
-    recovery_codes_refresh_title: "Reemplaza tus códigos de recuperación",
+    recovery_codes_refresh_title: "Obtén nuevos códigos de recuperación",
     recovery_codes_refresh_body:
-      "Tus códigos de recuperación guardados usan un formato anterior y más corto. Obtén códigos nuevos y guárdalos. Cuando lo hagas, los códigos antiguos dejan de funcionar.",
+      "Tus códigos de recuperación están desactualizados. Obtén códigos nuevos y guárdalos en un lugar seguro. Cuando tengas los códigos nuevos, los antiguos dejan de funcionar.",
     recovery_phrase_migrate_title: "Cambia a códigos de recuperación",
     recovery_phrase_migrate_body:
       "Las frases de recuperación van a desaparecer. Obtén códigos de recuperación ahora para poder seguir recuperando tu cuenta.",
@@ -1928,6 +1928,26 @@ export const es = {
       "Contraseña o código de verificación incorrectos. Inténtalo de nuevo.",
     step_up_security_key_hint:
       "Después de escribir tu contraseña, se te pedirá que verifiques con tu llave de seguridad.",
+    security_key_add_step_up_hint:
+      "Después de escribir tu contraseña, verifica con una llave de seguridad que ya esté en tu cuenta. La llave nueva se agrega en el paso siguiente.",
+    security_key_add_ready:
+      "Conecta la llave de seguridad que quieres agregar y, luego, selecciona Continuar.",
+    security_key_confirmation_expired:
+      "Tu confirmación caducó. Confirma tu contraseña otra vez para continuar.",
+    security_key_error_canceled:
+      "Se canceló la solicitud de la llave de seguridad. Vuelve a intentarlo cuando quieras.",
+    security_key_error_timed_out:
+      "Se agotó el tiempo de la solicitud de la llave de seguridad. Vuelve a intentarlo y toca la llave cuando el navegador te lo pida.",
+    security_key_error_already_registered:
+      "Esta llave de seguridad ya está en tu cuenta. Usa otra llave.",
+    security_key_error_not_supported:
+      "Las llaves de seguridad no están disponibles en este navegador o en esta página. Prueba con otro navegador.",
+    security_key_error_needs_pin:
+      "Esta llave de seguridad no puede completar la solicitud. Si la llave no tiene PIN, configura uno y vuelve a intentarlo.",
+    security_key_error_not_recognized:
+      "Aster no pudo verificar una llave de seguridad que ya esté en tu cuenta. Conecta una llave que ya hayas agregado, no la nueva, y vuelve a intentarlo.",
+    security_key_error_failed:
+      "Ocurrió un problema con la llave de seguridad. Vuelve a intentarlo.",
     save_recovery_codes_dialog: "Guardar códigos de recuperación",
     save_recovery_codes_title: "Códigos de recuperación",
     scanning_mailbox: "Analizando buzón...",
@@ -5036,7 +5056,9 @@ export const es = {
       "Mostrar iconos de candado en mensajes cifrados",
     publish_keys_wkd_title: "Publicar claves en WKD",
     publish_keys_wkd_description:
-      "Hacer tus claves descubribles mediante Web Key Directory",
+      "Haz que la clave de tu dirección principal se pueda encontrar mediante Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD no publica claves de alias ni de direcciones de dominio propio. No incluidas: {{addresses}}",
     publish_to_keyservers_title: "Publicar en servidores de claves",
     publish_to_keyservers_description:
       "Hacer tus claves encontrables en servidores de claves públicos",

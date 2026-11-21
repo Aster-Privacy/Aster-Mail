@@ -1693,6 +1693,26 @@ export const tr = {
     step_up_error: "Şifre veya doğrulama kodu yanlış. Lütfen tekrar deneyin.",
     step_up_security_key_hint:
       "Şifrenizi girdikten sonra güvenlik anahtarınızla doğrulama yapmanız istenecek.",
+    security_key_add_step_up_hint:
+      "Şifrenizi girdikten sonra hesabınızda zaten kayıtlı olan bir güvenlik anahtarıyla doğrulama yapın. Yeni anahtarı bir sonraki adımda eklersiniz.",
+    security_key_add_ready:
+      "Eklemek istediğiniz güvenlik anahtarını bağlayın, ardından Devam et seçeneğini belirleyin.",
+    security_key_confirmation_expired:
+      "Onayınızın süresi doldu. Devam etmek için şifrenizi yeniden onaylayın.",
+    security_key_error_canceled:
+      "Güvenlik anahtarı isteği iptal edildi. Hazır olduğunuzda yeniden deneyin.",
+    security_key_error_timed_out:
+      "Güvenlik anahtarı isteği zaman aşımına uğradı. Yeniden deneyin ve tarayıcınız istediğinde anahtarınıza dokunun.",
+    security_key_error_already_registered:
+      "Bu güvenlik anahtarı hesabınızda zaten kayıtlı. Başka bir anahtar kullanın.",
+    security_key_error_not_supported:
+      "Güvenlik anahtarları bu tarayıcıda veya bu sayfada kullanılamıyor. Başka bir tarayıcı deneyin.",
+    security_key_error_needs_pin:
+      "Bu güvenlik anahtarı isteği tamamlayamıyor. Anahtarın PIN'i yoksa bir PIN ayarlayın ve yeniden deneyin.",
+    security_key_error_not_recognized:
+      "Aster, hesabınızda zaten kayıtlı olan bir güvenlik anahtarını doğrulayamadı. Yeni anahtarı değil, daha önce eklediğiniz bir anahtarı bağlayın ve yeniden deneyin.",
+    security_key_error_failed:
+      "Güvenlik anahtarıyla ilgili bir sorun oluştu. Yeniden deneyin.",
     recovery_email_removed: "Kurtarma e-postası kaldırıldı",
     recovery_email_hidden: "Bu hesapta kayıtlı",
     failed_save_profile_color: "Renk seçiminiz kaydedilmedi. Tekrar deneyin.",
@@ -1940,9 +1960,9 @@ export const tr = {
     recovery_codes_low_reminder_body:
       "Her kod bir kez çalışır ve {{count}} kodunuz kaldı. Hesabınızdan kilitlenmemek için yeni kod alın.",
     recovery_codes_low_reminder_action: "Yeni kod al",
-    recovery_codes_refresh_title: "Kurtarma kodlarınızı değiştirin",
+    recovery_codes_refresh_title: "Yeni kurtarma kodları alın",
     recovery_codes_refresh_body:
-      "Kayıtlı kurtarma kodlarınız daha eski ve daha kısa bir biçim kullanıyor. Yeni kod alın ve kaydedin. Bunu yaptığınızda eski kodlarınız çalışmaz.",
+      "Kurtarma kodlarınız güncel değil. Yeni kodlar alın ve güvenli bir yere kaydedin. Yeni kodları aldığınızda eski kodlar artık çalışmaz.",
     recovery_phrase_migrate_title: "Kurtarma kodlarına geçin",
     recovery_phrase_migrate_body:
       "Kurtarma ifadeleri kaldırılıyor. Hesabınızı hâlâ kurtarabilmek için şimdi kurtarma kodu alın.",
@@ -4950,7 +4970,9 @@ export const tr = {
       "Şifreli mesajlarda kilit simgelerini göster",
     publish_keys_wkd_title: "Anahtarları WKD'ye yayınla",
     publish_keys_wkd_description:
-      "Anahtarlarınızı Web Key Directory aracılığıyla keşfedilebilir yapın",
+      "Birincil adresinizin anahtarını Web Key Directory aracılığıyla keşfedilebilir yapın.",
+    publish_keys_wkd_not_covered:
+      "WKD, takma adların veya özel alan adı adreslerinin anahtarlarını yayımlamaz. Kapsam dışı: {{addresses}}",
     publish_to_keyservers_title: "Anahtar sunucularına yayınla",
     publish_to_keyservers_description:
       "Anahtarlarınızı genel anahtar sunucularında bulunabilir yapın",

@@ -1832,9 +1832,9 @@ export const nl = {
     recovery_codes_low_reminder_body:
       "Elke code werkt één keer en je hebt er nog {{count}}. Haal nieuwe codes op zodat je niet buitengesloten raakt.",
     recovery_codes_low_reminder_action: "Nieuwe codes ophalen",
-    recovery_codes_refresh_title: "Vervang je herstelcodes",
+    recovery_codes_refresh_title: "Haal nieuwe herstelcodes op",
     recovery_codes_refresh_body:
-      "Je opgeslagen herstelcodes gebruiken een oudere, kortere indeling. Haal nieuwe codes op en bewaar ze. Daarna werken je oude codes niet meer.",
+      "Je herstelcodes zijn verouderd. Haal nieuwe codes op en bewaar ze op een veilige plek. Zodra je de nieuwe codes hebt, werken de oude niet meer.",
     recovery_phrase_migrate_title: "Overstappen op herstelcodes",
     recovery_phrase_migrate_body:
       "Herstelzinnen verdwijnen. Haal nu herstelcodes op zodat je je account nog kunt herstellen.",
@@ -1911,6 +1911,26 @@ export const nl = {
       "Onjuist wachtwoord of verificatiecode. Probeer het opnieuw.",
     step_up_security_key_hint:
       "Na het invoeren van je wachtwoord word je gevraagd te verifiëren met je beveiligingssleutel.",
+    security_key_add_step_up_hint:
+      "Nadat je je wachtwoord hebt ingevoerd, verifieer je met een beveiligingssleutel die al aan je account is gekoppeld. De nieuwe sleutel voeg je toe in de volgende stap.",
+    security_key_add_ready:
+      "Sluit de beveiligingssleutel aan die je wilt toevoegen en selecteer vervolgens Doorgaan.",
+    security_key_confirmation_expired:
+      "Je bevestiging is verlopen. Bevestig je wachtwoord opnieuw om door te gaan.",
+    security_key_error_canceled:
+      "Het verzoek aan de beveiligingssleutel is geannuleerd. Probeer het opnieuw wanneer je klaar bent.",
+    security_key_error_timed_out:
+      "Het verzoek aan de beveiligingssleutel is verlopen. Probeer het opnieuw en raak je sleutel aan wanneer je browser daarom vraagt.",
+    security_key_error_already_registered:
+      "Deze beveiligingssleutel is al aan je account gekoppeld. Gebruik een andere sleutel.",
+    security_key_error_not_supported:
+      "Beveiligingssleutels zijn niet beschikbaar in deze browser of op deze pagina. Probeer een andere browser.",
+    security_key_error_needs_pin:
+      "Deze beveiligingssleutel kan het verzoek niet voltooien. Als de sleutel geen pincode heeft, stel er dan een in en probeer het opnieuw.",
+    security_key_error_not_recognized:
+      "Aster kon geen beveiligingssleutel verifiëren die al aan je account is gekoppeld. Sluit een sleutel aan die je al hebt toegevoegd, niet de nieuwe, en probeer het opnieuw.",
+    security_key_error_failed:
+      "Er is iets misgegaan met de beveiligingssleutel. Probeer het opnieuw.",
     save_recovery_codes_dialog:
       "Sla deze herstelcodes op op een veilige plek. Als je je wachtwoord vergeet en geen toegang meer hebt tot je verificatiemethode, kun je een van deze codes gebruiken om toegang te krijgen tot je account.",
     save_recovery_codes_title: "Herstelcodes opslaan",
@@ -4939,7 +4959,9 @@ export const nl = {
       "Slotpictogrammen weergeven op versleutelde berichten",
     publish_keys_wkd_title: "Sleutels publiceren naar WKD",
     publish_keys_wkd_description:
-      "Maak je sleutels vindbaar via Web Key Directory",
+      "Maak de sleutel van je primaire adres vindbaar via Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD publiceert geen sleutels voor aliassen of adressen van een eigen domein. Niet gedekt: {{addresses}}",
     publish_to_keyservers_title: "Publiceren naar sleutelservers",
     publish_to_keyservers_description:
       "Maak je sleutels vindbaar op openbare sleutelservers",

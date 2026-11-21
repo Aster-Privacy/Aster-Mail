@@ -120,6 +120,37 @@ describe("merge_ratchet_key_history", () => {
     );
   });
 
+  it("keeps a previous set that only holds post-quantum keys", () => {
+    const expanded_only = {
+      ratchet_pq_identity_key: "pq-old",
+      ratchet_pq_identity_public: "pqpub-old",
+    } as RatchetKeySet;
+    const seed_only = {
+      ratchet_pq_identity_seed: "seed-older",
+    } as RatchetKeySet;
+    const merged = merge_ratchet_key_history(
+      key_set("now"),
+      [key_set("a"), expanded_only],
+      [seed_only, expanded_only],
+    );
+
+    expect(merged).toEqual([key_set("a"), expanded_only, seed_only]);
+  });
+
+  it("carries post-quantum only sets through a signed prekey rotation", () => {
+    const expanded_only = {
+      ratchet_pq_identity_key: "pq-old",
+      ratchet_pq_identity_public: "pqpub-old",
+    } as RatchetKeySet;
+    const replaced = vault_with(key_set("now", "one"), [expanded_only]);
+    const next = vault_with(key_set("now", "two"), [expanded_only]);
+
+    expect(retain_replaced_ratchet_keys(replaced, next)).toEqual([
+      key_set("now", "one"),
+      expanded_only,
+    ]);
+  });
+
   it("caps a history that exceeds the byte budget", () => {
     const many = Array.from(
       { length: RATCHET_PREVIOUS_KEYS_LIMIT + 20 },

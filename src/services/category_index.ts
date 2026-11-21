@@ -2229,6 +2229,7 @@ async function item_to_entry(
     item.snoozed_until && safe_ts(item.snoozed_until) > now_ms()
       ? item.snoozed_until
       : undefined;
+  const known_entry = envelope ? undefined : entries_map.get(item.id);
 
   const sealed_body = is_ratchet_body_text(envelope?.body_text);
 
@@ -2258,13 +2259,13 @@ async function item_to_entry(
             rule_category: item.rule_category,
             trust: item,
           })
-        : (item.rule_category ?? "primary"),
+        : (known_entry?.category ?? item.rule_category ?? "primary"),
       ...(envelope ? {} : { needs_reclassify: true }),
-      category_pinned:
-        !!envelope &&
-        metadata?.category_pinned === true &&
-        !!metadata?.category &&
-        !is_locked_to_primary(envelope, item),
+      category_pinned: envelope
+        ? metadata?.category_pinned === true &&
+          !!metadata?.category &&
+          !is_locked_to_primary(envelope, item)
+        : known_entry?.category_pinned === true,
       is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
       ...(snoozed_until ? { snoozed_until } : {}),
       ...(envelope ? { source } : {}),

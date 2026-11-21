@@ -1736,6 +1736,26 @@ export const ja = {
       "パスワードまたは確認コードが正しくありません。もう一度お試しください。",
     step_up_security_key_hint:
       "パスワードを入力すると、セキュリティキーによる確認を求められます。",
+    security_key_add_step_up_hint:
+      "パスワードを入力したら、すでにアカウントに登録されているセキュリティキーで確認します。新しいキーは次の手順で追加します。",
+    security_key_add_ready:
+      "追加するセキュリティキーを接続してから、「続行」を選択します。",
+    security_key_confirmation_expired:
+      "確認の有効期限が切れました。続けるには、もう一度パスワードを確認してください。",
+    security_key_error_canceled:
+      "セキュリティキーのリクエストがキャンセルされました。準備ができたら、もう一度お試しください。",
+    security_key_error_timed_out:
+      "セキュリティキーのリクエストがタイムアウトしました。もう一度試し、ブラウザに求められたらキーにタッチしてください。",
+    security_key_error_already_registered:
+      "このセキュリティキーはすでにアカウントに登録されています。別のキーを使用してください。",
+    security_key_error_not_supported:
+      "このブラウザまたはこのページではセキュリティキーを使用できません。別のブラウザをお試しください。",
+    security_key_error_needs_pin:
+      "このセキュリティキーではリクエストを完了できません。キーにPINが設定されていない場合は、PINを設定してからもう一度お試しください。",
+    security_key_error_not_recognized:
+      "アカウントに登録済みのセキュリティキーを確認できませんでした。新しいキーではなく、すでに追加したキーを接続して、もう一度お試しください。",
+    security_key_error_failed:
+      "セキュリティキーで問題が発生しました。もう一度お試しください。",
     recovery_email_removed: "復旧用メールアドレスを削除しました",
     recovery_email_hidden: "このアカウントに保存済み",
     failed_save_profile_color: "もう一度お試しください。",
@@ -1872,9 +1892,9 @@ export const ja = {
     recovery_codes_low_reminder_body:
       "各コードは一度だけ使えます。残りは {{count}} 個です。ロックアウトされないよう新しいコードを取得してください。",
     recovery_codes_low_reminder_action: "新しいコードを取得",
-    recovery_codes_refresh_title: "リカバリーコードを交換してください",
+    recovery_codes_refresh_title: "新しいリカバリーコードを取得してください",
     recovery_codes_refresh_body:
-      "保存済みのリカバリーコードは、以前の短い形式です。新しいコードを取得して保存してください。取得すると、古いコードは使えなくなります。",
+      "現在のリカバリーコードは古くなっています。新しいコードを取得して、安全な場所に保存してください。新しいコードを取得すると、古いコードは使えなくなります。",
     recovery_phrase_migrate_title: "リカバリーコードに切り替え",
     recovery_phrase_migrate_body:
       "リカバリーフレーズは廃止されます。今のうちにリカバリーコードを取得して、アカウントを復旧できるようにしてください。",
@@ -4940,7 +4960,10 @@ export const ja = {
     show_encryption_indicators_description:
       "暗号化されたメッセージにロックアイコンを表示します",
     publish_keys_wkd_title: "WKDにキーを公開",
-    publish_keys_wkd_description: "Web Key Directoryでキーを検出可能にします",
+    publish_keys_wkd_description:
+      "プライマリアドレスのキーをWeb Key Directoryで検出可能にします。",
+    publish_keys_wkd_not_covered:
+      "WKDは、エイリアスやカスタムドメインのアドレスのキーを公開しません。対象外: {{addresses}}",
     publish_to_keyservers_title: "キーサーバーに公開",
     publish_to_keyservers_description:
       "公開キーサーバーでキーを検索可能にします",
