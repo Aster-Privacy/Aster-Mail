@@ -21,6 +21,7 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
+import { quotable_source } from "@/lib/html_text";
 import {
   useState,
   useCallback,
@@ -869,7 +870,7 @@ export function use_mobile_mail_detail() {
   const dispatch_compose = useCallback(
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
-      const body = msg.body || "";
+      const body = quotable_source(msg);
       const escape_html = (text: string): string =>
         text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const quote_header =
