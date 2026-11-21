@@ -4571,6 +4571,9 @@ export const fr = {
     confirm_actions_description: "Demander une confirmation avant ces actions",
     confirm_delete: "Confirmer la suppression",
     confirm_delete_description:
+      "Confirmer avant de déplacer des e-mails vers la corbeille",
+    confirm_permanent_delete: "Confirmer la suppression définitive",
+    confirm_permanent_delete_description:
       "Confirmer avant de supprimer définitivement des e-mails",
     confirm_archive: "Confirmer l'archivage",
     confirm_archive_description: "Confirmer avant d'archiver des e-mails",
@@ -12415,6 +12418,7 @@ export const fr = {
     folder_lock_mode: "Mode de verrouillage des dossiers, verrouiller en quittant, déverrouillé pour la session",
     cancellation_period: "Délai d'annulation, délai pour annuler l'envoi, fenêtre d'annulation, secondes, délai d'envoi, envoi différé, envoi programmé",
     confirm_delete: "Confirmer la suppression, confirmation de suppression, demander avant de supprimer",
+    confirm_permanent_delete: "confirmer la suppression définitive, demander avant de supprimer définitivement",
     confirm_archive: "Confirmer l'archivage, confirmation d'archivage, demander avant d'archiver",
     confirm_spam: "Confirmer le spam, confirmation de spam, demander avant de signaler un spam",
     spam_filter_enabled: "Activer le filtrage du spam, filtre antispam, filtre de courrier indésirable, courrier indésirable, réglages du spam, sensibilité du spam, faible moyen élevé",

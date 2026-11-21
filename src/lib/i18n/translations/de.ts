@@ -6358,6 +6358,9 @@ export const de = {
       "Dadurch werden alle gespeicherten Daten zu letzten Empfängern dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
     disable_and_clear: "Deaktivieren & Daten löschen",
     confirm_delete_description:
+      "Vor dem Verschieben von E-Mails in den Papierkorb bestätigen",
+    confirm_permanent_delete: "Endgültiges Löschen bestätigen",
+    confirm_permanent_delete_description:
       "Vor dem endgültigen Löschen von E-Mails bestätigen",
     confirm_spam_description:
       "Vor dem Markieren von E-Mails als Spam bestätigen",
@@ -12429,6 +12432,7 @@ export const de = {
     folder_lock_mode: "Ordnersperrmodus, beim Verlassen sperren, für Sitzung entsperrt",
     cancellation_period: "Widerrufsfrist, Verzögerung für Rückgängig, Rückgängig-Zeitfenster, Sekunden, Sendeverzögerung, verzögert senden, geplantes Senden",
     confirm_delete: "Löschen bestätigen, Löschbestätigung, vor dem Löschen fragen",
+    confirm_permanent_delete: "endgültiges Löschen bestätigen, vor dem endgültigen Löschen fragen",
     confirm_archive: "Archivieren bestätigen, Archivbestätigung, vor dem Archivieren fragen",
     confirm_spam: "Spam bestätigen, Spam-Bestätigung, vor Spam fragen",
     spam_filter_enabled: "Spamfilter aktivieren, Spamfilter, Junk-Filter, Junk-Mail, Spam-Einstellungen, Spam-Empfindlichkeit, niedrig mittel hoch",

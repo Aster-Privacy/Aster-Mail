@@ -201,6 +201,7 @@ export interface SettingsKeywordsTranslations {
   folder_lock_mode: string;
   cancellation_period: string;
   confirm_delete: string;
+  confirm_permanent_delete: string;
   confirm_archive: string;
   confirm_spam: string;
   spam_filter_enabled: string;
@@ -4037,6 +4038,8 @@ export interface SettingsTranslations {
   confirm_actions_description: string;
   confirm_delete: string;
   confirm_delete_description: string;
+  confirm_permanent_delete: string;
+  confirm_permanent_delete_description: string;
   confirm_archive: string;
   confirm_archive_description: string;
   confirm_spam: string;

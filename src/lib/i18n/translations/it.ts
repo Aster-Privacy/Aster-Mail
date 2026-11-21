@@ -4622,6 +4622,9 @@ export const it = {
     confirm_actions_description: "Chiedi conferma prima di queste azioni",
     confirm_delete: "Conferma eliminazione",
     confirm_delete_description:
+      "Conferma prima di spostare le email nel cestino",
+    confirm_permanent_delete: "Conferma eliminazione definitiva",
+    confirm_permanent_delete_description:
       "Conferma prima di eliminare definitivamente le email",
     confirm_archive: "Conferma archiviazione",
     confirm_archive_description: "Conferma prima di archiviare le email",
@@ -12338,6 +12341,7 @@ export const it = {
     folder_lock_mode: "modalità blocco cartella, blocca all'uscita, sbloccata per la sessione",
     cancellation_period: "periodo di annullamento, ritardo invio, finestra annulla invio, secondi, invio ritardato, invio programmato",
     confirm_delete: "conferma eliminazione, chiedi prima di eliminare, conferma cancellazione",
+    confirm_permanent_delete: "conferma eliminazione definitiva, chiedi prima di eliminare definitivamente",
     confirm_archive: "conferma archiviazione, chiedi prima di archiviare",
     confirm_spam: "conferma spam, chiedi prima di segnalare spam",
     spam_filter_enabled: "filtro spam, filtro posta indesiderata, posta indesiderata, impostazioni spam, sensibilità spam, basso medio alto",

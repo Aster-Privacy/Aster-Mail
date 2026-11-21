@@ -132,6 +132,7 @@ export interface UserPreferences {
   close_popup_on_outside_click: boolean;
   keyboard_shortcuts_enabled: boolean;
   confirm_before_delete: boolean;
+  confirm_before_permanent_delete: boolean;
   confirm_before_archive: boolean;
   confirm_before_spam: boolean;
   confirm_before_quick_actions: boolean;
@@ -809,6 +810,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   close_popup_on_outside_click: false,
   keyboard_shortcuts_enabled: true,
   confirm_before_delete: false,
+  confirm_before_permanent_delete: true,
   confirm_before_archive: false,
   confirm_before_spam: false,
   confirm_before_quick_actions: true,

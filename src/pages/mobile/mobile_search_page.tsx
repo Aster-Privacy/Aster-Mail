@@ -47,9 +47,15 @@ import { Input } from "@/components/ui/input";
 import { use_preferences } from "@/contexts/preferences_context";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
+import { use_folders } from "@/hooks/use_folders";
+import { use_tags } from "@/hooks/use_tags";
 import {
+  build_label_name_to_tokens,
   rescope_search_query,
   scope_search_query,
+  scope_search_query_to_list,
+  search_list_scope_for_view,
+  search_list_scope_name,
   search_placeholder_label_key,
   search_scope_chips,
   type SearchViewScope,
@@ -102,6 +108,25 @@ function MobileSearchPage() {
     Record<string, boolean>
   >({});
   const actions = use_email_actions();
+  const { state: folders_state } = use_folders();
+  const { state: tags_state } = use_tags();
+  const list_scope = useMemo(
+    () => search_list_scope_for_view(search_view),
+    [search_view],
+  );
+  const list_scope_name = useMemo(
+    () =>
+      search_list_scope_name(
+        list_scope,
+        folders_state.folders,
+        tags_state.tags,
+      ),
+    [list_scope, folders_state.folders, tags_state.tags],
+  );
+  const label_name_to_tokens = useMemo(
+    () => build_label_name_to_tokens(folders_state.folders, tags_state.tags),
+    [folders_state.folders, tags_state.tags],
+  );
 
   useEffect(() => {
     if (initial_query) return;
@@ -118,7 +143,7 @@ function MobileSearchPage() {
     set_submitted_query(initial_query);
     set_star_overrides({});
     set_did_search(true);
-    search.search(initial_query);
+    search.search(initial_query, { label_name_to_tokens });
   }, [initial_query]);
 
   const handle_back = useCallback(() => {
@@ -131,19 +156,25 @@ function MobileSearchPage() {
       set_submitted_query(next);
       set_star_overrides({});
       set_did_search(true);
-      search.search(next);
+      search.search(next, { label_name_to_tokens });
     },
-    [search],
+    [search, label_name_to_tokens],
   );
 
   const handle_search = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       if (query.trim() && !ends_with_bare_operator(query)) {
-        run_search(scope_search_query(query, search_view));
+        run_search(
+          scope_search_query_to_list(
+            scope_search_query(query, search_view),
+            list_scope,
+            list_scope_name,
+          ),
+        );
       }
     },
-    [query, search_view, run_search],
+    [query, search_view, list_scope, list_scope_name, run_search],
   );
 
   const apply_rewritten_query = useCallback(
@@ -286,9 +317,11 @@ function MobileSearchPage() {
           ref={input_ref}
           className="min-w-0 flex-1 bg-transparent"
           placeholder={
-            scope_label_key
-              ? `${t("mail.search_in")} ${t(scope_label_key)}`
-              : t("mail.search_messages")
+            list_scope_name
+              ? `${t("mail.search_in")} ${list_scope_name}`
+              : scope_label_key
+                ? `${t("mail.search_in")} ${t(scope_label_key)}`
+                : t("mail.search_messages")
           }
           type="text"
           value={query}

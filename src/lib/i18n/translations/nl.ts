@@ -6334,6 +6334,9 @@ export const nl = {
       "Dit verwijdert permanent alle opgeslagen gegevens van recente ontvangers. Deze actie kan niet ongedaan worden gemaakt.",
     disable_and_clear: "Uitschakelen en gegevens wissen",
     confirm_delete_description:
+      "Bevestigen voordat e-mails naar de prullenbak worden verplaatst",
+    confirm_permanent_delete: "Permanent verwijderen bevestigen",
+    confirm_permanent_delete_description:
       "Bevestigen voordat e-mails permanent worden verwijderd",
     default_email_app: "Standaard e-mailapp",
     default_email_app_description:
@@ -12260,6 +12263,7 @@ export const nl = {
     folder_lock_mode: "vergrendelen bij verlaten, ontgrendeld voor sessie, vergrendelmodus",
     cancellation_period: "vertraging verzenden ongedaan maken, annuleringstermijn, seconden, verzendvertraging, vertraagd verzenden, gepland verzenden",
     confirm_delete: "bevestiging verwijderen, vragen voor verwijderen",
+    confirm_permanent_delete: "definitief verwijderen bevestigen, vragen voor definitief verwijderen",
     confirm_archive: "bevestiging archiveren, vragen voor archiveren",
     confirm_spam: "bevestiging spam, vragen voor spam markeren",
     spam_filter_enabled: "spamfilter, ongewenste mail, junkfilter, spaminstellingen, spamgevoeligheid, laag gemiddeld hoog",

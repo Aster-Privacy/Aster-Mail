@@ -1345,6 +1345,19 @@ export function BehaviorSection() {
         />
 
         <ToggleSetting
+          description={t("settings.confirm_permanent_delete_description")}
+          enabled={preferences.confirm_before_permanent_delete !== false}
+          on_toggle={() =>
+            update_preference(
+              "confirm_before_permanent_delete",
+              preferences.confirm_before_permanent_delete === false,
+              true,
+            )
+          }
+          title={t("settings.confirm_permanent_delete")}
+        />
+
+        <ToggleSetting
           description={t("settings.confirm_archive_description")}
           enabled={preferences.confirm_before_archive}
           on_toggle={() =>

@@ -915,6 +915,13 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     description_key: "settings.confirm_delete_description",
   },
   {
+    id: "confirm_permanent_delete",
+    label_key: "settings.confirm_permanent_delete",
+    section: "behavior",
+    crumb_key: "settings_search.confirmations",
+    description_key: "settings.confirm_permanent_delete_description",
+  },
+  {
     id: "confirm_archive",
     label_key: "settings.confirm_archive",
     section: "behavior",

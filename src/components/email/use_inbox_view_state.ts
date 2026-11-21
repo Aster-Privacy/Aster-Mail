@@ -716,6 +716,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     tags_lookup,
     preferences: {
       confirm_before_delete: preferences.confirm_before_delete,
+      confirm_before_permanent_delete:
+        preferences.confirm_before_permanent_delete,
       confirm_before_spam: preferences.confirm_before_spam,
       confirm_before_archive: preferences.confirm_before_archive,
       conversation_grouping: preferences.conversation_grouping,
@@ -745,6 +747,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     remove_tag_from_email,
     preferences: {
       confirm_before_delete: preferences.confirm_before_delete,
+      confirm_before_permanent_delete:
+        preferences.confirm_before_permanent_delete,
       confirm_before_spam: preferences.confirm_before_spam,
       confirm_before_archive: preferences.confirm_before_archive,
       conversation_grouping: preferences.conversation_grouping,

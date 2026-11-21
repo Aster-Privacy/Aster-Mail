@@ -4460,6 +4460,9 @@ export const tr = {
     confirm_actions_description: "Bu eylemlerden önce onay iste",
     confirm_delete: "Silmeyi Onayla",
     confirm_delete_description:
+      "E-postaları çöp kutusuna taşımadan önce onayla",
+    confirm_permanent_delete: "Kalıcı Silmeyi Onayla",
+    confirm_permanent_delete_description:
       "E-postaları kalıcı olarak silmeden önce onayla",
     confirm_archive: "Arşivlemeyi Onayla",
     confirm_archive_description: "E-postaları arşivlemeden önce onayla",
@@ -12128,6 +12131,7 @@ export const tr = {
     folder_lock_mode: "klasör kilit modu, çıkınca kilitle, oturum boyunca açık",
     cancellation_period: "iptal süresi, geri alma gecikmesi, saniye, gönderme gecikmesi, zamanlanmış gönderim",
     confirm_delete: "silmeyi onayla, silmeden önce sor",
+    confirm_permanent_delete: "kalıcı silmeyi onayla, kalıcı olarak silmeden önce sor",
     confirm_archive: "arşivlemeyi onayla, arşivlemeden önce sor",
     confirm_spam: "spam onayı, spam olarak işaretlemeden önce sor",
     spam_filter_enabled: "spam filtresini etkinleştir, spam filtresi, gereksiz posta filtresi, gereksiz posta, spam hassasiyeti, düşük orta yüksek",

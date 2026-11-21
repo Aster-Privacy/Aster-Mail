@@ -4576,7 +4576,9 @@ export const pt = {
     confirmations: "Confirmações",
     confirm_actions_description: "Pedir confirmação antes destas ações",
     confirm_delete: "Confirmar eliminação",
-    confirm_delete_description:
+    confirm_delete_description: "Confirmar antes de mover e-mails para o Lixo",
+    confirm_permanent_delete: "Confirmar eliminação permanente",
+    confirm_permanent_delete_description:
       "Confirmar antes de eliminar e-mails permanentemente",
     confirm_archive: "Confirmar arquivamento",
     confirm_archive_description: "Confirmar antes de arquivar e-mails",
@@ -12385,6 +12387,7 @@ export const pt = {
     folder_lock_mode: "modo de bloqueio da pasta, bloquear ao sair, desbloqueada durante a sessão",
     cancellation_period: "período de cancelamento, atraso no envio, janela para anular, segundos, envio atrasado, envio agendado",
     confirm_delete: "confirmar eliminação, perguntar antes de eliminar, confirmação de eliminação",
+    confirm_permanent_delete: "confirmar eliminação permanente, perguntar antes de eliminar permanentemente",
     confirm_archive: "confirmar arquivo, perguntar antes de arquivar, confirmação de arquivo",
     confirm_spam: "confirmar spam, perguntar antes de marcar como spam",
     spam_filter_enabled: "filtro de spam, filtro de lixo, correio indesejado, definições de spam, sensibilidade do spam, baixo médio alto",
