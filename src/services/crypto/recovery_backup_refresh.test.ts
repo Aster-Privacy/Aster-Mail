@@ -81,9 +81,13 @@ describe("refresh_recovery_backup", () => {
       recovery_key,
       { include_code_hash: true },
     );
-    expect(save_recovery_backup).toHaveBeenCalledWith("evb", "vbn", "rks", [
-      { share_index: 0 },
-    ]);
+    expect(save_recovery_backup).toHaveBeenCalledWith(
+      "evb",
+      "vbn",
+      "rks",
+      [{ share_index: 0 }],
+      {},
+    );
     expect(clear_recovery_key).toHaveBeenCalledWith(recovery_key);
   });
 

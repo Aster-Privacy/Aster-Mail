@@ -73,6 +73,7 @@ import {
 } from "@/services/crypto/recovery_key_escrow";
 import { rescue_account_key_from_escrow } from "@/services/crypto/recovery_escrow_rescue";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { backup_key_fingerprints_of } from "@/services/crypto/recovery_backup_coverage";
 import {
   is_master_key_vault,
   MASTER_KEY_VAULT_FORMAT,
@@ -581,6 +582,8 @@ export function use_recovery_flow() {
       new_recovery_email = reencrypted ?? undefined;
     }
 
+    const backup_key_fingerprints = await backup_key_fingerprints_of(vault);
+
     set_processing_status(t("auth.saving_new_credentials"));
     const { response: complete_response } = await vault_write.write(
       (sealed, kdf_field) =>
@@ -605,6 +608,7 @@ export function use_recovery_flow() {
           password_hash_v2,
           vault.vault_generation,
           kdf_field.vault_kdf_iterations,
+          backup_key_fingerprints,
         ),
     );
 
