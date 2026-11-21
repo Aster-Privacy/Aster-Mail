@@ -1736,6 +1736,26 @@ export const ja = {
       "パスワードまたは確認コードが正しくありません。もう一度お試しください。",
     step_up_security_key_hint:
       "パスワードを入力すると、セキュリティキーによる確認を求められます。",
+    security_key_add_step_up_hint:
+      "パスワードを入力したら、すでにアカウントに登録されているセキュリティキーで確認します。新しいキーは次の手順で追加します。",
+    security_key_add_ready:
+      "追加するセキュリティキーを接続してから、「続行」を選択します。",
+    security_key_confirmation_expired:
+      "確認の有効期限が切れました。続けるには、もう一度パスワードを確認してください。",
+    security_key_error_canceled:
+      "セキュリティキーのリクエストがキャンセルされました。準備ができたら、もう一度お試しください。",
+    security_key_error_timed_out:
+      "セキュリティキーのリクエストがタイムアウトしました。もう一度試し、ブラウザに求められたらキーにタッチしてください。",
+    security_key_error_already_registered:
+      "このセキュリティキーはすでにアカウントに登録されています。別のキーを使用してください。",
+    security_key_error_not_supported:
+      "このブラウザまたはこのページではセキュリティキーを使用できません。別のブラウザをお試しください。",
+    security_key_error_needs_pin:
+      "このセキュリティキーではリクエストを完了できません。キーにPINが設定されていない場合は、PINを設定してからもう一度お試しください。",
+    security_key_error_not_recognized:
+      "アカウントに登録済みのセキュリティキーを確認できませんでした。新しいキーではなく、すでに追加したキーを接続して、もう一度お試しください。",
+    security_key_error_failed:
+      "セキュリティキーで問題が発生しました。もう一度お試しください。",
     recovery_email_removed: "復旧用メールアドレスを削除しました",
     recovery_email_hidden: "このアカウントに保存済み",
     failed_save_profile_color: "もう一度お試しください。",

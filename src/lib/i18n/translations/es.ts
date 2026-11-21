@@ -1928,6 +1928,26 @@ export const es = {
       "Contraseña o código de verificación incorrectos. Inténtalo de nuevo.",
     step_up_security_key_hint:
       "Después de escribir tu contraseña, se te pedirá que verifiques con tu llave de seguridad.",
+    security_key_add_step_up_hint:
+      "Después de escribir tu contraseña, verifica con una llave de seguridad que ya esté en tu cuenta. La llave nueva se agrega en el paso siguiente.",
+    security_key_add_ready:
+      "Conecta la llave de seguridad que quieres agregar y, luego, selecciona Continuar.",
+    security_key_confirmation_expired:
+      "Tu confirmación caducó. Confirma tu contraseña otra vez para continuar.",
+    security_key_error_canceled:
+      "Se canceló la solicitud de la llave de seguridad. Vuelve a intentarlo cuando quieras.",
+    security_key_error_timed_out:
+      "Se agotó el tiempo de la solicitud de la llave de seguridad. Vuelve a intentarlo y toca la llave cuando el navegador te lo pida.",
+    security_key_error_already_registered:
+      "Esta llave de seguridad ya está en tu cuenta. Usa otra llave.",
+    security_key_error_not_supported:
+      "Las llaves de seguridad no están disponibles en este navegador o en esta página. Prueba con otro navegador.",
+    security_key_error_needs_pin:
+      "Esta llave de seguridad no puede completar la solicitud. Si la llave no tiene PIN, configura uno y vuelve a intentarlo.",
+    security_key_error_not_recognized:
+      "Aster no pudo verificar una llave de seguridad que ya esté en tu cuenta. Conecta una llave que ya hayas agregado, no la nueva, y vuelve a intentarlo.",
+    security_key_error_failed:
+      "Ocurrió un problema con la llave de seguridad. Vuelve a intentarlo.",
     save_recovery_codes_dialog: "Guardar códigos de recuperación",
     save_recovery_codes_title: "Códigos de recuperación",
     scanning_mailbox: "Analizando buzón...",

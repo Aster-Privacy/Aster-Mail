@@ -1911,6 +1911,26 @@ export const nl = {
       "Onjuist wachtwoord of verificatiecode. Probeer het opnieuw.",
     step_up_security_key_hint:
       "Na het invoeren van je wachtwoord word je gevraagd te verifiëren met je beveiligingssleutel.",
+    security_key_add_step_up_hint:
+      "Nadat je je wachtwoord hebt ingevoerd, verifieer je met een beveiligingssleutel die al aan je account is gekoppeld. De nieuwe sleutel voeg je toe in de volgende stap.",
+    security_key_add_ready:
+      "Sluit de beveiligingssleutel aan die je wilt toevoegen en selecteer vervolgens Doorgaan.",
+    security_key_confirmation_expired:
+      "Je bevestiging is verlopen. Bevestig je wachtwoord opnieuw om door te gaan.",
+    security_key_error_canceled:
+      "Het verzoek aan de beveiligingssleutel is geannuleerd. Probeer het opnieuw wanneer je klaar bent.",
+    security_key_error_timed_out:
+      "Het verzoek aan de beveiligingssleutel is verlopen. Probeer het opnieuw en raak je sleutel aan wanneer je browser daarom vraagt.",
+    security_key_error_already_registered:
+      "Deze beveiligingssleutel is al aan je account gekoppeld. Gebruik een andere sleutel.",
+    security_key_error_not_supported:
+      "Beveiligingssleutels zijn niet beschikbaar in deze browser of op deze pagina. Probeer een andere browser.",
+    security_key_error_needs_pin:
+      "Deze beveiligingssleutel kan het verzoek niet voltooien. Als de sleutel geen pincode heeft, stel er dan een in en probeer het opnieuw.",
+    security_key_error_not_recognized:
+      "Aster kon geen beveiligingssleutel verifiëren die al aan je account is gekoppeld. Sluit een sleutel aan die je al hebt toegevoegd, niet de nieuwe, en probeer het opnieuw.",
+    security_key_error_failed:
+      "Er is iets misgegaan met de beveiligingssleutel. Probeer het opnieuw.",
     save_recovery_codes_dialog:
       "Sla deze herstelcodes op op een veilige plek. Als je je wachtwoord vergeet en geen toegang meer hebt tot je verificatiemethode, kun je een van deze codes gebruiken om toegang te krijgen tot je account.",
     save_recovery_codes_title: "Herstelcodes opslaan",

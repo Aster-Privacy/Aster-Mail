@@ -56,6 +56,7 @@ interface StepUpModalProps {
   description: string;
   confirm_label: string;
   destructive?: boolean;
+  security_key_hint?: string;
 }
 
 export function StepUpModal({
@@ -66,6 +67,7 @@ export function StepUpModal({
   description,
   confirm_label,
   destructive = false,
+  security_key_hint,
 }: StepUpModalProps) {
   const { t } = use_i18n();
   const [password, set_password] = useState("");
@@ -242,7 +244,7 @@ export function StepUpModal({
 
           {!totp_required && has_hardware_keys && (
             <p className="text-sm text-txt-tertiary">
-              {t("common.step_up_security_key_hint")}
+              {security_key_hint ?? t("common.step_up_security_key_hint")}
             </p>
           )}
 

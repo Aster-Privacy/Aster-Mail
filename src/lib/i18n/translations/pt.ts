@@ -1892,6 +1892,26 @@ export const pt = {
       "Palavra-passe ou código de verificação incorretos. Tente novamente.",
     step_up_security_key_hint:
       "Depois de introduzir a sua palavra-passe, terá de confirmar com a sua chave de segurança.",
+    security_key_add_step_up_hint:
+      "Depois de introduzir a sua palavra-passe, confirme com uma chave de segurança que já esteja na sua conta. A nova chave é adicionada no passo seguinte.",
+    security_key_add_ready:
+      "Ligue a chave de segurança que pretende adicionar e, em seguida, selecione Continuar.",
+    security_key_confirmation_expired:
+      "A sua confirmação expirou. Confirme novamente a sua palavra-passe para continuar.",
+    security_key_error_canceled:
+      "O pedido da chave de segurança foi cancelado. Tente novamente quando quiser.",
+    security_key_error_timed_out:
+      "O pedido da chave de segurança expirou. Tente novamente e toque na chave quando o navegador pedir.",
+    security_key_error_already_registered:
+      "Esta chave de segurança já está na sua conta. Utilize outra chave.",
+    security_key_error_not_supported:
+      "As chaves de segurança não estão disponíveis neste navegador ou nesta página. Experimente outro navegador.",
+    security_key_error_needs_pin:
+      "Esta chave de segurança não consegue concluir o pedido. Se a chave não tiver PIN, defina um e tente novamente.",
+    security_key_error_not_recognized:
+      "O Aster não conseguiu confirmar uma chave de segurança que já esteja na sua conta. Ligue uma chave que já tenha adicionado, não a nova, e tente novamente.",
+    security_key_error_failed:
+      "Ocorreu um problema com a chave de segurança. Tente novamente.",
     rename_label: "Renomear etiqueta",
     rename_label_description: "Introduza um novo nome para esta etiqueta",
     save_recovery_codes_dialog: "Guardar códigos de recuperação",

@@ -1633,6 +1633,22 @@ export const zh_CN = {
     step_up_description: "为了您的安全，请确认密码以继续。",
     step_up_error: "密码或验证码不正确，请重试。",
     step_up_security_key_hint: "输入密码后，系统会要求您使用安全密钥进行验证。",
+    security_key_add_step_up_hint:
+      "输入密码后，请使用账户中已有的安全密钥进行验证。新密钥将在下一步添加。",
+    security_key_add_ready: "连接要添加的安全密钥，然后选择“继续”。",
+    security_key_confirmation_expired: "确认已过期。请再次确认密码以继续。",
+    security_key_error_canceled: "安全密钥请求已取消。准备好后请重试。",
+    security_key_error_timed_out:
+      "安全密钥请求已超时。请重试，并在浏览器提示时触摸密钥。",
+    security_key_error_already_registered:
+      "此安全密钥已在您的账户中。请使用其他密钥。",
+    security_key_error_not_supported:
+      "此浏览器或此页面无法使用安全密钥。请尝试其他浏览器。",
+    security_key_error_needs_pin:
+      "此安全密钥无法完成请求。如果密钥尚未设置 PIN，请先设置 PIN，然后重试。",
+    security_key_error_not_recognized:
+      "Aster 无法验证账户中已有的安全密钥。请连接已添加的密钥而不是新密钥，然后重试。",
+    security_key_error_failed: "安全密钥出现问题。请重试。",
     recovery_email_removed: "恢复邮箱已移除",
     recovery_email_hidden: "已保存在此账户",
     failed_save_profile_color: "您选择的颜色未能保存。请重试。",
