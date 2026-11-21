@@ -492,6 +492,8 @@ export function use_email_detail_load() {
     navigate: navigate_from_detail,
     t,
     preferences_default_reply_behavior: preferences.default_reply_behavior,
+    confirm_before_permanent_delete:
+      preferences.confirm_before_permanent_delete,
   });
 
   useEffect(() => {

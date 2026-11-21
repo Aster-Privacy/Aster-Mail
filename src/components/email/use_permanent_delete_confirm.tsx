@@ -34,6 +34,7 @@ type PermanentDeletePerform = () => unknown;
 
 export interface PermanentDeleteConfirmResult {
   request_permanent_delete: (perform: PermanentDeletePerform) => void;
+  dismiss_permanent_delete: () => void;
   permanent_delete_dialog: React.ReactElement;
 }
 
@@ -95,7 +96,11 @@ export function use_permanent_delete_confirm(): PermanentDeleteConfirmResult {
     />
   );
 
-  return { request_permanent_delete, permanent_delete_dialog };
+  return {
+    request_permanent_delete,
+    dismiss_permanent_delete: handle_cancel,
+    permanent_delete_dialog,
+  };
 }
 
 interface GuardedTrashOptions<TMessage extends TrashPlacementMessage> {

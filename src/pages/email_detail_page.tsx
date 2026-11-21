@@ -301,11 +301,19 @@ export default function EmailDetailPage() {
         variant="info"
       />
       <ConfirmationModal
+        show_dont_ask_again
         confirm_text={detail.t("mail.delete_permanently")}
         is_open={!!detail.pending_permanent_delete_id}
         message={detail.t("mail.delete_email_confirmation")}
         on_cancel={() => detail.set_pending_permanent_delete_id(null)}
         on_confirm={detail.confirm_permanent_delete}
+        on_dont_ask_again={async () => {
+          detail.update_preference(
+            "confirm_before_permanent_delete",
+            false,
+            true,
+          );
+        }}
         title={detail.t("mail.delete_permanently_question")}
         variant="danger"
       />

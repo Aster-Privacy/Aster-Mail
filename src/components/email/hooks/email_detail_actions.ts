@@ -108,6 +108,7 @@ export interface EmailDetailActionsDeps {
   navigate: (destination: string | number) => void;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   preferences_default_reply_behavior: string;
+  confirm_before_permanent_delete?: boolean;
 }
 
 export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
@@ -312,13 +313,28 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
     deps.set_is_trash_loading(false);
   }, [pending_permanent_delete_id, run_permanent_delete]);
 
+  const request_permanent_delete = useCallback(
+    async (id: string) => {
+      if (deps.confirm_before_permanent_delete !== false) {
+        set_pending_permanent_delete_id(id);
+
+        return;
+      }
+
+      deps.set_is_trash_loading(true);
+      await run_permanent_delete(id);
+      deps.set_is_trash_loading(false);
+    },
+    [deps.confirm_before_permanent_delete, run_permanent_delete],
+  );
+
   const handle_trash = useCallback(async () => {
     if (!deps.email_id || deps.is_trash_loading || !deps.mail_item) return;
 
     deps.set_is_trash_confirm_open(false);
 
     if (is_mail_item_in_trash(deps.mail_item)) {
-      set_pending_permanent_delete_id(deps.email_id);
+      await request_permanent_delete(deps.email_id);
     } else {
       deps.set_is_trash_loading(true);
       const is_read =
@@ -381,6 +397,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
     deps.navigate,
     deps.mail_item,
     deps.t,
+    request_permanent_delete,
   ]);
 
   const handle_per_message_reply = useCallback(
@@ -457,7 +474,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
   const handle_per_message_trash = useCallback(
     async (msg: DecryptedThreadMessage) => {
       if (is_thread_message_in_trash(msg, deps.email_id, deps.mail_item)) {
-        set_pending_permanent_delete_id(msg.id);
+        await request_permanent_delete(msg.id);
       } else {
         const result = await update_item_metadata(
           msg.id,
@@ -498,7 +515,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         }
       }
     },
-    [deps.email_id, deps.mail_item, deps.t],
+    [deps.email_id, deps.mail_item, deps.t, request_permanent_delete],
   );
 
   const handle_per_message_print = useCallback(
