@@ -18,14 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedEnvelope } from "@/types/email";
-import type { SenderTrustSource } from "@/lib/utils";
+import type { LearnGateSource } from "@/services/learned_sender_gate";
 
 import {
   BUILTIN_CATEGORY_IDS,
   is_custom_category_id,
 } from "@/data/category_catalog";
-import { is_locked_to_primary } from "@/services/mail_categorizer";
+import { is_learning_blocked } from "@/services/learned_sender_gate";
 
 export interface LearnedCategorySender {
   sender: string;
@@ -33,7 +32,7 @@ export interface LearnedCategorySender {
   updated_at: number;
 }
 
-export type LearnSource = SenderTrustSource;
+export type LearnSource = LearnGateSource;
 
 export const MAX_LEARNED_SENDERS = 500;
 export const MAX_LEARNED_PER_MOVE = 200;
@@ -107,15 +106,24 @@ function finish(
     .slice(0, MAX_LEARNED_SENDERS);
 }
 
+function newer_entry(
+  a: LearnedCategorySender,
+  b: LearnedCategorySender,
+): LearnedCategorySender {
+  if (a.updated_at !== b.updated_at) {
+    return a.updated_at > b.updated_at ? a : b;
+  }
+
+  return a.category <= b.category ? a : b;
+}
+
 function absorb(
   by_sender: Map<string, LearnedCategorySender>,
   entry: LearnedCategorySender,
 ): void {
   const existing = by_sender.get(entry.sender);
 
-  if (!existing || entry.updated_at >= existing.updated_at) {
-    by_sender.set(entry.sender, entry);
-  }
+  by_sender.set(entry.sender, existing ? newer_entry(existing, entry) : entry);
 }
 
 export function sanitize_learned_senders(
@@ -168,18 +176,24 @@ function three_way_entry(
   current: LearnedCategorySender | undefined,
   server: LearnedCategorySender | undefined,
 ): LearnedCategorySender | undefined {
-  if (same_entry(current, base)) return server;
-  if (same_entry(server, base)) return current;
-  if (current && server) {
-    return current.updated_at >= server.updated_at ? current : server;
+  if (!base) {
+    if (current && server) return newer_entry(current, server);
+
+    return current ?? server;
   }
 
-  const edited = current ?? server;
+  if (current && server) {
+    if (same_entry(current, base)) return server;
+    if (same_entry(server, base)) return current;
 
-  if (!edited) return undefined;
-  if (!base || edited.updated_at > base.updated_at) return edited;
+    return newer_entry(current, server);
+  }
 
-  return undefined;
+  const survivor = current ?? server;
+
+  if (!survivor || same_entry(survivor, base)) return undefined;
+
+  return survivor;
 }
 
 export function reconcile_learned_senders(
@@ -187,6 +201,10 @@ export function reconcile_learned_senders(
   current: unknown,
   server: unknown,
 ): LearnedCategorySender[] {
+  if (base === undefined || base === null) {
+    return merge_learned_senders(current, server);
+  }
+
   const base_map = by_sender_map(base);
   const current_map = by_sender_map(current);
   const server_map = by_sender_map(server);
@@ -224,20 +242,8 @@ export function can_learn_from(source: LearnSource): string | null {
   const sender = normalize_learned_sender(source.sender_email);
 
   if (!sender) return null;
-  if (source.sender_verification === "invalid") return null;
-  if (
-    is_locked_to_primary(
-      {
-        from: { email: sender, name: "" },
-        sender_verification: source.sender_verification,
-      } as DecryptedEnvelope,
-      { ...source, sender_email: sender },
-    )
-  ) {
-    return null;
-  }
 
-  return sender;
+  return is_learning_blocked(sender, source) ? null : sender;
 }
 
 export function learnable_senders(
@@ -307,28 +313,57 @@ export function restore_learned_senders(
 
 type PersistLearned = (list: LearnedCategorySender[]) => void;
 
-let learning_enabled = true;
+type LearnedListener = (list: readonly LearnedCategorySender[] | null) => void;
+
+let learning_enabled = false;
+let learned_loaded = false;
 let current_list: LearnedCategorySender[] = [];
 let persist_learned: PersistLearned | null = null;
+const learned_listeners = new Set<LearnedListener>();
+
+function notify_learned_listeners(): void {
+  const snapshot = learned_loaded ? current_list : null;
+
+  for (const listener of learned_listeners) listener(snapshot);
+}
+
+export function subscribe_learned_senders(
+  listener: LearnedListener,
+): () => void {
+  learned_listeners.add(listener);
+  if (learned_loaded) listener(current_list);
+
+  return () => {
+    learned_listeners.delete(listener);
+  };
+}
 
 export function configure_learned_senders(config: {
+  loaded: boolean;
   enabled: boolean;
   list: readonly LearnedCategorySender[];
   persist: PersistLearned | null;
 }): void {
-  learning_enabled = config.enabled;
-  current_list = [...config.list];
-  persist_learned = config.persist;
+  learned_loaded = config.loaded;
+  learning_enabled = config.loaded && config.enabled;
+  current_list = config.loaded ? [...config.list] : [];
+  persist_learned = config.loaded ? config.persist : null;
+  notify_learned_listeners();
 }
 
 export function reset_learned_senders_store(): void {
-  learning_enabled = true;
+  learning_enabled = false;
+  learned_loaded = false;
   current_list = [];
   persist_learned = null;
 }
 
 export function is_learning_enabled(): boolean {
-  return learning_enabled;
+  return learned_loaded && learning_enabled;
+}
+
+export function are_learned_senders_loaded(): boolean {
+  return learned_loaded;
 }
 
 export function get_learned_senders(): readonly LearnedCategorySender[] {
@@ -340,7 +375,7 @@ export function record_category_move(
   category: string,
   now_seconds = Math.floor(Date.now() / 1000),
 ): (() => void) | null {
-  if (!learning_enabled || !persist_learned) return null;
+  if (!is_learning_enabled() || !persist_learned) return null;
 
   const before = current_list;
   const senders = learnable_senders(sources);
@@ -350,6 +385,7 @@ export function record_category_move(
 
   current_list = next;
   persist_learned(next);
+  notify_learned_listeners();
 
   let undone = false;
 
@@ -366,5 +402,6 @@ export function record_category_move(
 
     current_list = restored;
     persist_learned(restored);
+    notify_learned_listeners();
   };
 }
