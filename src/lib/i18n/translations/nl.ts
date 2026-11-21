@@ -5951,7 +5951,7 @@ export const nl = {
     unreadable_entries_notice:
       "Sommige items kunnen op dit apparaat niet worden gelezen en worden hier daarom niet getoond.",
     external_accounts_limit_reached:
-      "Je kunt maximaal 5 accounts koppelen. Verwijder er eerst een om een nieuw account toe te voegen.",
+      "Je kunt maximaal {{count}} accounts koppelen. Verwijder er eerst een om een nieuw account toe te voegen.",
     ext_v2_smtp_verify_failed: "De SMTP-server heeft het inloggen geweigerd. Controleer de server, poort, gebruikersnaam en het wachtwoord en probeer het opnieuw.",
     ext_v2_send_only_credentials_invalid: "Sommige verzendgegevens zijn ongeldig. Controleer elk veld en probeer het opnieuw.",
     ext_v2_mode_invalid: "Dit accounttype wordt niet ondersteund.",

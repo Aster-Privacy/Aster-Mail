@@ -6213,7 +6213,7 @@ export const pl = {
     unreadable_entries_notice:
       "Niektórych wpisów nie można odczytać na tym urządzeniu, więc nie są tutaj pokazywane.",
     external_accounts_limit_reached:
-      "Możesz połączyć maksymalnie 5 kont. Aby dodać kolejne, najpierw usuń jedno.",
+      "Możesz połączyć maksymalnie {{count}} kont. Aby dodać kolejne, najpierw usuń jedno.",
     ext_v2_smtp_verify_failed: "Serwer SMTP odrzucił logowanie. Sprawdź serwer, port, nazwę użytkownika i hasło, a następnie spróbuj ponownie.",
     ext_v2_send_only_credentials_invalid: "Niektóre dane wysyłania są nieprawidłowe. Sprawdź każde pole i spróbuj ponownie.",
     ext_v2_mode_invalid: "Ten typ konta nie jest obsługiwany.",

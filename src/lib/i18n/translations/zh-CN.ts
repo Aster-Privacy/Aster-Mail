@@ -5441,7 +5441,7 @@ export const zh_CN = {
     unreadable_entry_hint: "此设备无法读取此条目。在您删除之前，它仍然生效。",
     unreadable_entries_notice: "部分条目无法在此设备上读取，因此未在此处显示。",
     external_accounts_limit_reached:
-      "最多可连接 5 个账户。若要添加新账户，请先移除一个。",
+      "最多可连接 {{count}} 个账户。若要添加新账户，请先移除一个。",
     ext_v2_smtp_verify_failed: "SMTP 服务器拒绝了登录。请检查服务器、端口、用户名和密码，然后重试。",
     ext_v2_send_only_credentials_invalid: "部分发送信息无效。请检查每个字段，然后重试。",
     ext_v2_mode_invalid: "不支持此账户类型。",

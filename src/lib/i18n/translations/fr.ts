@@ -6141,7 +6141,7 @@ export const fr = {
     unreadable_entries_notice:
       "Certaines entrées ne peuvent pas être lues sur cet appareil et ne sont donc pas affichées ici.",
     external_accounts_limit_reached:
-      "Vous pouvez connecter jusqu'à 5 comptes. Pour en ajouter un autre, supprimez-en un d'abord.",
+      "Vous pouvez connecter jusqu'à {{count}} comptes. Pour en ajouter un autre, supprimez-en un d'abord.",
     ext_v2_smtp_verify_failed: "Le serveur SMTP a refusé la connexion. Vérifiez le serveur, le port, le nom d'utilisateur et le mot de passe, puis réessayez.",
     ext_v2_send_only_credentials_invalid: "Certaines informations d'envoi ne sont pas valides. Vérifiez chaque champ, puis réessayez.",
     ext_v2_mode_invalid: "Ce type de compte n'est pas pris en charge.",

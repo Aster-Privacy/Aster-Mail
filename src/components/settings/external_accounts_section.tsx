@@ -116,7 +116,9 @@ export function ExternalAccountsSection() {
         description={state.t("settings.external_accounts_description")}
         footer={
           at_every_limit
-            ? state.t("settings.external_accounts_limit_reached")
+            ? state.t("settings.external_accounts_limit_reached", {
+                count: caps.fetching.limit + caps.send_only.limit,
+              })
             : at_account_limit
               ? state.t("settings.ext_v2_sync_limit_footer")
               : at_send_only_limit

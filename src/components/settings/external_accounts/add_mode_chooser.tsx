@@ -24,8 +24,15 @@ import {
   ArrowPathRoundedSquareIcon,
   PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
+import { Island, IslandRow } from "@aster/ui";
 
-import { Modal, ModalTitle } from "@/components/ui/modal";
+import {
+  Modal,
+  ModalBody,
+  ModalDescription,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/modal";
 
 export type AddModeChoice = "server_sync" | "send_only";
 
@@ -65,40 +72,35 @@ export function AddModeChooser({
 
   return (
     <Modal is_open={is_open} on_close={on_close} size="md">
-      <div className="px-6 pt-6 pb-2">
-        <ModalTitle className="text-[15px]">
-          {t("settings.ext_v2_mode_chooser_title")}
-        </ModalTitle>
-        <p className="text-[12px] mt-1 text-txt-muted">
+      <ModalHeader>
+        <ModalTitle>{t("settings.ext_v2_mode_chooser_title")}</ModalTitle>
+        <ModalDescription>
           {t("settings.ext_v2_mode_chooser_description")}
-        </p>
-      </div>
-      <div className="p-6 pt-3 space-y-3">
-        {options.map((option) => (
-          <button
-            key={option.mode}
-            className="w-full text-left flex items-start gap-3 p-4 rounded-2xl border border-[var(--aster-floating-divider)] hover:bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] transition-colors"
-            data-testid={`ext-mode-${option.mode}`}
-            type="button"
-            onClick={() => on_choose(option.mode)}
-          >
-            <option.icon className="w-5 h-5 mt-0.5 shrink-0 text-txt-muted" />
-            <span className="flex-1 min-w-0">
-              <span className="flex items-center gap-2 text-sm font-semibold text-txt-primary">
-                {option.title}
-                {option.full && (
+        </ModalDescription>
+      </ModalHeader>
+      <ModalBody>
+        <Island divided className="overflow-hidden">
+          {options.map((option) => (
+            <IslandRow
+              key={option.mode}
+              chevron
+              data-testid={`ext-mode-${option.mode}`}
+              description={option.description}
+              icon={<option.icon aria-hidden="true" />}
+              label={option.title}
+              layout="stacked"
+              trailing={
+                option.full ? (
                   <span className="account_menu_badge account_menu_badge_muted">
                     {t("settings.ext_v2_upgrade_badge")}
                   </span>
-                )}
-              </span>
-              <span className="block text-[12px] mt-1 text-txt-muted">
-                {option.description}
-              </span>
-            </span>
-          </button>
-        ))}
-      </div>
+                ) : undefined
+              }
+              on_press={() => on_choose(option.mode)}
+            />
+          ))}
+        </Island>
+      </ModalBody>
     </Modal>
   );
 }

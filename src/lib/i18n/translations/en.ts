@@ -7408,7 +7408,7 @@ export const en: Translations = {
     unreadable_entries_notice:
       "Some entries can't be read on this device, so they aren't shown here.",
     external_accounts_limit_reached:
-      "You can connect up to 5 accounts. To add another, remove one first.",
+      "You can connect up to {{count}} accounts. To add another, remove one first.",
     ext_v2_smtp_verify_failed: "The SMTP server rejected the sign-in. Check the server, port, username, and password, and try again.",
     ext_v2_send_only_credentials_invalid: "Some of the sending details are not valid. Check each field and try again.",
     ext_v2_mode_invalid: "This account type is not supported.",

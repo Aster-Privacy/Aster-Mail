@@ -6128,7 +6128,7 @@ export const pt = {
     unreadable_entries_notice:
       "Algumas entradas não podem ser lidas neste dispositivo, por isso não são mostradas aqui.",
     external_accounts_limit_reached:
-      "Pode ligar até 5 contas. Para adicionar outra, remova primeiro uma delas.",
+      "Pode ligar até {{count}} contas. Para adicionar outra, remova primeiro uma delas.",
     ext_v2_smtp_verify_failed: "O servidor SMTP recusou o início de sessão. Verifique o servidor, a porta, o nome de utilizador e a palavra-passe e tente novamente.",
     ext_v2_send_only_credentials_invalid: "Alguns dados de envio não são válidos. Verifique cada campo e tente novamente.",
     ext_v2_mode_invalid: "Este tipo de conta não é suportado.",

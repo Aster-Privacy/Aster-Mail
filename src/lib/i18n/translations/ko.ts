@@ -5986,7 +5986,7 @@ export const ko = {
     unreadable_entries_notice:
       "일부 항목은 이 기기에서 읽을 수 없어 여기에 표시되지 않습니다.",
     external_accounts_limit_reached:
-      "최대 5개의 계정을 연결할 수 있습니다. 다른 계정을 추가하려면 먼저 하나를 제거하세요.",
+      "최대 {{count}}개의 계정을 연결할 수 있습니다. 다른 계정을 추가하려면 먼저 하나를 제거하세요.",
     ext_v2_smtp_verify_failed: "SMTP 서버가 로그인을 거부했습니다. 서버, 포트, 사용자 이름, 비밀번호를 확인한 후 다시 시도하세요.",
     ext_v2_send_only_credentials_invalid: "일부 발송 정보가 올바르지 않습니다. 각 항목을 확인한 후 다시 시도하세요.",
     ext_v2_mode_invalid: "이 계정 유형은 지원되지 않습니다.",

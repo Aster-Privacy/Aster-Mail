@@ -5984,7 +5984,7 @@ export const tr = {
     unreadable_entries_notice:
       "Bazı girişler bu cihazda okunamıyor, bu yüzden burada gösterilmiyor.",
     external_accounts_limit_reached:
-      "En fazla 5 hesap bağlayabilirsin. Başka bir hesap eklemek için önce birini kaldır.",
+      "En fazla {{count}} hesap bağlayabilirsin. Başka bir hesap eklemek için önce birini kaldır.",
     ext_v2_smtp_verify_failed: "SMTP sunucusu oturum açmayı reddetti. Sunucuyu, bağlantı noktasını, kullanıcı adını ve parolayı kontrol edip tekrar deneyin.",
     ext_v2_send_only_credentials_invalid: "Bazı gönderim bilgileri geçerli değil. Her alanı kontrol edip tekrar deneyin.",
     ext_v2_mode_invalid: "Bu hesap türü desteklenmiyor.",

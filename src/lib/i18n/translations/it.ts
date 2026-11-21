@@ -7432,7 +7432,7 @@ export const it = {
     unreadable_entries_notice:
       "Alcune voci non possono essere lette su questo dispositivo, quindi non vengono mostrate qui.",
     external_accounts_limit_reached:
-      "Puoi collegare fino a 5 account. Per aggiungerne un altro, rimuovine prima uno.",
+      "Puoi collegare fino a {{count}} account. Per aggiungerne un altro, rimuovine prima uno.",
     ext_v2_smtp_verify_failed: "Il server SMTP ha rifiutato l'accesso. Controlla server, porta, nome utente e password, poi riprova.",
     ext_v2_send_only_credentials_invalid: "Alcuni dati di invio non sono validi. Controlla ogni campo e riprova.",
     ext_v2_mode_invalid: "Questo tipo di account non è supportato.",

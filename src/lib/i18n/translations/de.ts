@@ -5947,7 +5947,7 @@ export const de = {
     unreadable_entries_notice:
       "Einige Einträge können auf diesem Gerät nicht gelesen werden und werden deshalb hier nicht angezeigt.",
     external_accounts_limit_reached:
-      "Sie können bis zu 5 Konten verbinden. Um ein weiteres hinzuzufügen, entfernen Sie zuerst eines.",
+      "Sie können bis zu {{count}} Konten verbinden. Um ein weiteres hinzuzufügen, entfernen Sie zuerst eines.",
     ext_v2_smtp_verify_failed: "Der SMTP-Server hat die Anmeldung abgelehnt. Prüfen Sie Server, Port, Benutzername und Passwort und versuchen Sie es erneut.",
     ext_v2_send_only_credentials_invalid: "Einige Versandangaben sind ungültig. Prüfen Sie jedes Feld und versuchen Sie es erneut.",
     ext_v2_mode_invalid: "Dieser Kontotyp wird nicht unterstützt.",

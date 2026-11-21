@@ -6083,7 +6083,7 @@ export const es = {
     unreadable_entries_notice:
       "Algunas entradas no se pueden leer en este dispositivo, así que no se muestran aquí.",
     external_accounts_limit_reached:
-      "Puedes conectar hasta 5 cuentas. Para añadir otra, elimina una antes.",
+      "Puedes conectar hasta {{count}} cuentas. Para añadir otra, elimina una antes.",
     ext_v2_smtp_verify_failed: "El servidor SMTP rechazó el inicio de sesión. Revisa el servidor, el puerto, el nombre de usuario y la contraseña, y vuelve a intentarlo.",
     ext_v2_send_only_credentials_invalid: "Algunos datos de envío no son válidos. Revisa cada campo y vuelve a intentarlo.",
     ext_v2_mode_invalid: "Este tipo de cuenta no es compatible.",

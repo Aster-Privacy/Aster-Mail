@@ -5971,7 +5971,7 @@ export const ja = {
     unreadable_entries_notice:
       "一部の項目はこのデバイスで読み取れないため、ここには表示されません。",
     external_accounts_limit_reached:
-      "接続できるアカウントは最大 5 つです。別のアカウントを追加するには、まず 1 つ削除してください。",
+      "接続できるアカウントは最大 {{count}} つです。別のアカウントを追加するには、まず 1 つ削除してください。",
     ext_v2_smtp_verify_failed: "SMTP サーバーがサインインを拒否しました。サーバー、ポート、ユーザー名、パスワードを確認して、もう一度お試しください。",
     ext_v2_send_only_credentials_invalid: "送信設定の一部が無効です。各項目を確認して、もう一度お試しください。",
     ext_v2_mode_invalid: "このアカウントの種類はサポートされていません。",

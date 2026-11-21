@@ -138,23 +138,27 @@ export function AccountCard({
                   {protocol_label(account.protocol)}
                 </span>
               </Tooltip>
-              <Tooltip
-                tip={
-                  account.is_enabled
-                    ? t("settings.account_enabled_tooltip")
-                    : t("settings.account_paused_tooltip")
-                }
-              >
-                <span
-                  className={
+              {!plan_paused && (
+                <Tooltip
+                  tip={
                     account.is_enabled
-                      ? "account_menu_badge"
-                      : "account_menu_badge account_menu_badge_muted"
+                      ? t("settings.account_enabled_tooltip")
+                      : t("settings.account_paused_tooltip")
                   }
                 >
-                  {account.is_enabled ? t("common.active") : t("common.paused")}
-                </span>
-              </Tooltip>
+                  <span
+                    className={
+                      account.is_enabled
+                        ? "account_menu_badge"
+                        : "account_menu_badge account_menu_badge_muted"
+                    }
+                  >
+                    {account.is_enabled
+                      ? t("common.active")
+                      : t("common.paused")}
+                  </span>
+                </Tooltip>
+              )}
               {send_only && (
                 <Tooltip tip={t("settings.ext_v2_send_only_tooltip")}>
                   <span className="account_menu_badge">
