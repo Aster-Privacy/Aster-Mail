@@ -104,6 +104,7 @@ import {
 import { register_visible_rows } from "@/services/user_opened_mail";
 import { get_thread_messages } from "@/services/api/mail";
 import { set_thread_trashed } from "@/services/trash_state";
+import { with_rate_limit_retry } from "@/services/api/rate_limit_retry";
 import { batch_archive as api_batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
@@ -1473,10 +1474,12 @@ export function use_category_inbox(
       for (const email of selected) {
         if (failed.has(email.id)) continue;
         finish_thread_action(email, async (sibling_ids) => {
-          const sibling_result = await api_batch_archive({
-            ids: sibling_ids,
-            tier: "hot",
-          });
+          const sibling_result = await with_rate_limit_retry(() =>
+            api_batch_archive({
+              ids: sibling_ids,
+              tier: "hot",
+            }),
+          );
 
           if (sibling_result.data?.success) {
             void bulk_update_metadata_by_ids(sibling_ids, {

@@ -47,8 +47,21 @@ vi.mock("@/hooks/use_mail_stats", () => ({
   invalidate_mail_stats: vi.fn(),
 }));
 
+vi.mock("@/services/api/rate_limit_retry", async (load_actual) => {
+  const actual =
+    await load_actual<typeof import("@/services/api/rate_limit_retry")>();
+
+  return {
+    ...actual,
+    with_rate_limit_retry: <T>(
+      request: () => Promise<import("@/services/api/client").ApiResponse<T>>,
+    ) => actual.with_rate_limit_retry(request, { wait: async () => {} }),
+  };
+});
+
 import {
   run_category_scope_action,
+  CategoryBulkPartialError,
   CATEGORY_ACTION_CHUNK_SIZE,
 } from "./category_bulk_actions";
 
@@ -219,32 +232,51 @@ describe("run_category_scope_action", () => {
     expect(mock_scope).toHaveBeenCalledTimes(3);
   });
 
-  it("stops at a failed chunk and keeps the chunks that were applied", async () => {
+  it("continues past a failed chunk and reports what was not applied", async () => {
     const all_ids = make_ids(2500);
 
     set_index(all_ids);
     mock_scope
       .mockResolvedValueOnce(ok_response())
-      .mockResolvedValueOnce({ error: "rate limited" });
+      .mockResolvedValueOnce({ error: "Server error" })
+      .mockResolvedValueOnce(ok_response());
 
     const progress: Array<[number, number]> = [];
+    const caught = await run_category_scope_action("trash", "primary", {
+      on_progress: (completed, total) => progress.push([completed, total]),
+    }).catch((error: unknown) => error);
 
-    await expect(
-      run_category_scope_action("trash", "primary", {
-        on_progress: (completed, total) => progress.push([completed, total]),
-      }),
-    ).rejects.toThrow();
-
-    expect(mock_scope).toHaveBeenCalledTimes(2);
-    expect(mock_remove_ids.mock.calls.flatMap((c) => c[0])).toEqual(
-      all_ids.slice(0, 1000),
-    );
+    expect(caught).toBeInstanceOf(CategoryBulkPartialError);
+    expect(caught).toMatchObject({ completed: 1500, failed: 1000 });
+    expect(mock_scope).toHaveBeenCalledTimes(3);
+    expect(mock_remove_ids.mock.calls.flatMap((c) => c[0])).toEqual([
+      ...all_ids.slice(0, 1000),
+      ...all_ids.slice(2000),
+    ]);
     expect(vi.mocked(clear_flag_intents)).toHaveBeenCalledWith(
       all_ids.slice(1000, 2000),
       { is_trashed: true },
     );
-    expect(progress[progress.length - 1]).toEqual([1000, 2500]);
+    expect(progress[progress.length - 1]).toEqual([1500, 2500]);
     expect(vi.mocked(invalidate_mail_stats)).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends a rate limited chunk again after waiting", async () => {
+    set_index(make_ids(10));
+    mock_scope
+      .mockResolvedValueOnce({
+        error: "Too many requests",
+        code: "RATE_LIMIT_EXCEEDED",
+        status: 429,
+        retry_after_secs: 60,
+      } as never)
+      .mockResolvedValueOnce(ok_response());
+
+    const outcome = await run_category_scope_action("trash", "primary");
+
+    expect(outcome).toBe("done");
+    expect(mock_scope).toHaveBeenCalledTimes(2);
+    expect(mock_remove_ids.mock.calls.flatMap((c) => c[0])).toHaveLength(10);
   });
 
   it("leaves the index and stats alone when the first chunk fails", async () => {
