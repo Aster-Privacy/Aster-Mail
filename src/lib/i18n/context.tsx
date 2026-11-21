@@ -288,6 +288,11 @@ export function I18nProvider({
     void publish_push_strings(
       translations.common.push_new_message,
       translations.common.new_reaction_body,
+      {
+        guard_sign_in: translations.guard?.push_sign_in ?? "",
+        guard_activity: translations.guard?.push_activity ?? "",
+        guard_ended: translations.guard?.push_ended ?? "",
+      },
     );
   }, [language, is_rtl, translations]);
 

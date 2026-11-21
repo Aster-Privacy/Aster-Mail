@@ -127,6 +127,7 @@ export interface CreateSmtpTokenApiResponse {
   expires_at: string | null;
   created_at: string;
   smtp_settings: SmtpSettings;
+  activates_at?: string | null;
 }
 
 export interface CreateSmtpTokenResult {
@@ -138,6 +139,7 @@ export interface CreateSmtpTokenResult {
   expires_at: string | null;
   created_at: string;
   smtp_settings: SmtpSettings;
+  activates_at?: string | null;
 }
 
 export async function list_smtp_tokens(): Promise<
@@ -232,6 +234,7 @@ export async function create_smtp_token(
       expires_at: response.data.expires_at,
       created_at: response.data.created_at,
       smtp_settings: response.data.smtp_settings,
+      activates_at: response.data.activates_at ?? null,
     },
   };
 }

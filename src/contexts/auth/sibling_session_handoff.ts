@@ -55,6 +55,7 @@ const SKIPPED_PATH_PREFIXES = [
   "/signup",
   "/invite",
   "/forgot-password",
+  "/guard/veto",
   "/cancel",
   "/reset-password",
   "/link-device",

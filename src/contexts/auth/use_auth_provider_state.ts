@@ -120,6 +120,7 @@ import { release_app_lock } from "@/services/app_lock_unlock";
 import { delete_category_index_for_account } from "@/services/category_index";
 import { delete_user_device_snapshots } from "@/services/crypto/device_recovery_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { leave_guard_on_sign_out } from "@/services/guard/guard_leave";
 import {
   announce_sign_out,
   watch_sign_out_signal,
@@ -491,6 +492,16 @@ export function use_auth_provider_state() {
         );
       }
 
+      if (current_id) {
+        await with_timeout(leave_guard_on_sign_out(current_id), 3000).catch(
+          (caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+              caught,
+            ),
+        );
+      }
+
       await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
       await with_timeout(
         announce_sign_out([current_id ?? state.user?.id]),
@@ -598,6 +609,18 @@ export function use_auth_provider_state() {
 
       if (uses_account_hub()) {
         await with_timeout(sign_out_hub_accounts("all"), 2500).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+      }
+
+      if (state.current_account_id) {
+        await with_timeout(
+          leave_guard_on_sign_out(state.current_account_id),
+          3000,
+        ).catch((caught) =>
           ignore_error(
             "contexts/auth/use_auth_provider_state:use_auth_provider_state",
             caught,

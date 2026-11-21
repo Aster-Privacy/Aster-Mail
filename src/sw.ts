@@ -20,6 +20,16 @@
 //
 /// <reference lib="webworker" />
 import { kept_across_updates } from "@/lib/app_update_caches";
+import {
+  GUARD_PUSH_SW_MESSAGE,
+  GUARD_PUSH_URL,
+  guard_push_body,
+  guard_push_is_ended,
+  guard_push_notification_tag,
+  guard_push_resolved_tag,
+  guard_window_is_watching,
+  read_guard_push,
+} from "@/lib/guard_push";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   push_fallback_body,
@@ -157,6 +167,19 @@ async function push_notification_body(is_reaction: boolean): Promise<string> {
   }
 }
 
+async function read_push_strings(): Promise<Record<string, unknown> | null> {
+  try {
+    const cache = await caches.open(PUSH_STRINGS_CACHE);
+    const stored = await cache.match(PUSH_STRINGS_URL);
+
+    if (!stored) return null;
+
+    return (await stored.json()) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 async function push_has_muted_categories(): Promise<boolean> {
   try {
     const cache = await caches.open(PUSH_STRINGS_CACHE);
@@ -191,6 +214,33 @@ self.addEventListener("push", (event: PushEvent) => {
       });
       const is_test = data.type === "test";
       const app_is_open = clients.length > 0;
+      const guard = read_guard_push(data);
+
+      if (guard) {
+        for (const client of clients) {
+          client.postMessage({ type: GUARD_PUSH_SW_MESSAGE, payload: guard });
+        }
+        const resolved_tag = guard_push_resolved_tag(guard);
+
+        if (resolved_tag) {
+          const open = await self.registration
+            .getNotifications({ tag: resolved_tag })
+            .catch(() => []);
+
+          for (const notification of open) notification.close();
+        }
+        if (guard_window_is_watching(clients)) return;
+        await self.registration.showNotification("Aster Mail", {
+          body: guard_push_body(guard, await read_push_strings()),
+          icon: "/pwa-192x192.png",
+          badge: "/favicon-32x32.png",
+          tag: guard_push_notification_tag(guard),
+          data: { url: GUARD_PUSH_URL, guard: true },
+          ...(guard_push_is_ended(guard) ? { silent: true } : {}),
+        });
+
+        return;
+      }
 
       if (app_is_open && !is_test) {
         for (const client of clients) {
@@ -223,11 +273,20 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.notification.close();
 
   const url_to_open = sanitize_notification_path(event.notification.data?.url);
+  const is_guard = event.notification.data?.guard === true;
 
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((window_clients) => {
+        if (is_guard) {
+          const app_window =
+            window_clients.find(
+              (client) => client.visibilityState === "visible",
+            ) ?? window_clients[0];
+
+          if (app_window && "focus" in app_window) return app_window.focus();
+        }
         for (const client of window_clients) {
           if (client.url.includes(url_to_open) && "focus" in client) {
             return client.focus();

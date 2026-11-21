@@ -39,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { StepUpModal } from "@/components/settings/step_up_modal";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -236,6 +237,11 @@ export function HardwareKeysSection() {
     set_removing_key_id(null);
     set_pending_delete(null);
 
+    if (held_of(response)) {
+      set_step_up_key_id(null);
+
+      return;
+    }
     if (!credentials && is_reauth_required(response.server_code)) {
       set_step_up_key_id(key_id);
 

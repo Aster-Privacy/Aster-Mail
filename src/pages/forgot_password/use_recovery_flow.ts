@@ -100,6 +100,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { print_current_page } from "@/utils/print_page";
+import { held_of } from "@/services/guard/held_outcome";
 
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",
@@ -218,6 +219,9 @@ export function use_recovery_flow() {
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
   const [previous_password, set_previous_password] = useState("");
+  const [guard_held_until, set_guard_held_until] = useState<string | null>(
+    null,
+  );
   const [is_previous_visible, set_is_previous_visible] = useState(false);
   const [needs_previous_password, set_needs_previous_password] =
     useState(false);
@@ -612,6 +616,22 @@ export function use_recovery_flow() {
         ),
     );
 
+    const held = held_of(complete_response);
+
+    if (held) {
+      set_guard_held_until(held.apply_after);
+      set_recovery_code("");
+      set_password("");
+      set_confirm_password("");
+      set_previous_password("");
+      set_recovery_token("");
+      set_vault_backup(null);
+      set_encrypted_recovery_key_data(null);
+      set_step("guard_held");
+
+      return;
+    }
+
     if (complete_response.error || !complete_response.data?.success) {
       throw new Error(
         recovery_error_message(complete_response, t) ||
@@ -865,6 +885,7 @@ export function use_recovery_flow() {
     codes_saved,
     set_codes_saved,
     review,
+    guard_held_until,
     recovered_address: recovered_account?.address ?? "",
     sign_in_path,
     handle_navigate_sign_in,

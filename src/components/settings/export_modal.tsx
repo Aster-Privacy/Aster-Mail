@@ -52,6 +52,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import { clamp_password } from "@/services/sanitize";
 import {
   derive_step_up_credentials,
@@ -251,6 +252,15 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
         captcha_token: captcha_token ?? undefined,
       });
 
+      if (held_of(res)) {
+        set_verify_password("");
+        set_verify_code("");
+        set_captcha_token(null);
+        reset();
+        on_close();
+
+        return;
+      }
       if (res.error || !res.data?.valid) {
         set_verify_error(t("common.step_up_error"));
         set_captcha_token(null);
@@ -284,6 +294,8 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     verify_password,
     verify_totp_required,
     captcha_token,
+    reset,
+    on_close,
   ]);
 
   const handle_warning_continue = useCallback(() => {

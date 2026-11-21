@@ -27,6 +27,7 @@ const FINGERPRINT_BYTES = 10;
 const ED25519_PK_BYTES = 32;
 const MLKEM_PK_BYTES = 1184;
 const X25519_PK_BYTES = 32;
+const ACTION_PK_BYTES = 33;
 
 export const FINGERPRINT_CHARS = FINGERPRINT_BYTES * 2;
 
@@ -34,6 +35,7 @@ export interface EncodedDeviceKeys {
   ed25519_pk: string;
   mlkem_pk: string;
   x25519_pk: string;
+  action_pk?: string | null;
 }
 
 function length_prefixed(key: Uint8Array): Uint8Array {
@@ -49,6 +51,7 @@ export function device_key_fingerprint(
   ed25519_pk: Uint8Array,
   mlkem_pk: Uint8Array,
   x25519_pk: Uint8Array,
+  action_pk?: Uint8Array | null,
 ): string {
   const hasher = sha256.create();
 
@@ -57,6 +60,7 @@ export function device_key_fingerprint(
   hasher.update(length_prefixed(ed25519_pk));
   hasher.update(length_prefixed(mlkem_pk));
   hasher.update(length_prefixed(x25519_pk));
+  if (action_pk) hasher.update(length_prefixed(action_pk));
 
   const hex = Array.from(hasher.digest().subarray(0, FINGERPRINT_BYTES))
     .map((byte) => byte.toString(16).padStart(2, "0"))
@@ -107,16 +111,20 @@ export function fingerprint_of_encoded_device_keys(
     const ed25519_pk = base64url_decode(keys.ed25519_pk);
     const mlkem_pk = base64url_decode(keys.mlkem_pk);
     const x25519_pk = base64url_decode(keys.x25519_pk);
+    const action_pk = keys.action_pk
+      ? base64url_decode(keys.action_pk)
+      : null;
 
     if (
       ed25519_pk.length !== ED25519_PK_BYTES ||
       mlkem_pk.length !== MLKEM_PK_BYTES ||
-      x25519_pk.length !== X25519_PK_BYTES
+      x25519_pk.length !== X25519_PK_BYTES ||
+      (action_pk !== null && action_pk.length !== ACTION_PK_BYTES)
     ) {
       return null;
     }
 
-    return device_key_fingerprint(ed25519_pk, mlkem_pk, x25519_pk);
+    return device_key_fingerprint(ed25519_pk, mlkem_pk, x25519_pk, action_pk);
   } catch {
     return null;
   }

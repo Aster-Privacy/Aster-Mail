@@ -42,6 +42,7 @@ import { Input } from "@/components/ui/input";
 import { TotpVerification } from "@/components/auth/totp_verification";
 import { BackupCodeInput } from "@/components/auth/backup_code_input";
 import { WebauthnVerification } from "@/components/auth/webauthn_verification";
+import { GuardSignInPanel } from "@/components/guard/guard_sign_in_gate";
 import {
   stagger_container,
   fade_up_item,
@@ -104,6 +105,8 @@ export default function MobileSignInPage() {
     active_2fa_method,
     set_active_2fa_method,
     handle_totp_success,
+    guard_gate,
+    handle_guard_complete,
   } = use_mobile_sign_in();
 
   if (auth_loading || has_existing_session) {
@@ -143,7 +146,28 @@ export default function MobileSignInPage() {
       set_pending_login_token,
       set_available_2fa_methods,
       set_active_2fa_method,
+      guard_gate,
     });
+
+  if (guard_gate.guard_start && !is_loading) {
+    return (
+      <div
+        className="flex h-[100dvh] flex-col overflow-y-auto bg-[var(--bg-primary)]"
+        style={{
+          paddingTop: safe_area_insets.top,
+          paddingBottom: safe_area_insets.bottom,
+        }}
+      >
+        <div className="flex flex-1 items-center justify-center px-6 py-8">
+          <GuardSignInPanel
+            start={guard_gate.guard_start}
+            on_back={guard_gate.clear_guard}
+            on_complete={handle_guard_complete}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (totp_required) {
     return (

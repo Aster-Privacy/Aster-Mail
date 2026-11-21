@@ -61,6 +61,7 @@ import { ActionToast } from "@/components/toast/action_toast";
 import { SimpleToast } from "@/components/toast/simple_toast";
 import { DesktopDownloadNotifier } from "@/native/desktop_download_bridge";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
+import { GuardApprovalHost } from "@/components/guard/guard_approval_sheet";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { CreationTokenPrompt } from "@/components/auth/creation_token_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
@@ -104,6 +105,9 @@ const RegisterPage = lazy_with_retry(() => import("@/pages/register"));
 const InvitePage = lazy_with_retry(() => import("@/pages/invite"));
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/forgot_password"),
+);
+const GuardVetoPage = lazy_with_retry(
+  () => import("@/pages/guard/guard_veto_page"),
 );
 const PublicCancelPage = lazy_with_retry(
   () => import("@/pages/public_cancel"),
@@ -576,6 +580,7 @@ function App() {
               <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              <Route element={<GuardVetoPage />} path="/guard/veto" />
               {PUBLIC_CANCEL_ENABLED && (
                 <Route element={<PublicCancelPage />} path="/cancel" />
               )}
@@ -671,6 +676,9 @@ function App() {
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
       <CreationTokenPrompt />
+      <ErrorBoundary fallback={null}>
+        <GuardApprovalHost />
+      </ErrorBoundary>
       <ErrorBoundary fallback={null}>
         <UpgradeModalHost />
         <AliasCapUpsellModalHost />

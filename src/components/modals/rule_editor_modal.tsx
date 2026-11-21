@@ -62,6 +62,7 @@ import {
 import {
   create_rule,
   get_last_save_error,
+  get_last_save_held,
   get_last_save_server_message,
   update_rule,
   delete_rule,
@@ -554,6 +555,12 @@ export function RuleEditorModal({
           ? await update_rule(rule.id, req)
           : await create_rule(req);
 
+      if (!result && get_last_save_held()) {
+        set_saving(false);
+        on_close();
+
+        return;
+      }
       if (!result) {
         const save_error = classify_rule_save_error(
           get_last_save_server_message(),
@@ -728,6 +735,11 @@ export function RuleEditorModal({
 
     set_saving(false);
 
+    if (!deleted && get_last_save_held()) {
+      on_close();
+
+      return;
+    }
     if (!deleted) {
       show_toast(t("mail_rules.rule_delete_failed"), "error");
 

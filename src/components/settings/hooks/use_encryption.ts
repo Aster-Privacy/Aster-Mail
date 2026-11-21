@@ -31,6 +31,7 @@ import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import { api_client } from "@/services/api/client";
 import {
   ensure_pgp_key_published,
@@ -529,6 +530,14 @@ export function use_encryption() {
         client_side_decryption?: boolean;
       }>("/crypto/v1/keys/pgp/export", body);
 
+      if (held_of(response)) {
+        set_show_export_prompt(false);
+        set_export_password("");
+        set_export_totp_code("");
+        set_export_error("");
+
+        return;
+      }
       if (response.error) {
         set_export_error(
           response.code === "UNAUTHORIZED"

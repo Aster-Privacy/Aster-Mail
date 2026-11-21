@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 
 import { is_composing } from "@/utils/ime";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import {
   Modal,
   ModalHeader,
@@ -61,6 +62,7 @@ import {
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { copy_text } from "@/utils/copy_text";
+import { format_guard_time } from "@/components/guard/guard_waiting_screen";
 
 interface SmtpTokenCreateModalProps {
   is_open: boolean;
@@ -160,6 +162,12 @@ export function SmtpTokenCreateModal({
         domain_name: selected.domain_name,
         local_part: selected.local_part,
       });
+
+      if (held_of(response)) {
+        on_close();
+
+        return;
+      }
 
       if (response.error || !response.data) {
         if (response.code === "FORBIDDEN") {
@@ -322,6 +330,16 @@ export function SmtpTokenCreateModal({
             <ClipboardDocumentIcon className="w-4 h-4 me-2" />
             {t("settings.smtp_token_copy_all")}
           </Button>
+          {created.activates_at && (
+            <p
+              className="rounded-xl border border-edge-secondary p-3 text-sm text-txt-secondary"
+              data-testid="smtp_token_activates_at"
+            >
+              {t("guard.mail_app_activates_at", {
+                time: format_guard_time(created.activates_at),
+              })}
+            </p>
+          )}
           <DisclosureCallout />
         </ModalBody>
         <ModalFooter>

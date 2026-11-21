@@ -65,6 +65,7 @@ import { sign_in_with_hub_account } from "@/services/hub_linked_login";
 import { is_tauri } from "@/native/desktop_device_auth";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
+import { use_guard_sign_in_gate } from "@/components/guard/guard_sign_in_gate";
 import {
   is_crypto_module_load_error,
   preload_openpgp,
@@ -664,8 +665,15 @@ export function use_sign_in_page() {
     "totp" | "webauthn" | "backup" | "choose"
   >("totp");
 
+  const guard_gate = use_guard_sign_in_gate();
+
   const handle_totp_success = useCallback(
-    async (totp_response: TotpVerifyResponse) => {
+    async (
+      totp_response: TotpVerifyResponse,
+      passphrase_override?: string | null,
+    ) => {
+      const effective_password = passphrase_override || password;
+
       set_is_loading(true);
       set_status(t("auth.decrypting_vault"));
 
@@ -676,10 +684,10 @@ export function use_sign_in_page() {
           vault = await decrypt_vault(
             totp_response.encrypted_vault,
             totp_response.vault_nonce,
-            password,
+            effective_password,
           );
         } catch (vault_err) {
-          if (password || is_crypto_module_load_error(vault_err)) {
+          if (effective_password || is_crypto_module_load_error(vault_err)) {
             throw vault_err;
           }
 
@@ -792,7 +800,7 @@ export function use_sign_in_page() {
             add_account(
               user_data,
               vault,
-              password,
+              effective_password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
               remember_me,
@@ -817,7 +825,7 @@ export function use_sign_in_page() {
             login(
               user_data,
               vault,
-              password,
+              effective_password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
               remember_me,
@@ -902,6 +910,32 @@ export function use_sign_in_page() {
       active_2fa_method,
       remember_me,
     ],
+  );
+
+  const handle_guard_complete = useCallback(
+    async (data: Record<string, unknown>, passphrase: string | null) => {
+      guard_gate.clear_guard();
+      if (is_totp_required_response(data)) {
+        set_pending_login_token(data.pending_login_token);
+        const methods = data.available_methods || ["totp"];
+
+        set_available_2fa_methods(methods);
+        set_active_2fa_method(
+          methods.includes("webauthn") && is_webauthn_supported()
+            ? "webauthn"
+            : "totp",
+        );
+        set_totp_required(true);
+        set_is_loading(false);
+
+        return;
+      }
+      await handle_totp_success(
+        data as unknown as TotpVerifyResponse,
+        passphrase,
+      );
+    },
+    [guard_gate, handle_totp_success],
   );
 
   const reset_resend_cooldown = useCallback(() => {
@@ -1023,6 +1057,8 @@ export function use_sign_in_page() {
     active_2fa_method,
     set_active_2fa_method,
     handle_totp_success,
+    guard_gate,
+    handle_guard_complete,
     handle_resend_pending,
     hub_accounts,
     hub_signing_in_id,

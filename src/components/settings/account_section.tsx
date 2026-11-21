@@ -525,6 +525,7 @@ export function AccountSection() {
 
     const r = await save_recovery_email(normalized, vault);
 
+    if (r.held) return;
     if (is_reauth_required(r.code)) {
       request_recovery_step_up(normalized);
 
@@ -582,6 +583,11 @@ export function AccountSection() {
         credentials,
       );
 
+      if (r.held) {
+        set_show_step_up(false);
+
+        return;
+      }
       if (r.code === "CONFLICT") {
         throw new Error(t("common.recovery_conflict"));
       }
@@ -602,6 +608,12 @@ export function AccountSection() {
       set_show_step_up(false);
     } else {
       const r = await remove_recovery_email(credentials);
+
+      if (r.held) {
+        set_show_step_up(false);
+
+        return;
+      }
 
       if (!r.data.success) {
         throw new Error(r.error || t("common.step_up_error"));

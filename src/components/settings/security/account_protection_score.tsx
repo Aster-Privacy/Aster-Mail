@@ -30,7 +30,9 @@ import {
   ModalTitle,
   ModalBody,
 } from "@/components/ui/modal";
+import { GuardMarkIcon } from "@/components/guard/guard_visuals";
 import {
+  SECURITY_LOCK_COLOR,
   SecurityLockIcon,
   security_status_from_percent,
   type SecurityStatus,
@@ -58,11 +60,12 @@ interface AccountProtectionScoreProps {
   block_tracking_pixels: boolean;
   block_remote_images: boolean;
   strip_exif_on_compose: boolean;
+  guard_enabled?: boolean | null;
   security_loaded?: boolean;
   on_criterion_click?: Array<(() => void) | undefined>;
 }
 
-const WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1] as const;
+const CRITERION_WEIGHT = 1;
 
 export function AccountProtectionScore({
   totp_enabled,
@@ -73,6 +76,7 @@ export function AccountProtectionScore({
   block_tracking_pixels,
   block_remote_images,
   strip_exif_on_compose,
+  guard_enabled = null,
   security_loaded = true,
   on_criterion_click,
 }: AccountProtectionScoreProps) {
@@ -90,6 +94,7 @@ export function AccountProtectionScore({
     block_tracking_pixels,
     block_remote_images,
     strip_exif_on_compose,
+    guard_enabled,
   });
 
   const bar_pct = security_percent(criteria);
@@ -186,10 +191,24 @@ export function AccountProtectionScore({
                         click_handler();
                       }}
                     >
-                      <SecurityLockIcon
-                        className="w-4 h-4 flex-shrink-0"
-                        status={criterion.met ? "strong" : "weak"}
-                      />
+                      {criterion.id === "guard_enabled" ? (
+                        <span
+                          className="inline-flex flex-shrink-0"
+                          style={{
+                            color:
+                              SECURITY_LOCK_COLOR[
+                                criterion.met ? "strong" : "weak"
+                              ],
+                          }}
+                        >
+                          <GuardMarkIcon className="w-4 h-4" />
+                        </span>
+                      ) : (
+                        <SecurityLockIcon
+                          className="w-4 h-4 flex-shrink-0"
+                          status={criterion.met ? "strong" : "weak"}
+                        />
+                      )}
                       <span
                         className={`text-sm flex-1 ${criterion.met ? "text-txt-primary" : "text-txt-muted"}`}
                       >
@@ -197,7 +216,7 @@ export function AccountProtectionScore({
                       </span>
                       {!criterion.met && (
                         <span className="text-xs font-semibold text-txt-muted tabular-nums">
-                          +{WEIGHTS[i]}
+                          +{CRITERION_WEIGHT}
                         </span>
                       )}
                       {is_clickable && (
