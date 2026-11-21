@@ -1941,6 +1941,26 @@ export const fr = {
       "Mot de passe ou code de vérification incorrect. Veuillez réessayer.",
     step_up_security_key_hint:
       "Après avoir saisi votre mot de passe, vous devrez vérifier votre identité avec votre clé de sécurité.",
+    security_key_add_step_up_hint:
+      "Après avoir saisi votre mot de passe, validez avec une clé de sécurité déjà associée à votre compte. Vous ajoutez la nouvelle clé à l'étape suivante.",
+    security_key_add_ready:
+      "Connectez la clé de sécurité que vous voulez ajouter, puis sélectionnez Continuer.",
+    security_key_confirmation_expired:
+      "Votre confirmation a expiré. Confirmez à nouveau votre mot de passe pour continuer.",
+    security_key_error_canceled:
+      "La demande de clé de sécurité a été annulée. Réessayez quand vous êtes prêt.",
+    security_key_error_timed_out:
+      "La demande de clé de sécurité a expiré. Réessayez et touchez votre clé lorsque votre navigateur vous le demande.",
+    security_key_error_already_registered:
+      "Cette clé de sécurité est déjà associée à votre compte. Utilisez une autre clé.",
+    security_key_error_not_supported:
+      "Les clés de sécurité ne sont pas disponibles dans ce navigateur ou sur cette page. Essayez un autre navigateur.",
+    security_key_error_needs_pin:
+      "Cette clé de sécurité ne peut pas terminer la demande. Si la clé n'a pas de code PIN, configurez-en un, puis réessayez.",
+    security_key_error_not_recognized:
+      "Aster n'a pas pu valider une clé de sécurité déjà associée à votre compte. Connectez une clé que vous avez déjà ajoutée, pas la nouvelle, puis réessayez.",
+    security_key_error_failed:
+      "Un problème est survenu avec la clé de sécurité. Réessayez.",
     save_recovery_codes_dialog: "Enregistrer les codes de récupération",
     save_recovery_codes_title: "Codes de récupération",
     scanning_mailbox: "Analyse de la boîte aux lettres...",

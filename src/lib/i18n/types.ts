@@ -1270,6 +1270,16 @@ export interface CommonTranslations {
   step_up_description: string;
   step_up_error: string;
   step_up_security_key_hint: string;
+  security_key_add_step_up_hint: string;
+  security_key_add_ready: string;
+  security_key_confirmation_expired: string;
+  security_key_error_canceled: string;
+  security_key_error_timed_out: string;
+  security_key_error_already_registered: string;
+  security_key_error_not_supported: string;
+  security_key_error_needs_pin: string;
+  security_key_error_not_recognized: string;
+  security_key_error_failed: string;
   recovery_email_removed: string;
   recovery_email_hidden: string;
   profile_picture_updated: string;

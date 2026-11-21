@@ -1865,6 +1865,26 @@ export const ko = {
       "비밀번호 또는 인증 코드가 올바르지 않습니다. 다시 시도하세요.",
     step_up_security_key_hint:
       "비밀번호를 입력하면 보안 키로 추가 인증을 진행하게 됩니다.",
+    security_key_add_step_up_hint:
+      "비밀번호를 입력한 후 계정에 이미 등록된 보안 키로 인증하세요. 새 키는 다음 단계에서 추가합니다.",
+    security_key_add_ready:
+      "추가할 보안 키를 연결한 다음 '계속'을 선택하세요.",
+    security_key_confirmation_expired:
+      "확인이 만료되었습니다. 계속하려면 비밀번호를 다시 확인하세요.",
+    security_key_error_canceled:
+      "보안 키 요청이 취소되었습니다. 준비되면 다시 시도하세요.",
+    security_key_error_timed_out:
+      "보안 키 요청 시간이 초과되었습니다. 다시 시도하고 브라우저에서 요청하면 키를 터치하세요.",
+    security_key_error_already_registered:
+      "이 보안 키는 이미 계정에 등록되어 있습니다. 다른 키를 사용하세요.",
+    security_key_error_not_supported:
+      "이 브라우저 또는 이 페이지에서는 보안 키를 사용할 수 없습니다. 다른 브라우저를 사용해 보세요.",
+    security_key_error_needs_pin:
+      "이 보안 키로는 요청을 완료할 수 없습니다. 키에 PIN이 없으면 PIN을 설정한 후 다시 시도하세요.",
+    security_key_error_not_recognized:
+      "계정에 이미 등록된 보안 키를 확인하지 못했습니다. 새 키가 아니라 이미 추가한 키를 연결한 후 다시 시도하세요.",
+    security_key_error_failed:
+      "보안 키에 문제가 발생했습니다. 다시 시도하세요.",
     recovery_email_removed: "복구 이메일이 제거되었습니다",
     recovery_email_hidden: "이 계정에 저장됨",
     failed_save_profile_color:

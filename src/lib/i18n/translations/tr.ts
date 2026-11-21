@@ -1693,6 +1693,26 @@ export const tr = {
     step_up_error: "Şifre veya doğrulama kodu yanlış. Lütfen tekrar deneyin.",
     step_up_security_key_hint:
       "Şifrenizi girdikten sonra güvenlik anahtarınızla doğrulama yapmanız istenecek.",
+    security_key_add_step_up_hint:
+      "Şifrenizi girdikten sonra hesabınızda zaten kayıtlı olan bir güvenlik anahtarıyla doğrulama yapın. Yeni anahtarı bir sonraki adımda eklersiniz.",
+    security_key_add_ready:
+      "Eklemek istediğiniz güvenlik anahtarını bağlayın, ardından Devam et seçeneğini belirleyin.",
+    security_key_confirmation_expired:
+      "Onayınızın süresi doldu. Devam etmek için şifrenizi yeniden onaylayın.",
+    security_key_error_canceled:
+      "Güvenlik anahtarı isteği iptal edildi. Hazır olduğunuzda yeniden deneyin.",
+    security_key_error_timed_out:
+      "Güvenlik anahtarı isteği zaman aşımına uğradı. Yeniden deneyin ve tarayıcınız istediğinde anahtarınıza dokunun.",
+    security_key_error_already_registered:
+      "Bu güvenlik anahtarı hesabınızda zaten kayıtlı. Başka bir anahtar kullanın.",
+    security_key_error_not_supported:
+      "Güvenlik anahtarları bu tarayıcıda veya bu sayfada kullanılamıyor. Başka bir tarayıcı deneyin.",
+    security_key_error_needs_pin:
+      "Bu güvenlik anahtarı isteği tamamlayamıyor. Anahtarın PIN'i yoksa bir PIN ayarlayın ve yeniden deneyin.",
+    security_key_error_not_recognized:
+      "Aster, hesabınızda zaten kayıtlı olan bir güvenlik anahtarını doğrulayamadı. Yeni anahtarı değil, daha önce eklediğiniz bir anahtarı bağlayın ve yeniden deneyin.",
+    security_key_error_failed:
+      "Güvenlik anahtarıyla ilgili bir sorun oluştu. Yeniden deneyin.",
     recovery_email_removed: "Kurtarma e-postası kaldırıldı",
     recovery_email_hidden: "Bu hesapta kayıtlı",
     failed_save_profile_color: "Renk seçiminiz kaydedilmedi. Tekrar deneyin.",

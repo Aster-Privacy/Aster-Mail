@@ -23,6 +23,11 @@ import type { ReauthProof } from "./step_up";
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
 import { TotpVerifyResponse } from "./totp";
+import {
+  SECURITY_KEY_PROMPT_ERROR,
+  describe_security_key_error,
+  security_key_error_message,
+} from "./webauthn_errors";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
@@ -55,6 +60,7 @@ export interface HardwareKeyRegistrationOptions {
     residentKey: string;
     userVerification: string;
   };
+  excludeCredentials?: AllowedCredential[];
 }
 
 export interface HardwareKeyRegistrationCompleteResponse {
@@ -229,11 +235,10 @@ export async function verify_webauthn_assertion(request: {
   return response;
 }
 
-export async function perform_webauthn_registration(
+export function build_registration_public_key(
   options: HardwareKeyRegistrationOptions,
-  friendly_name: string | null,
-): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
-  const public_key: PublicKeyCredentialCreationOptions = {
+): PublicKeyCredentialCreationOptions {
+  return {
     challenge: base64_url_to_array_buffer(options.challenge),
     rp: { name: options.rp.name, id: options.rp.id },
     user: {
@@ -258,7 +263,19 @@ export async function perform_webauthn_registration(
       userVerification: options.authenticatorSelection
         .userVerification as UserVerificationRequirement,
     },
+    excludeCredentials: (options.excludeCredentials ?? []).map((c) => ({
+      type: c.type as PublicKeyCredentialType,
+      id: base64_url_to_array_buffer(c.id),
+    })),
   };
+}
+
+export async function perform_webauthn_registration(
+  options: HardwareKeyRegistrationOptions,
+  friendly_name: string | null,
+): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
+  const public_key = build_registration_public_key(options);
+  const started_at = Date.now();
 
   let credential: PublicKeyCredential | null;
 
@@ -267,26 +284,23 @@ export async function perform_webauthn_registration(
       publicKey: public_key,
     })) as PublicKeyCredential | null;
   } catch (err) {
-    if (
-      err instanceof Error &&
-      (err.name === "NotAllowedError" || err.name === "AbortError")
-    ) {
-      return {
-        data: undefined,
-        error: get_active_translations().errors.registration_cancelled,
-      };
-    }
-
     return {
       data: undefined,
-      error: get_active_translations().errors.registration_failed,
+      error: describe_security_key_error(
+        err,
+        "register",
+        Date.now() - started_at,
+        options.timeout,
+      ),
+      server_code: SECURITY_KEY_PROMPT_ERROR,
     };
   }
 
   if (!credential) {
     return {
       data: undefined,
-      error: get_active_translations().errors.registration_cancelled,
+      error: security_key_error_message("canceled"),
+      server_code: SECURITY_KEY_PROMPT_ERROR,
     };
   }
 
@@ -438,6 +452,8 @@ export async function perform_webauthn_assertion_with_options(
     userVerification: options.userVerification as UserVerificationRequirement,
   };
 
+  const started_at = Date.now();
+
   let credential: PublicKeyCredential | null;
 
   try {
@@ -446,22 +462,18 @@ export async function perform_webauthn_assertion_with_options(
       mediation: "required" as CredentialMediationRequirement,
     })) as PublicKeyCredential | null;
   } catch (err) {
-    if (
-      err instanceof Error &&
-      (err.name === "NotAllowedError" || err.name === "AbortError")
-    ) {
-      throw new Error(
-        get_active_translations().errors.authentication_cancelled,
-      );
-    }
-
     throw new Error(
-      get_active_translations().errors.authentication_failed_webauthn,
+      describe_security_key_error(
+        err,
+        "verify",
+        Date.now() - started_at,
+        options.timeout,
+      ),
     );
   }
 
   if (!credential) {
-    throw new Error(get_active_translations().errors.authentication_cancelled);
+    throw new Error(security_key_error_message("not_recognized"));
   }
 
   const assertion_response =

@@ -1839,6 +1839,26 @@ export const de = {
       "Falsches Passwort oder falscher Bestätigungscode. Bitte versuchen Sie es erneut.",
     step_up_security_key_hint:
       "Nach Eingabe Ihres Passworts werden Sie gebeten, sich mit Ihrem Sicherheitsschlüssel zu verifizieren.",
+    security_key_add_step_up_hint:
+      "Bestätigen Sie nach Eingabe Ihres Passworts mit einem Sicherheitsschlüssel, der bereits zu Ihrem Konto gehört. Den neuen Schlüssel fügen Sie im nächsten Schritt hinzu.",
+    security_key_add_ready:
+      "Schließen Sie den Sicherheitsschlüssel an, den Sie hinzufügen möchten, und wählen Sie dann Weiter.",
+    security_key_confirmation_expired:
+      "Ihre Bestätigung ist abgelaufen. Bestätigen Sie Ihr Passwort erneut, um fortzufahren.",
+    security_key_error_canceled:
+      "Die Anfrage an den Sicherheitsschlüssel wurde abgebrochen. Versuchen Sie es erneut, wenn Sie bereit sind.",
+    security_key_error_timed_out:
+      "Die Zeit für die Anfrage an den Sicherheitsschlüssel ist abgelaufen. Versuchen Sie es erneut und berühren Sie den Schlüssel, wenn Ihr Browser Sie dazu auffordert.",
+    security_key_error_already_registered:
+      "Dieser Sicherheitsschlüssel gehört bereits zu Ihrem Konto. Verwenden Sie einen anderen Schlüssel.",
+    security_key_error_not_supported:
+      "Sicherheitsschlüssel sind in diesem Browser oder auf dieser Seite nicht verfügbar. Versuchen Sie es mit einem anderen Browser.",
+    security_key_error_needs_pin:
+      "Dieser Sicherheitsschlüssel kann die Anfrage nicht abschließen. Wenn der Schlüssel keine PIN hat, richten Sie eine ein und versuchen Sie es erneut.",
+    security_key_error_not_recognized:
+      "Aster konnte keinen Sicherheitsschlüssel bestätigen, der bereits zu Ihrem Konto gehört. Schließen Sie einen bereits hinzugefügten Schlüssel an, nicht den neuen, und versuchen Sie es erneut.",
+    security_key_error_failed:
+      "Beim Sicherheitsschlüssel ist ein Fehler aufgetreten. Versuchen Sie es erneut.",
     save_recovery_codes_dialog: "Wiederherstellungscodes speichern",
     save_recovery_codes_title: "Aster Mail Wiederherstellungscodes",
     scanning_mailbox: "Postfach wird durchsucht...",
