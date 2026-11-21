@@ -21,6 +21,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
+import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   is_mail_item_in_trash,
@@ -38,15 +39,25 @@ export interface PermanentDeleteConfirmResult {
 
 export function use_permanent_delete_confirm(): PermanentDeleteConfirmResult {
   const { t } = use_i18n();
+  const { preferences, update_preference } = use_preferences();
+  const asks_first = preferences.confirm_before_permanent_delete !== false;
   const [is_open, set_is_open] = useState(false);
+  const [dont_ask, set_dont_ask] = useState(false);
   const pending_ref = useRef<PermanentDeletePerform | null>(null);
 
   const request_permanent_delete = useCallback(
     (perform: PermanentDeletePerform) => {
+      if (!asks_first) {
+        void perform();
+
+        return;
+      }
+
       pending_ref.current = perform;
+      set_dont_ask(false);
       set_is_open(true);
     },
-    [],
+    [asks_first],
   );
 
   const handle_confirm = useCallback(() => {
@@ -55,24 +66,30 @@ export function use_permanent_delete_confirm(): PermanentDeleteConfirmResult {
     pending_ref.current = null;
     set_is_open(false);
 
+    if (dont_ask) {
+      update_preference("confirm_before_permanent_delete", false, true);
+    }
+
+    set_dont_ask(false);
+
     if (perform) void perform();
-  }, []);
+  }, [dont_ask, update_preference]);
 
   const handle_cancel = useCallback(() => {
     pending_ref.current = null;
     set_is_open(false);
+    set_dont_ask(false);
   }, []);
 
   const permanent_delete_dialog = (
     <ConfirmModal
-      hide_dont_ask
       confirm_text={t("mail.delete_permanently")}
       confirm_variant="destructive"
       description={t("mail.delete_email_confirmation")}
-      dont_ask={false}
+      dont_ask={dont_ask}
       on_cancel={handle_cancel}
       on_confirm={handle_confirm}
-      on_dont_ask_change={() => {}}
+      on_dont_ask_change={set_dont_ask}
       show={is_open}
       title={t("mail.delete_permanently_question")}
     />
