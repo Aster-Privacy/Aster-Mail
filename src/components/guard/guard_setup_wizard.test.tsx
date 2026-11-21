@@ -42,7 +42,7 @@ import {
 
 const h = vi.hoisted(() => ({
   setup_body: null as Record<string, unknown> | null,
-  setup_result: "ok" as "ok" | "already_on",
+  setup_result: "ok" as "ok" | "already_on" | "wrong" | "replayed",
   records: new Map<string, unknown>(),
   proof: { type: "password", password_hash: "ph", totp_code: null },
   verify_key: null as CryptoKey | null,
@@ -93,6 +93,25 @@ vi.mock("@aster/ui", () => ({
       type="checkbox"
       onChange={(e) => on_change(e.target.checked)}
     />
+  ),
+  Island: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  IslandRow: ({
+    icon,
+    label,
+    description,
+    trailing,
+  }: {
+    icon?: ReactNode;
+    label?: ReactNode;
+    description?: ReactNode;
+    trailing?: ReactNode;
+  }) => (
+    <div>
+      {icon}
+      {label}
+      {description}
+      {trailing}
+    </div>
   ),
 }));
 
@@ -172,6 +191,12 @@ vi.mock("@/services/api/guard", async (original) => {
       h.setup_body = body;
       if (h.setup_result === "already_on") {
         return { error: "on", server_code: "GUARD_ALREADY_ON", status: 409 };
+      }
+      if (h.setup_result === "wrong") {
+        return { error: "bad", server_code: "INVALID_CREDENTIALS", status: 401 };
+      }
+      if (h.setup_result === "replayed") {
+        return { error: "used", server_code: "TOTP_CODE_REPLAYED", status: 400 };
       }
 
       return {
@@ -489,6 +514,40 @@ describe("guard setup wizard", () => {
     expect(container.textContent).toContain("guard.setup_already_on");
     expect(on_changed).toHaveBeenCalled();
     expect(h.records.size).toBe(0);
+  });
+
+  it("says the password or code was wrong and lets the user retry", async () => {
+    h.setup_result = "wrong";
+    render_wizard();
+    await go_to_confirm();
+    click(by_test_id("guard_setup_confirm"));
+    await flush();
+
+    expect(container.textContent).toContain("guard.setup_wrong_credentials");
+    expect(container.textContent).not.toContain("guard.setup_error");
+    expect(by_test_id("guard_setup_confirm")).toBeTruthy();
+    expect(h.records.size).toBe(0);
+  });
+
+  it("says the code was already used", async () => {
+    h.setup_result = "replayed";
+    render_wizard();
+    await go_to_confirm();
+    click(by_test_id("guard_setup_confirm"));
+    await flush();
+
+    expect(container.textContent).toContain("guard.setup_code_used");
+  });
+
+  it("lists each chosen protection as a settings row", async () => {
+    render_wizard();
+    await go_to_confirm();
+    const summary = by_test_id("guard_setup_summary");
+
+    expect(summary.textContent).toContain("guard.setup_new_device_approval");
+    expect(summary.textContent).toContain("guard.setup_hold_changes");
+    expect(summary.textContent).not.toContain("guard.setup_recovery_wait");
+    expect(summary.textContent).toContain("guard.section_on");
   });
 
   it("never writes the rescue code to any storage", async () => {

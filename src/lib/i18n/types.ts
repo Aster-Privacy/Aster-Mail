@@ -10211,6 +10211,9 @@ export interface GuardTranslations {
   setup_confirm_button: string;
   setup_already_on: string;
   setup_error: string;
+  setup_wrong_credentials: string;
+  setup_code_used: string;
+  setup_locked: string;
   setup_done_title: string;
   setup_done_description: string;
   section_title: string;
