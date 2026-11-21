@@ -123,7 +123,21 @@ export const GUARD_SETUP_KEY_PREFIX = "guard_setup:";
 export type GuardEnrollOutcome =
   | { kind: "enabled"; device: GuardDevice; setup: GuardSetupResponse }
   | { kind: "already_on" }
+  | { kind: "wrong_credentials" }
+  | { kind: "code_used" }
+  | { kind: "locked" }
   | { kind: "error" };
+
+const SETUP_FAILURES: Record<string, GuardEnrollOutcome> = {
+  GUARD_ALREADY_ON: { kind: "already_on" },
+  INVALID_CREDENTIALS: { kind: "wrong_credentials" },
+  TOTP_CODE_REPLAYED: { kind: "code_used" },
+  ACCOUNT_LOCKED: { kind: "locked" },
+};
+
+export function setup_failure(server_code?: string | null): GuardEnrollOutcome {
+  return (server_code && SETUP_FAILURES[server_code]) || { kind: "error" };
+}
 
 const default_enroll_deps: GuardEnrollDeps = {
   create_device: create_guard_device,
@@ -153,9 +167,7 @@ export async function enroll_guard(
   if (nonce.error || !nonce.data) {
     await discard();
 
-    return nonce.server_code === "GUARD_ALREADY_ON"
-      ? { kind: "already_on" }
-      : { kind: "error" };
+    return setup_failure(nonce.server_code);
   }
 
   let body;
@@ -188,9 +200,7 @@ export async function enroll_guard(
   if (response.error || !response.data) {
     await discard();
 
-    return response.server_code === "GUARD_ALREADY_ON"
-      ? { kind: "already_on" }
-      : { kind: "error" };
+    return setup_failure(response.server_code);
   }
 
   try {

@@ -24,11 +24,10 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import type { ReactNode } from "react";
 
 import { Children, useEffect, useState } from "react";
-import { SettingToggleRow } from "@aster/ui";
+import { Island, IslandRow, SettingToggleRow } from "@aster/ui";
 import {
   ArrowDownTrayIcon,
   ArrowUturnRightIcon,
-  CheckIcon,
   ClockIcon,
   DevicePhoneMobileIcon,
   EnvelopeIcon,
@@ -64,6 +63,7 @@ import {
   GUARD_SCOPE,
   GUARD_SWITCH,
 } from "@/services/api/guard";
+import type { GuardEnrollOutcome } from "@/services/guard/guard_enroll";
 import { enroll_guard } from "@/services/guard/guard_enroll";
 
 type WizardStep = "intro" | "choose" | "rescue" | "confirm" | "done";
@@ -74,7 +74,15 @@ const INTRO_FEATURES: [GuardFeatureKind, TranslationKey, TranslationKey][] = [
   ["rescue", "guard.intro_rescue_title", "guard.intro_rescue_body"],
 ];
 
-type WizardMessage = "already_on" | "error" | null;
+type WizardMessage = Exclude<GuardEnrollOutcome["kind"], "enabled"> | null;
+
+const MESSAGE_KEYS: Record<NonNullable<WizardMessage>, TranslationKey> = {
+  already_on: "guard.setup_already_on",
+  wrong_credentials: "guard.setup_wrong_credentials",
+  code_used: "guard.setup_code_used",
+  locked: "guard.setup_locked",
+  error: "guard.setup_error",
+};
 
 export const GUARD_DEFAULT_SWITCHES =
   GUARD_SWITCH.new_device_approval | GUARD_SWITCH.hold_changes;
@@ -291,12 +299,32 @@ export function GuardSwitchRows({
   );
 }
 
-const SUMMARY_ROWS = [
-  [GUARD_SWITCH.new_device_approval, "guard.setup_new_device_approval"],
-  [GUARD_SWITCH.approve_mail_apps, "guard.setup_approve_mail_apps"],
-  [GUARD_SWITCH.hold_changes, "guard.setup_hold_changes"],
-  [GUARD_SWITCH.recovery_wait, "guard.setup_recovery_wait"],
-] as const;
+const SUMMARY_ROWS: [number, ReactNode, TranslationKey, TranslationKey][] = [
+  [
+    GUARD_SWITCH.new_device_approval,
+    <DevicePhoneMobileIcon key="icon" />,
+    "guard.setup_new_device_approval",
+    "guard.setup_new_device_approval_description",
+  ],
+  [
+    GUARD_SWITCH.approve_mail_apps,
+    <EnvelopeIcon key="icon" />,
+    "guard.setup_approve_mail_apps",
+    "guard.setup_approve_mail_apps_description",
+  ],
+  [
+    GUARD_SWITCH.hold_changes,
+    <ClockIcon key="icon" />,
+    "guard.setup_hold_changes",
+    "guard.setup_hold_changes_description",
+  ],
+  [
+    GUARD_SWITCH.recovery_wait,
+    <LifebuoyIcon key="icon" />,
+    "guard.setup_recovery_wait",
+    "guard.setup_recovery_wait_description",
+  ],
+];
 
 const WIZARD_STEP_COUNT = 3;
 
@@ -394,11 +422,9 @@ export function GuardSetupWizard({
         set_device(outcome.device);
         set_step("done");
         on_changed();
-      } else if (outcome.kind === "already_on") {
-        set_message("already_on");
-        on_changed();
       } else {
-        set_message("error");
+        set_message(outcome.kind);
+        if (outcome.kind === "already_on") on_changed();
       }
     } finally {
       set_busy(false);
@@ -542,34 +568,31 @@ export function GuardSetupWizard({
                 </ModalDescription>
               </ModalHeader>
               <ModalBody>
-                <ul
-                  className="mb-4 flex flex-col gap-3"
-                  data-testid="guard_setup_summary"
-                >
-                  {SUMMARY_ROWS.filter(
-                    ([flag]) => (selection.switches & flag) !== 0,
-                  ).map(([flag, key]) => (
-                    <li key={flag} className="flex items-center gap-3">
-                      <CheckIcon
-                        aria-hidden
-                        className="h-5 w-5 shrink-0 text-txt-muted"
+                <div className="mb-4" data-testid="guard_setup_summary">
+                  <Island>
+                    {SUMMARY_ROWS.filter(
+                      ([flag]) => (selection.switches & flag) !== 0,
+                    ).map(([flag, icon, label, description]) => (
+                      <IslandRow
+                        key={flag}
+                        description={t(description)}
+                        icon={icon}
+                        label={t(label)}
+                        trailing={
+                          <span className="text-sm font-medium text-txt-muted">
+                            {t("guard.section_on")}
+                          </span>
+                        }
                       />
-                      <span className="text-sm font-medium text-txt-primary">
-                        {t(key)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                    ))}
+                  </Island>
+                </div>
                 {message && (
                   <p
                     className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
                     role="alert"
                   >
-                    {t(
-                      message === "already_on"
-                        ? "guard.setup_already_on"
-                        : "guard.setup_error",
-                    )}
+                    {t(MESSAGE_KEYS[message])}
                   </p>
                 )}
               </ModalBody>
