@@ -56,7 +56,10 @@ import {
   batched_bulk_permanent_delete,
   empty_trash,
 } from "@/services/api/mail";
-import { set_thread_trashed } from "@/services/trash_state";
+import {
+  set_thread_trashed,
+  set_threads_trashed,
+} from "@/services/trash_state";
 import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import {
@@ -259,16 +262,14 @@ export function use_delete_actions({
         action_type: "trash",
         email_ids: succeeded_ids,
         on_undo: async () => {
-          const thread_results = await Promise.all(
-            undo_thread_tokens.map((token) =>
-              set_thread_trashed(
-                token,
-                succeeded_emails
-                  .filter((e) => e.thread_token === token)
-                  .flatMap(expand_email_ids),
-                false,
-              ),
-            ),
+          const thread_result = await set_threads_trashed(
+            undo_thread_tokens.map((token) => ({
+              thread_token: token,
+              known_ids: succeeded_emails
+                .filter((e) => e.thread_token === token)
+                .flatMap(expand_email_ids),
+            })),
+            false,
           );
           const undo_result =
             undo_ids.length > 0
@@ -277,10 +278,7 @@ export function use_delete_actions({
                 })
               : { success: true };
 
-          if (
-            !undo_result.success ||
-            thread_results.some((result) => !result.data)
-          ) {
+          if (!undo_result.success || thread_result.failed_tokens.length > 0) {
             throw new Error("undo trash failed");
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
