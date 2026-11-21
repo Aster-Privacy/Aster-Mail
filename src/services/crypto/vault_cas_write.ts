@@ -172,6 +172,34 @@ export type VaultWriteResult =
   | { status: "superseded"; vault: EncryptedVault }
   | { status: "failed"; error?: string };
 
+export interface VaultWrittenEvent {
+  user_id: string;
+  previous: EncryptedVault | null;
+  vault: EncryptedVault;
+}
+
+type VaultWrittenListener = (event: VaultWrittenEvent) => void;
+
+const vault_written_listeners = new Set<VaultWrittenListener>();
+
+export function on_vault_written(listener: VaultWrittenListener): () => void {
+  vault_written_listeners.add(listener);
+
+  return () => {
+    vault_written_listeners.delete(listener);
+  };
+}
+
+function notify_vault_written(event: VaultWrittenEvent): void {
+  for (const listener of vault_written_listeners) {
+    try {
+      listener(event);
+    } catch (caught) {
+      ignore_error("services/crypto/vault_cas_write:listener", caught);
+    }
+  }
+}
+
 function same(a: unknown, b: unknown): boolean {
   return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
@@ -696,6 +724,7 @@ async function write_once(
   note_vault_written(written.sealed, written.iterations);
   persist_local_vault(user_id, encrypted_vault, vault_nonce);
   await store_vault_in_memory(merged, passphrase, user_id);
+  notify_vault_written({ user_id, previous: server, vault: merged });
 
   return { status: "written", vault: merged, encrypted_vault, vault_nonce };
 }
