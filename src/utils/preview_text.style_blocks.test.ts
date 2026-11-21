@@ -133,6 +133,12 @@ describe("strip_leading_css_rules", () => {
     expect(strip_leading_css_rules(text)).toBe("Thanks for joining the beta.");
   });
 
+  it("strips a leading rule closed with the bang comment end", () => {
+    const text = "<!-- p { margin: 0 } --!> Your order has shipped.";
+
+    expect(strip_leading_css_rules(text)).toBe("Your order has shipped.");
+  });
+
   it("keeps normal text that uses braces", () => {
     const samples = [
       "Use the {name} placeholder in your template.",

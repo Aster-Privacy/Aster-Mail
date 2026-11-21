@@ -747,7 +747,7 @@ const CSS_SINGLE_WORD_PROPERTIES = new Set([
   "zoom",
 ]);
 
-const CSS_LEADING_NOISE_PATTERN = /\s+|<!--|-->|\/\*[\s\S]*?\*\//y;
+const CSS_LEADING_NOISE_PATTERN = /\s+|<!--|--!?>|\/\*[\s\S]*?\*\//y;
 
 const CSS_SELECTOR_LIMIT = 512;
 
