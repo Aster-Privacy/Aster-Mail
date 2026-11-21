@@ -43,6 +43,10 @@ function current_seconds(): number {
 
 export function use_guard_code(device: GuardDevice | null): GuardCodeState {
   const secret_ref = useRef<Uint8Array | null>(null);
+  const device_ref = useRef<GuardDevice | null>(device);
+  const has_device = device !== null;
+
+  device_ref.current = device;
   const [state, set_state] = useState<GuardCodeState>({
     code: null,
     seconds_left: GUARD_CODE_STEP_SECONDS,
@@ -59,7 +63,11 @@ export function use_guard_code(device: GuardDevice | null): GuardCodeState {
       const seconds_left = guard_code_seconds_left(now);
 
       if (!secret) {
-        set_state({ code: null, seconds_left, ready: true });
+        set_state((prev) =>
+          prev.code === null && prev.seconds_left === seconds_left && prev.ready
+            ? prev
+            : { code: null, seconds_left, ready: true },
+        );
 
         return;
       }
@@ -74,9 +82,10 @@ export function use_guard_code(device: GuardDevice | null): GuardCodeState {
 
     const load = async () => {
       let secret: Uint8Array | null = null;
+      const current_device = device_ref.current;
 
       try {
-        secret = device ? await device.code_secret() : null;
+        secret = current_device ? await current_device.code_secret() : null;
       } catch {
         secret = null;
       }
@@ -98,7 +107,7 @@ export function use_guard_code(device: GuardDevice | null): GuardCodeState {
       secret_ref.current?.fill(0);
       secret_ref.current = null;
     };
-  }, [device]);
+  }, [has_device]);
 
   return state;
 }
