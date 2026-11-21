@@ -2626,6 +2626,13 @@ export const ja = {
       "カテゴリをオンにすると、その通知をミュートします。ミュートしたカテゴリもメールを受信し、受信トレイに表示されます。",
     muted_categories_empty:
       "ミュートするカテゴリを選ぶには、受信トレイのカテゴリをオンにします。",
+    learn_from_moves: "移動から学習",
+    learn_from_moves_description: "メールをカテゴリに移動すると、その送信者からの今後のメールも同じカテゴリに振り分けられます。この情報は暗号化されたままで、Aster と共有されることはありません。",
+    forget_learned_senders: "学習した送信者を消去（{{count}}）",
+    forget_learned_senders_one: "学習した送信者を消去（{{count}}）",
+    forget_learned_senders_title: "学習した送信者を消去しますか？",
+    forget_learned_senders_description: "これらの送信者からのメールは再び自動で振り分けられます。自分で移動したメールはそのままです。",
+    forget_learned_senders_confirm: "消去",
     custom_categories_title: "カスタムカテゴリ",
     custom_categories_tutorial:
       "自分だけのカテゴリを作りましょう。送信者のドメインや件名のキーワードでメールを振り分けます。",
@@ -12279,6 +12286,7 @@ export const ja = {
     export_title: "メールをエクスポート, メールのダウンロード, メールのバックアップ, mbox, eml, 連絡先のエクスポート, 購読管理, 配信停止, ニュースレター, メーリングリスト",
     folder_retention_add: "自動クリーンアップを追加, フォルダの自動整理, 保存期間, 自動削除, 古いメールを削除, 期限切れ",
     inbox_categories: "受信トレイのカテゴリ, タブ, カテゴリタブ, 受信トレイの分類, メイン, お得情報, ニュースレター, ソーシャル, 通知, 購入, 金融, 旅行, ショッピング, プロモーション",
+    learn_from_category_moves: "学習, 学習した送信者, カテゴリを記憶, 自動振り分け, 送信者カテゴリ, 消去, 学習した送信者をクリア, 学習したカテゴリをリセット",
     custom_categories_title: "カスタムカテゴリ, カテゴリを追加, 新しいカテゴリ, カスタムタブ",
     settings_search_ghost_aliases: "ゴーストエイリアス, ゴーストモード, 期限付きエイリアス, 使い捨てメール, 捨てアド, 匿名アドレス, メールアドレスを隠す, 匿名メール",
     ghost_aliases_compose_cta: "ゴーストモードで作成, ゴースト作成, 匿名で送信",

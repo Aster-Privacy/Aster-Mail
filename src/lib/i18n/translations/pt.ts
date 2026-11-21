@@ -2697,6 +2697,13 @@ export const pt = {
       "Ative uma categoria para silenciar as respetivas notificações. As categorias silenciadas continuam a receber correio e aparecem na sua caixa de entrada.",
     muted_categories_empty:
       "Ative as categorias da caixa de entrada para escolher quais pretende silenciar.",
+    learn_from_moves: "Aprender com as suas mudanças",
+    learn_from_moves_description: "Quando move um e-mail para uma categoria, os e-mails futuros desse remetente também vão para lá. Estes dados ficam encriptados e nunca são partilhados connosco.",
+    forget_learned_senders: "Esquecer remetentes aprendidos ({{count}})",
+    forget_learned_senders_one: "Esquecer remetentes aprendidos ({{count}})",
+    forget_learned_senders_title: "Esquecer os remetentes aprendidos?",
+    forget_learned_senders_description: "Os e-mails destes remetentes voltam a ser organizados automaticamente. Os e-mails que moveu ficam onde os colocou.",
+    forget_learned_senders_confirm: "Esquecer",
     custom_categories_title: "Categorias personalizadas",
     custom_categories_tutorial:
       "Crie a sua própria categoria. Classifique o correio pelo domínio do remetente ou por uma palavra-chave do assunto.",
@@ -12668,6 +12675,7 @@ export const pt = {
     export_title: "exportar emails, transferir correio, cópia de segurança de emails, mbox, eml, exportar contactos, gestor de subscrições, cancelar subscrição, newsletters, listas de correio",
     folder_retention_add: "adicionar limpeza automática, limpeza de pasta, retenção, eliminação automática, eliminar emails antigos, expirar emails, mais antigos que",
     inbox_categories: "categorias da caixa de entrada, separadores, separadores de categoria, organizar caixa de entrada, principal, promoções, newsletters, social, notificações, compras, finanças, viagens",
+    learn_from_category_moves: "aprender, remetentes aprendidos, lembrar categoria, organizar automaticamente, categoria do remetente, esquecer, limpar remetentes aprendidos, repor categorias aprendidas",
     custom_categories_title: "categorias personalizadas, adicionar categoria, nova categoria, separador personalizado",
     settings_search_ghost_aliases: "aliases fantasma, modo fantasma, alias temporário, email temporário, endereço descartável, endereço anónimo, email mascarado, ocultar email",
     ghost_aliases_compose_cta: "escrever em modo fantasma, composição fantasma, envio anónimo",

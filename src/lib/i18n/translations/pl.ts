@@ -2816,6 +2816,13 @@ export const pl = {
       "Włącz kategorię, aby wyciszyć jej powiadomienia. Wyciszone kategorie nadal odbierają pocztę i pojawiają się w skrzynce odbiorczej.",
     muted_categories_empty:
       "Włącz kategorie skrzynki odbiorczej, aby wybrać, które wyciszyć.",
+    learn_from_moves: "Ucz się z Twoich przeniesień",
+    learn_from_moves_description: "Gdy przenosisz wiadomość do kategorii, przyszłe wiadomości od tego nadawcy również tam trafiają. Te dane pozostają zaszyfrowane i nigdy nie są nam udostępniane.",
+    forget_learned_senders: "Zapomnij zapamiętanych nadawców ({{count}})",
+    forget_learned_senders_one: "Zapomnij zapamiętanych nadawców ({{count}})",
+    forget_learned_senders_title: "Zapomnieć zapamiętanych nadawców?",
+    forget_learned_senders_description: "Wiadomości od tych nadawców znów są sortowane automatycznie. Wiadomości przeniesione przez Ciebie zostają tam, gdzie je umieszczono.",
+    forget_learned_senders_confirm: "Zapomnij",
     custom_categories_title: "Kategorie niestandardowe",
     custom_categories_tutorial:
       "Utwórz własną kategorię. Dopasuj wiadomości według domeny nadawcy lub słowa kluczowego w temacie.",
@@ -12790,6 +12797,7 @@ export const pl = {
     export_title: "pobierz pocztę, kopia zapasowa e-maili, mbox, eml, eksport kontaktów, takeout, menedżer subskrypcji, wypisz się, newslettery, listy mailingowe",
     folder_retention_add: "automatyczne czyszczenie folderu, okres przechowywania, automatyczne usuwanie, wyczyść folder, usuń stare e-maile, wygasanie e-maili, starsze niż",
     inbox_categories: "karty, karty kategorii, sortowanie skrzynki, główne, oferty, newslettery, społeczności, powiadomienia, zakupy, dyskusje, finanse, podróże, sklepy, promocje",
+    learn_from_category_moves: "nauka, zapamiętani nadawcy, zapamiętaj kategorię, automatyczne sortowanie, kategoria nadawcy, zapomnij, wyczyść zapamiętanych nadawców, resetuj zapamiętane kategorie",
     custom_categories_title: "dodaj kategorię, nowa kategoria, własna karta, własne kategorie",
     settings_search_ghost_aliases: "tryb ducha, wygasający alias, tymczasowy e-mail, jednorazowy adres, utwórz alias ducha, anonimowy adres, maskowany e-mail, ukryj e-mail, anonimowy e-mail",
     ghost_aliases_compose_cta: "pisanie w trybie ducha, anonimowe wysyłanie",

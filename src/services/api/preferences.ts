@@ -41,6 +41,11 @@ import {
   sanitize_custom_categories,
 } from "@/data/category_catalog";
 import {
+  type LearnedCategorySender,
+  reconcile_learned_senders,
+  sanitize_learned_senders,
+} from "@/services/learned_category_senders";
+import {
   DEFAULT_INBOX_PAGE_SIZE,
   clamp_inbox_page_size,
 } from "@/lib/inbox_page_size";
@@ -244,6 +249,8 @@ export interface UserPreferences {
   inbox_categories_enabled: boolean;
   enabled_categories: string[];
   custom_categories: CustomCategoryRule[];
+  learn_from_category_moves: boolean;
+  learned_category_senders: LearnedCategorySender[];
   show_message_size: boolean;
   show_alias_indicators: boolean;
   show_badges_in_signature: boolean;
@@ -890,6 +897,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   inbox_categories_enabled: true,
   enabled_categories: [...DEFAULT_ENABLED_CATEGORIES],
   custom_categories: [],
+  learn_from_category_moves: true,
+  learned_category_senders: [],
   show_message_size: false,
   show_alias_indicators: true,
   show_badges_in_signature: true,
@@ -1064,6 +1073,13 @@ export function build_merged_preferences(
   merged.custom_categories = sanitize_custom_categories(
     merged.custom_categories,
   );
+  merged.learned_category_senders = sanitize_learned_senders(
+    merged.learned_category_senders,
+  );
+  merged.learn_from_category_moves =
+    typeof merged.learn_from_category_moves === "boolean"
+      ? merged.learn_from_category_moves
+      : true;
   merged.enabled_categories = Array.isArray(merged.enabled_categories)
     ? merged.enabled_categories.filter((c) => typeof c === "string")
     : [...DEFAULT_ENABLED_CATEGORIES];
@@ -1411,6 +1427,18 @@ export function reconcile_preferences(
         key
       ] as unknown;
     }
+  }
+
+  if (
+    base.learned_category_senders !== undefined ||
+    current.learned_category_senders !== undefined ||
+    server.learned_category_senders !== undefined
+  ) {
+    reconciled.learned_category_senders = reconcile_learned_senders(
+      base.learned_category_senders,
+      current.learned_category_senders,
+      server.learned_category_senders,
+    );
   }
 
   return reconciled;

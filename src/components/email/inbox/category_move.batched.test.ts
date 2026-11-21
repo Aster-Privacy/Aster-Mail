@@ -63,6 +63,10 @@ vi.mock("@/components/email/inbox/category_sender_rule", () => ({
   maybe_offer_sender_rule: vi.fn(),
 }));
 
+vi.mock("@/services/learned_category_senders", () => ({
+  record_category_move: () => null,
+}));
+
 vi.mock("@/data/category_catalog", () => ({
   category_display_name: (category: string) => category,
 }));

@@ -55,6 +55,7 @@ import {
 } from "@/data/category_catalog";
 import { category_icon } from "@/data/category_icons";
 import { use_i18n } from "@/lib/i18n/context";
+import { sanitize_learned_senders } from "@/services/learned_category_senders";
 
 function MuteToggle({
   id,
@@ -109,10 +110,15 @@ export function CategorySettingsSection() {
   );
   const [deleting_rule, set_deleting_rule] =
     useState<CustomCategoryRule | null>(null);
+  const [forget_open, set_forget_open] = useState(false);
 
   const enabled_ids = new Set(preferences.enabled_categories ?? []);
   const muted_ids = new Set(preferences.muted_notification_categories ?? []);
   const custom_categories = preferences.custom_categories ?? [];
+  const learned_count = sanitize_learned_senders(
+    preferences.learned_category_senders,
+  ).length;
+  const learning_enabled = preferences.learn_from_category_moves !== false;
 
   const category_limit = limits
     ? (limits.limits["max_custom_categories"]?.limit ?? -1)
@@ -155,6 +161,11 @@ export function CategorySettingsSection() {
     );
 
     update_preference("custom_categories", next, true);
+  };
+
+  const confirm_forget_learned = () => {
+    update_preference("learned_category_senders", [], true);
+    set_forget_open(false);
   };
 
   const confirm_delete_custom = () => {
@@ -265,6 +276,31 @@ export function CategorySettingsSection() {
             );
           })}
         </Island>
+
+        <Island>
+          <IslandRow
+            description={t("settings.learn_from_moves_description")}
+            label={t("settings.learn_from_moves")}
+            toggle={{
+              checked: learning_enabled,
+              on_change: () =>
+                update_preference(
+                  "learn_from_category_moves",
+                  !learning_enabled,
+                  true,
+                ),
+              aria_label: t("settings.learn_from_moves"),
+            }}
+          />
+        </Island>
+
+        {learned_count > 0 && (
+          <div className="flex justify-end px-1">
+            <Button variant="outline" onClick={() => set_forget_open(true)}>
+              {t("settings.forget_learned_senders", { count: learned_count })}
+            </Button>
+          </div>
+        )}
       </IslandSection>
 
       <IslandSection
@@ -422,6 +458,19 @@ export function CategorySettingsSection() {
         on_dont_ask_change={() => {}}
         show={!!deleting_rule}
         title={t("settings.delete_category_title")}
+      />
+
+      <ConfirmModal
+        hide_dont_ask
+        confirm_text={t("settings.forget_learned_senders_confirm")}
+        confirm_variant="destructive"
+        description={t("settings.forget_learned_senders_description")}
+        dont_ask={false}
+        on_cancel={() => set_forget_open(false)}
+        on_confirm={confirm_forget_learned}
+        on_dont_ask_change={() => {}}
+        show={forget_open && learned_count > 0}
+        title={t("settings.forget_learned_senders_title")}
       />
     </IslandSections>
   );

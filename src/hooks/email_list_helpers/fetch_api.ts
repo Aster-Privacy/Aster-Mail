@@ -42,7 +42,7 @@ import {
   is_outgoing_view,
 } from "./views";
 
-import { classify, is_locked_to_primary } from "@/services/mail_categorizer";
+import { classify } from "@/services/mail_categorizer";
 import {
   list_mail_items,
   type ListMailItemsParams,
@@ -351,9 +351,7 @@ export async function fetch_mail_from_api(
                   trust: item,
                 }),
                 category_pinned:
-                  metadata?.category_pinned === true &&
-                  !!metadata?.category &&
-                  !is_locked_to_primary(envelope!, item),
+                  metadata?.category_pinned === true && !!metadata?.category,
                 is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
               },
             ];

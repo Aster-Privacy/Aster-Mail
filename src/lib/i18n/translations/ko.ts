@@ -2560,6 +2560,13 @@ export const ko = {
       "카테고리를 켜면 해당 알림이 음소거됩니다. 음소거된 카테고리도 메일을 계속 받고 받은 편지함에 표시됩니다.",
     muted_categories_empty:
       "음소거할 카테고리를 선택하려면 받은 편지함 카테고리를 켜세요.",
+    learn_from_moves: "이동한 메일에서 학습",
+    learn_from_moves_description: "메일을 카테고리로 이동하면 해당 발신자의 이후 메일도 그 카테고리로 이동합니다. 이 정보는 암호화된 상태로 유지되며 Aster와 공유되지 않습니다.",
+    forget_learned_senders: "학습한 발신자 지우기({{count}})",
+    forget_learned_senders_one: "학습한 발신자 지우기({{count}})",
+    forget_learned_senders_title: "학습한 발신자를 지우시겠습니까?",
+    forget_learned_senders_description: "이 발신자의 메일은 다시 자동으로 분류됩니다. 직접 이동한 메일은 그대로 유지됩니다.",
+    forget_learned_senders_confirm: "지우기",
     custom_categories_title: "사용자 지정 카테고리",
     custom_categories_tutorial:
       "나만의 카테고리를 만드세요. 발신자 도메인이나 제목 키워드로 메일을 분류합니다.",
@@ -12065,6 +12072,7 @@ export const ko = {
     export_title: "이메일 내보내기, 메일 다운로드, 이메일 백업, mbox, eml, 연락처 내보내기, 구독 관리, 수신 거부, 뉴스레터, 메일링 리스트",
     folder_retention_add: "자동 정리 추가, 폴더 자동 정리, 보존 기간, 자동 삭제, 폴더 정리, 오래된 메일 삭제, 메일 만료",
     inbox_categories: "받은편지함 카테고리, 탭, 카테고리 탭, 받은편지함 분류, 기본, 할인, 뉴스레터, 소셜, 알림, 구매, 금융, 여행, 쇼핑, 프로모션",
+    learn_from_category_moves: "학습, 학습한 발신자, 카테고리 기억, 자동 분류, 발신자 카테고리, 지우기, 학습한 발신자 삭제, 학습한 카테고리 초기화",
     custom_categories_title: "사용자 지정 카테고리, 카테고리 추가, 새 카테고리, 맞춤 탭",
     settings_search_ghost_aliases: "고스트 별칭, 고스트 모드, 만료되는 별칭, 임시 이메일, 일회용 이메일, 익명 주소, 이메일 숨기기, 익명 이메일",
     ghost_aliases_compose_cta: "고스트 모드로 작성, 고스트 작성, 익명 전송",

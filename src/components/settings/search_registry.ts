@@ -1077,6 +1077,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     section: "categories",
   },
   {
+    id: "learn_from_category_moves",
+    label_key: "settings.learn_from_moves",
+    section: "categories",
+    description_key: "settings.learn_from_moves_description",
+  },
+  {
     id: "custom_categories_title",
     label_key: "settings.custom_categories_title",
     section: "categories",
