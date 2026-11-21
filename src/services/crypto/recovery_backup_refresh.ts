@@ -52,12 +52,11 @@ import {
   type RecoveryShareOptions,
 } from "./recovery_key";
 import {
-  on_vault_written,
   read_latest_vault,
   vault_passphrase,
   write_vault_merged,
-  type VaultWrittenEvent,
 } from "./vault_cas_write";
+import { on_vault_written, type VaultWrittenEvent } from "./vault_write_events";
 import { with_vault_write_lock } from "./vault_write_lock";
 
 import { ignore_error } from "@/lib/ignore_error";

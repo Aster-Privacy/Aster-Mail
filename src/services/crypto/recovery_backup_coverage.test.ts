@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault, RatchetKeySet } from "./key_manager_core";
-import type { VaultWrittenEvent } from "./vault_cas_write";
+import type { VaultWrittenEvent } from "./vault_write_events";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -52,6 +52,9 @@ vi.mock("./vault_cas_write", () => ({
   write_vault_merged: async () => ({ status: "written" }),
   read_latest_vault: async () => (h.latest ? { vault: h.latest } : null),
   vault_passphrase: () => "pass",
+}));
+
+vi.mock("./vault_write_events", () => ({
   on_vault_written: (listener: (event: VaultWrittenEvent) => void) => {
     h.written.push(listener);
 

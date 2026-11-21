@@ -37,6 +37,7 @@ import {
   store_vault_in_memory,
 } from "./memory_key_store";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
+import { notify_vault_written } from "./vault_write_events";
 import { merge_lane_replay_maps } from "./lane_replay";
 import {
   accept_recovered_vault,
@@ -171,34 +172,6 @@ export type VaultWriteResult =
   | { status: "conflict" }
   | { status: "superseded"; vault: EncryptedVault }
   | { status: "failed"; error?: string };
-
-export interface VaultWrittenEvent {
-  user_id: string;
-  previous: EncryptedVault | null;
-  vault: EncryptedVault;
-}
-
-type VaultWrittenListener = (event: VaultWrittenEvent) => void;
-
-const vault_written_listeners = new Set<VaultWrittenListener>();
-
-export function on_vault_written(listener: VaultWrittenListener): () => void {
-  vault_written_listeners.add(listener);
-
-  return () => {
-    vault_written_listeners.delete(listener);
-  };
-}
-
-function notify_vault_written(event: VaultWrittenEvent): void {
-  for (const listener of vault_written_listeners) {
-    try {
-      listener(event);
-    } catch (caught) {
-      ignore_error("services/crypto/vault_cas_write:listener", caught);
-    }
-  }
-}
 
 function same(a: unknown, b: unknown): boolean {
   return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
