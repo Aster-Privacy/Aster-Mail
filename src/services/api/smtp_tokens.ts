@@ -242,7 +242,11 @@ export async function revoke_smtp_token(
   return api_client.delete<void>(`${SMTP_TOKENS_BASE}/${token_id}`);
 }
 
-export type RenameSmtpTokenFailure = "invalid_name" | "unavailable" | "failed";
+export type RenameSmtpTokenFailure =
+  | "invalid_name"
+  | "unavailable"
+  | "missing"
+  | "failed";
 
 export interface RenameSmtpTokenResult {
   name?: string;
@@ -252,6 +256,7 @@ export interface RenameSmtpTokenResult {
 export async function rename_smtp_token(
   token_id: string,
   name: string,
+  rename_supported: boolean = false,
 ): Promise<RenameSmtpTokenResult> {
   const normalized = normalize_smtp_token_name(name);
 
@@ -267,11 +272,12 @@ export async function rename_smtp_token(
 
     if (response.data && !response.error) return { name: normalized };
 
-    if (
-      response.status === 404 ||
-      response.status === 405 ||
-      response.code === "NOT_FOUND"
-    ) {
+    const is_not_found =
+      response.status === 404 || response.code === "NOT_FOUND";
+
+    if (is_not_found && rename_supported) return { failure: "missing" };
+
+    if (is_not_found || response.status === 405) {
       return { failure: "unavailable" };
     }
 

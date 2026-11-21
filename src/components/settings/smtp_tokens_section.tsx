@@ -374,6 +374,7 @@ export function SmtpTokensSection() {
       <SmtpTokenRenameModal
         token={rename_token}
         on_close={() => set_rename_id(null)}
+        on_missing={() => void load_tokens()}
         on_renamed={handle_renamed}
       />
 

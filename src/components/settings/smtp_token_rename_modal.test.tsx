@@ -108,6 +108,7 @@ let container: HTMLDivElement;
 let root: Root;
 let on_close: () => void;
 let on_renamed: (token_id: string, name: string) => void;
+let on_missing: () => void;
 
 async function render_modal(value: SmtpToken | null = token) {
   await act(async () => {
@@ -115,6 +116,7 @@ async function render_modal(value: SmtpToken | null = token) {
       <SmtpTokenRenameModal
         token={value}
         on_close={on_close}
+        on_missing={on_missing}
         on_renamed={on_renamed}
       />,
     );
@@ -163,6 +165,7 @@ describe("smtp token rename modal", () => {
     h.show_toast.mockReset();
     on_close = vi.fn();
     on_renamed = vi.fn();
+    on_missing = vi.fn();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -187,7 +190,11 @@ describe("smtp token rename modal", () => {
     await type_name("  scanner ");
     await click_save();
 
-    expect(h.rename_smtp_token).toHaveBeenCalledWith("token-1", "scanner");
+    expect(h.rename_smtp_token).toHaveBeenCalledWith(
+      "token-1",
+      "scanner",
+      false,
+    );
     expect(on_renamed).toHaveBeenCalledWith("token-1", "scanner");
     expect(h.show_toast).toHaveBeenCalledWith(
       "settings.smtp_token_renamed_toast",
@@ -202,7 +209,11 @@ describe("smtp token rename modal", () => {
     await type_name("scanner");
     await press_enter();
 
-    expect(h.rename_smtp_token).toHaveBeenCalledWith("token-1", "scanner");
+    expect(h.rename_smtp_token).toHaveBeenCalledWith(
+      "token-1",
+      "scanner",
+      false,
+    );
   });
 
   it("does not save a blank name", async () => {
@@ -231,6 +242,34 @@ describe("smtp token rename modal", () => {
     expect(on_renamed).not.toHaveBeenCalled();
     expect(on_close).not.toHaveBeenCalled();
     expect(name_input().value).toBe("scanner");
+  });
+
+  it("closes and reloads when the token no longer exists", async () => {
+    h.rename_smtp_token.mockResolvedValue({ failure: "missing" });
+    await render_modal({
+      ...token,
+      smtp_settings: {
+        host: "mx.example.org",
+        port: 587,
+        security: "STARTTLS",
+        username: "asmtp_abc",
+      },
+    });
+    await type_name("scanner");
+    await click_save();
+
+    expect(h.rename_smtp_token).toHaveBeenCalledWith(
+      "token-1",
+      "scanner",
+      true,
+    );
+    expect(on_missing).toHaveBeenCalled();
+    expect(on_close).toHaveBeenCalled();
+    expect(on_renamed).not.toHaveBeenCalled();
+    expect(h.show_toast).toHaveBeenCalledWith(
+      "settings.smtp_token_rename_failed",
+      "error",
+    );
   });
 
   it("keeps the dialog open after a failed request", async () => {

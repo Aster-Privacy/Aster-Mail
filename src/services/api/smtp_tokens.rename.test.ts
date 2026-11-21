@@ -196,6 +196,18 @@ describe("rename_smtp_token", () => {
     expect(h.patch.mock.calls[0][0]).toBe("/developer/v1/smtp-tokens/a%2Fb");
   });
 
+  it("reports a missing token when renaming is supported", async () => {
+    h.patch.mockResolvedValueOnce({ error: "x", status: 404 });
+    expect(await rename_smtp_token("token-1", "scanner", true)).toEqual({
+      failure: "missing",
+    });
+
+    h.patch.mockResolvedValueOnce({ error: "x", status: 405 });
+    expect(await rename_smtp_token("token-1", "scanner", true)).toEqual({
+      failure: "unavailable",
+    });
+  });
+
   it("reports unavailable when the route is missing", async () => {
     h.patch.mockResolvedValueOnce({ error: "x", status: 404 });
     expect(await rename_smtp_token("token-1", "scanner")).toEqual({

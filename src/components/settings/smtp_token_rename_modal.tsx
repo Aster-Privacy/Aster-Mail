@@ -44,12 +44,14 @@ interface SmtpTokenRenameModalProps {
   token: SmtpToken | null;
   on_close: () => void;
   on_renamed: (token_id: string, name: string) => void;
+  on_missing: () => void;
 }
 
 export function SmtpTokenRenameModal({
   token,
   on_close,
   on_renamed,
+  on_missing,
 }: SmtpTokenRenameModalProps) {
   const { t } = use_i18n();
   const [name, set_name] = useState("");
@@ -58,6 +60,7 @@ export function SmtpTokenRenameModal({
   const active_id_ref = useRef<string | null>(null);
   const token_id = token?.id ?? null;
   const token_name = token?.name ?? "";
+  const rename_supported = Boolean(token?.smtp_settings);
 
   useEffect(() => {
     active_id_ref.current = token_id;
@@ -88,7 +91,11 @@ export function SmtpTokenRenameModal({
     set_is_saving(true);
     set_error("");
 
-    const result = await rename_smtp_token(token_id, normalized);
+    const result = await rename_smtp_token(
+      token_id,
+      normalized,
+      rename_supported,
+    );
 
     if (active_id_ref.current !== token_id) return;
 
@@ -97,6 +104,14 @@ export function SmtpTokenRenameModal({
     if (result.name !== undefined) {
       on_renamed(token_id, result.name);
       show_toast(t("settings.smtp_token_renamed_toast"), "success");
+      on_close();
+
+      return;
+    }
+
+    if (result.failure === "missing") {
+      show_toast(t("settings.smtp_token_rename_failed"), "error");
+      on_missing();
       on_close();
 
       return;
