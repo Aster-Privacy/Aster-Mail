@@ -4517,6 +4517,9 @@ export const pt_br = {
     confirm_actions_description: "Pedir confirmação antes destas ações",
     confirm_delete: "Confirmar exclusão",
     confirm_delete_description:
+      "Confirmar antes de mover e-mails para a lixeira",
+    confirm_permanent_delete: "Confirmar exclusão permanente",
+    confirm_permanent_delete_description:
       "Confirmar antes de excluir e-mails permanentemente",
     confirm_archive: "Confirmar arquivamento",
     confirm_archive_description: "Confirmar antes de arquivar e-mails",

@@ -3446,7 +3446,10 @@ export const en: Translations = {
     confirmations: "Confirmations",
     confirm_actions_description: "Ask for confirmation before these actions",
     confirm_delete: "Confirm Delete",
-    confirm_delete_description: "Confirm before permanently deleting emails",
+    confirm_delete_description: "Confirm before moving emails to Trash",
+    confirm_permanent_delete: "Confirm Permanent Delete",
+    confirm_permanent_delete_description:
+      "Confirm before permanently deleting emails",
     confirm_archive: "Confirm Archive",
     confirm_archive_description: "Confirm before archiving emails",
     confirm_spam: "Confirm Spam",

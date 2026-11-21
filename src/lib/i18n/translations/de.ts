@@ -6336,6 +6336,9 @@ export const de = {
       "Dadurch werden alle gespeicherten Daten zu letzten Empfängern dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
     disable_and_clear: "Deaktivieren & Daten löschen",
     confirm_delete_description:
+      "Vor dem Verschieben von E-Mails in den Papierkorb bestätigen",
+    confirm_permanent_delete: "Endgültiges Löschen bestätigen",
+    confirm_permanent_delete_description:
       "Vor dem endgültigen Löschen von E-Mails bestätigen",
     confirm_spam_description:
       "Vor dem Markieren von E-Mails als Spam bestätigen",

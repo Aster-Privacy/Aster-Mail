@@ -4630,6 +4630,9 @@ export const ru = {
       "Запрашивать подтверждение перед этими действиями",
     confirm_delete: "Подтверждение удаления",
     confirm_delete_description:
+      "Подтверждать перед перемещением писем в корзину",
+    confirm_permanent_delete: "Подтверждение окончательного удаления",
+    confirm_permanent_delete_description:
       "Подтверждать перед окончательным удалением писем",
     confirm_archive: "Подтверждение архивирования",
     confirm_archive_description: "Подтверждать перед архивированием писем",

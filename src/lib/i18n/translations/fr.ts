@@ -4551,6 +4551,9 @@ export const fr = {
     confirm_actions_description: "Demander une confirmation avant ces actions",
     confirm_delete: "Confirmer la suppression",
     confirm_delete_description:
+      "Confirmer avant de déplacer des e-mails vers la corbeille",
+    confirm_permanent_delete: "Confirmer la suppression définitive",
+    confirm_permanent_delete_description:
       "Confirmer avant de supprimer définitivement des e-mails",
     confirm_archive: "Confirmer l'archivage",
     confirm_archive_description: "Confirmer avant d'archiver des e-mails",

@@ -6312,6 +6312,9 @@ export const nl = {
       "Dit verwijdert permanent alle opgeslagen gegevens van recente ontvangers. Deze actie kan niet ongedaan worden gemaakt.",
     disable_and_clear: "Uitschakelen en gegevens wissen",
     confirm_delete_description:
+      "Bevestigen voordat e-mails naar de prullenbak worden verplaatst",
+    confirm_permanent_delete: "Permanent verwijderen bevestigen",
+    confirm_permanent_delete_description:
       "Bevestigen voordat e-mails permanent worden verwijderd",
     default_email_app: "Standaard e-mailapp",
     default_email_app_description:

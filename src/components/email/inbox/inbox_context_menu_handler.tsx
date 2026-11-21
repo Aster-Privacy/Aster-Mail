@@ -64,6 +64,7 @@ export function use_context_menu_actions({
 }: UseContextMenuActionsHookParams): ContextMenuActions {
   const {
     confirm_before_delete,
+    confirm_before_permanent_delete,
     confirm_before_spam,
     confirm_before_archive,
     conversation_grouping,
@@ -93,6 +94,7 @@ export function use_context_menu_actions({
         remove_tag_from_email,
         preferences: {
           confirm_before_delete,
+          confirm_before_permanent_delete,
           confirm_before_spam,
           confirm_before_archive,
           conversation_grouping,
@@ -124,6 +126,7 @@ export function use_context_menu_actions({
       add_tag_to_email,
       remove_tag_from_email,
       confirm_before_delete,
+      confirm_before_permanent_delete,
       confirm_before_spam,
       confirm_before_archive,
       conversation_grouping,

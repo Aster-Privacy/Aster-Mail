@@ -4602,6 +4602,9 @@ export const it = {
     confirm_actions_description: "Chiedi conferma prima di queste azioni",
     confirm_delete: "Conferma eliminazione",
     confirm_delete_description:
+      "Conferma prima di spostare le email nel cestino",
+    confirm_permanent_delete: "Conferma eliminazione definitiva",
+    confirm_permanent_delete_description:
       "Conferma prima di eliminare definitivamente le email",
     confirm_archive: "Conferma archiviazione",
     confirm_archive_description: "Conferma prima di archiviare le email",

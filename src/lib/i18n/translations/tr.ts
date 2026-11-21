@@ -4440,6 +4440,9 @@ export const tr = {
     confirm_actions_description: "Bu eylemlerden önce onay iste",
     confirm_delete: "Silmeyi Onayla",
     confirm_delete_description:
+      "E-postaları çöp kutusuna taşımadan önce onayla",
+    confirm_permanent_delete: "Kalıcı Silmeyi Onayla",
+    confirm_permanent_delete_description:
       "E-postaları kalıcı olarak silmeden önce onayla",
     confirm_archive: "Arşivlemeyi Onayla",
     confirm_archive_description: "E-postaları arşivlemeden önce onayla",

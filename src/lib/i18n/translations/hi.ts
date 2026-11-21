@@ -3530,7 +3530,10 @@ export const hi = {
     confirmations: "पुष्टियां",
     confirm_actions_description: "इन कार्रवाइयों से पहले पुष्टि मांगें",
     confirm_delete: "हटाने की पुष्टि करें",
-    confirm_delete_description: "ईमेल हमेशा के लिए हटाने से पहले पुष्टि करें",
+    confirm_delete_description: "ईमेल ट्रैश में ले जाने से पहले पुष्टि करें",
+    confirm_permanent_delete: "हमेशा के लिए हटाने की पुष्टि करें",
+    confirm_permanent_delete_description:
+      "ईमेल हमेशा के लिए हटाने से पहले पुष्टि करें",
     confirm_archive: "आर्काइव की पुष्टि करें",
     confirm_archive_description: "ईमेल आर्काइव करने से पहले पुष्टि करें",
     confirm_spam: "स्पैम की पुष्टि करें",

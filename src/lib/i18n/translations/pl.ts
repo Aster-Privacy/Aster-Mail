@@ -4670,7 +4670,11 @@ export const pl = {
     confirmations: "Potwierdzenia",
     confirm_actions_description: "Pytaj o potwierdzenie przed tymi akcjami",
     confirm_delete: "Potwierdź usunięcie",
-    confirm_delete_description: "Potwierdź przed trwałym usunięciem e-maili",
+    confirm_delete_description:
+      "Potwierdź przed przeniesieniem e-maili do kosza",
+    confirm_permanent_delete: "Potwierdź trwałe usunięcie",
+    confirm_permanent_delete_description:
+      "Potwierdź przed trwałym usunięciem e-maili",
     confirm_archive: "Potwierdź archiwizację",
     confirm_archive_description: "Potwierdź przed zarchiwizowaniem e-maili",
     confirm_spam: "Potwierdź spam",

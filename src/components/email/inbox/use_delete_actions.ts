@@ -87,6 +87,7 @@ interface UseDeleteActionsOptions {
   bulk_cancel_scheduled: (ids: string[]) => Promise<boolean>;
   preferences: {
     confirm_before_delete: boolean;
+    confirm_before_permanent_delete?: boolean;
     conversation_grouping?: boolean;
   };
   update_preference: <K extends keyof UserPreferences>(
@@ -111,6 +112,15 @@ interface UseDeleteActionsOptions {
   set_dont_ask_single_delete: React.Dispatch<React.SetStateAction<boolean>>;
   set_show_empty_trash_dialog: React.Dispatch<React.SetStateAction<boolean>>;
   set_is_emptying_trash: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export function delete_choice_preference(
+  has_trashed: boolean,
+  confirm_before_permanent_delete: boolean | undefined,
+): "confirm_before_delete" | "confirm_before_permanent_delete" {
+  return has_trashed && confirm_before_permanent_delete !== false
+    ? "confirm_before_permanent_delete"
+    : "confirm_before_delete";
 }
 
 export function use_delete_actions({
@@ -338,12 +348,17 @@ export function use_delete_actions({
 
   const handle_toolbar_delete = useCallback(async (): Promise<void> => {
     const ids = get_selected_ids(email_state.emails);
-    const has_trashed =
-      !is_drafts_view &&
-      !is_scheduled_view &&
-      split_by_trash(ids).trashed.length > 0;
+    const { trashed, untrashed } =
+      is_drafts_view || is_scheduled_view
+        ? { trashed: [], untrashed: ids }
+        : split_by_trash(ids);
+    const asks_before_permanent =
+      trashed.length > 0 &&
+      preferences.confirm_before_permanent_delete !== false;
+    const asks_before_trash =
+      untrashed.length > 0 && preferences.confirm_before_delete;
 
-    if (preferences.confirm_before_delete || has_trashed || is_drafts_view) {
+    if (asks_before_permanent || asks_before_trash || is_drafts_view) {
       set_confirmations((prev) => ({ ...prev, show_delete: true }));
 
       return;
@@ -355,9 +370,12 @@ export function use_delete_actions({
       return;
     }
 
-    await run_move_to_trash(ids);
+    if (trashed.length > 0) await run_permanent_delete(trashed);
+    if (untrashed.length > 0) await run_move_to_trash(untrashed);
   }, [
     preferences.confirm_before_delete,
+    preferences.confirm_before_permanent_delete,
+    run_permanent_delete,
     get_selected_ids,
     email_state.emails,
     run_move_to_trash,
@@ -370,10 +388,21 @@ export function use_delete_actions({
   ]);
 
   const confirm_delete = useCallback(async (): Promise<void> => {
-    if (dont_ask_delete && !is_drafts_view) {
-      update_preference("confirm_before_delete", false, true);
-    }
     const ids = get_selected_ids(email_state.emails);
+
+    if (dont_ask_delete && !is_drafts_view) {
+      const has_trashed =
+        !is_scheduled_view && split_by_trash(ids).trashed.length > 0;
+
+      update_preference(
+        delete_choice_preference(
+          has_trashed,
+          preferences.confirm_before_permanent_delete,
+        ),
+        false,
+        true,
+      );
+    }
 
     if (is_drafts_view) {
       run_delete_drafts(ids);
@@ -389,6 +418,7 @@ export function use_delete_actions({
     set_dont_ask_delete(false);
   }, [
     dont_ask_delete,
+    preferences.confirm_before_permanent_delete,
     get_selected_ids,
     email_state.emails,
     run_permanent_delete,
@@ -411,10 +441,23 @@ export function use_delete_actions({
 
   const confirm_single_delete = useCallback(async (): Promise<void> => {
     if (!pending_delete_email) return;
-    if (dont_ask_single_delete) {
-      update_preference("confirm_before_delete", false, true);
-    }
     const email = pending_delete_email;
+
+    if (dont_ask_single_delete) {
+      const is_permanent =
+        !is_drafts_view &&
+        !is_scheduled_view &&
+        is_list_email_in_trash(email, current_view);
+
+      update_preference(
+        delete_choice_preference(
+          is_permanent,
+          preferences.confirm_before_permanent_delete,
+        ),
+        false,
+        true,
+      );
+    }
 
     if (
       !is_drafts_view &&
@@ -536,6 +579,7 @@ export function use_delete_actions({
   }, [
     pending_delete_email,
     dont_ask_single_delete,
+    preferences.confirm_before_permanent_delete,
     current_view,
     email_state.emails,
     remove_email,
