@@ -129,6 +129,40 @@ describe("use_guard_code", () => {
     expect(result.current.code).toBeNull();
   });
 
+  it("does not re-render endlessly when the device object changes each render", async () => {
+    vi.setSystemTime(59_000);
+    let renders = 0;
+    const { result } = renderHook(() => {
+      renders += 1;
+
+      return use_guard_code(device_with(null));
+    });
+
+    await flush();
+    await act(async () => {
+      vi.advanceTimersByTime(3_000);
+    });
+    await flush();
+    expect(result.current.code).toBeNull();
+    expect(result.current.ready).toBe(true);
+    expect(renders).toBeLessThan(12);
+  });
+
+  it("loads the secret once for an unstable device object", async () => {
+    vi.setSystemTime(59_000);
+    const code_secret = vi.fn(async () => new TextEncoder().encode(VECTOR));
+    const { result } = renderHook(() =>
+      use_guard_code({ code_secret } as unknown as GuardDevice),
+    );
+
+    await flush();
+    await act(async () => {
+      vi.advanceTimersByTime(3_000);
+    });
+    expect(code_secret).toHaveBeenCalledTimes(1);
+    expect(result.current.code).not.toBeNull();
+  });
+
   it("zeroes the secret on unmount", async () => {
     const bytes = new TextEncoder().encode(VECTOR);
     const device = {
