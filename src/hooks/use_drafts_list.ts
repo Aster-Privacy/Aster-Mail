@@ -42,8 +42,7 @@ import {
   format_email_list_timestamp,
   type FormatOptions,
 } from "@/utils/date_format";
-import { strip_html_tags } from "@/lib/html_sanitizer";
-import { build_list_preview } from "@/utils/preview_text";
+import { build_plain_preview } from "@/utils/preview_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { ignore_error } from "@/lib/ignore_error";
@@ -169,7 +168,7 @@ function transform_draft(
       : draft.content.subject || no_subject_text,
     preview: draft.is_undecryptable
       ? ""
-      : build_list_preview(strip_html_tags(draft.content.message)),
+      : build_plain_preview(draft.content.message),
     timestamp: format_email_list_timestamp(
       new Date(draft.updated_at),
       format_options,
@@ -705,7 +704,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
             subject: detail.subject || t("mail.no_subject"),
             draft_subject: detail.subject || "",
             is_undecryptable: false,
-            preview: build_list_preview(strip_html_tags(detail.message)),
+            preview: build_plain_preview(detail.message),
             timestamp: format_email_list_timestamp(new Date(), format_options),
             to_recipients: detail.to_recipients,
             cc_recipients: detail.cc_recipients,

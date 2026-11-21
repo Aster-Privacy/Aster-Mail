@@ -102,7 +102,7 @@ import {
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
-import { clip_code_points } from "@/utils/preview_text";
+import { build_body_preview, clip_code_points } from "@/utils/preview_text";
 import { move_leading_footer_to_end } from "@/components/email/message_body_parts";
 import {
   has_readable_body,
@@ -659,13 +659,7 @@ export async function preload_email_detail(
         preview: password_protected
           ? ""
           : clip_code_points(
-              body_text ||
-                (safe_html
-                  ? safe_html
-                      .replace(/<[^>]*>/g, " ")
-                      .replace(/\s+/g, " ")
-                      .trim()
-                  : ""),
+              build_body_preview(body_text, safe_html ?? ""),
               200,
             ),
         timestamp: new Date(envelope.sent_at || item.created_at).toLocaleString(
