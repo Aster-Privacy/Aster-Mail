@@ -38,6 +38,7 @@ import { BackupCodesPanel } from "@/components/settings/security/backup_codes_pa
 import { derive_step_up_credentials } from "@/services/api/step_up";
 import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { use_i18n } from "@/lib/i18n/context";
+import { held_of } from "@/services/guard/held_outcome";
 import { clamp_password } from "@/services/sanitize";
 import { user_facing_error } from "@/utils/user_facing_error";
 
@@ -110,6 +111,14 @@ export function RegenerateBackupCodesModal({
     }
 
     const response = await regenerate_backup_codes({ code, password_hash });
+
+    if (held_of(response)) {
+      verifying_ref.current = false;
+      set_is_loading(false);
+      on_close();
+
+      return;
+    }
 
     if (response.error) {
       const kind = classify_totp_error(response);

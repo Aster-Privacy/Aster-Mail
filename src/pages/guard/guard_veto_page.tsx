@@ -125,7 +125,7 @@ export default function GuardVetoPage() {
       <div className="w-full max-w-sm space-y-5 text-center">
         <div className="flex justify-center">
           <img
-            alt="Aster"
+            alt={t("common.aster_mail")}
             className="h-10"
             decoding="async"
             draggable={false}

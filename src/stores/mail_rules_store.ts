@@ -312,6 +312,7 @@ export async function update_rule(
 }
 
 export async function delete_rule(id: string): Promise<boolean> {
+  last_save_held = false;
   const previous = state.rules;
 
   set_state({ rules: state.rules.filter((r) => r.id !== id) });
@@ -321,6 +322,13 @@ export async function delete_rule(id: string): Promise<boolean> {
   const response = await api_delete_rule(id);
 
   if (generation !== store_generation) return !response.error;
+
+  if (held_of(response)) {
+    last_save_held = true;
+    set_state({ rules: previous });
+
+    return false;
+  }
 
   if (response.error) {
     set_state({ rules: previous, error: response.error });

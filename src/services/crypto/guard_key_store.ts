@@ -40,9 +40,12 @@ export interface GuardKeyRecord {
   wrapped_secrets: GuardWrappedSecrets | null;
   wrapped_code_secret?: GuardWrappedSecrets | null;
   device_id: string | null;
+  created_at?: number;
 }
 
 const HINT_PREFIX = "hint:";
+const PENDING_RECORD_PREFIX = "pending:";
+export const GUARD_PENDING_MAX_AGE_MS = 15 * 60 * 1000;
 
 function idb_available(): boolean {
   try {
@@ -122,7 +125,42 @@ export async function read_guard_record(
 
 export async function write_guard_record(record: GuardKeyRecord): Promise<void> {
   if (!idb_available()) throw new Error("guard_key_store: unavailable");
-  await with_store("readwrite", (store) => store.put(record, record.user_id));
+  const stored =
+    record.user_id.startsWith(PENDING_RECORD_PREFIX) &&
+    record.created_at === undefined
+      ? { ...record, created_at: Date.now() }
+      : record;
+
+  await with_store("readwrite", (store) => store.put(stored, stored.user_id));
+}
+
+export async function sweep_pending_guard_records(
+  now: number = Date.now(),
+): Promise<void> {
+  if (!idb_available()) return;
+  const keys = await with_store<IDBValidKey[]>("readonly", (store) =>
+    store.getAllKeys(),
+  );
+
+  for (const key of keys ?? []) {
+    if (typeof key !== "string" || !key.startsWith(PENDING_RECORD_PREFIX)) {
+      continue;
+    }
+    const value = await with_store<unknown>("readonly", (store) =>
+      store.get(key),
+    );
+    const created =
+      typeof value === "object" && value !== null
+        ? (value as { created_at?: unknown }).created_at
+        : undefined;
+
+    if (
+      typeof created !== "number" ||
+      now - created > GUARD_PENDING_MAX_AGE_MS
+    ) {
+      await with_store("readwrite", (store) => store.delete(key));
+    }
+  }
 }
 
 export async function delete_guard_record(user_id: string): Promise<void> {

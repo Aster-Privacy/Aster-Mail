@@ -198,6 +198,9 @@ export function AutoForwardSection() {
     try {
       const result = await delete_forwarding_rule(rule.id);
 
+      if (held_of(result)) {
+        return;
+      }
       if (result.data?.success) {
         set_rules((prev) => prev.filter((r) => r.id !== rule.id));
         show_toast(
@@ -222,6 +225,11 @@ export function AutoForwardSection() {
       const ids = Array.from(selected_ids);
       const result = await bulk_delete_forwarding_rules(ids);
 
+      if (held_of(result)) {
+        set_selected_ids(new Set());
+
+        return;
+      }
       if (result.data?.success) {
         const deleted_count = result.data.deleted_count;
 

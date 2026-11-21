@@ -47,6 +47,10 @@ vi.mock("@/services/guard/sign_action", () => ({
 
 vi.mock("@/services/api/guard", () => ({ guard_device_leave: h.leave }));
 
+vi.mock("@/services/crypto/guard_key_store", () => ({
+  sweep_pending_guard_records: vi.fn(async () => undefined),
+}));
+
 import { leave_guard_on_sign_out } from "@/services/guard/guard_leave";
 
 const USER_ID = "0f8fad5b-d9cb-469f-a165-70867728950e";

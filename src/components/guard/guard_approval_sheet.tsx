@@ -75,6 +75,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { server_now } from "@/lib/server_clock";
 import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 import { use_should_reduce_motion } from "@/provider";
+import { sweep_pending_guard_records } from "@/services/crypto/guard_key_store";
 import {
   get_passphrase_from_memory,
   on_vault_stored,
@@ -564,6 +565,10 @@ export function GuardApprovalHost({
   const switch_account = switch_target
     ? accounts.find((account) => account.id === switch_target)
     : undefined;
+
+  useEffect(() => {
+    void sweep_pending_guard_records().catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     set_guard_event_account(user_id);

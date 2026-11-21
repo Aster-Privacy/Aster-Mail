@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 
 import { is_composing } from "@/utils/ime";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import {
   Modal,
   ModalHeader,
@@ -154,6 +155,12 @@ export function SmtpTokenCreateModal({
         domain_name: selected.domain_name,
         local_part: selected.local_part,
       });
+
+      if (held_of(response)) {
+        on_close();
+
+        return;
+      }
 
       if (response.error || !response.data) {
         if (response.code === "FORBIDDEN") {

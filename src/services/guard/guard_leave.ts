@@ -20,6 +20,7 @@
 //
 import { GUARD_ACTION, id_subject } from "@/lib/crypto/guard_action";
 import { guard_device_leave } from "@/services/api/guard";
+import { sweep_pending_guard_records } from "@/services/crypto/guard_key_store";
 import {
   forget_guard_device,
   get_guard_device,
@@ -27,6 +28,7 @@ import {
 import { sign_guard_action } from "@/services/guard/sign_action";
 
 export async function leave_guard_on_sign_out(user_id: string): Promise<void> {
+  await sweep_pending_guard_records().catch(() => undefined);
   const device = await get_guard_device(user_id).catch(() => null);
 
   if (!device) return;

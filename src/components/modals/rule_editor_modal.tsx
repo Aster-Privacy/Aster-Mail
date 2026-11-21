@@ -735,6 +735,11 @@ export function RuleEditorModal({
 
     set_saving(false);
 
+    if (!deleted && get_last_save_held()) {
+      on_close();
+
+      return;
+    }
     if (!deleted) {
       show_toast(t("mail_rules.rule_delete_failed"), "error");
 

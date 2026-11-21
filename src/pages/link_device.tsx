@@ -95,12 +95,14 @@ function LinkDeviceShell({
   heading: string;
   description?: string;
 }) {
+  const { t } = use_i18n();
+
   return (
     <div className="fixed inset-0 overflow-y-auto bg-surf-primary">
       <div className="min-h-full flex items-center justify-center px-4 py-10">
         <div className="flex flex-col items-center w-full max-w-[352px]">
           <img
-            alt="Aster"
+            alt={t("common.aster_mail")}
             className="h-9"
             decoding="async"
             draggable={false}
