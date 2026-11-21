@@ -5076,7 +5076,9 @@ export const fr = {
       "Afficher des icônes de cadenas sur les messages chiffrés",
     publish_keys_wkd_title: "Publier les clés sur WKD",
     publish_keys_wkd_description:
-      "Rendre vos clés découvrables via Web Key Directory",
+      "Rendre la clé de votre adresse principale découvrable via Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD ne publie pas les clés des alias ni des adresses de domaine personnalisé. Non couvertes : {{addresses}}",
     publish_to_keyservers_title: "Publier sur les serveurs de clés",
     publish_to_keyservers_description:
       "Rendre vos clés trouvables sur les serveurs de clés publics",

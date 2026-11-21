@@ -4535,7 +4535,10 @@ export const zh_CN = {
     show_encryption_indicators_title: "显示加密指示器",
     show_encryption_indicators_description: "在加密消息上显示锁定图标",
     publish_keys_wkd_title: "将密钥发布到 WKD",
-    publish_keys_wkd_description: "通过 Web Key Directory 使您的密钥可被发现",
+    publish_keys_wkd_description:
+      "通过 Web Key Directory 使您主地址的密钥可被发现。",
+    publish_keys_wkd_not_covered:
+      "WKD 不会发布别名或自定义域名地址的密钥。未涵盖：{{addresses}}",
     publish_to_keyservers_title: "发布到密钥服务器",
     publish_to_keyservers_description: "在公共密钥服务器上使您的密钥可被查找",
     info_forward_secrecy_title: "什么是前向保密？",

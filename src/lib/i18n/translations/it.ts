@@ -6387,7 +6387,9 @@ export const it = {
       "Mostra icone lucchetto sui messaggi crittografati",
     publish_keys_wkd_title: "Pubblica chiavi su WKD",
     publish_keys_wkd_description:
-      "Rendi le tue chiavi scopribili tramite Web Key Directory",
+      "Rendi la chiave del tuo indirizzo principale reperibile tramite Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD non pubblica le chiavi degli alias né degli indirizzi di dominio personalizzato. Non inclusi: {{addresses}}",
     publish_to_keyservers_title: "Pubblica sui keyserver",
     publish_to_keyservers_description:
       "Rendi le tue chiavi trovabili sui keyserver pubblici",

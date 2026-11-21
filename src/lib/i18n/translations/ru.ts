@@ -5140,7 +5140,9 @@ export const ru = {
       "Отображать значки замка на зашифрованных сообщениях",
     publish_keys_wkd_title: "Публиковать ключи в WKD",
     publish_keys_wkd_description:
-      "Сделать ваши ключи обнаруживаемыми через Web Key Directory",
+      "Сделать ключ вашего основного адреса обнаруживаемым через Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD не публикует ключи для псевдонимов и адресов собственного домена. Не охвачены: {{addresses}}",
     publish_to_keyservers_title: "Публиковать на серверах ключей",
     publish_to_keyservers_description:
       "Сделать ваши ключи доступными на публичных серверах ключей",

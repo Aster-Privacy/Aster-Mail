@@ -5184,7 +5184,9 @@ export const pl = {
       "Wyświetlaj ikony kłódki na zaszyfrowanych wiadomościach",
     publish_keys_wkd_title: "Publikuj klucze w WKD",
     publish_keys_wkd_description:
-      "Udostępnij swoje klucze przez Web Key Directory",
+      "Udostępnij klucz swojego adresu głównego przez Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD nie publikuje kluczy aliasów ani adresów własnej domeny. Nieobjęte: {{addresses}}",
     publish_to_keyservers_title: "Publikuj na serwerach kluczy",
     publish_to_keyservers_description:
       "Udostępnij swoje klucze na publicznych serwerach kluczy",

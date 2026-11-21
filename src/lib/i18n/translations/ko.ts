@@ -4981,7 +4981,9 @@ export const ko = {
       "암호화된 메시지에 잠금 아이콘을 표시합니다",
     publish_keys_wkd_title: "WKD에 키 게시",
     publish_keys_wkd_description:
-      "Web Key Directory를 통해 키를 검색 가능하게 합니다",
+      "Web Key Directory를 통해 기본 주소의 키를 검색 가능하게 합니다.",
+    publish_keys_wkd_not_covered:
+      "WKD는 별칭이나 사용자 도메인 주소의 키를 게시하지 않습니다. 포함되지 않음: {{addresses}}",
     publish_to_keyservers_title: "키서버에 게시",
     publish_to_keyservers_description:
       "공개 키서버에서 키를 찾을 수 있게 합니다",

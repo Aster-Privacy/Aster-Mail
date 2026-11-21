@@ -65,6 +65,8 @@ import {
 const KEYSERVER_MAX_ADDRESSES = 10;
 const KEYSERVER_POLL_INTERVAL_MS = 60_000;
 const KEYSERVER_POLL_MIN_GAP_MS = 15_000;
+const WKD_SERVED_DOMAINS = ["astermail.org", "aster.cx"];
+const WKD_NOTE_MAX_ADDRESSES = 3;
 
 export interface KeyserverAddressRow {
   email: string;
@@ -77,6 +79,18 @@ interface KeyserverCandidate {
   email: string;
   name?: string;
   is_primary: boolean;
+}
+
+export function wkd_uncovered_addresses(
+  candidates: { email: string; is_primary: boolean }[],
+): string[] {
+  return candidates
+    .filter((candidate) => {
+      const domain = candidate.email.split("@").pop() ?? "";
+
+      return !candidate.is_primary || !WKD_SERVED_DOMAINS.includes(domain);
+    })
+    .map((candidate) => candidate.email);
 }
 
 export interface PgpKeyInfo {
@@ -211,6 +225,22 @@ export function use_encryption() {
 
   const keyserver_can_publish =
     keyserver_candidates.length <= 1 || keyserver_selected.length > 0;
+
+  const wkd_description = useMemo(() => {
+    const base = t("settings.publish_keys_wkd_description");
+    const uncovered = wkd_uncovered_addresses(keyserver_candidates);
+
+    if (uncovered.length === 0) return base;
+
+    const shown = uncovered.slice(0, WKD_NOTE_MAX_ADDRESSES);
+    const hidden_count = uncovered.length - shown.length;
+    const addresses =
+      hidden_count > 0
+        ? `${shown.join(", ")}, ${t("common.n_more", { count: hidden_count })}`
+        : shown.join(", ");
+
+    return `${base} ${t("settings.publish_keys_wkd_not_covered", { addresses })}`;
+  }, [keyserver_candidates, t]);
 
   const keyserver_awaiting =
     keyserver_state === "awaiting_verification" ||
@@ -945,6 +975,7 @@ export function use_encryption() {
     handle_export_secret_key,
     handle_copy_public_key,
     handle_wkd_toggle,
+    wkd_description,
     handle_keyserver_toggle,
     handle_auto_discover_keys_toggle,
     handle_encrypt_emails_toggle,

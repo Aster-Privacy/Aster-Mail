@@ -5036,7 +5036,9 @@ export const es = {
       "Mostrar iconos de candado en mensajes cifrados",
     publish_keys_wkd_title: "Publicar claves en WKD",
     publish_keys_wkd_description:
-      "Hacer tus claves descubribles mediante Web Key Directory",
+      "Haz que la clave de tu dirección principal se pueda encontrar mediante Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD no publica claves de alias ni de direcciones de dominio propio. No incluidas: {{addresses}}",
     publish_to_keyservers_title: "Publicar en servidores de claves",
     publish_to_keyservers_description:
       "Hacer tus claves encontrables en servidores de claves públicos",

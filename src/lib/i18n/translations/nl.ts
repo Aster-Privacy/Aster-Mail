@@ -4939,7 +4939,9 @@ export const nl = {
       "Slotpictogrammen weergeven op versleutelde berichten",
     publish_keys_wkd_title: "Sleutels publiceren naar WKD",
     publish_keys_wkd_description:
-      "Maak je sleutels vindbaar via Web Key Directory",
+      "Maak de sleutel van je primaire adres vindbaar via Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD publiceert geen sleutels voor aliassen of adressen van een eigen domein. Niet gedekt: {{addresses}}",
     publish_to_keyservers_title: "Publiceren naar sleutelservers",
     publish_to_keyservers_description:
       "Maak je sleutels vindbaar op openbare sleutelservers",

@@ -5569,6 +5569,7 @@ export interface SettingsTranslations {
   show_encryption_indicators_description: string;
   publish_keys_wkd_title: string;
   publish_keys_wkd_description: string;
+  publish_keys_wkd_not_covered: string;
   publish_to_keyservers_title: string;
   publish_to_keyservers_description: string;
   info_forward_secrecy_title: string;

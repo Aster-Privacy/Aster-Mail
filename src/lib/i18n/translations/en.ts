@@ -5965,7 +5965,9 @@ export const en: Translations = {
       "Display lock icons on encrypted messages",
     publish_keys_wkd_title: "Publish keys to WKD",
     publish_keys_wkd_description:
-      "Make your keys discoverable via Web Key Directory",
+      "Make the key for your primary address discoverable through Web Key Directory.",
+    publish_keys_wkd_not_covered:
+      "WKD doesn't publish keys for aliases or custom domain addresses. Not covered: {{addresses}}",
     publish_to_keyservers_title: "Publish to keyservers",
     publish_to_keyservers_description:
       "Make your keys findable on public keyservers",
