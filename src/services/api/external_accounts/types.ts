@@ -58,10 +58,7 @@ export interface ExternalAccountResponse {
 }
 
 export type ExternalAccountMode =
-  | "server_sync"
-  | "two_way"
-  | "send_only"
-  | "device";
+  "server_sync" | "two_way" | "send_only" | "device";
 
 export interface SendOnlyCredentials {
   smtp_host: string;
@@ -187,6 +184,35 @@ export interface SyncResult {
   duplicate_count: number;
   folders_synced: string[];
   duration_ms: number;
+}
+
+export type ExternalFolderSpecialUse =
+  "inbox" | "sent" | "drafts" | "trash" | "junk" | "archive" | "all";
+
+export type ExternalFolderTarget =
+  "inbox" | "sent" | "drafts" | "trash" | "spam" | "archive" | "custom";
+
+export interface ExternalFolderLink {
+  remote_name: string;
+  special_use?: ExternalFolderSpecialUse;
+  aster_target: ExternalFolderTarget;
+  folder_token?: string;
+}
+
+export type ExternalSourceKind = "external" | "device" | "forwarding";
+
+export interface ExternalSource {
+  source_id: string;
+  kind: ExternalSourceKind;
+  account_token?: string;
+  tag_token?: string;
+}
+
+export type SourceNotifyChoice = "all" | "none";
+
+export interface SourceNotifySetting {
+  source_id: string;
+  notify: SourceNotifyChoice;
 }
 
 export interface DeduplicationRecord {

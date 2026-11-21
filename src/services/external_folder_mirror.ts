@@ -36,6 +36,7 @@ import {
   encrypt_tag_field,
   generate_tag_token,
 } from "@/hooks/use_tags";
+import { build_folder_links } from "@/services/external_folder_links";
 import { create_folder } from "@/services/api/folders";
 import { create_tag, list_tags } from "@/services/api/tags";
 import { request_cache } from "@/services/api/request_cache";
@@ -293,11 +294,7 @@ export async function mirror_external_account_folders(
   if (is_cancelled()) return { status: "cancelled" };
 
   const label_mapping = listed.data.uses_labels
-    ? await mirror_source_labels(
-        source_folders,
-        identity_key,
-        is_cancelled,
-      )
+    ? await mirror_source_labels(source_folders, identity_key, is_cancelled)
     : {};
 
   if (is_cancelled()) return { status: "cancelled" };
@@ -310,6 +307,12 @@ export async function mirror_external_account_folders(
       result.mapping,
       label_mapping,
       selection?.selected_folders,
+      build_folder_links(
+        selection
+          ? source_folders
+          : source_folders.filter((folder) => !folder.excluded),
+        result.mapping,
+      ),
     );
 
     if (saved.error) return { status: "error" };
@@ -365,10 +368,7 @@ export async function mirror_source_labels(
     existing,
     async (name, parent_token) => {
       const tag_token = generate_tag_token();
-      const { encrypted, nonce } = await encrypt_tag_field(
-        name,
-        identity_key,
-      );
+      const { encrypted, nonce } = await encrypt_tag_field(name, identity_key);
       const created = await create_tag({
         tag_token,
         encrypted_name: encrypted,

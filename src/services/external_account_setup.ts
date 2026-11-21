@@ -33,6 +33,7 @@ import {
   decode_modified_utf7,
   mirror_external_account_folders,
 } from "@/services/external_folder_mirror";
+import { build_folder_links } from "@/services/external_folder_links";
 import {
   is_system_folder,
   resolve_sync_since_date,
@@ -148,6 +149,13 @@ export async function apply_oauth_folder_selection(
       {},
       {},
       selected_folders,
+      options.listed
+        ? build_folder_links(
+            (options.listed.folders ?? []).filter((folder) =>
+              selected_folders.includes(folder.name),
+            ),
+          )
+        : undefined,
     );
 
     return saved.error ? { status: "error" } : { status: "ok", failures: 0 };

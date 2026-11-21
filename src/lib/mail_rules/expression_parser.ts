@@ -43,7 +43,8 @@ type FieldKind =
   | "numeric_int"
   | "numeric_float"
   | "date"
-  | "auth";
+  | "auth"
+  | "source";
 
 interface FieldMeta {
   internal: string;
@@ -363,6 +364,9 @@ function field_meta(name: string): FieldMeta | null {
   if (name === "attachment.name") {
     return { internal: "attachment_name", kind: "attachment_name" };
   }
+  if (name === "source") {
+    return { internal: "source", kind: "source" };
+  }
   if (name.startsWith("header.")) {
     const hname = name.slice("header.".length);
 
@@ -642,6 +646,26 @@ class Parser {
       throw new ParseError("expected_operator", op_tok.line, op_tok.col);
     }
     const op_name = op_tok.value.toLowerCase();
+
+    if (meta.kind === "source") {
+      if (op_name !== "is" && op_name !== "is_not") {
+        throw new ParseError(
+          `bad_text_op:${op_tok.value}`,
+          op_tok.line,
+          op_tok.col,
+        );
+      }
+      this.consume();
+      const values: string[] = [];
+
+      for (const part of this.expect_string().split(",")) {
+        const value = part.trim();
+
+        if (value && !values.includes(value)) values.push(value);
+      }
+
+      return { type: "source", operator: op_name, values };
+    }
 
     if (meta.kind === "address") {
       if (!(ADDRESS_OPS as string[]).includes(op_name)) {
@@ -1003,5 +1027,7 @@ function serialize_leaf(c: LeafCondition): string {
     case "spf_result":
     case "dmarc_result":
       return `${AUTH_TO_NAME[c.type]} is ${c.value}`;
+    case "source":
+      return `source ${c.operator} ${quote_string(c.values.join(","))}`;
   }
 }

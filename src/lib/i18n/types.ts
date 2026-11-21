@@ -6744,6 +6744,16 @@ export interface SettingsTranslations {
   ext_v2_plan_feat_external_accounts: string;
   ext_v2_plan_desc_external_accounts: string;
   ext_v2_plan_synced_accounts_suffix: string;
+  ext_v2_rule_field_source: string;
+  ext_v2_rule_source_aster: string;
+  ext_v2_notify_sources_title: string;
+  ext_v2_notify_sources_description: string;
+  ext_v2_notify_source_all: string;
+  ext_v2_notify_source_none: string;
+  ext_v2_notify_source_save_failed: string;
+  ext_v2_source_removed: string;
+  ext_v2_source_device: string;
+  ext_v2_source_forwarding: string;
   no_allowed_senders: string;
   failed_to_load_allowlist: string;
   failed_to_load_blocklist: string;

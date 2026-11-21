@@ -31,6 +31,10 @@ import type {
   ExternalAccountConnectionSettings,
   ExternalAccountMode,
   SendOnlyCredentials,
+  ExternalFolderLink,
+  ExternalFolderSpecialUse,
+  ExternalSource,
+  SourceNotifySetting,
 } from "./types";
 
 import { api_client, type ApiResponse } from "../client";
@@ -1215,6 +1219,7 @@ export interface OAuthFolderInfo {
   delimiter: string;
   excluded: boolean;
   selectable?: boolean;
+  special_use?: ExternalFolderSpecialUse | null;
 }
 
 export interface OAuthFolderList {
@@ -1264,6 +1269,7 @@ export async function save_folder_mapping(
   folder_mapping: Record<string, string>,
   label_mapping: Record<string, string> = {},
   selected_folders?: string[],
+  links?: ExternalFolderLink[],
 ): Promise<ApiResponse<{ success: boolean }>> {
   const token_error = validate_account_token(account_token);
 
@@ -1282,6 +1288,10 @@ export async function save_folder_mapping(
       payload.selected_folders = selected_folders;
     }
 
+    if (links) {
+      payload.links = links;
+    }
+
     const response = await api_client.put<{ success: boolean }>(
       "/mail/v1/external_accounts/folder_mapping",
       payload,
@@ -1294,6 +1304,81 @@ export async function save_folder_mapping(
     }
 
     return { data: response.data };
+  } catch (err) {
+    return {
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
+    };
+  }
+}
+
+export async function list_external_sources(): Promise<
+  ApiResponse<ExternalSource[]>
+> {
+  try {
+    const response = await api_client.get<{ sources?: ExternalSource[] }>(
+      "/mail/v1/external_accounts/sources",
+    );
+
+    if (response.error || !response.data) {
+      return {
+        error: response.error || get_active_translations().errors.load_failed,
+      };
+    }
+
+    return { data: response.data.sources ?? [] };
+  } catch (err) {
+    return {
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
+    };
+  }
+}
+
+export async function get_source_notify(): Promise<
+  ApiResponse<SourceNotifySetting[]>
+> {
+  try {
+    const response = await api_client.get<{
+      sources?: SourceNotifySetting[];
+    }>("/mail/v1/external_accounts/source_notify");
+
+    if (response.error || !response.data) {
+      return {
+        error: response.error || get_active_translations().errors.load_failed,
+      };
+    }
+
+    return { data: response.data.sources ?? [] };
+  } catch (err) {
+    return {
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
+    };
+  }
+}
+
+export async function save_source_notify(
+  sources: SourceNotifySetting[],
+): Promise<ApiResponse<SourceNotifySetting[]>> {
+  try {
+    const response = await api_client.put<{
+      sources?: SourceNotifySetting[];
+    }>("/mail/v1/external_accounts/source_notify", { sources });
+
+    if (response.error || !response.data) {
+      return {
+        error: response.error || get_active_translations().common.save_failed,
+      };
+    }
+
+    return { data: response.data.sources ?? sources };
   } catch (err) {
     return {
       error: user_facing_error(

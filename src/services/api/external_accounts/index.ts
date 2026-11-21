@@ -35,6 +35,13 @@ export type {
   DeduplicationRecord,
   ExternalAccountMode,
   SendOnlyCredentials,
+  ExternalFolderLink,
+  ExternalFolderSpecialUse,
+  ExternalFolderTarget,
+  ExternalSource,
+  ExternalSourceKind,
+  SourceNotifyChoice,
+  SourceNotifySetting,
 } from "./types";
 
 export {
@@ -71,6 +78,9 @@ export {
   get_dedup_stats,
   list_oauth_folders,
   save_folder_mapping,
+  list_external_sources,
+  get_source_notify,
+  save_source_notify,
 } from "./api";
 
 export type { OAuthFolderInfo } from "./api";

@@ -191,7 +191,37 @@ describe("apply_oauth_folder_selection", () => {
     });
 
     expect(outcome).toEqual({ status: "ok", failures: 0 });
-    expect(save_mock).toHaveBeenCalledWith("tok", {}, {}, ["INBOX"]);
+    expect(save_mock).toHaveBeenCalledWith("tok", {}, {}, ["INBOX"], undefined);
+  });
+
+  it("sends system folder links for the selection when the vault is locked", async () => {
+    mirror_mock.mockResolvedValue({ status: "no_vault" });
+
+    await apply_oauth_folder_selection({
+      account_token: "tok",
+      selected_folders: ["INBOX", "Sent Items"],
+      import_existing: false,
+      existing_folders: [],
+      listed: {
+        folders: [folder("INBOX"), folder("Sent Items"), folder("Trash")],
+      },
+      now: NOW,
+    });
+
+    expect(save_mock).toHaveBeenCalledWith(
+      "tok",
+      {},
+      {},
+      ["INBOX", "Sent Items"],
+      [
+        { remote_name: "INBOX", special_use: "inbox", aster_target: "inbox" },
+        {
+          remote_name: "Sent Items",
+          special_use: "sent",
+          aster_target: "sent",
+        },
+      ],
+    );
   });
 
   it("stops before mirroring when the settings cannot be saved", async () => {
