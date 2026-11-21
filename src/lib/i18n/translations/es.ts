@@ -2483,6 +2483,21 @@ export const es = {
     smtp_token_copy_all: "Copiar todo",
     smtp_token_last_used: "Último uso",
     smtp_token_never_used: "Nunca",
+    smtp_token_details_title: "Detalles de configuración",
+    smtp_token_details_description:
+      "Usa estos ajustes para conectar tu cliente de correo o tu app.",
+    smtp_token_password_hidden: "Oculta",
+    smtp_token_password_hidden_note:
+      "La contraseña aparece solo una vez, cuando generas el token, y no se puede volver a mostrar. Si ya no la tienes, revoca este token y genera uno nuevo.",
+    smtp_token_rename_title: "Renombrar token",
+    smtp_token_rename_description:
+      "Renombrar el token no cambia la contraseña ni los ajustes de tus apps.",
+    smtp_token_renamed_toast: "Token renombrado",
+    smtp_token_rename_failed:
+      "No se pudo renombrar el token. Inténtalo de nuevo.",
+    smtp_token_rename_unavailable:
+      "Todavía no se puede renombrar. Inténtalo más tarde.",
+    smtp_token_rename_invalid: "Introduce un nombre de hasta 64 caracteres.",
     smtp_token_revoke_title: "¿Revocar token?",
     smtp_token_revoke_message:
       "Esto revocará permanentemente {{ name }}. Cualquier aplicación que lo use ya no podrá enviar correo.",

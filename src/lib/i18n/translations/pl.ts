@@ -2642,6 +2642,21 @@ export const pl = {
     smtp_token_copy_all: "Kopiuj wszystko",
     smtp_token_last_used: "Ostatnio użyty",
     smtp_token_never_used: "Nigdy",
+    smtp_token_details_title: "Szczegóły konfiguracji",
+    smtp_token_details_description:
+      "Użyj tych ustawień, aby połączyć swojego klienta poczty lub aplikację.",
+    smtp_token_password_hidden: "Ukryte",
+    smtp_token_password_hidden_note:
+      "Hasło pojawia się tylko raz, gdy generujesz token, i nie można go wyświetlić ponownie. Jeśli już go nie masz, unieważnij ten token i wygeneruj nowy.",
+    smtp_token_rename_title: "Zmień nazwę tokena",
+    smtp_token_rename_description:
+      "Zmiana nazwy nie zmienia hasła ani ustawień w Twoich aplikacjach.",
+    smtp_token_renamed_toast: "Zmieniono nazwę tokena",
+    smtp_token_rename_failed:
+      "Nie udało się zmienić nazwy tokena. Spróbuj ponownie.",
+    smtp_token_rename_unavailable:
+      "Zmiana nazwy nie jest jeszcze dostępna. Spróbuj ponownie później.",
+    smtp_token_rename_invalid: "Wpisz nazwę o długości do 64 znaków.",
     smtp_token_revoke_title: "Unieważnić token?",
     smtp_token_revoke_message:
       "Spowoduje to trwałe unieważnienie {{ name }}. Każda aplikacja, która go używa, nie będzie już mogła wysyłać poczty.",

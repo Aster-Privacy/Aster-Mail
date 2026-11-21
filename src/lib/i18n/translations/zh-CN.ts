@@ -2274,6 +2274,17 @@ export const zh_CN = {
     smtp_token_copy_all: "全部复制",
     smtp_token_last_used: "上次使用",
     smtp_token_never_used: "从未",
+    smtp_token_details_title: "设置详情",
+    smtp_token_details_description: "使用这些设置连接你的邮件客户端或应用。",
+    smtp_token_password_hidden: "已隐藏",
+    smtp_token_password_hidden_note:
+      "密码只在生成令牌时显示一次，之后无法再次显示。如果你已没有密码，请撤销此令牌并生成新的令牌。",
+    smtp_token_rename_title: "重命名令牌",
+    smtp_token_rename_description: "重命名不会更改密码，也不会更改你应用中的设置。",
+    smtp_token_renamed_toast: "令牌已重命名",
+    smtp_token_rename_failed: "无法重命名令牌。请重试。",
+    smtp_token_rename_unavailable: "重命名功能暂不可用。请稍后重试。",
+    smtp_token_rename_invalid: "请输入不超过 64 个字符的名称。",
     smtp_token_revoke_title: "撤销令牌？",
     smtp_token_revoke_message:
       "此操作将永久撤销 {{ name }}。任何使用它的应用都将无法再发送邮件。",

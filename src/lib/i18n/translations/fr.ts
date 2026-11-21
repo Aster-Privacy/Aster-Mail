@@ -2495,6 +2495,20 @@ export const fr = {
     smtp_token_copy_all: "Tout copier",
     smtp_token_last_used: "Dernière utilisation",
     smtp_token_never_used: "Jamais",
+    smtp_token_details_title: "Détails de configuration",
+    smtp_token_details_description:
+      "Utilisez ces réglages pour connecter votre client de messagerie ou votre app.",
+    smtp_token_password_hidden: "Masqué",
+    smtp_token_password_hidden_note:
+      "Le mot de passe n'apparaît qu'une seule fois, lorsque vous générez le jeton, et ne peut plus être affiché ensuite. Si vous ne l'avez plus, révoquez ce jeton et générez-en un nouveau.",
+    smtp_token_rename_title: "Renommer le jeton",
+    smtp_token_rename_description:
+      "Renommer le jeton ne modifie ni le mot de passe ni les réglages de vos apps.",
+    smtp_token_renamed_toast: "Jeton renommé",
+    smtp_token_rename_failed: "Impossible de renommer le jeton. Réessayez.",
+    smtp_token_rename_unavailable:
+      "Le renommage n'est pas encore disponible. Réessayez plus tard.",
+    smtp_token_rename_invalid: "Saisissez un nom de 64 caractères maximum.",
     smtp_token_revoke_title: "Révoquer le jeton ?",
     smtp_token_revoke_message:
       "Cette action révoquera définitivement {{ name }}. Toute application l'utilisant ne pourra plus envoyer de messages.",

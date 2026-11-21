@@ -2612,6 +2612,21 @@ export const hi = {
     smtp_token_copy_all: "सब कॉपी करें",
     smtp_token_last_used: "पिछली बार इस्तेमाल",
     smtp_token_never_used: "कभी नहीं",
+    smtp_token_details_title: "सेटअप विवरण",
+    smtp_token_details_description:
+      "अपने मेल क्लाइंट या ऐप को कनेक्ट करने के लिए इन सेटिंग का इस्तेमाल करें।",
+    smtp_token_password_hidden: "छिपा हुआ",
+    smtp_token_password_hidden_note:
+      "पासवर्ड सिर्फ़ एक बार दिखता है, जब आप टोकन जनरेट करते हैं, और उसे दोबारा नहीं दिखाया जा सकता। अगर वह अब आपके पास नहीं है, तो यह टोकन रद्द करें और नया टोकन जनरेट करें।",
+    smtp_token_rename_title: "टोकन का नाम बदलें",
+    smtp_token_rename_description:
+      "नाम बदलने से पासवर्ड या आपके ऐप की सेटिंग नहीं बदलती।",
+    smtp_token_renamed_toast: "टोकन का नाम बदल दिया गया",
+    smtp_token_rename_failed:
+      "टोकन का नाम नहीं बदला जा सका। फिर से कोशिश करें।",
+    smtp_token_rename_unavailable:
+      "नाम बदलने की सुविधा अभी उपलब्ध नहीं है। बाद में फिर से कोशिश करें।",
+    smtp_token_rename_invalid: "64 वर्णों तक का नाम डालें।",
     smtp_token_revoke_title: "टोकन रद्द करें?",
     smtp_token_revoke_message:
       "इससे {{ name }} हमेशा के लिए रद्द हो जाएगा। इसका इस्तेमाल करने वाला कोई भी ऐप फिर मेल नहीं भेज पाएगा।",

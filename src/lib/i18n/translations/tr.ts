@@ -2455,6 +2455,21 @@ export const tr = {
     smtp_token_copy_all: "Tümünü kopyala",
     smtp_token_last_used: "Son kullanım",
     smtp_token_never_used: "Hiç",
+    smtp_token_details_title: "Kurulum ayrıntıları",
+    smtp_token_details_description:
+      "E-posta istemcinizi veya uygulamanızı bağlamak için bu ayarları kullanın.",
+    smtp_token_password_hidden: "Gizli",
+    smtp_token_password_hidden_note:
+      "Parola yalnızca bir kez, belirteci oluşturduğunuzda görünür ve yeniden gösterilemez. Parola artık sizde yoksa bu belirteci iptal edip yeni bir belirteç oluşturun.",
+    smtp_token_rename_title: "Belirteci yeniden adlandır",
+    smtp_token_rename_description:
+      "Yeniden adlandırmak parolayı veya uygulamalarınızdaki ayarları değiştirmez.",
+    smtp_token_renamed_toast: "Belirteç yeniden adlandırıldı",
+    smtp_token_rename_failed:
+      "Belirteç yeniden adlandırılamadı. Yeniden deneyin.",
+    smtp_token_rename_unavailable:
+      "Yeniden adlandırma henüz kullanılamıyor. Daha sonra yeniden deneyin.",
+    smtp_token_rename_invalid: "En fazla 64 karakterlik bir ad girin.",
     smtp_token_revoke_title: "Jeton iptal edilsin mi?",
     smtp_token_revoke_message:
       "Bu işlem {{ name }} jetonunu kalıcı olarak iptal eder. Bunu kullanan herhangi bir uygulama artık e-posta gönderemez.",
