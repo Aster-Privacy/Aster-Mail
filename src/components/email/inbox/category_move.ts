@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { EmailCategory, InboxEmail } from "@/types/email";
+import type {
+  EmailCategory,
+  InboxEmail,
+  SenderVerificationStatus,
+} from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type {
@@ -49,6 +53,7 @@ import {
   type CustomCategoryRule,
 } from "@/data/category_catalog";
 import { maybe_offer_sender_rule } from "@/components/email/inbox/category_sender_rule";
+import { record_category_move } from "@/services/learned_category_senders";
 import { ignore_error } from "@/lib/ignore_error";
 
 const MAX_OWN_WRITES = 500;
@@ -66,6 +71,9 @@ export type CategoryMoveUpdateEmail = (
 export interface CategoryMoveItem extends CategoryMoveTarget {
   mail_category?: EmailCategory;
   sender_email?: string;
+  sender_verification?: SenderVerificationStatus;
+  is_external?: boolean;
+  system_origin?: boolean;
 }
 
 export interface CategoryMoveOptions {
@@ -144,8 +152,12 @@ export function can_move_to_category(
 export function mail_item_move_item(
   mail_item: MailItem,
   sender_email?: string,
+  sender_verification?: SenderVerificationStatus,
 ): CategoryMoveItem {
   return {
+    is_external: mail_item.is_external,
+    system_origin: mail_item.system_origin,
+    sender_verification,
     id: mail_item.id,
     thread_token: mail_item.thread_token,
     encrypted_metadata: mail_item.encrypted_metadata,
@@ -487,6 +499,10 @@ export function move_items_to_category(
 
   apply_rows_locally(rows, category, update_email);
 
+  const undo_learned = record_category_move(
+    rows.map((row) => row.item),
+    category,
+  );
   const row_ids = rows.map((row) => row.item.id);
 
   show_bulk_result_toast({
@@ -501,6 +517,7 @@ export function move_items_to_category(
 
       for (const row of live) row.undone = true;
       restore_rows_locally(live, update_email);
+      undo_learned?.();
 
       return enqueue(() => undo_rows(live, category, options));
     },

@@ -2647,6 +2647,13 @@ export const de = {
       "Aktivieren Sie eine Kategorie, um ihre Benachrichtigungen stummzuschalten. Stummgeschaltete Kategorien empfangen weiterhin E-Mails und erscheinen in Ihrem Posteingang.",
     muted_categories_empty:
       "Aktivieren Sie Posteingangskategorien, um zu wählen, welche Sie stummschalten.",
+    learn_from_moves: "Aus Ihren Verschiebungen lernen",
+    learn_from_moves_description: "Wenn Sie eine E-Mail in eine Kategorie verschieben, landen künftige E-Mails dieses Absenders ebenfalls dort. Das bleibt verschlüsselt und wird nie mit uns geteilt.",
+    forget_learned_senders: "Gelernte Absender vergessen ({{count}})",
+    forget_learned_senders_one: "Gelernte Absender vergessen ({{count}})",
+    forget_learned_senders_title: "Gelernte Absender vergessen?",
+    forget_learned_senders_description: "E-Mails dieser Absender werden wieder automatisch sortiert. E-Mails, die Sie selbst verschoben haben, bleiben, wo sie sind.",
+    forget_learned_senders_confirm: "Vergessen",
     custom_categories_title: "Eigene Kategorien",
     custom_categories_tutorial:
       "Erstellen Sie Ihre eigene Kategorie. Ordnen Sie E-Mails nach Absenderdomain oder einem Betreff-Stichwort zu.",
@@ -12713,6 +12720,7 @@ export const de = {
     export_title: "E-Mails exportieren, Mails herunterladen, E-Mails sichern, mbox, eml, Kontakte exportieren, Abo-Verwaltung, abmelden, Newsletter, Mailinglisten",
     folder_retention_add: "Automatische Bereinigung hinzufügen, Ordner automatisch bereinigen, Aufbewahrung, automatisch löschen, alte E-Mails löschen, älter als",
     inbox_categories: "Posteingangskategorien, Tabs, Kategorie-Tabs, Posteingang sortieren, Allgemein, Angebote, Newsletter, Soziale Netzwerke, Benachrichtigungen, Käufe, Diskussionen, Finanzen, Reisen, Shopping, Werbung",
+    learn_from_category_moves: "lernen, gelernte Absender, Kategorie merken, automatisch sortieren, Absenderkategorie, vergessen, gelernte Absender löschen, gelernte Kategorien zurücksetzen",
     custom_categories_title: "Eigene Kategorien, Kategorie hinzufügen, neue Kategorie, eigener Tab",
     settings_search_ghost_aliases: "Ghost-Aliase, Ghost-Modus, ablaufender Alias, temporäre E-Mail, Wegwerfadresse, anonyme Adresse, maskierte E-Mail, E-Mail verbergen, Einweg-E-Mail",
     ghost_aliases_compose_cta: "Mit Ghost-Modus verfassen, Ghost verfassen, anonym senden",

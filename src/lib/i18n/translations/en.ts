@@ -3239,6 +3239,13 @@ export const en: Translations = {
       "Turn on a category to silence its notifications. Muted categories still receive mail and appear in your inbox.",
     muted_categories_empty:
       "Turn on inbox categories to choose which ones to mute.",
+    learn_from_moves: "Learn from your moves",
+    learn_from_moves_description: "When you move an email to a category, future email from that sender goes there too. This stays encrypted and is never shared with us.",
+    forget_learned_senders: "Forget {{count}} learned senders",
+    forget_learned_senders_one: "Forget {{count}} learned sender",
+    forget_learned_senders_title: "Forget learned senders?",
+    forget_learned_senders_description: "Email from these senders is sorted automatically again. Email you moved yourself stays where you put it.",
+    forget_learned_senders_confirm: "Forget",
     custom_categories_title: "Custom Categories",
     custom_categories_tutorial:
       "Make a category of your own. Match mail by sender domain or a subject keyword.",
@@ -12265,6 +12272,7 @@ export const en: Translations = {
     export_title: "download mail, backup emails, mbox, eml, export contacts, takeout, subscription manager, unsubscribe, newsletters, mailing lists",
     folder_retention_add: "folder auto-clean, retention, auto delete, clean folder, delete old emails, expire emails, older than",
     inbox_categories: "tabs, category tabs, sort inbox, primary, deals, newsletters, social, notifications, purchases, discussions, finance, travel, shopping, promotions",
+    learn_from_category_moves: "learn, learned senders, remember category, auto sort, sender category, move to category, forget, clear learned senders, reset learned categories",
     custom_categories_title: "add category, new category, custom tab",
     settings_search_ghost_aliases: "ghost mode, expiring alias, temporary email, burner, create ghost alias, burn address, anonymous address, masked email, hide email, anonymous email, disposable",
     ghost_aliases_compose_cta: "ghost compose, anonymous send",

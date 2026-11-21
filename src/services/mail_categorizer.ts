@@ -59,7 +59,7 @@ import {
   DEFAULT_ENABLED_CATEGORIES,
 } from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 7;
+export const CLASSIFIER_VERSION = 8;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -235,14 +235,39 @@ export interface ClassifyOptions {
   custom_categories?: readonly CustomCategoryRule[] | null;
   rule_category?: string | null;
   trust?: SenderTrustSource | null;
+  learned_senders?: ReadonlyMap<string, string> | null;
 }
 
 let active_custom_categories: readonly CustomCategoryRule[] = [];
+let active_learned_senders: ReadonlyMap<string, string> = new Map();
 
 export function set_active_custom_categories(
   rules: readonly CustomCategoryRule[],
 ): void {
   active_custom_categories = rules;
+}
+
+export function set_active_learned_senders(
+  learned: ReadonlyMap<string, string>,
+): void {
+  active_learned_senders = learned;
+}
+
+export function get_active_learned_senders(): ReadonlyMap<string, string> {
+  return active_learned_senders;
+}
+
+export function learned_category_for(
+  envelope: DecryptedEnvelope,
+  learned?: ReadonlyMap<string, string> | null,
+): string | undefined {
+  if (envelope.sender_verification === "invalid") return undefined;
+
+  const email = (envelope.from?.email || "").trim().toLowerCase();
+
+  if (!email) return undefined;
+
+  return (learned ?? active_learned_senders).get(email);
 }
 
 function resolve_rule_category(
@@ -280,11 +305,11 @@ export function classify(
   metadata?: MailItemMetadata | null,
   options?: ClassifyOptions,
 ): EmailCategory {
-  if (is_locked_to_primary(envelope, options?.trust)) return "primary";
-
   if (metadata?.category_pinned && metadata.category) {
     return metadata.category;
   }
+
+  if (is_locked_to_primary(envelope, options?.trust)) return "primary";
 
   const rules = options?.custom_categories ?? active_custom_categories;
   const email = envelope.from?.email || "";
@@ -300,6 +325,13 @@ export function classify(
   const from_rule = resolve_rule_category(options?.rule_category, rules);
 
   if (from_rule) return from_rule;
+
+  const from_learned = resolve_rule_category(
+    learned_category_for(envelope, options?.learned_senders),
+    rules,
+  );
+
+  if (from_learned) return from_learned;
 
   const localpart = get_localpart(email);
   const subject = (envelope.subject || "").slice(0, MAX_SUBJECT);

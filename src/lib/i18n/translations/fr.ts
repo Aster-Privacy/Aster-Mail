@@ -2675,6 +2675,13 @@ export const fr = {
       "Activez une catégorie pour mettre ses notifications en sourdine. Les catégories en sourdine continuent de recevoir des e-mails et apparaissent dans votre boîte de réception.",
     muted_categories_empty:
       "Activez les catégories de boîte de réception pour choisir celles à mettre en sourdine.",
+    learn_from_moves: "Apprendre de vos déplacements",
+    learn_from_moves_description: "Lorsque vous déplacez un e-mail vers une catégorie, les futurs e-mails de cet expéditeur y vont aussi. Ces données restent chiffrées et ne sont jamais partagées avec nous.",
+    forget_learned_senders: "Oublier les expéditeurs appris ({{count}})",
+    forget_learned_senders_one: "Oublier les expéditeurs appris ({{count}})",
+    forget_learned_senders_title: "Oublier les expéditeurs appris ?",
+    forget_learned_senders_description: "Les e-mails de ces expéditeurs sont de nouveau triés automatiquement. Les e-mails que vous avez déplacés vous-même restent où vous les avez mis.",
+    forget_learned_senders_confirm: "Oublier",
     custom_categories_title: "Catégories personnalisées",
     custom_categories_tutorial:
       "Créez votre propre catégorie. Faites correspondre les e-mails par domaine de l'expéditeur ou par un mot-clé de l'objet.",
@@ -12698,6 +12705,7 @@ export const fr = {
     export_title: "Exporter les e-mails, télécharger le courrier, sauvegarder les e-mails, mbox, eml, exporter les contacts, gestionnaire d'abonnements, se désabonner, newsletters, listes de diffusion",
     folder_retention_add: "Ajouter un nettoyage automatique, nettoyage automatique du dossier, conservation, suppression automatique, nettoyer le dossier, supprimer les anciens e-mails, plus ancien que",
     inbox_categories: "Catégories de la boîte de réception, onglets, onglets de catégories, trier la boîte de réception, principale, offres, newsletters, réseaux sociaux, notifications, achats, discussions, finances, voyages, promotions",
+    learn_from_category_moves: "apprendre, expéditeurs appris, mémoriser la catégorie, tri automatique, catégorie de l'expéditeur, oublier, effacer les expéditeurs appris, réinitialiser les catégories apprises",
     custom_categories_title: "Catégories personnalisées, ajouter une catégorie, nouvelle catégorie, onglet personnalisé",
     settings_search_ghost_aliases: "Alias fantômes, mode fantôme, alias éphémère, e-mail temporaire, adresse jetable, adresse anonyme, adresse masquée, masquer l'e-mail, e-mail anonyme",
     ghost_aliases_compose_cta: "Rédiger en mode fantôme, rédaction fantôme, envoi anonyme",

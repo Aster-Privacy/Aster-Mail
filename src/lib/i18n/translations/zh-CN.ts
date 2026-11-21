@@ -2417,6 +2417,13 @@ export const zh_CN = {
     muted_categories_description:
       "开启某个类别即可静音它的通知。静音的类别仍会收到邮件并显示在收件箱中。",
     muted_categories_empty: "开启收件箱类别，以选择要静音的类别。",
+    learn_from_moves: "从您的移动操作中学习",
+    learn_from_moves_description: "当您将邮件移到某个分类时，该发件人以后的邮件也会进入该分类。这些信息始终加密，绝不会与我们共享。",
+    forget_learned_senders: "清除已学习的发件人（{{count}}）",
+    forget_learned_senders_one: "清除已学习的发件人（{{count}}）",
+    forget_learned_senders_title: "要清除已学习的发件人吗？",
+    forget_learned_senders_description: "这些发件人的邮件将重新自动分类。您亲自移动的邮件会保留在原处。",
+    forget_learned_senders_confirm: "清除",
     custom_categories_title: "自定义分类",
     custom_categories_tutorial:
       "创建属于您自己的分类。按发件人域名或主题关键词匹配邮件。",
@@ -11238,6 +11245,7 @@ export const zh_CN = {
     export_title: "导出邮件, 下载邮件, 备份邮件, mbox, eml, 导出联系人, 订阅管理, 退订, 新闻简报, 邮件列表",
     folder_retention_add: "添加自动清理, 文件夹自动清理, 保留期限, 自动删除, 清理文件夹, 删除旧邮件, 邮件过期",
     inbox_categories: "收件箱分类, 标签页, 分类标签, 收件箱排序, 主要, 优惠, 新闻简报, 社交, 通知, 购物, 讨论, 财务, 旅行, 促销",
+    learn_from_category_moves: "学习, 已学习的发件人, 记住分类, 自动分类, 发件人分类, 清除, 清除已学习的发件人, 重置已学习的分类",
     custom_categories_title: "自定义分类, 添加分类, 新建分类, 自定义标签页",
     settings_search_ghost_aliases: "幽灵别名, 幽灵模式, 临时别名, 临时邮箱, 一次性邮箱, 匿名地址, 隐藏邮箱, 匿名邮箱",
     ghost_aliases_compose_cta: "使用幽灵模式写信, 幽灵写信, 匿名发送",

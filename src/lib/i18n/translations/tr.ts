@@ -2620,6 +2620,13 @@ export const tr = {
       "Bir kategorinin bildirimlerini susturmak için onu açın. Sessize alınan kategoriler posta almaya devam eder ve gelen kutunuzda görünür.",
     muted_categories_empty:
       "Hangi kategorileri sessize alacağınızı seçmek için gelen kutusu kategorilerini açın.",
+    learn_from_moves: "Taşımalarınızdan öğren",
+    learn_from_moves_description: "Bir e-postayı bir kategoriye taşıdığınızda, o göndericiden gelecek e-postalar da oraya gider. Bu bilgi şifreli kalır ve hiçbir zaman bizimle paylaşılmaz.",
+    forget_learned_senders: "Öğrenilen göndericileri unut ({{count}})",
+    forget_learned_senders_one: "Öğrenilen göndericileri unut ({{count}})",
+    forget_learned_senders_title: "Öğrenilen göndericiler unutulsun mu?",
+    forget_learned_senders_description: "Bu göndericilerden gelen e-postalar yeniden otomatik olarak sıralanır. Kendiniz taşıdığınız e-postalar bıraktığınız yerde kalır.",
+    forget_learned_senders_confirm: "Unut",
     custom_categories_title: "Özel Kategoriler",
     custom_categories_tutorial:
       "Kendi kategorinizi oluşturun. E-postaları gönderen alan adına veya konu anahtar kelimesine göre eşleştirin.",
@@ -12412,6 +12419,7 @@ export const tr = {
     export_title: "e-postaları dışa aktar, postaları indir, e-posta yedeği, mbox, eml, kişileri dışa aktar, abonelikten çık, bültenler",
     folder_retention_add: "otomatik temizlik ekle, klasör otomatik temizliği, saklama, otomatik sil, eski e-postaları sil, şundan eski",
     inbox_categories: "gelen kutusu kategorileri, sekmeler, kategori sekmeleri, gelen kutusunu sırala, birincil, fırsatlar, bültenler, sosyal, alışveriş, seyahat",
+    learn_from_category_moves: "öğren, öğrenilen göndericiler, kategoriyi hatırla, otomatik sırala, gönderici kategorisi, unut, öğrenilen göndericileri temizle, öğrenilen kategorileri sıfırla",
     custom_categories_title: "özel kategoriler, kategori ekle, yeni kategori, özel sekme",
     settings_search_ghost_aliases: "hayalet takma adlar, hayalet mod, geçici e-posta, süreli takma ad, anonim adres, gizli e-posta, tek kullanımlık e-posta",
     ghost_aliases_compose_cta: "hayalet modla yaz, hayalet yazma, anonim gönder",
