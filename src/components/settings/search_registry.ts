@@ -423,6 +423,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     crumb_key: "settings_search.desktop",
   },
   {
+    id: "ext_v2_notify_sources_title",
+    label_key: "settings.ext_v2_notify_sources_title",
+    section: "notifications",
+    description_key: "settings.ext_v2_notify_sources_description",
+  },
+  {
     id: "notification_sound",
     label_key: "settings.notification_sound",
     section: "sound",

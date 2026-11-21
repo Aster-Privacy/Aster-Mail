@@ -6,23 +6,23 @@
 // This file is part of this project.
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the AGPLv3 as published by
+// it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// AGPLv3 for more details.
+// GNU Affero General Public License for more details.
 //
-// You should have received a copy of the AGPLv3
+// You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { SyncFrequency } from "@/services/api/external_accounts";
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
-import { Checkbox } from "@aster/ui";
+import { IslandSection, SettingControlRow, SettingToggleRow } from "@aster/ui";
 
 import {
   Select,
@@ -52,61 +52,50 @@ export function SyncSettingsSection({
   t,
 }: SyncSettingsSectionProps) {
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold flex items-center gap-2 text-txt-primary">
-        <ArrowPathIcon className="w-4 h-4 text-txt-muted" />
-        {t("settings.sync_settings")}
-      </h3>
-      <div>
-        <label
-          className="text-xs font-medium mb-1 block text-txt-muted"
-          htmlFor="ext-account-sync-freq"
-          id="ext-account-sync-freq-label"
-        >
-          {t("settings.sync_frequency")}
-        </label>
-        <Select
-          value={form_sync_frequency}
-          onValueChange={(value: string) =>
-            set_form_sync_frequency(value as SyncFrequency)
-          }
-        >
-          <SelectTrigger className="w-40" id="ext-account-sync-freq">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {sync_frequency_options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      {!is_editing && (
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={form_import_existing}
-              id="ext-account-import-existing"
-              onCheckedChange={(checked) =>
-                set_form_import_existing(checked === true)
-              }
-            />
-            <label
-              className="text-sm text-txt-primary"
-              htmlFor="ext-account-import-existing"
+    <IslandSection
+      divided
+      icon={<ArrowPathIcon />}
+      title={t("settings.sync_settings")}
+    >
+      <SettingControlRow
+        control={
+          <Select
+            value={form_sync_frequency}
+            onValueChange={(value: string) =>
+              set_form_sync_frequency(value as SyncFrequency)
+            }
+          >
+            <SelectTrigger
+              aria-label={t("settings.sync_frequency")}
+              className="w-full"
+              id="ext-account-sync-freq"
             >
-              {t("settings.import_existing_mail")}
-            </label>
-          </div>
-          <p className="text-xs text-txt-muted">
-            {form_import_existing
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sync_frequency_options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        }
+        description={t("settings.ext_v2_sync_frequency_description")}
+        label={t("settings.sync_frequency")}
+      />
+      {!is_editing && (
+        <SettingToggleRow
+          checked={form_import_existing}
+          description={
+            form_import_existing
               ? t("settings.import_existing_mail_on")
-              : t("settings.import_existing_mail_off")}
-          </p>
-        </div>
+              : t("settings.import_existing_mail_off")
+          }
+          label={t("settings.import_existing_mail")}
+          on_change={set_form_import_existing}
+        />
       )}
-    </div>
+    </IslandSection>
   );
 }

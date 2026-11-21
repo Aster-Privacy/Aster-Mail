@@ -6,23 +6,28 @@
 // This file is part of this project.
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the AGPLv3 as published by
+// it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// AGPLv3 for more details.
+// GNU Affero General Public License for more details.
 //
-// You should have received a copy of the AGPLv3
+// You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
-import { EnvelopeIcon } from "@heroicons/react/24/outline";
+import { UserCircleIcon } from "@heroicons/react/24/outline";
+import { IslandSection } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
+import {
+  FieldGroup,
+  FormField,
+} from "@/components/settings/external_accounts/form_field";
 
 interface AccountInfoSectionProps {
   form_email: string;
@@ -40,49 +45,46 @@ export function AccountInfoSection({
   t,
 }: AccountInfoSectionProps) {
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold flex items-center gap-2 text-txt-primary">
-        <EnvelopeIcon className="w-4 h-4 text-txt-muted" />
-        {t("settings.account_info")}
-      </h3>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label
-            className="text-xs font-medium mb-1 block text-txt-muted"
-            htmlFor="ext-account-email"
-          >
-            {t("settings.email_address")}
-          </label>
+    <IslandSection icon={<UserCircleIcon />} title={t("settings.account_info")}>
+      <FieldGroup>
+        <FormField
+          id="ext-account-email"
+          label={t("settings.email_address")}
+          span={3}
+        >
           <Input
+            autoCapitalize="none"
             autoComplete="email"
-            className="w-full"
+            autoCorrect="off"
+            className="aster_input_tonal w-full"
             id="ext-account-email"
             maxLength={254}
             placeholder={t("settings.username_placeholder")}
+            size="md"
+            spellCheck={false}
             type="email"
             value={form_email}
             onChange={(e) => handle_email_change(e.target.value)}
           />
-        </div>
-        <div>
-          <label
-            className="text-xs font-medium mb-1 block text-txt-muted"
-            htmlFor="ext-account-display-name"
-          >
-            {t("settings.display_name")}
-          </label>
+        </FormField>
+        <FormField
+          id="ext-account-display-name"
+          label={t("settings.display_name")}
+          span={3}
+        >
           <Input
             autoComplete="name"
-            className="w-full"
+            className="aster_input_tonal w-full"
             id="ext-account-display-name"
             maxLength={200}
             placeholder={t("common.display_name_example")}
+            size="md"
             type="text"
             value={form_display_name}
             onChange={(e) => set_form_display_name(e.target.value)}
           />
-        </div>
-      </div>
-    </div>
+        </FormField>
+      </FieldGroup>
+    </IslandSection>
   );
 }

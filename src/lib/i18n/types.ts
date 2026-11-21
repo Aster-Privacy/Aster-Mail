@@ -126,6 +126,7 @@ export interface SettingsKeywordsTranslations {
   settings_search_connect_apple_mail: string;
   common_push_notifications: string;
   desktop_notifications: string;
+  ext_v2_notify_sources_title: string;
   notification_sound: string;
   iconic_sounds: string;
   badge_count_setting: string;
@@ -6754,6 +6755,19 @@ export interface SettingsTranslations {
   ext_v2_source_removed: string;
   ext_v2_source_device: string;
   ext_v2_source_forwarding: string;
+  ext_v2_label_description: string;
+  ext_v2_folders_inbox_note: string;
+  ext_v2_tls_description: string;
+  ext_v2_smtp_same_description: string;
+  ext_v2_folders_selected: string;
+  ext_v2_sync_frequency_description: string;
+  ext_v2_advanced_description: string;
+  ext_v2_tls_method_description: string;
+  ext_v2_timeout_description: string;
+  ext_v2_protocol_tooltip_oauth: string;
+  ext_v2_all_limits_footer: string;
+  ext_v2_usage_synced_accounts: string;
+  ext_v2_usage_over_limit_note: string;
   no_allowed_senders: string;
   failed_to_load_allowlist: string;
   failed_to_load_blocklist: string;

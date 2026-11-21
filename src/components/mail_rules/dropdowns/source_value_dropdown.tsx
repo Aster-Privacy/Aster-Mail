@@ -91,6 +91,7 @@ export function SourceValueDropdown({
         className="z-[200] p-1.5"
         sideOffset={6}
         onCloseAutoFocus={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.stopPropagation()}
         onFocusOutside={(e) => {
           if (should_ignore_outside?.()) e.preventDefault();
         }}

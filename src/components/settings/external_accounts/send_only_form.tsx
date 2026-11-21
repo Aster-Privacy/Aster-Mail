@@ -23,8 +23,14 @@ import type { TranslationFn } from "@/components/settings/external_accounts/form
 import type { TranslationKey } from "@/lib/i18n";
 
 import { useEffect, useRef, useState } from "react";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import { Button, Checkbox } from "@aster/ui";
+import { PaperAirplaneIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import {
+  Button,
+  IslandDivider,
+  IslandSection,
+  IslandSections,
+  SettingToggleRow,
+} from "@aster/ui";
 
 import { Modal, ModalTitle } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
@@ -39,6 +45,11 @@ import {
   validate_send_only_draft,
   type SendOnlyFieldError,
 } from "@/lib/external_account_modes";
+import {
+  FieldGroup,
+  FormField,
+  PasswordInput,
+} from "@/components/settings/external_accounts/form_field";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 
 const DEFAULT_LABEL_COLOR = "#3B82F6";
@@ -60,8 +71,6 @@ interface SendOnlyFormProps {
   on_saved: () => void;
   t: TranslationFn;
 }
-
-const LABEL_CLASS = "text-xs font-medium mb-1 block text-txt-muted";
 
 export function SendOnlyForm({
   is_open,
@@ -110,7 +119,9 @@ export function SendOnlyForm({
         set_is_loading(false);
 
         if (!response.data) {
-          set_error(response.error ?? t("common.something_went_wrong_try_again"));
+          set_error(
+            response.error ?? t("common.something_went_wrong_try_again"),
+          );
 
           return;
         }
@@ -212,159 +223,165 @@ export function SendOnlyForm({
         </p>
       </div>
       <form
-        className="p-6 space-y-4"
+        className="px-6 pt-5 pb-6"
         onSubmit={(e) => {
           e.preventDefault();
           void handle_submit();
         }}
       >
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={LABEL_CLASS} htmlFor="send-only-from-address">
-              {t("settings.ext_v2_from_address")}
-            </label>
-            <Input
-              autoCapitalize="none"
-              autoComplete="email"
-              className="w-full"
-              disabled={busy}
-              id="send-only-from-address"
-              maxLength={254}
-              type="email"
-              value={from_address}
-              onChange={(e) => set_from_address(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={LABEL_CLASS} htmlFor="send-only-from-name">
-              {t("settings.ext_v2_from_name")}
-            </label>
-            <Input
-              autoComplete="name"
-              className="w-full"
-              disabled={busy}
-              id="send-only-from-name"
-              maxLength={128}
-              type="text"
-              value={from_name}
-              onChange={(e) => set_from_name(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2">
-            <label className={LABEL_CLASS} htmlFor="send-only-smtp-host">
-              {t("settings.smtp_server_host")}
-            </label>
-            <Input
-              autoCapitalize="none"
-              autoComplete="off"
-              className="w-full"
-              disabled={busy}
-              id="send-only-smtp-host"
-              maxLength={253}
-              placeholder={t("settings.smtp_host_placeholder")}
-              type="text"
-              value={smtp_host}
-              onChange={(e) => set_smtp_host(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={LABEL_CLASS} htmlFor="send-only-smtp-port">
-              {t("settings.port")}
-            </label>
-            <Input
-              className="w-full"
-              disabled={busy}
-              id="send-only-smtp-port"
-              max={65535}
-              min={1}
-              type="number"
-              value={smtp_port === 0 ? "" : smtp_port}
-              onChange={(e) => {
-                const parsed = Number.parseInt(e.target.value, 10);
-
-                set_smtp_port(Number.isFinite(parsed) ? parsed : 0);
-              }}
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={LABEL_CLASS} htmlFor="send-only-smtp-username">
-              {t("settings.smtp_username")}
-            </label>
-            <Input
-              autoCapitalize="none"
-              autoComplete="username"
-              className="w-full"
-              disabled={busy}
-              id="send-only-smtp-username"
-              maxLength={255}
-              type="text"
-              value={smtp_username}
-              onChange={(e) => set_smtp_username(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={LABEL_CLASS} htmlFor="send-only-smtp-password">
-              {t("settings.smtp_password")}
-            </label>
-            <div className="relative">
-              <Input
-                autoComplete="new-password"
-                className="w-full pr-9"
-                disabled={busy}
-                id="send-only-smtp-password"
-                maxLength={512}
-                placeholder={
-                  has_stored_password
-                    ? t("settings.keep_saved_password")
-                    : undefined
-                }
-                type={show_password ? "text" : "password"}
-                value={smtp_password}
-                onChange={(e) => set_smtp_password(e.target.value)}
-              />
-              <button
-                aria-label={
-                  show_password
-                    ? t("settings.hide_smtp_password")
-                    : t("settings.show_smtp_password")
-                }
-                className="absolute right-2 top-1/2 -translate-y-1/2"
-                type="button"
-                onClick={() => set_show_password(!show_password)}
+        <IslandSections>
+          <IslandSection
+            icon={<UserCircleIcon />}
+            title={t("settings.account_info")}
+          >
+            <FieldGroup>
+              <FormField
+                id="send-only-from-address"
+                label={t("settings.ext_v2_from_address")}
+                span={3}
               >
-                {show_password ? (
-                  <EyeSlashIcon className="w-4 h-4 text-txt-muted" />
-                ) : (
-                  <EyeIcon className="w-4 h-4 text-txt-muted" />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            checked={use_tls}
-            disabled={busy}
-            id="send-only-use-tls"
-            onCheckedChange={(v) => set_use_tls(v === true)}
-          />
-          <label className="text-sm text-txt-primary" htmlFor="send-only-use-tls">
-            {t("settings.use_tls")}
-          </label>
-        </div>
-        <p className="text-[12px] text-txt-muted">
-          {t("settings.ext_v2_send_only_verify_note")}
-        </p>
+                <Input
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  autoCorrect="off"
+                  className="aster_input_tonal w-full"
+                  disabled={busy}
+                  id="send-only-from-address"
+                  maxLength={254}
+                  size="md"
+                  spellCheck={false}
+                  type="email"
+                  value={from_address}
+                  onChange={(e) => set_from_address(e.target.value)}
+                />
+              </FormField>
+              <FormField
+                id="send-only-from-name"
+                label={t("settings.ext_v2_from_name")}
+                span={3}
+              >
+                <Input
+                  autoComplete="name"
+                  className="aster_input_tonal w-full"
+                  disabled={busy}
+                  id="send-only-from-name"
+                  maxLength={128}
+                  size="md"
+                  type="text"
+                  value={from_name}
+                  onChange={(e) => set_from_name(e.target.value)}
+                />
+              </FormField>
+            </FieldGroup>
+          </IslandSection>
+          <IslandSection
+            description={t("settings.ext_v2_send_only_verify_note")}
+            icon={<PaperAirplaneIcon />}
+            title={t("settings.outgoing_mail_smtp")}
+          >
+            <FieldGroup>
+              <FormField
+                id="send-only-smtp-host"
+                label={t("settings.smtp_server_host")}
+                span={4}
+              >
+                <Input
+                  autoCapitalize="none"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="aster_input_tonal w-full"
+                  disabled={busy}
+                  id="send-only-smtp-host"
+                  maxLength={253}
+                  placeholder={t("settings.smtp_host_placeholder")}
+                  size="md"
+                  spellCheck={false}
+                  type="text"
+                  value={smtp_host}
+                  onChange={(e) => set_smtp_host(e.target.value)}
+                />
+              </FormField>
+              <FormField
+                id="send-only-smtp-port"
+                label={t("settings.port")}
+                span={2}
+              >
+                <Input
+                  className="aster_input_tonal w-full"
+                  disabled={busy}
+                  id="send-only-smtp-port"
+                  inputMode="numeric"
+                  max={65535}
+                  min={1}
+                  size="md"
+                  type="number"
+                  value={smtp_port === 0 ? "" : smtp_port}
+                  onChange={(e) => {
+                    const parsed = Number.parseInt(e.target.value, 10);
+
+                    set_smtp_port(Number.isFinite(parsed) ? parsed : 0);
+                  }}
+                />
+              </FormField>
+              <FormField
+                id="send-only-smtp-username"
+                label={t("settings.smtp_username")}
+                span={3}
+              >
+                <Input
+                  autoCapitalize="none"
+                  autoComplete="username"
+                  autoCorrect="off"
+                  className="aster_input_tonal w-full"
+                  disabled={busy}
+                  id="send-only-smtp-username"
+                  maxLength={255}
+                  size="md"
+                  spellCheck={false}
+                  type="text"
+                  value={smtp_username}
+                  onChange={(e) => set_smtp_username(e.target.value)}
+                />
+              </FormField>
+              <FormField
+                hint={
+                  has_stored_password ? (
+                    <p>{t("settings.keep_saved_password")}</p>
+                  ) : undefined
+                }
+                id="send-only-smtp-password"
+                label={t("settings.smtp_password")}
+                span={3}
+              >
+                <PasswordInput
+                  auto_complete="new-password"
+                  disabled={busy}
+                  hide_label={t("settings.hide_smtp_password")}
+                  id="send-only-smtp-password"
+                  is_visible={show_password}
+                  on_change={set_smtp_password}
+                  on_toggle_visible={() => set_show_password(!show_password)}
+                  show_label={t("settings.show_smtp_password")}
+                  value={smtp_password}
+                />
+              </FormField>
+            </FieldGroup>
+            <IslandDivider />
+            <SettingToggleRow
+              checked={use_tls}
+              description={t("settings.ext_v2_tls_description")}
+              disabled={busy}
+              label={t("settings.use_tls")}
+              on_change={set_use_tls}
+            />
+          </IslandSection>
+        </IslandSections>
         {error && (
-          <p className="text-[13px] text-red-500" role="alert">
+          <p className="mt-4 text-[13px] text-red-500" role="alert">
             {error}
           </p>
         )}
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="flex justify-end gap-3 pt-5">
           <Button
             disabled={is_submitting}
             type="button"

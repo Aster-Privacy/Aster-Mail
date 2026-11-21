@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useRef, useState } from "react";
 import type { DecryptedExternalAccount } from "@/services/api/external_accounts";
 
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PlusIcon, ServerStackIcon } from "@heroicons/react/24/outline";
 import { Button, Checkbox, IslandSection, IslandSections } from "@aster/ui";
@@ -116,9 +116,7 @@ export function ExternalAccountsSection() {
         description={state.t("settings.external_accounts_description")}
         footer={
           at_every_limit
-            ? state.t("settings.external_accounts_limit_reached", {
-                count: caps.fetching.limit + caps.send_only.limit,
-              })
+            ? state.t("settings.ext_v2_all_limits_footer")
             : at_account_limit
               ? state.t("settings.ext_v2_sync_limit_footer")
               : at_send_only_limit
@@ -350,7 +348,6 @@ export function ExternalAccountsSection() {
       </AlertDialog>
       <AddModeChooser
         is_open={mode_chooser_open}
-        on_close={() => set_mode_chooser_open(false)}
         on_choose={(mode) => {
           set_mode_chooser_open(false);
           if (mode === "send_only") {
@@ -371,6 +368,7 @@ export function ExternalAccountsSection() {
           }
           state.open_add_form();
         }}
+        on_close={() => set_mode_chooser_open(false)}
         send_only_full={at_send_only_limit}
         sync_full={at_account_limit}
         t={state.t}

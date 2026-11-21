@@ -22,7 +22,15 @@ import type { OAuthFolderList } from "@/services/api/external_accounts/api";
 import type { PickerFolder } from "@/services/external_account_setup";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Checkbox } from "@aster/ui";
+import { FolderIcon, InboxIcon } from "@heroicons/react/24/outline";
+import {
+  Button,
+  Island,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  SettingToggleRow,
+} from "@aster/ui";
 
 import {
   Modal,
@@ -117,6 +125,9 @@ export function OAuthFolderPickerModal({
     [folders, selected],
   );
 
+  const all_selected =
+    folders.length > 0 && ordered_selection.length === folders.length;
+
   const can_start =
     !!listed && ordered_selection.length > 0 && !is_loading && !is_submitting;
 
@@ -135,79 +146,108 @@ export function OAuthFolderPickerModal({
           {t("settings.oauth_folder_picker_description")}
         </ModalDescription>
       </ModalHeader>
-      <ModalBody className="px-6 space-y-4">
+      <ModalBody className="px-6 pb-2">
         {is_loading && (
-          <div className="flex justify-center py-6 text-txt-muted">
+          <div
+            aria-busy="true"
+            className="flex justify-center py-10 text-txt-muted"
+            role="status"
+          >
             <ButtonSpinner className="text-current" />
           </div>
         )}
         {load_failed && !is_loading && (
-          <div className="space-y-3">
-            <p className="text-sm text-txt-secondary">
-              {t("settings.oauth_folder_picker_load_failed")}
-            </p>
-            <Button
-              size="md"
-              variant="outline"
-              onClick={() => {
-                if (account_token) load(account_token, () => false);
-              }}
-            >
-              {t("common.retry")}
-            </Button>
-          </div>
-        )}
-        {!is_loading && !load_failed && folders.length > 0 && (
-          <div className="max-h-72 overflow-y-auto space-y-2 pe-1">
-            {folders.map((folder, index) => {
-              const id = `oauth-folder-${index}`;
-
-              return (
-                <div key={folder.name} className="flex items-center gap-2.5">
-                  <Checkbox
-                    checked={selected.has(folder.name)}
-                    disabled={is_submitting}
-                    id={id}
-                    onCheckedChange={(v) => toggle(folder.name, v === true)}
-                  />
-                  <label
-                    className="text-sm text-txt-primary cursor-pointer select-none break-all"
-                    htmlFor={id}
-                  >
-                    {folder.label}
-                  </label>
-                </div>
-              );
-            })}
-          </div>
+          <Island tone="danger">
+            <IslandRow
+              label={t("settings.oauth_folder_picker_load_failed")}
+              trailing={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (account_token) load(account_token, () => false);
+                  }}
+                >
+                  {t("common.retry")}
+                </Button>
+              }
+            />
+          </Island>
         )}
         {!is_loading && !load_failed && listed && (
-          <div className="space-y-1 border-t border-edge-secondary pt-3">
-            <div className="flex items-center gap-2.5">
-              <Checkbox
-                checked={import_existing}
-                disabled={is_submitting}
-                id="oauth-folder-import-existing"
-                onCheckedChange={(v) => set_import_existing(v === true)}
-              />
-              <label
-                className="text-sm text-txt-primary cursor-pointer select-none"
-                htmlFor="oauth-folder-import-existing"
+          <IslandSections>
+            <IslandSection
+              description={
+                ordered_selection.length === 0
+                  ? t("settings.oauth_folder_picker_none_selected")
+                  : t("settings.ext_v2_folders_selected", {
+                      selected: ordered_selection.length,
+                      total: folders.length,
+                    })
+              }
+              icon={<FolderIcon />}
+              title={t("common.folders")}
+              trailing={
+                folders.length > 1 ? (
+                  <Button
+                    disabled={is_submitting}
+                    size="sm"
+                    variant="ghost"
+                    onClick={() =>
+                      set_selected(
+                        all_selected
+                          ? new Set()
+                          : new Set(folders.map((f) => f.name)),
+                      )
+                    }
+                  >
+                    {all_selected
+                      ? t("common.deselect_all")
+                      : t("common.select_all")}
+                  </Button>
+                ) : undefined
+              }
+            >
+              <div
+                aria-label={t("common.folders")}
+                className="aster_island_divided max-h-[312px] overflow-y-auto overscroll-contain"
+                role="group"
               >
-                {t("settings.import_existing_mail")}
-              </label>
-            </div>
-            <p className="text-xs text-txt-muted">
-              {import_existing
-                ? t("settings.import_existing_mail_on")
-                : t("settings.import_existing_mail_off")}
-            </p>
-          </div>
-        )}
-        {listed && !is_loading && ordered_selection.length === 0 && (
-          <p className="text-xs text-txt-muted">
-            {t("settings.oauth_folder_picker_none_selected")}
-          </p>
+                {folders.map((folder, index) => (
+                  <IslandRow
+                    key={folder.name}
+                    disabled={is_submitting}
+                    icon={folder.is_inbox ? <InboxIcon /> : <FolderIcon />}
+                    id={`oauth-folder-${index}`}
+                    label={
+                      <span className="block truncate" title={folder.label}>
+                        {folder.label}
+                      </span>
+                    }
+                    toggle={{
+                      checked: selected.has(folder.name),
+                      on_change: (checked) => toggle(folder.name, checked),
+                    }}
+                  />
+                ))}
+              </div>
+            </IslandSection>
+            <IslandSection bare>
+              <Island>
+                <SettingToggleRow
+                  checked={import_existing}
+                  description={
+                    import_existing
+                      ? t("settings.import_existing_mail_on")
+                      : t("settings.import_existing_mail_off")
+                  }
+                  disabled={is_submitting}
+                  label={t("settings.import_existing_mail")}
+                  on_change={set_import_existing}
+                />
+              </Island>
+            </IslandSection>
+          </IslandSections>
         )}
       </ModalBody>
       <ModalFooter>

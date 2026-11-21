@@ -38,22 +38,20 @@ import {
   SyncErrorDetail,
   SyncStatusIndicator,
 } from "@/components/settings/external_accounts/sync_status";
-import {
-  is_paused_by_plan,
-  is_send_only,
-} from "@/lib/external_account_modes";
+import { is_paused_by_plan, is_send_only } from "@/lib/external_account_modes";
+import { request_settings_tab } from "@/components/settings/settings_content_helpers";
 
 const PROTOCOL_LABELS: Record<string, string> = {
   smtp: "SMTP",
   imap: "IMAP",
-  oauth_imap: "IMAP",
+  oauth_imap: "OAuth",
   jmap: "JMAP",
   pop3: "POP3",
 };
 
 const PROTOCOL_TOOLTIP_KEYS: Record<string, TranslationKey> = {
   imap: "settings.protocol_tooltip_imap",
-  oauth_imap: "settings.protocol_tooltip_imap",
+  oauth_imap: "settings.ext_v2_protocol_tooltip_oauth",
   jmap: "settings.protocol_tooltip_jmap",
   pop3: "settings.protocol_tooltip_pop3",
   smtp: "settings.ext_v2_protocol_tooltip_smtp",
@@ -110,7 +108,11 @@ export function AccountCard({
           use_domain_logo
           className="mt-0.5 @lg:mt-0"
           email={account.email}
-          name={account.display_name || account.email}
+          name={
+            account.protocol === "oauth_imap"
+              ? account.email
+              : account.display_name || account.email
+          }
           size="sm"
         />
 
@@ -198,6 +200,7 @@ export function AccountCard({
                 size="sm"
                 variant="depth"
                 onClick={() => {
+                  request_settings_tab("import");
                   window.dispatchEvent(
                     new CustomEvent("astermail:navigate-settings-section", {
                       detail: "import",
@@ -211,39 +214,42 @@ export function AccountCard({
               <>
                 <Tooltip
                   tip={
-                    account.is_enabled
-                      ? t("settings.account_pause_tooltip")
-                      : t("settings.account_resume_tooltip")
+                    plan_paused
+                      ? t("settings.ext_v2_plan_paused_tooltip")
+                      : account.is_enabled
+                        ? t("settings.account_pause_tooltip")
+                        : t("settings.account_resume_tooltip")
                   }
                 >
                   <Switch
-                    aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
-                    checked={account.is_enabled}
+                    aria-label={`${account.is_enabled && !plan_paused ? t("common.disable") : t("common.enable")} ${account.email}`}
+                    checked={account.is_enabled && !plan_paused}
+                    disabled={plan_paused}
                     size="lg"
                     onCheckedChange={() => handle_toggle(account)}
                   />
                 </Tooltip>
                 {!send_only && (
-                <Tooltip tip={t("settings.sync_now_tooltip")}>
-                  <Button
-                    aria-label={`${t("common.sync")} ${account.email}`}
-                    className="rounded-full w-10 h-10 p-0"
-                    disabled={
-                      check_is_syncing(account.id) ||
-                      !account.is_enabled ||
-                      plan_paused
-                    }
-                    size="md"
-                    variant="ghost"
-                    onClick={() => handle_sync(account)}
-                  >
-                    {check_is_syncing(account.id) ? (
-                      <Spinner size="md" />
-                    ) : (
-                      <ArrowPathIcon className="w-5 h-5" />
-                    )}
-                  </Button>
-                </Tooltip>
+                  <Tooltip tip={t("settings.sync_now_tooltip")}>
+                    <Button
+                      aria-label={`${t("common.sync")} ${account.email}`}
+                      className="rounded-full w-10 h-10 p-0"
+                      disabled={
+                        check_is_syncing(account.id) ||
+                        !account.is_enabled ||
+                        plan_paused
+                      }
+                      size="md"
+                      variant="ghost"
+                      onClick={() => handle_sync(account)}
+                    >
+                      {check_is_syncing(account.id) ? (
+                        <Spinner size="md" />
+                      ) : (
+                        <ArrowPathIcon className="w-5 h-5" />
+                      )}
+                    </Button>
+                  </Tooltip>
                 )}
               </>
             )}
