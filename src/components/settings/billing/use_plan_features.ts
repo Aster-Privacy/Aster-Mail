@@ -67,10 +67,18 @@ export function use_plan_features(): Record<string, PlanFeature[]> {
           description: t("settings.plan_desc_apps"),
         },
         {
-          label: t("settings.plan_f_external_accounts"),
+          label: t("settings.ext_v2_plan_feat_external_accounts", {
+            value: "2",
+          }),
           on: true,
           icon: "sync",
-          description: t("settings.plan_desc_external_accounts"),
+          description: t("settings.ext_v2_plan_desc_external_accounts"),
+        },
+        {
+          label: t("settings.ext_v2_plan_f_custom_domain_primary"),
+          on: true,
+          icon: "domain",
+          description: t("settings.ext_v2_plan_tip_custom_domain_primary"),
         },
         {
           label: t("settings.plan_feat_priority_support"),
@@ -108,6 +116,20 @@ export function use_plan_features(): Record<string, PlanFeature[]> {
           on: true,
           icon: "accounts",
           description: t("settings.plan_desc_multi_accounts"),
+        },
+        {
+          label: t("settings.ext_v2_plan_feat_external_accounts", {
+            value: "5",
+          }),
+          on: true,
+          icon: "sync",
+          description: t("settings.ext_v2_plan_desc_external_accounts"),
+        },
+        {
+          label: t("settings.ext_v2_plan_f_custom_domain_primary"),
+          on: true,
+          icon: "domain",
+          description: t("settings.ext_v2_plan_tip_custom_domain_primary"),
         },
         {
           label: t("settings.plan_feat_vanguard"),
@@ -184,6 +206,20 @@ export function use_plan_features(): Record<string, PlanFeature[]> {
           on: true,
           icon: "accounts",
           description: t("settings.plan_desc_multi_accounts"),
+        },
+        {
+          label: t("settings.ext_v2_plan_feat_external_accounts", {
+            value: "20",
+          }),
+          on: true,
+          icon: "sync",
+          description: t("settings.ext_v2_plan_desc_external_accounts"),
+        },
+        {
+          label: t("settings.ext_v2_plan_f_custom_domain_primary"),
+          on: true,
+          icon: "domain",
+          description: t("settings.ext_v2_plan_tip_custom_domain_primary"),
         },
         {
           label: t("settings.feature_instant_alias_delete"),

@@ -182,6 +182,14 @@ function feature_list_for_tier(
       { on: true, text: t("settings.f_tracker_protection_long") },
       { on: true, text: t("settings.plan_f_alias_avatars") },
       { on: true, text: t("settings.plan_f_catch_all") },
+      {
+        on: true,
+        text: with_bold(
+          "2",
+          t("settings.ext_v2_plan_synced_accounts_suffix"),
+        ),
+      },
+      { on: true, text: t("settings.ext_v2_plan_f_custom_domain_primary") },
       { on: true, text: t("settings.f_auto_forward") },
       { on: true, text: t("settings.plan_f_support_priority") },
       { on: true, text: t("settings.plan_f_imap_smtp_bridge") },
@@ -208,6 +216,14 @@ function feature_list_for_tier(
       { on: true, text: t("settings.f_tracker_protection_long") },
       { on: true, text: t("settings.plan_f_alias_avatars") },
       { on: true, text: t("settings.plan_f_catch_all") },
+      {
+        on: true,
+        text: with_bold(
+          "5",
+          t("settings.ext_v2_plan_synced_accounts_suffix"),
+        ),
+      },
+      { on: true, text: t("settings.ext_v2_plan_f_custom_domain_primary") },
       { on: true, text: t("settings.f_auto_forward") },
       { on: true, text: t("settings.plan_f_support_priority") },
       { on: true, text: t("settings.plan_f_imap_smtp_bridge") },
@@ -237,6 +253,14 @@ function feature_list_for_tier(
     { on: true, text: t("settings.f_tracker_protection_long") },
     { on: true, text: t("settings.plan_f_alias_avatars") },
     { on: true, text: t("settings.plan_f_catch_all") },
+    {
+      on: true,
+      text: with_bold(
+        "20",
+        t("settings.ext_v2_plan_synced_accounts_suffix"),
+      ),
+    },
+    { on: true, text: t("settings.ext_v2_plan_f_custom_domain_primary") },
     { on: true, text: t("settings.f_auto_forward") },
     { on: true, text: t("settings.plan_f_support_priority") },
     { on: true, text: t("settings.plan_f_imap_smtp_bridge") },

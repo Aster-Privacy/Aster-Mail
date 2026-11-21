@@ -38,8 +38,13 @@ import {
   SyncErrorDetail,
   SyncStatusIndicator,
 } from "@/components/settings/external_accounts/sync_status";
+import {
+  is_paused_by_plan,
+  is_send_only,
+} from "@/lib/external_account_modes";
 
 const PROTOCOL_LABELS: Record<string, string> = {
+  smtp: "SMTP",
   imap: "IMAP",
   oauth_imap: "IMAP",
   jmap: "JMAP",
@@ -51,6 +56,7 @@ const PROTOCOL_TOOLTIP_KEYS: Record<string, TranslationKey> = {
   oauth_imap: "settings.protocol_tooltip_imap",
   jmap: "settings.protocol_tooltip_jmap",
   pop3: "settings.protocol_tooltip_pop3",
+  smtp: "settings.ext_v2_protocol_tooltip_smtp",
 };
 
 export function protocol_label(protocol: string) {
@@ -88,6 +94,9 @@ export function AccountCard({
   set_purge_target,
   t,
 }: AccountCardProps) {
+  const send_only = is_send_only(account);
+  const plan_paused = is_paused_by_plan(account);
+
   return (
     <div
       className={
@@ -146,6 +155,20 @@ export function AccountCard({
                   {account.is_enabled ? t("common.active") : t("common.paused")}
                 </span>
               </Tooltip>
+              {send_only && (
+                <Tooltip tip={t("settings.ext_v2_send_only_tooltip")}>
+                  <span className="account_menu_badge">
+                    {t("settings.ext_v2_send_only_badge")}
+                  </span>
+                </Tooltip>
+              )}
+              {plan_paused && (
+                <Tooltip tip={t("settings.ext_v2_plan_paused_tooltip")}>
+                  <span className="account_menu_badge account_menu_badge_muted">
+                    {t("settings.ext_v2_plan_paused_badge")}
+                  </span>
+                </Tooltip>
+              )}
               {account.email_count > 0 && (
                 <span className="text-[11px] text-txt-muted">
                   {t("settings.email_count", {
@@ -154,13 +177,15 @@ export function AccountCard({
                 </span>
               )}
             </div>
-            <SyncStatusIndicator
-              account={account}
-              expanded_error_ids={expanded_error_ids}
-              format_sync_time={format_sync_time}
-              t={t}
-              toggle_error_expand={toggle_error_expand}
-            />
+            {!send_only && (
+              <SyncStatusIndicator
+                account={account}
+                expanded_error_ids={expanded_error_ids}
+                format_sync_time={format_sync_time}
+                t={t}
+                toggle_error_expand={toggle_error_expand}
+              />
+            )}
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {account.needs_reauth && account.protocol === "oauth_imap" ? (
@@ -194,12 +219,15 @@ export function AccountCard({
                     onCheckedChange={() => handle_toggle(account)}
                   />
                 </Tooltip>
+                {!send_only && (
                 <Tooltip tip={t("settings.sync_now_tooltip")}>
                   <Button
                     aria-label={`${t("common.sync")} ${account.email}`}
                     className="rounded-full w-10 h-10 p-0"
                     disabled={
-                      check_is_syncing(account.id) || !account.is_enabled
+                      check_is_syncing(account.id) ||
+                      !account.is_enabled ||
+                      plan_paused
                     }
                     size="md"
                     variant="ghost"
@@ -212,6 +240,7 @@ export function AccountCard({
                     )}
                   </Button>
                 </Tooltip>
+                )}
               </>
             )}
             <Tooltip tip={t("settings.edit_account_tooltip")}>
@@ -239,7 +268,8 @@ export function AccountCard({
           </div>
         </div>
       </div>
-      {account.last_sync_status === "error" &&
+      {!send_only &&
+        account.last_sync_status === "error" &&
         expanded_error_ids.has(account.id) && (
           <SyncErrorDetail
             account={account}

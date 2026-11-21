@@ -35,6 +35,8 @@ import {
   expect_oauth_state,
   type DesktopOAuthCallbackDetail,
 } from "@/native/desktop_oauth_bridge";
+import { OAUTH_EXTERNAL_LIMIT_REASON } from "@/lib/external_account_modes";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 
 function is_tauri(): boolean {
   return (
@@ -57,6 +59,7 @@ const REASON_KEY_MAP: Record<string, TranslationKey> = {
   invalid_state: "settings.oauth_reason_session_expired",
   expired_state: "settings.oauth_reason_session_expired",
   wrong_account: "settings.oauth_reason_wrong_account",
+  external_account_limit: "settings.ext_v2_oauth_limit_reason",
 };
 
 export type ConnectProvider = "google" | "microsoft" | "yahoo";
@@ -233,6 +236,12 @@ export function ConnectProviderModal({
 
             return;
           }
+          if (detail.reason === OAUTH_EXTERNAL_LIMIT_REASON) {
+            on_close();
+            show_plan_limit_upgrade({ resource: "external accounts" });
+
+            return;
+          }
           show_toast(
             t("settings.oauth_import_error", {
               reason: t(
@@ -313,6 +322,9 @@ export function ConnectProviderModal({
         if (success && oauth_provider) {
           on_oauth_success?.(oauth_provider);
           on_close();
+        } else if (!success && reason === OAUTH_EXTERNAL_LIMIT_REASON) {
+          on_close();
+          show_plan_limit_upgrade({ resource: "external accounts" });
         } else if (!success && reason) {
           const i18n_key =
             REASON_KEY_MAP[reason] || "settings.oauth_reason_unknown";

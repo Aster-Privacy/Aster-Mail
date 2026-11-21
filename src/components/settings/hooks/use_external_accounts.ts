@@ -56,6 +56,11 @@ import {
   resolve_sync_since_date,
   sanitize_display_text,
 } from "@/components/settings/hooks/external_accounts_utils";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
+import {
+  parse_external_limit_error,
+  upgrade_resource_for,
+} from "@/lib/external_account_modes";
 import { use_external_accounts_form } from "@/components/settings/hooks/use_external_accounts_form";
 import {
   emit_folders_changed,
@@ -381,6 +386,17 @@ export function use_external_accounts() {
             }
           });
         } else {
+          const limit_error = parse_external_limit_error(result);
+
+          if (limit_error) {
+            form.close_form();
+            show_plan_limit_upgrade({
+              resource: upgrade_resource_for(limit_error.cap_class),
+            });
+
+            return;
+          }
+
           show_toast(
             sanitize_display_text(
               result.error || t("settings.failed_add_account"),

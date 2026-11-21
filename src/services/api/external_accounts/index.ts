@@ -33,6 +33,8 @@ export type {
   TestConnectionResult,
   SyncResult,
   DeduplicationRecord,
+  ExternalAccountMode,
+  SendOnlyCredentials,
 } from "./types";
 
 export {
@@ -45,6 +47,8 @@ export {
   list_external_accounts,
   create_external_account,
   update_external_account,
+  create_send_only_account,
+  update_send_only_account,
   toggle_external_account,
   delete_external_account,
   bulk_delete_external_accounts,

@@ -93,6 +93,7 @@ const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_custom_categories: "settings.usage_custom_categories",
   max_linked_accounts: "settings.usage_linked_accounts",
   max_external_accounts: "settings.usage_external_accounts",
+  max_send_only_accounts: "settings.ext_v2_usage_send_only_accounts",
   generic: "settings.upgrade_generic_resource",
 };
 
@@ -699,6 +700,14 @@ export function UpgradeModal() {
             <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
               <p className="text-[13px] text-txt-secondary">
                 {t("settings.upgrade_external_accounts_note")}
+              </p>
+            </div>
+          ) : null}
+
+          {state.limit_key === "max_send_only_accounts" ? (
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
+              <p className="text-[13px] text-txt-secondary">
+                {t("settings.ext_v2_upgrade_send_only_note")}
               </p>
             </div>
           ) : null}

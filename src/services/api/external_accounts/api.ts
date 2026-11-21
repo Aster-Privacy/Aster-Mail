@@ -29,6 +29,8 @@ import type {
   SyncProgressEvent,
   ExternalAccountAdvancedSettings,
   ExternalAccountConnectionSettings,
+  ExternalAccountMode,
+  SendOnlyCredentials,
 } from "./types";
 
 import { api_client, type ApiResponse } from "../client";
@@ -71,6 +73,28 @@ export function external_account_error_message(
       return settings.external_message_rejected;
     case "EXTERNAL_ACCOUNT_SEND_RECONNECT_REQUIRED":
       return settings.external_send_reconnect_required;
+    case "EXTERNAL_SMTP_VERIFY_FAILED":
+      return settings.ext_v2_smtp_verify_failed;
+    case "EXTERNAL_SEND_ONLY_CREDENTIALS_INVALID":
+      return settings.ext_v2_send_only_credentials_invalid;
+    case "EXTERNAL_MODE_INVALID":
+    case "EXTERNAL_MODE_PROTOCOL_MISMATCH":
+      return settings.ext_v2_mode_invalid;
+    case "EXTERNAL_MODE_UNAVAILABLE":
+      return settings.ext_v2_mode_unavailable;
+    case "EXTERNAL_FROM_MISSING":
+    case "EXTERNAL_FROM_NOT_VERIFIED":
+      return settings.ext_v2_from_not_verified;
+    case "EXTERNAL_ACCOUNT_PAUSED":
+      return settings.ext_v2_account_paused_send;
+    case "EXTERNAL_ACCOUNT_CHANGED":
+      return settings.ext_v2_account_changed;
+    case "EXTERNAL_MAIL_THROTTLED":
+      return settings.ext_v2_test_throttled;
+    case "SEND_ONLY_ACCOUNT_LIMIT":
+      return settings.ext_v2_send_only_limit_reached;
+    case "EXTERNAL_ACCOUNT_LIMIT":
+      return settings.ext_v2_sync_limit_reached;
     default:
       return undefined;
   }
@@ -136,6 +160,8 @@ export async function list_external_accounts(
             oauth_provider: oauth_provider_field,
             is_enabled: item.is_enabled,
             is_verified: item.is_verified,
+            mode: item.mode ?? "server_sync",
+            paused_reason: item.paused_reason ?? null,
             last_sync_at: item.last_sync_at,
             last_sync_status: item.last_sync_status,
             last_sync_error: raw.last_sync_error ?? null,
@@ -167,6 +193,8 @@ export async function list_external_accounts(
             oauth_provider: oauth_provider_field,
             is_enabled: item.is_enabled,
             is_verified: item.is_verified,
+            mode: item.mode ?? "server_sync",
+            paused_reason: item.paused_reason ?? null,
             last_sync_at: item.last_sync_at,
             last_sync_status: item.last_sync_status,
             last_sync_error: raw.last_sync_error ?? null,
@@ -202,6 +230,7 @@ export async function create_external_account(
   protocol: string,
   tag_token?: string,
   sync_since_date?: string | null,
+  mode: ExternalAccountMode = "server_sync",
 ): Promise<ApiResponse<ExternalAccountResponse>> {
   try {
     const normalized_email = email.toLowerCase().trim();
@@ -228,13 +257,15 @@ export async function create_external_account(
         is_enabled: true,
         tag_token,
         sync_since_date: sync_since_date ?? undefined,
+        mode,
       },
     );
 
     if (response.error || !response.data) {
-      return {
-        error: response.error || get_active_translations().common.save_failed,
-      };
+      return external_failure(
+        response,
+        get_active_translations().common.save_failed,
+      );
     }
 
     return { data: response.data };
@@ -292,9 +323,10 @@ export async function update_external_account(
     );
 
     if (response.error || !response.data) {
-      return {
-        error: response.error || get_active_translations().common.save_failed,
-      };
+      return external_failure(
+        response,
+        get_active_translations().common.save_failed,
+      );
     }
 
     return { data: response.data };
@@ -305,6 +337,121 @@ export async function update_external_account(
         get_active_translations().common.save_failed,
       ),
     };
+  }
+}
+
+function external_failure<T>(
+  response: ApiResponse<T>,
+  fallback: string,
+): ApiResponse<ExternalAccountResponse> {
+  return {
+    error:
+      external_account_error_message(response.server_code) ||
+      response.error ||
+      fallback,
+    server_code: response.server_code,
+    status: response.status,
+    details: response.details,
+  };
+}
+
+async function sealed_account_data(
+  email: string,
+  display_name: string,
+  label_name: string,
+  label_color: string,
+) {
+  const account_data: ExternalAccountData = {
+    email,
+    display_name,
+    label_name,
+    label_color,
+    created_at: new Date().toISOString(),
+  };
+
+  return encrypt_account_data(account_data);
+}
+
+export async function create_send_only_account(
+  credentials: SendOnlyCredentials,
+  label_name: string,
+  label_color: string,
+): Promise<ApiResponse<ExternalAccountResponse>> {
+  const fallback = get_active_translations().common.save_failed;
+
+  try {
+    const from_address = credentials.from_address.toLowerCase().trim();
+    const from_name = credentials.from_name.trim();
+    const account_token = await generate_account_token(from_address);
+    const sealed = await sealed_account_data(
+      from_address,
+      from_name,
+      label_name,
+      label_color,
+    );
+    const response = await api_client.post<ExternalAccountResponse>(
+      "/mail/v1/external_accounts",
+      {
+        account_token,
+        ...sealed,
+        credentials: { ...credentials, from_address, from_name },
+        protocol: "smtp",
+        mode: "send_only",
+        is_enabled: true,
+      },
+    );
+
+    if (response.error || !response.data) {
+      return external_failure(response, fallback);
+    }
+
+    return { data: response.data };
+  } catch (err) {
+    return { error: user_facing_error(err, fallback) };
+  }
+}
+
+export async function update_send_only_account(
+  account_token: string,
+  credentials: SendOnlyCredentials,
+  label_name: string,
+  label_color: string,
+): Promise<ApiResponse<ExternalAccountResponse>> {
+  const token_error = validate_account_token(account_token);
+
+  if (token_error) {
+    return { error: token_error };
+  }
+
+  const fallback = get_active_translations().common.save_failed;
+
+  try {
+    const from_address = credentials.from_address.toLowerCase().trim();
+    const from_name = credentials.from_name.trim();
+    const sealed = await sealed_account_data(
+      from_address,
+      from_name,
+      label_name,
+      label_color,
+    );
+    const response = await api_client.put<ExternalAccountResponse>(
+      "/mail/v1/external_accounts/update",
+      {
+        account_token,
+        ...sealed,
+        credentials: { ...credentials, from_address, from_name },
+        protocol: "smtp",
+        mode: "send_only",
+      },
+    );
+
+    if (response.error || !response.data) {
+      return external_failure(response, fallback);
+    }
+
+    return { data: response.data };
+  } catch (err) {
+    return { error: user_facing_error(err, fallback) };
   }
 }
 

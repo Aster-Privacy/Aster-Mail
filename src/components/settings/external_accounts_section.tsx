@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
+import type { DecryptedExternalAccount } from "@/services/api/external_accounts";
+
 import { useLocation, useNavigate } from "react-router-dom";
 import { PlusIcon, ServerStackIcon } from "@heroicons/react/24/outline";
 import { Button, Checkbox, IslandSection, IslandSections } from "@aster/ui";
@@ -42,6 +44,9 @@ import { AddAccountForm } from "@/components/settings/external_accounts/add_acco
 import { GmailSetupWizard } from "@/components/settings/external_accounts/gmail_setup_wizard";
 import { ConnectProviderModal } from "@/components/settings/connect_provider_modal";
 import { OAuthFolderPickerModal } from "@/components/settings/oauth_folder_picker_modal";
+import { SendOnlyForm } from "@/components/settings/external_accounts/send_only_form";
+import { AddModeChooser } from "@/components/settings/external_accounts/add_mode_chooser";
+import { external_caps, is_send_only } from "@/lib/external_account_modes";
 
 export function ExternalAccountsSection() {
   const state = use_external_accounts();
@@ -50,12 +55,28 @@ export function ExternalAccountsSection() {
   const navigate = useNavigate();
   const has_auto_opened = useRef(false);
   const [gmail_wizard_open, set_gmail_wizard_open] = useState(false);
-  const account_limit = limits?.limits["max_multi_accounts"]?.limit ?? -1;
-  const external_accounts_enabled =
-    (limits?.limits["has_external_accounts"]?.limit ?? 1) >= 1;
-  const at_account_limit =
-    !external_accounts_enabled ||
-    (account_limit >= 0 && state.accounts.length >= account_limit);
+  const [mode_chooser_open, set_mode_chooser_open] = useState(false);
+  const [send_only_open, set_send_only_open] = useState(false);
+  const [send_only_editing, set_send_only_editing] =
+    useState<DecryptedExternalAccount | null>(null);
+  const caps = external_caps(limits, state.accounts);
+  const at_account_limit = caps.fetching.at_limit;
+  const at_send_only_limit = caps.send_only.at_limit;
+  const at_every_limit = at_account_limit && at_send_only_limit;
+  const handle_edit = (account: DecryptedExternalAccount) => {
+    if (is_send_only(account)) {
+      set_send_only_editing(account);
+      set_send_only_open(true);
+
+      return;
+    }
+
+    state.handle_edit(account);
+  };
+  const close_send_only = () => {
+    set_send_only_open(false);
+    set_send_only_editing(null);
+  };
   const wants_add_form =
     (location.state as { open_external_account_form?: boolean } | null)
       ?.open_external_account_form === true;
@@ -94,9 +115,13 @@ export function ExternalAccountsSection() {
         bare
         description={state.t("settings.external_accounts_description")}
         footer={
-          at_account_limit
+          at_every_limit
             ? state.t("settings.external_accounts_limit_reached")
-            : undefined
+            : at_account_limit
+              ? state.t("settings.ext_v2_sync_limit_footer")
+              : at_send_only_limit
+                ? state.t("settings.ext_v2_send_only_limit_footer")
+                : undefined
         }
         icon={<ServerStackIcon />}
         title={state.t("settings.external_accounts")}
@@ -120,13 +145,13 @@ export function ExternalAccountsSection() {
               className="gap-2"
               variant="depth"
               onClick={() => {
-                if (at_account_limit) {
+                if (at_every_limit) {
                   show_plan_limit_upgrade({ resource: "external accounts" });
 
                   return;
                 }
 
-                state.open_add_form();
+                set_mode_chooser_open(true);
               }}
             >
               <PlusIcon className="w-4 h-4" />
@@ -246,7 +271,7 @@ export function ExternalAccountsSection() {
             accounts={state.accounts}
             expanded_error_ids={state.expanded_error_ids}
             format_sync_time={state.format_sync_time}
-            handle_edit={state.handle_edit}
+            handle_edit={handle_edit}
             handle_sync={state.handle_sync}
             handle_toggle={state.handle_toggle}
             set_purge_target={state.set_purge_target}
@@ -321,6 +346,43 @@ export function ExternalAccountsSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AddModeChooser
+        is_open={mode_chooser_open}
+        on_close={() => set_mode_chooser_open(false)}
+        on_choose={(mode) => {
+          set_mode_chooser_open(false);
+          if (mode === "send_only") {
+            if (at_send_only_limit) {
+              show_plan_limit_upgrade({ resource: "send-only accounts" });
+
+              return;
+            }
+            set_send_only_editing(null);
+            set_send_only_open(true);
+
+            return;
+          }
+          if (at_account_limit) {
+            show_plan_limit_upgrade({ resource: "external accounts" });
+
+            return;
+          }
+          state.open_add_form();
+        }}
+        send_only_full={at_send_only_limit}
+        sync_full={at_account_limit}
+        t={state.t}
+      />
+      <SendOnlyForm
+        editing_account={send_only_editing}
+        is_open={send_only_open}
+        on_close={close_send_only}
+        on_saved={() => {
+          close_send_only();
+          void state.reload_accounts();
+        }}
+        t={state.t}
+      />
       <ConnectProviderModal
         on_close={state.close_microsoft_connect}
         on_oauth_success={state.handle_microsoft_connected}

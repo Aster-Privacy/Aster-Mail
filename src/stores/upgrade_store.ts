@@ -42,6 +42,7 @@ export type UpgradeLimitKey =
   | "max_custom_categories"
   | "max_linked_accounts"
   | "max_external_accounts"
+  | "max_send_only_accounts"
   | "generic";
 
 export interface UpgradeState {
@@ -114,6 +115,8 @@ const RESOURCE_TO_LIMIT_KEY: Record<string, UpgradeLimitKey> = {
   "external accounts": "max_external_accounts",
   "external account": "max_external_accounts",
   "connected accounts": "max_external_accounts",
+  "send-only accounts": "max_send_only_accounts",
+  "send-only account": "max_send_only_accounts",
 };
 
 function resolve_limit_key(resource: string | null): UpgradeLimitKey {

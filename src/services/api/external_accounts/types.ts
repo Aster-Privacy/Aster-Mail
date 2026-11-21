@@ -48,11 +48,29 @@ export interface ExternalAccountResponse {
   protocol: string;
   is_enabled: boolean;
   is_verified: boolean;
+  mode?: ExternalAccountMode;
+  paused_reason?: string | null;
   last_sync_at: string | null;
   last_sync_status: string | null;
   email_count: number;
   created_at: string;
   updated_at: string;
+}
+
+export type ExternalAccountMode =
+  | "server_sync"
+  | "two_way"
+  | "send_only"
+  | "device";
+
+export interface SendOnlyCredentials {
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  smtp_password: string;
+  from_address: string;
+  from_name: string;
+  use_tls: boolean;
 }
 
 export interface DecryptedExternalAccount {
@@ -66,6 +84,8 @@ export interface DecryptedExternalAccount {
   oauth_provider: string | null;
   is_enabled: boolean;
   is_verified: boolean;
+  mode?: ExternalAccountMode;
+  paused_reason?: string | null;
   last_sync_at: string | null;
   last_sync_status: string | null;
   last_sync_error: string | null;

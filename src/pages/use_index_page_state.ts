@@ -95,6 +95,8 @@ import {
   build_alias_view,
   parse_alias_direction,
 } from "@/hooks/email_list_helpers/alias_view";
+import { OAUTH_EXTERNAL_LIMIT_REASON } from "@/lib/external_account_modes";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 
 export interface ForwardData {
   sender_name: string;
@@ -272,6 +274,11 @@ export function use_index_page_state() {
       }, 600);
 
       return;
+    } else if (
+      oauth_status === "error" &&
+      raw_reason === OAUTH_EXTERNAL_LIMIT_REASON
+    ) {
+      show_plan_limit_upgrade({ resource: "external accounts" });
     } else if (oauth_status === "error") {
       const reason_key_map: Record<string, string> = {
         provider_denied: "settings.oauth_reason_provider_denied",
