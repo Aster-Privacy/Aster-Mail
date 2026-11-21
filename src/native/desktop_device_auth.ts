@@ -22,6 +22,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { ENVELOPE_VERSIONS } from "@/lib/crypto/device_envelope";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export type DeviceAuthErrorCode =
   "challenge_failed" | "login_failed" | "code_generation_failed";
@@ -74,7 +75,7 @@ export interface DeviceCodeStatus {
 }
 
 export function is_tauri(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 async function invoke<T>(
@@ -179,10 +180,14 @@ async function silent_device_login(
     api_client.set_authenticated(true);
   }
 
+  locked_device_login = null;
   const raw_b64 = await invoke<string | null>("device_get_stored_passphrase", {
     deviceId: device_id,
   }).catch((caught: unknown) => {
-    if (is_pin_locked_error(caught)) throw new Error(PASSPHRASE_PIN_LOCKED);
+    if (is_pin_locked_error(caught)) {
+      locked_device_login = { login_response, device_id };
+      throw new Error(PASSPHRASE_PIN_LOCKED);
+    }
     throw caught;
   });
 
@@ -412,7 +417,7 @@ export async function complete_device_pairing(
 
   try {
     await invoke("device_set_id", { deviceId: device_id });
-    await invoke<string>("device_unseal_vault_envelope", {
+    await invoke<void>("device_unseal_vault_envelope", {
       envelopeB64: sealed_envelope,
       deviceId: device_id,
     });
@@ -460,6 +465,67 @@ export function consume_pending_device_login(): PendingDeviceLogin | null {
   pending_device_login = null;
 
   return data;
+}
+
+interface LockedDeviceLogin {
+  login_response: unknown;
+  device_id: string;
+}
+
+let locked_device_login: LockedDeviceLogin | null = null;
+
+export interface AppUnlockSource {
+  is_locked: (account_id: string) => boolean;
+  wait_for_unlock: (account_id: string) => Promise<boolean>;
+  read_passphrase: (account_id: string) => Promise<string | null>;
+}
+
+async function load_app_unlock_source(): Promise<AppUnlockSource> {
+  const session = await import("@/contexts/auth/session_passphrase");
+  const wrap = await import("@/services/app_lock_wrap");
+
+  return {
+    is_locked: session.is_session_passphrase_pin_locked,
+    wait_for_unlock: wrap.wait_for_app_unlock,
+    read_passphrase: session.get_session_passphrase,
+  };
+}
+
+export function locked_device_login_account_id(): string | null {
+  const response = locked_device_login?.login_response;
+
+  if (!response || typeof response !== "object") return null;
+  const user_id = (response as { user_id?: unknown }).user_id;
+
+  return typeof user_id === "string" && user_id ? user_id : null;
+}
+
+export async function resume_device_login_after_unlock(
+  account_id: string | null | undefined,
+  source?: AppUnlockSource,
+  on_unlock_needed?: (account_id: string) => void,
+): Promise<PendingDeviceLogin | null> {
+  const locked = locked_device_login;
+
+  locked_device_login = null;
+  if (!locked || !account_id) return null;
+
+  const unlock = source ?? (await load_app_unlock_source());
+
+  if (unlock.is_locked(account_id)) {
+    on_unlock_needed?.(account_id);
+    if (!(await unlock.wait_for_unlock(account_id))) return null;
+  }
+
+  const passphrase = await unlock.read_passphrase(account_id).catch(() => null);
+
+  if (!passphrase) return null;
+
+  return {
+    login_response: locked.login_response,
+    passphrase,
+    device_id: locked.device_id,
+  };
 }
 
 let desktop_device_auth_run: Promise<void> | null = null;
@@ -569,6 +635,7 @@ export async function forget_device_account(
   if (!is_tauri()) return;
   desktop_device_auth_run = null;
   pending_device_login = null;
+  locked_device_login = null;
 
   let target = device_id ?? null;
 
@@ -586,6 +653,7 @@ async function reset_device_auth(command: string): Promise<void> {
   if (!is_tauri()) return;
   desktop_device_auth_run = null;
   pending_device_login = null;
+  locked_device_login = null;
   await invoke(command);
 }
 
@@ -639,6 +707,7 @@ export async function erase_device_pairing(): Promise<void> {
   if (!is_tauri()) return;
   desktop_device_auth_run = null;
   pending_device_login = null;
+  locked_device_login = null;
   expiry_relogins = [];
 
   let failure: unknown = null;

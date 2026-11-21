@@ -20,9 +20,8 @@
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { get_mock, decrypt_mock } = vi.hoisted(() => ({
+const { get_mock } = vi.hoisted(() => ({
   get_mock: vi.fn(),
-  decrypt_mock: vi.fn(),
 }));
 
 vi.mock("./client", () => ({
@@ -34,20 +33,14 @@ vi.mock("./client", () => ({
   },
 }));
 
-vi.mock("@/services/crypto/legacy_keks", () => {
-  const decrypt_aes_gcm_with_fallback = decrypt_mock;
+vi.mock("@/services/crypto/legacy_keks", () => ({
+  get_account_data_crypto_keys: () => [],
+}));
 
-  return {
-    decrypt_aes_gcm_with_fallback,
-    decrypt_account_context_with_fallback: (
-      _context: string,
-      ...rest: unknown[]
-    ) =>
-      (decrypt_aes_gcm_with_fallback as (...args: unknown[]) => unknown)(
-        ...rest,
-      ),
-  };
-});
+vi.mock("@/services/crypto/account_data_writer", () => ({
+  account_data_write_key: async () => null,
+  retry_after_account_key_load: (call: () => unknown) => call(),
+}));
 
 vi.mock("@/hooks/use_mail_stats", () => ({
   invalidate_mail_stats: vi.fn(),
@@ -57,12 +50,47 @@ import { list_drafts_with_content } from "./multi_drafts";
 
 const vault = { identity_key: "test-identity" } as never;
 
-function api_item(id: string) {
+interface Sealed {
+  encrypted_content: string;
+  content_nonce: string;
+}
+
+const UNREADABLE: Sealed = { encrypted_content: "AAAA", content_nonce: "AAAA" };
+
+function to_base64(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes));
+}
+
+async function seal(content: object): Promise<Sealed> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode("test-identity" + "astermail-draft-v2"),
+  );
+  const key = await crypto.subtle.importKey(
+    "raw",
+    digest,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt"],
+  );
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce },
+    key,
+    new TextEncoder().encode(JSON.stringify(content)),
+  );
+
+  return {
+    encrypted_content: to_base64(new Uint8Array(ciphertext)),
+    content_nonce: to_base64(nonce),
+  };
+}
+
+function api_item(id: string, sealed: Sealed) {
   return {
     id,
     draft_type: "new",
-    encrypted_content: "AAAA",
-    content_nonce: "AAAA",
+    ...sealed,
     version: 1,
     content_hash: "",
     size_bytes: 0,
@@ -74,29 +102,26 @@ function api_item(id: string) {
   };
 }
 
-function encoded(content: object): ArrayBuffer {
-  return new TextEncoder().encode(JSON.stringify(content)).buffer;
-}
-
 describe("list_drafts_with_content - single request, no N+1", () => {
   beforeEach(() => {
     get_mock.mockReset();
-    decrypt_mock.mockReset();
   });
 
   it("decrypts every draft from one list call, never per-draft", async () => {
-    get_mock.mockResolvedValueOnce({
-      data: { items: [api_item("d1"), api_item("d2")], has_more: false },
+    const sealed = await seal({
+      to_recipients: ["a@b.com"],
+      cc_recipients: [],
+      bcc_recipients: [],
+      subject: "Hi",
+      message: "body",
     });
-    decrypt_mock.mockImplementation(async () =>
-      encoded({
-        to_recipients: ["a@b.com"],
-        cc_recipients: [],
-        bcc_recipients: [],
-        subject: "Hi",
-        message: "body",
-      }),
-    );
+
+    get_mock.mockResolvedValueOnce({
+      data: {
+        items: [api_item("d1", sealed), api_item("d2", sealed)],
+        has_more: false,
+      },
+    });
 
     const res = await list_drafts_with_content(50, vault);
 
@@ -109,9 +134,8 @@ describe("list_drafts_with_content - single request, no N+1", () => {
 
   it("keeps a draft as an empty placeholder when its content fails to decrypt", async () => {
     get_mock.mockResolvedValueOnce({
-      data: { items: [api_item("d1")], has_more: false },
+      data: { items: [api_item("d1", UNREADABLE)], has_more: false },
     });
-    decrypt_mock.mockRejectedValue(new Error("bad key"));
 
     const res = await list_drafts_with_content(50, vault);
 

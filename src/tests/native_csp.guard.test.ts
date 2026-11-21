@@ -59,6 +59,32 @@ const web_policy = read("nginx.conf").match(
 );
 const web = directives(web_policy?.[1] ?? "");
 
+function source_allows(sources: string[], url: string): boolean {
+  const target = new URL(url);
+
+  return sources.some((source) => {
+    if (!/^https:\/\//.test(source)) return false;
+
+    const host = source.slice("https://".length).replace(/\/.*$/, "");
+
+    if (target.protocol !== "https:") return false;
+    if (host.startsWith("*.")) {
+      return target.hostname.endsWith(host.slice(1));
+    }
+
+    return target.hostname === host;
+  });
+}
+
+const native_image_proxy =
+  read("src/lib/image_proxy.ts").match(
+    /NATIVE_IMAGE_PROXY_URL = "([^"]+)"/,
+  )?.[1] ?? "";
+const native_font_proxy = native_image_proxy.replace(
+  /\/api\/images\/v1\/proxy$/,
+  "/api/content/v1/proxy",
+);
+
 let work_dir = "";
 
 afterEach(() => {
@@ -157,6 +183,96 @@ describe("capacitor content security policy", () => {
         "wss://*.astermail.org",
       ]),
     );
+  });
+
+  it("loads images and fonts only from bundled or Aster hosts", () => {
+    const policy = directives(
+      policies(prepare(built_index, ["--capacitor"]))[0],
+    );
+
+    for (const directive of ["img-src", "font-src"]) {
+      expect(policy[directive], directive).toBeDefined();
+      expect(policy[directive], directive).not.toContain("https:");
+      expect(policy[directive], directive).not.toContain("*");
+    }
+  });
+
+  it("never frames app-origin or blob documents", () => {
+    const policy = directives(
+      policies(prepare(built_index, ["--capacitor"]))[0],
+    );
+    const frame_src = policy["frame-src"];
+
+    expect(frame_src).toBeDefined();
+    expect(frame_src.length).toBeGreaterThan(0);
+
+    for (const source of ["'self'", "blob:", "data:", "*", "https:"]) {
+      expect(frame_src, source).not.toContain(source);
+    }
+  });
+
+  it("lets the app load proxied images and fonts", () => {
+    const policy = directives(
+      policies(prepare(built_index, ["--capacitor"]))[0],
+    );
+
+    expect(native_image_proxy).toMatch(/^https:\/\/[^/]+\/api\/images\/v1\/proxy$/);
+    expect(native_font_proxy).toMatch(/\/api\/content\/v1\/proxy$/);
+    expect(source_allows(policy["img-src"], native_image_proxy)).toBe(true);
+    expect(source_allows(policy["font-src"], native_font_proxy)).toBe(true);
+    expect(source_allows(policy["img-src"], "https://tracker.example/p.gif")).toBe(
+      false,
+    );
+  });
+
+  it("loads native images and fonts only from the app host", () => {
+    const policy = directives(
+      policies(prepare(built_index, ["--capacitor"]))[0],
+    );
+    const native_image_hosts = [
+      native_image_proxy,
+      native_font_proxy,
+      read("src/lib/favicon_url.ts").match(/NATIVE_BASE = "([^"]+)"/)?.[1],
+      read("src/services/profile_picture_gallery.ts").match(
+        /NATIVE_GALLERY_BASE = "([^"]+)"/,
+      )?.[1],
+      read("src/services/api/client/helpers.ts").match(
+        /NATIVE_API_URL = "([^"]+)"/,
+      )?.[1],
+    ];
+
+    for (const url of native_image_hosts) {
+      expect(url).toMatch(/^https:\/\/app\.astermail\.org\//);
+      expect(source_allows(policy["img-src"], url!), url).toBe(true);
+      expect(source_allows(policy["font-src"], url!), url).toBe(true);
+    }
+
+    for (const directive of ["img-src", "font-src"]) {
+      const remote = policy[directive].filter((source) =>
+        source.startsWith("https://"),
+      );
+
+      expect(remote, directive).toEqual(["https://app.astermail.org"]);
+      expect(
+        source_allows(policy[directive], "https://files.astermail.org/p.gif"),
+        directive,
+      ).toBe(false);
+    }
+  });
+
+  it("keeps the native connect and frame sources", () => {
+    const policy = directives(
+      policies(prepare(built_index, ["--capacitor"]))[0],
+    );
+
+    expect(policy["connect-src"]).toEqual(
+      expect.arrayContaining([
+        "https://astermail.org",
+        "https://*.astermail.org",
+        "wss://*.astermail.org",
+      ]),
+    );
+    expect(policy["frame-src"]).toContain("https://calendar.astermail.org");
   });
 
   it("replaces a policy that is already in the page", () => {

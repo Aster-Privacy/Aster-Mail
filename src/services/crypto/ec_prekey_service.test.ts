@@ -30,7 +30,7 @@ const h = vi.hoisted(() => ({
 
 vi.mock("./ec_prekey_store", () => ({
   ec_one_time_storage_available: async () => h.storage_available,
-  encrypt_ec_one_time_secret: async (d: string) => ({
+  encrypt_ec_one_time_secret: async (d: string, _key_id: number) => ({
     encrypted_secret: `sealed:${d.length}`,
     secret_nonce: "nonce",
   }),

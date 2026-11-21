@@ -216,6 +216,7 @@ describe("preference sync with keys from a newer client", () => {
   beforeEach(() => {
     server.blob = null;
     server.preference_puts = 0;
+    localStorage.removeItem("aster_emoji_skin_tone");
     socket_state.connected = false;
     clear_preferences_cache();
     container = document.createElement("div");
@@ -344,5 +345,66 @@ describe("preference sync with keys from a newer client", () => {
         read_flag(captured.preferences, "compose_from_selected_alias"),
       ).toBe(false);
     }
+  });
+  it("syncs the emoji skin tone to another client and keeps unknown keys", async () => {
+    await seed_server(complete_blob({ setting_from_a_future_client: "kept" }));
+
+    await mount();
+
+    expect(captured.preferences.emoji_skin_tone).toBe("default");
+
+    await act(async () => {
+      captured.update_preference("emoji_skin_tone", "medium_dark", true);
+    });
+    await eventually(async () => {
+      expect((await read_server()).emoji_skin_tone).toBe("medium_dark");
+    });
+
+    expect((await read_server()).setting_from_a_future_client).toBe("kept");
+
+    unmount();
+    clear_preferences_cache();
+    await mount();
+
+    expect(captured.preferences.emoji_skin_tone).toBe("medium_dark");
+  });
+
+  it("reads a missing or unknown skin tone as the default", async () => {
+    for (const value of [undefined, null, "purple", 3, "MEDIUM"]) {
+      unmount();
+      clear_preferences_cache();
+      await seed_server(complete_blob({ emoji_skin_tone: value }));
+
+      await mount();
+
+      expect(captured.preferences.emoji_skin_tone).toBe("default");
+    }
+  });
+
+  it("moves a skin tone chosen before syncing existed into the account", async () => {
+    const blob = complete_blob({});
+
+    delete blob.emoji_skin_tone;
+    await seed_server(blob);
+    localStorage.setItem("aster_emoji_skin_tone", "light");
+
+    await mount();
+
+    expect(captured.preferences.emoji_skin_tone).toBe("light");
+    await eventually(async () => {
+      expect((await read_server()).emoji_skin_tone).toBe("light");
+      expect(localStorage.getItem("aster_emoji_skin_tone")).toBeNull();
+    });
+  });
+
+  it("keeps the synced skin tone over one saved on this device", async () => {
+    await seed_server(complete_blob({ emoji_skin_tone: "dark" }));
+    localStorage.setItem("aster_emoji_skin_tone", "light");
+
+    await mount();
+
+    expect(captured.preferences.emoji_skin_tone).toBe("dark");
+    expect(localStorage.getItem("aster_emoji_skin_tone")).toBeNull();
+    expect((await read_server()).emoji_skin_tone).toBe("dark");
   });
 });

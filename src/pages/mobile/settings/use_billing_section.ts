@@ -27,6 +27,11 @@ import type {
 import type { plan_term_option } from "@/components/settings/billing/plan_payment_method_modal";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import {
+  initial_requested_plan,
+  should_open_requested_plan,
+  strip_requested_plan,
+} from "@/components/settings/billing/requested_plan";
 
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import {
@@ -43,6 +48,10 @@ import {
 } from "@/components/settings/billing/billing_constants";
 import { create_family_group } from "@/services/api/family";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  is_https_payment_url,
+  payment_url_or_throw,
+} from "@/lib/payment_url";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
@@ -966,6 +975,27 @@ export function use_billing_section() {
     set_show_method_modal(true);
   };
 
+  const requested_plan_ref = useRef<string | null>(initial_requested_plan());
+
+  useEffect(() => {
+    strip_requested_plan();
+  }, []);
+
+  useEffect(() => {
+    const requested = requested_plan_ref.current;
+
+    if (!requested || is_loading || plans.length === 0) return;
+    requested_plan_ref.current = null;
+    if (!should_open_requested_plan(requested, subscription?.plan.code)) return;
+
+    const plan = plans.find((entry) => entry.code === requested);
+
+    if (plan) {
+      set_method_modal_plan(plan);
+      set_show_method_modal(true);
+    }
+  }, [plans, is_loading, subscription]);
+
   const handle_pay_with_card = async (plan: AvailablePlan) => {
     if (is_action_loading) return;
 
@@ -1222,7 +1252,7 @@ export function use_billing_section() {
       const url = response.data?.url;
 
       if (url) {
-        window.location.assign(url);
+        window.location.assign(payment_url_or_throw(url));
       } else {
         show_toast(
           server_error_text(
@@ -1330,7 +1360,7 @@ export function use_billing_section() {
 
       const parsed = new URL(checkout_url);
 
-      if (parsed.protocol !== "https:") {
+      if (!is_https_payment_url(parsed.toString())) {
         show_toast(
           t("settings.failed_checkout"),
           "error",

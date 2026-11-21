@@ -28,6 +28,7 @@ import { use_guarded_trash_actions } from "@/components/email/use_permanent_dele
 import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
 import { REPLY_ARRIVAL_POLL_DELAYS_MS } from "@/components/email/use_email_viewer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
+import { is_missing_mail_item } from "@/lib/stale_open_email";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_draft_by_thread,
@@ -102,6 +103,7 @@ import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
 import { use_reactions_seen } from "@/hooks/use_reactions_seen";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
+import { with_message_read } from "@/components/email/hooks/detail_read_state";
 import {
   claim_auto_read,
   is_read_ticket_current,
@@ -141,6 +143,10 @@ export function use_popup_viewer({
   | "snoozed_until"
   | "grouped_email_ids"
 >) {
+  const on_close_ref = useRef(on_close);
+
+  on_close_ref.current = on_close;
+
   const local_email =
     email_id === UNDO_SEND_PREVIEW_ID ? incoming_local_email : undefined;
   const { user } = use_auth();
@@ -417,6 +423,9 @@ export function use_popup_viewer({
 
         if (result.success) {
           if (still_open) set_is_read(true);
+          set_thread_messages((prev) =>
+            with_message_read(prev, current_email_id, true),
+          );
           if (result.encrypted && still_open) {
             set_mail_item((prev) =>
               prev
@@ -531,7 +540,7 @@ export function use_popup_viewer({
 
       set_email(decrypted);
       set_mail_item(preloaded.mail_item);
-      set_is_read(pe.is_read);
+      set_is_read(get_read_intent(preloaded.mail_item.id) ?? pe.is_read);
       set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
       set_thread_messages(preloaded.thread_messages);
       set_pending_thread_count(0);
@@ -574,6 +583,12 @@ export function use_popup_viewer({
     if (response.error) {
       requested_email_id_ref.current = null;
       if (!is_same_email) revert_user_opened_mail(email_id);
+      if (is_missing_mail_item(response)) {
+        on_close_ref.current();
+
+        return;
+      }
+
       set_error(response.error);
 
       return;
@@ -624,7 +639,7 @@ export function use_popup_viewer({
         response.data.is_read ?? decrypted_metadata?.is_read ?? false;
 
       set_mail_item(item_with_metadata);
-      set_is_read(is_read_on_server);
+      set_is_read(get_read_intent(response.data.id) ?? is_read_on_server);
       set_is_pinned(decrypted_metadata?.is_pinned ?? false);
 
       const envelope = await decrypt_mail_envelope(
@@ -659,6 +674,7 @@ export function use_popup_viewer({
           e2e_sender_bound,
           e2e_details_sealed,
           sent_encryption_scope,
+          decrypted_content_tag,
         } = await process_envelope_body(
           envelope,
           user?.email,
@@ -724,6 +740,7 @@ export function use_popup_viewer({
           sent_encryption_scope,
           e2e_sender_bound,
           e2e_details_sealed,
+          decrypted_content_tag,
         );
 
         if (should_load_thread) {
@@ -912,6 +929,16 @@ export function use_popup_viewer({
 
     const handle_mail_item_updated = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
+
+      if (!detail) return;
+
+      if (detail.is_read !== undefined) {
+        const next_read = detail.is_read;
+
+        set_thread_messages((prev) =>
+          with_message_read(prev, detail.id, next_read),
+        );
+      }
 
       if (detail.id !== email_id) return;
 

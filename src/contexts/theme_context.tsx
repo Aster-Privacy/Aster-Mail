@@ -32,6 +32,7 @@ import { update_status_bar_theme } from "@/native/capacitor_bridge";
 import { is_dark_appearance_active, set_theme_is_dark } from "@/lib/dark_mode";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export type Theme = "light" | "dark";
 export type ThemePreference = "light" | "dark" | "system";
@@ -137,7 +138,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!("__TAURI_INTERNALS__" in window)) return;
+    if (!has_tauri_runtime()) return;
 
     let cancelled = false;
 

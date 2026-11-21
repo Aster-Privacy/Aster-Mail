@@ -49,6 +49,8 @@ import {
 import { use_tags } from "@/hooks/use_tags";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
+import { PriorityBadge } from "@/components/email/priority_badge";
+import { priority_from_headers } from "@/services/mail_priority";
 import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
 import {
   trusted_sender_name,
@@ -317,6 +319,9 @@ export function PopupEmailHeader({
                   snoozed_until={snoozed_until}
                 />
               )}
+              <PriorityBadge
+                priority={priority_from_headers(email.raw_headers)}
+              />
             </div>
 
             <ForwardedViaLine

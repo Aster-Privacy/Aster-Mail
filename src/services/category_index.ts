@@ -42,6 +42,7 @@ import { background_page_size } from "@/services/api/client/request_priority";
 import {
   decrypt_mail_metadata,
   update_item_metadata,
+  write_items_metadata,
 } from "@/services/crypto/mail_metadata";
 import {
   classify,
@@ -59,6 +60,7 @@ import {
   type CustomCategoryRule,
 } from "@/data/category_catalog";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
+import { is_ratchet_body_text } from "@/services/crypto/ratchet_types";
 import {
   emit_mail_item_updated,
   on_mail_event,
@@ -112,6 +114,8 @@ const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // instead of deferring forever to a dead `build_in_progress` latch.
 const BUILD_STALE_MS = 90000;
 const BUILD_FETCH_DEADLINE_MS = 75000;
+const BUILD_RESUME_BASE_DELAY_MS = 5000;
+const BUILD_RESUME_MAX_DELAY_MS = 120000;
 const OPEN_DB_DEADLINE_MS = 10000;
 const MAX_NEW_HEADS = 3;
 
@@ -180,6 +184,10 @@ function chunk_record_key(account_key: string, index: number): string {
 }
 
 function preview_record_key(account_key: string): string {
+  return `${account_key}:previews_v2`;
+}
+
+function legacy_preview_record_key(account_key: string): string {
   return `${account_key}:previews`;
 }
 
@@ -207,6 +215,9 @@ let build_progress_ms = 0;
 let build_processed = 0;
 let build_token = 0;
 let build_owner_token = 0;
+let build_resume: BuildResumePoint | null = null;
+let build_resume_timer: ReturnType<typeof setTimeout> | null = null;
+let build_resume_failures = 0;
 let arrival_baseline_token = -1;
 let version = 0;
 let sort_order: "asc" | "desc" = "desc";
@@ -239,6 +250,44 @@ let custom_categories: CustomCategoryRule[] = [];
 let custom_categories_hash = hash_text("[]");
 let built_custom_categories_key: string | null = null;
 let full_builds_completed = 0;
+
+interface BuildResumePoint {
+  cursor: string;
+  processed: number;
+  seen: Set<string>;
+  prebuild_ids: Set<string>;
+  generation: number;
+}
+
+function cancel_build_resume(): void {
+  if (build_resume_timer) {
+    clearTimeout(build_resume_timer);
+    build_resume_timer = null;
+  }
+  build_resume = null;
+}
+
+function reset_build_resume(): void {
+  cancel_build_resume();
+  build_resume_failures = 0;
+}
+
+function schedule_build_resume(point: BuildResumePoint): void {
+  build_resume = point;
+  if (build_resume_timer) clearTimeout(build_resume_timer);
+
+  const delay = Math.min(
+    BUILD_RESUME_BASE_DELAY_MS * 2 ** build_resume_failures,
+    BUILD_RESUME_MAX_DELAY_MS,
+  );
+
+  build_resume_failures += 1;
+  build_resume_timer = setTimeout(() => {
+    build_resume_timer = null;
+    if (fully_built || !build_resume) return;
+    void build_index();
+  }, delay);
+}
 
 export function set_active_tabs(tabs: string[]): void {
   const next = tabs.includes("primary") ? tabs : ["primary", ...tabs];
@@ -1008,6 +1057,15 @@ function remember_entry_preview(id: string, preview: CategoryPreview): void {
   ) {
     return;
   }
+
+  preview_version += 1;
+  previews_dirty = true;
+  schedule_persist();
+  notify_soon(!build_in_progress);
+}
+
+function forget_entry_preview(id: string): void {
+  if (!entry_previews.delete(id)) return;
 
   preview_version += 1;
   previews_dirty = true;
@@ -1999,6 +2057,7 @@ interface DecodedItem {
   key: string;
   custom_categories: CustomCategoryRule[];
   entry: CategoryIndexEntry;
+  sealed_body: boolean;
 }
 
 const decoded_items = new Map<string, DecodedItem>();
@@ -2021,6 +2080,7 @@ function remember_decoded_item(
   item: MailItem,
   entry: CategoryIndexEntry,
   rules: CustomCategoryRule[],
+  sealed_body: boolean,
 ): void {
   decoded_items.delete(item.id);
   decoded_items.set(item.id, {
@@ -2028,6 +2088,7 @@ function remember_decoded_item(
     key: decoded_item_key(item),
     custom_categories: rules,
     entry,
+    sealed_body,
   });
 
   while (decoded_items.size > MAX_DECODED_ITEMS) {
@@ -2065,13 +2126,15 @@ function reuse_decoded_item(item: MailItem): CategoryIndexEntry | null {
   const existing = entries_map.get(item.id);
   const preview = entry_previews.get(item.id);
 
-  if (!decoded || !existing || !preview) return null;
+  if (!decoded || !existing) return null;
+  if (!preview && !decoded.sealed_body) return null;
   if (existing.needs_reclassify) return null;
   if (decoded.custom_categories !== custom_categories) return null;
   if (decoded.envelope !== item.encrypted_envelope) return null;
   if (decoded.key !== decoded_item_key(item)) return null;
 
-  remember_entry_preview(item.id, preview);
+  if (decoded.sealed_body) forget_entry_preview(item.id);
+  else if (preview) remember_entry_preview(item.id, preview);
 
   return refresh_item_fields(decoded.entry, item);
 }
@@ -2167,7 +2230,11 @@ async function item_to_entry(
       ? item.snoozed_until
       : undefined;
 
-  if (envelope) {
+  const sealed_body = is_ratchet_body_text(envelope?.body_text);
+
+  if (envelope && sealed_body) {
+    forget_entry_preview(item.id);
+  } else if (envelope) {
     remember_entry_preview(
       item.id,
       build_category_preview(
@@ -2204,7 +2271,7 @@ async function item_to_entry(
     },
   };
 
-  if (envelope) remember_decoded_item(item, result.entry, rules);
+  if (envelope) remember_decoded_item(item, result.entry, rules, sealed_body);
 
   return result;
 }
@@ -2269,6 +2336,13 @@ export async function build_index(options?: {
   }
   if (fully_built && !options?.force) return;
 
+  const resume =
+    !options?.force && build_resume?.generation === index_generation
+      ? build_resume
+      : null;
+
+  cancel_build_resume();
+
   const token = build_token;
 
   build_owner_token = token;
@@ -2282,11 +2356,12 @@ export async function build_index(options?: {
   ]).catch(() => [null, null] as const);
 
   try {
-    let cursor: string | undefined;
-    let processed = 0;
+    let cursor: string | undefined = resume?.cursor;
+    let processed = resume?.processed ?? 0;
     let reached_end = false;
-    const seen = new Set<string>();
-    const prebuild_ids = new Set(entries_map.keys());
+    let fetch_failed = false;
+    const seen = resume?.seen ?? new Set<string>();
+    const prebuild_ids = resume?.prebuild_ids ?? new Set(entries_map.keys());
 
     for (;;) {
       if (options?.signal?.aborted || token !== build_token) return;
@@ -2306,8 +2381,11 @@ export async function build_index(options?: {
         BUILD_FETCH_DEADLINE_MS,
       );
 
-      if (!response?.data) break;
       if (token !== build_token) return;
+      if (!response?.data) {
+        fetch_failed = true;
+        break;
+      }
 
       const { items, has_more, next_cursor } = response.data;
 
@@ -2376,6 +2454,17 @@ export async function build_index(options?: {
 
     fully_built = reached_end || processed >= BUILD_CAP;
     build_capped = !reached_end && processed >= BUILD_CAP;
+    if (fully_built) {
+      reset_build_resume();
+    } else if (fetch_failed && !options?.signal?.aborted) {
+      schedule_build_resume({
+        cursor: cursor ?? "",
+        processed,
+        seen,
+        prebuild_ids,
+        generation: index_generation,
+      });
+    }
     if (fully_built) arrival_baseline_token = token;
     last_build_ms = now_ms();
     session_reconciled = true;
@@ -3279,6 +3368,7 @@ export function clear_category_index_memory(): void {
 
   build_token += 1;
   index_generation += 1;
+  reset_build_resume();
   clear_entry_previews();
   build_in_progress = false;
   build_capped = false;
@@ -3520,7 +3610,7 @@ export interface CategoryWriteResult {
   metadata_version?: number;
 }
 
-const MAX_RECENT_RECLASSIFY_META = 200;
+const MAX_RECENT_RECLASSIFY_META = 5000;
 
 function remember_own_metadata_write(id: string, encrypted_metadata: string) {
   recent_reclassify_meta.delete(id);
@@ -3573,6 +3663,126 @@ async function write_category_state(
   };
 }
 
+export async function write_category_states(
+  writes: ReadonlyArray<{
+    target: CategoryMoveTarget;
+    state: PreviousCategoryState;
+  }>,
+): Promise<Map<string, CategoryWriteResult>> {
+  const results = await write_items_metadata(
+    writes.map(({ target, state }) => ({
+      id: target.id,
+      current: {
+        encrypted_metadata: target.encrypted_metadata,
+        metadata_nonce: target.metadata_nonce,
+        metadata_version: target.metadata_version,
+      },
+      updates: {
+        category: state.category,
+        category_pinned: state.category_pinned ? true : undefined,
+      },
+    })),
+  );
+  const outcomes = new Map<string, CategoryWriteResult>();
+
+  batch_index_updates(() => {
+    for (const { target } of writes) {
+      const result = results.get(target.id);
+
+      if (!result?.success) {
+        outcomes.set(target.id, {
+          applied: false,
+          undecryptable: result?.undecryptable === true,
+        });
+        continue;
+      }
+
+      if (result.encrypted) {
+        remember_own_metadata_write(
+          target.id,
+          result.encrypted.encrypted_metadata,
+        );
+        emit_mail_item_updated({
+          id: target.id,
+          encrypted_metadata: result.encrypted.encrypted_metadata,
+          metadata_nonce: result.encrypted.metadata_nonce,
+        });
+      }
+
+      outcomes.set(target.id, {
+        applied: true,
+        undecryptable: false,
+        previous: result.previous,
+        encrypted_metadata: result.encrypted?.encrypted_metadata,
+        metadata_nonce: result.encrypted?.metadata_nonce,
+        metadata_version: result.written_version,
+      });
+    }
+  });
+
+  return outcomes;
+}
+
+export function group_thread_entries(
+  thread_tokens: ReadonlySet<string>,
+): Map<string, CategoryIndexEntry[]> {
+  const groups = new Map<string, CategoryIndexEntry[]>();
+
+  if (thread_tokens.size === 0) return groups;
+  for (const entry of entries_map.values()) {
+    const token = entry.thread_token;
+
+    if (!token || !thread_tokens.has(token)) continue;
+    const group = groups.get(token);
+
+    if (group) group.push(entry);
+    else groups.set(token, [entry]);
+  }
+
+  return groups;
+}
+
+export function thread_category_of(
+  entries: Iterable<CategoryIndexEntry>,
+): EmailCategory | null {
+  const wall = now_ms();
+  let newest: CategoryIndexEntry | null = null;
+  let newest_ts = -1;
+  let pinned: EmailCategory | undefined;
+  let pinned_ts = -1;
+
+  for (const entry of entries) {
+    if (entry.snoozed_until && safe_ts(entry.snoozed_until) > wall) continue;
+    const ts = safe_ts(entry.message_ts);
+
+    if (ts > newest_ts) {
+      newest = entry;
+      newest_ts = ts;
+    }
+    if (entry.category_pinned && ts >= pinned_ts) {
+      pinned = entry.category;
+      pinned_ts = ts;
+    }
+  }
+
+  if (!newest) return null;
+
+  return fold_category(pinned ?? newest.category);
+}
+
+export function apply_category_pins_locally(
+  targets: readonly CategoryMoveTarget[],
+  category: EmailCategory,
+): void {
+  for (const target of targets) note_recent_pin(target.id, category);
+  upsert_entries(
+    targets.map((target) => pinned_category_entry(target, category)),
+    undefined,
+    undefined,
+    true,
+  );
+}
+
 export function pinned_category_entry(
   target: CategoryMoveTarget,
   category: EmailCategory,
@@ -3598,7 +3808,12 @@ export function apply_category_pin_locally(
   category: EmailCategory,
 ): void {
   note_recent_pin(target.id, category);
-  upsert_entries([pinned_category_entry(target, category)]);
+  upsert_entries(
+    [pinned_category_entry(target, category)],
+    undefined,
+    undefined,
+    true,
+  );
 }
 
 export function restore_category_entry_locally(
@@ -3610,14 +3825,21 @@ export function restore_category_entry_locally(
     if (snapshot.category_pinned) note_recent_pin(id, snapshot.category);
     const current = entries_map.get(id);
 
-    upsert_entries([
-      {
-        ...snapshot,
-        is_read: current?.is_read ?? snapshot.is_read,
-        is_pinned: current?.is_pinned ?? snapshot.is_pinned,
-        snoozed_until: current ? current.snoozed_until : snapshot.snoozed_until,
-      },
-    ]);
+    upsert_entries(
+      [
+        {
+          ...snapshot,
+          is_read: current?.is_read ?? snapshot.is_read,
+          is_pinned: current?.is_pinned ?? snapshot.is_pinned,
+          snoozed_until: current
+            ? current.snoozed_until
+            : snapshot.snoozed_until,
+        },
+      ],
+      undefined,
+      undefined,
+      true,
+    );
 
     return;
   }
@@ -3663,30 +3885,13 @@ export function get_thread_category(
 ): EmailCategory | null {
   if (!thread_token || !thread_grouping) return null;
 
-  const wall = now_ms();
-  let newest: CategoryIndexEntry | null = null;
-  let newest_ts = -1;
-  let pinned: EmailCategory | undefined;
-  let pinned_ts = -1;
+  const members: CategoryIndexEntry[] = [];
 
   for (const entry of entries_map.values()) {
-    if (entry.thread_token !== thread_token) continue;
-    if (entry.snoozed_until && safe_ts(entry.snoozed_until) > wall) continue;
-    const ts = safe_ts(entry.message_ts);
-
-    if (ts > newest_ts) {
-      newest = entry;
-      newest_ts = ts;
-    }
-    if (entry.category_pinned && ts >= pinned_ts) {
-      pinned = entry.category;
-      pinned_ts = ts;
-    }
+    if (entry.thread_token === thread_token) members.push(entry);
   }
 
-  if (!newest) return null;
-
-  return fold_category(pinned ?? newest.category);
+  return thread_category_of(members);
 }
 
 export async function clear_category_index(): Promise<void> {
@@ -3709,6 +3914,7 @@ export async function clear_category_index(): Promise<void> {
 
   build_token += 1;
   index_generation += 1;
+  reset_build_resume();
   clear_entry_previews();
   entries_map = new Map();
   clear_all_read_intents();
@@ -3767,6 +3973,7 @@ export async function delete_category_index_for_account(
 
       store.delete(account_id);
       store.delete(preview_record_key(account_id));
+      store.delete(legacy_preview_record_key(account_id));
       for (let i = 0; i < PERSIST_CHUNK_COUNT; i++) {
         store.delete(chunk_record_key(account_id, i));
       }

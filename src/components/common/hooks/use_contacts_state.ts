@@ -47,7 +47,12 @@ import {
   add_contact_to_group,
   add_contacts_to_group,
   remove_contacts_from_group,
+  list_group_memberships,
 } from "@/services/api/contacts";
+import {
+  build_group_membership_map,
+  merge_group_membership,
+} from "@/utils/contact_group_membership";
 import { emit_contact_groups_changed } from "@/hooks/use_contact_groups";
 import { show_toast } from "@/components/toast/simple_toast";
 import { print_contacts } from "@/utils/contact_print";
@@ -55,6 +60,7 @@ import { emit_contacts_changed } from "@/hooks/mail_events";
 import { with_contact_revision } from "@/lib/contact_history";
 
 const SELECTED_CONTACT_STORAGE_KEY = "aster_contacts_selected_id";
+const GROUP_MEMBERS_CHUNK = 500;
 
 function read_stored_selection(): string | null {
   try {
@@ -980,42 +986,79 @@ export function use_contacts_state() {
     });
   }, [contacts, selected_ids, t]);
 
-  const handle_set_group_membership = useCallback(
-    async (group_id: string, should_add: boolean) => {
+  const membership_seq_ref = useRef(0);
+
+  const refresh_group_memberships = useCallback(async (): Promise<boolean> => {
+    const seq = membership_seq_ref.current;
+    const response = await list_group_memberships();
+
+    if (response.error || !response.data) return false;
+    if (seq !== membership_seq_ref.current) return false;
+
+    const map = build_group_membership_map(response.data.memberships);
+
+    set_contacts((prev) => merge_group_membership(prev, map));
+    set_selected_contact((prev) =>
+      prev ? merge_group_membership([prev], map)[0] : prev,
+    );
+
+    return true;
+  }, [set_contacts, set_selected_contact]);
+
+  const handle_set_contacts_group_membership = useCallback(
+    async (
+      group_id: string,
+      contact_ids: string[],
+      should_add: boolean,
+    ): Promise<boolean> => {
+      const wanted = new Set(contact_ids);
       const target_contacts = contacts.filter(
         (contact) =>
-          selected_ids.has(contact.id) &&
+          wanted.has(contact.id) &&
           (contact.groups || []).includes(group_id) !== should_add,
       );
 
-      if (target_contacts.length === 0) return;
+      if (target_contacts.length === 0) return true;
 
       const target_ids = target_contacts.map((contact) => contact.id);
+      const target_set = new Set(target_ids);
+      const next_groups_for = (current: string[] | undefined, add: boolean) => {
+        const groups = current || [];
+
+        if (groups.includes(group_id) === add) return groups;
+
+        return add
+          ? [...groups, group_id]
+          : groups.filter((id) => id !== group_id);
+      };
       const apply_locally = (add: boolean) => {
         set_contacts((prev) =>
-          prev.map((contact) => {
-            if (!target_ids.includes(contact.id)) return contact;
-            const current = contact.groups || [];
-
-            return {
-              ...contact,
-              groups: add
-                ? [...current, group_id]
-                : current.filter((id) => id !== group_id),
-            };
-          }),
+          prev.map((contact) =>
+            target_set.has(contact.id)
+              ? { ...contact, groups: next_groups_for(contact.groups, add) }
+              : contact,
+          ),
+        );
+        set_selected_contact((prev) =>
+          prev && target_set.has(prev.id)
+            ? { ...prev, groups: next_groups_for(prev.groups, add) }
+            : prev,
         );
       };
 
+      membership_seq_ref.current += 1;
       apply_locally(should_add);
 
       try {
-        const membership = should_add
-          ? await add_contacts_to_group(group_id, target_ids)
-          : await remove_contacts_from_group(group_id, target_ids);
+        for (let i = 0; i < target_ids.length; i += GROUP_MEMBERS_CHUNK) {
+          const chunk = target_ids.slice(i, i + GROUP_MEMBERS_CHUNK);
+          const membership = should_add
+            ? await add_contacts_to_group(group_id, chunk)
+            : await remove_contacts_from_group(group_id, chunk);
 
-        if (membership.error) {
-          throw new Error(membership.error);
+          if (membership.error) {
+            throw new Error(membership.error);
+          }
         }
 
         for (let i = 0; i < target_contacts.length; i += BATCH_SIZE) {
@@ -1043,6 +1086,7 @@ export function use_contacts_state() {
           }
         }
 
+        membership_seq_ref.current += 1;
         emit_contact_groups_changed();
         show_toast(
           t(
@@ -1053,12 +1097,29 @@ export function use_contacts_state() {
           ),
           "success",
         );
+
+        return true;
       } catch {
+        membership_seq_ref.current += 1;
         apply_locally(!should_add);
         show_toast(t("common.failed_to_update_contact_groups"), "error");
+        void refresh_group_memberships();
+
+        return false;
       }
     },
-    [contacts, selected_ids, t],
+    [contacts, refresh_group_memberships, set_contacts, set_selected_contact, t],
+  );
+
+  const handle_set_group_membership = useCallback(
+    async (group_id: string, should_add: boolean) => {
+      await handle_set_contacts_group_membership(
+        group_id,
+        Array.from(selected_ids),
+        should_add,
+      );
+    },
+    [handle_set_contacts_group_membership, selected_ids],
   );
 
   const handle_toggle_contact_group = useCallback(
@@ -1192,6 +1253,8 @@ export function use_contacts_state() {
     group_filter,
     handle_set_group_filter,
     handle_set_group_membership,
+    handle_set_contacts_group_membership,
+    refresh_group_memberships,
     handle_toggle_contact_group,
     copied_field,
     view_mode,

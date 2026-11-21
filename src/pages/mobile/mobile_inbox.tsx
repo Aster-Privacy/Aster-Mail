@@ -963,8 +963,11 @@ function MobileInbox({
     [scheduled_target_id, scheduled_state.emails],
   );
 
+  const scheduled_target_readable =
+    scheduled_target?.content_verified !== false;
+
   const handle_scheduled_send_now = useCallback(async () => {
-    if (!scheduled_target_id) return;
+    if (!scheduled_target_id || !scheduled_target_readable) return;
     const target_id = scheduled_target_id;
 
     set_scheduled_target_id(null);
@@ -978,7 +981,7 @@ function MobileInbox({
     show_toast(t("common.email_sent_successfully"), "success");
     emit_scheduled_changed({ action: "sent", email_id: target_id });
     refresh_scheduled();
-  }, [scheduled_target_id, refresh_scheduled, t]);
+  }, [scheduled_target_id, scheduled_target_readable, refresh_scheduled, t]);
 
   const handle_scheduled_cancel = useCallback(async () => {
     if (!scheduled_target_id) return;
@@ -997,7 +1000,7 @@ function MobileInbox({
 
   const handle_scheduled_reschedule = useCallback(
     async (date: Date | null) => {
-      if (!date || !scheduled_target_id) return;
+      if (!date || !scheduled_target_id || !scheduled_target_readable) return;
       const target_id = scheduled_target_id;
 
       set_scheduled_target_id(null);
@@ -1012,7 +1015,7 @@ function MobileInbox({
       emit_scheduled_changed({ action: "updated", email_id: target_id });
       refresh_scheduled();
     },
-    [scheduled_target_id, refresh_scheduled, t],
+    [scheduled_target_id, scheduled_target_readable, refresh_scheduled, t],
   );
 
   const handle_load_more = useCallback(() => {
@@ -1681,14 +1684,16 @@ function MobileInbox({
             </div>
           )}
           <div className="space-y-1">
-            <button
-              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start text-[14px] font-medium text-[var(--text-primary)] active:bg-[var(--bg-tertiary)]"
-              type="button"
-              onClick={handle_scheduled_send_now}
-            >
-              {t("common.send_now")}
-            </button>
-            {scheduled_target && (
+            {scheduled_target_readable && (
+              <button
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start text-[14px] font-medium text-[var(--text-primary)] active:bg-[var(--bg-tertiary)]"
+                type="button"
+                onClick={handle_scheduled_send_now}
+              >
+                {t("common.send_now")}
+              </button>
+            )}
+            {scheduled_target && scheduled_target_readable && (
               <SchedulePicker
                 force_picker
                 on_schedule={handle_scheduled_reschedule}

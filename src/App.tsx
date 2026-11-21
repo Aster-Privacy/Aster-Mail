@@ -46,7 +46,12 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { ProtectedRoute } from "@/components/common/protected_route";
-import { SuspendedAccountGate } from "@/components/common/suspended_account_gate";
+import {
+  SuspendedPage,
+  SuspensionStatusWatcher,
+} from "@/components/common/suspended_account_gate";
+import { SUSPENDED_PATH } from "@/lib/suspension_state";
+import { MailKeyUpgradeGate } from "@/components/common/mail_key_upgrade_gate";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
@@ -58,6 +63,7 @@ import { DesktopDownloadNotifier } from "@/native/desktop_download_bridge";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
 import { GuardApprovalHost } from "@/components/guard/guard_approval_sheet";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
+import { CreationTokenPrompt } from "@/components/auth/creation_token_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import {
   show_checkout_cancelled_upgrade,
@@ -455,7 +461,7 @@ function App() {
         <BillingSuccessHandler />
       </ErrorBoundary>
       <CheckoutReturnHandler />
-      <SuspendedAccountGate />
+      <SuspensionStatusWatcher />
       <PendingDeletionDialog />
       <Family2faDialog />
       <UpdateBanner />
@@ -568,6 +574,7 @@ function App() {
                 }
                 path="/alias/:alias_address"
               />
+              <Route element={<SuspendedPage />} path={SUSPENDED_PATH} />
               <Route element={<SignInPage />} path="/sign-in" />
               <Route element={<RegisterPage />} path="/register" />
               <Route element={<InvitePage />} path="/invite/:code" />
@@ -668,6 +675,7 @@ function App() {
       <UnsubscribeConfirmationModal />
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
+      <CreationTokenPrompt />
       <ErrorBoundary fallback={null}>
         <GuardApprovalHost />
       </ErrorBoundary>
@@ -684,6 +692,7 @@ function App() {
       <UndoSendPreviewModal />
       <EmailNotificationManager />
       <FolderUnlockPrompt />
+      <MailKeyUpgradeGate />
       <OfflineIndicator position="top" />
     </AppLock>
   );

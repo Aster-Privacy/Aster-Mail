@@ -165,7 +165,6 @@ export function UpdatesSection() {
             <Island padding="md" tone="accent">
               <UpdateCard
                 install={install_state}
-                notes={available.notes}
                 on_install={handle_install}
                 variant="inline"
                 version={available.version}

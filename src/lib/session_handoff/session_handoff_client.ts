@@ -22,13 +22,16 @@ import {
   SESSION_BRIDGE_PATH,
   build_handoff_message,
   get_handoff_sibling_origin,
+  is_handoff_grant_id,
   is_handoff_user_id,
   parse_handoff_bridge_reply,
   type HandoffSession,
 } from "./session_handoff_protocol";
+import { HANDOFF_GRANT_WAIT_MS } from "./session_handoff_grant";
 
 const FRAME_LOAD_TIMEOUT_MS = 3000;
 const PROBE_TIMEOUT_MS = 2500;
+const APPROVAL_TIMEOUT_MS = HANDOFF_GRANT_WAIT_MS + 5000;
 const REQUEST_TIMEOUT_MS = 7000;
 
 export interface HandoffChannel {
@@ -46,16 +49,55 @@ export interface HandoffConsumerDeps {
 }
 
 export interface HandoffOptions {
+  grant: string;
   expected_user_id?: string;
+}
+
+async function probe_grant(
+  channel: HandoffChannel,
+  grant: string,
+  wait: boolean,
+): Promise<boolean> {
+  channel.send(build_handoff_message({ type: "probe", grant, wait }));
+
+  const probe = parse_handoff_bridge_reply(
+    await channel.next(wait ? APPROVAL_TIMEOUT_MS : PROBE_TIMEOUT_MS),
+  );
+
+  return probe?.type === "probe_result" && probe.available;
+}
+
+export async function await_sibling_approval(
+  origin: string,
+  grant: string,
+  open_channel: (sibling_origin: string) => Promise<HandoffChannel | null>,
+): Promise<boolean> {
+  const sibling_origin = get_handoff_sibling_origin(origin);
+
+  if (!sibling_origin || !is_handoff_grant_id(grant)) return false;
+
+  let channel: HandoffChannel | null = null;
+
+  try {
+    channel = await open_channel(sibling_origin);
+
+    return channel ? await probe_grant(channel, grant, true) : false;
+  } catch {
+    return false;
+  } finally {
+    channel?.close();
+  }
 }
 
 export async function request_sibling_session(
   deps: HandoffConsumerDeps,
-  options: HandoffOptions = {},
+  options: HandoffOptions,
 ): Promise<HandoffSession | null> {
   const sibling_origin = get_handoff_sibling_origin(deps.origin);
+  const { grant } = options;
 
   if (!sibling_origin) return null;
+  if (!is_handoff_grant_id(grant)) return null;
   if (!deps.has_session_cookie()) return null;
   if (
     options.expected_user_id !== undefined &&
@@ -70,15 +112,7 @@ export async function request_sibling_session(
     channel = await deps.open_channel(sibling_origin);
     if (!channel) return null;
 
-    channel.send(build_handoff_message({ type: "probe" }));
-
-    const probe = parse_handoff_bridge_reply(
-      await channel.next(PROBE_TIMEOUT_MS),
-    );
-
-    if (!probe || probe.type !== "probe_result" || !probe.available) {
-      return null;
-    }
+    if (!(await probe_grant(channel, grant, false))) return null;
 
     const user_id = await deps.verify_server_session();
 
@@ -91,7 +125,7 @@ export async function request_sibling_session(
     }
     if (deps.has_local_lock(user_id)) return null;
 
-    channel.send(build_handoff_message({ type: "request", user_id }));
+    channel.send(build_handoff_message({ type: "request", grant, user_id }));
 
     const reply = parse_handoff_bridge_reply(
       await channel.next(REQUEST_TIMEOUT_MS),
@@ -112,7 +146,12 @@ export function open_bridge_channel(
   sibling_origin: string,
 ): Promise<HandoffChannel | null> {
   return new Promise((resolve) => {
-    if (typeof document === "undefined" || !document.body) {
+    if (
+      typeof document === "undefined" ||
+      !document.body ||
+      sibling_origin === window.location.origin ||
+      get_handoff_sibling_origin(window.location.origin) !== sibling_origin
+    ) {
       resolve(null);
 
       return;

@@ -66,9 +66,12 @@ export function use_plan_highlights(tier_id: string): PlanHighlights {
         amount(unlimited, aliases),
         amount("30", domains),
         amount("100 MB", attachments),
+        t("settings.plan_f_ghost_aliases", { value: unlimited }),
+        t("settings.plan_f_multi_accounts", { value: "5" }),
         t("settings.f_folder_lock"),
         t("settings.plan_f_smart_folders"),
         t("settings.lockdown_title"),
+        t("settings.plan_f_encrypted_exports"),
       ],
     };
   }
@@ -79,6 +82,9 @@ export function use_plan_highlights(tier_id: string): PlanHighlights {
       amount("5 TB", storage),
       amount(unlimited, domains),
       amount("250 MB", attachments),
+      t("settings.plan_f_multi_accounts", { value: "20" }),
+      t("settings.plan_f_support_dedicated"),
+      t("settings.plan_f_early_access"),
     ],
   };
 }

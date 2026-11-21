@@ -211,6 +211,7 @@ export interface SanitizeOptions {
   external_content_mode?: ImageLoadMode;
   image_proxy_url?: string;
   sandbox_mode?: boolean;
+  contained_layout?: boolean;
   content_blocking?: ContentBlockingSettings;
   lockdown_mode?: boolean;
   blocked_image_labels?: BlockedImageLabels;
@@ -420,6 +421,7 @@ function sanitize_html_impl(
     external_content_mode = "always",
     image_proxy_url,
     sandbox_mode = false,
+    contained_layout = false,
     content_blocking,
     lockdown_mode = false,
     blocked_image_labels,
@@ -823,6 +825,7 @@ function sanitize_html_impl(
         attr.name,
         attr.value,
         sandbox_mode,
+        contained_layout,
       );
 
       if (sanitized_value !== null) {

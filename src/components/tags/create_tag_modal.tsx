@@ -34,9 +34,10 @@ import {
   EmailTag,
   TAG_COLOR_PRESETS,
   hex_to_variant,
-  tag_color_label_key,
   type TagIconName,
 } from "@/components/ui/email_tag";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
+import { DEFAULT_PICKER_COLOR, fill_text_color } from "@/lib/color_wheel";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
 import {
@@ -47,6 +48,8 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
+
+const TAG_PRESET_HEXES = TAG_COLOR_PRESETS.map((preset) => preset.hex);
 
 const MAX_TAG_NAME_LENGTH = 100;
 
@@ -66,7 +69,7 @@ export function CreateTagModal({
   const { create_new_tag, state: tags_state } = use_tags();
   const [tag_name, set_tag_name] = useState("");
   const [selected_color, set_selected_color] = useState<string>(
-    TAG_COLOR_PRESETS[10].hex,
+    DEFAULT_PICKER_COLOR,
   );
   const [selected_icon, set_selected_icon] = useState<TagIconName | undefined>(
     undefined,
@@ -134,7 +137,7 @@ export function CreateTagModal({
     if (result) {
       on_close();
       set_tag_name("");
-      set_selected_color(TAG_COLOR_PRESETS[10].hex as string);
+      set_selected_color(DEFAULT_PICKER_COLOR);
       set_selected_icon(undefined);
       set_selected_parent_token(undefined);
     } else {
@@ -145,7 +148,7 @@ export function CreateTagModal({
   const handle_close = () => {
     if (is_creating) return;
     set_tag_name("");
-    set_selected_color(TAG_COLOR_PRESETS[10].hex);
+    set_selected_color(DEFAULT_PICKER_COLOR);
     set_selected_icon(undefined);
     set_selected_parent_token(undefined);
     set_error("");
@@ -283,27 +286,12 @@ export function CreateTagModal({
                   >
                     {t("common.color_label")}
                   </span>
-                  <div
-                    aria-labelledby="create-tag-color-label"
-                    className="flex flex-wrap gap-2"
-                    role="group"
-                  >
-                    {TAG_COLOR_PRESETS.map((color) => (
-                      <button
-                        key={color.hex}
-                        className="w-9 h-9 rounded-full"
-                        style={{
-                          backgroundColor: color.hex,
-                          boxShadow:
-                            selected_color === color.hex
-                              ? `0 0 0 2px var(--modal-bg), 0 0 0 4px ${color.hex}`
-                              : "none",
-                        }}
-                        title={t(tag_color_label_key(color.variant))}
-                        onClick={() => set_selected_color(color.hex)}
-                      />
-                    ))}
-                  </div>
+                  <ColorSwatchRow
+                    labelled_by="create-tag-color-label"
+                    max_swatch_size={36}
+                    value={selected_color}
+                    on_change={set_selected_color}
+                  />
                 </div>
 
                 <div>
@@ -349,7 +337,10 @@ export function CreateTagModal({
                 className="label_folder_action"
                 disabled={!trimmed_name || is_creating || !!validation_error}
                 is_loading={is_creating}
-                style={{ backgroundColor: selected_color, color: "#fff" }}
+                style={{
+                  backgroundColor: selected_color,
+                  color: fill_text_color(selected_color, TAG_PRESET_HEXES),
+                }}
                 variant="depth"
                 onClick={handle_create}
               >

@@ -158,6 +158,7 @@ import {
 import { clear_sender_identity_authentication_cache } from "@/services/crypto/sender_identity_authentication";
 import { array_to_base64, base64_to_array } from "@/services/crypto/base64";
 import { compute_signed_prekey_id } from "@/services/crypto/x3dh";
+import { get_peer_identity_event } from "@/services/crypto/ratchet_verification_status";
 
 const SENDER = "davidw@astermail.org";
 const RECIPIENT = "hello@astermail.org";
@@ -515,5 +516,60 @@ describe("first message bound to a one-time prekey", () => {
     restore(new Map());
     expect(await receive(first, receiver_vault, "m1")).toBe("first");
     expect(h.deleted_one_time_ids).toEqual([]);
+  });
+
+  it("still sends over the ratchet when the server withholds the one-time prekey", async () => {
+    const { receiver_vault, sender_vault } = await make_pair({
+      key_id: ONE_TIME_KEY_ID,
+      advertised_version: 4,
+    });
+
+    const forget_sessions = () => {
+      for (const [key] of stored_ratchet_states()) h.store.delete(key);
+    };
+
+    const offered = await send("offered", sender_vault);
+
+    expect(recipient_data(offered).opk_id).toBe(ONE_TIME_KEY_ID);
+
+    const entry = h.directory.get("hello") as DirectoryEntry;
+
+    entry.bundle.ec_one_time_prekey = null;
+    forget_sessions();
+    await send("grace", sender_vault);
+    forget_sessions();
+
+    h.vault = sender_vault;
+
+    const data = await settle(
+      encrypt_for_ratchet_recipient(
+        SENDER,
+        RECIPIENT,
+        "hello",
+        "withheld",
+        sender_vault,
+      ).then((value) => (value ? JSON.stringify(value) : null)),
+    );
+
+    expect(data).not.toBeNull();
+
+    const envelope = build_ratchet_envelope(
+      sender_vault.ratchet_identity_public!,
+      { [RECIPIENT]: JSON.parse(data!) },
+    );
+
+    expect(recipient_data(envelope).opk_id).toBeUndefined();
+
+    const events = [
+      get_peer_identity_event(RECIPIENT),
+      get_peer_identity_event("hello"),
+    ].map((record) => record?.event);
+
+    expect(events).toContain("downgraded");
+
+    restore(new Map());
+    expect(await receive(envelope, receiver_vault, "m-withheld")).toBe(
+      "withheld",
+    );
   });
 });

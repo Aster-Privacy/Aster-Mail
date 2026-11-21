@@ -421,3 +421,82 @@ describe("single stopword false positives", () => {
     expect(decision.kind).toBe("idle");
   });
 });
+
+const PORTUGUESE_FIRST_MESSAGE =
+  "Olá, bom dia. Não consigo aceder à minha conta desde ontem e gostaria de saber o que posso fazer para resolver este problema. Obrigada pela vossa ajuda.";
+
+const PORTUGUESE_SECOND_MESSAGE =
+  "Boa tarde. O único email onde me perseguem, neste momento é o institucional, ... Agradeço desde já o vosso esforço. Teresa Silva Teresa";
+
+describe("portuguese messages in one thread", () => {
+  beforeEach(() => {
+    clear_detection_cache();
+  });
+
+  it("detects the reported european portuguese reply", () => {
+    const result = detect_language(PORTUGUESE_SECOND_MESSAGE);
+
+    expect(result?.language).toBe("pt");
+    expect(result?.confidence).toBeGreaterThanOrEqual(
+      MIN_DETECTION_CONFIDENCE,
+    );
+  });
+
+  it("detects a short courtesy reply", () => {
+    expect(
+      detect_language(
+        "Boa tarde. Agradeço desde já o vosso esforço. Teresa Silva",
+      )?.language,
+    ).toBe("pt");
+  });
+
+  it("does not treat words shared by spanish and portuguese as spanish", () => {
+    const text =
+      "Boa tarde, escrevo desde casa porque o sistema não abre neste momento e já tentei várias vezes.";
+
+    expect(detect_language(text)?.language).toBe("pt");
+  });
+
+  it("detects portuguese written mostly with nasal vowel endings", () => {
+    const text =
+      "As condições da promoção e a duração da campanha mudaram, e as instruções novas seguem em anexo para revisão.";
+
+    expect(detect_language(text)?.language).toBe("pt");
+  });
+
+  it("detects spanish written mostly with words that use the letter ñ", () => {
+    const text =
+      "Mañana el señor Muñoz enviará el año fiscal al equipo de diseño, sin ningún cambio importante.";
+
+    expect(detect_language(text)?.language).toBe("es");
+  });
+
+  it("translates both messages of the thread the same way", () => {
+    const decide = (message_id: string, body_text: string) =>
+      decide_translation({
+        mode: "always",
+        translatable: true,
+        message_id,
+        body_text,
+        target: "en",
+        configured_accepted: [],
+        never_languages: new Set<LanguageCode>(),
+      });
+
+    expect(decide("thread-1", PORTUGUESE_FIRST_MESSAGE)).toEqual({
+      kind: "translate",
+      language: "pt",
+    });
+    expect(decide("thread-2", PORTUGUESE_SECOND_MESSAGE)).toEqual({
+      kind: "translate",
+      language: "pt",
+    });
+  });
+
+  it("still leaves an english message signed with a portuguese name alone", () => {
+    const text =
+      "Hi there, thanks for the quick reply. The invoice is attached and I will call you tomorrow.\n\nBest regards,\nJoão Simões";
+
+    expect(detect_language(text)?.language).toBe("en");
+  });
+});

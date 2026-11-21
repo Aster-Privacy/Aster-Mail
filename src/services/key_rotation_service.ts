@@ -29,7 +29,7 @@ import {
   decrypt_vault,
 } from "@/services/crypto/key_manager";
 import { get_stored_encrypted_vault } from "@/contexts/auth/session_passphrase";
-import { retain_previous_ratchet_keys } from "@/services/crypto/key_manager_core";
+import { plan_rotation_history } from "@/services/crypto/rotation_history";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import {
   parse_ratchet_envelope,
@@ -370,15 +370,10 @@ export async function perform_key_rotation(
       await crypto.subtle.digest(HASH_ALG, old_tag_material),
     );
 
-    let previous_keys = current_vault.previous_keys
-      ? [...current_vault.previous_keys]
-      : [];
-
-    previous_keys.unshift(old_identity_key);
-
-    if (key_history_limit > 0 && previous_keys.length > key_history_limit) {
-      previous_keys = previous_keys.slice(0, key_history_limit);
-    }
+    const { previous_keys, ratchet_previous_keys } = plan_rotation_history(
+      current_vault,
+      key_history_limit,
+    );
 
     let legacy_keks = current_vault.legacy_keks;
 
@@ -422,7 +417,7 @@ export async function perform_key_rotation(
       ratchet_pq_identity_key: new_ratchet_keys.pq_identity_secret,
       ratchet_pq_identity_public: new_ratchet_keys.pq_identity_public,
       ratchet_pq_identity_seed: new_ratchet_keys.pq_identity_seed,
-      ratchet_previous_keys: retain_previous_ratchet_keys(current_vault),
+      ratchet_previous_keys,
       ratchet_regen_v4_done: true,
     };
 

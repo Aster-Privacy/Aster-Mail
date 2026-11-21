@@ -243,7 +243,7 @@ describe("reopening a draft in the compose window", () => {
 
   it("saves the mode when only the mode changes", async () => {
     await open(saved_draft({ message: "Hello" }));
-    editor_el!.innerText = "Hello";
+    editor_el!.textContent = "Hello";
     await act(async () => hook.toggle_plain_text_mode());
     await act(async () => hook.confirm_plain_text_mode());
     await act(async () => {

@@ -33,6 +33,11 @@ const h = vi.hoisted(() => ({
   ecies_throws: false,
 }));
 
+vi.mock("@/services/crypto/vault_key_recovery", () => ({
+  keys_added_by_recovery: () => [],
+  recover_pgp_keys_from_history: async () => null,
+}));
+
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => h.vault,
   get_passphrase_from_memory: () => "correct horse battery staple",
@@ -86,7 +91,7 @@ vi.mock("@/services/crypto/envelope", async (importOriginal) => {
 });
 
 vi.mock("@/services/crypto/legacy_ios_envelope", () => ({
-  decrypt_legacy_ios_envelope: vi.fn(async () => {
+  decrypt_legacy_ios_mail_envelope: vi.fn(async () => {
     h.legacy_attempts += 1;
 
     return null;

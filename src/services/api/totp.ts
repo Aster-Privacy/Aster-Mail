@@ -18,8 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ReauthProof } from "./step_up";
+
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
+import { apply_sign_in_scope } from "@/lib/suspension_state";
 
 export interface TotpSetupInitiateResponse {
   secret: string;
@@ -52,9 +55,11 @@ export interface TotpVerifyResponse {
   csrf_token: string;
   encrypted_vault: string;
   vault_nonce: string;
+  vault_recovered_write_count?: number;
   access_token?: string;
   needs_prekey_replenishment?: boolean;
   is_suspended?: boolean;
+  session_scope?: string;
   prf_encrypted_passphrase?: string;
   prf_nonce?: string;
 }
@@ -84,6 +89,7 @@ export interface TotpDisableResponse {
 
 export interface TotpRegenerateBackupCodesRequest {
   code: string;
+  password_hash: string;
 }
 
 export interface TotpRegenerateBackupCodesResponse {
@@ -96,10 +102,9 @@ export interface TotpRequiredResponse {
   available_methods?: string[];
 }
 
-export async function initiate_totp_setup(proof?: {
-  password_hash: string;
-  totp_code?: string;
-}): Promise<ApiResponse<TotpSetupInitiateResponse>> {
+export async function initiate_totp_setup(
+  proof?: ReauthProof,
+): Promise<ApiResponse<TotpSetupInitiateResponse>> {
   return api_client.post<TotpSetupInitiateResponse>(
     "/core/v1/auth/totp/setup/initiate",
     proof ?? {},
@@ -132,6 +137,7 @@ export async function verify_totp_login(
       );
     }
     api_client.set_authenticated(true);
+    apply_sign_in_scope(response.data);
   }
 
   return response;
@@ -154,6 +160,7 @@ export async function verify_backup_code_login(
       );
     }
     api_client.set_authenticated(true);
+    apply_sign_in_scope(response.data);
   }
 
   return response;

@@ -54,6 +54,7 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () =>
     h.vault && {
       data_kek: btoa(String.fromCharCode(...new Uint8Array(32).fill(7))),
+      data_kek_random: true,
       ...(h.vault as object),
     },
   get_passphrase_from_memory: () => null,
@@ -140,6 +141,11 @@ vi.mock("@/services/api/client", () => ({
     ),
     delete: vi.fn(async () => ({})),
   },
+}));
+
+vi.mock("@/services/account_manager", async (import_original) => ({
+  ...(await import_original<Record<string, unknown>>()),
+  get_current_account: vi.fn(async () => ({ user: { id: "user-1" } })),
 }));
 
 import {

@@ -19,8 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
+
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export async function apply_desktop_content_protection(

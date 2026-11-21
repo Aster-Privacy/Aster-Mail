@@ -30,10 +30,7 @@ export class ExternalAccountPasswordError extends Error {
 
 import { array_to_base64, base64_to_array } from "../sender_utils";
 
-import {
-  decrypt_with_ios_storage_keys,
-  get_legacy_ios_hmac_keys,
-} from "@/services/crypto/legacy_ios_envelope";
+import { decrypt_with_ios_storage_keys } from "@/services/crypto/legacy_ios_envelope";
 import {
   get_storage_write_crypto_key,
   get_storage_write_hmac_key,
@@ -104,25 +101,11 @@ async function verify_integrity_hash(
   const data = encoder.encode(combined);
   const expected_hash = base64_to_array(hash);
 
-  if (
-    await verify_with_storage_lookup_keys(
-      EXTERNAL_ACCOUNTS_HMAC_INFO,
-      expected_hash,
-      data,
-    )
-  ) {
-    return true;
-  }
-
-  for (const key of await get_legacy_ios_hmac_keys(
+  return verify_with_storage_lookup_keys(
     EXTERNAL_ACCOUNTS_HMAC_INFO,
-  )) {
-    if (await crypto.subtle.verify("HMAC", key, expected_hash, data)) {
-      return true;
-    }
-  }
-
-  return false;
+    expected_hash,
+    data,
+  );
 }
 
 function bytes_equal(a: Uint8Array, b: Uint8Array): boolean {

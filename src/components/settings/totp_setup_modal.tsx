@@ -352,7 +352,6 @@ export function TotpSetupModal({
         </AnimatePresence>
       </Modal>
       <StepUpModal
-        password_only
         confirm_label={t("common.continue")}
         description={t("common.step_up_description")}
         is_open={needs_step_up}

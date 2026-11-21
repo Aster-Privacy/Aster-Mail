@@ -30,6 +30,10 @@ import { TorUnavailableError } from "./routing/tor_unavailable_error";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";
+import {
+  IdentityKeyMissingError,
+  is_usable_identity_key,
+} from "@/services/crypto/identity_key_required";
 import { is_onion_host } from "@/lib/onion_host";
 import {
   is_any_lockdown_active,
@@ -50,7 +54,11 @@ import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
-import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
+import {
+  CATCH_UP_WHILE_LIVE_MS,
+  HIDDEN_CATCH_UP_MS,
+  HIDDEN_CATCH_UP_WHILE_LIVE_MS,
+} from "@/services/sync_timing";
 import { receive_guard_frame } from "@/services/guard/guard_events";
 import {
   begin_live_sync_session,
@@ -112,6 +120,7 @@ interface ServerMessage {
 const HEARTBEAT_INTERVAL_MS = 30000;
 const LIVENESS_TIMEOUT_MS = 75000;
 const CATCH_UP_TICK_MS = 60000;
+const SUSPEND_GAP_MS = CATCH_UP_TICK_MS * 3;
 const DEFINITIONS_REFRESH_MIN_MS = 30000;
 export const PUSH_ARRIVED_MESSAGE = "aster_push_arrived";
 const MUTATION_REFRESH_DEBOUNCE_MS = 600;
@@ -133,6 +142,12 @@ interface PendingRequest {
   timeout_id: ReturnType<typeof setTimeout>;
 }
 
+function is_page_hidden(): boolean {
+  return (
+    typeof document !== "undefined" && document.visibilityState === "hidden"
+  );
+}
+
 class SyncClient {
   private socket: WebSocket | null = null;
   private authenticated = false;
@@ -147,6 +162,7 @@ class SyncClient {
   private last_catch_up_at = 0;
   private last_definitions_refresh_at = 0;
   private catch_up_timer: ReturnType<typeof setInterval> | null = null;
+  private last_catch_up_tick_at = 0;
   private pending_connect_reject: ((err: Error) => void) | null = null;
   private heartbeat_timer: ReturnType<typeof setInterval> | null = null;
   private last_message_at = 0;
@@ -157,11 +173,7 @@ class SyncClient {
   private observed_route: string | null | undefined = undefined;
 
   private close_socket(): void {
-    if (
-      this.socket &&
-      (this.socket.readyState === WebSocket.OPEN ||
-        this.socket.readyState === WebSocket.CONNECTING)
-    ) {
+    if (this.socket && this.socket.readyState !== WebSocket.CLOSED) {
       this.socket.onclose = null;
       this.socket.onerror = null;
       this.socket.onmessage = null;
@@ -379,8 +391,8 @@ class SyncClient {
   catch_up_now(): void {
     if (!this.should_reconnect) return;
     if (
-      typeof document !== "undefined" &&
-      document.visibilityState === "hidden"
+      is_page_hidden() &&
+      Date.now() - this.last_catch_up_at < CATCH_UP_TICK_MS
     ) {
       return;
     }
@@ -393,22 +405,42 @@ class SyncClient {
   private start_catch_up_timer(): void {
     if (this.catch_up_timer) return;
 
+    this.last_catch_up_tick_at = Date.now();
     this.catch_up_timer = setInterval(() => {
+      const now = Date.now();
+      const tick_gap = now - this.last_catch_up_tick_at;
+
+      this.last_catch_up_tick_at = now;
       if (!this.should_reconnect) return;
-      if (
-        typeof document !== "undefined" &&
-        document.visibilityState === "hidden"
-      ) {
+
+      if (tick_gap >= SUSPEND_GAP_MS) {
+        this.on_wake();
+
         return;
       }
+
       const socket_live =
         this.authenticated && this.socket?.readyState === WebSocket.OPEN;
-      const since_last = Date.now() - this.last_catch_up_at;
-      const due = socket_live
-        ? since_last >= CATCH_UP_WHILE_LIVE_MS
-        : since_last >= CATCH_UP_TICK_MS;
 
-      if (due) this.catch_up_now();
+      if (
+        !socket_live &&
+        !this.reconnect_timeout &&
+        this.socket?.readyState !== WebSocket.OPEN &&
+        this.socket?.readyState !== WebSocket.CONNECTING
+      ) {
+        this.schedule_reconnect();
+      }
+
+      const hidden = is_page_hidden();
+      const since_last = now - this.last_catch_up_at;
+      const live_gap = hidden
+        ? HIDDEN_CATCH_UP_WHILE_LIVE_MS
+        : CATCH_UP_WHILE_LIVE_MS;
+      const down_gap = hidden ? HIDDEN_CATCH_UP_MS : CATCH_UP_TICK_MS;
+
+      if (since_last >= (socket_live ? live_gap : down_gap)) {
+        this.catch_up_now();
+      }
     }, CATCH_UP_TICK_MS);
   }
 
@@ -439,10 +471,7 @@ class SyncClient {
   }
 
   private refresh_definitions(): void {
-    if (
-      typeof document !== "undefined" &&
-      document.visibilityState === "hidden"
-    ) {
+    if (is_page_hidden()) {
       return;
     }
     this.last_definitions_refresh_at = Date.now();
@@ -968,6 +997,10 @@ async function derive_key(
   vault: EncryptedVault,
   context: string,
 ): Promise<CryptoKey> {
+  if (!is_usable_identity_key(vault.identity_key)) {
+    throw new IdentityKeyMissingError();
+  }
+
   const encoder = new TextEncoder();
   const raw_key = encoder.encode(vault.identity_key);
 

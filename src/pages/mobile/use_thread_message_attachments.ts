@@ -21,7 +21,7 @@
 import type { ThreadAttachment } from "@/types/thread";
 import type { CachedAttachmentMeta } from "@/services/attachment_meta_cache";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import {
   get_cached_attachment_meta,
@@ -33,6 +33,15 @@ import {
   extract_body_inline_refs,
   without_body_inline_images,
 } from "@/lib/cid_resolver";
+import {
+  get_shown_decrypted_mime_attachments,
+  mime_attachment_bytes,
+  subscribe_decrypted_mime_attachments,
+} from "@/services/decrypted_mime_attachments";
+
+export interface MobileThreadAttachment extends ThreadAttachment {
+  data?: ArrayBuffer;
+}
 
 export function to_thread_attachments(
   meta: CachedAttachmentMeta[],
@@ -55,7 +64,8 @@ export function use_thread_message_attachments(
   enabled: boolean,
   fallback_filename: string,
   body_html?: string,
-): ThreadAttachment[] {
+  decrypted_content_tag?: string,
+): MobileThreadAttachment[] {
   const [attachments, set_attachments] = useState<ThreadAttachment[]>(() => {
     if (!enabled) return [];
     const cached = get_cached_attachment_meta(mail_item_id);
@@ -103,8 +113,32 @@ export function use_thread_message_attachments(
     [body_html],
   );
 
-  return useMemo(
-    () => without_body_inline_images(attachments, inline_refs),
-    [attachments, inline_refs],
+  const decrypted_parts = useSyncExternalStore(
+    subscribe_decrypted_mime_attachments,
+    () =>
+      get_shown_decrypted_mime_attachments(mail_item_id, decrypted_content_tag),
   );
+
+  return useMemo(() => {
+    const decrypted = without_body_inline_images(decrypted_parts, inline_refs);
+
+    if (decrypted.length > 0) {
+      return decrypted.map((part, index) => ({
+        id: `${mail_item_id}:mime:${index}`,
+        filename: part.filename || fallback_filename,
+        content_type: part.content_type || "application/octet-stream",
+        size: part.data.byteLength,
+        content_id: part.content_id,
+        data: mime_attachment_bytes(part),
+      }));
+    }
+
+    return without_body_inline_images(attachments, inline_refs);
+  }, [
+    attachments,
+    decrypted_parts,
+    inline_refs,
+    mail_item_id,
+    fallback_filename,
+  ]);
 }

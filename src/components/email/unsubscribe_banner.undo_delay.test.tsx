@@ -219,7 +219,6 @@ describe("UnsubscribeBanner undo delay", () => {
         unsubscribe_link: "https://example.com/unsub",
         list_unsubscribe_header: undefined,
       },
-      "manual",
     );
   });
 

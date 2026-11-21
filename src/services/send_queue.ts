@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { priority_request_field } from "@/services/mail_priority";
 import type {
   EmailParams,
   QueueCallbacks,
@@ -644,6 +645,7 @@ async function prepare_email_with_plans(
     sender_alias_hash: email.sender_alias_hash,
     sender_display_name: email.sender_display_name,
     attachments: email.attachments,
+    priority: email.priority,
     scheduled_time: Date.now(),
     timeout_id: 0,
     callbacks: {
@@ -727,6 +729,7 @@ async function prepare_email_with_plans(
       : {}),
     client_send_id: resolve_client_send_id(email.client_send_id),
     ...(email.is_plain_text ? { plain_text: true } : {}),
+    ...priority_request_field(email.priority),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
     obscure_subject,
   };

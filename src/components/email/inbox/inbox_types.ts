@@ -79,6 +79,7 @@ export interface ScheduledClickData {
   body: string;
   scheduled_at: string;
   status?: string;
+  content_verified?: boolean;
 }
 
 export interface EmailInboxProps {

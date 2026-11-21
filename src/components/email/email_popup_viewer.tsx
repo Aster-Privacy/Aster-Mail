@@ -43,6 +43,7 @@ import {
 import { PopupEmailActions } from "@/components/email/popup/popup_email_actions";
 import { PopupEmailBody } from "@/components/email/popup/popup_email_body";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { use_popup_outside_close } from "@/components/email/hooks/use_popup_outside_close";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 
 export function EmailPopupViewer({
@@ -70,6 +71,14 @@ export function EmailPopupViewer({
     on_forward,
     snoozed_until,
     grouped_email_ids,
+  });
+
+  use_popup_outside_close({
+    enabled:
+      preferences.close_popup_on_outside_click === true &&
+      !viewer.is_fullscreen,
+    popup_ref: viewer.popup_ref,
+    on_close,
   });
 
   const [available_folders, set_available_folders] =

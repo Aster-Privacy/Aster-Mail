@@ -92,6 +92,22 @@ describe("get_safe_next_path", () => {
     expect(get_safe_next_path()).toBe("/");
   });
 
+  it("rejects an account prefix that hides another origin", async () => {
+    const get_safe_next_path = await load();
+
+    for (const next of [
+      "/u/0//evil.example",
+      "/u/0/\\evil.example",
+      "/u/12//evil.example/path",
+      "/\t/evil.example",
+      "/u/0/\n/evil.example",
+    ]) {
+      set_location(`/sign-in?next=${encodeURIComponent(next)}`);
+
+      expect(get_safe_next_path(), next).toBe("/");
+    }
+  });
+
   it("forgets the remembered path once it is consumed", async () => {
     vi.resetModules();
 

@@ -46,14 +46,24 @@ import {
   prepare_set_password,
   prepare_change_password,
   derive_password_keys,
-  decrypt_folder_key,
   array_to_base64,
   base64_to_array,
+  folder_pin_level_after_unlock,
+  folder_pin_level_for_write,
   folder_salt_is_current,
+  folder_writes_bound,
+  open_folder_wrap_for_unlock,
+  salt_rule_for_pin,
 } from "@/services/crypto/folder_protection";
+import { get_stored_key_readiness } from "@/services/api/stored_key_readiness";
 import {
-  is_folder_kdf_pinned,
+  current_folder_key_pin_level,
+  record_folder_key_pin,
+} from "@/services/crypto/folder_key_pin_vault";
+import {
+  folder_key_belongs_elsewhere,
   pin_folder_kdf,
+  remember_folder_pin,
 } from "@/services/crypto/folder_kdf_pin";
 import { use_folders } from "@/hooks/use_folders";
 import { emit_folders_changed } from "@/hooks/mail_events";
@@ -233,10 +243,11 @@ export function use_protected_folder(
         }
 
         const salt = base64_to_array(password_salt);
+        const pin_level = current_folder_key_pin_level(folder_id);
         const { auth_key, encryption_key } = await derive_password_keys(
           password,
           salt,
-          !is_folder_kdf_pinned(folder_id),
+          salt_rule_for_pin(pin_level),
         );
 
         const verify_response = await verify_folder_password(folder_id, {
@@ -276,28 +287,93 @@ export function use_protected_folder(
           verify_response.data.folder_key_nonce,
         );
 
-        const folder_key = await decrypt_folder_key(
+        const opening = await open_folder_wrap_for_unlock(
+          folder_id,
+          pin_level,
+          verify_response.data.folder_key_version,
+          salt,
           encrypted_folder_key,
           folder_key_nonce,
           encryption_key,
+        ).finally(() => zero_uint8_array(encryption_key));
+
+        const folder_key = opening.folder_key;
+
+        if (await folder_key_belongs_elsewhere(folder_id, folder_key)) {
+          zero_uint8_array(folder_key);
+          set_error(t("common.failed_to_unlock_folder"));
+
+          return false;
+        }
+
+        let unlocked_salt = password_salt;
+        let unlock_token = verify_response.data.unlock_token ?? null;
+        let unlock_expires_at = parse_unlock_expiry(
+          verify_response.data.unlock_expires_at,
         );
 
-        zero_uint8_array(encryption_key);
+        if (opening.rebind) {
+          try {
+            const change_data = await prepare_change_password(
+              password,
+              password,
+              password_salt,
+              folder_key,
+              folder_id,
+              pin_level,
+              true,
+            );
+            const rebound = await change_folder_password(
+              folder_id,
+              change_data,
+            );
 
-        if (folder_salt_is_current(salt)) {
+            if (rebound.error) throw new Error("folder rebind refused");
+
+            const grant = await request_folder_unlock_grant(
+              folder_id,
+              change_data.new_password_hash,
+            );
+
+            if (!grant) throw new Error("folder rebind grant missing");
+
+            unlocked_salt = change_data.new_password_salt;
+            unlock_token = grant.unlock_token;
+            unlock_expires_at = grant.unlock_expires_at;
+          } catch (caught) {
+            zero_uint8_array(folder_key);
+            throw caught;
+          }
+        }
+
+        const reached_level = opening.rebind
+          ? pin_level
+          : folder_pin_level_after_unlock(opening.format, salt);
+
+        if (reached_level > pin_level) {
+          void record_folder_key_pin(folder_id, reached_level);
+        }
+
+        const salt_is_current = folder_salt_is_current(
+          base64_to_array(unlocked_salt),
+        );
+
+        if (salt_is_current) {
           pin_folder_kdf(folder_id);
         }
+
+        void remember_folder_pin(folder_id, folder_key, salt_is_current).catch(
+          () => false,
+        );
 
         register_unlock({
           folder_id,
           folder_token: folder.folder_token,
           folder_key,
           unlocked_at: Date.now(),
-          password_salt,
-          unlock_token: verify_response.data.unlock_token ?? null,
-          unlock_expires_at: parse_unlock_expiry(
-            verify_response.data.unlock_expires_at,
-          ),
+          password_salt: unlocked_salt,
+          unlock_token,
+          unlock_expires_at,
           timeout_id: null,
         });
 
@@ -329,7 +405,15 @@ export function use_protected_folder(
       set_error(null);
 
       try {
-        const { data, folder_key } = await prepare_set_password(password);
+        const bound = folder_writes_bound(
+          current_folder_key_pin_level(folder_id),
+          await get_stored_key_readiness(),
+        );
+        const { data, folder_key } = await prepare_set_password(
+          password,
+          folder_id,
+          bound,
+        );
 
         const response = await set_folder_password(folder_id, data);
 
@@ -342,7 +426,15 @@ export function use_protected_folder(
           );
         }
 
+        void record_folder_key_pin(
+          folder_id,
+          folder_pin_level_for_write(bound),
+        );
+
         pin_folder_kdf(folder_id);
+        void remember_folder_pin(folder_id, folder_key, true).catch(
+          () => false,
+        );
 
         const grant = await request_folder_unlock_grant(
           folder_id,
@@ -403,11 +495,19 @@ export function use_protected_folder(
       set_error(null);
 
       try {
+        const change_pin_level = current_folder_key_pin_level(folder_id);
+        const bound = folder_writes_bound(
+          change_pin_level,
+          await get_stored_key_readiness(),
+        );
         const change_data = await prepare_change_password(
           current_password,
           new_password,
           unlocked.password_salt,
           unlocked.folder_key,
+          folder_id,
+          change_pin_level,
+          bound,
         );
 
         const response = await change_folder_password(folder_id, change_data);
@@ -421,7 +521,15 @@ export function use_protected_folder(
           );
         }
 
+        void record_folder_key_pin(
+          folder_id,
+          folder_pin_level_for_write(bound),
+        );
+
         pin_folder_kdf(folder_id);
+        void remember_folder_pin(folder_id, unlocked.folder_key, true).catch(
+          () => false,
+        );
 
         const grant = await request_folder_unlock_grant(
           folder_id,
@@ -489,7 +597,7 @@ export function use_protected_folder(
         const { auth_key } = await derive_password_keys(
           password,
           salt,
-          !is_folder_kdf_pinned(folder_id),
+          salt_rule_for_pin(current_folder_key_pin_level(folder_id)),
         );
 
         const response = await remove_folder_password(folder_id, {

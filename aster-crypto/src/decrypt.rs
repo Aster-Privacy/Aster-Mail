@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+use std::io::Read;
+
 use pgp::composed::{Deserializable, Message};
 
 use chrono::Utc;
@@ -29,11 +31,84 @@ use crate::sign::message_signed_by_public_key;
 pub const MAX_CIPHERTEXT_BYTES: usize = 16 * 1024 * 1024;
 pub const MAX_PLAINTEXT_BYTES: usize = 64 * 1024 * 1024;
 
-fn capped_plaintext(data: &[u8]) -> Result<Vec<u8>> {
-    if data.len() > MAX_PLAINTEXT_BYTES {
-        return Err(CryptoError::Decryption("Decryption failed".into()));
+fn decryption_failed() -> CryptoError {
+    CryptoError::Decryption("Decryption failed".into())
+}
+
+fn require_secret_keys(secret_keys: &[&KeyPair]) -> Result<()> {
+    if secret_keys.is_empty() {
+        return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
     }
-    Ok(data.to_vec())
+    Ok(())
+}
+
+pub(crate) fn within_ciphertext_limit(ciphertext: &[u8]) -> bool {
+    ciphertext.len() <= MAX_CIPHERTEXT_BYTES
+}
+
+fn require_ciphertext_size(ciphertext: &[u8]) -> Result<()> {
+    if !within_ciphertext_limit(ciphertext) {
+        return Err(decryption_failed());
+    }
+    Ok(())
+}
+
+fn parse_armored(ciphertext: &[u8]) -> Result<Message> {
+    Message::from_armor_single(ciphertext)
+        .map(|(msg, _)| msg)
+        .map_err(|_| decryption_failed())
+}
+
+pub(crate) fn inflate_within_cap(msg: Message) -> Option<Message> {
+    let Message::Compressed(data) = msg else {
+        return Some(msg);
+    };
+    let mut bytes = Vec::new();
+    data.decompress()
+        .ok()?
+        .take(MAX_PLAINTEXT_BYTES as u64 + 1)
+        .read_to_end(&mut bytes)
+        .ok()?;
+    if bytes.len() > MAX_PLAINTEXT_BYTES {
+        return None;
+    }
+    match Message::from_bytes(&bytes[..]).ok()? {
+        Message::Compressed(_) => None,
+        inner => Some(inner),
+    }
+}
+
+fn inflated(msg: Message) -> Result<Message> {
+    inflate_within_cap(msg).ok_or_else(decryption_failed)
+}
+
+fn decrypted_by_any<'a>(
+    msg: &'a Message,
+    secret_keys: &'a [&KeyPair],
+    passphrase: &'a str,
+) -> impl Iterator<Item = Result<Message>> + 'a {
+    secret_keys.iter().filter_map(move |keypair| {
+        msg.decrypt(|| passphrase.to_string(), &[keypair.secret_key()])
+            .ok()
+            .map(|(decrypted, _key_ids)| inflated(decrypted))
+    })
+}
+
+fn literal_plaintext(msg: &Message) -> Option<Result<Vec<u8>>> {
+    let data = msg.get_literal()?.data();
+    if data.len() > MAX_PLAINTEXT_BYTES {
+        return Some(Err(decryption_failed()));
+    }
+    Some(Ok(data.to_vec()))
+}
+
+fn first_plaintext(msg: &Message, secret_keys: &[&KeyPair], passphrase: &str) -> Result<Vec<u8>> {
+    decrypted_by_any(msg, secret_keys, passphrase)
+        .find_map(|decrypted| match decrypted {
+            Ok(decrypted) => literal_plaintext(&decrypted),
+            Err(err) => Some(Err(err)),
+        })
+        .unwrap_or_else(|| Err(decryption_failed()))
 }
 
 pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Vec<u8>> {
@@ -45,59 +120,16 @@ pub fn decrypt_message_with_passphrase(
     secret_keys: &[&KeyPair],
     passphrase: &str,
 ) -> Result<Vec<u8>> {
-    if secret_keys.is_empty() {
-        return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
-    }
-    if ciphertext.len() > MAX_CIPHERTEXT_BYTES {
-        return Err(CryptoError::Decryption("Decryption failed".into()));
-    }
-
-    let (msg, _) = Message::from_armor_single(ciphertext)
-        .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
-
-    for keypair in secret_keys {
-        let decrypted = msg.decrypt(|| passphrase.to_string(), &[keypair.secret_key()]);
-
-        if let Ok((decrypted_msg, _key_ids)) = decrypted {
-            if let Some(literal) = decrypted_msg.get_literal() {
-                return capped_plaintext(literal.data());
-            }
-
-            if let Message::Literal(lit) = decrypted_msg {
-                return capped_plaintext(lit.data());
-            }
-        }
-    }
-
-    Err(CryptoError::Decryption("Decryption failed".into()))
+    require_secret_keys(secret_keys)?;
+    require_ciphertext_size(ciphertext)?;
+    first_plaintext(&parse_armored(ciphertext)?, secret_keys, passphrase)
 }
 
 pub fn decrypt_message_binary(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Vec<u8>> {
-    if secret_keys.is_empty() {
-        return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
-    }
-    if ciphertext.len() > MAX_CIPHERTEXT_BYTES {
-        return Err(CryptoError::Decryption("Decryption failed".into()));
-    }
-
-    let msg = Message::from_bytes(ciphertext)
-        .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
-
-    for keypair in secret_keys {
-        let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
-
-        if let Ok((decrypted_msg, _key_ids)) = decrypted {
-            if let Some(literal) = decrypted_msg.get_literal() {
-                return capped_plaintext(literal.data());
-            }
-
-            if let Message::Literal(lit) = decrypted_msg {
-                return capped_plaintext(lit.data());
-            }
-        }
-    }
-
-    Err(CryptoError::Decryption("Decryption failed".into()))
+    require_secret_keys(secret_keys)?;
+    require_ciphertext_size(ciphertext)?;
+    let msg = Message::from_bytes(ciphertext).map_err(|_| decryption_failed())?;
+    first_plaintext(&msg, secret_keys, "")
 }
 
 fn verify_with_sender_keys(msg: &Message, sender_keys: &[&PublicKey]) -> bool {
@@ -121,40 +153,26 @@ pub fn decrypt_and_verify_with_passphrase(
     sender_keys: &[&PublicKey],
     passphrase: &str,
 ) -> Result<Vec<u8>> {
-    if secret_keys.is_empty() {
-        return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
-    }
+    require_secret_keys(secret_keys)?;
     if sender_keys.is_empty() {
         return Err(CryptoError::SignatureVerification(
             "decrypt_and_verify requires at least one sender key".into(),
         ));
     }
-    if ciphertext.len() > MAX_CIPHERTEXT_BYTES {
-        return Err(CryptoError::Decryption("Decryption failed".into()));
-    }
+    require_ciphertext_size(ciphertext)?;
 
-    let (msg, _) = Message::from_armor_single(ciphertext)
-        .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
-
-    for keypair in secret_keys {
-        let decrypted = msg.decrypt(|| passphrase.to_string(), &[keypair.secret_key()]);
-
-        if let Ok((decrypted_msg, _key_ids)) = decrypted {
-            if !verify_with_sender_keys(&decrypted_msg, sender_keys) {
-                return Err(CryptoError::Decryption("Decryption failed".into()));
-            }
-
-            if let Some(literal) = decrypted_msg.get_literal() {
-                return capped_plaintext(literal.data());
-            }
-
-            if let Message::Literal(lit) = decrypted_msg {
-                return capped_plaintext(lit.data());
-            }
+    let msg = parse_armored(ciphertext)?;
+    for decrypted in decrypted_by_any(&msg, secret_keys, passphrase) {
+        let decrypted = decrypted?;
+        if !verify_with_sender_keys(&decrypted, sender_keys) {
+            return Err(decryption_failed());
+        }
+        if let Some(plaintext) = literal_plaintext(&decrypted) {
+            return plaintext;
         }
     }
 
-    Err(CryptoError::Decryption("Decryption failed".into()))
+    Err(decryption_failed())
 }
 
 #[cfg(test)]
@@ -370,5 +388,94 @@ mod tests {
             "hunter2 hunter2",
         )
         .is_err());
+    }
+
+    fn sealed_for(recipient: &KeyPair, msg: &Message) -> Vec<u8> {
+        use pgp::composed::SignedPublicKey;
+        use pgp::crypto::sym::SymmetricKeyAlgorithm;
+
+        let public: SignedPublicKey = recipient.secret_key().clone().into();
+        let subkey = crate::key_selection::select_encryption_subkey(&public).unwrap();
+        msg.encrypt_to_keys_seipdv1(rand::rngs::OsRng, SymmetricKeyAlgorithm::AES256, &[subkey])
+            .unwrap()
+            .to_armored_bytes(None.into())
+            .unwrap()
+    }
+
+    fn compressed(msg: Message, alg: pgp::types::CompressionAlgorithm) -> Message {
+        msg.compress(alg).unwrap()
+    }
+
+    #[test]
+    fn opens_compressed_incoming_message() {
+        use pgp::types::CompressionAlgorithm;
+
+        let bob = generate_keypair("Bob", "bob@astermail.com").unwrap();
+        let plaintext = b"compressed incoming mail body";
+
+        for alg in [CompressionAlgorithm::ZLIB, CompressionAlgorithm::ZIP] {
+            let literal = Message::new_literal_bytes("", plaintext);
+            let ciphertext = sealed_for(&bob, &compressed(literal, alg));
+
+            assert_eq!(
+                decrypt_message(&ciphertext, &[&bob]).ok(),
+                Some(plaintext.to_vec())
+            );
+        }
+    }
+
+    #[test]
+    fn verifies_signed_then_compressed_incoming_message() {
+        use pgp::crypto::hash::HashAlgorithm;
+        use pgp::types::CompressionAlgorithm;
+
+        let alice = generate_keypair("Alice", "alice@astermail.com").unwrap();
+        let bob = generate_keypair("Bob", "bob@astermail.com").unwrap();
+        let plaintext = b"signed, compressed, then encrypted";
+
+        let signed = Message::new_literal_bytes("", plaintext)
+            .sign(
+                rand::rngs::OsRng,
+                alice.secret_key(),
+                String::new,
+                HashAlgorithm::SHA2_256,
+            )
+            .unwrap();
+        let ciphertext = sealed_for(&bob, &compressed(signed, CompressionAlgorithm::ZLIB));
+
+        assert_eq!(
+            decrypt_and_verify(&ciphertext, &[&bob], &[&alice.public_key()]).ok(),
+            Some(plaintext.to_vec())
+        );
+
+        let mallory = generate_keypair("Mallory", "mallory@astermail.com").unwrap();
+        assert!(decrypt_and_verify(&ciphertext, &[&bob], &[&mallory.public_key()]).is_err());
+    }
+
+    #[test]
+    fn refuses_compressed_message_beyond_plaintext_cap() {
+        use pgp::types::CompressionAlgorithm;
+
+        let bob = generate_keypair("Bob", "bob@astermail.com").unwrap();
+        let oversized = vec![0u8; MAX_PLAINTEXT_BYTES + 1];
+        let literal = Message::new_literal_bytes("", &oversized);
+        let ciphertext = sealed_for(&bob, &compressed(literal, CompressionAlgorithm::ZLIB));
+
+        assert!(ciphertext.len() < MAX_CIPHERTEXT_BYTES);
+        assert!(decrypt_message(&ciphertext, &[&bob]).is_err());
+    }
+
+    #[test]
+    fn refuses_nested_compression() {
+        use pgp::types::CompressionAlgorithm;
+
+        let bob = generate_keypair("Bob", "bob@astermail.com").unwrap();
+        let inner = compressed(
+            Message::new_literal_bytes("", b"nested"),
+            CompressionAlgorithm::ZLIB,
+        );
+        let ciphertext = sealed_for(&bob, &compressed(inner, CompressionAlgorithm::ZIP));
+
+        assert!(decrypt_message(&ciphertext, &[&bob]).is_err());
     }
 }

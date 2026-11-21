@@ -776,6 +776,14 @@ export function AppearanceSection() {
         </div>
 
         <Island>
+          <SettingToggleRow
+            checked={preferences.close_popup_on_outside_click === true}
+            description={t("settings.close_popup_on_outside_click_description")}
+            label={t("settings.close_popup_on_outside_click")}
+            on_change={(checked) =>
+              update_preference("close_popup_on_outside_click", checked, true)
+            }
+          />
           <SettingRow
             description={t("settings.density_description")}
             label={t("settings.density")}

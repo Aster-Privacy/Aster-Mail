@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
+
 export const INTERFACE_ZOOM_STEPS = [
   0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2,
 ] as const;
@@ -32,7 +34,7 @@ let shortcuts_started = false;
 let pending_change: Promise<number> = Promise.resolve(INTERFACE_ZOOM_DEFAULT);
 
 export function is_interface_zoom_supported(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export function normalize_interface_zoom(value: number): number {

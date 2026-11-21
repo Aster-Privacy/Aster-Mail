@@ -43,6 +43,7 @@ import { use_auth_safe } from "@/contexts/auth_context";
 import { cn } from "@/lib/utils";
 import { fetch_step_up_requirements } from "@/services/api/step_up";
 import { verify_vanguard_credentials } from "@/services/api/vanguard";
+import { step_up_key_assertion_if_enrolled } from "@/services/api/webauthn";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_app_lock_config,
@@ -313,9 +314,13 @@ function SetupDuressPinModal({
         requirements.salt,
         requirements.kdf_version,
       );
+      const hardware_key_assertion = await step_up_key_assertion_if_enrolled(
+        requirements.totp_required,
+      );
       const res = await verify_vanguard_credentials({
         password_hash,
         totp_code: requirements.totp_required ? totp_code : undefined,
+        hardware_key_assertion,
       });
 
       if (res.error || !res.data?.valid) {

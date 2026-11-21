@@ -116,3 +116,28 @@ export function start_scroll_seek(
     if (timer) clearTimeout(timer);
   };
 }
+
+const HIGHLIGHT_ROW_SELECTOR = ".aster_island_row, [data-settings-row]";
+const HIGHLIGHT_DURATION_MS = 1600;
+const HIGHLIGHT_COLOR =
+  "color-mix(in srgb, var(--accent-color, #3b82f6) 18%, transparent)";
+
+export function find_highlight_row(target: HTMLElement): HTMLElement {
+  const row = target.closest<HTMLElement>(HIGHLIGHT_ROW_SELECTOR);
+
+  return row ?? target.parentElement ?? target;
+}
+
+export function highlight_settings_target(target: HTMLElement): void {
+  const row = find_highlight_row(target);
+
+  if (typeof row.animate !== "function") return;
+  row.animate(
+    [
+      { backgroundColor: HIGHLIGHT_COLOR, offset: 0 },
+      { backgroundColor: HIGHLIGHT_COLOR, offset: 0.4 },
+      { backgroundColor: "transparent", offset: 1 },
+    ],
+    { duration: HIGHLIGHT_DURATION_MS, easing: "ease-out" },
+  );
+}

@@ -18,7 +18,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { normalize_address_ignoring_dots } from "@/utils/address_dots";
+import {
+  normalize_address_ignoring_dots,
+  strip_plus_tag,
+} from "@/utils/address_dots";
 import { sender_id_matches } from "@/lib/preferred_sender";
 
 export const from_tier_draft = 0;
@@ -64,9 +67,17 @@ function find_by_address<T extends from_sender_candidate>(
 
   if (!trimmed) return undefined;
   const normalized = normalize_address_ignoring_dots(trimmed);
+  const exact = options.find(
+    (o) => !!o.email && normalize_address_ignoring_dots(o.email) === normalized,
+  );
+
+  if (exact) return exact;
+  const base = normalize_address_ignoring_dots(strip_plus_tag(trimmed));
+
+  if (base === normalized) return undefined;
 
   return options.find(
-    (o) => !!o.email && normalize_address_ignoring_dots(o.email) === normalized,
+    (o) => !!o.email && normalize_address_ignoring_dots(o.email) === base,
   );
 }
 

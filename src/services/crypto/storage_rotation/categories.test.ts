@@ -51,6 +51,7 @@ import {
 } from "./steps_mail_metadata";
 import { decrypt_metadata, derive_metadata_key } from "../envelope";
 import { run_storage_reseal } from "./run";
+import { FIELD_KIND_TEMPLATE, field_aad } from "../field_format";
 import {
   ALIAS_HMAC_INFO,
   deleted_aliases_step,
@@ -1247,6 +1248,42 @@ describe("storage reseal categories", () => {
     expect(server.table("sync_sources").get("src1")!.source_type).toBe(
       "carddav",
     );
+  });
+
+  it("reseals bound template fields and keeps them bound", LONG_TEST, async () => {
+    const server = new FakeServer();
+    const seeder = new Seeder(server);
+    const bound = (field: string, record_id: string | null) =>
+      field_aad({ kind: FIELD_KIND_TEMPLATE, field, record_id });
+
+    await seeder.sealed_row(
+      "templates",
+      "t1",
+      {},
+      "encrypted_name",
+      "name_nonce",
+      "Bound to its row",
+      { aad: bound("name", "t1") },
+    );
+    await seeder.sealed_row(
+      "templates",
+      "t2",
+      {},
+      "encrypted_content",
+      "content_nonce",
+      "Sealed before the row had an id",
+      { aad: bound("content", null) },
+    );
+    await seeder.sealed_row(
+      "templates",
+      "t3",
+      {},
+      "encrypted_category",
+      "category_nonce",
+      "Written by an older version",
+    );
+
+    await run_twice(server, [templates_step], seeder.expectations);
   });
 
   it("reaches every recent recipient past the first page", LONG_TEST, async () => {

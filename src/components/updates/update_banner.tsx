@@ -103,7 +103,6 @@ export function UpdateBanner() {
           >
             <UpdateCard
               install={state}
-              notes={info.notes}
               on_dismiss={handle_dismiss}
               on_install={() => void start()}
               version={info.version}

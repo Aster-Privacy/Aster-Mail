@@ -79,6 +79,8 @@ vi.mock("@/services/send_queue_recipients", () => ({
   plain_text_to_html: (text: string) => text.replace(/\n/g, "<br>"),
 }));
 
+const { compute_scheduled_content_tag } =
+  await import("@/services/crypto/scheduled_content_tag");
 const {
   cancel_scheduled_email,
   create_scheduled_email,
@@ -100,6 +102,7 @@ function to_base64(bytes: Uint8Array): string {
 }
 
 async function stored_with_ephemeral_key(subject: string) {
+  const fields = content({ subject });
   const raw_key = crypto.getRandomValues(new Uint8Array(32));
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await crypto.subtle.importKey(
@@ -112,7 +115,12 @@ async function stored_with_ephemeral_key(subject: string) {
   const sealed = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     key,
-    new TextEncoder().encode(JSON.stringify(content({ subject }))),
+    new TextEncoder().encode(
+      JSON.stringify({
+        ...fields,
+        content_tag: await compute_scheduled_content_tag("identity", fields),
+      }),
+    ),
   );
 
   return {
@@ -282,7 +290,7 @@ describe("scheduled envelope", () => {
     internal = false;
 
     await create_scheduled_email(
-      {} as never,
+      { identity_key: "identity" } as never,
       content({ to_recipients: ["a@example.com"] }),
       OPTIONS,
     );
@@ -421,7 +429,9 @@ describe("scheduled read with a one-time key", () => {
         crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, sealed),
     );
 
-    const response = await get_scheduled_email("s1", {} as never);
+    const response = await get_scheduled_email("s1", {
+      identity_key: "identity",
+    } as never);
 
     expect(get).toHaveBeenCalledWith("/mail/v1/scheduled/s1");
     expect(plain_fallback).toHaveBeenCalledTimes(1);
@@ -435,7 +445,9 @@ describe("scheduled read with a one-time key", () => {
     get.mockResolvedValue({ data: await stored_with_ephemeral_key("Later") });
     plain_fallback.mockRejectedValue(new Error("no key"));
 
-    const response = await get_scheduled_email("s1", {} as never);
+    const response = await get_scheduled_email("s1", {
+      identity_key: "identity",
+    } as never);
 
     expect(context_fallback).not.toHaveBeenCalled();
     expect(response.data).toBeNull();
@@ -454,7 +466,7 @@ describe("scheduled read without a one-time key", () => {
     const stored = await stored_with_ephemeral_key("Older");
 
     get.mockResolvedValue({ data: { ...stored, ephemeral_key: null } });
-    context_fallback.mockResolvedValue(
+    plain_fallback.mockResolvedValue(
       new TextEncoder().encode(JSON.stringify(content({ subject: "Older" })))
         .buffer,
     );
@@ -463,12 +475,34 @@ describe("scheduled read without a one-time key", () => {
       identity_key: "identity",
     } as never);
 
-    expect(context_fallback).toHaveBeenCalledTimes(1);
-    expect(context_fallback.mock.calls[0][0]).toBe("astermail-scheduled-v1");
-    expect(plain_fallback).not.toHaveBeenCalled();
+    expect(plain_fallback).toHaveBeenCalledTimes(1);
+    expect(plain_fallback.mock.calls[0][0]).toBeInstanceOf(CryptoKey);
+    expect(context_fallback).not.toHaveBeenCalled();
     expect(response.error).toBeUndefined();
     expect(response.data?.content.subject).toBe("Older");
   });
+
+  it.each([undefined, "", "undefined", "null"])(
+    "derives no scheduled key from an absent identity (%s)",
+    async (identity_key) => {
+      const stored = await stored_with_ephemeral_key("Legacy");
+
+      get.mockResolvedValue({ data: { ...stored, ephemeral_key: null } });
+      plain_fallback.mockResolvedValue(
+        new TextEncoder().encode(JSON.stringify(content({ subject: "Legacy" })))
+          .buffer,
+      );
+
+      const response = await get_scheduled_email("s1", {
+        identity_key,
+      } as never);
+
+      expect(plain_fallback).toHaveBeenCalledTimes(1);
+      expect(plain_fallback.mock.calls[0][0]).toBeNull();
+      expect(context_fallback).not.toHaveBeenCalled();
+      expect(response.data?.content.subject).toBe("Legacy");
+    },
+  );
 });
 
 describe("server_readable_content", () => {

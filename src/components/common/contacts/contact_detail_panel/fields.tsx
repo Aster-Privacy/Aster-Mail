@@ -280,6 +280,9 @@ export interface TypedListProps<T extends string> {
   type_default: T;
   disabled: boolean;
   allow_custom?: boolean;
+  value_max_length?: number;
+  label_max_length?: number;
+  max_entries?: number;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   on_add: () => void;
   on_change: (idx: number, value: string) => void;
@@ -325,11 +328,13 @@ function TypeSelect({
 function CustomLabelInput({
   value,
   disabled,
+  max_length = 64,
   t,
   on_change,
 }: {
   value: string;
   disabled: boolean;
+  max_length?: number;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   on_change: (value: string) => void;
 }) {
@@ -337,7 +342,8 @@ function CustomLabelInput({
     <input
       aria-label={t("common.custom_label")}
       className={`${FIELD_CLASS} w-[140px] flex-shrink-0`}
-      maxLength={64}
+      dir="auto"
+      maxLength={max_length}
       placeholder={t("common.custom_label")}
       readOnly={disabled}
       value={value}
@@ -353,6 +359,9 @@ export function TypedList<T extends string>({
   input_type,
   disabled,
   allow_custom = false,
+  value_max_length,
+  label_max_length,
+  max_entries,
   t,
   on_add,
   on_change,
@@ -393,6 +402,7 @@ export function TypedList<T extends string>({
             ) : (
               <input
                 className={`${FIELD_CLASS} flex-1 min-w-[160px]`}
+                maxLength={value_max_length}
                 placeholder={placeholder}
                 readOnly={disabled}
                 type={input_type || "text"}
@@ -424,6 +434,7 @@ export function TypedList<T extends string>({
             {is_custom && (
               <CustomLabelInput
                 disabled={disabled}
+                max_length={label_max_length}
                 t={t}
                 value={entry.label ?? ""}
                 on_change={(v) => on_label_change?.(idx, v)}
@@ -442,7 +453,7 @@ export function TypedList<T extends string>({
           </div>
         );
       })}
-      {!disabled && (
+      {!disabled && (max_entries === undefined || entries.length < max_entries) && (
         <button
           className="aster_pill aster_pill_tonal aster_pill_sm"
           type="button"

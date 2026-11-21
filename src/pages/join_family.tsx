@@ -54,7 +54,7 @@ const page_wrap =
 export default function JoinFamilyPage() {
   const [search_params] = useSearchParams();
   const navigate = useNavigate();
-  const { is_authenticated, is_loading } = use_auth();
+  const { is_authenticated, is_loading, user } = use_auth();
   const { t } = use_i18n();
   const token = search_params.get("token") ?? "";
 
@@ -63,6 +63,7 @@ export default function JoinFamilyPage() {
   const [joining, set_joining] = useState(false);
   const [error_msg, set_error_msg] = useState<string | null>(null);
   const [is_wrong_recipient, set_is_wrong_recipient] = useState(false);
+  const [is_already_in_group, set_is_already_in_group] = useState(false);
   const [joined_bytes, set_joined_bytes] = useState<number | null>(null);
   const [preview_attempt, set_preview_attempt] = useState(0);
   const [preview_unreachable, set_preview_unreachable] = useState(false);
@@ -121,12 +122,17 @@ export default function JoinFamilyPage() {
     set_joining(true);
     set_error_msg(null);
     set_is_wrong_recipient(false);
+    set_is_already_in_group(false);
     try {
       const res = await join_family(token);
 
       if (!res.data) {
-        if (res.error?.toLowerCase().includes("different email")) {
+        const lowered_error = res.error?.toLowerCase() ?? "";
+
+        if (lowered_error.includes("different email")) {
           set_is_wrong_recipient(true);
+        } else if (lowered_error.includes("already in a family group")) {
+          set_is_already_in_group(true);
         } else {
           set_error_msg(res.error || t("settings.family_join_failed"));
         }
@@ -134,6 +140,7 @@ export default function JoinFamilyPage() {
         return;
       }
       set_joined_bytes(res.data.allocated_storage_bytes);
+      window.dispatchEvent(new CustomEvent("aster:plan-changed"));
       redirect_timer.current = setTimeout(
         () => navigate("/", { replace: true }),
         2500,
@@ -144,8 +151,6 @@ export default function JoinFamilyPage() {
       set_joining(false);
     }
   };
-
-  // Do not auto-join: always require explicit button click to prevent CSRF-style forced joins.
 
   if (is_loading || preview_loading) {
     return (
@@ -248,7 +253,7 @@ export default function JoinFamilyPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-edge-secondary p-5 space-y-3 bg-surf-primary">
+        <div className="account_menu_card rounded-[18px] p-5 space-y-3">
           <p className="text-xs font-semibold text-txt-muted uppercase tracking-wide">
             {t("settings.family_join_benefits_heading")}
           </p>
@@ -278,6 +283,22 @@ export default function JoinFamilyPage() {
             </div>
             <p className="text-xs text-white">
               {t("settings.family_join_2fa_body")}
+            </p>
+          </div>
+        )}
+
+        {is_already_in_group && (
+          <div
+            className="flex items-center gap-2 px-4 py-3 rounded-xl"
+            style={{
+              background: "#ef4444",
+              backgroundImage: "none",
+              border: "none",
+            }}
+          >
+            <ExclamationTriangleIcon className="w-4 h-4 text-white flex-shrink-0" />
+            <p className="text-sm font-medium text-white">
+              {t("settings.family_join_already_in_group")}
             </p>
           </div>
         )}
@@ -312,7 +333,13 @@ export default function JoinFamilyPage() {
           </div>
         )}
 
-        {is_authenticated && !is_wrong_recipient ? (
+        {is_authenticated && user?.email && (
+          <p className="text-center text-sm text-txt-muted">
+            {t("settings.family_join_signed_in_as", { email: user.email })}
+          </p>
+        )}
+
+        {is_authenticated && !is_wrong_recipient && !is_already_in_group ? (
           <button
             className="aster_btn aster_btn_primary aster_btn_lg w-full flex items-center justify-center gap-2 disabled:opacity-60"
             disabled={joining}

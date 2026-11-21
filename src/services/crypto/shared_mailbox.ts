@@ -19,7 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
-import type { CreateSharedMailboxParams } from "@/services/api/shared_mailboxes";
+import type {
+  CreateSharedMailboxParams,
+  SharedMailboxGrantInfo,
+} from "@/services/api/shared_mailboxes";
+import type { FamilyMemberInfo } from "@/services/api/family";
 
 import {
   hash_email,
@@ -42,7 +46,22 @@ import {
   get_passphrase_from_memory,
 } from "@/services/crypto/memory_key_store";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
+import {
+  collect_prior_storage_keys,
+  install_random_storage_key,
+} from "@/services/crypto/storage_write_key";
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import {
+  prepare_vault_write,
+  type PreparedVaultWrite,
+} from "@/services/crypto/key_manager_pgp_vault";
+import {
+  VAULT_KDF_ITERATIONS_LEGACY,
+  type VaultKdfIterations,
+} from "@/services/crypto/vault_level2";
 import { get_recipient_public_key } from "@/services/api/keys";
+import { assert_owner_key_trusted } from "@/services/send_queue_recipients";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export const SHARED_MAILBOX_GRANT_VERSION = 1;
 
@@ -179,7 +198,60 @@ export async function fetch_member_public_key(
     throw new Error(response.error || "member public key unavailable");
   }
 
-  return response.data.public_key;
+  const public_key = response.data.public_key;
+
+  try {
+    await assert_owner_key_trusted(email, public_key);
+  } catch {
+    throw new Error(
+      get_active_translations().shared_mailboxes.member_key_untrusted,
+    );
+  }
+
+  return public_key;
+}
+
+export interface RotationGrantee {
+  member_user_id: string;
+  username: string;
+  email: string;
+}
+
+export function plan_rotation_grantees(
+  grants: SharedMailboxGrantInfo[],
+  members: FamilyMemberInfo[],
+): RotationGrantee[] | null {
+  const planned: RotationGrantee[] = [];
+
+  for (const grant of grants) {
+    if (planned.some((p) => p.member_user_id === grant.member_user_id)) {
+      continue;
+    }
+
+    const member = members.find(
+      (m) => m.user_id === grant.member_user_id && m.status === "active",
+    );
+
+    if (!member) return null;
+
+    const member_email = `${member.username}@${member.email_domain}`;
+    const listed_email =
+      grant.username && grant.email_domain
+        ? `${grant.username}@${grant.email_domain}`
+        : member_email;
+
+    if (listed_email.toLowerCase() !== member_email.toLowerCase()) {
+      return null;
+    }
+
+    planned.push({
+      member_user_id: member.user_id,
+      username: member.username,
+      email: member_email,
+    });
+  }
+
+  return planned;
 }
 
 export async function seal_grant(
@@ -262,6 +334,7 @@ export async function unseal_grant(
 export async function generate_rotated_credential(
   vault_data: EncryptedVault,
   old_login_secret: string,
+  iterations: VaultKdfIterations = VAULT_KDF_ITERATIONS_LEGACY,
 ): Promise<{
   login_secret: string;
   password_hash: string;
@@ -269,6 +342,8 @@ export async function generate_rotated_credential(
   password_salt: string;
   encrypted_vault: string;
   vault_nonce: string;
+  vault_kdf_iterations: VaultKdfIterations;
+  vault_write: PreparedVaultWrite;
 }> {
   const login_secret = generate_login_secret();
   const salt = crypto.getRandomValues(new Uint8Array(32));
@@ -292,10 +367,22 @@ export async function generate_rotated_credential(
       login_secret,
     ),
   };
+  const prior_storage_keys = await collect_prior_storage_keys(
+    vault_data,
+    old_login_secret,
+  );
 
-  const { encrypted_vault, vault_nonce } = await encrypt_vault(
+  try {
+    install_random_storage_key(rotated_vault, prior_storage_keys);
+  } finally {
+    prior_storage_keys.forEach(zero_uint8_array);
+  }
+
+  const vault_write = await prepare_vault_write(
     rotated_vault,
     login_secret,
+    iterations,
+    false,
   );
 
   return {
@@ -303,7 +390,9 @@ export async function generate_rotated_credential(
     password_hash,
     password_hash_v2,
     password_salt,
-    encrypted_vault,
-    vault_nonce,
+    encrypted_vault: vault_write.sealed.encrypted_vault,
+    vault_nonce: vault_write.sealed.vault_nonce,
+    vault_kdf_iterations: iterations,
+    vault_write,
   };
 }

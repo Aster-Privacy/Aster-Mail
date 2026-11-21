@@ -37,11 +37,21 @@ import {
   server_storage_key_matches,
   STORAGE_STEP_UNREADABLE,
   STORAGE_STEP_UNSUPPORTED,
+  VAULT_LOCK_WAIT_MS,
 } from "./vault_step";
 import { get_vault_from_memory } from "../memory_key_store";
-import { vault_passphrase } from "../vault_cas_write";
+import { vault_passphrase, write_vault_merged } from "../vault_cas_write";
+import { with_vault_write_lock_bounded } from "../vault_write_lock";
 import { derive_password_storage_keys } from "../storage_write_key";
 import { zero_uint8_array } from "../secure_memory";
+import {
+  get_unswept_untrusted_raws,
+  merge_server_known_ids,
+} from "../server_known_keys";
+import {
+  legacy_kek_ids,
+  retire_swept_keks,
+} from "../retired_storage_keks";
 import {
   is_storage_key_held,
   mark_storage_key_verified,
@@ -167,6 +177,45 @@ function clear_retry(): void {
   retry_timer = null;
 }
 
+async function record_swept_ids(ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+
+  await with_vault_write_lock_bounded(async () => {
+    const vault = get_vault_from_memory();
+
+    if (!vault) return;
+
+    const swept = new Set(vault.server_known_swept_ids ?? []);
+
+    if (ids.every((id) => swept.has(id))) return;
+
+    await write_vault_merged({
+      next: {
+        ...vault,
+        server_known_swept_ids: merge_server_known_ids(
+          vault.server_known_swept_ids,
+          ids,
+        ),
+      },
+    });
+  }, VAULT_LOCK_WAIT_MS);
+}
+
+async function retire_swept_storage_keks(
+  swept_ids: string[],
+  data_kek: string,
+): Promise<void> {
+  await with_vault_write_lock_bounded(async () => {
+    const vault = get_vault_from_memory();
+
+    if (!vault || vault.data_kek !== data_kek) return;
+
+    const next = retire_swept_keks(vault, swept_ids);
+
+    if (next) await write_vault_merged({ next });
+  }, VAULT_LOCK_WAIT_MS);
+}
+
 async function run_once(passphrase: string): Promise<ResealRunResult | null> {
   const vault = get_vault_from_memory();
   const account = await get_current_account();
@@ -178,14 +227,28 @@ async function run_once(passphrase: string): Promise<ResealRunResult | null> {
 
   if (!data_kek) return null;
 
-  return run_storage_reseal({
-    vault,
-    api: reseal_api,
-    store: local_progress_store(user_id),
-    finish: (expected) => mark_storage_rekey_done(passphrase, expected),
-    still_current: () => server_storage_key_matches(passphrase, data_kek),
-    is_cancelled: () => get_vault_from_memory()?.data_kek !== data_kek,
-  });
+  const untrusted = get_unswept_untrusted_raws(vault);
+  const untrusted_old_raws = untrusted.raws;
+
+  try {
+    const result = await run_storage_reseal({
+      vault,
+      api: reseal_api,
+      store: local_progress_store(user_id),
+      finish: (expected) => mark_storage_rekey_done(passphrase, expected),
+      still_current: () => server_storage_key_matches(passphrase, data_kek),
+      is_cancelled: () => get_vault_from_memory()?.data_kek !== data_kek,
+      key_options: { untrusted_old_raws },
+    });
+
+    if (result.status === "done" && result.held_rows === 0) {
+      await record_swept_ids(untrusted.ids);
+    }
+
+    return result;
+  } finally {
+    untrusted_old_raws.forEach(zero_uint8_array);
+  }
 }
 
 function schedule_retry(passphrase: string, attempt: number): void {
@@ -259,10 +322,17 @@ async function sweep_once(passphrase: string): Promise<ResealRunResult | null> {
   }
   if (needs_storage_reseal(vault)) return null;
 
-  const marker = await legacy_sweep_marker(vault);
+  const untrusted = get_unswept_untrusted_raws(vault);
+  const untrusted_old_raws = untrusted.raws;
+  const marker = await legacy_sweep_marker(vault, untrusted.ids);
 
-  if (legacy_sweep_done(user_id, marker)) return null;
+  if (legacy_sweep_done(user_id, marker)) {
+    untrusted_old_raws.forEach(zero_uint8_array);
 
+    return null;
+  }
+
+  const swept_kek_ids = legacy_kek_ids(vault);
   const password_keys = await derive_password_storage_keys(vault, passphrase);
 
   try {
@@ -272,16 +342,23 @@ async function sweep_once(passphrase: string): Promise<ResealRunResult | null> {
       store: legacy_sweep_progress_store(user_id, marker),
       still_current: () => server_storage_key_matches(passphrase, data_kek),
       is_cancelled: () => get_vault_from_memory()?.data_kek !== data_kek,
-      key_options: { extra_old_raws: password_keys },
+      key_options: { extra_old_raws: password_keys, untrusted_old_raws },
     });
 
+    if (result.status === "done" && result.held_rows === 0) {
+      await record_swept_ids(untrusted.ids);
+    }
     if (result.status === "done" || result.status === "not_needed") {
       mark_legacy_sweep_done(user_id, marker);
+    }
+    if (result.status === "done") {
+      await retire_swept_storage_keks(swept_kek_ids, data_kek);
     }
 
     return result;
   } finally {
     password_keys.forEach(zero_uint8_array);
+    untrusted_old_raws.forEach(zero_uint8_array);
   }
 }
 

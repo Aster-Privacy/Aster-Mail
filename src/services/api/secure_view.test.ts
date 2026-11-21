@@ -59,7 +59,27 @@ describe("secure view unlock mode", () => {
   it("uses zero knowledge when the server sends a valid salt", () => {
     expect(
       secure_view_unlock_mode({ is_zero_knowledge: true, kdf_salt: SALT }),
-    ).toEqual({ kind: "zero_knowledge", kdf_salt: SALT });
+    ).toEqual({ kind: "zero_knowledge", kdf_salt: SALT, kdf_version: 1 });
+  });
+
+  it("carries the stronger kdf version the sender chose", () => {
+    expect(
+      secure_view_unlock_mode({
+        is_zero_knowledge: true,
+        kdf_salt: SALT,
+        kdf_version: 2,
+      }),
+    ).toEqual({ kind: "zero_knowledge", kdf_salt: SALT, kdf_version: 2 });
+  });
+
+  it("refuses a kdf version it does not know", () => {
+    expect(
+      secure_view_unlock_mode({
+        is_zero_knowledge: true,
+        kdf_salt: SALT,
+        kdf_version: 3,
+      }),
+    ).toEqual({ kind: "refused" });
   });
 
   it("keeps the legacy password mode for legacy messages", () => {

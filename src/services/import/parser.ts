@@ -93,6 +93,12 @@ function file_extension(file: File): string {
   return file.name.toLowerCase().replace(/^.*(\.[^.]+)$/, "$1");
 }
 
+export async function is_eml_import_file(file: File): Promise<boolean> {
+  if (REJECTED_EXTENSIONS.has(file_extension(file))) return false;
+
+  return (await detect_file_format(file)) === "eml";
+}
+
 export async function is_mbox_import_file(file: File): Promise<boolean> {
   if (REJECTED_EXTENSIONS.has(file_extension(file))) return false;
 

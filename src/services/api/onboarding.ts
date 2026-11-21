@@ -23,7 +23,10 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { with_identity_key } from "@/services/crypto/identity_key_required";
+import {
+  is_usable_identity_key,
+  with_identity_key,
+} from "@/services/crypto/identity_key_required";
 import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -87,7 +90,9 @@ async function decrypt_onboarding_state(
   nonce: string,
   vault: EncryptedVault,
 ): Promise<OnboardingState> {
-  const key = await derive_onboarding_key(vault);
+  const key = is_usable_identity_key(vault.identity_key)
+    ? await derive_onboarding_key(vault)
+    : null;
   const encrypted_data = Uint8Array.from(atob(encrypted), (c) =>
     c.charCodeAt(0),
   );

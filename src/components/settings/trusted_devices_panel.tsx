@@ -59,6 +59,7 @@ import {
   app_relative_dates,
   get_display_time_zone,
 } from "@/utils/date_format";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const BRIDGE_LAUNCH_TIMEOUT_MS = 2500;
 const BRIDGE_HINT_TOAST_MS = 10000;
@@ -240,9 +241,7 @@ export function TrustedDevicesPanel() {
       () => dismiss_toast(opening_toast_id),
       () => show_bridge_not_opened(opening_toast_id),
     );
-    const is_tauri =
-      typeof window !== "undefined" &&
-      ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+    const is_tauri = has_tauri_runtime();
 
     if (is_tauri) {
       try {

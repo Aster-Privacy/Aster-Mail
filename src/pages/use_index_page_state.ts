@@ -91,6 +91,11 @@ import { subscribe_mailto_drafts } from "@/native/desktop_mailto_bridge";
 import { subscribe_notification_opens } from "@/native/desktop_notification_bridge";
 import { open_message_in_view_mode } from "@/components/toast/toast_action_router";
 import { on_user_opened_mail } from "@/services/user_opened_mail";
+import { resolve_welcome_auto_open } from "@/lib/stale_open_email";
+import {
+  FORWARD_AS_ATTACHMENT_EVENT,
+  type ForwardAsAttachmentDetail,
+} from "@/services/forward_as_attachment";
 import {
   build_alias_view,
   parse_alias_direction,
@@ -147,6 +152,7 @@ export function use_index_page_state() {
     show_modal: show_rotation_modal,
     key_age_hours,
     key_fingerprint,
+    removed_key_count: rotation_removed_key_count,
     perform_rotation,
     close_modal: close_rotation_modal,
   } = use_key_rotation();
@@ -609,18 +615,23 @@ export function use_index_page_state() {
 
     if (!should_open) return;
     if (location.hash.startsWith("#")) return;
-    if (Object.keys(email_subject_map).length === 0) return;
 
-    const welcome_entry = Object.entries(email_subject_map).find(
-      ([, subject]) => subject.toLowerCase().includes("welcome to aster"),
-    );
+    const welcome = resolve_welcome_auto_open(email_subject_map);
 
-    if (welcome_entry) {
-      has_auto_opened_welcome.current = true;
-      localStorage.removeItem("show_onboarding");
-      handle_navigate_to(welcome_entry[0]);
+    if (welcome.kind === "wait") return;
+
+    has_auto_opened_welcome.current = true;
+    localStorage.removeItem("show_onboarding");
+
+    if (welcome.kind !== "open") return;
+
+    set_preview_local_email(null);
+    if (use_popup_mode) {
+      set_popup_email_id(welcome.email_id);
+    } else {
+      set_split_email_id(welcome.email_id);
     }
-  }, [email_subject_map, handle_navigate_to, location.hash]);
+  }, [email_subject_map, location.hash, use_popup_mode]);
 
   const handle_email_click = useCallback(
     (id: string) => {
@@ -1264,6 +1275,30 @@ export function use_index_page_state() {
   }, [is_mobile, open_compose_instance, t]);
 
   useEffect(() => {
+    const handle_forward_as_attachment = (e: Event) => {
+      const detail = (e as CustomEvent<ForwardAsAttachmentDetail>).detail;
+
+      if (!detail?.files?.length) return;
+      close_settings();
+      open_compose_instance(null, undefined, undefined, {
+        initial_attachments: detail.files,
+        initial_subject: detail.subject,
+      });
+    };
+
+    window.addEventListener(
+      FORWARD_AS_ATTACHMENT_EVENT,
+      handle_forward_as_attachment,
+    );
+
+    return () =>
+      window.removeEventListener(
+        FORWARD_AS_ATTACHMENT_EVENT,
+        handle_forward_as_attachment,
+      );
+  }, [close_settings, open_compose_instance]);
+
+  useEffect(() => {
     const handle_prefilled_compose = (e: Event) => {
       const detail = (e as CustomEvent).detail as {
         to: string[];
@@ -1875,6 +1910,7 @@ export function use_index_page_state() {
     show_rotation_modal,
     key_age_hours,
     key_fingerprint,
+    rotation_removed_key_count,
     perform_rotation,
     close_rotation_modal,
     unsubscribe_sender,

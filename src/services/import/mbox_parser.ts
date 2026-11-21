@@ -28,6 +28,7 @@ import {
   generate_message_id,
   bytes_to_binary_string,
   trim_ascii_whitespace,
+  may_carry_attachments,
 } from "./mime_utils";
 
 import { get_active_translations } from "@/lib/i18n/translations";
@@ -81,8 +82,7 @@ export async function* iterate_mbox_segments(
       new Uint8Array(await slice.arrayBuffer()),
     );
 
-    const separator_pattern =
-      /^From [^\r\n]+\r?\n(?=[\x21-\x39\x3b-\x7e]+:)/gm;
+    const separator_pattern = /^From [^\r\n]+\r?\n(?=[\x21-\x39\x3b-\x7e]+:)/gm;
     const segments: string[] = [];
 
     separator_pattern.lastIndex = body_start;
@@ -148,6 +148,7 @@ export function parse_mbox_header_summary(raw_email: string): ParsedEmail {
     html_body: null,
     text_body: null,
     attachments: [],
+    attachment_hint: may_carry_attachments(headers["content-type"]),
     raw_headers,
   };
 }

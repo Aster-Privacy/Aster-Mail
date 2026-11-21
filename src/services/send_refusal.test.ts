@@ -20,7 +20,10 @@
 //
 import { describe, expect, it } from "vitest";
 
-import { describe_send_refusal } from "./send_refusal";
+import {
+  describe_send_refusal,
+  describe_sender_refusal,
+} from "./send_refusal";
 
 import { en } from "@/lib/i18n/translations/en";
 
@@ -155,5 +158,25 @@ describe("describe_send_refusal", () => {
       expect(refusal).not.toBeNull();
       expect(refusal?.message).not.toMatch(/\{\{[a-z_]+\}\}/);
     }
+  });
+});
+
+describe("alias sending disabled refusal", () => {
+  it("shows the exact message on every send path", () => {
+    const source = {
+      code: "FORBIDDEN",
+      server_code: "ALIAS_SENDING_DISABLED",
+    };
+
+    expect(en.errors.alias_sending_disabled).toBe(
+      "Sending from this alias is disabled. First enable it.",
+    );
+    expect(describe_send_refusal(source)).toEqual({
+      kind: "send_failed",
+      message: en.errors.alias_sending_disabled,
+    });
+    expect(describe_sender_refusal(source)).toBe(
+      en.errors.alias_sending_disabled,
+    );
   });
 });

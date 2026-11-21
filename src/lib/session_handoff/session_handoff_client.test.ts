@@ -21,6 +21,7 @@
 import { describe, it, expect, vi } from "vitest";
 
 import {
+  await_sibling_approval,
   request_sibling_session,
   type HandoffChannel,
   type HandoffConsumerDeps,
@@ -33,6 +34,8 @@ import {
 
 const USER_ID = "3f2a8c1e-5b4d-4e6f-9a7b-1c2d3e4f5a6b";
 const OTHER_ID = "9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
+const GRANT = "g".repeat(43);
+const WITH_GRANT = { grant: GRANT };
 
 const session = {
   user: { id: USER_ID, username: "alex", email: "alex@astermail.org" },
@@ -87,11 +90,11 @@ describe("request_sibling_session", () => {
     const { channel, sent, close } = fake_channel([available, session_reply]);
     const { deps, open_channel } = make_deps(channel);
 
-    expect(await request_sibling_session(deps)).toEqual(session);
+    expect(await request_sibling_session(deps, WITH_GRANT)).toEqual(session);
     expect(open_channel).toHaveBeenCalledWith(CALENDAR_WEB_ORIGIN);
     expect(sent).toEqual([
-      build_handoff_message({ type: "probe" }),
-      build_handoff_message({ type: "request", user_id: USER_ID }),
+      build_handoff_message({ type: "probe", grant: GRANT, wait: false }),
+      build_handoff_message({ type: "request", grant: GRANT, user_id: USER_ID }),
     ]);
     expect(close).toHaveBeenCalledTimes(1);
   });
@@ -104,9 +107,9 @@ describe("request_sibling_session", () => {
       has_session_cookie: () => false,
     });
 
-    expect(await request_sibling_session(first.deps)).toBeNull();
+    expect(await request_sibling_session(first.deps, WITH_GRANT)).toBeNull();
     expect(first.open_channel).not.toHaveBeenCalled();
-    expect(await request_sibling_session(second.deps)).toBeNull();
+    expect(await request_sibling_session(second.deps, WITH_GRANT)).toBeNull();
     expect(second.open_channel).not.toHaveBeenCalled();
   });
 
@@ -115,7 +118,7 @@ describe("request_sibling_session", () => {
     const { channel, sent, close } = fake_channel([not_available]);
     const { deps } = make_deps(channel, { verify_server_session: verify });
 
-    expect(await request_sibling_session(deps)).toBeNull();
+    expect(await request_sibling_session(deps, WITH_GRANT)).toBeNull();
     expect(verify).not.toHaveBeenCalled();
     expect(sent).toHaveLength(1);
     expect(close).toHaveBeenCalled();
@@ -127,7 +130,7 @@ describe("request_sibling_session", () => {
       verify_server_session: async () => null,
     });
 
-    expect(await request_sibling_session(deps)).toBeNull();
+    expect(await request_sibling_session(deps, WITH_GRANT)).toBeNull();
     expect(sent).toHaveLength(1);
   });
 
@@ -136,7 +139,10 @@ describe("request_sibling_session", () => {
     const { deps } = make_deps(channel);
 
     expect(
-      await request_sibling_session(deps, { expected_user_id: OTHER_ID }),
+      await request_sibling_session(deps, {
+        grant: GRANT,
+        expected_user_id: OTHER_ID,
+      }),
     ).toBeNull();
     expect(sent).toHaveLength(1);
   });
@@ -145,7 +151,7 @@ describe("request_sibling_session", () => {
     const { channel, sent } = fake_channel([available, session_reply]);
     const { deps } = make_deps(channel, { has_local_lock: () => true });
 
-    expect(await request_sibling_session(deps)).toBeNull();
+    expect(await request_sibling_session(deps, WITH_GRANT)).toBeNull();
     expect(sent).toHaveLength(1);
   });
 
@@ -157,7 +163,7 @@ describe("request_sibling_session", () => {
     const { channel, close } = fake_channel([available, reply]);
     const { deps } = make_deps(channel);
 
-    expect(await request_sibling_session(deps)).toBeNull();
+    expect(await request_sibling_session(deps, WITH_GRANT)).toBeNull();
     expect(close).toHaveBeenCalled();
   });
 
@@ -174,7 +180,7 @@ describe("request_sibling_session", () => {
       const { channel, close } = fake_channel([...replies]);
       const { deps } = make_deps(channel);
 
-      expect(await request_sibling_session(deps)).toBeNull();
+      expect(await request_sibling_session(deps, WITH_GRANT)).toBeNull();
       expect(close).toHaveBeenCalled();
     }
   });
@@ -182,7 +188,7 @@ describe("request_sibling_session", () => {
   it("returns null when the channel cannot open", async () => {
     const { deps } = make_deps(null);
 
-    expect(await request_sibling_session(deps)).toBeNull();
+    expect(await request_sibling_session(deps, WITH_GRANT)).toBeNull();
   });
 
   it("closes the channel when a dependency throws", async () => {
@@ -193,7 +199,65 @@ describe("request_sibling_session", () => {
       },
     });
 
-    expect(await request_sibling_session(deps)).toBeNull();
+    expect(await request_sibling_session(deps, WITH_GRANT)).toBeNull();
     expect(close).toHaveBeenCalled();
+  });
+
+  it("does nothing without a well-formed grant", async () => {
+    for (const grant of ["", "short", "g".repeat(44), "g".repeat(42) + "!"]) {
+      const { deps, open_channel } = make_deps(fake_channel([]).channel);
+
+      expect(await request_sibling_session(deps, { grant })).toBeNull();
+      expect(open_channel).not.toHaveBeenCalled();
+    }
+  });
+});
+
+describe("await_sibling_approval", () => {
+  it("waits on the grant through the sibling bridge", async () => {
+    const { channel, sent, close } = fake_channel([available]);
+    const open_channel = vi.fn(async (_origin: string) => channel);
+
+    expect(await await_sibling_approval(MAIL_WEB_ORIGIN, GRANT, open_channel)).toBe(
+      true,
+    );
+    expect(open_channel).toHaveBeenCalledWith(CALENDAR_WEB_ORIGIN);
+    expect(sent).toEqual([
+      build_handoff_message({ type: "probe", grant: GRANT, wait: true }),
+    ]);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a refusal, a timeout, or a broken channel", async () => {
+    const cases: unknown[][] = [[not_available], []];
+
+    for (const replies of cases) {
+      const { channel, close } = fake_channel([...replies]);
+
+      expect(
+        await await_sibling_approval(MAIL_WEB_ORIGIN, GRANT, async () => channel),
+      ).toBe(false);
+      expect(close).toHaveBeenCalled();
+    }
+    expect(
+      await await_sibling_approval(MAIL_WEB_ORIGIN, GRANT, async () => null),
+    ).toBe(false);
+    expect(
+      await await_sibling_approval(MAIL_WEB_ORIGIN, GRANT, async () => {
+        throw new Error("frame");
+      }),
+    ).toBe(false);
+  });
+
+  it("refuses an unknown origin or a malformed grant", async () => {
+    const open_channel = vi.fn(async () => fake_channel([available]).channel);
+
+    expect(
+      await await_sibling_approval("https://other.example", GRANT, open_channel),
+    ).toBe(false);
+    expect(await await_sibling_approval(MAIL_WEB_ORIGIN, "x", open_channel)).toBe(
+      false,
+    );
+    expect(open_channel).not.toHaveBeenCalled();
   });
 });

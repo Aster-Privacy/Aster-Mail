@@ -58,6 +58,7 @@ export interface ProcessedEnvelope {
   e2e_sender_bound: boolean;
   e2e_details_sealed?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
+  decrypted_content_tag?: string;
 }
 
 function as_displayable(value: unknown): string | undefined {
@@ -147,14 +148,26 @@ async function resolve_envelope_body(
       )
     : resolved_text;
 
-  const ratchet_verified = is_ratchet_verified_body(resolved_text, body_text);
+  const ratchet_verified = is_ratchet_verified_body(
+    resolved_text,
+    body_text,
+    message_id,
+  );
 
   resolved_html = sealed_html_source(resolved_html, ratchet_verified);
   const pre_pgp_text = body_text;
 
-  const pgp = await resolve_inbound_pgp_body(body_text, envelope.from?.email);
+  const pgp = await resolve_inbound_pgp_body(
+    body_text,
+    envelope.from?.email,
+    message_id,
+  );
 
   body_text = pgp.body;
+
+  if (pgp.decrypted && pgp.sender_verification) {
+    envelope.sender_verification = pgp.sender_verification;
+  }
 
   if (is_password_protected_body(body_text)) {
     return {
@@ -245,6 +258,9 @@ async function resolve_envelope_body(
     unsubscribe_info: unsubscribe ?? undefined,
     ...verification,
     e2e_details_sealed,
+    ...(pgp.decrypted_content_tag
+      ? { decrypted_content_tag: pgp.decrypted_content_tag }
+      : {}),
   };
 }
 
@@ -287,6 +303,7 @@ export function build_single_thread_message(
   sent_encryption_scope?: SentEncryptionScope,
   e2e_sender_bound = false,
   e2e_details_sealed = false,
+  decrypted_content_tag?: string,
 ): DecryptedThreadMessage {
   const forwarding = resolve_forwarding_display(
     envelope.from,
@@ -321,6 +338,7 @@ export function build_single_thread_message(
     e2e_sender_bound,
     e2e_details_sealed,
     ...(sent_encryption_scope ? { sent_encryption_scope } : {}),
+    ...(decrypted_content_tag ? { decrypted_content_tag } : {}),
     sender_verified_domain: item.sender_verified
       ? item.sender_verified_domain
       : undefined,

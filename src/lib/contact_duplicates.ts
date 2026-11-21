@@ -20,6 +20,9 @@
 //
 import type { ContactFormData, DecryptedContact } from "@/types/contacts";
 
+import { merge_related_people } from "@/utils/contact_relations";
+import { merge_social_networks } from "@/utils/contact_socials";
+
 export const DUPLICATE_THRESHOLD = 70;
 
 const MAX_COMPARED_CONTACTS = 4000;
@@ -309,9 +312,13 @@ export const merge_contacts = (
     address_entries: first_defined(ordered, (c) => c.address_entries),
     websites: first_defined(ordered, (c) => c.websites),
     date_entries: first_defined(ordered, (c) => c.date_entries),
-    related_people: first_defined(ordered, (c) => c.related_people),
+    related_people: merge_related_people(
+      ordered.map((contact) => contact.related_people),
+    ),
     instant_messengers: first_defined(ordered, (c) => c.instant_messengers),
-    social_networks: first_defined(ordered, (c) => c.social_networks),
+    social_networks: merge_social_networks(
+      ordered.map((contact) => contact.social_networks),
+    ),
   };
 
   if (!merged.first_name && !merged.last_name && primary) {

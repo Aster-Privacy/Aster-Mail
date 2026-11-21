@@ -58,3 +58,45 @@ export function identity_addresses_for(address: string): string[] {
 
   return [trimmed, `${dotless}@${trimmed.slice(at + 1)}`];
 }
+
+export function strip_plus_tag(address: string): string {
+  const trimmed = address.trim();
+  const at = trimmed.lastIndexOf("@");
+
+  if (at <= 0) return trimmed;
+  const local_part = trimmed.slice(0, at);
+  const plus = local_part.indexOf("+");
+
+  if (plus <= 0) return trimmed;
+
+  return local_part.slice(0, plus) + trimmed.slice(at);
+}
+
+export function sender_identity_forms(address: string): Set<string> {
+  const forms = new Set<string>();
+  const trimmed = address?.trim();
+
+  if (!trimmed) return forms;
+
+  for (const candidate of [trimmed, strip_plus_tag(trimmed)]) {
+    for (const form of identity_addresses_for(candidate)) {
+      forms.add(form.toLowerCase());
+    }
+  }
+
+  return forms;
+}
+
+export function same_sender_identity(
+  left: string | null | undefined,
+  right: string | null | undefined,
+): boolean {
+  if (!left?.trim() || !right?.trim()) return false;
+  const left_forms = sender_identity_forms(left);
+
+  for (const form of sender_identity_forms(right)) {
+    if (left_forms.has(form)) return true;
+  }
+
+  return false;
+}

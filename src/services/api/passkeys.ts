@@ -254,6 +254,7 @@ export async function register_platform_passkey(
 
   const resolved_name = friendly_name ?? get_platform_passkey_name();
   const options = options_response.data;
+  const prefer_this_device = await is_platform_passkey_available();
   const public_key: PublicKeyCredentialCreationOptions = {
     challenge: base64url_to_array_buffer(options.challenge),
     rp: { name: options.rp.name, id: options.rp.id },
@@ -274,12 +275,13 @@ export async function register_platform_passkey(
     timeout: options.timeout,
     attestation: options.attestation as AttestationConveyancePreference,
     authenticatorSelection: {
-      authenticatorAttachment: "platform",
+      ...(prefer_this_device
+        ? { authenticatorAttachment: "platform" as AuthenticatorAttachment }
+        : {}),
       residentKey: "required",
       userVerification: "required",
     },
-    // WebAuthn L3 hint - reinforces platform-only request to browsers/extensions
-    ...({ hints: ["client-device"] } as object),
+    ...(prefer_this_device ? ({ hints: ["client-device"] } as object) : {}),
   };
 
   let credential: PublicKeyCredential | null;

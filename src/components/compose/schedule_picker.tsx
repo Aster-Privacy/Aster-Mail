@@ -258,7 +258,7 @@ export function SchedulePicker({
           <span>{format_datetime_hint(scheduled_time, false)}</span>
           <button
             aria-label={t("common.clear")}
-            className="ms-0.5 hover:bg-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded p-0.5 transition-colors disabled:opacity-50"
+            className="ms-0.5 hover:bg-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded p-0.5 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             disabled={disabled}
             type="button"
             onClick={handle_clear}
@@ -277,7 +277,7 @@ export function SchedulePicker({
           {trigger ?? (
             <button
               aria-label={t(tooltip_key)}
-              className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
+              className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary disabled:cursor-not-allowed disabled:opacity-50"
               disabled={disabled}
               type="button"
             >

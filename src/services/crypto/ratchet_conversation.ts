@@ -20,7 +20,8 @@
 //
 import { array_to_base64 } from "./base64";
 import { load_storage_write_key_bytes } from "./storage_write_key";
-import { derive_ratchet_encryption_key } from "./ratchet_sync";
+import { get_vault_from_memory } from "./memory_key_store";
+import { derive_ratchet_sync_key, type RatchetSyncKey } from "./ratchet_sync";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
@@ -63,14 +64,41 @@ export async function run_serialized_for_conversation<T>(
   return current;
 }
 
-export async function get_sync_encryption_key(): Promise<CryptoKey | null> {
+export async function get_sync_encryption_key(): Promise<RatchetSyncKey | null> {
+  const { get_current_account } = await import("@/services/account_manager");
+  const user_id = (await get_current_account())?.user?.id;
+
+  if (!user_id) return null;
+
   const master_key = await load_storage_write_key_bytes();
 
   if (!master_key) return null;
 
-  const key = await derive_ratchet_encryption_key(master_key);
+  try {
+    if (get_vault_from_memory()?.data_kek_random !== true) return null;
 
-  master_key.fill(0);
+    return await derive_ratchet_sync_key(master_key, user_id);
+  } finally {
+    master_key.fill(0);
+  }
+}
 
-  return key;
+const SYNC_KEY_ATTEMPTS = 6;
+const SYNC_KEY_RETRY_MS = 2000;
+
+export async function wait_for_sync_encryption_key(
+  attempts: number = SYNC_KEY_ATTEMPTS,
+  retry_ms: number = SYNC_KEY_RETRY_MS,
+): Promise<RatchetSyncKey | null> {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const sync_key = await get_sync_encryption_key().catch(() => null);
+
+    if (sync_key) return sync_key;
+
+    if (attempt + 1 < attempts) {
+      await new Promise((resolve) => setTimeout(resolve, retry_ms));
+    }
+  }
+
+  return null;
 }

@@ -85,6 +85,7 @@ import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { api_client } from "@/services/api/client";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import { SignInAppsRow } from "@/components/layout/sign_in_apps_row";
+import { SiblingSessionButton } from "@/pages/sign_in/sibling_session_button";
 import {
   clear_pending_login_enrollment,
   derive_sign_in_proof,
@@ -259,6 +260,8 @@ export default function SignInPage() {
             session.passphrase,
             session.encrypted_vault,
             session.vault_nonce,
+            true,
+            session.vault_recovered_write_count,
           );
 
           if (!add_result.success) {
@@ -271,6 +274,8 @@ export default function SignInPage() {
             session.passphrase,
             session.encrypted_vault,
             session.vault_nonce,
+            true,
+            session.vault_recovered_write_count,
           );
         }
       } catch (err) {
@@ -643,6 +648,7 @@ export default function SignInPage() {
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,
+            response.data.vault_recovered_write_count,
           ),
         );
 
@@ -663,6 +669,7 @@ export default function SignInPage() {
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,
+            response.data.vault_recovered_write_count,
           ),
         );
       }
@@ -1190,6 +1197,7 @@ export default function SignInPage() {
               {t("auth.create_account")}
             </Button>
 
+            {!is_adding_account && <SiblingSessionButton />}
             {!is_adding_account && <SignInAppsRow />}
           </motion.div>
         </AnimatePresence>

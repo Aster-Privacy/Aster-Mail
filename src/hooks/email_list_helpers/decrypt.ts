@@ -20,6 +20,7 @@
 //
 import type { DecryptedEnvelope } from "@/types/email";
 
+import { is_server_sealed_envelope_marker } from "@/components/email/shared/envelope_markers";
 import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
 import {
   get_passphrase_bytes,
@@ -32,6 +33,10 @@ import {
 import { on_account_keys_added } from "@/services/crypto/account_key_events";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
 import {
+  keys_added_by_recovery,
+  recover_pgp_keys_from_history,
+} from "@/services/crypto/vault_key_recovery";
+import {
   adopt_refreshed_vault,
   fetch_refreshed_vault,
 } from "@/services/crypto/vault_refresh";
@@ -43,9 +48,12 @@ import {
   normalize_envelope_from,
 } from "@/services/crypto/envelope";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { decrypt_envelope_v2_with_vault } from "@/services/crypto/envelope_v2";
+import {
+  is_stored_envelope_sentinel,
+  open_stored_envelope,
+} from "@/services/crypto/stored_envelope_read";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
-import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
+import { decrypt_legacy_ios_mail_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { drop_sender_verification } from "@/services/crypto/sender_verification";
 
@@ -310,7 +318,20 @@ async function open_envelope(
 
             return opened_attempt(healed);
           }
+
+          pgp_keys.push(...refreshed_keys);
         }
+      }
+
+      const recovered_keys = keys_added_by_recovery(
+        await recover_pgp_keys_from_history().catch(() => null),
+        pgp_keys,
+      );
+
+      if (recovered_keys.length > 0) {
+        const recovered = await decrypt_pgp_with_keys(recovered_keys);
+
+        if (recovered) return opened_attempt(recovered);
       }
 
       return EXHAUSTED_ATTEMPT;
@@ -319,14 +340,16 @@ async function open_envelope(
     }
   }
 
-  if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
+  if (is_stored_envelope_sentinel(nonce_bytes)) {
     const vault = get_vault_from_memory();
 
     if (!vault) return UNRESOLVED_ATTEMPT;
 
-    const result = await decrypt_envelope_v2_with_vault<DecryptedEnvelope>(
+    const result = await open_stored_envelope<DecryptedEnvelope>(
       encrypted,
+      nonce_bytes,
       vault,
+      mail_item_id,
     );
 
     return result ? opened_attempt(result) : EXHAUSTED_ATTEMPT;
@@ -354,7 +377,7 @@ async function open_envelope(
 
     if (
       nonce_bytes.length === 12 &&
-      (first_byte === 2 || first_byte === 3 || first_byte === 4)
+      is_server_sealed_envelope_marker(first_byte)
     ) {
       const { decrypt_mail_envelope } =
         await import("@/components/email/shared/decrypt_envelope");
@@ -416,7 +439,7 @@ async function open_envelope(
       }
     }
 
-    const legacy_plaintext = await decrypt_legacy_ios_envelope(
+    const legacy_plaintext = await decrypt_legacy_ios_mail_envelope(
       encrypted_bytes,
       nonce_bytes,
     );

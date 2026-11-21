@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 
 use tauri::{Emitter, Manager, State};
@@ -136,7 +138,7 @@ pub fn activate(app: &tauri::AppHandle, open: NotificationOpen) {
     queue_open(app, open, was_visible);
 
     if !was_visible {
-        let _ = window.eval("window.location.reload()");
+        let _ = window.eval(crate::RELOAD_WITHOUT_OPEN_EMAIL_JS);
     }
 
     crate::show_main_window(app);
@@ -176,8 +178,104 @@ pub async fn show_mail_notification(
         .map_err(|e| e.to_string())?
 }
 
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+const PORTAL_SLOTS: usize = 64;
+
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+const MAX_SERVER_IDS: usize = 256;
+
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+pub(crate) struct PortalSlots(AtomicUsize);
+
+#[cfg(all(unix, not(target_os = "macos")))]
+pub(crate) static PORTAL_SLOTS_IN_USE: PortalSlots = PortalSlots::new();
+
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+fn portal_slot_id(slot: usize) -> String {
+    format!("mail-{slot}")
+}
+
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+impl PortalSlots {
+    pub(crate) const fn new() -> Self {
+        Self(AtomicUsize::new(0))
+    }
+
+    pub(crate) fn next_id(&self) -> String {
+        portal_slot_id(self.0.fetch_add(1, Ordering::Relaxed) % PORTAL_SLOTS)
+    }
+
+    pub(crate) fn ids_to_remove(&self) -> Vec<String> {
+        (0..PORTAL_SLOTS).map(portal_slot_id).collect()
+    }
+}
+
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+pub(crate) struct ServerIds(Mutex<Vec<u32>>);
+
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+impl ServerIds {
+    pub(crate) const fn new() -> Self {
+        Self(Mutex::new(Vec::new()))
+    }
+
+    pub(crate) fn remember(&self, id: u32) {
+        let mut ids = self.0.lock().unwrap_or_else(|e| e.into_inner());
+
+        if ids.len() >= MAX_SERVER_IDS {
+            ids.remove(0);
+        }
+        ids.push(id);
+    }
+
+    pub(crate) fn take(&self) -> Vec<u32> {
+        std::mem::take(&mut *self.0.lock().unwrap_or_else(|e| e.into_inner()))
+    }
+}
+
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+pub(crate) fn close_each<T>(
+    ids: Vec<T>,
+    mut close: impl FnMut(T) -> std::result::Result<(), String>,
+) -> std::result::Result<(), String> {
+    let mut first_error = None;
+
+    for id in ids {
+        if let Err(error) = close(id) {
+            first_error.get_or_insert(error);
+        }
+    }
+
+    first_error.map_or(Ok(()), Err)
+}
+
+#[cfg(any(test, all(unix, not(target_os = "macos"))))]
+pub(crate) async fn remove_portal_notifications<F, Fut>(
+    ids: Vec<String>,
+    remove: F,
+) -> std::result::Result<(), String>
+where
+    F: Fn(String) -> Fut,
+    Fut: std::future::Future<Output = std::result::Result<(), String>>,
+{
+    let mut first_error = None;
+
+    for id in ids {
+        if let Err(error) = remove(id).await {
+            first_error.get_or_insert(error);
+        }
+    }
+
+    first_error.map_or(Ok(()), Err)
+}
+
 #[tauri::command]
 pub async fn clear_mail_notifications(app: tauri::AppHandle) -> std::result::Result<(), String> {
+    #[cfg(all(unix, not(target_os = "macos")))]
+    if crate::flatpak::is_flatpak() {
+        return crate::flatpak::notification::clear(&app).await;
+    }
+
     tauri::async_runtime::spawn_blocking(move || platform::clear(&app))
         .await
         .map_err(|e| e.to_string())?
@@ -251,7 +349,7 @@ mod platform {
     }
 }
 
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
 mod platform {
     use tauri_plugin_notification::NotificationExt;
 
@@ -269,14 +367,246 @@ mod platform {
             .map_err(|e| e.to_string())
     }
 
+    #[allow(deprecated)]
+    pub fn remove_delivered() -> bool {
+        use objc2::{msg_send, rc::Retained, ClassType};
+        use objc2_foundation::NSUserNotificationCenter;
+
+        let center: Option<Retained<NSUserNotificationCenter>> = unsafe {
+            msg_send![
+                NSUserNotificationCenter::class(),
+                defaultUserNotificationCenter
+            ]
+        };
+
+        match center {
+            Some(center) => {
+                center.removeAllDeliveredNotifications();
+                true
+            }
+            None => false,
+        }
+    }
+
     pub fn clear(_app: &tauri::AppHandle) -> std::result::Result<(), String> {
+        remove_delivered();
+
         Ok(())
+    }
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+mod platform {
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+
+    use notify_rust::{Hint, Notification};
+    use zbus::blocking::Connection;
+    use zbus::zvariant::Value;
+
+    use super::{close_each, ServerIds};
+
+    const BUS_NAME: &str = "org.freedesktop.Notifications";
+    const BUS_PATH: &str = "/org/freedesktop/Notifications";
+    const BUS_INTERFACE: &str = "org.freedesktop.Notifications";
+    const DEFAULT_TIMEOUT: i32 = -1;
+
+    static SHOWN: ServerIds = ServerIds::new();
+    static CONNECTION: Mutex<Option<Connection>> = Mutex::new(None);
+
+    pub fn build_notification(title: &str, body: &str) -> Notification {
+        Notification::new()
+            .summary(title)
+            .body(body)
+            .auto_icon()
+            .hint(Hint::Transient(true))
+            .finalize()
+    }
+
+    pub fn server_hints(notification: &Notification) -> HashMap<&'static str, Value<'static>> {
+        notification
+            .hints
+            .iter()
+            .filter_map(|hint| match hint {
+                Hint::Transient(value) => Some(("transient", Value::from(*value))),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn with_connection<T>(
+        call: impl FnOnce(&Connection) -> zbus::Result<T>,
+    ) -> std::result::Result<T, String> {
+        let mut slot = CONNECTION.lock().unwrap_or_else(|e| e.into_inner());
+
+        if slot.is_none() {
+            *slot = Some(Connection::session().map_err(|e| e.to_string())?);
+        }
+
+        let result = slot.as_ref().map(call).ok_or("no session bus")?;
+
+        if result.is_err() {
+            *slot = None;
+        }
+
+        result.map_err(|e| e.to_string())
+    }
+
+    pub fn show(
+        _app: &tauri::AppHandle,
+        title: &str,
+        body: &str,
+        _launch: &str,
+    ) -> std::result::Result<(), String> {
+        let notification = build_notification(title, body);
+        let hints = server_hints(&notification);
+        let actions: Vec<String> = Vec::new();
+
+        let server_id = with_connection(|connection| {
+            connection
+                .call_method(
+                    Some(BUS_NAME),
+                    BUS_PATH,
+                    Some(BUS_INTERFACE),
+                    "Notify",
+                    &(
+                        &notification.appname,
+                        0u32,
+                        &notification.icon,
+                        &notification.summary,
+                        &notification.body,
+                        &actions,
+                        &hints,
+                        DEFAULT_TIMEOUT,
+                    ),
+                )?
+                .body()
+                .deserialize::<u32>()
+        })?;
+        SHOWN.remember(server_id);
+
+        Ok(())
+    }
+
+    pub fn clear(_app: &tauri::AppHandle) -> std::result::Result<(), String> {
+        let ids = SHOWN.take();
+
+        if ids.is_empty() {
+            return Ok(());
+        }
+
+        close_each(ids, |id| {
+            with_connection(|connection| {
+                connection
+                    .call_method(
+                        Some(BUS_NAME),
+                        BUS_PATH,
+                        Some(BUS_INTERFACE),
+                        "CloseNotification",
+                        &(id,),
+                    )
+                    .map(|_| ())
+            })
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
+
+    fn remove_portal(
+        ids: Vec<String>,
+        fail_on: &str,
+    ) -> (Vec<String>, std::result::Result<(), String>) {
+        let removed = Mutex::new(Vec::new());
+        let result = tauri::async_runtime::block_on(remove_portal_notifications(ids, |id| {
+            let failed = id == fail_on;
+            removed.lock().unwrap().push(id);
+            async move {
+                if failed {
+                    Err("portal refused".to_string())
+                } else {
+                    Ok(())
+                }
+            }
+        }));
+
+        (removed.into_inner().unwrap(), result)
+    }
+
+    #[test]
+    fn portal_clear_reaches_notifications_shown_before_a_restart() {
+        let before_restart = PortalSlots::new();
+        let shown_earlier = before_restart.next_id();
+        let after_restart = PortalSlots::new();
+
+        let (removed, result) = remove_portal(after_restart.ids_to_remove(), "");
+
+        assert!(removed.contains(&shown_earlier));
+        assert_eq!(removed.len(), PORTAL_SLOTS);
+        assert_eq!(result, Ok(()));
+    }
+
+    #[test]
+    fn portal_slots_reuse_ids_that_clear_removes() {
+        let slots = PortalSlots::new();
+        let shown: Vec<String> = (0..PORTAL_SLOTS + 3).map(|_| slots.next_id()).collect();
+        let to_remove = slots.ids_to_remove();
+
+        assert!(shown.iter().all(|id| to_remove.contains(id)));
+        assert_eq!(shown[PORTAL_SLOTS], shown[0]);
+    }
+
+    #[test]
+    fn portal_clear_keeps_removing_after_an_error() {
+        let ids = vec!["mail-0".to_string(), "mail-1".to_string()];
+
+        let (removed, result) = remove_portal(ids.clone(), "mail-0");
+
+        assert_eq!(removed, ids);
+        assert_eq!(result, Err("portal refused".to_string()));
+    }
+
+    #[test]
+    fn server_ids_close_once_and_keep_the_newest() {
+        let ids = ServerIds::new();
+        for id in 0..(MAX_SERVER_IDS as u32 + 2) {
+            ids.remember(id);
+        }
+
+        let mut closed = Vec::new();
+        let result = close_each(ids.take(), |id| {
+            closed.push(id);
+            if id == 5 {
+                Err("server refused".to_string())
+            } else {
+                Ok(())
+            }
+        });
+
+        assert_eq!(closed.len(), MAX_SERVER_IDS);
+        assert_eq!(closed.first(), Some(&2));
+        assert_eq!(result, Err("server refused".to_string()));
+        assert!(ids.take().is_empty());
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    #[test]
+    fn desktop_notifications_skip_the_server_history() {
+        let notification = platform::build_notification("Sender", "Subject");
+
+        assert_eq!(notification.summary, "Sender");
+        assert_eq!(notification.body, "Subject");
+        assert!(notification
+            .hints
+            .contains(&notify_rust::Hint::Transient(true)));
+        assert_eq!(
+            platform::server_hints(&notification).get("transient"),
+            Some(&zbus::zvariant::Value::from(true))
+        );
+    }
 
     #[test]
     fn builds_and_parses_open_urls() {
@@ -351,6 +681,12 @@ mod tests {
             None
         );
         assert_eq!(open_from_args(["exe", "--flag"]), None);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn clearing_without_a_notification_center_returns_quietly() {
+        assert!(!platform::remove_delivered());
     }
 
     #[test]

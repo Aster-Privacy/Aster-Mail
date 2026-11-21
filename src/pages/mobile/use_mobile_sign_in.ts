@@ -223,6 +223,7 @@ export function use_mobile_sign_in() {
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
               remember_me,
+              totp_response.vault_recovered_write_count,
             ),
           );
 
@@ -245,6 +246,7 @@ export function use_mobile_sign_in() {
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
               remember_me,
+              totp_response.vault_recovered_write_count,
             ),
           );
         }

@@ -119,6 +119,8 @@ export function ContactsContent({
           on_restore_contact={state.handle_restore_contact}
           on_scroll_to_letter={state.scroll_to_letter}
           on_set_group_filter={state.handle_set_group_filter}
+          on_refresh_group_memberships={state.refresh_group_memberships}
+          on_set_group_members={state.handle_set_contacts_group_membership}
           on_set_group_membership={state.handle_set_group_membership}
           on_toggle_favorite_selected={state.handle_toggle_favorite_selected}
           on_toggle_select={state.handle_toggle_select}

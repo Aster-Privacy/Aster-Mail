@@ -55,6 +55,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_crypto_invoice_page } from "@/pages/crypto_invoice/prefetch";
 import { Notice, TicketDivider } from "@/pages/crypto_invoice/ui";
 import { notify_crypto_invoice_changed } from "@/components/settings/billing/billing_constants";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 type TermMonths = 1 | 3 | 6 | 12 | 24;
 type Step = "term" | "method";
@@ -248,8 +249,7 @@ export function crypto_addon_term_modal({
   const handle_stripe = async () => {
     set_is_loading(true);
     try {
-      const is_tauri =
-        typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const is_tauri = has_tauri_runtime();
       const origin = is_tauri
         ? "https://app.astermail.org"
         : window.location.origin;

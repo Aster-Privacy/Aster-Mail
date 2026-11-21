@@ -18,11 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { Capacitor } from "@capacitor/core";
+
 import { is_onion_host } from "@/lib/onion_host";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 import { curate_gallery_items } from "@/services/profile_picture_curation";
 import { connection_store } from "@/services/routing/connection_store";
 
-const GALLERY_BASE = "https://aster-wallpapers.pages.dev";
+const NATIVE_GALLERY_BASE = "https://app.astermail.org/gallery";
+const WEB_GALLERY_BASE = "/gallery";
 const MANIFEST_TIMEOUT_MS = 15000;
 const MAX_ITEMS = 2000;
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]{0,80}$/;
@@ -113,12 +117,18 @@ function assert_gallery_available(): void {
   }
 }
 
+function gallery_base(): string {
+  const is_native = Capacitor.isNativePlatform() || has_tauri_runtime();
+
+  return is_native ? NATIVE_GALLERY_BASE : WEB_GALLERY_BASE;
+}
+
 export function gallery_thumb_url(slug: string): string {
-  return `${GALLERY_BASE}/thumb/${slug}.webp`;
+  return `${gallery_base()}/thumb/${slug}.webp`;
 }
 
 export function gallery_full_url(slug: string): string {
-  return `${GALLERY_BASE}/full/${slug}.webp`;
+  return `${gallery_base()}/full/${slug}.webp`;
 }
 
 async function request_manifest(): Promise<GalleryItem[]> {
@@ -131,7 +141,7 @@ async function request_manifest(): Promise<GalleryItem[]> {
   );
 
   try {
-    const response = await fetch(`${GALLERY_BASE}/manifest.json`, {
+    const response = await fetch(`${gallery_base()}/manifest.json`, {
       credentials: "omit",
       referrerPolicy: "no-referrer",
       signal: controller.signal,

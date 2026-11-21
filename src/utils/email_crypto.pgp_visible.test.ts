@@ -141,6 +141,8 @@ describe("undecryptable pgp armor stays visible", () => {
       body: "hello me",
       decrypted: true,
       verified: false,
+      sender_verification: "unsigned",
+      decrypted_content_tag: expect.any(String),
     });
   });
 });

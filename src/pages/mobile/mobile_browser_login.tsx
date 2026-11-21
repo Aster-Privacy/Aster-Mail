@@ -152,7 +152,7 @@ export default function MobileBrowserLoginPage() {
           </motion.p>
 
           <motion.div
-            className="mt-8 w-full max-w-[280px] rounded-2xl border border-[var(--border-secondary)] bg-[var(--bg-secondary)] p-6"
+            className="mt-8 w-full max-w-[280px] account_menu_card rounded-[18px] p-6"
             variants={reduce_motion ? undefined : fade_up_item}
           >
             <p className="text-center font-mono text-3xl font-bold tracking-[0.2em] text-[var(--text-primary)]">

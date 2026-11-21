@@ -657,6 +657,7 @@ export function SecuritySection({
         is_open={security.show_rotation_modal}
         key_age_hours={security.key_age_hours}
         key_fingerprint={security.key_fingerprint}
+        removed_key_count={security.rotation_removed_key_count}
         on_close={security.close_rotation_modal}
         on_rotate={security.perform_rotation}
       />

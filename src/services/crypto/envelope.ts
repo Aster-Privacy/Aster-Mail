@@ -21,17 +21,59 @@
 import { zero_uint8_array } from "./secure_memory";
 import { array_to_base64, base64_to_array } from "./base64";
 import { HASH_ALG } from "./key_manager_core";
+import { is_known_login_salt } from "./auth_salt_guard";
+import { MAIL_METADATA_CONTEXT } from "./constants";
 import { with_cached_envelope_key } from "./envelope_key_cache";
 import {
   normalize_envelope_from,
   normalize_envelope_recipients,
 } from "./envelope_normalize";
+import { settle_fallback_plaintext } from "./server_derivable_keks";
 
 import {
-  decrypt_aes_gcm_with_fallback,
-  decrypt_with_legacy_derived_keys,
+  decrypt_mail_envelope_with_fallback,
+  decrypt_mail_envelope_with_legacy_derived_keys,
+  open_aes_gcm_with_fallback,
+  open_mail_envelope_with_fallback,
 } from "@/services/crypto/legacy_keks";
+import { is_mail_legacy_retired } from "@/services/crypto/mail_legacy_retirement";
 import { ignore_error } from "@/lib/ignore_error";
+
+export interface MailKeyOptions {
+  allow_legacy_keys?: boolean;
+}
+
+function allows_legacy_mail_keys(options?: MailKeyOptions): boolean {
+  return options?.allow_legacy_keys ?? !is_mail_legacy_retired();
+}
+
+async function decrypt_mail_envelope_bytes(
+  primary_key: CryptoKey,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+  allow_legacy_keys: boolean,
+  passphrase_bytes?: Uint8Array,
+): Promise<ArrayBuffer> {
+  if (allow_legacy_keys) {
+    const opened = await open_mail_envelope_with_fallback(
+      primary_key,
+      ciphertext,
+      iv,
+    );
+
+    return settle_fallback_plaintext(
+      opened.plaintext,
+      opened.fallback_key,
+      passphrase_bytes,
+    );
+  }
+
+  return crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    primary_key,
+    ciphertext,
+  );
+}
 
 export { normalize_envelope_from, normalize_envelope_recipients };
 export { array_to_base64, base64_to_array, first_base64_byte } from "./base64";
@@ -192,6 +234,7 @@ export async function encrypt_envelope(
 export async function decrypt_envelope_plaintext_with_bytes(
   encrypted_data: string,
   passphrase_bytes: Uint8Array,
+  options?: MailKeyOptions,
 ): Promise<string | null> {
   try {
     const combined = base64_to_array(encrypted_data);
@@ -199,6 +242,9 @@ export async function decrypt_envelope_plaintext_with_bytes(
     if (combined.length <= SALT_LENGTH + NONCE_LENGTH) return null;
 
     const salt = combined.slice(0, SALT_LENGTH);
+
+    if (is_known_login_salt(salt)) return null;
+
     const nonce = combined.slice(SALT_LENGTH, SALT_LENGTH + NONCE_LENGTH);
     const ciphertext = combined.slice(SALT_LENGTH + NONCE_LENGTH);
 
@@ -207,11 +253,20 @@ export async function decrypt_envelope_plaintext_with_bytes(
       salt,
     );
 
-    const decrypted = await decrypt_aes_gcm_with_fallback(
-      crypto_key,
-      ciphertext,
-      nonce,
-    );
+    const decrypted = allows_legacy_mail_keys(options)
+      ? await open_aes_gcm_with_fallback(crypto_key, ciphertext, nonce).then(
+          (opened) =>
+            settle_fallback_plaintext(
+              opened.plaintext,
+              opened.fallback_key,
+              passphrase_bytes,
+            ),
+        )
+      : await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: nonce },
+          crypto_key,
+          ciphertext,
+        );
 
     return new TextDecoder("utf-8", { fatal: true }).decode(decrypted);
   } catch {
@@ -222,11 +277,15 @@ export async function decrypt_envelope_plaintext_with_bytes(
 export async function decrypt_envelope_with_bytes<T>(
   encrypted_data: string,
   passphrase_bytes: Uint8Array,
+  options?: MailKeyOptions,
 ): Promise<T | null> {
   try {
     const combined = base64_to_array(encrypted_data);
 
     const salt = combined.slice(0, SALT_LENGTH);
+
+    if (is_known_login_salt(salt)) return null;
+
     const nonce = combined.slice(SALT_LENGTH, SALT_LENGTH + NONCE_LENGTH);
     const ciphertext = combined.slice(SALT_LENGTH + NONCE_LENGTH);
 
@@ -235,10 +294,12 @@ export async function decrypt_envelope_with_bytes<T>(
       salt,
     );
 
-    const decrypted = await decrypt_aes_gcm_with_fallback(
+    const decrypted = await decrypt_mail_envelope_bytes(
       crypto_key,
       ciphertext,
       nonce,
+      allows_legacy_mail_keys(options),
+      passphrase_bytes,
     );
 
     const decoder = new TextDecoder();
@@ -291,6 +352,7 @@ export async function decrypt_envelope_with_identity_key<T>(
   encrypted_bytes: Uint8Array,
   nonce_bytes: Uint8Array,
   finalize: (plaintext: ArrayBuffer) => T,
+  options?: MailKeyOptions,
 ): Promise<T | null> {
   const finish = (decrypted: ArrayBuffer): T | null => {
     try {
@@ -327,14 +389,17 @@ export async function decrypt_envelope_with_identity_key<T>(
     }
   }
 
+  if (!allows_legacy_mail_keys(options)) return null;
+
   for (const crypto_key of version_keys) {
     let decrypted: ArrayBuffer;
 
     try {
-      decrypted = await decrypt_aes_gcm_with_fallback(
+      decrypted = await decrypt_mail_envelope_bytes(
         crypto_key,
         encrypted_bytes,
         nonce_bytes,
+        true,
       );
     } catch {
       continue;
@@ -457,16 +522,25 @@ async function decrypt_metadata_bytes(
   ciphertext: Uint8Array,
   nonce: Uint8Array,
   context: string,
+  options?: MailKeyOptions,
 ): Promise<ArrayBuffer> {
+  if (context === MAIL_METADATA_CONTEXT && !allows_legacy_mail_keys(options)) {
+    return crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce },
+      crypto_key,
+      ciphertext,
+    );
+  }
+
   try {
-    return await decrypt_aes_gcm_with_fallback(
+    return await decrypt_mail_envelope_with_fallback(
       crypto_key,
       ciphertext,
       nonce,
       (base) => derive_legacy_metadata_key(base, context),
     );
   } catch (primary_error) {
-    const recovered = await decrypt_with_legacy_derived_keys(
+    const recovered = await decrypt_mail_envelope_with_legacy_derived_keys(
       (base) => derive_legacy_metadata_key(base, context),
       ciphertext,
       nonce,
@@ -509,6 +583,7 @@ export async function decrypt_metadata<T>(
   blob: EncryptedBlob,
   master_key: Uint8Array,
   context: string = "default",
+  options?: MailKeyOptions,
 ): Promise<T | null> {
   try {
     const crypto_key = await derive_metadata_key(master_key, context);
@@ -520,6 +595,7 @@ export async function decrypt_metadata<T>(
       ciphertext,
       nonce,
       context,
+      options,
     );
 
     const decoder = new TextDecoder();

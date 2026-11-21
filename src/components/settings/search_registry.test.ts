@@ -1,72 +1,67 @@
 import { describe, it, expect } from "vitest";
 
-import { SETTINGS_SEARCH_REGISTRY } from "./search_registry";
+import { SETTINGS_SEARCH_REGISTRY, keyword_key } from "./search_registry";
 import {
-  is_settings_section,
   is_settings_tab_available,
   resolve_nav_target,
 } from "./settings_content_helpers";
+import { lookup_in_table } from "./settings_search_index";
 
+import { is_settings_section } from "@/lib/settings_section_names";
 import { en } from "@/lib/i18n/translations/en";
+import { resolve_mobile_section } from "@/pages/mobile/settings/section_routing";
 
-function resolve(key: string): unknown {
-  return key
-    .split(".")
-    .reduce<unknown>(
-      (acc, part) => (acc as Record<string, unknown>)?.[part],
-      en as unknown,
-    );
-}
+const lookup = lookup_in_table(en);
 
 describe("settings search registry", () => {
-  it("resolves every label_key to the label it replaces", () => {
-    const mismatched: string[] = [];
+  it("gives every entry a unique id", () => {
+    const ids = SETTINGS_SEARCH_REGISTRY.map((entry) => entry.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("resolves every label, crumb, and description key in English", () => {
+    const missing: string[] = [];
 
     for (const entry of SETTINGS_SEARCH_REGISTRY) {
-      if (!entry.label_key) continue;
-      const value = resolve(entry.label_key);
-
-      if (value !== entry.label) {
-        mismatched.push(`${entry.label_key}: ${String(value)}`);
+      for (const key of [
+        entry.label_key,
+        entry.crumb_key,
+        entry.description_key,
+      ]) {
+        if (key && !lookup(key)) missing.push(`${entry.id}: ${key}`);
       }
     }
 
-    expect(mismatched).toEqual([]);
+    expect(missing).toEqual([]);
   });
 
-  it("resolves every crumb_key to the breadcrumb tail it replaces", () => {
-    const mismatched: string[] = [];
+  it("gives every entry translated search keywords", () => {
+    const missing = SETTINGS_SEARCH_REGISTRY.filter(
+      (entry) => !lookup(keyword_key(entry))?.trim(),
+    ).map((entry) => entry.id);
 
-    for (const entry of SETTINGS_SEARCH_REGISTRY) {
-      if (!entry.crumb_key) continue;
-      const tail = entry.breadcrumb.split(" > ").slice(1).join(" > ");
-      const value = resolve(entry.crumb_key);
-
-      if (value !== tail) {
-        mismatched.push(`${entry.crumb_key}: ${String(value)} != ${tail}`);
-      }
-    }
-
-    expect(mismatched).toEqual([]);
+    expect(missing).toEqual([]);
+    expect(Object.keys(en.settings_keywords).sort()).toEqual(
+      SETTINGS_SEARCH_REGISTRY.map((entry) => entry.id).sort(),
+    );
   });
 
-  it("gives every entry a translation key for its label and breadcrumb tail", () => {
-    const untranslated: string[] = [];
-
-    for (const entry of SETTINGS_SEARCH_REGISTRY) {
-      if (!entry.label_key) untranslated.push(`label: ${entry.label}`);
-      const tail = entry.breadcrumb.split(" > ").slice(1).join(" > ");
-
-      if (tail && !entry.crumb_key) untranslated.push(`crumb: ${tail}`);
-    }
-
-    expect(untranslated).toEqual([]);
-  });
-
-  it("routes every entry to a real settings section", () => {
+  it("routes every desktop entry to a real settings section", () => {
     const unroutable = SETTINGS_SEARCH_REGISTRY.filter(
-      (entry) => !is_settings_section(resolve_nav_target(entry.section).section),
-    ).map((entry) => entry.label);
+      (entry) =>
+        entry.platform !== "mobile" &&
+        !is_settings_section(resolve_nav_target(entry.section).section),
+    ).map((entry) => entry.id);
+
+    expect(unroutable).toEqual([]);
+  });
+
+  it("routes every mobile entry to a mobile settings section", () => {
+    const unroutable = SETTINGS_SEARCH_REGISTRY.filter(
+      (entry) =>
+        entry.platform === "mobile" && !resolve_mobile_section(entry.section),
+    ).map((entry) => entry.id);
 
     expect(unroutable).toEqual([]);
   });
@@ -74,7 +69,9 @@ describe("settings search registry", () => {
   it("opens the tab that holds each mail management result", () => {
     const target_of = (label: string) => {
       const entry = SETTINGS_SEARCH_REGISTRY.find(
-        (candidate) => candidate.label === label,
+        (candidate) =>
+          candidate.platform !== "mobile" &&
+          lookup(candidate.label_key) === label,
       );
 
       return resolve_nav_target(entry?.section ?? "");

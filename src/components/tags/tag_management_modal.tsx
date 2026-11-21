@@ -40,9 +40,10 @@ import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   TAG_COLOR_PRESETS,
-  tag_color_label_key,
   type TagIconName,
 } from "@/components/ui/email_tag";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
+import { fill_text_color } from "@/lib/color_wheel";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
 import {
@@ -53,6 +54,8 @@ import {
 } from "@/hooks/tag_tree";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
+
+const TAG_PRESET_HEXES = TAG_COLOR_PRESETS.map((preset) => preset.hex);
 
 const MAX_TAG_NAME_LENGTH = 100;
 
@@ -382,27 +385,12 @@ export function TagManagementModal({
               >
                 {t("common.select_a_color")}
               </span>
-              <div
-                aria-labelledby="tag-color-label"
-                className="flex flex-wrap gap-2"
-                role="group"
-              >
-                {TAG_COLOR_PRESETS.map((color) => (
-                  <button
-                    key={color.hex}
-                    className="w-9 h-9 rounded-full"
-                    style={{
-                      backgroundColor: color.hex,
-                      boxShadow:
-                        new_color === color.hex
-                          ? `0 0 0 2px var(--modal-bg), 0 0 0 4px ${color.hex}`
-                          : "none",
-                    }}
-                    title={t(tag_color_label_key(color.variant))}
-                    onClick={() => set_new_color(color.hex)}
-                  />
-                ))}
-              </div>
+              <ColorSwatchRow
+                labelled_by="tag-color-label"
+                max_swatch_size={36}
+                value={new_color}
+                on_change={set_new_color}
+              />
 
               {error && (
                 <p className="text-[13px] text-red-500 mt-4" role="alert">
@@ -423,7 +411,10 @@ export function TagManagementModal({
               <Button
                 className="flex-1 label_folder_action"
                 disabled={is_loading}
-                style={{ backgroundColor: new_color, color: "#fff" }}
+                style={{
+                  backgroundColor: new_color,
+                  color: fill_text_color(new_color, TAG_PRESET_HEXES),
+                }}
                 variant="depth"
                 onClick={handle_recolor}
               >

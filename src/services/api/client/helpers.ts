@@ -21,6 +21,7 @@
 import { Capacitor } from "@capacitor/core";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export const NATIVE_API_URL = "https://app.astermail.org/api";
 export const API_BASE_URL =
@@ -57,10 +58,7 @@ export const TAURI_TOKEN_KEY = "aster_tauri_token";
 export const TAURI_CSRF_KEY = "aster_tauri_csrf";
 
 export function is_tauri_env(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
-  );
+  return has_tauri_runtime();
 }
 
 export const LAST_AUTH_MS_KEY = "aster_last_auth_ms";

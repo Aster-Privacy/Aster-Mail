@@ -57,8 +57,11 @@ import {
   skin_tones,
   skin_tone_swatches,
   apply_skin_tone,
+  normalize_skin_tone,
   type SkinTone,
 } from "@/config/emoji";
+import { skin_tone_label_keys } from "@/config/emoji/skin_tone_labels";
+import { use_preferences_optional } from "@/contexts/preferences_context";
 
 type EmojiEntry = (typeof emoji_categories)[string]["entries"][number];
 
@@ -96,7 +99,6 @@ const CATEGORY_ICONS: Record<string, IconType> = {
   flags: LuFlag,
 };
 
-const SKIN_TONE_STORAGE_KEY = "aster_emoji_skin_tone";
 const RECENT_STORAGE_KEY = "aster_emoji_recent";
 const RECENT_LIMIT = 16;
 const SCROLL_SPY_OFFSET = 12;
@@ -240,20 +242,6 @@ function prefers_touch(): boolean {
   }
 }
 
-function load_skin_tone(): SkinTone {
-  try {
-    const stored = localStorage.getItem(SKIN_TONE_STORAGE_KEY);
-
-    if (stored && skin_tones.includes(stored as SkinTone)) {
-      return stored as SkinTone;
-    }
-  } catch {
-    return "default";
-  }
-
-  return "default";
-}
-
 function load_recent(): string[] {
   try {
     const parsed: unknown = JSON.parse(
@@ -395,7 +383,11 @@ function EmojiPicker({
   const reduce_motion = use_should_reduce_motion();
   const indicator_id = useId();
   const [search_query, set_search_query] = useState("");
-  const [skin_tone, set_skin_tone] = useState<SkinTone>(load_skin_tone);
+  const preferences_context = use_preferences_optional();
+  const [local_skin_tone, set_local_skin_tone] = useState<SkinTone>("default");
+  const skin_tone = preferences_context
+    ? normalize_skin_tone(preferences_context.preferences.emoji_skin_tone)
+    : local_skin_tone;
   const [show_tones, set_show_tones] = useState(false);
   const [recent] = useState<string[]>(load_recent);
   const [is_touch] = useState(prefers_touch);
@@ -473,13 +465,14 @@ function EmojiPicker({
   };
 
   const select_skin_tone = (tone: SkinTone) => {
-    set_skin_tone(tone);
     set_show_tones(false);
 
-    try {
-      localStorage.setItem(SKIN_TONE_STORAGE_KEY, tone);
-    } catch {
-      return;
+    if (preferences_context) {
+      if (preferences_context.preferences.emoji_skin_tone !== tone) {
+        preferences_context.update_preference("emoji_skin_tone", tone, true);
+      }
+    } else {
+      set_local_skin_tone(tone);
     }
   };
 
@@ -858,10 +851,11 @@ function EmojiPicker({
               {skin_tones.map((tone) => (
                 <button
                   key={tone}
-                  aria-label={t("common.skin_tone")}
+                  aria-label={t(skin_tone_label_keys[tone])}
                   aria-pressed={skin_tone === tone}
                   className={`flex h-8 w-8 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_70%,transparent)] sm:h-7 sm:w-7 sm:text-[18px] ${skin_tone === tone ? "bg-[var(--aster-selected)]" : "hover:bg-[var(--aster-hover)]"}`}
                   type="button"
+                  title={t(skin_tone_label_keys[tone])}
                   onClick={() => select_skin_tone(tone)}
                 >
                   {skin_tone_swatches[tone]}

@@ -85,6 +85,7 @@ type device_login_detail = {
     email: string;
     encrypted_vault: string;
     vault_nonce: string;
+    vault_recovered_write_count?: number;
   };
   passphrase: string | null;
 };
@@ -213,6 +214,8 @@ export function use_sign_in_page() {
             detail.passphrase,
             detail.login_response.encrypted_vault,
             detail.login_response.vault_nonce,
+            true,
+            detail.login_response.vault_recovered_write_count,
           );
 
           if (!add_result.success) {
@@ -225,6 +228,8 @@ export function use_sign_in_page() {
             detail.passphrase,
             detail.login_response.encrypted_vault,
             detail.login_response.vault_nonce,
+            true,
+            detail.login_response.vault_recovered_write_count,
           );
         }
         setTimeout(() => emit_auth_ready(), 50);
@@ -585,6 +590,7 @@ export function use_sign_in_page() {
           response.data.encrypted_vault,
           response.data.vault_nonce,
           false,
+          response.data.vault_recovered_write_count,
         );
 
         if (response.data.needs_prekey_replenishment) {
@@ -798,6 +804,7 @@ export function use_sign_in_page() {
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
               remember_me,
+              totp_response.vault_recovered_write_count,
             ),
           );
 
@@ -822,6 +829,7 @@ export function use_sign_in_page() {
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
               remember_me,
+              totp_response.vault_recovered_write_count,
             ),
           );
         }

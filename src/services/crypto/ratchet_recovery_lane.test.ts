@@ -18,17 +18,21 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect } from "vitest";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import {
   seal_recovery_lane,
+  seal_unbound_recovery_lane,
   open_recovery_lane,
+  open_unauthenticated_recovery_lane,
   can_seal_recovery_lane,
   recovery_lane_is_post_quantum,
   RECOVERY_LANE_VERSION,
   type RecoveryLaneOwnKeys,
   type RecoveryLaneRecipientKeys,
+  type RecoveryLaneTranscript,
+  RecoveryLaneSenderKeyMissingError,
 } from "./ratchet_recovery_lane";
 
 function array_to_base64(array: Uint8Array): string {
@@ -74,17 +78,36 @@ async function make_identity(): Promise<{
 }
 
 const CONVERSATION = "conversation-token-abc";
-const SENDER_IDENTITY = "sender-identity-public-key";
+
+const TRANSCRIPT: RecoveryLaneTranscript = {
+  dh_public: "BEHq0XxN1vYdHn6yC0dqk2Ah9mGkT3uL",
+  previous_chain_length: 3,
+  message_number: 7,
+  nonce: "c2VhbGVkLW5vbmNlLTEy",
+  sent_at: 1790000000000,
+};
+
+let sender: Awaited<ReturnType<typeof make_identity>>;
+let sender_identity: string;
+let sender_jwk: string;
 
 describe("recovery lane", () => {
+  beforeAll(async () => {
+    sender = await make_identity();
+    sender_identity = sender.recipient.identity_public;
+    sender_jwk = sender.own.identity_jwk;
+  });
+
   it("round trips a message to the recipient long term keys", async () => {
     const bob = await make_identity();
 
     const sealed = await seal_recovery_lane(
       "the eagle has landed",
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
     );
 
     expect(sealed.v).toBe(RECOVERY_LANE_VERSION);
@@ -93,9 +116,10 @@ describe("recovery lane", () => {
     const opened = await open_recovery_lane(
       sealed,
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.own,
       bob.pq_public,
+      TRANSCRIPT,
     );
 
     expect(opened).toBe("the eagle has landed");
@@ -107,16 +131,19 @@ describe("recovery lane", () => {
     const sealed = await seal_recovery_lane(
       "secret",
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
     );
 
     const opened = await open_recovery_lane(
       sealed,
       "a-different-conversation",
-      SENDER_IDENTITY,
+      sender_identity,
       bob.own,
       bob.pq_public,
+      TRANSCRIPT,
     );
 
     expect(opened).toBeNull();
@@ -128,16 +155,19 @@ describe("recovery lane", () => {
     const sealed = await seal_recovery_lane(
       "secret",
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
     );
 
     const opened = await open_recovery_lane(
       sealed,
       CONVERSATION,
-      "mallory-identity-public-key",
+      (await make_identity()).recipient.identity_public,
       bob.own,
       bob.pq_public,
+      TRANSCRIPT,
     );
 
     expect(opened).toBeNull();
@@ -150,16 +180,19 @@ describe("recovery lane", () => {
     const sealed = await seal_recovery_lane(
       "secret",
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
     );
 
     const opened = await open_recovery_lane(
       sealed,
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       carol.own,
       carol.pq_public,
+      TRANSCRIPT,
     );
 
     expect(opened).toBeNull();
@@ -171,16 +204,19 @@ describe("recovery lane", () => {
     const sealed = await seal_recovery_lane(
       "secret",
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
     );
 
     const opened = await open_recovery_lane(
       { ...sealed, v: RECOVERY_LANE_VERSION + 1 },
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.own,
       bob.pq_public,
+      TRANSCRIPT,
     );
 
     expect(opened).toBeNull();
@@ -192,18 +228,20 @@ describe("recovery lane", () => {
     const sealed = await seal_recovery_lane(
       "secret",
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
     );
 
     const bytes = atob(sealed.ciphertext).split("");
 
     bytes[0] = String.fromCharCode(bytes[0].charCodeAt(0) ^ 0xff);
 
-    const opened = await open_recovery_lane(
+    const opened = await open_unauthenticated_recovery_lane(
       { ...sealed, ciphertext: btoa(bytes.join("")) },
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.own,
       bob.pq_public,
     );
@@ -235,8 +273,10 @@ describe("recovery lane", () => {
     const sealed = await seal_recovery_lane(
       "legacy recipient",
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       { identity_public: bob.recipient.identity_public },
+      sender_jwk,
+      TRANSCRIPT,
     );
 
     expect(sealed.kem_ct).toBeUndefined();
@@ -244,12 +284,13 @@ describe("recovery lane", () => {
     const opened = await open_recovery_lane(
       sealed,
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       {
         identity_jwk: bob.own.identity_jwk,
         identity_public: bob.own.identity_public,
       },
       "",
+      TRANSCRIPT,
     );
 
     expect(opened).toBe("legacy recipient");
@@ -261,16 +302,19 @@ describe("recovery lane", () => {
     const sealed = await seal_recovery_lane(
       "legacy recipient",
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       { identity_public: bob.recipient.identity_public },
+      sender_jwk,
+      TRANSCRIPT,
     );
 
     const opened = await open_recovery_lane(
       sealed,
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.own,
       bob.pq_public,
+      TRANSCRIPT,
     );
 
     expect(opened).toBe("legacy recipient");
@@ -282,21 +326,214 @@ describe("recovery lane", () => {
     const sealed = await seal_recovery_lane(
       "secret",
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
     );
 
     const opened = await open_recovery_lane(
       sealed,
       CONVERSATION,
-      SENDER_IDENTITY,
+      sender_identity,
       {
         identity_jwk: bob.own.identity_jwk,
         identity_public: bob.own.identity_public,
       },
       bob.pq_public,
+      TRANSCRIPT,
     );
 
     expect(opened).toBeNull();
+  });
+
+  it("opens a lane from an older client only through the unauthenticated opener", async () => {
+    const bob = await make_identity();
+
+    const legacy = await seal_unbound_recovery_lane(
+      "older client",
+      CONVERSATION,
+      sender_identity,
+      bob.recipient,
+    );
+
+    expect(legacy.sct).toBeUndefined();
+    expect(
+      await open_recovery_lane(
+        legacy,
+        CONVERSATION,
+        sender_identity,
+        bob.own,
+        bob.pq_public,
+        TRANSCRIPT,
+      ),
+    ).toBeNull();
+    expect(
+      await open_unauthenticated_recovery_lane(
+        legacy,
+        CONVERSATION,
+        sender_identity,
+        bob.own,
+        bob.pq_public,
+      ),
+    ).toBe("older client");
+  });
+
+  it("keeps the older ciphertext readable on a sender-bound lane", async () => {
+    const bob = await make_identity();
+
+    const sealed = await seal_recovery_lane(
+      "both parts",
+      CONVERSATION,
+      sender_identity,
+      bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
+    );
+
+    expect(
+      await open_unauthenticated_recovery_lane(
+        sealed,
+        CONVERSATION,
+        sender_identity,
+        bob.own,
+        bob.pq_public,
+      ),
+    ).toBe("both parts");
+  });
+
+  it("rejects a sender-bound lane whose sender part was altered", async () => {
+    const bob = await make_identity();
+
+    const sealed = await seal_recovery_lane(
+      "secret",
+      CONVERSATION,
+      sender_identity,
+      bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
+    );
+
+    const bytes = atob(sealed.sct!).split("");
+
+    bytes[0] = String.fromCharCode(bytes[0].charCodeAt(0) ^ 0xff);
+
+    expect(
+      await open_recovery_lane(
+        { ...sealed, sct: btoa(bytes.join("")) },
+        CONVERSATION,
+        sender_identity,
+        bob.own,
+        bob.pq_public,
+        TRANSCRIPT,
+      ),
+    ).toBeNull();
+  });
+
+  it("rejects a sender part moved onto another lane", async () => {
+    const bob = await make_identity();
+
+    const first = await seal_recovery_lane(
+      "first",
+      CONVERSATION,
+      sender_identity,
+      bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
+    );
+    const second = await seal_recovery_lane(
+      "second",
+      CONVERSATION,
+      sender_identity,
+      bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
+    );
+
+    expect(
+      await open_recovery_lane(
+        { ...second, sct: first.sct, snonce: first.snonce },
+        CONVERSATION,
+        sender_identity,
+        bob.own,
+        bob.pq_public,
+        TRANSCRIPT,
+      ),
+    ).toBeNull();
+  });
+  it("rejects a sender-bound lane opened under another ratchet header", async () => {
+    const bob = await make_identity();
+
+    const sealed = await seal_recovery_lane(
+      "header bound",
+      CONVERSATION,
+      sender_identity,
+      bob.recipient,
+      sender_jwk,
+      TRANSCRIPT,
+    );
+
+    for (const transcript of [
+      { ...TRANSCRIPT, message_number: TRANSCRIPT.message_number + 1 },
+      { ...TRANSCRIPT, previous_chain_length: 0 },
+      { ...TRANSCRIPT, dh_public: "QW5vdGhlckRIUHVibGlj" },
+      { ...TRANSCRIPT, nonce: "YW5vdGhlci1ub25jZQ==" },
+      { ...TRANSCRIPT, sent_at: TRANSCRIPT.sent_at + 1 },
+      null,
+    ]) {
+      expect(
+        await open_recovery_lane(
+          sealed,
+          CONVERSATION,
+          sender_identity,
+          bob.own,
+          bob.pq_public,
+          transcript,
+        ),
+      ).toBeNull();
+    }
+    expect(
+      await open_recovery_lane(
+        sealed,
+        CONVERSATION,
+        sender_identity,
+        bob.own,
+        bob.pq_public,
+        { ...TRANSCRIPT },
+      ),
+    ).toBe("header bound");
+    expect(sealed.t).toBe(TRANSCRIPT.sent_at);
+  });
+
+  it("refuses to seal a lane with an unusable sender identity key", async () => {
+    const bob = await make_identity();
+
+    for (const identity_jwk of ["not json", JSON.stringify({ kty: "EC" })]) {
+      await expect(
+        seal_recovery_lane(
+          "broken sender key",
+          CONVERSATION,
+          sender_identity,
+          bob.recipient,
+          identity_jwk,
+          TRANSCRIPT,
+        ),
+      ).rejects.toBeInstanceOf(RecoveryLaneSenderKeyMissingError);
+    }
+  });
+
+  it("refuses to seal a lane without the sender identity key", async () => {
+    const bob = await make_identity();
+
+    await expect(
+      seal_recovery_lane(
+        "no sender key",
+        CONVERSATION,
+        sender_identity,
+        bob.recipient,
+        undefined,
+        TRANSCRIPT,
+      ),
+    ).rejects.toBeInstanceOf(RecoveryLaneSenderKeyMissingError);
   });
 });

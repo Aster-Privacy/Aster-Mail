@@ -51,6 +51,7 @@ import {
   ComposeToolbar,
   type EditDraftData,
 } from "@/components/compose/compose_shared";
+import { use_mail_drop_attach } from "@/components/compose/use_forward_as_attachment";
 
 interface ComposeModalProps {
   is_open: boolean;
@@ -70,6 +71,7 @@ export function ComposeModal({
   initial_attachments,
 }: ComposeModalProps) {
   const { t } = use_i18n();
+  const attach_dropped_mail = use_mail_drop_attach();
   const reduce_motion = use_should_reduce_motion();
   const [is_minimized, set_is_minimized] = useState(false);
   const [is_expanded, set_is_expanded] = useState(false);
@@ -166,6 +168,8 @@ export function ComposeModal({
 
               if (files.length > 0) {
                 compose.handle_files_drop(files);
+              } else {
+                attach_dropped_mail(e.dataTransfer, compose.handle_files_drop);
               }
             }}
           >

@@ -63,7 +63,9 @@ import {
 } from "@/services/api/webauthn";
 import {
   STEP_UP_REQUIRED_CODE,
+  is_reauth_required,
   to_reauth_proof,
+  type ReauthProof,
   type StepUpCredentials,
 } from "@/services/api/step_up";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
@@ -191,7 +193,7 @@ export function HardwareKeysSection() {
 
   const handle_remove = async (
     key_id: string,
-    credentials?: { password_hash: string; totp_code?: string },
+    credentials?: ReauthProof,
   ) => {
     set_removing_key_id(key_id);
     const response = await remove_hardware_key(key_id, credentials);
@@ -204,7 +206,7 @@ export function HardwareKeysSection() {
 
       return;
     }
-    if (response.server_code === "STEP_UP_REQUIRED") {
+    if (!credentials && is_reauth_required(response.server_code)) {
       set_step_up_key_id(key_id);
 
       return;
@@ -472,18 +474,12 @@ export function HardwareKeysSection() {
         on_close={() => set_step_up_key_id(null)}
         on_confirm={async (credentials) => {
           if (!step_up_key_id) return;
-          await handle_remove(step_up_key_id, {
-            password_hash: credentials.password_hash,
-            ...(credentials.totp_code
-              ? { totp_code: credentials.totp_code }
-              : {}),
-          });
+          await handle_remove(step_up_key_id, to_reauth_proof(credentials));
         }}
         title={t("passkeys.delete_security_key_title")}
       />
 
       <StepUpModal
-        password_only
         confirm_label={t("common.continue")}
         description={t("common.step_up_description")}
         is_open={register_step_up}

@@ -43,7 +43,8 @@ function make_contact(id: string, first_name: string): DecryptedContact {
 const contacts: DecryptedContact[] = [
   make_contact("j1", "Jarvis"),
   make_contact("j2", "Jarvisa"),
-  make_contact("a1", "Alice"),
+  { ...make_contact("a1", "Alice"), is_favorite: true },
+  { ...make_contact("b1", "Bruno"), is_favorite: true },
 ];
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -181,5 +182,33 @@ describe("mobile contacts back navigation", () => {
     expect(state.selected_contact).toBeNull();
     expect(state.search_query).toBe("Jarvis");
     expect(state.filtered_contacts.map((c) => c.id)).toEqual(["j2"]);
+  });
+
+  it("unstarring a contact opened from favorites returns to favorites without it", async () => {
+    vi.spyOn(contacts_api, "update_contact_encrypted").mockResolvedValue({
+      data: {},
+    } as never);
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    await act(async () => {
+      state.set_filter("favorites");
+    });
+    expect(state.filtered_contacts.map((c) => c.id)).toEqual(["a1", "b1"]);
+    await act(async () => {
+      state.handle_contact_press(contacts[2]);
+    });
+    await act(async () => {
+      await state.handle_toggle_favorite(contacts[2]);
+    });
+    expect(state.selected_contact?.is_favorite).toBe(false);
+
+    await go_back();
+
+    expect(window.location.pathname).toBe("/contacts");
+    expect(state.selected_contact).toBeNull();
+    expect(state.filter).toBe("favorites");
+    expect(state.favorites_count).toBe(1);
+    expect(state.filtered_contacts.map((c) => c.id)).toEqual(["b1"]);
   });
 });

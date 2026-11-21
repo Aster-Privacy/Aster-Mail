@@ -372,6 +372,27 @@ function strip_attribute_markup(value: string): string {
   return result;
 }
 
+const IN_DOCUMENT_ANCHOR_PREFIX = "aster_anchor_";
+
+function to_in_document_anchor(name: string): string {
+  return name.startsWith(IN_DOCUMENT_ANCHOR_PREFIX)
+    ? name
+    : `${IN_DOCUMENT_ANCHOR_PREFIX}${name}`;
+}
+
+function in_document_anchor_attribute(
+  attr_name: string,
+  attr_value: string,
+): string | null {
+  const value = strip_attribute_markup(attr_value).trim();
+
+  if (attr_name === "id" || attr_name === "name") {
+    return value ? to_in_document_anchor(value) : null;
+  }
+
+  return value.length > 1 ? `#${to_in_document_anchor(value.slice(1))}` : value;
+}
+
 const IN_DOCUMENT_CLASSES = new Set([
   "aster_quote",
   "aster_quote_attr",
@@ -391,6 +412,7 @@ export function sanitize_attribute(
   attr_name: string,
   attr_value: string,
   sandbox_mode: boolean,
+  contained_layout = false,
 ): string | null {
   const lower_attr = attr_name.toLowerCase();
   const lower_tag = tag_name.toLowerCase();
@@ -409,8 +431,8 @@ export function sanitize_attribute(
     return null;
   }
 
-  if (!sandbox_mode && lower_attr === "id") {
-    return null;
+  if (!sandbox_mode && (lower_attr === "id" || lower_attr === "name")) {
+    return in_document_anchor_attribute(lower_attr, attr_value);
   }
 
   if (!sandbox_mode && lower_attr === "class") {
@@ -426,6 +448,14 @@ export function sanitize_attribute(
     if (!is_safe_url(attr_value)) {
       return null;
     }
+
+    if (
+      !sandbox_mode &&
+      lower_attr === "href" &&
+      attr_value.trim().startsWith("#")
+    ) {
+      return in_document_anchor_attribute(lower_attr, attr_value);
+    }
   }
 
   if (lower_attr === "srcset") {
@@ -435,7 +465,7 @@ export function sanitize_attribute(
   }
 
   if (lower_attr === "style") {
-    return sanitize_style(attr_value, sandbox_mode);
+    return sanitize_style(attr_value, sandbox_mode, contained_layout);
   }
 
   if (lower_attr === "target") {

@@ -23,7 +23,6 @@ import type {
   EmailEntryType,
   PhoneEntryType,
   DateEntryType,
-  RelatedPersonType,
   SocialNetworkType,
   WebsiteType,
   InstantMessengerType,
@@ -43,7 +42,6 @@ import {
   MapPinIcon,
   GlobeAltIcon,
   HashtagIcon,
-  ClockIcon,
   StarIcon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -53,9 +51,12 @@ import {
   ArrowDownTrayIcon,
   ChatBubbleBottomCenterTextIcon,
   IdentificationIcon,
+  EllipsisHorizontalIcon,
+  ClockIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { Button, Tooltip } from "@aster/ui";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -66,7 +67,6 @@ import {
   TypedList,
 } from "./fields";
 import {
-  COLOR_SWATCHES,
   ContactDetailPanelProps,
   DATE_TYPE_OPTIONS,
   DEFAULT_BANNER,
@@ -75,7 +75,6 @@ import {
   FIELD_CLASS,
   IM_TYPE_OPTIONS,
   PHONE_TYPE_OPTIONS,
-  RELATED_TYPE_OPTIONS,
   SOCIAL_TYPE_OPTIONS,
   WEBSITE_TYPE_OPTIONS,
   empty_edit_state,
@@ -83,6 +82,7 @@ import {
   to_edit_state,
 } from "./helpers";
 import { ContactView } from "./contact_view";
+import { RelationList } from "./relation_list";
 
 import { sync_legacy_fields } from "@/components/common/hooks/contacts_state_helpers";
 import { build_contact_mail_query } from "@/utils/contact_mail_search";
@@ -112,10 +112,22 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { compress_contact_avatar_file } from "@/utils/contact_avatar_image";
+import { normalize_related_people } from "@/utils/contact_relations";
+import {
+  MAX_SOCIAL_LABEL_LENGTH,
+  MAX_SOCIAL_NETWORKS,
+  MAX_SOCIAL_VALUE_LENGTH,
+  normalize_social_networks,
+} from "@/utils/contact_socials";
 import { format_full_datetime } from "@/utils/date_format";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 
 export function ContactDetailPanel({
   t,
@@ -229,8 +241,10 @@ export function ContactDetailPanel({
 
   const handle_save = async () => {
     const date_entries = draft.date_entries.filter((d) => d.value.trim());
-    const related_people = draft.related_people.filter((r) => r.value.trim());
-    const social_networks = draft.social_networks.filter((s) => s.value.trim());
+    const related_people =
+      normalize_related_people(draft.related_people) ?? [];
+    const social_networks =
+      normalize_social_networks(draft.social_networks) ?? [];
     const websites = draft.websites.filter((w) => w.value.trim());
     const instant_messengers = draft.instant_messengers.filter((m) =>
       m.value.trim(),
@@ -414,31 +428,30 @@ export function ContactDetailPanel({
                 />
               </div>
             </div>
-            <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-[var(--aster-floating-bg,var(--bg-primary))] shadow-[var(--aster-floating-shadow)]">
-              {COLOR_SWATCHES.map((c) => {
-                const active = c.value === banner;
-
-                return (
-                  <button
-                    key={c.key}
-                    aria-label={`${t("common.color")} ${c.key}`}
-                    className="relative w-6 h-6 rounded-full transition-transform hover:scale-110"
-                    style={{
-                      backgroundColor: c.value,
-                      boxShadow: active
-                        ? "0 0 0 2px var(--aster-floating-bg, var(--bg-primary)), 0 0 0 4px var(--text-primary)"
-                        : "none",
-                    }}
-                    onClick={() => handle_color_pick(c.value)}
-                  />
-                );
-              })}
+            <div className="absolute end-4 -bottom-6 flex items-center px-1.5 py-1 rounded-full bg-[var(--aster-floating-bg,var(--bg-primary))] shadow-[var(--aster-floating-shadow)]">
+              <ColorSwatchRow
+                class_name=""
+                label={t("common.color")}
+                max_swatch_size={24}
+                value={draft.profile_color}
+                on_change={handle_color_pick}
+              />
             </div>
           </div>
         )}
 
         {!is_creating_new && selected_contact && (
           <div className="flex flex-wrap items-center gap-2 mb-6">
+            {selected_contact.emails[0] && (
+              <button
+                className="aster_pill aster_pill_filled aster_pill_sm"
+                type="button"
+                onClick={() => on_compose_email(selected_contact.emails[0])}
+              >
+                <EnvelopeIcon className="w-4 h-4" />
+                {t("common.send_email")}
+              </button>
+            )}
             {!is_editing && (
               <button
                 className="aster_pill aster_pill_tonal aster_pill_sm"
@@ -452,96 +465,96 @@ export function ContactDetailPanel({
                 {t("common.edit")}
               </button>
             )}
-            {selected_contact.emails[0] && (
-              <button
-                className="aster_pill aster_pill_tonal aster_pill_sm"
-                type="button"
-                onClick={() => on_compose_email(selected_contact.emails[0])}
-              >
-                <EnvelopeIcon className="w-4 h-4" />
-                {t("common.send_email")}
-              </button>
-            )}
-            <button
-              className={`aster_pill aster_pill_sm ${show_history ? "bg-[color-mix(in_srgb,var(--accent-color)_16%,var(--bg-primary))] text-txt-primary" : "aster_pill_tonal"}`}
-              type="button"
-              onClick={() => set_show_history(!show_history)}
-            >
-              <ClockIcon className="w-4 h-4" />
-              {t("common.history")}
-            </button>
-            {contact_mail_query && (
-              <button
-                className="aster_pill aster_pill_tonal aster_pill_sm"
-                type="button"
-                onClick={handle_search_mail}
-              >
-                <MagnifyingGlassIcon className="w-4 h-4" />
-                {t("common.all_mail")}
-              </button>
-            )}
-            <button
-              className="aster_pill aster_pill_tonal aster_pill_sm"
-              type="button"
-              onClick={() => on_toggle_favorite?.(selected_contact)}
-            >
-              {selected_contact.is_favorite ? (
-                <StarSolidIcon className="w-4 h-4 text-amber-400" />
-              ) : (
-                <StarIcon className="w-4 h-4" />
-              )}
-              {selected_contact.is_favorite
-                ? t("common.favorited")
-                : t("common.favorite")}
-            </button>
-            {!is_editing && (
-              <DropdownMenu>
+            <DropdownMenu>
+              <Tooltip tip={t("common.more_actions")}>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="aster_pill aster_pill_tonal aster_pill_sm"
+                    aria-label={t("common.more_actions")}
+                    className="aster_pill aster_pill_tonal aster_pill_sm contact_detail_more_button"
                     type="button"
                   >
-                    <ArrowUpOnSquareIcon className="w-4 h-4" />
-                    {t("common.share_contact")}
+                    <EllipsisHorizontalIcon className="w-5 h-5" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56">
-                  {on_share_via_email && (
-                    <DropdownMenuItem onSelect={handle_share_via_email}>
-                      <EnvelopeIcon className="w-4 h-4" />
-                      {t("common.share_contact_via_email")}
-                    </DropdownMenuItem>
+              </Tooltip>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem
+                  aria-checked={show_history}
+                  role="menuitemcheckbox"
+                  onSelect={() => set_show_history(!show_history)}
+                >
+                  <ClockIcon className="w-4 h-4" />
+                  <span className="flex-1">{t("common.history")}</span>
+                  {show_history && (
+                    <CheckIcon className="w-4 h-4 text-txt-muted" />
                   )}
-                  <DropdownMenuItem onSelect={handle_share_text}>
-                    <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
-                    {t("common.share_as_text")}
+                </DropdownMenuItem>
+                {contact_mail_query && (
+                  <DropdownMenuItem onSelect={handle_search_mail}>
+                    <MagnifyingGlassIcon className="w-4 h-4" />
+                    {t("common.all_mail")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={handle_share_vcard}>
-                    <IdentificationIcon className="w-4 h-4" />
-                    {t("common.share_as_vcard")}
+                )}
+                {on_toggle_favorite && (
+                  <DropdownMenuItem
+                    onSelect={() => on_toggle_favorite(selected_contact)}
+                  >
+                    {selected_contact.is_favorite ? (
+                      <StarSolidIcon className="w-4 h-4 text-amber-400" />
+                    ) : (
+                      <StarIcon className="w-4 h-4" />
+                    )}
+                    {selected_contact.is_favorite
+                      ? t("common.remove_from_favorites")
+                      : t("common.add_to_favorites")}
                   </DropdownMenuItem>
-                  {can_share_native && (
-                    <DropdownMenuItem onSelect={handle_download_vcard}>
-                      <ArrowDownTrayIcon className="w-4 h-4" />
-                      {t("common.export_selection_vcf")}
+                )}
+                {!is_editing && (
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <ArrowUpOnSquareIcon className="w-4 h-4" />
+                      {t("common.share_contact")}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="w-56">
+                      {on_share_via_email && (
+                        <DropdownMenuItem onSelect={handle_share_via_email}>
+                          <EnvelopeIcon className="w-4 h-4" />
+                          {t("common.share_contact_via_email")}
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem onSelect={handle_share_text}>
+                        <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
+                        {t("common.share_as_text")}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={handle_share_vcard}>
+                        <IdentificationIcon className="w-4 h-4" />
+                        {t("common.share_as_vcard")}
+                      </DropdownMenuItem>
+                      {can_share_native && (
+                        <DropdownMenuItem onSelect={handle_download_vcard}>
+                          <ArrowDownTrayIcon className="w-4 h-4" />
+                          {t("common.export_selection_vcf")}
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                )}
+                {!is_editing && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                      onSelect={() => on_delete_request(selected_contact)}
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                      {t("common.delete")}
                     </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            {!is_editing && (
-              <button
-                className="aster_pill aster_pill_tonal aster_pill_sm"
-                type="button"
-                onClick={() => on_delete_request(selected_contact)}
-              >
-                <TrashIcon className="w-4 h-4" />
-                {t("common.delete")}
-              </button>
-            )}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
-
         {show_history && selected_contact ? (
           <div className="space-y-6">
             <div>
@@ -968,41 +981,12 @@ export function ContactDetailPanel({
                 />
               </div>
               <div>
-                <FieldLabel icon={UsersIcon}>
-                  {t("common.related_people")}
-                </FieldLabel>
-                <TypedList
+                <FieldLabel icon={UsersIcon}>{t("common.relations")}</FieldLabel>
+                <RelationList
                   disabled={!is_editing}
                   entries={draft.related_people}
-                  on_add={() =>
-                    update_list("related_people", (l) => [
-                      ...l,
-                      { value: "", type: "assistant" },
-                    ])
-                  }
-                  on_change={(idx, value) =>
-                    update_list("related_people", (l) =>
-                      l.map((r, i) => (i === idx ? { ...r, value } : r)),
-                    )
-                  }
-                  on_remove={(idx) =>
-                    update_list("related_people", (l) =>
-                      l.filter((_, i) => i !== idx),
-                    )
-                  }
-                  on_type_change={(idx, type) =>
-                    update_list("related_people", (l) =>
-                      l.map((r, i) =>
-                        i === idx
-                          ? { ...r, type: type as RelatedPersonType }
-                          : r,
-                      ),
-                    )
-                  }
-                  options={RELATED_TYPE_OPTIONS}
-                  placeholder={t("common.name")}
+                  on_change={(next) => update_list("related_people", () => next)}
                   t={t}
-                  type_default="assistant"
                 />
               </div>
               <div>
@@ -1073,8 +1057,17 @@ export function ContactDetailPanel({
                   {t("common.social_networks")}
                 </FieldLabel>
                 <TypedList
+                  allow_custom
                   disabled={!is_editing}
                   entries={draft.social_networks}
+                  label_max_length={MAX_SOCIAL_LABEL_LENGTH}
+                  max_entries={MAX_SOCIAL_NETWORKS}
+                  value_max_length={MAX_SOCIAL_VALUE_LENGTH}
+                  on_label_change={(idx, label) =>
+                    update_list("social_networks", (l) =>
+                      l.map((s, i) => (i === idx ? { ...s, label } : s)),
+                    )
+                  }
                   on_add={() =>
                     update_list("social_networks", (l) => [
                       ...l,

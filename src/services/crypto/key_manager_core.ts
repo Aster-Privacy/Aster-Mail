@@ -63,11 +63,39 @@ export interface RatchetKeySet {
 }
 
 export const RATCHET_PREVIOUS_KEYS_LIMIT = 32;
+export const RATCHET_HISTORY_MAX_BYTES = 480 * 1024;
+
+function ratchet_key_set_bytes(set: RatchetKeySet): number {
+  return JSON.stringify(set).length + 1;
+}
+
+export function ratchet_history_bytes(sets: RatchetKeySet[]): number {
+  return sets.reduce((total, set) => total + ratchet_key_set_bytes(set), 0);
+}
+
+export function cap_ratchet_history(
+  sets: RatchetKeySet[],
+  count_limit: number | null = null,
+): RatchetKeySet[] {
+  const kept = count_limit === null ? [...sets] : sets.slice(0, count_limit);
+  let bytes = ratchet_history_bytes(kept);
+
+  while (
+    kept.length > RATCHET_PREVIOUS_KEYS_LIMIT &&
+    bytes > RATCHET_HISTORY_MAX_BYTES
+  ) {
+    const dropped = kept.pop();
+
+    if (dropped) bytes -= ratchet_key_set_bytes(dropped);
+  }
+
+  return kept;
+}
 
 export function merge_previous_ratchet_keys(
   ...groups: Array<RatchetKeySet[] | undefined>
 ): RatchetKeySet[] {
-  return dedupe_ratchet_keys(...groups).slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+  return cap_ratchet_history(dedupe_ratchet_keys(...groups));
 }
 
 export function dedupe_ratchet_keys(
@@ -123,7 +151,7 @@ export function retain_previous_ratchet_keys(
     });
   }
 
-  return previous.slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+  return cap_ratchet_history(previous);
 }
 
 export interface EncryptedVault {
@@ -145,12 +173,44 @@ export interface EncryptedVault {
   legacy_keks?: LegacyDerivedKek[];
   data_kek?: string;
   escrow_seed?: string;
+  lane_replay?: Record<string, unknown>;
+  escrow_format?: number;
   vault_format?: number;
   kdf_version?: number;
   mk_created_at?: string;
   data_kek_random?: boolean;
   storage_rekey?: StorageRekeyState;
   identity_rotation_pending?: boolean;
+  server_known_kek_ids?: string[];
+  server_known_swept_ids?: string[];
+  pending_retire_kek_ids?: string[];
+  retired_storage_kek_ids?: string[];
+  vault_generation?: number;
+  vault_generation_ready?: boolean;
+  retired_identity_fingerprints?: string[];
+  vault_kdf_floor?: number;
+  mail_legacy_retired?: MailLegacyRetiredMarker;
+  folder_key_pins?: Record<string, number>;
+  scheduled_untagged?: ScheduledUntaggedSnapshot;
+  scheduled_untagged_ids?: string[];
+  retired_storage_key_hashes?: string[];
+  recovery_backup_generation?: number;
+  ratchet_state_v2?: boolean;
+  ratchet_sync_floors?: Record<string, number>;
+  prekey_seal_key?: string;
+  prekey_seal_migrated?: boolean;
+  folder_pins?: Record<string, { key: string; current: boolean }>;
+}
+
+export interface ScheduledUntaggedSnapshot {
+  v: number;
+  at: string;
+  ids: string[];
+}
+
+export interface MailLegacyRetiredMarker {
+  v: number;
+  at: string;
 }
 
 export interface StorageRekeyState {
@@ -362,7 +422,9 @@ export async function verify_pinned_fingerprint(
   const pinned = PINNED_FINGERPRINTS.get(key_id);
 
   if (!pinned) {
-    return true;
+    log_key_usage(key_id, "verify", false, "fingerprint_not_pinned");
+
+    return false;
   }
 
   const fingerprints_match = await constant_time_string_compare(
@@ -452,9 +514,13 @@ export function create_encrypted_key_handle(
   key_type: KeyType,
   algorithm: string = "ecc_curve25519",
 ): EncryptedKeyHandle {
+  const key_id = generate_key_id();
+
+  pin_fingerprint(key_id, fingerprint, key_type);
+
   return {
     encrypted_key: encrypted_key.slice(),
-    key_id: generate_key_id(),
+    key_id,
     algorithm,
     created_at: Date.now(),
     fingerprint,

@@ -29,6 +29,10 @@ use pgp::packet::SignatureType;
 use pgp::ser::Serialize;
 use pgp::types::{EcdhPublicParams, KeyVersion, PublicKeyTrait, PublicParams, Tag};
 
+use crate::key_selection::{
+    binding_allows_encryption, binding_expires_at, newest_signature, primary_revoked,
+};
+
 pub const MAX_EXTERNAL_KEY_ARMORED_BYTES: usize = 64 * 1024;
 pub const EXTERNAL_CHALLENGE_CONTEXT: &str = "aster-external-pgp-challenge-v1";
 
@@ -162,8 +166,7 @@ fn verified_bindings<'a>(
 }
 
 fn subkey_signs(spk: &SignedPublicKey, sub: &SignedPublicSubKey) -> bool {
-    let newest = verified_bindings(spk, sub).max_by_key(|s| s.created().copied());
-    newest
+    newest_signature(verified_bindings(spk, sub))
         .map(|s| s.key_flags().sign() && crate::sign::binding_has_backsig(spk, sub, s))
         .unwrap_or(false)
         && signing_algorithm_allowed(&sub.key)
@@ -177,22 +180,13 @@ fn subkey_revoked(spk: &SignedPublicKey, sub: &SignedPublicSubKey) -> bool {
 }
 
 fn subkey_expired(spk: &SignedPublicKey, sub: &SignedPublicSubKey, now: DateTime<Utc>) -> bool {
-    let created = *PublicKeyTrait::created_at(&sub.key);
-    verified_bindings(spk, sub)
-        .max_by_key(|s| s.created().copied())
-        .and_then(|s| s.key_expiration_time().copied())
-        .filter(|duration| !duration.is_zero())
-        .map(|duration| created + duration <= now)
+    subkey_expires_at(spk, sub)
+        .map(|expiry| expiry <= now)
         .unwrap_or(false)
 }
 
 fn subkey_expires_at(spk: &SignedPublicKey, sub: &SignedPublicSubKey) -> Option<DateTime<Utc>> {
-    let created = *PublicKeyTrait::created_at(&sub.key);
-    verified_bindings(spk, sub)
-        .max_by_key(|s| s.created().copied())
-        .and_then(|s| s.key_expiration_time().copied())
-        .filter(|duration| !duration.is_zero())
-        .map(|duration| created + duration)
+    newest_signature(verified_bindings(spk, sub)).and_then(|s| binding_expires_at(sub, s))
 }
 
 fn effective_expiry(
@@ -210,21 +204,8 @@ fn subkey_encrypts(spk: &SignedPublicKey, sub: &SignedPublicSubKey) -> bool {
         return false;
     }
 
-    let Some(newest) = verified_bindings(spk, sub).max_by_key(|s| s.created().copied()) else {
-        return false;
-    };
-    let flags = newest.key_flags();
-    if flags.encrypt_comms() || flags.encrypt_storage() {
-        return true;
-    }
-
-    !(flags.certify() || flags.sign() || flags.authentication())
-}
-
-fn primary_revoked(spk: &SignedPublicKey) -> bool {
-    spk.details.revocation_signatures.iter().any(|s| {
-        matches!(s.typ(), SignatureType::KeyRevocation) && s.verify_key(&spk.primary_key).is_ok()
-    })
+    newest_signature(verified_bindings(spk, sub))
+        .is_some_and(|binding| binding_allows_encryption(sub, binding))
 }
 
 fn email_from_user_id(user_id: &str) -> Option<String> {
@@ -833,6 +814,39 @@ pub(crate) mod test_support {
         public.to_armored_string(Default::default()).unwrap()
     }
 
+    pub fn rebound_subkey(subkey: KeyType, key_flags: Option<u8>) -> String {
+        let secret = build(KeyType::EdDSALegacy, Some(subkey), None, None);
+        let mut public = signed_public(&secret);
+        let sub = public.public_subkeys.first_mut().unwrap();
+        let mut config = SignatureConfig::v4(
+            SignatureType::SubkeyBinding,
+            secret.algorithm(),
+            HashAlgorithm::SHA2_256,
+        );
+        config.hashed_subpackets = vec![Subpacket::regular(SubpacketData::SignatureCreationTime(
+            Utc::now().trunc_subsecs(0),
+        ))];
+        if let Some(value) = key_flags {
+            config
+                .hashed_subpackets
+                .push(Subpacket::regular(SubpacketData::KeyFlags(
+                    vec![value].into(),
+                )));
+        }
+        config
+            .hashed_subpackets
+            .push(Subpacket::regular(SubpacketData::IssuerFingerprint(
+                secret.fingerprint(),
+            )));
+        config.unhashed_subpackets =
+            vec![Subpacket::regular(SubpacketData::Issuer(secret.key_id()))];
+        let signature = config
+            .sign_key_binding(&secret, || "".to_string(), &sub.key)
+            .unwrap();
+        sub.signatures = vec![signature];
+        public.to_armored_string(Default::default()).unwrap()
+    }
+
     pub fn modern() -> SignedSecretKey {
         build(
             KeyType::EdDSALegacy,
@@ -929,6 +943,39 @@ mod tests {
             validate_external_key(&armored_public(&secret)).unwrap_err(),
             ExternalKeyRejection::NoEncryptionSubkey
         );
+    }
+
+    #[test]
+    fn rejects_an_rsa_subkey_bound_without_key_flags() {
+        assert_eq!(
+            validate_external_key(&rebound_subkey(KeyType::Rsa(2048), None)).err(),
+            Some(ExternalKeyRejection::NoEncryptionSubkey)
+        );
+    }
+
+    #[test]
+    fn rejects_an_ecdh_subkey_bound_with_empty_key_flags() {
+        assert_eq!(
+            validate_external_key(&rebound_subkey(
+                KeyType::ECDH(ECCCurve::Curve25519),
+                Some(0)
+            ))
+            .err(),
+            Some(ExternalKeyRejection::NoEncryptionSubkey)
+        );
+    }
+
+    #[test]
+    fn accepts_an_ecdh_subkey_bound_without_key_flags() {
+        assert!(
+            validate_external_key(&rebound_subkey(KeyType::ECDH(ECCCurve::Curve25519), None))
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn accepts_an_rsa_subkey_bound_with_encryption_flags() {
+        assert!(validate_external_key(&rebound_subkey(KeyType::Rsa(2048), Some(0x0C))).is_ok());
     }
 
     #[test]

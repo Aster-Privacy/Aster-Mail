@@ -149,11 +149,30 @@ describe("decrypt_mail_envelope trust claims in stored envelopes", () => {
     expect(opened?.sender_verification).toBeUndefined();
   });
 
-  it("an unsigned PGP envelope reports unsigned whatever it claims", async () => {
+  it("an unsigned PGP envelope keeps no claim for an external sender", async () => {
     const opened = await decrypt_mail_envelope<Record<string, unknown>>(
       as_base64(
         await seal_to_own(
           JSON.stringify(envelope({ sender_verification: "verified" })),
+        ),
+      ),
+      "",
+    );
+
+    expect(opened?.subject).toBe("Hello");
+    expect(opened?.sender_verification).toBeUndefined();
+  });
+
+  it("an unsigned PGP envelope reports unsigned for an Aster sender", async () => {
+    const opened = await decrypt_mail_envelope<Record<string, unknown>>(
+      as_base64(
+        await seal_to_own(
+          JSON.stringify(
+            envelope({
+              from: { name: "", email: "friend@astermail.org" },
+              sender_verification: "verified",
+            }),
+          ),
         ),
       ),
       "",

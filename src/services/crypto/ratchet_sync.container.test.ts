@@ -22,6 +22,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const floors = vi.hoisted(() => new Map<string, number>());
 
+vi.mock("./ratchet_sync_format", () => ({
+  ratchet_sync_writes_bound: vi.fn(async () => true),
+  vault_requires_bound_state: vi.fn(() => false),
+}));
+
 vi.mock("@/services/api/client", () => ({
   api_client: {
     post: vi.fn(),
@@ -53,7 +58,12 @@ import {
   load_ratchet_from_server,
   sync_all_ratchet_states,
   sync_ratchet_to_server,
+  type RatchetSyncKey,
 } from "./ratchet_sync";
+import {
+  ratchet_state_sync_aad,
+  split_ratchet_state_payload,
+} from "./ratchet_state_container";
 import { DoubleRatchet } from "./double_ratchet";
 import {
   list_ratchet_conversations,
@@ -87,14 +97,18 @@ const ANDROID_CONVERSATION = "conv-a";
 const ANDROID_SYNC_VERSION = 50;
 const FAR_FUTURE = 9_000_000_000_000;
 
-async function vector_key(): Promise<CryptoKey> {
-  return crypto.subtle.importKey(
+const USER_ID = "user-1";
+
+async function vector_key(): Promise<RatchetSyncKey> {
+  const key = await crypto.subtle.importKey(
     "raw",
     new Uint8Array(32).map((_, index) => index),
     { name: "AES-GCM" },
     false,
     ["encrypt", "decrypt"],
   );
+
+  return { state_key: key, compat_key: key, user_id: USER_ID };
 }
 
 function state_response(
@@ -118,13 +132,13 @@ function state_response(
 }
 
 async function seal(
-  key: CryptoKey,
+  key: RatchetSyncKey,
   fields: Record<string, unknown>,
 ): Promise<{ encrypted_state: string; state_nonce: string }> {
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const sealed = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: nonce },
-    key,
+    key.compat_key,
     new TextEncoder().encode(JSON.stringify(fields)),
   );
 
@@ -134,14 +148,29 @@ async function seal(
   };
 }
 
-async function open_legacy(
-  key: CryptoKey,
+async function open_written(
+  key: RatchetSyncKey,
+  conversation_id: string,
   body: { encrypted_state: string; state_nonce: string },
 ): Promise<Record<string, unknown>> {
-  const opened = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: base64_to_array(body.state_nonce) },
-    key,
+  const payload = split_ratchet_state_payload(
     base64_to_array(body.encrypted_state),
+  );
+
+  if (!payload) throw new Error("not a v3 payload");
+
+  const opened = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: base64_to_array(body.state_nonce),
+      additionalData: ratchet_state_sync_aad(
+        key.user_id,
+        conversation_id,
+        payload.header_bytes,
+      ),
+    },
+    key.state_key,
+    payload.ciphertext,
   );
 
   return JSON.parse(new TextDecoder().decode(opened));
@@ -244,7 +273,7 @@ describe("synced ratchet state container", () => {
     expect(mock_deserialize).not.toHaveBeenCalled();
   });
 
-  it("writes a version above the floor that older readers can still open", async () => {
+  it("writes a version above the floor bound to the account and epoch", async () => {
     const key = await vector_key();
 
     floors.set("conv-write", FAR_FUTURE);
@@ -252,7 +281,11 @@ describe("synced ratchet state container", () => {
 
     await sync_ratchet_to_server(fake_ratchet("conv-write"), key, 7);
 
-    const written = await open_legacy(key, mock_put.mock.calls[0][1]);
+    const written = await open_written(
+      key,
+      "conv-write",
+      mock_put.mock.calls[0][1],
+    );
 
     expect(written).toEqual({
       state: { root_key: "local", conversation_id: "conv-write" },
@@ -282,7 +315,11 @@ describe("synced ratchet state container", () => {
 
     await sync_ratchet_to_server(fake_ratchet("conv-ahead"), key);
 
-    const written = await open_legacy(key, mock_put.mock.calls[0][1]);
+    const written = await open_written(
+      key,
+      "conv-ahead",
+      mock_put.mock.calls[0][1],
+    );
 
     expect(written.sync_version).toBe(FAR_FUTURE + 1);
   });
@@ -325,7 +362,7 @@ describe("synced ratchet state container", () => {
       };
     }
 
-    async function unversioned_blob(key: CryptoKey) {
+    async function unversioned_blob(key: RatchetSyncKey) {
       return seal(key, {
         state: { ...ratchet_state("stale", 1), conversation_id: CONV },
         conversation_id: CONV,

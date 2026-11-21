@@ -90,6 +90,7 @@ import { read_offer_prefill } from "@/components/register/academic_offer_prefill
 import { clear_first_run_plan, restore_first_run_plan } from "@/lib/first_run";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 import { promo_code_error_text } from "@/components/settings/billing/plan_change_discount_text";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 interface RegisterStepPlanSelectionProps {
   reg: UseRegistrationReturn;
@@ -109,7 +110,7 @@ let plans_promise_cache: Promise<{
 }> | null = null;
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export function prefetch_plans(): void {
@@ -857,6 +858,14 @@ export const RegisterStepPlanSelection = ({
         {currency === "usd"
           ? t("settings.prices_in_usd_note")
           : t("settings.prices_converted_note")}
+      </p>
+
+      <p
+        className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold"
+        style={{ color: "var(--color-success)" }}
+      >
+        <ShieldCheckIcon aria-hidden="true" className="h-4 w-4 flex-shrink-0" />
+        {t("settings.money_back_guarantee")}
       </p>
 
       {is_loading ? (

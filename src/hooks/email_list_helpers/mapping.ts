@@ -214,7 +214,9 @@ export function mail_to_email(
     is_trashed: effective_metadata.is_trashed,
     is_archived: effective_metadata.is_archived,
     is_spam: effective_metadata.is_spam,
-    has_attachment: effective_metadata.has_attachments,
+    has_attachment:
+      effective_metadata.has_attachments ||
+      (envelope.attachment_metadata?.length ?? 0) > 0,
     category: "",
     category_color: "",
     mail_category: classify(envelope, metadata, {

@@ -52,6 +52,7 @@ import {
   MAX_PASTE_IMAGE_SIZE,
   plain_text_to_editor_html,
   strip_editor_fillers,
+  editor_plain_text,
   pasted_html_has_text,
   caret_range_from_point,
   place_caret,
@@ -121,7 +122,7 @@ export function use_editor({
     (editor: HTMLDivElement) => {
       on_change?.(
         is_plain_text_mode
-          ? editor.innerText
+          ? editor_plain_text(editor)
           : strip_editor_fillers(
               read_compose_editor_html(editor.innerHTML),
             ),
@@ -178,7 +179,7 @@ export function use_editor({
     if (!pending) return null;
 
     return is_plain_text_mode_ref.current
-      ? pending.editor.innerText
+      ? editor_plain_text(pending.editor)
       : strip_editor_fillers(
           read_compose_editor_html(pending.editor.innerHTML),
         );
@@ -412,6 +413,7 @@ export function use_editor({
           proxy_compose_image_sources(
             sanitize_compose_paste(restore_deferred_compose_images(html_data), {
               collapse_source_whitespace: true,
+              plain_text: e.clipboardData.getData("text/plain"),
             }),
           ),
         );
@@ -505,7 +507,10 @@ export function use_editor({
               proxy_compose_image_sources(
                 sanitize_compose_paste(
                   restore_deferred_compose_images(dropped_html),
-                  { collapse_source_whitespace: true },
+                  {
+                    collapse_source_whitespace: true,
+                    plain_text: dropped_text,
+                  },
                 ),
               ),
             ),
@@ -811,6 +816,7 @@ export function use_editor({
     apply_signature,
     set_font_color: fmt.set_font_color,
     set_background_color: fmt.set_background_color,
+    remove_background_color: fmt.remove_background_color,
     set_font_size: fmt.set_font_size,
     set_font_family: fmt.set_font_family,
     handle_paste,

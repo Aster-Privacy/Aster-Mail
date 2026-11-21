@@ -18,28 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { EncryptedVault } from "@/services/crypto/key_manager";
-
 import type { TotpStatusResponse } from "@/services/api/totp";
 
 import { useState, useEffect, useRef } from "react";
 
-import { resolve_password_change_error } from "../password_change_error";
-
 import { LogoutOthersResponse, SESSION_TIMEOUT_OPTIONS } from "./options";
 import { use_security_fetchers } from "./fetchers";
-
-import { reprotect_vault_keys_for_password_change } from "@/services/crypto/identity_key_materials";
-import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_settings_cache } from "@/contexts/settings_cache_context";
-import {
-  change_password,
-  get_user_salt,
-  set_login_alerts,
-  type LoginEventEntry,
-} from "@/services/api/auth";
+import { set_login_alerts, type LoginEventEntry } from "@/services/api/auth";
 import { api_client } from "@/services/api/client";
 import {
   list_sessions,
@@ -48,83 +36,22 @@ import {
   type Session,
 } from "@/services/api/sessions";
 import { type SecurityStatusResponse } from "@/services/api/account";
-import { compute_password_strength_tier } from "@/services/password_strength_score";
-import {
-  hash_email,
-  derive_password_hash,
-  encrypt_vault,
-  base64_to_array,
-} from "@/services/crypto/key_manager";
-import {
-  derive_kek_from_password,
-  keep_password_change_keks,
-} from "@/services/crypto/legacy_keks";
-import {
-  get_preferences,
-  save_preferences,
-  derive_preferences_key_raw,
-  derive_dev_mode_key_raw,
-  get_dev_mode,
-  save_dev_mode,
-} from "@/services/api/preferences";
-import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
-import { announce_sent_mail_resealed } from "@/services/sent_mail_reseal";
-import { kept_app_lock_field } from "@/services/app_lock_password_change";
-import {
-  convert_before_password_change,
-  sent_mail_needs_password_reseal,
-} from "@/services/account_data_conversion";
-import { re_encrypt_user_data } from "@/services/crypto/password_change_reencrypt";
-import {
-  reencrypt_settings_password_change,
-  reencrypt_identity_scoped_password_change,
-} from "@/services/crypto/recovery_reencrypt";
-import {
-  get_vault_from_memory,
-  store_vault_in_memory,
-  is_master_key_vault,
-  MASTER_KEY_VAULT_FORMAT,
-  get_storage_kdf_version,
-} from "@/services/crypto/memory_key_store";
-import { upgrade_vault_to_master_key } from "@/services/crypto/vault_master_key_upgrade";
-import {
-  is_session_passphrase_on_device,
-  store_encrypted_vault,
-  store_session_passphrase,
-} from "@/contexts/auth/session_passphrase";
-
-import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
-import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
-import { refresh_recovery_backup } from "@/services/crypto/recovery_backup_refresh";
-import {
-  note_vault_written,
-  vault_write_iterations,
-  write_vault_at_level,
-} from "@/services/crypto/vault_level2";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
   ensure_ratchet_keys,
   publish_vaulted_prekey_bundle,
   sync_vault_with_server,
 } from "@/services/crypto/ensure_ratchet_keys";
-import { carry_displaced_ratchet_keys } from "@/services/crypto/ratchet_key_continuity";
-import {
-  load_password_change_vault,
-  PASSWORD_CHANGE_VAULT_ERROR_KEYS,
-} from "./password_change_vault";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
-import { generate_auth_salt, login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { show_toast } from "@/components/toast/simple_toast";
 import { held_of } from "@/services/guard/held_outcome";
-import { ignore_error } from "@/lib/ignore_error";
-import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
 import {
-  derive_current_account_proof,
-  read_kdf_version,
-  record_current_account_login_salt,
-  user_hash_pin_key,
-} from "@/services/crypto/login_proof";
+  append_password_notice,
+  password_change_failure_message,
+  run_password_change,
+} from "./run_password_change";
 
 export function use_security() {
   const { t } = use_i18n();
@@ -134,6 +61,7 @@ export function use_security() {
   const {
     key_age_hours,
     key_fingerprint,
+    removed_key_count: rotation_removed_key_count,
     perform_rotation,
     show_manual_rotation_modal,
     show_modal: show_rotation_modal,
@@ -321,8 +249,6 @@ export function use_security() {
     set_password_success(false);
     set_password_unreadable_notice("");
 
-    let unreadable_item_count = 0;
-
     if (!user?.email) {
       set_password_error(t("settings.user_not_found"));
 
@@ -350,391 +276,41 @@ export function use_security() {
     set_password_loading(true);
 
     try {
-      const user_hash = await hash_email(user.email);
-
-      const salt_response = await get_user_salt({ user_hash });
-
-      if (salt_response.error || !salt_response.data) {
-        set_password_error(
-          salt_response.error || t("settings.failed_get_auth_data"),
-        );
-        set_password_loading(false);
-
-        return;
-      }
-
-      const salt = base64_to_array(salt_response.data.salt);
-      const current_password_hash = await derive_current_account_proof(
+      const result = await run_password_change({
+        user_id: user.id,
+        user_email: user.email,
         current_password,
-        salt,
-        read_kdf_version(salt_response.data.kdf_version),
-        [user_hash_pin_key(user_hash)],
-      );
-
-      let vault!: EncryptedVault;
-      let sent_mail_conversion!: Awaited<
-        ReturnType<typeof convert_before_password_change>
-      >;
-      let master_key_mode = false;
-      let old_identity_key = "";
-      let cas_field: { expected_vault_sha256?: string } = {};
-      let response!: Awaited<ReturnType<typeof change_password>>;
-      const new_password_strength_tier =
-        compute_password_strength_tier(new_password);
-      let change_held = false;
-
-      const committed = await with_vault_write_lock(async () => {
-        const loaded = await load_password_change_vault(
-          user.id,
-          current_password,
-        );
-
-        if (loaded.kind === "error") {
-          set_password_error(
-            t(PASSWORD_CHANGE_VAULT_ERROR_KEYS[loaded.reason]),
-          );
-          set_password_loading(false);
-
-          return false;
-        }
-
-        vault = loaded.vault;
-        cas_field = loaded.server_blob?.vault_sha256
-          ? { expected_vault_sha256: loaded.server_blob.vault_sha256 }
-          : {};
-
-        const memory_vault = get_vault_from_memory();
-
-        if (!is_master_key_vault(vault) && is_master_key_vault(memory_vault)) {
-          vault.data_kek = memory_vault?.data_kek;
-          vault.data_kek_random = memory_vault?.data_kek_random;
-          vault.storage_rekey = memory_vault?.storage_rekey;
-          vault.vault_format = memory_vault?.vault_format;
-          vault.mk_created_at = memory_vault?.mk_created_at;
-          vault.legacy_identity_keys = memory_vault?.legacy_identity_keys
-            ? [...memory_vault.legacy_identity_keys]
-            : vault.legacy_identity_keys;
-          vault.legacy_keks = memory_vault?.legacy_keks
-            ? [...memory_vault.legacy_keks]
-            : vault.legacy_keks;
-        }
-
-        vault = carry_displaced_ratchet_keys(vault, memory_vault);
-
-        if (
-          memory_vault?.ratchet_regen_v4_done &&
-          memory_vault.ratchet_identity_public === vault.ratchet_identity_public
-        ) {
-          vault.ratchet_regen_v4_done = true;
-        }
-
-        sent_mail_conversion = await convert_before_password_change({
-          identity_key: vault.identity_key,
-          passphrase: current_password,
-        });
-
-        await upgrade_vault_to_master_key(vault, current_password);
-
-        master_key_mode = is_master_key_vault(vault);
-
-        old_identity_key = vault.identity_key;
-
-        const old_prefs_key_raw =
-          await derive_preferences_key_raw(old_identity_key);
-        const old_dev_mode_key_raw =
-          await derive_dev_mode_key_raw(old_identity_key);
-
-        await reprotect_vault_keys_for_password_change(
-          vault,
-          current_password,
-          new_password,
-        );
-
-        const new_salt = generate_auth_salt();
-        const {
-          hash: new_password_hash,
-          salt: new_password_salt,
-          hash_v2: new_password_hash_v2,
-        } = await derive_password_hash(new_password, new_salt);
-
-        const old_folder_material = new TextEncoder().encode(
-          old_identity_key + "astermail-labels-v1",
-        );
-        const old_folder_hash = new Uint8Array(
-          await crypto.subtle.digest("SHA-256", old_folder_material),
-        );
-        const old_tag_material = new TextEncoder().encode(
-          old_identity_key + "astermail-tags-v1",
-        );
-        const old_tag_hash = new Uint8Array(
-          await crypto.subtle.digest("SHA-256", old_tag_material),
-        );
-        const retired_raws = [await derive_kek_from_password(current_password)];
-
-        vault.legacy_keks = keep_password_change_keks(vault.legacy_keks, [
-          ...retired_raws,
-          old_prefs_key_raw,
-          old_dev_mode_key_raw,
-          old_folder_hash,
-          old_tag_hash,
-        ]);
-
-        const vault_key_fingerprints =
-          await collect_vault_key_fingerprints(vault);
-        const fingerprint_field = vault_key_fingerprints.length
-          ? { vault_key_fingerprints }
-          : {};
-
-        const reencrypted = master_key_mode
-          ? null
-          : await re_encrypt_user_data(current_password, new_password, {
-              data_kek: vault.data_kek,
-              legacy_keks: vault.legacy_keks,
-              kdf_version: get_storage_kdf_version(vault),
-            });
-
-        if (reencrypted) {
-          const { skipped } = reencrypted;
-
-          unreadable_item_count =
-            skipped.alias_ids.length +
-            skipped.contact_ids.length +
-            skipped.domain_address_ids.length +
-            skipped.unreadable_field_count;
-        }
-
-        const written = await write_vault_at_level(
-          vault_write_iterations(),
-          (iterations) => encrypt_vault(vault, new_password, iterations),
-          (sealed, kdf_field) =>
-            reencrypted
-              ? change_password({
-                  current_password_hash,
-                  new_password_hash,
-                  new_password_hash_v2,
-                  new_password_salt,
-                  new_encrypted_vault: sealed.encrypted_vault,
-                  new_vault_nonce: sealed.vault_nonce,
-                  re_encrypted_aliases: reencrypted.re_encrypted_aliases,
-                  re_encrypted_contacts: reencrypted.re_encrypted_contacts,
-                  re_encrypted_pins: reencrypted.re_encrypted_pins,
-                  re_encrypted_alias_contacts:
-                    reencrypted.re_encrypted_alias_contacts,
-                  re_encrypted_destinations:
-                    reencrypted.re_encrypted_destinations,
-                  re_encrypted_directories:
-                    reencrypted.re_encrypted_directories,
-                  re_encrypted_domain_addresses:
-                    reencrypted.re_encrypted_domain_addresses,
-                  unreadable_alias_ids: reencrypted.skipped.alias_ids,
-                  new_password_strength_tier,
-                  ...kdf_field,
-                  ...kept_app_lock_field(user.id),
-                  ...fingerprint_field,
-                  ...cas_field,
-                })
-              : change_password({
-                  current_password_hash,
-                  new_password_hash,
-                  new_password_hash_v2,
-                  new_password_salt,
-                  new_encrypted_vault: sealed.encrypted_vault,
-                  new_vault_nonce: sealed.vault_nonce,
-                  vault_format: MASTER_KEY_VAULT_FORMAT,
-                  new_password_strength_tier,
-                  ...kdf_field,
-                  ...kept_app_lock_field(user.id),
-                  ...fingerprint_field,
-                  ...cas_field,
-                }),
-        );
-
-        response = written.response;
-
-        if (held_of(response)) {
-          change_held = true;
-          set_password_loading(false);
-
-          return false;
-        }
-
-        const new_encrypted_vault = written.sealed.encrypted_vault;
-        const new_vault_nonce = written.sealed.vault_nonce;
-
-        if (!response.error) {
-          note_vault_written(written.sealed, written.iterations);
-        }
-
-        if (response.error) {
-          set_password_error(
-            resolve_password_change_error(
-              response.error,
-              t,
-              response.server_code,
-            ),
-          );
-          set_password_loading(false);
-
-          return false;
-        }
-
-        try {
-          store_encrypted_vault(user.id, new_encrypted_vault, new_vault_nonce);
-        } catch (caught) {
-          ignore_error(
-            "components/settings/hooks/use_security/hook:handle_change_password",
-            caught,
-          );
-        }
-
-        void record_current_account_login_salt(new_salt);
-        reset_vault_refresh_state();
-        await store_vault_in_memory(vault, new_password);
-        void refresh_recovery_backup(vault, new_password);
-
-        return true;
+        new_password,
+        preferences,
+        t,
+        on_background_notice: (message) =>
+          set_password_unreadable_notice((prev) =>
+            append_password_notice(prev, message),
+          ),
       });
 
-      if (!committed) {
-        if (change_held) {
+      if (!result.ok) {
+        if (result.held) {
           set_show_password_section(false);
           set_current_password("");
           set_new_password("");
           set_confirm_password("");
+
+          return;
         }
+
+        set_password_error(result.error);
 
         return;
-      }
-
-      try {
-        await store_session_passphrase(
-          user.id,
-          new_password,
-          is_session_passphrase_on_device(user.id),
-        );
-      } catch (caught) {
-        ignore_error(
-          "components/settings/hooks/use_security/hook:handle_change_password",
-          caught,
-        );
-      }
-
-      if (response.data?.csrf_token) {
-        api_client.set_csrf(response.data.csrf_token);
-      }
-      if (response.data?.access_token) {
-        api_client.set_dev_token(
-          response.data.access_token,
-          response.data.refresh_token,
-        );
-      }
-
-      try {
-        const prefs_result = await get_preferences(vault);
-
-        if (
-          prefs_result.loaded_from_server &&
-          !prefs_result.server_blob_unusable
-        ) {
-          await save_preferences(preferences, vault);
-        }
-      } catch (caught) {
-        ignore_error(
-          "components/settings/hooks/use_security/hook:handle_change_password",
-          caught,
-        );
-      }
-
-      try {
-        const dev_mode_result = await get_dev_mode(vault);
-
-        if (dev_mode_result.data !== null) {
-          await save_dev_mode(dev_mode_result.data, vault);
-        }
-      } catch (caught) {
-        ignore_error(
-          "components/settings/hooks/use_security/hook:handle_change_password",
-          caught,
-        );
-      }
-
-      const note_reencrypt_failure = (caught: unknown) => {
-        const message = t(
-          "settings.password_change_background_reencrypt_failed",
-        );
-
-        set_password_unreadable_notice((prev) => {
-          if (prev.includes(message)) return prev;
-
-          return prev ? `${prev} ${message}` : message;
-        });
-        ignore_error(
-          "components/settings/hooks/use_security/hook:handle_change_password",
-          caught,
-        );
-      };
-
-      sent_mail_needs_password_reseal(sent_mail_conversion)
-        .then((needed) =>
-          needed
-            ? reencrypt_all_sent_mail(current_password, new_password)
-            : null,
-        )
-        .then((summary) => {
-          if (!summary) return;
-
-          write_locked_sent_mail(user.id, summary.unreadable);
-          announce_sent_mail_resealed(summary);
-
-          if (summary.failed > 0) {
-            note_reencrypt_failure(
-              new Error(`sent mail reseal failed for ${summary.failed} items`),
-            );
-          }
-
-          if (summary.unreadable > 0) {
-            const message = t(
-              "settings.password_change_sent_mail_locked",
-            ).replace("{{count}}", String(summary.unreadable));
-
-            set_password_unreadable_notice((prev) =>
-              prev ? `${prev} ${message}` : message,
-            );
-          }
-        })
-        .catch(note_reencrypt_failure);
-
-      if (master_key_mode) {
-        reencrypt_identity_scoped_password_change(
-          old_identity_key,
-          vault.identity_key,
-        ).catch(note_reencrypt_failure);
-      } else {
-        reencrypt_settings_password_change(
-          current_password,
-          new_password,
-          old_identity_key,
-          vault.identity_key,
-        ).catch(note_reencrypt_failure);
       }
 
       set_security_status((prev) => ({
         two_factor_enabled: prev?.two_factor_enabled ?? false,
         recovery_email_set: prev?.recovery_email_set ?? false,
         last_password_change: new Date().toISOString(),
-        password_strength_tier: new_password_strength_tier,
+        password_strength_tier: result.password_strength_tier,
       }));
       fetch_security_status();
-
-      if (unreadable_item_count > 0) {
-        set_password_unreadable_notice((prev) => {
-          const message = t(
-            "settings.password_changed_items_unreadable",
-          ).replace("{{count}}", String(unreadable_item_count));
-
-          return prev ? `${prev} ${message}` : message;
-        });
-      }
 
       set_password_success(true);
       show_toast(t("settings.password_changed_success"), "success");
@@ -743,17 +319,7 @@ export function use_security() {
       set_new_password("");
       set_confirm_password("");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-
-      if (msg.startsWith("alias_reencrypt_failed:")) {
-        set_password_error(t("settings.alias_reencrypt_failed"));
-      } else if (msg.startsWith("contact_reencrypt_failed:")) {
-        set_password_error(t("settings.contact_reencrypt_failed"));
-      } else {
-        set_password_error(
-          t(login_safety_error_key(err) ?? "settings.failed_change_password"),
-        );
-      }
+      set_password_error(password_change_failure_message(err, t));
     } finally {
       set_password_loading(false);
     }
@@ -1056,6 +622,7 @@ export function use_security() {
 
     key_age_hours,
     key_fingerprint,
+    rotation_removed_key_count,
     perform_rotation,
     show_manual_rotation_modal,
     show_rotation_modal,

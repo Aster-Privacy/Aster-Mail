@@ -167,6 +167,7 @@ export function SettingsRow({
   if (on_press) {
     return (
       <button
+        data-settings-row
         className="flex w-full items-center gap-3 px-4 py-3.5 text-start active:bg-[var(--mobile-bg-card-hover)]"
         type="button"
         onClick={on_press}
@@ -180,6 +181,7 @@ export function SettingsRow({
     return (
       <div
         ref={row_ref}
+        data-settings-row
         className="flex w-full cursor-pointer items-center gap-3 px-4 py-3.5 text-start active:bg-[var(--mobile-bg-card-hover)]"
         onClick={handle_row_tap}
       >
@@ -188,7 +190,11 @@ export function SettingsRow({
     );
   }
 
-  return <div className="flex items-center gap-3 px-4 py-3.5">{content}</div>;
+  return (
+    <div data-settings-row className="flex items-center gap-3 px-4 py-3.5">
+      {content}
+    </div>
+  );
 }
 
 export function SettingsHeader({
@@ -275,6 +281,7 @@ export function SettingsAnimatedSection({ children }: { children: ReactNode }) {
     <motion.div
       animate={{ opacity: 1, x: 0 }}
       className="absolute inset-0 flex flex-col bg-[var(--bg-primary)]"
+      data-settings-section=""
       exit={reduce_motion ? undefined : { opacity: 0, x: -50 }}
       initial={reduce_motion ? false : { opacity: 0, x: 50 }}
       transition={

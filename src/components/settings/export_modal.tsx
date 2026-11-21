@@ -59,6 +59,7 @@ import {
   fetch_step_up_requirements,
 } from "@/services/api/step_up";
 import { verify_vanguard_credentials } from "@/services/api/vanguard";
+import { step_up_key_assertion_if_enrolled } from "@/services/api/webauthn";
 import {
   verify_passphrase_for_export,
   issue_export_token,
@@ -242,8 +243,11 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
         verify_password,
         verify_totp_required ? verify_code : undefined,
       );
+      const hardware_key_assertion =
+        await step_up_key_assertion_if_enrolled(verify_totp_required);
       const res = await verify_vanguard_credentials({
         ...credentials,
+        hardware_key_assertion,
         for_export: true,
         captcha_token: captcha_token ?? undefined,
       });

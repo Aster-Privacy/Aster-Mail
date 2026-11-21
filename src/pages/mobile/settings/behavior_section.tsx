@@ -43,6 +43,8 @@ import {
 } from "@/lib/remote_content_policy";
 import { parse_bounded_int } from "@/lib/parse_bounded_int";
 import { use_i18n } from "@/lib/i18n/context";
+import { SkinToneSwatches } from "@/components/settings/skin_tone_swatches";
+import { normalize_skin_tone } from "@/config/emoji/skin_tones";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
@@ -508,6 +510,18 @@ export function BehaviorSection({
             }
           />
           <SettingsRow
+            description={t("settings.sender_logos_description")}
+            label={t("settings.sender_logos")}
+            trailing={
+              <Switch
+                checked={preferences.hide_sender_logos !== true}
+                onCheckedChange={(v) =>
+                  update_preference("hide_sender_logos", !v, true)
+                }
+              />
+            }
+          />
+          <SettingsRow
             description={t("settings.relative_dates_description")}
             label={t("settings.relative_dates")}
             trailing={
@@ -519,6 +533,23 @@ export function BehaviorSection({
               />
             }
           />
+          <div className="px-4 py-3.5">
+            <span className="block text-[15px] text-[var(--text-primary)]">
+              {t("settings.emoji_skin_tone")}
+            </span>
+            <span className="mt-0.5 block text-[13px] text-[var(--text-muted)]">
+              {t("settings.emoji_skin_tone_description")}
+            </span>
+            <div className="mt-2.5">
+              <SkinToneSwatches
+                label={t("settings.emoji_skin_tone")}
+                value={normalize_skin_tone(preferences.emoji_skin_tone)}
+                on_change={(tone) =>
+                  update_preference("emoji_skin_tone", tone, true)
+                }
+              />
+            </div>
+          </div>
           <SettingsRow
             label={t("settings.show_alias_indicators")}
             trailing={

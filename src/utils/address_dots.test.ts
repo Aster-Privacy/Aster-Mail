@@ -4,6 +4,8 @@ import {
   identity_addresses_for,
   normalize_address_ignoring_dots,
   same_address_ignoring_dots,
+  same_sender_identity,
+  strip_plus_tag,
 } from "./address_dots";
 
 import { sanitize_username_input } from "@/services/sanitize";
@@ -103,5 +105,50 @@ describe("identity_addresses_for", () => {
       "...@astermail.org",
     ]);
     expect(identity_addresses_for("  ")).toEqual([]);
+  });
+});
+
+describe("strip_plus_tag", () => {
+  it("removes a plus tag from the local part", () => {
+    expect(strip_plus_tag("shop+news@astermail.org")).toBe(
+      "shop@astermail.org",
+    );
+    expect(strip_plus_tag(" shop+a+b@astermail.org ")).toBe(
+      "shop@astermail.org",
+    );
+  });
+
+  it("leaves addresses without a usable tag alone", () => {
+    expect(strip_plus_tag("shop@astermail.org")).toBe("shop@astermail.org");
+    expect(strip_plus_tag("+tag@astermail.org")).toBe("+tag@astermail.org");
+    expect(strip_plus_tag("no-at-sign")).toBe("no-at-sign");
+  });
+});
+
+describe("same_sender_identity", () => {
+  it("matches across case, dots, and plus tags", () => {
+    expect(
+      same_sender_identity("Shop@AsterMail.org", "shop@astermail.org"),
+    ).toBe(true);
+    expect(
+      same_sender_identity("shop+orders@astermail.org", "shop@astermail.org"),
+    ).toBe(true);
+    expect(
+      same_sender_identity(
+        "first.last@astermail.org",
+        "firstlast@astermail.org",
+      ),
+    ).toBe(true);
+  });
+
+  it("does not match different mailboxes or empty input", () => {
+    expect(same_sender_identity("shop@astermail.org", "me@astermail.org")).toBe(
+      false,
+    );
+    expect(same_sender_identity("shop@astermail.org", "shop@aster.cx")).toBe(
+      false,
+    );
+    expect(same_sender_identity("", "me@astermail.org")).toBe(false);
+    expect(same_sender_identity(undefined, null)).toBe(false);
   });
 });

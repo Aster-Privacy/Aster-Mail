@@ -29,6 +29,24 @@ vi.stubGlobal("localStorage", {
   clear: () => store.clear(),
 });
 
+const limits_store = new Map<string, unknown>();
+
+vi.mock("@/services/crypto/pq_reconciler_limits", () => ({
+  read_reconciler_limits: async (uid: string | null) =>
+    structuredClone(
+      limits_store.get(uid ?? "") ?? {
+        ran_at: 0,
+        self_heal_at: 0,
+        self_heal_keys: {},
+      },
+    ),
+  write_reconciler_limits: async (uid: string | null, limits: unknown) => {
+    limits_store.set(uid ?? "", structuredClone(limits));
+
+    return true;
+  },
+}));
+
 const generate_mock = vi.fn();
 const list_ids_mock = vi.fn();
 const server_ids_mock = vi.fn();
@@ -79,6 +97,7 @@ function server_count(count: number | null): void {
 
 beforeEach(() => {
   store.clear();
+  limits_store.clear();
   generate_mock.mockReset();
   generate_mock.mockResolvedValue(true);
   list_ids_mock.mockReset();
