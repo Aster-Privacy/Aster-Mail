@@ -117,7 +117,7 @@ export function SearchModalFilterPanel({
               on_submit();
             }}
           >
-            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-5">
+            <div className="relative flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-5">
               <Section title={t("mail.contacts")}>
                 <InputRow
                   label={t("common.from_label")}
