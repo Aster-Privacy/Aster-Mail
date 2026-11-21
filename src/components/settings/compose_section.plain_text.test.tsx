@@ -48,10 +48,6 @@ vi.mock("@/contexts/preferences_context", () => ({
   }),
 }));
 
-vi.mock("@/components/settings/search_context", () => ({
-  use_register_search_items: () => undefined,
-}));
-
 vi.mock("@/components/settings/default_sender_setting", () => ({
   DefaultSenderSetting: () => null,
 }));

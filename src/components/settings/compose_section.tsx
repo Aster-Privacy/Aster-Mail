@@ -32,7 +32,6 @@ import {
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_register_search_items } from "@/components/settings/search_context";
 import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
 import { DefaultSenderSetting } from "@/components/settings/default_sender_setting";
 import {
@@ -51,48 +50,6 @@ const COLOR_SWATCH_PLACEHOLDER = "#3b82f6";
 export function ComposeSection() {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
-
-  const breadcrumb = `${t("settings.compose")} > ${t("settings.compose_defaults_title")}`;
-  const reply_breadcrumb = `${t("settings.compose")} > ${t("settings.reply_defaults_title")}`;
-
-  use_register_search_items("compose", [
-    {
-      label: t("settings.default_sender_title"),
-      breadcrumb: `${t("settings.compose")} > ${t("settings.default_sender_group")}`,
-      keywords: [
-        "default sender",
-        "from address",
-        "send as",
-        "alias",
-        "identity",
-      ],
-    },
-    {
-      label: t("settings.plain_text_compose_label"),
-      breadcrumb,
-      keywords: ["plain text", "rich text", "html", "format", "compose"],
-    },
-    {
-      label: t("settings.compose_default_font_size"),
-      breadcrumb,
-      keywords: ["font size", "text size", "compose", "default font"],
-    },
-    {
-      label: t("settings.compose_default_font_color"),
-      breadcrumb,
-      keywords: ["font color", "text color", "compose", "default color"],
-    },
-    {
-      label: t("settings.reply_include_quoted"),
-      breadcrumb: reply_breadcrumb,
-      keywords: ["reply", "quote", "quoted text", "original message"],
-    },
-    {
-      label: t("settings.reply_prefix_subject"),
-      breadcrumb: reply_breadcrumb,
-      keywords: ["reply", "subject", "prefix", "re"],
-    },
-  ]);
 
   const font_size = normalize_compose_font_size(preferences.compose_font_size);
   const font_color = normalize_compose_font_color(

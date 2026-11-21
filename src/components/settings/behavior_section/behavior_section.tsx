@@ -93,7 +93,6 @@ import {
 } from "@/components/ui/alert_dialog";
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_register_search_items } from "@/components/settings/search_context";
 import { type LanguageCode } from "@/services/translation/engine_types";
 import { derive_accepted_languages } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -138,76 +137,6 @@ export function BehaviorSection() {
   const { t, language } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
   const { current_account_id } = use_auth();
-
-  use_register_search_items("behavior", [
-    {
-      label: t("settings.emails_per_page"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: [
-        "page size",
-        "per page",
-        "pagination",
-        "results",
-        "emails per page",
-      ],
-    },
-    {
-      label: t("settings.sender_pictures"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: ["avatar", "picture", "photo", "sender", "profile"],
-    },
-    {
-      label: t("settings.show_alias_indicators"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: ["alias", "indicator", "badge", "delivered to"],
-    },
-    {
-      label: t("settings.relative_dates"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: [
-        "relative",
-        "dates",
-        "today",
-        "yesterday",
-        "timestamp",
-        "date",
-        "time",
-      ],
-    },
-    {
-      label: t("settings.emoji_skin_tone"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: [
-        "emoji",
-        "skin",
-        "tone",
-        "reaction",
-        "reactions",
-        "hand",
-        "color",
-      ],
-    },
-    {
-      label: t("settings.compose_from_selected_alias"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.composing_and_replies")}`,
-      keywords: ["alias", "from", "sender", "compose", "new message"],
-    },
-    {
-      label: t("settings.translate_incoming"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
-      keywords: ["translate", "translation", "language"],
-    },
-    {
-      label: t("settings.translate_my_languages"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
-      keywords: ["translate", "language"],
-    },
-    {
-      label: t("settings.translate_never_languages"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
-      keywords: ["translate", "language"],
-    },
-  ]);
 
   const navigator_languages =
     typeof navigator !== "undefined" ? (navigator.languages ?? []) : [];
