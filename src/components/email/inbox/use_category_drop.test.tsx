@@ -353,6 +353,7 @@ describe("use_category_drop", () => {
     const persisted: LearnedCategorySender[][] = [];
 
     configure_learned_senders({
+      loaded: true,
       enabled: true,
       list: [],
       persist: (list) => persisted.push(list),
@@ -391,9 +392,107 @@ describe("use_category_drop", () => {
     expect(persisted).toHaveLength(3);
   });
 
+  it("learns nothing when the category write fails", async () => {
+    set_message_category.mockResolvedValue(rejected_result);
+
+    const persisted: LearnedCategorySender[][] = [];
+
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: (list) => persisted.push(list),
+    });
+
+    const harness = mount([email("a", "primary")]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+
+    expect(get_learned_senders()).toEqual([]);
+    expect(persisted).toEqual([]);
+  });
+
+  it("learns only the senders whose write succeeded", async () => {
+    set_message_category.mockImplementation(async (item) =>
+      item.id === "b" ? rejected_result : applied_result,
+    );
+
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: () => {},
+    });
+
+    const harness = mount([
+      email("a", "primary"),
+      { ...email("b", "primary"), sender_email: "failed@example.com" },
+    ]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a", "b"]);
+    });
+
+    expect(get_learned_senders().map((entry) => entry.sender)).toEqual([
+      "sender@example.com",
+    ]);
+  });
+
+  it("learns nothing before preferences load", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+
+    configure_learned_senders({
+      loaded: false,
+      enabled: true,
+      list: [],
+      persist: () => {},
+    });
+
+    const harness = mount([email("a", "primary")]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+
+    expect(get_learned_senders()).toEqual([]);
+  });
+
+  it("does not learn an Aster-domain or failed-auth sender from a drop", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: () => {},
+    });
+
+    const harness = mount([
+      { ...email("a", "primary"), sender_email: "friend@astermail.org" },
+      {
+        ...email("b", "primary"),
+        sender_email: "spoof@example.com",
+        dmarc_result: "fail",
+      } as InboxEmail,
+    ]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a", "b"]);
+    });
+
+    expect(get_learned_senders()).toEqual([]);
+  });
+
   it("offers a sender rule only after the same sender repeats", async () => {
     set_message_category.mockResolvedValue(applied_result);
-    configure_learned_senders({ enabled: false, list: [], persist: null });
+    configure_learned_senders({
+      loaded: true,
+      enabled: false,
+      list: [],
+      persist: null,
+    });
 
     const harness = mount([email("a", "primary"), email("b", "primary")]);
 

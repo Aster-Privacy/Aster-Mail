@@ -42,12 +42,7 @@ import {
   get_version as get_index_version,
   set_active_tabs,
   set_custom_categories,
-  set_learned_senders,
 } from "@/services/category_index";
-import {
-  configure_learned_senders,
-  sanitize_learned_senders,
-} from "@/services/learned_category_senders";
 import {
   BUILTIN_CATEGORIES,
   allowed_custom_categories,
@@ -144,8 +139,7 @@ export interface UseInboxCategoriesReturn {
 export function use_inbox_categories(
   current_view: string,
 ): UseInboxCategoriesReturn {
-  const { preferences, has_loaded_from_server, update_preference } =
-    use_preferences();
+  const { preferences, has_loaded_from_server } = use_preferences();
   const { limits } = use_plan_limits();
   const category_limit = limits
     ? (limits.limits["max_custom_categories"]?.limit ?? -1)
@@ -212,28 +206,6 @@ export function use_inbox_categories(
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [custom_categories_key, category_limit]);
-
-  const learned_senders_key = JSON.stringify(
-    preferences.learned_category_senders ?? [],
-  );
-  const learning_enabled = preferences.learn_from_category_moves !== false;
-  const update_preference_ref = useRef(update_preference);
-
-  update_preference_ref.current = update_preference;
-
-  useEffect(() => {
-    const list = sanitize_learned_senders(JSON.parse(learned_senders_key));
-
-    configure_learned_senders({
-      enabled: learning_enabled,
-      list,
-      persist: has_loaded_from_server
-        ? (next) =>
-            update_preference_ref.current("learned_category_senders", next)
-        : null,
-    });
-    set_learned_senders(list);
-  }, [learned_senders_key, learning_enabled, has_loaded_from_server]);
 
   // The last-viewed tab is persisted vault-encrypted (AES-256-GCM + HMAC), not
   // as plaintext, so it leaves no readable behavioral signal on disk. Because

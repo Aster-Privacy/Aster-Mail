@@ -74,6 +74,9 @@ export interface CategoryMoveItem extends CategoryMoveTarget {
   sender_verification?: SenderVerificationStatus;
   is_external?: boolean;
   system_origin?: boolean;
+  spf_result?: string | null;
+  dkim_result?: string | null;
+  dmarc_result?: string | null;
 }
 
 export interface CategoryMoveOptions {
@@ -158,6 +161,9 @@ export function mail_item_move_item(
     is_external: mail_item.is_external,
     system_origin: mail_item.system_origin,
     sender_verification,
+    spf_result: mail_item.spf_result,
+    dkim_result: mail_item.dkim_result,
+    dmarc_result: mail_item.dmarc_result,
     id: mail_item.id,
     thread_token: mail_item.thread_token,
     encrypted_metadata: mail_item.encrypted_metadata,
@@ -499,10 +505,7 @@ export function move_items_to_category(
 
   apply_rows_locally(rows, category, update_email);
 
-  const undo_learned = record_category_move(
-    rows.map((row) => row.item),
-    category,
-  );
+  let undo_learned: (() => void) | null = null;
   const row_ids = rows.map((row) => row.item.id);
 
   show_bulk_result_toast({
@@ -518,6 +521,7 @@ export function move_items_to_category(
       for (const row of live) row.undone = true;
       restore_rows_locally(live, update_email);
       undo_learned?.();
+      undo_learned = null;
 
       return enqueue(() => undo_rows(live, category, options));
     },
@@ -549,6 +553,10 @@ export function move_items_to_category(
     );
 
     if (moved.length > 0) {
+      undo_learned = record_category_move(
+        moved.map((row) => row.item),
+        category,
+      );
       maybe_offer_sender_rule(
         moved.map((row) => row.item),
         category,

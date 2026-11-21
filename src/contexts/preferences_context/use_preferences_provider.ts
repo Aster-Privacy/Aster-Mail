@@ -92,6 +92,10 @@ import {
 } from "@/services/api/client/helpers";
 import { set_badge_count_enabled } from "@/native/badge_preference";
 import {
+  configure_learned_senders,
+  sanitize_learned_senders,
+} from "@/services/learned_category_senders";
+import {
   get_vault_from_memory,
   on_vault_cleared,
 } from "@/services/crypto/memory_key_store";
@@ -454,6 +458,31 @@ export function use_preferences_provider() {
     };
   }, [vault_identity, is_completing_registration]);
 
+  const learned_senders_key = JSON.stringify(
+    preferences.learned_category_senders ?? [],
+  );
+  const learning_enabled = preferences.learn_from_category_moves !== false;
+
+  useEffect(() => {
+    const list = has_loaded_from_server
+      ? sanitize_learned_senders(JSON.parse(learned_senders_key))
+      : [];
+
+    configure_learned_senders({
+      loaded: has_loaded_from_server,
+      enabled: learning_enabled,
+      list,
+      persist: has_loaded_from_server
+        ? (next) => update_preference("learned_category_senders", next)
+        : null,
+    });
+  }, [
+    learned_senders_key,
+    learning_enabled,
+    has_loaded_from_server,
+    update_preference,
+  ]);
+
   useEffect(() => {
     set_display_time_zone(preferences.time_zone);
   }, [preferences.time_zone]);
@@ -785,6 +814,12 @@ export function use_preferences_provider() {
     const flush_via_beacon = () => {
       if (device_traces_erased()) return;
       if (!latest_prefs_ref.current || !beacon_payload_ref.current) return;
+
+      if (fallback_base_ref.current) {
+        beacon_payload_ref.current = null;
+
+        return;
+      }
 
       if (!has_loaded_ref.current) {
         beacon_payload_ref.current = null;

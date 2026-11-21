@@ -576,6 +576,9 @@ export async function convert_preferences_to_account_key(
 }
 
 const PREFS_CACHE_KEY = "aster_preferences_cache";
+const UNCACHED_PREFERENCE_KEYS: readonly string[] = [
+  "learned_category_senders",
+];
 const TEXT_SIZE_CACHE_KEY = "aster_text_size";
 const MIGRATION_FLAGS_KEY = "aster_pref_migrations_done";
 
@@ -644,13 +647,34 @@ function write_local_migration_flag(flag: MigrationFlag): void {
   }
 }
 
+function strip_uncached_fields(
+  prefs: Partial<UserPreferences> | Record<string, unknown>,
+): Record<string, unknown> {
+  const copy: Record<string, unknown> = { ...prefs };
+
+  for (const key of UNCACHED_PREFERENCE_KEYS) delete copy[key];
+
+  return copy;
+}
+
+export function without_learned_base(prefs: UserPreferences): UserPreferences {
+  const copy = { ...prefs } as Partial<UserPreferences>;
+
+  delete copy.learned_category_senders;
+
+  return copy as UserPreferences;
+}
+
 export function cache_preferences_locally(prefs: UserPreferences): void {
   if (device_traces_erased()) return;
 
   apply_loaded_error_report_preference(prefs.send_error_reports);
 
   try {
-    localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(prefs));
+    localStorage.setItem(
+      PREFS_CACHE_KEY,
+      JSON.stringify(strip_uncached_fields(prefs)),
+    );
     localStorage.setItem(
       TEXT_SIZE_CACHE_KEY,
       JSON.stringify({
@@ -701,6 +725,14 @@ export function get_cached_preferences(): UserPreferences | null {
 
     if (cached) {
       const parsed = JSON.parse(cached) as Record<string, unknown>;
+
+      if (UNCACHED_PREFERENCE_KEYS.some((key) => key in parsed)) {
+        const stripped = strip_uncached_fields(parsed);
+
+        localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(stripped));
+
+        return build_merged_preferences(stripped, null);
+      }
 
       return build_merged_preferences(parsed, null);
     }

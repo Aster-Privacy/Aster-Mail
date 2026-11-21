@@ -25,6 +25,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   MAX_LEARNED_PER_MOVE,
   MAX_LEARNED_SENDERS,
+  are_learned_senders_loaded,
   configure_learned_senders,
   get_learned_senders,
   is_learning_enabled,
@@ -35,11 +36,15 @@ import {
   record_category_move,
   reset_learned_senders_store,
   sanitize_learned_senders,
+  subscribe_learned_senders,
 } from "./learned_category_senders";
 
 import {
   build_merged_preferences,
+  cache_preferences_locally,
+  get_cached_preferences,
   reconcile_preferences,
+  without_learned_base,
   DEFAULT_PREFERENCES,
 } from "@/services/api/preferences";
 
@@ -58,6 +63,7 @@ function setup_store(
   const persisted: LearnedCategorySender[][] = [];
 
   configure_learned_senders({
+    loaded: true,
     enabled,
     list,
     persist: (next) => persisted.push(next),
@@ -193,6 +199,129 @@ describe("reconcile_learned_senders", () => {
       ])[0],
     ).toEqual(entry("a@example.com", "updates", 45));
   });
+
+  it("takes the local copy when only this device changed a sender", () => {
+    const current = [entry("a@example.com", "promotions", 5), base[1]];
+
+    expect(reconcile_learned_senders(base, current, base)[1]).toEqual(
+      entry("a@example.com", "promotions", 5),
+    );
+  });
+
+  it("drops a sender the server deleted while this device left it alone", () => {
+    const server = [base[1]];
+
+    expect(reconcile_learned_senders(base, base, server)).toEqual([base[1]]);
+  });
+
+  it("keeps a sender changed on one side and deleted on the other", () => {
+    const changed_locally = [entry("a@example.com", "promotions", 50), base[1]];
+    const deleted_on_server = [base[1]];
+
+    expect(
+      reconcile_learned_senders(base, changed_locally, deleted_on_server),
+    ).toEqual([entry("a@example.com", "promotions", 50), base[1]]);
+
+    const deleted_locally = [base[1]];
+    const changed_on_server = [entry("a@example.com", "updates", 60), base[1]];
+
+    expect(
+      reconcile_learned_senders(base, deleted_locally, changed_on_server),
+    ).toEqual([entry("a@example.com", "updates", 60), base[1]]);
+  });
+
+  it("keeps an addition from either side", () => {
+    const added = entry("new@example.com", "social", 70);
+
+    expect(reconcile_learned_senders(base, [...base, added], base)).toEqual([
+      added,
+      ...base,
+    ]);
+    expect(reconcile_learned_senders(base, base, [...base, added])).toEqual([
+      added,
+      ...base,
+    ]);
+  });
+
+  it("takes the newer copy when both sides added the same sender", () => {
+    const local = entry("new@example.com", "social", 70);
+    const remote = entry("new@example.com", "updates", 80);
+
+    expect(
+      reconcile_learned_senders(base, [...base, local], [...base, remote])[0],
+    ).toEqual(remote);
+  });
+
+  it("breaks a timestamp tie with the smaller category", () => {
+    const local = entry("new@example.com", "updates", 70);
+    const remote = entry("new@example.com", "social", 70);
+
+    expect(
+      reconcile_learned_senders(base, [...base, local], [...base, remote])[0],
+    ).toEqual(remote);
+    expect(
+      reconcile_learned_senders(base, [...base, remote], [...base, local])[0],
+    ).toEqual(remote);
+  });
+
+  it("unions both lists when the base is unknown", () => {
+    const current = [entry("a@example.com", "social", 10)];
+    const server = [
+      entry("a@example.com", "promotions", 20),
+      entry("b@example.com", "updates", 5),
+    ];
+
+    expect(reconcile_learned_senders(undefined, current, server)).toEqual([
+      entry("a@example.com", "promotions", 20),
+      entry("b@example.com", "updates", 5),
+    ]);
+    expect(reconcile_learned_senders(null, [], server)).toEqual(server);
+  });
+
+  it("keeps a Forget of one sender against an unchanged remote copy", () => {
+    const current = [base[1]];
+
+    expect(reconcile_learned_senders(base, current, base)).toEqual([base[1]]);
+  });
+
+  it("is order independent for a both-changed conflict", () => {
+    const left = [entry("a@example.com", "promotions", 40), base[1]];
+    const right = [entry("a@example.com", "updates", 40), base[1]];
+
+    expect(reconcile_learned_senders(base, left, right)).toEqual(
+      reconcile_learned_senders(base, right, left),
+    );
+  });
+});
+
+describe("learned sender dedupe", () => {
+  it("keeps the smaller category on a timestamp tie regardless of order", () => {
+    const forward = sanitize_learned_senders([
+      entry("a@example.com", "updates", 10),
+      entry("a@example.com", "promotions", 10),
+    ]);
+    const backward = sanitize_learned_senders([
+      entry("a@example.com", "promotions", 10),
+      entry("a@example.com", "updates", 10),
+    ]);
+
+    expect(forward).toEqual([entry("a@example.com", "promotions", 10)]);
+    expect(backward).toEqual(forward);
+  });
+
+  it("sorts ties on updated_at by sender", () => {
+    expect(
+      sanitize_learned_senders([
+        entry("c@example.com", "social", 10),
+        entry("a@example.com", "social", 10),
+        entry("b@example.com", "social", 20),
+      ]),
+    ).toEqual([
+      entry("b@example.com", "social", 20),
+      entry("a@example.com", "social", 10),
+      entry("c@example.com", "social", 10),
+    ]);
+  });
 });
 
 describe("preferences integration", () => {
@@ -228,6 +357,82 @@ describe("preferences integration", () => {
     const result = reconcile_preferences(base, current, server);
 
     expect(result.learned_category_senders).toEqual([]);
+  });
+
+  it("keeps the server list when the base came from the plaintext cache", () => {
+    const server_list = [entry("a@example.com", "social", 10)];
+    const cached_base = without_learned_base({
+      ...DEFAULT_PREFERENCES,
+      learned_category_senders: [],
+    });
+    const current = { ...DEFAULT_PREFERENCES, learned_category_senders: [] };
+    const server = {
+      ...DEFAULT_PREFERENCES,
+      learned_category_senders: server_list,
+    };
+
+    expect(
+      reconcile_preferences(cached_base, current, server)
+        .learned_category_senders,
+    ).toEqual(server_list);
+  });
+});
+
+describe("plaintext preferences cache", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("never writes learned senders to the plaintext cache", () => {
+    cache_preferences_locally({
+      ...DEFAULT_PREFERENCES,
+      learn_from_category_moves: false,
+      learned_category_senders: [entry("secret@example.com", "social", 10)],
+    });
+
+    const raw = localStorage.getItem("aster_preferences_cache") ?? "";
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+
+    expect(raw).not.toContain("secret@example.com");
+    expect("learned_category_senders" in parsed).toBe(false);
+    expect(parsed.learn_from_category_moves).toBe(false);
+  });
+
+  it("scrubs learned senders from a cache written by an older version", () => {
+    localStorage.setItem(
+      "aster_preferences_cache",
+      JSON.stringify({
+        ...DEFAULT_PREFERENCES,
+        learned_category_senders: [entry("old@example.com", "social", 10)],
+      }),
+    );
+
+    const cached = get_cached_preferences();
+
+    expect(cached?.learned_category_senders ?? []).toEqual([]);
+    expect(localStorage.getItem("aster_preferences_cache")).not.toContain(
+      "old@example.com",
+    );
+  });
+
+  it("leaves no learned senders in session storage", () => {
+    cache_preferences_locally({
+      ...DEFAULT_PREFERENCES,
+      learned_category_senders: [entry("secret@example.com", "social", 10)],
+    });
+
+    const values = Object.keys(sessionStorage).map(
+      (key) => sessionStorage.getItem(key) ?? "",
+    );
+    const local_values = Object.keys(localStorage).map(
+      (key) => localStorage.getItem(key) ?? "",
+    );
+
+    expect(
+      [...values, ...local_values].some((value) =>
+        value.includes("secret@example.com"),
+      ),
+    ).toBe(false);
   });
 });
 
@@ -332,11 +537,93 @@ describe("record_category_move", () => {
   });
 
   it("does nothing before preferences have loaded", () => {
-    configure_learned_senders({ enabled: true, list: [], persist: null });
+    const persisted: LearnedCategorySender[][] = [];
+
+    configure_learned_senders({
+      loaded: false,
+      enabled: true,
+      list: [entry("a@example.com", "social", 5)],
+      persist: (next) => persisted.push(next),
+    });
+
+    expect(is_learning_enabled()).toBe(false);
+    expect(are_learned_senders_loaded()).toBe(false);
+    expect(get_learned_senders()).toEqual([]);
+    expect(
+      record_category_move([{ sender_email: "a@example.com" }], "social", 10),
+    ).toBeNull();
+    expect(persisted).toEqual([]);
+  });
+
+  it("starts disabled until a configure call marks the list loaded", () => {
+    expect(is_learning_enabled()).toBe(false);
+    expect(are_learned_senders_loaded()).toBe(false);
+  });
+
+  it("does nothing without a persist callback", () => {
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: null,
+    });
 
     expect(
       record_category_move([{ sender_email: "a@example.com" }], "social", 10),
     ).toBeNull();
+  });
+
+  it("skips Aster-domain senders even when they are not locked", () => {
+    const persisted = setup_store();
+    const undo = record_category_move(
+      [
+        { sender_email: "friend@astermail.org", is_external: false },
+        { sender_email: "team@mail.aster.cx" },
+      ],
+      "social",
+      10,
+    );
+
+    expect(undo).toBeNull();
+    expect(persisted).toEqual([]);
+  });
+
+  it("skips senders whose SPF, DKIM or DMARC failed", () => {
+    const persisted = setup_store();
+
+    record_category_move(
+      [
+        { sender_email: "spf@example.com", spf_result: "fail" },
+        { sender_email: "dkim@example.com", dkim_result: "fail" },
+        { sender_email: "dmarc@example.com", dmarc_result: "fail" },
+        { sender_email: "soft@example.com", spf_result: "softfail" },
+        { sender_email: "pass@example.com", dkim_result: "pass" },
+      ],
+      "social",
+      10,
+    );
+
+    expect(persisted[0].map((item) => item.sender).sort()).toEqual([
+      "pass@example.com",
+      "soft@example.com",
+    ]);
+  });
+
+  it("notifies subscribers with the loaded list and with null before load", () => {
+    const seen: Array<readonly LearnedCategorySender[] | null> = [];
+    const unsubscribe = subscribe_learned_senders((list) => seen.push(list));
+
+    configure_learned_senders({
+      loaded: false,
+      enabled: true,
+      list: [],
+      persist: null,
+    });
+    setup_store([entry("a@example.com", "social", 5)]);
+    unsubscribe();
+    setup_store([]);
+
+    expect(seen).toEqual([null, [entry("a@example.com", "social", 5)]]);
   });
 
   it("ignores a category that cannot be learned", () => {
@@ -394,6 +681,7 @@ describe("record_category_move", () => {
   it("forgets everything when the list is cleared", () => {
     setup_store([entry("a@example.com", "social", 5)]);
     configure_learned_senders({
+      loaded: true,
       enabled: true,
       list: sanitize_learned_senders([]),
       persist: () => {},

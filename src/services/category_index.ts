@@ -52,6 +52,11 @@ import {
   set_active_learned_senders,
 } from "@/services/mail_categorizer";
 import {
+  is_learning_blocked,
+  type LearnGateSource,
+} from "@/services/learned_sender_gate";
+import { subscribe_learned_senders } from "@/services/learned_category_senders";
+import {
   BUILTIN_CATEGORY_IDS,
   builtin_category_def,
   fold_builtin,
@@ -2197,21 +2202,55 @@ function item_source(item: MailItem, rules_hash: string): string {
 
 let learned_by_key = new Map<string, string>();
 let learned_by_email = new Map<string, string>();
+let learned_known = false;
 
 function learned_sender_key(email: string): string {
   return hash_text(email.trim().toLowerCase());
 }
 
+function learned_gate_source(
+  envelope: DecryptedEnvelope,
+  item: MailItem,
+): LearnGateSource {
+  return {
+    ...item,
+    sender_verification: envelope.sender_verification,
+  };
+}
+
+function learned_senders_for(
+  envelope: DecryptedEnvelope,
+  item: MailItem,
+): ReadonlyMap<string, string> {
+  if (learned_known) return learned_by_email;
+
+  const email = (envelope.from?.email || "").trim().toLowerCase();
+  const existing = entries_map.get(item.id);
+
+  if (
+    !email ||
+    !existing?.learned ||
+    existing.sender_key !== learned_sender_key(email)
+  ) {
+    return new Map();
+  }
+
+  return new Map([[email, existing.learned]]);
+}
+
 function learned_fields_for(
   envelope: DecryptedEnvelope,
+  item: MailItem,
+  learned_senders: ReadonlyMap<string, string>,
 ): Pick<CategoryIndexEntry, "sender_key" | "learned"> {
-  if (envelope.sender_verification === "invalid") return {};
-
   const email = (envelope.from?.email || "").trim().toLowerCase();
 
   if (!email) return {};
+  if (is_learning_blocked(email, learned_gate_source(envelope, item))) {
+    return {};
+  }
 
-  const learned = learned_by_email.get(email);
+  const learned = learned_senders.get(email);
 
   return learned
     ? { sender_key: learned_sender_key(email), learned }
@@ -2219,12 +2258,23 @@ function learned_fields_for(
 }
 
 function learned_is_stale(entry: CategoryIndexEntry): boolean {
+  if (!learned_known) return false;
   if (!entry.sender_key || entry.category_pinned) return false;
 
   return entry.learned !== learned_by_key.get(entry.sender_key);
 }
 
+export function reset_learned_index_state(): void {
+  forget_learned_senders();
+}
+
+export function is_learned_index_known(): boolean {
+  return learned_known;
+}
+
 function refresh_learned_entries(): void {
+  if (!learned_known) return;
+
   const stale: string[] = [];
 
   for (const entry of entries_map.values()) {
@@ -2254,11 +2304,13 @@ export function set_learned_senders(
   }
 
   const unchanged =
+    learned_known &&
     by_key.size === learned_by_key.size &&
     Array.from(by_key).every(
       ([key, category]) => learned_by_key.get(key) === category,
     );
 
+  learned_known = true;
   set_active_learned_senders(by_email);
   learned_by_email = by_email;
   learned_by_key = by_key;
@@ -2267,6 +2319,18 @@ export function set_learned_senders(
 
   refresh_learned_entries();
 }
+
+function forget_learned_senders(): void {
+  learned_by_key = new Map();
+  learned_by_email = new Map();
+  learned_known = false;
+  set_active_learned_senders(learned_by_email);
+}
+
+subscribe_learned_senders((list) => {
+  if (list) set_learned_senders(list);
+  else if (learned_known) forget_learned_senders();
+});
 
 function reuse_indexed_entry(
   item: MailItem,
@@ -2321,7 +2385,12 @@ async function item_to_entry(
   const known_entry = envelope ? undefined : entries_map.get(item.id);
 
   const sealed_body = is_ratchet_body_text(envelope?.body_text);
-  const learned_fields = envelope ? learned_fields_for(envelope) : {};
+  const learned_senders = envelope
+    ? learned_senders_for(envelope, item)
+    : learned_by_email;
+  const learned_fields = envelope
+    ? learned_fields_for(envelope, item, learned_senders)
+    : {};
 
   if (envelope && sealed_body) {
     forget_entry_preview(item.id);
@@ -2348,7 +2417,7 @@ async function item_to_entry(
             custom_categories: rules,
             rule_category: item.rule_category,
             trust: item,
-            learned_senders: learned_by_email,
+            learned_senders,
           })
         : (known_entry?.category ?? item.rule_category ?? "primary"),
       ...(envelope ? {} : { needs_reclassify: true }),
