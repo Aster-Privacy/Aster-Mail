@@ -24,6 +24,7 @@ import type {
   ReplyData,
 } from "@/components/email/inbox/inbox_types";
 
+import { quotable_source } from "@/lib/html_text";
 import { useCallback } from "react";
 
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
@@ -160,7 +161,7 @@ export function use_open_reply_compose(
         (is_sentinel(email.preview) ? "" : email.preview) ||
         "";
       const cached = get_preloaded_email(email.id, user_email)?.email;
-      const cached_body = cached?.body ?? "";
+      const cached_body = cached ? quotable_source(cached) : "";
 
       if (!cached_body) {
         void (async () => {
@@ -176,7 +177,7 @@ export function use_open_reply_compose(
               undefined,
               { user_email },
             );
-            const body = preloaded?.email.body ?? "";
+            const body = preloaded ? quotable_source(preloaded.email) : "";
 
             resolved_headers = preloaded?.email.raw_headers;
 

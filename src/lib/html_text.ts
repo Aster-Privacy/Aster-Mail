@@ -585,3 +585,10 @@ export function strip_html_tags(html: string): string {
 
   return unwrap_markdown_links(text).replace(/\s+/g, " ").trim();
 }
+
+export function quotable_source(message: {
+  body?: string;
+  html_content?: string;
+}): string {
+  return message.html_content || message.body || "";
+}

@@ -28,6 +28,7 @@ import type {
   ForwardData,
 } from "@/components/email/email_viewer_types";
 
+import { quotable_source } from "@/lib/html_text";
 import { useCallback, useEffect, useRef } from "react";
 
 import { use_message_actions } from "./email_viewer_message_actions";
@@ -1043,7 +1044,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             }
           : {}),
         original_subject: msg.subject,
-        original_body: msg.body,
+        original_body: quotable_source(msg),
         original_timestamp: new Date(msg.timestamp).toLocaleString(
           app_locale(),
           { timeZone: get_display_time_zone() },

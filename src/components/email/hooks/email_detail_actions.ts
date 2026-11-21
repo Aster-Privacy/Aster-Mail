@@ -26,6 +26,7 @@ import type {
 } from "@/components/email/hooks/email_detail_types";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import { quotable_source } from "@/lib/html_text";
 import { useCallback, useState } from "react";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
@@ -176,7 +177,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         recipient_email: reply_email,
         ...quote_sender,
         original_subject: msg.subject,
-        original_body: msg.body,
+        original_body: quotable_source(msg),
         original_timestamp: new Date(msg.timestamp).toLocaleString(
           app_locale(),
           { timeZone: get_display_time_zone() },
