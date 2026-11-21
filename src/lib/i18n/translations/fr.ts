@@ -1863,9 +1863,9 @@ export const fr = {
     recovery_codes_low_reminder_body:
       "Chaque code fonctionne une fois et il vous en reste {{count}}. Obtenez de nouveaux codes pour ne pas perdre l'accès.",
     recovery_codes_low_reminder_action: "Obtenir de nouveaux codes",
-    recovery_codes_refresh_title: "Remplacez vos codes de récupération",
+    recovery_codes_refresh_title: "Obtenez de nouveaux codes de récupération",
     recovery_codes_refresh_body:
-      "Vos codes de récupération enregistrés utilisent un ancien format plus court. Obtenez de nouveaux codes et enregistrez-les. Vos anciens codes cessent alors de fonctionner.",
+      "Vos codes de récupération sont obsolètes. Obtenez de nouveaux codes et conservez-les en lieu sûr. Une fois les nouveaux codes obtenus, les anciens ne fonctionnent plus.",
     recovery_phrase_migrate_title: "Passez aux codes de récupération",
     recovery_phrase_migrate_body:
       "Les phrases de récupération vont disparaître. Obtenez des codes de récupération maintenant pour pouvoir encore récupérer votre compte.",
