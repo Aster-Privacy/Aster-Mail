@@ -20,6 +20,7 @@
 //
 import { api_client, type ApiResponse } from "./client";
 import { send_in_chunks } from "./chunked_request";
+import { with_rate_limit_retry } from "./rate_limit_retry";
 
 import { BATCH_LIMITS } from "@/constants/batch_config";
 import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
@@ -245,9 +246,9 @@ export async function batched_archive(
 
   for (let i = 0; i < ids.length; i += BATCH_LIMITS.ARCHIVE) {
     const batch = ids.slice(i, i + BATCH_LIMITS.ARCHIVE);
-    const response = await batch_archive({ ids: batch, tier }).catch(
-      () => null,
-    );
+    const response = await with_rate_limit_retry(() =>
+      batch_archive({ ids: batch, tier }),
+    ).catch(() => null);
 
     if (response && !response.error && response.data?.success === true) {
       partition_batch(
@@ -272,7 +273,9 @@ export async function batched_unarchive(
 
   for (let i = 0; i < ids.length; i += BATCH_LIMITS.ARCHIVE) {
     const batch = ids.slice(i, i + BATCH_LIMITS.ARCHIVE);
-    const response = await batch_unarchive({ ids: batch }).catch(() => null);
+    const response = await with_rate_limit_retry(() =>
+      batch_unarchive({ ids: batch }),
+    ).catch(() => null);
 
     if (response && !response.error && response.data?.success === true) {
       partition_batch(
