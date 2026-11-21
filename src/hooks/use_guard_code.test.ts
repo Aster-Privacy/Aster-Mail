@@ -114,7 +114,8 @@ describe("use_guard_code", () => {
 
   it("returns null without a secret", async () => {
     vi.setSystemTime(59_000);
-    const { result } = renderHook(() => use_guard_code(device_with(null)));
+    const device = device_with(null);
+    const { result } = renderHook(() => use_guard_code(device));
 
     await flush();
     expect(result.current.code).toBeNull();

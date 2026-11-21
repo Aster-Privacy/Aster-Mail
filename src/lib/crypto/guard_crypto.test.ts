@@ -185,7 +185,9 @@ describe("guard action messages", () => {
   };
 
   it("numbers the actions as the wire contract does", () => {
-    expect(Object.values(GUARD_ACTION)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    expect(Object.values(GUARD_ACTION)).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+    ]);
   });
 
   it.each(Object.entries(expected))("action %s matches", (code, digest) => {

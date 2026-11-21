@@ -283,7 +283,9 @@ describe("guard response handling", () => {
 
     expect(result.server_code).toBe("GUARD_REQUIRED");
     expect(result.details).toEqual(details);
-    expect(seen[GUARD_REQUIRED_EVENT]).toEqual([details]);
+    expect(seen[GUARD_REQUIRED_EVENT]).toEqual([
+      { ...details, user_id: null },
+    ]);
     expect(routed_fetch).toHaveBeenCalledTimes(1);
 
     for (const spy of spies) {
