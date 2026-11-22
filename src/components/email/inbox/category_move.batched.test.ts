@@ -153,6 +153,64 @@ describe("move_items_to_category", () => {
     expect(hoisted.restore_category_entry_locally).not.toHaveBeenCalled();
   });
 
+  it("skips official Aster system mail and still moves the rest", async () => {
+    hoisted.write_category_states.mockImplementation(
+      async (writes: Array<{ target: { id: string } }>) =>
+        applied(writes.map((write) => write.target.id)),
+    );
+
+    const [system, normal, spoofed] = items(3);
+
+    await move_items_to_category(
+      [
+        {
+          ...system!,
+          sender_email: "no-reply@astermail.org",
+          system_origin: true,
+          is_external: false,
+        },
+        { ...normal!, sender_email: "deals@shop.example" },
+        {
+          ...spoofed!,
+          sender_email: "no-reply@astermail.org",
+          system_origin: true,
+          is_external: true,
+        },
+      ],
+      "promotions",
+      { t },
+    );
+
+    const written = (
+      hoisted.write_category_states.mock.calls[0]![0] as Array<{
+        target: { id: string };
+      }>
+    ).map((write) => write.target.id);
+
+    expect(written).toEqual(["m1", "m2"]);
+  });
+
+  it("does nothing when every row is official Aster system mail", async () => {
+    const [system] = items(1);
+
+    await move_items_to_category(
+      [
+        {
+          ...system!,
+          sender_email: "no-reply@astermail.org",
+          system_origin: true,
+          is_external: false,
+        },
+      ],
+      "promotions",
+      { t },
+    );
+
+    expect(hoisted.apply_category_pins_locally).not.toHaveBeenCalled();
+    expect(hoisted.write_category_states).not.toHaveBeenCalled();
+    expect(hoisted.show_bulk_result_toast).not.toHaveBeenCalled();
+  });
+
   it("sends one write for a large selection", async () => {
     const ids = items(250).map((item) => item.id);
 
