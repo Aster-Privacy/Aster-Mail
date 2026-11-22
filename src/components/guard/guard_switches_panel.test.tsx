@@ -480,7 +480,7 @@ describe("guard switches panel", () => {
 
     render_panel(make_status(), device);
     act(() => by_label("guard.setup_recovery_wait").click());
-    await flush();
+    await wait_until(() => h.switches_body !== null);
 
     const expected =
       GUARD_SWITCH.new_device_approval |
