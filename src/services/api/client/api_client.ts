@@ -121,6 +121,8 @@ const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
 const REFRESH_MIN_GAP_MS = 5000;
 const REFRESH_LOCK_WAIT_MS = 20_000;
 const OUTGOING_CHECKPOINT_TIMEOUT_MS = 6000;
+const REQUEST_HOLD_MAX_WAIT_MS = 20_000;
+const REQUEST_HOLD_TIMED_OUT = Symbol("request_hold_timed_out");
 const REFRESH_LOCK_PREFIX = "aster-session-refresh";
 
 interface TimedResponse {
@@ -549,6 +551,26 @@ export class ApiClient {
     return settled.finally(() => {
       if (this.request_hold === hold) this.request_hold = null;
     });
+  }
+
+  private async wait_for_request_hold(
+    settled: Promise<boolean | null>,
+  ): Promise<boolean | null | typeof REQUEST_HOLD_TIMED_OUT> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+      return await Promise.race([
+        settled,
+        new Promise<typeof REQUEST_HOLD_TIMED_OUT>((resolve) => {
+          timer = setTimeout(
+            () => resolve(REQUEST_HOLD_TIMED_OUT),
+            REQUEST_HOLD_MAX_WAIT_MS,
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   private release_request_hold(): void {
@@ -1860,15 +1882,22 @@ export class ApiClient {
 
     const hold = this.request_hold;
 
-    if (
-      hold &&
-      !is_session_check_endpoint(endpoint) &&
-      !(await hold.settled)
-    ) {
-      return {
-        error: this.get_generic_error_message("UNAUTHORIZED"),
-        code: "UNAUTHORIZED",
-      };
+    if (hold && !is_session_check_endpoint(endpoint)) {
+      const hold_result = await this.wait_for_request_hold(hold.settled);
+
+      if (hold_result === REQUEST_HOLD_TIMED_OUT) {
+        return {
+          error: this.get_generic_error_message("TIMEOUT_ERROR"),
+          code: "TIMEOUT_ERROR",
+        };
+      }
+
+      if (!hold_result) {
+        return {
+          error: this.get_generic_error_message("UNAUTHORIZED"),
+          code: "UNAUTHORIZED",
+        };
+      }
     }
 
     await this.refresh_before_logout(
