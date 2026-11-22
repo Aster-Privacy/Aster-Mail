@@ -80,6 +80,8 @@ import {
 import { is_composing } from "@/utils/ime";
 import { apply_input_transform } from "@/utils/input_transform";
 
+const ALIAS_AVAILABILITY_TIMEOUT_MS = 15_000;
+
 export function compute_alias_at_limit(
   max_aliases: number,
   total_count: number,
@@ -190,11 +192,21 @@ export function CreateAliasModal({
     }
 
     set_checking(true);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
     try {
-      const response = await check_alias_availability(lp, d);
+      const response = await Promise.race([
+        check_alias_availability(lp, d),
+        new Promise<null>((resolve) => {
+          timer = setTimeout(
+            () => resolve(null),
+            ALIAS_AVAILABILITY_TIMEOUT_MS,
+          );
+        }),
+      ]);
 
       if (request_id !== availability_request_ref.current) return;
-      if (response.data) {
+      if (response?.data) {
         set_is_available(response.data.available);
       } else {
         set_is_available(null);
@@ -204,6 +216,7 @@ export function CreateAliasModal({
       if (request_id !== availability_request_ref.current) return;
       set_is_available(null);
     } finally {
+      clearTimeout(timer);
       if (request_id === availability_request_ref.current) set_checking(false);
     }
   }, []);
