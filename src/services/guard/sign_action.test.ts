@@ -32,7 +32,7 @@ vi.mock("@/services/api/guard", () => ({
 }));
 
 vi.mock("@/services/api/webauthn", () => ({
-  perform_webauthn_assertion_with_options: (options: unknown) =>
+  perform_passkey_assertion_with_options: (options: unknown) =>
     assertion_mock(options),
 }));
 

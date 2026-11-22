@@ -441,7 +441,7 @@ export async function step_up_key_assertion_if_enrolled(
 export async function perform_webauthn_assertion_with_options(
   options: WebAuthnAssertionOptions,
 ): Promise<StepUpHardwareKeyAssertion> {
-  const public_key: PublicKeyCredentialRequestOptions = {
+  return request_assertion(options, {
     challenge: base64_url_to_array_buffer(options.challenge),
     rpId: options.rpId,
     allowCredentials: options.allowCredentials.map((c) => ({
@@ -450,8 +450,32 @@ export async function perform_webauthn_assertion_with_options(
     })),
     timeout: options.timeout,
     userVerification: options.userVerification as UserVerificationRequirement,
-  };
+  });
+}
 
+function passkey_request_options(
+  options: WebAuthnAssertionOptions,
+): PublicKeyCredentialRequestOptions {
+  return {
+    challenge: base64_url_to_array_buffer(options.challenge),
+    rpId: options.rpId,
+    allowCredentials: [],
+    timeout: options.timeout,
+    userVerification: "required",
+    ...({ hints: ["client-device"] } as object),
+  };
+}
+
+export async function perform_passkey_assertion_with_options(
+  options: WebAuthnAssertionOptions,
+): Promise<StepUpHardwareKeyAssertion> {
+  return request_assertion(options, passkey_request_options(options));
+}
+
+async function request_assertion(
+  options: WebAuthnAssertionOptions,
+  public_key: PublicKeyCredentialRequestOptions,
+): Promise<StepUpHardwareKeyAssertion> {
   const started_at = Date.now();
 
   let credential: PublicKeyCredential | null;

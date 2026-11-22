@@ -57,6 +57,7 @@ vi.mock("@/services/crypto/passkey_name", () => ({
 
 import {
   build_registration_public_key,
+  perform_passkey_assertion_with_options,
   perform_webauthn_assertion_with_options,
   perform_webauthn_registration,
   type HardwareKeyRegistrationOptions,
@@ -258,6 +259,23 @@ describe("security key prompts", () => {
     await expect(
       perform_webauthn_assertion_with_options(assertion_options),
     ).rejects.toThrow("not_recognized_text");
+  });
+
+  it("lets any saved passkey answer a passkey request", async () => {
+    get_mock.mockRejectedValue(named_error("AbortError"));
+
+    await expect(
+      perform_passkey_assertion_with_options(assertion_options),
+    ).rejects.toThrow("canceled_text");
+
+    const request = get_mock.mock.calls[0][0] as {
+      publicKey: PublicKeyCredentialRequestOptions & { hints?: string[] };
+    };
+
+    expect(request.publicKey.allowCredentials).toHaveLength(0);
+    expect(request.publicKey.userVerification).toBe("required");
+    expect(request.publicKey.hints).toEqual(["client-device"]);
+    expect(request.publicKey.rpId).toBe(assertion_options.rpId);
   });
 
   it("limits verification to the keys already on the account", async () => {

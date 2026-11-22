@@ -31,7 +31,7 @@ import {
   guard_challenge,
   guard_step_up_passkey_options,
 } from "@/services/api/guard";
-import { perform_webauthn_assertion_with_options } from "@/services/api/webauthn";
+import { perform_passkey_assertion_with_options } from "@/services/api/webauthn";
 
 export class GuardActionError extends Error {
   server_code: string | undefined;
@@ -96,7 +96,7 @@ export async function passkey_step_up_proof(): Promise<StepUpProof> {
     );
   }
 
-  const assertion = await perform_webauthn_assertion_with_options(options.data);
+  const assertion = await perform_passkey_assertion_with_options(options.data);
 
   return { type: "passkey", assertion };
 }
