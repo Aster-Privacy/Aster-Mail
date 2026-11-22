@@ -10031,7 +10031,7 @@ export const ko = {
     handoff_approve_done: "이 창을 닫아도 됩니다.",
     handoff_approve_signed_out: "여기에 로그인되어 있지 않습니다. 이 창을 닫고 비밀번호로 로그인하세요.",
     passkey_verification: "패스키로 인증",
-    use_passkey_or_key: "Windows Hello, Face ID 또는 보안 키를 사용하세요",
+    use_passkey_or_key: "이 기기, 비밀번호 관리자 또는 보안 키에 있는 패스키를 사용하세요",
     use_passkey_instead: "대신 패스키 사용",
     sign_in: "로그인",
     sign_out: "로그아웃",
@@ -10923,8 +10923,10 @@ export const ko = {
     storage_compromised:
       "저장소가 손상된 것으로 보입니다. 보안 설정에서 확인하거나 hello@astermail.org로 문의하세요.",
     registration_cancelled: "가입이 취소되었습니다.",
-    authentication_failed_webauthn:
-      "보안 키 로그인이 완료되지 않았거나 취소되었습니다. 다시 시도하세요.",
+    authentication_failed_webauthn: "패스키 로그인이 완료되지 않았습니다. 다시 시도하거나 다른 인증 방법을 사용하세요.",
+    passkey_sign_in_not_found: "패스키 로그인이 취소되었거나 이 계정의 패스키를 찾을 수 없습니다. 다시 시도하거나 다른 인증 방법을 사용하세요.",
+    passkey_sign_in_timed_out: "패스키 로그인 시간이 초과되었습니다. 다시 시도하고 기기에서 요청하면 확인하세요.",
+    passkey_sign_in_not_supported: "이 브라우저에서는 이 페이지에서 패스키를 사용할 수 없습니다. 다른 브라우저를 사용하거나 다른 인증 방법을 사용하세요.",
     authentication_cancelled: "인증이 취소되었습니다.",
     alias_empty: "별칭 이름을 입력하세요.",
     alias_too_short: "3자 이상 입력하세요.",

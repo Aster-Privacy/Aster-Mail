@@ -10558,8 +10558,7 @@ export const pt = {
     handoff_approve_done: "Pode fechar esta janela.",
     handoff_approve_signed_out: "Não tem sessão iniciada aqui. Feche esta janela e inicie sessão com a sua palavra-passe.",
     passkey_verification: "Verificar com passkey",
-    use_passkey_or_key:
-      "Utilize o Windows Hello, o Face ID ou a sua chave de segurança",
+    use_passkey_or_key: "Utilize a chave de acesso deste dispositivo, do seu gestor de palavras-passe ou da sua chave de segurança",
     use_passkey_instead: "Usar passkey em vez disso",
     sign_in: "Iniciar sessão",
     sign_out: "Terminar sessão",
@@ -11424,8 +11423,10 @@ export const pt = {
     authentication_cancelled: "Autenticação cancelada",
     authentication_failed:
       "O início de sessão não foi concluído. Tente novamente. A sua conta não está bloqueada.",
-    authentication_failed_webauthn:
-      "O início de sessão com chave de segurança não foi concluído ou foi cancelado. Tente novamente.",
+    authentication_failed_webauthn: "O início de sessão com chave de acesso não foi concluído. Tente novamente ou utilize outro método de verificação.",
+    passkey_sign_in_not_found: "O início de sessão com chave de acesso foi cancelado ou não foi encontrada nenhuma chave de acesso para esta conta. Tente novamente ou utilize outro método de verificação.",
+    passkey_sign_in_timed_out: "O início de sessão com chave de acesso expirou. Tente novamente e confirme no seu dispositivo quando este o pedir.",
+    passkey_sign_in_not_supported: "Este navegador não consegue utilizar chaves de acesso nesta página. Experimente outro navegador ou utilize outro método de verificação.",
     cannot_send_no_keys:
       "Tem a encriptação obrigatória ativada e não temos uma chave para {{recipients}}. Pedir-lhes que partilhem uma chave, ou desativar a encriptação obrigatória nas Definições, permitirá o envio. O seu rascunho está guardado.",
     sender_address_refused:

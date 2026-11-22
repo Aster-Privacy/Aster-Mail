@@ -10351,8 +10351,7 @@ export const tr = {
     handoff_approve_done: "Bu pencereyi kapatabilirsiniz.",
     handoff_approve_signed_out: "Burada oturum açmadınız. Bu pencereyi kapatın ve parolanızla oturum açın.",
     passkey_verification: "Passkey ile Doğrula",
-    use_passkey_or_key:
-      "Windows Hello, Face ID veya güvenlik anahtarınızı kullanın",
+    use_passkey_or_key: "Bu cihazdaki, parola yöneticinizdeki veya güvenlik anahtarınızdaki geçiş anahtarını kullanın",
     use_passkey_instead: "Bunun yerine passkey kullan",
     sign_in: "Giriş Yap",
     sign_out: "Çıkış yap",
@@ -11279,8 +11278,10 @@ export const tr = {
     registration_failed:
       "Kayıt tamamlanamadı. Yeniden başlayıp tekrar denemek genellikle yeterli olur. Hesap oluşturulmadı.",
     registration_cancelled: "Kayıt iptal edildi",
-    authentication_failed_webauthn:
-      "Güvenlik anahtarıyla giriş tamamlanmadı veya iptal edildi. Tekrar deneyin.",
+    authentication_failed_webauthn: "Geçiş anahtarıyla oturum açma tamamlanmadı. Tekrar deneyin veya başka bir doğrulama yöntemi kullanın.",
+    passkey_sign_in_not_found: "Geçiş anahtarıyla oturum açma iptal edildi veya bu hesap için geçiş anahtarı bulunamadı. Tekrar deneyin veya başka bir doğrulama yöntemi kullanın.",
+    passkey_sign_in_timed_out: "Geçiş anahtarıyla oturum açma zaman aşımına uğradı. Tekrar deneyin ve cihazınız sorduğunda onaylayın.",
+    passkey_sign_in_not_supported: "Bu tarayıcı bu sayfada geçiş anahtarlarını kullanamıyor. Başka bir tarayıcı deneyin veya başka bir doğrulama yöntemi kullanın.",
     authentication_cancelled: "Kimlik doğrulama iptal edildi",
     alias_empty: "Burada bir takma ad adı gerekiyor.",
     alias_too_short: "En az 3 karakter kullanın.",

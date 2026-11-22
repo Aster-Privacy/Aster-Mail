@@ -10443,8 +10443,7 @@ export const nl = {
     handoff_approve_done: "Je kunt dit venster sluiten.",
     handoff_approve_signed_out: "Je bent hier niet ingelogd. Sluit dit venster en log in met je wachtwoord.",
     passkey_verification: "Verifiëren met Passkey",
-    use_passkey_or_key:
-      "Gebruik Windows Hello, Face ID of je beveiligingssleutel",
+    use_passkey_or_key: "Gebruik de toegangssleutel op dit apparaat, in je wachtwoordmanager of op je beveiligingssleutel",
     use_passkey_instead: "Gebruik in plaats daarvan een passkey",
     sign_in: "Inloggen",
     sign_out: "Uitloggen",
@@ -11391,8 +11390,10 @@ export const nl = {
     registration_cancelled: "Registratie geannuleerd",
     registration_failed:
       "Aanmelden is niet voltooid. Opnieuw beginnen en het opnieuw proberen lost dit meestal op. Er is geen account aangemaakt.",
-    authentication_failed_webauthn:
-      "Aanmelden met je beveiligingssleutel is niet voltooid of is geannuleerd. Probeer het opnieuw.",
+    authentication_failed_webauthn: "Aanmelden met je toegangssleutel is niet voltooid. Probeer het opnieuw of gebruik een andere verificatiemethode.",
+    passkey_sign_in_not_found: "Aanmelden met je toegangssleutel is geannuleerd, of er is geen toegangssleutel voor dit account gevonden. Probeer het opnieuw of gebruik een andere verificatiemethode.",
+    passkey_sign_in_timed_out: "Aanmelden met je toegangssleutel duurde te lang. Probeer het opnieuw en bevestig op je apparaat wanneer daarom wordt gevraagd.",
+    passkey_sign_in_not_supported: "Deze browser kan op deze pagina geen toegangssleutels gebruiken. Probeer een andere browser of gebruik een andere verificatiemethode.",
     authentication_cancelled: "Authenticatie geannuleerd",
     alias_empty: "Er is een aliasnaam nodig.",
     alias_too_short: "Gebruik minstens 3 tekens.",

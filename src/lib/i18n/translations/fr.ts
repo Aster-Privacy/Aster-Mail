@@ -10583,8 +10583,7 @@ export const fr = {
     handoff_approve_done: "Vous pouvez fermer cette fenêtre.",
     handoff_approve_signed_out: "Vous n'êtes pas connecté ici. Fermez cette fenêtre et connectez-vous avec votre mot de passe.",
     passkey_verification: "Vérifier avec une clé d'accès",
-    use_passkey_or_key:
-      "Utilisez Windows Hello, Face ID ou votre clé de sécurité",
+    use_passkey_or_key: "Utilisez la clé d'accès de cet appareil, de votre gestionnaire de mots de passe ou de votre clé de sécurité",
     use_passkey_instead: "Utiliser une clé d'accès à la place",
     sign_in: "Se connecter",
     sign_out: "Se déconnecter",
@@ -11449,8 +11448,10 @@ export const fr = {
     authentication_cancelled: "Authentification annulée",
     authentication_failed:
       "La connexion n'a pas abouti. Réessayez. Votre compte n'est pas verrouillé.",
-    authentication_failed_webauthn:
-      "La connexion par clé de sécurité n'a pas abouti ou a été annulée. Réessayez.",
+    authentication_failed_webauthn: "La connexion par clé d'accès n'a pas abouti. Réessayez ou utilisez une autre méthode de vérification.",
+    passkey_sign_in_not_found: "La connexion par clé d'accès a été annulée, ou aucune clé d'accès n'a été trouvée pour ce compte. Réessayez ou utilisez une autre méthode de vérification.",
+    passkey_sign_in_timed_out: "La connexion par clé d'accès a expiré. Réessayez, puis confirmez sur votre appareil lorsqu'il vous le demande.",
+    passkey_sign_in_not_supported: "Ce navigateur ne peut pas utiliser de clés d'accès sur cette page. Essayez un autre navigateur ou utilisez une autre méthode de vérification.",
     cannot_send_no_keys:
       "Le chiffrement obligatoire est activé et nous n'avons pas de clé pour {{recipients}}. Leur demander de partager une clé, ou désactiver le chiffrement obligatoire dans les Paramètres, permettra l'envoi. Votre brouillon est enregistré.",
     sender_address_refused:
