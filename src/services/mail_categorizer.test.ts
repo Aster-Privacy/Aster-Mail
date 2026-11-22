@@ -59,21 +59,83 @@ describe("classify", () => {
     expect(classify(envelope, metadata)).toBe("primary");
   });
 
-  it("honors a user pin on an official Aster sign-in alert over the primary lock", () => {
+  it("keeps an official Aster sign-in alert in primary despite a pin to deals", () => {
     const envelope = make_envelope({
       from: { name: "Aster Mail", email: "no-reply@astermail.org" },
-      subject: "New Sign-In to Your Aster Mail Account",
+      subject: "A new sign-in on Windows PC",
     });
     const metadata = {
-      category: "social",
+      category: "promotions",
       category_pinned: true,
     } as unknown as MailItemMetadata;
 
     const trust = { system_origin: true, is_external: false };
 
-    expect(classify(envelope, metadata, { trust })).toBe("social");
+    expect(classify(envelope, metadata, { trust })).toBe("primary");
     expect(classify(envelope, null, { trust })).toBe("primary");
     expect(is_locked_to_primary(envelope, trust)).toBe(true);
+  });
+
+  it("keeps server-proven Aster system mail in primary over a pin and a sender rule", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "mailer-daemon@astermail.org" },
+      subject: "Delivery status notification",
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+    const trust = { system_origin: true, is_external: false };
+
+    expect(is_locked_to_primary(envelope, trust)).toBe(true);
+    expect(
+      classify(envelope, metadata, { trust, rule_category: "promotions" }),
+    ).toBe("primary");
+  });
+
+  it("keeps verified internal mail from an official Aster role in primary despite a pin", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Security", email: "security@astermail.org" },
+      sender_verification: "verified",
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+    const trust = { is_external: false };
+
+    expect(classify(envelope, metadata, { trust })).toBe("primary");
+  });
+
+  it("honors a pin on mail that only claims to be Aster in its display name", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "no-reply@aster-mail-security.com" },
+      subject: "A new sign-in on Windows PC",
+      sender_verification: "verified",
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+    const trust = { system_origin: true, is_external: true };
+
+    expect(is_locked_to_primary(envelope, trust)).toBe(false);
+    expect(classify(envelope, metadata, { trust })).toBe("promotions");
+  });
+
+  it("does not lock an external copy of an official Aster address with a pin", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "no-reply@astermail.org" },
+      subject: "A new sign-in on Windows PC",
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+    const trust = { system_origin: true, is_external: true };
+
+    expect(is_locked_to_primary(envelope, trust)).toBe(false);
+    expect(classify(envelope, metadata, { trust })).toBe("promotions");
   });
 
   it("ignores a learned sender for an official Aster sign-in alert", () => {

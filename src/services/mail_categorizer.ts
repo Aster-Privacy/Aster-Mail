@@ -28,11 +28,11 @@ import type { SenderTrustSource } from "@/lib/utils";
 import type { LearnGateSource } from "@/services/learned_sender_gate";
 
 import { get_sender_domain } from "@/utils/unsubscribe_detector";
-import { is_official_sender } from "@/lib/utils";
 import {
   has_failed_authentication,
   is_aster_domain_sender,
   is_learning_blocked,
+  is_primary_locked_sender,
 } from "@/services/learned_sender_gate";
 import {
   ASTER_DOMAIN_SUFFIXES,
@@ -65,7 +65,7 @@ import {
   DEFAULT_ENABLED_CATEGORIES,
 } from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 9;
+export const CLASSIFIER_VERSION = 10;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -306,16 +306,10 @@ export function is_locked_to_primary(
   envelope: DecryptedEnvelope,
   trust?: SenderTrustSource | null,
 ): boolean {
-  const email = envelope.from?.email || "";
-
-  return (
-    domain_in_set(get_sender_domain(email), ASTER_SET) &&
-    is_official_sender({
-      ...(trust ?? {}),
-      sender_email: email,
-      sender_verification: envelope.sender_verification,
-    })
-  );
+  return is_primary_locked_sender(envelope.from?.email || "", {
+    ...(trust ?? {}),
+    sender_verification: envelope.sender_verification,
+  });
 }
 
 export function classify(
@@ -323,11 +317,11 @@ export function classify(
   metadata?: MailItemMetadata | null,
   options?: ClassifyOptions,
 ): EmailCategory {
+  if (is_locked_to_primary(envelope, options?.trust)) return "primary";
+
   if (metadata?.category_pinned && metadata.category) {
     return metadata.category;
   }
-
-  if (is_locked_to_primary(envelope, options?.trust)) return "primary";
 
   const rules = options?.custom_categories ?? active_custom_categories;
   const email = envelope.from?.email || "";
