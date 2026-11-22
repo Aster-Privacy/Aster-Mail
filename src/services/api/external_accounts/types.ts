@@ -101,6 +101,69 @@ export interface ExternalAccountSyncSettings {
   sync_folders: string[];
   max_messages_per_sync: number;
   sync_since_date: string | null;
+  mode?: ExternalSyncMode;
+}
+
+export type ExternalSyncMode = "server_sync" | "two_way";
+
+export interface UpdateSyncSettingsResult {
+  success: boolean;
+  mode?: ExternalSyncMode;
+  backfill_job_id?: string | null;
+}
+
+export interface WritebackStatus {
+  mode: string;
+  pending: number;
+  failing: number;
+  last_error_code: string | null;
+  last_success_at: string | null;
+  backfill_state: string | null;
+  backfill_mapped: number;
+}
+
+export type CleanupAfterDays = 7 | 30 | 90;
+
+export interface CleanupSettings {
+  after_days: CleanupAfterDays | null;
+  confirmed: boolean;
+  paused_reason: string | null;
+}
+
+export interface CleanupPreview {
+  preview_run_id: string;
+  eligible_count: number;
+  oldest: string | null;
+  folders: string[];
+  skipped_reasons: Record<string, number>;
+}
+
+export interface CleanupRun {
+  id: string;
+  kind: string;
+  started_at: string;
+  finished_at: string | null;
+  eligible_count: number;
+  moved_count: number;
+  skipped_count: number;
+  skipped_reasons: Record<string, number>;
+  oldest_internaldate: string | null;
+  folders: string[];
+}
+
+export interface ForwardingEntry {
+  id: string;
+  account_id: string | null;
+  encrypted_label: string | null;
+  label_nonce: string | null;
+  tag_token: string | null;
+  created_at: string;
+  last_received_at: string | null;
+}
+
+export interface ForwardingCreated {
+  address: string;
+  forwarding: ForwardingEntry;
 }
 
 export interface ExternalAccountFolder {

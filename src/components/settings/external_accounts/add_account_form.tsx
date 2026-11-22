@@ -29,6 +29,7 @@ import { LabelSection } from "@/components/settings/external_accounts/label_sect
 import { SyncSettingsSection } from "@/components/settings/external_accounts/sync_settings_section";
 import { FolderSelectionSection } from "@/components/settings/external_accounts/folder_selection_section";
 import { AdvancedSettingsSection } from "@/components/settings/external_accounts/advanced_settings_section";
+import { AccountServerSections } from "@/components/settings/external_accounts/account_server_sections";
 import { TestResultBanner } from "@/components/settings/external_accounts/test_result_banner";
 import { FormFooter } from "@/components/settings/external_accounts/form_footer";
 import { Modal, ModalTitle } from "@/components/ui/modal";
@@ -245,6 +246,14 @@ export function AddAccountForm({
             t={t}
             tls_method_options={tls_method_options}
           />
+
+          {editing_account && (
+            <AccountServerSections
+              key={editing_account.id}
+              account={editing_account}
+              t={t}
+            />
+          )}
 
           {test_result && (
             <TestResultBanner

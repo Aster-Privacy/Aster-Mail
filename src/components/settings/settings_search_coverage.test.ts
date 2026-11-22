@@ -46,6 +46,12 @@ const ROW_COMPONENTS = [
 const TITLE_ATTRIBUTES = ["title", "label", "heading"];
 
 const NOT_SETTINGS = new Set([
+  "settings.ext_v2_two_way_title",
+  "settings.ext_v2_two_way_label",
+  "settings.ext_v2_cleanup_title",
+  "settings.ext_v2_cleanup_label",
+  "settings.ext_v2_cleanup_review_title",
+  "settings.ext_v2_forwarding_title",
   "common.more",
   "common.remove",
   "common.resend",

@@ -35,6 +35,15 @@ import type {
   ExternalFolderSpecialUse,
   ExternalSource,
   SourceNotifySetting,
+  ExternalSyncMode,
+  UpdateSyncSettingsResult,
+  WritebackStatus,
+  CleanupAfterDays,
+  CleanupSettings,
+  CleanupPreview,
+  CleanupRun,
+  ForwardingEntry,
+  ForwardingCreated,
 } from "./types";
 
 import { api_client, type ApiResponse } from "../client";
@@ -99,6 +108,14 @@ export function external_account_error_message(
       return settings.ext_v2_send_only_limit_reached;
     case "EXTERNAL_ACCOUNT_LIMIT":
       return settings.ext_v2_sync_limit_reached;
+    case "EXTERNAL_TWO_WAY_UNSUPPORTED_PROTOCOL":
+      return settings.ext_v2_two_way_needs_imap;
+    case "EXTERNAL_TWO_WAY_UNVERIFIED":
+      return settings.ext_v2_two_way_unverified;
+    case "EXTERNAL_TWO_WAY_NEEDS_FOLDERS":
+      return settings.ext_v2_two_way_needs_folders;
+    case "EXTERNAL_CLEANUP_NEEDS_TWO_WAY":
+      return settings.ext_v2_cleanup_needs_two_way;
     default:
       return undefined;
   }
@@ -819,7 +836,7 @@ export async function list_account_folders(credentials: {
 export async function update_sync_settings(
   account_token: string,
   settings: ExternalAccountSyncSettings,
-): Promise<ApiResponse<{ success: boolean }>> {
+): Promise<ApiResponse<UpdateSyncSettingsResult>> {
   const token_error = validate_account_token(account_token);
 
   if (token_error) {
@@ -833,14 +850,18 @@ export async function update_sync_settings(
   }
 
   try {
-    const response = await api_client.put<{ success: boolean }>(
+    const response = await api_client.put<UpdateSyncSettingsResult>(
       "/mail/v1/external_accounts/sync_settings",
       { account_token, ...settings },
     );
 
     if (response.error || !response.data) {
       return {
-        error: response.error || get_active_translations().common.save_failed,
+        error:
+          external_account_error_message(response.server_code) ||
+          response.error ||
+          get_active_translations().common.save_failed,
+        server_code: response.server_code,
       };
     }
 
@@ -1386,5 +1407,345 @@ export async function save_source_notify(
         get_active_translations().common.save_failed,
       ),
     };
+  }
+}
+
+type ExternalFailure = "load" | "save";
+
+function external_v2_failure<T>(
+  response: ApiResponse<unknown>,
+  kind: ExternalFailure,
+): ApiResponse<T> {
+  const t = get_active_translations();
+
+  return {
+    error:
+      external_account_error_message(response.server_code) ||
+      response.error ||
+      (kind === "load" ? t.errors.load_failed : t.common.save_failed),
+    server_code: response.server_code,
+    status: response.status,
+  };
+}
+
+function external_exception<T>(
+  err: unknown,
+  kind: ExternalFailure,
+): ApiResponse<T> {
+  const t = get_active_translations();
+
+  return {
+    error: user_facing_error(
+      err,
+      kind === "load" ? t.errors.load_failed : t.common.save_failed,
+    ),
+  };
+}
+
+const EXTERNAL_BASE = "/mail/v1/external_accounts";
+
+function token_query(account_token: string): string {
+  return `account_token=${encodeURIComponent(account_token)}`;
+}
+
+export async function get_writeback_status(
+  account_token: string,
+): Promise<ApiResponse<WritebackStatus>> {
+  const token_error = validate_account_token(account_token);
+
+  if (token_error) return { error: token_error };
+
+  try {
+    const response = await api_client.get<WritebackStatus>(
+      `${EXTERNAL_BASE}/writeback_status?${token_query(account_token)}`,
+    );
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "load");
+    }
+
+    return { data: response.data };
+  } catch (err) {
+    return external_exception(err, "load");
+  }
+}
+
+export async function set_sync_mode(
+  account_token: string,
+  mode: ExternalSyncMode,
+): Promise<ApiResponse<UpdateSyncSettingsResult>> {
+  const current = await get_sync_settings(account_token);
+
+  if (current.error || !current.data) {
+    return { error: current.error, server_code: current.server_code };
+  }
+
+  return update_sync_settings(account_token, {
+    sync_frequency: current.data.sync_frequency,
+    sync_folders: current.data.sync_folders,
+    max_messages_per_sync: current.data.max_messages_per_sync,
+    sync_since_date: current.data.sync_since_date,
+    mode,
+  });
+}
+
+function normalize_cleanup(raw: CleanupSettings): CleanupSettings {
+  const days = raw.after_days;
+
+  return {
+    after_days: days === 7 || days === 30 || days === 90 ? days : null,
+    confirmed: raw.confirmed === true,
+    paused_reason: raw.paused_reason ?? null,
+  };
+}
+
+function normalize_reasons(raw: unknown): Record<string, number> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, number> = {};
+
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value === "number" && Number.isFinite(value)) out[key] = value;
+  }
+
+  return out;
+}
+
+export async function get_cleanup_settings(
+  account_token: string,
+): Promise<ApiResponse<CleanupSettings>> {
+  const token_error = validate_account_token(account_token);
+
+  if (token_error) return { error: token_error };
+
+  try {
+    const response = await api_client.get<CleanupSettings>(
+      `${EXTERNAL_BASE}/cleanup?${token_query(account_token)}`,
+    );
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "load");
+    }
+
+    return { data: normalize_cleanup(response.data) };
+  } catch (err) {
+    return external_exception(err, "load");
+  }
+}
+
+export async function save_cleanup_settings(
+  account_token: string,
+  after_days: CleanupAfterDays | null,
+): Promise<ApiResponse<CleanupSettings>> {
+  const token_error = validate_account_token(account_token);
+
+  if (token_error) return { error: token_error };
+
+  try {
+    const response = await api_client.put<CleanupSettings>(
+      `${EXTERNAL_BASE}/cleanup`,
+      { account_token, after_days },
+    );
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "save");
+    }
+
+    return { data: normalize_cleanup(response.data) };
+  } catch (err) {
+    return external_exception(err, "save");
+  }
+}
+
+export async function preview_cleanup(
+  account_token: string,
+): Promise<ApiResponse<CleanupPreview>> {
+  const token_error = validate_account_token(account_token);
+
+  if (token_error) return { error: token_error };
+
+  try {
+    const response = await api_client.post<CleanupPreview>(
+      `${EXTERNAL_BASE}/cleanup/preview`,
+      { account_token },
+    );
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "load");
+    }
+
+    return {
+      data: {
+        ...response.data,
+        folders: response.data.folders ?? [],
+        skipped_reasons: normalize_reasons(response.data.skipped_reasons),
+      },
+    };
+  } catch (err) {
+    return external_exception(err, "load");
+  }
+}
+
+export async function confirm_cleanup(
+  account_token: string,
+  preview_run_id: string,
+): Promise<ApiResponse<CleanupSettings>> {
+  const token_error = validate_account_token(account_token);
+
+  if (token_error) return { error: token_error };
+
+  try {
+    const response = await api_client.post<CleanupSettings>(
+      `${EXTERNAL_BASE}/cleanup/confirm`,
+      { account_token, preview_run_id },
+    );
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "save");
+    }
+
+    return { data: normalize_cleanup(response.data) };
+  } catch (err) {
+    return external_exception(err, "save");
+  }
+}
+
+export async function list_cleanup_runs(
+  account_token: string,
+  limit = 20,
+): Promise<ApiResponse<CleanupRun[]>> {
+  const token_error = validate_account_token(account_token);
+
+  if (token_error) return { error: token_error };
+
+  try {
+    const response = await api_client.get<{ runs?: CleanupRun[] }>(
+      `${EXTERNAL_BASE}/cleanup/log?${token_query(account_token)}&limit=${limit}`,
+    );
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "load");
+    }
+
+    return {
+      data: (response.data.runs ?? []).map((run) => ({
+        ...run,
+        folders: run.folders ?? [],
+        skipped_reasons: normalize_reasons(run.skipped_reasons),
+      })),
+    };
+  } catch (err) {
+    return external_exception(err, "load");
+  }
+}
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function forwarding_path(id: string, action: string): string | null {
+  if (!UUID_PATTERN.test(id)) return null;
+
+  return `${EXTERNAL_BASE}/forwarding/${id}/${action}`;
+}
+
+export async function list_forwarding_addresses(): Promise<
+  ApiResponse<ForwardingEntry[]>
+> {
+  try {
+    const response = await api_client.get<{ forwarding?: ForwardingEntry[] }>(
+      `${EXTERNAL_BASE}/forwarding`,
+    );
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "load");
+    }
+
+    return { data: response.data.forwarding ?? [] };
+  } catch (err) {
+    return external_exception(err, "load");
+  }
+}
+
+export async function create_forwarding_address(
+  account_id: string | null,
+  tag_token: string | null,
+): Promise<ApiResponse<ForwardingCreated>> {
+  if (account_id !== null && !UUID_PATTERN.test(account_id)) {
+    return { error: get_active_translations().common.save_failed };
+  }
+
+  try {
+    const response = await api_client.post<ForwardingCreated>(
+      `${EXTERNAL_BASE}/forwarding`,
+      { account_id, tag_token },
+    );
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "save");
+    }
+
+    return { data: response.data };
+  } catch (err) {
+    return external_exception(err, "save");
+  }
+}
+
+export async function set_forwarding_label(
+  id: string,
+  sealed: { encrypted_label: string; label_nonce: string },
+): Promise<ApiResponse<{ updated: boolean }>> {
+  const path = forwarding_path(id, "label");
+
+  if (!path) return { error: get_active_translations().common.save_failed };
+
+  try {
+    const response = await api_client.put<{ updated: boolean }>(path, sealed);
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "save");
+    }
+
+    return { data: response.data };
+  } catch (err) {
+    return external_exception(err, "save");
+  }
+}
+
+export async function revoke_forwarding_address(
+  id: string,
+): Promise<ApiResponse<{ revoked: boolean }>> {
+  const path = forwarding_path(id, "revoke");
+
+  if (!path) return { error: get_active_translations().common.save_failed };
+
+  try {
+    const response = await api_client.post<{ revoked: boolean }>(path, {});
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "save");
+    }
+
+    return { data: response.data };
+  } catch (err) {
+    return external_exception(err, "save");
+  }
+}
+
+export async function rotate_forwarding_address(
+  id: string,
+): Promise<ApiResponse<ForwardingCreated>> {
+  const path = forwarding_path(id, "rotate");
+
+  if (!path) return { error: get_active_translations().common.save_failed };
+
+  try {
+    const response = await api_client.post<ForwardingCreated>(path, {});
+
+    if (response.error || !response.data) {
+      return external_v2_failure(response, "save");
+    }
+
+    return { data: response.data };
+  } catch (err) {
+    return external_exception(err, "save");
   }
 }

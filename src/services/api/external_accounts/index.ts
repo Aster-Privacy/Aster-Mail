@@ -42,12 +42,24 @@ export type {
   ExternalSourceKind,
   SourceNotifyChoice,
   SourceNotifySetting,
+  ExternalSyncMode,
+  UpdateSyncSettingsResult,
+  WritebackStatus,
+  CleanupAfterDays,
+  CleanupSettings,
+  CleanupPreview,
+  CleanupRun,
+  ForwardingEntry,
+  ForwardingCreated,
 } from "./types";
+export type { ForwardingLabelPayload } from "./crypto";
 
 export {
   generate_account_token,
   encrypt_account_data,
   decrypt_account_data,
+  seal_forwarding_label,
+  open_forwarding_label,
 } from "./crypto";
 
 export {
@@ -78,6 +90,18 @@ export {
   get_dedup_stats,
   list_oauth_folders,
   save_folder_mapping,
+  get_writeback_status,
+  set_sync_mode,
+  get_cleanup_settings,
+  save_cleanup_settings,
+  preview_cleanup,
+  confirm_cleanup,
+  list_cleanup_runs,
+  list_forwarding_addresses,
+  create_forwarding_address,
+  set_forwarding_label,
+  revoke_forwarding_address,
+  rotate_forwarding_address,
   list_external_sources,
   get_source_notify,
   save_source_notify,
