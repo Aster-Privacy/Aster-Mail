@@ -10510,8 +10510,7 @@ export const it = {
     handoff_approve_done: "Puoi chiudere questa finestra.",
     handoff_approve_signed_out: "Non hai effettuato l'accesso qui. Chiudi questa finestra e accedi con la tua password.",
     passkey_verification: "Verifica con passkey",
-    use_passkey_or_key:
-      "Usa Windows Hello, Face ID o la tua chiave di sicurezza",
+    use_passkey_or_key: "Usa la passkey su questo dispositivo, nel tuo gestore di password o sulla tua chiave di sicurezza",
     use_passkey_instead: "Usa invece una passkey",
     sign_in: "Accedi",
     sign_out: "Esci",
@@ -11368,8 +11367,10 @@ export const it = {
     authentication_cancelled: "Autenticazione annullata",
     authentication_failed:
       "L'accesso non è stato completato. Riprova. Il tuo account non è bloccato.",
-    authentication_failed_webauthn:
-      "L'accesso con chiave di sicurezza non è stato completato o è stato annullato. Riprova.",
+    authentication_failed_webauthn: "L'accesso con passkey non è stato completato. Riprova o usa un altro metodo di verifica.",
+    passkey_sign_in_not_found: "L'accesso con passkey è stato annullato oppure non è stata trovata alcuna passkey per questo account. Riprova o usa un altro metodo di verifica.",
+    passkey_sign_in_timed_out: "L'accesso con passkey è scaduto. Riprova e conferma sul dispositivo quando te lo chiede.",
+    passkey_sign_in_not_supported: "Questo browser non può usare le passkey su questa pagina. Prova un altro browser o usa un altro metodo di verifica.",
     cannot_send_no_keys:
       "Ha la crittografia obbligatoria attivata e non abbiamo una chiave per {{recipients}}. Chiedere loro di condividere una chiave, o disattivare la crittografia obbligatoria in Impostazioni, permetterà l'invio. La sua bozza è salvata.",
     sender_address_refused:

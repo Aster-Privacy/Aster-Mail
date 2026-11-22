@@ -46,7 +46,12 @@ vi.mock("@/lib/i18n/translations", () => ({
       security_key_error_not_recognized: "not_recognized_text",
       security_key_error_failed: "failed_text",
     },
-    errors: {},
+    errors: {
+      authentication_failed_webauthn: "sign_in_failed_text",
+      passkey_sign_in_not_found: "sign_in_not_found_text",
+      passkey_sign_in_timed_out: "sign_in_timed_out_text",
+      passkey_sign_in_not_supported: "sign_in_not_supported_text",
+    },
   }),
 }));
 
@@ -56,8 +61,12 @@ vi.mock("@/services/crypto/passkey_name", () => ({
 }));
 
 import {
+  WEBAUTHN_PROMPT_DISMISSED,
+  WEBAUTHN_PROMPT_FAILED,
   build_registration_public_key,
+  build_sign_in_request_options,
   perform_passkey_assertion_with_options,
+  perform_webauthn_assertion,
   perform_webauthn_assertion_with_options,
   perform_webauthn_registration,
   type HardwareKeyRegistrationOptions,
@@ -297,5 +306,108 @@ describe("security key prompts", () => {
         ),
       ),
     ).toEqual([1, 2, 3]);
+  });
+});
+
+describe("sign-in passkey request", () => {
+  const get_mock = vi.fn();
+  const original_credentials = Object.getOwnPropertyDescriptor(
+    navigator,
+    "credentials",
+  );
+
+  beforeEach(() => {
+    get_mock.mockReset();
+    post_mock.mockClear();
+    Object.defineProperty(navigator, "credentials", {
+      configurable: true,
+      value: { get: get_mock },
+    });
+  });
+
+  afterEach(() => {
+    if (original_credentials) {
+      Object.defineProperty(navigator, "credentials", original_credentials);
+    } else {
+      delete (navigator as { credentials?: unknown }).credentials;
+    }
+  });
+
+  it("marks every account key as reachable on this device, nearby, or by cable", () => {
+    const public_key = build_sign_in_request_options(assertion_options);
+
+    expect(public_key.allowCredentials).toHaveLength(1);
+    expect(public_key.allowCredentials![0].transports).toEqual([
+      "internal",
+      "hybrid",
+      "usb",
+      "nfc",
+      "ble",
+    ]);
+    expect((public_key as { hints?: string[] }).hints).toBeUndefined();
+    expect(public_key.userVerification).toBe(
+      assertion_options.userVerification,
+    );
+  });
+
+  it("lets any saved passkey answer a discoverable sign-in request", () => {
+    const public_key = build_sign_in_request_options(assertion_options, true);
+
+    expect(public_key.allowCredentials).toHaveLength(0);
+    expect((public_key as { hints?: string[] }).hints).toEqual([
+      "client-device",
+    ]);
+    expect(public_key.rpId).toBe(assertion_options.rpId);
+  });
+
+  it("does not ask the browser for a security key only prompt", async () => {
+    get_mock.mockRejectedValue(named_error("NotAllowedError"));
+
+    await perform_webauthn_assertion(assertion_options, "pending");
+
+    const request = get_mock.mock.calls[0][0] as {
+      publicKey: PublicKeyCredentialRequestOptions & { hints?: string[] };
+      mediation?: string;
+    };
+
+    expect(request.publicKey.hints).toBeUndefined();
+    expect(request.mediation).toBeUndefined();
+  });
+
+  it("explains a canceled prompt or a missing passkey", async () => {
+    get_mock.mockRejectedValue(named_error("NotAllowedError"));
+
+    const result = await perform_webauthn_assertion(
+      assertion_options,
+      "pending",
+    );
+
+    expect(result.error).toBe("sign_in_not_found_text");
+    expect(result.server_code).toBe(WEBAUTHN_PROMPT_DISMISSED);
+    expect(post_mock).not.toHaveBeenCalled();
+  });
+
+  it("explains an unsupported browser", async () => {
+    get_mock.mockRejectedValue(named_error("SecurityError"));
+
+    const result = await perform_webauthn_assertion(
+      assertion_options,
+      "pending",
+    );
+
+    expect(result.error).toBe("sign_in_not_supported_text");
+    expect(result.server_code).toBe(WEBAUTHN_PROMPT_FAILED);
+  });
+
+  it("reports other browser errors as a failed prompt", async () => {
+    get_mock.mockRejectedValue(named_error("NotReadableError"));
+
+    const result = await perform_webauthn_assertion(
+      assertion_options,
+      "pending",
+    );
+
+    expect(result.error).toBe("sign_in_failed_text");
+    expect(result.server_code).toBe(WEBAUTHN_PROMPT_FAILED);
   });
 });

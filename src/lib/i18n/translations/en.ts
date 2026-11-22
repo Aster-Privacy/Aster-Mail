@@ -10400,7 +10400,7 @@ export const en: Translations = {
     use_backup_code_instead: "Use a backup code instead",
     trust_this_device_30_days: "Trust this device for 30 days",
     passkey_verification: "Verify with Passkey",
-    use_passkey_or_key: "Use Windows Hello, Face ID, or your security key",
+    use_passkey_or_key: "Use the passkey on this device, in your password manager, or on your security key",
     use_passkey_instead: "Use passkey instead",
     passkey_sign_in: "Sign in with passkey",
     use_another_method: "Use another verification method",
@@ -11101,8 +11101,10 @@ export const en: Translations = {
     registration_failed:
       "Sign-up did not finish. Starting over and trying again usually does it. No account was created.",
     registration_cancelled: "Registration cancelled",
-    authentication_failed_webauthn:
-      "Security key sign-in did not finish or was cancelled. Try again.",
+    authentication_failed_webauthn: "Passkey sign-in did not finish. Try again, or use another verification method.",
+    passkey_sign_in_not_found: "Passkey sign-in was canceled, or no passkey for this account was found. Try again, or use another verification method.",
+    passkey_sign_in_timed_out: "Passkey sign-in timed out. Try again, and confirm on your device when it asks.",
+    passkey_sign_in_not_supported: "This browser can't use passkeys on this page. Try another browser, or use another verification method.",
     authentication_cancelled: "Authentication cancelled",
     alias_empty: "An alias name is needed here.",
     alias_too_short: "Use at least 3 characters.",

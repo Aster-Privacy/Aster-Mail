@@ -10697,8 +10697,7 @@ export const pl = {
     handoff_approve_done: "Możesz zamknąć to okno.",
     handoff_approve_signed_out: "Nie jesteś tu zalogowany. Zamknij to okno i zaloguj się hasłem.",
     passkey_verification: "Zweryfikuj za pomocą klucza dostępu",
-    use_passkey_or_key:
-      "Użyj Windows Hello, Face ID lub swojego klucza bezpieczeństwa",
+    use_passkey_or_key: "Użyj klucza dostępu na tym urządzeniu, w menedżerze haseł lub na kluczu bezpieczeństwa",
     use_passkey_instead: "Użyj zamiast tego klucza dostępu",
     sign_in: "Zaloguj się",
     sign_out: "Wyloguj się",
@@ -11628,8 +11627,10 @@ export const pl = {
     registration_failed:
       "Rejestracja nie została ukończona. Zacznij od nowa i spróbuj ponownie. Konto nie zostało utworzone.",
     registration_cancelled: "Rejestracja anulowana",
-    authentication_failed_webauthn:
-      "Logowanie kluczem bezpieczeństwa nie zostało ukończone lub zostało anulowane. Spróbuj ponownie.",
+    authentication_failed_webauthn: "Logowanie kluczem dostępu nie zostało ukończone. Spróbuj ponownie lub użyj innej metody weryfikacji.",
+    passkey_sign_in_not_found: "Logowanie kluczem dostępu zostało anulowane albo nie znaleziono klucza dostępu dla tego konta. Spróbuj ponownie lub użyj innej metody weryfikacji.",
+    passkey_sign_in_timed_out: "Upłynął limit czasu logowania kluczem dostępu. Spróbuj ponownie i potwierdź na urządzeniu, gdy pojawi się prośba.",
+    passkey_sign_in_not_supported: "Ta przeglądarka nie może używać kluczy dostępu na tej stronie. Spróbuj innej przeglądarki lub użyj innej metody weryfikacji.",
     authentication_cancelled: "Uwierzytelnianie anulowane",
     alias_empty: "Tutaj wymagana jest nazwa aliasu.",
     alias_too_short: "Użyj co najmniej 3 znaków.",

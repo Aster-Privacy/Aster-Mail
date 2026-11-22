@@ -10201,8 +10201,7 @@ export const ja = {
     handoff_approve_done: "このウィンドウは閉じてかまいません。",
     handoff_approve_signed_out: "ここではサインインしていません。このウィンドウを閉じて、パスワードでサインインしてください。",
     passkey_verification: "パスキーで認証",
-    use_passkey_or_key:
-      "Windows Hello、Face ID、またはセキュリティキーを使用します",
+    use_passkey_or_key: "このデバイス、パスワードマネージャー、またはセキュリティキーにあるパスキーを使用します",
     use_passkey_instead: "代わりにパスキーを使用",
     sign_in: "サインイン",
     sign_out: "ログアウト",
@@ -11132,8 +11131,10 @@ export const ja = {
     registration_failed:
       "サインアップが完了しませんでした。やり直してもう一度試すと、解決することが多いです。アカウントは作成されていません。",
     registration_cancelled: "登録がキャンセルされました",
-    authentication_failed_webauthn:
-      "セキュリティキーでのサインインが完了しなかったか、キャンセルされました。もう一度お試しください。",
+    authentication_failed_webauthn: "パスキーでのサインインが完了しませんでした。もう一度お試しいただくか、別の確認方法を使用してください。",
+    passkey_sign_in_not_found: "パスキーでのサインインがキャンセルされたか、このアカウントのパスキーが見つかりませんでした。もう一度お試しいただくか、別の確認方法を使用してください。",
+    passkey_sign_in_timed_out: "パスキーでのサインインがタイムアウトしました。もう一度お試しいただき、デバイスで求められたら確認してください。",
+    passkey_sign_in_not_supported: "このブラウザでは、このページでパスキーを使用できません。別のブラウザを試すか、別の確認方法を使用してください。",
     authentication_cancelled: "認証がキャンセルされました",
     alias_empty: "ここにはエイリアス名が必要です。",
     alias_too_short: "3 文字以上で入力してください。",

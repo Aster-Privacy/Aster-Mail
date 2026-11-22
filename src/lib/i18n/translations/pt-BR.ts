@@ -10505,8 +10505,7 @@ export const pt_br = {
     handoff_approve_done: "Você pode fechar esta janela.",
     handoff_approve_signed_out: "Você não está conectado aqui. Feche esta janela e entre com sua senha.",
     passkey_verification: "Verificar com passkey",
-    use_passkey_or_key:
-      "Use o Windows Hello, o Face ID ou sua chave de segurança",
+    use_passkey_or_key: "Use a chave de acesso deste dispositivo, do seu gerenciador de senhas ou da sua chave de segurança",
     use_passkey_instead: "Usar passkey em vez disso",
     sign_in: "Entrar",
     sign_out: "Sair",
@@ -11363,8 +11362,10 @@ export const pt_br = {
     authentication_cancelled: "Autenticação cancelada",
     authentication_failed:
       "O login não foi concluído. Tente novamente. Sua conta não está bloqueada.",
-    authentication_failed_webauthn:
-      "O login com chave de segurança não foi concluído ou foi cancelado. Tente novamente.",
+    authentication_failed_webauthn: "O login com chave de acesso não foi concluído. Tente novamente ou use outro método de verificação.",
+    passkey_sign_in_not_found: "O login com chave de acesso foi cancelado ou nenhuma chave de acesso foi encontrada para esta conta. Tente novamente ou use outro método de verificação.",
+    passkey_sign_in_timed_out: "O login com chave de acesso expirou. Tente novamente e confirme no seu dispositivo quando ele pedir.",
+    passkey_sign_in_not_supported: "Este navegador não pode usar chaves de acesso nesta página. Tente outro navegador ou use outro método de verificação.",
     cannot_send_no_keys:
       "Você tem criptografia obrigatória ativada, e não temos uma chave para {{recipients}}. Pedir que compartilhem uma chave, ou desativar a criptografia obrigatória em Configurações, vai permitir o envio. Seu rascunho está salvo.",
     sender_address_refused:

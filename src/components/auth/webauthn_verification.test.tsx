@@ -31,6 +31,7 @@ import {
 
 vi.mock("@/services/api/webauthn", () => ({
   WEBAUTHN_PROMPT_DISMISSED: "webauthn_prompt_dismissed",
+  WEBAUTHN_PROMPT_FAILED: "webauthn_prompt_failed",
   initiate_webauthn_assertion: vi.fn(),
   perform_webauthn_assertion: vi.fn(),
 }));
@@ -207,5 +208,55 @@ describe("WebauthnVerification", () => {
 
     expect(mocked_initiate).toHaveBeenCalledTimes(calls_before_click);
     expect(p.on_success).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers any saved passkey after a request for the account keys fails", async () => {
+    mocked_initiate.mockResolvedValue({ data: assertion_options });
+    mocked_perform.mockResolvedValueOnce({
+      data: undefined,
+      error: "authentication_failed_webauthn",
+      server_code: "webauthn_prompt_failed",
+    });
+
+    await render();
+
+    expect(mocked_perform.mock.calls[0][3]).toBe(false);
+    expect(container.textContent).toContain("authentication_failed_webauthn");
+
+    mocked_perform.mockResolvedValueOnce({
+      data: undefined,
+      error: "passkey_sign_in_not_found",
+      server_code: "webauthn_prompt_dismissed",
+    });
+    await act(async () => {
+      button_by_text("common.try_again")!.click();
+    });
+
+    expect(mocked_perform.mock.calls[1][3]).toBe(true);
+
+    mocked_perform.mockResolvedValueOnce(success_response);
+    await act(async () => {
+      button_by_text("auth.passkey_sign_in")!.click();
+    });
+
+    expect(mocked_perform.mock.calls[2][3]).toBe(false);
+  });
+
+  it("keeps the account key request after a blocked auto-start", async () => {
+    mocked_initiate.mockResolvedValue({ data: assertion_options });
+    mocked_perform.mockResolvedValueOnce({
+      data: undefined,
+      error: "passkey_sign_in_not_found",
+      server_code: "webauthn_prompt_dismissed",
+    });
+
+    await render();
+
+    mocked_perform.mockResolvedValueOnce(success_response);
+    await act(async () => {
+      button_by_text("auth.passkey_sign_in")!.click();
+    });
+
+    expect(mocked_perform.mock.calls[1][3]).toBe(false);
   });
 });

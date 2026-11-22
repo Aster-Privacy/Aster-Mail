@@ -10128,6 +10128,9 @@ export interface ErrorTranslations {
   registration_failed: string;
   registration_cancelled: string;
   authentication_failed_webauthn: string;
+  passkey_sign_in_not_found: string;
+  passkey_sign_in_timed_out: string;
+  passkey_sign_in_not_supported: string;
   authentication_cancelled: string;
   alias_empty: string;
   alias_too_short: string;

@@ -10474,7 +10474,7 @@ export const es = {
     handoff_approve_done: "Puedes cerrar esta ventana.",
     handoff_approve_signed_out: "No has iniciado sesión aquí. Cierra esta ventana e inicia sesión con tu contraseña.",
     passkey_verification: "Verificar con clave de acceso",
-    use_passkey_or_key: "Usa Windows Hello, Face ID o tu llave de seguridad",
+    use_passkey_or_key: "Usa la clave de acceso de este dispositivo, de tu gestor de contraseñas o de tu llave de seguridad",
     use_passkey_instead: "Usar clave de acceso en su lugar",
     sign_in: "Iniciar sesión",
     sign_out: "Cerrar sesión",
@@ -11319,8 +11319,10 @@ export const es = {
     authentication_cancelled: "Autenticación cancelada",
     authentication_failed:
       "El inicio de sesión no terminó. Inténtalo de nuevo. Tu cuenta no está bloqueada.",
-    authentication_failed_webauthn:
-      "El inicio de sesión con llave de seguridad no terminó o se canceló. Inténtalo de nuevo.",
+    authentication_failed_webauthn: "El inicio de sesión con clave de acceso no terminó. Inténtalo de nuevo o usa otro método de verificación.",
+    passkey_sign_in_not_found: "Se canceló el inicio de sesión con clave de acceso o no se encontró ninguna clave de acceso para esta cuenta. Inténtalo de nuevo o usa otro método de verificación.",
+    passkey_sign_in_timed_out: "Se agotó el tiempo del inicio de sesión con clave de acceso. Inténtalo de nuevo y confirma en tu dispositivo cuando te lo pida.",
+    passkey_sign_in_not_supported: "Este navegador no puede usar claves de acceso en esta página. Prueba con otro navegador o usa otro método de verificación.",
     cannot_send_no_keys:
       "Tienes el cifrado obligatorio activado y no tenemos clave para {{recipients}}. Pedirles que compartan una clave, o desactivar el cifrado obligatorio en Configuración, permitirá el envío. Tu borrador está guardado.",
     sender_address_refused:

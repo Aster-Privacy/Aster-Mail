@@ -10576,8 +10576,7 @@ export const de = {
     handoff_approve_done: "Sie können dieses Fenster schließen.",
     handoff_approve_signed_out: "Sie sind hier nicht angemeldet. Schließen Sie dieses Fenster und melden Sie sich mit Ihrem Passwort an.",
     passkey_verification: "Mit Passkey verifizieren",
-    use_passkey_or_key:
-      "Verwenden Sie Windows Hello, Face ID oder Ihren Sicherheitsschlüssel",
+    use_passkey_or_key: "Verwenden Sie den Passkey auf diesem Gerät, in Ihrem Passwortmanager oder auf Ihrem Sicherheitsschlüssel",
     use_passkey_instead: "Stattdessen Passkey verwenden",
     sign_in: "Anmelden",
     sign_out: "Abmelden",
@@ -11448,8 +11447,10 @@ export const de = {
     authentication_cancelled: "Authentifizierung abgebrochen",
     authentication_failed:
       "Die Anmeldung wurde nicht abgeschlossen. Versuchen Sie es erneut. Ihr Konto ist nicht gesperrt.",
-    authentication_failed_webauthn:
-      "Die Anmeldung mit dem Sicherheitsschlüssel wurde nicht abgeschlossen oder abgebrochen. Versuchen Sie es erneut.",
+    authentication_failed_webauthn: "Die Anmeldung mit Passkey wurde nicht abgeschlossen. Versuchen Sie es erneut oder verwenden Sie eine andere Verifizierungsmethode.",
+    passkey_sign_in_not_found: "Die Anmeldung mit Passkey wurde abgebrochen oder für dieses Konto wurde kein Passkey gefunden. Versuchen Sie es erneut oder verwenden Sie eine andere Verifizierungsmethode.",
+    passkey_sign_in_timed_out: "Die Anmeldung mit Passkey hat zu lange gedauert. Versuchen Sie es erneut und bestätigen Sie auf Ihrem Gerät, wenn Sie dazu aufgefordert werden.",
+    passkey_sign_in_not_supported: "Dieser Browser kann auf dieser Seite keine Passkeys verwenden. Versuchen Sie einen anderen Browser oder verwenden Sie eine andere Verifizierungsmethode.",
     cannot_send_no_keys:
       "Sie haben die erforderliche Verschlüsselung aktiviert und wir haben keinen Schlüssel für {{recipients}}. Bitten Sie sie, einen Schlüssel zu teilen, oder deaktivieren Sie die erforderliche Verschlüsselung in Einstellungen. Ihr Entwurf ist gespeichert.",
     sender_address_refused:
