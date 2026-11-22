@@ -154,6 +154,20 @@ describe("deep link routing", () => {
     expect(window.location.search).toBe("?id=42&t=tok");
   });
 
+  it("keeps the billing return keys on the root path", () => {
+    window.history.replaceState({}, "", "/starred");
+
+    expect(
+      handle_deep_link(
+        "https://app.astermail.org/?addon_purchase=success&stripe_redirect=1&redirect_status=succeeded&payment_intent=pi_1",
+      ),
+    ).toBe(true);
+    expect(window.location.pathname).toBe("/");
+    expect(window.location.search).toBe(
+      "?addon_purchase=success&stripe_redirect=1&redirect_status=succeeded",
+    );
+  });
+
   it("keeps the compose query keys on the root path", () => {
     window.history.replaceState({}, "", "/starred");
 
