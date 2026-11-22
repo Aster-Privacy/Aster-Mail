@@ -37,6 +37,7 @@ import {
 } from "@aster/ui";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
+import { SourceNotifySetting } from "./source_notify_setting";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
@@ -775,6 +776,8 @@ export function NotificationsSection() {
       {preferences.inbox_categories_enabled !== false && (
         <MutedCategoriesSetting />
       )}
+
+      <SourceNotifySetting />
 
       <div>
         <UpgradeGate

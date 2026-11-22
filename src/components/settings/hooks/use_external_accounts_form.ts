@@ -474,7 +474,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
   }, []);
 
   const prefill_account_settings = useCallback(
-    async (account_token: string, request_id: number) => {
+    async (account_token: string, request_id: number, is_oauth: boolean) => {
       const is_current = () =>
         prefill_request_ref.current === request_id &&
         test_hook.is_mounted_ref.current;
@@ -484,7 +484,9 @@ export function use_external_accounts_form(t: I18nTranslate) {
 
       try {
         const [connection, sync, advanced] = await Promise.all([
-          get_connection_settings(account_token),
+          is_oauth
+            ? Promise.resolve({ data: undefined, error: undefined })
+            : get_connection_settings(account_token),
           get_sync_settings(account_token),
           get_advanced_settings(account_token),
         ]);
@@ -581,7 +583,11 @@ export function use_external_accounts_form(t: I18nTranslate) {
       set_show_add_form(true);
       set_form_visible(true);
 
-      void prefill_account_settings(account.account_token, request_id);
+      void prefill_account_settings(
+        account.account_token,
+        request_id,
+        account.protocol === "oauth_imap",
+      );
     },
     [prefill_account_settings],
   );
@@ -596,6 +602,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
     void prefill_account_settings(
       account.account_token,
       prefill_request_ref.current,
+      account.protocol === "oauth_imap",
     );
   }, [editing_account, prefill_account_settings]);
 

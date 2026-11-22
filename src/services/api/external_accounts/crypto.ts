@@ -207,3 +207,54 @@ export async function decrypt_account_data(
     created_at: parsed.created_at,
   };
 }
+
+export interface ForwardingLabelPayload {
+  label: string;
+  address: string;
+}
+
+export async function seal_forwarding_label(
+  payload: ForwardingLabelPayload,
+): Promise<{ encrypted_label: string; label_nonce: string }> {
+  const key = await get_external_accounts_encryption_key();
+  const plaintext = new TextEncoder().encode(
+    JSON.stringify({ label: payload.label, address: payload.address }),
+  );
+  const nonce = crypto.getRandomValues(new Uint8Array(COMBINED_NONCE_LENGTH));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce },
+    key,
+    plaintext,
+  );
+
+  return {
+    encrypted_label: array_to_base64(new Uint8Array(ciphertext)),
+    label_nonce: array_to_base64(nonce),
+  };
+}
+
+export async function open_forwarding_label(
+  encrypted_label: string,
+  label_nonce: string,
+): Promise<ForwardingLabelPayload | null> {
+  try {
+    const buffer = await decrypt_with_ios_storage_keys(
+      base64_to_array(encrypted_label),
+      base64_to_array(label_nonce),
+    );
+
+    if (!buffer) return null;
+
+    const parsed: unknown = JSON.parse(new TextDecoder().decode(buffer));
+
+    if (!parsed || typeof parsed !== "object") return null;
+
+    const record = parsed as Record<string, unknown>;
+    const label = typeof record.label === "string" ? record.label : "";
+    const address = typeof record.address === "string" ? record.address : "";
+
+    return { label, address };
+  } catch {
+    return null;
+  }
+}

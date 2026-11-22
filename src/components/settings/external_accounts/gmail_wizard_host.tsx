@@ -24,6 +24,7 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import { use_external_accounts } from "@/components/settings/hooks/use_external_accounts";
 import { GmailSetupWizard } from "@/components/settings/external_accounts/gmail_setup_wizard";
+import { external_caps } from "@/lib/external_account_modes";
 
 interface GmailWizardHostProps {
   on_close: () => void;
@@ -36,12 +37,8 @@ export function GmailWizardHost({ on_close }: GmailWizardHostProps) {
   const has_opened = useRef(false);
   const was_visible = useRef(false);
 
-  const account_limit = limits?.limits["max_multi_accounts"]?.limit ?? -1;
-  const external_accounts_enabled =
-    (limits?.limits["has_external_accounts"]?.limit ?? 1) >= 1;
-  const at_account_limit =
-    !external_accounts_enabled ||
-    (account_limit >= 0 && state.accounts.length >= account_limit);
+  const at_account_limit = external_caps(limits, state.accounts).fetching
+    .at_limit;
 
   useEffect(() => {
     if (has_opened.current) return;

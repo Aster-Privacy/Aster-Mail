@@ -469,6 +469,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
         alignOffset={align_offset}
         className="z-[200] w-60 p-1.5"
         sideOffset={6}
+        onEscapeKeyDown={(e) => e.stopPropagation()}
       >
         {props.action_type === "forward" && (
           <ForwardInput on_commit={props.on_commit} value={props.value} />

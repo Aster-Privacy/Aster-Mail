@@ -20,7 +20,7 @@
 //
 import type { AddAccountFormProps } from "@/components/settings/external_accounts/form_types";
 
-import { Button } from "@aster/ui";
+import { Button, Island, IslandRow, IslandSections } from "@aster/ui";
 
 import { AccountInfoSection } from "@/components/settings/external_accounts/account_info_section";
 import { IncomingMailSection } from "@/components/settings/external_accounts/incoming_mail_section";
@@ -29,6 +29,7 @@ import { LabelSection } from "@/components/settings/external_accounts/label_sect
 import { SyncSettingsSection } from "@/components/settings/external_accounts/sync_settings_section";
 import { FolderSelectionSection } from "@/components/settings/external_accounts/folder_selection_section";
 import { AdvancedSettingsSection } from "@/components/settings/external_accounts/advanced_settings_section";
+import { AccountServerSections } from "@/components/settings/external_accounts/account_server_sections";
 import { TestResultBanner } from "@/components/settings/external_accounts/test_result_banner";
 import { FormFooter } from "@/components/settings/external_accounts/form_footer";
 import { Modal, ModalTitle } from "@/components/ui/modal";
@@ -134,125 +135,137 @@ export function AddAccountForm({
         </p>
       </div>
 
-      <div className="p-6 space-y-6">
-        {prefill_failed && (
-          <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)]">
-            <p className="text-[13px] text-txt-secondary">
-              {t("common.something_went_wrong_try_again")}
-            </p>
-            <Button size="sm" variant="outline" onClick={retry_prefill}>
-              {t("common.retry")}
-            </Button>
-          </div>
-        )}
+      <div className="px-6 pt-5 pb-8">
+        <IslandSections>
+          {prefill_failed && (
+            <Island tone="warning">
+              <IslandRow
+                label={t("common.something_went_wrong_try_again")}
+                trailing={
+                  <Button size="sm" variant="outline" onClick={retry_prefill}>
+                    {t("common.retry")}
+                  </Button>
+                }
+              />
+            </Island>
+          )}
 
-        <AccountInfoSection
-          form_display_name={form_display_name}
-          form_email={form_email}
-          handle_email_change={handle_email_change}
-          set_form_display_name={set_form_display_name}
-          t={t}
-        />
-
-        {!is_oauth_account && (
-          <IncomingMailSection
-            app_password_url={active_preset?.app_password_url}
-            editing_account={editing_account}
-            form_host={form_host}
-            form_password={form_password}
-            form_port={form_port}
-            form_protocol={form_protocol}
-            form_use_tls={form_use_tls}
-            form_username={form_username}
-            handle_host_change={handle_host_change}
-            handle_password_change={handle_password_change}
-            handle_port_change={handle_port_change}
-            handle_protocol_change={handle_protocol_change}
-            handle_username_change={handle_username_change}
-            has_stored_password={has_stored_password}
-            set_form_use_tls={set_form_use_tls}
-            set_show_password={set_show_password}
-            show_password={show_password}
+          <AccountInfoSection
+            form_display_name={form_display_name}
+            form_email={form_email}
+            handle_email_change={handle_email_change}
+            set_form_display_name={set_form_display_name}
             t={t}
           />
-        )}
 
-        {!is_oauth_account && (
-          <OutgoingMailSection
-            editing_account={editing_account}
-            form_smtp_host={form_smtp_host}
-            form_smtp_password={form_smtp_password}
-            form_smtp_port={form_smtp_port}
-            form_smtp_use_tls={form_smtp_use_tls}
-            form_smtp_username={form_smtp_username}
-            handle_smtp_host_change={handle_smtp_host_change}
-            handle_smtp_password_change={handle_smtp_password_change}
-            handle_smtp_port_change={handle_smtp_port_change}
-            handle_smtp_same_toggle={handle_smtp_same_toggle}
-            handle_smtp_username_change={handle_smtp_username_change}
-            has_stored_smtp_password={has_stored_smtp_password}
-            set_form_smtp_use_tls={set_form_smtp_use_tls}
-            set_show_smtp_password={set_show_smtp_password}
-            show_smtp_password={show_smtp_password}
-            smtp_same_as_incoming={smtp_same_as_incoming}
+          {!is_oauth_account && (
+            <IncomingMailSection
+              app_password_url={active_preset?.app_password_url}
+              editing_account={editing_account}
+              form_host={form_host}
+              form_password={form_password}
+              form_port={form_port}
+              form_protocol={form_protocol}
+              form_use_tls={form_use_tls}
+              form_username={form_username}
+              handle_host_change={handle_host_change}
+              handle_password_change={handle_password_change}
+              handle_port_change={handle_port_change}
+              handle_protocol_change={handle_protocol_change}
+              handle_username_change={handle_username_change}
+              has_stored_password={has_stored_password}
+              set_form_use_tls={set_form_use_tls}
+              set_show_password={set_show_password}
+              show_password={show_password}
+              t={t}
+            />
+          )}
+
+          {!is_oauth_account && (
+            <OutgoingMailSection
+              editing_account={editing_account}
+              form_smtp_host={form_smtp_host}
+              form_smtp_password={form_smtp_password}
+              form_smtp_port={form_smtp_port}
+              form_smtp_use_tls={form_smtp_use_tls}
+              form_smtp_username={form_smtp_username}
+              handle_smtp_host_change={handle_smtp_host_change}
+              handle_smtp_password_change={handle_smtp_password_change}
+              handle_smtp_port_change={handle_smtp_port_change}
+              handle_smtp_same_toggle={handle_smtp_same_toggle}
+              handle_smtp_username_change={handle_smtp_username_change}
+              has_stored_smtp_password={has_stored_smtp_password}
+              set_form_smtp_use_tls={set_form_smtp_use_tls}
+              set_show_smtp_password={set_show_smtp_password}
+              show_smtp_password={show_smtp_password}
+              smtp_same_as_incoming={smtp_same_as_incoming}
+              t={t}
+            />
+          )}
+
+          <LabelSection
+            form_label_color={form_label_color}
+            form_label_name={form_label_name}
+            handle_label_color_change={handle_label_color_change}
+            handle_label_color_input={handle_label_color_input}
+            set_form_label_color={set_form_label_color}
+            set_form_label_name={set_form_label_name}
             t={t}
           />
-        )}
 
-        <LabelSection
-          form_label_color={form_label_color}
-          form_label_name={form_label_name}
-          handle_label_color_change={handle_label_color_change}
-          handle_label_color_input={handle_label_color_input}
-          set_form_label_color={set_form_label_color}
-          set_form_label_name={set_form_label_name}
-          t={t}
-        />
-
-        <SyncSettingsSection
-          form_import_existing={form_import_existing}
-          form_sync_frequency={form_sync_frequency}
-          is_editing={editing_account !== null}
-          set_form_import_existing={set_form_import_existing}
-          set_form_sync_frequency={set_form_sync_frequency}
-          sync_frequency_options={sync_frequency_options}
-          t={t}
-        />
-
-        {(is_oauth_account || form_protocol === "imap") && (
-          <FolderSelectionSection
-            available_folders={available_folders}
-            handle_fetch_folders={handle_fetch_folders}
-            handle_folder_toggle={handle_folder_toggle}
-            has_fetched_folders={has_fetched_folders}
-            is_fetching_folders={is_fetching_folders}
-            selected_folders={selected_folders}
+          <SyncSettingsSection
+            form_import_existing={form_import_existing}
+            form_sync_frequency={form_sync_frequency}
+            is_editing={editing_account !== null}
+            set_form_import_existing={set_form_import_existing}
+            set_form_sync_frequency={set_form_sync_frequency}
+            sync_frequency_options={sync_frequency_options}
             t={t}
-            truncated_folders={truncated_folders}
           />
-        )}
 
-        <AdvancedSettingsSection
-          form_connection_timeout={form_connection_timeout}
-          form_tls_method={form_tls_method}
-          handle_connection_timeout_change={handle_connection_timeout_change}
-          set_form_tls_method={set_form_tls_method}
-          set_show_advanced={set_show_advanced}
-          show_advanced={show_advanced}
-          t={t}
-          tls_method_options={tls_method_options}
-        />
+          {(is_oauth_account || form_protocol === "imap") && (
+            <FolderSelectionSection
+              available_folders={available_folders}
+              handle_fetch_folders={handle_fetch_folders}
+              handle_folder_toggle={handle_folder_toggle}
+              has_fetched_folders={has_fetched_folders}
+              is_fetching_folders={is_fetching_folders}
+              selected_folders={selected_folders}
+              t={t}
+              truncated_folders={truncated_folders}
+            />
+          )}
 
-        {test_result && (
-          <TestResultBanner
-            label={form_protocol.toUpperCase()}
-            result={test_result}
+          <AdvancedSettingsSection
+            form_connection_timeout={form_connection_timeout}
+            form_tls_method={form_tls_method}
+            handle_connection_timeout_change={handle_connection_timeout_change}
+            set_form_tls_method={set_form_tls_method}
+            set_show_advanced={set_show_advanced}
+            show_advanced={show_advanced}
+            t={t}
+            tls_method_options={tls_method_options}
           />
-        )}
 
-        {smtp_test_result && (
-          <TestResultBanner label="SMTP" result={smtp_test_result} />
-        )}
+          {editing_account && (
+            <AccountServerSections
+              key={editing_account.id}
+              account={editing_account}
+              t={t}
+            />
+          )}
+
+          {test_result && (
+            <TestResultBanner
+              label={form_protocol.toUpperCase()}
+              result={test_result}
+            />
+          )}
+
+          {smtp_test_result && (
+            <TestResultBanner label="SMTP" result={smtp_test_result} />
+          )}
+        </IslandSections>
       </div>
 
       <FormFooter

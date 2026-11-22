@@ -44,6 +44,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { is_primary_address } from "@/services/crypto/address_identity_entry";
 import { list_external_accounts } from "@/services/api/external_accounts";
+import { external_sender_candidates } from "@/lib/external_account_modes";
 import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
 import {
   get_sending_blocks_snapshot,
@@ -369,8 +370,8 @@ async function load_sender_alias_caches(
   const external_response = await list_external_accounts();
 
   if (external_response.data) {
-    const enabled_externals = external_response.data.filter(
-      (a) => a.is_enabled && !a.oauth_provider && !a.email.endsWith("@import"),
+    const enabled_externals = external_sender_candidates(
+      external_response.data,
     );
     const external_sender_options: SenderOption[] = enabled_externals.map(
       (account) => ({
