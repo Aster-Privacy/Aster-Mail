@@ -29,6 +29,7 @@ import type {
   NumericOperator,
   TextOperator,
 } from "@/services/api/mail_rules";
+import { SOURCE_MAX_VALUES } from "@/services/api/mail_rules";
 
 export type ParseResult =
   | { ok: true; ast: Condition }
@@ -663,6 +664,13 @@ class Parser {
 
         if (value && !values.includes(value)) values.push(value);
       }
+      if (values.length > SOURCE_MAX_VALUES) {
+        throw new ParseError(
+          `too_many_sources:${SOURCE_MAX_VALUES}`,
+          op_tok.line,
+          op_tok.col,
+        );
+      }
 
       return { type: "source", operator: op_name, values };
     }
@@ -846,6 +854,8 @@ export function friendly_error(
       return t("mail_rules.expr_expected_field");
     case "unknown_field":
       return t("mail_rules.expr_unknown_field", { value });
+    case "too_many_sources":
+      return t("mail_rules.expr_too_many_sources", { value });
     case "expected_operator":
       return t("mail_rules.expr_expected_operator");
     case "expected_string":

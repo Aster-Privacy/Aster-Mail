@@ -11689,6 +11689,8 @@ export const de = {
       "Geben Sie hier einen Feldnamen ein, etwa from.address, subject oder has_attachment.",
     expr_unknown_field:
       '"{{value}}" ist kein verwendbares Feld. Versuchen Sie from.address, subject, body, has_attachment, spam_score oder date_received.',
+    expr_too_many_sources:
+      "Diese Regel kann höchstens {{value}} Quellen enthalten.",
     expr_expected_operator:
       "Geben Sie hier einen Operator ein, etwa is, contains, ends_with oder greater_than.",
     expr_expected_string:

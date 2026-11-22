@@ -11549,6 +11549,8 @@ export const hi = {
       "यहां कोई फ़ील्ड नाम डालें, जैसे from.address, subject या has_attachment।",
     expr_unknown_field:
       '"{{value}}" ऐसा फ़ील्ड नहीं है जिसे आप इस्तेमाल कर सकें। from.address, subject, body, has_attachment, spam_score या date_received आज़माएं।',
+    expr_too_many_sources:
+      "इस नियम में अधिकतम {{value}} स्रोत शामिल हो सकते हैं।",
     expr_expected_operator:
       "यहां एक ऑपरेटर डालें, जैसे is, contains, ends_with या greater_than।",
     expr_expected_string:

@@ -1080,6 +1080,7 @@ export interface MailRulesTranslations {
   expr_expected_rparen: string;
   expr_expected_field: string;
   expr_unknown_field: string;
+  expr_too_many_sources: string;
   expr_expected_operator: string;
   expr_expected_string: string;
   expr_expected_number: string;

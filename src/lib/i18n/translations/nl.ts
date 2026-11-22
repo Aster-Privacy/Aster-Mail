@@ -11532,6 +11532,8 @@ export const nl = {
       "Voer hier een veldnaam in, zoals from.address, subject of has_attachment.",
     expr_unknown_field:
       '"{{value}}" is geen bruikbaar veld. Probeer from.address, subject, body, has_attachment, spam_score of date_received.',
+    expr_too_many_sources:
+      "Deze regel kan maximaal {{value}} bronnen bevatten.",
     expr_expected_operator:
       "Voer hier een operator in, zoals is, contains, ends_with of greater_than.",
     expr_expected_string:

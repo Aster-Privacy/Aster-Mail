@@ -57,10 +57,14 @@ export function use_source_notify(): SourceNotifyState {
     is_mounted_ref.current = true;
 
     void get_source_notify()
-      .then((result) => result.data ?? [])
-      .catch(() => [] as SourceNotifySetting[])
+      .then((result) => {
+        if (result.error) return null;
+
+        return result.data ?? [];
+      })
+      .catch(() => null)
       .then((loaded) => {
-        if (!is_mounted_ref.current) return;
+        if (!is_mounted_ref.current || loaded === null) return;
         settings_ref.current = loaded;
         set_settings(loaded);
       });
@@ -77,6 +81,7 @@ export function use_source_notify(): SourceNotifyState {
 
   const set_choice = useCallback(
     async (source_id: string, notify: SourceNotifyChoice) => {
+      if (settings === null) return;
       const previous = settings_ref.current;
       const next = apply_notify_choice(
         previous,
@@ -101,7 +106,7 @@ export function use_source_notify(): SourceNotifyState {
         if (is_mounted_ref.current) set_is_saving(false);
       }
     },
-    [options, t],
+    [options, settings, t],
   );
 
   return {

@@ -10281,6 +10281,7 @@ export const zh_CN = {
       "请在此处输入字段名，例如 from.address、subject 或 has_attachment。",
     expr_unknown_field:
       "“{{value}}”不是可用的字段。请尝试 from.address、subject、body、has_attachment、spam_score 或 date_received。",
+    expr_too_many_sources: "此规则最多可包含 {{value}} 个来源。",
     expr_expected_operator:
       "请在此处输入运算符，例如 is、contains、ends_with 或 greater_than。",
     expr_expected_string: '请输入带引号的值，例如 "example.com"。',

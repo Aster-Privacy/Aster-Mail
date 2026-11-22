@@ -57,6 +57,7 @@ export interface OAuthFolderPickerResult {
 interface OAuthFolderPickerModalProps {
   account_token: string | null;
   is_submitting?: boolean;
+  for_import?: boolean;
   on_cancel: () => void;
   on_confirm: (result: OAuthFolderPickerResult) => void;
 }
@@ -64,6 +65,7 @@ interface OAuthFolderPickerModalProps {
 export function OAuthFolderPickerModal({
   account_token,
   is_submitting = false,
+  for_import = false,
   on_cancel,
   on_confirm,
 }: OAuthFolderPickerModalProps) {
@@ -71,7 +73,7 @@ export function OAuthFolderPickerModal({
   const [listed, set_listed] = useState<OAuthFolderList | null>(null);
   const [folders, set_folders] = useState<PickerFolder[]>([]);
   const [selected, set_selected] = useState<Set<string>>(new Set());
-  const [import_existing, set_import_existing] = useState(false);
+  const [import_existing, set_import_existing] = useState(for_import);
   const [is_loading, set_is_loading] = useState(false);
   const [load_failed, set_load_failed] = useState(false);
 
@@ -91,14 +93,28 @@ export function OAuthFolderPickerModal({
 
     set_listed(response.data);
     set_folders(offered);
-    set_selected(new Set(default_selected_folders(offered)));
-  }, []);
+    const importable = new Set(
+      (response.data.folders ?? [])
+        .filter((folder) => !folder.excluded)
+        .map((folder) => folder.name),
+    );
+
+    set_selected(
+      new Set(
+        for_import
+          ? offered
+              .filter((folder) => folder.is_inbox || importable.has(folder.name))
+              .map((folder) => folder.name)
+          : default_selected_folders(offered),
+      ),
+    );
+  }, [for_import]);
 
   useEffect(() => {
     set_listed(null);
     set_folders([]);
     set_selected(new Set());
-    set_import_existing(false);
+    set_import_existing(for_import);
     if (!account_token) return;
     let stale = false;
 
@@ -107,7 +123,7 @@ export function OAuthFolderPickerModal({
     return () => {
       stale = true;
     };
-  }, [account_token, load]);
+  }, [account_token, for_import, load]);
 
   const toggle = (name: string, checked: boolean) => {
     set_selected((previous) => {

@@ -11768,6 +11768,8 @@ export const pl = {
       "Wpisz tutaj nazwę pola, na przykład from.address, subject lub has_attachment.",
     expr_unknown_field:
       '"{{value}}" nie jest polem, którego możesz użyć. Spróbuj from.address, subject, body, has_attachment, spam_score lub date_received.',
+    expr_too_many_sources:
+      "Ta reguła może zawierać maksymalnie {{value}} źródeł.",
     expr_expected_operator:
       "Wpisz tutaj operator, na przykład is, contains, ends_with lub greater_than.",
     expr_expected_string:

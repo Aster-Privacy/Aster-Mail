@@ -11311,6 +11311,8 @@ export const ar = {
       "أدخل هنا اسم حقل، مثل from.address أو subject أو has_attachment.",
     expr_unknown_field:
       '"{{value}}" ليس حقلاً يمكنك استخدامه. جرّب from.address أو subject أو body أو has_attachment أو spam_score أو date_received.',
+    expr_too_many_sources:
+      "يمكن أن تتضمن هذه القاعدة {{value}} مصدرًا كحد أقصى.",
     expr_expected_operator:
       "أدخل هنا عاملاً، مثل is أو contains أو ends_with أو greater_than.",
     expr_expected_string: 'أدخل قيمة بين علامتي اقتباس، مثل "example.com".',

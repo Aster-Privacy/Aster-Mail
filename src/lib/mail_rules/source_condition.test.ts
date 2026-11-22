@@ -239,6 +239,17 @@ describe("source condition expression", () => {
     });
   });
 
+  it("rejects more sources than a rule can hold", () => {
+    const at_cap = Array.from({ length: 50 }, (_, i) => `s${i}`).join(",");
+    const over_cap = `${at_cap},s50`;
+
+    expect(parse(`source is "${at_cap}"`).ok).toBe(true);
+    const result = parse(`source is "${over_cap}"`);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toBe("too_many_sources:50");
+  });
+
   it("parses inside a larger expression", () => {
     const result = parse('source is_not "aster" and subject contains "x"');
 

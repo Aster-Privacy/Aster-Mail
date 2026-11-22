@@ -11739,6 +11739,8 @@ export const ru = {
       "Введите здесь имя поля, например from.address, subject или has_attachment.",
     expr_unknown_field:
       '"{{value}}" не является доступным полем. Попробуйте from.address, subject, body, has_attachment, spam_score или date_received.',
+    expr_too_many_sources:
+      "Это правило может содержать не более {{value}} источников.",
     expr_expected_operator:
       "Введите здесь оператор, например is, contains, ends_with или greater_than.",
     expr_expected_string:

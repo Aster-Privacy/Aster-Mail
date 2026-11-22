@@ -11662,6 +11662,7 @@ export const pt = {
       "Introduza aqui um nome de campo, como from.address, subject ou has_attachment.",
     expr_unknown_field:
       '"{{value}}" não é um campo que possa utilizar. Experimente from.address, subject, body, has_attachment, spam_score ou date_received.',
+    expr_too_many_sources: "Esta regra pode incluir até {{value}} origens.",
     expr_expected_operator:
       "Introduza aqui um operador, como is, contains, ends_with ou greater_than.",
     expr_expected_string: 'Introduza um valor entre aspas, como "example.com".',

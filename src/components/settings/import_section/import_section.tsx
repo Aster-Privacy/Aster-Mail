@@ -903,6 +903,7 @@ export function ImportSection() {
       />
 
       <OAuthFolderPickerModal
+        for_import
         account_token={picker_token}
         on_cancel={() => set_picker_token(null)}
         on_confirm={handle_picker_confirm}

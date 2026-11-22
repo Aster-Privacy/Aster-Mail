@@ -11416,6 +11416,7 @@ export const tr = {
       "Buraya from.address, subject veya has_attachment gibi bir alan adı girin.",
     expr_unknown_field:
       '"{{value}}" kullanabileceğiniz bir alan değil. from.address, subject, body, has_attachment, spam_score veya date_received deneyin.',
+    expr_too_many_sources: "Bu kural en fazla {{value}} kaynak içerebilir.",
     expr_expected_operator:
       "Buraya is, contains, ends_with veya greater_than gibi bir operatör girin.",
     expr_expected_string: 'Değeri tırnak içinde girin, örneğin "example.com".',

@@ -11685,6 +11685,8 @@ export const fr = {
       "Saisissez ici un nom de champ, par exemple from.address, subject ou has_attachment.",
     expr_unknown_field:
       '"{{value}}" n\'est pas un champ utilisable. Essayez from.address, subject, body, has_attachment, spam_score ou date_received.',
+    expr_too_many_sources:
+      "Cette règle peut inclure jusqu'à {{value}} sources.",
     expr_expected_operator:
       "Saisissez ici un opérateur, par exemple is, contains, ends_with ou greater_than.",
     expr_expected_string:

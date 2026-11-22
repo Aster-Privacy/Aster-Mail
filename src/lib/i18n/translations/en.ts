@@ -11497,6 +11497,7 @@ export const en: Translations = {
       "Enter a field name here, such as from.address, subject, or has_attachment.",
     expr_unknown_field:
       '"{{value}}" is not a field you can use. Try from.address, subject, body, has_attachment, spam_score, or date_received.',
+    expr_too_many_sources: "This rule can include up to {{value}} sources.",
     expr_expected_operator:
       "Enter an operator here, such as is, contains, ends_with, or greater_than.",
     expr_expected_string:

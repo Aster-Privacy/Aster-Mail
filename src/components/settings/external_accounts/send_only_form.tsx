@@ -109,6 +109,7 @@ export function SendOnlyForm({
     set_smtp_username(editing_account?.email ?? "");
     set_use_tls(true);
     set_has_stored_password(false);
+    set_is_loading(false);
 
     if (!editing_account) return;
 
@@ -131,6 +132,11 @@ export function SendOnlyForm({
         set_smtp_username(response.data.smtp_username);
         set_use_tls(response.data.use_tls);
         set_has_stored_password(response.data.has_smtp_password);
+      },
+      () => {
+        if (request_ref.current !== request_id) return;
+        set_is_loading(false);
+        set_error(t("common.something_went_wrong_try_again"));
       },
     );
   }, [is_open, editing_account, t]);

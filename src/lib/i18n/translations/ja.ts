@@ -11271,6 +11271,8 @@ export const ja = {
       "ここには from.address、subject、has_attachment などのフィールド名を入力してください。",
     expr_unknown_field:
       "「{{value}}」は使用できるフィールドではありません。from.address、subject、body、has_attachment、spam_score、date_received をお試しください。",
+    expr_too_many_sources:
+      "このルールに含められるソースは最大 {{value}} 件です。",
     expr_expected_operator:
       "ここには is、contains、ends_with、greater_than などの演算子を入力してください。",
     expr_expected_string:

@@ -118,13 +118,21 @@ export function ForwardingAddressSection({
     void load();
   }, [load]);
 
-  const seal_and_store = async (id: string, address: string) => {
-    const sealed = await seal_forwarding_label({
-      label: account.label_name || account.email,
-      address,
-    });
+  const seal_and_store = async (
+    id: string,
+    address: string,
+  ): Promise<{ error?: string }> => {
+    try {
+      const sealed = await seal_forwarding_label({
+        label: account.label_name || account.email,
+        address,
+      });
+      const result = await set_forwarding_label(id, sealed);
 
-    return set_forwarding_label(id, sealed);
+      return { error: result.error || undefined };
+    } catch {
+      return { error: t("common.save_failed") };
+    }
   };
 
   const handle_limit = (server_code?: string) => {

@@ -11067,6 +11067,8 @@ export const ko = {
       "여기에 from.address, subject, has_attachment 같은 필드 이름을 입력하세요.",
     expr_unknown_field:
       '"{{value}}"은(는) 사용할 수 있는 필드가 아닙니다. from.address, subject, body, has_attachment, spam_score, date_received를 사용해 보세요.',
+    expr_too_many_sources:
+      "이 규칙에는 소스를 최대 {{value}}개까지 포함할 수 있습니다.",
     expr_expected_operator:
       "여기에 is, contains, ends_with, greater_than 같은 연산자를 입력하세요.",
     expr_expected_string: '따옴표로 묶은 값을 입력하세요. 예: "example.com"',
