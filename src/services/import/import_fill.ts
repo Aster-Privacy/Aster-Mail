@@ -21,6 +21,45 @@
 import type { ParsedEmail } from "./types";
 import type { ApiResponse } from "@/services/api/client/helpers";
 
+export type ImportAttachmentNotice = "none" | "upgrade" | "import_again";
+
+export function has_import_attachments(email: ParsedEmail): boolean {
+  return email.attachments.length > 0 || email.attachment_hint === true;
+}
+
+export function count_attachment_messages(emails: ParsedEmail[]): number {
+  let count = 0;
+
+  for (const email of emails) {
+    if (has_import_attachments(email)) count++;
+  }
+
+  return count;
+}
+
+export function is_free_plan_code(plan_code: string | null): boolean {
+  return plan_code === "free";
+}
+
+export function import_attachment_notice(
+  attachment_messages: number,
+  attachments_allowed: boolean,
+  plan_code: string | null,
+): ImportAttachmentNotice {
+  if (attachment_messages === 0 || attachments_allowed) return "none";
+
+  return plan_code !== null && !is_free_plan_code(plan_code)
+    ? "import_again"
+    : "upgrade";
+}
+
+export function should_review_attachments(
+  attachment_messages: number,
+  plan_code: string | null,
+): boolean {
+  return attachment_messages > 0 && is_free_plan_code(plan_code);
+}
+
 export function plan_import_fills(
   emails: ParsedEmail[],
   message_id_hashes: Map<string, string>,
@@ -39,7 +78,7 @@ export function plan_import_fills(
     if (
       hash &&
       missing_attachment_hashes.has(hash) &&
-      (email.attachments.length > 0 || email.attachment_hint === true)
+      has_import_attachments(email)
     ) {
       fills.add(index);
     }
