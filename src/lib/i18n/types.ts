@@ -6746,6 +6746,12 @@ export interface SettingsTranslations {
   import_attachments_filled: string;
   import_attachments_filled_one?: string;
   import_attachment_daily_limit: string;
+  import_review_attachments_free: string;
+  import_review_attachments_free_one?: string;
+  import_attachments_skipped_free: string;
+  import_attachments_skipped_free_one?: string;
+  import_attachments_skipped_retry: string;
+  import_attachments_skipped_retry_one?: string;
   import_review_ready: string;
   import_review_ready_one?: string;
   import_review_trash_found: string;
