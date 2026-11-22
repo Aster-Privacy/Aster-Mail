@@ -44,6 +44,7 @@ vi.mock("@/services/guard/guard_device", () => ({
 
 vi.mock("@/services/api/webauthn", () => ({
   perform_webauthn_assertion_with_options: vi.fn(),
+  perform_passkey_assertion_with_options: vi.fn(),
 }));
 
 import {
