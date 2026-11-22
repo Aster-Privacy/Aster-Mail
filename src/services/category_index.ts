@@ -53,6 +53,7 @@ import {
 } from "@/services/mail_categorizer";
 import {
   is_learning_blocked,
+  is_primary_locked_sender,
   type LearnGateSource,
 } from "@/services/learned_sender_gate";
 import { subscribe_learned_senders } from "@/services/learned_category_senders";
@@ -137,6 +138,7 @@ export interface CategoryIndexEntry {
   source?: string;
   sender_key?: string;
   learned?: string;
+  system_locked?: boolean;
 }
 
 export interface CategoryCount {
@@ -954,7 +956,13 @@ function apply_upsert(
       entry = { ...entry, is_read: intended };
     }
 
-    const pinned_category = pinned_category_for(raw.id);
+    if (!entry.system_locked && existing?.system_locked) {
+      entry = { ...entry, system_locked: true };
+    }
+
+    const pinned_category = entry.system_locked
+      ? null
+      : pinned_category_for(raw.id);
 
     if (pinned_category && entry.category !== pinned_category) {
       entry = {
@@ -963,6 +971,13 @@ function apply_upsert(
         category_pinned: true,
         source: undefined,
       };
+    }
+
+    if (
+      entry.system_locked &&
+      (entry.category !== "primary" || entry.category_pinned)
+    ) {
+      entry = { ...entry, category: "primary", category_pinned: false };
     }
 
     if (
@@ -978,7 +993,8 @@ function apply_upsert(
         (entry.needs_reclassify ?? false) ||
       existing.source !== entry.source ||
       existing.sender_key !== entry.sender_key ||
-      existing.learned !== entry.learned
+      existing.learned !== entry.learned ||
+      (existing.system_locked ?? false) !== (entry.system_locked ?? false)
     ) {
       entries_map.set(entry.id, entry);
       mark_dirty(entry.id);
@@ -1379,6 +1395,7 @@ function compute_derived(): DerivedData {
       any_unread: boolean;
       pinned_category?: EmailCategory;
       pinned_ts: number;
+      system_locked: boolean;
     }
   >();
   const derive_wall = now_ms();
@@ -1409,12 +1426,15 @@ function compute_derived(): DerivedData {
         any_unread: !entry.is_read,
         pinned_category: entry.category_pinned ? entry.category : undefined,
         pinned_ts: entry.category_pinned ? ts : 0,
+        system_locked: entry.system_locked === true,
       });
 
       continue;
     }
 
     current.any_unread = current.any_unread || !entry.is_read;
+    current.system_locked =
+      current.system_locked || entry.system_locked === true;
     if (entry.category_pinned && ts >= current.pinned_ts) {
       current.pinned_category = entry.category;
       current.pinned_ts = ts;
@@ -1442,7 +1462,9 @@ function compute_derived(): DerivedData {
   }
 
   for (const [key, rep] of best) {
-    const tab = fold_category(rep.pinned_category ?? rep.entry.category);
+    const tab = rep.system_locked
+      ? "primary"
+      : fold_category(rep.pinned_category ?? rep.entry.category);
     const bucket = counts[tab];
     const list = grouped.get(tab);
 
@@ -2383,6 +2405,12 @@ async function item_to_entry(
       ? item.snoozed_until
       : undefined;
   const known_entry = envelope ? undefined : entries_map.get(item.id);
+  const system_locked = envelope
+    ? is_primary_locked_sender(envelope.from?.email || "", {
+        ...item,
+        sender_verification: envelope.sender_verification,
+      })
+    : known_entry?.system_locked === true;
 
   const sealed_body = is_ratchet_body_text(envelope?.body_text);
   const learned_senders = envelope
@@ -2412,18 +2440,23 @@ async function item_to_entry(
       thread_token: item.thread_token,
       message_ts: item.message_ts || item.created_at,
       is_read: item.is_read ?? metadata?.is_read ?? false,
-      category: envelope
-        ? classify(envelope, metadata, {
-            custom_categories: rules,
-            rule_category: item.rule_category,
-            trust: item,
-            learned_senders,
-          })
-        : (known_entry?.category ?? item.rule_category ?? "primary"),
+      category: system_locked
+        ? "primary"
+        : envelope
+          ? classify(envelope, metadata, {
+              custom_categories: rules,
+              rule_category: item.rule_category,
+              trust: item,
+              learned_senders,
+            })
+          : (known_entry?.category ?? item.rule_category ?? "primary"),
       ...(envelope ? {} : { needs_reclassify: true }),
-      category_pinned: envelope
-        ? metadata?.category_pinned === true && !!metadata?.category
-        : known_entry?.category_pinned === true,
+      category_pinned: system_locked
+        ? false
+        : envelope
+          ? metadata?.category_pinned === true && !!metadata?.category
+          : known_entry?.category_pinned === true,
+      ...(system_locked ? { system_locked: true } : {}),
       is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
       ...(snoozed_until ? { snoozed_until } : {}),
       ...(envelope ? { source } : {}),
@@ -3910,10 +3943,13 @@ export function thread_category_of(
   let newest_ts = -1;
   let pinned: EmailCategory | undefined;
   let pinned_ts = -1;
+  let system_locked = false;
 
   for (const entry of entries) {
     if (entry.snoozed_until && safe_ts(entry.snoozed_until) > wall) continue;
     const ts = safe_ts(entry.message_ts);
+
+    if (entry.system_locked) system_locked = true;
 
     if (ts > newest_ts) {
       newest = entry;
@@ -3926,6 +3962,7 @@ export function thread_category_of(
   }
 
   if (!newest) return null;
+  if (system_locked) return "primary";
 
   return fold_category(pinned ?? newest.category);
 }
@@ -3948,6 +3985,7 @@ export function pinned_category_entry(
   category: EmailCategory,
 ): CategoryIndexEntry {
   const existing = entries_map.get(target.id);
+  const system_locked = existing?.system_locked === true;
 
   return {
     ...(existing ?? {}),
@@ -3956,8 +3994,8 @@ export function pinned_category_entry(
     message_ts:
       existing?.message_ts || target.raw_timestamp || target.timestamp || "",
     is_read: existing?.is_read ?? target.is_read ?? true,
-    category,
-    category_pinned: true,
+    category: system_locked ? "primary" : category,
+    category_pinned: !system_locked,
     needs_reclassify: undefined,
     source: undefined,
   };

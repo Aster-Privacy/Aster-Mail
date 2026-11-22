@@ -704,18 +704,21 @@ export function use_inbox_bulk_actions({
         return;
       }
 
-      const ids = scope_category_ids(
+      const scoped_ids = scope_category_ids(
         categories.active_category,
         selection.get_excluded_message_ids(),
+      );
+      const snapshots = new Map(
+        get_index_entries(scoped_ids).map((entry) => [entry.id, { ...entry }]),
+      );
+      const ids = scoped_ids.filter(
+        (id) => !snapshots.get(id)?.system_locked,
       );
 
       if (ids.length === 0 || category === categories.active_category) {
         return;
       }
 
-      const snapshots = new Map(
-        get_index_entries(ids).map((entry) => [entry.id, { ...entry }]),
-      );
       const restore = (restore_ids: readonly string[]): void => {
         batch_index_updates(() => {
           for (const id of restore_ids) {

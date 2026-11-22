@@ -22,6 +22,7 @@ import type { SenderTrustSource } from "@/lib/utils";
 import type { EmailAuthResults } from "@/utils/email_authentication";
 
 import { ASTER_DOMAIN_SUFFIXES } from "@/data/category_signals";
+import { is_official_sender, is_system_email } from "@/lib/utils";
 import { normalize_email_auth_status } from "@/utils/email_authentication";
 
 export interface LearnGateSource extends SenderTrustSource, EmailAuthResults {}
@@ -53,6 +54,17 @@ export function is_aster_domain_sender(email: string): boolean {
   }
 
   return false;
+}
+
+export function is_primary_locked_sender(
+  email: string,
+  source?: SenderTrustSource | null,
+): boolean {
+  if (!email || !is_aster_domain_sender(email)) return false;
+
+  const trust: SenderTrustSource = { ...(source ?? {}), sender_email: email };
+
+  return is_official_sender(trust) || is_system_email(trust);
 }
 
 export function has_failed_authentication(source: EmailAuthResults): boolean {

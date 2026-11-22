@@ -55,6 +55,7 @@ import {
 import { maybe_offer_sender_rule } from "@/components/email/inbox/category_sender_rule";
 import { record_category_move } from "@/services/learned_category_senders";
 import { ignore_error } from "@/lib/ignore_error";
+import { is_primary_locked_sender } from "@/services/learned_sender_gate";
 
 const MAX_OWN_WRITES = 500;
 
@@ -225,6 +226,17 @@ function enqueue(run: () => Promise<void>): Promise<void> {
 }
 
 
+function is_locked_move(
+  item: CategoryMoveItem,
+  entry: CategoryIndexEntry | undefined,
+  thread: readonly CategoryIndexEntry[] | null | undefined,
+): boolean {
+  if (entry?.system_locked) return true;
+  if (thread?.some((member) => member.system_locked)) return true;
+
+  return is_primary_locked_sender(item.sender_email || "", item);
+}
+
 function plan_row_moves(
   items: readonly CategoryMoveItem[],
   category: EmailCategory,
@@ -253,6 +265,8 @@ function plan_row_moves(
 
     const thread =
       grouping && item.thread_token ? threads.get(item.thread_token) : null;
+
+    if (is_locked_move(item, heads.get(item.id), thread)) continue;
     const shown =
       (thread ? thread_category_of(thread) : null) ??
       effective_category(item);
