@@ -64,6 +64,7 @@ import {
   get_page_ids,
   get_category_total,
   is_index_settled,
+  is_serving_previous_build,
   is_fully_built,
   get_index_entry_count,
   get_active_tabs,
@@ -217,6 +218,7 @@ function belongs_in_inbox(email: InboxEmail): boolean {
 
 function is_index_readable(): boolean {
   if (is_index_settled()) return true;
+  if (is_serving_previous_build()) return true;
 
   return is_fully_built() && get_index_entry_count() > 0;
 }
@@ -467,6 +469,7 @@ export function use_category_inbox(
 
   const last_signature_ref = useRef<string>("");
   const early_paint_scope_ref = useRef<string>("");
+  const early_paint_count_ref = useRef(0);
   const keys_ready_account_ref = useRef<string | null>(null);
   const abort_ref = useRef<AbortController | null>(null);
   const page_cache = useRef<Map<string, InboxEmail[]>>(new Map());
@@ -1041,7 +1044,9 @@ export function use_category_inbox(
         page === 0 &&
         preferences.inbox_sort_order !== "oldest_first" &&
         ids.length > 0 &&
-        (ids.length >= page_size || early_paint_scope_ref.current !== scope);
+        (ids.length >= page_size ||
+          early_paint_scope_ref.current !== scope ||
+          ids.length > early_paint_count_ref.current);
 
       if (!can_paint_early) {
         const recheck = setTimeout(() => {
@@ -1053,6 +1058,7 @@ export function use_category_inbox(
       }
 
       early_paint_scope_ref.current = scope;
+      early_paint_count_ref.current = ids.length;
     }
 
     const same_scope =

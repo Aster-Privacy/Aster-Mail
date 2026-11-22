@@ -110,6 +110,7 @@ vi.mock("@/services/category_index", () => ({
   get_category_total: () => 2,
   is_fully_built: () => true,
   is_index_settled: () => true,
+  is_serving_previous_build: () => false,
   is_build_in_progress: () => false,
   is_build_stalled: () => false,
   subscribe: () => () => {},

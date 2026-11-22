@@ -232,6 +232,7 @@ let active_account_id: string | null = null;
 let index_generation = 0;
 let entries_map: Map<string, CategoryIndexEntry> = new Map();
 let fully_built = false;
+let serving_previous_build = false;
 let session_reconciled = false;
 let last_build_ms = 0;
 let seen_ts: Record<string, number> = {};
@@ -909,6 +910,7 @@ async function ensure_loaded(): Promise<boolean> {
       entries_map = new Map();
       dirty_chunks.clear();
       fully_built = false;
+      serving_previous_build = false;
       last_build_ms = 0;
       build_checkpoint = null;
 
@@ -1987,6 +1989,10 @@ export function are_counts_partial(): boolean {
   return build_in_progress && last_build_ms === 0;
 }
 
+export function is_serving_previous_build(): boolean {
+  return serving_previous_build && entries_map.size > 0;
+}
+
 export function is_index_settled(): boolean {
   if (!fully_built || build_in_progress) return false;
 
@@ -2693,6 +2699,7 @@ export async function build_index(options?: {
     }
 
     fully_built = reached_end || processed >= BUILD_CAP;
+    if (fully_built) serving_previous_build = false;
     build_capped = !reached_end && processed >= BUILD_CAP;
     if (fully_built) {
       build_checkpoint = null;
@@ -2934,6 +2941,7 @@ async function run_sync_recent(
       now_ms() - last_gap_rebuild_ms > GAP_REBUILD_MIN_INTERVAL_MS
     ) {
       last_gap_rebuild_ms = now_ms();
+      serving_previous_build = true;
       fully_built = false;
       void build_index({ force: true });
 
@@ -2950,6 +2958,7 @@ async function run_sync_recent(
       now_ms() - last_gap_rebuild_ms > GAP_REBUILD_MIN_INTERVAL_MS
     ) {
       last_gap_rebuild_ms = now_ms();
+      serving_previous_build = true;
       fully_built = false;
       void build_index({ force: true });
 
@@ -2999,6 +3008,7 @@ async function rebuild_if_index_lags_server(): Promise<void> {
 
   last_gap_rebuild_ms = now_ms();
   drift_rebuilds += 1;
+  serving_previous_build = true;
   fully_built = false;
   void build_index({ force: true });
 }
@@ -3628,6 +3638,7 @@ export function clear_category_index_memory(): void {
   derived = null;
   seen_ts = {};
   fully_built = false;
+  serving_previous_build = false;
   session_reconciled = false;
   built_custom_categories_key = null;
   last_build_ms = 0;
@@ -4175,6 +4186,7 @@ export async function clear_category_index(): Promise<void> {
   sibling_verify_at.clear();
   dirty_chunks.clear();
   fully_built = false;
+  serving_previous_build = false;
   session_reconciled = false;
   built_custom_categories_key = null;
   build_capped = false;
