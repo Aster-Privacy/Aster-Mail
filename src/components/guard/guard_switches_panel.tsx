@@ -60,16 +60,6 @@ export function held_switch_off(status: GuardStatus): GuardHeldOff | null {
   return change ? { id: change.id, apply_after: change.apply_after } : null;
 }
 
-export function turns_any_on(
-  current: GuardSelection,
-  next: GuardSelection,
-): boolean {
-  return (
-    (next.switches & ~current.switches) !== 0 ||
-    (next.hold_scopes & ~current.hold_scopes) !== 0
-  );
-}
-
 export function use_guard_device(user_id: string | null, version: unknown) {
   const [device, set_device] = useState<GuardDevice | null>(null);
   const [checked, set_checked] = useState(false);
@@ -131,10 +121,9 @@ export function GuardSwitchesPanel({
     if (!device || !is_approver || busy) return;
     set_busy(true);
     try {
-      const needs_proof = turns_any_on(selection, next);
-      const proof = needs_proof ? await step_up.request_proof() : null;
+      const proof = await step_up.request_proof();
 
-      if (needs_proof && !proof) return;
+      if (!proof) return;
       const action = await sign_guard_action(
         device,
         user_id,
