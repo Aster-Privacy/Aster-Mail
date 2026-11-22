@@ -6963,6 +6963,13 @@ export const zh_CN = {
     show_badges_in_signature: "在邮件中显示徽章",
     show_badges_in_signature_description: "在发送邮件的签名区域显示您的徽章。",
     import_how_it_works: "工作原理",
+    regroup_conversations_title: "会话",
+    regroup_conversations_label: "重新归组导入的会话",
+    regroup_conversations_description:
+      "如果导入邮件中的回复显示为单独的邮件，Aster 会重新检查你的邮件，并将每条回复归入其所属会话。",
+    regroup_conversations_button: "重新归组",
+    regroup_conversations_done: "你的会话已是最新状态。",
+    regroup_conversations_failed: "无法重新归组你的会话。请稍后重试。",
     import_oauth_title: "连接账户",
     import_oauth_description:
       "连接账户后，即可导入其中的所有邮件，包括已归档邮件、已发邮件和标签。Gmail 使用应用专用密码连接，Outlook 通过登录账户连接。邮箱较大时，导入可能需要几天。",

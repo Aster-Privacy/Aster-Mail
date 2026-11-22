@@ -7628,6 +7628,13 @@ export const ko = {
     show_badges_in_signature_description:
       "발신 이메일의 서명 영역에 배지를 표시합니다.",
     import_how_it_works: "작동 방식",
+    regroup_conversations_title: "대화",
+    regroup_conversations_label: "가져온 대화 다시 묶기",
+    regroup_conversations_description:
+      "가져온 메일의 답장이 별도의 메시지로 표시되면 Aster가 메일을 다시 확인하고 각 답장을 해당 대화로 묶습니다.",
+    regroup_conversations_button: "다시 묶기",
+    regroup_conversations_done: "대화가 최신 상태입니다.",
+    regroup_conversations_failed: "대화를 다시 묶지 못했습니다. 잠시 후 다시 시도하세요.",
     import_oauth_title: "계정 연결",
     import_oauth_description:
       "계정을 연결하면 보관처리된 메일, 보낸 메일, 라벨을 포함한 모든 메일을 가져옵니다. Gmail은 앱 비밀번호로, Outlook은 계정 로그인으로 연결합니다. 메일함이 크면 완료까지 며칠이 걸릴 수 있습니다.",

@@ -7279,6 +7279,14 @@ export const tr = {
     vacation_reply_setup: "Tatil Yanıtı Oluştur",
     show_badges_in_signature: "Rozetleri e-postalarda göster",
     import_how_it_works: "Nasıl Çalışır",
+    regroup_conversations_title: "Yazışmalar",
+    regroup_conversations_label: "İçe aktarılan yazışmaları yeniden grupla",
+    regroup_conversations_description:
+      "İçe aktarılan e-postalardaki yanıtlar ayrı iletiler olarak görünüyorsa Aster e-postalarınızı yeniden denetler ve her yanıtı kendi yazışmasıyla gruplar.",
+    regroup_conversations_button: "Yeniden grupla",
+    regroup_conversations_done: "Yazışmalarınız güncel.",
+    regroup_conversations_failed:
+      "Yazışmalarınız yeniden gruplanamadı. Biraz sonra yeniden deneyin.",
     import_oauth_title: "Hesap bağlayın",
     import_labels_title: "Birden fazla etiketi olan iletiler",
     import_labels_description:

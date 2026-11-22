@@ -7494,6 +7494,14 @@ export const ru = {
     vacation_reply_setup: "Настроить автоответ",
     show_badges_in_signature: "Показывать значки в письмах",
     import_how_it_works: "Как это работает",
+    regroup_conversations_title: "Цепочки писем",
+    regroup_conversations_label: "Заново сгруппировать импортированные цепочки",
+    regroup_conversations_description:
+      "Если ответы из импортированной почты отображаются как отдельные письма, Aster снова проверяет почту и добавляет каждый ответ в его цепочку.",
+    regroup_conversations_button: "Сгруппировать",
+    regroup_conversations_done: "Цепочки писем обновлены.",
+    regroup_conversations_failed:
+      "Не удалось сгруппировать цепочки писем. Повторите попытку через минуту.",
     import_oauth_title: "Подключение аккаунта",
     import_labels_title: "Письма с несколькими ярлыками",
     import_labels_description:

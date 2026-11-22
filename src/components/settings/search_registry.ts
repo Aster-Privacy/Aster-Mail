@@ -2024,6 +2024,17 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     section: "import",
   },
   {
+    id: "regroup_conversations_title",
+    label_key: "settings.regroup_conversations_title",
+    section: "import",
+  },
+  {
+    id: "regroup_conversations_label",
+    label_key: "settings.regroup_conversations_label",
+    section: "import",
+    description_key: "settings.regroup_conversations_description",
+  },
+  {
     id: "import_how_it_works",
     label_key: "settings.import_how_it_works",
     section: "import",

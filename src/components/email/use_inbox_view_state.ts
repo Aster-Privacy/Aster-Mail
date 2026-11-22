@@ -60,13 +60,18 @@ import {
   mail_event_bus,
   on_mail_event,
   emit_mail_item_updated,
+  emit_mail_changed,
 } from "@/hooks/mail_events";
 import { REFRESH_STATE_MS } from "@/constants/timings";
 import {
+  invalidate_mail_cache,
   patch_all_view_caches,
   remove_ids_from_all_view_caches,
 } from "@/hooks/email_list_cache";
-import { thread_imported_emails } from "@/services/import/repair_threads";
+import {
+  cancel_thread_repair,
+  schedule_thread_repair,
+} from "@/services/import/repair_threads";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
 import { use_open_reply_compose } from "@/components/email/inbox/use_open_reply_compose";
@@ -426,13 +431,21 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   }, []);
 
   useEffect(() => {
+    const handle_linked = () => {
+      invalidate_mail_cache();
+      emit_mail_changed();
+    };
+
+    schedule_thread_repair(handle_linked);
+
     const unsub = mail_event_bus.subscribe(MAIL_EVENTS.MAIL_CHANGED, () => {
-      thread_imported_emails().catch((e) => {
-        if (import.meta.env.DEV) console.error(e);
-      });
+      schedule_thread_repair(handle_linked);
     });
 
-    return unsub;
+    return () => {
+      unsub();
+      cancel_thread_repair();
+    };
   }, []);
 
   useEffect(() => {

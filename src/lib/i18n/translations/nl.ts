@@ -7789,6 +7789,14 @@ export const nl = {
     spam_filtering_description:
       "Configureer hoe spam wordt gedetecteerd en beheerd.",
     import_how_it_works: "Hoe het werkt",
+    regroup_conversations_title: "Gesprekken",
+    regroup_conversations_label: "Geïmporteerde gesprekken opnieuw groeperen",
+    regroup_conversations_description:
+      "Als antwoorden uit geïmporteerde e-mail als losse berichten verschijnen, controleert Aster je e-mail opnieuw en groepeert elk antwoord bij het bijbehorende gesprek.",
+    regroup_conversations_button: "Opnieuw groeperen",
+    regroup_conversations_done: "Je gesprekken zijn bijgewerkt.",
+    regroup_conversations_failed:
+      "Je gesprekken konden niet opnieuw worden gegroepeerd. Probeer het zo meteen opnieuw.",
     import_oauth_title: "Account verbinden",
     import_oauth_description:
       "Verbind een account om al je e-mail ervan te importeren, inclusief gearchiveerde en verzonden berichten en labels. Gmail verbind je met een app-wachtwoord en Outlook door in te loggen op je account. Grote postvakken kunnen een paar dagen nodig hebben.",

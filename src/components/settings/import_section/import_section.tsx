@@ -23,6 +23,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ArrowDownTrayIcon,
+  ChatBubbleLeftRightIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -89,6 +90,8 @@ import {
   emit_refresh_requested,
 } from "@/hooks/mail_events";
 import { note_bulk_mail_removed } from "@/services/search/index_removals";
+import { regroup_conversations } from "@/services/import/repair_threads";
+import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 
 export function ImportSection() {
   const { t } = use_i18n();
@@ -130,6 +133,32 @@ export function ImportSection() {
   const [picker_token, set_picker_token] = useState<string | null>(null);
 
   const deleted_job_ids_ref = useRef<Set<string>>(new Set());
+  const [is_regrouping, set_is_regrouping] = useState(false);
+
+  const handle_regroup = useCallback(async () => {
+    set_is_regrouping(true);
+
+    try {
+      const result = await regroup_conversations();
+
+      if (result.status === "locked") {
+        show_toast(t("settings.regroup_conversations_failed"), "error");
+
+        return;
+      }
+
+      if (result.linked > 0) {
+        invalidate_mail_cache();
+        emit_mail_changed();
+      }
+
+      show_toast(t("settings.regroup_conversations_done"), "success");
+    } catch {
+      show_toast(t("settings.regroup_conversations_failed"), "error");
+    } finally {
+      set_is_regrouping(false);
+    }
+  }, [t]);
 
   const load_jobs = useCallback(async (silent = false) => {
     if (!silent) set_is_loading_jobs(true);
@@ -851,6 +880,25 @@ export function ImportSection() {
           ))}
         </IslandSection>
       )}
+
+      <IslandSection title={t("settings.regroup_conversations_title")}>
+        <IslandRow
+          description={t("settings.regroup_conversations_description")}
+          icon={<ChatBubbleLeftRightIcon />}
+          label={t("settings.regroup_conversations_label")}
+          trailing={
+            <Button
+              disabled={is_regrouping}
+              is_loading={is_regrouping}
+              size="sm"
+              variant="outline"
+              onClick={() => void handle_regroup()}
+            >
+              {t("settings.regroup_conversations_button")}
+            </Button>
+          }
+        />
+      </IslandSection>
 
       <IslandSection
         icon={<InformationCircleIcon />}
