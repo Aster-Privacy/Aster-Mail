@@ -102,6 +102,7 @@ const BUILD_CAP = 50000;
 const MAX_ENTRIES = 60000;
 const CAP_TARGET = 50000;
 const PERSIST_DEBOUNCE_MS = 1500;
+const BUILD_PERSIST_INTERVAL_MS = 10_000;
 const NOTIFY_THROTTLE_MS = 350;
 const BUILD_NOTIFY_THROTTLE_MS = 2500;
 const RESYNC_DEBOUNCE_MS = 4000;
@@ -592,6 +593,17 @@ export function flush_pending_notify(): void {
 const MAX_PERSIST_RETRIES = 3;
 
 function schedule_persist(): void {
+  if (build_in_progress) {
+    if (persist_timer) return;
+
+    persist_timer = setTimeout(() => {
+      persist_timer = null;
+      void persist_now();
+    }, BUILD_PERSIST_INTERVAL_MS);
+
+    return;
+  }
+
   if (persist_timer) {
     clearTimeout(persist_timer);
   }
