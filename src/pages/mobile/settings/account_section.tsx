@@ -390,7 +390,7 @@ export function AccountSection({
     const r = await save_recovery_email(normalized, vault);
 
     if (r.held) return;
-    if (is_reauth_required(r.code)) {
+    if (is_reauth_required(r.server_code)) {
       request_recovery_step_up(normalized);
 
       return;

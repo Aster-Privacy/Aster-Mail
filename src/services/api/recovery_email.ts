@@ -666,6 +666,7 @@ export async function save_recovery_email(
 ): Promise<{
   data: { success: boolean };
   code?: string;
+  server_code?: string;
   error?: string;
   held?: GuardHeldInfo;
 }> {
@@ -719,7 +720,12 @@ export async function save_recovery_email(
       };
     }
 
-    return { data: { success }, code: response.code, error: response.error };
+    return {
+      data: { success },
+      code: response.code,
+      server_code: response.server_code,
+      error: response.error,
+    };
   } catch {
     return { data: { success: false } };
   }
@@ -790,6 +796,7 @@ export async function remove_recovery_email(
 ): Promise<{
   data: { success: boolean };
   code?: string;
+  server_code?: string;
   error?: string;
   held?: GuardHeldInfo;
 }> {
@@ -810,7 +817,12 @@ export async function remove_recovery_email(
       cached_recovery_data = null;
     }
 
-    return { data: { success }, code: response.code, error: response.error };
+    return {
+      data: { success },
+      code: response.code,
+      server_code: response.server_code,
+      error: response.error,
+    };
   } catch {
     return { data: { success: false } };
   }
