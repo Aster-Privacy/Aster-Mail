@@ -263,6 +263,7 @@ export function ComposeModal({
                         is_creating_ghost={compose.ghost_mode.is_creating}
                         on_create_ghost={compose.ghost_mode.toggle_ghost_mode}
                         on_select={compose.set_selected_sender}
+                        on_select_typed={compose.select_typed_sender}
                         on_set_ghost_expiry={
                           compose.ghost_mode.set_ghost_expiry_days
                         }
