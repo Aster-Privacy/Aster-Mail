@@ -35,7 +35,13 @@ import { get_user_info } from "@/services/api/auth";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
 import { type TurnstileWidgetRef } from "@/components/auth/turnstile_widget";
 import { use_should_reduce_motion } from "@/provider";
-import { get_totp_status, TotpVerifyResponse } from "@/services/api/totp";
+import {
+  get_totp_status,
+  is_totp_required_response,
+  TotpVerifyResponse,
+} from "@/services/api/totp";
+import { is_webauthn_supported } from "@/services/api/webauthn";
+import { use_guard_sign_in_gate } from "@/components/guard/guard_sign_in_gate";
 import { show_toast } from "@/components/toast/simple_toast";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_app_query_param } from "@/lib/hard_redirect";
@@ -147,7 +153,12 @@ export function use_mobile_sign_in() {
   >("totp");
 
   const handle_totp_success = useCallback(
-    async (totp_response: TotpVerifyResponse) => {
+    async (
+      totp_response: TotpVerifyResponse,
+      passphrase_override?: string | null,
+    ) => {
+      const effective_password = passphrase_override || password;
+
       set_is_loading(true);
       set_status(t("auth.decrypting_vault"));
 
@@ -155,7 +166,7 @@ export function use_mobile_sign_in() {
         const vault = await decrypt_vault(
           totp_response.encrypted_vault,
           totp_response.vault_nonce,
-          password,
+          effective_password,
         );
 
         set_status(t("auth.getting_user_info"));
@@ -208,7 +219,7 @@ export function use_mobile_sign_in() {
             add_account(
               user_data,
               vault,
-              password,
+              effective_password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
               remember_me,
@@ -231,7 +242,7 @@ export function use_mobile_sign_in() {
             login(
               user_data,
               vault,
-              password,
+              effective_password,
               totp_response.encrypted_vault,
               totp_response.vault_nonce,
               remember_me,
@@ -310,6 +321,34 @@ export function use_mobile_sign_in() {
     ],
   );
 
+  const guard_gate = use_guard_sign_in_gate();
+
+  const handle_guard_complete = useCallback(
+    async (data: Record<string, unknown>, passphrase: string | null) => {
+      guard_gate.clear_guard();
+      if (is_totp_required_response(data)) {
+        set_pending_login_token(data.pending_login_token);
+        const methods = data.available_methods || ["totp"];
+
+        set_available_2fa_methods(methods);
+        set_active_2fa_method(
+          methods.includes("webauthn") && is_webauthn_supported()
+            ? "webauthn"
+            : "totp",
+        );
+        set_totp_required(true);
+        set_is_loading(false);
+
+        return;
+      }
+      await handle_totp_success(
+        data as unknown as TotpVerifyResponse,
+        passphrase,
+      );
+    },
+    [guard_gate, handle_totp_success],
+  );
+
   return {
     navigate,
     location,
@@ -356,5 +395,7 @@ export function use_mobile_sign_in() {
     active_2fa_method,
     set_active_2fa_method,
     handle_totp_success,
+    guard_gate,
+    handle_guard_complete,
   };
 }

@@ -527,6 +527,7 @@ export function EncryptionSection({
 
         <SettingsGroup title={t("settings.publish_keys_wkd_title")}>
           <SettingsRow
+            description={enc.wkd_description}
             label={t("settings.publish_keys_wkd_title")}
             trailing={
               <Switch

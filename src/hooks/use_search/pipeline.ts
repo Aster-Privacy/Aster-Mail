@@ -51,7 +51,7 @@ import {
   extract_metadata_from_server,
 } from "@/services/crypto/mail_metadata";
 import { filter_locked_mail_items } from "@/services/locked_folders";
-import { strip_html_tags_bounded } from "@/lib/html_sanitizer";
+import { html_to_preview_text } from "@/lib/html_text";
 import { yield_to_next_paint } from "@/lib/scheduling";
 import { create_work_slicer } from "@/lib/work_slicer";
 import {
@@ -291,7 +291,7 @@ export async function run_index_pipeline(
 
     return slicer.run(() => {
       const stripped_body = envelope
-        ? strip_html_tags_bounded(
+        ? html_to_preview_text(
             searchable_body_source(envelope),
             MAX_INDEX_BODY_CHARS,
           )

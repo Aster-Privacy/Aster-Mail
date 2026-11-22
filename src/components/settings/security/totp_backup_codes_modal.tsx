@@ -18,16 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  ClipboardDocumentIcon,
-  ShieldCheckIcon,
-  ExclamationTriangleIcon,
-  ArrowDownTrayIcon,
-} from "@heroicons/react/24/outline";
-import { Button, Island } from "@aster/ui";
+import { Button } from "@aster/ui";
 
-import { trigger_download } from "@/utils/download_blob";
-import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
   ModalHeader,
@@ -36,8 +28,8 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
+import { BackupCodesPanel } from "@/components/settings/security/backup_codes_panel";
 import { use_i18n } from "@/lib/i18n/context";
-import { copy_text } from "@/utils/copy_text";
 
 interface TotpBackupCodesModalProps {
   is_open: boolean;
@@ -52,22 +44,6 @@ export function TotpBackupCodesModal({
 }: TotpBackupCodesModalProps) {
   const { t } = use_i18n();
 
-  const copy_single_code = async (code: string) => {
-    if (await copy_text(code)) {
-      show_toast(t("common.copied_to_clipboard"), "success");
-    } else {
-      show_toast(t("common.failed_to_copy"), "error");
-    }
-  };
-
-  const copy_backup_codes = async () => {
-    if (await copy_text(backup_codes.join("\n"))) {
-      show_toast(t("common.copied_to_clipboard"), "success");
-    } else {
-      show_toast(t("common.failed_to_copy"), "error");
-    }
-  };
-
   return (
     <Modal
       close_on_escape={false}
@@ -78,10 +54,7 @@ export function TotpBackupCodesModal({
       size="md"
     >
       <ModalHeader>
-        <div className="flex items-center gap-3">
-          <ShieldCheckIcon className="w-6 h-6 text-txt-primary flex-shrink-0" />
-          <ModalTitle>{t("settings.two_factor_auth_enabled")}</ModalTitle>
-        </div>
+        <ModalTitle>{t("settings.two_factor_auth_enabled")}</ModalTitle>
         <ModalDescription>
           {t("settings.save_backup_codes_description")}
         </ModalDescription>
@@ -90,57 +63,7 @@ export function TotpBackupCodesModal({
         </ModalDescription>
       </ModalHeader>
       <ModalBody>
-        <div className="space-y-4">
-          <Island padding="md">
-            <div className="grid grid-cols-2 gap-2">
-              {backup_codes.map((code, index) => (
-                <button
-                  key={index}
-                  className="px-3 py-2 text-sm font-mono text-center rounded cursor-pointer select-text transition-colors hover:opacity-80 bg-surf-secondary text-txt-primary"
-                  type="button"
-                  onClick={() => copy_single_code(code)}
-                >
-                  {code}
-                </button>
-              ))}
-            </div>
-          </Island>
-          <div className="flex flex-wrap justify-center gap-2">
-            <Button variant="secondary" onClick={copy_backup_codes}>
-              <ClipboardDocumentIcon className="w-4 h-4 me-2" />
-              {t("settings.copy_all_codes")}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                trigger_download(
-                  new Blob([backup_codes.join("\n")], {
-                    type: "application/octet-stream",
-                  }),
-                  "aster-backup-codes.txt",
-                );
-              }}
-            >
-              <ArrowDownTrayIcon className="w-4 h-4 me-2" />
-              {t("common.download")}
-            </Button>
-          </div>
-          <div
-            className="flex items-center gap-2 p-3 rounded-lg"
-            style={{
-              backgroundColor: "var(--accent-color-hover)",
-              color: "var(--accent-fg, #ffffff)",
-            }}
-          >
-            <ExclamationTriangleIcon
-              className="w-5 h-5 flex-shrink-0"
-              style={{ color: "var(--accent-fg, #ffffff)" }}
-            />
-            <p className="text-xs" style={{ color: "#fff" }}>
-              {t("settings.backup_code_security_note")}
-            </p>
-          </div>
-        </div>
+        <BackupCodesPanel backup_codes={backup_codes} />
       </ModalBody>
       <ModalFooter>
         <Button variant="depth" onClick={on_done}>

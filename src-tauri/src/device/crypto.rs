@@ -1768,9 +1768,191 @@ pub fn crypto_hmac_sign(
     Ok(mac.finalize().into_bytes().to_vec())
 }
 
+const GUARD_SEAL_VERSION: u8 = 0x01;
+const GUARD_SEAL_EPH_LEN: usize = 32;
+const GUARD_SEAL_MLKEM_CT_LEN: usize = 1088;
+const GUARD_SEAL_NONCE_LEN: usize = 12;
+const GUARD_SEAL_TAG_LEN: usize = 16;
+const GUARD_SEAL_HEADER_LEN: usize =
+    1 + GUARD_SEAL_EPH_LEN + GUARD_SEAL_MLKEM_CT_LEN + GUARD_SEAL_NONCE_LEN;
+const GUARD_SEAL_SALT: &[u8] = b"aster-guard-context-v1";
+
+fn guard_seal_key(
+    x25519_shared: &[u8],
+    mlkem_shared: &[u8],
+    eph: &[u8],
+    mlkem_ct: &[u8],
+    aad: &[u8],
+) -> Result<Zeroizing<[u8; 32]>, String> {
+    let mut ikm = Zeroizing::new(Vec::with_capacity(64));
+    ikm.extend_from_slice(x25519_shared);
+    ikm.extend_from_slice(mlkem_shared);
+    let mut info = Vec::with_capacity(eph.len() + mlkem_ct.len() + aad.len());
+    info.extend_from_slice(eph);
+    info.extend_from_slice(mlkem_ct);
+    info.extend_from_slice(aad);
+    let mut key = Zeroizing::new([0u8; 32]);
+    Hkdf::<Sha256>::new(Some(GUARD_SEAL_SALT), ikm.as_slice())
+        .expand(&info, key.as_mut_slice())
+        .map_err(|_| "guard seal key".to_string())?;
+    Ok(key)
+}
+
+fn open_guard_seal(
+    data: &[u8],
+    aad: &[u8],
+    id: &DeviceIdentity,
+) -> Result<Zeroizing<Vec<u8>>, String> {
+    use aes_gcm::{aead::{Aead, Payload}, Aes256Gcm, KeyInit as _, Nonce};
+    if data.len() < GUARD_SEAL_HEADER_LEN + GUARD_SEAL_TAG_LEN {
+        return Err("guard seal too short".to_string());
+    }
+    if data[0] != GUARD_SEAL_VERSION {
+        return Err("guard seal version".to_string());
+    }
+    let eph_end = 1 + GUARD_SEAL_EPH_LEN;
+    let ct_end = eph_end + GUARD_SEAL_MLKEM_CT_LEN;
+    let eph_bytes: [u8; GUARD_SEAL_EPH_LEN] =
+        data[1..eph_end].try_into().map_err(|_| "guard seal".to_string())?;
+    let mlkem_ct_bytes = &data[eph_end..ct_end];
+    let nonce_bytes = &data[ct_end..GUARD_SEAL_HEADER_LEN];
+    let ciphertext = &data[GUARD_SEAL_HEADER_LEN..];
+
+    let ct: Ciphertext<MlKem768> =
+        Array::try_from(mlkem_ct_bytes).map_err(|_| "guard seal".to_string())?;
+    let mut ss_pq = id
+        .mlkem_decaps_key
+        .decapsulate(&ct)
+        .map_err(|_| "guard seal".to_string())?;
+    let ss_cl = id
+        .x25519_static_secret
+        .diffie_hellman(&XPublicKey::from(eph_bytes));
+    let key = guard_seal_key(
+        ss_cl.as_bytes(),
+        ss_pq.as_slice(),
+        &eph_bytes,
+        mlkem_ct_bytes,
+        aad,
+    );
+    ss_pq.zeroize();
+    drop(ss_cl);
+    let key = key?;
+
+    let cipher = Aes256Gcm::new_from_slice(key.as_slice()).map_err(|_| "guard seal".to_string())?;
+    let nonce = Nonce::try_from(nonce_bytes).map_err(|_| "guard seal".to_string())?;
+    cipher
+        .decrypt(&nonce, Payload { msg: ciphertext, aad })
+        .map(Zeroizing::new)
+        .map_err(|_| "guard seal open failed".to_string())
+}
+
+const GUARD_CODE_SECRET_DOMAIN: &[u8] = b"aster-guard-code-secret-v1";
+
+fn guard_seal_aad_allowed(aad: &[u8]) -> bool {
+    aad.len() == GUARD_SEAL_SALT.len() + 32 && aad.starts_with(GUARD_SEAL_SALT)
+        || aad.len() == GUARD_CODE_SECRET_DOMAIN.len() + 16
+            && aad.starts_with(GUARD_CODE_SECRET_DOMAIN)
+}
+
+#[tauri::command]
+pub fn device_open_guard_seal(
+    window: tauri::WebviewWindow,
+    sealed_b64: String,
+    aad_b64: String,
+) -> Result<String, String> {
+    require_primary_webview(&window)?;
+    let data = b64url_decode(&sealed_b64).map_err(|_| "guard seal".to_string())?;
+    let aad = b64url_decode(&aad_b64).map_err(|_| "guard seal".to_string())?;
+    if !guard_seal_aad_allowed(&aad) {
+        return Err("guard seal".to_string());
+    }
+    let id = get_or_create_device_identity()?;
+    let plaintext = open_guard_seal(&data, &aad, &id)?;
+    Ok(b64url(&plaintext))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn guard_seal_aad_only_accepts_guard_shapes() {
+        let mut context = GUARD_SEAL_SALT.to_vec();
+        context.extend_from_slice(&[1u8; 32]);
+        assert!(guard_seal_aad_allowed(&context));
+        let mut code = GUARD_CODE_SECRET_DOMAIN.to_vec();
+        code.extend_from_slice(&[2u8; 16]);
+        assert!(guard_seal_aad_allowed(&code));
+        assert!(!guard_seal_aad_allowed(&context[..context.len() - 1]));
+        assert!(!guard_seal_aad_allowed(&code[..code.len() - 1]));
+        assert!(!guard_seal_aad_allowed(b""));
+        let mut other = b"aster-device-envelope-v1".to_vec();
+        other.extend_from_slice(&[3u8; 16]);
+        assert!(!guard_seal_aad_allowed(&other));
+        let mut wrong_len_code = GUARD_CODE_SECRET_DOMAIN.to_vec();
+        wrong_len_code.extend_from_slice(&[2u8; 32]);
+        assert!(!guard_seal_aad_allowed(&wrong_len_code));
+    }
+
+    fn guard_test_identity() -> DeviceIdentity {
+        let (dk, ek): (MlKemDecapKey, MlKemEncapKey) = MlKem768::generate(&mut OsRng);
+        let x25519_static_secret = StaticSecret::random_from_rng(&mut UnwrapErr(SysRng));
+        DeviceIdentity {
+            device_id: None,
+            ed25519_signing_key: SigningKey::from_bytes(&[7u8; 32]),
+            mlkem_decaps_key: dk,
+            mlkem_encaps_key_bytes: ek.as_bytes().to_vec(),
+            x25519_public_bytes: *XPublicKey::from(&x25519_static_secret).as_bytes(),
+            x25519_static_secret,
+        }
+    }
+
+    fn guard_test_seal(id: &DeviceIdentity, plaintext: &[u8], aad: &[u8]) -> Vec<u8> {
+        use aes_gcm::{aead::{Aead, Payload}, Aes256Gcm, KeyInit as _, Nonce};
+        use ml_kem::kem::Encapsulate;
+        let encoded =
+            ml_kem::Encoded::<MlKemEncapKey>::try_from(id.mlkem_encaps_key_bytes.as_slice()).unwrap();
+        let ek = MlKemEncapKey::from_bytes(&encoded);
+        let (ct, ss_pq) = ek.encapsulate(&mut OsRng).unwrap();
+        let eph_secret = StaticSecret::random_from_rng(&mut UnwrapErr(SysRng));
+        let eph = *XPublicKey::from(&eph_secret).as_bytes();
+        let ss_cl = eph_secret.diffie_hellman(&XPublicKey::from(id.x25519_public_bytes));
+        let key = guard_seal_key(ss_cl.as_bytes(), ss_pq.as_slice(), &eph, ct.as_slice(), aad).unwrap();
+        let nonce_bytes = [9u8; GUARD_SEAL_NONCE_LEN];
+        let cipher = Aes256Gcm::new_from_slice(key.as_slice()).unwrap();
+        let sealed = cipher
+            .encrypt(&Nonce::try_from(&nonce_bytes[..]).unwrap(), Payload { msg: plaintext, aad })
+            .unwrap();
+        let mut out = vec![GUARD_SEAL_VERSION];
+        out.extend_from_slice(&eph);
+        out.extend_from_slice(ct.as_slice());
+        out.extend_from_slice(&nonce_bytes);
+        out.extend_from_slice(&sealed);
+        out
+    }
+
+    #[test]
+    fn guard_seal_open_round_trip() {
+        let id = guard_test_identity();
+        let aad = b"aster-guard-code-secret-v1-test".to_vec();
+        let sealed = guard_test_seal(&id, b"guard code secret", &aad);
+        let opened = open_guard_seal(&sealed, &aad, &id).unwrap();
+        assert_eq!(opened.as_slice(), b"guard code secret");
+    }
+
+    #[test]
+    fn guard_seal_rejects_tampering() {
+        let id = guard_test_identity();
+        let aad = b"aad".to_vec();
+        let sealed = guard_test_seal(&id, b"secret", &aad);
+        assert!(open_guard_seal(&sealed, b"other", &id).is_err());
+        let mut wrong_version = sealed.clone();
+        wrong_version[0] = 0x02;
+        assert!(open_guard_seal(&wrong_version, &aad, &id).is_err());
+        assert!(open_guard_seal(&sealed[..GUARD_SEAL_HEADER_LEN], &aad, &id).is_err());
+        let other = guard_test_identity();
+        assert!(open_guard_seal(&sealed, &aad, &other).is_err());
+    }
 
     fn envelope_vector() -> HashMap<String, String> {
         include_str!("../../../src/lib/crypto/device_envelope_vector.txt")

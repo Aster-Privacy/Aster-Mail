@@ -75,12 +75,10 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { MobileEmailList } from "@/components/mobile/mobile_email_list";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
-import {
-  ConfirmModal,
-  EmptyTrashModal,
-} from "@/components/email/inbox/inbox_confirmation_dialog";
+import { EmptyTrashModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { use_permanent_delete_confirm } from "@/components/email/use_permanent_delete_confirm";
 import { empty_trash } from "@/services/api/mail";
 import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -261,9 +259,11 @@ function MobileInbox({
   >(null);
   const [show_empty_trash_dialog, set_show_empty_trash_dialog] =
     useState(false);
-  const [permanent_delete_target, set_permanent_delete_target] = useState<
-    InboxEmail[] | null
-  >(null);
+  const {
+    request_permanent_delete,
+    dismiss_permanent_delete,
+    permanent_delete_dialog,
+  } = use_permanent_delete_confirm();
   const [is_emptying_trash, set_is_emptying_trash] = useState(false);
 
   useEffect(() => {
@@ -271,12 +271,13 @@ function MobileInbox({
     set_selected_ids(new Set());
     set_snooze_email_target(null);
     set_scheduled_target_id(null);
-    set_permanent_delete_target(null);
+    dismiss_permanent_delete();
   }, [
     current_view,
     categories.active_category,
     categories.enabled,
     category_page,
+    dismiss_permanent_delete,
   ]);
 
   useEffect(() => {
@@ -663,7 +664,10 @@ function MobileInbox({
       }
 
       if (trashed.length > 0) {
-        set_permanent_delete_target(trashed);
+        request_permanent_delete(async () => {
+          await run_permanent_delete(trashed);
+          exit_selection_mode();
+        });
 
         return;
       }
@@ -682,6 +686,8 @@ function MobileInbox({
     cancel_scheduled_email,
     t,
     run_bulk_action,
+    request_permanent_delete,
+    run_permanent_delete,
   ]);
 
   const handle_bulk_unmark_spam = useCallback(async () => {
@@ -709,15 +715,6 @@ function MobileInbox({
     t,
     run_bulk_action,
   ]);
-
-  const confirm_permanent_delete = useCallback(async () => {
-    const targets = permanent_delete_target;
-
-    if (!targets) return;
-    set_permanent_delete_target(null);
-    await run_permanent_delete(targets);
-    exit_selection_mode();
-  }, [permanent_delete_target, run_permanent_delete, exit_selection_mode]);
 
   const [category_sheet_open, set_category_sheet_open] = useState(false);
   const category_options = use_category_tab_options();
@@ -816,7 +813,7 @@ function MobileInbox({
       }
 
       if (is_list_email_in_trash(email, current_view)) {
-        set_permanent_delete_target([email]);
+        request_permanent_delete(() => run_permanent_delete([email]));
       } else {
         const ok = await actions.delete_email(email);
 
@@ -836,6 +833,8 @@ function MobileInbox({
       schedule_delete_drafts,
       cancel_scheduled_email,
       t,
+      request_permanent_delete,
+      run_permanent_delete,
     ],
   );
 
@@ -1591,18 +1590,7 @@ function MobileInbox({
         </div>
       )}
 
-      <ConfirmModal
-        hide_dont_ask
-        confirm_text={t("mail.delete_permanently")}
-        confirm_variant="destructive"
-        description={t("common.action_cannot_be_undone")}
-        dont_ask={false}
-        on_cancel={() => set_permanent_delete_target(null)}
-        on_confirm={() => void confirm_permanent_delete()}
-        on_dont_ask_change={() => undefined}
-        show={!!permanent_delete_target}
-        title={t("mail.delete_permanently_question")}
-      />
+      {permanent_delete_dialog}
 
       <EmptyTrashModal
         is_emptying={is_emptying_trash}

@@ -25,9 +25,15 @@ import type {
 } from "@/types/email";
 import type { CustomCategoryRule } from "@/data/category_catalog";
 import type { SenderTrustSource } from "@/lib/utils";
+import type { LearnGateSource } from "@/services/learned_sender_gate";
 
 import { get_sender_domain } from "@/utils/unsubscribe_detector";
 import { is_official_sender } from "@/lib/utils";
+import {
+  has_failed_authentication,
+  is_aster_domain_sender,
+  is_learning_blocked,
+} from "@/services/learned_sender_gate";
 import {
   ASTER_DOMAIN_SUFFIXES,
   PERSONAL_MAILBOX_DOMAINS,
@@ -59,7 +65,7 @@ import {
   DEFAULT_ENABLED_CATEGORIES,
 } from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 7;
+export const CLASSIFIER_VERSION = 9;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -231,18 +237,55 @@ function match_custom_category(
   return null;
 }
 
+export type { LearnGateSource };
+export { has_failed_authentication, is_aster_domain_sender, is_learning_blocked };
+
 export interface ClassifyOptions {
   custom_categories?: readonly CustomCategoryRule[] | null;
   rule_category?: string | null;
-  trust?: SenderTrustSource | null;
+  trust?: LearnGateSource | null;
+  learned_senders?: ReadonlyMap<string, string> | null;
 }
 
 let active_custom_categories: readonly CustomCategoryRule[] = [];
+let active_learned_senders: ReadonlyMap<string, string> = new Map();
 
 export function set_active_custom_categories(
   rules: readonly CustomCategoryRule[],
 ): void {
   active_custom_categories = rules;
+}
+
+export function set_active_learned_senders(
+  learned: ReadonlyMap<string, string>,
+): void {
+  active_learned_senders = learned;
+}
+
+export function get_active_learned_senders(): ReadonlyMap<string, string> {
+  return active_learned_senders;
+}
+
+export function learned_category_for(
+  envelope: DecryptedEnvelope,
+  learned?: ReadonlyMap<string, string> | null,
+  trust?: LearnGateSource | null,
+): string | undefined {
+  const email = (envelope.from?.email || "").trim().toLowerCase();
+
+  if (!email) return undefined;
+
+  const category = (learned ?? active_learned_senders).get(email);
+
+  if (!category) return undefined;
+
+  const gate: LearnGateSource = {
+    ...(trust ?? {}),
+    sender_verification:
+      envelope.sender_verification ?? trust?.sender_verification,
+  };
+
+  return is_learning_blocked(email, gate) ? undefined : category;
 }
 
 function resolve_rule_category(
@@ -280,11 +323,11 @@ export function classify(
   metadata?: MailItemMetadata | null,
   options?: ClassifyOptions,
 ): EmailCategory {
-  if (is_locked_to_primary(envelope, options?.trust)) return "primary";
-
   if (metadata?.category_pinned && metadata.category) {
     return metadata.category;
   }
+
+  if (is_locked_to_primary(envelope, options?.trust)) return "primary";
 
   const rules = options?.custom_categories ?? active_custom_categories;
   const email = envelope.from?.email || "";
@@ -304,6 +347,14 @@ export function classify(
   const localpart = get_localpart(email);
   const subject = (envelope.subject || "").slice(0, MAX_SUBJECT);
   const headers = build_header_lookup(envelope.raw_headers);
+  const from_learned = resolve_rule_category(
+    learned_category_for(envelope, options?.learned_senders, options?.trust),
+    rules,
+  );
+
+  if (from_learned) {
+    return is_account_access_mail(subject, headers) ? "primary" : from_learned;
+  }
   const precedence = (headers.get("precedence") || "").toLowerCase();
 
   // Collect the domains that actually authenticated / sent this message so a

@@ -20,6 +20,7 @@
 //
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
+import { quotable_source } from "@/lib/html_text";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { ArrowsPointingOutIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Tooltip } from "@aster/ui";
@@ -448,7 +449,7 @@ export function SplitEmailViewer({
           sender_email: last_msg.sender_email,
           sender_avatar: "",
           email_subject: last_msg.subject,
-          email_body: last_msg.body,
+          email_body: quotable_source(last_msg),
           email_timestamp: new Date(last_msg.timestamp).toLocaleString(
             app_locale(),
             { timeZone: get_display_time_zone() },

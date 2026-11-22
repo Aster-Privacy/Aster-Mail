@@ -75,6 +75,7 @@ interface RegisterRequest {
   vault_backup_nonce?: string;
   recovery_key_salt?: string;
   recovery_shares?: RecoveryShareData[];
+  backup_key_fingerprints?: string[];
   pgp_key?: ClientPgpKeyData;
   captcha_token?: string;
   referral_code?: string;

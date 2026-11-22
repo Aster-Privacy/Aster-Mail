@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { StepUpCredentials } from "@/services/api/step_up";
+import type { StepUpProof } from "@/services/api/guard";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
@@ -43,6 +44,10 @@ import {
   list_hardware_keys,
   perform_step_up_webauthn_assertion,
 } from "@/services/api/webauthn";
+import {
+  build_step_up_proof,
+  passkey_step_up_proof,
+} from "@/services/guard/sign_action";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { ignore_error } from "@/lib/ignore_error";
@@ -51,21 +56,27 @@ import { user_facing_error } from "@/utils/user_facing_error";
 interface StepUpModalProps {
   is_open: boolean;
   on_close: () => void;
-  on_confirm: (credentials: StepUpCredentials) => Promise<void>;
+  on_confirm?: (credentials: StepUpCredentials) => Promise<void>;
+  on_proof?: (proof: StepUpProof) => Promise<void>;
+  allow_passkey?: boolean;
   title: string;
   description: string;
   confirm_label: string;
   destructive?: boolean;
+  security_key_hint?: string;
 }
 
 export function StepUpModal({
   is_open,
   on_close,
   on_confirm,
+  on_proof,
+  allow_passkey = false,
   title,
   description,
   confirm_label,
   destructive = false,
+  security_key_hint,
 }: StepUpModalProps) {
   const { t } = use_i18n();
   const [password, set_password] = useState("");
@@ -144,7 +155,11 @@ export function StepUpModal({
           await perform_step_up_webauthn_assertion();
       }
 
-      await on_confirm(credentials);
+      if (on_proof) {
+        await on_proof(build_step_up_proof(credentials));
+      } else if (on_confirm) {
+        await on_confirm(credentials);
+      }
     } catch (err) {
       const safety_key = login_safety_error_key(err);
 
@@ -153,6 +168,23 @@ export function StepUpModal({
           ? t(safety_key)
           : user_facing_error(err, t("common.step_up_error")),
       );
+    } finally {
+      submitting_ref.current = false;
+      set_is_loading(false);
+    }
+  };
+
+  const handle_passkey = async () => {
+    if (!on_proof || submitting_ref.current) return;
+
+    submitting_ref.current = true;
+    set_is_loading(true);
+    set_error("");
+
+    try {
+      await on_proof(await passkey_step_up_proof());
+    } catch (err) {
+      set_error(user_facing_error(err, t("common.step_up_error")));
     } finally {
       submitting_ref.current = false;
       set_is_loading(false);
@@ -242,7 +274,7 @@ export function StepUpModal({
 
           {!totp_required && has_hardware_keys && (
             <p className="text-sm text-txt-tertiary">
-              {t("common.step_up_security_key_hint")}
+              {security_key_hint ?? t("common.step_up_security_key_hint")}
             </p>
           )}
 
@@ -259,6 +291,18 @@ export function StepUpModal({
                 {t("settings.try_again")}
               </Button>
             </div>
+          )}
+
+          {on_proof && allow_passkey && (
+            <Button
+              className="w-full"
+              disabled={is_loading}
+              size="sm"
+              variant="ghost"
+              onClick={() => void handle_passkey()}
+            >
+              {t("guard.step_up_use_passkey")}
+            </Button>
           )}
 
           {error && <p className="text-sm text-center text-red-500">{error}</p>}

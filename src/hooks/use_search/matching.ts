@@ -26,6 +26,7 @@ import { SearchHaystack, SearchResultItem } from "./types";
 
 import { type MailItem } from "@/services/api/mail";
 import { strip_html_tags } from "@/lib/html_sanitizer";
+import { has_leading_css_rules } from "@/lib/html_text";
 import { build_body_preview } from "@/utils/preview_text";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -57,14 +58,14 @@ export function preheader_html_source(envelope: DecryptedEnvelope): string {
 
 export function searchable_body_source(envelope: DecryptedEnvelope): string {
   const text = envelope.body_text || envelope.text_body || "";
-
-  if (text && !is_ratchet_envelope(text)) return text;
-
   const html = envelope.body_html || envelope.html_body || "";
+  const usable_html = html && !is_ratchet_envelope(html) ? html : "";
 
-  if (html && !is_ratchet_envelope(html)) return html;
+  if (text && !is_ratchet_envelope(text)) {
+    return usable_html && has_leading_css_rules(text) ? usable_html : text;
+  }
 
-  return text;
+  return usable_html || text;
 }
 
 export function collect_recipient_text(envelope: DecryptedEnvelope): string {

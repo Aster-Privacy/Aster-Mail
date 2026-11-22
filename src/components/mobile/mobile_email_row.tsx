@@ -81,6 +81,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { list_select_slot_class } from "@/lib/list_density";
+import { custom_forward_via_domain } from "@/utils/forwarding_alias";
 import { strip_preview_filler } from "@/utils/preview_text";
 import { use_date_format } from "@/hooks/use_date_format";
 import {
@@ -435,6 +436,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
     show_sender_name,
     t("common.unknown_sender"),
   );
+  const via_domain = outgoing_names ? null : custom_forward_via_domain(email);
   const display_name_label = resolve_list_display_name({
     outgoing_names,
     thread_participant_names: undefined,
@@ -531,6 +533,15 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           >
             {display_name_label}
           </span>
+
+          {via_domain && (
+            <span
+              className="shrink-0 text-[13px] leading-tight text-[var(--text-muted)]"
+              dir="auto"
+            >
+              {t("mail.forwarded_via", { address: via_domain })}
+            </span>
+          )}
 
           {!sender_trust?.warning && !marks_hidden && (
             <OfficialBadge

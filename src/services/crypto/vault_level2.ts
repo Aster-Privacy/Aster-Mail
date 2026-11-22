@@ -18,6 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  fetch_storage_rekey_status,
+  reset_storage_rekey_status,
+} from "./storage_rekey_status";
+
 export const VAULT_KDF_ITERATIONS_LEGACY = 310000;
 export const VAULT_KDF_ITERATIONS_LEVEL2 = 600000;
 export const VAULT_LEVEL2_NOT_ADMITTED = "VAULT_LEVEL2_NOT_ADMITTED";
@@ -192,6 +197,9 @@ export interface AdmissionApi {
     path: string,
     body?: unknown,
   ): Promise<{ data?: T; error?: string; status?: number; server_code?: string }>;
+  get?<T>(
+    path: string,
+  ): Promise<{ data?: T; error?: string; status?: number }>;
 }
 
 export function get_level2_admission_generation(): number {
@@ -207,6 +215,17 @@ export async function request_level2_admission(
   const generation = admission_generation;
   const run = async (): Promise<Level2Admission> => {
     try {
+      const get = api.get?.bind(api);
+      const status = get ? await fetch_storage_rekey_status({ get }) : null;
+
+      if (generation !== admission_generation) return "unknown";
+
+      if (status && !status.level2_admitted) {
+        admission = "refused";
+
+        return admission;
+      }
+
       const response = await api.post<{ level2_admitted?: boolean }>(
         ENVELOPE_V2_ADMISSION_PATH,
       );
@@ -334,6 +353,7 @@ export function reset_level2_admission(): void {
   admission = "unknown";
   admission_request = null;
   admission_generation += 1;
+  reset_storage_rekey_status();
 }
 
 export function reset_level2_state(): void {

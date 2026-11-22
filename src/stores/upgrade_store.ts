@@ -135,6 +135,7 @@ const AUTH_ROUTES = [
   "/signup",
   "/invite",
   "/forgot-password",
+  "/guard/veto",
   "/cancel",
   "/reset-password",
   "/verify-recovery-email",

@@ -40,6 +40,7 @@ import {
   VAULT_LOCK_WAIT_MS,
 } from "./vault_step";
 import { get_vault_from_memory } from "../memory_key_store";
+import { fetch_storage_rekey_status } from "../storage_rekey_status";
 import { vault_passphrase, write_vault_merged } from "../vault_cas_write";
 import { with_vault_write_lock_bounded } from "../vault_write_lock";
 import { derive_password_storage_keys } from "../storage_write_key";
@@ -169,6 +170,12 @@ const reseal_api: ResealApi = {
   put: (path, body) => api_client.put(path, body),
 };
 
+async function server_holds_rekey(): Promise<boolean> {
+  const status = await fetch_storage_rekey_status(reseal_api);
+
+  return status !== null && !status.may_start;
+}
+
 let in_flight: Promise<ResealRunResult | null> | null = null;
 let retry_timer: ReturnType<typeof setTimeout> | null = null;
 
@@ -226,6 +233,7 @@ async function run_once(passphrase: string): Promise<ResealRunResult | null> {
   const data_kek = vault.data_kek;
 
   if (!data_kek) return null;
+  if (await server_holds_rekey()) return null;
 
   const untrusted = get_unswept_untrusted_raws(vault);
   const untrusted_old_raws = untrusted.raws;
@@ -327,6 +335,11 @@ async function sweep_once(passphrase: string): Promise<ResealRunResult | null> {
   const marker = await legacy_sweep_marker(vault, untrusted.ids);
 
   if (legacy_sweep_done(user_id, marker)) {
+    untrusted_old_raws.forEach(zero_uint8_array);
+
+    return null;
+  }
+  if (await server_holds_rekey()) {
     untrusted_old_raws.forEach(zero_uint8_array);
 
     return null;

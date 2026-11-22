@@ -36,6 +36,23 @@ vi.mock("@/contexts/preferences_context", () => ({
   }),
 }));
 
+vi.mock("@/hooks/use_folders", () => ({
+  use_folders: () => ({
+    state: {
+      folders: [
+        { folder_token: "bills-token", name: "Tax Bills", is_system: false },
+        { folder_token: "quoted-token", name: 'My "Odd" Folder' },
+      ],
+    },
+  }),
+}));
+
+vi.mock("@/hooks/use_tags", () => ({
+  use_tags: () => ({
+    state: { tags: [{ tag_token: "receipts-token", name: "Receipts" }] },
+  }),
+}));
+
 vi.mock("@/components/search/advanced_filter_modal", () => ({
   AdvancedFilterModal: () => null,
 }));
@@ -184,7 +201,65 @@ describe("SearchBar folder scope", () => {
 
     expect(search_mock).toHaveBeenLastCalledWith("janedoe in:trash", {
       search_body: false,
+      label_name_to_tokens: expect.any(Map),
     });
+  });
+
+  it("searches inside the open folder", () => {
+    expect(submit("/folder/bills-token", "janedoe")).toBe(
+      'janedoe folder:"Tax Bills"',
+    );
+  });
+
+  it("searches inside the open label", () => {
+    expect(submit("/tag/receipts-token", "janedoe")).toBe(
+      'janedoe label:"Receipts"',
+    );
+  });
+
+  it("lets an explicit operator override the open folder", () => {
+    expect(submit("/folder/bills-token", "janedoe in:all")).toBe(
+      "janedoe in:all",
+    );
+    expect(submit("/folder/bills-token", "janedoe folder:work")).toBe(
+      "janedoe folder:work",
+    );
+    expect(submit("/folder/bills-token", "janedoe label:work")).toBe(
+      "janedoe label:work",
+    );
+  });
+
+  it("searches all mail when the folder name cannot be written as a filter", () => {
+    expect(submit("/folder/quoted-token", "janedoe")).toBe("janedoe");
+  });
+
+  it("previews results from the open folder with its token", () => {
+    vi.useFakeTimers();
+    const { input } = render_bar("/folder/bills-token");
+
+    act(() => {
+      input.focus();
+    });
+    type_text(input, "janedoe");
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    const [query, options] = search_mock.mock.calls.at(-1)!;
+
+    expect(query).toBe('janedoe folder:"Tax Bills"');
+    expect(options.label_name_to_tokens.get("tax bills")).toEqual([
+      "bills-token",
+    ]);
+  });
+
+  it("names the open folder in the placeholder", () => {
+    expect(render_bar("/folder/bills-token").input.placeholder).toBe(
+      "mail.search_in Tax Bills",
+    );
+    expect(render_bar("/tag/receipts-token").input.placeholder).toBe(
+      "mail.search_in Receipts",
+    );
   });
 
   it("names Trash in the placeholder", () => {

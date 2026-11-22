@@ -238,6 +238,46 @@ export function use_search() {
     [],
   );
 
+  const remove_results = useCallback((ids: string[]) => {
+    if (ids.length === 0) return;
+
+    mark_search_index_stale();
+    last_scan_ref.current = null;
+
+    const removed = new Set(ids);
+
+    set_state((prev) => {
+      const next: SearchResultItem[] = [];
+
+      for (const result of prev.results) {
+        const members = result.grouped_email_ids?.length
+          ? result.grouped_email_ids
+          : [result.id];
+        const kept = members.filter((id) => !removed.has(id));
+
+        if (kept.length === members.length) {
+          next.push(result);
+          continue;
+        }
+        if (kept.length === 0) continue;
+
+        next.push({
+          ...result,
+          id: removed.has(result.id) ? kept[0] : result.id,
+          grouped_email_ids: kept,
+        });
+      }
+
+      const dropped = prev.results.length - next.length;
+
+      return {
+        ...prev,
+        results: next,
+        total_results: Math.max(prev.total_results - dropped, next.length),
+      };
+    });
+  }, []);
+
   const apply_membership_patch = useCallback(
     (ids: string[], patch: MembershipPatch) => {
       if (ids.length === 0) return;
@@ -890,6 +930,7 @@ export function use_search() {
     clear_results,
     clear_index,
     apply_flag_patch,
+    remove_results,
     apply_membership_patch,
     start_index_build,
     load_more,

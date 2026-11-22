@@ -153,6 +153,8 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     handle_select_all_visible,
     handle_bulk_archive,
     handle_bulk_delete,
+    delete_emails,
+    search_delete_dialog,
     handle_bulk_mark_read,
     handle_bulk_mark_unread,
     handle_bulk_toggle_star,
@@ -732,14 +734,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           on_delete={() =>
             menu_selection
               ? void handle_bulk_delete()
-              : void run_single(async (emails) => {
-                  if (await email_actions.bulk_delete(emails)) {
-                    apply_flag_patch(
-                      emails.map((e) => e.id),
-                      { is_trashed: true },
-                    );
-                  }
-                }, true)
+              : void run_single((emails) => delete_emails(emails), false)
           }
           on_find_from_sender={() => handle_find_from_sender(menu_email)}
           on_folder_toggle={
@@ -1047,6 +1042,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           scope_view={scope_view}
         />
       )}
+      {search_delete_dialog}
     </div>
   );
 }

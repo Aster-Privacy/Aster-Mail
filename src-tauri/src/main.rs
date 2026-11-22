@@ -742,6 +742,7 @@ fn main() {
             device::crypto::device_set_id,
             device::crypto::device_sign_challenge,
             device::crypto::device_unseal_vault_envelope,
+            device::crypto::device_open_guard_seal,
             device::crypto::device_get_stored_passphrase,
             device::crypto::device_pin_seal_stored_passphrase,
             device::crypto::device_pin_restore_stored_passphrase,

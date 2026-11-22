@@ -38,6 +38,7 @@ vi.mock("@/contexts/preferences_context", () => ({
       inbox_categories_enabled: prefs_state.inbox_categories_enabled,
     },
     has_loaded_from_server: prefs_state.has_loaded_from_server,
+    update_preference: vi.fn(),
   }),
 }));
 
@@ -56,6 +57,7 @@ vi.mock("@/services/category_index", () => ({
   is_index_loaded: () => false,
   set_active_tabs: vi.fn(),
   set_custom_categories: vi.fn(),
+  set_learned_senders: vi.fn(),
 }));
 
 vi.mock("@/services/crypto/secure_storage", () => ({

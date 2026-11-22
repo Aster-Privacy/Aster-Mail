@@ -27,6 +27,43 @@ import {
 
 const SMTP_TOKENS_BASE = "/developer/v1/smtp-tokens";
 
+export const SMTP_TOKEN_NAME_MAX_LENGTH = 64;
+
+const CONTROL_CHARACTER_PATTERN = /[\p{Cc}\u2028\u2029]/u;
+
+export interface SmtpConnectionSettings {
+  host: string;
+  port: number;
+  security: string;
+  username: string;
+}
+
+export function normalize_smtp_token_name(value: string): string | null {
+  const name = value.trim();
+
+  if (!name) return null;
+  if (Array.from(name).length > SMTP_TOKEN_NAME_MAX_LENGTH) return null;
+  if (CONTROL_CHARACTER_PATTERN.test(name)) return null;
+
+  return name;
+}
+
+export function parse_smtp_connection_settings(
+  raw: unknown,
+): SmtpConnectionSettings | null {
+  if (!raw || typeof raw !== "object") return null;
+
+  const { host, port, security, username } = raw as Record<string, unknown>;
+
+  if (typeof host !== "string" || !host.trim()) return null;
+  if (typeof username !== "string" || !username.trim()) return null;
+  if (typeof security !== "string" || !security.trim()) return null;
+  if (typeof port !== "number" || !Number.isInteger(port)) return null;
+  if (port < 1 || port > 65535) return null;
+
+  return { host, port, security, username };
+}
+
 export interface SmtpTokenRow {
   id: string;
   selector: string;
@@ -37,6 +74,7 @@ export interface SmtpTokenRow {
   last_used_at: string | null;
   expires_at: string | null;
   created_at: string;
+  smtp_settings?: unknown;
 }
 
 export interface SmtpToken {
@@ -48,6 +86,7 @@ export interface SmtpToken {
   last_used_at: string | null;
   expires_at: string | null;
   created_at: string;
+  smtp_settings: SmtpConnectionSettings | null;
 }
 
 export interface ListSmtpTokensResponse {
@@ -88,6 +127,7 @@ export interface CreateSmtpTokenApiResponse {
   expires_at: string | null;
   created_at: string;
   smtp_settings: SmtpSettings;
+  activates_at?: string | null;
 }
 
 export interface CreateSmtpTokenResult {
@@ -99,6 +139,7 @@ export interface CreateSmtpTokenResult {
   expires_at: string | null;
   created_at: string;
   smtp_settings: SmtpSettings;
+  activates_at?: string | null;
 }
 
 export async function list_smtp_tokens(): Promise<
@@ -140,6 +181,7 @@ export async function list_smtp_tokens(): Promise<
         last_used_at: row.last_used_at,
         expires_at: row.expires_at,
         created_at: row.created_at,
+        smtp_settings: parse_smtp_connection_settings(row.smtp_settings),
       };
     }),
   );
@@ -192,6 +234,7 @@ export async function create_smtp_token(
       expires_at: response.data.expires_at,
       created_at: response.data.created_at,
       smtp_settings: response.data.smtp_settings,
+      activates_at: response.data.activates_at ?? null,
     },
   };
 }
@@ -200,4 +243,49 @@ export async function revoke_smtp_token(
   token_id: string,
 ): Promise<ApiResponse<void>> {
   return api_client.delete<void>(`${SMTP_TOKENS_BASE}/${token_id}`);
+}
+
+export type RenameSmtpTokenFailure =
+  | "invalid_name"
+  | "unavailable"
+  | "missing"
+  | "failed";
+
+export interface RenameSmtpTokenResult {
+  name?: string;
+  failure?: RenameSmtpTokenFailure;
+}
+
+export async function rename_smtp_token(
+  token_id: string,
+  name: string,
+  rename_supported: boolean = false,
+): Promise<RenameSmtpTokenResult> {
+  const normalized = normalize_smtp_token_name(name);
+
+  if (!normalized) return { failure: "invalid_name" };
+
+  try {
+    const { encrypted: label_encrypted, nonce: label_nonce } =
+      await encrypt_address_field(normalized);
+    const response = await api_client.patch<SmtpTokenRow>(
+      `${SMTP_TOKENS_BASE}/${encodeURIComponent(token_id)}`,
+      { label_encrypted, label_nonce },
+    );
+
+    if (response.data && !response.error) return { name: normalized };
+
+    const is_not_found =
+      response.status === 404 || response.code === "NOT_FOUND";
+
+    if (is_not_found && rename_supported) return { failure: "missing" };
+
+    if (is_not_found || response.status === 405) {
+      return { failure: "unavailable" };
+    }
+
+    return { failure: "failed" };
+  } catch {
+    return { failure: "failed" };
+  }
 }

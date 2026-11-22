@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  type ContactIndexEntry,
   ensure_contact_email_index,
   get_cached_contact_entry,
   invalidate_contact_email_index,
@@ -86,7 +87,8 @@ async function fetch_photo(contact_id: string): Promise<void> {
       started_generation !== cache_generation ||
       photo_outdated.has(contact_id)
     ) {
-      if (response.data?.blob_url) revoke_photo_blob_url(response.data.blob_url);
+      if (response.data?.blob_url)
+        revoke_photo_blob_url(response.data.blob_url);
 
       return;
     }
@@ -156,7 +158,9 @@ function enqueue_photo_fetch(contact_id: string): void {
   pump_queue();
 }
 
-export function get_contact_photo_src(email: string): string | null | undefined {
+export function get_contact_photo_src(
+  email: string,
+): string | null | undefined {
   if (!email) return null;
   const entry = get_cached_contact_entry(email);
 
@@ -166,6 +170,7 @@ export function get_contact_photo_src(email: string): string | null | undefined 
   if (photo_cache.has(entry.contact_id)) {
     return photo_cache.get(entry.contact_id) ?? null;
   }
+  if (entry.has_photo === false) return null;
 
   return undefined;
 }
@@ -178,6 +183,10 @@ export function contact_photo_needs_request(email: string): boolean {
   );
 }
 
+function wants_photo_fetch(entry: ContactIndexEntry): boolean {
+  return !entry.inline_photo && entry.has_photo !== false;
+}
+
 export function request_contact_photo(email: string): void {
   if (!email) return;
   const entry = get_cached_contact_entry(email);
@@ -186,13 +195,13 @@ export function request_contact_photo(email: string): void {
     void ensure_contact_email_index().then(() => {
       const next = get_cached_contact_entry(email);
 
-      if (next && !next.inline_photo) enqueue_photo_fetch(next.contact_id);
+      if (next && wants_photo_fetch(next)) enqueue_photo_fetch(next.contact_id);
     });
 
     return;
   }
 
-  if (entry && !entry.inline_photo) enqueue_photo_fetch(entry.contact_id);
+  if (entry && wants_photo_fetch(entry)) enqueue_photo_fetch(entry.contact_id);
 }
 
 export function subscribe_contact_photos(listener: () => void): () => void {

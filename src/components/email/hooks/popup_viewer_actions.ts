@@ -27,6 +27,7 @@ import type {
 } from "@/components/email/hooks/popup_viewer_types";
 
 import type { MutableRefObject } from "react";
+import { quotable_source } from "@/lib/html_text";
 import { useCallback, useEffect, useRef } from "react";
 
 import { is_system_email, is_astermail_sender } from "@/lib/utils";
@@ -837,7 +838,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             }
           : {}),
         original_subject: msg.subject,
-        original_body: msg.body,
+        original_body: quotable_source(msg),
         original_timestamp: new Date(msg.timestamp).toLocaleString(
           app_locale(),
           { timeZone: get_display_time_zone() },
@@ -901,7 +902,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         sender_email: msg.sender_email,
         sender_avatar: "",
         email_subject: msg.subject,
-        email_body: msg.body,
+        email_body: quotable_source(msg),
         email_timestamp: new Date(msg.timestamp).toLocaleString(app_locale(), {
           timeZone: get_display_time_zone(),
         }),

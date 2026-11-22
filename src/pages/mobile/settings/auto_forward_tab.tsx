@@ -30,6 +30,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import {
   list_forwarding_rules,
   create_forwarding_rule,
@@ -204,7 +205,13 @@ export function AutoForwardTab() {
       try {
         const result = await toggle_forwarding_rule(rule.id, new_enabled);
 
-        if (result.error) {
+        if (held_of(result)) {
+          set_rules((prev) =>
+            prev.map((r) =>
+              r.id === rule.id ? { ...r, is_enabled: !new_enabled } : r,
+            ),
+          );
+        } else if (result.error) {
           set_rules((prev) =>
             prev.map((r) =>
               r.id === rule.id ? { ...r, is_enabled: !new_enabled } : r,
@@ -230,6 +237,9 @@ export function AutoForwardTab() {
       try {
         const result = await delete_forwarding_rule(rule.id);
 
+        if (held_of(result)) {
+          return;
+        }
         if (result.data?.success) {
           set_rules((prev) => prev.filter((r) => r.id !== rule.id));
           show_toast(
@@ -266,7 +276,10 @@ export function AutoForwardTab() {
             keep_copy,
           );
 
-          if (result.data) {
+          if (held_of(result)) {
+            set_show_rule_builder(false);
+            set_editing_rule(null);
+          } else if (result.data) {
             set_rules((prev) =>
               prev.map((r) => (r.id === editing_rule.id ? result.data! : r)),
             );
@@ -287,7 +300,10 @@ export function AutoForwardTab() {
             keep_copy,
           );
 
-          if (result.data) {
+          if (held_of(result)) {
+            set_show_rule_builder(false);
+            set_editing_rule(null);
+          } else if (result.data) {
             set_rules((prev) => [result.data!, ...prev]);
             notify_saved(result.data, true);
             set_show_rule_builder(false);

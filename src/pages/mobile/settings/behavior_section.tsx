@@ -914,6 +914,17 @@ export function BehaviorSection({
             }
           />
           <SettingsRow
+            label={t("settings.confirm_permanent_delete")}
+            trailing={
+              <Switch
+                checked={preferences.confirm_before_permanent_delete !== false}
+                onCheckedChange={(v) =>
+                  update_preference("confirm_before_permanent_delete", v, true)
+                }
+              />
+            }
+          />
+          <SettingsRow
             label={t("settings.confirm_archive")}
             trailing={
               <Switch

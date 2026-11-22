@@ -73,6 +73,7 @@ vi.mock("@/provider", () => ({ use_should_reduce_motion: () => true }));
 
 vi.mock("@/services/api/smtp_tokens", () => ({
   create_smtp_token: h.create_smtp_token,
+  SMTP_TOKEN_NAME_MAX_LENGTH: 64,
 }));
 
 vi.mock("@/utils/copy_text", () => ({ copy_text: h.copy_text }));

@@ -67,6 +67,7 @@ import {
   CLIENT_UPGRADE_REQUIRED_EVENT,
   CLIENT_VAULT_LEVEL,
   VAULT_LEVEL_HEADER,
+  GUARD_HEADER,
   get_error_code_from_status,
   is_auth_endpoint,
   is_identity_establishing_endpoint,
@@ -82,6 +83,11 @@ import {
 } from "./helpers";
 import { should_show_server_message } from "./server_message";
 import {
+  dispatch_guard_held,
+  guard_error_response,
+  guard_held_from_success,
+} from "./guard_response";
+import {
   MAX_PREEMPTIONS_PER_REQUEST,
   track_background_request,
   wait_for_foreground_idle,
@@ -93,6 +99,7 @@ import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 import { record_vault_iterations_from_response } from "@/services/crypto/vault_level2";
 import { get_device_id } from "@/services/device_id";
 import { ignore_error } from "@/lib/ignore_error";
+import { note_server_date } from "@/lib/server_clock";
 import {
   routed_fetch,
   get_effective_base_url,
@@ -114,6 +121,8 @@ const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
 const REFRESH_MIN_GAP_MS = 5000;
 const REFRESH_LOCK_WAIT_MS = 20_000;
 const OUTGOING_CHECKPOINT_TIMEOUT_MS = 6000;
+const REQUEST_HOLD_MAX_WAIT_MS = 20_000;
+const REQUEST_HOLD_TIMED_OUT = Symbol("request_hold_timed_out");
 const REFRESH_LOCK_PREFIX = "aster-session-refresh";
 
 interface TimedResponse {
@@ -542,6 +551,26 @@ export class ApiClient {
     return settled.finally(() => {
       if (this.request_hold === hold) this.request_hold = null;
     });
+  }
+
+  private async wait_for_request_hold(
+    settled: Promise<boolean | null>,
+  ): Promise<boolean | null | typeof REQUEST_HOLD_TIMED_OUT> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+      return await Promise.race([
+        settled,
+        new Promise<typeof REQUEST_HOLD_TIMED_OUT>((resolve) => {
+          timer = setTimeout(
+            () => resolve(REQUEST_HOLD_TIMED_OUT),
+            REQUEST_HOLD_MAX_WAIT_MS,
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   private release_request_hold(): void {
@@ -1853,15 +1882,22 @@ export class ApiClient {
 
     const hold = this.request_hold;
 
-    if (
-      hold &&
-      !is_session_check_endpoint(endpoint) &&
-      !(await hold.settled)
-    ) {
-      return {
-        error: this.get_generic_error_message("UNAUTHORIZED"),
-        code: "UNAUTHORIZED",
-      };
+    if (hold && !is_session_check_endpoint(endpoint)) {
+      const hold_result = await this.wait_for_request_hold(hold.settled);
+
+      if (hold_result === REQUEST_HOLD_TIMED_OUT) {
+        return {
+          error: this.get_generic_error_message("TIMEOUT_ERROR"),
+          code: "TIMEOUT_ERROR",
+        };
+      }
+
+      if (!hold_result) {
+        return {
+          error: this.get_generic_error_message("UNAUTHORIZED"),
+          code: "UNAUTHORIZED",
+        };
+      }
     }
 
     await this.refresh_before_logout(
@@ -1893,6 +1929,7 @@ export class ApiClient {
       "Content-Type": "application/json",
       "X-Aster-Client": CLIENT_PLATFORM_HEADER,
       [VAULT_LEVEL_HEADER]: CLIENT_VAULT_LEVEL,
+      [GUARD_HEADER]: "1",
       ...((options.headers as Record<string, string>) || {}),
     };
 
@@ -1988,6 +2025,12 @@ export class ApiClient {
         );
         const { response, read_text } = timed;
 
+        note_server_date(
+          response.headers?.get?.("date"),
+          started_at,
+          Date.now(),
+        );
+
         release_deadline = timed.release;
 
         if (!response.ok) {
@@ -2007,6 +2050,21 @@ export class ApiClient {
           }
 
           const error_code = get_error_code_from_status(response.status);
+
+          const guard_result = guard_error_response<T>(
+            endpoint,
+            response.status,
+            error_data,
+            this.get_generic_error_message(error_code),
+            response.status === 429
+              ? parse_retry_after_header(
+                  response.headers.get("retry-after"),
+                  Date.now(),
+                )
+              : undefined,
+          );
+
+          if (guard_result) return guard_result;
 
           if (
             response.status === 403 &&
@@ -2491,6 +2549,14 @@ export class ApiClient {
         extend_passphrase_timeout();
         write_last_auth_ms(Date.now());
         background?.settle(Date.now() - started_at);
+
+        const held = guard_held_from_success(response.status, data);
+
+        if (held) {
+          dispatch_guard_held(held);
+
+          return { data: undefined, held, status: response.status };
+        }
 
         return { data };
       } catch (error) {

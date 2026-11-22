@@ -20,6 +20,7 @@
 //
 import type { ThreadMessageBlockProps } from "./use_thread_message_block";
 
+import { quotable_source } from "@/lib/html_text";
 import {
   AtSymbolIcon,
   StarIcon,
@@ -254,7 +255,9 @@ export function ThreadMessageBlock(
           on_close={on_close}
           on_draft_saved={on_draft_saved}
           on_set_inline_mode={on_set_inline_mode}
-          original_body={is_ratchet_undecryptable ? "" : message.body || ""}
+          original_body={
+            is_ratchet_undecryptable ? "" : quotable_source(message)
+          }
           original_cc={original_cc_emails}
           original_email_id={message.id}
           original_rfc_message_id={inline_reply_references}
