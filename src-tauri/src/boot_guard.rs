@@ -332,8 +332,41 @@ pub fn apply_compat_browser_args(config: &mut tauri::utils::config::Config) {
     log_line("compatibility mode active, hardware acceleration disabled");
 }
 
+#[cfg(any(windows, test))]
+fn system32_tool_in(system_root: Option<std::ffi::OsString>, parts: &[&str]) -> PathBuf {
+    let mut path = system_root
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .filter(|root| root.is_absolute())
+        .unwrap_or_else(|| PathBuf::from(r"C:\Windows"));
+    path.push("System32");
+    for part in parts {
+        path.push(part);
+    }
+    path
+}
+
 #[cfg(windows)]
-fn run_hidden_bounded(program: &str, args: &[&str], timeout: Duration) -> Option<String> {
+fn system32_tool(parts: &[&str]) -> PathBuf {
+    system32_tool_in(std::env::var_os("SystemRoot"), parts)
+}
+
+#[cfg(windows)]
+fn reg_exe() -> PathBuf {
+    system32_tool(&["reg.exe"])
+}
+
+#[cfg(windows)]
+fn powershell_exe() -> PathBuf {
+    system32_tool(&["WindowsPowerShell", "v1.0", "powershell.exe"])
+}
+
+#[cfg(windows)]
+fn run_hidden_bounded(
+    program: &std::path::Path,
+    args: &[&str],
+    timeout: Duration,
+) -> Option<String> {
     use std::io::Read;
     use std::os::windows::process::CommandExt;
     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
@@ -380,7 +413,8 @@ fn webview2_runtime_version() -> String {
         let key = format!(
             "{root}\\Microsoft\\EdgeUpdate\\Clients\\{{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}}"
         );
-        let Some(text) = run_hidden_bounded("reg", &["query", &key, "/v", "pv"], HELPER_TIMEOUT)
+        let Some(text) =
+            run_hidden_bounded(&reg_exe(), &["query", &key, "/v", "pv"], HELPER_TIMEOUT)
         else {
             continue;
         };
@@ -424,7 +458,7 @@ fn encode_powershell(script: &str) -> String {
 fn webview_processes_for_profile(stop: bool) -> Option<u32> {
     let encoded = encode_powershell(&webview_process_script(stop));
     run_hidden_bounded(
-        "powershell",
+        &powershell_exe(),
         &["-NoProfile", "-NonInteractive", "-EncodedCommand", &encoded],
         HELPER_TIMEOUT,
     )
@@ -445,7 +479,7 @@ fn stop_webview_after_exit() -> bool {
     use std::os::windows::process::CommandExt;
     const CREATE_NO_WINDOW: u32 = 0x0800_0000;
     let encoded = encode_powershell(&stop_webview_after_exit_script(std::process::id()));
-    std::process::Command::new("powershell")
+    std::process::Command::new(powershell_exe())
         .args(["-NoProfile", "-NonInteractive", "-EncodedCommand", &encoded])
         .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::null())
@@ -1113,16 +1147,38 @@ mod tests {
     #[cfg(windows)]
     #[test]
     fn hidden_command_returns_output_and_times_out() {
-        let output = run_hidden_bounded("cmd", &["/C", "echo ready"], HELPER_TIMEOUT);
+        let output = run_hidden_bounded(
+            &system32_tool(&["cmd.exe"]),
+            &["/C", "echo ready"],
+            HELPER_TIMEOUT,
+        );
         assert_eq!(output.as_deref().map(str::trim), Some("ready"));
         let started = Instant::now();
         let stuck = run_hidden_bounded(
-            "powershell",
+            &powershell_exe(),
             &["-NoProfile", "-Command", "Start-Sleep -Seconds 30"],
             Duration::from_secs(2),
         );
         assert!(stuck.is_none());
         assert!(started.elapsed() < Duration::from_secs(10));
+    }
+
+    #[test]
+    fn system_tools_resolve_under_the_system_root() {
+        let root = std::env::temp_dir();
+        assert_eq!(
+            system32_tool_in(Some(root.clone().into_os_string()), &["reg.exe"]),
+            root.join("System32").join("reg.exe")
+        );
+        let fallback = PathBuf::from(r"C:\Windows")
+            .join("System32")
+            .join("WindowsPowerShell")
+            .join("v1.0")
+            .join("powershell.exe");
+        let parts = ["WindowsPowerShell", "v1.0", "powershell.exe"];
+        assert_eq!(system32_tool_in(None, &parts), fallback);
+        assert_eq!(system32_tool_in(Some("".into()), &parts), fallback);
+        assert_eq!(system32_tool_in(Some("Windows".into()), &parts), fallback);
     }
 
     #[cfg(windows)]
