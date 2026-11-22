@@ -166,6 +166,24 @@ interface PersistedMeta {
   classifier_version?: number;
   entry_schema?: number;
   seen_ts?: Record<string, number>;
+  build_checkpoint?: BuildCheckpoint;
+}
+
+interface BuildCheckpoint {
+  cursor: string;
+  processed: number;
+}
+
+function parse_build_checkpoint(value: unknown): BuildCheckpoint | null {
+  if (!value || typeof value !== "object") return null;
+  const { cursor, processed } = value as Record<string, unknown>;
+
+  if (typeof cursor !== "string" || cursor.length === 0) return null;
+  if (typeof processed !== "number" || !Number.isFinite(processed)) {
+    return null;
+  }
+
+  return { cursor, processed: Math.max(0, Math.floor(processed)) };
 }
 
 const PERSIST_CHUNK_COUNT = 32;
@@ -227,6 +245,8 @@ let build_owner_token = 0;
 let build_resume: BuildResumePoint | null = null;
 let build_resume_timer: ReturnType<typeof setTimeout> | null = null;
 let build_resume_failures = 0;
+let build_checkpoint: BuildCheckpoint | null = null;
+let resync_skip_throttle = false;
 let arrival_baseline_token = -1;
 let version = 0;
 let sort_order: "asc" | "desc" = "desc";
@@ -624,6 +644,7 @@ async function persist_now(): Promise<void> {
       classifier_version: CLASSIFIER_VERSION,
       entry_schema: ENTRY_SCHEMA_VERSION,
       seen_ts,
+      ...(build_checkpoint && !fully_built ? { build_checkpoint } : {}),
     };
     const encrypted_meta = await secure_encrypt(JSON.stringify(meta));
     const writing_previews = previews_dirty;
@@ -848,6 +869,9 @@ async function load_from_disk(
 
     last_build_ms =
       typeof payload.built_at_ms === "number" ? payload.built_at_ms : 0;
+    build_checkpoint = fully_built
+      ? null
+      : parse_build_checkpoint(payload.build_checkpoint);
     seen_ts = clean_seen_map(payload.seen_ts);
   } catch {
     return;
@@ -886,6 +910,7 @@ async function ensure_loaded(): Promise<boolean> {
       dirty_chunks.clear();
       fully_built = false;
       last_build_ms = 0;
+      build_checkpoint = null;
 
       // Stamps recorded before hydration (the boot-time mark_category_seen)
       // must survive the disk load, or already-viewed tabs flash "new" again.
@@ -2533,6 +2558,10 @@ export async function build_index(options?: {
     !options?.force && build_resume?.generation === index_generation
       ? build_resume
       : null;
+  const disk_resume =
+    !resume && !options?.force && build_checkpoint ? build_checkpoint : null;
+
+  if (options?.force) build_checkpoint = null;
 
   cancel_build_resume();
 
@@ -2549,12 +2578,14 @@ export async function build_index(options?: {
   ]).catch(() => [null, null] as const);
 
   try {
-    let cursor: string | undefined = resume?.cursor;
-    let processed = resume?.processed ?? 0;
+    let cursor: string | undefined = resume?.cursor ?? disk_resume?.cursor;
+    let processed = resume?.processed ?? disk_resume?.processed ?? 0;
     let reached_end = false;
     let fetch_failed = false;
     const seen = resume?.seen ?? new Set<string>();
-    const prebuild_ids = resume?.prebuild_ids ?? new Set(entries_map.keys());
+    const prebuild_ids =
+      resume?.prebuild_ids ??
+      (disk_resume ? new Set<string>() : new Set(entries_map.keys()));
 
     for (;;) {
       if (options?.signal?.aborted || token !== build_token) return;
@@ -2619,6 +2650,11 @@ export async function build_index(options?: {
       processed += items.length;
       cursor = next_cursor;
 
+      if (has_more && next_cursor) {
+        build_checkpoint = { cursor: next_cursor, processed };
+        schedule_persist();
+      }
+
       if (!has_more) {
         reached_end = true;
         break;
@@ -2632,6 +2668,17 @@ export async function build_index(options?: {
     }
 
     if (token !== build_token) return;
+
+    if (
+      fetch_failed &&
+      disk_resume &&
+      processed === disk_resume.processed &&
+      cursor === disk_resume.cursor
+    ) {
+      build_checkpoint = null;
+      cursor = undefined;
+      processed = 0;
+    }
 
     if (reached_end) {
       for (const [id, entry] of Array.from(entries_map.entries())) {
@@ -2648,6 +2695,7 @@ export async function build_index(options?: {
     fully_built = reached_end || processed >= BUILD_CAP;
     build_capped = !reached_end && processed >= BUILD_CAP;
     if (fully_built) {
+      build_checkpoint = null;
       reset_build_resume();
     } else if (fetch_failed && !options?.signal?.aborted) {
       schedule_build_resume({
@@ -3131,7 +3179,11 @@ function schedule_resync(): void {
 
   resync_timer = setTimeout(() => {
     resync_timer = null;
-    const since_last = now_ms() - last_build_ms;
+    const since_last = resync_skip_throttle
+      ? Number.POSITIVE_INFINITY
+      : now_ms() - last_build_ms;
+
+    resync_skip_throttle = false;
 
     if (since_last < RESYNC_MIN_INTERVAL_MS) {
       resync_timer = setTimeout(() => {
@@ -3579,6 +3631,7 @@ export function clear_category_index_memory(): void {
   session_reconciled = false;
   built_custom_categories_key = null;
   last_build_ms = 0;
+  build_checkpoint = null;
   last_gap_rebuild_ms = 0;
   reset_unread_verify();
   drift_rebuilds = 0;
@@ -3660,7 +3713,7 @@ export function start_event_listeners(): void {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") return;
 
-    last_build_ms = 0;
+    resync_skip_throttle = true;
 
     // Returning to a backgrounded tab: a build that stalled while the tab was
     // frozen may never settle on some platforms, so supersede it rather than
@@ -4127,6 +4180,7 @@ export async function clear_category_index(): Promise<void> {
   build_capped = false;
   resync_failures = 0;
   last_build_ms = 0;
+  build_checkpoint = null;
   last_gap_rebuild_ms = 0;
   reset_unread_verify();
   drift_rebuilds = 0;
