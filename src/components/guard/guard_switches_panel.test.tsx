@@ -447,7 +447,7 @@ describe("guard switches panel", () => {
       () => !!container.querySelector('[data-testid="guard_switches_held"]'),
     );
 
-    expect(h.proof_requests).toBe(0);
+    expect(h.proof_requests).toBe(1);
     expect(h.switches_body).toMatchObject({
       switches: GUARD_SWITCH.new_device_approval,
       hold_scopes: 0,
@@ -457,7 +457,7 @@ describe("guard switches panel", () => {
       proof: unknown;
     };
 
-    expect(action.proof).toBeNull();
+    expect(action.proof).toEqual(h.proof);
     expect(
       await verify(
         USER_ID,
