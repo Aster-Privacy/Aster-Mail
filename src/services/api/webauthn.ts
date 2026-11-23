@@ -21,6 +21,7 @@
 import type { ReauthProof } from "./step_up";
 
 import { api_client, ApiResponse } from "./client";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 import { clear_csrf_cache } from "./csrf";
 import { TotpVerifyResponse } from "./totp";
 import {
@@ -222,7 +223,7 @@ export async function verify_webauthn_assertion(request: {
 }): Promise<ApiResponse<TotpVerifyResponse>> {
   const response = await api_client.post<TotpVerifyResponse>(
     "/core/v1/auth/hardware-keys/assert/verify",
-    request,
+    { ...request, device_label: default_guard_device_name() },
   );
 
   if (response.data) {

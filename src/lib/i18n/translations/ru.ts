@@ -12574,6 +12574,7 @@ export const ru = {
     approve_time_label: "Время",
     approve_device: "{{browser}} на {{os}}",
     approve_unknown_device: "Неизвестное устройство",
+    approve_device_named: "Название: «{{name}}»",
     approve_number_label: "Введите число, показанное на новом устройстве",
     approve_confirm: "Подтвердить",
     approve_deny: "Отклонить",

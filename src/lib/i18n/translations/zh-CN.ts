@@ -11058,6 +11058,7 @@ export const zh_CN = {
     approve_time_label: "时间",
     approve_device: "{{os}} 上的 {{browser}}",
     approve_unknown_device: "未知设备",
+    approve_device_named: "名称:“{{name}}”",
     approve_number_label: "输入新设备上显示的数字",
     approve_confirm: "批准",
     approve_deny: "拒绝",

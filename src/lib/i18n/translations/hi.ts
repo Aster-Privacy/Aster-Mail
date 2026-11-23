@@ -12142,6 +12142,7 @@ export const hi = {
     approve_time_label: "समय",
     approve_device: "{{os}} पर {{browser}}",
     approve_unknown_device: "अज्ञात डिवाइस",
+    approve_device_named: "नाम: “{{name}}”",
     approve_number_label: "नए डिवाइस पर दिखाया गया नंबर डालें",
     approve_confirm: "स्वीकृत करें",
     approve_deny: "अस्वीकार करें",

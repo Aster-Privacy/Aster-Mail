@@ -11885,6 +11885,7 @@ export const ko = {
     approve_time_label: "시간",
     approve_device: "{{os}}의 {{browser}}",
     approve_unknown_device: "알 수 없는 기기",
+    approve_device_named: "이름: '{{name}}'",
     approve_number_label: "새 기기에 표시된 번호를 입력하세요",
     approve_confirm: "승인",
     approve_deny: "거부",

@@ -62,11 +62,15 @@ export function use_totp_required(is_open: boolean): TotpRequirementState {
 
     set_known(peek_totp_required());
     set_failed(false);
-    fetch_step_up_requirements().catch((caught) => {
-      if (!active) return;
-      if (peek_totp_required() === null) set_failed(true);
-      ignore_error("hooks/use_totp_required:use_totp_required", caught);
-    });
+    fetch_step_up_requirements()
+      .then((requirements) => {
+        if (active) set_known(requirements.totp_required);
+      })
+      .catch((caught) => {
+        if (!active) return;
+        if (peek_totp_required() === null) set_failed(true);
+        ignore_error("hooks/use_totp_required:use_totp_required", caught);
+      });
 
     return () => {
       active = false;

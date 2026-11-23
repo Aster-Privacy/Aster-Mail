@@ -12098,6 +12098,7 @@ export const ja = {
     approve_time_label: "時刻",
     approve_device: "{{os}} の {{browser}}",
     approve_unknown_device: "不明なデバイス",
+    approve_device_named: "名前:「{{name}}」",
     approve_number_label: "新しいデバイスに表示されている番号を入力",
     approve_confirm: "承認",
     approve_deny: "拒否",

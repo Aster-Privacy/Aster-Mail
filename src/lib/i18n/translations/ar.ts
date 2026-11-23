@@ -12127,6 +12127,7 @@ export const ar = {
     approve_time_label: "الوقت",
     approve_device: "{{browser}} على {{os}}",
     approve_unknown_device: "جهاز غير معروف",
+    approve_device_named: "الاسم: «{{name}}»",
     approve_number_label: "أدخل الرقم الظاهر على الجهاز الجديد",
     approve_confirm: "موافقة",
     approve_deny: "رفض",

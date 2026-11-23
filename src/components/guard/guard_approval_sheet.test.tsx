@@ -711,15 +711,21 @@ describe("GuardApprovalSheet", () => {
     expect(container.textContent).toContain("Firefox on Windows");
   });
 
-  it("prefers the device name the sign-in sent", () => {
+  it("shows the sent device name only next to the browser and system", () => {
     const v = view();
 
     render({
       ...v,
-      context: { ...v.context!, device_name: "Aster Mail desktop · Windows" },
+      context: { ...v.context!, device_name: "Chrome on Windows" },
     });
-    expect(container.textContent).toContain("Aster Mail desktop · Windows");
-    expect(container.textContent).not.toContain("guard.approve_device:");
+    const row = container.querySelector(
+      '[data-testid="guard_request_device"]',
+    );
+
+    expect(row?.textContent).toContain("guard.approve_device:Firefox,Windows");
+    expect(row?.textContent).toContain(
+      "guard.approve_device_named:Chrome on Windows",
+    );
   });
 
   it("drops placeholder names and falls back to browser and system", () => {

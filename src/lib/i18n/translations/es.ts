@@ -12381,6 +12381,7 @@ export const es = {
     approve_time_label: "Hora",
     approve_device: "{{browser}} en {{os}}",
     approve_unknown_device: "Dispositivo desconocido",
+    approve_device_named: "Nombre: «{{name}}»",
     approve_number_label: "Introduce el número que aparece en el dispositivo nuevo",
     approve_confirm: "Aprobar",
     approve_deny: "Rechazar",

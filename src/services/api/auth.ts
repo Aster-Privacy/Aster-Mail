@@ -21,6 +21,7 @@
 import type { StepUpCredentials } from "./step_up";
 
 import { api_client, ApiResponse } from "./client";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 import { clear_csrf_cache } from "./csrf";
 import { is_totp_required_response } from "./totp";
 import { forget_totp_required } from "./step_up_cache";
@@ -330,7 +331,10 @@ export async function login_user(
     !v3_response && is_login_v3_pinned(request.user_hash);
   const response =
     v3_response ??
-    (await api_client.post<LoginResponse>("/core/v1/auth/login", request));
+    (await api_client.post<LoginResponse>("/core/v1/auth/login", {
+      ...request,
+      device_label: default_guard_device_name(),
+    }));
 
   if (response.data && !is_totp_required_response(response.data)) {
     clear_csrf_cache();

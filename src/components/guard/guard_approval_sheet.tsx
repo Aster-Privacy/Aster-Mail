@@ -166,14 +166,16 @@ function ContextDetails({
 
   const browser = known_guard_value(context.browser);
   const os = known_guard_value(context.os);
+  const device_name = known_guard_value(context.device_name);
   const device =
-    known_guard_value(context.device_name) ||
-    (browser && os
+    browser && os
       ? t("guard.approve_device", { browser, os })
-      : named ||
-        browser ||
-        os ||
-        t("guard.approve_unknown_device"));
+      : browser || os || t("guard.approve_unknown_device");
+  const device_label = device_name || named;
+  const device_label_text =
+    device_label && device_label !== device
+      ? t("guard.approve_device_named", { name: device_label })
+      : "";
   const country = known_guard_value(context.country);
   const place = [known_guard_value(context.city), country]
     .filter(Boolean)
@@ -196,6 +198,8 @@ function ContextDetails({
             <span className="truncate">{device}</span>
           </>
         }
+        secondary={device_label_text || undefined}
+        test_id="guard_request_device"
       />
       {place && (
         <GuardDetailRow

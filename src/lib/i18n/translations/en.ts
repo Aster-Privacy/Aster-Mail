@@ -12088,6 +12088,7 @@ export const en: Translations = {
     approve_time_label: "Time",
     approve_device: "{{browser}} on {{os}}",
     approve_unknown_device: "Unknown device",
+    approve_device_named: "Named “{{name}}”",
     approve_number_label: "Enter the number shown on the new device",
     approve_confirm: "Approve",
     approve_deny: "Deny",

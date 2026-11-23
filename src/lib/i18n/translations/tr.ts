@@ -12234,6 +12234,7 @@ export const tr = {
     approve_time_label: "Zaman",
     approve_device: "{{os}} üzerinde {{browser}}",
     approve_unknown_device: "Bilinmeyen cihaz",
+    approve_device_named: "Adı: “{{name}}”",
     approve_number_label: "Yeni cihazda gösterilen numarayı girin",
     approve_confirm: "Onayla",
     approve_deny: "Reddet",

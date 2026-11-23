@@ -12367,6 +12367,7 @@ export const nl = {
     approve_time_label: "Tijd",
     approve_device: "{{browser}} op {{os}}",
     approve_unknown_device: "Onbekend apparaat",
+    approve_device_named: "Naam: ‘{{name}}’",
     approve_number_label: "Voer het nummer in dat op het nieuwe apparaat staat",
     approve_confirm: "Goedkeuren",
     approve_deny: "Weigeren",

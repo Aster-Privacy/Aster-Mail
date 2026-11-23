@@ -10340,6 +10340,7 @@ export interface GuardTranslations {
   approve_time_label: string;
   approve_device: string;
   approve_unknown_device: string;
+  approve_device_named: string;
   approve_number_label: string;
   approve_confirm: string;
   approve_deny: string;
