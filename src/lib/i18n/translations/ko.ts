@@ -1866,6 +1866,8 @@ export const ko = {
     step_up_description: "보안을 위해 계속하려면 비밀번호를 확인하세요.",
     step_up_error:
       "비밀번호 또는 인증 코드가 올바르지 않습니다. 다시 시도하세요.",
+    step_up_key_needs_browser:
+      "데스크톱 앱에서는 보안 키나 패스키를 사용할 수 없습니다. 이 변경을 하려면 브라우저에서 Aster를 여세요.",
     step_up_security_key_hint:
       "비밀번호를 입력하면 보안 키로 추가 인증을 진행하게 됩니다.",
     security_key_add_step_up_hint:

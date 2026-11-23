@@ -1840,6 +1840,8 @@ export const de = {
       "Bestätigen Sie zu Ihrer Sicherheit Ihr Passwort, um fortzufahren.",
     step_up_error:
       "Falsches Passwort oder falscher Bestätigungscode. Bitte versuchen Sie es erneut.",
+    step_up_key_needs_browser:
+      "Die Desktop-App kann keine Sicherheitsschlüssel oder Passkeys verwenden. Um diese Änderung vorzunehmen, öffne Aster in deinem Browser.",
     step_up_security_key_hint:
       "Nach Eingabe Ihres Passworts werden Sie gebeten, sich mit Ihrem Sicherheitsschlüssel zu verifizieren.",
     security_key_add_step_up_hint:

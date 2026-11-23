@@ -62,6 +62,7 @@ import { SimpleToast } from "@/components/toast/simple_toast";
 import { DesktopDownloadNotifier } from "@/native/desktop_download_bridge";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
 import { GuardApprovalHost } from "@/components/guard/guard_approval_sheet";
+import { TotpRequirementWarmup } from "@/hooks/use_totp_required";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { CreationTokenPrompt } from "@/components/auth/creation_token_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
@@ -678,6 +679,7 @@ function App() {
       <CreationTokenPrompt />
       <ErrorBoundary fallback={null}>
         <GuardApprovalHost />
+        <TotpRequirementWarmup />
       </ErrorBoundary>
       <ErrorBoundary fallback={null}>
         <UpgradeModalHost />

@@ -1929,6 +1929,8 @@ export const es = {
       "Por tu seguridad, confirma tu contraseña para continuar.",
     step_up_error:
       "Contraseña o código de verificación incorrectos. Inténtalo de nuevo.",
+    step_up_key_needs_browser:
+      "La aplicación de escritorio no puede usar llaves de seguridad ni llaves de acceso. Para hacer este cambio, abre Aster en tu navegador.",
     step_up_security_key_hint:
       "Después de escribir tu contraseña, se te pedirá que verifiques con tu llave de seguridad.",
     security_key_add_step_up_hint:

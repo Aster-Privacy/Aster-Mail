@@ -1739,6 +1739,8 @@ export const pl = {
       "Ze względów bezpieczeństwa potwierdź hasło, aby kontynuować.",
     step_up_error:
       "Nieprawidłowe hasło lub kod weryfikacyjny. Spróbuj ponownie.",
+    step_up_key_needs_browser:
+      "Aplikacja komputerowa nie może używać kluczy bezpieczeństwa ani kluczy dostępu. Aby wprowadzić tę zmianę, otwórz Aster w przeglądarce.",
     step_up_security_key_hint:
       "Po wpisaniu hasła zostaniesz poproszony o weryfikację kluczem bezpieczeństwa.",
     security_key_add_step_up_hint:

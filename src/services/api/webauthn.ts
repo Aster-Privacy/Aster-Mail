@@ -32,6 +32,7 @@ import {
 } from "./webauthn_errors";
 
 import { get_active_translations } from "@/lib/i18n/translations";
+import { is_desktop } from "@/native/invoke_bridge";
 import {
   open_passkey_name,
   passkey_name_for_server,
@@ -479,9 +480,12 @@ export async function step_up_key_assertion_if_enrolled(
     throw new Error(keys.error || get_active_translations().errors.load_failed);
   }
 
-  return keys.data.keys.length > 0
-    ? perform_step_up_webauthn_assertion()
-    : undefined;
+  if (keys.data.keys.length === 0) return undefined;
+  if (is_desktop()) {
+    throw new Error(get_active_translations().common.step_up_key_needs_browser);
+  }
+
+  return perform_step_up_webauthn_assertion();
 }
 
 export async function perform_webauthn_assertion_with_options(

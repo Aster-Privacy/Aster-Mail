@@ -1723,6 +1723,8 @@ export const it = {
     step_up_description:
       "Per la tua sicurezza, conferma la password per continuare.",
     step_up_error: "Password o codice di verifica errati. Riprova.",
+    step_up_key_needs_browser:
+      "L'app desktop non può usare chiavi di sicurezza o passkey. Per apportare questa modifica, apri Aster nel browser.",
     step_up_security_key_hint:
       "Dopo aver inserito la password, ti verrà chiesto di verificare con la tua chiave di sicurezza.",
     security_key_add_step_up_hint:

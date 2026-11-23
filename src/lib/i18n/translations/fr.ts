@@ -1942,6 +1942,8 @@ export const fr = {
       "Pour votre sécurité, confirmez votre mot de passe pour continuer.",
     step_up_error:
       "Mot de passe ou code de vérification incorrect. Veuillez réessayer.",
+    step_up_key_needs_browser:
+      "L'application de bureau ne peut pas utiliser de clés de sécurité ni de clés d'accès. Pour effectuer cette modification, ouvrez Aster dans votre navigateur.",
     step_up_security_key_hint:
       "Après avoir saisi votre mot de passe, vous devrez vérifier votre identité avec votre clé de sécurité.",
     security_key_add_step_up_hint:

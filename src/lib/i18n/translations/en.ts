@@ -189,6 +189,8 @@ export const en: Translations = {
     step_up_description:
       "For your security, confirm your password to continue.",
     step_up_error: "Incorrect password or verification code. Please try again.",
+    step_up_key_needs_browser:
+      "The desktop app can't use security keys or passkeys. To make this change, open Aster in your browser.",
     step_up_security_key_hint:
       "After you enter your password, you'll be asked to verify with your security key.",
     security_key_add_step_up_hint:

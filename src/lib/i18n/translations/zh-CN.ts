@@ -1635,6 +1635,8 @@ export const zh_CN = {
     remove_recovery_email: "移除恢复邮箱",
     step_up_description: "为了您的安全，请确认密码以继续。",
     step_up_error: "密码或验证码不正确，请重试。",
+    step_up_key_needs_browser:
+      "桌面应用无法使用安全密钥或通行密钥。要进行此更改，请在浏览器中打开 Aster。",
     step_up_security_key_hint: "输入密码后，系统会要求您使用安全密钥进行验证。",
     security_key_add_step_up_hint:
       "输入密码后，请使用账户中已有的安全密钥进行验证。新密钥将在下一步添加。",

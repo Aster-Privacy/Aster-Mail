@@ -1855,6 +1855,8 @@ export const pt_br = {
       "Para sua segurança, confirme sua senha para continuar.",
     step_up_error:
       "Senha ou código de verificação incorretos. Tente novamente.",
+    step_up_key_needs_browser:
+      "O app para computador não pode usar chaves de segurança nem chaves de acesso. Para fazer essa alteração, abra o Aster no navegador.",
     step_up_security_key_hint:
       "Depois de digitar sua senha, você precisará verificar com sua chave de segurança.",
     security_key_add_step_up_hint:

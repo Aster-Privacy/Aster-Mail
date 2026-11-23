@@ -1694,6 +1694,8 @@ export const tr = {
     step_up_description:
       "Güvenliğiniz için devam etmek üzere şifrenizi onaylayın.",
     step_up_error: "Şifre veya doğrulama kodu yanlış. Lütfen tekrar deneyin.",
+    step_up_key_needs_browser:
+      "Masaüstü uygulaması güvenlik anahtarlarını veya geçiş anahtarlarını kullanamaz. Bu değişikliği yapmak için Aster'ı tarayıcınızda açın.",
     step_up_security_key_hint:
       "Şifrenizi girdikten sonra güvenlik anahtarınızla doğrulama yapmanız istenecek.",
     security_key_add_step_up_hint:

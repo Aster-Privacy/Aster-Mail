@@ -21,6 +21,7 @@
 import type { StepUpHardwareKeyAssertion } from "./webauthn";
 
 import { api_client } from "./client";
+import { remember_totp_required } from "./step_up_cache";
 
 import { base64_to_array } from "@/services/crypto/key_manager";
 import {
@@ -84,9 +85,13 @@ export async function fetch_step_up_requirements(): Promise<StepUpRequirements> 
     );
   }
 
+  const totp_required = salt_response.data.totp_required === true;
+
+  remember_totp_required(totp_required);
+
   return {
     salt: base64_to_array(salt_response.data.salt),
-    totp_required: salt_response.data.totp_required === true,
+    totp_required,
     kdf_version: read_kdf_version(salt_response.data.kdf_version),
   };
 }

@@ -1737,6 +1737,8 @@ export const ja = {
       "セキュリティのため、続行するにはパスワードを確認してください。",
     step_up_error:
       "パスワードまたは確認コードが正しくありません。もう一度お試しください。",
+    step_up_key_needs_browser:
+      "デスクトップアプリではセキュリティキーやパスキーを使用できません。この変更を行うには、ブラウザで Aster を開いてください。",
     step_up_security_key_hint:
       "パスワードを入力すると、セキュリティキーによる確認を求められます。",
     security_key_add_step_up_hint:

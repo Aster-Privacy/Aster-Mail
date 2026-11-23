@@ -1276,6 +1276,7 @@ export interface CommonTranslations {
   remove_recovery_email: string;
   step_up_description: string;
   step_up_error: string;
+  step_up_key_needs_browser: string;
   step_up_security_key_hint: string;
   security_key_add_step_up_hint: string;
   security_key_add_ready: string;

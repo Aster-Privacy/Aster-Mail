@@ -1815,6 +1815,8 @@ export const ar = {
     remove_recovery_email: "إزالة بريد الاسترداد",
     step_up_description: "لأمانك، أكِّد كلمة المرور للمتابعة.",
     step_up_error: "كلمة المرور أو رمز التحقق غير صحيح. حاول مرة أخرى.",
+    step_up_key_needs_browser:
+      "لا يمكن لتطبيق سطح المكتب استخدام مفاتيح الأمان أو مفاتيح المرور. لإجراء هذا التغيير، افتح Aster في المتصفح.",
     step_up_security_key_hint:
       "بعد إدخال كلمة المرور، سيُطلب منك التحقق باستخدام مفتاح الأمان الخاص بك.",
     security_key_add_step_up_hint:

@@ -1912,6 +1912,8 @@ export const nl = {
       "Bevestig voor je veiligheid je wachtwoord om door te gaan.",
     step_up_error:
       "Onjuist wachtwoord of verificatiecode. Probeer het opnieuw.",
+    step_up_key_needs_browser:
+      "De desktop-app kan geen beveiligingssleutels of passkeys gebruiken. Open Aster in je browser om deze wijziging aan te brengen.",
     step_up_security_key_hint:
       "Na het invoeren van je wachtwoord word je gevraagd te verifiëren met je beveiligingssleutel.",
     security_key_add_step_up_hint:
