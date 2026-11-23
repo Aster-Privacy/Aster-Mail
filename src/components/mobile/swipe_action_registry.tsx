@@ -27,6 +27,7 @@ import {
   EnvelopeOpenIcon,
   ClockIcon,
   StarIcon,
+  FolderArrowDownIcon,
 } from "@heroicons/react/24/outline";
 
 import { ReportSpamIcon } from "@/components/email/spam_action_icons";
@@ -38,6 +39,7 @@ export type SwipeActionId =
   | "snooze"
   | "star"
   | "spam"
+  | "move_to_folder"
   | "none";
 
 export interface SwipeActionDefinition {
@@ -86,6 +88,12 @@ const SWIPE_ACTION_REGISTRY: Record<string, SwipeActionDefinition> = {
     icon: ReportSpamIcon,
     color: "var(--color-danger)",
   },
+  move_to_folder: {
+    id: "move_to_folder",
+    label_key: "mail.move_to_folder",
+    icon: FolderArrowDownIcon,
+    color: "#0d9488",
+  },
 };
 
 export function get_swipe_action(id: string): SwipeActionDefinition | null {
@@ -101,5 +109,6 @@ export const SWIPE_ACTION_OPTIONS: SwipeActionId[] = [
   "snooze",
   "star",
   "spam",
+  "move_to_folder",
   "none",
 ];

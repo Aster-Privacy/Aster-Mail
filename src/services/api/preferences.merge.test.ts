@@ -292,6 +292,19 @@ describe("build_merged_preferences", () => {
     expect(merged.swipe_right_action).toBe("none");
   });
 
+  it("keeps move to folder as a swipe action", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      swipe_left_action: "move_to_folder",
+      swipe_right_action: "move",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.swipe_left_action).toBe("move_to_folder");
+    expect(merged.swipe_right_action).toBe("move_to_folder");
+  });
+
   it("defaults the sidebar layout when the server blob has no layout keys", () => {
     const server: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
 

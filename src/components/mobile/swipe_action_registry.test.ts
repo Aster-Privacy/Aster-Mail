@@ -38,6 +38,14 @@ describe("swipe action registry", () => {
     expect(en.settings.swipe_toggle_read).toBe("Mark as read or unread");
   });
 
+  it("offers move to folder for either swipe direction", () => {
+    const definition = get_swipe_action("move_to_folder");
+
+    expect(SWIPE_ACTION_OPTIONS).toContain("move_to_folder");
+    expect(definition?.label_key).toBe("mail.move_to_folder");
+    expect(en.mail.move_to_folder).toBe("Move to folder");
+  });
+
   it("ignores ids it does not know", () => {
     expect(get_swipe_action("mark_unread_later")).toBeNull();
     expect(get_swipe_action("none")).toBeNull();
