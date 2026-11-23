@@ -46,10 +46,12 @@ export interface ServerVaultRestoreDeps {
 }
 
 const default_deps: ServerVaultRestoreDeps = {
-  get_passphrase: get_session_passphrase,
-  fetch_vault: fetch_latest_vault,
-  open_vault: decrypt_vault_with_lock,
-  save_local: store_encrypted_vault,
+  get_passphrase: (account_id) => get_session_passphrase(account_id),
+  fetch_vault: () => fetch_latest_vault(),
+  open_vault: (encrypted_vault, vault_nonce, passphrase, user_id) =>
+    decrypt_vault_with_lock(encrypted_vault, vault_nonce, passphrase, user_id),
+  save_local: (account_id, encrypted_vault, vault_nonce) =>
+    store_encrypted_vault(account_id, encrypted_vault, vault_nonce),
 };
 
 export async function restore_from_server_vault(
