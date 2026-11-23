@@ -26,6 +26,7 @@ import {
   destination_views_for_update,
 } from "./view_membership";
 import { clear_list_decrypt_cache } from "./email_list_helpers/decrypt_cache";
+import { clear_category_row_cache } from "./email_list_helpers/row_store";
 
 import {
   clear_email_cache,
@@ -108,6 +109,7 @@ export function clear_mail_cache(
 ): Promise<void> {
   view_cache.clear();
   clear_list_decrypt_cache();
+  clear_category_row_cache();
   const stored_cleared = clear_email_cache(snapshots).catch((caught) =>
     ignore_error("hooks/email_list_cache:clear_mail_cache", caught),
   );
