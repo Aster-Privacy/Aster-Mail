@@ -18,12 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { GuardSignInState } from "@/services/guard/guard_sign_in";
+import type {
+  GuardRescueError,
+  GuardSignInState,
+} from "@/services/guard/guard_sign_in";
 
 import { useState } from "react";
 import { ClockIcon } from "@heroicons/react/24/outline";
 
 import { GuardCodeEntry } from "@/components/guard/guard_code_entry";
+import {
+  format_guard_wait_time,
+  guard_error_text,
+} from "@/components/guard/guard_error_text";
 import {
   format_guard_countdown,
   GuardChip,
@@ -60,12 +67,20 @@ export function format_guard_short_time(iso: string): string {
   });
 }
 
+const RESCUE_ERROR_KEYS = {
+  invalid: "guard.sign_in_rescue_invalid",
+  not_allowed: "guard.sign_in_rescue_not_allowed",
+  paused: "guard.sign_in_rescue_paused",
+  in_progress: "guard.sign_in_rescue_in_progress",
+  failed: "guard.sign_in_rescue_failed",
+} as const;
+
 interface GuardRescueEntryProps {
-  has_error: boolean;
+  error: GuardRescueError | null;
   on_submit: (code: string) => Promise<boolean>;
 }
 
-export function GuardRescueEntry({ has_error, on_submit }: GuardRescueEntryProps) {
+export function GuardRescueEntry({ error, on_submit }: GuardRescueEntryProps) {
   const { t } = use_i18n();
   const [value, set_value] = useState("");
   const [is_busy, set_is_busy] = useState(false);
@@ -98,14 +113,14 @@ export function GuardRescueEntry({ has_error, on_submit }: GuardRescueEntryProps
         disabled={is_busy}
         id="guard_rescue_input"
         spellCheck={false}
-        status={has_error ? "error" : "default"}
+        status={error ? "error" : "default"}
         type="text"
         value={value}
         onChange={(e) => set_value(e.target.value)}
       />
-      {has_error && (
+      {error && (
         <p className="text-sm text-center text-red-500" role="alert">
-          {t("guard.sign_in_rescue_invalid")}
+          {t(RESCUE_ERROR_KEYS[error])}
         </p>
       )}
       <Button
@@ -184,6 +199,7 @@ function NumberCard({
 const ENDED_TITLES = {
   denied: "guard.sign_in_denied_title",
   expired: "guard.sign_in_expired_title",
+  on_hold: "guard.sign_in_on_hold_title",
   error: "guard.sign_in_error_title",
 } as const;
 
@@ -201,8 +217,14 @@ function EndedState({
   return (
     <GuardResultView
       actions={
-        <Button className="w-full" size="lg" variant="depth" onClick={on_back}>
-          {t("guard.sign_in_back")}
+        <Button
+          className="w-full"
+          data-testid="guard_sign_in_again"
+          size="lg"
+          variant="depth"
+          onClick={on_back}
+        >
+          {t(kind === "on_hold" ? "guard.sign_in_back" : "guard.sign_in_again")}
         </Button>
       }
       body={message}
@@ -212,6 +234,21 @@ function EndedState({
   );
 }
 
+type Translate = ReturnType<typeof use_i18n>["t"];
+
+function on_hold_message(t: Translate, state: GuardSignInState): string {
+  const time = state.retry_at ? format_guard_wait_time(state.retry_at) : "";
+
+  if (state.error_code === "GUARD_TOO_MANY_REQUESTS") {
+    return time
+      ? t("guard.error_too_many", { time })
+      : t("guard.error_too_many_soon");
+  }
+  if (time) return t("guard.sign_in_on_hold_until", { time });
+
+  return t("guard.sign_in_on_hold");
+}
+
 export function GuardWaitingScreen({
   state,
   on_submit_code,
@@ -219,7 +256,12 @@ export function GuardWaitingScreen({
   on_back,
 }: GuardWaitingScreenProps) {
   const { t } = use_i18n();
-  const [mode, set_mode] = useState<"approve" | "code" | "rescue">("approve");
+  const can_approve = state.methods.includes("approve");
+  const can_use_code = state.methods.includes("code");
+  const can_rescue = state.methods.includes("rescue");
+  const [mode, set_mode] = useState<"approve" | "code" | "rescue">(
+    can_approve ? "approve" : "rescue",
+  );
 
   const header = (
     <div className="text-center mb-6">
@@ -228,15 +270,19 @@ export function GuardWaitingScreen({
         {t("guard.sign_in_waiting_title")}
       </h2>
       <p className="text-sm text-txt-muted">
-        {t("guard.sign_in_waiting_description")}
+        {t("guard.sign_in_where_to_approve")}
       </p>
     </div>
   );
 
+  const paused_until = state.retry_at
+    ? format_guard_wait_time(state.retry_at)
+    : "";
   const ended =
     state.phase === "denied" ||
     state.phase === "expired" ||
     state.phase === "error" ||
+    state.phase === "on_hold" ||
     state.phase === "rescue";
   let body: JSX.Element;
 
@@ -250,10 +296,55 @@ export function GuardWaitingScreen({
     );
   } else if (state.phase === "error") {
     body = (
-      <EndedState kind="error" message={t("guard.sign_in_error")} on_back={on_back} />
+      <EndedState
+        kind="error"
+        message={guard_error_text(
+          t,
+          { server_code: state.error_code },
+          "guard.sign_in_error",
+        )}
+        on_back={on_back}
+      />
+    );
+  } else if (state.phase === "on_hold") {
+    body = (
+      <EndedState
+        kind="on_hold"
+        message={on_hold_message(t, state)}
+        on_back={on_back}
+      />
     );
   } else if (state.phase === "rescue") {
     body = <GuardRescueProgress rescue={state.rescue} on_back={on_back} />;
+  } else if (!can_approve && !can_rescue) {
+    body = (
+      <EndedState
+        kind="error"
+        message={t("guard.sign_in_no_method")}
+        on_back={on_back}
+      />
+    );
+  } else if (!can_approve) {
+    body = (
+      <div className="space-y-5">
+        <p className="text-sm text-center text-txt-muted">
+          {t("guard.sign_in_rescue_only")}
+        </p>
+        <GuardRescueEntry
+          error={state.rescue_error}
+          on_submit={on_start_rescue}
+        />
+        <div className="flex flex-col items-center gap-2 pt-1">
+          <button
+            className="text-sm text-txt-muted hover:underline"
+            type="button"
+            onClick={on_back}
+          >
+            {t("guard.sign_in_back")}
+          </button>
+        </div>
+      </div>
+    );
   } else if (state.phase === "starting" || state.number === null) {
     body = (
       <p className="text-sm text-center text-txt-muted" role="status">
@@ -272,7 +363,9 @@ export function GuardWaitingScreen({
             className="rounded-xl bg-red-500/10 px-3 py-2 text-center text-sm text-red-600 dark:text-red-400"
             role="alert"
           >
-            {t("guard.sign_in_paused")}
+            {paused_until
+              ? t("guard.sign_in_paused_until", { time: paused_until })
+              : t("guard.sign_in_paused")}
           </p>
         )}
         {state.phase === "completing" && (
@@ -280,21 +373,21 @@ export function GuardWaitingScreen({
             {t("guard.sign_in_completing")}
           </p>
         )}
-        {mode === "code" && (
+        {mode === "code" && can_use_code && (
           <GuardCodeEntry
             disabled={state.phase === "completing"}
             has_error={state.code_error}
             on_submit={on_submit_code}
           />
         )}
-        {mode === "rescue" && (
+        {mode === "rescue" && can_rescue && (
           <GuardRescueEntry
-            has_error={state.rescue_error}
+            error={state.rescue_error}
             on_submit={on_start_rescue}
           />
         )}
         <div className="flex flex-col items-center gap-2 pt-1">
-          {mode !== "code" && (
+          {mode !== "code" && can_use_code && (
             <button
               className="text-sm font-medium text-txt-accent hover:underline"
               type="button"
@@ -303,7 +396,7 @@ export function GuardWaitingScreen({
               {t("guard.sign_in_use_code")}
             </button>
           )}
-          {mode !== "rescue" && (
+          {mode !== "rescue" && can_rescue && (
             <button
               className="text-sm text-txt-muted hover:underline"
               type="button"

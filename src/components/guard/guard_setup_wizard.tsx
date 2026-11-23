@@ -63,18 +63,28 @@ import {
   GUARD_SCOPE,
   GUARD_SWITCH,
 } from "@/services/api/guard";
-import type { GuardEnrollOutcome } from "@/services/guard/guard_enroll";
+import type {
+  GuardEnrollOutcome,
+  GuardEnrollStep,
+} from "@/services/guard/guard_enroll";
+import { guard_error_text } from "@/components/guard/guard_error_text";
 import { enroll_guard } from "@/services/guard/guard_enroll";
 
 type WizardStep = "intro" | "choose" | "rescue" | "confirm" | "done";
 
 const INTRO_FEATURES: [GuardFeatureKind, TranslationKey, TranslationKey][] = [
   ["approve", "guard.intro_approve_title", "guard.intro_approve_body"],
-  ["hold", "guard.intro_hold_title", "guard.intro_hold_body"],
+  ["hold", "guard.intro_hold_title", "guard.intro_hold_timing_body"],
   ["rescue", "guard.intro_rescue_title", "guard.intro_rescue_body"],
 ];
 
 type WizardMessage = Exclude<GuardEnrollOutcome["kind"], "enabled"> | null;
+
+const PROGRESS_KEYS: Record<GuardEnrollStep, TranslationKey> = {
+  keys: "guard.setup_progress_keys",
+  server: "guard.setup_progress_server",
+  device: "guard.setup_progress_device",
+};
 
 const MESSAGE_KEYS: Record<NonNullable<WizardMessage>, TranslationKey> = {
   already_on: "guard.setup_already_on",
@@ -372,6 +382,11 @@ export function GuardSetupWizard({
   const [typed_group, set_typed_group] = useState("");
   const [busy, set_busy] = useState(false);
   const [message, set_message] = useState<WizardMessage>(null);
+  const [failure, set_failure] = useState<Extract<
+    GuardEnrollOutcome,
+    { kind: "error" }
+  > | null>(null);
+  const [progress, set_progress] = useState<GuardEnrollStep | null>(null);
   const [device, set_device] = useState<GuardDevice | null>(null);
 
   useEffect(() => {
@@ -385,6 +400,8 @@ export function GuardSetupWizard({
     set_saved(false);
     set_typed_group("");
     set_message(null);
+    set_failure(null);
+    set_progress(null);
     set_device(null);
 
     return () => {
@@ -404,6 +421,7 @@ export function GuardSetupWizard({
     if (busy) return;
     set_busy(true);
     set_message(null);
+    set_failure(null);
     try {
       const proof = await step_up.request_proof();
 
@@ -414,6 +432,7 @@ export function GuardSetupWizard({
         hold_scopes: selection.hold_scopes,
         rescue_code,
         proof,
+        on_step: set_progress,
       });
 
       if (outcome.kind === "enabled") {
@@ -424,9 +443,11 @@ export function GuardSetupWizard({
         on_changed();
       } else {
         set_message(outcome.kind);
+        if (outcome.kind === "error") set_failure(outcome);
         if (outcome.kind === "already_on") on_changed();
       }
     } finally {
+      set_progress(null);
       set_busy(false);
     }
   };
@@ -456,6 +477,12 @@ export function GuardSetupWizard({
               <ModalDescription className="mx-2 mt-2 text-[15px] leading-[22px] text-txt-secondary">
                 {t("guard.intro_lead")}
               </ModalDescription>
+              <p
+                className="mx-2 mt-3 text-sm leading-5 text-txt-muted"
+                data-testid="guard_setup_who_for"
+              >
+                {t("guard.setup_who_for")}
+              </p>
               <ul className="mt-8 flex w-full flex-col gap-[22px] text-start">
                 {INTRO_FEATURES.map(([kind, title, body]) => (
                   <li key={kind} className="flex items-start gap-4">
@@ -587,12 +614,30 @@ export function GuardSetupWizard({
                     ))}
                   </Island>
                 </div>
+                <div
+                  className="mb-4 rounded-xl bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300"
+                  data-testid="guard_setup_only_device"
+                >
+                  <p>{t("guard.setup_only_device_warning")}</p>
+                  <p className="mt-1">{t("guard.setup_carry_device_tip")}</p>
+                </div>
+                {busy && progress && (
+                  <p
+                    className="mb-4 text-sm text-txt-secondary"
+                    data-testid="guard_setup_progress"
+                    role="status"
+                  >
+                    {t(PROGRESS_KEYS[progress])}
+                  </p>
+                )}
                 {message && (
                   <p
                     className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
                     role="alert"
                   >
-                    {t(MESSAGE_KEYS[message])}
+                    {message === "error"
+                      ? guard_error_text(t, failure, MESSAGE_KEYS.error)
+                      : t(MESSAGE_KEYS[message])}
                   </p>
                 )}
               </ModalBody>
@@ -611,7 +656,9 @@ export function GuardSetupWizard({
                   variant="depth"
                   onClick={() => void confirm()}
                 >
-                  {t("guard.setup_confirm_button")}
+                  {message === "error"
+                    ? t("guard.setup_retry")
+                    : t("guard.setup_confirm_button")}
                 </Button>
               </ModalFooter>
             </>

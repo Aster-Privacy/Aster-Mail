@@ -27,6 +27,7 @@ import {
 } from "./opaque_wasm";
 
 import { api_client, type ApiResponse } from "@/services/api/client";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 
 const LOGIN_V3_INFO = "aster-login-v3";
 const LOGIN_V3_INPUT_BYTES = 32;
@@ -224,6 +225,7 @@ export async function sign_in_v3<T>(
     const finished = await api_client.post<T>(FINISH_PATH, {
       state_id,
       credential_finalization: array_to_base64(finalization),
+      device_label: default_guard_device_name(),
     });
 
     if (finished.data && !finished.error) pin_login_v3(request.user_hash);

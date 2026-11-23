@@ -231,6 +231,12 @@ export interface GuardDevicePendingInfo {
 
 export type GuardSignInMethod = "approve" | "code" | "rescue";
 
+export const ALL_GUARD_SIGN_IN_METHODS: readonly GuardSignInMethod[] = [
+  "approve",
+  "code",
+  "rescue",
+];
+
 export interface GuardRequiredInfo {
   request_id: string;
   guard_token: string;
@@ -298,7 +304,9 @@ export function parse_guard_required(
   const expires_at = read_string(details, "expires_at");
 
   if (!request_id || !guard_token || !expires_at) return null;
-  const raw_methods = Array.isArray(details?.methods) ? details.methods : [];
+  const raw_methods: unknown[] = Array.isArray(details?.methods)
+    ? details.methods
+    : [...ALL_GUARD_SIGN_IN_METHODS];
   const methods = raw_methods.filter(
     (m): m is GuardSignInMethod =>
       m === "approve" || m === "code" || m === "rescue",

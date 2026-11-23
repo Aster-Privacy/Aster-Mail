@@ -22,6 +22,7 @@ import type { ReauthProof } from "./step_up";
 
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
+import { forget_totp_required, remember_totp_required } from "./step_up_cache";
 import { apply_sign_in_scope } from "@/lib/suspension_state";
 
 export interface TotpSetupInitiateResponse {
@@ -114,10 +115,14 @@ export async function initiate_totp_setup(
 export async function verify_totp_setup(
   request: TotpSetupVerifyRequest,
 ): Promise<ApiResponse<TotpSetupVerifyResponse>> {
-  return api_client.post<TotpSetupVerifyResponse>(
+  const response = await api_client.post<TotpSetupVerifyResponse>(
     "/core/v1/auth/totp/setup/verify",
     request,
   );
+
+  if (response.data) forget_totp_required();
+
+  return response;
 }
 
 export async function verify_totp_login(
@@ -169,16 +174,28 @@ export async function verify_backup_code_login(
 export async function get_totp_status(): Promise<
   ApiResponse<TotpStatusResponse>
 > {
-  return api_client.get<TotpStatusResponse>("/core/v1/auth/totp/status");
+  const response = await api_client.get<TotpStatusResponse>(
+    "/core/v1/auth/totp/status",
+  );
+
+  if (typeof response.data?.enabled === "boolean") {
+    remember_totp_required(response.data.enabled);
+  }
+
+  return response;
 }
 
 export async function disable_totp(
   request: TotpDisableRequest,
 ): Promise<ApiResponse<TotpDisableResponse>> {
-  return api_client.post<TotpDisableResponse>(
+  const response = await api_client.post<TotpDisableResponse>(
     "/core/v1/auth/totp/disable",
     request,
   );
+
+  if (response.data) forget_totp_required();
+
+  return response;
 }
 
 export async function regenerate_backup_codes(

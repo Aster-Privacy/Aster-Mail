@@ -46,12 +46,16 @@ import {
 } from "@/lib/crypto/guard_rescue_code";
 import { use_i18n } from "@/lib/i18n/context";
 import { rotate_guard_rescue_code } from "@/services/api/guard";
+import {
+  guard_error_text,
+  type GuardErrorSource,
+} from "@/components/guard/guard_error_text";
 import { sign_guard_action } from "@/services/guard/sign_action";
 
 type RotateResult =
   | { kind: "applied" }
   | { kind: "held"; apply_after: string }
-  | { kind: "error" }
+  | { kind: "error"; source?: GuardErrorSource }
   | null;
 
 interface GuardRescueRotateDialogProps {
@@ -119,7 +123,7 @@ export function GuardRescueRotateDialog({
       if (response.held) {
         set_result({ kind: "held", apply_after: response.held.apply_after });
       } else if (response.error || response.data?.status !== "applied") {
-        set_result({ kind: "error" });
+        set_result({ kind: "error", source: response });
 
         return;
       } else {
@@ -179,7 +183,11 @@ export function GuardRescueRotateDialog({
                     className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
                     role="alert"
                   >
-                    {t("guard.rescue_rotate_error")}
+                    {guard_error_text(
+                      t,
+                      result.source,
+                      "guard.rescue_rotate_error",
+                    )}
                   </p>
                 )}
               </div>

@@ -221,6 +221,27 @@ afterEach(() => {
 });
 
 describe("GuardSignInController begin", () => {
+  it.each([
+    [429, "GUARD_TOO_MANY_REQUESTS", "on_hold"],
+    [410, "GUARD_REQUEST_GONE", "expired"],
+    [500, undefined, "error"],
+  ] as const)(
+    "ends a %s begin failure as %s",
+    async (status, server_code, phase) => {
+      const { controller } = make();
+
+      mock(api.guard_sign_in_begin).mockResolvedValue({
+        error: "failed",
+        status,
+        server_code,
+      });
+      controller.start();
+      await flush();
+      expect(controller.get_state().phase).toBe(phase);
+      controller.stop();
+    },
+  );
+
   it("sends the device keys, envelope versions and number hash", async () => {
     const { controller } = make();
 
@@ -749,7 +770,7 @@ describe("GuardSignInController codes", () => {
 
     expect(ok).toBe(false);
     expect(api.guard_sign_in_rescue).not.toHaveBeenCalled();
-    expect(controller.get_state().rescue_error).toBe(true);
+    expect(controller.get_state().rescue_error).toBe("invalid");
     controller.stop();
   });
 

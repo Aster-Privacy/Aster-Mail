@@ -74,7 +74,10 @@ describe("login_user with the newer sign-in", () => {
     await login_user(request as never);
 
     expect(sign_in_v3).not.toHaveBeenCalled();
-    expect(post).toHaveBeenCalledWith("/core/v1/auth/login", request);
+    expect(post).toHaveBeenCalledWith("/core/v1/auth/login", {
+      ...request,
+      device_label: expect.any(String),
+    });
   });
 
   it("uses the newer sign-in when the account is enrolled", async () => {
@@ -97,7 +100,10 @@ describe("login_user with the newer sign-in", () => {
 
     const response = await login_user(request as never);
 
-    expect(post).toHaveBeenCalledWith("/core/v1/auth/login", request);
+    expect(post).toHaveBeenCalledWith("/core/v1/auth/login", {
+      ...request,
+      device_label: expect.any(String),
+    });
     expect(response.data).toMatchObject({ user_id: "user" });
     expect(set_authenticated).toHaveBeenCalledWith(true);
   });

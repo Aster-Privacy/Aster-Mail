@@ -45,7 +45,7 @@ import {
   sign_possession,
   store_sealed_code_secret,
 } from "@/services/guard/guard_enroll";
-import { default_guard_device_name } from "@/services/guard/guard_sign_in";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 
 export const GUARD_JOIN_KEY_PREFIX = "guard_join:";
 
@@ -76,13 +76,39 @@ export interface GuardJoinPending {
   expires_at: string;
 }
 
+export interface GuardJoinFailure {
+  kind: "error";
+  server_code?: string;
+  code?: string;
+  status?: number;
+  retry_after_secs?: number;
+  details?: unknown;
+}
+
 export type GuardJoinStart =
   | { kind: "pending"; join: GuardJoinPending }
-  | { kind: "error" };
+  | GuardJoinFailure;
 
 export type GuardJoinFinish =
   | { kind: "joined"; device: GuardDevice }
-  | { kind: "error" };
+  | GuardJoinFailure;
+
+function join_failure(response: {
+  server_code?: string;
+  code?: string;
+  status?: number;
+  retry_after_secs?: number;
+  details?: unknown;
+}): GuardJoinFailure {
+  return {
+    kind: "error",
+    server_code: response.server_code,
+    code: response.code,
+    status: response.status,
+    retry_after_secs: response.retry_after_secs,
+    details: response.details,
+  };
+}
 
 function join_key(user_id: string): string {
   return `${GUARD_JOIN_KEY_PREFIX}${user_id}`;
@@ -103,7 +129,7 @@ export async function start_guard_join(
     if (nonce.error || !nonce.data) {
       await discard();
 
-      return { kind: "error" };
+      return join_failure(nonce);
     }
 
     const pub = await device.public_keys();
@@ -126,7 +152,7 @@ export async function start_guard_join(
     if (response.error || !response.data) {
       await discard();
 
-      return { kind: "error" };
+      return join_failure(response);
     }
 
     return {
@@ -162,7 +188,7 @@ export async function finish_guard_join(
   const key = join_key(join.user_id);
   const response = await guard_join_complete({ request_id: join.request_id });
 
-  if (response.error || !response.data) return { kind: "error" };
+  if (response.error || !response.data) return join_failure(response);
 
   try {
     await deps.rekey_device(key, join.user_id);

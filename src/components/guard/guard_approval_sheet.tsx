@@ -21,10 +21,11 @@
 import type { GuardDevice } from "@/services/guard/guard_device";
 import type {
   GuardApproveOutcome,
+  GuardFailure,
   GuardRequestView,
 } from "@/services/guard/guard_approval";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ClockIcon,
@@ -53,11 +54,9 @@ import {
   GuardResultView,
   use_guard_now,
 } from "@/components/guard/guard_visuals";
+import { guard_error_text } from "@/components/guard/guard_error_text";
 import { format_guard_time } from "@/components/guard/guard_waiting_screen";
-import {
-  GUARD_REQUESTS_REFRESH_EVENT,
-  use_guard_requests,
-} from "@/components/guard/use_guard_requests";
+import { use_guard_requests } from "@/components/guard/use_guard_requests";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -85,7 +84,9 @@ import {
   deny_guard_sign_in,
 } from "@/services/guard/guard_approval";
 import {
+  close_guard_notifications,
   on_guard_event,
+  request_guard_requests_refresh,
   set_guard_event_account,
   start_guard_event_bridge,
 } from "@/services/guard/guard_events";
@@ -107,6 +108,21 @@ const MESSAGE_KEYS = {
   keys_changed: "guard.approve_keys_changed",
   error: "guard.approve_error",
 } as const;
+
+const UNKNOWN_VALUES = new Set([
+  "",
+  "unknown",
+  "unknown device",
+  "other",
+  "none",
+  "null",
+]);
+
+export function known_guard_value(value: string | null | undefined): string {
+  const trimmed = (value ?? "").trim();
+
+  return UNKNOWN_VALUES.has(trimmed.toLowerCase()) ? "" : trimmed;
+}
 
 export function clean_guard_number_input(value: string): string {
   return value.replace(/\D/g, "").slice(0, 2);
@@ -130,6 +146,7 @@ function ContextDetails({
 }) {
   const { t } = use_i18n();
   const context = view.context;
+  const named = known_guard_value(view.summary.new_device?.name);
 
   if (!context) {
     return (
@@ -141,17 +158,28 @@ function ContextDetails({
         <GuardDetailRow
           icon={<QuestionMarkCircleIcon />}
           label={t("guard.approve_device_label")}
-          primary={t("guard.approve_unknown_device")}
+          primary={named || t("guard.approve_unknown_device")}
         />
       </dl>
     );
   }
 
+  const browser = known_guard_value(context.browser);
+  const os = known_guard_value(context.os);
+  const device_name = known_guard_value(context.device_name);
   const device =
-    context.browser && context.os
-      ? t("guard.approve_device", { browser: context.browser, os: context.os })
-      : context.browser || context.os || t("guard.approve_unknown_device");
-  const place = [context.city, context.country].filter(Boolean).join(", ");
+    browser && os
+      ? t("guard.approve_device", { browser, os })
+      : browser || os || t("guard.approve_unknown_device");
+  const device_label = device_name || named;
+  const device_label_text =
+    device_label && device_label !== device
+      ? t("guard.approve_device_named", { name: device_label })
+      : "";
+  const country = known_guard_value(context.country);
+  const place = [known_guard_value(context.city), country]
+    .filter(Boolean)
+    .join(", ");
   const requested_at = context.requested_at || view.summary.created_at;
   const time = format_guard_time(requested_at);
 
@@ -162,27 +190,29 @@ function ContextDetails({
       data-testid="guard_request_context"
     >
       <GuardDetailRow
-        icon={<GuardOsIcon device_type={context.device_type} os={context.os} />}
+        icon={<GuardOsIcon device_type={context.device_type} os={os} />}
         label={t("guard.approve_device_label")}
         primary={
           <>
-            {context.browser && <GuardBrowserIcon browser={context.browser} />}
+            {browser && <GuardBrowserIcon browser={browser} />}
             <span className="truncate">{device}</span>
           </>
         }
+        secondary={device_label_text || undefined}
+        test_id="guard_request_device"
       />
-      <GuardDetailRow
-        icon={<MapPinIcon />}
-        label={t("guard.approve_location_label")}
-        primary={
-          <>
-            {place && <GuardFlag code={context.country_code} />}
-            <span className="truncate">
-              {place || t("guard.approve_unknown_location")}
-            </span>
-          </>
-        }
-      />
+      {place && (
+        <GuardDetailRow
+          icon={<MapPinIcon />}
+          label={t("guard.approve_location_label")}
+          primary={
+            <>
+              {country && <GuardFlag code={context.country_code} />}
+              <span className="truncate">{place}</span>
+            </>
+          }
+        />
+      )}
       {time && (
         <GuardDetailRow
           icon={<ClockIcon />}
@@ -290,11 +320,16 @@ export function GuardApprovalSheet({
   const now = use_guard_now();
   const [number, set_number] = useState("");
   const [message, set_message] = useState<SheetMessage>(null);
+  const [failure, set_failure] = useState<GuardFailure | null>(null);
   const [busy, set_busy] = useState<"approve" | "deny" | null>(null);
   const [result, set_result] = useState<"approved" | "denied" | null>(null);
   const [shake, set_shake] = useState(0);
   const [ended, set_ended] = useState(false);
   const request_id = view.summary.id;
+
+  useEffect(() => {
+    void close_guard_notifications(request_id, user_id);
+  }, [request_id, user_id]);
 
   useEffect(() => {
     if (result || ended) on_settled?.(view);
@@ -352,6 +387,7 @@ export function GuardApprovalSheet({
       case "canceled":
         return;
       default:
+        set_failure(outcome);
         set_message("error");
     }
   };
@@ -405,6 +441,7 @@ export function GuardApprovalSheet({
         show_toast(t("guard.approve_request_ended"), "info");
         on_done(request_id);
       } else {
+        set_failure(outcome);
         set_message("error");
       }
     } finally {
@@ -492,7 +529,9 @@ export function GuardApprovalSheet({
                       className="rounded-xl bg-red-500/10 px-3 py-2 text-center text-sm text-red-600 dark:text-red-400"
                       role="alert"
                     >
-                      {t(MESSAGE_KEYS[message])}
+                      {message === "error"
+                        ? guard_error_text(t, failure, MESSAGE_KEYS.error)
+                        : t(MESSAGE_KEYS[message])}
                     </p>
                   )}
                 </div>
@@ -551,6 +590,12 @@ const REFRESH_EVENTS = new Set([
   "panic",
 ]);
 
+const ENDED_EVENTS = new Set<string>([
+  "sign_in_approved",
+  "sign_in_denied",
+  "sign_in_expired",
+]);
+
 export function GuardApprovalHost({
   show_rescue_banner = false,
 }: {
@@ -561,9 +606,13 @@ export function GuardApprovalHost({
   const user_id = user?.id ?? null;
   const { requests, device, dismiss } = use_guard_requests(user_id);
   const [settled, set_settled] = useState<GuardRequestView | null>(null);
-  const [switch_target, set_switch_target] = useState<string | null>(null);
+  const [switch_target, set_switch_target] = useState<{
+    account_id: string;
+    request_id: string;
+  } | null>(null);
+  const prompted_ref = useRef(new Set<string>());
   const switch_account = switch_target
-    ? accounts.find((account) => account.id === switch_target)
+    ? accounts.find((account) => account.id === switch_target.account_id)
     : undefined;
 
   useEffect(() => {
@@ -576,14 +625,25 @@ export function GuardApprovalHost({
     const stop_listening = on_guard_event((event) => {
       if (event.account_id !== user_id) {
         if (event.event === "sign_in_request") {
-          set_switch_target(event.account_id);
+          if (prompted_ref.current.has(event.id)) return;
+          prompted_ref.current.add(event.id);
+          set_switch_target({
+            account_id: event.account_id,
+            request_id: event.id,
+          });
+        } else if (ENDED_EVENTS.has(event.event)) {
+          prompted_ref.current.add(event.id);
+          set_switch_target((target) =>
+            target && target.request_id === event.id ? null : target,
+          );
         }
 
         return;
       }
-      if (REFRESH_EVENTS.has(event.event)) {
-        window.dispatchEvent(new CustomEvent(GUARD_REQUESTS_REFRESH_EVENT));
+      if (ENDED_EVENTS.has(event.event)) {
+        void close_guard_notifications(event.id, event.account_id);
       }
+      if (REFRESH_EVENTS.has(event.event)) request_guard_requests_refresh();
     });
 
     return () => {
@@ -603,15 +663,18 @@ export function GuardApprovalHost({
     (request_id: string) => {
       set_settled(null);
       dismiss(request_id);
+      if (user_id) void close_guard_notifications(request_id, user_id);
     },
-    [dismiss],
+    [dismiss, user_id],
   );
 
   const confirm_switch = () => {
     const target = switch_target;
 
     set_switch_target(null);
-    if (target) void switch_to_account(target).catch(() => undefined);
+    if (target) {
+      void switch_to_account(target.account_id).catch(() => undefined);
+    }
   };
 
   return (
