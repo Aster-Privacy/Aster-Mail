@@ -7454,6 +7454,14 @@ export const fr = {
     vacation_reply_setup: "Configurer la réponse d'absence",
     show_badges_in_signature: "Afficher les badges dans les e-mails",
     import_how_it_works: "Comment ça marche",
+    regroup_conversations_title: "Conversations",
+    regroup_conversations_label: "Regrouper les conversations importées",
+    regroup_conversations_description:
+      "Si des réponses issues de messages importés apparaissent comme des messages séparés, Aster vérifie de nouveau vos messages et regroupe chaque réponse avec sa conversation.",
+    regroup_conversations_button: "Regrouper",
+    regroup_conversations_done: "Vos conversations sont à jour.",
+    regroup_conversations_failed:
+      "Impossible de regrouper vos conversations. Réessayez dans un instant.",
     import_oauth_title: "Connecter un compte",
     import_labels_title: "Messages avec plusieurs libellés",
     import_labels_description:
@@ -13021,6 +13029,8 @@ export const fr = {
     connected_accounts_title: "Comptes connectés, comptes liés, boîte aux lettres externe",
     recent_imports: "Imports récents, historique des imports, imports précédents, état de l'import",
     import_how_it_works: "Comment ça marche, aide à l'import, fonctionnement de l'import",
+    regroup_conversations_title: "regrouper, conversations, fils, regrouper les réponses",
+    regroup_conversations_label: "regrouper, fusionner les conversations, e-mails importés",
     mail_rules_title: "Règles de messagerie, filtres, règles, organiser, automatisation",
     notifications: "Notifications, alertes, avertir",
     desktop: "Bureau, notifications de bureau, notifications du navigateur, alertes système",

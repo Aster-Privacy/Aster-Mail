@@ -6191,6 +6191,15 @@ export const it = {
     show_badges_in_signature_description:
       "Mostra i tuoi badge nell'area della firma delle email in uscita.",
     import_how_it_works: "Come funziona",
+    regroup_conversations_title: "Conversazioni",
+    regroup_conversations_label:
+      "Raggruppa di nuovo le conversazioni importate",
+    regroup_conversations_description:
+      "Se le risposte della posta importata appaiono come messaggi separati, Aster controlla di nuovo la tua posta e raggruppa ogni risposta con la sua conversazione.",
+    regroup_conversations_button: "Raggruppa",
+    regroup_conversations_done: "Le tue conversazioni sono aggiornate.",
+    regroup_conversations_failed:
+      "Impossibile raggruppare le conversazioni. Riprova tra un momento.",
     import_oauth_title: "Collega un account",
     import_oauth_description:
       "Collega un account per importare tutta la sua posta, compresi i messaggi archiviati, quelli inviati e le etichette. Gmail si collega con una password per le app, Outlook con l’accesso al tuo account. L’importazione di caselle di grandi dimensioni può richiedere alcuni giorni.",
@@ -12944,6 +12953,8 @@ export const it = {
     connected_accounts_title: "account collegati, account connessi, casella esterna",
     recent_imports: "importazioni recenti, cronologia importazioni, importazioni precedenti, stato importazione",
     import_how_it_works: "come funziona, aiuto importazione, come funziona l'importazione",
+    regroup_conversations_title: "raggruppa, conversazioni, thread, raggruppa risposte",
+    regroup_conversations_label: "raggruppa, unisci conversazioni, correggi thread, posta importata",
     mail_rules_title: "regole posta, filtri, regole, organizza, automazione",
     notifications: "notifiche, avvisi, notifica",
     desktop: "desktop, notifiche desktop, notifiche del browser, avvisi di sistema",

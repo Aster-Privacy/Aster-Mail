@@ -384,6 +384,8 @@ export interface SettingsKeywordsTranslations {
   connected_accounts_title: string;
   recent_imports: string;
   import_how_it_works: string;
+  regroup_conversations_title: string;
+  regroup_conversations_label: string;
   mail_rules_title: string;
   notifications: string;
   desktop: string;
@@ -7098,6 +7100,12 @@ export interface SettingsTranslations {
   import_emails_description: string;
   import_emails_button: string;
   import_how_it_works: string;
+  regroup_conversations_title: string;
+  regroup_conversations_label: string;
+  regroup_conversations_description: string;
+  regroup_conversations_button: string;
+  regroup_conversations_done: string;
+  regroup_conversations_failed: string;
   import_oauth_title: string;
   import_oauth_description: string;
   import_labels_title: string;

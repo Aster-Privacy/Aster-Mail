@@ -7872,6 +7872,14 @@ export const en: Translations = {
       "Bring your emails from Gmail, Outlook, or other email services. Files you upload are encrypted on your device, and mail from a connected account is encrypted by Aster's servers before it's stored.",
     import_emails_button: "Import Emails",
     import_how_it_works: "How It Works",
+    regroup_conversations_title: "Conversations",
+    regroup_conversations_label: "Regroup imported conversations",
+    regroup_conversations_description:
+      "If replies from imported mail appear as separate messages, Aster checks your mail again and groups each reply with its conversation.",
+    regroup_conversations_button: "Regroup",
+    regroup_conversations_done: "Your conversations are up to date.",
+    regroup_conversations_failed:
+      "Couldn't regroup your conversations. Try again in a moment.",
     import_oauth_title: "Connect an account",
     import_oauth_description:
       "Connect an account to import all of its mail, including archived mail, sent mail, and labels. Gmail connects with an app password, and Outlook connects when you sign in to your account. Large mailboxes can take a few days to finish.",
@@ -12588,6 +12596,8 @@ export const en: Translations = {
     connected_accounts_title: "connected accounts, linked accounts, external mailbox",
     recent_imports: "import history, past imports, import status",
     import_how_it_works: "import help, how import works",
+    regroup_conversations_title: "regroup, conversations, threads, group replies",
+    regroup_conversations_label: "regroup, merge conversations, fix threads, imported mail",
     mail_rules_title: "filters, rules, mail rules, organize, automation",
     notifications: "notifications, alerts, notify",
     desktop: "desktop notifications, browser notifications, system alerts",

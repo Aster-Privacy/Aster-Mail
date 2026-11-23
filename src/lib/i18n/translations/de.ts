@@ -7733,6 +7733,15 @@ export const de = {
     spam_delete_hint:
       "Spam-E-Mails, die älter als dieser Zeitraum sind, werden dauerhaft gelöscht",
     import_how_it_works: "So funktioniert es",
+    regroup_conversations_title: "Konversationen",
+    regroup_conversations_label: "Importierte Konversationen neu gruppieren",
+    regroup_conversations_description:
+      "Wenn Antworten aus importierten E-Mails als einzelne Nachrichten erscheinen, prüft Aster Ihre E-Mails erneut und ordnet jede Antwort ihrer Konversation zu.",
+    regroup_conversations_button: "Neu gruppieren",
+    regroup_conversations_done:
+      "Ihre Konversationen sind auf dem neuesten Stand.",
+    regroup_conversations_failed:
+      "Ihre Konversationen konnten nicht neu gruppiert werden. Versuchen Sie es gleich noch einmal.",
     import_oauth_title: "Konto verbinden",
     import_oauth_description:
       "Verbinden Sie ein Konto, um alle E-Mails daraus zu importieren, einschließlich archivierter und gesendeter Nachrichten sowie Labels. Gmail wird mit einem App-Passwort verbunden, Outlook über Ihre Kontoanmeldung. Bei großen Postfächern kann der Import einige Tage dauern.",
@@ -13036,6 +13045,8 @@ export const de = {
     connected_accounts_title: "Verbundene Konten, verknüpfte Konten, externes Postfach",
     recent_imports: "Letzte Importe, Importverlauf, frühere Importe, Importstatus",
     import_how_it_works: "So funktioniert es, Hilfe zum Import, wie der Import funktioniert",
+    regroup_conversations_title: "neu gruppieren, Konversationen, Verläufe, Antworten gruppieren",
+    regroup_conversations_label: "neu gruppieren, Konversationen zusammenführen, importierte E-Mails",
     mail_rules_title: "Mail-Regeln, Filter, Regeln, E-Mail-Regeln, organisieren, Automatisierung",
     notifications: "Benachrichtigungen, Hinweise, Mitteilungen, benachrichtigen",
     desktop: "Desktop, Desktop-Benachrichtigungen, Browser-Benachrichtigungen, Systemhinweise",

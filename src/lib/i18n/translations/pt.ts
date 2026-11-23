@@ -7429,6 +7429,14 @@ export const pt = {
     vacation_reply_setup: "Configurar resposta de férias",
     show_badges_in_signature: "Mostrar medalhas nos e-mails",
     import_how_it_works: "Como funciona",
+    regroup_conversations_title: "Conversas",
+    regroup_conversations_label: "Reagrupar conversas importadas",
+    regroup_conversations_description:
+      "Se as respostas do correio importado aparecerem como mensagens separadas, o Aster verifica novamente o seu correio e junta cada resposta à respetiva conversa.",
+    regroup_conversations_button: "Reagrupar",
+    regroup_conversations_done: "As suas conversas estão atualizadas.",
+    regroup_conversations_failed:
+      "Não foi possível reagrupar as suas conversas. Tente novamente daqui a pouco.",
     import_oauth_title: "Ligar uma conta",
     import_labels_title: "Mensagens com várias etiquetas",
     import_labels_description:
@@ -12990,6 +12998,8 @@ export const pt = {
     connected_accounts_title: "contas ligadas, contas associadas, caixa de correio externa",
     recent_imports: "importações recentes, histórico de importações, importações anteriores, estado da importação",
     import_how_it_works: "como funciona, ajuda com a importação, como funciona a importação",
+    regroup_conversations_title: "reagrupar, conversas, tópicos, agrupar respostas",
+    regroup_conversations_label: "reagrupar, juntar conversas, corrigir tópicos, e-mails importados",
     mail_rules_title: "regras de correio, filtros, regras, organizar, automatização",
     notifications: "notificações, alertas, notificar",
     desktop: "computador, notificações no computador, notificações do navegador, alertas do sistema",

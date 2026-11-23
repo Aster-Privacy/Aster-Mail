@@ -7963,6 +7963,14 @@ export const pl = {
     show_badges_in_signature_description:
       "Wyświetlaj swoje odznaki w obszarze podpisu w wychodzących e-mailach.",
     import_how_it_works: "Jak to działa",
+    regroup_conversations_title: "Wątki",
+    regroup_conversations_label: "Pogrupuj ponownie zaimportowane wątki",
+    regroup_conversations_description:
+      "Jeśli odpowiedzi z zaimportowanej poczty pojawiają się jako osobne wiadomości, Aster ponownie sprawdza pocztę i łączy każdą odpowiedź z jej wątkiem.",
+    regroup_conversations_button: "Pogrupuj ponownie",
+    regroup_conversations_done: "Wątki są aktualne.",
+    regroup_conversations_failed:
+      "Nie udało się ponownie pogrupować wątków. Spróbuj ponownie za chwilę.",
     import_oauth_title: "Połącz konto",
     import_oauth_description:
       "Połącz konto, aby zaimportować całą jego pocztę, w tym wiadomości zarchiwizowane, wysłane i etykiety. Gmail łączy się za pomocą hasła do aplikacji, a Outlook przez zalogowanie na konto. Import dużych skrzynek może potrwać kilka dni.",
@@ -13113,6 +13121,8 @@ export const pl = {
     connected_accounts_title: "połączone konta, powiązane konta, zewnętrzna skrzynka",
     recent_imports: "historia importu, wcześniejsze importy, status importu",
     import_how_it_works: "pomoc importu, jak działa import",
+    regroup_conversations_title: "pogrupuj ponownie, konwersacje, wątki, grupuj odpowiedzi",
+    regroup_conversations_label: "pogrupuj ponownie, scal konwersacje, zaimportowana poczta",
     mail_rules_title: "filtry, reguły, reguły poczty, porządkowanie, automatyzacja",
     notifications: "powiadomienia, alerty, powiadamiaj",
     desktop: "powiadomienia na pulpicie, powiadomienia przeglądarki, alerty systemowe",

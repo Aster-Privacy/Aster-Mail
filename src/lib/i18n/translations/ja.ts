@@ -7630,6 +7630,13 @@ export const ja = {
     show_badges_in_signature_description:
       "送信メールの署名エリアにバッジを表示します。",
     import_how_it_works: "使い方",
+    regroup_conversations_title: "スレッド",
+    regroup_conversations_label: "インポートしたスレッドをまとめ直す",
+    regroup_conversations_description:
+      "インポートしたメールの返信が別々のメッセージとして表示される場合、Aster がメールを再確認し、各返信を元のスレッドにまとめます。",
+    regroup_conversations_button: "まとめ直す",
+    regroup_conversations_done: "スレッドは最新の状態です。",
+    regroup_conversations_failed: "スレッドをまとめ直せませんでした。しばらくしてからもう一度お試しください。",
     import_oauth_title: "アカウントを接続",
     import_oauth_description:
       "アカウントを接続すると、アーカイブ済みのメール、送信済みのメール、ラベルを含むすべてのメールをインポートできます。Gmail はアプリパスワードで、Outlook はアカウントへのログインで接続します。メールボックスが大きい場合は、完了まで数日かかることがあります。",
@@ -12599,6 +12606,8 @@ export const ja = {
     connected_accounts_title: "接続済みアカウント, 連携アカウント, リンクされたアカウント, 外部メールボックス",
     recent_imports: "最近のインポート, インポート履歴, 過去のインポート, インポートの状況",
     import_how_it_works: "仕組み, インポートのヘルプ, インポートの方法",
+    regroup_conversations_title: "再グループ化, スレッド, 会話, 返信をまとめる",
+    regroup_conversations_label: "再グループ化, 会話を結合, スレッドを修正, インポートしたメール",
     mail_rules_title: "メールルール, フィルタ, ルール, 振り分け, 整理, 自動化",
     notifications: "通知, アラート, お知らせ",
     desktop: "デスクトップ, デスクトップ通知, ブラウザ通知, システム通知",

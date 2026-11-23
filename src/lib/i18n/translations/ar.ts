@@ -7749,6 +7749,14 @@ export const ar = {
     show_badges_in_signature_description:
       "عرض شاراتك في منطقة التوقيع في الرسائل الصادرة.",
     import_how_it_works: "كيف يعمل",
+    regroup_conversations_title: "المحادثات",
+    regroup_conversations_label: "إعادة تجميع المحادثات المستوردة",
+    regroup_conversations_description:
+      "إذا ظهرت الردود من البريد المستورد كرسائل منفصلة، يفحص Aster بريدك مرة أخرى ويضم كل رد إلى محادثته.",
+    regroup_conversations_button: "إعادة التجميع",
+    regroup_conversations_done: "محادثاتك محدّثة.",
+    regroup_conversations_failed:
+      "تعذّر إعادة تجميع محادثاتك. حاول مرة أخرى بعد قليل.",
     import_oauth_title: "ربط حساب",
     import_oauth_description:
       "اربط حسابًا لاستيراد كل بريده، بما في ذلك الرسائل المؤرشفة والمرسلة والتصنيفات. يتصل Gmail باستخدام كلمة مرور تطبيق، ويتصل Outlook عند تسجيل الدخول إلى حسابك. قد يستغرق استيراد صناديق البريد الكبيرة بضعة أيام.",
@@ -12627,6 +12635,8 @@ export const ar = {
     connected_accounts_title: "الحسابات المتصلة, الحسابات المرتبطة, صندوق بريد خارجي",
     recent_imports: "عمليات الاستيراد الأخيرة, سجل الاستيراد, حالة الاستيراد",
     import_how_it_works: "كيف يعمل, مساعدة الاستيراد, كيف يعمل الاستيراد",
+    regroup_conversations_title: "إعادة التجميع، المحادثات، سلاسل الرسائل، تجميع الردود",
+    regroup_conversations_label: "إعادة التجميع، دمج المحادثات، إصلاح السلاسل، البريد المستورد",
     mail_rules_title: "قواعد البريد, فلاتر, القواعد, تنظيم, أتمتة",
     notifications: "الإشعارات, التنبيهات, إشعار",
     desktop: "سطح المكتب, إشعارات سطح المكتب, إشعارات المتصفح, تنبيهات النظام",
