@@ -129,6 +129,7 @@ vi.mock("@/services/category_index", () => ({
 }));
 
 import { use_category_inbox } from "@/hooks/use_category_inbox";
+import { clear_category_row_cache } from "@/hooks/email_list_helpers/row_store";
 
 interface SeenState {
   is_loading: boolean;
@@ -197,6 +198,7 @@ const SERVER_ROWS = [row("id1", "server one"), row("id2", "server two")];
 
 describe("use_category_inbox snapshot first paint", () => {
   beforeEach(() => {
+    clear_category_row_cache();
     (
       globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;

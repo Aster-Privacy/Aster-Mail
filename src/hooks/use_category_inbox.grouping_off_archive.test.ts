@@ -160,6 +160,7 @@ vi.mock("@/services/category_index", () => ({
 }));
 
 import { use_category_inbox } from "@/hooks/use_category_inbox";
+import { clear_category_row_cache } from "@/hooks/email_list_helpers/row_store";
 
 type HookResult = ReturnType<typeof use_category_inbox>;
 
@@ -208,6 +209,7 @@ async function archive_first_message(): Promise<void> {
 
 describe("use_category_inbox archive follows conversation grouping", () => {
   beforeEach(() => {
+    clear_category_row_cache();
     (
       globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
