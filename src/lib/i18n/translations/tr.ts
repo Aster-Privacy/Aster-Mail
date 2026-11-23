@@ -6490,6 +6490,7 @@ export const tr = {
     swipe_left: "Sola kaydır",
     swipe_right: "Sağa kaydır",
     swipe_none: "Yok",
+    swipe_toggle_read: "Okundu veya okunmadı olarak işaretle",
     swipe_actions_description:
       "E-postalarda sola veya sağa kaydırdığınızda ne olacağını seçin.",
     badges_title: "Rozetler",

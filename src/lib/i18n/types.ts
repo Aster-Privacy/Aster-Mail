@@ -7291,6 +7291,7 @@ export interface SettingsTranslations {
   swipe_left: string;
   swipe_right: string;
   swipe_none: string;
+  swipe_toggle_read: string;
   swipe_actions_description: string;
   feature_locked: string;
   available_on_plan: string;

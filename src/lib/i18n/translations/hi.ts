@@ -8155,6 +8155,7 @@ export const hi = {
     swipe_left: "बाएं स्वाइप",
     swipe_right: "दाएं स्वाइप",
     swipe_none: "कोई नहीं",
+    swipe_toggle_read: "पढ़ा हुआ या बिना पढ़ा चिह्नित करें",
     swipe_actions_description:
       "चुनें कि ईमेल पर बाएं या दाएं स्वाइप करने पर क्या हो।",
     feature_locked:

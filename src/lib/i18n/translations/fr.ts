@@ -6650,6 +6650,7 @@ export const fr = {
     swipe_left: "Balayer à gauche",
     swipe_right: "Balayer à droite",
     swipe_none: "Aucun",
+    swipe_toggle_read: "Marquer comme lu ou non lu",
     swipe_actions_description:
       "Choisissez ce qui se passe quand vous balayez un e-mail vers la gauche ou la droite.",
     badges_title: "Badges",

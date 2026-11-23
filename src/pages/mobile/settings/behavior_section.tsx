@@ -1187,7 +1187,7 @@ export function BehaviorSection({
                     )}
                     <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                       {def
-                        ? t(def.label_key as "mail.archive")
+                        ? t((def.settings_label_key ?? def.label_key) as "mail.archive")
                         : t("settings.swipe_none")}
                     </span>
                     {preferences.swipe_left_action === id && (
@@ -1221,7 +1221,7 @@ export function BehaviorSection({
                     )}
                     <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                       {def
-                        ? t(def.label_key as "mail.archive")
+                        ? t((def.settings_label_key ?? def.label_key) as "mail.archive")
                         : t("settings.swipe_none")}
                     </span>
                     {preferences.swipe_right_action === id && (

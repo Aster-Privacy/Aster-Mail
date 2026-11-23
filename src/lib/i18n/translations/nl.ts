@@ -6430,6 +6430,7 @@ export const nl = {
     swipe_left: "Veeg naar links",
     swipe_right: "Veeg naar rechts",
     swipe_none: "Geen",
+    swipe_toggle_read: "Als gelezen of ongelezen markeren",
     swipe_actions_description:
       "Kies wat er gebeurt als je naar links of rechts veegt op e-mails.",
     badges_title: "Badges",

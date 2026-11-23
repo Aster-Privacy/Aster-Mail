@@ -6579,6 +6579,7 @@ export const ar = {
     swipe_left: "سحب لليسار",
     swipe_right: "سحب لليمين",
     swipe_none: "بدون",
+    swipe_toggle_read: "تعليم كمقروء أو غير مقروء",
     swipe_actions_description:
       "اختر ما يحدث عند السحب يسارًا أو يمينًا على الرسائل.",
     badges_title: "الشارات",

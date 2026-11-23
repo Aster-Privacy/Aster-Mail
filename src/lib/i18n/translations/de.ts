@@ -6435,6 +6435,7 @@ export const de = {
     swipe_left: "Nach links wischen",
     swipe_right: "Nach rechts wischen",
     swipe_none: "Keine",
+    swipe_toggle_read: "Als gelesen oder ungelesen markieren",
     swipe_actions_description:
       "Wählen Sie, was passiert, wenn Sie E-Mails nach links oder rechts wischen.",
     badges_title: "Abzeichen",

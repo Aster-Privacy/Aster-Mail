@@ -6457,6 +6457,7 @@ export const ja = {
     swipe_left: "左にスワイプ",
     swipe_right: "右にスワイプ",
     swipe_none: "なし",
+    swipe_toggle_read: "既読または未読にする",
     swipe_actions_description:
       "メールを左右にスワイプしたときの動作を選択します。",
     badges_title: "バッジ",

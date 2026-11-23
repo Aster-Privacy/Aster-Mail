@@ -6735,6 +6735,7 @@ export const pl = {
     swipe_left: "Przesuń w lewo",
     swipe_right: "Przesuń w prawo",
     swipe_none: "Brak",
+    swipe_toggle_read: "Oznacz jako przeczytane lub nieprzeczytane",
     swipe_actions_description:
       "Wybierz, co się stanie po przesunięciu e-maila w lewo lub w prawo.",
     badges_title: "Odznaki",

@@ -43,6 +43,7 @@ export type SwipeActionId =
 export interface SwipeActionDefinition {
   id: SwipeActionId;
   label_key: TranslationKey;
+  settings_label_key?: TranslationKey;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   color: string;
 }
@@ -63,6 +64,7 @@ const SWIPE_ACTION_REGISTRY: Record<string, SwipeActionDefinition> = {
   toggle_read: {
     id: "toggle_read",
     label_key: "mail.mark_read",
+    settings_label_key: "settings.swipe_toggle_read",
     icon: EnvelopeOpenIcon,
     color: "#6366f1",
   },

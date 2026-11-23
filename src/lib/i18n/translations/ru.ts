@@ -6699,6 +6699,7 @@ export const ru = {
     swipe_left: "Свайп влево",
     swipe_right: "Свайп вправо",
     swipe_none: "Нет",
+    swipe_toggle_read: "Отметить как прочитанное или непрочитанное",
     swipe_actions_description:
       "Выберите, что происходит при свайпе влево или вправо по письмам.",
     badges_title: "Значки",
