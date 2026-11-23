@@ -3138,12 +3138,9 @@ export const nl = {
       "Post naar deze alias krijgt automatisch een label, zonder regel. Het label komt bovenop de doelmap.",
     alias_delivery_label_none: "Geen label",
     alias_delivery_label_missing: "Verwijderd label",
-    alias_apply_existing: "Toepassen op bestaande e-mail",
+    alias_apply_existing: "Uitvoeren op bestaande e-mail",
     alias_apply_existing_desc:
       "Verplaats e-mail die dit alias al heeft ontvangen naar de map en het label die je hebt gekozen.",
-    alias_apply_existing_info:
-      "Hiermee pas je de bezorgmap en het label hierboven toe op e-mail die al in je account staat. Dit gebeurt op de achtergrond, en je e-mailregels worden niet opnieuw uitgevoerd.",
-    alias_apply_existing_action: "Nu toepassen",
     alias_apply_existing_cancel: "Stoppen",
     alias_apply_existing_started:
       "Je bezorginstellingen worden toegepast op bestaande e-mail. Dit gebeurt op de achtergrond.",
@@ -3163,6 +3160,12 @@ export const nl = {
       "Toepassen op bestaande e-mail is mislukt. Probeer het opnieuw.",
     alias_apply_existing_unavailable:
       "E-mail die al in je account staat, kan niet naar Spam worden verplaatst.",
+    alias_apply_existing_confirm_folder_label:
+      "E-mail die deze alias al heeft ontvangen, wordt verplaatst naar {{folder}} en krijgt het label {{label}}. E-mail in de prullenbak en spam blijft waar hij is.",
+    alias_apply_existing_confirm_folder:
+      "E-mail die deze alias al heeft ontvangen, wordt verplaatst naar {{folder}}. E-mail in de prullenbak en spam blijft waar hij is.",
+    alias_apply_existing_confirm_label:
+      "E-mail die deze alias al heeft ontvangen, krijgt het label {{label}}. E-mail in de prullenbak en spam blijft waar hij is.",
     alias_delivery_label_error: "Probeer het opnieuw.",
     alias_delivery_rule_note:
       'Regel "{{ rule }}" verplaatst post voor deze alias al naar {{ target }}.',

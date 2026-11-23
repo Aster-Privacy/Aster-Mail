@@ -8465,12 +8465,9 @@ export const en: Translations = {
       "Mail sent to this alias is labelled automatically, with no rule needed. The label is applied on top of wherever the message lands.",
     alias_delivery_label_none: "No label",
     alias_delivery_label_missing: "Deleted label",
-    alias_apply_existing: "Apply to existing mail",
+    alias_apply_existing: "Run on existing mail",
     alias_apply_existing_desc:
       "Sort mail this alias already received into the folder and label you chose.",
-    alias_apply_existing_info:
-      "This applies the delivery folder and label above to mail already in your account. It runs in the background, and your mail rules don't run again.",
-    alias_apply_existing_action: "Apply now",
     alias_apply_existing_cancel: "Stop",
     alias_apply_existing_started:
       "Applying your delivery settings to existing mail. This runs in the background.",
@@ -8486,6 +8483,12 @@ export const en: Translations = {
     alias_apply_existing_error: "Applying to existing mail failed. Try again.",
     alias_apply_existing_unavailable:
       "Mail already in your account can't be moved to Spam.",
+    alias_apply_existing_confirm_folder_label:
+      "Mail this alias already received moves to {{folder}} and gets the {{label}} label. Mail in Trash and Spam stays where it is.",
+    alias_apply_existing_confirm_folder:
+      "Mail this alias already received moves to {{folder}}. Mail in Trash and Spam stays where it is.",
+    alias_apply_existing_confirm_label:
+      "Mail this alias already received gets the {{label}} label. Mail in Trash and Spam stays where it is.",
     alias_delivery_label_error: "That setting did not save. Try again.",
     alias_delivery_rule_note:
       'Mail rule "{{ rule }}" already moves mail for this alias to {{ target }}.',

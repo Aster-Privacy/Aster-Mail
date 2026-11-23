@@ -3227,12 +3227,9 @@ export const fr = {
       "Les messages envoyés à cet alias sont étiquetés automatiquement, sans règle. L'étiquette s'ajoute au dossier de destination.",
     alias_delivery_label_none: "Aucune étiquette",
     alias_delivery_label_missing: "Étiquette supprimée",
-    alias_apply_existing: "Appliquer aux e-mails existants",
+    alias_apply_existing: "Appliquer au courrier existant",
     alias_apply_existing_desc:
       "Classez les e-mails déjà reçus par cet alias dans le dossier et l'étiquette que vous avez choisis.",
-    alias_apply_existing_info:
-      "Cette action applique le dossier de distribution et l'étiquette ci-dessus aux e-mails déjà présents dans votre compte. Elle s'exécute en arrière-plan, et vos règles de messagerie ne sont pas réexécutées.",
-    alias_apply_existing_action: "Appliquer",
     alias_apply_existing_cancel: "Arrêter",
     alias_apply_existing_started:
       "Application de vos paramètres de distribution aux e-mails existants. L'opération s'exécute en arrière-plan.",
@@ -3251,6 +3248,12 @@ export const fr = {
       "L'application aux e-mails existants a échoué. Réessayez.",
     alias_apply_existing_unavailable:
       "Les e-mails déjà présents dans votre compte ne peuvent pas être déplacés vers Spam.",
+    alias_apply_existing_confirm_folder_label:
+      "Les e-mails déjà reçus par cet alias sont déplacés vers {{folder}} et reçoivent le libellé {{label}}. Les e-mails de la corbeille et des spams restent où ils sont.",
+    alias_apply_existing_confirm_folder:
+      "Les e-mails déjà reçus par cet alias sont déplacés vers {{folder}}. Les e-mails de la corbeille et des spams restent où ils sont.",
+    alias_apply_existing_confirm_label:
+      "Les e-mails déjà reçus par cet alias reçoivent le libellé {{label}}. Les e-mails de la corbeille et des spams restent où ils sont.",
     alias_delivery_label_error: "Réessayez.",
     alias_delivery_rule_note:
       'La règle "{{ rule }}" déplace déjà les messages de cet alias vers {{ target }}.',

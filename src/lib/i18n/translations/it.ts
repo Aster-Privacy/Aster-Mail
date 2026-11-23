@@ -3217,12 +3217,9 @@ export const it = {
       "La posta inviata a questo alias viene etichettata automaticamente, senza regole. L'etichetta si aggiunge alla cartella di destinazione.",
     alias_delivery_label_none: "Nessuna etichetta",
     alias_delivery_label_missing: "Etichetta eliminata",
-    alias_apply_existing: "Applica alla posta esistente",
+    alias_apply_existing: "Esegui sulla posta esistente",
     alias_apply_existing_desc:
       "Sposta la posta già ricevuta da questo alias nella cartella e nell'etichetta che hai scelto.",
-    alias_apply_existing_info:
-      "Questa azione applica la cartella di consegna e l'etichetta qui sopra alla posta già presente nel tuo account. Viene eseguita in background e le tue regole di posta non vengono rieseguite.",
-    alias_apply_existing_action: "Applica ora",
     alias_apply_existing_cancel: "Interrompi",
     alias_apply_existing_started:
       "Applicazione delle impostazioni di consegna alla posta esistente. L'operazione viene eseguita in background.",
@@ -3243,6 +3240,12 @@ export const it = {
       "Applicazione alla posta esistente non riuscita. Riprova.",
     alias_apply_existing_unavailable:
       "La posta già presente nel tuo account non può essere spostata in Spam.",
+    alias_apply_existing_confirm_folder_label:
+      "La posta già ricevuta da questo alias viene spostata in {{folder}} e riceve l'etichetta {{label}}. La posta nel cestino e nello spam resta dov'è.",
+    alias_apply_existing_confirm_folder:
+      "La posta già ricevuta da questo alias viene spostata in {{folder}}. La posta nel cestino e nello spam resta dov'è.",
+    alias_apply_existing_confirm_label:
+      "La posta già ricevuta da questo alias riceve l'etichetta {{label}}. La posta nel cestino e nello spam resta dov'è.",
     alias_delivery_label_error: "Riprova.",
     alias_delivery_rule_note:
       'La regola "{{ rule }}" sposta già la posta di questo alias in {{ target }}.',

@@ -3372,12 +3372,9 @@ export const pl = {
       "Poczta wysłana na ten alias jest etykietowana automatycznie, bez reguły. Etykieta działa niezależnie od folderu docelowego.",
     alias_delivery_label_none: "Brak etykiety",
     alias_delivery_label_missing: "Usunięta etykieta",
-    alias_apply_existing: "Zastosuj do istniejącej poczty",
+    alias_apply_existing: "Uruchom na istniejącej poczcie",
     alias_apply_existing_desc:
       "Przenieś pocztę już odebraną przez ten alias do wybranego folderu i etykiety.",
-    alias_apply_existing_info:
-      "Ta opcja stosuje folder dostarczania i etykietę powyżej do poczty, która już jest na Twoim koncie. Działa w tle, a reguły poczty nie są uruchamiane ponownie.",
-    alias_apply_existing_action: "Zastosuj teraz",
     alias_apply_existing_cancel: "Zatrzymaj",
     alias_apply_existing_started:
       "Trwa stosowanie ustawień dostarczania do istniejącej poczty. Działa w tle.",
@@ -3396,6 +3393,12 @@ export const pl = {
       "Zastosowanie do istniejącej poczty nie powiodło się. Spróbuj ponownie.",
     alias_apply_existing_unavailable:
       "Poczty, która już jest na Twoim koncie, nie można przenieść do folderu Spam.",
+    alias_apply_existing_confirm_folder_label:
+      "Poczta, którą ten alias już otrzymał, zostanie przeniesiona do {{folder}} i otrzyma etykietę {{label}}. Poczta w koszu i spamie pozostanie na miejscu.",
+    alias_apply_existing_confirm_folder:
+      "Poczta, którą ten alias już otrzymał, zostanie przeniesiona do {{folder}}. Poczta w koszu i spamie pozostanie na miejscu.",
+    alias_apply_existing_confirm_label:
+      "Poczta, którą ten alias już otrzymał, otrzyma etykietę {{label}}. Poczta w koszu i spamie pozostanie na miejscu.",
     alias_delivery_label_error: "Spróbuj ponownie.",
     alias_delivery_rule_note:
       'Reguła "{{ rule }}" już przenosi pocztę tego aliasu do {{ target }}.',

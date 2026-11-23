@@ -3085,12 +3085,9 @@ export const ko = {
       "이 별칭으로 오는 메일에는 규칙 없이 자동으로 라벨이 붙습니다. 라벨은 배달 폴더와 별개로 적용됩니다.",
     alias_delivery_label_none: "라벨 없음",
     alias_delivery_label_missing: "삭제된 라벨",
-    alias_apply_existing: "기존 메일에 적용",
+    alias_apply_existing: "기존 메일에 실행",
     alias_apply_existing_desc:
       "이 별칭이 이미 받은 메일을 선택한 폴더와 라벨로 정리합니다.",
-    alias_apply_existing_info:
-      "위에서 선택한 배달 폴더와 라벨을 계정에 이미 있는 메일에 적용합니다. 백그라운드에서 실행되며 메일 규칙은 다시 실행되지 않습니다.",
-    alias_apply_existing_action: "지금 적용",
     alias_apply_existing_cancel: "중지",
     alias_apply_existing_started:
       "배달 설정을 기존 메일에 적용하고 있습니다. 백그라운드에서 실행됩니다.",
@@ -3108,6 +3105,12 @@ export const ko = {
       "기존 메일에 적용하지 못했습니다. 다시 시도하세요.",
     alias_apply_existing_unavailable:
       "계정에 이미 있는 메일은 스팸으로 옮길 수 없습니다.",
+    alias_apply_existing_confirm_folder_label:
+      "이 별칭이 이미 받은 메일이 {{folder}}(으)로 이동하고 {{label}} 라벨이 붙습니다. 휴지통과 스팸에 있는 메일은 그대로 유지됩니다.",
+    alias_apply_existing_confirm_folder:
+      "이 별칭이 이미 받은 메일이 {{folder}}(으)로 이동합니다. 휴지통과 스팸에 있는 메일은 그대로 유지됩니다.",
+    alias_apply_existing_confirm_label:
+      "이 별칭이 이미 받은 메일에 {{label}} 라벨이 붙습니다. 휴지통과 스팸에 있는 메일은 그대로 유지됩니다.",
     alias_delivery_label_error: "다시 시도하세요.",
     alias_delivery_rule_note:
       '메일 규칙 "{{ rule }}"이(가) 이미 이 별칭의 메일을 {{ target }}(으)로 옮깁니다.',

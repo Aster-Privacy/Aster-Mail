@@ -3164,12 +3164,9 @@ export const ja = {
       "このエイリアス宛のメールにはルールなしで自動的にラベルが付きます。ラベルは配信先フォルダーとは別に適用されます。",
     alias_delivery_label_none: "ラベルなし",
     alias_delivery_label_missing: "削除されたラベル",
-    alias_apply_existing: "既存のメールに適用",
+    alias_apply_existing: "既存のメールに実行",
     alias_apply_existing_desc:
       "このエイリアスがすでに受信したメールを、選択したフォルダとラベルに整理します。",
-    alias_apply_existing_info:
-      "上で選択した配信先フォルダとラベルを、アカウント内にあるメールに適用します。処理はバックグラウンドで実行され、メールルールは再実行されません。",
-    alias_apply_existing_action: "今すぐ適用",
     alias_apply_existing_cancel: "停止",
     alias_apply_existing_started:
       "配信設定を既存のメールに適用しています。処理はバックグラウンドで実行されます。",
@@ -3187,6 +3184,12 @@ export const ja = {
       "既存のメールへの適用に失敗しました。もう一度お試しください。",
     alias_apply_existing_unavailable:
       "アカウント内にあるメールは迷惑メールに移動できません。",
+    alias_apply_existing_confirm_folder_label:
+      "このエイリアスがすでに受信したメールは {{folder}} に移動し、ラベル「{{label}}」が付きます。ゴミ箱と迷惑メールにあるメールはそのままです。",
+    alias_apply_existing_confirm_folder:
+      "このエイリアスがすでに受信したメールは {{folder}} に移動します。ゴミ箱と迷惑メールにあるメールはそのままです。",
+    alias_apply_existing_confirm_label:
+      "このエイリアスがすでに受信したメールにラベル「{{label}}」が付きます。ゴミ箱と迷惑メールにあるメールはそのままです。",
     alias_delivery_label_error: "もう一度お試しください。",
     alias_delivery_rule_note:
       "ルール「{{ rule }}」は、このエイリアスのメールをすでに {{ target }} に移動しています。",
