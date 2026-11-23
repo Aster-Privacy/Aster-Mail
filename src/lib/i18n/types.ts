@@ -1372,6 +1372,11 @@ export interface CommonTranslations {
   unmute_notifications: string;
   notifications_muted: string;
   remove_lock: string;
+  folder_password_settings: string;
+  lock_all_folders: string;
+  lock_all_folders_description: string;
+  folder_locked_notice: string;
+  folders_locked_notice: string;
   lock: string;
   change_color: string;
   change_icon: string;

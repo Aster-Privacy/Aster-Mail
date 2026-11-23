@@ -109,6 +109,7 @@ import {
   is_read_ticket_current,
   peek_read_ticket,
 } from "@/services/read_intent";
+import { use_close_when_folder_locked } from "@/hooks/use_folder_unlock_state";
 
 export type {
   EmailRecipient,
@@ -155,6 +156,8 @@ export function use_popup_viewer({
   const { format_email_detail, format_email_popup } = use_date_format();
   const [email, set_email] = useState<DecryptedEmail | null>(null);
   const [mail_item, set_mail_item] = useState<MailItem | null>(null);
+
+  use_close_when_folder_locked(mail_item, () => on_close_ref.current());
   const [error, set_error] = useState<string | null>(null);
   const [decrypt_failure, set_decrypt_failure] = useState<{
     id: string;

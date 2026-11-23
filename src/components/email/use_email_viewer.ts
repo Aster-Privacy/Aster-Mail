@@ -43,6 +43,7 @@ import {
   type ThreadReplyCancelledEventDetail,
 } from "@/hooks/mail_events";
 import { ignore_error } from "@/lib/ignore_error";
+import { use_close_when_folder_locked } from "@/hooks/use_folder_unlock_state";
 import { get_email_username } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -252,6 +253,8 @@ export function use_email_viewer({
   const { is_feature_locked } = use_plan_limits();
   const [email, set_email] = useState<DecryptedEmail | null>(null);
   const [mail_item, set_mail_item] = useState<MailItem | null>(null);
+
+  use_close_when_folder_locked(mail_item, () => on_dismiss_ref.current());
   const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState<string | null>(null);
   const [decrypt_failure, set_decrypt_failure] = useState<{

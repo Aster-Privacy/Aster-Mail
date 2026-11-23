@@ -80,6 +80,7 @@ import { get_member_retention_policy } from "@/services/api/family_org";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
 import { prewarm_search_index } from "@/hooks/use_search";
 import { ignore_error } from "@/lib/ignore_error";
+import { use_folder_unlock_version } from "@/hooks/use_folder_unlock_state";
 
 export type {
   ReplyData,
@@ -142,6 +143,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   const is_snoozed_view = current_view === "snoozed";
   const is_archive_view = current_view === "archive";
   const [folder_unlock_key, set_folder_unlock_key] = useState(0);
+  const folder_unlock_version = use_folder_unlock_version();
   const [spam_retention_days, set_spam_retention_days] = useState<
     number | null
   >(null);
@@ -276,7 +278,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     }
 
     return null;
-  }, [current_folder, folder_unlock_key]);
+  }, [current_folder, folder_unlock_key, folder_unlock_version]);
 
   const page_category_ref = useRef(categories.active_category);
   const category_page =
