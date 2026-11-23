@@ -28,6 +28,8 @@ interface ModalProps {
   show: boolean;
   title: string;
   hide_dont_ask?: boolean;
+  dont_ask: boolean;
+  on_dont_ask_change: (value: boolean) => void;
   on_confirm: () => void;
   on_cancel: () => void;
 }
@@ -80,16 +82,23 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const bulk_delete = vi.fn(async (_emails: InboxEmail[]) => true);
 const apply_flag_patch = vi.fn();
 const remove_results = vi.fn();
+const disable_permanent_delete_confirm = vi.fn();
 
 let actions: SearchDeleteResult;
 
-function Probe(props: { confirm_before_permanent_delete?: boolean }) {
+function Probe(props: {
+  confirm_before_permanent_delete?: boolean;
+  can_disable?: boolean;
+}) {
   actions = use_search_delete({
     t: (key: string) => key,
     bulk_delete,
     apply_flag_patch,
     remove_results,
     confirm_before_permanent_delete: props.confirm_before_permanent_delete,
+    disable_permanent_delete_confirm: props.can_disable
+      ? disable_permanent_delete_confirm
+      : undefined,
   });
 
   return actions.search_delete_dialog;
@@ -102,12 +111,17 @@ function email(id: string, is_trashed: boolean): InboxEmail {
 let container: HTMLDivElement | null = null;
 let root: Root | null = null;
 
-function render(confirm_before_permanent_delete?: boolean) {
+function render(
+  confirm_before_permanent_delete?: boolean,
+  can_disable = false,
+) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   act(() => {
-    root!.render(createElement(Probe, { confirm_before_permanent_delete }));
+    root!.render(
+      createElement(Probe, { confirm_before_permanent_delete, can_disable }),
+    );
   });
 }
 
@@ -208,6 +222,71 @@ describe("deleting search results", () => {
     expect(bulk_delete).toHaveBeenCalledWith([email("a", false)]);
     expect(apply_flag_patch).toHaveBeenCalledWith(["a"], { is_trashed: true });
     expect(mocks.permanently_delete_message_ids).toHaveBeenCalledWith(["t1"]);
+  });
+
+  it("offers don't ask again on the permanent delete prompt", async () => {
+    render(undefined, true);
+    await act(async () => {
+      await actions.delete_emails([email("t1", true)]);
+    });
+
+    expect(mocks.modal!.show).toBe(true);
+    expect(mocks.modal!.hide_dont_ask).toBe(false);
+    expect(mocks.modal!.dont_ask).toBe(false);
+  });
+
+  it("saves the choice when don't ask again is ticked and confirmed", async () => {
+    render(undefined, true);
+    await act(async () => {
+      await actions.delete_emails([email("t1", true)]);
+    });
+    act(() => {
+      mocks.modal!.on_dont_ask_change(true);
+    });
+    expect(mocks.modal!.dont_ask).toBe(true);
+    await act(async () => {
+      mocks.modal!.on_confirm();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(disable_permanent_delete_confirm).toHaveBeenCalledTimes(1);
+    expect(mocks.permanently_delete_message_ids).toHaveBeenCalledWith(["t1"]);
+    expect(bulk_delete).not.toHaveBeenCalled();
+  });
+
+  it("keeps asking when the prompt is confirmed without ticking the box", async () => {
+    render(undefined, true);
+    await act(async () => {
+      await actions.delete_emails([email("t1", true)]);
+    });
+    await act(async () => {
+      mocks.modal!.on_confirm();
+      await Promise.resolve();
+    });
+
+    expect(disable_permanent_delete_confirm).not.toHaveBeenCalled();
+    expect(mocks.permanently_delete_message_ids).toHaveBeenCalledWith(["t1"]);
+  });
+
+  it("does not save the choice when the prompt is canceled", async () => {
+    render(undefined, true);
+    await act(async () => {
+      await actions.delete_emails([email("t1", true)]);
+    });
+    act(() => {
+      mocks.modal!.on_dont_ask_change(true);
+    });
+    act(() => {
+      mocks.modal!.on_cancel();
+    });
+    await act(async () => {
+      await actions.delete_emails([email("t2", true)]);
+    });
+
+    expect(disable_permanent_delete_confirm).not.toHaveBeenCalled();
+    expect(mocks.permanently_delete_message_ids).not.toHaveBeenCalled();
+    expect(mocks.modal!.dont_ask).toBe(false);
   });
 
   it("keeps the result and reports the failure when the delete fails", async () => {
