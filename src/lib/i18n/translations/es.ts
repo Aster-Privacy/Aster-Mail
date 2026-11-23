@@ -3212,9 +3212,6 @@ export const es = {
     alias_apply_existing: "Aplicar al correo existente",
     alias_apply_existing_desc:
       "Organiza el correo que este alias ya recibió en la carpeta y la etiqueta que elegiste.",
-    alias_apply_existing_info:
-      "Esto aplica la carpeta de entrega y la etiqueta de arriba al correo que ya está en tu cuenta. Se ejecuta en segundo plano y tus reglas de correo no se vuelven a ejecutar.",
-    alias_apply_existing_action: "Aplicar ahora",
     alias_apply_existing_cancel: "Detener",
     alias_apply_existing_started:
       "Aplicando tu configuración de entrega al correo existente. Se ejecuta en segundo plano.",
@@ -3234,6 +3231,12 @@ export const es = {
       "No se pudo aplicar al correo existente. Inténtalo de nuevo.",
     alias_apply_existing_unavailable:
       "El correo que ya está en tu cuenta no se puede mover a Spam.",
+    alias_apply_existing_confirm_folder_label:
+      "El correo que este alias ya recibió se mueve a {{folder}} y recibe la etiqueta {{label}}. El correo de la papelera y de spam se queda donde está.",
+    alias_apply_existing_confirm_folder:
+      "El correo que este alias ya recibió se mueve a {{folder}}. El correo de la papelera y de spam se queda donde está.",
+    alias_apply_existing_confirm_label:
+      "El correo que este alias ya recibió recibe la etiqueta {{label}}. El correo de la papelera y de spam se queda donde está.",
     alias_delivery_label_error: "Inténtalo de nuevo.",
     alias_delivery_rule_note:
       'La regla "{{ rule }}" ya mueve el correo de este alias a {{ target }}.',

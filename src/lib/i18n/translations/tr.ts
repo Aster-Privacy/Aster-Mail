@@ -3159,12 +3159,9 @@ export const tr = {
       "Bu takma ada gelen postalar kural gerekmeden otomatik etiketlenir. Etiket, iletinin düştüğü klasörden bağımsız uygulanır.",
     alias_delivery_label_none: "Etiket yok",
     alias_delivery_label_missing: "Silinmiş etiket",
-    alias_apply_existing: "Mevcut postaya uygula",
+    alias_apply_existing: "Mevcut postada çalıştır",
     alias_apply_existing_desc:
       "Bu takma adın daha önce aldığı postaları seçtiğiniz klasöre ve etikete taşıyın.",
-    alias_apply_existing_info:
-      "Bu işlem, yukarıdaki teslim klasörünü ve etiketi hesabınızda zaten bulunan postalara uygular. Arka planda çalışır ve posta kurallarınız yeniden çalıştırılmaz.",
-    alias_apply_existing_action: "Şimdi uygula",
     alias_apply_existing_cancel: "Durdur",
     alias_apply_existing_started:
       "Teslim ayarlarınız mevcut postalara uygulanıyor. İşlem arka planda çalışır.",
@@ -3182,6 +3179,12 @@ export const tr = {
       "Mevcut postaya uygulama başarısız oldu. Yeniden deneyin.",
     alias_apply_existing_unavailable:
       "Hesabınızda zaten bulunan postalar Spam klasörüne taşınamaz.",
+    alias_apply_existing_confirm_folder_label:
+      "Bu takma adın daha önce aldığı postalar {{folder}} klasörüne taşınır ve {{label}} etiketini alır. Çöp kutusu ve spam klasöründeki postalar olduğu yerde kalır.",
+    alias_apply_existing_confirm_folder:
+      "Bu takma adın daha önce aldığı postalar {{folder}} klasörüne taşınır. Çöp kutusu ve spam klasöründeki postalar olduğu yerde kalır.",
+    alias_apply_existing_confirm_label:
+      "Bu takma adın daha önce aldığı postalar {{label}} etiketini alır. Çöp kutusu ve spam klasöründeki postalar olduğu yerde kalır.",
     alias_delivery_label_error: "Tekrar deneyin.",
     alias_delivery_rule_note:
       '"{{ rule }}" kuralı bu takma adın postasını zaten {{ target }} klasörüne taşıyor.',

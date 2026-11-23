@@ -8549,12 +8549,9 @@ export const hi = {
       "इस एलियास पर भेजे गए मेल पर बिना किसी नियम के अपने आप लेबल लग जाता है। संदेश जहां भी पहुंचे, लेबल उसके ऊपर लगता है।",
     alias_delivery_label_none: "कोई लेबल नहीं",
     alias_delivery_label_missing: "हटाया गया लेबल",
-    alias_apply_existing: "मौजूदा मेल पर लागू करें",
+    alias_apply_existing: "मौजूदा मेल पर चलाएं",
     alias_apply_existing_desc:
       "इस एलियास पर पहले मिल चुके मेल को अपने चुने हुए फ़ोल्डर और लेबल में छांटें।",
-    alias_apply_existing_info:
-      "इससे ऊपर चुना गया डिलीवरी फ़ोल्डर और लेबल आपके खाते में पहले से मौजूद मेल पर लागू होता है। यह पृष्ठभूमि में चलता है, और आपके मेल नियम दोबारा नहीं चलते।",
-    alias_apply_existing_action: "अभी लागू करें",
     alias_apply_existing_cancel: "रोकें",
     alias_apply_existing_started:
       "आपकी डिलीवरी सेटिंग मौजूदा मेल पर लागू की जा रही हैं। यह पृष्ठभूमि में चलता है।",
@@ -8572,6 +8569,12 @@ export const hi = {
       "मौजूदा मेल पर लागू करना विफल रहा। फिर से कोशिश करें।",
     alias_apply_existing_unavailable:
       "आपके खाते में पहले से मौजूद मेल को स्पैम में नहीं ले जाया जा सकता।",
+    alias_apply_existing_confirm_folder_label:
+      "इस उपनाम को पहले से मिली मेल {{folder}} में चली जाएगी और उस पर {{label}} लेबल लगेगा। ट्रैश और स्पैम में मौजूद मेल वहीं रहेगी।",
+    alias_apply_existing_confirm_folder:
+      "इस उपनाम को पहले से मिली मेल {{folder}} में चली जाएगी। ट्रैश और स्पैम में मौजूद मेल वहीं रहेगी।",
+    alias_apply_existing_confirm_label:
+      "इस उपनाम को पहले से मिली मेल पर {{label}} लेबल लगेगा। ट्रैश और स्पैम में मौजूद मेल वहीं रहेगी।",
     alias_delivery_label_error: "फिर से कोशिश करें।",
     alias_delivery_rule_note:
       'मेल नियम "{{ rule }}" पहले से इस एलियास के मेल को {{ target }} में ले जाता है।',

@@ -2909,12 +2909,9 @@ export const zh_CN = {
       "发往此别名的邮件会自动加上标签，无需规则。标签与投递文件夹互不影响。",
     alias_delivery_label_none: "不加标签",
     alias_delivery_label_missing: "已删除的标签",
-    alias_apply_existing: "应用于现有邮件",
+    alias_apply_existing: "对现有邮件运行",
     alias_apply_existing_desc:
       "将此别名已收到的邮件整理到您选择的文件夹和标签中。",
-    alias_apply_existing_info:
-      "此操作会将上方的投递文件夹和标签应用于账户中已有的邮件。它在后台运行，邮件规则不会再次运行。",
-    alias_apply_existing_action: "立即应用",
     alias_apply_existing_cancel: "停止",
     alias_apply_existing_started:
       "正在将投递设置应用于现有邮件。此操作在后台运行。",
@@ -2930,6 +2927,12 @@ export const zh_CN = {
     alias_apply_existing_canceled: "已停止：已更新 {{applied}} 封",
     alias_apply_existing_error: "应用于现有邮件失败。请重试。",
     alias_apply_existing_unavailable: "账户中已有的邮件无法移动到垃圾邮件。",
+    alias_apply_existing_confirm_folder_label:
+      "此别名已收到的邮件将移至 {{folder}}，并添加标签“{{label}}”。废纸篓和垃圾邮件中的邮件保持不变。",
+    alias_apply_existing_confirm_folder:
+      "此别名已收到的邮件将移至 {{folder}}。废纸篓和垃圾邮件中的邮件保持不变。",
+    alias_apply_existing_confirm_label:
+      "此别名已收到的邮件将添加标签“{{label}}”。废纸篓和垃圾邮件中的邮件保持不变。",
     alias_delivery_label_error: "请重试。",
     alias_delivery_rule_note:
       "邮件规则“{{ rule }}”已将此别名的邮件移动到 {{ target }}。",

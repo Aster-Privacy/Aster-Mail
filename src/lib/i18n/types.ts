@@ -8205,8 +8205,6 @@ export interface SettingsTranslations {
   alias_delivery_label_error: string;
   alias_apply_existing: string;
   alias_apply_existing_desc: string;
-  alias_apply_existing_info: string;
-  alias_apply_existing_action: string;
   alias_apply_existing_cancel: string;
   alias_apply_existing_started: string;
   alias_apply_existing_failed: string;
@@ -8219,6 +8217,9 @@ export interface SettingsTranslations {
   alias_apply_existing_canceled_one?: string;
   alias_apply_existing_error: string;
   alias_apply_existing_unavailable: string;
+  alias_apply_existing_confirm_folder_label: string;
+  alias_apply_existing_confirm_folder: string;
+  alias_apply_existing_confirm_label: string;
   alias_delivery_rule_note: string;
   alias_delivery_rule_conflict: string;
   alias_delivery_label_rule_note: string;

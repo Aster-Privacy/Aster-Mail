@@ -3248,12 +3248,9 @@ export const pt = {
       "O correio enviado para este alias é etiquetado automaticamente, sem precisar de regra. A etiqueta é aplicada além da pasta onde a mensagem chegar.",
     alias_delivery_label_none: "Sem etiqueta",
     alias_delivery_label_missing: "Etiqueta eliminada",
-    alias_apply_existing: "Aplicar ao correio existente",
+    alias_apply_existing: "Executar no e-mail existente",
     alias_apply_existing_desc:
       "Organize o correio que este alias já recebeu na pasta e na etiqueta escolhidas.",
-    alias_apply_existing_info:
-      "Isto aplica a pasta de entrega e a etiqueta acima ao correio que já está na sua conta. É executado em segundo plano e as suas regras de correio não voltam a ser executadas.",
-    alias_apply_existing_action: "Aplicar agora",
     alias_apply_existing_cancel: "Parar",
     alias_apply_existing_started:
       "A aplicar as suas definições de entrega ao correio existente. É executado em segundo plano.",
@@ -3273,6 +3270,12 @@ export const pt = {
       "Não foi possível aplicar ao correio existente. Tente novamente.",
     alias_apply_existing_unavailable:
       "O correio que já está na sua conta não pode ser movido para Spam.",
+    alias_apply_existing_confirm_folder_label:
+      "Os e-mails que este alias já recebeu são movidos para {{folder}} e recebem a etiqueta {{label}}. Os e-mails na lixeira e no spam ficam onde estão.",
+    alias_apply_existing_confirm_folder:
+      "Os e-mails que este alias já recebeu são movidos para {{folder}}. Os e-mails na lixeira e no spam ficam onde estão.",
+    alias_apply_existing_confirm_label:
+      "Os e-mails que este alias já recebeu recebem a etiqueta {{label}}. Os e-mails na lixeira e no spam ficam onde estão.",
     alias_delivery_label_error:
       "Essa definição não foi guardada. Tente novamente.",
     alias_delivery_rule_note:

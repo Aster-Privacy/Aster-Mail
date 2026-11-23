@@ -3211,9 +3211,6 @@ export const de = {
     alias_apply_existing: "Auf vorhandene E-Mails anwenden",
     alias_apply_existing_desc:
       "Sortieren Sie E-Mails, die dieser Alias bereits erhalten hat, in den gewählten Ordner und das gewählte Label ein.",
-    alias_apply_existing_info:
-      "Damit werden der oben gewählte Zustellordner und das Label auf E-Mails angewendet, die bereits in Ihrem Konto liegen. Der Vorgang läuft im Hintergrund, und Ihre E-Mail-Regeln werden nicht erneut ausgeführt.",
-    alias_apply_existing_action: "Jetzt anwenden",
     alias_apply_existing_cancel: "Stoppen",
     alias_apply_existing_started:
       "Ihre Zustelleinstellungen werden auf vorhandene E-Mails angewendet. Der Vorgang läuft im Hintergrund.",
@@ -3233,6 +3230,12 @@ export const de = {
       "Das Anwenden auf vorhandene E-Mails ist fehlgeschlagen. Versuchen Sie es erneut.",
     alias_apply_existing_unavailable:
       "E-Mails, die bereits in Ihrem Konto sind, können nicht in den Spam-Ordner verschoben werden.",
+    alias_apply_existing_confirm_folder_label:
+      "E-Mails, die dieser Alias bereits erhalten hat, werden nach {{folder}} verschoben und erhalten das Label {{label}}. E-Mails im Papierkorb und im Spam bleiben, wo sie sind.",
+    alias_apply_existing_confirm_folder:
+      "E-Mails, die dieser Alias bereits erhalten hat, werden nach {{folder}} verschoben. E-Mails im Papierkorb und im Spam bleiben, wo sie sind.",
+    alias_apply_existing_confirm_label:
+      "E-Mails, die dieser Alias bereits erhalten hat, erhalten das Label {{label}}. E-Mails im Papierkorb und im Spam bleiben, wo sie sind.",
     alias_delivery_label_error: "Versuchen Sie es erneut.",
     alias_delivery_rule_note:
       'Die Regel "{{ rule }}" verschiebt E-Mails dieses Alias bereits nach {{ target }}.',

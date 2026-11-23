@@ -3213,12 +3213,9 @@ export const pt_br = {
       "Os e-mails enviados para este alias recebem uma etiqueta automaticamente, sem precisar de regra. A etiqueta é aplicada além da pasta em que a mensagem chegar.",
     alias_delivery_label_none: "Sem etiqueta",
     alias_delivery_label_missing: "Etiqueta excluída",
-    alias_apply_existing: "Aplicar aos e-mails existentes",
+    alias_apply_existing: "Executar no e-mail existente",
     alias_apply_existing_desc:
       "Organize os e-mails que este alias já recebeu na pasta e com a etiqueta que você escolheu.",
-    alias_apply_existing_info:
-      "Isso aplica a pasta de entrega e a etiqueta acima aos e-mails que já estão na sua conta. O processo é executado em segundo plano, e suas regras de e-mail não são executadas novamente.",
-    alias_apply_existing_action: "Aplicar agora",
     alias_apply_existing_cancel: "Parar",
     alias_apply_existing_started:
       "Aplicando suas configurações de entrega aos e-mails existentes. Isso é executado em segundo plano.",
@@ -3238,6 +3235,12 @@ export const pt_br = {
       "Falha ao aplicar aos e-mails existentes. Tente novamente.",
     alias_apply_existing_unavailable:
       "Os e-mails que já estão na sua conta não podem ser movidos para o Spam.",
+    alias_apply_existing_confirm_folder_label:
+      "Os e-mails que este alias já recebeu são movidos para {{folder}} e recebem a etiqueta {{label}}. Os e-mails na lixeira e no spam ficam onde estão.",
+    alias_apply_existing_confirm_folder:
+      "Os e-mails que este alias já recebeu são movidos para {{folder}}. Os e-mails na lixeira e no spam ficam onde estão.",
+    alias_apply_existing_confirm_label:
+      "Os e-mails que este alias já recebeu recebem a etiqueta {{label}}. Os e-mails na lixeira e no spam ficam onde estão.",
     alias_delivery_label_error:
       "Essa configuração não foi salva. Tente novamente.",
     alias_delivery_rule_note:
