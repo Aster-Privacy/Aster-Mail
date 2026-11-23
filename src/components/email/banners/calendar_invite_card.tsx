@@ -818,10 +818,17 @@ export function CalendarInviteCard({
       }
       await remember(next);
 
+      const calendar_missed = calendar_ok && !saved;
+
       if (is_current()) {
-        set_calendar_note(calendar_ok && !saved);
+        set_calendar_note(calendar_missed);
       }
-      show_toast(t("calendar.invite_card_reply_sent"), "success");
+      show_toast(
+        calendar_missed
+          ? t("calendar.invite_card_calendar_failed")
+          : t("calendar.invite_card_reply_sent"),
+        calendar_missed ? "error" : "success",
+      );
     } catch {
       roll_back();
       show_toast(t("calendar.invite_save_failed"), "error");
