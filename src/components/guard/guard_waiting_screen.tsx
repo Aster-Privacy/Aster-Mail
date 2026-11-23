@@ -28,6 +28,10 @@ import { ClockIcon } from "@heroicons/react/24/outline";
 
 import { GuardCodeEntry } from "@/components/guard/guard_code_entry";
 import {
+  format_guard_wait_time,
+  guard_error_text,
+} from "@/components/guard/guard_error_text";
+import {
   format_guard_countdown,
   GuardChip,
   GuardLogo,
@@ -195,6 +199,7 @@ function NumberCard({
 const ENDED_TITLES = {
   denied: "guard.sign_in_denied_title",
   expired: "guard.sign_in_expired_title",
+  on_hold: "guard.sign_in_on_hold_title",
   error: "guard.sign_in_error_title",
 } as const;
 
@@ -212,8 +217,14 @@ function EndedState({
   return (
     <GuardResultView
       actions={
-        <Button className="w-full" size="lg" variant="depth" onClick={on_back}>
-          {t("guard.sign_in_back")}
+        <Button
+          className="w-full"
+          data-testid="guard_sign_in_again"
+          size="lg"
+          variant="depth"
+          onClick={on_back}
+        >
+          {t(kind === "on_hold" ? "guard.sign_in_back" : "guard.sign_in_again")}
         </Button>
       }
       body={message}
@@ -221,6 +232,21 @@ function EndedState({
       title={t(ENDED_TITLES[kind])}
     />
   );
+}
+
+type Translate = ReturnType<typeof use_i18n>["t"];
+
+function on_hold_message(t: Translate, state: GuardSignInState): string {
+  const time = state.retry_at ? format_guard_wait_time(state.retry_at) : "";
+
+  if (state.error_code === "GUARD_TOO_MANY_REQUESTS") {
+    return time
+      ? t("guard.error_too_many", { time })
+      : t("guard.error_too_many_soon");
+  }
+  if (time) return t("guard.sign_in_on_hold_until", { time });
+
+  return t("guard.sign_in_on_hold");
 }
 
 export function GuardWaitingScreen({
@@ -244,11 +270,14 @@ export function GuardWaitingScreen({
         {t("guard.sign_in_waiting_title")}
       </h2>
       <p className="text-sm text-txt-muted">
-        {t("guard.sign_in_waiting_description")}
+        {t("guard.sign_in_where_to_approve")}
       </p>
     </div>
   );
 
+  const paused_until = state.retry_at
+    ? format_guard_wait_time(state.retry_at)
+    : "";
   const ended =
     state.phase === "denied" ||
     state.phase === "expired" ||
@@ -267,11 +296,23 @@ export function GuardWaitingScreen({
     );
   } else if (state.phase === "error") {
     body = (
-      <EndedState kind="error" message={t("guard.sign_in_error")} on_back={on_back} />
+      <EndedState
+        kind="error"
+        message={guard_error_text(
+          t,
+          { server_code: state.error_code },
+          "guard.sign_in_error",
+        )}
+        on_back={on_back}
+      />
     );
   } else if (state.phase === "on_hold") {
     body = (
-      <EndedState kind="error" message={t("guard.sign_in_on_hold")} on_back={on_back} />
+      <EndedState
+        kind="on_hold"
+        message={on_hold_message(t, state)}
+        on_back={on_back}
+      />
     );
   } else if (state.phase === "rescue") {
     body = <GuardRescueProgress rescue={state.rescue} on_back={on_back} />;
@@ -322,7 +363,9 @@ export function GuardWaitingScreen({
             className="rounded-xl bg-red-500/10 px-3 py-2 text-center text-sm text-red-600 dark:text-red-400"
             role="alert"
           >
-            {t("guard.sign_in_paused")}
+            {paused_until
+              ? t("guard.sign_in_paused_until", { time: paused_until })
+              : t("guard.sign_in_paused")}
           </p>
         )}
         {state.phase === "completing" && (

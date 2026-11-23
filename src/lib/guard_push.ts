@@ -127,3 +127,48 @@ export function guard_window_is_watching(
     (window) => window.focused === true && window.visibilityState === "visible",
   );
 }
+
+export interface GuardPushLedger {
+  should_notify: (payload: GuardPushPayload) => boolean;
+}
+
+const GUARD_LEDGER_LIMIT = 200;
+
+export function create_guard_push_ledger(): GuardPushLedger {
+  const seen = new Map<string, true>();
+
+  const remember = (key: string) => {
+    seen.delete(key);
+    seen.set(key, true);
+    while (seen.size > GUARD_LEDGER_LIMIT) {
+      const oldest = seen.keys().next().value;
+
+      if (oldest === undefined) break;
+      seen.delete(oldest);
+    }
+  };
+
+  return {
+    should_notify: (payload) => {
+      const key = `${payload.account_id}:${payload.id}`;
+
+      if (GUARD_RESOLVING_EVENTS.has(payload.event)) {
+        remember(key);
+
+        return false;
+      }
+      if (payload.event !== "sign_in_request") {
+        const event_key = `${key}:${payload.event}`;
+
+        if (seen.has(event_key)) return false;
+        remember(event_key);
+
+        return true;
+      }
+      if (seen.has(key)) return false;
+      remember(key);
+
+      return true;
+    },
+  };
+}

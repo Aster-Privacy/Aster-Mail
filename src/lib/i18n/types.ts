@@ -10542,6 +10542,42 @@ export interface GuardTranslations {
   panic_changes_label: string;
   panic_changes_label_one: string;
   panic_changes_label_other: string;
+  error_paused: string;
+  error_paused_soon: string;
+  error_too_many: string;
+  error_too_many_soon: string;
+  error_request_gone: string;
+  error_device_required: string;
+  error_not_allowed: string;
+  error_disabled: string;
+  error_request_conflict: string;
+  error_last_device: string;
+  error_device_pending: string;
+  error_device_pending_soon: string;
+  error_held: string;
+  error_held_soon: string;
+  error_upgrade: string;
+  error_action_invalid: string;
+  error_step_up: string;
+  error_device_keys: string;
+  error_device_unknown: string;
+  error_veto_invalid: string;
+  error_offline: string;
+  sign_in_where_to_approve: string;
+  sign_in_paused_until: string;
+  sign_in_again: string;
+  sign_in_on_hold_title: string;
+  sign_in_on_hold_until: string;
+  switches_join_denied: string;
+  switches_join_expired: string;
+  setup_who_for: string;
+  setup_only_device_warning: string;
+  setup_carry_device_tip: string;
+  intro_hold_timing_body: string;
+  setup_progress_keys: string;
+  setup_progress_server: string;
+  setup_progress_device: string;
+  setup_retry: string;
 }
 
 export type TranslationKey =

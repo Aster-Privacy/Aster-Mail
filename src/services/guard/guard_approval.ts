@@ -55,12 +55,22 @@ export interface GuardRequestContext {
   city: string;
   country: string;
   country_code?: string;
+  device_name: string | null;
   requested_at: string;
 }
 
 export interface GuardRequestView {
   summary: GuardRequestSummary;
   context: GuardRequestContext | null;
+}
+
+export interface GuardFailure {
+  kind: "error";
+  server_code?: string;
+  code?: string;
+  status?: number;
+  retry_after_secs?: number;
+  details?: unknown;
 }
 
 export type GuardApproveOutcome =
@@ -71,13 +81,13 @@ export type GuardApproveOutcome =
   | { kind: "locked" }
   | { kind: "keys_changed" }
   | { kind: "canceled" }
-  | { kind: "error" };
+  | GuardFailure;
 
 export type GuardDenyOutcome =
   | { kind: "denied" }
   | { kind: "canceled" }
   | { kind: "gone" }
-  | { kind: "error" };
+  | GuardFailure;
 
 export interface GuardApproveInput {
   request: GuardRequestSummary;
@@ -89,6 +99,23 @@ export interface GuardApproveInput {
 }
 
 const GONE_CODES = new Set(["GUARD_REQUEST_GONE"]);
+
+function failure_from(response: {
+  server_code?: string;
+  code?: string;
+  status?: number;
+  retry_after_secs?: number;
+  details?: unknown;
+}): GuardFailure {
+  return {
+    kind: "error",
+    server_code: response.server_code,
+    code: response.code,
+    status: response.status,
+    retry_after_secs: response.retry_after_secs,
+    details: response.details,
+  };
+}
 
 function text_field(value: unknown): string {
   return typeof value === "string" ? value : "";
@@ -114,6 +141,10 @@ function parse_context(bytes: Uint8Array): GuardRequestContext | null {
       city: text_field(obj.city),
       country: text_field(obj.country),
       country_code: country_code_field(obj.country_code),
+      device_name:
+        typeof obj.device_name === "string" && obj.device_name.trim()
+          ? obj.device_name.trim().slice(0, 64)
+          : null,
       requested_at: text_field(obj.requested_at),
     };
   } catch {
@@ -146,12 +177,29 @@ export async function open_request_context(
   }
 }
 
-export async function load_guard_requests(
+const INACTIVE_CODES = new Set([
+  "GUARD_DISABLED",
+  "GUARD_DEVICE_REQUIRED",
+  "GUARD_NOT_ALLOWED",
+]);
+
+export interface GuardRequestList {
+  views: GuardRequestView[] | null;
+  active: boolean;
+}
+
+export async function load_guard_request_list(
   device: GuardDevice,
-): Promise<GuardRequestView[]> {
+): Promise<GuardRequestList> {
   const response = await list_guard_requests();
 
-  if (response.error || !response.data) return [];
+  if (response.error || !response.data) {
+    const inactive =
+      response.server_code !== undefined &&
+      INACTIVE_CODES.has(response.server_code);
+
+    return { views: inactive ? [] : null, active: !inactive };
+  }
 
   const views: GuardRequestView[] = [];
 
@@ -162,7 +210,13 @@ export async function load_guard_requests(
     });
   }
 
-  return views;
+  return { views, active: true };
+}
+
+export async function load_guard_requests(
+  device: GuardDevice,
+): Promise<GuardRequestView[]> {
+  return (await load_guard_request_list(device)).views ?? [];
 }
 
 function is_gone(status: number | undefined, code: string | undefined): boolean {
@@ -241,7 +295,7 @@ export async function approve_guard_sign_in(
   }
   if (is_gone(response.status, response.server_code)) return { kind: "gone" };
 
-  return { kind: "error" };
+  return failure_from(response);
 }
 
 export async function deny_guard_sign_in(
@@ -272,5 +326,5 @@ export async function deny_guard_sign_in(
   if (!response.error) return { kind: "denied" };
   if (is_gone(response.status, response.server_code)) return { kind: "gone" };
 
-  return { kind: "error" };
+  return failure_from(response);
 }

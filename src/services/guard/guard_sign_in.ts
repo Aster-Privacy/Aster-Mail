@@ -45,6 +45,7 @@ import { ALL_GUARD_SIGN_IN_METHODS } from "@/services/api/client/helpers";
 import { GUARD_ALPHABET, GUARD_CODE_LENGTH } from "@/lib/crypto/guard_code";
 import { normalize_rescue_code } from "@/lib/crypto/guard_rescue_code";
 import { server_now } from "@/lib/server_clock";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 import { code_secret_aad } from "@/lib/crypto/guard_seal";
 import {
   GUARD_ENVELOPE_VERSIONS,
@@ -95,6 +96,25 @@ export interface GuardSignInState {
   code_error: boolean;
   rescue_error: GuardRescueError | null;
   rescue: GuardRescueStart | null;
+  error_code?: string | null;
+  retry_at?: string | null;
+}
+
+export interface GuardEndSource {
+  server_code?: string;
+  status?: number;
+  retry_after_secs?: number;
+}
+
+function retry_at_from(
+  retry_after_secs: number | undefined,
+  now: number,
+): string | null {
+  if (typeof retry_after_secs !== "number" || !(retry_after_secs > 0)) {
+    return null;
+  }
+
+  return new Date(now + retry_after_secs * 1000).toISOString();
 }
 
 export function rescue_error_for(
@@ -154,31 +174,10 @@ function session_storage(): Storage | null {
   }
 }
 
-export function default_guard_device_name(): string {
-  const ua = typeof navigator === "undefined" ? "" : navigator.userAgent;
-  const browser = /Edg\//.test(ua)
-    ? "Edge"
-    : /Firefox\//.test(ua)
-      ? "Firefox"
-      : /Chrome\//.test(ua)
-        ? "Chrome"
-        : /Safari\//.test(ua)
-          ? "Safari"
-          : "Browser";
-  const os = /iPhone|iPad|iPod/.test(ua)
-    ? "iOS"
-    : /Android/.test(ua)
-      ? "Android"
-      : /Mac/.test(ua)
-        ? "macOS"
-        : /Windows/.test(ua)
-          ? "Windows"
-          : /Linux/.test(ua)
-            ? "Linux"
-            : "";
-
-  return os ? `${browser} · ${os}` : browser;
-}
+export {
+  default_guard_device_name,
+  guard_device_label,
+} from "@/services/guard/guard_device_label";
 
 export const default_guard_sign_in_deps: GuardSignInDeps = {
   get_device: get_guard_device,
@@ -313,6 +312,8 @@ export class GuardSignInController {
       code_error: false,
       rescue_error: null,
       rescue: null,
+      error_code: null,
+      retry_at: null,
     };
   }
 
@@ -402,12 +403,21 @@ export class GuardSignInController {
     await device?.forget().catch(() => undefined);
   }
 
-  private end(phase: "denied" | "expired" | "on_hold" | "error"): void {
+  private end(
+    phase: "denied" | "expired" | "on_hold" | "error",
+    source?: GuardEndSource,
+  ): void {
     this.clear_timer();
     this.stopped = true;
     this.forget_storage();
     void this.drop_pending_device();
-    this.update({ phase });
+    this.update({
+      phase,
+      error_code:
+        source?.server_code ??
+        (source?.status === 426 ? "CLIENT_UPGRADE_REQUIRED" : null),
+      retry_at: retry_at_from(source?.retry_after_secs, this.deps.now()),
+    });
   }
 
   start(): void {
@@ -526,7 +536,10 @@ export class GuardSignInController {
         return;
       }
       if (response.error || !response.data) {
-        this.end(begin_failure_phase(response.server_code, response.status));
+        this.end(
+          begin_failure_phase(response.server_code, response.status),
+          response,
+        );
 
         return;
       }
@@ -569,12 +582,25 @@ export class GuardSignInController {
         response.server_code === "GUARD_PAUSED" ||
         response.status === 429
       ) {
-        if (response.server_code === "GUARD_PAUSED") {
-          this.update({ phase: "paused" });
-        }
         const secs = Math.max(1, response.retry_after_secs ?? 1);
 
+        if (response.server_code === "GUARD_PAUSED") {
+          this.update({
+            phase: "paused",
+            retry_at: retry_at_from(secs, this.deps.now()),
+          });
+        }
+
         this.schedule(secs * 1000);
+
+        return;
+      }
+      if (
+        response.status === 426 ||
+        response.server_code === "CLIENT_UPGRADE_REQUIRED" ||
+        response.server_code === "GUARD_DISABLED"
+      ) {
+        this.end("error", response);
 
         return;
       }
@@ -616,7 +642,9 @@ export class GuardSignInController {
 
         return;
       default:
-        if (this.state.phase === "paused") this.update({ phase: "waiting" });
+        if (this.state.phase === "paused") {
+          this.update({ phase: "waiting", retry_at: null });
+        }
         this.schedule(GUARD_POLL_INTERVAL_MS);
     }
   }
@@ -750,7 +778,11 @@ export class GuardSignInController {
       if (is_gone(response.server_code, response.status)) {
         this.end("expired");
       } else if (response.server_code === "GUARD_PAUSED") {
-        this.update({ phase: "paused", code_error: true });
+        this.update({
+          phase: "paused",
+          code_error: true,
+          retry_at: retry_at_from(response.retry_after_secs, this.deps.now()),
+        });
       } else {
         this.update({ code_error: true });
       }

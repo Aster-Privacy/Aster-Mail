@@ -59,7 +59,10 @@ import {
   HIDDEN_CATCH_UP_MS,
   HIDDEN_CATCH_UP_WHILE_LIVE_MS,
 } from "@/services/sync_timing";
-import { receive_guard_frame } from "@/services/guard/guard_events";
+import {
+  receive_guard_frame,
+  request_guard_requests_refresh,
+} from "@/services/guard/guard_events";
 import {
   begin_live_sync_session,
   set_sync_live_probe,
@@ -362,6 +365,7 @@ class SyncClient {
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
             this.refresh_definitions();
+            request_guard_requests_refresh();
           }
           settle_resolve();
         } else if (data.type === "auth_error") {

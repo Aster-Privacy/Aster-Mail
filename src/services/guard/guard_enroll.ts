@@ -45,7 +45,7 @@ import {
   get_guard_device,
   rekey_guard_device,
 } from "@/services/guard/guard_device";
-import { default_guard_device_name } from "@/services/guard/guard_sign_in";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 
 export function device_keys_body(pub: GuardDevicePublic): GuardDeviceKeys {
   return {
@@ -108,7 +108,10 @@ export interface GuardEnrollInput {
   hold_scopes: number;
   rescue_code: string;
   proof: StepUpProof;
+  on_step?: (step: GuardEnrollStep) => void;
 }
+
+export type GuardEnrollStep = "keys" | "server" | "device";
 
 export interface GuardEnrollDeps {
   create_device: (key: string, name: string) => Promise<GuardDevice>;
@@ -126,7 +129,7 @@ export type GuardEnrollOutcome =
   | { kind: "wrong_credentials" }
   | { kind: "code_used" }
   | { kind: "locked" }
-  | { kind: "error" };
+  | { kind: "error"; server_code?: string; status?: number; code?: string };
 
 const SETUP_FAILURES: Record<string, GuardEnrollOutcome> = {
   GUARD_ALREADY_ON: { kind: "already_on" },
@@ -135,8 +138,19 @@ const SETUP_FAILURES: Record<string, GuardEnrollOutcome> = {
   ACCOUNT_LOCKED: { kind: "locked" },
 };
 
-export function setup_failure(server_code?: string | null): GuardEnrollOutcome {
-  return (server_code && SETUP_FAILURES[server_code]) || { kind: "error" };
+export function setup_failure(
+  server_code?: string | null,
+  status?: number,
+  code?: string,
+): GuardEnrollOutcome {
+  return (
+    (server_code && SETUP_FAILURES[server_code]) || {
+      kind: "error",
+      server_code: server_code ?? undefined,
+      status,
+      code,
+    }
+  );
 }
 
 const default_enroll_deps: GuardEnrollDeps = {
@@ -155,6 +169,7 @@ export async function enroll_guard(
   const discard = () => deps.forget_device(setup_key).catch(() => undefined);
   let device: GuardDevice;
 
+  input.on_step?.("keys");
   try {
     await discard();
     device = await deps.create_device(setup_key, deps.device_name());
@@ -167,7 +182,7 @@ export async function enroll_guard(
   if (nonce.error || !nonce.data) {
     await discard();
 
-    return setup_failure(nonce.server_code);
+    return setup_failure(nonce.server_code, nonce.status, nonce.code);
   }
 
   let body;
@@ -195,14 +210,16 @@ export async function enroll_guard(
     return { kind: "error" };
   }
 
+  input.on_step?.("server");
   const response = await guard_setup(body);
 
   if (response.error || !response.data) {
     await discard();
 
-    return setup_failure(response.server_code);
+    return setup_failure(response.server_code, response.status, response.code);
   }
 
+  input.on_step?.("device");
   try {
     await deps.rekey_device(setup_key, input.user_id);
     const enrolled = await deps.get_device(input.user_id);

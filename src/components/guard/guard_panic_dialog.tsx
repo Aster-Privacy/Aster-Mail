@@ -30,6 +30,10 @@ import {
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
 
+import {
+  guard_error_text,
+  type GuardErrorSource,
+} from "@/components/guard/guard_error_text";
 import { GuardLogo, GuardResultView } from "@/components/guard/guard_visuals";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { Button } from "@/components/ui/button";
@@ -89,10 +93,14 @@ async function run_panic(
   device: GuardDevice,
   user_id: string,
   request_proof: () => Promise<StepUpProof | null>,
-): Promise<GuardPanicResult | "canceled" | null> {
+): Promise<
+  | { kind: "done"; result: GuardPanicResult }
+  | { kind: "canceled" }
+  | { kind: "error"; source: GuardErrorSource }
+> {
   const proof = await request_proof();
 
-  if (!proof) return "canceled";
+  if (!proof) return { kind: "canceled" };
   const action = await sign_guard_action(
     device,
     user_id,
@@ -102,7 +110,11 @@ async function run_panic(
   );
   const response = await guard_panic(action);
 
-  return response.data && !response.error ? response.data : null;
+  if (response.data && !response.error) {
+    return { kind: "done", result: response.data };
+  }
+
+  return { kind: "error", source: response };
 }
 
 interface GuardPanicDialogProps {
@@ -122,6 +134,7 @@ export function GuardPanicDialog({
   const step_up = use_guard_step_up();
   const [phase, set_phase] = useState<PanicPhase>("confirm");
   const [result, set_result] = useState<GuardPanicResult | null>(null);
+  const [failure, set_failure] = useState<GuardErrorSource | null>(null);
 
   useEffect(() => {
     if (!is_open) return;
@@ -135,12 +148,13 @@ export function GuardPanicDialog({
     try {
       const outcome = await run_panic(device, user_id, step_up.request_proof);
 
-      if (outcome === "canceled") {
+      if (outcome.kind === "canceled") {
         set_phase("confirm");
-      } else if (outcome) {
-        set_result(outcome);
+      } else if (outcome.kind === "done") {
+        set_result(outcome.result);
         set_phase("done");
       } else {
+        set_failure(outcome.source);
         set_phase("error");
       }
     } catch {
@@ -262,7 +276,7 @@ export function GuardPanicDialog({
                     className="mb-2 rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400"
                     role="alert"
                   >
-                    {t("guard.panic_error")}
+                    {guard_error_text(t, failure, "guard.panic_error")}
                   </p>
                 )}
                 {!device && (

@@ -278,6 +278,7 @@ function view(patch: Partial<GuardRequestSummary> = {}): GuardRequestView {
       os: "Windows",
       city: "Berlin",
       country: "Germany",
+      device_name: null,
       requested_at: "2026-11-15T10:00:00Z",
     },
   };
@@ -670,9 +671,94 @@ describe("GuardApprovalSheet", () => {
     expect(on_done).not.toHaveBeenCalled();
   });
 
-  it("shows an unknown device when the context cannot be read", () => {
+  it("names the device from the request when the context cannot be read", () => {
     render({ summary: summary(), context: null });
+    expect(container.textContent).toContain("Firefox on Windows");
+    expect(container.textContent).not.toContain("guard.approve_unknown_device");
+  });
+
+  it("shows an unknown device when nothing names it", () => {
+    const s = summary();
+
+    render({
+      summary: { ...s, new_device: { ...s.new_device, name: null } },
+      context: null,
+    });
     expect(container.textContent).toContain("guard.approve_unknown_device");
+  });
+
+  it("hides the location row when the request has no location", () => {
+    const v = view();
+
+    render({
+      ...v,
+      context: {
+        ...v.context!,
+        browser: "Unknown",
+        os: "Unknown",
+        city: "",
+        country: "Unknown",
+      },
+    });
+    const rows = container.querySelectorAll(
+      '[data-testid="guard_request_context"] > div',
+    );
+
+    expect(rows.length).toBe(2);
+    expect(container.textContent).not.toContain("guard.approve_location_label");
+    expect(container.textContent).not.toContain("guard.approve_unknown_location");
+    expect(container.textContent).not.toContain("Unknown");
+    expect(container.textContent).toContain("Firefox on Windows");
+  });
+
+  it("prefers the device name the sign-in sent", () => {
+    const v = view();
+
+    render({
+      ...v,
+      context: { ...v.context!, device_name: "Aster Mail desktop · Windows" },
+    });
+    expect(container.textContent).toContain("Aster Mail desktop · Windows");
+    expect(container.textContent).not.toContain("guard.approve_device:");
+  });
+
+  it("drops placeholder names and falls back to browser and system", () => {
+    const v = view();
+
+    render({
+      ...v,
+      context: { ...v.context!, device_name: "Unknown Device" },
+    });
+    expect(container.textContent).not.toContain("Unknown Device");
+    expect(container.textContent).toContain(
+      "guard.approve_device:Firefox,Windows",
+    );
+  });
+
+  it("explains a Guard error instead of a generic failure", async () => {
+    vi.mocked(api.approve_guard_request).mockResolvedValueOnce({
+      error: "x",
+      server_code: "GUARD_DEVICE_REQUIRED",
+      status: 403,
+    } as never);
+    render(view());
+    type_number("42");
+    await click("guard.approve_confirm");
+
+    expect(container.textContent).toContain("guard.error_device_required");
+    expect(container.textContent).not.toContain("guard.approve_error");
+  });
+
+  it("explains an outdated app on deny", async () => {
+    vi.mocked(api.deny_guard_request).mockResolvedValueOnce({
+      error: "x",
+      server_code: "CLIENT_UPGRADE_REQUIRED",
+      status: 426,
+    } as never);
+    render(view());
+    await click("guard.approve_deny");
+
+    expect(container.textContent).toContain("guard.error_upgrade");
   });
 });
 
@@ -792,6 +878,76 @@ describe("GuardApprovalHost", () => {
       button("guard.switch_account_confirm").click();
     });
     expect(h.switch_to_account).toHaveBeenCalledWith("u2");
+  });
+
+  it("drops the switch prompt when the request ends elsewhere", async () => {
+    await act(async () => {
+      root.render(<GuardApprovalHost />);
+    });
+    await act(async () => {
+      emit_guard_event({
+        event: "sign_in_request",
+        id: REQUEST_ID,
+        account_id: "u2",
+      });
+    });
+    expect(
+      container.querySelector('[data-testid="guard_switch_prompt"]'),
+    ).not.toBeNull();
+    await act(async () => {
+      emit_guard_event({
+        event: "sign_in_approved",
+        id: REQUEST_ID,
+        account_id: "u2",
+      });
+    });
+
+    expect(
+      container.querySelector('[data-testid="guard_switch_prompt"]'),
+    ).toBeNull();
+  });
+
+  it("never opens an expired request", async () => {
+    vi.mocked(device_module.get_guard_device).mockResolvedValueOnce(device);
+    vi.mocked(api.list_guard_requests).mockResolvedValueOnce({
+      data: { requests: [summary({ expires_at: "2020-01-01T00:00:00Z" })] },
+    } as never);
+    await act(async () => {
+      root.render(<GuardApprovalHost />);
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+
+    expect(
+      container.querySelector('[data-testid="guard_approval_sheet"]'),
+    ).toBeNull();
+  });
+
+  it("keeps a closed request closed when the list reloads", async () => {
+    vi.mocked(device_module.get_guard_device)
+      .mockResolvedValueOnce(device)
+      .mockResolvedValueOnce(device);
+    vi.mocked(api.list_guard_requests)
+      .mockResolvedValueOnce({ data: { requests: [summary()] } } as never)
+      .mockResolvedValueOnce({ data: { requests: [summary()] } } as never);
+    await act(async () => {
+      root.render(<GuardApprovalHost />);
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    await click("guard.approve_deny");
+    await click("common.done");
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent(GUARD_REQUESTS_REFRESH_EVENT));
+      await new Promise((r) => setTimeout(r, 0));
+    });
+
+    expect(
+      container.querySelector('[data-testid="guard_approval_sheet"]'),
+    ).toBeNull();
+    expect(api.list_guard_requests).toHaveBeenCalledTimes(2);
   });
 
   it("does not switch when the prompt is dismissed", async () => {

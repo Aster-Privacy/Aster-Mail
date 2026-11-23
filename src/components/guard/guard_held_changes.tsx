@@ -43,6 +43,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { IslandRow, IslandSection } from "@aster/ui";
 
+import { guard_error_text } from "@/components/guard/guard_error_text";
 import { open_guard_panic } from "@/components/guard/guard_panic_dialog";
 import { use_guard_now } from "@/components/guard/guard_visuals";
 import { format_guard_time } from "@/components/guard/guard_waiting_screen";
@@ -213,7 +214,7 @@ export function GuardHeldChanges({
       );
 
       if (response.error) {
-        show_toast(t("guard.held_error"), "error");
+        show_toast(guard_error_text(t, response, "guard.held_error"), "error");
       } else if (response.data?.cancelled === false) {
         show_toast(t("guard.held_already_ended"), "info");
       } else {
@@ -242,7 +243,7 @@ export function GuardHeldChanges({
       );
 
       if (response.error) {
-        show_toast(t("guard.held_error"), "error");
+        show_toast(guard_error_text(t, response, "guard.held_error"), "error");
       } else if (response.data?.status === "failed_stale") {
         show_toast(t("guard.held_stale"), "error");
       } else {
