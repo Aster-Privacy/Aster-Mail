@@ -8655,6 +8655,9 @@ export const ko = {
     theme_sync_across_devices: "기기 간 테마 동기화",
     theme_sync_across_devices_description:
       "끄면 이 기기에서만 다른 테마를 쓸 수 있습니다.",
+    hide_scrollbars: "스크롤 막대 숨기기",
+    hide_scrollbars_description:
+      "모든 기기에서 스크롤 막대를 숨깁니다. 목록과 메시지는 계속 스크롤할 수 있습니다.",
     product_updates: "제품 소식",
     product_updates_description:
       "Aster가 주요 업데이트를 출시하면 소식을 받습니다",
@@ -12133,6 +12136,7 @@ export const ko = {
     theme_light: "라이트, 라이트 모드, 밝은 테마, 테마",
     theme_system: "시스템, 시스템 테마, 자동 테마, 기기 설정에 맞춤",
     theme_sync_across_devices: "테마 동기화, 기기 간 테마 동기화, 기기별 테마, 기기 테마, 개별 테마",
+    hide_scrollbars: "스크롤 막대, 스크롤바, 스크롤 막대 숨기기, 스크롤",
     custom_theme_colors_title: "테마 색상, 색상 테마, 보라색, 초록색, 로즈, 주황색, 청록색, 남색, 파란색, 분홍색, 검은색, oled, 강조 색상",
     custom_theme_title: "사용자 지정 테마, 맞춤 색상, 팔레트, 기본 색상, 프리미엄 테마, starplan",
     font_choice_title: "글꼴, 폰트, 글꼴 변경, 서체, 글꼴 패밀리, starplan",

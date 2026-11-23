@@ -8952,6 +8952,9 @@ export const de = {
     theme_sync_across_devices: "Design auf allen Geräten synchronisieren",
     theme_sync_across_devices_description:
       "Schalten Sie dies aus, um auf diesem Gerät ein eigenes Design zu behalten.",
+    hide_scrollbars: "Bildlaufleisten ausblenden",
+    hide_scrollbars_description:
+      "Blendet Bildlaufleisten auf allen Ihren Geräten aus. Sie können weiterhin durch Listen und Nachrichten scrollen.",
     setup_2fa: "Einrichten",
     product_updates: "Produktneuigkeiten",
     product_updates_description:
@@ -12785,6 +12788,7 @@ export const de = {
     theme_light: "Hell, heller Modus, Light Mode, Design",
     theme_system: "System, Systemdesign, automatisches Design, wie Gerät",
     theme_sync_across_devices: "Design synchronisieren, Design pro Gerät, Gerätedesign, getrenntes Design",
+    hide_scrollbars: "Bildlaufleisten, Scrollbalken, Bildlaufleisten ausblenden, Scrollen",
     custom_theme_colors_title: "Designfarben, Farbschema, Lila, Grün, Rosa, Orange, Petrol, Indigo, Bernstein, Cyan, Schiefer, Aster Blau, Blau, Limette, Fuchsia, Magenta, Smaragd, Pink, Schwarz, Dunkel, OLED, Akzentfarbe",
     custom_theme_title: "eigenes Design, eigene Farbe, Farbpalette, Grundfarbe, eigene Palette, Starplan, Premium Design",
     font_choice_title: "Schriftart, Schrift ändern, Schriftfamilie, Typografie, Starplan",

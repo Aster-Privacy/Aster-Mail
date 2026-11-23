@@ -8787,6 +8787,9 @@ export const ar = {
     theme_sync_across_devices: "مزامنة السمة بين الأجهزة",
     theme_sync_across_devices_description:
       "أوقف هذا الخيار للاحتفاظ بسمة مختلفة على هذا الجهاز.",
+    hide_scrollbars: "إخفاء أشرطة التمرير",
+    hide_scrollbars_description:
+      "يخفي أشرطة التمرير على جميع أجهزتك. لا يزال بإمكانك التمرير عبر القوائم والرسائل.",
     setup_2fa: "إعداد",
     product_updates: "مستجدات المنتج",
     product_updates_description: "احصل على رسالة عند إصدار Aster تحديثًا مهمًا",
@@ -12375,6 +12378,7 @@ export const ar = {
     theme_light: "الوضع الفاتح, سمة فاتحة, مظهر",
     theme_system: "سمة النظام, سمة تلقائية, مطابقة الجهاز",
     theme_sync_across_devices: "مزامنة السمة, سمة لكل جهاز, سمة الجهاز, سمة منفصلة",
+    hide_scrollbars: "أشرطة التمرير, إخفاء أشرطة التمرير, التمرير",
     custom_theme_colors_title: "ألوان السمة, بنفسجي, أخضر, وردي, برتقالي, أزرق, أسود, داكن, لون التمييز",
     custom_theme_title: "لون مخصص, لوحة ألوان, سمة مخصصة, سمة مميزة, starplan",
     font_choice_title: "الخط, نوع الخط, عائلة الخط, تغيير الخط",

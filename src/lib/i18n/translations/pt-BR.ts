@@ -8944,6 +8944,9 @@ export const pt_br = {
     theme_sync_across_devices: "Sincronizar o tema entre dispositivos",
     theme_sync_across_devices_description:
       "Desative para manter um tema diferente neste dispositivo.",
+    hide_scrollbars: "Ocultar barras de rolagem",
+    hide_scrollbars_description:
+      "Oculta as barras de rolagem em todos os seus dispositivos. Você ainda pode rolar listas e mensagens.",
     product_updates: "Novidades do produto",
     product_updates_description:
       "Receba uma mensagem quando a Aster lançar uma atualização importante",
@@ -12675,6 +12678,7 @@ export const pt_br = {
     theme_light: "modo claro, tema claro, tema",
     theme_system: "tema do sistema, tema automático, igual ao dispositivo, seguir sistema",
     theme_sync_across_devices: "sincronizar tema, tema por dispositivo, tema do dispositivo, tema separado",
+    hide_scrollbars: "barras de rolagem, ocultar barras de rolagem, rolagem, scroll",
     custom_theme_colors_title: "cores do tema, roxo, verde, rosa, laranja, verde-azulado, índigo, âmbar, ciano, ardósia, azul aster, azul, verde-limão, fúcsia, magenta, esmeralda, preto, escuro, oled, cor de destaque",
     custom_theme_title: "cor personalizada, paleta, cor base, paleta personalizada, tema premium, starplan",
     font_choice_title: "fonte, tipo de fonte, família de fontes, trocar fonte, starplan",

@@ -9172,6 +9172,9 @@ export const pl = {
     theme_sync_across_devices: "Synchronizuj motyw między urządzeniami",
     theme_sync_across_devices_description:
       "Wyłącz, aby na tym urządzeniu zachować osobny motyw.",
+    hide_scrollbars: "Ukryj paski przewijania",
+    hide_scrollbars_description:
+      "Ukrywa paski przewijania na wszystkich Twoich urządzeniach. Nadal możesz przewijać listy i wiadomości.",
     product_updates: "Nowości w produkcie",
     product_updates_description:
       "Otrzymuj wiadomość, gdy Aster wyda ważną aktualizację",
@@ -12861,6 +12864,7 @@ export const pl = {
     theme_light: "tryb jasny, jasny motyw, motyw",
     theme_system: "motyw systemowy, motyw automatyczny, zgodnie z urządzeniem, ustawienia systemu",
     theme_sync_across_devices: "synchronizacja motywu, motyw na urządzenie, motyw urządzenia, osobny motyw",
+    hide_scrollbars: "paski przewijania, ukryj paski przewijania, przewijanie, scroll",
     custom_theme_colors_title: "motyw kolorystyczny, fioletowy, zielony, różany, pomarańczowy, morski, indygo, bursztynowy, cyjan, łupkowy, aster niebieski, niebieski, limonkowy, fuksja, magenta, szmaragdowy, różowy, czarny, ciemny, oled, kolor akcentu",
     custom_theme_title: "własny kolor, paleta, kolor bazowy, własna paleta, starplan, motyw premium",
     font_choice_title: "zmiana czcionki, krój pisma, rodzina czcionek, czcionka, starplan",

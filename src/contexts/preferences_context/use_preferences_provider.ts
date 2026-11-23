@@ -641,6 +641,13 @@ export function use_preferences_provider() {
 
   useEffect(() => {
     document.documentElement.classList.toggle(
+      "hide-scrollbars",
+      preferences.hide_scrollbars === true,
+    );
+  }, [preferences.hide_scrollbars]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle(
       "dyslexia-font",
       preferences.dyslexia_font,
     );

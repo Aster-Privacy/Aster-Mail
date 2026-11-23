@@ -8972,6 +8972,9 @@ export const nl = {
     theme_sync_across_devices: "Thema synchroniseren tussen apparaten",
     theme_sync_across_devices_description:
       "Zet dit uit om op dit apparaat een eigen thema te houden.",
+    hide_scrollbars: "Schuifbalken verbergen",
+    hide_scrollbars_description:
+      "Verbergt schuifbalken op al je apparaten. Je kunt nog steeds door lijsten en berichten scrollen.",
     product_updates: "Productnieuws",
     product_updates_description:
       "Ontvang een bericht wanneer Aster een noemenswaardige update uitbrengt",
@@ -12615,6 +12618,7 @@ export const nl = {
     theme_light: "lichte modus, licht thema, thema",
     theme_system: "systeemthema, automatisch thema, apparaat volgen, systeeminstelling",
     theme_sync_across_devices: "thema synchroniseren, thema per apparaat, apparaatthema, apart thema",
+    hide_scrollbars: "schuifbalken, schuifbalken verbergen, scrollen, scrollbalk",
     custom_theme_colors_title: "kleurthema, paars, groen, roze, oranje, blauwgroen, indigo, amber, cyaan, leigrijs, aster blauw, blauw, limoen, fuchsia, magenta, smaragd, zwart, donker, oled, accentkleur",
     custom_theme_title: "eigen kleur, kleurenpalet, basiskleur, eigen palet, starplan, premium thema",
     font_choice_title: "lettertype wisselen, lettertype, letterfamilie, starplan",
