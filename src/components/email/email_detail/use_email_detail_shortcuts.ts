@@ -34,8 +34,7 @@ export function leave_email_detail(
     return;
   }
 
-  const history_index = (window.history.state as { idx?: number } | null)
-    ?.idx;
+  const history_index = (window.history.state as { idx?: number } | null)?.idx;
 
   if (typeof history_index === "number" && history_index > 0) {
     navigate(-1);
@@ -82,7 +81,12 @@ export function use_email_detail_shortcuts({
       return;
     }
     void handle_trash();
-  }, [confirm_before_delete, is_trashed, set_is_trash_confirm_open, handle_trash]);
+  }, [
+    confirm_before_delete,
+    is_trashed,
+    set_is_trash_confirm_open,
+    handle_trash,
+  ]);
 
   const on_archive = useCallback(() => {
     if (confirm_before_archive) {

@@ -128,7 +128,12 @@ export function use_search_delete({
     if (dont_ask) disable_permanent_delete_confirm?.();
     set_dont_ask(false);
     if (emails) void run_permanent_delete(emails);
-  }, [pending, dont_ask, disable_permanent_delete_confirm, run_permanent_delete]);
+  }, [
+    pending,
+    dont_ask,
+    disable_permanent_delete_confirm,
+    run_permanent_delete,
+  ]);
 
   const handle_cancel = useCallback(() => {
     set_pending(null);

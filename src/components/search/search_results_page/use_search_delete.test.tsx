@@ -111,7 +111,10 @@ function email(id: string, is_trashed: boolean): InboxEmail {
 let container: HTMLDivElement | null = null;
 let root: Root | null = null;
 
-function render(confirm_before_permanent_delete?: boolean, can_disable = false) {
+function render(
+  confirm_before_permanent_delete?: boolean,
+  can_disable = false,
+) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
