@@ -65,7 +65,7 @@ vi.mock("@/services/lockdown_store", () => ({
   LOCKDOWN_CHANGED_EVENT: "astermail:lockdown-changed",
 }));
 
-import { sync_client } from "./sync_client";
+import { sync_client, FIRST_RECONNECT_SPREAD_MS } from "./sync_client";
 class FakeSocket {
   static instances: FakeSocket[] = [];
   static OPEN = 1;
@@ -227,7 +227,7 @@ describe("sync_client while the window is hidden", () => {
     vi.advanceTimersByTime(60_000);
     expect(client_internals().reconnect_timeout).not.toBeNull();
 
-    vi.advanceTimersByTime(5_000);
+    vi.advanceTimersByTime(3_000 + FIRST_RECONNECT_SPREAD_MS);
     await Promise.resolve();
 
     const replacement = FakeSocket.instances.at(-1)!;

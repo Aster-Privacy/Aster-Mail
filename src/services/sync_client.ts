@@ -122,6 +122,27 @@ const LIVENESS_TIMEOUT_MS = 75000;
 const CATCH_UP_TICK_MS = 60000;
 const SUSPEND_GAP_MS = CATCH_UP_TICK_MS * 3;
 const DEFINITIONS_REFRESH_MIN_MS = 30000;
+
+export const FIRST_RECONNECT_SPREAD_MS = 20000;
+
+export function compute_reconnect_delay(
+  attempt: number,
+  low_network: boolean,
+  random_fraction: number,
+): number {
+  const base_delay = low_network ? 10000 : 3000;
+  const max_delay = low_network ? 300000 : 60000;
+
+  if (attempt === 0) {
+    return base_delay + Math.floor(random_fraction * FIRST_RECONNECT_SPREAD_MS);
+  }
+
+  const backoff = Math.min(base_delay * Math.pow(2, attempt), max_delay);
+  const jitter = 1 + (random_fraction * 0.5 - 0.25);
+
+  return Math.max(base_delay, Math.min(backoff * jitter, max_delay));
+}
+
 export const PUSH_ARRIVED_MESSAGE = "aster_push_arrived";
 const MUTATION_REFRESH_DEBOUNCE_MS = 600;
 const ECHO_RECONCILE_MS = 30000;
@@ -512,14 +533,11 @@ class SyncClient {
   private schedule_reconnect(): void {
     if (this.reconnect_timeout || !this.should_reconnect) return;
 
-    const base_delay = is_low_network() ? 10000 : 3000;
-    const max_delay = is_low_network() ? 300000 : 60000;
-    const backoff = Math.min(
-      base_delay * Math.pow(2, this.reconnect_attempt),
-      max_delay,
+    const delay = compute_reconnect_delay(
+      this.reconnect_attempt,
+      is_low_network(),
+      Math.random(),
     );
-    const jitter = 1 + (Math.random() * 0.5 - 0.25);
-    const delay = Math.max(base_delay, Math.min(backoff * jitter, max_delay));
 
     this.reconnect_attempt++;
 
