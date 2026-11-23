@@ -82,6 +82,13 @@ function is_in_menu(): boolean {
   );
 }
 
+const DISMISSABLE_LAYER_SELECTOR =
+  '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [data-radix-popper-content-wrapper]';
+
+function has_open_dismissable_layer(): boolean {
+  return document.querySelector(DISMISSABLE_LAYER_SELECTOR) !== null;
+}
+
 function is_typing(): boolean {
   const active = get_active_element();
 
@@ -478,15 +485,41 @@ export function use_keyboard_shortcuts(
     }
   }, []);
 
+  const handle_escape = useCallback((e: KeyboardEvent) => {
+    if (e.key !== "Escape" || e.defaultPrevented || e.repeat) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+    const {
+      is_any_modal_open: is_modal_prop_open,
+      has_viewed_email,
+      enabled,
+      disable_on_touch,
+    } = state_ref.current;
+
+    if (!enabled || !has_viewed_email) return;
+    if (disable_on_touch && is_touch_device()) return;
+    if (is_modal_prop_open || has_open_overlay_layer()) return;
+    if (is_in_menu() || is_typing() || has_open_dismissable_layer()) return;
+
+    const handler = handlers_ref.current.on_close_viewer;
+
+    if (!handler) return;
+
+    e.preventDefault();
+    handler();
+  }, []);
+
   useEffect(() => {
     document.addEventListener("keydown", handle_keydown, { capture: true });
+    window.addEventListener("keydown", handle_escape);
 
     return () => {
       document.removeEventListener("keydown", handle_keydown, {
         capture: true,
       });
+      window.removeEventListener("keydown", handle_escape);
     };
-  }, [handle_keydown]);
+  }, [handle_keydown, handle_escape]);
 }
 
 export { is_typing, is_touch_device, get_active_element };
