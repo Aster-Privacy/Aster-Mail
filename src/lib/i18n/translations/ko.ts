@@ -12391,6 +12391,8 @@ export const ko = {
     connected_accounts_title: "연결된 계정, 연동 계정, 링크된 계정, 외부 메일함",
     recent_imports: "최근 가져오기, 가져오기 기록, 이전 가져오기, 가져오기 상태",
     import_how_it_works: "작동 방식, 가져오기 도움말, 가져오기 방법",
+    regroup_conversations_title: "다시 그룹화, 대화, 스레드, 답장 묶기",
+    regroup_conversations_label: "다시 그룹화, 대화 병합, 스레드 수정, 가져온 메일",
     mail_rules_title: "메일 규칙, 필터, 규칙, 정리, 분류, 자동화",
     notifications: "알림, 경고, 알림 받기",
     desktop: "데스크톱, 데스크톱 알림, 브라우저 알림, 시스템 알림",

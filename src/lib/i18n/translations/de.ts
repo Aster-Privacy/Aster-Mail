@@ -13044,6 +13044,8 @@ export const de = {
     connected_accounts_title: "Verbundene Konten, verknüpfte Konten, externes Postfach",
     recent_imports: "Letzte Importe, Importverlauf, frühere Importe, Importstatus",
     import_how_it_works: "So funktioniert es, Hilfe zum Import, wie der Import funktioniert",
+    regroup_conversations_title: "neu gruppieren, Konversationen, Verläufe, Antworten gruppieren",
+    regroup_conversations_label: "neu gruppieren, Konversationen zusammenführen, importierte E-Mails",
     mail_rules_title: "Mail-Regeln, Filter, Regeln, E-Mail-Regeln, organisieren, Automatisierung",
     notifications: "Benachrichtigungen, Hinweise, Mitteilungen, benachrichtigen",
     desktop: "Desktop, Desktop-Benachrichtigungen, Browser-Benachrichtigungen, Systemhinweise",

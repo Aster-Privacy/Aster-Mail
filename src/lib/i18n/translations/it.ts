@@ -12952,6 +12952,8 @@ export const it = {
     connected_accounts_title: "account collegati, account connessi, casella esterna",
     recent_imports: "importazioni recenti, cronologia importazioni, importazioni precedenti, stato importazione",
     import_how_it_works: "come funziona, aiuto importazione, come funziona l'importazione",
+    regroup_conversations_title: "raggruppa, conversazioni, thread, raggruppa risposte",
+    regroup_conversations_label: "raggruppa, unisci conversazioni, correggi thread, posta importata",
     mail_rules_title: "regole posta, filtri, regole, organizza, automazione",
     notifications: "notifiche, avvisi, notifica",
     desktop: "desktop, notifiche desktop, notifiche del browser, avvisi di sistema",

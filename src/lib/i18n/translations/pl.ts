@@ -13120,6 +13120,8 @@ export const pl = {
     connected_accounts_title: "połączone konta, powiązane konta, zewnętrzna skrzynka",
     recent_imports: "historia importu, wcześniejsze importy, status importu",
     import_how_it_works: "pomoc importu, jak działa import",
+    regroup_conversations_title: "pogrupuj ponownie, konwersacje, wątki, grupuj odpowiedzi",
+    regroup_conversations_label: "pogrupuj ponownie, scal konwersacje, zaimportowana poczta",
     mail_rules_title: "filtry, reguły, reguły poczty, porządkowanie, automatyzacja",
     notifications: "powiadomienia, alerty, powiadamiaj",
     desktop: "powiadomienia na pulpicie, powiadomienia przeglądarki, alerty systemowe",

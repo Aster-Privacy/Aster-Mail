@@ -384,6 +384,8 @@ export interface SettingsKeywordsTranslations {
   connected_accounts_title: string;
   recent_imports: string;
   import_how_it_works: string;
+  regroup_conversations_title: string;
+  regroup_conversations_label: string;
   mail_rules_title: string;
   notifications: string;
   desktop: string;

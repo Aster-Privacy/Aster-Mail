@@ -12594,6 +12594,8 @@ export const en: Translations = {
     connected_accounts_title: "connected accounts, linked accounts, external mailbox",
     recent_imports: "import history, past imports, import status",
     import_how_it_works: "import help, how import works",
+    regroup_conversations_title: "regroup, conversations, threads, group replies",
+    regroup_conversations_label: "regroup, merge conversations, fix threads, imported mail",
     mail_rules_title: "filters, rules, mail rules, organize, automation",
     notifications: "notifications, alerts, notify",
     desktop: "desktop notifications, browser notifications, system alerts",

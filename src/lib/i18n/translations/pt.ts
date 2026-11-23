@@ -12997,6 +12997,8 @@ export const pt = {
     connected_accounts_title: "contas ligadas, contas associadas, caixa de correio externa",
     recent_imports: "importações recentes, histórico de importações, importações anteriores, estado da importação",
     import_how_it_works: "como funciona, ajuda com a importação, como funciona a importação",
+    regroup_conversations_title: "reagrupar, conversas, tópicos, agrupar respostas",
+    regroup_conversations_label: "reagrupar, juntar conversas, corrigir tópicos, e-mails importados",
     mail_rules_title: "regras de correio, filtros, regras, organizar, automatização",
     notifications: "notificações, alertas, notificar",
     desktop: "computador, notificações no computador, notificações do navegador, alertas do sistema",

@@ -12874,6 +12874,8 @@ export const nl = {
     connected_accounts_title: "verbonden accounts, gekoppelde accounts, externe mailbox",
     recent_imports: "importgeschiedenis, eerdere imports, importstatus",
     import_how_it_works: "hulp bij importeren, hoe importeren werkt",
+    regroup_conversations_title: "hergroeperen, gesprekken, threads, antwoorden groeperen",
+    regroup_conversations_label: "hergroeperen, gesprekken samenvoegen, geïmporteerde e-mail",
     mail_rules_title: "filters, regels, mailregels, ordenen, automatisering",
     notifications: "meldingen, waarschuwingen, notificaties",
     desktop: "bureaubladmeldingen, browsermeldingen, systeemmeldingen",

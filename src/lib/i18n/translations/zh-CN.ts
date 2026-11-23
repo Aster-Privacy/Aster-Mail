@@ -11563,6 +11563,8 @@ export const zh_CN = {
     connected_accounts_title: "已连接的账户, 关联账户, 绑定账户, 外部邮箱",
     recent_imports: "最近导入, 导入记录, 历史导入, 导入状态",
     import_how_it_works: "工作原理, 导入帮助, 如何导入",
+    regroup_conversations_title: "重新分组, 会话, 邮件串, 合并回复",
+    regroup_conversations_label: "重新分组, 合并会话, 修复邮件串, 导入的邮件",
     mail_rules_title: "邮件规则, 过滤器, 规则, 整理, 自动化",
     notifications: "通知, 提醒, 消息通知",
     desktop: "桌面, 桌面通知, 浏览器通知, 系统提醒",

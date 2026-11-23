@@ -12605,6 +12605,8 @@ export const ja = {
     connected_accounts_title: "接続済みアカウント, 連携アカウント, リンクされたアカウント, 外部メールボックス",
     recent_imports: "最近のインポート, インポート履歴, 過去のインポート, インポートの状況",
     import_how_it_works: "仕組み, インポートのヘルプ, インポートの方法",
+    regroup_conversations_title: "再グループ化, スレッド, 会話, 返信をまとめる",
+    regroup_conversations_label: "再グループ化, 会話を結合, スレッドを修正, インポートしたメール",
     mail_rules_title: "メールルール, フィルタ, ルール, 振り分け, 整理, 自動化",
     notifications: "通知, アラート, お知らせ",
     desktop: "デスクトップ, デスクトップ通知, ブラウザ通知, システム通知",

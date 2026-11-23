@@ -12887,6 +12887,8 @@ export const es = {
     connected_accounts_title: "Cuentas conectadas, cuentas vinculadas, buzón externo",
     recent_imports: "Importaciones recientes, historial de importaciones, importaciones anteriores, estado de la importación",
     import_how_it_works: "Cómo funciona, ayuda de importación, cómo funciona la importación",
+    regroup_conversations_title: "reagrupar, conversaciones, hilos, agrupar respuestas",
+    regroup_conversations_label: "reagrupar, unir conversaciones, corregir hilos, correo importado",
     mail_rules_title: "Reglas de correo, filtros, reglas, organizar, automatización",
     notifications: "Notificaciones, alertas, avisos, notificar",
     desktop: "Escritorio, notificaciones de escritorio, notificaciones del navegador, alertas del sistema",

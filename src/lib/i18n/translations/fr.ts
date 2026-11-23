@@ -13028,6 +13028,8 @@ export const fr = {
     connected_accounts_title: "Comptes connectés, comptes liés, boîte aux lettres externe",
     recent_imports: "Imports récents, historique des imports, imports précédents, état de l'import",
     import_how_it_works: "Comment ça marche, aide à l'import, fonctionnement de l'import",
+    regroup_conversations_title: "regrouper, conversations, fils, regrouper les réponses",
+    regroup_conversations_label: "regrouper, fusionner les conversations, e-mails importés",
     mail_rules_title: "Règles de messagerie, filtres, règles, organiser, automatisation",
     notifications: "Notifications, alertes, avertir",
     desktop: "Bureau, notifications de bureau, notifications du navigateur, alertes système",
