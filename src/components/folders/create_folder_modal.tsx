@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DecryptedFolder } from "@/hooks/use_folders";
+
 import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -60,12 +62,14 @@ interface CreateFolderModalProps {
   is_open: boolean;
   on_close: () => void;
   initial_parent_token?: string;
+  on_created?: (folder: DecryptedFolder) => void;
 }
 
 export function CreateFolderModal({
   is_open,
   on_close,
   initial_parent_token,
+  on_created,
 }: CreateFolderModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -131,6 +135,7 @@ export function CreateFolderModal({
     set_is_creating(false);
 
     if (result.folder) {
+      on_created?.(result.folder);
       on_close();
       set_folder_name("");
       set_selected_color(DEFAULT_PICKER_COLOR);

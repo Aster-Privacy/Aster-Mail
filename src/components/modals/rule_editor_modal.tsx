@@ -31,6 +31,7 @@ import type {
 import type { RuleEditorSeed } from "@/components/mail_rules/rule_templates";
 import type { EditorTab } from "@/components/modals/rule_editor_helpers";
 import type { ParseResult } from "@/lib/mail_rules/expression_parser";
+import type { DecryptedFolder } from "@/hooks/use_folders";
 
 import * as React from "react";
 import { Button } from "@aster/ui";
@@ -50,6 +51,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   is_missing_rule_folder,
   rule_folder_name,
+  with_created_rule_folder,
 } from "@/components/mail_rules/rule_folders";
 import { emit_refresh_requested } from "@/hooks/mail_events";
 import { use_folders } from "@/hooks/use_folders";
@@ -135,6 +137,18 @@ export function RuleEditorModal({
 }: RuleEditorModalProps) {
   const { t } = use_i18n();
   const { state: folders_state, fetch_folders } = use_folders();
+  const [created_folders, set_created_folders] = React.useState<
+    DecryptedFolder[]
+  >([]);
+  const editor_folders = created_folders.reduce(
+    with_created_rule_folder,
+    folders_state.folders,
+  );
+  const remember_created_folder = React.useCallback(
+    (folder: DecryptedFolder) =>
+      set_created_folders((prev) => [...prev, folder]),
+    [],
+  );
   const { state: tags_state, fetch_tags } = use_tags();
   const [alias_delivery, set_alias_delivery] = React.useState<
     Map<string, AliasDeliverySetting>
@@ -261,7 +275,7 @@ export function RuleEditorModal({
   const incomplete_move_to = actions.some(
     (a) =>
       a.type === "move_to" &&
-      is_missing_rule_folder(folders_state.folders, a.folder_token),
+      is_missing_rule_folder(editor_folders, a.folder_token),
   );
   const incomplete_apply_labels = actions.some(
     (a) => a.type === "apply_labels" && a.label_tokens.length === 0,
@@ -344,7 +358,7 @@ export function RuleEditorModal({
     actions,
     alias_delivery,
     (token) =>
-      folders_state.folders.find((folder) => folder.folder_token === token)
+      editor_folders.find((folder) => folder.folder_token === token)
         ?.folder_type,
   );
 
@@ -358,7 +372,7 @@ export function RuleEditorModal({
     if (!token) return t("mail.archive");
 
     return (
-      rule_folder_name(folders_state.folders, token, t) ??
+      rule_folder_name(editor_folders, token, t) ??
       t("settings.alias_delivery_folder_missing")
     );
   };
@@ -1033,6 +1047,7 @@ export function RuleEditorModal({
                   key={`${a.type}-${i}`}
                   action={a}
                   on_change={(next) => replace_action_at(i, next)}
+                  on_folder_created={remember_created_folder}
                   on_remove={() => remove_action_at(i)}
                 />
               ))}
