@@ -69,6 +69,7 @@ import {
 } from "@/hooks/mail_events";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { note_bulk_mail_removed } from "@/services/search/index_removals";
+import { reset_external_sources_cache } from "@/hooks/use_external_sources";
 
 export type { TlsMethod, I18nTranslate };
 export {
@@ -163,6 +164,7 @@ export function use_external_accounts() {
       if (!form.is_mounted_ref.current) return;
 
       if (result.data) {
+        reset_external_sources_cache();
         set_accounts(result.data);
         set_load_error(false);
       } else {
@@ -719,6 +721,7 @@ export function use_external_accounts() {
       if (delete_result.error) {
         show_toast(sanitize_display_text(delete_result.error), "error");
       } else {
+        reset_external_sources_cache();
         set_accounts((prev) => prev.filter((a) => a.id !== target.id));
         if (also_delete && purged_count > 0) {
           show_toast(
@@ -788,6 +791,13 @@ export function use_external_accounts() {
     },
     [t],
   );
+
+  const close_form = useCallback(() => {
+    const was_editing = form.editing_account !== null;
+
+    form.close_form();
+    if (was_editing) void fetch_accounts();
+  }, [form.editing_account, form.close_form, fetch_accounts]);
 
   return {
     t,
@@ -861,7 +871,7 @@ export function use_external_accounts() {
     is_form_busy: form.is_form_busy,
     truncated_folders: form.truncated_folders,
     open_add_form: form.open_add_form,
-    close_form: form.close_form,
+    close_form,
     handle_protocol_change: form.handle_protocol_change,
     handle_email_change: form.handle_email_change,
     active_preset: form.active_preset,

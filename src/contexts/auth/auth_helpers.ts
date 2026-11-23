@@ -34,6 +34,7 @@ import type { SnapshotClearScope } from "@/services/offline_email_cache";
 
 import { clear_mail_cache } from "@/hooks/use_email_list";
 import { clear_folders_cache } from "@/hooks/use_folders";
+import { reset_external_sources_cache } from "@/hooks/use_external_sources";
 import { clear_tags_cache } from "@/hooks/use_tags";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache_store";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
@@ -118,6 +119,7 @@ export async function clear_account_scoped_caches(
   clear_attachment_limits_cache();
   clear_aliases_cache();
   clear_plan_cache();
+  reset_external_sources_cache();
 
   const search_index_cleared = clear_search_index(search_snapshots, {
     account_changed: true,
