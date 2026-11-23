@@ -971,3 +971,51 @@ describe("custom domain forwards in reply-to mode", () => {
     ).toBeNull();
   });
 });
+
+describe("reply-to mode forward with a store sender", () => {
+  const alias = "pat.doe@relay.example";
+  const headers = [
+    {
+      name: "From",
+      value: `"Shop.example" <${alias}>`,
+    },
+    { name: "To", value: alias },
+    {
+      name: "Reply-To",
+      value: "pat.doe+auto-confirm=shop.example@relay.example",
+    },
+    { name: "X-AnonAddy-Original-Sender", value: "auto-confirm@shop.example" },
+    {
+      name: "X-AnonAddy-Original-Envelope-From",
+      value: "0102abc-0000@bounces.shop.example",
+    },
+    {
+      name: "X-AnonAddy-Original-From-Header",
+      value: '"Shop.example" <auto-confirm@shop.example>',
+    },
+    {
+      name: "X-AnonAddy-Authentication-Results",
+      value:
+        "mail.relay.example; dkim=pass header.d=shop.example; spf=pass smtp.mailfrom=0102abc-0000@bounces.shop.example; dmarc=pass (policy=quarantine) header.from=shop.example",
+    },
+    { name: "Feedback-ID", value: "F:0000:anonaddy" },
+  ];
+
+  it("shows the store as the sender", () => {
+    const result = resolve_forwarding_display(
+      { name: "Shop.example", email: alias },
+      headers,
+      STRICT_AUTH,
+    );
+
+    expect(result?.display_sender_name).toBe("Shop.example");
+    expect(result?.display_sender_email).toBe("auto-confirm@shop.example");
+    expect(
+      displayed_sender({
+        sender_name: "Shop.example",
+        sender_email: alias,
+        ...result,
+      }),
+    ).toEqual({ name: "Shop.example", email: "auto-confirm@shop.example" });
+  });
+});
