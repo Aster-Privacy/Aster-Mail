@@ -127,6 +127,16 @@ describe("guard_error_text", () => {
     expect(guard_error_text_or_null(t as never, { status: 500 })).toBeNull();
   });
 
+  it("leaves errors without a Guard code to the caller", () => {
+    expect(guard_error_text_or_null(t as never, { status: 429 })).toBeNull();
+    expect(
+      guard_error_text_or_null(t as never, { code: "TIMEOUT_ERROR" }),
+    ).toBeNull();
+    expect(
+      guard_error_text_or_null(t as never, { server_code: "GUARD_LAST_DEVICE" }),
+    ).not.toBeNull();
+  });
+
   it("fills the time parameter", () => {
     expect(
       guard_error_text(

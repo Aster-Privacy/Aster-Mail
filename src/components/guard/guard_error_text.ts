@@ -191,6 +191,7 @@ export function guard_error_text_or_null(
   source: GuardErrorSource | null | undefined,
   now?: number,
 ): string | null {
+  if (!source?.server_code?.startsWith("GUARD_")) return null;
   const message = guard_error_message(source, now);
 
   return message ? t(message.key, message.params) : null;
