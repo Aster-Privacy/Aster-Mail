@@ -4604,6 +4604,9 @@ export const es = {
     close_popup_on_outside_click: "Cerrar la ventana emergente al hacer clic fuera",
     close_popup_on_outside_click_description:
       "Cuando los correos se abren en una ventana emergente, hacer clic en cualquier lugar fuera de ella la cierra",
+    open_popup_maximized: "Abrir la ventana emergente a pantalla completa",
+    open_popup_maximized_description:
+      "Cuando los correos se abren en una ventana emergente, esta ocupa toda la pantalla",
     split_view: "Vista dividida",
     split_view_description:
       "Muestra la lista de correos y la vista previa lado a lado",
@@ -12723,6 +12726,7 @@ export const es = {
     fam_kids_tab: "Niños, cuentas infantiles, cuenta de niño, cuenta para hijos",
     email_view_mode: "Modo de vista del correo, ventana emergente, vista dividida, página completa, abrir correo, diseño de lectura",
     close_popup_on_outside_click: "Cerrar ventana emergente al hacer clic fuera, clic fuera, cerrar ventana emergente, descartar",
+    open_popup_maximized: "ventana emergente, pantalla completa, maximizar, abrir maximizada",
     compose_window_mode: "Modo de ventana de redacción, ventana flotante, redactar a pantalla completa, redacción minimizada, diseño de redacción",
     reduce_transparency: "Reducir transparencia, transparencia, desenfoque, opaco",
     underline_links: "Subrayar enlaces, enlaces, subrayado",

@@ -6564,6 +6564,9 @@ export const de = {
     close_popup_on_outside_click: "Popup durch Klicken außerhalb schließen",
     close_popup_on_outside_click_description:
       "Wenn E-Mails in einem Popup geöffnet werden, schließt ein Klick außerhalb des Popups es",
+    open_popup_maximized: "Popup im Vollbild öffnen",
+    open_popup_maximized_description:
+      "Wenn E-Mails in einem Popup geöffnet werden, füllt das Popup den Bildschirm",
     full_page_description:
       "Öffnet E-Mail in Vollbreitenansicht ohne Posteingangsliste",
     thread_count_position: "Position des Thread-Zähler-Badges",
@@ -12879,6 +12882,7 @@ export const de = {
     fam_kids_tab: "Kinder, Kinderkonten, Kinderkonto",
     email_view_mode: "E-Mail-Ansicht, Popup, geteilte Ansicht, ganze Seite, E-Mail öffnen, Leselayout",
     close_popup_on_outside_click: "Popup durch Klick außerhalb schließen, außerhalb klicken, Popup schließen, ausblenden",
+    open_popup_maximized: "Popup, Vollbild, maximieren, groß öffnen",
     compose_window_mode: "Verfassen-Fenster, schwebendes Popup, Vollbild verfassen, minimiert verfassen, Layout beim Schreiben",
     reduce_transparency: "Transparenz reduzieren, Transparenz, Unschärfe, deckend",
     underline_links: "Links unterstreichen, Links, unterstreichen",

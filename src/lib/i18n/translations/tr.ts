@@ -4529,6 +4529,9 @@ export const tr = {
     close_popup_on_outside_click: "Dışarı tıklayarak açılır pencereyi kapat",
     close_popup_on_outside_click_description:
       "E-postalar açılır pencerede açıldığında, pencerenin dışında herhangi bir yere tıklamak onu kapatır",
+    open_popup_maximized: "Açılır pencereyi tam ekran aç",
+    open_popup_maximized_description:
+      "E-postalar açılır pencerede açıldığında, pencere tüm ekranı kaplar",
     split_view: "Bölünmüş görünüm",
     split_view_description: "E-posta listesini ve önizlemeyi yan yana gösterir",
     full_page: "Tam sayfa",
@@ -12576,6 +12579,7 @@ export const tr = {
     fam_kids_tab: "çocuklar, çocuk hesapları, çocuk hesabı",
     email_view_mode: "e-posta görünüm modu, açılır pencere, bölünmüş görünüm, tam sayfa, e-postayı aç, okuma düzeni",
     close_popup_on_outside_click: "dışarı tıklayınca kapat, açılır pencere, dışarı tıkla, açılır pencereyi kapat",
+    open_popup_maximized: "açılır pencere, tam ekran, büyüt",
     compose_window_mode: "yazma penceresi modu, yüzen pencere, tam ekran yazma, küçültülmüş yazma, yazma düzeni",
     reduce_transparency: "şeffaflığı azalt, şeffaflık, bulanıklık, opak",
     underline_links: "bağlantıların altını çiz, bağlantılar, altı çizili",

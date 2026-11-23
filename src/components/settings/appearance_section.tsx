@@ -790,6 +790,14 @@ export function AppearanceSection() {
               update_preference("close_popup_on_outside_click", checked, true)
             }
           />
+          <SettingToggleRow
+            checked={preferences.open_popup_maximized === true}
+            description={t("settings.open_popup_maximized_description")}
+            label={t("settings.open_popup_maximized")}
+            on_change={(checked) =>
+              update_preference("open_popup_maximized", checked, true)
+            }
+          />
           <SettingRow
             description={t("settings.density_description")}
             label={t("settings.density")}

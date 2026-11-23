@@ -4159,6 +4159,9 @@ export const zh_CN = {
     close_popup_on_outside_click: "点击外部关闭弹出窗口",
     close_popup_on_outside_click_description:
       "当邮件在弹出窗口中打开时，点击弹出窗口外的任意位置即可将其关闭",
+    open_popup_maximized: "以全屏方式打开弹出窗口",
+    open_popup_maximized_description:
+      "当邮件在弹出窗口中打开时，弹出窗口会占满整个屏幕",
     split_view: "分栏视图",
     split_view_description: "并排显示邮件列表和预览",
     full_page: "全页视图",
@@ -11400,6 +11403,7 @@ export const zh_CN = {
     fam_kids_tab: "儿童, 儿童账户, 孩子账户, 子女账户",
     email_view_mode: "邮件查看模式, 弹窗, 分屏视图, 整页, 打开邮件, 阅读布局",
     close_popup_on_outside_click: "点击外部关闭弹窗, 弹窗, 点击外部, 关闭弹窗",
+    open_popup_maximized: "弹出窗口, 全屏, 最大化",
     compose_window_mode: "写信窗口模式, 浮动窗口, 全屏写信, 最小化写信, 写信布局",
     reduce_transparency: "降低透明度, 透明度, 模糊, 不透明",
     underline_links: "链接下划线, 链接, 下划线",

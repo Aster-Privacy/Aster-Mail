@@ -4576,6 +4576,9 @@ export const ko = {
     close_popup_on_outside_click: "바깥쪽을 클릭하여 팝업 닫기",
     close_popup_on_outside_click_description:
       "이메일이 팝업으로 열려 있을 때 팝업 바깥 아무 곳이나 클릭하면 팝업이 닫힙니다",
+    open_popup_maximized: "팝업을 전체 화면으로 열기",
+    open_popup_maximized_description:
+      "이메일이 팝업으로 열릴 때 팝업이 화면 전체를 채웁니다",
     split_view: "분할 보기",
     split_view_description: "이메일 목록과 미리보기를 나란히 표시합니다",
     full_page: "전체 페이지",
@@ -12227,6 +12230,7 @@ export const ko = {
     fam_kids_tab: "자녀, 자녀 계정, 어린이 계정, 아이 계정",
     email_view_mode: "이메일 보기 모드, 팝업, 분할 보기, 전체 페이지, 이메일 열기, 읽기 레이아웃",
     close_popup_on_outside_click: "바깥을 클릭하여 팝업 닫기, 팝업, 바깥 클릭, 팝업 닫기",
+    open_popup_maximized: "팝업, 전체 화면, 최대화",
     compose_window_mode: "작성 창 모드, 플로팅 창, 전체 화면 작성, 최소화된 작성 창, 작성 레이아웃",
     reduce_transparency: "투명도 줄이기, 투명도, 흐림 효과, 불투명",
     underline_links: "링크에 밑줄, 링크, 밑줄",

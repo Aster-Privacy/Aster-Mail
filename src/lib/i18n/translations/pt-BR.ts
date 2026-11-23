@@ -4605,6 +4605,9 @@ export const pt_br = {
     close_popup_on_outside_click: "Fechar a janela flutuante ao clicar fora",
     close_popup_on_outside_click_description:
       "Quando os e-mails abrem em uma janela flutuante, clicar em qualquer lugar fora dela a fecha",
+    open_popup_maximized: "Abrir a janela flutuante em tela cheia",
+    open_popup_maximized_description:
+      "Quando os e-mails abrem em uma janela flutuante, ela ocupa a tela inteira",
     split_view: "Visualização dividida",
     split_view_description:
       "Mostra lista de e-mails e visualização lado a lado",
@@ -12769,6 +12772,7 @@ export const pt_br = {
     fam_kids_tab: "crianças, filhos, contas infantis, conta de criança",
     email_view_mode: "modo de visualização do email, pop-up, tela dividida, página inteira, abrir email, layout de leitura",
     close_popup_on_outside_click: "fechar pop-up, clicar fora, fechar janela, dispensar",
+    open_popup_maximized: "janela flutuante, tela cheia, maximizar",
     compose_window_mode: "janela de escrita, pop-up flutuante, escrever em tela cheia, escrita minimizada, layout de escrita",
     reduce_transparency: "reduzir transparência, transparência, desfoque, opaco",
     underline_links: "sublinhar links, links, sublinhado",

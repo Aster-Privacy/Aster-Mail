@@ -187,6 +187,32 @@ function activate_link(link: MessageLink, href: string): void {
   );
 }
 
+function is_plain_escape(e: KeyboardEvent): boolean {
+  return (
+    e.key === "Escape" &&
+    !e.defaultPrevented &&
+    !e.repeat &&
+    !e.isComposing &&
+    !e.ctrlKey &&
+    !e.metaKey &&
+    !e.altKey &&
+    !e.shiftKey
+  );
+}
+
+function forward_escape_to_host(iframe: HTMLIFrameElement): void {
+  const host = iframe.ownerDocument.defaultView ?? window;
+
+  host.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key: "Escape",
+      code: "Escape",
+      bubbles: true,
+      cancelable: true,
+    }),
+  );
+}
+
 export function attach_iframe_interactions(
   iframe: HTMLIFrameElement,
   iframe_doc: Document,
@@ -404,6 +430,12 @@ export function attach_iframe_interactions(
   });
 
   iframe_doc.addEventListener("keydown", (e) => {
+    if (is_plain_escape(e)) {
+      forward_escape_to_host(iframe);
+
+      return;
+    }
+
     const is_select_all =
       (e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "a" || e.key === "A");
 

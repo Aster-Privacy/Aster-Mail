@@ -6538,6 +6538,9 @@ export const nl = {
     close_popup_on_outside_click: "Pop-up sluiten door erbuiten te klikken",
     close_popup_on_outside_click_description:
       "Als e-mails in een pop-up openen, sluit een klik ergens buiten de pop-up deze",
+    open_popup_maximized: "Pop-up openen op volledig scherm",
+    open_popup_maximized_description:
+      "Als e-mails in een pop-up openen, vult de pop-up het hele scherm",
     full_page_description: "Opent e-mail in volledig breedte zonder inboxlijst",
     thread_count_position: "Positie van draadtelling badge",
     thread_count_position_description:
@@ -12709,6 +12712,7 @@ export const nl = {
     fam_kids_tab: "kinderaccounts, kinderaccount, account voor kind, kinderen",
     email_view_mode: "pop-up, gesplitste weergave, volledige pagina, e-mail openen, leesindeling",
     close_popup_on_outside_click: "pop-up, buiten klikken, pop-up sluiten, wegklikken",
+    open_popup_maximized: "pop-up, volledig scherm, maximaliseren",
     compose_window_mode: "zwevende pop-up, opstellen volledig scherm, geminimaliseerd opstellen, opstelweergave",
     reduce_transparency: "transparantie, vervaging, ondoorzichtig",
     underline_links: "links, onderstrepen, links onderstrepen",
