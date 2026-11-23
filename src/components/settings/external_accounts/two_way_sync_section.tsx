@@ -41,6 +41,7 @@ import {
 } from "@/services/api/external_accounts";
 import { show_toast } from "@/components/toast/simple_toast";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
 const STATUS_POLL_MS = 15000;
 
@@ -101,6 +102,7 @@ export function TwoWaySyncSection({
 }: TwoWaySyncSectionProps) {
   const [status, set_status] = useState<WritebackStatus | null>(null);
   const [is_saving, set_is_saving] = useState(false);
+  const [confirm_open, set_confirm_open] = useState(false);
   const mounted_ref = useRef(true);
   const is_two_way = mode === "two_way";
 
@@ -134,10 +136,17 @@ export function TwoWaySyncSection({
     return () => window.clearInterval(timer);
   }, [is_two_way, load_status]);
 
-  const handle_toggle = async (checked: boolean) => {
+  const handle_toggle = (checked: boolean) => {
     if (is_saving) return;
-    const next: ExternalSyncMode = checked ? "two_way" : "server_sync";
+    if (checked) {
+      set_confirm_open(true);
 
+      return;
+    }
+    void save_mode("server_sync");
+  };
+
+  const save_mode = async (next: ExternalSyncMode) => {
     set_is_saving(true);
     const response = await set_sync_mode(account.account_token, next);
 
@@ -221,9 +230,24 @@ export function TwoWaySyncSection({
           disabled={is_saving}
           label={t("settings.ext_v2_two_way_label")}
           note={note_node}
-          on_change={(checked) => void handle_toggle(checked)}
+          on_change={handle_toggle}
         />
       )}
+      <ConfirmationModal
+        confirm_text={t("settings.ext_v2_two_way_confirm_action")}
+        is_loading={is_saving}
+        is_open={confirm_open}
+        message={t("settings.ext_v2_two_way_confirm_message", {
+          email: account.email,
+        })}
+        on_cancel={() => set_confirm_open(false)}
+        on_confirm={() => {
+          set_confirm_open(false);
+          void save_mode("two_way");
+        }}
+        title={t("settings.ext_v2_two_way_confirm_title")}
+        variant="warning"
+      />
     </IslandSection>
   );
 }

@@ -6812,6 +6812,9 @@ export interface SettingsTranslations {
   ext_v2_two_way_description: string;
   ext_v2_two_way_on: string;
   ext_v2_two_way_off: string;
+  ext_v2_two_way_confirm_title: string;
+  ext_v2_two_way_confirm_message: string;
+  ext_v2_two_way_confirm_action: string;
   ext_v2_two_way_matching: string;
   ext_v2_two_way_pending: string;
   ext_v2_two_way_failing: string;

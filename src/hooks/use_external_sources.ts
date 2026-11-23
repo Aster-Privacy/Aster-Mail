@@ -62,13 +62,17 @@ async function fetch_sources(): Promise<LoadedSources> {
 function load_sources(): Promise<LoadedSources> {
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.promise;
 
-  const promise = fetch_sources().catch(() => {
-    cached = null;
+  const entry: { at: number; promise: Promise<LoadedSources> } = {
+    at: Date.now(),
+    promise: fetch_sources().catch(() => {
+      if (cached === entry) cached = null;
 
-    return { sources: [], accounts: [] };
-  });
+      return { sources: [], accounts: [] };
+    }),
+  };
+  const promise = entry.promise;
 
-  cached = { at: Date.now(), promise };
+  cached = entry;
 
   return promise;
 }

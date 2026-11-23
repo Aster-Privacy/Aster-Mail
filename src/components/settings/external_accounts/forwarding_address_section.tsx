@@ -122,17 +122,24 @@ export function ForwardingAddressSection({
     id: string,
     address: string,
   ): Promise<{ error?: string }> => {
-    try {
-      const sealed = await seal_forwarding_label({
-        label: account.label_name || account.email,
-        address,
-      });
-      const result = await set_forwarding_label(id, sealed);
+    let last_error: string = t("common.save_failed");
 
-      return { error: result.error || undefined };
-    } catch {
-      return { error: t("common.save_failed") };
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const sealed = await seal_forwarding_label({
+          label: account.label_name || account.email,
+          address,
+        });
+        const result = await set_forwarding_label(id, sealed);
+
+        if (!result.error) return {};
+        last_error = result.error;
+      } catch {
+        last_error = t("common.save_failed");
+      }
     }
+
+    return { error: last_error };
   };
 
   const handle_limit = (server_code?: string) => {
@@ -150,8 +157,16 @@ export function ForwardingAddressSection({
     if (busy) return;
     set_busy("create");
     const sources = await list_external_sources();
+
+    if (!mounted_ref.current) return;
+    if (sources.error || !sources.data) {
+      set_busy(null);
+      show_toast(sources.error || t("common.save_failed"), "error");
+
+      return;
+    }
     const tag_token =
-      sources.data?.find(
+      sources.data.find(
         (source) => source.account_token === account.account_token,
       )?.tag_token ?? null;
     const response = await create_forwarding_address(account.id, tag_token);
@@ -168,18 +183,20 @@ export function ForwardingAddressSection({
     }
 
     const created = response.data;
-    const stored = await seal_and_store(
-      created.forwarding.id,
-      created.address,
-    );
+    const stored = await seal_and_store(created.forwarding.id, created.address);
+
+    if (stored.error) {
+      await revoke_forwarding_address(created.forwarding.id);
+      if (!mounted_ref.current) return;
+      set_busy(null);
+      show_toast(stored.error, "error");
+
+      return;
+    }
 
     if (!mounted_ref.current) return;
     set_busy(null);
-    if (stored.error) {
-      show_toast(stored.error, "error");
-    } else {
-      show_toast(t("settings.ext_v2_forwarding_created"), "success");
-    }
+    show_toast(t("settings.ext_v2_forwarding_created"), "success");
     set_entries((prev) => [
       ...(prev ?? []),
       {
