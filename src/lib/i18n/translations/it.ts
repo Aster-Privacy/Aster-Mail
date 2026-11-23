@@ -7946,6 +7946,7 @@ export const it = {
     swipe_left: "Scorri a sinistra",
     swipe_right: "Scorri a destra",
     swipe_none: "Nessuna",
+    swipe_toggle_read: "Segna come letto o non letto",
     swipe_actions_description:
       "Scegli cosa succede quando scorri a sinistra o a destra sulle email.",
     trusted_devices: "Dispositivi attendibili",

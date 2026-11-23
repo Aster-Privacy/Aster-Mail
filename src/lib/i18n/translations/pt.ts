@@ -6640,6 +6640,7 @@ export const pt = {
     swipe_left: "Deslizar para a esquerda",
     swipe_right: "Deslizar para a direita",
     swipe_none: "Nenhuma",
+    swipe_toggle_read: "Marcar como lido ou não lido",
     swipe_actions_description:
       "Escolha o que acontece ao deslizar para a esquerda ou direita nos e-mails.",
     badges_title: "Medalhas",

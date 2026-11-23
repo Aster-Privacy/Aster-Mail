@@ -8073,6 +8073,7 @@ export const en: Translations = {
     swipe_left: "Swipe left",
     swipe_right: "Swipe right",
     swipe_none: "None",
+    swipe_toggle_read: "Mark as read or unread",
     swipe_actions_description:
       "Choose what happens when you swipe left or right on emails.",
     feature_locked:

@@ -5893,6 +5893,7 @@ export const zh_CN = {
     swipe_left: "向左滑动",
     swipe_right: "向右滑动",
     swipe_none: "无",
+    swipe_toggle_read: "标为已读或未读",
     swipe_actions_description: "选择左右滑动邮件时执行的操作。",
     badges_title: "徽章",
     badges_description: "展示您获得的徽章。",

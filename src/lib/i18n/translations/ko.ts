@@ -6466,6 +6466,7 @@ export const ko = {
     swipe_left: "왼쪽 스와이프",
     swipe_right: "오른쪽 스와이프",
     swipe_none: "없음",
+    swipe_toggle_read: "읽음 또는 읽지 않음으로 표시",
     swipe_actions_description:
       "이메일에서 왼쪽 또는 오른쪽으로 스와이프할 때 수행할 작업을 선택하세요.",
     badges_title: "배지",
