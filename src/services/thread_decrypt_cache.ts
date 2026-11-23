@@ -29,6 +29,7 @@ import {
   register_sealed_attachment_manifest,
 } from "./crypto/inbound_attachment_keys";
 import { LOCKDOWN_CHANGED_EVENT } from "./lockdown_store";
+import { were_decrypted_mime_attachments_evicted } from "./decrypted_mime_attachments";
 
 const MAX_CONTENT_ENTRIES = 100;
 const MAX_CONTENT_CHARS = 8_000_000;
@@ -413,7 +414,10 @@ export async function decrypt_thread_content_cached(
   const key = content_key(msg, user_email);
   const hit = content_cache.get(msg.id, key, thread_token);
 
-  if (hit !== null) {
+  if (
+    hit !== null &&
+    !were_decrypted_mime_attachments_evicted(msg.id, hit.decrypted_content_tag)
+  ) {
     register_envelope_attachment_keys(msg.id, hit);
     register_sealed_attachment_manifest(msg.id, hit.sealed_attachment_manifest);
 
