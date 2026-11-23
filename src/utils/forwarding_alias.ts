@@ -268,6 +268,46 @@ function header_present(raw_headers: HeaderLike[], name: string): boolean {
   return raw_headers.some((h) => h.name.toLowerCase() === target);
 }
 
+function local_part_of(email: string): string {
+  const at = email.lastIndexOf("@");
+
+  return at >= 0 ? email.slice(0, at).toLowerCase() : "";
+}
+
+function decode_reply_to_forward_address(
+  raw_headers: HeaderLike[],
+  from_email: string,
+): string | undefined {
+  const reply_to_value = find_header(raw_headers, "Reply-To");
+
+  if (!reply_to_value) return undefined;
+  const addresses = reply_to_value.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+
+  if (addresses.length !== 1) return undefined;
+  const reply_to = parse_address(addresses[0]);
+
+  if (!reply_to?.email) return undefined;
+  if (domain_of(reply_to.email) !== domain_of(from_email)) return undefined;
+
+  const from_local = local_part_of(from_email);
+  const reply_email = reply_to.email.trim();
+  const reply_local = local_part_of(reply_email);
+
+  if (!from_local || !reply_local.startsWith(`${from_local}+`)) {
+    return undefined;
+  }
+  const tag = reply_email.slice(
+    from_local.length + 1,
+    reply_email.lastIndexOf("@"),
+  );
+  const eq = tag.lastIndexOf("=");
+
+  if (eq <= 0) return undefined;
+  const decoded = `${tag.slice(0, eq)}@${tag.slice(eq + 1)}`;
+
+  return EMAIL_REGEX.test(decoded) ? decoded : undefined;
+}
+
 export function detect_custom_domain_forward(
   raw_headers: HeaderLike[] | undefined,
   literal_from: { name?: string; email: string } | undefined,
@@ -277,7 +317,11 @@ export function detect_custom_domain_forward(
   if (!literal_from?.email) return undefined;
   if (is_known_forwarder(literal_from.email)) return undefined;
 
-  const decoded = decode_custom_domain_forward_address(literal_from.email);
+  const from_decoded = decode_custom_domain_forward_address(literal_from.email);
+  const reply_decoded = from_decoded
+    ? undefined
+    : decode_reply_to_forward_address(raw_headers, literal_from.email);
+  const decoded = from_decoded ?? reply_decoded;
 
   if (!decoded) return undefined;
   if (!is_custom_forward_authenticated(auth)) return undefined;
@@ -300,11 +344,23 @@ export function detect_custom_domain_forward(
     ? parse_original_sender(sender_value)
     : from_header;
 
-  if (!bound?.email || !same_email(bound.email, decoded)) return undefined;
+  if (!bound?.email) return undefined;
   if (same_email(bound.email, literal_from.email)) return undefined;
 
+  const original_reply_to = reply_decoded
+    ? parse_original_sender(
+        find_header(raw_headers, "X-AnonAddy-Original-Reply-To-Header"),
+      )
+    : undefined;
+  const is_bound =
+    same_email(bound.email, decoded) ||
+    (!!original_reply_to?.email &&
+      same_email(original_reply_to.email, decoded));
+
+  if (!is_bound) return undefined;
+
   const name =
-    from_header && same_email(from_header.email, decoded)
+    from_header && same_email(from_header.email, bound.email)
       ? from_header.name
       : undefined;
 
@@ -326,6 +382,12 @@ export function custom_forward_via_domain(
 
   if (!shown || !literal) return null;
   if (is_known_forwarder(literal)) return null;
+  if (
+    item.forwarding_service === "addy_custom" &&
+    !same_email(shown, literal)
+  ) {
+    return domain_of(literal) || null;
+  }
   const decoded = decode_custom_domain_forward_address(literal);
 
   if (!decoded || !same_email(decoded, shown)) return null;
@@ -363,6 +425,7 @@ export interface SenderDisplayFields {
   sender_email?: string;
   display_sender_name?: string;
   display_sender_email?: string;
+  forwarding_service?: string;
 }
 
 export function displayed_sender(item: SenderDisplayFields): {
