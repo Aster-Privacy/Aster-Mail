@@ -489,6 +489,12 @@ export function AppearanceSection() {
             label={t("settings.theme_sync_across_devices")}
             on_change={handle_theme_sync_change}
           />
+          <SettingToggleRow
+            checked={preferences.hide_scrollbars === true}
+            description={t("settings.hide_scrollbars_description")}
+            label={t("settings.hide_scrollbars")}
+            on_change={(v) => update_preference("hide_scrollbars", v, true)}
+          />
         </Island>
       </IslandSection>
 

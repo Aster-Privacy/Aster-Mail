@@ -8798,6 +8798,9 @@ export const ja = {
     theme_sync_across_devices: "デバイス間でテーマを同期",
     theme_sync_across_devices_description:
       "オフにすると、この端末だけ別のテーマを使えます。",
+    hide_scrollbars: "スクロールバーを非表示",
+    hide_scrollbars_description:
+      "すべてのデバイスでスクロールバーを非表示にします。リストやメッセージは引き続きスクロールできます。",
     product_updates: "製品のお知らせ",
     product_updates_description:
       "Aster が注目の機能を公開したときにお知らせが届きます",
@@ -12343,6 +12346,7 @@ export const ja = {
     theme_light: "ライト, ライトモード, 白背景, テーマ",
     theme_system: "システム, システムテーマ, 自動テーマ, 端末に合わせる",
     theme_sync_across_devices: "テーマの同期, デバイス間で同期, デバイスごとのテーマ, 端末別テーマ, 個別テーマ",
+    hide_scrollbars: "スクロールバー, スクロールバーを非表示, スクロール",
     custom_theme_colors_title: "テーマカラー, 配色, 紫, 緑, ローズ, オレンジ, ティール, インディゴ, 青, ピンク, 黒, oled, アクセントカラー",
     custom_theme_title: "カスタムテーマ, カスタムカラー, パレット, ベースカラー, プレミアムテーマ, starplan",
     font_choice_title: "フォント, フォント切り替え, 書体, フォントファミリー, starplan",

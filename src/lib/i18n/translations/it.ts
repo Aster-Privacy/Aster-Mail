@@ -9038,6 +9038,9 @@ export const it = {
     theme_sync_across_devices: "Sincronizza il tema tra i dispositivi",
     theme_sync_across_devices_description:
       "Disattivalo per usare un tema diverso su questo dispositivo.",
+    hide_scrollbars: "Nascondi barre di scorrimento",
+    hide_scrollbars_description:
+      "Nasconde le barre di scorrimento su tutti i tuoi dispositivi. Puoi comunque scorrere elenchi e messaggi.",
     product_updates: "Novità del prodotto",
     product_updates_description:
       "Ricevi un messaggio quando Aster rilascia un aggiornamento importante",
@@ -12690,6 +12693,7 @@ export const it = {
     theme_light: "modalità chiara, tema chiaro, tema",
     theme_system: "tema di sistema, tema automatico, come il dispositivo, segui sistema",
     theme_sync_across_devices: "sincronizza tema, tema per dispositivo, tema del dispositivo, tema separato",
+    hide_scrollbars: "barre di scorrimento, nascondi barre di scorrimento, scorrimento, scroll",
     custom_theme_colors_title: "colori del tema, viola, verde, rosa, arancione, verde acqua, indaco, ambra, ciano, ardesia, blu aster, blu, lime, fucsia, magenta, smeraldo, nero, scuro, oled, colore di accento",
     custom_theme_title: "colore personalizzato, tavolozza, palette, colore base, tema premium, starplan",
     font_choice_title: "carattere, tipo di carattere, font, famiglia di caratteri, starplan",

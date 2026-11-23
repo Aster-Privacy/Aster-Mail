@@ -2661,6 +2661,9 @@ export const hi = {
     theme_sync_across_devices: "सभी डिवाइस पर थीम सिंक करें",
     theme_sync_across_devices_description:
       "इस डिवाइस पर अलग थीम रखने के लिए इसे बंद करें।",
+    hide_scrollbars: "स्क्रॉल बार छिपाएं",
+    hide_scrollbars_description:
+      "आपके सभी डिवाइस पर स्क्रॉल बार छिपाता है। आप अब भी सूचियों और संदेशों में स्क्रॉल कर सकते हैं।",
     color_theme: "रंग थीम",
     color_theme_description: "ऐप के लिए पहले से तय रंग पैलेट चुनें",
     color_theme_default: "डिफ़ॉल्ट",
@@ -12387,6 +12390,7 @@ export const hi = {
     theme_light: "लाइट मोड, हल्की थीम, थीम",
     theme_system: "सिस्टम थीम, ऑटो थीम, डिवाइस के अनुसार",
     theme_sync_across_devices: "थीम सिंक, हर डिवाइस की अलग थीम, डिवाइस थीम, अलग थीम",
+    hide_scrollbars: "स्क्रॉल बार, स्क्रॉल बार छिपाएं, स्क्रॉल",
     custom_theme_colors_title: "थीम रंग, बैंगनी, हरा, गुलाबी, नारंगी, नीला, काला, गहरा, एक्सेंट रंग",
     custom_theme_title: "कस्टम थीम, कस्टम रंग, रंग पैलेट, प्रीमियम थीम, starplan",
     font_choice_title: "फ़ॉन्ट, फ़ॉन्ट बदलें, टाइपफ़ेस, फ़ॉन्ट परिवार",

@@ -3712,6 +3712,19 @@ html {
   text-decoration: underline !important;
 }
 
+html.hide-scrollbars,
+html.hide-scrollbars * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+html.hide-scrollbars::-webkit-scrollbar,
+html.hide-scrollbars *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .dyslexia-font,
 .dyslexia-font *:not(code):not(pre):not(kbd):not(samp) {
   font-family:

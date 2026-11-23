@@ -8026,6 +8026,9 @@ export const zh_CN = {
     search_placeholder: "搜索设置...",
     theme_sync_across_devices: "在设备之间同步主题",
     theme_sync_across_devices_description: "关闭后，此设备可以使用不同的主题。",
+    hide_scrollbars: "隐藏滚动条",
+    hide_scrollbars_description:
+      "在您的所有设备上隐藏滚动条。您仍然可以滚动浏览列表和邮件。",
     product_updates: "产品动态",
     product_updates_description: "Aster 发布重要更新时，您会收到一封邮件",
     product_updates_info:
@@ -11303,6 +11306,7 @@ export const zh_CN = {
     theme_light: "浅色, 浅色模式, 亮色模式, 主题",
     theme_system: "跟随系统, 系统主题, 自动主题, 与设备一致",
     theme_sync_across_devices: "主题同步, 跨设备同步主题, 每台设备主题, 设备主题, 单独主题",
+    hide_scrollbars: "滚动条, 隐藏滚动条, 滚动",
     custom_theme_colors_title: "主题颜色, 配色, 紫色, 绿色, 玫瑰色, 橙色, 青色, 靛蓝, 琥珀色, 蓝色, 粉色, 黑色, oled, 强调色",
     custom_theme_title: "自定义主题, 自定义颜色, 调色板, 种子颜色, 高级主题, starplan",
     font_choice_title: "字体, 切换字体, 字型, 字体系列, starplan",

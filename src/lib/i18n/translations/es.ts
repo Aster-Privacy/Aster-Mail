@@ -9010,6 +9010,9 @@ export const es = {
     theme_sync_across_devices: "Sincronizar el tema entre dispositivos",
     theme_sync_across_devices_description:
       "Desactívalo para usar un tema distinto en este dispositivo.",
+    hide_scrollbars: "Ocultar barras de desplazamiento",
+    hide_scrollbars_description:
+      "Oculta las barras de desplazamiento en todos tus dispositivos. Puedes seguir desplazándote por las listas y los mensajes.",
     setup_2fa: "Configurar",
     product_updates: "Novedades del producto",
     product_updates_description:
@@ -12626,6 +12629,7 @@ export const es = {
     theme_light: "Claro, modo claro, tema",
     theme_system: "Sistema, tema del sistema, tema automático, igual que el dispositivo",
     theme_sync_across_devices: "Sincronizar tema, tema por dispositivo, tema del dispositivo, tema independiente",
+    hide_scrollbars: "barras de desplazamiento, ocultar barras de desplazamiento, desplazamiento, scroll",
     custom_theme_colors_title: "Colores del tema, tema de color, morado, verde, rosa, naranja, verde azulado, índigo, ámbar, cian, pizarra, azul Aster, azul, lima, fucsia, magenta, esmeralda, negro, oscuro, OLED, color de acento",
     custom_theme_title: "Tema personalizado, color personalizado, paleta, color base, paleta personalizada, Starplan, tema premium",
     font_choice_title: "Fuente, tipo de letra, cambiar fuente, familia tipográfica, tipografía, Starplan",

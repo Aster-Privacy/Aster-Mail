@@ -8907,6 +8907,9 @@ export const tr = {
     theme_sync_across_devices: "Temayı cihazlar arasında eşitle",
     theme_sync_across_devices_description:
       "Bu cihazda farklı bir tema kullanmak için kapatın.",
+    hide_scrollbars: "Kaydırma çubuklarını gizle",
+    hide_scrollbars_description:
+      "Tüm cihazlarınızda kaydırma çubuklarını gizler. Listelerde ve iletilerde kaydırmaya devam edebilirsiniz.",
     product_updates: "Ürün güncellemeleri",
     product_updates_description:
       "Aster önemli bir güncelleme yayımladığında ileti alın",
@@ -12479,6 +12482,7 @@ export const tr = {
     theme_light: "açık mod, aydınlık tema, tema",
     theme_system: "sistem teması, otomatik tema, cihaza uy",
     theme_sync_across_devices: "tema senkronizasyonu, cihaz başına tema, cihaz teması, ayrı tema",
+    hide_scrollbars: "kaydırma çubukları, kaydırma çubuklarını gizle, kaydırma",
     custom_theme_colors_title: "tema renkleri, renk teması, mor, yeşil, pembe, turuncu, mavi, siyah, koyu, vurgu rengi",
     custom_theme_title: "özel tema, özel renk, renk paleti, premium tema, starplan",
     font_choice_title: "yazı tipi, font, yazı tipi ailesi, font değiştir",

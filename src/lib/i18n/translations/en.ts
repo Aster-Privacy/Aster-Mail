@@ -2566,6 +2566,9 @@ export const en: Translations = {
     theme_sync_across_devices: "Sync theme across devices",
     theme_sync_across_devices_description:
       "Turn this off to keep a separate theme on this device.",
+    hide_scrollbars: "Hide scroll bars",
+    hide_scrollbars_description:
+      "Hides scroll bars on all your devices. You can still scroll through lists and messages.",
     color_theme: "Color theme",
     color_theme_description: "Choose a preset color palette for the app",
     color_theme_default: "Default",
@@ -12333,6 +12336,7 @@ export const en: Translations = {
     theme_light: "light mode, theme",
     theme_system: "system theme, auto theme, match device",
     theme_sync_across_devices: "theme sync, per device theme, device theme, separate theme",
+    hide_scrollbars: "scroll bars, scrollbars, hide scroll bars, scrolling, scroll indicator",
     custom_theme_colors_title: "color theme, purple, green, rose, orange, teal, indigo, amber, cyan, slate, aster blue, blue, lime, fuchsia, magenta, emerald, pink, black, dark, oled, accent color",
     custom_theme_title: "custom color, palette, seed color, custom palette, starplan, premium theme",
     font_choice_title: "font switcher, typeface, font family, starplan",

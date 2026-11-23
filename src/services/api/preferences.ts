@@ -205,6 +205,7 @@ export interface UserPreferences {
   high_contrast: boolean;
   reduce_transparency: boolean;
   link_underlines: boolean;
+  hide_scrollbars: boolean;
   dyslexia_font: boolean;
   text_spacing: boolean;
   color_vision_mode:
@@ -890,6 +891,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   high_contrast: false,
   reduce_transparency: false,
   link_underlines: false,
+  hide_scrollbars: false,
   dyslexia_font: false,
   text_spacing: false,
   color_vision_mode: "none",
@@ -1114,6 +1116,7 @@ export function build_merged_preferences(
     typeof merged.learn_from_category_moves === "boolean"
       ? merged.learn_from_category_moves
       : true;
+  merged.hide_scrollbars = merged.hide_scrollbars === true;
   merged.enabled_categories = Array.isArray(merged.enabled_categories)
     ? merged.enabled_categories.filter((c) => typeof c === "string")
     : [...DEFAULT_ENABLED_CATEGORIES];

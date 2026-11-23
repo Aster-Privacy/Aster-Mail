@@ -71,6 +71,7 @@ export interface SettingsKeywordsTranslations {
   theme_light: string;
   theme_system: string;
   theme_sync_across_devices: string;
+  hide_scrollbars: string;
   custom_theme_colors_title: string;
   custom_theme_title: string;
   font_choice_title: string;
@@ -3280,6 +3281,8 @@ export interface SettingsTranslations {
   theme_system: string;
   theme_sync_across_devices: string;
   theme_sync_across_devices_description: string;
+  hide_scrollbars: string;
+  hide_scrollbars_description: string;
   color_theme: string;
   color_theme_description: string;
   color_theme_default: string;
