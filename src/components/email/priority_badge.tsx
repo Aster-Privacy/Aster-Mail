@@ -20,7 +20,7 @@
 //
 import type { MailPriority } from "@/services/mail_priority";
 
-import { ArrowDownIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
+import { Badge } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -36,14 +36,13 @@ export function PriorityBadge({
   if (priority === "normal") return null;
 
   const is_high = priority === "high";
-  const Icon = is_high ? ArrowUpIcon : ArrowDownIcon;
 
   return (
-    <span
-      className={`inline-flex h-6 flex-shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2 text-[11px] font-medium leading-4 ${is_high ? "border-[color-mix(in_srgb,var(--color-danger)_40%,transparent)] text-[var(--color-danger)]" : "border-[color-mix(in_srgb,var(--text-primary)_14%,transparent)] text-txt-secondary"} ${class_name}`}
+    <Badge
+      className={`flex-shrink-0 whitespace-nowrap ${class_name}`}
+      color={is_high ? "red" : "gray"}
     >
-      <Icon aria-hidden className="h-3 w-3" />
       {is_high ? t("mail.high_priority") : t("mail.low_priority")}
-    </span>
+    </Badge>
   );
 }
