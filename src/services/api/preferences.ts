@@ -1032,6 +1032,7 @@ const SWIPE_ACTION_IDS = [
   "snooze",
   "star",
   "spam",
+  "move_to_folder",
   "none",
 ];
 const LEGACY_SWIPE_ACTIONS: Record<string, string> = {
@@ -1040,6 +1041,7 @@ const LEGACY_SWIPE_ACTIONS: Record<string, string> = {
   mark_unread: "toggle_read",
   read: "toggle_read",
   unread: "toggle_read",
+  move: "move_to_folder",
 };
 
 function normalize_swipe_action(raw: unknown, fallback: string): string {
