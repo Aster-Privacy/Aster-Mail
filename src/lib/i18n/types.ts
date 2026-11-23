@@ -10319,6 +10319,13 @@ export interface GuardTranslations {
   sign_in_rescue_hint: string;
   sign_in_rescue_submit: string;
   sign_in_rescue_invalid: string;
+  sign_in_rescue_not_allowed: string;
+  sign_in_rescue_paused: string;
+  sign_in_rescue_in_progress: string;
+  sign_in_rescue_failed: string;
+  sign_in_rescue_only: string;
+  sign_in_no_method: string;
+  sign_in_on_hold: string;
   sign_in_rescue_started: string;
   sign_in_back: string;
   link_device_needs_approver: string;

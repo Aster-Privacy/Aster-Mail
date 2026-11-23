@@ -42,7 +42,8 @@ function state(patch: Partial<GuardSignInState> = {}): GuardSignInState {
     number: 7,
     expires_at: "2026-11-15T10:05:00Z",
     code_error: false,
-    rescue_error: false,
+    methods: ["approve", "code", "rescue"],
+    rescue_error: null,
     rescue: null,
     ...patch,
   };
@@ -143,6 +144,17 @@ describe("GuardWaitingScreen", () => {
     ).not.toBeNull();
   });
 
+  it("shows only the rescue entry when no device can approve", () => {
+    render(state({ methods: ["rescue"] }));
+    expect(container.textContent).toContain("guard.sign_in_rescue_only");
+    expect(container.querySelector('[data-testid="guard_number"]')).toBeNull();
+  });
+
+  it("ends when the account has no way to finish", () => {
+    render(state({ methods: [] }));
+    expect(container.textContent).toContain("guard.sign_in_no_method");
+  });
+
   it("shows the paused note", () => {
     render(state({ phase: "paused" }));
     expect(container.textContent).toContain("guard.sign_in_paused");
@@ -152,6 +164,7 @@ describe("GuardWaitingScreen", () => {
     ["denied", "guard.sign_in_denied"],
     ["expired", "guard.sign_in_expired"],
     ["error", "guard.sign_in_error"],
+    ["on_hold", "guard.sign_in_on_hold"],
   ] as const)("ends on %s with a way back", (phase, message) => {
     render(state({ phase }));
     expect(container.textContent).toContain(message);

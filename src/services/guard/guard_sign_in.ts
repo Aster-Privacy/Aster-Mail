@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { GuardRequiredInfo } from "@/services/api/client/helpers";
+import type {
+  GuardRequiredInfo,
+  GuardSignInMethod,
+} from "@/services/api/client/helpers";
 import type { GuardDevice } from "@/services/guard/guard_device";
 import type {
   GuardResume,
@@ -38,6 +41,7 @@ import {
   number_hash,
   random_number,
 } from "@/lib/crypto/guard_action";
+import { ALL_GUARD_SIGN_IN_METHODS } from "@/services/api/client/helpers";
 import { GUARD_ALPHABET, GUARD_CODE_LENGTH } from "@/lib/crypto/guard_code";
 import { normalize_rescue_code } from "@/lib/crypto/guard_rescue_code";
 import { server_now } from "@/lib/server_clock";
@@ -73,15 +77,42 @@ export type GuardSignInPhase =
   | "completing"
   | "rescue"
   | "done"
+  | "on_hold"
   | "error";
+
+export type GuardRescueError =
+  | "invalid"
+  | "not_allowed"
+  | "paused"
+  | "in_progress"
+  | "failed";
 
 export interface GuardSignInState {
   phase: GuardSignInPhase;
   number: number | null;
   expires_at: string | null;
+  methods: GuardSignInMethod[];
   code_error: boolean;
-  rescue_error: boolean;
+  rescue_error: GuardRescueError | null;
   rescue: GuardRescueStart | null;
+}
+
+export function rescue_error_for(
+  server_code: string | undefined,
+  status: number | undefined,
+): GuardRescueError {
+  if (server_code === "GUARD_RESCUE_CODE_INVALID") return "invalid";
+  if (server_code === "GUARD_NOT_ALLOWED") return "not_allowed";
+  if (server_code === "GUARD_REQUEST_CONFLICT") return "in_progress";
+  if (
+    server_code === "GUARD_PAUSED" ||
+    server_code === "GUARD_TOO_MANY_REQUESTS" ||
+    status === 429
+  ) {
+    return "paused";
+  }
+
+  return "failed";
 }
 
 export interface StoredGuardSignIn {
@@ -92,6 +123,7 @@ export interface StoredGuardSignIn {
   device_key: string;
   user_hash: string | null;
   user_id?: string | null;
+  methods?: GuardSignInMethod[];
 }
 
 export type GuardSignInStart =
@@ -210,6 +242,22 @@ export function normalize_guard_code(input: string): string | null {
   return value;
 }
 
+export function begin_failure_phase(
+  server_code: string | undefined,
+  status: number | undefined,
+): "expired" | "on_hold" | "error" {
+  if (is_gone(server_code, status)) return "expired";
+  if (
+    server_code === "GUARD_TOO_MANY_REQUESTS" ||
+    server_code === "GUARD_PAUSED" ||
+    status === 429
+  ) {
+    return "on_hold";
+  }
+
+  return "error";
+}
+
 function is_gone(server_code: string | undefined, status: number | undefined) {
   return server_code === "GUARD_REQUEST_GONE" || status === 410;
 }
@@ -229,6 +277,7 @@ export class GuardSignInController {
   private user_hash: string | null;
   private account_id: string | null;
   private number: number | null = null;
+  private readonly methods: GuardSignInMethod[];
   private readonly start_from: GuardSignInStart;
 
   constructor(
@@ -243,6 +292,7 @@ export class GuardSignInController {
       this.expires_at = start.info.expires_at;
       this.user_hash = start.user_hash;
       this.account_id = start.info.user_id ?? null;
+      this.methods = [...start.info.methods];
     } else {
       this.request_id = start.stored.request_id;
       this.token = start.stored.guard_token;
@@ -251,13 +301,17 @@ export class GuardSignInController {
       this.account_id = start.stored.user_id ?? null;
       this.device_key = start.stored.device_key;
       this.number = start.stored.number;
+      this.methods = Array.isArray(start.stored.methods)
+        ? [...start.stored.methods]
+        : [...ALL_GUARD_SIGN_IN_METHODS];
     }
     this.state = {
       phase: start.kind === "fresh" ? "starting" : "waiting",
       number: this.number,
       expires_at: this.expires_at,
+      methods: this.methods,
       code_error: false,
-      rescue_error: false,
+      rescue_error: null,
       rescue: null,
     };
   }
@@ -323,6 +377,7 @@ export class GuardSignInController {
       device_key: this.device_key,
       user_hash: this.user_hash,
       user_id: this.account_id,
+      methods: this.methods,
     };
 
     try {
@@ -347,7 +402,7 @@ export class GuardSignInController {
     await device?.forget().catch(() => undefined);
   }
 
-  private end(phase: "denied" | "expired" | "error"): void {
+  private end(phase: "denied" | "expired" | "on_hold" | "error"): void {
     this.clear_timer();
     this.stopped = true;
     this.forget_storage();
@@ -471,9 +526,7 @@ export class GuardSignInController {
         return;
       }
       if (response.error || !response.data) {
-        this.end(
-          is_gone(response.server_code, response.status) ? "expired" : "error",
-        );
+        this.end(begin_failure_phase(response.server_code, response.status));
 
         return;
       }
@@ -712,7 +765,7 @@ export class GuardSignInController {
     const code = normalize_rescue_code(input);
 
     if (!code) {
-      this.update({ rescue_error: true });
+      this.update({ rescue_error: "invalid" });
 
       return false;
     }
@@ -723,7 +776,9 @@ export class GuardSignInController {
       if (is_gone(response.server_code, response.status)) {
         this.end("expired");
       } else {
-        this.update({ rescue_error: true });
+        this.update({
+          rescue_error: rescue_error_for(response.server_code, response.status),
+        });
       }
 
       return false;
@@ -735,7 +790,7 @@ export class GuardSignInController {
     this.update({
       phase: "rescue",
       rescue: { ...response.data, account_id: this.account_id },
-      rescue_error: false,
+      rescue_error: null,
     });
 
     return true;
