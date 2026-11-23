@@ -653,6 +653,10 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     t,
   ]);
 
+  const disable_permanent_delete_confirm = useCallback(() => {
+    update_preference("confirm_before_permanent_delete", false, true);
+  }, [update_preference]);
+
   const { delete_emails, search_delete_dialog } = use_search_delete({
     t,
     bulk_delete: email_actions.bulk_delete,
@@ -660,6 +664,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     remove_results,
     confirm_before_permanent_delete:
       preferences.confirm_before_permanent_delete,
+    disable_permanent_delete_confirm,
   });
 
   const handle_bulk_delete = useCallback(async () => {

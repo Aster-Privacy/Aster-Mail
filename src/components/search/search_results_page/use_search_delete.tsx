@@ -35,6 +35,7 @@ interface UseSearchDeleteOptions {
   apply_flag_patch: (ids: string[], patch: { is_trashed: boolean }) => void;
   remove_results: (ids: string[]) => void;
   confirm_before_permanent_delete: boolean | undefined;
+  disable_permanent_delete_confirm?: () => void;
 }
 
 export interface SearchDeleteResult {
@@ -62,8 +63,10 @@ export function use_search_delete({
   apply_flag_patch,
   remove_results,
   confirm_before_permanent_delete,
+  disable_permanent_delete_confirm,
 }: UseSearchDeleteOptions): SearchDeleteResult {
   const [pending, set_pending] = useState<InboxEmail[] | null>(null);
+  const [dont_ask, set_dont_ask] = useState(false);
 
   const run_permanent_delete = useCallback(
     async (emails: InboxEmail[]) => {
@@ -102,6 +105,7 @@ export function use_search_delete({
       if (trashed.length === 0) return;
 
       if (confirm_before_permanent_delete !== false) {
+        set_dont_ask(false);
         set_pending(trashed);
 
         return;
@@ -121,15 +125,19 @@ export function use_search_delete({
     const emails = pending;
 
     set_pending(null);
+    if (dont_ask) disable_permanent_delete_confirm?.();
+    set_dont_ask(false);
     if (emails) void run_permanent_delete(emails);
-  }, [pending, run_permanent_delete]);
+  }, [pending, dont_ask, disable_permanent_delete_confirm, run_permanent_delete]);
 
-  const handle_cancel = useCallback(() => set_pending(null), []);
+  const handle_cancel = useCallback(() => {
+    set_pending(null);
+    set_dont_ask(false);
+  }, []);
 
   const count = pending?.length ?? 0;
   const search_delete_dialog = (
     <ConfirmModal
-      hide_dont_ask
       confirm_text={t("mail.delete_permanently")}
       confirm_variant="destructive"
       description={
@@ -137,10 +145,11 @@ export function use_search_delete({
           ? t("mail.delete_messages_confirmation")
           : t("mail.delete_email_confirmation")
       }
-      dont_ask={false}
+      dont_ask={dont_ask}
+      hide_dont_ask={!disable_permanent_delete_confirm}
       on_cancel={handle_cancel}
       on_confirm={handle_confirm}
-      on_dont_ask_change={() => {}}
+      on_dont_ask_change={set_dont_ask}
       show={pending !== null}
       title={
         count > 1
