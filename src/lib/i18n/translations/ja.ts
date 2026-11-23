@@ -4513,6 +4513,9 @@ export const ja = {
     close_popup_on_outside_click: "外側をクリックしてポップアップを閉じる",
     close_popup_on_outside_click_description:
       "メールをポップアップで開いているとき、ポップアップの外側をクリックすると閉じます",
+    open_popup_maximized: "ポップアップを全画面で開く",
+    open_popup_maximized_description:
+      "メールをポップアップで開くとき、ポップアップが画面全体に表示されます",
     split_view: "分割表示",
     split_view_description: "メールリストとプレビューを並べて表示します",
     full_page: "全画面",
@@ -12433,6 +12436,7 @@ export const ja = {
     fam_kids_tab: "子ども, 子どものアカウント, キッズアカウント, 子供用アカウント",
     email_view_mode: "メールの表示モード, ポップアップ, 分割表示, 全画面, メールを開く, 閲覧レイアウト",
     close_popup_on_outside_click: "外側をクリックしてポップアップを閉じる, ポップアップ, 外側クリック, 閉じる",
+    open_popup_maximized: "ポップアップ, 全画面, 最大化",
     compose_window_mode: "作成ウィンドウのモード, フローティング, 全画面で作成, 最小化, 作成レイアウト",
     reduce_transparency: "透明度を下げる, 透明度, ぼかし, 不透明",
     underline_links: "リンクに下線, リンク, 下線, アンダーライン",

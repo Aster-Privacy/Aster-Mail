@@ -4636,6 +4636,9 @@ export const fr = {
     close_popup_on_outside_click: "Fermer la fenêtre en cliquant à l'extérieur",
     close_popup_on_outside_click_description:
       "Lorsque les e-mails s'ouvrent dans une fenêtre contextuelle, un clic n'importe où à l'extérieur la ferme",
+    open_popup_maximized: "Ouvrir la fenêtre contextuelle en plein écran",
+    open_popup_maximized_description:
+      "Lorsque les e-mails s'ouvrent dans une fenêtre contextuelle, celle-ci occupe tout l'écran",
     split_view: "Vue partagée",
     split_view_description:
       "Affiche la liste des e-mails et l'aperçu côte à côte",
@@ -12856,6 +12859,7 @@ export const fr = {
     fam_kids_tab: "Enfants, comptes enfants, compte enfant",
     email_view_mode: "Mode d'affichage des e-mails, fenêtre contextuelle, affichage partagé, pleine page, ouvrir l'e-mail, mise en page de lecture",
     close_popup_on_outside_click: "Fermer la fenêtre en cliquant à l'extérieur, clic à l'extérieur, fermer la fenêtre, ignorer",
+    open_popup_maximized: "fenêtre contextuelle, plein écran, agrandir, ouvrir agrandie",
     compose_window_mode: "Mode de la fenêtre de rédaction, fenêtre flottante, rédaction plein écran, rédaction réduite, mise en page de rédaction",
     reduce_transparency: "Réduire la transparence, transparence, flou, opaque",
     underline_links: "Souligner les liens, liens, soulignement",

@@ -161,6 +161,7 @@ export interface SettingsKeywordsTranslations {
   fam_kids_tab: string;
   email_view_mode: string;
   close_popup_on_outside_click: string;
+  open_popup_maximized: string;
   compose_window_mode: string;
   reduce_transparency: string;
   underline_links: string;
@@ -4100,6 +4101,8 @@ export interface SettingsTranslations {
   popup_description: string;
   close_popup_on_outside_click: string;
   close_popup_on_outside_click_description: string;
+  open_popup_maximized: string;
+  open_popup_maximized_description: string;
   split_view: string;
   split_view_description: string;
   full_page: string;

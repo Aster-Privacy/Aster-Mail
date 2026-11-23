@@ -3537,6 +3537,9 @@ export const en: Translations = {
     close_popup_on_outside_click: "Close popup by clicking outside",
     close_popup_on_outside_click_description:
       "When emails open in a popup, clicking anywhere outside the popup closes it",
+    open_popup_maximized: "Open popup in full screen",
+    open_popup_maximized_description:
+      "When emails open in a popup, the popup fills the screen",
     split_view: "Split view",
     split_view_description: "Shows email list and preview side by side",
     full_page: "Full page",
@@ -12423,6 +12426,7 @@ export const en: Translations = {
     fam_kids_tab: "children's accounts, kids account, child account",
     email_view_mode: "popup, split view, full page, open email, reading layout",
     close_popup_on_outside_click: "popup, click outside, close popup, dismiss",
+    open_popup_maximized: "popup, full screen, maximize, open maximized, larger window",
     compose_window_mode: "floating popup, full screen compose, minimized compose, compose layout",
     reduce_transparency: "transparency, blur, opaque",
     underline_links: "links, underline",

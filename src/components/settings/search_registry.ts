@@ -636,6 +636,13 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     description_key: "settings.close_popup_on_outside_click_description",
   },
   {
+    id: "open_popup_maximized",
+    label_key: "settings.open_popup_maximized",
+    section: "appearance",
+    crumb_key: "settings_search.layout",
+    description_key: "settings.open_popup_maximized_description",
+  },
+  {
     id: "compose_window_mode",
     label_key: "settings.compose_window_mode",
     section: "appearance",

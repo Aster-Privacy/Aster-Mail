@@ -294,7 +294,7 @@ export function PopupEmailBody({
 
   return (
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full min-w-0">
         {extraction_result?.has_purchase_details &&
           extraction_result.purchase && (
             <PurchaseDetailsBanner

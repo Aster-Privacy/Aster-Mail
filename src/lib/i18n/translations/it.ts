@@ -4686,6 +4686,9 @@ export const it = {
     close_popup_on_outside_click: "Chiudi il popup facendo clic all'esterno",
     close_popup_on_outside_click_description:
       "Quando le email si aprono in un popup, un clic in qualsiasi punto all'esterno del popup lo chiude",
+    open_popup_maximized: "Apri il popup a schermo intero",
+    open_popup_maximized_description:
+      "Quando le email si aprono in un popup, il popup occupa tutto lo schermo",
     split_view: "Vista divisa",
     split_view_description: "Mostra l'elenco email e l'anteprima affiancati",
     full_page: "Pagina intera",
@@ -12780,6 +12783,7 @@ export const it = {
     fam_kids_tab: "bambini, figli, account per bambini, account figlio",
     email_view_mode: "modalità visualizzazione email, popup, vista divisa, pagina intera, apri email, layout di lettura",
     close_popup_on_outside_click: "chiudi popup, clic esterno, clicca fuori, chiudi finestra",
+    open_popup_maximized: "popup, schermo intero, massimizza, apri ingrandito",
     compose_window_mode: "finestra di composizione, popup mobile, composizione a schermo intero, composizione ridotta, layout composizione",
     reduce_transparency: "riduci trasparenza, trasparenza, sfocatura, opaco",
     underline_links: "sottolinea link, link, sottolineatura, collegamenti",

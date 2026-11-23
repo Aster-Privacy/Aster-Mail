@@ -166,7 +166,7 @@ export function use_popup_viewer({
   const [is_spam_loading, set_is_spam_loading] = useState(false);
   const [is_trash_loading, set_is_trash_loading] = useState(false);
   const [is_pin_loading, set_is_pin_loading] = useState(false);
-  const drag = use_popup_drag_resize();
+  const drag = use_popup_drag_resize(preferences.open_popup_maximized === true);
   const [thread_messages, set_thread_messages] = useState<
     DecryptedThreadMessage[]
   >([]);

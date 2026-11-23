@@ -4754,6 +4754,9 @@ export const pl = {
     close_popup_on_outside_click: "Zamykaj okno po kliknięciu poza nim",
     close_popup_on_outside_click_description:
       "Gdy e-maile otwierają się w wyskakującym oknie, kliknięcie w dowolnym miejscu poza nim je zamyka",
+    open_popup_maximized: "Otwieraj okno na pełnym ekranie",
+    open_popup_maximized_description:
+      "Gdy e-maile otwierają się w wyskakującym oknie, okno wypełnia cały ekran",
     split_view: "Widok podzielony",
     split_view_description: "Pokazuje listę e-maili i podgląd obok siebie",
     full_page: "Pełna strona",
@@ -12948,6 +12951,7 @@ export const pl = {
     fam_kids_tab: "konta dzieci, konto dziecka, dzieci",
     email_view_mode: "okienko, widok podzielony, pełna strona, otwórz e-mail, układ odczytu",
     close_popup_on_outside_click: "okienko, kliknij poza, zamknij okienko, odrzuć",
+    open_popup_maximized: "okienko, pełny ekran, maksymalizuj",
     compose_window_mode: "pływające okienko, pisanie na pełnym ekranie, zminimalizowane pisanie, układ okna pisania",
     reduce_transparency: "przezroczystość, rozmycie, nieprzezroczysty",
     underline_links: "linki, podkreślenie, podkreślaj linki",
