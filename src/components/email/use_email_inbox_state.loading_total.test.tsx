@@ -36,6 +36,7 @@ vi.mock("@/services/category_index", () => ({
   is_fully_built: () => true,
   is_index_reconciled: () => true,
   is_index_settled: () => true,
+  is_serving_previous_build: () => false,
 }));
 
 vi.mock("@/hooks/use_sidebar_aliases", () => ({
