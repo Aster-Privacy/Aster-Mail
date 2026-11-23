@@ -902,7 +902,15 @@ export function use_mail_stats(): UseMailStatsReturn {
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.PROTECTED_FOLDERS_READY, handle_change);
     window.addEventListener("astermail:folder-locked", handle_change);
+    const handle_online = () => {
+      if (!has_passphrase_in_memory()) return;
+
+      stats_store.invalidate();
+      stats_store.fetch(false);
+    };
+
     window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
+    window.addEventListener("online", handle_online);
     document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
@@ -926,6 +934,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       );
       window.removeEventListener("astermail:folder-locked", handle_change);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
+      window.removeEventListener("online", handle_online);
       document.removeEventListener("visibilitychange", handle_visibility);
     };
   }, []);
