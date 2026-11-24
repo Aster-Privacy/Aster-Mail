@@ -10084,11 +10084,13 @@ export const de = {
     no_password: "Kein Passwort",
     replying_to: "Antwort an {{name}}",
     reply_sent_successfully: "Antwort erfolgreich gesendet",
-    successfully_unsubscribed: "Erfolgreich abgemeldet",
-    unsubscribe_failed:
-      "Das Abbestellen wurde nicht abgeschlossen. Der Link in der E-Mail bringt Sie zur Seite des Absenders, um sich dort selbst abzumelden.",
-    unsubscribe_manual_required:
-      "Dieser Absender unterstützt das automatische Abbestellen nicht. Der Link in der E-Mail lässt Sie es selbst tun.",
+    successfully_unsubscribed: "Abgemeldet",
+    unsubscribe_failed: "Abmelden nicht möglich. Versuchen Sie es später erneut.",
+    unsubscribe_on_website: "Melden Sie sich auf der Website des Absenders ab.",
+    unsubscribe_not_confirmed: "Der Absender hat nicht bestätigt. Melden Sie sich auf seiner Website ab.",
+    unsubscribe_use_email_link: "Verwenden Sie den Abmeldelink in der E-Mail.",
+    unsubscribe_some_need_website: "Bei einigen Absendern müssen Sie sich auf deren Website abmelden.",
+    open_page: "Seite öffnen",
     stop_receiving_from: "Keine E-Mails mehr erhalten von",
     send_email: "E-Mail senden",
     order_number: "Bestellung #{{id}}",

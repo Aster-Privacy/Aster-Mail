@@ -10186,11 +10186,13 @@ export const ru = {
     no_password: "Без пароля",
     replying_to: "Ответ для {{name}}",
     reply_sent_successfully: "Ответ успешно отправлен",
-    successfully_unsubscribed: "Успешно отписано",
-    unsubscribe_failed:
-      "Отписка не завершилась. Ссылка в письме ведёт на сайт отправителя для отписки вручную.",
-    unsubscribe_manual_required:
-      "Этот отправитель не поддерживает автоматическую отписку. Ссылка в письме даёт возможность сделать это вручную.",
+    successfully_unsubscribed: "Вы отписались",
+    unsubscribe_failed: "Не удалось отписаться. Повторите попытку позже.",
+    unsubscribe_on_website: "Отпишитесь от этого отправителя на его сайте.",
+    unsubscribe_not_confirmed: "Отправитель не подтвердил отписку. Отпишитесь на его сайте.",
+    unsubscribe_use_email_link: "Используйте ссылку для отписки в письме.",
+    unsubscribe_some_need_website: "От некоторых отправителей нужно отписаться на их сайте.",
+    open_page: "Открыть страницу",
     stop_receiving_from: "Прекратить получение писем от",
     send_email: "Отправить письмо",
     order_number: "Заказ №{{id}}",

@@ -10109,11 +10109,13 @@ export const fr = {
     no_password: "Pas de mot de passe",
     replying_to: "Réponse à {{name}}",
     reply_sent_successfully: "Réponse envoyée avec succès",
-    successfully_unsubscribed: "Désabonnement réussi",
-    unsubscribe_failed:
-      "Le désabonnement ne s'est pas terminé. Le lien dans le message vous emmènera sur le site de l'expéditeur pour le faire vous-même.",
-    unsubscribe_manual_required:
-      "Cet expéditeur ne prend pas en charge le désabonnement automatique. Le lien dans le message vous permettra de le faire vous-même.",
+    successfully_unsubscribed: "Désabonnement effectué",
+    unsubscribe_failed: "Impossible de se désabonner. Réessayez plus tard.",
+    unsubscribe_on_website: "Désabonnez-vous de cet expéditeur sur son site web.",
+    unsubscribe_not_confirmed: "L'expéditeur n'a pas confirmé. Désabonnez-vous sur son site web.",
+    unsubscribe_use_email_link: "Utilisez le lien de désabonnement présent dans l'e-mail.",
+    unsubscribe_some_need_website: "Certains expéditeurs exigent que vous vous désabonniez sur leur site web.",
+    open_page: "Ouvrir la page",
     stop_receiving_from: "Arrêter de recevoir des e-mails de",
     send_email: "Envoyer un e-mail",
     order_number: "Commande n°{{id}}",

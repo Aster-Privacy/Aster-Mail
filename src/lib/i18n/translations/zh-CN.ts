@@ -8893,11 +8893,13 @@ export const zh_CN = {
     no_password: "无密码",
     replying_to: "回复{{name}}",
     reply_sent_successfully: "回复发送成功",
-    successfully_unsubscribed: "取消订阅成功",
-    unsubscribe_failed:
-      "退订未能完成，邮件中的链接会带您前往发件人的网站自行退订。",
-    unsubscribe_manual_required:
-      "这位发件人不支持自动退订，邮件中的链接会带您前往自行操作。",
+    successfully_unsubscribed: "已取消订阅",
+    unsubscribe_failed: "无法取消订阅。请稍后重试。",
+    unsubscribe_on_website: "请在发件人的网站上取消订阅。",
+    unsubscribe_not_confirmed: "发件人未确认。请在其网站上取消订阅。",
+    unsubscribe_use_email_link: "请使用邮件中的取消订阅链接。",
+    unsubscribe_some_need_website: "部分发件人需要你在其网站上取消订阅。",
+    open_page: "打开页面",
     stop_receiving_from: "停止接收来自以下地址的邮件",
     send_email: "发送邮件",
     order_number: "订单号 #{{id}}",

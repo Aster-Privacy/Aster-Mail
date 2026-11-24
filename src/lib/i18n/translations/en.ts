@@ -9979,11 +9979,13 @@ export const en: Translations = {
     no_password: "No password",
     replying_to: "Replying to {{name}}",
     reply_sent_successfully: "Reply sent successfully",
-    successfully_unsubscribed: "Successfully unsubscribed",
-    unsubscribe_failed:
-      "The unsubscribe did not finish. The link in the email will take you to the sender's site to do it yourself.",
-    unsubscribe_manual_required:
-      "This sender does not support automatic unsubscribe. The link in the email will let you do it yourself.",
+    successfully_unsubscribed: "Unsubscribed",
+    unsubscribe_failed: "Couldn't unsubscribe. Try again later.",
+    unsubscribe_on_website: "Unsubscribe from this sender on their website.",
+    unsubscribe_not_confirmed: "The sender didn't confirm. Unsubscribe on their website.",
+    unsubscribe_use_email_link: "Use the unsubscribe link in the email.",
+    unsubscribe_some_need_website: "Some senders need you to unsubscribe on their website.",
+    open_page: "Open page",
     open_unsubscribe_page: "Open unsubscribe page",
     stop_receiving_from: "Stop receiving emails from",
     send_email: "Send Email",

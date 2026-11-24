@@ -10002,11 +10002,13 @@ export const es = {
     no_password: "Sin contraseña",
     replying_to: "Respondiendo a {{name}}",
     reply_sent_successfully: "Respuesta enviada exitosamente",
-    successfully_unsubscribed: "Suscripción cancelada exitosamente",
-    unsubscribe_failed:
-      "La baja no se completó. El enlace en el correo te llevará al sitio del remitente para darte de baja tú mismo.",
-    unsubscribe_manual_required:
-      "Este remitente no admite baja automática. El enlace del correo te permitirá hacerlo tú mismo.",
+    successfully_unsubscribed: "Suscripción cancelada",
+    unsubscribe_failed: "No se pudo cancelar la suscripción. Inténtalo más tarde.",
+    unsubscribe_on_website: "Cancela la suscripción a este remitente en su sitio web.",
+    unsubscribe_not_confirmed: "El remitente no lo confirmó. Cancela la suscripción en su sitio web.",
+    unsubscribe_use_email_link: "Usa el enlace para cancelar la suscripción del correo.",
+    unsubscribe_some_need_website: "Algunos remitentes requieren que canceles la suscripción en su sitio web.",
+    open_page: "Abrir página",
     stop_receiving_from: "Dejar de recibir correos de",
     send_email: "Enviar correo",
     order_number: "Pedido #{{id}}",

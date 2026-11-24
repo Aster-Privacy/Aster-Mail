@@ -10034,10 +10034,12 @@ export const hi = {
     replying_to: "{{name}} को जवाब दिया जा रहा है",
     reply_sent_successfully: "जवाब भेज दिया गया",
     successfully_unsubscribed: "सदस्यता छोड़ दी गई",
-    unsubscribe_failed:
-      "सदस्यता रद्द करना पूरा नहीं हुआ। ईमेल में मौजूद लिंक आपको प्रेषक की साइट पर ले जाएगा, जहां आप यह खुद कर सकते हैं।",
-    unsubscribe_manual_required:
-      "यह प्रेषक अपने आप सदस्यता छोड़ने का समर्थन नहीं करता। ईमेल में मौजूद लिंक से आप यह खुद कर सकते हैं।",
+    unsubscribe_failed: "सदस्यता नहीं छोड़ी जा सकी। बाद में फिर से कोशिश करें।",
+    unsubscribe_on_website: "इस प्रेषक की सदस्यता उसकी वेबसाइट पर छोड़ें।",
+    unsubscribe_not_confirmed: "प्रेषक ने पुष्टि नहीं की। उसकी वेबसाइट पर सदस्यता छोड़ें।",
+    unsubscribe_use_email_link: "ईमेल में दिए गए सदस्यता छोड़ने के लिंक का उपयोग करें।",
+    unsubscribe_some_need_website: "कुछ प्रेषकों की सदस्यता उनकी वेबसाइट पर छोड़नी होगी।",
+    open_page: "पेज खोलें",
     open_unsubscribe_page: "सदस्यता छोड़ने का पेज खोलें",
     stop_receiving_from: "इनसे ईमेल आना बंद करें",
     send_email: "ईमेल भेजें",

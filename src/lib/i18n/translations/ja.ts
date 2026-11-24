@@ -9750,11 +9750,13 @@ export const ja = {
     no_password: "パスワードなし",
     replying_to: "{{name}}に返信中",
     reply_sent_successfully: "返信を正常に送信しました",
-    successfully_unsubscribed: "購読を正常に解除しました",
-    unsubscribe_failed:
-      "購読解除が完了しませんでした。メール内のリンクから送信者のサイトに移動して、ご自身で購読解除できます。",
-    unsubscribe_manual_required:
-      "この送信者は自動での購読解除に対応していません。メール内のリンクから、ご自身で購読解除できます。",
+    successfully_unsubscribed: "購読を解除しました",
+    unsubscribe_failed: "購読を解除できませんでした。後でもう一度お試しください。",
+    unsubscribe_on_website: "この送信者の購読は、送信者のウェブサイトで解除してください。",
+    unsubscribe_not_confirmed: "送信者から確認が得られませんでした。送信者のウェブサイトで購読を解除してください。",
+    unsubscribe_use_email_link: "メール内の購読解除リンクを使用してください。",
+    unsubscribe_some_need_website: "一部の送信者は、送信者のウェブサイトで購読を解除する必要があります。",
+    open_page: "ページを開く",
     stop_receiving_from: "メールの受信を停止：",
     send_email: "メールを送信",
     order_number: "注文番号 #{{id}}",

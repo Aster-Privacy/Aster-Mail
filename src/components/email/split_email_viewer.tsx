@@ -60,18 +60,13 @@ import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { remember_forward_from_message } from "@/components/email/delivery_reply_address";
 import { get_label_hints } from "@/stores/label_hints_store";
-import {
-  execute_unsubscribe,
-  get_manual_unsubscribe_url,
-} from "@/utils/unsubscribe_detector";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { show_unsubscribe_toast } from "@/utils/unsubscribe_toast";
 import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
-import { show_action_toast } from "@/components/toast/action_toast";
 import {
   persist_unsubscribe,
   use_unsubscribed_senders,
 } from "@/hooks/use_unsubscribed_senders";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
-import { request_external_link } from "@/utils/external_link_request";
 
 export type SplitReplyData = ReplyData;
 export type SplitForwardData = ForwardData;
@@ -350,47 +345,29 @@ export function SplitEmailViewer({
         build_unsubscribe_delivery(viewer.mail_item, email),
       );
 
-      if (result === "api") {
-        show_action_toast({
-          message: t("mail.successfully_unsubscribed"),
-          action_type: "not_spam",
-          email_ids: [],
-        });
-        mark_unsubscribed(email.sender_email);
+      const record = () =>
         persist_unsubscribe(email.sender_email, email.sender || "", {
           unsubscribe_link: info.unsubscribe_link,
           list_unsubscribe_header: info.list_unsubscribe_header,
         });
 
+      show_unsubscribe_toast({
+        outcome: result,
+        info,
+        t,
+        on_page_opened: record,
+      });
+
+      if (result === "api") {
+        mark_unsubscribed(email.sender_email);
+        record();
+
         return "success";
       }
-      show_action_toast({
-        message: t("mail.unsubscribe_manual_required"),
-        action_type: "not_spam",
-        email_ids: [],
-        duration_ms: 15000,
-        ...(!is_any_lockdown_active() && {
-          action_label: t("mail.open_unsubscribe_page"),
-          on_undo: async () => {
-            const url = get_manual_unsubscribe_url(info);
-
-            if (!url) return;
-            if (!(await request_external_link(url))) return;
-            persist_unsubscribe(email.sender_email, email.sender || "", {
-              unsubscribe_link: info.unsubscribe_link,
-              list_unsubscribe_header: info.list_unsubscribe_header,
-            });
-          },
-        }),
-      });
 
       return "manual";
     } catch {
-      show_action_toast({
-        message: t("mail.unsubscribe_failed"),
-        action_type: "not_spam",
-        email_ids: [],
-      });
+      show_unsubscribe_toast({ outcome: "error", info, t });
 
       return "manual";
     }

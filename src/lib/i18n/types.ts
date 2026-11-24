@@ -9368,7 +9368,11 @@ export interface MailTranslations {
   reply_sent_successfully: string;
   successfully_unsubscribed: string;
   unsubscribe_failed: string;
-  unsubscribe_manual_required: string;
+  unsubscribe_on_website: string;
+  unsubscribe_not_confirmed: string;
+  unsubscribe_use_email_link: string;
+  unsubscribe_some_need_website: string;
+  open_page: string;
   open_unsubscribe_page: string;
   stop_receiving_from: string;
   send_email: string;

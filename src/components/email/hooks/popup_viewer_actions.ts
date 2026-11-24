@@ -42,7 +42,6 @@ import {
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   MAIL_EVENTS,
@@ -56,10 +55,8 @@ import {
 } from "@/utils/print_email_loader";
 import { build_thread_print_data } from "@/utils/thread_print_data";
 import { preload_when_idle } from "@/utils/lazy_with_retry";
-import {
-  execute_unsubscribe,
-  get_manual_unsubscribe_url,
-} from "@/utils/unsubscribe_detector";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { show_unsubscribe_toast } from "@/utils/unsubscribe_toast";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
@@ -79,7 +76,6 @@ import {
 } from "@/components/email/delivery_reply_address";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
-import { request_external_link } from "@/utils/external_link_request";
 import {
   app_locale,
   format_print_timestamp,
@@ -736,56 +732,30 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
           build_unsubscribe_delivery(deps.mail_item, deps.email),
         );
 
-        if (result === "api") {
-          show_action_toast({
-            message: deps.t("mail.successfully_unsubscribed"),
-            action_type: "not_spam",
-            email_ids: [],
-          });
-          if (deps.email) {
-            persist_unsubscribe(
-              deps.email.sender_email,
-              deps.email.sender || "",
-              {
-                unsubscribe_link: unsubscribe_info.unsubscribe_link,
-                list_unsubscribe_header:
-                  unsubscribe_info.list_unsubscribe_header,
-              },
-            );
-          }
-        } else {
-          const url = get_manual_unsubscribe_url(unsubscribe_info);
-          const lockdown = is_any_lockdown_active();
+        const record = () => {
+          if (!deps.email) return;
+          persist_unsubscribe(
+            deps.email.sender_email,
+            deps.email.sender || "",
+            {
+              unsubscribe_link: unsubscribe_info.unsubscribe_link,
+              list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
+            },
+          );
+        };
 
-          show_action_toast({
-            message: deps.t("mail.unsubscribe_manual_required"),
-            action_type: "not_spam",
-            email_ids: [],
-            duration_ms: 15000,
-            ...(!lockdown &&
-              url && {
-                action_label: deps.t("mail.open_unsubscribe_page"),
-                on_undo: async () => {
-                  if (!(await request_external_link(url))) return;
-                  if (!deps.email) return;
-                  persist_unsubscribe(
-                    deps.email.sender_email,
-                    deps.email.sender || "",
-                    {
-                      unsubscribe_link: unsubscribe_info.unsubscribe_link,
-                      list_unsubscribe_header:
-                        unsubscribe_info.list_unsubscribe_header,
-                    },
-                  );
-                },
-              }),
-          });
-        }
+        show_unsubscribe_toast({
+          outcome: result,
+          info: unsubscribe_info as never,
+          t: deps.t,
+          on_page_opened: record,
+        });
+        if (result === "api") record();
       } catch {
-        show_action_toast({
-          message: deps.t("mail.unsubscribe_failed"),
-          action_type: "not_spam",
-          email_ids: [],
+        show_unsubscribe_toast({
+          outcome: "error",
+          info: unsubscribe_info as never,
+          t: deps.t,
         });
       }
     },

@@ -323,7 +323,14 @@ export function use_subscriptions() {
         if (result !== "api") {
           revert_sender(sender_email);
           end_mutation();
-          show_toast(t("mail.unsubscribe_manual_required"), "info");
+          show_toast(
+            t(
+              result === "failed"
+                ? "mail.unsubscribe_not_confirmed"
+                : "mail.unsubscribe_on_website",
+            ),
+            result === "failed" ? "error" : "info",
+          );
 
           return "manual";
         }
@@ -434,7 +441,7 @@ export function use_subscriptions() {
           if (failed.length > 0) {
             show_toast(t("mail.unsubscribe_failed"), "error");
           } else {
-            show_toast(t("mail.unsubscribe_manual_required"), "info");
+            show_toast(t("mail.unsubscribe_some_need_website"), "info");
           }
         }
 
