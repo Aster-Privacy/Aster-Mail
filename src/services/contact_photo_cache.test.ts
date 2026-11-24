@@ -164,6 +164,25 @@ describe("contact photo cache", () => {
     expect(get_contact_photo).toHaveBeenCalledTimes(1);
   });
 
+  it("skips the photo request when the contact list says there is none", async () => {
+    list_contacts.mockResolvedValue(
+      contacts_page([
+        { id: "plain", emails: ["plain@example.com"], has_photo: false },
+        { id: "stored", emails: ["stored@example.com"], has_photo: true },
+      ]),
+    );
+    get_contact_photo.mockResolvedValue(photo_response([1, 2, 3]));
+
+    const mod = await load();
+
+    await settle(mod, "plain@example.com");
+    await settle(mod, "stored@example.com");
+
+    expect(mod.get_contact_photo_src("plain@example.com")).toBeNull();
+    expect(get_contact_photo).toHaveBeenCalledTimes(1);
+    expect(get_contact_photo).toHaveBeenCalledWith("stored");
+  });
+
   it("does not cache network errors and retries after a delay", async () => {
     const mod = await load();
 

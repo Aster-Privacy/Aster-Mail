@@ -27,6 +27,20 @@ export interface FolderUnlockRecord {
 
 const unlock_records = new Map<string, FolderUnlockRecord>();
 const change_listeners = new Set<(folder_token: string | null) => void>();
+const version_listeners = new Set<() => void>();
+let unlock_version = 0;
+
+export function subscribe_folder_unlocks(listener: () => void): () => void {
+  version_listeners.add(listener);
+
+  return () => {
+    version_listeners.delete(listener);
+  };
+}
+
+export function get_folder_unlock_version(): number {
+  return unlock_version;
+}
 
 export function on_folder_unlock_change(
   listener: (folder_token: string | null) => void,
@@ -39,6 +53,14 @@ export function on_folder_unlock_change(
 }
 
 function notify_change(folder_token: string | null): void {
+  unlock_version += 1;
+  for (const listener of [...version_listeners]) {
+    try {
+      listener();
+    } catch {
+      continue;
+    }
+  }
   for (const listener of change_listeners) {
     try {
       listener(folder_token);
@@ -112,6 +134,10 @@ export function list_folder_unlock_records(): FolderUnlockRecord[] {
   }
 
   return live;
+}
+
+export function count_live_folder_unlocks(): number {
+  return list_folder_unlock_records().length;
 }
 
 export function has_folder_unlock_records(): boolean {

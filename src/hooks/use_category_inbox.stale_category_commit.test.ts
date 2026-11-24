@@ -121,6 +121,7 @@ vi.mock("@/services/category_index", () => ({
   get_category_total: () => 1,
   is_fully_built: () => true,
   is_index_settled: () => true,
+  is_serving_previous_build: () => false,
   is_build_in_progress: () => false,
   is_build_stalled: () => false,
   subscribe: () => () => {},
@@ -139,6 +140,7 @@ vi.mock("@/services/category_index", () => ({
 }));
 
 import { use_category_inbox } from "@/hooks/use_category_inbox";
+import { clear_category_row_cache } from "@/hooks/email_list_helpers/row_store";
 
 type Category = Parameters<typeof use_category_inbox>[0];
 
@@ -153,6 +155,7 @@ async function flush(): Promise<void> {
 
 describe("use_category_inbox stale category commit", () => {
   beforeEach(() => {
+    clear_category_row_cache();
     (
       globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;

@@ -29,7 +29,9 @@ import {
   ChevronDoubleUpIcon,
   FolderIcon,
   FolderPlusIcon,
+  KeyIcon,
   LockClosedIcon,
+  LockOpenIcon,
   PencilIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -49,8 +51,11 @@ interface FolderContextMenuProps {
   folder_token?: string;
   folder_color: string;
   password_set: boolean;
+  is_unlocked?: boolean;
   can_have_children?: boolean;
   on_lock: () => void;
+  on_lock_now?: () => void;
+  on_unlock?: () => void;
   on_rename: () => void;
   on_recolor: () => void;
   on_move?: () => void;
@@ -71,8 +76,11 @@ export function FolderContextMenu({
   folder_token,
   folder_color,
   password_set,
+  is_unlocked,
   can_have_children,
   on_lock,
+  on_lock_now,
+  on_unlock,
   on_rename,
   on_recolor,
   on_move,
@@ -134,13 +142,40 @@ export function FolderContextMenu({
           </ContextMenuItem>
         )}
 
-        <ContextMenuItem onClick={on_lock}>
-          <LockClosedIcon
-            className="me-2 h-4 w-4"
-            style={{ color: password_set ? "var(--color-success)" : undefined }}
-          />
-          {password_set ? t("common.remove_lock") : t("common.lock")}
-        </ContextMenuItem>
+        {password_set && is_unlocked && on_lock_now && (
+          <ContextMenuItem
+            data-testid="folder-menu-lock-now"
+            onClick={on_lock_now}
+          >
+            <LockClosedIcon className="me-2 h-4 w-4" />
+            {t("common.lock")}
+          </ContextMenuItem>
+        )}
+
+        {password_set && !is_unlocked && on_unlock && (
+          <ContextMenuItem data-testid="folder-menu-unlock" onClick={on_unlock}>
+            <LockOpenIcon className="me-2 h-4 w-4" />
+            {t("common.unlock")}
+          </ContextMenuItem>
+        )}
+
+        {password_set ? (
+          <ContextMenuItem
+            data-testid="folder-menu-password-settings"
+            onClick={on_lock}
+          >
+            <KeyIcon
+              className="me-2 h-4 w-4"
+              style={{ color: "var(--color-success)" }}
+            />
+            {t("common.folder_password_settings")}
+          </ContextMenuItem>
+        ) : (
+          <ContextMenuItem onClick={on_lock}>
+            <LockClosedIcon className="me-2 h-4 w-4" />
+            {t("common.lock")}
+          </ContextMenuItem>
+        )}
 
         <ContextMenuItem onClick={on_rename}>
           <PencilIcon className="me-2 h-4 w-4" />

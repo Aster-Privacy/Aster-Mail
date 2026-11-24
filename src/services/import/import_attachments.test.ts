@@ -31,7 +31,13 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
 
 import { parse_eml } from "./eml_parser";
 import { build_import_collection } from "./import_collection";
-import { plan_import_fills, should_flush_import_batch } from "./import_fill";
+import {
+  count_attachment_messages,
+  import_attachment_notice,
+  plan_import_fills,
+  should_flush_import_batch,
+  should_review_attachments,
+} from "./import_fill";
 import {
   encrypt_import_attachments,
   encrypted_attachment_bytes,
@@ -272,6 +278,35 @@ describe("re-import fill planning", () => {
     expect(should_flush_import_batch(0, 0, 500, 100)).toBe(false);
     expect(should_flush_import_batch(2, 60, 30, 100)).toBe(false);
     expect(should_flush_import_batch(2, 60, 50, 100)).toBe(true);
+  });
+});
+
+describe("attachment notices", () => {
+  const with_files = parse_eml(make_eml("notice@example.com"));
+  const plain = parse_eml(
+    "From: x@example.com\r\nMessage-ID: <plain@example.com>\r\n\r\nhi\r\n",
+  );
+  const hinted = { ...plain, attachment_hint: true };
+
+  it("counts messages that carry files or an attachment hint", () => {
+    expect(count_attachment_messages([with_files, plain, hinted])).toBe(2);
+    expect(count_attachment_messages([plain])).toBe(0);
+  });
+
+  it("asks free users to upgrade before importing files with attachments", () => {
+    expect(should_review_attachments(3, "free")).toBe(true);
+    expect(should_review_attachments(0, "free")).toBe(false);
+    expect(should_review_attachments(3, "nova")).toBe(false);
+    expect(should_review_attachments(3, null)).toBe(false);
+  });
+
+  it("explains skipped attachments after the import", () => {
+    expect(import_attachment_notice(0, false, "free")).toBe("none");
+    expect(import_attachment_notice(4, true, "free")).toBe("none");
+    expect(import_attachment_notice(4, true, "nova")).toBe("none");
+    expect(import_attachment_notice(4, false, "free")).toBe("upgrade");
+    expect(import_attachment_notice(4, false, null)).toBe("upgrade");
+    expect(import_attachment_notice(4, false, "nova")).toBe("import_again");
   });
 });
 

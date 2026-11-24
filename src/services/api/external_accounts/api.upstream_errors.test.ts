@@ -59,6 +59,11 @@ describe("external account upstream error codes", () => {
     expect(
       external_account_error_message("EXTERNAL_ACCOUNT_MESSAGE_REJECTED"),
     ).toBe(en.settings.external_message_rejected);
+    expect(
+      external_account_error_message(
+        "EXTERNAL_ACCOUNT_SEND_RECONNECT_REQUIRED",
+      ),
+    ).toBe(en.settings.external_send_reconnect_required);
   });
 
   it("ignores codes it does not own", () => {

@@ -169,6 +169,7 @@ export interface UseComposeReturn {
   aliases_loading: boolean;
   selected_sender: SenderOption | null;
   set_selected_sender: (val: SenderOption | null) => void;
+  select_typed_sender: (val: SenderOption) => void;
   preferred_sender_id: string | null;
   set_preferred_sender: (id: string | null) => void;
   ghost_mode: UseGhostModeReturn;
@@ -374,8 +375,12 @@ export function use_compose({
     DecryptedRecentRecipient[]
   >([]);
 
+  const [typed_sender_email, set_typed_sender_email] = useState<
+    string | null
+  >(null);
   const { sender_options, loading: aliases_loading } = use_sender_aliases([
     edit_draft?.from_email,
+    typed_sender_email,
   ]);
   const [selected_sender, set_selected_sender_state] =
     useState<SenderOption | null>(null);
@@ -386,6 +391,13 @@ export function use_compose({
     sender_manually_selected_ref.current = value !== null;
     set_selected_sender_state(value);
   }, []);
+  const select_typed_sender = useCallback(
+    (value: SenderOption) => {
+      set_typed_sender_email(value.email);
+      set_selected_sender(value);
+    },
+    [set_selected_sender],
+  );
   const [preferred_sender_id, set_preferred_sender_id_state] = useState<
     string | null
   >(() => get_preferred_sender_id());
@@ -1357,6 +1369,7 @@ export function use_compose({
   );
 
   return {
+    select_typed_sender,
     recipients,
     inputs,
     visibility,

@@ -42,6 +42,7 @@ const SECTION_SOURCES: Record<string, string[]> = {
   security: [
     "src/components/settings/security_section.tsx",
     "src/components/settings/security/account_recovery_section.tsx",
+    "src/components/guard/guard_section.tsx",
   ],
   account: ["src/components/settings/account_section.tsx"],
 };

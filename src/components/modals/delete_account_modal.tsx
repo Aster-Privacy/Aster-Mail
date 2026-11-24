@@ -36,6 +36,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { api_client } from "@/services/api/client";
 import { get_user_salt } from "@/services/api/auth";
+import { peek_totp_required } from "@/services/api/step_up_cache";
 import { classify_totp_error, get_totp_status } from "@/services/api/totp";
 import { hash_email, base64_to_array } from "@/services/crypto/key_manager";
 import {
@@ -62,7 +63,9 @@ export function DeleteAccountModal({
   const [confirmation_text, set_confirmation_text] = useState("");
   const [password, set_password] = useState("");
   const [totp_code, set_totp_code] = useState("");
-  const [two_factor_enabled, set_two_factor_enabled] = useState(false);
+  const [two_factor_enabled, set_two_factor_enabled] = useState(
+    () => peek_totp_required() === true,
+  );
   const [is_deleting, set_is_deleting] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
@@ -101,7 +104,7 @@ export function DeleteAccountModal({
         set_two_factor_enabled(status.data?.enabled ?? false);
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
-        set_two_factor_enabled(false);
+        set_two_factor_enabled(peek_totp_required() === true);
       }
     };
 

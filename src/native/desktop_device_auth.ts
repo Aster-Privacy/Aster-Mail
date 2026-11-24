@@ -27,14 +27,23 @@ import { has_tauri_runtime } from "@/lib/tauri_runtime";
 export type DeviceAuthErrorCode =
   "challenge_failed" | "login_failed" | "code_generation_failed";
 
+export const GUARD_DEVICE_REQUIRED = "GUARD_DEVICE_REQUIRED";
+export const GUARD_DEVICE_PENDING = "GUARD_DEVICE_PENDING";
+
 export class DeviceAuthError extends Error {
   code: DeviceAuthErrorCode;
   status: number | undefined;
+  server_code: string | undefined;
   i18n_key: TranslationKey;
-  constructor(code: DeviceAuthErrorCode, status?: number) {
+  constructor(
+    code: DeviceAuthErrorCode,
+    status?: number,
+    server_code?: string,
+  ) {
     super(code);
     this.code = code;
     this.status = status;
+    this.server_code = server_code;
     this.i18n_key =
       code === "challenge_failed"
         ? "errors.device_challenge_mismatch"
@@ -50,6 +59,7 @@ export interface DevicePubkeys {
   mlkem_pk: string;
   x25519_pk: string;
   machine_name: string;
+  action_pk?: string | null;
 }
 
 export interface DeviceCodeResult {
@@ -58,9 +68,10 @@ export interface DeviceCodeResult {
 }
 
 export interface DeviceCodeStatus {
-  status: "pending" | "confirmed" | "expired";
+  status: "pending" | "confirmed" | "expired" | "activation_pending";
   device_id?: string;
   sealed_envelope?: string;
+  activates_at?: string;
 }
 
 export function is_tauri(): boolean {
@@ -137,7 +148,7 @@ export async function device_login(
   });
 
   if (result.error || !result.data) {
-    throw new DeviceAuthError("login_failed", result.status);
+    throw new DeviceAuthError("login_failed", result.status, result.server_code);
   }
 
   return result.data;
@@ -196,19 +207,28 @@ async function silent_device_login(
 }
 
 export type DeviceReloginOutcome =
-  "signed_in" | "rejected" | "unavailable" | "locked";
+  "signed_in" | "rejected" | "unavailable" | "locked" | "guard_pending";
+
+function guard_login_code(error: unknown): string | undefined {
+  return error instanceof DeviceAuthError && error.code === "login_failed"
+    ? error.server_code
+    : undefined;
+}
 
 export function is_device_pairing_rejected(error: unknown): boolean {
   if (error instanceof DeviceAuthError) {
-    return error.code === "login_failed" && error.status === 401;
+    return (
+      error.code === "login_failed" &&
+      (error.status === 401 || error.server_code === GUARD_DEVICE_REQUIRED)
+    );
   }
 
   return error instanceof Error && error.message === "passphrase_null";
 }
 
-export async function attempt_device_relogin(
-  device_id: string,
-): Promise<DeviceReloginOutcome> {
+type ReloginStep = DeviceReloginOutcome | "guard_required";
+
+async function relogin_step(device_id: string): Promise<ReloginStep> {
   if (!is_tauri()) return "unavailable";
 
   try {
@@ -217,9 +237,23 @@ export async function attempt_device_relogin(
     return "signed_in";
   } catch (caught) {
     if (is_pin_locked_error(caught)) return "locked";
+    if (guard_login_code(caught) === GUARD_DEVICE_PENDING) {
+      return "guard_pending";
+    }
+    if (guard_login_code(caught) === GUARD_DEVICE_REQUIRED) {
+      return "guard_required";
+    }
 
     return is_device_pairing_rejected(caught) ? "rejected" : "unavailable";
   }
+}
+
+export async function attempt_device_relogin(
+  device_id: string,
+): Promise<DeviceReloginOutcome> {
+  const step = await relogin_step(device_id);
+
+  return step === "guard_required" ? "rejected" : step;
 }
 
 const RELOGIN_ATTEMPTS = 3;
@@ -238,9 +272,16 @@ export async function relogin_with_retries(
 
   for (let attempt = 0; attempt < RELOGIN_ATTEMPTS; attempt++) {
     if (is_cancelled()) return "unavailable";
-    const outcome = await attempt_device_relogin(device_id);
+    const outcome = await relogin_step(device_id);
 
-    if (outcome === "signed_in" || outcome === "locked") return outcome;
+    if (
+      outcome === "signed_in" ||
+      outcome === "locked" ||
+      outcome === "guard_pending"
+    ) {
+      return outcome;
+    }
+    if (outcome === "guard_required") return "rejected";
     rejections = outcome === "rejected" ? rejections + 1 : 0;
     if (rejections >= REJECTIONS_BEFORE_FORGET) return "rejected";
     if (attempt < RELOGIN_ATTEMPTS - 1 && !is_cancelled()) {
@@ -311,6 +352,7 @@ export async function request_device_code(
       x25519_pk: pubkeys.x25519_pk,
       machine_name: pubkeys.machine_name,
       envelope_versions: ENVELOPE_VERSIONS,
+      ...(pubkeys.action_pk ? { action_pk: pubkeys.action_pk } : {}),
     },
   );
 

@@ -231,6 +231,8 @@ async function decrypt_token_verified(
     own_private_keys,
     passphrase,
     verification_keys,
+    undefined,
+    true,
   );
 
   if (result.verification === "verified" || verification_keys.length < 2) {
@@ -243,6 +245,8 @@ async function decrypt_token_verified(
       own_private_keys,
       passphrase,
       [key],
+      undefined,
+      true,
     );
 
     if (single.verification === "verified") return single;

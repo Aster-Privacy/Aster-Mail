@@ -83,6 +83,8 @@ export async function resolve_sender_verification_keys(
     const response = await get_recipient_public_key(username, sender_email);
 
     if (response.error || !response.data?.public_key) {
+      if (response.status === 404) write_cache(sender_email, []);
+
       return [];
     }
 

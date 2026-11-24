@@ -67,6 +67,7 @@ import {
   ReportSpamIcon,
 } from "@/components/email/spam_action_icons";
 import { use_i18n } from "@/lib/i18n/context";
+import { custom_forward_via_domain } from "@/utils/forwarding_alias";
 import { strip_preview_filler } from "@/utils/preview_text";
 import { detect_verification_code } from "@/utils/verification_code";
 import {
@@ -206,6 +207,13 @@ export const InboxEmailListItem = memo(
         raw_list_name,
         t("common.unknown_sender"),
       );
+      const list_participant_names = sender_trust
+        ? undefined
+        : email.thread_participant_names;
+      const via_domain =
+        outgoing_names || (list_participant_names?.length ?? 0) > 1
+          ? null
+          : custom_forward_via_domain(email);
       const peer_badge = peer_profile?.active_badge ?? null;
       const show_sender_badge =
         (peer_profile?.show_badge_profile ?? false) &&
@@ -608,13 +616,20 @@ export const InboxEmailListItem = memo(
               >
                 {resolve_list_display_name({
                   outgoing_names,
-                  thread_participant_names: sender_trust
-                    ? undefined
-                    : email.thread_participant_names,
+                  thread_participant_names: list_participant_names,
                   fallback_name: list_sender_name,
                   to_prefix: t("mail.to"),
                 })}
               </span>
+
+              {via_domain && (
+                <span
+                  className="flex-shrink-0 truncate text-[13px] font-normal text-txt-muted"
+                  dir="auto"
+                >
+                  {t("mail.forwarded_via", { address: via_domain })}
+                </span>
+              )}
 
               {!sender_trust?.warning && !marks_hidden && (
                 <OfficialBadge

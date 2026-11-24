@@ -41,6 +41,11 @@ import {
   sanitize_custom_categories,
 } from "@/data/category_catalog";
 import {
+  type LearnedCategorySender,
+  reconcile_learned_senders,
+  sanitize_learned_senders,
+} from "@/services/learned_category_senders";
+import {
   DEFAULT_INBOX_PAGE_SIZE,
   clamp_inbox_page_size,
 } from "@/lib/inbox_page_size";
@@ -130,8 +135,10 @@ export interface UserPreferences {
   email_view_mode: "popup" | "split" | "fullpage";
   settings_view_mode: "fullpage" | "popup";
   close_popup_on_outside_click: boolean;
+  open_popup_maximized: boolean;
   keyboard_shortcuts_enabled: boolean;
   confirm_before_delete: boolean;
+  confirm_before_permanent_delete: boolean;
   confirm_before_archive: boolean;
   confirm_before_spam: boolean;
   confirm_before_quick_actions: boolean;
@@ -199,6 +206,7 @@ export interface UserPreferences {
   high_contrast: boolean;
   reduce_transparency: boolean;
   link_underlines: boolean;
+  hide_scrollbars: boolean;
   dyslexia_font: boolean;
   text_spacing: boolean;
   color_vision_mode:
@@ -243,6 +251,8 @@ export interface UserPreferences {
   inbox_categories_enabled: boolean;
   enabled_categories: string[];
   custom_categories: CustomCategoryRule[];
+  learn_from_category_moves: boolean;
+  learned_category_senders: LearnedCategorySender[];
   show_message_size: boolean;
   show_alias_indicators: boolean;
   show_badges_in_signature: boolean;
@@ -568,6 +578,9 @@ export async function convert_preferences_to_account_key(
 }
 
 const PREFS_CACHE_KEY = "aster_preferences_cache";
+const UNCACHED_PREFERENCE_KEYS: readonly string[] = [
+  "learned_category_senders",
+];
 const TEXT_SIZE_CACHE_KEY = "aster_text_size";
 const MIGRATION_FLAGS_KEY = "aster_pref_migrations_done";
 
@@ -636,13 +649,34 @@ function write_local_migration_flag(flag: MigrationFlag): void {
   }
 }
 
+function strip_uncached_fields(
+  prefs: Partial<UserPreferences> | Record<string, unknown>,
+): Record<string, unknown> {
+  const copy: Record<string, unknown> = { ...prefs };
+
+  for (const key of UNCACHED_PREFERENCE_KEYS) delete copy[key];
+
+  return copy;
+}
+
+export function without_learned_base(prefs: UserPreferences): UserPreferences {
+  const copy = { ...prefs } as Partial<UserPreferences>;
+
+  delete copy.learned_category_senders;
+
+  return copy as UserPreferences;
+}
+
 export function cache_preferences_locally(prefs: UserPreferences): void {
   if (device_traces_erased()) return;
 
   apply_loaded_error_report_preference(prefs.send_error_reports);
 
   try {
-    localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(prefs));
+    localStorage.setItem(
+      PREFS_CACHE_KEY,
+      JSON.stringify(strip_uncached_fields(prefs)),
+    );
     localStorage.setItem(
       TEXT_SIZE_CACHE_KEY,
       JSON.stringify({
@@ -693,6 +727,14 @@ export function get_cached_preferences(): UserPreferences | null {
 
     if (cached) {
       const parsed = JSON.parse(cached) as Record<string, unknown>;
+
+      if (UNCACHED_PREFERENCE_KEYS.some((key) => key in parsed)) {
+        const stripped = strip_uncached_fields(parsed);
+
+        localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(stripped));
+
+        return build_merged_preferences(stripped, null);
+      }
 
       return build_merged_preferences(parsed, null);
     }
@@ -807,8 +849,10 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   email_view_mode: "split",
   settings_view_mode: "fullpage",
   close_popup_on_outside_click: false,
+  open_popup_maximized: false,
   keyboard_shortcuts_enabled: true,
   confirm_before_delete: false,
+  confirm_before_permanent_delete: true,
   confirm_before_archive: false,
   confirm_before_spam: false,
   confirm_before_quick_actions: true,
@@ -849,6 +893,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   high_contrast: false,
   reduce_transparency: false,
   link_underlines: false,
+  hide_scrollbars: false,
   dyslexia_font: false,
   text_spacing: false,
   color_vision_mode: "none",
@@ -888,6 +933,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   inbox_categories_enabled: true,
   enabled_categories: [...DEFAULT_ENABLED_CATEGORIES],
   custom_categories: [],
+  learn_from_category_moves: true,
+  learned_category_senders: [],
   show_message_size: false,
   show_alias_indicators: true,
   show_badges_in_signature: true,
@@ -989,6 +1036,7 @@ const SWIPE_ACTION_IDS = [
   "snooze",
   "star",
   "spam",
+  "move_to_folder",
   "none",
 ];
 const LEGACY_SWIPE_ACTIONS: Record<string, string> = {
@@ -997,6 +1045,7 @@ const LEGACY_SWIPE_ACTIONS: Record<string, string> = {
   mark_unread: "toggle_read",
   read: "toggle_read",
   unread: "toggle_read",
+  move: "move_to_folder",
 };
 
 function normalize_swipe_action(raw: unknown, fallback: string): string {
@@ -1062,6 +1111,14 @@ export function build_merged_preferences(
   merged.custom_categories = sanitize_custom_categories(
     merged.custom_categories,
   );
+  merged.learned_category_senders = sanitize_learned_senders(
+    merged.learned_category_senders,
+  );
+  merged.learn_from_category_moves =
+    typeof merged.learn_from_category_moves === "boolean"
+      ? merged.learn_from_category_moves
+      : true;
+  merged.hide_scrollbars = merged.hide_scrollbars === true;
   merged.enabled_categories = Array.isArray(merged.enabled_categories)
     ? merged.enabled_categories.filter((c) => typeof c === "string")
     : [...DEFAULT_ENABLED_CATEGORIES];
@@ -1409,6 +1466,18 @@ export function reconcile_preferences(
         key
       ] as unknown;
     }
+  }
+
+  if (
+    base.learned_category_senders !== undefined ||
+    current.learned_category_senders !== undefined ||
+    server.learned_category_senders !== undefined
+  ) {
+    reconciled.learned_category_senders = reconcile_learned_senders(
+      base.learned_category_senders,
+      current.learned_category_senders,
+      server.learned_category_senders,
+    );
   }
 
   return reconciled;

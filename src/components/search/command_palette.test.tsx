@@ -123,6 +123,14 @@ vi.mock("@/hooks/mail_events", () => ({
   emit_mail_changed: mocks.emit_mail_changed,
 }));
 
+vi.mock("@/hooks/use_protected_folder", () => ({
+  lock_all_folders: () => 0,
+}));
+
+vi.mock("@/hooks/use_folder_unlock_state", () => ({
+  use_unlocked_folder_count: () => 0,
+}));
+
 let container: HTMLDivElement;
 let root: Root;
 let on_close: ReturnType<typeof vi.fn<() => void>>;

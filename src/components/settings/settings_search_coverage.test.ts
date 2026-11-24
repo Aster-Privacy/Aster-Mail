@@ -46,6 +46,12 @@ const ROW_COMPONENTS = [
 const TITLE_ATTRIBUTES = ["title", "label", "heading"];
 
 const NOT_SETTINGS = new Set([
+  "settings.ext_v2_two_way_title",
+  "settings.ext_v2_two_way_label",
+  "settings.ext_v2_cleanup_title",
+  "settings.ext_v2_cleanup_label",
+  "settings.ext_v2_cleanup_review_title",
+  "settings.ext_v2_forwarding_title",
   "common.more",
   "common.remove",
   "common.resend",
@@ -64,6 +70,23 @@ const NOT_SETTINGS = new Set([
   "settings.signature_placement_description",
   "shared_mailboxes.open",
   "shared_mailboxes.delete_confirm_title",
+  "common.something_went_wrong_try_again",
+  "settings.connection_timeout",
+  "settings.import_existing_mail",
+  "settings.label_color",
+  "settings.oauth_folder_picker_load_failed",
+  "settings.same_as_incoming",
+  "settings.use_tls",
+  "common.folders",
+  "settings.account_info",
+  "settings.advanced_settings",
+  "settings.imap_folders",
+  "settings.incoming_mail",
+  "settings.label",
+  "settings.outgoing_mail_smtp",
+  "settings.sync_frequency",
+  "settings.sync_settings",
+  "settings.tls_method",
 ]);
 
 const DIRECT_KEY = /^\{\s*t\(\s*"([^"]+)"\s*(?:,[\s\S]*)?\)\s*\}$/;

@@ -109,6 +109,7 @@ interface EncryptionSettingsFormProps {
     immediate?: boolean,
   ) => void;
   handle_wkd_toggle: () => Promise<void>;
+  wkd_description: string;
   handle_auto_discover_keys_toggle: () => Promise<void>;
   handle_encrypt_emails_toggle: () => Promise<void>;
   handle_require_encryption_toggle: () => Promise<void>;
@@ -132,6 +133,7 @@ export function EncryptionSettingsForm({
   preferences,
   update_preference,
   handle_wkd_toggle,
+  wkd_description,
   handle_auto_discover_keys_toggle,
   handle_encrypt_emails_toggle,
   handle_require_encryption_toggle,
@@ -269,7 +271,7 @@ export function EncryptionSettingsForm({
           title={t("settings.show_encryption_indicators_title")}
         />
         <ToggleSetting
-          description={t("settings.publish_keys_wkd_description")}
+          description={wkd_description}
           enabled={preferences.publish_to_wkd}
           info={{
             title: t("settings.info_wkd_title"),

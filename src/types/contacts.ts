@@ -29,6 +29,7 @@ export interface Contact {
   data_version: number;
   created_at: string;
   updated_at: string;
+  has_photo?: boolean;
 }
 
 export interface SocialLinks {

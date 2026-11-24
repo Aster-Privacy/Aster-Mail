@@ -37,6 +37,7 @@ import {
 } from "@aster/ui";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
+import { SourceNotifySetting } from "./source_notify_setting";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
@@ -50,6 +51,10 @@ import {
 } from "@/services/push_subscription";
 import { show_notification } from "@/services/notification_service";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  center_toast_position,
+  resolve_toast_position,
+} from "@/components/toast/toast_position";
 import { ignore_error } from "@/lib/ignore_error";
 import { detect_platform } from "@/lib/utils";
 import {
@@ -645,17 +650,13 @@ export function NotificationsSection() {
         <SettingControlRow
           control={
             <Select
-              value={preferences.toast_position}
+              value={center_toast_position(
+                resolve_toast_position(preferences.toast_position),
+              )}
               onValueChange={(v) =>
                 update_preference(
                   "toast_position",
-                  v as
-                    | "top"
-                    | "bottom"
-                    | "top-right"
-                    | "bottom-right"
-                    | "top-left"
-                    | "bottom-left",
+                  v === "top" ? "top" : "bottom",
                   true,
                 )
               }
@@ -669,18 +670,6 @@ export function NotificationsSection() {
                 </SelectItem>
                 <SelectItem value="top">
                   {t("settings.toast_position_top")}
-                </SelectItem>
-                <SelectItem value="top-right">
-                  {t("settings.toast_position_top_right")}
-                </SelectItem>
-                <SelectItem value="bottom-right">
-                  {t("settings.toast_position_bottom_right")}
-                </SelectItem>
-                <SelectItem value="top-left">
-                  {t("settings.toast_position_top_left")}
-                </SelectItem>
-                <SelectItem value="bottom-left">
-                  {t("settings.toast_position_bottom_left")}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -787,6 +776,8 @@ export function NotificationsSection() {
       {preferences.inbox_categories_enabled !== false && (
         <MutedCategoriesSetting />
       )}
+
+      <SourceNotifySetting />
 
       <div>
         <UpgradeGate

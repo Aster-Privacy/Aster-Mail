@@ -21,10 +21,19 @@
 import type { ReauthProof } from "./step_up";
 
 import { api_client, ApiResponse } from "./client";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 import { clear_csrf_cache } from "./csrf";
 import { TotpVerifyResponse } from "./totp";
+import {
+  SECURITY_KEY_PROMPT_ERROR,
+  type SecurityKeyErrorKind,
+  classify_security_key_error,
+  describe_security_key_error,
+  security_key_error_message,
+} from "./webauthn_errors";
 
 import { get_active_translations } from "@/lib/i18n/translations";
+import { is_desktop } from "@/native/invoke_bridge";
 import {
   open_passkey_name,
   passkey_name_for_server,
@@ -55,6 +64,7 @@ export interface HardwareKeyRegistrationOptions {
     residentKey: string;
     userVerification: string;
   };
+  excludeCredentials?: AllowedCredential[];
 }
 
 export interface HardwareKeyRegistrationCompleteResponse {
@@ -78,6 +88,7 @@ export interface WebAuthnAssertionOptions {
 }
 
 export const WEBAUTHN_PROMPT_DISMISSED = "webauthn_prompt_dismissed";
+export const WEBAUTHN_PROMPT_FAILED = "webauthn_prompt_failed";
 
 export interface StepUpHardwareKeyAssertion {
   raw_id: string;
@@ -212,7 +223,7 @@ export async function verify_webauthn_assertion(request: {
 }): Promise<ApiResponse<TotpVerifyResponse>> {
   const response = await api_client.post<TotpVerifyResponse>(
     "/core/v1/auth/hardware-keys/assert/verify",
-    request,
+    { ...request, device_label: default_guard_device_name() },
   );
 
   if (response.data) {
@@ -229,11 +240,10 @@ export async function verify_webauthn_assertion(request: {
   return response;
 }
 
-export async function perform_webauthn_registration(
+export function build_registration_public_key(
   options: HardwareKeyRegistrationOptions,
-  friendly_name: string | null,
-): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
-  const public_key: PublicKeyCredentialCreationOptions = {
+): PublicKeyCredentialCreationOptions {
+  return {
     challenge: base64_url_to_array_buffer(options.challenge),
     rp: { name: options.rp.name, id: options.rp.id },
     user: {
@@ -258,7 +268,19 @@ export async function perform_webauthn_registration(
       userVerification: options.authenticatorSelection
         .userVerification as UserVerificationRequirement,
     },
+    excludeCredentials: (options.excludeCredentials ?? []).map((c) => ({
+      type: c.type as PublicKeyCredentialType,
+      id: base64_url_to_array_buffer(c.id),
+    })),
   };
+}
+
+export async function perform_webauthn_registration(
+  options: HardwareKeyRegistrationOptions,
+  friendly_name: string | null,
+): Promise<ApiResponse<HardwareKeyRegistrationCompleteResponse>> {
+  const public_key = build_registration_public_key(options);
+  const started_at = Date.now();
 
   let credential: PublicKeyCredential | null;
 
@@ -267,26 +289,23 @@ export async function perform_webauthn_registration(
       publicKey: public_key,
     })) as PublicKeyCredential | null;
   } catch (err) {
-    if (
-      err instanceof Error &&
-      (err.name === "NotAllowedError" || err.name === "AbortError")
-    ) {
-      return {
-        data: undefined,
-        error: get_active_translations().errors.registration_cancelled,
-      };
-    }
-
     return {
       data: undefined,
-      error: get_active_translations().errors.registration_failed,
+      error: describe_security_key_error(
+        err,
+        "register",
+        Date.now() - started_at,
+        options.timeout,
+      ),
+      server_code: SECURITY_KEY_PROMPT_ERROR,
     };
   }
 
   if (!credential) {
     return {
       data: undefined,
-      error: get_active_translations().errors.registration_cancelled,
+      error: security_key_error_message("canceled"),
+      server_code: SECURITY_KEY_PROMPT_ERROR,
     };
   }
 
@@ -316,53 +335,96 @@ export async function perform_webauthn_registration(
   });
 }
 
+const SIGN_IN_TRANSPORTS: AuthenticatorTransport[] = [
+  "internal",
+  "hybrid",
+  "usb",
+  "nfc",
+  "ble",
+];
+
+export function build_sign_in_request_options(
+  options: WebAuthnAssertionOptions,
+  discoverable = false,
+): PublicKeyCredentialRequestOptions {
+  return {
+    challenge: base64_url_to_array_buffer(options.challenge),
+    rpId: options.rpId,
+    allowCredentials: discoverable
+      ? []
+      : options.allowCredentials.map((c) => ({
+          type: c.type as PublicKeyCredentialType,
+          id: base64_url_to_array_buffer(c.id),
+          transports: [...SIGN_IN_TRANSPORTS],
+        })),
+    timeout: options.timeout,
+    userVerification: options.userVerification as UserVerificationRequirement,
+    ...(discoverable ? ({ hints: ["client-device"] } as object) : {}),
+  };
+}
+
+function sign_in_prompt_failure(
+  kind: SecurityKeyErrorKind,
+): ApiResponse<TotpVerifyResponse> {
+  const errors = get_active_translations().errors;
+
+  switch (kind) {
+    case "canceled":
+    case "not_recognized":
+      return {
+        data: undefined,
+        error: errors.passkey_sign_in_not_found,
+        server_code: WEBAUTHN_PROMPT_DISMISSED,
+      };
+    case "timed_out":
+      return {
+        data: undefined,
+        error: errors.passkey_sign_in_timed_out,
+        server_code: WEBAUTHN_PROMPT_DISMISSED,
+      };
+    case "not_supported":
+      return {
+        data: undefined,
+        error: errors.passkey_sign_in_not_supported,
+        server_code: WEBAUTHN_PROMPT_FAILED,
+      };
+    default:
+      return {
+        data: undefined,
+        error: errors.authentication_failed_webauthn,
+        server_code: WEBAUTHN_PROMPT_FAILED,
+      };
+  }
+}
+
 export async function perform_webauthn_assertion(
   options: WebAuthnAssertionOptions,
   pending_login_token: string,
   remember_me?: boolean,
+  discoverable = false,
 ): Promise<ApiResponse<TotpVerifyResponse>> {
-  const public_key: PublicKeyCredentialRequestOptions = {
-    challenge: base64_url_to_array_buffer(options.challenge),
-    rpId: options.rpId,
-    allowCredentials: options.allowCredentials.map((c) => ({
-      type: c.type as PublicKeyCredentialType,
-      id: base64_url_to_array_buffer(c.id),
-    })),
-    timeout: options.timeout,
-    userVerification: options.userVerification as UserVerificationRequirement,
-  };
+  const public_key = build_sign_in_request_options(options, discoverable);
+  const started_at = Date.now();
 
   let credential: PublicKeyCredential | null;
 
   try {
     credential = (await navigator.credentials.get({
       publicKey: public_key,
-      mediation: "required" as CredentialMediationRequirement,
     })) as PublicKeyCredential | null;
   } catch (err) {
-    if (
-      err instanceof Error &&
-      (err.name === "NotAllowedError" || err.name === "AbortError")
-    ) {
-      return {
-        data: undefined,
-        error: get_active_translations().errors.authentication_cancelled,
-        server_code: WEBAUTHN_PROMPT_DISMISSED,
-      };
-    }
-
-    return {
-      data: undefined,
-      error: get_active_translations().errors.authentication_failed_webauthn,
-    };
+    return sign_in_prompt_failure(
+      classify_security_key_error(
+        err,
+        "verify",
+        Date.now() - started_at,
+        options.timeout,
+      ),
+    );
   }
 
   if (!credential) {
-    return {
-      data: undefined,
-      error: get_active_translations().errors.authentication_cancelled,
-      server_code: WEBAUTHN_PROMPT_DISMISSED,
-    };
+    return sign_in_prompt_failure("not_recognized");
   }
 
   const assertion_response =
@@ -419,15 +481,18 @@ export async function step_up_key_assertion_if_enrolled(
     throw new Error(keys.error || get_active_translations().errors.load_failed);
   }
 
-  return keys.data.keys.length > 0
-    ? perform_step_up_webauthn_assertion()
-    : undefined;
+  if (keys.data.keys.length === 0) return undefined;
+  if (is_desktop()) {
+    throw new Error(get_active_translations().common.step_up_key_needs_browser);
+  }
+
+  return perform_step_up_webauthn_assertion();
 }
 
 export async function perform_webauthn_assertion_with_options(
   options: WebAuthnAssertionOptions,
 ): Promise<StepUpHardwareKeyAssertion> {
-  const public_key: PublicKeyCredentialRequestOptions = {
+  return request_assertion(options, {
     challenge: base64_url_to_array_buffer(options.challenge),
     rpId: options.rpId,
     allowCredentials: options.allowCredentials.map((c) => ({
@@ -436,7 +501,33 @@ export async function perform_webauthn_assertion_with_options(
     })),
     timeout: options.timeout,
     userVerification: options.userVerification as UserVerificationRequirement,
+  });
+}
+
+function passkey_request_options(
+  options: WebAuthnAssertionOptions,
+): PublicKeyCredentialRequestOptions {
+  return {
+    challenge: base64_url_to_array_buffer(options.challenge),
+    rpId: options.rpId,
+    allowCredentials: [],
+    timeout: options.timeout,
+    userVerification: "required",
+    ...({ hints: ["client-device"] } as object),
   };
+}
+
+export async function perform_passkey_assertion_with_options(
+  options: WebAuthnAssertionOptions,
+): Promise<StepUpHardwareKeyAssertion> {
+  return request_assertion(options, passkey_request_options(options));
+}
+
+async function request_assertion(
+  options: WebAuthnAssertionOptions,
+  public_key: PublicKeyCredentialRequestOptions,
+): Promise<StepUpHardwareKeyAssertion> {
+  const started_at = Date.now();
 
   let credential: PublicKeyCredential | null;
 
@@ -446,22 +537,18 @@ export async function perform_webauthn_assertion_with_options(
       mediation: "required" as CredentialMediationRequirement,
     })) as PublicKeyCredential | null;
   } catch (err) {
-    if (
-      err instanceof Error &&
-      (err.name === "NotAllowedError" || err.name === "AbortError")
-    ) {
-      throw new Error(
-        get_active_translations().errors.authentication_cancelled,
-      );
-    }
-
     throw new Error(
-      get_active_translations().errors.authentication_failed_webauthn,
+      describe_security_key_error(
+        err,
+        "verify",
+        Date.now() - started_at,
+        options.timeout,
+      ),
     );
   }
 
   if (!credential) {
-    throw new Error(get_active_translations().errors.authentication_cancelled);
+    throw new Error(security_key_error_message("not_recognized"));
   }
 
   const assertion_response =

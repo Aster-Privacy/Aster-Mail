@@ -36,6 +36,23 @@ vi.mock("@/contexts/preferences_context", () => ({
   }),
 }));
 
+vi.mock("@/hooks/use_folders", () => ({
+  use_folders: () => ({
+    state: {
+      folders: [
+        { folder_token: "bills-token", name: "Tax Bills", is_system: false },
+        { folder_token: "quoted-token", name: 'My "Odd" Folder' },
+      ],
+    },
+  }),
+}));
+
+vi.mock("@/hooks/use_tags", () => ({
+  use_tags: () => ({
+    state: { tags: [{ tag_token: "receipts-token", name: "Receipts" }] },
+  }),
+}));
+
 vi.mock("@/components/search/advanced_filter_modal", () => ({
   AdvancedFilterModal: () => null,
 }));

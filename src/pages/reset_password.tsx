@@ -52,6 +52,7 @@ import {
 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
+import { backup_key_fingerprints_of } from "@/services/crypto/recovery_backup_coverage";
 import {
   get_reset_hardware_key_options,
   get_reset_second_factor_status,
@@ -692,6 +693,9 @@ export default function ResetPasswordPage() {
 
       clear_recovery_key(new_recovery_key);
 
+      const backup_key_fingerprints =
+        await backup_key_fingerprints_of(next_vault);
+
       set_processing_status(t("auth.resetting_password"));
       const { response } = await vault_write.write((sealed, kdf_field) =>
         reset_password_with_token(
@@ -714,6 +718,7 @@ export default function ResetPasswordPage() {
           old_vault !== null,
           password_hash_v2,
           kdf_field.vault_kdf_iterations,
+          backup_key_fingerprints,
         ),
       );
 

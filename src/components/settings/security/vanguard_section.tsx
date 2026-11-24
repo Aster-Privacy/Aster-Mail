@@ -58,6 +58,7 @@ import {
   get_vanguard_status,
 } from "@/services/api/vanguard";
 import { enable_lockdown, disable_lockdown } from "@/services/api/lockdown";
+import { peek_totp_required } from "@/services/api/step_up_cache";
 import { fetch_step_up_requirements } from "@/services/api/step_up";
 import { ignore_error } from "@/lib/ignore_error";
 import { derive_current_account_proof } from "@/services/crypto/login_proof";
@@ -79,7 +80,9 @@ function LockdownSection({ account_id }: { account_id: string }) {
   const [show_disable_modal, set_show_disable_modal] = useState(false);
   const [password, set_password] = useState("");
   const [totp_code, set_totp_code] = useState("");
-  const [totp_required, set_totp_required] = useState(false);
+  const [totp_required, set_totp_required] = useState(
+    () => peek_totp_required() === true,
+  );
   const [totp_loading, set_totp_loading] = useState(false);
   const [creds_error, set_creds_error] = useState<string | null>(null);
   const [disabling, set_disabling] = useState(false);
@@ -119,6 +122,7 @@ function LockdownSection({ account_id }: { account_id: string }) {
         })
         .finally(() => set_enabling(false));
     } else {
+      set_totp_required(peek_totp_required() === true);
       set_totp_loading(true);
       fetch_step_up_requirements()
         .then((requirements) => set_totp_required(requirements.totp_required))

@@ -23,6 +23,22 @@ import { describe, it, expect } from "vitest";
 import { classify_link_error } from "./link_device_error";
 
 describe("classify_link_error", () => {
+  it("names the Aster Guard reason before the generic code", () => {
+    expect(
+      classify_link_error({
+        error: "Confirm your identity to continue.",
+        code: "FORBIDDEN",
+        server_code: "STEP_UP_REQUIRED",
+      }),
+    ).toEqual({ key: "guard.link_device_step_up_failed", restart: false });
+    expect(
+      classify_link_error({ code: "NOT_FOUND", server_code: "GUARD_DEVICE_UNKNOWN" }),
+    ).toEqual({ key: "guard.link_device_needs_approver", restart: false });
+    expect(
+      classify_link_error({ server_code: "GUARD_TOO_MANY_REQUESTS" }),
+    ).toEqual({ key: "auth.link_device_rate_limited", restart: false });
+  });
+
   it("classifies a rate limit by code when the message is localized", () => {
     const result = classify_link_error({
       error: "Trop de tentatives. Réessayez dans une minute.",

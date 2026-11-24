@@ -250,9 +250,9 @@ async function ensure_seeded(vault: EncryptedVault): Promise<boolean> {
     return false;
   }
 
-  await calendar_sync_engine.pull_delta();
+  const pulled = await calendar_sync_engine.pull_delta();
 
-  if (calendar_sync_engine.calendar_count() > 0) {
+  if (!pulled || calendar_sync_engine.calendar_count() > 0) {
     return false;
   }
 

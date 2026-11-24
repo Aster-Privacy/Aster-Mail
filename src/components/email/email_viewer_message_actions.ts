@@ -22,6 +22,7 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ReplyData } from "@/components/email/email_viewer_types";
 import type { EmailViewerActionsDeps } from "./email_viewer_actions";
 
+import { quotable_source } from "@/lib/html_text";
 import { useCallback } from "react";
 
 import { is_system_email } from "@/lib/utils";
@@ -96,7 +97,7 @@ export function use_message_actions(
         sender_email: msg.sender_email,
         sender_avatar: "",
         email_subject: msg.subject,
-        email_body: msg.body,
+        email_body: quotable_source(msg),
         email_timestamp: new Date(msg.timestamp).toLocaleString(app_locale(), {
           timeZone: get_display_time_zone(),
         }),

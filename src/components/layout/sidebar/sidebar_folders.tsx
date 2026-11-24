@@ -30,7 +30,11 @@ import {
   useCallback,
   useSyncExternalStore,
 } from "react";
-import { BarsArrowDownIcon, PlusIcon } from "@heroicons/react/24/outline";
+import {
+  BarsArrowDownIcon,
+  LockClosedIcon,
+  PlusIcon,
+} from "@heroicons/react/24/outline";
 import {
   SidebarEmptyText,
   SidebarFolderRowView,
@@ -56,7 +60,15 @@ import {
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
-import { is_folder_unlocked } from "@/hooks/use_protected_folder";
+import {
+  is_folder_unlocked,
+  lock_all_folders,
+  lock_folder_by_id,
+} from "@/hooks/use_protected_folder";
+import {
+  use_folder_unlock_version,
+  use_unlocked_folder_count,
+} from "@/hooks/use_folder_unlock_state";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -174,15 +186,18 @@ export const SidebarFolders = memo(function SidebarFolders({
     return () => window.removeEventListener("dragend", handle_drag_end);
   }, []);
 
-  const [, set_lock_version] = useState(0);
-
-  useEffect(() => {
-    const handler = () => set_lock_version((v) => v + 1);
-
-    window.addEventListener("astermail:folder-locked", handler);
-
-    return () => window.removeEventListener("astermail:folder-locked", handler);
-  }, []);
+  use_folder_unlock_version();
+  const unlocked_folder_count = use_unlocked_folder_count();
+  const handle_lock_all = () => {
+    if (lock_all_folders() > 0) {
+      show_toast(t("common.folders_locked_notice"), "success");
+    }
+  };
+  const handle_lock_now = (folder_id: string) => {
+    if (lock_folder_by_id(folder_id)) {
+      show_toast(t("common.folder_locked_notice"), "success");
+    }
+  };
 
   const { preferences } = use_preferences();
   const muted_folder_tokens = useMemo(
@@ -274,6 +289,18 @@ export const SidebarFolders = memo(function SidebarFolders({
                   <BarsArrowDownIcon aria-hidden="true" className="w-4 h-4" />
                 </button>
               )}
+              {unlocked_folder_count > 0 && (
+                <button
+                  aria-label={t("common.lock_all_folders")}
+                  className="p-1 rounded-[var(--aster-radius-item)] hover:bg-[var(--aster-hover)] text-icon-muted"
+                  data-rail-tip={t("common.lock_all_folders")}
+                  data-testid="folders-lock-all"
+                  type="button"
+                  onClick={handle_lock_all}
+                >
+                  <LockClosedIcon aria-hidden="true" className="w-4 h-4" />
+                </button>
+              )}
               <SidebarSectionAddButton
                 rail_tip
                 label={t("common.create_folder")}
@@ -343,10 +370,11 @@ export const SidebarFolders = memo(function SidebarFolders({
               folder.unread_count ??
               0;
             const guides = tree_guides.get(folder.folder_token);
+            const is_session_unlocked =
+              folder.password_set && is_folder_unlocked(folder.id);
             const is_locked_closed =
               folder.is_locked ||
-              (folder.is_password_protected &&
-                (!folder.password_set || !is_folder_unlocked(folder.id)));
+              (folder.is_password_protected && !is_session_unlocked);
 
             return (
               <FolderContextMenu
@@ -359,6 +387,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                 can_sort_a_to_z={can_sort_a_to_z}
                 folder_color={folder_color}
                 folder_token={folder.folder_token}
+                is_unlocked={is_session_unlocked}
                 on_collapse_all={
                   hasChildren && !is_collapsed
                     ? () => set_subtree_expanded(node, false)
@@ -381,6 +410,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                 on_lock={() =>
                   handle_folder_lock(folder_data, folder.password_set)
                 }
+                on_lock_now={() => handle_lock_now(folder.id)}
                 on_move={() => handle_folder_modal(folder_data, "move")}
                 on_move_down={
                   reorder_folders ? () => handle_sibling_reorder(1) : undefined
@@ -395,6 +425,14 @@ export const SidebarFolders = memo(function SidebarFolders({
                     : undefined
                 }
                 on_rename={() => handle_folder_modal(folder_data, "rename")}
+                on_unlock={() =>
+                  set_password_modal_folder({
+                    folder_id: folder.id,
+                    folder_name: folder.name,
+                    folder_token: folder.folder_token,
+                    mode: "unlock",
+                  })
+                }
                 password_set={folder.password_set}
               >
                 <div

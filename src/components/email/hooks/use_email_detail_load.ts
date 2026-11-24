@@ -58,6 +58,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { use_folders } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
+import { use_close_when_folder_locked } from "@/hooks/use_folder_unlock_state";
 import {
   has_protected_folders,
   request_folder_unlock,
@@ -225,6 +226,15 @@ export function use_email_detail_load() {
     useState<DecryptedThreadMessage | null>(null);
   const [tracking_report, set_tracking_report] =
     useState<ExternalContentReport | null>(null);
+
+  use_close_when_folder_locked(mail_item, () => {
+    set_mail_item(null);
+    set_email(null);
+    set_thread_messages([]);
+    set_thread_draft(null);
+    set_error(t("common.email_in_locked_folder"));
+    set_is_loading(false);
+  });
 
   const handle_external_content_detected = useCallback(
     (report: ExternalContentReport) => {
@@ -492,6 +502,8 @@ export function use_email_detail_load() {
     navigate: navigate_from_detail,
     t,
     preferences_default_reply_behavior: preferences.default_reply_behavior,
+    confirm_before_permanent_delete:
+      preferences.confirm_before_permanent_delete,
   });
 
   useEffect(() => {

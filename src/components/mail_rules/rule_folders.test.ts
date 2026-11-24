@@ -28,6 +28,7 @@ import {
   rule_folder_name,
   rule_system_folder_type,
   rule_system_folders,
+  with_created_rule_folder,
 } from "@/components/mail_rules/rule_folders";
 
 const folder = (
@@ -153,5 +154,26 @@ describe("rule_folder_name", () => {
 
   it("returns null for an unknown token", () => {
     expect(rule_folder_name(all_folders, "t_missing", t)).toBeNull();
+  });
+});
+
+describe("with_created_rule_folder", () => {
+  it("returns the same list when nothing was created", () => {
+    expect(with_created_rule_folder(all_folders, null)).toBe(all_folders);
+  });
+
+  it("appends a folder the store has not loaded yet", () => {
+    const created = folder("t_new", "custom", "New");
+    const merged = with_created_rule_folder(all_folders, created);
+
+    expect(merged).toHaveLength(all_folders.length + 1);
+    expect(merged[merged.length - 1]).toBe(created);
+    expect(rule_folder_name(merged, "t_new", (k) => k)).toBe("New");
+  });
+
+  it("does not duplicate a folder the store already has", () => {
+    const created = folder("t_work", "custom", "Work");
+
+    expect(with_created_rule_folder(all_folders, created)).toBe(all_folders);
   });
 });

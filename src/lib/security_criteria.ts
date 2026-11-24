@@ -22,8 +22,10 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { SettingsTarget } from "@/lib/settings_links";
+import type { GuardStatus } from "@/services/api/guard";
 
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
+import { GUARD_SWITCH } from "@/services/api/guard";
 
 export type SecurityCriterionId =
   | "two_factor"
@@ -33,7 +35,10 @@ export type SecurityCriterionId =
   | "login_alerts"
   | "tracking_pixels"
   | "remote_images"
-  | "strip_exif";
+  | "strip_exif"
+  | "guard_enabled";
+
+export type GuardProtectionState = "on" | "held_off" | "off";
 
 export interface SecurityCriterionSource {
   totp_enabled: boolean;
@@ -44,6 +49,27 @@ export interface SecurityCriterionSource {
   block_tracking_pixels: boolean;
   block_remote_images: boolean;
   strip_exif_on_compose: boolean;
+  guard_enabled?: boolean | null;
+}
+
+export function guard_protection_state(
+  status: GuardStatus | null | undefined,
+): GuardProtectionState | null {
+  if (!status) return null;
+  if (!(status.switches & GUARD_SWITCH.new_device_approval)) return "off";
+  const held_off = status.pending_changes.some(
+    (change) => change.kind === "guard_switches_off",
+  );
+
+  return held_off ? "held_off" : "on";
+}
+
+export function guard_criterion_met(
+  state: GuardProtectionState | null | undefined,
+): boolean | null {
+  if (!state) return null;
+
+  return state !== "off";
 }
 
 export type SecondFactorMethod =
@@ -104,6 +130,7 @@ export const SECURITY_CRITERION_TARGETS: Record<
   tracking_pixels: { section: "security", anchor: SETTINGS_ANCHORS.tracking },
   remote_images: { section: "security", anchor: SETTINGS_ANCHORS.images },
   strip_exif: { section: "security", anchor: SETTINGS_ANCHORS.images },
+  guard_enabled: { section: "security", anchor: SETTINGS_ANCHORS.guard },
 };
 
 const CRITERION_LABELS: Record<SecurityCriterionId, TranslationKey> = {
@@ -115,7 +142,16 @@ const CRITERION_LABELS: Record<SecurityCriterionId, TranslationKey> = {
   tracking_pixels: "settings.block_spy_pixels",
   remote_images: "settings.block_remote_images_label",
   strip_exif: "settings.strip_exif_on_compose_label",
+  guard_enabled: "guard.criterion_guard",
 };
+
+export function security_criterion_ids(
+  source: Pick<SecurityCriterionSource, "guard_enabled">,
+): SecurityCriterionId[] {
+  return typeof source.guard_enabled === "boolean"
+    ? [...SECURITY_CRITERION_IDS, "guard_enabled"]
+    : [...SECURITY_CRITERION_IDS];
+}
 
 export function build_security_criteria(
   source: SecurityCriterionSource,
@@ -129,9 +165,10 @@ export function build_security_criteria(
     tracking_pixels: source.block_tracking_pixels,
     remote_images: source.block_remote_images,
     strip_exif: source.strip_exif_on_compose,
+    guard_enabled: source.guard_enabled === true,
   };
 
-  return SECURITY_CRITERION_IDS.map((id) => ({
+  return security_criterion_ids(source).map((id) => ({
     id,
     label_key: CRITERION_LABELS[id],
     met: met[id],

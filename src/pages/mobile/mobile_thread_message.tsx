@@ -48,10 +48,10 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
-  strip_html_tags_bounded,
   type ExternalContentReport,
   type SanitizeResult,
 } from "@/lib/html_sanitizer";
+import { html_to_preview_text } from "@/lib/html_text";
 import {
   extract_preview_html,
   move_leading_footer_to_end,
@@ -278,7 +278,7 @@ function MobileThreadMessageContent({
     ) {
       return t("mail.encrypted_message_unavailable");
     }
-    const plain = strip_html_tags_bounded(extract_preview_html(clean_body), 600)
+    const plain = html_to_preview_text(extract_preview_html(clean_body), 600)
       .replace(/\s+/g, " ")
       .trim();
 

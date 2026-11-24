@@ -73,15 +73,18 @@ const SWEEP_TIMING: KeyframeAnimationOptions = {
   iterations: Infinity,
 };
 const SHINE_KEYFRAMES: Keyframe[] = [
-  { transform: "translateX(-100%)", offset: 0 },
-  { transform: "translateX(260%)", offset: 0.8 },
-  { transform: "translateX(260%)", offset: 1 },
+  { transform: "translateX(-100%)" },
+  { transform: "translateX(400%)" },
 ];
 const SHINE_TIMING: KeyframeAnimationOptions = {
-  duration: 2000,
-  easing: "ease-in-out",
+  duration: 1800,
+  easing: "linear",
   iterations: Infinity,
 };
+
+const FILL_EASE = "420ms cubic-bezier(0.22, 1, 0.36, 1)";
+const FILL_TRANSITION = `width ${FILL_EASE}`;
+const CLIP_TRANSITION = `clip-path ${FILL_EASE}`;
 
 function use_compositor_animation<T extends Element>(
   keyframes: Keyframe[],
@@ -282,23 +285,31 @@ function ProgressBar({
           }`}
         />
       ) : (
-        <div
-          className="relative h-full overflow-hidden rounded-full bg-brand"
-          data-testid="update-progress-fill"
-          style={{
-            width: `${percent}%`,
-            transition: reduce_motion
-              ? undefined
-              : "width 420ms cubic-bezier(0.22, 1, 0.36, 1)",
-          }}
-        >
+        <>
+          <div
+            className="h-full rounded-full bg-brand"
+            data-testid="update-progress-fill"
+            style={{
+              width: `${percent}%`,
+              transition: reduce_motion ? undefined : FILL_TRANSITION,
+            }}
+          />
           {!reduce_motion && (
             <div
-              ref={shine_ref}
-              className="absolute inset-y-0 left-0 w-1/2 -translate-x-full bg-gradient-to-r from-transparent via-white/45 to-transparent"
-            />
+              aria-hidden
+              className="pointer-events-none absolute inset-0 overflow-hidden"
+              style={{
+                clipPath: `inset(0 ${100 - percent}% 0 0 round 9999px)`,
+                transition: CLIP_TRANSITION,
+              }}
+            >
+              <div
+                ref={shine_ref}
+                className="absolute inset-y-0 left-0 w-1/4 -translate-x-full bg-gradient-to-r from-transparent via-white/45 to-transparent"
+              />
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
@@ -431,7 +442,9 @@ export function UpdateCard({
       </div>
 
       <AnimatePresence initial={false}>
-        {(phase === "preparing" || phase === "downloading") && (
+        {(phase === "preparing" ||
+          phase === "downloading" ||
+          phase === "installing") && (
           <motion.div
             key="bar"
             animate={{ opacity: 1, height: "auto" }}

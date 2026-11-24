@@ -20,6 +20,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { GuardProtectionState } from "@/lib/security_criteria";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { get_totp_status } from "@/services/api/totp";
@@ -32,6 +34,8 @@ import { get_vanguard_status } from "@/services/api/vanguard";
 import { get_lockdown_status } from "@/services/api/lockdown";
 import { get_identity_key_status } from "@/services/api/key_rotation";
 import { get_alias_counts } from "@/services/api/aliases";
+import { get_guard_status } from "@/services/api/guard";
+import { guard_protection_state } from "@/lib/security_criteria";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -47,6 +51,7 @@ export interface SecurityOverview {
   vanguard_enabled: boolean;
   lockdown_enabled: boolean;
   key_fingerprint: string | null;
+  guard_state: GuardProtectionState | null;
   is_loaded: boolean;
   has_failed: boolean;
   reload: () => void;
@@ -64,6 +69,7 @@ const EMPTY = {
   vanguard_enabled: false,
   lockdown_enabled: false,
   key_fingerprint: null as string | null,
+  guard_state: null as GuardProtectionState | null,
 };
 
 function settled_value<T>(result: PromiseSettledResult<T>): T | null {
@@ -119,13 +125,15 @@ export function use_security_overview(enabled: boolean): SecurityOverview {
           get_lockdown_status(),
           get_identity_key_status(),
           get_alias_counts(),
+          get_guard_status(),
         ]),
       ]);
 
       if (cancelled || !mounted_ref.current) return;
 
       const [totp, passkeys, alerts, recovery] = core;
-      const [sessions, devices, vanguard, lockdown, identity, aliases] = extras;
+      const [sessions, devices, vanguard, lockdown, identity, aliases, guard] =
+        extras;
       const failed = core.some(
         (result) =>
           result.status === "rejected" ||
@@ -147,6 +155,7 @@ export function use_security_overview(enabled: boolean): SecurityOverview {
         key_fingerprint: settled_value(identity)?.data?.key_fingerprint ?? null,
         alias_count: settled_value(aliases)?.data?.count ?? 0,
         alias_max: settled_value(aliases)?.data?.max ?? 0,
+        guard_state: guard_protection_state(settled_value(guard)?.data ?? null),
       });
       set_has_failed(failed);
       set_is_loaded(true);

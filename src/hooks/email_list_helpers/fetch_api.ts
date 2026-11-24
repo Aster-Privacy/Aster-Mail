@@ -42,7 +42,8 @@ import {
   is_outgoing_view,
 } from "./views";
 
-import { classify, is_locked_to_primary } from "@/services/mail_categorizer";
+import { classify } from "@/services/mail_categorizer";
+import { is_primary_locked_sender } from "@/services/learned_sender_gate";
 import {
   list_mail_items,
   type ListMailItemsParams,
@@ -340,6 +341,11 @@ export async function fetch_mail_from_api(
         )
         .flatMap(({ item, envelope, metadata }) => {
           try {
+            const system_locked = is_primary_locked_sender(
+              envelope!.from?.email || "",
+              { ...item, sender_verification: envelope!.sender_verification },
+            );
+
             return [
               {
                 id: item.id,
@@ -351,10 +357,11 @@ export async function fetch_mail_from_api(
                   trust: item,
                 }),
                 category_pinned:
+                  !system_locked &&
                   metadata?.category_pinned === true &&
-                  !!metadata?.category &&
-                  !is_locked_to_primary(envelope!, item),
+                  !!metadata?.category,
                 is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
+                ...(system_locked ? { system_locked: true } : {}),
               },
             ];
           } catch {

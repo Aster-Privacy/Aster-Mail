@@ -70,6 +70,7 @@ import {
   clear_recovery_key,
 } from "@/services/crypto/recovery_key";
 import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
+import { backup_key_fingerprints_of } from "@/services/crypto/recovery_backup_coverage";
 import { array_to_base64 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import { register_user } from "@/services/api/auth";
@@ -1006,6 +1007,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
       clear_recovery_key(recovery_key);
 
+      const backup_key_fingerprints =
+        await backup_key_fingerprints_of(vault_data);
+
       set_generation_status(t("auth.preparing_pgp_key"));
       await yield_to_ui();
       const pgp_key_data = await prepare_pgp_key_data(
@@ -1037,6 +1041,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         vault_backup_nonce: vault_backup.nonce,
         recovery_key_salt: vault_backup.salt,
         recovery_shares,
+        ...(backup_key_fingerprints.length ? { backup_key_fingerprints } : {}),
         pgp_key: pgp_key_data,
         captcha_token: captcha_token || undefined,
         client_platform: import.meta.env.DEV ? "desktop" : undefined,

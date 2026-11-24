@@ -120,6 +120,7 @@ import { release_app_lock } from "@/services/app_lock_unlock";
 import { delete_category_index_for_account } from "@/services/category_index";
 import { delete_user_device_snapshots } from "@/services/crypto/device_recovery_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { leave_guard_on_sign_out } from "@/services/guard/guard_leave";
 import {
   announce_sign_out,
   watch_sign_out_signal,
@@ -491,6 +492,16 @@ export function use_auth_provider_state() {
         );
       }
 
+      if (current_id) {
+        await with_timeout(leave_guard_on_sign_out(current_id), 3000).catch(
+          (caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+              caught,
+            ),
+        );
+      }
+
       await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
       await with_timeout(
         announce_sign_out([current_id ?? state.user?.id]),
@@ -598,6 +609,18 @@ export function use_auth_provider_state() {
 
       if (uses_account_hub()) {
         await with_timeout(sign_out_hub_accounts("all"), 2500).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+      }
+
+      if (state.current_account_id) {
+        await with_timeout(
+          leave_guard_on_sign_out(state.current_account_id),
+          3000,
+        ).catch((caught) =>
           ignore_error(
             "contexts/auth/use_auth_provider_state:use_auth_provider_state",
             caught,
@@ -748,6 +771,21 @@ export function use_auth_provider_state() {
       );
     };
 
+    const handle_session_ended = async () => {
+      if (api_client.is_intentional_logout()) return;
+
+      session_expired_muted_until.current = Date.now() + 15000;
+      sync_client.disconnect();
+      api_client.clear_auth_data();
+      api_client.set_authenticated(false);
+
+      await sign_out_keeping_other_accounts(
+        "common.session_expired_sign_in",
+        "session_expired",
+        keep_pairing_after_session_expiry(),
+      );
+    };
+
     const handle_session_timeout = async () => {
       sync_client.disconnect();
 
@@ -800,6 +838,8 @@ export function use_auth_provider_state() {
       handle_identity_mismatch_event,
     );
 
+    window.addEventListener("astermail:session-ended", handle_session_ended);
+
     window.addEventListener(
       "astermail:session-timeout",
       handle_session_timeout,
@@ -823,6 +863,10 @@ export function use_auth_provider_state() {
       window.removeEventListener(
         "astermail:identity-mismatch",
         handle_identity_mismatch_event,
+      );
+      window.removeEventListener(
+        "astermail:session-ended",
+        handle_session_ended,
       );
       window.removeEventListener(
         "astermail:session-timeout",

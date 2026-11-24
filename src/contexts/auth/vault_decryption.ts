@@ -112,7 +112,7 @@ import {
   run_storage_key_maintenance,
 } from "@/services/crypto/storage_rotation/background";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
-import { reseal_unbound_recovery_backup } from "@/services/crypto/recovery_backup_refresh";
+import { check_recovery_backup_coverage } from "@/services/crypto/recovery_backup_refresh";
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
 import { sync_all_ratchet_states } from "@/services/crypto/ratchet_sync";
@@ -477,15 +477,20 @@ export async function decrypt_vault_with_lock(
       ignore_error("contexts/auth/vault_decryption:reusable", caught),
     );
 
-    reseal_unbound_recovery_backup(vault, passphrase).catch((caught) =>
-      ignore_error("contexts/auth/vault_decryption:reseal", caught),
-    );
-
     ensure_pgp_key_published().catch((caught) =>
       ignore_error("contexts/auth/vault_decryption:reusable", caught),
     );
 
-    ensure_ratchet_keys()
+    const ratchet_keys_ready = ensure_ratchet_keys();
+
+    ratchet_keys_ready
+      .catch(() => false)
+      .then(() => check_recovery_backup_coverage())
+      .catch((caught) =>
+        ignore_error("contexts/auth/vault_decryption:reseal", caught),
+      );
+
+    ratchet_keys_ready
       .then(async () => {
         await ensure_pq_prekeys_available();
 

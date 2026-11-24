@@ -22,14 +22,11 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ClipboardDocumentIcon,
-  ShieldCheckIcon,
   ExclamationTriangleIcon,
-  ArrowDownTrayIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
-import { trigger_download } from "@/utils/download_blob";
 import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import { spoken_secret } from "@/utils/spoken_secret";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -54,6 +51,7 @@ import {
   type StepUpCredentials,
 } from "@/services/api/step_up";
 import { use_should_reduce_motion } from "@/provider";
+import { BackupCodesPanel } from "@/components/settings/security/backup_codes_panel";
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import mail_logo_url from "@/assets/mail_logo.webp";
@@ -198,22 +196,6 @@ export function TotpSetupModal({
     }
   };
 
-  const copy_single_code = async (code: string) => {
-    if (await copy_text(code)) {
-      show_toast(t("common.copied_to_clipboard"), "success");
-    } else {
-      show_toast(t("common.failed_to_copy"), "error");
-    }
-  };
-
-  const copy_backup_codes = async () => {
-    if (await copy_text(backup_codes.join("\n"))) {
-      show_toast(t("common.copied_to_clipboard"), "success");
-    } else {
-      show_toast(t("common.failed_to_copy"), "error");
-    }
-  };
-
   const handle_done = () => {
     on_success();
     on_close();
@@ -327,10 +309,7 @@ export function TotpSetupModal({
   const render_backup_codes_step = () => (
     <>
       <ModalHeader>
-        <div className="flex items-center gap-3">
-          <ShieldCheckIcon className="w-6 h-6 text-txt-primary flex-shrink-0" />
-          <ModalTitle>{t("settings.two_factor_auth_enabled")}</ModalTitle>
-        </div>
+        <ModalTitle>{t("settings.two_factor_auth_enabled")}</ModalTitle>
         <ModalDescription>
           {t("settings.save_backup_codes_description")}
         </ModalDescription>
@@ -339,57 +318,7 @@ export function TotpSetupModal({
         </ModalDescription>
       </ModalHeader>
       <ModalBody>
-        <div className="space-y-4">
-          <div className="p-4 rounded-lg border bg-surf-tertiary border-edge-secondary">
-            <div className="grid grid-cols-2 gap-2">
-              {backup_codes.map((code, index) => (
-                <button
-                  key={index}
-                  className="px-3 py-2 text-sm font-mono text-center rounded cursor-pointer transition-colors hover:opacity-80 bg-surf-secondary text-txt-primary"
-                  type="button"
-                  onClick={() => copy_single_code(code)}
-                >
-                  {code}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="flex justify-center gap-2">
-            <Button variant="secondary" onClick={copy_backup_codes}>
-              <ClipboardDocumentIcon className="w-4 h-4 me-2" />
-              {t("settings.copy_all_codes")}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                trigger_download(
-                  new Blob([backup_codes.join("\n")], {
-                    type: "application/octet-stream",
-                  }),
-                  "aster-backup-codes.txt",
-                );
-              }}
-            >
-              <ArrowDownTrayIcon className="w-4 h-4 me-2" />
-              {t("common.download")}
-            </Button>
-          </div>
-          <div
-            className="flex items-center gap-2 p-3 rounded-lg"
-            style={{
-              backgroundColor: "var(--accent-color-hover)",
-              color: "var(--accent-fg, #ffffff)",
-            }}
-          >
-            <ExclamationTriangleIcon
-              className="w-5 h-5 flex-shrink-0"
-              style={{ color: "var(--accent-fg, #ffffff)" }}
-            />
-            <p className="text-xs" style={{ color: "#fff" }}>
-              {t("settings.backup_code_security_note")}
-            </p>
-          </div>
-        </div>
+        <BackupCodesPanel backup_codes={backup_codes} />
       </ModalBody>
       <ModalFooter>
         <Button variant="depth" onClick={handle_done}>

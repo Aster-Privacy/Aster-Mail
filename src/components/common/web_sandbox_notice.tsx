@@ -64,7 +64,7 @@ export function WebSandboxNotice() {
 
   return (
     <div
-      className="fixed bottom-4 start-4 z-[9999] max-w-sm rounded-[var(--aster-radius-floating,16px)] p-3"
+      className="fixed inset-x-0 bottom-4 z-[9999] mx-auto w-[calc(100%-2rem)] max-w-sm rounded-[var(--aster-radius-floating,16px)] p-3"
       role="status"
       style={{
         backgroundColor: "var(--aster-floating-bg, var(--bg-primary, #111))",

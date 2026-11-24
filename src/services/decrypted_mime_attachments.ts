@@ -24,6 +24,7 @@ type Listener = (mail_item_id: string) => void;
 
 const MAX_STORED_MESSAGES = 50;
 const MAX_STORED_BYTES = 256 * 1024 * 1024;
+const MAX_EVICTED_IDS = 1000;
 
 const NO_PARTS: MimeAttachmentPart[] = [];
 
@@ -33,6 +34,7 @@ interface StoredParts {
 }
 
 const store = new Map<string, StoredParts>();
+const evicted = new Map<string, string>();
 const listeners = new Set<Listener>();
 
 function stored_bytes(): number {
@@ -60,6 +62,31 @@ export async function decrypted_content_tag(text: string): Promise<string> {
   ).join("");
 }
 
+function remember_evicted(
+  mail_item_id: string,
+  content_tag: string | undefined,
+): void {
+  if (!content_tag) return;
+  evicted.delete(mail_item_id);
+  evicted.set(mail_item_id, content_tag);
+
+  while (evicted.size > MAX_EVICTED_IDS) {
+    const oldest = evicted.keys().next().value;
+
+    if (oldest === undefined) break;
+    evicted.delete(oldest);
+  }
+}
+
+export function were_decrypted_mime_attachments_evicted(
+  mail_item_id: string | undefined,
+  content_tag: string | undefined,
+): boolean {
+  if (!mail_item_id || !content_tag) return false;
+
+  return evicted.get(mail_item_id) === content_tag;
+}
+
 export function set_decrypted_mime_attachments(
   mail_item_id: string,
   parts: MimeAttachmentPart[],
@@ -68,12 +95,14 @@ export function set_decrypted_mime_attachments(
   if (!mail_item_id) return;
 
   if (parts.length === 0) {
+    evicted.delete(mail_item_id);
     if (store.delete(mail_item_id)) notify(mail_item_id);
 
     return;
   }
 
   store.delete(mail_item_id);
+  evicted.delete(mail_item_id);
   store.set(mail_item_id, { content_tag, parts });
 
   while (
@@ -83,6 +112,7 @@ export function set_decrypted_mime_attachments(
     const oldest = store.keys().next().value;
 
     if (oldest === undefined) break;
+    remember_evicted(oldest, store.get(oldest)?.content_tag);
     store.delete(oldest);
   }
 
@@ -122,6 +152,7 @@ export function clear_decrypted_mime_attachments(): void {
   const cleared = Array.from(store.keys());
 
   store.clear();
+  evicted.clear();
   for (const mail_item_id of cleared) notify(mail_item_id);
 }
 

@@ -64,6 +64,23 @@ vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({ preferences: {}, update_preference: vi.fn() }),
 }));
 
+vi.mock("@/hooks/use_folders", () => ({
+  use_folders: () => ({
+    state: {
+      folders: [
+        { folder_token: "bills-token", name: "Tax Bills", is_system: false },
+        { folder_token: "quoted-token", name: 'My "Odd" Folder' },
+      ],
+    },
+  }),
+}));
+
+vi.mock("@/hooks/use_tags", () => ({
+  use_tags: () => ({
+    state: { tags: [{ tag_token: "receipts-token", name: "Receipts" }] },
+  }),
+}));
+
 vi.mock("@/hooks/use_email_actions", () => ({
   use_email_actions: () => ({ toggle_star: vi.fn() }),
 }));
@@ -86,7 +103,7 @@ vi.mock("@/hooks/use_search", () => ({
       index_pending: index_state.index_pending,
       indexed_count: index_state.indexed_count,
     },
-    search: search_mock,
+    search: (query: string) => search_mock(query),
     clear_results: clear_results_mock,
   }),
 }));

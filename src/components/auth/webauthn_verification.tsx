@@ -29,6 +29,7 @@ import {
   perform_webauthn_assertion,
   WebAuthnAssertionOptions,
   WEBAUTHN_PROMPT_DISMISSED,
+  WEBAUTHN_PROMPT_FAILED,
 } from "@/services/api/webauthn";
 
 const OPTIONS_MAX_AGE_MS = 90_000;
@@ -56,6 +57,7 @@ export function WebauthnVerification({
   const options_ref = useRef<WebAuthnAssertionOptions | null>(null);
   const options_at_ref = useRef(0);
   const in_flight_ref = useRef<Promise<string> | null>(null);
+  const discoverable_ref = useRef(false);
 
   const load_options = useCallback(async (): Promise<string> => {
     const response = await initiate_webauthn_assertion(pending_login_token);
@@ -111,6 +113,7 @@ export function WebauthnVerification({
         options,
         pending_login_token,
         remember_me,
+        discoverable_ref.current,
       );
 
       options_ref.current = null;
@@ -123,6 +126,12 @@ export function WebauthnVerification({
       }
 
       set_is_loading(false);
+      if (
+        result.server_code === WEBAUTHN_PROMPT_FAILED ||
+        (!is_auto_start && result.server_code === WEBAUTHN_PROMPT_DISMISSED)
+      ) {
+        discoverable_ref.current = !discoverable_ref.current;
+      }
       if (result.server_code === WEBAUTHN_PROMPT_DISMISSED) {
         set_needs_gesture(true);
         if (!is_auto_start) {

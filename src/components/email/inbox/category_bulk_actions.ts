@@ -23,6 +23,7 @@ import type { BulkScopeAction } from "@/services/api/mail";
 import type { FlagIntents } from "@/services/read_intent";
 
 import { bulk_action_by_scope } from "@/services/api/mail";
+import { with_rate_limit_retry } from "@/services/api/rate_limit_retry";
 import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
 import {
   get_category_action_ids,
@@ -65,6 +66,17 @@ export const CATEGORY_SCOPE_ACTIONS: ReadonlySet<BulkScopeAction> = new Set(
 
 export function supports_category_scope(action: BulkScopeAction): boolean {
   return CATEGORY_SCOPE_ACTIONS.has(action);
+}
+
+export class CategoryBulkPartialError extends Error {
+  readonly completed: number;
+  readonly failed: number;
+
+  constructor(completed: number, failed: number) {
+    super("category bulk action failed");
+    this.completed = completed;
+    this.failed = failed;
+  }
 }
 
 export interface CategoryBulkOptions {
@@ -116,11 +128,13 @@ async function apply_chunk(
   let applied = false;
 
   try {
-    const response = await bulk_action_by_scope({
-      action,
-      scope: {},
-      ids: chunk,
-    });
+    const response = await with_rate_limit_retry(() =>
+      bulk_action_by_scope({
+        action,
+        scope: {},
+        ids: chunk,
+      }),
+    );
 
     if (response.error || !response.data) {
       throw new Error("category bulk action failed");
@@ -158,12 +172,20 @@ export async function run_category_scope_action(
   const total = target_ids.length;
   let completed = 0;
   let finished = true;
+  let failed = 0;
 
   options?.on_progress?.(0, total);
 
   try {
     for (const chunk of chunk_ids(target_ids)) {
-      const chunk_finished = await apply_chunk(action, intent, chunk);
+      let chunk_finished: boolean;
+
+      try {
+        chunk_finished = await apply_chunk(action, intent, chunk);
+      } catch {
+        failed += chunk.length;
+        continue;
+      }
 
       if (!chunk_finished) finished = false;
       apply_to_index(action, chunk);
@@ -176,6 +198,8 @@ export async function run_category_scope_action(
       stale_all_view_caches();
     }
   }
+
+  if (failed > 0) throw new CategoryBulkPartialError(completed, failed);
 
   return finished ? "done" : "continuing";
 }

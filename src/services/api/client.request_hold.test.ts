@@ -138,6 +138,25 @@ describe("api client request hold", () => {
     expect(routed_fetch).not.toHaveBeenCalled();
   });
 
+  it("gives up on a held request when the session check never returns", async () => {
+    vi.useFakeTimers();
+    try {
+      const { verdict, settle } = deferred_verdict();
+
+      api_client.hold_requests_until(verdict);
+      const request = api_client.get(DATA_ENDPOINT, { skip_cache: true });
+
+      await vi.advanceTimersByTimeAsync(20_000);
+
+      expect((await request).code).toBe("TIMEOUT_ERROR");
+      expect(routed_fetch).not.toHaveBeenCalled();
+
+      settle(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("stops holding once the check has settled", async () => {
     await api_client.hold_requests_until(Promise.resolve(true));
 

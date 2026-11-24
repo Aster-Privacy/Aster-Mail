@@ -64,6 +64,7 @@ import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
+import { guard_error_text_or_null } from "@/components/guard/guard_error_text";
 import { PlanBadge } from "@/components/common/plan_badge";
 import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -897,7 +898,8 @@ export function BridgeSection() {
 
       if (result.error) {
         show_toast(
-          result.error || t("common.something_went_wrong_try_again"),
+          guard_error_text_or_null(t, result) ??
+            (result.error || t("common.something_went_wrong_try_again")),
           "error",
         );
 
@@ -921,7 +923,8 @@ export function BridgeSection() {
 
       if (failure) {
         show_toast(
-          failure.error || t("common.something_went_wrong_try_again"),
+          guard_error_text_or_null(t, failure) ??
+            (failure.error || t("common.something_went_wrong_try_again")),
           "error",
         );
       }

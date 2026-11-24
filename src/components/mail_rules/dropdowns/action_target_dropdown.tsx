@@ -19,12 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Action, CategoryValue } from "@/services/api/mail_rules";
+import type { DecryptedFolder } from "@/hooks/use_folders";
 
 import * as React from "react";
 import {
   ArchiveBoxIcon,
   CheckIcon,
   ExclamationTriangleIcon,
+  FolderPlusIcon,
   InboxIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -45,6 +47,7 @@ import { Input } from "@/components/ui/input";
 import {
   rule_custom_folder_options,
   rule_system_folders,
+  with_created_rule_folder,
   type RuleSystemFolderType,
 } from "@/components/mail_rules/rule_folders";
 import { RULE_CATEGORY_OPTIONS } from "@/data/category_catalog";
@@ -67,6 +70,8 @@ interface FolderPickerProps extends BaseProps {
   action_type: "move_to";
   value: string | null;
   on_commit: (action: Extract<Action, { type: "move_to" }>) => void;
+  on_create_folder?: () => void;
+  created_folder?: DecryptedFolder | null;
 }
 
 interface LabelPickerProps extends BaseProps {
@@ -158,8 +163,13 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
   const { state: folders_state, fetch_folders } = use_folders();
   const { state: tags_state, fetch_tags } = use_tags();
 
-  const system_folder_options = rule_system_folders(folders_state.folders);
-  const folder_options = rule_custom_folder_options(folders_state.folders);
+  const picker_folders = with_created_rule_folder(
+    folders_state.folders,
+    props.action_type === "move_to" ? (props.created_folder ?? null) : null,
+  );
+  const system_folder_options = rule_system_folders(picker_folders);
+  const folder_options = rule_custom_folder_options(picker_folders);
+  const create_folder_chosen_ref = React.useRef(false);
   const label_options = React.useMemo(
     () => order_tags_as_tree(tags_state.tags),
     [tags_state.tags],
@@ -205,6 +215,11 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
           alignOffset={align_offset}
           className="z-[200] w-60 max-h-72"
           sideOffset={6}
+          onCloseAutoFocus={(e) => {
+            if (!create_folder_chosen_ref.current) return;
+            create_folder_chosen_ref.current = false;
+            e.preventDefault();
+          }}
         >
           <DropdownMenuItem
             className="justify-between text-[12.5px]"
@@ -281,6 +296,22 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
               )}
             </DropdownMenuItem>
           ))}
+          {props.on_create_folder && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="gap-2 text-[12.5px]"
+                data-testid="rule_create_folder"
+                onSelect={() => {
+                  create_folder_chosen_ref.current = true;
+                  props.on_create_folder?.();
+                }}
+              >
+                <FolderPlusIcon className="w-3.5 h-3.5 flex-shrink-0 text-txt-muted" />
+                <span className="truncate">{t("common.create_folder")}</span>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -469,6 +500,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
         alignOffset={align_offset}
         className="z-[200] w-60 p-1.5"
         sideOffset={6}
+        onEscapeKeyDown={(e) => e.stopPropagation()}
       >
         {props.action_type === "forward" && (
           <ForwardInput on_commit={props.on_commit} value={props.value} />
