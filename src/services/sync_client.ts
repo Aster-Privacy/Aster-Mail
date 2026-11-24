@@ -36,6 +36,10 @@ import {
 } from "@/services/crypto/identity_key_required";
 import { is_onion_host } from "@/lib/onion_host";
 import {
+  get_suspension_state,
+  subscribe_suspension_state,
+} from "@/lib/suspension_state";
+import {
   is_any_lockdown_active,
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
@@ -195,6 +199,7 @@ class SyncClient {
   private last_soft_refresh_at = 0;
   private socket_url: string | null = null;
   private observed_route: string | null | undefined = undefined;
+  private held_for_suspension = false;
 
   private close_socket(): void {
     if (this.socket && this.socket.readyState !== WebSocket.CLOSED) {
@@ -251,6 +256,13 @@ class SyncClient {
       this.should_reconnect = false;
       this.close_socket();
       throw new Error("WebSocket sync is disabled in Lockdown Mode");
+    }
+
+    if (get_suspension_state() === "suspended") {
+      this.hold_for_suspension();
+      throw new Error(
+        "WebSocket sync is disabled while the account is suspended",
+      );
     }
 
     this.should_reconnect = true;
@@ -536,6 +548,11 @@ class SyncClient {
 
   private schedule_reconnect(): void {
     if (this.reconnect_timeout || !this.should_reconnect) return;
+    if (get_suspension_state() === "suspended") {
+      this.hold_for_suspension();
+
+      return;
+    }
 
     const delay = compute_reconnect_delay(
       this.reconnect_attempt,
@@ -867,7 +884,29 @@ class SyncClient {
     return response.success === true;
   }
 
+  private hold_for_suspension(): void {
+    this.disconnect();
+    this.held_for_suspension = true;
+  }
+
+  on_suspension_change(): void {
+    if (get_suspension_state() === "suspended") {
+      if (this.should_reconnect || this.socket) this.hold_for_suspension();
+
+      return;
+    }
+    if (get_suspension_state() !== "active" || !this.held_for_suspension) {
+      return;
+    }
+    this.held_for_suspension = false;
+    if (!api_client.is_authenticated()) return;
+    this.connect().catch((caught) =>
+      ignore_error("services/sync_client:suspension_lifted", caught),
+    );
+  }
+
   disconnect(): void {
+    this.held_for_suspension = false;
     this.should_reconnect = false;
     this.last_auth_error = false;
     this.auth_error_count = 0;
@@ -978,6 +1017,7 @@ set_sync_live_probe(() => sync_client.is_connected());
 if (typeof window !== "undefined") {
   sync_client.on_route_change();
   connection_store.subscribe(() => sync_client.on_route_change());
+  subscribe_suspension_state(() => sync_client.on_suspension_change());
   window.addEventListener("beforeunload", () => {
     sync_client.disconnect();
   });
