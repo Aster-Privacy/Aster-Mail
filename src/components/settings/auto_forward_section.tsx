@@ -511,7 +511,7 @@ export function AutoForwardSection() {
                 disabled={is_deleting}
                 is_loading={is_deleting}
                 size="md"
-                variant="destructive"
+                variant="depth_destructive"
                 onClick={() => set_confirm_bulk_delete(true)}
               >
                 <TrashIcon className="w-4 h-4" />
@@ -723,8 +723,7 @@ export function AutoForwardSection() {
                   <Button
                     disabled={is_deleting}
                     size="sm"
-                    style={{ color: "var(--color-danger)" }}
-                    variant="secondary"
+                    variant="depth_destructive"
                     onClick={() => set_confirm_delete_rule(rule)}
                   >
                     {t("common.remove")}

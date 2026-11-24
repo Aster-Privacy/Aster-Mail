@@ -334,7 +334,7 @@ export function BlockedSection() {
               disabled={is_unblocking}
               is_loading={is_unblocking}
               size="md"
-              variant="destructive"
+              variant="depth_destructive"
               onClick={handle_bulk_unblock}
             >
               <TrashIcon className="w-4 h-4" />
@@ -532,8 +532,7 @@ export function BlockedSection() {
                 </span>
                 <Button
                   size="sm"
-                  style={{ color: "var(--color-danger)" }}
-                  variant="secondary"
+                  variant="depth_destructive"
                   onClick={() => handle_unblock(sender)}
                 >
                   {t("mail.unblock_sender")}

@@ -805,10 +805,9 @@ export function AliasList({
               {t("settings.alias_bulk_disable")}
             </Button>
             <Button
-              className="text-[var(--color-danger)] hover:text-[var(--color-danger)]"
               disabled={selected_ids.size === 0}
               size="sm"
-              variant="outline"
+              variant="depth_destructive"
               onClick={() => set_show_bulk_delete_confirm(true)}
             >
               <TrashIcon className="w-3.5 h-3.5" />

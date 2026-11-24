@@ -347,7 +347,7 @@ export function AllowlistSection() {
               disabled={is_removing}
               is_loading={is_removing}
               size="md"
-              variant="destructive"
+              variant="depth_destructive"
               onClick={handle_bulk_remove}
             >
               <TrashIcon className="w-4 h-4" />
@@ -541,8 +541,7 @@ export function AllowlistSection() {
                 </span>
                 <Button
                   size="sm"
-                  style={{ color: "var(--color-danger)" }}
-                  variant="secondary"
+                  variant="depth_destructive"
                   onClick={() => handle_remove(sender)}
                 >
                   {t("common.remove")}
