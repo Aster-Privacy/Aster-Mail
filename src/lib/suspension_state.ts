@@ -90,7 +90,7 @@ export function is_suspended_path(pathname: string): boolean {
   return pathname === SUSPENDED_PATH || pathname === `${SUSPENDED_PATH}/`;
 }
 
-function subscribe(listener: () => void): () => void {
+export function subscribe_suspension_state(listener: () => void): () => void {
   listeners.add(listener);
 
   return () => {
@@ -99,7 +99,11 @@ function subscribe(listener: () => void): () => void {
 }
 
 export function use_suspension_state(): SuspensionState {
-  return useSyncExternalStore(subscribe, get_suspension_state, () => "unknown");
+  return useSyncExternalStore(
+    subscribe_suspension_state,
+    get_suspension_state,
+    () => "unknown",
+  );
 }
 
 if (typeof window !== "undefined") {
