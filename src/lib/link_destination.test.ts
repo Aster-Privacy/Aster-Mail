@@ -23,6 +23,7 @@ import { describe, expect, it } from "vitest";
 import {
   describe_link,
   is_ip_host,
+  LONG_CHUNK_LENGTH,
   site_in_link_text,
   site_of_host,
 } from "./link_destination";
@@ -86,6 +87,65 @@ describe("describe_link", () => {
 
     expect(link.parts.host).toBe("example.com:8443");
     expect(link.parts.rest).toBe("/a");
+  });
+
+  it("keeps the scheme and host together and breaks the path after separators", () => {
+    const link = describe_link("https://www.forbes.com/sites/a?b=1&c=2");
+    const texts = link.chunks.map((chunk) =>
+      chunk.pieces.map((piece) => piece.text).join(""),
+    );
+
+    expect(texts).toEqual([
+      "https://www.",
+      "forbes.",
+      "com",
+      "/",
+      "sites/",
+      "a?",
+      "b=",
+      "1&",
+      "c=",
+      "2",
+    ]);
+    expect(texts.join("")).toBe(link.href);
+    expect(
+      link.chunks
+        .flatMap((chunk) => chunk.pieces)
+        .filter((piece) => piece.strong)
+        .map((piece) => piece.text)
+        .join(""),
+    ).toBe("www.forbes.com");
+  });
+
+  it("keeps the port with the last host label and repeated slashes together", () => {
+    const link = describe_link("https://example.com:8443//a//b");
+    const texts = link.chunks.map((chunk) =>
+      chunk.pieces.map((piece) => piece.text).join(""),
+    );
+
+    expect(texts).toEqual(["https://example.", "com:8443", "//", "a//", "b"]);
+    expect(link.chunks[1].pieces).toEqual([
+      { text: "com", strong: true },
+      { text: ":8443", strong: false },
+    ]);
+  });
+
+  it("marks only a segment longer than a line as breakable", () => {
+    const token = "a".repeat(LONG_CHUNK_LENGTH + 1);
+    const link = describe_link(`https://example.com/short/${token}`);
+
+    expect(link.chunks.filter((chunk) => chunk.long)).toHaveLength(1);
+    expect(link.chunks.at(-1)?.long).toBe(true);
+    expect(link.chunks.at(-1)?.pieces[0].text).toBe(token);
+  });
+
+  it("keeps markup in an address as plain text", () => {
+    const link = describe_link("javascript:<img src=x onerror=alert(1)>");
+
+    expect(link.kind).toBe("blocked");
+    expect(link.chunks.map((chunk) => chunk.pieces[0].text).join("")).toBe(
+      "javascript:<img src=x onerror=alert(1)>",
+    );
   });
 
   it("flags a plain http link as not encrypted", () => {

@@ -37,6 +37,16 @@ export interface LinkUrlParts {
   rest: string;
 }
 
+export interface LinkUrlPiece {
+  text: string;
+  strong: boolean;
+}
+
+export interface LinkUrlChunk {
+  pieces: LinkUrlPiece[];
+  long: boolean;
+}
+
 export interface LinkDestination {
   kind: LinkKind;
   href: string;
@@ -50,6 +60,7 @@ export interface LinkDestination {
   mail_address: string;
   shown_site: string;
   parts: LinkUrlParts;
+  chunks: LinkUrlChunk[];
   signals: LinkSignal[];
 }
 
@@ -58,6 +69,9 @@ const IPV4_PATTERN = /^\d{1,3}(?:\.\d{1,3}){3}$/;
 const TEXT_URL_PATTERN =
   /^(?:[a-z][a-z0-9+.-]*:\/\/)?(?:www\.)?([^\s/?#@:]+\.[^\s/?#@:]+)(?::\d+)?(?:[/?#]\S*)?$/i;
 const MAX_TEXT_LENGTH = 2048;
+const PATH_BREAK_CHARS = new Set(["/", "?", "&", "=", "#"]);
+const PORT_PATTERN = /:\d+$/;
+export const LONG_CHUNK_LENGTH = 30;
 
 function parse_href(href: string): URL | null {
   const trimmed = href.trim();
@@ -98,6 +112,73 @@ function split_parts(parsed: URL): LinkUrlParts {
     host,
     rest: href.slice(index + host.length),
   };
+}
+
+function make_chunk(pieces: LinkUrlPiece[]): LinkUrlChunk {
+  const kept = pieces.filter((piece) => piece.text.length > 0);
+  const length = kept.reduce((total, piece) => total + piece.text.length, 0);
+
+  return { pieces: kept, long: length > LONG_CHUNK_LENGTH };
+}
+
+function split_path(text: string): string[] {
+  const segments: string[] = [];
+  let current = "";
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+
+    current += char;
+    if (
+      PATH_BREAK_CHARS.has(char) &&
+      !PATH_BREAK_CHARS.has(text[index + 1] ?? "")
+    ) {
+      segments.push(current);
+      current = "";
+    }
+  }
+  if (current) segments.push(current);
+
+  return segments;
+}
+
+function split_host(host: string): string[] {
+  if (host.startsWith("[")) return [host];
+
+  const labels = host.split(".");
+
+  return labels.map((label, index) =>
+    index < labels.length - 1 ? `${label}.` : label,
+  );
+}
+
+export function url_chunks(parts: LinkUrlParts): LinkUrlChunk[] {
+  const port = PORT_PATTERN.exec(parts.host)?.[0] ?? "";
+  const host_name = parts.host.slice(0, parts.host.length - port.length);
+  const chunks: LinkUrlChunk[] = [];
+
+  if (host_name) {
+    const labels = split_host(host_name);
+
+    labels.forEach((label, index) => {
+      const pieces: LinkUrlPiece[] = [];
+
+      if (index === 0) pieces.push({ text: parts.lead, strong: false });
+      pieces.push({ text: label, strong: true });
+      if (index === labels.length - 1) {
+        pieces.push({ text: port, strong: false });
+      }
+      chunks.push(make_chunk(pieces));
+    });
+  } else if (parts.lead) {
+    chunks.push(make_chunk([{ text: parts.lead, strong: false }]));
+  }
+
+  for (const segment of split_path(parts.rest)) {
+    chunks.push(make_chunk([{ text: segment, strong: false }]));
+  }
+
+  return chunks;
 }
 
 export function site_in_link_text(text: string | null | undefined): string {
@@ -152,6 +233,7 @@ function blocked_destination(href: string, scheme: string): LinkDestination {
     mail_address: "",
     shown_site: "",
     parts: { lead: "", host: "", rest: href },
+    chunks: url_chunks({ lead: "", host: "", rest: href }),
     signals: [],
   };
 }
@@ -193,6 +275,7 @@ export function describe_link(
       mail_address: address,
       shown_site: "",
       parts: { lead: "", host: "", rest: parsed.href },
+      chunks: url_chunks({ lead: "", host: "", rest: parsed.href }),
       signals: [],
     };
   }
@@ -207,6 +290,7 @@ export function describe_link(
   const host_unicode = is_ip ? host : domain_unicode(host);
   const site_display = is_ip ? host : domain_for_display(site);
   const signals: LinkSignal[] = [];
+  const parts = split_parts(parsed);
 
   if (!is_ip && host_unicode !== host && host_display !== host_unicode) {
     signals.push("lookalike");
@@ -231,7 +315,8 @@ export function describe_link(
     is_ip,
     mail_address: "",
     shown_site: mismatch ? domain_for_display(shown_site) : "",
-    parts: split_parts(parsed),
+    parts,
+    chunks: url_chunks(parts),
     signals,
   };
 }

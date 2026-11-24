@@ -185,6 +185,7 @@ function activate_link(link: MessageLink, href: string): void {
       detail: {
         url: resolve_link_url(link, href),
         link_text: link.textContent ?? "",
+        trigger: link,
       },
     }),
   );

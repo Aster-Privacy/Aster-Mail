@@ -374,6 +374,7 @@ describe("QuotedHtmlPreview mailto links", () => {
       "mailto:ada@example.com?subject=Hi",
       undefined,
       "Mail",
+      link,
     );
   });
 });

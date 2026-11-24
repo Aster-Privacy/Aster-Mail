@@ -20,7 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { Checkbox } from "@aster/ui";
 
@@ -52,10 +52,12 @@ interface ExternalLinkWarningModalProps {
   on_confirm: () => void;
   on_dismiss_permanently: () => void;
   lockdown_active?: boolean;
+  return_focus_to?: HTMLElement | null;
 }
 
 const ANIMATION_DURATION = 150;
 const COPIED_DURATION = 1600;
+
 export const LONG_ADDRESS_LENGTH = 96;
 
 const SIGNAL_KEYS: Record<LinkSignal, TranslationKey> = {
@@ -66,13 +68,33 @@ const SIGNAL_KEYS: Record<LinkSignal, TranslationKey> = {
 };
 
 const TEXT_ACTION_CLASS =
-  "rounded-[4px] text-[13px] font-medium leading-[18px] text-brand hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-color)]";
+  "inline-flex min-h-6 items-center rounded-[4px] text-[14px] font-medium leading-5 text-txt-primary underline decoration-[var(--text-muted)] underline-offset-[3px] hover:decoration-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-color)]";
 
-const INTERACTIVE_SELECTOR = "button, a, input, select, textarea, label";
+const WARNING_TEXT_CLASS = "text-amber-700 dark:text-[var(--color-warning)]";
 
-function is_interactive_target(target: EventTarget | null): boolean {
+function UrlText({ destination }: { destination: LinkDestination }) {
   return (
-    target instanceof Element && target.closest(INTERACTIVE_SELECTOR) !== null
+    <>
+      {destination.chunks.map((chunk, index) => (
+        <Fragment key={index}>
+          {index > 0 && <wbr />}
+          <span className={chunk.long ? "break-all" : "whitespace-nowrap"}>
+            {chunk.pieces.map((piece, piece_index) =>
+              piece.strong ? (
+                <span
+                  key={piece_index}
+                  className="font-medium text-txt-primary"
+                >
+                  {piece.text}
+                </span>
+              ) : (
+                piece.text
+              ),
+            )}
+          </span>
+        </Fragment>
+      ))}
+    </>
   );
 }
 
@@ -128,6 +150,7 @@ export function ExternalLinkWarningModal({
   on_confirm,
   on_dismiss_permanently,
   lockdown_active = false,
+  return_focus_to = null,
 }: ExternalLinkWarningModalProps) {
   const { t } = use_i18n();
   const [dont_show_again, set_dont_show_again] = useState(false);
@@ -137,7 +160,6 @@ export function ExternalLinkWarningModal({
   const [favicon_failed, set_favicon_failed] = useState(false);
   const closing_ref = useRef(false);
   const copied_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const open_button_ref = useRef<HTMLButtonElement>(null);
   const cancel_button_ref = useRef<HTMLButtonElement>(null);
   const logos_allowed = use_sender_logos_allowed();
   const base_id = useId();
@@ -244,12 +266,13 @@ export function ExternalLinkWarningModal({
     : is_blocked
       ? destination.scheme.replace(/:$/, "")
       : destination.site_display;
-  const show_host =
-    destination.kind === "web" &&
-    destination.host_display !== destination.site_display;
-  const described_by = has_signal
-    ? `${description_id} ${warnings_id}`
-    : description_id;
+  const described_by = [
+    description_id,
+    is_mail ? address_id : url_region_id,
+    has_signal ? warnings_id : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <AlertDialog
@@ -260,47 +283,35 @@ export function ExternalLinkWarningModal({
     >
       <AlertDialogContent
         aria-describedby={described_by}
+        aria-modal="true"
         className="gap-0 p-0 overflow-hidden w-[calc(100%-2rem)] max-w-[420px] motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100"
         data-link-kind={destination.kind}
         on_overlay_click={handle_cancel}
-        onKeyDown={(event) => {
-          if (
-            event.key === "Enter" &&
-            !event.shiftKey &&
-            !event.nativeEvent.isComposing &&
-            !is_interactive_target(event.target) &&
-            can_open &&
-            !has_signal
-          ) {
-            event.preventDefault();
-            handle_confirm();
-          }
+        onCloseAutoFocus={(event) => {
+          if (!return_focus_to?.isConnected) return;
+          event.preventDefault();
+          return_focus_to.focus({ preventScroll: true });
         }}
         onOpenAutoFocus={(event) => {
           event.preventDefault();
-          const target =
-            can_open && !has_signal
-              ? open_button_ref.current
-              : cancel_button_ref.current;
-
-          target?.focus({ preventScroll: true });
+          cancel_button_ref.current?.focus({ preventScroll: true });
         }}
       >
         <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-6 pb-5">
-            <AlertDialogHeader className="space-y-2 text-left">
+            <AlertDialogHeader className="space-y-2 text-start">
               <AlertDialogTitle className="text-[16px] font-semibold">
                 {title}
               </AlertDialogTitle>
               <AlertDialogDescription
-                className="text-[14px] leading-normal"
+                className="text-[14px] leading-5"
                 id={description_id}
               >
                 {body}
               </AlertDialogDescription>
             </AlertDialogHeader>
 
-            <div aria-labelledby={address_id} className="mt-5" role="group">
+            <div className="mt-5">
               <div className="flex items-start gap-2.5">
                 {show_favicon && (
                   <img
@@ -315,61 +326,51 @@ export function ExternalLinkWarningModal({
                     onError={() => set_favicon_failed(true)}
                   />
                 )}
-                <div className="min-w-0 flex-1">
-                  <p
-                    className="truncate text-[15px] font-medium leading-5 text-txt-primary"
-                    data-testid="link_destination_site"
-                    dir="ltr"
-                    id={address_id}
-                    title={hero}
-                    translate="no"
-                  >
-                    {hero}
-                  </p>
-                  {show_host && (
-                    <p
-                      className="truncate text-[13px] leading-[18px] text-txt-muted"
-                      data-testid="link_destination_host"
-                      dir="ltr"
-                      title={destination.host_display}
-                      translate="no"
-                    >
-                      {destination.host_display}
-                    </p>
-                  )}
-                </div>
+                <p
+                  className="min-w-0 flex-1 text-start text-[16px] font-semibold leading-5 text-txt-primary [overflow-wrap:anywhere]"
+                  data-testid="link_destination_site"
+                  id={address_id}
+                  translate="no"
+                >
+                  <span dir="ltr">{hero}</span>
+                </p>
               </div>
 
               {!is_mail && (
-                <>
-                  <p className="sr-only">
-                    {t("common.link_dialog_full_address")}
-                  </p>
-                  <div
-                    className={`mt-2 ${expanded ? "max-h-[32vh] overflow-y-auto overscroll-contain pe-1" : ""}`}
-                    data-expanded={expanded ? "true" : "false"}
-                    data-testid="link_destination_url"
-                    dir="ltr"
+                <div
+                  className="mt-1"
+                  data-expanded={expanded ? "true" : "false"}
+                  data-testid="link_destination_url"
+                >
+                  <p
+                    className={`select-text text-start text-[14px] leading-[22px] text-txt-muted ${expanded ? "" : "line-clamp-2"}`}
                     id={url_region_id}
                     translate="no"
                   >
-                    <p
-                      className={`select-text text-[13px] leading-[18px] text-txt-muted [overflow-wrap:anywhere] ${expanded ? "" : "line-clamp-2"}`}
-                    >
-                      {destination.parts.lead}
-                      {destination.parts.host && (
-                        <span className="text-txt-primary">
-                          {destination.parts.host}
-                        </span>
-                      )}
-                      {destination.parts.rest}
-                    </p>
-                  </div>
-                </>
+                    <span className="sr-only">
+                      {`${t("common.link_dialog_full_address")}: `}
+                    </span>
+                    <span data-testid="link_destination_address" dir="ltr">
+                      <UrlText destination={destination} />
+                    </span>
+                  </p>
+                </div>
               )}
 
               {!is_blocked && (
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
+                  <button
+                    className={TEXT_ACTION_CLASS}
+                    data-copied={copied ? "true" : "false"}
+                    type="button"
+                    onClick={handle_copy}
+                  >
+                    {copied
+                      ? t("common.copied")
+                      : is_mail
+                        ? t("common.copy_address")
+                        : t("common.link_dialog_copy")}
+                  </button>
                   {show_toggle && (
                     <button
                       aria-controls={url_region_id}
@@ -383,28 +384,27 @@ export function ExternalLinkWarningModal({
                         : t("common.link_dialog_show_full")}
                     </button>
                   )}
-                  <button
-                    className={TEXT_ACTION_CLASS}
-                    data-copied={copied ? "true" : "false"}
-                    type="button"
-                    onClick={handle_copy}
-                  >
-                    <span aria-live="polite">
-                      {copied
-                        ? t("common.copied")
-                        : is_mail
-                          ? t("common.copy_address")
-                          : t("common.link_dialog_copy")}
-                    </span>
-                  </button>
                 </div>
               )}
+              <p
+                aria-atomic="true"
+                aria-live="polite"
+                className="sr-only"
+                data-testid="link_copy_status"
+                role="status"
+              >
+                {copied
+                  ? is_mail
+                    ? t("common.address_copied_to_clipboard")
+                    : t("common.link_copied")
+                  : ""}
+              </p>
             </div>
 
             {has_signal && (
               <ul
                 aria-label={t("common.link_dialog_warnings_label")}
-                className="mt-4 flex flex-col gap-2"
+                className="mt-5 flex flex-col gap-2"
                 data-testid="link_warnings"
                 id={warnings_id}
               >
@@ -418,12 +418,12 @@ export function ExternalLinkWarningModal({
                   return (
                     <li
                       key={signal}
-                      className="flex items-start gap-2 text-[13px] leading-[18px] text-[var(--color-warning)]"
+                      className={`flex items-start gap-2 text-[14px] leading-5 ${WARNING_TEXT_CLASS}`}
                       data-signal={signal}
                     >
                       <ExclamationTriangleIcon
                         aria-hidden="true"
-                        className="mt-px h-4 w-4 shrink-0"
+                        className="mt-0.5 h-4 w-4 shrink-0"
                       />
                       <span className="min-w-0">
                         <RichText
@@ -439,7 +439,7 @@ export function ExternalLinkWarningModal({
 
             {can_open && (
               <label
-                className="inline-flex items-center gap-2 cursor-pointer select-none mt-5"
+                className="mt-5 flex min-h-6 w-fit cursor-pointer select-none items-center gap-2"
                 htmlFor="external-link-dont-show-checkbox"
               >
                 <Checkbox
@@ -449,10 +449,7 @@ export function ExternalLinkWarningModal({
                     set_dont_show_again(checked === true)
                   }
                 />
-                <span
-                  className="text-[13px]"
-                  style={{ color: "var(--text-muted)" }}
-                >
+                <span className="text-[14px] leading-5 text-txt-muted">
                   {t("common.dont_show_warning_again")}
                 </span>
               </label>
@@ -471,7 +468,6 @@ export function ExternalLinkWarningModal({
             </Button>
             {can_open && (
               <Button
-                ref={open_button_ref}
                 className="whitespace-nowrap max-sm:flex-1"
                 data-action="open"
                 variant="primary"

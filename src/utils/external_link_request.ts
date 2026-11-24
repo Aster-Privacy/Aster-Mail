@@ -24,6 +24,7 @@ export interface ExternalLinkRequestDetail {
   url: string;
   on_result?: (opened: boolean) => void;
   link_text?: string | null;
+  trigger?: HTMLElement | null;
 }
 
 export function request_external_link(

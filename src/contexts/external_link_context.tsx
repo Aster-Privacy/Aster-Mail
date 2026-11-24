@@ -48,6 +48,7 @@ interface ExternalLinkContextType {
     url: string,
     on_result?: (opened: boolean) => void,
     link_text?: string | null,
+    trigger?: HTMLElement | null,
   ) => void;
 }
 
@@ -64,6 +65,9 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   const [is_modal_open, set_is_modal_open] = useState(false);
   const [pending_url, set_pending_url] = useState<string>("");
   const [pending_text, set_pending_text] = useState<string>("");
+  const [pending_trigger, set_pending_trigger] = useState<HTMLElement | null>(
+    null,
+  );
   const pending_result_ref = useRef<((opened: boolean) => void) | null>(null);
   const [lockdown_active, set_lockdown_active] = useState(() =>
     is_any_lockdown_active(),
@@ -122,6 +126,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
       url: string,
       on_result?: (opened: boolean) => void,
       link_text?: string | null,
+      trigger?: HTMLElement | null,
     ) => {
       const currently_locked = lockdown_active || is_any_lockdown_active();
       const is_blocked = describe_link(url).kind === "blocked";
@@ -141,6 +146,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
       pending_result_ref.current = on_result ?? null;
       set_pending_url(url);
       set_pending_text(link_text ?? "");
+      set_pending_trigger(trigger ?? null);
       set_is_modal_open(true);
     },
     [
@@ -189,6 +195,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
           url,
           custom_event.detail?.on_result,
           custom_event.detail?.link_text,
+          custom_event.detail?.trigger,
         );
       }
     };
@@ -215,6 +222,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
         on_close={handle_cancel}
         on_confirm={handle_confirm}
         on_dismiss_permanently={handle_dismiss_permanently}
+        return_focus_to={pending_trigger}
         url={pending_url}
       />
     </ExternalLinkContext.Provider>

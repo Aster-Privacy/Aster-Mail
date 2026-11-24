@@ -72,6 +72,7 @@ interface RenderOptions {
   url?: string;
   link_text?: string;
   lockdown_active?: boolean;
+  return_focus_to?: HTMLElement | null;
 }
 
 let root: Root | null = null;
@@ -90,10 +91,11 @@ function render(options: RenderOptions = {}) {
         is_open
         link_text={options.link_text}
         lockdown_active={options.lockdown_active}
-        url={options.url ?? "https://www.forbes.com/sites/story"}
         on_close={on_close}
         on_confirm={on_confirm}
         on_dismiss_permanently={on_dismiss_permanently}
+        return_focus_to={options.return_focus_to}
+        url={options.url ?? "https://www.forbes.com/sites/story"}
       />,
     );
   });
@@ -112,6 +114,17 @@ function click(el: Element | null) {
   act(() => {
     (el as HTMLElement).click();
   });
+}
+
+function url_text(): string {
+  const paragraph = q('[data-testid="link_destination_url"] p');
+
+  if (!paragraph) return "";
+  const copy = paragraph.cloneNode(true) as HTMLElement;
+
+  copy.querySelectorAll(".sr-only").forEach((el) => el.remove());
+
+  return copy.textContent ?? "";
 }
 
 function signals(): string[] {
@@ -142,34 +155,129 @@ afterEach(() => {
 });
 
 describe("ExternalLinkWarningModal", () => {
-  it("shows the registrable domain as the destination and the host under it", () => {
+  it("shows the registrable domain once and the full address once", () => {
     render({ url: "https://www.forbes.com/sites/story" });
+
+    const dialog = q('[role="alertdialog"]')!;
 
     expect(q('[data-testid="link_destination_site"]')?.textContent).toBe(
       "forbes.com",
     );
-    expect(q('[data-testid="link_destination_host"]')?.textContent).toBe(
-      "www.forbes.com",
-    );
-    expect(q('[data-testid="link_destination_url"]')?.textContent).toBe(
-      "https://www.forbes.com/sites/story",
-    );
-    expect(q('[role="alertdialog"]')?.textContent).toContain(
-      "common.link_dialog_title",
-    );
+    expect(q('[data-testid="link_destination_host"]')).toBeNull();
+    expect(url_text()).toBe("https://www.forbes.com/sites/story");
+    expect(dialog.textContent?.split("forbes.com")).toHaveLength(3);
+    expect(dialog.textContent?.split("https://www.forbes.com")).toHaveLength(2);
+    expect(dialog.textContent).toContain("common.link_dialog_title");
   });
 
-  it("labels the dialog and describes it with the warnings", () => {
+  it("keeps the scheme and host unbroken and breaks the path only after separators", () => {
+    render({ url: "https://www.forbes.com/sites/a?b=1&c=2" });
+
+    const paragraph = q('[data-testid="link_destination_address"]')!;
+    const chunks = Array.from(paragraph.children).filter(
+      (el) => el.tagName !== "WBR",
+    );
+
+    expect(chunks[0].textContent).toBe("https://www.");
+    expect(chunks[0].className).toContain("whitespace-nowrap");
+    expect(paragraph.querySelectorAll("wbr").length).toBe(chunks.length - 1);
+    for (const chunk of chunks.slice(1)) {
+      const text = chunk.textContent ?? "";
+
+      expect(text.slice(0, -1)).not.toMatch(/[/?&=]/);
+    }
+    expect(paragraph.getAttribute("dir")).toBe("ltr");
+    expect(paragraph.parentElement?.className).toContain("text-[14px]");
+    expect(paragraph.parentElement?.className).toContain("text-start");
+  });
+
+  it("lets only a segment longer than a line break anywhere", () => {
+    const token = "x".repeat(64);
+
+    render({ url: `https://example.com/a/${token}` });
+
+    const paragraph = q('[data-testid="link_destination_url"] p')!;
+    const wide = Array.from(paragraph.querySelectorAll(".break-all"));
+
+    expect(wide).toHaveLength(1);
+    expect(wide[0].textContent).toBe(token);
+  });
+
+  it("labels the dialog and describes it with the body, the address and the warnings", () => {
     render({ url: "http://example.com/" });
 
     const dialog = q('[role="alertdialog"]')!;
-    const described = dialog.getAttribute("aria-describedby") ?? "";
+    const described = (dialog.getAttribute("aria-describedby") ?? "").split(
+      " ",
+    );
     const warnings = q('[data-testid="link_warnings"]')!;
+    const address = q('[data-testid="link_destination_url"] p')!;
+    const title = document.getElementById(
+      dialog.getAttribute("aria-labelledby") ?? "",
+    );
 
-    expect(dialog.getAttribute("aria-labelledby")).toBeTruthy();
-    expect(described.split(" ")).toContain(warnings.id);
+    expect(dialog.getAttribute("aria-modal")).toBe("true");
+    expect(title?.textContent).toBe("common.link_dialog_title");
+    expect(described).toHaveLength(3);
+    expect(document.getElementById(described[0])?.textContent).toBe(
+      "common.link_dialog_body",
+    );
+    expect(described).toContain(address.id);
+    expect(described).toContain(warnings.id);
     expect(warnings.getAttribute("aria-label")).toBe(
       "common.link_dialog_warnings_label",
+    );
+  });
+
+  it("puts the full address in the accessible text exactly once", () => {
+    render({ url: LONG_URL });
+
+    const dialog = q('[role="alertdialog"]')!;
+
+    expect(dialog.textContent?.split(LONG_URL)).toHaveLength(2);
+    expect(q('[data-testid="link_destination_url"] [title]')).toBeNull();
+    expect(
+      q('[data-testid="link_destination_site"]')?.getAttribute("title"),
+    ).toBeNull();
+  });
+
+  it("shows the punycode form of an internationalized domain beside the readable one", () => {
+    render({ url: "https://www.münchen.de/rathaus" });
+
+    expect(q('[data-testid="link_destination_site"]')?.textContent).toBe(
+      "münchen.de",
+    );
+    expect(url_text()).toBe("https://www.xn--mnchen-3ya.de/rathaus");
+  });
+
+  it("shows only the punycode form of a lookalike domain", () => {
+    render({ url: "https://аpple.com/login" });
+
+    expect(q('[data-testid="link_destination_site"]')?.textContent).toBe(
+      "xn--pple-43d.com",
+    );
+    expect(url_text()).toBe("https://xn--pple-43d.com/login");
+    expect(signals()).toContain("lookalike");
+  });
+
+  it("renders markup in an address and in link text as plain text", () => {
+    const html = 'javascript:"><img src=x onerror=alert(1)><b>x</b>';
+
+    render({ url: html });
+    expect(q('[role="alertdialog"] img')).toBeNull();
+    expect(q('[role="alertdialog"] b')).toBeNull();
+    expect(url_text()).toBe(html);
+    act(() => root?.unmount());
+    container?.remove();
+
+    render({
+      url: "https://evil.example/?q=<script>alert(1)</script>",
+      link_text: "<img src=x onerror=alert(1)>paypal.com",
+    });
+    expect(q('[role="alertdialog"] script')).toBeNull();
+    expect(q('[role="alertdialog"] img')).toBeNull();
+    expect(url_text()).toBe(
+      "https://evil.example/?q=%3Cscript%3Ealert(1)%3C/script%3E",
     );
   });
 
@@ -209,7 +317,9 @@ describe("ExternalLinkWarningModal", () => {
 
     expect(region.getAttribute("data-expanded")).toBe("false");
     expect(region.querySelector("p")?.className).toContain("line-clamp-2");
-    expect(toggle.getAttribute("aria-controls")).toBe(region.id);
+    expect(toggle.getAttribute("aria-controls")).toBe(
+      region.querySelector("p")?.id,
+    );
     expect(toggle.textContent).toBe("common.link_dialog_show_full");
 
     click(toggle);
@@ -217,7 +327,7 @@ describe("ExternalLinkWarningModal", () => {
     expect(region.querySelector("p")?.className).not.toContain("line-clamp-2");
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(toggle.textContent).toBe("common.show_less");
-    expect(region.textContent).toBe(LONG_URL);
+    expect(url_text()).toBe(LONG_URL);
 
     click(toggle);
     expect(region.getAttribute("data-expanded")).toBe("false");
@@ -238,14 +348,48 @@ describe("ExternalLinkWarningModal", () => {
       copy.click();
     });
 
+    const status = q('[data-testid="link_copy_status"]')!;
+
     expect(h.copy_text).toHaveBeenCalledWith(LONG_URL);
     expect(copy.getAttribute("data-copied")).toBe("true");
     expect(copy.textContent).toBe("common.copied");
+    expect(status.getAttribute("aria-live")).toBe("polite");
+    expect(status.getAttribute("role")).toBe("status");
+    expect(status.textContent).toBe("common.link_copied");
 
     act(() => {
       vi.advanceTimersByTime(2000);
     });
     expect(copy.getAttribute("data-copied")).toBe("false");
+    expect(status.textContent).toBe("");
+  });
+
+  it("announces a copied email address", async () => {
+    render({ url: "mailto:ada@example.com" });
+
+    await act(async () => {
+      q<HTMLButtonElement>("[data-copied]")!.click();
+    });
+
+    expect(h.copy_text).toHaveBeenCalledWith("ada@example.com");
+    expect(q('[data-testid="link_copy_status"]')?.textContent).toBe(
+      "common.address_copied_to_clipboard",
+    );
+  });
+
+  it("gives every text control and the checkbox label a 24 px target", () => {
+    render({ url: LONG_URL });
+
+    const controls = [
+      q("[data-copied]"),
+      q("[aria-expanded]"),
+      q('label[for="external-link-dont-show-checkbox"]'),
+    ];
+
+    for (const control of controls) {
+      expect(control?.className).toContain("min-h-6");
+    }
+    expect(q("[data-copied]")?.className).toContain("focus-visible:outline");
   });
 
   it("reports a failed copy", async () => {
@@ -260,37 +404,24 @@ describe("ExternalLinkWarningModal", () => {
     expect(q("[data-copied]")?.getAttribute("data-copied")).toBe("false");
   });
 
-  it("focuses Open link when nothing needs attention", () => {
+  it("focuses Cancel first for every kind of link", () => {
+    for (const url of [
+      "https://www.forbes.com/sites/story",
+      "http://example.com/",
+      "mailto:ada@example.com",
+      "javascript:alert(1)",
+    ]) {
+      render({ url });
+      expect(document.activeElement).toBe(button("cancel"));
+      act(() => root?.unmount());
+      container?.remove();
+    }
+    root = null;
+    container = null;
+  });
+
+  it("never opens on a stray Enter outside the buttons", () => {
     render();
-
-    expect(document.activeElement).toBe(button("open"));
-  });
-
-  it("focuses Cancel when a warning is shown", () => {
-    render({ url: "http://example.com/" });
-
-    expect(document.activeElement).toBe(button("cancel"));
-  });
-
-  it("opens with Enter when nothing needs attention", () => {
-    render();
-
-    const region = q('[data-testid="link_destination_url"]')!;
-
-    act(() => {
-      region.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
-      );
-    });
-    act(() => {
-      vi.advanceTimersByTime(200);
-    });
-
-    expect(on_confirm).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not open with a stray Enter when a warning is shown", () => {
-    render({ url: "http://example.com/" });
 
     act(() => {
       q('[data-testid="link_destination_url"]')!.dispatchEvent(
@@ -302,6 +433,28 @@ describe("ExternalLinkWarningModal", () => {
     });
 
     expect(on_confirm).not.toHaveBeenCalled();
+  });
+
+  it("returns focus to the link that opened it", () => {
+    const link = document.createElement("a");
+
+    link.href = "https://www.forbes.com/sites/story";
+    link.textContent = "story";
+    document.body.appendChild(link);
+    render({ return_focus_to: link });
+
+    act(() => {
+      q('[role="alertdialog"]')!.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+    });
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+
+    expect(on_close).toHaveBeenCalledTimes(1);
+    expect(document.activeElement).toBe(link);
+    link.remove();
   });
 
   it("cancels with Escape", () => {

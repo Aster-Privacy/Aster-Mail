@@ -53,24 +53,29 @@ vi.mock("@/components/modals/external_link_warning_modal", () => ({
   ExternalLinkWarningModal: ({
     is_open,
     url,
+    link_text,
+    return_focus_to,
     on_confirm,
     on_close,
   }: {
     is_open: boolean;
     url: string;
+    link_text?: string | null;
+    return_focus_to?: HTMLElement | null;
     on_confirm: () => void;
     on_close: () => void;
   }) =>
     is_open ? (
       <div
         data-link-text={link_text ?? ""}
+        data-return-focus={return_focus_to?.id ?? ""}
         data-testid="link_warning"
         data-url={url}
       >
-        <button type="button" data-action="confirm" onClick={on_confirm}>
+        <button data-action="confirm" type="button" onClick={on_confirm}>
           confirm
         </button>
-        <button type="button" data-action="cancel" onClick={on_close}>
+        <button data-action="cancel" type="button" onClick={on_close}>
           cancel
         </button>
       </div>
@@ -296,6 +301,25 @@ describe("ExternalLinkProvider results", () => {
     });
 
     expect(warning()?.dataset.linkText).toBe("paypal.com");
+  });
+
+  it("passes the link that opened the warning so focus can return to it", () => {
+    const link = document.createElement("a");
+
+    link.id = "message_link";
+    document.body.appendChild(link);
+    render_provider();
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("aster-external-link", {
+          detail: { url: FIRST_URL, trigger: link },
+        }),
+      );
+    });
+
+    expect(warning()?.dataset.returnFocus).toBe("message_link");
+    link.remove();
   });
 
   it("always shows the warning for a blocked link and never opens it", () => {
