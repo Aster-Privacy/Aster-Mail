@@ -10053,11 +10053,13 @@ export const it = {
     no_password: "Nessuna password",
     replying_to: "Risposta a {{name}}",
     reply_sent_successfully: "Risposta inviata con successo",
-    successfully_unsubscribed: "Iscrizione annullata con successo",
-    unsubscribe_failed:
-      "L'annullamento dell'iscrizione non si è completato. Il link nell'email la porterà al sito del mittente per farlo da sola.",
-    unsubscribe_manual_required:
-      "Questo mittente non supporta l'annullamento automatico dell'iscrizione. Il link nell'email le permetterà di farlo da sola.",
+    successfully_unsubscribed: "Iscrizione annullata",
+    unsubscribe_failed: "Impossibile annullare l'iscrizione. Riprova più tardi.",
+    unsubscribe_on_website: "Annulla l'iscrizione a questo mittente sul suo sito web.",
+    unsubscribe_not_confirmed: "Il mittente non ha confermato. Annulla l'iscrizione sul suo sito web.",
+    unsubscribe_use_email_link: "Usa il link per annullare l'iscrizione presente nell'email.",
+    unsubscribe_some_need_website: "Alcuni mittenti richiedono di annullare l'iscrizione sul loro sito web.",
+    open_page: "Apri pagina",
     stop_receiving_from: "Smetti di ricevere email da",
     send_email: "Invia email",
     order_number: "Ordine #{{id}}",

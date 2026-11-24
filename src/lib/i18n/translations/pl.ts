@@ -10238,11 +10238,13 @@ export const pl = {
     no_password: "Brak hasła",
     replying_to: "Odpowiadanie do {{name}}",
     reply_sent_successfully: "Odpowiedź wysłana pomyślnie",
-    successfully_unsubscribed: "Pomyślnie wypisano",
-    unsubscribe_failed:
-      "Rezygnacja z subskrypcji nie została zakończona. Link w wiadomości przeniesie na stronę nadawcy, aby zrobić to samodzielnie.",
-    unsubscribe_manual_required:
-      "Ten nadawca nie obsługuje automatycznej rezygnacji. Link w wiadomości pozwoli zrobić to samodzielnie.",
+    successfully_unsubscribed: "Wypisano",
+    unsubscribe_failed: "Nie udało się wypisać. Spróbuj ponownie później.",
+    unsubscribe_on_website: "Wypisz się od tego nadawcy na jego stronie internetowej.",
+    unsubscribe_not_confirmed: "Nadawca nie potwierdził. Wypisz się na jego stronie internetowej.",
+    unsubscribe_use_email_link: "Użyj linku do wypisania się w wiadomości.",
+    unsubscribe_some_need_website: "U niektórych nadawców musisz wypisać się na ich stronie internetowej.",
+    open_page: "Otwórz stronę",
     stop_receiving_from: "Przestań otrzymywać e-maile od",
     send_email: "Wyślij e-mail",
     order_number: "Zamówienie #{{id}}",

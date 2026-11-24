@@ -9979,11 +9979,13 @@ export const nl = {
     no_password: "Geen wachtwoord",
     replying_to: "Antwoord aan {{name}}",
     reply_sent_successfully: "Antwoord succesvol verzonden",
-    successfully_unsubscribed: "Succesvol uitgeschreven",
-    unsubscribe_failed:
-      "Het uitschrijven is niet voltooid. De link in de e-mail brengt je naar de site van de afzender om dit zelf te doen.",
-    unsubscribe_manual_required:
-      "Deze afzender ondersteunt geen automatisch uitschrijven. De link in de e-mail laat je dit zelf doen.",
+    successfully_unsubscribed: "Uitgeschreven",
+    unsubscribe_failed: "Uitschrijven is niet gelukt. Probeer het later opnieuw.",
+    unsubscribe_on_website: "Schrijf je uit voor deze afzender op hun website.",
+    unsubscribe_not_confirmed: "De afzender heeft het niet bevestigd. Schrijf je uit op hun website.",
+    unsubscribe_use_email_link: "Gebruik de afmeldlink in de e-mail.",
+    unsubscribe_some_need_website: "Bij sommige afzenders moet je je uitschrijven op hun website.",
+    open_page: "Pagina openen",
     stop_receiving_from: "Stop met het ontvangen van e-mails van",
     send_email: "E-mail verzenden",
     order_number: "Bestelling #{{id}}",

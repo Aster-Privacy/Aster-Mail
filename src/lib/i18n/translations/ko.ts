@@ -9582,11 +9582,13 @@ export const ko = {
     no_password: "비밀번호 없음",
     replying_to: "{{name}}에게 답장 중",
     reply_sent_successfully: "답장이 성공적으로 전송되었습니다",
-    successfully_unsubscribed: "구독이 성공적으로 취소되었습니다",
-    unsubscribe_failed:
-      "구독 해지가 완료되지 않았습니다. 이메일의 링크를 누르면 발신자 사이트에서 직접 해지할 수 있습니다.",
-    unsubscribe_manual_required:
-      "이 발신자는 자동 구독 해지를 지원하지 않습니다. 이메일의 링크로 직접 해지할 수 있습니다.",
+    successfully_unsubscribed: "구독 취소됨",
+    unsubscribe_failed: "구독을 취소하지 못했습니다. 나중에 다시 시도하세요.",
+    unsubscribe_on_website: "보낸 사람의 웹사이트에서 구독을 취소하세요.",
+    unsubscribe_not_confirmed: "보낸 사람이 확인하지 않았습니다. 웹사이트에서 구독을 취소하세요.",
+    unsubscribe_use_email_link: "이메일에 있는 구독 취소 링크를 사용하세요.",
+    unsubscribe_some_need_website: "일부 보낸 사람은 웹사이트에서 구독을 취소해야 합니다.",
+    open_page: "페이지 열기",
     open_unsubscribe_page: "구독 취소 페이지 열기",
     stop_receiving_from: "다음으로부터 이메일 수신 중지",
     send_email: "이메일 보내기",

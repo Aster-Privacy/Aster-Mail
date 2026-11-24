@@ -75,7 +75,8 @@ export interface ActionToastState {
     | "snooze"
     | "progress"
     | "refresh"
-    | "download";
+    | "download"
+    | "unsubscribe";
   email_ids: string[];
   on_undo?: () => Promise<void | UndoToastResult>;
   action_label?: string;
@@ -639,7 +640,7 @@ export function ActionToast({ position }: ActionToastProps) {
               minWidth: toast.progress
                 ? "min(300px, calc(100vw - 32px))"
                 : undefined,
-              maxWidth: "min(560px, calc(100vw - 32px))",
+              maxWidth: "min(480px, calc(100vw - 32px))",
             }}
           >
             <div className="flex items-center gap-2">
@@ -647,10 +648,12 @@ export function ActionToast({ position }: ActionToastProps) {
                 {render_toast_icon(resolve_toast_icon(toast))}
               </span>
               <span
-                className={`min-w-0 text-[13px] font-medium text-txt-primary ${
-                  toast.progress ? "flex-1 truncate" : "break-words"
-                } ${toast.actions?.length ? "max-w-[260px] truncate" : ""}`}
-                title={toast.actions?.length ? toast.message : undefined}
+                className={`min-w-0 text-[13px] font-medium leading-snug text-txt-primary ${
+                  toast.progress
+                    ? "flex-1 truncate"
+                    : "line-clamp-2 break-words"
+                }`}
+                title={toast.progress ? undefined : toast.message}
               >
                 {toast.message}
               </span>

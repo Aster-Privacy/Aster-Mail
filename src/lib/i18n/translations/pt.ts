@@ -10057,11 +10057,13 @@ export const pt = {
     no_password: "Sem palavra-passe",
     replying_to: "A responder a {{name}}",
     reply_sent_successfully: "Resposta enviada com sucesso",
-    successfully_unsubscribed: "Subscrição cancelada com sucesso",
-    unsubscribe_failed:
-      "O cancelamento da subscrição não foi concluído. O link no e-mail leva-o ao site do remetente para o fazer manualmente.",
-    unsubscribe_manual_required:
-      "Este remetente não suporta o cancelamento automático. Utilize o link no e-mail para cancelar manualmente.",
+    successfully_unsubscribed: "Subscrição cancelada",
+    unsubscribe_failed: "Não foi possível cancelar a subscrição. Tente novamente mais tarde.",
+    unsubscribe_on_website: "Cancele a subscrição deste remetente no site dele.",
+    unsubscribe_not_confirmed: "O remetente não confirmou. Cancele a subscrição no site dele.",
+    unsubscribe_use_email_link: "Utilize a ligação de cancelamento da subscrição no email.",
+    unsubscribe_some_need_website: "Alguns remetentes exigem que cancele a subscrição no site deles.",
+    open_page: "Abrir página",
     stop_receiving_from: "Parar de receber e-mails de",
     send_email: "Enviar e-mail",
     order_number: "Pedido #{{id}}",

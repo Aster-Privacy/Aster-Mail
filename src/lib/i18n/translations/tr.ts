@@ -9893,11 +9893,13 @@ export const tr = {
     no_password: "Parola yok",
     replying_to: "{{name}} kişisine yanıt veriliyor",
     reply_sent_successfully: "Yanıt başarıyla gönderildi",
-    successfully_unsubscribed: "Abonelik başarıyla iptal edildi",
-    unsubscribe_failed:
-      "Abonelikten çıkma tamamlanmadı. E-postadaki bağlantı sizi göndericinin sitesine götürür, abonelikten kendiniz çıkabilirsiniz.",
-    unsubscribe_manual_required:
-      "Bu gönderici otomatik abonelikten çıkmayı desteklemiyor. E-postadaki bağlantı bunu kendiniz yapmanıza olanak verir.",
+    successfully_unsubscribed: "Abonelik iptal edildi",
+    unsubscribe_failed: "Abonelik iptal edilemedi. Daha sonra tekrar deneyin.",
+    unsubscribe_on_website: "Bu gönderenin aboneliğini web sitesinden iptal edin.",
+    unsubscribe_not_confirmed: "Gönderen onaylamadı. Aboneliği web sitesinden iptal edin.",
+    unsubscribe_use_email_link: "E-postadaki abonelik iptal bağlantısını kullanın.",
+    unsubscribe_some_need_website: "Bazı gönderenlerin aboneliğini web sitelerinden iptal etmeniz gerekir.",
+    open_page: "Sayfayı aç",
     stop_receiving_from: "E-posta almayı durdurun:",
     send_email: "E-posta Gönder",
     order_number: "Sipariş #{{id}}",

@@ -9812,11 +9812,13 @@ export const ar = {
     no_password: "بدون كلمة مرور",
     replying_to: "الرد على {{name}}",
     reply_sent_successfully: "تم إرسال الرد بنجاح",
-    successfully_unsubscribed: "تم إلغاء الاشتراك بنجاح",
-    unsubscribe_failed:
-      "إلغاء الاشتراك لم يكتمل. الرابط داخل البريد يأخذك إلى موقع المرسل لإكمال ذلك بنفسك.",
-    unsubscribe_manual_required:
-      "هذا المرسل لا يدعم إلغاء الاشتراك التلقائي. الرابط داخل البريد يتيح لك إكمال ذلك بنفسك.",
+    successfully_unsubscribed: "تم إلغاء الاشتراك",
+    unsubscribe_failed: "تعذّر إلغاء الاشتراك. حاول مرة أخرى لاحقًا.",
+    unsubscribe_on_website: "ألغِ الاشتراك من هذا المرسل عبر موقعه.",
+    unsubscribe_not_confirmed: "لم يؤكد المرسل الطلب. ألغِ الاشتراك عبر موقعه.",
+    unsubscribe_use_email_link: "استخدم رابط إلغاء الاشتراك الموجود في البريد.",
+    unsubscribe_some_need_website: "يتطلب بعض المرسلين إلغاء الاشتراك عبر مواقعهم.",
+    open_page: "فتح الصفحة",
     stop_receiving_from: "التوقف عن تلقي رسائل من",
     send_email: "إرسال بريد",
     order_number: "طلب #{{id}}",

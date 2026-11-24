@@ -10006,11 +10006,13 @@ export const pt_br = {
     no_password: "Sem senha",
     replying_to: "Respondendo a {{name}}",
     reply_sent_successfully: "Resposta enviada com sucesso",
-    successfully_unsubscribed: "Inscrição cancelada com sucesso",
-    unsubscribe_failed:
-      "O cancelamento da inscrição não foi concluído. O link no e-mail leva você ao site do remetente para fazer isso manualmente.",
-    unsubscribe_manual_required:
-      "Este remetente não oferece cancelamento automático. Use o link no e-mail para cancelar manualmente.",
+    successfully_unsubscribed: "Inscrição cancelada",
+    unsubscribe_failed: "Não foi possível cancelar a inscrição. Tente novamente mais tarde.",
+    unsubscribe_on_website: "Cancele a inscrição deste remetente no site dele.",
+    unsubscribe_not_confirmed: "O remetente não confirmou. Cancele a inscrição no site dele.",
+    unsubscribe_use_email_link: "Use o link de cancelamento de inscrição no e-mail.",
+    unsubscribe_some_need_website: "Alguns remetentes exigem que você cancele a inscrição no site deles.",
+    open_page: "Abrir página",
     stop_receiving_from: "Parar de receber e-mails de",
     send_email: "Enviar e-mail",
     order_number: "Pedido #{{id}}",
