@@ -33,6 +33,8 @@ export const TAURI_AUTH_SLOT_ACCESS = "access_token";
 export const TAURI_AUTH_SLOT_CSRF = "csrf";
 
 export const ACCOUNTS_ROSTER_KEY = "astermail_accounts_v6";
+export const REFRESH_TOKEN_REVOKED_SERVER_CODE = "REFRESH_TOKEN_REVOKED";
+
 export const REFRESH_INTERVAL_MINUTES = 10;
 export const PROACTIVE_REFRESH_THRESHOLD_MINUTES = 25;
 export const REFRESH_FAILURE_BACKOFF_BASE_MS = 30_000;

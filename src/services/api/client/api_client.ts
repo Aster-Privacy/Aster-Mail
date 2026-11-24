@@ -53,6 +53,7 @@ import {
   PROACTIVE_REFRESH_THRESHOLD_MINUTES,
   PendingTokenWrite,
   REFRESH_INTERVAL_MINUTES,
+  REFRESH_TOKEN_REVOKED_SERVER_CODE,
   RequestConfig,
   SessionReestablishResult,
   TAURI_AUTH_SLOT_ACCESS,
@@ -1045,6 +1046,15 @@ export class ApiClient {
           return;
         }
 
+        if (
+          response.server_code === REFRESH_TOKEN_REVOKED_SERVER_CODE &&
+          !this.account_add_in_progress
+        ) {
+          this.end_session_after_revoked_refresh();
+
+          return;
+        }
+
         if (this.is_transient_error_code(response.code)) {
           if (attempt < max_retries - 1) {
             await this.delay(retry_delay_base * (attempt + 1));
@@ -1116,6 +1126,20 @@ export class ApiClient {
         this.note_refresh_failure();
       }
     }
+  }
+
+  private end_session_after_revoked_refresh(): void {
+    this.is_authenticated_flag = false;
+    request_cache.clear();
+    this._cached_user_info = null;
+    if (this.refresh_timeout) {
+      clearTimeout(this.refresh_timeout);
+      this.refresh_timeout = null;
+    }
+    if (this.intentional_logout) return;
+    if (this.session_expired_dispatched) return;
+    this.session_expired_dispatched = true;
+    window.dispatchEvent(new Event("astermail:session-ended"));
   }
 
   private dispatch_session_expired(force: boolean = false): void {
