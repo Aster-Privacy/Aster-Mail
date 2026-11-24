@@ -126,6 +126,7 @@ import mail_logo_url from "@/assets/mail_logo.webp";
 import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
 import { use_has_unseen_reaction } from "@/services/unseen_reactions";
 import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
+import { resolve_mail_location } from "@/lib/system_move_targets";
 
 export const InboxEmailListItem = memo(
   forwardRef<HTMLDivElement, InboxEmailListItemProps>(
@@ -394,6 +395,22 @@ export const InboxEmailListItem = memo(
             ? snapshot.tag_tokens
             : (email.tags || []).map((t) => t.id),
           is_scope,
+          source_id: email.id,
+          is_selection: is_multi,
+          location:
+            email.item_type === "draft" ||
+            email.item_type === "scheduled" ||
+            (is_multi && snapshot.has_unmovable)
+              ? "drafts"
+              : resolve_mail_location({
+                  current_view,
+                  is_trashed: email.is_trashed,
+                  is_spam: email.is_spam,
+                  is_archived: email.is_archived,
+                  in_custom_folder: (email.folders ?? []).length > 0,
+                  is_sent_item: email.item_type === "sent",
+                }),
+          all_starred: is_multi ? snapshot.all_starred : email.is_starred,
         });
         set_is_dragging(true);
         begin_category_drag();
