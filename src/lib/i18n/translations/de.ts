@@ -4839,6 +4839,8 @@ export const de = {
       "Beschreiben Sie Ihre Idee oder das Problem, das Sie gefunden haben",
     feedback_not_encrypted:
       "Feedback ist nicht Ende-zu-Ende-verschlüsselt. Geben Sie daher keine Passwörter, Wiederherstellungscodes oder andere private Informationen an.",
+    feedback_support_notice:
+      "Feedback wird nicht auf Supportanfragen oder Fragen geprüft. Wenn Sie Hilfe benötigen, wenden Sie sich an das Support-Team unter {{ email }}.",
     feedback_intro:
       "Teilen Sie eine Idee, melden Sie einen Fehler oder sagen Sie dem Aster-Team Ihre Meinung. Feedback erstellt keine Supportanfrage. Wenn Sie Hilfe oder eine Antwort benötigen, kontaktieren Sie den Support.",
     support_intro:

@@ -4825,6 +4825,8 @@ export const nl = {
       "Beschrijf je idee of het probleem dat je hebt gevonden",
     feedback_not_encrypted:
       "Feedback is niet end-to-end versleuteld, dus voeg geen wachtwoorden, herstelcodes of andere privégegevens toe.",
+    feedback_support_notice:
+      "Feedback wordt niet gecontroleerd op supportverzoeken of vragen. Neem voor hulp contact op met het supportteam via {{ email }}.",
     feedback_intro:
       "Deel een idee, meld een bug of laat het Aster-team weten wat je ervan vindt. Feedback opent geen supportverzoek. Neem voor hulp of een antwoord contact op met support.",
     support_intro:

@@ -4868,6 +4868,8 @@ export const ko = {
     feedback_placeholder: "아이디어나 발견한 문제를 설명해 주세요",
     feedback_not_encrypted:
       "피드백은 종단 간 암호화되지 않으므로 비밀번호, 복구 코드 또는 기타 개인 정보를 포함하지 마세요.",
+    feedback_support_notice:
+      "피드백에서는 지원 요청이나 질문을 확인하지 않습니다. 도움이 필요하면 지원팀({{ email }})에 문의하세요.",
     feedback_intro:
       "아이디어를 공유하거나 버그를 신고하거나 Aster 팀에 의견을 알려 주세요. 피드백은 지원 요청을 생성하지 않으므로 도움이나 답변이 필요하면 지원팀에 문의하세요.",
     support_intro:
