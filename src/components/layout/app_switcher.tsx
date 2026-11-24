@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { Tooltip } from "@aster/ui";
 
 import {
@@ -33,11 +33,23 @@ import { DatedCalendarImage } from "@/components/icons/dated_calendar_image";
 import { CALENDAR_WEB_ORIGIN } from "@/lib/session_handoff/session_handoff_protocol";
 import { open_external } from "@/utils/open_link";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import { sibling_app_launch_url } from "@/contexts/auth/sibling_session_handoff";
 
 const DOT_POSITIONS = [5, 12, 19];
 
 function is_desktop_shell(): boolean {
   return has_tauri_runtime();
+}
+
+function launch_sibling_app(
+  event: MouseEvent<HTMLAnchorElement>,
+  href: string,
+) {
+  const launch_url = sibling_app_launch_url(href);
+
+  if (launch_url === href) return;
+  event.preventDefault();
+  window.open(launch_url, "_blank", "noopener,noreferrer");
 }
 
 function AppGridIcon() {
@@ -187,7 +199,12 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
                   className={row_class}
                   data-app-switcher-item={app.id}
                 >
-                  <a href={href} rel="noopener noreferrer" target="_blank">
+                  <a
+                    href={href}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    onClick={(event) => launch_sibling_app(event, href)}
+                  >
                     {render_row(app)}
                   </a>
                 </DropdownMenuItem>

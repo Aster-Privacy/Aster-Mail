@@ -38,6 +38,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/contexts/auth/sibling_session_handoff", () => ({
   HANDOFF_GRANT_HASH_PREFIX: "#handoff=",
   mint_panel_handoff_grant: mocks.mint_grant,
+  sibling_app_launch_url: (target: string) => target,
 }));
 
 vi.mock("@/lib/i18n/context", () => ({

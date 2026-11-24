@@ -42,6 +42,7 @@ const SESSION_TIMEOUT_CONFIG_KEY = "astermail_session_timeout_config";
 const SESSION_TIMEOUT_MIGRATED_KEY = "astermail_session_timeout_migrated_v2";
 const LAST_ACTIVITY_KEY_PREFIX = "astermail_last_activity_";
 const APP_LOCK_KEY_PREFIX = "aster:app_lock:";
+const SHARED_ACCOUNT_MARKER_PREFIX = "astermail_shared_grant_epoch_";
 const MIN_TIMEOUT_MINUTES = 5;
 const DEFAULT_TIMEOUT_MINUTES = 30;
 const GRANT_POLL_MS = 500;
@@ -151,6 +152,7 @@ export function read_local_session(
   if (!encrypted_passphrase || !passphrase_iv) return null;
   if (!encrypted_vault || !vault_nonce) return null;
   if (has_app_lock(storage, user_id)) return null;
+  if (storage.get(SHARED_ACCOUNT_MARKER_PREFIX + user_id) !== null) return null;
   if (is_session_timed_out(storage, user_id, now)) return null;
 
   return { encrypted_passphrase, passphrase_iv, encrypted_vault, vault_nonce };

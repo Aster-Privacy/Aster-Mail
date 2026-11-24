@@ -39,6 +39,7 @@ import {
 } from "./vault_decryption";
 import {
   obtain_sibling_session,
+  should_attempt_boot_handoff,
   type SiblingSessionLogin,
 } from "./sibling_session_handoff";
 import { purge_all_local_data } from "./purge_local_data";
@@ -385,9 +386,14 @@ export function use_auth_account_state() {
 
         const current = await get_current_account();
 
-        if (!current) {
-          if (await try_sibling_handoff()) return;
+        if (
+          should_attempt_boot_handoff(current !== null) &&
+          (await try_sibling_handoff())
+        ) {
+          return;
+        }
 
+        if (!current) {
           api_client.set_authenticated(false);
           set_state((prev) => ({
             ...prev,

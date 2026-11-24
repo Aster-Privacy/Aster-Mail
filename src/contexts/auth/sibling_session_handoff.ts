@@ -69,6 +69,7 @@ export const HANDOFF_GRANT_HASH_PREFIX = "#handoff=";
 const PENDING_GRANT_KEY = "aster_session_handoff_grant";
 const APPROVAL_WINDOW_FEATURES = "popup=yes,width=440,height=400";
 const PANEL_GRANT_TTL_MS = 60 * 1000;
+const SHARED_ACCOUNT_MARKER_PREFIX = "astermail_shared_grant_epoch_";
 
 export type SiblingSignInResult = "approved" | "blocked" | "failed";
 
@@ -113,6 +114,27 @@ function take_hash_grant(): string | null {
   return is_handoff_grant_id(grant) ? grant : null;
 }
 
+export function has_pending_handoff_grant(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const { hash } = window.location;
+
+  if (
+    hash.startsWith(HANDOFF_GRANT_HASH_PREFIX) &&
+    is_handoff_grant_id(hash.slice(HANDOFF_GRANT_HASH_PREFIX.length))
+  ) {
+    return true;
+  }
+
+  return is_handoff_grant_id(safe_session_get(PENDING_GRANT_KEY));
+}
+
+export function should_attempt_boot_handoff(
+  has_current_account: boolean,
+): boolean {
+  return !has_current_account || has_pending_handoff_grant();
+}
+
 export function take_pending_handoff_grant(): string | null {
   const from_hash = take_hash_grant();
   const stored = safe_session_get(PENDING_GRANT_KEY);
@@ -150,10 +172,28 @@ export async function start_sibling_sign_in(): Promise<SiblingSignInResult> {
   return "approved";
 }
 
+function is_shared_account(user_id: string): boolean {
+  try {
+    return (
+      window.localStorage.getItem(SHARED_ACCOUNT_MARKER_PREFIX + user_id) !==
+      null
+    );
+  } catch {
+    return true;
+  }
+}
+
 export function mint_panel_handoff_grant(audience: string): string | null {
+  if (typeof window === "undefined" || has_tauri_runtime()) return null;
+  if (get_handoff_sibling_origin(window.location.origin) !== audience) {
+    return null;
+  }
+
   const user_id = api_client.get_cached_user_info()?.user_id;
 
   if (!user_id) return null;
+  if (is_shared_account(user_id)) return null;
+  if (get_app_lock_config(user_id) !== null) return null;
 
   const grant = generate_grant_id();
   const now = Date.now();
@@ -170,6 +210,26 @@ export function mint_panel_handoff_grant(audience: string): string | null {
   );
 
   return written ? grant : null;
+}
+
+export function sibling_app_launch_url(target: string): string {
+  let url: URL;
+
+  try {
+    url = new URL(target);
+  } catch {
+    return target;
+  }
+
+  if (url.origin !== sibling_app_origin()) return target;
+
+  const grant = mint_panel_handoff_grant(url.origin);
+
+  if (!grant) return target;
+
+  url.hash = HANDOFF_GRANT_HASH_PREFIX + grant;
+
+  return url.href;
 }
 
 async function verify_server_session(): Promise<string | null> {
