@@ -21,6 +21,8 @@
 export interface SelectionSnapshotSource {
   id: string;
   is_selected?: boolean;
+  is_starred?: boolean;
+  item_type?: string;
   grouped_email_ids?: string[];
   folders?: { folder_token: string }[];
   tags?: { id: string }[];
@@ -31,6 +33,8 @@ export interface SelectionSnapshot {
   grouped_ids: string[];
   folder_tokens: string[];
   tag_tokens: string[];
+  all_starred: boolean;
+  has_unmovable: boolean;
 }
 
 export const empty_selection_snapshot: SelectionSnapshot = {
@@ -38,6 +42,8 @@ export const empty_selection_snapshot: SelectionSnapshot = {
   grouped_ids: [],
   folder_tokens: [],
   tag_tokens: [],
+  all_starred: false,
+  has_unmovable: false,
 };
 
 function intersect_tokens(
@@ -63,11 +69,17 @@ export function build_selection_snapshot(
 
   let folder_tokens: Set<string> | null = null;
   let tag_tokens: Set<string> | null = null;
+  let all_starred = true;
+  let has_unmovable = false;
 
   for (const email of emails) {
     if (!email.is_selected) continue;
 
     ids.push(email.id);
+    if (!email.is_starred) all_starred = false;
+    if (email.item_type === "draft" || email.item_type === "scheduled") {
+      has_unmovable = true;
+    }
 
     if (email.grouped_email_ids && email.grouped_email_ids.length > 1) {
       for (const grouped_id of email.grouped_email_ids) {
@@ -93,5 +105,7 @@ export function build_selection_snapshot(
     grouped_ids,
     folder_tokens: Array.from(folder_tokens ?? []),
     tag_tokens: Array.from(tag_tokens ?? []),
+    all_starred,
+    has_unmovable,
   };
 }

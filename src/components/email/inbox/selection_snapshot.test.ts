@@ -88,4 +88,34 @@ describe("build_selection_snapshot", () => {
     expect(snapshot.folder_tokens).toEqual([]);
     expect(snapshot.tag_tokens).toEqual([]);
   });
+  it("reports whether every selected row is starred", () => {
+    expect(
+      build_selection_snapshot([
+        { id: "a", is_selected: true, is_starred: true },
+        { id: "b", is_selected: true, is_starred: true },
+        { id: "c", is_starred: false },
+      ]).all_starred,
+    ).toBe(true);
+    expect(
+      build_selection_snapshot([
+        { id: "a", is_selected: true, is_starred: true },
+        { id: "b", is_selected: true },
+      ]).all_starred,
+    ).toBe(false);
+  });
+
+  it("flags a selection that holds drafts or scheduled mail", () => {
+    expect(
+      build_selection_snapshot([
+        { id: "a", is_selected: true, item_type: "received" },
+        { id: "b", is_selected: true, item_type: "draft" },
+      ]).has_unmovable,
+    ).toBe(true);
+    expect(
+      build_selection_snapshot([
+        { id: "a", is_selected: true, item_type: "received" },
+        { id: "b", item_type: "scheduled" },
+      ]).has_unmovable,
+    ).toBe(false);
+  });
 });

@@ -62,7 +62,12 @@ import { use_split_reader_advance } from "@/components/email/inbox/use_split_rea
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { use_inbox_selection_menu } from "@/components/email/inbox/use_inbox_selection_menu";
 import { use_inbox_bulk_actions } from "@/components/email/inbox/use_inbox_bulk_actions";
-import { register_scope_drag_handler } from "@/components/email/inbox/category_drag";
+import {
+  register_scope_drag_handler,
+  register_system_drop_handler,
+  type EmailDragPayload,
+} from "@/components/email/inbox/category_drag";
+import type { SystemDropTarget } from "@/lib/system_drop_targets";
 import { build_selection_snapshot } from "@/components/email/inbox/selection_snapshot";
 
 export type {
@@ -885,6 +890,72 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     email_state.emails,
     keyboard_context_menu_actions,
     extra_keyboard_actions,
+  );
+
+  const run_system_drop_ref = useRef<
+    (target: SystemDropTarget, payload: EmailDragPayload) => void
+  >(() => {});
+
+  run_system_drop_ref.current = (target, payload) => {
+    const email = email_state.emails.find(
+      (candidate) => candidate.id === payload.source_id,
+    );
+
+    if (!email) return;
+
+    const scope =
+      selection_menu &&
+      (payload.is_scope || (payload.is_selection && email.is_selected))
+        ? selection_menu
+        : null;
+
+    if (target === "starred") {
+      if (scope) {
+        handle_toggle_star_wrapped();
+
+        return;
+      }
+      if (!email.is_starred) void context_menu_actions.handle_toggle_star(email);
+
+      return;
+    }
+
+    if (target === "inbox") {
+      if (scope) scope.on_move_to_inbox();
+      else void context_menu_actions.handle_move_to_inbox(email);
+
+      return;
+    }
+
+    if (target === "archive") {
+      if (scope) scope.on_archive();
+      else context_menu_actions.handle_archive(email);
+
+      return;
+    }
+
+    if (target === "spam") {
+      if (scope) scope.on_spam();
+      else context_menu_actions.handle_spam(email);
+
+      return;
+    }
+
+    if (scope) scope.on_delete();
+    else context_menu_actions.handle_delete(email);
+  };
+
+  useEffect(
+    () =>
+      register_system_drop_handler({
+        owns: (payload) =>
+          !!payload.source_id &&
+          loaded_emails_ref.current.some(
+            (candidate) => candidate.id === payload.source_id,
+          ),
+        run: (target, payload) => run_system_drop_ref.current(target, payload),
+      }),
+    [],
   );
 
   const is_split_view = !!split_email_id || !!split_scheduled_data;
