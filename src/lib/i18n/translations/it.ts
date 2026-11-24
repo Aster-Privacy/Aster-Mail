@@ -8619,6 +8619,12 @@ export const it = {
       "Impossibile inviare l'email di verifica. Riprova.",
     academic_copy_failed: "Impossibile copiare il codice.",
     academic_captcha_required: "Completa la verifica captcha.",
+    academic_captcha_unavailable:
+      "Aster Mail non può verificare la tua richiesta in questo momento. Riprova più tardi o richiedi lo sconto dal web.",
+    academic_too_many_attempts:
+      "Hai inviato troppe richieste di verifica. Riprova più tardi.",
+    academic_no_pending_request:
+      "La tua richiesta di verifica non è più in sospeso. Inserisci di nuovo la tua email accademica.",
     academic_journalist_hint:
       "Giornalista? Contatta il supporto con le tue credenziali stampa per ricevere il tuo codice.",
     refer_a_friend: "Invita un amico",

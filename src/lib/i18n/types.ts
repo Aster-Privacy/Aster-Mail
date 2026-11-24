@@ -7782,6 +7782,9 @@ export interface SettingsTranslations {
   academic_request_failed: string;
   academic_copy_failed: string;
   academic_captcha_required: string;
+  academic_captcha_unavailable: string;
+  academic_too_many_attempts: string;
+  academic_no_pending_request: string;
   academic_journalist_hint: string;
   credit_packages_loading: string;
   credit_packages_failed: string;

@@ -8847,6 +8847,12 @@ export const nl = {
       "De verificatiemail kon niet worden verstuurd. Probeer het opnieuw.",
     academic_copy_failed: "De code kon niet worden gekopieerd.",
     academic_captcha_required: "Voltooi de captcha-uitdaging.",
+    academic_captcha_unavailable:
+      "Aster Mail kan je aanvraag nu niet verifiëren. Probeer het later opnieuw of vraag de korting aan via het web.",
+    academic_too_many_attempts:
+      "Je hebt te veel verificatieaanvragen verstuurd. Probeer het later opnieuw.",
+    academic_no_pending_request:
+      "Je verificatieaanvraag staat niet meer open. Voer je academische e-mailadres opnieuw in.",
     academic_journalist_hint:
       "Journalist? Neem contact op met support met je perskaart om je code te ontvangen.",
     refer_a_friend: "Vriend doorverwijzen",

@@ -8751,6 +8751,12 @@ export const pl = {
       "Nie udało się wysłać e-maila weryfikacyjnego. Spróbuj ponownie.",
     academic_copy_failed: "Nie udało się skopiować kodu.",
     academic_captcha_required: "Ukończ weryfikację captcha.",
+    academic_captcha_unavailable:
+      "Aster Mail nie może teraz zweryfikować Twojej prośby. Spróbuj ponownie później lub poproś o zniżkę w wersji internetowej.",
+    academic_too_many_attempts:
+      "Wysłano zbyt wiele próśb o weryfikację. Spróbuj ponownie później.",
+    academic_no_pending_request:
+      "Twoja prośba o weryfikację nie jest już aktywna. Wpisz ponownie swój akademicki adres e-mail.",
     academic_journalist_hint:
       "Dziennikarz? Skontaktuj się z pomocą, podając legitymację prasową, aby otrzymać kod.",
     refer_a_friend: "Poleć znajomemu",
