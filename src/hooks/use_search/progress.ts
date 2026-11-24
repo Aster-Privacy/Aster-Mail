@@ -87,19 +87,25 @@ function publish_throttled(): void {
   }, wait);
 }
 
-export function begin_indexing_run(): number {
+export function begin_indexing_run(start_at = 0): number {
   const run_id = ++next_run_id;
   const starts_session = active_runs.size === 0;
+  const resume_from = Math.max(0, Math.floor(start_at));
 
   active_runs.add(run_id);
   latest_progress = starts_session
     ? {
         building: true,
-        current: 0,
-        total: 0,
+        current: resume_from,
+        total: resume_from,
         session: latest_progress.session + 1,
       }
-    : { ...latest_progress, building: true };
+    : {
+        ...latest_progress,
+        building: true,
+        current: Math.max(latest_progress.current, resume_from),
+        total: Math.max(latest_progress.total, resume_from),
+      };
   publish_now();
 
   return run_id;

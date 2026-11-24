@@ -20,7 +20,11 @@
 //
 import { afterEach, describe, expect, it } from "vitest";
 
-import { delete_device_recovery_database } from "./device_recovery_store";
+import {
+  SNAPSHOT_REFRESH_MS,
+  SNAPSHOT_TTL_MS,
+  delete_device_recovery_database,
+} from "./device_recovery_store";
 
 interface FakeDeleteRequest {
   error: Error | null;
@@ -89,5 +93,17 @@ describe("delete_device_recovery_database", () => {
     set_indexed_db(undefined);
 
     await expect(delete_device_recovery_database()).resolves.toBeUndefined();
+  });
+});
+
+describe("snapshot retention", () => {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+
+  it("keeps a snapshot on the device for at most two weeks", () => {
+    expect(SNAPSHOT_TTL_MS).toBeLessThanOrEqual(14 * DAY_MS);
+  });
+
+  it("renews a snapshot well before it expires", () => {
+    expect(SNAPSHOT_REFRESH_MS).toBeLessThanOrEqual(SNAPSHOT_TTL_MS / 4);
   });
 });

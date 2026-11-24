@@ -71,6 +71,7 @@ import {
 } from "@/components/settings/forwarding_destination_confirm";
 import { FaviconImg } from "@/components/ui/favicon_or_initial";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
@@ -197,6 +198,9 @@ export function AutoForwardSection() {
     try {
       const result = await delete_forwarding_rule(rule.id);
 
+      if (held_of(result)) {
+        return;
+      }
       if (result.data?.success) {
         set_rules((prev) => prev.filter((r) => r.id !== rule.id));
         show_toast(
@@ -221,6 +225,11 @@ export function AutoForwardSection() {
       const ids = Array.from(selected_ids);
       const result = await bulk_delete_forwarding_rules(ids);
 
+      if (held_of(result)) {
+        set_selected_ids(new Set());
+
+        return;
+      }
       if (result.data?.success) {
         const deleted_count = result.data.deleted_count;
 
@@ -261,7 +270,13 @@ export function AutoForwardSection() {
     try {
       const result = await toggle_forwarding_rule(rule.id, new_enabled);
 
-      if (result.error) {
+      if (held_of(result)) {
+        set_rules((prev) =>
+          prev.map((r) =>
+            r.id === rule.id ? { ...r, is_enabled: !new_enabled } : r,
+          ),
+        );
+      } else if (result.error) {
         set_rules((prev) =>
           prev.map((r) =>
             r.id === rule.id ? { ...r, is_enabled: !new_enabled } : r,
@@ -365,7 +380,9 @@ export function AutoForwardSection() {
           keep_copy,
         );
 
-        if (result.data) {
+        if (held_of(result)) {
+          close_builder();
+        } else if (result.data) {
           set_rules((prev) =>
             prev.map((r) => (r.id === editing_rule.id ? result.data! : r)),
           );
@@ -382,7 +399,9 @@ export function AutoForwardSection() {
           keep_copy,
         );
 
-        if (result.data) {
+        if (held_of(result)) {
+          close_builder();
+        } else if (result.data) {
           set_rules((prev) => [result.data!, ...prev]);
           notify_saved(result.data, true);
           close_builder();

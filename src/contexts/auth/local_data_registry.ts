@@ -48,6 +48,7 @@ export const INDEXED_DB_NAMES: readonly string[] = [
   "astermail_category_index",
   "astermail_device_key",
   "astermail_device_recovery",
+  "astermail_guard_device",
   "astermail_secure_db",
   "astermail_external_pgp",
   "astermail_offline_cache",

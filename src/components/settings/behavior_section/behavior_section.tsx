@@ -27,6 +27,7 @@ import {
   Button,
   IslandSection,
   IslandSections,
+  SettingControlRow,
   SettingToggleRow,
 } from "@aster/ui";
 import {
@@ -92,10 +93,11 @@ import {
 } from "@/components/ui/alert_dialog";
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_register_search_items } from "@/components/settings/search_context";
 import { type LanguageCode } from "@/services/translation/engine_types";
 import { derive_accepted_languages } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
+import { SkinToneSwatches } from "@/components/settings/skin_tone_swatches";
+import { normalize_skin_tone } from "@/config/emoji/skin_tones";
 import {
   INBOX_PAGE_SIZE_OPTIONS,
   clamp_inbox_page_size,
@@ -127,6 +129,7 @@ import {
   reading_pane_patch,
   type ReadingPanePosition,
 } from "@/lib/reading_pane";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
@@ -134,63 +137,6 @@ export function BehaviorSection() {
   const { t, language } = use_i18n();
   const { is_feature_locked } = use_plan_limits();
   const { current_account_id } = use_auth();
-
-  use_register_search_items("behavior", [
-    {
-      label: t("settings.emails_per_page"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: [
-        "page size",
-        "per page",
-        "pagination",
-        "results",
-        "emails per page",
-      ],
-    },
-    {
-      label: t("settings.sender_pictures"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: ["avatar", "picture", "photo", "sender", "profile"],
-    },
-    {
-      label: t("settings.show_alias_indicators"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: ["alias", "indicator", "badge", "delivered to"],
-    },
-    {
-      label: t("settings.relative_dates"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
-      keywords: [
-        "relative",
-        "dates",
-        "today",
-        "yesterday",
-        "timestamp",
-        "date",
-        "time",
-      ],
-    },
-    {
-      label: t("settings.compose_from_selected_alias"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.composing_and_replies")}`,
-      keywords: ["alias", "from", "sender", "compose", "new message"],
-    },
-    {
-      label: t("settings.translate_incoming"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
-      keywords: ["translate", "translation", "language"],
-    },
-    {
-      label: t("settings.translate_my_languages"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
-      keywords: ["translate", "language"],
-    },
-    {
-      label: t("settings.translate_never_languages"),
-      breadcrumb: `${t("settings.behavior")} > ${t("settings.translation")}`,
-      keywords: ["translate", "language"],
-    },
-  ]);
 
   const navigator_languages =
     typeof navigator !== "undefined" ? (navigator.languages ?? []) : [];
@@ -279,9 +225,8 @@ export function BehaviorSection() {
       return false;
     }
   });
-  const is_web =
-    !Capacitor.isNativePlatform() && !("__TAURI_INTERNALS__" in window);
-  const is_desktop_app = "__TAURI_INTERNALS__" in window;
+  const is_web = !Capacitor.isNativePlatform() && !has_tauri_runtime();
+  const is_desktop_app = has_tauri_runtime();
   const [close_to_tray, set_close_to_tray_state] = useState(() =>
     get_close_to_tray(),
   );
@@ -821,6 +766,27 @@ export function BehaviorSection() {
           title={t("settings.relative_dates")}
         />
 
+        <SettingControlRow
+          control={
+            <SkinToneSwatches
+              label={t("settings.emoji_skin_tone")}
+              value={normalize_skin_tone(preferences.emoji_skin_tone)}
+              on_change={(tone) =>
+                update_preference("emoji_skin_tone", tone, true)
+              }
+            />
+          }
+          control_width="auto"
+          description={t("settings.emoji_skin_tone_description")}
+          info={
+            <InfoPopover
+              description={t("settings.info_emoji_skin_tone_description")}
+              title={t("settings.info_emoji_skin_tone_title")}
+            />
+          }
+          label={t("settings.emoji_skin_tone")}
+        />
+
         <ToggleSetting
           description={t("settings.show_alias_indicators_description")}
           enabled={preferences.show_alias_indicators !== false}
@@ -853,6 +819,23 @@ export function BehaviorSection() {
             )
           }
           title={t("settings.sender_pictures")}
+        />
+
+        <ToggleSetting
+          description={t("settings.sender_logos_description")}
+          enabled={preferences.hide_sender_logos !== true}
+          info={{
+            title: t("settings.sender_logos"),
+            description: t("settings.sender_logos_description"),
+          }}
+          on_toggle={() =>
+            update_preference(
+              "hide_sender_logos",
+              preferences.hide_sender_logos !== true,
+              true,
+            )
+          }
+          title={t("settings.sender_logos")}
         />
 
         <ToggleSetting
@@ -1359,6 +1342,19 @@ export function BehaviorSection() {
             )
           }
           title={t("settings.confirm_delete")}
+        />
+
+        <ToggleSetting
+          description={t("settings.confirm_permanent_delete_description")}
+          enabled={preferences.confirm_before_permanent_delete !== false}
+          on_toggle={() =>
+            update_preference(
+              "confirm_before_permanent_delete",
+              preferences.confirm_before_permanent_delete === false,
+              true,
+            )
+          }
+          title={t("settings.confirm_permanent_delete")}
         />
 
         <ToggleSetting

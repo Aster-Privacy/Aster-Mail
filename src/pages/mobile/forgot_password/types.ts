@@ -123,5 +123,6 @@ export interface NewCodesStepProps extends StepProps {
 export interface ReviewSecurityStepProps {
   reduce_motion: boolean;
   review: RecoveryReviewInfo;
+  account_address: string;
   on_navigate_sign_in: () => void;
 }

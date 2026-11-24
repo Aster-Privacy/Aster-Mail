@@ -232,6 +232,47 @@ describe("password change key bookkeeping", () => {
     );
   }, 60000);
 
+  it("keeps a raw base64 prekey from a mobile vault and relocks the identity", async () => {
+    const raw_prekey = btoa(
+      String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))),
+    );
+    const vault = { ...base_vault(), signed_prekey_private: raw_prekey };
+
+    await reprotect_vault_keys_for_password_change(vault, PASS_1, PASS_2);
+
+    expect(vault.signed_prekey_private).toBe(raw_prekey);
+    expect(await unlocks(vault.identity_key, PASS_2)).toBe(true);
+    expect(await unlocks(vault.identity_key, PASS_1)).toBe(false);
+  }, 60000);
+
+  it("changes the password on a mobile vault with no PGP identity", async () => {
+    const raw_prekey = btoa(
+      String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))),
+    );
+    const raw_identity = btoa(
+      String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))),
+    );
+    const vault = {
+      ...base_vault([raw_identity]),
+      identity_key: undefined as unknown as string,
+      signed_prekey_private: raw_prekey,
+    };
+
+    await reprotect_vault_keys_for_password_change(vault, PASS_1, PASS_2);
+
+    expect(vault.identity_key).toBeUndefined();
+    expect(vault.signed_prekey_private).toBe(raw_prekey);
+    expect(vault.previous_keys).toEqual([raw_identity]);
+  }, 60000);
+
+  it("still rejects an armored key the current password does not open", async () => {
+    const vault = base_vault();
+
+    await expect(
+      reprotect_vault_keys_for_password_change(vault, PASS_3, PASS_2),
+    ).rejects.toThrow();
+  }, 60000);
+
   it("keeps one copy of each key in previous_keys across repeated changes", async () => {
     const vault = base_vault([recovered_identity.secret_key]);
     const passwords = [PASS_1, PASS_2, PASS_3, PASS_4];

@@ -30,7 +30,9 @@ import {
   save_subscription_cache,
   SUBSCRIPTION_CACHE_SAVED_EVENT,
   SUBSCRIPTION_CACHE_VERSION,
+  with_deleted_senders,
 } from "@/services/subscription_cache";
+import { delete_subscriptions_by_sender } from "@/services/api/subscriptions";
 import { build_listed_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
 import {
   perform_unsubscribe,
@@ -64,6 +66,7 @@ import { ignore_error } from "@/lib/ignore_error";
 
 const REVALIDATE_INTERVAL_MS = 5 * 60 * 1000;
 const FOCUS_REVALIDATE_MIN_MS = 30 * 1000;
+const DELETE_BATCH_SIZE = 500;
 
 function with_subscriptions(
   previous: SubscriptionCacheData | null,
@@ -320,7 +323,14 @@ export function use_subscriptions() {
         if (result !== "api") {
           revert_sender(sender_email);
           end_mutation();
-          show_toast(t("mail.unsubscribe_manual_required"), "info");
+          show_toast(
+            t(
+              result === "failed"
+                ? "mail.unsubscribe_not_confirmed"
+                : "mail.unsubscribe_on_website",
+            ),
+            result === "failed" ? "error" : "info",
+          );
 
           return "manual";
         }
@@ -397,7 +407,10 @@ export function use_subscriptions() {
               try {
                 const result = await execute_unsubscribe(
                   unsubscribe_info_from_stored(sub),
-                  build_listed_unsubscribe_delivery(sub.routing_token, sub.recipients),
+                  build_listed_unsubscribe_delivery(
+                    sub.routing_token,
+                    sub.recipients,
+                  ),
                   { retry_on_rate_limit: true },
                 );
 
@@ -428,7 +441,7 @@ export function use_subscriptions() {
           if (failed.length > 0) {
             show_toast(t("mail.unsubscribe_failed"), "error");
           } else {
-            show_toast(t("mail.unsubscribe_manual_required"), "info");
+            show_toast(t("mail.unsubscribe_some_need_website"), "info");
           }
         }
 
@@ -487,6 +500,59 @@ export function use_subscriptions() {
     [subscriptions, persist_cache, end_mutation],
   );
 
+  const delete_senders = useCallback(
+    async (sender_emails: string[]): Promise<boolean> => {
+      const targets = Array.from(new Set(sender_emails.filter(Boolean)));
+
+      if (targets.length === 0 || !vault) return false;
+
+      mutating_ref.current++;
+
+      const previous_cache = cache_ref.current;
+      const previous_subs = previous_cache?.subscriptions || subscriptions;
+
+      try {
+        const target_set = new Set(targets);
+        const base = with_subscriptions(
+          previous_cache,
+          previous_subs.filter((s) => !target_set.has(s.sender_email)),
+        );
+        const next = with_deleted_senders(base, targets);
+
+        cache_ref.current = next;
+        set_subscriptions(next.subscriptions);
+
+        const saved = await save_subscription_cache(next, vault);
+
+        if (!saved) {
+          cache_ref.current = previous_cache;
+          set_subscriptions(previous_subs);
+          show_toast(t("settings.delete_subscriptions_failed"), "error");
+
+          return false;
+        }
+
+        for (let i = 0; i < targets.length; i += DELETE_BATCH_SIZE) {
+          await delete_subscriptions_by_sender(
+            targets.slice(i, i + DELETE_BATCH_SIZE),
+          ).catch((caught) =>
+            ignore_error("hooks/use_subscriptions:delete_senders", caught),
+          );
+        }
+
+        show_toast(
+          t("settings.subscriptions_deleted", { count: targets.length }),
+          "success",
+        );
+
+        return true;
+      } finally {
+        end_mutation();
+      }
+    },
+    [subscriptions, vault, t, end_mutation],
+  );
+
   const visible_subscriptions = useMemo(
     () => without_blocked_senders(subscriptions, blocked_index),
     [subscriptions, blocked_index],
@@ -498,5 +564,6 @@ export function use_subscriptions() {
     unsubscribe: unsubscribe_sender,
     bulk_unsubscribe,
     reactivate,
+    delete_senders,
   };
 }

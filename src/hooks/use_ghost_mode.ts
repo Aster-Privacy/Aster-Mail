@@ -41,6 +41,7 @@ import { array_to_base64 } from "@/services/crypto/envelope";
 import { has_csrf_token } from "@/services/api/csrf";
 import { api_client } from "@/services/api/client";
 import { use_i18n } from "@/lib/i18n/context";
+import { request_creation_token } from "@/components/auth/turnstile_widget";
 
 export interface UseGhostModeReturn {
   is_ghost_enabled: boolean;
@@ -266,11 +267,16 @@ export function use_ghost_mode(
         }
       }
 
+      const captcha_token = await request_creation_token();
+
+      if (captcha_token === null) return;
+
       const local_part = generate_ghost_local_part();
       const result = await create_ghost_alias(
         local_part,
         ghost_expiry_days,
         token_hash,
+        captcha_token,
       );
 
       if (result.data?.success) {

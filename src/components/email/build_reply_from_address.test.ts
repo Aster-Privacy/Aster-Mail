@@ -334,6 +334,12 @@ describe("resolve_own_recipient_address", () => {
     ).toBeUndefined();
   });
 
+  it("finds an owned alias delivered with a plus tag", () => {
+    expect(
+      resolve_own_recipient_address(["shopping+orders@aster.cx"], own),
+    ).toBe("shopping+orders@aster.cx");
+  });
+
   it("handles missing input", () => {
     expect(resolve_own_recipient_address(undefined, own)).toBeUndefined();
     expect(resolve_own_recipient_address([], own)).toBeUndefined();
@@ -368,10 +374,40 @@ describe("is_reply_from_mismatch", () => {
     ).toBe(false);
   });
 
+  it("treats dotted and dotless forms of an Aster address as the same", () => {
+    expect(
+      is_reply_from_mismatch("nikolaue@aster.cx", "nikola.ue@aster.cx"),
+    ).toBe(false);
+    expect(
+      is_reply_from_mismatch("nikola.ue@aster.cx", "nikolaue@aster.cx"),
+    ).toBe(false);
+    expect(
+      is_reply_from_mismatch(
+        "n.ikolaue@astermail.org",
+        "nikola.ue@astermail.org",
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps dots significant on other domains", () => {
+    expect(
+      is_reply_from_mismatch("first.last@my.example", "firstlast@my.example"),
+    ).toBe(true);
+  });
+
   it("stays quiet when the received-on alias is unknown", () => {
     expect(is_reply_from_mismatch(undefined, "me@astermail.org")).toBe(false);
     expect(is_reply_from_mismatch("", "me@astermail.org")).toBe(false);
     expect(is_reply_from_mismatch("   ", "me@astermail.org")).toBe(false);
+  });
+
+  it("treats a plus-tagged delivery as the same alias", () => {
+    expect(
+      is_reply_from_mismatch("shopping+orders@aster.cx", "shopping@aster.cx"),
+    ).toBe(false);
+    expect(
+      is_reply_from_mismatch("shopping+orders@aster.cx", "me@astermail.org"),
+    ).toBe(true);
   });
 
   it("stays quiet when no sender is selected yet", () => {
@@ -440,7 +476,12 @@ describe("reply From for the receiving address", () => {
   ): string | undefined {
     return (
       build_reply_from_address(
-        { sender_email: "them@x.example", to_emails, cc_emails, received_on_alias },
+        {
+          sender_email: "them@x.example",
+          to_emails,
+          cc_emails,
+          received_on_alias,
+        },
         false,
       ) ?? resolve_own_recipient_address([...to_emails, ...cc_emails], own)
     );

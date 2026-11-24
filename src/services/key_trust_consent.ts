@@ -124,6 +124,23 @@ function has_usable_key(key_info: ExternalKeyInfo): boolean {
   return key_info.found && Boolean(key_info.public_key);
 }
 
+async function delivered_fingerprint(
+  key_info: ExternalKeyInfo,
+  reported: string,
+): Promise<string> {
+  if (!key_info.found || !key_info.public_key) return reported;
+
+  try {
+    const delivered = await owner_key_fingerprint(key_info.public_key);
+
+    return delivered === reported.toLowerCase()
+      ? reported
+      : delivered.toUpperCase();
+  } catch {
+    return reported;
+  }
+}
+
 async function missing_key_change(
   key_info: ExternalKeyInfo,
 ): Promise<KeyFingerprintChange | null> {
@@ -224,7 +241,13 @@ async function review_key_trust(recipients: string[]): Promise<KeyTrustReview> {
       };
 
       server_changes.push(server_change);
-      changes.push(server_change);
+      changes.push({
+        ...server_change,
+        new_fingerprint: await delivered_fingerprint(
+          key_info,
+          change.new_fingerprint,
+        ),
+      });
       continue;
     }
 

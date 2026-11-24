@@ -22,47 +22,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   CANCEL_REASONS,
-  can_continue_cancel_reason,
-  cancel_reason_needs_detail,
   clamp_cancel_reason_text,
   MAX_CANCEL_REASON_TEXT,
 } from "./cancel_reason_step";
 
 import { en } from "@/lib/i18n/translations/en";
-
-describe("cancel_reason_needs_detail", () => {
-  it("asks the open-ended reasons to explain themselves", () => {
-    expect(cancel_reason_needs_detail("other")).toBe(true);
-    expect(cancel_reason_needs_detail("missing_feature")).toBe(true);
-  });
-
-  it("leaves the self-explanatory reasons optional", () => {
-    expect(cancel_reason_needs_detail("too_expensive")).toBe(false);
-    expect(cancel_reason_needs_detail("bugs")).toBe(false);
-    expect(cancel_reason_needs_detail(null)).toBe(false);
-  });
-});
-
-describe("can_continue_cancel_reason", () => {
-  it("blocks continuing with nothing selected", () => {
-    expect(can_continue_cancel_reason(null, "")).toBe(false);
-    expect(can_continue_cancel_reason(null, "anything")).toBe(false);
-  });
-
-  it("blocks an open-ended reason until it is explained", () => {
-    expect(can_continue_cancel_reason("other", "")).toBe(false);
-    expect(can_continue_cancel_reason("other", "   ")).toBe(false);
-    expect(can_continue_cancel_reason("missing_feature", "")).toBe(false);
-    expect(can_continue_cancel_reason("missing_feature", "calendar")).toBe(
-      true,
-    );
-  });
-
-  it("allows a self-explanatory reason with no text", () => {
-    expect(can_continue_cancel_reason("too_expensive", "")).toBe(true);
-    expect(can_continue_cancel_reason("privacy_trust", "")).toBe(true);
-  });
-});
 
 describe("cancel reason placeholders", () => {
   it("gives every reason its own prompt", () => {

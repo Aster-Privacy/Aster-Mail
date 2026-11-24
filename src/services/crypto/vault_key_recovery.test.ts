@@ -132,7 +132,7 @@ describe("recover_ratchet_keys_from_history", () => {
     expect(store_vault_in_memory).not.toHaveBeenCalled();
   });
 
-  it("keeps a recovered identity when the prior key list is full", async () => {
+  it("keeps every prior key when history is unlimited", async () => {
     memory_vault = vault_with(
       "current",
       Array.from({ length: 32 }, (_, i) => `full-${i}`),
@@ -144,7 +144,10 @@ describe("recover_ratchet_keys_from_history", () => {
     );
 
     expect(publics?.[0]).toBe("lost-published");
-    expect(publics).toHaveLength(32);
+    expect(publics).toEqual(
+      expect.arrayContaining(Array.from({ length: 32 }, (_, i) => `full-${i}`)),
+    );
+    expect(publics?.length).toBeGreaterThan(32);
   });
 
   it("writes nothing when history holds no unknown identity", async () => {

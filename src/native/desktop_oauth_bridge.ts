@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { complete_oauth_authorize } from "@/services/api/external_accounts";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export const DESKTOP_OAUTH_RETURN_TO = "aster://oauth/callback";
 export const DESKTOP_OAUTH_CALLBACK_EVENT = "aster-oauth-callback";
@@ -75,7 +76,7 @@ function take_pending_state(state: string): boolean {
 }
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export function parse_oauth_callback_url(

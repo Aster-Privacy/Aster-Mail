@@ -39,8 +39,11 @@ import {
 import {
   VAULT_KDF_ITERATIONS_LEGACY,
   note_opened_vault_iterations,
+  note_vault_written,
   record_vault_kdf_iterations,
   vault_kdf_attempt_order,
+  write_vault_at_level,
+  type SealedVault,
   type VaultKdfIterations,
 } from "./vault_level2";
 
@@ -110,6 +113,7 @@ async function open_vault_bytes(
   vault_nonce: string,
   passphrase: Uint8Array,
   iterations_hint?: VaultKdfIterations,
+  own_vault = true,
 ): Promise<ArrayBuffer> {
   const combined = base64_to_array(encrypted_vault);
   const nonce = base64_to_array(vault_nonce);
@@ -134,7 +138,7 @@ async function open_vault_bytes(
       const decrypted = await open_vault_with_key(key, nonce, ciphertext);
 
       record_vault_kdf_iterations(encrypted_vault, iterations);
-      note_opened_vault_iterations(iterations);
+      if (own_vault) note_opened_vault_iterations(iterations);
 
       return decrypted;
     } catch (caught) {
@@ -190,6 +194,60 @@ export async function encrypt_vault(
   return {
     encrypted_vault,
     vault_nonce: array_to_base64(nonce),
+  };
+}
+
+export interface PreparedVaultWrite {
+  sealed: SealedVault;
+  iterations: VaultKdfIterations;
+  write<R extends { error?: unknown }>(
+    send: (
+      sealed: SealedVault,
+      field: { vault_kdf_iterations?: VaultKdfIterations },
+    ) => Promise<R>,
+  ): Promise<{
+    response: R;
+    sealed: SealedVault;
+    iterations: VaultKdfIterations;
+  }>;
+}
+
+export async function prepare_vault_write(
+  vault: EncryptedVault,
+  password: string,
+  first: VaultKdfIterations,
+  own_vault = true,
+): Promise<PreparedVaultWrite> {
+  const source: EncryptedVault = { ...vault };
+  const sealed = await encrypt_vault(source, password, first);
+
+  return {
+    sealed,
+    iterations: first,
+    write: async (send) => {
+      const written = await write_vault_at_level(
+        first,
+        async (iterations) =>
+          iterations === first
+            ? sealed
+            : encrypt_vault(source, password, iterations),
+        send,
+        own_vault,
+      );
+
+      if (written.response.error) return written;
+
+      if (own_vault) {
+        note_vault_written(written.sealed, written.iterations);
+      } else {
+        record_vault_kdf_iterations(
+          written.sealed.encrypted_vault,
+          written.iterations,
+        );
+      }
+
+      return written;
+    },
   };
 }
 
@@ -295,6 +353,7 @@ export async function decrypt_vault(
   vault_nonce: string,
   password: string,
   iterations_hint?: VaultKdfIterations,
+  own_vault = true,
 ): Promise<EncryptedVault> {
   const passphrase_bytes = new TextEncoder().encode(password);
   let decrypted: ArrayBuffer;
@@ -305,6 +364,7 @@ export async function decrypt_vault(
       vault_nonce,
       passphrase_bytes,
       iterations_hint,
+      own_vault,
     );
   } finally {
     zero_uint8_array(passphrase_bytes);

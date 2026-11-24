@@ -20,7 +20,7 @@
 //
 import type { EncryptedVault, RatchetKeySet } from "./key_manager_core";
 
-import { RATCHET_PREVIOUS_KEYS_LIMIT } from "./key_manager_core";
+import { cap_ratchet_history } from "./key_manager_core";
 
 export function current_ratchet_key_set(
   vault: EncryptedVault | null | undefined,
@@ -49,12 +49,23 @@ function key_set_id(set: {
   ratchet_identity_public?: string;
   ratchet_signed_prekey_public?: string;
   ratchet_pq_identity_public?: string;
+  ratchet_pq_identity_key?: string;
+  ratchet_pq_identity_seed?: string;
 }): string {
   return [
     set.ratchet_identity_public ?? "",
     set.ratchet_signed_prekey_public ?? "",
-    set.ratchet_pq_identity_public ?? "",
+    set.ratchet_identity_public
+      ? (set.ratchet_pq_identity_public ?? "")
+      : set.ratchet_pq_identity_public ||
+        set.ratchet_pq_identity_key ||
+        set.ratchet_pq_identity_seed ||
+        "",
   ].join("|");
+}
+
+function holds_pq_secret(set: RatchetKeySet): boolean {
+  return Boolean(set.ratchet_pq_identity_key || set.ratchet_pq_identity_seed);
 }
 
 function fill_missing_fields(
@@ -87,7 +98,8 @@ export function merge_ratchet_key_history(
   const by_id = new Map<string, RatchetKeySet>();
 
   for (const set of groups.flatMap((group) => group ?? [])) {
-    if (!set?.ratchet_identity_public) continue;
+    if (!set) continue;
+    if (!set.ratchet_identity_public && !holds_pq_secret(set)) continue;
 
     const id = key_set_id(set);
 
@@ -107,13 +119,13 @@ export function merge_ratchet_key_history(
       .map((set) => set.ratchet_identity_public),
   );
 
-  return merged
-    .filter(
+  return cap_ratchet_history(
+    merged.filter(
       (set) =>
         (set.ratchet_signed_prekey && set.ratchet_signed_prekey_public) ||
         !identities_with_prekey.has(set.ratchet_identity_public),
-    )
-    .slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
+    ),
+  );
 }
 
 export function retain_replaced_ratchet_keys(

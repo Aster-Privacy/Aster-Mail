@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "@/services/api/client";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const DEVICE_ID_STORAGE_KEY = "aster_push_device_id";
 const LAST_ENDPOINT_STORAGE_KEY = "aster_push_last_endpoint";
@@ -87,7 +88,7 @@ async function get_vapid_public_key(): Promise<string | null> {
 }
 
 function is_desktop_shell(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export function is_push_supported(): boolean {

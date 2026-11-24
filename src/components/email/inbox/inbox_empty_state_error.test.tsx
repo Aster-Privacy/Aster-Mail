@@ -111,4 +111,21 @@ describe("EmptyState load error variant", () => {
     expect(el.textContent).toContain("mail.empty_all_title");
     expect(el.textContent).not.toContain("errors.connection_failed");
   });
+
+  it("shows the address it is given under the empty Inbox", () => {
+    const el = render(
+      <EmptyState current_view="inbox" user_email="info@example.com" />,
+    );
+
+    expect(el.textContent).toContain("mail.empty_inbox_title");
+    expect(el.textContent).toContain("info@example.com");
+  });
+
+  it("shows no address outside the Inbox", () => {
+    const el = render(
+      <EmptyState current_view="sent" user_email="info@example.com" />,
+    );
+
+    expect(el.textContent).not.toContain("info@example.com");
+  });
 });

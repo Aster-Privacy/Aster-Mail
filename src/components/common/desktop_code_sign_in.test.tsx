@@ -28,6 +28,15 @@ const poll_device_code_status_mock = vi.fn();
 const complete_device_pairing_mock = vi.fn();
 const show_toast_mock = vi.fn();
 const open_external_mock = vi.fn();
+const prepare_pairing_mock = vi.fn();
+const adopt_pairing_mock = vi.fn();
+
+vi.mock("@/native/desktop_guard_keys", () => ({
+  prepare_pairing_action_pk: (...args: unknown[]) =>
+    prepare_pairing_mock(...args),
+  adopt_pairing_guard_device: (...args: unknown[]) =>
+    adopt_pairing_mock(...args),
+}));
 
 vi.mock("@/utils/open_link", () => ({
   open_external: (url: string) => open_external_mock(url),
@@ -51,10 +60,17 @@ vi.mock("framer-motion", async () => {
       div: ({
         children,
         className,
+        "data-testid": test_id,
       }: {
         children: React.ReactNode;
         className?: string;
-      }) => react.createElement("div", { className }, children),
+        "data-testid"?: string;
+      }) =>
+        react.createElement(
+          "div",
+          { className, "data-testid": test_id },
+          children,
+        ),
     },
   };
 });
@@ -141,6 +157,10 @@ describe("desktop code sign-in", () => {
     poll_device_code_status_mock.mockReset();
     complete_device_pairing_mock.mockReset();
     show_toast_mock.mockReset();
+    prepare_pairing_mock.mockReset();
+    adopt_pairing_mock.mockReset();
+    prepare_pairing_mock.mockResolvedValue(null);
+    adopt_pairing_mock.mockResolvedValue(true);
     invoke_mock.mockResolvedValue({
       ed25519_pk: "pk",
       mlkem_pk: "mpk",
@@ -435,5 +455,92 @@ describe("desktop code sign-in", () => {
     expect(localStorage.getItem("aster_device_link_codes")).not.toContain(
       "GONE-CODE",
     );
+  });
+
+  it("shows a verification code that covers the action key it sent", async () => {
+    const encode = (length: number, value: number) =>
+      btoa(String.fromCharCode(...new Uint8Array(length).fill(value)))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+
+    invoke_mock.mockResolvedValue({
+      ed25519_pk: encode(32, 1),
+      mlkem_pk: encode(1184, 2),
+      x25519_pk: encode(32, 3),
+      machine_name: "desk",
+      device_id: null,
+    });
+    prepare_pairing_mock.mockResolvedValue(encode(33, 4));
+
+    await render_sign_in();
+
+    expect(
+      container!.querySelector('[data-testid="device_fingerprint"]')
+        ?.textContent,
+    ).toContain("66ED 3B45 08A0 8B87 6C46");
+    expect(localStorage.getItem("aster_device_link_codes")).toContain(
+      encode(33, 4),
+    );
+  });
+
+  it("sends the action key with a new code request", async () => {
+    prepare_pairing_mock.mockResolvedValue("action-pk");
+
+    await render_sign_in();
+
+    expect(request_device_code_mock).toHaveBeenCalledWith(
+      expect.objectContaining({ ed25519_pk: "pk", action_pk: "action-pk" }),
+    );
+  });
+
+  it("requests a code without an action key when none is ready", async () => {
+    await render_sign_in();
+
+    expect(request_device_code_mock.mock.calls[0][0]).not.toHaveProperty(
+      "action_pk",
+    );
+  });
+
+  it("waits for an approved device to turn on, then signs in", async () => {
+    let calls = 0;
+
+    poll_device_code_status_mock.mockImplementation(async () => {
+      calls += 1;
+      if (calls === 1) {
+        return {
+          status: "activation_pending",
+          activates_at: "2026-11-16T10:00:00Z",
+        };
+      }
+      if (calls === 2) return { status: "activation_pending" };
+
+      return { status: "confirmed", device_id: "dev-1", sealed_envelope: "env" };
+    });
+    complete_device_pairing_mock.mockResolvedValue({
+      login_response: { user_id: "u-1" },
+      passphrase: "pass",
+      device_id: "dev-1",
+      error: null,
+    });
+
+    await render_sign_in();
+    await advance(3_000);
+
+    expect(calls).toBe(1);
+    expect(
+      container!.querySelector('[data-testid="device_activation_pending"]'),
+    ).not.toBeNull();
+    expect(container!.textContent).toContain("guard.mail_app_activates_at");
+
+    await advance(30_000);
+    expect(calls).toBe(2);
+    expect(complete_device_pairing_mock).not.toHaveBeenCalled();
+    expect(container!.textContent).not.toContain("auth.device_code_expired");
+
+    await advance(600_000);
+    expect(calls).toBe(3);
+    expect(complete_device_pairing_mock).toHaveBeenCalledWith("dev-1", "env");
+    expect(adopt_pairing_mock).toHaveBeenCalledWith("pk", "u-1", "dev-1");
   });
 });

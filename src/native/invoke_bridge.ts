@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
+
 declare global {
   interface Window {
     aster?: {
@@ -30,11 +32,7 @@ declare global {
 export function is_desktop(): boolean {
   if (typeof window === "undefined") return false;
 
-  return (
-    window.aster?.is_desktop === true ||
-    "__TAURI_INTERNALS__" in window ||
-    "__TAURI__" in window
-  );
+  return window.aster?.is_desktop === true || has_tauri_runtime();
 }
 
 export async function invoke<T>(

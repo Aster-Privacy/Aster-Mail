@@ -95,6 +95,7 @@ export interface YearlyOffer {
   plan_code: string;
   plan_name: string;
   is_family: boolean;
+  yearly_cents: number;
   yearly_monthly_cents: number;
   saving_cents: number;
 }
@@ -119,6 +120,7 @@ export function get_yearly_offer(
     plan_code: tier.id,
     plan_name: tier.name,
     is_family: !!family_tier,
+    yearly_cents: tier.yearly_cents,
     yearly_monthly_cents: Math.round(tier.yearly_cents / 12),
     saving_cents,
   };
@@ -156,6 +158,7 @@ function yearly_offer_for(
 
   return {
     ...offer,
+    yearly_cents: server_offer.yearly_price_cents,
     yearly_monthly_cents: Math.round(server_offer.yearly_price_cents / 12),
     saving_cents: server_offer.saving_cents,
   };
@@ -181,4 +184,38 @@ export function get_cancel_offers(
       ? null
       : yearly_offer_for(subscription, interval),
   };
+}
+
+export const SAVE_OFFER_REASONS: readonly string[] = [
+  "too_expensive",
+  "just_testing",
+];
+
+export interface SaveOffer {
+  percent_off: number;
+  months: number;
+}
+
+export function get_save_offer_for(
+  reason: string | null | undefined,
+  status:
+    | {
+        eligible: boolean;
+        percent_off?: number;
+        months?: number;
+      }
+    | null
+    | undefined,
+): SaveOffer | null {
+  if (!reason || !SAVE_OFFER_REASONS.includes(reason)) return null;
+  if (!status?.eligible) return null;
+
+  const percent_off = status.percent_off ?? 0;
+  const months = status.months ?? 0;
+
+  if (!Number.isInteger(percent_off) || percent_off < 1 || percent_off > 100)
+    return null;
+  if (!Number.isInteger(months) || months < 1 || months > 12) return null;
+
+  return { percent_off, months };
 }

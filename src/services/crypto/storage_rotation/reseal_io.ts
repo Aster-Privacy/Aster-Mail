@@ -49,6 +49,7 @@ export interface ResealProgress {
   key_id: string;
   steps: Record<string, StepProgress>;
   hash_moves: HashMove[];
+  held_rows?: number;
 }
 
 export interface ProgressStore {
@@ -61,6 +62,7 @@ export interface StepCounts {
   resealed: number;
   current: number;
   unreadable: number;
+  quarantined: number;
   conflicts: number;
   rejected: number;
   deleted: number;
@@ -98,6 +100,7 @@ export function empty_counts(): StepCounts {
     resealed: 0,
     current: 0,
     unreadable: 0,
+    quarantined: 0,
     conflicts: 0,
     rejected: 0,
     deleted: 0,

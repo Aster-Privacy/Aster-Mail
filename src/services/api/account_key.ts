@@ -84,7 +84,11 @@ export interface AccountKeyCapabilities {
   key_escrow: boolean;
   external_pgp_keys: boolean;
   bound_vault_writes: boolean;
-  bound_attachment_writes: boolean;
+  split_attachment_copies: boolean;
+  bound_envelope_writes: boolean;
+  bound_prekey_writes: boolean;
+  bound_escrow_writes: boolean;
+  sealed_passkey_names: boolean;
 }
 
 const CAPABILITIES_TTL_MS = 5 * 60 * 1000;
@@ -95,7 +99,11 @@ const CAPABILITIES_DISABLED: AccountKeyCapabilities = {
   key_escrow: false,
   external_pgp_keys: false,
   bound_vault_writes: false,
-  bound_attachment_writes: false,
+  split_attachment_copies: false,
+  bound_envelope_writes: false,
+  bound_prekey_writes: false,
+  bound_escrow_writes: false,
+  sealed_passkey_names: false,
 };
 
 let capabilities_cache: {
@@ -136,7 +144,11 @@ export async function get_account_key_capabilities(): Promise<AccountKeyCapabili
       key_escrow?: unknown;
       external_pgp_keys?: unknown;
       bound_vault_writes?: unknown;
-      bound_attachment_writes?: unknown;
+      split_attachment_copies?: unknown;
+      bound_envelope_writes?: unknown;
+      bound_prekey_writes?: unknown;
+      bound_escrow_writes?: unknown;
+      sealed_passkey_names?: unknown;
     }>("/crypto/v1/keys/account-key/capabilities");
     const format_writes =
       !response.error && response.data?.format_writes === true;
@@ -150,8 +162,16 @@ export async function get_account_key_capabilities(): Promise<AccountKeyCapabili
         !response.error && response.data?.external_pgp_keys === true,
       bound_vault_writes:
         !response.error && response.data?.bound_vault_writes === true,
-      bound_attachment_writes:
-        !response.error && response.data?.bound_attachment_writes === true,
+      split_attachment_copies:
+        !response.error && response.data?.split_attachment_copies === true,
+      bound_envelope_writes:
+        !response.error && response.data?.bound_envelope_writes === true,
+      bound_prekey_writes:
+        !response.error && response.data?.bound_prekey_writes === true,
+      bound_escrow_writes:
+        !response.error && response.data?.bound_escrow_writes === true,
+      sealed_passkey_names:
+        !response.error && response.data?.sealed_passkey_names === true,
     };
 
     capabilities_cache = { value, fetched_at: Date.now() };

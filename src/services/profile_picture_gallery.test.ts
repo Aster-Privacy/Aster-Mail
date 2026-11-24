@@ -118,9 +118,13 @@ describe("gallery_thumb_url", () => {
 });
 
 describe("gallery_full_url", () => {
-  it("points at the full size image for a slug", () => {
-    expect(gallery_full_url("aurora_01")).toBe(
-      "https://aster-wallpapers.pages.dev/full/aurora_01.webp",
+  it("serves the full size image from the app origin", () => {
+    expect(gallery_full_url("aurora_01")).toBe("/gallery/full/aurora_01.webp");
+  });
+
+  it("serves the thumbnail from the app origin", () => {
+    expect(gallery_thumb_url("aurora_01")).toBe(
+      "/gallery/thumb/aurora_01.webp",
     );
   });
 });
@@ -160,7 +164,7 @@ describe("gallery requests on a routed connection", () => {
     expect(file.name).toBe("aurora_01.webp");
     expect(fetch_mock).toHaveBeenCalledTimes(1);
     expect(fetch_mock).toHaveBeenCalledWith(
-      "https://aster-wallpapers.pages.dev/full/aurora_01.webp",
+      "/gallery/full/aurora_01.webp",
       expect.objectContaining({
         credentials: "omit",
         referrerPolicy: "no-referrer",

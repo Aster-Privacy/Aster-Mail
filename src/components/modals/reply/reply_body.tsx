@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { MailPriority } from "@/services/mail_priority";
 import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
@@ -38,6 +39,7 @@ import {
   ReplyFromMismatchModal,
   type ReplyFromMismatchState,
 } from "@/components/modals/reply_from_mismatch_modal";
+import { ReplyFromMismatchBanner } from "@/components/modals/reply/reply_from_mismatch_banner";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
 import { TemplatePicker } from "@/components/compose/template_picker";
@@ -98,6 +100,8 @@ interface ReplyBodyProps {
   handle_delete_draft: () => void;
   is_plain_text_mode: boolean;
   toggle_plain_text_mode: () => void;
+  priority?: MailPriority;
+  set_priority?: (priority: MailPriority) => void;
   handle_template_select: (content: string) => void;
   is_mac: boolean;
   from_mismatch?: ReplyFromMismatchState;
@@ -151,6 +155,8 @@ export function ReplyBody({
   handle_delete_draft,
   is_plain_text_mode,
   toggle_plain_text_mode,
+  priority,
+  set_priority,
   handle_template_select,
   is_mac,
   from_mismatch,
@@ -172,6 +178,18 @@ export function ReplyBody({
     <>
       {!is_minimized && (
         <div className="flex-1 flex flex-col min-h-0">
+          {from_mismatch && (
+            <ReplyFromMismatchBanner
+              can_use_received={from_mismatch.can_use_received}
+              on_dismiss={from_mismatch.on_banner_dismiss ?? (() => {})}
+              on_use_received={
+                from_mismatch.on_banner_use_received ?? (() => {})
+              }
+              received={from_mismatch.received}
+              selected={from_mismatch.selected}
+              visible={!!from_mismatch.banner_visible}
+            />
+          )}
           <div className="flex-1 px-4 pt-2 pb-2 overflow-hidden flex flex-col min-h-0">
             <div className="flex-1 overflow-auto">
               <div
@@ -425,6 +443,8 @@ export function ReplyBody({
             editor,
             is_plain_text_mode,
             toggle_plain_text_mode,
+            priority,
+            set_priority,
           }}
           extra_toolbar_items={
             <SignaturePicker

@@ -21,6 +21,7 @@
 
 import type { use_billing_section } from "./use_billing_section";
 
+import { button_variants } from "@aster/ui";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { clamp_password } from "@/services/sanitize";
@@ -45,13 +46,21 @@ import {
 } from "@/components/ui/alert_dialog";
 import { CancelReasonStep } from "@/components/settings/billing/cancel_reason_step";
 import {
-  CancelImpactStep,
+  CancelImpactList,
   type CancelStep,
 } from "@/components/settings/billing/cancel_impact_step";
-import { get_cancel_offers } from "@/components/settings/billing/cancel_offer";
+import {
+  get_cancel_offers,
+  get_save_offer_for,
+} from "@/components/settings/billing/cancel_offer";
 import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
+import { CancelSaveOfferStep } from "@/components/settings/billing/cancel_save_offer_step";
 import { CancelPauseStep } from "@/components/settings/billing/cancel_pause_step";
-import { CancelEarlyStep } from "@/components/settings/billing/cancel_early_step";
+import {
+  has_retention_options,
+  retention_step_for,
+  step_before_confirm,
+} from "@/components/settings/billing/cancel_flow";
 import { show_toast } from "@/components/toast/simple_toast";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
@@ -81,14 +90,18 @@ export function render_billing_dialogs(
     set_cancel_reason,
     cancel_reason_text,
     set_cancel_reason_text,
-    cancel_step,
+    cancel_step: requested_cancel_step,
     set_cancel_step,
+    confirm_came_from,
+    set_confirm_came_from,
     is_verifying_password,
     cancel_impact,
     is_impact_loading,
     cancel_effective_date,
     pause_status,
     handle_pause,
+    save_offer_status,
+    handle_accept_save_offer,
     handle_password_continue,
     show_payment_methods,
     set_show_payment_methods,
@@ -132,7 +145,6 @@ export function render_billing_dialogs(
     addon_to_cancel,
     set_addon_to_cancel,
     handle_cancel_addon,
-    handle_cancel,
     handle_pay_with_card,
     handle_confirm_plan_change,
     crypto_term_prices_for,
@@ -157,12 +169,22 @@ export function render_billing_dialogs(
   const can_pause =
     !!pause_status?.eligible && pause_status.status === "none";
   const is_paused = pause_status?.status === "paused";
-  const step_after_offer: CancelStep = can_pause ? "pause" : "impact";
-  const step_after_reason: CancelStep =
-    downgrade_offer || yearly_offer ? "offer" : step_after_offer;
-  const step_before_impact: CancelStep = can_pause
-    ? "pause"
-    : step_after_reason;
+  const save_offer = get_save_offer_for(cancel_reason, save_offer_status);
+  const has_offer = !!(downgrade_offer || yearly_offer);
+  const flow_options = {
+    has_save_offer: !!save_offer,
+    has_plan_offer: has_offer,
+    can_pause,
+  };
+  const retention_step = retention_step_for(flow_options);
+  const go_to_confirm = (from: CancelStep) => {
+    set_confirm_came_from(from);
+    set_cancel_step("password");
+  };
+  const cancel_step: CancelStep =
+    requested_cancel_step === "save" && !save_offer
+      ? "password"
+      : requested_cancel_step;
   const offer_key = yearly_offer
     ? downgrade_offer
       ? "both"
@@ -196,10 +218,10 @@ export function render_billing_dialogs(
         <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[520px]">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {cancel_step === "early"
-                ? t("settings.cancel_early_title")
-                : cancel_step === "reason"
+              {cancel_step === "reason"
                   ? t("settings.cancel_reason_title")
+                  : cancel_step === "save"
+                    ? t("settings.save_offer_title")
                   : cancel_step === "offer"
                     ? offer_key === "both"
                       ? t("settings.cancel_offer_both_title")
@@ -208,17 +230,13 @@ export function render_billing_dialogs(
                         : t("settings.cancel_offer_title")
                     : cancel_step === "pause"
                       ? t("settings.pause_offer_title")
-                      : cancel_step === "impact"
-                      ? t("settings.cancel_impact_title")
-                      : cancel_step === "confirm"
-                        ? t("settings.cancel_final_title")
-                        : t("settings.cancel_confirm_title")}
+                      : t("settings.cancel_final_title")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {cancel_step === "early"
-                ? t("settings.cancel_early_description")
-                : cancel_step === "reason"
+              {cancel_step === "reason"
                   ? t("settings.cancel_reason_description")
+                  : cancel_step === "save"
+                    ? t("settings.save_offer_description")
                   : cancel_step === "offer"
                     ? offer_key === "both"
                       ? t("settings.cancel_offer_both_description")
@@ -227,18 +245,9 @@ export function render_billing_dialogs(
                         : t("settings.cancel_offer_description")
                     : cancel_step === "pause"
                       ? t("settings.pause_offer_description")
-                      : is_paused &&
-                          (cancel_step === "impact" ||
-                            cancel_step === "confirm")
+                      : is_paused && cancel_step === "password"
                         ? t("settings.pause_cancel_note")
-                        : cancel_step === "impact"
-                      ? cancel_effective_date
-                        ? t("settings.cancel_impact_description", {
-                            date: cancel_effective_date,
-                          })
-                        : t("settings.cancel_impact_description_nodate")
-                      : cancel_step === "confirm"
-                        ? cancel_effective_date
+                        : cancel_effective_date
                           ? t("settings.cancel_final_description", {
                               date: cancel_effective_date,
                               plan:
@@ -251,33 +260,42 @@ export function render_billing_dialogs(
                                 cancel_impact?.plan_name ??
                                 subscription?.plan.name ??
                                 "",
-                            })
-                        : t("settings.cancel_confirm_description")}
+                            })}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {cancel_step === "early" ? (
-            <CancelEarlyStep
-              keep_plan_slot={
-                <AlertDialogCancel className="mt-0">
-                  {t("settings.keep_plan")}
-                </AlertDialogCancel>
-              }
-              on_continue={() => set_cancel_step("reason")}
-            />
-          ) : cancel_step === "reason" ? (
+          {cancel_step === "reason" ? (
             <CancelReasonStep
               keep_plan_slot={
                 <AlertDialogCancel className="mt-0">
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
               }
-              on_continue={() => set_cancel_step(step_after_reason)}
+              on_cancel={() => go_to_confirm("reason")}
+              on_see_options={
+                has_retention_options(flow_options) && retention_step
+                  ? () => set_cancel_step(retention_step)
+                  : undefined
+              }
               reason={cancel_reason}
               reason_text={cancel_reason_text}
               set_reason={set_cancel_reason}
               set_reason_text={set_cancel_reason_text}
             />
-          ) : cancel_step === "offer" && (downgrade_offer || yearly_offer) ? (
+          ) : cancel_step === "save" && save_offer ? (
+            <CancelSaveOfferStep
+              is_busy={is_action_loading}
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              offer={save_offer}
+              plan_name={subscription?.plan.name ?? ""}
+              on_accept={handle_accept_save_offer}
+              on_back={() => set_cancel_step("reason")}
+              on_cancel={() => go_to_confirm(cancel_step)}
+            />
+          ) : cancel_step === "offer" && has_offer ? (
             <CancelOfferStep
               is_busy={is_action_loading}
               keep_plan_slot={
@@ -287,7 +305,7 @@ export function render_billing_dialogs(
               }
               offer={downgrade_offer}
               on_back={() => set_cancel_step("reason")}
-              on_continue={() => set_cancel_step(step_after_offer)}
+              on_cancel={() => go_to_confirm(cancel_step)}
               on_switch={() => {
                 if (!downgrade_offer) return;
                 open_plan_change(
@@ -319,45 +337,16 @@ export function render_billing_dialogs(
               plan_name={
                 pause_status?.plan_name ?? subscription?.plan.name ?? ""
               }
-              on_back={() =>
-                set_cancel_step(
-                  downgrade_offer || yearly_offer ? "offer" : "reason",
-                )
-              }
-              on_continue={() => set_cancel_step("impact")}
+              on_back={() => set_cancel_step("reason")}
+              on_cancel={() => go_to_confirm(cancel_step)}
               on_pause={handle_pause}
             />
-          ) : cancel_step === "impact" ? (
-            <CancelImpactStep
-              impact={cancel_impact}
-              is_loading={is_impact_loading}
-              keep_plan_slot={
-                <AlertDialogCancel className="mt-0">
-                  {t("settings.keep_plan")}
-                </AlertDialogCancel>
-              }
-              on_back={() => set_cancel_step(step_before_impact)}
-              on_continue={() => set_cancel_step("password")}
-            />
-          ) : cancel_step === "confirm" ? (
-            <AlertDialogFooter className="flex-row gap-3">
-              <AlertDialogCancel className="flex-1">
-                {t("settings.keep_plan")}
-              </AlertDialogCancel>
-              <AlertDialogAction
-                className="aster_btn_destructive flex-1"
-                disabled={is_action_loading}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handle_cancel();
-                }}
-              >
-                {t("settings.cancel_final_confirm")}
-                {is_action_loading && <ButtonSpinner />}
-              </AlertDialogAction>
-            </AlertDialogFooter>
           ) : (
             <>
+              <CancelImpactList
+                impact={cancel_impact}
+                is_loading={is_impact_loading}
+              />
               <div className="py-2">
                 <label className="block text-sm font-medium text-txt-secondary mb-2">
                   {t("settings.cancel_enter_password")}
@@ -444,11 +433,23 @@ export function render_billing_dialogs(
                 <AlertDialogCancel className="flex-1">
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
+                <button
+                  className={`${button_variants({ variant: "ghost" })} flex-1`}
+                  type="button"
+                  onClick={() =>
+                    set_cancel_step(
+                      step_before_confirm(flow_options, confirm_came_from),
+                    )
+                  }
+                >
+                  {t("common.back")}
+                </button>
                 <AlertDialogAction
-                  className="flex-1"
+                  className="aster_btn_destructive flex-1"
                   disabled={
                     !cancel_password.trim() ||
                     is_verifying_password ||
+                    is_action_loading ||
                     (cancel_totp_required && cancel_totp_code.length !== 6)
                   }
                   onClick={(e) => {
@@ -457,8 +458,10 @@ export function render_billing_dialogs(
                   }}
                 >
                   <>
-                    {is_verifying_password && <ButtonSpinner size="xs" />}
-                    {t("settings.cancel_reason_continue")}
+                    {(is_verifying_password || is_action_loading) && (
+                      <ButtonSpinner size="xs" />
+                    )}
+                    {t("settings.cancel_final_confirm")}
                   </>
                 </AlertDialogAction>
               </AlertDialogFooter>

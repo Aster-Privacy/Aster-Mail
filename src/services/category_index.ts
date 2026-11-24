@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { EmailCategory } from "@/types/email";
+import type { DecryptedEnvelope, EmailCategory } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { PreviousCategoryState } from "@/services/crypto/mail_metadata_core";
 
@@ -42,14 +42,21 @@ import { background_page_size } from "@/services/api/client/request_priority";
 import {
   decrypt_mail_metadata,
   update_item_metadata,
+  write_items_metadata,
 } from "@/services/crypto/mail_metadata";
 import {
   classify,
   CATEGORY_TABS,
   CLASSIFIER_VERSION,
-  is_locked_to_primary,
   set_active_custom_categories,
+  set_active_learned_senders,
 } from "@/services/mail_categorizer";
+import {
+  is_learning_blocked,
+  is_primary_locked_sender,
+  type LearnGateSource,
+} from "@/services/learned_sender_gate";
+import { subscribe_learned_senders } from "@/services/learned_category_senders";
 import {
   BUILTIN_CATEGORY_IDS,
   builtin_category_def,
@@ -59,6 +66,7 @@ import {
   type CustomCategoryRule,
 } from "@/data/category_catalog";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
+import { is_ratchet_body_text } from "@/services/crypto/ratchet_types";
 import {
   emit_mail_item_updated,
   on_mail_event,
@@ -94,6 +102,7 @@ const BUILD_CAP = 50000;
 const MAX_ENTRIES = 60000;
 const CAP_TARGET = 50000;
 const PERSIST_DEBOUNCE_MS = 1500;
+const BUILD_PERSIST_INTERVAL_MS = 10_000;
 const NOTIFY_THROTTLE_MS = 350;
 const BUILD_NOTIFY_THROTTLE_MS = 2500;
 const RESYNC_DEBOUNCE_MS = 4000;
@@ -112,6 +121,8 @@ const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // instead of deferring forever to a dead `build_in_progress` latch.
 const BUILD_STALE_MS = 90000;
 const BUILD_FETCH_DEADLINE_MS = 75000;
+const BUILD_RESUME_BASE_DELAY_MS = 5000;
+const BUILD_RESUME_MAX_DELAY_MS = 120000;
 const OPEN_DB_DEADLINE_MS = 10000;
 const MAX_NEW_HEADS = 3;
 
@@ -126,6 +137,9 @@ export interface CategoryIndexEntry {
   snoozed_until?: string;
   needs_reclassify?: boolean;
   source?: string;
+  sender_key?: string;
+  learned?: string;
+  system_locked?: boolean;
 }
 
 export interface CategoryCount {
@@ -153,6 +167,24 @@ interface PersistedMeta {
   classifier_version?: number;
   entry_schema?: number;
   seen_ts?: Record<string, number>;
+  build_checkpoint?: BuildCheckpoint;
+}
+
+interface BuildCheckpoint {
+  cursor: string;
+  processed: number;
+}
+
+function parse_build_checkpoint(value: unknown): BuildCheckpoint | null {
+  if (!value || typeof value !== "object") return null;
+  const { cursor, processed } = value as Record<string, unknown>;
+
+  if (typeof cursor !== "string" || cursor.length === 0) return null;
+  if (typeof processed !== "number" || !Number.isFinite(processed)) {
+    return null;
+  }
+
+  return { cursor, processed: Math.max(0, Math.floor(processed)) };
 }
 
 const PERSIST_CHUNK_COUNT = 32;
@@ -180,6 +212,10 @@ function chunk_record_key(account_key: string, index: number): string {
 }
 
 function preview_record_key(account_key: string): string {
+  return `${account_key}:previews_v2`;
+}
+
+function legacy_preview_record_key(account_key: string): string {
   return `${account_key}:previews`;
 }
 
@@ -197,6 +233,7 @@ let active_account_id: string | null = null;
 let index_generation = 0;
 let entries_map: Map<string, CategoryIndexEntry> = new Map();
 let fully_built = false;
+let serving_previous_build = false;
 let session_reconciled = false;
 let last_build_ms = 0;
 let seen_ts: Record<string, number> = {};
@@ -207,6 +244,11 @@ let build_progress_ms = 0;
 let build_processed = 0;
 let build_token = 0;
 let build_owner_token = 0;
+let build_resume: BuildResumePoint | null = null;
+let build_resume_timer: ReturnType<typeof setTimeout> | null = null;
+let build_resume_failures = 0;
+let build_checkpoint: BuildCheckpoint | null = null;
+let resync_skip_throttle = false;
 let arrival_baseline_token = -1;
 let version = 0;
 let sort_order: "asc" | "desc" = "desc";
@@ -239,6 +281,44 @@ let custom_categories: CustomCategoryRule[] = [];
 let custom_categories_hash = hash_text("[]");
 let built_custom_categories_key: string | null = null;
 let full_builds_completed = 0;
+
+interface BuildResumePoint {
+  cursor: string;
+  processed: number;
+  seen: Set<string>;
+  prebuild_ids: Set<string>;
+  generation: number;
+}
+
+function cancel_build_resume(): void {
+  if (build_resume_timer) {
+    clearTimeout(build_resume_timer);
+    build_resume_timer = null;
+  }
+  build_resume = null;
+}
+
+function reset_build_resume(): void {
+  cancel_build_resume();
+  build_resume_failures = 0;
+}
+
+function schedule_build_resume(point: BuildResumePoint): void {
+  build_resume = point;
+  if (build_resume_timer) clearTimeout(build_resume_timer);
+
+  const delay = Math.min(
+    BUILD_RESUME_BASE_DELAY_MS * 2 ** build_resume_failures,
+    BUILD_RESUME_MAX_DELAY_MS,
+  );
+
+  build_resume_failures += 1;
+  build_resume_timer = setTimeout(() => {
+    build_resume_timer = null;
+    if (fully_built || !build_resume) return;
+    void build_index();
+  }, delay);
+}
 
 export function set_active_tabs(tabs: string[]): void {
   const next = tabs.includes("primary") ? tabs : ["primary", ...tabs];
@@ -513,6 +593,17 @@ export function flush_pending_notify(): void {
 const MAX_PERSIST_RETRIES = 3;
 
 function schedule_persist(): void {
+  if (build_in_progress) {
+    if (persist_timer) return;
+
+    persist_timer = setTimeout(() => {
+      persist_timer = null;
+      void persist_now();
+    }, BUILD_PERSIST_INTERVAL_MS);
+
+    return;
+  }
+
   if (persist_timer) {
     clearTimeout(persist_timer);
   }
@@ -566,6 +657,7 @@ async function persist_now(): Promise<void> {
       classifier_version: CLASSIFIER_VERSION,
       entry_schema: ENTRY_SCHEMA_VERSION,
       seen_ts,
+      ...(build_checkpoint && !fully_built ? { build_checkpoint } : {}),
     };
     const encrypted_meta = await secure_encrypt(JSON.stringify(meta));
     const writing_previews = previews_dirty;
@@ -790,6 +882,9 @@ async function load_from_disk(
 
     last_build_ms =
       typeof payload.built_at_ms === "number" ? payload.built_at_ms : 0;
+    build_checkpoint = fully_built
+      ? null
+      : parse_build_checkpoint(payload.build_checkpoint);
     seen_ts = clean_seen_map(payload.seen_ts);
   } catch {
     return;
@@ -827,7 +922,9 @@ async function ensure_loaded(): Promise<boolean> {
       entries_map = new Map();
       dirty_chunks.clear();
       fully_built = false;
+      serving_previous_build = false;
       last_build_ms = 0;
+      build_checkpoint = null;
 
       // Stamps recorded before hydration (the boot-time mark_category_seen)
       // must survive the disk load, or already-viewed tabs flash "new" again.
@@ -854,6 +951,7 @@ async function ensure_loaded(): Promise<boolean> {
       loaded_for_account = account_id;
       schedule_persist();
       notify();
+      refresh_learned_entries();
 
       return true;
     } finally {
@@ -880,6 +978,15 @@ function apply_upsert(
     if (!existing && is_recently_removed(raw.id)) continue;
 
     let entry = raw;
+
+    if (existing?.sender_key && entry.sender_key === undefined) {
+      entry = {
+        ...entry,
+        sender_key: existing.sender_key,
+        learned: existing.learned,
+      };
+    }
+
     const intended =
       get_read_intent(raw.id, fetched_at, raw.is_read) ??
       (scope_read_applies(raw.message_ts, fetched_at) ? true : undefined);
@@ -888,7 +995,13 @@ function apply_upsert(
       entry = { ...entry, is_read: intended };
     }
 
-    const pinned_category = pinned_category_for(raw.id);
+    if (!entry.system_locked && existing?.system_locked) {
+      entry = { ...entry, system_locked: true };
+    }
+
+    const pinned_category = entry.system_locked
+      ? null
+      : pinned_category_for(raw.id);
 
     if (pinned_category && entry.category !== pinned_category) {
       entry = {
@@ -897,6 +1010,13 @@ function apply_upsert(
         category_pinned: true,
         source: undefined,
       };
+    }
+
+    if (
+      entry.system_locked &&
+      (entry.category !== "primary" || entry.category_pinned)
+    ) {
+      entry = { ...entry, category: "primary", category_pinned: false };
     }
 
     if (
@@ -910,7 +1030,10 @@ function apply_upsert(
       (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "") ||
       (existing.needs_reclassify ?? false) !==
         (entry.needs_reclassify ?? false) ||
-      existing.source !== entry.source
+      existing.source !== entry.source ||
+      existing.sender_key !== entry.sender_key ||
+      existing.learned !== entry.learned ||
+      (existing.system_locked ?? false) !== (entry.system_locked ?? false)
     ) {
       entries_map.set(entry.id, entry);
       mark_dirty(entry.id);
@@ -1008,6 +1131,15 @@ function remember_entry_preview(id: string, preview: CategoryPreview): void {
   ) {
     return;
   }
+
+  preview_version += 1;
+  previews_dirty = true;
+  schedule_persist();
+  notify_soon(!build_in_progress);
+}
+
+function forget_entry_preview(id: string): void {
+  if (!entry_previews.delete(id)) return;
 
   preview_version += 1;
   previews_dirty = true;
@@ -1302,6 +1434,7 @@ function compute_derived(): DerivedData {
       any_unread: boolean;
       pinned_category?: EmailCategory;
       pinned_ts: number;
+      system_locked: boolean;
     }
   >();
   const derive_wall = now_ms();
@@ -1332,12 +1465,15 @@ function compute_derived(): DerivedData {
         any_unread: !entry.is_read,
         pinned_category: entry.category_pinned ? entry.category : undefined,
         pinned_ts: entry.category_pinned ? ts : 0,
+        system_locked: entry.system_locked === true,
       });
 
       continue;
     }
 
     current.any_unread = current.any_unread || !entry.is_read;
+    current.system_locked =
+      current.system_locked || entry.system_locked === true;
     if (entry.category_pinned && ts >= current.pinned_ts) {
       current.pinned_category = entry.category;
       current.pinned_ts = ts;
@@ -1365,7 +1501,9 @@ function compute_derived(): DerivedData {
   }
 
   for (const [key, rep] of best) {
-    const tab = fold_category(rep.pinned_category ?? rep.entry.category);
+    const tab = rep.system_locked
+      ? "primary"
+      : fold_category(rep.pinned_category ?? rep.entry.category);
     const bucket = counts[tab];
     const list = grouped.get(tab);
 
@@ -1863,6 +2001,10 @@ export function are_counts_partial(): boolean {
   return build_in_progress && last_build_ms === 0;
 }
 
+export function is_serving_previous_build(): boolean {
+  return serving_previous_build && entries_map.size > 0;
+}
+
 export function is_index_settled(): boolean {
   if (!fully_built || build_in_progress) return false;
 
@@ -1999,6 +2141,7 @@ interface DecodedItem {
   key: string;
   custom_categories: CustomCategoryRule[];
   entry: CategoryIndexEntry;
+  sealed_body: boolean;
 }
 
 const decoded_items = new Map<string, DecodedItem>();
@@ -2021,6 +2164,7 @@ function remember_decoded_item(
   item: MailItem,
   entry: CategoryIndexEntry,
   rules: CustomCategoryRule[],
+  sealed_body: boolean,
 ): void {
   decoded_items.delete(item.id);
   decoded_items.set(item.id, {
@@ -2028,6 +2172,7 @@ function remember_decoded_item(
     key: decoded_item_key(item),
     custom_categories: rules,
     entry,
+    sealed_body,
   });
 
   while (decoded_items.size > MAX_DECODED_ITEMS) {
@@ -2065,13 +2210,16 @@ function reuse_decoded_item(item: MailItem): CategoryIndexEntry | null {
   const existing = entries_map.get(item.id);
   const preview = entry_previews.get(item.id);
 
-  if (!decoded || !existing || !preview) return null;
+  if (!decoded || !existing) return null;
+  if (!preview && !decoded.sealed_body) return null;
   if (existing.needs_reclassify) return null;
   if (decoded.custom_categories !== custom_categories) return null;
   if (decoded.envelope !== item.encrypted_envelope) return null;
   if (decoded.key !== decoded_item_key(item)) return null;
+  if (learned_is_stale(existing)) return null;
 
-  remember_entry_preview(item.id, preview);
+  if (decoded.sealed_body) forget_entry_preview(item.id);
+  else if (preview) remember_entry_preview(item.id, preview);
 
   return refresh_item_fields(decoded.entry, item);
 }
@@ -2117,6 +2265,138 @@ function item_source(item: MailItem, rules_hash: string): string {
   );
 }
 
+let learned_by_key = new Map<string, string>();
+let learned_by_email = new Map<string, string>();
+let learned_known = false;
+
+function learned_sender_key(email: string): string {
+  return hash_text(email.trim().toLowerCase());
+}
+
+function learned_gate_source(
+  envelope: DecryptedEnvelope,
+  item: MailItem,
+): LearnGateSource {
+  return {
+    ...item,
+    sender_verification: envelope.sender_verification,
+  };
+}
+
+function learned_senders_for(
+  envelope: DecryptedEnvelope,
+  item: MailItem,
+): ReadonlyMap<string, string> {
+  if (learned_known) return learned_by_email;
+
+  const email = (envelope.from?.email || "").trim().toLowerCase();
+  const existing = entries_map.get(item.id);
+
+  if (
+    !email ||
+    !existing?.learned ||
+    existing.sender_key !== learned_sender_key(email)
+  ) {
+    return new Map();
+  }
+
+  return new Map([[email, existing.learned]]);
+}
+
+function learned_fields_for(
+  envelope: DecryptedEnvelope,
+  item: MailItem,
+  learned_senders: ReadonlyMap<string, string>,
+): Pick<CategoryIndexEntry, "sender_key" | "learned"> {
+  const email = (envelope.from?.email || "").trim().toLowerCase();
+
+  if (!email) return {};
+  if (is_learning_blocked(email, learned_gate_source(envelope, item))) {
+    return {};
+  }
+
+  const learned = learned_senders.get(email);
+
+  return learned
+    ? { sender_key: learned_sender_key(email), learned }
+    : { sender_key: learned_sender_key(email) };
+}
+
+function learned_is_stale(entry: CategoryIndexEntry): boolean {
+  if (!learned_known) return false;
+  if (!entry.sender_key || entry.category_pinned) return false;
+
+  return entry.learned !== learned_by_key.get(entry.sender_key);
+}
+
+export function reset_learned_index_state(): void {
+  forget_learned_senders();
+}
+
+export function is_learned_index_known(): boolean {
+  return learned_known;
+}
+
+function refresh_learned_entries(): void {
+  if (!learned_known) return;
+
+  const stale: string[] = [];
+
+  for (const entry of entries_map.values()) {
+    if (entry.needs_reclassify) continue;
+    if (learned_is_stale(entry)) stale.push(entry.id);
+  }
+
+  if (stale.length === 0) return;
+
+  for (const id of stale) decoded_items.delete(id);
+
+  reindex_ids(stale);
+}
+
+export function set_learned_senders(
+  list: readonly { sender: string; category: string }[],
+): void {
+  const by_email = new Map<string, string>();
+  const by_key = new Map<string, string>();
+
+  for (const entry of list) {
+    const email = entry.sender.trim().toLowerCase();
+
+    if (!email || by_email.has(email)) continue;
+    by_email.set(email, entry.category);
+    by_key.set(learned_sender_key(email), entry.category);
+  }
+
+  const unchanged =
+    learned_known &&
+    by_key.size === learned_by_key.size &&
+    Array.from(by_key).every(
+      ([key, category]) => learned_by_key.get(key) === category,
+    );
+
+  learned_known = true;
+  set_active_learned_senders(by_email);
+  learned_by_email = by_email;
+  learned_by_key = by_key;
+
+  if (unchanged) return;
+
+  refresh_learned_entries();
+}
+
+function forget_learned_senders(): void {
+  learned_by_key = new Map();
+  learned_by_email = new Map();
+  learned_known = false;
+  set_active_learned_senders(learned_by_email);
+}
+
+subscribe_learned_senders((list) => {
+  if (list) set_learned_senders(list);
+  else if (learned_known) forget_learned_senders();
+});
+
 function reuse_indexed_entry(
   item: MailItem,
   source: string,
@@ -2125,6 +2405,7 @@ function reuse_indexed_entry(
 
   if (!existing || existing.needs_reclassify) return null;
   if (existing.source !== source) return null;
+  if (learned_is_stale(existing)) return null;
 
   return refresh_item_fields(existing, item);
 }
@@ -2166,8 +2447,25 @@ async function item_to_entry(
     item.snoozed_until && safe_ts(item.snoozed_until) > now_ms()
       ? item.snoozed_until
       : undefined;
+  const known_entry = envelope ? undefined : entries_map.get(item.id);
+  const system_locked = envelope
+    ? is_primary_locked_sender(envelope.from?.email || "", {
+        ...item,
+        sender_verification: envelope.sender_verification,
+      })
+    : known_entry?.system_locked === true;
 
-  if (envelope) {
+  const sealed_body = is_ratchet_body_text(envelope?.body_text);
+  const learned_senders = envelope
+    ? learned_senders_for(envelope, item)
+    : learned_by_email;
+  const learned_fields = envelope
+    ? learned_fields_for(envelope, item, learned_senders)
+    : {};
+
+  if (envelope && sealed_body) {
+    forget_entry_preview(item.id);
+  } else if (envelope) {
     remember_entry_preview(
       item.id,
       build_category_preview(
@@ -2185,26 +2483,31 @@ async function item_to_entry(
       thread_token: item.thread_token,
       message_ts: item.message_ts || item.created_at,
       is_read: item.is_read ?? metadata?.is_read ?? false,
-      category: envelope
-        ? classify(envelope, metadata, {
-            custom_categories: rules,
-            rule_category: item.rule_category,
-            trust: item,
-          })
-        : (item.rule_category ?? "primary"),
+      category: system_locked
+        ? "primary"
+        : envelope
+          ? classify(envelope, metadata, {
+              custom_categories: rules,
+              rule_category: item.rule_category,
+              trust: item,
+              learned_senders,
+            })
+          : (known_entry?.category ?? item.rule_category ?? "primary"),
       ...(envelope ? {} : { needs_reclassify: true }),
-      category_pinned:
-        !!envelope &&
-        metadata?.category_pinned === true &&
-        !!metadata?.category &&
-        !is_locked_to_primary(envelope, item),
+      category_pinned: system_locked
+        ? false
+        : envelope
+          ? metadata?.category_pinned === true && !!metadata?.category
+          : known_entry?.category_pinned === true,
+      ...(system_locked ? { system_locked: true } : {}),
       is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
       ...(snoozed_until ? { snoozed_until } : {}),
       ...(envelope ? { source } : {}),
+      ...learned_fields,
     },
   };
 
-  if (envelope) remember_decoded_item(item, result.entry, rules);
+  if (envelope) remember_decoded_item(item, result.entry, rules, sealed_body);
 
   return result;
 }
@@ -2269,6 +2572,17 @@ export async function build_index(options?: {
   }
   if (fully_built && !options?.force) return;
 
+  const resume =
+    !options?.force && build_resume?.generation === index_generation
+      ? build_resume
+      : null;
+  const disk_resume =
+    !resume && !options?.force && build_checkpoint ? build_checkpoint : null;
+
+  if (options?.force) build_checkpoint = null;
+
+  cancel_build_resume();
+
   const token = build_token;
 
   build_owner_token = token;
@@ -2282,11 +2596,14 @@ export async function build_index(options?: {
   ]).catch(() => [null, null] as const);
 
   try {
-    let cursor: string | undefined;
-    let processed = 0;
+    let cursor: string | undefined = resume?.cursor ?? disk_resume?.cursor;
+    let processed = resume?.processed ?? disk_resume?.processed ?? 0;
     let reached_end = false;
-    const seen = new Set<string>();
-    const prebuild_ids = new Set(entries_map.keys());
+    let fetch_failed = false;
+    const seen = resume?.seen ?? new Set<string>();
+    const prebuild_ids =
+      resume?.prebuild_ids ??
+      (disk_resume ? new Set<string>() : new Set(entries_map.keys()));
 
     for (;;) {
       if (options?.signal?.aborted || token !== build_token) return;
@@ -2306,8 +2623,11 @@ export async function build_index(options?: {
         BUILD_FETCH_DEADLINE_MS,
       );
 
-      if (!response?.data) break;
       if (token !== build_token) return;
+      if (!response?.data) {
+        fetch_failed = true;
+        break;
+      }
 
       const { items, has_more, next_cursor } = response.data;
 
@@ -2348,6 +2668,11 @@ export async function build_index(options?: {
       processed += items.length;
       cursor = next_cursor;
 
+      if (has_more && next_cursor) {
+        build_checkpoint = { cursor: next_cursor, processed };
+        schedule_persist();
+      }
+
       if (!has_more) {
         reached_end = true;
         break;
@@ -2362,6 +2687,17 @@ export async function build_index(options?: {
 
     if (token !== build_token) return;
 
+    if (
+      fetch_failed &&
+      disk_resume &&
+      processed === disk_resume.processed &&
+      cursor === disk_resume.cursor
+    ) {
+      build_checkpoint = null;
+      cursor = undefined;
+      processed = 0;
+    }
+
     if (reached_end) {
       for (const [id, entry] of Array.from(entries_map.entries())) {
         if (!seen.has(id) && prebuild_ids.has(id)) {
@@ -2375,7 +2711,20 @@ export async function build_index(options?: {
     }
 
     fully_built = reached_end || processed >= BUILD_CAP;
+    if (fully_built) serving_previous_build = false;
     build_capped = !reached_end && processed >= BUILD_CAP;
+    if (fully_built) {
+      build_checkpoint = null;
+      reset_build_resume();
+    } else if (fetch_failed && !options?.signal?.aborted) {
+      schedule_build_resume({
+        cursor: cursor ?? "",
+        processed,
+        seen,
+        prebuild_ids,
+        generation: index_generation,
+      });
+    }
     if (fully_built) arrival_baseline_token = token;
     last_build_ms = now_ms();
     session_reconciled = true;
@@ -2604,6 +2953,7 @@ async function run_sync_recent(
       now_ms() - last_gap_rebuild_ms > GAP_REBUILD_MIN_INTERVAL_MS
     ) {
       last_gap_rebuild_ms = now_ms();
+      serving_previous_build = true;
       fully_built = false;
       void build_index({ force: true });
 
@@ -2620,6 +2970,7 @@ async function run_sync_recent(
       now_ms() - last_gap_rebuild_ms > GAP_REBUILD_MIN_INTERVAL_MS
     ) {
       last_gap_rebuild_ms = now_ms();
+      serving_previous_build = true;
       fully_built = false;
       void build_index({ force: true });
 
@@ -2669,6 +3020,7 @@ async function rebuild_if_index_lags_server(): Promise<void> {
 
   last_gap_rebuild_ms = now_ms();
   drift_rebuilds += 1;
+  serving_previous_build = true;
   fully_built = false;
   void build_index({ force: true });
 }
@@ -2849,7 +3201,11 @@ function schedule_resync(): void {
 
   resync_timer = setTimeout(() => {
     resync_timer = null;
-    const since_last = now_ms() - last_build_ms;
+    const since_last = resync_skip_throttle
+      ? Number.POSITIVE_INFINITY
+      : now_ms() - last_build_ms;
+
+    resync_skip_throttle = false;
 
     if (since_last < RESYNC_MIN_INTERVAL_MS) {
       resync_timer = setTimeout(() => {
@@ -3279,6 +3635,7 @@ export function clear_category_index_memory(): void {
 
   build_token += 1;
   index_generation += 1;
+  reset_build_resume();
   clear_entry_previews();
   build_in_progress = false;
   build_capped = false;
@@ -3293,9 +3650,11 @@ export function clear_category_index_memory(): void {
   derived = null;
   seen_ts = {};
   fully_built = false;
+  serving_previous_build = false;
   session_reconciled = false;
   built_custom_categories_key = null;
   last_build_ms = 0;
+  build_checkpoint = null;
   last_gap_rebuild_ms = 0;
   reset_unread_verify();
   drift_rebuilds = 0;
@@ -3377,7 +3736,7 @@ export function start_event_listeners(): void {
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible") return;
 
-    last_build_ms = 0;
+    resync_skip_throttle = true;
 
     // Returning to a backgrounded tab: a build that stalled while the tab was
     // frozen may never settle on some platforms, so supersede it rather than
@@ -3520,7 +3879,7 @@ export interface CategoryWriteResult {
   metadata_version?: number;
 }
 
-const MAX_RECENT_RECLASSIFY_META = 200;
+const MAX_RECENT_RECLASSIFY_META = 5000;
 
 function remember_own_metadata_write(id: string, encrypted_metadata: string) {
   recent_reclassify_meta.delete(id);
@@ -3573,11 +3932,136 @@ async function write_category_state(
   };
 }
 
+export async function write_category_states(
+  writes: ReadonlyArray<{
+    target: CategoryMoveTarget;
+    state: PreviousCategoryState;
+  }>,
+): Promise<Map<string, CategoryWriteResult>> {
+  const results = await write_items_metadata(
+    writes.map(({ target, state }) => ({
+      id: target.id,
+      current: {
+        encrypted_metadata: target.encrypted_metadata,
+        metadata_nonce: target.metadata_nonce,
+        metadata_version: target.metadata_version,
+      },
+      updates: {
+        category: state.category,
+        category_pinned: state.category_pinned ? true : undefined,
+      },
+    })),
+  );
+  const outcomes = new Map<string, CategoryWriteResult>();
+
+  batch_index_updates(() => {
+    for (const { target } of writes) {
+      const result = results.get(target.id);
+
+      if (!result?.success) {
+        outcomes.set(target.id, {
+          applied: false,
+          undecryptable: result?.undecryptable === true,
+        });
+        continue;
+      }
+
+      if (result.encrypted) {
+        remember_own_metadata_write(
+          target.id,
+          result.encrypted.encrypted_metadata,
+        );
+        emit_mail_item_updated({
+          id: target.id,
+          encrypted_metadata: result.encrypted.encrypted_metadata,
+          metadata_nonce: result.encrypted.metadata_nonce,
+        });
+      }
+
+      outcomes.set(target.id, {
+        applied: true,
+        undecryptable: false,
+        previous: result.previous,
+        encrypted_metadata: result.encrypted?.encrypted_metadata,
+        metadata_nonce: result.encrypted?.metadata_nonce,
+        metadata_version: result.written_version,
+      });
+    }
+  });
+
+  return outcomes;
+}
+
+export function group_thread_entries(
+  thread_tokens: ReadonlySet<string>,
+): Map<string, CategoryIndexEntry[]> {
+  const groups = new Map<string, CategoryIndexEntry[]>();
+
+  if (thread_tokens.size === 0) return groups;
+  for (const entry of entries_map.values()) {
+    const token = entry.thread_token;
+
+    if (!token || !thread_tokens.has(token)) continue;
+    const group = groups.get(token);
+
+    if (group) group.push(entry);
+    else groups.set(token, [entry]);
+  }
+
+  return groups;
+}
+
+export function thread_category_of(
+  entries: Iterable<CategoryIndexEntry>,
+): EmailCategory | null {
+  const wall = now_ms();
+  let newest: CategoryIndexEntry | null = null;
+  let newest_ts = -1;
+  let pinned: EmailCategory | undefined;
+  let pinned_ts = -1;
+  let system_locked = false;
+
+  for (const entry of entries) {
+    if (entry.snoozed_until && safe_ts(entry.snoozed_until) > wall) continue;
+    const ts = safe_ts(entry.message_ts);
+
+    if (entry.system_locked) system_locked = true;
+
+    if (ts > newest_ts) {
+      newest = entry;
+      newest_ts = ts;
+    }
+    if (entry.category_pinned && ts >= pinned_ts) {
+      pinned = entry.category;
+      pinned_ts = ts;
+    }
+  }
+
+  if (!newest) return null;
+  if (system_locked) return "primary";
+
+  return fold_category(pinned ?? newest.category);
+}
+
+export function apply_category_pins_locally(
+  targets: readonly CategoryMoveTarget[],
+  category: EmailCategory,
+): void {
+  for (const target of targets) note_recent_pin(target.id, category);
+  upsert_entries(
+    targets.map((target) => pinned_category_entry(target, category)),
+    undefined,
+    undefined,
+    true,
+  );
+}
+
 export function pinned_category_entry(
   target: CategoryMoveTarget,
   category: EmailCategory,
 ): CategoryIndexEntry {
   const existing = entries_map.get(target.id);
+  const system_locked = existing?.system_locked === true;
 
   return {
     ...(existing ?? {}),
@@ -3586,8 +4070,8 @@ export function pinned_category_entry(
     message_ts:
       existing?.message_ts || target.raw_timestamp || target.timestamp || "",
     is_read: existing?.is_read ?? target.is_read ?? true,
-    category,
-    category_pinned: true,
+    category: system_locked ? "primary" : category,
+    category_pinned: !system_locked,
     needs_reclassify: undefined,
     source: undefined,
   };
@@ -3598,7 +4082,12 @@ export function apply_category_pin_locally(
   category: EmailCategory,
 ): void {
   note_recent_pin(target.id, category);
-  upsert_entries([pinned_category_entry(target, category)]);
+  upsert_entries(
+    [pinned_category_entry(target, category)],
+    undefined,
+    undefined,
+    true,
+  );
 }
 
 export function restore_category_entry_locally(
@@ -3610,14 +4099,21 @@ export function restore_category_entry_locally(
     if (snapshot.category_pinned) note_recent_pin(id, snapshot.category);
     const current = entries_map.get(id);
 
-    upsert_entries([
-      {
-        ...snapshot,
-        is_read: current?.is_read ?? snapshot.is_read,
-        is_pinned: current?.is_pinned ?? snapshot.is_pinned,
-        snoozed_until: current ? current.snoozed_until : snapshot.snoozed_until,
-      },
-    ]);
+    upsert_entries(
+      [
+        {
+          ...snapshot,
+          is_read: current?.is_read ?? snapshot.is_read,
+          is_pinned: current?.is_pinned ?? snapshot.is_pinned,
+          snoozed_until: current
+            ? current.snoozed_until
+            : snapshot.snoozed_until,
+        },
+      ],
+      undefined,
+      undefined,
+      true,
+    );
 
     return;
   }
@@ -3663,30 +4159,13 @@ export function get_thread_category(
 ): EmailCategory | null {
   if (!thread_token || !thread_grouping) return null;
 
-  const wall = now_ms();
-  let newest: CategoryIndexEntry | null = null;
-  let newest_ts = -1;
-  let pinned: EmailCategory | undefined;
-  let pinned_ts = -1;
+  const members: CategoryIndexEntry[] = [];
 
   for (const entry of entries_map.values()) {
-    if (entry.thread_token !== thread_token) continue;
-    if (entry.snoozed_until && safe_ts(entry.snoozed_until) > wall) continue;
-    const ts = safe_ts(entry.message_ts);
-
-    if (ts > newest_ts) {
-      newest = entry;
-      newest_ts = ts;
-    }
-    if (entry.category_pinned && ts >= pinned_ts) {
-      pinned = entry.category;
-      pinned_ts = ts;
-    }
+    if (entry.thread_token === thread_token) members.push(entry);
   }
 
-  if (!newest) return null;
-
-  return fold_category(pinned ?? newest.category);
+  return thread_category_of(members);
 }
 
 export async function clear_category_index(): Promise<void> {
@@ -3709,6 +4188,7 @@ export async function clear_category_index(): Promise<void> {
 
   build_token += 1;
   index_generation += 1;
+  reset_build_resume();
   clear_entry_previews();
   entries_map = new Map();
   clear_all_read_intents();
@@ -3718,11 +4198,13 @@ export async function clear_category_index(): Promise<void> {
   sibling_verify_at.clear();
   dirty_chunks.clear();
   fully_built = false;
+  serving_previous_build = false;
   session_reconciled = false;
   built_custom_categories_key = null;
   build_capped = false;
   resync_failures = 0;
   last_build_ms = 0;
+  build_checkpoint = null;
   last_gap_rebuild_ms = 0;
   reset_unread_verify();
   drift_rebuilds = 0;
@@ -3767,6 +4249,7 @@ export async function delete_category_index_for_account(
 
       store.delete(account_id);
       store.delete(preview_record_key(account_id));
+      store.delete(legacy_preview_record_key(account_id));
       for (let i = 0; i < PERSIST_CHUNK_COUNT; i++) {
         store.delete(chunk_record_key(account_id, i));
       }

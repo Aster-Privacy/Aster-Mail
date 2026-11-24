@@ -128,7 +128,7 @@ async function click_unsubscribe() {
 
 function manual_toast() {
   return h.show_action_toast.mock.calls.find(
-    ([options]) => options.message === "mail.unsubscribe_manual_required",
+    ([options]) => options.message !== "mail.successfully_unsubscribed",
   )?.[0];
 }
 
@@ -159,9 +159,13 @@ describe("UnsubscribeBanner external link", () => {
 
     const toast = manual_toast();
 
-    expect(toast?.action_label).toBe("mail.open_unsubscribe_page");
+    expect(toast?.message).toBe("mail.unsubscribe_on_website");
+    expect(toast?.result_tone).toBe("info");
+    expect(toast?.on_undo).toBeUndefined();
+    expect(toast?.actions?.[0]?.label).toBe("mail.open_page");
     await act(async () => {
-      await toast!.on_undo();
+      toast!.actions[0].on_press();
+      await vi.advanceTimersByTimeAsync(0);
     });
 
     expect(h.request_external_link).toHaveBeenCalledWith(
@@ -177,7 +181,8 @@ describe("UnsubscribeBanner external link", () => {
     await click_unsubscribe();
 
     await act(async () => {
-      await manual_toast()!.on_undo();
+      manual_toast()!.actions[0].on_press();
+      await vi.advanceTimersByTimeAsync(0);
     });
 
     expect(h.request_external_link).toHaveBeenCalledWith(
@@ -198,17 +203,15 @@ describe("UnsubscribeBanner external link", () => {
     render_banner();
     await click_unsubscribe();
 
-    let undo!: Promise<void>;
-
     act(() => {
-      undo = manual_toast()!.on_undo();
+      manual_toast()!.actions[0].on_press();
     });
 
     expect(h.persist_unsubscribe).not.toHaveBeenCalled();
 
     await act(async () => {
       finish(true);
-      await undo;
+      await vi.advanceTimersByTimeAsync(0);
     });
 
     expect(h.persist_unsubscribe).toHaveBeenCalledTimes(1);
@@ -230,7 +233,28 @@ describe("UnsubscribeBanner external link", () => {
     render_banner();
     await click_unsubscribe();
 
-    expect(manual_toast()?.action_label).toBeUndefined();
+    expect(manual_toast()?.message).toBe("mail.unsubscribe_use_email_link");
+    expect(manual_toast()?.actions).toBeUndefined();
     expect(h.request_external_link).not.toHaveBeenCalled();
+  });
+
+  it("says the sender did not confirm when the automatic request fails", async () => {
+    h.execute_unsubscribe.mockImplementation(async () => "failed");
+    render_banner();
+    await click_unsubscribe();
+
+    const toast = manual_toast();
+
+    expect(toast?.message).toBe("mail.unsubscribe_not_confirmed");
+    expect(toast?.result_tone).toBe("error");
+    expect(toast?.actions?.[0]?.label).toBe("mail.open_page");
+  });
+
+  it("never shows a checkmark style toast for a manual unsubscribe", async () => {
+    render_banner();
+    await click_unsubscribe();
+
+    expect(manual_toast()?.action_type).toBe("unsubscribe");
+    expect(manual_toast()?.result_tone).not.toBe("success");
   });
 });

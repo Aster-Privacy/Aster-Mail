@@ -157,4 +157,35 @@ describe("ratchet header binding pin", () => {
       merge_ratchet_states(unpinned, unpinned).state.header_bound,
     ).toBeFalsy();
   });
+
+  it("keeps the pin and the sender identity when a newer epoch lacks them", async () => {
+    const { alice, bob } = await make_pair();
+
+    bob.set_remote_identity_key("sender-identity");
+    await bob.decrypt(await alice.encrypt("one"));
+
+    const pinned = await bob.serialize();
+    const newer = JSON.parse(JSON.stringify(pinned));
+
+    newer.state.epoch = (pinned.state.epoch ?? 0) + 1;
+    newer.state.root_key = "newer-root";
+    newer.state.updated_at = pinned.state.updated_at + 1;
+    delete newer.state.header_bound;
+    delete newer.state.remote_identity_key;
+
+    for (const merged of [
+      merge_ratchet_states(pinned, newer),
+      merge_ratchet_states(newer, pinned),
+    ]) {
+      expect(merged.state.root_key).toBe("newer-root");
+      expect(merged.state.header_bound).toBe(true);
+      expect(merged.state.remote_identity_key).toBe("sender-identity");
+    }
+
+    const restored = await DoubleRatchet.deserialize(
+      merge_ratchet_states(pinned, newer),
+    );
+
+    expect(restored.get_remote_identity_key()).toBe("sender-identity");
+  });
 });

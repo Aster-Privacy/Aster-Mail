@@ -18,7 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { AddressEntry, AddressEntryType } from "@/types/contacts";
+import type {
+  AddressEntry,
+  AddressEntryType,
+  RelatedPersonEntry,
+} from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -31,6 +35,20 @@ import {
   next_address_type,
   type_label_key,
 } from "@/components/common/contacts/contact_detail_panel/helpers";
+import {
+  DEFAULT_RELATION_KIND,
+  MAX_RELATIONS,
+  MAX_RELATION_LABEL_LENGTH,
+  MAX_RELATION_VALUE_LENGTH,
+  decode_relation,
+  encode_relation,
+  is_relation_kind,
+  relation_kind_key,
+  relation_kind_options,
+  set_relation_kind,
+  set_relation_label,
+  set_relation_value,
+} from "@/utils/contact_relations";
 
 type Translate = (
   key: TranslationKey,
@@ -82,17 +100,20 @@ function TypeOptions({
 function CustomLabelInput({
   t,
   value,
+  max_length = 64,
   on_change,
 }: {
   t: Translate;
   value: string;
+  max_length?: number;
   on_change: (value: string) => void;
 }) {
   return (
     <Input
       aria-label={t("common.custom_label")}
       className="w-full"
-      maxLength={64}
+      dir="auto"
+      maxLength={max_length}
       placeholder={t("common.custom_label")}
       value={value}
       onChange={(event) => on_change(event.target.value)}
@@ -109,6 +130,8 @@ export function MobileTypedEntryList<E extends TypedEntry>({
   default_type,
   min_rows = 0,
   max_rows = 20,
+  value_max_length,
+  label_max_length,
   on_change,
 }: {
   t: Translate;
@@ -119,6 +142,8 @@ export function MobileTypedEntryList<E extends TypedEntry>({
   default_type: E["type"];
   min_rows?: number;
   max_rows?: number;
+  value_max_length?: number;
+  label_max_length?: number;
   on_change: (entries: E[]) => void;
 }) {
   const update_at = (index: number, next: E) =>
@@ -144,6 +169,7 @@ export function MobileTypedEntryList<E extends TypedEntry>({
               </select>
               <Input
                 className="w-full min-w-0"
+                maxLength={value_max_length}
                 placeholder={placeholder}
                 type={input_type}
                 value={entry.value}
@@ -164,6 +190,7 @@ export function MobileTypedEntryList<E extends TypedEntry>({
             </div>
             {select_value === CUSTOM_TYPE && (
               <CustomLabelInput
+                max_length={label_max_length}
                 t={t}
                 value={entry.label ?? ""}
                 on_change={(label) => update_at(index, { ...entry, label })}
@@ -276,6 +303,106 @@ export function MobileAddressList({
         <PlusIcon className="h-3.5 w-3.5" />
         {t("common.add_address")}
       </button>
+    </>
+  );
+}
+
+export function MobileRelationList({
+  t,
+  entries,
+  on_change,
+}: {
+  t: Translate;
+  entries: RelatedPersonEntry[];
+  on_change: (entries: RelatedPersonEntry[]) => void;
+}) {
+  const update_at = (index: number, next: RelatedPersonEntry) =>
+    on_change(entries.map((entry, i) => (i === index ? next : entry)));
+
+  return (
+    <>
+      {entries.map((entry, index) => {
+        const decoded = decode_relation(entry) ?? {
+          kind: "custom" as const,
+          label: "",
+          value: entry.value ?? "",
+        };
+
+        return (
+          <div
+            key={index}
+            className="space-y-2"
+            data-testid="mobile_contact_relation_row"
+          >
+            <div className="flex items-center gap-2">
+              <select
+                aria-label={t("common.relation_type")}
+                className={SELECT_CLASS}
+                value={decoded.kind}
+                onChange={(event) => {
+                  const choice = event.target.value;
+
+                  if (!is_relation_kind(choice)) return;
+                  update_at(index, set_relation_kind(entry, choice));
+                }}
+              >
+                {relation_kind_options(decoded.kind).map((kind) => (
+                  <option key={kind} value={kind}>
+                    {t(relation_kind_key(kind))}
+                  </option>
+                ))}
+              </select>
+              <Input
+                aria-label={t("common.name")}
+                className="w-full min-w-0"
+                dir="auto"
+                maxLength={MAX_RELATION_VALUE_LENGTH}
+                placeholder={t("common.name")}
+                value={entry.value ?? ""}
+                onChange={(event) =>
+                  update_at(index, set_relation_value(entry, event.target.value))
+                }
+              />
+              <button
+                aria-label={t("common.remove_relation")}
+                className="flex h-8 w-8 shrink-0 items-center justify-center text-[var(--text-muted)]"
+                type="button"
+                onClick={() => on_change(entries.filter((_, i) => i !== index))}
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            </div>
+            {decoded.kind === "custom" && (
+              <Input
+                aria-label={t("common.custom_label")}
+                className="w-full"
+                dir="auto"
+                maxLength={MAX_RELATION_LABEL_LENGTH}
+                placeholder={t("common.custom_label")}
+                value={decoded.label}
+                onChange={(event) =>
+                  update_at(index, set_relation_label(entry, event.target.value))
+                }
+              />
+            )}
+          </div>
+        );
+      })}
+      {entries.length < MAX_RELATIONS && (
+        <button
+          className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
+          type="button"
+          onClick={() =>
+            on_change([
+              ...entries,
+              encode_relation(DEFAULT_RELATION_KIND, "", ""),
+            ])
+          }
+        >
+          <PlusIcon className="h-3.5 w-3.5" />
+          {t("common.add_relation")}
+        </button>
+      )}
     </>
   );
 }

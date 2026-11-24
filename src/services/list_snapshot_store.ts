@@ -38,6 +38,7 @@ const KEY_PREFIX = "snapshot";
 const SNAPSHOT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const SNAPSHOT_SAVE_DELAY_MS = 1000;
 const MAX_SNAPSHOT_ROWS = 100;
+export const LIST_SNAPSHOT_PREVIEW_VERSION = 2;
 
 export interface ListSnapshot {
   emails: InboxEmail[];
@@ -47,6 +48,7 @@ export interface ListSnapshot {
 interface StoredSnapshot extends ListSnapshot {
   owner: string;
   signature: string;
+  preview_version?: number;
 }
 
 interface PendingSave {
@@ -154,6 +156,7 @@ async function write_snapshot(
   const stored: StoredSnapshot = {
     owner,
     signature,
+    preview_version: LIST_SNAPSHOT_PREVIEW_VERSION,
     saved_at: Date.now(),
     emails: rows
       .slice(0, MAX_SNAPSHOT_ROWS)
@@ -241,6 +244,7 @@ export async function read_list_snapshot(
     ) as StoredSnapshot;
 
     if (stored.owner !== owner || stored.signature !== signature) return null;
+    if (stored.preview_version !== LIST_SNAPSHOT_PREVIEW_VERSION) return null;
     if (!Array.isArray(stored.emails) || stored.emails.length === 0) {
       return null;
     }

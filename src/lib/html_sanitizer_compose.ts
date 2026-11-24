@@ -170,6 +170,7 @@ export function sanitize_outgoing_html(html: string): string {
 export interface ComposePasteOptions {
   keep_signature_marker?: boolean;
   collapse_source_whitespace?: boolean;
+  plain_text?: string;
 }
 
 const SIGNATURE_MARKER_ATTRS = [
@@ -184,7 +185,7 @@ export function sanitize_compose_paste(
   if (!html || typeof html !== "string") return "";
 
   const source = options.collapse_source_whitespace
-    ? collapse_source_whitespace_html(html)
+    ? collapse_source_whitespace_html(html, { plain_text: options.plain_text })
     : html;
 
   const purified = DOMPurify.sanitize(source, {

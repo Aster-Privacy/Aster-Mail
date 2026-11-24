@@ -78,6 +78,8 @@ export default function MobileForgotPasswordPage() {
     codes_saved,
     set_codes_saved,
     review,
+    recovered_address,
+    handle_navigate_sign_in,
     email,
     resend_cooldown,
     is_resending,
@@ -251,7 +253,8 @@ export default function MobileForgotPasswordPage() {
       case "review_security":
         return (
           <ReviewSecurityStep
-            on_navigate_sign_in={navigate_sign_in}
+            account_address={recovered_address}
+            on_navigate_sign_in={handle_navigate_sign_in}
             reduce_motion={reduce_motion}
             review={review}
           />

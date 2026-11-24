@@ -72,7 +72,6 @@ import {
 } from "@/components/ui/modal";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { show_toast } from "@/components/toast/simple_toast";
-import { use_register_search_items } from "@/components/settings/search_context";
 import { trigger_download } from "@/utils/download_blob";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
@@ -591,22 +590,6 @@ export function ExternalKeyPanel() {
   const [uid_rejected, set_uid_rejected] = useState(false);
   const primary_address = user?.email ?? "";
 
-  use_register_search_items(
-    "encryption",
-    support?.available
-      ? [
-          {
-            label: t("settings.external_key_title"),
-            breadcrumb: `${t("settings.encryption")} > ${t("settings.external_key_title")}`,
-            keywords: t("settings.external_key_search_keywords")
-              .split(",")
-              .map((keyword) => keyword.trim())
-              .filter(Boolean),
-          },
-        ]
-      : [],
-  );
-
   useEffect(() => {
     let cancelled = false;
 
@@ -662,7 +645,8 @@ export function ExternalKeyPanel() {
       set_uid_rejected(false);
       set_action_error(
         t(
-          SERVER_CODE_KEYS[result.code] ?? "settings.external_key_error_generic",
+          SERVER_CODE_KEYS[result.code] ??
+            "settings.external_key_error_generic",
           { address: primary_address },
         ),
       );

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { blake3 } from "@noble/hashes/blake3";
+
 import {
   list_mail_items,
   rethread_items,
@@ -32,40 +34,85 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
+  has_reply_prefix,
   hash_message_id,
   is_usable_msgid,
   normalize_subject,
   strip_angle_brackets,
   thread_token_from_root,
+  uint8_to_base64,
+  SUBJECT_THREAD_MAX_MESSAGES,
+  SUBJECT_THREAD_WINDOW_MS,
+  THREAD_TOKEN_BYTES,
 } from "@/services/threading/threading_rules";
 
-const FETCH_LIMIT = 50;
-const MAX_PAGES = 60;
+const FETCH_LIMIT = 100;
+const MAX_PAGES = 300;
 const COOLDOWN_MS = 10_000;
 const SUBMIT_BATCH_SIZE = 200;
+const FINGERPRINT_KEY_PREFIX = "aster_thread_relink_v3:";
 
-let last_run_at = 0;
-let running = false;
+export const AUTO_FIRST_DELAY_MS = 5_000;
+export const AUTO_ACTIVE_INTERVAL_MS = 60_000;
+export const AUTO_IDLE_INTERVAL_MS = 300_000;
+export const AUTO_LOCKED_RETRY_MS = 15_000;
+const AUTO_LOCKED_MAX_RETRIES = 8;
 
 interface HeaderEntry {
   name: string;
   value: string;
 }
 
+interface AddressEntry {
+  email?: string;
+}
+
 interface RepairEnvelope {
   subject?: string;
   sent_at?: string;
   raw_headers?: HeaderEntry[];
+  from?: AddressEntry;
+  to?: AddressEntry[];
+  cc?: AddressEntry[];
 }
 
-interface RepairRecord {
+export interface RepairRecord {
   id: string;
   ts: number;
   thread_token: string | null;
   message_id: string | null;
   ref_ids: string[];
   normalized_subject: string;
+  reply_shaped?: boolean;
+  participants?: string[];
 }
+
+type CachedFields = Omit<RepairRecord, "id" | "thread_token">;
+
+export type RunStatus = "linked" | "unchanged" | "skipped" | "locked";
+
+export interface RunResult {
+  status: RunStatus;
+  linked: number;
+}
+
+interface StoredFingerprints {
+  seen: string;
+  settled: string;
+}
+
+interface FetchResult {
+  items: MailItem[];
+  complete: boolean;
+}
+
+let last_run_at = 0;
+let last_run_linked = true;
+let current_run: Promise<RunResult> | null = null;
+let scheduled_timer: ReturnType<typeof setTimeout> | null = null;
+let locked_retries = 0;
+let cache_user_id: string | null = null;
+const record_cache = new Map<string, CachedFields>();
 
 function read_header(
   headers: HeaderEntry[] | undefined,
@@ -86,13 +133,25 @@ function read_header(
   return null;
 }
 
-function extract_reference_ids(headers: HeaderEntry[] | undefined): string[] {
+function header_ids(value: string | null): string[] {
+  if (!value) return [];
+
+  const bracketed = value.match(/<[^<>]+>/g);
+
+  if (bracketed && bracketed.length > 0) return bracketed;
+
+  return value
+    .split(/[\s,]+/)
+    .map((token) => token.trim())
+    .filter((token) => token.includes("@"));
+}
+
+export function extract_reference_ids(
+  headers: HeaderEntry[] | undefined,
+): string[] {
   const raw = [
-    ...(read_header(headers, "references")?.match(/<[^<>]+>/g) ?? []),
-    ...(read_header(headers, "in-reply-to")?.match(/<[^<>]+>/g) ?? []).slice(
-      0,
-      1,
-    ),
+    ...header_ids(read_header(headers, "references")),
+    ...header_ids(read_header(headers, "in-reply-to")).slice(0, 1),
   ];
   const seen = new Set<string>();
   const ids: string[] = [];
@@ -110,7 +169,26 @@ function extract_reference_ids(headers: HeaderEntry[] | undefined): string[] {
   return ids;
 }
 
-async function build_record(item: MailItem): Promise<RepairRecord | null> {
+function envelope_participants(envelope: RepairEnvelope): string[] {
+  const addresses = new Set<string>();
+
+  for (const entry of [
+    envelope.from,
+    ...(envelope.to ?? []),
+    ...(envelope.cc ?? []),
+  ]) {
+    const address = entry?.email?.trim().toLowerCase();
+
+    if (address) addresses.add(address);
+  }
+
+  return [...addresses];
+}
+
+async function read_fields(item: MailItem): Promise<CachedFields | null> {
+  const cached = record_cache.get(item.id);
+
+  if (cached) return cached;
   if (!item.encrypted_envelope) return null;
 
   const envelope = await decrypt_mail_envelope<RepairEnvelope>(
@@ -124,78 +202,144 @@ async function build_record(item: MailItem): Promise<RepairRecord | null> {
   const headers = envelope.raw_headers;
   const message_id = read_header(headers, "message-id");
   const parsed = Date.parse(envelope.sent_at ?? item.created_at);
-
-  return {
-    id: item.id,
+  const subject = envelope.subject ?? "";
+  const fields: CachedFields = {
     ts: Number.isNaN(parsed) ? 0 : parsed,
-    thread_token: item.thread_token ?? null,
     message_id: is_usable_msgid(message_id) ? message_id : null,
     ref_ids: extract_reference_ids(headers),
-    normalized_subject: normalize_subject(envelope.subject ?? ""),
+    normalized_subject: normalize_subject(subject),
+    reply_shaped: has_reply_prefix(subject),
+    participants: envelope_participants(envelope),
   };
+
+  record_cache.set(item.id, fields);
+
+  return fields;
 }
 
-const RELINK_DONE_KEY_PREFIX = "aster_thread_relink_v1:";
+async function build_record(item: MailItem): Promise<RepairRecord | null> {
+  const fields = await read_fields(item);
 
-function relink_done(user_id: string): boolean {
+  if (!fields) return null;
+
+  return { ...fields, id: item.id, thread_token: item.thread_token ?? null };
+}
+
+function read_fingerprints(user_id: string): StoredFingerprints | null {
   try {
-    return localStorage.getItem(RELINK_DONE_KEY_PREFIX + user_id) === "1";
+    const raw = localStorage.getItem(FINGERPRINT_KEY_PREFIX + user_id);
+
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as Partial<StoredFingerprints>;
+
+    if (typeof parsed.seen !== "string" || typeof parsed.settled !== "string") {
+      return null;
+    }
+
+    return { seen: parsed.seen, settled: parsed.settled };
   } catch {
-    return false;
+    return null;
   }
 }
 
-function mark_relink_done(user_id: string): void {
+function write_fingerprints(user_id: string, value: StoredFingerprints): void {
   try {
-    localStorage.setItem(RELINK_DONE_KEY_PREFIX + user_id, "1");
+    localStorage.setItem(
+      FINGERPRINT_KEY_PREFIX + user_id,
+      JSON.stringify(value),
+    );
   } catch {
     return;
   }
 }
 
-async function fetch_items_of_type(
-  item_type: "received" | "sent",
-): Promise<MailItem[]> {
+export function fingerprint_items(
+  items: { id: string; thread_token?: string | null }[],
+  overrides: Map<string, string> = new Map(),
+): string {
+  const entries = items
+    .map(
+      (item) =>
+        `${item.id}:${overrides.get(item.id) ?? item.thread_token ?? ""}`,
+    )
+    .sort();
+
+  return uint8_to_base64(
+    blake3(new TextEncoder().encode(entries.join("\n"))).slice(0, 16),
+  );
+}
+
+async function fetch_all_items(): Promise<FetchResult> {
   const items: MailItem[] = [];
+  const seen = new Set<string>();
   let cursor: string | undefined;
 
   for (let page = 0; page < MAX_PAGES; page++) {
     const response = await list_mail_items({
-      item_type,
+      item_type: "all",
       limit: FETCH_LIMIT,
       cursor,
+      skip_total: true,
     });
 
-    if (response.error || !response.data) break;
+    if (response.error || !response.data) return { items, complete: false };
 
-    items.push(...response.data.items);
+    for (const item of response.data.items) {
+      if (item.item_type !== "received" && item.item_type !== "sent") continue;
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      items.push(item);
+    }
 
-    if (!response.data.has_more || !response.data.next_cursor) break;
+    if (!response.data.has_more || !response.data.next_cursor) {
+      return { items, complete: true };
+    }
     cursor = response.data.next_cursor;
   }
 
-  return items;
-}
-
-async function fetch_all_items(): Promise<MailItem[]> {
-  const received = await fetch_items_of_type("received");
-  const sent = await fetch_items_of_type("sent");
-  const seen = new Set<string>();
-
-  return [...received, ...sent].filter((item) => {
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
-
-    return true;
-  });
+  return { items, complete: false };
 }
 
 function msgid_key(message_id: string): string {
   return strip_angle_brackets(message_id).toLowerCase();
 }
 
-function group_records(records: RepairRecord[]): RepairRecord[][] {
+function subject_core(normalized: string): string {
+  let current = normalized;
+
+  for (;;) {
+    const next = normalize_subject(current.replace(/^\[[^\]]*\]\s*/, ""));
+
+    if (next === current) break;
+    current = next;
+  }
+
+  return current.replace(/\s+/g, " ");
+}
+
+export function subjects_compatible(a: string, b: string): boolean {
+  const left = subject_core(a);
+  const right = subject_core(b);
+
+  if (!left || !right) return true;
+  if (left === right) return true;
+
+  return left.includes(right) || right.includes(left);
+}
+
+function shares_participant(a: RepairRecord, b: RepairRecord): boolean {
+  if (!a.participants?.length || !b.participants?.length) return false;
+
+  const left = new Set(a.participants);
+
+  return b.participants.some((address) => left.has(address));
+}
+
+export function group_records(records: RepairRecord[]): RepairRecord[][] {
   const parent = new Map<string, string>();
+  const root_subject = new Map<string, string | null>();
+  const root_size = new Map<string, number>();
   const by_msgid = new Map<string, RepairRecord>();
 
   const find = (id: string): string => {
@@ -215,8 +359,36 @@ function group_records(records: RepairRecord[]): RepairRecord[][] {
     return root;
   };
 
+  const union = (a: string, b: string, max_size?: number): void => {
+    const root_a = find(a);
+    const root_b = find(b);
+
+    if (root_a === root_b) return;
+
+    const subject_a = root_subject.get(root_a) ?? null;
+    const subject_b = root_subject.get(root_b) ?? null;
+
+    if (
+      subject_a !== null &&
+      subject_b !== null &&
+      !subjects_compatible(subject_a, subject_b)
+    ) {
+      return;
+    }
+
+    const size = (root_size.get(root_a) ?? 0) + (root_size.get(root_b) ?? 0);
+
+    if (max_size !== undefined && size > max_size) return;
+
+    parent.set(root_b, root_a);
+    root_subject.set(root_a, subject_a ?? subject_b);
+    root_size.set(root_a, size);
+  };
+
   for (const record of records) {
     parent.set(record.id, record.id);
+    root_subject.set(record.id, record.normalized_subject);
+    root_size.set(record.id, 1);
     if (record.message_id) {
       const key = msgid_key(record.message_id);
 
@@ -224,17 +396,74 @@ function group_records(records: RepairRecord[]): RepairRecord[][] {
     }
   }
 
+  const by_import_token = new Map<string, string>();
+
+  for (const record of records) {
+    const token = record.thread_token;
+
+    if (!token || is_rethreadable_token(token)) continue;
+
+    const first = by_import_token.get(token);
+
+    if (first) union(first, record.id);
+    else by_import_token.set(token, record.id);
+  }
+
   for (const record of records) {
     for (const ref of record.ref_ids) {
-      const target = by_msgid.get(msgid_key(ref));
+      const key = msgid_key(ref);
+      const target = by_msgid.get(key);
 
-      if (!target || target.id === record.id) continue;
-      if (target.normalized_subject !== record.normalized_subject) continue;
+      if (target) {
+        if (target.id !== record.id) union(target.id, record.id);
+        continue;
+      }
 
-      const root_a = find(record.id);
-      const root_b = find(target.id);
+      const phantom = `ref:${key}`;
 
-      if (root_a !== root_b) parent.set(root_b, root_a);
+      if (!parent.has(phantom)) {
+        parent.set(phantom, phantom);
+        root_subject.set(phantom, null);
+        root_size.set(phantom, 0);
+      }
+      union(phantom, record.id);
+    }
+  }
+
+  const by_subject = new Map<string, RepairRecord[]>();
+
+  for (const record of records) {
+    const core = subject_core(record.normalized_subject);
+
+    if (!core) continue;
+
+    const list = by_subject.get(core);
+
+    if (list) list.push(record);
+    else by_subject.set(core, [record]);
+  }
+
+  for (const list of by_subject.values()) {
+    if (list.length < 2) continue;
+
+    const ordered = [...list].sort(
+      (a, b) => a.ts - b.ts || (a.id < b.id ? -1 : 1),
+    );
+
+    for (let i = 1; i < ordered.length; i++) {
+      const later = ordered[i];
+
+      if (!later.reply_shaped || later.ref_ids.length > 0) continue;
+
+      for (let j = i - 1; j >= 0; j--) {
+        const earlier = ordered[j];
+
+        if (later.ts - earlier.ts > SUBJECT_THREAD_WINDOW_MS) break;
+        if (!shares_participant(earlier, later)) continue;
+
+        union(earlier.id, later.id, SUBJECT_THREAD_MAX_MESSAGES);
+        break;
+      }
     }
   }
 
@@ -251,7 +480,17 @@ function group_records(records: RepairRecord[]): RepairRecord[][] {
   return [...groups.values()];
 }
 
-function plan_updates(
+export function is_rethreadable_token(token: string | null): boolean {
+  if (!token) return false;
+
+  try {
+    return atob(token).length === THREAD_TOKEN_BYTES;
+  } catch {
+    return false;
+  }
+}
+
+export function plan_updates(
   user_id: string,
   records: RepairRecord[],
 ): RethreadItem[] {
@@ -261,7 +500,9 @@ function plan_updates(
     let token: string | null = null;
 
     if (group.length > 1) {
-      const with_token = group.find((record) => record.thread_token);
+      const with_token = group.find((record) =>
+        is_rethreadable_token(record.thread_token),
+      );
       const first_with_id = group.find((record) => record.message_id);
 
       token =
@@ -294,39 +535,48 @@ function plan_updates(
   return updates;
 }
 
-export async function thread_imported_emails(
-  options: { relink_all?: boolean } = {},
-): Promise<number> {
-  if (running) return 0;
-  if (Date.now() - last_run_at < COOLDOWN_MS) return 0;
+async function run_repair(force: boolean): Promise<RunResult> {
+  if (!force && Date.now() - last_run_at < COOLDOWN_MS) {
+    return { status: "skipped", linked: 0 };
+  }
 
   const user_id = api_client.get_cached_user_info()?.user_id;
 
-  if (!user_id) return 0;
+  if (!user_id) return { status: "locked", linked: 0 };
 
   const passphrase_bytes = get_passphrase_bytes();
 
-  if (!passphrase_bytes) return 0;
+  if (!passphrase_bytes) return { status: "locked", linked: 0 };
 
   if (!get_vault_from_memory()) {
     zero_uint8_array(passphrase_bytes);
 
-    return 0;
+    return { status: "locked", linked: 0 };
   }
 
-  running = true;
+  if (cache_user_id !== user_id) {
+    record_cache.clear();
+    cache_user_id = user_id;
+  }
+
+  let linked_count = 0;
 
   try {
-    const all_items = await fetch_all_items();
-    const relink_all = options.relink_all === true || !relink_done(user_id);
+    const { items, complete } = await fetch_all_items();
+    const fingerprint = fingerprint_items(items);
+    const stored = read_fingerprints(user_id);
 
-    if (!relink_all && !all_items.some((item) => !item.thread_token)) {
-      return 0;
+    if (
+      !force &&
+      stored &&
+      (stored.seen === fingerprint || stored.settled === fingerprint)
+    ) {
+      return { status: "unchanged", linked: 0 };
     }
 
     const records: RepairRecord[] = [];
 
-    for (const item of all_items) {
+    for (const item of items) {
       const record = await build_record(item);
 
       if (record) records.push(record);
@@ -335,27 +585,118 @@ export async function thread_imported_emails(
     records.sort((a, b) => a.ts - b.ts || (a.id < b.id ? -1 : 1));
 
     const updates = plan_updates(user_id, records);
-    let linked_count = 0;
-    let complete = true;
+    let submitted_all = true;
 
     for (let index = 0; index < updates.length; index += SUBMIT_BATCH_SIZE) {
       const batch = updates.slice(index, index + SUBMIT_BATCH_SIZE);
       const response = await rethread_items(batch);
 
       if (response.error || !response.data) {
-        complete = false;
+        submitted_all = false;
         break;
       }
 
       linked_count += response.data.updated;
     }
 
-    if (complete) mark_relink_done(user_id);
+    if (complete && submitted_all) {
+      const applied = new Map(
+        updates.map((update) => [update.item_id, update.thread_token]),
+      );
 
-    return linked_count;
+      write_fingerprints(user_id, {
+        seen: fingerprint,
+        settled: fingerprint_items(items, applied),
+      });
+    }
+
+    return {
+      status: linked_count > 0 ? "linked" : "unchanged",
+      linked: linked_count,
+    };
   } finally {
     zero_uint8_array(passphrase_bytes);
-    running = false;
     last_run_at = Date.now();
+    last_run_linked = linked_count > 0;
   }
+}
+
+async function start_run(force: boolean): Promise<RunResult> {
+  while (current_run) {
+    if (!force) return { status: "skipped", linked: 0 };
+
+    await current_run.catch(() => undefined);
+  }
+
+  const run = run_repair(force);
+
+  current_run = run;
+
+  try {
+    return await run;
+  } finally {
+    if (current_run === run) current_run = null;
+  }
+}
+
+export async function thread_imported_emails(
+  options: { relink_all?: boolean } = {},
+): Promise<number> {
+  const result = await start_run(options.relink_all === true);
+
+  return result.linked;
+}
+
+export function regroup_conversations(): Promise<RunResult> {
+  return start_run(true);
+}
+
+export function next_auto_delay(now: number = Date.now()): number {
+  if (last_run_at === 0) return AUTO_FIRST_DELAY_MS;
+
+  const interval = last_run_linked
+    ? AUTO_ACTIVE_INTERVAL_MS
+    : AUTO_IDLE_INTERVAL_MS;
+
+  return Math.max(AUTO_FIRST_DELAY_MS, last_run_at + interval - now);
+}
+
+export function schedule_thread_repair(
+  on_linked: (count: number) => void,
+  delay_ms?: number,
+): void {
+  if (scheduled_timer !== null) return;
+
+  scheduled_timer = setTimeout(() => {
+    scheduled_timer = null;
+
+    if (current_run) {
+      schedule_thread_repair(on_linked);
+
+      return;
+    }
+
+    start_run(false)
+      .then((result) => {
+        if (result.status === "locked") {
+          if (locked_retries < AUTO_LOCKED_MAX_RETRIES) {
+            locked_retries += 1;
+            schedule_thread_repair(on_linked, AUTO_LOCKED_RETRY_MS);
+          }
+
+          return;
+        }
+
+        locked_retries = 0;
+        if (result.linked > 0) on_linked(result.linked);
+      })
+      .catch(() => undefined);
+  }, delay_ms ?? next_auto_delay());
+}
+
+export function cancel_thread_repair(): void {
+  if (scheduled_timer === null) return;
+
+  clearTimeout(scheduled_timer);
+  scheduled_timer = null;
 }

@@ -222,10 +222,20 @@ function top_bar_base({
       set_is_tablet(width >= 768 && width < 1024);
     };
 
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") check_breakpoint();
+    };
+
     check_breakpoint();
     window.addEventListener("resize", check_breakpoint);
+    window.addEventListener("focus", check_breakpoint);
+    document.addEventListener("visibilitychange", handle_visibility);
 
-    return () => window.removeEventListener("resize", check_breakpoint);
+    return () => {
+      window.removeEventListener("resize", check_breakpoint);
+      window.removeEventListener("focus", check_breakpoint);
+      document.removeEventListener("visibilitychange", handle_visibility);
+    };
   }, []);
 
   const account_email = user?.email ?? "";

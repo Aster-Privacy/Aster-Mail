@@ -25,10 +25,9 @@ import {
   decrypt_metadata,
   type EncryptedBlob,
 } from "./envelope";
+import { MAIL_METADATA_CONTEXT } from "./constants";
 import { get_storage_write_key_bytes, load_storage_write_key_bytes } from "./storage_write_key";
 import { zero_uint8_array } from "./secure_memory";
-
-const MAIL_METADATA_CONTEXT = "mail-item-metadata";
 
 export const SERVER_FLAG_FIELDS = [
   "is_read",

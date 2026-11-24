@@ -53,6 +53,11 @@ import { is_composing } from "@/utils/ime";
 import { format_number } from "@/lib/utils";
 import { fold_search_text } from "@/utils/search_fold";
 import { ButtonSpinner } from "@/components/ui/spinner";
+import { show_toast } from "@/components/toast/simple_toast";
+import {
+  typed_catch_all_domains,
+  typed_catch_all_options,
+} from "@/services/catch_all_sender";
 
 function SenderAliasIcon({
   address,
@@ -136,6 +141,22 @@ function CatchAllBadge() {
   );
 }
 
+function SendingDisabledBadge() {
+  const { t } = use_i18n();
+
+  return (
+    <span
+      data-sending-disabled-badge
+      className="inline-flex flex-shrink-0 items-center rounded-[14px] border px-1.5 py-px text-[11px] font-medium leading-4 text-[var(--color-danger)]"
+      style={{
+        borderColor: "color-mix(in srgb, var(--color-danger) 30%, transparent)",
+      }}
+    >
+      {t("mail.sending_disabled_badge")}
+    </span>
+  );
+}
+
 function SenderOptionIcon({
   option,
   size,
@@ -183,6 +204,7 @@ interface SenderSelectorProps {
   ghost_error?: string | null;
   preferred_id?: string | null;
   on_set_preferred?: (id: string | null) => void;
+  on_select_typed?: (option: SenderOption) => void;
 }
 
 function get_email_username(email: string): string {
@@ -220,7 +242,8 @@ function render_option(
       data-sender-active={is_active || undefined}
     >
       <button
-        className="flex items-center gap-2 text-start flex-1 min-w-0"
+        aria-disabled={option.sending_disabled || undefined}
+        className={`flex items-center gap-2 text-start flex-1 min-w-0 ${option.sending_disabled ? "opacity-60" : ""}`}
         type="button"
         onClick={on_click}
       >
@@ -229,6 +252,7 @@ function render_option(
           <div className="flex items-center gap-1.5 min-w-0">
             <p className="text-sm truncate text-txt-primary">{option.email}</p>
             {option.is_catch_all && <CatchAllBadge />}
+            {option.sending_disabled && <SendingDisabledBadge />}
           </div>
           {option.display_name && (
             <p className="text-xs truncate text-txt-muted">
@@ -286,6 +310,7 @@ export function SenderSelector({
   ghost_error,
   preferred_id = null,
   on_set_preferred,
+  on_select_typed,
 }: SenderSelectorProps) {
   const toggle_preferred = on_set_preferred
     ? (id: string) => {
@@ -460,12 +485,15 @@ export function SenderSelector({
     );
   }
 
-  if (options.length <= 1 && !on_create_ghost) {
+  const can_type = !!on_select_typed && typed_catch_all_domains().length > 0;
+
+  if (options.length <= 1 && !on_create_ghost && !can_type) {
     return (
       <div className="flex-1 flex items-center gap-1.5">
         <SenderOptionIcon option={display_option} size="xs" />
         <span className="text-sm text-txt-primary">{display_option.email}</span>
         {display_option.is_catch_all && <CatchAllBadge />}
+        {display_option.sending_disabled && <SendingDisabledBadge />}
       </div>
     );
   }
@@ -476,7 +504,11 @@ export function SenderSelector({
       ? group.filter((o) => option_matches_query(o, normalized_query))
       : group;
 
-  const show_search = options.length >= SEARCH_VISIBLE_THRESHOLD;
+  const show_search = options.length >= SEARCH_VISIBLE_THRESHOLD || can_type;
+  const typed =
+    can_type && search_query.trim()
+      ? typed_catch_all_options(search_query, options)
+      : { options: [], invalid_domain: null };
   const show_create_ghost = !!on_create_ghost && !normalized_query;
 
   const primary_options = filter_group(
@@ -497,13 +529,24 @@ export function SenderSelector({
     ...domain_options,
     ...external_options,
     ...ghost_options,
+    ...typed.options,
   ];
 
   const active_option_id =
     active_index >= 0 ? visible_options[active_index]?.id : undefined;
 
   const select_option = (option: SenderOption) => {
-    on_select(option);
+    if (option.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
+
+      return;
+    }
+
+    if (on_select_typed && typed.options.some((o) => o.id === option.id)) {
+      on_select_typed(option);
+    } else {
+      on_select(option);
+    }
     set_is_open(false);
   };
 
@@ -540,6 +583,7 @@ export function SenderSelector({
       domain_options,
       external_options,
       ghost_options,
+      typed.options,
     ].filter((g) => g.length > 0).length > 1 || show_create_ghost;
 
   return (
@@ -548,7 +592,7 @@ export function SenderSelector({
         aria-controls={is_open ? panel_id : undefined}
         aria-expanded={is_open}
         aria-haspopup="listbox"
-        className="flex items-center gap-1.5 py-1 px-1.5 -ms-1.5 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-hover)] disabled:opacity-50 disabled:hover:bg-transparent"
+        className="flex items-center gap-1.5 py-1 px-1.5 -ms-1.5 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-hover)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
         disabled={disabled}
         type="button"
         onClick={() => set_is_open(!is_open)}
@@ -556,6 +600,7 @@ export function SenderSelector({
         <SenderOptionIcon option={display_option} size="xs" />
         <span className="text-sm text-txt-primary">{display_option.email}</span>
         {display_option.is_catch_all && <CatchAllBadge />}
+        {display_option.sending_disabled && <SendingDisabledBadge />}
         <ChevronDownIcon className="w-3.5 h-3.5 text-txt-muted" />
       </button>
 
@@ -579,7 +624,16 @@ export function SenderSelector({
                     <input
                       ref={search_input_ref}
                       className="w-full h-9 ps-8 pe-3 text-sm rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] text-txt-primary placeholder:text-txt-muted outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
-                      placeholder={t("settings.alias_search_placeholder")}
+                      aria-label={
+                        can_type
+                          ? t("common.sender_search_or_type")
+                          : t("settings.alias_search_placeholder")
+                      }
+                      placeholder={
+                        can_type
+                          ? t("common.sender_search_or_type")
+                          : t("settings.alias_search_placeholder")
+                      }
                       type="text"
                       value={search_query}
                       onChange={(e) => {
@@ -592,11 +646,22 @@ export function SenderSelector({
                 </div>
               )}
               <div className="py-1">
-                {normalized_query && visible_options.length === 0 && (
-                  <p className="px-3 py-4 text-sm text-center text-txt-muted">
-                    {t("common.no_results")}
-                  </p>
-                )}
+                {normalized_query &&
+                  visible_options.length === 0 &&
+                  (typed.invalid_domain ? (
+                    <p
+                      className="px-3 py-4 text-sm text-center text-txt-muted"
+                      role="status"
+                    >
+                      {t("common.sender_invalid_typed_address", {
+                        domain: typed.invalid_domain,
+                      })}
+                    </p>
+                  ) : (
+                    <p className="px-3 py-4 text-sm text-center text-txt-muted">
+                      {t("common.no_results")}
+                    </p>
+                  ))}
                 {primary_options.length > 0 && (
                   <>
                     {has_multiple_groups && (
@@ -694,6 +759,24 @@ export function SenderSelector({
                       ),
                     )}
                   </>
+                )}
+                {typed.options.length > 0 && (
+                  <div data-testid="sender-typed-options">
+                    <div className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-txt-muted">
+                      {t("common.sender_group_new_address")}
+                    </div>
+                    {typed.options.map((option) =>
+                      render_option(
+                        option,
+                        false,
+                        false,
+                        active_option_id === option.id,
+                        () => select_option(option),
+                        null,
+                        t,
+                      ),
+                    )}
+                  </div>
                 )}
                 {on_create_ghost &&
                   !normalized_query &&

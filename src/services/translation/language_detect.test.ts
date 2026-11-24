@@ -421,3 +421,210 @@ describe("single stopword false positives", () => {
     expect(decision.kind).toBe("idle");
   });
 });
+
+const PORTUGUESE_FIRST_MESSAGE =
+  "Olá, bom dia. Não consigo aceder à minha conta desde ontem e gostaria de saber o que posso fazer para resolver este problema. Obrigada pela vossa ajuda.";
+
+const PORTUGUESE_SECOND_MESSAGE =
+  "Boa tarde. O único email onde me perseguem, neste momento é o institucional, ... Agradeço desde já o vosso esforço. Teresa Silva Teresa";
+
+describe("portuguese messages in one thread", () => {
+  beforeEach(() => {
+    clear_detection_cache();
+  });
+
+  it("detects the reported european portuguese reply", () => {
+    const result = detect_language(PORTUGUESE_SECOND_MESSAGE);
+
+    expect(result?.language).toBe("pt");
+    expect(result?.confidence).toBeGreaterThanOrEqual(MIN_DETECTION_CONFIDENCE);
+  });
+
+  it("detects a short courtesy reply", () => {
+    expect(
+      detect_language(
+        "Boa tarde. Agradeço desde já o vosso esforço. Teresa Silva",
+      )?.language,
+    ).toBe("pt");
+  });
+
+  it("does not treat words shared by spanish and portuguese as spanish", () => {
+    const text =
+      "Boa tarde, escrevo desde casa porque o sistema não abre neste momento e já tentei várias vezes.";
+
+    expect(detect_language(text)?.language).toBe("pt");
+  });
+
+  it("detects portuguese written mostly with nasal vowel endings", () => {
+    const text =
+      "As condições da promoção e a duração da campanha mudaram, e as instruções novas seguem em anexo para revisão.";
+
+    expect(detect_language(text)?.language).toBe("pt");
+  });
+
+  it("detects spanish written mostly with words that use the letter ñ", () => {
+    const text =
+      "Mañana el señor Muñoz enviará el año fiscal al equipo de diseño, sin ningún cambio importante.";
+
+    expect(detect_language(text)?.language).toBe("es");
+  });
+
+  it("translates both messages of the thread the same way", () => {
+    const decide = (message_id: string, body_text: string) =>
+      decide_translation({
+        mode: "always",
+        translatable: true,
+        message_id,
+        body_text,
+        target: "en",
+        configured_accepted: [],
+        never_languages: new Set<LanguageCode>(),
+      });
+
+    expect(decide("thread-1", PORTUGUESE_FIRST_MESSAGE)).toEqual({
+      kind: "translate",
+      language: "pt",
+    });
+    expect(decide("thread-2", PORTUGUESE_SECOND_MESSAGE)).toEqual({
+      kind: "translate",
+      language: "pt",
+    });
+  });
+
+  it("still leaves an english message signed with a portuguese name alone", () => {
+    const text =
+      "Hi there, thanks for the quick reply. The invoice is attached and I will call you tomorrow.\n\nBest regards,\nJoão Simões";
+
+    expect(detect_language(text)?.language).toBe("en");
+  });
+});
+
+const SPANISH_SHORT_REPLY =
+  "Desde el navegador sí se ven y descifran bien, no entiendo qué puede estar ocurriendo.";
+
+const SPANISH_SHORT_REPLY_WITH_FOOTER = `${SPANISH_SHORT_REPLY}\n\nAsegurado por Aster Mail`;
+
+const SPANISH_LONG_REPLY =
+  "Hola Fran,\n\nGracias por escribirnos y por los detalles. Hemos revisado tu cuenta y tus mensajes están completos y seguros. No se ha perdido nada, y por eso se abren bien desde el navegador.\n\nUn saludo,\nEl equipo de Aster";
+
+describe("short spanish replies in one thread", () => {
+  beforeEach(() => {
+    clear_detection_cache();
+  });
+
+  const decide = (message_id: string, body_text: string) =>
+    decide_translation({
+      mode: "always",
+      translatable: true,
+      message_id,
+      body_text,
+      target: "en",
+      configured_accepted: [],
+      never_languages: new Set<LanguageCode>(),
+    });
+
+  it("detects the reported short reply", () => {
+    const result = detect_language(SPANISH_SHORT_REPLY);
+
+    expect(result?.language).toBe("es");
+    expect(result?.confidence).toBeGreaterThanOrEqual(MIN_DETECTION_CONFIDENCE);
+  });
+
+  it("detects the reported short reply with its footer", () => {
+    expect(detect_language(SPANISH_SHORT_REPLY_WITH_FOOTER)?.language).toBe(
+      "es",
+    );
+  });
+
+  it("translates every message of the reported thread", () => {
+    expect(decide("fran-1", SPANISH_LONG_REPLY)).toEqual({
+      kind: "translate",
+      language: "es",
+    });
+    expect(decide("fran-2", SPANISH_SHORT_REPLY_WITH_FOOTER)).toEqual({
+      kind: "translate",
+      language: "es",
+    });
+    expect(decide("fran-3", SPANISH_LONG_REPLY)).toEqual({
+      kind: "translate",
+      language: "es",
+    });
+  });
+
+  it("offers the short reply in ask mode", () => {
+    expect(
+      decide_translation({
+        mode: "ask",
+        translatable: true,
+        message_id: "fran-ask",
+        body_text: SPANISH_SHORT_REPLY_WITH_FOOTER,
+        target: "en",
+        configured_accepted: [],
+        never_languages: new Set<LanguageCode>(),
+      }),
+    ).toEqual({ kind: "offer", language: "es" });
+  });
+
+  it("treats inverted question and exclamation marks as spanish", () => {
+    const text =
+      "¿Podrías revisar la configuración otra vez? ¡Funciona perfectamente en el móvil!";
+
+    expect(detect_language(text)?.language).toBe("es");
+  });
+
+  it("does not remember an inconclusive result for the message", () => {
+    const partial =
+      "Navegador vemos descifran bien, entiendo ocurriendo Fran Castillo Madrid";
+
+    expect(
+      detect_translatable_language("fran-partial", partial, ["en"]),
+    ).toBeNull();
+    expect(
+      detect_translatable_language(
+        "fran-partial",
+        SPANISH_SHORT_REPLY_WITH_FOOTER,
+        ["en"],
+      )?.language,
+    ).toBe("es");
+  });
+
+  it("still leaves an english reply with the english footer alone", () => {
+    const text =
+      "It still does not open on my phone, but it works fine in the browser.\n\nSecured by Aster Mail";
+
+    expect(decide("english-reply", text)).toEqual({ kind: "idle" });
+  });
+
+  it("does not call portuguese spanish because of the new words", () => {
+    const text =
+      "Olá, ainda não consigo abrir as mensagens no telemóvel, mas no navegador está tudo bem.";
+
+    expect(detect_language(text)?.language).toBe("pt");
+  });
+
+  it("does not call italian or french text spanish", () => {
+    expect(
+      detect_language(
+        "Ciao, il messaggio non si apre sul telefono ma nel browser funziona tutto bene.",
+      )?.language,
+    ).toBe("it");
+    expect(
+      detect_language(
+        "Bonjour, je ne peux pas ouvrir le message sur mon téléphone mais tout va bien dans le navigateur.",
+      )?.language,
+    ).toBe("fr");
+  });
+
+  it("detects short german and dutch replies", () => {
+    expect(
+      detect_language(
+        "Danke, ich kann die Nachricht jetzt im Browser lesen, aber noch nicht in der App.",
+      )?.language,
+    ).toBe("de");
+    expect(
+      detect_language(
+        "Bedankt, ik kan het bericht nu wel lezen in de browser, maar nog niet op mijn telefoon.",
+      )?.language,
+    ).toBe("nl");
+  });
+});

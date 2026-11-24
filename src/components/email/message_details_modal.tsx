@@ -38,6 +38,7 @@ import { EncryptionInfoDropdown } from "@/components/common/encryption_info_drop
 import { shows_end_to_end } from "@/services/crypto/sent_encryption_evidence";
 import { format_bytes } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
+import { forwarding_address } from "@/utils/forwarding_alias";
 import { use_date_format } from "@/hooks/use_date_format";
 import {
   trusted_sender_name,
@@ -98,6 +99,7 @@ export function MessageDetailsModal({
     t("common.unknown_sender"),
   );
   const sender_email = message.display_sender_email ?? message.sender_email;
+  const forwarded_by = forwarding_address(message);
   const insights = useMemo(
     () =>
       get_header_insights(message.raw_headers, message, message.sender_email),
@@ -141,6 +143,12 @@ export function MessageDetailsModal({
               {message.display_sender_email ?? message.sender_email}&gt;
             </span>
           </div>
+
+          {forwarded_by && (
+            <DetailsRow label={t("mail.forwarded_by_label")} variant="desktop">
+              {forwarded_by}
+            </DetailsRow>
+          )}
 
           {insights.reply_to && (
             <DetailsRow label={t("mail.reply_to_label")} variant="desktop">

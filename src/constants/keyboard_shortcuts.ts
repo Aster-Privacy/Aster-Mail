@@ -51,6 +51,7 @@ export type ShortcutActionId =
   | "go_all"
   | "search"
   | "command_palette"
+  | "lock_folders"
   | "show_shortcuts";
 
 export interface ShortcutDefinition {
@@ -213,6 +214,13 @@ export const KEYBOARD_SHORTCUTS: ShortcutDefinition[] = [
     description: "Command palette",
     category: "global",
     action_id: "command_palette",
+  },
+  {
+    key: "l",
+    modifier: "shift",
+    description: "Lock all protected folders",
+    category: "global",
+    action_id: "lock_folders",
   },
   {
     key: "?",

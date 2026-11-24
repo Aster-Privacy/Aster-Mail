@@ -52,10 +52,6 @@ export async function cdn_relay_fetch(
   let relay_url = connection_store.get_cdn_relay_url();
 
   if (!relay_url || !is_relay_host_allowed(relay_url)) {
-    // The connection-info request is what discovers the relay URL, so it must
-    // be allowed to reach the origin directly to bootstrap relay mode. Every
-    // other request fails closed: a missing or untrusted relay URL must never
-    // silently downgrade the user's traffic to clearnet behind their back.
     if (url.includes(CONNECTION_INFO_PATH)) {
       return is_tauri_env()
         ? tauri_proxy_fetch(url, options)

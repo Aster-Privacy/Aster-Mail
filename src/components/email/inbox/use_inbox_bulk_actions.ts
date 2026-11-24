@@ -33,11 +33,13 @@ import {
 } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
+  batch_index_updates,
   get_index_entries,
   is_fully_built,
   is_index_capped,
   note_recent_pin,
   remove_ids as remove_index_ids,
+  restore_category_entry_locally,
   upsert_entries,
   wait_for_index_ready,
 } from "@/services/category_index";
@@ -75,6 +77,7 @@ import {
   type BulkScopeAction,
   type BulkScopeFilter,
 } from "@/services/api/mail";
+import { with_rate_limit_retry } from "@/services/api/rate_limit_retry";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_inbox_categories } from "@/hooks/use_inbox_categories";
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
@@ -313,11 +316,13 @@ export function use_inbox_bulk_actions({
             return;
           }
 
-          const res = await bulk_action_by_scope({
-            action,
-            scope: scope_for_view,
-            ...(exclude_ids.length > 0 ? { exclude_ids } : {}),
-          });
+          const res = await with_rate_limit_retry(() =>
+            bulk_action_by_scope({
+              action,
+              scope: scope_for_view,
+              ...(exclude_ids.length > 0 ? { exclude_ids } : {}),
+            }),
+          );
 
           if (res.error) throw new Error(res.error);
           affected_count = res.data?.affected_count ?? 0;
@@ -616,7 +621,9 @@ export function use_inbox_bulk_actions({
 
         for (let i = 0; i < ids.length; i += BATCH_LIMITS.MAIL_BULK) {
           const chunk = ids.slice(i, i + BATCH_LIMITS.MAIL_BULK);
-          const response = await bulk_snooze_emails(chunk, snooze_until);
+          const response = await with_rate_limit_retry(() =>
+            bulk_snooze_emails(chunk, snooze_until),
+          );
 
           if (response.error) {
             last_error = response.error;
@@ -697,14 +704,52 @@ export function use_inbox_bulk_actions({
         return;
       }
 
-      const ids = scope_category_ids(
+      const scoped_ids = scope_category_ids(
         categories.active_category,
         selection.get_excluded_message_ids(),
+      );
+      const snapshots = new Map(
+        get_index_entries(scoped_ids).map((entry) => [entry.id, { ...entry }]),
+      );
+      const ids = scoped_ids.filter(
+        (id) => !snapshots.get(id)?.system_locked,
       );
 
       if (ids.length === 0 || category === categories.active_category) {
         return;
       }
+
+      const restore = (restore_ids: readonly string[]): void => {
+        batch_index_updates(() => {
+          for (const id of restore_ids) {
+            restore_category_entry_locally(id, snapshots.get(id));
+          }
+        });
+      };
+
+      batch_index_updates(() => {
+        for (const id of ids) note_recent_pin(id, category);
+        upsert_entries(
+          [...snapshots.values()].map((entry) => ({
+            ...entry,
+            category,
+            category_pinned: true,
+          })),
+          undefined,
+          undefined,
+          true,
+        );
+      });
+
+      selection.exit_select_all_mode();
+      selection.handle_clear_selection();
+      set_current_page(0);
+      fetch_page(0, page_size, { silent: true });
+      show_action_toast({
+        message: t("mail.moved_to_category"),
+        action_type: "folder",
+        email_ids: [],
+      });
 
       try {
         const result = await bulk_update_metadata_by_ids(ids, {
@@ -712,47 +757,29 @@ export function use_inbox_bulk_actions({
           category_pinned: true,
         });
         const failed = new Set(result.failed_ids);
-        const moved_ids = ids.filter((id) => !failed.has(id));
+        const moved_count = ids.length - failed.size;
 
-        for (const id of moved_ids) note_recent_pin(id, category);
-        upsert_entries(
-          get_index_entries(moved_ids).map((entry) => ({
-            ...entry,
-            category,
-            category_pinned: true,
-          })),
-        );
-
-        selection.exit_select_all_mode();
-        selection.handle_clear_selection();
-        set_current_page(0);
-        fetch_page(0, page_size, { force: true });
         mail_event_bus.emit(MAIL_EVENTS.MAIL_CHANGED);
 
         if (failed.size > 0) {
+          restore([...failed]);
+          fetch_page(0, page_size, { silent: true });
           show_toast(
-            moved_ids.length === 0
+            moved_count === 0
               ? result.undecryptable_ids.length > 0
                 ? t("errors.metadata_undecryptable_change")
                 : t("common.failed_to_update_emails")
               : t("common.bulk_action_partially_applied", {
-                  count: moved_ids.length,
+                  count: moved_count,
                   total: ids.length,
                 }),
             "error",
           );
-
-          return;
         }
-
-        show_action_toast({
-          message: t("mail.moved_to_category"),
-          action_type: "folder",
-          email_ids: [],
-        });
       } catch (e) {
         if (import.meta.env.DEV) console.error(e);
-        fetch_page(0, page_size, { force: true });
+        restore(ids);
+        fetch_page(0, page_size, { silent: true });
         show_toast(t("common.something_went_wrong"), "error");
       }
     },

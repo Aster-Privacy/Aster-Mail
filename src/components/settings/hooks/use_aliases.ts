@@ -726,7 +726,12 @@ export function use_aliases() {
     });
     set_domain_addr_deleting_id(id);
     try {
-      const response = await delete_domain_address(domain_id, id);
+      const addr = domain_addresses.find((a) => a.id === id);
+      const response = await delete_domain_address(
+        domain_id,
+        id,
+        addr?.local_part ? `${addr.local_part}@${addr.domain_name}` : undefined,
+      );
 
       if (!response.error) {
         set_domain_addresses((prev) => {

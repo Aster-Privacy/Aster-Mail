@@ -47,6 +47,8 @@ interface EncryptionInfoDropdownProps {
   label?: string;
   context?: "message" | "attachments";
   description_key?: import("@/lib/i18n").TranslationKey;
+  heading_key?: import("@/lib/i18n").TranslationKey;
+  show_cipher?: boolean;
   sender_verification?: SenderVerificationStatus;
   is_received?: boolean;
 }
@@ -63,6 +65,8 @@ export function EncryptionInfoDropdown({
   label,
   context = "message",
   description_key,
+  heading_key,
+  show_cipher = true,
   sender_verification: reported_sender_verification,
   is_received,
 }: EncryptionInfoDropdownProps) {
@@ -141,9 +145,11 @@ export function EncryptionInfoDropdown({
       description={description}
       has_pq_protection={has_pq_protection && is_encrypted}
       heading={
-        is_encrypted
-          ? t("common.end_to_end_encrypted_label")
-          : t("common.protected_in_transit")
+        heading_key
+          ? t(heading_key)
+          : is_encrypted
+            ? t("common.end_to_end_encrypted_label")
+            : t("common.protected_in_transit")
       }
       is_encrypted={is_encrypted}
       is_open={is_open}
@@ -153,6 +159,7 @@ export function EncryptionInfoDropdown({
       sender_invalid_short_label={t("common.sender_invalid_short")}
       sender_title={sender_title}
       sender_verification={sender_verification}
+      show_cipher={show_cipher && is_encrypted}
       size={size}
       on_open_change={set_is_open}
     />

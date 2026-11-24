@@ -20,6 +20,11 @@
 //
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+vi.mock("./ratchet_sync_format", () => ({
+  ratchet_sync_writes_bound: vi.fn(async () => true),
+  vault_requires_bound_state: vi.fn(() => false),
+}));
+
 vi.mock("@/services/api/client", () => ({
   api_client: {
     post: vi.fn(),
@@ -60,18 +65,20 @@ vi.mock("./ratchet_state_merge", () => ({
 
 import {
   RatchetStateUnreadableError,
-  derive_ratchet_encryption_key,
+  derive_ratchet_sync_key,
   load_ratchet_from_server,
   sync_ratchet_to_server,
+  type RatchetSyncKey,
 } from "./ratchet_sync";
 import { DoubleRatchet } from "./double_ratchet";
 import { save_ratchet_state } from "./ratchet_state_store";
+import {
+  ratchet_state_sync_aad,
+  split_ratchet_state_payload,
+} from "./ratchet_state_container";
 import { array_to_base64, base64_to_array } from "./base64";
 
-import {
-  append_legacy_key_raw_bytes,
-  clear_legacy_keks_from_memory,
-} from "@/services/crypto/legacy_keks";
+import { clear_legacy_keks_from_memory } from "@/services/crypto/legacy_keks";
 import { api_client } from "@/services/api/client";
 
 const mock_get = api_client.get as unknown as ReturnType<typeof vi.fn>;
@@ -84,6 +91,10 @@ const mock_save = save_ratchet_state as unknown as ReturnType<typeof vi.fn>;
 
 function raw_key(seed: number): Uint8Array {
   return new Uint8Array(32).map((_, index) => (index + seed) & 0xff);
+}
+
+async function account_key(seed: number): Promise<RatchetSyncKey> {
+  return derive_ratchet_sync_key(raw_key(seed), "user-1");
 }
 
 function state_response(
@@ -107,13 +118,13 @@ function state_response(
 }
 
 async function seal(
-  key: CryptoKey,
+  key: RatchetSyncKey,
   fields: Record<string, unknown>,
 ): Promise<{ encrypted_state: string; state_nonce: string }> {
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const sealed = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: nonce },
-    key,
+    key.compat_key,
     new TextEncoder().encode(JSON.stringify(fields)),
   );
 
@@ -124,13 +135,28 @@ async function seal(
 }
 
 async function open_sealed(
-  key: CryptoKey,
+  key: RatchetSyncKey,
+  conversation_id: string,
   body: { encrypted_state: string; state_nonce: string },
 ): Promise<Record<string, unknown>> {
-  const opened = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: base64_to_array(body.state_nonce) },
-    key,
+  const payload = split_ratchet_state_payload(
     base64_to_array(body.encrypted_state),
+  );
+
+  if (!payload) throw new Error("not a v3 payload");
+
+  const opened = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: base64_to_array(body.state_nonce),
+      additionalData: ratchet_state_sync_aad(
+        key.user_id,
+        conversation_id,
+        payload.header_bytes,
+      ),
+    },
+    key.state_key,
+    payload.ciphertext,
   );
 
   return JSON.parse(new TextDecoder().decode(opened));
@@ -170,7 +196,7 @@ describe("ratchet sync never overwrites a server state it has not absorbed", () 
   });
 
   it("merges the server state into the local ratchet before writing", async () => {
-    const key = await derive_ratchet_encryption_key(raw_key(1));
+    const key = await account_key(1);
     const remote = await seal(key, {
       state: { root_key: "remote", remote_only: true },
       conversation_id: "conv-merge",
@@ -188,7 +214,11 @@ describe("ratchet sync never overwrites a server state it has not absorbed", () 
     expect(ratchet.adopt_state).toHaveBeenCalledTimes(1);
     expect(mock_save).toHaveBeenCalled();
 
-    const written = await open_sealed(key, mock_put.mock.calls[0][1]);
+    const written = await open_sealed(
+      key,
+      "conv-merge",
+      mock_put.mock.calls[0][1],
+    );
     const written_state = written.state as Record<string, unknown>;
 
     expect(written_state.remote_only).toBe(true);
@@ -198,8 +228,8 @@ describe("ratchet sync never overwrites a server state it has not absorbed", () 
   });
 
   it("refuses to overwrite a server state no available key can open", async () => {
-    const key = await derive_ratchet_encryption_key(raw_key(1));
-    const other = await derive_ratchet_encryption_key(raw_key(99));
+    const key = await account_key(1);
+    const other = await account_key(99);
     const foreign = await seal(other, {
       state: { root_key: "foreign" },
       conversation_id: "conv-locked",
@@ -221,8 +251,8 @@ describe("ratchet sync never overwrites a server state it has not absorbed", () 
   });
 
   it("exposes a typed error for unreadable states", async () => {
-    const key = await derive_ratchet_encryption_key(raw_key(1));
-    const other = await derive_ratchet_encryption_key(raw_key(99));
+    const key = await account_key(1);
+    const other = await account_key(99);
     const foreign = await seal(other, {
       state: { root_key: "foreign" },
       conversation_id: "conv-typed",
@@ -241,31 +271,8 @@ describe("ratchet sync never overwrites a server state it has not absorbed", () 
     ).rejects.toBeInstanceOf(RatchetStateUnreadableError);
   });
 
-  it("opens a state another device sealed under a legacy password key", async () => {
-    const data_kek_key = await derive_ratchet_encryption_key(raw_key(1));
-    const password_raw = raw_key(42);
-    const password_key = await derive_ratchet_encryption_key(password_raw);
-    const sealed = await seal(password_key, {
-      state: { root_key: "from-ios" },
-      conversation_id: "conv-legacy",
-    });
-
-    await append_legacy_key_raw_bytes(password_raw);
-
-    mock_get.mockResolvedValueOnce(
-      state_response("conv-legacy", sealed.encrypted_state, sealed.state_nonce),
-    );
-
-    await load_ratchet_from_server("conv-legacy", data_kek_key);
-
-    const restored = mock_deserialize.mock.calls[0][0];
-
-    expect(restored.conversation_id).toBe("conv-legacy");
-    expect(restored.state.root_key).toBe("from-ios");
-  });
-
   it("overwrites a readable server state that fails to decode", async () => {
-    const key = await derive_ratchet_encryption_key(raw_key(1));
+    const key = await account_key(1);
     const garbage = await seal(key, {
       state: { root_key: "x" },
       conversation_id: "conv-other",
@@ -281,8 +288,92 @@ describe("ratchet sync never overwrites a server state it has not absorbed", () 
 
     expect(ratchet.adopt_state).not.toHaveBeenCalled();
 
-    const written = await open_sealed(key, mock_put.mock.calls[0][1]);
+    const written = await open_sealed(
+      key,
+      "conv-bad",
+      mock_put.mock.calls[0][1],
+    );
 
     expect(written.conversation_id).toBe("conv-bad");
+  });
+  async function written_state(conversation_id: string, epoch: number) {
+    const key = await account_key(1);
+    const ratchet = adoptable_ratchet(conversation_id);
+
+    (ratchet.serialize as ReturnType<typeof vi.fn>).mockResolvedValue({
+      state: { root_key: "local", epoch },
+      conversation_id,
+    });
+    mock_get.mockResolvedValueOnce({ code: "NOT_FOUND", error: "not found" });
+    mock_post.mockResolvedValueOnce(
+      state_response(conversation_id, "x", "x", 1),
+    );
+
+    await sync_ratchet_to_server(ratchet, key);
+
+    return mock_post.mock.calls[0][1] as {
+      encrypted_state: string;
+      state_nonce: string;
+    };
+  }
+
+  it("reads back a state it wrote for this account", async () => {
+    const body = await written_state("conv-round", 6);
+    const header = split_ratchet_state_payload(
+      base64_to_array(body.encrypted_state),
+    )?.header;
+
+    expect(header?.epoch).toBe(6);
+
+    mock_get.mockResolvedValueOnce(
+      state_response("conv-round", body.encrypted_state, body.state_nonce),
+    );
+
+    await load_ratchet_from_server("conv-round", await account_key(1));
+
+    expect(mock_deserialize.mock.calls[0][0].state.root_key).toBe("local");
+  });
+
+  it("refuses a state written for another account", async () => {
+    const body = await written_state("conv-user", 6);
+    const other_user = await derive_ratchet_sync_key(raw_key(1), "user-2");
+
+    mock_get.mockResolvedValueOnce(
+      state_response("conv-user", body.encrypted_state, body.state_nonce),
+    );
+
+    await expect(
+      load_ratchet_from_server("conv-user", other_user),
+    ).rejects.toBeInstanceOf(RatchetStateUnreadableError);
+    expect(mock_deserialize).not.toHaveBeenCalled();
+  });
+
+  it("refuses a state whose epoch header was changed", async () => {
+    const body = await written_state("conv-epoch", 6);
+    const bytes = base64_to_array(body.encrypted_state);
+
+    bytes[11] ^= 0x01;
+
+    mock_get.mockResolvedValueOnce(
+      state_response("conv-epoch", array_to_base64(bytes), body.state_nonce),
+    );
+
+    await expect(
+      load_ratchet_from_server("conv-epoch", await account_key(1)),
+    ).rejects.toThrow();
+    expect(mock_deserialize).not.toHaveBeenCalled();
+  });
+
+  it("refuses a state moved to another conversation", async () => {
+    const body = await written_state("conv-from", 6);
+
+    mock_get.mockResolvedValueOnce(
+      state_response("conv-to", body.encrypted_state, body.state_nonce),
+    );
+
+    await expect(
+      load_ratchet_from_server("conv-to", await account_key(1)),
+    ).rejects.toThrow();
+    expect(mock_deserialize).not.toHaveBeenCalled();
   });
 });

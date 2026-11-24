@@ -768,8 +768,8 @@ describe("search index removals", () => {
 
       const rebuilding = settle();
 
-      while (writes.chunk < 3) await tick();
       await tick(50);
+      expect(writes.chunk).toBe(0);
 
       release();
       await purging;

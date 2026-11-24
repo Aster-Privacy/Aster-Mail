@@ -40,7 +40,7 @@ import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { SplitEmailViewer } from "@/components/email/split_email_viewer";
 import { SplitScheduledViewer } from "@/components/scheduled/split_scheduled_viewer";
 import { FullEmailViewer } from "@/components/email/full_email_viewer";
-import { resolve_list_density } from "@/lib/list_density";
+import { is_compact_density, resolve_list_density } from "@/lib/list_density";
 import {
   get_view_title,
   get_search_context,
@@ -61,6 +61,7 @@ import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 import { is_outgoing_view } from "@/hooks/email_list_helpers";
+import { use_primary_identity } from "@/lib/primary_identity";
 import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { order_tags_as_tree } from "@/hooks/tag_tree";
 
@@ -182,6 +183,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_page_change,
     handle_filter_change,
   } = use_email_inbox_state(props);
+  const display_identity = use_primary_identity(user?.email ?? "");
 
   use_empty_folder_request({
     current_view,
@@ -251,7 +253,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 current_view={current_view}
                 has_load_error={email_state.has_load_error}
                 on_retry={refresh_current_view}
-                user_email={user?.email}
+                user_email={display_identity.email || user?.email}
               />
             )}
           </div>
@@ -268,7 +270,11 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           <div>
             {filtered_emails.length > 0 && (
               <EmailList
-                categories_enabled={categories.enabled}
+                categories_enabled={
+                  categories.enabled ||
+                  (current_view === "all" &&
+                    preferences.inbox_categories_enabled !== false)
+                }
                 current_view={current_view}
                 density={resolve_list_density(preferences.mail_list_density)}
                 focused_email_id={focused_email_id}
@@ -532,8 +538,15 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
 
             return effective_days !== null && effective_days > 0 ? (
               <TrashBanner
+                compact={is_compact_density(
+                  resolve_list_density(preferences.mail_list_density),
+                  preferences.compact_mode ?? false,
+                )}
                 family_enforced={banner_family_enforced}
                 retention_days={effective_days}
+                show_profile_pictures={
+                  preferences.show_profile_pictures !== false
+                }
                 view={current_view as "trash" | "spam"}
               />
             ) : null;

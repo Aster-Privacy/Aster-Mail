@@ -34,6 +34,7 @@ import {
 export function ReviewSecurityStep({
   reduce_motion,
   review,
+  account_address,
   on_navigate_sign_in,
 }: ReviewSecurityStepProps) {
   const { t } = use_i18n();
@@ -51,6 +52,16 @@ export function ReviewSecurityStep({
           reduce_motion={reduce_motion}
           title={t("auth.review_security_title")}
         />
+
+        {account_address && (
+          <motion.p
+            className="mt-6 w-full text-[15px] text-[var(--text-primary)]"
+            data-testid="recovered-account-address"
+            variants={reduce_motion ? undefined : fade_up_item}
+          >
+            {t("auth.recovered_account_address", { address: account_address })}
+          </motion.p>
+        )}
 
         <motion.div
           className="mt-6 w-full divide-y divide-[var(--border-secondary)] border-y border-[var(--border-secondary)]"

@@ -53,6 +53,7 @@ import {
   PROACTIVE_REFRESH_THRESHOLD_MINUTES,
   PendingTokenWrite,
   REFRESH_INTERVAL_MINUTES,
+  REFRESH_TOKEN_REVOKED_SERVER_CODE,
   RequestConfig,
   SessionReestablishResult,
   TAURI_AUTH_SLOT_ACCESS,
@@ -67,6 +68,7 @@ import {
   CLIENT_UPGRADE_REQUIRED_EVENT,
   CLIENT_VAULT_LEVEL,
   VAULT_LEVEL_HEADER,
+  GUARD_HEADER,
   get_error_code_from_status,
   is_auth_endpoint,
   is_identity_establishing_endpoint,
@@ -82,6 +84,11 @@ import {
 } from "./helpers";
 import { should_show_server_message } from "./server_message";
 import {
+  dispatch_guard_held,
+  guard_error_response,
+  guard_held_from_success,
+} from "./guard_response";
+import {
   MAX_PREEMPTIONS_PER_REQUEST,
   track_background_request,
   wait_for_foreground_idle,
@@ -93,6 +100,8 @@ import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 import { record_vault_iterations_from_response } from "@/services/crypto/vault_level2";
 import { get_device_id } from "@/services/device_id";
 import { ignore_error } from "@/lib/ignore_error";
+import { note_server_date } from "@/lib/server_clock";
+import { note_transient_failure } from "@/services/crypto/decrypt_readiness";
 import {
   routed_fetch,
   get_effective_base_url,
@@ -106,12 +115,16 @@ import {
   report_client_error,
 } from "@/services/error_reporter";
 
+const ALIAS_SENDING_DISABLED_SERVER_CODE = "ALIAS_SENDING_DISABLED";
+
 const RATE_LIMIT_DEFAULT_HOLD_MS = 2000;
 const RATE_LIMIT_MAX_HOLD_MS = 15_000;
 const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
 const REFRESH_MIN_GAP_MS = 5000;
 const REFRESH_LOCK_WAIT_MS = 20_000;
 const OUTGOING_CHECKPOINT_TIMEOUT_MS = 6000;
+const REQUEST_HOLD_MAX_WAIT_MS = 20_000;
+const REQUEST_HOLD_TIMED_OUT = Symbol("request_hold_timed_out");
 const REFRESH_LOCK_PREFIX = "aster-session-refresh";
 
 interface TimedResponse {
@@ -122,6 +135,28 @@ interface TimedResponse {
 
 function is_abort_error(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
+}
+
+const TRANSIENT_RESPONSE_CODES = new Set(["NETWORK_ERROR", "TIMEOUT_ERROR"]);
+const TRANSIENT_RESPONSE_STATUSES = new Set([401, 403, 408, 425, 429]);
+
+function is_transient_response(result: {
+  error?: unknown;
+  code?: unknown;
+  status?: unknown;
+}): boolean {
+  if (!result.error) return false;
+  if (
+    typeof result.code === "string" &&
+    TRANSIENT_RESPONSE_CODES.has(result.code)
+  ) {
+    return true;
+  }
+
+  return (
+    typeof result.status === "number" &&
+    (TRANSIENT_RESPONSE_STATUSES.has(result.status) || result.status >= 500)
+  );
 }
 
 export class ApiClient {
@@ -350,9 +385,7 @@ export class ApiClient {
 
   private async persist_native_csrf(token: string): Promise<void> {
     try {
-      const { native_token_set } = await import(
-        "@/native/secure_token_store"
-      );
+      const { native_token_set } = await import("@/native/secure_token_store");
 
       await native_token_set(NATIVE_CSRF_KEY, token);
     } catch (caught) {
@@ -362,9 +395,7 @@ export class ApiClient {
 
   private async load_native_csrf(): Promise<string | null> {
     try {
-      const { native_token_get } = await import(
-        "@/native/secure_token_store"
-      );
+      const { native_token_get } = await import("@/native/secure_token_store");
 
       return await native_token_get(NATIVE_CSRF_KEY);
     } catch {
@@ -374,9 +405,8 @@ export class ApiClient {
 
   private async clear_native_csrf(): Promise<void> {
     try {
-      const { native_token_remove } = await import(
-        "@/native/secure_token_store"
-      );
+      const { native_token_remove } =
+        await import("@/native/secure_token_store");
 
       await native_token_remove(NATIVE_CSRF_KEY);
     } catch (caught) {
@@ -540,6 +570,26 @@ export class ApiClient {
     return settled.finally(() => {
       if (this.request_hold === hold) this.request_hold = null;
     });
+  }
+
+  private async wait_for_request_hold(
+    settled: Promise<boolean | null>,
+  ): Promise<boolean | null | typeof REQUEST_HOLD_TIMED_OUT> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+      return await Promise.race([
+        settled,
+        new Promise<typeof REQUEST_HOLD_TIMED_OUT>((resolve) => {
+          timer = setTimeout(
+            () => resolve(REQUEST_HOLD_TIMED_OUT),
+            REQUEST_HOLD_MAX_WAIT_MS,
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   private release_request_hold(): void {
@@ -1014,6 +1064,15 @@ export class ApiClient {
           return;
         }
 
+        if (
+          response.server_code === REFRESH_TOKEN_REVOKED_SERVER_CODE &&
+          !this.account_add_in_progress
+        ) {
+          this.end_session_after_revoked_refresh();
+
+          return;
+        }
+
         if (this.is_transient_error_code(response.code)) {
           if (attempt < max_retries - 1) {
             await this.delay(retry_delay_base * (attempt + 1));
@@ -1085,6 +1144,20 @@ export class ApiClient {
         this.note_refresh_failure();
       }
     }
+  }
+
+  private end_session_after_revoked_refresh(): void {
+    this.is_authenticated_flag = false;
+    request_cache.clear();
+    this._cached_user_info = null;
+    if (this.refresh_timeout) {
+      clearTimeout(this.refresh_timeout);
+      this.refresh_timeout = null;
+    }
+    if (this.intentional_logout) return;
+    if (this.session_expired_dispatched) return;
+    this.session_expired_dispatched = true;
+    window.dispatchEvent(new Event("astermail:session-ended"));
   }
 
   private dispatch_session_expired(force: boolean = false): void {
@@ -1239,6 +1312,24 @@ export class ApiClient {
       clearTimeout(this.refresh_timeout);
       this.refresh_timeout = null;
     }
+  }
+
+  is_intentional_logout(): boolean {
+    return this.intentional_logout;
+  }
+
+  async confirm_signed_out_elsewhere(account_id: string): Promise<boolean> {
+    if (this.intentional_logout) return false;
+
+    const response = await this.get<{ user_id: string }>("/core/v1/auth/me", {
+      skip_cache: true,
+      skip_session_refresh: true,
+      skip_dedup: true,
+    });
+
+    if (response.data?.user_id) return response.data.user_id !== account_id;
+
+    return response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN";
   }
 
   end_intentional_logout(): void {
@@ -1821,6 +1912,17 @@ export class ApiClient {
     endpoint: string,
     config: RequestConfig = {},
   ): Promise<ApiResponse<T>> {
+    const result = await this.send_request<T>(endpoint, config);
+
+    if (is_transient_response(result)) note_transient_failure();
+
+    return result;
+  }
+
+  private async send_request<T>(
+    endpoint: string,
+    config: RequestConfig = {},
+  ): Promise<ApiResponse<T>> {
     if (
       is_app_network_locked() &&
       !is_endpoint_allowed_while_locked(endpoint)
@@ -1833,15 +1935,22 @@ export class ApiClient {
 
     const hold = this.request_hold;
 
-    if (
-      hold &&
-      !is_session_check_endpoint(endpoint) &&
-      !(await hold.settled)
-    ) {
-      return {
-        error: this.get_generic_error_message("UNAUTHORIZED"),
-        code: "UNAUTHORIZED",
-      };
+    if (hold && !is_session_check_endpoint(endpoint)) {
+      const hold_result = await this.wait_for_request_hold(hold.settled);
+
+      if (hold_result === REQUEST_HOLD_TIMED_OUT) {
+        return {
+          error: this.get_generic_error_message("TIMEOUT_ERROR"),
+          code: "TIMEOUT_ERROR",
+        };
+      }
+
+      if (!hold_result) {
+        return {
+          error: this.get_generic_error_message("UNAUTHORIZED"),
+          code: "UNAUTHORIZED",
+        };
+      }
     }
 
     await this.refresh_before_logout(
@@ -1873,6 +1982,7 @@ export class ApiClient {
       "Content-Type": "application/json",
       "X-Aster-Client": CLIENT_PLATFORM_HEADER,
       [VAULT_LEVEL_HEADER]: CLIENT_VAULT_LEVEL,
+      [GUARD_HEADER]: "1",
       ...((options.headers as Record<string, string>) || {}),
     };
 
@@ -1968,6 +2078,12 @@ export class ApiClient {
         );
         const { response, read_text } = timed;
 
+        note_server_date(
+          response.headers?.get?.("date"),
+          started_at,
+          Date.now(),
+        );
+
         release_deadline = timed.release;
 
         if (!response.ok) {
@@ -1987,6 +2103,21 @@ export class ApiClient {
           }
 
           const error_code = get_error_code_from_status(response.status);
+
+          const guard_result = guard_error_response<T>(
+            endpoint,
+            response.status,
+            error_data,
+            this.get_generic_error_message(error_code),
+            response.status === 429
+              ? parse_retry_after_header(
+                  response.headers.get("retry-after"),
+                  Date.now(),
+                )
+              : undefined,
+          );
+
+          if (guard_result) return guard_result;
 
           if (
             response.status === 403 &&
@@ -2114,6 +2245,19 @@ export class ApiClient {
           }
 
           if (
+            response.status === 403 &&
+            error_data.code === "INSTALL_ACCOUNT_LIMIT"
+          ) {
+            return {
+              error: get_active_translations().auth.install_limit_title,
+              code: "FORBIDDEN",
+              status: response.status,
+              server_code: error_data.code,
+              details: error_data.details,
+            };
+          }
+
+          if (
             response.status === 422 &&
             error_data.code === "RECOVERY_EMAIL_REQUIRED"
           ) {
@@ -2132,7 +2276,11 @@ export class ApiClient {
           ) {
             const on_auth_endpoint = is_auth_endpoint(endpoint);
 
-            if (!skip_upgrade_prompt && !on_auth_endpoint) {
+            if (
+              !skip_upgrade_prompt &&
+              !on_auth_endpoint &&
+              is_state_changing_method(method)
+            ) {
               window.dispatchEvent(
                 new CustomEvent("aster:plan-limit-hit", {
                   detail: {
@@ -2198,7 +2346,8 @@ export class ApiClient {
             response.status === 426 &&
             error_data.code === CLIENT_UPGRADE_REQUIRED
           ) {
-            const message = get_active_translations().errors.client_upgrade_required;
+            const message =
+              get_active_translations().errors.client_upgrade_required;
 
             window.dispatchEvent(
               new CustomEvent(CLIENT_UPGRADE_REQUIRED_EVENT, {
@@ -2308,16 +2457,22 @@ export class ApiClient {
           const generic_rate_limit =
             error_code === "RATE_LIMIT_EXCEEDED" && !error_data.resets_at;
 
-          const sanitized_error = generic_rate_limit
-            ? this.get_generic_error_message("RATE_LIMIT_EXCEEDED")
-            : import.meta.env.DEV
-              ? error_data.error ||
-                `Request failed with status ${response.status}`
-              : response.status < 500 &&
-                  error_data.error &&
-                  should_show_server_message(error_data.code, error_data.error)
-                ? error_data.error
-                : this.get_generic_error_message(error_code);
+          const sanitized_error =
+            error_data.code === ALIAS_SENDING_DISABLED_SERVER_CODE
+              ? get_active_translations().errors.alias_sending_disabled
+              : generic_rate_limit
+                ? this.get_generic_error_message("RATE_LIMIT_EXCEEDED")
+                : import.meta.env.DEV
+                  ? error_data.error ||
+                    `Request failed with status ${response.status}`
+                  : response.status < 500 &&
+                      error_data.error &&
+                      should_show_server_message(
+                        error_data.code,
+                        error_data.error,
+                      )
+                    ? error_data.error
+                    : this.get_generic_error_message(error_code);
 
           last_error = {
             error: sanitized_error,
@@ -2343,6 +2498,7 @@ export class ApiClient {
             response.status === 403 &&
             error_data.code !== "ACCOUNT_LOCKED" &&
             error_data.code !== "SENDER_NOT_AUTHORIZED" &&
+            error_data.code !== ALIAS_SENDING_DISABLED_SERVER_CODE &&
             error_data.code !== "APP_LOCK_PROOF_INVALID" &&
             is_state_changing_method(method) &&
             attempt === 0 &&
@@ -2447,6 +2603,14 @@ export class ApiClient {
         extend_passphrase_timeout();
         write_last_auth_ms(Date.now());
         background?.settle(Date.now() - started_at);
+
+        const held = guard_held_from_success(response.status, data);
+
+        if (held) {
+          dispatch_guard_held(held);
+
+          return { data: undefined, held, status: response.status };
+        }
 
         return { data };
       } catch (error) {

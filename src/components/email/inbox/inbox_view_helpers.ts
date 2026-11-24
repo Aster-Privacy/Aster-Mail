@@ -174,6 +174,7 @@ export function canonical_alias_address(address: string): string {
 export function filter_emails_by_view(
   emails: InboxEmail[],
   _current_view: string,
+  alias_hash: string | null = null,
 ): InboxEmail[] {
   const alias_view = parse_alias_view(_current_view);
 
@@ -182,6 +183,7 @@ export function filter_emails_by_view(
     const matches_sender = (e: InboxEmail) =>
       canonical_alias_address(e.sender_email) === alias_address;
     const matches_recipient = (e: InboxEmail) =>
+      (!!alias_hash && e.routing_token === alias_hash) ||
       !!e.recipient_addresses?.some(
         (addr) => canonical_alias_address(addr) === alias_address,
       );

@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 
 import { is_composing } from "@/utils/ime";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import {
   Modal,
   ModalHeader,
@@ -49,11 +50,19 @@ import {
 } from "@/components/ui/select";
 import {
   create_smtp_token,
+  SMTP_TOKEN_NAME_MAX_LENGTH,
   type CreateSmtpTokenResult,
 } from "@/services/api/smtp_tokens";
+import {
+  build_smtp_connection_rows,
+  smtp_settings_rows_to_text,
+  SmtpTokenSettingsRows,
+  type SmtpTokenSettingsRow,
+} from "@/components/settings/smtp_token_settings_rows";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { copy_text } from "@/utils/copy_text";
+import { format_guard_time } from "@/components/guard/guard_waiting_screen";
 
 interface SmtpTokenCreateModalProps {
   is_open: boolean;
@@ -154,6 +163,12 @@ export function SmtpTokenCreateModal({
         local_part: selected.local_part,
       });
 
+      if (held_of(response)) {
+        on_close();
+
+        return;
+      }
+
       if (response.error || !response.data) {
         if (response.code === "FORBIDDEN") {
           set_error(t("settings.smtp_token_error_forbidden"));
@@ -183,18 +198,23 @@ export function SmtpTokenCreateModal({
     }
   };
 
+  const reveal_rows = (): SmtpTokenSettingsRow[] => {
+    if (!created) return [];
+
+    return [
+      ...build_smtp_connection_rows(t, created.smtp_settings),
+      {
+        label: t("settings.smtp_token_password"),
+        value: created.token,
+        mono: true,
+      },
+    ];
+  };
+
   const copy_all = async () => {
     if (!created) return;
 
-    const lines = [
-      `${t("settings.smtp_token_host")}: ${created.smtp_settings.host}`,
-      `${t("settings.smtp_token_port")}: ${created.smtp_settings.port}`,
-      `${t("settings.smtp_token_security")}: ${created.smtp_settings.security}`,
-      `${t("settings.smtp_token_username")}: ${created.smtp_settings.username}`,
-      `${t("settings.smtp_token_password")}: ${created.token}`,
-    ];
-
-    if (await copy_text(lines.join("\n"))) {
+    if (await copy_text(smtp_settings_rows_to_text(reveal_rows()))) {
       show_toast(t("common.copied_to_clipboard"), "success");
     } else {
       show_toast(t("common.failed_to_copy"), "error");
@@ -224,7 +244,7 @@ export function SmtpTokenCreateModal({
           </label>
           <Input
             id="smtp-token-name"
-            maxLength={64}
+            maxLength={SMTP_TOKEN_NAME_MAX_LENGTH}
             placeholder={t("settings.smtp_token_name_placeholder")}
             status={error ? "error" : "default"}
             value={name}
@@ -286,35 +306,13 @@ export function SmtpTokenCreateModal({
   const render_reveal_step = () => {
     if (!created) return null;
 
-    const rows: { label: string; value: string; mono?: boolean }[] = [
-      {
-        label: t("settings.smtp_token_host"),
-        value: created.smtp_settings.host,
-      },
-      {
-        label: t("settings.smtp_token_port"),
-        value: String(created.smtp_settings.port),
-      },
-      {
-        label: t("settings.smtp_token_security"),
-        value: created.smtp_settings.security,
-      },
-      {
-        label: t("settings.smtp_token_username"),
-        value: created.smtp_settings.username,
-      },
-      {
-        label: t("settings.smtp_token_password"),
-        value: created.token,
-        mono: true,
-      },
-    ];
+    const rows = reveal_rows();
 
     return (
       <>
         <ModalHeader>
           <div className="flex items-center gap-3">
-            <KeyIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
+            <KeyIcon className="w-5 h-5 text-txt-muted flex-shrink-0" />
             <ModalTitle>{t("settings.smtp_token_ready_title")}</ModalTitle>
           </div>
           <ModalDescription>
@@ -322,30 +320,7 @@ export function SmtpTokenCreateModal({
           </ModalDescription>
         </ModalHeader>
         <ModalBody className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
-            {rows.map((row) => (
-              <button
-                key={row.label}
-                aria-label={`${t("common.copy")} ${row.label}`}
-                className="group w-full grid grid-cols-[5.5rem_minmax(0,1fr)_1.25rem] items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--aster-hover)] focus-visible:bg-black/[0.04] focus-visible:outline-none"
-                type="button"
-                onClick={() => copy_value(row.value)}
-              >
-                <span className="text-xs font-medium text-txt-muted">
-                  {row.label}
-                </span>
-                <span
-                  className={[
-                    "min-w-0 text-sm text-txt-primary text-end",
-                    row.mono ? "font-mono break-all" : "truncate",
-                  ].join(" ")}
-                >
-                  {row.value}
-                </span>
-                <ClipboardDocumentIcon className="w-4 h-4 justify-self-end text-txt-muted transition-colors group-hover:text-txt-primary" />
-              </button>
-            ))}
-          </div>
+          <SmtpTokenSettingsRows rows={rows} on_copy={copy_value} />
           <Button
             className="w-full"
             size="lg"
@@ -355,6 +330,16 @@ export function SmtpTokenCreateModal({
             <ClipboardDocumentIcon className="w-4 h-4 me-2" />
             {t("settings.smtp_token_copy_all")}
           </Button>
+          {created.activates_at && (
+            <p
+              className="rounded-xl border border-edge-secondary p-3 text-sm text-txt-secondary"
+              data-testid="smtp_token_activates_at"
+            >
+              {t("guard.mail_app_activates_at", {
+                time: format_guard_time(created.activates_at),
+              })}
+            </p>
+          )}
           <DisclosureCallout />
         </ModalBody>
         <ModalFooter>

@@ -29,8 +29,15 @@ import {
 } from "./helpers";
 import { group_search_results, expand_thread_ids } from "./thread_grouping";
 import { apply_header_filter, header_filter_for_query } from "./header_filter";
+import { use_search_delete } from "./use_search_delete";
+import {
+  selection_folder_status,
+  selection_tag_status,
+  tags_from_tokens,
+} from "./selection_membership";
 
 import { count_filter_operators } from "@/utils/search_operators";
+import { build_label_name_to_tokens } from "@/utils/search_query";
 import { fetch_minimal_emails } from "@/services/fetch_minimal_emails";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
@@ -46,6 +53,16 @@ import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
 import { show_toast } from "@/components/toast/simple_toast";
 import { on_user_opened_mail } from "@/services/user_opened_mail";
+import { use_tags } from "@/hooks/use_tags";
+import { use_folders } from "@/hooks/use_folders";
+import { use_folder_tag_actions } from "@/components/email/inbox/use_folder_tag_actions";
+import {
+  bin_source_of,
+  move_out_of_bin,
+  type BinSource,
+} from "@/hooks/email_actions/move_out_of_bin";
+import { emit_mail_changed } from "@/hooks/email_action_types";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 
 export function use_search_results_page(props: SearchResultsPageProps) {
   const {
@@ -72,7 +89,43 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     set_query,
     clear_results,
     apply_flag_patch,
+    remove_results,
+    apply_membership_patch,
   } = use_search();
+  const { state: tags_state } = use_tags();
+  const { state: folders_state } = use_folders();
+  const tags_lookup = useMemo(() => {
+    const lookup = new Map<
+      string,
+      { name: string; color?: string; icon?: string }
+    >();
+
+    for (const tag of tags_state.tags) {
+      lookup.set(tag.tag_token, {
+        name: tag.name,
+        color: tag.color,
+        icon: tag.icon,
+      });
+    }
+
+    return lookup;
+  }, [tags_state.tags]);
+  const folders_lookup = useMemo(() => {
+    const lookup = new Map<string, { name: string; color?: string }>();
+
+    for (const folder of folders_state.folders) {
+      lookup.set(folder.folder_token, {
+        name: folder.name,
+        color: folder.color,
+      });
+    }
+
+    return lookup;
+  }, [folders_state.folders]);
+  const label_name_to_tokens = useMemo(
+    () => build_label_name_to_tokens(folders_state.folders, tags_state.tags),
+    [folders_state.folders, tags_state.tags],
+  );
   const email_actions = use_email_actions();
   const [bulk_busy, set_bulk_busy] = useState(false);
   const [is_slow, set_is_slow] = useState(false);
@@ -110,9 +163,10 @@ export function use_search_results_page(props: SearchResultsPageProps) {
       search(search_query, {
         fields: ["all"],
         search_body: content_search_enabled,
+        label_name_to_tokens,
       });
     },
-    [search, content_search_enabled],
+    [search, content_search_enabled, label_name_to_tokens],
   );
 
   const content_search_ref = useRef(content_search_enabled);
@@ -189,6 +243,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
     const dated = results.map((r) => ({
       ...r,
+      tags: tags_from_tokens(r.tag_tokens, tags_lookup),
       raw_timestamp: r.timestamp,
       timestamp: format_email_list(new Date(r.timestamp)),
     }));
@@ -205,6 +260,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     search_terms,
     format_email_list,
     conversation_grouping,
+    tags_lookup,
   ]);
 
   const paged_results = useMemo(() => {
@@ -384,6 +440,180 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     last_selected_id_ref.current = null;
   }, []);
 
+  const update_result_membership = useCallback(
+    (id: string, updates: Partial<InboxEmail>) => {
+      const row = filtered_results_ref.current.find((r) => r.id === id);
+      const member_ids = expand_selection([id]);
+
+      if (updates.tags !== undefined) {
+        const before = new Set((row?.tags ?? []).map((tag) => tag.id));
+        const after = new Set(updates.tags.map((tag) => tag.id));
+
+        apply_membership_patch(member_ids, {
+          add_tag_tokens: [...after].filter((token) => !before.has(token)),
+          remove_tag_tokens: [...before].filter((token) => !after.has(token)),
+        });
+      }
+      if (updates.folders !== undefined) {
+        const before = new Set(
+          (row?.folders ?? []).map((folder) => folder.folder_token),
+        );
+        const after = updates.folders.map((folder) => folder.folder_token);
+        const adds = after.some((token) => !before.has(token));
+
+        apply_membership_patch(
+          member_ids,
+          adds
+            ? {
+                folders: updates.folders.map((folder) => ({
+                  folder_token: folder.folder_token,
+                  name: folder.name,
+                })),
+              }
+            : {
+                remove_folder_tokens: [...before].filter(
+                  (token) => !after.includes(token),
+                ),
+              },
+        );
+      }
+    },
+    [expand_selection, apply_membership_patch],
+  );
+
+  const noop_remove = useCallback(() => {}, []);
+
+  const action_rows = useMemo(
+    () => filtered_results as unknown as InboxEmail[],
+    [filtered_results],
+  );
+
+  const folder_action_rows = useMemo(
+    () =>
+      action_rows.map((row) =>
+        row.is_selected && bin_source_of(row, "search")
+          ? { ...row, is_selected: false }
+          : row,
+      ),
+    [action_rows],
+  );
+
+  const membership_options = {
+    t,
+    current_view: "search",
+    update_email: update_result_membership,
+    remove_email: noop_remove,
+    conversation_grouping: preferences.conversation_grouping,
+    folders_lookup,
+    tags_lookup,
+    is_drafts_view: false,
+    is_scheduled_view: false,
+  };
+
+  const tag_actions = use_folder_tag_actions({
+    ...membership_options,
+    email_state: { emails: action_rows, total_messages: action_rows.length },
+  });
+
+  const folder_actions = use_folder_tag_actions({
+    ...membership_options,
+    email_state: {
+      emails: folder_action_rows,
+      total_messages: folder_action_rows.length,
+    },
+  });
+
+  const get_tag_status_for_selection = useCallback(
+    (tag_token: string) =>
+      selection_tag_status(filtered_results, selected_ids, tag_token),
+    [filtered_results, selected_ids],
+  );
+
+  const get_folder_status_for_selection = useCallback(
+    (folder_token: string) =>
+      selection_folder_status(filtered_results, selected_ids, folder_token),
+    [filtered_results, selected_ids],
+  );
+
+  const handle_bulk_tag_toggle = useCallback(
+    async (tag_token: string) => {
+      if (selected_ids.size === 0 || bulk_busy) return;
+      set_bulk_busy(true);
+      try {
+        await tag_actions.handle_toolbar_toggle_tag(
+          tag_token,
+          get_tag_status_for_selection(tag_token) === "all",
+        );
+      } finally {
+        set_bulk_busy(false);
+      }
+    },
+    [selected_ids, bulk_busy, tag_actions, get_tag_status_for_selection],
+  );
+
+  const handle_bulk_folder_toggle = useCallback(
+    async (folder_token: string) => {
+      if (selected_ids.size === 0 || bulk_busy) return;
+      const should_remove =
+        get_folder_status_for_selection(folder_token) === "all";
+      const bin_groups = new Map<BinSource, InboxEmail[]>();
+
+      if (!should_remove) {
+        for (const row of action_rows) {
+          if (!row.is_selected) continue;
+          const source = bin_source_of(row, "search");
+
+          if (!source) continue;
+          bin_groups.set(source, [...(bin_groups.get(source) ?? []), row]);
+        }
+      }
+
+      set_bulk_busy(true);
+      try {
+        await folder_actions.handle_toolbar_toggle_folder(
+          folder_token,
+          should_remove,
+        );
+
+        if (bin_groups.size > 0) {
+          let failed = false;
+
+          for (const [source, emails] of bin_groups) {
+            const result = await move_out_of_bin({
+              emails,
+              source,
+              target_folder_token: folder_token,
+              conversation_grouping: preferences.conversation_grouping,
+            });
+
+            if (result.failed.length > 0 || result.filing_failed) {
+              failed = true;
+            }
+          }
+          if (failed) {
+            show_toast(t("common.failed_to_update"), "error");
+          }
+          emit_mail_changed();
+          invalidate_mail_stats();
+          perform_search(query);
+        }
+      } finally {
+        set_bulk_busy(false);
+      }
+    },
+    [
+      selected_ids,
+      bulk_busy,
+      action_rows,
+      folder_actions,
+      get_folder_status_for_selection,
+      preferences.conversation_grouping,
+      perform_search,
+      query,
+      t,
+    ],
+  );
+
   const handle_bulk_archive = useCallback(async () => {
     const ids = expand_selection(Array.from(selected_ids));
 
@@ -423,6 +653,20 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     t,
   ]);
 
+  const disable_permanent_delete_confirm = useCallback(() => {
+    update_preference("confirm_before_permanent_delete", false, true);
+  }, [update_preference]);
+
+  const { delete_emails, search_delete_dialog } = use_search_delete({
+    t,
+    bulk_delete: email_actions.bulk_delete,
+    apply_flag_patch,
+    remove_results,
+    confirm_before_permanent_delete:
+      preferences.confirm_before_permanent_delete,
+    disable_permanent_delete_confirm,
+  });
+
   const handle_bulk_delete = useCallback(async () => {
     const ids = expand_selection(Array.from(selected_ids));
 
@@ -436,27 +680,16 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
         return;
       }
-      if (emails.length > 0) {
-        const deleted = await email_actions.bulk_delete(emails);
-
-        if (deleted) {
-          apply_flag_patch(
-            emails.map((e) => e.id),
-            { is_trashed: true },
-          );
-          emit_mail_items_removed({ ids: emails.map((e) => e.id) });
-        }
-      }
+      if (emails.length > 0) await delete_emails(emails);
       handle_clear_selection();
     } finally {
       set_bulk_busy(false);
     }
   }, [
-    apply_flag_patch,
+    delete_emails,
     selected_ids,
     bulk_busy,
     fetch_as_minimal_emails,
-    email_actions,
     handle_clear_selection,
     expand_selection,
     t,
@@ -700,10 +933,18 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     handle_select_all_visible,
     handle_bulk_archive,
     handle_bulk_delete,
+    delete_emails,
+    search_delete_dialog,
     handle_bulk_mark_read,
     handle_bulk_mark_unread,
     handle_bulk_toggle_star,
     handle_bulk_spam,
+    handle_bulk_tag_toggle,
+    handle_bulk_folder_toggle,
+    get_tag_status_for_selection,
+    get_folder_status_for_selection,
+    tags_state,
+    folders_state,
     handle_select_by_filter,
     active_filter_count,
     is_loading,

@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ElementType, ReactNode, RefObject } from "react";
+import type { DragEvent, ElementType, ReactNode, RefObject } from "react";
 
-import { Fragment, memo } from "react";
+import { Fragment, memo, useEffect, useRef, useState } from "react";
 import {
   InboxIcon,
   StarIcon,
@@ -51,6 +51,21 @@ import {
   request_empty_folder,
   type EmptyableFolder,
 } from "@/components/email/inbox/empty_folder_request";
+import {
+  active_email_drag,
+  is_email_drag,
+  run_system_drop,
+  use_category_drag_active,
+} from "@/components/email/inbox/category_drag";
+import {
+  is_system_drop_target,
+  system_drop_verdict,
+} from "@/lib/system_drop_targets";
+
+const DROP_OVER_CLASS =
+  "[&_.sidebar-nav-btn]:!bg-brand/10 [&_.sidebar-nav-btn]:ring-2 [&_.sidebar-nav-btn]:ring-brand/60 forced-colors:[&_.sidebar-nav-btn]:outline-2 forced-colors:[&_.sidebar-nav-btn]:outline-solid forced-colors:[&_.sidebar-nav-btn]:outline-[Highlight]";
+
+const SECTION_EXPAND_DELAY_MS = 600;
 
 interface SidebarNavSectionProps {
   is_collapsed: boolean;
@@ -129,6 +144,75 @@ export const SidebarNavSection = memo(function SidebarNavSection({
   is_first = true,
 }: SidebarNavSectionProps) {
   const { t } = use_i18n();
+  const [drop_over_id, set_drop_over_id] = useState<string | null>(null);
+  const drag_active = use_category_drag_active();
+  const expand_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clear_expand_timer = () => {
+    if (expand_timer_ref.current === null) return;
+    clearTimeout(expand_timer_ref.current);
+    expand_timer_ref.current = null;
+  };
+
+  useEffect(() => {
+    if (drag_active) return;
+    set_drop_over_id(null);
+    clear_expand_timer();
+  }, [drag_active]);
+
+  useEffect(() => clear_expand_timer, []);
+
+  const drop_verdict = (id: string) =>
+    system_drop_verdict(id, active_email_drag());
+
+  const drop_handlers = (id: string) => ({
+    onDragEnter: (e: DragEvent<HTMLDivElement>) => {
+      if (!is_email_drag(e.dataTransfer)) return;
+      if (drop_verdict(id) === "accept") set_drop_over_id(id);
+    },
+    onDragOver: (e: DragEvent<HTMLDivElement>) => {
+      if (!is_email_drag(e.dataTransfer)) return;
+      e.preventDefault();
+      const accepts = drop_verdict(id) === "accept";
+
+      e.dataTransfer.dropEffect = accepts ? "move" : "none";
+      set_drop_over_id((current) =>
+        accepts ? id : current === id ? null : current,
+      );
+    },
+    onDragLeave: (e: DragEvent<HTMLDivElement>) => {
+      const next = e.relatedTarget;
+
+      if (next instanceof Node && e.currentTarget.contains(next)) return;
+      set_drop_over_id((current) => (current === id ? null : current));
+    },
+    onDrop: (e: DragEvent<HTMLDivElement>) => {
+      if (!is_email_drag(e.dataTransfer)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      set_drop_over_id(null);
+      if (!is_system_drop_target(id) || drop_verdict(id) !== "accept") return;
+      run_system_drop(id);
+    },
+  });
+
+  const toggle_drop_handlers = {
+    onDragOver: (e: DragEvent<HTMLDivElement>) => {
+      if (!section_collapsed || !is_email_drag(e.dataTransfer)) return;
+      if (expand_timer_ref.current !== null) return;
+      expand_timer_ref.current = setTimeout(() => {
+        expand_timer_ref.current = null;
+        on_toggle_section();
+      }, SECTION_EXPAND_DELAY_MS);
+    },
+    onDragLeave: (e: DragEvent<HTMLDivElement>) => {
+      const next = e.relatedTarget;
+
+      if (next instanceof Node && e.currentTarget.contains(next)) return;
+      clear_expand_timer();
+    },
+    onDrop: clear_expand_timer,
+  };
 
   const primary_items: NavItem[] = [
     {
@@ -273,22 +357,28 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
     return (
       <Fragment key={item.id}>
-        <NewTabTarget path={item.path}>
-          {empty_action ? (
-            <EmptyFolderContextMenu
-              is_empty={(item.count ?? 0) === 0}
-              label={empty_action.label}
-              on_empty={() => {
-                go_to_item();
-                request_empty_folder(empty_action.folder);
-              }}
-            >
-              {row}
-            </EmptyFolderContextMenu>
-          ) : (
-            row
-          )}
-        </NewTabTarget>
+        <div
+          className={drop_over_id === item.id ? `contents ${DROP_OVER_CLASS}` : "contents"}
+          data-drop-target={item.id}
+          {...drop_handlers(item.id)}
+        >
+          <NewTabTarget path={item.path}>
+            {empty_action ? (
+              <EmptyFolderContextMenu
+                is_empty={(item.count ?? 0) === 0}
+                label={empty_action.label}
+                on_empty={() => {
+                  go_to_item();
+                  request_empty_folder(empty_action.folder);
+                }}
+              >
+                {row}
+              </EmptyFolderContextMenu>
+            ) : (
+              row
+            )}
+          </NewTabTarget>
+        </div>
         {item.after}
       </Fragment>
     );
@@ -308,12 +398,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 
       {visible_more_items.length > 0 && (
         <>
-          <SidebarSectionToggle
-            is_collapsed={is_collapsed}
-            label={t("common.more")}
-            on_toggle={on_toggle_section}
-            section_collapsed={section_collapsed}
-          />
+          <div className="contents" {...toggle_drop_handlers}>
+            <SidebarSectionToggle
+              is_collapsed={is_collapsed}
+              label={t("common.more")}
+              on_toggle={on_toggle_section}
+              section_collapsed={section_collapsed}
+            />
+          </div>
 
           {is_collapsed && <div className="mt-3" />}
 

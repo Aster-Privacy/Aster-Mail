@@ -76,7 +76,6 @@ import {
   type RuleTemplate,
 } from "@/components/mail_rules/rule_templates";
 import { show_toast } from "@/components/toast/simple_toast";
-import { use_register_search_items } from "@/components/settings/search_context";
 import {
   use_folder_retention,
   RetentionPolicyCard,
@@ -110,26 +109,6 @@ export function MailRulesSection() {
   );
   const [confirm_delete_policy, set_confirm_delete_policy] =
     React.useState<RetentionPolicy | null>(null);
-
-  use_register_search_items("mail_rules", [
-    {
-      label: t("mail_rules.templates_button"),
-      breadcrumb: t("mail_rules.title"),
-      keywords: ["template", "starter rule", "preset", "example rule"],
-    },
-    {
-      label: t("folder_retention.add"),
-      breadcrumb: `${t("mail_rules.title")} > ${t("folder_retention.title")}`,
-      keywords: [
-        "auto delete",
-        "auto-clean",
-        "retention",
-        "expire",
-        "clean folder",
-        "older than",
-      ],
-    },
-  ]);
 
   React.useEffect(() => {
     load_rules();

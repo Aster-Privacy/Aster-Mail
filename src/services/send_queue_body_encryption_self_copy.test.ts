@@ -85,6 +85,7 @@ vi.mock("./crypto/ratchet_manager", () => ({
 
 vi.mock("./send_queue_recipients", () => ({
   assert_owner_key_trusted: async () => undefined,
+  owner_key_pinned_before_send: async () => true,
   resolve_own_username_for_key_lookup: async () => "me",
   resolve_username_for_key_lookup: async () => "friend",
 }));

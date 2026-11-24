@@ -30,10 +30,7 @@ export class ExternalAccountPasswordError extends Error {
 
 import { array_to_base64, base64_to_array } from "../sender_utils";
 
-import {
-  decrypt_with_ios_storage_keys,
-  get_legacy_ios_hmac_keys,
-} from "@/services/crypto/legacy_ios_envelope";
+import { decrypt_with_ios_storage_keys } from "@/services/crypto/legacy_ios_envelope";
 import {
   get_storage_write_crypto_key,
   get_storage_write_hmac_key,
@@ -104,25 +101,11 @@ async function verify_integrity_hash(
   const data = encoder.encode(combined);
   const expected_hash = base64_to_array(hash);
 
-  if (
-    await verify_with_storage_lookup_keys(
-      EXTERNAL_ACCOUNTS_HMAC_INFO,
-      expected_hash,
-      data,
-    )
-  ) {
-    return true;
-  }
-
-  for (const key of await get_legacy_ios_hmac_keys(
+  return verify_with_storage_lookup_keys(
     EXTERNAL_ACCOUNTS_HMAC_INFO,
-  )) {
-    if (await crypto.subtle.verify("HMAC", key, expected_hash, data)) {
-      return true;
-    }
-  }
-
-  return false;
+    expected_hash,
+    data,
+  );
 }
 
 function bytes_equal(a: Uint8Array, b: Uint8Array): boolean {
@@ -223,4 +206,55 @@ export async function decrypt_account_data(
     label_color: parsed.label_color,
     created_at: parsed.created_at,
   };
+}
+
+export interface ForwardingLabelPayload {
+  label: string;
+  address: string;
+}
+
+export async function seal_forwarding_label(
+  payload: ForwardingLabelPayload,
+): Promise<{ encrypted_label: string; label_nonce: string }> {
+  const key = await get_external_accounts_encryption_key();
+  const plaintext = new TextEncoder().encode(
+    JSON.stringify({ label: payload.label, address: payload.address }),
+  );
+  const nonce = crypto.getRandomValues(new Uint8Array(COMBINED_NONCE_LENGTH));
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: nonce },
+    key,
+    plaintext,
+  );
+
+  return {
+    encrypted_label: array_to_base64(new Uint8Array(ciphertext)),
+    label_nonce: array_to_base64(nonce),
+  };
+}
+
+export async function open_forwarding_label(
+  encrypted_label: string,
+  label_nonce: string,
+): Promise<ForwardingLabelPayload | null> {
+  try {
+    const buffer = await decrypt_with_ios_storage_keys(
+      base64_to_array(encrypted_label),
+      base64_to_array(label_nonce),
+    );
+
+    if (!buffer) return null;
+
+    const parsed: unknown = JSON.parse(new TextDecoder().decode(buffer));
+
+    if (!parsed || typeof parsed !== "object") return null;
+
+    const record = parsed as Record<string, unknown>;
+    const label = typeof record.label === "string" ? record.label : "";
+    const address = typeof record.address === "string" ? record.address : "";
+
+    return { label, address };
+  } catch {
+    return null;
+  }
 }

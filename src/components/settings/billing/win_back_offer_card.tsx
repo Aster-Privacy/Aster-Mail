@@ -67,10 +67,7 @@ export function WinBackOfferCard({
     <BillingNotice
       body={
         <>
-          {t("settings.win_back_offer_auto_applied", { code: offer.code })}
-          <span aria-hidden="true" className="mx-1.5">
-            ·
-          </span>
+          {t("settings.win_back_offer_auto_applied", { code: offer.code })}{" "}
           {expiry_text}
         </>
       }

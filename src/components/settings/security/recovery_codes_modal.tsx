@@ -50,7 +50,8 @@ import {
   generate_recovery_codes,
   RECOVERY_CODE_SET_SIZE,
 } from "@/services/crypto/key_manager_pgp";
-import { encrypt_vault } from "@/services/crypto/key_manager_pgp_vault";
+import { prepare_vault_write } from "@/services/crypto/key_manager_pgp_vault";
+import { vault_write_iterations } from "@/services/crypto/vault_level2";
 import {
   is_vault_conflict,
   MAX_VAULT_CONFLICT_RETRIES,
@@ -63,6 +64,12 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { has_outdated_recovery_codes } from "@/services/crypto/recovery_code_refresh";
+import { is_rolled_back_vault } from "@/services/crypto/vault_generation";
+import {
+  TOTP_CODE_LENGTH,
+  normalize_totp_input,
+  step_up_error_key,
+} from "./recovery_codes_step_up";
 import {
   generate_recovery_key,
   encrypt_vault_backup,
@@ -72,6 +79,8 @@ import {
   matches_stored_code,
 } from "@/services/crypto/recovery_key";
 import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
+import { current_recovery_backup_binding } from "@/services/crypto/recovery_backup_refresh";
+import { raise_recovery_backup_floor } from "@/services/crypto/recovery_backup_floor";
 import {
   save_recovery_backup,
   verify_codes_step_up,
@@ -85,6 +94,8 @@ import {
   derive_current_account_proof,
   read_kdf_version,
 } from "@/services/crypto/login_proof";
+import { step_up_key_assertion_if_enrolled } from "@/services/api/webauthn";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 interface SaltResponse {
   salt: string;
@@ -209,13 +220,42 @@ export function RecoveryCodesModal({
       salt,
       read_kdf_version(salt_response.data.kdf_version),
     );
+    let hardware_key_assertion;
+
+    try {
+      hardware_key_assertion = await step_up_key_assertion_if_enrolled(
+        salt_response.data.totp_required,
+      );
+    } catch (caught) {
+      set_error(user_facing_error(caught, t("common.step_up_error")));
+
+      return null;
+    }
+
     const step_up = await verify_codes_step_up(
       hash,
-      totp_required && totp_code.trim() ? totp_code.trim() : undefined,
+      totp_required && totp_code ? totp_code : undefined,
+      hardware_key_assertion,
     );
 
     if (step_up.error || !step_up.data?.step_up_token) {
-      set_error(step_up.error || t("settings.incorrect_password_error"));
+      const error_key = step_up_error_key(step_up);
+
+      if (step_up.server_code === "TOTP_REQUIRED") {
+        set_totp_required(true);
+        set_totp_code("");
+      }
+      if (
+        step_up.server_code === "INVALID_TWO_FACTOR_CODE" ||
+        step_up.server_code === "TOTP_CODE_REPLAYED"
+      ) {
+        set_totp_code("");
+      }
+      set_error(
+        error_key
+          ? t(error_key)
+          : step_up.error || t("settings.incorrect_password_error"),
+      );
       rejected_attempts_ref.current += 1;
 
       if (rejected_attempts_ref.current >= DEFER_AFTER_REJECTED_ATTEMPTS) {
@@ -293,6 +333,13 @@ export function RecoveryCodesModal({
         };
       }
 
+      if (user?.id && is_rolled_back_vault(user.id, latest.vault)) {
+        return {
+          status: "failed" as const,
+          failed: t("errors.vault_rolled_back"),
+        };
+      }
+
       if (
         is_required &&
         !has_outdated_recovery_codes(latest.vault.recovery_codes)
@@ -305,34 +352,46 @@ export function RecoveryCodesModal({
         };
       }
 
-      const updated_vault = { ...latest.vault, recovery_codes: new_codes };
+      const binding = await current_recovery_backup_binding(latest.vault);
+      const updated_vault = {
+        ...latest.vault,
+        recovery_codes: new_codes,
+        ...(binding ? { recovery_backup_generation: binding.generation } : {}),
+      };
       const new_backup = await encrypt_vault_backup(
         await build_backup_vault(updated_vault, passphrase),
         recovery_key,
+        binding,
       );
       const new_shares = await generate_all_recovery_shares(
         new_codes,
         recovery_key,
       );
-      const { encrypted_vault, vault_nonce } = await encrypt_vault(
+      const vault_write = await prepare_vault_write(
         updated_vault,
         passphrase,
+        vault_write_iterations(latest.encrypted_vault),
       );
-
-      const save_response = await save_recovery_backup(
-        new_backup.encrypted_data,
-        new_backup.nonce,
-        new_backup.salt,
-        new_shares,
-        {
-          step_up_token,
-          encrypted_vault,
-          vault_nonce,
-          vault_format: updated_vault.vault_format,
-          ...(latest.vault_sha256
-            ? { expected_vault_sha256: latest.vault_sha256 }
-            : {}),
-        },
+      const {
+        response: save_response,
+        sealed: { encrypted_vault, vault_nonce },
+      } = await vault_write.write((sealed, kdf_field) =>
+        save_recovery_backup(
+          new_backup.encrypted_data,
+          new_backup.nonce,
+          new_backup.salt,
+          new_shares,
+          {
+            step_up_token,
+            encrypted_vault: sealed.encrypted_vault,
+            vault_nonce: sealed.vault_nonce,
+            vault_format: updated_vault.vault_format,
+            ...(latest.vault_sha256
+              ? { expected_vault_sha256: latest.vault_sha256 }
+              : {}),
+            ...kdf_field,
+          },
+        ),
       );
 
       if (is_vault_conflict(save_response)) continue;
@@ -343,6 +402,10 @@ export function RecoveryCodesModal({
           failed:
             save_response.error || t("settings.recovery_codes_save_failed"),
         };
+      }
+
+      if (binding) {
+        raise_recovery_backup_floor(binding.user_id, binding.generation);
       }
 
       return {
@@ -458,7 +521,7 @@ export function RecoveryCodesModal({
       return;
     }
 
-    if (totp_required && !totp_code.trim()) {
+    if (totp_required && totp_code.length !== TOTP_CODE_LENGTH) {
       set_error(t("settings.please_enter_2fa_code"));
 
       return;
@@ -636,16 +699,13 @@ export function RecoveryCodesModal({
                     disabled={is_working}
                     id="codes-totp-code"
                     inputMode="numeric"
-                    maxLength={6}
                     placeholder="000000"
                     status={error ? "error" : "default"}
                     type="text"
                     value={totp_code}
                     onChange={(e) => {
                       set_totp_code(
-                        apply_input_transform(e.target, (v) =>
-                          v.replace(/\D/g, "").slice(0, 6),
-                        ),
+                        apply_input_transform(e.target, normalize_totp_input),
                       );
                       if (error) set_error("");
                     }}

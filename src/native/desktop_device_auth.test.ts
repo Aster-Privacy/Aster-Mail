@@ -107,7 +107,7 @@ beforeEach(() => {
           return Promise.reject(new Error("bad envelope"));
         }
 
-        return Promise.resolve("cGFzcw");
+        return Promise.resolve();
       }
       if (cmd === "device_sign_challenge") return Promise.resolve("signature");
       if (cmd === "device_get_stored_passphrase") {
@@ -130,6 +130,7 @@ beforeEach(() => {
         data: {
           access_token: "token",
           csrf_token: "csrf",
+          user_id: "account-1",
           encrypted_vault: "vault",
           vault_nonce: "vault-nonce",
         },
@@ -283,6 +284,32 @@ describe("desktop device session lifecycle", () => {
     });
   });
 
+  it("sends the action key with the code request when it has one", async () => {
+    post_mock.mockResolvedValue({
+      data: { code: "ABCD-1234", expires_in: 600 },
+      error: null,
+    });
+    const module = await import("./desktop_device_auth");
+
+    await module.request_device_code({
+      device_id: null,
+      ed25519_pk: "ed",
+      mlkem_pk: "mlkem",
+      x25519_pk: "x",
+      machine_name: "machine",
+      action_pk: "action",
+    });
+
+    expect(post_mock).toHaveBeenCalledWith("/core/v1/auth/device/code", {
+      ed25519_pk: "ed",
+      mlkem_pk: "mlkem",
+      x25519_pk: "x",
+      machine_name: "machine",
+      envelope_versions: [1, 2],
+      action_pk: "action",
+    });
+  });
+
   it("forgets only the failed account when pairing breaks", async () => {
     const module = await import("./desktop_device_auth");
 
@@ -344,7 +371,10 @@ describe("desktop device session lifecycle", () => {
   });
 });
 
-function fail_login_with(status: number | null): void {
+function fail_login_with(
+  status: number | null,
+  server_code?: string,
+): void {
   post_mock.mockImplementation((path: string) => {
     if (path === "/core/v1/auth/device/challenge") {
       return Promise.resolve({
@@ -357,7 +387,12 @@ function fail_login_with(status: number | null): void {
         return Promise.reject(new Error("network down"));
       }
 
-      return Promise.resolve({ data: null, error: "failed", status });
+      return Promise.resolve({
+        data: null,
+        error: "failed",
+        status,
+        server_code,
+      });
     }
 
     return Promise.resolve({ data: null, error: "unexpected" });
@@ -471,6 +506,52 @@ describe("device relogin decisions", () => {
     expect(wait).toHaveBeenCalledTimes(1);
   });
 
+  it("asks to pair again at once when the account requires approved devices", async () => {
+    fail_login_with(403, "GUARD_DEVICE_REQUIRED");
+    const module = await import("./desktop_device_auth");
+    const wait = vi.fn(() => Promise.resolve());
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "rejected",
+    );
+    post_mock.mockClear();
+    await expect(
+      module.relogin_with_retries("device-1", () => false, wait),
+    ).resolves.toBe("rejected");
+    expect(wait).not.toHaveBeenCalled();
+    expect(
+      post_mock.mock.calls.filter(
+        ([path]) => path === "/core/v1/auth/device/login",
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("keeps the pairing while an approved device waits to turn on", async () => {
+    fail_login_with(403, "GUARD_DEVICE_PENDING");
+    const module = await import("./desktop_device_auth");
+    const wait = vi.fn(() => Promise.resolve());
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "guard_pending",
+    );
+    await expect(
+      module.relogin_with_retries("device-1", () => false, wait),
+    ).resolves.toBe("guard_pending");
+    expect(wait).not.toHaveBeenCalled();
+    expect(
+      invoke_mock.mock.calls.some(([cmd]) => cmd === "device_forget_account"),
+    ).toBe(false);
+  });
+
+  it("treats a plain 403 as transient", async () => {
+    fail_login_with(403);
+    const module = await import("./desktop_device_auth");
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "unavailable",
+    );
+  });
+
   it("never forgets when every attempt fails transiently", async () => {
     fail_login_with(429);
     const module = await import("./desktop_device_auth");
@@ -551,6 +632,176 @@ describe("device relogin decisions", () => {
       ),
     ).resolves.toBe("unavailable");
     expect(post_mock).not.toHaveBeenCalled();
+  });
+});
+
+describe("resuming a PIN locked device login", () => {
+  function seal_stored_passphrase(): void {
+    const base = invoke_mock.getMockImplementation();
+
+    invoke_mock.mockImplementation(
+      (cmd: string, args?: Record<string, unknown>) => {
+        if (cmd === "device_get_stored_passphrase") {
+          return Promise.reject("passphrase_pin_locked");
+        }
+
+        return base?.(cmd, args);
+      },
+    );
+  }
+
+  function unlock_source(options: {
+    locked: boolean;
+    unlocks?: boolean;
+    passphrase?: string | null;
+  }) {
+    return {
+      is_locked: vi.fn(() => options.locked),
+      wait_for_unlock: vi.fn(() => Promise.resolve(options.unlocks ?? true)),
+      read_passphrase: vi.fn(() =>
+        Promise.resolve(
+          options.passphrase === undefined ? "pass" : options.passphrase,
+        ),
+      ),
+    };
+  }
+
+  it("finishes the sign in with the unlocked passphrase instead of pairing again", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: true });
+
+    await expect(module.attempt_device_relogin("device-1")).resolves.toBe(
+      "locked",
+    );
+    const resumed = await module.resume_device_login_after_unlock(
+      "account-1",
+      source,
+    );
+
+    expect(source.wait_for_unlock).toHaveBeenCalledWith("account-1");
+    expect(source.read_passphrase).toHaveBeenCalledWith("account-1");
+    expect(resumed).toEqual({
+      login_response: expect.objectContaining({
+        encrypted_vault: "vault",
+        vault_nonce: "vault-nonce",
+      }),
+      passphrase: "pass",
+      device_id: "device-1",
+    });
+    expect(
+      invoke_mock.mock.calls.some(([cmd]) => cmd === "device_forget_account"),
+    ).toBe(false);
+  });
+
+  it("reads the passphrase at once when the app is already unlocked", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: false });
+
+    await module.attempt_device_relogin("device-1");
+    const resumed = await module.resume_device_login_after_unlock(
+      "account-1",
+      source,
+    );
+
+    expect(source.wait_for_unlock).not.toHaveBeenCalled();
+    expect(resumed?.passphrase).toBe("pass");
+  });
+
+  it("gives up when the unlock is abandoned", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: true, unlocks: false });
+
+    await module.attempt_device_relogin("device-1");
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
+    expect(source.read_passphrase).not.toHaveBeenCalled();
+  });
+
+  it("gives up when no passphrase is available after the unlock", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: true, passphrase: null });
+
+    await module.attempt_device_relogin("device-1");
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
+  });
+
+  it("has nothing to resume after a normal sign in", async () => {
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: true });
+
+    await module.attempt_device_relogin("device-1");
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
+    expect(source.wait_for_unlock).not.toHaveBeenCalled();
+  });
+
+  it("drops the locked login once the device is forgotten", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: false });
+
+    await module.attempt_device_relogin("device-1");
+    await module.forget_device_account("device-1");
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
+  });
+
+  it("names the locked account when the account list cannot be read", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+
+    expect(module.locked_device_login_account_id()).toBeNull();
+    await module.attempt_device_relogin("device-1");
+    expect(module.locked_device_login_account_id()).toBe("account-1");
+  });
+
+  it("asks for the PIN only while the passphrase is still locked", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const on_unlock_needed = vi.fn();
+
+    await module.attempt_device_relogin("device-1");
+    await module.resume_device_login_after_unlock(
+      "account-1",
+      unlock_source({ locked: true }),
+      on_unlock_needed,
+    );
+    expect(on_unlock_needed).toHaveBeenCalledWith("account-1");
+
+    on_unlock_needed.mockClear();
+    await module.attempt_device_relogin("device-1");
+    await module.resume_device_login_after_unlock(
+      "account-1",
+      unlock_source({ locked: false }),
+      on_unlock_needed,
+    );
+    expect(on_unlock_needed).not.toHaveBeenCalled();
+  });
+
+  it("resumes only once", async () => {
+    seal_stored_passphrase();
+    const module = await import("./desktop_device_auth");
+    const source = unlock_source({ locked: false });
+
+    await module.attempt_device_relogin("device-1");
+    await module.resume_device_login_after_unlock("account-1", source);
+
+    await expect(
+      module.resume_device_login_after_unlock("account-1", source),
+    ).resolves.toBeNull();
   });
 });
 
@@ -746,5 +997,54 @@ describe("erasing the device pairing", () => {
 
     expect(invoke_mock).not.toHaveBeenCalled();
     expect(delete_mock).not.toHaveBeenCalled();
+  });
+});
+
+describe("device challenge format", () => {
+  async function signed_version(challenge: Record<string, unknown>) {
+    post_mock.mockImplementation((path: string) => {
+      if (path === "/core/v1/auth/device/challenge") {
+        return Promise.resolve({ data: challenge, error: null });
+      }
+      if (path === "/core/v1/auth/device/login") {
+        return Promise.resolve({
+          data: {
+            access_token: "token",
+            csrf_token: "csrf",
+            encrypted_vault: "vault",
+            vault_nonce: "vault-nonce",
+          },
+          error: null,
+        });
+      }
+
+      return Promise.resolve({ data: null, error: "unexpected" });
+    });
+
+    const module = await import("./desktop_device_auth");
+
+    await module.init_desktop_device_auth();
+
+    const call = invoke_mock.mock.calls.find(
+      ([cmd]) => cmd === "device_sign_challenge",
+    );
+
+    return call?.[1];
+  }
+
+  it("asks for the default format when the server names no version", async () => {
+    expect(
+      await signed_version({ challenge_id: "challenge-1", nonce: "nonce" }),
+    ).toEqual({ nonceB64: "nonce", signatureVersion: null });
+  });
+
+  it("passes the version the server asks for", async () => {
+    expect(
+      await signed_version({
+        challenge_id: "challenge-1",
+        nonce: "nonce",
+        signature_version: 2,
+      }),
+    ).toEqual({ nonceB64: "nonce", signatureVersion: 2 });
   });
 });

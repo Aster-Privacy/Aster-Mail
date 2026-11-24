@@ -55,6 +55,7 @@ import {
 import { open_external } from "@/utils/open_link";
 import { Spinner } from "@/components/ui/spinner";
 import { apply_input_transform } from "@/utils/input_transform";
+import { format_guard_time } from "@/components/guard/guard_waiting_screen";
 
 const SUPPORT_MAIL_URL = "mailto:support@astermail.org";
 const HELP_CENTER_URL = "https://astermail.org/help";
@@ -134,6 +135,8 @@ export default function ForgotPasswordPage() {
     codes_saved,
     set_codes_saved,
     review,
+    recovered_address,
+    handle_navigate_sign_in,
     email,
     resend_cooldown,
     is_resending,
@@ -147,6 +150,7 @@ export default function ForgotPasswordPage() {
     handle_download_txt,
     handle_print_codes,
     handle_codes_continue,
+    guard_held_until,
   } = use_recovery_flow();
 
   const go_to = (next: typeof step) => {
@@ -749,6 +753,30 @@ export default function ForgotPasswordPage() {
           </StepLayout>
         );
 
+      case "guard_held":
+        return (
+          <StepLayout
+            header={header(
+              t("guard.recovery_held_title"),
+              t("guard.recovery_held_body", {
+                time: format_guard_time(guard_held_until ?? ""),
+              }),
+            )}
+          >
+            <ActionRow>
+              <Button
+                className="w-full"
+                data-testid="recovery_guard_held_back"
+                size="xl"
+                variant="depth"
+                onClick={() => navigate("/sign-in")}
+              >
+                {t("auth.back_to_sign_in")}
+              </Button>
+            </ActionRow>
+          </StepLayout>
+        );
+
       case "email_sent":
         return (
           <StepLayout
@@ -805,6 +833,16 @@ export default function ForgotPasswordPage() {
               false,
             )}
           >
+            {recovered_address && (
+              <p
+                className="mb-4 w-full text-[15px] text-txt-primary"
+                data-testid="recovered-account-address"
+              >
+                {t("auth.recovered_account_address", {
+                  address: recovered_address,
+                })}
+              </p>
+            )}
             <div className="w-full divide-y divide-edge-secondary">
               <ReviewRow label={t("auth.review_devices_signed_out")} />
               {review.second_factors_removed && (
@@ -832,7 +870,7 @@ export default function ForgotPasswordPage() {
                 className="w-full"
                 size="xl"
                 variant="depth"
-                onClick={() => navigate("/sign-in")}
+                onClick={handle_navigate_sign_in}
               >
                 {t("auth.sign_in")}
               </Button>

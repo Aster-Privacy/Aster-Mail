@@ -965,7 +965,9 @@ export class CalendarSyncEngine {
     const account_id = this.account_id;
 
     if (!account_id) return "stop";
-    if (!(await confirm_calendar_identity(account_id))) return "stop";
+    if (!(await confirm_calendar_identity(account_id))) {
+      return this.account_id === account_id ? "retry" : "stop";
+    }
     if (this.account_id !== account_id) return "stop";
 
     const calendars_outcome = await this.pull_calendars(account_id);
@@ -1185,6 +1187,7 @@ export class CalendarSyncEngine {
     response: ApiResponse<unknown> | undefined,
   ): Promise<"retry" | "stop"> {
     if (is_retryable(response)) return "retry";
+    if (response?.status === 401) return "retry";
     if (response?.status === 400) {
       await write_sync_page(account_id, {
         meta: { events_cursor: undefined, calendars_cursor: undefined },

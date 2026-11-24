@@ -90,24 +90,59 @@ export function remember_forward_from(
   set_forward_from_candidates(mail_id, build_forward_from_candidates(source));
 }
 
-export function remember_forward_from_message(
-  message: {
-    id: string;
-    item_type?: string;
-    sender_email?: string;
-    routing_token?: string;
-    raw_headers?: { name: string; value: string }[];
-    to_recipients?: { email: string }[];
-    cc_recipients?: { email: string }[];
-  },
+interface forward_message {
+  id: string;
+  item_type?: string;
+  sender_email?: string;
+  routing_token?: string;
+  raw_headers?: { name: string; value: string }[];
+  to_recipients?: { email: string }[];
+  cc_recipients?: { email: string }[];
+}
+
+function forward_source_from_message(
+  message: forward_message,
   fallback_routing_token?: string,
-): void {
-  remember_forward_from(message.id, {
+): forward_from_source {
+  return {
     is_own_message: message.item_type === "sent",
     sender_email: message.sender_email,
     routing_token: message.routing_token ?? fallback_routing_token,
     raw_headers: message.raw_headers,
     to_emails: message.to_recipients?.map((r) => r.email),
     cc_emails: message.cc_recipients?.map((r) => r.email),
-  });
+  };
+}
+
+export function remember_forward_from_message(
+  message: forward_message,
+  fallback_routing_token?: string,
+): void {
+  remember_forward_from(
+    message.id,
+    forward_source_from_message(message, fallback_routing_token),
+  );
+}
+
+export function remember_inline_forward_from(
+  message: forward_message,
+  reply_from_address: string | undefined,
+): void {
+  const seen = new Set<string>();
+  const addresses = [
+    reply_from_address,
+    ...build_forward_from_candidates(forward_source_from_message(message)),
+  ]
+    .map((address) => address?.trim())
+    .filter((address): address is string => {
+      if (!address) return false;
+      const key = address.toLowerCase();
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+
+      return true;
+    });
+
+  set_forward_from_candidates(message.id, addresses);
 }

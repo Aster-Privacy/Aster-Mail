@@ -87,3 +87,51 @@ describe("filter_emails_by_view alias subaddress", () => {
     ]);
   });
 });
+
+describe("filter_emails_by_view alias delivered as cc or bcc", () => {
+  const alias_hash = "aGFzaC1vZi1hbGlhcw==";
+  const routed = (
+    id: string,
+    recipient_addresses: string[],
+    routing_token?: string,
+  ): InboxEmail =>
+    ({
+      ...email(id, "friend@example.com", recipient_addresses),
+      routing_token,
+    }) as InboxEmail;
+  const emails = [
+    routed("cc", ["someone@example.com"], alias_hash),
+    routed("bcc", [], alias_hash),
+    routed("to", ["alias@mydomain.com"], alias_hash),
+    routed("other", ["someone@example.com"], "b3RoZXItaGFzaA=="),
+    email("sent", "alias@mydomain.com", ["friend@example.com"]),
+  ];
+
+  it("keeps cc and bcc deliveries in the received view", () => {
+    const view = build_alias_view("alias@mydomain.com", "received");
+    expect(
+      filter_emails_by_view(emails, view, alias_hash).map((e) => e.id),
+    ).toEqual(["cc", "bcc", "to"]);
+  });
+
+  it("keeps cc and bcc deliveries in the default view", () => {
+    const view = build_alias_view("alias@mydomain.com");
+    expect(
+      filter_emails_by_view(emails, view, alias_hash).map((e) => e.id),
+    ).toEqual(["cc", "bcc", "to", "sent"]);
+  });
+
+  it("leaves the sent view to the sender address", () => {
+    const view = build_alias_view("alias@mydomain.com", "sent");
+    expect(
+      filter_emails_by_view(emails, view, alias_hash).map((e) => e.id),
+    ).toEqual(["sent"]);
+  });
+
+  it("falls back to the to header when the alias hash is unknown", () => {
+    const view = build_alias_view("alias@mydomain.com", "received");
+    expect(filter_emails_by_view(emails, view).map((e) => e.id)).toEqual([
+      "to",
+    ]);
+  });
+});

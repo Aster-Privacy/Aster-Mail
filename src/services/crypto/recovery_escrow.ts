@@ -23,6 +23,7 @@ import type { AccountKeyTokenResponse } from "@/services/api/account_key";
 
 import { get_account_key_capabilities } from "../api/account_key";
 import {
+  get_codes_status,
   get_recovery_escrow_state,
   put_recovery_escrow_key,
   put_recovery_escrow_public_key,
@@ -40,11 +41,18 @@ import {
   is_vault_owned_by,
 } from "./memory_key_store";
 import {
+  recovery_codes_of,
+  refresh_recovery_backup,
+} from "./recovery_backup_refresh";
+import {
+  ESCROW_FORMAT,
   decode_escrow_seed,
-  derive_escrow_keypair,
+  derive_escrow_keys,
   encode_escrow_seed,
   generate_escrow_seed,
   seal_account_key_to_escrow,
+  zero_escrow_keys,
+  type EscrowKeys,
 } from "./recovery_key_escrow";
 import { zero_uint8_array } from "./secure_memory";
 import { with_vault_write_lock } from "./vault_write_lock";
@@ -57,25 +65,21 @@ export async function recovery_escrow_enabled(): Promise<boolean> {
   }
 }
 
-async function persist_seed(
+async function persist_vault(
   user_id: string,
-  vault: EncryptedVault,
+  base: EncryptedVault,
+  next: EncryptedVault,
   passphrase: string,
-  seed: Uint8Array,
 ): Promise<boolean> {
-  const next_vault: EncryptedVault = {
-    ...vault,
-    escrow_seed: encode_escrow_seed(seed),
-  };
   const { encrypted_vault, vault_nonce } = await encrypt_vault(
-    next_vault,
+    next,
     passphrase,
   );
   const roundtrip_ok = await verify_vault_roundtrip(
     encrypted_vault,
     vault_nonce,
     passphrase,
-    next_vault.identity_key,
+    next.identity_key,
   );
 
   if (!roundtrip_ok) return false;
@@ -84,24 +88,29 @@ async function persist_seed(
     encrypted_vault,
     vault_nonce,
     user_id,
-    next_vault.vault_format,
-    next_vault,
-    vault,
+    next.vault_format,
+    next,
+    base,
   );
 
   return pushed !== null;
 }
 
-export async function ensure_escrow_seed(
+interface HeldEscrowSeed {
+  seed: Uint8Array;
+  vault: EncryptedVault;
+}
+
+async function ensure_escrow_seed(
   user_id: string,
   vault: EncryptedVault,
   passphrase: string,
-): Promise<Uint8Array | null> {
+): Promise<HeldEscrowSeed | null> {
   const existing = vault.escrow_seed
     ? decode_escrow_seed(vault.escrow_seed)
     : null;
 
-  if (existing) return existing;
+  if (existing) return { seed: existing, vault };
 
   return with_vault_write_lock(async () => {
     if (!is_vault_owned_by(user_id)) return null;
@@ -111,18 +120,111 @@ export async function ensure_escrow_seed(
       ? decode_escrow_seed(current.escrow_seed)
       : null;
 
-    if (already) return already;
+    if (already) return { seed: already, vault: current };
 
     const seed = generate_escrow_seed();
+    const next: EncryptedVault = {
+      ...current,
+      escrow_seed: encode_escrow_seed(seed),
+      escrow_format: ESCROW_FORMAT,
+    };
 
-    if (!(await persist_seed(user_id, current, passphrase, seed))) {
+    if (!(await persist_vault(user_id, current, next, passphrase))) {
       zero_uint8_array(seed);
 
       return null;
     }
 
-    return seed;
+    return { seed, vault: next };
   });
+}
+
+async function recovery_backup_absent(): Promise<boolean> {
+  try {
+    const status = await get_codes_status({ skip_cache: true });
+
+    if (status.error || !status.data) return false;
+
+    return status.data.total === 0 && !status.data.created_at;
+  } catch {
+    return false;
+  }
+}
+
+async function carry_format_into_backup(
+  vault: EncryptedVault,
+  passphrase: string,
+): Promise<boolean> {
+  if (recovery_codes_of(vault).length > 0) {
+    return refresh_recovery_backup(vault, passphrase);
+  }
+
+  return recovery_backup_absent();
+}
+
+async function mark_escrow_format(
+  user_id: string,
+  vault: EncryptedVault,
+  passphrase: string,
+): Promise<boolean> {
+  if (vault.escrow_format === ESCROW_FORMAT) return true;
+
+  return with_vault_write_lock(async () => {
+    if (!is_vault_owned_by(user_id)) return false;
+
+    const current = get_vault_from_memory() ?? vault;
+
+    if (current.escrow_format === ESCROW_FORMAT) return true;
+
+    const next: EncryptedVault = { ...current, escrow_format: ESCROW_FORMAT };
+
+    if (!(await carry_format_into_backup(next, passphrase))) return false;
+
+    return persist_vault(user_id, current, next, passphrase);
+  });
+}
+
+async function store_escrow_entry(
+  user_id: string,
+  keys: EscrowKeys,
+  passphrase: string,
+  token: AccountKeyTokenResponse,
+  own_keys: string[],
+): Promise<boolean> {
+  const public_key = array_to_base64(keys.public_key);
+  const state = await get_recovery_escrow_state();
+
+  if (state.error || !state.data) return false;
+
+  if (state.data.escrow_public_key !== public_key) {
+    const published = await put_recovery_escrow_public_key(public_key);
+
+    if (published.error) return false;
+  } else if (state.data.token_versions.includes(token.version)) {
+    return true;
+  }
+
+  const account_key = await open_account_key_token(
+    token.token,
+    own_keys,
+    passphrase,
+  );
+
+  if (!account_key) return false;
+
+  try {
+    const sealed = await seal_account_key_to_escrow(
+      account_key,
+      keys,
+      user_id,
+      token.version,
+    );
+    const stored = await put_recovery_escrow_key(token.version, sealed);
+
+    return !stored.error;
+  } finally {
+    zero_uint8_array(account_key);
+  }
 }
 
 export async function sync_recovery_escrow(
@@ -135,50 +237,21 @@ export async function sync_recovery_escrow(
   if (!is_vault_owned_by(user_id)) return false;
   if (!(await recovery_escrow_enabled())) return false;
 
-  const seed = await ensure_escrow_seed(user_id, vault, passphrase);
+  const held = await ensure_escrow_seed(user_id, vault, passphrase);
 
-  if (!seed) return false;
+  if (!held) return false;
 
-  const keypair = derive_escrow_keypair(seed, user_id);
+  const keys = derive_escrow_keys(held.seed, user_id);
 
-  zero_uint8_array(seed);
+  zero_uint8_array(held.seed);
 
   try {
-    const public_key = array_to_base64(keypair.public_key);
-    const state = await get_recovery_escrow_state();
-
-    if (state.error || !state.data) return false;
-
-    if (state.data.escrow_public_key !== public_key) {
-      const published = await put_recovery_escrow_public_key(public_key);
-
-      if (published.error) return false;
-    } else if (state.data.token_versions.includes(token.version)) {
-      return true;
-    }
-
-    const account_key = await open_account_key_token(
-      token.token,
-      own_keys,
-      passphrase,
-    );
-
-    if (!account_key) return false;
-
-    try {
-      const sealed = await seal_account_key_to_escrow(
-        account_key,
-        keypair.public_key,
-        user_id,
-        token.version,
-      );
-      const stored = await put_recovery_escrow_key(token.version, sealed);
-
-      return !stored.error;
-    } finally {
-      zero_uint8_array(account_key);
+    if (!(await store_escrow_entry(user_id, keys, passphrase, token, own_keys))) {
+      return false;
     }
   } finally {
-    zero_uint8_array(keypair.private_key);
+    zero_escrow_keys(keys);
   }
+
+  return mark_escrow_format(user_id, held.vault, passphrase);
 }

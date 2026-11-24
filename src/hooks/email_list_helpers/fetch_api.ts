@@ -42,7 +42,8 @@ import {
   is_outgoing_view,
 } from "./views";
 
-import { classify, is_locked_to_primary } from "@/services/mail_categorizer";
+import { classify } from "@/services/mail_categorizer";
+import { is_primary_locked_sender } from "@/services/learned_sender_gate";
 import {
   list_mail_items,
   type ListMailItemsParams,
@@ -53,6 +54,7 @@ import { type ApiResponse } from "@/services/api/client";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { type FormatOptions } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import {
@@ -265,7 +267,12 @@ export async function fetch_mail_from_api(
 
               envelope.body_text = bundle.body;
               settle_bundle_subject(envelope, bundle);
-              if (bundle.pgp_undecrypted) cacheable = false;
+              if (
+                bundle.pgp_undecrypted ||
+                is_pending_decrypt_body(bundle.body)
+              ) {
+                cacheable = false;
+              }
             }
 
             return { envelope, metadata, cacheable };
@@ -340,6 +347,11 @@ export async function fetch_mail_from_api(
         )
         .flatMap(({ item, envelope, metadata }) => {
           try {
+            const system_locked = is_primary_locked_sender(
+              envelope!.from?.email || "",
+              { ...item, sender_verification: envelope!.sender_verification },
+            );
+
             return [
               {
                 id: item.id,
@@ -351,10 +363,11 @@ export async function fetch_mail_from_api(
                   trust: item,
                 }),
                 category_pinned:
+                  !system_locked &&
                   metadata?.category_pinned === true &&
-                  !!metadata?.category &&
-                  !is_locked_to_primary(envelope!, item),
+                  !!metadata?.category,
                 is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
+                ...(system_locked ? { system_locked: true } : {}),
               },
             ];
           } catch {

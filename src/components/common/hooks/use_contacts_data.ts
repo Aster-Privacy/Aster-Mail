@@ -47,6 +47,7 @@ import {
 } from "@/lib/contact_trash";
 import { contact_index_letter } from "@/lib/contact_index_letter";
 import { use_i18n } from "@/lib/i18n/context";
+import { relation_kind_key } from "@/utils/contact_relations";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_auth } from "@/contexts/auth_context";
 import { get_days_until_birthday } from "@/utils/contact_utils";
@@ -100,11 +101,14 @@ export function use_contacts_data() {
     const map = new Map<DecryptedContact, string>();
 
     for (const contact of contacts) {
-      map.set(contact, build_contact_haystack(contact));
+      map.set(
+        contact,
+        build_contact_haystack(contact, (kind) => t(relation_kind_key(kind))),
+      );
     }
 
     return map;
-  }, [contacts]);
+  }, [contacts, t]);
 
   const sorted_contacts = useMemo(() => {
     let result = [...contacts];

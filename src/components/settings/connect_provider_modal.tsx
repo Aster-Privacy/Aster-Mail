@@ -29,18 +29,19 @@ import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { start_oauth_authorize } from "@/services/api/external_accounts";
+import { checked_provider_sign_in_url } from "@/lib/provider_sign_in_url";
 import {
   DESKTOP_OAUTH_CALLBACK_EVENT,
   DESKTOP_OAUTH_RETURN_TO,
   expect_oauth_state,
   type DesktopOAuthCallbackDetail,
 } from "@/native/desktop_oauth_bridge";
+import { OAUTH_EXTERNAL_LIMIT_REASON } from "@/lib/external_account_modes";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 function is_tauri(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
-  );
+  return has_tauri_runtime();
 }
 
 const REASON_KEY_MAP: Record<string, TranslationKey> = {
@@ -57,6 +58,7 @@ const REASON_KEY_MAP: Record<string, TranslationKey> = {
   invalid_state: "settings.oauth_reason_session_expired",
   expired_state: "settings.oauth_reason_session_expired",
   wrong_account: "settings.oauth_reason_wrong_account",
+  external_account_limit: "settings.ext_v2_oauth_limit_reason",
 };
 
 export type ConnectProvider = "google" | "microsoft" | "yahoo";
@@ -186,12 +188,12 @@ export function ConnectProviderModal({
         return;
       }
 
-      let parsed: URL;
+      const parsed = checked_provider_sign_in_url(
+        provider,
+        result.data.authorize_url,
+      );
 
-      try {
-        parsed = new URL(result.data.authorize_url);
-        if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
-      } catch {
+      if (!parsed) {
         show_toast(
           t("settings.oauth_import_error", {
             reason: t("settings.oauth_reason_unknown"),
@@ -230,6 +232,12 @@ export function ConnectProviderModal({
           if (detail.status === "success") {
             on_oauth_success?.(detail.provider || provider);
             on_close();
+
+            return;
+          }
+          if (detail.reason === OAUTH_EXTERNAL_LIMIT_REASON) {
+            on_close();
+            show_plan_limit_upgrade({ resource: "external accounts" });
 
             return;
           }
@@ -313,6 +321,9 @@ export function ConnectProviderModal({
         if (success && oauth_provider) {
           on_oauth_success?.(oauth_provider);
           on_close();
+        } else if (!success && reason === OAUTH_EXTERNAL_LIMIT_REASON) {
+          on_close();
+          show_plan_limit_upgrade({ resource: "external accounts" });
         } else if (!success && reason) {
           const i18n_key =
             REASON_KEY_MAP[reason] || "settings.oauth_reason_unknown";

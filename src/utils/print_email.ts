@@ -337,6 +337,7 @@ export function format_body(
       external_content_mode: mode,
       image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
       sandbox_mode: false,
+      contained_layout: true,
       lockdown_mode: lockdown,
       blocked_image_labels,
       content_blocking:
@@ -371,6 +372,9 @@ const PRINT_ROOT_STYLES = `
   print-color-adjust: exact;
 `;
 
+export const PRINT_BODY_CONTAINMENT =
+  "position: relative; overflow: hidden; overflow: clip; isolation: isolate;";
+
 const PRINT_CONTENT_STYLES = `
   #aster-print-root .ap-header * { margin: 0; padding: 0; box-sizing: border-box; }
   #aster-print-root .ap-header {
@@ -403,6 +407,7 @@ const PRINT_CONTENT_STYLES = `
   #aster-print-root .ap-body {
     font-size: 14px;
     line-height: 1.6;
+    ${PRINT_BODY_CONTAINMENT}
   }
   #aster-print-root .ap-body p { margin-bottom: 1em; }
   #aster-print-root .ap-body img { max-width: 100%; height: auto; }

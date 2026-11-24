@@ -22,7 +22,11 @@ import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 
 import { describe, it, expect } from "vitest";
 
-import { classify, is_locked_to_primary } from "./mail_categorizer";
+import {
+  classify,
+  is_locked_to_primary,
+  learned_category_for,
+} from "./mail_categorizer";
 
 import { BUILTIN_CATEGORIES, fold_builtin } from "@/data/category_catalog";
 
@@ -55,20 +59,241 @@ describe("classify", () => {
     expect(classify(envelope, metadata)).toBe("primary");
   });
 
-  it("keeps an official Aster sign-in alert in Primary despite a stale pin", () => {
+  it("keeps an official Aster sign-in alert in primary despite a pin to deals", () => {
     const envelope = make_envelope({
       from: { name: "Aster Mail", email: "no-reply@astermail.org" },
-      subject: "New Sign-In to Your Aster Mail Account",
+      subject: "A new sign-in on Windows PC",
     });
     const metadata = {
-      category: "social",
+      category: "promotions",
       category_pinned: true,
     } as unknown as MailItemMetadata;
 
     const trust = { system_origin: true, is_external: false };
 
     expect(classify(envelope, metadata, { trust })).toBe("primary");
+    expect(classify(envelope, null, { trust })).toBe("primary");
     expect(is_locked_to_primary(envelope, trust)).toBe(true);
+  });
+
+  it("keeps server-proven Aster system mail in primary over a pin and a sender rule", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "mailer-daemon@astermail.org" },
+      subject: "Delivery status notification",
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+    const trust = { system_origin: true, is_external: false };
+
+    expect(is_locked_to_primary(envelope, trust)).toBe(true);
+    expect(
+      classify(envelope, metadata, { trust, rule_category: "promotions" }),
+    ).toBe("primary");
+  });
+
+  it("keeps verified internal mail from an official Aster role in primary despite a pin", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Security", email: "security@astermail.org" },
+      sender_verification: "verified",
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+    const trust = { is_external: false };
+
+    expect(classify(envelope, metadata, { trust })).toBe("primary");
+  });
+
+  it("honors a pin on mail that only claims to be Aster in its display name", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "no-reply@aster-mail-security.com" },
+      subject: "A new sign-in on Windows PC",
+      sender_verification: "verified",
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+    const trust = { system_origin: true, is_external: true };
+
+    expect(is_locked_to_primary(envelope, trust)).toBe(false);
+    expect(classify(envelope, metadata, { trust })).toBe("promotions");
+  });
+
+  it("does not lock an external copy of an official Aster address with a pin", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "no-reply@astermail.org" },
+      subject: "A new sign-in on Windows PC",
+    });
+    const metadata = {
+      category: "promotions",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+    const trust = { system_origin: true, is_external: true };
+
+    expect(is_locked_to_primary(envelope, trust)).toBe(false);
+    expect(classify(envelope, metadata, { trust })).toBe("promotions");
+  });
+
+  it("ignores a learned sender for an official Aster sign-in alert", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "no-reply@astermail.org" },
+      subject: "New Sign-In to Your Aster Mail Account",
+    });
+    const trust = { system_origin: true, is_external: false };
+    const learned_senders = new Map([["no-reply@astermail.org", "social"]]);
+
+    expect(classify(envelope, null, { trust, learned_senders })).toBe(
+      "primary",
+    );
+  });
+
+  it("puts mail from a learned sender in the learned category over heuristics", () => {
+    const envelope = make_envelope({
+      from: { name: "LinkedIn", email: "Notifications@LinkedIn.com" },
+    });
+    const learned_senders = new Map([
+      ["notifications@linkedin.com", "promotions"],
+    ]);
+
+    expect(classify(envelope, null, { learned_senders })).toBe("promotions");
+    expect(
+      classify(
+        make_envelope({
+          from: { name: "LinkedIn", email: "notifications@linkedin.com" },
+        }),
+        null,
+      ),
+    ).toBe("social");
+  });
+
+  it("lets a server rule category beat a learned sender", () => {
+    const envelope = make_envelope({
+      from: { name: "LinkedIn", email: "notifications@linkedin.com" },
+    });
+    const learned_senders = new Map([
+      ["notifications@linkedin.com", "promotions"],
+    ]);
+
+    expect(
+      classify(envelope, null, { learned_senders, rule_category: "updates" }),
+    ).toBe("updates");
+  });
+
+  it("ignores a learned sender when sender verification is invalid", () => {
+    const envelope = make_envelope({
+      from: { name: "LinkedIn", email: "notifications@linkedin.com" },
+      sender_verification: "invalid",
+    });
+    const learned_senders = new Map([
+      ["notifications@linkedin.com", "promotions"],
+    ]);
+
+    expect(classify(envelope, null, { learned_senders })).toBe("social");
+  });
+
+  it("keeps account access mail in Primary for a learned sender", () => {
+    const envelope = make_envelope({
+      from: { name: "Shop", email: "deals@shop.example" },
+      subject: "Your verification code is 482913",
+    });
+    const learned_senders = new Map([["deals@shop.example", "promotions"]]);
+
+    expect(classify(envelope, null, { learned_senders })).toBe("primary");
+    expect(
+      classify(
+        make_envelope({
+          from: { name: "Shop", email: "deals@shop.example" },
+          subject: "Spring catalog",
+        }),
+        null,
+        { learned_senders },
+      ),
+    ).toBe("promotions");
+  });
+
+  it("ignores a learned entry for an Aster-domain sender", () => {
+    const envelope = make_envelope({
+      from: { name: "Friend", email: "friend@astermail.org" },
+    });
+    const learned_senders = new Map([["friend@astermail.org", "social"]]);
+    const trust = { is_external: false };
+
+    expect(classify(envelope, null, { trust, learned_senders })).toBe(
+      "primary",
+    );
+    expect(learned_category_for(envelope, learned_senders, trust)).toBe(
+      undefined,
+    );
+  });
+
+  it("ignores a learned sender whose SPF, DKIM or DMARC failed", () => {
+    const envelope = make_envelope({
+      from: { name: "LinkedIn", email: "notifications@linkedin.com" },
+    });
+    const learned_senders = new Map([
+      ["notifications@linkedin.com", "promotions"],
+    ]);
+
+    for (const trust of [
+      { spf_result: "fail" },
+      { dkim_result: "FAIL" },
+      { dmarc_result: "hardfail" },
+    ]) {
+      expect(classify(envelope, null, { trust, learned_senders })).toBe(
+        "social",
+      );
+    }
+    expect(
+      classify(envelope, null, {
+        trust: { spf_result: "pass", dkim_result: "none" },
+        learned_senders,
+      }),
+    ).toBe("promotions");
+  });
+
+  it("applies a learned sender when there is no verification result", () => {
+    const envelope = make_envelope({
+      from: { name: "LinkedIn", email: "notifications@linkedin.com" },
+    });
+    const learned_senders = new Map([
+      ["notifications@linkedin.com", "promotions"],
+    ]);
+
+    expect(classify(envelope, null, { trust: {}, learned_senders })).toBe(
+      "promotions",
+    );
+  });
+
+  it("lets a user pin beat a learned sender", () => {
+    const envelope = make_envelope({
+      from: { name: "LinkedIn", email: "notifications@linkedin.com" },
+    });
+    const metadata = {
+      category: "updates",
+      category_pinned: true,
+    } as unknown as MailItemMetadata;
+    const learned_senders = new Map([
+      ["notifications@linkedin.com", "promotions"],
+    ]);
+
+    expect(classify(envelope, metadata, { learned_senders })).toBe("updates");
+  });
+
+  it("ignores a learned custom category that is not enabled", () => {
+    const envelope = make_envelope({
+      from: { name: "LinkedIn", email: "notifications@linkedin.com" },
+    });
+    const learned_senders = new Map([
+      ["notifications@linkedin.com", "custom:missing"],
+    ]);
+
+    expect(
+      classify(envelope, null, { learned_senders, custom_categories: [] }),
+    ).toBe("social");
   });
 
   it("does not lock a spoofed inbound copy of a sign-in alert to Primary", () => {

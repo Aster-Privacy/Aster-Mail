@@ -32,6 +32,12 @@ const h = vi.hoisted(() => ({
   discovered: new Map<string, ExternalKeyInfo>(),
   aster_keys: new Map<string, string>(),
   discover_calls: 0,
+  pin_status: "first" as "first" | "ok" | "changed" | "unknown",
+}));
+
+vi.mock("@/services/crypto/ratchet_identity_pin", async (import_original) => ({
+  ...(await import_original<Record<string, unknown>>()),
+  check_owner_key_pin: vi.fn(async () => h.pin_status),
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -150,6 +156,7 @@ beforeEach(() => {
   h.discovered.clear();
   h.aster_keys.clear();
   h.discover_calls = 0;
+  h.pin_status = "first";
 });
 
 describe("inline PGP end-to-end badge", () => {
@@ -164,6 +171,8 @@ describe("inline PGP end-to-end badge", () => {
       body: "no signature",
       decrypted: true,
       verified: false,
+      sender_verification: "unsigned",
+      decrypted_content_tag: expect.any(String),
     });
     expect(h.discover_calls).toBe(0);
   });
@@ -179,7 +188,36 @@ describe("inline PGP end-to-end badge", () => {
       body: "signed by sender",
       decrypted: true,
       verified: true,
+      sender_verification: "verified",
+      decrypted_content_tag: expect.any(String),
     });
+  });
+
+  it("keeps the mark when the sender key matches the saved one", async () => {
+    h.pin_status = "ok";
+    h.discovered.set(OUTSIDE_SENDER, discovered(sender.publicKey));
+    const resolved = await resolve_inbound_pgp_body(
+      await seal("signed by sender", sender.privateKey),
+      OUTSIDE_SENDER,
+    );
+
+    expect(resolved.verified).toBe(true);
+  });
+
+  it("drops the mark when the sender key differs from the saved one", async () => {
+    h.discovered.set(OUTSIDE_SENDER, discovered(sender.publicKey));
+    const ciphertext = await seal("signed by sender", sender.privateKey);
+
+    for (const status of ["changed", "unknown"] as const) {
+      h.pin_status = status;
+      const resolved = await resolve_inbound_pgp_body(
+        ciphertext,
+        OUTSIDE_SENDER,
+      );
+
+      expect(resolved.decrypted).toBe(true);
+      expect(resolved.verified).toBe(false);
+    }
   });
 
   it("rejects a signature from a key that does not belong to the sender", async () => {

@@ -27,6 +27,7 @@ import {
   build_handoff_message,
   get_handoff_sibling_origin,
   is_handoff_connect_message,
+  is_handoff_grant_id,
   parse_handoff_bridge_reply,
   parse_handoff_port_request,
   parse_handoff_session,
@@ -34,6 +35,7 @@ import {
 } from "./session_handoff_protocol";
 
 const USER_ID = "3f2a8c1e-5b4d-4e6f-9a7b-1c2d3e4f5a6b";
+const GRANT = "Q".repeat(43);
 
 const valid_user = {
   id: USER_ID,
@@ -99,38 +101,96 @@ describe("is_handoff_connect_message", () => {
 });
 
 describe("parse_handoff_port_request", () => {
-  it("parses a probe and a request", () => {
-    expect(
-      parse_handoff_port_request(build_handoff_message({ type: "probe" })),
-    ).toEqual({ type: "probe" });
+  it("parses a probe and a request that carry a grant", () => {
     expect(
       parse_handoff_port_request(
-        build_handoff_message({ type: "request", user_id: USER_ID }),
+        build_handoff_message({ type: "probe", grant: GRANT }),
       ),
-    ).toEqual({ type: "request", user_id: USER_ID });
+    ).toEqual({ type: "probe", grant: GRANT, wait: false });
+    expect(
+      parse_handoff_port_request(
+        build_handoff_message({ type: "probe", grant: GRANT, wait: true }),
+      ),
+    ).toEqual({ type: "probe", grant: GRANT, wait: true });
+    expect(
+      parse_handoff_port_request(
+        build_handoff_message({ type: "request", grant: GRANT, user_id: USER_ID }),
+      ),
+    ).toEqual({ type: "request", grant: GRANT, user_id: USER_ID });
+  });
+
+  it("rejects requests without a valid grant", () => {
+    for (const grant of [undefined, "", "short", GRANT + "a", "!".repeat(43)]) {
+      expect(
+        parse_handoff_port_request(build_handoff_message({ type: "probe", grant })),
+      ).toBeNull();
+      expect(
+        parse_handoff_port_request(
+          build_handoff_message({ type: "request", grant, user_id: USER_ID }),
+        ),
+      ).toBeNull();
+    }
   });
 
   it("rejects malformed requests", () => {
     expect(
       parse_handoff_port_request(
-        build_handoff_message({ type: "request", user_id: "not-a-uuid" }),
+        build_handoff_message({
+          type: "request",
+          grant: GRANT,
+          user_id: "not-a-uuid",
+        }),
       ),
     ).toBeNull();
     expect(
       parse_handoff_port_request(
-        build_handoff_message({ type: "request", user_id: USER_ID, x: 1 }),
+        build_handoff_message({
+          type: "request",
+          grant: GRANT,
+          user_id: USER_ID,
+          x: 1,
+        }),
       ),
     ).toBeNull();
-    expect(parse_handoff_port_request({ type: "probe" })).toBeNull();
+    expect(
+      parse_handoff_port_request(
+        build_handoff_message({ type: "probe", grant: GRANT, wait: "yes" }),
+      ),
+    ).toBeNull();
+    expect(
+      parse_handoff_port_request({ type: "probe", grant: GRANT }),
+    ).toBeNull();
     expect(
       parse_handoff_port_request(
         Object.assign(Object.create({ inherited: true }), {
           protocol: SESSION_HANDOFF_PROTOCOL,
           type: "probe",
+          grant: GRANT,
         }),
       ),
     ).toBeNull();
     expect(parse_handoff_port_request([])).toBeNull();
+  });
+
+  it("rejects messages from the previous protocol version", () => {
+    expect(
+      parse_handoff_port_request({
+        protocol: "aster-session-handoff-1",
+        type: "probe",
+        grant: GRANT,
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("is_handoff_grant_id", () => {
+  it("accepts only 43 base64url characters", () => {
+    expect(is_handoff_grant_id(GRANT)).toBe(true);
+    expect(is_handoff_grant_id("A-_" + "z".repeat(40))).toBe(true);
+    expect(is_handoff_grant_id("z".repeat(42))).toBe(false);
+    expect(is_handoff_grant_id("z".repeat(44))).toBe(false);
+    expect(is_handoff_grant_id("+".repeat(43))).toBe(false);
+    expect(is_handoff_grant_id(42)).toBe(false);
   });
 });
 

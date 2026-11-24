@@ -119,6 +119,12 @@ const STOPWORDS: Readonly<Record<string, readonly string[]>> = {
     "we",
     "can",
     "if",
+    "is",
+    "it",
+    "to",
+    "of",
+    "my",
+    "me",
   ],
   de: [
     "und",
@@ -141,6 +147,20 @@ const STOPWORDS: Readonly<Record<string, readonly string[]>> = {
     "auch",
     "dass",
     "von",
+    "ich",
+    "den",
+    "dem",
+    "sich",
+    "noch",
+    "nur",
+    "aber",
+    "oder",
+    "kann",
+    "danke",
+    "mich",
+    "mir",
+    "schon",
+    "jetzt",
   ],
   es: [
     "que",
@@ -183,6 +203,37 @@ const STOPWORDS: Readonly<Record<string, readonly string[]>> = {
     "tienen",
     "saludo",
     "usted",
+    "el",
+    "y",
+    "qué",
+    "sí",
+    "cómo",
+    "aquí",
+    "ahora",
+    "hay",
+    "eso",
+    "esto",
+    "ya",
+    "tengo",
+    "tiene",
+    "estoy",
+    "están",
+    "entonces",
+    "aunque",
+    "mucho",
+    "mucha",
+    "siempre",
+    "después",
+    "quién",
+    "cuál",
+    "pues",
+    "buenas",
+    "buenos",
+    "saludos",
+    "mensaje",
+    "mensajes",
+    "correo",
+    "cuenta",
   ],
   fr: [
     "les",
@@ -205,6 +256,19 @@ const STOPWORDS: Readonly<Record<string, readonly string[]>> = {
     "sont",
     "merci",
     "par",
+    "je",
+    "elle",
+    "ce",
+    "du",
+    "ne",
+    "très",
+    "bonjour",
+    "aussi",
+    "avez",
+    "suis",
+    "mon",
+    "mes",
+    "ai",
   ],
   it: [
     "che",
@@ -270,6 +334,14 @@ const STOPWORDS: Readonly<Record<string, readonly string[]>> = {
     "bedankt",
     "onze",
     "naar",
+    "ik",
+    "op",
+    "te",
+    "om",
+    "er",
+    "nog",
+    "wel",
+    "graag",
   ],
   pl: [
     "nie",
@@ -337,6 +409,38 @@ const STOPWORDS: Readonly<Record<string, readonly string[]>> = {
     "hoje",
     "amanhã",
     "abraços",
+    "em",
+    "já",
+    "onde",
+    "neste",
+    "nesta",
+    "deste",
+    "desta",
+    "nisso",
+    "vosso",
+    "vossa",
+    "vossos",
+    "vossas",
+    "agradeço",
+    "boa",
+    "bom",
+    "pela",
+    "pelos",
+    "pelas",
+    "foi",
+    "tem",
+    "têm",
+    "há",
+    "estou",
+    "estão",
+    "ainda",
+    "agora",
+    "depois",
+    "lhe",
+    "fazer",
+    "gostaria",
+    "desde",
+    "porque",
   ],
   tr: [
     "için",
@@ -384,7 +488,28 @@ const DISCRIMINATIVE_STOPWORDS: ReadonlyMap<string, LanguageCode> = (() => {
   return discriminative;
 })();
 
-const TOKEN_SPLIT = /[^\p{L}]+/u;
+const ORTHOGRAPHY_MARKERS: ReadonlyArray<{
+  language: LanguageCode;
+  pattern: RegExp;
+}> = [
+  { language: "pt", pattern: /[ãõ]/ },
+  { language: "es", pattern: /ñ/ },
+];
+
+function token_language(token: string): LanguageCode | null {
+  const stopword = DISCRIMINATIVE_STOPWORDS.get(token);
+
+  if (stopword) return stopword;
+
+  for (const marker of ORTHOGRAPHY_MARKERS) {
+    if (marker.pattern.test(token)) return marker.language;
+  }
+
+  return null;
+}
+
+const TOKEN_SPLIT = /[^\p{L}¿¡]+/u;
+const SPANISH_OPENING_MARK = /^[¿¡]+/;
 const TRAILING_WEIGHT_FLOOR = 0.35;
 
 function position_weight(index: number, count: number): number {
@@ -396,7 +521,16 @@ function position_weight(index: number, count: number): number {
 }
 
 function detect_by_stopwords(text: string): DetectionResult | null {
-  const tokens = text.toLowerCase().split(TOKEN_SPLIT).filter(Boolean);
+  const entries = text
+    .toLowerCase()
+    .split(TOKEN_SPLIT)
+    .map((raw) => {
+      const token = raw.replace(SPANISH_OPENING_MARK, "");
+
+      return { token, opens_spanish: token !== raw };
+    })
+    .filter((entry) => entry.token);
+  const tokens = entries.map((entry) => entry.token);
 
   if (tokens.length < 8) return null;
 
@@ -405,7 +539,9 @@ function detect_by_stopwords(text: string): DetectionResult | null {
   const raw_hits = new Map<LanguageCode, number>();
 
   for (let index = 0; index < tokens.length; index += 1) {
-    const language = DISCRIMINATIVE_STOPWORDS.get(tokens[index]);
+    const language = entries[index].opens_spanish
+      ? "es"
+      : token_language(tokens[index]);
 
     if (!language) continue;
 
@@ -503,8 +639,10 @@ export function detect_translatable_language(
 
   if (stripped.length < MIN_DETECTION_LENGTH && !result) return null;
 
-  if (!result || accepted.includes(result.language)) {
-    remember_negative(key);
+  if (!result) return null;
+
+  if (accepted.includes(result.language)) {
+    if (result.confidence >= MIN_DETECTION_CONFIDENCE) remember_negative(key);
 
     return null;
   }

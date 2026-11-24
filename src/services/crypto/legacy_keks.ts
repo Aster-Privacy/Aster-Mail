@@ -29,7 +29,12 @@ import {
   derive_account_data_key_raw,
   type AccountDataContext,
 } from "./account_data_key";
-import { retired_kek_context } from "./retired_identity_keks";
+import {
+  is_public_constant_kek_raw,
+  retired_kek_context,
+} from "./retired_identity_keks";
+import { is_usable_identity_key } from "./identity_key_required";
+import { is_public_mail_kek, server_known_kek_id } from "./server_known_keys";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
@@ -56,6 +61,8 @@ const PREVIOUS_KEY_CONTEXTS = [
 
 let legacy_crypto_keys: CryptoKey[] = [];
 let legacy_hkdf_keys: CryptoKey[] = [];
+let mail_envelope_crypto_keys: CryptoKey[] = [];
+let mail_envelope_hkdf_keys: CryptoKey[] = [];
 let account_crypto_keys: CryptoKey[] = [];
 let account_hkdf_keys: CryptoKey[] = [];
 let loaded_account_key_ids = new Set<string>();
@@ -71,6 +78,25 @@ let remembered_hkdf_key: CryptoKey | null = null;
 let retired_context_keys = new Map<AccountDataContext, CryptoKey>();
 let retired_read_guard: ((context: AccountDataContext) => boolean) | null =
   null;
+
+export const PUBLIC_FALLBACK_KEY = "public";
+
+const fallback_key_ids = new WeakMap<CryptoKey, string>();
+
+export function fallback_key_server_id(key: CryptoKey): string | null {
+  return fallback_key_ids.get(key) ?? null;
+}
+
+function tag_fallback_key(key: CryptoKey, id: string): CryptoKey {
+  fallback_key_ids.set(key, id);
+
+  return key;
+}
+
+export interface FallbackOpen {
+  plaintext: ArrayBuffer;
+  fallback_key: CryptoKey | null;
+}
 
 export function set_retired_read_guard(
   guard: ((context: AccountDataContext) => boolean) | null,
@@ -229,13 +255,34 @@ async function import_raw_as_base_key(raw: Uint8Array): Promise<CryptoKey> {
 }
 
 async function remember_legacy_raw(raw: Uint8Array): Promise<void> {
-  legacy_crypto_keys.push(await import_raw_as_aes_key(raw));
+  if (is_public_constant_kek_raw(raw)) {
+    await remember_mail_envelope_raw(raw);
+
+    return;
+  }
+
+  const id = server_known_kek_id(raw);
+
+  legacy_crypto_keys.push(
+    tag_fallback_key(await import_raw_as_aes_key(raw), id),
+  );
 
   try {
-    legacy_hkdf_keys.push(await import_raw_as_hkdf_key(raw));
+    legacy_hkdf_keys.push(
+      tag_fallback_key(await import_raw_as_hkdf_key(raw), id),
+    );
   } catch (caught) {
     ignore_error("services/crypto/legacy_keks:remember_legacy_raw", caught);
   }
+}
+
+async function remember_mail_envelope_raw(raw: Uint8Array): Promise<void> {
+  mail_envelope_crypto_keys.push(
+    tag_fallback_key(await import_raw_as_aes_key(raw), PUBLIC_FALLBACK_KEY),
+  );
+  mail_envelope_hkdf_keys.push(
+    tag_fallback_key(await import_raw_as_hkdf_key(raw), PUBLIC_FALLBACK_KEY),
+  );
 }
 
 export async function load_legacy_keks_into_memory(
@@ -254,6 +301,8 @@ export async function load_legacy_keks_into_memory(
 
       if (retired_context) {
         await remember_retired_raw(retired_context, raw);
+      } else if (is_public_mail_kek(entry.k)) {
+        await remember_mail_envelope_raw(raw);
       } else {
         await remember_legacy_raw(raw);
       }
@@ -288,6 +337,8 @@ export async function load_previous_key_derived_keks_into_memory(
   }
 
   for (const previous_key of previous_keys) {
+    if (!is_usable_identity_key(previous_key)) continue;
+
     for (const context of PREVIOUS_KEY_CONTEXTS) {
       try {
         const material = new TextEncoder().encode(previous_key + context);
@@ -295,7 +346,9 @@ export async function load_previous_key_derived_keks_into_memory(
           await crypto.subtle.digest(HASH_ALG, material),
         );
 
-        await remember_legacy_raw(raw);
+        if (!retired_kek_context(array_to_base64(raw))) {
+          await remember_legacy_raw(raw);
+        }
         zero_uint8_array(raw);
       } catch {
         continue;
@@ -434,6 +487,8 @@ export function clear_account_key_derived_keks(): void {
 export function clear_legacy_keks_from_memory(): void {
   legacy_crypto_keys = [];
   legacy_hkdf_keys = [];
+  mail_envelope_crypto_keys = [];
+  mail_envelope_hkdf_keys = [];
   retired_context_keys = new Map();
   remembered_raw_key = null;
   remembered_hkdf_key = null;
@@ -489,6 +544,17 @@ async function open_with_derived(
   } catch {
     return null;
   }
+}
+
+async function open_with_derived_source(
+  derive: LegacyKeyDeriver,
+  base: CryptoKey,
+  params: AesGcmParams,
+  ciphertext: BufferSource,
+): Promise<FallbackOpen | null> {
+  const plaintext = await open_with_derived(derive, base, params, ciphertext);
+
+  return plaintext ? { plaintext, fallback_key: base } : null;
 }
 
 export async function decrypt_with_remembered_derived_key(
@@ -561,17 +627,17 @@ async function open_with_raw_keys(
   keys: CryptoKey[],
   ciphertext: BufferSource,
   iv: BufferSource,
-): Promise<ArrayBuffer | null> {
+): Promise<FallbackOpen | null> {
   if (keys.length === 0) return null;
 
-  return new Promise<ArrayBuffer | null>((resolve) => {
+  return new Promise<FallbackOpen | null>((resolve) => {
     let remaining = keys.length;
 
     for (const key of keys) {
       crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext).then(
         (plaintext) => {
           remembered_raw_key = key;
-          resolve(plaintext);
+          resolve({ plaintext, fallback_key: key });
         },
         () => {
           remaining -= 1;
@@ -582,18 +648,31 @@ async function open_with_raw_keys(
   });
 }
 
-export async function decrypt_aes_gcm_with_fallback(
-  primary_key: CryptoKey,
+async function open_with_primary_key(
+  primary_key: CryptoKey | null,
   ciphertext: BufferSource,
   iv: BufferSource,
-  derive?: LegacyKeyDeriver,
-): Promise<ArrayBuffer> {
-  try {
-    return await crypto.subtle.decrypt(
+): Promise<FallbackOpen> {
+  if (!primary_key) throw new Error("primary key unavailable");
+
+  return {
+    plaintext: await crypto.subtle.decrypt(
       { name: "AES-GCM", iv },
       primary_key,
       ciphertext,
-    );
+    ),
+    fallback_key: null,
+  };
+}
+
+export async function open_aes_gcm_with_fallback(
+  primary_key: CryptoKey | null,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+  derive?: LegacyKeyDeriver,
+): Promise<FallbackOpen> {
+  try {
+    return await open_with_primary_key(primary_key, ciphertext, iv);
   } catch (primary_error) {
     const remembered = held_raw_key();
 
@@ -604,11 +683,15 @@ export async function decrypt_aes_gcm_with_fallback(
     }
 
     if (derive) {
-      const opened = await decrypt_with_remembered_derived_key(
-        derive,
-        ciphertext,
-        iv,
-      );
+      const base = held_hkdf_key();
+      const opened = base
+        ? await open_with_derived_source(
+            derive,
+            base,
+            gcm_params(iv),
+            ciphertext,
+          )
+        : null;
 
       if (opened) return opened;
     }
@@ -624,9 +707,94 @@ export async function decrypt_aes_gcm_with_fallback(
   }
 }
 
+export async function decrypt_aes_gcm_with_fallback(
+  primary_key: CryptoKey | null,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+  derive?: LegacyKeyDeriver,
+): Promise<ArrayBuffer> {
+  return (await open_aes_gcm_with_fallback(primary_key, ciphertext, iv, derive))
+    .plaintext;
+}
+
+async function open_with_mail_envelope_hkdf_keys(
+  derive: LegacyKeyDeriver,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+): Promise<FallbackOpen | null> {
+  for (const base of mail_envelope_hkdf_keys) {
+    const opened = await open_with_derived_source(
+      derive,
+      base,
+      gcm_params(iv),
+      ciphertext,
+    );
+
+    if (opened) return opened;
+  }
+
+  return null;
+}
+
+export async function open_mail_envelope_with_fallback(
+  primary_key: CryptoKey,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+  derive?: LegacyKeyDeriver,
+): Promise<FallbackOpen> {
+  try {
+    return await open_aes_gcm_with_fallback(
+      primary_key,
+      ciphertext,
+      iv,
+      derive,
+    );
+  } catch (primary_error) {
+    const opened = await open_with_raw_keys(
+      [...mail_envelope_crypto_keys],
+      ciphertext,
+      iv,
+    );
+
+    if (opened) return opened;
+
+    const derived = derive
+      ? await open_with_mail_envelope_hkdf_keys(derive, ciphertext, iv)
+      : null;
+
+    if (derived) return derived;
+
+    throw primary_error;
+  }
+}
+
+export async function decrypt_mail_envelope_with_fallback(
+  primary_key: CryptoKey,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+  derive?: LegacyKeyDeriver,
+): Promise<ArrayBuffer> {
+  return (
+    await open_mail_envelope_with_fallback(primary_key, ciphertext, iv, derive)
+  ).plaintext;
+}
+
+export async function decrypt_mail_envelope_with_legacy_derived_keys(
+  derive: LegacyKeyDeriver,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+): Promise<ArrayBuffer | null> {
+  return (
+    (await decrypt_with_legacy_derived_keys(derive, ciphertext, iv)) ??
+    (await open_with_mail_envelope_hkdf_keys(derive, ciphertext, iv))
+      ?.plaintext ??
+    null
+  );
+}
+
 export async function decrypt_account_context_with_fallback(
   context: AccountDataContext,
-  primary_key: CryptoKey,
+  primary_key: CryptoKey | null,
   ciphertext: BufferSource,
   iv: BufferSource,
 ): Promise<ArrayBuffer> {

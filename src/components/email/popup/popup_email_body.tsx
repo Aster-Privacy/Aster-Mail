@@ -45,18 +45,13 @@ import { PopupEmailHeader } from "@/components/email/popup/popup_email_header";
 import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { LockedMailNotice } from "@/components/email/viewer_shared/locked_mail_notice";
 import { is_system_email } from "@/lib/utils";
-import {
-  execute_unsubscribe,
-  get_manual_unsubscribe_url,
-} from "@/utils/unsubscribe_detector";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { show_unsubscribe_toast } from "@/utils/unsubscribe_toast";
 import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
-import { show_action_toast } from "@/components/toast/action_toast";
 import {
   persist_unsubscribe,
   use_unsubscribed_senders,
 } from "@/hooks/use_unsubscribed_senders";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
-import { request_external_link } from "@/utils/external_link_request";
 
 interface ExtractionResult {
   has_purchase_details: boolean;
@@ -211,52 +206,29 @@ export function PopupEmailBody({
         build_unsubscribe_delivery(mail_item, email),
       );
 
-      if (result === "api") {
-        show_action_toast({
-          message: t("mail.successfully_unsubscribed"),
-          action_type: "not_spam",
-          email_ids: [],
+      const record = () =>
+        persist_unsubscribe(email.sender_email, email.sender || "", {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
         });
+
+      show_unsubscribe_toast({
+        outcome: result,
+        info,
+        t,
+        on_page_opened: record,
+      });
+
+      if (result === "api") {
         mark_unsubscribed(email.sender_email);
-        persist_unsubscribe(
-          email.sender_email,
-          email.sender || "",
-          {
-            unsubscribe_link: info.unsubscribe_link,
-            list_unsubscribe_header: info.list_unsubscribe_header,
-          },
-          "manual",
-        );
+        record();
 
         return "success";
       }
-      show_action_toast({
-        message: t("mail.unsubscribe_manual_required"),
-        action_type: "not_spam",
-        email_ids: [],
-        duration_ms: 15000,
-        ...(!is_any_lockdown_active() && {
-          action_label: t("mail.open_unsubscribe_page"),
-          on_undo: async () => {
-            const url = get_manual_unsubscribe_url(info);
-
-            if (!url) return;
-            if (!(await request_external_link(url))) return;
-            persist_unsubscribe(email.sender_email, email.sender || "", {
-              unsubscribe_link: info.unsubscribe_link,
-              list_unsubscribe_header: info.list_unsubscribe_header,
-            });
-          },
-        }),
-      });
 
       return "manual";
     } catch {
-      show_action_toast({
-        message: t("mail.unsubscribe_failed"),
-        action_type: "not_spam",
-        email_ids: [],
-      });
+      show_unsubscribe_toast({ outcome: "error", info, t });
 
       return "manual";
     }
@@ -299,7 +271,7 @@ export function PopupEmailBody({
 
   return (
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full min-w-0">
         {extraction_result?.has_purchase_details &&
           extraction_result.purchase && (
             <PurchaseDetailsBanner

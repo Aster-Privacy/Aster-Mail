@@ -48,6 +48,14 @@ import { EmailProfileTrigger } from "@/components/email/email_profile_trigger";
 import { use_should_reduce_motion } from "@/provider";
 import { use_external_link } from "@/contexts/external_link_context";
 import { build_contact_social_url } from "@/utils/contact_links";
+import {
+  extra_social_networks,
+  social_href,
+} from "@/utils/contact_socials";
+import {
+  SOCIAL_TYPE_OPTIONS,
+  entry_type_text,
+} from "@/components/common/contacts/contact_detail_panel/helpers";
 import { format_contact_date } from "@/utils/date_utils";
 
 const relationship_label = (
@@ -89,6 +97,7 @@ export function ModalContactDetail({
 }: ModalContactDetailProps) {
   const reduce_motion = use_should_reduce_motion();
   const { handle_external_link } = use_external_link();
+  const extra_socials = extra_social_networks(selected_contact.social_networks);
 
   return (
     <motion.div
@@ -346,11 +355,12 @@ export function ModalContactDetail({
               </div>
             )}
 
-          {selected_contact.social_links &&
-            (selected_contact.social_links.website ||
-              selected_contact.social_links.linkedin ||
-              selected_contact.social_links.twitter ||
-              selected_contact.social_links.github) && (
+          {(extra_socials.length > 0 ||
+            (selected_contact.social_links &&
+              (selected_contact.social_links.website ||
+                selected_contact.social_links.linkedin ||
+                selected_contact.social_links.twitter ||
+                selected_contact.social_links.github))) && (
               <div className="flex items-center gap-3 p-3.5 rounded-xl bg-surf-secondary">
                 <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 bg-surf-primary">
                   <GlobeAltIcon className="w-4 h-4 text-txt-muted" />
@@ -393,6 +403,39 @@ export function ModalContactDetail({
                           onClick={() => handle_external_link(url)}
                         >
                           {t(label_key)}
+                        </button>
+                      );
+                    })}
+                    {extra_socials.map((entry, index) => {
+                      const label = entry_type_text(
+                        t,
+                        entry,
+                        SOCIAL_TYPE_OPTIONS,
+                      );
+                      const url = social_href(entry);
+
+                      if (!url) {
+                        return (
+                          <span
+                            key={`extra_social_${index}`}
+                            className="text-[13px] px-2.5 py-1 rounded-[12px] bg-surf-primary text-txt-secondary break-all"
+                            dir="auto"
+                          >
+                            {`${label}: ${entry.value}`}
+                          </span>
+                        );
+                      }
+
+                      return (
+                        <button
+                          key={`extra_social_${index}`}
+                          className="text-[13px] px-2.5 py-1 rounded-[var(--aster-radius-control)] transition-colors bg-surf-primary text-[var(--accent-color,#3b82f6)] hover:bg-surf-tertiary"
+                          dir="auto"
+                          title={url}
+                          type="button"
+                          onClick={() => handle_external_link(url)}
+                        >
+                          {label}
                         </button>
                       );
                     })}

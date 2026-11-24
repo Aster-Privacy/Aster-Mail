@@ -23,6 +23,7 @@ import { motion } from "framer-motion";
 import {
   CheckIcon,
   EnvelopeIcon,
+  InformationCircleIcon,
   QuestionMarkCircleIcon,
   ShieldExclamationIcon,
   SignalIcon,
@@ -43,6 +44,7 @@ const SUPPORT_ADDRESS = "hello@astermail.org";
 const SECURITY_ADDRESS = "security@astermail.org";
 const HELP_CENTER_URL = "https://astermail.org/help";
 const STATUS_PAGE_URL = "https://status.astermail.org";
+const NOTICE_EMAIL_TOKEN = "\u0000";
 
 function compose_to(address: string) {
   window.dispatchEvent(
@@ -72,6 +74,11 @@ export function FeedbackSection({
   const [is_sending, set_is_sending] = useState(false);
   const [sent, set_sent] = useState(false);
   const [category, set_category] = useState<FeedbackCategory>("general");
+
+  const [notice_before, notice_after = ""] = t(
+    "settings.feedback_support_notice",
+    { email: NOTICE_EMAIL_TOKEN },
+  ).split(NOTICE_EMAIL_TOKEN);
 
   const handle_submit = useCallback(async () => {
     if (!message.trim() || is_sending) return;
@@ -131,6 +138,26 @@ export function FeedbackSection({
             <p className="mb-3 text-[14px] text-[var(--mobile-text-muted)]">
               {t("settings.feedback_intro")}
             </p>
+            <div
+              className="mb-3 flex items-start gap-2 rounded-xl bg-[var(--mobile-bg-card)] px-3 py-2.5"
+              data-testid="feedback-support-notice"
+            >
+              <InformationCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-[var(--mobile-text-muted)]" />
+              <p className="text-[13px] leading-relaxed text-[var(--mobile-text-muted)]">
+                {notice_before}
+                <a
+                  className="font-medium text-[var(--mobile-accent)]"
+                  href={`mailto:${SUPPORT_ADDRESS}`}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    compose_to(SUPPORT_ADDRESS);
+                  }}
+                >
+                  {SUPPORT_ADDRESS}
+                </a>
+                {notice_after}
+              </p>
+            </div>
             <div className="mb-3 flex flex-wrap gap-2">
               {FEEDBACK_CATEGORIES.map((option) => (
                 <button

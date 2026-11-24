@@ -31,6 +31,8 @@ Keep signing with both keys until nearly every install runs a version that reads
 
 `linux_arm_appimage.yml` follows the same split: the build job has a read-only token, a separate job signs the AppImage with both keys, and a third job attaches the AppImage and both signatures to the release you name.
 
+Both workflows run only from `main` or a `v*` tag, and every job that reads a signing key runs in the `release` environment. To attach the ARM AppImage to a release, run `linux_arm_appimage.yml` on that release's tag. The attach job adds files that the release doesn't have yet and never replaces existing ones.
+
 ## Release flow
 
 1. Bump the version in **all** of these files (must match):

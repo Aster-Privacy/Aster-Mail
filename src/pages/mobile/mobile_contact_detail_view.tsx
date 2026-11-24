@@ -41,6 +41,7 @@ import {
   ArrowUpOnSquareIcon,
   ChatBubbleBottomCenterTextIcon,
   IdentificationIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 
@@ -48,13 +49,22 @@ import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_external_link } from "@/contexts/external_link_context";
 import { build_contact_social_url } from "@/utils/contact_links";
+import {
+  extra_social_networks,
+  social_href,
+} from "@/utils/contact_socials";
 import { format_contact_date } from "@/utils/date_utils";
+import {
+  decode_related_people,
+  relation_display_label,
+} from "@/utils/contact_relations";
 import { build_contact_mail_query } from "@/utils/contact_mail_search";
 import { list_contact_groups } from "@/services/api/contacts";
 import {
   ADDRESS_TYPE_OPTIONS,
   EMAIL_TYPE_OPTIONS,
   PHONE_TYPE_OPTIONS,
+  SOCIAL_TYPE_OPTIONS,
   entry_type_text,
   format_address_lines,
   to_address_entries,
@@ -182,6 +192,7 @@ export function ContactDetailView({
   const contact_mail_query = build_contact_mail_query(contact.emails);
   const email_entries = to_email_entries(contact);
   const phone_entries = to_phone_entries(contact);
+  const relations = decode_related_people(contact.related_people);
   const address_entries = to_address_entries(contact);
   const primary_phone = phone_entries[0]?.value ?? "";
   const assigned_group_ids = (contact.groups ?? []).join(",");
@@ -207,9 +218,13 @@ export function ContactDetailView({
       cancelled = true;
     };
   }, [assigned_group_ids]);
+  const extra_socials = extra_social_networks(contact.social_networks);
   const has_social =
-    contact.social_links &&
-    Object.values(contact.social_links).some((v) => v && v.trim());
+    extra_socials.length > 0 ||
+    Boolean(
+      contact.social_links &&
+      Object.values(contact.social_links).some((v) => v && v.trim()),
+    );
 
   return (
     <motion.div
@@ -450,6 +465,24 @@ export function ContactDetailView({
             </DetailCard>
           )}
 
+          {relations.length > 0 && (
+            <DetailCard>
+              <DetailCardHeader
+                icon={<UsersIcon className="h-4 w-4" />}
+                label={t("common.relations")}
+              />
+              {relations.map((entry, i) => (
+                <DetailRow
+                  key={`${entry.value}-${i}`}
+                  is_last={i === relations.length - 1}
+                  label={entry.value}
+                  on_copy={() => on_copy(entry.value)}
+                  sublabel={relation_display_label(t, entry)}
+                />
+              ))}
+            </DetailCard>
+          )}
+
           {address_entries.length > 0 && (
             <DetailCard>
               <DetailCardHeader
@@ -492,9 +525,11 @@ export function ContactDetailView({
 
                 if (!value) return null;
                 const url = build_contact_social_url(kind, value);
-                const is_last = kinds
-                  .slice(index + 1)
-                  .every(([next_kind]) => !contact.social_links?.[next_kind]);
+                const is_last =
+                  extra_socials.length === 0 &&
+                  kinds
+                    .slice(index + 1)
+                    .every(([next_kind]) => !contact.social_links?.[next_kind]);
 
                 return (
                   <DetailRow
@@ -509,6 +544,25 @@ export function ContactDetailView({
                     }
                     on_copy={() => on_copy(value)}
                     sublabel={t(label_key)}
+                  />
+                );
+              })}
+              {extra_socials.map((entry, index) => {
+                const url = social_href(entry);
+
+                return (
+                  <DetailRow
+                    key={`extra_social_${index}`}
+                    action_icon={
+                      url ? <LinkIcon className="h-4 w-4" /> : undefined
+                    }
+                    is_last={index === extra_socials.length - 1}
+                    label={entry.value}
+                    on_action={
+                      url ? () => handle_external_link(url) : undefined
+                    }
+                    on_copy={() => on_copy(entry.value)}
+                    sublabel={entry_type_text(t, entry, SOCIAL_TYPE_OPTIONS)}
                   />
                 );
               })}

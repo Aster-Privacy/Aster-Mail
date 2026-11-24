@@ -88,6 +88,16 @@ export interface ImportedEmailData {
   thread_token?: string;
   routing_token?: string;
   sender_alias_hash?: string;
+  msgid_hash?: string;
+  attachments?: ImportedAttachmentData[];
+}
+
+export interface ImportedAttachmentData {
+  encrypted_data: string;
+  data_nonce: string;
+  encrypted_meta: string;
+  meta_nonce: string;
+  seq_num: number;
 }
 
 export interface StoreEmailsRequest {
@@ -100,6 +110,9 @@ export interface StoreEmailsResponse {
   skipped_quota_count: number;
   quota_exceeded: boolean;
   success: boolean;
+  attachments_filled_count?: number;
+  attachments_allowed?: boolean;
+  attachment_daily_limit_reached?: boolean;
 }
 
 export interface CheckDuplicatesRequest {
@@ -108,6 +121,8 @@ export interface CheckDuplicatesRequest {
 
 export interface CheckDuplicatesResponse {
   duplicates: string[];
+  missing_attachments?: string[];
+  attachments_allowed?: boolean;
 }
 
 export interface DeleteJobResponse {

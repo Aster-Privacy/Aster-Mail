@@ -184,3 +184,75 @@ describe("use_inbox_selection scope reset", () => {
     expect(hook.select_all_mode).toBe(false);
   });
 });
+
+describe("use_inbox_selection across pages", () => {
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(() => {
+    act(() => root.unmount());
+    container.remove();
+  });
+
+  it("selects the rows of the next page while every conversation is selected", () => {
+    const update_email = vi.fn();
+    const first_page = [make_email("a", true), make_email("b", true)];
+
+    render({ view: "all", category: "", emails: first_page, update_email });
+    act(() => hook.activate_select_all_mode());
+
+    const next_page = [make_email("c", false), make_email("d", false)];
+
+    render({ view: "all", category: "", emails: next_page, update_email });
+
+    expect(hook.select_all_mode).toBe(true);
+    expect(update_email).toHaveBeenCalledWith("c", { is_selected: true });
+    expect(update_email).toHaveBeenCalledWith("d", { is_selected: true });
+  });
+
+  it("leaves rows the user excluded unselected on later pages", () => {
+    const update_email = vi.fn();
+    const page = [make_email("a", true), make_email("b", true)];
+
+    render({ view: "all", category: "", emails: page, update_email });
+    act(() => hook.activate_select_all_mode());
+    act(() => hook.handle_toggle_select("b"));
+    update_email.mockClear();
+
+    render({
+      view: "all",
+      category: "",
+      emails: [make_email("a", true), make_email("b", false)],
+      update_email,
+    });
+
+    expect(hook.excluded_ids).toEqual(["b"]);
+    expect(update_email).not.toHaveBeenCalledWith("b", { is_selected: true });
+  });
+
+  it("stops selecting new rows once select all is turned off", () => {
+    const update_email = vi.fn();
+
+    render({
+      view: "all",
+      category: "",
+      emails: [make_email("a", true)],
+      update_email,
+    });
+    act(() => hook.activate_select_all_mode());
+    act(() => hook.exit_select_all_mode());
+    update_email.mockClear();
+
+    render({
+      view: "all",
+      category: "",
+      emails: [make_email("c", false)],
+      update_email,
+    });
+
+    expect(update_email).not.toHaveBeenCalled();
+  });
+});

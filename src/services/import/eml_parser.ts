@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ParsedEmail, ParseResult } from "./types";
+import type { MultipartOptions } from "./mime_utils";
 
 import { MAX_SINGLE_EMAIL_SIZE } from "./types";
 import {
@@ -49,7 +50,10 @@ export function strip_emlx_wrapper(raw: string): string {
   return raw.slice(body_start, body_start + declared_length);
 }
 
-export function parse_eml(raw: string): ParsedEmail {
+export function parse_eml(
+  raw: string,
+  options: MultipartOptions = {},
+): ParsedEmail {
   const { headers: headers_raw, body } = split_header_body(raw);
   const headers = parse_headers(headers_raw);
 
@@ -94,7 +98,7 @@ export function parse_eml(raw: string): ParsedEmail {
     const boundary = extract_boundary(content_type);
 
     if (boundary) {
-      const parsed = parse_multipart(body, boundary);
+      const parsed = parse_multipart(body, boundary, options);
 
       html_body = parsed.html;
       text_body = parsed.text;
@@ -122,6 +126,15 @@ export function parse_eml(raw: string): ParsedEmail {
   };
 }
 
+export async function read_eml_text(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  const decoded = bytes_to_binary_string(new Uint8Array(buffer));
+
+  return file.name.toLowerCase().endsWith(".emlx")
+    ? strip_emlx_wrapper(decoded)
+    : decoded;
+}
+
 export async function parse_eml_file(file: File): Promise<ParseResult> {
   if (file.size > MAX_SINGLE_EMAIL_SIZE) {
     return {
@@ -139,12 +152,7 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
   }
 
   try {
-    const buffer = await file.arrayBuffer();
-    const decoded = bytes_to_binary_string(new Uint8Array(buffer));
-    const text = file.name.toLowerCase().endsWith(".emlx")
-      ? strip_emlx_wrapper(decoded)
-      : decoded;
-    const email = parse_eml(text);
+    const email = parse_eml(await read_eml_text(file));
 
     return { emails: [email], errors: [], warnings: [] };
   } catch (err) {

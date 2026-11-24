@@ -25,6 +25,7 @@ import type {
 } from "./webauthn";
 
 import { api_client, ApiResponse } from "./client";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 import { clear_csrf_cache } from "./csrf";
 import {
   initiate_hardware_key_registration,
@@ -111,7 +112,7 @@ export async function passkey_login_verify(
 ): Promise<ApiResponse<TotpVerifyResponse>> {
   const response = await api_client.post<TotpVerifyResponse>(
     "/core/v1/auth/passkeys/verify",
-    request,
+    { ...request, device_label: default_guard_device_name() },
   );
 
   if (response.data) {
@@ -254,6 +255,7 @@ export async function register_platform_passkey(
 
   const resolved_name = friendly_name ?? get_platform_passkey_name();
   const options = options_response.data;
+  const prefer_this_device = await is_platform_passkey_available();
   const public_key: PublicKeyCredentialCreationOptions = {
     challenge: base64url_to_array_buffer(options.challenge),
     rp: { name: options.rp.name, id: options.rp.id },
@@ -274,12 +276,13 @@ export async function register_platform_passkey(
     timeout: options.timeout,
     attestation: options.attestation as AttestationConveyancePreference,
     authenticatorSelection: {
-      authenticatorAttachment: "platform",
+      ...(prefer_this_device
+        ? { authenticatorAttachment: "platform" as AuthenticatorAttachment }
+        : {}),
       residentKey: "required",
       userVerification: "required",
     },
-    // WebAuthn L3 hint - reinforces platform-only request to browsers/extensions
-    ...({ hints: ["client-device"] } as object),
+    ...(prefer_this_device ? ({ hints: ["client-device"] } as object) : {}),
   };
 
   let credential: PublicKeyCredential | null;

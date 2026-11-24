@@ -20,14 +20,17 @@
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { StepUpCredentials } from "./step_up";
+import type { GuardHeldInfo } from "./client/helpers";
 
 import { api_client } from "./client";
+import { to_reauth_proof } from "./step_up";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { get_account_data_crypto_keys } from "@/services/crypto/legacy_keks";
 import { hash_recovery_email } from "@/services/crypto/key_manager";
 import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
 import { ignore_error } from "@/lib/ignore_error";
+import { held_of } from "@/services/guard/held_outcome";
 
 interface GetRecoveryEmailApiResponse {
   encrypted_email: string | null;
@@ -54,6 +57,8 @@ export const EMPTY_RECOVERY_EMAIL: RecoveryEmailData = {
 
 const RECOVERY_EMAIL_CONTEXT = "astermail-recovery-email-v1";
 const RETIRED_KEY_PREFIX = "undefined";
+const RETIRED_KEY_CLOSED_PREFIX = "astermail_recovery_email_retired_closed_";
+const RETIRED_KEY_CLOSED_DOMAIN = "aster-recovery-email-retired-closed-v1";
 const MAX_RECOVERY_EMAIL_LENGTH = 254;
 const MAX_RECOVERY_EMAIL_LOCAL_LENGTH = 64;
 const RESEAL_ENDPOINT = "/core/v1/recovery/email/reseal";
@@ -176,9 +181,56 @@ async function derive_recovery_email_key_from(
   );
 }
 
+async function retired_key_closed_marker(
+  identity_key: string,
+): Promise<string> {
+  const digest = new Uint8Array(
+    await crypto.subtle.digest(
+      HASH_ALG,
+      new TextEncoder().encode(RETIRED_KEY_CLOSED_DOMAIN + identity_key),
+    ),
+  );
+
+  return (
+    RETIRED_KEY_CLOSED_PREFIX +
+    Array.from(digest.subarray(0, 16), (b) =>
+      b.toString(16).padStart(2, "0"),
+    ).join("")
+  );
+}
+
+async function is_retired_key_closed(vault: EncryptedVault): Promise<boolean> {
+  if (!vault.identity_key) return false;
+
+  try {
+    return (
+      localStorage.getItem(
+        await retired_key_closed_marker(vault.identity_key),
+      ) === "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function close_retired_key(vault: EncryptedVault): Promise<void> {
+  if (!vault.identity_key) return;
+
+  try {
+    localStorage.setItem(
+      await retired_key_closed_marker(vault.identity_key),
+      "1",
+    );
+  } catch {
+    return;
+  }
+}
+
 async function retired_recovery_email_key(
   vault: EncryptedVault,
 ): Promise<CryptoKey | null> {
+  if (await is_retired_key_closed(vault)) return null;
+
   const raw = new Uint8Array(
     await crypto.subtle.digest(
       HASH_ALG,
@@ -467,8 +519,12 @@ function schedule_retired_key_reseal(vault: EncryptedVault): void {
 
       return reseal_recovery_email(identity_key, [], [retired_key]);
     })
-    .then((outcome) => {
-      if (outcome !== "done") retired_reseal_scheduled = false;
+    .then(async (outcome) => {
+      if (outcome === "done") {
+        await close_retired_key(vault);
+      } else {
+        retired_reseal_scheduled = false;
+      }
     })
     .catch((caught) => {
       retired_reseal_scheduled = false;
@@ -557,6 +613,8 @@ export async function get_recovery_email(
 
       email = opened.address;
       read_with_retired_key = opened.source === "retired";
+
+      if (opened.source === "current") await close_retired_key(vault);
     } catch (caught) {
       decrypt_failed = true;
       ignore_error("services/api/recovery_email:decrypt", caught);
@@ -605,7 +663,13 @@ export async function save_recovery_email(
   email: string,
   vault: EncryptedVault,
   credentials?: StepUpCredentials,
-): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
+): Promise<{
+  data: { success: boolean };
+  code?: string;
+  server_code?: string;
+  error?: string;
+  held?: GuardHeldInfo;
+}> {
   try {
     const normalized = normalize_recovery_email(email);
 
@@ -638,8 +702,12 @@ export async function save_recovery_email(
         plaintext_email: normalized,
         password_hash: credentials?.password_hash,
         totp_code: credentials?.totp_code,
+        hardware_key_assertion: credentials?.hardware_key_assertion,
       },
     );
+    const held = held_of(response);
+
+    if (held) return { data: { success: false }, held };
 
     const success = !response.error && response.data?.success === true;
 
@@ -652,7 +720,12 @@ export async function save_recovery_email(
       };
     }
 
-    return { data: { success }, code: response.code, error: response.error };
+    return {
+      data: { success },
+      code: response.code,
+      server_code: response.server_code,
+      error: response.error,
+    };
   } catch {
     return { data: { success: false } };
   }
@@ -720,17 +793,23 @@ export async function get_recovery_email_link_status(
 
 export async function remove_recovery_email(
   credentials: StepUpCredentials,
-): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
+): Promise<{
+  data: { success: boolean };
+  code?: string;
+  server_code?: string;
+  error?: string;
+  held?: GuardHeldInfo;
+}> {
   try {
     const response = await api_client.delete<{ success: boolean }>(
       "/core/v1/recovery/email",
       {
-        data: {
-          password_hash: credentials.password_hash,
-          totp_code: credentials.totp_code,
-        },
+        data: to_reauth_proof(credentials),
       },
     );
+    const held = held_of(response);
+
+    if (held) return { data: { success: false }, held };
 
     const success = !response.error && response.data?.success === true;
 
@@ -738,7 +817,12 @@ export async function remove_recovery_email(
       cached_recovery_data = null;
     }
 
-    return { data: { success }, code: response.code, error: response.error };
+    return {
+      data: { success },
+      code: response.code,
+      server_code: response.server_code,
+      error: response.error,
+    };
   } catch {
     return { data: { success: false } };
   }

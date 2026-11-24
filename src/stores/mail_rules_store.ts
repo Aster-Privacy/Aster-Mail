@@ -38,6 +38,7 @@ import {
   type UpdateRuleRequest,
 } from "@/services/api/mail_rules";
 import { emit_refresh_requested } from "@/hooks/mail_events";
+import { held_of } from "@/services/guard/held_outcome";
 
 interface MailRulesState {
   rules: Rule[];
@@ -209,6 +210,11 @@ export function get_last_save_error(): string | null {
 }
 
 let last_save_server_message: string | null = null;
+let last_save_held = false;
+
+export function get_last_save_held(): boolean {
+  return last_save_held;
+}
 
 export function get_last_save_server_message(): string | null {
   return last_save_server_message;
@@ -225,11 +231,18 @@ export async function create_rule(
 ): Promise<Rule | null> {
   last_save_error = null;
   last_save_server_message = null;
+  last_save_held = false;
 
   const generation = store_generation;
   const response = await api_create_rule(req);
 
   if (generation !== store_generation) return null;
+
+  if (held_of(response)) {
+    last_save_held = true;
+
+    return null;
+  }
 
   if (response.data) {
     const max_sort_order = state.rules.reduce(
@@ -259,6 +272,7 @@ export async function update_rule(
 ): Promise<Rule | null> {
   last_save_error = null;
   last_save_server_message = null;
+  last_save_held = false;
 
   const previous = state.rules;
   const optimistic = state.rules.map((r) =>
@@ -271,6 +285,13 @@ export async function update_rule(
   const response = await api_update_rule(id, patch);
 
   if (generation !== store_generation) return null;
+
+  if (held_of(response)) {
+    last_save_held = true;
+    set_state({ rules: previous });
+
+    return null;
+  }
 
   if (response.data) {
     const next = state.rules.map((r) => (r.id === id ? response.data! : r));
@@ -291,6 +312,7 @@ export async function update_rule(
 }
 
 export async function delete_rule(id: string): Promise<boolean> {
+  last_save_held = false;
   const previous = state.rules;
 
   set_state({ rules: state.rules.filter((r) => r.id !== id) });
@@ -300,6 +322,13 @@ export async function delete_rule(id: string): Promise<boolean> {
   const response = await api_delete_rule(id);
 
   if (generation !== store_generation) return !response.error;
+
+  if (held_of(response)) {
+    last_save_held = true;
+    set_state({ rules: previous });
+
+    return false;
+  }
 
   if (response.error) {
     set_state({ rules: previous, error: response.error });

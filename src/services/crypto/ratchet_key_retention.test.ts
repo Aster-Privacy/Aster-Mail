@@ -70,7 +70,7 @@ describe("retain_previous_ratchet_keys", () => {
     ]);
   });
 
-  it("caps history at RATCHET_PREVIOUS_KEYS_LIMIT, dropping the oldest", () => {
+  it("keeps more than RATCHET_PREVIOUS_KEYS_LIMIT small sets", () => {
     const history = Array.from(
       { length: RATCHET_PREVIOUS_KEYS_LIMIT + 1 },
       (_, i) => key_set(`v${RATCHET_PREVIOUS_KEYS_LIMIT - i}`),
@@ -79,9 +79,24 @@ describe("retain_previous_ratchet_keys", () => {
       vault_with(`v${RATCHET_PREVIOUS_KEYS_LIMIT + 1}`, history),
     );
 
-    expect(result).toHaveLength(RATCHET_PREVIOUS_KEYS_LIMIT);
+    expect(result).toHaveLength(RATCHET_PREVIOUS_KEYS_LIMIT + 2);
     expect(result[0]).toEqual(key_set(`v${RATCHET_PREVIOUS_KEYS_LIMIT + 1}`));
-    expect(result.at(-1)).not.toEqual(key_set("v0"));
+    expect(result.at(-1)).toEqual(key_set("v0"));
+  });
+
+  it("drops the oldest sets past the byte budget but never below the floor", () => {
+    const padding = "x".repeat(20 * 1024);
+    const history = Array.from({ length: 60 }, (_, i) => ({
+      ...key_set(`v${60 - i}`),
+      ratchet_pq_identity_key: padding,
+    }));
+    const result = retain_previous_ratchet_keys(vault_with("v61", history));
+
+    expect(result).toHaveLength(RATCHET_PREVIOUS_KEYS_LIMIT);
+    expect(result[0]).toEqual(key_set("v61"));
+    expect(result.at(-1)?.ratchet_identity_public).toBe(
+      `id_pub_v${61 - RATCHET_PREVIOUS_KEYS_LIMIT + 1}`,
+    );
   });
 
   it("returns existing history unchanged when current ratchet keys are absent", () => {

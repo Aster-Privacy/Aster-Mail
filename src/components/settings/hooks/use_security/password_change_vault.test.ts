@@ -46,6 +46,10 @@ import {
 } from "./password_change_vault";
 
 import { en } from "@/lib/i18n/translations/en";
+import {
+  pin_vault_generation,
+  read_vault_generation_pin,
+} from "@/services/crypto/vault_generation";
 
 const PASSWORD = "current-password";
 
@@ -158,6 +162,57 @@ describe("load_password_change_vault", () => {
       kind: "error",
       reason: "out_of_date",
     });
+  });
+
+  it("stops when the server vault is older than the pinned generation", async () => {
+    pin_vault_generation("user-A", {
+      ...vault_with("current"),
+      vault_generation: 6,
+    });
+    await serve({ ...vault_with("older"), vault_generation: 2 });
+
+    const loaded = await load_password_change_vault("user-A", PASSWORD);
+
+    expect(loaded).toEqual({ kind: "error", reason: "rolled_back" });
+    if (loaded.kind !== "error") return;
+    expect(PASSWORD_CHANGE_VAULT_ERROR_KEYS[loaded.reason]).toBe(
+      "errors.vault_rolled_back",
+    );
+  });
+
+  it("uses an older server vault once the server reports a recovery", async () => {
+    pin_vault_generation("user-A", {
+      ...vault_with("current"),
+      vault_generation: 6,
+    });
+    await serve({ ...vault_with("recovered"), vault_generation: 2 });
+    h.response = {
+      data: {
+        ...(h.response as { data: object }).data,
+        vault_recovered_write_count: 7,
+      },
+    };
+
+    const loaded = await load_password_change_vault("user-A", PASSWORD);
+
+    expect(loaded.kind).toBe("ok");
+    if (loaded.kind !== "ok") return;
+    expect(loaded.vault.ratchet_identity_public).toBe("recovered");
+    expect(read_vault_generation_pin("user-A")).toBe(2);
+  });
+
+  it("uses a server vault at the pinned generation", async () => {
+    pin_vault_generation("user-A", {
+      ...vault_with("current"),
+      vault_generation: 6,
+    });
+    await serve({ ...vault_with("server"), vault_generation: 6 });
+
+    const loaded = await load_password_change_vault("user-A", PASSWORD);
+
+    expect(loaded.kind).toBe("ok");
+    if (loaded.kind !== "ok") return;
+    expect(loaded.vault.ratchet_identity_public).toBe("server");
   });
 
   it("reports a wrong current password", async () => {

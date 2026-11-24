@@ -22,7 +22,12 @@ import type { AliasRun } from "@/services/api/aliases";
 import type {} from "@/lib/i18n/types";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Island, SettingNote } from "@aster/ui";
+import { Island, IslandIconButton, SettingNote } from "@aster/ui";
+import {
+  EllipsisVerticalIcon,
+  PlayIcon,
+  StopIcon,
+} from "@heroicons/react/24/outline";
 
 import { PanelRow } from "./shared";
 
@@ -32,6 +37,13 @@ import {
   rule_system_folder_type,
 } from "@/components/mail_rules/rule_folders";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import {
   Select,
   SelectTrigger,
@@ -85,6 +97,41 @@ export function is_alias_run_active(run: AliasRun | null): boolean {
   return !!run && (run.status === "pending" || run.status === "running");
 }
 
+export type AliasRunConfirmKind = "folder_label" | "folder" | "label";
+
+export function alias_run_confirm_kind(
+  folder_value: string,
+  label_value: string,
+): AliasRunConfirmKind | null {
+  const has_folder = folder_value !== DELIVERY_INBOX_VALUE;
+  const has_label = label_value !== DELIVERY_NO_LABEL_VALUE;
+
+  if (has_folder && has_label) return "folder_label";
+  if (has_folder) return "folder";
+  if (has_label) return "label";
+
+  return null;
+}
+
+export function can_start_alias_run({
+  folder_value,
+  label_value,
+  folder_type,
+  run,
+  busy,
+}: {
+  folder_value: string;
+  label_value: string;
+  folder_type?: string | null;
+  run: AliasRun | null;
+  busy: boolean;
+}): boolean {
+  if (busy || is_alias_run_active(run)) return false;
+  if (folder_type === "spam") return false;
+
+  return alias_run_confirm_kind(folder_value, label_value) !== null;
+}
+
 export function alias_run_status_label(
   run: AliasRun,
   t: ReturnType<typeof use_i18n>["t"],
@@ -120,8 +167,16 @@ export function alias_run_status_label(
   return t("settings.alias_apply_existing_error");
 }
 
-export function use_alias_run(alias_id?: string) {
+export function use_alias_run(
+  alias_id?: string,
+  on_finished?: (run: AliasRun) => void,
+) {
   const [run, set_run] = useState<AliasRun | null>(null);
+  const [unsupported, set_unsupported] = useState(false);
+  const on_finished_ref = useRef(on_finished);
+
+  on_finished_ref.current = on_finished;
+
   const timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const delay_ref = useRef(ALIAS_RUN_POLL_MIN_MS);
   const failures_ref = useRef(0);
@@ -151,6 +206,12 @@ export function use_alias_run(alias_id?: string) {
     if (!mounted_ref.current) return;
 
     if (response.error) {
+      if (response.status === 404 && !response.server_code) {
+        active_ref.current = false;
+        set_unsupported(true);
+
+        return;
+      }
       failures_ref.current += 1;
       if (
         active_ref.current &&
@@ -163,10 +224,16 @@ export function use_alias_run(alias_id?: string) {
     }
 
     const next = response.data?.run ?? null;
+    const was_active = active_ref.current;
 
     failures_ref.current = 0;
     active_ref.current = is_alias_run_active(next);
+    set_unsupported(false);
     set_run(next);
+
+    if (was_active && !active_ref.current && next) {
+      on_finished_ref.current?.(next);
+    }
 
     if (active_ref.current) {
       schedule();
@@ -205,7 +272,7 @@ export function use_alias_run(alias_id?: string) {
     [schedule],
   );
 
-  return { run, track };
+  return { run, track, unsupported };
 }
 
 export function DeliveryPanel({
@@ -239,7 +306,28 @@ export function DeliveryPanel({
   const [saving, set_saving] = useState(false);
   const [label_saving, set_label_saving] = useState(false);
   const [apply_busy, set_apply_busy] = useState(false);
-  const { run, track } = use_alias_run(alias_id);
+  const [confirm_open, set_confirm_open] = useState(false);
+  const handle_run_finished = useCallback(
+    (finished: AliasRun) => {
+      if (finished.status === "completed") {
+        show_toast(
+          t("settings.alias_apply_existing_done", {
+            applied: finished.applied,
+            scanned: finished.scanned,
+          }),
+          "success",
+        );
+      } else if (finished.status === "failed") {
+        show_toast(t("settings.alias_apply_existing_error"), "error");
+      }
+    },
+    [t],
+  );
+  const {
+    run,
+    track,
+    unsupported: run_unsupported,
+  } = use_alias_run(alias_id, handle_run_finished);
 
   useEffect(() => {
     void fetch_folders();
@@ -383,14 +471,41 @@ export function DeliveryPanel({
 
   const apply_unsupported = selected_folder_type === "spam";
 
-  const apply_nothing_to_do =
-    value === DELIVERY_INBOX_VALUE && label_value === DELIVERY_NO_LABEL_VALUE;
-
   const run_active = is_alias_run_active(run);
+
+  const can_start = can_start_alias_run({
+    folder_value: value,
+    label_value,
+    folder_type: selected_folder_type,
+    run,
+    busy: apply_busy || saving || label_saving,
+  });
+
+  const confirm_kind = alias_run_confirm_kind(value, label_value);
+
+  const confirm_message = (): string => {
+    const folder = selected_folder_label;
+    const label = label_name(label_value);
+
+    if (confirm_kind === "folder_label") {
+      return t("settings.alias_apply_existing_confirm_folder_label", {
+        folder,
+        label,
+      });
+    }
+    if (confirm_kind === "folder") {
+      return t("settings.alias_apply_existing_confirm_folder", { folder });
+    }
+
+    return t("settings.alias_apply_existing_confirm_label", { label });
+  };
+
+  const show_run_menu = !!alias_id && !run_unsupported;
 
   const handle_apply_existing = async () => {
     if (!alias_id) return;
 
+    set_confirm_open(false);
     set_apply_busy(true);
 
     const response = await run_alias_on_existing(alias_id);
@@ -459,37 +574,79 @@ export function DeliveryPanel({
           ) : undefined
         }
       >
-        <Select disabled={saving} value={value} onValueChange={handle_change}>
-          <SelectTrigger
-            aria-label={t("settings.alias_delivery_folder")}
-            className="w-full"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={DELIVERY_INBOX_VALUE}>
-              {t("mail.inbox")}
-            </SelectItem>
-            <SelectItem value={DELIVERY_ARCHIVE_VALUE}>
-              {t("mail.archive")}
-            </SelectItem>
-            {system_delivery_folders.map((folder) => (
-              <SelectItem key={folder.folder_token} value={folder.folder_token}>
-                {folder.name}
+        <div className="flex w-full items-center gap-1.5">
+          <Select disabled={saving} value={value} onValueChange={handle_change}>
+            <SelectTrigger
+              aria-label={t("settings.alias_delivery_folder")}
+              className="w-full min-w-0 flex-1"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={DELIVERY_INBOX_VALUE}>
+                {t("mail.inbox")}
               </SelectItem>
-            ))}
-            {user_delivery_folders.map((folder) => (
-              <SelectItem key={folder.folder_token} value={folder.folder_token}>
-                {folder.name}
+              <SelectItem value={DELIVERY_ARCHIVE_VALUE}>
+                {t("mail.archive")}
               </SelectItem>
-            ))}
-            {is_missing_folder && (
-              <SelectItem value={delivery_folder_token}>
-                {t("settings.alias_delivery_folder_missing")}
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
+              {system_delivery_folders.map((folder) => (
+                <SelectItem
+                  key={folder.folder_token}
+                  value={folder.folder_token}
+                >
+                  {folder.name}
+                </SelectItem>
+              ))}
+              {user_delivery_folders.map((folder) => (
+                <SelectItem
+                  key={folder.folder_token}
+                  value={folder.folder_token}
+                >
+                  {folder.name}
+                </SelectItem>
+              ))}
+              {is_missing_folder && (
+                <SelectItem value={delivery_folder_token}>
+                  {t("settings.alias_delivery_folder_missing")}
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+          {show_run_menu && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <IslandIconButton
+                  className="shrink-0"
+                  data-testid="alias_delivery_menu_button"
+                  label={t("common.more")}
+                >
+                  <EllipsisVerticalIcon />
+                </IslandIconButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60">
+                {run_active ? (
+                  <DropdownMenuItem
+                    data-testid="alias_apply_existing_stop"
+                    disabled={apply_busy}
+                    onClick={handle_cancel_apply}
+                  >
+                    <StopIcon className="w-4 h-4 me-2" />
+                    {t("settings.alias_apply_existing_cancel")}
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem
+                    data-testid="alias_apply_existing_button"
+                    disabled={!can_start}
+                    onClick={() => set_confirm_open(true)}
+                  >
+                    <PlayIcon className="w-4 h-4 me-2" />
+                    {t("settings.alias_apply_existing")}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </PanelRow>
 
       <PanelRow
@@ -519,71 +676,63 @@ export function DeliveryPanel({
           ) : undefined
         }
       >
-        <Select
-          disabled={label_saving}
-          value={label_value}
-          onValueChange={handle_label_change}
-        >
-          <SelectTrigger
-            aria-label={t("settings.alias_delivery_label")}
-            className="w-full"
-            data-testid="alias_delivery_label_select"
+        <div className="flex w-full items-center gap-1.5">
+          <Select
+            disabled={label_saving}
+            value={label_value}
+            onValueChange={handle_label_change}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={DELIVERY_NO_LABEL_VALUE}>
-              {t("settings.alias_delivery_label_none")}
-            </SelectItem>
-            {order_tags_as_tree(tags_state.tags).map(({ tag }) => (
-              <SelectItem key={tag.tag_token} value={tag.tag_token}>
-                {tag_path_label(tags_state.tags, tag.tag_token)}
-              </SelectItem>
-            ))}
-            {is_missing_label && (
-              <SelectItem value={delivery_label_token}>
-                {t("settings.alias_delivery_label_missing")}
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
-      </PanelRow>
-
-      {alias_id && (
-        <PanelRow
-          description={t("settings.alias_apply_existing_desc")}
-          info={t("settings.alias_apply_existing_info")}
-          label={t("settings.alias_apply_existing")}
-        >
-          <div className="flex flex-col items-end gap-1.5">
-            <Button
-              data-testid="alias_apply_existing_button"
-              disabled={
-                apply_busy ||
-                saving ||
-                label_saving ||
-                apply_unsupported ||
-                (!run_active && apply_nothing_to_do)
-              }
-              size="md"
-              variant="secondary"
-              onClick={run_active ? handle_cancel_apply : handle_apply_existing}
+            <SelectTrigger
+              aria-label={t("settings.alias_delivery_label")}
+              className="w-full min-w-0 flex-1"
+              data-testid="alias_delivery_label_select"
             >
-              {run_active
-                ? t("settings.alias_apply_existing_cancel")
-                : t("settings.alias_apply_existing_action")}
-            </Button>
-            {apply_status && (
-              <span
-                className="max-w-56 text-end text-xs text-txt-muted"
-                data-testid="alias_apply_existing_status"
-              >
-                {apply_status}
-              </span>
-            )}
-          </div>
-        </PanelRow>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={DELIVERY_NO_LABEL_VALUE}>
+                {t("settings.alias_delivery_label_none")}
+              </SelectItem>
+              {order_tags_as_tree(tags_state.tags).map(({ tag }) => (
+                <SelectItem key={tag.tag_token} value={tag.tag_token}>
+                  {tag_path_label(tags_state.tags, tag.tag_token)}
+                </SelectItem>
+              ))}
+              {is_missing_label && (
+                <SelectItem value={delivery_label_token}>
+                  {t("settings.alias_delivery_label_missing")}
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+          {show_run_menu && (
+            <span
+              aria-hidden
+              className="aster_island_icon_btn invisible shrink-0"
+            />
+          )}
+        </div>
+      </PanelRow>
+      {show_run_menu && apply_status && (
+        <div className="px-4 py-2.5">
+          <SettingNote tone="muted">
+            <span data-testid="alias_apply_existing_status">
+              {apply_status}
+            </span>
+          </SettingNote>
+        </div>
       )}
+
+      <ConfirmationModal
+        confirm_text={t("settings.alias_apply_existing")}
+        is_loading={apply_busy}
+        is_open={confirm_open}
+        message={confirm_message()}
+        on_cancel={() => set_confirm_open(false)}
+        on_confirm={handle_apply_existing}
+        title={t("settings.alias_apply_existing")}
+        variant="info"
+      />
     </Island>
   );
 }

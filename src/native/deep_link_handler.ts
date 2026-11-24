@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { escape_mailto_body } from "@/lib/mailto_link";
+import { resolve_settings_section } from "@/lib/settings_section_names";
 
 type DeepLinkHandler = (params: Record<string, string>) => void;
 
@@ -80,13 +81,26 @@ export function handle_deep_link(url: string): boolean {
     }
   }
 
+  if (!is_app_local_path(parsed.path)) return false;
+
   navigate_to_path(parsed.path, parsed.query_params);
 
   return true;
 }
 
+function is_app_local_path(path: string): boolean {
+  if (!path.startsWith("/") || /^\/[/\\]/.test(path)) return false;
+
+  try {
+    return (
+      new URL(path, window.location.origin).origin === window.location.origin
+    );
+  } catch {
+    return false;
+  }
+}
+
 interface ParsedDeepLink {
-  scheme: string;
   path: string;
   query_params: Record<string, string>;
 }
@@ -98,7 +112,6 @@ function parse_deep_link_url(url: string): ParsedDeepLink | null {
       const [path_part, query_part] = without_scheme.split("?");
 
       return {
-        scheme: "astermail",
         path: "/" + (path_part || ""),
         query_params: parse_query_string(query_part),
       };
@@ -112,7 +125,6 @@ function parse_deep_link_url(url: string): ParsedDeepLink | null {
       parsed_url.hostname.endsWith(".astermail.org")
     ) {
       return {
-        scheme: "https",
         path: parsed_url.pathname,
         query_params: Object.fromEntries(parsed_url.searchParams),
       };
@@ -245,6 +257,19 @@ register_deep_link_route("/spam", () => {
 register_deep_link_route("/settings", () => {
   navigate_to_path("/settings", {});
 });
+
+register_deep_link_route("/settings/:section", (params) => {
+  const section = params.section?.trim() ?? "";
+
+  navigate_to_path(
+    resolve_settings_section(section)
+      ? `/settings/${encodeURIComponent(section)}`
+      : "/settings",
+    {},
+  );
+});
+
+register_deep_link_route("/share", () => {});
 
 register_deep_link_route("/contacts", () => {
   navigate_to_path("/contacts", {});

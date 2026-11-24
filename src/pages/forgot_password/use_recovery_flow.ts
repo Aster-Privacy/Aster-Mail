@@ -31,15 +31,16 @@ import { useTheme } from "@/contexts/theme_context";
 import { use_should_reduce_motion } from "@/provider";
 import {
   derive_password_hash,
-  encrypt_vault,
   generate_recovery_codes,
   RECOVERY_CODE_SET_SIZE,
 } from "@/services/crypto/key_manager";
+import { prepare_vault_write } from "@/services/crypto/key_manager_pgp_vault";
+import { stored_vault_write_iterations } from "@/services/crypto/vault_level2";
 import {
   clear_recovery_key,
   decrypt_recovery_key_with_code,
-  decrypt_vault_backup,
   encrypt_vault_backup,
+  open_recovery_backup,
   build_verifier_candidates,
   generate_all_recovery_shares,
   generate_recovery_key,
@@ -48,6 +49,12 @@ import {
   VaultBackup,
 } from "@/services/crypto/recovery_key";
 import { EncryptedVault } from "@/services/crypto/key_manager_core";
+import {
+  next_recovery_backup_binding,
+  raise_recovery_backup_floor,
+  RecoveryBackupStaleError,
+} from "@/services/crypto/recovery_backup_floor";
+import { stored_user_id_for_email } from "@/services/crypto/recovery_backup_refresh";
 import {
   build_backup_vault,
   read_unlocked_keys,
@@ -60,11 +67,13 @@ import {
   reseal_recovery_vault,
 } from "@/services/crypto/recovery_vault_reseal";
 import {
+  ESCROW_FORMAT,
   encode_escrow_seed,
   generate_escrow_seed,
 } from "@/services/crypto/recovery_key_escrow";
 import { rescue_account_key_from_escrow } from "@/services/crypto/recovery_escrow_rescue";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { backup_key_fingerprints_of } from "@/services/crypto/recovery_backup_coverage";
 import {
   is_master_key_vault,
   MASTER_KEY_VAULT_FORMAT,
@@ -91,6 +100,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { print_current_page } from "@/utils/print_page";
+import { held_of } from "@/services/guard/held_outcome";
 
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",
@@ -148,6 +158,42 @@ function read_handoff(state: unknown): {
   return { username: clean, email_domain: domain };
 }
 
+export interface RecoveredAccountAddress {
+  username: string;
+  email_domain: "astermail.org" | "aster.cx";
+  address: string;
+}
+
+export function parse_account_address(
+  value: unknown,
+): RecoveredAccountAddress | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  const at_index = trimmed.lastIndexOf("@");
+
+  if (at_index <= 0) return null;
+  const domain = trimmed.substring(at_index + 1).toLowerCase();
+
+  if (domain !== "astermail.org" && domain !== "aster.cx") return null;
+  const clean = sanitize_username(trimmed.substring(0, at_index));
+
+  if (!clean) return null;
+
+  return {
+    username: clean,
+    email_domain: domain,
+    address: `${clean}@${domain}`,
+  };
+}
+
+export function sign_in_path_for(
+  recovered: RecoveredAccountAddress | null,
+): string {
+  return recovered
+    ? `/sign-in?u=${encodeURIComponent(recovered.address)}`
+    : "/sign-in";
+}
+
 export function use_recovery_flow() {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -173,6 +219,9 @@ export function use_recovery_flow() {
   const [password, set_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
   const [previous_password, set_previous_password] = useState("");
+  const [guard_held_until, set_guard_held_until] = useState<string | null>(
+    null,
+  );
   const [is_previous_visible, set_is_previous_visible] = useState(false);
   const [needs_previous_password, set_needs_previous_password] =
     useState(false);
@@ -193,6 +242,8 @@ export function use_recovery_flow() {
     recovery_email_kept: false,
     keys_left_locked: false,
   });
+  const [recovered_account, set_recovered_account] =
+    useState<RecoveredAccountAddress | null>(null);
   const [resend_cooldown, set_resend_cooldown] = useState(0);
   const [is_resending, set_is_resending] = useState(false);
   const copy_timer_ref = useRef<number | null>(null);
@@ -220,6 +271,11 @@ export function use_recovery_flow() {
   const [recovery_token, set_recovery_token] = useState("");
   const [vault_backup, set_vault_backup] = useState<VaultBackup | null>(null);
   const [code_salt, set_code_salt] = useState("");
+  const [vault_write_count, set_vault_write_count] = useState<number | null>(
+    null,
+  );
+  const [stored_vault_kdf_iterations, set_stored_vault_kdf_iterations] =
+    useState<number | null>(null);
   const [encrypted_recovery_key_data, set_encrypted_recovery_key_data] =
     useState<{ encrypted_key: string; nonce: string } | null>(null);
   const [stored_recovery_email, set_stored_recovery_email] =
@@ -248,6 +304,16 @@ export function use_recovery_flow() {
     }
 
     return clean_username;
+  };
+
+  const adopt_recovered_address = (value: unknown) => {
+    const recovered = parse_account_address(value);
+
+    if (!recovered) return;
+    set_recovered_account(recovered);
+    set_email(recovered.address);
+    set_username(recovered.username);
+    set_email_domain(recovered.email_domain);
   };
 
   const handle_email_next = () => {
@@ -397,11 +463,17 @@ export function use_recovery_flow() {
         salt: response.data.recovery_key_salt,
       });
       set_code_salt(response.data.code_salt);
+      set_vault_write_count(response.data.vault_write_count ?? null);
+      set_stored_vault_kdf_iterations(
+        response.data.vault_kdf_iterations ?? null,
+      );
       set_encrypted_recovery_key_data({
         encrypted_key: response.data.encrypted_recovery_key,
         nonce: response.data.recovery_key_nonce,
       });
       set_recovery_token(response.data.recovery_token);
+      set_recovered_account(null);
+      adopt_recovered_address(response.data.account_address);
 
       const { encrypted_recovery_email, recovery_email_nonce } = response.data;
 
@@ -426,11 +498,16 @@ export function use_recovery_flow() {
     source_vault: EncryptedVault,
     unlocked_keys: Map<string, string>,
     previous: string | null,
+    backup_user_id: string,
+    backup_generation: number,
   ) => {
     const vault_uses_master_key = is_master_key_vault(source_vault);
     const old_data_kek = source_vault.data_kek ?? null;
     const old_identity_key = source_vault.identity_key;
-    const old_escrow_seed = source_vault.escrow_seed;
+    const old_escrow = {
+      escrow_seed: source_vault.escrow_seed,
+      escrow_format: source_vault.escrow_format,
+    };
     const old_vault: EncryptedVault = { ...source_vault };
 
     set_processing_status(t("auth.recovering_account_data"));
@@ -439,6 +516,8 @@ export function use_recovery_flow() {
       unlocked_keys,
       password,
       previous,
+      vault_write_count,
+      email,
     );
 
     const salt = crypto.getRandomValues(new Uint8Array(32));
@@ -451,6 +530,7 @@ export function use_recovery_flow() {
     const fresh_escrow_seed = generate_escrow_seed();
 
     vault.escrow_seed = encode_escrow_seed(fresh_escrow_seed);
+    vault.escrow_format = ESCROW_FORMAT;
     zero_uint8_array(fresh_escrow_seed);
 
     set_processing_status(t("auth.creating_new_recovery_codes"));
@@ -461,16 +541,23 @@ export function use_recovery_flow() {
     vault.recovery_codes = new_codes;
 
     set_processing_status(t("auth.encrypting_vault_new_password"));
-    const { encrypted_vault, vault_nonce } = await encrypt_vault(
+    const vault_write = await prepare_vault_write(
       vault,
       password,
+      stored_vault_write_iterations(stored_vault_kdf_iterations),
+      false,
     );
 
     set_processing_status(t("auth.creating_new_recovery_backup"));
     const new_recovery_key = generate_recovery_key();
+    const new_binding =
+      backup_user_id && backup_generation > 0
+        ? next_recovery_backup_binding(backup_user_id, backup_generation)
+        : null;
     const new_backup = await encrypt_vault_backup(
       await build_backup_vault(vault, password),
       new_recovery_key,
+      new_binding,
     );
     const new_shares = await generate_all_recovery_shares(
       new_codes,
@@ -481,7 +568,7 @@ export function use_recovery_flow() {
 
     const rescued_account_key = await rescue_account_key_from_escrow(
       recovery_token,
-      old_escrow_seed,
+      old_escrow,
       vault.identity_key,
       password,
     );
@@ -499,27 +586,51 @@ export function use_recovery_flow() {
       new_recovery_email = reencrypted ?? undefined;
     }
 
+    const backup_key_fingerprints = await backup_key_fingerprints_of(vault);
+
     set_processing_status(t("auth.saving_new_credentials"));
-    const complete_response = await complete_recovery(
-      recovery_token,
-      password_hash,
-      password_salt,
-      encrypted_vault,
-      vault_nonce,
-      new_shares,
-      new_backup.encrypted_data,
-      new_backup.nonce,
-      new_backup.salt,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
-      rescued_account_key?.token,
-      rescued_account_key?.fingerprint,
-      new_recovery_email,
-      password_hash_v2,
+    const { response: complete_response } = await vault_write.write(
+      (sealed, kdf_field) =>
+        complete_recovery(
+          recovery_token,
+          password_hash,
+          password_salt,
+          sealed.encrypted_vault,
+          sealed.vault_nonce,
+          new_shares,
+          new_backup.encrypted_data,
+          new_backup.nonce,
+          new_backup.salt,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          vault_uses_master_key ? MASTER_KEY_VAULT_FORMAT : undefined,
+          rescued_account_key?.token,
+          rescued_account_key?.fingerprint,
+          new_recovery_email,
+          password_hash_v2,
+          vault.vault_generation,
+          kdf_field.vault_kdf_iterations,
+          backup_key_fingerprints,
+        ),
     );
+
+    const held = held_of(complete_response);
+
+    if (held) {
+      set_guard_held_until(held.apply_after);
+      set_recovery_code("");
+      set_password("");
+      set_confirm_password("");
+      set_previous_password("");
+      set_recovery_token("");
+      set_vault_backup(null);
+      set_encrypted_recovery_key_data(null);
+      set_step("guard_held");
+
+      return;
+    }
 
     if (complete_response.error || !complete_response.data?.success) {
       throw new Error(
@@ -527,6 +638,11 @@ export function use_recovery_flow() {
           t("auth.recovery_failed"),
       );
     }
+
+    if (new_binding) {
+      raise_recovery_backup_floor(new_binding.user_id, new_binding.generation);
+    }
+    adopt_recovered_address(complete_response.data.account_address);
 
     if (!vault_uses_master_key) {
       store_pending_reencryption({
@@ -602,10 +718,12 @@ export function use_recovery_flow() {
       );
 
       set_processing_status(t("auth.recovering_account_data"));
-      const backup_vault: BackupVault = await decrypt_vault_backup(
+      const opened_backup = await open_recovery_backup(
         vault_backup,
         recovery_key,
+        await stored_user_id_for_email(email),
       );
+      const backup_vault: BackupVault = opened_backup.vault;
 
       clear_recovery_key(recovery_key);
       recovery_key = null;
@@ -637,6 +755,8 @@ export function use_recovery_flow() {
           source_vault,
           unlocked_keys,
           asks_previous ? previous_password : null,
+          opened_backup.user_id,
+          opened_backup.generation,
         );
       } finally {
         unlocked_keys.clear();
@@ -650,7 +770,9 @@ export function use_recovery_flow() {
       set_error(
         err instanceof RecoveryPreviousPasswordIncorrect
           ? t("auth.recovery_previous_password_incorrect")
-          : user_facing_error(err, t("auth.recovery_failed")),
+          : err instanceof RecoveryBackupStaleError
+            ? t("auth.recovery_failed")
+            : user_facing_error(err, t("auth.recovery_failed")),
       );
       set_step("password");
     }
@@ -709,6 +831,12 @@ export function use_recovery_flow() {
     print_current_page();
   };
 
+  const sign_in_path = sign_in_path_for(recovered_account);
+
+  const handle_navigate_sign_in = () => {
+    navigate(sign_in_path);
+  };
+
   const handle_codes_continue = () => {
     set_new_recovery_codes([]);
     set_is_key_visible(false);
@@ -757,6 +885,10 @@ export function use_recovery_flow() {
     codes_saved,
     set_codes_saved,
     review,
+    guard_held_until,
+    recovered_address: recovered_account?.address ?? "",
+    sign_in_path,
+    handle_navigate_sign_in,
     is_email_locked,
     resend_cooldown,
     is_resending,

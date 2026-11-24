@@ -70,10 +70,33 @@ export function build_account_key_token_payload(
   return JSON.stringify(payload);
 }
 
+export interface AccountKeyTokenRank {
+  version: number;
+  serial: number;
+}
+
+export interface OpenedAccountKeyToken extends AccountKeyTokenRank {
+  key: Uint8Array;
+}
+
+export function compare_account_key_token_rank(
+  a: AccountKeyTokenRank,
+  b: AccountKeyTokenRank,
+): number {
+  return a.version - b.version || a.serial - b.serial;
+}
+
 export function parse_account_key_token_payload(
   plaintext: string,
   owner_fingerprints: string[],
 ): Uint8Array | null {
+  return parse_account_key_token(plaintext, owner_fingerprints)?.key ?? null;
+}
+
+function parse_account_key_token(
+  plaintext: string,
+  owner_fingerprints: string[],
+): OpenedAccountKeyToken | null {
   let parsed: unknown;
 
   try {
@@ -112,7 +135,15 @@ export function parse_account_key_token_payload(
     return null;
   }
 
-  return decode_account_key(payload.key);
+  const key = decode_account_key(payload.key);
+
+  if (!key) return null;
+
+  if (payload.version !== ACCOUNT_KEY_TOKEN_VERSION) {
+    return { key, version: LEGACY_ACCOUNT_KEY_TOKEN_VERSION, serial: 0 };
+  }
+
+  return { key, version: ACCOUNT_KEY_TOKEN_VERSION, serial: payload.serial ?? 0 };
 }
 
 async function fingerprint_of(
@@ -200,6 +231,8 @@ async function decrypt_token_verified(
     own_private_keys,
     passphrase,
     verification_keys,
+    undefined,
+    true,
   );
 
   if (result.verification === "verified" || verification_keys.length < 2) {
@@ -212,6 +245,8 @@ async function decrypt_token_verified(
       own_private_keys,
       passphrase,
       [key],
+      undefined,
+      true,
     );
 
     if (single.verification === "verified") return single;
@@ -225,6 +260,20 @@ export async function open_account_key_token(
   own_private_keys: (string | null | undefined)[],
   passphrase: string,
 ): Promise<Uint8Array | null> {
+  const opened = await open_ranked_account_key_token(
+    token,
+    own_private_keys,
+    passphrase,
+  );
+
+  return opened?.key ?? null;
+}
+
+export async function open_ranked_account_key_token(
+  token: string,
+  own_private_keys: (string | null | undefined)[],
+  passphrase: string,
+): Promise<OpenedAccountKeyToken | null> {
   const verification_keys = await own_verification_keys(own_private_keys);
 
   if (verification_keys.length === 0) return null;
@@ -239,7 +288,7 @@ export async function open_account_key_token(
 
     if (result.verification !== "verified") return null;
 
-    return parse_account_key_token_payload(
+    return parse_account_key_token(
       result.plaintext,
       await own_fingerprints(own_private_keys),
     );

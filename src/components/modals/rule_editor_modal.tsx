@@ -31,6 +31,7 @@ import type {
 import type { RuleEditorSeed } from "@/components/mail_rules/rule_templates";
 import type { EditorTab } from "@/components/modals/rule_editor_helpers";
 import type { ParseResult } from "@/lib/mail_rules/expression_parser";
+import type { DecryptedFolder } from "@/hooks/use_folders";
 
 import * as React from "react";
 import { Button } from "@aster/ui";
@@ -50,6 +51,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   is_missing_rule_folder,
   rule_folder_name,
+  with_created_rule_folder,
 } from "@/components/mail_rules/rule_folders";
 import { emit_refresh_requested } from "@/hooks/mail_events";
 import { use_folders } from "@/hooks/use_folders";
@@ -62,6 +64,7 @@ import {
 import {
   create_rule,
   get_last_save_error,
+  get_last_save_held,
   get_last_save_server_message,
   update_rule,
   delete_rule,
@@ -90,7 +93,6 @@ import {
 import {
   ACTION_LABEL_KEYS,
   ADDABLE_ACTION_TYPES,
-  RULE_COLORS,
   UNAVAILABLE_ACTION_TYPES,
   condition_has_value,
   condition_ready_to_save,
@@ -106,6 +108,8 @@ import {
   rule_run_status_label,
   trim_address_values,
 } from "@/components/modals/rule_editor_helpers";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
+import { DEFAULT_PICKER_COLOR } from "@/lib/color_wheel";
 import { ignore_error } from "@/lib/ignore_error";
 import { rule_supports_local_evaluation } from "@/lib/mail_rules/local_rule_evaluator";
 import { classify_rule_save_error } from "@/lib/mail_rules/rule_save_error";
@@ -133,6 +137,18 @@ export function RuleEditorModal({
 }: RuleEditorModalProps) {
   const { t } = use_i18n();
   const { state: folders_state, fetch_folders } = use_folders();
+  const [created_folders, set_created_folders] = React.useState<
+    DecryptedFolder[]
+  >([]);
+  const editor_folders = created_folders.reduce(
+    with_created_rule_folder,
+    folders_state.folders,
+  );
+  const remember_created_folder = React.useCallback(
+    (folder: DecryptedFolder) =>
+      set_created_folders((prev) => [...prev, folder]),
+    [],
+  );
   const { state: tags_state, fetch_tags } = use_tags();
   const [alias_delivery, set_alias_delivery] = React.useState<
     Map<string, AliasDeliverySetting>
@@ -141,7 +157,7 @@ export function RuleEditorModal({
   const is_edit = !!rule;
 
   const [name, set_name] = React.useState("");
-  const [color, set_color] = React.useState(RULE_COLORS[0]);
+  const [color, set_color] = React.useState(DEFAULT_PICKER_COLOR);
   const [match_mode, set_match_mode] = React.useState<MatchMode>("all");
   const [conditions, set_conditions] = React.useState<Condition[]>([]);
   const [new_indices, set_new_indices] = React.useState<Set<number>>(new Set());
@@ -192,7 +208,7 @@ export function RuleEditorModal({
     if (!is_open) return;
     if (rule) {
       set_name(rule.name);
-      set_color(rule.color || RULE_COLORS[0]);
+      set_color(rule.color || DEFAULT_PICKER_COLOR);
       set_match_mode(rule.match_mode);
       set_conditions(rule.conditions);
       set_actions(strip_unavailable_actions(rule.actions));
@@ -218,7 +234,7 @@ export function RuleEditorModal({
       }
     } else if (seed) {
       set_name(seed.name);
-      set_color(seed.color || RULE_COLORS[0]);
+      set_color(seed.color || DEFAULT_PICKER_COLOR);
       set_match_mode(seed.match_mode);
       set_conditions(seed.conditions);
       set_actions(strip_unavailable_actions(seed.actions));
@@ -239,7 +255,7 @@ export function RuleEditorModal({
       }
     } else {
       set_name("");
-      set_color(RULE_COLORS[0]);
+      set_color(DEFAULT_PICKER_COLOR);
       set_match_mode("all");
       set_conditions([]);
       set_actions([]);
@@ -259,7 +275,7 @@ export function RuleEditorModal({
   const incomplete_move_to = actions.some(
     (a) =>
       a.type === "move_to" &&
-      is_missing_rule_folder(folders_state.folders, a.folder_token),
+      is_missing_rule_folder(editor_folders, a.folder_token),
   );
   const incomplete_apply_labels = actions.some(
     (a) => a.type === "apply_labels" && a.label_tokens.length === 0,
@@ -342,7 +358,7 @@ export function RuleEditorModal({
     actions,
     alias_delivery,
     (token) =>
-      folders_state.folders.find((folder) => folder.folder_token === token)
+      editor_folders.find((folder) => folder.folder_token === token)
         ?.folder_type,
   );
 
@@ -356,7 +372,7 @@ export function RuleEditorModal({
     if (!token) return t("mail.archive");
 
     return (
-      rule_folder_name(folders_state.folders, token, t) ??
+      rule_folder_name(editor_folders, token, t) ??
       t("settings.alias_delivery_folder_missing")
     );
   };
@@ -553,6 +569,12 @@ export function RuleEditorModal({
           ? await update_rule(rule.id, req)
           : await create_rule(req);
 
+      if (!result && get_last_save_held()) {
+        set_saving(false);
+        on_close();
+
+        return;
+      }
       if (!result) {
         const save_error = classify_rule_save_error(
           get_last_save_server_message(),
@@ -727,6 +749,11 @@ export function RuleEditorModal({
 
     set_saving(false);
 
+    if (!deleted && get_last_save_held()) {
+      on_close();
+
+      return;
+    }
     if (!deleted) {
       show_toast(t("mail_rules.rule_delete_failed"), "error");
 
@@ -841,23 +868,13 @@ export function RuleEditorModal({
             value={name}
             onChange={(e) => set_name(e.target.value)}
           />
-          <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-            {RULE_COLORS.map((c) => (
-              <button
-                key={c}
-                aria-label={c}
-                className="w-5 h-5 rounded-full border-2 transition-shadow"
-                style={{
-                  backgroundColor: c,
-                  borderColor: color === c ? c : "transparent",
-                  boxShadow:
-                    color === c ? `0 0 0 2px white, 0 0 0 3px ${c}` : undefined,
-                }}
-                type="button"
-                onClick={() => set_color(c)}
-              />
-            ))}
-          </div>
+          <ColorSwatchRow
+            class_name="shrink-0"
+            label={t("common.color")}
+            max_swatch_size={20}
+            value={color}
+            on_change={set_color}
+          />
         </div>
 
         <div>
@@ -1030,6 +1047,7 @@ export function RuleEditorModal({
                   key={`${a.type}-${i}`}
                   action={a}
                   on_change={(next) => replace_action_at(i, next)}
+                  on_folder_created={remember_created_folder}
                   on_remove={() => remove_action_at(i)}
                 />
               ))}

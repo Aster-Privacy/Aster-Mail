@@ -22,6 +22,10 @@
 import { type ParsedEmail } from "@/services/import/parser";
 import { type ImportSource } from "@/services/api/email_import";
 import { extract_email_address } from "@/services/import/mime_utils";
+import {
+  has_reply_prefix,
+  normalize_subject as normalize_thread_subject,
+} from "@/services/threading/threading_rules";
 
 import {
   STORE_ROOT_SEGMENT,
@@ -35,7 +39,17 @@ export interface ImportModalProps {
   provider: ImportSource | null;
 }
 
-export type ImportStep = "upload" | "progress" | "complete";
+export type ImportStep = "upload" | "review" | "progress" | "complete";
+
+export type ImportTrashMode = "archive" | "trash" | "skip";
+
+export const DEFAULT_IMPORT_TRASH_MODE: ImportTrashMode = "archive";
+
+export interface ImportPlacementSummary {
+  total: number;
+  trashed: number;
+  spam: number;
+}
 
 export const PICKER_REOPEN_DELAY_MS = 700;
 
@@ -335,6 +349,48 @@ export function classify_import_email(email: ParsedEmail): ImportDisposition {
   return disposition;
 }
 
+export function summarize_import_placement(
+  emails: ParsedEmail[],
+): ImportPlacementSummary {
+  const summary: ImportPlacementSummary = { total: 0, trashed: 0, spam: 0 };
+
+  for (const email of emails) {
+    const disposition = classify_import_email(email);
+
+    if (disposition.skip) continue;
+    summary.total++;
+    if (disposition.is_trashed) summary.trashed++;
+    else if (disposition.is_spam) summary.spam++;
+  }
+
+  return summary;
+}
+
+export interface ImportPlacementFlags {
+  is_trashed?: boolean;
+  is_spam?: boolean;
+  is_archived?: boolean;
+}
+
+export function import_placement_flags(
+  disposition: ImportDisposition,
+  has_target_folder: boolean,
+  trash_mode: ImportTrashMode,
+): ImportPlacementFlags {
+  if (disposition.is_trashed) {
+    if (trash_mode === "trash") return { is_trashed: true };
+    if (has_target_folder) return {};
+
+    return { is_archived: true };
+  }
+  if (disposition.is_spam) return { is_spam: true };
+  if (disposition.is_archived && !has_target_folder) {
+    return { is_archived: true };
+  }
+
+  return {};
+}
+
 export function extract_source_tags(emails: ParsedEmail[]): string[] {
   const names: string[] = [];
 
@@ -416,10 +472,7 @@ export function folder_for_email(
 export const NO_SUBJECT_SENTINELS = new Set(["(no subject)", "no subject"]);
 
 export function normalize_subject(subject: string): string {
-  const normalized = subject
-    .replace(/^(\s*(re|fwd?|aw|sv|vs|ref|rif|r)\s*:\s*)+/i, "")
-    .trim()
-    .toLowerCase();
+  const normalized = normalize_thread_subject(subject);
 
   if (NO_SUBJECT_SENTINELS.has(normalized)) return "";
 
@@ -451,6 +504,39 @@ export function header_message_ids(value: string | undefined): string[] {
     .split(/\s+/)
     .map((id) => id.replace(/[<>,]/g, "").trim())
     .filter((id) => id.includes("@"));
+}
+
+const SUBJECT_FALLBACK_WINDOW_MS = 7 * 86_400_000;
+
+function has_thread_headers(email: ParsedEmail): boolean {
+  return (
+    header_message_ids(email.raw_headers["in-reply-to"]).length > 0 ||
+    header_message_ids(email.raw_headers["references"]).length > 0
+  );
+}
+
+function participants(email: ParsedEmail): Set<string> {
+  const addresses = new Set<string>();
+
+  for (const value of [email.from, ...email.to, ...email.cc]) {
+    const address = extract_email_address(value ?? "")
+      .trim()
+      .toLowerCase();
+
+    if (address) addresses.add(address);
+  }
+
+  return addresses;
+}
+
+function shares_participant(a: ParsedEmail, b: ParsedEmail): boolean {
+  const left = participants(a);
+
+  for (const address of participants(b)) {
+    if (left.has(address)) return true;
+  }
+
+  return false;
 }
 
 export async function build_thread_map(
@@ -520,14 +606,15 @@ export async function build_thread_map(
     }
   }
 
-  const subject_groups = new Map<string, string[]>();
+  const subject_groups = new Map<string, ParsedEmail[]>();
 
   for (const email of emails) {
     const root = find_root(email.message_id);
 
     if (
       root === email.message_id &&
-      (group_members.get(root)?.size ?? 0) <= 1
+      (group_members.get(root)?.size ?? 0) <= 1 &&
+      !has_thread_headers(email)
     ) {
       const norm = normalize_subject(email.subject);
 
@@ -535,17 +622,38 @@ export async function build_thread_map(
       const existing = subject_groups.get(norm);
 
       if (existing) {
-        existing.push(email.message_id);
+        existing.push(email);
       } else {
-        subject_groups.set(norm, [email.message_id]);
+        subject_groups.set(norm, [email]);
       }
     }
   }
 
-  for (const [, ids] of subject_groups) {
-    if (ids.length < 2) continue;
-    for (let i = 1; i < ids.length; i++) {
-      merge(ids[0], ids[i]);
+  for (const [, group] of subject_groups) {
+    if (group.length < 2) continue;
+    const ordered = [...group].sort(
+      (a, b) => a.date.getTime() - b.date.getTime(),
+    );
+
+    for (let i = 1; i < ordered.length; i++) {
+      const later = ordered[i];
+
+      if (!has_reply_prefix(later.subject)) continue;
+
+      for (let j = i - 1; j >= 0; j--) {
+        const earlier = ordered[j];
+
+        if (
+          later.date.getTime() - earlier.date.getTime() >
+          SUBJECT_FALLBACK_WINDOW_MS
+        ) {
+          break;
+        }
+        if (shares_participant(earlier, later)) {
+          merge(earlier.message_id, later.message_id);
+          break;
+        }
+      }
     }
   }
 

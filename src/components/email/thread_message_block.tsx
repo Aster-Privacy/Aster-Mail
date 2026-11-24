@@ -20,6 +20,7 @@
 //
 import type { ThreadMessageBlockProps } from "./use_thread_message_block";
 
+import { quotable_source } from "@/lib/html_text";
 import {
   AtSymbolIcon,
   StarIcon,
@@ -42,6 +43,7 @@ import {
   InformationCircleIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
+  PaperClipIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { IslandDivider, IslandIconButton, Tooltip } from "@aster/ui";
@@ -73,11 +75,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { OfficialBadge } from "@/components/email/official_badge";
+import { PriorityBadge } from "@/components/email/priority_badge";
+import { priority_from_headers } from "@/services/mail_priority";
 import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
 import { EmailAuthIndicator } from "@/components/email/email_auth_indicator";
 import { SenderTrustBanner } from "@/components/email/banners/sender_trust_banner";
 import { summarize_email_authentication } from "@/utils/email_authentication";
 import { catch_all_reply_address } from "@/services/catch_all_sender";
+import { remember_inline_forward_from } from "@/components/email/delivery_reply_address";
 import { show_toast } from "@/components/toast/simple_toast";
 import { AttachmentList } from "@/components/email/attachment_list";
 import { InlineReplyComposer } from "@/components/email/inline_reply_composer";
@@ -96,6 +101,8 @@ import { request_external_link } from "@/utils/external_link_request";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
+import { ForwardedViaLine } from "@/components/email/shared/forwarded_via_line";
+import { use_forward_as_attachment } from "@/components/compose/use_forward_as_attachment";
 
 export function ThreadMessageBlock(
   props: ThreadMessageBlockProps,
@@ -143,6 +150,7 @@ export function ThreadMessageBlock(
     island_ref,
   } = props;
   const state = use_thread_message_block(props);
+  const forward_mail_as_attachment = use_forward_as_attachment();
   const {
     t,
     auth,
@@ -174,6 +182,7 @@ export function ThreadMessageBlock(
     load_remote_content,
     sanitized_content,
     is_sanitize_pending,
+    is_decrypt_pending,
     effective_html,
     inline_refs,
     show_as_text,
@@ -228,6 +237,10 @@ export function ThreadMessageBlock(
           ...original_cc_emails,
         ]));
 
+    if (inline_mode === "forward") {
+      remember_inline_forward_from(message, inline_reply_from);
+    }
+
     return (
       <div
         key="inline_reply"
@@ -243,7 +256,9 @@ export function ThreadMessageBlock(
           on_close={on_close}
           on_draft_saved={on_draft_saved}
           on_set_inline_mode={on_set_inline_mode}
-          original_body={is_ratchet_undecryptable ? "" : message.body || ""}
+          original_body={
+            is_ratchet_undecryptable ? "" : quotable_source(message)
+          }
           original_cc={original_cc_emails}
           original_email_id={message.id}
           original_rfc_message_id={inline_reply_references}
@@ -491,7 +506,9 @@ export function ThreadMessageBlock(
                         className={btn_class}
                         onClick={(e) => {
                           e.stopPropagation();
-                          on_load_external_content(message.id, ["tracking_pixel"]);
+                          on_load_external_content(message.id, [
+                            "tracking_pixel",
+                          ]);
                         }}
                       >
                         {`${t("mail.load_external_content")} (${tracker_count} ${tracker_count === 1 ? t("mail.tracker") : t("mail.trackers")})`}
@@ -591,6 +608,7 @@ export function ThreadMessageBlock(
               </Tooltip>
             )}
           </div>
+          {!is_own_message && <ForwardedViaLine sender={message} />}
           {received_on_address && (
             <span className="block w-fit max-w-full truncate text-xs text-txt-muted mt-0.5">
               {t("mail.received_on_prefix", { address: received_on_address })}
@@ -599,6 +617,10 @@ export function ThreadMessageBlock(
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-0.5 -mt-1.5 -me-2">
+          <PriorityBadge
+            class_name="me-1"
+            priority={priority_from_headers(message.raw_headers)}
+          />
           <span className="pe-1.5 text-xs leading-none text-txt-muted whitespace-nowrap">
             {format_email_detail(new Date(message.timestamp))}
           </span>
@@ -661,6 +683,17 @@ export function ThreadMessageBlock(
                 >
                   <ArrowUturnRightIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
                   {t("mail.forward")}
+                </DropdownMenuItem>
+              )}
+              {on_forward && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void forward_mail_as_attachment([message.id]);
+                  }}
+                >
+                  <PaperClipIcon className="w-4 h-4 me-2" />
+                  {t("mail.forward_as_attachment")}
                 </DropdownMenuItem>
               )}
               {(on_reply_all && !is_system) || on_forward ? (
@@ -963,7 +996,7 @@ export function ThreadMessageBlock(
           <p className="mx-4 mb-3 rounded-[20px] bg-surf-primary px-4 py-3 text-sm italic text-txt-muted">
             {t("mail.encrypted_message_unavailable")}
           </p>
-        ) : is_sanitize_pending && !show_as_text ? (
+        ) : (is_sanitize_pending && !show_as_text) || is_decrypt_pending ? (
           <div
             aria-hidden="true"
             style={{
@@ -999,6 +1032,7 @@ export function ThreadMessageBlock(
           onClick={(e) => e.stopPropagation()}
         >
           <AttachmentList
+            decrypted_content_tag={message.decrypted_content_tag}
             e2e_verified={!!message.e2e_verified}
             has_recipient_key={message.has_recipient_key}
             hint_attachment_count={message.attachments?.length ?? 0}

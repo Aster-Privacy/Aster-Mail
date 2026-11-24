@@ -28,6 +28,7 @@ import type {
   ForwardData,
 } from "@/components/email/email_viewer_types";
 
+import { quotable_source } from "@/lib/html_text";
 import { useCallback, useEffect, useRef } from "react";
 
 import { use_message_actions } from "./email_viewer_message_actions";
@@ -57,7 +58,6 @@ import {
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   emit_mail_changed,
@@ -76,10 +76,8 @@ import {
   begin_read_change,
   is_read_ticket_current,
 } from "@/services/read_intent";
-import {
-  execute_unsubscribe,
-  get_manual_unsubscribe_url,
-} from "@/utils/unsubscribe_detector";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { show_unsubscribe_toast } from "@/utils/unsubscribe_toast";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import {
   adjust_stats_spam,
@@ -108,7 +106,6 @@ import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
-import { request_external_link } from "@/utils/external_link_request";
 import { copy_text, copy_text_or_throw } from "@/utils/copy_text";
 import {
   app_locale,
@@ -943,54 +940,23 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         build_unsubscribe_delivery(deps.mail_item, deps.email),
       );
 
-      if (result === "api") {
-        show_action_toast({
-          message: deps.t("mail.successfully_unsubscribed"),
-          action_type: "not_spam",
-          email_ids: [],
+      const record = () => {
+        if (!deps.email) return;
+        persist_unsubscribe(deps.email.sender_email, deps.email.sender || "", {
+          unsubscribe_link: info.unsubscribe_link,
+          list_unsubscribe_header: info.list_unsubscribe_header,
         });
-        persist_unsubscribe(
-          deps.email.sender_email,
-          deps.email.sender || "",
-          {
-            unsubscribe_link: info.unsubscribe_link,
-            list_unsubscribe_header: info.list_unsubscribe_header,
-          },
-          "manual",
-        );
-      } else {
-        const url = get_manual_unsubscribe_url(info);
-        const lockdown = is_any_lockdown_active();
+      };
 
-        show_action_toast({
-          message: deps.t("mail.unsubscribe_manual_required"),
-          action_type: "not_spam",
-          email_ids: [],
-          duration_ms: 15000,
-          ...(!lockdown &&
-            url && {
-              action_label: deps.t("mail.open_unsubscribe_page"),
-              on_undo: async () => {
-                if (!(await request_external_link(url))) return;
-                if (!deps.email) return;
-                persist_unsubscribe(
-                  deps.email.sender_email,
-                  deps.email.sender || "",
-                  {
-                    unsubscribe_link: info.unsubscribe_link,
-                    list_unsubscribe_header: info.list_unsubscribe_header,
-                  },
-                );
-              },
-            }),
-        });
-      }
-    } catch {
-      show_action_toast({
-        message: deps.t("mail.unsubscribe_failed"),
-        action_type: "not_spam",
-        email_ids: [],
+      show_unsubscribe_toast({
+        outcome: result,
+        info,
+        t: deps.t,
+        on_page_opened: record,
       });
+      if (result === "api") record();
+    } catch {
+      show_unsubscribe_toast({ outcome: "error", info, t: deps.t });
     }
   }, [deps.email, deps.mail_item, deps.t]);
 
@@ -1048,7 +1014,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             }
           : {}),
         original_subject: msg.subject,
-        original_body: msg.body,
+        original_body: quotable_source(msg),
         original_timestamp: new Date(msg.timestamp).toLocaleString(
           app_locale(),
           { timeZone: get_display_time_zone() },

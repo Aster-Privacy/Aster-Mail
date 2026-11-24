@@ -19,13 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
+import type { ThreadContentField } from "@/services/thread_content_fields";
 
 import {
   PGP_UNDECRYPTABLE_SENTINEL,
   RATCHET_UNDECRYPTABLE_SENTINEL,
+  RATCHET_PENDING_SENTINEL,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { compare_timestamps_asc } from "@/utils/email_timestamp";
+import { THREAD_CONTENT_FIELDS } from "@/services/thread_content_fields";
 
 type BodyFields = Pick<DecryptedThreadMessage, "body" | "html_content">;
 
@@ -35,12 +38,37 @@ export function has_readable_body(message: BodyFields): boolean {
   if (!content || !content.trim()) return false;
   if (
     content === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    content === RATCHET_PENDING_SENTINEL ||
     content === PGP_UNDECRYPTABLE_SENTINEL
   ) {
     return false;
   }
 
   return !is_ratchet_envelope(content);
+}
+
+function with_body_from(
+  target: DecryptedThreadMessage,
+  source: DecryptedThreadMessage,
+): DecryptedThreadMessage {
+  const content = Object.fromEntries(
+    THREAD_CONTENT_FIELDS.map((field) => [field, source[field]]),
+  ) as Pick<DecryptedThreadMessage, ThreadContentField>;
+
+  return {
+    ...target,
+    ...content,
+    timestamp: source.timestamp,
+    has_recipient_key: source.has_recipient_key,
+  };
+}
+
+function in_thread_order(
+  messages: DecryptedThreadMessage[],
+): DecryptedThreadMessage[] {
+  return [...messages].sort((a, b) =>
+    compare_timestamps_asc(a.timestamp, b.timestamp),
+  );
 }
 
 export function keep_readable_bodies(
@@ -61,15 +89,10 @@ export function keep_readable_bodies(
 
     changed = true;
 
-    return {
-      ...message,
-      body: earlier.body,
-      html_content: earlier.html_content,
-      text_part: earlier.text_part,
-    };
+    return with_body_from(message, earlier);
   });
 
-  return changed ? merged : incoming;
+  return changed ? in_thread_order(merged) : incoming;
 }
 
 export function carry_local_reply_bodies(
@@ -118,9 +141,7 @@ export function include_opened_message(
   const index = messages.findIndex((m) => m.id === opened.id);
 
   if (index === -1) {
-    return [...messages, opened].sort((a, b) =>
-      compare_timestamps_asc(a.timestamp, b.timestamp),
-    );
+    return in_thread_order([...messages, opened]);
   }
 
   const existing = messages[index];
@@ -131,14 +152,9 @@ export function include_opened_message(
 
   const next = [...messages];
 
-  next[index] = {
-    ...existing,
-    body: opened.body,
-    html_content: opened.html_content,
-    text_part: opened.text_part,
-  };
+  next[index] = with_body_from(existing, opened);
 
-  return next;
+  return in_thread_order(next);
 }
 
 function same_value(left: unknown, right: unknown): boolean {

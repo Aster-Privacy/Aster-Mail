@@ -48,7 +48,7 @@ const attribute_filters: { option: FilterOption; label_key: TranslationKey }[] =
 const chip_base =
   "inline-flex flex-shrink-0 items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] whitespace-nowrap transition-colors";
 
-const chip_active = "bg-brand text-[var(--accent-fg,#ffffff)]";
+const chip_active = "bg-[var(--text-primary)] text-[var(--bg-primary)]";
 
 const chip_inactive =
   "bg-[var(--aster-hover)] text-txt-secondary hover:bg-[var(--aster-selected)]";

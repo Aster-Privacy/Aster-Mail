@@ -25,13 +25,27 @@ import {
   ENFORCE_AUTHENTICATED_RATCHET,
   ENFORCE_STRICT_RECIPIENT_BUNDLE,
   is_pqxdh_transcript_binding_enabled,
+  is_signed_ratchet_keys_required,
   is_strict_recipient_bundle_enforced,
+  REQUIRE_SIGNED_RATCHET_KEYS,
 } from "./crypto_enforcement_policy";
 
 describe("crypto enforcement policy defaults", () => {
   it("binds the key agreement transcript by default", () => {
     expect(ENABLE_PQXDH_TRANSCRIPT_BINDING).toBe(true);
     expect(is_pqxdh_transcript_binding_enabled()).toBe(true);
+  });
+
+  it("leaves the signed key requirement off until every client signs its keys", () => {
+    expect(REQUIRE_SIGNED_RATCHET_KEYS).toBe(false);
+    expect(is_signed_ratchet_keys_required()).toBe(false);
+  });
+
+  it("turns on the signed key requirement from the build environment", () => {
+    vi.stubEnv("VITE_REQUIRE_SIGNED_RATCHET_KEYS", "1");
+    expect(is_signed_ratchet_keys_required()).toBe(true);
+    vi.unstubAllEnvs();
+    expect(is_signed_ratchet_keys_required()).toBe(false);
   });
 
   it("keeps the authenticated ratchet enforced", () => {

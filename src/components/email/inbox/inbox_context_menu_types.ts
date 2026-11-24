@@ -52,6 +52,7 @@ export interface UseContextMenuActionsParams {
   ) => Promise<boolean>;
   preferences: {
     confirm_before_delete: boolean;
+    confirm_before_permanent_delete?: boolean;
     confirm_before_spam: boolean;
     confirm_before_archive: boolean;
     conversation_grouping?: boolean;

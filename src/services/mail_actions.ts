@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { OutgoingPriority } from "@/services/mail_priority";
 import {
   queue_email,
   queue_email_to_server,
@@ -84,6 +85,7 @@ export interface ReplyParams {
   attachments?: import("@/components/compose/compose_shared").Attachment[];
   require_encryption?: boolean;
   is_plain_text?: boolean;
+  priority?: OutgoingPriority;
   lock_scope?: RecipientLockScope | null;
 }
 
@@ -103,6 +105,7 @@ export interface ForwardParams {
   forward_original_mail_id?: string;
   require_encryption?: boolean;
   is_plain_text?: boolean;
+  priority?: OutgoingPriority;
   lock_scope?: RecipientLockScope | null;
 }
 
@@ -370,7 +373,8 @@ export async function send_reply(
 
   if (!consent.proceed) {
     if (consent.blocked_by) {
-      const message = describe_consent_block(consent.blocked_by);
+      const message =
+        consent.message ?? describe_consent_block(consent.blocked_by);
 
       callbacks.on_error?.(message);
 
@@ -425,6 +429,7 @@ export async function send_reply(
         ),
         pgp_recipients,
         is_plain_text: params.is_plain_text,
+        priority: params.priority,
       },
       reply_queue_seconds,
       {
@@ -467,6 +472,7 @@ export async function send_reply(
       encryption_options: reply_encryption_options(params.require_encryption),
       pgp_recipients,
       is_plain_text: params.is_plain_text,
+      priority: params.priority,
       on_complete: callbacks.on_complete,
       on_cancel: callbacks.on_cancel,
       on_error: callbacks.on_error,
@@ -572,7 +578,8 @@ export async function send_forward(
 
   if (!consent.proceed) {
     if (consent.blocked_by) {
-      const message = describe_consent_block(consent.blocked_by);
+      const message =
+        consent.message ?? describe_consent_block(consent.blocked_by);
 
       callbacks.on_error?.(message);
 
@@ -630,6 +637,7 @@ export async function send_forward(
         ),
         pgp_recipients,
         is_plain_text: params.is_plain_text,
+        priority: params.priority,
       },
       forward_queue_seconds,
       {
@@ -670,6 +678,7 @@ export async function send_forward(
       encryption_options: reply_encryption_options(params.require_encryption),
       pgp_recipients,
       is_plain_text: params.is_plain_text,
+      priority: params.priority,
       on_complete: callbacks.on_complete,
       on_cancel: callbacks.on_cancel,
       on_error: callbacks.on_error,

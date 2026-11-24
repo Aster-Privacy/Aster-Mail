@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { Capacitor } from "@capacitor/core";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export const PUBLIC_WEB_APP_ORIGIN = "https://app.astermail.org";
 
@@ -26,7 +27,7 @@ const APP_SHELL_HOSTS = new Set(["tauri.localhost", "asset.localhost"]);
 
 function is_app_shell(): boolean {
   if (typeof window === "undefined") return true;
-  if ("__TAURI_INTERNALS__" in window || "__TAURI__" in window) return true;
+  if (has_tauri_runtime()) return true;
 
   return Capacitor.isNativePlatform();
 }

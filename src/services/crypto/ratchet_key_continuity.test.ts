@@ -45,6 +45,10 @@ function key_set(tag: string, spk = tag): RatchetKeySet {
   };
 }
 
+function large_key_set(tag: string): RatchetKeySet {
+  return { ...key_set(tag), ratchet_pq_identity_key: "x".repeat(20 * 1024) };
+}
+
 function vault_with(
   current: RatchetKeySet | null,
   previous: RatchetKeySet[] = [],
@@ -105,10 +109,52 @@ describe("merge_ratchet_key_history", () => {
     expect(merged).toEqual([key_set("a")]);
   });
 
-  it("caps the history", () => {
+  it("keeps a long history of small sets", () => {
     const many = Array.from(
       { length: RATCHET_PREVIOUS_KEYS_LIMIT + 5 },
       (_, i) => key_set(`k${i}`),
+    );
+
+    expect(merge_ratchet_key_history(null, many)).toHaveLength(
+      RATCHET_PREVIOUS_KEYS_LIMIT + 5,
+    );
+  });
+
+  it("keeps a previous set that only holds post-quantum keys", () => {
+    const expanded_only = {
+      ratchet_pq_identity_key: "pq-old",
+      ratchet_pq_identity_public: "pqpub-old",
+    } as RatchetKeySet;
+    const seed_only = {
+      ratchet_pq_identity_seed: "seed-older",
+    } as RatchetKeySet;
+    const merged = merge_ratchet_key_history(
+      key_set("now"),
+      [key_set("a"), expanded_only],
+      [seed_only, expanded_only],
+    );
+
+    expect(merged).toEqual([key_set("a"), expanded_only, seed_only]);
+  });
+
+  it("carries post-quantum only sets through a signed prekey rotation", () => {
+    const expanded_only = {
+      ratchet_pq_identity_key: "pq-old",
+      ratchet_pq_identity_public: "pqpub-old",
+    } as RatchetKeySet;
+    const replaced = vault_with(key_set("now", "one"), [expanded_only]);
+    const next = vault_with(key_set("now", "two"), [expanded_only]);
+
+    expect(retain_replaced_ratchet_keys(replaced, next)).toEqual([
+      key_set("now", "one"),
+      expanded_only,
+    ]);
+  });
+
+  it("caps a history that exceeds the byte budget", () => {
+    const many = Array.from(
+      { length: RATCHET_PREVIOUS_KEYS_LIMIT + 20 },
+      (_, i) => large_key_set(`k${i}`),
     );
 
     expect(merge_ratchet_key_history(null, many)).toHaveLength(
@@ -176,7 +222,7 @@ describe("carry_displaced_ratchet_keys", () => {
   it("keeps the target history ahead of displaced keys when the cap is hit", () => {
     const target_history = Array.from(
       { length: RATCHET_PREVIOUS_KEYS_LIMIT },
-      (_, i) => key_set(`target-${i}`),
+      (_, i) => large_key_set(`target-${i}`),
     );
     const server = vault_with(key_set("server"), target_history);
     const memory = vault_with(key_set("memory"));

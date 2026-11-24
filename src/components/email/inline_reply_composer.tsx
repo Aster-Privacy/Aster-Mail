@@ -46,6 +46,7 @@ import {
 import { RecipientField } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
+import { use_mail_drop_attach } from "@/components/compose/use_forward_as_attachment";
 
 interface InlineReplyComposerProps {
   recipient_name: string;
@@ -114,6 +115,7 @@ export const InlineReplyComposer = forwardRef<
   ref,
 ) {
   const { t } = use_i18n();
+  const attach_dropped_mail = use_mail_drop_attach();
   const reduce_motion = use_should_reduce_motion();
   const [is_fullscreen, set_is_fullscreen] = useState(false);
   const saved_scroll_ref = useRef<number>(0);
@@ -641,6 +643,7 @@ export const InlineReplyComposer = forwardRef<
       message_content={reply_modal.reply_message}
       message_editor_ref={reply_modal.message_editor_ref}
       original_body={reply_modal.original_body}
+      priority={reply_modal.priority}
       quote_inlined={reply_modal.quote_inlined}
       reduce_motion={reduce_motion}
       remove_attachment={reply_modal.remove_attachment}
@@ -651,6 +654,7 @@ export const InlineReplyComposer = forwardRef<
       set_expires_at={reply_modal.set_expires_at}
       set_expiry_password={reply_modal.set_expiry_password}
       set_include_quoted={reply_modal.set_include_quoted}
+      set_priority={reply_modal.set_priority}
       set_scheduled_time={reply_modal.set_scheduled_time}
       set_show_delete_confirm={reply_modal.set_show_delete_confirm}
       set_show_quoted={reply_modal.set_show_quoted}
@@ -689,6 +693,7 @@ export const InlineReplyComposer = forwardRef<
       message_content={forward_modal.forward_message}
       message_editor_ref={forward_modal.message_editor_ref}
       on_discard={on_close}
+      priority={forward_modal.priority}
       recipients_count={forward_modal.recipients.to.length}
       reduce_motion={reduce_motion}
       remove_attachment={forward_modal.remove_attachment}
@@ -699,6 +704,7 @@ export const InlineReplyComposer = forwardRef<
       set_expires_at={forward_modal.set_expires_at}
       set_expiry_password={forward_modal.set_expiry_password}
       set_is_forward_visible={forward_modal.set_is_forward_visible}
+      set_priority={forward_modal.set_priority}
       set_scheduled_time={forward_modal.set_scheduled_time}
       source_email_id={original_email_id}
       t={forward_modal.t}
@@ -728,6 +734,7 @@ export const InlineReplyComposer = forwardRef<
         />
         <div
           className="aster_floating aster_dialog_surface fixed inset-4 sm:inset-8 md:inset-12 z-50 flex flex-col overflow-hidden"
+          data-inline-reply-composer=""
           onDragOver={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -736,13 +743,14 @@ export const InlineReplyComposer = forwardRef<
             e.preventDefault();
             e.stopPropagation();
             const files = Array.from(e.dataTransfer?.files || []);
+            const drop_handler = is_reply_mode
+              ? reply_modal.handle_files_drop
+              : forward_modal.handle_files_drop;
 
             if (files.length > 0) {
-              const drop_handler = is_reply_mode
-                ? reply_modal.handle_files_drop
-                : forward_modal.handle_files_drop;
-
               drop_handler(files);
+            } else {
+              attach_dropped_mail(e.dataTransfer, drop_handler);
             }
           }}
         >
@@ -759,6 +767,7 @@ export const InlineReplyComposer = forwardRef<
     <div
       ref={set_refs}
       className="overflow-hidden [&_[contenteditable]]:!min-h-[120px]"
+      data-inline-reply-composer=""
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -767,13 +776,14 @@ export const InlineReplyComposer = forwardRef<
         e.preventDefault();
         e.stopPropagation();
         const files = Array.from(e.dataTransfer?.files || []);
+        const drop_handler = is_reply_mode
+          ? reply_modal.handle_files_drop
+          : forward_modal.handle_files_drop;
 
         if (files.length > 0) {
-          const drop_handler = is_reply_mode
-            ? reply_modal.handle_files_drop
-            : forward_modal.handle_files_drop;
-
           drop_handler(files);
+        } else {
+          attach_dropped_mail(e.dataTransfer, drop_handler);
         }
       }}
     >

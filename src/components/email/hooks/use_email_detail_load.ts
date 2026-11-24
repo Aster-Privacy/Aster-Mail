@@ -33,6 +33,7 @@ import {
 } from "@/stores/ghost_alias_store";
 import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import { get_mail_item } from "@/services/api/mail";
+import { is_missing_mail_item } from "@/lib/stale_open_email";
 import {
   fetch_and_decrypt_thread_messages,
   fetch_and_decrypt_virtual_group,
@@ -57,6 +58,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { use_folders } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
+import { use_close_when_folder_locked } from "@/hooks/use_folder_unlock_state";
 import {
   has_protected_folders,
   request_folder_unlock,
@@ -96,6 +98,11 @@ import {
   include_opened_message,
   keep_unchanged_messages,
 } from "@/components/email/thread_message_merge";
+import {
+  with_item_read_intent,
+  with_message_read,
+  with_read_intents,
+} from "@/components/email/hooks/detail_read_state";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import {
   claim_auto_read,
@@ -220,6 +227,15 @@ export function use_email_detail_load() {
   const [tracking_report, set_tracking_report] =
     useState<ExternalContentReport | null>(null);
 
+  use_close_when_folder_locked(mail_item, () => {
+    set_mail_item(null);
+    set_email(null);
+    set_thread_messages([]);
+    set_thread_draft(null);
+    set_error(t("common.email_in_locked_folder"));
+    set_is_loading(false);
+  });
+
   const handle_external_content_detected = useCallback(
     (report: ExternalContentReport) => {
       set_tracking_report((prev) => {
@@ -306,6 +322,17 @@ export function use_email_detail_load() {
     },
     [navigate, is_popup_window],
   );
+  const leave_missing_email = useCallback(() => {
+    if (is_popup_window) {
+      window.close();
+
+      return;
+    }
+    navigate("/", { replace: true });
+  }, [navigate, is_popup_window]);
+  const leave_missing_email_ref = useRef(leave_missing_email);
+
+  leave_missing_email_ref.current = leave_missing_email;
 
   const current_email_index = useMemo(() => {
     if (!email_id || email_list.length === 0) return -1;
@@ -410,11 +437,54 @@ export function use_email_detail_load() {
     set_is_mobile_sidebar_open((prev) => !prev);
   }, []);
 
+  const [email_read_override, set_email_read_override] = useState<{
+    id: string;
+    is_read: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    set_email_read_override(null);
+  }, [email_id]);
+
+  useEffect(
+    () =>
+      on_mail_event(MAIL_EVENTS.MAIL_ITEM_UPDATED, (detail) => {
+        if (!detail || detail.is_read === undefined) return;
+        const next_read = detail.is_read;
+
+        set_thread_messages((prev) =>
+          with_message_read(prev, detail.id, next_read),
+        );
+        set_email_read_override({ id: detail.id, is_read: next_read });
+      }),
+    [],
+  );
+
+  const opened_read_intent = useCallback(
+    (id: string) => (get_read_intent(id) === true ? true : undefined),
+    [],
+  );
+
+  const read_thread_messages = useMemo(
+    () => with_read_intents(thread_messages, opened_read_intent),
+    [thread_messages, opened_read_intent],
+  );
+
+  const read_email = useMemo(() => {
+    if (email && email_read_override?.id === email.id) {
+      return email.is_read === email_read_override.is_read
+        ? email
+        : { ...email, is_read: email_read_override.is_read };
+    }
+
+    return with_item_read_intent(email, opened_read_intent);
+  }, [email, email_read_override, opened_read_intent]);
+
   const actions = use_email_detail_actions({
     email_id,
     mail_item,
-    email,
-    thread_messages,
+    email: read_email,
+    thread_messages: read_thread_messages,
     thread_ghost_email,
     is_archive_loading,
     is_trash_loading,
@@ -432,6 +502,8 @@ export function use_email_detail_load() {
     navigate: navigate_from_detail,
     t,
     preferences_default_reply_behavior: preferences.default_reply_behavior,
+    confirm_before_permanent_delete:
+      preferences.confirm_before_permanent_delete,
   });
 
   useEffect(() => {
@@ -714,6 +786,14 @@ export function use_email_detail_load() {
       if (is_stale()) return;
 
       if (is_new_open) revert_user_opened_mail(email_id);
+
+      if (is_missing_mail_item(response)) {
+        set_is_loading(false);
+        leave_missing_email_ref.current();
+
+        return;
+      }
+
       set_error(response.error);
       set_is_loading(false);
 
@@ -889,9 +969,13 @@ export function use_email_detail_load() {
             )
           : null;
 
-      const attachment_meta_ready = prefetch_attachment_meta([email_id]);
+      let attachment_meta_ready: Promise<void> = Promise.resolve();
+      const start_attachment_prefetch = (): void => {
+        attachment_meta_ready = prefetch_attachment_meta([email_id]);
+        void prefetch_attachment_previews(email_id);
+      };
 
-      void prefetch_attachment_previews(email_id);
+      if (!envelope) start_attachment_prefetch();
 
       if (envelope) {
         const {
@@ -902,12 +986,15 @@ export function use_email_detail_load() {
           e2e_sender_bound,
           e2e_details_sealed,
           sent_encryption_scope,
+          decrypted_content_tag,
         } = await process_envelope_body(
             envelope,
             user?.email,
             response.data.id,
             response.data.dkim_result,
           );
+
+        start_attachment_prefetch();
 
         const decrypted: import("@/components/email/hooks/email_detail_types").DecryptedEmail =
           {
@@ -967,6 +1054,7 @@ export function use_email_detail_load() {
           sent_encryption_scope,
           e2e_sender_bound,
           e2e_details_sealed,
+          decrypted_content_tag,
         );
 
         if (should_load_thread) {
@@ -1156,7 +1244,7 @@ export function use_email_detail_load() {
     update_preference,
     save_now,
     mail_item,
-    email,
+    email: read_email,
     is_loading,
     error,
     is_sender_dropdown_open,
@@ -1182,7 +1270,7 @@ export function use_email_detail_load() {
     is_archive_loading,
     is_trash_loading,
     is_mobile_sidebar_open,
-    thread_messages,
+    thread_messages: read_thread_messages,
     set_thread_messages,
     thread_truncated,
     set_thread_truncated,

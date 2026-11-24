@@ -31,9 +31,14 @@ import {
   build_search_index,
   mark_search_index_stale,
   patch_indexed_flags,
+  patch_indexed_membership,
   reset_index_cache,
   type IndexedFlagPatch,
 } from "./index_cache";
+import {
+  patch_results_membership,
+  type MembershipPatch,
+} from "./membership_patch";
 import {
   matches_query,
   query_requires_body,
@@ -43,6 +48,7 @@ import { reset_indexing_progress, subscribe_index_refresh } from "./progress";
 import { entry_haystack } from "./haystack";
 import { load_attachment_details } from "./attachment_details";
 import { scan_search_index } from "./scan";
+import { create_body_probe } from "./body_probe";
 import {
   PROGRESS_FLUSH_MS,
   can_refine_scan,
@@ -232,6 +238,62 @@ export function use_search() {
     [],
   );
 
+  const remove_results = useCallback((ids: string[]) => {
+    if (ids.length === 0) return;
+
+    mark_search_index_stale();
+    last_scan_ref.current = null;
+
+    const removed = new Set(ids);
+
+    set_state((prev) => {
+      const next: SearchResultItem[] = [];
+
+      for (const result of prev.results) {
+        const members = result.grouped_email_ids?.length
+          ? result.grouped_email_ids
+          : [result.id];
+        const kept = members.filter((id) => !removed.has(id));
+
+        if (kept.length === members.length) {
+          next.push(result);
+          continue;
+        }
+        if (kept.length === 0) continue;
+
+        next.push({
+          ...result,
+          id: removed.has(result.id) ? kept[0] : result.id,
+          grouped_email_ids: kept,
+        });
+      }
+
+      const dropped = prev.results.length - next.length;
+
+      return {
+        ...prev,
+        results: next,
+        total_results: Math.max(prev.total_results - dropped, next.length),
+      };
+    });
+  }, []);
+
+  const apply_membership_patch = useCallback(
+    (ids: string[], patch: MembershipPatch) => {
+      if (ids.length === 0) return;
+
+      patch_indexed_membership(ids, patch);
+      last_scan_ref.current = null;
+
+      set_state((prev) => {
+        const next = patch_results_membership(prev.results, ids, patch);
+
+        return next ? { ...prev, results: next } : prev;
+      });
+    },
+    [],
+  );
+
   const restore_hidden_results = useCallback(async () => {
     const ids = Array.from(hidden_ids_ref.current);
 
@@ -287,6 +349,16 @@ export function use_search() {
         is_spam: detail.is_spam,
         is_archived: detail.is_archived,
       });
+
+      if (detail.tags !== undefined || detail.folders !== undefined) {
+        apply_membership_patch([detail.id], {
+          tag_tokens: detail.tags?.map((tag) => tag.id),
+          folders: detail.folders?.map((folder) => ({
+            folder_token: folder.folder_token,
+            name: folder.name,
+          })),
+        });
+      }
     };
 
     const handle_soft_refresh = () => {
@@ -320,7 +392,7 @@ export function use_search() {
         handle_soft_refresh,
       );
     };
-  }, [apply_flag_patch, restore_hidden_results]);
+  }, [apply_flag_patch, apply_membership_patch, restore_hidden_results]);
 
   const search = useCallback(
     async (
@@ -456,9 +528,18 @@ export function use_search() {
 
         if (controller.signal.aborted) return;
 
+        const body_probe =
+          body_allowed &&
+          (index.include_body || index.meta?.include_body === true)
+            ? create_body_probe(terms, operators)
+            : null;
+
         const visit = (item: MailItem, data: DecryptedIndexEntry): boolean => {
           const { envelope, metadata, search_body_text } = data;
           const hay = entry_haystack(data);
+          const body_hit = body_probe
+            ? (term: string) => body_probe.matches(term, item.id, data)
+            : undefined;
 
           if (
             !matches_query(
@@ -473,6 +554,7 @@ export function use_search() {
               search_body_text,
               hay,
               attachment_details,
+              body_hit,
             )
           ) {
             return true;
@@ -545,7 +627,10 @@ export function use_search() {
 
         let stopped = false;
 
-        if (can_refine_scan(reusable, terms, operators, options_key, index)) {
+        if (
+          !body_probe &&
+          can_refine_scan(reusable, terms, operators, options_key, index)
+        ) {
           for (const candidate of reusable!.candidates) {
             if (!visit(candidate.item, candidate.entry)) {
               stopped = true;
@@ -581,6 +666,7 @@ export function use_search() {
                 label_name_to_tokens: options?.label_name_to_tokens,
                 probe_terms,
               }),
+              body_probe,
               known_empty: known_empty_chunks(
                 empty_chunks_ref.current,
                 terms,
@@ -844,6 +930,8 @@ export function use_search() {
     clear_results,
     clear_index,
     apply_flag_patch,
+    remove_results,
+    apply_membership_patch,
     start_index_build,
     load_more,
     set_query,

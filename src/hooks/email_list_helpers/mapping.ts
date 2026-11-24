@@ -31,6 +31,7 @@ import {
   PGP_UNDECRYPTABLE_SENTINEL,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { build_body_preview_cached } from "@/utils/preview_text";
 import { classify } from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
@@ -53,12 +54,21 @@ export interface ListBodySummary {
   is_undecryptable: boolean;
 }
 
+const MASKED_PREVIEW = "•••••••••••••••••••••••••••";
+
 export function summarize_list_body(
   item_id: string,
   envelope: DecryptedEnvelope,
 ): ListBodySummary {
   const resolved_text = envelope.body_text ?? envelope.text_body ?? "";
   const raw_html = envelope.body_html ?? envelope.html_body ?? "";
+
+  if (
+    is_pending_decrypt_body(resolved_text) ||
+    is_pending_decrypt_body(raw_html)
+  ) {
+    return { preview: MASKED_PREVIEW, is_undecryptable: false };
+  }
   const resolved_html = is_ratchet_envelope(raw_html) ? "" : raw_html;
   const is_undecryptable =
     resolved_text === RATCHET_UNDECRYPTABLE_SENTINEL ||
@@ -214,7 +224,9 @@ export function mail_to_email(
     is_trashed: effective_metadata.is_trashed,
     is_archived: effective_metadata.is_archived,
     is_spam: effective_metadata.is_spam,
-    has_attachment: effective_metadata.has_attachments,
+    has_attachment:
+      effective_metadata.has_attachments ||
+      (envelope.attachment_metadata?.length ?? 0) > 0,
     category: "",
     category_color: "",
     mail_category: classify(envelope, metadata, {

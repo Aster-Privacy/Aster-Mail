@@ -22,8 +22,14 @@ import type { Attachment } from "@/components/compose/compose_shared";
 import type { ExternalKeyInfo } from "./api/keys";
 
 import { discover_external_keys_batch } from "./api/keys";
+import { get_cached_preferences } from "./api/preferences";
 import { array_to_base64, base64_to_array } from "./crypto/base64";
 import { with_aes_kw_fallback } from "./crypto/webcrypto_aes_kw";
+import { check_owner_key_pin } from "./crypto/ratchet_identity_pin";
+import {
+  KeyPinUnavailableError,
+  RecipientPinUnreadableError,
+} from "./crypto/ratchet_types";
 import {
   build_protected_mime_entity,
   type ProtectedMimeAttachment,
@@ -31,7 +37,11 @@ import {
 import { build_signed_mime_payload } from "./send_queue_signed_mime";
 import { create_error } from "./send_queue_types";
 import { is_listed_pgp_recipient } from "./recipient_lock_state";
-import { will_encrypt_opportunistically } from "./opportunistic_key_trust";
+import {
+  external_key_trust,
+  key_names_address,
+  will_encrypt_opportunistically,
+} from "./opportunistic_key_trust";
 
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
@@ -63,6 +73,19 @@ export interface ClientPgpCopyParams {
 
 export type EncryptionDecision = "encrypt" | "server" | "plain";
 
+export function resolve_encrypt_by_default(
+  setting: boolean | undefined,
+  info?: ExternalKeyInfo,
+): boolean {
+  if (typeof setting === "boolean") return setting;
+
+  const last_known = get_cached_preferences()?.encrypt_emails;
+
+  if (typeof last_known === "boolean") return last_known;
+
+  return info?.will_encrypt === true;
+}
+
 export function decide_recipient_encryption(
   info: ExternalKeyInfo | undefined,
   params: Pick<
@@ -83,7 +106,7 @@ export function decide_recipient_encryption(
 
   return will_encrypt_opportunistically(
     info,
-    params.encrypt_by_default === true,
+    resolve_encrypt_by_default(params.encrypt_by_default, info),
   )
     ? "encrypt"
     : "plain";
@@ -237,6 +260,34 @@ async function encrypt_entity_for(
   }
 }
 
+async function assert_key_unchanged(
+  recipient: string,
+  public_key: string,
+): Promise<void> {
+  const status = await check_owner_key_pin(
+    recipient.trim().toLowerCase(),
+    public_key,
+  ).catch((caught) => {
+    if (!(caught instanceof KeyPinUnavailableError)) throw caught;
+
+    const errors = get_active_translations().errors;
+
+    throw create_error(
+      "encryption_failed",
+      caught instanceof RecipientPinUnreadableError
+        ? errors.recipient_key_unreadable
+        : errors.key_trust_check_failed,
+    );
+  });
+
+  if (status !== "changed") return;
+
+  throw create_error(
+    "encryption_failed",
+    get_active_translations().errors.recipient_key_untrusted,
+  );
+}
+
 export async function build_client_pgp_copies(
   params: ClientPgpCopyParams,
 ): Promise<Record<string, string> | undefined> {
@@ -267,6 +318,15 @@ function copy_failure(
   }
 
   return undefined;
+}
+
+async function opportunistic_key_saved(
+  recipient: string,
+  public_key: string,
+): Promise<boolean> {
+  if (!(await key_names_address(public_key, recipient))) return false;
+
+  return (await external_key_trust(recipient, public_key)) === "pinned";
 }
 
 async function build_copies_for(
@@ -331,7 +391,17 @@ async function build_copies_for(
       );
     }
     if (decision !== "encrypt") return copy_failure(listed, listed, false);
+    if (
+      !explicit &&
+      !(await opportunistic_key_saved(recipient, info!.public_key!))
+    ) {
+      return undefined;
+    }
     keys.push({ recipient, public_key: info!.public_key! });
+  }
+
+  for (const { recipient, public_key } of keys) {
+    await assert_key_unchanged(recipient, public_key);
   }
 
   const entity = await build_inner_entity(params);

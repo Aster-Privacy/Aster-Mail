@@ -31,8 +31,7 @@ import {
 } from "./mail_events";
 import { invalidate_mail_stats } from "./use_mail_stats";
 
-import { strip_html_tags } from "@/lib/html_sanitizer";
-import { build_list_preview } from "@/utils/preview_text";
+import { build_plain_preview } from "@/utils/preview_text";
 import {
   list_scheduled_emails,
   get_scheduled_email,
@@ -70,6 +69,7 @@ export interface ScheduledListItem extends InboxEmail {
   cc_recipients: string[];
   bcc_recipients: string[];
   full_body: string;
+  content_verified: boolean;
 }
 
 export interface ScheduledListState {
@@ -139,7 +139,7 @@ function transform_scheduled(
     sender_name: display_name,
     sender_email: scheduled.content.to_recipients[0] || "",
     subject: scheduled.content.subject || "",
-    preview: build_list_preview(strip_html_tags(scheduled.content.body)),
+    preview: build_plain_preview(scheduled.content.body),
     timestamp: format_scheduled_timestamp(
       new Date(scheduled.scheduled_at),
       format_options,
@@ -163,6 +163,25 @@ function transform_scheduled(
     cc_recipients: scheduled.content.cc_recipients,
     bcc_recipients: scheduled.content.bcc_recipients,
     full_body: scheduled.content.body,
+    content_verified: scheduled.content_verified !== false,
+  };
+}
+
+function unreadable_scheduled(
+  email: ScheduledEmail,
+  t: (key: TranslationKey) => string,
+): ScheduledEmailWithContent {
+  return {
+    ...email,
+    content: {
+      to_recipients: [],
+      cc_recipients: [],
+      bcc_recipients: [],
+      subject: t("common.unable_to_decrypt"),
+      body: "",
+      scheduled_at: email.scheduled_at,
+    },
+    content_verified: false,
   };
 }
 
@@ -291,6 +310,14 @@ async function fetch_scheduled_from_api(
           return transform_scheduled(detail.data, format_options, labels, t);
         }
         if (detail.code === "NOT_FOUND") return null;
+        if (detail.unreadable) {
+          return transform_scheduled(
+            unreadable_scheduled(email, t),
+            format_options,
+            labels,
+            t,
+          );
+        }
         throw new Error("detail unavailable");
       }),
     );

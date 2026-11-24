@@ -76,7 +76,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 
-function WebPinOverlay({
+export function WebPinOverlay({
   account_id,
   digits,
   pin_type,

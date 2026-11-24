@@ -26,7 +26,15 @@ import { createRoot, type Root } from "react-dom/client";
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
+interface StoredItem {
+  message_id_hash: string;
+  is_trashed?: boolean;
+  is_archived?: boolean;
+  is_read?: boolean;
+}
+
 const store_calls: number[] = [];
+const stored_items: StoredItem[] = [];
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({
@@ -89,8 +97,9 @@ vi.mock("@/services/api/email_import", () => ({
   create_import_job: vi.fn(async () => ({ data: { id: "job-1" } })),
   update_import_job: vi.fn(async () => ({})),
   check_duplicates: vi.fn(async () => ({ data: { duplicates: [] } })),
-  store_imported_emails: vi.fn(async (_job: string, batch: unknown[]) => {
+  store_imported_emails: vi.fn(async (_job: string, batch: StoredItem[]) => {
     store_calls.push(batch.length);
+    stored_items.push(...batch);
 
     return {
       data: {
@@ -157,6 +166,7 @@ describe("ImportModal folder selection (integration)", () => {
 
   beforeEach(() => {
     store_calls.length = 0;
+    stored_items.length = 0;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -205,5 +215,96 @@ describe("ImportModal folder selection (integration)", () => {
 
     expect(store_imported_emails).toHaveBeenCalled();
     expect(store_calls.reduce((a, b) => a + b, 0)).toBe(300);
+  });
+
+  it("asks about Trash in an export folder and archives it by default", async () => {
+    await act(async () => {
+      root.render(<ImportModal is_open on_close={() => {}} provider="mbox" />);
+    });
+
+    const folder_input = container.querySelector(
+      "input[webkitdirectory]",
+    ) as HTMLInputElement;
+    const sidecar = (id: number, label_ids: string[]) =>
+      new File(
+        [
+          JSON.stringify({
+            Version: 1,
+            Payload: {
+              ID: `pm-${id}`,
+              LabelIDs: label_ids,
+              Unread: 0,
+              Subject: "x",
+            },
+          }),
+        ],
+        `message-${id}.metadata.json`,
+      );
+    const files: File[] = [];
+
+    for (let i = 0; i < 6; i++) files.push(make_eml_file(i));
+    files.push(sidecar(0, ["0", "5", "15"]));
+    files.push(sidecar(1, ["0", "5"]));
+    files.push(sidecar(2, ["3", "5"]));
+    files.push(sidecar(3, ["3", "5", "10"]));
+    files.push(sidecar(4, ["3", "5"]));
+    files.push(sidecar(5, ["6", "5"]));
+
+    Object.defineProperty(folder_input, "files", {
+      configurable: true,
+      value: files,
+    });
+
+    await act(async () => {
+      folder_input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    await vi.waitFor(
+      async () => {
+        await flush();
+        expect(container.textContent).toContain(
+          "settings.import_review_start",
+        );
+      },
+      { timeout: 20000, interval: 0 },
+    );
+
+    expect(container.textContent).toContain(
+      'settings.import_review_trash_found {"count":3}',
+    );
+    expect(stored_items).toEqual([]);
+
+    const start = Array.from(container.querySelectorAll("button")).find(
+      (node) => node.textContent?.includes("settings.import_review_start"),
+    )!;
+
+    await act(async () => {
+      start.click();
+    });
+
+    await vi.waitFor(
+      async () => {
+        await flush();
+        expect(container.textContent).toContain(
+          'settings.emails_imported_count {"count":6}',
+        );
+      },
+      { timeout: 20000, interval: 0 },
+    );
+
+    const by_id = new Map(
+      stored_items.map((item) => [item.message_id_hash, item]),
+    );
+
+    for (const i of [2, 3, 4]) {
+      expect(by_id.get(`h-msg-${i}@example.com`)?.is_trashed).toBeFalsy();
+      expect(by_id.get(`h-msg-${i}@example.com`)?.is_archived).toBe(true);
+    }
+    expect(by_id.get("h-msg-0@example.com")?.is_archived).toBeFalsy();
+    expect(by_id.get("h-msg-5@example.com")?.is_archived).toBe(true);
+    expect(stored_items.some((item) => item.is_trashed)).toBe(false);
+    expect(container.textContent).toContain(
+      'settings.import_trash_archived {"count":3}',
+    );
   });
 });

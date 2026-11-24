@@ -57,6 +57,14 @@ import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { is_contact_trashed } from "@/lib/contact_trash";
 import { note_local_contact_write } from "@/services/contact_local_writes";
+import { normalize_related_people } from "@/utils/contact_relations";
+import { normalize_social_networks } from "@/utils/contact_socials";
+import {
+  legacy_email_entries,
+  legacy_emails,
+  legacy_phone_entries,
+  type LegacyContactFields,
+} from "@/services/api/contact_legacy_entries";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -341,6 +349,12 @@ export async function encrypt_contact_data(data: ContactFormData): Promise<{
   const payload = {
     ...strip_known_contact_keys(extra_fields),
     ...known,
+    ...(known.related_people !== undefined && {
+      related_people: normalize_related_people(known.related_people),
+    }),
+    ...(known.social_networks !== undefined && {
+      social_networks: normalize_social_networks(known.social_networks),
+    }),
     _version: CONTACT_DATA_VERSION,
     _encrypted_at: new Date().toISOString(),
   };
@@ -420,13 +434,17 @@ export async function decrypt_contact(
     contact.integrity_hash,
     contact.data_version,
   );
+  const legacy = {
+    ...(data.extra_fields ?? {}),
+    ...(data as unknown as LegacyContactFields),
+  } as LegacyContactFields;
 
   return {
     id: contact.id,
     first_name: data.first_name ?? "",
     last_name: data.last_name ?? "",
-    emails: Array.isArray(data.emails) ? data.emails : [],
-    phone: data.phone,
+    emails: legacy_emails(legacy),
+    phone: data.phone || legacy_phone_entries(legacy)?.[0]?.value,
     company: data.company,
     job_title: data.job_title,
     address: data.address,
@@ -449,8 +467,8 @@ export async function decrypt_contact(
     department: data.department,
     comment: data.comment,
     pronouns: data.pronouns,
-    email_entries: data.email_entries,
-    phone_entries: data.phone_entries,
+    email_entries: legacy_email_entries(legacy),
+    phone_entries: legacy_phone_entries(legacy),
     address_entries: data.address_entries,
     date_entries: data.date_entries,
     related_people: data.related_people,

@@ -18,11 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import type { DecryptedFolder } from "@/hooks/use_folders";
 import type { DecryptedTag } from "@/hooks/use_tags";
 import type { User } from "@/services/account_manager";
+import type { TagIconName } from "@/components/ui/email_tag";
 
+import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   AccountMenuSheetView,
   CreateAliasSheetView,
@@ -36,8 +39,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
 import { format_bytes } from "@/lib/utils";
-import { TAG_COLOR_PRESETS, type TagIconName } from "@/components/ui/email_tag";
 import { TagIconPicker } from "@/components/tags/tag_icon_picker";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
 import { prompt_alias_limit_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
@@ -47,6 +50,7 @@ import {
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { use_resubscribe } from "@/hooks/use_resubscribe";
+import { use_primary_identity } from "@/lib/primary_identity";
 import { MobileAccountList } from "@/components/mobile/mobile_account_list";
 
 interface AccountMenuSheetProps {
@@ -72,6 +76,8 @@ export function AccountMenuSheet({
 }: AccountMenuSheetProps) {
   const { can_resubscribe, resubscribe } = use_resubscribe(is_open);
   const { t } = use_i18n();
+  const account_email = user?.email ?? "";
+  const primary_identity = use_primary_identity(account_email);
 
   return (
     <MobileBottomSheet
@@ -80,7 +86,7 @@ export function AccountMenuSheet({
       on_close={on_close}
     >
       <AccountMenuSheetView
-        email={user?.email ?? ""}
+        email={primary_identity.email || account_email}
         logo_src={mail_logo_url}
         name={user?.display_name ?? user?.username ?? ""}
         settings_label={t("settings.title")}
@@ -104,6 +110,60 @@ export function AccountMenuSheet({
       />
       <MobileAccountList handle_nav={handle_nav} on_close={on_close} />
     </MobileBottomSheet>
+  );
+}
+
+const DRAWER_ROW_PLACEHOLDER: readonly { hex: string }[] = [];
+
+interface DrawerCustomColorProps {
+  color: string;
+  on_change: (hex: string) => void;
+  children: ReactNode;
+}
+
+function DrawerCustomColor({ color, on_change, children }: DrawerCustomColorProps) {
+  const container_ref = useRef<HTMLDivElement>(null);
+  const host_ref = useRef<HTMLElement | null>(null);
+  const [host, set_host] = useState<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    if (host_ref.current?.isConnected) return;
+    const row = container_ref.current?.querySelector<HTMLElement>(
+      "div.mb-3.flex.flex-wrap.gap-2:empty",
+    );
+
+    if (!row) {
+      if (host_ref.current) {
+        host_ref.current = null;
+        set_host(null);
+      }
+
+      return;
+    }
+    const element = document.createElement("div");
+
+    element.className = "w-full";
+    row.appendChild(element);
+    host_ref.current = element;
+    set_host(element);
+  });
+
+  useLayoutEffect(
+    () => () => {
+      host_ref.current?.remove();
+    },
+    [],
+  );
+
+  return (
+    <div ref={container_ref} className="contents">
+      {children}
+      {host &&
+        createPortal(
+          <ColorSwatchRow value={color} on_change={on_change} />,
+          host,
+        )}
+    </div>
   );
 }
 
@@ -138,19 +198,21 @@ export function CreateFolderSheet({
       is_open={is_open}
       on_close={on_close}
     >
-      <CreateFolderSheetView
-        color={folder_color}
-        colors={TAG_COLOR_PRESETS}
-        input_ref={folder_input_ref}
-        is_creating={is_creating}
-        name={folder_name}
-        placeholder={t("common.folders")}
-        submit_label={t("common.create")}
-        title={t("common.create_folder")}
-        on_color_change={set_folder_color}
-        on_name_change={set_folder_name}
-        on_submit={handle_create}
-      />
+      <DrawerCustomColor color={folder_color} on_change={set_folder_color}>
+        <CreateFolderSheetView
+          color={folder_color}
+          colors={DRAWER_ROW_PLACEHOLDER}
+          input_ref={folder_input_ref}
+          is_creating={is_creating}
+          name={folder_name}
+          placeholder={t("common.folders")}
+          submit_label={t("common.create")}
+          title={t("common.create_folder")}
+          on_color_change={set_folder_color}
+          on_name_change={set_folder_name}
+          on_submit={handle_create}
+        />
+      </DrawerCustomColor>
     </MobileBottomSheet>
   );
 }
@@ -190,29 +252,31 @@ export function CreateLabelSheet({
       is_open={is_open}
       on_close={on_close}
     >
-      <CreateLabelSheetView
-        color={label_color}
-        color_label={t("common.color_label")}
-        colors={TAG_COLOR_PRESETS}
-        icon={label_icon}
-        icon_label={t("common.icon_label")}
-        icon_picker={
-          <TagIconPicker
-            accent_color={label_color}
-            on_select={set_label_icon}
-            selected_icon={label_icon as TagIconName | undefined}
-          />
-        }
-        input_ref={label_input_ref}
-        is_creating={is_creating}
-        name={label_name}
-        placeholder={t("common.labels")}
-        submit_label={t("common.create")}
-        title={t("common.create_label")}
-        on_color_change={set_label_color}
-        on_name_change={set_label_name}
-        on_submit={handle_create}
-      />
+      <DrawerCustomColor color={label_color} on_change={set_label_color}>
+        <CreateLabelSheetView
+          color={label_color}
+          color_label={t("common.color_label")}
+          colors={DRAWER_ROW_PLACEHOLDER}
+          icon={label_icon}
+          icon_label={t("common.icon_label")}
+          icon_picker={
+            <TagIconPicker
+              accent_color={label_color}
+              on_select={set_label_icon}
+              selected_icon={label_icon as TagIconName | undefined}
+            />
+          }
+          input_ref={label_input_ref}
+          is_creating={is_creating}
+          name={label_name}
+          placeholder={t("common.labels")}
+          submit_label={t("common.create")}
+          title={t("common.create_label")}
+          on_color_change={set_label_color}
+          on_name_change={set_label_name}
+          on_submit={handle_create}
+        />
+      </DrawerCustomColor>
     </MobileBottomSheet>
   );
 }
@@ -262,22 +326,24 @@ export function EditFolderSheet({
       is_open={!!editing_folder}
       on_close={on_close}
     >
-      <EditFolderSheetView
-        color={edit_color}
-        colors={TAG_COLOR_PRESETS}
-        delete_label={t("common.delete")}
-        name={edit_name}
-        notifications_enabled={!is_muted}
-        notifications_label={t("settings.notifications")}
-        placeholder={t("common.folders")}
-        save_label={t("common.save")}
-        title={t("common.edit_folder")}
-        on_color_change={set_edit_color}
-        on_delete={handle_delete}
-        on_name_change={set_edit_name}
-        on_save={handle_save}
-        on_toggle_notifications={toggle_notifications}
-      />
+      <DrawerCustomColor color={edit_color} on_change={set_edit_color}>
+        <EditFolderSheetView
+          color={edit_color}
+          colors={DRAWER_ROW_PLACEHOLDER}
+          delete_label={t("common.delete")}
+          name={edit_name}
+          notifications_enabled={!is_muted}
+          notifications_label={t("settings.notifications")}
+          placeholder={t("common.folders")}
+          save_label={t("common.save")}
+          title={t("common.edit_folder")}
+          on_color_change={set_edit_color}
+          on_delete={handle_delete}
+          on_name_change={set_edit_name}
+          on_save={handle_save}
+          on_toggle_notifications={toggle_notifications}
+        />
+      </DrawerCustomColor>
     </MobileBottomSheet>
   );
 }
@@ -317,31 +383,33 @@ export function EditTagSheet({
       is_open={!!editing_tag}
       on_close={on_close}
     >
-      <EditTagSheetView
-        color={edit_color}
-        color_label={t("common.color_label")}
-        colors={TAG_COLOR_PRESETS}
-        delete_label={t("common.delete")}
-        icon={edit_icon}
-        icon_label={t("common.icon_label")}
-        icon_picker={
-          <TagIconPicker
-            accent_color={edit_color}
-            on_select={set_edit_icon}
-            selected_icon={edit_icon as TagIconName | undefined}
-          />
-        }
-        name={edit_name}
-        placeholder={t("common.labels")}
-        save_label={t("common.save")}
-        title={t("common.edit_label")}
-        on_color_change={set_edit_color}
-        on_delete={handle_delete}
-        on_name_change={
-          editing_tag?.is_undecryptable ? ignore_name_change : set_edit_name
-        }
-        on_save={handle_save}
-      />
+      <DrawerCustomColor color={edit_color} on_change={set_edit_color}>
+        <EditTagSheetView
+          color={edit_color}
+          color_label={t("common.color_label")}
+          colors={DRAWER_ROW_PLACEHOLDER}
+          delete_label={t("common.delete")}
+          icon={edit_icon}
+          icon_label={t("common.icon_label")}
+          icon_picker={
+            <TagIconPicker
+              accent_color={edit_color}
+              on_select={set_edit_icon}
+              selected_icon={edit_icon as TagIconName | undefined}
+            />
+          }
+          name={edit_name}
+          placeholder={t("common.labels")}
+          save_label={t("common.save")}
+          title={t("common.edit_label")}
+          on_color_change={set_edit_color}
+          on_delete={handle_delete}
+          on_name_change={
+            editing_tag?.is_undecryptable ? ignore_name_change : set_edit_name
+          }
+          on_save={handle_save}
+        />
+      </DrawerCustomColor>
     </MobileBottomSheet>
   );
 }

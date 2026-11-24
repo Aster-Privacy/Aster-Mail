@@ -134,7 +134,7 @@ async function get_cache_key(): Promise<CryptoKey | null> {
     "raw",
     raw,
     { name: "AES-GCM", length: 256 },
-    true,
+    false,
     ["encrypt", "decrypt"],
   );
 

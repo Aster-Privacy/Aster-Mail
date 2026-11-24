@@ -23,8 +23,19 @@ import type { TranslationKey } from "@/lib/i18n";
 export interface LinkErrorResponse {
   error?: string;
   code?: string;
+  server_code?: string;
   resets_at?: string;
 }
+
+const GUARD_LINK_ERRORS: Record<string, TranslationKey> = {
+  STEP_UP_REQUIRED: "guard.link_device_step_up_failed",
+  GUARD_DEVICE_REQUIRED: "guard.link_device_needs_approver",
+  GUARD_DEVICE_UNKNOWN: "guard.link_device_needs_approver",
+  GUARD_INVALID_KEY: "guard.link_device_keys_changed",
+  GUARD_PAUSED: "auth.link_device_rate_limited",
+  GUARD_TOO_MANY_REQUESTS: "auth.link_device_rate_limited",
+  GUARD_ACTION_INVALID: "auth.link_device_failed",
+};
 
 export interface LinkErrorClassification {
   key: TranslationKey;
@@ -36,6 +47,11 @@ export function classify_link_error(
 ): LinkErrorClassification {
   const raw = (response.error || "").toLowerCase();
   const code = (response.code || "").toUpperCase();
+  const guard_key = response.server_code
+    ? GUARD_LINK_ERRORS[response.server_code]
+    : undefined;
+
+  if (guard_key) return { key: guard_key, restart: false };
 
   if (code === "NETWORK_ERROR" || code === "TIMEOUT_ERROR") {
     return { key: "errors.connection_failed", restart: false };

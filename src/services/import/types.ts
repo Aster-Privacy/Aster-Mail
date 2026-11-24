@@ -23,6 +23,8 @@ export interface ParsedAttachment {
   content_type: string;
   content: Uint8Array;
   size: number;
+  content_id?: string;
+  is_inline?: boolean;
 }
 
 export interface ParsedEmail {
@@ -37,6 +39,7 @@ export interface ParsedEmail {
   html_body: string | null;
   text_body: string | null;
   attachments: ParsedAttachment[];
+  attachment_hint?: boolean;
   raw_headers: Record<string, string>;
   source_folder?: string;
   source_labels?: string[];

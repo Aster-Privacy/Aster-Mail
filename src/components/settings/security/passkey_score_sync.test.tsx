@@ -60,6 +60,7 @@ vi.mock("@/contexts/auth/session_passphrase", () => ({
   get_session_passphrase: vi.fn(),
 }));
 vi.mock("@/services/api/webauthn", () => ({
+  initiate_hardware_key_registration: vi.fn(),
   list_hardware_keys: vi.fn(),
   remove_hardware_key: vi.fn(),
   rename_hardware_key: vi.fn(),

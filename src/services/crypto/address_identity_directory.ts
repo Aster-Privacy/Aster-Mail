@@ -45,6 +45,9 @@ const ADDRESS_BUNDLE_PATH = "/crypto/v1/ratchet/address-bundle";
 const IDENTITY_LOOKUP_PATH = "/crypto/v1/ratchet/identity";
 const INACTIVE_RETRY_MS = 10 * 60 * 1000;
 const ACTIVE_REFRESH_MS = 6 * 60 * 60 * 1000;
+const REFUSAL_HOLD_MS = 6 * 60 * 60 * 1000;
+const REFUSAL_HOLD_STORAGE_KEY = "aster_address_entry_holds";
+const MAX_REFUSAL_HOLDS = 200;
 
 export type DirectoryTrust =
   | "account"
@@ -67,7 +70,10 @@ export interface ResolvedDirectoryEntry<T extends DirectoryEntry> {
 export type AddressEntryState = "active" | "inactive" | "failed";
 
 export type AddressSendState =
-  "active" | "inactive" | "mismatch" | "unavailable";
+  | "active"
+  | "inactive"
+  | "mismatch"
+  | "unavailable";
 
 export type OwnAddressEntryLookup =
   | { status: "active"; entry: AddressEntryKeys }
@@ -82,11 +88,13 @@ interface PublishedState {
   fingerprint: string;
   state: AddressEntryState;
   retry_at: number;
+  rejected: boolean;
 }
 
 interface UploadOutcome {
   state: AddressEntryState;
   retry_ms: number;
+  rejected?: boolean;
 }
 
 interface AddressBundleUploadResult {
@@ -145,7 +153,7 @@ async function upload_address_entry(
       response.status < 500;
 
     return rejected
-      ? { state: "inactive", retry_ms: INACTIVE_RETRY_MS }
+      ? { state: "inactive", retry_ms: INACTIVE_RETRY_MS, rejected: true }
       : { state: "failed", retry_ms: 0 };
   }
 
@@ -169,7 +177,7 @@ async function publish_address_forms(
     result = await upload_address_entry(vault, exact);
 
     for (const form of others) {
-      if (Date.now() < unsupported_until) break;
+      if (result.rejected || Date.now() < unsupported_until) break;
 
       await upload_address_entry(vault, form).catch(() => null);
     }
@@ -187,6 +195,7 @@ async function publish_address_forms(
     fingerprint,
     state: result.state,
     retry_at: Date.now() + result.retry_ms,
+    rejected: result.rejected === true,
   });
 
   return result.state;
@@ -203,7 +212,11 @@ export async function address_entry_state(
   const fingerprint = vault_fingerprint(vault);
   const known = published_states.get(exact);
 
-  if (known && known.fingerprint === fingerprint && Date.now() < known.retry_at) {
+  if (
+    known &&
+    known.fingerprint === fingerprint &&
+    Date.now() < known.retry_at
+  ) {
     return known.state;
   }
 
@@ -285,6 +298,77 @@ export async function resolve_address_send_state(
     : "mismatch";
 }
 
+function read_refusal_holds(): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(REFUSAL_HOLD_STORAGE_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return {};
+    }
+
+    const now = Date.now();
+    const holds: Record<string, number> = {};
+
+    for (const [key, until] of Object.entries(parsed)) {
+      if (typeof until === "number" && until > now) holds[key] = until;
+    }
+
+    return holds;
+  } catch {
+    return {};
+  }
+}
+
+function write_refusal_holds(holds: Record<string, number>): void {
+  try {
+    const kept = Object.entries(holds)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, MAX_REFUSAL_HOLDS);
+
+    if (kept.length === 0) {
+      localStorage.removeItem(REFUSAL_HOLD_STORAGE_KEY);
+
+      return;
+    }
+
+    localStorage.setItem(
+      REFUSAL_HOLD_STORAGE_KEY,
+      JSON.stringify(Object.fromEntries(kept)),
+    );
+  } catch {
+    return;
+  }
+}
+
+async function refusal_hold_key(
+  vault: EncryptedVault,
+  address: string,
+): Promise<string> {
+  return compute_hash(
+    new TextEncoder().encode(`${vault_fingerprint(vault)}|${address}`),
+  );
+}
+
+async function publish_unless_held(
+  vault: EncryptedVault,
+  address: string,
+): Promise<void> {
+  const key = await refusal_hold_key(vault, address);
+  const holds = read_refusal_holds();
+
+  if (holds[key]) return;
+
+  await ensure_address_entry(vault, address);
+
+  if (published_states.get(address)?.rejected !== true) return;
+
+  const latest = read_refusal_holds();
+
+  latest[key] = Date.now() + REFUSAL_HOLD_MS;
+  write_refusal_holds(latest);
+}
+
 export async function publish_address_entries(
   vault: EncryptedVault,
   addresses: string[],
@@ -296,7 +380,7 @@ export async function publish_address_entries(
   for (const address of unique) {
     if (Date.now() < unsupported_until) return;
 
-    await ensure_address_entry(vault, address).catch(() => false);
+    await publish_unless_held(vault, address).catch(() => undefined);
   }
 }
 

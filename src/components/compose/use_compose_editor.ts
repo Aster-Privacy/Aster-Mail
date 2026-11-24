@@ -21,7 +21,10 @@
 import { useState, useCallback } from "react";
 
 import { use_editor, type UseEditorReturn } from "@/hooks/use_editor";
-import { plain_text_to_editor_html } from "@/hooks/editor_utils";
+import {
+  editor_plain_text,
+  plain_text_to_editor_html,
+} from "@/hooks/editor_utils";
 import { use_preferences } from "@/contexts/preferences_context";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -79,7 +82,7 @@ export function use_compose_editor({
 
     if (is_plain_text_mode) {
       if (editor_el) {
-        const text = editor_el.innerText || "";
+        const text = editor_plain_text(editor_el);
         const html = plain_text_to_editor_html(text);
 
         editor_el.innerHTML = html;
@@ -96,7 +99,7 @@ export function use_compose_editor({
     const editor_el = message_textarea_ref.current;
 
     if (editor_el) {
-      const text = editor_el.innerText || "";
+      const text = editor_plain_text(editor_el);
 
       editor_el.innerText = text;
       set_message(text);

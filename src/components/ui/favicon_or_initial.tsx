@@ -26,10 +26,10 @@ import {
 } from "@aster/ui";
 
 import { use_favicon_src } from "@/hooks/use_favicon_src";
-import { same_origin_favicon_domain } from "@/lib/favicon_url";
+import { api_favicon_domain } from "@/lib/favicon_url";
 
 export function FaviconOrInitial(props: FaviconOrInitialProps) {
-  const domain = same_origin_favicon_domain(props.src);
+  const domain = api_favicon_domain(props.src);
   const loaded = use_favicon_src(domain ?? "", domain !== null);
   const src = domain === null ? props.src : loaded.startsWith("data:") ? "" : loaded;
 

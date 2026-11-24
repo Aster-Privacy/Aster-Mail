@@ -75,7 +75,7 @@ export function OnionBillingSection() {
   const [is_action_loading, set_is_action_loading] = useState(false);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
-  >("monthly");
+  >("yearly");
   const [preferred_currency, set_preferred_currency] = useState(
     detect_currency_from_locale,
   );

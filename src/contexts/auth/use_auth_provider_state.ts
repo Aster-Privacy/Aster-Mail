@@ -53,6 +53,7 @@ import {
   clear_vault_from_memory,
   re_trigger_keys_ready,
 } from "@/services/crypto/memory_key_store";
+import { refuse_rolled_back_vault } from "@/services/crypto/vault_generation";
 import {
   type User,
   type StoredAccount,
@@ -119,6 +120,12 @@ import { release_app_lock } from "@/services/app_lock_unlock";
 import { delete_category_index_for_account } from "@/services/category_index";
 import { delete_user_device_snapshots } from "@/services/crypto/device_recovery_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { leave_guard_on_sign_out } from "@/services/guard/guard_leave";
+import {
+  announce_sign_out,
+  watch_sign_out_signal,
+} from "@/services/sign_out_signal";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 async function resume_surviving_account(
   survivor: StoredAccount,
@@ -423,7 +430,7 @@ export function use_auth_provider_state() {
     let reload_into_survivor = false;
     const fallback_timer = window.setTimeout(() => {
       try {
-        if ("__TAURI_INTERNALS__" in window) return;
+        if (has_tauri_runtime()) return;
         hard_redirect(nav_target);
       } catch (caught) {
         ignore_error(
@@ -485,7 +492,21 @@ export function use_auth_provider_state() {
         );
       }
 
+      if (current_id) {
+        await with_timeout(leave_guard_on_sign_out(current_id), 3000).catch(
+          (caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+              caught,
+            ),
+        );
+      }
+
       await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
+      await with_timeout(
+        announce_sign_out([current_id ?? state.user?.id]),
+        1000,
+      );
 
       if (other && current_id) {
         stop_session_timeout();
@@ -538,7 +559,7 @@ export function use_auth_provider_state() {
       try {
         if (reload_into_survivor) {
           hard_redirect(nav_target);
-        } else if (!("__TAURI_INTERNALS__" in window)) {
+        } else if (!has_tauri_runtime()) {
           navigate(nav_target);
         }
       } catch (caught) {
@@ -553,12 +574,13 @@ export function use_auth_provider_state() {
     navigate,
     state.accounts,
     state.current_account_id,
+    state.user?.id,
   ]);
 
   const logout_all_handler = useCallback(async () => {
     const fallback_timer = window.setTimeout(() => {
       try {
-        if ("__TAURI_INTERNALS__" in window) return;
+        if (has_tauri_runtime()) return;
         hard_redirect("/sign-in");
       } catch (caught) {
         ignore_error(
@@ -594,7 +616,27 @@ export function use_auth_provider_state() {
         );
       }
 
+      if (state.current_account_id) {
+        await with_timeout(
+          leave_guard_on_sign_out(state.current_account_id),
+          3000,
+        ).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+      }
+
       await with_timeout(api_client.post("/core/v1/auth/logout-all", {}), 3000);
+      await with_timeout(
+        announce_sign_out([
+          state.current_account_id,
+          state.user?.id,
+          ...state.accounts.map((account) => account.id),
+        ]),
+        1000,
+      );
 
       await with_timeout(clear_local_auth_data(), 4000);
     } catch (e) {
@@ -602,7 +644,7 @@ export function use_auth_provider_state() {
     } finally {
       clearTimeout(fallback_timer);
       try {
-        if (!("__TAURI_INTERNALS__" in window)) {
+        if (!has_tauri_runtime()) {
           navigate("/sign-in");
         }
       } catch (caught) {
@@ -612,11 +654,17 @@ export function use_auth_provider_state() {
         );
       }
     }
-  }, [clear_local_auth_data, navigate]);
+  }, [
+    clear_local_auth_data,
+    navigate,
+    state.accounts,
+    state.current_account_id,
+    state.user?.id,
+  ]);
 
   useEffect(() => {
     const sign_out_keeping_other_accounts = async (
-      message_key: TranslationKey,
+      message_key: TranslationKey | null,
       reason?: string,
       keep_device_pairing = false,
     ) => {
@@ -643,7 +691,7 @@ export function use_auth_provider_state() {
 
         if (path === "/sign-in" || keep_device_pairing) return;
 
-        show_toast(t(message_key), "info");
+        if (message_key) show_toast(t(message_key), "info");
         await api_client
           .clear_session_cookies()
           .catch((caught) =>
@@ -693,7 +741,7 @@ export function use_auth_provider_state() {
 
       const query = params.toString();
 
-      show_toast(t(message_key), "info");
+      if (message_key) show_toast(t(message_key), "info");
       navigate(query ? `/sign-in?${query}` : "/sign-in");
     };
 
@@ -723,6 +771,21 @@ export function use_auth_provider_state() {
       );
     };
 
+    const handle_session_ended = async () => {
+      if (api_client.is_intentional_logout()) return;
+
+      session_expired_muted_until.current = Date.now() + 15000;
+      sync_client.disconnect();
+      api_client.clear_auth_data();
+      api_client.set_authenticated(false);
+
+      await sign_out_keeping_other_accounts(
+        "common.session_expired_sign_in",
+        "session_expired",
+        keep_pairing_after_session_expiry(),
+      );
+    };
+
     const handle_session_timeout = async () => {
       sync_client.disconnect();
 
@@ -735,6 +798,17 @@ export function use_auth_provider_state() {
       }
 
       await sign_out_keeping_other_accounts("common.signed_out_inactivity");
+    };
+
+    const handle_signed_out_elsewhere = async () => {
+      if (api_client.is_intentional_logout()) return;
+
+      session_expired_muted_until.current = Date.now() + 15000;
+      sync_client.disconnect();
+      api_client.clear_auth_data();
+      api_client.set_authenticated(false);
+
+      await sign_out_keeping_other_accounts(null);
     };
 
     const handle_session_revoked = async () => {
@@ -764,6 +838,8 @@ export function use_auth_provider_state() {
       handle_identity_mismatch_event,
     );
 
+    window.addEventListener("astermail:session-ended", handle_session_ended);
+
     window.addEventListener(
       "astermail:session-timeout",
       handle_session_timeout,
@@ -772,6 +848,11 @@ export function use_auth_provider_state() {
     window.addEventListener(
       "astermail:session-revoked",
       handle_session_revoked,
+    );
+
+    window.addEventListener(
+      "astermail:signed-out-elsewhere",
+      handle_signed_out_elsewhere,
     );
 
     return () => {
@@ -784,12 +865,20 @@ export function use_auth_provider_state() {
         handle_identity_mismatch_event,
       );
       window.removeEventListener(
+        "astermail:session-ended",
+        handle_session_ended,
+      );
+      window.removeEventListener(
         "astermail:session-timeout",
         handle_session_timeout,
       );
       window.removeEventListener(
         "astermail:session-revoked",
         handle_session_revoked,
+      );
+      window.removeEventListener(
+        "astermail:signed-out-elsewhere",
+        handle_signed_out_elsewhere,
       );
     };
   }, [
@@ -830,6 +919,30 @@ export function use_auth_provider_state() {
 
     process_offline_queue().catch(safe_log_error);
   }, [state.is_authenticated, state.current_account_id]);
+
+  const signed_in_account_id = state.is_authenticated
+    ? (state.current_account_id ?? state.user?.id ?? null)
+    : null;
+
+  useEffect(() => {
+    if (!signed_in_account_id) return;
+
+    return watch_sign_out_signal({
+      account_id: signed_in_account_id,
+      on_signal: async () => {
+        if (api_client.is_intentional_logout()) return true;
+
+        const signed_out =
+          await api_client.confirm_signed_out_elsewhere(signed_in_account_id);
+
+        if (signed_out) {
+          window.dispatchEvent(new Event("astermail:signed-out-elsewhere"));
+        }
+
+        return signed_out;
+      },
+    });
+  }, [signed_in_account_id]);
 
   useEffect(() => {
     if (state.has_keys) preload_openpgp();
@@ -1075,11 +1188,10 @@ export function use_auth_provider_state() {
 
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {
-      await store_vault_in_memory(
-        vault,
-        passphrase,
-        state.user?.id ?? state.current_account_id ?? undefined,
-      );
+      const owner_id = state.user?.id ?? state.current_account_id ?? undefined;
+
+      refuse_rolled_back_vault(owner_id, vault);
+      await store_vault_in_memory(vault, passphrase, owner_id);
       ensure_level2_storage(state.user?.id ?? state.current_account_id);
 
       if (state.current_account_id) {

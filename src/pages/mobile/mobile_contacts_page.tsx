@@ -151,7 +151,7 @@ function MobileContactsPage({
           <ContactDetailView
             key={s.selected_contact.id}
             contact={s.selected_contact}
-            on_back={() => s.set_selected_contact(null)}
+            on_back={s.close_contact_detail}
             on_compose={s.handle_send_email}
             on_copy={s.handle_copy}
             on_delete={s.request_delete_contact}

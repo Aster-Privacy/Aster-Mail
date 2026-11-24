@@ -58,7 +58,9 @@ import {
   get_folder_depth,
 } from "@/components/settings/hooks/use_external_accounts";
 import { is_syncing as check_is_syncing } from "@/services/sync_manager";
-import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
+import { ConnectProviderModal } from "@/components/settings/connect_provider_modal";
+import { OAuthFolderPickerModal } from "@/components/settings/oauth_folder_picker_modal";
+import { ColorSwatchRow } from "@/components/ui/color_wheel_picker";
 
 export function ExternalAccountsSection({
   on_back,
@@ -424,23 +426,11 @@ export function ExternalAccountsSection({
                 <label className="mb-1 block text-[12px] font-medium text-[var(--text-muted)]">
                   {state.t("settings.label_color")}
                 </label>
-                <div className="flex flex-wrap gap-2.5 py-1">
-                  {TAG_COLOR_PRESETS.map((color) => (
-                    <button
-                      key={color.hex}
-                      className="h-8 w-8 rounded-full"
-                      style={{
-                        backgroundColor: color.hex,
-                        boxShadow:
-                          state.form_label_color.toLowerCase() === color.hex
-                            ? `0 0 0 2px var(--bg-primary), 0 0 0 3.5px ${color.hex}`
-                            : "none",
-                      }}
-                      type="button"
-                      onClick={() => state.set_form_label_color(color.hex)}
-                    />
-                  ))}
-                </div>
+                <ColorSwatchRow
+                  label={state.t("settings.label_color")}
+                  value={state.form_label_color}
+                  on_change={state.set_form_label_color}
+                />
                 <Input
                   className="mt-2 w-full font-mono"
                   maxLength={7}
@@ -763,6 +753,16 @@ export function ExternalAccountsSection({
               {state.t("settings.add_account")}
             </Button>
           )}
+          {state.accounts.length < 5 && (
+            <Button
+              className="w-full"
+              size="xl"
+              variant="outline"
+              onClick={state.open_microsoft_connect}
+            >
+              {state.t("settings.connect_sign_in_microsoft")}
+            </Button>
+          )}
         </div>
 
         {state.load_error && state.accounts.length === 0 ? (
@@ -933,6 +933,17 @@ export function ExternalAccountsSection({
         on_confirm={state.handle_purge_confirm}
         title={state.t("settings.disconnect_title")}
         variant="danger"
+      />
+      <ConnectProviderModal
+        on_close={state.close_microsoft_connect}
+        on_oauth_success={state.handle_microsoft_connected}
+        provider={state.connect_microsoft_open ? "microsoft" : null}
+      />
+      <OAuthFolderPickerModal
+        account_token={state.picker_account?.account_token ?? null}
+        is_submitting={state.is_applying_selection}
+        on_cancel={state.close_picker}
+        on_confirm={state.handle_picker_confirm}
       />
     </div>
   );

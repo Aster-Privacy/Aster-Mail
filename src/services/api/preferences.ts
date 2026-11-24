@@ -21,11 +21,15 @@
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { CustomCategoryRule } from "@/data/category_catalog";
 import type { LanguageCode } from "@/lib/i18n/types";
+import type { SkinTone } from "@/config/emoji/skin_tones";
 
 import { api_client } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
-import { with_identity_key } from "@/services/crypto/identity_key_required";
+import {
+  is_usable_identity_key,
+  with_identity_key,
+} from "@/services/crypto/identity_key_required";
 import {
   account_data_write_key,
   retry_after_account_key_load,
@@ -37,10 +41,16 @@ import {
   sanitize_custom_categories,
 } from "@/data/category_catalog";
 import {
+  type LearnedCategorySender,
+  reconcile_learned_senders,
+  sanitize_learned_senders,
+} from "@/services/learned_category_senders";
+import {
   DEFAULT_INBOX_PAGE_SIZE,
   clamp_inbox_page_size,
 } from "@/lib/inbox_page_size";
 import { ignore_error } from "@/lib/ignore_error";
+import { is_skin_tone, normalize_skin_tone } from "@/config/emoji/skin_tones";
 import { device_traces_erased } from "@/lib/device_erase_latch";
 import {
   apply_loaded_error_report_preference,
@@ -70,12 +80,14 @@ export interface UserPreferences {
   time_format: "12h" | "24h";
   calendar_week_starts_on?: WeekStartPreference;
   relative_dates: boolean;
+  emoji_skin_tone: SkinTone;
   compose_from_selected_alias: boolean;
   auto_save_drafts: boolean;
   auto_save_recent_recipients: boolean;
   density: string;
   mail_list_density: string;
   show_profile_pictures: boolean;
+  hide_sender_logos: boolean;
   show_email_preview: boolean;
   default_send_mode: string;
   undo_send_period: string;
@@ -122,8 +134,11 @@ export interface UserPreferences {
   profile_color: string;
   email_view_mode: "popup" | "split" | "fullpage";
   settings_view_mode: "fullpage" | "popup";
+  close_popup_on_outside_click: boolean;
+  open_popup_maximized: boolean;
   keyboard_shortcuts_enabled: boolean;
   confirm_before_delete: boolean;
+  confirm_before_permanent_delete: boolean;
   confirm_before_archive: boolean;
   confirm_before_spam: boolean;
   confirm_before_quick_actions: boolean;
@@ -191,10 +206,15 @@ export interface UserPreferences {
   high_contrast: boolean;
   reduce_transparency: boolean;
   link_underlines: boolean;
+  hide_scrollbars: boolean;
   dyslexia_font: boolean;
   text_spacing: boolean;
   color_vision_mode:
-    "none" | "protanopia" | "deuteranopia" | "tritanopia" | "achromatopsia";
+    | "none"
+    | "protanopia"
+    | "deuteranopia"
+    | "tritanopia"
+    | "achromatopsia";
   external_link_warning_dismissed: boolean;
   notification_banner_dismissed: boolean;
   account_security_banner_dismissed: boolean;
@@ -231,6 +251,8 @@ export interface UserPreferences {
   inbox_categories_enabled: boolean;
   enabled_categories: string[];
   custom_categories: CustomCategoryRule[];
+  learn_from_category_moves: boolean;
+  learned_category_senders: LearnedCategorySender[];
   show_message_size: boolean;
   show_alias_indicators: boolean;
   show_badges_in_signature: boolean;
@@ -390,7 +412,9 @@ async function decrypt_preferences(
   nonce: string,
   vault: EncryptedVault,
 ): Promise<UserPreferences> {
-  const key = await derive_preferences_key(vault);
+  const key = is_usable_identity_key(vault.identity_key)
+    ? await derive_preferences_key(vault)
+    : null;
   const encrypted_data = Uint8Array.from(atob(encrypted), (c) =>
     c.charCodeAt(0),
   );
@@ -497,7 +521,9 @@ export async function convert_preferences_to_account_key(
     plaintext = new Uint8Array(
       await decrypt_account_context_with_fallback(
         "astermail-preferences-v1",
-        await derive_preferences_key(vault),
+        is_usable_identity_key(vault.identity_key)
+          ? await derive_preferences_key(vault)
+          : null,
         ciphertext,
         stored_nonce,
       ),
@@ -552,6 +578,9 @@ export async function convert_preferences_to_account_key(
 }
 
 const PREFS_CACHE_KEY = "aster_preferences_cache";
+const UNCACHED_PREFERENCE_KEYS: readonly string[] = [
+  "learned_category_senders",
+];
 const TEXT_SIZE_CACHE_KEY = "aster_text_size";
 const MIGRATION_FLAGS_KEY = "aster_pref_migrations_done";
 
@@ -561,6 +590,39 @@ type MigrationFlag =
   | "migration_toast_position_v1_done"
   | "migration_viewer_toolbar_v1_done"
   | "migration_signature_placement_v1_done";
+
+export const LEGACY_SKIN_TONE_STORAGE_KEY = "aster_emoji_skin_tone";
+
+export function take_legacy_skin_tone(
+  server: Record<string, unknown>,
+): SkinTone | null {
+  try {
+    const stored = localStorage.getItem(LEGACY_SKIN_TONE_STORAGE_KEY);
+
+    if (stored === null) return null;
+    if (
+      server.emoji_skin_tone !== undefined ||
+      !is_skin_tone(stored) ||
+      stored === "default"
+    ) {
+      localStorage.removeItem(LEGACY_SKIN_TONE_STORAGE_KEY);
+
+      return null;
+    }
+
+    return stored;
+  } catch {
+    return null;
+  }
+}
+
+function clear_legacy_skin_tone(): void {
+  try {
+    localStorage.removeItem(LEGACY_SKIN_TONE_STORAGE_KEY);
+  } catch (caught) {
+    ignore_error("services/api/preferences:clear_legacy_skin_tone", caught);
+  }
+}
 
 function read_local_migration_flag(flag: MigrationFlag): boolean {
   try {
@@ -587,13 +649,34 @@ function write_local_migration_flag(flag: MigrationFlag): void {
   }
 }
 
+function strip_uncached_fields(
+  prefs: Partial<UserPreferences> | Record<string, unknown>,
+): Record<string, unknown> {
+  const copy: Record<string, unknown> = { ...prefs };
+
+  for (const key of UNCACHED_PREFERENCE_KEYS) delete copy[key];
+
+  return copy;
+}
+
+export function without_learned_base(prefs: UserPreferences): UserPreferences {
+  const copy = { ...prefs } as Partial<UserPreferences>;
+
+  delete copy.learned_category_senders;
+
+  return copy as UserPreferences;
+}
+
 export function cache_preferences_locally(prefs: UserPreferences): void {
   if (device_traces_erased()) return;
 
   apply_loaded_error_report_preference(prefs.send_error_reports);
 
   try {
-    localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(prefs));
+    localStorage.setItem(
+      PREFS_CACHE_KEY,
+      JSON.stringify(strip_uncached_fields(prefs)),
+    );
     localStorage.setItem(
       TEXT_SIZE_CACHE_KEY,
       JSON.stringify({
@@ -644,6 +727,14 @@ export function get_cached_preferences(): UserPreferences | null {
 
     if (cached) {
       const parsed = JSON.parse(cached) as Record<string, unknown>;
+
+      if (UNCACHED_PREFERENCE_KEYS.some((key) => key in parsed)) {
+        const stripped = strip_uncached_fields(parsed);
+
+        localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(stripped));
+
+        return build_merged_preferences(stripped, null);
+      }
 
       return build_merged_preferences(parsed, null);
     }
@@ -707,12 +798,14 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   date_format: locale_date_format(),
   time_format: locale_time_format(),
   relative_dates: true,
+  emoji_skin_tone: "default",
   compose_from_selected_alias: false,
   auto_save_drafts: true,
   auto_save_recent_recipients: true,
   density: "Comfortable",
   mail_list_density: "compact",
   show_profile_pictures: true,
+  hide_sender_logos: false,
   show_email_preview: true,
   default_send_mode: "Send",
   undo_send_period: "10 seconds",
@@ -755,8 +848,11 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   profile_color: "#3b82f6",
   email_view_mode: "split",
   settings_view_mode: "fullpage",
+  close_popup_on_outside_click: false,
+  open_popup_maximized: false,
   keyboard_shortcuts_enabled: true,
   confirm_before_delete: false,
+  confirm_before_permanent_delete: true,
   confirm_before_archive: false,
   confirm_before_spam: false,
   confirm_before_quick_actions: true,
@@ -797,6 +893,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   high_contrast: false,
   reduce_transparency: false,
   link_underlines: false,
+  hide_scrollbars: false,
   dyslexia_font: false,
   text_spacing: false,
   color_vision_mode: "none",
@@ -836,6 +933,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   inbox_categories_enabled: true,
   enabled_categories: [...DEFAULT_ENABLED_CATEGORIES],
   custom_categories: [],
+  learn_from_category_moves: true,
+  learned_category_senders: [],
   show_message_size: false,
   show_alias_indicators: true,
   show_badges_in_signature: true,
@@ -870,7 +969,10 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 type GetPreferencesViaHttpResult =
-  UserPreferences | "not_found" | "decrypt_failed" | null;
+  | UserPreferences
+  | "not_found"
+  | "decrypt_failed"
+  | null;
 
 async function get_preferences_via_http(
   vault: EncryptedVault,
@@ -934,6 +1036,7 @@ const SWIPE_ACTION_IDS = [
   "snooze",
   "star",
   "spam",
+  "move_to_folder",
   "none",
 ];
 const LEGACY_SWIPE_ACTIONS: Record<string, string> = {
@@ -942,6 +1045,7 @@ const LEGACY_SWIPE_ACTIONS: Record<string, string> = {
   mark_unread: "toggle_read",
   read: "toggle_read",
   unread: "toggle_read",
+  move: "move_to_folder",
 };
 
 function normalize_swipe_action(raw: unknown, fallback: string): string {
@@ -1007,6 +1111,14 @@ export function build_merged_preferences(
   merged.custom_categories = sanitize_custom_categories(
     merged.custom_categories,
   );
+  merged.learned_category_senders = sanitize_learned_senders(
+    merged.learned_category_senders,
+  );
+  merged.learn_from_category_moves =
+    typeof merged.learn_from_category_moves === "boolean"
+      ? merged.learn_from_category_moves
+      : true;
+  merged.hide_scrollbars = merged.hide_scrollbars === true;
   merged.enabled_categories = Array.isArray(merged.enabled_categories)
     ? merged.enabled_categories.filter((c) => typeof c === "string")
     : [...DEFAULT_ENABLED_CATEGORIES];
@@ -1081,6 +1193,7 @@ export function build_merged_preferences(
   }
 
   merged.relative_dates = merged.relative_dates !== false;
+  merged.emoji_skin_tone = normalize_skin_tone(merged.emoji_skin_tone);
   merged.compose_from_selected_alias =
     merged.compose_from_selected_alias === true;
 
@@ -1267,10 +1380,21 @@ export async function get_preferences(
       needs_migration_save = true;
     }
 
+    const legacy_skin_tone = take_legacy_skin_tone(
+      preferences as unknown as Record<string, unknown>,
+    );
+
+    if (legacy_skin_tone) {
+      merged.emoji_skin_tone = legacy_skin_tone;
+      needs_migration_save = true;
+    }
+
     if (needs_migration_save) {
       const ok = await save_preferences_via_http(merged, vault).catch(
         () => false,
       );
+
+      if (ok && legacy_skin_tone) clear_legacy_skin_tone();
 
       if (!ok) {
         save_preferences_via_http(merged, vault).catch((caught) =>
@@ -1342,6 +1466,18 @@ export function reconcile_preferences(
         key
       ] as unknown;
     }
+  }
+
+  if (
+    base.learned_category_senders !== undefined ||
+    current.learned_category_senders !== undefined ||
+    server.learned_category_senders !== undefined
+  ) {
+    reconciled.learned_category_senders = reconcile_learned_senders(
+      base.learned_category_senders,
+      current.learned_category_senders,
+      server.learned_category_senders,
+    );
   }
 
   return reconciled;

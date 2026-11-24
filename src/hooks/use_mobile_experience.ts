@@ -20,12 +20,13 @@
 //
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export const MOBILE_EXPERIENCE_BREAKPOINT_PX = 768;
 
 export function compute_is_mobile_experience(): boolean {
   if (Capacitor.isNativePlatform()) return true;
-  if ("__TAURI_INTERNALS__" in window) return false;
+  if (has_tauri_runtime()) return false;
 
   const params = new URLSearchParams(window.location.search);
   const override = params.get("mobile");

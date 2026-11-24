@@ -123,8 +123,9 @@ async function attempt_alias_repair(
   }
 }
 
-const cached_aliases: { data: DecryptedEmailAlias[] } = {
+const cached_aliases: { data: DecryptedEmailAlias[]; has_loaded: boolean } = {
   data: [],
+  has_loaded: false,
 };
 
 const cached_ghost_aliases: { data: DecryptedGhostAlias[] } = {
@@ -243,7 +244,10 @@ function rebuild_alias_index(): void {
 
 export function clear_sidebar_aliases_cache(): void {
   cached_aliases.data = [];
+  cached_aliases.has_loaded = false;
   cached_ghost_aliases.data = [];
+  alias_recovery.in_flight = false;
+  alias_recovery.last_ms = -Infinity;
   rebuild_alias_index();
   notify_alias_subscribers();
 }
@@ -321,6 +325,19 @@ interface UseSidebarAliasesReturn {
 }
 
 const ALIAS_RETRY_DELAYS_MS = [400, 1_200, 3_000];
+const ALIAS_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
+const ALIAS_FAILED_FETCH_RETRY_MS = 60_000;
+const ALIAS_RECOVERY_MIN_INTERVAL_MS = 5_000;
+
+const alias_recovery = { in_flight: false, last_ms: -Infinity };
+
+function can_retry_now(): boolean {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return false;
+  }
+
+  return document.visibilityState !== "hidden";
+}
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -376,6 +393,93 @@ async function apply_sidebar_plan(
   return true;
 }
 
+async function load_domain_aliases(): Promise<DecryptedEmailAlias[]> {
+  try {
+    const domains_response = await list_domains();
+    const active_domains = (domains_response.data?.domains ?? []).filter(
+      (d) => d.status === "active",
+    );
+
+    const per_domain = await Promise.all(
+      active_domains.map(async (domain) => {
+        const addr_response = await list_domain_addresses(domain.id);
+
+        if (!addr_response.data) return [];
+
+        const decrypted_addresses = await decrypt_domain_addresses(
+          addr_response.data.addresses,
+        );
+
+        return Promise.all(
+          decrypted_addresses.map(async (addr) => {
+            const full_address = `${addr.local_part}@${domain.domain_name}`;
+            const alias_address_hash = await compute_address_routing_hash(
+              addr.local_part,
+              domain.domain_name,
+            );
+
+            const synthetic: DecryptedEmailAlias = {
+              id: `domain-${addr.id}`,
+              local_part: addr.local_part,
+              display_name: addr.display_name,
+              alias_address_hash,
+              domain: domain.domain_name,
+              full_address,
+              is_enabled: addr.is_enabled,
+              is_random: false,
+              profile_picture: addr.profile_picture,
+              sidebar_order: addr.sidebar_order ?? null,
+              sidebar_hidden: addr.sidebar_hidden ?? false,
+              created_at: addr.created_at,
+              updated_at: addr.created_at,
+            };
+
+            return synthetic;
+          }),
+        );
+      }),
+    );
+
+    return per_domain.flat();
+  } catch (caught) {
+    ignore_error("hooks/use_sidebar_aliases:load_domain_aliases", caught);
+
+    return [];
+  }
+}
+
+async function load_group_aliases(): Promise<DecryptedEmailAlias[]> {
+  try {
+    const groups_response = await list_my_groups();
+    const groups: DecryptedEmailAlias[] = [];
+
+    for (const g of groups_response.data ?? []) {
+      if (!g.email_local_part || !g.domain_name) continue;
+      const full_address = `${g.email_local_part}@${g.domain_name}`;
+
+      if (groups.some((a) => a.full_address === full_address)) continue;
+      groups.push({
+        id: `group-${g.id}`,
+        local_part: g.email_local_part,
+        display_name: g.name,
+        alias_address_hash: "",
+        domain: g.domain_name,
+        full_address,
+        is_enabled: true,
+        is_random: false,
+        created_at: new Date(0).toISOString(),
+        updated_at: new Date(0).toISOString(),
+      });
+    }
+
+    return groups;
+  } catch (caught) {
+    ignore_error("hooks/use_sidebar_aliases:load_group_aliases", caught);
+
+    return [];
+  }
+}
+
 export function use_sidebar_aliases(): UseSidebarAliasesReturn {
   const auth = use_auth_safe();
   const user = auth?.user ?? null;
@@ -383,7 +487,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     cached_aliases.data,
   );
   const [is_loading, set_is_loading] = useState(
-    cached_aliases.data.length === 0,
+    cached_aliases.data.length === 0 && !cached_aliases.has_loaded,
   );
   const [can_create, set_can_create] = useState(false);
   const [load_failed, set_load_failed] = useState(false);
@@ -431,7 +535,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       return;
     }
 
-    if (cached_aliases.data.length === 0) {
+    if (cached_aliases.data.length === 0 && !cached_aliases.has_loaded) {
       set_is_loading(true);
     }
 
@@ -444,6 +548,8 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       }
 
       try {
+        const domain_aliases = load_domain_aliases();
+        const group_aliases = load_group_aliases();
         const [list_response, counts_response] = await Promise.all([
           list_all_aliases(),
           get_alias_counts(),
@@ -473,83 +579,13 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
           }
         }
 
-        try {
-          const domains_response = await list_domains();
-          const active_domains = (domains_response.data?.domains ?? []).filter(
-            (d) => d.status === "active",
-          );
+        merged.push(...(await domain_aliases));
 
-          const per_domain = await Promise.all(
-            active_domains.map(async (domain) => {
-              const addr_response = await list_domain_addresses(domain.id);
-
-              if (!addr_response.data) return [];
-
-              const decrypted_addresses = await decrypt_domain_addresses(
-                addr_response.data.addresses,
-              );
-
-              return Promise.all(
-                decrypted_addresses.map(async (addr) => {
-                  const full_address = `${addr.local_part}@${domain.domain_name}`;
-                  const alias_address_hash = await compute_address_routing_hash(
-                    addr.local_part,
-                    domain.domain_name,
-                  );
-
-                  const synthetic: DecryptedEmailAlias = {
-                    id: `domain-${addr.id}`,
-                    local_part: addr.local_part,
-                    display_name: addr.display_name,
-                    alias_address_hash,
-                    domain: domain.domain_name,
-                    full_address,
-                    is_enabled: addr.is_enabled,
-                    is_random: false,
-                    profile_picture: addr.profile_picture,
-                    sidebar_order: addr.sidebar_order ?? null,
-                    sidebar_hidden: addr.sidebar_hidden ?? false,
-                    created_at: addr.created_at,
-                    updated_at: addr.created_at,
-                  };
-
-                  return synthetic;
-                }),
-              );
-            }),
-          );
-
-          for (const group of per_domain) {
-            merged.push(...group);
+        for (const group of await group_aliases) {
+          if (merged.some((a) => a.full_address === group.full_address)) {
+            continue;
           }
-        } catch (caught) {
-          ignore_error("hooks/use_sidebar_aliases:use_sidebar_aliases", caught);
-        }
-
-        try {
-          const groups_response = await list_my_groups();
-
-          for (const g of groups_response.data ?? []) {
-            if (!g.email_local_part || !g.domain_name) continue;
-            const full_address = `${g.email_local_part}@${g.domain_name}`;
-            const already = merged.some((a) => a.full_address === full_address);
-
-            if (already) continue;
-            merged.push({
-              id: `group-${g.id}`,
-              local_part: g.email_local_part,
-              display_name: g.name,
-              alias_address_hash: "",
-              domain: g.domain_name,
-              full_address,
-              is_enabled: true,
-              is_random: false,
-              created_at: new Date(0).toISOString(),
-              updated_at: new Date(0).toISOString(),
-            });
-          }
-        } catch (caught) {
-          ignore_error("hooks/use_sidebar_aliases:use_sidebar_aliases", caught);
+          merged.push(group);
         }
 
         if (this_generation !== alias_generation_ref.current) return "stale";
@@ -564,6 +600,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
 
         {
           cached_aliases.data = merged;
+          cached_aliases.has_loaded = true;
           rebuild_alias_index();
           set_aliases(merged);
           notify_alias_subscribers();
@@ -613,6 +650,29 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
 
     set_load_failed(cached_aliases.data.length === 0);
     set_is_loading(false);
+
+    const retry_in_background = async (): Promise<void> => {
+      for (const delay of ALIAS_BACKGROUND_RETRY_DELAYS_MS) {
+        await wait(delay);
+
+        if (this_generation !== alias_generation_ref.current) return;
+        if (cached_aliases.has_loaded) return;
+        if (!can_retry_now()) continue;
+        if ((await attempt_fetch()) !== "retry") return;
+      }
+
+      for (;;) {
+        await wait(ALIAS_FAILED_FETCH_RETRY_MS);
+
+        if (this_generation !== alias_generation_ref.current) return;
+        if (cached_aliases.has_loaded) return;
+        if (!has_passphrase_in_memory()) return;
+        if (!can_retry_now()) continue;
+        if ((await attempt_fetch()) !== "retry") return;
+      }
+    };
+
+    void retry_in_background();
   }, []);
 
   fetch_ref.current = fetch_aliases;
@@ -627,6 +687,7 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       prev_user_id !== current_user_id
     ) {
       cached_aliases.data = [];
+      cached_aliases.has_loaded = false;
       cached_ghost_aliases.data = [];
       rebuild_alias_index();
       set_aliases([]);
@@ -643,7 +704,50 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
   useEffect(() => {
     return subscribe_aliases(() => {
       set_aliases(cached_aliases.data);
+
+      if (cached_aliases.has_loaded) {
+        set_load_failed(false);
+        set_is_loading(false);
+      }
     });
+  }, []);
+
+  useEffect(() => {
+    const recover = () => {
+      if (cached_aliases.has_loaded || alias_recovery.in_flight) return;
+      if (!has_passphrase_in_memory() || !get_derived_encryption_key()) return;
+      if (!can_retry_now()) return;
+
+      const now = Date.now();
+
+      if (now - alias_recovery.last_ms < ALIAS_RECOVERY_MIN_INTERVAL_MS) {
+        return;
+      }
+
+      alias_recovery.in_flight = true;
+      alias_recovery.last_ms = now;
+
+      const run = fetch_ref.current?.() ?? Promise.resolve();
+
+      void run.finally(() => {
+        alias_recovery.in_flight = false;
+      });
+    };
+
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") recover();
+    };
+
+    window.addEventListener("online", recover);
+    window.addEventListener("focus", recover);
+    document.addEventListener("visibilitychange", handle_visibility);
+
+    return () => {
+      alias_generation_ref.current += 1;
+      window.removeEventListener("online", recover);
+      window.removeEventListener("focus", recover);
+      document.removeEventListener("visibilitychange", handle_visibility);
+    };
   }, []);
 
   useEffect(() => {

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { MailPriority } from "@/services/mail_priority";
 import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
@@ -83,6 +84,8 @@ interface ForwardBodyProps {
   last_saved_time: Date | null;
   is_plain_text_mode: boolean;
   toggle_plain_text_mode: () => void;
+  priority?: MailPriority;
+  set_priority?: (priority: MailPriority) => void;
   handle_template_select: (content: string) => void;
   on_discard?: () => void;
   source_email_id?: string;
@@ -128,6 +131,8 @@ export function ForwardBody({
   last_saved_time,
   is_plain_text_mode,
   toggle_plain_text_mode,
+  priority,
+  set_priority,
   handle_template_select,
   on_discard,
   source_email_id,
@@ -351,6 +356,8 @@ export function ForwardBody({
             editor,
             is_plain_text_mode,
             toggle_plain_text_mode,
+            priority,
+            set_priority,
           }}
           extra_toolbar_items={
             <SignaturePicker

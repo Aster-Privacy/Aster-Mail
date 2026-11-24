@@ -278,6 +278,12 @@ export default defineConfig({
         ws: true,
         changeOrigin: false,
       },
+      "/gallery": {
+        target: "https://aster-wallpapers.pages.dev",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path: string) => path.replace(/^\/gallery/, ""),
+      },
       "/api": {
         target: api_target,
         changeOrigin: true,

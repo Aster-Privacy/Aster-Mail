@@ -49,12 +49,15 @@ import {
 import { use_tags } from "@/hooks/use_tags";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
+import { PriorityBadge } from "@/components/email/priority_badge";
+import { priority_from_headers } from "@/services/mail_priority";
 import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
 import {
   trusted_sender_name,
   use_sender_trust,
 } from "@/hooks/use_sender_trust";
 import { reply_to_header_value } from "@/utils/reply_to";
+import { ForwardedViaLine } from "@/components/email/shared/forwarded_via_line";
 import { get_label_hints } from "@/stores/label_hints_store";
 
 interface PopupEmailHeaderProps {
@@ -316,8 +319,15 @@ export function PopupEmailHeader({
                   snoozed_until={snoozed_until}
                 />
               )}
+              <PriorityBadge
+                priority={priority_from_headers(email.raw_headers)}
+              />
             </div>
 
+            <ForwardedViaLine
+              className="block w-fit max-w-full truncate text-xs text-txt-muted"
+              sender={email}
+            />
             <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>

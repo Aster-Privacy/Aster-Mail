@@ -344,6 +344,40 @@ export function mail_item_provenance(
   };
 }
 
+const CALENDAR_RELAYS: ReadonlyArray<{
+  sender_domain: string;
+  organizer_domain: string;
+}> = [{ sender_domain: "email.apple.com", organizer_domain: "imip.me.com" }];
+
+function address_domain(address: string): string {
+  const trimmed = address.trim().toLowerCase();
+  const at = trimmed.lastIndexOf("@");
+
+  return at === -1 ? "" : trimmed.slice(at + 1);
+}
+
+export function sends_for_organizer(
+  organizer_email: string,
+  sender_email: string,
+): boolean {
+  if (same_address(organizer_email, sender_email)) {
+    return true;
+  }
+
+  const sender_domain = address_domain(sender_email);
+  const organizer_domain = address_domain(organizer_email);
+
+  if (sender_domain.length === 0 || organizer_domain.length === 0) {
+    return false;
+  }
+
+  return CALENDAR_RELAYS.some(
+    (relay) =>
+      relay.sender_domain === sender_domain &&
+      relay.organizer_domain === organizer_domain,
+  );
+}
+
 export function organizer_differs_from_sender(
   message: ItipMessage,
   sender_email: string | undefined,
@@ -351,7 +385,11 @@ export function organizer_differs_from_sender(
 ): boolean {
   const organizer = message.organizer?.email;
 
-  if (!organizer || !sender_email || same_address(organizer, sender_email)) {
+  if (
+    !organizer ||
+    !sender_email ||
+    sends_for_organizer(organizer, sender_email)
+  ) {
     return false;
   }
 
@@ -374,7 +412,8 @@ export function update_from_organizer(
   }
 
   return (
-    same_address(organizer, sender_email) && same_address(known, organizer)
+    sends_for_organizer(organizer, sender_email) &&
+    same_address(known, organizer)
   );
 }
 

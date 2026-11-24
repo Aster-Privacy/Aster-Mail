@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ImportedAttachmentData } from "@/services/api/email_import";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { ParsedEmail } from "./parser";
 
@@ -65,6 +66,8 @@ export interface EncryptedImportEmail {
   is_trashed?: boolean;
   routing_token?: string;
   sender_alias_hash?: string;
+  msgid_hash?: string;
+  attachments?: ImportedAttachmentData[];
 }
 
 // Deterministic hash of the message content so re-importing the same email
@@ -84,6 +87,14 @@ async function compute_content_hash(
   ].join("\n");
 
   return compute_import_dedupe_hash(identity_key, "content", canonical);
+}
+
+function import_sort_bucket(date: Date): string {
+  const bucket = new Date(date.getTime());
+
+  bucket.setUTCHours(12, 0, 0, 0);
+
+  return bucket.toISOString();
 }
 
 export async function encrypt_imported_email(
@@ -148,7 +159,7 @@ export async function encrypt_imported_email(
     encrypted_envelope: sealed.encrypted,
     envelope_nonce: sealed.nonce,
     content_hash,
-    received_at: email.date.toISOString(),
+    received_at: import_sort_bucket(email.date),
   };
 }
 

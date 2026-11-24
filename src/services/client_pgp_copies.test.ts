@@ -26,6 +26,20 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const discover = vi.fn();
 const signed_payload = vi.fn();
+const pin_status = vi.fn();
+const saved_key = vi.fn();
+
+vi.mock("./crypto/ratchet_identity_pin", () => ({
+  check_owner_key_pin: (pin_id: string, key: string) => pin_status(pin_id, key),
+  lookup_saved_key: (email: string) => saved_key(email),
+  owner_key_fingerprint: async () => "",
+}));
+
+const cached_preferences = vi.fn();
+
+vi.mock("./api/preferences", () => ({
+  get_cached_preferences: () => cached_preferences(),
+}));
 
 vi.mock("./api/keys", () => ({
   discover_external_keys_batch: (emails: string[]) => discover(emails),
@@ -41,6 +55,7 @@ import {
   client_copy_attachments_too_large,
   CLIENT_COPY_ATTACHMENT_LIMIT_MB,
   decide_recipient_encryption,
+  resolve_encrypt_by_default,
   type ClientPgpCopyParams,
 } from "./client_pgp_copies";
 
@@ -96,6 +111,7 @@ function params(
     cc: [],
     bcc: [],
     attachments: [],
+    encrypt_by_default: true,
     ...overrides,
   };
 }
@@ -134,10 +150,16 @@ beforeEach(() => {
   discover.mockReset();
   signed_payload.mockReset();
   signed_payload.mockResolvedValue(undefined);
+  pin_status.mockReset();
+  pin_status.mockResolvedValue("ok");
+  saved_key.mockReset();
+  saved_key.mockResolvedValue({ fingerprint: "", conflict: false, owner: true });
+  cached_preferences.mockReset();
+  cached_preferences.mockReturnValue(null);
 });
 
 describe("decide_recipient_encryption", () => {
-  it("follows the server trust rules", () => {
+  it("follows the sender's setting and the key source", () => {
     const trusted = key_info("pal@example.com", {
       public_key: "k",
       private_key: "",
@@ -149,7 +171,12 @@ describe("decide_recipient_encryption", () => {
     );
     const missing = key_info("pal@example.com", null);
 
-    expect(decide_recipient_encryption(trusted, {})).toBe("encrypt");
+    expect(
+      decide_recipient_encryption(trusted, { encrypt_by_default: true }),
+    ).toBe("encrypt");
+    expect(
+      decide_recipient_encryption(trusted, { encrypt_by_default: false }),
+    ).toBe("plain");
     expect(decide_recipient_encryption(keyserver, {})).toBe("plain");
     expect(decide_recipient_encryption(keyserver, { force_pgp: true })).toBe(
       "encrypt",
@@ -204,6 +231,43 @@ describe("decide_recipient_encryption", () => {
   });
 });
 
+describe("resolve_encrypt_by_default", () => {
+  it("uses the last known setting for a send queued without one", () => {
+    cached_preferences.mockReturnValue({ encrypt_emails: true });
+    expect(resolve_encrypt_by_default(undefined)).toBe(true);
+    expect(
+      decide_recipient_encryption(key_info("pal@example.com", pal), {
+        encrypt_by_default: undefined,
+      }),
+    ).toBe("encrypt");
+
+    cached_preferences.mockReturnValue({ encrypt_emails: false });
+    expect(resolve_encrypt_by_default(undefined)).toBe(false);
+  });
+
+  it("keeps a setting the send carries", () => {
+    cached_preferences.mockReturnValue({ encrypt_emails: true });
+    expect(resolve_encrypt_by_default(false)).toBe(false);
+    cached_preferences.mockReturnValue(null);
+    expect(resolve_encrypt_by_default(true)).toBe(true);
+  });
+
+  it("follows the server answer when no setting is known", () => {
+    expect(
+      resolve_encrypt_by_default(
+        undefined,
+        key_info("pal@example.com", pal, { will_encrypt: true }),
+      ),
+    ).toBe(true);
+    expect(
+      resolve_encrypt_by_default(
+        undefined,
+        key_info("pal@example.com", pal, { will_encrypt: false }),
+      ),
+    ).toBe(false);
+  });
+});
+
 describe("build_client_pgp_copies", () => {
   it("encrypts one copy per recipient that only that recipient can open", async () => {
     discover.mockResolvedValue({
@@ -234,6 +298,56 @@ describe("build_client_pgp_copies", () => {
     ).resolves.toContain("Quarterly numbers");
   });
 
+  it("checks each delivered key against the saved one before encrypting", async () => {
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", bob),
+      ],
+    });
+
+    await build_client_pgp_copies(params());
+
+    expect(pin_status.mock.calls).toEqual([
+      ["pal@example.com", pal.public_key],
+      ["bob@example.org", bob.public_key],
+    ]);
+  });
+
+  it("stops the send when a delivered key differs from the saved one", async () => {
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", bob),
+      ],
+    });
+    pin_status.mockImplementation(async (pin_id: string) =>
+      pin_id === "bob@example.org" ? "changed" : "ok",
+    );
+
+    await expect(build_client_pgp_copies(params())).rejects.toMatchObject({
+      type: "encryption_failed",
+    });
+  });
+
+  it("stops the send with a readable message when the saved keys cannot be opened", async () => {
+    const { KeyPinUnavailableError } = await import("./crypto/ratchet_types");
+    const { get_active_translations } = await import("@/lib/i18n/translations");
+
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", bob),
+      ],
+    });
+    pin_status.mockRejectedValue(new KeyPinUnavailableError("pal@example.com"));
+
+    await expect(build_client_pgp_copies(params())).rejects.toMatchObject({
+      type: "encryption_failed",
+      message: get_active_translations().errors.key_trust_check_failed,
+    });
+  });
+
   it("leaves the send to the existing path when any recipient lacks a trusted key", async () => {
     discover.mockResolvedValue({
       data: [
@@ -256,6 +370,85 @@ describe("build_client_pgp_copies", () => {
 
     discover.mockResolvedValue({ data: [key_info("pal@example.com", pal)] });
     expect(await build_client_pgp_copies(params())).toBeUndefined();
+  });
+
+  it("does not encrypt by default to a key that names another address", async () => {
+    const stranger = await make_key("stranger@example.net");
+
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", stranger),
+      ],
+    });
+
+    expect(await build_client_pgp_copies(params())).toBeUndefined();
+    expect(pin_status).not.toHaveBeenCalled();
+  });
+
+  it("does not encrypt by default to a key that is not saved", async () => {
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", bob),
+      ],
+    });
+    saved_key.mockImplementation(async (email: string) =>
+      email === "bob@example.org"
+        ? null
+        : { fingerprint: "", conflict: false, owner: true },
+    );
+
+    expect(await build_client_pgp_copies(params())).toBeUndefined();
+    expect(pin_status).not.toHaveBeenCalled();
+  });
+
+  it("does not encrypt by default when the saved keys cannot be read", async () => {
+    discover.mockResolvedValue({ data: [key_info("pal@example.com", pal)] });
+    saved_key.mockResolvedValue("unreadable");
+
+    expect(
+      await build_client_pgp_copies(
+        params({ outside_recipients: ["pal@example.com"] }),
+      ),
+    ).toBeUndefined();
+  });
+
+  it("encrypts to an unsaved key the sender locked in compose", async () => {
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", bob),
+      ],
+    });
+    saved_key.mockResolvedValue(null);
+
+    const copies = await build_client_pgp_copies(
+      params({ pgp_recipients: ["pal@example.com", "bob@example.org"] }),
+    );
+
+    expect(Object.keys(copies ?? {}).sort()).toEqual([
+      "Bob@Example.org",
+      "pal@example.com",
+    ]);
+  });
+
+  it("still encrypts to a mismatched key the sender asked to use", async () => {
+    const stranger = await make_key("stranger@example.net");
+
+    discover.mockResolvedValue({
+      data: [
+        key_info("pal@example.com", pal),
+        key_info("bob@example.org", stranger),
+      ],
+    });
+
+    const copies = await build_client_pgp_copies(params({ force_pgp: true }));
+
+    expect(Object.keys(copies ?? {})).toEqual([
+      "pal@example.com",
+      "Bob@Example.org",
+    ]);
   });
 
   it("uses a keyserver key when the sender asks for encryption", async () => {

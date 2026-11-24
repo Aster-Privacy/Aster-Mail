@@ -20,6 +20,7 @@
 //
 import type { EmailCategory, InboxEmail } from "@/types/email";
 import type { CategoryIndexEntry } from "@/services/category_index";
+import type { LearnedCategorySender } from "@/services/learned_category_senders";
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react";
@@ -75,19 +76,45 @@ const get_index_entries = vi.fn<(ids: string[]) => CategoryIndexEntry[]>();
 const get_thread_entry_ids = vi.fn<(token: string) => string[]>();
 const grouping = { on: false };
 
+interface StateWrite {
+  target: MoveTarget;
+  state: { category?: EmailCategory; category_pinned: boolean };
+}
+
+async function write_category_states(
+  writes: readonly StateWrite[],
+): Promise<Map<string, CategoryWriteResult>> {
+  const results = await Promise.all(
+    writes.map(({ target, state }) =>
+      state.category_pinned && state.category
+        ? set_message_category(target, state.category)
+        : restore_message_category(target, state),
+    ),
+  );
+
+  return new Map(
+    writes.map(({ target }, index) => [target.id, results[index]!]),
+  );
+}
+
 vi.mock("@/services/category_index", () => ({
-  set_message_category: (target: MoveTarget, category: EmailCategory) =>
-    set_message_category(target, category),
-  restore_message_category: (
-    target: MoveTarget,
-    previous: { category?: EmailCategory; category_pinned: boolean },
-  ) => restore_message_category(target, previous),
-  apply_category_pin_locally: (...args: unknown[]) =>
-    apply_category_pin_locally(...args),
+  write_category_states: (writes: readonly StateWrite[]) =>
+    write_category_states(writes),
+  apply_category_pins_locally: (targets: readonly MoveTarget[]) => {
+    for (const target of targets) apply_category_pin_locally(target);
+  },
+  batch_index_updates: (run: () => void) => run(),
   restore_category_entry_locally: (...args: unknown[]) =>
     restore_category_entry_locally(...args),
   get_index_entries: (ids: string[]) => get_index_entries(ids),
-  get_thread_entry_ids: (token: string) => get_thread_entry_ids(token),
+  group_thread_entries: (tokens: ReadonlySet<string>) =>
+    new Map(
+      [...tokens].map((token) => [
+        token,
+        get_index_entries(get_thread_entry_ids(token)),
+      ]),
+    ),
+  thread_category_of: () => null,
   get_thread_category: () => undefined,
   is_thread_grouping: () => grouping.on,
   fold_to_active_tab: (raw?: EmailCategory) => raw ?? "primary",
@@ -110,6 +137,11 @@ const { reset_sender_rule_state } =
   await import("@/components/email/inbox/category_sender_rule");
 const { reset_category_move_queue } =
   await import("@/components/email/inbox/category_move");
+const {
+  configure_learned_senders,
+  get_learned_senders,
+  reset_learned_senders_store,
+} = await import("@/services/learned_category_senders");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -212,6 +244,7 @@ beforeEach(() => {
   show_action_toast.mockClear();
   show_toast.mockClear();
   reset_sender_rule_state();
+  reset_learned_senders_store();
 });
 
 afterEach(() => {
@@ -237,7 +270,7 @@ describe("use_category_drop", () => {
     expect(show_toast).not.toHaveBeenCalled();
   });
 
-  it("moves the row before the request resolves and reports success once", async () => {
+  it("moves the row and offers undo before the request resolves", async () => {
     let resolve_move: (value: CategoryWriteResult) => void = () => {};
 
     set_message_category.mockImplementation(
@@ -258,7 +291,7 @@ describe("use_category_drop", () => {
 
     await flush();
 
-    expect(show_action_toast).not.toHaveBeenCalled();
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       resolve_move(applied_result);
@@ -290,7 +323,7 @@ describe("use_category_drop", () => {
       "common.something_went_wrong",
       "error",
     );
-    expect(show_action_toast).not.toHaveBeenCalled();
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
   });
 
   it("rolls back and names the undecryptable condition instead of reporting success", async () => {
@@ -310,11 +343,156 @@ describe("use_category_drop", () => {
       "errors.metadata_undecryptable_change",
       "error",
     );
-    expect(show_action_toast).not.toHaveBeenCalled();
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
+  });
+
+  it("learns the sender instead of offering a rule while learning is on", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+    restore_message_category.mockResolvedValue(applied_result);
+
+    const persisted: LearnedCategorySender[][] = [];
+
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: (list) => persisted.push(list),
+    });
+
+    const harness = mount([
+      email("a", "primary"),
+      { ...email("b", "primary"), sender_email: "Other@Example.com" },
+    ]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+    await act(async () => {
+      await harness.drop("promotions", ["a", "b"]);
+    });
+
+    expect(show_toast).not.toHaveBeenCalled();
+    expect(
+      get_learned_senders()
+        .map((entry) => `${entry.sender}:${entry.category}`)
+        .sort(),
+    ).toEqual(["other@example.com:promotions", "sender@example.com:promotions"]);
+
+    const toast = show_action_toast.mock.calls[1]![0] as {
+      on_undo: () => Promise<void>;
+    };
+
+    await act(async () => {
+      await toast.on_undo();
+    });
+
+    expect(get_learned_senders().map((entry) => entry.sender)).toEqual([
+      "sender@example.com",
+    ]);
+    expect(persisted).toHaveLength(3);
+  });
+
+  it("learns nothing when the category write fails", async () => {
+    set_message_category.mockResolvedValue(rejected_result);
+
+    const persisted: LearnedCategorySender[][] = [];
+
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: (list) => persisted.push(list),
+    });
+
+    const harness = mount([email("a", "primary")]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+
+    expect(get_learned_senders()).toEqual([]);
+    expect(persisted).toEqual([]);
+  });
+
+  it("learns only the senders whose write succeeded", async () => {
+    set_message_category.mockImplementation(async (item) =>
+      item.id === "b" ? rejected_result : applied_result,
+    );
+
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: () => {},
+    });
+
+    const harness = mount([
+      email("a", "primary"),
+      { ...email("b", "primary"), sender_email: "failed@example.com" },
+    ]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a", "b"]);
+    });
+
+    expect(get_learned_senders().map((entry) => entry.sender)).toEqual([
+      "sender@example.com",
+    ]);
+  });
+
+  it("learns nothing before preferences load", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+
+    configure_learned_senders({
+      loaded: false,
+      enabled: true,
+      list: [],
+      persist: () => {},
+    });
+
+    const harness = mount([email("a", "primary")]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+
+    expect(get_learned_senders()).toEqual([]);
+  });
+
+  it("does not learn an Aster-domain or failed-auth sender from a drop", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: () => {},
+    });
+
+    const harness = mount([
+      { ...email("a", "primary"), sender_email: "friend@astermail.org" },
+      {
+        ...email("b", "primary"),
+        sender_email: "spoof@example.com",
+        dmarc_result: "fail",
+      } as InboxEmail,
+    ]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a", "b"]);
+    });
+
+    expect(get_learned_senders()).toEqual([]);
   });
 
   it("offers a sender rule only after the same sender repeats", async () => {
     set_message_category.mockResolvedValue(applied_result);
+    configure_learned_senders({
+      loaded: true,
+      enabled: false,
+      list: [],
+      persist: null,
+    });
 
     const harness = mount([email("a", "primary"), email("b", "primary")]);
 
@@ -348,10 +526,13 @@ describe("use_category_drop", () => {
     ]);
     expect(show_action_toast).toHaveBeenCalledTimes(1);
     expect(show_action_toast.mock.calls[0]![0]).toMatchObject({
-      message: "common.bulk_action_partially_applied",
-      email_ids: ["a"],
+      message: "mail.moved_to_category",
+      email_ids: ["a", "b"],
     });
-    expect(show_toast).not.toHaveBeenCalled();
+    expect(show_toast).toHaveBeenCalledWith(
+      "common.bulk_action_partially_applied",
+      "error",
+    );
   });
 
   it("keeps both changes when a second drop lands while the first is in flight", async () => {
@@ -553,7 +734,8 @@ describe("use_category_drop", () => {
       await harness.drop("primary", ["a"]);
     });
 
-    expect(set_message_category).toHaveBeenCalledTimes(1);
+    expect(set_message_category).toHaveBeenCalledTimes(2);
+    expect(restore_message_category).not.toHaveBeenCalled();
     expect(
       restore_category_entry_locally.mock.calls.map((call) => call[0]),
     ).toEqual(["a", "b"]);

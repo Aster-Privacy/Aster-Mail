@@ -24,6 +24,11 @@ import {
   base64_to_array,
   normalize_vault_fields,
 } from "./key_manager";
+import {
+  RecoveryBackupStaleError,
+  read_recovery_backup_floor,
+  type RecoveryBackupBinding,
+} from "./recovery_backup_floor";
 import { is_code_hash_optional } from "./recovery_code_capability";
 import { zero_uint8_array } from "./secure_memory";
 
@@ -102,15 +107,88 @@ export function generate_recovery_key(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(32));
 }
 
-export async function encrypt_vault_backup(
-  vault: EncryptedVault,
-  recovery_key: Uint8Array,
-): Promise<VaultBackup> {
-  const vault_json = JSON.stringify(vault);
-  const vault_data = new TextEncoder().encode(vault_json);
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const nonce = crypto.getRandomValues(new Uint8Array(12));
+const BACKUP_V1_INFO = "Aster Mail_Recovery_Vault_v1";
+const BACKUP_V2_INFO = "Aster Mail_Recovery_Vault_v2";
+const BACKUP_V2_AAD_LABEL = "aster-recovery-backup-v2";
+const BACKUP_V2_MAGIC = [0x41, 0x52, 0x42, 0x02];
+const BACKUP_V2_FIXED_HEADER = BACKUP_V2_MAGIC.length + 8 + 2;
+const MAX_BACKUP_USER_ID_BYTES = 0xffff;
 
+export interface OpenedVaultBackup {
+  vault: EncryptedVault;
+  generation: number;
+  user_id: string;
+}
+
+interface BackupHeader {
+  bytes: Uint8Array;
+  generation: number;
+  user_id: string;
+}
+
+function encode_backup_header(binding: RecoveryBackupBinding): Uint8Array {
+  const user_id = new TextEncoder().encode(binding.user_id);
+
+  if (user_id.length > MAX_BACKUP_USER_ID_BYTES) {
+    throw new Error("recovery backup user id is too long");
+  }
+
+  if (!Number.isSafeInteger(binding.generation) || binding.generation < 0) {
+    throw new Error("recovery backup generation is invalid");
+  }
+
+  const header = new Uint8Array(BACKUP_V2_FIXED_HEADER + user_id.length);
+  const view = new DataView(header.buffer);
+
+  header.set(BACKUP_V2_MAGIC, 0);
+  view.setBigUint64(BACKUP_V2_MAGIC.length, BigInt(binding.generation));
+  view.setUint16(BACKUP_V2_MAGIC.length + 8, user_id.length);
+  header.set(user_id, BACKUP_V2_FIXED_HEADER);
+
+  return header;
+}
+
+function parse_backup_header(data: Uint8Array): BackupHeader | null {
+  if (data.length < BACKUP_V2_FIXED_HEADER) return null;
+
+  if (!BACKUP_V2_MAGIC.every((byte, index) => data[index] === byte)) {
+    return null;
+  }
+
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  const generation = view.getBigUint64(BACKUP_V2_MAGIC.length);
+  const user_id_length = view.getUint16(BACKUP_V2_MAGIC.length + 8);
+  const header_length = BACKUP_V2_FIXED_HEADER + user_id_length;
+
+  if (generation > BigInt(Number.MAX_SAFE_INTEGER)) return null;
+
+  if (data.length <= header_length) return null;
+
+  return {
+    bytes: data.slice(0, header_length),
+    generation: Number(generation),
+    user_id: new TextDecoder("utf-8", { fatal: true }).decode(
+      data.slice(BACKUP_V2_FIXED_HEADER, header_length),
+    ),
+  };
+}
+
+function backup_aad(header: Uint8Array): Uint8Array {
+  const label = new TextEncoder().encode(BACKUP_V2_AAD_LABEL);
+  const aad = new Uint8Array(label.length + header.length);
+
+  aad.set(label, 0);
+  aad.set(header, label.length);
+
+  return aad;
+}
+
+async function derive_backup_key(
+  recovery_key: Uint8Array,
+  salt: Uint8Array,
+  info: string,
+  usage: KeyUsage,
+): Promise<CryptoKey> {
   const hkdf_key = await crypto.subtle.importKey(
     "raw",
     recovery_key,
@@ -119,29 +197,178 @@ export async function encrypt_vault_backup(
     ["deriveKey"],
   );
 
-  const aes_key = await crypto.subtle.deriveKey(
+  return crypto.subtle.deriveKey(
     {
       name: "HKDF",
       hash: HASH_ALG,
       salt,
-      info: new TextEncoder().encode("Aster Mail_Recovery_Vault_v1"),
+      info: new TextEncoder().encode(info),
     },
     hkdf_key,
     { name: "AES-GCM", length: 256 },
     false,
-    ["encrypt"],
+    [usage],
+  );
+}
+
+export async function encrypt_vault_backup(
+  vault: EncryptedVault,
+  recovery_key: Uint8Array,
+  binding: RecoveryBackupBinding | null = null,
+): Promise<VaultBackup> {
+  if (!binding) return encrypt_v1_backup(vault, recovery_key);
+
+  const header = encode_backup_header(binding);
+  const vault_data = new TextEncoder().encode(
+    JSON.stringify({
+      ...vault,
+      backup_generation: binding.generation,
+      backup_user_id: binding.user_id,
+    }),
+  );
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const aes_key = await derive_backup_key(
+    recovery_key,
+    salt,
+    BACKUP_V2_INFO,
+    "encrypt",
   );
 
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv: nonce },
-    aes_key,
-    vault_data,
+  const encrypted = new Uint8Array(
+    await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: nonce, additionalData: backup_aad(header) },
+      aes_key,
+      vault_data,
+    ),
+  );
+  const sealed = new Uint8Array(header.length + encrypted.length);
+
+  sealed.set(header, 0);
+  sealed.set(encrypted, header.length);
+
+  return {
+    encrypted_data: array_to_base64(sealed),
+    nonce: array_to_base64(nonce),
+    salt: array_to_base64(salt),
+  };
+}
+
+async function encrypt_v1_backup(
+  vault: EncryptedVault,
+  recovery_key: Uint8Array,
+): Promise<VaultBackup> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const aes_key = await derive_backup_key(
+    recovery_key,
+    salt,
+    BACKUP_V1_INFO,
+    "encrypt",
+  );
+  const encrypted = new Uint8Array(
+    await crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: nonce },
+      aes_key,
+      new TextEncoder().encode(JSON.stringify(vault)),
+    ),
   );
 
   return {
-    encrypted_data: array_to_base64(new Uint8Array(encrypted)),
+    encrypted_data: array_to_base64(encrypted),
     nonce: array_to_base64(nonce),
     salt: array_to_base64(salt),
+  };
+}
+
+async function open_v2_backup(
+  header: BackupHeader,
+  encrypted_data: Uint8Array,
+  nonce: Uint8Array,
+  salt: Uint8Array,
+  recovery_key: Uint8Array,
+): Promise<OpenedVaultBackup | null> {
+  const aes_key = await derive_backup_key(
+    recovery_key,
+    salt,
+    BACKUP_V2_INFO,
+    "decrypt",
+  );
+  let decrypted: ArrayBuffer;
+
+  try {
+    decrypted = await crypto.subtle.decrypt(
+      {
+        name: "AES-GCM",
+        iv: nonce,
+        additionalData: backup_aad(header.bytes),
+      },
+      aes_key,
+      encrypted_data.slice(header.bytes.length),
+    );
+  } catch {
+    return null;
+  }
+
+  const {
+    backup_generation,
+    backup_user_id,
+    ...vault
+  }: Record<string, unknown> = JSON.parse(new TextDecoder().decode(decrypted));
+
+  if (
+    backup_generation !== header.generation ||
+    backup_user_id !== header.user_id
+  ) {
+    throw new Error("recovery backup binding does not match its header");
+  }
+
+  return {
+    vault: normalize_vault_fields(vault as unknown as EncryptedVault),
+    generation: header.generation,
+    user_id: header.user_id,
+  };
+}
+
+export async function read_vault_backup(
+  backup: VaultBackup,
+  recovery_key: Uint8Array,
+): Promise<OpenedVaultBackup> {
+  const encrypted_data = base64_to_array(backup.encrypted_data);
+  const nonce = base64_to_array(backup.nonce);
+  const salt = base64_to_array(backup.salt);
+  const header = parse_backup_header(encrypted_data);
+
+  if (header) {
+    const opened = await open_v2_backup(
+      header,
+      encrypted_data,
+      nonce,
+      salt,
+      recovery_key,
+    );
+
+    if (opened) return opened;
+  }
+
+  const aes_key = await derive_backup_key(
+    recovery_key,
+    salt,
+    BACKUP_V1_INFO,
+    "decrypt",
+  );
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: nonce },
+    aes_key,
+    encrypted_data,
+  );
+
+  return {
+    vault: normalize_vault_fields(
+      JSON.parse(new TextDecoder().decode(decrypted)),
+    ),
+    generation: 0,
+    user_id: "",
   };
 }
 
@@ -149,40 +376,27 @@ export async function decrypt_vault_backup(
   backup: VaultBackup,
   recovery_key: Uint8Array,
 ): Promise<EncryptedVault> {
-  const encrypted_data = base64_to_array(backup.encrypted_data);
-  const nonce = base64_to_array(backup.nonce);
-  const salt = base64_to_array(backup.salt);
+  return (await read_vault_backup(backup, recovery_key)).vault;
+}
 
-  const hkdf_key = await crypto.subtle.importKey(
-    "raw",
-    recovery_key,
-    "HKDF",
-    false,
-    ["deriveKey"],
-  );
+export async function open_recovery_backup(
+  backup: VaultBackup,
+  recovery_key: Uint8Array,
+  expected_user_id: string | null,
+): Promise<OpenedVaultBackup> {
+  const opened = await read_vault_backup(backup, recovery_key);
 
-  const aes_key = await crypto.subtle.deriveKey(
-    {
-      name: "HKDF",
-      hash: HASH_ALG,
-      salt,
-      info: new TextEncoder().encode("Aster Mail_Recovery_Vault_v1"),
-    },
-    hkdf_key,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["decrypt"],
-  );
+  if (expected_user_id && opened.user_id && opened.user_id !== expected_user_id) {
+    throw new RecoveryBackupStaleError();
+  }
 
-  const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: nonce },
-    aes_key,
-    encrypted_data,
-  );
+  const user_id = opened.user_id || expected_user_id || "";
 
-  const vault_json = new TextDecoder().decode(decrypted);
+  if (opened.generation < read_recovery_backup_floor(user_id)) {
+    throw new RecoveryBackupStaleError();
+  }
 
-  return normalize_vault_fields(JSON.parse(vault_json));
+  return { ...opened, user_id };
 }
 
 export async function encrypt_recovery_key_with_code(

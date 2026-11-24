@@ -307,6 +307,7 @@ export async function decrypt_message_verified(
   secret_key: string,
   passphrase: string,
   verification_keys?: string[],
+  accept_recertified_keys: boolean = false,
 ): Promise<decrypted_message_result> {
   const secret_key_obj = await unlock_private_key(secret_key, passphrase);
 
@@ -314,6 +315,7 @@ export async function decrypt_message_verified(
     ciphertext,
     secret_key_obj,
     verification_keys,
+    accept_recertified_keys,
   );
 }
 
@@ -321,6 +323,7 @@ async function decrypt_message_verified_with_private_key(
   ciphertext: string,
   secret_key_obj: PrivateKey,
   verification_keys?: string[],
+  accept_recertified_keys: boolean = false,
 ): Promise<decrypted_message_result> {
   const parsed_verification_keys =
     await parse_verification_keys(verification_keys);
@@ -333,6 +336,9 @@ async function decrypt_message_verified_with_private_key(
         parsed_verification_keys.length > 0
           ? parsed_verification_keys
           : undefined,
+      config: accept_recertified_keys
+        ? { allowInsecureVerificationWithReformattedKeys: true }
+        : undefined,
     }),
   );
 
@@ -385,6 +391,7 @@ export async function decrypt_message_verified_with_any_key(
   passphrase: string,
   verification_keys?: string[],
   unlocked_keys?: PrivateKey[],
+  accept_recertified_keys: boolean = false,
 ): Promise<decrypted_message_result> {
   const candidates = await resolve_candidates(
     ciphertext,
@@ -401,6 +408,7 @@ export async function decrypt_message_verified_with_any_key(
           ciphertext,
           candidate.key,
           verification_keys,
+          accept_recertified_keys,
         );
       }
 
@@ -409,6 +417,7 @@ export async function decrypt_message_verified_with_any_key(
         candidate.key,
         passphrase,
         verification_keys,
+        accept_recertified_keys,
       );
     } catch (error) {
       last_error = error;

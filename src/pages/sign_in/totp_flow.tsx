@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_desktop } from "@/native/invoke_bridge";
 import { TotpVerification } from "@/components/auth/totp_verification";
 import { TotpVerifyResponse } from "@/services/api/totp";
 
@@ -40,7 +41,8 @@ export function totp_flow({
   available_2fa_methods,
   remember_me,
 }: TotpFlowProps) {
-  const has_webauthn = available_2fa_methods.includes("webauthn");
+  const has_webauthn =
+    available_2fa_methods.includes("webauthn") && !is_desktop();
 
   return (
     <TotpVerification

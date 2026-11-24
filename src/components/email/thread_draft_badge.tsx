@@ -26,7 +26,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { delete_thread_draft } from "@/services/api/multi_drafts";
 import { show_toast } from "@/components/toast/simple_toast";
 import { emit_drafts_changed } from "@/hooks/mail_events";
-import { strip_html_tags } from "@/lib/html_sanitizer";
+import { html_to_preview_text } from "@/lib/html_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { clip_with_ellipsis } from "@/utils/preview_text";
 
@@ -78,7 +78,7 @@ export function ThreadDraftBadge({
     on_edit(draft);
   }, [draft, on_edit]);
 
-  const preview_text = strip_html_tags(draft.content.message || "").trim();
+  const preview_text = html_to_preview_text(draft.content.message || "", 600).trim();
   const summary =
     draft.content.subject?.trim() || preview_text || t("common.no_content");
   const truncated_summary = clip_with_ellipsis(summary, 60);

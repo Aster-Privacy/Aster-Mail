@@ -80,6 +80,7 @@ export function SendToast({
         <motion.div
           animate={{ opacity: 1, y: 0 }}
           className={`fixed ${layout.anchor} z-[100] rounded-[var(--aster-radius-floating,16px)] shadow-[var(--aster-floating-shadow)] bg-[var(--aster-floating-bg,var(--modal-bg))]`}
+          data-popup-outside-ignore=""
           exit={{ opacity: 0, y: y_offset }}
           initial={reduce_motion ? false : { opacity: 0, y: y_offset }}
           style={layout.style}

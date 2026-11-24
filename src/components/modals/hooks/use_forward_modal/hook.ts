@@ -30,6 +30,10 @@ import {
 } from "react";
 
 import {
+  outgoing_priority,
+  type MailPriority,
+} from "@/services/mail_priority";
+import {
   UseForwardModalProps,
   apply_inline_image_substitutions,
   strip_unresolved_cid_images,
@@ -41,7 +45,10 @@ import {
 import { prepare_image_attachments } from "@/services/image_size_reduction";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
-import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
+import {
+  editor_plain_text,
+  escape_html as escape_plain_text,
+} from "@/hooks/editor_utils";
 import { as_quotable_html } from "@/lib/html_text";
 import {
   store_pending_send_payload,
@@ -96,6 +103,7 @@ import {
 import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
 import { sender_is_pending } from "@/components/compose/sender_pending";
+import { use_send_when_sender_ready } from "@/components/compose/use_send_when_sender_ready";
 import {
   type Attachment,
   type DraftStatus,
@@ -265,6 +273,7 @@ export function use_forward_modal({
   const [is_plain_text_mode, set_is_plain_text_mode] = useState(
     preferences.compose_mode === "plain_text",
   );
+  const [priority, set_priority] = useState<MailPriority>("normal");
   const is_plain_text_ref = useRef(is_plain_text_mode);
   const default_plain_text_ref = useRef(false);
 
@@ -495,6 +504,7 @@ export function use_forward_modal({
       set_is_forward_visible(false);
       is_plain_text_ref.current = default_plain_text_ref.current;
       set_is_plain_text_mode(default_plain_text_ref.current);
+      set_priority("normal");
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       content_initialized_ref.current = false;
@@ -560,7 +570,7 @@ export function use_forward_modal({
       let seeded_message: string;
 
       if (is_plain_text_ref.current) {
-        seeded_message = message_editor_ref.current.innerText;
+        seeded_message = editor_plain_text(message_editor_ref.current);
         message_editor_ref.current.innerText = seeded_message;
       } else {
         seeded_message = read_compose_editor_html(
@@ -714,32 +724,34 @@ export function use_forward_modal({
     };
   }, [is_open, original_mail_id, effective_mail_id]);
 
+  const sender_resolution_ready =
+    !sender_loading && (preferred_sender_ready || !!preferred_sender_id);
+
+  const resolved_sender = resolve_from_sender({
+    options: sender_options,
+    thread_addresses: get_forward_from_candidates(effective_mail_id),
+    prefer_external: is_external,
+    preferred_sender_id,
+  });
+  const resolved_sender_option = resolved_sender?.option ?? null;
+
+  const expected_sender_email = sender_resolution_ready
+    ? (resolved_sender_option?.email ?? null)
+    : null;
+
   useEffect(() => {
-    if (sender_loading) return;
+    if (!sender_resolution_ready) return;
     if (sender_manually_selected_ref.current) return;
     if (ghost_mode.is_ghost_enabled) return;
-    if (!preferred_sender_ready && !preferred_sender_id) return;
+    if (!resolved_sender_option) return;
+    if (resolved_sender_option.id === selected_sender?.id) return;
 
-    const resolved = resolve_from_sender({
-      options: sender_options,
-      thread_addresses: get_forward_from_candidates(effective_mail_id),
-      prefer_external: is_external,
-      preferred_sender_id,
-    });
-
-    if (!resolved) return;
-    if (resolved.option.id === selected_sender?.id) return;
-
-    set_selected_sender_state(resolved.option);
+    set_selected_sender_state(resolved_sender_option);
   }, [
-    is_external,
-    sender_options,
-    sender_loading,
+    sender_resolution_ready,
+    resolved_sender_option,
     selected_sender,
-    preferred_sender_id,
-    preferred_sender_ready,
     ghost_mode.is_ghost_enabled,
-    effective_mail_id,
   ]);
 
   useEffect(() => {
@@ -775,7 +787,7 @@ export function use_forward_modal({
     const element = message_editor_ref.current;
 
     if (element) {
-      const text = element.innerText;
+      const text = editor_plain_text(element);
 
       if (is_plain_text_mode) {
         const html = escape_plain_text(text).replace(/\n/g, "<br>");
@@ -809,8 +821,24 @@ export function use_forward_modal({
         chosen_by_user:
           sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
         selected_email: selected_sender?.email,
+        thread_bound: true,
+        resolution_ready: sender_resolution_ready,
+        expected_email: expected_sender_email,
       }),
-    [sender_loading, ghost_mode.is_ghost_enabled, selected_sender?.email],
+    [
+      sender_loading,
+      ghost_mode.is_ghost_enabled,
+      selected_sender?.email,
+      sender_resolution_ready,
+      expected_sender_email,
+    ],
+  );
+
+  const forward_send_ref = useRef<() => void>(() => {});
+  const forward_scheduled_ref = useRef<() => void>(() => {});
+  const { wait_for_sender } = use_send_when_sender_ready(
+    is_sender_pending,
+    is_open,
   );
 
   const handle_forward = useCallback(async () => {
@@ -866,7 +894,14 @@ export function use_forward_modal({
     }
 
     if (is_sender_pending()) {
+      wait_for_sender(() => forward_send_ref.current());
       show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
 
       return;
     }
@@ -1053,6 +1088,7 @@ export function use_forward_modal({
         forward_original_mail_id: fwd_server_source_id,
         require_encryption: preferences.require_encryption === true,
         is_plain_text: is_plain_text_mode,
+        priority: outgoing_priority(priority),
         lock_scope,
       },
       {
@@ -1177,6 +1213,7 @@ export function use_forward_modal({
     forward_message,
     outgoing_forward_message,
     is_plain_text_mode,
+    priority,
     preferences.undo_send_period,
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
@@ -1194,7 +1231,10 @@ export function use_forward_modal({
     vault,
     attachment_session,
     is_sender_pending,
+    wait_for_sender,
   ]);
+
+  forward_send_ref.current = handle_forward;
 
   const schedule_gate_pending_ref = useRef(false);
 
@@ -1220,7 +1260,14 @@ export function use_forward_modal({
     }
 
     if (is_sender_pending()) {
+      wait_for_sender(() => forward_scheduled_ref.current());
       show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
 
       return;
     }
@@ -1291,7 +1338,9 @@ export function use_forward_modal({
 
     if (!scheduled_gate.proceed) {
       if (scheduled_gate.blocked_by) {
-        set_error_message(t(scheduled_gate.blocked_by));
+        set_error_message(
+          scheduled_gate.message ?? t(scheduled_gate.blocked_by),
+        );
       }
 
       return;
@@ -1416,7 +1465,10 @@ export function use_forward_modal({
     original_mail_id,
     attachment_session,
     is_sender_pending,
+    wait_for_sender,
   ]);
+
+  forward_scheduled_ref.current = handle_scheduled_send;
 
   const get_total_attachments_size = useCallback(() => {
     return attachments.reduce((total, att) => total + att.size_bytes, 0);
@@ -1664,6 +1716,8 @@ export function use_forward_modal({
 
   return {
     lock_scope,
+    priority,
+    set_priority,
     t,
     reduce_motion,
     user,

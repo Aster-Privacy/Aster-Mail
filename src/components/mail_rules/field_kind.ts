@@ -29,7 +29,8 @@ export type FieldKind =
   | "numeric_size"
   | "numeric_plain"
   | "date"
-  | "auth";
+  | "auth"
+  | "source";
 
 export function field_kind(field: ConditionField): FieldKind {
   switch (field) {
@@ -67,6 +68,8 @@ export function field_kind(field: ConditionField): FieldKind {
     case "spf_result":
     case "dmarc_result":
       return "auth";
+    case "source":
+      return "source";
   }
 }
 
@@ -123,6 +126,12 @@ export function default_condition_for_field(
       return {
         type: field as "dkim_result",
         value: "pass",
+      };
+    case "source":
+      return {
+        type: "source",
+        operator: "is",
+        values: [],
       };
   }
 }

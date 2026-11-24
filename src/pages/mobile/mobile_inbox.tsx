@@ -20,6 +20,7 @@
 //
 import type { EmailCategory, InboxEmail, InboxFilterType } from "@/types/email";
 import type { ListReadFilter } from "@/hooks/email_list_types";
+import type { DecryptedFolder } from "@/hooks/use_folders/tree";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -45,6 +46,7 @@ import {
 
 import {
   archive_keeps_row,
+  leaves_view_on_folder_move,
   unarchive_keeps_row,
 } from "@/hooks/view_membership";
 import { NotSpamIcon } from "@/components/email/spam_action_icons";
@@ -58,6 +60,7 @@ import {
 } from "@/components/email/inbox/category_move";
 import { use_category_tab_options } from "@/components/email/inbox/category_move_menu";
 import { MobileCategorySheet } from "@/components/mobile/mobile_category_sheet";
+import { MobileFolderSheet } from "@/components/mobile/mobile_folder_sheet";
 import { use_drafts_list, type DraftListItem } from "@/hooks/use_drafts_list";
 import { use_scheduled_emails } from "@/hooks/use_scheduled_emails";
 import { reschedule_email, send_scheduled_now } from "@/services/api/scheduled";
@@ -75,12 +78,10 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { MobileEmailList } from "@/components/mobile/mobile_email_list";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
-import {
-  ConfirmModal,
-  EmptyTrashModal,
-} from "@/components/email/inbox/inbox_confirmation_dialog";
+import { EmptyTrashModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { use_permanent_delete_confirm } from "@/components/email/use_permanent_delete_confirm";
 import { empty_trash } from "@/services/api/mail";
 import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -261,9 +262,11 @@ function MobileInbox({
   >(null);
   const [show_empty_trash_dialog, set_show_empty_trash_dialog] =
     useState(false);
-  const [permanent_delete_target, set_permanent_delete_target] = useState<
-    InboxEmail[] | null
-  >(null);
+  const {
+    request_permanent_delete,
+    dismiss_permanent_delete,
+    permanent_delete_dialog,
+  } = use_permanent_delete_confirm();
   const [is_emptying_trash, set_is_emptying_trash] = useState(false);
 
   useEffect(() => {
@@ -271,12 +274,13 @@ function MobileInbox({
     set_selected_ids(new Set());
     set_snooze_email_target(null);
     set_scheduled_target_id(null);
-    set_permanent_delete_target(null);
+    dismiss_permanent_delete();
   }, [
     current_view,
     categories.active_category,
     categories.enabled,
     category_page,
+    dismiss_permanent_delete,
   ]);
 
   useEffect(() => {
@@ -663,7 +667,10 @@ function MobileInbox({
       }
 
       if (trashed.length > 0) {
-        set_permanent_delete_target(trashed);
+        request_permanent_delete(async () => {
+          await run_permanent_delete(trashed);
+          exit_selection_mode();
+        });
 
         return;
       }
@@ -682,6 +689,8 @@ function MobileInbox({
     cancel_scheduled_email,
     t,
     run_bulk_action,
+    request_permanent_delete,
+    run_permanent_delete,
   ]);
 
   const handle_bulk_unmark_spam = useCallback(async () => {
@@ -709,15 +718,6 @@ function MobileInbox({
     t,
     run_bulk_action,
   ]);
-
-  const confirm_permanent_delete = useCallback(async () => {
-    const targets = permanent_delete_target;
-
-    if (!targets) return;
-    set_permanent_delete_target(null);
-    await run_permanent_delete(targets);
-    exit_selection_mode();
-  }, [permanent_delete_target, run_permanent_delete, exit_selection_mode]);
 
   const [category_sheet_open, set_category_sheet_open] = useState(false);
   const category_options = use_category_tab_options();
@@ -816,7 +816,7 @@ function MobileInbox({
       }
 
       if (is_list_email_in_trash(email, current_view)) {
-        set_permanent_delete_target([email]);
+        request_permanent_delete(() => run_permanent_delete([email]));
       } else {
         const ok = await actions.delete_email(email);
 
@@ -836,6 +836,8 @@ function MobileInbox({
       schedule_delete_drafts,
       cancel_scheduled_email,
       t,
+      request_permanent_delete,
+      run_permanent_delete,
     ],
   );
 
@@ -924,6 +926,57 @@ function MobileInbox({
     [actions, remove_email, request_spam, is_spam_view, t],
   );
 
+  const [folder_sheet_target, set_folder_sheet_target] =
+    useState<InboxEmail | null>(null);
+
+  const handle_move_to_folder = useCallback((email: InboxEmail) => {
+    set_folder_sheet_target(email);
+  }, []);
+
+  const handle_folder_select = useCallback(
+    async (folder: DecryptedFolder) => {
+      const email = folder_sheet_target;
+
+      set_folder_sheet_target(null);
+      if (!email) return;
+      const previous = email.folders ?? email.labels ?? [];
+      const success = await actions.move_to_folder(email, folder.folder_token);
+
+      if (!success) {
+        show_toast(t("common.failed_to_move_email"), "error");
+
+        return;
+      }
+
+      const leaves =
+        leaves_view_on_folder_move(current_view, folder.folder_token) &&
+        (!current_view.startsWith("folder-") || previous.length === 1);
+
+      if (leaves) {
+        remove_email(email.id);
+
+        return;
+      }
+
+      const kept = previous.length === 1 ? [] : previous;
+      const next_folders = kept.some(
+        (entry) => entry.folder_token === folder.folder_token,
+      )
+        ? kept
+        : [
+            ...kept,
+            {
+              folder_token: folder.folder_token,
+              name: folder.name,
+              color: folder.color,
+            },
+          ];
+
+      update_email(email.id, { folders: next_folders });
+    },
+    [folder_sheet_target, actions, current_view, remove_email, update_email, t],
+  );
+
   const handle_snooze_select = useCallback(
     async (snoozed_until: Date) => {
       if (!snooze_email_target) return;
@@ -963,8 +1016,11 @@ function MobileInbox({
     [scheduled_target_id, scheduled_state.emails],
   );
 
+  const scheduled_target_readable =
+    scheduled_target?.content_verified !== false;
+
   const handle_scheduled_send_now = useCallback(async () => {
-    if (!scheduled_target_id) return;
+    if (!scheduled_target_id || !scheduled_target_readable) return;
     const target_id = scheduled_target_id;
 
     set_scheduled_target_id(null);
@@ -978,7 +1034,7 @@ function MobileInbox({
     show_toast(t("common.email_sent_successfully"), "success");
     emit_scheduled_changed({ action: "sent", email_id: target_id });
     refresh_scheduled();
-  }, [scheduled_target_id, refresh_scheduled, t]);
+  }, [scheduled_target_id, scheduled_target_readable, refresh_scheduled, t]);
 
   const handle_scheduled_cancel = useCallback(async () => {
     if (!scheduled_target_id) return;
@@ -997,7 +1053,7 @@ function MobileInbox({
 
   const handle_scheduled_reschedule = useCallback(
     async (date: Date | null) => {
-      if (!date || !scheduled_target_id) return;
+      if (!date || !scheduled_target_id || !scheduled_target_readable) return;
       const target_id = scheduled_target_id;
 
       set_scheduled_target_id(null);
@@ -1012,7 +1068,7 @@ function MobileInbox({
       emit_scheduled_changed({ action: "updated", email_id: target_id });
       refresh_scheduled();
     },
-    [scheduled_target_id, refresh_scheduled, t],
+    [scheduled_target_id, scheduled_target_readable, refresh_scheduled, t],
   );
 
   const handle_load_more = useCallback(() => {
@@ -1481,6 +1537,14 @@ function MobileInbox({
             on_mark_spam={
               is_drafts_view || is_scheduled_view ? undefined : handle_mark_spam
             }
+            on_move_to_folder={
+              is_drafts_view ||
+              is_scheduled_view ||
+              is_trash_view ||
+              is_spam_view
+                ? undefined
+                : handle_move_to_folder
+            }
             on_refresh={handle_refresh}
             on_snooze={
               is_drafts_view ||
@@ -1588,18 +1652,7 @@ function MobileInbox({
         </div>
       )}
 
-      <ConfirmModal
-        hide_dont_ask
-        confirm_text={t("mail.delete_permanently")}
-        confirm_variant="destructive"
-        description={t("common.action_cannot_be_undone")}
-        dont_ask={false}
-        on_cancel={() => set_permanent_delete_target(null)}
-        on_confirm={() => void confirm_permanent_delete()}
-        on_dont_ask_change={() => undefined}
-        show={!!permanent_delete_target}
-        title={t("mail.delete_permanently_question")}
-      />
+      {permanent_delete_dialog}
 
       <EmptyTrashModal
         is_emptying={is_emptying_trash}
@@ -1681,14 +1734,16 @@ function MobileInbox({
             </div>
           )}
           <div className="space-y-1">
-            <button
-              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start text-[14px] font-medium text-[var(--text-primary)] active:bg-[var(--bg-tertiary)]"
-              type="button"
-              onClick={handle_scheduled_send_now}
-            >
-              {t("common.send_now")}
-            </button>
-            {scheduled_target && (
+            {scheduled_target_readable && (
+              <button
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start text-[14px] font-medium text-[var(--text-primary)] active:bg-[var(--bg-tertiary)]"
+                type="button"
+                onClick={handle_scheduled_send_now}
+              >
+                {t("common.send_now")}
+              </button>
+            )}
+            {scheduled_target && scheduled_target_readable && (
               <SchedulePicker
                 force_picker
                 on_schedule={handle_scheduled_reschedule}
@@ -1714,6 +1769,18 @@ function MobileInbox({
           </div>
         </div>
       </MobileBottomSheet>
+
+      <MobileFolderSheet
+        current_tokens={(
+          folder_sheet_target?.folders ??
+          folder_sheet_target?.labels ??
+          []
+        ).map((entry) => entry.folder_token)}
+        folders={folders_state.folders}
+        is_open={folder_sheet_target !== null}
+        on_close={() => set_folder_sheet_target(null)}
+        on_select={(folder) => void handle_folder_select(folder)}
+      />
 
       <MobileCategorySheet
         is_open={category_sheet_open && selection_mode}

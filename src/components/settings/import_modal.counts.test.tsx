@@ -30,6 +30,7 @@ const stored_ids: string[] = [];
 const created_folders: string[] = [];
 const created_tags: string[] = [];
 const stored_tag_tokens = new Map<string, string[]>();
+const stored_flags = new Map<string, Record<string, boolean | undefined>>();
 const duplicate_hashes = new Set<string>();
 
 vi.mock("@/contexts/auth_context", () => ({
@@ -106,11 +107,22 @@ vi.mock("@/services/api/email_import", () => ({
   store_imported_emails: vi.fn(
     async (
       _job: string,
-      batch: { message_id_hash: string; tag_tokens?: string[] }[],
+      batch: {
+        message_id_hash: string;
+        tag_tokens?: string[];
+        is_trashed?: boolean;
+        is_spam?: boolean;
+        is_archived?: boolean;
+      }[],
     ) => {
       for (const item of batch) {
         stored_ids.push(item.message_id_hash);
         stored_tag_tokens.set(item.message_id_hash, item.tag_tokens ?? []);
+        stored_flags.set(item.message_id_hash, {
+          is_trashed: item.is_trashed,
+          is_spam: item.is_spam,
+          is_archived: item.is_archived,
+        });
       }
 
       return {
@@ -192,6 +204,7 @@ describe("ImportModal skip counts and Gmail labels (integration)", () => {
     created_folders.length = 0;
     created_tags.length = 0;
     stored_tag_tokens.clear();
+    stored_flags.clear();
     duplicate_hashes.clear();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -322,5 +335,124 @@ describe("ImportModal skip counts and Gmail labels (integration)", () => {
 
     expect(text).toContain('settings.import_drafts_chats_skipped {"count":2}');
     expect(text).not.toContain("settings.duplicates_skipped");
+  });
+
+  async function select_mbox(mbox: string): Promise<void> {
+    await act(async () => {
+      root.render(<ImportModal is_open on_close={() => {}} provider="mbox" />);
+    });
+
+    const file_input = container.querySelector(
+      'input[type="file"]:not([webkitdirectory])',
+    ) as HTMLInputElement;
+
+    Object.defineProperty(file_input, "files", {
+      configurable: true,
+      value: [new File([mbox], "takeout.mbox")],
+    });
+
+    await act(async () => {
+      file_input.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
+
+  async function wait_for(text: string): Promise<void> {
+    for (let i = 0; i < 200 && !container.textContent?.includes(text); i++) {
+      await flush();
+    }
+  }
+
+  async function press(label: string, role = "button"): Promise<void> {
+    const target = Array.from(
+      container.querySelectorAll<HTMLElement>(`[role="${role}"], button`),
+    ).find((node) => node.textContent?.includes(label));
+
+    expect(target).toBeDefined();
+    await act(async () => {
+      target!.click();
+    });
+  }
+
+  const trash_mbox = () =>
+    mbox_message("kept", "Inbox,Opened") +
+    mbox_message("deleted-1", "Trash,Opened") +
+    mbox_message("deleted-2", "Trash") +
+    mbox_message("junk", "Spam");
+
+  it("asks before importing Trash and moves it to Archive by default", async () => {
+    await select_mbox(trash_mbox());
+    await wait_for("settings.import_review_start");
+
+    const text = container.textContent ?? "";
+
+    expect(stored_ids).toEqual([]);
+    expect(text).toContain('settings.import_review_ready {"count":4}');
+    expect(text).toContain('settings.import_review_trash_found {"count":2}');
+    expect(text).toContain('settings.import_review_spam_note {"count":1}');
+
+    await press("settings.import_review_start");
+    await wait_for("common.import_complete");
+
+    expect(stored_ids.sort()).toEqual(
+      [
+        "deleted-1@example.com",
+        "deleted-2@example.com",
+        "junk@example.com",
+        "kept@example.com",
+      ].sort(),
+    );
+    expect(stored_flags.get("deleted-1@example.com")).toEqual({
+      is_trashed: undefined,
+      is_spam: undefined,
+      is_archived: true,
+    });
+    expect(stored_flags.get("junk@example.com")?.is_spam).toBe(true);
+    expect(stored_flags.get("kept@example.com")?.is_archived).toBeUndefined();
+    expect(container.textContent).toContain(
+      'settings.import_trash_archived {"count":2}',
+    );
+  });
+
+  it("keeps Trash in Trash when you pick it", async () => {
+    await select_mbox(trash_mbox());
+    await wait_for("settings.import_review_start");
+    await press("settings.import_trash_mode_trash", "radio");
+    await press("settings.import_review_start");
+    await wait_for("common.import_complete");
+
+    expect(stored_flags.get("deleted-2@example.com")?.is_trashed).toBe(true);
+    expect(container.textContent).toContain(
+      'settings.import_trash_kept {"count":2}',
+    );
+  });
+
+  it("leaves Trash out when you pick skip", async () => {
+    await select_mbox(trash_mbox());
+    await wait_for("settings.import_review_start");
+    await press("settings.import_trash_mode_skip", "radio");
+    await press("settings.import_review_start");
+    await wait_for("common.import_complete");
+
+    expect(stored_ids.sort()).toEqual(
+      ["junk@example.com", "kept@example.com"].sort(),
+    );
+    expect(container.textContent).toContain(
+      'settings.import_trash_skipped {"count":2}',
+    );
+    expect(update_import_job).toHaveBeenLastCalledWith("job-1", {
+      status: "completed",
+      processed_emails: 2,
+      skipped_emails: 2,
+      failed_emails: 0,
+    });
+  });
+
+  it("goes back to file selection without importing", async () => {
+    await select_mbox(trash_mbox());
+    await wait_for("settings.import_review_start");
+    await press("common.back");
+
+    expect(stored_ids).toEqual([]);
+    expect(container.textContent).not.toContain("settings.import_review_start");
   });
 });

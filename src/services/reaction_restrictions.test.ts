@@ -22,7 +22,10 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { describe, expect, it } from "vitest";
 
-import { reaction_restriction } from "./reaction_restrictions";
+import {
+  own_reaction_count,
+  reaction_restriction,
+} from "./reaction_restrictions";
 
 const me = "me@astermail.org";
 
@@ -175,6 +178,23 @@ describe("reaction_restriction", () => {
     });
 
     expect(reaction_restriction(message, me, true)).toBe("reaction_limit");
+  });
+
+  it("allows a second emoji after reacting to mail you sent yourself", () => {
+    const message = build_message({
+      sender_email: me,
+      reactions: ["inbox_copy", "sent_copy"].map((id) => ({
+        reaction_mail_item_id: id,
+        source: "internal" as const,
+        emoji: "\u{1f44d}\u{1f3fd}",
+        reactor_email: me,
+        is_own: id === "sent_copy",
+        created_at: new Date(0).toISOString(),
+      })),
+    });
+
+    expect(own_reaction_count(message, me)).toBe(1);
+    expect(reaction_restriction(message, me, true)).toBeNull();
   });
 
   it("does not count other people's reactions toward your limit", () => {

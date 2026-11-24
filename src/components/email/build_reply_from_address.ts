@@ -71,7 +71,10 @@ export function resolve_own_recipient_address(
   for (const raw of recipient_emails) {
     const email = raw?.trim();
 
-    if (email && own.has(normalize_address_ignoring_dots(email))) return email;
+    if (!email) continue;
+    if (own.has(normalize_address_ignoring_dots(email))) return email;
+    if (own.has(normalize_address_ignoring_dots(strip_plus_tag(email))))
+      return email;
   }
 
   return undefined;
@@ -97,14 +100,10 @@ export function is_reply_from_mismatch(
   received_on_alias: string | undefined,
   selected_sender_email: string | undefined,
 ): boolean {
-  const received = received_on_alias?.trim().toLowerCase();
+  if (!received_on_alias?.trim()) return false;
+  if (!selected_sender_email?.trim()) return false;
 
-  if (!received) return false;
-  const selected = selected_sender_email?.trim().toLowerCase();
-
-  if (!selected) return false;
-
-  return selected !== received;
+  return !same_sender_identity(received_on_alias, selected_sender_email);
 }
 
 export interface ReplyFromUndeterminedInput {
@@ -146,6 +145,10 @@ export function collect_recipient_emails(
   return out;
 }
 
-import { normalize_address_ignoring_dots } from "@/utils/address_dots";
+import {
+  normalize_address_ignoring_dots,
+  same_sender_identity,
+  strip_plus_tag,
+} from "@/utils/address_dots";
 import { catch_all_reply_address } from "@/services/catch_all_sender";
 import { extract_delivered_to } from "@/utils/delivered_to";

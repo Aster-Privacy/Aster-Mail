@@ -299,3 +299,25 @@ describe("desktop crypto shim key rules", () => {
     expect(shim.calls).toEqual(["crypto_pbkdf2"]);
   });
 });
+
+describe("desktop crypto shim runtime check", () => {
+  it("leaves web crypto alone when the desktop global is only inherited", () => {
+    const native = async () => {
+      throw new Error("native");
+    };
+    const subtle = { importKey: native, digest: native };
+    const inherited_window = Object.create({
+      __TAURI_INTERNALS__: Object.create(null),
+    });
+    const run = new Function("window", "navigator", "crypto", SHIM_SOURCE);
+
+    run(
+      inherited_window,
+      { userAgent: "Mozilla/5.0 (Macintosh)", plugins: [1] },
+      { subtle, getRandomValues: (array: Uint8Array) => array },
+    );
+
+    expect(subtle.importKey).toBe(native);
+    expect(subtle.digest).toBe(native);
+  });
+});

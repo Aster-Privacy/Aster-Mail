@@ -44,15 +44,34 @@ import { ContactBirthdayInput } from "@/components/contacts/contact_birthday_inp
 import {
   EMAIL_TYPE_OPTIONS,
   PHONE_TYPE_OPTIONS,
+  SOCIAL_TYPE_OPTIONS,
 } from "@/components/common/contacts/contact_detail_panel/helpers";
+import {
+  MAX_SOCIAL_LABEL_LENGTH,
+  MAX_SOCIAL_NETWORKS,
+  MAX_SOCIAL_VALUE_LENGTH,
+  is_legacy_social_link_type,
+} from "@/utils/contact_socials";
+
+const MOBILE_SOCIAL_OPTIONS = SOCIAL_TYPE_OPTIONS.filter(
+  (option) => !is_legacy_social_link_type(option),
+);
 
 import {
   MobileAddressList,
+  MobileRelationList,
   MobileTypedEntryList,
 } from "./mobile_contact_entry_fields";
 
 export type ContactEntryPatch = Partial<
-  Pick<ContactFormData, "email_entries" | "phone_entries" | "address_entries">
+  Pick<
+    ContactFormData,
+    | "email_entries"
+    | "phone_entries"
+    | "address_entries"
+    | "related_people"
+    | "social_networks"
+  >
 >;
 
 export type CreateTab = "basic" | "details" | "address" | "social";
@@ -305,6 +324,18 @@ export function ContactFormView({
                 />
               </FormSection>
               <FormSection
+                icon={<UsersIcon className="h-4 w-4" />}
+                label={t("common.relations")}
+              >
+                <MobileRelationList
+                  entries={form_data.related_people ?? []}
+                  on_change={(next) =>
+                    on_update_entries({ related_people: next })
+                  }
+                  t={t}
+                />
+              </FormSection>
+              <FormSection
                 icon={<BuildingOfficeIcon className="h-4 w-4" />}
                 label={t("common.company")}
               >
@@ -407,6 +438,29 @@ export function ContactFormView({
                   on_change={(v) => on_update_social("github", v)}
                   placeholder={t("common.github")}
                   value={form_data.social_links?.github ?? ""}
+                />
+                <MobileTypedEntryList
+                  default_type="other"
+                  entries={(form_data.social_networks ?? []).filter(
+                    (entry) => !is_legacy_social_link_type(entry.type),
+                  )}
+                  input_type="text"
+                  label_max_length={MAX_SOCIAL_LABEL_LENGTH}
+                  max_rows={MAX_SOCIAL_NETWORKS}
+                  on_change={(next) =>
+                    on_update_entries({
+                      social_networks: [
+                        ...(form_data.social_networks ?? []).filter((entry) =>
+                          is_legacy_social_link_type(entry.type),
+                        ),
+                        ...next,
+                      ],
+                    })
+                  }
+                  options={MOBILE_SOCIAL_OPTIONS}
+                  placeholder={t("common.social_link_placeholder")}
+                  t={t}
+                  value_max_length={MAX_SOCIAL_VALUE_LENGTH}
                 />
               </FormSection>
             </motion.div>

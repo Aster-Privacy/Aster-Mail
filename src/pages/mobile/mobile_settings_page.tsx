@@ -20,6 +20,7 @@
 //
 
 import type { SettingsSection } from "./settings/shared";
+import type { SettingsSearchHit } from "@/components/settings/use_settings_search";
 
 import {
   ChevronRightIcon,
@@ -95,6 +96,10 @@ import { DeveloperSection } from "./settings/developer_section";
 import { FamilySection } from "./settings/family_section";
 import { ConnectionSection } from "./settings/connection_section";
 import { AliasDirectoriesSection } from "./settings/alias_directories_section";
+import {
+  MobileSettingsSearch,
+  is_settings_search_active,
+} from "./settings/mobile_settings_search";
 import { SettingsSaveIndicatorInline } from "@/components/settings/settings_save_indicator";
 import { format_bytes } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -103,6 +108,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_primary_identity } from "@/lib/primary_identity";
 import { use_referral_summary } from "@/hooks/use_referral_summary";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -117,6 +123,10 @@ import {
 import { refresh_family_plan_flag } from "@/services/api/family";
 import { ignore_error } from "@/lib/ignore_error";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
+import {
+  highlight_settings_target,
+  start_scroll_seek,
+} from "@/components/settings/settings_scroll_target";
 
 const StorageSection = lazy_with_retry(() =>
   import("./settings/storage_section").then((m) => ({
@@ -140,6 +150,9 @@ const BillingSection = lazy_with_retry(() =>
   })),
 );
 
+const SECTION_WAIT_INTERVAL_MS = 100;
+const SECTION_WAIT_ATTEMPTS = 40;
+
 function SectionFallback() {
   return (
     <div className="flex h-full min-h-0 w-full flex-1 items-center justify-center">
@@ -159,6 +172,7 @@ function MobileSettingsPage() {
         })
       : null;
   const { user, logout, current_account_id } = use_auth();
+  const primary_identity = use_primary_identity(user?.email ?? "");
   const { stats } = use_mail_stats();
   const { preferences } = use_preferences();
   const { limits } = use_plan_limits();
@@ -177,6 +191,9 @@ function MobileSettingsPage() {
     () => localStorage.getItem("aster_is_family_plan") === "1",
   );
   const section_ref = useRef<SettingsSection | null>(null);
+  const [search_query, set_search_query] = useState("");
+  const [scroll_request, set_scroll_request] = useState<string | null>(null);
+  const is_searching = is_settings_search_active(search_query);
 
   useEffect(() => {
     let cancelled = false;
@@ -261,6 +278,54 @@ function MobileSettingsPage() {
       open_section(initial_section as SettingsSection);
     }
   }, []);
+
+  const open_search_hit = useCallback(
+    (hit: SettingsSearchHit, target: SettingsSection) => {
+      set_search_query("");
+      set_scroll_request(hit.label);
+      open_section(
+        resolve_mobile_section_tab(hit.entry.section)
+          ? (hit.entry.section as SettingsSection)
+          : target,
+      );
+    },
+    [open_section],
+  );
+
+  useEffect(() => {
+    if (!section || !scroll_request) return;
+    let cancel_seek: (() => void) | null = null;
+    let attempts = 0;
+
+    const timer = setInterval(() => {
+      attempts += 1;
+      const container = document.querySelector<HTMLElement>(
+        "[data-settings-section]",
+      );
+
+      if (!container && attempts < SECTION_WAIT_ATTEMPTS) return;
+      clearInterval(timer);
+      if (!container) {
+        set_scroll_request(null);
+
+        return;
+      }
+      cancel_seek = start_scroll_seek(container, scroll_request, (target) => {
+        set_scroll_request(null);
+        if (!target) return;
+        target.scrollIntoView({
+          block: "center",
+          behavior: reduce_motion ? "auto" : "smooth",
+        });
+        highlight_settings_target(target);
+      });
+    }, SECTION_WAIT_INTERVAL_MS);
+
+    return () => {
+      clearInterval(timer);
+      cancel_seek?.();
+    };
+  }, [section, scroll_request, reduce_motion]);
 
   const navigate_section = useCallback((s: SettingsSection) => {
     section_ref.current = s;
@@ -464,406 +529,424 @@ function MobileSettingsPage() {
             />
 
             <div className="flex-1 overflow-y-auto pb-12">
-              <div className="px-4 pt-3 pb-1">
-                <button
-                  className="flex w-full items-center gap-3.5 rounded-[16px] bg-[var(--mobile-bg-card)] px-4 py-3.5 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("account")}
-                >
-                  <span
-                    className={
-                      is_paid_plan ? "plan_ring" : "inline-flex leading-none"
-                    }
-                  >
-                    <ProfileAvatar
-                      email={user?.email ?? ""}
-                      image_url={user?.profile_picture}
-                      name={user?.display_name ?? ""}
-                      profile_color={
-                        user?.profile_color || preferences.profile_color
-                      }
-                      size="xl"
-                    />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[16px] font-semibold text-[var(--text-primary)]">
-                      {user?.display_name ?? user?.username ?? ""}
-                    </p>
-                    <p className="truncate text-[13px] text-[var(--text-muted)]">
-                      {user?.email ?? ""}
-                    </p>
-                  </div>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
+              <MobileSettingsSearch
+                dev_mode_enabled={dev_mode_enabled}
+                has_devices={has_devices}
+                is_family_plan={is_family_plan}
+                query={search_query}
+                on_query_change={set_search_query}
+                on_select={open_search_hit}
+              />
+              {!is_searching && (
+                <>
+                  <div className="px-4 pt-3 pb-1">
+                    <button
+                      className="flex w-full items-center gap-3.5 rounded-[16px] bg-[var(--mobile-bg-card)] px-4 py-3.5 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("account")}
+                    >
+                      <span
+                        className={
+                          is_paid_plan
+                            ? "plan_ring"
+                            : "inline-flex leading-none"
+                        }
+                      >
+                        <ProfileAvatar
+                          email={user?.email ?? ""}
+                          image_url={user?.profile_picture}
+                          name={user?.display_name ?? ""}
+                          profile_color={
+                            user?.profile_color || preferences.profile_color
+                          }
+                          size="xl"
+                        />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[16px] font-semibold text-[var(--text-primary)]">
+                          {user?.display_name ?? user?.username ?? ""}
+                        </p>
+                        <p className="truncate text-[13px] text-[var(--text-muted)]">
+                          {primary_identity.email || (user?.email ?? "")}
+                        </p>
+                      </div>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
 
-                <div className="mt-2.5 rounded-xl bg-[var(--mobile-bg-card)] px-3.5 py-3">
-                  <div className="flex items-center justify-between text-[12px]">
-                    <span className="text-[var(--mobile-text-secondary)]">
-                      {format_bytes(stats.storage_used_bytes)}
-                    </span>
-                    <span className="text-[var(--mobile-text-muted)]">
-                      {stats.storage_total_bytes > 0
-                        ? format_bytes(stats.storage_total_bytes)
-                        : "---"}
-                    </span>
+                    <div className="mt-2.5 rounded-xl bg-[var(--mobile-bg-card)] px-3.5 py-3">
+                      <div className="flex items-center justify-between text-[12px]">
+                        <span className="text-[var(--mobile-text-secondary)]">
+                          {format_bytes(stats.storage_used_bytes)}
+                        </span>
+                        <span className="text-[var(--mobile-text-muted)]">
+                          {stats.storage_total_bytes > 0
+                            ? format_bytes(stats.storage_total_bytes)
+                            : "---"}
+                        </span>
+                      </div>
+                      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--mobile-bg-card-hover)]">
+                        <div
+                          className="h-full rounded-full bg-[var(--mobile-accent)] transition-all"
+                          style={{
+                            width: `${stats.storage_total_bytes > 0 ? Math.min(Math.round((stats.storage_used_bytes / stats.storage_total_bytes) * 100), 100) : 0}%`,
+                          }}
+                        />
+                      </div>
+                      <button
+                        className="mt-2.5 w-full rounded-[14px] py-2 text-[13px] font-semibold text-white"
+                        style={{
+                          background:
+                            "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
+                          boxShadow:
+                            "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+                        }}
+                        type="button"
+                        onClick={() => open_section("billing")}
+                      >
+                        {t("common.upgrade")}
+                      </button>
+                    </div>
                   </div>
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--mobile-bg-card-hover)]">
-                    <div
-                      className="h-full rounded-full bg-[var(--mobile-accent)] transition-all"
+
+                  <SettingsGroup title={t("settings.general")}>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("appearance")}
+                    >
+                      <SwatchIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.appearance")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("accessibility")}
+                    >
+                      <EyeIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.accessibility")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                  </SettingsGroup>
+
+                  <SettingsGroup title={t("settings.security")}>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("security")}
+                    >
+                      <ShieldCheckIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.security")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("encryption")}
+                    >
+                      <KeyIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.encryption")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    {has_devices && (
+                      <button
+                        className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                        type="button"
+                        onClick={() => open_section("trusted_devices")}
+                      >
+                        <ComputerDesktopIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                        <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                          {t("settings.trusted_devices")}
+                        </span>
+                        <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                      </button>
+                    )}
+                  </SettingsGroup>
+
+                  <SettingsGroup title={t("settings.aliases_and_domains")}>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("aliases")}
+                    >
+                      <AtSymbolIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.alias_tab_aliases")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("domains")}
+                    >
+                      <GlobeAltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.alias_tab_domains")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("ghost_aliases")}
+                    >
+                      <EyeSlashIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.ghost_aliases")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("alias_directories")}
+                    >
+                      <FolderIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.alias_directories_title")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                  </SettingsGroup>
+
+                  <SettingsGroup title={t("settings.billing")}>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("storage")}
+                    >
+                      <CircleStackIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.storage")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("billing")}
+                    >
+                      <CreditCardIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.billing")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("referral")}
+                    >
+                      <UserGroupIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.invite_friends")}
+                      </span>
+                      {referral_hint && (
+                        <span className="shrink-0 text-[13px] tabular-nums text-[var(--text-muted)]">
+                          {referral_hint}
+                        </span>
+                      )}
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    {is_family_plan && (
+                      <button
+                        className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                        type="button"
+                        onClick={() => open_section("family")}
+                      >
+                        <HomeModernIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                        <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                          {t("settings.family_plan_title")}
+                        </span>
+                        <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                      </button>
+                    )}
+                  </SettingsGroup>
+
+                  <SettingsGroup title={t("settings.mail_section")}>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("notifications")}
+                    >
+                      <BellIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.notifications")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("behavior")}
+                    >
+                      <AdjustmentsHorizontalIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.behavior")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("signatures")}
+                    >
+                      <PencilSquareIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.signature")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("templates")}
+                    >
+                      <DocumentTextIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.templates")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("sender_filters")}
+                    >
+                      <FunnelIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.mail_management")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("mail_rules")}
+                    >
+                      <BoltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("mail_rules.title")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                  </SettingsGroup>
+
+                  <SettingsGroup title={t("settings.advanced")}>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("import")}
+                    >
+                      <ArrowDownTrayIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("common.import")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("external_accounts")}
+                    >
+                      <ServerStackIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.external_accounts")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("connection")}
+                    >
+                      <SignalIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t(
+                          "settings.connection.title" as Parameters<
+                            typeof t
+                          >[0],
+                        )}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("bridge")}
+                    >
+                      <ArrowsRightLeftIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.bridge")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("about")}
+                    >
+                      <InformationCircleIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.about")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                      type="button"
+                      onClick={() => open_section("feedback")}
+                    >
+                      <ChatBubbleBottomCenterTextIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                        {t("settings.feedback")}
+                      </span>
+                      <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                    </button>
+                    {dev_mode_enabled && (
+                      <button
+                        className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
+                        type="button"
+                        onClick={() => open_section("developer")}
+                      >
+                        <CodeBracketIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                        <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
+                          {t("settings.developer")}
+                        </span>
+                        <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
+                      </button>
+                    )}
+                  </SettingsGroup>
+
+                  <div className="px-4 pt-4 pb-2">
+                    <motion.button
+                      className="flex w-full items-center justify-center gap-2.5 rounded-2xl px-4 py-3.5 text-white active:opacity-90"
                       style={{
-                        width: `${stats.storage_total_bytes > 0 ? Math.min(Math.round((stats.storage_used_bytes / stats.storage_total_bytes) * 100), 100) : 0}%`,
+                        background:
+                          "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
+                        boxShadow:
+                          "0 2px 4px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
                       }}
-                    />
+                      type="button"
+                      onClick={handle_logout}
+                    >
+                      <ArrowRightStartOnRectangleIcon className="h-5 w-5 shrink-0" />
+                      <span className="text-[16px] font-semibold">
+                        {t("auth.sign_out")}
+                      </span>
+                    </motion.button>
                   </div>
-                  <button
-                    className="mt-2.5 w-full rounded-[14px] py-2 text-[13px] font-semibold text-white"
-                    style={{
-                      background:
-                        "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                      boxShadow:
-                        "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                    }}
-                    type="button"
-                    onClick={() => open_section("billing")}
-                  >
-                    {t("common.upgrade")}
-                  </button>
-                </div>
-              </div>
-
-              <SettingsGroup title={t("settings.general")}>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("appearance")}
-                >
-                  <SwatchIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.appearance")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("accessibility")}
-                >
-                  <EyeIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.accessibility")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-              </SettingsGroup>
-
-              <SettingsGroup title={t("settings.security")}>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("security")}
-                >
-                  <ShieldCheckIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.security")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("encryption")}
-                >
-                  <KeyIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.encryption")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                {has_devices && (
-                  <button
-                    className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                    type="button"
-                    onClick={() => open_section("trusted_devices")}
-                  >
-                    <ComputerDesktopIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                    <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                      {t("settings.trusted_devices")}
-                    </span>
-                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                  </button>
-                )}
-              </SettingsGroup>
-
-              <SettingsGroup title={t("settings.aliases_and_domains")}>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("aliases")}
-                >
-                  <AtSymbolIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.alias_tab_aliases")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("domains")}
-                >
-                  <GlobeAltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.alias_tab_domains")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("ghost_aliases")}
-                >
-                  <EyeSlashIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.ghost_aliases")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("alias_directories")}
-                >
-                  <FolderIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.alias_directories_title")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-              </SettingsGroup>
-
-              <SettingsGroup title={t("settings.billing")}>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("storage")}
-                >
-                  <CircleStackIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.storage")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("billing")}
-                >
-                  <CreditCardIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.billing")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("referral")}
-                >
-                  <UserGroupIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.invite_friends")}
-                  </span>
-                  {referral_hint && (
-                    <span className="shrink-0 text-[13px] tabular-nums text-[var(--text-muted)]">
-                      {referral_hint}
-                    </span>
-                  )}
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                {is_family_plan && (
-                  <button
-                    className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                    type="button"
-                    onClick={() => open_section("family")}
-                  >
-                    <HomeModernIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                    <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                      {t("settings.family_plan_title")}
-                    </span>
-                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                  </button>
-                )}
-              </SettingsGroup>
-
-              <SettingsGroup title={t("settings.mail_section")}>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("notifications")}
-                >
-                  <BellIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.notifications")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("behavior")}
-                >
-                  <AdjustmentsHorizontalIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.behavior")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("signatures")}
-                >
-                  <PencilSquareIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.signature")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("templates")}
-                >
-                  <DocumentTextIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.templates")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("sender_filters")}
-                >
-                  <FunnelIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.mail_management")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("mail_rules")}
-                >
-                  <BoltIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("mail_rules.title")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-              </SettingsGroup>
-
-              <SettingsGroup title={t("settings.advanced")}>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("import")}
-                >
-                  <ArrowDownTrayIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("common.import")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("external_accounts")}
-                >
-                  <ServerStackIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.external_accounts")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("connection")}
-                >
-                  <SignalIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.connection.title" as Parameters<typeof t>[0])}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("bridge")}
-                >
-                  <ArrowsRightLeftIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.bridge")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("about")}
-                >
-                  <InformationCircleIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.about")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                  type="button"
-                  onClick={() => open_section("feedback")}
-                >
-                  <ChatBubbleBottomCenterTextIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                  <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                    {t("settings.feedback")}
-                  </span>
-                  <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                </button>
-                {dev_mode_enabled && (
-                  <button
-                    className="flex w-full items-center gap-3 px-4 py-3 text-start active:opacity-80"
-                    type="button"
-                    onClick={() => open_section("developer")}
-                  >
-                    <CodeBracketIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-                    <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
-                      {t("settings.developer")}
-                    </span>
-                    <ChevronRightIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
-                  </button>
-                )}
-              </SettingsGroup>
-
-              <div className="px-4 pt-4 pb-2">
-                <motion.button
-                  className="flex w-full items-center justify-center gap-2.5 rounded-2xl px-4 py-3.5 text-white active:opacity-90"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                  type="button"
-                  onClick={handle_logout}
-                >
-                  <ArrowRightStartOnRectangleIcon className="h-5 w-5 shrink-0" />
-                  <span className="text-[16px] font-semibold">
-                    {t("auth.sign_out")}
-                  </span>
-                </motion.button>
-              </div>
+                </>
+              )}
             </div>
           </motion.div>
         )}

@@ -131,7 +131,7 @@ describe("ExternalAccountsSection", () => {
     navigate_spy.mockClear();
     open_add_form_spy.mockClear();
     location_state = null;
-    plan_limits = { limits: { max_multi_accounts: { limit: 5 } } };
+    plan_limits = { limits: { max_external_accounts: { limit: 5 } } };
     hook_state = base_state();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -176,11 +176,26 @@ describe("ExternalAccountsSection", () => {
 
   it("does not open the form when the account limit is reached", async () => {
     location_state = { open_external_account_form: true };
-    plan_limits = { limits: { max_multi_accounts: { limit: 1 } } };
+    plan_limits = { limits: { max_external_accounts: { limit: 1 } } };
     hook_state = base_state({ accounts: [{ id: "a" }] });
 
     await render_section();
 
     expect(open_add_form_spy).not.toHaveBeenCalled();
+  });
+
+  it("does not count send-only accounts against the synced limit", async () => {
+    location_state = { open_external_account_form: true };
+    plan_limits = {
+      limits: {
+        max_external_accounts: { limit: 1 },
+        max_send_only_accounts: { limit: 1 },
+      },
+    };
+    hook_state = base_state({ accounts: [{ id: "a", mode: "send_only" }] });
+
+    await render_section();
+
+    expect(open_add_form_spy).toHaveBeenCalledTimes(1);
   });
 });

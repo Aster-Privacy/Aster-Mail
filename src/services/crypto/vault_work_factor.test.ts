@@ -36,9 +36,11 @@ import {
   mark_level2_admitted,
   reset_level2_state,
 } from "./vault_level2";
+import { pin_vault_generation } from "./vault_generation";
 
 const USER_ID = "user-1";
 const VAULT = { identity_key: "id", data_kek: "kek" } as unknown as EncryptedVault;
+const RAISED = { ...VAULT, vault_kdf_floor: 600000 } as EncryptedVault;
 
 function memory_store() {
   const map = new Map<string, string>();
@@ -108,6 +110,7 @@ const clock = { now: 1_000_000 };
 beforeEach(() => {
   reset_level2_state();
   clock.now = 1_000_000;
+  localStorage.clear();
 });
 
 describe("upgrade_vault_work_factor", () => {
@@ -116,7 +119,7 @@ describe("upgrade_vault_work_factor", () => {
     const { deps, put_vault, encrypt, on_written } = make_deps(null);
 
     expect(await upgrade_vault_work_factor(USER_ID, deps)).toBe("upgraded");
-    expect(encrypt).toHaveBeenCalledWith(VAULT, "pass", 600000);
+    expect(encrypt).toHaveBeenCalledWith(RAISED, "pass", 600000);
 
     const body = (put_vault.mock.calls[0] as unknown[] | undefined)?.[0] as Record<string, unknown>;
 
@@ -125,7 +128,7 @@ describe("upgrade_vault_work_factor", () => {
     expect(body.expected_user_id).toBe(USER_ID);
     expect(body.vault_format).toBe(3);
     expect(String(body.encrypted_vault)).toBe(
-      `sealed-600000:${JSON.stringify(VAULT)}`,
+      `sealed-600000:${JSON.stringify(RAISED)}`,
     );
     expect(known_vault_kdf_iterations(String(body.encrypted_vault))).toBe(600000);
     expect(on_written).toHaveBeenCalledTimes(1);
@@ -145,6 +148,21 @@ describe("upgrade_vault_work_factor", () => {
     expect(await upgrade_vault_work_factor(USER_ID, deps)).toBe("upgraded");
     expect(put_vault).toHaveBeenCalledTimes(2);
     expect(server.iterations).toBe(600000);
+  });
+
+  it("leaves a server vault older than the pinned generation alone", async () => {
+    mark_level2_admitted();
+    pin_vault_generation(USER_ID, {
+      ...VAULT,
+      vault_generation: 5,
+      vault_generation_ready: true,
+    });
+    const { deps, put_vault, encrypt, on_written } = make_deps(null);
+
+    expect(await upgrade_vault_work_factor(USER_ID, deps)).toBe("failed");
+    expect(encrypt).not.toHaveBeenCalled();
+    expect(put_vault).not.toHaveBeenCalled();
+    expect(on_written).not.toHaveBeenCalled();
   });
 
   it("does nothing when the account is not admitted", async () => {
@@ -192,6 +210,54 @@ describe("upgrade_vault_work_factor", () => {
     expect(await upgrade_vault_work_factor(USER_ID, deps)).toBe("refused");
     expect(put_vault).toHaveBeenCalledTimes(1);
     expect(get_level2_admission()).toBe("refused");
+  });
+
+  it("upgrades a 310k vault the server labels as 600k", async () => {
+    mark_level2_admitted();
+    const { deps, put_vault } = make_deps(600000);
+
+    deps.decrypt = vi.fn(
+      async (encrypted: string, _nonce: string, _pw: string, it: number) => {
+        if (encrypted.startsWith("sealed-")) {
+          return JSON.parse(
+            encrypted.slice(encrypted.indexOf(":") + 1),
+          ) as EncryptedVault;
+        }
+        if (it !== 310000) throw new Error("wrong work factor");
+
+        return VAULT;
+      },
+    ) as unknown as VaultWorkFactorDeps["decrypt"];
+
+    expect(await upgrade_vault_work_factor(USER_ID, deps)).toBe("upgraded");
+    expect(put_vault).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a downgrade when the server refuses after the vault reached 600k", async () => {
+    mark_level2_admitted();
+    const { deps } = make_deps(310000, () => ({
+      error: "not admitted",
+      status: 409,
+      server_code: "VAULT_LEVEL2_NOT_ADMITTED",
+    }));
+
+    deps.decrypt = vi.fn(async () => RAISED) as unknown as VaultWorkFactorDeps["decrypt"];
+
+    expect(await upgrade_vault_work_factor(USER_ID, deps)).toBe("downgraded");
+    expect(get_level2_admission()).toBe("admitted");
+  });
+
+  it("keeps upgrading on this device after admission is withdrawn", async () => {
+    mark_level2_admitted();
+    const { deps, put_vault, server } = make_deps(310000);
+
+    expect(await upgrade_vault_work_factor(USER_ID, deps)).toBe("upgraded");
+
+    reset_level2_state();
+    server.iterations = 310000;
+
+    expect(await upgrade_vault_work_factor(USER_ID, deps)).toBe("upgraded");
+    expect(put_vault).toHaveBeenCalledTimes(2);
   });
 
   it("skips the write when the vault hash is missing", async () => {

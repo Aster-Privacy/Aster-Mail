@@ -82,7 +82,7 @@ export function UpdateBanner() {
   };
 
   return (
-    <div className="pointer-events-none fixed bottom-4 end-4 z-[9999]">
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[9999] flex justify-center px-4">
       <AnimatePresence>
         {visible && info && (
           <motion.div
@@ -103,7 +103,6 @@ export function UpdateBanner() {
           >
             <UpdateCard
               install={state}
-              notes={info.notes}
               on_dismiss={handle_dismiss}
               on_install={() => void start()}
               version={info.version}

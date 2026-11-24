@@ -60,6 +60,7 @@ export interface DecryptedThreadMessage {
   e2e_details_sealed?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
   has_recipient_key?: boolean;
+  decrypted_content_tag?: string;
   is_sending?: boolean;
   send_status?: string;
   send_error?: string;

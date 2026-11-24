@@ -248,7 +248,7 @@ describe("decimal comma amounts", () => {
     ["Total: $1,234,567", 1234567],
     ["Total: $12.30", 12.3],
     ["Total: ₹1,00,000.00", 100000],
-    ["Total: $1.234", 1],
+    ["Total: $1.234", 1234],
   ])("reads %s as %d", (body, expected) => {
     const result = extract_purchase_details(
       "Your receipt",

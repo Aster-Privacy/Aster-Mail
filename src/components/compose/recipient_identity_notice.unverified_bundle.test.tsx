@@ -29,6 +29,7 @@ const h = vi.hoisted(() => ({
   verdict: "tampered" as string,
   trusted: [] as Array<[string, string | null, string | null, unknown]>,
   listeners: [] as Array<() => void>,
+  toasts: [] as string[],
   bundle: {
     kem_identity_key: "kem",
     signed_prekey: "spk",
@@ -123,7 +124,14 @@ vi.mock("@/services/crypto/ratchet_verification_status", () => ({
   },
 }));
 
+vi.mock("@/components/toast/simple_toast", () => ({
+  show_toast: vi.fn((message: string) => {
+    h.toasts.push(message);
+  }),
+}));
+
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
+import { set_key_trust_prompt_handler } from "@/services/key_trust_consent";
 
 const mounted: Array<{ root: Root; container: HTMLDivElement }> = [];
 
@@ -157,6 +165,14 @@ beforeEach(() => {
   h.verdict = "tampered";
   h.trusted = [];
   h.listeners = [];
+  h.toasts = [];
+  h.bundle = {
+    kem_identity_key: "kem",
+    signed_prekey: "spk",
+    signed_prekey_signature: "sig",
+    pq_kem_public_key: "pq",
+  };
+  set_key_trust_prompt_handler(async () => true);
 });
 
 afterEach(() => {
@@ -221,5 +237,28 @@ describe("RecipientIdentityNotice for a key that cannot be verified", () => {
     const container = await render(["tej-berlin@astermail.org"]);
 
     expect(container.innerHTML).toBe("");
+  });
+
+  it("refuses to trust a key that changed after the user reviewed it", async () => {
+    const container = await render(["tej-berlin@astermail.org"]);
+
+    set_key_trust_prompt_handler(async (changes) => {
+      expect(changes.map((change) => change.email)).toEqual([
+        "tej-berlin@astermail.org",
+      ]);
+      h.bundle = { ...h.bundle, kem_identity_key: "swapped" };
+
+      return true;
+    });
+
+    await act(async () => {
+      trust_button(container)?.dispatchEvent(
+        new MouseEvent("click", { bubbles: true }),
+      );
+    });
+
+    expect(h.trusted).toEqual([]);
+    expect(h.toasts).toEqual(["mail.trust_new_key_failed"]);
+    expect(trust_button(container)).not.toBeNull();
   });
 });
