@@ -10434,6 +10434,8 @@ export const fr = {
     link_text_optional: "Texte du lien (facultatif)",
     links_cleaned: "Liens nettoyés",
     load_external_content: "Charger le contenu externe",
+    external_content_hidden: "Le contenu externe est masqué",
+    show_external_content: "Afficher le contenu",
     image_loading_settings: "Paramètres des images",
     location_label: "Emplacement",
     message_details: "Détails du message",

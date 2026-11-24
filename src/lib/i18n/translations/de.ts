@@ -10415,6 +10415,8 @@ export const de = {
     link_text_optional: "Linktext (optional)",
     links_cleaned: "Links bereinigt",
     load_external_content: "Externe Inhalte laden",
+    external_content_hidden: "Externe Inhalte sind ausgeblendet",
+    show_external_content: "Inhalte anzeigen",
     image_loading_settings: "Bildeinstellungen",
     location_label: "Ort:",
     message_details: "Nachrichtendetails",

@@ -10250,6 +10250,8 @@ export const nl = {
     link_text_optional: "Linktekst (optioneel)",
     advanced_search: "Geavanceerd",
     load_external_content: "Externe inhoud laden",
+    external_content_hidden: "Externe inhoud is verborgen",
+    show_external_content: "Inhoud weergeven",
     image_loading_settings: "Afbeeldingsinstellingen",
     image: "afbeelding",
     images: "afbeeldingen",

@@ -9824,6 +9824,8 @@ export const ko = {
     forwarded_by_label: "전달자",
     new_reaction: "새 반응",
     load_external_content: "외부 콘텐츠 불러오기",
+    external_content_hidden: "외부 콘텐츠가 숨겨져 있습니다",
+    show_external_content: "콘텐츠 표시",
     image_loading_settings: "이미지 설정",
     image: "이미지",
     images: "이미지",

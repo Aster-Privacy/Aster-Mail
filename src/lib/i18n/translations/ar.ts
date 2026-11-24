@@ -10059,6 +10059,8 @@ export const ar = {
     forwarded_by_label: "أُعيد توجيهه بواسطة",
     new_reaction: "تفاعل جديد",
     load_external_content: "تحميل المحتوى الخارجي",
+    external_content_hidden: "المحتوى الخارجي مخفي",
+    show_external_content: "عرض المحتوى",
     image_loading_settings: "إعدادات الصور",
     images: "صور",
     tracker: "متتبع",

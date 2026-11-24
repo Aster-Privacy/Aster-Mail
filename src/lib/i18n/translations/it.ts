@@ -10308,6 +10308,8 @@ export const it = {
     forwarded_by_label: "Inoltrato da",
     new_reaction: "Nuova reazione",
     load_external_content: "Carica contenuto esterno",
+    external_content_hidden: "Il contenuto esterno è nascosto",
+    show_external_content: "Mostra contenuto",
     image_loading_settings: "Impostazioni immagini",
     image: "immagine",
     images: "immagini",

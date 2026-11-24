@@ -10146,6 +10146,8 @@ export const tr = {
     forwarded_by_label: "Yönlendiren",
     new_reaction: "Yeni tepki",
     load_external_content: "Harici içerik yükle",
+    external_content_hidden: "Harici içerik gizlendi",
+    show_external_content: "İçeriği göster",
     image_loading_settings: "Görsel ayarları",
     image: "görsel",
     images: "görseller",

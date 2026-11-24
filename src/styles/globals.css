@@ -5387,6 +5387,10 @@ html[data-input-modality="keyboard"]
   color: var(--accent-color) !important;
 }
 
+.aster_pill > .truncate {
+  line-height: 1.4;
+}
+
 .thread_message_actions .aster_pill_tonal {
   background: color-mix(
     in srgb,

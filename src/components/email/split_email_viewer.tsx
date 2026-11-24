@@ -388,20 +388,6 @@ export function SplitEmailViewer({
     }
   }, [email_id, viewer.email?.thread_token]);
 
-  const handle_toolbar_reply = useCallback(() => {
-    if (viewer.thread_messages.length === 0) {
-      viewer.handle_reply();
-
-      return;
-    }
-
-    window.dispatchEvent(
-      new CustomEvent("astermail:keyboard-reply", {
-        detail: { reply_all: false },
-      }),
-    );
-  }, [viewer]);
-
   useEffect(() => {
     const handle_keyboard_forward = () => {
       if (!on_forward || !viewer.email) return;
@@ -495,7 +481,7 @@ export function SplitEmailViewer({
 
   const viewer_content = (
     <div className="flex flex-col h-full bg-surf-primary">
-      <div className="flex items-center gap-1 px-2 @md:px-3 py-2 border-b border-edge-primary flex-shrink-0">
+      <div className="flex items-center gap-1 px-2 @md:px-3 min-h-[52px] border-b border-edge-primary flex-shrink-0">
         {email ? (
           <ViewerToolbarActions
             show_nav
@@ -509,7 +495,7 @@ export function SplitEmailViewer({
             email={email}
             folders={folders}
             hide_class="hidden @lg:flex"
-            icon_size="w-[18px] h-[18px]"
+            icon_size="w-5 h-5"
             is_archive_loading={viewer.is_archive_loading}
             is_archived={email.is_archived === true}
             is_pin_loading={viewer.is_pin_loading}
@@ -527,14 +513,12 @@ export function SplitEmailViewer({
             }
             on_folder_toggle={on_folder_toggle}
             on_move_out_of_bin={on_move_out_of_bin}
-            on_forward={on_forward ? viewer.handle_forward : undefined}
             on_navigate_next={on_navigate_next}
             on_navigate_prev={on_navigate_prev}
             on_not_spam={viewer.handle_not_spam}
             on_pin_toggle={viewer.handle_pin_toggle}
             on_print={viewer.handle_print}
             on_read_toggle={viewer.handle_read_toggle}
-            on_reply={on_reply ? handle_toolbar_reply : undefined}
             on_snooze={on_snooze}
             on_spam={
               viewer.mail_item?.item_type === "sent"

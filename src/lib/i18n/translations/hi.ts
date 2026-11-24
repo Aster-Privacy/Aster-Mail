@@ -9541,6 +9541,8 @@ export const hi = {
     subject_copied: "विषय कॉपी हो गया",
     load_all_thread_messages: "सभी संदेश लोड करें",
     load_external_content: "बाहरी सामग्री लोड करें",
+    external_content_hidden: "बाहरी सामग्री छिपी हुई है",
+    show_external_content: "सामग्री दिखाएं",
     image_loading_settings: "तस्वीर सेटिंग",
     image: "छवि",
     images: "छवियां",
