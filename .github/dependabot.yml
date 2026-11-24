@@ -9,6 +9,9 @@ updates:
       default-days: 7
     open-pull-requests-limit: 5
     groups:
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
       dev-dependencies:
         dependency-type: development
         update-types:
