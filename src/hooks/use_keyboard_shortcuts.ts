@@ -404,6 +404,12 @@ export function use_keyboard_shortcuts(
 
     const has_email = has_focused_email || has_viewed_email;
 
+    if (key === "l" && has_shift && !has_cmd) {
+      handle(h.on_lock_folders);
+
+      return;
+    }
+
     if (!has_email) return;
 
     if (key === "e" && !has_cmd && !has_shift) {

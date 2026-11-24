@@ -39,6 +39,9 @@ vi.mock("@/lib/i18n/context", () => {
 
 vi.mock("@/hooks/use_protected_folder", () => ({
   is_folder_unlocked: () => true,
+  count_unlocked_folders: () => 0,
+  lock_all_folders: () => 0,
+  lock_folder_by_id: () => true,
 }));
 
 vi.mock("@/contexts/preferences_context", () => ({

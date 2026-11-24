@@ -50,7 +50,10 @@ import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_document_title } from "@/hooks/use_document_title";
 import { use_keyboard_shortcuts } from "@/hooks/use_keyboard_shortcuts";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
-import { lock_all_folders } from "@/hooks/use_protected_folder";
+import {
+  lock_all_folders,
+  lock_folder_left_behind,
+} from "@/hooks/use_protected_folder";
 import {
   MAIL_EVENTS,
   emit_folders_changed,
@@ -1779,6 +1782,11 @@ export function use_index_page_state() {
       },
       on_command_palette: () => set_is_command_palette_open((open) => !open),
       on_show_shortcuts: () => set_is_shortcuts_open(true),
+      on_lock_folders: () => {
+        if (lock_all_folders() > 0) {
+          show_toast(t("common.folders_locked_notice"), "success");
+        }
+      },
     },
   });
 
@@ -1807,17 +1815,14 @@ export function use_index_page_state() {
   }, [current_view, location.state]);
 
   useEffect(() => {
-    const was_folder = previous_view.current.startsWith("folder-");
-    const is_folder = current_view.startsWith("folder-");
+    const left_view = previous_view.current;
 
     previous_view.current = current_view;
 
     if (
-      was_folder &&
-      !is_folder &&
-      preferences.protected_folder_lock_mode === "on_leave"
+      preferences.protected_folder_lock_mode === "on_leave" &&
+      lock_folder_left_behind(left_view, current_view)
     ) {
-      lock_all_folders();
       emit_folders_changed();
     }
   }, [current_view, preferences.protected_folder_lock_mode]);
